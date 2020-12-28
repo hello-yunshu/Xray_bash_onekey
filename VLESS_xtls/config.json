@@ -1,0 +1,41 @@
+{
+    "log": {
+        "access": "/var/log/xray/access.log",
+        "error": "/var/log/xray/error.log",
+        "loglevel": "warning"
+    },
+    "inbounds": [{
+        "port": 443,
+        "protocol": "vless",
+        "settings": {
+            "clients": [{
+                "id": "UUID",
+                "flow": "xtls-rprx-direct",
+                "level": 0,
+                "email": "me@idleleo.com"
+            }],
+            "decryption": "none",
+            "fallbacks": [{
+                "dest": 8080,
+                "xver": 1
+            }]
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "xtls",
+            "xtlsSettings": {
+                "minVersion": "1.2",
+                "alpn": [
+                    "http/1.1"
+                ],
+                "certificates": [{
+                    "certificateFile": "/data/xray.crt",
+                    "keyFile": "/data/xray.key"
+                }]
+            }
+        }
+    }],
+    "outbounds": [{
+        "protocol": "freedom"
+    }]
+}
