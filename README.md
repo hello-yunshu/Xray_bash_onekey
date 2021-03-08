@@ -1,26 +1,25 @@
 ## Xray 基于 Nginx 的 vless+ws+tls 一键安装脚本
 [![GitHub issues](https://img.shields.io/github/issues/paniy/Xray_bash_onekey)](https://github.com/paniy/Xray_bash_onekey/issues) [![GitHub forks](https://img.shields.io/github/forks/paniy/Xray_bash_onekey?color=%230885ce)](https://github.com/paniy/Xray_bash_onekey/network) [![GitHub stars](https://img.shields.io/github/stars/paniy/Xray_bash_onekey?color=%230885ce)](https://github.com/paniy/Xray_bash_onekey/stargazers)  
 
-> 感谢 JetBrains 提供的非商业开源软件开发授权
+> 感谢 JetBrains 提供的非商业开源软件开发授权。
 
-> Thanks for non-commercial open source development authorization by JetBrains
+> Thanks for non-commercial open source development authorization by JetBrains。
 
->本脚本来源于 https://github.com/wulabing/V2Ray_ws-tls_bash_onekey 特此感谢
+>本脚本来源于 https://github.com/wulabing/V2Ray_ws-tls_bash_onekey 特此感谢。
 
-### 优化修改版说明
-* 可以直接输入命令：`idleleo`管理脚本
-* 减少直接访问，隐藏代理域名，302跳转至www.idleleo.com/helloworld（了解配置过程可自行修改）
-* 阻止HTTP直接访问服务器IP，更安全
-* 优化tls 1.3加密配置
-* 减少无关元素
+### 使用说明
+* 可以直接输入命令：`idleleo`管理脚本。
+* 减少直接访问，隐藏代理域名，302跳转至www.idleleo.com/helloworld（了解配置过程可自行修改）。
+* 阻止HTTP直接访问服务器IP，更安全。
+* 使用来自[@DuckSoft](https://github.com/DuckSoft)的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91) (beta)，支持Qv2ray、V2rayN、V2rayNG。
 
 ### Telegram 群组
-* telegram 交流群:https://t.me/idleleo_chat
+* telegram 交流群:https://t.me/idleleo_chat。
 
 ### 准备工作
 * 准备一个域名，并将A记录添加好。
-* [Xray官方说明](https://github.com/XTLS)，了解 TLS WebSocket 及 Xray 相关信息
-* 安装好 wget
+* [Xray官方说明](https://github.com/XTLS)，了解 TLS WebSocket 及 Xray 相关信息。
+* 安装好 wget。
 
 ### 安装/更新方式（此为Xray版）
 VLess+websocket+TLS+Nginx+Website或xtls直连
@@ -29,14 +28,14 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 ```
 
 ### 注意事项
-* 如果你不了解脚本中各项设置的具体含义，除域名外，请使用脚本提供的默认值
-* 使用本脚本需要你拥有 Linux 基础及使用经验，了解计算机网络部分知识，计算机基础操作
-* 目前支持Debian 9+ / Ubuntu 18.04+ / Centos7+ ，部分Centos模板可能存在难以处理的编译问题，建议遇到编译问题时，请更换至其他系统模板
-* 群主仅提供极其有限的支持，如有问题可以询问群友
-* 每周日的凌晨3点，Nginx 会自动重启以配合证书的签发定时任务进行，在此期间，节点无法正常连接，预计持续时间为若干秒至两分钟
+* 如果你不了解脚本中各项设置的具体含义，除域名外，请使用脚本提供的默认值。
+* 使用本脚本需要你拥有 Linux 基础及使用经验，了解计算机网络部分知识，计算机基础操作。
+* 目前支持Debian 9+ / Ubuntu 18.04+ / Centos7+ ，部分Centos模板可能存在难以处理的编译问题，建议遇到编译问题时，请更换至其他系统模板。
+* 群主仅提供极其有限的支持，如有问题可以询问群友。
+* 每周日的凌晨3点，Nginx 会自动重启以配合证书的签发定时任务进行，在此期间，节点无法正常连接，预计持续时间为若干秒至两分钟。
 
 ### 更新日志
-> 更新内容请查看 CHANGELOG.md
+> 更新内容请查看 CHANGELOG.md。
 
 ### 鸣谢
 * ~~本脚本的另一个分支版本（Use Host）地址： https://github.com/dylanbai8/V2Ray_ws-tls_Website_onekey 请根据需求进行选择~~ 该作者可能已停止维护
@@ -45,9 +44,9 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 * 本脚本中 锐速4合1脚本修改版项目引用 https://github.com/ylx2016/Linux-NetSpeed 在此感谢 ylx2016
 
 ### 证书
-> 如果你已经拥有了你所使用域名的证书文件，可以将 crt 和 key 文件命名为 xray.crt xray.key 放在 /data 目录下（若目录不存在请先建目录），请注意证书文件权限及证书有效期，自定义证书有效期过期后请自行续签
+> 如果你已经拥有了你所使用域名的证书文件，可以将 crt 和 key 文件命名为 xray.crt xray.key 放在 /data 目录下（若目录不存在请先建目录），请注意证书文件权限及证书有效期，自定义证书有效期过期后请自行续签。
 
-脚本支持自动生成 let's encrypted 证书，有效期3个月，理论上自动生成的证书支持自动续签
+脚本支持自动生成 let's encrypted 证书，有效期3个月，理论上自动生成的证书支持自动续签。
 
 ### 查看客户端配置
 `cat ~/xray_info.txt`
@@ -55,12 +54,12 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 ### xray 简介
 
 * xray是一个优秀的开源网络代理工具，可以帮助你畅爽体验互联网，目前已经全平台支持Windows、Mac、Android、IOS、Linux等操作系统的使用。
-* 本脚本为一键完全配置脚本，在所有流程正常运行完毕后，直接按照输出结果设置客户端即可使用
-* 请注意：我们依然强烈建议你全方面的了解整个程序的工作流程及原理
+* 本脚本为一键完全配置脚本，在所有流程正常运行完毕后，直接按照输出结果设置客户端即可使用。
+* 请注意：我们依然强烈建议你全方面的了解整个程序的工作流程及原理。
 
 ### 建议单服务器仅搭建单个代理
-* 本脚本默认安装最新版本的Xray core
-* 建议使用默认的443端口作为连接端口
+* 本脚本默认安装最新版本的Xray core。
+* 建议使用默认的443端口作为连接端口。
 * 伪装内容可自行替换。
 
 ### 注意事项
@@ -68,7 +67,7 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 * 在尝试本脚本确实可用之前，请不要将本程序应用于生产环境中。
 * 该程序依赖 Nginx 实现相关功能，请使用 [LNMP](https://lnmp.org) 或其他类似携带 Nginx 脚本安装过 Nginx 的用户特别留意，使用本脚本可能会导致无法预知的错误（未测试，若存在，后续版本可能会处理本问题）。
 * xray 的部分功能依赖于系统时间，请确保您使用xray程序的系统 UTC 时间误差在三分钟之内，时区无关。
-* Centos 系统用户请预先在防火墙中放行程序相关端口（默认：80，443）
+* Centos 系统用户请预先在防火墙中放行程序相关端口（默认：80，443）。
 
 
 ### 启动方式
@@ -91,4 +90,4 @@ xray 客户端配置: `~/xray_info.txt`
 
 Nginx 目录： `/etc/nginx`
 
-证书文件: `/data/xray.key 和 /data/xray.crt` 请注意证书权限设置
+证书文件: `/data/xray.key 和 /data/xray.crt` 请注意证书权限设置。
