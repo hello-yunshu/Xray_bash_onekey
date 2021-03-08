@@ -21,7 +21,7 @@ Red="\033[31m"
 #Yellow="\033[33m"
 GreenBG="\033[42;37m"
 RedBG="\033[41;37m"
-YellowBG="\033[43;37m"
+YellowBG="\033[43;34m"
 Font="\033[0m"
 
 #notification information
@@ -31,7 +31,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.3.0.0"
+shell_version="1.3.0.4"
 shell_mode="None"
 version_cmp="/tmp/version_cmp.tmp"
 xray_conf_dir="/usr/local/etc/xray"
@@ -854,11 +854,11 @@ vless_urlquote()
 vless_qr_link_image() {
     #vless_link="vless://$(base64 -w 0 $xray_qr_config_file)"
     if [[ "$shell_mode" != "xtls" ]]; then
-        vless_link="vless://${UUID}@$(vless_urlquote ${domain}):${port}?path=%2F$(vless_urlquote ${camouflage})%2F&security=tls&encryption=auto&host=$(vless_urlquote ${domain})&type=ws#$(vless_urlquote ${domain})ws%E5%8D%8F%E8%AE%AE"
+        vless_link="vless://${UUID}@$(vless_urlquote ${domain}):${port}?path=%2F$(vless_urlquote ${camouflage})%2F&security=tls&encryption=none&host=$(vless_urlquote ${domain})&type=ws#$(vless_urlquote ${domain})+ws%E5%8D%8F%E8%AE%AE"
     else
-        vless_link="vless://${UUID}@$(vless_urlquote ${domain}):${port}?security=xtls&encryption=auto&headerType=none&type=tcp&flow=xtls-rprx-direct-udp443#$(vless_urlquote ${domain})xtls%E5%8D%8F%E8%AE%AE"
+        vless_link="vless://${UUID}@$(vless_urlquote ${domain}):${port}?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct-udp443#$(vless_urlquote ${domain})+xtls%E5%8D%8F%E8%AE%AE"
     fi
-    echo -e "${OK} ${GreenBG} VLESS 目前分享链接规范为实验阶段，请自行判断是否适用 ${Font}"
+    echo -e "${OK} ${YellowBG} VLESS 目前分享链接规范为实验阶段，请自行判断是否适用 ${Font}"
         {
             echo -e "$Red 二维码: $Font"
             echo -n "${vless_link}" | qrencode -o - -t utf8
@@ -1252,9 +1252,7 @@ menu() {
         bash idleleo
         ;;
     5)
-        read -rp "请输入alterID:" alterID
         modify_alterid
-        start_process_systemd
         bash idleleo
         ;;
     6)
