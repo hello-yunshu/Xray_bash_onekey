@@ -9,7 +9,8 @@
 
 ### 使用说明
 * 可以直接输入命令：`idleleo` 管理脚本。
-* 减少直接访问，隐藏代理域名，302 跳转至 https://www.idleleo.com/helloworld（了解配置过程可自行修改）。
+* 减少直接访问，隐藏代理域名
+* 访问域名 302 跳转至 https://www.idleleo.com/helloworld （了解配置过程可自行修改）。
 * 阻止 HTTP 接访问服务器 IP ，更安全。
 * 使用来自 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91) (beta)，支持Qv2ray、V2rayN、V2rayNG。
 * 使用来自 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 项目的提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，可以将自定义字符串映射至 VLESS UUID 。
@@ -36,9 +37,6 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 * 每周日的凌晨3点，Nginx 会自动重启以配合证书的签发定时任务进行，在此期间，节点无法正常连接，预计持续时间为若干秒至两分钟。
 * 分享链接为实验版本，不排除未来变动的可能，请自行确认客户端是否支持。
 * 自定义字符串映射至 UUID 需要客户端支持。
-
-### 更新日志
-> 更新内容请查看 CHANGELOG.md。
 
 ### 鸣谢
 * ~~本脚本的另一个分支版本（Use Host）地址： https://github.com/dylanbai8/V2Ray_ws-tls_Website_onekey 请根据需求进行选择~~ 该作者可能已停止维护
