@@ -31,7 +31,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.3.0.5"
+shell_version="1.4.0.0"
 shell_mode="None"
 version_cmp="/tmp/version_cmp.tmp"
 xray_conf_dir="/usr/local/etc/xray"
@@ -269,17 +269,40 @@ port_set() {
     fi
 }
 
+UUID_set() {
+    if [[ "on" == "$old_config_status" ]]; then
+        UUID="$(info_extraction '\"id\"')"
+        UUID5_char="$(info_extraction '\"id\"')"
+    else
+        echo -e "${OK} ${GreenBG} 是否需要自定义字符串映射为UUIDv5 [Y/N]? ${Font}"
+        read -r need_UUID5
+        case $need_UUID5 in
+        [yY][eE][sS] | [yY])
+            read -n 30 -rp "请输入自定义字符串（最多30字符）:" UUID5_char
+            UUID=$(UUIDv5_tranc ${UUID5_char})
+            echo -e "${OK} ${GreenBG} 自定义字符串:${UUID5_char} ${Font}"
+            echo -e "${OK} ${GreenBG} UUIDv5:${UUID} ${Font}"
+            ;;
+        [nN][oO] | [nN] | *)
+            UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            UUID=$(UUIDv5_tranc ${UUID5_char})
+            echo -e "${OK} ${GreenBG} UUID映射字符串:${UUID5_char} ${Font}"
+            echo -e "${OK} ${GreenBG} UUIDv5:${UUID} ${Font}"
+            #[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
+            echo -e "${OK} ${GreenBG} UUID:${UUID} ${Font}"
+            ;;
+    fi
+}
+
+UUIDv5_tranc() {
+    [[ $# = 0 ]] && return
+    echo "import uuid;UUID_NAMESPACE=uuid.UUID('00000000-0000-0000-0000-000000000000');print(uuid.uuid5(UUID_NAMESPACE,'$1'));" | python3
+}
+
 stop_service() {
     systemctl stop nginx
     systemctl stop xray
     echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
-}
-
-alterid_set() {
-    if [[ "on" != "$old_config_status" ]]; then
-        read -rp "请输入alterID（default:0 仅允许填数字）:" alterID
-        [[ -z ${alterID} ]] && alterID="0"
-    fi
 }
 
 modify_path() {
@@ -314,13 +337,10 @@ modify_inbound_port() {
 }
 
 modify_UUID() {
-    [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-    if [[ "on" == "$old_config_status" ]]; then
-        UUID="$(info_extraction '\"id\"')"
-    fi
     sed -i "/\"id\"/c \\\t\\t\\t\\t\"id\":\"${UUID}\"," ${xray_conf}
     judge "Xray UUID 修改"
     [ -f ${xray_qr_config_file} ] && sed -i "/\"id\"/c \\  \"id\": \"${UUID}\"," ${xray_qr_config_file}
+    [ -f ${xray_qr_config_file} ] && sed -i "/\"idc\"/c \\  \"idc\": \"${UUID5_char}\"," ${xray_qr_config_file}
     echo -e "${OK} ${GreenBG} UUID:${UUID} ${Font}"
 }
 
@@ -352,9 +372,9 @@ modify_nginx_other() {
 
 web_camouflage() {
     ##请注意 这里和LNMP脚本的默认路径冲突，千万不要在安装了LNMP的环境下使用本脚本，否则后果自负
-    rm -rf /home/wwwroot
-    mkdir -p /home/wwwroot
-    cd /home/wwwroot || exit
+    #rm -rf /home/wwwroot
+    #mkdir -p /home/wwwroot
+    #cd /home/wwwroot || exit
     #git clone https://github.com/wulabing/3DCEList.git
     judge "web 站点伪装"
 }
@@ -676,6 +696,7 @@ nginx_conf_add() {
     touch ${nginx_conf_dir}/xray.conf
     cat >${nginx_conf_dir}/xray.conf <<EOF
     server_tokens off;
+    types_hash_max_size 2048;
     server {
         listen 443 ssl http2;
         listen [::]:443 ssl http2;
@@ -692,6 +713,7 @@ nginx_conf_add() {
         ssl_early_data on;
         ssl_stapling on;
         ssl_stapling_verify on;
+        ssl_prefer_server_ciphers on;
         add_header Strict-Transport-Security "max-age=31536000";
 
         location /ray/
@@ -819,6 +841,7 @@ vless_qr_config_tls_ws() {
   "ps": "${domain}",
   "add": "${domain}",
   "port": "${port}",
+  "idc": "${UUID5_char}",
   "id": "${UUID}",
   "net": "ws",
   "type": "none",
@@ -836,6 +859,7 @@ vless_qr_config_xtls() {
   "ps": "${domain}",
   "add": "${domain}",
   "port": "${port}",
+  "idc": "${UUID5_char}",
   "id": "${UUID}",
   "net": "tcp",
   "type": "none",
@@ -908,6 +932,7 @@ basic_information() {
         echo -e "${Red} Xray 配置信息 ${Font}"
         echo -e "${Red} 地址（address）:${Font} $(info_extraction '\"add\"') "
         echo -e "${Red} 端口（port）：${Font} $(info_extraction '\"port\"') "
+        echo -e "${Red} UUIDv5映射字符串：${Font} $(info_extraction '\"idc\"')"
         echo -e "${Red} 用户id（UUID）：${Font} $(info_extraction '\"id\"')"
 
         echo -e "${Red} 加密（encryption）：${Font} none "
@@ -1079,6 +1104,7 @@ install_xray_ws_tls() {
     domain_check
     old_config_exist_check
     port_set
+    UUID_set
     stop_service
     xray_install
     port_exist_check 80
@@ -1108,6 +1134,7 @@ install_v2_xtls() {
     domain_check
     old_config_exist_check
     port_set
+    UUID_set
     stop_service
     xray_install
     port_exist_check 80
@@ -1208,7 +1235,7 @@ menu() {
     echo -e "${Green}2.${Font}  安装 Xray (xtls+Nginx)"
     echo -e "${Green}3.${Font}  升级 Xray"
     echo -e "—————————————— 配置变更 ——————————————"
-    echo -e "${Green}4.${Font}  变更 UUID"
+    echo -e "${Green}4.${Font}  变更 UUIDv5/映射字符串"
     echo -e "${Green}5.${Font}  变更 alterid"
     echo -e "${Green}6.${Font}  变更 port"
     echo -e "${Green}7.${Font}  变更 TLS 版本(仅ws+tls有效)"
@@ -1246,7 +1273,7 @@ menu() {
         bash idleleo
         ;;
     4)
-        read -rp "请输入UUID:" UUID
+        UUID_set
         modify_UUID
         start_process_systemd
         bash idleleo
