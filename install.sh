@@ -31,7 +31,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.4.0.2"
+shell_version="1.4.0.6"
 shell_mode="None"
 version_cmp="/tmp/version_cmp.tmp"
 xray_conf_dir="/usr/local/etc/xray"
@@ -97,13 +97,13 @@ check_system() {
 
     $INS install dbus
 
-    systemctl stop firewalld
-    systemctl disable firewalld
-    echo -e "${OK} ${GreenBG} firewalld 已关闭 ${Font}"
+    #systemctl stop firewalld
+    #systemctl disable firewalld
+    #echo -e "${OK} ${GreenBG} firewalld 已关闭 ${Font}"
 
-    systemctl stop ufw
-    systemctl disable ufw
-    echo -e "${OK} ${GreenBG} ufw 已关闭 ${Font}"
+    #systemctl stop ufw
+    #systemctl disable ufw
+    #echo -e "${OK} ${GreenBG} ufw 已关闭 ${Font}"
 }
 
 is_root() {
@@ -269,6 +269,24 @@ port_set() {
     fi
 }
 
+firewall_set() {
+    if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+        firewall-cmd --permanent --add-port=80/tcp
+        firewall-cmd --permanent --add-port=443/tcp
+        firewall-cmd --permanent --add-port=1024-65535/udp
+        firewall-cmd --permanent --add-port=${port}/tcp
+        firewall-cmd --permanent --add-port=${port}/udp
+        firewall-cmd --reload
+    else
+        ufw allow 80,443/tcp
+        ufw allow 1024:65535/udp
+        ufw allow ${port}
+        ufw reload
+    fi
+    echo -e "${OK} ${GreenBG} 开放防火墙相关端口 ${Font}"
+    echo -e "${OK} ${GreenBG} 配置Xray FullCone ${Font}"
+}
+
 UUID_set() {
     if [[ "on" == "$old_config_status" ]]; then
         UUID="$(info_extraction '\"id\"')"
@@ -360,10 +378,10 @@ modify_nginx_other() {
     sed -i "/server_name/c \\\t\\tserver_name ${domain};" ${nginx_conf}
     if [[ "$shell_mode" != "xtls" ]]; then
         sed -i "/location/c \\\tlocation ${camouflage}" ${nginx_conf}
-        sed -i "/proxy_pass/c \\\tproxy_pass http://127.0.0.1:${PORT};" ${nginx_conf}
+        sed -i "/proxy_pass/c \\\t\\tproxy_pass http://127.0.0.1:${PORT};" ${nginx_conf}
     fi
     sed -i "/return/c \\\t\\treturn 301 https://${domain}\$request_uri;" ${nginx_conf}
-    sed -i "/returc/c \\\t\\treturn 302 https://www.idleleo.com/helloworld;" ${nginx_conf}
+    sed -i "/returc/c \\\t\\t\\treturn 302 https://www.idleleo.com/helloworld;" ${nginx_conf}
     sed -i "/locatioc/c \\\t\\tlocation \/" ${nginx_conf}
     #sed -i "/#gzip  on;/c \\\t#gzip  on;\\n\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
     #sed -i "/\\tserver_tokens off;\\n\\tserver_tokens off;/c \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
@@ -537,7 +555,7 @@ nginx_install() {
     --with-http_secure_link_module \
     --with-http_sub_module \
     --with-http_v2_module \
-    --with-cc-opt='-O2' \
+    --with-cc-opt='-O3' \
     --with-ld-opt="-ljemalloc" \
     --with-openssl=../openssl-"$openssl_version"
     judge "编译检查"
@@ -574,7 +592,7 @@ ssl_install() {
 
 domain_check() {
     read -rp "请输入你的域名信息(eg:www.idleleo.com):" domain
-    echo "请选择 公网IP 为IPv4或IPv6"
+    echo "请选择 公网IP 为 IPv4 或 IPv6"
     echo "1: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
     read -rp "请输入：" ip_version
@@ -719,25 +737,25 @@ nginx_conf_add() {
 
         location /ray/
         {
-        proxy_redirect off;
-        proxy_pass http://127.0.0.1:10000;
-        proxy_http_version 1.1;
-        proxy_connect_timeout 180s;
-        proxy_send_timeout 180s;
-        proxy_read_timeout 1800s;
-        proxy_buffering off;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host \$http_host;
+            proxy_redirect off;
+            proxy_pass http://127.0.0.1:10000;
+            proxy_http_version 1.1;
+            proxy_connect_timeout 180s;
+            proxy_send_timeout 180s;
+            proxy_read_timeout 1800s;
+            proxy_buffering off;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host \$http_host;
 
         # Config for 0-RTT in TLSv1.3
-        proxy_set_header Early-Data \$ssl_early_data;
+            proxy_set_header Early-Data \$ssl_early_data;
         }
         locatioc
         {
-        returc
+            returc
         }
     }
     server {
@@ -766,7 +784,7 @@ nginx_conf_add_xtls() {
         add_header Strict-Transport-Security "max-age=63072000" always;
         locatioc
         {
-        returc
+            returc
         }
     }
     server {
@@ -1056,11 +1074,11 @@ mtproxy_sh() {
 uninstall_all() {
     stop_process_systemd
     systemctl disable xray
-    [[ -f $nginx_systemd_file ]] && rm -f $nginx_systemd_file
-    [[ -f $xray_systemd_file ]] && rm -f $xray_systemd_file
-    [[ -f $xray_systemd_file2 ]] && rm -f $xray_systemd_file2
-    [[ -d $xray_systemd_filed ]] && rm -f $xray_systemd_filed
-    [[ -d $xray_systemd_filed2 ]] && rm -f $xray_systemd_filed2
+    [[ -f $nginx_systemd_file ]] && rm -rf $nginx_systemd_file
+    [[ -f $xray_systemd_file ]] && rm -rf $xray_systemd_file
+    [[ -f $xray_systemd_file2 ]] && rm -rf $xray_systemd_file2
+    [[ -d $xray_systemd_filed ]] && rm -rf $xray_systemd_filed
+    [[ -d $xray_systemd_filed2 ]] && rm -rf $xray_systemd_filed2
     [[ -f $xray_bin_dir ]] && rm -rf $xray_bin_dir
     if [[ -d $nginx_dir ]]; then
         echo -e "${OK} ${Green} 是否卸载 Nginx [Y/N]? ${Font}"
@@ -1105,6 +1123,7 @@ install_xray_ws_tls() {
     domain_check
     old_config_exist_check
     port_set
+    firewall_set
     UUID_set
     stop_service
     xray_install
@@ -1135,6 +1154,7 @@ install_v2_xtls() {
     domain_check
     old_config_exist_check
     port_set
+    firewall_set
     UUID_set
     stop_service
     xray_install
@@ -1216,7 +1236,7 @@ idleleo_commend() {
             cd "$(dirname "$0")"
             pwd
         )/install.sh ${idleleo_commend_file}
-        echo -e "${Green}可以使用${Red}idleleo${Font}命令管理脚本\n${Font}"
+        echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本\n${Font}"
     fi
 }
 
@@ -1230,7 +1250,7 @@ menu() {
 
     idleleo_commend
 
-    echo -e "—————————————— 安装向导 ——————————————"""
+    echo -e "—————————————— 安装向导 ——————————————"
     echo -e "${Green}0.${Font}  升级 脚本"
     echo -e "${Green}1.${Font}  安装 Xray (Nginx+ws+tls)"
     echo -e "${Green}2.${Font}  安装 Xray (xtls+Nginx)"
@@ -1287,8 +1307,10 @@ menu() {
         read -rp "请输入连接端口:" port
         if grep -q "ws" $xray_qr_config_file; then
             modify_nginx_port
+            firewall_set
         elif grep -q "xtls" $xray_qr_config_file; then
             modify_inbound_port
+            firewall_set
         fi
         start_process_systemd
         bash idleleo
