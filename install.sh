@@ -31,7 +31,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.4.0.6"
+shell_version="1.4.1.2"
 shell_mode="None"
 version_cmp="/tmp/version_cmp.tmp"
 xray_conf_dir="/usr/local/etc/xray"
@@ -63,8 +63,6 @@ old_config_status="off"
 
 #简易随机数
 random_num=$((RANDOM % 12 + 4))
-#生成伪装路径
-camouflage="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})/"
 
 THREAD=$(grep 'processor' /proc/cpuinfo | sort -u | wc -l)
 
@@ -148,15 +146,15 @@ chrony_install() {
     chronyc sourcestats -v
     chronyc tracking -v
     date
-    read -rp "请确认时间是否准确,误差范围±3分钟(Y/N): " chrony_install
+    read -rp "请确认时间是否准确,误差范围±3分钟 [Y/N]?" chrony_install
     [[ -z ${chrony_install} ]] && chrony_install="Y"
     case $chrony_install in
     [yY][eE][sS] | [yY])
-        echo -e "${GreenBG} 继续安装 ${Font}"
+        echo -e "${OK} ${GreenBG} 继续安装 ${Font}"
         sleep 2
         ;;
     *)
-        echo -e "${RedBG} 安装终止 ${Font}"
+        echo -e "${Error} ${RedBG} 安装终止 ${Font}"
         exit 2
         ;;
     esac
@@ -287,12 +285,33 @@ firewall_set() {
     echo -e "${OK} ${GreenBG} 配置Xray FullCone ${Font}"
 }
 
+path_set() {
+    if [[ "on" == "$old_config_status" ]]; then
+        camouflage="$(grep '\"path\"' $xray_qr_config_file | awk -F '"' '{print $4}')"
+    else
+        echo -e "${GreenBG} 是否需要自定义伪装路径 [Y/N]? ${Font}"
+        read -r path_modify_fq
+        case $path_modify_fq in
+        [yY][eE][sS] | [yY])
+            read -rp "请输入自定义伪装路径(不需要“/”):" camouflage
+            camouflage="/${camouflage}/"
+            echo -e "${OK} ${GreenBG} 伪装路径为： ${camouflage} ${Font}"
+            ;;
+        *)
+            #生成伪装路径
+            camouflage="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})/"
+            echo -e "${OK} ${GreenBG} 伪装路径为： ${camouflage} ${Font}"
+            ;;
+        esac
+    fi
+}
+
 UUID_set() {
     if [[ "on" == "$old_config_status" ]]; then
         UUID="$(info_extraction '\"id\"')"
         UUID5_char="$(info_extraction '\"id\"')"
     else
-        echo -e "${OK} ${GreenBG} 是否需要自定义字符串映射为UUIDv5 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 是否需要自定义字符串映射为UUIDv5 [Y/N]? ${Font}"
         read -r need_UUID5
         case $need_UUID5 in
         [yY][eE][sS] | [yY])
@@ -324,23 +343,12 @@ stop_service() {
     echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
 }
 
-modify_path() {
-    if [[ "on" == "$old_config_status" ]]; then
-        camouflage="$(grep '\"path\"' $xray_qr_config_file | awk -F '"' '{print $4}')"
-    fi
-    if [[ "$shell_mode" != "xtls" ]]; then
-        sed -i "/\"path\"/c \\\t\\t\"path\":\"${camouflage}\"" ${xray_conf}
-    else
-        echo -e "${Warning} ${YellowBG} xtls 不支持 path ${Font}"
-    fi
-    judge "Xray 伪装路径 修改"
-}
-
 modify_alterid() {
     echo -e "${Warning} ${YellowBG} VLESS 不需要 alterid ${Font}"
 }
 
 modify_inbound_port() {
+    judge "Xray inbound_port 修改"
     if [[ "on" == "$old_config_status" ]]; then
         port="$(info_extraction '\"port\"')"
     fi
@@ -352,33 +360,25 @@ modify_inbound_port() {
         #        sed -i "/\"port\"/c  \    \"port\":${port}," ${xray_conf}
         sed -i "8c\        \"port\":${port}," ${xray_conf}
     fi
-    judge "Xray inbound_port 修改"
-}
-
-modify_UUID() {
-    sed -i "/\"id\"/c \                \"id\":\"${UUID}\"," ${xray_conf}
-    judge "Xray UUID 修改"
-    [ -f ${xray_qr_config_file} ] && sed -i "/\"id\"/c \\  \"id\": \"${UUID}\"," ${xray_qr_config_file}
-    [ -f ${xray_qr_config_file} ] && sed -i "/\"idc\"/c \\  \"idc\": \"${UUID5_char}\"," ${xray_qr_config_file}
-    echo -e "${OK} ${GreenBG} UUID:${UUID} ${Font}"
+    echo -e "${OK} ${GreenBG} inbound_port:${port} 设置成功 ${Font}"
 }
 
 modify_nginx_port() {
+    judge "Xray port 修改"
     if [[ "on" == "$old_config_status" ]]; then
         port="$(info_extraction '\"port\"')"
     fi
-    sed -i "/ssl http2;$/c \\\tlisten ${port} ssl http2;" ${nginx_conf}
+    sed -i "/ssl http2;$/c \\\t\\tlisten ${port} ssl http2;" ${nginx_conf}
     sed -i "4c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
-    judge "Xray port 修改"
     [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
-    echo -e "${OK} ${GreenBG} 端口号:${port} ${Font}"
+    echo -e "${OK} ${GreenBG} 端口号:${port} 设置成功 ${Font}"
 }
 
 modify_nginx_other() {
     sed -i "/server_name/c \\\t\\tserver_name ${domain};" ${nginx_conf}
     if [[ "$shell_mode" != "xtls" ]]; then
         sed -i "/location/c \\\tlocation ${camouflage}" ${nginx_conf}
-        sed -i "/proxy_pass/c \\\t\\tproxy_pass http://127.0.0.1:${PORT};" ${nginx_conf}
+        sed -i "/proxy_pass/c \\\t\\t\\tproxy_pass http://127.0.0.1:${PORT};" ${nginx_conf}
     fi
     sed -i "/return/c \\\t\\treturn 301 https://${domain}\$request_uri;" ${nginx_conf}
     sed -i "/returc/c \\\t\\t\\treturn 302 https://www.idleleo.com/helloworld;" ${nginx_conf}
@@ -389,6 +389,24 @@ modify_nginx_other() {
     #sed -i "27i \\\tproxy_intercept_errors on;"  ${nginx_dir}/conf/nginx.conf
 }
 
+modify_path() {
+    judge "Xray 伪装路径 修改"
+    if [[ "$shell_mode" != "xtls" ]]; then
+        sed -i "/\"path\"/c \                \"path\":\"${camouflage}\"" ${xray_conf}
+    else
+        echo -e "${Warning} ${YellowBG} xtls 不支持 path ${Font}"
+    fi
+    echo -e "${OK} ${GreenBG} 伪装路径:${camouflage} 设置成功 ${Font}"
+}
+
+modify_UUID() {
+    judge "Xray UUID 修改"
+    sed -i "/\"id\"/c \                \"id\":\"${UUID}\"," ${xray_conf}
+    [ -f ${xray_qr_config_file} ] && sed -i "/\"id\"/c \\  \"id\": \"${UUID}\"," ${xray_qr_config_file}
+    [ -f ${xray_qr_config_file} ] && sed -i "/\"idc\"/c \\  \"idc\": \"${UUID5_char}\"," ${xray_qr_config_file}
+    echo -e "${OK} ${GreenBG} UUID:${UUID} 设置成功 ${Font}"
+}
+
 web_camouflage() {
     ##请注意 这里和LNMP脚本的默认路径冲突，千万不要在安装了LNMP的环境下使用本脚本，否则后果自负
     #rm -rf /home/wwwroot
@@ -397,6 +415,7 @@ web_camouflage() {
     #git clone https://github.com/wulabing/3DCEList.git
     judge "web 站点伪装"
 }
+
 xray_privilege_escalation() {
     if [[ -n "$(grep "User=nobody" ${xray_systemd_file})" ]]; then
         #echo -e "${OK} ${GreenBG} 检测到Xray权限不足，将提高Xray权限至root ${Font}"
@@ -616,14 +635,14 @@ domain_check() {
         sleep 2
     else
         echo -e "${Error} ${RedBG} 请确保域名添加了正确的 A/AAAA 记录，否则将无法正常使用 Xray ${Font}"
-        echo -e "${Error} ${RedBG} 域名dns解析IP 与 本机IP 不匹配 是否继续安装？（y/n）${Font}" && read -r install
+        echo -e "${Error} ${RedBG} 域名dns解析IP 与 本机IP 不匹配 是否继续安装 [Y/N]? ${Font}" && read -r install
         case $install in
         [yY][eE][sS] | [yY])
             echo -e "${GreenBG} 继续安装 ${Font}"
             sleep 2
             ;;
         *)
-            echo -e "${RedBG} 安装终止 ${Font}"
+            echo -e "${Error} ${RedBG} 安装终止 ${Font}"
             exit 2
             ;;
         esac
@@ -695,7 +714,7 @@ xray_conf_add_xtls() {
 
 old_config_exist_check() {
     if [[ -f $xray_qr_config_file ]]; then
-        echo -e "${OK} ${GreenBG} 检测到旧配置文件，是否读取旧文件配置 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 检测到旧配置文件，是否读取旧文件配置 [Y/N]? ${Font}"
         read -r ssl_delete
         case $ssl_delete in
         [yY][eE][sS] | [yY])
@@ -901,7 +920,7 @@ vless_qr_link_image() {
     else
         vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction '\"add\"'))+xtls%E5%8D%8F%E8%AE%AE"
     fi
-    echo -e "${OK} ${YellowBG} VLESS 目前分享链接规范为实验阶段，请自行判断是否适用 ${Font}"
+    echo -e "${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段，请自行判断是否适用 ${Font}"
         {
             echo -e "$Red 二维码: $Font"
             echo -n "${vless_link}" | qrencode -o - -t utf8
@@ -974,7 +993,7 @@ show_information() {
 ssl_judge_and_install() {
     if [[ -f "/data/xray.key" || -f "/data/xray.crt" ]]; then
         echo "/data 目录下证书文件已存在"
-        echo -e "${OK} ${GreenBG} 是否删除 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 是否删除 [Y/N]? ${Font}"
         read -r ssl_delete
         case $ssl_delete in
         [yY][eE][sS] | [yY])
@@ -1049,15 +1068,15 @@ tls_type() {
 }
 
 show_access_log() {
-    [ -f ${xray_access_log} ] && tail -f ${xray_access_log} || echo -e "${RedBG}log文件不存在${Font}"
+    [ -f ${xray_access_log} ] && tail -f ${xray_access_log} || echo -e "${Error} ${RedBG} log文件不存在 ${Font}"
 }
 
 show_error_log() {
-    [ -f ${xray_error_log} ] && tail -f ${xray_error_log} || echo -e "${RedBG}log文件不存在${Font}"
+    [ -f ${xray_error_log} ] && tail -f ${xray_error_log} || echo -e "${Error} ${RedBG} log文件不存在 ${Font}"
 }
 
 ssl_update_manuel() {
-    [ -f ${amce_sh_file} ] && "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" || echo -e "${RedBG}证书签发工具不存在，请确认你是否使用了自己的证书${Font}"
+    [ -f ${amce_sh_file} ] && "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" || echo -e "${Error} ${RedBG} 证书签发工具不存在，请确认你是否使用了自己的证书 ${Font}"
     domain="$(info_extraction '\"add\"')"
     "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/xray.crt --keypath /data/xray.key --ecc
 }
@@ -1081,7 +1100,7 @@ uninstall_all() {
     [[ -d $xray_systemd_filed2 ]] && rm -rf $xray_systemd_filed2
     [[ -f $xray_bin_dir ]] && rm -rf $xray_bin_dir
     if [[ -d $nginx_dir ]]; then
-        echo -e "${OK} ${Green} 是否卸载 Nginx [Y/N]? ${Font}"
+        echo -e "${Green} 是否卸载 Nginx [Y/N]? ${Font}"
         read -r uninstall_nginx
         case $uninstall_nginx in
         [yY][eE][sS] | [yY])
@@ -1124,6 +1143,7 @@ install_xray_ws_tls() {
     old_config_exist_check
     port_set
     firewall_set
+    path_set
     UUID_set
     stop_service
     xray_install
@@ -1132,13 +1152,13 @@ install_xray_ws_tls() {
     nginx_exist_check
     xray_conf_add_tls
     nginx_conf_add
+    tls_type
     web_camouflage
     ssl_judge_and_install
     nginx_systemd
     vless_qr_config_tls_ws
     basic_information
     vless_link_image_choice
-    tls_type
     show_information
     start_process_systemd
     enable_process_systemd
@@ -1179,7 +1199,7 @@ update_sh() {
     echo "$ol_version" >$version_cmp
     echo "$shell_version" >>$version_cmp
     if [[ "$shell_version" < "$(sort -rV $version_cmp | head -1)" ]]; then
-        echo -e "${OK} ${GreenBG} 存在新版本，是否更新 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 存在新版本，是否更新 [Y/N]? ${Font}"
         read -r update_confirm
         case $update_confirm in
         [yY][eE][sS] | [yY])
@@ -1199,8 +1219,8 @@ update_sh() {
 }
 
 maintain() {
-    echo -e "${RedBG}该选项暂时无法使用${Font}"
-    echo -e "${RedBG}$1${Font}"
+    echo -e "${Error} ${RedBG} 该选项暂时无法使用 ${Font}"
+    echo -e "${Error} ${RedBG} $1 ${Font}"
     exit 0
 }
 
@@ -1367,7 +1387,7 @@ menu() {
         exit 0
         ;;
     *)
-        echo -e "${RedBG}请输入正确的数字${Font}"
+        echo -e "${Error} ${RedBG} 请输入正确的数字 ${Font}"
         bash idleleo
         ;;
     esac
