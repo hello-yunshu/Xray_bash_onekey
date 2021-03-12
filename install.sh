@@ -31,7 +31,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.4.1.2"
+shell_version="1.4.1.9"
 shell_mode="None"
 version_cmp="/tmp/version_cmp.tmp"
 xray_conf_dir="/usr/local/etc/xray"
@@ -59,7 +59,6 @@ nginx_version="1.18.0"
 openssl_version="1.1.1j"
 jemalloc_version="5.2.1"
 old_config_status="off"
-# v2ray_plugin_version="$(wget -qO- "https://github.com/shadowsocks/v2ray-plugin/tags" | grep -E "/shadowsocks/v2ray-plugin/releases/tag/" | head -1 | sed -r 's/.*tag\/v(.+)\">.*/\1/')"
 
 #简易随机数
 random_num=$((RANDOM % 12 + 4))
@@ -119,45 +118,9 @@ judge() {
         echo -e "${OK} ${GreenBG} $1 完成 ${Font}"
         sleep 1
     else
-        echo -e "${Error} ${RedBG} $1 失败${Font}"
+        echo -e "${Error} ${RedBG} $1 失败 ${Font}"
         exit 1
     fi
-}
-
-chrony_install() {
-    ${INS} -y install chrony
-    judge "安装 chrony 时间同步服务 "
-
-    timedatectl set-ntp true
-
-    if [[ "${ID}" == "centos" ]]; then
-        systemctl enable chronyd && systemctl restart chronyd
-    else
-        systemctl enable chrony && systemctl restart chrony
-    fi
-
-    judge "chronyd 启动 "
-
-    timedatectl set-timezone Asia/Shanghai
-
-    echo -e "${OK} ${GreenBG} 等待时间同步 ${Font}"
-    sleep 10
-
-    chronyc sourcestats -v
-    chronyc tracking -v
-    date
-    read -rp "请确认时间是否准确,误差范围±3分钟 [Y/N]?" chrony_install
-    [[ -z ${chrony_install} ]] && chrony_install="Y"
-    case $chrony_install in
-    [yY][eE][sS] | [yY])
-        echo -e "${OK} ${GreenBG} 继续安装 ${Font}"
-        sleep 2
-        ;;
-    *)
-        echo -e "${Error} ${RedBG} 安装终止 ${Font}"
-        exit 2
-        ;;
-    esac
 }
 
 dependency_install() {
@@ -185,7 +148,7 @@ dependency_install() {
         systemctl start cron && systemctl enable cron
 
     fi
-    judge "crontab 自启动配置 "
+    judge "crontab 自启动配置"
 
     ${INS} -y install bc
     judge "安装 bc"
@@ -294,13 +257,12 @@ path_set() {
         case $path_modify_fq in
         [yY][eE][sS] | [yY])
             read -rp "请输入自定义伪装路径(不需要“/”):" camouflage
-            camouflage="/${camouflage}/"
-            echo -e "${OK} ${GreenBG} 伪装路径为： ${camouflage} ${Font}"
+            camouflage="/${camouflage}"
+            echo -e "${OK} ${GreenBG} 伪装路径为: ${camouflage} ${Font}"
             ;;
         *)
-            #生成伪装路径
-            camouflage="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})/"
-            echo -e "${OK} ${GreenBG} 伪装路径为： ${camouflage} ${Font}"
+            camouflage="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            echo -e "${OK} ${GreenBG} 伪装路径为: ${camouflage} ${Font}"
             ;;
         esac
     fi
@@ -315,18 +277,18 @@ UUID_set() {
         read -r need_UUID5
         case $need_UUID5 in
         [yY][eE][sS] | [yY])
-            read -n 30 -rp "请输入自定义字符串（最多30字符）:" UUID5_char
+            read -rp "请输入自定义字符串（最多30字符）:" UUID5_char
             UUID=$(UUIDv5_tranc ${UUID5_char})
-            echo -e "${OK} ${GreenBG} 自定义字符串:${UUID5_char} ${Font}"
-            echo -e "${OK} ${GreenBG} UUIDv5:${UUID} ${Font}"
+            echo -e "${OK} ${GreenBG} 自定义字符串: ${UUID5_char} ${Font}"
+            echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
             ;;
         [nN][oO] | [nN] | *)
             UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             UUID=$(UUIDv5_tranc ${UUID5_char})
-            echo -e "${OK} ${GreenBG} UUID映射字符串:${UUID5_char} ${Font}"
-            echo -e "${OK} ${GreenBG} UUIDv5:${UUID} ${Font}"
+            echo -e "${OK} ${GreenBG} UUID映射字符串: ${UUID5_char} ${Font}"
+            echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
             #[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-            echo -e "${OK} ${GreenBG} UUID:${UUID} ${Font}"
+            echo -e "${OK} ${GreenBG} UUID: ${UUID} ${Font}"
             ;;
         esac
     fi
@@ -348,7 +310,6 @@ modify_alterid() {
 }
 
 modify_inbound_port() {
-    judge "Xray inbound_port 修改"
     if [[ "on" == "$old_config_status" ]]; then
         port="$(info_extraction '\"port\"')"
     fi
@@ -360,18 +321,19 @@ modify_inbound_port() {
         #        sed -i "/\"port\"/c  \    \"port\":${port}," ${xray_conf}
         sed -i "8c\        \"port\":${port}," ${xray_conf}
     fi
-    echo -e "${OK} ${GreenBG} inbound_port:${port} 设置成功 ${Font}"
+    judge "Xray inbound_port 修改"
+    echo -e "${OK} ${GreenBG} inbound_port: ${port} ${Font}"
 }
 
 modify_nginx_port() {
-    judge "Xray port 修改"
     if [[ "on" == "$old_config_status" ]]; then
         port="$(info_extraction '\"port\"')"
     fi
     sed -i "/ssl http2;$/c \\\t\\tlisten ${port} ssl http2;" ${nginx_conf}
     sed -i "4c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
     [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
-    echo -e "${OK} ${GreenBG} 端口号:${port} 设置成功 ${Font}"
+    judge "Xray port 修改"
+    echo -e "${OK} ${GreenBG} 端口号: ${port} ${Font}"
 }
 
 modify_nginx_other() {
@@ -390,21 +352,21 @@ modify_nginx_other() {
 }
 
 modify_path() {
-    judge "Xray 伪装路径 修改"
     if [[ "$shell_mode" != "xtls" ]]; then
         sed -i "/\"path\"/c \                \"path\":\"${camouflage}\"" ${xray_conf}
     else
         echo -e "${Warning} ${YellowBG} xtls 不支持 path ${Font}"
     fi
-    echo -e "${OK} ${GreenBG} 伪装路径:${camouflage} 设置成功 ${Font}"
+    judge "Xray 伪装路径 修改"
+    echo -e "${OK} ${GreenBG} 伪装路径: ${camouflage} ${Font}"
 }
 
 modify_UUID() {
-    judge "Xray UUID 修改"
     sed -i "/\"id\"/c \                \"id\":\"${UUID}\"," ${xray_conf}
+    judge "Xray UUID 修改"
     [ -f ${xray_qr_config_file} ] && sed -i "/\"id\"/c \\  \"id\": \"${UUID}\"," ${xray_qr_config_file}
     [ -f ${xray_qr_config_file} ] && sed -i "/\"idc\"/c \\  \"idc\": \"${UUID5_char}\"," ${xray_qr_config_file}
-    echo -e "${OK} ${GreenBG} UUID:${UUID} 设置成功 ${Font}"
+    echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
 }
 
 web_camouflage() {
@@ -614,7 +576,7 @@ domain_check() {
     echo "请选择 公网IP 为 IPv4 或 IPv6"
     echo "1: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
-    read -rp "请输入：" ip_version
+    read -rp "请输入: " ip_version
     [[ -z ${ip_version} ]] && ip_version=1
     echo -e "${OK} ${GreenBG} 正在获取 公网IP 信息，请耐心等待 ${Font}"
     if [[ $ip_version == 1 ]]; then
@@ -627,7 +589,7 @@ domain_check() {
         local_ip=$(curl https://api-ipv4.ip.sb/ip)
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
     fi
-    echo -e "域名dns解析IP：${domain_ip}"
+    echo -e "域名dns解析IP: ${domain_ip}"
     echo -e "本机IP: ${local_ip}"
     sleep 2
     if [[ ${local_ip} == ${domain_ip} ]]; then
@@ -922,9 +884,9 @@ vless_qr_link_image() {
     fi
     echo -e "${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段，请自行判断是否适用 ${Font}"
         {
+            echo -e "${Red} URL分享链接: ${vless_link} ${Font}"
             echo -e "$Red 二维码: $Font"
             echo -n "${vless_link}" | qrencode -o - -t utf8
-            echo -e "${Red} URL导入链接:${vless_link} ${Font}"
         } >>"${xray_info_file}"
 }
 
@@ -937,7 +899,7 @@ vless_quan_link_image() {
     #    {
     #        echo -e "$Red 二维码: $Font"
     #        echo -n "${vless_link}" | qrencode -o - -t utf8
-    #        echo -e "${Red} URL导入链接:${vless_link} ${Font}"
+    #        echo -e "${Red} URL分享链接:${vless_link} ${Font}"
     #    } >>"${xray_info_file}"
 }
 
@@ -945,7 +907,7 @@ vless_link_image_choice() {
     echo "请选择生成的链接种类"
     echo "1: V2RayNG/Qv2ray"
     #echo "2: quantumult"
-    read -rp "请输入：" link_version
+    read -rp "请输入: " link_version
     [[ -z ${link_version} ]] && link_version=1
     if [[ $link_version == 1 ]]; then
         vless_qr_link_image
@@ -968,20 +930,20 @@ basic_information() {
             echo -e "${OK} ${GreenBG} Xray+Nginx 安装成功 ${Font}"
         fi
         echo -e "${Red} Xray 配置信息 ${Font}"
-        echo -e "${Red} 地址（address）:${Font} $(info_extraction '\"add\"') "
-        echo -e "${Red} 端口（port）：${Font} $(info_extraction '\"port\"') "
-        echo -e "${Red} UUIDv5映射字符串：${Font} $(info_extraction '\"idc\"')"
-        echo -e "${Red} 用户id（UUID）：${Font} $(info_extraction '\"id\"')"
+        echo -e "${Red} 地址 (address):${Font} $(info_extraction '\"add\"') "
+        echo -e "${Red} 端口 (port):${Font} $(info_extraction '\"port\"') "
+        echo -e "${Red} UUIDv5映射字符串:${Font} $(info_extraction '\"idc\"')"
+        echo -e "${Red} 用户id (UUID):${Font} $(info_extraction '\"id\"')"
 
-        echo -e "${Red} 加密（encryption）：${Font} none "
-        echo -e "${Red} 传输协议（network）：${Font} $(info_extraction '\"net\"') "
-        echo -e "${Red} 伪装类型（type）：${Font} none "
+        echo -e "${Red} 加密 (encryption):${Font} none "
+        echo -e "${Red} 传输协议 (network):${Font} $(info_extraction '\"net\"') "
+        echo -e "${Red} 伪装类型 (type):${Font} none "
         if [[ "$shell_mode" != "xtls" ]]; then
-            echo -e "${Red} 路径（不要落下/）：${Font} $(info_extraction '\"path\"') "
-            echo -e "${Red} 底层传输安全：${Font} tls "
+            echo -e "${Red} 路径 (不要落下/):${Font} $(info_extraction '\"path\"') "
+            echo -e "${Red} 底层传输安全:${Font} tls "
         else
-            echo -e "${Red} 流控（flow）：${Font} xtls-rprx-direct "
-            echo -e "${Red} 底层传输安全：${Font} xtls "
+            echo -e "${Red} 流控 (flow):${Font} xtls-rprx-direct "
+            echo -e "${Red} 底层传输安全:${Font} xtls "
         fi
     } >"${xray_info_file}"
 }
@@ -1048,7 +1010,7 @@ tls_type() {
         echo "1: TLS1.1 TLS1.2 and TLS1.3（兼容模式）"
         echo "2: TLS1.2 and TLS1.3 (兼容模式)"
         echo "3: TLS1.3 only"
-        read -rp "请输入：" tls_version
+        read -rp "请输入: " tls_version
         [[ -z ${tls_version} ]] && tls_version=2
         if [[ $tls_version == 3 ]]; then
             sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.3;/' $nginx_conf
@@ -1136,7 +1098,6 @@ judge_mode() {
 install_xray_ws_tls() {
     is_root
     check_system
-    #    chrony_install
     dependency_install
     basic_optimization
     domain_check
@@ -1168,7 +1129,6 @@ install_xray_ws_tls() {
 install_v2_xtls() {
     is_root
     check_system
-    #    chrony_install
     dependency_install
     basic_optimization
     domain_check
@@ -1245,9 +1205,8 @@ list() {
 }
 
 idleleo_commend() {
-    #增加管理命令
     if [ -L "${idleleo_commend_file}" ]; then
-        echo -e "${Green}可以使用${Red}idleleo${Font}命令管理脚本\n${Font}"
+        echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本\n${Font}"
     else
         if [ -L "/usr/local/bin/idleleo" ]; then
             rm -f /usr/local/bin/idleleo
@@ -1293,7 +1252,7 @@ menu() {
     echo -e "${Green}16.${Font} 清空 证书遗留文件"
     echo -e "${Green}17.${Font} 退出 \n"
 
-    read -rp "请输入数字：" menu_num
+    read -rp "请输入数字: " menu_num
     case $menu_num in
     0)
         update_sh

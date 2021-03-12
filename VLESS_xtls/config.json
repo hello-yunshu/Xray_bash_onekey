@@ -26,6 +26,7 @@
             "xtlsSettings": {
                 "minVersion": "1.2",
                 "alpn": [
+                    "h2",
                     "http/1.1"
                 ],
                 "certificates": [{
