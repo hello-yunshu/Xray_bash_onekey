@@ -6,7 +6,7 @@
     },
     "inbounds": [{
         "port": 443,
-        "protocol": "vless",
+        "protocol": "VLESS",
         "settings": {
             "clients": [{
                 "id": "UUID",
