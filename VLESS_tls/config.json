@@ -8,11 +8,12 @@
         "port": 10086,
         "listen": "127.0.0.1",
         "tag": "VLESS-in",
-        "protocol": "vless",
+        "protocol": "VLESS",
         "settings": {
             "clients": [{
                 "id": "UUID",
-                "alterId": 0
+                "level": 0,
+                "email": "me@idleleo.com"
             }],
             "decryption": "none"
         },

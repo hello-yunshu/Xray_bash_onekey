@@ -31,7 +31,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.4.1.9"
+shell_version="1.4.2.2"
 shell_mode="None"
 version_cmp="/tmp/version_cmp.tmp"
 xray_conf_dir="/usr/local/etc/xray"
@@ -214,19 +214,14 @@ basic_optimization() {
 
 }
 
-port_alterid_set() {
-    if [[ "on" != "$old_config_status" ]]; then
-        read -rp "请输入连接端口（default:443）:" port
-        [[ -z ${port} ]] && port="443"
-        read -rp "请输入alterID（default:0 仅允许填数字）:" alterID
-        [[ -z ${alterID} ]] && alterID="0"
-    fi
-}
-
 port_set() {
     if [[ "on" != "$old_config_status" ]]; then
-        read -rp "请输入连接端口（default:443）:" port
+        read -rp "请输入连接端口 (default:443):" port
         [[ -z ${port} ]] && port="443"
+        if [[ $port -le 0 ]] || [[ $port -gt 65535 ]]; then
+            echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值 ${Font}"
+            exit 1
+        fi
     fi
 }
 
@@ -277,7 +272,7 @@ UUID_set() {
         read -r need_UUID5
         case $need_UUID5 in
         [yY][eE][sS] | [yY])
-            read -rp "请输入自定义字符串（最多30字符）:" UUID5_char
+            read -rp "请输入自定义字符串 (最多30字符):" UUID5_char
             UUID=$(UUIDv5_tranc ${UUID5_char})
             echo -e "${OK} ${GreenBG} 自定义字符串: ${UUID5_char} ${Font}"
             echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
@@ -331,8 +326,8 @@ modify_nginx_port() {
     fi
     sed -i "/ssl http2;$/c \\\t\\tlisten ${port} ssl http2;" ${nginx_conf}
     sed -i "4c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
-    [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
     judge "Xray port 修改"
+    [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
     echo -e "${OK} ${GreenBG} 端口号: ${port} ${Font}"
 }
 
@@ -355,7 +350,7 @@ modify_path() {
     if [[ "$shell_mode" != "xtls" ]]; then
         sed -i "/\"path\"/c \                \"path\":\"${camouflage}\"" ${xray_conf}
     else
-        echo -e "${Warning} ${YellowBG} xtls 不支持 path ${Font}"
+        echo -e "${Warning} ${YellowBG} XTLS 不支持 path ${Font}"
     fi
     judge "Xray 伪装路径 修改"
     echo -e "${OK} ${GreenBG} 伪装路径: ${camouflage} ${Font}"
@@ -864,7 +859,7 @@ vless_qr_config_xtls() {
   "net": "tcp",
   "type": "none",
   "host": "${domain}",
-  "tls": "xtls"
+  "tls": "XTLS"
 }
 EOF
 }
@@ -878,7 +873,7 @@ vless_urlquote()
 vless_qr_link_image() {
     #vless_link="vless://$(base64 -w 0 $xray_qr_config_file)"
     if [[ "$shell_mode" != "xtls" ]]; then
-        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?path=%2F$(vless_urlquote $(info_extraction '\"path\"'))%2F&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"add\"'))&type=ws#$(vless_urlquote $(info_extraction '\"add\"'))+ws%E5%8D%8F%E8%AE%AE"
+        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))?ed=2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"add\"'))&type=ws#$(vless_urlquote $(info_extraction '\"add\"'))+ws%E5%8D%8F%E8%AE%AE"
     else
         vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction '\"add\"'))+xtls%E5%8D%8F%E8%AE%AE"
     fi
@@ -887,6 +882,7 @@ vless_qr_link_image() {
             echo -e "${Red} URL分享链接: ${vless_link} ${Font}"
             echo -e "$Red 二维码: $Font"
             echo -n "${vless_link}" | qrencode -o - -t utf8
+            echo -e "\n"
         } >>"${xray_info_file}"
 }
 
@@ -925,9 +921,9 @@ info_extraction() {
 basic_information() {
     {
         if [[ "$shell_mode" != "xtls" ]]; then
-            echo -e "${OK} ${GreenBG} Xray+ws+tls 安装成功 ${Font}"
+            echo -e "${OK} ${GreenBG} Xray+Nginx+ws+tls 安装成功 ${Font}"
         else
-            echo -e "${OK} ${GreenBG} Xray+Nginx 安装成功 ${Font}"
+            echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx 安装成功 ${Font}"
         fi
         echo -e "${Red} Xray 配置信息 ${Font}"
         echo -e "${Red} 地址 (address):${Font} $(info_extraction '\"add\"') "
@@ -943,7 +939,7 @@ basic_information() {
             echo -e "${Red} 底层传输安全:${Font} tls "
         else
             echo -e "${Red} 流控 (flow):${Font} xtls-rprx-direct "
-            echo -e "${Red} 底层传输安全:${Font} xtls "
+            echo -e "${Red} 底层传输安全:${Font} XTLS "
         fi
     } >"${xray_info_file}"
 }
@@ -1005,9 +1001,9 @@ EOF
 
 tls_type() {
     if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ "$shell_mode" == "ws" ]]; then
-        echo "请选择支持的 TLS 版本（default:2）:"
+        echo "请选择支持的 TLS 版本 (default:2):"
         echo "建议选择 TLS1.2 and TLS1.3 (兼容模式)"
-        echo "1: TLS1.1 TLS1.2 and TLS1.3（兼容模式）"
+        echo "1: TLS1.1 TLS1.2 and TLS1.3 (兼容模式)"
         echo "2: TLS1.2 and TLS1.3 (兼容模式)"
         echo "3: TLS1.3 only"
         read -rp "请输入: " tls_version
@@ -1044,8 +1040,11 @@ ssl_update_manuel() {
 }
 
 bbr_boost_sh() {
-    [ -f "tcp.sh" ] && rm -rf ./tcp.sh
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+    if [[ -f "tcp.sh" ]]; then 
+        chmod +x tcp.sh && ./tcp.sh
+    else    
+        wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+    fi
 }
 
 mtproxy_sh() {
@@ -1113,10 +1112,10 @@ install_xray_ws_tls() {
     nginx_exist_check
     xray_conf_add_tls
     nginx_conf_add
-    tls_type
     web_camouflage
     ssl_judge_and_install
     nginx_systemd
+    tls_type
     vless_qr_config_tls_ws
     basic_information
     vless_link_image_choice
@@ -1232,20 +1231,20 @@ menu() {
     echo -e "—————————————— 安装向导 ——————————————"
     echo -e "${Green}0.${Font}  升级 脚本"
     echo -e "${Green}1.${Font}  安装 Xray (Nginx+ws+tls)"
-    echo -e "${Green}2.${Font}  安装 Xray (xtls+Nginx)"
+    echo -e "${Green}2.${Font}  安装 Xray (XTLS+Nginx)"
     echo -e "${Green}3.${Font}  升级 Xray"
     echo -e "—————————————— 配置变更 ——————————————"
     echo -e "${Green}4.${Font}  变更 UUIDv5/映射字符串"
     echo -e "${Green}5.${Font}  变更 alterid"
     echo -e "${Green}6.${Font}  变更 port"
-    echo -e "${Green}7.${Font}  变更 TLS 版本(仅ws+tls有效)"
+    echo -e "${Green}7.${Font}  变更 TLS 版本 (仅ws+tls有效)"
     echo -e "—————————————— 查看信息 ——————————————"
     echo -e "${Green}8.${Font}  查看 实时访问日志"
     echo -e "${Green}9.${Font}  查看 实时错误日志"
     echo -e "${Green}10.${Font} 查看 Xray 配置信息"
     echo -e "—————————————— 其他选项 ——————————————"
-    echo -e "${Green}11.${Font} 安装 4合1 bbr 锐速安装脚本"
-    echo -e "${Green}12.${Font} 安装 MTproxy(支持TLS混淆)"
+    echo -e "${Green}11.${Font} 安装 TCP 加速脚本"
+    echo -e "${Green}12.${Font} 安装 MTproxy (支持TLS混淆)"
     echo -e "${Green}13.${Font} 证书 有效期更新"
     echo -e "${Green}14.${Font} 卸载 Xray"
     echo -e "${Green}15.${Font} 更新 证书crontab计划任务"
