@@ -1,6 +1,7 @@
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
+stty erase ^?
 
 cd "$(
     cd "$(dirname "$0")" || exit
@@ -31,18 +32,21 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.4.2.2"
+shell_version="1.4.3.9"
 shell_mode="None"
+shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
 xray_conf_dir="/usr/local/etc/xray"
 nginx_conf_dir="/etc/nginx/conf/conf.d"
 xray_conf="${xray_conf_dir}/config.json"
 nginx_conf="${nginx_conf_dir}/xray.conf"
+idleleo_xray_dir="/usr/bin/idleleo-xray"
+idleleo_commend_file="/usr/bin/idleleo"
+ssl_chainpath="${idleleo_xray_dir}/data"
 nginx_dir="/etc/nginx"
 web_dir="/home/wwwroot"
 nginx_openssl_src="/usr/local/src"
 xray_bin_dir="/usr/local/bin/xray"
-idleleo_xray_dir="/usr/bin/idleleo-xray"
 xray_info_file="$HOME/xray_info.inf"
 xray_qr_config_file="/usr/local/vless_qr.json"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
@@ -54,15 +58,12 @@ xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="${idleleo_xray_dir}/ssl_update.sh"
-idleleo_commend_file="/usr/bin/idleleo"
+cert_group="nobody"
 nginx_version="1.18.0"
 openssl_version="1.1.1j"
 jemalloc_version="5.2.1"
 old_config_status="off"
-
-#简易随机数
 random_num=$((RANDOM % 12 + 4))
-
 THREAD=$(grep 'processor' /proc/cpuinfo | sort -u | wc -l)
 
 source '/etc/os-release'
@@ -90,6 +91,10 @@ check_system() {
     else
         echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内，安装中断 ${Font}"
         exit 1
+    fi
+
+    if [[ $(grep "nogroup" /etc/group) ]]; then
+        cert_group="nogroup"
     fi
 
     $INS install dbus
@@ -266,20 +271,20 @@ path_set() {
 UUID_set() {
     if [[ "on" == "$old_config_status" ]]; then
         UUID="$(info_extraction '\"id\"')"
-        UUID5_char="$(info_extraction '\"id\"')"
+        UUID5_char="$(info_extraction '\"idc\"')"
     else
         echo -e "${GreenBG} 是否需要自定义字符串映射为UUIDv5 [Y/N]? ${Font}"
         read -r need_UUID5
         case $need_UUID5 in
         [yY][eE][sS] | [yY])
             read -rp "请输入自定义字符串 (最多30字符):" UUID5_char
-            UUID=$(UUIDv5_tranc ${UUID5_char})
+            UUID="$(UUIDv5_tranc ${UUID5_char})"
             echo -e "${OK} ${GreenBG} 自定义字符串: ${UUID5_char} ${Font}"
             echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
             ;;
         [nN][oO] | [nN] | *)
             UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-            UUID=$(UUIDv5_tranc ${UUID5_char})
+            UUID="$(UUIDv5_tranc ${UUID5_char})"
             echo -e "${OK} ${GreenBG} UUID映射字符串: ${UUID5_char} ${Font}"
             echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
             #[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
@@ -380,9 +385,8 @@ xray_privilege_escalation() {
         systemctl stop xray
         #sed -i "s/User=nobody/User=root/" ${xray_systemd_file}
         chmod -fR a+rw /var/log/xray/
-        chown -fR nobody:nobody /var/log/xray/
-        chown -f nobody:nobody /data/xray.crt
-        chown -f nobody:nobody /data/xray.key
+        chown -fR nobody:${cert_group} /var/log/xray/
+        chown -R nobody:${cert_group} ${ssl_chainpath}/*
         systemctl daemon-reload
         systemctl start xray
         sleep 1
@@ -575,13 +579,13 @@ domain_check() {
     [[ -z ${ip_version} ]] && ip_version=1
     echo -e "${OK} ${GreenBG} 正在获取 公网IP 信息，请耐心等待 ${Font}"
     if [[ $ip_version == 1 ]]; then
-        local_ip=$(curl https://api-ipv4.ip.sb/ip)
+        local_ip=$(curl -4 ip.sb)
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
     elif [[ $ip_version == 2 ]]; then
-        local_ip=$(curl https://api-ipv6.ip.sb/ip)
+        local_ip=$(curl -6 ip.sb)
         domain_ip=$(ping -6 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
     else
-        local_ip=$(curl https://api-ipv4.ip.sb/ip)
+        local_ip=$(curl -4 ip.sb)
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
     fi
     echo -e "域名dns解析IP: ${domain_ip}"
@@ -635,12 +639,11 @@ acme() {
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force; then
         echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
         sleep 2
-        mkdir /data
-        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/xray.crt --keypath /data/xray.key --ecc --force; then
-            chmod -f a+rw /data/xray.crt
-            chmod -f a+rw /data/xray.key
-            chown -f nobody:nobody /data/xray.crt
-            chown -f nobody:nobody /data/xray.key
+        mkdir -p ${ssl_chainpath}
+        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
+            chmod -f a+rw ${ssl_chainpath}/xray.crt
+            chmod -f a+rw ${ssl_chainpath}/xray.key
+            chown -R nobody:${cert_group} ${ssl_chainpath}/*
             echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
             sleep 2
         fi
@@ -695,8 +698,8 @@ nginx_conf_add() {
     server {
         listen 443 ssl http2;
         listen [::]:443 ssl http2;
-        ssl_certificate       /data/xray.crt;
-        ssl_certificate_key   /data/xray.key;
+        ssl_certificate       /usr/bin/idleleo-xray/data/xray.crt;
+        ssl_certificate_key   /usr/bin/idleleo-xray/data/xray.key;
         ssl_protocols         TLSv1.3;
         ssl_ciphers           TLS13-AES-128-GCM-SHA256:TLS13-AES-256-GCM-SHA384:TLS13-CHACHA20-POLY1305-SHA256:TLS13-AES-128-CCM-8-SHA256:TLS13-AES-128-CCM-SHA256:EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+ECDSA+AES128:EECDH+aRSA+AES128:RSA+AES128:EECDH+ECDSA+AES256:EECDH+aRSA+AES256:RSA+AES256:EECDH+ECDSA+3DES:EECDH+aRSA+3DES:RSA+3DES:!MD5;
         server_name           serveraddr.com;
@@ -799,19 +802,6 @@ stop_process_systemd() {
 nginx_process_disabled() {
     [ -f $nginx_systemd_file ] && systemctl stop nginx && systemctl disable nginx
 }
-
-#debian 系 9 10 适配
-#rc_local_initialization(){
-#    if [[ -f /etc/rc.local ]];then
-#        chmod +x /etc/rc.local
-#    else
-#        touch /etc/rc.local && chmod +x /etc/rc.local
-#        echo "#!/bin/bash" >> /etc/rc.local
-#        systemctl start rc-local
-#    fi
-#
-#    judge "rc.local 配置"
-#}
 
 acme_cron_update() {
     wget -N -P /usr/bin/idleleo-xray --no-check-certificate "https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh"
@@ -936,10 +926,10 @@ basic_information() {
         echo -e "${Red} 伪装类型 (type):${Font} none "
         if [[ "$shell_mode" != "xtls" ]]; then
             echo -e "${Red} 路径 (不要落下/):${Font} $(info_extraction '\"path\"') "
-            echo -e "${Red} 底层传输安全:${Font} tls "
+            echo -e "${Red} 底层传输安全 (tls):${Font} tls "
         else
             echo -e "${Red} 流控 (flow):${Font} xtls-rprx-direct "
-            echo -e "${Red} 底层传输安全:${Font} XTLS "
+            echo -e "${Red} 底层传输安全 (tls):${Font} XTLS "
         fi
     } >"${xray_info_file}"
 }
@@ -949,14 +939,14 @@ show_information() {
 }
 
 ssl_judge_and_install() {
-    if [[ -f "/data/xray.key" || -f "/data/xray.crt" ]]; then
-        echo "/data 目录下证书文件已存在"
+    if [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]]; then
+        echo "证书文件已存在"
         echo -e "${GreenBG} 是否删除 [Y/N]? ${Font}"
         read -r ssl_delete
         case $ssl_delete in
         [yY][eE][sS] | [yY])
             delete_tls_key_and_crt
-            rm -rf /data/*
+            rm -rf ${ssl_chainpath}/*
             echo -e "${OK} ${GreenBG} 已删除 ${Font}"
             ;;
         *) ;;
@@ -964,11 +954,11 @@ ssl_judge_and_install() {
         esac
     fi
 
-    if [[ -f "/data/xray.key" || -f "/data/xray.crt" ]]; then
+    if [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]]; then
         echo "证书文件已存在"
     elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
         echo "证书文件已存在"
-        "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/xray.crt --keypath /data/xray.key --ecc
+        "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
         judge "证书应用"
     else
         ssl_install
@@ -1036,14 +1026,14 @@ show_error_log() {
 ssl_update_manuel() {
     [ -f ${amce_sh_file} ] && "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" || echo -e "${Error} ${RedBG} 证书签发工具不存在，请确认你是否使用了自己的证书 ${Font}"
     domain="$(info_extraction '\"add\"')"
-    "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/xray.crt --keypath /data/xray.key --ecc
+    "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
 }
 
 bbr_boost_sh() {
-    if [[ -f "tcp.sh" ]]; then 
-        chmod +x tcp.sh && ./tcp.sh
+    if [[ -f "${idleleo_xray_dir}/tcp.sh" ]]; then 
+        chmod +x ${idleleo_xray_dir}/tcp.sh && ${idleleo_xray_dir}/tcp.sh
     else    
-        wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+        wget -N --no-check-certificate -P ${idleleo_xray_dir} "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x ${idleleo_xray_dir}/tcp.sh && ${idleleo_xray_dir}/tcp.sh
     fi
 }
 
@@ -1088,8 +1078,10 @@ judge_mode() {
     if [ -f $xray_bin_dir ]; then
         if grep -q "ws" $xray_qr_config_file; then
             shell_mode="ws"
-        elif grep -q "xtls" $xray_qr_config_file; then
+            shell_mode_show="Nginx+ws+tls"
+        elif grep -q "XTLS" $xray_qr_config_file; then
             shell_mode="xtls"
+            shell_mode_show="XTLS+Nginx"
         fi
     fi
 }
@@ -1220,11 +1212,11 @@ idleleo_commend() {
 
 menu() {
     update_sh
-    echo -e "\t Xray 安装管理脚本 ${Red}[${shell_version}]${Font}"
-    echo -e "\t---authored by paniy---"
-    echo -e "\t---changed by www.idleleo.com---"
-    echo -e "\thttps://github.com/paniy\n"
-    echo -e "当前已安装版本:${shell_mode}\n"
+    echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font}"
+    echo -e "---authored by paniy---"
+    echo -e "---changed by www.idleleo.com---"
+    echo -e "https://github.com/paniy\n"
+    echo -e "当前已安装版本: ${shell_mode_show}\n"
 
     idleleo_commend
 
@@ -1254,7 +1246,6 @@ menu() {
     read -rp "请输入数字: " menu_num
     case $menu_num in
     0)
-        update_sh
         bash idleleo
         ;;
     1)
