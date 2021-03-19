@@ -5,8 +5,6 @@
 
 > Thanks for non-commercial open source development authorization by JetBrains。
 
->本脚本来源于 https://github.com/wulabing/V2Ray_ws-tls_bash_onekey 特此感谢。
-
 ### 使用说明
 * 可以直接输入命令：`idleleo` 管理脚本。
 * 减少直接访问，隐藏代理域名
@@ -39,7 +37,7 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 * 自定义字符串映射至 UUID 需要客户端支持。
 
 ### 鸣谢
-* ~~本脚本的另一个分支版本（Use Host）地址： https://github.com/dylanbai8/V2Ray_ws-tls_Website_onekey 请根据需求进行选择~~ 该作者可能已停止维护
+* 本脚本来源于 https://github.com/wulabing/V2Ray_ws-tls_bash_onekey 在此感谢 wulabing
 * 本脚本中 MTProxy-go TLS 版本项目引用 https://github.com/whunt1/onekeymakemtg 在此感谢 whunt1
 * 本脚本中 锐速4合1脚本原项目引用 https://www.94ish.me/1635.html 在此感谢
 * 本脚本中 锐速4合1脚本修改版项目引用 https://github.com/ylx2016/Linux-NetSpeed 在此感谢 ylx2016
