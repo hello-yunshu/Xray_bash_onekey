@@ -7,13 +7,14 @@ cd "$(
     cd "$(dirname "$0")" || exit
     pwd
 )" || exit
+
 #====================================================
 #	System Request:Debian 9+/Ubuntu 18.04+/Centos 7+
 #	Author:	paniy
-#	Dscription: Xray ws+tls onekey Management
+#	Dscription: Xray onekey Management
 #	Version: 2.0
 #	email:admin@idleleo.com
-#	Official document: www.xray.com
+#	Official document: www.idleleo.com
 #====================================================
 
 #fonts color
@@ -32,7 +33,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.4.5.1"
+shell_version="1.4.5.5"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -868,8 +869,8 @@ vless_qr_link_image() {
     else
         vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction '\"add\"'))+xtls%E5%8D%8F%E8%AE%AE"
     fi
-    echo -e "${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段，请自行判断是否适用 ${Font}"
         {
+            echo -e "\n${Red} —————————————— Xray 配置分享 —————————————— ${Font}"
             echo -e "${Red} URL分享链接: ${vless_link} ${Font}"
             echo -e "$Red 二维码: $Font"
             echo -n "${vless_link}" | qrencode -o - -t utf8
@@ -877,32 +878,17 @@ vless_qr_link_image() {
         } >>"${xray_info_file}"
 }
 
-vless_quan_link_image() {
-    echo "$(info_extraction '\"ps\"') = vless, $(info_extraction '\"add\"'), \
-    $(info_extraction '\"port\"'), chacha20-ietf-poly1305, "\"$(info_extraction '\"id\"')\"", over-tls=true, \
-    certificate=1, obfs=ws, obfs-path="\"$(info_extraction '\"path\"')\"", " >/tmp/vless_quan.tmp
-    vless_link="vless://$(base64 -w 0 /tmp/vless_quan.tmp)"
-    echo -e "${OK} ${GreenBG} VLESS 目前无分享链接规范 请手动复制粘贴配置信息至客户端 ${Font}"
-    #    {
-    #        echo -e "$Red 二维码: $Font"
-    #        echo -n "${vless_link}" | qrencode -o - -t utf8
-    #        echo -e "${Red} URL分享链接:${vless_link} ${Font}"
-    #    } >>"${xray_info_file}"
-}
-
 vless_link_image_choice() {
-    echo "请选择生成的链接种类"
-    echo "1: V2RayNG/Qv2ray"
-    #echo "2: quantumult"
+    echo "请选择生成的分享链接种类:"
+    echo "1: V2RayN/V2RayNG/Qv2ray"
     read -rp "请输入: " link_version
     [[ -z ${link_version} ]] && link_version=1
     if [[ $link_version == 1 ]]; then
         vless_qr_link_image
-    #elif [[ $link_version == 2 ]]; then
-    #    vless_quan_link_image
     else
         vless_qr_link_image
     fi
+    echo -e "${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段，请自行判断是否适用 ${Font}"
 }
 
 info_extraction() {
@@ -916,10 +902,11 @@ basic_information() {
         else
             echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx 安装成功 ${Font}"
         fi
-        echo -e "${Red} Xray 配置信息 ${Font}"
+        echo -e "${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段，请自行判断是否适用 ${Font}"
+        echo -e "\n${Red} —————————————— Xray 配置信息 —————————————— ${Font}"
         echo -e "${Red} 地址 (address):${Font} $(info_extraction '\"add\"') "
         echo -e "${Red} 端口 (port):${Font} $(info_extraction '\"port\"') "
-        echo -e "${Red} UUIDv5映射字符串:${Font} $(info_extraction '\"idc\"')"
+        echo -e "${Red} UUIDv5 映射字符串:${Font} $(info_extraction '\"idc\"')"
         echo -e "${Red} 用户id (UUID):${Font} $(info_extraction '\"id\"')"
 
         echo -e "${Red} 加密 (encryption):${Font} none "
@@ -1138,7 +1125,7 @@ install_v2_xtls() {
     nginx_systemd
     vless_qr_config_xtls
     basic_information
-    vless_qr_link_image
+    vless_link_image_choice
     show_information
     start_process_systemd
     enable_process_systemd
@@ -1213,9 +1200,9 @@ idleleo_commend() {
 menu() {
     update_sh
     echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font}"
-    echo -e "---authored by paniy---"
-    echo -e "---changed by www.idleleo.com---"
-    echo -e "https://github.com/paniy\n"
+    echo -e "--- authored by paniy ---"
+    echo -e "--- changed by www.idleleo.com ---"
+    echo -e "--- https://github.com/paniy ---\n"
     echo -e "当前已安装版本: ${shell_mode_show}\n"
 
     idleleo_commend
@@ -1298,11 +1285,7 @@ menu() {
         ;;
     10)
         basic_information
-        if [[ $shell_mode == "ws" ]]; then
-            vless_link_image_choice
-        else
-            vless_qr_link_image
-        fi
+        vless_qr_link_image
         show_information
         bash idleleo
         ;;
