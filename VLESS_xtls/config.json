@@ -30,8 +30,8 @@
                     "http/1.1"
                 ],
                 "certificates": [{
-                    "certificateFile": "/usr/bin/idleleo-xray/data/xray.crt",
-                    "keyFile": "/usr/bin/idleleo-xray/data/xray.key"
+                    "certificateFile": "/etc/idleleo/cert/xray.crt",
+                    "keyFile": "/etc/idleleo/cert/xray.key"
                 }]
             }
         }

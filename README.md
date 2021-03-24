@@ -43,7 +43,7 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 * 本脚本中 锐速4合1脚本修改版项目引用 https://github.com/ylx2016/Linux-NetSpeed 在此感谢 ylx2016
 
 ### 证书
-> 如果你已经拥有了你所使用域名的证书文件，可以将 crt 和 key 文件命名为 xray.crt xray.key 放在 /data 目录下（若目录不存在请先建目录），请注意证书文件权限及证书有效期，自定义证书有效期过期后请自行续签。
+> 如果你已经拥有了你所使用域名的证书文件，可以将 crt 和 key 文件命名为 xray.crt xray.key 放在 /etc/idleleo/cert 目录下（若目录不存在请先建目录），请注意证书文件权限及证书有效期，自定义证书有效期过期后请自行续签。
 
 脚本支持自动生成 let's encrypted 证书，有效期3个月，理论上自动生成的证书支持自动续签。
 
@@ -89,4 +89,4 @@ xray 客户端配置: `~/xray_info.txt`
 
 Nginx 目录： `/etc/nginx`
 
-证书文件: `/data/xray.key 和 /data/xray.crt` 请注意证书权限设置。
+证书文件: `/etc/idleleo/cert/xray.key 和 /etc/idleleo/cert/xray.crt` 请注意证书权限设置。
