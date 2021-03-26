@@ -33,7 +33,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.4.5.5"
+shell_version="1.4.5.6"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -60,7 +60,7 @@ amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="${idleleo_xray_dir}/ssl_update.sh"
 cert_group="nobody"
 nginx_version="1.18.0"
-openssl_version="1.1.1j"
+openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
 old_config_status="off"
 random_num=$((RANDOM % 12 + 4))
