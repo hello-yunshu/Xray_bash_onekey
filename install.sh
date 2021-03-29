@@ -33,7 +33,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.4.5.6"
+shell_version="1.4.5.7"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -316,10 +316,10 @@ modify_inbound_port() {
     if [[ "$shell_mode" != "xtls" ]]; then
         PORT=$((RANDOM + 10000))
         #        sed -i "/\"port\"/c  \    \"port\":${PORT}," ${xray_conf}
-        sed -i "8c\        \"port\":${PORT}," ${xray_conf}
+        sed -i "8c\        \"port\": ${PORT}," ${xray_conf}
     else
         #        sed -i "/\"port\"/c  \    \"port\":${port}," ${xray_conf}
-        sed -i "8c\        \"port\":${port}," ${xray_conf}
+        sed -i "8c\        \"port\": ${port}," ${xray_conf}
     fi
     judge "Xray inbound_port 修改"
     echo -e "${OK} ${GreenBG} inbound_port: ${port} ${Font}"
@@ -716,8 +716,8 @@ nginx_conf_add() {
 
         location /ray/
         {
-            proxy_redirect off;
             proxy_pass http://127.0.0.1:10000;
+            proxy_redirect off;
             proxy_http_version 1.1;
             proxy_connect_timeout 180s;
             proxy_send_timeout 180s;
