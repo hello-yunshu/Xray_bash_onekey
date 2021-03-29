@@ -26,8 +26,8 @@
             "xtlsSettings": {
                 "minVersion": "1.2",
                 "alpn": [
-                    "h2",
-                    "http/1.1"
+                    "http/1.1",
+                    "h2"
                 ],
                 "certificates": [{
                     "certificateFile": "/etc/idleleo/cert/xray.crt",
