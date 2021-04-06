@@ -33,7 +33,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.4.5.7"
+shell_version="1.5.0.4"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -230,19 +230,49 @@ port_set() {
     fi
 }
 
+inbound_port_set() {
+    echo -e "${GreenBG} 是否需要自定义inbound_port [Y/N]? ${Font}"
+    read -r inbound_port_modify_fq
+    case $inbound_port_modify_fq in
+    [yY][eE][sS] | [yY])
+        read -rp "请输入自定义inbound_port (请勿与连接端口相同！):" xport
+        if [[ $xport -le 0 ]] || [[ $xport -gt 65535 ]]; then
+            echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值 ${Font}"
+            exit 1
+        fi
+        echo -e "${OK} ${GreenBG} inbound_port为: ${xport} ${Font}"
+        ;;
+    *)
+        xport=$((RANDOM + 10000))
+        echo -e "${OK} ${GreenBG} inbound_port为: ${xport} ${Font}"
+        ;;
+    esac
+}
+
 firewall_set() {
     if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-        firewall-cmd --permanent --add-port=80/tcp
-        firewall-cmd --permanent --add-port=443/tcp
-        firewall-cmd --permanent --add-port=1024-65535/udp
-        firewall-cmd --permanent --add-port=${port}/tcp
-        firewall-cmd --permanent --add-port=${port}/udp
-        firewall-cmd --reload
+        if [[ "$shell_mode" != "wsonly" ]]; then
+            firewall-cmd --permanent --add-port=80/tcp
+            firewall-cmd --permanent --add-port=443/tcp
+            firewall-cmd --permanent --add-port=1024-65535/udp
+            firewall-cmd --permanent --add-port=${port}/tcp
+            firewall-cmd --permanent --add-port=${port}/udp
+            firewall-cmd --reload
+        else
+            firewall-cmd --permanent --add-port=${xport}/tcp
+            firewall-cmd --permanent --add-port=${xport}/udp
+            firewall-cmd --reload
+        fi
     else
-        ufw allow 80,443/tcp
-        ufw allow 1024:65535/udp
-        ufw allow ${port}
-        ufw reload
+        if [[ "$shell_mode" != "wsonly" ]]; then
+            ufw allow 80,443/tcp
+            ufw allow 1024:65535/udp
+            ufw allow ${port}
+            ufw reload
+        else
+            ufw allow ${xport}
+            ufw reload
+        fi
     fi
     echo -e "${OK} ${GreenBG} 开放防火墙相关端口 ${Font}"
     echo -e "${OK} ${GreenBG} 配置Xray FullCone ${Font}"
@@ -309,19 +339,28 @@ modify_alterid() {
     echo -e "${Warning} ${YellowBG} VLESS 不需要 alterid ${Font}"
 }
 
+modify_listen_address() {
+    sed -i "/\"listen\"/c \        \"listen\": \"0.0.0.0\"," ${xray_conf}
+}
+
 modify_inbound_port() {
     if [[ "on" == "$old_config_status" ]]; then
         port="$(info_extraction '\"port\"')"
     fi
-    if [[ "$shell_mode" != "xtls" ]]; then
-        PORT=$((RANDOM + 10000))
-        #        sed -i "/\"port\"/c  \    \"port\":${PORT}," ${xray_conf}
-        sed -i "8c\        \"port\": ${PORT}," ${xray_conf}
-    else
+    if [[ "$shell_mode" == "ws" ]]; then
+        #        sed -i "/\"port\"/c  \    \"port\":${xport}," ${xray_conf}
+        sed -i "8c\        \"port\": ${xport}," ${xray_conf}
+    elif [[ "$shell_mode" == "wsonly" ]]; then
+        port=${xport}
+        sed -i "8c\        \"port\": ${xport}," ${xray_conf}
+    elif [[ "$shell_mode" == "xtls" ]]; then
         #        sed -i "/\"port\"/c  \    \"port\":${port}," ${xray_conf}
         sed -i "8c\        \"port\": ${port}," ${xray_conf}
     fi
     judge "Xray inbound_port 修改"
+    if [[ "$shell_mode" != "ws" ]]; then
+        [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
+    fi
     echo -e "${OK} ${GreenBG} inbound_port: ${port} ${Font}"
 }
 
@@ -330,7 +369,7 @@ modify_nginx_port() {
         port="$(info_extraction '\"port\"')"
     fi
     sed -i "/ssl http2;$/c \\\t\\tlisten ${port} ssl http2;" ${nginx_conf}
-    sed -i "4c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
+    sed -i "8c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
     judge "Xray port 修改"
     [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
     echo -e "${OK} ${GreenBG} 端口号: ${port} ${Font}"
@@ -340,7 +379,7 @@ modify_nginx_other() {
     sed -i "/server_name/c \\\t\\tserver_name ${domain};" ${nginx_conf}
     if [[ "$shell_mode" != "xtls" ]]; then
         sed -i "/location/c \\\tlocation ${camouflage}" ${nginx_conf}
-        sed -i "/proxy_pass/c \\\t\\t\\tproxy_pass http://127.0.0.1:${PORT};" ${nginx_conf}
+        sed -i "/xray-serverc/c \\\t\\t\\tserver 127.0.0.1:${xport} weight=2 max_fails=10 fail_timeout=1;" ${nginx_conf}
     fi
     sed -i "/return/c \\\t\\treturn 301 https://${domain}\$request_uri;" ${nginx_conf}
     sed -i "/returc/c \\\t\\t\\treturn 302 https://www.idleleo.com/helloworld;" ${nginx_conf}
@@ -610,6 +649,23 @@ domain_check() {
     fi
 }
 
+ip_check() {
+    echo "请选择 公网IP 为 IPv4 或 IPv6"
+    echo "1: IPv4 (默认)"
+    echo "2: IPv6 (不推荐)"
+    read -rp "请输入: " ip_version
+    [[ -z ${ip_version} ]] && ip_version=1
+    echo -e "${OK} ${GreenBG} 正在获取 公网IP 信息，请耐心等待 ${Font}"
+    if [[ $ip_version == 1 ]]; then
+        local_ip=$(curl -4 ip.sb)
+    elif [[ $ip_version == 2 ]]; then
+        local_ip=$(curl -6 ip.sb)
+    else
+        local_ip=$(curl -4 ip.sb)
+    fi
+    echo -e "本机IP: ${local_ip}"
+}
+
 port_exist_check() {
     if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
         echo -e "${OK} ${GreenBG} $1 端口未被占用 ${Font}"
@@ -654,18 +710,16 @@ acme() {
     fi
 }
 
-xray_conf_add_tls() {
+xray_conf_add() {
     cd ${xray_conf_dir} || exit
-    wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_tls/config.json -O config.json
-    modify_path
-    modify_alterid
-    modify_inbound_port
-    modify_UUID
-}
-
-xray_conf_add_xtls() {
-    cd ${xray_conf_dir} || exit
-    wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_xtls/config.json -O config.json
+    if [[ "$shell_mode" != "xtls" ]]; then
+        wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_tls/config.json -O config.json
+    else
+        wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_xtls/config.json -O config.json
+    fi
+    if [[ "$shell_mode" == "wsonly" ]]; then
+        modify_listen_address
+    fi
     modify_path
     modify_alterid
     modify_inbound_port
@@ -695,6 +749,9 @@ nginx_conf_add() {
     cat >${nginx_conf_dir}/xray.conf <<EOF
     server_tokens off;
     types_hash_max_size 2048;
+    upstream xray-server { 
+        xray-serverc
+    }
     server {
         listen 443 ssl http2;
         listen [::]:443 ssl http2;
@@ -716,8 +773,8 @@ nginx_conf_add() {
 
         location /ray/
         {
-            proxy_pass http://127.0.0.1:10000;
-            proxy_redirect off;
+            proxy_pass http://xray-server;
+            proxy_redirect default;
             proxy_http_version 1.1;
             proxy_connect_timeout 180s;
             proxy_send_timeout 180s;
@@ -779,18 +836,22 @@ EOF
 }
 
 start_process_systemd() {
-    systemctl daemon-reload
-    systemctl restart nginx
-    judge "Nginx 启动"
+    if [[ "$shell_mode" != "wsonly" ]]; then
+        systemctl daemon-reload
+        systemctl restart nginx
+        judge "Nginx 启动"
+    fi
     systemctl restart xray
     judge "Xray 启动"
 }
 
 enable_process_systemd() {
+    if [[ "$shell_mode" != "wsonly" ]]; then
+        systemctl enable nginx
+        judge "设置 Nginx 开机自启"
+    fi
     systemctl enable xray
     judge "设置 xray 开机自启"
-    systemctl enable nginx
-    judge "设置 Nginx 开机自启"
 }
 
 stop_process_systemd() {
@@ -830,10 +891,9 @@ vless_qr_config_tls_ws() {
   "idc": "${UUID5_char}",
   "id": "${UUID}",
   "net": "ws",
-  "type": "none",
   "host": "${domain}",
   "path": "${camouflage}",
-  "tls": "tls"
+  "tls": "TLS"
 }
 EOF
 }
@@ -849,9 +909,25 @@ vless_qr_config_xtls() {
   "idc": "${UUID5_char}",
   "id": "${UUID}",
   "net": "tcp",
-  "type": "none",
   "host": "${domain}",
   "tls": "XTLS"
+}
+EOF
+}
+
+vless_qr_config_ws_only() {
+    mkdir -p ${idleleo_xray_dir}/info
+    cat >$xray_qr_config_file <<-EOF
+{
+  "v": "2",
+  "ps": "${local_ip}",
+  "add": "${local_ip}",
+  "port": "${xport}",
+  "idc": "${UUID5_char}",
+  "id": "${UUID}",
+  "net": "ws",
+  "path": "${camouflage}",
+  "tls": "none"
 }
 EOF
 }
@@ -864,10 +940,12 @@ vless_urlquote()
 
 vless_qr_link_image() {
     #vless_link="vless://$(base64 -w 0 $xray_qr_config_file)"
-    if [[ "$shell_mode" != "xtls" ]]; then
+    if [[ "$shell_mode" == "ws" ]]; then
         vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))?ed=2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"add\"'))&type=ws#$(vless_urlquote $(info_extraction '\"add\"'))+ws%E5%8D%8F%E8%AE%AE"
-    else
+    elif [[ "$shell_mode" == "xtls" ]]; then
         vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction '\"add\"'))+xtls%E5%8D%8F%E8%AE%AE"
+    elif [[ "$shell_mode" == "wsonly" ]]; then
+        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))?ed=2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction '\"add\"'))+%E5%8D%95%E7%8B%ACws%E5%8D%8F%E8%AE%AE"
     fi
         {
             echo -e "\n${Red} —————————————— Xray 配置分享 —————————————— ${Font}"
@@ -897,10 +975,12 @@ info_extraction() {
 
 basic_information() {
     {
-        if [[ "$shell_mode" != "xtls" ]]; then
+        if [[ "$shell_mode" == "xtls" ]]; then
             echo -e "${OK} ${GreenBG} Xray+Nginx+ws+tls 安装成功 ${Font}"
-        else
+        elif  [[ "$shell_mode" == "ws" ]]; then
             echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx 安装成功 ${Font}"
+        elif  [[ "$shell_mode" == "wsonly" ]]; then
+            echo -e "${OK} ${GreenBG} ws ONLY 安装成功 ${Font}"
         fi
         echo -e "${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段，请自行判断是否适用 ${Font}"
         echo -e "\n${Red} —————————————— Xray 配置信息 —————————————— ${Font}"
@@ -911,14 +991,12 @@ basic_information() {
 
         echo -e "${Red} 加密 (encryption):${Font} none "
         echo -e "${Red} 传输协议 (network):${Font} $(info_extraction '\"net\"') "
-        echo -e "${Red} 伪装类型 (type):${Font} none "
         if [[ "$shell_mode" != "xtls" ]]; then
             echo -e "${Red} 路径 (不要落下/):${Font} $(info_extraction '\"path\"') "
-            echo -e "${Red} 底层传输安全 (tls):${Font} tls "
         else
             echo -e "${Red} 流控 (flow):${Font} xtls-rprx-direct "
-            echo -e "${Red} 底层传输安全 (tls):${Font} XTLS "
         fi
+        echo -e "${Red} 底层传输安全 (tls):${Font} $(info_extraction '\"tls\"') "
     } >"${xray_info_file}"
 }
 
@@ -1063,12 +1141,15 @@ delete_tls_key_and_crt() {
 
 judge_mode() {
     if [ -f $xray_bin_dir ]; then
-        if grep -q "ws" $xray_qr_config_file; then
+        if [[ $(info_extraction '\"tls\"') == "TLS" ]]; then
             shell_mode="ws"
             shell_mode_show="Nginx+ws+tls"
-        elif grep -q "XTLS" $xray_qr_config_file; then
+        elif [[ $(info_extraction '\"tls\"') == "XTLS" ]]; then
             shell_mode="xtls"
             shell_mode_show="XTLS+Nginx"
+        elif [[ $(info_extraction '\"tls\"') == "none" ]]; then
+            shell_mode="wsonly"
+            shell_mode_show="ws ONLY"
         fi
     fi
 }
@@ -1081,6 +1162,7 @@ install_xray_ws_tls() {
     domain_check
     old_config_exist_check
     port_set
+    inbound_port_set
     firewall_set
     path_set
     UUID_set
@@ -1089,7 +1171,7 @@ install_xray_ws_tls() {
     port_exist_check 80
     port_exist_check "${port}"
     nginx_exist_check
-    xray_conf_add_tls
+    xray_conf_add
     nginx_conf_add
     web_camouflage
     ssl_judge_and_install
@@ -1104,7 +1186,7 @@ install_xray_ws_tls() {
     acme_cron_update
 }
 
-install_v2_xtls() {
+install_xray_xtls() {
     is_root
     check_system
     dependency_install
@@ -1120,7 +1202,7 @@ install_v2_xtls() {
     port_exist_check "${port}"
     nginx_exist_check
     nginx_conf_add_xtls
-    xray_conf_add_xtls
+    xray_conf_add
     ssl_judge_and_install
     nginx_systemd
     vless_qr_config_xtls
@@ -1130,6 +1212,29 @@ install_v2_xtls() {
     start_process_systemd
     enable_process_systemd
     acme_cron_update
+}
+
+install_xray_ws_only() {
+    is_root
+    check_system
+    dependency_install
+    basic_optimization
+    ip_check
+    old_config_exist_check
+    inbound_port_set
+    firewall_set
+    path_set
+    UUID_set
+    stop_service
+    xray_install
+    port_exist_check "${xport}"
+    xray_conf_add
+    vless_qr_config_ws_only
+    basic_information
+    vless_link_image_choice
+    show_information
+    start_process_systemd
+    enable_process_systemd
 }
 
 update_sh() {
@@ -1211,24 +1316,25 @@ menu() {
     echo -e "${Green}0.${Font}  升级 脚本"
     echo -e "${Green}1.${Font}  安装 Xray (Nginx+ws+tls)"
     echo -e "${Green}2.${Font}  安装 Xray (XTLS+Nginx)"
-    echo -e "${Green}3.${Font}  升级 Xray"
+    echo -e "${Green}3.${Font}  安装 Xray (ws ONLY)"
+    echo -e "${Green}4.${Font}  升级 Xray"
     echo -e "—————————————— 配置变更 ——————————————"
-    echo -e "${Green}4.${Font}  变更 UUIDv5/映射字符串"
-    echo -e "${Green}5.${Font}  变更 alterid"
-    echo -e "${Green}6.${Font}  变更 port"
-    echo -e "${Green}7.${Font}  变更 TLS 版本 (仅ws+tls有效)"
+    echo -e "${Green}5.${Font}  变更 UUIDv5/映射字符串"
+    echo -e "${Green}6.${Font}  变更 alterid"
+    echo -e "${Green}7.${Font}  变更 port"
+    echo -e "${Green}8.${Font}  变更 TLS 版本 (仅ws+tls有效)"
     echo -e "—————————————— 查看信息 ——————————————"
-    echo -e "${Green}8.${Font}  查看 实时访问日志"
-    echo -e "${Green}9.${Font}  查看 实时错误日志"
-    echo -e "${Green}10.${Font} 查看 Xray 配置信息"
+    echo -e "${Green}9.${Font}  查看 实时访问日志"
+    echo -e "${Green}10.${Font} 查看 实时错误日志"
+    echo -e "${Green}11.${Font} 查看 Xray 配置信息"
     echo -e "—————————————— 其他选项 ——————————————"
-    echo -e "${Green}11.${Font} 安装 TCP 加速脚本"
-    echo -e "${Green}12.${Font} 安装 MTproxy (不推荐使用)"
-    echo -e "${Green}13.${Font} 证书 有效期更新"
-    echo -e "${Green}14.${Font} 卸载 Xray"
-    echo -e "${Green}15.${Font} 更新 证书crontab计划任务"
-    echo -e "${Green}16.${Font} 清空 证书遗留文件"
-    echo -e "${Green}17.${Font} 退出 \n"
+    echo -e "${Green}12.${Font} 安装 TCP 加速脚本"
+    echo -e "${Green}13.${Font} 安装 MTproxy (不推荐使用)"
+    echo -e "${Green}14.${Font} 证书 有效期更新"
+    echo -e "${Green}15.${Font} 卸载 Xray"
+    echo -e "${Green}16.${Font} 更新 证书crontab计划任务"
+    echo -e "${Green}17.${Font} 清空 证书遗留文件"
+    echo -e "${Green}18.${Font} 退出 \n"
 
     read -rp "请输入数字: " menu_num
     case $menu_num in
@@ -1242,80 +1348,93 @@ menu() {
         ;;
     2)
         shell_mode="xtls"
-        install_v2_xtls
+        install_xray_xtls
         bash idleleo
         ;;
     3)
-        xray_update
+        
+        echo -e "${Warning} ${YellowBG} 此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/N]? ${Font}"
+        read -r wsonly_fq
+        case $wsonly_fq in
+        [yY][eE][sS] | [yY])
+            shell_mode="wsonly"
+            install_xray_ws_only
+            ;;
+        *) ;;
+        esac
         bash idleleo
         ;;
     4)
+        xray_update
+        bash idleleo
+        ;;
+    5)
         UUID_set
         modify_UUID
         start_process_systemd
         bash idleleo
         ;;
-    5)
+    6)
         modify_alterid
         bash idleleo
         ;;
-    6)
-        read -rp "请输入连接端口:" port
-        if grep -q "ws" $xray_qr_config_file; then
+    7)
+        read -rp "请输入连接端口/inbound_port:" port
+        if [[ $(info_extraction '\"tls\"') == "TLS" ]]; then
             modify_nginx_port
             firewall_set
-        elif grep -q "xtls" $xray_qr_config_file; then
+        else
             modify_inbound_port
             firewall_set
         fi
         start_process_systemd
         bash idleleo
         ;;
-    7)
+    8)
         tls_type
         bash idleleo
         ;;
-    8)
+    9)
         show_access_log
         bash idleleo
         ;;
-    9)
+    10)
         show_error_log
         bash idleleo
         ;;
-    10)
+    11)
         basic_information
         vless_qr_link_image
         show_information
         bash idleleo
         ;;
-    11)
+    12)
         bbr_boost_sh
         bash idleleo
         ;;
-    12)
+    13)
         mtproxy_sh
         bash idleleo
         ;;
-    13)
+    14)
         stop_process_systemd
         ssl_update_manuel
         start_process_systemd
         bash idleleo
         ;;
-    14)
+    15)
         uninstall_all
         bash idleleo
         ;;
-    15)
+    16)
         acme_cron_update
         bash idleleo
         ;;
-    16)
+    17)
         delete_tls_key_and_crt
         bash idleleo
         ;;
-    17)
+    18)
         exit 0
         ;;
     *)
