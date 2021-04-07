@@ -84,6 +84,6 @@ Xray 服务端配置：`/etc/xray/config.json`
 
 Nginx 目录： `/etc/nginx`
 
-证书文件：`/etc/idleleo/cert/xray.key 和 /etc/idleleo/cert/xray.crt` 请注意证书权限设置
+证书文件：`/etc/idleleo/cert/xray.key` 和 `/etc/idleleo/cert/xray.crt` 请注意证书权限设置
 
 配置信息文件等：`/etc/idleleo`

@@ -33,7 +33,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.5.2.8"
+shell_version="1.5.3.0"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -41,6 +41,7 @@ xray_conf_dir="/usr/local/etc/xray"
 nginx_conf_dir="/etc/nginx/conf/conf.d"
 xray_conf="${xray_conf_dir}/config.json"
 nginx_conf="${nginx_conf_dir}/xray.conf"
+nginx_upstream_conf="${nginx_conf_dir}/xray-server.conf"
 idleleo_xray_dir="/etc/idleleo"
 idleleo_commend_file="/usr/bin/idleleo"
 ssl_chainpath="${idleleo_xray_dir}/cert"
@@ -309,12 +310,6 @@ UUIDv5_tranc() {
     echo "import uuid;UUID_NAMESPACE=uuid.UUID('00000000-0000-0000-0000-000000000000');print(uuid.uuid5(UUID_NAMESPACE,'$1'));" | python3
 }
 
-stop_service() {
-    systemctl stop nginx
-    systemctl stop xray
-    echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
-}
-
 modify_alterid() {
     echo -e "${Warning} ${YellowBG} VLESS 不需要 alterid ${Font}"
 }
@@ -350,7 +345,7 @@ modify_nginx_port() {
         port="$(info_extraction '\"port\"')"
     fi
     sed -i "/ssl http2;$/c \\\t\\tlisten ${port} ssl http2;" ${nginx_conf}
-    sed -i "8c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
+    sed -i "5c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
     judge "Xray port 修改"
     [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
     echo -e "${OK} ${GreenBG} 端口号: ${port} ${Font}"
@@ -360,7 +355,7 @@ modify_nginx_other() {
     sed -i "/server_name/c \\\t\\tserver_name ${domain};" ${nginx_conf}
     if [[ "$shell_mode" != "xtls" ]]; then
         sed -i "/location/c \\\tlocation ${camouflage}" ${nginx_conf}
-        sed -i "/xray-serverc/c \\\t\\t\\tserver 127.0.0.1:${xport} weight=2 max_fails=10 fail_timeout=1;" ${nginx_conf}
+        sed -i "/xray-serverc/c \\\t\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
     fi
     sed -i "/return/c \\\t\\treturn 301 https://${domain}\$request_uri;" ${nginx_conf}
     sed -i "/returc/c \\\t\\t\\treturn 302 https://www.idleleo.com/helloworld;" ${nginx_conf}
@@ -369,6 +364,27 @@ modify_nginx_other() {
     #sed -i "/\\tserver_tokens off;\\n\\tserver_tokens off;/c \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
     sed -i "s/        server_name  localhost;/\t\tserver_name  localhost;\n\n\t\tif (\$host = '${local_ip}'){\n\t\t\treturn 302 https:\/\/www.idleleo.com\/helloworld;\n\t\t}\n/" ${nginx_dir}/conf/nginx.conf
     #sed -i "27i \\\tproxy_intercept_errors on;"  ${nginx_dir}/conf/nginx.conf
+}
+
+modify_nginx_upstream_server() {
+    if [[ "$shell_mode" == "ws" ]]; then
+        echo -e "${GreenBG} 是否追加 Nginx 负载均衡 [Y/N]? ${Font}"
+        echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
+        read -r modify_nginx_upstream_server_fq
+        case $modify_nginx_upstream_server_fq in
+        [yY][eE][sS] | [yY])
+            read -rp "请输入负载均衡 地址 (host):" upstream_host
+            read -rp "请输入负载均衡 端口 (port):" upstream_port
+            read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight
+            sed -i "1a\server ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+            systemctl restart nginx
+            judge "追加 Nginx 负载均衡"
+            ;;
+        *) ;;
+        esac
+    else
+        echo -e "${Error} ${RedBG} 当前模式不支持此操作 ${Font}"
+    fi
 }
 
 modify_path() {
@@ -757,9 +773,7 @@ nginx_conf_add() {
     cat >${nginx_conf_dir}/xray.conf <<EOF
     server_tokens off;
     types_hash_max_size 2048;
-    upstream xray-server { 
-        xray-serverc
-    }
+
     server {
         listen 443 ssl http2;
         listen [::]:443 ssl http2;
@@ -769,7 +783,6 @@ nginx_conf_add() {
         ssl_ciphers           TLS13-AES-128-GCM-SHA256:TLS13-AES-256-GCM-SHA384:TLS13-CHACHA20-POLY1305-SHA256:TLS13-AES-128-CCM-8-SHA256:TLS13-AES-128-CCM-SHA256:EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+ECDSA+AES128:EECDH+aRSA+AES128:RSA+AES128:EECDH+ECDSA+AES256:EECDH+aRSA+AES256:RSA+AES256:EECDH+ECDSA+3DES:EECDH+aRSA+3DES:RSA+3DES:!MD5;
         server_name           serveraddr.com;
         index index.html index.htm;
-        #root  /home/wwwroot/3DCEList;
         root /400.html;
         error_page 400 https://www.idleleo.com/helloworld;
         # Config for 0-RTT in TLSv1.3
@@ -797,6 +810,7 @@ nginx_conf_add() {
         # Config for 0-RTT in TLSv1.3
             proxy_set_header Early-Data \$ssl_early_data;
         }
+        
         locatioc
         {
             returc
@@ -807,6 +821,13 @@ nginx_conf_add() {
         listen [::]:80;
         server_name serveraddr.com;
         return 301 https://use.shadowsocksr.win\$request_uri;
+    }
+EOF
+
+    touch ${nginx_conf_dir}/xray-server.conf
+    cat >${nginx_conf_dir}/xray-server.conf <<EOF
+    upstream xray-server { 
+        xray-serverc
     }
 EOF
 
@@ -868,6 +889,13 @@ stop_process_systemd() {
     fi
     systemctl stop xray
 }
+
+stop_service() {
+    systemctl stop nginx
+    systemctl stop xray
+    echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
+}
+
 nginx_process_disabled() {
     [ -f $nginx_systemd_file ] && systemctl stop nginx && systemctl disable nginx
 }
@@ -1337,9 +1365,9 @@ menu() {
     echo -e "${Green}4.${Font}  升级 Xray"
     echo -e "—————————————— 配置变更 ——————————————"
     echo -e "${Green}5.${Font}  变更 UUIDv5/映射字符串"
-    echo -e "${Green}6.${Font}  变更 alterid"
-    echo -e "${Green}7.${Font}  变更 port"
-    echo -e "${Green}8.${Font}  变更 TLS 版本 (仅Nginx+ws+tls有效)"
+    echo -e "${Green}6.${Font}  变更 port"
+    echo -e "${Green}7.${Font}  变更 TLS 版本 (仅Nginx+ws+tls有效)"
+    echo -e "${Green}8.${Font}  追加 Nginx 负载均衡"
     echo -e "—————————————— 查看信息 ——————————————"
     echo -e "${Green}9.${Font}  查看 实时访问日志"
     echo -e "${Green}10.${Font} 查看 实时错误日志"
@@ -1392,10 +1420,6 @@ menu() {
         bash idleleo
         ;;
     6)
-        modify_alterid
-        bash idleleo
-        ;;
-    7)
         read -rp "请输入连接端口/inbound_port:" port
         if [[ $(info_extraction '\"tls\"') == "TLS" ]]; then
             modify_nginx_port
@@ -1411,8 +1435,12 @@ menu() {
         start_process_systemd
         bash idleleo
         ;;
-    8)
+    7)
         tls_type
+        bash idleleo
+        ;;
+    8)
+        modify_nginx_upstream_server
         bash idleleo
         ;;
     9)
