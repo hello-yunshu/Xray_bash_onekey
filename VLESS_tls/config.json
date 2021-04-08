@@ -7,7 +7,7 @@
     "inbounds": [{
         "port": 10086,
         "listen": "127.0.0.1",
-        "tag": "VLESS-in",
+        "tag": "VLESS-ws-in",
         "protocol": "VLESS",
         "settings": {
             "clients": [{
@@ -48,9 +48,7 @@
         "domainStrategy": "AsIs",
         "rules": [{
             "type": "field",
-            "inboundTag": [
-                "VLESS-in"
-            ],
+            "inboundTag": ["VLESS-ws-in"],
             "outboundTag": "direct"
         }]
     }
