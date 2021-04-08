@@ -33,7 +33,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.5.4.9"
+shell_version="1.5.5.2"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -314,7 +314,7 @@ nginx_upstream_server_set() {
             read -rp "请输入负载均衡 地址 (host):" upstream_host
             read -rp "请输入负载均衡 端口 (port):" upstream_port
             read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight
-            sed -i "1a\server ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+            sed -i "1a\\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
             systemctl restart nginx
             judge "追加 Nginx 负载均衡"
             ;;
@@ -369,7 +369,7 @@ modify_nginx_other() {
     sed -i "/server_name/c \\\t\\tserver_name ${domain};" ${nginx_conf}
     if [[ "$shell_mode" != "xtls" ]]; then
         sed -i "/location/c \\\tlocation ${camouflage}" ${nginx_conf}
-        sed -i "/xray-serverc/c \\\t\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+        sed -i "/xray-serverc/c \\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
     fi
     sed -i "/return/c \\\t\\treturn 301 https://${domain}\$request_uri;" ${nginx_conf}
     sed -i "/returc/c \\\t\\t\\treturn 302 https://www.idleleo.com/helloworld;" ${nginx_conf}
@@ -1092,7 +1092,7 @@ show_information() {
 
 ssl_judge_and_install() {
     if [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]]; then
-        echo "证书文件已存在"
+        echo "${GreenBG} 证书文件已存在 ${Font}"
         echo -e "${GreenBG} 是否删除 [Y/N]? ${Font}"
         read -r ssl_delete
         case $ssl_delete in
@@ -1106,10 +1106,24 @@ ssl_judge_and_install() {
         esac
     fi
 
-    if [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]]; then
-        echo "证书文件已存在"
-    elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        echo "证书文件已存在"
+    if [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+        echo -e "${GreenBG} 部分证书文件已存在 ${Font}"
+        echo -e "${GreenBG} 是否删除 [Y/N]? ${Font}"
+        read -r ssl_delete_2
+        case $ssl_delete_2 in
+        [yY][eE][sS] | [yY])
+            delete_tls_key_and_crt
+            echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+            ssl_install
+            acme
+            ;;
+        *) ;;
+
+        esac
+    elif [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]]; then
+        echo -e "${GreenBG} 证书文件已存在 ${Font}"
+        judge "证书应用"
+    elif [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt"  ]] && [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
         "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
         judge "证书应用"
     else
@@ -1400,7 +1414,7 @@ menu() {
     echo -e "--- authored by paniy ---"
     echo -e "--- changed by www.idleleo.com ---"
     echo -e "--- https://github.com/paniy ---\n"
-    echo -e "当前已安装版本: ${shell_mode_show}\n"
+    echo -e "当前已安装模式: ${shell_mode_show}\n"
 
     idleleo_commend
 
