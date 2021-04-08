@@ -9,20 +9,21 @@
 * 可以直接输入命令：`idleleo` 管理脚本。
 * 减少直接访问，隐藏代理域名。
 * 访问域名 302 跳转至 https://www.idleleo.com/helloworld （了解配置过程可自行修改）。
-* 阻止 HTTP 接访问服务器 IP 。
+* 阻止 HTTP 直接访问服务器 IP 。
 * 使用来自 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91) (beta)，支持 Qv2ray、V2rayN、V2rayNG。
 * 使用来自 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 项目的提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，可以将自定义字符串映射至 VLESS UUID 。
+* 添加负载均衡配置，教程：[XRay进阶玩法 – 搭建后端服务器负载均衡](https://www.idleleo.com/04/5136.html)。
 
 ### Telegram 群组
 * Telegram 交流群：https://t.me/idleleo_chat 。
 
 ### 准备工作
 * 准备一个域名，并将A记录添加好。
-* [Xray官方说明](https://github.com/XTLS)，了解 TLS WebSocket 及 Xray 相关信息。
-* **安装好 wget**。
+* [Xray官方说明](https://xtls.github.io)，大概了解 TLS WebSocket XTLS 及 Xray 相关信息。
+* **安装好 wget**，Centos用户运行：`yum install -y wget`；Debian/Ubuntu用户运行：`apt install -y wget`。
 
 ### 安装/更新方式（此为Xray版）
-VLESS+Nginx+WebSocket+TLS 或 VLESS+XTLS+Nginx  二选一：
+VLESS+Nginx+WebSocket+TLS 或 VLESS+XTLS+Nginx  或 ws ONLY 三选一：
 ```
 wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh" && chmod +x install.sh && bash install.sh
 ```
@@ -39,8 +40,7 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 ### 鸣谢
 * 本脚本来源于 https://github.com/wulabing/V2Ray_ws-tls_bash_onekey 在此感谢 wulabing
 * 本脚本中 MTProxy-go TLS 版本项目引用 https://github.com/whunt1/onekeymakemtg 在此感谢 whunt1
-* 本脚本中 锐速4合1脚本原项目引用 https://www.94ish.me/1635.html 在此感谢
-* 本脚本中 锐速4合1脚本修改版项目引用 https://github.com/ylx2016/Linux-NetSpeed 在此感谢 ylx2016
+* 本脚本中 TCP加速 脚本项目引用 https://github.com/ylx2016/Linux-NetSpeed 在此感谢 ylx2016
 
 ### 证书
 > 如果你已经拥有了你所使用域名的证书文件，可以将 crt 和 key 文件命名为 xray.crt xray.key 放在 /etc/idleleo/cert 目录下（若目录不存在请先建目录），请注意证书文件权限及证书有效期，自定义证书有效期过期后请自行续签。
