@@ -33,7 +33,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.5.3.0"
+shell_version="1.5.4.8"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -65,6 +65,7 @@ openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
 xtls_add_ws="off"
 old_config_status="off"
+old_shell_mode="None"
 random_num=$((RANDOM % 12 + 4))
 THREAD=$(($(grep 'processor' /proc/cpuinfo | sort -u | wc -l) + 1))
 
@@ -212,22 +213,24 @@ port_set() {
 }
 
 inbound_port_set() {
-    echo -e "${GreenBG} 是否需要自定义 inbound_port [Y/N]? ${Font}"
-    read -r inbound_port_modify_fq
-    case $inbound_port_modify_fq in
-    [yY][eE][sS] | [yY])
-        read -rp "请输入自定义 inbound_port (请勿与连接端口相同！):" xport
-        if [[ $xport -le 0 ]] || [[ $xport -gt 65535 ]]; then
-            echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值 ${Font}"
-            exit 1
-        fi
-        echo -e "${OK} ${GreenBG} inbound_port: ${xport} ${Font}"
-        ;;
-    *)
-        xport=$((RANDOM + 10000))
-        echo -e "${OK} ${GreenBG} inbound_port: ${xport} ${Font}"
-        ;;
-    esac
+    if [[ "on" != "$old_config_status" ]]; then
+        echo -e "${GreenBG} 是否需要自定义 inbound_port [Y/N]? ${Font}"
+        read -r inbound_port_modify_fq
+        case $inbound_port_modify_fq in
+        [yY][eE][sS] | [yY])
+            read -rp "请输入自定义 inbound_port (请勿与连接端口相同！):" xport
+            if [[ $xport -le 0 ]] || [[ $xport -gt 65535 ]]; then
+                echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值 ${Font}"
+                exit 1
+            fi
+            echo -e "${OK} ${GreenBG} inbound_port: ${xport} ${Font}"
+            ;;
+        *)
+            xport=$((RANDOM + 10000))
+            echo -e "${OK} ${GreenBG} inbound_port: ${xport} ${Font}"
+            ;;
+        esac
+    fi
 }
 
 firewall_set() {
@@ -256,13 +259,12 @@ firewall_set() {
         fi
     fi
     echo -e "${OK} ${GreenBG} 开放防火墙相关端口 ${Font}"
+    echo -e "${GreenBG} 若修改配置, 请注意关闭防火墙相关端口 ${Font}"
     echo -e "${OK} ${GreenBG} 配置 Xray FullCone ${Font}"
 }
 
 path_set() {
-    if [[ "on" == "$old_config_status" ]]; then
-        camouflage="$(grep '\"path\"' $xray_qr_config_file | awk -F '"' '{print $4}')"
-    else
+    if [[ "on" != "$old_config_status" ]]; then
         echo -e "${GreenBG} 是否需要自定义伪装路径 [Y/N]? ${Font}"
         read -r path_modify_fq
         case $path_modify_fq in
@@ -280,10 +282,7 @@ path_set() {
 }
 
 UUID_set() {
-    if [[ "on" == "$old_config_status" ]]; then
-        UUID="$(info_extraction '\"id\"')"
-        UUID5_char="$(info_extraction '\"idc\"')"
-    else
+    if [[ "on" != "$old_config_status" ]]; then
         echo -e "${GreenBG} 是否需要自定义字符串映射为 UUIDv5 [Y/N]? ${Font}"
         read -r need_UUID5
         case $need_UUID5 in
@@ -305,6 +304,27 @@ UUID_set() {
     fi
 }
 
+nginx_upstream_server_set() {
+    if [[ "$shell_mode" == "ws" ]]; then
+        echo -e "${GreenBG} 是否追加 Nginx 负载均衡 [Y/N]? ${Font}"
+        echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
+        read -r nginx_upstream_server_fq
+        case $nginx_upstream_server_fq in
+        [yY][eE][sS] | [yY])
+            read -rp "请输入负载均衡 地址 (host):" upstream_host
+            read -rp "请输入负载均衡 端口 (port):" upstream_port
+            read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight
+            sed -i "1a\server ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+            systemctl restart nginx
+            judge "追加 Nginx 负载均衡"
+            ;;
+        *) ;;
+        esac
+    else
+        echo -e "${Error} ${RedBG} 当前模式不支持此操作 ${Font}"
+    fi
+}
+
 UUIDv5_tranc() {
     [[ $# = 0 ]] && return
     echo "import uuid;UUID_NAMESPACE=uuid.UUID('00000000-0000-0000-0000-000000000000');print(uuid.uuid5(UUID_NAMESPACE,'$1'));" | python3
@@ -319,9 +339,6 @@ modify_listen_address() {
 }
 
 modify_inbound_port() {
-    if [[ "on" == "$old_config_status" ]]; then
-        port="$(info_extraction '\"port\"')"
-    fi
     if [[ "$shell_mode" == "ws" ]]; then
         #        sed -i "/\"port\"/c  \    \"port\":${xport}," ${xray_conf}
         sed -i "8c\        \"port\": ${xport}," ${xray_conf}
@@ -341,9 +358,6 @@ modify_inbound_port() {
 }
 
 modify_nginx_port() {
-    if [[ "on" == "$old_config_status" ]]; then
-        port="$(info_extraction '\"port\"')"
-    fi
     sed -i "/ssl http2;$/c \\\t\\tlisten ${port} ssl http2;" ${nginx_conf}
     sed -i "5c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
     judge "Xray port 修改"
@@ -364,27 +378,6 @@ modify_nginx_other() {
     #sed -i "/\\tserver_tokens off;\\n\\tserver_tokens off;/c \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
     sed -i "s/        server_name  localhost;/\t\tserver_name  localhost;\n\n\t\tif (\$host = '${local_ip}'){\n\t\t\treturn 302 https:\/\/www.idleleo.com\/helloworld;\n\t\t}\n/" ${nginx_dir}/conf/nginx.conf
     #sed -i "27i \\\tproxy_intercept_errors on;"  ${nginx_dir}/conf/nginx.conf
-}
-
-modify_nginx_upstream_server() {
-    if [[ "$shell_mode" == "ws" ]]; then
-        echo -e "${GreenBG} 是否追加 Nginx 负载均衡 [Y/N]? ${Font}"
-        echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
-        read -r modify_nginx_upstream_server_fq
-        case $modify_nginx_upstream_server_fq in
-        [yY][eE][sS] | [yY])
-            read -rp "请输入负载均衡 地址 (host):" upstream_host
-            read -rp "请输入负载均衡 端口 (port):" upstream_port
-            read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight
-            sed -i "1a\server ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
-            systemctl restart nginx
-            judge "追加 Nginx 负载均衡"
-            ;;
-        *) ;;
-        esac
-    else
-        echo -e "${Error} ${RedBG} 当前模式不支持此操作 ${Font}"
-    fi
 }
 
 modify_path() {
@@ -514,10 +507,6 @@ nginx_exist_check() {
 }
 
 nginx_install() {
-    #    if [[ -d "/etc/nginx" ]];then
-    #        rm -rf /etc/nginx
-    #    fi
-
     wget -nc --no-check-certificate http://nginx.org/download/nginx-${nginx_version}.tar.gz -P ${nginx_openssl_src}
     judge "Nginx 下载"
     wget -nc --no-check-certificate https://www.openssl.org/source/openssl-${openssl_version}.tar.gz -P ${nginx_openssl_src}
@@ -745,24 +734,78 @@ xray_xtls_add_ws() {
         xport=$((RANDOM + 10000))
         modify_inbound_port
         artxport="none"
-        echo -e "${OK} ${GreenBG} 已跳过添加简单 ws协议  ${Font}"
+        echo -e "${OK} ${GreenBG} 已跳过添加简单 ws协议 ${Font}"
         ;;
     esac
 }
 
 old_config_exist_check() {
     if [[ -f $xray_qr_config_file ]]; then
-        echo -e "${GreenBG} 检测到旧配置文件, 是否读取旧文件配置 [Y/N]? ${Font}"
-        read -r ssl_delete
-        case $ssl_delete in
-        [yY][eE][sS] | [yY])
-            echo -e "${OK} ${GreenBG} 已保留旧配置  ${Font}"
-            old_config_status="on"
+        if [[ ${old_shell_mode} == ${shell_mode} ]]; then
+            echo -e "${GreenBG} 检测到旧配置文件, 是否读取旧文件配置 [Y/N]? ${Font}"
+            read -r old_config_fq
+            case $old_config_fq in
+            [yY][eE][sS] | [yY])
+                echo -e "${OK} ${GreenBG} 已保留旧配置 ${Font}"
+                old_config_status="on"
+                old_config_input
+                ;;
+            *)
+                rm -rf $xray_qr_config_file
+                echo -e "${OK} ${GreenBG} 已删除旧配置 ${Font}"
+                ;;
+            esac
+        else
+            echo -e "${GreenBG} 检测到当前安装模式与旧配置的安装模式不一致, 是否保留旧配置文件 [Y/N]? ${Font}"
+            read -r old_config_fq
+            case $old_config_fq in
+            [yY][eE][sS] | [yY])
+                echo -e "${OK} ${GreenBG} 已保留旧配置 ${Font}"
+                echo -e "${OK} ${GreenBG} 停止安装 ${Font}"
+                bash idleleo
+                ;;
+            *)
+                rm -rf $xray_qr_config_file
+                echo -e "${OK} ${GreenBG} 已删除旧配置 ${Font}"
+                ;;
+            esac
+        fi
+    fi
+}
+
+old_config_input () {
+    if [[ ${shell_mode} == "ws" ]]; then
+        port=$(info_extraction '\"port\"')
+        xport=$(info_extraction '\"inbound_port\"')
+        UUID5_char=$(info_extraction '\"idc\"')
+        UUID=$(info_extraction '\id\"')
+        camouflage=$(info_extraction '\"path\"')
+    elif [[ ${shell_mode} == "xtls" ]]; then
             port=$(info_extraction '\"port\"')
+            UUID5_char=$(info_extraction '\"idc\"')
+            UUID=$(info_extraction '\id\"')
+        if [[ ${xtls_add_ws} == "on" ]]; then
+                xport=$(info_extraction '\"wsport\"')
+                camouflage=$(info_extraction '\"wspath\"')
+        fi
+    elif [[ ${shell_mode} == "wsonly" ]]; then
+        xport=$(info_extraction '\"port\"')
+        UUID5_char=$(info_extraction '\"idc\"')
+        UUID=$(info_extraction '\id\"')
+        camouflage=$(info_extraction '\"path\"')
+    fi
+    if [[ 0 -ne $? ]]; then
+        echo -e "${GreenBG} 检测到旧配置文件不完整, 是否保留旧配置文件 [Y/N]? ${Font}"
+        read -r old_config_input_fq
+        case $old_config_input_fq in
+        [yY][eE][sS] | [yY])
+            old_config_status="off"
+            echo -e "${OK} ${GreenBG} 已保留旧配置 ${Font}"
             ;;
         *)
             rm -rf $xray_qr_config_file
-            echo -e "${OK} ${GreenBG} 已删除旧配置  ${Font}"
+            old_config_status="off"
+            echo -e "${OK} ${GreenBG} 已删除旧配置 ${Font}"
             ;;
         esac
     fi
@@ -891,13 +934,10 @@ stop_process_systemd() {
 }
 
 stop_service() {
-    systemctl stop nginx
-    systemctl stop xray
-    echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
-}
-
-nginx_process_disabled() {
     [ -f $nginx_systemd_file ] && systemctl stop nginx && systemctl disable nginx
+    systemctl stop xray
+    systemctl disable xray
+    echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
 }
 
 acme_cron_update() {
@@ -924,6 +964,7 @@ vless_qr_config_tls_ws() {
   "ps": "${domain}",
   "add": "${domain}",
   "port": "${port}",
+  "inbound_port": "${xport}",
   "idc": "${UUID5_char}",
   "id": "${UUID}",
   "net": "ws",
@@ -1024,6 +1065,9 @@ basic_information() {
         echo -e "\n${Red} —————————————— Xray 配置信息 —————————————— ${Font}"
         echo -e "${Red} 地址 (address):${Font} $(info_extraction '\"add\"') "
         echo -e "${Red} 端口 (port):${Font} $(info_extraction '\"port\"') "
+        if [[ "$shell_mode" == "ws" ]]; then
+            echo -e "${Red} Xray 端口 (inbound_port):${Font} $(info_extraction '\"inbound_port\"') "
+        fi
         echo -e "${Red} UUIDv5 映射字符串:${Font} $(info_extraction '\"idc\"')"
         echo -e "${Red} 用户id (UUID):${Font} $(info_extraction '\"id\"')"
 
@@ -1190,12 +1234,15 @@ judge_mode() {
             shell_mode="xtls"
             if [[ $(info_extraction '\"wsport\"') != "none" ]]; then
                 xtls_add_ws="on"
+                shell_mode_show="XTLS+Nginx+ws"
+            else
+                shell_mode_show="XTLS+Nginx"
             fi
-            shell_mode_show="XTLS+Nginx"
         elif [[ $(info_extraction '\"tls\"') == "none" ]]; then
             shell_mode="wsonly"
             shell_mode_show="ws ONLY"
         fi
+        old_shell_mode=${shell_mode}
     fi
 }
 
@@ -1440,7 +1487,7 @@ menu() {
         bash idleleo
         ;;
     8)
-        modify_nginx_upstream_server
+        nginx_upstream_server_set
         bash idleleo
         ;;
     9)
