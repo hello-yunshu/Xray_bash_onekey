@@ -7,6 +7,7 @@
     "inbounds": [{
             "port": 443,
             "protocol": "VLESS",
+            "tag": "VLESS-XTLS-in",
             "settings": {
                 "clients": [{
                     "id": "UUID",
@@ -36,7 +37,7 @@
         {
             "port": 10086,
             "listen": "127.0.0.1",
-            "tag": "VLESS-in",
+            "tag": "VLESS-ws-in",
             "protocol": "VLESS",
             "settings": {
                 "clients": [{
@@ -78,7 +79,7 @@
         "domainStrategy": "AsIs",
         "rules": [{
             "type": "field",
-            "inboundTag": ["VLESS-in"],
+            "inboundTag": ["VLESS-XTLS-in", "VLESS-ws-in"],
             "outboundTag": "direct"
         }]
     }
