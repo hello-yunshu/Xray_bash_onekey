@@ -33,7 +33,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.5.5.6"
+shell_version="1.5.5.12"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -1239,6 +1239,40 @@ delete_tls_key_and_crt() {
     echo -e "${OK} ${GreenBG} 已清空证书遗留文件 ${Font}"
 }
 
+clear_timeout() {
+    echo -e "${Warning} ${GreenBG} 3秒后将清空屏幕! ${Font}"
+    timeout=0
+    timeout_str=""
+    while [ $timeout -le 30 ]; do
+        let timeout++
+        timeout_str+="#"
+    done
+    let timeout=timeout+5
+    while [ $timeout -gt 0 ]; do
+            let timeout--
+            if [ $timeout -gt 25 ]; then
+                let timeout_color=32
+                let timeout_bg=42
+                timeout_index="3"
+            elif [ $timeout -gt 15 ]; then
+                let timeout_color=33
+                let timeout_bg=43
+                timeout_index="2"
+            elif [ $timeout -gt 5 ]; then
+                let timeout_color=31
+                let timeout_bg=41
+                timeout_index="1"
+            else
+                timeout_index="0"
+            fi
+        timeout_black=" "
+        printf "\033[${timeout_color};${timeout_bg}m%-s\033[0m \033[${timeout_color}m%d\033[0m%s\r" "$timeout_str" "$timeout_index" "$timeout_black"
+        sleep 0.1
+        timeout_str=${timeout_str%?}
+    done
+    clear
+}
+
 judge_mode() {
     if [ -f $xray_bin_dir ]; then
         if [[ $(info_extraction '\"tls\"') == "TLS" ]]; then
@@ -1346,7 +1380,7 @@ install_xray_ws_only() {
 update_sh() {
     ol_version=$(curl -L -s https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
     echo "$ol_version" >$version_cmp
-    [[ -z ${ol_version} ]] && echo -e "${Error} ${RedBG}  检测最新版本失败! ${Font}" && bash idleleo
+    [[ -z ${ol_version} ]] && clear && echo -e "${Error} ${RedBG}  检测最新版本失败! ${Font}" && bash idleleo
     echo "$shell_version" >>$version_cmp
     if [[ "$shell_version" != "$(sort -rV $version_cmp | head -1)" ]]; then
         echo -e "${GreenBG} 存在新版本, 是否更新 [Y/N]? ${Font}"
@@ -1355,14 +1389,16 @@ update_sh() {
         [yY][eE][sS] | [yY])
             rm -f ${idleleo_commend_file}
             wget -N --no-check-certificate -P ${idleleo_xray_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_xray_dir}/install.sh
-            echo -e "${OK} ${GreenBG} 更新完成 ${Font}"
             ln -s ${idleleo_xray_dir}/install.sh ${idleleo_commend_file}
+            clear
+            echo -e "${OK} ${GreenBG} 更新完成 ${Font}"
             bash idleleo
             ;;
         *) ;;
 
         esac
     else
+        clear
         echo -e "${OK} ${GreenBG} 当前版本为最新版本 ${Font}"
         bash idleleo
     fi
@@ -1377,6 +1413,27 @@ maintain() {
 
 list() {
     case $1 in
+    update)
+        update_sh
+        ;;
+    show)
+        clear
+        basic_information
+        vless_qr_link_image
+        show_information
+        ;;
+    xray_update)
+        xray_update
+        clear_timeout
+        ;;
+    xray_access)
+        clear
+        show_access_log
+        ;;
+    xray_error)
+        clear
+        show_error_log
+        ;;
     tls_modify)
         tls_type
         ;;
@@ -1430,7 +1487,7 @@ menu() {
     echo -e "${Green}5.${Font}  变更 UUIDv5/映射字符串"
     echo -e "${Green}6.${Font}  变更 port"
     echo -e "${Green}7.${Font}  变更 TLS 版本 (仅Nginx+ws+tls有效)"
-    echo -e "${Green}8.${Font}  追加 Nginx 负载均衡"
+    echo -e "${Green}8.${Font}  追加 Nginx 负载均衡配置"
     echo -e "—————————————— 查看信息 ——————————————"
     echo -e "${Green}9.${Font}  查看 实时访问日志"
     echo -e "${Green}10.${Font} 查看 实时错误日志"
@@ -1441,7 +1498,7 @@ menu() {
     echo -e "${Green}14.${Font} 证书 有效期更新"
     echo -e "${Green}15.${Font} 卸载 Xray"
     echo -e "${Green}16.${Font} 更新 证书 crontab 计划任务"
-    echo -e "${Green}17.${Font} 清空 证书遗留文件"
+    echo -e "${Green}17.${Font} 清空 证书文件"
     echo -e "${Green}18.${Font} 退出 \n"
 
     read -rp "请输入数字: " menu_num
@@ -1460,7 +1517,6 @@ menu() {
         bash idleleo
         ;;
     3)
-        
         echo -e "${Warning} ${YellowBG} 此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/N]? ${Font}"
         read -r wsonly_fq
         case $wsonly_fq in
@@ -1474,12 +1530,14 @@ menu() {
         ;;
     4)
         xray_update
+        clear_timeout
         bash idleleo
         ;;
     5)
         UUID_set
         modify_UUID
         start_process_systemd
+        clear_timeout
         bash idleleo
         ;;
     6)
@@ -1496,60 +1554,71 @@ menu() {
         fi
         firewall_set
         start_process_systemd
+        clear_timeout
         bash idleleo
         ;;
     7)
         tls_type
+        clear_timeout
         bash idleleo
         ;;
     8)
         nginx_upstream_server_set
+        clear_timeout
         bash idleleo
         ;;
     9)
+        clear
         show_access_log
-        bash idleleo
         ;;
     10)
+        clear
         show_error_log
-        bash idleleo
         ;;
     11)
+        clear
         basic_information
         vless_qr_link_image
         show_information
         bash idleleo
         ;;
     12)
+        clear
         bbr_boost_sh
-        bash idleleo
         ;;
     13)
+        clear
         mtproxy_sh
-        bash idleleo
         ;;
     14)
         stop_process_systemd
         ssl_update_manuel
         start_process_systemd
+        clear_timeout
         bash idleleo
         ;;
     15)
         uninstall_all
+        clear_timeout
         bash idleleo
         ;;
     16)
         acme_cron_update
+        clear_timeout
         bash idleleo
         ;;
     17)
         delete_tls_key_and_crt
+        rm -rf ${ssl_chainpath}/*
+        clear_timeout
         bash idleleo
         ;;
     18)
+        clear_timeout
         exit 0
         ;;
     *)
+        clear
         echo -e "${Error} ${RedBG} 请输入正确的数字 ${Font}"
         bash idleleo
         ;;
