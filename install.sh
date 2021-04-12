@@ -33,7 +33,7 @@ Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
 # 版本
-shell_version="1.5.5.12"
+shell_version="1.5.6.0"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -1156,28 +1156,45 @@ EOF
 }
 
 tls_type() {
-    if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ "$shell_mode" == "ws" ]]; then
+    if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ "$shell_mode" != "wsonly" ]]; then
         echo "请选择支持的 TLS 版本 (default:2):"
-        echo "建议选择 TLS1.2 and TLS1.3 (兼容模式)"
+        echo "建议选择 TLS1.2 and TLS1.3 (一般模式)"
         echo "1: TLS1.1 TLS1.2 and TLS1.3 (兼容模式)"
-        echo "2: TLS1.2 and TLS1.3 (兼容模式)"
-        echo "3: TLS1.3 only"
+        echo "2: TLS1.2 and TLS1.3 (一般模式)"
+        echo "3: TLS1.3 only (激进模式)"
         read -rp "请输入: " tls_version
         [[ -z ${tls_version} ]] && tls_version=2
         if [[ $tls_version == 3 ]]; then
-            sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.3;/' $nginx_conf
+            if [[ $shell_mode == "ws"  ]]; then
+                sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.3;/' $nginx_conf
+            else
+                sed -i "/\"minVersion\"/c \                \"minVersion\": \"1.3\"," ${xray_conf}   
+            fi
             echo -e "${OK} ${GreenBG} 已切换至 TLS1.3 only ${Font}"
         elif [[ $tls_version == 1 ]]; then
-            sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;/' $nginx_conf
+            if [[ $shell_mode == "ws"  ]]; then
+                sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;/' $nginx_conf
+            else
+                sed -i "/\"minVersion\"/c \                \"minVersion\": \"1.1\"," ${xray_conf}  
+            fi
             echo -e "${OK} ${GreenBG} 已切换至 TLS1.1 TLS1.2 and TLS1.3 ${Font}"
         else
-            sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.2 TLSv1.3;/' $nginx_conf
+            if [[ $shell_mode == "ws"  ]]; then
+                sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.2 TLSv1.3;/' $nginx_conf
+            else
+                sed -i "/\"minVersion\"/c \                \"minVersion\": \"1.2\"," ${xray_conf}  
+            fi
             echo -e "${OK} ${GreenBG} 已切换至 TLS1.2 and TLS1.3 ${Font}"
         fi
-        systemctl restart nginx
-        judge "Nginx 重启"
+        if [[ $shell_mode == "ws"  ]]; then
+            systemctl restart nginx
+            judge "Nginx 重启"
+        elif [[ $shell_mode == "xtls"  ]]; then
+            systemctl restart xray
+            judge "Xray 重启"
+        fi
     else
-        echo -e "${Error} ${RedBG} Nginx 或 配置文件不存在 或当前安装版本为 xtls , 请正确安装脚本后执行${Font}"
+        echo -e "${Error} ${RedBG} Nginx 或 配置文件不存在 或当前安装版本为 ws ONLY , 请正确安装脚本后执行${Font}"
     fi
 }
 
@@ -1345,6 +1362,7 @@ install_xray_xtls() {
     firewall_set
     ssl_judge_and_install
     nginx_systemd
+    tls_type
     vless_qr_config_xtls
     basic_information
     vless_link_image_choice
@@ -1413,8 +1431,12 @@ maintain() {
 
 list() {
     case $1 in
-    update)
-        update_sh
+    
+    boost)
+        bbr_boost_sh
+        ;;
+    crontab)
+        acme_cron_update
         ;;
     show)
         clear
@@ -1422,7 +1444,16 @@ list() {
         vless_qr_link_image
         show_information
         ;;
-    xray_update)
+    tls)
+        tls_type
+        ;;
+    uninstall)
+        uninstall_all
+        ;;
+    update)
+        update_sh
+        ;;
+    xray)
         xray_update
         clear_timeout
         ;;
@@ -1433,18 +1464,6 @@ list() {
     xray_error)
         clear
         show_error_log
-        ;;
-    tls_modify)
-        tls_type
-        ;;
-    uninstall)
-        uninstall_all
-        ;;
-    crontab_modify)
-        acme_cron_update
-        ;;
-    boost)
-        bbr_boost_sh
         ;;
     *)
         menu
@@ -1486,7 +1505,7 @@ menu() {
     echo -e "—————————————— 配置变更 ——————————————"
     echo -e "${Green}5.${Font}  变更 UUIDv5/映射字符串"
     echo -e "${Green}6.${Font}  变更 port"
-    echo -e "${Green}7.${Font}  变更 TLS 版本 (仅Nginx+ws+tls有效)"
+    echo -e "${Green}7.${Font}  变更 TLS 版本"
     echo -e "${Green}8.${Font}  追加 Nginx 负载均衡配置"
     echo -e "—————————————— 查看信息 ——————————————"
     echo -e "${Green}9.${Font}  查看 实时访问日志"
