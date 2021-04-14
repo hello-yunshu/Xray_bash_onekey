@@ -8,14 +8,14 @@ cd "$(
     pwd
 )" || exit
 
-#====================================================
-#	System Request:Debian 9+/Ubuntu 18.04+/Centos 7+
+#=====================================================
+#	System Request: Debian 9+/Ubuntu 18.04+/Centos 7+
 #	Author:	paniy
-#	Dscription: Xray onekey Management
+#	Dscription: Xray Onekey Management
 #	Version: 2.0
-#	email:admin@idleleo.com
+#	email: admin@idleleo.com
 #	Official document: www.idleleo.com
-#====================================================
+#=====================================================
 
 #fonts color
 Green="\033[32m"
@@ -32,24 +32,26 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-# 版本
-shell_version="1.5.6.0"
+shell_version="1.6.0.0"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
-xray_conf_dir="/usr/local/etc/xray"
-nginx_conf_dir="/etc/nginx/conf/conf.d"
+idleleo_dir="/etc/idleleo"
+idleleo_conf_dir="${idleleo_dir}/conf"
+xray_conf_dir="${idleleo_conf_dir}/xray"
+nginx_conf_dir="${idleleo_conf_dir}/nginx"
 xray_conf="${xray_conf_dir}/config.json"
+xray_default_conf="/usr/local/etc/xray/config.json"
 nginx_conf="${nginx_conf_dir}/xray.conf"
 nginx_upstream_conf="${nginx_conf_dir}/xray-server.conf"
-idleleo_xray_dir="/etc/idleleo"
+idleleo_tmp="${idleleo_dir}/tmp"
 idleleo_commend_file="/usr/bin/idleleo"
-ssl_chainpath="${idleleo_xray_dir}/cert"
+ssl_chainpath="${idleleo_dir}/cert"
 nginx_dir="/etc/nginx"
 nginx_openssl_src="/usr/local/src"
 xray_bin_dir="/usr/local/bin/xray"
-xray_info_file="${idleleo_xray_dir}/info/xray_info.inf"
-xray_qr_config_file="${idleleo_xray_dir}/info/vless_qr.json"
+xray_info_file="${idleleo_dir}/info/xray_info.inf"
+xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 xray_systemd_file="/etc/systemd/system/xray.service"
 xray_systemd_file2="/etc/systemd/system/xray@.service"
@@ -58,7 +60,7 @@ xray_systemd_filed2="/etc/systemd/system/xray@.service.d"
 xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
-ssl_update_file="${idleleo_xray_dir}/ssl_update.sh"
+ssl_update_file="${idleleo_dir}/ssl_update.sh"
 cert_group="nobody"
 nginx_version="1.18.0"
 openssl_version="1.1.1k"
@@ -71,7 +73,6 @@ THREAD=$(($(grep 'processor' /proc/cpuinfo | sort -u | wc -l) + 1))
 
 source '/etc/os-release'
 
-#从VERSION中提取发行版系统的英文名称, 为了在debian/ubuntu下添加相对应的Nginx apt源
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 
 check_system() {
@@ -91,7 +92,7 @@ check_system() {
         rm /var/cache/apt/archives/lock
         $INS update
     else
-        echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内, 安装中断 ${Font}"
+        echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内, 安装中断! ${Font}"
         exit 1
     fi
 
@@ -111,11 +112,11 @@ check_system() {
 }
 
 is_root() {
-    if [ 0 == $UID ]; then
+    if [[ 0 == $UID ]]; then
         echo -e "${OK} ${GreenBG} 当前用户是 root用户, 进入安装流程 ${Font}"
-        sleep 3
+        sleep 2
     else
-        echo -e "${Error} ${RedBG} 当前用户不是 root用户, 请切换到 root用户 后重新执行脚本 ${Font}"
+        echo -e "${Error} ${RedBG} 当前用户不是 root用户, 请切换到 root用户 后重新执行脚本! ${Font}"
         exit 1
     fi
 }
@@ -201,27 +202,37 @@ basic_optimization() {
 
 }
 
+create_directory() {
+    if [[ ${shell_mode} == "wsonly" ]]; then
+        [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p ${nginx_conf_dir}
+    fi
+    [[ ! -d "${xray_conf_dir}" ]] && mkdir -p ${xray_conf_dir}
+    [[ ! -d "${idleleo_dir}/info" ]] && mkdir -p ${idleleo_dir}/info
+    [[ ! -d "${idleleo_tmp}" ]] && mkdir -p ${idleleo_tmp}
+}
+
 port_set() {
-    if [[ "on" != "$old_config_status" ]]; then
+    if [[ "on" != ${old_config_status} ]]; then
+        echo -e "${GreenBG} 确定 连接端口  ${Font}"
         read -rp "请输入连接端口 (default:443):" port
         [[ -z ${port} ]] && port="443"
-        if [[ $port -le 0 ]] || [[ $port -gt 65535 ]]; then
-            echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值 ${Font}"
-            exit 1
+        if [[ ${port} -le 0 ]] || [[ ${port} -gt 65535 ]]; then
+            echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值! ${Font}"
+            port_set
         fi
     fi
 }
 
 inbound_port_set() {
-    if [[ "on" != "$old_config_status" ]]; then
+    if [[ "on" != ${old_config_status} ]]; then
         echo -e "${GreenBG} 是否需要自定义 inbound_port [Y/N]? ${Font}"
         read -r inbound_port_modify_fq
         case $inbound_port_modify_fq in
         [yY][eE][sS] | [yY])
             read -rp "请输入自定义 inbound_port (请勿与连接端口相同！):" xport
-            if [[ $xport -le 0 ]] || [[ $xport -gt 65535 ]]; then
-                echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值 ${Font}"
-                exit 1
+            if [[ ${xport} -le 0 ]] || [[ ${xport} -gt 65535 ]]; then
+                echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值! ${Font}"
+                inbound_port_set
             fi
             echo -e "${OK} ${GreenBG} inbound_port: ${xport} ${Font}"
             ;;
@@ -235,7 +246,7 @@ inbound_port_set() {
 
 firewall_set() {
     if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-        if [[ "$shell_mode" != "wsonly" ]] && [[ "$xtls_add_ws" == "off" ]]; then
+        if [[ ${shell_mode} != "wsonly" ]] && [[ "$xtls_add_ws" == "off" ]]; then
             firewall-cmd --permanent --add-port=80/tcp
             firewall-cmd --permanent --add-port=443/tcp
             firewall-cmd --permanent --add-port=1024-65535/udp
@@ -248,7 +259,7 @@ firewall_set() {
             firewall-cmd --reload
         fi
     else
-        if [[ "$shell_mode" != "wsonly" ]]; then
+        if [[ ${shell_mode} != "wsonly" ]]; then
             ufw allow 80,443/tcp
             ufw allow 1024:65535/udp
             ufw allow ${port}
@@ -264,7 +275,7 @@ firewall_set() {
 }
 
 path_set() {
-    if [[ "on" != "$old_config_status" ]]; then
+    if [[ "on" != ${old_config_status} ]]; then
         echo -e "${GreenBG} 是否需要自定义伪装路径 [Y/N]? ${Font}"
         read -r path_modify_fq
         case $path_modify_fq in
@@ -282,7 +293,7 @@ path_set() {
 }
 
 UUID_set() {
-    if [[ "on" != "$old_config_status" ]]; then
+    if [[ "on" != ${old_config_status} ]]; then
         echo -e "${GreenBG} 是否需要自定义字符串映射为 UUIDv5 [Y/N]? ${Font}"
         read -r need_UUID5
         case $need_UUID5 in
@@ -305,13 +316,13 @@ UUID_set() {
 }
 
 nginx_upstream_server_set() {
-    if [[ "$shell_mode" == "ws" ]]; then
+    if [[ ${shell_mode} == "ws" ]]; then
         echo -e "${GreenBG} 是否追加 Nginx 负载均衡 [Y/N]? ${Font}"
         echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
         read -r nginx_upstream_server_fq
         case $nginx_upstream_server_fq in
         [yY][eE][sS] | [yY])
-            read -rp "请输入负载均衡 地址 (host):" upstream_host
+            read -rp "请输入负载均衡 主机 (host):" upstream_host
             read -rp "请输入负载均衡 端口 (port):" upstream_port
             read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight
             sed -i "1a\\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
@@ -321,7 +332,7 @@ nginx_upstream_server_set() {
         *) ;;
         esac
     else
-        echo -e "${Error} ${RedBG} 当前模式不支持此操作 ${Font}"
+        echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
 }
 
@@ -339,19 +350,19 @@ modify_listen_address() {
 }
 
 modify_inbound_port() {
-    if [[ "$shell_mode" == "ws" ]]; then
+    if [[ ${shell_mode} == "ws" ]]; then
         #        sed -i "/\"port\"/c  \    \"port\":${xport}," ${xray_conf}
         sed -i "8c\        \"port\": ${xport}," ${xray_conf}
-    elif [[ "$shell_mode" == "wsonly" ]]; then
+    elif [[ ${shell_mode} == "wsonly" ]]; then
         port=${xport}
         sed -i "8c\        \"port\": ${xport}," ${xray_conf}
-    elif [[ "$shell_mode" == "xtls" ]]; then
+    elif [[ ${shell_mode} == "xtls" ]]; then
         #        sed -i "/\"port\"/c  \    \"port\":${port}," ${xray_conf}
         sed -i "8c\        \"port\": ${port}," ${xray_conf}
         sed -i "38c\        \"port\": ${xport}," ${xray_conf}
     fi
     judge "Xray port 修改"
-    if [[ "$shell_mode" != "ws" ]]; then
+    if [[ ${shell_mode} != "ws" ]]; then
         [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
     fi
     echo -e "${OK} ${GreenBG} port: ${port} ${Font}"
@@ -366,23 +377,21 @@ modify_nginx_port() {
 }
 
 modify_nginx_other() {
+    sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
     sed -i "/server_name/c \\\t\\tserver_name ${domain};" ${nginx_conf}
-    if [[ "$shell_mode" != "xtls" ]]; then
+    if [[ ${shell_mode} != "xtls" ]]; then
         sed -i "/location/c \\\tlocation ${camouflage}" ${nginx_conf}
         sed -i "/xray-serverc/c \\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
     fi
     sed -i "/return/c \\\t\\treturn 301 https://${domain}\$request_uri;" ${nginx_conf}
     sed -i "/returc/c \\\t\\t\\treturn 302 https://www.idleleo.com/helloworld;" ${nginx_conf}
     sed -i "/locatioc/c \\\t\\tlocation \/" ${nginx_conf}
-    #sed -i "/#gzip  on;/c \\\t#gzip  on;\\n\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
-    #sed -i "/\\tserver_tokens off;\\n\\tserver_tokens off;/c \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
-    sed -i "s/        server_name  localhost;/\t\tserver_name  localhost;\n\n\t\tif (\$host = '${local_ip}'){\n\t\t\treturn 302 https:\/\/www.idleleo.com\/helloworld;\n\t\t}\n/" ${nginx_dir}/conf/nginx.conf
-    #sed -i "27i \\\tproxy_intercept_errors on;"  ${nginx_dir}/conf/nginx.conf
+    sed -i "/error_page   500 502 503 504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
 }
 
 modify_path() {
     sed -i "/\"path\"/c \                \"path\":\"${camouflage}\"" ${xray_conf}
-    if [[ "$shell_mode" != "xtls" ]] || [[ "$xtls_add_ws" == "on" ]]; then
+    if [[ ${shell_mode} != "xtls" ]] || [[ "$xtls_add_ws" == "on" ]]; then
         judge "Xray 伪装路径 修改"
         echo -e "${OK} ${GreenBG} 伪装路径: ${camouflage} ${Font}"
     else
@@ -399,16 +408,13 @@ modify_UUID() {
 }
 
 web_camouflage() {
-    ##请注意 这里和LNMP脚本的默认路径冲突, 千万不要在安装了LNMP的环境下使用本脚本, 否则后果自负
     judge "web 站点伪装"
 }
 
 xray_privilege_escalation() {
     if [[ -n "$(grep "User=nobody" ${xray_systemd_file})" ]]; then
-        #echo -e "${OK} ${GreenBG} 检测到Xray权限不足, 将提高Xray权限至root ${Font}"
         echo -e "${OK} ${GreenBG} 检测到 Xray 的权限控制, 启动擦屁股程序 ${Font}"
         systemctl stop xray
-        #sed -i "s/User=nobody/User=root/" ${xray_systemd_file}
         chmod -fR a+rw /var/log/xray/
         chown -fR nobody:${cert_group} /var/log/xray/
         chown -R nobody:${cert_group} ${ssl_chainpath}/*
@@ -419,87 +425,84 @@ xray_privilege_escalation() {
 }
 
 xray_install() {
-    if [[ -d /root/xray ]]; then
-        rm -rf /root/xray
-    fi
-    if [[ -d /usr/local/etc/xray ]]; then
-        rm -rf /usr/local/etc/xray
-    fi
-    if [[ -d /usr/local/share/xray ]]; then
-        rm -rf /usr/local/share/xray
-    fi
-    mkdir -p /root/xray
-    cd /root/xray || exit
+    [[ -d ${idleleo_tmp}/xray ]] && rm -rf ${idleleo_tmp}/xray
+    [[ -d /usr/local/etc/xray ]] && rm -rf /usr/local/etc/xray
+    [[ -d /usr/local/share/xray ]] && rm -rf /usr/local/share/xray
+    mkdir -p ${idleleo_tmp}/xray
+    cd ${idleleo_tmp}/xray || exit
     wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh
     #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-dat-release.sh
-
-    ## wget http://install.direct/go.sh
-
     ##if [[ -f install-release.sh ]] && [[ -f install-dat-release.sh ]]; then
     if [[ -f install-release.sh ]]; then
-        rm -rf ${xray_systemd_file}
-        rm -rf ${xray_systemd_file2}
-        rm -rf ${xray_systemd_filed}
-        rm -rf ${xray_systemd_filed2}
+        [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
+        [[ -f ${xray_systemd_file} ]] && rm -rf ${xray_systemd_file}
+        [[ -f ${xray_systemd_file2} ]] && rm -rf ${xray_systemd_file2}
+        [[ -d ${xray_systemd_filed} ]] && rm -rf ${xray_systemd_filed}
+        [[ -d ${xray_systemd_filed2} ]] && rm -rf ${xray_systemd_filed2}
+        [[ -f ${xray_bin_dir} ]] && rm -rf ${xray_bin_dir}
         systemctl daemon-reload
         bash install-release.sh --force
         #bash install-dat-release.sh --force
         judge "安装 Xray"
         sleep 1
         xray_privilege_escalation
+        [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
+        ln -s ${xray_conf} ${xray_default_conf}
     else
-        echo -e "${Error} ${RedBG} Xray 安装文件下载失败, 请检查下载地址是否可用 ${Font}"
+        echo -e "${Error} ${RedBG} Xray 安装文件下载失败, 请检查下载地址是否可用! ${Font}"
         exit 4
     fi
     # 清除临时文件
-    rm -rf /root/xray
+    rm -rf ${idleleo_tmp}/xray
+
 }
 
 xray_update() {
-    #mkdir -p /root/xray
-    #cd /root/xray || exit
+    #mkdir -p ${idleleo_tmp}/xray
+    #cd ${idleleo_tmp}/xray || exit
     #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh
     #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-dat-release.sh
     if [[ -d /usr/local/etc/xray ]]; then
-        #echo -e "${OK} ${GreenBG} 恢复xray原权限 ${Font}"
         systemctl stop xray
-        #sed -i "s/User=root/User=nobody/" ${xray_systemd_file}
-        #systemctl daemon-reload
-        #systemctl start xray
         sleep 1
         bash <(curl -L -s https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)
         sleep 1
         xray_privilege_escalation
+        [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
+        ln -s ${xray_conf} ${xray_default_conf}
     else
         echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装！ ${Font}"
         systemctl stop xray
-        #systemctl disable xray.service --now
-        #mv -f /etc/xray/ /usr/local/etc/
-        #rm -rf /usr/bin/xray/
-        #rm -rf /etc/systemd/system/xray.service
-        #rm -rf /lib/systemd/system/xray@.service
-        #rm -rf /etc/init.d/xray
-        #systemctl daemon-reload
         sleep 1
         bash <(curl -L -s https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)
         sleep 1
         xray_privilege_escalation
+        [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
+        ln -s ${xray_conf} ${xray_default_conf}
     fi
     # 清除临时文件
-    ##rm -rf /root/xray
+    ##rm -rf ${idleleo_tmp}/xray
 }
 
 nginx_exist_check() {
     if [[ -f "/etc/nginx/sbin/nginx" ]]; then
-        if [[ -d ${nginx_dir}/conf/conf.d ]]; then
-            rm -rf ${nginx_dir}/conf/conf.d/*
+        if [[ -d ${nginx_conf_dir} ]]; then
+            rm -rf ${nginx_conf_dir}/*
+            if [[ -f  ${nginx_conf_dir}/original.conf ]]; then 
+                cp -fp ${nginx_conf_dir}/original.conf ${nginx_dir}/conf/nginx.conf
+            else
+                sed -i "/if \(.*\) {$/,+2d" ${nginx_dir}/conf/nginx.conf
+                sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
+            fi
         else
-            mkdir ${nginx_dir}/conf/conf.d
+            mkdir -p ${nginx_conf_dir}
+            sed -i "/if \(.*\) {$/,+2d" ${nginx_dir}/conf/nginx.conf
+            sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
         fi
         echo -e "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
         sleep 2
     elif [[ -d "/usr/local/nginx/" ]]; then
-        echo -e "${OK} ${GreenBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装 ${Font}"
+        echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
         exit 1
     else
         nginx_install
@@ -516,16 +519,16 @@ nginx_install() {
 
     cd ${nginx_openssl_src} || exit
 
-    [[ -d nginx-"$nginx_version" ]] && rm -rf nginx-"$nginx_version"
-    tar -zxvf nginx-"$nginx_version".tar.gz
+    [[ -d nginx-${nginx_version} ]] && rm -rf nginx-${nginx_version}
+    tar -zxvf nginx-${nginx_version}.tar.gz
 
-    [[ -d openssl-"$openssl_version" ]] && rm -rf openssl-"$openssl_version"
-    tar -zxvf openssl-"$openssl_version".tar.gz
+    [[ -d openssl-${openssl_version} ]] && rm -rf openssl-${openssl_version}
+    tar -zxvf openssl-${openssl_version}.tar.gz
 
-    [[ -d jemalloc-"${jemalloc_version}" ]] && rm -rf jemalloc-"${jemalloc_version}"
-    tar -xvf jemalloc-"${jemalloc_version}".tar.bz2
+    [[ -d jemalloc-${jemalloc_version} ]] && rm -rf jemalloc-${jemalloc_version}
+    tar -xvf jemalloc-${jemalloc_version}.tar.bz2
 
-    [[ -d "$nginx_dir" ]] && rm -rf ${nginx_dir}
+    [[ -d ${nginx_dir} ]] && rm -rf ${nginx_dir}
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 jemalloc ${Font}"
     sleep 2
@@ -544,7 +547,7 @@ nginx_install() {
     cd ../nginx-${nginx_version} || exit
 
     #增加http_sub_module用于反向代理替换关键词
-    ./configure --prefix="${nginx_dir}" \
+    ./configure --prefix=${nginx_dir} \
     --with-http_ssl_module \
     --with-http_gzip_static_module \
     --with-http_stub_status_module \
@@ -558,29 +561,26 @@ nginx_install() {
     --with-http_v2_module \
     --with-cc-opt='-O3' \
     --with-ld-opt="-ljemalloc" \
-    --with-openssl=../openssl-"$openssl_version"
+    --with-openssl=../openssl-${openssl_version}
     judge "编译检查"
-    make -j "${THREAD}" && make install
+    make -j ${THREAD} && make install
     judge "Nginx 编译安装"
 
     # 修改基本配置
     sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
     sed -i 's/worker_processes  1;/worker_processes  4;/' ${nginx_dir}/conf/nginx.conf
     sed -i 's/    worker_connections  1024;/    worker_connections  4096;/' ${nginx_dir}/conf/nginx.conf
-    sed -i '$i include conf.d/*.conf;' ${nginx_dir}/conf/nginx.conf
+    cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/original.conf
 
     # 删除临时文件
-    rm -rf ../nginx-"${nginx_version}"
-    rm -rf ../openssl-"${openssl_version}"
-    rm -rf ../nginx-"${nginx_version}".tar.gz
-    rm -rf ../openssl-"${openssl_version}".tar.gz
-
-    # 添加配置文件夹, 适配旧版脚本
-    mkdir ${nginx_dir}/conf/conf.d
+    rm -rf ../nginx-${nginx_version}
+    rm -rf ../openssl-${openssl_version}
+    rm -rf ../nginx-${nginx_version}.tar.gz
+    rm -rf ../openssl-${openssl_version}.tar.gz
 }
 
 ssl_install() {
-    if [[ "${ID}" == "centos" ]]; then
+    if [[ ${ID} == "centos" ]]; then
         ${INS} install socat nc -y
     else
         ${INS} install socat netcat -y
@@ -592,8 +592,9 @@ ssl_install() {
 }
 
 domain_check() {
+    echo -e "\n${GreenBG} 确定 域名 信息  ${Font}"
     read -rp "请输入你的域名信息 (eg:www.idleleo.com):" domain
-    echo "请选择 公网IP 为 IPv4 或 IPv6"
+    echo -e "${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
     echo "1: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
     read -rp "请输入: " ip_version
@@ -616,12 +617,19 @@ domain_check() {
         echo -e "${OK} ${GreenBG} 域名DNS 解析IP 与 公网IP 匹配 ${Font}"
         sleep 2
     else
-        echo -e "${Error} ${RedBG} 请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray ${Font}"
-        echo -e "${Error} ${RedBG} 域名DNS 解析IP 与 公网IP 不匹配 是否继续安装 [Y/N]? ${Font}" && read -r install
+        echo -e "${Warning} ${YellowBG} 请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray ${Font}"
+        echo -e "${Error} ${RedBG} 域名DNS 解析IP 与 公网IP 不匹配, 请选择: ${Font}" 
+        echo "1: 继续安装"
+        echo "2: 重新输入"
+        echo "3: 终止安装 (默认)"
+        read -r install
         case $install in
-        [yY][eE][sS] | [yY])
+        1)
             echo -e "${GreenBG} 继续安装 ${Font}"
             sleep 2
+            ;;
+        2)
+            domain_check
             ;;
         *)
             echo -e "${Error} ${RedBG} 安装终止 ${Font}"
@@ -632,7 +640,8 @@ domain_check() {
 }
 
 ip_check() {
-    echo "请选择 公网IP 为 IPv4 或 IPv6"
+    echo -e "\n${GreenBG} 确定 公网IP 信息  ${Font}"
+    echo -e "${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
     echo "1: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
     read -rp "请输入: " ip_version
@@ -655,8 +664,7 @@ port_exist_check() {
     else
         echo -e "${Error} ${RedBG} 检测到 $1 端口被占用, 以下为 $1 端口占用信息 ${Font}"
         lsof -i:"$1"
-        echo -e "${OK} ${GreenBG} 5s 后将尝试自动 kill 占用进程 ${Font}"
-        sleep 5
+        timeout "尝试自动 kill 占用进程"
         lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
         echo -e "${OK} ${GreenBG} kill 完成 ${Font}"
         sleep 1
@@ -694,7 +702,7 @@ acme() {
 
 xray_conf_add() {
     cd ${xray_conf_dir} || exit
-    if [[ "$shell_mode" != "xtls" ]]; then
+    if [[ ${shell_mode} != "xtls" ]]; then
         wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_tls/config.json -O config.json
         modify_path
         modify_inbound_port
@@ -702,7 +710,7 @@ xray_conf_add() {
         wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_xtls/config.json -O config.json
         xray_xtls_add_ws
     fi
-    if [[ "$shell_mode" == "wsonly" ]]; then
+    if [[ ${shell_mode} == "wsonly" ]]; then
         modify_listen_address
     fi
     modify_alterid
@@ -908,7 +916,7 @@ EOF
 }
 
 start_process_systemd() {
-    if [[ "$shell_mode" != "wsonly" ]]; then
+    if [[ ${shell_mode} != "wsonly" ]]; then
         systemctl daemon-reload
         systemctl restart nginx
         judge "Nginx 启动"
@@ -918,7 +926,7 @@ start_process_systemd() {
 }
 
 enable_process_systemd() {
-    if [[ "$shell_mode" != "wsonly" ]]; then
+    if [[ ${shell_mode} != "wsonly" ]]; then
         systemctl enable nginx
         judge "设置 Nginx 开机自启"
     fi
@@ -927,7 +935,7 @@ enable_process_systemd() {
 }
 
 stop_process_systemd() {
-    if [[ "$shell_mode" != "xtls" ]]; then
+    if [[ ${shell_mode} != "xtls" ]]; then
         systemctl stop nginx
     fi
     systemctl stop xray
@@ -941,7 +949,7 @@ stop_service() {
 }
 
 acme_cron_update() {
-    wget -N -P /etc/idleleo --no-check-certificate "https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh"
+    wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${idleleo_dir}/ssl_update.sh
     if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
         if [[ "${ID}" == "centos" ]]; then
             #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
@@ -957,12 +965,9 @@ acme_cron_update() {
 }
 
 vless_qr_config_tls_ws() {
-    mkdir -p ${idleleo_xray_dir}/info
     cat >$xray_qr_config_file <<-EOF
 {
-  "v": "2",
-  "ps": "${domain}",
-  "add": "${domain}",
+  "host": "${domain}",
   "port": "${port}",
   "inbound_port": "${xport}",
   "idc": "${UUID5_char}",
@@ -976,12 +981,9 @@ EOF
 }
 
 vless_qr_config_xtls() {
-    mkdir -p ${idleleo_xray_dir}/info
     cat >$xray_qr_config_file <<-EOF
 {
-  "v": "2",
-  "ps": "${domain}",
-  "add": "${domain}",
+  "host": "${domain}",
   "port": "${port}",
   "idc": "${UUID5_char}",
   "id": "${UUID}",
@@ -995,12 +997,9 @@ EOF
 }
 
 vless_qr_config_ws_only() {
-    mkdir -p ${idleleo_xray_dir}/info
     cat >$xray_qr_config_file <<-EOF
 {
-  "v": "2",
-  "ps": "${local_ip}",
-  "add": "${local_ip}",
+  "host": "${local_ip}",
   "port": "${xport}",
   "idc": "${UUID5_char}",
   "id": "${UUID}",
@@ -1019,12 +1018,12 @@ vless_urlquote()
 
 vless_qr_link_image() {
     #vless_link="vless://$(base64 -w 0 $xray_qr_config_file)"
-    if [[ "$shell_mode" == "ws" ]]; then
-        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))?ed=2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"add\"'))&type=ws#$(vless_urlquote $(info_extraction '\"add\"'))+ws%E5%8D%8F%E8%AE%AE"
-    elif [[ "$shell_mode" == "xtls" ]]; then
-        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction '\"add\"'))+xtls%E5%8D%8F%E8%AE%AE"
-    elif [[ "$shell_mode" == "wsonly" ]]; then
-        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"add\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))?ed=2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction '\"add\"'))+%E5%8D%95%E7%8B%ACws%E5%8D%8F%E8%AE%AE"
+    if [[ ${shell_mode} == "ws" ]]; then
+        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))?ed=2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"host\"'))&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+ws%E5%8D%8F%E8%AE%AE"
+    elif [[ ${shell_mode} == "xtls" ]]; then
+        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction '\"host\"'))+xtls%E5%8D%8F%E8%AE%AE"
+    elif [[ ${shell_mode} == "wsonly" ]]; then
+        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))?ed=2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+%E5%8D%95%E7%8B%ACws%E5%8D%8F%E8%AE%AE"
     fi
         {
             echo -e "\n${Red} —————————————— Xray 配置分享 —————————————— ${Font}"
@@ -1036,7 +1035,7 @@ vless_qr_link_image() {
 }
 
 vless_link_image_choice() {
-    echo "请选择生成的分享链接种类:"
+    echo -e "${GreenBG} 请选择生成的分享链接种类: ${Font}"
     echo "1: V2RayN/V2RayNG/Qv2ray"
     read -rp "请输入: " link_version
     [[ -z ${link_version} ]] && link_version=1
@@ -1054,18 +1053,18 @@ info_extraction() {
 
 basic_information() {
     {
-        if [[ "$shell_mode" == "xtls" ]]; then
+        if [[ ${shell_mode} == "xtls" ]]; then
             echo -e "${OK} ${GreenBG} Xray+Nginx+ws+tls 安装成功 ${Font}"
-        elif  [[ "$shell_mode" == "ws" ]]; then
+        elif  [[ ${shell_mode} == "ws" ]]; then
             echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx 安装成功 ${Font}"
-        elif  [[ "$shell_mode" == "wsonly" ]]; then
+        elif  [[ ${shell_mode} == "wsonly" ]]; then
             echo -e "${OK} ${GreenBG} ws ONLY 安装成功 ${Font}"
         fi
         echo -e "${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 ${Font}"
         echo -e "\n${Red} —————————————— Xray 配置信息 —————————————— ${Font}"
-        echo -e "${Red} 地址 (address):${Font} $(info_extraction '\"add\"') "
+        echo -e "${Red} 主机 (host):${Font} $(info_extraction '\"host\"') "
         echo -e "${Red} 端口 (port):${Font} $(info_extraction '\"port\"') "
-        if [[ "$shell_mode" == "ws" ]]; then
+        if [[ ${shell_mode} == "ws" ]]; then
             echo -e "${Red} Xray 端口 (inbound_port):${Font} $(info_extraction '\"inbound_port\"') "
         fi
         echo -e "${Red} UUIDv5 映射字符串:${Font} $(info_extraction '\"idc\"')"
@@ -1074,8 +1073,8 @@ basic_information() {
         echo -e "${Red} 加密 (encryption):${Font} none "
         echo -e "${Red} 传输协议 (network):${Font} $(info_extraction '\"net\"') "
         echo -e "${Red} 底层传输安全 (tls):${Font} $(info_extraction '\"tls\"') "
-        if [[ "$shell_mode" != "xtls" ]]; then
-            echo -e "${Red} 路径 (不要落下/):${Font} $(info_extraction '\"path\"') "
+        if [[ ${shell_mode} != "xtls" ]]; then
+            echo -e "${Red} 路径 (path 不要落下/):${Font} $(info_extraction '\"path\"') "
         else
             echo -e "${Red} 流控 (flow):${Font} xtls-rprx-direct "
             if [[ "$xtls_add_ws" == "on" ]]; then
@@ -1091,41 +1090,53 @@ show_information() {
 }
 
 ssl_judge_and_install() {
-    if [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]]; then
-        echo "${GreenBG} 证书文件已存在 ${Font}"
-        echo -e "${GreenBG} 是否删除 [Y/N]? ${Font}"
-        read -r ssl_delete
-        case $ssl_delete in
-        [yY][eE][sS] | [yY])
+    if [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] &&  [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+        echo -e "${GreenBG} 所有证书文件均已存在 ${Font}"
+        echo -e "${GreenBG} 是否保留 [Y/N]? ${Font}"
+        read -r ssl_delete_1
+        case $ssl_delete_1 in
+        [nN][oO]|[nN])
             delete_tls_key_and_crt
             rm -rf ${ssl_chainpath}/*
             echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+            ssl_install
+            acme
             ;;
-        *) ;;
-
+        *) 
+            judge "证书应用"
+            ;;
         esac
-    fi
-
-    if [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        echo -e "${GreenBG} 部分证书文件已存在 ${Font}"
-        echo -e "${GreenBG} 是否删除 [Y/N]? ${Font}"
+    elif [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]] &&  [[ ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+        echo -e "${GreenBG} 证书文件已存在 ${Font}"
+        echo -e "${GreenBG} 是否保留 [Y/N]? ${Font}"
         read -r ssl_delete_2
         case $ssl_delete_2 in
-        [yY][eE][sS] | [yY])
+        [nN][oO]|[nN])
+            rm -rf ${ssl_chainpath}/*
+            echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+            ssl_install
+            acme
+            ;;
+        *) 
+            judge "证书应用"
+            ;;
+        esac
+    elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt"  ]]; then
+        echo -e "${GreenBG} 证书签发残留文件已存在 ${Font}"
+        echo -e "${GreenBG} 是否保留 [Y/N]? ${Font}"
+        read -r ssl_delete_3
+        case $ssl_delete_3 in
+        [nN][oO]|[nN])
             delete_tls_key_and_crt
             echo -e "${OK} ${GreenBG} 已删除 ${Font}"
             ssl_install
             acme
             ;;
-        *) ;;
-
+        *) 
+            "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
+            judge "证书应用"
+            ;;
         esac
-    elif [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]]; then
-        echo -e "${GreenBG} 证书文件已存在 ${Font}"
-        judge "证书应用"
-    elif [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt"  ]] && [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
-        judge "证书应用"
     else
         ssl_install
         acme
@@ -1156,8 +1167,8 @@ EOF
 }
 
 tls_type() {
-    if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ "$shell_mode" != "wsonly" ]]; then
-        echo "请选择支持的 TLS 版本 (default:2):"
+    if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ ${shell_mode} != "wsonly" ]]; then
+        echo -e "${GreenBG} 请选择支持的 TLS 版本 (default:2): ${Font}"
         echo "建议选择 TLS1.2 and TLS1.3 (一般模式)"
         echo "1: TLS1.1 TLS1.2 and TLS1.3 (兼容模式)"
         echo "2: TLS1.2 and TLS1.3 (一般模式)"
@@ -1174,10 +1185,11 @@ tls_type() {
         elif [[ $tls_version == 1 ]]; then
             if [[ $shell_mode == "ws"  ]]; then
                 sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;/' $nginx_conf
+                echo -e "${OK} ${GreenBG} 已切换至 TLS1.1 TLS1.2 and TLS1.3 ${Font}"
             else
-                sed -i "/\"minVersion\"/c \                \"minVersion\": \"1.1\"," ${xray_conf}  
+                echo -e "${Error} ${RedBG} XTLS最低版本应大于 TLS1.1, 请重新选择！ ${Font}" 
+                tls_type
             fi
-            echo -e "${OK} ${GreenBG} 已切换至 TLS1.1 TLS1.2 and TLS1.3 ${Font}"
         else
             if [[ $shell_mode == "ws"  ]]; then
                 sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.2 TLSv1.3;/' $nginx_conf
@@ -1199,24 +1211,24 @@ tls_type() {
 }
 
 show_access_log() {
-    [ -f ${xray_access_log} ] && tail -f ${xray_access_log} || echo -e "${Error} ${RedBG} log文件不存在 ${Font}"
+    [ -f ${xray_access_log} ] && tail -f ${xray_access_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
 }
 
 show_error_log() {
-    [ -f ${xray_error_log} ] && tail -f ${xray_error_log} || echo -e "${Error} ${RedBG} log文件不存在 ${Font}"
+    [ -f ${xray_error_log} ] && tail -f ${xray_error_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
 }
 
 ssl_update_manuel() {
-    [ -f ${amce_sh_file} ] && "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" || echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认你是否使用了自己的证书 ${Font}"
-    domain="$(info_extraction '\"add\"')"
+    [ -f ${amce_sh_file} ] && "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" || echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认你是否使用了自己的证书! ${Font}"
+    domain="$(info_extraction '\"host\"')"
     "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
 }
 
 bbr_boost_sh() {
-    if [[ -f "${idleleo_xray_dir}/tcp.sh" ]]; then 
-        chmod +x ${idleleo_xray_dir}/tcp.sh && ${idleleo_xray_dir}/tcp.sh
+    if [[ -f "${idleleo_dir}/tcp.sh" ]]; then 
+        chmod +x ${idleleo_dir}/tcp.sh && ${idleleo_dir}/tcp.sh
     else    
-        wget -N --no-check-certificate -P ${idleleo_xray_dir} "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x ${idleleo_xray_dir}/tcp.sh && ${idleleo_xray_dir}/tcp.sh
+        wget -N --no-check-certificate -P ${idleleo_dir} "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x ${idleleo_dir}/tcp.sh && ${idleleo_dir}/tcp.sh
     fi
 }
 
@@ -1227,25 +1239,27 @@ mtproxy_sh() {
 uninstall_all() {
     stop_process_systemd
     systemctl disable xray
-    [[ -f $nginx_systemd_file ]] && rm -rf $nginx_systemd_file
-    [[ -f $xray_systemd_file ]] && rm -rf $xray_systemd_file
-    [[ -f $xray_systemd_file2 ]] && rm -rf $xray_systemd_file2
-    [[ -d $xray_systemd_filed ]] && rm -rf $xray_systemd_filed
-    [[ -d $xray_systemd_filed2 ]] && rm -rf $xray_systemd_filed2
-    [[ -f $xray_bin_dir ]] && rm -rf $xray_bin_dir
-    if [[ -d $nginx_dir ]]; then
+    [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
+    [[ -f ${xray_systemd_file} ]] && rm -rf ${xray_systemd_file}
+    [[ -f ${xray_systemd_file2} ]] && rm -rf ${xray_systemd_file2}
+    [[ -d ${xray_systemd_filed} ]] && rm -rf ${xray_systemd_filed}
+    [[ -d ${xray_systemd_filed2} ]] && rm -rf ${xray_systemd_filed2}
+    [[ -f ${xray_bin_dir} ]] && rm -rf ${xray_bin_dir}
+    [[ -d ${xray_conf_dir} ]] && rm -rf ${xray_conf_dir}
+    [[ -L ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
+    [[ -d ${idleleo_tmp} ]] && rm -rf ${idleleo_tmp}
+    if [[ -d ${nginx_dir} ]]; then
         echo -e "${Green} 是否卸载 Nginx [Y/N]? ${Font}"
         read -r uninstall_nginx
         case $uninstall_nginx in
         [yY][eE][sS] | [yY])
-            rm -rf $nginx_dir
+            rm -rf ${nginx_dir}
+            rm -rf ${nginx_conf_dir}
             echo -e "${OK} ${Green} 已卸载 Nginx ${Font}"
             ;;
         *) ;;
-
         esac
     fi
-    [[ -d $xray_conf_dir ]] && rm -rf $xray_conf_dir
     systemctl daemon-reload
     echo -e "${OK} ${GreenBG} 已卸载, SSL 证书文件已保留 ${Font}"
 }
@@ -1256,26 +1270,25 @@ delete_tls_key_and_crt() {
     echo -e "${OK} ${GreenBG} 已清空证书遗留文件 ${Font}"
 }
 
-clear_timeout() {
-    echo -e "${Warning} ${GreenBG} 3秒后将清空屏幕! ${Font}"
+timeout() {
     timeout=0
     timeout_str=""
-    while [ $timeout -le 30 ]; do
+    while [[ ${timeout} -le 30 ]]; do
         let timeout++
         timeout_str+="#"
     done
     let timeout=timeout+5
-    while [ $timeout -gt 0 ]; do
+    while [[ ${timeout} -gt 0 ]]; do
             let timeout--
-            if [ $timeout -gt 25 ]; then
+            if [[ ${timeout} -gt 25 ]]; then
                 let timeout_color=32
                 let timeout_bg=42
                 timeout_index="3"
-            elif [ $timeout -gt 15 ]; then
+            elif [[ ${timeout} -gt 15 ]]; then
                 let timeout_color=33
                 let timeout_bg=43
                 timeout_index="2"
-            elif [ $timeout -gt 5 ]; then
+            elif [[ ${timeout} -gt 5 ]]; then
                 let timeout_color=31
                 let timeout_bg=41
                 timeout_index="1"
@@ -1283,15 +1296,14 @@ clear_timeout() {
                 timeout_index="0"
             fi
         timeout_black=" "
-        printf "\033[${timeout_color};${timeout_bg}m%-s\033[0m \033[${timeout_color}m%d\033[0m%s\r" "$timeout_str" "$timeout_index" "$timeout_black"
+        printf "${Warning} ${GreenBG} %d秒后将$1 ${Font} \033[${timeout_color};${timeout_bg}m%-s\033[0m \033[${timeout_color}m%d\033[0m%s\r" "$timeout_index" "$timeout_str" "$timeout_index" "$timeout_black"
         sleep 0.1
         timeout_str=${timeout_str%?}
     done
-    clear
 }
 
 judge_mode() {
-    if [ -f $xray_bin_dir ]; then
+    if [[ -f ${xray_bin_dir} ]]; then
         if [[ $(info_extraction '\"tls\"') == "TLS" ]]; then
             shell_mode="ws"
             shell_mode_show="Nginx+ws+tls"
@@ -1316,6 +1328,7 @@ install_xray_ws_tls() {
     check_system
     dependency_install
     basic_optimization
+    create_directory
     domain_check
     old_config_exist_check
     port_set
@@ -1348,6 +1361,7 @@ install_xray_xtls() {
     check_system
     dependency_install
     basic_optimization
+    create_directory
     domain_check
     old_config_exist_check
     port_set
@@ -1377,6 +1391,7 @@ install_xray_ws_only() {
     check_system
     dependency_install
     basic_optimization
+    create_directory
     ip_check
     old_config_exist_check
     inbound_port_set
@@ -1397,23 +1412,22 @@ install_xray_ws_only() {
 
 update_sh() {
     ol_version=$(curl -L -s https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
-    echo "$ol_version" >$version_cmp
+    echo "${ol_version}" >${version_cmp}
     [[ -z ${ol_version} ]] && clear && echo -e "${Error} ${RedBG}  检测最新版本失败! ${Font}" && bash idleleo
-    echo "$shell_version" >>$version_cmp
-    if [[ "$shell_version" != "$(sort -rV $version_cmp | head -1)" ]]; then
+    echo "${shell_version}" >>${version_cmp}
+    if [[ ${shell_version} != "$(sort -rV ${version_cmp} | head -1)" ]]; then
         echo -e "${GreenBG} 存在新版本, 是否更新 [Y/N]? ${Font}"
         read -r update_confirm
         case $update_confirm in
         [yY][eE][sS] | [yY])
-            rm -f ${idleleo_commend_file}
-            wget -N --no-check-certificate -P ${idleleo_xray_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_xray_dir}/install.sh
-            ln -s ${idleleo_xray_dir}/install.sh ${idleleo_commend_file}
+            [[ -L ${idleleo_commend_file} ]] && rm -f ${idleleo_commend_file}
+            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+            ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
             clear
             echo -e "${OK} ${GreenBG} 更新完成 ${Font}"
             bash idleleo
             ;;
         *) ;;
-
         esac
     else
         clear
@@ -1424,7 +1438,7 @@ update_sh() {
 }
 
 maintain() {
-    echo -e "${Error} ${RedBG} 该选项暂时无法使用 ${Font}"
+    echo -e "${Error} ${RedBG} 该选项暂时无法使用! ${Font}"
     echo -e "${Error} ${RedBG} $1 ${Font}"
     exit 0
 }
@@ -1455,7 +1469,8 @@ list() {
         ;;
     xray)
         xray_update
-        clear_timeout
+        timeout "清空屏幕!"
+        clear
         ;;
     xray_access)
         clear
@@ -1472,17 +1487,30 @@ list() {
 }
 
 idleleo_commend() {
-    if [ -L "${idleleo_commend_file}" ]; then
-        echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本\n${Font}"
-    else
-        if [ -L "/usr/bin/idleleo-xray" ]; then
-            rm -rf /usr/bin/idleleo-xray
+    if [[ -L ${idleleo_commend_file} ]] || [[ -f ${idleleo_dir}/install.sh ]]; then
+        old_version=$(grep "shell_version=" ${idleleo_dir}/install.sh | head -1 | awk -F '=|"' '{print $3}')
+        echo "${old_version}" >${version_cmp}
+        echo "${shell_version}" >>${version_cmp}
+        if [[ -z ${old_version} ]]; then
+            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+            clear
+            bash idleleo
+        elif [[ ${shell_version} != "$(sort -V ${version_cmp} | head -1)" ]]; then
+            rm -rf ${idleleo_dir}/install.sh
+            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+            clear
+            bash idleleo
+        elif [[ ! -L ${idleleo_commend_file} ]]; then
+            ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
+            echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本\n${Font}"
+        else
+            echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本\n${Font}"
         fi
-        ln -s $(
-            cd "$(dirname "$0")"
-            pwd
-        )/install.sh ${idleleo_commend_file}
-        echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本\n${Font}"
+    else
+        wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+        ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
+        clear
+        bash idleleo
     fi
 }
 
@@ -1511,14 +1539,19 @@ menu() {
     echo -e "${Green}9.${Font}  查看 实时访问日志"
     echo -e "${Green}10.${Font} 查看 实时错误日志"
     echo -e "${Green}11.${Font} 查看 Xray 配置信息"
+    echo -e "—————————————— 服务相关 ——————————————"
+    echo -e "${Green}12.${Font} 重启 所有服务"
+    echo -e "${Green}13.${Font} 启动 所有服务"
+    echo -e "${Green}14.${Font} 停止 所有服务"
+    echo -e "${Green}15.${Font} 查看 所有服务"
     echo -e "—————————————— 其他选项 ——————————————"
-    echo -e "${Green}12.${Font} 安装 TCP 加速脚本"
-    echo -e "${Green}13.${Font} 安装 MTproxy (不推荐使用)"
-    echo -e "${Green}14.${Font} 证书 有效期更新"
-    echo -e "${Green}15.${Font} 卸载 Xray"
-    echo -e "${Green}16.${Font} 更新 证书 crontab 计划任务"
-    echo -e "${Green}17.${Font} 清空 证书文件"
-    echo -e "${Green}18.${Font} 退出 \n"
+    echo -e "${Green}16.${Font} 安装 TCP 加速脚本"
+    echo -e "${Green}17.${Font} 安装 MTproxy (不推荐使用)"
+    echo -e "${Green}18.${Font} 证书 有效期更新"
+    echo -e "${Green}19.${Font} 卸载 Xray"
+    echo -e "${Green}20.${Font} 更新 证书 crontab 计划任务"
+    echo -e "${Green}21.${Font} 清空 证书文件"
+    echo -e "${Green}22.${Font} 退出 \n"
 
     read -rp "请输入数字: " menu_num
     case $menu_num in
@@ -1549,14 +1582,16 @@ menu() {
         ;;
     4)
         xray_update
-        clear_timeout
+        timeout "清空屏幕!"
+        clear
         bash idleleo
         ;;
     5)
         UUID_set
         modify_UUID
         start_process_systemd
-        clear_timeout
+        timeout "清空屏幕!"
+        clear
         bash idleleo
         ;;
     6)
@@ -1573,17 +1608,20 @@ menu() {
         fi
         firewall_set
         start_process_systemd
-        clear_timeout
+        timeout "清空屏幕!"
+        clear
         bash idleleo
         ;;
     7)
         tls_type
-        clear_timeout
+        timeout "清空屏幕!"
+        clear
         bash idleleo
         ;;
     8)
         nginx_upstream_server_set
-        clear_timeout
+        timeout "清空屏幕!"
+        clear
         bash idleleo
         ;;
     9)
@@ -1602,43 +1640,93 @@ menu() {
         bash idleleo
         ;;
     12)
+        systemctl daemon-reload
+        sleep 1
+        if [[ ${shell_mode} != "wsonly" ]]; then
+            systemctl restart nginx
+            judge "Nginx 重启"
+            sleep 1
+        fi
+        systemctl restart xray
+        judge "Xray 重启"
+        timeout "清空屏幕!"
         clear
-        bbr_boost_sh
+        bash idleleo
         ;;
     13)
+        if [[ ${shell_mode} != "wsonly" ]]; then
+            systemctl start nginx
+            judge "Nginx 启动"
+            sleep 1
+        fi
+        systemctl start xray
+        judge "Xray 启动"
+        timeout "清空屏幕!"
         clear
-        mtproxy_sh
+        bash idleleo
         ;;
     14)
-        stop_process_systemd
-        ssl_update_manuel
-        start_process_systemd
-        clear_timeout
+        if [[ ${shell_mode} != "wsonly" ]]; then
+            systemctl stop nginx
+            judge "Nginx 停止"
+            sleep 1
+        fi
+        systemctl stop xray
+        judge "Xray 停止"
+        timeout "清空屏幕!"
+        clear
         bash idleleo
         ;;
     15)
-        uninstall_all
-        clear_timeout
+        if [[ ${shell_mode} != "wsonly" ]]; then
+            systemctl status nginx
+        fi
+        systemctl status xray
         bash idleleo
         ;;
     16)
-        acme_cron_update
-        clear_timeout
-        bash idleleo
+        clear
+        bbr_boost_sh
         ;;
     17)
-        delete_tls_key_and_crt
-        rm -rf ${ssl_chainpath}/*
-        clear_timeout
-        bash idleleo
+        clear
+        mtproxy_sh
         ;;
     18)
-        clear_timeout
+        stop_process_systemd
+        ssl_update_manuel
+        start_process_systemd
+        timeout "清空屏幕!"
+        clear
+        bash idleleo
+        ;;
+    19)
+        uninstall_all
+        timeout "清空屏幕!"
+        clear
+        bash idleleo
+        ;;
+    20)
+        acme_cron_update
+        timeout "清空屏幕!"
+        clear
+        bash idleleo
+        ;;
+    21)
+        delete_tls_key_and_crt
+        rm -rf ${ssl_chainpath}/*
+        timeout "清空屏幕!"
+        clear
+        bash idleleo
+        ;;
+    22)
+        timeout "清空屏幕!"
+        clear
         exit 0
         ;;
     *)
         clear
-        echo -e "${Error} ${RedBG} 请输入正确的数字 ${Font}"
+        echo -e "${Error} ${RedBG} 请输入正确的数字! ${Font}"
         bash idleleo
         ;;
     esac
