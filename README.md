@@ -80,7 +80,7 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 
 ### 相关目录
 
-Xray 服务端配置：`/etc/xray/config.json`
+Xray 服务端配置：`/etc/idleleo/conf/xray/config.json`
 
 Nginx 目录： `/etc/nginx`
 
