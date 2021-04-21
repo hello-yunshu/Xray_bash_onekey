@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.6.0.0"
+shell_version="1.6.1.1"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -62,9 +62,10 @@ xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 cert_group="nobody"
-nginx_version="1.18.0"
+nginx_version="1.20.0"
 openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
+read_config_status=1
 xtls_add_ws="off"
 old_config_status="off"
 old_shell_mode="None"
@@ -487,9 +488,9 @@ xray_update() {
 nginx_exist_check() {
     if [[ -f "/etc/nginx/sbin/nginx" ]]; then
         if [[ -d ${nginx_conf_dir} ]]; then
-            rm -rf ${nginx_conf_dir}/*
-            if [[ -f  ${nginx_conf_dir}/original.conf ]]; then 
-                cp -fp ${nginx_conf_dir}/original.conf ${nginx_dir}/conf/nginx.conf
+            rm -rf ${nginx_conf_dir}/*.conf
+            if [[ -f  ${nginx_conf_dir}/original.confbackup ]]; then 
+                cp -fp ${nginx_conf_dir}/original.confbackup ${nginx_dir}/conf/nginx.conf
             else
                 sed -i "/if \(.*\) {$/,+2d" ${nginx_dir}/conf/nginx.conf
                 sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
@@ -552,11 +553,14 @@ nginx_install() {
     --with-http_gzip_static_module \
     --with-http_stub_status_module \
     --with-pcre \
-    --with-http_realip_module \
     --with-http_flv_module \
     --with-http_mp4_module \
     --with-http_realip_module \
     --with-http_secure_link_module \
+    --with-stream \
+    --with-stream_ssl_module \
+    --with-stream_realip_module \
+    --with-stream_ssl_preread_module \
     --with-http_sub_module \
     --with-http_v2_module \
     --with-cc-opt='-O3' \
@@ -570,13 +574,82 @@ nginx_install() {
     sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
     sed -i 's/worker_processes  1;/worker_processes  4;/' ${nginx_dir}/conf/nginx.conf
     sed -i 's/    worker_connections  1024;/    worker_connections  4096;/' ${nginx_dir}/conf/nginx.conf
-    cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/original.conf
+    cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/original.confbackup
 
     # 删除临时文件
     rm -rf ../nginx-${nginx_version}
     rm -rf ../openssl-${openssl_version}
     rm -rf ../nginx-${nginx_version}.tar.gz
     rm -rf ../openssl-${openssl_version}.tar.gz
+}
+
+nginx_update() {
+    if [[ -f "/etc/nginx/sbin/nginx" ]]; then
+        if [[ ${nginx_version} != $(info_extraction '\"nginx_version\"') ]] || [[ ${openssl_version} != $(info_extraction '\"openssl_version\"') ]] || [[ ${jemalloc_version} != $(info_extraction '\"jemalloc_version\"') ]]; then
+            if [[ ${shell_mode} == "ws" ]]; then
+                if [[ -f $xray_qr_config_file ]]; then 
+                    domain=$(info_extraction '\"host\"')
+                    port=$(info_extraction '\"port\"')
+                    xport=$(info_extraction '\"inbound_port\"')
+                    camouflage=$(info_extraction '\"path\"')
+                    if [[ 0 -eq ${read_config_status} ]]; then
+                        echo -e "${Error} ${RedBG} 旧配置文件不完整, 退出升级 ${Font}"
+                        timeout "清空屏幕!"
+                        clear 
+                        bash idleleo
+                    fi
+                else
+                    echo -e "${Error} ${RedBG} 旧配置文件不存在, 退出升级 ${Font}"
+                    timeout "清空屏幕!"
+                    clear
+                    bash idleleo
+                fi
+            elif [[ ${shell_mode} == "xtls" ]]; then
+                if [[ -f $xray_qr_config_file ]]; then
+                    domain=$(info_extraction '\"host\"')
+                    port=$(info_extraction '\"port\"')
+                    if [[ 0 -eq ${read_config_status} ]]; then
+                        echo -e "${Error} ${RedBG} 旧配置文件不完整, 退出升级 ${Font}"
+                        timeout "清空屏幕!"
+                        clear 
+                        bash idleleo
+                    fi
+                else
+                    echo -e "${Error} ${RedBG} 旧配置文件不存在, 退出升级 ${Font}"
+                    timeout "清空屏幕!"
+                    clear
+                    bash idleleo
+                fi
+            else
+                echo -e "${Error} ${RedBG} 当前安装模式不需要 Nginx ! ${Font}"
+                timeout "清空屏幕!"
+                clear
+                bash idleleo
+            fi
+            service_stop
+            timeout "删除旧版 Nginx !"
+            rm -rf ${nginx_dir}
+            rm -rf ${nginx_conf_dir}/*.conf
+            sleep 1
+            nginx_install
+            sleep 1
+            if [[ ${shell_mode} == "ws" ]]; then    
+                nginx_conf_add
+            elif [[ ${shell_mode} == "xtls" ]]; then
+                nginx_conf_add_xtls
+            fi
+            sleep 1
+            service_start
+            sed -i "/\"nginx_version\"/c \  \"nginx_version\": \"${nginx_version}\"," ${xray_qr_config_file}
+            sed -i "/\"openssl_version\"/c \  \"openssl_version\": \"${openssl_version}\"," ${xray_qr_config_file}
+            sed -i "/\"jemalloc_version\"/c \  \"jemalloc_version\": \"${jemalloc_version}\"" ${xray_qr_config_file}
+            judge "Nginx 升级"
+        else
+            echo -e "${OK} ${GreenBG} Nginx 已为最新版 ${Font}"
+        fi
+    else
+        echo -e "${Error} ${RedBG} Nginx 未安装, 请安装后再试! ${Font}"
+    fi
 }
 
 ssl_install() {
@@ -592,7 +665,7 @@ ssl_install() {
 }
 
 domain_check() {
-    echo -e "\n${GreenBG} 确定 域名 信息  ${Font}"
+    echo -e "\n${GreenBG} 确定 域名 信息 ${Font}"
     read -rp "请输入你的域名信息 (eg:www.idleleo.com):" domain
     echo -e "${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
     echo "1: IPv4 (默认)"
@@ -640,7 +713,7 @@ domain_check() {
 }
 
 ip_check() {
-    echo -e "\n${GreenBG} 确定 公网IP 信息  ${Font}"
+    echo -e "\n${GreenBG} 确定 公网IP 信息 ${Font}"
     echo -e "${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
     echo "1: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
@@ -664,7 +737,7 @@ port_exist_check() {
     else
         echo -e "${Error} ${RedBG} 检测到 $1 端口被占用, 以下为 $1 端口占用信息 ${Font}"
         lsof -i:"$1"
-        timeout "尝试自动 kill 占用进程"
+        timeout "尝试自动 kill 占用进程!"
         lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
         echo -e "${OK} ${GreenBG} kill 完成 ${Font}"
         sleep 1
@@ -802,7 +875,7 @@ old_config_input () {
         UUID=$(info_extraction '\id\"')
         camouflage=$(info_extraction '\"path\"')
     fi
-    if [[ 0 -ne $? ]]; then
+    if [[ 0 -eq ${read_config_status} ]]; then
         echo -e "${GreenBG} 检测到旧配置文件不完整, 是否保留旧配置文件 [Y/N]? ${Font}"
         read -r old_config_input_fq
         case $old_config_input_fq in
@@ -915,16 +988,6 @@ EOF
     judge "Nginx 配置修改"
 }
 
-start_process_systemd() {
-    if [[ ${shell_mode} != "wsonly" ]]; then
-        systemctl daemon-reload
-        systemctl restart nginx
-        judge "Nginx 启动"
-    fi
-    systemctl restart xray
-    judge "Xray 启动"
-}
-
 enable_process_systemd() {
     if [[ ${shell_mode} != "wsonly" ]]; then
         systemctl enable nginx
@@ -934,18 +997,53 @@ enable_process_systemd() {
     judge "设置 Xray 开机自启"
 }
 
-stop_process_systemd() {
-    if [[ ${shell_mode} != "xtls" ]]; then
+disable_process_systemd() {
+    if [[ ${shell_mode} != "wsonly" ]]; then
         systemctl stop nginx
+        systemctl disable nginx
+        judge "关闭 Xray 开机自启"
     fi
-    systemctl stop xray
+    systemctl disable xray
+    judge "关闭 Xray 开机自启"
 }
 
-stop_service() {
+stop_service_all() {
     [ -f $nginx_systemd_file ] && systemctl stop nginx && systemctl disable nginx
     systemctl stop xray
     systemctl disable xray
     echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
+}
+
+service_restart(){
+    systemctl daemon-reload
+    sleep 1
+    if [[ ${shell_mode} != "wsonly" ]]; then
+        systemctl restart nginx
+        judge "Nginx 重启"
+        sleep 1
+    fi
+    systemctl restart xray
+    judge "Xray 重启"
+}
+
+service_start(){
+    if [[ ${shell_mode} != "wsonly" ]]; then
+        systemctl start nginx
+        judge "Nginx 启动"
+        sleep 1
+    fi
+    systemctl start xray
+    judge "Xray 启动" 
+}
+
+service_stop(){
+    if [[ ${shell_mode} != "wsonly" ]]; then
+        systemctl stop nginx
+        judge "Nginx 停止"
+        sleep 1
+    fi
+    systemctl stop xray
+    judge "Xray 停止"  
 }
 
 acme_cron_update() {
@@ -973,9 +1071,11 @@ vless_qr_config_tls_ws() {
   "idc": "${UUID5_char}",
   "id": "${UUID}",
   "net": "ws",
-  "host": "${domain}",
   "path": "${camouflage}",
-  "tls": "TLS"
+  "tls": "TLS",
+  "nginx_version": "${nginx_version}",
+  "openssl_version": "${openssl_version}",
+  "jemalloc_version": "${jemalloc_version}"
 }
 EOF
 }
@@ -988,10 +1088,12 @@ vless_qr_config_xtls() {
   "idc": "${UUID5_char}",
   "id": "${UUID}",
   "net": "tcp",
-  "host": "${domain}",
   "tls": "XTLS",
   "wsport": "${artxport}",
-  "wspath": "${artcamouflage}"
+  "wspath": "${artcamouflage}",
+  "nginx_version": "${nginx_version}",
+  "openssl_version": "${openssl_version}",
+  "jemalloc_version": "${jemalloc_version}"
 }
 EOF
 }
@@ -1049,6 +1151,7 @@ vless_link_image_choice() {
 
 info_extraction() {
     grep "$1" $xray_qr_config_file | awk -F '"' '{print $4}'
+    [[ 0 -ne $? ]] && read_config_status=0
 }
 
 basic_information() {
@@ -1091,8 +1194,7 @@ show_information() {
 
 ssl_judge_and_install() {
     if [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] &&  [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        echo -e "${GreenBG} 所有证书文件均已存在 ${Font}"
-        echo -e "${GreenBG} 是否保留 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 所有证书文件均已存在, 是否保留 [Y/N]? ${Font}"
         read -r ssl_delete_1
         case $ssl_delete_1 in
         [nN][oO]|[nN])
@@ -1107,8 +1209,7 @@ ssl_judge_and_install() {
             ;;
         esac
     elif [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]] &&  [[ ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        echo -e "${GreenBG} 证书文件已存在 ${Font}"
-        echo -e "${GreenBG} 是否保留 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 证书文件已存在, 是否保留 [Y/N]? ${Font}"
         read -r ssl_delete_2
         case $ssl_delete_2 in
         [nN][oO]|[nN])
@@ -1122,8 +1223,7 @@ ssl_judge_and_install() {
             ;;
         esac
     elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt"  ]]; then
-        echo -e "${GreenBG} 证书签发残留文件已存在 ${Font}"
-        echo -e "${GreenBG} 是否保留 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 证书签发残留文件已存在, 是否保留 [Y/N]? ${Font}"
         read -r ssl_delete_3
         case $ssl_delete_3 in
         [nN][oO]|[nN])
@@ -1237,7 +1337,7 @@ mtproxy_sh() {
 }
 
 uninstall_all() {
-    stop_process_systemd
+    stop_service_all
     systemctl disable xray
     [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
     [[ -f ${xray_systemd_file} ]] && rm -rf ${xray_systemd_file}
@@ -1254,7 +1354,7 @@ uninstall_all() {
         case $uninstall_nginx in
         [yY][eE][sS] | [yY])
             rm -rf ${nginx_dir}
-            rm -rf ${nginx_conf_dir}
+            rm -rf ${nginx_conf_dir}/*
             echo -e "${OK} ${Green} 已卸载 Nginx ${Font}"
             ;;
         *) ;;
@@ -1336,7 +1436,7 @@ install_xray_ws_tls() {
     firewall_set
     path_set
     UUID_set
-    stop_service
+    stop_service_all
     xray_install
     port_exist_check 80
     port_exist_check "${port}"
@@ -1351,7 +1451,7 @@ install_xray_ws_tls() {
     basic_information
     vless_link_image_choice
     show_information
-    start_process_systemd
+    service_restart
     enable_process_systemd
     acme_cron_update
 }
@@ -1366,7 +1466,7 @@ install_xray_xtls() {
     old_config_exist_check
     port_set
     UUID_set
-    stop_service
+    stop_service_all
     xray_install
     port_exist_check 80
     port_exist_check "${port}"
@@ -1381,7 +1481,7 @@ install_xray_xtls() {
     basic_information
     vless_link_image_choice
     show_information
-    start_process_systemd
+    service_restart
     enable_process_systemd
     acme_cron_update
 }
@@ -1398,7 +1498,7 @@ install_xray_ws_only() {
     firewall_set
     path_set
     UUID_set
-    stop_service
+    stop_service_all
     xray_install
     port_exist_check "${xport}"
     xray_conf_add
@@ -1406,7 +1506,7 @@ install_xray_ws_only() {
     basic_information
     vless_link_image_choice
     show_information
-    start_process_systemd
+    service_restart
     enable_process_systemd
 }
 
@@ -1415,8 +1515,13 @@ update_sh() {
     echo "${ol_version}" >${version_cmp}
     [[ -z ${ol_version} ]] && clear && echo -e "${Error} ${RedBG}  检测最新版本失败! ${Font}" && bash idleleo
     echo "${shell_version}" >>${version_cmp}
-    if [[ ${shell_version} != "$(sort -rV ${version_cmp} | head -1)" ]]; then
+    newest_version=$(sort -rV ${version_cmp} | head -1)
+    version_difference=$(echo "${newest_version:0:3}-${shell_version:0:3}"|bc)
+    if [[ ${shell_version} != ${newest_version} ]]; then
         echo -e "${GreenBG} 存在新版本, 是否更新 [Y/N]? ${Font}"
+        if [[ ${version_difference} -gt 0 ]]; then
+            echo -e "${Warning} ${YellowBG} 版本跨度较大, 可能存在不兼容情况, 若服务无法正常运行请完全卸载重装! ${Font}"
+        fi
         read -r update_confirm
         case $update_confirm in
         [yY][eE][sS] | [yY])
@@ -1451,6 +1556,12 @@ list() {
         ;;
     crontab)
         acme_cron_update
+        ;;
+    nginx)
+        nginx_update
+        timeout "清空屏幕!"
+        clear
+        bash idleleo
         ;;
     show)
         clear
@@ -1491,14 +1602,19 @@ idleleo_commend() {
         old_version=$(grep "shell_version=" ${idleleo_dir}/install.sh | head -1 | awk -F '=|"' '{print $3}')
         echo "${old_version}" >${version_cmp}
         echo "${shell_version}" >>${version_cmp}
+        oldest_version=$(sort -V ${version_cmp} | head -1)
+        version_difference=$(echo "${shell_version:0:3}-${oldest_version:0:3}"|bc)
         if [[ -z ${old_version} ]]; then
             wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
             clear
             bash idleleo
-        elif [[ ${shell_version} != "$(sort -V ${version_cmp} | head -1)" ]]; then
+        elif [[ ${shell_version} != ${oldest_version} ]]; then
             rm -rf ${idleleo_dir}/install.sh
             wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
             clear
+            if [[ ${version_difference} -gt 0 ]]; then
+                echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 可能存在不兼容情况, 若服务无法正常运行请完全卸载重装! ${Font}"
+            fi
             bash idleleo
         elif [[ ! -L ${idleleo_commend_file} ]]; then
             ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
@@ -1524,34 +1640,36 @@ menu() {
 
     idleleo_commend
 
-    echo -e "—————————————— 安装向导 ——————————————"
+    echo -e "—————————————— 升级向导 ——————————————"
     echo -e "${Green}0.${Font}  升级 脚本"
-    echo -e "${Green}1.${Font}  安装 Xray (Nginx+ws+tls)"
-    echo -e "${Green}2.${Font}  安装 Xray (XTLS+Nginx)"
-    echo -e "${Green}3.${Font}  安装 Xray (ws ONLY)"
-    echo -e "${Green}4.${Font}  升级 Xray"
+    echo -e "${Green}1.${Font}  升级 Xray"
+    echo -e "${Green}2.${Font}  升级 Nginx"
+    echo -e "—————————————— 安装向导 ——————————————"
+    echo -e "${Green}3.${Font}  安装 Xray (Nginx+ws+tls)"
+    echo -e "${Green}4.${Font}  安装 Xray (XTLS+Nginx)"
+    echo -e "${Green}5.${Font}  安装 Xray (ws ONLY)"
     echo -e "—————————————— 配置变更 ——————————————"
-    echo -e "${Green}5.${Font}  变更 UUIDv5/映射字符串"
-    echo -e "${Green}6.${Font}  变更 port"
-    echo -e "${Green}7.${Font}  变更 TLS 版本"
-    echo -e "${Green}8.${Font}  追加 Nginx 负载均衡配置"
+    echo -e "${Green}6.${Font}  变更 UUIDv5/映射字符串"
+    echo -e "${Green}7.${Font}  变更 port"
+    echo -e "${Green}8.${Font}  变更 TLS 版本"
+    echo -e "${Green}9.${Font}  追加 Nginx 负载均衡配置"
     echo -e "—————————————— 查看信息 ——————————————"
-    echo -e "${Green}9.${Font}  查看 实时访问日志"
-    echo -e "${Green}10.${Font} 查看 实时错误日志"
-    echo -e "${Green}11.${Font} 查看 Xray 配置信息"
+    echo -e "${Green}10.${Font} 查看 实时访问日志"
+    echo -e "${Green}11.${Font} 查看 实时错误日志"
+    echo -e "${Green}12.${Font} 查看 Xray 配置信息"
     echo -e "—————————————— 服务相关 ——————————————"
-    echo -e "${Green}12.${Font} 重启 所有服务"
-    echo -e "${Green}13.${Font} 启动 所有服务"
-    echo -e "${Green}14.${Font} 停止 所有服务"
-    echo -e "${Green}15.${Font} 查看 所有服务"
+    echo -e "${Green}13.${Font} 重启 所有服务"
+    echo -e "${Green}14.${Font} 启动 所有服务"
+    echo -e "${Green}15.${Font} 停止 所有服务"
+    echo -e "${Green}16.${Font} 查看 所有服务"
     echo -e "—————————————— 其他选项 ——————————————"
-    echo -e "${Green}16.${Font} 安装 TCP 加速脚本"
-    echo -e "${Green}17.${Font} 安装 MTproxy (不推荐使用)"
-    echo -e "${Green}18.${Font} 证书 有效期更新"
-    echo -e "${Green}19.${Font} 卸载 Xray"
-    echo -e "${Green}20.${Font} 更新 证书 crontab 计划任务"
-    echo -e "${Green}21.${Font} 清空 证书文件"
-    echo -e "${Green}22.${Font} 退出 \n"
+    echo -e "${Green}17.${Font} 安装 TCP 加速脚本"
+    echo -e "${Green}18.${Font} 安装 MTproxy (不推荐使用)"
+    echo -e "${Green}19.${Font} 证书 有效期更新"
+    echo -e "${Green}20.${Font} 卸载 Xray"
+    echo -e "${Green}21.${Font} 更新 证书 crontab 计划任务"
+    echo -e "${Green}22.${Font} 清空 证书文件"
+    echo -e "${Green}23.${Font} 退出 \n"
 
     read -rp "请输入数字: " menu_num
     case $menu_num in
@@ -1559,16 +1677,28 @@ menu() {
         update_sh
         ;;
     1)
+        xray_update
+        timeout "清空屏幕!"
+        clear
+        bash idleleo
+        ;;
+    2)
+        nginx_update
+        timeout "清空屏幕!"
+        clear
+        bash idleleo
+        ;;
+    3)
         shell_mode="ws"
         install_xray_ws_tls
         bash idleleo
         ;;
-    2)
+    4)
         shell_mode="xtls"
         install_xray_xtls
         bash idleleo
         ;;
-    3)
+    5)
         echo -e "${Warning} ${YellowBG} 此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/N]? ${Font}"
         read -r wsonly_fq
         case $wsonly_fq in
@@ -1580,21 +1710,15 @@ menu() {
         esac
         bash idleleo
         ;;
-    4)
-        xray_update
-        timeout "清空屏幕!"
-        clear
-        bash idleleo
-        ;;
-    5)
+    6)
         UUID_set
         modify_UUID
-        start_process_systemd
+        service_restart
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    6)
+    7)
         read -rp "请输入连接端口/inbound_port:" port
         if [[ $(info_extraction '\"tls\"') == "TLS" ]]; then
             modify_nginx_port
@@ -1607,119 +1731,99 @@ menu() {
             modify_inbound_port
         fi
         firewall_set
-        start_process_systemd
-        timeout "清空屏幕!"
-        clear
-        bash idleleo
-        ;;
-    7)
-        tls_type
+        service_restart
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
     8)
-        nginx_upstream_server_set
+        tls_type
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
     9)
+        nginx_upstream_server_set
+        timeout "清空屏幕!"
         clear
-        show_access_log
+        bash idleleo
         ;;
     10)
         clear
-        show_error_log
+        show_access_log
         ;;
     11)
+        clear
+        show_error_log
+        ;;
+    12)
         clear
         basic_information
         vless_qr_link_image
         show_information
         bash idleleo
         ;;
-    12)
-        systemctl daemon-reload
-        sleep 1
-        if [[ ${shell_mode} != "wsonly" ]]; then
-            systemctl restart nginx
-            judge "Nginx 重启"
-            sleep 1
-        fi
-        systemctl restart xray
-        judge "Xray 重启"
-        timeout "清空屏幕!"
-        clear
-        bash idleleo
-        ;;
     13)
-        if [[ ${shell_mode} != "wsonly" ]]; then
-            systemctl start nginx
-            judge "Nginx 启动"
-            sleep 1
-        fi
-        systemctl start xray
-        judge "Xray 启动"
+        service_restart
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
     14)
-        if [[ ${shell_mode} != "wsonly" ]]; then
-            systemctl stop nginx
-            judge "Nginx 停止"
-            sleep 1
-        fi
-        systemctl stop xray
-        judge "Xray 停止"
+        service_start
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
     15)
+        service_stop
+        timeout "清空屏幕!"  
+        clear
+        bash idleleo
+        ;;
+    16)
         if [[ ${shell_mode} != "wsonly" ]]; then
             systemctl status nginx
         fi
         systemctl status xray
         bash idleleo
         ;;
-    16)
+    17)
         clear
         bbr_boost_sh
         ;;
-    17)
+    18)
         clear
         mtproxy_sh
         ;;
-    18)
-        stop_process_systemd
-        ssl_update_manuel
-        start_process_systemd
-        timeout "清空屏幕!"
-        clear
-        bash idleleo
-        ;;
     19)
-        uninstall_all
+        service_stop
+        ssl_update_manuel
+        service_restart
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
     20)
-        acme_cron_update
+        uninstall_all
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
     21)
+        acme_cron_update
+        timeout "清空屏幕!"
+        clear
+        bash idleleo
+        ;;
+    22)
         delete_tls_key_and_crt
         rm -rf ${ssl_chainpath}/*
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    22)
+    23)
         timeout "清空屏幕!"
         clear
         exit 0
