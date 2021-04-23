@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.6.1.1"
+shell_version="1.6.3.6"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -97,12 +97,6 @@ check_system() {
         exit 1
     fi
 
-    if [[ $(grep "nogroup" /etc/group) ]]; then
-        cert_group="nogroup"
-    fi
-
-    $INS install dbus
-
     #systemctl stop firewalld
     #systemctl disable firewalld
     #echo -e "${OK} ${GreenBG} firewalld 已关闭 ${Font}"
@@ -115,7 +109,7 @@ check_system() {
 is_root() {
     if [[ 0 == $UID ]]; then
         echo -e "${OK} ${GreenBG} 当前用户是 root用户, 进入安装流程 ${Font}"
-        sleep 2
+        wait
     else
         echo -e "${Error} ${RedBG} 当前用户不是 root用户, 请切换到 root用户 后重新执行脚本! ${Font}"
         exit 1
@@ -125,7 +119,7 @@ is_root() {
 judge() {
     if [[ 0 -eq $? ]]; then
         echo -e "${OK} ${GreenBG} $1 完成 ${Font}"
-        sleep 1
+        wait
     else
         echo -e "${Error} ${RedBG} $1 失败 ${Font}"
         exit 1
@@ -133,7 +127,7 @@ judge() {
 }
 
 dependency_install() {
-    ${INS} install wget git lsof -y
+    ${INS} install dbus wget git lsof -y
 
     if [[ "${ID}" == "centos" ]]; then
         ${INS} -y install iputils
@@ -204,7 +198,7 @@ basic_optimization() {
 }
 
 create_directory() {
-    if [[ ${shell_mode} == "wsonly" ]]; then
+    if [[ ${shell_mode} != "wsonly" ]]; then
         [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p ${nginx_conf_dir}
     fi
     [[ ! -d "${xray_conf_dir}" ]] && mkdir -p ${xray_conf_dir}
@@ -413,16 +407,14 @@ web_camouflage() {
 }
 
 xray_privilege_escalation() {
+    [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
     if [[ -n "$(grep "User=nobody" ${xray_systemd_file})" ]]; then
         echo -e "${OK} ${GreenBG} 检测到 Xray 的权限控制, 启动擦屁股程序 ${Font}"
-        systemctl stop xray
         chmod -fR a+rw /var/log/xray/
         chown -fR nobody:${cert_group} /var/log/xray/
         chown -R nobody:${cert_group} ${ssl_chainpath}/*
-        systemctl daemon-reload
-        systemctl start xray
-        sleep 1
     fi
+    judge "Xray 擦屁股"
 }
 
 xray_install() {
@@ -445,7 +437,6 @@ xray_install() {
         bash install-release.sh --force
         #bash install-dat-release.sh --force
         judge "安装 Xray"
-        sleep 1
         xray_privilege_escalation
         [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
         ln -s ${xray_conf} ${xray_default_conf}
@@ -463,24 +454,18 @@ xray_update() {
     #cd ${idleleo_tmp}/xray || exit
     #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh
     #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-dat-release.sh
-    if [[ -d /usr/local/etc/xray ]]; then
-        systemctl stop xray
-        sleep 1
-        bash <(curl -L -s https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)
-        sleep 1
-        xray_privilege_escalation
-        [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
-        ln -s ${xray_conf} ${xray_default_conf}
-    else
-        echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装！ ${Font}"
-        systemctl stop xray
-        sleep 1
-        bash <(curl -L -s https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)
-        sleep 1
-        xray_privilege_escalation
-        [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
-        ln -s ${xray_conf} ${xray_default_conf}
-    fi
+    [[ ! -d /usr/local/etc/xray ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装！ ${Font}"
+    systemctl stop xray
+    wait
+    bash <(curl -L -s https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)
+    wait
+    xray_privilege_escalation
+    [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
+    ln -s ${xray_conf} ${xray_default_conf}
+    wait
+    systemctl daemon-reload
+    wait
+    systemctl start xray
     # 清除临时文件
     ##rm -rf ${idleleo_tmp}/xray
 }
@@ -496,12 +481,11 @@ nginx_exist_check() {
                 sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
             fi
         else
-            mkdir -p ${nginx_conf_dir}
             sed -i "/if \(.*\) {$/,+2d" ${nginx_dir}/conf/nginx.conf
             sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
         fi
         echo -e "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
-        sleep 2
+        wait
     elif [[ -d "/usr/local/nginx/" ]]; then
         echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
         exit 1
@@ -532,7 +516,7 @@ nginx_install() {
     [[ -d ${nginx_dir} ]] && rm -rf ${nginx_dir}
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 jemalloc ${Font}"
-    sleep 2
+    wait
 
     cd jemalloc-${jemalloc_version} || exit
     ./configure
@@ -543,7 +527,7 @@ nginx_install() {
     ldconfig
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 Nginx, 过程稍久, 请耐心等待 ${Font}"
-    sleep 4
+    wait
 
     cd ../nginx-${nginx_version} || exit
 
@@ -630,15 +614,15 @@ nginx_update() {
             timeout "删除旧版 Nginx !"
             rm -rf ${nginx_dir}
             rm -rf ${nginx_conf_dir}/*.conf
-            sleep 1
+            wait
             nginx_install
-            sleep 1
+            wait
             if [[ ${shell_mode} == "ws" ]]; then    
                 nginx_conf_add
             elif [[ ${shell_mode} == "xtls" ]]; then
                 nginx_conf_add_xtls
             fi
-            sleep 1
+            wait
             service_start
             sed -i "/\"nginx_version\"/c \  \"nginx_version\": \"${nginx_version}\"," ${xray_qr_config_file}
             sed -i "/\"openssl_version\"/c \  \"openssl_version\": \"${openssl_version}\"," ${xray_qr_config_file}
@@ -685,10 +669,10 @@ domain_check() {
     fi
     echo -e "域名DNS 解析IP: ${domain_ip}"
     echo -e "公网IP: ${local_ip}"
-    sleep 2
+    wait
     if [[ ${local_ip} == ${domain_ip} ]]; then
         echo -e "${OK} ${GreenBG} 域名DNS 解析IP 与 公网IP 匹配 ${Font}"
-        sleep 2
+        wait
     else
         echo -e "${Warning} ${YellowBG} 请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray ${Font}"
         echo -e "${Error} ${RedBG} 域名DNS 解析IP 与 公网IP 不匹配, 请选择: ${Font}" 
@@ -699,7 +683,7 @@ domain_check() {
         case $install in
         1)
             echo -e "${GreenBG} 继续安装 ${Font}"
-            sleep 2
+            wait
             ;;
         2)
             domain_check
@@ -733,14 +717,14 @@ ip_check() {
 port_exist_check() {
     if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
         echo -e "${OK} ${GreenBG} $1 端口未被占用 ${Font}"
-        sleep 1
+        wait
     else
         echo -e "${Error} ${RedBG} 检测到 $1 端口被占用, 以下为 $1 端口占用信息 ${Font}"
         lsof -i:"$1"
         timeout "尝试自动 kill 占用进程!"
         lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
         echo -e "${OK} ${GreenBG} kill 完成 ${Font}"
-        sleep 1
+        wait
     fi
 }
 
@@ -748,7 +732,7 @@ acme() {
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force --test; then
         echo -e "${OK} ${GreenBG} SSL 证书测试签发成功, 开始正式签发 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
-        sleep 2
+        wait
     else
         echo -e "${Error} ${RedBG} SSL 证书测试签发失败 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
@@ -757,14 +741,15 @@ acme() {
 
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force; then
         echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
-        sleep 2
+        wait
         mkdir -p ${ssl_chainpath}
         if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
             chmod -f a+rw ${ssl_chainpath}/xray.crt
             chmod -f a+rw ${ssl_chainpath}/xray.key
+            [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
             chown -R nobody:${cert_group} ${ssl_chainpath}/*
             echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
-            sleep 2
+            wait
         fi
     else
         echo -e "${Error} ${RedBG} SSL 证书生成失败 ${Font}"
@@ -1016,11 +1001,10 @@ stop_service_all() {
 
 service_restart(){
     systemctl daemon-reload
-    sleep 1
+    wait
     if [[ ${shell_mode} != "wsonly" ]]; then
         systemctl restart nginx
         judge "Nginx 重启"
-        sleep 1
     fi
     systemctl restart xray
     judge "Xray 重启"
@@ -1030,7 +1014,6 @@ service_start(){
     if [[ ${shell_mode} != "wsonly" ]]; then
         systemctl start nginx
         judge "Nginx 启动"
-        sleep 1
     fi
     systemctl start xray
     judge "Xray 启动" 
@@ -1040,14 +1023,13 @@ service_stop(){
     if [[ ${shell_mode} != "wsonly" ]]; then
         systemctl stop nginx
         judge "Nginx 停止"
-        sleep 1
     fi
     systemctl stop xray
     judge "Xray 停止"  
 }
 
 acme_cron_update() {
-    wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${idleleo_dir}/ssl_update.sh
+    wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
     if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
         if [[ "${ID}" == "centos" ]]; then
             #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
@@ -1060,6 +1042,72 @@ acme_cron_update() {
         fi
     fi
     judge "cron 计划任务更新"
+}
+
+secure_ssh() {
+    check_system
+    echo -e "${GreenBG} 设置 Fail2ban 用于防止暴力破解, 请选择: ${Font}"
+    echo "1. 安装/启动 Fail2ban"
+    echo "2. 卸载/停止 Fail2ban"
+    echo "3. 重启 Fail2ban"
+    echo "4. 查看 Fail2ban 状态"
+    read -rp "请输入: " fail2ban_fq
+    [[ -z ${fail2ban_fq} ]] && fail2ban_fq=1
+    if [[ $fail2ban_fq == 1 ]]; then
+        ${INS} -y install fail2ban
+        judge "Fail2ban 安装"
+        if [[ ! -f /etc/fail2ban/jail.local ]]; then
+            cp -fp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+        fi
+        if [[ -z $(grep "filter   = sshd" /etc/fail2ban/jail.local) ]]; then
+            sed -i "/sshd_log/i \enabled  = true\\nfilter   = sshd\\nmaxretry = 5\\nbantime  = 604800" /etc/fail2ban/jail.local
+        fi
+        if [[ ${shell_mode} != "wsonly" ]] && [[ -z $(grep "filter   = nginx-botsearch" /etc/fail2ban/jail.local) ]]; then
+            sed -i "/nginx_error_log/d" /etc/fail2ban/jail.local
+            sed -i "/http,https$/c \\port     = http,https,8080" /etc/fail2ban/jail.local
+            sed -i "/^maxretry.*= 2$/c \\maxretry = 5" /etc/fail2ban/jail.local
+            sed -i "/nginx-botsearch/i \[nginx-badbots]\\n\\nenabled  = true\\nport     = http,https,8080\\nfilter   = apache-badbots\\nlogpath  = /etc/nginx/logs/access.log\\nbantime  = 604800\\nmaxretry = 5\\n" /etc/fail2ban/jail.local
+            sed -i "/nginx-botsearch/a \\\nenabled  = true\\nfilter   = nginx-botsearch\\nlogpath  = /etc/nginx/logs/access.log\\n           /etc/nginx/logs/error.log\\nbantime  = 604800" /etc/fail2ban/jail.local
+        fi
+        wait
+        judge "Fail2ban 配置"
+        systemctl start fail2ban
+        wait
+        systemctl enable fail2ban
+        judge "Fail2ban 启动"
+        timeout "清空屏幕!"
+        clear
+    fi
+    if [[ $fail2ban_fq == 2 ]]; then
+        [[ -f /etc/fail2ban/jail.local ]] && rm -rf /etc/fail2ban/jail.local
+        systemctl stop fail2ban
+        wait
+        systemctl disable fail2ban
+        judge "Fail2ban 停止"
+        timeout "清空屏幕!"
+        clear
+    fi
+    if [[ $fail2ban_fq == 3 ]]; then
+        systemctl daemon-reload
+        wait
+        systemctl restart fail2ban
+        judge "Fail2ban 重启"
+        timeout "清空屏幕!"
+        clear
+    fi
+    if [[ $fail2ban_fq == 4 ]]; then
+        echo -e "${GreenBG} Fail2ban 配置状态: ${Font}"
+        fail2ban-client status
+        echo -e "${GreenBG} Fail2ban SSH 封锁情况: ${Font}"
+        fail2ban-client status sshd
+        if [[ ${shell_mode} != "wsonly" ]]; then
+            echo -e "${GreenBG} Fail2ban Nginx 封锁情况: ${Font}"
+            fail2ban-client status nginx-badbots
+            fail2ban-client status nginx-botsearch
+        fi 
+        echo -e "${GreenBG} Fail2ban 运行状态: ${Font}"
+        systemctl status fail2ban
+    fi
 }
 
 vless_qr_config_tls_ws() {
@@ -1121,11 +1169,11 @@ vless_urlquote()
 vless_qr_link_image() {
     #vless_link="vless://$(base64 -w 0 $xray_qr_config_file)"
     if [[ ${shell_mode} == "ws" ]]; then
-        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))?ed=2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"host\"'))&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+ws%E5%8D%8F%E8%AE%AE"
+        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"host\"'))&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+ws%E5%8D%8F%E8%AE%AE"
     elif [[ ${shell_mode} == "xtls" ]]; then
         vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction '\"host\"'))+xtls%E5%8D%8F%E8%AE%AE"
     elif [[ ${shell_mode} == "wsonly" ]]; then
-        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))?ed=2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+%E5%8D%95%E7%8B%ACws%E5%8D%8F%E8%AE%AE"
+        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+%E5%8D%95%E7%8B%ACws%E5%8D%8F%E8%AE%AE"
     fi
         {
             echo -e "\n${Red} —————————————— Xray 配置分享 —————————————— ${Font}"
@@ -1654,8 +1702,8 @@ menu() {
     echo -e "${Green}8.${Font}  变更 TLS 版本"
     echo -e "${Green}9.${Font}  追加 Nginx 负载均衡配置"
     echo -e "—————————————— 查看信息 ——————————————"
-    echo -e "${Green}10.${Font} 查看 实时访问日志"
-    echo -e "${Green}11.${Font} 查看 实时错误日志"
+    echo -e "${Green}10.${Font} 查看 Xray 实时访问日志"
+    echo -e "${Green}11.${Font} 查看 Xray 实时错误日志"
     echo -e "${Green}12.${Font} 查看 Xray 配置信息"
     echo -e "—————————————— 服务相关 ——————————————"
     echo -e "${Green}13.${Font} 重启 所有服务"
@@ -1664,12 +1712,13 @@ menu() {
     echo -e "${Green}16.${Font} 查看 所有服务"
     echo -e "—————————————— 其他选项 ——————————————"
     echo -e "${Green}17.${Font} 安装 TCP 加速脚本"
-    echo -e "${Green}18.${Font} 安装 MTproxy (不推荐使用)"
-    echo -e "${Green}19.${Font} 证书 有效期更新"
-    echo -e "${Green}20.${Font} 卸载 Xray"
-    echo -e "${Green}21.${Font} 更新 证书 crontab 计划任务"
-    echo -e "${Green}22.${Font} 清空 证书文件"
-    echo -e "${Green}23.${Font} 退出 \n"
+    echo -e "${Green}18.${Font} 设置 Fail2ban 防暴力破解"
+    echo -e "${Green}19.${Font} 安装 MTproxy (不推荐使用)"
+    echo -e "${Green}20.${Font} 更新 证书 crontab 计划任务"
+    echo -e "${Green}21.${Font} 证书 有效期更新"
+    echo -e "${Green}22.${Font} 卸载 Xray"
+    echo -e "${Green}23.${Font} 清空 证书文件"
+    echo -e "${Green}24.${Font} 退出 \n"
 
     read -rp "请输入数字: " menu_num
     case $menu_num in
@@ -1793,10 +1842,20 @@ menu() {
         bbr_boost_sh
         ;;
     18)
+        secure_ssh
+        bash idleleo
+        ;;
+    19)
         clear
         mtproxy_sh
         ;;
-    19)
+    20)
+        acme_cron_update
+        timeout "清空屏幕!"
+        clear
+        bash idleleo
+        ;;
+    21)
         service_stop
         ssl_update_manuel
         service_restart
@@ -1804,26 +1863,20 @@ menu() {
         clear
         bash idleleo
         ;;
-    20)
+    22)
         uninstall_all
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    21)
-        acme_cron_update
-        timeout "清空屏幕!"
-        clear
-        bash idleleo
-        ;;
-    22)
+    23)
         delete_tls_key_and_crt
         rm -rf ${ssl_chainpath}/*
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    23)
+    24)
         timeout "清空屏幕!"
         clear
         exit 0
