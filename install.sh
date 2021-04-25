@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.6.3.6"
+shell_version="1.6.3.11"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -119,6 +119,7 @@ is_root() {
 judge() {
     if [[ 0 -eq $? ]]; then
         echo -e "${OK} ${GreenBG} $1 完成 ${Font}"
+        sleep 1
         wait
     else
         echo -e "${Error} ${RedBG} $1 失败 ${Font}"
@@ -126,20 +127,28 @@ judge() {
     fi
 }
 
+judge_pkg() {
+    if [[ "${ID}" == "centos" ]]; then
+        yum list installed | grep -E "${1//,/\.\*}"
+    else
+        dpkg --get-selections | grep -E "${1//,/\.\*}"
+    fi
+}
+
 dependency_install() {
-    ${INS} install dbus wget git lsof -y
+    [[ -z $(judge_pkg "dbus,wget,git,lsof") ]] && ${INS} -y install dbus wget git lsof
 
     if [[ "${ID}" == "centos" ]]; then
-        ${INS} -y install iputils
+        [[ -z $(judge_pkg "iputils") ]] && ${INS} -y install iputils
     else
-        ${INS} -y install iputils-ping
+        [[ -z $(judge_pkg "iputils-ping") ]] && ${INS} -y install iputils-ping
     fi
     judge "安装 iputils-ping"
 
     if [[ "${ID}" == "centos" ]]; then
-        ${INS} -y install crontabs
+        [[ -z $(judge_pkg "crontabs") ]] && ${INS} -y install crontabs
     else
-        ${INS} -y install cron
+        [[ -z $(judge_pkg "cron") ]] && ${INS} -y install cron
     fi
     judge "安装 crontab"
 
@@ -153,32 +162,32 @@ dependency_install() {
     fi
     judge "crontab 自启动配置"
 
-    ${INS} -y install bc
+    [[ -z $(judge_pkg "bc") ]] && ${INS} -y install bc
     judge "安装 bc"
 
-    ${INS} -y install unzip
+    [[ -z $(judge_pkg "unzip") ]] && ${INS} -y install unzip
     judge "安装 unzip"
 
-    ${INS} -y install qrencode
+    [[ -z $(judge_pkg "qrencode") ]] && ${INS} -y install qrencode
     judge "安装 qrencode"
 
-    ${INS} -y install curl
+    [[ -z $(judge_pkg "curl") ]] && ${INS} -y install curl
     judge "安装 curl"
 
-    ${INS} -y install python3
+    [[ -z $(judge_pkg "python3") ]] && ${INS} -y install python3
     judge "安装 python3"
 
     if [[ "${ID}" == "centos" ]]; then
-        ${INS} -y groupinstall "Development tools"
+        [[ -z $(${INS} group list installed | grep -i "Development Tools") ]] && ${INS} -y groupinstall "Development Tools"
     else
-        ${INS} -y install build-essential
+        [[ -z $(judge_pkg "build-essential") ]] && ${INS} -y install build-essential
     fi
     judge "编译工具包 安装"
 
     if [[ "${ID}" == "centos" ]]; then
-        ${INS} -y install pcre pcre-devel zlib-devel epel-release
+        [[ -z $(judge_pkg "pcre,pcre-devel,zlib-devel,epel-release") ]] && ${INS} -y install pcre pcre-devel zlib-devel epel-release
     else
-        ${INS} -y install libpcre3 libpcre3-dev zlib1g-dev dbus
+        [[ -z $(judge_pkg "libpcre3,libpcre3-dev,zlib1g-dev") ]] && ${INS} -y install libpcre3 libpcre3-dev zlib1g-dev
     fi
 }
 
@@ -201,6 +210,7 @@ create_directory() {
     if [[ ${shell_mode} != "wsonly" ]]; then
         [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p ${nginx_conf_dir}
     fi
+    [[ ! -d "${ssl_chainpath}" ]] && mkdir -p ${ssl_chainpath}
     [[ ! -d "${xray_conf_dir}" ]] && mkdir -p ${xray_conf_dir}
     [[ ! -d "${idleleo_dir}/info" ]] && mkdir -p ${idleleo_dir}/info
     [[ ! -d "${idleleo_tmp}" ]] && mkdir -p ${idleleo_tmp}
@@ -240,33 +250,34 @@ inbound_port_set() {
 }
 
 firewall_set() {
-    if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-        if [[ ${shell_mode} != "wsonly" ]] && [[ "$xtls_add_ws" == "off" ]]; then
-            firewall-cmd --permanent --add-port=80/tcp
-            firewall-cmd --permanent --add-port=443/tcp
-            firewall-cmd --permanent --add-port=1024-65535/udp
-            firewall-cmd --permanent --add-port=${port}/tcp
-            firewall-cmd --permanent --add-port=${port}/udp
-            firewall-cmd --reload
-        else
-            firewall-cmd --permanent --add-port=${xport}/tcp
-            firewall-cmd --permanent --add-port=${xport}/udp
-            firewall-cmd --reload
-        fi
+    iptables -A INPUT -i lo -j ACCEPT
+    iptables -A OUTPUT -o lo -j ACCEPT
+    if [[ ${shell_mode} != "wsonly" ]] && [[ "$xtls_add_ws" == "off" ]]; then
+        iptables -I INPUT -p tcp -m multiport --dport 80,443,${port} -j ACCEPT
+        iptables -I INPUT -p udp --dport ${port} -j ACCEPT
+        iptables -I OUTPUT -p tcp -m multiport --sport 80,443,${port} -j ACCEPT
+        iptables -I OUTPUT -p udp --sport ${port} -j ACCEPT
+        iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
     else
-        if [[ ${shell_mode} != "wsonly" ]]; then
-            ufw allow 80,443/tcp
-            ufw allow 1024:65535/udp
-            ufw allow ${port}
-            ufw reload
-        else
-            ufw allow ${xport}
-            ufw reload
-        fi
+        iptables -I INPUT -p tcp --dport ${xport} -j ACCEPT
+        iptables -I INPUT -p udp --dport ${xport} -j ACCEPT
+        iptables -I OUTPUTT -p tcp --sport ${xport} -j ACCEPT
+        iptables -I OUTPUT -p udp --sport ${xport} -j ACCEPT
+        iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
     fi
+    wait
+    if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+        service iptables save
+    else
+        netfilter-persistent save
+    fi
+    wait
     echo -e "${OK} ${GreenBG} 开放防火墙相关端口 ${Font}"
     echo -e "${GreenBG} 若修改配置, 请注意关闭防火墙相关端口 ${Font}"
     echo -e "${OK} ${GreenBG} 配置 Xray FullCone ${Font}"
+    wait
+    systemctl restart iptables
+    judge "防火墙 重启"
 }
 
 path_set() {
@@ -638,9 +649,9 @@ nginx_update() {
 
 ssl_install() {
     if [[ ${ID} == "centos" ]]; then
-        ${INS} install socat nc -y
+        [[ -z $(judge_pkg "socat,nc") ]] && ${INS} install -y socat nc
     else
-        ${INS} install socat netcat -y
+        [[ -z $(judge_pkg "socat,netcat") ]] && ${INS} install -y socat netcat
     fi
     judge "安装 SSL 证书生成脚本依赖"
 
@@ -1034,17 +1045,17 @@ acme_cron_update() {
         if [[ "${ID}" == "centos" ]]; then
             #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
             #        &> /dev/null" /var/spool/cron/root
-            sed -i "/acme.sh/c 0 3 * * 0 bash ${ssl_update_file}" /var/spool/cron/root
+            sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" /var/spool/cron/root
         else
             #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
             #        &> /dev/null" /var/spool/cron/crontabs/root
-            sed -i "/acme.sh/c 0 3 * * 0 bash ${ssl_update_file}" /var/spool/cron/crontabs/root
+            sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" /var/spool/cron/crontabs/root
         fi
     fi
     judge "cron 计划任务更新"
 }
 
-secure_ssh() {
+network_secure() {
     check_system
     echo -e "${GreenBG} 设置 Fail2ban 用于防止暴力破解, 请选择: ${Font}"
     echo "1. 安装/启动 Fail2ban"
@@ -1054,11 +1065,12 @@ secure_ssh() {
     read -rp "请输入: " fail2ban_fq
     [[ -z ${fail2ban_fq} ]] && fail2ban_fq=1
     if [[ $fail2ban_fq == 1 ]]; then
-        ${INS} -y install fail2ban
+        [[ -z $(judge_pkg "fail2ban") ]] && ${INS} -y install fail2ban
         judge "Fail2ban 安装"
         if [[ ! -f /etc/fail2ban/jail.local ]]; then
             cp -fp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
         fi
+        wait
         if [[ -z $(grep "filter   = sshd" /etc/fail2ban/jail.local) ]]; then
             sed -i "/sshd_log/i \enabled  = true\\nfilter   = sshd\\nmaxretry = 5\\nbantime  = 604800" /etc/fail2ban/jail.local
         fi
@@ -1346,6 +1358,7 @@ tls_type() {
             fi
             echo -e "${OK} ${GreenBG} 已切换至 TLS1.2 and TLS1.3 ${Font}"
         fi
+        wait
         if [[ $shell_mode == "ws"  ]]; then
             systemctl restart nginx
             judge "Nginx 重启"
@@ -1842,7 +1855,7 @@ menu() {
         bbr_boost_sh
         ;;
     18)
-        secure_ssh
+        network_secure
         bash idleleo
         ;;
     19)
