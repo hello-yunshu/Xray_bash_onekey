@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.6.3.11"
+shell_version="1.6.4.9"
 shell_mode="None"
 shell_mode_show="未安装"
 version_cmp="/tmp/version_cmp.tmp"
@@ -83,15 +83,17 @@ check_system() {
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 ]]; then
         echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
         INS="apt"
-        $INS update
+        [[ ! -f $xray_qr_config_file ]] && $INS update
     elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 16 ]]; then
         echo -e "${OK} ${GreenBG} 当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
         INS="apt"
-        rm /var/lib/dpkg/lock
-        dpkg --configure -a
-        rm /var/lib/apt/lists/lock
-        rm /var/cache/apt/archives/lock
-        $INS update
+        if [[ ! -f $xray_qr_config_file ]]; then
+            rm /var/lib/dpkg/lock
+            dpkg --configure -a
+            rm /var/lib/apt/lists/lock
+            rm /var/cache/apt/archives/lock
+            $INS update
+        fi
     else
         echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内, 安装中断! ${Font}"
         exit 1
@@ -127,30 +129,58 @@ judge() {
     fi
 }
 
-judge_pkg() {
+pkg_install_judge() {
     if [[ "${ID}" == "centos" ]]; then
-        yum list installed | grep -E "${1//,/\.\*}"
+        yum list installed | grep -iw "^$1"
     else
-        dpkg --get-selections | grep -E "${1//,/\.\*}"
+        dpkg --get-selections | grep -iw "^$1"
+    fi
+    wait
+}
+
+pkg_install() {
+    install_array=(${1//,/ })
+    install_status=1
+    if [[ ${#install_array[@]} -gt 1 ]]; then
+        for install_var in ${install_array[@]}
+        do
+            if [[ -z $(pkg_install_judge "${install_var}") ]]; then
+                ${INS} -y install ${install_var}
+                install_status=0
+            fi
+        done
+        wait
+        if [[ ${install_status} == 0 ]]; then
+            judge "安装 ${1//,/ }"
+        else
+            echo -e "${OK} ${GreenBG} 已安装 ${1//,/ } ${Font}"
+            sleep 1
+        fi
+    else
+        if [[ -z $(pkg_install_judge "$1") ]]; then
+            ${INS} -y install $1
+            judge "安装 $1"
+        else
+            echo -e "${OK} ${GreenBG} 已安装 $1 ${Font}"
+            sleep 1
+        fi
     fi
 }
 
 dependency_install() {
-    [[ -z $(judge_pkg "dbus,wget,git,lsof") ]] && ${INS} -y install dbus wget git lsof
+    pkg_install "dbus,git,lsof,wget"
 
     if [[ "${ID}" == "centos" ]]; then
-        [[ -z $(judge_pkg "iputils") ]] && ${INS} -y install iputils
+        pkg_install "iputils"
     else
-        [[ -z $(judge_pkg "iputils-ping") ]] && ${INS} -y install iputils-ping
+        pkg_install "iputils-ping"
     fi
-    judge "安装 iputils-ping"
 
     if [[ "${ID}" == "centos" ]]; then
-        [[ -z $(judge_pkg "crontabs") ]] && ${INS} -y install crontabs
+        pkg_install "crontabs"
     else
-        [[ -z $(judge_pkg "cron") ]] && ${INS} -y install cron
+        pkg_install "cron"
     fi
-    judge "安装 crontab"
 
     if [[ "${ID}" == "centos" ]]; then
         touch /var/spool/cron/root && chmod 600 /var/spool/cron/root
@@ -162,32 +192,34 @@ dependency_install() {
     fi
     judge "crontab 自启动配置"
 
-    [[ -z $(judge_pkg "bc") ]] && ${INS} -y install bc
-    judge "安装 bc"
+    pkg_install "bc"
 
-    [[ -z $(judge_pkg "unzip") ]] && ${INS} -y install unzip
-    judge "安装 unzip"
+    pkg_install "unzip"
 
-    [[ -z $(judge_pkg "qrencode") ]] && ${INS} -y install qrencode
-    judge "安装 qrencode"
+    pkg_install "qrencode"
 
-    [[ -z $(judge_pkg "curl") ]] && ${INS} -y install curl
-    judge "安装 curl"
+    pkg_install "curl"
 
-    [[ -z $(judge_pkg "python3") ]] && ${INS} -y install python3
-    judge "安装 python3"
+    pkg_install "python3"
 
-    if [[ "${ID}" == "centos" ]]; then
-        [[ -z $(${INS} group list installed | grep -i "Development Tools") ]] && ${INS} -y groupinstall "Development Tools"
-    else
-        [[ -z $(judge_pkg "build-essential") ]] && ${INS} -y install build-essential
+    if [[ ${shell_mode} != "wsonly" ]]; then
+        if [[ "${ID}" == "centos" ]]; then
+            if [[ -z $(${INS} group list installed | grep -i "Development Tools") ]]; then
+                ${INS} -y groupinstall "Development Tools"
+                judge "安装 Development Tools"
+            else
+                echo -e "${OK} ${GreenBG} 已安装 Development Tools ${Font}"
+            fi
+        else
+            pkg_install "build-essential"
+        fi
+        judge "编译工具包 安装"
     fi
-    judge "编译工具包 安装"
 
     if [[ "${ID}" == "centos" ]]; then
-        [[ -z $(judge_pkg "pcre,pcre-devel,zlib-devel,epel-release") ]] && ${INS} -y install pcre pcre-devel zlib-devel epel-release
+        pkg_install "epel-release,pcre,pcre-devel,zlib-devel"
     else
-        [[ -z $(judge_pkg "libpcre3,libpcre3-dev,zlib1g-dev") ]] && ${INS} -y install libpcre3 libpcre3-dev zlib1g-dev
+        pkg_install "libpcre3,libpcre3-dev,zlib1g-dev"
     fi
 }
 
@@ -253,31 +285,35 @@ firewall_set() {
     iptables -A INPUT -i lo -j ACCEPT
     iptables -A OUTPUT -o lo -j ACCEPT
     if [[ ${shell_mode} != "wsonly" ]] && [[ "$xtls_add_ws" == "off" ]]; then
-        iptables -I INPUT -p tcp -m multiport --dport 80,443,${port} -j ACCEPT
-        iptables -I INPUT -p udp --dport ${port} -j ACCEPT
-        iptables -I OUTPUT -p tcp -m multiport --sport 80,443,${port} -j ACCEPT
-        iptables -I OUTPUT -p udp --sport ${port} -j ACCEPT
+        iptables -I INPUT -p tcp -m multiport --dport 53,80,443,${port} -j ACCEPT
+        iptables -I INPUT -p udp -m multiport --dport 53,80,443,${port} -j ACCEPT
+        iptables -I OUTPUT -p tcp -m multiport --sport 53,80,443,${port} -j ACCEPT
+        iptables -I OUTPUT -p udp -m multiport --sport 53,80,443,${port} -j ACCEPT
         iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
     else
-        iptables -I INPUT -p tcp --dport ${xport} -j ACCEPT
-        iptables -I INPUT -p udp --dport ${xport} -j ACCEPT
-        iptables -I OUTPUTT -p tcp --sport ${xport} -j ACCEPT
-        iptables -I OUTPUT -p udp --sport ${xport} -j ACCEPT
+        
+        iptables -I INPUT -p tcp -m multiport --dport 53,${xport} -j ACCEPT
+        iptables -I INPUT -p udp -m multiport --dport 53,${xport} -j ACCEPT
+        iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport} -j ACCEPT
+        iptables -I OUTPUT -p udp -m multiport --sport 53,${xport} -j ACCEPT
         iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
     fi
     wait
     if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
         service iptables save
+        wait
+        service iptables restart
+        echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
     else
         netfilter-persistent save
+        wait
+        systemctl restart iptables
+        echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
     fi
     wait
     echo -e "${OK} ${GreenBG} 开放防火墙相关端口 ${Font}"
     echo -e "${GreenBG} 若修改配置, 请注意关闭防火墙相关端口 ${Font}"
     echo -e "${OK} ${GreenBG} 配置 Xray FullCone ${Font}"
-    wait
-    systemctl restart iptables
-    judge "防火墙 重启"
 }
 
 path_set() {
@@ -332,6 +368,23 @@ nginx_upstream_server_set() {
             read -rp "请输入负载均衡 端口 (port):" upstream_port
             read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight
             sed -i "1a\\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+            iptables -I INPUT -p tcp --dport ${upstream_port} -j ACCEPT
+            iptables -I INPUT -p udp --dport ${upstream_port} -j ACCEPT
+            iptables -I OUTPUT -p tcp --sport ${upstream_port} -j ACCEPT
+            iptables -I OUTPUT -p udp --sport ${upstream_port} -j ACCEPT
+            echo -e "${OK} ${GreenBG} 防火墙 追加 完成 ${Font}"
+            if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+                service iptables save
+                wait
+                service iptables restart
+                echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+            else
+                netfilter-persistent save
+                wait
+                systemctl restart iptables
+                echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+            fi
+            wait
             systemctl restart nginx
             judge "追加 Nginx 负载均衡"
             ;;
@@ -376,7 +429,7 @@ modify_inbound_port() {
 
 modify_nginx_port() {
     sed -i "/ssl http2;$/c \\\t\\tlisten ${port} ssl http2;" ${nginx_conf}
-    sed -i "5c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
+    sed -i "6c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
     judge "Xray port 修改"
     [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
     echo -e "${OK} ${GreenBG} 端口号: ${port} ${Font}"
@@ -392,7 +445,7 @@ modify_nginx_other() {
     sed -i "/return/c \\\t\\treturn 301 https://${domain}\$request_uri;" ${nginx_conf}
     sed -i "/returc/c \\\t\\t\\treturn 302 https://www.idleleo.com/helloworld;" ${nginx_conf}
     sed -i "/locatioc/c \\\t\\tlocation \/" ${nginx_conf}
-    sed -i "/error_page   500 502 503 504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
+    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
 }
 
 modify_path() {
@@ -425,7 +478,7 @@ xray_privilege_escalation() {
         chown -fR nobody:${cert_group} /var/log/xray/
         chown -R nobody:${cert_group} ${ssl_chainpath}/*
     fi
-    judge "Xray 擦屁股"
+    echo -e "${OK} ${GreenBG} Xray 擦屁股 完成 ${Font}"
 }
 
 xray_install() {
@@ -485,8 +538,10 @@ nginx_exist_check() {
     if [[ -f "/etc/nginx/sbin/nginx" ]]; then
         if [[ -d ${nginx_conf_dir} ]]; then
             rm -rf ${nginx_conf_dir}/*.conf
-            if [[ -f  ${nginx_conf_dir}/original.confbackup ]]; then 
-                cp -fp ${nginx_conf_dir}/original.confbackup ${nginx_dir}/conf/nginx.conf
+            if [[ -f  ${nginx_conf_dir}/nginx.default ]]; then 
+                cp -fp ${nginx_conf_dir}/nginx.default ${nginx_dir}/conf/nginx.conf
+            elif [[ -f  ${nginx_dir}/conf/nginx.conf.default ]]; then
+                cp -fp ${nginx_dir}/conf/nginx.conf.default ${nginx_dir}/conf/nginx.conf
             else
                 sed -i "/if \(.*\) {$/,+2d" ${nginx_dir}/conf/nginx.conf
                 sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
@@ -565,11 +620,12 @@ nginx_install() {
     make -j ${THREAD} && make install
     judge "Nginx 编译安装"
 
+    cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/nginx.default
+    
     # 修改基本配置
     sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
     sed -i 's/worker_processes  1;/worker_processes  4;/' ${nginx_dir}/conf/nginx.conf
     sed -i 's/    worker_connections  1024;/    worker_connections  4096;/' ${nginx_dir}/conf/nginx.conf
-    cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/original.confbackup
 
     # 删除临时文件
     rm -rf ../nginx-${nginx_version}
@@ -649,9 +705,9 @@ nginx_update() {
 
 ssl_install() {
     if [[ ${ID} == "centos" ]]; then
-        [[ -z $(judge_pkg "socat,nc") ]] && ${INS} install -y socat nc
+        pkg_install "nc,socat"
     else
-        [[ -z $(judge_pkg "socat,netcat") ]] && ${INS} install -y socat netcat
+        pkg_install "netcat,socat"
     fi
     judge "安装 SSL 证书生成脚本依赖"
 
@@ -889,8 +945,8 @@ old_config_input () {
 }
 
 nginx_conf_add() {
-    touch ${nginx_conf_dir}/xray.conf
-    cat >${nginx_conf_dir}/xray.conf <<EOF
+    touch ${nginx_conf}
+    cat >${nginx_conf} <<EOF
     server_tokens off;
     types_hash_max_size 2048;
 
@@ -944,8 +1000,8 @@ nginx_conf_add() {
     }
 EOF
 
-    touch ${nginx_conf_dir}/xray-server.conf
-    cat >${nginx_conf_dir}/xray-server.conf <<EOF
+    touch ${nginx_upstream_conf}
+    cat >${nginx_upstream_conf} <<EOF
     upstream xray-server { 
         xray-serverc
     }
@@ -957,8 +1013,8 @@ EOF
 }
 
 nginx_conf_add_xtls() {
-    touch ${nginx_conf_dir}/xray.conf
-    cat >${nginx_conf_dir}/xray.conf <<EOF
+    touch ${nginx_conf}
+    cat >${nginx_conf} <<EOF
     server_tokens off;
     server {
         listen 127.0.0.1:8080 proxy_protocol;
@@ -1065,8 +1121,7 @@ network_secure() {
     read -rp "请输入: " fail2ban_fq
     [[ -z ${fail2ban_fq} ]] && fail2ban_fq=1
     if [[ $fail2ban_fq == 1 ]]; then
-        [[ -z $(judge_pkg "fail2ban") ]] && ${INS} -y install fail2ban
-        judge "Fail2ban 安装"
+        pkg_install "fail2ban"
         if [[ ! -f /etc/fail2ban/jail.local ]]; then
             cp -fp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
         fi
@@ -1076,7 +1131,7 @@ network_secure() {
         fi
         if [[ ${shell_mode} != "wsonly" ]] && [[ -z $(grep "filter   = nginx-botsearch" /etc/fail2ban/jail.local) ]]; then
             sed -i "/nginx_error_log/d" /etc/fail2ban/jail.local
-            sed -i "/http,https$/c \\port     = http,https,8080" /etc/fail2ban/jail.local
+            sed -i "s/http,https$/http,https,8080/g" /etc/fail2ban/jail.local
             sed -i "/^maxretry.*= 2$/c \\maxretry = 5" /etc/fail2ban/jail.local
             sed -i "/nginx-botsearch/i \[nginx-badbots]\\n\\nenabled  = true\\nport     = http,https,8080\\nfilter   = apache-badbots\\nlogpath  = /etc/nginx/logs/access.log\\nbantime  = 604800\\nmaxretry = 5\\n" /etc/fail2ban/jail.local
             sed -i "/nginx-botsearch/a \\\nenabled  = true\\nfilter   = nginx-botsearch\\nlogpath  = /etc/nginx/logs/access.log\\n           /etc/nginx/logs/error.log\\nbantime  = 604800" /etc/fail2ban/jail.local
