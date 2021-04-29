@@ -32,9 +32,10 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.6.4.9"
-shell_mode="None"
-shell_mode_show="未安装"
+shell_version="1.7.0.1"
+shell_mode="未安装"
+tls_mode="None"
+ws_grpc_mode="None"
 version_cmp="/tmp/version_cmp.tmp"
 idleleo_dir="/etc/idleleo"
 idleleo_conf_dir="${idleleo_dir}/conf"
@@ -66,7 +67,7 @@ nginx_version="1.20.0"
 openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
 read_config_status=1
-xtls_add_ws="off"
+xtls_add_more="off"
 old_config_status="off"
 old_shell_mode="None"
 random_num=$((RANDOM % 12 + 4))
@@ -202,7 +203,7 @@ dependency_install() {
 
     pkg_install "python3"
 
-    if [[ ${shell_mode} != "wsonly" ]]; then
+    if [[ ${tls_mode} != "None" ]]; then
         if [[ "${ID}" == "centos" ]]; then
             if [[ -z $(${INS} group list installed | grep -i "Development Tools") ]]; then
                 ${INS} -y groupinstall "Development Tools"
@@ -239,7 +240,7 @@ basic_optimization() {
 }
 
 create_directory() {
-    if [[ ${shell_mode} != "wsonly" ]]; then
+    if [[ ${tls_mode} != "None" ]]; then
         [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p ${nginx_conf_dir}
     fi
     [[ ! -d "${ssl_chainpath}" ]] && mkdir -p ${ssl_chainpath}
@@ -250,7 +251,7 @@ create_directory() {
 
 port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        echo -e "${GreenBG} 确定 连接端口  ${Font}"
+        echo -e "${GreenBG} 确定 连接端口 ${Font}"
         read -rp "请输入连接端口 (default:443):" port
         [[ -z ${port} ]] && port="443"
         if [[ ${port} -le 0 ]] || [[ ${port} -gt 65535 ]]; then
@@ -260,42 +261,92 @@ port_set() {
     fi
 }
 
-inbound_port_set() {
+ws_grpc_choose() {
+    echo -e "${GreenBG} 请选择 安装协议 ws/gRPC ${Font}"
+    echo "1: ws"
+    echo "2: gRPC"
+    echo "3: ws+gRPC (默认)"
+    read -rp "请输入: " choose_network
+    if [[ $choose_network == 1 ]]; then
+        [[ ${shell_mode} == "XTLS+Nginx" ]] && shell_mode="XTLS+Nginx+ws"
+        ws_grpc_mode="onlyws"
+    elif [[ $choose_network == 2 ]]; then
+        [[ ${shell_mode} == "Nginx+ws+TLS" ]] && shell_mode="Nginx+gRPC+TLS"
+        [[ ${shell_mode} == "XTLS+Nginx" ]] && shell_mode="XTLS+Nginx+gRPC"
+        [[ ${shell_mode} == "ws ONLY" ]] && shell_mode="gRPC ONLY"
+        ws_grpc_mode="onlygRPC"
+    else
+        [[ ${shell_mode} == "Nginx+ws+TLS" ]] && shell_mode="Nginx+ws+gRPC+TLS"
+        [[ ${shell_mode} == "XTLS+Nginx" ]] && shell_mode="XTLS+Nginx+ws+gRPC"
+        [[ ${shell_mode} == "ws ONLY" ]] && shell_mode="ws+gRPC ONLY"
+        ws_grpc_mode="all"
+    fi
+}
+
+ws_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        echo -e "${GreenBG} 是否需要自定义 inbound_port [Y/N]? ${Font}"
-        read -r inbound_port_modify_fq
-        case $inbound_port_modify_fq in
-        [yY][eE][sS] | [yY])
-            read -rp "请输入自定义 inbound_port (请勿与连接端口相同！):" xport
-            if [[ ${xport} -le 0 ]] || [[ ${xport} -gt 65535 ]]; then
-                echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值! ${Font}"
-                inbound_port_set
-            fi
-            echo -e "${OK} ${GreenBG} inbound_port: ${xport} ${Font}"
-            ;;
-        *)
+        if [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+            echo -e "${GreenBG} 是否需要自定义 ws inbound_port [Y/N]? ${Font}"
+            read -r inbound_port_modify_fq
+            case $inbound_port_modify_fq in
+            [yY][eE][sS] | [yY])
+                read -rp "请输入自定义 ws inbound_port (请勿与连接端口相同！):" xport
+                if [[ ${xport} -le 0 ]] || [[ ${xport} -gt 65535 ]]; then
+                    echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值! ${Font}"
+                    ws_inbound_port_set
+                fi
+                echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+                ;;
+            *)
+                xport=$((RANDOM + 10000))
+                echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+                ;;
+            esac
+        else
             xport=$((RANDOM + 10000))
-            echo -e "${OK} ${GreenBG} inbound_port: ${xport} ${Font}"
-            ;;
-        esac
+        fi
+    fi
+}
+
+grpc_inbound_port_set() {
+    if [[ "on" != ${old_config_status} ]]; then
+        if [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+            echo -e "${GreenBG} 是否需要自定义 gRPC inbound_port [Y/N]? ${Font}"
+            read -r inbound_port_modify_fq
+            case $inbound_port_modify_fq in
+            [yY][eE][sS] | [yY])
+                read -rp "请输入自定义 gRPC inbound_port (请勿与连接端口相同！):" xport
+                if [[ ${gport} -le 0 ]] || [[ ${gport} -gt 65535 ]]; then
+                    echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值! ${Font}"
+                    grpc_inbound_port_set
+                fi
+                echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+                ;;
+            *)
+                gport=$((RANDOM + 10000))
+                echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+                ;;
+            esac
+        else
+            gport=$((RANDOM + 10000))
+        fi
     fi
 }
 
 firewall_set() {
     iptables -A INPUT -i lo -j ACCEPT
     iptables -A OUTPUT -o lo -j ACCEPT
-    if [[ ${shell_mode} != "wsonly" ]] && [[ "$xtls_add_ws" == "off" ]]; then
-        iptables -I INPUT -p tcp -m multiport --dport 53,80,443,${port} -j ACCEPT
-        iptables -I INPUT -p udp -m multiport --dport 53,80,443,${port} -j ACCEPT
-        iptables -I OUTPUT -p tcp -m multiport --sport 53,80,443,${port} -j ACCEPT
-        iptables -I OUTPUT -p udp -m multiport --sport 53,80,443,${port} -j ACCEPT
+    if [[ ${tls_mode} != "None" ]] && [[ "$xtls_add_more" == "off" ]]; then
+        iptables -I INPUT -p tcp -m multiport --dport 53,80,${port} -j ACCEPT
+        iptables -I INPUT -p udp -m multiport --dport 53,80,${port} -j ACCEPT
+        iptables -I OUTPUT -p tcp -m multiport --sport 53,80,${port} -j ACCEPT
+        iptables -I OUTPUT -p udp -m multiport --sport 53,80,${port} -j ACCEPT
         iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
     else
-        
-        iptables -I INPUT -p tcp -m multiport --dport 53,${xport} -j ACCEPT
-        iptables -I INPUT -p udp -m multiport --dport 53,${xport} -j ACCEPT
-        iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport} -j ACCEPT
-        iptables -I OUTPUT -p udp -m multiport --sport 53,${xport} -j ACCEPT
+        iptables -I INPUT -p tcp -m multiport --dport 53,${xport},${gport} -j ACCEPT
+        iptables -I INPUT -p udp -m multiport --dport 53,${xport},${gport} -j ACCEPT
+        iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport},${gport} -j ACCEPT
+        iptables -I OUTPUT -p udp -m multiport --sport 53,${xport},${gport} -j ACCEPT
         iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
     fi
     wait
@@ -316,23 +367,48 @@ firewall_set() {
     echo -e "${OK} ${GreenBG} 配置 Xray FullCone ${Font}"
 }
 
-path_set() {
+ws_path_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        echo -e "${GreenBG} 是否需要自定义伪装路径 [Y/N]? ${Font}"
-        read -r path_modify_fq
-        case $path_modify_fq in
-        [yY][eE][sS] | [yY])
-            read -rp "请输入自定义伪装路径 (不需要“/”):" camouflage
-            camouflage="/${camouflage}"
-            echo -e "${OK} ${GreenBG} 伪装路径: ${camouflage} ${Font}"
-            ;;
-        *)
-            camouflage="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-            echo -e "${OK} ${GreenBG} 伪装路径: ${camouflage} ${Font}"
-            ;;
-        esac
+        if [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+            echo -e "${GreenBG} 是否需要自定义 ws 伪装路径 [Y/N]? ${Font}"
+            read -r path_modify_fq
+            case $path_modify_fq in
+            [yY][eE][sS] | [yY])
+                read -rp "请输入自定义 ws 伪装路径 (不需要“/”):" camouflage
+                echo -e "${OK} ${GreenBG} ws 伪装路径: ${camouflage} ${Font}"
+                ;;
+            *)
+                camouflage="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+                echo -e "${OK} ${GreenBG} ws 伪装路径: ${camouflage} ${Font}"
+                ;;
+            esac
+        else
+            camouflage="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+        fi
     fi
 }
+
+grpc_path_set() {
+    if [[ "on" != ${old_config_status} ]]; then
+        if [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+            echo -e "${GreenBG} 是否需要自定义 gRPC 伪装路径 [Y/N]? ${Font}"
+            read -r path_modify_fq
+            case $path_modify_fq in
+            [yY][eE][sS] | [yY])
+                read -rp "请输入自定义 gRPC 伪装路径 (不需要“/”):" servicename
+                echo -e "${OK} ${GreenBG} gRPC 伪装路径: ${servicename} ${Font}"
+                ;;
+            *)
+                servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+                echo -e "${OK} ${GreenBG} gRPC 伪装路径: ${servicename} ${Font}"
+                ;;
+            esac
+        fi
+    else
+        servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+    fi
+}
+
 
 UUID_set() {
     if [[ "on" != ${old_config_status} ]]; then
@@ -358,16 +434,24 @@ UUID_set() {
 }
 
 nginx_upstream_server_set() {
-    if [[ ${shell_mode} == "ws" ]]; then
+    if [[ ${tls_mode} == "TLS" ]]; then
         echo -e "${GreenBG} 是否追加 Nginx 负载均衡 [Y/N]? ${Font}"
         echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
         read -r nginx_upstream_server_fq
         case $nginx_upstream_server_fq in
         [yY][eE][sS] | [yY])
+            echo -e "${GreenBG} 请选择 追加的协议为 ws 或 gRPC ${Font}"
+            echo "1: ws"
+            echo "2: gRPC"
+            read -rp "请输入: " upstream_net
             read -rp "请输入负载均衡 主机 (host):" upstream_host
             read -rp "请输入负载均衡 端口 (port):" upstream_port
             read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight
-            sed -i "1a\\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+            if [[ ${upstream_net} == 1 ]]; then
+                sed -i "/xray-ws-server/a \\\t\\t\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+            elif [[ ${upstream_net} == 2 ]]; then
+                sed -i "/xray-grpc-server/a \\\t\\t\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+            fi
             iptables -I INPUT -p tcp --dport ${upstream_port} -j ACCEPT
             iptables -I INPUT -p udp --dport ${upstream_port} -j ACCEPT
             iptables -I OUTPUT -p tcp --sport ${upstream_port} -j ACCEPT
@@ -405,64 +489,70 @@ modify_alterid() {
 }
 
 modify_listen_address() {
-    sed -i "/\"listen\"/c \        \"listen\": \"0.0.0.0\"," ${xray_conf}
+    sed -i "s/^\( *\)\"listen\".*/\1\"listen\": \"0.0.0.0\",/g" ${xray_conf}
 }
 
 modify_inbound_port() {
-    if [[ ${shell_mode} == "ws" ]]; then
+    if [[ ${tls_mode} == "TLS" ]]; then
         #        sed -i "/\"port\"/c  \    \"port\":${xport}," ${xray_conf}
-        sed -i "8c\        \"port\": ${xport}," ${xray_conf}
-    elif [[ ${shell_mode} == "wsonly" ]]; then
-        port=${xport}
-        sed -i "8c\        \"port\": ${xport}," ${xray_conf}
-    elif [[ ${shell_mode} == "xtls" ]]; then
+        sed -i "8s/^\( *\)\"port\".*/\1\"port\": ${xport},/" ${xray_conf}
+        sed -i "29s/^\( *\)\"port\".*/\1\"port\": ${gport},/" ${xray_conf}
+    elif [[ ${tls_mode} == "None" ]]; then
+        sed -i "8s/^\( *\)\"port\".*/\1\"port\": ${xport},/" ${xray_conf}
+        sed -i "29s/^\( *\)\"port\".*/\1\"port\": ${gport},/" ${xray_conf}
+    elif [[ ${tls_mode} == "XTLS" ]]; then
         #        sed -i "/\"port\"/c  \    \"port\":${port}," ${xray_conf}
-        sed -i "8c\        \"port\": ${port}," ${xray_conf}
-        sed -i "38c\        \"port\": ${xport}," ${xray_conf}
+        sed -i "8s/^\( *\)\"port\".*/\1\"port\": ${port},/" ${xray_conf}
+        sed -i "3s/^\( *\)\"port\".*/\1\"port\": ${xport},/" ${xray_conf}
+        sed -i "59s/^\( *\)\"port\".*/\1\"port\": ${gport},/" ${xray_conf}
     fi
-    judge "Xray port 修改"
-    if [[ ${shell_mode} != "ws" ]]; then
-        [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
-    fi
-    echo -e "${OK} ${GreenBG} port: ${port} ${Font}"
+    judge "Xray inbound port 修改"
 }
 
 modify_nginx_port() {
-    sed -i "/ssl http2;$/c \\\t\\tlisten ${port} ssl http2;" ${nginx_conf}
-    sed -i "6c \\\t\\tlisten [::]:${port} ssl http2;" ${nginx_conf}
+    sed -i "s/^\( *\).*ssl http2;$/\1listen ${port} ssl http2;/" ${nginx_conf}
+    sed -i "6s/^\( *\).*ssl http2;$/\1listen [::]:${port} ssl http2;/" ${nginx_conf}
     judge "Xray port 修改"
-    [ -f ${xray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${xray_qr_config_file}
+    [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
     echo -e "${OK} ${GreenBG} 端口号: ${port} ${Font}"
 }
 
 modify_nginx_other() {
     sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
-    sed -i "/server_name/c \\\t\\tserver_name ${domain};" ${nginx_conf}
-    if [[ ${shell_mode} != "xtls" ]]; then
-        sed -i "/location/c \\\tlocation ${camouflage}" ${nginx_conf}
-        sed -i "/xray-serverc/c \\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+    sed -i "s/^\( *\)server_name.*/\1server_name ${domain};/" ${nginx_conf}
+    if [[ ${tls_mode} != "XTLS" ]]; then
+        sed -i "s/^\( *\)location ws$/\1location \/${camouflage}/" ${nginx_conf}
+        sed -i "s/^\( *\)location grpc$/\1location \/${servicename}/" ${nginx_conf}
+        if [[ ${shell_mode} == "Nginx+ws+TLS" ]]; then
+            sed -i "/#xray-ws-serverc/c \\\t\\t\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+        elif [[ ${shell_mode} == "Nginx+gRPC+TLS" ]]; then
+            sed -i "/#xray-grpc-serverc/c \\\t\\t\\t\\tserver 127.0.0.1:${gport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+        elif [[ ${shell_mode} == "Nginx+ws+gRPC+TLS" ]]; then
+            sed -i "/#xray-ws-serverc/c \\\t\\t\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+            sed -i "/#xray-grpc-serverc/c \\\t\\t\\t\\tserver 127.0.0.1:${gport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+        fi
     fi
-    sed -i "/return/c \\\t\\treturn 301 https://${domain}\$request_uri;" ${nginx_conf}
-    sed -i "/returc/c \\\t\\t\\treturn 302 https://www.idleleo.com/helloworld;" ${nginx_conf}
-    sed -i "/locatioc/c \\\t\\tlocation \/" ${nginx_conf}
+    sed -i "s/^\( *\)return$/\1return 301 https://${domain}\$request_uri;/" ${nginx_conf}
+    sed -i "s/^\( *\)returc$/\1return 302 https://www.idleleo.com/helloworld;/" ${nginx_conf}
+    sed -i "s/^\( *\)locatioc$/\1location \//" ${nginx_conf}
     sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
 }
 
 modify_path() {
-    sed -i "/\"path\"/c \                \"path\":\"${camouflage}\"" ${xray_conf}
-    if [[ ${shell_mode} != "xtls" ]] || [[ "$xtls_add_ws" == "on" ]]; then
+    sed -i "s/^\( *\)\"path\".*/\1\"path\": \"\/${camouflage}\"/" ${xray_conf}
+    sed -i "s/^\( *\)\"serviceName\".*/\1\"serviceName\": \"${servicename}\"/" ${xray_conf}
+    if [[ ${tls_mode} != "XTLS" ]] || [[ "$xtls_add_more" == "off" ]]; then
         judge "Xray 伪装路径 修改"
-        echo -e "${OK} ${GreenBG} 伪装路径: ${camouflage} ${Font}"
     else
         echo -e "${Warning} ${YellowBG} XTLS 不支持 path ${Font}"
     fi
 }
 
 modify_UUID() {
-    sed -i "/\"id\"/c \                \"id\": \"${UUID}\"," ${xray_conf}
+    sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/g" ${xray_conf}
     judge "Xray UUID 修改"
-    [ -f ${xray_qr_config_file} ] && sed -i "/\"id\"/c \\  \"id\": \"${UUID}\"," ${xray_qr_config_file}
-    [ -f ${xray_qr_config_file} ] && sed -i "/\"idc\"/c \\  \"idc\": \"${UUID5_char}\"," ${xray_qr_config_file}
+    [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/" ${xray_qr_config_file}
+    [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"idc\".*/\1\"idc\": \"${UUID5_char}\",/" ${xray_qr_config_file}
     echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
 }
 
@@ -599,6 +689,8 @@ nginx_install() {
 
     #增加http_sub_module用于反向代理替换关键词
     ./configure --prefix=${nginx_dir} \
+    --user=root \
+    --group=root \
     --with-http_ssl_module \
     --with-http_gzip_static_module \
     --with-http_stub_status_module \
@@ -623,9 +715,9 @@ nginx_install() {
     cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/nginx.default
     
     # 修改基本配置
-    sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
+    #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
     sed -i 's/worker_processes  1;/worker_processes  4;/' ${nginx_dir}/conf/nginx.conf
-    sed -i 's/    worker_connections  1024;/    worker_connections  4096;/' ${nginx_dir}/conf/nginx.conf
+    sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" ${nginx_dir}/conf/nginx.conf
 
     # 删除临时文件
     rm -rf ../nginx-${nginx_version}
@@ -637,12 +729,24 @@ nginx_install() {
 nginx_update() {
     if [[ -f "/etc/nginx/sbin/nginx" ]]; then
         if [[ ${nginx_version} != $(info_extraction '\"nginx_version\"') ]] || [[ ${openssl_version} != $(info_extraction '\"openssl_version\"') ]] || [[ ${jemalloc_version} != $(info_extraction '\"jemalloc_version\"') ]]; then
-            if [[ ${shell_mode} == "ws" ]]; then
+            if [[ ${tls_mode} == "TLS" ]]; then
                 if [[ -f $xray_qr_config_file ]]; then 
-                    domain=$(info_extraction '\"host\"')
-                    port=$(info_extraction '\"port\"')
-                    xport=$(info_extraction '\"inbound_port\"')
-                    camouflage=$(info_extraction '\"path\"')
+                    if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                        xport=$(info_extraction '\"ws_port\"')
+                        camouflage=$(info_extraction '\"path\"')
+                        gport=$((RANDOM + 10000))
+                        servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+                    elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                        gport=$(info_extraction '\"grpc_port\"')
+                        servicename=$(info_extraction '\"servicename\"')
+                        xport=$((RANDOM + 10000))
+                        camouflage="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+                    elif [[ ${ws_grpc_mode} == "all" ]]; then
+                        xport=$(info_extraction '\"ws_port\"')
+                        camouflage=$(info_extraction '\"path\"')
+                        gport=$(info_extraction '\"grpc_port\"')
+                        servicename=$(info_extraction '\"servicename\"')
+                    fi
                     if [[ 0 -eq ${read_config_status} ]]; then
                         echo -e "${Error} ${RedBG} 旧配置文件不完整, 退出升级 ${Font}"
                         timeout "清空屏幕!"
@@ -655,7 +759,7 @@ nginx_update() {
                     clear
                     bash idleleo
                 fi
-            elif [[ ${shell_mode} == "xtls" ]]; then
+            elif [[ ${tls_mode} == "XTLS" ]]; then
                 if [[ -f $xray_qr_config_file ]]; then
                     domain=$(info_extraction '\"host\"')
                     port=$(info_extraction '\"port\"')
@@ -684,16 +788,16 @@ nginx_update() {
             wait
             nginx_install
             wait
-            if [[ ${shell_mode} == "ws" ]]; then    
+            if [[ ${tls_mode} == "TLS" ]]; then    
                 nginx_conf_add
-            elif [[ ${shell_mode} == "xtls" ]]; then
+            elif [[ ${tls_mode} == "XTLS" ]]; then
                 nginx_conf_add_xtls
             fi
             wait
             service_start
-            sed -i "/\"nginx_version\"/c \  \"nginx_version\": \"${nginx_version}\"," ${xray_qr_config_file}
-            sed -i "/\"openssl_version\"/c \  \"openssl_version\": \"${openssl_version}\"," ${xray_qr_config_file}
-            sed -i "/\"jemalloc_version\"/c \  \"jemalloc_version\": \"${jemalloc_version}\"" ${xray_qr_config_file}
+            sed -i "s/^\( *\)\"nginx_version\".*/\1\"nginx_version\": \"${nginx_version}\",/" ${xray_qr_config_file}
+            sed -i "s/^\( *\)\"openssl_version\".*/\1\"openssl_version\": \"${openssl_version}\",/" ${xray_qr_config_file}
+            sed -i "s/^\( *\)\"jemalloc_version\".*/\1\"jemalloc_version\": \"${jemalloc_version}\"/" ${xray_qr_config_file}
             judge "Nginx 升级"
         else
             echo -e "${OK} ${GreenBG} Nginx 已为最新版 ${Font}"
@@ -827,47 +931,64 @@ acme() {
 
 xray_conf_add() {
     cd ${xray_conf_dir} || exit
-    if [[ ${shell_mode} != "xtls" ]]; then
+    if [[ ${tls_mode} == "TLS" ]]; then
         wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_tls/config.json -O config.json
         modify_path
         modify_inbound_port
-    else
+    elif [[ ${tls_mode} == "XTLS" ]]; then
         wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_xtls/config.json -O config.json
-        xray_xtls_add_ws
-    fi
-    if [[ ${shell_mode} == "wsonly" ]]; then
+        xray_xtls_add_more
+    elif [[ ${tls_mode} == "None" ]]; then
         modify_listen_address
     fi
     modify_alterid
     modify_UUID
 }
 
-xray_xtls_add_ws() {
-    echo -e "${GreenBG} 是否添加简单 ws协议 用于负载均衡 [Y/N]? ${Font}"
+xray_xtls_add_more() {
+    artcamouflage="None"
+    artxport="None"
+    artservicename="None"
+    artgport="None"
+    echo -e "${GreenBG} 是否添加简单 ws/gRPC 协议 用于负载均衡 [Y/N]? ${Font}"
     echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿选择! ${Font}"
-    read -r xtls_add_ws_fq
-    case $xtls_add_ws_fq in
+    read -r xtls_add_more_fq
+    case $xtls_add_more_fq in
     [yY][eE][sS] | [yY])
-        xtls_add_ws="on"
-        path_set
-        modify_path
-        artcamouflage=${camouflage}
-        modify_listen_address
-        inbound_port_set
-        modify_inbound_port
+        xtls_add_more="on"
+        ws_grpc_choose
+        ws_inbound_port_set
+        ws_path_set
+        grpc_inbound_port_set
+        grpc_path_set
         port_exist_check "${xport}"
-        artxport=${xport}
-        echo -e "${OK} ${GreenBG} ws_inbound_port: ${xport} ${Font}"
+        port_exist_check "${gport}"
+        modify_path
+        modify_listen_address
+        modify_inbound_port
+        judge "添加简单 ws/gRPC 协议"
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            artxport=${xport}
+            artcamouflage=${camouflage}
+        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+            artxport=${gport}
+            artcamouflage=${servicename}
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            artxport=${xport}
+            artcamouflage=${camouflage}
+            artxport=${gport}
+            artcamouflage=${servicename}
+        fi
         ;;
     *)
-        xtls_add_ws="off"
-        artcamouflage="none"
-        camouflage="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+        xtls_add_more="off"
+        ws_inbound_port_set
+        ws_path_set
+        grpc_inbound_port_set
+        grpc_path_set
         modify_path
-        xport=$((RANDOM + 10000))
         modify_inbound_port
-        artxport="none"
-        echo -e "${OK} ${GreenBG} 已跳过添加简单 ws协议 ${Font}"
+        echo -e "${OK} ${GreenBG} 已跳过添加简单 ws/gRPC 协议 ${Font}"
         ;;
     esac
 }
@@ -907,25 +1028,67 @@ old_config_exist_check() {
 }
 
 old_config_input () {
-    if [[ ${shell_mode} == "ws" ]]; then
+    if [[ ${tls_mode} == "TLS" ]]; then
         port=$(info_extraction '\"port\"')
-        xport=$(info_extraction '\"inbound_port\"')
         UUID5_char=$(info_extraction '\"idc\"')
         UUID=$(info_extraction '\id\"')
-        camouflage=$(info_extraction '\"path\"')
-    elif [[ ${shell_mode} == "xtls" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            xport=$(info_extraction '\"ws_port\"')
+            camouflage=$(info_extraction '\"path\"')
+            gport=$((RANDOM + 10000))
+            servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+            gport=$(info_extraction '\"grpc_port\"')
+            servicename=$(info_extraction '\"servicename\"')
+            xport=$((RANDOM + 10000))
+            camouflage="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            xport=$(info_extraction '\"ws_port\"')
+            camouflage=$(info_extraction '\"path\"')
+            gport=$(info_extraction '\"grpc_port\"')
+            servicename=$(info_extraction '\"servicename\"')
+        fi
+    elif [[ ${tls_mode} == "XTLS" ]]; then
             port=$(info_extraction '\"port\"')
             UUID5_char=$(info_extraction '\"idc\"')
             UUID=$(info_extraction '\id\"')
-        if [[ ${xtls_add_ws} == "on" ]]; then
-                xport=$(info_extraction '\"wsport\"')
-                camouflage=$(info_extraction '\"wspath\"')
+        if [[ ${xtls_add_more} == "on" ]]; then
+                if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                    xport=$(info_extraction '\"ws_port\"')
+                    camouflage=$(info_extraction '\"ws_path\"')
+                    gport=$((RANDOM + 10000))
+                    servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+                elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                    gport=$(info_extraction '\"grpc_port\"')
+                    servicename=$(info_extraction '\"grpc_servicename\"')
+                    xport=$((RANDOM + 10000))
+                    camouflage="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+                elif [[ ${ws_grpc_mode} == "all" ]]; then
+                    xport=$(info_extraction '\"ws_port\"')
+                    camouflage=$(info_extraction '\"ws_path\"')
+                    gport=$(info_extraction '\"grpc_port\"')
+                    servicename=$(info_extraction '\"grpc_servicename\"')
+                fi
         fi
-    elif [[ ${shell_mode} == "wsonly" ]]; then
-        xport=$(info_extraction '\"port\"')
+    elif [[ ${tls_mode} == "None" ]]; then
         UUID5_char=$(info_extraction '\"idc\"')
         UUID=$(info_extraction '\id\"')
-        camouflage=$(info_extraction '\"path\"')
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            xport=$(info_extraction '\"ws_port\"')
+            camouflage=$(info_extraction '\"path\"')
+            gport=$((RANDOM + 10000))
+            servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+            gport=$(info_extraction '\"grpc_port\"')
+            servicename=$(info_extraction '\"servicename\"')
+            xport=$((RANDOM + 10000))
+            camouflage="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            xport=$(info_extraction '\"ws_port\"')
+            camouflage=$(info_extraction '\"path\"')
+            gport=$(info_extraction '\"grpc_port\"')
+            servicename=$(info_extraction '\"servicename\"')
+        fi
     fi
     if [[ 0 -eq ${read_config_status} ]]; then
         echo -e "${GreenBG} 检测到旧配置文件不完整, 是否保留旧配置文件 [Y/N]? ${Font}"
@@ -968,9 +1131,19 @@ nginx_conf_add() {
         ssl_prefer_server_ciphers on;
         add_header Strict-Transport-Security "max-age=31536000";
 
-        location /ray/
+        location grpc
         {
-            proxy_pass http://xray-server;
+            grpc_pass grpc://xray-grpc-server;
+            grpc_read_timeout 1800s;
+            grpc_connect_timeout 180s;
+            grpc_send_timeout 180s;
+            grpc_set_header X-Real-IP $remote_addr;
+            grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        location ws
+        {
+            proxy_pass http://xray-ws-server;
             proxy_redirect default;
             proxy_http_version 1.1;
             proxy_connect_timeout 180s;
@@ -1002,8 +1175,12 @@ EOF
 
     touch ${nginx_upstream_conf}
     cat >${nginx_upstream_conf} <<EOF
-    upstream xray-server { 
-        xray-serverc
+    upstream xray-ws-server { 
+        #xray-ws-serverc
+    }
+
+    upstream xray-grpc-server { 
+        #xray-grpc-serverc
     }
 EOF
 
@@ -1041,7 +1218,7 @@ EOF
 }
 
 enable_process_systemd() {
-    if [[ ${shell_mode} != "wsonly" ]]; then
+    if [[ ${tls_mode} != "None" ]]; then
         systemctl enable nginx
         judge "设置 Nginx 开机自启"
     fi
@@ -1050,7 +1227,7 @@ enable_process_systemd() {
 }
 
 disable_process_systemd() {
-    if [[ ${shell_mode} != "wsonly" ]]; then
+    if [[ ${tls_mode} != "None" ]]; then
         systemctl stop nginx
         systemctl disable nginx
         judge "关闭 Xray 开机自启"
@@ -1069,7 +1246,7 @@ stop_service_all() {
 service_restart(){
     systemctl daemon-reload
     wait
-    if [[ ${shell_mode} != "wsonly" ]]; then
+    if [[ ${tls_mode} != "None" ]]; then
         systemctl restart nginx
         judge "Nginx 重启"
     fi
@@ -1078,7 +1255,7 @@ service_restart(){
 }
 
 service_start(){
-    if [[ ${shell_mode} != "wsonly" ]]; then
+    if [[ ${tls_mode} != "None" ]]; then
         systemctl start nginx
         judge "Nginx 启动"
     fi
@@ -1087,7 +1264,7 @@ service_start(){
 }
 
 service_stop(){
-    if [[ ${shell_mode} != "wsonly" ]]; then
+    if [[ ${tls_mode} != "None" ]]; then
         systemctl stop nginx
         judge "Nginx 停止"
     fi
@@ -1129,7 +1306,7 @@ network_secure() {
         if [[ -z $(grep "filter   = sshd" /etc/fail2ban/jail.local) ]]; then
             sed -i "/sshd_log/i \enabled  = true\\nfilter   = sshd\\nmaxretry = 5\\nbantime  = 604800" /etc/fail2ban/jail.local
         fi
-        if [[ ${shell_mode} != "wsonly" ]] && [[ -z $(grep "filter   = nginx-botsearch" /etc/fail2ban/jail.local) ]]; then
+        if [[ ${tls_mode} != "None" ]] && [[ -z $(grep "filter   = nginx-botsearch" /etc/fail2ban/jail.local) ]]; then
             sed -i "/nginx_error_log/d" /etc/fail2ban/jail.local
             sed -i "s/http,https$/http,https,8080/g" /etc/fail2ban/jail.local
             sed -i "/^maxretry.*= 2$/c \\maxretry = 5" /etc/fail2ban/jail.local
@@ -1167,7 +1344,7 @@ network_secure() {
         fail2ban-client status
         echo -e "${GreenBG} Fail2ban SSH 封锁情况: ${Font}"
         fail2ban-client status sshd
-        if [[ ${shell_mode} != "wsonly" ]]; then
+        if [[ ${tls_mode} != "None" ]]; then
             echo -e "${GreenBG} Fail2ban Nginx 封锁情况: ${Font}"
             fail2ban-client status nginx-badbots
             fail2ban-client status nginx-botsearch
@@ -1180,17 +1357,21 @@ network_secure() {
 vless_qr_config_tls_ws() {
     cat >$xray_qr_config_file <<-EOF
 {
-  "host": "${domain}",
-  "port": "${port}",
-  "inbound_port": "${xport}",
-  "idc": "${UUID5_char}",
-  "id": "${UUID}",
-  "net": "ws",
-  "path": "${camouflage}",
-  "tls": "TLS",
-  "nginx_version": "${nginx_version}",
-  "openssl_version": "${openssl_version}",
-  "jemalloc_version": "${jemalloc_version}"
+    "shell_mode": "${shell_mode}",
+    "ws_grpc_mode": "${ws_grpc_mode}",
+    "host": "${domain}",
+    "port": "${port}",
+    "ws_port": "${xport}",
+    "grpc_port": "${gport}",
+    "tls": "TLS",
+    "idc": "${UUID5_char}",
+    "id": "${UUID}",
+    "net": "ws/gRPC",
+    "path": "${camouflage}",
+    "servicename": "${servicename}",
+    "nginx_version": "${nginx_version}",
+    "openssl_version": "${openssl_version}",
+    "jemalloc_version": "${jemalloc_version}"
 }
 EOF
 }
@@ -1198,17 +1379,22 @@ EOF
 vless_qr_config_xtls() {
     cat >$xray_qr_config_file <<-EOF
 {
-  "host": "${domain}",
-  "port": "${port}",
-  "idc": "${UUID5_char}",
-  "id": "${UUID}",
-  "net": "tcp",
-  "tls": "XTLS",
-  "wsport": "${artxport}",
-  "wspath": "${artcamouflage}",
-  "nginx_version": "${nginx_version}",
-  "openssl_version": "${openssl_version}",
-  "jemalloc_version": "${jemalloc_version}"
+    "shell_mode": "${shell_mode}",
+    "ws_grpc_mode": "${ws_grpc_mode}",
+    "host": "${domain}",
+    "port": "${port}",
+    "idc": "${UUID5_char}",
+    "id": "${UUID}",
+    "net": "tcp",
+    "tls": "XTLS",
+    "xtls_add_more": "${xtls_add_more}",
+    "ws_port": "${artxport}",
+    "ws_path": "${artcamouflage}",
+    "grpc_port": "${artgport}",
+    "grpc_servicename": "${artservicename}",
+    "nginx_version": "${nginx_version}",
+    "openssl_version": "${openssl_version}",
+    "jemalloc_version": "${jemalloc_version}"
 }
 EOF
 }
@@ -1216,13 +1402,19 @@ EOF
 vless_qr_config_ws_only() {
     cat >$xray_qr_config_file <<-EOF
 {
-  "host": "${local_ip}",
-  "port": "${xport}",
-  "idc": "${UUID5_char}",
-  "id": "${UUID}",
-  "net": "ws",
-  "path": "${camouflage}",
-  "tls": "none"
+    "host": "${local_ip}",
+    "ws_grpc_mode": "${ws_grpc_mode}",
+    "ws_port": "${xport}",
+    "grpc_port": "${gport}"
+    "tls": "None",
+    "idc": "${UUID5_char}",
+    "id": "${UUID}",
+    "net": "ws/gRPC",
+    "path": "${camouflage}",
+    "servicename": "${servicename}",
+    "nginx_version": "${nginx_version}",
+    "openssl_version": "${openssl_version}",
+    "jemalloc_version": "${jemalloc_version}"
 }
 EOF
 }
@@ -1234,20 +1426,47 @@ vless_urlquote()
 }
 
 vless_qr_link_image() {
-    #vless_link="vless://$(base64 -w 0 $xray_qr_config_file)"
-    if [[ ${shell_mode} == "ws" ]]; then
-        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"host\"'))&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+ws%E5%8D%8F%E8%AE%AE"
-    elif [[ ${shell_mode} == "xtls" ]]; then
+    if [[ ${tls_mode} == "TLS" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            vless_ws_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"host\"'))&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+ws%E5%8D%8F%E8%AE%AE"
+        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+            vless_grpc_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"servicename\"'))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"host\"'))&type=grpc#$(vless_urlquote $(info_extraction '\"host\"'))+gRPC%E5%8D%8F%E8%AE%AE"
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            vless_ws_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"host\"'))&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+ws%E5%8D%8F%E8%AE%AE"
+            vless_grpc_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"servicename\"'))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction '\"host\"'))&type=grpc#$(vless_urlquote $(info_extraction '\"host\"'))+gRPC%E5%8D%8F%E8%AE%AE"
+        fi
+    elif [[ ${tls_mode} == "XTLS" ]]; then
         vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction '\"host\"'))+xtls%E5%8D%8F%E8%AE%AE"
-    elif [[ ${shell_mode} == "wsonly" ]]; then
-        vless_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+%E5%8D%95%E7%8B%ACws%E5%8D%8F%E8%AE%AE"
+    elif [[ ${tls_mode} != "None" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            vless_ws_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"ws_port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+%E5%8D%95%E7%8B%ACws%E5%8D%8F%E8%AE%AE"
+        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+            vless_grpc_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"grpc_port\"')?path=$(vless_urlquote $(info_extraction '\"servicename\"'))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction '\"host\"'))+%E5%8D%95%E7%8B%ACgrpc%E5%8D%8F%E8%AE%AE"
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            vless_ws_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"ws_port\"')?path=$(vless_urlquote $(info_extraction '\"path\"'))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction '\"host\"'))+%E5%8D%95%E7%8B%ACws%E5%8D%8F%E8%AE%AE"
+            vless_grpc_link="vless://$(info_extraction '\"id\"')@$(vless_urlquote $(info_extraction '\"host\"')):$(info_extraction '\"grpc_port\"')?path=$(vless_urlquote $(info_extraction '\"servicename\"'))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction '\"host\"'))+%E5%8D%95%E7%8B%ACgrpc%E5%8D%8F%E8%AE%AE"
+        fi
     fi
         {
             echo -e "\n${Red} —————————————— Xray 配置分享 —————————————— ${Font}"
-            echo -e "${Red} URL 分享链接: ${vless_link} ${Font}"
-            echo -e "$Red 二维码: $Font"
-            echo -n "${vless_link}" | qrencode -o - -t utf8
-            echo -e "\n"
+            if [[ ${tls_mode} == "XTLS" ]]; then
+                echo -e "${Red} URL 分享链接:${Font} ${vless_link}"
+                echo -e "$Red 二维码: $Font"
+                echo -n "${vless_link}" | qrencode -o - -t utf8
+                echo -e "\n"
+            else    
+                if [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+                    echo -e "${Red} ws URL 分享链接:${Font} ${vless_ws_link}"
+                    echo -e "$Red 二维码: $Font"
+                    echo -n "${vless_ws_link}" | qrencode -o - -t utf8
+                    echo -e "\n"
+                elif [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+                    echo -e "${Red} gRPC URL 分享链接:${Font} ${vless_grpc_link}"
+                    echo -e "$Red 二维码: $Font"
+                    echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
+                    echo -e "\n"
+                fi
+            fi
         } >>"${xray_info_file}"
 }
 
@@ -1271,33 +1490,82 @@ info_extraction() {
 
 basic_information() {
     {
-        if [[ ${shell_mode} == "xtls" ]]; then
-            echo -e "${OK} ${GreenBG} Xray+Nginx+ws+tls 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "ws" ]]; then
+        if [[ ${shell_mode} == "Nginx+ws+TLS" ]]; then
+            echo -e "${OK} ${GreenBG} Xray+Nginx+ws+TLS 安装成功 ${Font}"
+        elif  [[ ${shell_mode} == "Nginx+gRPC+TLS" ]]; then
+            echo -e "${OK} ${GreenBG} Xray+Nginx+grpc+TLS 安装成功 ${Font}"
+        elif  [[ ${shell_mode} == "Nginx+ws+gRPC+TLS" ]]; then
+            echo -e "${OK} ${GreenBG} Xray+Nginx+ws+gRPC+TLS 安装成功 ${Font}"
+        elif  [[ ${shell_mode} == "XTLS+Nginx" ]]; then
             echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "wsonly" ]]; then
+        elif  [[ ${shell_mode} == "XTLS+Nginx+ws" ]]; then
+            echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx+ws 安装成功 ${Font}"
+        elif  [[ ${shell_mode} == "XTLS+Nginx+gRPC" ]]; then
+            echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx+gRPC 安装成功 ${Font}"
+        elif  [[ ${shell_mode} == "XTLS+Nginx+ws+gRPC" ]]; then
+            echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx+ws+gRPC 安装成功 ${Font}"
+        elif  [[ ${shell_mode} == "ws ONLY" ]]; then
             echo -e "${OK} ${GreenBG} ws ONLY 安装成功 ${Font}"
+        elif  [[ ${shell_mode} == "gRPC ONLY" ]]; then
+            echo -e "${OK} ${GreenBG} gRPC ONLY 安装成功 ${Font}"
+        elif  [[ ${shell_mode} == "ws+gRPC ONLY" ]]; then
+            echo -e "${OK} ${GreenBG} ws+gRPC ONLY 安装成功 ${Font}"
         fi
         echo -e "${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 ${Font}"
         echo -e "\n${Red} —————————————— Xray 配置信息 —————————————— ${Font}"
         echo -e "${Red} 主机 (host):${Font} $(info_extraction '\"host\"') "
-        echo -e "${Red} 端口 (port):${Font} $(info_extraction '\"port\"') "
-        if [[ ${shell_mode} == "ws" ]]; then
-            echo -e "${Red} Xray 端口 (inbound_port):${Font} $(info_extraction '\"inbound_port\"') "
+        if [[ ${tls_mode} == "None" ]]; then
+            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                echo -e "${Red} ws 端口 (port):${Font} $(info_extraction '\"ws_port\"') "
+            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                echo -e "${Red} gRPC 端口 (port):${Font} $(info_extraction '\"grpc_port\"') "
+            elif [[ ${ws_grpc_mode} == "all" ]]; then
+                echo -e "${Red} ws 端口 (port):${Font} $(info_extraction '\"ws_port\"') "
+                echo -e "${Red} gRPC 端口 (port):${Font} $(info_extraction '\"grpc_port\"') "
+            fi
+        else
+            echo -e "${Red} 端口 (port):${Font} $(info_extraction '\"port\"') "
+        fi
+        if [[ ${tls_mode} == "TLS" ]]; then
+            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                echo -e "${Red} Xray ws 端口 (inbound_port):${Font} $(info_extraction '\"ws_port\"') "
+            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                echo -e "${Red} Xray gRPC端口 (inbound_port):${Font} $(info_extraction '\"grpc_port\"') "
+            elif [[ ${ws_grpc_mode} == "all" ]]; then
+                echo -e "${Red} Xray ws 端口 (inbound_port):${Font} $(info_extraction '\"ws_port\"') "
+                echo -e "${Red} Xray gRPC端口 (inbound_port):${Font} $(info_extraction '\"grpc_port\"') "
+            fi
         fi
         echo -e "${Red} UUIDv5 映射字符串:${Font} $(info_extraction '\"idc\"')"
         echo -e "${Red} 用户id (UUID):${Font} $(info_extraction '\"id\"')"
 
-        echo -e "${Red} 加密 (encryption):${Font} none "
+        echo -e "${Red} 加密 (encryption):${Font} None "
         echo -e "${Red} 传输协议 (network):${Font} $(info_extraction '\"net\"') "
         echo -e "${Red} 底层传输安全 (tls):${Font} $(info_extraction '\"tls\"') "
-        if [[ ${shell_mode} != "xtls" ]]; then
-            echo -e "${Red} 路径 (path 不要落下/):${Font} $(info_extraction '\"path\"') "
+        if [[ ${tls_mode} != "XTLS" ]]; then
+            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                echo -e "${Red} 路径 (path 不要落下/):${Font} $(info_extraction '\"path\"') "
+            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                echo -e "${Red} serviceName (不需要加/):${Font} $(info_extraction '\"servicename\"') "
+            elif [[ ${ws_grpc_mode} == "all" ]]; then
+                echo -e "${Red} 路径 (path 不要落下/):${Font} $(info_extraction '\"path\"') "
+                echo -e "${Red} serviceName (不需要加/):${Font} $(info_extraction '\"servicename\"') "
+            fi
         else
             echo -e "${Red} 流控 (flow):${Font} xtls-rprx-direct "
-            if [[ "$xtls_add_ws" == "on" ]]; then
-                echo -e "${Red} ws端口 (port):${Font} $(info_extraction '\"wsport\"') "
-                echo -e "${Red} ws路径 (不要落下/):${Font} $(info_extraction '\"wspath\"') "
+            if [[ "$xtls_add_more" == "on" ]]; then
+                if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                    echo -e "${Red} ws 端口 (port):${Font} $(info_extraction '\"ws_port\"') "
+                    echo -e "${Red} ws 路径 (不要落下/):${Font} $(info_extraction '\"ws_path\"') "
+                elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                    echo -e "${Red} gRPC 端口 (port):${Font} $(info_extraction '\"grpc_port\"') "
+                    echo -e "${Red} gRPC serviceName (不需要加/):${Font} $(info_extraction '\"grpc_servicename\"') "
+                elif [[ ${ws_grpc_mode} == "all" ]]; then
+                    echo -e "${Red} ws 端口 (port):${Font} $(info_extraction '\"ws_port\"') "
+                    echo -e "${Red} ws 路径 (不要落下/):${Font} $(info_extraction '\"ws_path\"') "
+                    echo -e "${Red} gRPC 端口 (port):${Font} $(info_extraction '\"grpc_port\"') "
+                    echo -e "${Red} gRPC serviceName (不需要加/):${Font} $(info_extraction '\"grpc_servicename\"') "
+                fi
             fi
         fi
     } >"${xray_info_file}"
@@ -1382,7 +1650,7 @@ EOF
 }
 
 tls_type() {
-    if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ ${shell_mode} != "wsonly" ]]; then
+    if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ ${tls_mode} != "None" ]]; then
         echo -e "${GreenBG} 请选择支持的 TLS 版本 (default:2): ${Font}"
         echo "建议选择 TLS1.2 and TLS1.3 (一般模式)"
         echo "1: TLS1.1 TLS1.2 and TLS1.3 (兼容模式)"
@@ -1391,38 +1659,98 @@ tls_type() {
         read -rp "请输入: " tls_version
         [[ -z ${tls_version} ]] && tls_version=2
         if [[ $tls_version == 3 ]]; then
-            if [[ $shell_mode == "ws"  ]]; then
-                sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.3;/' $nginx_conf
+            if [[ ${tls_mode} == "TLS" ]]; then
+                sed -i "s/^\( *\)ssl_protocols.*/\1ssl_protocols\\t\\tTLSv1.3;/" $nginx_conf
             else
-                sed -i "/\"minVersion\"/c \                \"minVersion\": \"1.3\"," ${xray_conf}   
+                sed -i "s/^\( *\)\"minVersion\".*/\1\"minVersion\": \"1.3\",/" ${xray_conf}
             fi
             echo -e "${OK} ${GreenBG} 已切换至 TLS1.3 only ${Font}"
         elif [[ $tls_version == 1 ]]; then
-            if [[ $shell_mode == "ws"  ]]; then
-                sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;/' $nginx_conf
+            if [[ ${tls_mode} == "TLS" ]]; then
+                sed -i "s/^\( *\)ssl_protocols.*/\1ssl_protocols\\t\\tTLSv1.1 TLSv1.2 TLSv1.3;/" $nginx_conf
                 echo -e "${OK} ${GreenBG} 已切换至 TLS1.1 TLS1.2 and TLS1.3 ${Font}"
             else
                 echo -e "${Error} ${RedBG} XTLS最低版本应大于 TLS1.1, 请重新选择！ ${Font}" 
                 tls_type
             fi
         else
-            if [[ $shell_mode == "ws"  ]]; then
-                sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.2 TLSv1.3;/' $nginx_conf
+            if [[ ${tls_mode} == "TLS" ]]; then
+                sed -i "s/^\( *\)ssl_protocols.*/\1ssl_protocols\\t\\tTLSv1.2 TLSv1.3;/" $nginx_conf
             else
-                sed -i "/\"minVersion\"/c \                \"minVersion\": \"1.2\"," ${xray_conf}  
+                sed -i "s/^\( *\)\"minVersion\".*/\1\"minVersion\": \"1.2\",/" ${xray_conf}
             fi
             echo -e "${OK} ${GreenBG} 已切换至 TLS1.2 and TLS1.3 ${Font}"
         fi
         wait
-        if [[ $shell_mode == "ws"  ]]; then
+        if [[ ${tls_mode} == "TLS" ]]; then
             systemctl restart nginx
             judge "Nginx 重启"
-        elif [[ $shell_mode == "xtls"  ]]; then
+        elif [[ ${tls_mode} == "XTLS" ]]; then
             systemctl restart xray
             judge "Xray 重启"
         fi
     else
         echo -e "${Error} ${RedBG} Nginx 或 配置文件不存在 或当前安装版本为 ws ONLY , 请正确安装脚本后执行${Font}"
+    fi
+}
+
+Revision_port() {
+    if [[ ${tls_mode} == "TLS" ]]; then
+        read -rp "请输入 连接端口:" port
+        modify_nginx_port
+        [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
+        echo -e "${OK} ${GreenBG} 连接端口号: ${port} ${Font}"
+    elif [[ ${tls_mode} == "XTLS" ]]; then
+        read -rp "请输入 连接端口:" port
+        xport=$((RANDOM + 10000))
+        gport=$((RANDOM + 10000))
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            read -rp "请输入 ws inbound_port:" xport
+            port_exist_check "${xport}"
+            gport=$((RANDOM + 10000))
+            [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
+            echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+        elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
+            read -rp "请输入 gRPC inbound_port:" gport
+            port_exist_check "${gport}"
+            xport=$((RANDOM + 10000))
+            [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
+            echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            read -rp "请输入 ws inbound_port:" xport
+            read -rp "请输入 gRPC inbound_port:" gport
+            port_exist_check "${xport}"
+            port_exist_check "${gport}"
+            [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
+            [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
+            echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+            echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+        fi
+        wait
+        modify_inbound_port
+    elif [[ ${tls_mode} == "None" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            read -rp "请输入 ws inbound_port:" xport
+            port_exist_check "${xport}"
+            gport=$((RANDOM + 10000))
+            echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+        elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
+            read -rp "请输入 gRPC inbound_port:" gport
+            port_exist_check "${gport}"
+            xport=$((RANDOM + 10000))
+            echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            read -rp "请输入 ws inbound_port:" xport
+            read -rp "请输入 gRPC inbound_port:" gport
+            port_exist_check "${xport}"
+            port_exist_check "${gport}"
+            echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+            echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+        fi
+        [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
+        [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
+        wait
+        modify_inbound_port
     fi
 }
 
@@ -1520,20 +1848,25 @@ timeout() {
 
 judge_mode() {
     if [[ -f ${xray_bin_dir} ]]; then
-        if [[ $(info_extraction '\"tls\"') == "TLS" ]]; then
-            shell_mode="ws"
-            shell_mode_show="Nginx+ws+tls"
-        elif [[ $(info_extraction '\"tls\"') == "XTLS" ]]; then
-            shell_mode="xtls"
-            if [[ $(info_extraction '\"wsport\"') != "none" ]]; then
-                xtls_add_ws="on"
-                shell_mode_show="XTLS+Nginx+ws"
+        ws_grpc_mode=$(info_extraction '\"ws_grpc_mode\"')
+        tls_mode=$(info_extraction '\"tls\"')
+        if [[ ${tls_mode} == "TLS" ]]; then
+            [[ ${ws_grpc_mode} == "onlyws" ]] && shell_mode="Nginx+ws+TLS"
+            [[ ${ws_grpc_mode} == "onlygRPC" ]] && shell_mode="Nginx+gRPC+TLS"
+            [[ ${ws_grpc_mode} == "all" ]] && shell_mode="Nginx+ws+gRPC+TLS"
+        elif [[ ${tls_mode} == "XTLS" ]]; then
+            if [[ $(info_extraction '\"xtls_add_more\"') != "off" ]]; then
+                xtls_add_more="on"
+                [[ ${ws_grpc_mode} == "onlyws" ]] && shell_mode="XTLS+Nginx+ws"
+                [[ ${ws_grpc_mode} == "onlygRPC" ]] && shell_mode="XTLS+Nginx+gRPC"
+                [[ ${ws_grpc_mode} == "all" ]] && shell_mode="XTLS+Nginx+ws+gRPC"
             else
-                shell_mode_show="XTLS+Nginx"
+                shell_mode="XTLS+Nginx"
             fi
-        elif [[ $(info_extraction '\"tls\"') == "none" ]]; then
-            shell_mode="wsonly"
-            shell_mode_show="ws ONLY"
+        elif [[ ${tls_mode} == "None" ]]; then
+            [[ ${ws_grpc_mode} == "onlyws" ]] && shell_mode="ws ONLY"
+            [[ ${ws_grpc_mode} == "onlygRPC" ]] && shell_mode="gRPC ONLY"
+            [[ ${ws_grpc_mode} == "all" ]] && shell_mode="ws+gRPC ONLY"
         fi
         old_shell_mode=${shell_mode}
     fi
@@ -1548,9 +1881,12 @@ install_xray_ws_tls() {
     domain_check
     old_config_exist_check
     port_set
-    inbound_port_set
+    ws_grpc_choose
+    ws_inbound_port_set
+    grpc_inbound_port_set
     firewall_set
-    path_set
+    ws_path_set
+    grpc_path_set
     UUID_set
     stop_service_all
     xray_install
@@ -1610,13 +1946,17 @@ install_xray_ws_only() {
     create_directory
     ip_check
     old_config_exist_check
-    inbound_port_set
+    ws_grpc_choose
+    ws_inbound_port_set
+    grpc_inbound_port_set
     firewall_set
-    path_set
+    ws_path_set
+    grpc_path_set
     UUID_set
     stop_service_all
     xray_install
     port_exist_check "${xport}"
+    port_exist_check "${gport}"
     xray_conf_add
     vless_qr_config_ws_only
     basic_information
@@ -1632,11 +1972,12 @@ update_sh() {
     [[ -z ${ol_version} ]] && clear && echo -e "${Error} ${RedBG}  检测最新版本失败! ${Font}" && bash idleleo
     echo "${shell_version}" >>${version_cmp}
     newest_version=$(sort -rV ${version_cmp} | head -1)
-    version_difference=$(echo "${newest_version:0:3}-${shell_version:0:3}"|bc)
+    version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0"|bc)
     if [[ ${shell_version} != ${newest_version} ]]; then
-        echo -e "${GreenBG} 存在新版本, 是否更新 [Y/N]? ${Font}"
-        if [[ ${version_difference} -gt 0 ]]; then
-            echo -e "${Warning} ${YellowBG} 版本跨度较大, 可能存在不兼容情况, 若服务无法正常运行请完全卸载重装! ${Font}"
+        if [[ ${version_difference} == 1 ]]; then
+            echo -e "${Warning} ${YellowBG} 存在新版本, 但版本跨度较大, 可能存在不兼容情况, 是否更新 [Y/N]? ${Font}"
+        else
+            echo -e "${GreenBG} 存在新版本, 是否更新 [Y/N]? ${Font}"
         fi
         read -r update_confirm
         case $update_confirm in
@@ -1646,6 +1987,7 @@ update_sh() {
             ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
             clear
             echo -e "${OK} ${GreenBG} 更新完成 ${Font}"
+            [[ ${version_difference} == 1 ]] && echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装! ${Font}"
             bash idleleo
             ;;
         *) ;;
@@ -1719,17 +2061,30 @@ idleleo_commend() {
         echo "${old_version}" >${version_cmp}
         echo "${shell_version}" >>${version_cmp}
         oldest_version=$(sort -V ${version_cmp} | head -1)
-        version_difference=$(echo "${shell_version:0:3}-${oldest_version:0:3}"|bc)
+        version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0"|bc)
         if [[ -z ${old_version} ]]; then
             wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
             clear
             bash idleleo
         elif [[ ${shell_version} != ${oldest_version} ]]; then
-            rm -rf ${idleleo_dir}/install.sh
-            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
-            clear
-            if [[ ${version_difference} -gt 0 ]]; then
-                echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 可能存在不兼容情况, 若服务无法正常运行请完全卸载重装! ${Font}"
+            if [[ ${version_difference} == 1 ]]; then
+                echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 可能存在不兼容情况, 是否继续使用 [Y/N]? ${Font}"
+                read -r update_sh_fq
+                case $update_sh_fq in
+                [yY][eE][sS] | [yY])
+                    rm -rf ${idleleo_dir}/install.sh
+                    wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+                    clear
+                    echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装!\n ${Font}"
+                    ;;
+                *)
+                    bash idleleo
+                    ;;
+                esac
+            else
+                rm -rf ${idleleo_dir}/install.sh
+                wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+                clear
             fi
             bash idleleo
         elif [[ ! -L ${idleleo_commend_file} ]]; then
@@ -1752,7 +2107,7 @@ menu() {
     echo -e "--- authored by paniy ---"
     echo -e "--- changed by www.idleleo.com ---"
     echo -e "--- https://github.com/paniy ---\n"
-    echo -e "当前已安装模式: ${shell_mode_show}\n"
+    echo -e "当前已安装模式: ${shell_mode}\n"
 
     idleleo_commend
 
@@ -1761,9 +2116,9 @@ menu() {
     echo -e "${Green}1.${Font}  升级 Xray"
     echo -e "${Green}2.${Font}  升级 Nginx"
     echo -e "—————————————— 安装向导 ——————————————"
-    echo -e "${Green}3.${Font}  安装 Xray (Nginx+ws+tls)"
-    echo -e "${Green}4.${Font}  安装 Xray (XTLS+Nginx)"
-    echo -e "${Green}5.${Font}  安装 Xray (ws ONLY)"
+    echo -e "${Green}3.${Font}  安装 Xray (Nginx+ws/gRPC+tls)"
+    echo -e "${Green}4.${Font}  安装 Xray (XTLS+Nginx+ws/gRPC)"
+    echo -e "${Green}5.${Font}  安装 Xray (ws/gRPC ONLY)"
     echo -e "—————————————— 配置变更 ——————————————"
     echo -e "${Green}6.${Font}  变更 UUIDv5/映射字符串"
     echo -e "${Green}7.${Font}  变更 port"
@@ -1806,12 +2161,14 @@ menu() {
         bash idleleo
         ;;
     3)
-        shell_mode="ws"
+        shell_mode="Nginx+ws+TLS"
+        tls_mode="TLS"
         install_xray_ws_tls
         bash idleleo
         ;;
     4)
-        shell_mode="xtls"
+        shell_mode="XTLS+Nginx"
+        tls_mode="XTLS"
         install_xray_xtls
         bash idleleo
         ;;
@@ -1820,7 +2177,8 @@ menu() {
         read -r wsonly_fq
         case $wsonly_fq in
         [yY][eE][sS] | [yY])
-            shell_mode="wsonly"
+            shell_mode="ws ONLY"
+            tls_mode="None"
             install_xray_ws_only
             ;;
         *) ;;
@@ -1836,17 +2194,7 @@ menu() {
         bash idleleo
         ;;
     7)
-        read -rp "请输入连接端口/inbound_port:" port
-        if [[ $(info_extraction '\"tls\"') == "TLS" ]]; then
-            modify_nginx_port
-        elif [[ $(info_extraction '\"tls\"') == "XTLS" ]]; then
-            if [[ $(info_extraction '\"wsport\"') != "none" ]]; then
-                read -rp "请输入 ws inbound_port:" xport
-            fi
-            modify_inbound_port
-        else
-            modify_inbound_port
-        fi
+        Revision_port
         firewall_set
         service_restart
         timeout "清空屏幕!"
@@ -1899,7 +2247,7 @@ menu() {
         bash idleleo
         ;;
     16)
-        if [[ ${shell_mode} != "wsonly" ]]; then
+        if [[ ${tls_mode} != "None" ]]; then
             systemctl status nginx
         fi
         systemctl status xray
