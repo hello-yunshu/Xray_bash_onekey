@@ -1,4 +1,4 @@
-## Xray 基于 Nginx 的 VLESS WebSocket+TLS / XTLS 一键安装脚本
+## Xray+Nginx 包含 VLESS WebSocket/gPRC+TLS / XTLS+TCP 协议的一键安装脚本
 [![GitHub stars](https://img.shields.io/github/stars/paniy/Xray_bash_onekey?color=%230885ce)](https://github.com/paniy/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/paniy/Xray_bash_onekey?color=%230885ce)](https://github.com/paniy/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/paniy/Xray_bash_onekey)](https://github.com/paniy/Xray_bash_onekey/issues)
 
 > 感谢 JetBrains 提供的非商业开源软件开发授权。
@@ -7,19 +7,19 @@
 
 ### 使用说明
 * 可以直接输入命令：`idleleo` 管理脚本。
-* 减少直接访问，隐藏代理域名。
 * 访问域名 302 跳转至 https://www.idleleo.com/helloworld （了解配置过程可自行修改）。
 * 阻止 HTTP 直接访问服务器 IP 。
 * 使用来自 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91) (beta)，支持 Qv2ray、V2rayN、V2rayNG。
 * 使用来自 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 项目的提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，可以将自定义字符串映射至 VLESS UUID 。
 * 添加负载均衡配置，教程：[XRay进阶玩法 – 搭建后端服务器负载均衡](https://www.idleleo.com/04/5136.html)。
+* 添加 gRPC 协议的支持，具体可见：[Xray进阶玩法 – 使用gRPC协议](https://www.idleleo.com/05/5225.html)。
 
 ### Telegram 群组
 * Telegram 交流群：https://t.me/idleleo_chat 。
 
 ### 准备工作
 * 准备一个域名，并将A记录添加好。
-* [Xray官方说明](https://xtls.github.io)，大概了解 TLS WebSocket XTLS 及 Xray 相关信息。
+* [Xray官方说明](https://xtls.github.io)，大概了解 TLS WebSocket gRPC XTLS 及 Xray 相关信息。
 * **安装好 wget**，Centos用户运行：`yum install -y wget`；Debian/Ubuntu用户运行：`apt install -y wget`。
 
 ### 安装/更新方式（此为Xray版）
