@@ -71,7 +71,7 @@
         "domainStrategy": "AsIs",
         "rules": [{
             "type": "field",
-            "inboundTag": ["VLESS-ws-in"],
+            "inboundTag": ["VLESS-ws-in", "VLESS-gRPC-in"],
             "outboundTag": "direct"
         }]
     }
