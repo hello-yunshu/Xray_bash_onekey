@@ -54,6 +54,27 @@
                     "path": "/websocket"
                 }
             }
+        },
+        {
+            "port": 10087,
+            "listen": "127.0.0.1",
+            "tag": "VLESS-gRPC-in",
+            "protocol": "VLESS",
+            "settings": {
+                "clients": [{
+                    "id": "UUID",
+                    "level": 0,
+                    "email": "me@idleleo.com"
+                }],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "grpc",
+                "security": "none",
+                "grpcSettings": {
+                    "serviceName": "grpc"
+                }
+            }
         }
     ],
     "outbounds": [{
