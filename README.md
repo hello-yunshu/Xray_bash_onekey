@@ -23,7 +23,7 @@
 * **安装好 wget**，Centos用户运行：`yum install -y wget`；Debian/Ubuntu用户运行：`apt install -y wget`。
 
 ### 安装/更新方式（此为Xray版）
-VLESS+Nginx+WebSocket+TLS 或 VLESS+XTLS+Nginx  或 ws ONLY 三选一：
+VLESS+Nginx+WebSocket/gRPC+TLS 或 VLESS+XTLS+Nginx+ws+gRPC  或 ws/gRPC ONLY 三选一：
 ```
 wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh" && chmod +x install.sh && bash install.sh
 ```

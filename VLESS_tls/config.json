@@ -5,26 +5,48 @@
         "loglevel": "warning"
     },
     "inbounds": [{
-        "port": 10086,
-        "listen": "127.0.0.1",
-        "tag": "VLESS-ws-in",
-        "protocol": "VLESS",
-        "settings": {
-            "clients": [{
-                "id": "UUID",
-                "level": 0,
-                "email": "me@idleleo.com"
-            }],
-            "decryption": "none"
+            "port": 10086,
+            "listen": "127.0.0.1",
+            "tag": "VLESS-ws-in",
+            "protocol": "VLESS",
+            "settings": {
+                "clients": [{
+                    "id": "UUID",
+                    "level": 0,
+                    "email": "me@idleleo.com"
+                }],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "path": "/ray/"
+                }
+            }
         },
-        "streamSettings": {
-            "network": "ws",
-            "security": "none",
-            "wsSettings": {
-                "path": "/ray/"
+        {
+            "port": 10087,
+            "listen": "127.0.0.1",
+            "tag": "VLESS-gRPC-in",
+            "protocol": "VLESS",
+            "settings": {
+                "clients": [{
+                    "id": "UUID",
+                    "level": 0,
+                    "email": "me@idleleo.com"
+                }],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "grpc",
+                "security": "none",
+                "grpcSettings": {
+                    "serviceName": "grpc"
+                }
             }
         }
-    }],
+    ],
     "outbounds": [{
             "protocol": "freedom",
             "tag": "direct"
