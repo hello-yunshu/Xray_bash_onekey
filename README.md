@@ -19,13 +19,13 @@
 
 ### 准备工作
 * 准备一个域名，并将A记录添加好。
-* [Xray官方说明](https://xtls.github.io)，大概了解 TLS WebSocket gRPC XTLS 及 Xray 相关信息。
+* 阅读[Xray官方说明](https://xtls.github.io)，大概了解 TLS WebSocket gRPC XTLS 及 Xray 相关信息。
 * **安装好 wget**，Centos用户运行：`yum install -y wget`；Debian/Ubuntu用户运行：`apt install -y wget`。
 
-### 安装/更新方式（此为Xray版）
+### 安装/更新方式
 VLESS+Nginx+WebSocket/gRPC+TLS 或 VLESS+XTLS+Nginx+ws+gRPC  或 ws/gRPC ONLY 三选一：
 ```
-wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh" && chmod +x install.sh && bash install.sh
+bash <(curl -Ss https://www.idleleo.com/install.sh)
 ```
 
 ### 注意事项
