@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.7.1.1"
+shell_version="1.7.1.2"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1125,7 +1125,7 @@ nginx_conf_add() {
         ssl_certificate       /etc/idleleo/cert/xray.crt;
         ssl_certificate_key   /etc/idleleo/cert/xray.key;
         ssl_protocols         TLSv1.3;
-        ssl_ciphers           TLS13-AES-128-GCM-SHA256:TLS13-AES-256-GCM-SHA384:TLS13-CHACHA20-POLY1305-SHA256:TLS13-AES-128-CCM-8-SHA256:TLS13-AES-128-CCM-SHA256:EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+ECDSA+AES128:EECDH+aRSA+AES128:RSA+AES128:EECDH+ECDSA+AES256:EECDH+aRSA+AES256:RSA+AES256:EECDH+ECDSA+3DES:EECDH+aRSA+3DES:RSA+3DES:!MD5;
+        ssl_ciphers           TLS-AES-128-GCM-SHA256:TLS-CHACHA20-POLY1305-SHA256:TLS_AES_128_CCM_SHA256:TLS_AES_256_GCM_SHA384:EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+ECDSA+AES128:EECDH+aRSA+AES128:RSA+AES128:EECDH+ECDSA+AES256:EECDH+aRSA+AES256:RSA+AES256:EECDH+ECDSA+3DES:EECDH+aRSA+3DES:RSA+3DES:!MD5;
         server_name           serveraddr.com;
         index index.html index.htm;
         root /400.html;
