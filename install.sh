@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.7.1.2"
+shell_version="1.7.1.6"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -63,7 +63,7 @@ xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 cert_group="nobody"
-nginx_version="1.20.0"
+nginx_version="1.20.1"
 openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
 read_config_status=1
@@ -225,6 +225,15 @@ dependency_install() {
     fi
 }
 
+read_optimize() {
+    read -rp "$1" $2
+    [[ -z $(eval echo \$$2) ]] && eval $(echo "$2")="$3"
+    if [[ $(eval echo \$$2) -le $4 ]] || [[ $(eval echo \$$2) -gt $5 ]]; then
+            echo -e "${Error} ${RedBG} $6 ${Font}"
+            read_optimize "$1" "$2" $3 $4 $5 "$6"
+    fi
+}
+
 basic_optimization() {
     # 最大文件打开数
     sed -i '/^\*\ *soft\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
@@ -253,12 +262,7 @@ create_directory() {
 port_set() {
     if [[ "on" != ${old_config_status} ]]; then
         echo -e "${GreenBG} 确定 连接端口 ${Font}"
-        read -rp "请输入连接端口 (default:443):" port
-        [[ -z ${port} ]] && port="443"
-        if [[ ${port} -le 0 ]] || [[ ${port} -gt 65535 ]]; then
-            echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值! ${Font}"
-            port_set
-        fi
+        read_optimize "请输入连接端口 (default:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
     fi
 }
 
@@ -436,42 +440,61 @@ UUID_set() {
 
 nginx_upstream_server_set() {
     if [[ ${tls_mode} == "TLS" ]]; then
-        echo -e "\n${GreenBG} 是否追加 Nginx 负载均衡 [Y/N]? ${Font}"
+        echo -e "\n${GreenBG} 是否变更 Nginx 负载均衡 [Y/N]? ${Font}"
         echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
         read -r nginx_upstream_server_fq
         case $nginx_upstream_server_fq in
         [yY][eE][sS] | [yY])
             echo -e "\n${GreenBG} 请选择 追加的协议为 ws 或 gRPC ${Font}"
-            echo "1: ws"
-            echo "2: gRPC"
-            read -rp "请输入: " upstream_net
-            read -rp "请输入负载均衡 主机 (host):" upstream_host
-            read -rp "请输入负载均衡 端口 (port):" upstream_port
-            read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight    
-            if [[ ${upstream_net} == 2 ]]; then
-                sed -i "/xray-grpc-server/a \\\t\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
-            else
-                sed -i "/xray-ws-server/a \\\t\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
-            fi
-            iptables -I INPUT -p tcp --dport ${upstream_port} -j ACCEPT
-            iptables -I INPUT -p udp --dport ${upstream_port} -j ACCEPT
-            iptables -I OUTPUT -p tcp --sport ${upstream_port} -j ACCEPT
-            iptables -I OUTPUT -p udp --sport ${upstream_port} -j ACCEPT
-            echo -e "${OK} ${GreenBG} 防火墙 追加 完成 ${Font}"
-            if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-                service iptables save
+            echo "1: 追加配置"
+            echo "2: 重置配置" 
+            read -rp "请输入: " upstream_choose
+            if [[ ${upstream_choose} == 2 ]]; then
+                timeout "即将重置 Nginx 负载均衡配置"
                 wait
-                service iptables restart
-                echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+                if [[ -f $xray_qr_config_file ]]; then
+                    xport=$(info_extraction '\"ws_port\"')
+                    gport=$(info_extraction '\"grpc_port\"')
+                    rm -rf ${nginx_upstream_conf}
+                    nginx_conf_servers_add
+                    wait
+                    systemctl restart nginx
+                else
+                    echo -e "${Error} ${RedBG} 未检测到配置文件！ ${Font}"
+                fi
             else
-                netfilter-persistent save
+                echo -e "\n${GreenBG} 请选择 追加的协议为 ws 或 gRPC ${Font}"
+                echo "1: ws"
+                echo "2: gRPC"
+                read -rp "请输入: " upstream_net
+                read -rp "请输入负载均衡 主机 (host):" upstream_host
+                read -rp "请输入负载均衡 端口 (port):" upstream_port
+                read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight    
+                if [[ ${upstream_net} == 2 ]]; then
+                    sed -i "/xray-grpc-server/a \\\t\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+                else
+                    sed -i "/xray-ws-server/a \\\t\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+                fi
+                iptables -I INPUT -p tcp --dport ${upstream_port} -j ACCEPT
+                iptables -I INPUT -p udp --dport ${upstream_port} -j ACCEPT
+                iptables -I OUTPUT -p tcp --sport ${upstream_port} -j ACCEPT
+                iptables -I OUTPUT -p udp --sport ${upstream_port} -j ACCEPT
+                echo -e "${OK} ${GreenBG} 防火墙 追加 完成 ${Font}"
+                if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+                    service iptables save
+                    wait
+                    service iptables restart
+                    echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+                else
+                    netfilter-persistent save
+                    wait
+                    systemctl restart iptables
+                    echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+                fi
                 wait
-                systemctl restart iptables
-                echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+                systemctl restart nginx
+                judge "追加 Nginx 负载均衡"
             fi
-            wait
-            systemctl restart nginx
-            judge "追加 Nginx 负载均衡"
             ;;
         *) ;;
         esac
@@ -521,11 +544,9 @@ modify_nginx_port() {
 modify_nginx_other() {
     sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
     sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_conf}
-    if [[ ${tls_mode} != "XTLS" ]]; then
+    if [[ ${tls_mode} == "TLS" ]]; then
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
         sed -i "s/^\( *\)location grpc$/\1location \/${servicename}/" ${nginx_conf}
-        sed -i "/#xray-ws-serverc/c \\\t\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
-        sed -i "/#xray-grpc-serverc/c \\\t\\t\\tserver 127.0.0.1:${gport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
         if [[ ${shell_mode} == "Nginx+ws+TLS" ]]; then
             sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
             sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
@@ -539,6 +560,11 @@ modify_nginx_other() {
     fi
     sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${domain}\$request_uri;/" ${nginx_conf}
     sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
+}
+
+modify_nginx_servers() {
+    sed -i "/#xray-ws-serverc/c \\\t\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+    sed -i "/#xray-grpc-serverc/c \\\t\\t\\tserver 127.0.0.1:${gport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
 }
 
 modify_path() {
@@ -732,8 +758,11 @@ nginx_install() {
 nginx_update() {
     if [[ -f "/etc/nginx/sbin/nginx" ]]; then
         if [[ ${nginx_version} != $(info_extraction '\"nginx_version\"') ]] || [[ ${openssl_version} != $(info_extraction '\"openssl_version\"') ]] || [[ ${jemalloc_version} != $(info_extraction '\"jemalloc_version\"') ]]; then
-            if [[ ${tls_mode} == "TLS" ]]; then
-                if [[ -f $xray_qr_config_file ]]; then 
+            ip_check
+            if [[ -f $xray_qr_config_file ]]; then
+                domain=$(info_extraction '\"host\"')
+                if [[ ${tls_mode} == "TLS" ]]; then
+                    port=$(info_extraction '\"port\"')
                     if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                         xport=$(info_extraction '\"ws_port\"')
                         path=$(info_extraction '\"path\"')
@@ -756,34 +785,19 @@ nginx_update() {
                         clear 
                         bash idleleo
                     fi
-                else
-                    echo -e "${Error} ${RedBG} 旧配置文件不存在, 退出升级 ${Font}"
-                    timeout "清空屏幕!"
-                    clear
-                    bash idleleo
-                fi
-            elif [[ ${tls_mode} == "XTLS" ]]; then
-                if [[ -f $xray_qr_config_file ]]; then
-                    domain=$(info_extraction '\"host\"')
-                    port=$(info_extraction '\"port\"')
-                    if [[ 0 -eq ${read_config_status} ]]; then
-                        echo -e "${Error} ${RedBG} 旧配置文件不完整, 退出升级 ${Font}"
-                        timeout "清空屏幕!"
-                        clear 
-                        bash idleleo
-                    fi
-                else
-                    echo -e "${Error} ${RedBG} 旧配置文件不存在, 退出升级 ${Font}"
+                elif [[ ${tls_mode} == "None" ]]; then
+                    echo -e "${Error} ${RedBG} 当前安装模式不需要 Nginx ! ${Font}"
                     timeout "清空屏幕!"
                     clear
                     bash idleleo
                 fi
             else
-                echo -e "${Error} ${RedBG} 当前安装模式不需要 Nginx ! ${Font}"
+                echo -e "${Error} ${RedBG} 旧配置文件不存在, 退出升级 ${Font}"
                 timeout "清空屏幕!"
                 clear
                 bash idleleo
             fi
+            wait
             service_stop
             timeout "删除旧版 Nginx !"
             rm -rf ${nginx_dir}
@@ -1179,17 +1193,6 @@ nginx_conf_add() {
     }
 EOF
 
-    touch ${nginx_upstream_conf}
-    cat >${nginx_upstream_conf} <<EOF
-    upstream xray-ws-server { 
-        #xray-ws-serverc
-    }
-
-    upstream xray-grpc-server { 
-        #xray-grpc-serverc
-    }
-EOF
-
     modify_nginx_port
     modify_nginx_other
     judge "Nginx 配置修改"
@@ -1223,6 +1226,22 @@ EOF
 
     modify_nginx_other
     judge "Nginx 配置修改"
+}
+
+nginx_conf_servers_add() {
+    touch ${nginx_upstream_conf}
+    cat >${nginx_upstream_conf} <<EOF
+    upstream xray-ws-server { 
+        #xray-ws-serverc
+    }
+
+    upstream xray-grpc-server { 
+        #xray-grpc-serverc
+    }
+EOF
+
+    modify_nginx_servers
+    judge "Nginx servers 配置修改"
 }
 
 enable_process_systemd() {
@@ -1909,6 +1928,7 @@ install_xray_ws_tls() {
     nginx_exist_check
     xray_conf_add
     nginx_conf_add
+    nginx_conf_servers_add
     web_camouflage
     ssl_judge_and_install
     nginx_systemd
@@ -2137,7 +2157,7 @@ menu() {
     echo -e "${Green}6.${Font}  变更 UUIDv5/映射字符串"
     echo -e "${Green}7.${Font}  变更 port"
     echo -e "${Green}8.${Font}  变更 TLS 版本"
-    echo -e "${Green}9.${Font}  追加 Nginx 负载均衡配置"
+    echo -e "${Green}9.${Font}  变更 Nginx 负载均衡配置"
     echo -e "—————————————— 查看信息 ——————————————"
     echo -e "${Green}10.${Font} 查看 Xray 实时访问日志"
     echo -e "${Green}11.${Font} 查看 Xray 实时错误日志"
