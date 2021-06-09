@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.7.1.6"
+shell_version="1.7.2.2"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -63,6 +63,7 @@ xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 cert_group="nobody"
+myemali="my@example.com"
 nginx_version="1.20.1"
 openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
@@ -227,10 +228,18 @@ dependency_install() {
 
 read_optimize() {
     read -rp "$1" $2
-    [[ -z $(eval echo \$$2) ]] && eval $(echo "$2")="$3"
-    if [[ $(eval echo \$$2) -le $4 ]] || [[ $(eval echo \$$2) -gt $5 ]]; then
+    if [[ -z $(eval echo \$$2) ]]; then
+        if [[ $3 != "NULL" ]]; then
+            eval $(echo "$2")="$3"
+        else
+            echo -e "${Error} ${RedBG} 请输入正确的值! ${Font}"
+            read_optimize "$1" "$2" $3 $4 $5 "$6"
+        fi
+    elif [[ ! -z $4 ]] && [[ ! -z $5 ]]; then
+        if [[ $(eval echo \$$2) -le $4 ]] || [[ $(eval echo \$$2) -gt $5 ]]; then
             echo -e "${Error} ${RedBG} $6 ${Font}"
             read_optimize "$1" "$2" $3 $4 $5 "$6"
+        fi
     fi
 }
 
@@ -262,7 +271,7 @@ create_directory() {
 port_set() {
     if [[ "on" != ${old_config_status} ]]; then
         echo -e "${GreenBG} 确定 连接端口 ${Font}"
-        read_optimize "请输入连接端口 (default:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
+        read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
     fi
 }
 
@@ -295,11 +304,7 @@ ws_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read -rp "请输入自定义 ws inbound_port (请勿与其他端口相同！):" xport
-                if [[ ${xport} -le 0 ]] || [[ ${xport} -gt 65535 ]]; then
-                    echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值! ${Font}"
-                    ws_inbound_port_set
-                fi
+                read_optimize "请输入自定义 ws inbound_port (请勿与其他端口相同！):" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
                 echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
                 ;;
             *)
@@ -320,11 +325,7 @@ grpc_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read -rp "请输入自定义 gRPC inbound_port (请勿与其他端口相同！):" gport
-                if [[ ${gport} -le 0 ]] || [[ ${gport} -gt 65535 ]]; then
-                    echo -e "${Error} ${RedBG} 请输入 0-65535 之间的值! ${Font}"
-                    grpc_inbound_port_set
-                fi
+                read_optimize "请输入自定义 gRPC inbound_port (请勿与其他端口相同！):" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
                 echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             *)
@@ -379,7 +380,7 @@ ws_path_set() {
             read -r path_modify_fq
             case $path_modify_fq in
             [yY][eE][sS] | [yY])
-                read -rp "请输入自定义 ws 伪装路径 (不需要“/”):" path
+                read_optimize "请输入自定义 ws 伪装路径 (不需要“/”):" "path" "NULL"
                 echo -e "${OK} ${GreenBG} ws 伪装路径: ${path} ${Font}"
                 ;;
             *)
@@ -400,7 +401,7 @@ grpc_path_set() {
             read -r path_modify_fq
             case $path_modify_fq in
             [yY][eE][sS] | [yY])
-                read -rp "请输入自定义 gRPC 伪装路径 (不需要“/”):" servicename
+                read_optimize "请输入自定义 gRPC 伪装路径 (不需要“/”):" "servicename" "NULL"
                 echo -e "${OK} ${GreenBG} gRPC 伪装路径: ${servicename} ${Font}"
                 ;;
             *)
@@ -421,7 +422,7 @@ UUID_set() {
         read -r need_UUID5
         case $need_UUID5 in
         [yY][eE][sS] | [yY])
-            read -rp "请输入自定义字符串 (最多30字符):" UUID5_char
+            read_optimize "请输入自定义字符串 (最多30字符):" "UUID5_char" "NULL"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
             echo -e "${OK} ${GreenBG} 自定义字符串: ${UUID5_char} ${Font}"
             echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
@@ -467,9 +468,9 @@ nginx_upstream_server_set() {
                 echo "1: ws"
                 echo "2: gRPC"
                 read -rp "请输入: " upstream_net
-                read -rp "请输入负载均衡 主机 (host):" upstream_host
-                read -rp "请输入负载均衡 端口 (port):" upstream_port
-                read -rp "请输入负载均衡 权重 (0~100, 初始值为50):" upstream_weight    
+                read_optimize "请输入负载均衡 主机 (host):" "upstream_host" "NULL"
+                read_optimize "请输入负载均衡 端口 (port):" "upstream_port" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+                read_optimize "请输入负载均衡 权重 (0~100, 默认值:50):" "upstream_weight" 50 0 100 "请输入 0-100 之间的值!"
                 if [[ ${upstream_net} == 2 ]]; then
                     sed -i "/xray-grpc-server/a \\\t\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
                 else
@@ -825,20 +826,21 @@ nginx_update() {
 }
 
 ssl_install() {
-    if [[ ${ID} == "centos" ]]; then
-        pkg_install "nc,socat"
-    else
-        pkg_install "netcat,socat"
-    fi
-    judge "安装 SSL 证书生成脚本依赖"
+    #if [[ ${ID} == "centos" ]]; then
+    #    pkg_install "nc,socat"
+    #else
+    #    pkg_install "netcat,socat"
+    #fi
+    #judge "安装 SSL 证书生成脚本依赖"
 
-    curl https://get.acme.sh | sh
+    read_optimize "请输入注册域名的邮箱 (eg:me@idleleo.com):" "myemail" "NULL"
+    curl https://get.acme.sh | sh -s email=$myemail
     judge "安装 SSL 证书生成脚本"
 }
 
 domain_check() {
     echo -e "\n${GreenBG} 确定 域名 信息 ${Font}"
-    read -rp "请输入你的域名信息 (eg:www.idleleo.com):" domain
+    read_optimize "请输入你的域名信息 (eg:www.idleleo.com):" "domain" "NULL"
     echo -e "\n${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
     echo "1: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
@@ -1729,29 +1731,29 @@ tls_type() {
 
 Revision_port() {
     if [[ ${tls_mode} == "TLS" ]]; then
-        read -rp "请输入 连接端口:" port
+        read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
         modify_nginx_port
         [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
         echo -e "${OK} ${GreenBG} 连接端口号: ${port} ${Font}"
     elif [[ ${tls_mode} == "XTLS" ]]; then
-        read -rp "请输入 连接端口:" port
+        read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
         xport=$((RANDOM + 10000))
         gport=$((RANDOM + 10000))
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            read -rp "请输入 ws inbound_port:" xport
+            read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             gport=$((RANDOM + 10000))
             [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
             echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
         elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
-            read -rp "请输入 gRPC inbound_port:" gport
+            read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${gport}"
             xport=$((RANDOM + 10000))
             [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
             echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
-            read -rp "请输入 ws inbound_port:" xport
-            read -rp "请输入 gRPC inbound_port:" gport
+            read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+            read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             port_exist_check "${gport}"
             [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
@@ -1763,18 +1765,18 @@ Revision_port() {
         modify_inbound_port
     elif [[ ${tls_mode} == "None" ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            read -rp "请输入 ws inbound_port:" xport
+            read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             gport=$((RANDOM + 10000))
             echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
         elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
-            read -rp "请输入 gRPC inbound_port:" gport
+            read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${gport}"
             xport=$((RANDOM + 10000))
             echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
-            read -rp "请输入 ws inbound_port:" xport
-            read -rp "请输入 gRPC inbound_port:" gport
+            read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+            read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             port_exist_check "${gport}"
             echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
@@ -2128,6 +2130,7 @@ idleleo_commend() {
             echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本\n${Font}"
         fi
     else
+        [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
         wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
         ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
         clear
