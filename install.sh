@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.7.2.2"
+shell_version="1.7.2.3"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -826,12 +826,9 @@ nginx_update() {
 }
 
 ssl_install() {
-    #if [[ ${ID} == "centos" ]]; then
-    #    pkg_install "nc,socat"
-    #else
-    #    pkg_install "netcat,socat"
-    #fi
-    #judge "安装 SSL 证书生成脚本依赖"
+    
+    pkg_install "socat"
+    judge "安装 SSL 证书生成脚本依赖"
 
     read_optimize "请输入注册域名的邮箱 (eg:me@idleleo.com):" "myemail" "NULL"
     curl https://get.acme.sh | sh -s email=$myemail
@@ -2131,6 +2128,7 @@ idleleo_commend() {
         fi
     else
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
+        pkg_install "wget"
         wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
         ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
         clear
