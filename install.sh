@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.7.2.3"
+shell_version="1.7.3.1"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -136,7 +136,7 @@ pkg_install_judge() {
     if [[ "${ID}" == "centos" ]]; then
         yum list installed | grep -iw "^$1"
     else
-        dpkg --get-selections | grep -iw "^$1"
+        dpkg --get-selections | grep -iw "^$1" | grep -ivw "deinstall"
     fi
     wait
 }
@@ -171,7 +171,7 @@ pkg_install() {
 }
 
 dependency_install() {
-    pkg_install "dbus,git,lsof,wget"
+    pkg_install "bc,curl,dbus,git,lsof,python3,qrencode,wget"
 
     if [[ "${ID}" == "centos" ]]; then
         pkg_install "iputils"
@@ -194,16 +194,6 @@ dependency_install() {
 
     fi
     judge "crontab 自启动配置"
-
-    pkg_install "bc"
-
-    pkg_install "unzip"
-
-    pkg_install "qrencode"
-
-    pkg_install "curl"
-
-    pkg_install "python3"
 
     if [[ ${tls_mode} != "None" ]]; then
         if [[ "${ID}" == "centos" ]]; then
@@ -826,7 +816,6 @@ nginx_update() {
 }
 
 ssl_install() {
-    
     pkg_install "socat"
     judge "安装 SSL 证书生成脚本依赖"
 
@@ -1158,6 +1147,9 @@ nginx_conf_add() {
             grpc_send_timeout 720m;
             grpc_set_header X-Real-IP \$remote_addr;
             grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+
+            # Config for 0-RTT in TLSv1.3
+            proxy_set_header Early-Data \$ssl_early_data;
         }
 
         location ws
@@ -1175,7 +1167,7 @@ nginx_conf_add() {
             proxy_set_header Connection "upgrade";
             proxy_set_header Host \$http_host;
 
-        # Config for 0-RTT in TLSv1.3
+            # Config for 0-RTT in TLSv1.3
             proxy_set_header Early-Data \$ssl_early_data;
         }
         
@@ -1299,19 +1291,31 @@ service_stop(){
 }
 
 acme_cron_update() {
-    wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
-    if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
-        if [[ "${ID}" == "centos" ]]; then
-            #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
-            #        &> /dev/null" /var/spool/cron/root
-            sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" /var/spool/cron/root
+    echo -e "\n${GreenBG} 是否需要设置证书自动更新 [Y/N]? ${Font}"
+    read -r acme_cron_update_fq
+    case $acme_cron_update_fq in
+    [nN][oO]|[nN])
+        ;;
+    *)
+        if [[ "${ssl_self}" != "on" ]]; then
+            wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
+            if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
+                if [[ "${ID}" == "centos" ]]; then
+                    #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
+                    #        &> /dev/null" /var/spool/cron/root
+                    sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" /var/spool/cron/root
+                else
+                    #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
+                    #        &> /dev/null" /var/spool/cron/crontabs/root
+                    sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" /var/spool/cron/crontabs/root
+                fi
+            fi
+            judge "设置证书自动更新"
         else
-            #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
-            #        &> /dev/null" /var/spool/cron/crontabs/root
-            sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" /var/spool/cron/crontabs/root
+            echo -e "${Error} ${RedBG} 自定义证书不支持此操作! ${Font}"
         fi
-    fi
-    judge "cron 计划任务更新"
+        ;;
+    esac
 }
 
 network_secure() {
@@ -1608,8 +1612,11 @@ show_information() {
 }
 
 ssl_judge_and_install() {
+    echo -e "\n${GreenBG} 即将申请证书, 支持使用自定义证书 ${Font}"
+    echo -e "${GreenBG} 如需使用自定义证书, 请将 私钥(xray.key)、证书(xray.crt) 放入${ssl_chainpath}目录 ${Font}"
+    timeout "继续安装!"
     if [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] &&  [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        echo -e "\n${GreenBG} 所有证书文件均已存在, 是否保留 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 所有证书文件均已存在, 是否保留 [Y/N]? ${Font}"
         read -r ssl_delete_1
         case $ssl_delete_1 in
         [nN][oO]|[nN])
@@ -1620,11 +1627,12 @@ ssl_judge_and_install() {
             acme
             ;;
         *) 
+            chown -R nobody:${cert_group} ${ssl_chainpath}/*
             judge "证书应用"
             ;;
         esac
     elif [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]] &&  [[ ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        echo -e "\n${GreenBG} 证书文件已存在, 是否保留 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 证书文件已存在, 是否保留 [Y/N]? ${Font}"
         read -r ssl_delete_2
         case $ssl_delete_2 in
         [nN][oO]|[nN])
@@ -1633,12 +1641,14 @@ ssl_judge_and_install() {
             ssl_install
             acme
             ;;
-        *) 
+        *)
+            chown -R nobody:${cert_group} ${ssl_chainpath}/*
             judge "证书应用"
+            ssl_self="on"
             ;;
         esac
     elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt"  ]]; then
-        echo -e "\n${GreenBG} 证书签发残留文件已存在, 是否保留 [Y/N]? ${Font}"
+        echo -e "${GreenBG} 证书签发残留文件已存在, 是否保留 [Y/N]? ${Font}"
         read -r ssl_delete_3
         case $ssl_delete_3 in
         [nN][oO]|[nN])
@@ -1649,6 +1659,7 @@ ssl_judge_and_install() {
             ;;
         *) 
             "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
+            chown -R nobody:${cert_group} ${ssl_chainpath}/*
             judge "证书应用"
             ;;
         esac
@@ -2097,6 +2108,7 @@ idleleo_commend() {
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0"|bc)
         if [[ -z ${old_version} ]]; then
             wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+            judge "下载最新脚本"
             clear
             bash idleleo
         elif [[ ${shell_version} != ${oldest_version} ]]; then
@@ -2107,6 +2119,7 @@ idleleo_commend() {
                 [yY][eE][sS] | [yY])
                     rm -rf ${idleleo_dir}/install.sh
                     wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+                    judge "下载最新脚本"
                     clear
                     echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装!\n ${Font}"
                     ;;
@@ -2117,6 +2130,7 @@ idleleo_commend() {
             else
                 rm -rf ${idleleo_dir}/install.sh
                 wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+                judge "下载最新脚本"
                 clear
             fi
             bash idleleo
@@ -2127,9 +2141,12 @@ idleleo_commend() {
             echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本\n${Font}"
         fi
     else
+        check_system
+        pkg_install "bc,wget"
+        wait
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
-        pkg_install "wget"
         wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+        judge "下载最新脚本"
         ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
         clear
         bash idleleo

@@ -1,4 +1,4 @@
-## Xray+Nginx 包含 VLESS WebSocket/gPRC+TLS / XTLS+TCP 协议的一键安装脚本
+## Xray+Nginx 包含 VLESS WebSocket/gRPC+TLS / XTLS+TCP 协议的一键安装脚本
 [![GitHub stars](https://img.shields.io/github/stars/paniy/Xray_bash_onekey?color=%230885ce)](https://github.com/paniy/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/paniy/Xray_bash_onekey?color=%230885ce)](https://github.com/paniy/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/paniy/Xray_bash_onekey)](https://github.com/paniy/Xray_bash_onekey/issues)
 
 > 感谢 JetBrains 提供的非商业开源软件开发授权。
@@ -25,7 +25,7 @@
 ### 安装/更新方式
 VLESS+Nginx+WebSocket/gRPC+TLS 或 VLESS+XTLS+Nginx+ws+gRPC  或 ws/gRPC ONLY 三选一：
 ```
-bash <(curl -Ss https://www.idleleo.com/install.sh)
+bash <(curl -Ss https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh)
 ```
 
 ### 注意事项
