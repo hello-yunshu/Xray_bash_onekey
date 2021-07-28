@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.7.3.1"
+shell_version="1.7.3.2"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -438,7 +438,7 @@ nginx_upstream_server_set() {
         [yY][eE][sS] | [yY])
             echo -e "\n${GreenBG} 请选择 追加的协议为 ws 或 gRPC ${Font}"
             echo "1: 追加配置"
-            echo "2: 重置配置" 
+            echo "2: 重置配置"
             read -rp "请输入: " upstream_choose
             if [[ ${upstream_choose} == 2 ]]; then
                 timeout "即将重置 Nginx 负载均衡配置"
@@ -648,7 +648,7 @@ nginx_exist_check() {
     if [[ -f "/etc/nginx/sbin/nginx" ]]; then
         if [[ -d ${nginx_conf_dir} ]]; then
             rm -rf ${nginx_conf_dir}/*.conf
-            if [[ -f  ${nginx_conf_dir}/nginx.default ]]; then 
+            if [[ -f  ${nginx_conf_dir}/nginx.default ]]; then
                 cp -fp ${nginx_conf_dir}/nginx.default ${nginx_dir}/conf/nginx.conf
             elif [[ -f  ${nginx_dir}/conf/nginx.conf.default ]]; then
                 cp -fp ${nginx_dir}/conf/nginx.conf.default ${nginx_dir}/conf/nginx.conf
@@ -733,7 +733,7 @@ nginx_install() {
     judge "Nginx 编译安装"
 
     cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/nginx.default
-    
+
     # 修改基本配置
     #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
     sed -i "s/worker_processes  1;/worker_processes  4;/" ${nginx_dir}/conf/nginx.conf
@@ -773,7 +773,7 @@ nginx_update() {
                     if [[ 0 -eq ${read_config_status} ]]; then
                         echo -e "${Error} ${RedBG} 旧配置文件不完整, 退出升级 ${Font}"
                         timeout "清空屏幕!"
-                        clear 
+                        clear
                         bash idleleo
                     fi
                 elif [[ ${tls_mode} == "None" ]]; then
@@ -796,7 +796,7 @@ nginx_update() {
             wait
             nginx_install
             wait
-            if [[ ${tls_mode} == "TLS" ]]; then    
+            if [[ ${tls_mode} == "TLS" ]]; then
                 nginx_conf_add
             elif [[ ${tls_mode} == "XTLS" ]]; then
                 nginx_conf_add_xtls
@@ -851,7 +851,7 @@ domain_check() {
         wait
     else
         echo -e "${Warning} ${YellowBG} 请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray ${Font}"
-        echo -e "${Error} ${RedBG} 域名DNS 解析IP 与 公网IP 不匹配, 请选择: ${Font}" 
+        echo -e "${Error} ${RedBG} 域名DNS 解析IP 与 公网IP 不匹配, 请选择: ${Font}"
         echo "1: 继续安装"
         echo "2: 重新输入"
         echo "3: 终止安装 (默认)"
@@ -1170,7 +1170,7 @@ nginx_conf_add() {
             # Config for 0-RTT in TLSv1.3
             proxy_set_header Early-Data \$ssl_early_data;
         }
-        
+
         location /
         {
             return 302 https://www.idleleo.com/helloworld;
@@ -1222,11 +1222,11 @@ EOF
 nginx_conf_servers_add() {
     touch ${nginx_upstream_conf}
     cat >${nginx_upstream_conf} <<EOF
-    upstream xray-ws-server { 
+    upstream xray-ws-server {
         #xray-ws-serverc
     }
 
-    upstream xray-grpc-server { 
+    upstream xray-grpc-server {
         #xray-grpc-serverc
     }
 EOF
@@ -1278,7 +1278,7 @@ service_start(){
         judge "Nginx 启动"
     fi
     systemctl start xray
-    judge "Xray 启动" 
+    judge "Xray 启动"
 }
 
 service_stop(){
@@ -1287,7 +1287,7 @@ service_stop(){
         judge "Nginx 停止"
     fi
     systemctl stop xray
-    judge "Xray 停止"  
+    judge "Xray 停止"
 }
 
 acme_cron_update() {
@@ -1378,7 +1378,7 @@ network_secure() {
             echo -e "${GreenBG} Fail2ban Nginx 封锁情况: ${Font}"
             fail2ban-client status nginx-badbots
             fail2ban-client status nginx-botsearch
-        fi 
+        fi
         echo -e "${GreenBG} Fail2ban 运行状态: ${Font}"
         systemctl status fail2ban
     fi
@@ -1481,7 +1481,7 @@ vless_qr_link_image() {
                 echo -e "$Red 二维码: $Font"
                 echo -n "${vless_link}" | qrencode -o - -t utf8
                 echo -e "\n"
-            else    
+            else
                 if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                     echo -e "${Red} ws URL 分享链接:${Font} ${vless_ws_link}"
                     echo -e "$Red 二维码: $Font"
@@ -1613,60 +1613,71 @@ show_information() {
 
 ssl_judge_and_install() {
     echo -e "\n${GreenBG} 即将申请证书, 支持使用自定义证书 ${Font}"
-    echo -e "${GreenBG} 如需使用自定义证书, 请将 私钥(xray.key)、证书(xray.crt) 放入${ssl_chainpath}目录 ${Font}"
-    timeout "继续安装!"
-    if [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] &&  [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        echo -e "${GreenBG} 所有证书文件均已存在, 是否保留 [Y/N]? ${Font}"
-        read -r ssl_delete_1
-        case $ssl_delete_1 in
-        [nN][oO]|[nN])
-            delete_tls_key_and_crt
-            rm -rf ${ssl_chainpath}/*
-            echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+    echo -e "${GreenBG} 如需使用自定义证书, 请按如下步骤:  ${Font}"
+    echo -e "${GreenBG} 1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt) ${Font}"
+    echo -e "${GreenBG} 2. 将重命名后的证书文件放入 ${ssl_chainpath} 目录后再运行脚本 ${Font}"
+    echo -e "${GreenBG} 3. 重新运行脚本 ${Font}"
+    echo -e "${GreenBG} 是否继续 [Y/N]?  ${Font}"
+    read -r ssl_continue
+    case $ssl_continue in
+    [nN][oO]|[nN])
+        exit 0
+        ;;
+    *)
+        if [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] &&  [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+            echo -e "${GreenBG} 所有证书文件均已存在, 是否保留 [Y/N]? ${Font}"
+            read -r ssl_delete_1
+            case $ssl_delete_1 in
+            [nN][oO]|[nN])
+                delete_tls_key_and_crt
+                rm -rf ${ssl_chainpath}/*
+                echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+                ssl_install
+                acme
+                ;;
+            *)
+                chown -R nobody:${cert_group} ${ssl_chainpath}/*
+                judge "证书应用"
+                ;;
+            esac
+        elif [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]] &&  [[ ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+            echo -e "${GreenBG} 证书文件已存在, 是否保留 [Y/N]? ${Font}"
+            read -r ssl_delete_2
+            case $ssl_delete_2 in
+            [nN][oO]|[nN])
+                rm -rf ${ssl_chainpath}/*
+                echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+                ssl_install
+                acme
+                ;;
+            *)
+                chown -R nobody:${cert_group} ${ssl_chainpath}/*
+                judge "证书应用"
+                ssl_self="on"
+                ;;
+            esac
+        elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt"  ]]; then
+            echo -e "${GreenBG} 证书签发残留文件已存在, 是否保留 [Y/N]? ${Font}"
+            read -r ssl_delete_3
+            case $ssl_delete_3 in
+            [nN][oO]|[nN])
+                delete_tls_key_and_crt
+                echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+                ssl_install
+                acme
+                ;;
+            *)
+                "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
+                chown -R nobody:${cert_group} ${ssl_chainpath}/*
+                judge "证书应用"
+                ;;
+            esac
+        else
             ssl_install
             acme
-            ;;
-        *) 
-            chown -R nobody:${cert_group} ${ssl_chainpath}/*
-            judge "证书应用"
-            ;;
-        esac
-    elif [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]] &&  [[ ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-        echo -e "${GreenBG} 证书文件已存在, 是否保留 [Y/N]? ${Font}"
-        read -r ssl_delete_2
-        case $ssl_delete_2 in
-        [nN][oO]|[nN])
-            rm -rf ${ssl_chainpath}/*
-            echo -e "${OK} ${GreenBG} 已删除 ${Font}"
-            ssl_install
-            acme
-            ;;
-        *)
-            chown -R nobody:${cert_group} ${ssl_chainpath}/*
-            judge "证书应用"
-            ssl_self="on"
-            ;;
-        esac
-    elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt"  ]]; then
-        echo -e "${GreenBG} 证书签发残留文件已存在, 是否保留 [Y/N]? ${Font}"
-        read -r ssl_delete_3
-        case $ssl_delete_3 in
-        [nN][oO]|[nN])
-            delete_tls_key_and_crt
-            echo -e "${OK} ${GreenBG} 已删除 ${Font}"
-            ssl_install
-            acme
-            ;;
-        *) 
-            "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
-            chown -R nobody:${cert_group} ${ssl_chainpath}/*
-            judge "证书应用"
-            ;;
-        esac
-    else
-        ssl_install
-        acme
-    fi
+        fi
+        ;;
+    esac
 }
 
 nginx_systemd() {
@@ -1713,7 +1724,7 @@ tls_type() {
                 sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.1 TLSv1.2 TLSv1.3;/" $nginx_conf
                 echo -e "${OK} ${GreenBG} 已切换至 TLS1.1 TLS1.2 and TLS1.3 ${Font}"
             else
-                echo -e "${Error} ${RedBG} XTLS 最低版本应大于 TLS1.1, 请重新选择！ ${Font}" 
+                echo -e "${Error} ${RedBG} XTLS 最低版本应大于 TLS1.1, 请重新选择！ ${Font}"
                 tls_type
             fi
         else
@@ -1812,9 +1823,9 @@ ssl_update_manuel() {
 }
 
 bbr_boost_sh() {
-    if [[ -f "${idleleo_dir}/tcp.sh" ]]; then 
+    if [[ -f "${idleleo_dir}/tcp.sh" ]]; then
         chmod +x ${idleleo_dir}/tcp.sh && ${idleleo_dir}/tcp.sh
-    else    
+    else
         wget -N --no-check-certificate -P ${idleleo_dir} "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x ${idleleo_dir}/tcp.sh && ${idleleo_dir}/tcp.sh
     fi
 }
@@ -2052,7 +2063,7 @@ maintain() {
 
 list() {
     case $1 in
-    
+
     boost)
         bbr_boost_sh
         ;;
@@ -2294,7 +2305,7 @@ menu() {
         ;;
     15)
         service_stop
-        timeout "清空屏幕!"  
+        timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
