@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.7.3.2"
+shell_version="1.8.0.1"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -67,6 +67,7 @@ myemali="my@example.com"
 nginx_version="1.20.1"
 openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
+bt_nginx="None"
 read_config_status=1
 xtls_add_more="off"
 old_config_status="off"
@@ -82,15 +83,15 @@ check_system() {
     if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
         echo -e "${OK} ${GreenBG} 当前系统为 Centos ${VERSION_ID} ${VERSION} ${Font}"
         INS="yum"
-        [[ ! -f $xray_qr_config_file ]] && $INS update
+        [[ ! -f ${xray_qr_config_file} ]] && $INS update
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 ]]; then
         echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
         INS="apt"
-        [[ ! -f $xray_qr_config_file ]] && $INS update
+        [[ ! -f ${xray_qr_config_file} ]] && $INS update
     elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 16 ]]; then
         echo -e "${OK} ${GreenBG} 当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
         INS="apt"
-        if [[ ! -f $xray_qr_config_file ]]; then
+        if [[ ! -f ${xray_qr_config_file} ]]; then
             rm /var/lib/dpkg/lock
             dpkg --configure -a
             rm /var/lib/apt/lists/lock
@@ -330,6 +331,15 @@ grpc_inbound_port_set() {
 }
 
 firewall_set() {
+    if [[ ${bt_nginx} == "Yes" ]]; then
+        echo -e "${Warning} ${YellowBG} 建议使用宝塔面板开放端口, 是否继续 [Y/N]? ${Font}"
+        read -r btfirewall_fq
+        case $btfirewall_fq in
+        [nN][oO]|[nN])
+            return 0
+            ;;
+        esac
+    fi
     iptables -A INPUT -i lo -j ACCEPT
     iptables -A OUTPUT -o lo -j ACCEPT
     if [[ ${tls_mode} != "None" ]] && [[ "$xtls_add_more" == "off" ]]; then
@@ -443,13 +453,14 @@ nginx_upstream_server_set() {
             if [[ ${upstream_choose} == 2 ]]; then
                 timeout "即将重置 Nginx 负载均衡配置"
                 wait
-                if [[ -f $xray_qr_config_file ]]; then
+                if [[ -f ${xray_qr_config_file} ]]; then
                     xport=$(info_extraction '\"ws_port\"')
                     gport=$(info_extraction '\"grpc_port\"')
                     rm -rf ${nginx_upstream_conf}
                     nginx_conf_servers_add
                     wait
-                    systemctl restart nginx
+                    [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx
+                    [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx restart
                 else
                     echo -e "${Error} ${RedBG} 未检测到配置文件！ ${Font}"
                 fi
@@ -483,8 +494,8 @@ nginx_upstream_server_set() {
                     echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
                 fi
                 wait
-                systemctl restart nginx
-                judge "追加 Nginx 负载均衡"
+                [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "追加 Nginx 负载均衡"
+                [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx restart && judge "追加 Nginx 负载均衡"
             fi
             ;;
         *) ;;
@@ -526,14 +537,18 @@ modify_inbound_port() {
 
 modify_nginx_port() {
     sed -i "s/^\( *\).*ssl http2;$/\1listen ${port} ssl http2;/" ${nginx_conf}
-    sed -i "6s/^\( *\).*ssl http2;$/\1listen [::]:${port} ssl http2;/" ${nginx_conf}
+    sed -i "5s/^\( *\).*ssl http2;$/\1listen [::]:${port} ssl http2;/" ${nginx_conf}
     judge "Xray port 修改"
     [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
     echo -e "${OK} ${GreenBG} 端口号: ${port} ${Font}"
 }
 
 modify_nginx_other() {
-    sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
+    if [[ -f ${nginx_dir}/conf/nginx.conf ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${bt_nginx} != "Yes" ]]; then
+        sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
+        sed -i "/http\( *\){/a \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
+        sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
+    fi
     sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_conf}
     if [[ ${tls_mode} == "TLS" ]]; then
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
@@ -550,7 +565,6 @@ modify_nginx_other() {
         fi
     fi
     sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${domain}\$request_uri;/" ${nginx_conf}
-    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
 }
 
 modify_nginx_servers() {
@@ -665,6 +679,24 @@ nginx_exist_check() {
     elif [[ -d "/usr/local/nginx/" ]]; then
         echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
         exit 1
+    elif [[ -d "/www/server/panel/BTPanel" ]]; then
+        echo -e "${GreenBG} 检测到存在宝塔面板 ${Font}"
+        if [[ -f "/www/server/nginx/sbin/nginx" ]] && [[ -d "/www/server/panel/vhost/nginx" ]]; then
+            echo -e "${GreenBG} 检测到宝塔面板已安装 Nginx ${Font}"
+            bt_nginx="Yes"
+            wait
+        else
+            echo -e "${Warning} ${YellowBG} 检测到宝塔面板未安装 Nginx, 继续安装可能会导致冲突, 是否继续 [Y/N]? ${Font}"
+            read -r have_btnginx_fq
+            case $have_btnginx_fq in
+            [nN][oO]|[nN])
+                exit 1
+                ;;
+            *)
+                nginx_install
+                ;;
+            esac
+        fi
     else
         nginx_install
     fi
@@ -736,7 +768,7 @@ nginx_install() {
 
     # 修改基本配置
     #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
-    sed -i "s/worker_processes  1;/worker_processes  4;/" ${nginx_dir}/conf/nginx.conf
+    sed -i "s/worker_processes  1;/worker_processes  auto;/" ${nginx_dir}/conf/nginx.conf
     sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" ${nginx_dir}/conf/nginx.conf
 
     # 删除临时文件
@@ -747,10 +779,10 @@ nginx_install() {
 }
 
 nginx_update() {
-    if [[ -f "/etc/nginx/sbin/nginx" ]]; then
+    if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ ${bt_nginx} != "Yes" ]]; then
         if [[ ${nginx_version} != $(info_extraction '\"nginx_version\"') ]] || [[ ${openssl_version} != $(info_extraction '\"openssl_version\"') ]] || [[ ${jemalloc_version} != $(info_extraction '\"jemalloc_version\"') ]]; then
             ip_check
-            if [[ -f $xray_qr_config_file ]]; then
+            if [[ -f ${xray_qr_config_file} ]]; then
                 domain=$(info_extraction '\"host\"')
                 if [[ ${tls_mode} == "TLS" ]]; then
                     port=$(info_extraction '\"port\"')
@@ -811,7 +843,7 @@ nginx_update() {
             echo -e "${OK} ${GreenBG} Nginx 已为最新版 ${Font}"
         fi
     else
-        echo -e "${Error} ${RedBG} Nginx 未安装, 请安装后再试! ${Font}"
+        echo -e "${Error} ${RedBG} Nginx 未安装或使用宝塔面板 ${Font}"
     fi
 }
 
@@ -1002,13 +1034,13 @@ xray_xtls_add_more() {
 }
 
 old_config_exist_check() {
-    if [[ -f $xray_qr_config_file ]]; then
+    if [[ -f ${xray_qr_config_file} ]]; then
         if [[ ${old_tls_mode} == ${tls_mode} ]]; then
             echo -e "\n${GreenBG} 检测到旧配置文件, 是否读取旧文件配置 [Y/N]? ${Font}"
             read -r old_config_fq
             case $old_config_fq in
             [nN][oO]|[nN])
-                rm -rf $xray_qr_config_file
+                rm -rf ${xray_qr_config_file}
                 echo -e "${OK} ${GreenBG} 已删除旧配置 ${Font}"
                 ;;
             *)
@@ -1027,7 +1059,7 @@ old_config_exist_check() {
                 bash idleleo
                 ;;
             *)
-                rm -rf $xray_qr_config_file
+                rm -rf ${xray_qr_config_file}
                 echo -e "${OK} ${GreenBG} 已删除旧配置 ${Font}"
                 ;;
             esac
@@ -1107,7 +1139,7 @@ old_config_input () {
             echo -e "${OK} ${GreenBG} 已保留旧配置 ${Font}"
             ;;
         *)
-            rm -rf $xray_qr_config_file
+            rm -rf ${xray_qr_config_file}
             old_config_status="off"
             echo -e "${OK} ${GreenBG} 已删除旧配置 ${Font}"
             ;;
@@ -1118,7 +1150,6 @@ old_config_input () {
 nginx_conf_add() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
-    server_tokens off;
     types_hash_max_size 2048;
 
     server {
@@ -1180,10 +1211,14 @@ nginx_conf_add() {
         listen 80;
         listen [::]:80;
         server_name serveraddr.com;
-        return 301 https://use.shadowsocksr.win\$request_uri;
+        return 301 https://www.idleleo.com\$request_uri;
     }
 EOF
-
+    wait
+    if [[ ${bt_nginx} == "Yes" ]]; then
+        ln -s ${nginx_conf} /www/server/panel/vhost/nginx/xray.conf
+        echo -e "${OK} ${GreenBG} Nginx 配置文件已连接至宝塔面板 ${Font}"
+    fi
     modify_nginx_port
     modify_nginx_other
     judge "Nginx 配置修改"
@@ -1192,8 +1227,6 @@ EOF
 nginx_conf_add_xtls() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
-    server_tokens off;
-
     server {
         listen 127.0.0.1:8080 proxy_protocol;
         server_name         serveraddr.com;
@@ -1211,10 +1244,14 @@ nginx_conf_add_xtls() {
         listen 80;
         listen [::]:80;
         server_name         serveraddr.com;
-        return 301 https://use.shadowsocksr.win\$request_uri;
+        return 301 https://www.idleleo.com\$request_uri;
     }
 EOF
-
+    wait
+    if [[ ${bt_nginx} == "Yes" ]]; then
+        ln -s ${nginx_conf} /www/server/panel/vhost/nginx/xray.conf
+        echo -e "${OK} ${GreenBG} Nginx 配置文件已连接至宝塔面板 ${Font}"
+    fi
     modify_nginx_other
     judge "Nginx 配置修改"
 }
@@ -1230,15 +1267,19 @@ nginx_conf_servers_add() {
         #xray-grpc-serverc
     }
 EOF
-
+    wait
+    if [[ ${bt_nginx} == "Yes" ]]; then
+        ln -s ${nginx_upstream_conf} /www/server/panel/vhost/nginx/xray-server.conf
+        echo -e "${OK} ${GreenBG} Nginx 附加文件已连接至宝塔面板 ${Font}"
+    fi
     modify_nginx_servers
     judge "Nginx servers 配置修改"
 }
 
 enable_process_systemd() {
     if [[ ${tls_mode} != "None" ]]; then
-        systemctl enable nginx
-        judge "设置 Nginx 开机自启"
+        [[ -f ${nginx_systemd_file} ]] && systemctl enable nginx && judge "设置 Nginx 开机自启"
+        [[ bt_nginx == "Yes" ]] && echo -e "${Warning} ${GreenBG} 存在宝塔面板, 请自行设置 ${Font}"
     fi
     systemctl enable xray
     judge "设置 Xray 开机自启"
@@ -1246,16 +1287,16 @@ enable_process_systemd() {
 
 disable_process_systemd() {
     if [[ ${tls_mode} != "None" ]]; then
-        systemctl stop nginx
-        systemctl disable nginx
-        judge "关闭 Xray 开机自启"
+        [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx && systemctl disable nginx && judge "关闭 Nginx 开机自启"
+        [[ bt_nginx == "Yes" ]] && echo -e "${Warning} ${GreenBG} 存在宝塔面板, 请自行设置 ${Font}"
     fi
     systemctl disable xray
     judge "关闭 Xray 开机自启"
 }
 
 stop_service_all() {
-    [ -f $nginx_systemd_file ] && systemctl stop nginx && systemctl disable nginx
+    [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx && systemctl disable nginx
+    [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx stop
     systemctl stop xray
     systemctl disable xray
     echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
@@ -1265,8 +1306,8 @@ service_restart(){
     systemctl daemon-reload
     wait
     if [[ ${tls_mode} != "None" ]]; then
-        systemctl restart nginx
-        judge "Nginx 重启"
+        [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "Nginx 重启"
+        [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx restart && judge "Nginx 重启"
     fi
     systemctl restart xray
     judge "Xray 重启"
@@ -1274,8 +1315,8 @@ service_restart(){
 
 service_start(){
     if [[ ${tls_mode} != "None" ]]; then
-        systemctl start nginx
-        judge "Nginx 启动"
+        [[ -f ${nginx_systemd_file} ]] && systemctl start nginx && judge "Nginx 启动"
+        [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx start && judge "Nginx 启动"
     fi
     systemctl start xray
     judge "Xray 启动"
@@ -1283,20 +1324,21 @@ service_start(){
 
 service_stop(){
     if [[ ${tls_mode} != "None" ]]; then
-        systemctl stop nginx
-        judge "Nginx 停止"
+        [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx && judge "Nginx 停止"
+        [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx stop && judge "Nginx 停止"
     fi
     systemctl stop xray
     judge "Xray 停止"
 }
 
 acme_cron_update() {
-    echo -e "\n${GreenBG} 是否需要设置证书自动更新 [Y/N]? ${Font}"
+    echo -e "\n${GreenBG} acme.sh已自动设置证书自动更新 ${Font}"
+    echo -e "${GreenBG} 是否需要额外设置证书自动更新 (不建议, 下个版本将废弃) [Y/N]? ${Font}"
     read -r acme_cron_update_fq
     case $acme_cron_update_fq in
-    [nN][oO]|[nN])
-        ;;
     *)
+        ;;
+    [yY][eE][sS] | [yY])
         if [[ "${ssl_self}" != "on" ]]; then
             wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
             if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
@@ -1385,7 +1427,7 @@ network_secure() {
 }
 
 vless_qr_config_tls_ws() {
-    cat >$xray_qr_config_file <<-EOF
+    cat >${xray_qr_config_file} <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "ws_grpc_mode": "${ws_grpc_mode}",
@@ -1399,6 +1441,7 @@ vless_qr_config_tls_ws() {
     "net": "ws/gRPC",
     "path": "${path}",
     "servicename": "${servicename}",
+    "bt_nginx": "${bt_nginx}",
     "nginx_version": "${nginx_version}",
     "openssl_version": "${openssl_version}",
     "jemalloc_version": "${jemalloc_version}"
@@ -1407,7 +1450,7 @@ EOF
 }
 
 vless_qr_config_xtls() {
-    cat >$xray_qr_config_file <<-EOF
+    cat >${xray_qr_config_file} <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "ws_grpc_mode": "${ws_grpc_mode}",
@@ -1422,6 +1465,7 @@ vless_qr_config_xtls() {
     "ws_path": "${artpath}",
     "grpc_port": "${artgport}",
     "grpc_servicename": "${artservicename}",
+    "bt_nginx": "${bt_nginx}",
     "nginx_version": "${nginx_version}",
     "openssl_version": "${openssl_version}",
     "jemalloc_version": "${jemalloc_version}"
@@ -1430,7 +1474,7 @@ EOF
 }
 
 vless_qr_config_ws_only() {
-    cat >$xray_qr_config_file <<-EOF
+    cat >${xray_qr_config_file} <<-EOF
 {
     "host": "${local_ip}",
     "ws_grpc_mode": "${ws_grpc_mode}",
@@ -1519,34 +1563,45 @@ vless_link_image_choice() {
 }
 
 info_extraction() {
-    grep "$1" $xray_qr_config_file | awk -F '"' '{print $4}'
+    grep "$1" ${xray_qr_config_file} | awk -F '"' '{print $4}'
     [[ 0 -ne $? ]] && read_config_status=0
 }
 
 basic_information() {
     {
         echo -e "\n"
-        if [[ ${shell_mode} == "Nginx+ws+TLS" ]]; then
+        case ${shell_mode} in
+        Nginx+ws+TLS)
             echo -e "${OK} ${GreenBG} Xray+Nginx+ws+TLS 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "Nginx+gRPC+TLS" ]]; then
+            ;;
+        Nginx+gRPC+TLS)
             echo -e "${OK} ${GreenBG} Xray+Nginx+grpc+TLS 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "Nginx+ws+gRPC+TLS" ]]; then
+            ;;
+        Nginx+ws+gRPC+TLS)
             echo -e "${OK} ${GreenBG} Xray+Nginx+ws+gRPC+TLS 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "XTLS+Nginx" ]]; then
+            ;;
+        XTLS+Nginx)
             echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "XTLS+Nginx+ws" ]]; then
+            ;;
+        XTLS+Nginx+ws)
             echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx+ws 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "XTLS+Nginx+gRPC" ]]; then
+            ;;
+        XTLS+Nginx+gRPC)
             echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx+gRPC 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "XTLS+Nginx+ws+gRPC" ]]; then
+            ;;
+        XTLS+Nginx+ws+gRPC)
             echo -e "${OK} ${GreenBG} Xray+XTLS+Nginx+ws+gRPC 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "ws ONLY" ]]; then
+            ;;
+        ws?ONLY)
             echo -e "${OK} ${GreenBG} ws ONLY 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "gRPC ONLY" ]]; then
+            ;;
+        gRPC?ONLY)
             echo -e "${OK} ${GreenBG} gRPC ONLY 安装成功 ${Font}"
-        elif  [[ ${shell_mode} == "ws+gRPC ONLY" ]]; then
+            ;;
+        ws+gRPC?ONLY)
             echo -e "${OK} ${GreenBG} ws+gRPC ONLY 安装成功 ${Font}"
-        fi
+            ;;
+        esac
         echo -e "\n${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 ${Font}"
         echo -e "\n${Red} —————————————— Xray 配置信息 —————————————— ${Font}"
         echo -e "${Red} 主机 (host):${Font} $(info_extraction '\"host\"') "
@@ -1681,7 +1736,11 @@ ssl_judge_and_install() {
 }
 
 nginx_systemd() {
-    cat >$nginx_systemd_file <<EOF
+    if [[ ${bt_nginx} == "Yes" ]]; then
+        echo -e "${Warning} ${GreenBG} 存在宝塔面板, 不需要设置 ${Font}"
+        return 0
+    fi
+    cat >${nginx_systemd_file} <<EOF
 [Unit]
 Description=The NGINX HTTP and reverse proxy server
 After=syslog.target network.target remote-fs.target nss-lookup.target
@@ -1704,7 +1763,7 @@ EOF
 }
 
 tls_type() {
-    if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ ${tls_mode} != "None" ]]; then
+    if [[ -f ${nginx_conf} ]] && [[ ${tls_mode} != "None" ]]; then
         echo -e "\n${GreenBG} 请选择支持的 TLS 版本 (default:2): ${Font}"
         echo "建议选择 TLS1.2 and TLS1.3 (一般模式)"
         echo "1: TLS1.1 TLS1.2 and TLS1.3 (兼容模式)"
@@ -1737,8 +1796,8 @@ tls_type() {
         fi
         wait
         if [[ ${tls_mode} == "TLS" ]]; then
-            systemctl restart nginx
-            judge "Nginx 重启"
+            [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "Nginx 重启"
+            [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx restart && judge "Nginx 重启"
         elif [[ ${tls_mode} == "XTLS" ]]; then
             systemctl restart xray
             judge "Xray 重启"
@@ -1837,7 +1896,6 @@ mtproxy_sh() {
 uninstall_all() {
     stop_service_all
     systemctl disable xray
-    [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
     [[ -f ${xray_systemd_file} ]] && rm -rf ${xray_systemd_file}
     [[ -f ${xray_systemd_file2} ]] && rm -rf ${xray_systemd_file2}
     [[ -d ${xray_systemd_filed} ]] && rm -rf ${xray_systemd_filed}
@@ -1846,6 +1904,8 @@ uninstall_all() {
     [[ -d ${xray_conf_dir} ]] && rm -rf ${xray_conf_dir}
     [[ -L ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
     [[ -d ${idleleo_tmp} ]] && rm -rf ${idleleo_tmp}
+    [[ -L /www/server/panel/vhost/nginx/xray.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray.conf
+    [[ -L /www/server/panel/vhost/nginx/xray-server.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray-server.conf
     if [[ -d ${nginx_dir} ]]; then
         echo -e "${Green} 是否卸载 Nginx [Y/N]? ${Font}"
         read -r uninstall_nginx
@@ -1853,6 +1913,7 @@ uninstall_all() {
         [yY][eE][sS] | [yY])
             rm -rf ${nginx_dir}
             rm -rf ${nginx_conf_dir}/*
+            [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
             echo -e "${OK} ${Green} 已卸载 Nginx ${Font}"
             ;;
         *) ;;
@@ -1904,6 +1965,7 @@ judge_mode() {
     if [[ -f ${xray_qr_config_file} ]]; then
         ws_grpc_mode=$(info_extraction '\"ws_grpc_mode\"')
         tls_mode=$(info_extraction '\"tls\"')
+        bt_nginx=$(info_extraction '\"bt_nginx\"')
         if [[ ${tls_mode} == "TLS" ]]; then
             [[ ${ws_grpc_mode} == "onlyws" ]] && shell_mode="Nginx+ws+TLS"
             [[ ${ws_grpc_mode} == "onlygRPC" ]] && shell_mode="Nginx+gRPC+TLS"
@@ -2199,9 +2261,9 @@ menu() {
     echo -e "—————————————— 其他选项 ——————————————"
     echo -e "${Green}17.${Font} 安装 TCP 加速脚本"
     echo -e "${Green}18.${Font} 设置 Fail2ban 防暴力破解"
-    echo -e "${Green}19.${Font} 安装 MTproxy (不推荐使用)"
-    echo -e "${Green}20.${Font} 更新 证书 crontab 计划任务"
-    echo -e "${Green}21.${Font} 证书 有效期更新"
+    echo -e "${Green}19.${Font} 安装 MTproxy (不推荐)"
+    echo -e "${Green}20.${Font} 设置 额外证书自动更新任务 (不推荐)"
+    echo -e "${Green}21.${Font} 证书 有效期手动更新"
     echo -e "${Green}22.${Font} 卸载 Xray"
     echo -e "${Green}23.${Font} 清空 证书文件"
     echo -e "${Green}24.${Font} 退出 \n"
