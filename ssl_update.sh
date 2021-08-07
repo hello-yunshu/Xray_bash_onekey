@@ -4,11 +4,14 @@ export PATH
 
 cert_group="nobody"
 idleleo_dir="/etc/idleleo"
+nginx_systemd_file="/etc/systemd/system/nginx.service"
 ssl_chainpath="${idleleo_dir}/cert"
 xray_qr_config_file="${idleleo_dir}/info/vmess_qr.json"
-domain=$(grep '\"add\"' ${xray_qr_config_file} | awk -F '"' '{print $4}')
+domain=$(grep '\"host\"' ${xray_qr_config_file} | awk -F '"' '{print $4}')
+bt_nginx=$(grep '\"bt_nginx\"' ${xray_qr_config_file} | awk -F '"' '{print $4}')
 
-systemctl stop nginx &> /dev/null
+[[ -f ${nginx_systemd_file} ]] &&systemctl stop nginx &> /dev/null
+[[ bt_nginx == "Yes" ]] && /etc/init.d/nginx stop &> /dev/null
 wait
 "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" &> /dev/null
 "/root/.acme.sh"/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
@@ -19,4 +22,5 @@ chmod -f a+rw ${ssl_chainpath}/xray.crt
 chmod -f a+rw ${ssl_chainpath}/xray.key
 chown -R nobody:${cert_group} ${ssl_chainpath}/*
 wait
-systemctl start nginx &> /dev/null
+[[ -f ${nginx_systemd_file} ]] && systemctl start nginx &> /dev/null
+[[ bt_nginx == "Yes" ]] && /etc/init.d/nginx start &> /dev/null
