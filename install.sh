@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.8.0.1"
+shell_version="1.8.1.6"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -460,7 +460,7 @@ nginx_upstream_server_set() {
                     nginx_conf_servers_add
                     wait
                     [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx
-                    [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx restart
+                    [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx restart
                 else
                     echo -e "${Error} ${RedBG} 未检测到配置文件！ ${Font}"
                 fi
@@ -495,7 +495,7 @@ nginx_upstream_server_set() {
                 fi
                 wait
                 [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "追加 Nginx 负载均衡"
-                [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx restart && judge "追加 Nginx 负载均衡"
+                [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx restart && judge "追加 Nginx 负载均衡"
             fi
             ;;
         *) ;;
@@ -676,9 +676,6 @@ nginx_exist_check() {
         fi
         echo -e "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
         wait
-    elif [[ -d "/usr/local/nginx/" ]]; then
-        echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
-        exit 1
     elif [[ -d "/www/server/panel/BTPanel" ]]; then
         echo -e "${GreenBG} 检测到存在宝塔面板 ${Font}"
         if [[ -f "/www/server/nginx/sbin/nginx" ]] && [[ -d "/www/server/panel/vhost/nginx" ]]; then
@@ -697,6 +694,9 @@ nginx_exist_check() {
                 ;;
             esac
         fi
+    elif [[ ! -d "/www/server/panel/BTPanel" ]] && [[ -d "/usr/local/nginx/" ]]; then
+        echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
+        exit 1
     else
         nginx_install
     fi
@@ -1279,7 +1279,7 @@ EOF
 enable_process_systemd() {
     if [[ ${tls_mode} != "None" ]]; then
         [[ -f ${nginx_systemd_file} ]] && systemctl enable nginx && judge "设置 Nginx 开机自启"
-        [[ bt_nginx == "Yes" ]] && echo -e "${Warning} ${GreenBG} 存在宝塔面板, 请自行设置 ${Font}"
+        [[ ${bt_nginx} == "Yes" ]] && echo -e "${Warning} ${GreenBG} 存在宝塔面板, 请自行设置 ${Font}"
     fi
     systemctl enable xray
     judge "设置 Xray 开机自启"
@@ -1288,7 +1288,7 @@ enable_process_systemd() {
 disable_process_systemd() {
     if [[ ${tls_mode} != "None" ]]; then
         [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx && systemctl disable nginx && judge "关闭 Nginx 开机自启"
-        [[ bt_nginx == "Yes" ]] && echo -e "${Warning} ${GreenBG} 存在宝塔面板, 请自行设置 ${Font}"
+        [[ ${bt_nginx} == "Yes" ]] && echo -e "${Warning} ${GreenBG} 存在宝塔面板, 请自行设置 ${Font}"
     fi
     systemctl disable xray
     judge "关闭 Xray 开机自启"
@@ -1296,7 +1296,7 @@ disable_process_systemd() {
 
 stop_service_all() {
     [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx && systemctl disable nginx
-    [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx stop
+    [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx stop
     systemctl stop xray
     systemctl disable xray
     echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
@@ -1307,7 +1307,7 @@ service_restart(){
     wait
     if [[ ${tls_mode} != "None" ]]; then
         [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "Nginx 重启"
-        [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx restart && judge "Nginx 重启"
+        [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx restart && judge "Nginx 重启"
     fi
     systemctl restart xray
     judge "Xray 重启"
@@ -1316,7 +1316,7 @@ service_restart(){
 service_start(){
     if [[ ${tls_mode} != "None" ]]; then
         [[ -f ${nginx_systemd_file} ]] && systemctl start nginx && judge "Nginx 启动"
-        [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx start && judge "Nginx 启动"
+        [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx start && judge "Nginx 启动"
     fi
     systemctl start xray
     judge "Xray 启动"
@@ -1325,15 +1325,15 @@ service_start(){
 service_stop(){
     if [[ ${tls_mode} != "None" ]]; then
         [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx && judge "Nginx 停止"
-        [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx stop && judge "Nginx 停止"
+        [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx stop && judge "Nginx 停止"
     fi
     systemctl stop xray
     judge "Xray 停止"
 }
 
 acme_cron_update() {
-    echo -e "\n${GreenBG} acme.sh已自动设置证书自动更新 ${Font}"
-    echo -e "${GreenBG} 是否需要额外设置证书自动更新 (不建议, 下个版本将废弃) [Y/N]? ${Font}"
+    echo -e "\n${GreenBG} acme.sh 已自动设置证书自动更新 ${Font}"
+    echo -e "${GreenBG} 是否需要重新设置证书自动更新 (不推荐) [Y/N]? ${Font}"
     read -r acme_cron_update_fq
     case $acme_cron_update_fq in
     *)
@@ -1424,6 +1424,40 @@ network_secure() {
         echo -e "${GreenBG} Fail2ban 运行状态: ${Font}"
         systemctl status fail2ban
     fi
+}
+
+clean_logs() {
+    echo -e "\n${GreenBG} 检测到日志文件大小如下 ${Font}"
+    echo -e "${GreenBG}$(du -sh /var/log/xray /etc/nginx/logs)${Font}"
+    timeout "即将清除!"
+    for i in $(find /var/log/xray/ /etc/nginx/logs -name "*.log"); do cat /dev/null >$i; done
+    judge "日志清理"
+    echo -e "\n${GreenBG} 是否需要设置自动清理日志 [Y/N]? ${Font}"
+    read -r auto_clean_logs_fq
+    case $auto_clean_logs_fq in
+    [yY][eE][sS] | [yY])
+        echo -e "${GreenBG} 将在每周三04:00自动清空日志 ${Font}"
+        if [[ "${ID}" == "centos" ]]; then
+            if [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" /var/spool/cron/root) -eq '0' ]]; then
+                echo "0 4 * * 3 for i in \$(find /var/log/xray/ /etc/nginx/logs -name \"*.log\"); do cat /dev/null >\$i; done >/dev/null 2>&1" >> /var/spool/cron/root
+                judge "设置自动清理日志"
+            else
+                echo -e "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
+            fi
+        else
+            if [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" /var/spool/cron/crontabs/root) -eq '0' ]]; then
+                echo "0 4 * * 3 for i in \$(find /var/log/xray/ /etc/nginx/logs -name \"*.log\"); do cat /dev/null >\$i; done >/dev/null 2>&1" >> /var/spool/cron/crontabs/root
+                judge "设置自动清理日志"
+            else
+                echo -e "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
+            fi
+        fi
+        ;;
+    *)
+        timeout "清空屏幕!"
+        clear
+        ;;
+    esac
 }
 
 vless_qr_config_tls_ws() {
@@ -1797,7 +1831,7 @@ tls_type() {
         wait
         if [[ ${tls_mode} == "TLS" ]]; then
             [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "Nginx 重启"
-            [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx restart && judge "Nginx 重启"
+            [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx restart && judge "Nginx 重启"
         elif [[ ${tls_mode} == "XTLS" ]]; then
             systemctl restart xray
             judge "Xray 重启"
@@ -1954,10 +1988,10 @@ timeout() {
             else
                 timeout_index="0"
             fi
-        timeout_black=" "
-        printf "${Warning} ${GreenBG} %d秒后将$1 ${Font} \033[${timeout_color};${timeout_bg}m%-s\033[0m \033[${timeout_color}m%d\033[0m%s\r" "$timeout_index" "$timeout_str" "$timeout_index" "$timeout_black"
+        printf "${Warning} ${GreenBG} %d秒后将$1 ${Font} \033[${timeout_color};${timeout_bg}m%-s\033[0m \033[${timeout_color}m%d\033[0m \r" "$timeout_index" "$timeout_str" "$timeout_index"
         sleep 0.1
         timeout_str=${timeout_str%?}
+        [[ ${timeout} -eq 0 ]] && printf "\n"
     done
 }
 
@@ -2089,7 +2123,8 @@ update_sh() {
     [[ -z ${ol_version} ]] && clear && echo -e "${Error} ${RedBG}  检测最新版本失败! ${Font}" && bash idleleo
     echo "${shell_version}" >>${version_cmp}
     newest_version=$(sort -rV ${version_cmp} | head -1)
-    version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0"|bc)
+    oldest_version=$(sort -V ${version_cmp} | head -1)
+    version_difference=$(echo "(${newest_version:0:3}-${oldest_version:0:3})>0" | bc)
     if [[ ${shell_version} != ${newest_version} ]]; then
         if [[ ${version_difference} == 1 ]]; then
             echo -e "\n${Warning} ${YellowBG} 存在新版本, 但版本跨度较大, 可能存在不兼容情况, 是否更新 [Y/N]? ${Font}"
@@ -2178,7 +2213,7 @@ idleleo_commend() {
         echo "${old_version}" >${version_cmp}
         echo "${shell_version}" >>${version_cmp}
         oldest_version=$(sort -V ${version_cmp} | head -1)
-        version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0"|bc)
+        version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
             wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
             judge "下载最新脚本"
@@ -2261,12 +2296,13 @@ menu() {
     echo -e "—————————————— 其他选项 ——————————————"
     echo -e "${Green}17.${Font} 安装 TCP 加速脚本"
     echo -e "${Green}18.${Font} 设置 Fail2ban 防暴力破解"
-    echo -e "${Green}19.${Font} 安装 MTproxy (不推荐)"
-    echo -e "${Green}20.${Font} 设置 额外证书自动更新任务 (不推荐)"
-    echo -e "${Green}21.${Font} 证书 有效期手动更新"
-    echo -e "${Green}22.${Font} 卸载 Xray"
-    echo -e "${Green}23.${Font} 清空 证书文件"
-    echo -e "${Green}24.${Font} 退出 \n"
+    echo -e "${Green}19.${Font} 清除 日志文件"
+    echo -e "${Green}20.${Font} 安装 MTproxy (不推荐)"
+    echo -e "${Green}21.${Font} 设置 额外证书自动更新 (不推荐)"
+    echo -e "${Green}22.${Font} 证书 有效期手动更新"
+    echo -e "${Green}23.${Font} 卸载 Xray"
+    echo -e "${Green}24.${Font} 清空 证书文件"
+    echo -e "${Green}25.${Font} 退出 \n"
 
     read -rp "请输入数字: " menu_num
     case $menu_num in
@@ -2387,16 +2423,20 @@ menu() {
         bash idleleo
         ;;
     19)
+        clean_logs
+        bash idleleo
+        ;;
+    20)
         clear
         mtproxy_sh
         ;;
-    20)
+    21)
         acme_cron_update
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    21)
+    22)
         service_stop
         ssl_update_manuel
         service_restart
@@ -2404,20 +2444,20 @@ menu() {
         clear
         bash idleleo
         ;;
-    22)
+    23)
         uninstall_all
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    23)
+    24)
         delete_tls_key_and_crt
         rm -rf ${ssl_chainpath}/*
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    24)
+    25)
         timeout "清空屏幕!"
         clear
         exit 0
