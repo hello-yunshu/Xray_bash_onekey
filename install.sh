@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.8.1.6"
+shell_version="1.8.1.9"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -65,7 +65,7 @@ ssl_update_file="${idleleo_dir}/ssl_update.sh"
 cert_group="nobody"
 myemali="my@example.com"
 nginx_version="1.20.1"
-openssl_version="1.1.1k"
+openssl_version="1.1.1l"
 jemalloc_version="5.2.1"
 bt_nginx="None"
 read_config_status=1
@@ -544,11 +544,6 @@ modify_nginx_port() {
 }
 
 modify_nginx_other() {
-    if [[ -f ${nginx_dir}/conf/nginx.conf ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${bt_nginx} != "Yes" ]]; then
-        sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
-        sed -i "/http\( *\){/a \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
-        sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
-    fi
     sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_conf}
     if [[ ${tls_mode} == "TLS" ]]; then
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
@@ -751,6 +746,7 @@ nginx_install() {
     --with-http_mp4_module \
     --with-http_realip_module \
     --with-http_secure_link_module \
+    --with-http_slice_module \
     --with-stream \
     --with-stream_ssl_module \
     --with-stream_realip_module \
@@ -770,6 +766,9 @@ nginx_install() {
     #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
     sed -i "s/worker_processes  1;/worker_processes  auto;/" ${nginx_dir}/conf/nginx.conf
     sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" ${nginx_dir}/conf/nginx.conf
+    sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
+    sed -i "/http\( *\){/a \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
+    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
 
     # 删除临时文件
     rm -rf ../nginx-${nginx_version}
@@ -824,13 +823,25 @@ nginx_update() {
             service_stop
             timeout "删除旧版 Nginx !"
             rm -rf ${nginx_dir}
-            rm -rf ${nginx_conf_dir}/*.conf
+            echo -e "\n${GreenBG} 是否保留原配置文件 [Y/N]? ${Font}"
+            read -r save_originconf_fq
+            case $save_originconf_fq in
+            [nN][oO]|[nN])
+                rm -rf ${nginx_conf_dir}/*.conf
+                echo -e "${OK} ${GreenBG} 原配置文件已删除! ${Font}"
+                ;;
+            *)
+                save_originconf="Yes"
+                echo -e "${OK} ${GreenBG} 原配置文件已保留! ${Font}"
+                ;;
+            esac
             wait
             nginx_install
             wait
-            if [[ ${tls_mode} == "TLS" ]]; then
+            if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_conf_add
-            elif [[ ${tls_mode} == "XTLS" ]]; then
+                nginx_conf_servers_add
+            elif [[ ${tls_mode} == "XTLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_conf_add_xtls
             fi
             wait
@@ -1841,7 +1852,7 @@ tls_type() {
     fi
 }
 
-Revision_port() {
+revision_port() {
     if [[ ${tls_mode} == "TLS" ]]; then
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
         modify_nginx_port
@@ -1917,7 +1928,7 @@ ssl_update_manuel() {
 
 bbr_boost_sh() {
     if [[ -f "${idleleo_dir}/tcp.sh" ]]; then
-        chmod +x ${idleleo_dir}/tcp.sh && ${idleleo_dir}/tcp.sh
+        cd ${idleleo_dir} && chmod +x ./tcp.sh && ./tcp.sh
     else
         wget -N --no-check-certificate -P ${idleleo_dir} "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x ${idleleo_dir}/tcp.sh && ${idleleo_dir}/tcp.sh
     fi
@@ -2355,7 +2366,7 @@ menu() {
         bash idleleo
         ;;
     7)
-        Revision_port
+        revision_port
         firewall_set
         service_restart
         timeout "清空屏幕!"
