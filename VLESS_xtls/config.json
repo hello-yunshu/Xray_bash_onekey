@@ -27,6 +27,7 @@
                 "xtlsSettings": {
                     "minVersion": "1.2",
                     "alpn": ["http/1.1", "h2"],
+                    "rejectUnknownSni": true,
                     "certificates": [{
                         "certificateFile": "/etc/idleleo/cert/xray.crt",
                         "keyFile": "/etc/idleleo/cert/xray.key"
@@ -72,7 +73,11 @@
                 "network": "grpc",
                 "security": "none",
                 "grpcSettings": {
-                    "serviceName": "grpc"
+                    "serviceName": "grpc",
+                    "multiMode": true,
+                    "idle_timeout": 20,
+                    "health_check_timeout": 20,
+                    "permit_without_stream": true
                 }
             }
         }
