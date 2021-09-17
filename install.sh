@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.8.1.9"
+shell_version="1.8.2.1"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -529,10 +529,18 @@ modify_inbound_port() {
     elif [[ ${tls_mode} == "XTLS" ]]; then
         #        sed -i "/\"port\"/c  \    \"port\":${port}," ${xray_conf}
         sed -i "8s/^\( *\)\"port\".*/\1\"port\": ${port},/" ${xray_conf}
-        sed -i "38s/^\( *\)\"port\".*/\1\"port\": ${xport},/" ${xray_conf}
-        sed -i "59s/^\( *\)\"port\".*/\1\"port\": ${gport},/" ${xray_conf}
+        sed -i "39s/^\( *\)\"port\".*/\1\"port\": ${xport},/" ${xray_conf}
+        sed -i "60s/^\( *\)\"port\".*/\1\"port\": ${gport},/" ${xray_conf}
     fi
     judge "Xray inbound port 修改"
+}
+
+modify_nginx_origin_conf() {
+    sed -i "s/worker_processes  1;/worker_processes  auto;/" ${nginx_dir}/conf/nginx.conf
+    sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" ${nginx_dir}/conf/nginx.conf
+    sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
+    sed -i "/http\( *\){/a \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
+    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
 }
 
 modify_nginx_port() {
@@ -544,6 +552,9 @@ modify_nginx_port() {
 }
 
 modify_nginx_other() {
+    if [[ -f ${nginx_dir}/conf/nginx.conf ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]] && [[ ${bt_nginx} != "Yes" ]]; then
+        modify_nginx_origin_conf
+    fi
     sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_conf}
     if [[ ${tls_mode} == "TLS" ]]; then
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
@@ -569,7 +580,7 @@ modify_nginx_servers() {
 
 modify_path() {
     sed -i "s/^\( *\)\"path\".*/\1\"path\": \"\/${path}\"/" ${xray_conf}
-    sed -i "s/^\( *\)\"serviceName\".*/\1\"serviceName\": \"${servicename}\"/" ${xray_conf}
+    sed -i "s/^\( *\)\"serviceName\".*/\1\"serviceName\": \"${servicename}\",/" ${xray_conf}
     if [[ ${tls_mode} != "XTLS" ]] || [[ "$xtls_add_more" == "off" ]]; then
         judge "Xray 伪装路径 修改"
     else
@@ -620,7 +631,7 @@ xray_install() {
         bash install-release.sh --force
         #bash install-dat-release.sh --force
         judge "安装 Xray"
-        xray_privilege_escalation
+        [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
         [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
         ln -s ${xray_conf} ${xray_default_conf}
     else
@@ -638,11 +649,12 @@ xray_update() {
     #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh
     #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-dat-release.sh
     [[ ! -d /usr/local/etc/xray ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装！ ${Font}"
+    echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
     systemctl stop xray
     wait
     bash <(curl -L -s https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)
     wait
-    xray_privilege_escalation
+    [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
     [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
     ln -s ${xray_conf} ${xray_default_conf}
     wait
@@ -764,11 +776,7 @@ nginx_install() {
 
     # 修改基本配置
     #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
-    sed -i "s/worker_processes  1;/worker_processes  auto;/" ${nginx_dir}/conf/nginx.conf
-    sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" ${nginx_dir}/conf/nginx.conf
-    sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
-    sed -i "/http\( *\){/a \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
-    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
+    modify_nginx_origin_conf
 
     # 删除临时文件
     rm -rf ../nginx-${nginx_version}
@@ -2305,7 +2313,7 @@ menu() {
     echo -e "${Green}15.${Font} 停止 所有服务"
     echo -e "${Green}16.${Font} 查看 所有服务"
     echo -e "—————————————— 其他选项 ——————————————"
-    echo -e "${Green}17.${Font} 安装 TCP 加速脚本"
+    echo -e "${Green}17.${Font} 设置 TCP 加速"
     echo -e "${Green}18.${Font} 设置 Fail2ban 防暴力破解"
     echo -e "${Green}19.${Font} 清除 日志文件"
     echo -e "${Green}20.${Font} 安装 MTproxy (不推荐)"
