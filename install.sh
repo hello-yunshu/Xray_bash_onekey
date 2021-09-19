@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.8.2.1"
+shell_version="1.8.2.2"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -540,7 +540,7 @@ modify_nginx_origin_conf() {
     sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" ${nginx_dir}/conf/nginx.conf
     sed -i '$i include /etc/idleleo/conf/nginx/*.conf;' ${nginx_dir}/conf/nginx.conf
     sed -i "/http\( *\){/a \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
-    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.idleleo.com\/helloworld;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
+    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 302 https:\/\/www.bing.com;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
 }
 
 modify_nginx_port() {
@@ -1181,7 +1181,7 @@ nginx_conf_add() {
         server_name           serveraddr.com;
         index index.html index.htm;
         root /400.html;
-        error_page 400 https://www.idleleo.com/helloworld;
+        error_page 400 https://www.bing.com;
         # Config for 0-RTT in TLSv1.3
         ssl_early_data on;
         ssl_stapling on;
@@ -1223,7 +1223,7 @@ nginx_conf_add() {
 
         location /
         {
-            return 302 https://www.idleleo.com/helloworld;
+            return 302 https://www.bing.com;
         }
     }
     server {
@@ -1255,7 +1255,7 @@ nginx_conf_add_xtls() {
         add_header Strict-Transport-Security "max-age=63072000" always;
         location /
         {
-            return 302 https://www.idleleo.com/helloworld;
+            return 302 https://www.bing.com;
         }
     }
 

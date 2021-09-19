@@ -7,7 +7,7 @@
 
 ### 使用说明
 * 可以直接输入命令：`idleleo` 管理脚本。
-* 访问域名 302 跳转至 https://www.idleleo.com/helloworld （了解配置过程可自行修改）。
+* 访问域名 302 跳转至 www.bing.com （了解配置过程可自行修改）。
 * 阻止 HTTP 直接访问服务器 IP 。
 * 使用来自 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91) (beta)，支持 Qv2ray、V2rayN、V2rayNG。
 * 使用来自 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 项目的提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，可以将自定义字符串映射至 VLESS UUID 。
