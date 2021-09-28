@@ -67,6 +67,7 @@ myemali="my@example.com"
 nginx_version="1.20.1"
 openssl_version="1.1.1l"
 jemalloc_version="5.2.1"
+fancyindex_version="0.5.1"
 bt_nginx="None"
 read_config_status=1
 xtls_add_more="off"
@@ -211,9 +212,9 @@ dependency_install() {
     fi
 
     if [[ "${ID}" == "centos" ]]; then
-        pkg_install "epel-release,pcre,pcre-devel,zlib-devel"
+        pkg_install "epel-release,pcre,pcre-devel,zlib-devel,GeoIP-devel"
     else
-        pkg_install "libpcre3,libpcre3-dev,zlib1g-dev"
+        pkg_install "libpcre3,libpcre3-dev,zlib1g-dev,libgeoip-dev"
     fi
 }
 
@@ -716,6 +717,8 @@ nginx_install() {
     judge "openssl 下载"
     wget -nc --no-check-certificate https://github.com/jemalloc/jemalloc/releases/download/${jemalloc_version}/jemalloc-${jemalloc_version}.tar.bz2 -P ${nginx_openssl_src}
     judge "jemalloc 下载"
+    wget -O ${nginx_openssl_src}/ngx-fancyindex-$${fancyindex_version}.zip  https://github.com/aperezdc/ngx-fancyindex/archive/v${fancyindex_version}.zip -P ${nginx_openssl_src}
+    judge "ngx-fancyindex 下载"
 
     cd ${nginx_openssl_src} || exit
 
@@ -727,6 +730,9 @@ nginx_install() {
 
     [[ -d jemalloc-${jemalloc_version} ]] && rm -rf jemalloc-${jemalloc_version}
     tar -xvf jemalloc-${jemalloc_version}.tar.bz2
+    
+    [[ -d ngx-fancyindex-${fancyindex_version} ]] && rm -rf ngx-fancyindex-${fancyindex_version}
+    unzip ngx-fancyindex-${fancyindex_version}.zip
 
     [[ -d ${nginx_dir} ]] && rm -rf ${nginx_dir}
 
@@ -750,23 +756,35 @@ nginx_install() {
     ./configure --prefix=${nginx_dir} \
     --user=root \
     --group=root \
-    --with-http_ssl_module \
-    --with-http_gzip_static_module \
-    --with-http_stub_status_module \
-    --with-pcre \
+    --with-file-aio \
+    --with-threads \
+    --with-stream_geoip_module \
+    --with-http_image_filter_module \
+    --with-http_addition_module \
+    --with-http_auth_request_module \
+    --with-http_dav_module \
     --with-http_flv_module \
+    --with-http_gunzip_module \
+    --with-http_gzip_static_module \
     --with-http_mp4_module \
+    --with-http_random_index_module \
     --with-http_realip_module \
     --with-http_secure_link_module \
     --with-http_slice_module \
-    --with-stream \
-    --with-stream_ssl_module \
-    --with-stream_realip_module \
-    --with-stream_ssl_preread_module \
+    --with-http_ssl_module \
+    --with-http_stub_status_module \
     --with-http_sub_module \
     --with-http_v2_module \
+    --with-mail \
+    --with-mail_ssl_module \
+    --with-stream \
+    --with-stream_realip_module \
+    --with-stream_ssl_module \
+    --with-stream_ssl_preread_module \
+    --with-pcre \
     --with-cc-opt='-O3' \
     --with-ld-opt="-ljemalloc" \
+    --add-module=../ngx-fancyindex-${fancyindex_version} \
     --with-openssl=../openssl-${openssl_version}
     judge "编译检查"
     make -j ${THREAD} && make install
@@ -783,11 +801,12 @@ nginx_install() {
     rm -rf ../openssl-${openssl_version}
     rm -rf ../nginx-${nginx_version}.tar.gz
     rm -rf ../openssl-${openssl_version}.tar.gz
+    rm -rf ../ngx-fancyindex-${fancyindex_version}.zip
 }
 
 nginx_update() {
     if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ ${bt_nginx} != "Yes" ]]; then
-        if [[ ${nginx_version} != $(info_extraction '\"nginx_version\"') ]] || [[ ${openssl_version} != $(info_extraction '\"openssl_version\"') ]] || [[ ${jemalloc_version} != $(info_extraction '\"jemalloc_version\"') ]]; then
+        if [[ ${nginx_version} != $(info_extraction '\"nginx_version\"') ]] || [[ ${openssl_version} != $(info_extraction '\"openssl_version\"') ]] || [[ ${jemalloc_version} != $(info_extraction '\"jemalloc_version\"') ]] || [[ ${fancyindex_version} != $(info_extraction '\"fancyindex_version\"') ]]; then
             ip_check
             if [[ -f ${xray_qr_config_file} ]]; then
                 domain=$(info_extraction '\"host\"')
@@ -857,6 +876,7 @@ nginx_update() {
             sed -i "s/^\( *\)\"nginx_version\".*/\1\"nginx_version\": \"${nginx_version}\",/" ${xray_qr_config_file}
             sed -i "s/^\( *\)\"openssl_version\".*/\1\"openssl_version\": \"${openssl_version}\",/" ${xray_qr_config_file}
             sed -i "s/^\( *\)\"jemalloc_version\".*/\1\"jemalloc_version\": \"${jemalloc_version}\"/" ${xray_qr_config_file}
+            sed -i "s/^\( *\)\"fancyindex_version\".*/\1\"fancyindex_version\": \"${fancyindex_version}\"/" ${xray_qr_config_file}
             judge "Nginx 升级"
         else
             echo -e "${OK} ${GreenBG} Nginx 已为最新版 ${Font}"
@@ -1497,7 +1517,8 @@ vless_qr_config_tls_ws() {
     "bt_nginx": "${bt_nginx}",
     "nginx_version": "${nginx_version}",
     "openssl_version": "${openssl_version}",
-    "jemalloc_version": "${jemalloc_version}"
+    "jemalloc_version": "${jemalloc_version}",
+    "fancyindex_version": "${fancyindex_version}"
 }
 EOF
 }
@@ -1521,7 +1542,8 @@ vless_qr_config_xtls() {
     "bt_nginx": "${bt_nginx}",
     "nginx_version": "${nginx_version}",
     "openssl_version": "${openssl_version}",
-    "jemalloc_version": "${jemalloc_version}"
+    "jemalloc_version": "${jemalloc_version}",
+    "fancyindex_version": "${fancyindex_version}"
 }
 EOF
 }
