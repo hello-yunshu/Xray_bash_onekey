@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.8.2.2"
+shell_version="1.8.2.3"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -115,7 +115,6 @@ check_system() {
 is_root() {
     if [[ 0 == $UID ]]; then
         echo -e "${OK} ${GreenBG} 当前用户是 root用户, 进入安装流程 ${Font}"
-        wait
     else
         echo -e "${Error} ${RedBG} 当前用户不是 root用户, 请切换到 root用户 后重新执行脚本! ${Font}"
         exit 1
@@ -358,12 +357,10 @@ firewall_set() {
     wait
     if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
         service iptables save
-        wait
         service iptables restart
         echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
     else
         netfilter-persistent save
-        wait
         systemctl restart iptables
         echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
     fi
@@ -452,13 +449,11 @@ nginx_upstream_server_set() {
             read -rp "请输入: " upstream_choose
             if [[ ${upstream_choose} == 2 ]]; then
                 timeout "即将重置 Nginx 负载均衡配置"
-                wait
                 if [[ -f ${xray_qr_config_file} ]]; then
                     xport=$(info_extraction '\"ws_port\"')
                     gport=$(info_extraction '\"grpc_port\"')
                     rm -rf ${nginx_upstream_conf}
                     nginx_conf_servers_add
-                    wait
                     [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx
                     [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx restart
                 else
@@ -484,16 +479,13 @@ nginx_upstream_server_set() {
                 echo -e "${OK} ${GreenBG} 防火墙 追加 完成 ${Font}"
                 if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
                     service iptables save
-                    wait
                     service iptables restart
                     echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
                 else
                     netfilter-persistent save
-                    wait
                     systemctl restart iptables
                     echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
                 fi
-                wait
                 [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "追加 Nginx 负载均衡"
                 [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx restart && judge "追加 Nginx 负载均衡"
             fi
@@ -657,9 +649,7 @@ xray_update() {
     [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
     [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
     ln -s ${xray_conf} ${xray_default_conf}
-    wait
     systemctl daemon-reload
-    wait
     systemctl start xray
     # 清除临时文件
     ##rm -rf ${idleleo_tmp}/xray
@@ -682,13 +672,11 @@ nginx_exist_check() {
             sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
         fi
         echo -e "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
-        wait
     elif [[ -d "/www/server/panel/BTPanel" ]]; then
         echo -e "${GreenBG} 检测到存在宝塔面板 ${Font}"
         if [[ -f "/www/server/nginx/sbin/nginx" ]] && [[ -d "/www/server/panel/vhost/nginx" ]]; then
             echo -e "${GreenBG} 检测到宝塔面板已安装 Nginx ${Font}"
             bt_nginx="Yes"
-            wait
         else
             echo -e "${Warning} ${YellowBG} 检测到宝塔面板未安装 Nginx, 继续安装可能会导致冲突, 是否继续 [Y/N]? ${Font}"
             read -r have_btnginx_fq
@@ -731,7 +719,6 @@ nginx_install() {
     [[ -d ${nginx_dir} ]] && rm -rf ${nginx_dir}
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 jemalloc ${Font}"
-    wait
 
     cd jemalloc-${jemalloc_version} || exit
     ./configure
@@ -742,7 +729,6 @@ nginx_install() {
     ldconfig
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 Nginx, 过程稍久, 请耐心等待 ${Font}"
-    wait
 
     cd ../nginx-${nginx_version} || exit
 
@@ -827,7 +813,6 @@ nginx_update() {
                 clear
                 bash idleleo
             fi
-            wait
             service_stop
             timeout "删除旧版 Nginx !"
             rm -rf ${nginx_dir}
@@ -843,7 +828,6 @@ nginx_update() {
                 echo -e "${OK} ${GreenBG} 原配置文件已保留! ${Font}"
                 ;;
             esac
-            wait
             nginx_install
             wait
             if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
@@ -852,7 +836,6 @@ nginx_update() {
             elif [[ ${tls_mode} == "XTLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_conf_add_xtls
             fi
-            wait
             service_start
             sed -i "s/^\( *\)\"nginx_version\".*/\1\"nginx_version\": \"${nginx_version}\",/" ${xray_qr_config_file}
             sed -i "s/^\( *\)\"openssl_version\".*/\1\"openssl_version\": \"${openssl_version}\",/" ${xray_qr_config_file}
@@ -878,9 +861,10 @@ ssl_install() {
 domain_check() {
     echo -e "\n${GreenBG} 确定 域名 信息 ${Font}"
     read_optimize "请输入你的域名信息 (eg:www.idleleo.com):" "domain" "NULL"
-    echo -e "\n${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
+    echo -e "\n${GreenBG} 请选择 公网IP(IPv4/IPv6) 或手动输入 域名 ${Font}"
     echo "1: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
+    echo "3: 域名"
     read -rp "请输入: " ip_version
     [[ -z ${ip_version} ]] && ip_version=1
     echo -e "${OK} ${GreenBG} 正在获取 公网IP 信息, 请耐心等待 ${Font}"
@@ -890,16 +874,18 @@ domain_check() {
     elif [[ $ip_version == 2 ]]; then
         local_ip=$(curl -6 ip.sb)
         domain_ip=$(ping -6 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
+    elif [[ $ip_version == 3 ]]; then
+        echo -e "${Warning} ${GreenBG} 此选项用于服务器商仅提供域名访问服务器 ${Font}"
+        echo -e "${Warning} ${GreenBG} 注意服务器商域名添加 CNAME 记录 ${Font}"
+        read -rp "请输入: " local_ip
     else
         local_ip=$(curl -4 ip.sb)
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
     fi
     echo -e "域名DNS 解析IP: ${domain_ip}"
     echo -e "公网IP: ${local_ip}"
-    wait
-    if [[ ${local_ip} == ${domain_ip} ]]; then
+    if [[ $ip_version != 3 ]] && [[ ${local_ip} == ${domain_ip} ]]; then
         echo -e "${OK} ${GreenBG} 域名DNS 解析IP 与 公网IP 匹配 ${Font}"
-        wait
     else
         echo -e "${Warning} ${YellowBG} 请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray ${Font}"
         echo -e "${Error} ${RedBG} 域名DNS 解析IP 与 公网IP 不匹配, 请选择: ${Font}"
@@ -910,7 +896,6 @@ domain_check() {
         case $install in
         1)
             echo -e "${GreenBG} 继续安装 ${Font}"
-            wait
             ;;
         2)
             domain_check
@@ -928,6 +913,7 @@ ip_check() {
     echo -e "${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
     echo "1: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
+    echo "3: 域名"
     read -rp "请输入: " ip_version
     [[ -z ${ip_version} ]] && ip_version=1
     echo -e "${OK} ${GreenBG} 正在获取 公网IP 信息, 请耐心等待 ${Font}"
@@ -935,6 +921,8 @@ ip_check() {
         local_ip=$(curl -4 ip.sb)
     elif [[ $ip_version == 2 ]]; then
         local_ip=$(curl -6 ip.sb)
+    elif [[ $ip_version == 3 ]]; then
+        read -rp "请输入: " local_ip
     else
         local_ip=$(curl -4 ip.sb)
     fi
@@ -944,14 +932,12 @@ ip_check() {
 port_exist_check() {
     if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
         echo -e "${OK} ${GreenBG} $1 端口未被占用 ${Font}"
-        wait
     else
         echo -e "${Error} ${RedBG} 检测到 $1 端口被占用, 以下为 $1 端口占用信息 ${Font}"
         lsof -i:"$1"
         timeout "尝试自动 kill 占用进程!"
         lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
         echo -e "${OK} ${GreenBG} kill 完成 ${Font}"
-        wait
     fi
 }
 
@@ -959,7 +945,6 @@ acme() {
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force --test; then
         echo -e "${OK} ${GreenBG} SSL 证书测试签发成功, 开始正式签发 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
-        wait
     else
         echo -e "${Error} ${RedBG} SSL 证书测试签发失败 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
@@ -968,7 +953,6 @@ acme() {
 
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force; then
         echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
-        wait
         mkdir -p ${ssl_chainpath}
         if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
             chmod -f a+rw ${ssl_chainpath}/xray.crt
@@ -976,7 +960,6 @@ acme() {
             [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
             chown -R nobody:${cert_group} ${ssl_chainpath}/*
             echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
-            wait
         fi
     else
         echo -e "${Error} ${RedBG} SSL 证书生成失败 ${Font}"
@@ -1233,7 +1216,6 @@ nginx_conf_add() {
         return 301 https://www.idleleo.com\$request_uri;
     }
 EOF
-    wait
     if [[ ${bt_nginx} == "Yes" ]]; then
         ln -s ${nginx_conf} /www/server/panel/vhost/nginx/xray.conf
         echo -e "${OK} ${GreenBG} Nginx 配置文件已连接至宝塔面板 ${Font}"
@@ -1266,7 +1248,6 @@ nginx_conf_add_xtls() {
         return 301 https://www.idleleo.com\$request_uri;
     }
 EOF
-    wait
     if [[ ${bt_nginx} == "Yes" ]]; then
         ln -s ${nginx_conf} /www/server/panel/vhost/nginx/xray.conf
         echo -e "${OK} ${GreenBG} Nginx 配置文件已连接至宝塔面板 ${Font}"
@@ -1286,7 +1267,6 @@ nginx_conf_servers_add() {
         #xray-grpc-serverc
     }
 EOF
-    wait
     if [[ ${bt_nginx} == "Yes" ]]; then
         ln -s ${nginx_upstream_conf} /www/server/panel/vhost/nginx/xray-server.conf
         echo -e "${OK} ${GreenBG} Nginx 附加文件已连接至宝塔面板 ${Font}"
@@ -1323,7 +1303,6 @@ stop_service_all() {
 
 service_restart(){
     systemctl daemon-reload
-    wait
     if [[ ${tls_mode} != "None" ]]; then
         [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "Nginx 重启"
         [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx restart && judge "Nginx 重启"
@@ -1407,7 +1386,6 @@ network_secure() {
         wait
         judge "Fail2ban 配置"
         systemctl start fail2ban
-        wait
         systemctl enable fail2ban
         judge "Fail2ban 启动"
         timeout "清空屏幕!"
@@ -1416,7 +1394,6 @@ network_secure() {
     if [[ $fail2ban_fq == 2 ]]; then
         [[ -f /etc/fail2ban/jail.local ]] && rm -rf /etc/fail2ban/jail.local
         systemctl stop fail2ban
-        wait
         systemctl disable fail2ban
         judge "Fail2ban 停止"
         timeout "清空屏幕!"
@@ -1424,7 +1401,6 @@ network_secure() {
     fi
     if [[ $fail2ban_fq == 3 ]]; then
         systemctl daemon-reload
-        wait
         systemctl restart fail2ban
         judge "Fail2ban 重启"
         timeout "清空屏幕!"
@@ -2270,7 +2246,6 @@ idleleo_commend() {
     else
         check_system
         pkg_install "bc,wget"
-        wait
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
         wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
         judge "下载最新脚本"
