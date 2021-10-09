@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.8.3.6"
+shell_version="1.8.4.4"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -50,20 +50,17 @@ idleleo_commend_file="/usr/bin/idleleo"
 ssl_chainpath="${idleleo_dir}/cert"
 nginx_dir="/etc/nginx"
 nginx_openssl_src="/usr/local/src"
-xray_bin_dir="/usr/local/bin/xray"
 xray_info_file="${idleleo_dir}/info/xray_info.inf"
 xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 xray_systemd_file="/etc/systemd/system/xray.service"
-xray_systemd_file2="/etc/systemd/system/xray@.service"
-xray_systemd_filed="/etc/systemd/system/xray.service.d"
-xray_systemd_filed2="/etc/systemd/system/xray@.service.d"
 xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 cert_group="nobody"
 myemali="my@example.com"
+xray_version="1.4.5"
 nginx_version="1.20.1"
 openssl_version="1.1.1l"
 jemalloc_version="5.2.1"
@@ -174,12 +171,6 @@ dependency_install() {
     pkg_install "bc,curl,dbus,git,lsof,python3,qrencode,wget"
 
     if [[ "${ID}" == "centos" ]]; then
-        pkg_install "iputils"
-    else
-        pkg_install "iputils-ping"
-    fi
-
-    if [[ "${ID}" == "centos" ]]; then
         pkg_install "crontabs"
     else
         pkg_install "cron"
@@ -210,9 +201,9 @@ dependency_install() {
     fi
 
     if [[ "${ID}" == "centos" ]]; then
-        pkg_install "epel-release,pcre,pcre-devel,zlib-devel"
+        pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel"
     else
-        pkg_install "libpcre3,libpcre3-dev,zlib1g-dev"
+        pkg_install "iputils-ping,libpcre3,libpcre3-dev,zlib1g-dev"
     fi
 }
 
@@ -347,12 +338,12 @@ ws_inbound_port_set() {
                 echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
                 ;;
             *)
-                xport=$((RANDOM + 10000))
+                xport=$((RANDOM % 1000 + 10000))
                 echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
                 ;;
             esac
         else
-            xport=$((RANDOM + 10000))
+            xport=$((RANDOM % 1000 + 20000))
         fi
     fi
 }
@@ -368,68 +359,84 @@ grpc_inbound_port_set() {
                 echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             *)
-                gport=$((RANDOM + 10000))
+                gport=$((RANDOM % 1000 + 10000))
                 echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             esac
         else
-            gport=$((RANDOM + 10000))
+            gport=$((RANDOM % 1000 + 30000))
         fi
     fi
 }
 
 firewall_set() {
-    if [[ ${bt_nginx} == "Yes" ]]; then
-        echo -e "${Warning} ${YellowBG} 建议使用宝塔面板开放端口, 是否继续 [Y/N]? ${Font}"
-        read -r btfirewall_fq
-        case $btfirewall_fq in
-        [nN][oO]|[nN])
-            return 0
-            ;;
-        esac
-    fi
-    iptables -A INPUT -i lo -j ACCEPT
-    iptables -A OUTPUT -o lo -j ACCEPT
-    if [[ ${tls_mode} != "None" ]]; then
-        iptables -I INPUT -p tcp -m multiport --dport 53,80,${port} -j ACCEPT
-        iptables -I INPUT -p udp -m multiport --dport 53,80,${port} -j ACCEPT
-        iptables -I OUTPUT -p tcp -m multiport --sport 53,80,${port} -j ACCEPT
-        iptables -I OUTPUT -p udp -m multiport --sport 53,80,${port} -j ACCEPT
-        iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-    fi
-    if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-        iptables -I INPUT -p tcp -m multiport --dport 53,${xport} -j ACCEPT
-        iptables -I INPUT -p udp -m multiport --dport 53,${xport} -j ACCEPT
-        iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport} -j ACCEPT
-        iptables -I OUTPUT -p udp -m multiport --sport 53,${xport} -j ACCEPT
-        iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-    elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-        iptables -I INPUT -p tcp -m multiport --dport 53,${gport} -j ACCEPT
-        iptables -I INPUT -p udp -m multiport --dport 53,${gport} -j ACCEPT
-        iptables -I OUTPUT -p tcp -m multiport --sport 53,${gport} -j ACCEPT
-        iptables -I OUTPUT -p udp -m multiport --sport 53,${gport} -j ACCEPT
-        iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-    elif [[ ${ws_grpc_mode} == "all" ]]; then
-        iptables -I INPUT -p tcp -m multiport --dport 53,${xport},${gport} -j ACCEPT
-        iptables -I INPUT -p udp -m multiport --dport 53,${xport},${gport} -j ACCEPT
-        iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport},${gport} -j ACCEPT
-        iptables -I OUTPUT -p udp -m multiport --sport 53,${xport},${gport} -j ACCEPT
-        iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-    fi
-    wait
-    if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-        service iptables save
-        service iptables restart
-        echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
-    else
-        netfilter-persistent save
-        systemctl restart iptables
-        echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
-    fi
-    wait
-    echo -e "${OK} ${GreenBG} 开放防火墙相关端口 ${Font}"
-    echo -e "${GreenBG} 若修改配置, 请注意关闭防火墙相关端口 ${Font}"
-    echo -e "${OK} ${GreenBG} 配置 Xray FullCone ${Font}"
+    echo -e "\n${GreenBG} 是否需要设置防火墙 [Y/N]? ${Font}"
+    read -r firewall_set_fq
+    case $firewall_set_fq in
+    [nN][oO]|[nN])
+    echo -e "${OK} ${GreenBG} 跳过防火墙设置 ${Font}"
+        ;;
+    *)
+        if [[ ${bt_nginx} == "Yes" ]]; then
+            echo -e "${Warning} ${YellowBG} 建议使用宝塔面板开放端口, 是否继续 [Y/N]? ${Font}"
+            read -r btfirewall_fq
+            case $btfirewall_fq in
+            [nN][oO]|[nN])
+                return 0
+                ;;
+            esac
+        fi
+        wait
+        if [[ "${ID}" == "centos" ]]; then
+            pkg_install "iptables-services"
+        else
+            pkg_install "iptables-persistent"
+        fi
+        wait
+        iptables -A INPUT -i lo -j ACCEPT
+        iptables -A OUTPUT -o lo -j ACCEPT
+        if [[ ${tls_mode} != "None" ]]; then
+            iptables -I INPUT -p tcp -m multiport --dport 53,80,${port} -j ACCEPT
+            iptables -I INPUT -p udp -m multiport --dport 53,80,${port} -j ACCEPT
+            iptables -I OUTPUT -p tcp -m multiport --sport 53,80,${port} -j ACCEPT
+            iptables -I OUTPUT -p udp -m multiport --sport 53,80,${port} -j ACCEPT
+            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+        fi
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            iptables -I INPUT -p tcp -m multiport --dport 53,${xport} -j ACCEPT
+            iptables -I INPUT -p udp -m multiport --dport 53,${xport} -j ACCEPT
+            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport} -j ACCEPT
+            iptables -I OUTPUT -p udp -m multiport --sport 53,${xport} -j ACCEPT
+            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+            iptables -I INPUT -p tcp -m multiport --dport 53,${gport} -j ACCEPT
+            iptables -I INPUT -p udp -m multiport --dport 53,${gport} -j ACCEPT
+            iptables -I OUTPUT -p tcp -m multiport --sport 53,${gport} -j ACCEPT
+            iptables -I OUTPUT -p udp -m multiport --sport 53,${gport} -j ACCEPT
+            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            iptables -I INPUT -p tcp -m multiport --dport 53,${xport},${gport} -j ACCEPT
+            iptables -I INPUT -p udp -m multiport --dport 53,${xport},${gport} -j ACCEPT
+            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport},${gport} -j ACCEPT
+            iptables -I OUTPUT -p udp -m multiport --sport 53,${xport},${gport} -j ACCEPT
+            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+        fi
+        wait
+        if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+            service iptables save
+            service iptables restart
+            echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+        else
+            netfilter-persistent save
+            systemctl restart iptables
+            echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+        fi
+        wait
+        echo -e "${OK} ${GreenBG} 开放防火墙相关端口 ${Font}"
+        echo -e "${GreenBG} 若修改配置, 请注意关闭防火墙相关端口 ${Font}"
+        echo -e "${OK} ${GreenBG} 配置 Xray FullCone ${Font}"
+        ;;
+    esac
 }
 
 ws_path_set() {
@@ -530,24 +537,51 @@ nginx_upstream_server_set() {
                 read_optimize "请输入负载均衡 端口 (port):" "upstream_port" "NULL" 0 65535 "请输入 0-65535 之间的值!"
                 read_optimize "请输入负载均衡 权重 (0~100, 默认值:50):" "upstream_weight" 50 0 100 "请输入 0-100 之间的值!"
                 if [[ ${upstream_net} == 2 ]]; then
-                    sed -i "/xray-grpc-server/a \\\t\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+                    sed -i "/xray-grpc-server/a \\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=2 fail_timeout=10;" ${nginx_upstream_conf}
                 else
-                    sed -i "/xray-ws-server/a \\\t\\t\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+                    sed -i "/xray-ws-server/a \\\tserver ${upstream_host}:${upstream_port} weight=${upstream_weight} max_fails=2 fail_timeout=10;" ${nginx_upstream_conf}
                 fi
-                iptables -I INPUT -p tcp --dport ${upstream_port} -j ACCEPT
-                iptables -I INPUT -p udp --dport ${upstream_port} -j ACCEPT
-                iptables -I OUTPUT -p tcp --sport ${upstream_port} -j ACCEPT
-                iptables -I OUTPUT -p udp --sport ${upstream_port} -j ACCEPT
-                echo -e "${OK} ${GreenBG} 防火墙 追加 完成 ${Font}"
-                if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-                    service iptables save
-                    service iptables restart
-                    echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
-                else
-                    netfilter-persistent save
-                    systemctl restart iptables
-                    echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
-                fi
+                echo -e "\n${GreenBG} 是否需要设置防火墙 [Y/N]? ${Font}"
+                read -r firewall_set_fq
+                case $firewall_set_fq in
+                [nN][oO]|[nN])
+                    echo -e "${OK} ${GreenBG} 跳过防火墙设置 ${Font}"
+                    ;;
+                *)
+                    if [[ ${bt_nginx} == "Yes" ]]; then
+                        echo -e "${Warning} ${YellowBG} 建议使用宝塔面板开放端口, 是否继续 [Y/N]? ${Font}"
+                        read -r btfirewall_fq
+                        case $btfirewall_fq in
+                        [nN][oO]|[nN])
+                            /etc/init.d/nginx restart
+                            judge "追加 Nginx 负载均衡"
+                            return 0
+                            ;;
+                        esac
+                    fi
+                    wait
+                    if [[ "${ID}" == "centos" ]]; then
+                        pkg_install "iptables-services"
+                    else
+                        pkg_install "iptables-persistent"
+                    fi
+                    wait
+                    iptables -I INPUT -p tcp --dport ${upstream_port} -j ACCEPT
+                    iptables -I INPUT -p udp --dport ${upstream_port} -j ACCEPT
+                    iptables -I OUTPUT -p tcp --sport ${upstream_port} -j ACCEPT
+                    iptables -I OUTPUT -p udp --sport ${upstream_port} -j ACCEPT
+                    echo -e "${OK} ${GreenBG} 防火墙 追加 完成 ${Font}"
+                    if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+                        service iptables save
+                        service iptables restart
+                        echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+                    else
+                        netfilter-persistent save
+                        systemctl restart iptables
+                        echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+                    fi
+                    ;;
+                esac
                 [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "追加 Nginx 负载均衡"
                 [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx restart && judge "追加 Nginx 负载均衡"
             fi
@@ -583,8 +617,8 @@ modify_inbound_port() {
     elif [[ ${tls_mode} == "XTLS" ]]; then
         #        sed -i "/\"port\"/c  \    \"port\":${port}," ${xray_conf}
         sed -i "8s/^\( *\)\"port\".*/\1\"port\": ${port},/" ${xray_conf}
-        sed -i "39s/^\( *\)\"port\".*/\1\"port\": ${xport},/" ${xray_conf}
-        sed -i "60s/^\( *\)\"port\".*/\1\"port\": ${gport},/" ${xray_conf}
+        sed -i "40s/^\( *\)\"port\".*/\1\"port\": ${xport},/" ${xray_conf}
+        sed -i "61s/^\( *\)\"port\".*/\1\"port\": ${gport},/" ${xray_conf}
     fi
     judge "Xray inbound port 修改"
 }
@@ -628,8 +662,8 @@ modify_nginx_other() {
 }
 
 modify_nginx_servers() {
-    sed -i "/#xray-ws-serverc/c \\\t\\t\\tserver 127.0.0.1:${xport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
-    sed -i "/#xray-grpc-serverc/c \\\t\\t\\tserver 127.0.0.1:${gport} weight=50 max_fails=5 fail_timeout=2;" ${nginx_upstream_conf}
+    sed -i "/#xray-ws-serverc/c \\\tserver 127.0.0.1:${xport} weight=50 max_fails=2 fail_timeout=10;" ${nginx_upstream_conf}
+    sed -i "/#xray-grpc-serverc/c \\\tserver 127.0.0.1:${gport} weight=50 max_fails=2 fail_timeout=10;" ${nginx_upstream_conf}
 }
 
 modify_path() {
@@ -666,35 +700,30 @@ xray_privilege_escalation() {
 }
 
 xray_install() {
-    [[ -d ${idleleo_tmp}/xray ]] && rm -rf ${idleleo_tmp}/xray
-    [[ -d /usr/local/etc/xray ]] && rm -rf /usr/local/etc/xray
-    [[ -d /usr/local/share/xray ]] && rm -rf /usr/local/share/xray
-    mkdir -p ${idleleo_tmp}/xray
-    cd ${idleleo_tmp}/xray || exit
-    wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh
-    #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-dat-release.sh
-    ##if [[ -f install-release.sh ]] && [[ -f install-dat-release.sh ]]; then
-    if [[ -f install-release.sh ]]; then
-        [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
-        [[ -f ${xray_systemd_file} ]] && rm -rf ${xray_systemd_file}
-        [[ -f ${xray_systemd_file2} ]] && rm -rf ${xray_systemd_file2}
-        [[ -d ${xray_systemd_filed} ]] && rm -rf ${xray_systemd_filed}
-        [[ -d ${xray_systemd_filed2} ]] && rm -rf ${xray_systemd_filed2}
-        [[ -f ${xray_bin_dir} ]] && rm -rf ${xray_bin_dir}
-        systemctl daemon-reload
-        bash install-release.sh --force
-        #bash install-dat-release.sh --force
-        judge "安装 Xray"
-        [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
-        [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
-        ln -s ${xray_conf} ${xray_default_conf}
+    if [[ $(xray version) == "" ]] || [[ ! -f ${xray_conf} ]]; then
+        [[ -d ${idleleo_tmp}/xray ]] && rm -rf ${idleleo_tmp}/xray
+        mkdir -p ${idleleo_tmp}/xray
+        cd ${idleleo_tmp}/xray || exit
+        wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh
+        if [[ -f install-release.sh ]]; then
+            bash install-release.sh --purge
+            wait
+            bash install-release.sh --f --version ${xray_version}
+            systemctl daemon-reload
+            judge "安装 Xray"
+            [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
+            [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
+            ln -s ${xray_conf} ${xray_default_conf}
+        else
+            echo -e "${Error} ${RedBG} Xray 安装文件下载失败, 请检查下载地址是否可用! ${Font}"
+            exit 4
+            bash idleleo
+        fi
+        # 清除临时文件
+        rm -rf ${idleleo_tmp}/xray
     else
-        echo -e "${Error} ${RedBG} Xray 安装文件下载失败, 请检查下载地址是否可用! ${Font}"
-        exit 4
+        echo -e "${OK} ${GreenBG} 已安装 Xray ${Font}"
     fi
-    # 清除临时文件
-    rm -rf ${idleleo_tmp}/xray
-
 }
 
 xray_update() {
@@ -706,7 +735,7 @@ xray_update() {
     echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
     systemctl stop xray
     wait
-    bash <(curl -L -s https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)
+    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --f --version ${xray_version}
     wait
     [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
     [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
@@ -844,12 +873,12 @@ nginx_update() {
                     if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                         xport=$(info_extraction '\"ws_port\"')
                         path=$(info_extraction '\"path\"')
-                        gport=$((RANDOM + 10000))
+                        gport=$((RANDOM % 1000 + 30000))
                         servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                         gport=$(info_extraction '\"grpc_port\"')
                         servicename=$(info_extraction '\"servicename\"')
-                        xport=$((RANDOM + 10000))
+                        xport=$((RANDOM % 1000 + 20000))
                         path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${ws_grpc_mode} == "all" ]]; then
                         xport=$(info_extraction '\"ws_port\"')
@@ -858,7 +887,7 @@ nginx_update() {
                         servicename=$(info_extraction '\"servicename\"')
                     fi
                     if [[ 0 -eq ${read_config_status} ]]; then
-                        echo -e "${Error} ${RedBG} 旧配置文件不完整, 退出升级 ${Font}"
+                        echo -e "${Error} ${RedBG} 配置文件不完整, 退出升级 ${Font}"
                         timeout "清空屏幕!"
                         clear
                         bash idleleo
@@ -870,7 +899,7 @@ nginx_update() {
                     bash idleleo
                 fi
             else
-                echo -e "${Error} ${RedBG} 旧配置文件不存在, 退出升级 ${Font}"
+                echo -e "${Error} ${RedBG} 配置文件不存在, 退出升级 ${Font}"
                 timeout "清空屏幕!"
                 clear
                 bash idleleo
@@ -878,7 +907,7 @@ nginx_update() {
             service_stop
             timeout "删除旧版 Nginx !"
             rm -rf ${nginx_dir}
-            echo -e "\n${GreenBG} 是否保留原配置文件 [Y/N]? ${Font}"
+            echo -e "\n${GreenBG} 是否保留原Nginx配置文件 [Y/N]? ${Font}"
             read -r save_originconf_fq
             case $save_originconf_fq in
             [nN][oO]|[nN])
@@ -1064,31 +1093,31 @@ xray_xtls_add_more() {
 old_config_exist_check() {
     if [[ -f ${xray_qr_config_file} ]]; then
         if [[ ${old_tls_mode} == ${tls_mode} ]]; then
-            echo -e "\n${GreenBG} 检测到旧配置文件, 是否读取旧文件配置 [Y/N]? ${Font}"
+            echo -e "\n${GreenBG} 检测到配置文件, 是否读取配置文件 [Y/N]? ${Font}"
             read -r old_config_fq
             case $old_config_fq in
             [nN][oO]|[nN])
                 rm -rf ${xray_qr_config_file}
-                echo -e "${OK} ${GreenBG} 已删除旧配置 ${Font}"
+                echo -e "${OK} ${GreenBG} 已删除配置文件 ${Font}"
                 ;;
             *)
-                echo -e "${OK} ${GreenBG} 已保留旧配置 ${Font}"
+                echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
                 old_config_status="on"
                 old_config_input
                 ;;
             esac
         else
-            echo -e "\n${GreenBG} 检测到当前安装模式与旧配置的安装模式不一致, 是否保留旧配置文件 [Y/N]? ${Font}"
+            echo -e "\n${GreenBG} 检测到当前安装模式与配置文件的安装模式不一致, 是否保留配置文件 [Y/N]? ${Font}"
             read -r old_config_fq
             case $old_config_fq in
             [yY][eE][sS] | [yY])
-                echo -e "${OK} ${GreenBG} 已保留旧配置 ${Font}"
+                echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
                 echo -e "${OK} ${GreenBG} 停止安装 ${Font}"
                 bash idleleo
                 ;;
             *)
                 rm -rf ${xray_qr_config_file}
-                echo -e "${OK} ${GreenBG} 已删除旧配置 ${Font}"
+                echo -e "${OK} ${GreenBG} 已删除配置文件 ${Font}"
                 ;;
             esac
         fi
@@ -1103,12 +1132,12 @@ old_config_input () {
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             xport=$(info_extraction '\"ws_port\"')
             path=$(info_extraction '\"path\"')
-            gport=$((RANDOM + 10000))
+            gport=$((RANDOM % 1000 + 30000))
             servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
             gport=$(info_extraction '\"grpc_port\"')
             servicename=$(info_extraction '\"servicename\"')
-            xport=$((RANDOM + 10000))
+            xport=$((RANDOM % 1000 + 20000))
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             xport=$(info_extraction '\"ws_port\"')
@@ -1124,12 +1153,12 @@ old_config_input () {
                 if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                     xport=$(info_extraction '\"ws_port\"')
                     path=$(info_extraction '\"ws_path\"')
-                    gport=$((RANDOM + 10000))
+                    gport=$((RANDOM % 1000 + 30000))
                     servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                 elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                     gport=$(info_extraction '\"grpc_port\"')
                     servicename=$(info_extraction '\"grpc_servicename\"')
-                    xport=$((RANDOM + 10000))
+                    xport=$((RANDOM % 1000 + 20000))
                     path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                 elif [[ ${ws_grpc_mode} == "all" ]]; then
                     xport=$(info_extraction '\"ws_port\"')
@@ -1144,12 +1173,12 @@ old_config_input () {
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             xport=$(info_extraction '\"ws_port\"')
             path=$(info_extraction '\"path\"')
-            gport=$((RANDOM + 10000))
+            gport=$((RANDOM % 1000 + 30000))
             servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
             gport=$(info_extraction '\"grpc_port\"')
             servicename=$(info_extraction '\"servicename\"')
-            xport=$((RANDOM + 10000))
+            xport=$((RANDOM % 1000 + 20000))
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             xport=$(info_extraction '\"ws_port\"')
@@ -1159,17 +1188,17 @@ old_config_input () {
         fi
     fi
     if [[ 0 -eq ${read_config_status} ]]; then
-        echo -e "\n${GreenBG} 检测到旧配置文件不完整, 是否保留旧配置文件 [Y/N]? ${Font}"
+        echo -e "\n${GreenBG} 检测到配置文件不完整, 是否保留配置文件 [Y/N]? ${Font}"
         read -r old_config_input_fq
         case $old_config_input_fq in
         [yY][eE][sS] | [yY])
             old_config_status="off"
-            echo -e "${OK} ${GreenBG} 已保留旧配置 ${Font}"
+            echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
             ;;
         *)
             rm -rf ${xray_qr_config_file}
             old_config_status="off"
-            echo -e "${OK} ${GreenBG} 已删除旧配置 ${Font}"
+            echo -e "${OK} ${GreenBG} 已删除配置文件 ${Font}"
             ;;
         esac
     fi
@@ -1178,69 +1207,69 @@ old_config_input () {
 nginx_conf_add() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
-    types_hash_max_size 2048;
+types_hash_max_size 2048;
 
-    server {
-        listen 443 ssl http2;
-        listen [::]:443 ssl http2;
-        ssl_certificate       /etc/idleleo/cert/xray.crt;
-        ssl_certificate_key   /etc/idleleo/cert/xray.key;
-        ssl_protocols         TLSv1.3;
-        ssl_ciphers           TLS-AES-128-GCM-SHA256:TLS-CHACHA20-POLY1305-SHA256:TLS_AES_128_CCM_SHA256:TLS_AES_256_GCM_SHA384:EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+ECDSA+AES128:EECDH+aRSA+AES128:RSA+AES128:EECDH+ECDSA+AES256:EECDH+aRSA+AES256:RSA+AES256:EECDH+ECDSA+3DES:EECDH+aRSA+3DES:RSA+3DES:!MD5;
-        server_name           serveraddr.com;
-        index index.html index.htm;
-        root /400.html;
-        error_page 400 https://www.bing.com;
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    ssl_certificate       /etc/idleleo/cert/xray.crt;
+    ssl_certificate_key   /etc/idleleo/cert/xray.key;
+    ssl_protocols         TLSv1.3;
+    ssl_ciphers           TLS-AES-128-GCM-SHA256:TLS-CHACHA20-POLY1305-SHA256:TLS_AES_128_CCM_SHA256:TLS_AES_256_GCM_SHA384:EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+ECDSA+AES128:EECDH+aRSA+AES128:RSA+AES128:EECDH+ECDSA+AES256:EECDH+aRSA+AES256:RSA+AES256:EECDH+ECDSA+3DES:EECDH+aRSA+3DES:RSA+3DES:!MD5;
+    server_name           serveraddr.com;
+    index index.html index.htm;
+    root /400.html;
+    error_page 400 https://www.bing.com;
+    # Config for 0-RTT in TLSv1.3
+    ssl_early_data on;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_prefer_server_ciphers on;
+    add_header Strict-Transport-Security "max-age=31536000";
+
+    location grpc
+    {
+        #grpc_pass grpc://xray-grpc-server;
+        grpc_connect_timeout 60s;
+        grpc_read_timeout 720m;
+        grpc_send_timeout 720m;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+
         # Config for 0-RTT in TLSv1.3
-        ssl_early_data on;
-        ssl_stapling on;
-        ssl_stapling_verify on;
-        ssl_prefer_server_ciphers on;
-        add_header Strict-Transport-Security "max-age=31536000";
-
-        location grpc
-        {
-            #grpc_pass grpc://xray-grpc-server;
-            grpc_connect_timeout 60s;
-            grpc_read_timeout 720m;
-            grpc_send_timeout 720m;
-            grpc_set_header X-Real-IP \$remote_addr;
-            grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-
-            # Config for 0-RTT in TLSv1.3
-            proxy_set_header Early-Data \$ssl_early_data;
-        }
-
-        location ws
-        {
-            #proxy_pass http://xray-ws-server;
-            #proxy_redirect default;
-            proxy_http_version 1.1;
-            proxy_connect_timeout 60s;
-            proxy_send_timeout 720m;
-            proxy_read_timeout 720m;
-            proxy_buffering off;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header Upgrade \$http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host \$http_host;
-
-            # Config for 0-RTT in TLSv1.3
-            proxy_set_header Early-Data \$ssl_early_data;
-        }
-
-        location /
-        {
-            return 302 https://www.bing.com;
-        }
+        proxy_set_header Early-Data \$ssl_early_data;
     }
-    server {
-        listen 80;
-        listen [::]:80;
-        server_name serveraddr.com;
-        return 301 https://www.idleleo.com\$request_uri;
+
+    location ws
+    {
+        #proxy_pass http://xray-ws-server;
+        #proxy_redirect default;
+        proxy_http_version 1.1;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 720m;
+        proxy_read_timeout 720m;
+        proxy_buffering off;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$http_host;
+
+        # Config for 0-RTT in TLSv1.3
+        proxy_set_header Early-Data \$ssl_early_data;
     }
+
+    location /
+    {
+        return 302 https://www.bing.com;
+    }
+}
+server {
+    listen 80;
+    listen [::]:80;
+    server_name serveraddr.com;
+    return 301 https://www.idleleo.com\$request_uri;
+}
 EOF
     if [[ ${bt_nginx} == "Yes" ]]; then
         ln -s ${nginx_conf} /www/server/panel/vhost/nginx/xray.conf
@@ -1254,25 +1283,25 @@ EOF
 nginx_conf_add_xtls() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
-    server {
-        listen 127.0.0.1:8080 proxy_protocol;
-        server_name         serveraddr.com;
-        set_real_ip_from    127.0.0.1;
-        real_ip_header      X-Forwarded-For;
-        real_ip_recursive   on;
-        add_header Strict-Transport-Security "max-age=63072000" always;
-        location /
-        {
-            return 302 https://www.bing.com;
-        }
+server {
+    listen 127.0.0.1:8080 proxy_protocol;
+    server_name         serveraddr.com;
+    set_real_ip_from    127.0.0.1;
+    real_ip_header      X-Forwarded-For;
+    real_ip_recursive   on;
+    add_header Strict-Transport-Security "max-age=63072000" always;
+    location /
+    {
+        return 302 https://www.bing.com;
     }
+}
 
-    server {
-        listen 80;
-        listen [::]:80;
-        server_name         serveraddr.com;
-        return 301 https://www.idleleo.com\$request_uri;
-    }
+server {
+    listen 80;
+    listen [::]:80;
+    server_name         serveraddr.com;
+    return 301 https://www.idleleo.com\$request_uri;
+}
 EOF
     if [[ ${bt_nginx} == "Yes" ]]; then
         ln -s ${nginx_conf} /www/server/panel/vhost/nginx/xray.conf
@@ -1283,15 +1312,16 @@ EOF
 }
 
 nginx_conf_servers_add() {
+if [[ "on" != ${old_config_status} ]]; then
     touch ${nginx_upstream_conf}
     cat >${nginx_upstream_conf} <<EOF
-    upstream xray-ws-server {
-        #xray-ws-serverc
-    }
+upstream xray-ws-server {
+    #xray-ws-serverc
+}
 
-    upstream xray-grpc-server {
-        #xray-grpc-serverc
-    }
+upstream xray-grpc-server {
+    #xray-grpc-serverc
+}
 EOF
     if [[ ${bt_nginx} == "Yes" ]]; then
         ln -s ${nginx_upstream_conf} /www/server/panel/vhost/nginx/xray-server.conf
@@ -1299,6 +1329,7 @@ EOF
     fi
     modify_nginx_servers
     judge "Nginx servers 配置修改"
+fi
 }
 
 enable_process_systemd() {
@@ -1497,6 +1528,7 @@ vless_qr_config_tls_ws() {
     "path": "${artpath}",
     "servicename": "${artservicename}",
     "bt_nginx": "${bt_nginx}",
+    "xray_version": "${xray_version}",
     "nginx_version": "${nginx_version}",
     "openssl_version": "${openssl_version}",
     "jemalloc_version": "${jemalloc_version}"
@@ -1521,6 +1553,7 @@ vless_qr_config_xtls() {
     "ws_path": "${artpath}",
     "grpc_servicename": "${artservicename}",
     "bt_nginx": "${bt_nginx}",
+    "xray_version": "${xray_version}",
     "nginx_version": "${nginx_version}",
     "openssl_version": "${openssl_version}",
     "jemalloc_version": "${jemalloc_version}"
@@ -1541,7 +1574,8 @@ vless_qr_config_ws_only() {
     "id": "${UUID}",
     "net": "ws/gRPC",
     "path": "${artpath}",
-    "servicename": "${artservicename}"
+    "servicename": "${artservicename}",
+    "xray_version": "${xray_version}"
 }
 EOF
 }
@@ -1878,18 +1912,18 @@ revision_port() {
         echo -e "${OK} ${GreenBG} 连接端口号: ${port} ${Font}"
     elif [[ ${tls_mode} == "XTLS" ]]; then
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
-        xport=$((RANDOM + 10000))
-        gport=$((RANDOM + 10000))
+        xport=$((RANDOM % 1000 + 20000))
+        gport=$((RANDOM % 1000 + 30000))
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
-            gport=$((RANDOM + 10000))
+            gport=$((RANDOM % 1000 + 30000))
             [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
             echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
         elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${gport}"
-            xport=$((RANDOM + 10000))
+            xport=$((RANDOM % 1000 + 20000))
             [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
             echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
@@ -1908,12 +1942,12 @@ revision_port() {
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
-            gport=$((RANDOM + 10000))
+            gport=$((RANDOM % 1000 + 30000))
             echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
         elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${gport}"
-            xport=$((RANDOM + 10000))
+            xport=$((RANDOM % 1000 + 20000))
             echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
@@ -1959,13 +1993,9 @@ mtproxy_sh() {
 uninstall_all() {
     stop_service_all
     systemctl disable xray
-    [[ -f ${xray_systemd_file} ]] && rm -rf ${xray_systemd_file}
-    [[ -f ${xray_systemd_file2} ]] && rm -rf ${xray_systemd_file2}
-    [[ -d ${xray_systemd_filed} ]] && rm -rf ${xray_systemd_filed}
-    [[ -d ${xray_systemd_filed2} ]] && rm -rf ${xray_systemd_filed2}
-    [[ -f ${xray_bin_dir} ]] && rm -rf ${xray_bin_dir}
+    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove --purge
+    judge "卸载 Xray"
     [[ -d ${xray_conf_dir} ]] && rm -rf ${xray_conf_dir}
-    [[ -L ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
     [[ -d ${idleleo_tmp} ]] && rm -rf ${idleleo_tmp}
     [[ -L /www/server/panel/vhost/nginx/xray.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray.conf
     [[ -L /www/server/panel/vhost/nginx/xray-server.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray-server.conf
@@ -2178,45 +2208,48 @@ maintain() {
 list() {
     case $1 in
 
-    boost)
-        bbr_boost_sh
-        ;;
-    crontab)
+    --cert-update)
         acme_cron_update
         ;;
-    nginx)
+    --nginx-update)
         nginx_update
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    show)
+    --purge)
+        uninstall_all
+        ;;
+    --show)
         clear
         basic_information
         vless_qr_link_image
         show_information
         ;;
-    tls)
+    --tcp)
+        bbr_boost_sh
+        ;;
+    --tls)
         tls_type
         ;;
-    uninstall)
+    --uninstall)
         uninstall_all
         ;;
-    update)
+    --update)
         update_sh
         ;;
-    xray)
-        xray_update
-        timeout "清空屏幕!"
-        clear
-        ;;
-    xray_access)
+    --xray-access)
         clear
         show_access_log
         ;;
-    xray_error)
+    --xray-error)
         clear
         show_error_log
+        ;;
+    --xray-update)
+        xray_update
+        timeout "清空屏幕!"
+        clear
         ;;
     *)
         menu
@@ -2264,13 +2297,31 @@ idleleo_commend() {
         else
             ol_version=$(curl -L -s https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
             echo "${ol_version}" >${version_cmp}
-            [[ -z ${ol_version} ]] && need_update="${Red}[检测失败!]${Font}"
+            [[ -z ${ol_version} ]] && shell_need_update="${Red}[检测失败!]${Font}"
             echo "${shell_version}" >>${version_cmp}
             newest_version=$(sort -rV ${version_cmp} | head -1)
             if [[ ${shell_version} != ${newest_version} ]]; then
-                need_update="${Red}[有新版!]${Font}"
+                shell_need_update="${Red}[有新版!]${Font}"
             else
-                need_update="${Green}[最新版^O^]${Font}"
+                shell_need_update="${Green}[最新版^O^]${Font}"
+            fi
+            if [[ $(info_extraction '\"nginx_version\"') == "" ]];then
+                nginx_need_update="${Red}[未安装]${Font}"
+            elif [[ ${nginx_version} != $(info_extraction '\"nginx_version\"') ]] || [[ ${openssl_version} != $(info_extraction '\"openssl_version\"') ]] || [[ ${jemalloc_version} != $(info_extraction '\"jemalloc_version\"') ]];then
+                nginx_need_update="${Red}[有新版!]${Font}"
+            else
+                nginx_need_update="${Green}[最新版]${Font}"
+            fi
+            if [[ $(info_extraction '\"xray_version\"') == "" ]];then
+                if [[ -f ${xray_qr_config_file} ]]; then
+                    xray_need_update="${Green}[已安装] (版本未知)${Font}"
+                else
+                    xray_need_update="${Red}[未安装]${Font}"
+                fi
+            elif [[ ${xray_version} != $(info_extraction '\"xray_version\"') ]];then
+                xray_need_update="${Red}[有新版!]${Font}"
+            else
+                xray_need_update="${Green}[最新版]${Font}"
             fi
         fi
     else
@@ -2287,15 +2338,18 @@ idleleo_commend() {
 
 menu() {
 
-    echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font} ${need_update}"
+    echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font} ${shell_need_update}"
     echo -e "--- authored by paniy ---"
     echo -e "--- changed by www.idleleo.com ---"
     echo -e "--- https://github.com/paniy ---\n"
     echo -e "当前已安装模式: ${shell_mode}\n"
 
-    echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本${Font}"
-    echo -e "${Green}版本检测: ${need_update}\n${Font}"
+    echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本${Font}\n"
 
+    echo -e "—————————————— 版本检测 ——————————————"
+    echo -e "${Green}脚本:${Font}  ${shell_need_update}"
+    echo -e "${Green}Xray:${Font}  ${xray_need_update}"
+    echo -e "${Green}Nginx:${Font} ${nginx_need_update}"
     echo -e "—————————————— 升级向导 ——————————————"
     echo -e "${Green}0.${Font}  升级 脚本"
     echo -e "${Green}1.${Font}  升级 Xray"
@@ -2325,7 +2379,8 @@ menu() {
     echo -e "${Green}20.${Font} 安装 MTproxy (不推荐)"
     echo -e "${Green}21.${Font} 设置 额外证书自动更新 (不推荐)"
     echo -e "${Green}22.${Font} 证书 有效期手动更新"
-    echo -e "${Green}23.${Font} 卸载 Xray"
+    echo -e "—————————————— 卸载向导 ——————————————"
+    echo -e "${Green}23.${Font} 卸载 脚本"
     echo -e "${Green}24.${Font} 清空 证书文件"
     echo -e "${Green}25.${Font} 退出 \n"
 
@@ -2495,6 +2550,6 @@ menu() {
     esac
 }
 
-idleleo_commend
 judge_mode
+idleleo_commend
 list "$1"
