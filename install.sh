@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.8.4.4"
+shell_version="1.8.4.10"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -706,11 +706,9 @@ xray_install() {
         cd ${idleleo_tmp}/xray || exit
         wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh
         if [[ -f install-release.sh ]]; then
-            bash install-release.sh --purge
-            wait
-            bash install-release.sh --f --version ${xray_version}
-            systemctl daemon-reload
+            bash install-release.sh @ install -f --version v${xray_version}
             judge "安装 Xray"
+            systemctl daemon-reload
             [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
             [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
             ln -s ${xray_conf} ${xray_default_conf}
@@ -727,15 +725,11 @@ xray_install() {
 }
 
 xray_update() {
-    #mkdir -p ${idleleo_tmp}/xray
-    #cd ${idleleo_tmp}/xray || exit
-    #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh
-    #wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-dat-release.sh
     [[ ! -d /usr/local/etc/xray ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装！ ${Font}"
     echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
     systemctl stop xray
     wait
-    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --f --version ${xray_version}
+    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
     wait
     [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
     [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
@@ -2207,54 +2201,117 @@ maintain() {
 
 list() {
     case $1 in
-
-    --cert-update)
-        acme_cron_update
+    '-1' | '--install-tls')
+        shell_mode="Nginx+ws+TLS"
+        tls_mode="TLS"
+        install_xray_ws_tls
         ;;
-    --nginx-update)
+    '-2' | '--install-xtls')
+        shell_mode="XTLS+Nginx"
+        tls_mode="XTLS"
+        install_xray_xtls
+        ;;
+    '-3' | '--install-none')
+        echo -e "\n${Warning} ${YellowBG} 此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/N]? ${Font}"
+        read -r wsonly_fq
+        case $wsonly_fq in
+        [yY][eE][sS] | [yY])
+            shell_mode="ws ONLY"
+            tls_mode="None"
+            install_xray_ws_only
+            ;;
+        *) ;;
+        esac
+        ;;
+    '-4' | '--add-upstream')
+        nginx_upstream_server_set
+        ;;
+    '-c' | '--clean-logs')
+        clean_logs
+        ;;
+    '-cu' | '--cert-update')
+        service_stop
+        ssl_update_manuel
+        service_restart
+        ;;
+    '-f' | '--set-fail2ban')
+        network_secure
+        ;;
+    '-h' | '--help')
+        show_help
+        ;;
+    '-n' | '--nginx-update')
         nginx_update
-        timeout "清空屏幕!"
-        clear
-        bash idleleo
         ;;
-    --purge)
+    '-p' | '--port-set')
+        revision_port
+        firewall_set
+        service_restart
+        ;;
+    '--purge' | '--uninstall')
         uninstall_all
         ;;
-    --show)
+    '-s' | '-show')
         clear
         basic_information
         vless_qr_link_image
         show_information
         ;;
-    --tcp)
+    '-tcp' | '--tcp')
         bbr_boost_sh
         ;;
-    --tls)
+    '-tls' | '--tls')
         tls_type
         ;;
-    --uninstall)
-        uninstall_all
-        ;;
-    --update)
+    '-u' | '--update')
         update_sh
         ;;
-    --xray-access)
+    '-uu' | '--uuid-set')
+        UUID_set
+        modify_UUID
+        service_restart
+        ;;
+    '-xa' | '--xray-access')
         clear
         show_access_log
         ;;
-    --xray-error)
+    '-xe' | '--xray-error')
         clear
         show_error_log
         ;;
-    --xray-update)
+    '-x' | '--xray-update')
         xray_update
-        timeout "清空屏幕!"
-        clear
         ;;
     *)
         menu
         ;;
     esac
+}
+
+show_help() {
+  echo "usage: idleleo [OPTION]"
+  echo
+  echo 'OPTION:'
+  echo '  -1, --install-tls           安装 Xray (Nginx+ws/gRPC+tls)'
+  echo '  -2, --install-xtls          安装 Xray (XTLS+Nginx+ws/gRPC)'
+  echo '  -3, --install-none          安装 Xray (ws/gRPC ONLY)'
+  echo '  -4, --add-upstream          变更 Nginx 负载均衡配置'
+  echo '  -c, --clean-logs            清除日志文件'
+  echo '  -cu, --cert-update          手动更新证书有效期'
+  echo '  -f, --set-fail2ban          设置 Fail2ban 防暴力破解'
+  echo '  -h, --help                  显示帮助'
+  echo '  -n, --nginx-update          更新 Nginx'
+  echo '  -p, --port-set              变更 port'
+  echo '  --purge, --uninstall        脚本卸载'
+  echo '  -s, --show                  显示安装信息'
+  echo '  -tcp, --tcp                 配置 TCP 加速'
+  echo '  -tls, --tls                 修改 TLS 配置'
+  echo '  -u, --update                升级脚本'
+  echo '  -uu, --uuid-set             变更 UUIDv5/映射字符串'
+  echo '  -xa, --xray-access          显示 Xray 访问信息'
+  echo '  -xe, --xray-error           显示 Xray 错误信息'
+  echo '  -x, --xray-update           更新 Xray'
+  exit 0
 }
 
 idleleo_commend() {
@@ -2552,4 +2609,4 @@ menu() {
 
 judge_mode
 idleleo_commend
-list "$1"
+list "$*"
