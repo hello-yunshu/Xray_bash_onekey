@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.8.4.10"
+shell_version="1.8.5.7"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -45,7 +45,6 @@ xray_conf="${xray_conf_dir}/config.json"
 xray_default_conf="/usr/local/etc/xray/config.json"
 nginx_conf="${nginx_conf_dir}/xray.conf"
 nginx_upstream_conf="${nginx_conf_dir}/xray-server.conf"
-idleleo_tmp="${idleleo_dir}/tmp"
 idleleo_commend_file="/usr/bin/idleleo"
 ssl_chainpath="${idleleo_dir}/cert"
 nginx_dir="/etc/nginx"
@@ -58,7 +57,7 @@ xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
-cert_group="nobody"
+cert_group="nogroup"
 myemali="my@example.com"
 xray_version="1.4.5"
 nginx_version="1.20.1"
@@ -168,7 +167,7 @@ pkg_install() {
 }
 
 dependency_install() {
-    pkg_install "bc,curl,dbus,git,lsof,python3,qrencode,wget"
+    pkg_install "bc,curl,dbus,git,jq,lsof,python3,qrencode,wget"
 
     if [[ "${ID}" == "centos" ]]; then
         pkg_install "crontabs"
@@ -246,7 +245,6 @@ create_directory() {
     [[ ! -d "${ssl_chainpath}" ]] && mkdir -p ${ssl_chainpath}
     [[ ! -d "${xray_conf_dir}" ]] && mkdir -p ${xray_conf_dir}
     [[ ! -d "${idleleo_dir}/info" ]] && mkdir -p ${idleleo_dir}/info
-    [[ ! -d "${idleleo_tmp}" ]] && mkdir -p ${idleleo_tmp}
 }
 
 port_set() {
@@ -647,12 +645,12 @@ modify_nginx_other() {
     if [[ ${tls_mode} == "TLS" ]]; then
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
         sed -i "s/^\( *\)location grpc$/\1location \/${servicename}/" ${nginx_conf}
-        if [[ ${shell_mode} == "Nginx+ws+TLS" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
             sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
-        elif [[ ${shell_mode} == "Nginx+gRPC+TLS" ]]; then
+        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
             sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" ${nginx_conf}
-        elif [[ ${shell_mode} == "Nginx+ws+gRPC+TLS" ]]; then
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
             sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
             sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
             sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" ${nginx_conf}
@@ -694,31 +692,19 @@ xray_privilege_escalation() {
         echo -e "${OK} ${GreenBG} 检测到 Xray 的权限控制, 启动擦屁股程序 ${Font}"
         chmod -fR a+rw /var/log/xray/
         chown -fR nobody:${cert_group} /var/log/xray/
-        chown -R nobody:${cert_group} ${ssl_chainpath}/*
+        chown -fR nobody:${cert_group} ${ssl_chainpath}/*
     fi
     echo -e "${OK} ${GreenBG} Xray 擦屁股 完成 ${Font}"
 }
 
 xray_install() {
     if [[ $(xray version) == "" ]] || [[ ! -f ${xray_conf} ]]; then
-        [[ -d ${idleleo_tmp}/xray ]] && rm -rf ${idleleo_tmp}/xray
-        mkdir -p ${idleleo_tmp}/xray
-        cd ${idleleo_tmp}/xray || exit
-        wget -N --no-check-certificate https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh
-        if [[ -f install-release.sh ]]; then
-            bash install-release.sh @ install -f --version v${xray_version}
-            judge "安装 Xray"
-            systemctl daemon-reload
-            [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
-            [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
-            ln -s ${xray_conf} ${xray_default_conf}
-        else
-            echo -e "${Error} ${RedBG} Xray 安装文件下载失败, 请检查下载地址是否可用! ${Font}"
-            exit 4
-            bash idleleo
-        fi
-        # 清除临时文件
-        rm -rf ${idleleo_tmp}/xray
+        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+        judge "安装 Xray"
+        systemctl daemon-reload
+        [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
+        [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
+        ln -s ${xray_conf} ${xray_default_conf}
     else
         echo -e "${OK} ${GreenBG} 已安装 Xray ${Font}"
     fi
@@ -736,8 +722,6 @@ xray_update() {
     ln -s ${xray_conf} ${xray_default_conf}
     systemctl daemon-reload
     systemctl start xray
-    # 清除临时文件
-    ##rm -rf ${idleleo_tmp}/xray
 }
 
 nginx_exist_check() {
@@ -901,7 +885,7 @@ nginx_update() {
             service_stop
             timeout "删除旧版 Nginx !"
             rm -rf ${nginx_dir}
-            echo -e "\n${GreenBG} 是否保留原Nginx配置文件 [Y/N]? ${Font}"
+            echo -e "\n${GreenBG} 是否保留原 Nginx 配置文件 [Y/N]? ${Font}"
             read -r save_originconf_fq
             case $save_originconf_fq in
             [nN][oO]|[nN])
@@ -944,6 +928,20 @@ ssl_install() {
 }
 
 domain_check() {
+    if [[ "on" == ${old_config_status} ]] && [[ $(info_extraction '\"host\"') != "" ]]; then
+        echo -e "\n${GreenBG} 检测到原域名存在, 是否跳过域名设置 [Y/N]? ${Font}"
+        read -r old_host_fq
+        case $old_host_fq in
+        *)
+            domain=$(info_extraction '\"host\"')
+            local_ip=$(curl -4 ip.sb)
+            echo -e "\n${GreenBG} 已跳过域名设置 ${Font}"
+            return 0
+            ;;
+        [nN][oO]|[nN]) ;;
+        esac
+    fi
+    wait
     echo -e "\n${GreenBG} 确定 域名 信息 ${Font}"
     read_optimize "请输入你的域名信息 (eg:www.idleleo.com):" "domain" "NULL"
     echo -e "\n${GreenBG} 请选择 公网IP(IPv4/IPv6) 或手动输入 域名 ${Font}"
@@ -994,6 +992,19 @@ domain_check() {
 }
 
 ip_check() {
+    if [[ "on" == ${old_config_status} ]] && [[ $(info_extraction '\"host\"') != "" ]]; then
+        echo -e "\n${GreenBG} 检测到原IP配置存在, 是否跳过IP设置 [Y/N]? ${Font}"
+        read -r old_host_fq
+        case $old_host_fq in
+        *)
+            local_ip=$(curl -4 ip.sb)
+            echo -e "\n${GreenBG} 已跳过IP设置 ${Font}"
+            return 0
+            ;;
+        [nN][oO]|[nN]) ;;
+        esac
+    fi
+    wait
     echo -e "\n${GreenBG} 确定 公网IP 信息 ${Font}"
     echo -e "${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
     echo "1: IPv4 (默认)"
@@ -1043,7 +1054,7 @@ acme() {
             chmod -f a+rw ${ssl_chainpath}/xray.crt
             chmod -f a+rw ${ssl_chainpath}/xray.key
             [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
-            chown -R nobody:${cert_group} ${ssl_chainpath}/*
+            chown -fR nobody:${cert_group} ${ssl_chainpath}/*
             echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
         fi
     else
@@ -1227,6 +1238,8 @@ server {
         grpc_connect_timeout 60s;
         grpc_read_timeout 720m;
         grpc_send_timeout 720m;
+        lingering_close always;
+        client_max_body_size 0;
         grpc_set_header X-Real-IP \$remote_addr;
         grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 
@@ -1243,6 +1256,8 @@ server {
         proxy_send_timeout 720m;
         proxy_read_timeout 720m;
         proxy_buffering off;
+        lingering_close always;
+        client_max_body_size 0;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Upgrade \$http_upgrade;
@@ -1382,12 +1397,11 @@ service_stop(){
 
 acme_cron_update() {
     echo -e "\n${GreenBG} acme.sh 已自动设置证书自动更新 ${Font}"
-    echo -e "${GreenBG} 是否需要重新设置证书自动更新 (不推荐) [Y/N]? ${Font}"
+    echo -e "${GreenBG} 是否需要重新设置证书自动更新 (推荐) [Y/N]? ${Font}"
     read -r acme_cron_update_fq
     case $acme_cron_update_fq in
+    [nN][oO]|[nN]) ;;
     *)
-        ;;
-    [yY][eE][sS] | [yY])
         if [[ "${ssl_self}" != "on" ]]; then
             wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
             if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
@@ -1408,6 +1422,49 @@ acme_cron_update() {
         ;;
     esac
 }
+
+check_cert_status() {
+	host="$(info_extraction '\"host\"')"
+    if [[ -d "$HOME/.acme.sh/${host}_ecc" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.key" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.cer" ]]; then
+		modifyTime=$(stat "$HOME/.acme.sh/${host}_ecc/${host}.cer" | sed -n '7,6p' | awk '{print $2" "$3" "$4" "$5}')
+		modifyTime=$(date +%s -d "${modifyTime}")
+		currentTime=$(date +%s)
+		((stampDiff = currentTime - modifyTime))
+		((days = stampDiff / 86400))
+		((remainingDays = 90 - days))
+		tlsStatus=${remainingDays}
+		[[ ${remainingDays} -le 0 ]] && tlsStatus="${Red}已过期${Font}"
+        echo -e "\n${Green}证书生成日期: $(date -d "@${modifyTime}" +"%F %H:%M:%S")${Font}"
+		echo -e "证书生成天数: ${days}${Font}"
+		echo -e "证书剩余天数: ${tlsStatus}${Font}\n"
+        if [[ ${remainingDays} -le 0 ]]; then
+            echo -e "\n${Warning} ${YellowBG} 是否立即更新证书 [Y/N]? ${Font}"
+            read -r cert_update_manuel_fq
+            case $cert_update_manuel_fq in
+            [yY][eE][sS] | [yY])
+                service_stop
+                cert_update_manuel
+                service_restart
+                ;;
+            *) ;;
+            esac
+        fi
+	else
+        echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
+    fi
+}
+
+cert_update_manuel() {
+    if [[ -f ${amce_sh_file} ]];then
+        "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" 
+    else
+        echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
+    fi
+    host="$(info_extraction '\"host\"')"
+    "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
+    judge "证书更新"
+}
+
 
 network_secure() {
     check_system
@@ -1782,7 +1839,7 @@ ssl_judge_and_install() {
                 acme
                 ;;
             *)
-                chown -R nobody:${cert_group} ${ssl_chainpath}/*
+                chown -fR nobody:${cert_group} ${ssl_chainpath}/*
                 judge "证书应用"
                 ;;
             esac
@@ -1797,7 +1854,7 @@ ssl_judge_and_install() {
                 acme
                 ;;
             *)
-                chown -R nobody:${cert_group} ${ssl_chainpath}/*
+                chown -fR nobody:${cert_group} ${ssl_chainpath}/*
                 judge "证书应用"
                 ssl_self="on"
                 ;;
@@ -1814,7 +1871,7 @@ ssl_judge_and_install() {
                 ;;
             *)
                 "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
-                chown -R nobody:${cert_group} ${ssl_chainpath}/*
+                chown -fR nobody:${cert_group} ${ssl_chainpath}/*
                 judge "证书应用"
                 ;;
             esac
@@ -1959,17 +2016,11 @@ revision_port() {
 }
 
 show_access_log() {
-    [ -f ${xray_access_log} ] && tail -f ${xray_access_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
+    [[ -f ${xray_access_log} ]] && tail -f ${xray_access_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
 }
 
 show_error_log() {
-    [ -f ${xray_error_log} ] && tail -f ${xray_error_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
-}
-
-ssl_update_manuel() {
-    [ -f ${amce_sh_file} ] && "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" || echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认你是否使用了自己的证书! ${Font}"
-    domain="$(info_extraction '\"host\"')"
-    "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
+    [[ -f ${xray_error_log} ]] && tail -f ${xray_error_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
 }
 
 bbr_boost_sh() {
@@ -1990,7 +2041,6 @@ uninstall_all() {
     bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove --purge
     judge "卸载 Xray"
     [[ -d ${xray_conf_dir} ]] && rm -rf ${xray_conf_dir}
-    [[ -d ${idleleo_tmp} ]] && rm -rf ${idleleo_tmp}
     [[ -L /www/server/panel/vhost/nginx/xray.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray.conf
     [[ -L /www/server/panel/vhost/nginx/xray-server.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray-server.conf
     if [[ -d ${nginx_dir} ]]; then
@@ -2053,7 +2103,24 @@ judge_mode() {
         ws_grpc_mode=$(info_extraction '\"ws_grpc_mode\"')
         tls_mode=$(info_extraction '\"tls\"')
         bt_nginx=$(info_extraction '\"bt_nginx\"')
-        shell_mode=$(info_extraction '\"shell_mode\"')
+        if [[ ${tls_mode} == "TLS" ]]; then
+            [[ ${ws_grpc_mode} == "onlyws" ]] && shell_mode="Nginx+ws+TLS"
+            [[ ${ws_grpc_mode} == "onlygRPC" ]] && shell_mode="Nginx+gRPC+TLS"
+            [[ ${ws_grpc_mode} == "all" ]] && shell_mode="Nginx+ws+gRPC+TLS"
+        elif [[ ${tls_mode} == "XTLS" ]]; then
+            if [[ $(info_extraction '\"xtls_add_more\"') != "off" ]]; then
+                xtls_add_more="on"
+                [[ ${ws_grpc_mode} == "onlyws" ]] && shell_mode="XTLS+Nginx+ws"
+                [[ ${ws_grpc_mode} == "onlygRPC" ]] && shell_mode="XTLS+Nginx+gRPC"
+                [[ ${ws_grpc_mode} == "all" ]] && shell_mode="XTLS+Nginx+ws+gRPC"
+            else
+                shell_mode="XTLS+Nginx"
+            fi
+        elif [[ ${tls_mode} == "None" ]]; then
+            [[ ${ws_grpc_mode} == "onlyws" ]] && shell_mode="ws ONLY"
+            [[ ${ws_grpc_mode} == "onlygRPC" ]] && shell_mode="gRPC ONLY"
+            [[ ${ws_grpc_mode} == "all" ]] && shell_mode="ws+gRPC ONLY"
+        fi
         [[ $(info_extraction '\"xtls_add_more\"') == "on" ]] && xtls_add_more="on"
         old_tls_mode=${tls_mode}
     fi
@@ -2065,8 +2132,8 @@ install_xray_ws_tls() {
     dependency_install
     basic_optimization
     create_directory
-    domain_check
     old_config_exist_check
+    domain_check
     ws_grpc_choose
     port_set
     ws_inbound_port_set
@@ -2103,8 +2170,8 @@ install_xray_xtls() {
     dependency_install
     basic_optimization
     create_directory
-    domain_check
     old_config_exist_check
+    domain_check
     port_set
     UUID_set
     xray_xtls_add_more_choose
@@ -2135,8 +2202,8 @@ install_xray_ws_only() {
     dependency_install
     basic_optimization
     create_directory
-    ip_check
     old_config_exist_check
+    ip_check
     ws_grpc_choose
     ws_inbound_port_set
     grpc_inbound_port_set
@@ -2229,10 +2296,16 @@ list() {
     '-c' | '--clean-logs')
         clean_logs
         ;;
+    '-cs' | '--cert-status')
+        check_cert_status
+        ;;
     '-cu' | '--cert-update')
         service_stop
-        ssl_update_manuel
+        cert_update_manuel
         service_restart
+        ;;
+    '-cau' | '--cert-auto-update')
+        acme_cron_update
         ;;
     '-f' | '--set-fail2ban')
         network_secure
@@ -2297,7 +2370,9 @@ show_help() {
   echo '  -3, --install-none          安装 Xray (ws/gRPC ONLY)'
   echo '  -4, --add-upstream          变更 Nginx 负载均衡配置'
   echo '  -c, --clean-logs            清除日志文件'
-  echo '  -cu, --cert-update          手动更新证书有效期'
+  echo '  -cs, --cert-status          查看证书状态'
+  echo '  -cu, --cert-update          更新证书有效期'
+  echo '  -cau, --cert-auto-update    设置证书自动更新'
   echo '  -f, --set-fail2ban          设置 Fail2ban 防暴力破解'
   echo '  -h, --help                  显示帮助'
   echo '  -n, --nginx-update          更新 Nginx'
@@ -2429,17 +2504,19 @@ menu() {
     echo -e "${Green}14.${Font} 启动 所有服务"
     echo -e "${Green}15.${Font} 停止 所有服务"
     echo -e "${Green}16.${Font} 查看 所有服务"
+    echo -e "—————————————— 证书相关 ——————————————"
+    echo -e "${Green}17.${Font} 查看 证书状态"
+    echo -e "${Green}18.${Font} 设置 证书自动更新"
+    echo -e "${Green}19.${Font} 更新 证书有效期"
     echo -e "—————————————— 其他选项 ——————————————"
-    echo -e "${Green}17.${Font} 设置 TCP 加速"
-    echo -e "${Green}18.${Font} 设置 Fail2ban 防暴力破解"
-    echo -e "${Green}19.${Font} 清除 日志文件"
-    echo -e "${Green}20.${Font} 安装 MTproxy (不推荐)"
-    echo -e "${Green}21.${Font} 设置 额外证书自动更新 (不推荐)"
-    echo -e "${Green}22.${Font} 证书 有效期手动更新"
+    echo -e "${Green}20.${Font} 设置 TCP 加速"
+    echo -e "${Green}21.${Font} 设置 Fail2ban 防暴力破解"
+    echo -e "${Green}22.${Font} 清除 日志文件"
+    echo -e "${Green}23.${Font} 安装 MTproxy (不推荐)"
     echo -e "—————————————— 卸载向导 ——————————————"
-    echo -e "${Green}23.${Font} 卸载 脚本"
-    echo -e "${Green}24.${Font} 清空 证书文件"
-    echo -e "${Green}25.${Font} 退出 \n"
+    echo -e "${Green}24.${Font} 卸载 脚本"
+    echo -e "${Green}25.${Font} 清空 证书文件"
+    echo -e "${Green}26.${Font} 退出 \n"
 
     read -rp "请输入数字: " menu_num
     case $menu_num in
@@ -2552,49 +2629,52 @@ menu() {
         bash idleleo
         ;;
     17)
-        clear
-        bbr_boost_sh
+        check_cert_status
+        timeout "回到脚本"
+        bash idleleo
         ;;
     18)
-        network_secure
-        bash idleleo
-        ;;
-    19)
-        clean_logs
-        bash idleleo
-        ;;
-    20)
-        clear
-        mtproxy_sh
-        ;;
-    21)
         acme_cron_update
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    22)
+    19)
         service_stop
-        ssl_update_manuel
+        cert_update_manuel
         service_restart
-        timeout "清空屏幕!"
+        bash idleleo
+        ;;
+    20)
         clear
+        bbr_boost_sh
+        ;;
+    21)
+        network_secure
+        bash idleleo
+        ;;
+    22)
+        clean_logs
         bash idleleo
         ;;
     23)
+        clear
+        mtproxy_sh
+        ;;
+    24)
         uninstall_all
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    24)
+    25)
         delete_tls_key_and_crt
         rm -rf ${ssl_chainpath}/*
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    25)
+    26)
         timeout "清空屏幕!"
         clear
         exit 0
