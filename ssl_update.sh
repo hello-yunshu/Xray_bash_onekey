@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-cert_group="nogroup"
+cert_group="nobody"
 idleleo_dir="/etc/idleleo"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 ssl_chainpath="${idleleo_dir}/cert"
