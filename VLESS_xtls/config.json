@@ -4,52 +4,45 @@
         "error": "/var/log/xray/error.log",
         "loglevel": "warning"
     },
-    "stats": {},
-    "policy": {
-        "levels": {
-          "0": {
-            "handshake": 4,
-            "connIdle": 300,
-            "uplinkOnly": 2,
-            "downlinkOnly": 5,
-            "statsUserUplink": false,
-            "statsUserDownlink": false
-          }
-        },
-        "system": {
-          "statsInboundUplink": true,
-          "statsInboundDownlink": true
-        }
-    },
-    "inbounds": [{
+    "inbounds": [
+        {
             "port": 443,
             "listen": "0.0.0.0",
             "protocol": "VLESS",
             "tag": "VLESS-XTLS-in",
             "settings": {
-                "clients": [{
-                    "id": "UUID",
-                    "flow": "xtls-rprx-direct",
-                    "level": 0,
-                    "email": "me@idleleo.com"
-                }],
+                "clients": [
+                    {
+                        "id": "UUID",
+                        "flow": "xtls-rprx-direct",
+                        "level": 0,
+                        "email": "me@idleleo.com"
+                    }
+                ],
                 "decryption": "none",
-                "fallbacks": [{
-                    "dest": 8080,
-                    "xver": 1
-                }]
+                "fallbacks": [
+                    {
+                        "dest": 8080,
+                        "xver": 1
+                    }
+                ]
             },
             "streamSettings": {
                 "network": "tcp",
                 "security": "xtls",
                 "xtlsSettings": {
                     "minVersion": "1.2",
-                    "alpn": ["http/1.1", "h2"],
+                    "alpn": [
+                        "http/1.1",
+                        "h2"
+                    ],
                     "rejectUnknownSni": true,
-                    "certificates": [{
-                        "certificateFile": "/etc/idleleo/cert/xray.crt",
-                        "keyFile": "/etc/idleleo/cert/xray.key"
-                    }]
+                    "certificates": [
+                        {
+                            "certificateFile": "/etc/idleleo/cert/xray.crt",
+                            "keyFile": "/etc/idleleo/cert/xray.key"
+                        }
+                    ]
                 }
             }
         },
@@ -59,11 +52,13 @@
             "tag": "VLESS-ws-in",
             "protocol": "VLESS",
             "settings": {
-                "clients": [{
-                    "id": "UUID",
-                    "level": 0,
-                    "email": "ws@idleleo.com"
-                }],
+                "clients": [
+                    {
+                        "id": "UUID",
+                        "level": 0,
+                        "email": "ws@idleleo.com"
+                    }
+                ],
                 "decryption": "none"
             },
             "streamSettings": {
@@ -80,11 +75,13 @@
             "tag": "VLESS-gRPC-in",
             "protocol": "VLESS",
             "settings": {
-                "clients": [{
-                    "id": "UUID",
-                    "level": 0,
-                    "email": "me@idleleo.com"
-                }],
+                "clients": [
+                    {
+                        "id": "UUID",
+                        "level": 0,
+                        "email": "me@idleleo.com"
+                    }
+                ],
                 "decryption": "none"
             },
             "streamSettings": {
@@ -100,7 +97,8 @@
             }
         }
     ],
-    "outbounds": [{
+    "outbounds": [
+        {
             "protocol": "freedom",
             "tag": "direct"
         },
@@ -122,10 +120,16 @@
     },
     "routing": {
         "domainStrategy": "AsIs",
-        "rules": [{
-            "type": "field",
-            "inboundTag": ["VLESS-XTLS-in", "VLESS-ws-in", "VLESS-gRPC-in"],
-            "outboundTag": "direct"
-        }]
+        "rules": [
+            {
+                "type": "field",
+                "inboundTag": [
+                    "VLESS-XTLS-in",
+                    "VLESS-ws-in",
+                    "VLESS-gRPC-in"
+                ],
+                "outboundTag": "direct"
+            }
+        ]
     }
 }
