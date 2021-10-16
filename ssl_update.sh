@@ -7,8 +7,8 @@ idleleo_dir="/etc/idleleo"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 ssl_chainpath="${idleleo_dir}/cert"
 xray_qr_config_file="${idleleo_dir}/info/vmess_qr.json"
-host=$(grep '\"host\"' ${xray_qr_config_file} | awk -F '"' '{print $4}')
-bt_nginx=$(grep '\"bt_nginx\"' ${xray_qr_config_file} | awk -F '"' '{print $4}')
+host=$(jq -r '.host' ${xray_qr_config_file})
+bt_nginx=$(jq -r '.bt_nginx' ${xray_qr_config_file})
 
 [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx &> /dev/null
 [[ bt_nginx == "Yes" ]] && /etc/init.d/nginx stop &> /dev/null
