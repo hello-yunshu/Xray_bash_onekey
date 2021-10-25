@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.9.0.10"
+shell_version="1.9.1.0"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -852,7 +852,7 @@ nginx_install() {
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 jemalloc ${Font}"
 
-    cd jemalloc-${jemalloc_version} || exit
+    cd ${nginx_openssl_src}/jemalloc-${jemalloc_version} || exit
     ./configure
     judge "编译检查"
     make -j "${THREAD}" && make install
@@ -862,7 +862,7 @@ nginx_install() {
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 Nginx, 过程稍久, 请耐心等待 ${Font}"
 
-    cd ../nginx-${nginx_version} || exit
+    cd ${nginx_openssl_src}/nginx-${nginx_version} || exit
 
     #增加http_sub_module用于反向代理替换关键词
     ./configure --prefix=${nginx_dir} \
@@ -885,7 +885,7 @@ nginx_install() {
     --with-http_v2_module \
     --with-cc-opt='-O3' \
     --with-ld-opt="-ljemalloc" \
-    --with-openssl=../openssl-${openssl_version}
+    --with-openssl=${nginx_openssl_src}/openssl-${openssl_version}
     judge "编译检查"
     make -j ${THREAD} && make install
     judge "Nginx 编译安装"
@@ -897,10 +897,12 @@ nginx_install() {
     modify_nginx_origin_conf
 
     # 删除临时文件
-    rm -rf ../nginx-${nginx_version}
-    rm -rf ../openssl-${openssl_version}
-    rm -rf ../nginx-${nginx_version}.tar.gz
-    rm -rf ../openssl-${openssl_version}.tar.gz
+    rm -rf ${nginx_openssl_src}/nginx-${nginx_version}
+    rm -rf ${nginx_openssl_src}/openssl-${openssl_version}
+    rm -rf ${nginx_openssl_src}/nginx-${nginx_version}.tar.gz
+    rm -rf ${nginx_openssl_src}/openssl-${openssl_version}.tar.gz
+
+    cd $HOME || exit
 }
 
 nginx_update() {
@@ -1199,7 +1201,6 @@ old_config_exist_check() {
             [yY][eE][sS] | [yY])
                 echo -e "${Warning} ${GreenBG} 请务必确保配置文件正确 ${Font}"
                 echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
-                echo -e "${OK} ${GreenBG} 停止安装 ${Font}"
                 bash idleleo
                 ;;
             *)
@@ -2289,15 +2290,17 @@ xray_status_add() {
     case $xray_status_add_fq in
     [nN][oO]|[nN])  ;;
     *)
-        if [[ -f ${xray_conf} ]] && [[ $(jq -r .stats ${xray_conf}) == null ]]; then
-            service_stop
-            wget -nc --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/status_config.json -O ${xray_status_conf}
-            xray_status=$(jq -r ". += $(jq -c . ${xray_status_conf})" ${xray_conf})
-            judge "设置 Xray 流量统计"
-            echo "${xray_status}" | jq . >${xray_conf}
-            service_start
-        elif [[ $(jq -r .stats ${xray_conf}) != null ]]; then
-            echo -e "${Warning} ${GreenBG} 已设置 Xray 流量统计! ${Font}"
+        if [[ -f ${xray_conf} ]]; then
+            if [[ $(jq -r .stats ${xray_conf}) == null ]]; then
+                service_stop
+                wget -nc --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/status_config.json -O ${xray_status_conf}
+                xray_status=$(jq -r ". += $(jq -c . ${xray_status_conf})" ${xray_conf})
+                judge "设置 Xray 流量统计"
+                echo "${xray_status}" | jq . >${xray_conf}
+                service_start
+            else
+                echo -e "${Warning} ${GreenBG} 已设置 Xray 流量统计! ${Font}"
+            fi
         else
             echo -e "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
         fi
@@ -2325,6 +2328,8 @@ uninstall_all() {
     [[ -d ${xray_conf_dir} ]] && rm -rf ${xray_conf_dir}
     [[ -L /www/server/panel/vhost/nginx/xray.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray.conf
     [[ -L /www/server/panel/vhost/nginx/xray-server.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray-server.conf
+    remove_xray=$(jq -r 'del(.xray_version)' ${xray_qr_config_file})
+    echo "${remove_xray}" | jq . >${xray_qr_config_file}
     if [[ -d ${nginx_dir} ]]; then
         echo -e "${GreenBG} 是否卸载 Nginx [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r uninstall_nginx
@@ -2333,13 +2338,28 @@ uninstall_all() {
             rm -rf ${nginx_dir}
             rm -rf ${nginx_conf_dir}/*
             [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
+            remove_nginx=$(jq -r 'del(.nginx_version)|del(.openssl_version)|del(.jemalloc_version)' ${xray_qr_config_file})
+            echo "${remove_nginx}" | jq . >${xray_qr_config_file}
             echo -e "${OK} ${Green} 已卸载 Nginx ${Font}"
             ;;
         *) ;;
         esac
     fi
+    if [[ -f ${xray_qr_config_file} ]]; then
+        echo -e "${GreenBG} 是否保留配置文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r remove_config_fq
+        case $remove_config_fq in
+        [yY][eE][sS] | [yY])
+            echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
+            ;;
+        *)
+            rm -rf ${xray_qr_config_file}
+            echo -e "${OK} ${GreenBG} 已删除配置文件 ${Font}"
+            ;;
+        esac
+    fi
     systemctl daemon-reload
-    echo -e "${OK} ${GreenBG} 已卸载, SSL 证书文件已保留\n ${Font}"
+    echo -e "${OK} ${GreenBG} 已卸载, SSL 证书文件已保留 ${Font}\n"
 }
 
 delete_tls_key_and_crt() {
@@ -2731,7 +2751,7 @@ idleleo_commend() {
                  nginx_need_update="${Green}[最新版]${Font}"
                 fi
                 if [[ $(info_extraction xray_version) == null ]];then
-                    if [[ -f ${xray_qr_config_file} ]]; then
+                    if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]]; then
                         xray_need_update="${Green}[已安装] (版本未知)${Font}"
                     else
                         xray_need_update="${Red}[未安装]${Font}"
@@ -2764,9 +2784,9 @@ menu() {
     echo -e "--- authored by paniy ---"
     echo -e "--- changed by www.idleleo.com ---"
     echo -e "--- https://github.com/paniy ---\n"
-    echo -e "当前已安装模式: ${shell_mode}\n"
+    echo -e "当前模式: ${shell_mode}\n"
 
-    echo -e "${Green}可以使用${Red} idleleo ${Font}命令管理脚本${Font}\n"
+    echo -e "可以使用${Red} idleleo ${Font}命令管理脚本${Font}\n"
 
     echo -e "—————————————— ${Green}版本检测${Font} ——————————————"
     echo -e "脚本:  ${shell_need_update}"
