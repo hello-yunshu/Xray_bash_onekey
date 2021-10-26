@@ -32,7 +32,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 Warning="${Red}[警告]${Font}"
 
-shell_version="1.9.1.0"
+shell_version="1.9.1.1"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -775,10 +775,31 @@ xray_install() {
 
 xray_update() {
     [[ ! -d /usr/local/etc/xray ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装！ ${Font}"
-    echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
-    systemctl stop xray
-    wait
-    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+    xray_online_version=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r .[].tag_name | head -1 | sed 's/v//g')
+    xray_prerelease=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r .[].prerelease | head -1)
+    if [[ $(info_extraction xray_version) !=  ${xray_online_version} ]] && [[ ${xray_prerelease} == false ]]; then
+        echo -e "${Warning} ${GreenBG} 检测到即将更新到测试版 ${Font}"
+        echo -e "${Warning} ${GreenBG} 脚本可能未兼容此版本 ${Font}"
+        echo -e "\n${Warning} ${GreenBG} 是否继续 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+        read -r xray_test_fq
+        case $xray_test_fq in
+        [yY][eE][sS] | [yY])
+            echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
+            systemctl stop xray
+            wait
+            bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
+            ;;
+        *) 
+            echo -e "${GreenBG} 退出安装！ ${Font}"
+            return 0
+            ;;
+        esac
+    else
+        echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
+        systemctl stop xray
+        wait
+        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+    fi
     wait
     [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
     [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
@@ -837,7 +858,7 @@ nginx_install() {
     wget -nc --no-check-certificate https://github.com/jemalloc/jemalloc/releases/download/${jemalloc_version}/jemalloc-${jemalloc_version}.tar.bz2 -P ${nginx_openssl_src}
     judge "jemalloc 下载"
 
-    cd ${nginx_openssl_src} || exit
+    cd ${nginx_openssl_src} || exit 1
 
     [[ -d nginx-${nginx_version} ]] && rm -rf nginx-${nginx_version}
     tar -zxvf nginx-${nginx_version}.tar.gz
@@ -852,7 +873,7 @@ nginx_install() {
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 jemalloc ${Font}"
 
-    cd ${nginx_openssl_src}/jemalloc-${jemalloc_version} || exit
+    cd ${nginx_openssl_src}/jemalloc-${jemalloc_version} || exit 1
     ./configure
     judge "编译检查"
     make -j "${THREAD}" && make install
@@ -862,7 +883,7 @@ nginx_install() {
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 Nginx, 过程稍久, 请耐心等待 ${Font}"
 
-    cd ${nginx_openssl_src}/nginx-${nginx_version} || exit
+    cd ${nginx_openssl_src}/nginx-${nginx_version} || exit 1
 
     #增加http_sub_module用于反向代理替换关键词
     ./configure --prefix=${nginx_dir} \
@@ -890,6 +911,8 @@ nginx_install() {
     make -j ${THREAD} && make install
     judge "Nginx 编译安装"
 
+    cd $HOME || exit 1
+
     cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/nginx.default
 
     # 修改基本配置
@@ -901,8 +924,6 @@ nginx_install() {
     rm -rf ${nginx_openssl_src}/openssl-${openssl_version}
     rm -rf ${nginx_openssl_src}/nginx-${nginx_version}.tar.gz
     rm -rf ${nginx_openssl_src}/openssl-${openssl_version}.tar.gz
-
-    cd $HOME || exit
 }
 
 nginx_update() {
@@ -2743,23 +2764,29 @@ idleleo_commend() {
                 shell_need_update="${Green}[最新版^O^]${Font}"
             fi
             if [[ -f ${xray_qr_config_file} ]]; then
-                if [[ $(info_extraction nginx_version) == null ]];then
+                if [[ $(info_extraction nginx_version) == null ]] && [[ ! -f "/etc/nginx/sbin/nginx" ]];then
                     nginx_need_update="${Red}[未安装]${Font}"
                 elif [[ ${nginx_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_version} != $(info_extraction jemalloc_version) ]];then
                     nginx_need_update="${Red}[有新版!]${Font}"
                 else
-                 nginx_need_update="${Green}[最新版]${Font}"
+                    nginx_need_update="${Green}[最新版]${Font}"
                 fi
-                if [[ $(info_extraction xray_version) == null ]];then
-                    if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]]; then
+                if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ -f /usr/local/bin/xray ]]; then
+                    if [[ $(info_extraction xray_version) == null ]]; then
                         xray_need_update="${Green}[已安装] (版本未知)${Font}"
-                    else
-                        xray_need_update="${Red}[未安装]${Font}"
+                    elif [[ ${xray_version} != $(info_extraction xray_version) ]]; then
+                        xray_need_update="${Red}[有新版!]${Font}"
+                    elif [[ ${xray_version} == $(info_extraction xray_version) ]]; then
+                        xray_online_version=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r .[].tag_name | head -1 | sed 's/v//g')
+                        xray_prerelease=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r .[].prerelease | head -1)
+                        if [[ $(info_extraction xray_version) !=  ${xray_online_version} ]] && [[ ${xray_prerelease} == false ]]; then
+                            xray_need_update="${Green}[有测试版]${Font}"
+                        else
+                            xray_need_update="${Green}[最新版]${Font}"
+                        fi
                     fi
-                elif [[ ${xray_version} != $(info_extraction xray_version) ]];then
-                    xray_need_update="${Red}[有新版!]${Font}"
                 else
-                    xray_need_update="${Green}[最新版]${Font}"
+                    xray_need_update="${Red}[未安装]${Font}"
                 fi
             else
                 nginx_need_update="${Red}[未安装]${Font}"
