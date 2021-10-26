@@ -21,9 +21,9 @@ cd "$(
 Green="\033[32m"
 Red="\033[31m"
 #Yellow="\033[33m"
-GreenBG="\033[42;37m"
-RedBG="\033[41;37m"
-YellowBG="\033[43;31m"
+GreenBG="\033[42;30m"
+RedBG="\033[41;30m"
+YellowBG="\033[43;30m"
 Font="\033[0m"
 
 #notification information
@@ -332,11 +332,11 @@ ws_inbound_port_set() {
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "请输入自定义 ws inbound_port (请勿与其他端口相同！):" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-                echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+                echo -e "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
             *)
                 xport=$((RANDOM % 1000 + 10000))
-                echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+                echo -e "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
             esac
         else
@@ -353,12 +353,12 @@ grpc_inbound_port_set() {
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "请输入自定义 gRPC inbound_port (请勿与其他端口相同！):" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-                echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+                echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             *)
                 gport=$((RANDOM % 1000 + 10000))
                 [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 10000))
-                echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+                echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             esac
         else
@@ -445,11 +445,11 @@ ws_path_set() {
             case $path_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "请输入自定义 ws 伪装路径 (不需要“/”):" "path" "NULL"
-                echo -e "${OK} ${GreenBG} ws 伪装路径: ${path} ${Font}"
+                echo -e "${Green} ws 伪装路径: ${path} ${Font}"
                 ;;
             *)
                 path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                echo -e "${OK} ${GreenBG} ws 伪装路径: ${path} ${Font}"
+                echo -e "${Green} ws 伪装路径: ${path} ${Font}"
                 ;;
             esac
         else
@@ -476,11 +476,11 @@ grpc_path_set() {
             case $path_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "请输入自定义 gRPC 伪装路径 (不需要“/”):" "servicename" "NULL"
-                echo -e "${OK} ${GreenBG} gRPC 伪装路径: ${servicename} ${Font}"
+                echo -e "${Green} gRPC 伪装路径: ${servicename} ${Font}"
                 ;;
             *)
                 servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                echo -e "${OK} ${GreenBG} gRPC 伪装路径: ${servicename} ${Font}"
+                echo -e "${Green} gRPC 伪装路径: ${servicename} ${Font}"
                 ;;
             esac
         else
@@ -526,16 +526,16 @@ UUID_set() {
         [yY][eE][sS] | [yY])
             read_optimize "请输入自定义字符串 (最多30字符):" "UUID5_char" "NULL"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
-            echo -e "${OK} ${GreenBG} 自定义字符串: ${UUID5_char} ${Font}"
-            echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
+            echo -e "${Green} 自定义字符串: ${UUID5_char} ${Font}"
+            echo -e "${Green} UUIDv5: ${UUID} ${Font}"
             ;;
         [nN][oO] | [nN] | *)
             UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
-            echo -e "${OK} ${GreenBG} UUID 映射字符串: ${UUID5_char} ${Font}"
-            echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
+            echo -e "${Green} UUID 映射字符串: ${UUID5_char} ${Font}"
+            echo -e "${Green} UUIDv5: ${UUID} ${Font}"
             #[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-            echo -e "${OK} ${GreenBG} UUID: ${UUID} ${Font}"
+            echo -e "${Green} UUID: ${UUID} ${Font}"
             ;;
         esac
     fi
@@ -684,7 +684,7 @@ modify_nginx_port() {
     sed -i "5s/^\( *\).*ssl http2;$/\1listen [::]:${port} ssl http2;/" ${nginx_conf}
     judge "Xray port 修改"
     [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
-    echo -e "${OK} ${GreenBG} 端口号: ${port} ${Font}"
+    echo -e "${Green} 端口号: ${port} ${Font}"
 }
 
 modify_nginx_other() {
@@ -739,7 +739,7 @@ modify_UUID() {
         judge "Xray UUID 修改"
         [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/" ${xray_qr_config_file}
         [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"idc\".*/\1\"idc\": \"${UUID5_char}\",/" ${xray_qr_config_file}
-        echo -e "${OK} ${GreenBG} UUIDv5: ${UUID} ${Font}"
+        echo -e "${Green} UUIDv5: ${UUID} ${Font}"
     else
         echo -e "\n${Warning} ${YellowBG} 请先删除 多余的用户 ${Font}"
     fi
@@ -790,8 +790,8 @@ xray_update() {
             bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
             ;;
         *) 
-            echo -e "${GreenBG} 退出安装！ ${Font}"
-            return 0
+            echo -e "${OK} ${GreenBG} 退出安装！ ${Font}"
+            return 1
             ;;
         esac
     else
@@ -1022,7 +1022,7 @@ domain_check() {
         *)
             domain=$(info_extraction host)
             local_ip=$(curl -4 ip.sb)
-            echo -e "\n${GreenBG} 已跳过域名设置 ${Font}"
+            echo -e "${OK} ${GreenBG} 已跳过域名设置 ${Font}"
             return 0
             ;;
         [nN][oO]|[nN]) ;;
@@ -1065,7 +1065,7 @@ domain_check() {
         read -r install
         case $install in
         1)
-            echo -e "${GreenBG} 继续安装 ${Font}"
+            echo -e "${OK} ${GreenBG} 继续安装 ${Font}"
             ;;
         2)
             domain_check
@@ -1085,7 +1085,7 @@ ip_check() {
         case $old_host_fq in
         *)
             local_ip=$(curl -4 ip.sb)
-            echo -e "\n${GreenBG} 已跳过IP设置 ${Font}"
+            echo -e "\n${OK} ${GreenBG} 已跳过IP设置 ${Font}"
             return 0
             ;;
         [nN][oO]|[nN]) ;;
@@ -1633,22 +1633,22 @@ network_secure() {
         clear
     fi
     if [[ $fail2ban_fq == 4 ]]; then
-        echo -e "${GreenBG} Fail2ban 配置状态: ${Font}"
+        echo -e "${Green} Fail2ban 配置状态: ${Font}"
         fail2ban-client status
-        echo -e "${GreenBG} Fail2ban SSH 封锁情况: ${Font}"
+        echo -e "${Green} Fail2ban SSH 封锁情况: ${Font}"
         fail2ban-client status sshd
         if [[ ${tls_mode} != "None" ]]; then
-            echo -e "${GreenBG} Fail2ban Nginx 封锁情况: ${Font}"
+            echo -e "${Green} Fail2ban Nginx 封锁情况: ${Font}"
             fail2ban-client status nginx-badbots
             fail2ban-client status nginx-botsearch
         fi
-        echo -e "${GreenBG} Fail2ban 运行状态: ${Font}"
+        echo -e "${Green} Fail2ban 运行状态: ${Font}"
         systemctl status fail2ban
     fi
 }
 
 clean_logs() {
-    echo -e "\n${GreenBG} 检测到日志文件大小如下 ${Font}"
+    echo -e "\n${Green} 检测到日志文件大小如下: ${Font}"
     echo -e "${Green}$(du -sh /var/log/xray /etc/nginx/logs)${Font}"
     timeout "即将清除!"
     for i in $(find /var/log/xray/ /etc/nginx/logs -name "*.log"); do cat /dev/null >$i; done
@@ -1661,7 +1661,7 @@ clean_logs() {
         clear
         ;;
     *)
-        echo -e "${GreenBG} 将在 每周三 04:00 自动清空日志 ${Font}"
+        echo -e "${OK} ${GreenBG} 将在 每周三 04:00 自动清空日志 ${Font}"
         if [[ "${ID}" == "centos" ]]; then
             if [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" /var/spool/cron/root) -eq '0' ]]; then
                 echo "0 4 * * 3 for i in \$(find /var/log/xray/ /etc/nginx/logs -name \"*.log\"); do cat /dev/null >\$i; done >/dev/null 2>&1" >> /var/spool/cron/root
@@ -1937,7 +1937,7 @@ show_information() {
 
 ssl_judge_and_install() {
     echo -e "\n${GreenBG} 即将申请证书, 支持使用自定义证书 ${Font}"
-    echo -e "${GreenBG} 如需使用自定义证书, 请按如下步骤:  ${Font}"
+    echo -e "${Green} 如需使用自定义证书, 请按如下步骤:  ${Font}"
     echo -e " 1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
     echo -e " 2. 将重命名后的证书文件放入 ${ssl_chainpath} 目录后再运行脚本"
     echo -e " 3. 重新运行脚本"
@@ -2082,7 +2082,7 @@ revision_port() {
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
         modify_nginx_port
         [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
-        echo -e "${OK} ${GreenBG} 连接端口号: ${port} ${Font}"
+        echo -e "${Green} 连接端口号: ${port} ${Font}"
     elif [[ ${tls_mode} == "XTLS" ]]; then
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
         xport=$((RANDOM % 1000 + 20000))
@@ -2092,13 +2092,13 @@ revision_port() {
             port_exist_check "${xport}"
             gport=$((RANDOM % 1000 + 30000))
             [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
-            echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+            echo -e "${Green} ws inbound_port: ${xport} ${Font}"
         elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${gport}"
             xport=$((RANDOM % 1000 + 20000))
             [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
-            echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+            echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
@@ -2106,8 +2106,8 @@ revision_port() {
             port_exist_check "${gport}"
             [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
             [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
-            echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
-            echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+            echo -e "${Green} ws inbound_port: ${xport} ${Font}"
+            echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
         fi
         wait
         modify_inbound_port
@@ -2116,19 +2116,19 @@ revision_port() {
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             gport=$((RANDOM % 1000 + 30000))
-            echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
+            echo -e "${Green} ws inbound_port: ${xport} ${Font}"
         elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${gport}"
             xport=$((RANDOM % 1000 + 20000))
-            echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+            echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             port_exist_check "${gport}"
-            echo -e "${OK} ${GreenBG} ws inbound_port: ${xport} ${Font}"
-            echo -e "${OK} ${GreenBG} gRPC inbound_port: ${gport} ${Font}"
+            echo -e "${Green} ws inbound_port: ${xport} ${Font}"
+            echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
         fi
         [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
         [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
@@ -2306,7 +2306,8 @@ show_error_log() {
 
 xray_status_add() {
     echo -e "\n${GreenBG} Xray 流量统计需要使用 api ${Font}"
-    echo -e "${GreenBG} 可能会影响 Xray 性能, 是否继续 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+    echo -e "${GreenBG} 可能会影响 Xray 性能 ${Font}"
+    echo -e "${GreenBG} 是否继续 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r xray_status_add_fq
     case $xray_status_add_fq in
     [nN][oO]|[nN])  ;;
@@ -2361,7 +2362,7 @@ uninstall_all() {
             [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
             remove_nginx=$(jq -r 'del(.nginx_version)|del(.openssl_version)|del(.jemalloc_version)' ${xray_qr_config_file})
             echo "${remove_nginx}" | jq . >${xray_qr_config_file}
-            echo -e "${OK} ${Green} 已卸载 Nginx ${Font}"
+            echo -e "${OK} ${GreenBG} 已卸载 Nginx ${Font}"
             ;;
         *) ;;
         esac
