@@ -20,19 +20,20 @@
 ### 准备工作
 * 准备一个域名，并将A记录添加好。
 * 阅读[Xray官方说明](https://xtls.github.io)，大概了解 TLS WebSocket gRPC XTLS 及 Xray 相关信息。
-* **安装好 wget**，Centos用户运行：`yum install -y wget`；Debian/Ubuntu用户运行：`apt install -y wget`。
+* **安装好 curl**，Centos用户运行：`yum install -y curl`；Debian/Ubuntu用户运行：`apt install -y curl`。
 
 ### 安装/更新方式
 VLESS+Nginx+WebSocket/gRPC+TLS 或 VLESS+XTLS+Nginx+ws+gRPC  或 ws/gRPC ONLY 三选一：
 ```
-bash <(curl -Ss https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh)
+bash <(curl -Ss https://www.idleleo.com/install.sh)
 ```
 
 ### 注意事项
-* 如果你不了解脚本中各项设置的具体含义，除域名外，请使用脚本提供的默认值。
+* 如果你不了解脚本中各项设置的具体含义，除域名外，请使用脚本提供的默认值 (全程回车到底)。
+* Cloudflare 用户请安装完毕后再开启CDN功能。
 * 使用本脚本需要你拥有 Linux 基础及使用经验，了解计算机网络部分知识，计算机基础操作。
 * 目前支持 Debian 9+ / Ubuntu 18.04+ / Centos7+ ，部分 Centos 模板可能存在难以处理的编译问题，建议遇到编译问题时，请更换至其他系统模板。
-* 群主仅提供极其有限的支持，如有问题可以询问群友。
+* 群主仅提供有限的支持，如有问题可以询问群友。
 * 每周日的凌晨3点，Nginx 会自动重启以配合证书的签发定时任务进行，在此期间，节点无法正常连接，预计持续时间为若干秒至两分钟。
 * 分享链接为实验版本，不排除未来变动的可能，请自行确认客户端是否支持。
 * 自定义字符串映射至 UUIDv5 需要客户端支持。
@@ -43,7 +44,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/in
 * 本脚本中 TCP加速 脚本项目引用 https://github.com/ylx2016/Linux-NetSpeed 在此感谢 ylx2016
 
 ### 证书
-> 如果你已经拥有了你所使用域名的证书文件，可以将 crt 和 key 文件命名为 xray.crt xray.key 放在 /etc/idleleo/cert 目录下（若目录不存在请先建目录），请注意证书文件权限及证书有效期，自定义证书有效期过期后请自行续签。
+如果你已经拥有了你所使用域名的证书文件，可以将 crt 和 key 文件命名为 xray.crt 和 xray.key 放在 /etc/idleleo/cert 目录下（若目录不存在请先建目录），请注意证书文件权限及证书有效期，自定义证书有效期过期后需自行续签。
 
 脚本支持自动生成 Let's encrypted 证书，有效期3个月，理论上自动生成的证书支持自动续签。
 
@@ -64,7 +65,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/in
 ### 注意事项
 * 推荐在纯净环境下使用本脚本，如果你是新手，请不要使用 Centos 系统。
 * 在尝试本脚本确实可用之前，请不要将本程序应用于生产环境中。
-* 该程序依赖 Nginx 实现相关功能，请使用 [LNMP](https://lnmp.org) 或其他类似携带 Nginx 脚本安装过 Nginx 的用户特别留意，使用本脚本可能会导致无法预知的错误（未测试，若存在，后续版本可能会处理本问题）。
+* 该程序依赖 Nginx 实现相关功能，请使用 [LNMP](https://lnmp.org) 或其他类似携带 Nginx 脚本安装过 Nginx 的用户特别留意，使用本脚本可能会导致无法预知的错误。
 * Centos 系统用户请预先在防火墙中放行程序相关端口（默认：80，443）。
 
 
