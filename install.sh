@@ -20,6 +20,8 @@ cd "$(
 #fonts color
 Green="\033[32m"
 Red="\033[31m"
+GreenW="\033[1;32m"
+RedW="\033[1;31m"
 #Yellow="\033[33m"
 GreenBG="\033[42;30m"
 RedBG="\033[41;30m"
@@ -29,10 +31,10 @@ Font="\033[0m"
 #notification information
 # Info="${Green}[信息]${Font}"
 OK="${Green}[OK]${Font}"
-Error="${Red}[错误]${Font}"
-Warning="${Red}[警告]${Font}"
+Error="${RedW}[错误]${Font}"
+Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.1.1"
+shell_version="1.9.1.7"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -60,10 +62,7 @@ amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 cert_group="nobody"
 myemali="my@example.com"
-xray_version="1.4.5"
-nginx_version="1.20.1"
-openssl_version="1.1.1l"
-jemalloc_version="5.2.1"
+get_versions_all=$(curl -s https://www.idleleo.com/api/xray_shell_versions)
 bt_nginx="None"
 read_config_status=1
 xtls_add_more="off"
@@ -71,6 +70,7 @@ old_config_status="off"
 old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
 THREAD=$(($(grep 'processor' /proc/cpuinfo | sort -u | wc -l) + 1))
+[[ -f ${xray_qr_config_file} ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 
 source '/etc/os-release'
 
@@ -127,6 +127,11 @@ judge() {
         echo -e "${Error} ${RedBG} $1 失败 ${Font}"
         exit 1
     fi
+}
+
+check_version() {
+    echo ${get_versions_all} | jq -rc ".$1"
+    [[ 0 -ne $? ]] && echo -e "${Error} ${RedBG} 在线版本检测失败, 请稍后再试！ ${Font}" && exit 1
 }
 
 pkg_install_judge() {
@@ -248,7 +253,7 @@ create_directory() {
 
 port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        echo -e "${GreenBG} 确定 连接端口 ${Font}"
+        echo -e "\n${GreenBG} 确定 连接端口 ${Font}"
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
     fi
 }
@@ -256,23 +261,23 @@ port_set() {
 ws_grpc_choose() {
     if [[ "on" != ${old_config_status} ]]; then
         echo -e "\n${GreenBG} 请选择 安装协议 ws/gRPC ${Font}"
-        echo "1: ws"
+        echo -e "${Red}1${Font}: ws (默认)"
         echo "2: gRPC"
-        echo -e "${Red}3${Font}: ws+gRPC (默认)"
-        read -rp "请输入: " choose_network
-        if [[ $choose_network == 1 ]]; then
-            [[ ${shell_mode} == "XTLS+Nginx" ]] && shell_mode="XTLS+Nginx+ws"
-            ws_grpc_mode="onlyws"
-        elif [[ $choose_network == 2 ]]; then
+        echo "3: ws+gRPC"
+        read -rp "请输入: " choose_network  
+        if [[ $choose_network == 2 ]]; then
             [[ ${shell_mode} == "Nginx+ws+TLS" ]] && shell_mode="Nginx+gRPC+TLS"
             [[ ${shell_mode} == "XTLS+Nginx" ]] && shell_mode="XTLS+Nginx+gRPC"
             [[ ${shell_mode} == "ws ONLY" ]] && shell_mode="gRPC ONLY"
             ws_grpc_mode="onlygRPC"
-        else
+        elif [[ $choose_network == 3 ]]; then
             [[ ${shell_mode} == "Nginx+ws+TLS" ]] && shell_mode="Nginx+ws+gRPC+TLS"
             [[ ${shell_mode} == "XTLS+Nginx" ]] && shell_mode="XTLS+Nginx+ws+gRPC"
             [[ ${shell_mode} == "ws ONLY" ]] && shell_mode="ws+gRPC ONLY"
             ws_grpc_mode="all"
+        else
+            [[ ${shell_mode} == "XTLS+Nginx" ]] && shell_mode="XTLS+Nginx+ws"
+            ws_grpc_mode="onlyws"
         fi
     fi
 }
@@ -515,6 +520,7 @@ email_set() {
             custom_email="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})@idleleo.com"
             ;;
         esac
+        echo -e "${Green} Xray 用户名 (email): ${custom_email} ${Font}"
     fi
 }
 
@@ -527,15 +533,14 @@ UUID_set() {
             read_optimize "请输入自定义字符串 (最多30字符):" "UUID5_char" "NULL"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
             echo -e "${Green} 自定义字符串: ${UUID5_char} ${Font}"
-            echo -e "${Green} UUIDv5: ${UUID} ${Font}"
+            echo -e "${Green} UUIDv5: ${UUID} ${Font}\n"
             ;;
         [nN][oO] | [nN] | *)
             UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
             echo -e "${Green} UUID 映射字符串: ${UUID5_char} ${Font}"
-            echo -e "${Green} UUIDv5: ${UUID} ${Font}"
+            echo -e "${Green} UUID: ${UUID} ${Font}\n"
             #[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-            echo -e "${Green} UUID: ${UUID} ${Font}"
             ;;
         esac
     fi
@@ -775,35 +780,43 @@ xray_install() {
 
 xray_update() {
     [[ ! -d /usr/local/etc/xray ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装！ ${Font}"
-    xray_online_version=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r .[].tag_name | head -1 | sed 's/v//g')
-    xray_prerelease=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r .[].prerelease | head -1)
-    if [[ $(info_extraction xray_version) !=  ${xray_online_version} ]] && [[ ${xray_prerelease} == false ]]; then
-        echo -e "${Warning} ${GreenBG} 检测到即将更新到测试版 ${Font}"
+    echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
+    xray_online_version=$(check_version xray_online_version)
+    if [[ $(info_extraction xray_version) !=  ${xray_online_version} ]] && [[ ${xray_version} != ${xray_online_version} ]]; then
+        echo -e "${Warning} ${GreenBG} 检测到存在最新测试版 ${Font}"
         echo -e "${Warning} ${GreenBG} 脚本可能未兼容此版本 ${Font}"
-        echo -e "\n${Warning} ${GreenBG} 是否继续 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+        echo -e "\n${Warning} ${GreenBG} 是否更新到测试版 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
         read -r xray_test_fq
         case $xray_test_fq in
         [yY][eE][sS] | [yY])
-            echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
+            echo -e "${OK} ${GreenBG} 即将升级 Xray 测试版! ${Font}"
             systemctl stop xray
             wait
-            bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
+            xray_version=${xray_online_version}
+            bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+            judge "Xray 升级"
             ;;
-        *) 
-            echo -e "${OK} ${GreenBG} 退出安装！ ${Font}"
-            return 1
+        *)
+            echo -e "${OK} ${GreenBG} 即将升级/重装 Xray 稳定版! ${Font}"
+            systemctl stop xray
+            wait
+            bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+            udge "Xray 升级"
             ;;
         esac
     else
-        echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
+        timeout "升级/重装 Xray 稳定版!"
         systemctl stop xray
         wait
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+        judge "Xray 升级"
     fi
     wait
     [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
     [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
     ln -s ${xray_conf} ${xray_default_conf}
+    modify_xray_version=$(jq -r ".xray_version = \"${xray_version}\"" ${xray_qr_config_file})
+    echo "${xray_version}" | jq . >${xray_qr_config_file}
     systemctl daemon-reload
     systemctl start xray
 }
@@ -993,9 +1006,8 @@ nginx_update() {
                 nginx_conf_add_xtls
             fi
             service_start
-            sed -i "s/^\( *\)\"nginx_version\".*/\1\"nginx_version\": \"${nginx_version}\",/" ${xray_qr_config_file}
-            sed -i "s/^\( *\)\"openssl_version\".*/\1\"openssl_version\": \"${openssl_version}\",/" ${xray_qr_config_file}
-            sed -i "s/^\( *\)\"jemalloc_version\".*/\1\"jemalloc_version\": \"${jemalloc_version}\"/" ${xray_qr_config_file}
+            modify_nginx_version=$(jq -r ".nginx_version = \"${nginx_version}\"|.openssl_version = \"${openssl_version}\"|.jemalloc_version = \"${jemalloc_version}\"" ${xray_qr_config_file})
+            echo "${modify_nginx_version}" | jq . >${xray_qr_config_file}
             judge "Nginx 升级"
         else
             echo -e "${OK} ${GreenBG} Nginx 已为最新版 ${Font}"
@@ -1021,7 +1033,8 @@ domain_check() {
         case $old_host_fq in
         *)
             domain=$(info_extraction host)
-            local_ip=$(curl -4 ip.sb)
+            local_ip=$(curl -m 3 -4 ip.sb)
+            [[ $local_ip == "" ]] && local_ip=$(curl -m 5 -6 ip.sb)
             echo -e "${OK} ${GreenBG} 已跳过域名设置 ${Font}"
             return 0
             ;;
@@ -1043,7 +1056,7 @@ domain_check() {
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
     elif [[ $ip_version == 2 ]]; then
         local_ip=$(curl -6 ip.sb)
-        domain_ip=$(ping -6 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
+        domain_ip=$(ping -6 "${domain}" -c 1 | sed '2{s/[^(]*(//;s/).*//;q}' | tail -n +2)
     elif [[ $ip_version == 3 ]]; then
         echo -e "${Warning} ${GreenBG} 此选项用于服务器商仅提供域名访问服务器 ${Font}"
         echo -e "${Warning} ${GreenBG} 注意服务器商域名添加 CNAME 记录 ${Font}"
@@ -1084,7 +1097,8 @@ ip_check() {
         read -r old_host_fq
         case $old_host_fq in
         *)
-            local_ip=$(curl -4 ip.sb)
+            local_ip=$(curl -m 3 -4 ip.sb)
+            [[ $local_ip == "" ]] && local_ip=$(curl -m 5 -6 ip.sb)
             echo -e "\n${OK} ${GreenBG} 已跳过IP设置 ${Font}"
             return 0
             ;;
@@ -1704,6 +1718,7 @@ vless_qr_config_tls_ws() {
     "jemalloc_version": "${jemalloc_version}"
 }
 EOF
+    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 }
 
 vless_qr_config_xtls() {
@@ -1730,6 +1745,7 @@ vless_qr_config_xtls() {
     "jemalloc_version": "${jemalloc_version}"
 }
 EOF
+    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 }
 
 vless_qr_config_ws_only() {
@@ -1750,6 +1766,7 @@ vless_qr_config_ws_only() {
     "xray_version": "${xray_version}"
 }
 EOF
+    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 }
 
 vless_urlquote()
@@ -1832,7 +1849,7 @@ vless_link_image_choice() {
 }
 
 info_extraction() {
-    jq -r ".$1" ${xray_qr_config_file}
+    echo ${info_extraction_all} | jq -r ".$1"
     [[ 0 -ne $? ]] && read_config_status=0
 }
 
@@ -1936,6 +1953,7 @@ show_information() {
 }
 
 ssl_judge_and_install() {
+    cd $HOME || exit 1
     echo -e "\n${GreenBG} 即将申请证书, 支持使用自定义证书 ${Font}"
     echo -e "${Green} 如需使用自定义证书, 请按如下步骤:  ${Font}"
     echo -e " 1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
@@ -2553,7 +2571,7 @@ install_xray_ws_only() {
 }
 
 update_sh() {
-    ol_version=$(curl -L -s https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
+    ol_version=${shell_online_version}
     echo "${ol_version}" >${version_cmp}
     [[ -z ${ol_version} ]] && echo -e "${Error} ${RedBG}  检测最新版本失败! ${Font}" && bash idleleo
     echo "${shell_version}" >>${version_cmp}
@@ -2585,6 +2603,27 @@ update_sh() {
         bash idleleo
     fi
 
+}
+
+check_file_integrity() {
+    if [[ ! -L ${idleleo_commend_file} ]] && [[ ! -f ${idleleo_dir}/install.sh ]]; then
+        check_system
+        pkg_install "bc,jq,wget"
+        [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
+        wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+        judge "下载最新脚本"
+        ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
+        clear
+        bash idleleo
+    fi
+}
+
+read_version() {
+    shell_online_version="$(check_version shell_online_version)"
+    xray_version="$(check_version xray_tested_version)"
+    nginx_version="$(check_version nginx_online_version)"
+    openssl_version="$(check_version openssl_online_version)"
+    jemalloc_version="$(check_version jemalloc_tested_version)"
 }
 
 maintain() {
@@ -2754,7 +2793,7 @@ idleleo_commend() {
             fi
             bash idleleo
         else
-            ol_version=$(curl -L -s https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
+            ol_version=${shell_online_version}
             echo "${ol_version}" >${version_cmp}
             [[ -z ${ol_version} ]] && shell_need_update="${Red}[检测失败!]${Font}"
             echo "${shell_version}" >>${version_cmp}
@@ -2765,7 +2804,7 @@ idleleo_commend() {
                 shell_need_update="${Green}[最新版^O^]${Font}"
             fi
             if [[ -f ${xray_qr_config_file} ]]; then
-                if [[ $(info_extraction nginx_version) == null ]] && [[ ! -f "/etc/nginx/sbin/nginx" ]];then
+                if [[ $(info_extraction nginx_version) == null ]] || [[ ! -f "/etc/nginx/sbin/nginx" ]];then
                     nginx_need_update="${Red}[未安装]${Font}"
                 elif [[ ${nginx_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_version} != $(info_extraction jemalloc_version) ]];then
                     nginx_need_update="${Red}[有新版!]${Font}"
@@ -2773,14 +2812,13 @@ idleleo_commend() {
                     nginx_need_update="${Green}[最新版]${Font}"
                 fi
                 if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ -f /usr/local/bin/xray ]]; then
+                    xray_online_version=$(check_version xray_online_version)
                     if [[ $(info_extraction xray_version) == null ]]; then
                         xray_need_update="${Green}[已安装] (版本未知)${Font}"
-                    elif [[ ${xray_version} != $(info_extraction xray_version) ]]; then
+                    elif [[ ${xray_version} != $(info_extraction xray_version) ]] && [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
                         xray_need_update="${Red}[有新版!]${Font}"
-                    elif [[ ${xray_version} == $(info_extraction xray_version) ]]; then
-                        xray_online_version=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r .[].tag_name | head -1 | sed 's/v//g')
-                        xray_prerelease=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r .[].prerelease | head -1)
-                        if [[ $(info_extraction xray_version) !=  ${xray_online_version} ]] && [[ ${xray_prerelease} == false ]]; then
+                    elif [[ ${xray_version} == $(info_extraction xray_version) ]] || [[ $(info_extraction xray_version) == ${xray_online_version} ]]; then
+                        if [[ $(info_extraction xray_version) !=  ${xray_online_version} ]]; then
                             xray_need_update="${Green}[有测试版]${Font}"
                         else
                             xray_need_update="${Green}[最新版]${Font}"
@@ -2794,15 +2832,6 @@ idleleo_commend() {
                 xray_need_update="${Red}[未安装]${Font}"
             fi
         fi
-    else
-        check_system
-        pkg_install "bc,wget"
-        [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
-        wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
-        judge "下载最新脚本"
-        ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
-        clear
-        bash idleleo
     fi
 }
 
@@ -2814,49 +2843,49 @@ menu() {
     echo -e "--- https://github.com/paniy ---\n"
     echo -e "当前模式: ${shell_mode}\n"
 
-    echo -e "可以使用${Red} idleleo ${Font}命令管理脚本${Font}\n"
+    echo -e "可以使用${RedW} idleleo ${Font}命令管理脚本${Font}\n"
 
-    echo -e "—————————————— ${Green}版本检测${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}版本检测${Font} ——————————————"
     echo -e "脚本:  ${shell_need_update}"
     echo -e "Xray:  ${xray_need_update}"
     echo -e "Nginx: ${nginx_need_update}"
-    echo -e "—————————————— ${Green}升级向导${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}升级向导${Font} ——————————————"
     echo -e "${Green}0.${Font}  升级 脚本"
     echo -e "${Green}1.${Font}  升级 Xray"
     echo -e "${Green}2.${Font}  升级 Nginx"
-    echo -e "—————————————— ${Green}安装向导${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}安装向导${Font} ——————————————"
     echo -e "${Green}3.${Font}  安装 Xray (Nginx+ws/gRPC+tls)"
     echo -e "${Green}4.${Font}  安装 Xray (XTLS+Nginx+ws/gRPC)"
     echo -e "${Green}5.${Font}  安装 Xray (ws/gRPC ONLY)"
-    echo -e "—————————————— ${Green}配置变更${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}配置变更${Font} ——————————————"
     echo -e "${Green}6.${Font}  变更 UUIDv5/映射字符串"
     echo -e "${Green}7.${Font}  变更 port"
     echo -e "${Green}8.${Font}  变更 TLS 版本"
     echo -e "${Green}9.${Font}  变更 Nginx 负载均衡配置"
-    echo -e "—————————————— ${Green}用户管理${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}用户管理${Font} ——————————————"
     echo -e "${Green}10.${Font} 查看 Xray 用户"
     echo -e "${Green}11.${Font} 添加 Xray 用户"
     echo -e "${Green}12.${Font} 删除 Xray 用户"
-    echo -e "—————————————— ${Green}查看信息${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}查看信息${Font} ——————————————"
     echo -e "${Green}13.${Font} 查看 Xray 实时访问日志"
     echo -e "${Green}14.${Font} 查看 Xray 实时错误日志"
     echo -e "${Green}15.${Font} 查看 Xray 配置信息"
-    echo -e "—————————————— ${Green}服务相关${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}服务相关${Font} ——————————————"
     echo -e "${Green}16.${Font} 重启 所有服务"
     echo -e "${Green}17.${Font} 启动 所有服务"
     echo -e "${Green}18.${Font} 停止 所有服务"
     echo -e "${Green}19.${Font} 查看 所有服务"
-    echo -e "—————————————— ${Green}证书相关${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}证书相关${Font} ——————————————"
     echo -e "${Green}20.${Font} 查看 证书状态"
     echo -e "${Green}21.${Font} 设置 证书自动更新"
     echo -e "${Green}22.${Font} 更新 证书有效期"
-    echo -e "—————————————— ${Green}其他选项${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}其他选项${Font} ——————————————"
     echo -e "${Green}23.${Font} 设置 TCP 加速"
     echo -e "${Green}24.${Font} 设置 Fail2ban 防暴力破解"
     echo -e "${Green}25.${Font} 设置 Xray 流量统计"
     echo -e "${Green}26.${Font} 清除 日志文件"
     echo -e "${Green}27.${Font} 安装 MTproxy (不推荐)"
-    echo -e "—————————————— ${Green}卸载向导${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}卸载向导${Font} ——————————————"
     echo -e "${Green}28.${Font} 卸载 脚本"
     echo -e "${Green}29.${Font} 清空 证书文件"
     echo -e "${Green}30.${Font} 退出 \n"
@@ -3050,6 +3079,8 @@ menu() {
     esac
 }
 
+check_file_integrity
+read_version
 judge_mode
 idleleo_commend
 list "$*"
