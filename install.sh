@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.1.7"
+shell_version="1.9.1.8"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -864,6 +864,8 @@ nginx_exist_check() {
 }
 
 nginx_install() {
+    rm -rf ${nginx_openssl_src}/*
+
     wget -nc --no-check-certificate http://nginx.org/download/nginx-${nginx_version}.tar.gz -P ${nginx_openssl_src}
     judge "Nginx 下载"
     wget -nc --no-check-certificate https://www.openssl.org/source/openssl-${openssl_version}.tar.gz -P ${nginx_openssl_src}
@@ -1276,24 +1278,29 @@ old_config_input () {
     elif [[ ${tls_mode} == "XTLS" ]]; then
         port=$(info_extraction port)
         if [[ ${xtls_add_more} == "on" ]]; then
-                if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                    xport=$(info_extraction ws_port)
-                    path=$(info_extraction ws_path)
-                    gport=$((RANDOM % 1000 + 30000))
-                    [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
-                    servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                    gport=$(info_extraction grpc_port)
-                    servicename=$(info_extraction grpc_servicename)
-                    xport=$((RANDOM % 1000 + 20000))
-                    [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
-                    path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                elif [[ ${ws_grpc_mode} == "all" ]]; then
-                    xport=$(info_extraction ws_port)
-                    path=$(info_extraction ws_path)
-                    gport=$(info_extraction grpc_port)
-                    servicename=$(info_extraction grpc_servicename)
-                fi
+            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                xport=$(info_extraction ws_port)
+                path=$(info_extraction ws_path)
+                gport=$((RANDOM % 1000 + 30000))
+                [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
+                servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                gport=$(info_extraction grpc_port)
+                servicename=$(info_extraction grpc_servicename)
+                xport=$((RANDOM % 1000 + 20000))
+                [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
+                path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            elif [[ ${ws_grpc_mode} == "all" ]]; then
+                xport=$(info_extraction ws_port)
+                path=$(info_extraction ws_path)
+                gport=$(info_extraction grpc_port)
+                servicename=$(info_extraction grpc_servicename)
+            fi
+        else
+            path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            servicename="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            xport=$((RANDOM % 1000 + 20000))
+            gport=$((RANDOM % 1000 + 30000))
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
@@ -2885,10 +2892,11 @@ menu() {
     echo -e "${Green}25.${Font} 设置 Xray 流量统计"
     echo -e "${Green}26.${Font} 清除 日志文件"
     echo -e "${Green}27.${Font} 安装 MTproxy (不推荐)"
+    echo -e "${Green}28.${Font} 测试 服务器网速"
     echo -e "—————————————— ${GreenW}卸载向导${Font} ——————————————"
-    echo -e "${Green}28.${Font} 卸载 脚本"
-    echo -e "${Green}29.${Font} 清空 证书文件"
-    echo -e "${Green}30.${Font} 退出 \n"
+    echo -e "${Green}29.${Font} 卸载 脚本"
+    echo -e "${Green}30.${Font} 清空 证书文件"
+    echo -e "${Green}31.${Font} 退出 \n"
 
     read -rp "请输入数字: " menu_num
     case $menu_num in
@@ -3054,19 +3062,23 @@ menu() {
         mtproxy_sh
         ;;
     28)
+        clear
+        bash <(curl -Lso- https://git.io/Jlkmw)
+        ;;
+    29)
         uninstall_all
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    29)
+    30)
         delete_tls_key_and_crt
         rm -rf ${ssl_chainpath}/*
         timeout "清空屏幕!"
         clear
         bash idleleo
         ;;
-    30)
+    31)
         timeout "清空屏幕!"
         clear
         exit 0
