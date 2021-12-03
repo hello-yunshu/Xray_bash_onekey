@@ -40,7 +40,6 @@ bash <(curl -Ss https://www.idleleo.com/install.sh)
 
 ### 鸣谢
 * 本脚本来源于 https://github.com/wulabing/V2Ray_ws-tls_bash_onekey 在此感谢 wulabing
-* 本脚本中 MTProxy-go TLS 版本项目引用 https://github.com/whunt1/onekeymakemtg 在此感谢 whunt1
 * 本脚本中 TCP加速 脚本项目引用 https://github.com/ylx2016/Linux-NetSpeed 在此感谢 ylx2016
 
 ### 证书
