@@ -40,7 +40,7 @@ jemalloc_online_version="$(check_online_version jemalloc_tested_version)"
 
 if [[ -f ${xray_qr_config_file} ]]; then
     if [[ $(info_extraction shell_version) == null ]] || [[ $(info_extraction shell_version) != ${shell_online_version} ]]; then
-        bash idleleo -u
+        bash idleleo -u auto_update
         [[ 0 -ne $? ]] && echo "脚本 更新失败!" >>${log_file} && exit 1
         echo "脚本 更新成功!" >>${log_file}
         add_shell_version=$(jq -r ". += {\"shell_version\": \"${shell_online_version}\"}" ${xray_qr_config_file})
@@ -51,7 +51,7 @@ if [[ -f ${xray_qr_config_file} ]]; then
     if [[ $(info_extraction nginx_version) == null ]] || [[ ! -f "/etc/nginx/sbin/nginx" ]]; then
         echo "Nginx 未安装!"
     elif [[ ${nginx_online_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_online_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_online_version} != $(info_extraction jemalloc_version) ]]; then
-        bash idleleo -n
+        bash idleleo -n auto_update
         [[ 0 -ne $? ]] && echo "Nginx 更新失败!" >>${log_file} && exit 1
         echo "Nginx 更新成功!" >>${log_file}
     else
@@ -61,7 +61,7 @@ if [[ -f ${xray_qr_config_file} ]]; then
         if [[ $(info_extraction xray_version) == null ]]; then
             echo "Xray 版本未知 无法自动更新" >>${log_file}
         elif [[ ${xray_online_version} != $(info_extraction xray_version) ]]; then
-            bash idleleo -x
+            bash idleleo -x auto_update
             [[ 0 -ne $? ]] && echo "Xray 更新失败!" >>${log_file} && exit 1
             echo "Xray 更新成功!" >>${log_file}
         elif [[ ${xray_online_version} == $(info_extraction xray_version) ]]; then

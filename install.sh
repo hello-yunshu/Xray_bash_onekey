@@ -34,11 +34,10 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.2.0"
+shell_version="1.9.2.4"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
-version_cmp="/tmp/version_cmp.tmp"
 idleleo_dir="/etc/idleleo"
 idleleo_conf_dir="${idleleo_dir}/conf"
 log_dir="${idleleo_dir}/logs"
@@ -64,6 +63,7 @@ auto_update_file="${idleleo_dir}/auto_update.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 cert_group="nobody"
 myemali="my@example.com"
+shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=$(curl -s https://www.idleleo.com/api/xray_shell_versions)
 bt_nginx="None"
 read_config_status=1
@@ -73,6 +73,9 @@ old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
 THREAD=$(($(grep 'processor' /proc/cpuinfo | sort -u | wc -l) + 1))
 [[ -f ${xray_qr_config_file} ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+
+##兼容代码，未来删除
+[[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p ${idleleo_dir}/tmp
 
 source '/etc/os-release'
 
@@ -691,7 +694,7 @@ modify_nginx_other() {
     sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_conf}
     if [[ ${tls_mode} == "TLS" ]]; then
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
-        sed -i "s/^\( *\)location grpc$/\1location \/${servicename}/" ${nginx_conf}
+        sed -i "s/^\( *\)location grpc$/\1location \/${servicename}\/TunMulti/" ${nginx_conf}
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
             sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
@@ -778,7 +781,7 @@ xray_update() {
         if [[ ${auto_update} != "YES" ]]; then
             echo -e "${Warning} ${GreenBG} 检测到存在最新测试版 ${Font}"
             echo -e "${Warning} ${GreenBG} 脚本可能未兼容此版本 ${Font}"
-            echo -e "\n${Warning} ${GreenBG} 是否更新到测试版 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+            echo -e "\n${Warning} ${GreenBG} 是否更新到测试版 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r xray_test_fq
         else
             xray_test_fq=1
@@ -797,7 +800,7 @@ xray_update() {
             systemctl stop xray
             wait
             bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
-            udge "Xray 升级"
+            judge "Xray 升级"
             ;;
         esac
     else
@@ -1016,21 +1019,20 @@ nginx_update() {
 }
 
 auto_update() {
-    if [[ ! -f ${auto_update_file} ]]; then
-        echo -e "\n${Green} 设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx) ${Font}"
-        echo -e "${Green} 可能自动更新后有兼容问题, 谨慎开启 ${Font}"
-        echo -e "${GreenBG} 是否开启? [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    if [[ "${ID}" == "centos" ]]; then
+        crontab_file="/var/spool/cron/root"
+    else
+        crontab_file="/var/spool/cron/crontabs/root"
+    fi
+    if [[ ! -f ${auto_update_file} ]] || [[ $(crontab -l | grep -c "auto_update.sh") -lt 1 ]]; then
+        echo -e "\n${GreenBG} 设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx) ${Font}"
+        echo -e "${GreenBG} 可能自动更新后有兼容问题, 谨慎开启 ${Font}"
+        echo -e "${GreenBG} 是否开启 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
             wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/auto_update.sh && chmod +x ${auto_update_file}
-            if [[ $(crontab -l | grep -c "auto_update.sh") -lt 1 ]]; then
-                if [[ "${ID}" == "centos" ]]; then
-                    echo "0 1 15 * * bash ${auto_update_file}" >>/var/spool/cron/root
-                else
-                    echo "0 1 15 * * bash ${auto_update_file}" >>/var/spool/cron/crontabs/root
-                fi
-            fi
+            echo "0 1 15 * * bash ${auto_update_file}" >>${crontab_file}
             judge "设置自动更新"
             ;;
         *) ;;
@@ -1041,12 +1043,9 @@ auto_update() {
         read -r auto_update_close_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
-            if [[ "${ID}" == "centos" ]]; then
-                sed -i "/auto_update.sh/d" /var/spool/cron/root
-            else
-                sed -i "/auto_update.sh/d" /var/spool/cron/crontabs/root
-            fi
+            sed -i "/auto_update.sh/d" ${crontab_file}
             rm -rf ${auto_update_file}
+            judge "删除自动更新"
             ;;
         *) ;;
         esac
@@ -1203,7 +1202,8 @@ port_exist_check() {
 
 acme() {
     #暂时解决ca问题
-    if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone --server letsencrypt -k ec-256 --force --test; then
+    # if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone --server letsencrypt -k ec-256 --force --test; then
+    if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force --test; then
         echo -e "${OK} ${GreenBG} SSL 证书测试签发成功, 开始正式签发 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
     else
@@ -1212,7 +1212,8 @@ acme() {
         exit 1
     fi
 
-    if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone --server letsencrypt -k ec-256 --force; then
+    # if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone --server letsencrypt -k ec-256 --force; then
+    if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force; then
         echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
         mkdir -p ${ssl_chainpath}
         if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
@@ -1408,6 +1409,9 @@ types_hash_max_size 2048;
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
+    set_real_ip_from    127.0.0.1;
+    real_ip_header      X-Forwarded-For;
+    real_ip_recursive   on;
     ssl_certificate       /etc/idleleo/cert/xray.crt;
     ssl_certificate_key   /etc/idleleo/cert/xray.key;
     ssl_protocols         TLSv1.3;
@@ -1415,8 +1419,7 @@ server {
     server_name           serveraddr.com;
     index index.html index.htm;
     root /403.html;
-    error_page 404 https://www.bing.com;
-    # Config for 0-RTT in TLSv1.3
+    error_page 403 https://www.bing.com;
     ssl_early_data on;
     ssl_stapling on;
     ssl_stapling_verify on;
@@ -1433,9 +1436,7 @@ server {
         client_max_body_size 0;
         grpc_set_header X-Real-IP \$remote_addr;
         grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-
-        # Config for 0-RTT in TLSv1.3
-        proxy_set_header Early-Data \$ssl_early_data;
+        grpc_set_header Early-Data \$ssl_early_data;
     }
 
     location ws
@@ -1454,14 +1455,12 @@ server {
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host \$http_host;
-
-        # Config for 0-RTT in TLSv1.3
         proxy_set_header Early-Data \$ssl_early_data;
     }
 
     location /
     {
-        return 404;
+        return 403;
     }
 }
 server {
@@ -1491,11 +1490,11 @@ server {
     real_ip_recursive   on;
     add_header Strict-Transport-Security "max-age=63072000" always;
     root /403.html;
-    error_page 404 https://www.bing.com;
+    error_page 403 https://www.bing.com;
 
     location /
     {
-        return 404;
+        return 403;
     }
 }
 
@@ -1590,25 +1589,24 @@ service_stop() {
 }
 
 acme_cron_update() {
-    if [[ ! -f ${ssl_update_file} ]]; then
-        echo -e "\n${GreenBG} acme.sh 已自动设置证书自动更新 ${Font}"
-        echo -e "${GreenBG} 是否需要重新设置证书自动更新 (推荐) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+    if [[ "${ID}" == "centos" ]]; then
+        crontab_file="/var/spool/cron/root"
+    else
+        crontab_file="/var/spool/cron/crontabs/root"
+    fi
+    if [[ ! -f ${ssl_update_file} ]] || [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
+        echo -e "\n${GreenBG} 未设置证书自动更新 ${Font}"
+        echo -e "${GreenBG} 是否设置证书自动更新 (推荐) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r acme_cron_update_fq
         case $acme_cron_update_fq in
         [nN][oO] | [nN]) ;;
         *)
             if [[ "${ssl_self}" != "on" ]]; then
                 wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
-                if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
-                    if [[ "${ID}" == "centos" ]]; then
-                        #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
-                        #        &> /dev/null" /var/spool/cron/root
-                        sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" /var/spool/cron/root
-                    else
-                        #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
-                        #        &> /dev/null" /var/spool/cron/crontabs/root
-                        sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" /var/spool/cron/crontabs/root
-                    fi
+                if [[ $(crontab -l | grep -c "acme.sh") -lt 1 ]]; then
+                    echo "0 3 15 * * bash ${ssl_update_file}" >>${crontab_file}
+                else
+                    sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" ${crontab_file}
                 fi
                 judge "设置证书自动更新"
             else
@@ -1617,7 +1615,17 @@ acme_cron_update() {
             ;;
         esac
     else
-        echo -e "${OK} ${GreenBG} 已设置证书自动更新 ${Font}"
+        echo -e "\n${GreenBG} 已设置证书自动更新 ${Font}"
+        echo -e "${GreenBG} 是否需要删除证书自动更新 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r remove_acme_cron_update_fq
+        case $remove_acme_cron_update_fq in
+        [yY][eE][sS] | [yY])
+            sed -i "/ssl_update.sh/d" ${crontab_file}
+            rm -rf ${ssl_update_file}
+            judge "删除证书自动更新"
+            ;;
+        *) ;;
+        esac
     fi
 }
 
@@ -2385,29 +2393,42 @@ show_error_log() {
 }
 
 xray_status_add() {
-    echo -e "\n${GreenBG} Xray 流量统计需要使用 api ${Font}"
-    echo -e "${GreenBG} 可能会影响 Xray 性能 ${Font}"
-    echo -e "${GreenBG} 是否继续 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-    read -r xray_status_add_fq
-    case $xray_status_add_fq in
-    [nN][oO] | [nN]) ;;
-    *)
-        if [[ -f ${xray_conf} ]]; then
-            if [[ $(jq -r .stats ${xray_conf}) == null ]]; then
+    if [[ -f ${xray_conf} ]]; then
+        if [[ $(jq -r .stats ${xray_conf}) != null ]]; then
+            echo -e "\n${GreenBG} 已配置 Xray 流量统计 ${Font}"
+            echo -e "${GreenBG} 是否需要关闭此功能 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            read -r xray_status_add_fq
+            case $xray_status_add_fq in
+            [yY][eE][sS] | [yY])
                 service_stop
-                wget -nc --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/status_config.json -O ${xray_status_conf}
-                xray_status=$(jq -r ". += $(jq -c . ${xray_status_conf})" ${xray_conf})
-                judge "设置 Xray 流量统计"
+                xray_status=$(jq -r "del(.api)|del(.stats)|del(.policy)" ${xray_conf})
+                judge "关闭 Xray 流量统计"
                 echo "${xray_status}" | jq . >${xray_conf}
                 service_start
-            else
-                echo -e "${Warning} ${GreenBG} 已设置 Xray 流量统计! ${Font}"
-            fi
+                [[ -f ${xray_status_conf} ]] && rm -rf ${xray_status_conf}
+                ;;
+            *) ;;
+            esac
         else
-            echo -e "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
+            echo -e "\n${GreenBG} Xray 流量统计需要使用 api ${Font}"
+            echo -e "${GreenBG} 可能会影响 Xray 性能 ${Font}"
+            echo -e "${GreenBG} 是否继续 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            read -r xray_status_add_fq
+            case $xray_status_add_fq in
+            [yY][eE][sS] | [yY])
+                    service_stop
+                    wget -nc --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/status_config.json -O ${xray_status_conf}
+                    xray_status=$(jq -r ". += $(jq -c . ${xray_status_conf})" ${xray_conf})
+                    judge "设置 Xray 流量统计"
+                    echo "${xray_status}" | jq . >${xray_conf}
+                    service_start
+                ;;
+            *) ;;
+            esac
         fi
-        ;;
-    esac
+    else
+        echo -e "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
+    fi
 }
 
 bbr_boost_sh() {
@@ -2447,6 +2468,22 @@ uninstall_all() {
         *) ;;
         esac
     fi
+    echo -e "${GreenBG} 是否删除所有脚本文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    read -r remove_all_idleleo_file_fq
+    case $remove_all_idleleo_file_fq in
+    [yY][eE][sS] | [yY])
+        rm -rf ${idleleo_commend_file}
+        rm -rf ${idleleo_dir}
+        systemctl daemon-reload
+        echo -e "${OK} ${GreenBG} 已删除所有文件 ${Font}"
+        echo -e "${GreenBG} ヾ(￣▽￣) 拜拜~ ${Font}"
+        exit 0
+        ;;
+    *)
+        systemctl daemon-reload
+        echo -e "${OK} ${GreenBG} 已保留脚本文件 (包含 SSL 证书等) ${Font}"
+        ;;
+    esac
     if [[ -f ${xray_qr_config_file} ]]; then
         echo -e "${GreenBG} 是否保留配置文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r remove_config_fq
@@ -2460,8 +2497,6 @@ uninstall_all() {
             ;;
         esac
     fi
-    systemctl daemon-reload
-    echo -e "${OK} ${GreenBG} 已卸载, SSL 证书文件已保留 ${Font}\n"
 }
 
 delete_tls_key_and_crt() {
@@ -2637,11 +2672,11 @@ install_xray_ws_only() {
 
 update_sh() {
     ol_version=${shell_online_version}
-    echo "${ol_version}" >${version_cmp}
+    echo "${ol_version}" >${shell_version_tmp}
     [[ -z ${ol_version} ]] && echo -e "${Error} ${RedBG}  检测最新版本失败! ${Font}" && return 1
-    echo "${shell_version}" >>${version_cmp}
-    newest_version=$(sort -rV ${version_cmp} | head -1)
-    oldest_version=$(sort -V ${version_cmp} | head -1)
+    echo "${shell_version}" >>${shell_version_tmp}
+    newest_version=$(sort -rV ${shell_version_tmp} | head -1)
+    oldest_version=$(sort -V ${shell_version_tmp} | head -1)
     version_difference=$(echo "(${newest_version:0:3}-${oldest_version:0:3})>0" | bc)
     if [[ ${shell_version} != ${newest_version} ]]; then
         if [[ ${auto_update} != "YES" ]]; then
@@ -2679,6 +2714,7 @@ check_file_integrity() {
         check_system
         pkg_install "bc,jq,wget"
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
+        [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p ${idleleo_dir}/tmp
         wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
         judge "下载最新脚本"
         ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
@@ -2836,9 +2872,9 @@ idleleo_commend() {
         ##在线运行与本地脚本比对
         [[ ! -L ${idleleo_commend_file} ]] && chmod +x ${idleleo_dir}/install.sh && ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
         old_version=$(grep "shell_version=" ${idleleo_dir}/install.sh | head -1 | awk -F '=|"' '{print $3}')
-        echo "${old_version}" >${version_cmp}
-        echo "${shell_version}" >>${version_cmp}
-        oldest_version=$(sort -V ${version_cmp} | head -1)
+        echo "${old_version}" >${shell_version_tmp}
+        echo "${shell_version}" >>${shell_version_tmp}
+        oldest_version=$(sort -V ${shell_version_tmp} | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
             wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
@@ -2870,10 +2906,10 @@ idleleo_commend() {
             bash idleleo
         else
             ol_version=${shell_online_version}
-            echo "${ol_version}" >${version_cmp}
+            echo "${ol_version}" >${shell_version_tmp}
             [[ -z ${ol_version} ]] && shell_need_update="${Red}[检测失败!]${Font}"
-            echo "${shell_version}" >>${version_cmp}
-            newest_version=$(sort -rV ${version_cmp} | head -1)
+            echo "${shell_version}" >>${shell_version_tmp}
+            newest_version=$(sort -rV ${shell_version_tmp} | head -1)
             if [[ ${shell_version} != ${newest_version} ]]; then
                 shell_need_update="${Red}[有新版!]${Font}"
             else
@@ -2911,6 +2947,19 @@ idleleo_commend() {
     fi
 }
 
+check_program() {
+    if [[ -n $(pgrep nginx) ]]; then
+        nignx_status="${Green}运行中..${Font}"
+    else
+        nignx_status="${Red}未运行${Font}"
+    fi
+    if [[ -n $(pgrep xray) ]]; then
+        xray_status="${Green}运行中..${Font}"
+    else
+        xray_status="${Red}未运行${Font}"
+    fi
+}
+
 menu() {
 
     echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font} ${shell_need_update}"
@@ -2925,6 +2974,9 @@ menu() {
     echo -e "脚本:  ${shell_need_update}"
     echo -e "Xray:  ${xray_need_update}"
     echo -e "Nginx: ${nginx_need_update}"
+    echo -e "—————————————— ${GreenW}运行情况${Font} ——————————————"
+    echo -e "Xray:  ${xray_status}"
+    echo -e "Nginx: ${nignx_status}"
     echo -e "—————————————— ${GreenW}升级向导${Font} ——————————————"
     echo -e "${Green}0.${Font}  升级 脚本"
     echo -e "${Green}1.${Font}  升级 Xray"
@@ -3167,4 +3219,5 @@ check_file_integrity
 read_version
 judge_mode
 idleleo_commend
+check_program
 list "$@"
