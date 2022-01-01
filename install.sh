@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.2.4"
+shell_version="1.9.3.0"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -2960,6 +2960,27 @@ check_program() {
     fi
 }
 
+curl_local_connect() {
+    curl -Is -o /dev/null -w %{http_code} "https://$1/$2$3"
+}
+
+check_xray_local_connect() {
+    if [[ -f ${xray_qr_config_file} ]]; then
+        xray_local_connect_status="${Red}无法连通${Font}"
+        if [[ ${tls_mode} == "TLS" ]]; then
+            [[ ${ws_grpc_mode} == "onlyws" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}本地正常${Font}"
+            [[ ${ws_grpc_mode} == "onlygrpc" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction servicename) /TunMulti) == "502" ]] && xray_local_connect_status="${Green}本地正常${Font}"
+            [[ ${ws_grpc_mode} == "all" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction servicename) /TunMulti) == "502" && $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}本地正常${Font}"
+        elif [[ ${tls_mode} == "XTLS" ]]; then
+            [[ $(curl_local_connect $(info_extraction host)) == "302" ]] && xray_local_connect_status="${Green}本地正常${Font}"
+        elif [[ ${tls_mode} == "None" ]]; then
+            xray_local_connect_status="${Green}无需测试${Font}"
+        fi
+    else
+        xray_local_connect_status="${Red}未安装${Font}"
+    fi
+}
+
 menu() {
 
     echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font} ${shell_need_update}"
@@ -2974,9 +2995,10 @@ menu() {
     echo -e "脚本:  ${shell_need_update}"
     echo -e "Xray:  ${xray_need_update}"
     echo -e "Nginx: ${nginx_need_update}"
-    echo -e "—————————————— ${GreenW}运行情况${Font} ——————————————"
-    echo -e "Xray:  ${xray_status}"
-    echo -e "Nginx: ${nignx_status}"
+    echo -e "—————————————— ${GreenW}运行状态${Font} ——————————————"
+    echo -e "Xray:   ${xray_status}"
+    echo -e "Nginx:  ${nignx_status}"
+    echo -e "连通性: ${xray_local_connect_status}"
     echo -e "—————————————— ${GreenW}升级向导${Font} ——————————————"
     echo -e "${Green}0.${Font}  升级 脚本"
     echo -e "${Green}1.${Font}  升级 Xray"
@@ -3220,4 +3242,5 @@ read_version
 judge_mode
 idleleo_commend
 check_program
+check_xray_local_connect
 list "$@"
