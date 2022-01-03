@@ -3,6 +3,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 idleleo_dir="/etc/idleleo"
+nginx_dir="/etc/nginx"
 xray_conf_dir="${idleleo_conf_dir}/xray"
 xray_conf="${xray_conf_dir}/config.json"
 log_dir="${idleleo_dir}/logs"
@@ -48,7 +49,7 @@ if [[ -f ${xray_qr_config_file} ]]; then
     else
         echo "脚本 最新版!" >>${log_file}
     fi
-    if [[ $(info_extraction nginx_version) == null ]] || [[ ! -f "/etc/nginx/sbin/nginx" ]]; then
+    if [[ $(info_extraction nginx_version) == null ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
         echo "Nginx 未安装!"
     elif [[ ${nginx_online_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_online_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_online_version} != $(info_extraction jemalloc_version) ]]; then
         bash idleleo -n auto_update
