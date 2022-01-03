@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.3.0"
+shell_version="1.9.3.5"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -533,7 +533,7 @@ UUID_set() {
             echo -e "${Green} 自定义字符串: ${UUID5_char} ${Font}"
             echo -e "${Green} UUIDv5: ${UUID} ${Font}\n"
             ;;
-        [nN][oO] | [nN] | *)
+        *)
             UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
             echo -e "${Green} UUID 映射字符串: ${UUID5_char} ${Font}"
@@ -694,7 +694,7 @@ modify_nginx_other() {
     sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_conf}
     if [[ ${tls_mode} == "TLS" ]]; then
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
-        sed -i "s/^\( *\)location grpc$/\1location \/${servicename}\/TunMulti/" ${nginx_conf}
+        sed -i "s/^\( *\)location grpc$/\1location \/${servicename}/" ${nginx_conf}
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
             sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
@@ -820,7 +820,7 @@ xray_update() {
 }
 
 nginx_exist_check() {
-    if [[ -f "/etc/nginx/sbin/nginx" ]]; then
+    if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         if [[ -d ${nginx_conf_dir} ]]; then
             rm -rf ${nginx_conf}
             if [[ -f ${nginx_conf_dir}/nginx.default ]]; then
@@ -846,7 +846,7 @@ nginx_exist_check() {
             read -r have_btnginx_fq
             case $have_btnginx_fq in
             [nN][oO] | [nN])
-                exit 1
+                exit 0
                 ;;
             *)
                 nginx_install
@@ -871,7 +871,8 @@ nginx_install() {
     wget -nc --no-check-certificate https://github.com/jemalloc/jemalloc/releases/download/${jemalloc_version}/jemalloc-${jemalloc_version}.tar.bz2 -P ${nginx_openssl_src}
     judge "jemalloc 下载"
 
-    cd ${nginx_openssl_src} || exit 1
+    cd ${nginx_openssl_src} 
+    [[ $? -ne 0 ]] && echo -e "${Error} ${RedBG} Nginx 目录不存在! ${Font}" && menu
 
     [[ -d nginx-${nginx_version} ]] && rm -rf nginx-${nginx_version}
     tar -zxvf nginx-${nginx_version}.tar.gz
@@ -886,7 +887,9 @@ nginx_install() {
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 jemalloc ${Font}"
 
-    cd ${nginx_openssl_src}/jemalloc-${jemalloc_version} || exit 1
+    cd ${nginx_openssl_src}/jemalloc-${jemalloc_version}
+    [[ $? -ne 0 ]] && echo -e "${Error} ${RedBG} jemalloc 目录不存在! ${Font}" && menu
+
     ./configure
     judge "编译检查"
     make -j "${THREAD}" && make install
@@ -896,7 +899,8 @@ nginx_install() {
 
     echo -e "${OK} ${GreenBG} 即将开始编译安装 Nginx, 过程稍久, 请耐心等待 ${Font}"
 
-    cd ${nginx_openssl_src}/nginx-${nginx_version} || exit 1
+    cd ${nginx_openssl_src}/nginx-${nginx_version}
+    [[ $? -ne 0 ]] && echo -e "${Error} ${RedBG} openssl 目录不存在! ${Font}" && menu
 
     #增加http_sub_module用于反向代理替换关键词
     ./configure --prefix=${nginx_dir} \
@@ -924,7 +928,7 @@ nginx_install() {
     make -j ${THREAD} && make install
     judge "Nginx 编译安装"
 
-    cd $HOME || exit 1
+    cd $HOME
 
     cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/nginx.default
 
@@ -940,7 +944,7 @@ nginx_install() {
 }
 
 nginx_update() {
-    if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ ${bt_nginx} != "Yes" ]]; then
+    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ ${bt_nginx} != "Yes" ]]; then
         if [[ ${nginx_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_version} != $(info_extraction jemalloc_version) ]]; then
             ip_check
             if [[ -f ${xray_qr_config_file} ]]; then
@@ -1066,6 +1070,7 @@ domain_check() {
         echo -e "\n${GreenBG} 检测到原域名配置存在, 是否跳过域名设置 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r old_host_fq
         case $old_host_fq in
+        [nN][oO] | [nN]) ;;
         *)
             domain=$(info_extraction host)
             ip_version=$(info_extraction ip_version)
@@ -1079,7 +1084,6 @@ domain_check() {
             echo -e "${OK} ${GreenBG} 已跳过域名设置 ${Font}"
             return 0
             ;;
-        [nN][oO] | [nN]) ;;
         esac
     fi
     echo -e "\n${GreenBG} 确定 域名 信息 ${Font}"
@@ -1144,6 +1148,7 @@ ip_check() {
             old_host_fq=1
         fi
         case $old_host_fq in
+        [nN][oO] | [nN]) ;;
         *)
             ip_version=$(info_extraction ip_version)
             if [[ ${ip_version} == "IPv4" ]]; then
@@ -1156,7 +1161,6 @@ ip_check() {
             echo -e "\n${OK} ${GreenBG} 已跳过IP设置 ${Font}"
             return 0
             ;;
-        [nN][oO] | [nN]) ;;
         esac
     ##兼容代码，未来删除
     elif [[ ${auto_update} == "YES" ]] && [[ $(info_extraction ip_version) == null ]]; then
@@ -1300,7 +1304,7 @@ old_config_exist_check() {
             [yY][eE][sS] | [yY])
                 echo -e "${Warning} ${GreenBG} 请务必确保配置文件正确 ${Font}"
                 echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
-                bash idleleo
+                menu
                 ;;
             *)
                 rm -rf ${xray_qr_config_file}
@@ -1312,6 +1316,7 @@ old_config_exist_check() {
 }
 
 old_config_input() {
+    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
     custom_email=$(info_extraction email)
     ##兼容代码，未来删除
     [[ ${custom_email} == null ]] && custom_email="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})@idleleo.com"
@@ -1419,7 +1424,10 @@ server {
     server_name           serveraddr.com;
     index index.html index.htm;
     root /403.html;
-    error_page 403 https://www.bing.com;
+    error_page 403 https://www.idleleo.com/helloworld;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
     ssl_early_data on;
     ssl_stapling on;
     ssl_stapling_verify on;
@@ -1483,14 +1491,14 @@ nginx_conf_add_xtls() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
 server {
-    listen 127.0.0.1:8080 proxy_protocol;
+    listen 127.0.0.1:8080 proxy_protocol http2;
     server_name         serveraddr.com;
     set_real_ip_from    127.0.0.1;
     real_ip_header      X-Forwarded-For;
     real_ip_recursive   on;
     add_header Strict-Transport-Security "max-age=63072000" always;
     root /403.html;
-    error_page 403 https://www.bing.com;
+    error_page 403 https://www.idleleo.com/helloworld;
 
     location /
     {
@@ -1594,7 +1602,19 @@ acme_cron_update() {
     else
         crontab_file="/var/spool/cron/crontabs/root"
     fi
-    if [[ ! -f ${ssl_update_file} ]] || [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
+    if [[ -f ${ssl_update_file} ]] && [[ $(crontab -l | grep -c "ssl_update.sh") == "1" ]]; then
+        echo -e "\n${GreenBG} 已设置证书自动更新 ${Font}"
+        echo -e "${GreenBG} 是否需要删除证书自动更新 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r remove_acme_cron_update_fq
+        case $remove_acme_cron_update_fq in
+        [yY][eE][sS] | [yY])
+            sed -i "/ssl_update.sh/d" ${crontab_file}
+            rm -rf ${ssl_update_file}
+            judge "删除证书自动更新"
+            ;;
+        *) ;;
+        esac
+    else
         echo -e "\n${GreenBG} 未设置证书自动更新 ${Font}"
         echo -e "${GreenBG} 是否设置证书自动更新 (推荐) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r acme_cron_update_fq
@@ -1613,18 +1633,6 @@ acme_cron_update() {
                 echo -e "${Error} ${RedBG} 自定义证书不支持此操作! ${Font}"
             fi
             ;;
-        esac
-    else
-        echo -e "\n${GreenBG} 已设置证书自动更新 ${Font}"
-        echo -e "${GreenBG} 是否需要删除证书自动更新 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        read -r remove_acme_cron_update_fq
-        case $remove_acme_cron_update_fq in
-        [yY][eE][sS] | [yY])
-            sed -i "/ssl_update.sh/d" ${crontab_file}
-            rm -rf ${ssl_update_file}
-            judge "删除证书自动更新"
-            ;;
-        *) ;;
         esac
     fi
 }
@@ -1692,8 +1700,8 @@ network_secure() {
             sed -i "/nginx_error_log/d" /etc/fail2ban/jail.local
             sed -i "s/http,https$/http,https,8080/g" /etc/fail2ban/jail.local
             sed -i "/^maxretry.*= 2$/c \\maxretry = 5" /etc/fail2ban/jail.local
-            sed -i "/nginx-botsearch/i \[nginx-badbots]\\n\\nenabled  = true\\nport     = http,https,8080\\nfilter   = apache-badbots\\nlogpath  = /etc/nginx/logs/access.log\\nbantime  = 604800\\nmaxretry = 5\\n" /etc/fail2ban/jail.local
-            sed -i "/nginx-botsearch/a \\\nenabled  = true\\nfilter   = nginx-botsearch\\nlogpath  = /etc/nginx/logs/access.log\\n           /etc/nginx/logs/error.log\\nbantime  = 604800" /etc/fail2ban/jail.local
+            sed -i "/nginx-botsearch/i \[nginx-badbots]\\n\\nenabled  = true\\nport     = http,https,8080\\nfilter   = apache-badbots\\nlogpath  = ${nginx_dir}/logs/access.log\\nbantime  = 604800\\nmaxretry = 5\\n" /etc/fail2ban/jail.local
+            sed -i "/nginx-botsearch/a \\\nenabled  = true\\nfilter   = nginx-botsearch\\nlogpath  = ${nginx_dir}/logs/access.log\\n           ${nginx_dir}/logs/error.log\\nbantime  = 604800" /etc/fail2ban/jail.local
         fi
         judge "Fail2ban 配置"
         systemctl daemon-reload
@@ -1736,9 +1744,9 @@ network_secure() {
 
 clean_logs() {
     echo -e "\n${Green} 检测到日志文件大小如下: ${Font}"
-    echo -e "${Green}$(du -sh /var/log/xray /etc/nginx/logs)${Font}"
+    echo -e "${Green}$(du -sh /var/log/xray ${nginx_dir}/logs)${Font}"
     timeout "即将清除!"
-    for i in $(find /var/log/xray/ /etc/nginx/logs -name "*.log"); do cat /dev/null >$i; done
+    for i in $(find /var/log/xray/ ${nginx_dir}/logs -name "*.log"); do cat /dev/null >$i; done
     judge "日志清理"
     echo -e "\n${GreenBG} 是否需要设置自动清理日志 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r auto_clean_logs_fq
@@ -1750,15 +1758,15 @@ clean_logs() {
     *)
         echo -e "${OK} ${GreenBG} 将在 每周三 04:00 自动清空日志 ${Font}"
         if [[ "${ID}" == "centos" ]]; then
-            if [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" /var/spool/cron/root) -eq '0' ]]; then
-                echo "0 4 * * 3 for i in \$(find /var/log/xray/ /etc/nginx/logs -name \"*.log\"); do cat /dev/null >\$i; done >/dev/null 2>&1" >>/var/spool/cron/root
+            if [[ $(grep -c "find /var/log/xray/ ${nginx_dir}/logs -name" /var/spool/cron/root) -eq '0' ]]; then
+                echo "0 4 * * 3 for i in \$(find /var/log/xray/ ${nginx_dir}/logs -name \"*.log\"); do cat /dev/null >\$i; done >/dev/null 2>&1" >>/var/spool/cron/root
                 judge "设置自动清理日志"
             else
                 echo -e "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
             fi
         else
-            if [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" /var/spool/cron/crontabs/root) -eq '0' ]]; then
-                echo "0 4 * * 3 for i in \$(find /var/log/xray/ /etc/nginx/logs -name \"*.log\"); do cat /dev/null >\$i; done >/dev/null 2>&1" >>/var/spool/cron/crontabs/root
+            if [[ $(grep -c "find /var/log/xray/ ${nginx_dir}/logs -name" /var/spool/cron/crontabs/root) -eq '0' ]]; then
+                echo "0 4 * * 3 for i in \$(find /var/log/xray/ ${nginx_dir}/logs -name \"*.log\"); do cat /dev/null >\$i; done >/dev/null 2>&1" >>/var/spool/cron/crontabs/root
                 judge "设置自动清理日志"
             else
                 echo -e "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
@@ -2031,7 +2039,7 @@ show_information() {
 }
 
 ssl_judge_and_install() {
-    cd $HOME || exit 1
+    cd $HOME
     echo -e "\n${GreenBG} 即将申请证书, 支持使用自定义证书 ${Font}"
     echo -e "${Green} 如需使用自定义证书, 请按如下步骤:  ${Font}"
     echo -e " 1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
@@ -2113,10 +2121,10 @@ After=syslog.target network.target remote-fs.target nss-lookup.target
 
 [Service]
 Type=forking
-PIDFile=/etc/nginx/logs/nginx.pid
-ExecStartPre=/etc/nginx/sbin/nginx -t
-ExecStart=/etc/nginx/sbin/nginx -c ${nginx_dir}/conf/nginx.conf
-ExecReload=/etc/nginx/sbin/nginx -s reload
+PIDFile=${nginx_dir}/logs/nginx.pid
+ExecStartPre=${nginx_dir}/sbin/nginx -t
+ExecStart=${nginx_dir}/sbin/nginx -c ${nginx_dir}/conf/nginx.conf
+ExecReload=${nginx_dir}/sbin/nginx -s reload
 ExecStop=/bin/kill -s QUIT \$MAINPID
 PrivateTmp=true
 
@@ -2252,15 +2260,18 @@ show_user() {
         elif [[ ${show_user_index} == 1 ]]; then
             echo -e "${Error} ${RedBG} 请直接在主菜单选择 [15] 显示主用户 ${Font}"
             timeout "回到菜单!"
-            bash idleleo
+            menu
         elif [[ ${show_user_index} -gt 1 ]]; then
             show_user_index=$((show_user_index - 1))
             user_email=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${show_user_index}'].email' ${xray_conf})
             user_id=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${show_user_index}'].id' ${xray_conf})
+        elif [[ ! -z $(echo ${show_user_index} | sed 's/[0-9]//g') ]] || [[ ${show_user_index} == '' ]]; then
+            echo -e "${Error} ${RedBG} 选择错误! ${Font}"
+            show_user
         else
             echo -e "${Warning} ${YellowBG} 请先检测 Xray 是否正确安装! ${Font}"
             timeout "回到菜单!"
-            bash idleleo
+            menu
         fi
         if [[ ! -z ${user_email} ]] && [[ ! -z ${user_id} ]]; then
             echo -e "${Green} 用户名: ${user_email} ${Font}"
@@ -2356,7 +2367,7 @@ remove_user() {
         elif [[ ${del_user_index} == 1 ]]; then
             echo -e "\n${Error} ${RedBG} 请直接在主菜单修改主用户的 UUID/Email ! ${Font}"
             timeout "回到菜单!"
-            bash idleleo
+            menu
         elif [[ ${del_user_index} -gt 1 ]]; then
             del_user_index=$((del_user_index - 1))
             remove_user=$(jq -r 'del(.inbounds['${choose_user_prot}'].settings.clients['${del_user_index}'])' ${xray_conf})
@@ -2370,10 +2381,13 @@ remove_user() {
                 ;;
             *) ;;
             esac
+        elif [[ ! -z $(echo ${del_user_index} | sed 's/[0-9]//g') ]] || [[ ${del_user_index} == '' ]]; then
+            echo -e "${Error} ${RedBG} 选择错误! ${Font}"
+            remove_user
         else
             echo -e "${Warning} ${YellowBG} 请先检测 Xray 是否正确安装! ${Font}"
             timeout "回到菜单!"
-            bash idleleo
+            menu
         fi
         wait
         service_start
@@ -2445,24 +2459,31 @@ mtproxy_sh() {
 
 uninstall_all() {
     stop_service_all
-    systemctl disable xray
-    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove --purge
-    judge "卸载 Xray"
-    [[ -d ${xray_conf_dir} ]] && rm -rf ${xray_conf_dir}
-    [[ -L /www/server/panel/vhost/nginx/xray.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray.conf
-    [[ -L /www/server/panel/vhost/nginx/xray-server.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray-server.conf
-    remove_xray=$(jq -r 'del(.xray_version)' ${xray_qr_config_file})
-    echo "${remove_xray}" | jq . >${xray_qr_config_file}
+    if [[ -f /usr/local/bin/xray ]]; then
+        systemctl disable xray
+        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove --purge
+        [[ -d ${xray_conf_dir} ]] && rm -rf ${xray_conf_dir}
+        [[ -L /www/server/panel/vhost/nginx/xray.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray.conf
+        [[ -L /www/server/panel/vhost/nginx/xray-server.conf ]] && rm -rf /www/server/panel/vhost/nginx/xray-server.conf
+        if [[ -f ${xray_qr_config_file} ]]; then
+            remove_xray=$(jq -r 'del(.xray_version)' ${xray_qr_config_file})
+            echo "${remove_xray}" | jq . >${xray_qr_config_file}
+        fi
+        echo -e "${OK} ${GreenBG} 已卸载 Xray ${Font}"
+    fi
     if [[ -d ${nginx_dir} ]]; then
         echo -e "${GreenBG} 是否卸载 Nginx [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r uninstall_nginx
         case $uninstall_nginx in
         [yY][eE][sS] | [yY])
+            systemctl disable nginx
             rm -rf ${nginx_dir}
             rm -rf ${nginx_conf_dir}/*
             [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
-            remove_nginx=$(jq -r 'del(.nginx_version)|del(.openssl_version)|del(.jemalloc_version)' ${xray_qr_config_file})
-            echo "${remove_nginx}" | jq . >${xray_qr_config_file}
+            if [[ -f ${xray_qr_config_file} ]]; then
+                remove_nginx=$(jq -r 'del(.nginx_version)|del(.openssl_version)|del(.jemalloc_version)' ${xray_qr_config_file})
+                echo "${remove_nginx}" | jq . >${xray_qr_config_file}
+            fi
             echo -e "${OK} ${GreenBG} 已卸载 Nginx ${Font}"
             ;;
         *) ;;
@@ -2597,12 +2618,12 @@ install_xray_ws_tls() {
     nginx_systemd
     tls_type
     basic_information
-    vless_link_image_choice
-    show_information
     service_restart
     enable_process_systemd
     acme_cron_update
     auto_update
+    vless_link_image_choice
+    show_information
 }
 
 install_xray_xtls() {
@@ -2631,12 +2652,12 @@ install_xray_xtls() {
     nginx_systemd
     tls_type
     basic_information
-    vless_link_image_choice
-    show_information
     service_restart
     enable_process_systemd
     acme_cron_update
     auto_update
+    vless_link_image_choice
+    show_information
 }
 
 install_xray_ws_only() {
@@ -2663,11 +2684,11 @@ install_xray_ws_only() {
     port_exist_check "${gport}"
     xray_conf_add
     basic_information
-    vless_link_image_choice
-    show_information
     service_restart
     enable_process_systemd
     auto_update
+    vless_link_image_choice
+    show_information
 }
 
 update_sh() {
@@ -2912,11 +2933,13 @@ idleleo_commend() {
             newest_version=$(sort -rV ${shell_version_tmp} | head -1)
             if [[ ${shell_version} != ${newest_version} ]]; then
                 shell_need_update="${Red}[有新版!]${Font}"
+                shell_emoji="${Red}>_<${Font}"
             else
-                shell_need_update="${Green}[最新版^O^]${Font}"
+                shell_need_update="${Green}[最新版]${Font}"
+                shell_emoji="${Green}^O^${Font}"
             fi
             if [[ -f ${xray_qr_config_file} ]]; then
-                if [[ $(info_extraction nginx_version) == null ]] || [[ ! -f "/etc/nginx/sbin/nginx" ]]; then
+                if [[ $(info_extraction nginx_version) == null ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
                     nginx_need_update="${Red}[未安装]${Font}"
                 elif [[ ${nginx_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_version} != $(info_extraction jemalloc_version) ]]; then
                     nginx_need_update="${Red}[有新版!]${Font}"
@@ -2961,7 +2984,7 @@ check_program() {
 }
 
 curl_local_connect() {
-    curl -Is -o /dev/null -w %{http_code} "https://$1/$2$3"
+    curl -Is -o /dev/null -w %{http_code} "https://$1/$2"
 }
 
 check_xray_local_connect() {
@@ -2969,8 +2992,8 @@ check_xray_local_connect() {
         xray_local_connect_status="${Red}无法连通${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
             [[ ${ws_grpc_mode} == "onlyws" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}本地正常${Font}"
-            [[ ${ws_grpc_mode} == "onlygrpc" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction servicename) /TunMulti) == "502" ]] && xray_local_connect_status="${Green}本地正常${Font}"
-            [[ ${ws_grpc_mode} == "all" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction servicename) /TunMulti) == "502" && $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}本地正常${Font}"
+            [[ ${ws_grpc_mode} == "onlygrpc" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction servicename)) == "502" ]] && xray_local_connect_status="${Green}本地正常${Font}"
+            [[ ${ws_grpc_mode} == "all" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction servicename)) == "502" && $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}本地正常${Font}"
         elif [[ ${tls_mode} == "XTLS" ]]; then
             [[ $(curl_local_connect $(info_extraction host)) == "302" ]] && xray_local_connect_status="${Green}本地正常${Font}"
         elif [[ ${tls_mode} == "None" ]]; then
@@ -2983,7 +3006,7 @@ check_xray_local_connect() {
 
 menu() {
 
-    echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font} ${shell_need_update}"
+    echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font} ${shell_emoji}"
     echo -e "--- authored by paniy ---"
     echo -e "--- changed by www.idleleo.com ---"
     echo -e "--- https://github.com/paniy ---\n"
@@ -3088,44 +3111,46 @@ menu() {
         UUID_set
         modify_UUID
         service_restart
+        vless_qr_link_image
         timeout "清空屏幕!"
         clear
-        bash idleleo
+        menu
         ;;
     7)
         revision_port
         firewall_set
         service_restart
+        vless_qr_link_image
         timeout "清空屏幕!"
         clear
-        bash idleleo
+        menu
         ;;
     8)
         tls_type
         timeout "清空屏幕!"
         clear
-        bash idleleo
+        menu
         ;;
     9)
         nginx_upstream_server_set
         timeout "清空屏幕!"
         clear
-        bash idleleo
+        menu
         ;;
     10)
         show_user
         timeout "回到菜单!"
-        bash idleleo
+        menu
         ;;
     11)
         add_user
         timeout "回到菜单!"
-        bash idleleo
+        menu
         ;;
     12)
         remove_user
         timeout "回到菜单!"
-        bash idleleo
+        menu
         ;;
     13)
         clear
@@ -3140,13 +3165,13 @@ menu() {
         basic_information
         vless_qr_link_image
         show_information
-        bash idleleo
+        menu
         ;;
     16)
         service_restart
         timeout "清空屏幕!"
         clear
-        bash idleleo
+        menu
         ;;
     17)
         service_start
@@ -3165,30 +3190,30 @@ menu() {
             systemctl status nginx
         fi
         systemctl status xray
-        bash idleleo
+        menu
         ;;
     20)
         check_cert_status
         timeout "回到菜单!"
-        bash idleleo
+        menu
         ;;
     21)
         acme_cron_update
         timeout "清空屏幕!"
         clear
-        bash idleleo
+        menu
         ;;
     22)
         service_stop
         cert_update_manuel
         service_start
-        bash idleleo
+        menu
         ;;
     23)
         auto_update
         timeout "清空屏幕!"
         clear
-        bash idleleo
+        menu
         ;;
     24)
         clear
@@ -3196,16 +3221,16 @@ menu() {
         ;;
     25)
         network_secure
-        bash idleleo
+        menu
         ;;
     26)
         xray_status_add
         timeout "回到菜单!"
-        bash idleleo
+        menu
         ;;
     27)
         clean_logs
-        bash idleleo
+        menu
         ;;
     28)
         clear
@@ -3222,7 +3247,7 @@ menu() {
         rm -rf ${ssl_chainpath}/*
         timeout "清空屏幕!"
         clear
-        bash idleleo
+        menu
         ;;
     31)
         timeout "清空屏幕!"
@@ -3232,7 +3257,7 @@ menu() {
     *)
         clear
         echo -e "${Error} ${RedBG} 请输入正确的数字! ${Font}"
-        bash idleleo
+        menu
         ;;
     esac
 }
