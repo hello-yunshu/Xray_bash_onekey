@@ -635,10 +635,6 @@ UUIDv5_tranc() {
     echo "import uuid;UUID_NAMESPACE=uuid.UUID('00000000-0000-0000-0000-000000000000');print(uuid.uuid5(UUID_NAMESPACE,'$1'));" | python3
 }
 
-modify_alterid() {
-    echo -e "${Warning} ${YellowBG} VLESS 不需要 alterid ${Font}"
-}
-
 modify_listen_address() {
     if [[ ${tls_mode} == "XTLS" ]]; then
         modifynum=1
@@ -1250,7 +1246,6 @@ xray_conf_add() {
             modify_path
             modify_inbound_port
         fi
-        modify_alterid
         modify_email_address
         modify_UUID
     else
