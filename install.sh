@@ -1,7 +1,7 @@
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
-stty erase ^?
+#stty erase ^?
 
 cd "$(
     cd "$(dirname "$0")" || exit
@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.3.5"
+shell_version="1.9.3.11"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -206,7 +206,7 @@ dependency_install() {
         judge "编译工具包 安装"
     fi
     if [[ "${ID}" == "centos" ]]; then
-        pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel"
+        pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel,perl-IPC-Cmd"
     else
         pkg_install "iputils-ping,libpcre3,libpcre3-dev,zlib1g-dev"
     fi
@@ -2935,9 +2935,9 @@ idleleo_commend() {
             fi
             if [[ -f ${xray_qr_config_file} ]]; then
                 if [[ $(info_extraction nginx_version) == null ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
-                    nginx_need_update="${Red}[未安装]${Font}"
+                    nginx_need_update="${Green}[未安装]${Font}"
                 elif [[ ${nginx_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_version} != $(info_extraction jemalloc_version) ]]; then
-                    nginx_need_update="${Red}[有新版!]${Font}"
+                    nginx_need_update="${Green}[有新版]${Font}"
                 else
                     nginx_need_update="${Green}[最新版]${Font}"
                 fi
@@ -2958,7 +2958,7 @@ idleleo_commend() {
                     xray_need_update="${Red}[未安装]${Font}"
                 fi
             else
-                nginx_need_update="${Red}[未安装]${Font}"
+                nginx_need_update="${Green}[未安装]${Font}"
                 xray_need_update="${Red}[未安装]${Font}"
             fi
         fi
@@ -2996,6 +2996,19 @@ check_xray_local_connect() {
         fi
     else
         xray_local_connect_status="${Red}未安装${Font}"
+    fi
+}
+
+check_online_version_connect() {
+    xray_online_version_status=$(curl_local_connect "www.idleleo.com" "api/xray_shell_versions")
+    if [[ ${xray_online_version_status} != "200" ]]; then
+        if [[ ${xray_online_version_status} == "403" ]]; then
+            echo -e "${Error} ${RedBG} 脚本维护中.. 请稍后再试! ${Font}"
+        else
+            echo -e "${Error} ${RedBG} 无法检测所需依赖的在线版本, 请稍后再试! ${Font}"
+        fi
+        sleep 0.5
+        exit 0
     fi
 }
 
@@ -3072,6 +3085,8 @@ menu() {
         bash idleleo
         ;;
     2)
+        echo -e "\n${Red}[不建议]${Font} 频繁升级 Nginx, 请确认 Nginx 有升级的必要! "
+        timeout "开始升级!"
         nginx_update
         timeout "清空屏幕!"
         clear
@@ -3258,6 +3273,7 @@ menu() {
 }
 
 check_file_integrity
+check_online_version_connect
 read_version
 judge_mode
 idleleo_commend
