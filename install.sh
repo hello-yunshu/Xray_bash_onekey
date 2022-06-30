@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.3.11"
+shell_version="1.9.4.0"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -47,6 +47,7 @@ xray_conf="${xray_conf_dir}/config.json"
 xray_status_conf="${xray_conf_dir}/status_config.json"
 xray_default_conf="/usr/local/etc/xray/config.json"
 nginx_conf="${nginx_conf_dir}/xray.conf"
+nginx_ssl_conf="${nginx_conf_dir}/xray-80.conf"
 nginx_upstream_conf="${nginx_conf_dir}/xray-server.conf"
 idleleo_commend_file="/usr/bin/idleleo"
 ssl_chainpath="${idleleo_dir}/cert"
@@ -71,7 +72,6 @@ xtls_add_more="off"
 old_config_status="off"
 old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
-THREAD=$(($(grep 'processor' /proc/cpuinfo | sort -u | wc -l) + 1))
 [[ -f ${xray_qr_config_file} ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 
 ##兼容代码，未来删除
@@ -561,7 +561,7 @@ nginx_upstream_server_set() {
                     xport=$(info_extraction ws_port)
                     gport=$(info_extraction grpc_port)
                     rm -rf ${nginx_upstream_conf}
-                    nginx_conf_servers_add
+                    nginx_servers_conf_add
                     [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx
                     [[ ${bt_nginx} == "Yes" ]] && /etc/init.d/nginx restart
                 else
@@ -681,6 +681,14 @@ modify_nginx_port() {
     judge "Xray port 修改"
     [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
     echo -e "${Green} 端口号: ${port} ${Font}"
+}
+
+modify_nginx_ssl_other() {
+    if [[ -f ${nginx_dir}/conf/nginx.conf ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]] && [[ ${bt_nginx} != "Yes" ]]; then
+        modify_nginx_origin_conf
+    fi
+    sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_ssl_conf}
+    sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${domain}\$request_uri;/" ${nginx_ssl_conf}
 }
 
 modify_nginx_other() {
@@ -819,6 +827,7 @@ nginx_exist_check() {
     if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         if [[ -d ${nginx_conf_dir} ]]; then
             rm -rf ${nginx_conf}
+            rm -rf ${nginx_ssl_conf}
             if [[ -f ${nginx_conf_dir}/nginx.default ]]; then
                 cp -fp ${nginx_conf_dir}/nginx.default ${nginx_dir}/conf/nginx.conf
             elif [[ -f ${nginx_dir}/conf/nginx.conf.default ]]; then
@@ -888,7 +897,7 @@ nginx_install() {
 
     ./configure
     judge "编译检查"
-    make -j "${THREAD}" && make install
+    make -j$(($(nproc) + 1)) && make install
     judge "jemalloc 编译安装"
     echo '/usr/local/lib' >/etc/ld.so.conf.d/local.conf
     ldconfig
@@ -921,7 +930,7 @@ nginx_install() {
         --with-ld-opt="-ljemalloc" \
         --with-openssl=${nginx_openssl_src}/openssl-${openssl_version}
     judge "编译检查"
-    make -j ${THREAD} && make install
+    make -j$(($(nproc) + 1)) && make install
     judge "Nginx 编译安装"
 
     cd $HOME
@@ -1001,10 +1010,12 @@ nginx_update() {
             nginx_install
             wait
             if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
+                nginx_ssl_conf_add
                 nginx_conf_add
-                nginx_conf_servers_add
+                nginx_servers_conf_add
             elif [[ ${tls_mode} == "XTLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
-                nginx_conf_add_xtls
+                nginx_ssl_conf_add
+                nginx_xtls_conf_add
             fi
             service_start
             modify_nginx_version=$(jq -r ".nginx_version = \"${nginx_version}\"|.openssl_version = \"${openssl_version}\"|.jemalloc_version = \"${jemalloc_version}\"" ${xray_qr_config_file})
@@ -1201,9 +1212,10 @@ port_exist_check() {
 }
 
 acme() {
+    systemctl restart nginx
     #暂时解决ca问题
     # if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone --server letsencrypt -k ec-256 --force --test; then
-    if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force --test; then
+    if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force --test; then
         echo -e "${OK} ${GreenBG} SSL 证书测试签发成功, 开始正式签发 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
     else
@@ -1213,15 +1225,16 @@ acme() {
     fi
 
     # if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone --server letsencrypt -k ec-256 --force; then
-    if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force; then
+    if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force; then
         echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
         mkdir -p ${ssl_chainpath}
-        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
+        if "$HOME"/.acme.sh/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
             chmod -f a+rw ${ssl_chainpath}/xray.crt
             chmod -f a+rw ${ssl_chainpath}/xray.key
             [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
             chown -fR nobody:${cert_group} ${ssl_chainpath}/*
             echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
+            systemctl stop nginx
         fi
     else
         echo -e "${Error} ${RedBG} SSL 证书生成失败 ${Font}"
@@ -1401,6 +1414,36 @@ old_config_input() {
     fi
 }
 
+nginx_ssl_conf_add() {
+    touch ${nginx_ssl_conf}
+    cat >${nginx_ssl_conf} <<EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name serveraddr.com;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /etc/idleleo/conf;
+        default_type "text/plain"; 
+        allow all;
+    } 
+    location = /.well-known/acme-challenge/ {
+        return 404; 
+    }
+
+    location / {
+        return 301 https://www.idleleo.com\$request_uri;
+    }
+}
+EOF
+    if [[ ${bt_nginx} == "Yes" ]]; then
+        ln -s ${nginx_ssl_conf} /www/server/panel/vhost/nginx/xray-80.conf
+        echo -e "${OK} ${GreenBG} Nginx 配置文件已连接至宝塔面板 ${Font}"
+    fi
+    modify_nginx_ssl_other
+    judge "Nginx SSL 配置修改"
+}
+
 nginx_conf_add() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
@@ -1466,12 +1509,6 @@ server {
         return 403;
     }
 }
-server {
-    listen 80;
-    listen [::]:80;
-    server_name serveraddr.com;
-    return 301 https://www.idleleo.com\$request_uri;
-}
 EOF
     if [[ ${bt_nginx} == "Yes" ]]; then
         ln -s ${nginx_conf} /www/server/panel/vhost/nginx/xray.conf
@@ -1482,7 +1519,7 @@ EOF
     judge "Nginx 配置修改"
 }
 
-nginx_conf_add_xtls() {
+nginx_xtls_conf_add() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
 server {
@@ -1500,13 +1537,6 @@ server {
         return 403;
     }
 }
-
-server {
-    listen 80;
-    listen [::]:80;
-    server_name         serveraddr.com;
-    return 301 https://www.idleleo.com\$request_uri;
-}
 EOF
     if [[ ${bt_nginx} == "Yes" ]]; then
         ln -s ${nginx_conf} /www/server/panel/vhost/nginx/xray.conf
@@ -1516,7 +1546,7 @@ EOF
     judge "Nginx 配置修改"
 }
 
-nginx_conf_servers_add() {
+nginx_servers_conf_add() {
     if [[ "on" != ${old_config_status} ]]; then
         touch ${nginx_upstream_conf}
         cat >${nginx_upstream_conf} <<EOF
@@ -1598,37 +1628,41 @@ acme_cron_update() {
         crontab_file="/var/spool/cron/crontabs/root"
     fi
     if [[ -f ${ssl_update_file} ]] && [[ $(crontab -l | grep -c "ssl_update.sh") == "1" ]]; then
-        echo -e "\n${GreenBG} 已设置证书自动更新 ${Font}"
-        echo -e "${GreenBG} 是否需要删除证书自动更新 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        echo -e "\n${Warning} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
+        echo -e "${Warning} ${GreenBG} 老版本请及时删除 废弃的 改版证书自动更新! ${Font}"
+        echo -e "${GreenBG} 已设置改版证书自动更新 ${Font}"
+        echo -e "${GreenBG} 是否需要删除改版证书自动更新 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r remove_acme_cron_update_fq
         case $remove_acme_cron_update_fq in
-        [yY][eE][sS] | [yY])
-            sed -i "/ssl_update.sh/d" ${crontab_file}
-            rm -rf ${ssl_update_file}
-            judge "删除证书自动更新"
-            ;;
-        *) ;;
-        esac
-    else
-        echo -e "\n${GreenBG} 未设置证书自动更新 ${Font}"
-        echo -e "${GreenBG} 是否设置证书自动更新 (推荐) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-        read -r acme_cron_update_fq
-        case $acme_cron_update_fq in
         [nN][oO] | [nN]) ;;
         *)
-            if [[ "${ssl_self}" != "on" ]]; then
-                wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
-                if [[ $(crontab -l | grep -c "acme.sh") -lt 1 ]]; then
-                    echo "0 3 15 * * bash ${ssl_update_file}" >>${crontab_file}
-                else
-                    sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" ${crontab_file}
-                fi
-                judge "设置证书自动更新"
-            else
-                echo -e "${Error} ${RedBG} 自定义证书不支持此操作! ${Font}"
-            fi
+            sed -i "/ssl_update.sh/d" ${crontab_file}
+            rm -rf ${ssl_update_file}
+            judge "删除改版证书自动更新"
             ;;
+
         esac
+    else
+        echo -e "\n${OK} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
+        # echo -e "${GreenBG} 是否设置证书自动更新 (新版本无需设置) [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        # read -r acme_cron_update_fq
+        # case $acme_cron_update_fq in
+        # [yY][eE][sS] | [yY])
+        #     # if [[ "${ssl_self}" != "on" ]]; then
+        #     #     wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
+        #     #     if [[ $(crontab -l | grep -c "acme.sh") -lt 1 ]]; then
+        #     #         echo "0 3 15 * * bash ${ssl_update_file}" >>${crontab_file}
+        #     #     else
+        #     #         sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" ${crontab_file}
+        #     #     fi
+        #     #     judge "设置证书自动更新"
+        #     # else
+        #     #     echo -e "${Error} ${RedBG} 自定义证书不支持此操作! ${Font}"
+        #     # fi
+        #     echo -e "${Error} ${RedBG} 新版本请勿使用! ${Font}"
+        #     ;;
+        # *) ;;
+        # esac
     fi
 }
 
@@ -2605,12 +2639,13 @@ install_xray_ws_tls() {
     port_exist_check 80
     port_exist_check "${port}"
     nginx_exist_check
-    xray_conf_add
-    nginx_conf_add
-    nginx_conf_servers_add
-    web_camouflage
-    ssl_judge_and_install
     nginx_systemd
+    web_camouflage
+    nginx_ssl_conf_add
+    ssl_judge_and_install
+    nginx_conf_add
+    nginx_servers_conf_add
+    xray_conf_add
     tls_type
     basic_information
     service_restart
@@ -2641,10 +2676,11 @@ install_xray_xtls() {
     port_exist_check 80
     port_exist_check "${port}"
     nginx_exist_check
-    nginx_conf_add_xtls
-    xray_conf_add
-    ssl_judge_and_install
     nginx_systemd
+    nginx_ssl_conf_add
+    ssl_judge_and_install
+    nginx_xtls_conf_add
+    xray_conf_add
     tls_type
     basic_information
     service_restart
@@ -2790,7 +2826,6 @@ list() {
         check_cert_status
         ;;
     '-cu' | '--cert-update')
-        service_stop
         cert_update_manuel
         service_restart
         ;;
@@ -3058,8 +3093,8 @@ menu() {
     echo -e "${Green}19.${Font} 查看 所有服务"
     echo -e "—————————————— ${GreenW}证书相关${Font} ——————————————"
     echo -e "${Green}20.${Font} 查看 证书状态"
-    echo -e "${Green}21.${Font} 设置 证书自动更新"
-    echo -e "${Green}22.${Font} 更新 证书有效期"
+    echo -e "${Green}21.${Font} 更新 证书有效期"
+    echo -e "${Green}22.${Font} 设置 证书自动更新"
     echo -e "—————————————— ${GreenW}其他选项${Font} ——————————————"
     echo -e "${Green}23.${Font} 配置 自动更新"
     echo -e "${Green}24.${Font} 设置 TCP 加速"
@@ -3208,15 +3243,14 @@ menu() {
         menu
         ;;
     21)
-        acme_cron_update
-        timeout "清空屏幕!"
-        clear
+        cert_update_manuel
+        service_restart
         menu
         ;;
     22)
-        service_stop
-        cert_update_manuel
-        service_start
+        acme_cron_update
+        timeout "清空屏幕!"
+        clear
         menu
         ;;
     23)
