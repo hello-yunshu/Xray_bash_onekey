@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.4.0"
+shell_version="1.9.4.1"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1214,8 +1214,8 @@ port_exist_check() {
 acme() {
     systemctl restart nginx
     #暂时解决ca问题
-    # if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone --server letsencrypt -k ec-256 --force --test; then
-    if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force --test; then
+    if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --server letsencrypt --keylength ec-256 --force --test; then
+    #if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force --test; then
         echo -e "${OK} ${GreenBG} SSL 证书测试签发成功, 开始正式签发 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
     else
@@ -1224,8 +1224,8 @@ acme() {
         exit 1
     fi
 
-    # if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone --server letsencrypt -k ec-256 --force; then
-    if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force; then
+    if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --server letsencrypt --keylength ec-256 --force; then
+    #if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force; then
         echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
         mkdir -p ${ssl_chainpath}
         if "$HOME"/.acme.sh/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
@@ -2648,10 +2648,10 @@ install_xray_ws_tls() {
     xray_conf_add
     tls_type
     basic_information
-    service_restart
     enable_process_systemd
     acme_cron_update
     auto_update
+    service_restart
     vless_link_image_choice
     show_information
 }
@@ -2683,10 +2683,10 @@ install_xray_xtls() {
     xray_conf_add
     tls_type
     basic_information
-    service_restart
     enable_process_systemd
     acme_cron_update
     auto_update
+    service_restart
     vless_link_image_choice
     show_information
 }
@@ -2893,7 +2893,7 @@ show_help() {
     echo "usage: idleleo [OPTION]"
     echo
     echo 'OPTION:'
-    echo '  -1, --install-tls           安装 Xray (Nginx+ws/gRPC+tls)'
+    echo '  -1, --install-tls           安装 Xray (Nginx+ws/gRPC+TLS)'
     echo '  -2, --install-xtls          安装 Xray (XTLS+Nginx+ws/gRPC)'
     echo '  -3, --install-none          安装 Xray (ws/gRPC ONLY)'
     echo '  -4, --add-upstream          变更 Nginx 负载均衡配置'
@@ -3070,7 +3070,7 @@ menu() {
     echo -e "${Green}1.${Font}  升级 Xray"
     echo -e "${Green}2.${Font}  升级 Nginx"
     echo -e "—————————————— ${GreenW}安装向导${Font} ——————————————"
-    echo -e "${Green}3.${Font}  安装 Xray (Nginx+ws/gRPC+tls)"
+    echo -e "${Green}3.${Font}  安装 Xray (Nginx+ws/gRPC+TLS)"
     echo -e "${Green}4.${Font}  安装 Xray (XTLS+Nginx+ws/gRPC)"
     echo -e "${Green}5.${Font}  安装 Xray (ws/gRPC ONLY)"
     echo -e "—————————————— ${GreenW}配置变更${Font} ——————————————"
