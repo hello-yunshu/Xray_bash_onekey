@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.4.1"
+shell_version="1.9.4.2"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -2779,7 +2779,7 @@ read_version() {
     shell_online_version="$(check_version shell_online_version)"
     xray_version="$(check_version xray_tested_version)"
     nginx_version="$(check_version nginx_online_version)"
-    openssl_version="$(check_version openssl_online_version)"
+    openssl_version="$(check_version openssl_tested_version)"
     jemalloc_version="$(check_version jemalloc_tested_version)"
 }
 
