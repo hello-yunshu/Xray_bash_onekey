@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.4.2"
+shell_version="1.9.5.4"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -780,10 +780,11 @@ xray_install() {
 xray_update() {
     [[ ! -d /usr/local/etc/xray ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装! ${Font}"
     echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
-    xray_online_version=$(check_version xray_online_version)
+    ## xray_online_version=$(check_version xray_online_version) 紧急更新
+    xray_online_version=$(check_version xray_online_pre_version)
     if [[ $(info_extraction xray_version) != ${xray_online_version} ]] && [[ ${xray_version} != ${xray_online_version} ]]; then
         if [[ ${auto_update} != "YES" ]]; then
-            echo -e "${Warning} ${GreenBG} 检测到存在最新测试版 ${Font}"
+            echo -e "${Warning} ${GreenBG} 检测到存在最新版 ${Font}"
             echo -e "${Warning} ${GreenBG} 脚本可能未兼容此版本 ${Font}"
             echo -e "\n${Warning} ${GreenBG} 是否更新到测试版 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r xray_test_fq
@@ -1901,7 +1902,7 @@ vless_qr_link_image() {
             vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction servicename))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
         fi
     elif [[ ${tls_mode} == "XTLS" ]]; then
-        vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction host))+xtls%E5%8D%8F%E8%AE%AE"
+        vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=tls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-vision#$(vless_urlquote $(info_extraction host))+xtls%E5%8D%8F%E8%AE%AE"
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ACws%E5%8D%8F%E8%AE%AE"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
@@ -2033,7 +2034,11 @@ basic_information() {
 
         echo -e "${Red} 加密 (encryption):${Font} None "
         echo -e "${Red} 传输协议 (network):${Font} $(info_extraction net) "
-        echo -e "${Red} 底层传输安全 (tls):${Font} $(info_extraction tls) "
+        if [[ ${tls_mode} != "XTLS" ]]; then
+            echo -e "${Red} 底层传输安全 (tls):${Font} $(info_extraction tls) "
+        else
+            echo -e "${Red} 底层传输安全 (tls):${Font} TLS "
+        fi    
         if [[ ${tls_mode} != "XTLS" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                 echo -e "${Red} 路径 (path 不要落下/):${Font} /$(info_extraction path) "
@@ -2044,7 +2049,7 @@ basic_information() {
                 echo -e "${Red} serviceName (不需要加/):${Font} $(info_extraction servicename) "
             fi
         else
-            echo -e "${Red} 流控 (flow):${Font} xtls-rprx-direct "
+            echo -e "${Red} 流控 (flow):${Font} xtls-rprx-vision,none "
             if [[ "$xtls_add_more" == "on" ]]; then
                 if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                     echo -e "${Red} ws 端口 (port):${Font} $(info_extraction ws_port) "
@@ -2168,34 +2173,26 @@ EOF
 tls_type() {
     if [[ -f ${nginx_conf} ]] && [[ ${tls_mode} != "None" ]]; then
         echo -e "\n${GreenBG} 请选择支持的 TLS 版本 (default:2): ${Font}"
-        echo -e "${GreenBG} 建议选择 TLS1.2 and TLS1.3 (一般模式) ${Font}"
-        echo "1: TLS1.1 TLS1.2 and TLS1.3 (兼容模式)"
-        echo -e "${Red}2${Font}: TLS1.2 and TLS1.3 (一般模式)"
-        echo "3: TLS1.3 only (激进模式)"
+        echo -e "${GreenBG} 建议选择 TLS1.3 only (安全模式) ${Font}"
+        echo -e "1: TLS1.2 and TLS1.3 (兼容模式)"
+        echo -e "${Red}2${Font}: TLS1.3 only (安全模式)"
         read -rp "请输入: " tls_version
         [[ -z ${tls_version} ]] && tls_version=2
-        if [[ $tls_version == 3 ]]; then
-            if [[ ${tls_mode} == "TLS" ]]; then
-                sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
-            else
-                sed -i "s/^\( *\)\"minVersion\".*/\1\"minVersion\": \"1.3\",/" ${xray_conf}
-            fi
-            echo -e "${OK} ${GreenBG} 已切换至 TLS1.3 only ${Font}"
-        elif [[ $tls_version == 1 ]]; then
-            if [[ ${tls_mode} == "TLS" ]]; then
-                sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.1 TLSv1.2 TLSv1.3;/" $nginx_conf
-                echo -e "${OK} ${GreenBG} 已切换至 TLS1.1 TLS1.2 and TLS1.3 ${Font}"
-            else
-                echo -e "${Error} ${RedBG} XTLS 最低版本应大于 TLS1.1, 请重新选择! ${Font}"
-                tls_type
-            fi
-        else
+        if [[ $tls_version == 1 ]]; then
             if [[ ${tls_mode} == "TLS" ]]; then
                 sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.2 TLSv1.3;/" $nginx_conf
             else
-                sed -i "s/^\( *\)\"minVersion\".*/\1\"minVersion\": \"1.2\",/" ${xray_conf}
+                echo -e "${Error} ${RedBG} XTLS 用且仅用 TLS1.3, 请选择 TLS1.3 only (安全模式)! ${Font}"
+                tls_type
             fi
             echo -e "${OK} ${GreenBG} 已切换至 TLS1.2 and TLS1.3 ${Font}"
+        else
+            if [[ ${tls_mode} == "TLS" ]]; then
+                sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
+            ## else
+                ##sed -i "s/^\( *\)\"minVersion\".*/\1\"minVersion\": \"1.3\",/" ${xray_conf}
+            fi
+            echo -e "${OK} ${GreenBG} 已切换至 TLS1.3 only ${Font}"
         fi
         if [[ ${tls_mode} == "TLS" ]]; then
             [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "Nginx 重启"
@@ -2312,7 +2309,7 @@ show_user() {
                     user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction servicename))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
                 fi
             elif [[ ${tls_mode} == "XTLS" ]]; then
-                user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct#$(vless_urlquote $(info_extraction host))+xtls%E5%8D%8F%E8%AE%AE"
+                user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=tls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-vision#$(vless_urlquote $(info_extraction host))+xtls%E5%8D%8F%E8%AE%AE"
             fi
             echo -e "${Red} URL 分享链接:${Font} ${user_vless_link}"
             echo -n "${user_vless_link}" | qrencode -o - -t utf8
@@ -2346,7 +2343,7 @@ add_user() {
             xtls_user_more=""
         elif [[ ${tls_mode} == "XTLS" ]]; then
             choose_user_prot=0
-            xtls_user_more="\"flow\":\"xtls-rprx-direct\","
+            xtls_user_more="\"flow\":\"xtls-rprx-vision,none\","
         fi
         wait
         email_set
@@ -2934,7 +2931,8 @@ idleleo_commend() {
             bash idleleo
         elif [[ ${shell_version} != ${oldest_version} ]]; then
             if [[ ${version_difference} == 1 ]]; then
-                echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 可能存在不兼容情况, 是否继续使用 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+                ## echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 可能存在不兼容情况, 是否继续使用 [Y/${Red}N${Font}${YellowBG}]? ${Font}" 紧急更新
+                echo -e "${Warning} ${YellowBG} 此版本需要${Red}Xray版本在1.6.2及以上${Font}, 是否继续使用 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
@@ -2942,7 +2940,8 @@ idleleo_commend() {
                     wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
                     judge "下载最新脚本"
                     clear
-                    echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装!\n ${Font}"
+                    ## echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装!\n ${Font}" 紧急更新
+                    echo -e "${Warning} ${YellowBG} 务必保证${Red}Xray版本在1.6.2及以上${Font}, 否则将无法正常使用!\n ${Font}"
                     ;;
                 *)
                     bash idleleo
@@ -2977,11 +2976,13 @@ idleleo_commend() {
                     nginx_need_update="${Green}[最新版]${Font}"
                 fi
                 if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ -f /usr/local/bin/xray ]]; then
-                    xray_online_version=$(check_version xray_online_version)
+                    ## xray_online_version=$(check_version xray_online_version) 紧急更新
+                    xray_online_version=$(check_version xray_online_pre_version)
                     if [[ $(info_extraction xray_version) == null ]]; then
                         xray_need_update="${Green}[已安装] (版本未知)${Font}"
                     elif [[ ${xray_version} != $(info_extraction xray_version) ]] && [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
-                        xray_need_update="${Red}[有新版!]${Font}"
+                        ## xray_need_update="${Red}[有新版!]${Font}" 紧急更新
+                        xray_need_update="${Red}[请务必更新!]${Font}"
                     elif [[ ${xray_version} == $(info_extraction xray_version) ]] || [[ $(info_extraction xray_version) == ${xray_online_version} ]]; then
                         if [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
                             xray_need_update="${Green}[有测试版]${Font}"
