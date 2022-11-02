@@ -14,7 +14,7 @@
                 "clients": [
                     {
                         "id": "UUID",
-                        "flow": "xtls-rprx-direct",
+                        "flow": "xtls-rprx-vision,none",
                         "level": 0,
                         "email": "me@idleleo.com"
                     }
@@ -29,13 +29,8 @@
             },
             "streamSettings": {
                 "network": "tcp",
-                "security": "xtls",
-                "xtlsSettings": {
-                    "minVersion": "1.2",
-                    "alpn": [
-                        "h2",
-                        "http/1.1"
-                    ],
+                "security": "tls",
+                "tlsSettings": {
                     "rejectUnknownSni": true,
                     "certificates": [
                         {
