@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.5.4"
+shell_version="1.9.5.5"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1686,7 +1686,8 @@ check_cert_status() {
             read -r cert_update_manuel_fq
             case $cert_update_manuel_fq in
             [yY][eE][sS] | [yY])
-                service_stop
+                systemctl stop xray
+                judge "Xray 停止"
                 cert_update_manuel
                 service_restart
                 ;;
