@@ -1,5 +1,5 @@
 ## Xray+Nginx 包含 VLESS WebSocket/gRPC+TLS / XTLS+TCP 协议的一键安装脚本
-[![GitHub stars](https://img.shields.io/github/stars/paniy/Xray_bash_onekey?color=%230885ce)](https://github.com/paniy/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/paniy/Xray_bash_onekey?color=%230885ce)](https://github.com/paniy/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/paniy/Xray_bash_onekey)](https://github.com/paniy/Xray_bash_onekey/issues)
+[![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
 > 感谢 JetBrains 提供的非商业开源软件开发授权。
 

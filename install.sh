@@ -10,7 +10,7 @@ cd "$(
 
 #=====================================================
 #	System Request: Debian 9+/Ubuntu 18.04+/Centos 7+
-#	Author:	paniy
+#	Author:	hello-yunshu
 #	Dscription: Xray Onekey Management
 #	Version: 2.0
 #	email: admin@idleleo.com
@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.5.6"
+shell_version="1.9.5.7"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1043,7 +1043,7 @@ auto_update() {
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
-            wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/auto_update.sh && chmod +x ${auto_update_file}
+            wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh && chmod +x ${auto_update_file}
             echo "0 1 15 * * bash ${auto_update_file}" >>${crontab_file}
             judge "设置自动更新"
             ;;
@@ -1247,15 +1247,15 @@ acme() {
 xray_conf_add() {
     if [[ $(info_extraction multi_user) != "yes" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
-            wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_tls/config.json -O ${xray_conf}
+            wget --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json -O ${xray_conf}
             modify_listen_address
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "XTLS" ]]; then
-            wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_xtls/config.json -O ${xray_conf}
+            wget --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_xtls/config.json -O ${xray_conf}
             xray_xtls_add_more
         elif [[ ${tls_mode} == "None" ]]; then
-            wget --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/VLESS_tls/config.json -O ${xray_conf}
+            wget --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json -O ${xray_conf}
             modify_listen_address
             modify_path
             modify_inbound_port
@@ -1650,7 +1650,7 @@ acme_cron_update() {
         # case $acme_cron_update_fq in
         # [yY][eE][sS] | [yY])
         #     # if [[ "${ssl_self}" != "on" ]]; then
-        #     #     wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
+        #     #     wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
         #     #     if [[ $(crontab -l | grep -c "acme.sh") -lt 1 ]]; then
         #     #         echo "0 3 15 * * bash ${ssl_update_file}" >>${crontab_file}
         #     #     else
@@ -2458,7 +2458,7 @@ xray_status_add() {
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
                     service_stop
-                    wget -nc --no-check-certificate https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/status_config.json -O ${xray_status_conf}
+                    wget -nc --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json -O ${xray_status_conf}
                     xray_status=$(jq -r ". += $(jq -c . ${xray_status_conf})" ${xray_conf})
                     judge "设置 Xray 流量统计"
                     echo "${xray_status}" | jq . >${xray_conf}
@@ -2744,7 +2744,7 @@ update_sh() {
         case $update_confirm in
         [yY][eE][sS] | [yY])
             [[ -L ${idleleo_commend_file} ]] && rm -f ${idleleo_commend_file}
-            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
             ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
             clear
             echo -e "${OK} ${GreenBG} 更新完成 ${Font}"
@@ -2765,7 +2765,7 @@ check_file_integrity() {
         pkg_install "bc,jq,wget"
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
         [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p ${idleleo_dir}/tmp
-        wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+        wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
         judge "下载最新脚本"
         ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
         clear
@@ -2926,7 +2926,7 @@ idleleo_commend() {
         oldest_version=$(sort -V ${shell_version_tmp} | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
-            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
             judge "下载最新脚本"
             clear
             bash idleleo
@@ -2938,7 +2938,7 @@ idleleo_commend() {
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
                     rm -rf ${idleleo_dir}/install.sh
-                    wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+                    wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
                     judge "下载最新脚本"
                     clear
                     ## echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装!\n ${Font}" 紧急更新
@@ -2950,7 +2950,7 @@ idleleo_commend() {
                 esac
             else
                 rm -rf ${idleleo_dir}/install.sh
-                wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/paniy/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+                wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
                 judge "下载最新脚本"
                 clear
             fi
@@ -3052,9 +3052,9 @@ check_online_version_connect() {
 menu() {
 
     echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font} ${shell_emoji}"
-    echo -e "--- authored by paniy ---"
+    echo -e "--- authored by hello-yunshu ---"
     echo -e "--- changed by www.idleleo.com ---"
-    echo -e "--- https://github.com/paniy ---\n"
+    echo -e "--- https://github.com/hello-yunshu ---\n"
     echo -e "当前模式: ${shell_mode}\n"
 
     echo -e "可以使用${RedW} idleleo ${Font}命令管理脚本${Font}\n"
