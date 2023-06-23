@@ -14,7 +14,7 @@
                 "clients": [
                     {
                         "id": "UUID",
-                        "flow": "xtls-rprx-vision,none",
+                        "flow": "xtls-rprx-vision",
                         "level": 0,
                         "email": "me@idleleo.com"
                     }
