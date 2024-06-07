@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.5.10"
+shell_version="1.9.6.0"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -676,8 +676,8 @@ modify_nginx_origin_conf() {
 }
 
 modify_nginx_port() {
-    sed -i "s/^\( *\).*ssl http2;$/\1listen ${port} ssl http2;/" ${nginx_conf}
-    sed -i "5s/^\( *\).*ssl http2;$/\1listen [::]:${port} ssl http2;/" ${nginx_conf}
+    sed -i "s/^\( *\).*ssl;$/\1listen ${port} ssl;/" ${nginx_conf}
+    sed -i "5s/^\( *\).*ssl;$/\1listen [::]:${port} ssl;/" ${nginx_conf}
     judge "Xray port 修改"
     [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
     echo -e "${Green} 端口号: ${port} ${Font}"
@@ -1452,8 +1452,9 @@ nginx_conf_add() {
 types_hash_max_size 2048;
 
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2               on;
     set_real_ip_from    127.0.0.1;
     real_ip_header      X-Forwarded-For;
     real_ip_recursive   on;
@@ -1525,7 +1526,8 @@ nginx_xtls_conf_add() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
 server {
-    listen 127.0.0.1:8080 proxy_protocol http2;
+    listen 127.0.0.1:8080 proxy_protocol;
+    http2               on;
     server_name         serveraddr.com;
     set_real_ip_from    127.0.0.1;
     real_ip_header      X-Forwarded-For;
