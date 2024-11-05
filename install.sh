@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="1.9.6.0"
+shell_version="1.9.6.1"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -127,7 +127,6 @@ judge() {
     if [[ 0 -eq $? ]]; then
         echo -e "${OK} ${GreenBG} $1 完成 ${Font}"
         sleep 0.5
-        wait
     else
         echo -e "${Error} ${RedBG} $1 失败 ${Font}"
         exit 1
@@ -796,7 +795,6 @@ xray_update() {
         [yY][eE][sS] | [yY])
             echo -e "${OK} ${GreenBG} 即将升级 Xray ! ${Font}"
             systemctl stop xray
-            wait
             ## xray_version=${xray_online_version}
             bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
             judge "Xray 升级"
@@ -804,7 +802,7 @@ xray_update() {
         *)
             echo -e "${OK} ${GreenBG} 即将升级/重装 Xray ! ${Font}"
             systemctl stop xray
-            wait
+            xray_version=$(info_extraction xray_version)
             bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
             judge "Xray 升级"
             ;;
@@ -812,7 +810,6 @@ xray_update() {
     else
         timeout "升级/重装 Xray !"
         systemctl stop xray
-        wait
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
         judge "Xray 升级"
     fi
@@ -1010,7 +1007,6 @@ nginx_update() {
                 ;;
             esac
             nginx_install
-            wait
             if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_ssl_conf_add
                 nginx_conf_add
@@ -2349,7 +2345,6 @@ add_user() {
             choose_user_prot=0
             xtls_user_more="\"flow\":\"xtls-rprx-vision\","
         fi
-        wait
         email_set
         UUID_set
         add_user=$(jq -r ".inbounds[${choose_user_prot}].settings.clients += [{\"id\": \"${UUID}\",${xtls_user_more}\"level\": 0,\"email\": \"${custom_email}\"}]" ${xray_conf})
@@ -2365,7 +2360,6 @@ add_user() {
             ;;
         *) ;;
         esac
-        wait
         service_start
     elif [[ ${tls_mode} == "None" ]]; then
         echo -e "${Warning} ${YellowBG} 此模式不支持添加用户! ${Font}"
@@ -2419,7 +2413,6 @@ remove_user() {
             timeout "回到菜单!"
             menu
         fi
-        wait
         service_start
     elif [[ ${tls_mode} == "None" ]]; then
         echo -e "${Warning} ${YellowBG} 此模式不支持删除用户! ${Font}"
