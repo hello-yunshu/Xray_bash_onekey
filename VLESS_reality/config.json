@@ -1,0 +1,119 @@
+{
+    "log": {
+        "access": "/var/log/xray/access.log",
+        "error": "/var/log/xray/error.log",
+        "loglevel": "warning"
+    },
+    "inbounds": [
+        {
+            "port": 9443,
+            "listen": "0.0.0.0",
+            "protocol": "VLESS",
+            "tag": "VLESS-XTLS-in",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "UUID",
+                        "flow": "xtls-rprx-vision",
+                        "level": 0,
+                        "email": "me@idleleo.com"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "reality",
+                "realitySettings": {
+                    "target": "example.com:443", 
+                    "serverNames": ["example.com"],
+                    "privateKey": "privateKey",
+                    "shortIds": ["shortIds"]
+                }
+            }
+        },
+        {
+            "port": 10086,
+            "listen": "127.0.0.1",
+            "tag": "VLESS-ws-in",
+            "protocol": "VLESS",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "UUID",
+                        "level": 0,
+                        "email": "ws@idleleo.com"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "path": "/websocket"
+                }
+            }
+        },
+        {
+            "port": 10087,
+            "listen": "127.0.0.1",
+            "tag": "VLESS-gRPC-in",
+            "protocol": "VLESS",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "UUID",
+                        "level": 0,
+                        "email": "me@idleleo.com"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "grpc",
+                "security": "none",
+                "grpcSettings": {
+                    "serviceName": "grpc",
+                    "multiMode": true,
+                    "idle_timeout": 20
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "direct"
+        },
+        {
+            "protocol": "blackhole",
+            "tag": "blocked"
+        }
+    ],
+    "dns": {
+        "servers": [
+            "8.8.8.8",
+            "8.8.4.4",
+            "1.1.1.1",
+            "1.0.0.1",
+            "localhost",
+            "https+local://dns.google/dns-query",
+            "https+local://1.1.1.1/dns-query"
+        ]
+    },
+    "routing": {
+        "domainStrategy": "AsIs",
+        "rules": [
+            {
+                "type": "field",
+                "inboundTag": [
+                    "VLESS-XTLS-in",
+                    "VLESS-ws-in",
+                    "VLESS-gRPC-in"
+                ],
+                "outboundTag": "direct"
+            }
+        ]
+    }
+}
