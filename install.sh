@@ -800,7 +800,7 @@ modify_nginx_other() {
             sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" ${nginx_conf}
         fi
     elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-        sed -i "s/^\( *\).* reality;\( *\)/\1${serverNames} reality;\2/g" ${nginx_conf}
+        # sed -i "s/^\( *\).* reality;\( *\)/\1${serverNames} reality;\2/g" ${nginx_conf} 观察
         sed -i "s/^\( *\)listen 443 reuseport;\(.*\)/\1listen ${port} reuseport;\2/" ${nginx_conf}
     fi
 }
@@ -928,7 +928,7 @@ xray_update() {
 }
 
 nginx_add_fq() {
-    local nginx_add_fq
+    local nginx_add_fq modify_nginx_version
     echo -e "\n${Warning} ${Green} Reality 协议有流量偷跑的风险 ${Font}"
     echo -e "${Warning} ${Green} 该风险仅在 target 网址被 cdn 加速的情况下存在 ${Font}"
     echo -e "${GreenBG} 是否额外安装 nginx 前置保护 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -940,6 +940,8 @@ nginx_add_fq() {
             nginx_systemd
             nginx_reality_conf_add
             nginx_reality_serverNames_add
+            modify_nginx_version=$(jq ". + {\"nginx_version\": \"${nginx_version}\", \"openssl_version\": \"${openssl_version}\", \"jemalloc_version\": \"${jemalloc_version}\"}" ${xray_qr_config_file})
+            echo "${modify_nginx_version}" | jq . >"${xray_qr_config_file}"
         ;;
     *)
         echo -e "${OK} ${GreenBG} 已跳过安装 nginx ${Font}"
@@ -1057,6 +1059,7 @@ nginx_install() {
 }
 
 nginx_update() {
+    local modify_nginx_version
     if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         if [[ ${nginx_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_version} != $(info_extraction jemalloc_version) ]]; then
             ip_check
@@ -1127,7 +1130,7 @@ nginx_update() {
             if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_ssl_conf_add
                 nginx_conf_add
-                nginx_servers_conf_add
+                nginx_servers_conf_add #需要改
             elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_reality_conf_add
             fi
@@ -2460,7 +2463,7 @@ add_user() {
         add_user=$(jq -r ".inbounds[${choose_user_prot}].settings.clients += [{\"id\": \"${UUID}\",\"${reality_user_more}\"level\": 0,\"email\": \"${custom_email}\"}]" ${xray_conf})
         judge "添加用户"
         echo "${add_user}" | jq . >${xray_conf}
-        multi_user=$(jq -r ". += {\"multi_user\": \"yes\"}" ${xray_qr_config_file})
+        multi_user=$(jq ". += {\"multi_user\": \"yes\"}" ${xray_qr_config_file})
         echo "${multi_user}" | jq . >${xray_qr_config_file}
         echo -e "\n${GreenBG} 是否继续添加用户 [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
         read -r add_user_continue
@@ -2565,7 +2568,7 @@ xray_status_add() {
             [yY][eE][sS] | [yY])
                     service_stop
                     wget -nc --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json -O ${xray_status_conf}
-                    xray_status=$(jq -r ". += $(jq -c . ${xray_status_conf})" ${xray_conf})
+                    xray_status=$(jq ". += $(jq -c . ${xray_status_conf})" ${xray_conf})
                     judge "设置 Xray 流量统计"
                     echo "${xray_status}" | jq . >${xray_conf}
                     service_start
