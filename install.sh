@@ -36,26 +36,26 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.0.0"
+shell_version="2.1.0"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
+local_bin="/usr/local"
 idleleo_dir="/etc/idleleo"
 idleleo_conf_dir="${idleleo_dir}/conf"
 log_dir="${idleleo_dir}/logs"
-xray_bin_dir="/usr/local/bin"
+xray_bin_dir="${local_bin}/bin"
 xray_conf_dir="${idleleo_conf_dir}/xray"
 nginx_conf_dir="${idleleo_conf_dir}/nginx"
 xray_conf="${xray_conf_dir}/config.json"
 xray_status_conf="${xray_conf_dir}/status_config.json"
-xray_default_conf="/usr/local/etc/xray/config.json"
+xray_default_conf="${local_bin}/etc/xray/config.json"
 nginx_conf="${nginx_conf_dir}/00-xray.conf"
 nginx_ssl_conf="${nginx_conf_dir}/01-xray-80.conf"
 nginx_upstream_conf="${nginx_conf_dir}/02-xray-server.conf"
 idleleo_commend_file="/usr/bin/idleleo"
 ssl_chainpath="${idleleo_dir}/cert"
-nginx_dir="/etc/nginx"
-nginx_openssl_src="/usr/local/src"
+nginx_dir="${local_bin}/nginx"
 xray_info_file="${idleleo_dir}/info/xray_info.inf"
 xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
@@ -724,32 +724,32 @@ modify_listen_address() {
         modifynum2=1
     fi
     if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-        modify_listen=$(jq -r ".inbounds[${modifynum}].listen = \"0.0.0.0\"" ${xray_conf})
+        jq ".inbounds[${modifynum}].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-        modify_listen=$(jq -r ".inbounds[${modifynum2}].listen = \"0.0.0.0\"" ${xray_conf})
+        jq ".inbounds[${modifynum2}].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     elif [[ ${ws_grpc_mode} == "all" ]]; then
-        modify_listen=$(jq -r ".inbounds[${modifynum}].listen = \"0.0.0.0\"|.inbounds[${modifynum2}].listen = \"0.0.0.0\"" ${xray_conf})
+        jq ".inbounds[${modifynum}].listen = \"0.0.0.0\"|.inbounds[${modifynum2}].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     fi
-    echo "${modify_listen}" | jq . >${xray_conf}
+    mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 modify_inbound_port() {
     if [[ ${tls_mode} == "Reality" ]]; then
         if [[ ${reality_add_nginx} != "on" ]]; then
-            modify_inbound_port=$(jq -r ".inbounds[0].port = ${port}|.inbounds[1].port = ${xport}|.inbounds[2].port = ${gport}" ${xray_conf})
+            jq ".inbounds[0].port = ${port}|.inbounds[1].port = ${xport}|.inbounds[2].port = ${gport}" ${xray_conf} > "${xray_conf}.tmp"
             judge "Xray inbound port 修改"
         else
-            modify_inbound_port=$(jq -r ".inbounds[1].port = ${xport}|.inbounds[2].port = ${gport}" ${xray_conf})
+            jq ".inbounds[1].port = ${xport}|.inbounds[2].port = ${gport}" ${xray_conf} > "${xray_conf}.tmp"
             judge "Xray inbound port 修改"
         fi
     else
-        modify_inbound_port=$(jq -r ".inbounds[0].port = ${xport}|.inbounds[1].port = ${gport}" ${xray_conf})
+        jq ".inbounds[0].port = ${xport}|.inbounds[1].port = ${gport}" ${xray_conf} > "${xray_conf}.tmp"
         judge "Xray inbound port 修改"
     fi
-    echo "${modify_inbound_port}" | jq . >${xray_conf}
+    mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 modify_nginx_origin_conf() {
@@ -841,16 +841,15 @@ modify_UUID() {
 }
 
 modify_Reality() {
-  local modify_reality
-  modify_reality=$(jq --arg target "${target}:443" --arg serverNames "${serverNames}" --arg privateKey "${privateKey}" --arg shortIds "${shortIds}" '
+  jq --arg target "${target}:443" --arg serverNames "${serverNames}" --arg privateKey "${privateKey}" --arg shortIds "${shortIds}" '
   .inbounds[0].streamSettings.realitySettings = {
     target: $target,
     serverNames: [$serverNames],
     privateKey: $privateKey,
     shortIds: [$shortIds]
-  }' "${xray_conf}")
+  }' "${xray_conf}" > "${xray_conf}.tmp"
   judge "Xray Reality 配置修改"
-  echo "${modify_reality}" | jq . >${xray_conf}
+  mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 web_camouflage() {
@@ -882,7 +881,7 @@ xray_install() {
 }
 
 xray_update() {
-    [[ ! -d /usr/local/etc/xray ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装! ${Font}"
+    [[ ! -d ${local_bin}/etc/xray ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装! ${Font}"
     echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
     xray_online_version=$(check_version xray_online_version)
     ## xray_online_version=$(check_version xray_online_pre_version)
@@ -921,8 +920,8 @@ xray_update() {
     [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
     [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
     ln -s ${xray_conf} ${xray_default_conf}
-    modify_xray_version=$(jq -r ".xray_version = \"${xray_version}\"" ${xray_qr_config_file})
-    echo "${modify_xray_version}" | jq . >${xray_qr_config_file}
+    jq ".xray_version = \"${xray_version}\"" ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
+    mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
     systemctl daemon-reload
     systemctl start xray
 }
@@ -940,8 +939,6 @@ nginx_add_fq() {
             nginx_systemd
             nginx_reality_conf_add
             nginx_reality_serverNames_add
-            modify_nginx_version=$(jq ". + {\"nginx_version\": \"${nginx_version}\", \"openssl_version\": \"${openssl_version}\", \"jemalloc_version\": \"${jemalloc_version}\"}" ${xray_qr_config_file})
-            echo "${modify_nginx_version}" | jq . >"${xray_qr_config_file}"
         ;;
     *)
         echo -e "${OK} ${GreenBG} 已跳过安装 nginx ${Font}"
@@ -950,10 +947,10 @@ nginx_add_fq() {
 }
 
 nginx_exist_check() {
-    if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
+    local remove_nginx_fq
+    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ $(info_extraction nginx_build_version) != null ]]; then
         if [[ -d ${nginx_conf_dir} ]]; then
-            rm -rf ${nginx_conf}
-            rm -rf ${nginx_ssl_conf}
+            rm -rf ${nginx_conf_dir}/*.conf
             if [[ -f ${nginx_conf_dir}/nginx.default ]]; then
                 cp -fp ${nginx_conf_dir}/nginx.default ${nginx_dir}/conf/nginx.conf
             elif [[ -f ${nginx_dir}/conf/nginx.conf.default ]]; then
@@ -968,7 +965,22 @@ nginx_exist_check() {
         fi
         modify_nginx_origin_conf
         echo -e "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
-    elif [[ -d "/usr/local/nginx/" ]]; then
+    elif [[ -d "/etc/nginx/" ]] && [[ $(info_extraction nginx_version) != null ]]; then
+        echo -e "${Error} ${GreenBG} 检测到旧版本安装的 nginx ! ${Font}"
+        echo -e "${GreenBG} 是否需要删除 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        read -r remove_nginx_fq
+        case $remove_nginx_fq in
+        [nN][oO] | [nN])
+        echo -e "${OK} ${GreenBG} 已跳过删除 nginx ${Font}"
+        source "$idleleo"
+            ;;
+        *)
+            rm -rf /etc/nginx/
+            [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
+            nginx_install
+            ;;
+        esac
+    elif [[ -d "/etc/nginx/" ]] && [[ $(info_extraction nginx_version) != null ]]; then
         echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
         exit 1
     else
@@ -977,74 +989,19 @@ nginx_exist_check() {
 }
 
 nginx_install() {
-    rm -rf ${nginx_openssl_src}/*
+    local latest_version=$(check_version nginx_build_online_version)
+    local temp_dir=$(mktemp -d)
+    local current_dir=$(pwd)
 
-    wget -nc --no-check-certificate http://nginx.org/download/nginx-${nginx_version}.tar.gz -P ${nginx_openssl_src}
-    judge "Nginx 下载"
-    wget -nc --no-check-certificate https://www.openssl.org/source/openssl-${openssl_version}.tar.gz -P ${nginx_openssl_src}
-    judge "openssl 下载"
-    wget -nc --no-check-certificate https://github.com/jemalloc/jemalloc/releases/download/${jemalloc_version}/jemalloc-${jemalloc_version}.tar.bz2 -P ${nginx_openssl_src}
-    judge "jemalloc 下载"
+    cd "$temp_dir" || exit
 
-    cd ${nginx_openssl_src} 
-    [[ $? -ne 0 ]] && echo -e "${Error} ${RedBG} Nginx 目录不存在! ${Font}" && menu
-
-    [[ -d nginx-${nginx_version} ]] && rm -rf nginx-${nginx_version}
-    tar -zxvf nginx-${nginx_version}.tar.gz
-
-    [[ -d openssl-${openssl_version} ]] && rm -rf openssl-${openssl_version}
-    tar -zxvf openssl-${openssl_version}.tar.gz
-
-    [[ -d jemalloc-${jemalloc_version} ]] && rm -rf jemalloc-${jemalloc_version}
-    tar -xvf jemalloc-${jemalloc_version}.tar.bz2
-
-    [[ -d ${nginx_dir} ]] && rm -rf ${nginx_dir}
-
-    echo -e "${OK} ${GreenBG} 即将开始编译安装 jemalloc ${Font}"
-
-    cd ${nginx_openssl_src}/jemalloc-${jemalloc_version}
-    [[ $? -ne 0 ]] && echo -e "${Error} ${RedBG} jemalloc 目录不存在! ${Font}" && menu
-
-    ./configure
-    judge "编译检查"
-    make -j$(($(nproc) + 1)) && make install
-    judge "jemalloc 编译安装"
-    echo '/usr/local/lib' >/etc/ld.so.conf.d/local.conf
-    ldconfig
-
-    echo -e "${OK} ${GreenBG} 即将开始编译安装 Nginx, 过程稍久, 请耐心等待 ${Font}"
-
-    cd ${nginx_openssl_src}/nginx-${nginx_version}
-    [[ $? -ne 0 ]] && echo -e "${Error} ${RedBG} openssl 目录不存在! ${Font}" && menu
-
-    #增加http_sub_module用于反向代理替换关键词
-    ./configure --prefix=${nginx_dir} \
-        --user=root \
-        --group=root \
-        --with-http_ssl_module \
-        --with-http_gzip_static_module \
-        --with-http_stub_status_module \
-        --with-pcre \
-        --with-http_flv_module \
-        --with-http_mp4_module \
-        --with-http_realip_module \
-        --with-http_secure_link_module \
-        --with-http_slice_module \
-        --with-stream \
-        --with-stream_ssl_module \
-        --with-stream_realip_module \
-        --with-stream_ssl_preread_module \
-        --with-http_sub_module \
-        --with-http_v2_module \
-        --with-cc-opt='-O3' \
-        --with-ld-opt="-ljemalloc" \
-        --with-openssl=${nginx_openssl_src}/openssl-${openssl_version}
-    judge "编译检查"
-    make -j$(($(nproc) + 1)) && make install
-    judge "Nginx 编译安装"
-
-    cd $HOME
-
+    echo -e "${OK} ${GreenBG} 即将下载已编译的 Nginx ${Font}"
+    local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${latest_version}/xray-nginx-custom.tar.gz"
+    wget -q --show-progress --progress=bar:force:noscroll "$url" -O xray-nginx-custom.tar.gz
+    tar -xzvf xray-nginx-custom.tar.gz -C ./
+    [[ -d ${nginx_dir} ]] && rm -rf "${nginx_dir}"
+    mv ./nginx "${nginx_dir}"
+    
     cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/nginx.default
 
     # 修改基本配置
@@ -1052,16 +1009,14 @@ nginx_install() {
     modify_nginx_origin_conf
 
     # 删除临时文件
-    rm -rf ${nginx_openssl_src}/nginx-${nginx_version}
-    rm -rf ${nginx_openssl_src}/openssl-${openssl_version}
-    rm -rf ${nginx_openssl_src}/nginx-${nginx_version}.tar.gz
-    rm -rf ${nginx_openssl_src}/openssl-${openssl_version}.tar.gz
+    cd "$current_dir" && rm -rf "$temp_dir"
+    chown -R nobody:nogroup "${nginx_dir}"
+    chmod -R 755 "${nginx_dir}"
 }
 
 nginx_update() {
-    local modify_nginx_version
     if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
-        if [[ ${nginx_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_version} != $(info_extraction jemalloc_version) ]]; then
+        if [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
             ip_check
             if [[ -f ${xray_qr_config_file} ]]; then
                 domain=$(info_extraction host)
@@ -1135,8 +1090,8 @@ nginx_update() {
                 nginx_reality_conf_add
             fi
             service_start
-            modify_nginx_version=$(jq -r ".nginx_version = \"${nginx_version}\"|.openssl_version = \"${openssl_version}\"|.jemalloc_version = \"${jemalloc_version}\"" ${xray_qr_config_file})
-            echo "${modify_nginx_version}" | jq . >${xray_qr_config_file}
+            jq ".nginx_build_version = \"${nginx_build_version}\"" ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
+            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             judge "Nginx 升级"
         else
             echo -e "${OK} ${GreenBG} Nginx 已为最新版 ${Font}"
@@ -1935,9 +1890,7 @@ vless_qr_config_tls_ws() {
     "serviceName": "${artserviceName}",
     "shell_version": "${shell_version}",
     "xray_version": "${xray_version}",
-    "nginx_version": "${nginx_version}",
-    "openssl_version": "${openssl_version}",
-    "jemalloc_version": "${jemalloc_version}"
+    "nginx_build_version": "${nginx_build_version}"
 }
 EOF
     info_extraction_all=$(jq -rc . ${xray_qr_config_file})
@@ -1971,6 +1924,10 @@ vless_qr_config_reality() {
     "xray_version": "${xray_version}"
 }
 EOF
+    if [[ ${reality_add_nginx} != "off" ]]; then
+        jq ". + {\"nginx_build_version\": \"${nginx_build_version}\"}" "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+    fi
     info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 }
 
@@ -2145,11 +2102,7 @@ basic_information() {
 
         echo -e "${Red} 加密 (encryption):${Font} None "
         echo -e "${Red} 传输协议 (network):${Font} $(info_extraction net) "
-        if [[ ${tls_mode} != "Reality" ]]; then
-            echo -e "${Red} 底层传输安全 (tls):${Font} $(info_extraction tls) "
-        else
-            echo -e "${Red} 底层传输安全 (tls):${Font} TLS "
-        fi    
+        echo -e "${Red} 底层传输安全 (tls):${Font} $(info_extraction tls) "  
         if [[ ${tls_mode} != "Reality" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                 echo -e "${Red} 路径 (path 不要落下/):${Font} /$(info_extraction path) "
@@ -2460,11 +2413,11 @@ add_user() {
         fi
         email_set
         UUID_set
-        add_user=$(jq -r ".inbounds[${choose_user_prot}].settings.clients += [{\"id\": \"${UUID}\",\"${reality_user_more}\"level\": 0,\"email\": \"${custom_email}\"}]" ${xray_conf})
+        jq ".inbounds[${choose_user_prot}].settings.clients += [{\"id\": \"${UUID}\",\"${reality_user_more}\"level\": 0,\"email\": \"${custom_email}\"}]" ${xray_conf} > "${xray_conf}.tmp"
         judge "添加用户"
-        echo "${add_user}" | jq . >${xray_conf}
-        multi_user=$(jq ". += {\"multi_user\": \"yes\"}" ${xray_qr_config_file})
-        echo "${multi_user}" | jq . >${xray_qr_config_file}
+        mv "${xray_conf}.tmp" "${xray_conf}"
+        jq ". += {\"multi_user\": \"yes\"}" ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
+        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
         echo -e "\n${GreenBG} 是否继续添加用户 [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
         read -r add_user_continue
         case $add_user_continue in
@@ -2507,9 +2460,9 @@ remove_user() {
             menu
         elif [[ ${del_user_index} -gt 1 ]]; then
             del_user_index=$((del_user_index - 1))
-            remove_user=$(jq -r 'del(.inbounds['${choose_user_prot}'].settings.clients['${del_user_index}'])' ${xray_conf})
+            jq 'del(.inbounds['${choose_user_prot}'].settings.clients['${del_user_index}'])' ${xray_conf} > "${xray_conf}.tmp"
             judge "删除用户"
-            echo "${remove_user}" | jq . >${xray_conf}
+            mv "${xray_conf}.tmp" "${xray_conf}"
             echo -e "\n${GreenBG} 是否继续删除用户 [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
             read -r remove_user_continue
             case $remove_user_continue in
@@ -2551,9 +2504,9 @@ xray_status_add() {
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
                 service_stop
-                xray_status=$(jq -r "del(.api)|del(.stats)|del(.policy)" ${xray_conf})
+                jq "del(.api)|del(.stats)|del(.policy)" ${xray_conf} > "${xray_conf}.tmp"
                 judge "关闭 Xray 流量统计"
-                echo "${xray_status}" | jq . >${xray_conf}
+                mv "${xray_conf}.tmp" "${xray_conf}"
                 service_start
                 [[ -f ${xray_status_conf} ]] && rm -rf ${xray_status_conf}
                 ;;
@@ -2568,9 +2521,9 @@ xray_status_add() {
             [yY][eE][sS] | [yY])
                     service_stop
                     wget -nc --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json -O ${xray_status_conf}
-                    xray_status=$(jq ". += $(jq -c . ${xray_status_conf})" ${xray_conf})
+                    jq ". += $(jq -c . ${xray_status_conf})" ${xray_conf} > "${xray_conf}.tmp"
                     judge "设置 Xray 流量统计"
-                    echo "${xray_status}" | jq . >${xray_conf}
+                    mv "${xray_conf}.tmp" "${xray_conf}"
                     service_start
                 ;;
             *) ;;
@@ -2595,13 +2548,13 @@ mtproxy_sh() {
 
 uninstall_all() {
     stop_service_all
-    if [[ -f /usr/local/bin/xray ]]; then
+    if [[ -f ${xray_bin_dir}/xray ]]; then
         systemctl disable xray
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove --purge
         [[ -d ${xray_conf_dir} ]] && rm -rf ${xray_conf_dir}
         if [[ -f ${xray_qr_config_file} ]]; then
-            remove_xray=$(jq -r 'del(.xray_version)' ${xray_qr_config_file})
-            echo "${remove_xray}" | jq . >${xray_qr_config_file}
+            jq -r 'del(.xray_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
+            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
         fi
         echo -e "${OK} ${GreenBG} 已卸载 Xray ${Font}"
     fi
@@ -2615,8 +2568,8 @@ uninstall_all() {
             rm -rf ${nginx_conf_dir}/*
             [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
             if [[ -f ${xray_qr_config_file} ]]; then
-                remove_nginx=$(jq -r 'del(.nginx_version)|del(.openssl_version)|del(.jemalloc_version)' ${xray_qr_config_file})
-                echo "${remove_nginx}" | jq . >${xray_qr_config_file}
+                jq 'del(.nginx_build_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
+                mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             fi
             echo -e "${OK} ${GreenBG} 已卸载 Nginx ${Font}"
             ;;
@@ -2900,9 +2853,7 @@ check_file_integrity() {
 read_version() {
     shell_online_version="$(check_version shell_online_version)"
     xray_version="$(check_version xray_online_version)"
-    nginx_version="$(check_version nginx_online_version)"
-    openssl_version="$(check_version openssl_tested_version)"
-    jemalloc_version="$(check_version jemalloc_tested_version)"
+    nginx_build_version="$(check_version nginx_build_online_version)"
 }
 
 maintain() {
@@ -3097,14 +3048,14 @@ idleleo_commend() {
                 shell_emoji="${Green}^O^${Font}"
             fi
             if [[ -f ${xray_qr_config_file} ]]; then
-                if [[ $(info_extraction nginx_version) == null ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
+                if [[ $(info_extraction nginx_build_version) == null ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
                     nginx_need_update="${Green}[未安装]${Font}"
-                elif [[ ${nginx_version} != $(info_extraction nginx_version) ]] || [[ ${openssl_version} != $(info_extraction openssl_version) ]] || [[ ${jemalloc_version} != $(info_extraction jemalloc_version) ]]; then
+                elif [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
                     nginx_need_update="${Green}[有新版]${Font}"
                 else
                     nginx_need_update="${Green}[最新版]${Font}"
                 fi
-                if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ -f /usr/local/bin/xray ]]; then
+                if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ -f ${xray_bin_dir}/xray ]]; then
                     xray_online_version=$(check_version xray_online_version)
                     ##xray_online_version=$(check_version xray_online_pre_version)
                     if [[ $(info_extraction xray_version) == null ]]; then
