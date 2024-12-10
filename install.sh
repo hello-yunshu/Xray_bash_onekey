@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.1.0"
+shell_version="2.1.1"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -196,21 +196,11 @@ dependency_install() {
     fi
     if [[ ${tls_mode} != "None" ]]; then
         if [[ "${ID}" == "centos" ]]; then
-            if [[ -z $(${INS} group list installed | grep -i "Development Tools") ]]; then
-                ${INS} -y groupinstall "Development Tools"
-                judge "安装 Development Tools"
-            else
-                echo -e "${OK} ${GreenBG} 已安装 Development Tools ${Font}"
-            fi
+            pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel,perl-IPC-Cmd"
         else
-            pkg_install "build-essential"
+            pkg_install "iputils-ping,libpcre3,libpcre3-dev,zlib1g-dev"
         fi
-        judge "编译工具包 安装"
-    fi
-    if [[ "${ID}" == "centos" ]]; then
-        pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel,perl-IPC-Cmd"
-    else
-        pkg_install "iputils-ping,libpcre3,libpcre3-dev,zlib1g-dev"
+        judge "Nginx 链接库安装"
     fi
 }
 
@@ -647,9 +637,9 @@ nginx_upstream_server_set() {
         read -r nginx_upstream_server_fq
         case $nginx_upstream_server_fq in
         [yY][eE][sS] | [yY])
-            echo -e "\n${GreenBG} 请选择 追加的协议为 ws 或 gRPC ${Font}"
-            echo "1: 追加 ws"
-            echo "2: 追加 gRPC"
+            echo -e "\n${GreenBG} 请选择协议为 ws 或 gRPC ${Font}"
+            echo "1: ws"
+            echo "2: gRPC"
             echo "3: 返回"
             read -rp "请输入: " upstream_choose
             
@@ -665,8 +655,8 @@ nginx_upstream_server_set() {
                 chmod +x "${idleleo_dir}/file_manager.sh"
             fi
             case $upstream_choose in
-            1) source "${idleleo_dir}/file_manager.sh" wsServer ${fm_file_path} ;;
-            2) source "${idleleo_dir}/file_manager.sh" grpcServer ${fm_file_path} ;;
+            1) source "${idleleo_dir}/file_manager.sh" wsServers ${fm_file_path} ;;
+            2) source "${idleleo_dir}/file_manager.sh" grpcServers ${fm_file_path} ;;
             3) ;;
             *) 
                 echo -e "${Error} ${RedBG} 无效选项 请重试 ${Font}" 
@@ -766,7 +756,7 @@ modify_nginx_origin_conf() {
 
 modify_nginx_port() {
     sed -i "s/^\( *\).*ssl;$/\1listen ${port} ssl;/" ${nginx_conf}
-    sed -i "5s/^\( *\).*ssl;$/\1listen [::]:${port} ssl;/" ${nginx_conf}
+    sed -i "3s/^\( *\).*ssl;$/\1listen [::]:${port} ssl;/" ${nginx_conf}
     judge "Xray port 修改"
     [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
     echo -e "${Green} 端口号: ${port} ${Font}"
@@ -805,9 +795,15 @@ modify_nginx_other() {
     fi
 }
 
-modify_nginx_servers() {
-    sed -i "/#xray-ws-serverc/c \\\tserver 127.0.0.1:${xport} weight=50 max_fails=2 fail_timeout=10;" ${nginx_upstream_conf}
-    sed -i "/#xray-grpc-serverc/c \\\tserver 127.0.0.1:${gport} weight=50 max_fails=2 fail_timeout=10;" ${nginx_upstream_conf}
+nginx_servers_add() {
+    touch ${nginx_conf_dir}/127.0.0.1.wsServers
+    cat >${nginx_conf_dir}/127.0.0.1.wsServers <<EOF
+server 127.0.0.1:${xport} weight=50 max_fails=2 fail_timeout=10;
+EOF
+    touch ${nginx_conf_dir}/127.0.0.1.grpcServers
+    cat >${nginx_conf_dir}/127.0.0.1.grpcServers<<EOF
+server 127.0.0.1:${gport} weight=50 max_fails=2 fail_timeout=10;
+EOF
 }
 
 modify_path() {
@@ -948,7 +944,7 @@ nginx_add_fq() {
 
 nginx_exist_check() {
     local remove_nginx_fq
-    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ $(info_extraction nginx_build_version) != null ]]; then
+    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ ! -n "$(info_extraction nginx_build_version)" ]]; then
         if [[ -d ${nginx_conf_dir} ]]; then
             rm -rf ${nginx_conf_dir}/*.conf
             if [[ -f ${nginx_conf_dir}/nginx.default ]]; then
@@ -965,8 +961,9 @@ nginx_exist_check() {
         fi
         modify_nginx_origin_conf
         echo -e "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
-    elif [[ -d "/etc/nginx/" ]] && [[ $(info_extraction nginx_version) != null ]]; then
+    elif [[ -d "/etc/nginx/" ]] && [[ ! -n "$(info_extraction nginx_version)" ]]; then
         echo -e "${Error} ${GreenBG} 检测到旧版本安装的 nginx ! ${Font}"
+        echo -e "${Warning} ${GreenBG} 请先做好备份 ${Font}"
         echo -e "${GreenBG} 是否需要删除 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r remove_nginx_fq
         case $remove_nginx_fq in
@@ -977,10 +974,11 @@ nginx_exist_check() {
         *)
             rm -rf /etc/nginx/
             [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
+            [[ -d ${nginx_conf_dir} ]] && rm -rf ${nginx_conf_dir}/*.conf
             nginx_install
             ;;
         esac
-    elif [[ -d "/etc/nginx/" ]] && [[ $(info_extraction nginx_version) != null ]]; then
+    elif [[ -d "/etc/nginx/" ]] && [[ ! -n "$(info_extraction nginx_version)" ]]; then
         echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
         exit 1
     else
@@ -1517,8 +1515,6 @@ EOF
 nginx_conf_add() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
-types_hash_max_size 2048;
-
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
@@ -1614,7 +1610,7 @@ EOF
 nginx_reality_serverNames_add () {
     touch ${nginx_conf_dir}/${serverNames}.serverNames
     cat >${nginx_conf_dir}/${serverNames}.serverNames <<EOF
-    ${serverNames} reality;
+${serverNames} reality;
 EOF
     # modify_nginx_reality_serverNames
     judge "Nginx serverNames 配置修改"
@@ -1622,20 +1618,18 @@ EOF
 }
 
 nginx_servers_conf_add() {
-    if [[ "on" != ${old_config_status} ]]; then
-        touch ${nginx_upstream_conf}
-        cat >${nginx_upstream_conf} <<EOF
+    touch ${nginx_upstream_conf}
+    cat >${nginx_upstream_conf} <<EOF
 upstream xray-ws-server {
-    #xray-ws-serverc
+    include ${nginx_conf_dir}/*.wsServers;
 }
 
 upstream xray-grpc-server {
-    #xray-grpc-serverc
+    include ${nginx_conf_dir}/*.grpcServers;
 }
 EOF
-        modify_nginx_servers
-        judge "Nginx servers 配置修改"
-    fi
+    nginx_servers_add
+    judge "Nginx servers 配置修改"
 }
 
 enable_process_systemd() {
@@ -3048,7 +3042,7 @@ idleleo_commend() {
                 shell_emoji="${Green}^O^${Font}"
             fi
             if [[ -f ${xray_qr_config_file} ]]; then
-                if [[ $(info_extraction nginx_build_version) == null ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
+                if [[ ! -n "$(info_extraction nginx_build_version)" ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
                     nginx_need_update="${Green}[未安装]${Font}"
                 elif [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
                     nginx_need_update="${Green}[有新版]${Font}"
@@ -3058,7 +3052,7 @@ idleleo_commend() {
                 if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ -f ${xray_bin_dir}/xray ]]; then
                     xray_online_version=$(check_version xray_online_version)
                     ##xray_online_version=$(check_version xray_online_pre_version)
-                    if [[ $(info_extraction xray_version) == null ]]; then
+                    if [[ ! -n "$(info_extraction nginx_build_version)" ]]; then
                         xray_need_update="${Green}[已安装] (版本未知)${Font}"
                     elif [[ ${xray_version} != $(info_extraction xray_version) ]] && [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
                         xray_need_update="${Red}[有新版!]${Font}"
