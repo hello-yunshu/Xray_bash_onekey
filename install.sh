@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.1.1"
+shell_version="2.1.2"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -75,7 +75,7 @@ reality_add_nginx="off"
 old_config_status="off"
 old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
-[[ -f ${xray_qr_config_file} ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+[[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 
 ##兼容代码，未来删除
 [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p ${idleleo_dir}/tmp
@@ -88,15 +88,15 @@ check_system() {
     if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
         echo -e "${OK} ${GreenBG} 当前系统为 Centos ${VERSION_ID} ${VERSION} ${Font}"
         INS="yum"
-        [[ ! -f ${xray_qr_config_file} ]] && $INS update
+        [[ ! -f "${xray_qr_config_file}" ]] && $INS update
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 ]]; then
         echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
         INS="apt"
-        [[ ! -f ${xray_qr_config_file} ]] && $INS update
+        [[ ! -f "${xray_qr_config_file}" ]] && $INS update
     elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 16 ]]; then
         echo -e "${OK} ${GreenBG} 当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
         INS="apt"
-        if [[ ! -f ${xray_qr_config_file} ]]; then
+        if [[ ! -f "${xray_qr_config_file}" ]]; then
             rm /var/lib/dpkg/lock
             dpkg --configure -a
             rm /var/lib/apt/lists/lock
@@ -183,7 +183,7 @@ dependency_install() {
     else
         pkg_install "cron"
     fi
-    if [[ ! -f /var/spool/cron/root ]] && [[ ! -f /var/spool/cron/crontabs/root ]]; then
+    if [[ ! -f "/var/spool/cron/root" ]] && [[ ! -f "/var/spool/cron/crontabs/root" ]]; then
         if [[ "${ID}" == "centos" ]]; then
             touch /var/spool/cron/root && chmod 600 /var/spool/cron/root
             systemctl start crond && systemctl enable crond >/dev/null 2>&1
@@ -758,12 +758,12 @@ modify_nginx_port() {
     sed -i "s/^\( *\).*ssl;$/\1listen ${port} ssl;/" ${nginx_conf}
     sed -i "3s/^\( *\).*ssl;$/\1listen [::]:${port} ssl;/" ${nginx_conf}
     judge "Xray port 修改"
-    [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
+    [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
     echo -e "${Green} 端口号: ${port} ${Font}"
 }
 
 modify_nginx_ssl_other() {
-    if [[ -f ${nginx_dir}/conf/nginx.conf ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]]; then
+    if [[ -f "${nginx_dir}/conf/nginx.conf" ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]]; then
         modify_nginx_origin_conf
     fi
     sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_ssl_conf}
@@ -771,7 +771,7 @@ modify_nginx_ssl_other() {
 }
 
 modify_nginx_other() {
-    if [[ -f ${nginx_dir}/conf/nginx.conf ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]]; then
+    if [[ -f "${nginx_dir}/conf/nginx.conf" ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]]; then
         modify_nginx_origin_conf
     fi
     if [[ ${tls_mode} == "TLS" ]]; then
@@ -829,8 +829,8 @@ modify_UUID() {
     if [[ $(jq -r '.inbounds[0].settings.clients|length' ${xray_conf}) == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' ${xray_conf}) == 1 ]]; then
         sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/g" ${xray_conf}
         judge "Xray UUID 修改"
-        [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/" ${xray_qr_config_file}
-        [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"idc\".*/\1\"idc\": \"${UUID5_char}\",/" ${xray_qr_config_file}
+        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/" ${xray_qr_config_file}
+        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"idc\".*/\1\"idc\": \"${UUID5_char}\",/" ${xray_qr_config_file}
     else
         echo -e "\n${Warning} ${YellowBG} 请先删除 多余的用户 ${Font}"
     fi
@@ -864,12 +864,12 @@ xray_privilege_escalation() {
 }
 
 xray_install() {
-    if [[ $(xray version) == "" ]] || [[ ! -f ${xray_conf} ]]; then
+    if [[ $(xray version) == "" ]] || [[ ! -f "${xray_conf}" ]]; then
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
         judge "安装 Xray"
         systemctl daemon-reload
-        [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
-        [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
+        [[ -f "${ssl_chainpath}/xray.key" ]] && xray_privilege_escalation
+        [[ -f "${xray_default_conf}" ]] && rm -rf ${xray_default_conf}
         ln -s ${xray_conf} ${xray_default_conf}
     else
         echo -e "${OK} ${GreenBG} 已安装 Xray ${Font}"
@@ -877,7 +877,7 @@ xray_install() {
 }
 
 xray_update() {
-    [[ ! -d ${local_bin}/etc/xray ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装! ${Font}"
+    [[ ! -d "${local_bin}/etc/xray" ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装! ${Font}"
     echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
     xray_online_version=$(check_version xray_online_version)
     ## xray_online_version=$(check_version xray_online_pre_version)
@@ -913,8 +913,8 @@ xray_update() {
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
         judge "Xray 升级"
     fi
-    [[ -f ${ssl_chainpath}/xray.key ]] && xray_privilege_escalation
-    [[ -f ${xray_default_conf} ]] && rm -rf ${xray_default_conf}
+    [[ -f "${ssl_chainpath}/xray.key" ]] && xray_privilege_escalation
+    [[ -f "${xray_default_conf}" ]] && rm -rf ${xray_default_conf}
     ln -s ${xray_conf} ${xray_default_conf}
     jq ".xray_version = \"${xray_version}\"" ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
     mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
@@ -944,12 +944,12 @@ nginx_add_fq() {
 
 nginx_exist_check() {
     local remove_nginx_fq
-    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ ! -n "$(info_extraction nginx_build_version)" ]]; then
-        if [[ -d ${nginx_conf_dir} ]]; then
+    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ "$(info_extraction nginx_build_version)" == "null" ]]; then
+        if [[ -d "${nginx_conf_dir}" ]]; then
             rm -rf ${nginx_conf_dir}/*.conf
-            if [[ -f ${nginx_conf_dir}/nginx.default ]]; then
+            if [[ -f "${nginx_conf_dir}/nginx.default" ]]; then
                 cp -fp ${nginx_conf_dir}/nginx.default ${nginx_dir}/conf/nginx.conf
-            elif [[ -f ${nginx_dir}/conf/nginx.conf.default ]]; then
+            elif [[ -f "${nginx_dir}/conf/nginx.conf.default" ]]; then
                 cp -fp ${nginx_dir}/conf/nginx.conf.default ${nginx_dir}/conf/nginx.conf
             else
                 sed -i "/if \(.*\) {$/,+2d" ${nginx_dir}/conf/nginx.conf
@@ -961,7 +961,7 @@ nginx_exist_check() {
         fi
         modify_nginx_origin_conf
         echo -e "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
-    elif [[ -d "/etc/nginx/" ]] && [[ ! -n "$(info_extraction nginx_version)" ]]; then
+    elif [[ -d "/etc/nginx" ]] && [[ "$(info_extraction nginx_version)" == "null" ]]; then
         echo -e "${Error} ${GreenBG} 检测到旧版本安装的 nginx ! ${Font}"
         echo -e "${Warning} ${GreenBG} 请先做好备份 ${Font}"
         echo -e "${GreenBG} 是否需要删除 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -973,12 +973,12 @@ nginx_exist_check() {
             ;;
         *)
             rm -rf /etc/nginx/
-            [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
-            [[ -d ${nginx_conf_dir} ]] && rm -rf ${nginx_conf_dir}/*.conf
+            [[ -f "${nginx_systemd_file}" ]] && rm -rf ${nginx_systemd_file}
+            [[ -d "${nginx_conf_dir}" ]] && rm -rf ${nginx_conf_dir}/*.conf
             nginx_install
             ;;
         esac
-    elif [[ -d "/etc/nginx/" ]] && [[ ! -n "$(info_extraction nginx_version)" ]]; then
+    elif [[ -d "/etc/nginx" ]] && [[ "$(info_extraction nginx_version)" == "null" ]]; then
         echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
         exit 1
     else
@@ -1016,7 +1016,7 @@ nginx_update() {
     if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         if [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
             ip_check
-            if [[ -f ${xray_qr_config_file} ]]; then
+            if [[ -f "${xray_qr_config_file}" ]]; then
                 domain=$(info_extraction host)
                 if [[ ${tls_mode} == "TLS" ]]; then
                     port=$(info_extraction port)
@@ -1105,7 +1105,7 @@ auto_update() {
     else
         crontab_file="/var/spool/cron/crontabs/root"
     fi
-    if [[ ! -f ${auto_update_file} ]] || [[ $(crontab -l | grep -c "auto_update.sh") -lt 1 ]]; then
+    if [[ ! -f "${auto_update_file}" ]] || [[ $(crontab -l | grep -c "auto_update.sh") -lt 1 ]]; then
         echo -e "\n${GreenBG} 设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx) ${Font}"
         echo -e "${GreenBG} 可能自动更新后有兼容问题, 谨慎开启 ${Font}"
         echo -e "${GreenBG} 是否开启 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -1358,7 +1358,7 @@ xray_reality_add_more() {
 }
 
 old_config_exist_check() {
-    if [[ -f ${xray_qr_config_file} ]]; then
+    if [[ -f "${xray_qr_config_file}" ]]; then
         if [[ ${old_tls_mode} == ${tls_mode} ]]; then
             echo -e "\n${GreenBG} 检测到配置文件, 是否读取配置文件 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r old_config_fq
@@ -1634,7 +1634,7 @@ EOF
 
 enable_process_systemd() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f ${nginx_systemd_file} ]] && systemctl enable nginx && judge "设置 Nginx 开机自启"
+        [[ -f "${nginx_systemd_file}" ]] && systemctl enable nginx && judge "设置 Nginx 开机自启"
     fi
     systemctl enable xray
     judge "设置 Xray 开机自启"
@@ -1642,14 +1642,14 @@ enable_process_systemd() {
 
 disable_process_systemd() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx && systemctl disable nginx && judge "关闭 Nginx 开机自启"
+        [[ -f "${nginx_systemd_file}" ]] && systemctl stop nginx && systemctl disable nginx && judge "关闭 Nginx 开机自启"
     fi
     systemctl disable xray
     judge "关闭 Xray 开机自启"
 }
 
 stop_service_all() {
-    [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx && systemctl disable nginx
+    [[ -f "${nginx_systemd_file}" ]] && systemctl stop nginx && systemctl disable nginx
     systemctl stop xray
     systemctl disable xray
     echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
@@ -1658,7 +1658,7 @@ stop_service_all() {
 service_restart() {
     systemctl daemon-reload
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "Nginx 重启"
+        [[ -f "${nginx_systemd_file}" ]] && systemctl restart nginx && judge "Nginx 重启"
     fi
     systemctl restart xray
     judge "Xray 重启"
@@ -1666,7 +1666,7 @@ service_restart() {
 
 service_start() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f ${nginx_systemd_file} ]] && systemctl start nginx && judge "Nginx 启动"
+        [[ -f "${nginx_systemd_file}" ]] && systemctl start nginx && judge "Nginx 启动"
     fi
     systemctl start xray
     judge "Xray 启动"
@@ -1674,7 +1674,7 @@ service_start() {
 
 service_stop() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f ${nginx_systemd_file} ]] && systemctl stop nginx && judge "Nginx 停止"
+        [[ -f "${nginx_systemd_file}" ]] && systemctl stop nginx && judge "Nginx 停止"
     fi
     systemctl stop xray
     judge "Xray 停止"
@@ -1686,7 +1686,7 @@ acme_cron_update() {
     else
         crontab_file="/var/spool/cron/crontabs/root"
     fi
-    if [[ -f ${ssl_update_file} ]] && [[ $(crontab -l | grep -c "ssl_update.sh") == "1" ]]; then
+    if [[ -f "${ssl_update_file}" ]] && [[ $(crontab -l | grep -c "ssl_update.sh") == "1" ]]; then
         echo -e "\n${Warning} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
         echo -e "${Warning} ${GreenBG} 老版本请及时删除 废弃的 改版证书自动更新! ${Font}"
         echo -e "${GreenBG} 已设置改版证书自动更新 ${Font}"
@@ -1758,7 +1758,7 @@ check_cert_status() {
 }
 
 cert_update_manuel() {
-    if [[ -f ${amce_sh_file} ]]; then
+    if [[ -f "${amce_sh_file}" ]]; then
         "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
     else
         echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
@@ -1779,7 +1779,7 @@ network_secure() {
     [[ -z ${fail2ban_fq} ]] && fail2ban_fq=1
     if [[ $fail2ban_fq == 1 ]]; then
         pkg_install "fail2ban"
-        if [[ ! -f /etc/fail2ban/jail.local ]]; then
+        if [[ ! -f "/etc/fail2ban/jail.local" ]]; then
             cp -fp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
         fi
         if [[ -z $(grep "filter   = sshd" /etc/fail2ban/jail.local) ]]; then
@@ -1802,7 +1802,7 @@ network_secure() {
         clear
     fi
     if [[ $fail2ban_fq == 2 ]]; then
-        [[ -f /etc/fail2ban/jail.local ]] && rm -rf /etc/fail2ban/jail.local
+        [[ -f "/etc/fail2ban/jail.local" ]] && rm -rf /etc/fail2ban/jail.local
         systemctl stop fail2ban
         systemctl disable fail2ban
         judge "Fail2ban 停止"
@@ -2230,7 +2230,7 @@ EOF
 }
 
 tls_type() {
-    if [[ -f ${nginx_conf} ]] && [[ ${tls_mode} == "TLS" ]]; then
+    if [[ -f "${nginx_conf}" ]] && [[ ${tls_mode} == "TLS" ]]; then
         echo -e "\n${GreenBG} 请选择支持的 TLS 版本 (default:2): ${Font}"
         echo -e "${GreenBG} 建议选择 TLS1.3 only (安全模式) ${Font}"
         echo -e "1: TLS1.2 and TLS1.3 (兼容模式)"
@@ -2256,7 +2256,7 @@ tls_type() {
             echo -e "${OK} ${GreenBG} 已切换至 TLS1.3 only ${Font}"
         fi
         # if [[ ${tls_mode} == "TLS" ]]; then
-        [[ -f ${nginx_systemd_file} ]] && systemctl restart nginx && judge "Nginx 重启"
+        [[ -f "${nginx_systemd_file}" ]] && systemctl restart nginx && judge "Nginx 重启"
         # elif [[ ${tls_mode} == "Reality" ]]; then
         systemctl restart xray
         judge "Xray 重启"
@@ -2270,7 +2270,7 @@ revision_port() {
     if [[ ${tls_mode} == "TLS" ]]; then
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
         modify_nginx_port
-        [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
+        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
         echo -e "${Green} 连接端口号: ${port} ${Font}"
     elif [[ ${tls_mode} == "Reality" ]]; then
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
@@ -2280,21 +2280,21 @@ revision_port() {
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             gport=$((RANDOM % 1000 + 30000))
-            [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
+            [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
             echo -e "${Green} ws inbound_port: ${xport} ${Font}"
         elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${gport}"
             xport=$((RANDOM % 1000 + 20000))
-            [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
+            [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
             echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             port_exist_check "${gport}"
-            [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
-            [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
+            [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
+            [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
             echo -e "${Green} ws inbound_port: ${xport} ${Font}"
             echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
         fi
@@ -2318,14 +2318,14 @@ revision_port() {
             echo -e "${Green} ws inbound_port: ${xport} ${Font}"
             echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
         fi
-        [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
-        [[ -f ${xray_qr_config_file} ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
+        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
+        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
         modify_inbound_port
     fi
 }
 
 show_user() {
-    if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ ${tls_mode} != "None" ]]; then
+    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
         echo -e "\n${GreenBG} 即将显示用户, 一次仅能显示一个 ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
             echo -e "${GreenBG} 请选择 显示用户使用的协议 ws/gRPC ${Font}"
@@ -2390,7 +2390,8 @@ show_user() {
 }
 
 add_user() {
-    if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ ${tls_mode} != "None" ]]; then
+    local choose_user_prot
+    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
         service_stop
         echo -e "\n${GreenBG} 即将添加用户, 一次仅能添加一个 ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
@@ -2400,7 +2401,7 @@ add_user() {
             read -rp "请输入: " choose_user_prot
             [[ -z ${choose_user_prot} ]] && choose_user_prot=1
             choose_user_prot=$((choose_user_prot - 1))
-            reality_user_more=""
+            local reality_user_more=""
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
             reality_user_more="\"flow\":\"xtls-rprx-vision\","
@@ -2429,7 +2430,7 @@ add_user() {
 }
 
 remove_user() {
-    if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ ${tls_mode} != "None" ]]; then
+    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
         service_stop
         echo -e "\n${GreenBG} 即将删除用户, 一次仅能删除一个 ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
@@ -2482,15 +2483,15 @@ remove_user() {
 }
 
 show_access_log() {
-    [[ -f ${xray_access_log} ]] && tail -f ${xray_access_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
+    [[ -f "${xray_access_log}" ]] && tail -f ${xray_access_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
 }
 
 show_error_log() {
-    [[ -f ${xray_error_log} ]] && tail -f ${xray_error_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
+    [[ -f "${xray_error_log}" ]] && tail -f ${xray_error_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
 }
 
 xray_status_add() {
-    if [[ -f ${xray_conf} ]]; then
+    if [[ -f "${xray_conf}" ]]; then
         if [[ $(jq -r .stats ${xray_conf}) != null ]]; then
             echo -e "\n${GreenBG} 已配置 Xray 流量统计 ${Font}"
             echo -e "${GreenBG} 是否需要关闭此功能 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -2502,7 +2503,7 @@ xray_status_add() {
                 judge "关闭 Xray 流量统计"
                 mv "${xray_conf}.tmp" "${xray_conf}"
                 service_start
-                [[ -f ${xray_status_conf} ]] && rm -rf ${xray_status_conf}
+                [[ -f "${xray_status_conf}" ]] && rm -rf ${xray_status_conf}
                 ;;
             *) ;;
             esac
@@ -2542,17 +2543,17 @@ mtproxy_sh() {
 
 uninstall_all() {
     stop_service_all
-    if [[ -f ${xray_bin_dir}/xray ]]; then
+    if [[ -f "${xray_bin_dir}/xray" ]]; then
         systemctl disable xray
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove --purge
-        [[ -d ${xray_conf_dir} ]] && rm -rf ${xray_conf_dir}
-        if [[ -f ${xray_qr_config_file} ]]; then
+        [[ -d "${xray_conf_dir}" ]] && rm -rf ${xray_conf_dir}
+        if [[ -f "${xray_qr_config_file}" ]]; then
             jq -r 'del(.xray_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
         fi
         echo -e "${OK} ${GreenBG} 已卸载 Xray ${Font}"
     fi
-    if [[ -d ${nginx_dir} ]]; then
+    if [[ -d "${nginx_dir}" ]]; then
         echo -e "${GreenBG} 是否卸载 Nginx [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r uninstall_nginx
         case $uninstall_nginx in
@@ -2560,8 +2561,8 @@ uninstall_all() {
             systemctl disable nginx
             rm -rf ${nginx_dir}
             rm -rf ${nginx_conf_dir}/*
-            [[ -f ${nginx_systemd_file} ]] && rm -rf ${nginx_systemd_file}
-            if [[ -f ${xray_qr_config_file} ]]; then
+            [[ -f "${nginx_systemd_file}" ]] && rm -rf ${nginx_systemd_file}
+            if [[ -f "${xray_qr_config_file}" ]]; then
                 jq 'del(.nginx_build_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
                 mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             fi
@@ -2586,7 +2587,7 @@ uninstall_all() {
         echo -e "${OK} ${GreenBG} 已保留脚本文件 (包含 SSL 证书等) ${Font}"
         ;;
     esac
-    if [[ -f ${xray_qr_config_file} ]]; then
+    if [[ -f "${xray_qr_config_file}" ]]; then
         echo -e "${GreenBG} 是否保留配置文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r remove_config_fq
         case $remove_config_fq in
@@ -2602,8 +2603,8 @@ uninstall_all() {
 }
 
 delete_tls_key_and_crt() {
-    [[ -f $HOME/.acme.sh/acme.sh ]] && /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
-    [[ -d $HOME/.acme.sh ]] && rm -rf "$HOME/.acme.sh"
+    [[ -f "$HOME/.acme.sh/acme.sh" ]] && /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
+    [[ -d "$HOME/.acme.sh" ]] && rm -rf "$HOME/.acme.sh"
     echo -e "${OK} ${GreenBG} 已清空证书遗留文件 ${Font}"
 }
 
@@ -2640,7 +2641,7 @@ timeout() {
 }
 
 judge_mode() {
-    if [[ -f ${xray_qr_config_file} ]]; then
+    if [[ -f "${xray_qr_config_file}" ]]; then
         ws_grpc_mode=$(info_extraction ws_grpc_mode)
         tls_mode=$(info_extraction tls)
         
@@ -2814,7 +2815,7 @@ update_sh() {
         fi
         case $update_confirm in
         [yY][eE][sS] | [yY])
-            [[ -L ${idleleo_commend_file} ]] && rm -f ${idleleo_commend_file}
+            [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
             wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
             ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
             clear
@@ -2831,7 +2832,7 @@ update_sh() {
 }
 
 check_file_integrity() {
-    if [[ ! -L ${idleleo_commend_file} ]] && [[ ! -f ${idleleo_dir}/install.sh ]]; then
+    if [[ ! -L "${idleleo_commend_file}" ]] && [[ ! -f "${idleleo_dir}/install.sh" ]]; then
         check_system
         pkg_install "bc,jq,wget"
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
@@ -2990,9 +2991,9 @@ show_help() {
 }
 
 idleleo_commend() {
-    if [[ -L ${idleleo_commend_file} ]] || [[ -f ${idleleo_dir}/install.sh ]]; then
+    if [[ -L "${idleleo_commend_file}" ]] || [[ -f "${idleleo_dir}/install.sh" ]]; then
         ##在线运行与本地脚本比对
-        [[ ! -L ${idleleo_commend_file} ]] && chmod +x ${idleleo_dir}/install.sh && ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
+        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x ${idleleo_dir}/install.sh && ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
         old_version=$(grep "shell_version=" ${idleleo_dir}/install.sh | head -1 | awk -F '=|"' '{print $3}')
         echo "${old_version}" >${shell_version_tmp}
         echo "${shell_version}" >>${shell_version_tmp}
@@ -3041,18 +3042,18 @@ idleleo_commend() {
                 shell_need_update="${Green}[最新版]${Font}"
                 shell_emoji="${Green}^O^${Font}"
             fi
-            if [[ -f ${xray_qr_config_file} ]]; then
-                if [[ ! -n "$(info_extraction nginx_build_version)" ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
+            if [[ -f "${xray_qr_config_file}" ]]; then
+                if [[ "$(info_extraction nginx_build_version)" == "null" ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
                     nginx_need_update="${Green}[未安装]${Font}"
                 elif [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
                     nginx_need_update="${Green}[有新版]${Font}"
                 else
                     nginx_need_update="${Green}[最新版]${Font}"
                 fi
-                if [[ -f ${xray_qr_config_file} ]] && [[ -f ${xray_conf} ]] && [[ -f ${xray_bin_dir}/xray ]]; then
+                if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f "${xray_bin_dir}/xray" ]]; then
                     xray_online_version=$(check_version xray_online_version)
                     ##xray_online_version=$(check_version xray_online_pre_version)
-                    if [[ ! -n "$(info_extraction nginx_build_version)" ]]; then
+                    if [[ "$(info_extraction xray_version)" == "null" ]]; then
                         xray_need_update="${Green}[已安装] (版本未知)${Font}"
                     elif [[ ${xray_version} != $(info_extraction xray_version) ]] && [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
                         xray_need_update="${Red}[有新版!]${Font}"
@@ -3095,7 +3096,7 @@ curl_local_connect() {
 }
 
 check_xray_local_connect() {
-    if [[ -f ${xray_qr_config_file} ]]; then
+    if [[ -f "${xray_qr_config_file}" ]]; then
         xray_local_connect_status="${Red}无法连通${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
             [[ ${ws_grpc_mode} == "onlyws" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}本地正常${Font}"
