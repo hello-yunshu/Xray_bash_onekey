@@ -16,7 +16,7 @@ idleleo=$0
 #	Dscription: Xray Onekey Management
 #	Version: 2.0
 #	email: admin@idleleo.com
-#	Official document: www.idleleo.com
+#	Official document: hey.run
 #=====================================================
 
 #fonts color
@@ -958,6 +958,7 @@ nginx_exist_check() {
         fi
         modify_nginx_origin_conf
         echo -e "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
+    #兼容代码，下个大版本删除
     elif [[ -d "/etc/nginx" ]] && [[ "$(info_extraction nginx_version)" == "null" ]]; then
         echo -e "${Error} ${GreenBG} 检测到旧版本安装的 nginx ! ${Font}"
         echo -e "${Warning} ${GreenBG} 请先做好备份 ${Font}"
@@ -976,6 +977,7 @@ nginx_exist_check() {
             nginx_install
             ;;
         esac
+    #兼容代码结束
     elif [[ -d "/etc/nginx" ]] && [[ "$(info_extraction nginx_version)" == "null" ]]; then
         echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
         exit 1
@@ -1679,91 +1681,104 @@ service_stop() {
 }
 
 acme_cron_update() {
-    if [[ "${ID}" == "centos" ]]; then
-        crontab_file="/var/spool/cron/root"
-    else
-        crontab_file="/var/spool/cron/crontabs/root"
-    fi
-    if [[ -f "${ssl_update_file}" ]] && [[ $(crontab -l | grep -c "ssl_update.sh") == "1" ]]; then
-        echo -e "\n${Warning} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
-        echo -e "${Warning} ${GreenBG} 老版本请及时删除 废弃的 改版证书自动更新! ${Font}"
-        echo -e "${GreenBG} 已设置改版证书自动更新 ${Font}"
-        echo -e "${GreenBG} 是否需要删除改版证书自动更新 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-        read -r remove_acme_cron_update_fq
-        case $remove_acme_cron_update_fq in
-        [nN][oO] | [nN]) ;;
-        *)
-            sed -i "/ssl_update.sh/d" ${crontab_file}
-            rm -rf ${ssl_update_file}
-            judge "删除改版证书自动更新"
-            ;;
+    if [[ ${tls_mode} == "TLS" ]]; then
+        local crontab_file
+        if [[ "${ID}" == "centos" ]]; then
+            crontab_file="/var/spool/cron/root"
+        else
+            crontab_file="/var/spool/cron/crontabs/root"
+        fi
+        if [[ -f "${ssl_update_file}" ]] && [[ $(crontab -l | grep -c "ssl_update.sh") == "1" ]]; then
+            echo -e "\n${Warning} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
+            echo -e "${Warning} ${GreenBG} 老版本请及时删除 废弃的 改版证书自动更新! ${Font}"
+            echo -e "${GreenBG} 已设置改版证书自动更新 ${Font}"
+            echo -e "${GreenBG} 是否需要删除改版证书自动更新 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            read -r remove_acme_cron_update_fq
+            case $remove_acme_cron_update_fq in
+            [nN][oO] | [nN]) ;;
+            *)
+                sed -i "/ssl_update.sh/d" ${crontab_file}
+                rm -rf ${ssl_update_file}
+                judge "删除改版证书自动更新"
+                ;;
 
-        esac
+            esac
+        else
+            echo -e "\n${OK} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
+            # echo -e "${GreenBG} 是否设置证书自动更新 (新版本无需设置) [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            # read -r acme_cron_update_fq
+            # case $acme_cron_update_fq in
+            # [yY][eE][sS] | [yY])
+            #     # if [[ "${ssl_self}" != "on" ]]; then
+            #     #     wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
+            #     #     if [[ $(crontab -l | grep -c "acme.sh") -lt 1 ]]; then
+            #     #         echo "0 3 15 * * bash ${ssl_update_file}" >>${crontab_file}
+            #     #     else
+            #     #         sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" ${crontab_file}
+            #     #     fi
+            #     #     judge "设置证书自动更新"
+            #     # else
+            #     #     echo -e "${Error} ${RedBG} 自定义证书不支持此操作! ${Font}"
+            #     # fi
+            #     echo -e "${Error} ${RedBG} 新版本请勿使用! ${Font}"
+            #     ;;
+            # *) ;;
+            # esac
+        fi
     else
-        echo -e "\n${OK} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
-        # echo -e "${GreenBG} 是否设置证书自动更新 (新版本无需设置) [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        # read -r acme_cron_update_fq
-        # case $acme_cron_update_fq in
-        # [yY][eE][sS] | [yY])
-        #     # if [[ "${ssl_self}" != "on" ]]; then
-        #     #     wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/ssl_update.sh && chmod +x ${ssl_update_file}
-        #     #     if [[ $(crontab -l | grep -c "acme.sh") -lt 1 ]]; then
-        #     #         echo "0 3 15 * * bash ${ssl_update_file}" >>${crontab_file}
-        #     #     else
-        #     #         sed -i "/acme.sh/c 0 3 15 * * bash ${ssl_update_file}" ${crontab_file}
-        #     #     fi
-        #     #     judge "设置证书自动更新"
-        #     # else
-        #     #     echo -e "${Error} ${RedBG} 自定义证书不支持此操作! ${Font}"
-        #     # fi
-        #     echo -e "${Error} ${RedBG} 新版本请勿使用! ${Font}"
-        #     ;;
-        # *) ;;
-        # esac
+        echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
 }
 
 check_cert_status() {
-    host="$(info_extraction host)"
-    if [[ -d "$HOME/.acme.sh/${host}_ecc" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.key" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.cer" ]]; then
-        modifyTime=$(stat "$HOME/.acme.sh/${host}_ecc/${host}.cer" | sed -n '7,6p' | awk '{print $2" "$3" "$4" "$5}')
-        modifyTime=$(date +%s -d "${modifyTime}")
-        currentTime=$(date +%s)
-        ((stampDiff = currentTime - modifyTime))
-        ((days = stampDiff / 86400))
-        ((remainingDays = 90 - days))
-        tlsStatus=${remainingDays}
-        [[ ${remainingDays} -le 0 ]] && tlsStatus="${Red}已过期${Font}"
-        echo -e "\n${Green}证书生成日期: $(date -d "@${modifyTime}" +"%F %H:%M:%S")${Font}"
-        echo -e "${Green}证书生成天数: ${days}${Font}"
-        echo -e "${Green}证书剩余天数: ${tlsStatus}${Font}\n"
-        if [[ ${remainingDays} -le 0 ]]; then
-            echo -e "\n${Warning} ${YellowBG} 是否立即更新证书 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
-            read -r cert_update_manuel_fq
-            case $cert_update_manuel_fq in
-            [yY][eE][sS] | [yY])
-                systemctl stop xray
-                judge "Xray 停止"
-                cert_update_manuel
-                service_restart
-                ;;
-            *) ;;
-            esac
+    if [[ ${tls_mode} == "TLS" ]]; then
+        host="$(info_extraction host)"
+        if [[ -d "$HOME/.acme.sh/${host}_ecc" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.key" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.cer" ]]; then
+            modifyTime=$(stat "$HOME/.acme.sh/${host}_ecc/${host}.cer" | sed -n '7,6p' | awk '{print $2" "$3" "$4" "$5}')
+            modifyTime=$(date +%s -d "${modifyTime}")
+            currentTime=$(date +%s)
+            ((stampDiff = currentTime - modifyTime))
+            ((days = stampDiff / 86400))
+            ((remainingDays = 90 - days))
+            tlsStatus=${remainingDays}
+            [[ ${remainingDays} -le 0 ]] && tlsStatus="${Red}已过期${Font}"
+            echo -e "\n${Green}证书生成日期: $(date -d "@${modifyTime}" +"%F %H:%M:%S")${Font}"
+            echo -e "${Green}证书生成天数: ${days}${Font}"
+            echo -e "${Green}证书剩余天数: ${tlsStatus}${Font}\n"
+            if [[ ${remainingDays} -le 0 ]]; then
+                echo -e "\n${Warning} ${YellowBG} 是否立即更新证书 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+                read -r cert_update_manuel_fq
+                case $cert_update_manuel_fq in
+                [yY][eE][sS] | [yY])
+                    systemctl stop xray
+                    judge "Xray 停止"
+                    cert_update_manuel
+                    service_restart
+                    ;;
+                *) ;;
+                esac
+            fi
+        else
+            echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
         fi
     else
-        echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
+        echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
 }
 
 cert_update_manuel() {
-    if [[ -f "${amce_sh_file}" ]]; then
-        "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
+    if [[ ${tls_mode} == "TLS" ]]; then
+        if [[ -f "${amce_sh_file}" ]]; then
+            "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
+        else
+            echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
+        fi
+        host="$(info_extraction host)"
+        "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
+        judge "证书更新"
     else
-        echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
+        echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
-    host="$(info_extraction host)"
-    "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
-    judge "证书更新"
 }
 
 set_fail2ban() {
@@ -1892,7 +1907,7 @@ vless_qr_config_reality() {
     "email": "${custom_email}",
     "idc": "${UUID5_char}",
     "id": "${UUID}",
-    "net": "tcp",
+    "net": "raw",
     "tls": "Reality",
     "target": "${target}",
     "serverNames":"${serverNames}",
@@ -2360,7 +2375,7 @@ show_user() {
                     user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
                 fi
             elif [[ ${tls_mode} == "Reality" ]]; then
-                user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=tls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-vision#$(vless_urlquote $(info_extraction host))+reality%E5%8D%8F%E8%AE%AE"
+                user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=tls&encryption=none&headerType=none&type=raw&flow=xtls-rprx-vision#$(vless_urlquote $(info_extraction host))+reality%E5%8D%8F%E8%AE%AE"
             fi
             echo -e "${Red} URL 分享链接:${Font} ${user_vless_link}"
             echo -n "${user_vless_link}" | qrencode -o - -t utf8
