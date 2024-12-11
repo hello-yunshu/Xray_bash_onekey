@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.0.3"
+mf_SCRIPT_VERSION="1.0.4"
 
 mf_main_menu() {
     check_system
@@ -64,9 +64,10 @@ mf_configure_fail2ban() {
     # 启用 nginx-no-host 规则
     if [[ ${reality_add_nginx} == "on" ]] && [[ -z $(grep "filter   = nginx-no-host" /etc/fail2ban/jail.local) ]]; then
         mf_create_nginx_no_host_filter
-        sed -i "$ a \n\[nginx-no-host]\nenabled  = true\nfilter   = nginx-no-host\nlogpath  = ${nginx_dir}/logs/error.log\nbantime  = 604800\nmaxretry = 600\n" /etc/fail2ban/jail.local
+        sed -i "\$ a\\\n[nginx-no-host]\nenabled  = true\nfilter   = nginx-no-host\nlogpath  = $nginx_dir/logs/error.log\nbantime  = 604800\nmaxretry = 600" /etc/fail2ban/jail.local
     fi
-
+    systemctl daemon-reload
+    systemctl restart fail2ban
     judge "Fail2ban 配置"
 }
 
@@ -92,6 +93,7 @@ mf_manage_fail2ban() {
     echo "2. 重启 Fail2ban"
     echo "3. 停止 Fail2ban"
     echo "4. 添加自定义规则"
+    echo "5. 返回"
     read -rp "请输入: " mf_action
     [[ -z "${mf_action}" ]] && mf_action=1
 
@@ -110,6 +112,7 @@ mf_manage_fail2ban() {
             mf_add_custom_rule
             mf_main_menu
             ;;
+        5) mf_main_menu ;;
         *)
             echo -e "\n${Error} ${RedBG} 无效的选择 请重试 ${Font}"
             ;;
@@ -145,6 +148,7 @@ mf_add_custom_rule() {
     echo -e "[$jail_name]\nenabled  = true\nfilter   = $filter_name\nlogpath  = $log_path\nmaxretry = $max_retry\nbantime  = $ban_time\n" >> /etc/fail2ban/jail.local
     echo -e "${OK} ${GreenBG} 自定义规则添加成功 ${Font}"
 
+    systemctl daemon-reload
     systemctl restart fail2ban
     judge "Fail2ban 重启以应用新规则"
 }
