@@ -1,4 +1,4 @@
-## Xray+Nginx 包含 VLESS WebSocket/gRPC+TLS / XTLS+TCP 协议的一键安装脚本
+## Xray 支持 Reality / VLESS WebSocket/gRPC+TLS 协议 + Nginx 的一键安装脚本
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
 > 感谢 JetBrains 提供的非商业开源软件开发授权。
@@ -18,12 +18,14 @@
 * Telegram 交流群：https://t.me/idleleo_chat 。
 
 ### 准备工作
-* 准备一个域名，并将A记录添加好。
-* 阅读[Xray官方说明](https://xtls.github.io)，大概了解 TLS WebSocket gRPC XTLS 及 Xray 相关信息。
+* 准备一个服务器，在中国大陆境外运行的有公网ip。
+* 安装 Reality 协议全，找好一个符合 Xray 要求的域名。
+* 安装 TLS 版本的，准备一个域名，并将A记录添加好。
+* 阅读[Xray官方说明](https://xtls.github.io)，大概了解 Reality TLS WebSocket gRPC 及 Xray 相关信息，了解 Reality target 的域名要求。
 * **安装好 curl**，Centos用户运行：`yum install -y curl`；Debian/Ubuntu用户运行：`apt install -y curl`。
 
 ### 安装/更新方式
-VLESS+Nginx+WebSocket/gRPC+TLS 或 VLESS+XTLS+Nginx+ws+gRPC  或 ws/gRPC ONLY 三选一：
+VLESS+Ngin+Reality+x+ws+gRPC 或 VLESS+Nginx+WebSocket/gRPC+TLS 或 ws/gRPC ONLY 三选一：
 ```
 bash <(curl -Ss https://www.idleleo.com/install.sh)
 ```

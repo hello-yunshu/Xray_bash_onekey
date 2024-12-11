@@ -28,7 +28,7 @@
                 ]
             },
             "streamSettings": {
-                "network": "tcp",
+                "network": "raw",
                 "security": "tls",
                 "tlsSettings": {
                     "rejectUnknownSni": true,
