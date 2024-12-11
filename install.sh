@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.1.2"
+shell_version="2.2.0"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -533,10 +533,10 @@ target_set() {
             read -r old_host_fq
             case $old_host_fq in
             [nN][oO] | [nN])
-            target_reset=0
+                target_reset=0
                 ;;
             *)
-            target_reset=1
+                target_reset=1
                 ;;
             esac
     fi
@@ -630,7 +630,6 @@ shortIds_set() {
 }
 
 nginx_upstream_server_set() {
-    local upstream_choose nginx_upstream_server_fq
     if [[ ${tls_mode} == "TLS" ]]; then
         echo -e "\n${GreenBG} 是否变更 Nginx 负载均衡 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
@@ -672,7 +671,6 @@ nginx_upstream_server_set() {
 }
 
 nginx_servernames_server_set() {
-    local nginx_servernames_server_fq
     if [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
         echo -e "\n${GreenBG} 是否变更 Nginx serverNames 配置 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
@@ -922,28 +920,27 @@ xray_update() {
     systemctl start xray
 }
 
-nginx_add_fq() {
-    local nginx_add_fq modify_nginx_version
+reality_nginx_add_fq() {
     echo -e "\n${Warning} ${Green} Reality 协议有流量偷跑的风险 ${Font}"
-    echo -e "${Warning} ${Green} 该风险仅在 target 网址被 cdn 加速的情况下存在 ${Font}"
-    echo -e "${GreenBG} 是否额外安装 nginx 前置保护 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-    read -r nginx_add_fq
-    case $nginx_add_fq in
-        [yY][eE][sS] | [yY])
+    echo -e "${Warning} ${Green} 该风险在 target 网址被 cdn 加速时存在 ${Font}"
+    echo -e "${GreenBG} 是否额外安装 nginx 前置保护(推荐) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+    read -r reality_nginx_add_fq
+    case $reality_nginx_add_fq in
+        [nN][oO] | [nN])
+            echo -e "${OK} ${GreenBG} 已跳过安装 nginx ${Font}"
+        ;;
+        *)
             reality_add_nginx="on"
             nginx_exist_check
             nginx_systemd
             nginx_reality_conf_add
             nginx_reality_serverNames_add
         ;;
-    *)
-        echo -e "${OK} ${GreenBG} 已跳过安装 nginx ${Font}"
-        ;;
+
     esac
 }
 
 nginx_exist_check() {
-    local remove_nginx_fq
     if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ "$(info_extraction nginx_build_version)" == "null" ]]; then
         if [[ -d "${nginx_conf_dir}" ]]; then
             rm -rf ${nginx_conf_dir}/*.conf
@@ -975,6 +972,7 @@ nginx_exist_check() {
             rm -rf /etc/nginx/
             [[ -f "${nginx_systemd_file}" ]] && rm -rf ${nginx_systemd_file}
             [[ -d "${nginx_conf_dir}" ]] && rm -rf ${nginx_conf_dir}/*.conf
+            echo -e "${Warning} ${GreenBG} 日志目录已更改, 日志清除需要重新设置 ! ${Font}"
             nginx_install
             ;;
         esac
@@ -1083,7 +1081,7 @@ nginx_update() {
             if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_ssl_conf_add
                 nginx_conf_add
-                nginx_servers_conf_add #需要改
+                nginx_servers_conf_add
             elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_reality_conf_add
             fi
@@ -1768,75 +1766,52 @@ cert_update_manuel() {
     judge "证书更新"
 }
 
-network_secure() {
-    check_system
-    echo -e "\n${GreenBG} 设置 Fail2ban 用于防止暴力破解, 请选择: ${Font}"
-    echo "1. 安装/启动 Fail2ban"
-    echo "2. 卸载/停止 Fail2ban"
-    echo "3. 重启 Fail2ban"
-    echo "4. 查看 Fail2ban 状态"
-    read -rp "请输入: " fail2ban_fq
-    [[ -z ${fail2ban_fq} ]] && fail2ban_fq=1
-    if [[ $fail2ban_fq == 1 ]]; then
-        pkg_install "fail2ban"
-        if [[ ! -f "/etc/fail2ban/jail.local" ]]; then
-            cp -fp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+set_fail2ban() {
+    mf_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh"
+    if [ ! -f "${idleleo_dir}/fail2ban_manager.sh" ]; then
+        echo -e "${Info} ${Green} 本地文件 fail2ban_manager.sh 不存在，正在下载... ${Font}"
+        curl -sL "$mf_remote_url" -o "${idleleo_dir}/fail2ban_manager.sh"
+        if [ $? -ne 0 ]; then
+            echo -e "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
+            return 1
         fi
-        if [[ -z $(grep "filter   = sshd" /etc/fail2ban/jail.local) ]]; then
-            sed -i "/sshd_log/i \enabled  = true\\nfilter   = sshd\\nmaxretry = 5\\nbantime  = 604800" /etc/fail2ban/jail.local
-        fi
-        if ([[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]) && [[ -z $(grep "filter   = nginx-botsearch" /etc/fail2ban/jail.local) ]]; then
-            sed -i "/nginx_error_log/d" /etc/fail2ban/jail.local
-            sed -i "s/http,https$/http,https,8080/g" /etc/fail2ban/jail.local
-            sed -i "/^maxretry.*= 2$/c \\maxretry = 5" /etc/fail2ban/jail.local
-            sed -i "/nginx-botsearch/i \[nginx-badbots]\\n\\nenabled  = true\\nport     = http,https,8080\\nfilter   = apache-badbots\\nlogpath  = ${nginx_dir}/logs/access.log\\nbantime  = 604800\\nmaxretry = 5\\n" /etc/fail2ban/jail.local
-            sed -i "/nginx-botsearch/a \\\nenabled  = true\\nfilter   = nginx-botsearch\\nlogpath  = ${nginx_dir}/logs/access.log\\n           ${nginx_dir}/logs/error.log\\nbantime  = 604800" /etc/fail2ban/jail.local
-        fi
-        judge "Fail2ban 配置"
-        systemctl daemon-reload
-        systemctl start fail2ban
-        systemctl enable fail2ban
-        systemctl restart fail2ban
-        judge "Fail2ban 启动"
-        timeout "清空屏幕!"
-        clear
+        chmod +x "${idleleo_dir}/fail2ban_manager.sh"
     fi
-    if [[ $fail2ban_fq == 2 ]]; then
-        [[ -f "/etc/fail2ban/jail.local" ]] && rm -rf /etc/fail2ban/jail.local
-        systemctl stop fail2ban
-        systemctl disable fail2ban
-        judge "Fail2ban 停止"
-        timeout "清空屏幕!"
-        clear
-    fi
-    if [[ $fail2ban_fq == 3 ]]; then
-        systemctl daemon-reload
-        systemctl restart fail2ban
-        judge "Fail2ban 重启"
-        timeout "清空屏幕!"
-        clear
-    fi
-    if [[ $fail2ban_fq == 4 ]]; then
-        echo -e "${Green} Fail2ban 配置状态: ${Font}"
-        fail2ban-client status
-        echo -e "${Green} Fail2ban SSH 封锁情况: ${Font}"
-        fail2ban-client status sshd
-        if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-            echo -e "${Green} Fail2ban Nginx 封锁情况: ${Font}"
-            fail2ban-client status nginx-badbots
-            fail2ban-client status nginx-botsearch
-        fi
-        echo -e "${Green} Fail2ban 运行状态: ${Font}"
-        systemctl status fail2ban
-    fi
+    source "${idleleo_dir}/fail2ban_manager.sh"
 }
 
 clean_logs() {
+    local cron_file logrotate_config
     echo -e "\n${Green} 检测到日志文件大小如下: ${Font}"
     echo -e "${Green}$(du -sh /var/log/xray ${nginx_dir}/logs)${Font}"
     timeout "即将清除!"
-    for i in $(find /var/log/xray/ ${nginx_dir}/logs -name "*.log"); do cat /dev/null >$i; done
+    for i in $(find /var/log/xray/ ${nginx_dir}/logs -name "*.log"); do cat /dev/null >"$i"; done
     judge "日志清理"
+    
+    #以下为兼容代码，1个大版本后未来删除
+    if [[ "${ID}" == "centos" ]]; then
+        cron_file="/var/spool/cron/root"
+    else
+        cron_file="/var/spool/cron/crontabs/root"
+    fi
+
+    if [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" "$cron_file") -ne '0' ]]; then
+        echo -e "${Warning} ${YellowBG} 已设置旧版自动清理日志任务 ${Font}"
+        echo -e "${GreenBG} 是否需要删除旧版自动清理日志任务 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        read -r delete_task
+        case $delete_task in
+        [nN][oO] | [nN])
+            echo -e "${OK} ${Green} 保留现有自动清理日志任务 ${Font}"
+            return
+            ;;
+        *)
+            sed -i "/find \/var\/log\/xray\/ \/etc\/nginx\/logs -name/d" "$cron_file"
+            judge "删除旧版自动清理日志任务"
+            ;;
+        esac
+    fi
+    #兼容代码结束
+
     echo -e "\n${GreenBG} 是否需要设置自动清理日志 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r auto_clean_logs_fq
     case $auto_clean_logs_fq in
@@ -1845,22 +1820,38 @@ clean_logs() {
         clear
         ;;
     *)
-        echo -e "${OK} ${GreenBG} 将在 每周三 04:00 自动清空日志 ${Font}"
-        if [[ "${ID}" == "centos" ]]; then
-            if [[ $(grep -c "find /var/log/xray/ ${nginx_dir}/logs -name" /var/spool/cron/root) -eq '0' ]]; then
-                echo "0 4 * * 3 for i in \$(find /var/log/xray/ ${nginx_dir}/logs -name \"*.log\"); do cat /dev/null >\$i; done >/dev/null 2>&1" >>/var/spool/cron/root
-                judge "设置自动清理日志"
-            else
-                echo -e "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
-            fi
-        else
-            if [[ $(grep -c "find /var/log/xray/ ${nginx_dir}/logs -name" /var/spool/cron/crontabs/root) -eq '0' ]]; then
-                echo "0 4 * * 3 for i in \$(find /var/log/xray/ ${nginx_dir}/logs -name \"*.log\"); do cat /dev/null >\$i; done >/dev/null 2>&1" >>/var/spool/cron/crontabs/root
-                judge "设置自动清理日志"
-            else
-                echo -e "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
-            fi
+        echo -e "${OK} ${Green} 将在 每周三 04:00 自动清空日志 ${Font}"
+
+        # Set up logrotate configuration
+        logrotate_config="/etc/logrotate.d/custom_log_cleanup"
+
+        if [[ -f "$logrotate_config" ]]; then
+            echo -e "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
+            echo -e "${GreenBG} 是否需要删除现有自动清理日志任务 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            read -r delete_task
+            case $delete_task in
+            [yY][eE][sS] | [yY])
+                rm -f "$logrotate_config"
+                judge "删除自动清理日志任务"
+                ;;
+            *)
+                echo -e "${OK} ${Green} 保留现有自动清理日志任务 ${Font}"
+                return
+                ;;
+            esac
         fi
+
+        # Create new logrotate configuration file
+        echo "/var/log/xray/*.log ${nginx_dir}/logs/*.log {" > "$logrotate_config"
+        echo "    weekly" >> "$logrotate_config"
+        echo "    rotate 3" >> "$logrotate_config"
+        echo "    compress" >> "$logrotate_config"
+        echo "    missingok" >> "$logrotate_config"
+        echo "    notifempty" >> "$logrotate_config"
+        echo "    create 640 root adm" >> "$logrotate_config"
+        echo "}" >> "$logrotate_config"
+        
+        judge "设置自动清理日志"
         ;;
     esac
 }
@@ -2743,7 +2734,7 @@ install_xray_reality() {
     stop_service_all
     # port_exist_check 80
     port_exist_check "${port}"
-    nginx_add_fq
+    reality_nginx_add_fq
     # nginx_exist_check
     # nginx_systemd
     # nginx_ssl_conf_add
@@ -2904,7 +2895,7 @@ list() {
         acme_cron_update
         ;;
     '-f' | '--set-fail2ban')
-        network_secure
+        set_fail2ban
         ;;
     '-h' | '--help')
         show_help
@@ -3350,7 +3341,7 @@ menu() {
         bbr_boost_sh
         ;;
     26)
-        network_secure
+        set_fail2ban
         menu
         ;;
     27)
