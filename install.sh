@@ -3340,7 +3340,7 @@ menu() {
         ;;
     23)
         acme_cron_update
-        timeout "清空屏幕!"
+        timeout "回到菜单!"
         clear
         menu
         ;;
