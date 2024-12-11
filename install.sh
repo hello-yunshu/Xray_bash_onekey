@@ -1753,7 +1753,6 @@ check_cert_status() {
                     systemctl stop xray
                     judge "Xray 停止"
                     cert_update_manuel
-                    service_restart
                     ;;
                 *) ;;
                 esac
@@ -1776,6 +1775,7 @@ cert_update_manuel() {
         host="$(info_extraction host)"
         "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
         judge "证书更新"
+        service_restart
     else
         echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
@@ -2904,7 +2904,6 @@ list() {
         ;;
     '-cu' | '--cert-update')
         cert_update_manuel
-        service_restart
         ;;
     '-cau' | '--cert-auto-update')
         acme_cron_update
@@ -3336,7 +3335,7 @@ menu() {
         ;;
     22)
         cert_update_manuel
-        service_restart
+        timeout "回到菜单!"
         menu
         ;;
     23)
