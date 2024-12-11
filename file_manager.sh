@@ -240,7 +240,7 @@ fm_main_menu() {
     done
 }
 
-check_for_updates() {
+fm_check_for_updates() {
     local latest_version
     local update_choice
 
@@ -287,7 +287,7 @@ fm_restart_nginx_and_check_status() {
 }
 
 # 检查更新
-check_for_updates
+fm_check_for_updates
 
 # 运行主菜单
 fm_main_menu
