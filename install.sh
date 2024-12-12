@@ -205,18 +205,28 @@ dependency_install() {
 }
 
 read_optimize() {
-    read -rp "$1" $2
-    if [[ -z $(eval echo \$$2) ]]; then
-        if [[ $3 != "NULL" ]]; then
-            eval $(echo "$2")="$3"
+    local prompt="$1" var_name="$2" default_value="${3:-NULL}" min_value="${4:-}" max_value="${5:-}" error_msg="${6:-值为空或超出范围, 请重新输入!}"
+    local user_input
+
+    read -rp "$prompt" user_input
+
+    if [[ -z $user_input ]]; then
+        if [[ $default_value != "NULL" ]]; then
+            user_input=$default_value
         else
-            echo -e "${Error} ${RedBG} 请输入正确的值! ${Font}"
-            read_optimize "$1" "$2" $3 $4 $5 "$6"
+            echo -e "${Error} ${RedBG} 值为空, 请重新输入! ${Font}"
+            read_optimize "$prompt" "$var_name" "$default_value" "$min_value" "$max_value" "$error_msg"
+            return
         fi
-    elif [[ ! -z $4 ]] && [[ ! -z $5 ]]; then
-        if [[ $(eval echo \$$2) -le $4 ]] || [[ $(eval echo \$$2) -gt $5 ]]; then
-            echo -e "${Error} ${RedBG} $6 ${Font}"
-            read_optimize "$1" "$2" $3 $4 $5 "$6"
+    fi
+
+    printf -v "$var_name" "%s" "$user_input"
+
+    if [[ -n $min_value ]] && [[ -n $max_value ]]; then
+        if (( user_input < min_value )) || (( user_input > max_value )); then
+            echo -e "${Error} ${RedBG} $error_msg ${Font}"
+            read_optimize "$prompt" "$var_name" "$default_value" "$min_value" "$max_value" "$error_msg"
+            return
         fi
     fi
 }
@@ -258,7 +268,8 @@ ws_grpc_choose() {
         echo -e "${Red}1${Font}: ws (默认)"
         echo "2: gRPC"
         echo "3: ws+gRPC"
-        read -rp "请输入: " choose_network
+        local choose_network
+        read_optimize "请输入: " "choose_network" 1 1 3 "请输入有效的数字"
         if [[ $choose_network == 2 ]]; then
             [[ ${shell_mode} == "Nginx+ws+TLS" ]] && shell_mode="Nginx+gRPC+TLS"
             [[ ${shell_mode} == "Reality" ]] && shell_mode="Reality+gRPC"
@@ -491,11 +502,7 @@ email_set() {
         read -r custom_email_fq
         case $custom_email_fq in
         [yY][eE][sS] | [yY])
-            read -r -p "请输入合法的email (e.g. me@idleleo.com):" custom_email
-            if [[ -z "${custom_email}" ]]; then
-                echo -e "${Error} ${RedBG} 用户名不可为空! ${Font}"
-                email_set
-            fi
+            read_optimize "请输入合法的email (e.g. me@idleleo.com): " "custom_email" "NULL"
             ;;
         *)
             custom_email="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})@idleleo.com"
@@ -549,11 +556,7 @@ target_set() {
         while true; do
             echo -e "\n${GreenBG} 请输入一个域名 (e.g. bing.com)${Font}"
             echo -e "${Green}域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用${Font}"
-            read -p "确认域名符合要求后请输入: " domain
-            if [ -z "$domain" ]; then
-                echo -e "${Warning} ${YellowBG} 没有输入域名, 请重新输入${RedBG}${Font}"
-                continue
-            fi
+            read_optimize "确认域名符合要求后请输入: " "domain" "NULL"
             echo -e "${Green}正在检测域名请等待…${Font}"
 
             output=$(nmap --script ssl-enum-ciphers -p 443 "${domain}")
@@ -600,7 +603,7 @@ serverNames_set() {
         read -r custom_serverNames_fq
         case $custom_serverNames_fq in
         [yY][eE][sS] | [yY])
-            read -p "请输入: " serverNames
+            read_optimize "请输入: " "serverNames" "NULL"
             ;;
         *)
             serverNames=$target
@@ -640,7 +643,8 @@ nginx_upstream_server_set() {
             echo "1: ws"
             echo "2: gRPC"
             echo "3: 返回"
-            read -rp "请输入: " upstream_choose
+            local upstream_choose
+            read_optimize "请输入: " "upstream_choose" "NULL" 1 3 "请重新输入正确的数字"
             
             fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
             fm_file_path=${nginx_conf_dir}
@@ -1167,8 +1171,8 @@ domain_check() {
     echo -e "${Red}1${Font}: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
     echo "3: 域名"
-    read -rp "请输入: " ip_version_fq
-    [[ -z ${ip_version_fq} ]] && ip_version_fq=1
+    local ip_version_fq
+    read_optimize "请输入: " "ip_version_fq" 1 1 3 "请输入有效的数字"
     echo -e "${OK} ${GreenBG} 正在获取 公网IP 信息, 请耐心等待 ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
         local_ip=$(curl -4 ip.sb)
@@ -1181,7 +1185,7 @@ domain_check() {
     elif [[ ${ip_version_fq} == 3 ]]; then
         echo -e "${Warning} ${GreenBG} 此选项用于服务器商仅提供域名访问服务器 ${Font}"
         echo -e "${Warning} ${GreenBG} 注意服务器商域名添加 CNAME 记录 ${Font}"
-        read -rp "请输入: " local_ip
+        read_optimize "请输入: " "local_ip" "NULL"
         ip_version=${local_ip}
     else
         local_ip=$(curl -4 ip.sb)
@@ -1198,7 +1202,8 @@ domain_check() {
         echo "1: 继续安装"
         echo "2: 重新输入"
         echo -e "${Red}3${Font}: 终止安装 (默认)"
-        read -r install
+        local install
+        read_optimize "请输入: " "install" 3 1 3 "请输入有效的数字"
         case $install in
         1)
             echo -e "${OK} ${GreenBG} 继续安装 ${Font}"
@@ -1248,7 +1253,8 @@ ip_check() {
     echo -e "${Red}1${Font}: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
     echo "3: 手动输入"
-    read -rp "请输入: " ip_version_fq
+    local ip_version_fq
+    read_optimize "请输入: " "ip_version_fq" 1 1 3 "请输入有效的数字"
     [[ -z ${ip_version_fq} ]] && ip_version=1
     echo -e "${OK} ${GreenBG} 正在获取 公网IP 信息, 请耐心等待 ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
@@ -1258,7 +1264,7 @@ ip_check() {
         local_ip=$(curl -6 ip.sb)
         ip_version="IPv6"
     elif [[ ${ip_version_fq} == 3 ]]; then
-        read -rp "请输入: " local_ip
+        read_optimize "请输入: " "local_ip" "NULL"
         ip_version=${local_ip}
     else
         local_ip=$(curl -4 ip.sb)
@@ -2021,15 +2027,8 @@ vless_qr_link_image() {
 }
 
 vless_link_image_choice() {
-    echo -e "\n${GreenBG} 请选择生成的分享链接种类: ${Font}"
-    echo "1: V2RayN/V2RayNG/Qv2ray"
-    read -rp "请输入: " link_version
-    [[ -z ${link_version} ]] && link_version=1
-    if [[ $link_version == 1 ]]; then
-        vless_qr_link_image
-    else
-        vless_qr_link_image
-    fi
+    echo -e "\n${GreenBG} 生成分享链接: ${Font}"
+    vless_qr_link_image
 }
 
 info_extraction() {
@@ -2241,8 +2240,8 @@ tls_type() {
         echo -e "${GreenBG} 建议选择 TLS1.3 only (安全模式) ${Font}"
         echo -e "1: TLS1.2 and TLS1.3 (兼容模式)"
         echo -e "${Red}2${Font}: TLS1.3 only (安全模式)"
-        read -rp "请输入: " tls_version
-        [[ -z ${tls_version} ]] && tls_version=2
+        local choose_network
+        read_optimize "请输入: " "choose_network" 2 1 2 "请输入有效的数字"
         if [[ $tls_version == 1 ]]; then
             # if [[ ${tls_mode} == "TLS" ]]; then
             #     sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.2 TLSv1.3;/" $nginx_conf
@@ -2337,15 +2336,16 @@ show_user() {
             echo -e "${GreenBG} 请选择 显示用户使用的协议 ws/gRPC ${Font}"
             echo -e "${Red}1${Font}: ws (默认)"
             echo "2: gRPC"
-            read -rp "请输入: " choose_user_prot
-            [[ -z ${choose_user_prot} ]] && choose_user_prot=1
+            local choose_user_prot
+            read_optimize "请输入: " "choose_user_prot" 1 1 2 "请输入有效的数字"
             choose_user_prot=$((choose_user_prot - 1))
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
         fi
         echo -e "\n${GreenBG} 请选择 要显示的用户编号: ${Font}"
         jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email ${xray_conf} | awk '{print NR""": "$0}'
-        read -rp "请输入: " show_user_index
+        local show_user_index
+        read_optimize "请输入: " "show_user_index" "NULL"
         if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -lt ${show_user_index} ]] || [[ ${show_user_index} == 0 ]]; then
             echo -e "${Error} ${RedBG} 选择错误! ${Font}"
             show_user
@@ -2404,8 +2404,8 @@ add_user() {
             echo -e "${GreenBG} 请选择 添加用户使用的协议 ws/gRPC ${Font}"
             echo -e "${Red}1${Font}: ws (默认)"
             echo "2: gRPC"
-            read -rp "请输入: " choose_user_prot
-            [[ -z ${choose_user_prot} ]] && choose_user_prot=1
+            local choose_user_prot
+            read_optimize "请输入: " "choose_user_prot" 1 1 2 "请输入有效的数字"
             choose_user_prot=$((choose_user_prot - 1))
             local reality_user_more=""
         elif [[ ${tls_mode} == "Reality" ]]; then
@@ -2443,15 +2443,16 @@ remove_user() {
             echo -e "${GreenBG} 请选择 删除用户使用的协议 ws/gRPC ${Font}"
             echo -e "${Red}1${Font}: ws (默认)"
             echo "2: gRPC"
-            read -rp "请输入: " choose_user_prot
-            [[ -z ${choose_user_prot} ]] && choose_user_prot=1
+            local choose_user_prot
+            read_optimize "请输入: " "choose_user_prot" 1 1 2 "请输入有效的数字"
             choose_user_prot=$((choose_user_prot - 1))
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
         fi
         echo -e "\n${GreenBG} 请选择 要删除的用户编号 ${Font}"
         jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email ${xray_conf} | awk '{print NR""": "$0}'
-        read -rp "请输入: " del_user_index
+        local del_user_index
+        read_optimize "请输入: " "del_user_index" "NULL"
         if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -lt ${del_user_index} ]] || [[ ${show_user_index} == 0 ]]; then
             echo -e "${Error} ${RedBG} 选择错误! ${Font}"
             remove_user
@@ -3192,7 +3193,8 @@ menu() {
     echo -e "${Green}31.${Font} 清空 证书文件"
     echo -e "${Green}32.${Font} 退出 \n"
 
-    read -rp "请输入数字: " menu_num
+    local menu_num
+    read_optimize "请输入选项: " "menu_num" "NULL" 0 32 "请输入 0 到 32 之间的有效数字"
     case $menu_num in
     0)
         update_sh
