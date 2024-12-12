@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.0.4"
+mf_SCRIPT_VERSION="1.0.5"
 
 mf_main_menu() {
     check_system
@@ -94,9 +94,7 @@ mf_manage_fail2ban() {
     echo "3. 停止 Fail2ban"
     echo "4. 添加自定义规则"
     echo "5. 返回"
-    read -rp "请输入: " mf_action
-    [[ -z "${mf_action}" ]] && mf_action=1
-
+    read_optimize "请输入: " mf_action 1
     case $mf_action in
         1)
             mf_start_enable_fail2ban
@@ -126,19 +124,11 @@ mf_add_custom_rule() {
     local max_retry
     local ban_time
 
-    read -rp "请输入新的 Jail 名称: " jail_name
-    read -rp "请输入 Filter 名称: " filter_name
-    read -rp "请输入日志路径: " log_path
-    read -rp "请输入最大重试次数 (默认 5): " max_retry
-    read -rp "请输入封禁时间 (秒, 默认 604800 秒): " ban_time
-
-    max_retry=${max_retry:-5}
-    ban_time=${ban_time:-604800}
-
-    if [[ -z "$jail_name" || -z "$filter_name" || -z "$log_path" ]]; then
-        echo -e "\n${Error} ${RedBG} Jail 名称、Filter 名称和日志路径不能为空 ${Font}"
-        return
-    fi
+    read_optimize "请输入新的 Jail 名称: " "jail_name" NULL
+    read_optimize "请输入 Filter 名称: " "filter_name" NULL
+    read_optimize "请输入日志路径: " "log_path" NULL
+    read_optimize "请输入最大重试次数 (默认 5): " "max_retry" 5 1 99 "最大重试次数必须在 1 到 99 之间"
+    read_optimize "请输入封禁时间 (秒, 默认 604800 秒): " "ban_time" 604800 1 8640000 "封禁时间必须在 1 到 8640000 秒之间"
 
     if grep -q "\[$jail_name\]" /etc/fail2ban/jail.local; then
         echo -e "${Warning} ${YellowBG} Jail '$jail_name' 已存在 ${Font}"

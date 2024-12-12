@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.0.3"
+fm_SCRIPT_VERSION="1.0.4"
 
 # 检查是否提供了扩展名参数
 if [ -z "$1" ]; then
@@ -88,9 +88,7 @@ fm_list_files() {
 fm_create_servername_file() {
     local url
     fm_list_files
-    echo -e "请输入网址 (例如 hey.run) ${Font}"
-    echo -e "不要包含 http:// 或 https:// 开头 ${Font}"
-    read -p "请输入: " url
+    read_optimize "请输入网址 (例如 hey.run) ${Font}\n不要包含 http:// 或 https:// 开头 ${Font}\n请输入: " url
     if [[ $url =~ ^(http|https):// ]]; then
         echo -e "\n${Error} ${RedBG} 网址不能包含 http:// 或 https:// 开头 ${Font}"
         return
@@ -105,15 +103,9 @@ fm_create_servername_file() {
 fm_create_ws_or_grpc_server_file() {
     local host port weight content firewall_set_fq
     fm_list_files
-    read -p "请输入主机 (host): " host
-    read -p "请输入端口 (port): " port
-    read -p "请输入权重 (0~100 默认值 50): " weight
-    weight=${weight:-50}
-    
-    if ! [[ $weight =~ ^[0-9]+$ ]] || [ "$weight" -lt 0 ] || [ "$weight" -gt 100 ]; then
-        echo -e "\n${Error} ${RedBG} 权重必须是 0 到 100 之间的整数 ${Font}"
-        return
-    fi
+    read_optimize "请输入主机 (host): " host
+    read_optimize "请输入端口 (port): " port "" 1 65535
+    read_optimize "请输入权重 (0~100 默认值 50): " weight "50" 0 100
     
     content="server ${host}:${port} weight=${weight} max_fails=2 fail_timeout=10;"
     echo "$content" > "${host}.${fm_EXTENSION}"
@@ -158,12 +150,7 @@ fm_edit_file() {
     fm_list_files
     local num_files=${#files[@]}
     local choice
-    read -p "请输入要编辑的文件编号 (1-$num_files): " choice
-    
-    if ! [[ $choice =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "$num_files" ]; then
-        echo -e "\n${Error} ${RedBG} 无效的选择 请重试 ${Font}"
-        return
-    fi
+    read_optimize "请输入要编辑的文件编号 (1-$num_files): " choice "" 1 "$num_files"
     
     local filename="${files[$((choice - 1))]}"
     
@@ -185,12 +172,7 @@ fm_delete_file() {
     
     local num_files=${#files[@]}
     local choice
-    read -p "请输入要删除的文件编号 (1-$num_files): " choice
-    
-    if ! [[ $choice =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "$num_files" ]; then
-        echo -e "\n${Error} ${RedBG} 无效的选择 请重试 ${Font}"
-        return
-    fi
+    read_optimize "请输入要删除的文件编号 (1-$num_files): " choice "" 1 "$num_files"
     
     local filename="${files[$((choice - 1))]}"
     
@@ -227,7 +209,7 @@ fm_main_menu() {
         echo -e "4 ${Green}删除一个已存在的 $fm_EXTENSION 文件${Font}"
         echo -e "5 ${Green}退出${Font}"
         local choice
-        read -p "请选择一个选项: " choice
+        read_optimize "请选择一个选项: " choice "" 1 5
 
         case $choice in
             1) fm_list_files ;;
