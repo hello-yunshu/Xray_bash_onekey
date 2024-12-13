@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.0.4"
+fm_SCRIPT_VERSION="1.0.5"
 
 # 检查是否提供了扩展名参数
 if [ -z "$1" ]; then
@@ -14,7 +14,7 @@ fm_WORKDIR="${2:-$(pwd)}"
 
 # 检查目录是否存在
 if [ ! -d "$fm_WORKDIR" ]; then
-    echo -e "\n${Error} ${RedBG} 目录 $fm_WORKDIR 不存在 请检查路径 ${Font}"
+    log_echo "\n${Error} ${RedBG} 目录 $fm_WORKDIR 不存在 请检查路径 ${Font}"
     exit 1
 fi
 
@@ -27,7 +27,7 @@ cd "$fm_WORKDIR"
 # 函数: 列出当前目录下所有指定扩展名的文件
 fm_list_files() {
     local max_length
-    echo -e "${GreenBG} 列出所有 .$fm_EXTENSION 文件 ${Font}"
+    log_echo "${GreenBG} 列出所有 .$fm_EXTENSION 文件 ${Font}"
     
     # 设置 dotglob 选项，使通配符 * 包括以点开头的文件
     shopt -s dotglob
@@ -36,7 +36,7 @@ fm_list_files() {
     files=(*.$fm_EXTENSION)
     
     if [ ${#files[@]} -eq 0 ]; then
-        echo -e "${Warning} ${YellowBG} 没有找到 .$fm_EXTENSION 文件 ${Font}"
+        log_echo "${Warning} ${YellowBG} 没有找到 .$fm_EXTENSION 文件 ${Font}"
         return 1
     else
         # 计算最大文件名长度
@@ -90,11 +90,11 @@ fm_create_servername_file() {
     fm_list_files
     read_optimize "请输入网址 (例如 hey.run) ${Font}\n不要包含 http:// 或 https:// 开头 ${Font}\n请输入: " url
     if [[ $url =~ ^(http|https):// ]]; then
-        echo -e "\n${Error} ${RedBG} 网址不能包含 http:// 或 https:// 开头 ${Font}"
+        log_echo "\n${Error} ${RedBG} 网址不能包含 http:// 或 https:// 开头 ${Font}"
         return
     fi
-    echo "${url}: reality;" > "${url}.serverNames"
-    echo -e "${OK} ${GreenBG} 文件 ${url}.serverNames 已创建 ${Font}"
+    echo "${url} reality;" > "${url}.serverNames"
+    log_echo "${OK} ${GreenBG} 文件 ${url}.serverNames 已创建 ${Font}"
     fm_restart_nginx_and_check_status
     fm_list_files
 }
@@ -109,10 +109,10 @@ fm_create_ws_or_grpc_server_file() {
     
     content="server ${host}:${port} weight=${weight} max_fails=2 fail_timeout=10;"
     echo "$content" > "${host}.${fm_EXTENSION}"
-    echo -e "${OK} ${GreenBG} 文件 ${host}.${fm_EXTENSION} 已创建 ${Font}"
+    log_echo "${OK} ${GreenBG} 文件 ${host}.${fm_EXTENSION} 已创建 ${Font}"
 
     # 询问是否需要修改防火墙
-    echo -e "\n${GreenBG} 是否需要设置防火墙 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    log_echo "\n${GreenBG} 是否需要设置防火墙 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
     read -r firewall_set_fq
     case $firewall_set_fq in
     [yY][eE][sS] | [yY])
@@ -126,19 +126,19 @@ fm_create_ws_or_grpc_server_file() {
         iptables -I INPUT -p udp --dport ${port} -j ACCEPT
         iptables -I OUTPUT -p tcp --sport ${port} -j ACCEPT
         iptables -I OUTPUT -p udp --sport ${port} -j ACCEPT
-        echo -e "${OK} ${GreenBG} 防火墙 追加 完成 ${Font}"
+        log_echo "${OK} ${GreenBG} 防火墙 追加 完成 ${Font}"
         if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
             service iptables save
             service iptables restart
-            echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+            log_echo "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
         else
             netfilter-persistent save
             systemctl restart iptables
-            echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+            log_echo "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
         fi
     ;;
     *)
-        echo -e "${OK} ${GreenBG} 跳过防火墙设置 ${Font}"
+        log_echo "${OK} ${GreenBG} 跳过防火墙设置 ${Font}"
         ;;
     esac
     fm_restart_nginx_and_check_status
@@ -156,11 +156,11 @@ fm_edit_file() {
     
     # 检查 vim 是否安装
     if ! command -v vim &> /dev/null; then
-        echo -e "${Warning} ${YellowBG} vim 未安装 正在尝试安装 ${Font}"
+        log_echo "${Warning} ${YellowBG} vim 未安装 正在尝试安装 ${Font}"
         pkg_install vim
     fi
     vim "$filename"
-    echo -e "${OK} ${GreenBG} 文件 $filename 已编辑 ${Font}"
+    log_echo "${OK} ${GreenBG} 文件 $filename 已编辑 ${Font}"
     fm_restart_nginx_and_check_status
 }
 
@@ -177,7 +177,7 @@ fm_delete_file() {
     local filename="${files[$((choice - 1))]}"
     
     rm "$filename"
-    echo -e "${OK} ${GreenBG} 文件 $filename 已删除 ${Font}"
+    log_echo "${OK} ${GreenBG} 文件 $filename 已删除 ${Font}"
     fm_restart_nginx_and_check_status
     fm_list_files
 }
@@ -192,7 +192,7 @@ fm_create_file() {
             fm_create_ws_or_grpc_server_file
             ;;
         *)
-            echo -e "\n${Error} ${RedBG} 不支持的文件扩展名 $fm_EXTENSION ${Font}"
+            log_echo "\n${Error} ${RedBG} 不支持的文件扩展名 $fm_EXTENSION ${Font}"
             ;;
     esac
 }
@@ -202,12 +202,12 @@ fm_main_menu() {
     fm_list_files
     while true; do
         echo
-        echo -e "${GreenBG} 主菜单 ${Font}"
-        echo -e "1 ${Green}列出所有 $fm_EXTENSION 文件${Font}"
-        echo -e "2 ${Green}创建一个新的 $fm_EXTENSION 文件${Font}"
-        echo -e "3 ${Green}编辑一个已存在的 $fm_EXTENSION 文件${Font}"
-        echo -e "4 ${Green}删除一个已存在的 $fm_EXTENSION 文件${Font}"
-        echo -e "5 ${Green}退出${Font}"
+        log_echo "${GreenBG} 主菜单 ${Font}"
+        log_echo "1 ${Green}列出所有 $fm_EXTENSION 文件${Font}"
+        log_echo "2 ${Green}创建一个新的 $fm_EXTENSION 文件${Font}"
+        log_echo "3 ${Green}编辑一个已存在的 $fm_EXTENSION 文件${Font}"
+        log_echo "4 ${Green}删除一个已存在的 $fm_EXTENSION 文件${Font}"
+        log_echo "5 ${Green}退出${Font}"
         local choice
         read_optimize "请选择一个选项: " choice "" 1 5
 
@@ -217,7 +217,7 @@ fm_main_menu() {
             3) fm_edit_file ;;
             4) fm_delete_file ;;
             5) source "$idleleo" ;;
-            *) echo -e "\n${Error} ${RedBG} 无效选项 请重试 ${Font}" ;;
+            *) log_echo "\n${Error} ${RedBG} 无效选项 请重试 ${Font}" ;;
         esac
     done
 }
@@ -229,30 +229,30 @@ fm_check_for_updates() {
     # 直接使用 curl 下载远程版本信息
     latest_version=$(curl -s "$fm_remote_url" | grep 'fm_SCRIPT_VERSION=' | head -n 1 | sed 's/fm_SCRIPT_VERSION="//; s/"//')
     if [ -n "$latest_version" ] && [ "$latest_version" != "$fm_SCRIPT_VERSION" ]; then
-        echo -e "${Warning} ${YellowBG} 新版本可用: $latest_version 当前版本: $fm_SCRIPT_VERSION ${Font}"
-        echo -e "${Warning} ${YellowBG} 请访问 https://github.com/hello-yunshu/Xray_bash_onekey 查看更新说明 ${Font}"
+        log_echo "${Warning} ${YellowBG} 新版本可用: $latest_version 当前版本: $fm_SCRIPT_VERSION ${Font}"
+        log_echo "${Warning} ${YellowBG} 请访问 https://github.com/hello-yunshu/Xray_bash_onekey 查看更新说明 ${Font}"
 
-        echo -e "${GreenBG} 是否要下载并安装新版本 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} 是否要下载并安装新版本 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r update_choice
         case $update_choice in
             [yY][eE][sS] | [yY])
-                echo -e "${Info} ${Green} 正在下载新版本... ${Font}"
+                log_echo "${Info} ${Green} 正在下载新版本... ${Font}"
                 curl -sL "$fm_remote_url" -o "${idleleo_dir}/file_manager.sh"
 
                 if [ $? -eq 0 ]; then
                     chmod +x "${idleleo_dir}/file_manager.sh"
-                    echo -e "${OK} ${Green} 下载完成，正在重新运行脚本... ${Font}"
+                    log_echo "${OK} ${Green} 下载完成，正在重新运行脚本... ${Font}"
                     source "${idleleo}" --add-servernames
                 else
-                    echo -e "\n${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
+                    log_echo "\n${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
                 fi
                 ;;
             *)
-                echo -e "${OK} ${Green} 跳过更新 ${Font}"
+                log_echo "${OK} ${Green} 跳过更新 ${Font}"
                 ;;
         esac
     else
-        echo -e "${OK} ${Green} 当前已经是最新版本: $fm_SCRIPT_VERSION ${Font}"
+        log_echo "${OK} ${Green} 当前已经是最新版本: $fm_SCRIPT_VERSION ${Font}"
     fi
 }
 
@@ -260,9 +260,9 @@ fm_restart_nginx_and_check_status() {
     if [[ -f ${nginx_systemd_file} ]]; then
         systemctl restart nginx
         if systemctl is-active --quiet nginx; then
-            echo -e "\n${OK} ${GreenBG} Nginx 重启成功 ${Font}"
+            log_echo "\n${OK} ${GreenBG} Nginx 重启成功 ${Font}"
         else
-            echo -e "\n${Error} ${RedBG} Nginx 重启失败 请检查配置文件是否有误 ${Font}"
+            log_echo "\n${Error} ${RedBG} Nginx 重启失败 请检查配置文件是否有误 ${Font}"
             fm_edit_file
         fi
     fi
