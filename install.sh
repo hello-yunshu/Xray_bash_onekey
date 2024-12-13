@@ -1,4 +1,5 @@
 #!/bin/bash
+
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 #stty erase ^?
@@ -36,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.2.0"
+shell_version="2.2.1"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -77,6 +78,45 @@ old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
 [[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 
+LOG_FILE="app.log"
+LOG_MAX_SIZE=$((3 * 1024 * 1024))  # 3 MB
+MAX_ARCHIVES=5
+
+log() {
+    if [ $(stat -c%s "$LOG_FILE" 2>/dev/null) -gt $LOG_MAX_SIZE ]; then
+        log_rotate
+    fi
+    
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a $LOG_FILE
+}
+
+log_rotate() {
+    local timestamp=$(date +%Y%m%d%H%M%S)
+    local archived_log="${LOG_FILE}.${timestamp}.gz"
+    
+    gzip -c "$LOG_FILE" > "$archived_log"
+    
+    :> "$LOG_FILE"
+    
+    log "Log file rotated and archived as $archived_log"
+    
+    rotate_archives
+}
+
+rotate_archives() {
+    local archives=($(ls ${LOG_FILE}.*.gz 2>/dev/null))
+    while [ ${#archives[@]} -gt $MAX_ARCHIVES ]; do
+        oldest_archive=${archives[0]}
+        rm "$oldest_archive"
+        archives=($(ls ${LOG_FILE}.*.gz 2>/dev/null))
+    done
+}
+
+log_echo() {
+    local message=$(printf "%b" "$@")
+    echo "$message"
+}
+
 ##兼容代码，未来删除
 [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p ${idleleo_dir}/tmp
 
@@ -86,59 +126,51 @@ VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 
 check_system() {
     if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-        echo -e "${OK} ${GreenBG} 当前系统为 Centos ${VERSION_ID} ${VERSION} ${Font}"
+        log_echo "${OK} ${GreenBG} 当前系统为 Centos ${VERSION_ID} ${VERSION} ${Font}"
         INS="yum"
-        [[ ! -f "${xray_qr_config_file}" ]] && $INS update
+        [[ ! -f "${xray_qr_config_file}" ]] && $INS update || true
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 ]]; then
-        echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
+        log_echo "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
         INS="apt"
-        [[ ! -f "${xray_qr_config_file}" ]] && $INS update
+        [[ ! -f "${xray_qr_config_file}" ]] && $INS update || true
     elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 16 ]]; then
-        echo -e "${OK} ${GreenBG} 当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
+        log_echo "${OK} ${GreenBG} 当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
         INS="apt"
         if [[ ! -f "${xray_qr_config_file}" ]]; then
-            rm /var/lib/dpkg/lock
-            dpkg --configure -a
-            rm /var/lib/apt/lists/lock
-            rm /var/cache/apt/archives/lock
-            $INS update
+            rm /var/lib/dpkg/lock || true
+            dpkg --configure -a || true
+            rm /var/lib/apt/lists/lock || true
+            rm /var/cache/apt/archives/lock || true
+            $INS update || true
         fi
     else
-        echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内, 安装中断! ${Font}"
+        log_echo "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内, 安装中断! ${Font}"
         exit 1
     fi
-
-    #systemctl stop firewalld
-    #systemctl disable firewalld
-    #echo -e "${OK} ${GreenBG} firewalld 已关闭 ${Font}"
-
-    #systemctl stop ufw
-    #systemctl disable ufw
-    #echo -e "${OK} ${GreenBG} ufw 已关闭 ${Font}"
 }
 
 is_root() {
     if [[ 0 == $UID ]]; then
-        echo -e "${OK} ${GreenBG} 当前用户是 root用户, 进入安装流程 ${Font}"
+        log_echo "${OK} ${GreenBG} 当前用户是 root用户, 进入安装流程 ${Font}"
     else
-        echo -e "${Error} ${RedBG} 当前用户不是 root用户, 请切换到 root用户 后重新执行脚本! ${Font}"
+        log_echo "${Error} ${RedBG} 当前用户不是 root用户, 请切换到 root用户 后重新执行脚本! ${Font}"
         exit 1
     fi
 }
 
 judge() {
     if [[ 0 -eq $? ]]; then
-        echo -e "${OK} ${GreenBG} $1 完成 ${Font}"
+        log_echo "${OK} ${GreenBG} $1 完成 ${Font}"
         sleep 0.5
     else
-        echo -e "${Error} ${RedBG} $1 失败 ${Font}"
+        log_echo "${Error} ${RedBG} $1 失败 ${Font}"
         exit 1
     fi
 }
 
 check_version() {
     echo ${get_versions_all} | jq -rc ".$1"
-    [[ 0 -ne $? ]] && echo -e "${Error} ${RedBG} 在线版本检测失败, 请稍后再试! ${Font}" && exit 1
+    [[ 0 -ne $? ]] && log_echo "${Error} ${RedBG} 在线版本检测失败, 请稍后再试! ${Font}" && exit 1
 }
 
 pkg_install_judge() {
@@ -162,7 +194,7 @@ pkg_install() {
         if [[ ${install_status} == 0 ]]; then
             judge "安装 ${1//,/ }"
         else
-            echo -e "${OK} ${GreenBG} 已安装 ${1//,/ } ${Font}"
+            log_echo "${OK} ${GreenBG} 已安装 ${1//,/ } ${Font}"
             sleep 0.5
         fi
     else
@@ -170,7 +202,7 @@ pkg_install() {
             ${INS} -y install $1
             judge "安装 $1"
         else
-            echo -e "${OK} ${GreenBG} 已安装 $1 ${Font}"
+            log_echo "${OK} ${GreenBG} 已安装 $1 ${Font}"
             sleep 0.5
         fi
     fi
@@ -214,7 +246,7 @@ read_optimize() {
         if [[ $default_value != "NULL" ]]; then
             user_input=$default_value
         else
-            echo -e "${Error} ${RedBG} 值为空, 请重新输入! ${Font}"
+            log_echo "${Error} ${RedBG} 值为空, 请重新输入! ${Font}"
             read_optimize "$prompt" "$var_name" "$default_value" "$min_value" "$max_value" "$error_msg"
             return
         fi
@@ -224,7 +256,7 @@ read_optimize() {
 
     if [[ -n $min_value ]] && [[ -n $max_value ]]; then
         if (( user_input < min_value )) || (( user_input > max_value )); then
-            echo -e "${Error} ${RedBG} $error_msg ${Font}"
+            log_echo "${Error} ${RedBG} $error_msg ${Font}"
             read_optimize "$prompt" "$var_name" "$default_value" "$min_value" "$max_value" "$error_msg"
             return
         fi
@@ -257,14 +289,14 @@ create_directory() {
 
 port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        echo -e "\n${GreenBG} 确定 连接端口 ${Font}"
+        log_echo "\n${GreenBG} 确定 连接端口 ${Font}"
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
     fi
 }
 
 ws_grpc_choose() {
     if [[ "on" != ${old_config_status} ]]; then
-        echo -e "\n${GreenBG} 请选择 安装协议 ws/gRPC ${Font}"
+        log_echo "\n${GreenBG} 请选择 安装协议 ws/gRPC ${Font}"
         echo -e "${Red}1${Font}: ws (默认)"
         echo "2: gRPC"
         echo "3: ws+gRPC"
@@ -289,7 +321,7 @@ ws_grpc_choose() {
 
 xray_reality_add_more_choose() {
     if [[ "on" != ${old_config_status} ]]; then
-        echo -e "\n${GreenBG} 是否添加简单 ws/gRPC 协议 用于负载均衡 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 是否添加简单 ws/gRPC 协议 用于负载均衡 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿选择! ${Font}"
         read -r reality_add_more_fq
         case $reality_add_more_fq in
@@ -309,7 +341,7 @@ xray_reality_add_more_choose() {
             grpc_inbound_port_set
             ws_path_set
             grpc_path_set
-            echo -e "${OK} ${GreenBG} 已跳过添加简单 ws/gRPC 协议 ${Font}"
+            log_echo "${OK} ${GreenBG} 已跳过添加简单 ws/gRPC 协议 ${Font}"
             ;;
         esac
     fi
@@ -337,16 +369,16 @@ ws_grpc_qr() {
 ws_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
-            echo -e "\n${GreenBG} 是否需要自定义 ws inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "\n${GreenBG} 是否需要自定义 ws inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "请输入自定义 ws inbound_port (请勿与其他端口相同! ):" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-                echo -e "${Green} ws inbound_port: ${xport} ${Font}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
             *)
                 xport=$((RANDOM % 1000 + 10000))
-                echo -e "${Green} ws inbound_port: ${xport} ${Font}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
             esac
         else
@@ -358,17 +390,17 @@ ws_inbound_port_set() {
 grpc_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
         if [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
-            echo -e "\n${GreenBG} 是否需要自定义 gRPC inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "\n${GreenBG} 是否需要自定义 gRPC inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "请输入自定义 gRPC inbound_port (请勿与其他端口相同! ):" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-                echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             *)
                 gport=$((RANDOM % 1000 + 10000))
                 [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 10000))
-                echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             esac
         else
@@ -378,7 +410,7 @@ grpc_inbound_port_set() {
 }
 
 firewall_set() {
-    echo -e "\n${GreenBG} 是否需要设置防火墙 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    log_echo "\n${GreenBG} 是否需要设置防火墙 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
     read -r firewall_set_fq
     case $firewall_set_fq in
     [yY][eE][sS] | [yY])
@@ -418,18 +450,18 @@ firewall_set() {
         if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
             service iptables save
             service iptables restart
-            echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+            log_echo "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
         else
             netfilter-persistent save
             systemctl restart iptables
-            echo -e "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
+            log_echo "${OK} ${GreenBG} 防火墙 重启 完成 ${Font}"
         fi
-        echo -e "${OK} ${GreenBG} 开放防火墙相关端口 ${Font}"
-        echo -e "${GreenBG} 若修改配置, 请注意关闭防火墙相关端口 ${Font}"
-        echo -e "${OK} ${GreenBG} 配置 Xray FullCone ${Font}"
+        log_echo "${OK} ${GreenBG} 开放防火墙相关端口 ${Font}"
+        log_echo "${GreenBG} 若修改配置, 请注意关闭防火墙相关端口 ${Font}"
+        log_echo "${OK} ${GreenBG} 配置 Xray FullCone ${Font}"
         ;;
     *)
-        echo -e "${OK} ${GreenBG} 跳过防火墙设置 ${Font}"
+        log_echo "${OK} ${GreenBG} 跳过防火墙设置 ${Font}"
         ;;
     esac
 }
@@ -437,23 +469,23 @@ firewall_set() {
 ws_path_set() {
     if [[ "on" != ${old_config_status} ]] || [[ ${change_ws_path} == "yes" ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
-            echo -e "\n${GreenBG} 是否需要自定义 ws 伪装路径 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "\n${GreenBG} 是否需要自定义 ws 伪装路径 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r path_modify_fq
             case $path_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "请输入自定义 ws 伪装路径 (不需要“/”):" "path" "NULL"
-                echo -e "${Green} ws 伪装路径: ${path} ${Font}"
+                log_echo "${Green} ws 伪装路径: ${path} ${Font}"
                 ;;
             *)
                 path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                echo -e "${Green} ws 伪装路径: ${path} ${Font}"
+                log_echo "${Green} ws 伪装路径: ${path} ${Font}"
                 ;;
             esac
         else
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         fi
     elif [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
-        echo -e "\n${GreenBG} 是否需要修改 ws 伪装路径 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 是否需要修改 ws 伪装路径 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r change_ws_path_fq
         case $change_ws_path_fq in
         [yY][eE][sS] | [yY])
@@ -468,23 +500,23 @@ ws_path_set() {
 grpc_path_set() {
     if [[ "on" != ${old_config_status} ]] || [[ ${change_grpc_path} == "yes" ]]; then
         if [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
-            echo -e "\n${GreenBG} 是否需要自定义 gRPC 伪装路径 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "\n${GreenBG} 是否需要自定义 gRPC 伪装路径 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r path_modify_fq
             case $path_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "请输入自定义 gRPC 伪装路径 (不需要“/”):" "serviceName" "NULL"
-                echo -e "${Green} gRPC 伪装路径: ${serviceName} ${Font}"
+                log_echo "${Green} gRPC 伪装路径: ${serviceName} ${Font}"
                 ;;
             *)
                 serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                echo -e "${Green} gRPC 伪装路径: ${serviceName} ${Font}"
+                log_echo "${Green} gRPC 伪装路径: ${serviceName} ${Font}"
                 ;;
             esac
         else
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         fi
     elif [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
-        echo -e "\n${GreenBG} 是否需要修改 gRPC 伪装路径 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 是否需要修改 gRPC 伪装路径 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r change_grpc_path_fq
         case $change_grpc_path_fq in
         [yY][eE][sS] | [yY])
@@ -498,7 +530,7 @@ grpc_path_set() {
 
 email_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        echo -e "\n${GreenBG} 是否需要自定义 Xray 用户名 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 是否需要自定义 Xray 用户名 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r custom_email_fq
         case $custom_email_fq in
         [yY][eE][sS] | [yY])
@@ -508,26 +540,26 @@ email_set() {
             custom_email="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})@idleleo.com"
             ;;
         esac
-        echo -e "${Green} Xray 用户名 (email): ${custom_email} ${Font}"
+        log_echo "${Green} Xray 用户名 (email): ${custom_email} ${Font}"
     fi
 }
 
 UUID_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        echo -e "\n${GreenBG} 是否需要自定义字符串映射为 UUIDv5 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 是否需要自定义字符串映射为 UUIDv5 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r need_UUID5
         case $need_UUID5 in
         [yY][eE][sS] | [yY])
             read_optimize "请输入自定义字符串 (最多30字符):" "UUID5_char" "NULL"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
-            echo -e "${Green} 自定义字符串: ${UUID5_char} ${Font}"
-            echo -e "${Green} UUIDv5: ${UUID} ${Font}\n"
+            log_echo "${Green} 自定义字符串: ${UUID5_char} ${Font}"
+            log_echo "${Green} UUIDv5: ${UUID} ${Font}\n"
             ;;
         *)
             UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
-            echo -e "${Green} UUID 映射字符串: ${UUID5_char} ${Font}"
-            echo -e "${Green} UUID: ${UUID} ${Font}\n"
+            log_echo "${Green} UUID 映射字符串: ${UUID5_char} ${Font}"
+            log_echo "${Green} UUID: ${UUID} ${Font}\n"
             #[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
             ;;
         esac
@@ -536,7 +568,7 @@ UUID_set() {
 
 target_set() {
     if [[ "on" == ${old_config_status} ]] && [[ $(info_extraction target) != null ]]; then
-        echo -e "\n${GreenBG} 检测到 target 域名已配置, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        log_echo "\n${GreenBG} 检测到 target 域名已配置, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r old_host_fq
             case $old_host_fq in
             [nN][oO] | [nN])
@@ -554,50 +586,50 @@ target_set() {
         pkg_install "nmap"
 
         while true; do
-            echo -e "\n${GreenBG} 请输入一个域名 (e.g. bing.com)${Font}"
-            echo -e "${Green}域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用${Font}"
+            log_echo "\n${GreenBG} 请输入一个域名 (e.g. bing.com)${Font}"
+            log_echo "${Green}域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用${Font}"
             read_optimize "确认域名符合要求后请输入: " "domain" "NULL"
-            echo -e "${Green}正在检测域名请等待…${Font}"
+            log_echo "${Green}正在检测域名请等待…${Font}"
 
             output=$(nmap --script ssl-enum-ciphers -p 443 "${domain}")
             curl_output=$(curl -I -k -m 5 "https://${domain}" 2>&1)
         
             # 检测TLSv1.3支持
             if ! echo "$output" | grep -q "TLSv1.3"; then
-                echo -e "${Warning} ${YellowBG} 该域名不支持 TLSv1.3, 请重新输入${YellowBG}${Font}"
+                log_echo "${Warning} ${YellowBG} 该域名不支持 TLSv1.3, 请重新输入${YellowBG}${Font}"
                 continue
             fi
 
             # 检测X25519支持
             if ! echo "$output" | grep -q "x25519"; then
-                echo -e "${Warning} ${YellowBG} 该域名不支持 X25519, 请重新输入${YellowBG}${Font}"
+                log_echo "${Warning} ${YellowBG} 该域名不支持 X25519, 请重新输入${YellowBG}${Font}"
                 continue
             fi
 
             # 检测HTTP/2支持
             if ! echo "$curl_output" | grep -q "HTTP/2"; then
-                echo -e "${Warning} ${YellowBG} 该域名不支持 HTTP/2, 请重新输入${YellowBG}${Font}"
+                log_echo "${Warning} ${YellowBG} 该域名不支持 HTTP/2, 请重新输入${YellowBG}${Font}"
                 continue
             fi
         
             # 检测是否跳转
             if echo "$curl_output" | grep -i -q 'location:'; then
-                echo -e "${Warning} ${YellowBG} 该域名发生了跳转, 请重新输入${YellowBG}${Font}"
+                log_echo "${Warning} ${YellowBG} 该域名发生了跳转, 请重新输入${YellowBG}${Font}"
                 continue
             fi
 
-            echo -e "${OK} ${GreenBG} 域名 ${domain} 满足所有要求${Font}"
+            log_echo "${OK} ${GreenBG} 域名 ${domain} 满足所有要求${Font}"
             target=$domain
             break
         done
-        echo -e "${Green} target 域名: ${target} ${Font}"
+        log_echo "${Green} target 域名: ${target} ${Font}"
     fi
 }
 
 serverNames_set() {
     if [[ ${target_reset} == 0 ]] || [[ "on" != ${old_config_status} ]]; then
         local custom_serverNames_fq
-        echo -e "\n${GreenBG} 是否需要修改 ${target} 域名的 serverNames 用户名 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 是否需要修改 ${target} 域名的 serverNames 用户名 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Green} 默认为 ${target} 域名的本身${Font}"
         echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
         read -r custom_serverNames_fq
@@ -609,7 +641,7 @@ serverNames_set() {
             serverNames=$target
             ;;
         esac
-        echo -e "${Green} serverNames: ${serverNames} ${Font}"
+        log_echo "${Green} serverNames: ${serverNames} ${Font}"
     fi
 }
 
@@ -619,8 +651,8 @@ keys_set() {
         keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
         privateKey=$(echo "${keys}" | awk -F"Private key: " '{print $2}' | awk '{print $1}')
         publicKey=$(echo "${keys}" | awk -F"Public key: " '{print $2}' | awk '{print $1}')
-        echo -e "${Green} privateKey: ${privateKey} ${Font}"
-        echo -e "${Green} publicKey: ${publicKey} ${Font}"
+        log_echo "${Green} privateKey: ${privateKey} ${Font}"
+        log_echo "${Green} publicKey: ${publicKey} ${Font}"
     fi
 }
 
@@ -628,13 +660,13 @@ shortIds_set() {
     if [[ "on" != ${old_config_status} ]]; then
         pkg_install "openssl"
         shortIds=$(openssl rand -hex 4)
-        echo -e "${Green} shortIds: ${shortIds} ${Font}"
+        log_echo "${Green} shortIds: ${shortIds} ${Font}"
     fi
 }
 
 nginx_upstream_server_set() {
     if [[ ${tls_mode} == "TLS" ]]; then
-        echo -e "\n${GreenBG} 是否变更 Nginx 负载均衡 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 是否变更 Nginx 负载均衡 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
         read -r nginx_upstream_server_fq
         case $nginx_upstream_server_fq in
@@ -649,10 +681,10 @@ nginx_upstream_server_set() {
             fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
             fm_file_path=${nginx_conf_dir}
             if [ ! -f "${idleleo_dir}/file_manager.sh" ]; then
-                echo -e "${Info} ${Green} 本地文件 file_manager.sh 不存在，正在下载... ${Font}"
+                log_echo "${Info} ${Green} 本地文件 file_manager.sh 不存在，正在下载... ${Font}"
                 curl -sL "$fm_remote_url" -o "${idleleo_dir}/file_manager.sh"
                 if [ $? -ne 0 ]; then
-                    echo -e "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
+                    log_echo "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
                     return 1
                 fi
                 chmod +x "${idleleo_dir}/file_manager.sh"
@@ -662,7 +694,7 @@ nginx_upstream_server_set() {
             2) source "${idleleo_dir}/file_manager.sh" grpcServers ${fm_file_path} ;;
             3) ;;
             *) 
-                echo -e "${Error} ${RedBG} 无效选项 请重试 ${Font}" 
+                log_echo "${Error} ${RedBG} 无效选项 请重试 ${Font}" 
                 nginx_upstream_server_set
                 ;;
             esac
@@ -670,13 +702,13 @@ nginx_upstream_server_set() {
         *) ;;
         esac
     else
-        echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
+        log_echo "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
 }
 
 nginx_servernames_server_set() {
     if [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-        echo -e "\n${GreenBG} 是否变更 Nginx serverNames 配置 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 是否变更 Nginx serverNames 配置 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Warning} ${YellowBG} 如不清楚具体用途, 请勿继续! ${Font}"
         echo -e "${Info} ${GreenBG} 配置用途可以参考文章: (敬请期待) ${Font}"
         read -r nginx_servernames_server_fq
@@ -685,10 +717,10 @@ nginx_servernames_server_set() {
             fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
             fm_file_path=${nginx_conf_dir}
             if [ ! -f "${idleleo_dir}/file_manager.sh" ]; then
-                echo -e "${Info} ${Green} 本地文件 file_manager.sh 不存在，正在下载... ${Font}"
+                log_echo "${Info} ${Green} 本地文件 file_manager.sh 不存在，正在下载... ${Font}"
                 curl -sL "$fm_remote_url" -o "${idleleo_dir}/file_manager.sh"
                 if [ $? -ne 0 ]; then
-                    echo -e "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
+                    log_echo "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
                     return 1
                 fi
                 chmod +x "${idleleo_dir}/file_manager.sh"
@@ -698,7 +730,7 @@ nginx_servernames_server_set() {
         *) ;;
         esac
     else
-        echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
+        log_echo "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
 }
 
@@ -757,11 +789,11 @@ modify_nginx_origin_conf() {
 }
 
 modify_nginx_port() {
-    sed -i "s/^\( *\).*ssl;$/\1listen ${port} ssl;/" ${nginx_conf}
-    sed -i "3s/^\( *\).*ssl;$/\1listen [::]:${port} ssl;/" ${nginx_conf}
+    sed -i "s/^\( *\).*ssl http2 quic reuseport;$/\1listen ${port} ssl http2 quic reuseport;/" ${nginx_conf}
+    sed -i "3s/^\( *\).*ssl http2 quic reuseport;$/\1listen [::]:${port} ssl http2 quic reuseport;/" ${nginx_conf}
     judge "Xray port 修改"
     [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
-    echo -e "${Green} 端口号: ${port} ${Font}"
+    log_echo "${Green} 端口号: ${port} ${Font}"
 }
 
 modify_nginx_ssl_other() {
@@ -793,7 +825,7 @@ modify_nginx_other() {
         fi
     elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
         # sed -i "s/^\( *\).* reality;\( *\)/\1${serverNames} reality;\2/g" ${nginx_conf} 观察
-        sed -i "s/^\( *\)listen 443 reuseport;\(.*\)/\1listen ${port} reuseport;\2/" ${nginx_conf}
+        sed -i "s/^\( *\)listen 443 reuseport so_keepalive=on backlog=65535;\(.*\)/\1listen ${port} reuseport so_keepalive=on backlog=65535;\2/" ${nginx_conf}
     fi
 }
 
@@ -814,7 +846,7 @@ modify_path() {
     if [[ ${tls_mode} != "Reality" ]] || [[ "$reality_add_more" == "off" ]]; then
         judge "Xray 伪装路径 修改"
     else
-        echo -e "${Warning} ${YellowBG} Reality 不支持 path ${Font}"
+        log_echo "${Warning} ${YellowBG} Reality 不支持 path ${Font}"
     fi
 }
 
@@ -823,7 +855,7 @@ modify_email_address() {
         sed -i "s/^\( *\)\"email\".*/\1\"email\": \"${custom_email}\"/g" ${xray_conf}
         judge "Xray 用户名 修改"
     else
-        echo -e "\n${Warning} ${YellowBG} 请先删除 多余的用户  ${Font}"
+        log_echo "\n${Warning} ${YellowBG} 请先删除 多余的用户  ${Font}"
     fi
 }
 
@@ -834,7 +866,7 @@ modify_UUID() {
         [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/" ${xray_qr_config_file}
         [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"idc\".*/\1\"idc\": \"${UUID5_char}\",/" ${xray_qr_config_file}
     else
-        echo -e "\n${Warning} ${YellowBG} 请先删除 多余的用户 ${Font}"
+        log_echo "\n${Warning} ${YellowBG} 请先删除 多余的用户 ${Font}"
     fi
 }
 
@@ -857,12 +889,12 @@ web_camouflage() {
 xray_privilege_escalation() {
     [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
     if [[ -n "$(grep "User=nobody" ${xray_systemd_file})" ]]; then
-        echo -e "${OK} ${GreenBG} 检测到 Xray 的权限控制, 启动擦屁股程序 ${Font}"
+        log_echo "${OK} ${GreenBG} 检测到 Xray 的权限控制, 启动擦屁股程序 ${Font}"
         chmod -fR a+rw /var/log/xray/
         chown -fR nobody:${cert_group} /var/log/xray/
         chown -fR nobody:${cert_group} ${ssl_chainpath}/*
     fi
-    echo -e "${OK} ${GreenBG} Xray 擦屁股 完成 ${Font}"
+    log_echo "${OK} ${GreenBG} Xray 擦屁股 完成 ${Font}"
 }
 
 xray_install() {
@@ -874,35 +906,35 @@ xray_install() {
         [[ -f "${xray_default_conf}" ]] && rm -rf ${xray_default_conf}
         ln -s ${xray_conf} ${xray_default_conf}
     else
-        echo -e "${OK} ${GreenBG} 已安装 Xray ${Font}"
+        log_echo "${OK} ${GreenBG} 已安装 Xray ${Font}"
     fi
 }
 
 xray_update() {
-    [[ ! -d "${local_bin}/etc/xray" ]] && echo -e "${GreenBG} 若更新无效, 建议直接卸载再安装! ${Font}"
-    echo -e "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
+    [[ ! -d "${local_bin}/etc/xray" ]] && log_echo "${GreenBG} 若更新无效, 建议直接卸载再安装! ${Font}"
+    log_echo "${Warning} ${GreenBG} 部分新功能需要重新安装才可生效 ${Font}"
     xray_online_version=$(check_version xray_online_version)
     ## xray_online_version=$(check_version xray_online_pre_version)
     ## if [[ $(info_extraction xray_version) != ${xray_online_version} ]] && [[ ${xray_version} != ${xray_online_version} ]]; then
     if [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
         if [[ ${auto_update} != "YES" ]]; then
-            echo -e "${Warning} ${GreenBG} 检测到存在最新版 ${Font}"
-            echo -e "${Warning} ${GreenBG} 脚本可能未兼容此版本 ${Font}"
-            echo -e "\n${Warning} ${GreenBG} 是否更新 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "${Warning} ${GreenBG} 检测到存在最新版 ${Font}"
+            log_echo "${Warning} ${GreenBG} 脚本可能未兼容此版本 ${Font}"
+            log_echo "\n${Warning} ${GreenBG} 是否更新 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r xray_test_fq
         else
             xray_test_fq=1
         fi
         case $xray_test_fq in
         [yY][eE][sS] | [yY])
-            echo -e "${OK} ${GreenBG} 即将升级 Xray ! ${Font}"
+            log_echo "${OK} ${GreenBG} 即将升级 Xray ! ${Font}"
             systemctl stop xray
             ## xray_version=${xray_online_version}
             bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
             judge "Xray 升级"
             ;;
         *)
-            echo -e "${OK} ${GreenBG} 即将升级/重装 Xray ! ${Font}"
+            log_echo "${OK} ${GreenBG} 即将升级/重装 Xray ! ${Font}"
             systemctl stop xray
             xray_version=$(info_extraction xray_version)
             bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
@@ -925,13 +957,13 @@ xray_update() {
 }
 
 reality_nginx_add_fq() {
-    echo -e "\n${Warning} ${Green} Reality 协议有流量偷跑的风险 ${Font}"
-    echo -e "${Warning} ${Green} 该风险在 target 网址被 cdn 加速时存在 ${Font}"
-    echo -e "${GreenBG} 是否额外安装 nginx 前置保护(推荐) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+    log_echo "\n${Warning} ${Green} Reality 协议有流量偷跑的风险 ${Font}"
+    log_echo "${Warning} ${Green} 该风险在 target 网址被 cdn 加速时存在 ${Font}"
+    log_echo "${GreenBG} 是否额外安装 nginx 前置保护(推荐) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r reality_nginx_add_fq
     case $reality_nginx_add_fq in
         [nN][oO] | [nN])
-            echo -e "${OK} ${GreenBG} 已跳过安装 nginx ${Font}"
+            log_echo "${OK} ${GreenBG} 已跳过安装 nginx ${Font}"
         ;;
         *)
             reality_add_nginx="on"
@@ -961,29 +993,29 @@ nginx_exist_check() {
             sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
         fi
         modify_nginx_origin_conf
-        echo -e "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
+        log_echo "${OK} ${GreenBG} Nginx 已存在, 跳过编译安装过程 ${Font}"
     #兼容代码，下个大版本删除
     elif [[ -d "/etc/nginx" ]] && [[ "$(info_extraction nginx_version)" == "null" ]]; then
-        echo -e "${Error} ${GreenBG} 检测到旧版本安装的 nginx ! ${Font}"
-        echo -e "${Warning} ${GreenBG} 请先做好备份 ${Font}"
-        echo -e "${GreenBG} 是否需要删除 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        log_echo "${Error} ${GreenBG} 检测到旧版本安装的 nginx ! ${Font}"
+        log_echo "${Warning} ${GreenBG} 请先做好备份 ${Font}"
+        log_echo "${GreenBG} 是否需要删除 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r remove_nginx_fq
         case $remove_nginx_fq in
         [nN][oO] | [nN])
-        echo -e "${OK} ${GreenBG} 已跳过删除 nginx ${Font}"
+        log_echo "${OK} ${GreenBG} 已跳过删除 nginx ${Font}"
         source "$idleleo"
             ;;
         *)
             rm -rf /etc/nginx/
             [[ -f "${nginx_systemd_file}" ]] && rm -rf ${nginx_systemd_file}
             [[ -d "${nginx_conf_dir}" ]] && rm -rf ${nginx_conf_dir}/*.conf
-            echo -e "${Warning} ${GreenBG} 日志目录已更改, 日志清除需要重新设置 ! ${Font}"
+            log_echo "${Warning} ${GreenBG} 日志目录已更改, 日志清除需要重新设置 ! ${Font}"
             nginx_install
             ;;
         esac
     #兼容代码结束
     elif [[ -d "/etc/nginx" ]] && [[ "$(info_extraction nginx_version)" == "null" ]]; then
-        echo -e "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
+        log_echo "${Error} ${RedBG} 检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装! ${Font}"
         exit 1
     else
         nginx_install
@@ -997,7 +1029,7 @@ nginx_install() {
 
     cd "$temp_dir" || exit
 
-    echo -e "${OK} ${GreenBG} 即将下载已编译的 Nginx ${Font}"
+    log_echo "${OK} ${GreenBG} 即将下载已编译的 Nginx ${Font}"
     local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${latest_version}/xray-nginx-custom.tar.gz"
     wget -q --show-progress --progress=bar:force:noscroll "$url" -O xray-nginx-custom.tar.gz
     tar -xzvf xray-nginx-custom.tar.gz -C ./
@@ -1043,7 +1075,7 @@ nginx_update() {
                     fi
                     if [[ 0 -eq ${read_config_status} ]]; then
                         [[ ${auto_update} == "YES" ]] && echo "Nginx 配置文件不完整, 退出升级!" && exit 1
-                        echo -e "${Error} ${RedBG} 配置文件不完整, 退出升级 ${Font}"
+                        log_echo "${Error} ${RedBG} 配置文件不完整, 退出升级 ${Font}"
                         return 1
                     fi
                 elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
@@ -1051,24 +1083,24 @@ nginx_update() {
                     serverNames=$(info_extraction serverNames)
                     if [[ 0 -eq ${read_config_status} ]]; then
                         [[ ${auto_update} == "YES" ]] && echo "Nginx 配置文件不完整, 退出升级!" && exit 1
-                        echo -e "${Error} ${RedBG} 配置文件不完整, 退出升级 ${Font}"
+                        log_echo "${Error} ${RedBG} 配置文件不完整, 退出升级 ${Font}"
                         return 1
                     fi
                 elif [[ ${tls_mode} == "None" ]]; then
                     [[ ${auto_update} == "YES" ]] && echo "当前安装模式不需要 Nginx !" && exit 1
-                    echo -e "${Error} ${RedBG} 当前安装模式不需要 Nginx ! ${Font}"
+                    log_echo "${Error} ${RedBG} 当前安装模式不需要 Nginx ! ${Font}"
                     return 1
                 fi
             else
                 [[ ${auto_update} == "YES" ]] && echo "Nginx 配置文件不存在, 退出升级!" && exit 1
-                echo -e "${Error} ${RedBG} 配置文件不存在, 退出升级 ${Font}"
+                log_echo "${Error} ${RedBG} 配置文件不存在, 退出升级 ${Font}"
                 return 1
             fi
             service_stop
             timeout "删除旧版 Nginx !"
             rm -rf ${nginx_dir}
             if [[ ${auto_update} != "YES" ]]; then
-                echo -e "\n${GreenBG} 是否保留原 Nginx 配置文件 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+                log_echo "\n${GreenBG} 是否保留原 Nginx 配置文件 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                 read -r save_originconf_fq
             else
                 save_originconf_fq=1
@@ -1076,11 +1108,11 @@ nginx_update() {
             case $save_originconf_fq in
             [nN][oO] | [nN])
                 rm -rf ${nginx_conf_dir}/*.conf
-                echo -e "${OK} ${GreenBG} 原配置文件已删除! ${Font}"
+                log_echo "${OK} ${GreenBG} 原配置文件已删除! ${Font}"
                 ;;
             *)
                 save_originconf="Yes"
-                echo -e "${OK} ${GreenBG} 原配置文件已保留! ${Font}"
+                log_echo "${OK} ${GreenBG} 原配置文件已保留! ${Font}"
                 ;;
             esac
             nginx_install
@@ -1096,10 +1128,10 @@ nginx_update() {
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             judge "Nginx 升级"
         else
-            echo -e "${OK} ${GreenBG} Nginx 已为最新版 ${Font}"
+            log_echo "${OK} ${GreenBG} Nginx 已为最新版 ${Font}"
         fi
     else
-        echo -e "${Error} ${RedBG} Nginx 未安装 ${Font}"
+        log_echo "${Error} ${RedBG} Nginx 未安装 ${Font}"
     fi
 }
 
@@ -1110,9 +1142,9 @@ auto_update() {
         crontab_file="/var/spool/cron/crontabs/root"
     fi
     if [[ ! -f "${auto_update_file}" ]] || [[ $(crontab -l | grep -c "auto_update.sh") -lt 1 ]]; then
-        echo -e "\n${GreenBG} 设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx) ${Font}"
-        echo -e "${GreenBG} 可能自动更新后有兼容问题, 谨慎开启 ${Font}"
-        echo -e "${GreenBG} 是否开启 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx) ${Font}"
+        log_echo "${GreenBG} 可能自动更新后有兼容问题, 谨慎开启 ${Font}"
+        log_echo "${GreenBG} 是否开启 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
@@ -1123,8 +1155,8 @@ auto_update() {
         *) ;;
         esac
     else
-        echo -e "${OK} ${GreenBG} 已设置自动更新 ${Font}"
-        echo -e "${GreenBG} 是否关闭? [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${OK} ${GreenBG} 已设置自动更新 ${Font}"
+        log_echo "${GreenBG} 是否关闭? [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r auto_update_close_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
@@ -1146,7 +1178,7 @@ ssl_install() {
 
 domain_check() {
     if [[ "on" == ${old_config_status} ]] && [[ $(info_extraction host) != null ]] && [[ $(info_extraction ip_version) != null ]]; then
-        echo -e "\n${GreenBG} 检测到原域名配置存在, 是否跳过域名设置 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        log_echo "\n${GreenBG} 检测到原域名配置存在, 是否跳过域名设置 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r old_host_fq
         case $old_host_fq in
         [nN][oO] | [nN]) ;;
@@ -1160,12 +1192,12 @@ domain_check() {
             else
                 local_ip=${ip_version}
             fi
-            echo -e "${OK} ${GreenBG} 已跳过域名设置 ${Font}"
+            log_echo "${OK} ${GreenBG} 已跳过域名设置 ${Font}"
             return 0
             ;;
         esac
     fi
-    echo -e "\n${GreenBG} 确定 域名 信息 ${Font}"
+    log_echo "\n${GreenBG} 确定 域名 信息 ${Font}"
     read_optimize "请输入你的域名信息 (e.g. www.idleleo.com):" "domain" "NULL"
     echo -e "\n${GreenBG} 请选择 公网IP(IPv4/IPv6) 或手动输入 域名 ${Font}"
     echo -e "${Red}1${Font}: IPv4 (默认)"
@@ -1173,7 +1205,7 @@ domain_check() {
     echo "3: 域名"
     local ip_version_fq
     read_optimize "请输入: " "ip_version_fq" 1 1 3 "请输入有效的数字"
-    echo -e "${OK} ${GreenBG} 正在获取 公网IP 信息, 请耐心等待 ${Font}"
+    log_echo "${OK} ${GreenBG} 正在获取 公网IP 信息, 请耐心等待 ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
         local_ip=$(curl -4 ip.sb)
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
@@ -1183,8 +1215,8 @@ domain_check() {
         domain_ip=$(ping -6 "${domain}" -c 1 | sed '2{s/[^(]*(//;s/).*//;q}' | tail -n +2)
         ip_version="IPv6"
     elif [[ ${ip_version_fq} == 3 ]]; then
-        echo -e "${Warning} ${GreenBG} 此选项用于服务器商仅提供域名访问服务器 ${Font}"
-        echo -e "${Warning} ${GreenBG} 注意服务器商域名添加 CNAME 记录 ${Font}"
+        log_echo "${Warning} ${GreenBG} 此选项用于服务器商仅提供域名访问服务器 ${Font}"
+        log_echo "${Warning} ${GreenBG} 注意服务器商域名添加 CNAME 记录 ${Font}"
         read_optimize "请输入: " "local_ip" "NULL"
         ip_version=${local_ip}
     else
@@ -1192,27 +1224,27 @@ domain_check() {
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
         ip_version="IPv4"
     fi
-    echo -e "域名DNS 解析IP: ${domain_ip}"
-    echo -e "公网IP/域名: ${local_ip}"
+    log_echo "域名DNS 解析IP: ${domain_ip}"
+    log_echo "公网IP/域名: ${local_ip}"
     if [[ ${ip_version_fq} != 3 ]] && [[ ${local_ip} == ${domain_ip} ]]; then
-        echo -e "${OK} ${GreenBG} 域名DNS 解析IP 与 公网IP 匹配 ${Font}"
+        log_echo "${OK} ${GreenBG} 域名DNS 解析IP 与 公网IP 匹配 ${Font}"
     else
-        echo -e "${Warning} ${YellowBG} 请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray ${Font}"
-        echo -e "${Error} ${RedBG} 域名DNS 解析IP 与 公网IP 不匹配, 请选择: ${Font}"
+        log_echo "${Warning} ${YellowBG} 请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray ${Font}"
+        log_echo "${Error} ${RedBG} 域名DNS 解析IP 与 公网IP 不匹配, 请选择: ${Font}"
         echo "1: 继续安装"
         echo "2: 重新输入"
-        echo -e "${Red}3${Font}: 终止安装 (默认)"
+        log_echo "${Red}3${Font}: 终止安装 (默认)"
         local install
         read_optimize "请输入: " "install" 3 1 3 "请输入有效的数字"
         case $install in
         1)
-            echo -e "${OK} ${GreenBG} 继续安装 ${Font}"
+            log_echo "${OK} ${GreenBG} 继续安装 ${Font}"
             ;;
         2)
             domain_check
             ;;
         *)
-            echo -e "${Error} ${RedBG} 安装终止 ${Font}"
+            log_echo "${Error} ${RedBG} 安装终止 ${Font}"
             exit 2
             ;;
         esac
@@ -1222,7 +1254,7 @@ domain_check() {
 ip_check() {
     if [[ "on" == ${old_config_status} || ${auto_update} == "YES" ]] && [[ $(info_extraction host) != null ]] && [[ $(info_extraction ip_version) != null ]]; then
         if [[ ${auto_update} != "YES" ]]; then
-            echo -e "\n${GreenBG} 检测到原IP配置存在, 是否跳过IP设置 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            log_echo "\n${GreenBG} 检测到原IP配置存在, 是否跳过IP设置 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r old_host_fq
         else
             old_host_fq=1
@@ -1238,7 +1270,7 @@ ip_check() {
             else
                 local_ip=${ip_version}
             fi
-            echo -e "\n${OK} ${GreenBG} 已跳过IP设置 ${Font}"
+            log_echo "\n${OK} ${GreenBG} 已跳过IP设置 ${Font}"
             return 0
             ;;
         esac
@@ -1248,15 +1280,15 @@ ip_check() {
     #     echo "(原因来自于脚本版本低无法兼容, 重装可解决问题)" >>${log_file}
     #     exit 1
     fi
-    echo -e "\n${GreenBG} 确定 公网IP 信息 ${Font}"
-    echo -e "${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
+    log_echo "\n${GreenBG} 确定 公网IP 信息 ${Font}"
+    log_echo "${GreenBG} 请选择 公网IP 为 IPv4 或 IPv6 ${Font}"
     echo -e "${Red}1${Font}: IPv4 (默认)"
     echo "2: IPv6 (不推荐)"
     echo "3: 手动输入"
     local ip_version_fq
     read_optimize "请输入: " "ip_version_fq" 1 1 3 "请输入有效的数字"
     [[ -z ${ip_version_fq} ]] && ip_version=1
-    echo -e "${OK} ${GreenBG} 正在获取 公网IP 信息, 请耐心等待 ${Font}"
+    log_echo "${OK} ${GreenBG} 正在获取 公网IP 信息, 请耐心等待 ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
         local_ip=$(curl -4 ip.sb)
         ip_version="IPv4"
@@ -1270,18 +1302,18 @@ ip_check() {
         local_ip=$(curl -4 ip.sb)
         ip_version="IPv4"
     fi
-    echo -e "公网IP/域名: ${local_ip}"
+    log_echo "公网IP/域名: ${local_ip}"
 }
 
 port_exist_check() {
     if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
-        echo -e "${OK} ${GreenBG} $1 端口未被占用 ${Font}"
+        log_echo "${OK} ${GreenBG} $1 端口未被占用 ${Font}"
     else
-        echo -e "${Error} ${RedBG} 检测到 $1 端口被占用, 以下为 $1 端口占用信息 ${Font}"
+        log_echo "${Error} ${RedBG} 检测到 $1 端口被占用, 以下为 $1 端口占用信息 ${Font}"
         lsof -i:"$1"
         timeout "尝试自动 kill 占用进程!"
         lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
-        echo -e "${OK} ${GreenBG} kill 完成 ${Font}"
+        log_echo "${OK} ${GreenBG} kill 完成 ${Font}"
     fi
 }
 
@@ -1290,28 +1322,28 @@ acme() {
     #暂时解决ca问题
     if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --server letsencrypt --keylength ec-256 --force --test; then
     #if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force --test; then
-        echo -e "${OK} ${GreenBG} SSL 证书测试签发成功, 开始正式签发 ${Font}"
+        log_echo "${OK} ${GreenBG} SSL 证书测试签发成功, 开始正式签发 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
     else
-        echo -e "${Error} ${RedBG} SSL 证书测试签发失败 ${Font}"
+        log_echo "${Error} ${RedBG} SSL 证书测试签发失败 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
         exit 1
     fi
 
     if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --server letsencrypt --keylength ec-256 --force; then
     #if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force; then
-        echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
+        log_echo "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
         mkdir -p ${ssl_chainpath}
         if "$HOME"/.acme.sh/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
             chmod -f a+rw ${ssl_chainpath}/xray.crt
             chmod -f a+rw ${ssl_chainpath}/xray.key
             [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
             chown -fR nobody:${cert_group} ${ssl_chainpath}/*
-            echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
+            log_echo "${OK} ${GreenBG} 证书配置成功 ${Font}"
             systemctl stop nginx
         fi
     else
-        echo -e "${Error} ${RedBG} SSL 证书生成失败 ${Font}"
+        log_echo "${Error} ${RedBG} SSL 证书生成失败 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
         exit 1
     fi
@@ -1337,13 +1369,13 @@ xray_conf_add() {
         modify_email_address
         modify_UUID
     else
-        echo -e "\n${Warning} ${GreenBG} 检测到 Xray 配置过多用户 ${Font}"
-        echo -e "${GreenBG} 是否保留原 Xray 配置文件 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        log_echo "\n${Warning} ${GreenBG} 检测到 Xray 配置过多用户 ${Font}"
+        log_echo "${GreenBG} 是否保留原 Xray 配置文件 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r save_originxray_fq
         case $save_originxray_fq in
         [nN][oO] | [nN])
             rm -rf ${xray_conf}
-            echo -e "${OK} ${GreenBG} 原配置文件已删除! ${Font}"
+            log_echo "${OK} ${GreenBG} 原配置文件已删除! ${Font}"
             xray_conf_add
             ;;
         *) ;;
@@ -1366,32 +1398,32 @@ xray_reality_add_more() {
 old_config_exist_check() {
     if [[ -f "${xray_qr_config_file}" ]]; then
         if [[ ${old_tls_mode} == ${tls_mode} ]]; then
-            echo -e "\n${GreenBG} 检测到配置文件, 是否读取配置文件 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            log_echo "\n${GreenBG} 检测到配置文件, 是否读取配置文件 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r old_config_fq
             case $old_config_fq in
             [nN][oO] | [nN])
                 rm -rf ${xray_qr_config_file}
-                echo -e "${OK} ${GreenBG} 已删除配置文件 ${Font}"
+                log_echo "${OK} ${GreenBG} 已删除配置文件 ${Font}"
                 ;;
             *)
-                echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
+                log_echo "${OK} ${GreenBG} 已保留配置文件 ${Font}"
                 old_config_status="on"
                 old_config_input
                 ;;
             esac
         else
-            echo -e "\n${Warning} ${GreenBG} 检测到当前安装模式与配置文件的安装模式不一致 ${Font}"
-            echo -e "${GreenBG} 是否保留配置文件 (强烈不建议) [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "\n${Warning} ${GreenBG} 检测到当前安装模式与配置文件的安装模式不一致 ${Font}"
+            log_echo "${GreenBG} 是否保留配置文件 (强烈不建议) [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r old_config_fq
             case $old_config_fq in
             [yY][eE][sS] | [yY])
-                echo -e "${Warning} ${GreenBG} 请务必确保配置文件正确 ${Font}"
-                echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
+                log_echo "${Warning} ${GreenBG} 请务必确保配置文件正确 ${Font}"
+                log_echo "${OK} ${GreenBG} 已保留配置文件 ${Font}"
                 menu
                 ;;
             *)
                 rm -rf ${xray_qr_config_file}
-                echo -e "${OK} ${GreenBG} 已删除配置文件 ${Font}"
+                log_echo "${OK} ${GreenBG} 已删除配置文件 ${Font}"
                 ;;
             esac
         fi
@@ -1476,17 +1508,17 @@ old_config_input() {
         fi
     fi
     if [[ 0 -eq ${read_config_status} ]]; then
-        echo -e "\n${GreenBG} 检测到配置文件不完整, 是否保留配置文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "\n${GreenBG} 检测到配置文件不完整, 是否保留配置文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r old_config_input_fq
         case $old_config_input_fq in
         [yY][eE][sS] | [yY])
             old_config_status="off"
-            echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
+            log_echo "${OK} ${GreenBG} 已保留配置文件 ${Font}"
             ;;
         *)
             rm -rf ${xray_qr_config_file}
             old_config_status="off"
-            echo -e "${OK} ${GreenBG} 已删除配置文件 ${Font}"
+            log_echo "${OK} ${GreenBG} 已删除配置文件 ${Font}"
             ;;
         esac
     fi
@@ -1522,9 +1554,9 @@ nginx_conf_add() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
 server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    http2               on;
+    listen 443 ssl http2 quic reuseport;
+    listen [::]:443 ssl http2 quic reuseport;
+
     set_real_ip_from    127.0.0.1;
     real_ip_header      X-Forwarded-For;
     real_ip_recursive   on;
@@ -1551,7 +1583,6 @@ server {
         grpc_connect_timeout 60s;
         grpc_read_timeout 720m;
         grpc_send_timeout 720m;
-        lingering_close always;
         client_max_body_size 0;
         grpc_set_header X-Real-IP \$remote_addr;
         grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -1561,20 +1592,18 @@ server {
     location ws
     {
         #proxy_pass http://xray-ws-server;
-        #proxy_redirect default;
+        proxy_redirect off;
         proxy_http_version 1.1;
         proxy_connect_timeout 60s;
         proxy_send_timeout 720m;
         proxy_read_timeout 720m;
         proxy_buffering off;
-        lingering_close always;
         client_max_body_size 0;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host \$http_host;
-        proxy_set_header Early-Data \$ssl_early_data;
     }
 
     location /
@@ -1602,10 +1631,14 @@ stream {
     }
 
     server {
-        listen 443 reuseport;
+        listen 443 reuseport so_keepalive=on backlog=65535;
         proxy_pass \$stream_map;
         ssl_preread on;
         #proxy_protocol on;
+        
+        # 超时设置
+        proxy_connect_timeout 20s;       # 连接超时时间
+        proxy_timeout 300s;            # 数据传输超时时间
     }
 }
 EOF
@@ -1658,7 +1691,7 @@ stop_service_all() {
     [[ -f "${nginx_systemd_file}" ]] && systemctl stop nginx && systemctl disable nginx
     systemctl stop xray
     systemctl disable xray
-    echo -e "${OK} ${GreenBG} 停止已有服务 ${Font}"
+    log_echo "${OK} ${GreenBG} 停止已有服务 ${Font}"
 }
 
 service_restart() {
@@ -1695,10 +1728,10 @@ acme_cron_update() {
             crontab_file="/var/spool/cron/crontabs/root"
         fi
         if [[ -f "${ssl_update_file}" ]] && [[ $(crontab -l | grep -c "ssl_update.sh") == "1" ]]; then
-            echo -e "\n${Warning} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
-            echo -e "${Warning} ${GreenBG} 老版本请及时删除 废弃的 改版证书自动更新! ${Font}"
-            echo -e "${GreenBG} 已设置改版证书自动更新 ${Font}"
-            echo -e "${GreenBG} 是否需要删除改版证书自动更新 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            log_echo "\n${Warning} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
+            log_echo "${Warning} ${GreenBG} 老版本请及时删除 废弃的 改版证书自动更新! ${Font}"
+            log_echo "${GreenBG} 已设置改版证书自动更新 ${Font}"
+            log_echo "${GreenBG} 是否需要删除改版证书自动更新 (请删除) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r remove_acme_cron_update_fq
             case $remove_acme_cron_update_fq in
             [nN][oO] | [nN]) ;;
@@ -1710,8 +1743,8 @@ acme_cron_update() {
 
             esac
         else
-            echo -e "\n${OK} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
-            # echo -e "${GreenBG} 是否设置证书自动更新 (新版本无需设置) [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "\n${OK} ${GreenBG} 新版本已自动设置证书自动更新 ${Font}"
+            # log_echo "${GreenBG} 是否设置证书自动更新 (新版本无需设置) [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             # read -r acme_cron_update_fq
             # case $acme_cron_update_fq in
             # [yY][eE][sS] | [yY])
@@ -1724,15 +1757,15 @@ acme_cron_update() {
             #     #     fi
             #     #     judge "设置证书自动更新"
             #     # else
-            #     #     echo -e "${Error} ${RedBG} 自定义证书不支持此操作! ${Font}"
+            #     #     log_echo "${Error} ${RedBG} 自定义证书不支持此操作! ${Font}"
             #     # fi
-            #     echo -e "${Error} ${RedBG} 新版本请勿使用! ${Font}"
+            #     log_echo "${Error} ${RedBG} 新版本请勿使用! ${Font}"
             #     ;;
             # *) ;;
             # esac
         fi
     else
-        echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
+        log_echo "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
 }
 
@@ -1748,11 +1781,11 @@ check_cert_status() {
             ((remainingDays = 90 - days))
             tlsStatus=${remainingDays}
             [[ ${remainingDays} -le 0 ]] && tlsStatus="${Red}已过期${Font}"
-            echo -e "\n${Green}证书生成日期: $(date -d "@${modifyTime}" +"%F %H:%M:%S")${Font}"
-            echo -e "${Green}证书生成天数: ${days}${Font}"
-            echo -e "${Green}证书剩余天数: ${tlsStatus}${Font}\n"
+            log_echo "\n${Green}证书生成日期: $(date -d "@${modifyTime}" +"%F %H:%M:%S")${Font}"
+            log_echo "${Green}证书生成天数: ${days}${Font}"
+            log_echo "${Green}证书剩余天数: ${tlsStatus}${Font}\n"
             if [[ ${remainingDays} -le 0 ]]; then
-                echo -e "\n${Warning} ${YellowBG} 是否立即更新证书 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+                log_echo "\n${Warning} ${YellowBG} 是否立即更新证书 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
                 read -r cert_update_manuel_fq
                 case $cert_update_manuel_fq in
                 [yY][eE][sS] | [yY])
@@ -1764,10 +1797,10 @@ check_cert_status() {
                 esac
             fi
         else
-            echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
+            log_echo "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
         fi
     else
-        echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
+        log_echo "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
 }
 
@@ -1776,24 +1809,24 @@ cert_update_manuel() {
         if [[ -f "${amce_sh_file}" ]]; then
             "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
         else
-            echo -e "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
+            log_echo "${Error} ${RedBG} 证书签发工具不存在, 请确认是否证书为脚本签发! ${Font}"
         fi
         host="$(info_extraction host)"
         "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
         judge "证书更新"
         service_restart
     else
-        echo -e "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
+        log_echo "${Error} ${RedBG} 当前模式不支持此操作! ${Font}"
     fi
 }
 
 set_fail2ban() {
     mf_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh"
     if [ ! -f "${idleleo_dir}/fail2ban_manager.sh" ]; then
-        echo -e "${Info} ${Green} 本地文件 fail2ban_manager.sh 不存在，正在下载... ${Font}"
+        log_echo "${Info} ${Green} 本地文件 fail2ban_manager.sh 不存在，正在下载... ${Font}"
         curl -sL "$mf_remote_url" -o "${idleleo_dir}/fail2ban_manager.sh"
         if [ $? -ne 0 ]; then
-            echo -e "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
+            log_echo "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
             return 1
         fi
         chmod +x "${idleleo_dir}/fail2ban_manager.sh"
@@ -1803,8 +1836,8 @@ set_fail2ban() {
 
 clean_logs() {
     local cron_file logrotate_config
-    echo -e "\n${Green} 检测到日志文件大小如下: ${Font}"
-    echo -e "${Green}$(du -sh /var/log/xray ${nginx_dir}/logs)${Font}"
+    log_echo "\n${Green} 检测到日志文件大小如下: ${Font}"
+    log_echo "${Green}$(du -sh /var/log/xray ${nginx_dir}/logs)${Font}"
     timeout "即将清除!"
     for i in $(find /var/log/xray/ ${nginx_dir}/logs -name "*.log"); do cat /dev/null >"$i"; done
     judge "日志清理"
@@ -1817,12 +1850,12 @@ clean_logs() {
     fi
 
     if [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" "$cron_file") -ne '0' ]]; then
-        echo -e "${Warning} ${YellowBG} 已设置旧版自动清理日志任务 ${Font}"
-        echo -e "${GreenBG} 是否需要删除旧版自动清理日志任务 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        log_echo "${Warning} ${YellowBG} 已设置旧版自动清理日志任务 ${Font}"
+        log_echo "${GreenBG} 是否需要删除旧版自动清理日志任务 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r delete_task
         case $delete_task in
         [nN][oO] | [nN])
-            echo -e "${OK} ${Green} 保留现有自动清理日志任务 ${Font}"
+            log_echo "${OK} ${Green} 保留现有自动清理日志任务 ${Font}"
             return
             ;;
         *)
@@ -1833,7 +1866,7 @@ clean_logs() {
     fi
     #兼容代码结束
 
-    echo -e "\n${GreenBG} 是否需要设置自动清理日志 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+    log_echo "\n${GreenBG} 是否需要设置自动清理日志 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r auto_clean_logs_fq
     case $auto_clean_logs_fq in
     [nN][oO] | [nN])
@@ -1841,14 +1874,14 @@ clean_logs() {
         clear
         ;;
     *)
-        echo -e "${OK} ${Green} 将在 每周三 04:00 自动清空日志 ${Font}"
+        log_echo "${OK} ${Green} 将在 每周三 04:00 自动清空日志 ${Font}"
 
         # Set up logrotate configuration
         logrotate_config="/etc/logrotate.d/custom_log_cleanup"
 
         if [[ -f "$logrotate_config" ]]; then
-            echo -e "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
-            echo -e "${GreenBG} 是否需要删除现有自动清理日志任务 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
+            log_echo "${GreenBG} 是否需要删除现有自动清理日志任务 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r delete_task
             case $delete_task in
             [yY][eE][sS] | [yY])
@@ -1856,7 +1889,7 @@ clean_logs() {
                 judge "删除自动清理日志任务"
                 ;;
             *)
-                echo -e "${OK} ${Green} 保留现有自动清理日志任务 ${Font}"
+                log_echo "${OK} ${Green} 保留现有自动清理日志任务 ${Font}"
                 return
                 ;;
             esac
@@ -1996,38 +2029,38 @@ vless_qr_link_image() {
         fi
     fi
     {
-        echo -e "\n${Red} —————————————— Xray 配置分享 —————————————— ${Font}"
+        log_echo "\n${Red} —————————————— Xray 配置分享 —————————————— ${Font}"
         if [[ ${tls_mode} == "Reality" ]]; then
-            echo -e "${Red} URL 分享链接:${Font} ${vless_link}"
-            echo -e "$Red 二维码: $Font"
+            log_echo "${Red} URL 分享链接:${Font} ${vless_link}"
+            log_echo "$Red 二维码: $Font"
             echo -n "${vless_link}" | qrencode -o - -t utf8
-            echo -e "\n"
+            log_echo "\n"
         fi
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            echo -e "${Red} ws URL 分享链接:${Font} ${vless_ws_link}"
-            echo -e "$Red 二维码: $Font"
+            log_echo "${Red} ws URL 分享链接:${Font} ${vless_ws_link}"
+            log_echo "$Red 二维码: $Font"
             echo -n "${vless_ws_link}" | qrencode -o - -t utf8
-            echo -e "\n"
+            log_echo "\n"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            echo -e "${Red} gRPC URL 分享链接:${Font} ${vless_grpc_link}"
-            echo -e "$Red 二维码: $Font"
+            log_echo "${Red} gRPC URL 分享链接:${Font} ${vless_grpc_link}"
+            log_echo "$Red 二维码: $Font"
             echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
-            echo -e "\n"
+            log_echo "\n"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
-            echo -e "${Red} ws URL 分享链接:${Font} ${vless_ws_link}"
-            echo -e "$Red 二维码: $Font"
+            log_echo "${Red} ws URL 分享链接:${Font} ${vless_ws_link}"
+            log_echo "$Red 二维码: $Font"
             echo -n "${vless_ws_link}" | qrencode -o - -t utf8
-            echo -e "\n"
-            echo -e "${Red} gRPC URL 分享链接:${Font} ${vless_grpc_link}"
-            echo -e "$Red 二维码: $Font"
+            log_echo "\n"
+            log_echo "${Red} gRPC URL 分享链接:${Font} ${vless_grpc_link}"
+            log_echo "$Red 二维码: $Font"
             echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
-            echo -e "\n"
+            log_echo "\n"
         fi
     } >>"${xray_info_file}"
 }
 
 vless_link_image_choice() {
-    echo -e "\n${GreenBG} 生成分享链接: ${Font}"
+    log_echo "\n${GreenBG} 生成分享链接: ${Font}"
     vless_qr_link_image
 }
 
@@ -2038,98 +2071,98 @@ info_extraction() {
 
 basic_information() {
     {
-        echo -e "\n"
+        log_echo "\n"
         case ${shell_mode} in
         Nginx+ws+TLS)
-            echo -e "${OK} ${GreenBG} Xray+Nginx+ws+TLS 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} Xray+Nginx+ws+TLS 安装成功 ${Font}"
             ;;
         Nginx+gRPC+TLS)
-            echo -e "${OK} ${GreenBG} Xray+Nginx+grpc+TLS 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} Xray+Nginx+grpc+TLS 安装成功 ${Font}"
             ;;
         Nginx+ws+gRPC+TLS)
-            echo -e "${OK} ${GreenBG} Xray+Nginx+ws+gRPC+TLS 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} Xray+Nginx+ws+gRPC+TLS 安装成功 ${Font}"
             ;;
         Reality)
-            echo -e "${OK} ${GreenBG} Xray+Reality 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} Xray+Reality 安装成功 ${Font}"
             ;;
         Reality+ws)
-            echo -e "${OK} ${GreenBG} Xray+Reality+ws 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} Xray+Reality+ws 安装成功 ${Font}"
             ;;
         Reality+gRPC)
-            echo -e "${OK} ${GreenBG} Xray+Reality+gRPC 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} Xray+Reality+gRPC 安装成功 ${Font}"
             ;;
         Reality+ws+gRPC)
-            echo -e "${OK} ${GreenBG} Xray+Reality+ws+gRPC 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} Xray+Reality+ws+gRPC 安装成功 ${Font}"
             ;;
         ws?ONLY)
-            echo -e "${OK} ${GreenBG} ws ONLY 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} ws ONLY 安装成功 ${Font}"
             ;;
         gRPC?ONLY)
-            echo -e "${OK} ${GreenBG} gRPC ONLY 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} gRPC ONLY 安装成功 ${Font}"
             ;;
         ws+gRPC?ONLY)
-            echo -e "${OK} ${GreenBG} ws+gRPC ONLY 安装成功 ${Font}"
+            log_echo "${OK} ${GreenBG} ws+gRPC ONLY 安装成功 ${Font}"
             ;;
         esac
-        echo -e "\n${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 ${Font}"
-        echo -e "\n${Red} —————————————— Xray 配置信息 —————————————— ${Font}"
-        echo -e "${Red} 主机 (host):${Font} $(info_extraction host) "
+        log_echo "\n${Warning} ${YellowBG} VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 ${Font}"
+        log_echo "\n${Red} —————————————— Xray 配置信息 —————————————— ${Font}"
+        log_echo "${Red} 主机 (host):${Font} $(info_extraction host) "
         if [[ ${tls_mode} == "None" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                echo -e "${Red} ws 端口 (port):${Font} $(info_extraction ws_port) "
+                log_echo "${Red} ws 端口 (port):${Font} $(info_extraction ws_port) "
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                echo -e "${Red} gRPC 端口 (port):${Font} $(info_extraction grpc_port) "
+                log_echo "${Red} gRPC 端口 (port):${Font} $(info_extraction grpc_port) "
             elif [[ ${ws_grpc_mode} == "all" ]]; then
-                echo -e "${Red} ws 端口 (port):${Font} $(info_extraction ws_port) "
-                echo -e "${Red} gRPC 端口 (port):${Font} $(info_extraction grpc_port) "
+                log_echo "${Red} ws 端口 (port):${Font} $(info_extraction ws_port) "
+                log_echo "${Red} gRPC 端口 (port):${Font} $(info_extraction grpc_port) "
             fi
         else
-            echo -e "${Red} 端口 (port):${Font} $(info_extraction port) "
+            log_echo "${Red} 端口 (port):${Font} $(info_extraction port) "
         fi
         if [[ ${tls_mode} == "TLS" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                echo -e "${Red} Xray ws 端口 (inbound_port):${Font} $(info_extraction ws_port) "
+                log_echo "${Red} Xray ws 端口 (inbound_port):${Font} $(info_extraction ws_port) "
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                echo -e "${Red} Xray gRPC 端口 (inbound_port):${Font} $(info_extraction grpc_port) "
+                log_echo "${Red} Xray gRPC 端口 (inbound_port):${Font} $(info_extraction grpc_port) "
             elif [[ ${ws_grpc_mode} == "all" ]]; then
-                echo -e "${Red} Xray ws 端口 (inbound_port):${Font} $(info_extraction ws_port) "
-                echo -e "${Red} Xray gRPC 端口 (inbound_port):${Font} $(info_extraction grpc_port) "
+                log_echo "${Red} Xray ws 端口 (inbound_port):${Font} $(info_extraction ws_port) "
+                log_echo "${Red} Xray gRPC 端口 (inbound_port):${Font} $(info_extraction grpc_port) "
             fi
         fi
-        echo -e "${Red} UUIDv5 映射字符串:${Font} $(info_extraction idc)"
-        echo -e "${Red} 用户id (UUID):${Font} $(info_extraction id)"
+        log_echo "${Red} UUIDv5 映射字符串:${Font} $(info_extraction idc)"
+        log_echo "${Red} 用户id (UUID):${Font} $(info_extraction id)"
 
-        echo -e "${Red} 加密 (encryption):${Font} None "
-        echo -e "${Red} 传输协议 (network):${Font} $(info_extraction net) "
-        echo -e "${Red} 底层传输安全 (tls):${Font} $(info_extraction tls) "  
+        log_echo "${Red} 加密 (encryption):${Font} None "
+        log_echo "${Red} 传输协议 (network):${Font} $(info_extraction net) "
+        log_echo "${Red} 底层传输安全 (tls):${Font} $(info_extraction tls) "  
         if [[ ${tls_mode} != "Reality" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                echo -e "${Red} 路径 (path 不要落下/):${Font} /$(info_extraction path) "
+                log_echo "${Red} 路径 (path 不要落下/):${Font} /$(info_extraction path) "
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                echo -e "${Red} serviceName (不需要加/):${Font} $(info_extraction serviceName) "
+                log_echo "${Red} serviceName (不需要加/):${Font} $(info_extraction serviceName) "
             elif [[ ${ws_grpc_mode} == "all" ]]; then
-                echo -e "${Red} 路径 (path 不要落下/):${Font} /$(info_extraction path) "
-                echo -e "${Red} serviceName (不需要加/):${Font} $(info_extraction serviceName) "
+                log_echo "${Red} 路径 (path 不要落下/):${Font} /$(info_extraction path) "
+                log_echo "${Red} serviceName (不需要加/):${Font} $(info_extraction serviceName) "
             fi
         else
-            echo -e "${Red} 流控 (flow):${Font} xtls-rprx-vision "
-            echo -e "${Red} target:${Font} $(info_extraction target) "
-            echo -e "${Red} serverNames:${Font} $(info_extraction serverNames) "
-            echo -e "${Red} privateKey:${Font} $(info_extraction privateKey) "
-            echo -e "${Red} publicKey:${Font} $(info_extraction publicKey) "
-            echo -e "${Red} shortIds:${Font} $(info_extraction shortIds) "
+            log_echo "${Red} 流控 (flow):${Font} xtls-rprx-vision "
+            log_echo "${Red} target:${Font} $(info_extraction target) "
+            log_echo "${Red} serverNames:${Font} $(info_extraction serverNames) "
+            log_echo "${Red} privateKey:${Font} $(info_extraction privateKey) "
+            log_echo "${Red} publicKey:${Font} $(info_extraction publicKey) "
+            log_echo "${Red} shortIds:${Font} $(info_extraction shortIds) "
             if [[ "$reality_add_more" == "on" ]]; then
                 if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                    echo -e "${Red} ws 端口 (port):${Font} $(info_extraction ws_port) "
-                    echo -e "${Red} ws 路径 (不要落下/):${Font} /$(info_extraction ws_path) "
+                    log_echo "${Red} ws 端口 (port):${Font} $(info_extraction ws_port) "
+                    log_echo "${Red} ws 路径 (不要落下/):${Font} /$(info_extraction ws_path) "
                 elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                    echo -e "${Red} gRPC 端口 (port):${Font} $(info_extraction grpc_port) "
-                    echo -e "${Red} gRPC serviceName (不需要加/):${Font} $(info_extraction grpc_serviceName) "
+                    log_echo "${Red} gRPC 端口 (port):${Font} $(info_extraction grpc_port) "
+                    log_echo "${Red} gRPC serviceName (不需要加/):${Font} $(info_extraction grpc_serviceName) "
                 elif [[ ${ws_grpc_mode} == "all" ]]; then
-                    echo -e "${Red} ws 端口 (port):${Font} $(info_extraction ws_port) "
-                    echo -e "${Red} ws 路径 (不要落下/):${Font} /$(info_extraction ws_path) "
-                    echo -e "${Red} gRPC 端口 (port):${Font} $(info_extraction grpc_port) "
-                    echo -e "${Red} gRPC serviceName (不需要加/):${Font} $(info_extraction grpc_serviceName) "
+                    log_echo "${Red} ws 端口 (port):${Font} $(info_extraction ws_port) "
+                    log_echo "${Red} ws 路径 (不要落下/):${Font} /$(info_extraction ws_path) "
+                    log_echo "${Red} gRPC 端口 (port):${Font} $(info_extraction grpc_port) "
+                    log_echo "${Red} gRPC serviceName (不需要加/):${Font} $(info_extraction grpc_serviceName) "
                 fi
             fi
         fi
@@ -2142,12 +2175,12 @@ show_information() {
 
 ssl_judge_and_install() {
     cd $HOME
-    echo -e "\n${GreenBG} 即将申请证书, 支持使用自定义证书 ${Font}"
-    echo -e "${Green} 如需使用自定义证书, 请按如下步骤:  ${Font}"
-    echo -e " 1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
-    echo -e " 2. 将重命名后的证书文件放入 ${ssl_chainpath} 目录后再运行脚本"
-    echo -e " 3. 重新运行脚本"
-    echo -e "${GreenBG} 是否继续 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+    log_echo "\n${GreenBG} 即将申请证书, 支持使用自定义证书 ${Font}"
+    log_echo "${Green} 如需使用自定义证书, 请按如下步骤:  ${Font}"
+    log_echo " 1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
+    log_echo " 2. 将重命名后的证书文件放入 ${ssl_chainpath} 目录后再运行脚本"
+    log_echo " 3. 重新运行脚本"
+    log_echo "${GreenBG} 是否继续 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r ssl_continue
     case $ssl_continue in
     [nN][oO] | [nN])
@@ -2156,13 +2189,13 @@ ssl_judge_and_install() {
     *)
         [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
         if [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] && [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-            echo -e "${GreenBG} 所有证书文件均已存在, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            log_echo "${GreenBG} 所有证书文件均已存在, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r ssl_delete_1
             case $ssl_delete_1 in
             [nN][oO] | [nN])
                 delete_tls_key_and_crt
                 rm -rf ${ssl_chainpath}/*
-                echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+                log_echo "${OK} ${GreenBG} 已删除 ${Font}"
                 ssl_install
                 acme
                 ;;
@@ -2172,12 +2205,12 @@ ssl_judge_and_install() {
                 ;;
             esac
         elif [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]] && [[ ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-            echo -e "${GreenBG} 证书文件已存在, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            log_echo "${GreenBG} 证书文件已存在, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r ssl_delete_2
             case $ssl_delete_2 in
             [nN][oO] | [nN])
                 rm -rf ${ssl_chainpath}/*
-                echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+                log_echo "${OK} ${GreenBG} 已删除 ${Font}"
                 ssl_install
                 acme
                 ;;
@@ -2188,12 +2221,12 @@ ssl_judge_and_install() {
                 ;;
             esac
         elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt" ]]; then
-            echo -e "${GreenBG} 证书签发残留文件已存在, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            log_echo "${GreenBG} 证书签发残留文件已存在, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r ssl_delete_3
             case $ssl_delete_3 in
             [nN][oO] | [nN])
                 delete_tls_key_and_crt
-                echo -e "${OK} ${GreenBG} 已删除 ${Font}"
+                log_echo "${OK} ${GreenBG} 已删除 ${Font}"
                 ssl_install
                 acme
                 ;;
@@ -2236,8 +2269,8 @@ EOF
 
 tls_type() {
     if [[ -f "${nginx_conf}" ]] && [[ ${tls_mode} == "TLS" ]]; then
-        echo -e "\n${GreenBG} 请选择支持的 TLS 版本 (default:2): ${Font}"
-        echo -e "${GreenBG} 建议选择 TLS1.3 only (安全模式) ${Font}"
+        log_echo "\n${GreenBG} 请选择支持的 TLS 版本 (default:2): ${Font}"
+        log_echo "${GreenBG} 建议选择 TLS1.3 only (安全模式) ${Font}"
         echo -e "1: TLS1.2 and TLS1.3 (兼容模式)"
         echo -e "${Red}2${Font}: TLS1.3 only (安全模式)"
         local choose_network
@@ -2246,11 +2279,13 @@ tls_type() {
             # if [[ ${tls_mode} == "TLS" ]]; then
             #     sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.2 TLSv1.3;/" $nginx_conf
             # else
-            #     echo -e "${Error} ${RedBG} Reality 用且仅用 TLS1.3, 请选择 TLS1.3 only (安全模式)! ${Font}"
+            #     log_echo "${Error} ${RedBG} Reality 用且仅用 TLS1.3, 请选择 TLS1.3 only (安全模式)! ${Font}"
             #     tls_type
             # fi
-            sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.2 TLSv1.3;/" $nginx_conf
-            echo -e "${OK} ${GreenBG} 已切换至 TLS1.2 and TLS1.3 ${Font}"
+            # sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.2 TLSv1.3;/" $nginx_conf
+            # log_echo "${OK} ${GreenBG} 已切换至 TLS1.2 and TLS1.3 ${Font}"
+            log_echo "${Error} ${RedBG} 从 2.2.1 版本起, 由于启用 h3 仅支持 TLS1.3, 请选择 TLS1.3 only (安全模式)! ${Font}"
+            tls_type
         else
             # if [[ ${tls_mode} == "TLS" ]]; then
             #     sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
@@ -2258,7 +2293,7 @@ tls_type() {
             #     ##sed -i "s/^\( *\)\"minVersion\".*/\1\"minVersion\": \"1.3\",/" ${xray_conf}
             # fi
             sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
-            echo -e "${OK} ${GreenBG} 已切换至 TLS1.3 only ${Font}"
+            log_echo "${OK} ${GreenBG} 已切换至 TLS1.3 only ${Font}"
         fi
         # if [[ ${tls_mode} == "TLS" ]]; then
         [[ -f "${nginx_systemd_file}" ]] && systemctl restart nginx && judge "Nginx 重启"
@@ -2267,7 +2302,7 @@ tls_type() {
         judge "Xray 重启"
         # fi
     else
-        echo -e "${Error} ${RedBG} Nginx 或 配置文件不存在 或当前安装版本为 ws ONLY , 请正确安装脚本后执行${Font}"
+        log_echo "${Error} ${RedBG} Nginx 或 配置文件不存在 或当前安装版本为 ws ONLY , 请正确安装脚本后执行${Font}"
     fi
 }
 
@@ -2276,7 +2311,7 @@ revision_port() {
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
         modify_nginx_port
         [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
-        echo -e "${Green} 连接端口号: ${port} ${Font}"
+        log_echo "${Green} 连接端口号: ${port} ${Font}"
     elif [[ ${tls_mode} == "Reality" ]]; then
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
         xport=$((RANDOM % 1000 + 20000))
@@ -2286,13 +2321,13 @@ revision_port() {
             port_exist_check "${xport}"
             gport=$((RANDOM % 1000 + 30000))
             [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
-            echo -e "${Green} ws inbound_port: ${xport} ${Font}"
+            log_echo "${Green} ws inbound_port: ${xport} ${Font}"
         elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${gport}"
             xport=$((RANDOM % 1000 + 20000))
             [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
-            echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
+            log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
@@ -2300,8 +2335,8 @@ revision_port() {
             port_exist_check "${gport}"
             [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
             [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
-            echo -e "${Green} ws inbound_port: ${xport} ${Font}"
-            echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
+            log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+            log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
         fi
         modify_inbound_port
     elif [[ ${tls_mode} == "None" ]]; then
@@ -2309,19 +2344,19 @@ revision_port() {
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             gport=$((RANDOM % 1000 + 30000))
-            echo -e "${Green} ws inbound_port: ${xport} ${Font}"
+            log_echo "${Green} ws inbound_port: ${xport} ${Font}"
         elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${gport}"
             xport=$((RANDOM % 1000 + 20000))
-            echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
+            log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
             port_exist_check "${xport}"
             port_exist_check "${gport}"
-            echo -e "${Green} ws inbound_port: ${xport} ${Font}"
-            echo -e "${Green} gRPC inbound_port: ${gport} ${Font}"
+            log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+            log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
         fi
         [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
         [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
@@ -2331,9 +2366,9 @@ revision_port() {
 
 show_user() {
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
-        echo -e "\n${GreenBG} 即将显示用户, 一次仅能显示一个 ${Font}"
+        log_echo "\n${GreenBG} 即将显示用户, 一次仅能显示一个 ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
-            echo -e "${GreenBG} 请选择 显示用户使用的协议 ws/gRPC ${Font}"
+            log_echo "${GreenBG} 请选择 显示用户使用的协议 ws/gRPC ${Font}"
             echo -e "${Red}1${Font}: ws (默认)"
             echo "2: gRPC"
             local choose_user_prot
@@ -2342,15 +2377,15 @@ show_user() {
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
         fi
-        echo -e "\n${GreenBG} 请选择 要显示的用户编号: ${Font}"
+        log_echo "\n${GreenBG} 请选择 要显示的用户编号: ${Font}"
         jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email ${xray_conf} | awk '{print NR""": "$0}'
         local show_user_index
         read_optimize "请输入: " "show_user_index" "NULL"
         if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -lt ${show_user_index} ]] || [[ ${show_user_index} == 0 ]]; then
-            echo -e "${Error} ${RedBG} 选择错误! ${Font}"
+            log_echo "${Error} ${RedBG} 选择错误! ${Font}"
             show_user
         elif [[ ${show_user_index} == 1 ]]; then
-            echo -e "${Error} ${RedBG} 请直接在主菜单选择 [15] 显示主用户 ${Font}"
+            log_echo "${Error} ${RedBG} 请直接在主菜单选择 [15] 显示主用户 ${Font}"
             timeout "回到菜单!"
             menu
         elif [[ ${show_user_index} -gt 1 ]]; then
@@ -2358,16 +2393,16 @@ show_user() {
             user_email=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${show_user_index}'].email' ${xray_conf})
             user_id=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${show_user_index}'].id' ${xray_conf})
         elif [[ ! -z $(echo ${show_user_index} | sed 's/[0-9]//g') ]] || [[ ${show_user_index} == '' ]]; then
-            echo -e "${Error} ${RedBG} 选择错误! ${Font}"
+            log_echo "${Error} ${RedBG} 选择错误! ${Font}"
             show_user
         else
-            echo -e "${Warning} ${YellowBG} 请先检测 Xray 是否正确安装! ${Font}"
+            log_echo "${Warning} ${YellowBG} 请先检测 Xray 是否正确安装! ${Font}"
             timeout "回到菜单!"
             menu
         fi
         if [[ ! -z ${user_email} ]] && [[ ! -z ${user_id} ]]; then
-            echo -e "${Green} 用户名: ${user_email} ${Font}"
-            echo -e "${Green} UUID: ${user_id} ${Font}"
+            log_echo "${Green} 用户名: ${user_email} ${Font}"
+            log_echo "${Green} UUID: ${user_id} ${Font}"
             if [[ ${tls_mode} == "TLS" ]]; then
                 if [[ ${choose_user_prot} == 0 ]]; then
                     user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
@@ -2377,10 +2412,10 @@ show_user() {
             elif [[ ${tls_mode} == "Reality" ]]; then
                 user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=tls&encryption=none&headerType=none&type=raw&flow=xtls-rprx-vision#$(vless_urlquote $(info_extraction host))+reality%E5%8D%8F%E8%AE%AE"
             fi
-            echo -e "${Red} URL 分享链接:${Font} ${user_vless_link}"
+            log_echo "${Red} URL 分享链接:${Font} ${user_vless_link}"
             echo -n "${user_vless_link}" | qrencode -o - -t utf8
         fi
-        echo -e "\n${GreenBG} 是否继续显示用户 [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
+        log_echo "\n${GreenBG} 是否继续显示用户 [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
         read -r show_user_continue
         case $show_user_continue in
         [yY][eE][sS] | [yY])
@@ -2389,9 +2424,9 @@ show_user() {
         *) ;;
         esac
     elif [[ ${tls_mode} == "None" ]]; then
-        echo -e "${Warning} ${YellowBG} 此模式不支持删除用户! ${Font}"
+        log_echo "${Warning} ${YellowBG} 此模式不支持删除用户! ${Font}"
     else
-        echo -e "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
+        log_echo "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
     fi
 }
 
@@ -2399,9 +2434,9 @@ add_user() {
     local choose_user_prot
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
         service_stop
-        echo -e "\n${GreenBG} 即将添加用户, 一次仅能添加一个 ${Font}"
+        log_echo "\n${GreenBG} 即将添加用户, 一次仅能添加一个 ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
-            echo -e "${GreenBG} 请选择 添加用户使用的协议 ws/gRPC ${Font}"
+            log_echo "${GreenBG} 请选择 添加用户使用的协议 ws/gRPC ${Font}"
             echo -e "${Red}1${Font}: ws (默认)"
             echo "2: gRPC"
             local choose_user_prot
@@ -2419,7 +2454,7 @@ add_user() {
         mv "${xray_conf}.tmp" "${xray_conf}"
         jq ". += {\"multi_user\": \"yes\"}" ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
         mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
-        echo -e "\n${GreenBG} 是否继续添加用户 [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
+        log_echo "\n${GreenBG} 是否继续添加用户 [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
         read -r add_user_continue
         case $add_user_continue in
         [yY][eE][sS] | [yY])
@@ -2429,18 +2464,18 @@ add_user() {
         esac
         service_start
     elif [[ ${tls_mode} == "None" ]]; then
-        echo -e "${Warning} ${YellowBG} 此模式不支持添加用户! ${Font}"
+        log_echo "${Warning} ${YellowBG} 此模式不支持添加用户! ${Font}"
     else
-        echo -e "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
+        log_echo "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
     fi
 }
 
 remove_user() {
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
         service_stop
-        echo -e "\n${GreenBG} 即将删除用户, 一次仅能删除一个 ${Font}"
+        log_echo "\n${GreenBG} 即将删除用户, 一次仅能删除一个 ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
-            echo -e "${GreenBG} 请选择 删除用户使用的协议 ws/gRPC ${Font}"
+            log_echo "${GreenBG} 请选择 删除用户使用的协议 ws/gRPC ${Font}"
             echo -e "${Red}1${Font}: ws (默认)"
             echo "2: gRPC"
             local choose_user_prot
@@ -2449,15 +2484,15 @@ remove_user() {
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
         fi
-        echo -e "\n${GreenBG} 请选择 要删除的用户编号 ${Font}"
+        log_echo "\n${GreenBG} 请选择 要删除的用户编号 ${Font}"
         jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email ${xray_conf} | awk '{print NR""": "$0}'
         local del_user_index
         read_optimize "请输入: " "del_user_index" "NULL"
         if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -lt ${del_user_index} ]] || [[ ${show_user_index} == 0 ]]; then
-            echo -e "${Error} ${RedBG} 选择错误! ${Font}"
+            log_echo "${Error} ${RedBG} 选择错误! ${Font}"
             remove_user
         elif [[ ${del_user_index} == 1 ]]; then
-            echo -e "\n${Error} ${RedBG} 请直接在主菜单修改主用户的 UUID/Email ! ${Font}"
+            log_echo "\n${Error} ${RedBG} 请直接在主菜单修改主用户的 UUID/Email ! ${Font}"
             timeout "回到菜单!"
             menu
         elif [[ ${del_user_index} -gt 1 ]]; then
@@ -2465,7 +2500,7 @@ remove_user() {
             jq 'del(.inbounds['${choose_user_prot}'].settings.clients['${del_user_index}'])' ${xray_conf} > "${xray_conf}.tmp"
             judge "删除用户"
             mv "${xray_conf}.tmp" "${xray_conf}"
-            echo -e "\n${GreenBG} 是否继续删除用户 [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
+            log_echo "\n${GreenBG} 是否继续删除用户 [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
             read -r remove_user_continue
             case $remove_user_continue in
             [yY][eE][sS] | [yY])
@@ -2474,34 +2509,34 @@ remove_user() {
             *) ;;
             esac
         elif [[ ! -z $(echo ${del_user_index} | sed 's/[0-9]//g') ]] || [[ ${del_user_index} == '' ]]; then
-            echo -e "${Error} ${RedBG} 选择错误! ${Font}"
+            log_echo "${Error} ${RedBG} 选择错误! ${Font}"
             remove_user
         else
-            echo -e "${Warning} ${YellowBG} 请先检测 Xray 是否正确安装! ${Font}"
+            log_echo "${Warning} ${YellowBG} 请先检测 Xray 是否正确安装! ${Font}"
             timeout "回到菜单!"
             menu
         fi
         service_start
     elif [[ ${tls_mode} == "None" ]]; then
-        echo -e "${Warning} ${YellowBG} 此模式不支持删除用户! ${Font}"
+        log_echo "${Warning} ${YellowBG} 此模式不支持删除用户! ${Font}"
     else
-        echo -e "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
+        log_echo "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
     fi
 }
 
 show_access_log() {
-    [[ -f "${xray_access_log}" ]] && tail -f ${xray_access_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
+    [[ -f "${xray_access_log}" ]] && tail -f ${xray_access_log} || log_echo "${Error} ${RedBG} log文件不存在! ${Font}"
 }
 
 show_error_log() {
-    [[ -f "${xray_error_log}" ]] && tail -f ${xray_error_log} || echo -e "${Error} ${RedBG} log文件不存在! ${Font}"
+    [[ -f "${xray_error_log}" ]] && tail -f ${xray_error_log} || log_echo "${Error} ${RedBG} log文件不存在! ${Font}"
 }
 
 xray_status_add() {
     if [[ -f "${xray_conf}" ]]; then
         if [[ $(jq -r .stats ${xray_conf}) != null ]]; then
-            echo -e "\n${GreenBG} 已配置 Xray 流量统计 ${Font}"
-            echo -e "${GreenBG} 是否需要关闭此功能 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "\n${GreenBG} 已配置 Xray 流量统计 ${Font}"
+            log_echo "${GreenBG} 是否需要关闭此功能 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r xray_status_add_fq
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
@@ -2515,9 +2550,9 @@ xray_status_add() {
             *) ;;
             esac
         else
-            echo -e "\n${GreenBG} Xray 流量统计需要使用 api ${Font}"
-            echo -e "${GreenBG} 可能会影响 Xray 性能 ${Font}"
-            echo -e "${GreenBG} 是否继续 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "\n${GreenBG} Xray 流量统计需要使用 api ${Font}"
+            log_echo "${GreenBG} 可能会影响 Xray 性能 ${Font}"
+            log_echo "${GreenBG} 是否继续 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r xray_status_add_fq
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
@@ -2532,7 +2567,7 @@ xray_status_add() {
             esac
         fi
     else
-        echo -e "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
+        log_echo "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
     fi
 }
 
@@ -2558,10 +2593,10 @@ uninstall_all() {
             jq -r 'del(.xray_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
         fi
-        echo -e "${OK} ${GreenBG} 已卸载 Xray ${Font}"
+        log_echo "${OK} ${GreenBG} 已卸载 Xray ${Font}"
     fi
     if [[ -d "${nginx_dir}" ]]; then
-        echo -e "${GreenBG} 是否卸载 Nginx [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} 是否卸载 Nginx [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r uninstall_nginx
         case $uninstall_nginx in
         [yY][eE][sS] | [yY])
@@ -2573,37 +2608,37 @@ uninstall_all() {
                 jq 'del(.nginx_build_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
                 mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             fi
-            echo -e "${OK} ${GreenBG} 已卸载 Nginx ${Font}"
+            log_echo "${OK} ${GreenBG} 已卸载 Nginx ${Font}"
             ;;
         *) ;;
         esac
     fi
-    echo -e "${GreenBG} 是否删除所有脚本文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    log_echo "${GreenBG} 是否删除所有脚本文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
     read -r remove_all_idleleo_file_fq
     case $remove_all_idleleo_file_fq in
     [yY][eE][sS] | [yY])
         rm -rf ${idleleo_commend_file}
         rm -rf ${idleleo_dir}
         systemctl daemon-reload
-        echo -e "${OK} ${GreenBG} 已删除所有文件 ${Font}"
-        echo -e "${GreenBG} ヾ(￣▽￣) 拜拜~ ${Font}"
+        log_echo "${OK} ${GreenBG} 已删除所有文件 ${Font}"
+        log_echo "${GreenBG} ヾ(￣▽￣) 拜拜~ ${Font}"
         exit 0
         ;;
     *)
         systemctl daemon-reload
-        echo -e "${OK} ${GreenBG} 已保留脚本文件 (包含 SSL 证书等) ${Font}"
+        log_echo "${OK} ${GreenBG} 已保留脚本文件 (包含 SSL 证书等) ${Font}"
         ;;
     esac
     if [[ -f "${xray_qr_config_file}" ]]; then
-        echo -e "${GreenBG} 是否保留配置文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} 是否保留配置文件 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r remove_config_fq
         case $remove_config_fq in
         [yY][eE][sS] | [yY])
-            echo -e "${OK} ${GreenBG} 已保留配置文件 ${Font}"
+            log_echo "${OK} ${GreenBG} 已保留配置文件 ${Font}"
             ;;
         *)
             rm -rf ${xray_qr_config_file}
-            echo -e "${OK} ${GreenBG} 已删除配置文件 ${Font}"
+            log_echo "${OK} ${GreenBG} 已删除配置文件 ${Font}"
             ;;
         esac
     fi
@@ -2612,7 +2647,7 @@ uninstall_all() {
 delete_tls_key_and_crt() {
     [[ -f "$HOME/.acme.sh/acme.sh" ]] && /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
     [[ -d "$HOME/.acme.sh" ]] && rm -rf "$HOME/.acme.sh"
-    echo -e "${OK} ${GreenBG} 已清空证书遗留文件 ${Font}"
+    log_echo "${OK} ${GreenBG} 已清空证书遗留文件 ${Font}"
 }
 
 timeout() {
@@ -2802,7 +2837,7 @@ install_xray_ws_only() {
 update_sh() {
     ol_version=${shell_online_version}
     echo "${ol_version}" >${shell_version_tmp}
-    [[ -z ${ol_version} ]] && echo -e "${Error} ${RedBG}  检测最新版本失败! ${Font}" && return 1
+    [[ -z ${ol_version} ]] && log_echo "${Error} ${RedBG}  检测最新版本失败! ${Font}" && return 1
     echo "${shell_version}" >>${shell_version_tmp}
     newest_version=$(sort -rV ${shell_version_tmp} | head -1)
     oldest_version=$(sort -V ${shell_version_tmp} | head -1)
@@ -2810,9 +2845,9 @@ update_sh() {
     if [[ ${shell_version} != ${newest_version} ]]; then
         if [[ ${auto_update} != "YES" ]]; then
             if [[ ${version_difference} == 1 ]]; then
-                echo -e "\n${Warning} ${YellowBG} 存在新版本, 但版本跨度较大, 可能存在不兼容情况, 是否更新 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+                log_echo "\n${Warning} ${YellowBG} 存在新版本, 但版本跨度较大, 可能存在不兼容情况, 是否更新 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
             else
-                echo -e "\n${GreenBG} 存在新版本, 是否更新 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+                log_echo "\n${GreenBG} 存在新版本, 是否更新 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             fi
             read -r update_confirm
         else
@@ -2826,14 +2861,14 @@ update_sh() {
             wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
             ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
             clear
-            echo -e "${OK} ${GreenBG} 更新完成 ${Font}"
-            [[ ${version_difference} == 1 ]] && echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装! ${Font}"
+            log_echo "${OK} ${GreenBG} 更新完成 ${Font}"
+            [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装! ${Font}"
             ;;
         *) ;;
         esac
     else
         clear
-        echo -e "${OK} ${GreenBG} 当前版本为最新版本 ${Font}"
+        log_echo "${OK} ${GreenBG} 当前版本为最新版本 ${Font}"
     fi
 
 }
@@ -2859,8 +2894,8 @@ read_version() {
 }
 
 maintain() {
-    echo -e "${Error} ${RedBG} 该选项暂时无法使用! ${Font}"
-    echo -e "${Error} ${RedBG} $1 ${Font}"
+    log_echo "${Error} ${RedBG} 该选项暂时无法使用! ${Font}"
+    log_echo "${Error} ${RedBG} $1 ${Font}"
     exit 0
 }
 
@@ -2877,7 +2912,7 @@ list() {
         install_xray_reality
         ;;
     '-3' | '--install-none')
-        echo -e "\n${Warning} ${YellowBG} 此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+        log_echo "\n${Warning} ${YellowBG} 此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
         read -r wsonly_fq
         case $wsonly_fq in
         [yY][eE][sS] | [yY])
@@ -3012,8 +3047,8 @@ idleleo_commend() {
             source "$idleleo"
         elif [[ ${shell_version} != ${oldest_version} ]]; then
             if [[ ${version_difference} == 1 ]]; then
-                ## echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 可能存在不兼容情况, 是否继续使用 [Y/${Red}N${Font}${YellowBG}]? ${Font}" 紧急更新
-                echo -e "${Warning} ${YellowBG} 此版本需要${Red}Xray版本在1.6.2及以上${Font}, 是否继续使用 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+                ## log_echo "${Warning} ${YellowBG} 脚本版本跨度较大, 可能存在不兼容情况, 是否继续使用 [Y/${Red}N${Font}${YellowBG}]? ${Font}" 紧急更新
+                log_echo "${Warning} ${YellowBG} 此版本需要${Red}Xray版本在1.6.2及以上${Font}, 是否继续使用 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
@@ -3021,8 +3056,8 @@ idleleo_commend() {
                     wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
                     judge "下载最新脚本"
                     clear
-                    ## echo -e "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装!\n ${Font}" 紧急更新
-                    echo -e "${Warning} ${YellowBG} 务必保证${Red}Xray版本在1.6.2及以上${Font}, 否则将无法正常使用!\n ${Font}"
+                    ## log_echo "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装!\n ${Font}" 紧急更新
+                    log_echo "${Warning} ${YellowBG} 务必保证${Red}Xray版本在1.6.2及以上${Font}, 否则将无法正常使用!\n ${Font}"
                     ;;
                 *)
                     source "$idleleo"
@@ -3123,9 +3158,9 @@ check_online_version_connect() {
     xray_online_version_status=$(curl_local_connect "www.idleleo.com" "api/xray_shell_versions")
     if [[ ${xray_online_version_status} != "200" ]]; then
         if [[ ${xray_online_version_status} == "403" ]]; then
-            echo -e "${Error} ${RedBG} 脚本维护中.. 请稍后再试! ${Font}"
+            log_echo "${Error} ${RedBG} 脚本维护中.. 请稍后再试! ${Font}"
         else
-            echo -e "${Error} ${RedBG} 无法检测所需依赖的在线版本, 请稍后再试! ${Font}"
+            log_echo "${Error} ${RedBG} 无法检测所需依赖的在线版本, 请稍后再试! ${Font}"
         fi
         sleep 0.5
         exit 0
@@ -3134,22 +3169,22 @@ check_online_version_connect() {
 
 menu() {
 
-    echo -e "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font} ${shell_emoji}"
-    echo -e "--- authored by hello-yunshu ---"
-    echo -e "--- changed by www.idleleo.com ---"
-    echo -e "--- https://github.com/hello-yunshu ---\n"
-    echo -e "当前模式: ${shell_mode}\n"
+    log_echo "\nXray 安装管理脚本 ${Red}[${shell_version}]${Font} ${shell_emoji}"
+    log_echo "--- authored by hello-yunshu ---"
+    log_echo "--- changed by www.idleleo.com ---"
+    log_echo "--- https://github.com/hello-yunshu ---\n"
+    log_echo "当前模式: ${shell_mode}\n"
 
     echo -e "可以使用${RedW} idleleo ${Font}命令管理脚本${Font}\n"
 
-    echo -e "—————————————— ${GreenW}版本检测${Font} ——————————————"
-    echo -e "脚本:  ${shell_need_update}"
-    echo -e "Xray:  ${xray_need_update}"
-    echo -e "Nginx: ${nginx_need_update}"
-    echo -e "—————————————— ${GreenW}运行状态${Font} ——————————————"
-    echo -e "Xray:   ${xray_status}"
-    echo -e "Nginx:  ${nignx_status}"
-    echo -e "连通性: ${xray_local_connect_status}"
+    log_echo "—————————————— ${GreenW}版本检测${Font} ——————————————"
+    log_echo "脚本:  ${shell_need_update}"
+    log_echo "Xray:  ${xray_need_update}"
+    log_echo "Nginx: ${nginx_need_update}"
+    log_echo "—————————————— ${GreenW}运行状态${Font} ——————————————"
+    log_echo "Xray:   ${xray_status}"
+    log_echo "Nginx:  ${nignx_status}"
+    log_echo "连通性: ${xray_local_connect_status}"
     echo -e "—————————————— ${GreenW}升级向导${Font} ——————————————"
     echo -e "${Green}0.${Font}  升级 脚本"
     echo -e "${Green}1.${Font}  升级 Xray"
@@ -3207,7 +3242,7 @@ menu() {
         source "$idleleo"
         ;;
     2)
-        echo -e "\n${Red}[不建议]${Font} 频繁升级 Nginx, 请确认 Nginx 有升级的必要! "
+        log_echo "\n${Red}[不建议]${Font} 频繁升级 Nginx, 请确认 Nginx 有升级的必要! "
         timeout "开始升级!"
         nginx_update
         timeout "清空屏幕!"
@@ -3227,7 +3262,7 @@ menu() {
         source "$idleleo"
         ;;
     5)
-        echo -e "\n${Warning} ${YellowBG} 此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+        log_echo "\n${Warning} ${YellowBG} 此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/${Red}N${Font}${YellowBG}]? ${Font}"
         read -r wsonly_fq
         case $wsonly_fq in
         [yY][eE][sS] | [yY])
@@ -3393,7 +3428,7 @@ menu() {
         ;;
     *)
         clear
-        echo -e "${Error} ${RedBG} 请输入正确的数字! ${Font}"
+        log_echo "${Error} ${RedBG} 请输入正确的数字! ${Font}"
         menu
         ;;
     esac

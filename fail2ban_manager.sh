@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.0.5"
+mf_SCRIPT_VERSION="1.0.6"
 
 mf_main_menu() {
     check_system
-    echo -e -e "\n${GreenBG} 设置 Fail2ban 用于防止暴力破解, 请选择: ${Font}"
-    echo -e "1. ${Green}安装 Fail2ban${Font}"
-    echo -e "2. ${Green}管理 Fail2ban${Font}"
-    echo -e "3. ${Green}卸载 Fail2ban${Font}"
-    echo -e "4. ${Green}查看 Fail2ban 状态${Font}"
-    echo -e "5. ${Green}退出${Font}"
+    log_echo "\n${GreenBG} 设置 Fail2ban 用于防止暴力破解, 请选择: ${Font}"
+    log_echo "1. ${Green}安装 Fail2ban${Font}"
+    log_echo "2. ${Green}管理 Fail2ban${Font}"
+    log_echo "3. ${Green}卸载 Fail2ban${Font}"
+    log_echo "4. ${Green}查看 Fail2ban 状态${Font}"
+    log_echo "5. ${Green}退出${Font}"
     read -rp "请输入: " fail2ban_fq
     [[ -z "${fail2ban_fq}" ]] && fail2ban_fq=1
 
@@ -20,13 +20,13 @@ mf_main_menu() {
         3) mf_uninstall_fail2ban ;;
         4) mf_display_fail2ban_status ;;
         5) source "${idleleo}" ;;
-        *) echo -e "\n${Error} ${RedBG} 无效的选择 请重试 ${Font}" ;;
+        *) log_echo "\n${Error} ${RedBG} 无效的选择 请重试 ${Font}" ;;
     esac
 }
 
 mf_install_fail2ban() {
     if command -v fail2ban-client &> /dev/null; then
-        echo -e "${OK} ${Green} Fail2ban 已经安装, 跳过安装步骤 ${Font}"
+        log_echo "${OK} ${Green} Fail2ban 已经安装, 跳过安装步骤 ${Font}"
     else
         pkg_install "fail2ban"
         mf_configure_fail2ban
@@ -44,7 +44,7 @@ mf_configure_fail2ban() {
     # 检查 Nginx 是否安装
     if [[ ${tls_mode} == "TLS" || ${reality_add_nginx} == "on" ]]; then
         if [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
-            echo -e "${Warning} ${YellowBG} Nginx 未安装, 请先安装 Nginx ${Font}"
+            log_echo "${Warning} ${YellowBG} Nginx 未安装, 请先安装 Nginx ${Font}"
             return
         fi
     fi
@@ -84,11 +84,11 @@ EOF
 
 mf_manage_fail2ban() {
     if ! command -v fail2ban-client &> /dev/null; then
-        echo -e "${Error} ${RedBG} Fail2ban 未安装, 请先安装 Fail2ban ${Font}"
+        log_echo "${Error} ${RedBG} Fail2ban 未安装, 请先安装 Fail2ban ${Font}"
         return
     fi
 
-    echo -e "\n${Green} 请选择 Fail2ban 操作: ${Font}"
+    log_echo "\n${Green} 请选择 Fail2ban 操作: ${Font}"
     echo "1. 启动 Fail2ban"
     echo "2. 重启 Fail2ban"
     echo "3. 停止 Fail2ban"
@@ -112,7 +112,7 @@ mf_manage_fail2ban() {
             ;;
         5) mf_main_menu ;;
         *)
-            echo -e "\n${Error} ${RedBG} 无效的选择 请重试 ${Font}"
+            log_echo "\n${Error} ${RedBG} 无效的选择 请重试 ${Font}"
             ;;
     esac
 }
@@ -131,12 +131,12 @@ mf_add_custom_rule() {
     read_optimize "请输入封禁时间 (秒, 默认 604800 秒): " "ban_time" 604800 1 8640000 "封禁时间必须在 1 到 8640000 秒之间"
 
     if grep -q "\[$jail_name\]" /etc/fail2ban/jail.local; then
-        echo -e "${Warning} ${YellowBG} Jail '$jail_name' 已存在 ${Font}"
+        log_echo "${Warning} ${YellowBG} Jail '$jail_name' 已存在 ${Font}"
         return
     fi
 
-    echo -e "[$jail_name]\nenabled  = true\nfilter   = $filter_name\nlogpath  = $log_path\nmaxretry = $max_retry\nbantime  = $ban_time\n" >> /etc/fail2ban/jail.local
-    echo -e "${OK} ${GreenBG} 自定义规则添加成功 ${Font}"
+    log_echo "[$jail_name]\nenabled  = true\nfilter   = $filter_name\nlogpath  = $log_path\nmaxretry = $max_retry\nbantime  = $ban_time\n" >> /etc/fail2ban/jail.local
+    log_echo "${OK} ${GreenBG} 自定义规则添加成功 ${Font}"
 
     systemctl daemon-reload
     systemctl restart fail2ban
@@ -169,7 +169,7 @@ mf_uninstall_fail2ban() {
 mf_stop_disable_fail2ban() {
     systemctl stop fail2ban
     systemctl disable fail2ban
-    echo -e "${OK} ${GreenBG} Fail2ban 停止成功 ${Font}"
+    log_echo "${OK} ${GreenBG} Fail2ban 停止成功 ${Font}"
     timeout "清空屏幕!"
     clear
 }
@@ -184,23 +184,23 @@ mf_restart_fail2ban() {
 
 mf_display_fail2ban_status() {
     if ! command -v fail2ban-client &> /dev/null; then
-        echo -e "${Error} ${RedBG} Fail2ban 未安装, 请先安装 Fail2ban ${Font}"
+        log_echo "${Error} ${RedBG} Fail2ban 未安装, 请先安装 Fail2ban ${Font}"
         return
     fi
 
-    echo -e "${GreenBG} Fail2ban 总体状态: ${Font}"
+    log_echo "${GreenBG} Fail2ban 总体状态: ${Font}"
     fail2ban-client status
 
-    echo -e "\n${Green} 默认启用的 Jail 状态: ${Font}"
+    log_echo "\n${Green} 默认启用的 Jail 状态: ${Font}"
     echo "----------------------------------------"
-    echo -e "${Green} SSH 封锁情况: ${Font}"
+    log_echo "${Green} SSH 封锁情况: ${Font}"
     fail2ban-client status sshd
     if [[ ${tls_mode} == "TLS" || ${reality_add_nginx} == "on" ]]; then
-        echo -e "${Green} Fail2ban Nginx 封锁情况: ${Font}"
+        log_echo "${Green} Fail2ban Nginx 封锁情况: ${Font}"
         fail2ban-client status nginx-badbots
         fail2ban-client status nginx-botsearch
         if [[ ${reality_add_nginx} == "on" ]]; then
-            echo -e "${Green} Fail2ban Nginx No Host 封锁情况: ${Font}"
+            log_echo "${Green} Fail2ban Nginx No Host 封锁情况: ${Font}"
             fail2ban-client status nginx-no-host
         fi
     fi
@@ -214,30 +214,30 @@ mf_check_for_updates() {
     # 直接使用 curl 下载远程版本信息
     latest_version=$(curl -s "$mf_remote_url" | grep 'mf_SCRIPT_VERSION=' | head -n 1 | sed 's/mf_SCRIPT_VERSION="//; s/"//')
     if [ -n "$latest_version" ] && [ "$latest_version" != "$mf_SCRIPT_VERSION" ]; then
-        echo -e "${Warning} ${YellowBG} 新版本可用: $latest_version 当前版本: $mf_SCRIPT_VERSION ${Font}"
-        echo -e "${Warning} ${YellowBG} 请访问 https://github.com/hello-yunshu/Xray_bash_onekey 查看更新说明 ${Font}"
+        log_echo "${Warning} ${YellowBG} 新版本可用: $latest_version 当前版本: $mf_SCRIPT_VERSION ${Font}"
+        log_echo "${Warning} ${YellowBG} 请访问 https://github.com/hello-yunshu/Xray_bash_onekey 查看更新说明 ${Font}"
 
-        echo -e "${GreenBG} 是否要下载并安装新版本 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} 是否要下载并安装新版本 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r update_choice
         case $update_choice in
             [yY][eE][sS] | [yY])
-                echo -e "${Info} ${Green} 正在下载新版本... ${Font}"
+                log_echo "${Info} ${Green} 正在下载新版本... ${Font}"
                 curl -sL "$mf_remote_url" -o "${idleleo_dir}/fail2ban_manager.sh"
 
                 if [ $? -eq 0 ]; then
                     chmod +x "${idleleo_dir}/fail2ban_manager.sh"
-                    echo -e "${OK} ${Green} 下载完成，正在重新运行脚本... ${Font}"
+                    log_echo "${OK} ${Green} 下载完成，正在重新运行脚本... ${Font}"
                     source "${idleleo}" --set-fail2ban
                 else
-                    echo -e "\n${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
+                    log_echo "\n${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
                 fi
                 ;;
             *)
-                echo -e "${OK} ${Green} 跳过更新 ${Font}"
+                log_echo "${OK} ${Green} 跳过更新 ${Font}"
                 ;;
         esac
     else
-        echo -e "${OK} ${Green} 当前已经是最新版本: $mf_SCRIPT_VERSION ${Font}"
+        log_echo "${OK} ${Green} 当前已经是最新版本: $mf_SCRIPT_VERSION ${Font}"
     fi
 }
 
