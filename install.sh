@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.2.1"
+shell_version="2.2.2"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -78,7 +78,9 @@ old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
 [[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 
-LOG_FILE="app.log"
+[[ ! -d ${log_dir} ]] && mkdir -p ${log_dir}
+[[ ! -f "${log_dir}/install.log" ]] && touch ${log_dir}/install.log
+LOG_FILE="${log_dir}/install.log"
 LOG_MAX_SIZE=$((3 * 1024 * 1024))  # 3 MB
 MAX_ARCHIVES=5
 
@@ -87,7 +89,8 @@ log() {
         log_rotate
     fi
     
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a $LOG_FILE
+    local message=$(echo -e "$1" | sed 's/\x1B\[\([0-9]\(;[0-9]\)*\)*m//g' | tr -d '\n')
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" | tee -a $LOG_FILE >/dev/null
 }
 
 log_rotate() {
@@ -115,6 +118,7 @@ rotate_archives() {
 log_echo() {
     local message=$(printf "%b" "$@")
     echo "$message"
+    log "$message"
 }
 
 ##兼容代码，未来删除
@@ -3190,8 +3194,8 @@ menu() {
     echo -e "${Green}1.${Font}  升级 Xray"
     echo -e "${Green}2.${Font}  升级 Nginx"
     echo -e "—————————————— ${GreenW}安装向导${Font} ——————————————"
-    echo -e "${Green}3.${Font}  安装 Xray (Nginx+ws/gRPC+TLS)"
-    echo -e "${Green}4.${Font}  安装 Xray (Reality+ws/gRPC+Nginx)"
+    echo -e "${Green}3.${Font}  安装 Xray (Reality+ws/gRPC+Nginx)"
+    echo -e "${Green}4.${Font}  安装 Xray (Nginx+ws/gRPC+TLS)"
     echo -e "${Green}5.${Font}  安装 Xray (ws/gRPC ONLY)"
     echo -e "—————————————— ${GreenW}配置变更${Font} ——————————————"
     echo -e "${Green}6.${Font}  变更 UUIDv5/映射字符串"
@@ -3250,15 +3254,15 @@ menu() {
         source "$idleleo"
         ;;
     3)
-        shell_mode="Nginx+ws+TLS"
-        tls_mode="TLS"
-        install_xray_ws_tls
-        source "$idleleo"
-        ;;
-    4)
         shell_mode="Reality"
         tls_mode="Reality"
         install_xray_reality
+        source "$idleleo"
+        ;;
+    4)
+        shell_mode="Nginx+ws+TLS"
+        tls_mode="TLS"
+        install_xray_ws_tls
         source "$idleleo"
         ;;
     5)
