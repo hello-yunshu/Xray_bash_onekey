@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.0.6"
+fm_SCRIPT_VERSION="1.0.7"
 
 # 检查是否提供了扩展名参数
 if [ -z "$1" ]; then
@@ -14,7 +14,8 @@ fm_WORKDIR="${2:-$(pwd)}"
 
 # 检查目录是否存在
 if [ ! -d "$fm_WORKDIR" ]; then
-    log_echo "\n${Error} ${RedBG} 目录 $fm_WORKDIR 不存在 请检查路径 ${Font}"
+    echo -e "\n"
+    log_echo "${Error} ${RedBG} 目录 $fm_WORKDIR 不存在 请检查路径 ${Font}"
     exit 1
 fi
 
@@ -88,11 +89,13 @@ fm_list_files() {
 fm_create_servername_file() {
     local url
     fm_list_files
-    log_echo "\n${Green} 请输入网址 (例如 hey.run)"
+    echo -e "\n"
+    log_echo "${Green} 请输入网址 (例如 hey.run)"
     log_echo "${Green} 不要包含 http:// 或 https:// 开头 ${Font}"
     read_optimize "请输入: " url
     if [[ $url =~ ^(http|https):// ]]; then
-        log_echo "\n${Error} ${RedBG} 网址不能包含 http:// 或 https:// 开头 ${Font}"
+        echo -e "\n"
+        log_echo "${Error} ${RedBG} 网址不能包含 http:// 或 https:// 开头 ${Font}"
         return
     fi
     echo "${url} reality;" > "${url}.serverNames"
@@ -114,7 +117,8 @@ fm_create_ws_or_grpc_server_file() {
     log_echo "${OK} ${GreenBG} 文件 ${host}.${fm_EXTENSION} 已创建 ${Font}"
 
     # 询问是否需要修改防火墙
-    log_echo "\n${GreenBG} 是否需要设置防火墙 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    echo -e "\n"
+    log_echo "${GreenBG} 是否需要设置防火墙 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
     read -r firewall_set_fq
     case $firewall_set_fq in
     [yY][eE][sS] | [yY])
@@ -194,7 +198,8 @@ fm_create_file() {
             fm_create_ws_or_grpc_server_file
             ;;
         *)
-            log_echo "\n${Error} ${RedBG} 不支持的文件扩展名 $fm_EXTENSION ${Font}"
+            echo -e "\n"
+            log_echo "${Error} ${RedBG} 不支持的文件扩展名 $fm_EXTENSION ${Font}"
             ;;
     esac
 }
@@ -219,7 +224,10 @@ fm_main_menu() {
             3) fm_edit_file ;;
             4) fm_delete_file ;;
             5) source "$idleleo" ;;
-            *) log_echo "\n${Error} ${RedBG} 无效选项 请重试 ${Font}" ;;
+            *) 
+                echo -e "\n"
+                log_echo "${Error} ${RedBG} 无效选项 请重试 ${Font}"
+                ;;
         esac
     done
 }
@@ -246,7 +254,8 @@ fm_check_for_updates() {
                     log_echo "${OK} ${Green} 下载完成，正在重新运行脚本... ${Font}"
                     source "${idleleo}" --add-servernames
                 else
-                    log_echo "\n${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
+                    echo -e "\n"
+                    log_echo "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
                 fi
                 ;;
             *)
@@ -262,9 +271,11 @@ fm_restart_nginx_and_check_status() {
     if [[ -f ${nginx_systemd_file} ]]; then
         systemctl restart nginx
         if systemctl is-active --quiet nginx; then
-            log_echo "\n${OK} ${GreenBG} Nginx 重启成功 ${Font}"
+            echo -e "\n"
+            log_echo "${OK} ${GreenBG} Nginx 重启成功 ${Font}"
         else
-            log_echo "\n${Error} ${RedBG} Nginx 重启失败 请检查配置文件是否有误 ${Font}"
+            echo -e "\n"
+            log_echo "${Error} ${RedBG} Nginx 重启失败 请检查配置文件是否有误 ${Font}"
             fm_edit_file
         fi
     fi
