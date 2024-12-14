@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.0.5"
+fm_SCRIPT_VERSION="1.0.6"
 
 # 检查是否提供了扩展名参数
 if [ -z "$1" ]; then
@@ -88,7 +88,9 @@ fm_list_files() {
 fm_create_servername_file() {
     local url
     fm_list_files
-    read_optimize "请输入网址 (例如 hey.run) ${Font}\n不要包含 http:// 或 https:// 开头 ${Font}\n请输入: " url
+    log_echo "\n${Green} 请输入网址 (例如 hey.run)"
+    log_echo "${Green} 不要包含 http:// 或 https:// 开头 ${Font}"
+    read_optimize "请输入: " url
     if [[ $url =~ ^(http|https):// ]]; then
         log_echo "\n${Error} ${RedBG} 网址不能包含 http:// 或 https:// 开头 ${Font}"
         return
