@@ -1,11 +1,13 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.0.6"
+mf_SCRIPT_VERSION="1.0.7"
 
 mf_main_menu() {
     check_system
-    log_echo "\n${GreenBG} 设置 Fail2ban 用于防止暴力破解, 请选择: ${Font}"
+  
+    echo -e "\n"
+    log_echo "${GreenBG} 设置 Fail2ban 用于防止暴力破解, 请选择: ${Font}"
     log_echo "1. ${Green}安装 Fail2ban${Font}"
     log_echo "2. ${Green}管理 Fail2ban${Font}"
     log_echo "3. ${Green}卸载 Fail2ban${Font}"
@@ -20,7 +22,10 @@ mf_main_menu() {
         3) mf_uninstall_fail2ban ;;
         4) mf_display_fail2ban_status ;;
         5) source "${idleleo}" ;;
-        *) log_echo "\n${Error} ${RedBG} 无效的选择 请重试 ${Font}" ;;
+        *) 
+            echo -e "\n"
+            log_echo "${Error} ${RedBG} 无效的选择 请重试 ${Font}"
+            ;;
     esac
 }
 
@@ -88,7 +93,8 @@ mf_manage_fail2ban() {
         return
     fi
 
-    log_echo "\n${Green} 请选择 Fail2ban 操作: ${Font}"
+    echo -e "\n"
+    log_echo "${Green} 请选择 Fail2ban 操作: ${Font}"
     echo "1. 启动 Fail2ban"
     echo "2. 重启 Fail2ban"
     echo "3. 停止 Fail2ban"
@@ -112,7 +118,9 @@ mf_manage_fail2ban() {
             ;;
         5) mf_main_menu ;;
         *)
-            log_echo "\n${Error} ${RedBG} 无效的选择 请重试 ${Font}"
+            echo -e "\n"
+            log_echo "${Error} ${RedBG} 无效的选择 请重试 ${Font}"
+            mf_manage_fail2ban
             ;;
     esac
 }
@@ -135,7 +143,7 @@ mf_add_custom_rule() {
         return
     fi
 
-    log_echo "[$jail_name]\nenabled  = true\nfilter   = $filter_name\nlogpath  = $log_path\nmaxretry = $max_retry\nbantime  = $ban_time\n" >> /etc/fail2ban/jail.local
+    echo -e "[$jail_name]\nenabled  = true\nfilter   = $filter_name\nlogpath  = $log_path\nmaxretry = $max_retry\nbantime  = $ban_time\n" >> /etc/fail2ban/jail.local
     log_echo "${OK} ${GreenBG} 自定义规则添加成功 ${Font}"
 
     systemctl daemon-reload
@@ -191,7 +199,8 @@ mf_display_fail2ban_status() {
     log_echo "${GreenBG} Fail2ban 总体状态: ${Font}"
     fail2ban-client status
 
-    log_echo "\n${Green} 默认启用的 Jail 状态: ${Font}"
+    echo -e "\n"
+    log_echo "${Green} 默认启用的 Jail 状态: ${Font}"
     echo "----------------------------------------"
     log_echo "${Green} SSH 封锁情况: ${Font}"
     fail2ban-client status sshd
@@ -229,7 +238,8 @@ mf_check_for_updates() {
                     log_echo "${OK} ${Green} 下载完成，正在重新运行脚本... ${Font}"
                     source "${idleleo}" --set-fail2ban
                 else
-                    log_echo "\n${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
+                    echo -e "\n"
+                    log_echo "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
                 fi
                 ;;
             *)
