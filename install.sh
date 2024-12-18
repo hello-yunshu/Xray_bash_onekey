@@ -9,7 +9,7 @@ cd "$(
     pwd
 )" || exit
 
-idleleo=$0
+idleleo=$(readlink -f "${BASH_SOURCE[0]}")
 
 #=====================================================
 #	System Request: Debian 9+/Ubuntu 18.04+/Centos 7+
@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.2.3"
+shell_version="2.2.4"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -812,8 +812,10 @@ modify_nginx_origin_conf() {
 }
 
 modify_nginx_port() {
-    sed -i "s/^\( *\).*ssl http2 quic reuseport;$/\1listen ${port} ssl http2 quic reuseport;/" ${nginx_conf}
-    sed -i "3s/^\( *\).*ssl http2 quic reuseport;$/\1listen [::]:${port} ssl http2 quic reuseport;/" ${nginx_conf}
+    sed -i "2s/^\( *\).*ssl reuseport;$/\1listen ${port} ssl reuseport;/" ${nginx_conf}
+    sed -i "3s/^\( *\).*ssl reuseport;$/\1listen [::]:${port} ssl reuseport;/" ${nginx_conf}
+    sed -i "4s/^\( *\).*quic reuseport;$/\1listen ${port} quic reuseport;/" ${nginx_conf}
+    sed -i "5s/^\( *\).*quic reuseport;$/\1listen [::]:${port} quic reuseport;/" ${nginx_conf}
     judge "Xray port 修改"
     [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
     log_echo "${Green} 端口号: ${port} ${Font}"
@@ -1591,9 +1593,12 @@ nginx_conf_add() {
     touch ${nginx_conf}
     cat >${nginx_conf} <<EOF
 server {
-    listen 443 ssl http2 quic reuseport;
-    listen [::]:443 ssl http2 quic reuseport;
+    listen 443 ssl reuseport;
+    listen [::]:443 ssl reuseport;
+    listen 443 quic reuseport;
+    listen [::]:443 quic reuseport;
 
+    http2 on;
     set_real_ip_from    127.0.0.1;
     real_ip_header      X-Forwarded-For;
     real_ip_recursive   on;
@@ -2323,9 +2328,9 @@ tls_type() {
         log_echo "${GreenBG} 建议选择 TLS1.3 only (安全模式) ${Font}"
         echo -e "1: TLS1.2 and TLS1.3 (兼容模式)"
         echo -e "${Red}2${Font}: TLS1.3 only (安全模式)"
-        local choose_network
-        read_optimize "请输入: " "choose_network" 2 1 2 "请输入有效的数字"
-        if [[ $tls_version == 1 ]]; then
+        local choose_tls
+        read_optimize "请输入: " "choose_tls" 2 1 2 "请输入有效的数字"
+        if [[ ${choose_tls} == 1 ]]; then
             # if [[ ${tls_mode} == "TLS" ]]; then
             #     sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.2 TLSv1.3;/" $nginx_conf
             # else
