@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.0.7"
+fm_SCRIPT_VERSION="1.0.8"
 
 # 检查是否提供了扩展名参数
 if [ -z "$1" ]; then
@@ -252,7 +252,7 @@ fm_check_for_updates() {
                 if [ $? -eq 0 ]; then
                     chmod +x "${idleleo_dir}/file_manager.sh"
                     log_echo "${OK} ${Green} 下载完成，正在重新运行脚本... ${Font}"
-                    source "${idleleo}" --add-servernames
+                    bash "${idleleo}" --add-servernames
                 else
                     echo -e "\n"
                     log_echo "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"

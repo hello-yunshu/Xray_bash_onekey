@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.0.7"
+mf_SCRIPT_VERSION="1.0.8"
 
 mf_main_menu() {
     check_system
@@ -236,7 +236,7 @@ mf_check_for_updates() {
                 if [ $? -eq 0 ]; then
                     chmod +x "${idleleo_dir}/fail2ban_manager.sh"
                     log_echo "${OK} ${Green} 下载完成，正在重新运行脚本... ${Font}"
-                    source "${idleleo}" --set-fail2ban
+                    bash "${idleleo}" --set-fail2ban
                 else
                     echo -e "\n"
                     log_echo "${Error} ${RedBG} 下载失败，请手动下载并安装新版本 ${Font}"
