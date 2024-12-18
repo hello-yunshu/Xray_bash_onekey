@@ -9,7 +9,7 @@
             "port": 9443,
             "listen": "0.0.0.0",
             "protocol": "VLESS",
-            "tag": "VLESS-XTLS-in",
+            "tag": "VLESS-Reality-in",
             "settings": {
                 "clients": [
                     {
