@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.2.4"
+shell_version="2.2.5"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -616,31 +616,45 @@ target_set() {
         
             # 检测TLSv1.3支持
             if ! echo "$output" | grep -q "TLSv1.3"; then
-                log_echo "${Warning} ${YellowBG} 该域名不支持 TLSv1.3, 请重新输入${YellowBG}${Font}"
-                continue
+                log_echo "${Warning} ${YellowBG} 该域名不支持 TLSv1.3 ${YellowBG}${Font}"
             fi
 
             # 检测X25519支持
             if ! echo "$output" | grep -q "x25519"; then
-                log_echo "${Warning} ${YellowBG} 该域名不支持 X25519, 请重新输入${YellowBG}${Font}"
-                continue
+                log_echo "${Warning} ${YellowBG} 该域名不支持 X25519 ${YellowBG}${Font}"
             fi
 
             # 检测HTTP/2支持
             if ! echo "$curl_output" | grep -q "HTTP/2"; then
-                log_echo "${Warning} ${YellowBG} 该域名不支持 HTTP/2, 请重新输入${YellowBG}${Font}"
-                continue
+                log_echo "${Warning} ${YellowBG} 该域名不支持 HTTP/2 ${YellowBG}${Font}"
             fi
         
             # 检测是否跳转
             if echo "$curl_output" | grep -i -q 'location:'; then
-                log_echo "${Warning} ${YellowBG} 该域名发生了跳转, 请重新输入${YellowBG}${Font}"
-                continue
+                log_echo "${Warning} ${YellowBG} 该域名发生了跳转 ${YellowBG}${Font}"
             fi
 
-            log_echo "${OK} ${GreenBG} 域名 ${domain} 满足所有要求${Font}"
-            target=$domain
-            break
+            if ! echo "$output" | grep -q "TLSv1.3" || \
+               ! echo "$output" | grep -q "x25519" || \
+               ! echo "$curl_output" | grep -q "HTTP/2" || \
+               echo "$curl_output" | grep -i -q 'location:'; then
+                log_echo "${Warning} ${YellowBG} 该域名可能不满足所有要求 ${YellowBG}${Font}"
+                log_echo "${GreenBG} 是否仍要设置此域名 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+                read -r force_set_fq
+                case $force_set_fq in
+                    [yY][eE][sS] | [yY])
+                        target=$domain
+                        break
+                        ;;
+                    *)
+                        continue
+                        ;;
+                esac
+            else
+                log_echo "${OK} ${GreenBG} 域名 ${domain} 满足所有要求 ${Font}"
+                target=$domain
+                break
+            fi
         done
         log_echo "${Green} target 域名: ${target} ${Font}"
     fi
