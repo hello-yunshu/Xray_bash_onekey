@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.2.6"
+shell_version="2.2.7"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -66,7 +66,6 @@ xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 auto_update_file="${idleleo_dir}/auto_update.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
-cert_group="nobody"
 myemali="my@example.com"
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=$(curl -s https://www.idleleo.com/api/xray_shell_versions)
@@ -296,6 +295,10 @@ port_set() {
         echo -e "\n"
         log_echo "${GreenBG} 确定 连接端口 ${Font}"
         read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
+        if [[ ${port} -eq 9443 ]] && [[ ${tls_mode} == "Reality" ]]; then
+            echo -e "${Error} ${RedBG} 端口 9443 不允许使用, 请重新输入! ${Font}"
+            read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
+        fi
     fi
 }
 
@@ -786,14 +789,18 @@ modify_listen_address() {
         modifynum=0
         modifynum2=1
     fi
+
     if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-        jq ".inbounds[${modifynum}].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
+        jq --argjson modifynum "$modifynum" \
+           ".inbounds[\($modifynum)].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-        jq ".inbounds[${modifynum2}].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
+        jq --argjson modifynum2 "$modifynum2" \
+           ".inbounds[\($modifynum2)].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     elif [[ ${ws_grpc_mode} == "all" ]]; then
-        jq ".inbounds[${modifynum}].listen = \"0.0.0.0\"|.inbounds[${modifynum2}].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
+        jq --argjson modifynum "$modifynum" --argjson modifynum2 "$modifynum2" \
+           ".inbounds[\($modifynum)].listen = \"0.0.0.0\" | .inbounds[\($modifynum2)].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     fi
     mv "${xray_conf}.tmp" "${xray_conf}"
@@ -802,14 +809,21 @@ modify_listen_address() {
 modify_inbound_port() {
     if [[ ${tls_mode} == "Reality" ]]; then
         if [[ ${reality_add_nginx} == "off" ]]; then
-            jq ".inbounds[0].port = ${port}|.inbounds[1].port = ${xport}|.inbounds[2].port = ${gport}" ${xray_conf} > "${xray_conf}.tmp"
+            jq --argjson port "${port}" --argjson xport "${xport}" --argjson gport "${gport}" \
+               '.inbounds[0].port = $port |
+                .inbounds[1].port = $xport |
+                .inbounds[2].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
             judge "Xray inbound port 修改"
         else
-            jq ".inbounds[1].port = ${xport}|.inbounds[2].port = ${gport}" ${xray_conf} > "${xray_conf}.tmp"
+            jq --argjson xport "${xport}" --argjson gport "${gport}" \
+               '.inbounds[1].port = $xport |
+                .inbounds[2].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
             judge "Xray inbound port 修改"
         fi
     else
-        jq ".inbounds[0].port = ${xport}|.inbounds[1].port = ${gport}" ${xray_conf} > "${xray_conf}.tmp"
+        jq --argjson xport "${xport}" --argjson gport "${gport}" \
+           '.inbounds[0].port = $xport |
+            .inbounds[1].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
         judge "Xray inbound port 修改"
     fi
     mv "${xray_conf}.tmp" "${xray_conf}"
@@ -828,12 +842,16 @@ modify_nginx_origin_conf() {
 }
 
 modify_nginx_port() {
-    sed -i "2s/^\( *\).*ssl reuseport;$/\1listen ${port} ssl reuseport;/" ${nginx_conf}
-    sed -i "3s/^\( *\).*ssl reuseport;$/\1listen [::]:${port} ssl reuseport;/" ${nginx_conf}
-    sed -i "4s/^\( *\).*quic reuseport;$/\1listen ${port} quic reuseport;/" ${nginx_conf}
-    sed -i "5s/^\( *\).*quic reuseport;$/\1listen [::]:${port} quic reuseport;/" ${nginx_conf}
-    judge "Xray port 修改"
-    [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
+    if [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
+        sed -i "s/^\( *\)listen.*/\1listen ${port} reuseport so_keepalive=on backlog=65535;/" ${nginx_conf}
+        judge "Nginx port 修改"
+    elif [[ ${tls_mode} == "TLS" ]]; then
+        sed -i "2s/^\( *\).*ssl reuseport;$/\1listen ${port} ssl reuseport;/" ${nginx_conf}
+        sed -i "3s/^\( *\).*ssl reuseport;$/\1listen [::]:${port} ssl reuseport;/" ${nginx_conf}
+        sed -i "4s/^\( *\).*quic reuseport;$/\1listen ${port} quic reuseport;/" ${nginx_conf}
+        sed -i "5s/^\( *\).*quic reuseport;$/\1listen [::]:${port} quic reuseport;/" ${nginx_conf}
+        judge "Xray port 修改"
+    fi
     log_echo "${Green} 端口号: ${port} ${Font}"
 }
 
@@ -864,9 +882,6 @@ modify_nginx_other() {
             sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
             sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" ${nginx_conf}
         fi
-    elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-        # sed -i "s/^\( *\).* reality;\( *\)/\1${serverNames} reality;\2/g" ${nginx_conf} 观察
-        sed -i "s/^\( *\)listen 443 reuseport so_keepalive=on backlog=65535;\(.*\)/\1listen ${port} reuseport so_keepalive=on backlog=65535;\2/" ${nginx_conf}
     fi
 }
 
@@ -913,27 +928,27 @@ modify_UUID() {
 
 modify_target_serverNames() {
   jq --arg target "${target}:443" --arg serverNames "${serverNames}" '
-  .inbounds[0].streamSettings.realitySettings.target = $target |
-  .inbounds[0].streamSettings.realitySettings.serverNames = [$serverNames]' "${xray_conf}" > "${xray_conf}.tmp"
+     .inbounds[0].streamSettings.realitySettings.target = $target |
+     .inbounds[0].streamSettings.realitySettings.serverNames = [$serverNames]' "${xray_conf}" > "${xray_conf}.tmp"
   judge "target serverNames 配置修改"
   mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 modify_privateKey_shortIds() {
   jq --arg privateKey "${privateKey}" --arg shortIds "${shortIds}" '
-  .inbounds[0].streamSettings.realitySettings.privateKey = $privateKey |
-  .inbounds[0].streamSettings.realitySettings.shortIds = [$shortIds]' "${xray_conf}" > "${xray_conf}.tmp"
+     .inbounds[0].streamSettings.realitySettings.privateKey = $privateKey |
+     .inbounds[0].streamSettings.realitySettings.shortIds = [$shortIds]' "${xray_conf}" > "${xray_conf}.tmp"
   judge "privateKey 和 shortIds 配置修改"
   mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 xray_privilege_escalation() {
-    [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
+    cert_group=$(grep -q "^nogroup:" /etc/group && echo "nogroup" || echo "nobody")
     if [[ -n "$(grep "User=nobody" ${xray_systemd_file})" ]]; then
         log_echo "${OK} ${GreenBG} 检测到 Xray 的权限控制, 启动擦屁股程序 ${Font}"
         chmod -fR a+rw /var/log/xray/
         chown -fR nobody:${cert_group} /var/log/xray/
-        chown -fR nobody:${cert_group} ${ssl_chainpath}/*
+        [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR nobody:${cert_group} ${ssl_chainpath}/*
     fi
     log_echo "${OK} ${GreenBG} Xray 擦屁股 完成 ${Font}"
 }
@@ -943,7 +958,7 @@ xray_install() {
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
         judge "安装 Xray"
         systemctl daemon-reload
-        [[ -f "${ssl_chainpath}/xray.key" ]] && xray_privilege_escalation
+        xray_privilege_escalation
         [[ -f "${xray_default_conf}" ]] && rm -rf ${xray_default_conf}
         ln -s ${xray_conf} ${xray_default_conf}
     else
@@ -988,10 +1003,10 @@ xray_update() {
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
         judge "Xray 升级"
     fi
-    [[ -f "${ssl_chainpath}/xray.key" ]] && xray_privilege_escalation
+    xray_privilege_escalation
     [[ -f "${xray_default_conf}" ]] && rm -rf ${xray_default_conf}
     ln -s ${xray_conf} ${xray_default_conf}
-    jq ".xray_version = \"${xray_version}\"" ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
+    jq --arg xray_version "${xray_version}" '.xray_version = $xray_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
     mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
     systemctl daemon-reload
     systemctl start xray
@@ -1097,22 +1112,22 @@ nginx_update() {
             if [[ -f "${xray_qr_config_file}" ]]; then
                 domain=$(info_extraction host)
                 if [[ ${tls_mode} == "TLS" ]]; then
-                    port=$(info_extraction port)
+                    port=$((info_extraction port))
                     if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                        xport=$(info_extraction ws_port)
+                        xport=$((info_extraction ws_port))
                         path=$(info_extraction path)
                         gport=$((RANDOM % 1000 + 30000))
                         [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
                         serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                        gport=$(info_extraction grpc_port)
+                        gport=$((info_extraction grpc_port))
                         serviceName=$(info_extraction serviceName)
                         xport=$((RANDOM % 1000 + 20000))
                         path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${ws_grpc_mode} == "all" ]]; then
-                        xport=$(info_extraction ws_port)
+                        xport=$((info_extraction ws_port))
                         path=$(info_extraction path)
-                        gport=$(info_extraction grpc_port)
+                        gport=$((info_extraction grpc_port))
                         serviceName=$(info_extraction serviceName)
                     fi
                     if [[ 0 -eq ${read_config_status} ]]; then
@@ -1121,7 +1136,7 @@ nginx_update() {
                         return 1
                     fi
                 elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-                    port=$(info_extraction port)
+                    port=$((info_extraction port))
                     serverNames=$(info_extraction serverNames)
                     if [[ 0 -eq ${read_config_status} ]]; then
                         [[ ${auto_update} == "YES" ]] && echo "Nginx 配置文件不完整, 退出升级!" && exit 1
@@ -1167,7 +1182,7 @@ nginx_update() {
                 nginx_reality_conf_add
             fi
             service_start
-            jq ".nginx_build_version = \"${nginx_build_version}\"" ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
+            jq --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             judge "Nginx 升级"
         else
@@ -1386,7 +1401,7 @@ acme() {
         if "$HOME"/.acme.sh/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
             chmod -f a+rw ${ssl_chainpath}/xray.crt
             chmod -f a+rw ${ssl_chainpath}/xray.key
-            [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
+            cert_group=$(grep -q "^nogroup:" /etc/group && echo "nogroup" || echo "nobody")
             chown -fR nobody:${cert_group} ${ssl_chainpath}/*
             log_echo "${OK} ${GreenBG} 证书配置成功 ${Font}"
             systemctl stop nginx
@@ -1489,27 +1504,27 @@ old_config_input() {
     UUID5_char=$(info_extraction idc)
     UUID=$(info_extraction id)
     if [[ ${tls_mode} == "TLS" ]]; then
-        port=$(info_extraction port)
+        port=$((info_extraction port))
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            xport=$(info_extraction ws_port)
+            xport=$((info_extraction ws_port))
             path=$(info_extraction path)
             gport=$((RANDOM % 1000 + 30000))
             [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            gport=$(info_extraction grpc_port)
+            gport=$((info_extraction grpc_port))
             serviceName=$(info_extraction serviceName)
             xport=$((RANDOM % 1000 + 20000))
             [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
-            xport=$(info_extraction ws_port)
+            xport=$((info_extraction ws_port))
             path=$(info_extraction path)
-            gport=$(info_extraction grpc_port)
+            gport=$((info_extraction grpc_port))
             serviceName=$(info_extraction serviceName)
         fi
     elif [[ ${tls_mode} == "Reality" ]]; then
-        port=$(info_extraction port)
+        port=$((info_extraction port))
         target=$(info_extraction target)
         serverNames=$(info_extraction serverNames)
         privateKey=$(info_extraction privateKey)
@@ -1517,21 +1532,21 @@ old_config_input() {
         shortIds=$(info_extraction shortIds)
         if [[ ${reality_add_more} == "on" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                xport=$(info_extraction ws_port)
+                xport=$((info_extraction ws_port))
                 path=$(info_extraction ws_path)
                 gport=$((RANDOM % 1000 + 30000))
                 [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
                 serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                gport=$(info_extraction grpc_port)
+                gport=$((info_extraction grpc_port))
                 serviceName=$(info_extraction grpc_serviceName)
                 xport=$((RANDOM % 1000 + 20000))
                 [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
                 path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             elif [[ ${ws_grpc_mode} == "all" ]]; then
-                xport=$(info_extraction ws_port)
+                xport=$((info_extraction ws_port))
                 path=$(info_extraction ws_path)
-                gport=$(info_extraction grpc_port)
+                gport=$((info_extraction grpc_port))
                 serviceName=$(info_extraction grpc_serviceName)
             fi
         else
@@ -1542,21 +1557,21 @@ old_config_input() {
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            xport=$(info_extraction ws_port)
+            xport=$((info_extraction ws_port))
             path=$(info_extraction path)
             gport=$((RANDOM % 1000 + 30000))
             [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            gport=$(info_extraction grpc_port)
+            gport=$((info_extraction grpc_port))
             serviceName=$(info_extraction serviceName)
             xport=$((RANDOM % 1000 + 20000))
             [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
-            xport=$(info_extraction ws_port)
+            xport=$((info_extraction ws_port))
             path=$(info_extraction path)
-            gport=$(info_extraction grpc_port)
+            gport=$((info_extraction grpc_port))
             serviceName=$(info_extraction serviceName)
         fi
     fi
@@ -1699,6 +1714,7 @@ stream {
     }
 }
 EOF
+    modify_nginx_port
     modify_nginx_other
     judge "Nginx 配置修改"
 }
@@ -1912,7 +1928,7 @@ clean_logs() {
     for i in $(find /var/log/xray/ ${nginx_dir}/logs -name "*.log"); do cat /dev/null >"$i"; done
     judge "日志清理"
     
-    #以下为兼容代码，1个大版本后未来删除
+    #以下为兼容代码，1个大版本后删除
     if [[ "${ID}" == "centos" ]]; then
         cron_file="/var/spool/cron/root"
     else
@@ -1967,13 +1983,14 @@ clean_logs() {
         fi
 
         # Create new logrotate configuration file
+        cert_group=$(grep -q "^nogroup:" /etc/group && echo "nogroup" || echo "nobody")
         echo "/var/log/xray/*.log ${nginx_dir}/logs/*.log {" > "$logrotate_config"
         echo "    weekly" >> "$logrotate_config"
         echo "    rotate 3" >> "$logrotate_config"
         echo "    compress" >> "$logrotate_config"
         echo "    missingok" >> "$logrotate_config"
         echo "    notifempty" >> "$logrotate_config"
-        echo "    create 640 root adm" >> "$logrotate_config"
+        echo "    create 640 nobody ${cert_group}" >> "$logrotate_config"
         echo "}" >> "$logrotate_config"
         
         judge "设置自动清理日志"
@@ -1988,7 +2005,7 @@ vless_qr_config_tls_ws() {
     "ws_grpc_mode": "${ws_grpc_mode}",
     "host": "${domain}",
     "ip_version": "${ip_version}",
-    "port": "${port}",
+    "port": ${port},
     "ws_port": "${artxport}",
     "grpc_port": "${artgport}",
     "tls": "TLS",
@@ -2013,7 +2030,7 @@ vless_qr_config_reality() {
     "ws_grpc_mode": "${ws_grpc_mode}",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
-    "port": "${port}",
+    "port": ${port},
     "email": "${custom_email}",
     "idc": "${UUID5_char}",
     "id": "${UUID}",
@@ -2035,7 +2052,7 @@ vless_qr_config_reality() {
 }
 EOF
     if [[ ${reality_add_nginx} == "on" ]]; then
-        jq ". + {\"nginx_build_version\": \"${nginx_build_version}\"}" "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+        jq --arg nginx_build_version "${nginx_build_version}" '. + {"nginx_build_version": $nginx_build_version}' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
         mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
     fi
     info_extraction_all=$(jq -rc . ${xray_qr_config_file})
@@ -2263,7 +2280,7 @@ ssl_judge_and_install() {
         exit 0
         ;;
     *)
-        [[ $(grep "nogroup" /etc/group) ]] && cert_group="nogroup"
+        cert_group=$(grep -q "^nogroup:" /etc/group && echo "nogroup" || echo "nobody")
         if [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] && [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
             log_echo "${GreenBG} 所有证书文件均已存在, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r ssl_delete_1
@@ -2394,8 +2411,9 @@ reset_UUID() {
         UUID_set
         modify_UUID
         jq --arg uuid "${UUID}" \
-        --arg uuid5_char "${UUID5_char}" \
-        '.id = $uuid | .idc = $uuid5_char' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+           --arg uuid5_char "${UUID5_char}" \
+           '.id = $uuid | .idc = $uuid5_char' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
         service_restart
         reset_vless_qr_config
     else
@@ -2408,7 +2426,8 @@ reset_port() {
         if [[ ${tls_mode} == "TLS" ]]; then
             read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
             modify_nginx_port
-            jq --arg port "${port}" '.port = $port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            jq --argjson port "${port}" '.port = $port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             log_echo "${Green} 连接端口号: ${port} ${Font}"
         elif [[ ${tls_mode} == "Reality" ]]; then
             read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
@@ -2432,11 +2451,13 @@ reset_port() {
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             fi
-            jq --arg port "$port" \
-            --arg ws_port "$xport" \
-            --arg grpc_port "$gport" \
-            '.port = $port | .ws_port = $ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            jq --argjson port "$port" \
+               --argjson ws_port "$xport" \
+               --argjson grpc_port "$gport" \
+               '.port = $port | .ws_port = $ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             modify_inbound_port
+            [[ ${reality_add_nginx} == "on" ]] && modify_nginx_port
         elif [[ ${tls_mode} == "None" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                 read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
@@ -2456,9 +2477,10 @@ reset_port() {
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             fi
-            jq --arg ws_port "$xport" \
-            --arg grpc_port "$gport" \
-            '.ws_port = $ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            jq --argjson ws_port "$xport" \
+               --argjson grpc_port "$gport" \
+               '.ws_port = ($ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             modify_inbound_port
         fi
         firewall_set
@@ -2481,8 +2503,9 @@ reset_target() {
             nginx_reality_serverNames_add
         fi
         jq --arg target "${target}" \
-        --arg serverNames "${serverNames}" \
-        '.target = $target | .serverNames = $serverNames' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+           --arg serverNames "${serverNames}" \
+           '.target = $target | .serverNames = $serverNames' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
         service_restart
         reset_vless_qr_config
     elif [[ ${tls_mode} != "Reality" ]]; then
@@ -2574,14 +2597,22 @@ add_user() {
             local choose_user_prot
             read_optimize "请输入: " "choose_user_prot" 1 1 2 "请输入有效的数字"
             choose_user_prot=$((choose_user_prot - 1))
-            local reality_user_more=""
+            reality_user_more=""
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
             reality_user_more="\"flow\":\"xtls-rprx-vision\","
         fi
         email_set
         UUID_set
-        jq ".inbounds[${choose_user_prot}].settings.clients += [{\"id\": \"${UUID}\",\"${reality_user_more}\"level\": 0,\"email\": \"${custom_email}\"}]" ${xray_conf} > "${xray_conf}.tmp"
+        jq --argjson choose_user_prot "${choose_user_prot}" \
+           --arg UUID "${UUID}" \
+           --arg reality_user_more "${reality_user_more}" \
+           --arg custom_email "${custom_email}" \
+           '.inbounds[$choose_user_prot].settings.clients += [
+               {"id": $UUID} +
+               if $reality_user_more != "" then ($reality_user_more | fromjson) else {} end +
+               {"level": 0, "email": $custom_email}
+           ]' "${xray_conf}" > "${xray_conf}.tmp"
         judge "添加用户"
         mv "${xray_conf}.tmp" "${xray_conf}"
         jq ". += {\"multi_user\": \"yes\"}" ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
@@ -2633,7 +2664,8 @@ remove_user() {
             menu
         elif [[ ${del_user_index} -gt 1 ]]; then
             del_user_index=$((del_user_index - 1))
-            jq 'del(.inbounds['${choose_user_prot}'].settings.clients['${del_user_index}'])' ${xray_conf} > "${xray_conf}.tmp"
+            jq --argjson choose_user_prot "${choose_user_prot}" --argjson del_user_index "${del_user_index}" \
+               'del(.inbounds[$choose_user_prot].settings.clients[$del_user_index])' ${xray_conf} > "${xray_conf}.tmp"
             judge "删除用户"
             mv "${xray_conf}.tmp" "${xray_conf}"
             echo -e "\n"
@@ -2697,7 +2729,10 @@ xray_status_add() {
             [yY][eE][sS] | [yY])
                     service_stop
                     wget -nc --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json -O ${xray_status_conf}
-                    jq ". += $(jq -c . ${xray_status_conf})" ${xray_conf} > "${xray_conf}.tmp"
+                    local status_config
+                    status_config=$(jq -c . "${xray_status_conf}")
+                    jq --argjson status_config "${status_config}" \
+                       '. += $status_config' "${xray_conf}" > "${xray_conf}.tmp"
                     judge "设置 Xray 流量统计"
                     mv "${xray_conf}.tmp" "${xray_conf}"
                     service_start
