@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.2.5"
+shell_version="2.2.6"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -591,14 +591,15 @@ target_set() {
             read -r old_host_fq
             case $old_host_fq in
             [nN][oO] | [nN])
-                target_reset=0
+                target_reset=1
+                nginx_reality_serverNames_del
                 ;;
             *)
-                target_reset=1
+                target_reset=0
                 ;;
             esac
     fi
-    if [[ ${target_reset} == 0 ]] || [[ "on" != ${old_config_status} ]]; then
+    if [[ ${target_reset} == 1 ]] || [[ "on" != ${old_config_status} ]]; then
         local domain
         local output
         local curl_output
@@ -661,7 +662,7 @@ target_set() {
 }
 
 serverNames_set() {
-    if [[ ${target_reset} == 0 ]] || [[ "on" != ${old_config_status} ]]; then
+    if [[ ${target_reset} == 1 ]] || [[ "on" != ${old_config_status} ]]; then
         local custom_serverNames_fq
         echo -e "\n"
         log_echo "${GreenBG} 是否需要修改 ${target} 域名的 serverNames 用户名 [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -677,6 +678,7 @@ serverNames_set() {
             ;;
         esac
         log_echo "${Green} serverNames: ${serverNames} ${Font}"
+        echo -e "\n"
     fi
 }
 
@@ -799,7 +801,7 @@ modify_listen_address() {
 
 modify_inbound_port() {
     if [[ ${tls_mode} == "Reality" ]]; then
-        if [[ ${reality_add_nginx} != "on" ]]; then
+        if [[ ${reality_add_nginx} == "off" ]]; then
             jq ".inbounds[0].port = ${port}|.inbounds[1].port = ${xport}|.inbounds[2].port = ${gport}" ${xray_conf} > "${xray_conf}.tmp"
             judge "Xray inbound port 修改"
         else
@@ -903,28 +905,26 @@ modify_UUID() {
     if [[ $(jq -r '.inbounds[0].settings.clients|length' ${xray_conf}) == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' ${xray_conf}) == 1 ]]; then
         sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/g" ${xray_conf}
         judge "Xray UUID 修改"
-        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/" ${xray_qr_config_file}
-        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"idc\".*/\1\"idc\": \"${UUID5_char}\",/" ${xray_qr_config_file}
     else
         echo -e "\n"
         log_echo "${Warning} ${YellowBG} 请先删除 多余的用户 ${Font}"
     fi
 }
 
-modify_Reality() {
-  jq --arg target "${target}:443" --arg serverNames "${serverNames}" --arg privateKey "${privateKey}" --arg shortIds "${shortIds}" '
-  .inbounds[0].streamSettings.realitySettings = {
-    target: $target,
-    serverNames: [$serverNames],
-    privateKey: $privateKey,
-    shortIds: [$shortIds]
-  }' "${xray_conf}" > "${xray_conf}.tmp"
-  judge "Xray Reality 配置修改"
+modify_target_serverNames() {
+  jq --arg target "${target}:443" --arg serverNames "${serverNames}" '
+  .inbounds[0].streamSettings.realitySettings.target = $target |
+  .inbounds[0].streamSettings.realitySettings.serverNames = [$serverNames]' "${xray_conf}" > "${xray_conf}.tmp"
+  judge "target serverNames 配置修改"
   mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
-web_camouflage() {
-    judge "web 站点伪装"
+modify_privateKey_shortIds() {
+  jq --arg privateKey "${privateKey}" --arg shortIds "${shortIds}" '
+  .inbounds[0].streamSettings.realitySettings.privateKey = $privateKey |
+  .inbounds[0].streamSettings.realitySettings.shortIds = [$shortIds]' "${xray_conf}" > "${xray_conf}.tmp"
+  judge "privateKey 和 shortIds 配置修改"
+  mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 xray_privilege_escalation() {
@@ -1407,7 +1407,8 @@ xray_conf_add() {
             modify_inbound_port
         elif [[ ${tls_mode} == "Reality" ]]; then
             wget --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_reality/config.json -O ${xray_conf}
-            modify_Reality
+            modify_target_serverNames
+            modify_privateKey_shortIds
             xray_reality_add_more
         elif [[ ${tls_mode} == "None" ]]; then
             wget --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json -O ${xray_conf}
@@ -1709,6 +1710,13 @@ ${serverNames} reality;
 EOF
     # modify_nginx_reality_serverNames
     judge "Nginx serverNames 配置修改"
+
+}
+
+nginx_reality_serverNames_del () {
+    [[ -f "${nginx_conf_dir}/${serverNames}.serverNames" ]] && rm -f "${nginx_conf_dir}/${serverNames}.serverNames"
+    # modify_nginx_reality_serverNames
+    judge "Nginx serverNames 配置删除"
 
 }
 
@@ -2026,7 +2034,7 @@ vless_qr_config_reality() {
     "xray_version": "${xray_version}"
 }
 EOF
-    if [[ ${reality_add_nginx} != "off" ]]; then
+    if [[ ${reality_add_nginx} == "on" ]]; then
         jq ". + {\"nginx_build_version\": \"${nginx_build_version}\"}" "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
         mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
     fi
@@ -2371,65 +2379,116 @@ tls_type() {
         judge "Xray 重启"
         # fi
     else
-        log_echo "${Error} ${RedBG} Nginx 或 配置文件不存在 或当前安装版本为 ws ONLY , 请正确安装脚本后执行${Font}"
+        log_echo "${Error} ${RedBG} Nginx/配置文件不存在 或 当前模式不支持 ${Font}"
     fi
 }
 
-revision_port() {
-    if [[ ${tls_mode} == "TLS" ]]; then
-        read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
-        modify_nginx_port
-        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"port\".*/\1\"port\": \"${port}\",/" ${xray_qr_config_file}
-        log_echo "${Green} 连接端口号: ${port} ${Font}"
-    elif [[ ${tls_mode} == "Reality" ]]; then
-        read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
-        xport=$((RANDOM % 1000 + 20000))
-        gport=$((RANDOM % 1000 + 30000))
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-            port_exist_check "${xport}"
-            gport=$((RANDOM % 1000 + 30000))
-            [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
-            log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-        elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
-            read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-            port_exist_check "${gport}"
+reset_vless_qr_config() {
+    basic_information
+    vless_qr_link_image
+    show_information
+}
+
+reset_UUID() {
+    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
+        UUID_set
+        modify_UUID
+        jq --arg uuid "${UUID}" \
+        --arg uuid5_char "${UUID5_char}" \
+        '.id = $uuid | .idc = $uuid5_char' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+        service_restart
+        reset_vless_qr_config
+    else
+        log_echo "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
+    fi
+}
+
+reset_port() {
+    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
+        if [[ ${tls_mode} == "TLS" ]]; then
+            read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
+            modify_nginx_port
+            jq --arg port "${port}" '.port = $port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            log_echo "${Green} 连接端口号: ${port} ${Font}"
+        elif [[ ${tls_mode} == "Reality" ]]; then
+            read_optimize "请输入连接端口 (默认值:443):" "port" 443 0 65535 "请输入 0-65535 之间的值!"
             xport=$((RANDOM % 1000 + 20000))
-            [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
-            log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-            read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-            port_exist_check "${xport}"
-            port_exist_check "${gport}"
-            [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
-            [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
-            log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-            log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-        fi
-        modify_inbound_port
-    elif [[ ${tls_mode} == "None" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-            port_exist_check "${xport}"
             gport=$((RANDOM % 1000 + 30000))
-            log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-        elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
-            read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-            port_exist_check "${gport}"
-            xport=$((RANDOM % 1000 + 20000))
-            log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-            read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
-            port_exist_check "${xport}"
-            port_exist_check "${gport}"
-            log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-            log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
+            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+                port_exist_check "${xport}"
+                gport=$((RANDOM % 1000 + 30000))
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+            elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
+                read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+                port_exist_check "${gport}"
+                xport=$((RANDOM % 1000 + 20000))
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
+            elif [[ ${ws_grpc_mode} == "all" ]]; then
+                read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+                read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+                port_exist_check "${xport}"
+                port_exist_check "${gport}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
+            fi
+            jq --arg port "$port" \
+            --arg ws_port "$xport" \
+            --arg grpc_port "$gport" \
+            '.port = $port | .ws_port = $ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            modify_inbound_port
+        elif [[ ${tls_mode} == "None" ]]; then
+            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+                port_exist_check "${xport}"
+                gport=$((RANDOM % 1000 + 30000))
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+            elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
+                read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+                port_exist_check "${gport}"
+                xport=$((RANDOM % 1000 + 20000))
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
+            elif [[ ${ws_grpc_mode} == "all" ]]; then
+                read_optimize "请输入 ws inbound_port:" "xport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+                read_optimize "请输入 gRPC inbound_port:" "gport" "NULL" 0 65535 "请输入 0-65535 之间的值!"
+                port_exist_check "${xport}"
+                port_exist_check "${gport}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
+            fi
+            jq --arg ws_port "$xport" \
+            --arg grpc_port "$gport" \
+            '.ws_port = $ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            modify_inbound_port
         fi
-        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"ws_port\".*/\1\"ws_port\": \"${xport}\",/" ${xray_qr_config_file}
-        [[ -f "${xray_qr_config_file}" ]] && sed -i "s/^\( *\)\"grpc_port\".*/\1\"grpc_port\": \"${gport}\",/" ${xray_qr_config_file}
-        modify_inbound_port
+        firewall_set
+        service_restart
+        reset_vless_qr_config
+    else
+        log_echo "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
+    fi
+}
+
+reset_target() {
+    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} == "Reality" ]]; then
+        target_reset=1
+        serverNames=$(info_extraction serverNames)
+        nginx_reality_serverNames_del
+        target_set
+        serverNames_set
+        modify_target_serverNames
+        if [[ ${reality_add_nginx} == "on" ]]; then
+            nginx_reality_serverNames_add
+        fi
+        jq --arg target "${target}" \
+        --arg serverNames "${serverNames}" \
+        '.target = $target | .serverNames = $serverNames' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+        service_restart
+        reset_vless_qr_config
+    elif [[ ${tls_mode} != "Reality" ]]; then
+        log_echo "${Warning} ${YellowBG} 此模式不支持修改 target ! ${Font}"
+    else
+        log_echo "${Warning} ${YellowBG} 请先安装 Xray ! ${Font}"
     fi
 }
 
@@ -2782,11 +2841,11 @@ judge_mode() {
                 reality_add_more=$(info_extraction reality_add_more)
                 reality_add_nginx=$(info_extraction reality_add_nginx)
                 
-                if [[ ${reality_add_more} != "off" && ${reality_add_nginx} == "off" ]]; then
+                if [[ ${reality_add_nginx} == "on" && ${reality_add_nginx} == "off" ]]; then
                     shell_mode="Reality+${shell_mode}"
-                elif [[ ${reality_add_nginx} != "off" && ${reality_add_more} != "off" ]]; then
+                elif [[ ${reality_add_nginx} == "on" && ${reality_add_nginx} == "on" ]]; then
                     shell_mode="Nginx+Reality+${shell_mode}"
-                elif [[ ${reality_add_nginx} != "off" && ${reality_add_more} == "off" ]]; then
+                elif [[ ${reality_add_nginx} == "on" && ${reality_add_more} == "off" ]]; then
                     shell_mode="Nginx+Reality"
                 else
                     shell_mode="Reality"
@@ -2827,7 +2886,6 @@ install_xray_ws_tls() {
     port_exist_check "${port}"
     nginx_exist_check
     nginx_systemd
-    web_camouflage
     nginx_ssl_conf_add
     ssl_judge_and_install
     nginx_conf_add
@@ -2942,6 +3000,7 @@ update_sh() {
             [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
             wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
             ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
+            [[ -f "${xray_qr_config_file}" ]] && jq --arg shell_version "${shell_version}" '.shell_version = $shell_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             clear
             log_echo "${OK} ${GreenBG} 更新完成 ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} 脚本版本跨度较大, 若服务无法正常运行请卸载后重装! ${Font}"
@@ -3037,10 +3096,8 @@ list() {
         [[ $2 == "auto_update" ]] && auto_update="YES" && log_file="${log_dir}/auto_update.log"
         nginx_update
         ;;
-    '-p' | '--port-set')
-        revision_port
-        firewall_set
-        service_restart
+    '-p' | '--port-reset')
+        reset_port
         ;;
     '--purge' | '--uninstall')
         uninstall_all
@@ -3050,6 +3107,9 @@ list() {
         basic_information
         vless_qr_link_image
         show_information
+        ;;
+    '-t' | '--target-reset')
+        reset_target
         ;;
     '-tcp' | '--tcp')
         bbr_boost_sh
@@ -3061,10 +3121,8 @@ list() {
         [[ $2 == "auto_update" ]] && auto_update="YES" && log_file="${log_dir}/auto_update.log"
         update_sh
         ;;
-    '-uu' | '--uuid-set')
-        UUID_set
-        modify_UUID
-        service_restart
+    '-uu' | '--uuid-reset')
+        reset_UUID
         ;;
     '-xa' | '--xray-access')
         clear
@@ -3101,13 +3159,14 @@ show_help() {
     echo '  -f, --set-fail2ban          设置 Fail2ban 防暴力破解'
     echo '  -h, --help                  显示帮助'
     echo '  -n, --nginx-update          更新 Nginx'
-    echo '  -p, --port-set              变更 port'
+    echo '  -p, --port-reset            变更 port'
     echo '  --purge, --uninstall        脚本卸载'
     echo '  -s, --show                  显示安装信息'
+    echo '  -t, --target-reset          变更 target'
     echo '  -tcp, --tcp                 配置 TCP 加速'
     echo '  -tls, --tls                 修改 TLS 配置'
     echo '  -u, --update                升级脚本'
-    echo '  -uu, --uuid-set             变更 UUIDv5/映射字符串'
+    echo '  -uu, --uuid-reset           变更 UUIDv5/映射字符串'
     echo '  -xa, --xray-access          显示 Xray 访问信息'
     echo '  -xe, --xray-error           显示 Xray 错误信息'
     echo '  -x, --xray-update           更新 Xray'
@@ -3282,40 +3341,41 @@ menu() {
     echo -e "—————————————— ${GreenW}配置变更${Font} ——————————————"
     echo -e "${Green}6.${Font}  变更 UUIDv5/映射字符串"
     echo -e "${Green}7.${Font}  变更 port"
-    echo -e "${Green}8.${Font}  变更 TLS 版本"
-    echo -e "${Green}9.${Font}  变更 Nginx 负载均衡配置"
-    echo -e "${Green}10.${Font} 变更 Nginx serverNames 配置"
+    echo -e "${Green}8.${Font}  变更 target"
+    echo -e "${Green}9.${Font}  变更 TLS 版本"
+    echo -e "${Green}10.${Font} 变更 Nginx 负载均衡配置"
+    echo -e "${Green}11.${Font} 变更 Nginx serverNames 配置"
     echo -e "—————————————— ${GreenW}用户管理${Font} ——————————————"
-    echo -e "${Green}11.${Font} 查看 Xray 用户"
-    echo -e "${Green}12.${Font} 添加 Xray 用户"
-    echo -e "${Green}13.${Font} 删除 Xray 用户"
+    echo -e "${Green}12.${Font} 查看 Xray 用户"
+    echo -e "${Green}13.${Font} 添加 Xray 用户"
+    echo -e "${Green}14.${Font} 删除 Xray 用户"
     echo -e "—————————————— ${GreenW}查看信息${Font} ——————————————"
-    echo -e "${Green}14.${Font} 查看 Xray 实时访问日志"
-    echo -e "${Green}15.${Font} 查看 Xray 实时错误日志"
-    echo -e "${Green}16.${Font} 查看 Xray 配置信息"
+    echo -e "${Green}15.${Font} 查看 Xray 实时访问日志"
+    echo -e "${Green}16.${Font} 查看 Xray 实时错误日志"
+    echo -e "${Green}17.${Font} 查看 Xray 配置信息"
     echo -e "—————————————— ${GreenW}服务相关${Font} ——————————————"
-    echo -e "${Green}17.${Font} 重启 所有服务"
-    echo -e "${Green}18.${Font} 启动 所有服务"
-    echo -e "${Green}19.${Font} 停止 所有服务"
-    echo -e "${Green}20.${Font} 查看 所有服务"
+    echo -e "${Green}18.${Font} 重启 所有服务"
+    echo -e "${Green}19.${Font} 启动 所有服务"
+    echo -e "${Green}20.${Font} 停止 所有服务"
+    echo -e "${Green}21.${Font} 查看 所有服务"
     echo -e "—————————————— ${GreenW}证书相关${Font} ——————————————"
-    echo -e "${Green}21.${Font} 查看 证书状态"
-    echo -e "${Green}22.${Font} 更新 证书有效期"
-    echo -e "${Green}23.${Font} 设置 证书自动更新"
+    echo -e "${Green}22.${Font} 查看 证书状态"
+    echo -e "${Green}23.${Font} 更新 证书有效期"
+    echo -e "${Green}24.${Font} 设置 证书自动更新"
     echo -e "—————————————— ${GreenW}其他选项${Font} ——————————————"
-    echo -e "${Green}24.${Font} 配置 自动更新"
-    echo -e "${Green}25.${Font} 设置 TCP 加速"
-    echo -e "${Green}26.${Font} 设置 Fail2ban 防暴力破解"
-    echo -e "${Green}27.${Font} 设置 Xray 流量统计"
-    echo -e "${Green}28.${Font} 清除 日志文件"
-    echo -e "${Green}29.${Font} 测试 服务器网速"
+    echo -e "${Green}25.${Font} 配置 自动更新"
+    echo -e "${Green}26.${Font} 设置 TCP 加速"
+    echo -e "${Green}27.${Font} 设置 Fail2ban 防暴力破解"
+    echo -e "${Green}28.${Font} 设置 Xray 流量统计"
+    echo -e "${Green}29.${Font} 清除 日志文件"
+    echo -e "${Green}30.${Font} 测试 服务器网速"
     echo -e "—————————————— ${GreenW}卸载向导${Font} ——————————————"
-    echo -e "${Green}30.${Font} 卸载 脚本"
-    echo -e "${Green}31.${Font} 清空 证书文件"
-    echo -e "${Green}32.${Font} 退出 \n"
+    echo -e "${Green}31.${Font} 卸载 脚本"
+    echo -e "${Green}32.${Font} 清空 证书文件"
+    echo -e "${Green}33.${Font} 退出 \n"
 
     local menu_num
-    read_optimize "请输入选项: " "menu_num" "NULL" 0 32 "请输入 0 到 32 之间的有效数字"
+    read_optimize "请输入选项: " "menu_num" "NULL" 0 33 "请输入 0 到 33 之间的有效数字"
     case $menu_num in
     0)
         update_sh
@@ -3363,153 +3423,149 @@ menu() {
         source "$idleleo"
         ;;
     6)
-        UUID_set
-        modify_UUID
-        service_restart
-        vless_qr_link_image
-        timeout "清空屏幕!"
-        clear
+        reset_UUID
+        judge "变更 UUIDv5/映射字符串"
         menu
         ;;
     7)
-        revision_port
-        firewall_set
-        service_restart
-        vless_qr_link_image
-        timeout "清空屏幕!"
-        clear
+        reset_port
+        judge "变更 port"
         menu
         ;;
     8)
-        tls_type
-        timeout "清空屏幕!"
-        clear
+        reset_target
+        judge "变更 target"
         menu
         ;;
     9)
+        tls_type
+        judge "变更 TLS 版本"
+        menu
+        ;;
+    10)
         nginx_upstream_server_set
         timeout "清空屏幕!"
         clear
         menu
         ;;
-    10)
+    11)
         nginx_servernames_server_set
         timeout "清空屏幕!"
         clear
         menu
         ;;
-    11)
+    12)
         show_user
         timeout "回到菜单!"
         menu
         ;;
-    12)
+    13)
         add_user
         timeout "回到菜单!"
         menu
         ;;
-    13)
+    14)
         remove_user
         timeout "回到菜单!"
         menu
         ;;
-    14)
+    15)
         clear
         show_access_log
         ;;
-    15)
+    16)
         clear
         show_error_log
         ;;
-    16)
+    17)
         clear
         basic_information
         vless_qr_link_image
         show_information
         menu
         ;;
-    17)
+    18)
         service_restart
         timeout "清空屏幕!"
         clear
         menu
         ;;
-    18)
+    19)
         service_start
         timeout "清空屏幕!"
         clear
         source "$idleleo"
         ;;
-    19)
+    20)
         service_stop
         timeout "清空屏幕!"
         clear
         source "$idleleo"
         ;;
-    20)
+    21)
         if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
             systemctl status nginx
         fi
         systemctl status xray
         menu
         ;;
-    21)
+    22)
         check_cert_status
         timeout "回到菜单!"
         menu
         ;;
-    22)
+    23)
         cert_update_manuel
         timeout "回到菜单!"
         menu
         ;;
-    23)
+    24)
         acme_cron_update
         timeout "回到菜单!"
         clear
         menu
         ;;
-    24)
+    25)
         auto_update
         timeout "清空屏幕!"
         clear
         menu
         ;;
-    25)
+    26)
         clear
         bbr_boost_sh
         ;;
-    26)
+    27)
         set_fail2ban
         menu
         ;;
-    27)
+    28)
         xray_status_add
         timeout "回到菜单!"
         menu
         ;;
-    28)
+    29)
         clean_logs
         menu
         ;;
-    29)
+    30)
         clear
         bash <(curl -Lso- https://git.io/Jlkmw)
         ;;
-    20)
+    31)
         uninstall_all
         timeout "清空屏幕!"
         clear
         source "$idleleo"
         ;;
-    31)
+    32)
         delete_tls_key_and_crt
         rm -rf ${ssl_chainpath}/*
         timeout "清空屏幕!"
         clear
         menu
         ;;
-    32)
+    33)
         timeout "清空屏幕!"
         clear
         exit 0
