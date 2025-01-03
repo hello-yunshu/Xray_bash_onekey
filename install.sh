@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.2.7"
+shell_version="2.2.8"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -158,6 +158,16 @@ is_root() {
     else
         log_echo "${Error} ${RedBG} 当前用户不是 root用户, 请切换到 root用户 后重新执行脚本! ${Font}"
         exit 1
+    fi
+}
+
+check_and_create_user_group() {
+    if ! getent group nogroup > /dev/null; then
+        groupadd nogroup
+    fi
+
+    if ! id nobody > /dev/null 2>&1; then
+        useradd -r -g nogroup -s /sbin/nologin -c "Unprivileged User" nobody
     fi
 }
 
@@ -943,12 +953,11 @@ modify_privateKey_shortIds() {
 }
 
 xray_privilege_escalation() {
-    cert_group=$(grep -q "^nogroup:" /etc/group && echo "nogroup" || echo "nobody")
     if [[ -n "$(grep "User=nobody" ${xray_systemd_file})" ]]; then
         log_echo "${OK} ${GreenBG} 检测到 Xray 的权限控制, 启动擦屁股程序 ${Font}"
         chmod -fR a+rw /var/log/xray/
-        chown -fR nobody:${cert_group} /var/log/xray/
-        [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR nobody:${cert_group} ${ssl_chainpath}/*
+        chown -fR nobody:nogroup /var/log/xray/
+        [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR nobody:nogroup ${ssl_chainpath}/*
     fi
     log_echo "${OK} ${GreenBG} Xray 擦屁股 完成 ${Font}"
 }
@@ -1101,8 +1110,8 @@ nginx_install() {
 
     # 删除临时文件
     cd "$current_dir" && rm -rf "$temp_dir"
-    chown -R nobody:nogroup "${nginx_dir}"
-    chmod -R 755 "${nginx_dir}"
+    chown -fR nobody:nogroup "${nginx_dir}"
+    chmod -fR 755 "${nginx_dir}"
 }
 
 nginx_update() {
@@ -1401,8 +1410,7 @@ acme() {
         if "$HOME"/.acme.sh/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
             chmod -f a+rw ${ssl_chainpath}/xray.crt
             chmod -f a+rw ${ssl_chainpath}/xray.key
-            cert_group=$(grep -q "^nogroup:" /etc/group && echo "nogroup" || echo "nobody")
-            chown -fR nobody:${cert_group} ${ssl_chainpath}/*
+            chown -fR nobody:nogroup ${ssl_chainpath}/*
             log_echo "${OK} ${GreenBG} 证书配置成功 ${Font}"
             systemctl stop nginx
         fi
@@ -1963,8 +1971,7 @@ clean_logs() {
     *)
         log_echo "${OK} ${Green} 将在 每周三 04:00 自动清空日志 ${Font}"
 
-        # Set up logrotate configuration
-        logrotate_config="/etc/logrotate.d/custom_log_cleanup"
+        logrotate_config="/etc/logrotate.d/xray_log_cleanup"
 
         if [[ -f "$logrotate_config" ]]; then
             log_echo "${Warning} ${YellowBG} 已设置自动清理日志任务 ${Font}"
@@ -1982,15 +1989,13 @@ clean_logs() {
             esac
         fi
 
-        # Create new logrotate configuration file
-        cert_group=$(grep -q "^nogroup:" /etc/group && echo "nogroup" || echo "nobody")
         echo "/var/log/xray/*.log ${nginx_dir}/logs/*.log {" > "$logrotate_config"
         echo "    weekly" >> "$logrotate_config"
         echo "    rotate 3" >> "$logrotate_config"
         echo "    compress" >> "$logrotate_config"
         echo "    missingok" >> "$logrotate_config"
         echo "    notifempty" >> "$logrotate_config"
-        echo "    create 640 nobody ${cert_group}" >> "$logrotate_config"
+        echo "    create 640 nobody nogroup" >> "$logrotate_config"
         echo "}" >> "$logrotate_config"
         
         judge "设置自动清理日志"
@@ -2280,7 +2285,6 @@ ssl_judge_and_install() {
         exit 0
         ;;
     *)
-        cert_group=$(grep -q "^nogroup:" /etc/group && echo "nogroup" || echo "nobody")
         if [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] && [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
             log_echo "${GreenBG} 所有证书文件均已存在, 是否保留 [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r ssl_delete_1
@@ -2293,7 +2297,7 @@ ssl_judge_and_install() {
                 acme
                 ;;
             *)
-                chown -fR nobody:${cert_group} ${ssl_chainpath}/*
+                chown -fR nobody:nogroup ${ssl_chainpath}/*
                 judge "证书应用"
                 ;;
             esac
@@ -2308,7 +2312,7 @@ ssl_judge_and_install() {
                 acme
                 ;;
             *)
-                chown -fR nobody:${cert_group} ${ssl_chainpath}/*
+                chown -fR nobody:nogroup ${ssl_chainpath}/*
                 judge "证书应用"
                 ssl_self="on"
                 ;;
@@ -2325,7 +2329,7 @@ ssl_judge_and_install() {
                 ;;
             *)
                 "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
-                chown -fR nobody:${cert_group} ${ssl_chainpath}/*
+                chown -fR nobody:nogroup ${ssl_chainpath}/*
                 judge "证书应用"
                 ;;
             esac
@@ -2898,6 +2902,7 @@ judge_mode() {
 
 install_xray_ws_tls() {
     is_root
+    check_and_create_user_group
     check_system
     dependency_install
     basic_optimization
@@ -2938,6 +2943,7 @@ install_xray_ws_tls() {
 
 install_xray_reality() {
     is_root
+    check_and_create_user_group
     check_system
     dependency_install
     basic_optimization
@@ -2978,6 +2984,7 @@ install_xray_reality() {
 
 install_xray_ws_only() {
     is_root
+    check_and_create_user_group
     check_system
     dependency_install
     basic_optimization
@@ -3345,6 +3352,24 @@ check_online_version_connect() {
     fi
 }
 
+#以下为兼容代码，1个大版本后删除
+fix_bugs() {
+    local log_cleanup_file_path="/etc/logrotate.d/custom_log_cleanup"   
+    if [[ -f "${log_cleanup_file_path}" ]]; then
+        echo -e "\n"
+        log_echo "${Warning} ${RedBG} 检测存在到 BUG ! ${Font}"
+        log_echo "${Warning} ${YellowBG} BUG 来源于自动清理日志错误的设置 ${Font}"
+        log_echo "${Warning} ${YellowBG} 开始修复.. ${Font}"
+        [[ -f "${nginx_dir}/sbin/nginx" ]] && chown -fR nobody:nogroup "${nginx_dir}/logs"
+        chown -fR nobody:nogroup /var/log/xray/
+        rm -f "${log_cleanup_file_path}"
+        judge "错误的配置文件删除"
+        log_echo "${Warning} ${YellowBG} 即将重新设置自动清理日志.. ${Font}"
+        bash "${idleleo}" --clean-logs
+    fi
+}
+#兼容代码结束
+
 menu() {
     echo -e "\n"
     log_echo "Xray 安装管理脚本 ${Red}[${shell_version}]${Font} ${shell_emoji}"
@@ -3620,4 +3645,5 @@ judge_mode
 idleleo_commend
 check_program
 check_xray_local_connect
+fix_bugs
 list "$@"
