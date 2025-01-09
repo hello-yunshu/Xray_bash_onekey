@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.2.8"
+shell_version="2.2.9"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -802,15 +802,15 @@ modify_listen_address() {
 
     if [[ ${ws_grpc_mode} == "onlyws" ]]; then
         jq --argjson modifynum "$modifynum" \
-           ".inbounds[\($modifynum)].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
+           '.inbounds[\($modifynum)].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
         jq --argjson modifynum2 "$modifynum2" \
-           ".inbounds[\($modifynum2)].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
+           '.inbounds[\($modifynum2)].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     elif [[ ${ws_grpc_mode} == "all" ]]; then
         jq --argjson modifynum "$modifynum" --argjson modifynum2 "$modifynum2" \
-           ".inbounds[\($modifynum)].listen = \"0.0.0.0\" | .inbounds[\($modifynum2)].listen = \"0.0.0.0\"" ${xray_conf} > "${xray_conf}.tmp"
+           '.inbounds[\($modifynum)].listen = "0.0.0.0" | .inbounds[\($modifynum2)].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     fi
     mv "${xray_conf}.tmp" "${xray_conf}"
@@ -950,6 +950,12 @@ modify_privateKey_shortIds() {
      .inbounds[0].streamSettings.realitySettings.shortIds = [$shortIds]' "${xray_conf}" > "${xray_conf}.tmp"
   judge "privateKey 和 shortIds 配置修改"
   mv "${xray_conf}.tmp" "${xray_conf}"
+}
+
+modify_reality_listen_address () {
+    jq '.inbounds[0].listen = "127.0.0.1"' "${xray_conf}" > "${xray_conf}.tmp"
+    mv "${xray_conf}.tmp" "${xray_conf}"
+    judge "Xray reality listen address 修改"
 }
 
 xray_privilege_escalation() {
@@ -1121,22 +1127,22 @@ nginx_update() {
             if [[ -f "${xray_qr_config_file}" ]]; then
                 domain=$(info_extraction host)
                 if [[ ${tls_mode} == "TLS" ]]; then
-                    port=$((info_extraction port))
+                    port=$(info_extraction port)
                     if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                        xport=$((info_extraction ws_port))
+                        xport=$(info_extraction ws_port)
                         path=$(info_extraction path)
                         gport=$((RANDOM % 1000 + 30000))
                         [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
                         serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                        gport=$((info_extraction grpc_port))
+                        gport=$(info_extraction grpc_port)
                         serviceName=$(info_extraction serviceName)
                         xport=$((RANDOM % 1000 + 20000))
                         path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${ws_grpc_mode} == "all" ]]; then
-                        xport=$((info_extraction ws_port))
+                        xport=$(info_extraction ws_port)
                         path=$(info_extraction path)
-                        gport=$((info_extraction grpc_port))
+                        gport=$(info_extraction grpc_port)
                         serviceName=$(info_extraction serviceName)
                     fi
                     if [[ 0 -eq ${read_config_status} ]]; then
@@ -1145,7 +1151,7 @@ nginx_update() {
                         return 1
                     fi
                 elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-                    port=$((info_extraction port))
+                    port=$(info_extraction port)
                     serverNames=$(info_extraction serverNames)
                     if [[ 0 -eq ${read_config_status} ]]; then
                         [[ ${auto_update} == "YES" ]] && echo "Nginx 配置文件不完整, 退出升级!" && exit 1
@@ -1467,6 +1473,10 @@ xray_reality_add_more() {
         modify_path
         modify_inbound_port
     fi
+
+    if [[ ${reality_add_nginx} == "on" ]]; then
+        modify_reality_listen_address
+    fi
 }
 
 old_config_exist_check() {
@@ -1512,27 +1522,27 @@ old_config_input() {
     UUID5_char=$(info_extraction idc)
     UUID=$(info_extraction id)
     if [[ ${tls_mode} == "TLS" ]]; then
-        port=$((info_extraction port))
+        port=$(info_extraction port)
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            xport=$((info_extraction ws_port))
+            xport=$(info_extraction ws_port)
             path=$(info_extraction path)
             gport=$((RANDOM % 1000 + 30000))
             [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            gport=$((info_extraction grpc_port))
+            gport=$(info_extraction grpc_port)
             serviceName=$(info_extraction serviceName)
             xport=$((RANDOM % 1000 + 20000))
             [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
-            xport=$((info_extraction ws_port))
+            xport=$(info_extraction ws_port)
             path=$(info_extraction path)
-            gport=$((info_extraction grpc_port))
+            gport=$(info_extraction grpc_port)
             serviceName=$(info_extraction serviceName)
         fi
     elif [[ ${tls_mode} == "Reality" ]]; then
-        port=$((info_extraction port))
+        port=$(info_extraction port)
         target=$(info_extraction target)
         serverNames=$(info_extraction serverNames)
         privateKey=$(info_extraction privateKey)
@@ -1540,21 +1550,21 @@ old_config_input() {
         shortIds=$(info_extraction shortIds)
         if [[ ${reality_add_more} == "on" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                xport=$((info_extraction ws_port))
+                xport=$(info_extraction ws_port)
                 path=$(info_extraction ws_path)
                 gport=$((RANDOM % 1000 + 30000))
                 [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
                 serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                gport=$((info_extraction grpc_port))
+                gport=$(info_extraction grpc_port)
                 serviceName=$(info_extraction grpc_serviceName)
                 xport=$((RANDOM % 1000 + 20000))
                 [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
                 path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             elif [[ ${ws_grpc_mode} == "all" ]]; then
-                xport=$((info_extraction ws_port))
+                xport=$(info_extraction ws_port)
                 path=$(info_extraction ws_path)
-                gport=$((info_extraction grpc_port))
+                gport=$(info_extraction grpc_port)
                 serviceName=$(info_extraction grpc_serviceName)
             fi
         else
@@ -1565,21 +1575,21 @@ old_config_input() {
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            xport=$((info_extraction ws_port))
+            xport=$(info_extraction ws_port)
             path=$(info_extraction path)
             gport=$((RANDOM % 1000 + 30000))
             [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            gport=$((info_extraction grpc_port))
+            gport=$(info_extraction grpc_port)
             serviceName=$(info_extraction serviceName)
             xport=$((RANDOM % 1000 + 20000))
             [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
-            xport=$((info_extraction ws_port))
+            xport=$(info_extraction ws_port)
             path=$(info_extraction path)
-            gport=$((info_extraction grpc_port))
+            gport=$(info_extraction grpc_port)
             serviceName=$(info_extraction serviceName)
         fi
     fi
@@ -2962,20 +2972,12 @@ install_xray_reality() {
     ws_grpc_qr
     firewall_set
     stop_service_all
-    # port_exist_check 80
     port_exist_check "${port}"
     reality_nginx_add_fq
-    # nginx_exist_check
-    # nginx_systemd
-    # nginx_ssl_conf_add
-    # ssl_judge_and_install
-    # nginx_reality_conf_add
     xray_conf_add
     vless_qr_config_reality
-    # tls_type
     basic_information
     enable_process_systemd
-    # acme_cron_update
     auto_update
     service_restart
     vless_link_image_choice
