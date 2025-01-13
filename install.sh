@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[错误]${Font}"
 Warning="${RedW}[警告]${Font}"
 
-shell_version="2.2.9"
+shell_version="2.2.10"
 shell_mode="未安装"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -792,6 +792,7 @@ UUIDv5_tranc() {
 }
 
 modify_listen_address() {
+    local modifynum modifynum2
     if [[ ${tls_mode} == "Reality" ]]; then
         modifynum=1
         modifynum2=2
@@ -802,15 +803,15 @@ modify_listen_address() {
 
     if [[ ${ws_grpc_mode} == "onlyws" ]]; then
         jq --argjson modifynum "$modifynum" \
-           '.inbounds[\($modifynum)].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
+           '.inbounds[$modifynum].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
         jq --argjson modifynum2 "$modifynum2" \
-           '.inbounds[\($modifynum2)].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
+           '.inbounds[$modifynum2].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     elif [[ ${ws_grpc_mode} == "all" ]]; then
         jq --argjson modifynum "$modifynum" --argjson modifynum2 "$modifynum2" \
-           '.inbounds[\($modifynum)].listen = "0.0.0.0" | .inbounds[\($modifynum2)].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
+           '.inbounds[$modifynum].listen = "0.0.0.0" | .inbounds[$modifynum2].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
         judge "Xray listen address 修改"
     fi
     mv "${xray_conf}.tmp" "${xray_conf}"
