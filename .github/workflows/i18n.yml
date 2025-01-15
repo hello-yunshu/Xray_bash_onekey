@@ -9,12 +9,22 @@ on:
       - 'translate.py'
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   update-translations:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Check running workflows
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      
       - uses: actions/checkout@v4
       
       - name: Restore translation cache
@@ -70,7 +80,7 @@ jobs:
       
       - name: Save translation cache
         if: always()
-        uses: actions/cache/save@v3
+        uses: actions/cache@v3
         with:
           path: po/cache_*.json
           key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
@@ -87,6 +97,10 @@ jobs:
           for lang in zh_CN en fa ru; do
             echo "$TIMESTAMP" > languages/${lang}/LC_MESSAGES/version
           done
+      
+      - name: Pull changes
+        run: |
+          git pull origin main --rebase
       
       - name: Commit changes
         run: |
