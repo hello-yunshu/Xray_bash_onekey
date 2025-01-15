@@ -1,0 +1,97 @@
+name: Update Translations
+
+on:
+  push:
+    paths:
+      - 'install.sh'
+      - 'fail2ban_manager.sh'
+      - 'file_manager.sh'
+      - 'translate.py'
+    branches:
+      - main
+
+jobs:
+  update-translations:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Restore translation cache
+        id: cache-translations
+        uses: actions/cache@v3
+        with:
+          path: po/cache_*.json
+          key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
+          restore-keys: |
+            ${{ runner.os }}-translations-
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext python3 python3-pip
+          pip3 install googletrans-py
+      
+      - name: Setup directories
+        run: |
+          mkdir -p po
+          mkdir -p languages/{en,fa,ru,zh_CN}/LC_MESSAGES
+      
+      - name: Extract strings from all scripts
+        run: |
+          touch po/POTFILES.in
+          for script in install.sh auto_update.sh fail2ban_manager.sh file_manager.sh; do
+            echo "$script" >> po/POTFILES.in
+          done
+          
+          xgettext \
+            --files-from=po/POTFILES.in \
+            --from-code=UTF-8 \
+            --language=Shell \
+            --keyword=gettext \
+            --package-name=xray_install \
+            --package-version=1.0 \
+            --msgid-bugs-address=https://github.com/hello-yunshu/Xray_bash_onekey/issues \
+            --copyright-holder="yunshu" \
+            --output=po/xray_install.pot
+      
+      - name: Update/Create PO files
+        run: |
+          for lang in zh_CN en fa ru; do
+            if [ ! -f po/$lang.po ]; then
+              msginit --no-translator --locale=$lang --input=po/xray_install.pot --output=po/$lang.po
+            else
+              msgmerge --update --backup=none po/$lang.po po/xray_install.pot
+            fi
+          done
+      
+      - name: Auto translate
+        run: python3 translate.py
+      
+      - name: Save translation cache
+        if: always()
+        uses: actions/cache/save@v3
+        with:
+          path: po/cache_*.json
+          key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
+      
+      - name: Compile MO files
+        run: |
+          for lang in zh_CN en fa ru; do
+            msgfmt -o languages/${lang}/LC_MESSAGES/xray_install.mo po/${lang}.po
+          done
+      
+      - name: Create version file
+        run: |
+          TIMESTAMP=$(date +%s)
+          for lang in zh_CN en fa ru; do
+            echo "$TIMESTAMP" > languages/${lang}/LC_MESSAGES/version
+          done
+      
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add po/ languages/
+          git commit -m "Update translations for all languages [$(date +%Y-%m-%d)]" || echo "No changes to commit"
+          git push 
