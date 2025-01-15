@@ -100,7 +100,7 @@ jobs:
       
       - name: Pull changes
         run: |
-          git pull origin main --rebase
+          git pull origin main
       
       - name: Commit changes
         run: |
