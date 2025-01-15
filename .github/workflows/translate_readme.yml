@@ -1,0 +1,61 @@
+name: Translate README
+
+on:
+  push:
+    paths:
+      - 'README.md'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  translate-readme:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check running workflows
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext
+          pip install --upgrade pip
+          pip install googletrans==4.0.0-rc1 langdetect markdown beautifulsoup4
+        # 确保使用具体版本，避免兼容性问题
+      
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/translate_readme.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Translate README
+        run: python3 translate_readme.py README.md languages/
+      
+      - name: Pull changes
+        run: |
+          git pull origin main
+
+      - name: Commit changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add languages/
+          git commit -m "Update translations for README [$(date +%Y-%m-%d)]" || echo "No changes to commit"
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:main 

@@ -26,6 +26,8 @@ jobs:
           access_token: ${{ github.token }}
       
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       
       - name: Restore translation cache
         id: cache-translations
@@ -39,20 +41,27 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gettext python3 python3-pip
-          pip3 install googletrans-py
-      
+          sudo apt-get install -y gettext python3 python3-pip i18nspector
+          pip3 install googletrans-py langdetect
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-googletrans-py-langdetect
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Setup directories
         run: |
           mkdir -p po
           mkdir -p languages/{en,fa,ru,zh_CN}/LC_MESSAGES
       
-      - name: Extract strings from all scripts
+      - name: Extract strings from specified scripts
         run: |
-          touch po/POTFILES.in
-          for script in install.sh auto_update.sh fail2ban_manager.sh file_manager.sh; do
-            echo "$script" >> po/POTFILES.in
-          done
+          echo "install.sh" > po/POTFILES.in
+          echo "fail2ban_manager.sh" >> po/POTFILES.in
+          echo "file_manager.sh" >> po/POTFILES.in
           
           xgettext \
             --files-from=po/POTFILES.in \
@@ -67,16 +76,30 @@ jobs:
       
       - name: Update/Create PO files
         run: |
+          rm -f po/*.po
           for lang in zh_CN en fa ru; do
-            if [ ! -f po/$lang.po ]; then
-              msginit --no-translator --locale=$lang --input=po/xray_install.pot --output=po/$lang.po
-            else
-              msgmerge --update --backup=none po/$lang.po po/xray_install.pot
-            fi
+            msginit --no-translator --locale=$lang --input=po/xray_install.pot --output=po/$lang.po
           done
       
       - name: Auto translate
         run: python3 translate.py
+      
+      - name: Compile MO files
+        run: |
+          #cat po/en.po
+          for lang in zh_CN en fa ru; do
+            msgfmt --check -v --statistics -o languages/${lang}/LC_MESSAGES/xray_install.mo po/${lang}.po
+          done
+      
+      - name: Run i18nspector checks on PO files
+        run: |
+          i18nspector check po/
+      
+      - name: Run i18nspector checks on MO files
+        run: |
+          for lang in zh_CN en fa ru; do
+            i18nspector check-binary languages/${lang}/LC_MESSAGES/xray_install.mo
+          done
       
       - name: Save translation cache
         if: always()
@@ -84,19 +107,6 @@ jobs:
         with:
           path: po/cache_*.json
           key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
-      
-      - name: Compile MO files
-        run: |
-          for lang in zh_CN en fa ru; do
-            msgfmt -o languages/${lang}/LC_MESSAGES/xray_install.mo po/${lang}.po
-          done
-      
-      - name: Create version file
-        run: |
-          TIMESTAMP=$(date +%s)
-          for lang in zh_CN en fa ru; do
-            echo "$TIMESTAMP" > languages/${lang}/LC_MESSAGES/version
-          done
       
       - name: Pull changes
         run: |
