@@ -1,8 +1,3 @@
 install.sh
-auto_update.sh
-fail2ban_manager.sh
-file_manager.sh
-install.sh
-auto_update.sh
 fail2ban_manager.sh
 file_manager.sh

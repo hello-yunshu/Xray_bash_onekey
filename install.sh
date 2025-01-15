@@ -182,31 +182,28 @@ check_and_create_user_group() {
 check_language_update() {
     local lang_code="$1"
     local local_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/xray_install.mo"
-    local github_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/languages"
+    local version_file_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/refs/heads/main/languages/${lang_code}/LC_MESSAGES/version"
     
-    # 如果本地文件不存在，直接返回需要更新
     [[ ! -f "${local_file}" ]] && return 0
     
-    # 获取远程文件的最后修改时间
-    local remote_date
-    remote_date=$(curl -sI "${github_url}/${lang_code}/LC_MESSAGES/xray_install.mo" | grep -i "last-modified" | cut -d' ' -f2-)
+    local remote_version
+    remote_version=$(curl -s "${version_file_url}" || echo "")
     
-    if [ -z "$remote_date" ]; then
+    if [ -z "$remote_version" ]; then
         log_echo "${Warning} ${YellowBG} $(gettext "无法获取远程语言文件信息") ${Font}"
         return 1
     fi
     
-    # 转换为时间戳进行比较
-    local remote_timestamp=$(date -d "$remote_date" +%s)
-    local local_timestamp=$(stat -c %Y "$local_file")
+    local local_version
+    local_version=$(cat "${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/version" 2>/dev/null || echo "")
     
-    # 如果远程文件较新，返回需要更新
-    [ "$remote_timestamp" -gt "$local_timestamp" ]
+    [ "$remote_version" != "$local_version" ]
 }
 
 update_language_file() {
     local lang_code="$1"
     local mo_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/xray_install.mo"
+    local version_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/version"
     local github_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/languages"
     
     mkdir -p "${idleleo_dir}/languages/${lang_code}/LC_MESSAGES"
@@ -223,7 +220,15 @@ update_language_file() {
         rm -f "${mo_file}"
         return 1
     fi
+
+    # 更新version文件
+    if ! curl -s -o "${version_file}" "${github_url}/${lang_code}/LC_MESSAGES/version"; then
+        log_echo "${Error} ${RedBG} $(gettext "版本文件更新失败") ${Font}"
+        return 1
+    fi
     
+    chmod -R 755 "${idleleo_dir}/languages"
+
     log_echo "${OK} ${Green} $(gettext "语言文件更新完成") ${Font}"
 }
 
@@ -258,7 +263,7 @@ init_language() {
         return 1
     fi
     
-    mkdir -p "${idleleo_dir}/languages"
+    [ -d "${idleleo_dir}/languages" ] || mkdir "${idleleo_dir}/languages"
     export TEXTDOMAIN="xray_install"
     export TEXTDOMAINDIR="${idleleo_dir}/languages"
     . "$gettext_sh"
@@ -2536,22 +2541,22 @@ reset_port() {
             xport=$((RANDOM % 1000 + 20000))
             gport=$((RANDOM % 1000 + 30000))
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                read_optimize "$(gettext "请输入 ws inbound_port"):" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${xport}"
                 gport=$((RANDOM % 1000 + 30000))
-                log_echo "${Green} $(gettext "ws inbound_port"): ${xport} ${Font}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
             elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
-                read_optimize "$(gettext "请输入 gRPC inbound_port"):" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${gport}"
                 xport=$((RANDOM % 1000 + 20000))
-                log_echo "${Green} $(gettext "gRPC inbound_port"): ${gport} ${Font}"
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             elif [[ ${ws_grpc_mode} == "all" ]]; then
-                read_optimize "$(gettext "请输入 ws inbound_port"):" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                read_optimize "$(gettext "请输入 gRPC inbound_port"):" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${xport}"
                 port_exist_check "${gport}"
-                log_echo "${Green} $(gettext "ws inbound_port"): ${xport} ${Font}"
-                log_echo "${Green} $(gettext "gRPC inbound_port"): ${gport} ${Font}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             fi
             jq --argjson port "$port" \
                --argjson ws_port "$xport" \
@@ -2562,22 +2567,22 @@ reset_port() {
             [[ ${reality_add_nginx} == "on" ]] && modify_nginx_port
         elif [[ ${tls_mode} == "None" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                read_optimize "$(gettext "请输入 ws inbound_port"):" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${xport}"
                 gport=$((RANDOM % 1000 + 30000))
-                log_echo "${Green} $(gettext "ws inbound_port"): ${xport} ${Font}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
             elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
-                read_optimize "$(gettext "请输入 gRPC inbound_port"):" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${gport}"
                 xport=$((RANDOM % 1000 + 20000))
-                log_echo "${Green} $(gettext "gRPC inbound_port"): ${gport} ${Font}"
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             elif [[ ${ws_grpc_mode} == "all" ]]; then
-                read_optimize "$(gettext "请输入 ws inbound_port"):" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                read_optimize "$(gettext "请输入 gRPC inbound_port"):" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${xport}"
                 port_exist_check "${gport}"
-                log_echo "${Green} $(gettext "ws inbound_port"): ${xport} ${Font}"
-                log_echo "${Green} $(gettext "gRPC inbound_port"): ${gport} ${Font}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             fi
             jq --argjson ws_port "$xport" \
                --argjson grpc_port "$gport" \
@@ -3445,7 +3450,7 @@ check_online_version_connect() {
 
 set_language() {
     echo -e "\n"
-    log_echo "${GreenBG} $(gettext "选择语言 / Select Language / انتخاب زبان / Выберите язык") ${Font}"
+    log_echo "${GreenBG} 选择语言 / Select Language / انتخاب زبان / Выберите язык ${Font}"
     echo -e "${Green}1.${Font} 中文"
     echo -e "${Green}2.${Font} English"
     echo -e "${Green}3.${Font} فارسی"
@@ -3457,6 +3462,8 @@ set_language() {
     case $lang_choice in
         1)
             export LANG=zh_CN.UTF-8
+            rm -f "${idleleo_dir}/language.conf"
+            rm -rf "${idleleo_dir}/languages"
             ;;
         2)
             export LANG=en_US.UTF-8
@@ -3473,7 +3480,9 @@ set_language() {
             ;;
     esac
     
-    echo "LANG=$LANG" > "${idleleo_dir}/language.conf"
+    if [ "$lang_choice" -ne 1 ]; then
+        echo "LANG=$LANG" > "${idleleo_dir}/language.conf"
+    fi
     
     source "$idleleo"
 }
@@ -3521,8 +3530,11 @@ menu() {
     echo -e "${Green}0.${Font}  $(gettext "升级") $(gettext "脚本")"
     echo -e "${Green}1.${Font}  $(gettext "升级") Xray"
     echo -e "${Green}2.${Font}  $(gettext "升级") Nginx"
-    echo -e "—————————————— ${GreenW}Language Settings${Font} ——————————————"
-    echo -e "${Green}34.${Font} English Version"
+    echo -e "—————————————— ${GreenW}Language / 语言${Font} ———————"
+    echo -e "${Green}34.${Font} 中文"
+    echo -e "    English"
+    echo -e "    فارسی"
+    echo -e "    Русский"
     echo -e "—————————————— ${GreenW}$(gettext "安装向导")${Font} ——————————————"
     echo -e "${Green}3.${Font}  $(gettext "安装") Xray (Reality+ws/gRPC+Nginx)"
     echo -e "${Green}4.${Font}  $(gettext "安装") Xray (Nginx+ws/gRPC+TLS)"

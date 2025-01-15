@@ -139,7 +139,7 @@ mf_add_custom_rule() {
     read_optimize "$(gettext "请输入封禁时间 (秒, 默认 604800 秒):")" "ban_time" 604800 1 8640000 "$(gettext "封禁时间必须在 1 到 8640000 秒之间")"
 
     if grep -q "\[$jail_name\]" /etc/fail2ban/jail.local; then
-        log_echo "${Warning} ${YellowBG} $(gettext "Jail") '$jail_name' $(gettext "已存在") ${Font}"
+        log_echo "${Warning} ${YellowBG} Jail '$jail_name' $(gettext "已存在") ${Font}"
         return
     fi
 
