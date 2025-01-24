@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.2.10"
+shell_version="2.3.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -2692,7 +2692,7 @@ show_user() {
 }
 
 add_user() {
-    local choose_user_prot
+    local choose_user_prot reality_user_more
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
         service_stop
         echo -e "\n"
@@ -2707,7 +2707,7 @@ add_user() {
             reality_user_more=""
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
-            reality_user_more="\"flow\":\"xtls-rprx-vision\","
+            reality_user_more="\"flow\":\"xtls-rprx-vision\""
         fi
         email_set
         UUID_set
