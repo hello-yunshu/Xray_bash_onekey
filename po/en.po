@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-01-24 14:56+0000\n"
-"PO-Revision-Date: 2025-01-24 14:56+0000\n"
+"POT-Creation-Date: 2025-01-28 23:10+0000\n"
+"PO-Revision-Date: 2025-01-28 23:10+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -30,8 +30,8 @@ msgstr "mistake"
 msgid "警告"
 msgstr "warn"
 
-#: install.sh:41 install.sh:1340 install.sh:3370 install.sh:3392
-#: install.sh:3395 install.sh:3396 install.sh:3434
+#: install.sh:41 install.sh:1343 install.sh:3374 install.sh:3396
+#: install.sh:3399 install.sh:3400 install.sh:3438
 msgid "未安装"
 msgstr "not installed"
 
@@ -71,7 +71,7 @@ msgstr "unable to obtain remote language file information"
 msgid "正在更新语言文件..."
 msgstr "update language files ..."
 
-#: install.sh:214
+#: install.sh:214 install.sh:293
 msgid "语言文件更新失败"
 msgstr "language file update failed"
 
@@ -83,1760 +83,1756 @@ msgstr "language file is invalid"
 msgid "版本文件更新失败"
 msgstr "edition file update failed"
 
-#: install.sh:232
+#: install.sh:233
 msgid "语言文件更新完成"
 msgstr "language file update is completed"
 
-#: install.sh:237
+#: install.sh:238
 msgid "正在安装 gettext..."
 msgstr "gettext is being installed ..."
 
-#: install.sh:240
+#: install.sh:241
 msgid "gettext 安装失败，将使用默认语言"
 msgstr "gettext installation failed, and the default language will be used"
 
-#: install.sh:261
-msgid "未找到 gettext.sh，将使用默认语言"
-msgstr "no gettext.sh is found, the default language will be used"
+#: install.sh:264
+msgid "未找到"
+msgstr "not found"
 
-#: install.sh:281
-msgid "不支持的语言:"
-msgstr "unspeering language:"
+#: install.sh:264 install.sh:284 install.sh:293
+msgid "将使用默认语言"
+msgstr "will use the default language"
 
-#: install.sh:281
-msgid "，将使用默认语言"
-msgstr ", will use the default language"
+#: install.sh:284
+msgid "不支持的语言"
+msgstr "unsurable language"
 
-#: install.sh:290
-msgid "语言文件更新失败，将使用默认语言"
-msgstr "language file updates failed, and the default language will be used"
-
-#: install.sh:295
+#: install.sh:298
 msgid "发现语言文件更新"
 msgstr "discover the language file update"
 
-#: install.sh:308
+#: install.sh:311
 msgid "完成"
 msgstr "finish"
 
-#: install.sh:311
+#: install.sh:314
 msgid "失败"
 msgstr "fail"
 
-#: install.sh:318
+#: install.sh:321
 msgid "在线版本检测失败, 请稍后再试!"
 msgstr "the online version of the test failed, please try it later!"
 
-#: install.sh:340 install.sh:348 install.sh:3539 install.sh:3540
-#: install.sh:3541 fail2ban_manager.sh:11 fail2ban_manager.sh:38
+#: install.sh:343 install.sh:351 install.sh:3560 install.sh:3561
+#: install.sh:3562 fail2ban_manager.sh:11 fail2ban_manager.sh:38
 msgid "安装"
 msgstr "install"
 
-#: install.sh:342 install.sh:350 install.sh:3380
+#: install.sh:345 install.sh:353 install.sh:3384
 msgid "已安装"
 msgstr "installed"
 
-#: install.sh:367 install.sh:371
+#: install.sh:370 install.sh:374
 msgid "自启动配置"
 msgstr "self -start configuration"
 
-#: install.sh:380
+#: install.sh:383
 msgid "链接库安装"
 msgstr "link library installation"
 
-#: install.sh:385
+#: install.sh:388
 msgid "值为空或超出范围, 请重新输入!"
 msgstr "the value is empty or beyond the range, please re -enter!"
 
-#: install.sh:394
+#: install.sh:397
 msgid "值为空, 请重新输入!"
 msgstr "value is empty, please re -enter!"
 
-#: install.sh:438
+#: install.sh:441
 msgid "确定 连接端口"
 msgstr "determine the connection port"
 
-#: install.sh:439 install.sh:442 install.sh:2534 install.sh:2540
+#: install.sh:442 install.sh:445 install.sh:2537 install.sh:2543
 msgid "请输入连接端口"
 msgstr "please enter the connection port"
 
-#: install.sh:439 install.sh:442 install.sh:2534 install.sh:2540
+#: install.sh:442 install.sh:445 install.sh:2537 install.sh:2543
 msgid "默认值"
 msgstr "default value"
 
-#: install.sh:439 install.sh:442 install.sh:529 install.sh:551
+#: install.sh:442 install.sh:445 install.sh:532 install.sh:554
 msgid "请输入 0-65535 之间的值!"
 msgstr "please enter the value between 0-65535!"
 
-#: install.sh:441
+#: install.sh:444
 msgid "端口 9443 不允许使用, 请重新输入!"
 msgstr "port 9443 is not allowed to be used, please re -enter!"
 
-#: install.sh:450
+#: install.sh:453
 msgid "请选择 安装协议 ws/gRPC"
 msgstr "please select the installation protocol ws/grpc"
 
-#: install.sh:451 install.sh:1412 install.sh:1445 install.sh:1492
-#: install.sh:2631 install.sh:2702 install.sh:2751
+#: install.sh:454 install.sh:1415 install.sh:1448 install.sh:1495
+#: install.sh:2634 install.sh:2705 install.sh:2754
 msgid "默认"
 msgstr "default"
 
-#: install.sh:455 install.sh:819 install.sh:862 install.sh:1416 install.sh:1429
-#: install.sh:1447 install.sh:1496 install.sh:1506 install.sh:2494
-#: install.sh:2544 install.sh:2549 install.sh:2554 install.sh:2555
-#: install.sh:2570 install.sh:2575 install.sh:2580 install.sh:2581
-#: install.sh:2634 install.sh:2643 install.sh:2705 install.sh:2754
-#: install.sh:2763
+#: install.sh:458 install.sh:822 install.sh:865 install.sh:1419 install.sh:1432
+#: install.sh:1450 install.sh:1499 install.sh:1509 install.sh:2497
+#: install.sh:2547 install.sh:2552 install.sh:2557 install.sh:2558
+#: install.sh:2573 install.sh:2578 install.sh:2583 install.sh:2584
+#: install.sh:2637 install.sh:2646 install.sh:2708 install.sh:2757
+#: install.sh:2766
 msgid "请输入"
 msgstr "please enter"
 
-#: install.sh:455 install.sh:1416 install.sh:1447 install.sh:1496
-#: install.sh:2494 install.sh:2634 install.sh:2705 install.sh:2754
+#: install.sh:458 install.sh:1419 install.sh:1450 install.sh:1499
+#: install.sh:2497 install.sh:2637 install.sh:2708 install.sh:2757
 msgid "请输入有效的数字"
 msgstr "please enter valid numbers"
 
-#: install.sh:476
+#: install.sh:479
 msgid "是否添加简单 ws/gRPC 协议 用于负载均衡"
 msgstr "whether to add a simple ws/grpc protocol for load balancing"
 
-#: install.sh:477
+#: install.sh:480
 msgid "如不清楚具体用途, 请勿选择!"
 msgstr "if you do n’t know the specific use, do n’t choose!"
 
-#: install.sh:496
+#: install.sh:499
 msgid "已跳过添加简单 ws/gRPC 协议"
 msgstr "skip to add simple ws/grpc protocol"
 
-#: install.sh:525
+#: install.sh:528
 msgid "是否需要自定义 ws inbound_port"
 msgstr "do you need custom ws inbound_port"
 
-#: install.sh:529
+#: install.sh:532
 msgid "请输入自定义 ws inbound_port"
 msgstr "please enter custom ws inbound_port"
 
-#: install.sh:529 install.sh:551
+#: install.sh:532 install.sh:554
 msgid "请勿与其他端口相同!"
 msgstr "do not be the same as other ports!"
 
-#: install.sh:547
+#: install.sh:550
 msgid "是否需要自定义 gRPC inbound_port"
 msgstr "do you need custom grpc inbound_port"
 
-#: install.sh:551
+#: install.sh:554
 msgid "请输入自定义 gRPC inbound_port"
 msgstr "please enter the custom grpc inbound_port"
 
-#: install.sh:568 file_manager.sh:121
+#: install.sh:571 file_manager.sh:121
 msgid "是否需要设置防火墙"
 msgstr "do you need to set up a firewall"
 
-#: install.sh:608 install.sh:612 file_manager.sh:139 file_manager.sh:143
+#: install.sh:611 install.sh:615 file_manager.sh:139 file_manager.sh:143
 msgid "防火墙 重启 完成"
 msgstr "firewall restart completion"
 
-#: install.sh:614
+#: install.sh:617
 msgid "开放防火墙相关端口"
 msgstr "open firewall -related port"
 
-#: install.sh:615
+#: install.sh:618
 msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "if you modify the configuration, please pay attention to turn off the firewall -related port"
 
-#: install.sh:616
+#: install.sh:619
 msgid "配置 Xray FullCone"
 msgstr "configure xray fullcone"
 
-#: install.sh:619 file_manager.sh:147
+#: install.sh:622 file_manager.sh:147
 msgid "跳过防火墙设置"
 msgstr "skip firewall settings"
 
-#: install.sh:628
+#: install.sh:631
 msgid "是否需要自定义 ws 伪装路径"
 msgstr "do you need a custom ws camouflage path"
 
-#: install.sh:632
+#: install.sh:635
 msgid "请输入自定义 ws 伪装路径"
 msgstr "please enter the custom ws camouflage path"
 
-#: install.sh:632 install.sh:665
+#: install.sh:635 install.sh:668
 msgid "不需要"
 msgstr "unnecessary"
 
-#: install.sh:633 install.sh:637 install.sh:666 install.sh:670
+#: install.sh:636 install.sh:640 install.sh:669 install.sh:673
 msgid "伪装路径"
 msgstr "camouflage"
 
-#: install.sh:645
+#: install.sh:648
 msgid "是否需要修改 ws 伪装路径"
 msgstr "do you need to modify the ws camouflage path"
 
-#: install.sh:661
+#: install.sh:664
 msgid "是否需要自定义 gRPC 伪装路径"
 msgstr "do you need a custom grpc camouflage path?"
 
-#: install.sh:665
+#: install.sh:668
 msgid "请输入自定义 gRPC 伪装路径"
 msgstr "please enter the custom grpc camouflage path"
 
-#: install.sh:678
+#: install.sh:681
 msgid "是否需要修改 gRPC 伪装路径"
 msgstr "do you need to modify the grpc camouflage path"
 
-#: install.sh:693
+#: install.sh:696
 msgid "是否需要自定义 Xray 用户名"
 msgstr "do you need a custom xray username"
 
-#: install.sh:697
+#: install.sh:700
 msgid "请输入合法的email"
 msgstr "please enter the legal email"
 
-#: install.sh:703
+#: install.sh:706
 msgid "Xray 用户名"
 msgstr "xray username"
 
-#: install.sh:710
+#: install.sh:713
 msgid "是否需要自定义字符串映射为 UUIDv5"
 msgstr "do you need a custom string mapping to uuidv5"
 
-#: install.sh:714
+#: install.sh:717
 msgid "请输入自定义字符串"
 msgstr "please enter the custom string"
 
-#: install.sh:714
+#: install.sh:717
 msgid "最多30字符"
 msgstr "up to 30 characters"
 
-#: install.sh:716
+#: install.sh:719
 msgid "自定义字符串"
 msgstr "custom string"
 
-#: install.sh:723
+#: install.sh:726
 msgid "UUID 映射字符串"
 msgstr "uuid mapping string"
 
-#: install.sh:735
+#: install.sh:738
 msgid "检测到 target 域名已配置, 是否保留"
 msgstr "the target domain name has been configured, whether it is retained"
 
-#: install.sh:755
+#: install.sh:758
 msgid "请输入一个域名"
 msgstr "please enter a domain name"
 
-#: install.sh:756
+#: install.sh:759
 msgid "域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用"
 msgstr "the domain name requires support for tlsv1.3, x25519 and h2, and domain name non -jump"
 
-#: install.sh:757
+#: install.sh:760
 msgid "确认域名符合要求后请输入"
 msgstr "please enter after confirming that the domain name meets the requirements"
 
-#: install.sh:758
+#: install.sh:761
 msgid "正在检测域名请等待"
 msgstr "please wait for the domain name"
 
-#: install.sh:765
+#: install.sh:768
 msgid "该域名不支持 TLSv1.3"
 msgstr "this domain name does not support tlsv1.3"
 
-#: install.sh:770
+#: install.sh:773
 msgid "该域名不支持 X25519"
 msgstr "this domain name does not support x25519"
 
-#: install.sh:775
+#: install.sh:778
 msgid "该域名不支持 HTTP/2"
 msgstr "this domain name does not support http/2"
 
-#: install.sh:780
+#: install.sh:783
 msgid "该域名发生了跳转"
 msgstr "the domain name jumped"
 
-#: install.sh:787
+#: install.sh:790
 msgid "该域名可能不满足所有要求"
 msgstr "this domain name may not meet all requirements"
 
-#: install.sh:788
+#: install.sh:791
 msgid "是否仍要设置此域名"
 msgstr "do you still have to set this domain name"
 
-#: install.sh:800 install.sh:1414
+#: install.sh:803 install.sh:1417
 msgid "域名"
 msgstr "domain name"
 
-#: install.sh:800
+#: install.sh:803
 msgid "满足所有要求"
 msgstr "meet all requirements"
 
-#: install.sh:805
+#: install.sh:808
 msgid "target 域名"
 msgstr "target domain name"
 
-#: install.sh:813
+#: install.sh:816
 msgid "是否需要修改"
 msgstr "do you need to modify"
 
-#: install.sh:813
+#: install.sh:816
 msgid "域名的 serverNames 用户名"
 msgstr "servernames user name of the domain name"
 
-#: install.sh:814
+#: install.sh:817
 msgid "默认为"
 msgstr "default"
 
-#: install.sh:814
+#: install.sh:817
 msgid "域名的本身"
 msgstr "domain name itself"
 
-#: install.sh:815 install.sh:853 install.sh:896
+#: install.sh:818 install.sh:856 install.sh:899
 msgid "如不清楚具体用途, 请勿继续!"
 msgstr "if you do n’t know the specific use, do n’t continue!"
 
-#: install.sh:852
+#: install.sh:855
 msgid "是否变更 Nginx 负载均衡"
 msgstr "whether to change the nginx load balancing"
 
-#: install.sh:857
+#: install.sh:860
 msgid "请选择协议为 ws 或 gRPC"
 msgstr "please select the protocol to ws or grpc"
 
-#: install.sh:860 fail2ban_manager.sh:102
+#: install.sh:863 fail2ban_manager.sh:102
 msgid "返回"
 msgstr "return"
 
-#: install.sh:862
+#: install.sh:865
 msgid "请重新输入正确的数字"
 msgstr "please re -enter the correct number"
 
-#: install.sh:867 install.sh:904
+#: install.sh:870 install.sh:907
 msgid "本地文件 file_manager.sh 不存在，正在下载..."
 msgstr "local file file_manager.sh does not exist, downloading ..."
 
-#: install.sh:870 install.sh:907 install.sh:2041 fail2ban_manager.sh:242
+#: install.sh:873 install.sh:910 install.sh:2044 fail2ban_manager.sh:242
 #: file_manager.sh:258
 msgid "下载失败，请手动下载并安装新版本"
 msgstr "the download failed, please download and install the new version manually"
 
-#: install.sh:880 file_manager.sh:229
+#: install.sh:883 file_manager.sh:229
 msgid "无效选项 请重试"
 msgstr "invalent options please try it out"
 
-#: install.sh:888 install.sh:917 install.sh:1977 install.sh:2015
-#: install.sh:2031
+#: install.sh:891 install.sh:920 install.sh:1980 install.sh:2018
+#: install.sh:2034
 msgid "当前模式不支持此操作!"
 msgstr "the current mode does not support this operation!"
 
-#: install.sh:895
+#: install.sh:898
 msgid "是否变更 Nginx serverNames 配置"
 msgstr "whether to change nginx servernames configuration"
 
-#: install.sh:897
+#: install.sh:900
 msgid "配置用途可以参考文章"
 msgstr "you can refer to the article for configuration."
 
-#: install.sh:897
+#: install.sh:900
 msgid "敬请期待"
 msgstr "please look forward to"
 
-#: install.sh:939 install.sh:943 install.sh:947
+#: install.sh:942 install.sh:946 install.sh:950
 msgid "Xray listen address 修改"
 msgstr "xray listen address modification"
 
-#: install.sh:959 install.sh:964 install.sh:970
+#: install.sh:962 install.sh:967 install.sh:973
 msgid "Xray inbound port 修改"
 msgstr "xray inbound port modification"
 
-#: install.sh:990
+#: install.sh:993
 msgid "Nginx port 修改"
 msgstr "nginx port modification"
 
-#: install.sh:996
+#: install.sh:999
 msgid "Xray port 修改"
 msgstr "xray port modification"
 
-#: install.sh:998
+#: install.sh:1001
 msgid "端口号"
 msgstr "port number"
 
-#: install.sh:1046
+#: install.sh:1049
 msgid "Xray 伪装路径 修改"
 msgstr "xray camouflage path modification"
 
-#: install.sh:1048
+#: install.sh:1051
 msgid "Reality 不支持 path"
 msgstr "reality does not support path"
 
-#: install.sh:1055
+#: install.sh:1058
 msgid "Xray 用户名 修改"
 msgstr "xray user name modification"
 
-#: install.sh:1058 install.sh:1068
+#: install.sh:1061 install.sh:1071
 msgid "请先删除 多余的用户"
 msgstr "please delete excess users first"
 
-#: install.sh:1065
+#: install.sh:1068
 msgid "Xray UUID 修改"
 msgstr "xray uuid modification"
 
-#: install.sh:1076
+#: install.sh:1079
 msgid "target serverNames 配置修改"
 msgstr "target servernames configuration modification"
 
-#: install.sh:1084
+#: install.sh:1087
 msgid "privateKey 和 shortIds 配置修改"
 msgstr "privatekey and shortids configuration modification"
 
-#: install.sh:1091
+#: install.sh:1094
 msgid "Xray reality listen address 修改"
 msgstr "xray reality listen address modification"
 
-#: install.sh:1096
+#: install.sh:1099
 msgid "检测到 Xray 的权限控制, 启动擦屁股程序"
 msgstr "the permissions control of xray is detected, and the scratching program is started"
 
-#: install.sh:1101
+#: install.sh:1104
 msgid "Xray 擦屁股 完成"
 msgstr "xray rubbing the butt to complete"
 
-#: install.sh:1107 install.sh:3290 install.sh:3291 install.sh:3292
+#: install.sh:1110 install.sh:3294 install.sh:3295 install.sh:3296
 msgid "安装 Xray"
 msgstr "install xray"
 
-#: install.sh:1113
+#: install.sh:1116
 msgid "已安装 Xray"
 msgstr "xray has been installed"
 
-#: install.sh:1118
+#: install.sh:1121
 msgid "若更新无效, 建议直接卸载再安装!"
 msgstr "if the update is invalid, it is recommended to uninstall it directly and then install it!"
 
-#: install.sh:1119
+#: install.sh:1122
 msgid "部分新功能需要重新安装才可生效"
 msgstr "some new functions need to be reinstalled before it can take effect"
 
-#: install.sh:1125
+#: install.sh:1128
 msgid "检测到存在最新版"
 msgstr "the latest version is detected"
 
-#: install.sh:1126
+#: install.sh:1129
 msgid "脚本可能未兼容此版本"
 msgstr "script may not be compatible with this version"
 
-#: install.sh:1127
+#: install.sh:1130
 msgid "是否更新"
 msgstr "whether to update"
 
-#: install.sh:1134
+#: install.sh:1137
 msgid "即将升级"
 msgstr "improve"
 
-#: install.sh:1138 install.sh:1145 install.sh:1152 install.sh:1335
-#: install.sh:3530 install.sh:3531 install.sh:3532
+#: install.sh:1141 install.sh:1148 install.sh:1155 install.sh:1338
+#: install.sh:3551 install.sh:3552 install.sh:3553
 msgid "升级"
 msgstr "upgrade"
 
-#: install.sh:1141
+#: install.sh:1144
 msgid "即将升级/重装"
 msgstr "improved/reinstalled"
 
-#: install.sh:1149
+#: install.sh:1152
 msgid "升级/重装"
 msgstr "upgrade/reinstallation"
 
-#: install.sh:1165
+#: install.sh:1168
 msgid "Reality 协议有流量偷跑的风险"
 msgstr "reality protocol has the risk of stealing traffic"
 
-#: install.sh:1166
+#: install.sh:1169
 msgid "该风险在 target 网址被 cdn 加速时存在"
 msgstr "this risk exists when the target website is accelerated by cdn"
 
-#: install.sh:1167
+#: install.sh:1170
 msgid "是否额外安装 nginx 前置保护(推荐)"
 msgstr "whether to install nginx pre -protection (recommended)"
 
-#: install.sh:1171
+#: install.sh:1174
 msgid "已跳过安装"
 msgstr "skip installation"
 
-#: install.sh:1201
+#: install.sh:1204
 msgid "Nginx 已存在, 跳过编译安装过程"
 msgstr "nginx already exists, skipping the compilation and installation process"
 
-#: install.sh:1204
+#: install.sh:1207
 msgid "检测到旧版本安装的"
 msgstr "the old version was installed"
 
-#: install.sh:1205
+#: install.sh:1208
 msgid "请先做好备份"
 msgstr "please make a backup first"
 
-#: install.sh:1206
+#: install.sh:1209
 msgid "是否需要删除 (请删除)"
 msgstr "do you need to delete (please delete)"
 
-#: install.sh:1210
+#: install.sh:1213
 msgid "已跳过删除"
 msgstr "skip delete"
 
-#: install.sh:1217
+#: install.sh:1220
 msgid "日志目录已更改, 日志清除需要重新设置"
 msgstr "the log directory has been changed, and the log clearance needs to be reset"
 
-#: install.sh:1223
+#: install.sh:1226
 msgid "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装!"
 msgstr "nginx installed in other kits, continuing installation will cause conflicts. please install it after handling!"
 
-#: install.sh:1237
+#: install.sh:1240
 msgid "即将下载已编译的"
 msgstr "the compilation is about to be downloaded"
 
-#: install.sh:1282 install.sh:1290
+#: install.sh:1285 install.sh:1293
 msgid "Nginx 配置文件不完整, 退出升级!"
 msgstr "nginx configuration file is incomplete, exit and upgrade!"
 
-#: install.sh:1283 install.sh:1291
+#: install.sh:1286 install.sh:1294
 msgid "配置文件不完整, 退出升级"
 msgstr "the configuration file is incomplete, exit and upgrade"
 
-#: install.sh:1295 install.sh:1296
+#: install.sh:1298 install.sh:1299
 msgid "当前安装模式不需要"
 msgstr "the current installation mode is not needed"
 
-#: install.sh:1300
+#: install.sh:1303
 msgid "Nginx 配置文件不存在, 退出升级!"
 msgstr "nginx configuration file does not exist, exit and upgrade!"
 
-#: install.sh:1301
+#: install.sh:1304
 msgid "配置文件不存在, 退出升级"
 msgstr "the configuration file does not exist, exit and upgrade"
 
-#: install.sh:1305
+#: install.sh:1308
 msgid "删除旧版"
 msgstr "delete the old version"
 
-#: install.sh:1309
+#: install.sh:1312
 msgid "是否保留原 Nginx 配置文件"
 msgstr "whether to keep the original nginx configuration file"
 
-#: install.sh:1317 install.sh:1586
+#: install.sh:1320 install.sh:1589
 msgid "原配置文件已删除!"
 msgstr "the original configuration file has been deleted!"
 
-#: install.sh:1321
+#: install.sh:1324
 msgid "原配置文件已保留!"
 msgstr "the original configuration file has been retained!"
 
-#: install.sh:1337
+#: install.sh:1340
 msgid "已为最新版"
 msgstr "has been the latest version"
 
-#: install.sh:1352
+#: install.sh:1355
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr "set the automatic update program (including: script/xray/nginx) when setting a background"
 
-#: install.sh:1353
+#: install.sh:1356
 msgid "可能自动更新后有兼容问题, 谨慎开启"
 msgstr "there may be compatible problems after automatic update, and open cautiously"
 
-#: install.sh:1354
+#: install.sh:1357
 msgid "是否开启"
 msgstr "whether to open"
 
-#: install.sh:1360 install.sh:3295
+#: install.sh:1363 install.sh:3299
 msgid "设置自动更新"
 msgstr "set automatic update"
 
-#: install.sh:1365
+#: install.sh:1368
 msgid "已设置自动更新"
 msgstr "set automatic update"
 
-#: install.sh:1366
+#: install.sh:1369
 msgid "是否关闭"
 msgstr "whether to close"
 
-#: install.sh:1372
+#: install.sh:1375
 msgid "删除自动更新"
 msgstr "delete automatic update"
 
-#: install.sh:1381
+#: install.sh:1384
 msgid "安装 SSL 证书生成脚本依赖"
 msgstr "install ssl certificate generating script dependencies"
 
-#: install.sh:1383
+#: install.sh:1386
 msgid "安装 SSL 证书生成脚本"
 msgstr "install the ssl certificate to generate a script"
 
-#: install.sh:1389
+#: install.sh:1392
 msgid "检测到原域名配置存在, 是否跳过域名设置"
 msgstr "the presence of the original domain name configuration is detected, whether to skip the domain name settings"
 
-#: install.sh:1403
+#: install.sh:1406
 msgid "已跳过域名设置"
 msgstr "skip domain name settings"
 
-#: install.sh:1409
+#: install.sh:1412
 msgid "确定域名信息"
 msgstr "determine domain information"
 
-#: install.sh:1410
+#: install.sh:1413
 msgid "请输入你的域名信息"
 msgstr "please enter your domain name information"
 
-#: install.sh:1411
+#: install.sh:1414
 msgid "请选择公网IP(IPv4/IPv6)或手动输入域名"
 msgstr "please select the public network ip (ipv4/ipv6) or manually enter the domain name"
 
-#: install.sh:1413 install.sh:1493
+#: install.sh:1416 install.sh:1496
 msgid "不推荐"
 msgstr "not recommend"
 
-#: install.sh:1417 install.sh:1498
+#: install.sh:1420 install.sh:1501
 msgid "正在获取公网IP信息, 请耐心等待"
 msgstr "get the public network ip information, please wait patiently"
 
-#: install.sh:1427
+#: install.sh:1430
 msgid "此选项用于服务器商仅提供域名访问服务器"
 msgstr "this option is used for server vendors to provide only domain name access servers"
 
-#: install.sh:1428
+#: install.sh:1431
 msgid "注意服务器商域名添加 CNAME 记录"
 msgstr "note that the server business domain name is added cname record"
 
-#: install.sh:1436
+#: install.sh:1439
 msgid "域名DNS解析IP"
 msgstr "domain dns analysis ip"
 
-#: install.sh:1437 install.sh:1512
+#: install.sh:1440 install.sh:1515
 msgid "公网IP/域名"
 msgstr "public network ip/domain name"
 
-#: install.sh:1439
+#: install.sh:1442
 msgid "域名DNS解析IP与公网IP匹配"
 msgstr "domain dns analysis ip and public network ip match"
 
-#: install.sh:1441
+#: install.sh:1444
 msgid "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray"
 msgstr "please ensure that the domain name adds the correct a/aaaa record, otherwise it will not be able to use xray normally"
 
-#: install.sh:1442
+#: install.sh:1445
 msgid "域名DNS解析IP与公网IP不匹配, 请选择"
 msgstr "domain dns parsing ip does not match the public network ip, please select"
 
-#: install.sh:1443 install.sh:1450
+#: install.sh:1446 install.sh:1453
 msgid "继续安装"
 msgstr "continue to install"
 
-#: install.sh:1444
+#: install.sh:1447
 msgid "重新输入"
 msgstr "re -enter"
 
-#: install.sh:1445
+#: install.sh:1448
 msgid "终止安装"
 msgstr "terminate the installation"
 
-#: install.sh:1456
+#: install.sh:1459
 msgid "安装终止"
 msgstr "install"
 
-#: install.sh:1467
+#: install.sh:1470
 msgid "检测到原IP配置存在, 是否跳过IP设置"
 msgstr "detecting the existence of the original ip configuration, whether to skip the ip settings"
 
-#: install.sh:1484
+#: install.sh:1487
 msgid "已跳过IP设置"
 msgstr "skip ip settings"
 
-#: install.sh:1490
+#: install.sh:1493
 msgid "确定公网IP信息"
 msgstr "determine the public network ip information"
 
-#: install.sh:1491
+#: install.sh:1494
 msgid "请选择公网IP为IPv4或IPv6"
 msgstr "please select the public network ip as ipv4 or ipv6"
 
-#: install.sh:1494
+#: install.sh:1497
 msgid "手动输入"
 msgstr "manually input"
 
-#: install.sh:1521
+#: install.sh:1524
 msgid "尝试自动 kill 占用进程"
 msgstr "try the automatic kill occupation process"
 
-#: install.sh:1523
+#: install.sh:1526
 msgid "kill 完成"
 msgstr "kill complete"
 
-#: install.sh:1532
+#: install.sh:1535
 msgid "SSL 证书测试签发成功, 开始正式签发"
 msgstr "the ssl certificate test was issued successfully, and the official issuance was officially issued"
 
-#: install.sh:1535
+#: install.sh:1538
 msgid "SSL 证书测试签发失败"
 msgstr "ssl certificate test issuance fails"
 
-#: install.sh:1542
+#: install.sh:1545
 msgid "SSL 证书生成成功"
 msgstr "ssl certificate generation success"
 
-#: install.sh:1548
+#: install.sh:1551
 msgid "证书配置成功"
 msgstr "successful certificate configuration"
 
-#: install.sh:1552
+#: install.sh:1555
 msgid "SSL 证书生成失败"
 msgstr "ssl certificate generation failure"
 
-#: install.sh:1580
+#: install.sh:1583
 msgid "检测到 Xray 配置过多用户"
 msgstr "testing too many users in xray configuration"
 
-#: install.sh:1581
+#: install.sh:1584
 msgid "是否保留原 Xray 配置文件"
 msgstr "whether to keep the original xray configuration file"
 
-#: install.sh:1599
+#: install.sh:1602
 msgid "添加简单 ws/gRPC 协议"
 msgstr "add simple ws/grpc protocol"
 
-#: install.sh:1614
+#: install.sh:1617
 msgid "检测到配置文件, 是否读取配置文件"
 msgstr "detect the configuration file, whether to read the configuration file"
 
-#: install.sh:1619 install.sh:1640 install.sh:1736 install.sh:2918
+#: install.sh:1622 install.sh:1643 install.sh:1739 install.sh:2921
 msgid "已删除配置文件"
 msgstr "deleted configuration file"
 
-#: install.sh:1622 install.sh:1635 install.sh:1731 install.sh:2914
+#: install.sh:1625 install.sh:1638 install.sh:1734 install.sh:2917
 msgid "已保留配置文件"
 msgstr "the configuration file has been retained"
 
-#: install.sh:1629
+#: install.sh:1632
 msgid "检测到当前安装模式与配置文件的安装模式不一致"
 msgstr "the current installation mode is detected that the installation mode of the configuration file is inconsistent"
 
-#: install.sh:1630
+#: install.sh:1633
 msgid "是否保留配置文件 (强烈不建议)"
 msgstr "whether to keep the configuration file (strong is not recommended)"
 
-#: install.sh:1634
+#: install.sh:1637
 msgid "请务必确保配置文件正确"
 msgstr "please make sure the configuration file is correct"
 
-#: install.sh:1726
+#: install.sh:1729
 msgid "检测到配置文件不完整, 是否保留配置文件"
 msgstr "the configuration file is not complete, whether the configuration file is retained"
 
-#: install.sh:1765
+#: install.sh:1768
 msgid "Nginx SSL 配置修改"
 msgstr "nginx ssl configuration modification"
 
-#: install.sh:1835 install.sh:1865
+#: install.sh:1838 install.sh:1868
 msgid "Nginx 配置修改"
 msgstr "nginx configuration modification"
 
-#: install.sh:1874
+#: install.sh:1877
 msgid "Nginx serverNames 配置修改"
 msgstr "nginx servernames configuration modification"
 
-#: install.sh:1881
+#: install.sh:1884
 msgid "Nginx serverNames 配置删除"
 msgstr "nginx servernames configuration delete"
 
-#: install.sh:1897
+#: install.sh:1900
 msgid "Nginx servers 配置修改"
 msgstr "nginx server configuration modification"
 
-#: install.sh:1902
+#: install.sh:1905
 msgid "设置 Nginx 开机自启"
 msgstr "set nginx and start self -starting"
 
-#: install.sh:1905
+#: install.sh:1908
 msgid "设置 Xray 开机自启"
 msgstr "set xray boot self -starting"
 
-#: install.sh:1910
+#: install.sh:1913
 msgid "关闭 Nginx 开机自启"
 msgstr "turn off nginx and start self -starting"
 
-#: install.sh:1913
+#: install.sh:1916
 msgid "关闭 Xray 开机自启"
 msgstr "turn off xray to start and start self -starting"
 
-#: install.sh:1920
+#: install.sh:1923
 msgid "停止已有服务"
 msgstr "stop existing service"
 
-#: install.sh:1926 install.sh:2502
+#: install.sh:1929 install.sh:2505
 msgid "Nginx 重启"
 msgstr "nginx restart"
 
-#: install.sh:1929 install.sh:2504
+#: install.sh:1932 install.sh:2507
 msgid "Xray 重启"
 msgstr "xray restart"
 
-#: install.sh:1934
+#: install.sh:1937
 msgid "Nginx 启动"
 msgstr "nginx start"
 
-#: install.sh:1937
+#: install.sh:1940
 msgid "Xray 启动"
 msgstr "xray start"
 
-#: install.sh:1942
+#: install.sh:1945
 msgid "Nginx 停止"
 msgstr "nginx stop"
 
-#: install.sh:1945 install.sh:2005
+#: install.sh:1948 install.sh:2008
 msgid "Xray 停止"
 msgstr "xray stop"
 
-#: install.sh:1958 install.sh:1974
+#: install.sh:1961 install.sh:1977
 msgid "新版本已自动设置证书自动更新"
 msgstr "the new version has been automatically set up automatically update"
 
-#: install.sh:1959
+#: install.sh:1962
 msgid "老版本请及时删除 废弃的 改版证书自动更新!"
 msgstr "please delete the abandoned revision certificate automatically in time!"
 
-#: install.sh:1960
+#: install.sh:1963
 msgid "已设置改版证书自动更新"
 msgstr "automatically update the revision certificate"
 
-#: install.sh:1961
+#: install.sh:1964
 msgid "是否需要删除改版证书自动更新 (请删除)"
 msgstr "do you need to delete the revision certificate and update automatically (please delete)"
 
-#: install.sh:1968
+#: install.sh:1971
 msgid "删除改版证书自动更新"
 msgstr "delete the revision certificate automatic update"
 
-#: install.sh:1992
+#: install.sh:1995
 msgid "已过期"
 msgstr "extension"
 
-#: install.sh:1994
+#: install.sh:1997
 msgid "证书生成日期"
 msgstr "certificate generation date"
 
-#: install.sh:1995
+#: install.sh:1998
 msgid "证书生成天数"
 msgstr "certificate generation days"
 
-#: install.sh:1996
+#: install.sh:1999
 msgid "证书剩余天数"
 msgstr "certificate remaining days"
 
-#: install.sh:2000
+#: install.sh:2003
 msgid "是否立即更新证书"
 msgstr "do you update the certificate immediately"
 
-#: install.sh:2012 install.sh:2024
+#: install.sh:2015 install.sh:2027
 msgid "证书签发工具不存在, 请确认是否证书为脚本签发!"
 msgstr "the certificate issuance tool does not exist, please confirm whether the certificate is issued as a script!"
 
-#: install.sh:2028
+#: install.sh:2031
 msgid "证书更新"
 msgstr "certificate update"
 
-#: install.sh:2038
+#: install.sh:2041
 msgid "本地文件 fail2ban_manager.sh 不存在，正在下载..."
 msgstr "local file fail2ban_manager.sh does not exist, downloading ..."
 
-#: install.sh:2052
+#: install.sh:2055
 msgid "检测到日志文件大小如下:"
 msgstr "the size of the log file is detected as follows:"
 
-#: install.sh:2054
+#: install.sh:2057
 msgid "即将清除!"
 msgstr "it's about to be cleared!"
 
-#: install.sh:2056
+#: install.sh:2059
 msgid "日志清理"
 msgstr "log cleaning"
 
-#: install.sh:2066
+#: install.sh:2069
 msgid "已设置旧版自动清理日志任务"
 msgstr "the old version of the automatic cleaning log task has been set up"
 
-#: install.sh:2067
+#: install.sh:2070
 msgid "是否需要删除旧版自动清理日志任务"
 msgstr "do you need to delete the old version of the automatic cleaning log task"
 
-#: install.sh:2071 install.sh:2105
+#: install.sh:2074 install.sh:2108
 msgid "保留现有自动清理日志任务"
 msgstr "keep the existing automatic cleaning log task"
 
-#: install.sh:2076
+#: install.sh:2079
 msgid "删除旧版自动清理日志任务"
 msgstr "delete the old version of the automatic cleaning log task"
 
-#: install.sh:2083
+#: install.sh:2086
 msgid "是否需要设置自动清理日志"
 msgstr "do you need to set up an automatic cleaning log"
 
-#: install.sh:2087 install.sh:3587 install.sh:3596 install.sh:3648
-#: install.sh:3654 install.sh:3690 install.sh:3696 install.sh:3702
-#: install.sh:3731 install.sh:3758 install.sh:3765 install.sh:3770
+#: install.sh:2090 install.sh:3608 install.sh:3617 install.sh:3669
+#: install.sh:3675 install.sh:3711 install.sh:3717 install.sh:3723
+#: install.sh:3752 install.sh:3779 install.sh:3786 install.sh:3791
 #: fail2ban_manager.sh:159 fail2ban_manager.sh:172 fail2ban_manager.sh:181
 #: fail2ban_manager.sh:189
 msgid "清空屏幕!"
 msgstr "clear the screen!"
 
-#: install.sh:2091
+#: install.sh:2094
 msgid "将在 每周三 04:00 自动清空日志"
 msgstr "the log will be automatically emptied every wednesday at 04:00"
 
-#: install.sh:2096
+#: install.sh:2099
 msgid "已设置自动清理日志任务"
 msgstr "automatic cleaning log task has been set up"
 
-#: install.sh:2097
+#: install.sh:2100
 msgid "是否需要删除现有自动清理日志任务"
 msgstr "do you need to delete the existing automatic cleaning log task"
 
-#: install.sh:2102
+#: install.sh:2105
 msgid "删除自动清理日志任务"
 msgstr "delete the automatic cleaning log task"
 
-#: install.sh:2120
+#: install.sh:2123
 msgid "设置自动清理日志"
 msgstr "set automatic cleaning log"
 
-#: install.sh:2245
+#: install.sh:2248
 msgid "Xray 配置分享"
 msgstr "xray configuration sharing"
 
-#: install.sh:2247 install.sh:2675
+#: install.sh:2250 install.sh:2678
 msgid "URL 分享链接"
 msgstr "url sharing link"
 
-#: install.sh:2248 install.sh:2254 install.sh:2259 install.sh:2264
-#: install.sh:2268
+#: install.sh:2251 install.sh:2257 install.sh:2262 install.sh:2267
+#: install.sh:2271
 msgid "二维码"
 msgstr "qr code"
 
-#: install.sh:2253 install.sh:2263
+#: install.sh:2256 install.sh:2266
 msgid "ws URL 分享链接"
 msgstr "ws url sharing link"
 
-#: install.sh:2258 install.sh:2267
+#: install.sh:2261 install.sh:2270
 msgid "gRPC URL 分享链接"
 msgstr "grpc url sharing link"
 
-#: install.sh:2277
+#: install.sh:2280
 msgid "生成分享链接"
 msgstr "generate sharing link"
 
-#: install.sh:2291
+#: install.sh:2294
 msgid "Xray+Nginx+ws+TLS 安装成功"
 msgstr "xray+nginx+ws+tls installation successfully"
 
-#: install.sh:2294
+#: install.sh:2297
 msgid "Xray+Nginx+grpc+TLS 安装成功"
 msgstr "xray+nginx+grpc+tls installation successfully"
 
-#: install.sh:2297
+#: install.sh:2300
 msgid "Xray+Nginx+ws+gRPC+TLS 安装成功"
 msgstr "xray+nginx+ws+grpc+tls successful installation"
 
-#: install.sh:2300
+#: install.sh:2303
 msgid "Xray+Reality 安装成功"
 msgstr "xray+reality installation successfully"
 
-#: install.sh:2303
+#: install.sh:2306
 msgid "Xray+Reality+ws 安装成功"
 msgstr "xray+reality+ws installation successfully"
 
-#: install.sh:2306
+#: install.sh:2309
 msgid "Xray+Reality+gRPC 安装成功"
 msgstr "xray+reality+grpc installation successfully"
 
-#: install.sh:2309
+#: install.sh:2312
 msgid "Xray+Reality+ws+gRPC 安装成功"
 msgstr "xray+reality+ws+grpc installation successfully"
 
-#: install.sh:2312
+#: install.sh:2315
 msgid "ws ONLY 安装成功"
 msgstr "ws only installation successfully"
 
-#: install.sh:2315
+#: install.sh:2318
 msgid "gRPC ONLY 安装成功"
 msgstr "grpc only successful installation"
 
-#: install.sh:2318
+#: install.sh:2321
 msgid "ws+gRPC ONLY 安装成功"
 msgstr "ws+grpc only installation successfully"
 
-#: install.sh:2322
+#: install.sh:2325
 msgid "VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr "vless is currently sharing link specifications in the experimental stage, please determine whether it is applicable by yourself"
 
-#: install.sh:2324
+#: install.sh:2327
 msgid "Xray 配置信息"
 msgstr "xray configuration information"
 
-#: install.sh:2325
+#: install.sh:2328
 msgid "主机"
 msgstr "host"
 
-#: install.sh:2328 install.sh:2332 install.sh:2372 install.sh:2378
+#: install.sh:2331 install.sh:2335 install.sh:2375 install.sh:2381
 msgid "ws 端口"
 msgstr "ws port"
 
-#: install.sh:2330 install.sh:2333 install.sh:2375 install.sh:2380
+#: install.sh:2333 install.sh:2336 install.sh:2378 install.sh:2383
 msgid "gRPC 端口"
 msgstr "grpc port"
 
-#: install.sh:2336
+#: install.sh:2339
 msgid "端口"
 msgstr "port"
 
-#: install.sh:2340 install.sh:2344
+#: install.sh:2343 install.sh:2347
 msgid "Xray ws 端口"
 msgstr "xray ws port"
 
-#: install.sh:2342 install.sh:2345
+#: install.sh:2345 install.sh:2348
 msgid "Xray gRPC 端口"
 msgstr "xray grpc port"
 
-#: install.sh:2348
+#: install.sh:2351
 msgid "UUIDv5 映射字符串"
 msgstr "uuidv5 mapping string"
 
-#: install.sh:2349
+#: install.sh:2352
 msgid "用户id"
 msgstr "user id"
 
-#: install.sh:2351
+#: install.sh:2354
 msgid "加密"
 msgstr "encryption"
 
-#: install.sh:2352
+#: install.sh:2355
 msgid "传输协议"
 msgstr "transmission protocol"
 
-#: install.sh:2353
+#: install.sh:2356
 msgid "底层传输安全"
 msgstr "safety of underlying transmission"
 
-#: install.sh:2356 install.sh:2360
+#: install.sh:2359 install.sh:2363
 msgid "路径"
 msgstr "path"
 
-#: install.sh:2356 install.sh:2360 install.sh:2373 install.sh:2379
+#: install.sh:2359 install.sh:2363 install.sh:2376 install.sh:2382
 msgid "不要落下/"
 msgstr "don't fall/"
 
-#: install.sh:2358 install.sh:2361 install.sh:2376 install.sh:2381
+#: install.sh:2361 install.sh:2364 install.sh:2379 install.sh:2384
 msgid "不需要加/"
 msgstr "no need to add/"
 
-#: install.sh:2364
+#: install.sh:2367
 msgid "流控"
 msgstr "flow control"
 
-#: install.sh:2373 install.sh:2379
+#: install.sh:2376 install.sh:2382
 msgid "ws 路径"
 msgstr "ws path"
 
-#: install.sh:2395
+#: install.sh:2398
 msgid "即将申请证书, 支持使用自定义证书"
 msgstr "to apply soon, support the use of custom certificates"
 
-#: install.sh:2396
+#: install.sh:2399
 msgid "如需使用自定义证书, 请按如下步骤:"
 msgstr "if you need to use a custom certificate, please follow the steps below:"
 
-#: install.sh:2397
+#: install.sh:2400
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr "1. rename the certificate document: the key (xray.key), the certificate (xray.crt)"
 
-#: install.sh:2398
+#: install.sh:2401
 msgid "2. 将重命名后的证书文件放入"
 msgstr "2. put the renamed certificate file in"
 
-#: install.sh:2398
+#: install.sh:2401
 msgid "目录后再运行脚本"
 msgstr "run the script after the directory"
 
-#: install.sh:2399
+#: install.sh:2402
 msgid "3. 重新运行脚本"
 msgstr "3. run the script again"
 
-#: install.sh:2400 install.sh:2833
+#: install.sh:2403 install.sh:2836
 msgid "是否继续"
 msgstr "whether to continue"
 
-#: install.sh:2408
+#: install.sh:2411
 msgid "所有证书文件均已存在, 是否保留"
 msgstr "all certificate documents already exist, whether to keep"
 
-#: install.sh:2414 install.sh:2429 install.sh:2445 file_manager.sh:186
+#: install.sh:2417 install.sh:2432 install.sh:2448 file_manager.sh:186
 msgid "已删除"
 msgstr "deleted"
 
-#: install.sh:2420 install.sh:2435 install.sh:2452
+#: install.sh:2423 install.sh:2438 install.sh:2455
 msgid "证书应用"
 msgstr "certificate application"
 
-#: install.sh:2424
+#: install.sh:2427
 msgid "证书文件已存在, 是否保留"
 msgstr "certificate documents have existed, whether to keep"
 
-#: install.sh:2440
+#: install.sh:2443
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr "certificate issuance of residual documents has existed, is it retained?"
 
-#: install.sh:2482
+#: install.sh:2485
 msgid "Nginx systemd ServerFile 添加"
 msgstr "nginx systemd serverfile add"
 
-#: install.sh:2489
+#: install.sh:2492
 msgid "请选择支持的 TLS 版本"
 msgstr "please select the supported tls version"
 
-#: install.sh:2490
+#: install.sh:2493
 msgid "建议选择 TLS1.3 only (安全模式)"
 msgstr "it is recommended to select tls1.3 only (security mode)"
 
-#: install.sh:2491
+#: install.sh:2494
 msgid "兼容模式"
 msgstr "compatible mode"
 
-#: install.sh:2492
+#: install.sh:2495
 msgid "安全模式"
 msgstr "security mode"
 
-#: install.sh:2496
+#: install.sh:2499
 msgid ""
 "从 2.2.1 版本起, 由于启用 h3 仅支持 TLS1.3, 请选择 TLS1.3 only (安全模式)"
 msgstr ""
 "从 2.2.1 版本起, 由于启用 h3 仅支持 TLS1.3, 请选择 TLS1.3 only (安全模式)"
 
-#: install.sh:2500
+#: install.sh:2503
 msgid "已切换至 TLS1.3 only"
 msgstr "switch to tls 1.3 only"
 
-#: install.sh:2506
+#: install.sh:2509
 msgid "Nginx/配置文件不存在 或 当前模式不支持"
 msgstr "nginx/configuration file does not exist or the current mode is not supported"
 
-#: install.sh:2527 install.sh:2597 install.sh:2621 install.sh:2690
-#: install.sh:2740 install.sh:2799 install.sh:2851
+#: install.sh:2530 install.sh:2600 install.sh:2624 install.sh:2693
+#: install.sh:2743 install.sh:2802 install.sh:2854
 msgid "请先安装 Xray"
 msgstr "please install xray first"
 
-#: install.sh:2534 install.sh:2540 install.sh:2544 install.sh:2549
-#: install.sh:2554 install.sh:2555 install.sh:2570 install.sh:2575
-#: install.sh:2580 install.sh:2581
+#: install.sh:2537 install.sh:2543 install.sh:2547 install.sh:2552
+#: install.sh:2557 install.sh:2558 install.sh:2573 install.sh:2578
+#: install.sh:2583 install.sh:2584
 msgid "请输入 0-65535 之间的值"
 msgstr "please enter the value between 0-65535"
 
-#: install.sh:2538
+#: install.sh:2541
 msgid "连接端口号"
 msgstr "connect"
 
-#: install.sh:2619
+#: install.sh:2622
 msgid "此模式不支持修改 target"
 msgstr "this model does not support modifying target"
 
-#: install.sh:2628
+#: install.sh:2631
 msgid "即将显示用户, 一次仅能显示一个"
 msgstr "the user is about to be displayed, only one can be displayed at a time"
 
-#: install.sh:2630
+#: install.sh:2633
 msgid "请选择 显示用户使用的协议 ws/gRPC"
 msgstr "please select the protocol ws/grpc that the user uses"
 
-#: install.sh:2640
+#: install.sh:2643
 msgid "请选择 要显示的用户编号"
 msgstr "please select the user number you want to display"
 
-#: install.sh:2645 install.sh:2656 install.sh:2765 install.sh:2788
+#: install.sh:2648 install.sh:2659 install.sh:2768 install.sh:2791
 msgid "选择错误"
 msgstr "choose an error"
 
-#: install.sh:2648
+#: install.sh:2651
 msgid "请直接在主菜单选择 [15] 显示主用户"
 msgstr "please select the main user directly on the main menu [15]"
 
-#: install.sh:2649 install.sh:2660 install.sh:2770 install.sh:2792
+#: install.sh:2652 install.sh:2663 install.sh:2773 install.sh:2795
 msgid "回到菜单"
 msgstr "back to the menu"
 
-#: install.sh:2659 install.sh:2791
+#: install.sh:2662 install.sh:2794
 msgid "请先检测 Xray 是否正确安装"
 msgstr "please check whether xray is installed correctly"
 
-#: install.sh:2664
+#: install.sh:2667
 msgid "用户名"
 msgstr "username"
 
-#: install.sh:2679
+#: install.sh:2682
 msgid "是否继续显示用户"
 msgstr "whether to continue displaying users"
 
-#: install.sh:2688 install.sh:2797
+#: install.sh:2691 install.sh:2800
 msgid "此模式不支持删除用户"
 msgstr "this mode does not support deleting users"
 
-#: install.sh:2699
+#: install.sh:2702
 msgid "即将添加用户, 一次仅能添加一个"
 msgstr "the user is about to be added, only one can be added at a time"
 
-#: install.sh:2701
+#: install.sh:2704
 msgid "请选择 添加用户使用的协议 ws/gRPC"
 msgstr "please select the protocol ws/grpc used by the user"
 
-#: install.sh:2723
+#: install.sh:2726
 msgid "添加用户"
 msgstr "add users"
 
-#: install.sh:2728
+#: install.sh:2731
 msgid "是否继续添加用户"
 msgstr "do you continue to add users"
 
-#: install.sh:2738
+#: install.sh:2741
 msgid "此模式不支持添加用户"
 msgstr "this model does not support adding users"
 
-#: install.sh:2748
+#: install.sh:2751
 msgid "即将删除用户, 一次仅能删除一个"
 msgstr "the user is about to be deleted, only one can be deleted at a time"
 
-#: install.sh:2750
+#: install.sh:2753
 msgid "请选择 删除用户使用的协议 ws/gRPC"
 msgstr "please choose to delete the protocol used by the user ws/grpc"
 
-#: install.sh:2760
+#: install.sh:2763
 msgid "请选择 要删除的用户编号"
 msgstr "please select the user number to be deleted"
 
-#: install.sh:2769
+#: install.sh:2772
 msgid "请直接在主菜单修改主用户的 UUID/Email"
 msgstr "please modify the uuid/email of the main user directly on the main menu"
 
-#: install.sh:2776
+#: install.sh:2779
 msgid "删除用户"
 msgstr "delete users"
 
-#: install.sh:2779
+#: install.sh:2782
 msgid "是否继续删除用户"
 msgstr "do you continue to delete the user"
 
-#: install.sh:2804 install.sh:2808
+#: install.sh:2807 install.sh:2811
 msgid "log文件不存在"
 msgstr "log file does not exist"
 
-#: install.sh:2815
+#: install.sh:2818
 msgid "已配置 Xray 流量统计"
 msgstr "calculated xray traffic statistics"
 
-#: install.sh:2816
+#: install.sh:2819
 msgid "是否需要关闭此功能"
 msgstr "do you need to close this function"
 
-#: install.sh:2822
+#: install.sh:2825
 msgid "关闭 Xray 流量统计"
 msgstr "close xray traffic statistics"
 
-#: install.sh:2831
+#: install.sh:2834
 msgid "Xray 流量统计需要使用 api"
 msgstr "xray traffic statistics need to use api"
 
-#: install.sh:2832
+#: install.sh:2835
 msgid "可能会影响 Xray 性能"
 msgstr "it may affect xray performance"
 
-#: install.sh:2843
+#: install.sh:2846
 msgid "设置 Xray 流量统计"
 msgstr "set xray traffic statistics"
 
-#: install.sh:2873
+#: install.sh:2876
 msgid "已卸载 Xray"
 msgstr "uninstalled xray"
 
-#: install.sh:2876
+#: install.sh:2879
 msgid "是否卸载 Nginx"
 msgstr "whether to uninstall nginx"
 
-#: install.sh:2888
+#: install.sh:2891
 msgid "已卸载 Nginx"
 msgstr "nginx has been uninstalled"
 
-#: install.sh:2893
+#: install.sh:2896
 msgid "是否删除所有脚本文件"
 msgstr "whether to delete all script files"
 
-#: install.sh:2900
+#: install.sh:2903
 msgid "已删除所有文件"
 msgstr "all files have been deleted"
 
-#: install.sh:2901
+#: install.sh:2904
 msgid "ヾ(￣▽￣) 拜拜~"
 msgstr "ヾ (￣ ▽ ￣) worship ~"
 
-#: install.sh:2906
+#: install.sh:2909
 msgid "已保留脚本文件 (包含 SSL 证书等)"
 msgstr "a script file has been retained (including ssl certificate, etc.)"
 
-#: install.sh:2910
+#: install.sh:2913
 msgid "是否保留配置文件"
 msgstr "whether to keep the configuration file"
 
-#: install.sh:2927
+#: install.sh:2930
 msgid "已清空证书遗留文件"
 msgstr "the documents left over the certificate"
 
-#: install.sh:2957
+#: install.sh:2960
 msgid "秒后将"
 msgstr "will be after a second"
 
-#: install.sh:3119
+#: install.sh:3123
 msgid "检测最新版本失败!"
 msgstr "the latest version failed!"
 
-#: install.sh:3128
-msgid "存在新版本, 但版本跨度较大, 可能存在不兼容情况, 是否更新"
-msgstr "there are new versions, but the version span is large, and there may be incompatibility. whether it is updated"
+#: install.sh:3132
+msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
+msgstr "there are new versions, but the version changes greatly and may be incompatible. whether it is updated"
 
-#: install.sh:3131
+#: install.sh:3135
 msgid "存在新版本, 是否更新"
 msgstr "is there a new version, whether to update"
 
-#: install.sh:3135
+#: install.sh:3139
 msgid "检测 脚本 最新版本失败!"
 msgstr "the latest version of the detection script failed!"
 
-#: install.sh:3136
+#: install.sh:3140
 msgid "脚本 版本差别过大, 跳过更新!"
 msgstr "the script version is too different, skip the update!"
 
-#: install.sh:3146
+#: install.sh:3150
 msgid "更新完成"
 msgstr "update"
 
-#: install.sh:3147
-msgid "脚本版本跨度较大, 若服务无法正常运行请卸载后重装!"
-msgstr "the script version is large. if the service cannot run normally, please reinstall it after uninstallation!"
+#: install.sh:3151
+msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装!"
+msgstr "the script version changes greatly. if the service cannot run normally, please reinstall it after uninstallation!"
 
-#: install.sh:3153
+#: install.sh:3157
 msgid "当前版本为最新版本"
 msgstr "the current version is the latest version"
 
-#: install.sh:3165 install.sh:3328 install.sh:3339 install.sh:3351
+#: install.sh:3169 install.sh:3332 install.sh:3343 install.sh:3355
 msgid "下载最新脚本"
 msgstr "download the latest script"
 
-#: install.sh:3179
+#: install.sh:3183
 msgid "该选项暂时无法使用"
 msgstr "this option is temporarily unavailable"
 
-#: install.sh:3198
+#: install.sh:3202
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr "this model is recommended for load balancing. generally, it is not recommended. whether it is installed"
 
-#: install.sh:3293
+#: install.sh:3297
 msgid "变更 Nginx 负载均衡配置"
 msgstr "change the nginx load balancing configuration"
 
-#: install.sh:3294
+#: install.sh:3298
 msgid "变更 Nginx serverNames 配置"
 msgstr "change nginx servernames configuration"
 
-#: install.sh:3296
+#: install.sh:3300
 msgid "清除日志文件"
 msgstr "clear log file"
 
-#: install.sh:3297
+#: install.sh:3301
 msgid "查看证书状态"
 msgstr "view certificate status"
 
-#: install.sh:3298
+#: install.sh:3302
 msgid "更新证书有效期"
 msgstr "renewal certificate validity period"
 
-#: install.sh:3299
+#: install.sh:3303
 msgid "设置证书自动更新"
 msgstr "set the certificate automatic update"
 
-#: install.sh:3300
+#: install.sh:3304
 msgid "设置 Fail2ban 防暴力破解"
 msgstr "set fail2ban anti -violence cracking"
 
-#: install.sh:3301
+#: install.sh:3305
 msgid "显示帮助"
 msgstr "display help"
 
-#: install.sh:3302 install.sh:3313 install.sh:3564
+#: install.sh:3306 install.sh:3317 install.sh:3585
 msgid "更新"
 msgstr "renew"
 
-#: install.sh:3303 install.sh:3306 install.sh:3310 install.sh:3543
-#: install.sh:3544 install.sh:3545 install.sh:3546 install.sh:3547
-#: install.sh:3548
+#: install.sh:3307 install.sh:3310 install.sh:3314 install.sh:3564
+#: install.sh:3565 install.sh:3566 install.sh:3567 install.sh:3568
+#: install.sh:3569
 msgid "变更"
 msgstr "change"
 
-#: install.sh:3304
+#: install.sh:3308
 msgid "脚本卸载"
 msgstr "script uninstall"
 
-#: install.sh:3305
+#: install.sh:3309
 msgid "显示安装信息"
 msgstr "display installation information"
 
-#: install.sh:3307
+#: install.sh:3311
 msgid "配置 TCP 加速"
 msgstr "configure tcp acceleration"
 
-#: install.sh:3308
+#: install.sh:3312
 msgid "修改 TLS 配置"
 msgstr "modify tls configuration"
 
-#: install.sh:3309
+#: install.sh:3313
 msgid "升级脚本"
 msgstr "upgrade script"
 
-#: install.sh:3310 install.sh:3543
+#: install.sh:3314 install.sh:3564
 msgid "映射字符串"
 msgstr "mapping string"
 
-#: install.sh:3311 install.sh:3312
+#: install.sh:3315 install.sh:3316
 msgid "显示"
 msgstr "show"
 
-#: install.sh:3311
+#: install.sh:3315
 msgid "访问信息"
 msgstr "access information"
 
-#: install.sh:3312
+#: install.sh:3316
 msgid "错误信息"
 msgstr "error message"
 
-#: install.sh:3333
-msgid "脚本版本跨度较大, 可能存在不兼容情况, 是否继续使用"
-msgstr "the script version is large, and there may be incompatibility, whether to continue to use"
+#: install.sh:3337
+msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
+msgstr "the script version changes greatly, and there may be incompatibility, whether to continue to use"
 
-#: install.sh:3341
-msgid "脚本版本跨度较大, 若服务无法正常运行请卸载后重装"
-msgstr "the script version is large, if the service cannot run normally, please reinstall it after uninstallation"
+#: install.sh:3345
+msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
+msgstr "the script version changes greatly, if the service cannot run normally, please reinstall it after uninstallation"
 
-#: install.sh:3358
+#: install.sh:3362
 msgid "检测失败"
 msgstr "detect failure"
 
-#: install.sh:3362 install.sh:3372 install.sh:3382
+#: install.sh:3366 install.sh:3376 install.sh:3386
 msgid "有新版"
 msgstr "have a new version"
 
-#: install.sh:3365 install.sh:3374 install.sh:3388
+#: install.sh:3369 install.sh:3378 install.sh:3392
 msgid "最新版"
 msgstr "latest version"
 
-#: install.sh:3380
+#: install.sh:3384
 msgid "版本未知"
 msgstr "unknown version"
 
-#: install.sh:3386
+#: install.sh:3390
 msgid "有测试版"
 msgstr "test version"
 
-#: install.sh:3404 install.sh:3411
+#: install.sh:3408 install.sh:3415
 msgid "运行中.."
 msgstr "during operation .."
 
-#: install.sh:3406 install.sh:3429 install.sh:3431
+#: install.sh:3410 install.sh:3433 install.sh:3435
 msgid "无需测试"
 msgstr "no test"
 
-#: install.sh:3408 install.sh:3413
+#: install.sh:3412 install.sh:3417
 msgid "未运行"
 msgstr "not running"
 
-#: install.sh:3423
+#: install.sh:3427
 msgid "无法连通"
 msgstr "unable to connect"
 
-#: install.sh:3425 install.sh:3426 install.sh:3427
+#: install.sh:3429 install.sh:3430 install.sh:3431
 msgid "本地正常"
 msgstr "local normal"
 
-#: install.sh:3442
+#: install.sh:3446
 msgid "脚本维护中.. 请稍后再试!"
 msgstr "script maintenance .. please try it later!"
 
-#: install.sh:3444
+#: install.sh:3448
 msgid "无法检测所需依赖的在线版本, 请稍后再试!"
 msgstr "can't detect the online version you need, please try it later!"
 
-#: install.sh:3460
+#: install.sh:3464
 msgid "请输入数字"
 msgstr "please enter the number"
 
-#: install.sh:3460
+#: install.sh:3464
 msgid "请输入 1 到 4 之间的有效数字"
 msgstr "please enter the valid number between 1 and 4"
 
-#: install.sh:3478
+#: install.sh:3482
 msgid "无效的选择"
 msgstr "invalid choice"
 
-#: install.sh:3495
+#: install.sh:3516
 msgid "检测存在到 BUG !"
 msgstr "the detection exists to bug!"
 
-#: install.sh:3496
+#: install.sh:3517
 msgid "BUG 来源于自动清理日志错误的设置"
 msgstr "bug comes from the setting of the error of automatic cleaning log"
 
-#: install.sh:3497
+#: install.sh:3518
 msgid "开始修复.."
 msgstr "start repair .."
 
-#: install.sh:3501
+#: install.sh:3522
 msgid "错误的配置文件删除"
 msgstr "delete the wrong configuration file"
 
-#: install.sh:3502
+#: install.sh:3523
 msgid "即将重新设置自动清理日志.."
 msgstr "the automatic cleaning log will be set up soon .."
 
-#: install.sh:3510
+#: install.sh:3531
 msgid "安装管理脚本"
 msgstr "installation management script"
 
-#: install.sh:3511
+#: install.sh:3532
 msgid "作者"
 msgstr "author"
 
-#: install.sh:3512
+#: install.sh:3533
 msgid "修改"
 msgstr "revise"
 
-#: install.sh:3515
+#: install.sh:3536
 msgid "当前模式"
 msgstr "current mode"
 
-#: install.sh:3516
+#: install.sh:3537
 msgid "当前语言"
 msgstr "current language"
 
-#: install.sh:3519
+#: install.sh:3540
 msgid "可以使用"
 msgstr "be available"
 
-#: install.sh:3519
+#: install.sh:3540
 msgid "命令管理脚本"
 msgstr "command management script"
 
-#: install.sh:3521
+#: install.sh:3542
 msgid "版本检测"
 msgstr "version detection"
 
-#: install.sh:3522 install.sh:3530 install.sh:3574
+#: install.sh:3543 install.sh:3551 install.sh:3595
 msgid "脚本"
 msgstr "script"
 
-#: install.sh:3525
+#: install.sh:3546
 msgid "运行状态"
 msgstr "running status"
 
-#: install.sh:3528
+#: install.sh:3549
 msgid "连通性"
 msgstr "connectivity"
 
-#: install.sh:3529
+#: install.sh:3550
 msgid "升级向导"
 msgstr "upgrade guide"
 
-#: install.sh:3538
+#: install.sh:3559
 msgid "安装向导"
 msgstr "installation wizard"
 
-#: install.sh:3542
+#: install.sh:3563
 msgid "配置变更"
 msgstr "configuration change"
 
-#: install.sh:3546
+#: install.sh:3567
 msgid "版本"
 msgstr "version"
 
-#: install.sh:3547
+#: install.sh:3568
 msgid "负载均衡配置"
 msgstr "load balancing configuration"
 
-#: install.sh:3548 install.sh:3567 fail2ban_manager.sh:76
+#: install.sh:3569 install.sh:3588 fail2ban_manager.sh:76
 msgid "配置"
 msgstr "configuration"
 
-#: install.sh:3549
+#: install.sh:3570
 msgid "用户管理"
 msgstr "user management"
 
-#: install.sh:3550 install.sh:3554 install.sh:3555 install.sh:3556
-#: install.sh:3561 install.sh:3563 fail2ban_manager.sh:14
+#: install.sh:3571 install.sh:3575 install.sh:3576 install.sh:3577
+#: install.sh:3582 install.sh:3584 fail2ban_manager.sh:14
 msgid "查看"
 msgstr "check"
 
-#: install.sh:3550 install.sh:3551 install.sh:3552
+#: install.sh:3571 install.sh:3572 install.sh:3573
 msgid "用户"
 msgstr "user"
 
-#: install.sh:3551
+#: install.sh:3572
 msgid "添加"
 msgstr "add to"
 
-#: install.sh:3552
+#: install.sh:3573
 msgid "删除"
 msgstr "delete"
 
-#: install.sh:3553
+#: install.sh:3574
 msgid "查看信息"
 msgstr "check the information"
 
-#: install.sh:3554
+#: install.sh:3575
 msgid "实时访问日志"
 msgstr "real -time visit log"
 
-#: install.sh:3555
+#: install.sh:3576
 msgid "实时错误日志"
 msgstr "real -time error log"
 
-#: install.sh:3556
+#: install.sh:3577
 msgid "配置信息"
 msgstr "configuration information"
 
-#: install.sh:3557
+#: install.sh:3578
 msgid "服务相关"
 msgstr "service -related"
 
-#: install.sh:3558 fail2ban_manager.sh:99 fail2ban_manager.sh:188
+#: install.sh:3579 fail2ban_manager.sh:99 fail2ban_manager.sh:188
 msgid "重启"
 msgstr "restart"
 
-#: install.sh:3558 install.sh:3559 install.sh:3560 install.sh:3561
+#: install.sh:3579 install.sh:3580 install.sh:3581 install.sh:3582
 msgid "所有服务"
 msgstr "all services"
 
-#: install.sh:3559 fail2ban_manager.sh:98 fail2ban_manager.sh:158
+#: install.sh:3580 fail2ban_manager.sh:98 fail2ban_manager.sh:158
 msgid "启动"
 msgstr "start up"
 
-#: install.sh:3560 fail2ban_manager.sh:100
+#: install.sh:3581 fail2ban_manager.sh:100
 msgid "停止"
 msgstr "stop"
 
-#: install.sh:3562
+#: install.sh:3583
 msgid "证书相关"
 msgstr "certificate -related"
 
-#: install.sh:3563
+#: install.sh:3584
 msgid "证书状态"
 msgstr "certificate status"
 
-#: install.sh:3564
+#: install.sh:3585
 msgid "证书有效期"
 msgstr "validity period of certificates"
 
-#: install.sh:3565 install.sh:3568 install.sh:3569 install.sh:3570
+#: install.sh:3586 install.sh:3589 install.sh:3590 install.sh:3591
 msgid "设置"
 msgstr "set up"
 
-#: install.sh:3565
+#: install.sh:3586
 msgid "证书自动更新"
 msgstr "automatic certificate update"
 
-#: install.sh:3566
+#: install.sh:3587
 msgid "其他选项"
 msgstr "other options"
 
-#: install.sh:3567
+#: install.sh:3588
 msgid "自动更新"
 msgstr "automatic update"
 
-#: install.sh:3568
+#: install.sh:3589
 msgid "加速"
 msgstr "accelerate"
 
-#: install.sh:3569
+#: install.sh:3590
 msgid "防暴力破解"
 msgstr "anti -violence cracking"
 
-#: install.sh:3570
+#: install.sh:3591
 msgid "流量统计"
 msgstr "flow statistics"
 
-#: install.sh:3571
+#: install.sh:3592
 msgid "清除"
 msgstr "remove"
 
-#: install.sh:3571
+#: install.sh:3592
 msgid "日志文件"
 msgstr "log file"
 
-#: install.sh:3572
+#: install.sh:3593
 msgid "测试"
 msgstr "test"
 
-#: install.sh:3572
+#: install.sh:3593
 msgid "服务器网速"
 msgstr "server network speed"
 
-#: install.sh:3573
+#: install.sh:3594
 msgid "卸载向导"
 msgstr "unload"
 
-#: install.sh:3574 fail2ban_manager.sh:13 fail2ban_manager.sh:171
+#: install.sh:3595 fail2ban_manager.sh:13 fail2ban_manager.sh:171
 msgid "卸载"
 msgstr "uninstall"
 
-#: install.sh:3575
+#: install.sh:3596
 msgid "清空"
 msgstr "empty"
 
-#: install.sh:3575
+#: install.sh:3596
 msgid "证书文件"
 msgstr "certificate file"
 
-#: install.sh:3576 fail2ban_manager.sh:15 file_manager.sh:217
+#: install.sh:3597 fail2ban_manager.sh:15 file_manager.sh:217
 msgid "退出"
 msgstr "quit"
 
-#: install.sh:3579
+#: install.sh:3600
 msgid "请输入选项"
 msgstr "please enter the option"
 
-#: install.sh:3579
+#: install.sh:3600
 msgid "请输入 0 到 34 之间的有效数字"
 msgstr "please enter the valid number between 0 and 34"
 
-#: install.sh:3594
+#: install.sh:3615
 msgid "开始升级!"
 msgstr "start upgrade!"
 
-#: install.sh:3628
+#: install.sh:3649
 msgid "变更 UUIDv5/映射字符串"
 msgstr "change uuidv5/mapping string"
 
-#: install.sh:3633
+#: install.sh:3654
 msgid "变更 port"
 msgstr "change port"
 
-#: install.sh:3638
+#: install.sh:3659
 msgid "变更 target"
 msgstr "change target"
 
-#: install.sh:3643
+#: install.sh:3664
 msgid "变更 TLS 版本"
 msgstr "change the tls version"
 
-#: install.sh:3660 install.sh:3665 install.sh:3670 install.sh:3715
-#: install.sh:3720 install.sh:3725 install.sh:3745
+#: install.sh:3681 install.sh:3686 install.sh:3691 install.sh:3736
+#: install.sh:3741 install.sh:3746 install.sh:3766
 msgid "回到菜单!"
 msgstr "back to the menu!"
 
-#: install.sh:3780
+#: install.sh:3801
 msgid "请输入正确的数字!"
 msgstr "please enter the correct number!"
 
