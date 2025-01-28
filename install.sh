@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.3.0"
+shell_version="2.3.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -227,7 +227,8 @@ update_language_file() {
         return 1
     fi
     
-    chmod -R 755 "${idleleo_dir}/languages"
+    find "${idleleo_dir}/languages" -type d -exec chmod 755 {} \;  # 目录755
+    find "${idleleo_dir}/languages" -type f -exec chmod 644 {} \;  # 文件644
 
     log_echo "${OK} ${Green} $(gettext "语言文件更新完成") ${Font}"
 }
@@ -242,10 +243,12 @@ init_language() {
             return 1
         fi
     fi
-    
+
     local gettext_paths=(
         "/usr/share/gettext/gettext.sh"
+        "/usr/local/share/gettext/gettext.sh"
         "/usr/bin/gettext.sh"
+        "/usr/local/bin/gettext.sh"
         "/usr/share/gettext-"*/gettext.sh
     )
     
@@ -258,7 +261,7 @@ init_language() {
     done
     
     if [ -z "$gettext_sh" ]; then
-        log_echo "${Error} ${RedBG} $(gettext "未找到 gettext.sh，将使用默认语言") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "未找到") gettext.sh, $(gettext "将使用默认语言") ${Font}"
         export LANG=zh_CN.UTF-8
         return 1
     fi
@@ -278,7 +281,7 @@ init_language() {
                 "fa_IR") lang_code="fa" ;;
                 "ru_RU") lang_code="ru" ;;
                 *) 
-                    log_echo "${Warning} ${YellowBG} $(gettext "不支持的语言:")${LANG%.*}$(gettext "，将使用默认语言") ${Font}"
+                    log_echo "${Warning} ${YellowBG} $(gettext "不支持的语言"):${LANG%.*}, $(gettext "将使用默认语言") ${Font}"
                     export LANG=zh_CN.UTF-8
                     return 0
                     ;;
@@ -287,7 +290,7 @@ init_language() {
             local lang_file="${TEXTDOMAINDIR}/${lang_code}/LC_MESSAGES/${TEXTDOMAIN}.mo"
             if [ ! -f "$lang_file" ]; then
                 if ! update_language_file "$lang_code"; then
-                    log_echo "${Warning} ${YellowBG} $(gettext "语言文件更新失败，将使用默认语言") ${Font}"
+                    log_echo "${Warning} ${YellowBG} $(gettext "语言文件更新失败"), $(gettext "将使用默认语言") ${Font}"
                     export LANG=zh_CN.UTF-8
                     return 0
                 fi
@@ -2968,29 +2971,30 @@ timeout() {
 }
 
 judge_mode() {
+    local ws_grpc_mode_add
     if [[ -f "${xray_qr_config_file}" ]]; then
         ws_grpc_mode=$(info_extraction ws_grpc_mode)
         tls_mode=$(info_extraction tls)
         
         case ${ws_grpc_mode} in
-            onlyws) shell_mode="ws";;
-            onlygRPC) shell_mode="gRPC";;
-            all) shell_mode="ws+gRPC";;
+            onlyws) ws_grpc_mode_add="ws";;
+            onlygRPC) ws_grpc_mode_add="gRPC";;
+            all) ws_grpc_mode_add="ws+gRPC";;
             *);;
         esac
         
         case ${tls_mode} in
             TLS)
-                shell_mode="Nginx+${shell_mode}+TLS"
+                shell_mode="Nginx+${ws_grpc_mode_add}+TLS"
                 ;;
             Reality)
                 reality_add_more=$(info_extraction reality_add_more)
                 reality_add_nginx=$(info_extraction reality_add_nginx)
                 
-                if [[ ${reality_add_nginx} == "on" && ${reality_add_nginx} == "off" ]]; then
-                    shell_mode="Reality+${shell_mode}"
-                elif [[ ${reality_add_nginx} == "on" && ${reality_add_nginx} == "on" ]]; then
-                    shell_mode="Nginx+Reality+${shell_mode}"
+                if [[ ${reality_add_more} == "on" && ${reality_add_nginx} == "off" ]]; then
+                    shell_mode="Reality+${ws_grpc_mode_add}"
+                elif [[ ${reality_add_nginx} == "on" && ${reality_add_more} == "on" ]]; then
+                    shell_mode="Nginx+Reality+${ws_grpc_mode_add}"
                 elif [[ ${reality_add_nginx} == "on" && ${reality_add_more} == "off" ]]; then
                     shell_mode="Nginx+Reality"
                 else
@@ -2998,7 +3002,7 @@ judge_mode() {
                 fi
                 ;;
             None)
-                shell_mode="${shell_mode} ONLY"
+                shell_mode="${ws_grpc_mode_add} ONLY"
                 ;;
             *)
                 ;;
@@ -3125,7 +3129,7 @@ update_sh() {
         if [[ ${auto_update} != "YES" ]]; then
             if [[ ${version_difference} == 1 ]]; then
                 echo -e "\n"
-                log_echo "${Warning} ${YellowBG} $(gettext "存在新版本, 但版本跨度较大, 可能存在不兼容情况, 是否更新") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+                log_echo "${Warning} ${YellowBG} $(gettext "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
             else
                 echo -e "\n"
                 log_echo "${GreenBG} $(gettext "存在新版本, 是否更新") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -3144,7 +3148,7 @@ update_sh() {
             [[ -f "${xray_qr_config_file}" ]] && jq --arg shell_version "${shell_version}" '.shell_version = $shell_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             clear
             log_echo "${OK} ${GreenBG} $(gettext "更新完成") ${Font}"
-            [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本跨度较大, 若服务无法正常运行请卸载后重装!") ${Font}"
+            [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装!") ${Font}"
             ;;
         *) ;;
         esac
@@ -3330,7 +3334,7 @@ idleleo_commend() {
             source "$idleleo"
         elif [[ ${shell_version} != ${oldest_version} ]]; then
             if [[ ${version_difference} == 1 ]]; then
-                log_echo "${Warning} ${YellowBG} $(gettext "脚本版本跨度较大, 可能存在不兼容情况, 是否继续使用") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+                log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
@@ -3338,7 +3342,7 @@ idleleo_commend() {
                     wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
                     judge "$(gettext "下载最新脚本")"
                     clear
-                    log_echo "${Warning} ${YellowBG} $(gettext "脚本版本跨度较大, 若服务无法正常运行请卸载后重装") ! ${Font}"
+                    log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装") ! ${Font}"
                     echo -e "\n"
                     ;;
                 *)
@@ -3482,6 +3486,23 @@ set_language() {
     
     if [ "$lang_choice" -ne 1 ]; then
         echo "LANG=$LANG" > "${idleleo_dir}/language.conf"
+        
+        case $ID in
+            debian|ubuntu)
+                if ! dpkg -s locales-all >/dev/null 2>&1; then
+                    pkg_install locales-all
+                    locale-gen "$LANG"
+                fi
+                update-locale "LANG=$LANG" ;;
+            centos)
+                local ins_lang_code="${LANG%%_*}"
+                if ! rpm -q "glibc-langpack-$ins_lang_code" >/dev/null 2>&1; then
+                    pkg_install "glibc-langpack-$ins_lang_code"
+                    localedef -c -i "${LANG%.*}" -f UTF-8 "$LANG"
+                fi
+                localectl set-locale "LANG=$LANG" ;;
+        esac
+    
     fi
     
     source "$idleleo"
