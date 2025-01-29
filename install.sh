@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.3.2"
+shell_version="2.3.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -96,13 +96,11 @@ log_rotate() {
     local timestamp=$(date +%Y%m%d%H%M%S)
     local archived_log="${LOG_FILE}.${timestamp}.gz"
     
-    # 添加 gzip 错误处理
     if ! gzip -c "$LOG_FILE" > "$archived_log"; then
         log_echo "${Error} ${RedBG} $(gettext "日志文件归档失败") ${Font}"
         return 1
     fi
     
-    # 添加清空日志文件的错误处理
     if ! :> "$LOG_FILE"; then
         log_echo "${Error} ${RedBG} $(gettext "清空日志文件失败") ${Font}" 
         return 1
@@ -221,14 +219,13 @@ update_language_file() {
         return 1
     fi
 
-    # 更新version文件
     if ! curl -s -o "${version_file}" "${github_url}/${lang_code}/LC_MESSAGES/version"; then
         log_echo "${Error} ${RedBG} $(gettext "版本文件更新失败") ${Font}"
         return 1
     fi
     
-    find "${idleleo_dir}/languages" -type d -exec chmod 755 {} \;  # 目录755
-    find "${idleleo_dir}/languages" -type f -exec chmod 644 {} \;  # 文件644
+    find "${idleleo_dir}/languages" -type d -exec chmod 755 {} \;
+    find "${idleleo_dir}/languages" -type f -exec chmod 644 {} \;
 
     log_echo "${OK} ${Green} $(gettext "语言文件更新完成") ${Font}"
 }
@@ -238,7 +235,7 @@ init_language() {
         log_echo "${Warning} ${YellowBG} $(gettext "正在安装") gettext... ${Font}"
         ${INS} gettext
         if [ $? -ne 0 ]; then
-            log_echo "${Error} ${RedBG} gettext $(gettext "安装失败, 将使用默认语言") ${Font}"
+            log_echo "${Error} ${RedBG} gettext $(gettext "安装失败"), $(gettext "将使用默认语言") ${Font}"
             export LANG=zh_CN.UTF-8
             return 1
         fi
@@ -280,6 +277,7 @@ init_language() {
                 "en_US") lang_code="en" ;;
                 "fa_IR") lang_code="fa" ;;
                 "ru_RU") lang_code="ru" ;;
+                "ko_KR") lang_code="ko" ;;
                 *) 
                     log_echo "${Warning} ${YellowBG} $(gettext "不支持的语言"):${LANG%.*}, $(gettext "将使用默认语言") ${Font}"
                     export LANG=zh_CN.UTF-8
@@ -412,13 +410,11 @@ read_optimize() {
 }
 
 basic_optimization() {
-    # 最大文件打开数
     sed -i '/^\*\ *soft\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
     sed -i '/^\*\ *hard\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
     echo '* soft nofile 65536' >>/etc/security/limits.conf
     echo '* hard nofile 65536' >>/etc/security/limits.conf
 
-    # 关闭 Selinux
     if [[ "${ID}" == "centos" ]]; then
         sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
         setenforce 0
@@ -3319,7 +3315,6 @@ show_help() {
 
 idleleo_commend() {
     if [[ -L "${idleleo_commend_file}" ]] || [[ -f "${idleleo_dir}/install.sh" ]]; then
-        ##在线运行与本地脚本比对
         [[ ! -L "${idleleo_commend_file}" ]] && chmod +x ${idleleo_dir}/install.sh && ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
         old_version=$(grep "shell_version=" ${idleleo_dir}/install.sh | head -1 | awk -F '=|"' '{print $3}')
         echo "${old_version}" >${shell_version_tmp}
@@ -3458,10 +3453,11 @@ set_language() {
     echo -e "${Green}2.${Font} English"
     echo -e "${Green}3.${Font} فارسی"
     echo -e "${Green}4.${Font} Русский"
-    
+    echo -e "${Green}5.${Font} 한국어"
+
     local lang_choice
-    read_optimize "$(gettext "请输入数字"): " "lang_choice" "NULL" 1 4 "$(gettext "请输入 1 到 4 之间的有效数字")"
-    
+    read_optimize "$(gettext "请输入数字"): " "lang_choice" "NULL" 1 5 "$(gettext "请输入 1 到 5 之间的有效数字")"
+
     case $lang_choice in
         1)
             export LANG=zh_CN.UTF-8
@@ -3477,12 +3473,15 @@ set_language() {
         4)
             export LANG=ru_RU.UTF-8
             ;;
+        5)
+            export LANG=ko_KR.UTF-8
+            ;;
         *)
             log_echo "${Error} ${RedBG} $(gettext "无效的选择") ${Font}"
             return 1
             ;;
     esac
-    
+
     if [ "$lang_choice" -ne 1 ]; then
         echo "LANG=$LANG" > "${idleleo_dir}/language.conf"
         
@@ -3501,9 +3500,8 @@ set_language() {
                 fi
                 localectl set-locale "LANG=$LANG" ;;
         esac
-    
     fi
-    
+
     source "$idleleo"
 }
 
@@ -3555,6 +3553,7 @@ menu() {
     echo -e "    English"
     echo -e "    فارسی"
     echo -e "    Русский"
+    echo -e "    한국어"
     echo -e "—————————————— ${GreenW}$(gettext "安装向导")${Font} ——————————————"
     echo -e "${Green}3.${Font}  $(gettext "安装") Xray (Reality+ws/gRPC+Nginx)"
     echo -e "${Green}4.${Font}  $(gettext "安装") Xray (Nginx+ws/gRPC+TLS)"
