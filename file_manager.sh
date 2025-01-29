@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.0.9"
+fm_SCRIPT_VERSION="1.1.0"
 
 # 检查是否提供了扩展名参数
 if [ -z "$1" ]; then
-    echo "$(gettext "用法:")" $0 $(gettext "<文件扩展名> [<目录路径>]")
+    echo "$(gettext "用法"):" $0 <$(gettext "文件扩展名")> [<$(gettext "目录路径")>]
     exit 1
 fi
 
@@ -15,7 +15,7 @@ fm_WORKDIR="${2:-$(pwd)}"
 # 检查目录是否存在
 if [ ! -d "$fm_WORKDIR" ]; then
     echo -e "\n"
-    log_echo "${Error} ${RedBG} $(gettext "目录") $fm_WORKDIR $(gettext "不存在 请检查路径") ${Font}"
+    log_echo "${Error} ${RedBG} $(gettext "目录") $fm_WORKDIR $(gettext "不存在, 请检查路径") ${Font}"
     exit 1
 fi
 
@@ -92,7 +92,7 @@ fm_create_servername_file() {
     echo -e "\n"
     log_echo "${Green} $(gettext "请输入网址 (例如 hey.run)")"
     log_echo "${Green} $(gettext "不要包含 http:// 或 https:// 开头") ${Font}"
-    read_optimize "$(gettext "请输入:")" url
+    read_optimize "$(gettext "请输入"):" url
     if [[ $url =~ ^(http|https):// ]]; then
         echo -e "\n"
         log_echo "${Error} ${RedBG} $(gettext "网址不能包含 http:// 或 https:// 开头") ${Font}"
@@ -108,9 +108,9 @@ fm_create_servername_file() {
 fm_create_ws_or_grpc_server_file() {
     local host port weight content firewall_set_fq
     fm_list_files
-    read_optimize "$(gettext "请输入主机 (host):")" host
-    read_optimize "$(gettext "请输入端口 (port):")" port "" 1 65535
-    read_optimize "$(gettext "请输入权重 (0~100 默认值 50):")" weight "50" 0 100
+    read_optimize "$(gettext "请输入主机") (host):" host
+    read_optimize "$(gettext "请输入端口") (port):" port "" 1 65535
+    read_optimize "$(gettext "请输入权重") (0~100 $(gettext "默认值") 50):" weight "50" 0 100
     
     content="server ${host}:${port} weight=${weight} max_fails=2 fail_timeout=10;"
     echo "$content" > "${host}.${fm_EXTENSION}"
@@ -132,15 +132,15 @@ fm_create_ws_or_grpc_server_file() {
         iptables -I INPUT -p udp --dport ${port} -j ACCEPT
         iptables -I OUTPUT -p tcp --sport ${port} -j ACCEPT
         iptables -I OUTPUT -p udp --sport ${port} -j ACCEPT
-        log_echo "${OK} ${GreenBG} $(gettext "防火墙 追加 完成") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "追加完成") ${Font}"
         if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
             service iptables save
             service iptables restart
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙 重启 完成") ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启完成") ${Font}"
         else
             netfilter-persistent save
             systemctl restart iptables
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙 重启 完成") ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启完成") ${Font}"
         fi
     ;;
     *)
@@ -162,7 +162,7 @@ fm_edit_file() {
     
     # 检查 vim 是否安装
     if ! command -v vim &> /dev/null; then
-        log_echo "${Warning} ${YellowBG} $(gettext "vim 未安装 正在尝试安装") ${Font}"
+        log_echo "${Warning} ${YellowBG} vim $(gettext "未安装, 正在尝试安装") ${Font}"
         pkg_install vim
     fi
     vim "$filename"
@@ -216,7 +216,7 @@ fm_main_menu() {
         log_echo "4 ${Green}$(gettext "删除一个已存在的") $fm_EXTENSION $(gettext "文件")${Font}"
         log_echo "5 ${Green}$(gettext "退出")${Font}"
         local choice
-        read_optimize "$(gettext "请选择一个选项:")" choice "" 1 5
+        read_optimize "$(gettext "请选择一个选项"):" choice "" 1 5
 
         case $choice in
             1) fm_list_files ;;
@@ -226,7 +226,7 @@ fm_main_menu() {
             5) source "$idleleo" ;;
             *) 
                 echo -e "\n"
-                log_echo "${Error} ${RedBG} $(gettext "无效选项 请重试") ${Font}"
+                log_echo "${Error} ${RedBG} $(gettext "无效选项, 请重试") ${Font}"
                 ;;
         esac
     done
@@ -239,23 +239,23 @@ fm_check_for_updates() {
     # 直接使用 curl 下载远程版本信息
     latest_version=$(curl -s "$fm_remote_url" | grep 'fm_SCRIPT_VERSION=' | head -n 1 | sed 's/fm_SCRIPT_VERSION="//; s/"//')
     if [ -n "$latest_version" ] && [ "$latest_version" != "$fm_SCRIPT_VERSION" ]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "新版本可用:") $latest_version $(gettext "当前版本:") $fm_SCRIPT_VERSION ${Font}"
-        log_echo "${Warning} ${YellowBG} $(gettext "请访问 https://github.com/hello-yunshu/Xray_bash_onekey 查看更新说明") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "新版本可用"): $latest_version $(gettext "当前版本"): $fm_SCRIPT_VERSION ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "请访问") https://github.com/hello-yunshu/Xray_bash_onekey $(gettext "查看更新说明") ${Font}"
 
         log_echo "${GreenBG} $(gettext "是否要下载并安装新版本") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r update_choice
         case $update_choice in
             [yY][eE][sS] | [yY])
-                log_echo "${Info} ${Green} $(gettext "正在下载新版本...") ${Font}"
+                log_echo "${Info} ${Green} $(gettext "正在下载新版本")... ${Font}"
                 curl -sL "$fm_remote_url" -o "${idleleo_dir}/file_manager.sh"
 
                 if [ $? -eq 0 ]; then
                     chmod +x "${idleleo_dir}/file_manager.sh"
-                    log_echo "${OK} ${Green} $(gettext "下载完成，正在重新运行脚本...") ${Font}"
+                    log_echo "${OK} ${Green} $(gettext "下载完成, 正在重新运行脚本")... ${Font}"
                     bash "${idleleo}" --add-servernames
                 else
                     echo -e "\n"
-                    log_echo "${Error} ${RedBG} $(gettext "下载失败，请手动下载并安装新版本") ${Font}"
+                    log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
                 fi
                 ;;
             *)
@@ -263,7 +263,7 @@ fm_check_for_updates() {
                 ;;
         esac
     else
-        log_echo "${OK} ${Green} $(gettext "当前已经是最新版本:") $fm_SCRIPT_VERSION ${Font}"
+        log_echo "${OK} ${Green} $(gettext "当前已经是最新版本"): $fm_SCRIPT_VERSION ${Font}"
     fi
 }
 
@@ -272,10 +272,10 @@ fm_restart_nginx_and_check_status() {
         systemctl restart nginx
         if systemctl is-active --quiet nginx; then
             echo -e "\n"
-            log_echo "${OK} ${GreenBG} $(gettext "Nginx 重启成功") ${Font}"
+            log_echo "${OK} ${GreenBG} Nginx $(gettext "重启成功") ${Font}"
         else
             echo -e "\n"
-            log_echo "${Error} ${RedBG} $(gettext "Nginx 重启失败 请检查配置文件是否有误") ${Font}"
+            log_echo "${Error} ${RedBG} Nginx $(gettext "重启失败"), $(gettext "请检查配置文件是否有误") ${Font}"
             fm_edit_file
         fi
     fi
