@@ -9,17 +9,17 @@ def load_translation_cache(cache_file):
         with open(cache_file, 'r', encoding='utf-8') as f:
             translations = json.load(f)
         
-        # 将缓存中的所有翻译结果首字母转为小写
+        # 将缓存中的所有翻译结果首字母转为小写并去除末尾标点
         for key in translations:
-            translations[key] = translations[key].capitalize().lower()
+            translations[key] = translations[key].capitalize().lower().rstrip('.,!?;:')
         
         return translations
     return {}
 
 def save_translation_cache(cache_file, translations):
-    # 在保存缓存前确保所有翻译结果首字母转为小写
+    # 在保存缓存前确保所有翻译结果首字母转为小写并去除末尾标点
     for key in translations:
-        translations[key] = translations[key].capitalize().lower()
+        translations[key] = translations[key].capitalize().lower().rstrip('.,!?;:')
     
     with open(cache_file, 'w', encoding='utf-8') as f:
         json.dump(translations, f, ensure_ascii=False, indent=2)
@@ -94,13 +94,13 @@ def translate_po_file(input_file, output_file, target_lang):
             max_retries = 3
             for attempt in range(max_retries):
                 try:
-                    time.sleep(2)  # 增加延迟以避免请求过快
+                    time.sleep(1)  # 增加延迟以避免请求过快
                     # 确保源语言和目标语言设置正确
                     translation = translator.translate(msgid_text, src='auto', dest=target_lang)
                     translated_text = translation.text
                     
-                    # 强制将翻译结果的首字母转为小写
-                    translated_text = translated_text.capitalize().lower()
+                    # 强制将翻译结果的首字母转为小写并去除末尾标点
+                    translated_text = translated_text.capitalize().lower().rstrip('.,!?;:')
                     
                     # 检查翻译是否有变更
                     if msgid_text in translations and translations[msgid_text] != translated_text:
@@ -115,7 +115,7 @@ def translate_po_file(input_file, output_file, target_lang):
                     if attempt == max_retries - 1:
                         raise e
                     print(f"Retry {attempt + 1}/{max_retries} for: {msgid_text}")
-                    time.sleep(5)  # 重试前等待更长时间
+                    time.sleep(3)  # 重试前等待更长时间
         except Exception as e:
             print(f"Translation failed for: {msgid_text}")
             print(f"Error: {e}")

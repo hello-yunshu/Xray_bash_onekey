@@ -1,6 +1,6 @@
 # Xray supports Reality / VLESS WebSocket/gRPC+TLS protocol + Nginx one-click installation script
 
-[简体中文](/README.md) | [English](/languages/en/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md)
+[简体中文](/README.md) | [English](/languages/en/README.md) | [Русский](/languages/ru/README.md) | فارسی | [한국어](/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
