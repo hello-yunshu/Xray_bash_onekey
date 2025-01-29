@@ -154,7 +154,7 @@ def translate_po_file(input_file, output_file, target_lang):
         f.write(content)
 
 if __name__ == '__main__':
-    for lang, code in [('en', 'en'), ('fa', 'fa'), ('ru', 'ru')]:
+    for lang, code in [('en', 'en'), ('fa', 'fa'), ('ru', 'ru'), ('ko', 'ko')]:
         print(f"\nTranslating to {lang}...")
         input_file = f'po/{lang}.po'
         output_file = f'po/{lang}.po'
