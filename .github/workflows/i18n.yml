@@ -42,13 +42,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gettext python3 python3-pip i18nspector
-          pip3 install googletrans-py langdetect
+          pip3 install googletrans-py langdetect openai
 
       - name: Cache Python dependencies
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-googletrans-py-langdetect
+          key: ${{ runner.os }}-pip-googletrans-py-langdetect-openai
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -83,6 +83,8 @@ jobs:
       
       - name: Auto translate
         run: python3 translate.py
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
       
       - name: Compile MO files
         run: |

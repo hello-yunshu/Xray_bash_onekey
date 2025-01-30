@@ -1091,12 +1091,12 @@ modify_reality_listen_address () {
 
 xray_privilege_escalation() {
     if [[ -n "$(grep "User=nobody" ${xray_systemd_file})" ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动擦屁股程序") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动修改程序") ${Font}"
         chmod -fR a+rw /var/log/xray/
         chown -fR nobody:nogroup /var/log/xray/
         [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR nobody:nogroup ${ssl_chainpath}/*
     fi
-    log_echo "${OK} ${GreenBG} Xray $(gettext "擦屁股完成") ${Font}"
+    log_echo "${OK} ${GreenBG} Xray $(gettext "修改完成") ${Font}"
 }
 
 xray_install() {
@@ -1129,14 +1129,14 @@ xray_update() {
         fi
         case $xray_test_fq in
         [yY][eE][sS] | [yY])
-            log_echo "${OK} ${GreenBG} $(gettext "即将升级") Xray ! ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "升级") Xray ! ${Font}"
             systemctl stop xray
             ## xray_version=${xray_online_version}
             bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
             judge "Xray $(gettext "升级")"
             ;;
         *)
-            log_echo "${OK} ${GreenBG} $(gettext "即将升级/重装") Xray ! ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "升级/重装") Xray ! ${Font}"
             systemctl stop xray
             xray_version=$(info_extraction xray_version)
             bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
@@ -1516,7 +1516,7 @@ port_exist_check() {
     else
         log_echo "${Error} ${RedBG} $(gettext "检测到 $1 端口被占用, 以下为 $1 端口占用信息") ${Font}"
         lsof -i:"$1"
-        timeout "$(gettext "尝试自动 kill 占用进程")!"
+        timeout "$(gettext "尝试终止占用的进程")!"
         lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
         log_echo "${OK} ${GreenBG} kill $(gettext "完成") ${Font}"
     fi
