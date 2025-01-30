@@ -2,6 +2,7 @@ import re
 import time
 import json
 import os
+from openai import OpenAI
 from googletrans import Translator
 
 def load_translation_cache(cache_file):
@@ -36,6 +37,33 @@ def update_version(version_file):
         f.write(timestamp)
     return timestamp
 
+def contains_chinese(text):
+    return any('\u4e00' <= char <= '\u9fff' for char in text)
+
+def translate_text_qwen(text, target_lang):
+    client = OpenAI(
+        api_key=os.getenv("AI_API_KEY"),
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+    completion = client.chat.completions.create(
+        model="qwen-turbo",
+        messages=[
+            {'role': 'system', 'content': 'You are a professional text translation assistant, focused on translating short Chinese texts into voice content in the specified target language. Your task is to translate only the Chinese parts of the text into the corresponding target language, leaving English portions as they are. The translation process should not consider context between sentences; ensure each individual sentence is translated accurately. Avoid adding any punctuation at the end of the translated sentences. The goal is to assist in the internationalization of scripts while ensuring translations are concise and accurate.'},
+            {'role': 'user', 'content': f'Translate the following text to {target_lang}: {text}'}
+        ],
+        stream=True
+    )
+    full_content = ""
+    for chunk in completion:
+        full_content += chunk.choices[0].delta.content
+    return full_content.capitalize().lower().rstrip('.,!?;:')
+
+def translate_text_google(text, target_lang):
+    translator = Translator(service_urls=['translate.google.com'])
+    translation = translator.translate(text, src='auto', dest=target_lang)
+    translated_text = translation.text
+    return translated_text.capitalize().lower().rstrip('.,!?;:')
+
 def translate_po_file(input_file, output_file, target_lang):
     # 获取目标语言目录
     lang_dir = os.path.dirname(output_file)
@@ -53,9 +81,6 @@ def translate_po_file(input_file, output_file, target_lang):
     
     translations = load_translation_cache(cache_file)
     current_version = get_version(version_file)
-    
-    # 使用最新的 Translator，并设置更可靠的服务 URL
-    translator = Translator(service_urls=['translate.google.com'])
     
     with open(input_file, 'r', encoding='utf-8') as f:
         content = f.read()
@@ -94,13 +119,19 @@ def translate_po_file(input_file, output_file, target_lang):
             max_retries = 3
             for attempt in range(max_retries):
                 try:
-                    time.sleep(1)  # 增加延迟以避免请求过快
-                    # 确保源语言和目标语言设置正确
-                    translation = translator.translate(msgid_text, src='auto', dest=target_lang)
-                    translated_text = translation.text
+                    time.sleep(0.1)  # 增加延迟以避免请求过快
+                    translated_text = translate_text_qwen(msgid_text, target_lang)
                     
-                    # 强制将翻译结果的首字母转为小写并去除末尾标点
-                    translated_text = translated_text.capitalize().lower().rstrip('.,!?;:')
+                    # 检查翻译结果是否仍包含中文
+                    chinese_retry_count = 0
+                    while contains_chinese(translated_text) and chinese_retry_count < 3:
+                        print(f"Detected Chinese in translation for: {msgid_text}. Re-translating... (Attempt {chinese_retry_count + 1}/3)")
+                        translated_text = translate_text_qwen(msgid_text, target_lang)
+                        chinese_retry_count += 1
+                    
+                    if contains_chinese(translated_text):
+                        print(f"Failed to translate {msgid_text} after 3 attempts using Qwen. Using Google Translate...")
+                        translated_text = translate_text_google(msgid_text, target_lang)
                     
                     # 检查翻译是否有变更
                     if msgid_text in translations and translations[msgid_text] != translated_text:
@@ -115,7 +146,7 @@ def translate_po_file(input_file, output_file, target_lang):
                     if attempt == max_retries - 1:
                         raise e
                     print(f"Retry {attempt + 1}/{max_retries} for: {msgid_text}")
-                    time.sleep(3)  # 重试前等待更长时间
+                    time.sleep(0.3)  # 重试前等待更长时间
         except Exception as e:
             print(f"Translation failed for: {msgid_text}")
             print(f"Error: {e}")
@@ -154,8 +185,8 @@ def translate_po_file(input_file, output_file, target_lang):
         f.write(content)
 
 if __name__ == '__main__':
-    for lang, code in [('en', 'en'), ('fa', 'fa'), ('ru', 'ru'), ('ko', 'ko')]:
-        print(f"\nTranslating to {lang}...")
+    for lang, code in [('en', 'English'), ('fa', 'Persian'), ('ru', 'Russian'), ('ko', 'Korean')]:
+        print(f"\nTranslating to {lang} ({code})...")
         input_file = f'po/{lang}.po'
         output_file = f'po/{lang}.po'
         translate_po_file(input_file, output_file, code)
