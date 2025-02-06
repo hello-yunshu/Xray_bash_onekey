@@ -2491,7 +2491,7 @@ tls_type() {
         local choose_tls
         read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")"
         if [[ ${choose_tls} == 1 ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "从 2.2.1 版本起, 由于启用 h3 仅支持 TLS1.3, 请选择 TLS1.3 only (安全模式)")! ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "由于 h3 仅支持 TLS1.3, 只支持 TLS1.3 only (安全模式)")! ${Font}"
             tls_type
         else
             sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
@@ -2952,7 +2952,7 @@ timeout() {
         fi
         printf "${Warning} ${GreenBG} %d%s%s ${Font} \033[%d;%dm%-s\033[0m \033[%dm%d\033[0m \r" \
             "$timeout_index" \
-            "$(gettext "秒后将")" \
+            " $(gettext "秒后") " \
             "$1" \
             "$timeout_color" \
             "$timeout_bg" \

@@ -186,7 +186,7 @@ mf_restart_fail2ban() {
     systemctl daemon-reload
     systemctl restart fail2ban
     judge "Fail2ban $(gettext "重启")"
-    timeout "$(gettext "清空屏幕!")"
+    timeout "$(gettext "清空屏幕")!"
     clear
 }
 
