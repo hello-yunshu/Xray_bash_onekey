@@ -4,6 +4,10 @@ import json
 import os
 from openai import OpenAI
 from googletrans import Translator
+from langdetect import detect, DetectorFactory
+
+# 设置种子以确保结果一致
+DetectorFactory.seed = 0
 
 def load_translation_cache(cache_file):
     if os.path.exists(cache_file):
@@ -12,7 +16,7 @@ def load_translation_cache(cache_file):
         
         # 将缓存中的所有翻译结果首字母转为小写并去除末尾标点
         for key in translations:
-            translations[key] = translations[key].capitalize().lower().rstrip('.,!?;:')
+            translations[key] = clean_translation(translations[key])
         
         return translations
     return {}
@@ -20,7 +24,7 @@ def load_translation_cache(cache_file):
 def save_translation_cache(cache_file, translations):
     # 在保存缓存前确保所有翻译结果首字母转为小写并去除末尾标点
     for key in translations:
-        translations[key] = translations[key].capitalize().lower().rstrip('.,!?;:')
+        translations[key] = clean_translation(translations[key])
     
     with open(cache_file, 'w', encoding='utf-8') as f:
         json.dump(translations, f, ensure_ascii=False, indent=2)
@@ -39,6 +43,19 @@ def update_version(version_file):
 
 def contains_chinese(text):
     return any('\u4e00' <= char <= '\u9fff' for char in text)
+
+def is_english_dominant(text, threshold=0.4):
+    english_count = sum(1 for char in text if char.isascii())
+    total_count = len(text)
+    return english_count / total_count > threshold
+
+def contains_target_language_characters(text, target_lang):
+    try:
+        detected_lang = detect(text)
+        return detected_lang == target_lang
+    except Exception as e:
+        print(f"Language detection failed: {e}")
+        return False
 
 def translate_text_qwen(text, target_lang):
     client = OpenAI(
@@ -63,6 +80,12 @@ def translate_text_google(text, target_lang):
     translation = translator.translate(text, src='auto', dest=target_lang)
     translated_text = translation.text
     return translated_text.capitalize().lower().rstrip('.,!?;:')
+
+def needs_fallback_translation(translated_text):
+    return '\n' in translated_text or '"' in translated_text
+
+def clean_translation(text):
+    return text.replace('\n', '').replace('"', '')
 
 def translate_po_file(input_file, output_file, target_lang):
     # 获取目标语言目录
@@ -98,6 +121,8 @@ def translate_po_file(input_file, output_file, target_lang):
         # 检查缓存
         if msgid_text in translations:
             translated_text = translations[msgid_text]
+            # 清理缓存中的翻译结果
+            translated_text = clean_translation(translated_text)
             # 直接使用缓存的翻译，不再检查目标语言
             if translated_text == "":
                 print(f"Cached translation is empty for: {msgid_text}. Re-translating...")
@@ -122,16 +147,16 @@ def translate_po_file(input_file, output_file, target_lang):
                     time.sleep(0.1)  # 增加延迟以避免请求过快
                     translated_text = translate_text_qwen(msgid_text, target_lang)
                     
-                    # 检查翻译结果是否仍包含中文
-                    chinese_retry_count = 0
-                    while contains_chinese(translated_text) and chinese_retry_count < 3:
-                        print(f"Detected Chinese in translation for: {msgid_text}. Re-translating... (Attempt {chinese_retry_count + 1}/3)")
-                        translated_text = translate_text_qwen(msgid_text, target_lang)
-                        chinese_retry_count += 1
-                    
-                    if contains_chinese(translated_text):
-                        print(f"Failed to translate {msgid_text} after 3 attempts using Qwen. Using Google Translate...")
+                    # 检查翻译结果是否仍包含中文或需要回退翻译
+                    if (contains_chinese(translated_text) or 
+                        needs_fallback_translation(translated_text) or 
+                        not contains_target_language_characters(translated_text, target_lang) or 
+                        is_english_dominant(translated_text)):
+                        print(f"Translation does not meet criteria using Qwen. Using Google Translate...")
                         translated_text = translate_text_google(msgid_text, target_lang)
+                    
+                    # 清理Google翻译结果
+                    translated_text = clean_translation(translated_text)
                     
                     # 检查翻译是否有变更
                     if msgid_text in translations and translations[msgid_text] != translated_text:
