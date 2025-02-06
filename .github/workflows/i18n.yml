@@ -89,7 +89,10 @@ jobs:
       - name: Compile MO files
         run: |
           for lang in zh_CN en fa ru ko; do
-            msgfmt --check -v --statistics -o languages/${lang}/LC_MESSAGES/xray_install.mo po/${lang}.po
+            if ! msgfmt --check -v --statistics -o languages/${lang}/LC_MESSAGES/xray_install.mo po/${lang}.po; then
+              echo "Error in ${lang}.po file:"
+              cat po/${lang}.po
+            fi
           done
       
       - name: Run i18nspector checks on PO files

@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-01-29 17:17+0000\n"
+"POT-Creation-Date: 2025-02-06 18:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -429,11 +429,11 @@ msgid "配置修改"
 msgstr ""
 
 #: install.sh:1094
-msgid "检测到 Xray 的权限控制, 启动擦屁股程序"
+msgid "检测到 Xray 的权限控制, 启动修改程序"
 msgstr ""
 
 #: install.sh:1099
-msgid "擦屁股完成"
+msgid "修改完成"
 msgstr ""
 
 #: install.sh:1116
@@ -456,20 +456,12 @@ msgstr ""
 msgid "是否更新"
 msgstr ""
 
-#: install.sh:1132
-msgid "即将升级"
-msgstr ""
-
-#: install.sh:1136 install.sh:1143 install.sh:1150 install.sh:1333
-#: install.sh:3548 install.sh:3549 install.sh:3550
+#: install.sh:1132 install.sh:1136 install.sh:1143 install.sh:1150
+#: install.sh:1333 install.sh:3548 install.sh:3549 install.sh:3550
 msgid "升级"
 msgstr ""
 
-#: install.sh:1139
-msgid "即将升级/重装"
-msgstr ""
-
-#: install.sh:1147
+#: install.sh:1139 install.sh:1147
 msgid "升级/重装"
 msgstr ""
 
@@ -682,7 +674,7 @@ msgid "手动输入"
 msgstr ""
 
 #: install.sh:1519
-msgid "尝试自动 kill 占用进程"
+msgid "尝试终止占用的进程"
 msgstr ""
 
 #: install.sh:1530
@@ -877,6 +869,7 @@ msgstr ""
 #: install.sh:3673 install.sh:3709 install.sh:3715 install.sh:3721
 #: install.sh:3750 install.sh:3777 install.sh:3784 install.sh:3789
 #: fail2ban_manager.sh:159 fail2ban_manager.sh:172 fail2ban_manager.sh:181
+#: fail2ban_manager.sh:189
 msgid "清空屏幕"
 msgstr ""
 
@@ -1044,8 +1037,7 @@ msgid "安全模式"
 msgstr ""
 
 #: install.sh:2494
-msgid ""
-"从 2.2.1 版本起, 由于启用 h3 仅支持 TLS1.3, 请选择 TLS1.3 only (安全模式)"
+msgid "由于 h3 仅支持 TLS1.3, 只支持 TLS1.3 only (安全模式)"
 msgstr ""
 
 #: install.sh:2498
@@ -1212,7 +1204,7 @@ msgid "已清空证书遗留文件"
 msgstr ""
 
 #: install.sh:2955
-msgid "秒后将"
+msgid "秒后"
 msgstr ""
 
 #: install.sh:3118
@@ -1673,10 +1665,6 @@ msgstr ""
 
 #: fail2ban_manager.sh:180
 msgid "停止成功"
-msgstr ""
-
-#: fail2ban_manager.sh:189
-msgid "清空屏幕!"
 msgstr ""
 
 #: fail2ban_manager.sh:199
