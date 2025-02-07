@@ -86,23 +86,32 @@ jobs:
         env:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
       
-      - name: Compile MO files
+      - name: Compile MO files if necessary
         run: |
-          for lang in zh_CN en fa ru ko; do
-            if ! msgfmt --check -v --statistics -o languages/${lang}/LC_MESSAGES/xray_install.mo po/${lang}.po; then
-              echo "Error in ${lang}.po file:"
-              cat po/${lang}.po
+          needs_compile=false
+          for lang in en fa ru ko; do
+            if [ ! -f "po/${lang}.po.no-update" ]; then
+              needs_compile=true
+              if ! msgfmt --check -v --statistics -o languages/${lang}/LC_MESSAGES/xray_install.mo po/${lang}.po; then
+                echo "Error in ${lang}.po file:"
+                cat po/${lang}.po
+              fi
             fi
           done
+          if [ "$needs_compile" = false ]; then
+            echo "No translations were updated. Skipping MO file compilation."
+          fi
       
       - name: Run i18nspector checks on PO files
         run: |
           i18nspector check po/
       
-      - name: Run i18nspector checks on MO files
+      - name: Run i18nspector checks on MO files if compiled
         run: |
-          for lang in zh_CN en fa ru ko; do
-            i18nspector check-binary languages/${lang}/LC_MESSAGES/xray_install.mo
+          for lang in en fa ru ko; do
+            if [ ! -f "po/${lang}.po.no-update" ] && [ -f "languages/${lang}/LC_MESSAGES/xray_install.mo" ]; then
+              i18nspector check-binary languages/${lang}/LC_MESSAGES/xray_install.mo
+            fi
           done
       
       - name: Save translation cache
@@ -116,10 +125,23 @@ jobs:
         run: |
           git pull origin main
       
-      - name: Commit changes
+      - name: Commit changes if necessary
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add po/ languages/
-          git commit -m "Update translations for all languages [$(date +%Y-%m-%d)]" || echo "No changes to commit"
-          git push 
+          needs_commit=false
+          for lang in en fa ru ko; do
+            if [ ! -f "po/${lang}.po.no-update" ]; then
+              needs_commit=true
+              break
+            else
+                rm po/${lang}.po.no-update
+            fi
+          done
+          if [ "$needs_commit" = true ]; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add po/ languages/
+            git commit -m "Update translations for all languages [$(date +%Y-%m-%d)]" || echo "No changes to commit"
+            git push 
+          else
+            echo "No translations were updated. Skipping commit and push."
+          fi
