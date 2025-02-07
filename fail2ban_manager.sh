@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.1.0"
+mf_SCRIPT_VERSION="1.1.1"
 
 mf_main_menu() {
     check_system
-  
+
     echo -e "\n"
     log_echo "${GreenBG} $(gettext "设置") Fail2ban $(gettext 用于防止暴力破解"), $(gettext 请选择"): ${Font}"
     log_echo "1. ${Green}$(gettext "安装") Fail2ban${Font}"
@@ -22,7 +22,7 @@ mf_main_menu() {
         3) mf_uninstall_fail2ban ;;
         4) mf_display_fail2ban_status ;;
         5) source "${idleleo}" ;;
-        *) 
+        *)
             echo -e "\n"
             log_echo "${Error} ${RedBG} $(gettext "无效的选择请重试") ${Font}"
             ;;
