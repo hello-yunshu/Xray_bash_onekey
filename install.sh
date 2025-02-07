@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.3.3"
+shell_version="2.3.4"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1253,7 +1253,8 @@ nginx_install() {
 
 nginx_update() {
     if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
-        if [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
+        current_nginx_build_version=$(info_extraction nginx_build_version)
+        if [[ ${nginx_build_version} != ${current_nginx_build_version} ]]; then
             ip_check
             if [[ -f "${xray_qr_config_file}" ]]; then
                 domain=$(info_extraction host)
@@ -1319,6 +1320,8 @@ nginx_update() {
                 log_echo "${OK} ${GreenBG} $(gettext "原配置文件已保留")! ${Font}"
                 ;;
             esac
+            backup_nginx_dir="${nginx_dir}_backup_${current_nginx_build_version}"
+            cp -r ${nginx_dir} ${backup_nginx_dir}
             nginx_install
             if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_ssl_conf_add
@@ -1327,10 +1330,40 @@ nginx_update() {
             elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_reality_conf_add
             fi
-            service_start
-            jq --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
-            judge "Nginx $(gettext "升级")"
+            if ! service_start; then
+                log_echo "${Error} ${RedBG} Nginx $(gettext "启动失败")! ${Font}"
+                if [[ ${auto_update} != "YES" ]]; then
+                    echo -e "\n"
+                    log_echo "${GreenBG} $(gettext "是否回滚到之前的 Nginx 版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+                    read -r rollback_fq
+                else
+                    service_stop
+                    rm -rf ${nginx_dir}
+                    mv ${backup_nginx_dir} ${nginx_dir}
+                    service_start
+                fi
+                case $rollback_fq in
+                [nN][oO] | [nN])
+                    log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
+                    ;;
+                *)
+                    service_stop
+                    rm -rf ${nginx_dir}
+                    mv ${backup_nginx_dir} ${nginx_dir}
+                    if service_start; then
+                        log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的 Nginx 版本")! ${Font}"
+                        jq --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+                        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+                    else
+                        log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
+                    fi
+                    ;;
+                esac
+            else
+                jq --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+                mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+                judge "Nginx $(gettext "升级")"
+            fi
         else
             log_echo "${OK} ${GreenBG} Nginx $(gettext "已为最新版") ${Font}"
         fi
