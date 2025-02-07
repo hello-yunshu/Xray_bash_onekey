@@ -29,13 +29,13 @@ cd "$fm_WORKDIR"
 fm_list_files() {
     local max_length
     log_echo "${GreenBG} $(gettext "列出所有") .$fm_EXTENSION $(gettext "文件") ${Font}"
-    
+
     # 设置 dotglob 选项，使通配符 * 包括以点开头的文件
     shopt -s dotglob
-    
+
     # 使用数组存储匹配到的文件
     files=(*.$fm_EXTENSION)
-    
+
     if [ ${#files[@]} -eq 0 ]; then
         log_echo "${Warning} ${YellowBG} $(gettext "没有找到") .$fm_EXTENSION $(gettext "文件") ${Font}"
         return 1
@@ -48,39 +48,39 @@ fm_list_files() {
                 max_length=$length
             fi
         done
-        
+
         # 确保最小宽度为 10
         if (( max_length < 10 )); then
             max_length=10
         fi
-        
+
         # 计算总宽度（包括边框）
         local total_width=$((max_length + 10))
-        
+
          # 打印表头
         printf "%-${total_width}s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        
+
         # 居中文本
         local header_text="$(gettext "文件名")"
         local header_length=${#header_text}
         local padding=$(( (total_width - header_length - 4) / 2 ))
         local left_padding=$(( padding - 4 ))  # 加上序号列的宽度
-        local right_padding=$(( padding - 4 )) 
-        
+        local right_padding=$(( padding - 4 ))
+
         printf "| %-4s | %-${left_padding}s%-${header_length}s%-${right_padding}s |\n" "$(gettext "序号")" "" "$header_text" ""
-        
+
         printf "%-${total_width}s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        
+
         # 打印文件名
         local index=1
         for file in "${files[@]}"; do
             printf "| %4d | %-*s |\n" $index $((max_length)) "$file"
             ((index++))
         done
-        
+
         # 打印底部边框
         printf "%-${total_width}s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        
+
         return 0
     fi
 }
@@ -111,7 +111,7 @@ fm_create_ws_or_grpc_server_file() {
     read_optimize "$(gettext "请输入主机") (host):" host
     read_optimize "$(gettext "请输入端口") (port):" port "" 1 65535
     read_optimize "$(gettext "请输入权重") (0~100 $(gettext "默认值") 50):" weight "50" 0 100
-    
+
     content="server ${host}:${port} weight=${weight} max_fails=2 fail_timeout=10;"
     echo "$content" > "${host}.${fm_EXTENSION}"
     log_echo "${OK} ${GreenBG} $(gettext "文件") ${host}.${fm_EXTENSION} $(gettext "已创建") ${Font}"
@@ -122,7 +122,7 @@ fm_create_ws_or_grpc_server_file() {
     read -r firewall_set_fq
     case $firewall_set_fq in
     [yY][eE][sS] | [yY])
-                
+
         if [[ "${ID}" == "centos" ]]; then
             pkg_install "iptables-services"
         else
@@ -152,14 +152,14 @@ fm_create_ws_or_grpc_server_file() {
 }
 
 # 函数: 编辑一个已存在的指定扩展名的文件
-fm_edit_file() {    
+fm_edit_file() {
     fm_list_files
     local num_files=${#files[@]}
     local choice
     read_optimize "$(gettext "请输入要编辑的文件编号") (1-$num_files): " choice "" 1 "$num_files"
-    
+
     local filename="${files[$((choice - 1))]}"
-    
+
     # 检查 vim 是否安装
     if ! command -v vim &> /dev/null; then
         log_echo "${Warning} ${YellowBG} vim $(gettext "未安装, 正在尝试安装") ${Font}"
@@ -175,13 +175,13 @@ fm_delete_file() {
     if ! fm_list_files; then
         return
     fi
-    
+
     local num_files=${#files[@]}
     local choice
     read_optimize "$(gettext "请输入要删除的文件编号") (1-$num_files): " choice "" 1 "$num_files"
-    
+
     local filename="${files[$((choice - 1))]}"
-    
+
     rm "$filename"
     log_echo "${OK} ${GreenBG} $(gettext "文件") $filename $(gettext "已删除") ${Font}"
     fm_restart_nginx_and_check_status
@@ -224,7 +224,7 @@ fm_main_menu() {
             3) fm_edit_file ;;
             4) fm_delete_file ;;
             5) source "$idleleo" ;;
-            *) 
+            *)
                 echo -e "\n"
                 log_echo "${Error} ${RedBG} $(gettext "无效选项, 请重试") ${Font}"
                 ;;
