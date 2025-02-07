@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.3.4"
+shell_version="2.3.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -87,7 +87,7 @@ log() {
     if [ $(stat -c%s "$LOG_FILE" 2>/dev/null) -gt $LOG_MAX_SIZE ]; then
         log_rotate
     fi
-    
+
     local message=$(echo -e "$1" | sed 's/\x1B\[\([0-9]\(;[0-9]\)*\)*m//g' | tr -d '\n')
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" | tee -a $LOG_FILE >/dev/null
 }
@@ -95,19 +95,19 @@ log() {
 log_rotate() {
     local timestamp=$(date +%Y%m%d%H%M%S)
     local archived_log="${LOG_FILE}.${timestamp}.gz"
-    
+
     if ! gzip -c "$LOG_FILE" > "$archived_log"; then
         log_echo "${Error} ${RedBG} $(gettext "日志文件归档失败") ${Font}"
         return 1
     fi
-    
+
     if ! :> "$LOG_FILE"; then
-        log_echo "${Error} ${RedBG} $(gettext "清空日志文件失败") ${Font}" 
+        log_echo "${Error} ${RedBG} $(gettext "清空日志文件失败") ${Font}"
         return 1
     fi
-    
+
     log "$(gettext "日志文件已轮转并归档为") $archived_log"
-    
+
     rotate_archives
 }
 
@@ -181,20 +181,20 @@ check_language_update() {
     local lang_code="$1"
     local local_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/xray_install.mo"
     local version_file_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/refs/heads/main/languages/${lang_code}/LC_MESSAGES/version"
-    
+
     [[ ! -f "${local_file}" ]] && return 0
-    
+
     local remote_version
     remote_version=$(curl -s "${version_file_url}" || echo "")
-    
+
     if [ -z "$remote_version" ]; then
         log_echo "${Warning} ${YellowBG} $(gettext "无法获取远程语言文件信息") ${Font}"
         return 1
     fi
-    
+
     local local_version
     local_version=$(cat "${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/version" 2>/dev/null || echo "")
-    
+
     [ "$remote_version" != "$local_version" ]
 }
 
@@ -203,16 +203,16 @@ update_language_file() {
     local mo_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/xray_install.mo"
     local version_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/version"
     local github_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/languages"
-    
+
     mkdir -p "${idleleo_dir}/languages/${lang_code}/LC_MESSAGES"
-    
+
     log_echo "${Info} ${Blue} $(gettext "正在更新语言文件")... ${Font}"
-    
+
     if ! curl -s -o "${mo_file}" "${github_url}/${lang_code}/LC_MESSAGES/xray_install.mo"; then
         log_echo "${Error} ${RedBG} $(gettext "语言文件更新失败") ${Font}"
         return 1
     fi
-    
+
     if [ ! -s "${mo_file}" ]; then
         log_echo "${Error} ${RedBG} $(gettext "语言文件无效") ${Font}"
         rm -f "${mo_file}"
@@ -223,7 +223,7 @@ update_language_file() {
         log_echo "${Error} ${RedBG} $(gettext "版本文件更新失败") ${Font}"
         return 1
     fi
-    
+
     find "${idleleo_dir}/languages" -type d -exec chmod 755 {} \;
     find "${idleleo_dir}/languages" -type f -exec chmod 644 {} \;
 
@@ -248,7 +248,7 @@ init_language() {
         "/usr/local/bin/gettext.sh"
         "/usr/share/gettext-"*/gettext.sh
     )
-    
+
     local gettext_sh=""
     for path in "${gettext_paths[@]}"; do
         if [ -f "$path" ]; then
@@ -256,21 +256,21 @@ init_language() {
             break
         fi
     done
-    
+
     if [ -z "$gettext_sh" ]; then
         log_echo "${Error} ${RedBG} $(gettext "未找到") gettext.sh, $(gettext "将使用默认语言") ${Font}"
         export LANG=zh_CN.UTF-8
         return 1
     fi
-    
+
     [ -d "${idleleo_dir}/languages" ] || mkdir "${idleleo_dir}/languages"
     export TEXTDOMAIN="xray_install"
     export TEXTDOMAINDIR="${idleleo_dir}/languages"
     . "$gettext_sh"
-    
+
     if [ -f "${idleleo_dir}/language.conf" ]; then
         source "${idleleo_dir}/language.conf"
-        
+
         if [[ "${LANG%.*}" != "zh_CN" ]]; then
             local lang_code
             case "${LANG%.*}" in
@@ -278,13 +278,13 @@ init_language() {
                 "fa_IR") lang_code="fa" ;;
                 "ru_RU") lang_code="ru" ;;
                 "ko_KR") lang_code="ko" ;;
-                *) 
+                *)
                     log_echo "${Warning} ${YellowBG} $(gettext "不支持的语言"):${LANG%.*}, $(gettext "将使用默认语言") ${Font}"
                     export LANG=zh_CN.UTF-8
                     return 0
                     ;;
             esac
-            
+
             local lang_file="${TEXTDOMAINDIR}/${lang_code}/LC_MESSAGES/${TEXTDOMAIN}.mo"
             if [ ! -f "$lang_file" ]; then
                 if ! update_language_file "$lang_code"; then
@@ -757,7 +757,7 @@ target_set() {
 
             output=$(nmap --script ssl-enum-ciphers -p 443 "${domain}")
             curl_output=$(curl -I -k -m 5 "https://${domain}" 2>&1)
-        
+
             # 检测TLSv1.3支持
             if ! echo "$output" | grep -q "TLSv1.3"; then
                 log_echo "${Warning} ${YellowBG} $(gettext "该域名不支持") TLSv1.3 ${YellowBG}${Font}"
@@ -772,7 +772,7 @@ target_set() {
             if ! echo "$curl_output" | grep -q "HTTP/2"; then
                 log_echo "${Warning} ${YellowBG} $(gettext "该域名不支持") HTTP/2 ${YellowBG}${Font}"
             fi
-        
+
             # 检测是否跳转
             if echo "$curl_output" | grep -i -q 'location:'; then
                 log_echo "${Warning} ${YellowBG} $(gettext "该域名发生了跳转") ${YellowBG}${Font}"
@@ -858,7 +858,7 @@ nginx_upstream_server_set() {
             echo "3: $(gettext "返回")"
             local upstream_choose
             read_optimize "$(gettext "请输入"): " "upstream_choose" "NULL" 1 3 "$(gettext "请重新输入正确的数字")"
-            
+
             fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
             fm_file_path=${nginx_conf_dir}
             if [ ! -f "${idleleo_dir}/file_manager.sh" ]; then
@@ -874,8 +874,8 @@ nginx_upstream_server_set() {
             1) source "${idleleo_dir}/file_manager.sh" wsServers ${fm_file_path} ;;
             2) source "${idleleo_dir}/file_manager.sh" grpcServers ${fm_file_path} ;;
             3) ;;
-            *) 
-                log_echo "${Error} ${RedBG} $(gettext "无效选项 请重试") ${Font}" 
+            *)
+                log_echo "${Error} ${RedBG} $(gettext "无效选项 请重试") ${Font}"
                 nginx_upstream_server_set
                 ;;
             esac
@@ -1101,7 +1101,7 @@ xray_privilege_escalation() {
 
 xray_install() {
     if [[ $(xray version) == "" ]] || [[ ! -f "${xray_conf}" ]]; then
-        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
         judge "$(gettext "安装") Xray"
         systemctl daemon-reload
         xray_privilege_escalation
@@ -1115,7 +1115,6 @@ xray_install() {
 xray_update() {
     [[ ! -d "${local_bin}/etc/xray" ]] && log_echo "${GreenBG} $(gettext "若更新无效, 建议直接卸载再安装")! ${Font}"
     log_echo "${Warning} ${GreenBG} $(gettext "部分新功能需要重新安装才可生效") ${Font}"
-    xray_online_version=$(check_version xray_online_version)
     ## xray_online_version=$(check_version xray_online_pre_version)
     ## if [[ $(info_extraction xray_version) != ${xray_online_version} ]] && [[ ${xray_version} != ${xray_online_version} ]]; then
     if [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
@@ -1124,30 +1123,52 @@ xray_update() {
             log_echo "${Warning} ${GreenBG} $(gettext "脚本可能未兼容此版本") ${Font}"
             log_echo "${Warning} ${GreenBG} $(gettext "是否更新") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r xray_test_fq
+            case $xray_test_fq in
+            [yY][eE][sS] | [yY])
+                log_echo "${OK} ${GreenBG} $(gettext "升级") Xray ! ${Font}"
+                systemctl stop xray
+                bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
+                if ! ${xray_bin_dir}/xray -version &> /dev/null; then
+                    log_echo "${Error} ${RedBG} Xray $(gettext "启动失败")! ${Font}"
+                    log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+                    read -r rollback_fq
+                    case $rollback_fq in
+                    [nN][oO] | [nN])
+                        log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
+                        ;;
+                    *)
+                        log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
+                        xray_version=$(info_extraction xray_version)
+                        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+                        if ${xray_bin_dir}/xray -version &> /dev/null; then
+                            log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
+                        else
+                            log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
+                        fi
+                        ;;
+                    esac
+                else
+                    judge "Xray $(gettext "升级")"
+                    xray_version=${xray_online_version}
+                fi
+                ;;
+            *)
+                return 0
+                ;;
+            esac
         else
-            xray_test_fq=1
+            systemctl stop xray
+            bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
+            if ! ${xray_bin_dir}/xray -version &> /dev/null; then
+                xray_version=$(info_extraction xray_version)
+                bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+            fi
         fi
-        case $xray_test_fq in
-        [yY][eE][sS] | [yY])
-            log_echo "${OK} ${GreenBG} $(gettext "升级") Xray ! ${Font}"
-            systemctl stop xray
-            ## xray_version=${xray_online_version}
-            bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
-            judge "Xray $(gettext "升级")"
-            ;;
-        *)
-            log_echo "${OK} ${GreenBG} $(gettext "升级/重装") Xray ! ${Font}"
-            systemctl stop xray
-            xray_version=$(info_extraction xray_version)
-            bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
-            judge "Xray $(gettext "升级")"
-            ;;
-        esac
     else
-        timeout "$(gettext "升级/重装") Xray !"
+        timeout "$(gettext "重装") Xray !"
         systemctl stop xray
-        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
-        judge "Xray $(gettext "升级")"
+        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
+        judge "Xray $(gettext "重装")"
     fi
     xray_privilege_escalation
     [[ -f "${xray_default_conf}" ]] && rm -rf ${xray_default_conf}
@@ -1238,7 +1259,7 @@ nginx_install() {
     tar -xzvf xray-nginx-custom.tar.gz -C ./
     [[ -d ${nginx_dir} ]] && rm -rf "${nginx_dir}"
     mv ./nginx "${nginx_dir}"
-    
+
     cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/nginx.default
 
     # 修改基本配置
@@ -1334,7 +1355,7 @@ nginx_update() {
                 log_echo "${Error} ${RedBG} Nginx $(gettext "启动失败")! ${Font}"
                 if [[ ${auto_update} != "YES" ]]; then
                     echo -e "\n"
-                    log_echo "${GreenBG} $(gettext "是否回滚到之前的 Nginx 版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+                    log_echo "${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                     read -r rollback_fq
                 else
                     service_stop
@@ -1347,11 +1368,12 @@ nginx_update() {
                     log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
                     ;;
                 *)
+                    log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
                     service_stop
                     rm -rf ${nginx_dir}
                     mv ${backup_nginx_dir} ${nginx_dir}
                     if service_start; then
-                        log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的 Nginx 版本")! ${Font}"
+                        log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
                         jq --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
                         mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
                     else
@@ -1780,11 +1802,11 @@ server {
 
     location ^~ /.well-known/acme-challenge/ {
         root ${idleleo_dir}/conf;
-        default_type "text/plain"; 
+        default_type "text/plain";
         allow all;
-    } 
+    }
     location = /.well-known/acme-challenge/ {
-        return 404; 
+        return 404;
     }
 
     location / {
@@ -1874,7 +1896,7 @@ stream {
     map \$ssl_preread_server_name \$stream_map {
         include ${nginx_conf_dir}/*.serverNames;
     }
- 
+
     upstream reality {
         server 127.0.0.1:9443;
     }
@@ -1884,7 +1906,7 @@ stream {
         proxy_pass \$stream_map;
         ssl_preread on;
         #proxy_protocol on;
-        
+
         # 超时设置
         proxy_connect_timeout 20s;       # 连接超时时间
         proxy_timeout 300s;            # 数据传输超时时间
@@ -2085,7 +2107,7 @@ clean_logs() {
     timeout "$(gettext "即将清除")!"
     for i in $(find /var/log/xray/ ${nginx_dir}/logs -name "*.log"); do cat /dev/null >"$i"; done
     judge "$(gettext "日志清理")"
-    
+
     #以下为兼容代码, 1个大版本后删除
     if [[ "${ID}" == "centos" ]]; then
         cron_file="/var/spool/cron/root"
@@ -2147,7 +2169,7 @@ clean_logs() {
         echo "    notifempty" >> "$logrotate_config"
         echo "    create 640 nobody nogroup" >> "$logrotate_config"
         echo "}" >> "$logrotate_config"
-        
+
         judge "$(gettext "设置自动清理日志")"
         ;;
     esac
@@ -2381,7 +2403,7 @@ basic_information() {
 
         log_echo "${Red} $(gettext "加密") (encryption):${Font} None "
         log_echo "${Red} $(gettext "传输协议") (network):${Font} $(info_extraction net) "
-        log_echo "${Red} $(gettext "底层传输安全") (tls):${Font} $(info_extraction tls) "  
+        log_echo "${Red} $(gettext "底层传输安全") (tls):${Font} $(info_extraction tls) "
         if [[ ${tls_mode} != "Reality" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                 log_echo "${Red} $(gettext "路径") (path $(gettext "不要落下")/):${Font} /$(info_extraction path) "
@@ -3003,14 +3025,14 @@ judge_mode() {
     if [[ -f "${xray_qr_config_file}" ]]; then
         ws_grpc_mode=$(info_extraction ws_grpc_mode)
         tls_mode=$(info_extraction tls)
-        
+
         case ${ws_grpc_mode} in
             onlyws) ws_grpc_mode_add="ws";;
             onlygRPC) ws_grpc_mode_add="gRPC";;
             all) ws_grpc_mode_add="ws+gRPC";;
             *);;
         esac
-        
+
         case ${tls_mode} in
             TLS)
                 shell_mode="Nginx+${ws_grpc_mode_add}+TLS"
@@ -3018,7 +3040,7 @@ judge_mode() {
             Reality)
                 reality_add_more=$(info_extraction reality_add_more)
                 reality_add_nginx=$(info_extraction reality_add_nginx)
-                
+
                 if [[ ${reality_add_more} == "on" && ${reality_add_nginx} == "off" ]]; then
                     shell_mode="Reality+${ws_grpc_mode_add}"
                 elif [[ ${reality_add_nginx} == "on" && ${reality_add_more} == "on" ]]; then
@@ -3203,7 +3225,7 @@ check_file_integrity() {
 
 read_version() {
     shell_online_version="$(check_version shell_online_version)"
-    xray_version="$(check_version xray_online_version)"
+    xray_online_version="$(check_version xray_online_version)"
     nginx_build_version="$(check_version nginx_build_online_version)"
 }
 
@@ -3400,24 +3422,19 @@ idleleo_commend() {
                 if [[ "$(info_extraction nginx_build_version)" == "null" ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
                     nginx_need_update="${Green}[$(gettext "未安装")]${Font}"
                 elif [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
-                    nginx_need_update="${Green}[$(gettext "有新版")]${Font}"
+                    nginx_need_update="${Green}[$(gettext "有新版")]!${Font}"
                 else
                     nginx_need_update="${Green}[$(gettext "最新版")]${Font}"
                 fi
                 if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f "${xray_bin_dir}/xray" ]]; then
-                    xray_online_version=$(check_version xray_online_version)
                     ##xray_online_version=$(check_version xray_online_pre_version)
                     if [[ "$(info_extraction xray_version)" == "null" ]]; then
                         xray_need_update="${Green}[$(gettext "已安装")] ($(gettext "版本未知"))${Font}"
-                    elif [[ ${xray_version} != $(info_extraction xray_version) ]] && [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
-                        xray_need_update="${Red}[$(gettext "有新版")]!${Font}"
+                    elif [[ ${xray_online_version} != $(info_extraction xray_version) ]]; then
+                        xray_need_update="${Green}[$(gettext "有新版")]!${Font}"
                         ### xray_need_update="${Red}[$(gettext "请务必更新")]!${Font}"
-                    elif [[ ${xray_version} == $(info_extraction xray_version) ]] || [[ $(info_extraction xray_version) == ${xray_online_version} ]]; then
-                        if [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
-                            xray_need_update="${Green}[$(gettext "有测试版")]${Font}"
-                        else
-                            xray_need_update="${Green}[$(gettext "最新版")]${Font}"
-                        fi
+                    else
+                        xray_need_update="${Green}[$(gettext "最新版")]${Font}"
                     fi
                 else
                     xray_need_update="${Red}[$(gettext "未安装")]${Font}"
@@ -3517,7 +3534,7 @@ set_language() {
 
     if [ "$lang_choice" -ne 1 ]; then
         echo "LANG=$LANG" > "${idleleo_dir}/language.conf"
-        
+
         case $ID in
             debian|ubuntu)
                 if ! dpkg -s locales-all >/dev/null 2>&1; then
@@ -3540,7 +3557,7 @@ set_language() {
 
 #以下为兼容代码, 1个大版本后删除
 fix_bugs() {
-    local log_cleanup_file_path="/etc/logrotate.d/custom_log_cleanup"   
+    local log_cleanup_file_path="/etc/logrotate.d/custom_log_cleanup"
     if [[ -f "${log_cleanup_file_path}" ]]; then
         echo -e "\n"
         log_echo "${Warning} ${RedBG} $(gettext "检测存在到") BUG ! ${Font}"
@@ -3566,9 +3583,9 @@ menu() {
     log_echo "$(gettext "当前模式"): ${shell_mode}"
     log_echo "$(gettext "当前语言"): ${LANG%.*}"
     echo -e "\n"
-    
+
     echo -e "$(gettext "可以使用")${RedW} idleleo ${Font}$(gettext "命令管理脚本")${Font}\n"
-    
+
     log_echo "—————————————— ${GreenW}$(gettext "版本检测")${Font} ——————————————"
     log_echo "$(gettext "脚本"):  ${shell_need_update}"
     log_echo "Xray:  ${xray_need_update}"
@@ -3584,7 +3601,7 @@ menu() {
     echo -e "—————————————— ${GreenW}Language / 语言${Font} ———————"
     echo -e "${Green}34.${Font} 中文"
     echo -e "    English"
-    echo -e "    فارسی"
+    echo -e "    فارسی    "
     echo -e "    Русский"
     echo -e "    한국어"
     echo -e "—————————————— ${GreenW}$(gettext "安装向导")${Font} ——————————————"
@@ -3626,7 +3643,7 @@ menu() {
     echo -e "${Green}31.${Font} $(gettext "卸载") $(gettext "脚本")"
     echo -e "${Green}32.${Font} $(gettext "清空") $(gettext "证书文件")"
     echo -e "${Green}33.${Font} $(gettext "退出") \n"
-    
+
     local menu_num
     read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 34 "$(gettext "请输入 0 到 34 之间的有效数字")"
     case $menu_num in
