@@ -65,7 +65,7 @@ def translate_text_qwen(text, target_lang):
     completion = client.chat.completions.create(
         model="qwen-turbo",
         messages=[
-            {'role': 'system', 'content': 'You are a professional text translation assistant, focused on translating short Chinese texts into voice content in the specified target language. Your task is to translate only the Chinese parts of the text into the corresponding target language, leaving English portions as they are. The translation process should not consider context between sentences; ensure each individual sentence is translated accurately. Avoid adding any punctuation at the end of the translated sentences. The goal is to assist in the internationalization of scripts while ensuring translations are concise and accurate.'},
+            {'role': 'system', 'content': 'You are a professional text translation assistant, focused on translating short Chinese texts into voice content in the specified target language. Your task is to translate only the Chinese parts of the text into the corresponding target language, leaving English portions as they are. The translation process should not consider context between sentences; ensure each individual sentence is translated accurately. Avoid adding any punctuation at the end of the translated sentences. The goal is to assist in the internationalization of scripts while ensuring translations are concise and accurate.Translation does not need to be bound by grammar, the simpler the better.'},
             {'role': 'user', 'content': f'Translate the following text to {target_lang}: {text}'}
         ],
         stream=True
@@ -87,19 +87,19 @@ def needs_fallback_translation(translated_text):
 def clean_translation(text):
     return text.replace('\n', '').replace('"', '')
 
-def translate_po_file(input_file, output_file, target_lang):
+def translate_po_file(input_file, output_file, target_lang_code, target_lang_name):
     # 获取目标语言目录
     lang_dir = os.path.dirname(output_file)
     
     # 构建 LC_MESSAGES 目录路径
-    lc_messages_dir = os.path.join('languages', target_lang, 'LC_MESSAGES')
+    lc_messages_dir = os.path.join('languages', target_lang_code, 'LC_MESSAGES')
     
     # 确保 LC_MESSAGES 目录存在
     if not os.path.exists(lc_messages_dir):
         os.makedirs(lc_messages_dir)
     
     # 构建缓存文件和版本文件的路径
-    cache_file = os.path.join(lang_dir, f'cache_{target_lang}.json')
+    cache_file = os.path.join(lang_dir, f'cache_{target_lang_name}.json')
     version_file = os.path.join(lc_messages_dir, 'version')
     
     translations = load_translation_cache(cache_file)
@@ -125,6 +125,7 @@ def translate_po_file(input_file, output_file, target_lang):
             translated_text = clean_translation(translated_text)
             # 直接使用缓存的翻译，不再检查目标语言
             if translated_text == "":
+                updated = True
                 print(f"Cached translation is empty for: {msgid_text}. Re-translating...")
             else:
                 print(f"Using cached translation: {msgid_text} -> {translated_text}")
@@ -134,7 +135,6 @@ def translate_po_file(input_file, output_file, target_lang):
                     rf'msgid "{msgid_text}"\nmsgstr "{translated_text}"',
                     content
                 )
-                updated = True
                 used_translations.add(msgid_text)  # 标记为已使用
                 continue  # 跳过翻译步骤
 
@@ -145,15 +145,15 @@ def translate_po_file(input_file, output_file, target_lang):
             for attempt in range(max_retries):
                 try:
                     time.sleep(0.1)  # 增加延迟以避免请求过快
-                    translated_text = translate_text_qwen(msgid_text, target_lang)
+                    translated_text = translate_text_qwen(msgid_text, target_lang_name)
                     
                     # 检查翻译结果是否仍包含中文或需要回退翻译
                     if (contains_chinese(translated_text) or 
                         needs_fallback_translation(translated_text) or 
-                        not contains_target_language_characters(translated_text, target_lang) or 
+                        not contains_target_language_characters(translated_text, target_lang_code) or 
                         is_english_dominant(translated_text)):
                         print(f"Translation does not meet criteria using Qwen. Using Google Translate...")
-                        translated_text = translate_text_google(msgid_text, target_lang)
+                        translated_text = translate_text_google(msgid_text, target_lang_code)
                     
                     # 清理Google翻译结果
                     translated_text = clean_translation(translated_text)
@@ -161,10 +161,11 @@ def translate_po_file(input_file, output_file, target_lang):
                     # 检查翻译是否有变更
                     if msgid_text in translations and translations[msgid_text] != translated_text:
                         print(f"Translation changed for: {msgid_text} -> {translated_text}")
+                        updated = True
                     
                     # 更新缓存
                     translations[msgid_text] = translated_text  # 存储翻译到缓存
-                    print(f"New translation [{target_lang}]: {msgid_text} -> {translated_text}")
+                    print(f"New translation [{target_lang_code}]: {msgid_text} -> {translated_text}")
                     used_translations.add(msgid_text)  # 标记为已使用
                     break  # 成功翻译后跳出重试循环
                 except Exception as e:
@@ -202,6 +203,12 @@ def translate_po_file(input_file, output_file, target_lang):
         save_translation_cache(cache_file, translations)
         new_version = update_version(version_file)
         print(f"Updated version from {current_version} to {new_version}")
+    else:
+        print("No updates.")
+        # 创建一个额外的文件来指示没有更新
+        no_update_file = os.path.join(os.path.dirname(output_file), f'{os.path.basename(output_file)}.no-update')
+        with open(no_update_file, 'w', encoding='utf-8') as f:
+            f.write("# No updates.\n")
 
     # 确保每个 msgid 和 msgstr 之间没有多余的空格或换行符
     content = re.sub(r'\n\s*msgstr', '\nmsgstr', content)
@@ -210,8 +217,8 @@ def translate_po_file(input_file, output_file, target_lang):
         f.write(content)
 
 if __name__ == '__main__':
-    for lang, code in [('en', 'English'), ('fa', 'Persian'), ('ru', 'Russian'), ('ko', 'Korean')]:
-        print(f"\nTranslating to {lang} ({code})...")
-        input_file = f'po/{lang}.po'
-        output_file = f'po/{lang}.po'
-        translate_po_file(input_file, output_file, code)
+    for lang_code, lang_name in [('en', 'English'), ('fa', 'Persian'), ('ru', 'Russian'), ('ko', 'Korean')]:
+        print(f"\nTranslating to {lang_name} ({lang_code})...")
+        input_file = f'po/{lang_code}.po'
+        output_file = f'po/{lang_code}.po'
+        translate_po_file(input_file, output_file, lang_code, lang_name)
