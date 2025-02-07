@@ -103,7 +103,6 @@
   "脚本可能未兼容此版本": "the script may not be compatible with this version",
   "是否更新": "whether to update",
   "升级": "upgrade",
-  "升级/重装": "upgrade/reinstall",
   "Reality 协议有流量偷跑的风险": "reality protocol has a risk of data usage leakage",
   "该风险在 target 网址被 cdn 加速时存在": "the risk exists when the target url is cdn accelerated",
   "是否额外安装 nginx 前置保护(推荐)": "whether to install an additional nginx front-end protection (recommended)",
@@ -315,7 +314,6 @@
   "有新版": "there is a new version",
   "最新版": "latest version",
   "版本未知": "version unknown",
-  "有测试版": "there is a beta version",
   "运行中": "operating",
   "无需测试": "no need to test",
   "未运行": "not running",
@@ -442,5 +440,12 @@
   "重启失败": "reboot failed",
   "请检查配置文件是否有误": "please check if there is any error in the configuration file",
   "秒后": "a second later",
-  "由于 h3 仅支持 TLS1.3, 只支持 TLS1.3 only (安全模式)": "since h3 only supports tls1.3, only supports tls1.3 (safe mode)"
+  "由于 h3 仅支持 TLS1.3, 只支持 TLS1.3 only (安全模式)": "since h3 only supports tls1.3, only supports tls1.3 (safe mode)",
+  "启动失败": "startup failed",
+  "未执行回滚操作": "no rollback operation was performed",
+  "回滚失败": "rollback failed",
+  "是否回滚到之前的版本": "whether to roll back to previous version",
+  "正在回滚": "rolling back",
+  "已成功回滚到之前的": "successfully rolled back to previous",
+  "重装": "reinstall"
 }
