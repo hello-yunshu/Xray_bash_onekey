@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.3.5"
+shell_version="2.3.6"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1322,6 +1322,9 @@ nginx_update() {
                 return 1
             fi
             service_stop
+            backup_nginx_dir="${nginx_dir}_backup_${current_nginx_build_version}"
+            cp -r ${nginx_dir} ${backup_nginx_dir}
+            judge "$(gettext "备份旧版") Nginx"
             timeout "$(gettext "删除旧版") Nginx !"
             rm -rf ${nginx_dir}
             if [[ ${auto_update} != "YES" ]]; then
@@ -1341,8 +1344,6 @@ nginx_update() {
                 log_echo "${OK} ${GreenBG} $(gettext "原配置文件已保留")! ${Font}"
                 ;;
             esac
-            backup_nginx_dir="${nginx_dir}_backup_${current_nginx_build_version}"
-            cp -r ${nginx_dir} ${backup_nginx_dir}
             nginx_install
             if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_ssl_conf_add
@@ -1376,6 +1377,7 @@ nginx_update() {
                         log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
                         jq --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
                         mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+                        rm -rf ${backup_nginx_dir}
                     else
                         log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
                     fi
@@ -1385,6 +1387,8 @@ nginx_update() {
                 jq --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
                 mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
                 judge "Nginx $(gettext "升级")"
+                rm -rf ${backup_nginx_dir}
+                judge "$(gettext "删除") Nginx $(gettext "备份")"
             fi
         else
             log_echo "${OK} ${GreenBG} Nginx $(gettext "已为最新版") ${Font}"
@@ -1447,11 +1451,15 @@ domain_check() {
             domain=$(info_extraction host)
             ip_version=$(info_extraction ip_version)
             if [[ ${ip_version} == "IPv4" ]]; then
-                local_ip=$(curl -4 ip.sb)
+                local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
             elif [[ ${ip_version} == "IPv6" ]]; then
-                local_ip=$(curl -6 ip.sb)
+                local_ip=$(curl -6 ip.me 2>/dev/null || curl -6 ip.im)
             else
                 local_ip=${ip_version}
+            fi
+            if [[ -z ${local_ip} ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
+                return 1
             fi
             log_echo "${OK} ${GreenBG} $(gettext "已跳过域名设置") ${Font}"
             return 0
@@ -1469,11 +1477,11 @@ domain_check() {
     read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")"
     log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
-        local_ip=$(curl -4 ip.sb)
+        local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
         ip_version="IPv4"
     elif [[ ${ip_version_fq} == 2 ]]; then
-        local_ip=$(curl -6 ip.sb)
+        local_ip=$(curl -6 ip.me 2>/dev/null || curl -6 ip.im)
         domain_ip=$(ping -6 "${domain}" -c 1 | sed '2{s/[^(]*(//;s/).*//;q}' | tail -n +2)
         ip_version="IPv6"
     elif [[ ${ip_version_fq} == 3 ]]; then
@@ -1482,9 +1490,13 @@ domain_check() {
         read_optimize "$(gettext "请输入"): " "local_ip" "NULL"
         ip_version=${local_ip}
     else
-        local_ip=$(curl -4 ip.sb)
+        local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
         ip_version="IPv4"
+    fi
+    if [[ -z ${local_ip} ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
+        return 1
     fi
     log_echo "$(gettext "域名DNS解析IP"): ${domain_ip}"
     log_echo "$(gettext "公网IP/域名"): ${local_ip}"
@@ -1527,11 +1539,15 @@ ip_check() {
         *)
             ip_version=$(info_extraction ip_version)
             if [[ ${ip_version} == "IPv4" ]]; then
-                local_ip=$(curl -4 ip.sb)
+                local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
             elif [[ ${ip_version} == "IPv6" ]]; then
-                local_ip=$(curl -6 ip.sb)
+                local_ip=$(curl -6 ip.me 2>/dev/null || curl -6 ip.im)
             else
                 local_ip=${ip_version}
+            fi
+            if [[ -z ${local_ip} ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
+                return 1
             fi
             echo -e "\n"
             log_echo "${OK} ${GreenBG} $(gettext "已跳过IP设置") ${Font}"
@@ -1550,26 +1566,30 @@ ip_check() {
     [[ -z ${ip_version_fq} ]] && ip_version=1
     log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
-        local_ip=$(curl -4 ip.sb)
+        local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
         ip_version="IPv4"
     elif [[ ${ip_version_fq} == 2 ]]; then
-        local_ip=$(curl -6 ip.sb)
+        local_ip=$(curl -6 ip.me 2>/dev/null || curl -6 ip.im)
         ip_version="IPv6"
     elif [[ ${ip_version_fq} == 3 ]]; then
         read_optimize "$(gettext "请输入"): " "local_ip" "NULL"
         ip_version=${local_ip}
     else
-        local_ip=$(curl -4 ip.sb)
+        local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
         ip_version="IPv4"
+    fi
+    if [[ -z ${local_ip} ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
+        return 1
     fi
     log_echo "$(gettext "公网IP/域名"): ${local_ip}"
 }
 
 port_exist_check() {
     if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "$1 端口未被占用") ${Font}"
+        log_echo "${OK} ${GreenBG} $1 $(gettext "端口未被占用") ${Font}"
     else
-        log_echo "${Error} ${RedBG} $(gettext "检测到 $1 端口被占用, 以下为 $1 端口占用信息") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "检测到") $1 $(gettext "端口被占用"), $(gettext "以下为") $1 $(gettext "端口占用信息") ${Font}"
         lsof -i:"$1"
         timeout "$(gettext "尝试终止占用的进程")!"
         lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
@@ -3412,7 +3432,7 @@ idleleo_commend() {
             echo "${shell_version}" >>${shell_version_tmp}
             newest_version=$(sort -rV ${shell_version_tmp} | head -1)
             if [[ ${shell_version} != ${newest_version} ]]; then
-                shell_need_update="${Red}[$(gettext "有新版")]!${Font}"
+                shell_need_update="${Red}[$(gettext "有新版")!]${Font}"
                 shell_emoji="${Red}>_<${Font}"
             else
                 shell_need_update="${Green}[$(gettext "最新版")]${Font}"
@@ -3422,7 +3442,7 @@ idleleo_commend() {
                 if [[ "$(info_extraction nginx_build_version)" == "null" ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
                     nginx_need_update="${Green}[$(gettext "未安装")]${Font}"
                 elif [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
-                    nginx_need_update="${Green}[$(gettext "有新版")]!${Font}"
+                    nginx_need_update="${Green}[$(gettext "有新版")!]${Font}"
                 else
                     nginx_need_update="${Green}[$(gettext "最新版")]${Font}"
                 fi
@@ -3431,7 +3451,7 @@ idleleo_commend() {
                     if [[ "$(info_extraction xray_version)" == "null" ]]; then
                         xray_need_update="${Green}[$(gettext "已安装")] ($(gettext "版本未知"))${Font}"
                     elif [[ ${xray_online_version} != $(info_extraction xray_version) ]]; then
-                        xray_need_update="${Green}[$(gettext "有新版")]!${Font}"
+                        xray_need_update="${Green}[$(gettext "有新版")!]${Font}"
                         ### xray_need_update="${Red}[$(gettext "请务必更新")]!${Font}"
                     else
                         xray_need_update="${Green}[$(gettext "最新版")]${Font}"
