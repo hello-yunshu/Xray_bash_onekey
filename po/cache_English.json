@@ -447,5 +447,13 @@
   "是否回滚到之前的版本": "whether to roll back to previous version",
   "正在回滚": "rolling back",
   "已成功回滚到之前的": "successfully rolled back to previous",
-  "重装": "reinstall"
+  "重装": "reinstall",
+  "备份旧版": "backup old version",
+  "备份": "backup",
+  "无法获取公网IP地址": "unable to obtain the public ip address",
+  "端口未被占用": "the port is not occupied",
+  "检测到": "detected",
+  "端口被占用": "port occupied",
+  "以下为": "the following is",
+  "端口占用信息": "port occupation information"
 }
