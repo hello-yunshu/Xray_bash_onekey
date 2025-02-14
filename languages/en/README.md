@@ -9,6 +9,7 @@
 ## Usage Instructions
 
 * You can directly input the command: `idleleo` to manage the script.
+* Use Qwen AI for accurate translations in multiple languages.
 * It is recommended to use Nginx as a reverse proxy for Reality, which can be installed in the script.
 * It is recommended to enable fail2ban, which can be installed in the script.
 * Using the share link from [@DuckSoft](https://github.com/DuckSoft)'s proposal [(beta)](https://github.com/XTLS/Xray-core/issues/91), supporting Qv2ray, V2rayN, V2rayNG.
