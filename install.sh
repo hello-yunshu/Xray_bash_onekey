@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.3.6"
+shell_version="2.3.7"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -233,7 +233,7 @@ update_language_file() {
 init_language() {
     if ! command -v gettext >/dev/null 2>&1; then
         log_echo "${Warning} ${YellowBG} $(gettext "正在安装") gettext... ${Font}"
-        ${INS} gettext
+        pkg_install "gettext"
         if [ $? -ne 0 ]; then
             log_echo "${Error} ${RedBG} gettext $(gettext "安装失败"), $(gettext "将使用默认语言") ${Font}"
             export LANG=zh_CN.UTF-8
@@ -3553,22 +3553,27 @@ set_language() {
     esac
 
     if [ "$lang_choice" -ne 1 ]; then
+
+        check_system
+
         echo "LANG=$LANG" > "${idleleo_dir}/language.conf"
 
         case $ID in
             debian|ubuntu)
                 if ! dpkg -s locales-all >/dev/null 2>&1; then
-                    pkg_install locales-all
-                    locale-gen "$LANG"
+                    pkg_install "locales-all"
+                    #locale-gen "$LANG"
                 fi
-                update-locale "LANG=$LANG" ;;
+                #update-locale "LANG=$LANG"
+                ;;
             centos)
                 local ins_lang_code="${LANG%%_*}"
                 if ! rpm -q "glibc-langpack-$ins_lang_code" >/dev/null 2>&1; then
                     pkg_install "glibc-langpack-$ins_lang_code"
-                    localedef -c -i "${LANG%.*}" -f UTF-8 "$LANG"
+                    #localedef -c -i "${LANG%.*}" -f UTF-8 "$LANG"
                 fi
-                localectl set-locale "LANG=$LANG" ;;
+                #localectl set-locale "LANG=$LANG"
+                ;;
         esac
     fi
 
@@ -3597,7 +3602,7 @@ menu() {
     echo -e "\n"
     log_echo "Xray $(gettext "安装管理脚本") ${Red}[${shell_version}]${Font} ${shell_emoji}"
     log_echo "--- $(gettext "作者"): hello-yunshu ---"
-    log_echo "--- $(gettext "修改"): www.idleleo.com ---"
+    log_echo "--- $(gettext "修改"): hey.run ---"
     log_echo "--- https://github.com/hello-yunshu ---"
     echo -e "\n"
     log_echo "$(gettext "当前模式"): ${shell_mode}"
