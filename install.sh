@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.3.7"
+shell_version="2.3.8"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -206,7 +206,7 @@ update_language_file() {
 
     mkdir -p "${idleleo_dir}/languages/${lang_code}/LC_MESSAGES"
 
-    log_echo "${Info} ${Blue} $(gettext "正在更新语言文件")... ${Font}"
+    log_echo "${Info} ${Green} $(gettext "正在更新语言文件")... ${Font}"
 
     if ! curl -s -o "${mo_file}" "${github_url}/${lang_code}/LC_MESSAGES/xray_install.mo"; then
         log_echo "${Error} ${RedBG} $(gettext "语言文件更新失败") ${Font}"
@@ -293,7 +293,7 @@ init_language() {
                     return 0
                 fi
             elif check_language_update "$lang_code"; then
-                log_echo "${Info} ${Blue} $(gettext "发现语言文件更新") ${Font}"
+                log_echo "${Info} ${Green} $(gettext "发现语言文件更新") ${Font}"
                 if update_language_file "$lang_code"; then
                     . "$gettext_sh"
                 fi
@@ -3580,6 +3580,52 @@ set_language() {
     source "$idleleo"
 }
 
+function backup_directories() {
+    ip_check
+    if [[ $? -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} IP $(gettext "检查失败"), $(gettext "备份终止") ${Font}"
+        return 1
+    fi
+
+    local timestamp=$(date +"%Y%m%d%H%M%S")
+    local backup_filename="xray_bash_${local_ip}_${timestamp}.tar.gz"
+    local backup_path="/etc/idleleo/${backup_filename}"
+
+    tar --exclude='/etc/idleleo/xray_bash_*.tar.gz' -czf "${backup_path}" /etc/idleleo /usr/local/nginx &> /dev/null
+
+    if [[ $? -eq 0 ]]; then
+        log_echo "${OK} ${GreenBG} $(gettext "备份成功"): ${backup_path} ${Font}"
+    else
+        log_echo "${Error} ${RedBG} $(gettext "备份失败") ${Font}"
+    fi
+}
+
+function restore_directories() {
+    log_echo "${Warning} ${YellowBG} $(gettext "请确保备份文件在目录"): /etc/idleleo ${Font}"
+    local backup_files=($(ls /etc/idleleo/xray_bash_*.tar.gz 2>/dev/null))
+    
+    if [[ ${#backup_files[@]} -eq 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "没有找到备份文件") ${Font}"
+        return 1
+    fi
+
+    local latest_backup_file=${backup_files[-1]}
+    log_echo "${Green} $(gettext "找到最新备份文件"): ${latest_backup_file} ${Font}"
+
+    timeout "$(gettext "恢复备份")!"
+    tar -xzf "${latest_backup_file}" -C / &> /dev/null
+
+    if [[ $? -eq 0 ]]; then
+        log_echo "${OK} ${GreenBG} $(gettext "恢复成功") ${Font}"
+        log_echo "${Info} ${Green} $(gettext "记得安装") xray ${Font}"
+        if [[ -d "/usr/local/nginx" ]]; then
+            log_echo "${Info} ${Green} $(gettext "记得安装") nginx ${Font}"
+        fi
+    else
+        log_echo "${Error} ${RedBG} $(gettext "恢复失败") ${Font}"
+    fi
+}
+
 #以下为兼容代码, 1个大版本后删除
 fix_bugs() {
     local log_cleanup_file_path="/etc/logrotate.d/custom_log_cleanup"
@@ -3624,7 +3670,7 @@ menu() {
     echo -e "${Green}1.${Font}  $(gettext "升级") Xray"
     echo -e "${Green}2.${Font}  $(gettext "升级") Nginx"
     echo -e "—————————————— ${GreenW}Language / 语言${Font} ———————"
-    echo -e "${Green}34.${Font} 中文"
+    echo -e "${Green}36.${Font} 中文"
     echo -e "    English"
     echo -e "    فارسی    "
     echo -e "    Русский"
@@ -3664,13 +3710,16 @@ menu() {
     echo -e "${Green}28.${Font} $(gettext "设置") Xray $(gettext "流量统计")"
     echo -e "${Green}29.${Font} $(gettext "清除") $(gettext "日志文件")"
     echo -e "${Green}30.${Font} $(gettext "测试") $(gettext "服务器网速")"
+    echo -e "—————————————— ${GreenW}$(gettext "备份恢复")${Font} ——————————————"
+    echo -e "${Green}31.${Font} $(gettext "备份") $(gettext "全部文件")"
+    echo -e "${Green}32.${Font} $(gettext "恢复") $(gettext "全部文件")"
     echo -e "—————————————— ${GreenW}$(gettext "卸载向导")${Font} ——————————————"
-    echo -e "${Green}31.${Font} $(gettext "卸载") $(gettext "脚本")"
-    echo -e "${Green}32.${Font} $(gettext "清空") $(gettext "证书文件")"
-    echo -e "${Green}33.${Font} $(gettext "退出") \n"
+    echo -e "${Green}33.${Font} $(gettext "卸载") $(gettext "脚本")"
+    echo -e "${Green}34.${Font} $(gettext "清空") $(gettext "证书文件")"
+    echo -e "${Green}35.${Font} $(gettext "退出") \n"
 
     local menu_num
-    read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 34 "$(gettext "请输入 0 到 34 之间的有效数字")"
+    read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 36 "$(gettext "请输入 0 到 36 之间的有效数字")"
     case $menu_num in
     0)
         update_sh
@@ -3848,24 +3897,32 @@ menu() {
         bash <(curl -Lso- https://git.io/Jlkmw)
         ;;
     31)
+        backup_directories
+        menu
+        ;;
+    32)
+        restore_directories
+        menu
+        ;;
+    33)
         uninstall_all
         timeout "$(gettext "清空屏幕")!"
         clear
         source "$idleleo"
         ;;
-    32)
+    34)
         delete_tls_key_and_crt
         rm -rf ${ssl_chainpath}/*
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    33)
+    35)
         timeout "$(gettext "清空屏幕")!"
         clear
         exit 0
         ;;
-    34)
+    36)
         set_language
         bash idleleo
         ;;
