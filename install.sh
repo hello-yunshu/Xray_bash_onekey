@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.3.8"
+shell_version="2.3.9"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -3581,14 +3581,10 @@ set_language() {
 }
 
 function backup_directories() {
-    ip_check
-    if [[ $? -ne 0 ]]; then
-        log_echo "${Error} ${RedBG} IP $(gettext "检查失败"), $(gettext "备份终止") ${Font}"
-        return 1
-    fi
-
     local timestamp=$(date +"%Y%m%d%H%M%S")
-    local backup_filename="xray_bash_${local_ip}_${timestamp}.tar.gz"
+    local backup_name=""
+    read_optimize "$(gettext "请输入备份名称") ($(gettext "不需要后缀")): " "backup_name" ""
+    local backup_filename="xray_bash_${backup_name}_${timestamp}.tar.gz"
     local backup_path="/etc/idleleo/${backup_filename}"
 
     tar --exclude='/etc/idleleo/xray_bash_*.tar.gz' -czf "${backup_path}" /etc/idleleo /usr/local/nginx &> /dev/null
@@ -3607,6 +3603,10 @@ function restore_directories() {
     if [[ ${#backup_files[@]} -eq 0 ]]; then
         log_echo "${Error} ${RedBG} $(gettext "没有找到备份文件") ${Font}"
         return 1
+    fi
+
+    if [[ ${#backup_files[@]} -gt 1 ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "发现多个备份文件"), $(gettext "将使用最新的文件进行恢复") ${Font}"
     fi
 
     local latest_backup_file=${backup_files[-1]}
