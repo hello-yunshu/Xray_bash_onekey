@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.3.9"
+shell_version="2.4.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -3587,13 +3587,21 @@ function backup_directories() {
     local backup_filename="xray_bash_${backup_name}_${timestamp}.tar.gz"
     local backup_path="/etc/idleleo/${backup_filename}"
 
-    tar --exclude='/etc/idleleo/xray_bash_*.tar.gz' -czf "${backup_path}" /etc/idleleo /usr/local/nginx &> /dev/null
+    local tar_output
+    tar --exclude='/etc/idleleo/xray_bash_*.tar.gz' -czf "${backup_path}" /etc/idleleo /usr/local/nginx 2>&1 > /dev/null | tee tar_output
 
-    if [[ $? -eq 0 ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "备份成功"): ${backup_path} ${Font}"
-    else
-        log_echo "${Error} ${RedBG} $(gettext "备份失败") ${Font}"
+    if [[ $? -ne 0 ]]; then
+        log_echo "${Green} tar $(gettext "报错信息"): ${Font}"
+        cat tar_output
+        log_echo "${Warning} ${YellowBG} $(gettext "备份完整性可能受到影响, 请检查上述错误信息") ${Font}"
     fi
+
+    if [[ ! -f "${backup_path}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "备份失败") ${Font}"
+    else
+        log_echo "${OK} ${GreenBG} $(gettext "备份成功"): ${backup_path} ${Font}"
+    fi
+    rm -f tar_output
 }
 
 function restore_directories() {
