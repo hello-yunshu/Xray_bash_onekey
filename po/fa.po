@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-02-25 07:53+0000\n"
-"PO-Revision-Date: 2025-02-25 07:53+0000\n"
+"POT-Creation-Date: 2025-02-25 12:29+0000\n"
+"PO-Revision-Date: 2025-02-25 12:29+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: fa\n"
@@ -1443,28 +1443,36 @@ msgid "无效的选择"
 msgstr "انتخاب نامعتبر"
 
 #: install.sh:3586
-msgid "检查失败"
-msgstr "بررسی شکست خورد"
+msgid "请输入备份名称"
+msgstr "لطفاً نام پشتیبان را وارد کنید"
 
 #: install.sh:3586
-msgid "备份终止"
-msgstr "پشتیبانی قطع شد"
+msgid "不需要后缀"
+msgstr "پسوند لازم نیست"
 
-#: install.sh:3597
+#: install.sh:3593
 msgid "备份成功"
 msgstr "پشتیبان‌گیری موفقیت آمیز بود"
 
-#: install.sh:3599
+#: install.sh:3595
 msgid "备份失败"
 msgstr "پشتیبان گیری ناموفق شد"
 
-#: install.sh:3604
+#: install.sh:3600
 msgid "请确保备份文件在目录"
 msgstr "لطفا فایل پشتیبان در دایرکتوری را مطمئن شوید"
 
-#: install.sh:3608
+#: install.sh:3604
 msgid "没有找到备份文件"
 msgstr "فایل پشتیبان یافت نشد"
+
+#: install.sh:3609
+msgid "发现多个备份文件"
+msgstr "یافتن چندین فایل پشتیبان"
+
+#: install.sh:3609
+msgid "将使用最新的文件进行恢复"
+msgstr "از آخرین فایل برای بازیابی استفاده خواهد شد"
 
 #: install.sh:3613
 msgid "找到最新备份文件"
