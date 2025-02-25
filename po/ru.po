@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-02-25 12:29+0000\n"
-"PO-Revision-Date: 2025-02-25 12:29+0000\n"
+"POT-Creation-Date: 2025-02-25 20:27+0000\n"
+"PO-Revision-Date: 2025-02-25 20:27+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ru\n"
@@ -125,8 +125,8 @@ msgid "在线版本检测失败, 请稍后再试"
 msgstr "онлайн-проверка версии не удалась, попробуйте позже"
 
 #: install.sh:341 install.sh:349 install.sh:1105 install.sh:3364
-#: install.sh:3365 install.sh:3366 install.sh:3679 install.sh:3680
-#: install.sh:3681 fail2ban_manager.sh:11 fail2ban_manager.sh:38
+#: install.sh:3365 install.sh:3366 install.sh:3687 install.sh:3688
+#: install.sh:3689 fail2ban_manager.sh:11 fail2ban_manager.sh:38
 msgid "安装"
 msgstr "установка"
 
@@ -245,7 +245,7 @@ msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "если вы изменяете конфигурацию, обратите внимание на закрытие соответствующих портов брандмауэра"
 
 #: install.sh:615 install.sh:3368 install.sh:3381 install.sh:3382
-#: install.sh:3688 install.sh:3707 fail2ban_manager.sh:76
+#: install.sh:3696 install.sh:3715 fail2ban_manager.sh:76
 msgid "配置"
 msgstr "настроить"
 
@@ -291,8 +291,8 @@ msgstr "не более 30 символов"
 msgid "自定义字符串"
 msgstr "пользовательская строка"
 
-#: install.sh:722 install.sh:2421 install.sh:3384 install.sh:3683
-#: install.sh:3771
+#: install.sh:722 install.sh:2421 install.sh:3384 install.sh:3691
+#: install.sh:3779
 msgid "映射字符串"
 msgstr "маркировка строк"
 
@@ -404,7 +404,7 @@ msgstr "следите за обновлениями"
 
 #: install.sh:937 install.sh:941 install.sh:945 install.sh:957 install.sh:962
 #: install.sh:968 install.sh:988 install.sh:994 install.sh:1044 install.sh:1063
-#: install.sh:3382 install.sh:3651
+#: install.sh:3382 install.sh:3659
 msgid "修改"
 msgstr "изменение"
 
@@ -457,8 +457,8 @@ msgstr "сценарий может быть несовместим с этой 
 msgid "是否更新"
 msgstr "обновить"
 
-#: install.sh:1128 install.sh:1151 install.sh:1389 install.sh:3669
-#: install.sh:3670 install.sh:3671
+#: install.sh:1128 install.sh:1151 install.sh:1389 install.sh:3677
+#: install.sh:3678 install.sh:3679
 msgid "升级"
 msgstr "обновление"
 
@@ -482,7 +482,7 @@ msgstr "откатитесь назад"
 msgid "已成功回滚到之前的"
 msgstr "успешно вернулся к предыдущему"
 
-#: install.sh:1144 install.sh:1377 install.sh:3686 install.sh:3786
+#: install.sh:1144 install.sh:1377 install.sh:3694 install.sh:3794
 msgid "版本"
 msgstr "версия"
 
@@ -574,11 +574,11 @@ msgstr "удален исходный профиль"
 msgid "原配置文件已保留"
 msgstr "старый профайл сохранён"
 
-#: install.sh:1391 install.sh:3692
+#: install.sh:1391 install.sh:3700
 msgid "删除"
 msgstr "удалить"
 
-#: install.sh:1391 install.sh:3714
+#: install.sh:1391 install.sh:3722
 msgid "备份"
 msgstr "резервная копия"
 
@@ -811,8 +811,8 @@ msgstr "настройка удаления"
 msgid "设置 Nginx 开机自启"
 msgstr "настроить автозапуск nginx"
 
-#: install.sh:1978 install.sh:3705 install.sh:3708 install.sh:3709
-#: install.sh:3710 fail2ban_manager.sh:10
+#: install.sh:1978 install.sh:3713 install.sh:3716 install.sh:3717
+#: install.sh:3718 fail2ban_manager.sh:10
 msgid "设置"
 msgstr "настройки"
 
@@ -833,16 +833,16 @@ msgid "停止已有服务"
 msgstr "остановить существующие службы"
 
 #: install.sh:1999 install.sh:2002 install.sh:2575 install.sh:2577
-#: install.sh:3698 fail2ban_manager.sh:99 fail2ban_manager.sh:188
+#: install.sh:3706 fail2ban_manager.sh:99 fail2ban_manager.sh:188
 msgid "重启"
 msgstr "перезагрузить"
 
-#: install.sh:2007 install.sh:2010 install.sh:3699 fail2ban_manager.sh:98
+#: install.sh:2007 install.sh:2010 install.sh:3707 fail2ban_manager.sh:98
 #: fail2ban_manager.sh:158
 msgid "启动"
 msgstr "запуск"
 
-#: install.sh:2015 install.sh:2018 install.sh:2078 install.sh:3700
+#: install.sh:2015 install.sh:2018 install.sh:2078 install.sh:3708
 #: fail2ban_manager.sh:100
 msgid "停止"
 msgstr "остановись"
@@ -931,9 +931,9 @@ msgstr "удаление задачи автоматической очистк�
 msgid "是否需要设置自动清理日志"
 msgstr "необходимо ли настроить автоматическую очистку журнала"
 
-#: install.sh:2160 install.sh:3730 install.sh:3739 install.sh:3791
-#: install.sh:3797 install.sh:3833 install.sh:3839 install.sh:3845
-#: install.sh:3874 install.sh:3909 install.sh:3916 install.sh:3921
+#: install.sh:2160 install.sh:3738 install.sh:3747 install.sh:3799
+#: install.sh:3805 install.sh:3841 install.sh:3847 install.sh:3853
+#: install.sh:3882 install.sh:3917 install.sh:3924 install.sh:3929
 #: fail2ban_manager.sh:159 fail2ban_manager.sh:172 fail2ban_manager.sh:181
 #: fail2ban_manager.sh:189
 msgid "清空屏幕"
@@ -987,7 +987,7 @@ msgstr "установка успешна"
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr "в настоящее время нормы для распространения ссылок находятся на экспериментальном этапе, пожалуйста, оцените самостоятельно, подходят ли они для использования"
 
-#: install.sh:2397 install.sh:3696
+#: install.sh:2397 install.sh:3704
 msgid "配置信息"
 msgstr "конфигурационная информация"
 
@@ -1082,7 +1082,7 @@ msgstr "файл сертификата уже существует, сохра�
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr "файлы оставшиеся от предыдущего выпуска сертификатов уже существуют, нужно ли сохранить их"
 
-#: install.sh:2555 install.sh:3691
+#: install.sh:2555 install.sh:3699
 msgid "添加"
 msgstr "добавить"
 
@@ -1148,8 +1148,8 @@ msgid "请直接在主菜单选择 [15] 显示主用户"
 msgstr "пожалуйста, выберите [15] вывод основного пользователя в главном меню"
 
 #: install.sh:2722 install.sh:2733 install.sh:2843 install.sh:2865
-#: install.sh:3803 install.sh:3808 install.sh:3813 install.sh:3858
-#: install.sh:3863 install.sh:3868 install.sh:3888
+#: install.sh:3811 install.sh:3816 install.sh:3821 install.sh:3866
+#: install.sh:3871 install.sh:3876 install.sh:3896
 msgid "回到菜单"
 msgstr "вернуться в меню"
 
@@ -1313,18 +1313,18 @@ msgstr "загрузите последний сценарий"
 msgid "该选项暂时无法使用"
 msgstr "этот вариант временно недоступен"
 
-#: install.sh:3272 install.sh:3757
+#: install.sh:3272 install.sh:3765
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr "этот режим рекомендуется использовать для балансировки нагрузки, обычно не рекомендуется использовать, устанавливать или нет"
 
 #: install.sh:3367 install.sh:3368 install.sh:3377 install.sh:3380
-#: install.sh:3384 install.sh:3683 install.sh:3684 install.sh:3685
-#: install.sh:3686 install.sh:3687 install.sh:3688 install.sh:3771
-#: install.sh:3776 install.sh:3781 install.sh:3786
+#: install.sh:3384 install.sh:3691 install.sh:3692 install.sh:3693
+#: install.sh:3694 install.sh:3695 install.sh:3696 install.sh:3779
+#: install.sh:3784 install.sh:3789 install.sh:3794
 msgid "变更"
 msgstr "изменение"
 
-#: install.sh:3367 install.sh:3687
+#: install.sh:3367 install.sh:3695
 msgid "负载均衡配置"
 msgstr "балансировка нагрузки настроена"
 
@@ -1352,7 +1352,7 @@ msgstr "настройка fail2ban brute-rypray cracking"
 msgid "显示帮助"
 msgstr "показать помощь"
 
-#: install.sh:3376 install.sh:3387 install.sh:3704
+#: install.sh:3376 install.sh:3387 install.sh:3712
 msgid "更新"
 msgstr "обновление"
 
@@ -1364,7 +1364,7 @@ msgstr "скрипт выгружен"
 msgid "显示安装信息"
 msgstr "показать информацию об установке"
 
-#: install.sh:3381 install.sh:3708
+#: install.sh:3381 install.sh:3716
 msgid "加速"
 msgstr "ускорение"
 
@@ -1452,256 +1452,264 @@ msgstr "введите имя резервной копии"
 msgid "不需要后缀"
 msgstr "не требуются суффиксы"
 
-#: install.sh:3593
-msgid "备份成功"
-msgstr "резервное копирование успешно"
+#: install.sh:3594
+msgid "报错信息"
+msgstr "ошибка сообщения"
 
-#: install.sh:3595
+#: install.sh:3596
+msgid "备份完整性可能受到影响, 请检查上述错误信息"
+msgstr "резервное копирование может быть повреждено, проверьте вышеуказанные сообщения об ошибках"
+
+#: install.sh:3600
 msgid "备份失败"
 msgstr "сбой резервного копирования"
 
-#: install.sh:3600
+#: install.sh:3602
+msgid "备份成功"
+msgstr "резервное копирование успешно"
+
+#: install.sh:3608
 msgid "请确保备份文件在目录"
 msgstr "пожалуйста, убедитесь, что файл резервной копии находится в каталоге"
 
-#: install.sh:3604
+#: install.sh:3612
 msgid "没有找到备份文件"
 msgstr "не найден файл резервной копии"
 
-#: install.sh:3609
+#: install.sh:3617
 msgid "发现多个备份文件"
 msgstr "найдено несколько файлов резервного копирования"
 
-#: install.sh:3609
+#: install.sh:3617
 msgid "将使用最新的文件进行恢复"
 msgstr "будет использован самый новый файл для восстановления"
 
-#: install.sh:3613
+#: install.sh:3621
 msgid "找到最新备份文件"
 msgstr "найдите последнюю резервную копию файла"
 
-#: install.sh:3615
+#: install.sh:3623
 msgid "恢复备份"
 msgstr "восстановить резервную копию"
 
-#: install.sh:3619
+#: install.sh:3627
 msgid "恢复成功"
 msgstr "восстановление успешно"
 
-#: install.sh:3620 install.sh:3622
+#: install.sh:3628 install.sh:3630
 msgid "记得安装"
 msgstr "помни установить"
 
-#: install.sh:3625
+#: install.sh:3633
 msgid "恢复失败"
 msgstr "восстановление не удалось"
 
-#: install.sh:3634
+#: install.sh:3642
 msgid "检测存在到"
 msgstr "проверка наличия до"
 
-#: install.sh:3635
+#: install.sh:3643
 msgid "来源于自动清理日志错误的设置"
 msgstr "из настроек автоматической очистки журнала ошибок"
 
-#: install.sh:3636
+#: install.sh:3644
 msgid "开始修复"
 msgstr "начать ремонт"
 
-#: install.sh:3640
+#: install.sh:3648
 msgid "错误的配置文件删除"
 msgstr "неправильный профиль удален"
 
-#: install.sh:3641
+#: install.sh:3649
 msgid "即将重新设置自动清理日志"
 msgstr "скоро будет настроен автоматический сброс журнала"
 
-#: install.sh:3649
+#: install.sh:3657
 msgid "安装管理脚本"
 msgstr "установка скриптов управления"
 
-#: install.sh:3650
+#: install.sh:3658
 msgid "作者"
 msgstr "автор"
 
-#: install.sh:3654
+#: install.sh:3662
 msgid "当前模式"
 msgstr "текущий режим"
 
-#: install.sh:3655
+#: install.sh:3663
 msgid "当前语言"
 msgstr "текущий язык"
 
-#: install.sh:3658
+#: install.sh:3666
 msgid "可以使用"
 msgstr "можно использовать"
 
-#: install.sh:3658
+#: install.sh:3666
 msgid "命令管理脚本"
 msgstr "командный скрипт управления"
 
-#: install.sh:3660
+#: install.sh:3668
 msgid "版本检测"
 msgstr "версия обнаружена"
 
-#: install.sh:3661 install.sh:3669 install.sh:3717
+#: install.sh:3669 install.sh:3677 install.sh:3725
 msgid "脚本"
 msgstr "сценарий"
 
-#: install.sh:3664
+#: install.sh:3672
 msgid "运行状态"
 msgstr "рабочее состояние"
 
-#: install.sh:3667
+#: install.sh:3675
 msgid "连通性"
 msgstr "связность"
 
-#: install.sh:3668
+#: install.sh:3676
 msgid "升级向导"
 msgstr "мастер обновления"
 
-#: install.sh:3678
+#: install.sh:3686
 msgid "安装向导"
 msgstr "установочный мастер"
 
-#: install.sh:3682
+#: install.sh:3690
 msgid "配置变更"
 msgstr "настройка изменена"
 
-#: install.sh:3689
+#: install.sh:3697
 msgid "用户管理"
 msgstr "управление пользователями"
 
-#: install.sh:3690 install.sh:3694 install.sh:3695 install.sh:3696
-#: install.sh:3701 install.sh:3703 fail2ban_manager.sh:14
+#: install.sh:3698 install.sh:3702 install.sh:3703 install.sh:3704
+#: install.sh:3709 install.sh:3711 fail2ban_manager.sh:14
 msgid "查看"
 msgstr "посмотреть"
 
-#: install.sh:3690 install.sh:3691 install.sh:3692
+#: install.sh:3698 install.sh:3699 install.sh:3700
 msgid "用户"
 msgstr "пользователь"
 
-#: install.sh:3693
+#: install.sh:3701
 msgid "查看信息"
 msgstr "просмотр информации"
 
-#: install.sh:3694
+#: install.sh:3702
 msgid "实时访问日志"
 msgstr "доступ к журналам в режиме реального времени"
 
-#: install.sh:3695
+#: install.sh:3703
 msgid "实时错误日志"
 msgstr "реали-time ошибки лог"
 
-#: install.sh:3697
+#: install.sh:3705
 msgid "服务相关"
 msgstr "служба"
 
-#: install.sh:3698 install.sh:3699 install.sh:3700 install.sh:3701
+#: install.sh:3706 install.sh:3707 install.sh:3708 install.sh:3709
 msgid "所有服务"
 msgstr "все сервисы"
 
-#: install.sh:3702
+#: install.sh:3710
 msgid "证书相关"
 msgstr "сертификаты"
 
-#: install.sh:3703
+#: install.sh:3711
 msgid "证书状态"
 msgstr "статус сертификата"
 
-#: install.sh:3704
+#: install.sh:3712
 msgid "证书有效期"
 msgstr "срок действия сертификата"
 
-#: install.sh:3705
+#: install.sh:3713
 msgid "证书自动更新"
 msgstr "сертификаты обновляются автоматически"
 
-#: install.sh:3706
+#: install.sh:3714
 msgid "其他选项"
 msgstr "другие варианты"
 
-#: install.sh:3707
+#: install.sh:3715
 msgid "自动更新"
 msgstr "автоматическое обновление"
 
-#: install.sh:3709
+#: install.sh:3717
 msgid "防暴力破解"
 msgstr "защита от подбора паролей"
 
-#: install.sh:3710
+#: install.sh:3718
 msgid "流量统计"
 msgstr "статистика трафика"
 
-#: install.sh:3711
+#: install.sh:3719
 msgid "清除"
 msgstr "очистить"
 
-#: install.sh:3711
+#: install.sh:3719
 msgid "日志文件"
 msgstr "файлы журнала"
 
-#: install.sh:3712
+#: install.sh:3720
 msgid "测试"
 msgstr "тестирование"
 
-#: install.sh:3712
+#: install.sh:3720
 msgid "服务器网速"
 msgstr "скорость сервера"
 
-#: install.sh:3713
+#: install.sh:3721
 msgid "备份恢复"
 msgstr "резервное копирование и восстановление"
 
-#: install.sh:3714 install.sh:3715
+#: install.sh:3722 install.sh:3723
 msgid "全部文件"
 msgstr "все документы"
 
-#: install.sh:3715
+#: install.sh:3723
 msgid "恢复"
 msgstr "восстановление"
 
-#: install.sh:3716
+#: install.sh:3724
 msgid "卸载向导"
 msgstr "установить мастер"
 
-#: install.sh:3717 fail2ban_manager.sh:13 fail2ban_manager.sh:171
+#: install.sh:3725 fail2ban_manager.sh:13 fail2ban_manager.sh:171
 msgid "卸载"
 msgstr "удалить"
 
-#: install.sh:3718
+#: install.sh:3726
 msgid "清空"
 msgstr "очистить"
 
-#: install.sh:3718
+#: install.sh:3726
 msgid "证书文件"
 msgstr "файл сертификата"
 
-#: install.sh:3719 fail2ban_manager.sh:15 file_manager.sh:217
+#: install.sh:3727 fail2ban_manager.sh:15 file_manager.sh:217
 msgid "退出"
 msgstr "выйти"
 
-#: install.sh:3722
+#: install.sh:3730
 msgid "请输入选项"
 msgstr "введите опцию"
 
-#: install.sh:3722
+#: install.sh:3730
 msgid "请输入 0 到 36 之间的有效数字"
 msgstr "введите действительное число от 0 до 36"
 
-#: install.sh:3736
+#: install.sh:3744
 msgid "不建议"
 msgstr "не рекомендуется"
 
-#: install.sh:3736
+#: install.sh:3744
 msgid "频繁升级 Nginx, 请确认 Nginx 有升级的必要"
 msgstr "частое обновление nginx, пожалуйста, убедитесь, что для nginx есть необходимость в обновлении"
 
-#: install.sh:3737
+#: install.sh:3745
 msgid "开始升级"
 msgstr "начать обновление"
 
-#: install.sh:3931
+#: install.sh:3939
 msgid "请输入正确的数字"
 msgstr "введите правильное число"
 

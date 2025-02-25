@@ -471,5 +471,7 @@
   "请输入备份名称": "please enter a backup name",
   "不需要后缀": "no suffix required",
   "发现多个备份文件": "discover multiple backup files",
-  "将使用最新的文件进行恢复": "recovery using the latest files"
+  "将使用最新的文件进行恢复": "recovery using the latest files",
+  "报错信息": "report an error message",
+  "备份完整性可能受到影响, 请检查上述错误信息": "backup integrity may be affected, please check the above error message"
 }
