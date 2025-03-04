@@ -1,32 +1,33 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.1.1"
+mf_SCRIPT_VERSION="1.1.2"
 
 mf_main_menu() {
     check_system
-
-    echo -e "\n"
-    log_echo "${GreenBG} $(gettext "设置") Fail2ban $(gettext 用于防止暴力破解"), $(gettext 请选择"): ${Font}"
-    log_echo "1. ${Green}$(gettext "安装") Fail2ban${Font}"
-    log_echo "2. ${Green}$(gettext "管理") Fail2ban${Font}"
-    log_echo "3. ${Green}$(gettext "卸载") Fail2ban${Font}"
-    log_echo "4. ${Green}$(gettext "查看") Fail2ban $(gettext "状态")${Font}"
-    log_echo "5. ${Green}$(gettext "退出")${Font}"
-    read -rp "$(gettext "请输入"):" fail2ban_fq
-    [[ -z "${fail2ban_fq}" ]] && fail2ban_fq=1
-
-    case $fail2ban_fq in
-        1) mf_install_fail2ban ;;
-        2) mf_manage_fail2ban ;;
-        3) mf_uninstall_fail2ban ;;
-        4) mf_display_fail2ban_status ;;
-        5) source "${idleleo}" ;;
-        *)
-            echo -e "\n"
-            log_echo "${Error} ${RedBG} $(gettext "无效的选择请重试") ${Font}"
-            ;;
-    esac
+    while true; do
+        echo
+        log_echo "${GreenBG} $(gettext "设置") Fail2ban $(gettext "用于防止暴力破解") ${Font}"
+        log_echo "${Green} $(gettext "主菜单") ${Font}"
+        log_echo "1. ${Green}$(gettext "安装") Fail2ban${Font}"
+        log_echo "2. ${Green}$(gettext "管理") Fail2ban${Font}"
+        log_echo "3. ${Green}$(gettext "卸载") Fail2ban${Font}"
+        log_echo "4. ${Green}$(gettext "查看") Fail2ban $(gettext "状态")${Font}"
+        log_echo "5. ${Green}$(gettext "退出")${Font}"
+        local fail2ban_fq
+        read_optimize "$(gettext "请选择一个选项"):" fail2ban_fq "" 1 5
+        case $fail2ban_fq in
+            1) mf_install_fail2ban ;;
+            2) mf_manage_fail2ban ;;
+            3) mf_uninstall_fail2ban ;;
+            4) mf_display_fail2ban_status ;;
+            5) source "${idleleo}" ;;
+            *)
+                echo
+                log_echo "${Error} ${RedBG} $(gettext "无效的选择请重试") ${Font}"
+                ;;
+        esac
+    done    
 }
 
 mf_install_fail2ban() {
@@ -93,36 +94,38 @@ mf_manage_fail2ban() {
         return
     fi
 
-    echo -e "\n"
-    log_echo "${Green} $(gettext "请选择") Fail2ban $(gettext "操作"): ${Font}"
-    echo "1. $(gettext "启动") Fail2ban"
-    echo "2. $(gettext "重启") Fail2ban"
-    echo "3. $(gettext "停止") Fail2ban"
-    echo "4. $(gettext "添加自定义规则")"
-    echo "5. $(gettext "返回")"
-    read_optimize "$(gettext "请输入"):" mf_action 1
-    case $mf_action in
-        1)
-            mf_start_enable_fail2ban
-            ;;
-        2)
-            mf_restart_fail2ban
-            mf_main_menu
-            ;;
-        3)
-            mf_stop_disable_fail2ban
-            ;;
-        4)
-            mf_add_custom_rule
-            mf_main_menu
-            ;;
-        5) mf_main_menu ;;
-        *)
-            echo -e "\n"
-            log_echo "${Error} ${RedBG} $(gettext "无效的选择请重试") ${Font}"
-            mf_manage_fail2ban
-            ;;
-    esac
+    while true; do
+        echo
+        log_echo "${Green} $(gettext "请选择") Fail2ban $(gettext "操作"): ${Font}"
+        echo "1. $(gettext "启动") Fail2ban"
+        echo "2. $(gettext "重启") Fail2ban"
+        echo "3. $(gettext "停止") Fail2ban"
+        echo "4. $(gettext "添加自定义规则")"
+        echo "5. $(gettext "返回")"
+        local mf_action
+        read_optimize "$(gettext "请输入"):" mf_action 1
+        case $mf_action in
+            1)
+                mf_start_enable_fail2ban
+                ;;
+            2)
+                mf_restart_fail2ban
+                mf_main_menu
+                ;;
+            3)
+                mf_stop_disable_fail2ban
+                ;;
+            4)
+                mf_add_custom_rule
+                mf_main_menu
+                ;;
+            5) mf_main_menu ;;
+            *)
+                echo
+                log_echo "${Error} ${RedBG} $(gettext "无效的选择请重试") ${Font}"
+                ;;
+        esac
+    done
 }
 
 mf_add_custom_rule() {
@@ -199,7 +202,7 @@ mf_display_fail2ban_status() {
     log_echo "${GreenBG} Fail2ban $(gettext "总体状态"): ${Font}"
     fail2ban-client status
 
-    echo -e "\n"
+    echo
     log_echo "${Green} $(gettext "默认启用的 Jail 状态"): ${Font}"
     echo "----------------------------------------"
     log_echo "${Green} SSH $(gettext "封锁情况"): ${Font}"
@@ -235,10 +238,10 @@ mf_check_for_updates() {
 
                 if [ $? -eq 0 ]; then
                     chmod +x "${idleleo_dir}/fail2ban_manager.sh"
-                    log_echo "${OK} ${Green} $(gettext "下载完成, 正在重新运行脚本")... ${Font}"
-                    bash "${idleleo}" --set-fail2ban
+                    log_echo "${OK} ${GreenBG} $(gettext "下载完成, 请重新运行脚本") ${Font}"
+                    bash "${idleleo}"
                 else
-                    echo -e "\n"
+                    echo
                     log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
                 fi
                 ;;
