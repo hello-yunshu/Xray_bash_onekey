@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-02-25 20:27+0000\n"
-"PO-Revision-Date: 2025-02-25 20:27+0000\n"
+"POT-Creation-Date: 2025-03-04 11:57+0000\n"
+"PO-Revision-Date: 2025-03-04 11:57+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ru\n"
@@ -126,7 +126,7 @@ msgstr "онлайн-проверка версии не удалась, попр
 
 #: install.sh:341 install.sh:349 install.sh:1105 install.sh:3364
 #: install.sh:3365 install.sh:3366 install.sh:3687 install.sh:3688
-#: install.sh:3689 fail2ban_manager.sh:11 fail2ban_manager.sh:38
+#: install.sh:3689 fail2ban_manager.sh:12 fail2ban_manager.sh:39
 msgid "安装"
 msgstr "установка"
 
@@ -159,7 +159,7 @@ msgid "请输入连接端口"
 msgstr "введите порт подключения"
 
 #: install.sh:438 install.sh:441 install.sh:2607 install.sh:2613
-#: file_manager.sh:113
+#: file_manager.sh:98
 msgid "默认值"
 msgstr "значение по умолчанию"
 
@@ -179,8 +179,8 @@ msgid "请选择安装协议"
 msgstr "пожалуйста, выберите установочное соглашение"
 
 #: install.sh:450 install.sh:1473 install.sh:1510 install.sh:1561
-#: install.sh:2704 install.sh:2775 install.sh:2824 fail2ban_manager.sh:138
-#: fail2ban_manager.sh:139
+#: install.sh:2704 install.sh:2775 install.sh:2824 fail2ban_manager.sh:141
+#: fail2ban_manager.sh:142
 msgid "默认"
 msgstr "по умолчанию"
 
@@ -189,8 +189,8 @@ msgstr "по умолчанию"
 #: install.sh:2617 install.sh:2622 install.sh:2627 install.sh:2628
 #: install.sh:2643 install.sh:2648 install.sh:2653 install.sh:2654
 #: install.sh:2707 install.sh:2716 install.sh:2778 install.sh:2827
-#: install.sh:2836 fail2ban_manager.sh:16 fail2ban_manager.sh:103
-#: fail2ban_manager.sh:136 file_manager.sh:95
+#: install.sh:2836 fail2ban_manager.sh:106 fail2ban_manager.sh:139
+#: file_manager.sh:81
 msgid "请输入"
 msgstr "введите"
 
@@ -223,16 +223,16 @@ msgstr "введите пользовательский"
 msgid "请勿与其他端口相同"
 msgstr "пожалуйста, не используйте другие порты"
 
-#: install.sh:567 file_manager.sh:121
+#: install.sh:567 file_manager.sh:105
 msgid "是否需要设置防火墙"
 msgstr "необходимо ли настроить брандмауэр"
 
-#: install.sh:607 install.sh:611 file_manager.sh:135 file_manager.sh:139
-#: file_manager.sh:143
+#: install.sh:607 install.sh:611 file_manager.sh:119 file_manager.sh:123
+#: file_manager.sh:127
 msgid "防火墙"
 msgstr "брандмауэр"
 
-#: install.sh:607 install.sh:611 file_manager.sh:139 file_manager.sh:143
+#: install.sh:607 install.sh:611 file_manager.sh:123 file_manager.sh:127
 msgid "重启完成"
 msgstr "перезагрузка завершена"
 
@@ -245,11 +245,11 @@ msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "если вы изменяете конфигурацию, обратите внимание на закрытие соответствующих портов брандмауэра"
 
 #: install.sh:615 install.sh:3368 install.sh:3381 install.sh:3382
-#: install.sh:3696 install.sh:3715 fail2ban_manager.sh:76
+#: install.sh:3696 install.sh:3715 fail2ban_manager.sh:77
 msgid "配置"
 msgstr "настроить"
 
-#: install.sh:618 file_manager.sh:147
+#: install.sh:618 file_manager.sh:131
 msgid "跳过防火墙设置"
 msgstr "обойти настройки брандмауэра"
 
@@ -368,7 +368,7 @@ msgstr "вывод распределения нагрузки"
 msgid "请选择协议为 ws 或 gRPC"
 msgstr "выберите протокол как ws или grpc"
 
-#: install.sh:858 fail2ban_manager.sh:102
+#: install.sh:858 fail2ban_manager.sh:104
 msgid "返回"
 msgstr "возвращаться"
 
@@ -380,8 +380,8 @@ msgstr "пожалуйста, введите правильное число е�
 msgid "本地文件 file_manager.sh 不存在, 正在下载"
 msgstr "локальный файл file_manager.sh не существует, выполняется загрузка"
 
-#: install.sh:868 install.sh:905 install.sh:2114 fail2ban_manager.sh:242
-#: file_manager.sh:258
+#: install.sh:868 install.sh:905 install.sh:2114 fail2ban_manager.sh:245
+#: file_manager.sh:236
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr "загрузка не удалась, пожалуйста, скачайте и установите новую версию вручную"
 
@@ -833,17 +833,17 @@ msgid "停止已有服务"
 msgstr "остановить существующие службы"
 
 #: install.sh:1999 install.sh:2002 install.sh:2575 install.sh:2577
-#: install.sh:3706 fail2ban_manager.sh:99 fail2ban_manager.sh:188
+#: install.sh:3706 fail2ban_manager.sh:101 fail2ban_manager.sh:191
 msgid "重启"
 msgstr "перезагрузить"
 
-#: install.sh:2007 install.sh:2010 install.sh:3707 fail2ban_manager.sh:98
-#: fail2ban_manager.sh:158
+#: install.sh:2007 install.sh:2010 install.sh:3707 fail2ban_manager.sh:100
+#: fail2ban_manager.sh:161
 msgid "启动"
 msgstr "запуск"
 
 #: install.sh:2015 install.sh:2018 install.sh:2078 install.sh:3708
-#: fail2ban_manager.sh:100
+#: fail2ban_manager.sh:102
 msgid "停止"
 msgstr "остановись"
 
@@ -934,8 +934,8 @@ msgstr "необходимо ли настроить автоматическу�
 #: install.sh:2160 install.sh:3738 install.sh:3747 install.sh:3799
 #: install.sh:3805 install.sh:3841 install.sh:3847 install.sh:3853
 #: install.sh:3882 install.sh:3917 install.sh:3924 install.sh:3929
-#: fail2ban_manager.sh:159 fail2ban_manager.sh:172 fail2ban_manager.sh:181
-#: fail2ban_manager.sh:189
+#: fail2ban_manager.sh:162 fail2ban_manager.sh:175 fail2ban_manager.sh:184
+#: fail2ban_manager.sh:192
 msgid "清空屏幕"
 msgstr "очистить экран"
 
@@ -1066,7 +1066,7 @@ msgstr "продолжить"
 msgid "所有证书文件均已存在, 是否保留"
 msgstr "все файлы сертификатов уже существуют, нужно ли сохранить"
 
-#: install.sh:2487 install.sh:2502 install.sh:2518 file_manager.sh:186
+#: install.sh:2487 install.sh:2502 install.sh:2518 file_manager.sh:167
 msgid "已删除"
 msgstr "удалено"
 
@@ -1581,7 +1581,7 @@ msgid "用户管理"
 msgstr "управление пользователями"
 
 #: install.sh:3698 install.sh:3702 install.sh:3703 install.sh:3704
-#: install.sh:3709 install.sh:3711 fail2ban_manager.sh:14
+#: install.sh:3709 install.sh:3711 fail2ban_manager.sh:15
 msgid "查看"
 msgstr "посмотреть"
 
@@ -1673,7 +1673,7 @@ msgstr "восстановление"
 msgid "卸载向导"
 msgstr "установить мастер"
 
-#: install.sh:3725 fail2ban_manager.sh:13 fail2ban_manager.sh:171
+#: install.sh:3725 fail2ban_manager.sh:14 fail2ban_manager.sh:174
 msgid "卸载"
 msgstr "удалить"
 
@@ -1685,7 +1685,7 @@ msgstr "очистить"
 msgid "证书文件"
 msgstr "файл сертификата"
 
-#: install.sh:3727 fail2ban_manager.sh:15 file_manager.sh:217
+#: install.sh:3727 fail2ban_manager.sh:16 file_manager.sh:196
 msgid "退出"
 msgstr "выйти"
 
@@ -1713,261 +1713,264 @@ msgstr "начать обновление"
 msgid "请输入正确的数字"
 msgstr "введите правильное число"
 
-#: fail2ban_manager.sh:12
-msgid "管理"
-msgstr "управление"
+#: fail2ban_manager.sh:10
+msgid "用于防止暴力破解"
+msgstr "используется для предотвращения подбора паролей"
 
-#: fail2ban_manager.sh:14
-msgid "状态"
-msgstr "состояние"
-
-#: fail2ban_manager.sh:27 fail2ban_manager.sh:122
-msgid "无效的选择请重试"
-msgstr "недопустимый ввод, попробуйте снова"
-
-#: fail2ban_manager.sh:34
-msgid "已经安装, 跳过安装步骤"
-msgstr "установлено, пропустить этапы установки"
-
-#: fail2ban_manager.sh:52 fail2ban_manager.sh:92 fail2ban_manager.sh:195
-msgid "未安装, 请先安装"
-msgstr "не установлен, установите сначала"
-
-#: fail2ban_manager.sh:97
-msgid "请选择"
-msgstr "пожалуйста, выберите"
-
-#: fail2ban_manager.sh:97
-msgid "操作"
-msgstr "управление"
-
-#: fail2ban_manager.sh:101
-msgid "添加自定义规则"
-msgstr "добавить пользовательские правила"
-
-#: fail2ban_manager.sh:135
-msgid "请输入新的"
-msgstr "введите новые"
-
-#: fail2ban_manager.sh:135 fail2ban_manager.sh:136
-msgid "名称"
-msgstr "название"
-
-#: fail2ban_manager.sh:137
-msgid "请输入日志路径"
-msgstr "введите путь к журналу"
-
-#: fail2ban_manager.sh:138
-msgid "请输入最大重试次数"
-msgstr "введите максимальное количество попыток повтора"
-
-#: fail2ban_manager.sh:138
-msgid "最大重试次数必须在 1 到 99 之间"
-msgstr "максимальное количество попыток должно быть между 1 и 99"
-
-#: fail2ban_manager.sh:139
-msgid "请输入封禁时间"
-msgstr "введите время блокировки"
-
-#: fail2ban_manager.sh:139
-msgid "秒"
-msgstr "секунду"
-
-#: fail2ban_manager.sh:139
-msgid "封禁时间必须在 1 到 8640000 秒之间"
-msgstr "время блокировки должно находиться в диапазоне от 1 до 8640000 секунд"
-
-#: fail2ban_manager.sh:142
-msgid "已存在"
-msgstr "существует"
-
-#: fail2ban_manager.sh:147
-msgid "自定义规则添加成功"
-msgstr "пользовательские правила успешно добавлены"
-
-#: fail2ban_manager.sh:151
-msgid "重启以应用新规则"
-msgstr "перезагрузите для применения новых правил"
-
-#: fail2ban_manager.sh:180
-msgid "停止成功"
-msgstr "прекратить успех"
-
-#: fail2ban_manager.sh:199
-msgid "总体状态"
-msgstr "общее состояние"
-
-#: fail2ban_manager.sh:203
-msgid "默认启用的 Jail 状态"
-msgstr "по умолчанию включено состояние jail"
-
-#: fail2ban_manager.sh:205 fail2ban_manager.sh:208 fail2ban_manager.sh:212
-msgid "封锁情况"
-msgstr "блокада situation"
-
-#: fail2ban_manager.sh:226 file_manager.sh:242
-msgid "新版本可用"
-msgstr "новая версия доступна"
-
-#: fail2ban_manager.sh:226 file_manager.sh:242
-msgid "当前版本"
-msgstr "текущая версия"
-
-#: fail2ban_manager.sh:227 file_manager.sh:243
-msgid "请访问"
-msgstr "пожалуйста, посетите"
-
-#: fail2ban_manager.sh:227 file_manager.sh:243
-msgid "查看更新说明"
-msgstr "просмотреть заметки о выпуске"
-
-#: fail2ban_manager.sh:229 file_manager.sh:245
-msgid "是否要下载并安装新版本"
-msgstr "необходимо загрузить и установить новую версию"
-
-#: fail2ban_manager.sh:233 file_manager.sh:249
-msgid "正在下载新版本"
-msgstr "загрузка новой версии"
-
-#: fail2ban_manager.sh:238 file_manager.sh:254
-msgid "下载完成, 正在重新运行脚本"
-msgstr "загрузка завершена, скрипт запускается заново"
-
-#: fail2ban_manager.sh:246 file_manager.sh:262
-msgid "跳过更新"
-msgstr "пропустить обновление"
-
-#: fail2ban_manager.sh:250 file_manager.sh:266
-msgid "当前已经是最新版本"
-msgstr "текущая версия является самой последней"
-
-#: file_manager.sh:8
-msgid "用法"
-msgstr "использование"
-
-#: file_manager.sh:8
-msgid "文件扩展名"
-msgstr "расширение файла"
-
-#: file_manager.sh:8
-msgid "目录路径"
-msgstr "путь к каталогу"
-
-#: file_manager.sh:18
-msgid "目录"
-msgstr "содержание"
-
-#: file_manager.sh:18
-msgid "不存在, 请检查路径"
-msgstr "не существует, проверьте путь"
-
-#: file_manager.sh:31 file_manager.sh:213
-msgid "列出所有"
-msgstr "список всех"
-
-#: file_manager.sh:31 file_manager.sh:40 file_manager.sh:102
-#: file_manager.sh:117 file_manager.sh:169 file_manager.sh:186
-#: file_manager.sh:213 file_manager.sh:214 file_manager.sh:215
-#: file_manager.sh:216
-msgid "文件"
-msgstr "файл"
-
-#: file_manager.sh:40
-msgid "没有找到"
-msgstr "не найдено"
-
-#: file_manager.sh:64
-msgid "文件名"
-msgstr "название файла"
-
-#: file_manager.sh:70
-msgid "序号"
-msgstr "номер"
-
-#: file_manager.sh:93
-msgid "请输入网址 (例如 hey.run)"
-msgstr "введите адрес веб-сайта (например, hey.run)"
-
-#: file_manager.sh:94
-msgid "不要包含 http:// 或 https:// 开头"
-msgstr "не включайте начало с http:// или https://"
-
-#: file_manager.sh:98
-msgid "网址不能包含 http:// 或 https:// 开头"
-msgstr "url не должен содержать в начале http:// или https://"
-
-#: file_manager.sh:102 file_manager.sh:117
-msgid "已创建"
-msgstr "создан"
-
-#: file_manager.sh:111
-msgid "请输入主机"
-msgstr "введите хост"
-
-#: file_manager.sh:112
-msgid "请输入端口"
-msgstr "введите порт"
-
-#: file_manager.sh:113
-msgid "请输入权重"
-msgstr "введите вес"
-
-#: file_manager.sh:135
-msgid "追加完成"
-msgstr "дополнение завершено"
-
-#: file_manager.sh:159
-msgid "请输入要编辑的文件编号"
-msgstr "введите номер файла для редактирования"
-
-#: file_manager.sh:165
-msgid "未安装, 正在尝试安装"
-msgstr "не установлен, попытка установки"
-
-#: file_manager.sh:169
-msgid "已编辑"
-msgstr "отредактировано"
-
-#: file_manager.sh:181
-msgid "请输入要删除的文件编号"
-msgstr "введите номер файла для удаления"
-
-#: file_manager.sh:202
-msgid "不支持的文件扩展名"
-msgstr "неподдерживаемое расширение файла"
-
-#: file_manager.sh:212
+#: fail2ban_manager.sh:11 file_manager.sh:191
 msgid "主菜单"
 msgstr "главное меню"
 
-#: file_manager.sh:214
-msgid "创建一个新的"
-msgstr "создать новое"
+#: fail2ban_manager.sh:13
+msgid "管理"
+msgstr "управление"
 
-#: file_manager.sh:215
-msgid "编辑一个已存在的"
-msgstr "редактировать существующий"
+#: fail2ban_manager.sh:15
+msgid "状态"
+msgstr "состояние"
 
-#: file_manager.sh:216
-msgid "删除一个已存在的"
-msgstr "удалить существующий"
-
-#: file_manager.sh:219
+#: fail2ban_manager.sh:18 file_manager.sh:198
 msgid "请选择一个选项"
 msgstr "пожалуйста, выберите один вариант"
 
-#: file_manager.sh:229
+#: fail2ban_manager.sh:27 fail2ban_manager.sh:125
+msgid "无效的选择请重试"
+msgstr "недопустимый ввод, попробуйте снова"
+
+#: fail2ban_manager.sh:35
+msgid "已经安装, 跳过安装步骤"
+msgstr "установлено, пропустить этапы установки"
+
+#: fail2ban_manager.sh:53 fail2ban_manager.sh:93 fail2ban_manager.sh:198
+msgid "未安装, 请先安装"
+msgstr "не установлен, установите сначала"
+
+#: fail2ban_manager.sh:99
+msgid "请选择"
+msgstr "пожалуйста, выберите"
+
+#: fail2ban_manager.sh:99
+msgid "操作"
+msgstr "управление"
+
+#: fail2ban_manager.sh:103
+msgid "添加自定义规则"
+msgstr "добавить пользовательские правила"
+
+#: fail2ban_manager.sh:138
+msgid "请输入新的"
+msgstr "введите новые"
+
+#: fail2ban_manager.sh:138 fail2ban_manager.sh:139
+msgid "名称"
+msgstr "название"
+
+#: fail2ban_manager.sh:140
+msgid "请输入日志路径"
+msgstr "введите путь к журналу"
+
+#: fail2ban_manager.sh:141
+msgid "请输入最大重试次数"
+msgstr "введите максимальное количество попыток повтора"
+
+#: fail2ban_manager.sh:141
+msgid "最大重试次数必须在 1 到 99 之间"
+msgstr "максимальное количество попыток должно быть между 1 и 99"
+
+#: fail2ban_manager.sh:142
+msgid "请输入封禁时间"
+msgstr "введите время блокировки"
+
+#: fail2ban_manager.sh:142
+msgid "秒"
+msgstr "секунду"
+
+#: fail2ban_manager.sh:142
+msgid "封禁时间必须在 1 到 8640000 秒之间"
+msgstr "время блокировки должно находиться в диапазоне от 1 до 8640000 секунд"
+
+#: fail2ban_manager.sh:145
+msgid "已存在"
+msgstr "существует"
+
+#: fail2ban_manager.sh:150
+msgid "自定义规则添加成功"
+msgstr "пользовательские правила успешно добавлены"
+
+#: fail2ban_manager.sh:154
+msgid "重启以应用新规则"
+msgstr "перезагрузите для применения новых правил"
+
+#: fail2ban_manager.sh:183
+msgid "停止成功"
+msgstr "прекратить успех"
+
+#: fail2ban_manager.sh:202
+msgid "总体状态"
+msgstr "общее состояние"
+
+#: fail2ban_manager.sh:206
+msgid "默认启用的 Jail 状态"
+msgstr "по умолчанию включено состояние jail"
+
+#: fail2ban_manager.sh:208 fail2ban_manager.sh:211 fail2ban_manager.sh:215
+msgid "封锁情况"
+msgstr "блокада situation"
+
+#: fail2ban_manager.sh:229 file_manager.sh:220
+msgid "新版本可用"
+msgstr "новая версия доступна"
+
+#: fail2ban_manager.sh:229 file_manager.sh:220
+msgid "当前版本"
+msgstr "текущая версия"
+
+#: fail2ban_manager.sh:230 file_manager.sh:221
+msgid "请访问"
+msgstr "пожалуйста, посетите"
+
+#: fail2ban_manager.sh:230 file_manager.sh:221
+msgid "查看更新说明"
+msgstr "просмотреть заметки о выпуске"
+
+#: fail2ban_manager.sh:232 file_manager.sh:223
+msgid "是否要下载并安装新版本"
+msgstr "необходимо загрузить и установить новую версию"
+
+#: fail2ban_manager.sh:236 file_manager.sh:227
+msgid "正在下载新版本"
+msgstr "загрузка новой версии"
+
+#: fail2ban_manager.sh:241 file_manager.sh:232
+msgid "下载完成, 请重新运行脚本"
+msgstr "загрузить завершена, пожалуйста, повторно запустите скрипт"
+
+#: fail2ban_manager.sh:249 file_manager.sh:240
+msgid "跳过更新"
+msgstr "пропустить обновление"
+
+#: fail2ban_manager.sh:253 file_manager.sh:244
+msgid "当前已经是最新版本"
+msgstr "текущая версия является самой последней"
+
+#: file_manager.sh:7
+msgid "用法"
+msgstr "использование"
+
+#: file_manager.sh:7
+msgid "文件扩展名"
+msgstr "расширение файла"
+
+#: file_manager.sh:7
+msgid "目录路径"
+msgstr "путь к каталогу"
+
+#: file_manager.sh:16
+msgid "目录"
+msgstr "содержание"
+
+#: file_manager.sh:16
+msgid "不存在, 请检查路径"
+msgstr "не существует, проверьте путь"
+
+#: file_manager.sh:26 file_manager.sh:192
+msgid "列出所有"
+msgstr "список всех"
+
+#: file_manager.sh:26 file_manager.sh:35 file_manager.sh:88 file_manager.sh:102
+#: file_manager.sh:151 file_manager.sh:167 file_manager.sh:192
+#: file_manager.sh:193 file_manager.sh:194 file_manager.sh:195
+msgid "文件"
+msgstr "файл"
+
+#: file_manager.sh:35
+msgid "没有找到"
+msgstr "не найдено"
+
+#: file_manager.sh:53
+msgid "文件名"
+msgstr "название файла"
+
+#: file_manager.sh:59
+msgid "序号"
+msgstr "номер"
+
+#: file_manager.sh:79
+msgid "请输入网址 (例如 hey.run)"
+msgstr "введите адрес веб-сайта (например, hey.run)"
+
+#: file_manager.sh:80
+msgid "不要包含 http:// 或 https:// 开头"
+msgstr "не включайте начало с http:// или https://"
+
+#: file_manager.sh:84
+msgid "网址不能包含 http:// 或 https:// 开头"
+msgstr "url не должен содержать в начале http:// или https://"
+
+#: file_manager.sh:88 file_manager.sh:102
+msgid "已创建"
+msgstr "создан"
+
+#: file_manager.sh:96
+msgid "请输入主机"
+msgstr "введите хост"
+
+#: file_manager.sh:97
+msgid "请输入端口"
+msgstr "введите порт"
+
+#: file_manager.sh:98
+msgid "请输入权重"
+msgstr "введите вес"
+
+#: file_manager.sh:119
+msgid "追加完成"
+msgstr "дополнение завершено"
+
+#: file_manager.sh:142
+msgid "请输入要编辑的文件编号"
+msgstr "введите номер файла для редактирования"
+
+#: file_manager.sh:147
+msgid "未安装, 正在尝试安装"
+msgstr "не установлен, попытка установки"
+
+#: file_manager.sh:151
+msgid "已编辑"
+msgstr "отредактировано"
+
+#: file_manager.sh:162
+msgid "请输入要删除的文件编号"
+msgstr "введите номер файла для удаления"
+
+#: file_manager.sh:182
+msgid "不支持的文件扩展名"
+msgstr "неподдерживаемое расширение файла"
+
+#: file_manager.sh:193
+msgid "创建一个新的"
+msgstr "создать новое"
+
+#: file_manager.sh:194
+msgid "编辑一个已存在的"
+msgstr "редактировать существующий"
+
+#: file_manager.sh:195
+msgid "删除一个已存在的"
+msgstr "удалить существующий"
+
+#: file_manager.sh:208
 msgid "无效选项, 请重试"
 msgstr "недопустимый вариант, попробуйте снова"
 
-#: file_manager.sh:275
+#: file_manager.sh:253
 msgid "重启成功"
 msgstr "перезапуск успешно выполнен"
 
-#: file_manager.sh:278
+#: file_manager.sh:256
 msgid "重启失败"
 msgstr "перезапуск не удался"
 
-#: file_manager.sh:278
+#: file_manager.sh:256
 msgid "请检查配置文件是否有误"
 msgstr "проверьте, пожалуйста, на наличие ошибок файл конфигурации"
