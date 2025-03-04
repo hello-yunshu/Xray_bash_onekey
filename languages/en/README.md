@@ -16,7 +16,7 @@
 * Using the proposal from the [XTLS](https://github.com/XTLS/Xray-core/issues/158) project, following the [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) standard, you can map custom strings to VLESS UUID.
 * Reality installation guide: [Setting up Xray Reality Protocol Server](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
 * Risks of Reality protocol: [Risks of Xray Reality Protocol](https://hey.run/archives/reality-xie-yi-de-feng-xian).
-* Accelerating server using Reality protocol: [Accelerate Server Using Reality Protocol "Vulnerability"](https://hey.run/archives/li-yong-reality-xie-yi-lou-dong-jia-su-fu-wu-qi).
+* Accelerating server using Reality protocol: [Accelerate Server Using Reality Protocol "Vulnerability"](https://hey.run/archives/use-reality).
 * Adding load balancing configuration, tutorial: [XRay Advanced Play - Setting Up Backend Server Load Balancing](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 * Adding support for gRPC protocol, see details: [XRay Advanced Play - Using gRPC Protocol](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
 

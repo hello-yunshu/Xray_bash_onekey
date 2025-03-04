@@ -16,7 +16,7 @@
 * 使用来自 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 项目的提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，可以将自定义字符串映射至 VLESS UUID 。
 * Reality 安装说明：[搭建 Xray Reality 协议服务器](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)。
 * Reality 协议的风险：[Xray Reality 协议的风险](https://hey.run/archives/reality-xie-yi-de-feng-xian)。
-* 利用 Reality 协议加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/archives/li-yong-reality-xie-yi-lou-dong-jia-su-fu-wu-qi)。
+* 利用 Reality 协议加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/archives/use-reality)。
 * 添加负载均衡配置，教程：[XRay进阶玩法 – 搭建后端服务器负载均衡](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)。
 * 添加 gRPC 协议的支持，具体可见：[Xray进阶玩法 – 使用gRPC协议](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)。
 
