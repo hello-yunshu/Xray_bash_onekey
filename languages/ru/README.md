@@ -16,7 +16,7 @@
 * Используйте предложение из проекта [XTLS](https://github.com/XTLS/Xray-core/issues/158), следуя стандарту [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3), чтобы отобразить пользовательские строки в UUID VLESS.
 * Установка Reality: [Установка сервера протокола Xray Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
 * Риски использования протокола Reality: [Риски использования протокола Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian).
-* Ускорение сервера с помощью протокола Reality: [Ускорение сервера с помощью "утечек" протокола Reality](https://hey.run/archives/li-yong-reality-xie-yi-lou-dong-jia-su-fu-wu-qi).
+* Ускорение сервера с помощью протокола Reality: [Ускорение сервера с помощью "утечек" протокола Reality](https://hey.run/archives/use-reality).
 * Добавление конфигурации балансировки нагрузки, руководство: [XRay продвинутые возможности – Настройка балансировки нагрузки на сервере](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 * Поддержка протокола gRPC, подробнее: [XRay продвинутые возможности – Использование протокола gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
 

@@ -37,7 +37,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.4.0"
+shell_version="2.4.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -892,7 +892,7 @@ nginx_servernames_server_set() {
         echo
         log_echo "${GreenBG} $(gettext "是否变更") Nginx serverNames [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Warning} ${YellowBG} $(gettext "如不清楚具体用途, 请勿继续")! ${Font}"
-        echo -e "${Info} ${GreenBG} $(gettext "配置用途可以参考文章"): ($(gettext "敬请期待")) ${Font}"
+        echo -e "${Info} ${GreenBG} $(gettext "配置用途可以参考文章"): https://hey.run/archives/use-reality ${Font}"
         read -r nginx_servernames_server_fq
         case $nginx_servernames_server_fq in
         [yY][eE][sS] | [yY])

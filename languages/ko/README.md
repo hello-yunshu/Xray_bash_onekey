@@ -16,7 +16,7 @@
 * [XTLS](https://github.com/XTLS/Xray-core/issues/158) 프로젝트의 제안을 따르며, [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 표준을 준수하여 사용자 정의 문자열을 VLESS UUID로 매핑할 수 있습니다.
 * Reality 설치 안내: [Xray Reality 프로토콜 서버 설정](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
 * Reality 프로토콜 위험: [Xray Reality 프로토콜 위험](https://hey.run/archives/reality-xie-yi-de-feng-xian).
-* Reality 프로토콜을 이용한 서버 가속: [Reality 프로토콜 "취약점"을 이용한 서버 가속](https://hey.run/archives/li-yong-reality-xie-yi-lou-dong-jia-su-fu-wu-qi).
+* Reality 프로토콜을 이용한 서버 가속: [Reality 프로토콜 "취약점"을 이용한 서버 가속](https://hey.run/archives/use-reality).
 * 부하 분산 구성 추가, 튜토리얼: [XRay 고급 기능 – 백엔드 서버 로드 밸런싱 설정](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 * gRPC 프로토콜 지원 추가, 자세히 보기: [Xray 고급 기능 – gRPC 프로토콜 사용](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
 
