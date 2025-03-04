@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-02-25 20:27+0000\n"
-"PO-Revision-Date: 2025-02-25 20:27+0000\n"
+"POT-Creation-Date: 2025-03-04 11:57+0000\n"
+"PO-Revision-Date: 2025-03-04 11:57+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: fa\n"
@@ -124,7 +124,7 @@ msgstr "نسخه آنلاین بررسی نشد، لطفاً دوباره سعی
 
 #: install.sh:341 install.sh:349 install.sh:1105 install.sh:3364
 #: install.sh:3365 install.sh:3366 install.sh:3687 install.sh:3688
-#: install.sh:3689 fail2ban_manager.sh:11 fail2ban_manager.sh:38
+#: install.sh:3689 fail2ban_manager.sh:12 fail2ban_manager.sh:39
 msgid "安装"
 msgstr "نصب"
 
@@ -157,7 +157,7 @@ msgid "请输入连接端口"
 msgstr "ورودی لطفا پورت ارتباطی را وارد کنید"
 
 #: install.sh:438 install.sh:441 install.sh:2607 install.sh:2613
-#: file_manager.sh:113
+#: file_manager.sh:98
 msgid "默认值"
 msgstr "مقدار پیش‌فرض"
 
@@ -177,8 +177,8 @@ msgid "请选择安装协议"
 msgstr "لطفا قرارداد نصب را انتخاب کنید"
 
 #: install.sh:450 install.sh:1473 install.sh:1510 install.sh:1561
-#: install.sh:2704 install.sh:2775 install.sh:2824 fail2ban_manager.sh:138
-#: fail2ban_manager.sh:139
+#: install.sh:2704 install.sh:2775 install.sh:2824 fail2ban_manager.sh:141
+#: fail2ban_manager.sh:142
 msgid "默认"
 msgstr "پیش‌فرض"
 
@@ -187,8 +187,8 @@ msgstr "پیش‌فرض"
 #: install.sh:2617 install.sh:2622 install.sh:2627 install.sh:2628
 #: install.sh:2643 install.sh:2648 install.sh:2653 install.sh:2654
 #: install.sh:2707 install.sh:2716 install.sh:2778 install.sh:2827
-#: install.sh:2836 fail2ban_manager.sh:16 fail2ban_manager.sh:103
-#: fail2ban_manager.sh:136 file_manager.sh:95
+#: install.sh:2836 fail2ban_manager.sh:106 fail2ban_manager.sh:139
+#: file_manager.sh:81
 msgid "请输入"
 msgstr "لطفاً ورودی را وارد کنید"
 
@@ -221,16 +221,16 @@ msgstr "لطفاً سفارشی را وارد کنید"
 msgid "请勿与其他端口相同"
 msgstr "لطفاً با سایر پورت ها مشابه نباشید"
 
-#: install.sh:567 file_manager.sh:121
+#: install.sh:567 file_manager.sh:105
 msgid "是否需要设置防火墙"
 msgstr "آیا نیاز است که فایروال را تنظیم کنیم؟"
 
-#: install.sh:607 install.sh:611 file_manager.sh:135 file_manager.sh:139
-#: file_manager.sh:143
+#: install.sh:607 install.sh:611 file_manager.sh:119 file_manager.sh:123
+#: file_manager.sh:127
 msgid "防火墙"
 msgstr "پوشش آتشپمایی"
 
-#: install.sh:607 install.sh:611 file_manager.sh:139 file_manager.sh:143
+#: install.sh:607 install.sh:611 file_manager.sh:123 file_manager.sh:127
 msgid "重启完成"
 msgstr "بازگشایی کامل شد"
 
@@ -243,11 +243,11 @@ msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "اگر پیکربندی را تغییر دهید، مراقب بستن پورت‌های مرتبط با دیواره feu دیگری باشید"
 
 #: install.sh:615 install.sh:3368 install.sh:3381 install.sh:3382
-#: install.sh:3696 install.sh:3715 fail2ban_manager.sh:76
+#: install.sh:3696 install.sh:3715 fail2ban_manager.sh:77
 msgid "配置"
 msgstr "تنظیم کردن"
 
-#: install.sh:618 file_manager.sh:147
+#: install.sh:618 file_manager.sh:131
 msgid "跳过防火墙设置"
 msgstr "از تنظیمات فایروال پرش کنید"
 
@@ -366,7 +366,7 @@ msgstr "oad balancing"
 msgid "请选择协议为 ws 或 gRPC"
 msgstr "لطفا پروتکل را به عنوان ws یا grpc انتخاب کنید"
 
-#: install.sh:858 fail2ban_manager.sh:102
+#: install.sh:858 fail2ban_manager.sh:104
 msgid "返回"
 msgstr "برگشت"
 
@@ -378,8 +378,8 @@ msgstr "لطفاً عدد صحیح را مجددا وارد کنید"
 msgid "本地文件 file_manager.sh 不存在, 正在下载"
 msgstr "فایل محلی file_manager.sh وجود ندارد، در حال دانلود است"
 
-#: install.sh:868 install.sh:905 install.sh:2114 fail2ban_manager.sh:242
-#: file_manager.sh:258
+#: install.sh:868 install.sh:905 install.sh:2114 fail2ban_manager.sh:245
+#: file_manager.sh:236
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr "دانلود با شکست مواجه شد، دانلود و نصب نسخه جدید را دستی انجام دهید"
 
@@ -831,17 +831,17 @@ msgid "停止已有服务"
 msgstr "این سرویس را متوقف کنید"
 
 #: install.sh:1999 install.sh:2002 install.sh:2575 install.sh:2577
-#: install.sh:3706 fail2ban_manager.sh:99 fail2ban_manager.sh:188
+#: install.sh:3706 fail2ban_manager.sh:101 fail2ban_manager.sh:191
 msgid "重启"
 msgstr "ریستارت کردن"
 
-#: install.sh:2007 install.sh:2010 install.sh:3707 fail2ban_manager.sh:98
-#: fail2ban_manager.sh:158
+#: install.sh:2007 install.sh:2010 install.sh:3707 fail2ban_manager.sh:100
+#: fail2ban_manager.sh:161
 msgid "启动"
 msgstr "شروع کنید"
 
 #: install.sh:2015 install.sh:2018 install.sh:2078 install.sh:3708
-#: fail2ban_manager.sh:100
+#: fail2ban_manager.sh:102
 msgid "停止"
 msgstr "این دستور متوقف کن"
 
@@ -932,8 +932,8 @@ msgstr "آیا نیاز است که تمیز خودکار لاگ تنظیم شو
 #: install.sh:2160 install.sh:3738 install.sh:3747 install.sh:3799
 #: install.sh:3805 install.sh:3841 install.sh:3847 install.sh:3853
 #: install.sh:3882 install.sh:3917 install.sh:3924 install.sh:3929
-#: fail2ban_manager.sh:159 fail2ban_manager.sh:172 fail2ban_manager.sh:181
-#: fail2ban_manager.sh:189
+#: fail2ban_manager.sh:162 fail2ban_manager.sh:175 fail2ban_manager.sh:184
+#: fail2ban_manager.sh:192
 msgid "清空屏幕"
 msgstr "پاک کردن صفحه نمایش"
 
@@ -1064,7 +1064,7 @@ msgstr "آیا ادامه دادن؟"
 msgid "所有证书文件均已存在, 是否保留"
 msgstr "تمام فایل‌های گواهی موجود هستند، آیا مورد حفظ قرار گرفته شوند؟"
 
-#: install.sh:2487 install.sh:2502 install.sh:2518 file_manager.sh:186
+#: install.sh:2487 install.sh:2502 install.sh:2518 file_manager.sh:167
 msgid "已删除"
 msgstr "حذف شده"
 
@@ -1579,7 +1579,7 @@ msgid "用户管理"
 msgstr "مدیریت کاربران"
 
 #: install.sh:3698 install.sh:3702 install.sh:3703 install.sh:3704
-#: install.sh:3709 install.sh:3711 fail2ban_manager.sh:14
+#: install.sh:3709 install.sh:3711 fail2ban_manager.sh:15
 msgid "查看"
 msgstr "چکیده"
 
@@ -1671,7 +1671,7 @@ msgstr "بازگرداندن"
 msgid "卸载向导"
 msgstr "راه‌اندازی دیسک"
 
-#: install.sh:3725 fail2ban_manager.sh:13 fail2ban_manager.sh:171
+#: install.sh:3725 fail2ban_manager.sh:14 fail2ban_manager.sh:174
 msgid "卸载"
 msgstr "برداشتن"
 
@@ -1683,7 +1683,7 @@ msgstr "خالی کردن"
 msgid "证书文件"
 msgstr "فایل گواهی"
 
-#: install.sh:3727 fail2ban_manager.sh:15 file_manager.sh:217
+#: install.sh:3727 fail2ban_manager.sh:16 file_manager.sh:196
 msgid "退出"
 msgstr "خروج"
 
@@ -1711,261 +1711,264 @@ msgstr "شروع به به روز رسانی"
 msgid "请输入正确的数字"
 msgstr "لطفاً عدد صحیح وارد کنید"
 
-#: fail2ban_manager.sh:12
-msgid "管理"
-msgstr "مدیریت"
+#: fail2ban_manager.sh:10
+msgid "用于防止暴力破解"
+msgstr "برای جلوگیری از شکستن رمز با استفاده از روش حمله حwn"
 
-#: fail2ban_manager.sh:14
-msgid "状态"
-msgstr "حالت"
-
-#: fail2ban_manager.sh:27 fail2ban_manager.sh:122
-msgid "无效的选择请重试"
-msgstr "انتخاب نامعتبر است لطفا مجددا سعی کنید"
-
-#: fail2ban_manager.sh:34
-msgid "已经安装, 跳过安装步骤"
-msgstr "نصب شده، قدم نصب را پرش کنید"
-
-#: fail2ban_manager.sh:52 fail2ban_manager.sh:92 fail2ban_manager.sh:195
-msgid "未安装, 请先安装"
-msgstr "بدون نصب، ابتدا نصب کنید"
-
-#: fail2ban_manager.sh:97
-msgid "请选择"
-msgstr "لطفا انتخاب کنید"
-
-#: fail2ban_manager.sh:97
-msgid "操作"
-msgstr "عمل"
-
-#: fail2ban_manager.sh:101
-msgid "添加自定义规则"
-msgstr "اضافه کردن قوانین سفارشی"
-
-#: fail2ban_manager.sh:135
-msgid "请输入新的"
-msgstr "لطفاً متن جدید وارد کنید"
-
-#: fail2ban_manager.sh:135 fail2ban_manager.sh:136
-msgid "名称"
-msgstr "نام"
-
-#: fail2ban_manager.sh:137
-msgid "请输入日志路径"
-msgstr "لطفا مسیر لاگ را وارد کنید"
-
-#: fail2ban_manager.sh:138
-msgid "请输入最大重试次数"
-msgstr "لطفاً بیشترین تعداد تلاش مجاز را وارد کنید"
-
-#: fail2ban_manager.sh:138
-msgid "最大重试次数必须在 1 到 99 之间"
-msgstr "بیشترین تعداد تلاش باید بین ۱ و ۹۹ باشد"
-
-#: fail2ban_manager.sh:139
-msgid "请输入封禁时间"
-msgstr "لطفا زمان مسدودسازی را وارد کنید"
-
-#: fail2ban_manager.sh:139
-msgid "秒"
-msgstr "ثانیه"
-
-#: fail2ban_manager.sh:139
-msgid "封禁时间必须在 1 到 8640000 秒之间"
-msgstr "زمان مسدود کردن باید بین ۱ تا ۸۶۴۰۰۰ ثانیه باشد"
-
-#: fail2ban_manager.sh:142
-msgid "已存在"
-msgstr "وجود دارد"
-
-#: fail2ban_manager.sh:147
-msgid "自定义规则添加成功"
-msgstr "رール با موفقیت اضافه شد"
-
-#: fail2ban_manager.sh:151
-msgid "重启以应用新规则"
-msgstr "ریست کردن برای اعمال قوانین جدید"
-
-#: fail2ban_manager.sh:180
-msgid "停止成功"
-msgstr "این را توقف کنید"
-
-#: fail2ban_manager.sh:199
-msgid "总体状态"
-msgstr "وضعیت کلی"
-
-#: fail2ban_manager.sh:203
-msgid "默认启用的 Jail 状态"
-msgstr "وضعیت پیش‌فرض فعال شدهٔ زیال"
-
-#: fail2ban_manager.sh:205 fail2ban_manager.sh:208 fail2ban_manager.sh:212
-msgid "封锁情况"
-msgstr "بند کردن وضعیت"
-
-#: fail2ban_manager.sh:226 file_manager.sh:242
-msgid "新版本可用"
-msgstr "نسخه جدید در دسترس است"
-
-#: fail2ban_manager.sh:226 file_manager.sh:242
-msgid "当前版本"
-msgstr "نسخه فعلی"
-
-#: fail2ban_manager.sh:227 file_manager.sh:243
-msgid "请访问"
-msgstr "لطفا بازدید کنید"
-
-#: fail2ban_manager.sh:227 file_manager.sh:243
-msgid "查看更新说明"
-msgstr "مشاهده ملاحظات بروز رسانی"
-
-#: fail2ban_manager.sh:229 file_manager.sh:245
-msgid "是否要下载并安装新版本"
-msgstr "آیا می‌خواهید نسخه جدید را دانلود و نصب کنید؟"
-
-#: fail2ban_manager.sh:233 file_manager.sh:249
-msgid "正在下载新版本"
-msgstr "در حال دانلود نسخه جدید"
-
-#: fail2ban_manager.sh:238 file_manager.sh:254
-msgid "下载完成, 正在重新运行脚本"
-msgstr "دانلود کامل شد، اجرای مجدد فریم‌ورک در حال رخ دادن است"
-
-#: fail2ban_manager.sh:246 file_manager.sh:262
-msgid "跳过更新"
-msgstr "پرش کردن از روزآمد سازی"
-
-#: fail2ban_manager.sh:250 file_manager.sh:266
-msgid "当前已经是最新版本"
-msgstr "نسخه فعلی آخرین نسخه است"
-
-#: file_manager.sh:8
-msgid "用法"
-msgstr "روش استفاده"
-
-#: file_manager.sh:8
-msgid "文件扩展名"
-msgstr "نام توسعه فایل"
-
-#: file_manager.sh:8
-msgid "目录路径"
-msgstr "مسیر راهنما"
-
-#: file_manager.sh:18
-msgid "目录"
-msgstr "فهرست"
-
-#: file_manager.sh:18
-msgid "不存在, 请检查路径"
-msgstr "نیست، مسیر را بررسی کنید"
-
-#: file_manager.sh:31 file_manager.sh:213
-msgid "列出所有"
-msgstr "فهرست کردن همه"
-
-#: file_manager.sh:31 file_manager.sh:40 file_manager.sh:102
-#: file_manager.sh:117 file_manager.sh:169 file_manager.sh:186
-#: file_manager.sh:213 file_manager.sh:214 file_manager.sh:215
-#: file_manager.sh:216
-msgid "文件"
-msgstr "فایل"
-
-#: file_manager.sh:40
-msgid "没有找到"
-msgstr "نمی‌توانیم یافتنی پیدا کنیم"
-
-#: file_manager.sh:64
-msgid "文件名"
-msgstr "نام فایل"
-
-#: file_manager.sh:70
-msgid "序号"
-msgstr "شماره"
-
-#: file_manager.sh:93
-msgid "请输入网址 (例如 hey.run)"
-msgstr "لطفا آدرس وب را وارد کنید (مثلا hey.run)"
-
-#: file_manager.sh:94
-msgid "不要包含 http:// 或 https:// 开头"
-msgstr "نباشید که حاوی http:// یا https:// در ابتدای آن باشد"
-
-#: file_manager.sh:98
-msgid "网址不能包含 http:// 或 https:// 开头"
-msgstr "آدرس نمی تواند با http:// یا https:// شروع شود"
-
-#: file_manager.sh:102 file_manager.sh:117
-msgid "已创建"
-msgstr "ایجاد شده"
-
-#: file_manager.sh:111
-msgid "请输入主机"
-msgstr "لطفا میزبان را وارد کنید"
-
-#: file_manager.sh:112
-msgid "请输入端口"
-msgstr "ورودی کریت لطفا port را وارد کنید"
-
-#: file_manager.sh:113
-msgid "请输入权重"
-msgstr "وزن را وارد کنید"
-
-#: file_manager.sh:135
-msgid "追加完成"
-msgstr "افزودن کامل شد"
-
-#: file_manager.sh:159
-msgid "请输入要编辑的文件编号"
-msgstr "شماره فایل مورد ویرایش را وارد کنید"
-
-#: file_manager.sh:165
-msgid "未安装, 正在尝试安装"
-msgstr "ناصب شده، تلاش برای نصب در حال انجام است"
-
-#: file_manager.sh:169
-msgid "已编辑"
-msgstr "ویرایش شده"
-
-#: file_manager.sh:181
-msgid "请输入要删除的文件编号"
-msgstr "شماره فایلی را وارد کنید که می‌خواهید حذف کنید"
-
-#: file_manager.sh:202
-msgid "不支持的文件扩展名"
-msgstr "پسوند فایل پشتیبانی نشده است"
-
-#: file_manager.sh:212
+#: fail2ban_manager.sh:11 file_manager.sh:191
 msgid "主菜单"
 msgstr "منوی اصلی"
 
-#: file_manager.sh:214
-msgid "创建一个新的"
-msgstr "ساخت یکی جدید"
+#: fail2ban_manager.sh:13
+msgid "管理"
+msgstr "مدیریت"
 
-#: file_manager.sh:215
-msgid "编辑一个已存在的"
-msgstr "ویرایش یک موجود"
+#: fail2ban_manager.sh:15
+msgid "状态"
+msgstr "حالت"
 
-#: file_manager.sh:216
-msgid "删除一个已存在的"
-msgstr "حذف یک موجود"
-
-#: file_manager.sh:219
+#: fail2ban_manager.sh:18 file_manager.sh:198
 msgid "请选择一个选项"
 msgstr "لطفا یک گزینه را انتخاب کنید"
 
-#: file_manager.sh:229
+#: fail2ban_manager.sh:27 fail2ban_manager.sh:125
+msgid "无效的选择请重试"
+msgstr "انتخاب نامعتبر است لطفا مجددا سعی کنید"
+
+#: fail2ban_manager.sh:35
+msgid "已经安装, 跳过安装步骤"
+msgstr "نصب شده، قدم نصب را پرش کنید"
+
+#: fail2ban_manager.sh:53 fail2ban_manager.sh:93 fail2ban_manager.sh:198
+msgid "未安装, 请先安装"
+msgstr "بدون نصب، ابتدا نصب کنید"
+
+#: fail2ban_manager.sh:99
+msgid "请选择"
+msgstr "لطفا انتخاب کنید"
+
+#: fail2ban_manager.sh:99
+msgid "操作"
+msgstr "عمل"
+
+#: fail2ban_manager.sh:103
+msgid "添加自定义规则"
+msgstr "اضافه کردن قوانین سفارشی"
+
+#: fail2ban_manager.sh:138
+msgid "请输入新的"
+msgstr "لطفاً متن جدید وارد کنید"
+
+#: fail2ban_manager.sh:138 fail2ban_manager.sh:139
+msgid "名称"
+msgstr "نام"
+
+#: fail2ban_manager.sh:140
+msgid "请输入日志路径"
+msgstr "لطفا مسیر لاگ را وارد کنید"
+
+#: fail2ban_manager.sh:141
+msgid "请输入最大重试次数"
+msgstr "لطفاً بیشترین تعداد تلاش مجاز را وارد کنید"
+
+#: fail2ban_manager.sh:141
+msgid "最大重试次数必须在 1 到 99 之间"
+msgstr "بیشترین تعداد تلاش باید بین ۱ و ۹۹ باشد"
+
+#: fail2ban_manager.sh:142
+msgid "请输入封禁时间"
+msgstr "لطفا زمان مسدودسازی را وارد کنید"
+
+#: fail2ban_manager.sh:142
+msgid "秒"
+msgstr "ثانیه"
+
+#: fail2ban_manager.sh:142
+msgid "封禁时间必须在 1 到 8640000 秒之间"
+msgstr "زمان مسدود کردن باید بین ۱ تا ۸۶۴۰۰۰ ثانیه باشد"
+
+#: fail2ban_manager.sh:145
+msgid "已存在"
+msgstr "وجود دارد"
+
+#: fail2ban_manager.sh:150
+msgid "自定义规则添加成功"
+msgstr "رール با موفقیت اضافه شد"
+
+#: fail2ban_manager.sh:154
+msgid "重启以应用新规则"
+msgstr "ریست کردن برای اعمال قوانین جدید"
+
+#: fail2ban_manager.sh:183
+msgid "停止成功"
+msgstr "این را توقف کنید"
+
+#: fail2ban_manager.sh:202
+msgid "总体状态"
+msgstr "وضعیت کلی"
+
+#: fail2ban_manager.sh:206
+msgid "默认启用的 Jail 状态"
+msgstr "وضعیت پیش‌فرض فعال شدهٔ زیال"
+
+#: fail2ban_manager.sh:208 fail2ban_manager.sh:211 fail2ban_manager.sh:215
+msgid "封锁情况"
+msgstr "بند کردن وضعیت"
+
+#: fail2ban_manager.sh:229 file_manager.sh:220
+msgid "新版本可用"
+msgstr "نسخه جدید در دسترس است"
+
+#: fail2ban_manager.sh:229 file_manager.sh:220
+msgid "当前版本"
+msgstr "نسخه فعلی"
+
+#: fail2ban_manager.sh:230 file_manager.sh:221
+msgid "请访问"
+msgstr "لطفا بازدید کنید"
+
+#: fail2ban_manager.sh:230 file_manager.sh:221
+msgid "查看更新说明"
+msgstr "مشاهده ملاحظات بروز رسانی"
+
+#: fail2ban_manager.sh:232 file_manager.sh:223
+msgid "是否要下载并安装新版本"
+msgstr "آیا می‌خواهید نسخه جدید را دانلود و نصب کنید؟"
+
+#: fail2ban_manager.sh:236 file_manager.sh:227
+msgid "正在下载新版本"
+msgstr "در حال دانلود نسخه جدید"
+
+#: fail2ban_manager.sh:241 file_manager.sh:232
+msgid "下载完成, 请重新运行脚本"
+msgstr "دانلود کامل شد، لطفا اسکریپت را مجدد اجرا کنید"
+
+#: fail2ban_manager.sh:249 file_manager.sh:240
+msgid "跳过更新"
+msgstr "پرش کردن از روزآمد سازی"
+
+#: fail2ban_manager.sh:253 file_manager.sh:244
+msgid "当前已经是最新版本"
+msgstr "نسخه فعلی آخرین نسخه است"
+
+#: file_manager.sh:7
+msgid "用法"
+msgstr "روش استفاده"
+
+#: file_manager.sh:7
+msgid "文件扩展名"
+msgstr "نام توسعه فایل"
+
+#: file_manager.sh:7
+msgid "目录路径"
+msgstr "مسیر راهنما"
+
+#: file_manager.sh:16
+msgid "目录"
+msgstr "فهرست"
+
+#: file_manager.sh:16
+msgid "不存在, 请检查路径"
+msgstr "نیست، مسیر را بررسی کنید"
+
+#: file_manager.sh:26 file_manager.sh:192
+msgid "列出所有"
+msgstr "فهرست کردن همه"
+
+#: file_manager.sh:26 file_manager.sh:35 file_manager.sh:88 file_manager.sh:102
+#: file_manager.sh:151 file_manager.sh:167 file_manager.sh:192
+#: file_manager.sh:193 file_manager.sh:194 file_manager.sh:195
+msgid "文件"
+msgstr "فایل"
+
+#: file_manager.sh:35
+msgid "没有找到"
+msgstr "نمی‌توانیم یافتنی پیدا کنیم"
+
+#: file_manager.sh:53
+msgid "文件名"
+msgstr "نام فایل"
+
+#: file_manager.sh:59
+msgid "序号"
+msgstr "شماره"
+
+#: file_manager.sh:79
+msgid "请输入网址 (例如 hey.run)"
+msgstr "لطفا آدرس وب را وارد کنید (مثلا hey.run)"
+
+#: file_manager.sh:80
+msgid "不要包含 http:// 或 https:// 开头"
+msgstr "نباشید که حاوی http:// یا https:// در ابتدای آن باشد"
+
+#: file_manager.sh:84
+msgid "网址不能包含 http:// 或 https:// 开头"
+msgstr "آدرس نمی تواند با http:// یا https:// شروع شود"
+
+#: file_manager.sh:88 file_manager.sh:102
+msgid "已创建"
+msgstr "ایجاد شده"
+
+#: file_manager.sh:96
+msgid "请输入主机"
+msgstr "لطفا میزبان را وارد کنید"
+
+#: file_manager.sh:97
+msgid "请输入端口"
+msgstr "ورودی کریت لطفا port را وارد کنید"
+
+#: file_manager.sh:98
+msgid "请输入权重"
+msgstr "وزن را وارد کنید"
+
+#: file_manager.sh:119
+msgid "追加完成"
+msgstr "افزودن کامل شد"
+
+#: file_manager.sh:142
+msgid "请输入要编辑的文件编号"
+msgstr "شماره فایل مورد ویرایش را وارد کنید"
+
+#: file_manager.sh:147
+msgid "未安装, 正在尝试安装"
+msgstr "ناصب شده، تلاش برای نصب در حال انجام است"
+
+#: file_manager.sh:151
+msgid "已编辑"
+msgstr "ویرایش شده"
+
+#: file_manager.sh:162
+msgid "请输入要删除的文件编号"
+msgstr "شماره فایلی را وارد کنید که می‌خواهید حذف کنید"
+
+#: file_manager.sh:182
+msgid "不支持的文件扩展名"
+msgstr "پسوند فایل پشتیبانی نشده است"
+
+#: file_manager.sh:193
+msgid "创建一个新的"
+msgstr "ساخت یکی جدید"
+
+#: file_manager.sh:194
+msgid "编辑一个已存在的"
+msgstr "ویرایش یک موجود"
+
+#: file_manager.sh:195
+msgid "删除一个已存在的"
+msgstr "حذف یک موجود"
+
+#: file_manager.sh:208
 msgid "无效选项, 请重试"
 msgstr "گزینه نامعتبر، لطفا دوباره تلاش کنید"
 
-#: file_manager.sh:275
+#: file_manager.sh:253
 msgid "重启成功"
 msgstr "بازکردن مجدد موفقیت آمیز بود"
 
-#: file_manager.sh:278
+#: file_manager.sh:256
 msgid "重启失败"
 msgstr "بازگشایی شکست خورد"
 
-#: file_manager.sh:278
+#: file_manager.sh:256
 msgid "请检查配置文件是否有误"
 msgstr "لطفاً فایل پیکربندی را بررسی کنید"

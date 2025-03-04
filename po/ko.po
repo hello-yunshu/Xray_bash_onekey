@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-02-25 20:27+0000\n"
-"PO-Revision-Date: 2025-02-25 20:27+0000\n"
+"POT-Creation-Date: 2025-03-04 11:57+0000\n"
+"PO-Revision-Date: 2025-03-04 11:57+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ko\n"
@@ -125,7 +125,7 @@ msgstr "온라인 버전 검사 실패했습니다 다시 시도해주세요"
 
 #: install.sh:341 install.sh:349 install.sh:1105 install.sh:3364
 #: install.sh:3365 install.sh:3366 install.sh:3687 install.sh:3688
-#: install.sh:3689 fail2ban_manager.sh:11 fail2ban_manager.sh:38
+#: install.sh:3689 fail2ban_manager.sh:12 fail2ban_manager.sh:39
 msgid "安装"
 msgstr "설치"
 
@@ -158,7 +158,7 @@ msgid "请输入连接端口"
 msgstr "연결 포트를 입력하세요"
 
 #: install.sh:438 install.sh:441 install.sh:2607 install.sh:2613
-#: file_manager.sh:113
+#: file_manager.sh:98
 msgid "默认值"
 msgstr "기본 값"
 
@@ -178,8 +178,8 @@ msgid "请选择安装协议"
 msgstr "설치 계약서를 선택하세요"
 
 #: install.sh:450 install.sh:1473 install.sh:1510 install.sh:1561
-#: install.sh:2704 install.sh:2775 install.sh:2824 fail2ban_manager.sh:138
-#: fail2ban_manager.sh:139
+#: install.sh:2704 install.sh:2775 install.sh:2824 fail2ban_manager.sh:141
+#: fail2ban_manager.sh:142
 msgid "默认"
 msgstr "기본 설정으로"
 
@@ -188,8 +188,8 @@ msgstr "기본 설정으로"
 #: install.sh:2617 install.sh:2622 install.sh:2627 install.sh:2628
 #: install.sh:2643 install.sh:2648 install.sh:2653 install.sh:2654
 #: install.sh:2707 install.sh:2716 install.sh:2778 install.sh:2827
-#: install.sh:2836 fail2ban_manager.sh:16 fail2ban_manager.sh:103
-#: fail2ban_manager.sh:136 file_manager.sh:95
+#: install.sh:2836 fail2ban_manager.sh:106 fail2ban_manager.sh:139
+#: file_manager.sh:81
 msgid "请输入"
 msgstr "한글 입력하세요"
 
@@ -222,16 +222,16 @@ msgstr "사용자 정의 입력해주세요"
 msgid "请勿与其他端口相同"
 msgstr "기타 포트와 같지 않게 설정해주세요"
 
-#: install.sh:567 file_manager.sh:121
+#: install.sh:567 file_manager.sh:105
 msgid "是否需要设置防火墙"
 msgstr "방화벽를 설정해야 하나요"
 
-#: install.sh:607 install.sh:611 file_manager.sh:135 file_manager.sh:139
-#: file_manager.sh:143
+#: install.sh:607 install.sh:611 file_manager.sh:119 file_manager.sh:123
+#: file_manager.sh:127
 msgid "防火墙"
 msgstr "방화벽"
 
-#: install.sh:607 install.sh:611 file_manager.sh:139 file_manager.sh:143
+#: install.sh:607 install.sh:611 file_manager.sh:123 file_manager.sh:127
 msgid "重启完成"
 msgstr "리부팅 완료되었습니다"
 
@@ -244,11 +244,11 @@ msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "설정을 수정할 때 방화벽 관련 포트를 닫는 것에 주의하세요"
 
 #: install.sh:615 install.sh:3368 install.sh:3381 install.sh:3382
-#: install.sh:3696 install.sh:3715 fail2ban_manager.sh:76
+#: install.sh:3696 install.sh:3715 fail2ban_manager.sh:77
 msgid "配置"
 msgstr "설정"
 
-#: install.sh:618 file_manager.sh:147
+#: install.sh:618 file_manager.sh:131
 msgid "跳过防火墙设置"
 msgstr "도약 방화벽 설정تخطerb"
 
@@ -367,7 +367,7 @@ msgstr "로드 밸런싱"
 msgid "请选择协议为 ws 或 gRPC"
 msgstr "프로토콜을 ws 또는 grpc로 선택하세요"
 
-#: install.sh:858 fail2ban_manager.sh:102
+#: install.sh:858 fail2ban_manager.sh:104
 msgid "返回"
 msgstr "돌아가기"
 
@@ -379,8 +379,8 @@ msgstr "잘못된 숫자를 다시 입력해주세요"
 msgid "本地文件 file_manager.sh 不存在, 正在下载"
 msgstr "지역 파일 file_manager.sh이 존재하지 않으므로 다운로드 중입니다"
 
-#: install.sh:868 install.sh:905 install.sh:2114 fail2ban_manager.sh:242
-#: file_manager.sh:258
+#: install.sh:868 install.sh:905 install.sh:2114 fail2ban_manager.sh:245
+#: file_manager.sh:236
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr "다운로드에 실패했습니다, 수동으로 새 버전을 다운로드하고 설치하세요"
 
@@ -832,17 +832,17 @@ msgid "停止已有服务"
 msgstr "이미 있는 서비스를 중지"
 
 #: install.sh:1999 install.sh:2002 install.sh:2575 install.sh:2577
-#: install.sh:3706 fail2ban_manager.sh:99 fail2ban_manager.sh:188
+#: install.sh:3706 fail2ban_manager.sh:101 fail2ban_manager.sh:191
 msgid "重启"
 msgstr "재시작"
 
-#: install.sh:2007 install.sh:2010 install.sh:3707 fail2ban_manager.sh:98
-#: fail2ban_manager.sh:158
+#: install.sh:2007 install.sh:2010 install.sh:3707 fail2ban_manager.sh:100
+#: fail2ban_manager.sh:161
 msgid "启动"
 msgstr "시작"
 
 #: install.sh:2015 install.sh:2018 install.sh:2078 install.sh:3708
-#: fail2ban_manager.sh:100
+#: fail2ban_manager.sh:102
 msgid "停止"
 msgstr "정지"
 
@@ -933,8 +933,8 @@ msgstr "자동으로 로그를 정리할 필요가 있습니까"
 #: install.sh:2160 install.sh:3738 install.sh:3747 install.sh:3799
 #: install.sh:3805 install.sh:3841 install.sh:3847 install.sh:3853
 #: install.sh:3882 install.sh:3917 install.sh:3924 install.sh:3929
-#: fail2ban_manager.sh:159 fail2ban_manager.sh:172 fail2ban_manager.sh:181
-#: fail2ban_manager.sh:189
+#: fail2ban_manager.sh:162 fail2ban_manager.sh:175 fail2ban_manager.sh:184
+#: fail2ban_manager.sh:192
 msgid "清空屏幕"
 msgstr "화면 지우기"
 
@@ -1065,7 +1065,7 @@ msgstr "계속하시겠습니까"
 msgid "所有证书文件均已存在, 是否保留"
 msgstr "모든 인증 파일이 이미 존재합니다, 유지하시겠습니까"
 
-#: install.sh:2487 install.sh:2502 install.sh:2518 file_manager.sh:186
+#: install.sh:2487 install.sh:2502 install.sh:2518 file_manager.sh:167
 msgid "已删除"
 msgstr "삭제되었습니다"
 
@@ -1580,7 +1580,7 @@ msgid "用户管理"
 msgstr "사용자 관리"
 
 #: install.sh:3698 install.sh:3702 install.sh:3703 install.sh:3704
-#: install.sh:3709 install.sh:3711 fail2ban_manager.sh:14
+#: install.sh:3709 install.sh:3711 fail2ban_manager.sh:15
 msgid "查看"
 msgstr "확인"
 
@@ -1672,7 +1672,7 @@ msgstr "복원"
 msgid "卸载向导"
 msgstr "설치 마법사 해제"
 
-#: install.sh:3725 fail2ban_manager.sh:13 fail2ban_manager.sh:171
+#: install.sh:3725 fail2ban_manager.sh:14 fail2ban_manager.sh:174
 msgid "卸载"
 msgstr "설치 해제"
 
@@ -1684,7 +1684,7 @@ msgstr "비우기"
 msgid "证书文件"
 msgstr "인증 파일"
 
-#: install.sh:3727 fail2ban_manager.sh:15 file_manager.sh:217
+#: install.sh:3727 fail2ban_manager.sh:16 file_manager.sh:196
 msgid "退出"
 msgstr "나가기"
 
@@ -1712,261 +1712,264 @@ msgstr "업그레이드를 시작합니다"
 msgid "请输入正确的数字"
 msgstr "옳바른 숫자를 입력하세요"
 
-#: fail2ban_manager.sh:12
-msgid "管理"
-msgstr "관리"
+#: fail2ban_manager.sh:10
+msgid "用于防止暴力破解"
+msgstr "비밀번호 추측 공격을 방지하기 위해 사용"
 
-#: fail2ban_manager.sh:14
-msgid "状态"
-msgstr "상태"
-
-#: fail2ban_manager.sh:27 fail2ban_manager.sh:122
-msgid "无效的选择请重试"
-msgstr "유효하지 않은 선택입니다. 다시 시도해주세요"
-
-#: fail2ban_manager.sh:34
-msgid "已经安装, 跳过安装步骤"
-msgstr "이미 설치됨, 설치 단계 생략"
-
-#: fail2ban_manager.sh:52 fail2ban_manager.sh:92 fail2ban_manager.sh:195
-msgid "未安装, 请先安装"
-msgstr "설치되지 않았습니다, 먼저 설치해주세요"
-
-#: fail2ban_manager.sh:97
-msgid "请选择"
-msgstr "선택하세요"
-
-#: fail2ban_manager.sh:97
-msgid "操作"
-msgstr "작동"
-
-#: fail2ban_manager.sh:101
-msgid "添加自定义规则"
-msgstr "사용자 정의 규칙 추가"
-
-#: fail2ban_manager.sh:135
-msgid "请输入新的"
-msgstr "새로운 것을 입력하세요"
-
-#: fail2ban_manager.sh:135 fail2ban_manager.sh:136
-msgid "名称"
-msgstr "이름"
-
-#: fail2ban_manager.sh:137
-msgid "请输入日志路径"
-msgstr "일지 경로를 입력하세요"
-
-#: fail2ban_manager.sh:138
-msgid "请输入最大重试次数"
-msgstr "최대 재시도 횟수를 입력하세요"
-
-#: fail2ban_manager.sh:138
-msgid "最大重试次数必须在 1 到 99 之间"
-msgstr "최대 재시도 횟수는 1과 99 사이이어야 합니다"
-
-#: fail2ban_manager.sh:139
-msgid "请输入封禁时间"
-msgstr "금지 시간을 입력하세요"
-
-#: fail2ban_manager.sh:139
-msgid "秒"
-msgstr "초"
-
-#: fail2ban_manager.sh:139
-msgid "封禁时间必须在 1 到 8640000 秒之间"
-msgstr "차단 시간은 1초에서 8640000초 사이여야 합니다"
-
-#: fail2ban_manager.sh:142
-msgid "已存在"
-msgstr "이미 존재しています"
-
-#: fail2ban_manager.sh:147
-msgid "自定义规则添加成功"
-msgstr "사용자 정의 규칙이 성공적으로 추가되었습니다"
-
-#: fail2ban_manager.sh:151
-msgid "重启以应用新规则"
-msgstr "새 규칙을 적용하려면 재시작하세요"
-
-#: fail2ban_manager.sh:180
-msgid "停止成功"
-msgstr "중지 성공"
-
-#: fail2ban_manager.sh:199
-msgid "总体状态"
-msgstr "전체 상태"
-
-#: fail2ban_manager.sh:203
-msgid "默认启用的 Jail 状态"
-msgstr "기본적으로 활성화된 jail 상태"
-
-#: fail2ban_manager.sh:205 fail2ban_manager.sh:208 fail2ban_manager.sh:212
-msgid "封锁情况"
-msgstr "봉쇄 상황"
-
-#: fail2ban_manager.sh:226 file_manager.sh:242
-msgid "新版本可用"
-msgstr "새 버전이 사용 가능합니다"
-
-#: fail2ban_manager.sh:226 file_manager.sh:242
-msgid "当前版本"
-msgstr "현재 버전"
-
-#: fail2ban_manager.sh:227 file_manager.sh:243
-msgid "请访问"
-msgstr "please visit 방문해 주세요"
-
-#: fail2ban_manager.sh:227 file_manager.sh:243
-msgid "查看更新说明"
-msgstr "업데이트 설명 보기"
-
-#: fail2ban_manager.sh:229 file_manager.sh:245
-msgid "是否要下载并安装新版本"
-msgstr "다운로드하고 신규 버전을 설치하시겠습니까"
-
-#: fail2ban_manager.sh:233 file_manager.sh:249
-msgid "正在下载新版本"
-msgstr "신버전을 다운로드 중입니다"
-
-#: fail2ban_manager.sh:238 file_manager.sh:254
-msgid "下载完成, 正在重新运行脚本"
-msgstr "다운로드 완료, 스크립트 재실행 중"
-
-#: fail2ban_manager.sh:246 file_manager.sh:262
-msgid "跳过更新"
-msgstr "업데이트를 건너뛰기"
-
-#: fail2ban_manager.sh:250 file_manager.sh:266
-msgid "当前已经是最新版本"
-msgstr "현재 최신 버전입니다"
-
-#: file_manager.sh:8
-msgid "用法"
-msgstr "사용 방법"
-
-#: file_manager.sh:8
-msgid "文件扩展名"
-msgstr "파일 확장명"
-
-#: file_manager.sh:8
-msgid "目录路径"
-msgstr "디렉토리 경로"
-
-#: file_manager.sh:18
-msgid "目录"
-msgstr "목차"
-
-#: file_manager.sh:18
-msgid "不存在, 请检查路径"
-msgstr "존재하지 않습니다, 경로를 확인하세요"
-
-#: file_manager.sh:31 file_manager.sh:213
-msgid "列出所有"
-msgstr "모두 나열하기"
-
-#: file_manager.sh:31 file_manager.sh:40 file_manager.sh:102
-#: file_manager.sh:117 file_manager.sh:169 file_manager.sh:186
-#: file_manager.sh:213 file_manager.sh:214 file_manager.sh:215
-#: file_manager.sh:216
-msgid "文件"
-msgstr "파일"
-
-#: file_manager.sh:40
-msgid "没有找到"
-msgstr "찾을 수 없습니다"
-
-#: file_manager.sh:64
-msgid "文件名"
-msgstr "파일 이름"
-
-#: file_manager.sh:70
-msgid "序号"
-msgstr "일련 번호"
-
-#: file_manager.sh:93
-msgid "请输入网址 (例如 hey.run)"
-msgstr "웹 사이트 주소 입력 (예를 들어 hey.run)"
-
-#: file_manager.sh:94
-msgid "不要包含 http:// 或 https:// 开头"
-msgstr "http:// 나 https://로 시작하지 않도록 하세요"
-
-#: file_manager.sh:98
-msgid "网址不能包含 http:// 或 https:// 开头"
-msgstr "웹 주소는 http:// 또는 https://로 시작할 수 없습니다"
-
-#: file_manager.sh:102 file_manager.sh:117
-msgid "已创建"
-msgstr "이미 생성되었습니다"
-
-#: file_manager.sh:111
-msgid "请输入主机"
-msgstr "주최자를 입력하세요"
-
-#: file_manager.sh:112
-msgid "请输入端口"
-msgstr "포트를 입력하세요"
-
-#: file_manager.sh:113
-msgid "请输入权重"
-msgstr "가중치를 입력하세요"
-
-#: file_manager.sh:135
-msgid "追加完成"
-msgstr "추가 완료되었습니다"
-
-#: file_manager.sh:159
-msgid "请输入要编辑的文件编号"
-msgstr "편집할 파일 번호를 입력하세요"
-
-#: file_manager.sh:165
-msgid "未安装, 正在尝试安装"
-msgstr "설치되지 않음, 설치하려고 시도 중"
-
-#: file_manager.sh:169
-msgid "已编辑"
-msgstr "편집됨"
-
-#: file_manager.sh:181
-msgid "请输入要删除的文件编号"
-msgstr "삭제할 파일 번호를 입력하세요"
-
-#: file_manager.sh:202
-msgid "不支持的文件扩展名"
-msgstr "지원되지 않는 파일 확장자"
-
-#: file_manager.sh:212
+#: fail2ban_manager.sh:11 file_manager.sh:191
 msgid "主菜单"
 msgstr "주 메뉴"
 
-#: file_manager.sh:214
-msgid "创建一个新的"
-msgstr "새로운 것을 생성합니다"
+#: fail2ban_manager.sh:13
+msgid "管理"
+msgstr "관리"
 
-#: file_manager.sh:215
-msgid "编辑一个已存在的"
-msgstr "편집하기 존재하는"
+#: fail2ban_manager.sh:15
+msgid "状态"
+msgstr "상태"
 
-#: file_manager.sh:216
-msgid "删除一个已存在的"
-msgstr "이미 존재하는 것을 삭제하여"
-
-#: file_manager.sh:219
+#: fail2ban_manager.sh:18 file_manager.sh:198
 msgid "请选择一个选项"
 msgstr "한 가지 옵션을 선택하세요"
 
-#: file_manager.sh:229
+#: fail2ban_manager.sh:27 fail2ban_manager.sh:125
+msgid "无效的选择请重试"
+msgstr "유효하지 않은 선택입니다. 다시 시도해주세요"
+
+#: fail2ban_manager.sh:35
+msgid "已经安装, 跳过安装步骤"
+msgstr "이미 설치됨, 설치 단계 생략"
+
+#: fail2ban_manager.sh:53 fail2ban_manager.sh:93 fail2ban_manager.sh:198
+msgid "未安装, 请先安装"
+msgstr "설치되지 않았습니다, 먼저 설치해주세요"
+
+#: fail2ban_manager.sh:99
+msgid "请选择"
+msgstr "선택하세요"
+
+#: fail2ban_manager.sh:99
+msgid "操作"
+msgstr "작동"
+
+#: fail2ban_manager.sh:103
+msgid "添加自定义规则"
+msgstr "사용자 정의 규칙 추가"
+
+#: fail2ban_manager.sh:138
+msgid "请输入新的"
+msgstr "새로운 것을 입력하세요"
+
+#: fail2ban_manager.sh:138 fail2ban_manager.sh:139
+msgid "名称"
+msgstr "이름"
+
+#: fail2ban_manager.sh:140
+msgid "请输入日志路径"
+msgstr "일지 경로를 입력하세요"
+
+#: fail2ban_manager.sh:141
+msgid "请输入最大重试次数"
+msgstr "최대 재시도 횟수를 입력하세요"
+
+#: fail2ban_manager.sh:141
+msgid "最大重试次数必须在 1 到 99 之间"
+msgstr "최대 재시도 횟수는 1과 99 사이이어야 합니다"
+
+#: fail2ban_manager.sh:142
+msgid "请输入封禁时间"
+msgstr "금지 시간을 입력하세요"
+
+#: fail2ban_manager.sh:142
+msgid "秒"
+msgstr "초"
+
+#: fail2ban_manager.sh:142
+msgid "封禁时间必须在 1 到 8640000 秒之间"
+msgstr "차단 시간은 1초에서 8640000초 사이여야 합니다"
+
+#: fail2ban_manager.sh:145
+msgid "已存在"
+msgstr "이미 존재しています"
+
+#: fail2ban_manager.sh:150
+msgid "自定义规则添加成功"
+msgstr "사용자 정의 규칙이 성공적으로 추가되었습니다"
+
+#: fail2ban_manager.sh:154
+msgid "重启以应用新规则"
+msgstr "새 규칙을 적용하려면 재시작하세요"
+
+#: fail2ban_manager.sh:183
+msgid "停止成功"
+msgstr "중지 성공"
+
+#: fail2ban_manager.sh:202
+msgid "总体状态"
+msgstr "전체 상태"
+
+#: fail2ban_manager.sh:206
+msgid "默认启用的 Jail 状态"
+msgstr "기본적으로 활성화된 jail 상태"
+
+#: fail2ban_manager.sh:208 fail2ban_manager.sh:211 fail2ban_manager.sh:215
+msgid "封锁情况"
+msgstr "봉쇄 상황"
+
+#: fail2ban_manager.sh:229 file_manager.sh:220
+msgid "新版本可用"
+msgstr "새 버전이 사용 가능합니다"
+
+#: fail2ban_manager.sh:229 file_manager.sh:220
+msgid "当前版本"
+msgstr "현재 버전"
+
+#: fail2ban_manager.sh:230 file_manager.sh:221
+msgid "请访问"
+msgstr "please visit 방문해 주세요"
+
+#: fail2ban_manager.sh:230 file_manager.sh:221
+msgid "查看更新说明"
+msgstr "업데이트 설명 보기"
+
+#: fail2ban_manager.sh:232 file_manager.sh:223
+msgid "是否要下载并安装新版本"
+msgstr "다운로드하고 신규 버전을 설치하시겠습니까"
+
+#: fail2ban_manager.sh:236 file_manager.sh:227
+msgid "正在下载新版本"
+msgstr "신버전을 다운로드 중입니다"
+
+#: fail2ban_manager.sh:241 file_manager.sh:232
+msgid "下载完成, 请重新运行脚本"
+msgstr "다운로드가 완료되었습니다, 스크립트를 다시 실행해주세요"
+
+#: fail2ban_manager.sh:249 file_manager.sh:240
+msgid "跳过更新"
+msgstr "업데이트를 건너뛰기"
+
+#: fail2ban_manager.sh:253 file_manager.sh:244
+msgid "当前已经是最新版本"
+msgstr "현재 최신 버전입니다"
+
+#: file_manager.sh:7
+msgid "用法"
+msgstr "사용 방법"
+
+#: file_manager.sh:7
+msgid "文件扩展名"
+msgstr "파일 확장명"
+
+#: file_manager.sh:7
+msgid "目录路径"
+msgstr "디렉토리 경로"
+
+#: file_manager.sh:16
+msgid "目录"
+msgstr "목차"
+
+#: file_manager.sh:16
+msgid "不存在, 请检查路径"
+msgstr "존재하지 않습니다, 경로를 확인하세요"
+
+#: file_manager.sh:26 file_manager.sh:192
+msgid "列出所有"
+msgstr "모두 나열하기"
+
+#: file_manager.sh:26 file_manager.sh:35 file_manager.sh:88 file_manager.sh:102
+#: file_manager.sh:151 file_manager.sh:167 file_manager.sh:192
+#: file_manager.sh:193 file_manager.sh:194 file_manager.sh:195
+msgid "文件"
+msgstr "파일"
+
+#: file_manager.sh:35
+msgid "没有找到"
+msgstr "찾을 수 없습니다"
+
+#: file_manager.sh:53
+msgid "文件名"
+msgstr "파일 이름"
+
+#: file_manager.sh:59
+msgid "序号"
+msgstr "일련 번호"
+
+#: file_manager.sh:79
+msgid "请输入网址 (例如 hey.run)"
+msgstr "웹 사이트 주소 입력 (예를 들어 hey.run)"
+
+#: file_manager.sh:80
+msgid "不要包含 http:// 或 https:// 开头"
+msgstr "http:// 나 https://로 시작하지 않도록 하세요"
+
+#: file_manager.sh:84
+msgid "网址不能包含 http:// 或 https:// 开头"
+msgstr "웹 주소는 http:// 또는 https://로 시작할 수 없습니다"
+
+#: file_manager.sh:88 file_manager.sh:102
+msgid "已创建"
+msgstr "이미 생성되었습니다"
+
+#: file_manager.sh:96
+msgid "请输入主机"
+msgstr "주최자를 입력하세요"
+
+#: file_manager.sh:97
+msgid "请输入端口"
+msgstr "포트를 입력하세요"
+
+#: file_manager.sh:98
+msgid "请输入权重"
+msgstr "가중치를 입력하세요"
+
+#: file_manager.sh:119
+msgid "追加完成"
+msgstr "추가 완료되었습니다"
+
+#: file_manager.sh:142
+msgid "请输入要编辑的文件编号"
+msgstr "편집할 파일 번호를 입력하세요"
+
+#: file_manager.sh:147
+msgid "未安装, 正在尝试安装"
+msgstr "설치되지 않음, 설치하려고 시도 중"
+
+#: file_manager.sh:151
+msgid "已编辑"
+msgstr "편집됨"
+
+#: file_manager.sh:162
+msgid "请输入要删除的文件编号"
+msgstr "삭제할 파일 번호를 입력하세요"
+
+#: file_manager.sh:182
+msgid "不支持的文件扩展名"
+msgstr "지원되지 않는 파일 확장자"
+
+#: file_manager.sh:193
+msgid "创建一个新的"
+msgstr "새로운 것을 생성합니다"
+
+#: file_manager.sh:194
+msgid "编辑一个已存在的"
+msgstr "편집하기 존재하는"
+
+#: file_manager.sh:195
+msgid "删除一个已存在的"
+msgstr "이미 존재하는 것을 삭제하여"
+
+#: file_manager.sh:208
 msgid "无效选项, 请重试"
 msgstr "무효된 옵션입니다, 다시 시도해주세요"
 
-#: file_manager.sh:275
+#: file_manager.sh:253
 msgid "重启成功"
 msgstr "재시동 성공하였습니다"
 
-#: file_manager.sh:278
+#: file_manager.sh:256
 msgid "重启失败"
 msgstr "재시작 실패"
 
-#: file_manager.sh:278
+#: file_manager.sh:256
 msgid "请检查配置文件是否有误"
 msgstr "구성 파일에 오류가 있는지 확인하세요"
