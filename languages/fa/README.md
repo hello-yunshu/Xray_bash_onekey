@@ -16,7 +16,7 @@
 * از پیشنهاد پروژه [XTLS](https://github.com/XTLS/Xray-core/issues/158)، با دنبال کردن استاندارد [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)، می‌توانید رشته‌های سفارشی خود را به UUID VLESS مپ کنید.
 * راهنمای نصب Reality: [راه اندازی سرور پروتکل Xray Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
 * ریسک‌های پروتکل Reality: [ریسک‌های پروتکل Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian).
-* سرعت‌دهی سرور با استفاده از پروتکل Reality: [سرعت‌دهی سرور با استفاده از "سلب‌معنایی" پروتکل Reality](https://hey.run/archives/li-yong-reality-xie-yi-lou-dong-jia-su-fu-wu-qi).
+* سرعت‌دهی سرور با استفاده از پروتکل Reality: [سرعت‌دهی سرور با استفاده از "سلب‌معنایی" پروتکل Reality](https://hey.run/archives/use-reality).
 * افزودن تنظیمات均衡 بارگذاری، راهنما: [XRay پیشرفته – راه اندازی تعادل بارگذاری سرور پشتیبان](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 * اضافه کردن پشتیبانی از پروتکل gRPC، جزئیات بیشتر: [XRay پیشرفته – استفاده از پروتکل gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
 
