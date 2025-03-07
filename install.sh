@@ -9,8 +9,6 @@ cd "$(
     pwd
 )" || exit
 
-idleleo=$(readlink -f "${BASH_SOURCE[0]}")
-
 #=====================================================
 #	System Request: Debian 9+/Ubuntu 18.04+/Centos 7+
 #	Author:	hello-yunshu
@@ -37,12 +35,13 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.4.1"
+shell_version="2.4.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
 local_bin="/usr/local"
 idleleo_dir="/etc/idleleo"
+idleleo="${idleleo_dir}/install.sh"
 idleleo_conf_dir="${idleleo_dir}/conf"
 log_dir="${idleleo_dir}/logs"
 xray_bin_dir="${local_bin}/bin"
@@ -3213,8 +3212,8 @@ update_sh() {
         case $update_confirm in
         [yY][eE][sS] | [yY])
             [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
-            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
-            ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
+            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
+            ln -s ${idleleo} ${idleleo_commend_file}
             [[ -f "${xray_qr_config_file}" ]] && jq --arg shell_version "${shell_version}" '.shell_version = $shell_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             clear
             log_echo "${OK} ${GreenBG} $(gettext "更新完成") ${Font}"
@@ -3230,14 +3229,14 @@ update_sh() {
 }
 
 check_file_integrity() {
-    if [[ ! -L "${idleleo_commend_file}" ]] && [[ ! -f "${idleleo_dir}/install.sh" ]]; then
+    if [[ ! -L "${idleleo_commend_file}" ]] && [[ ! -f "${idleleo}" ]]; then
         check_system
         pkg_install "bc,jq,wget"
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
         [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p ${idleleo_dir}/tmp
-        wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+        wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
         judge "$(gettext "下载最新脚本")"
-        ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
+        ln -s ${idleleo} ${idleleo_commend_file}
         clear
         source "$idleleo"
     fi
@@ -3389,15 +3388,15 @@ show_help() {
 }
 
 idleleo_commend() {
-    if [[ -L "${idleleo_commend_file}" ]] || [[ -f "${idleleo_dir}/install.sh" ]]; then
-        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x ${idleleo_dir}/install.sh && ln -s ${idleleo_dir}/install.sh ${idleleo_commend_file}
-        old_version=$(grep "shell_version=" ${idleleo_dir}/install.sh | head -1 | awk -F '=|"' '{print $3}')
+    if [[ -L "${idleleo_commend_file}" ]] || [[ -f "${idleleo}" ]]; then
+        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x ${idleleo} && ln -s ${idleleo} ${idleleo_commend_file}
+        old_version=$(grep "shell_version=" ${idleleo} | head -1 | awk -F '=|"' '{print $3}')
         echo "${old_version}" >${shell_version_tmp}
         echo "${shell_version}" >>${shell_version_tmp}
         oldest_version=$(sort -V ${shell_version_tmp} | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
-            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
             judge "$(gettext "下载最新脚本")"
             clear
             source "$idleleo"
@@ -3407,8 +3406,8 @@ idleleo_commend() {
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
-                    rm -rf ${idleleo_dir}/install.sh
-                    wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+                    rm -rf ${idleleo}
+                    wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
                     judge "$(gettext "下载最新脚本")"
                     clear
                     log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装") ! ${Font}"
@@ -3419,8 +3418,8 @@ idleleo_commend() {
                     ;;
                 esac
             else
-                rm -rf ${idleleo_dir}/install.sh
-                wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo_dir}/install.sh
+                rm -rf ${idleleo}
+                wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
                 judge "$(gettext "下载最新脚本")"
                 clear
             fi
