@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.0"
+shell_version="2.5.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -983,7 +983,7 @@ modify_nginx_origin_conf() {
 
 modify_nginx_port() {
     if [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-        sed -i "s/^\( *\)listen.*/\1listen ${port} reuseport so_keepalive=on backlog=65535;/" ${nginx_conf}
+        sed -i "s/^\( *\)listen.*so_keepalive=on.*/\1listen ${port} reuseport so_keepalive=on backlog=65535;/" ${nginx_conf}
         judge "Nginx port $(gettext "修改")"
     elif [[ ${tls_mode} == "TLS" ]]; then
         sed -i "2s/^\( *\).*ssl reuseport;$/\1listen ${port} ssl reuseport;/" ${nginx_conf}
