@@ -88,9 +88,7 @@
   "无效选项 请重试": "invalid option please try again",
   "当前模式不支持此操作": "the current mode does not support this operation",
   "配置用途可以参考文章": "configuration usage can refer to the article",
-  "敬请期待": "look forward to it",
   "修改": "modify",
-  "端口号": "port number",
   "不支持": "not supported",
   "用户名修改": "username modification",
   "请先删除多余的用户": "please first delete the redundant users",
@@ -245,7 +243,6 @@
   "已切换至": "switched to",
   "Nginx/配置文件不存在 或 当前模式不支持": "nginx/ configuration file does not exist or current mode does not support",
   "请先安装": "please install first",
-  "连接端口号": "connection port number",
   "此模式不支持修改": "this mode does not support modifications",
   "即将显示用户, 一次仅能显示一个": "the user will be displayed soon, only one can be displayed at a time",
   "请选择显示用户使用的协议": "please select the protocol used by the user",
@@ -474,5 +471,6 @@
   "报错信息": "report an error message",
   "备份完整性可能受到影响, 请检查上述错误信息": "backup integrity may be affected, please check the above error message",
   "用于防止暴力破解": "used to prevent brute force",
-  "下载完成, 请重新运行脚本": "download is complete, please rerun the script"
+  "下载完成, 请重新运行脚本": "download is complete, please rerun the script",
+  "连接端口": "connection port"
 }
