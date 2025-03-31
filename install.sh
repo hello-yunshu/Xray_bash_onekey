@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.4.2"
+shell_version="2.5.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1912,23 +1912,55 @@ nginx_reality_conf_add() {
     cat >${nginx_conf} <<EOF
 
 stream {
-    map \$ssl_preread_server_name \$stream_map {
+    map \$ssl_preread_protocol \$is_valid_protocol {
+        TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map \$ssl_preread_server_name \$sni_upstream {
         include ${nginx_conf_dir}/*.serverNames;
+        default deny;
+    }
+
+    map "\$sni_upstream:\$is_valid_protocol" \$final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1\$     reality;
+        default          deny;
+    }
+
+    map \$final_upstream \$is_abnormal {
+        deny    1;
+        default 0;
     }
 
     upstream reality {
         server 127.0.0.1:9443;
     }
 
+    upstream deny {
+        server 127.0.0.1:9403;
+    }
+
+    log_format sni_log_abnormal '\$remote_addr [\$time_local] "\$ssl_preread_server_name" '
+                             '\$ssl_preread_protocol \$status';
+
     server {
         listen 443 reuseport so_keepalive=on backlog=65535;
-        proxy_pass \$stream_map;
+        proxy_pass \$final_upstream;
         ssl_preread on;
-        #proxy_protocol on;
+        proxy_connect_timeout 5s;
+        proxy_timeout 300s;
+        access_log ${nginx_dir}/logs/sni_abnormal.log sni_log_abnormal if=\$is_abnormal;
+    }
 
-        # 超时设置
-        proxy_connect_timeout 20s;       # 连接超时时间
-        proxy_timeout 300s;            # 数据传输超时时间
+    server {
+        listen 127.0.0.1:9403 reuseport;
+        #ssl_preread on;
+        ssl_reject_handshake on;
+        return 444;
+        access_log off;
+        error_log /dev/null;
     }
 }
 EOF
