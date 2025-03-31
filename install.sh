@@ -433,11 +433,11 @@ create_directory() {
 port_set() {
     if [[ "on" != ${old_config_status} ]]; then
         echo
-        log_echo "${GreenBG} $(gettext "确定 连接端口") ${Font}"
-        read_optimize "$(gettext "请输入连接端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-        if [[ ${port} -eq 9443 ]] && [[ ${tls_mode} == "Reality" ]]; then
-            echo -e "${Error} ${RedBG} $(gettext "端口 9443 不允许使用, 请重新输入")! ${Font}"
-            read_optimize "$(gettext "请输入连接端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+        log_echo "${GreenBG} $(gettext "确定端口") ${Font}"
+        read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+        if [[ ${port} -eq 9443 ]] && [[ ${port} -eq 9403 ]] && [[ ${tls_mode} == "Reality" ]]; then
+            echo -e "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
+            read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
         fi
     fi
 }
@@ -2637,13 +2637,13 @@ reset_UUID() {
 reset_port() {
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
-            read_optimize "$(gettext "请输入连接端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+            read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
             modify_nginx_port
             jq --argjson port "${port}" '.port = $port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
-            log_echo "${Green} $(gettext "连接端口"): ${port} ${Font}"
+            log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         elif [[ ${tls_mode} == "Reality" ]]; then
-            read_optimize "$(gettext "请输入连接端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+            read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
             xport=$((RANDOM % 1000 + 20000))
             gport=$((RANDOM % 1000 + 30000))
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
