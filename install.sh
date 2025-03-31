@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.1"
+shell_version="2.5.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -992,7 +992,7 @@ modify_nginx_port() {
         sed -i "5s/^\( *\).*quic reuseport;$/\1listen [::]:${port} quic reuseport;/" ${nginx_conf}
         judge "Xray port $(gettext "修改")"
     fi
-    log_echo "${Green} $(gettext "端口号"): ${port} ${Font}"
+    [[ "on" != ${old_config_status} ]] && log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
 }
 
 modify_nginx_ssl_other() {
@@ -1106,8 +1106,10 @@ xray_install() {
         xray_privilege_escalation
         [[ -f "${xray_default_conf}" ]] && rm -rf ${xray_default_conf}
         ln -s ${xray_conf} ${xray_default_conf}
+        xray_version=${xray_online_version}
     else
         log_echo "${OK} ${GreenBG} $(gettext "已安装") Xray ${Font}"
+        xray_version=$(info_extraction xray_version)
     fi
 }
 
@@ -1200,7 +1202,7 @@ reality_nginx_add_fq() {
 }
 
 nginx_exist_check() {
-    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ "$(info_extraction nginx_build_version)" == "null" ]]; then
+    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ "$(info_extraction nginx_build_version)" != "null" ]]; then
         if [[ -d "${nginx_conf_dir}" ]]; then
             rm -rf ${nginx_conf_dir}/*.conf
             if [[ -f "${nginx_conf_dir}/nginx.default" ]]; then
@@ -1216,6 +1218,7 @@ nginx_exist_check() {
             sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
         fi
         modify_nginx_origin_conf
+        nginx_build_version=$(info_extraction nginx_build_version)
         log_echo "${OK} ${GreenBG} Nginx $(gettext "已存在, 跳过编译安装过程") ${Font}"
     #兼容代码, 下个大版本删除
     elif [[ -d "/etc/nginx" ]] && [[ "$(info_extraction nginx_version)" == "null" ]]; then
@@ -1246,14 +1249,13 @@ nginx_exist_check() {
 }
 
 nginx_install() {
-    local latest_version=$(check_version nginx_build_online_version)
     local temp_dir=$(mktemp -d)
     local current_dir=$(pwd)
 
     cd "$temp_dir" || exit
 
     log_echo "${OK} ${GreenBG} $(gettext "即将下载已编译的") Nginx ${Font}"
-    local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${latest_version}/xray-nginx-custom.tar.gz"
+    local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}/xray-nginx-custom.tar.gz"
     wget -q --show-progress --progress=bar:force:noscroll "$url" -O xray-nginx-custom.tar.gz
     tar -xzvf xray-nginx-custom.tar.gz -C ./
     [[ -d ${nginx_dir} ]] && rm -rf "${nginx_dir}"
@@ -2639,7 +2641,7 @@ reset_port() {
             modify_nginx_port
             jq --argjson port "${port}" '.port = $port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
-            log_echo "${Green} $(gettext "连接端口号"): ${port} ${Font}"
+            log_echo "${Green} $(gettext "连接端口"): ${port} ${Font}"
         elif [[ ${tls_mode} == "Reality" ]]; then
             read_optimize "$(gettext "请输入连接端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
             xport=$((RANDOM % 1000 + 20000))
