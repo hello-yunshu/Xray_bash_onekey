@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-03-31 19:33+0000\n"
-"PO-Revision-Date: 2025-03-31 19:33+0000\n"
+"POT-Creation-Date: 2025-03-31 19:46+0000\n"
+"PO-Revision-Date: 2025-03-31 19:46+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ko\n"
@@ -150,12 +150,13 @@ msgid "值为空, 请重新输入"
 msgstr "값이 비어 있습니다, 다시 입력해주세요"
 
 #: install.sh:436
-msgid "确定 连接端口"
-msgstr "확정 연결 포트"
+msgid "确定端口"
+msgstr "포트 확인"
 
 #: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
-msgid "请输入连接端口"
-msgstr "연결 포트를 입력하세요"
+#: file_manager.sh:97
+msgid "请输入端口"
+msgstr "포트를 입력하세요"
 
 #: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
 #: file_manager.sh:98
@@ -170,8 +171,8 @@ msgid "请输入 0-65535 之间的值"
 msgstr "0부터 65535 사이의 값을 입력하세요"
 
 #: install.sh:439
-msgid "端口 9443 不允许使用, 请重新输入"
-msgstr "포트 9443을 사용할 수 없으므로 다시 입력해주세요"
+msgid "端口不允许使用, 请重新输入"
+msgstr "포트가 사용 중이지 않습니다 다시 입력하십시오"
 
 #: install.sh:448
 msgid "请选择安装协议"
@@ -406,7 +407,7 @@ msgstr "수정"
 #: install.sh:995 install.sh:2434 install.sh:2436 install.sh:2438
 #: install.sh:2439 install.sh:2442 install.sh:2446 install.sh:2448
 #: install.sh:2450 install.sh:2451 install.sh:2478 install.sh:2481
-#: install.sh:2484 install.sh:2486
+#: install.sh:2484 install.sh:2486 install.sh:2644
 msgid "端口"
 msgstr "포트"
 
@@ -1109,10 +1110,6 @@ msgstr "nginx/설정 파일이 존재하지 않거나 현재 모드에서 지원
 #: install.sh:2846 install.sh:2905 install.sh:2957
 msgid "请先安装"
 msgstr "먼저 설치하시오"
-
-#: install.sh:2644
-msgid "连接端口"
-msgstr "연결 포트"
 
 #: install.sh:2725
 msgid "此模式不支持修改"
@@ -1905,10 +1902,6 @@ msgstr "이미 생성되었습니다"
 #: file_manager.sh:96
 msgid "请输入主机"
 msgstr "주최자를 입력하세요"
-
-#: file_manager.sh:97
-msgid "请输入端口"
-msgstr "포트를 입력하세요"
 
 #: file_manager.sh:98
 msgid "请输入权重"

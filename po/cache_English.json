@@ -31,11 +31,8 @@
   "链接库安装": "link library installation",
   "值为空或超出范围, 请重新输入": "the value is empty or out of range, please re-enter",
   "值为空, 请重新输入": "the value is empty, please re-enter",
-  "确定 连接端口": "confirm connect port",
-  "请输入连接端口": "please enter the connection port",
   "默认值": "default value",
   "请输入 0-65535 之间的值": "enter a value between 0 and 65535",
-  "端口 9443 不允许使用, 请重新输入": "port 9443 is not allowed, please re-enter",
   "请选择安装协议": "please select the installation agreement",
   "默认": "default",
   "请输入": "please enter",
@@ -472,5 +469,6 @@
   "备份完整性可能受到影响, 请检查上述错误信息": "backup integrity may be affected, please check the above error message",
   "用于防止暴力破解": "used to prevent brute force",
   "下载完成, 请重新运行脚本": "download is complete, please rerun the script",
-  "连接端口": "connection port"
+  "确定端口": "confirm the port",
+  "端口不允许使用, 请重新输入": "the port is not allowed, please re-enter"
 }
