@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-03-31 19:33+0000\n"
-"PO-Revision-Date: 2025-03-31 19:33+0000\n"
+"POT-Creation-Date: 2025-03-31 19:46+0000\n"
+"PO-Revision-Date: 2025-03-31 19:46+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: zh_CN\n"
@@ -149,11 +149,12 @@ msgid "值为空, 请重新输入"
 msgstr ""
 
 #: install.sh:436
-msgid "确定 连接端口"
+msgid "确定端口"
 msgstr ""
 
 #: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
-msgid "请输入连接端口"
+#: file_manager.sh:97
+msgid "请输入端口"
 msgstr ""
 
 #: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
@@ -169,7 +170,7 @@ msgid "请输入 0-65535 之间的值"
 msgstr ""
 
 #: install.sh:439
-msgid "端口 9443 不允许使用, 请重新输入"
+msgid "端口不允许使用, 请重新输入"
 msgstr ""
 
 #: install.sh:448
@@ -405,7 +406,7 @@ msgstr ""
 #: install.sh:995 install.sh:2434 install.sh:2436 install.sh:2438
 #: install.sh:2439 install.sh:2442 install.sh:2446 install.sh:2448
 #: install.sh:2450 install.sh:2451 install.sh:2478 install.sh:2481
-#: install.sh:2484 install.sh:2486
+#: install.sh:2484 install.sh:2486 install.sh:2644
 msgid "端口"
 msgstr ""
 
@@ -1107,10 +1108,6 @@ msgstr ""
 #: install.sh:2633 install.sh:2703 install.sh:2727 install.sh:2796
 #: install.sh:2846 install.sh:2905 install.sh:2957
 msgid "请先安装"
-msgstr ""
-
-#: install.sh:2644
-msgid "连接端口"
 msgstr ""
 
 #: install.sh:2725
@@ -1903,10 +1900,6 @@ msgstr ""
 
 #: file_manager.sh:96
 msgid "请输入主机"
-msgstr ""
-
-#: file_manager.sh:97
-msgid "请输入端口"
 msgstr ""
 
 #: file_manager.sh:98

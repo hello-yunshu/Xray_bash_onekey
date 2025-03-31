@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-03-31 19:33+0000\n"
-"PO-Revision-Date: 2025-03-31 19:33+0000\n"
+"POT-Creation-Date: 2025-03-31 19:46+0000\n"
+"PO-Revision-Date: 2025-03-31 19:46+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ru\n"
@@ -151,12 +151,13 @@ msgid "值为空, 请重新输入"
 msgstr "значение пустое, пожалуйста, введите заново"
 
 #: install.sh:436
-msgid "确定 连接端口"
-msgstr "определите порт подключения"
+msgid "确定端口"
+msgstr "определить порт"
 
 #: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
-msgid "请输入连接端口"
-msgstr "введите порт подключения"
+#: file_manager.sh:97
+msgid "请输入端口"
+msgstr "введите порт"
 
 #: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
 #: file_manager.sh:98
@@ -171,8 +172,8 @@ msgid "请输入 0-65535 之间的值"
 msgstr "введите значение от 0 до 65535"
 
 #: install.sh:439
-msgid "端口 9443 不允许使用, 请重新输入"
-msgstr "порт 9443 не разрешен, пожалуйста, введите другой"
+msgid "端口不允许使用, 请重新输入"
+msgstr "порт не разрешен, пожалуйста, снова введите"
 
 #: install.sh:448
 msgid "请选择安装协议"
@@ -407,7 +408,7 @@ msgstr "изменение"
 #: install.sh:995 install.sh:2434 install.sh:2436 install.sh:2438
 #: install.sh:2439 install.sh:2442 install.sh:2446 install.sh:2448
 #: install.sh:2450 install.sh:2451 install.sh:2478 install.sh:2481
-#: install.sh:2484 install.sh:2486
+#: install.sh:2484 install.sh:2486 install.sh:2644
 msgid "端口"
 msgstr "порт"
 
@@ -1110,10 +1111,6 @@ msgstr "nginx/конфигурационный файл не существуе�
 #: install.sh:2846 install.sh:2905 install.sh:2957
 msgid "请先安装"
 msgstr "пожалуйста, установите"
-
-#: install.sh:2644
-msgid "连接端口"
-msgstr "порт подключения"
 
 #: install.sh:2725
 msgid "此模式不支持修改"
@@ -1906,10 +1903,6 @@ msgstr "создан"
 #: file_manager.sh:96
 msgid "请输入主机"
 msgstr "введите хост"
-
-#: file_manager.sh:97
-msgid "请输入端口"
-msgstr "введите порт"
 
 #: file_manager.sh:98
 msgid "请输入权重"
