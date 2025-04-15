@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.1.4"
+mf_SCRIPT_VERSION="1.1.6"
 
 mf_main_menu() {
     check_system
@@ -68,9 +68,21 @@ mf_configure_fail2ban() {
     fi
 
     # 启用 nginx-no-host 规则
-    if [[ ${reality_add_nginx} == "on" ]] && [[ -z $(grep "filter   = nginx-no-host" /etc/fail2ban/jail.local) ]]; then
-        mf_create_nginx_no_host_filter
-        sed -i "\$ a\\\n[nginx-no-host]\nenabled  = true\nfilter   = nginx-no-host\nlogpath  = $nginx_dir/logs/sni_abnormal.log\nbantime  = 604800\nmaxretry = 3\nfindtime = 120" /etc/fail2ban/jail.local
+    if [[ ${reality_add_nginx} == "on" ]]; then
+        if [[ -z $(grep "filter   = nginx-no-host" /etc/fail2ban/jail.local) ]]; then
+            log_echo "${Green} $(gettext "是否要启用") nginx-no-host $(gettext "规则")? [${Red}Y${Font}${Green}/N] ${Font}"
+            read -r enable_nginx_no_host
+            case $enable_nginx_no_host in
+                [nN][oO] | [nN])
+                    log_echo "${Green} $(gettext "跳过启用") nginx-no-host $(gettext "规则") ${Font}"
+                    ;;
+                *)
+                    mf_create_nginx_no_host_filter
+                    sed -i "\$ a\\\n[nginx-no-host]\nenabled  = true\nfilter   = nginx-no-host\nlogpath  = $nginx_dir/logs/sni_abnormal.log\nbantime  = 604800\nmaxretry = 5\nfindtime = 120" /etc/fail2ban/jail.local
+                    log_echo "${OK} ${Green} $(gettext "已启用") nginx-no-host $(gettext "规则") ${Font}"
+                    ;;
+            esac
+        fi
     fi
     systemctl daemon-reload
     systemctl restart fail2ban
@@ -213,8 +225,10 @@ mf_display_fail2ban_status() {
         fail2ban-client status nginx-badbots
         fail2ban-client status nginx-botsearch
         if [[ ${reality_add_nginx} == "on" ]]; then
-            log_echo "${Green} Fail2ban Nginx No Host $(gettext "封锁情况"): ${Font}"
-            fail2ban-client status nginx-no-host
+            if grep -q "\[nginx-no-host\]" /etc/fail2ban/jail.local; then
+                log_echo "${Green} Fail2ban Nginx No Host $(gettext "封锁情况"): ${Font}"
+                fail2ban-client status nginx-no-host
+            fi
         fi
     fi
     mf_main_menu
