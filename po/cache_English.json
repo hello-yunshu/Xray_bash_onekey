@@ -470,5 +470,9 @@
   "用于防止暴力破解": "used to prevent brute force",
   "下载完成, 请重新运行脚本": "download is complete, please rerun the script",
   "确定端口": "confirm the port",
-  "端口不允许使用, 请重新输入": "the port is not allowed, please re-enter"
+  "端口不允许使用, 请重新输入": "the port is not allowed, please re-enter",
+  "是否要启用": "do you want to enable it",
+  "规则": "rule",
+  "跳过启用": "skip to enable",
+  "已启用": "enabled"
 }

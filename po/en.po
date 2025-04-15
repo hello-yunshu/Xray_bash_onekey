@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-03-31 19:46+0000\n"
-"PO-Revision-Date: 2025-03-31 19:46+0000\n"
+"POT-Creation-Date: 2025-04-15 15:40+0000\n"
+"PO-Revision-Date: 2025-04-15 15:40+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -153,20 +153,17 @@ msgstr "the value is empty, please re-enter"
 msgid "确定端口"
 msgstr "confirm the port"
 
-#: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
-#: file_manager.sh:97
+#: install.sh:437 install.sh:440 file_manager.sh:97
 msgid "请输入端口"
 msgstr "please enter the port"
 
-#: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
-#: file_manager.sh:98
+#: install.sh:437 install.sh:440 file_manager.sh:98
 msgid "默认值"
 msgstr "default value"
 
-#: install.sh:437 install.sh:440 install.sh:527 install.sh:549 install.sh:2640
-#: install.sh:2646 install.sh:2650 install.sh:2655 install.sh:2660
-#: install.sh:2661 install.sh:2676 install.sh:2681 install.sh:2686
-#: install.sh:2687
+#: install.sh:437 install.sh:440 install.sh:527 install.sh:549 install.sh:2650
+#: install.sh:2655 install.sh:2660 install.sh:2661 install.sh:2676
+#: install.sh:2681 install.sh:2686 install.sh:2687
 msgid "请输入 0-65535 之间的值"
 msgstr "enter a value between 0 and 65535"
 
@@ -179,8 +176,8 @@ msgid "请选择安装协议"
 msgstr "please select the installation agreement"
 
 #: install.sh:449 install.sh:1474 install.sh:1511 install.sh:1562
-#: install.sh:2737 install.sh:2808 install.sh:2857 fail2ban_manager.sh:143
-#: fail2ban_manager.sh:144
+#: install.sh:2737 install.sh:2808 install.sh:2857 fail2ban_manager.sh:154
+#: fail2ban_manager.sh:155
 msgid "默认"
 msgstr "default"
 
@@ -189,7 +186,7 @@ msgstr "default"
 #: install.sh:2650 install.sh:2655 install.sh:2660 install.sh:2661
 #: install.sh:2676 install.sh:2681 install.sh:2686 install.sh:2687
 #: install.sh:2740 install.sh:2749 install.sh:2811 install.sh:2860
-#: install.sh:2869 fail2ban_manager.sh:108 fail2ban_manager.sh:141
+#: install.sh:2869 fail2ban_manager.sh:119 fail2ban_manager.sh:152
 #: file_manager.sh:81
 msgid "请输入"
 msgstr "please enter"
@@ -245,7 +242,7 @@ msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "if you modify the configuration, please note to close the firewall-related ports"
 
 #: install.sh:614 install.sh:3401 install.sh:3414 install.sh:3415
-#: install.sh:3729 install.sh:3748 fail2ban_manager.sh:77
+#: install.sh:3729 install.sh:3748 fail2ban_manager.sh:89
 msgid "配置"
 msgstr "configure"
 
@@ -368,7 +365,7 @@ msgstr "load balancing"
 msgid "请选择协议为 ws 或 gRPC"
 msgstr "please select the protocol as ws or grpc"
 
-#: install.sh:857 fail2ban_manager.sh:106
+#: install.sh:857 fail2ban_manager.sh:117
 msgid "返回"
 msgstr "return"
 
@@ -380,7 +377,7 @@ msgstr "please re-enter the correct number"
 msgid "本地文件 file_manager.sh 不存在, 正在下载"
 msgstr "the local file file_manager.sh does not exist, downloading now"
 
-#: install.sh:867 install.sh:904 install.sh:2147 fail2ban_manager.sh:247
+#: install.sh:867 install.sh:904 install.sh:2147 fail2ban_manager.sh:258
 #: file_manager.sh:236
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr "download failed, please download and install the new version manually"
@@ -832,17 +829,17 @@ msgid "停止已有服务"
 msgstr "stop existing service"
 
 #: install.sh:2032 install.sh:2035 install.sh:2608 install.sh:2610
-#: install.sh:3739 fail2ban_manager.sh:103 fail2ban_manager.sh:193
+#: install.sh:3739 fail2ban_manager.sh:114 fail2ban_manager.sh:204
 msgid "重启"
 msgstr "restart"
 
-#: install.sh:2040 install.sh:2043 install.sh:3740 fail2ban_manager.sh:102
-#: fail2ban_manager.sh:163
+#: install.sh:2040 install.sh:2043 install.sh:3740 fail2ban_manager.sh:113
+#: fail2ban_manager.sh:174
 msgid "启动"
 msgstr "start"
 
 #: install.sh:2048 install.sh:2051 install.sh:2111 install.sh:3741
-#: fail2ban_manager.sh:104
+#: fail2ban_manager.sh:115
 msgid "停止"
 msgstr "stop"
 
@@ -933,8 +930,8 @@ msgstr "do you need to set up automatic log cleanup"
 #: install.sh:2193 install.sh:3771 install.sh:3780 install.sh:3832
 #: install.sh:3838 install.sh:3874 install.sh:3880 install.sh:3886
 #: install.sh:3915 install.sh:3950 install.sh:3957 install.sh:3962
-#: fail2ban_manager.sh:164 fail2ban_manager.sh:177 fail2ban_manager.sh:186
-#: fail2ban_manager.sh:194
+#: fail2ban_manager.sh:175 fail2ban_manager.sh:188 fail2ban_manager.sh:197
+#: fail2ban_manager.sh:205
 msgid "清空屏幕"
 msgstr "clear the screen"
 
@@ -1661,7 +1658,7 @@ msgstr "recover"
 msgid "卸载向导"
 msgstr "uninstall wizard"
 
-#: install.sh:3758 fail2ban_manager.sh:14 fail2ban_manager.sh:176
+#: install.sh:3758 fail2ban_manager.sh:14 fail2ban_manager.sh:187
 msgid "卸载"
 msgstr "uninstall"
 
@@ -1721,7 +1718,7 @@ msgstr "status"
 msgid "请选择一个选项"
 msgstr "please select an option"
 
-#: fail2ban_manager.sh:27 fail2ban_manager.sh:127
+#: fail2ban_manager.sh:27 fail2ban_manager.sh:138
 msgid "无效的选择请重试"
 msgstr "invalid selection, please try again"
 
@@ -1729,115 +1726,131 @@ msgstr "invalid selection, please try again"
 msgid "已经安装, 跳过安装步骤"
 msgstr "already installed, skip installation steps"
 
-#: fail2ban_manager.sh:53 fail2ban_manager.sh:95 fail2ban_manager.sh:200
+#: fail2ban_manager.sh:53 fail2ban_manager.sh:106 fail2ban_manager.sh:211
 msgid "未安装, 请先安装"
 msgstr "not installed, please install first"
 
-#: fail2ban_manager.sh:101
+#: fail2ban_manager.sh:73
+msgid "是否要启用"
+msgstr "do you want to enable it"
+
+#: fail2ban_manager.sh:73 fail2ban_manager.sh:77 fail2ban_manager.sh:82
+msgid "规则"
+msgstr "rule"
+
+#: fail2ban_manager.sh:77
+msgid "跳过启用"
+msgstr "skip to enable"
+
+#: fail2ban_manager.sh:82
+msgid "已启用"
+msgstr "enabled"
+
+#: fail2ban_manager.sh:112
 msgid "请选择"
 msgstr "please select"
 
-#: fail2ban_manager.sh:101
+#: fail2ban_manager.sh:112
 msgid "操作"
 msgstr "operation"
 
-#: fail2ban_manager.sh:105
+#: fail2ban_manager.sh:116
 msgid "添加自定义规则"
 msgstr "add custom rules"
 
-#: fail2ban_manager.sh:140
+#: fail2ban_manager.sh:151
 msgid "请输入新的"
 msgstr "please enter the new"
 
-#: fail2ban_manager.sh:140 fail2ban_manager.sh:141
+#: fail2ban_manager.sh:151 fail2ban_manager.sh:152
 msgid "名称"
 msgstr "name"
 
-#: fail2ban_manager.sh:142
+#: fail2ban_manager.sh:153
 msgid "请输入日志路径"
 msgstr "please enter the log path"
 
-#: fail2ban_manager.sh:143
+#: fail2ban_manager.sh:154
 msgid "请输入最大重试次数"
 msgstr "enter the maximum retry count"
 
-#: fail2ban_manager.sh:143
+#: fail2ban_manager.sh:154
 msgid "最大重试次数必须在 1 到 99 之间"
 msgstr "the maximum retry count must be between 1 and 99"
 
-#: fail2ban_manager.sh:144
+#: fail2ban_manager.sh:155
 msgid "请输入封禁时间"
 msgstr "please enter the ban duration"
 
-#: fail2ban_manager.sh:144
+#: fail2ban_manager.sh:155
 msgid "秒"
 msgstr "second"
 
-#: fail2ban_manager.sh:144
+#: fail2ban_manager.sh:155
 msgid "封禁时间必须在 1 到 8640000 秒之间"
 msgstr "the ban time must be between 1 and 8640000 seconds"
 
-#: fail2ban_manager.sh:147
+#: fail2ban_manager.sh:158
 msgid "已存在"
 msgstr "already exists"
 
-#: fail2ban_manager.sh:152
+#: fail2ban_manager.sh:163
 msgid "自定义规则添加成功"
 msgstr "custom rules added successfully"
 
-#: fail2ban_manager.sh:156
+#: fail2ban_manager.sh:167
 msgid "重启以应用新规则"
 msgstr "restart to apply new rules"
 
-#: fail2ban_manager.sh:185
+#: fail2ban_manager.sh:196
 msgid "停止成功"
 msgstr "stop success"
 
-#: fail2ban_manager.sh:204
+#: fail2ban_manager.sh:215
 msgid "总体状态"
 msgstr "general status"
 
-#: fail2ban_manager.sh:208
+#: fail2ban_manager.sh:219
 msgid "默认启用的 Jail 状态"
 msgstr "jail status enabled by default"
 
-#: fail2ban_manager.sh:210 fail2ban_manager.sh:213 fail2ban_manager.sh:217
+#: fail2ban_manager.sh:221 fail2ban_manager.sh:224 fail2ban_manager.sh:228
 msgid "封锁情况"
 msgstr "blockade situation"
 
-#: fail2ban_manager.sh:231 file_manager.sh:220
+#: fail2ban_manager.sh:242 file_manager.sh:220
 msgid "新版本可用"
 msgstr "the new version is available"
 
-#: fail2ban_manager.sh:231 file_manager.sh:220
+#: fail2ban_manager.sh:242 file_manager.sh:220
 msgid "当前版本"
 msgstr "current version"
 
-#: fail2ban_manager.sh:232 file_manager.sh:221
+#: fail2ban_manager.sh:243 file_manager.sh:221
 msgid "请访问"
 msgstr "please visit"
 
-#: fail2ban_manager.sh:232 file_manager.sh:221
+#: fail2ban_manager.sh:243 file_manager.sh:221
 msgid "查看更新说明"
 msgstr "check update notes"
 
-#: fail2ban_manager.sh:234 file_manager.sh:223
+#: fail2ban_manager.sh:245 file_manager.sh:223
 msgid "是否要下载并安装新版本"
 msgstr "do you want to download and install the new version"
 
-#: fail2ban_manager.sh:238 file_manager.sh:227
+#: fail2ban_manager.sh:249 file_manager.sh:227
 msgid "正在下载新版本"
 msgstr "downloading the new version"
 
-#: fail2ban_manager.sh:243 file_manager.sh:232
+#: fail2ban_manager.sh:254 file_manager.sh:232
 msgid "下载完成, 请重新运行脚本"
 msgstr "download is complete, please rerun the script"
 
-#: fail2ban_manager.sh:251 file_manager.sh:240
+#: fail2ban_manager.sh:262 file_manager.sh:240
 msgid "跳过更新"
 msgstr "skip update"
 
-#: fail2ban_manager.sh:255 file_manager.sh:244
+#: fail2ban_manager.sh:266 file_manager.sh:244
 msgid "当前已经是最新版本"
 msgstr "it is already the latest version"
 
