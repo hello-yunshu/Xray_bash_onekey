@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-03-31 19:46+0000\n"
-"PO-Revision-Date: 2025-03-31 19:46+0000\n"
+"POT-Creation-Date: 2025-04-15 15:40+0000\n"
+"PO-Revision-Date: 2025-04-15 15:40+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ko\n"
@@ -153,20 +153,17 @@ msgstr "값이 비어 있습니다, 다시 입력해주세요"
 msgid "确定端口"
 msgstr "포트 확인"
 
-#: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
-#: file_manager.sh:97
+#: install.sh:437 install.sh:440 file_manager.sh:97
 msgid "请输入端口"
 msgstr "포트를 입력하세요"
 
-#: install.sh:437 install.sh:440 install.sh:2640 install.sh:2646
-#: file_manager.sh:98
+#: install.sh:437 install.sh:440 file_manager.sh:98
 msgid "默认值"
 msgstr "기본 값"
 
-#: install.sh:437 install.sh:440 install.sh:527 install.sh:549 install.sh:2640
-#: install.sh:2646 install.sh:2650 install.sh:2655 install.sh:2660
-#: install.sh:2661 install.sh:2676 install.sh:2681 install.sh:2686
-#: install.sh:2687
+#: install.sh:437 install.sh:440 install.sh:527 install.sh:549 install.sh:2650
+#: install.sh:2655 install.sh:2660 install.sh:2661 install.sh:2676
+#: install.sh:2681 install.sh:2686 install.sh:2687
 msgid "请输入 0-65535 之间的值"
 msgstr "0부터 65535 사이의 값을 입력하세요"
 
@@ -179,8 +176,8 @@ msgid "请选择安装协议"
 msgstr "설치 계약서를 선택하세요"
 
 #: install.sh:449 install.sh:1474 install.sh:1511 install.sh:1562
-#: install.sh:2737 install.sh:2808 install.sh:2857 fail2ban_manager.sh:143
-#: fail2ban_manager.sh:144
+#: install.sh:2737 install.sh:2808 install.sh:2857 fail2ban_manager.sh:154
+#: fail2ban_manager.sh:155
 msgid "默认"
 msgstr "기본 설정으로"
 
@@ -189,7 +186,7 @@ msgstr "기본 설정으로"
 #: install.sh:2650 install.sh:2655 install.sh:2660 install.sh:2661
 #: install.sh:2676 install.sh:2681 install.sh:2686 install.sh:2687
 #: install.sh:2740 install.sh:2749 install.sh:2811 install.sh:2860
-#: install.sh:2869 fail2ban_manager.sh:108 fail2ban_manager.sh:141
+#: install.sh:2869 fail2ban_manager.sh:119 fail2ban_manager.sh:152
 #: file_manager.sh:81
 msgid "请输入"
 msgstr "한글 입력하세요"
@@ -245,7 +242,7 @@ msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "설정을 수정할 때 방화벽 관련 포트를 닫는 것에 주의하세요"
 
 #: install.sh:614 install.sh:3401 install.sh:3414 install.sh:3415
-#: install.sh:3729 install.sh:3748 fail2ban_manager.sh:77
+#: install.sh:3729 install.sh:3748 fail2ban_manager.sh:89
 msgid "配置"
 msgstr "설정"
 
@@ -368,7 +365,7 @@ msgstr "로드 밸런싱"
 msgid "请选择协议为 ws 或 gRPC"
 msgstr "프로토콜을 ws 또는 grpc로 선택하세요"
 
-#: install.sh:857 fail2ban_manager.sh:106
+#: install.sh:857 fail2ban_manager.sh:117
 msgid "返回"
 msgstr "돌아가기"
 
@@ -380,7 +377,7 @@ msgstr "잘못된 숫자를 다시 입력해주세요"
 msgid "本地文件 file_manager.sh 不存在, 正在下载"
 msgstr "지역 파일 file_manager.sh이 존재하지 않으므로 다운로드 중입니다"
 
-#: install.sh:867 install.sh:904 install.sh:2147 fail2ban_manager.sh:247
+#: install.sh:867 install.sh:904 install.sh:2147 fail2ban_manager.sh:258
 #: file_manager.sh:236
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr "다운로드에 실패했습니다, 수동으로 새 버전을 다운로드하고 설치하세요"
@@ -832,17 +829,17 @@ msgid "停止已有服务"
 msgstr "이미 있는 서비스를 중지"
 
 #: install.sh:2032 install.sh:2035 install.sh:2608 install.sh:2610
-#: install.sh:3739 fail2ban_manager.sh:103 fail2ban_manager.sh:193
+#: install.sh:3739 fail2ban_manager.sh:114 fail2ban_manager.sh:204
 msgid "重启"
 msgstr "재시작"
 
-#: install.sh:2040 install.sh:2043 install.sh:3740 fail2ban_manager.sh:102
-#: fail2ban_manager.sh:163
+#: install.sh:2040 install.sh:2043 install.sh:3740 fail2ban_manager.sh:113
+#: fail2ban_manager.sh:174
 msgid "启动"
 msgstr "시작"
 
 #: install.sh:2048 install.sh:2051 install.sh:2111 install.sh:3741
-#: fail2ban_manager.sh:104
+#: fail2ban_manager.sh:115
 msgid "停止"
 msgstr "정지"
 
@@ -933,8 +930,8 @@ msgstr "자동으로 로그를 정리할 필요가 있습니까"
 #: install.sh:2193 install.sh:3771 install.sh:3780 install.sh:3832
 #: install.sh:3838 install.sh:3874 install.sh:3880 install.sh:3886
 #: install.sh:3915 install.sh:3950 install.sh:3957 install.sh:3962
-#: fail2ban_manager.sh:164 fail2ban_manager.sh:177 fail2ban_manager.sh:186
-#: fail2ban_manager.sh:194
+#: fail2ban_manager.sh:175 fail2ban_manager.sh:188 fail2ban_manager.sh:197
+#: fail2ban_manager.sh:205
 msgid "清空屏幕"
 msgstr "화면 지우기"
 
@@ -1661,7 +1658,7 @@ msgstr "복원"
 msgid "卸载向导"
 msgstr "설치 마법사 해제"
 
-#: install.sh:3758 fail2ban_manager.sh:14 fail2ban_manager.sh:176
+#: install.sh:3758 fail2ban_manager.sh:14 fail2ban_manager.sh:187
 msgid "卸载"
 msgstr "설치 해제"
 
@@ -1721,7 +1718,7 @@ msgstr "상태"
 msgid "请选择一个选项"
 msgstr "한 가지 옵션을 선택하세요"
 
-#: fail2ban_manager.sh:27 fail2ban_manager.sh:127
+#: fail2ban_manager.sh:27 fail2ban_manager.sh:138
 msgid "无效的选择请重试"
 msgstr "유효하지 않은 선택입니다. 다시 시도해주세요"
 
@@ -1729,115 +1726,131 @@ msgstr "유효하지 않은 선택입니다. 다시 시도해주세요"
 msgid "已经安装, 跳过安装步骤"
 msgstr "이미 설치됨, 설치 단계 생략"
 
-#: fail2ban_manager.sh:53 fail2ban_manager.sh:95 fail2ban_manager.sh:200
+#: fail2ban_manager.sh:53 fail2ban_manager.sh:106 fail2ban_manager.sh:211
 msgid "未安装, 请先安装"
 msgstr "설치되지 않았습니다, 먼저 설치해주세요"
 
-#: fail2ban_manager.sh:101
+#: fail2ban_manager.sh:73
+msgid "是否要启用"
+msgstr "사용 하시겠습니까"
+
+#: fail2ban_manager.sh:73 fail2ban_manager.sh:77 fail2ban_manager.sh:82
+msgid "规则"
+msgstr "규칙"
+
+#: fail2ban_manager.sh:77
+msgid "跳过启用"
+msgstr "사용 활성화 건너뛰기"
+
+#: fail2ban_manager.sh:82
+msgid "已启用"
+msgstr "활성화 되었습니다"
+
+#: fail2ban_manager.sh:112
 msgid "请选择"
 msgstr "선택하세요"
 
-#: fail2ban_manager.sh:101
+#: fail2ban_manager.sh:112
 msgid "操作"
 msgstr "작동"
 
-#: fail2ban_manager.sh:105
+#: fail2ban_manager.sh:116
 msgid "添加自定义规则"
 msgstr "사용자 정의 규칙 추가"
 
-#: fail2ban_manager.sh:140
+#: fail2ban_manager.sh:151
 msgid "请输入新的"
 msgstr "새로운 것을 입력하세요"
 
-#: fail2ban_manager.sh:140 fail2ban_manager.sh:141
+#: fail2ban_manager.sh:151 fail2ban_manager.sh:152
 msgid "名称"
 msgstr "이름"
 
-#: fail2ban_manager.sh:142
+#: fail2ban_manager.sh:153
 msgid "请输入日志路径"
 msgstr "일지 경로를 입력하세요"
 
-#: fail2ban_manager.sh:143
+#: fail2ban_manager.sh:154
 msgid "请输入最大重试次数"
 msgstr "최대 재시도 횟수를 입력하세요"
 
-#: fail2ban_manager.sh:143
+#: fail2ban_manager.sh:154
 msgid "最大重试次数必须在 1 到 99 之间"
 msgstr "최대 재시도 횟수는 1과 99 사이이어야 합니다"
 
-#: fail2ban_manager.sh:144
+#: fail2ban_manager.sh:155
 msgid "请输入封禁时间"
 msgstr "금지 시간을 입력하세요"
 
-#: fail2ban_manager.sh:144
+#: fail2ban_manager.sh:155
 msgid "秒"
 msgstr "초"
 
-#: fail2ban_manager.sh:144
+#: fail2ban_manager.sh:155
 msgid "封禁时间必须在 1 到 8640000 秒之间"
 msgstr "차단 시간은 1초에서 8640000초 사이여야 합니다"
 
-#: fail2ban_manager.sh:147
+#: fail2ban_manager.sh:158
 msgid "已存在"
 msgstr "이미 존재しています"
 
-#: fail2ban_manager.sh:152
+#: fail2ban_manager.sh:163
 msgid "自定义规则添加成功"
 msgstr "사용자 정의 규칙이 성공적으로 추가되었습니다"
 
-#: fail2ban_manager.sh:156
+#: fail2ban_manager.sh:167
 msgid "重启以应用新规则"
 msgstr "새 규칙을 적용하려면 재시작하세요"
 
-#: fail2ban_manager.sh:185
+#: fail2ban_manager.sh:196
 msgid "停止成功"
 msgstr "중지 성공"
 
-#: fail2ban_manager.sh:204
+#: fail2ban_manager.sh:215
 msgid "总体状态"
 msgstr "전체 상태"
 
-#: fail2ban_manager.sh:208
+#: fail2ban_manager.sh:219
 msgid "默认启用的 Jail 状态"
 msgstr "기본적으로 활성화된 jail 상태"
 
-#: fail2ban_manager.sh:210 fail2ban_manager.sh:213 fail2ban_manager.sh:217
+#: fail2ban_manager.sh:221 fail2ban_manager.sh:224 fail2ban_manager.sh:228
 msgid "封锁情况"
 msgstr "봉쇄 상황"
 
-#: fail2ban_manager.sh:231 file_manager.sh:220
+#: fail2ban_manager.sh:242 file_manager.sh:220
 msgid "新版本可用"
 msgstr "새 버전이 사용 가능합니다"
 
-#: fail2ban_manager.sh:231 file_manager.sh:220
+#: fail2ban_manager.sh:242 file_manager.sh:220
 msgid "当前版本"
 msgstr "현재 버전"
 
-#: fail2ban_manager.sh:232 file_manager.sh:221
+#: fail2ban_manager.sh:243 file_manager.sh:221
 msgid "请访问"
 msgstr "please visit 방문해 주세요"
 
-#: fail2ban_manager.sh:232 file_manager.sh:221
+#: fail2ban_manager.sh:243 file_manager.sh:221
 msgid "查看更新说明"
 msgstr "업데이트 설명 보기"
 
-#: fail2ban_manager.sh:234 file_manager.sh:223
+#: fail2ban_manager.sh:245 file_manager.sh:223
 msgid "是否要下载并安装新版本"
 msgstr "다운로드하고 신규 버전을 설치하시겠습니까"
 
-#: fail2ban_manager.sh:238 file_manager.sh:227
+#: fail2ban_manager.sh:249 file_manager.sh:227
 msgid "正在下载新版本"
 msgstr "신버전을 다운로드 중입니다"
 
-#: fail2ban_manager.sh:243 file_manager.sh:232
+#: fail2ban_manager.sh:254 file_manager.sh:232
 msgid "下载完成, 请重新运行脚本"
 msgstr "다운로드가 완료되었습니다, 스크립트를 다시 실행해주세요"
 
-#: fail2ban_manager.sh:251 file_manager.sh:240
+#: fail2ban_manager.sh:262 file_manager.sh:240
 msgid "跳过更新"
 msgstr "업데이트를 건너뛰기"
 
-#: fail2ban_manager.sh:255 file_manager.sh:244
+#: fail2ban_manager.sh:266 file_manager.sh:244
 msgid "当前已经是最新版本"
 msgstr "현재 최신 버전입니다"
 
