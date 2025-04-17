@@ -57,18 +57,18 @@ def contains_target_language_characters(text, target_lang):
         print(f"Language detection failed: {e}")
         return False
 
-def translate_text_qwen(text, target_lang):
+def translate_text_deepseek(text, target_lang):
     client = OpenAI(
         api_key=os.getenv("AI_API_KEY"),
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        base_url="https://api.deepseek.com/v1",
     )
     completion = client.chat.completions.create(
-        model="qwen-turbo",
+        model="deepseek-chat",
         messages=[
             {'role': 'system', 'content': 'You are a professional text translation assistant, focused on translating short Chinese texts into voice content in the specified target language. Your task is to translate only the Chinese parts of the text into the corresponding target language, leaving English portions as they are. The translation process should not consider context between sentences; ensure each individual sentence is translated accurately. Avoid adding any punctuation at the end of the translated sentences. The goal is to assist in the internationalization of scripts while ensuring translations are concise and accurate.Translation does not need to be bound by grammar, the simpler the better.'},
             {'role': 'user', 'content': f'Translate the following text to {target_lang}: {text}'}
         ],
-        stream=True
+        stream=False
     )
     full_content = ""
     for chunk in completion:
@@ -145,14 +145,14 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
             for attempt in range(max_retries):
                 try:
                     time.sleep(0.1)  # 增加延迟以避免请求过快
-                    translated_text = translate_text_qwen(msgid_text, target_lang_name)
+                    translated_text = translate_text_deepseek(msgid_text, target_lang_name)
                     
                     # 检查翻译结果是否仍包含中文或需要回退翻译
                     if (contains_chinese(translated_text) or 
                         needs_fallback_translation(translated_text) or 
                         not contains_target_language_characters(translated_text, target_lang_code) or 
                         is_english_dominant(translated_text)):
-                        print(f"Translation does not meet criteria using Qwen. Using Google Translate...")
+                        print(f"Translation does not meet criteria using DeepSeek. Using Google Translate...")
                         translated_text = translate_text_google(msgid_text, target_lang_code)
                     
                     # 清理Google翻译结果
