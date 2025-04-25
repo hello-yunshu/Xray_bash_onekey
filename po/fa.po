@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-04-15 15:40+0000\n"
-"PO-Revision-Date: 2025-04-15 15:40+0000\n"
+"POT-Creation-Date: 2025-04-25 10:18+0000\n"
+"PO-Revision-Date: 2025-04-25 10:18+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: fa\n"
@@ -29,8 +29,8 @@ msgstr "خطا"
 msgid "警告"
 msgstr "هشدار"
 
-#: install.sh:39 install.sh:1398 install.sh:3476 install.sh:3493
-#: install.sh:3496 install.sh:3497 install.sh:3535
+#: install.sh:39 install.sh:1412 install.sh:3490 install.sh:3507
+#: install.sh:3510 install.sh:3511 install.sh:3549
 msgid "未安装"
 msgstr "ناصب شده"
 
@@ -110,7 +110,7 @@ msgstr "زبانی که توسط سیستم پشتیبانی نمی‌شود"
 msgid "发现语言文件更新"
 msgstr "پیدا کردن فایل های زبانی به روز شده"
 
-#: install.sh:308 install.sh:1597
+#: install.sh:308 install.sh:1611
 msgid "完成"
 msgstr "تمام شد"
 
@@ -122,13 +122,13 @@ msgstr "شکست"
 msgid "在线版本检测失败, 请稍后再试"
 msgstr "نسخه آنلاین بررسی نشد، لطفاً دوباره سعی کنید"
 
-#: install.sh:340 install.sh:348 install.sh:1104 install.sh:3397
-#: install.sh:3398 install.sh:3399 install.sh:3720 install.sh:3721
-#: install.sh:3722 fail2ban_manager.sh:12 fail2ban_manager.sh:39
+#: install.sh:340 install.sh:348 install.sh:1104 install.sh:3411
+#: install.sh:3412 install.sh:3413 install.sh:3734 install.sh:3735
+#: install.sh:3736 fail2ban_manager.sh:12 fail2ban_manager.sh:39
 msgid "安装"
 msgstr "نصب"
 
-#: install.sh:342 install.sh:350 install.sh:1111 install.sh:3485
+#: install.sh:342 install.sh:350 install.sh:1111 install.sh:3499
 msgid "已安装"
 msgstr "نصب شده"
 
@@ -160,9 +160,9 @@ msgstr "ورودی کریت لطفا port را وارد کنید"
 msgid "默认值"
 msgstr "مقدار پیش‌فرض"
 
-#: install.sh:437 install.sh:440 install.sh:527 install.sh:549 install.sh:2650
-#: install.sh:2655 install.sh:2660 install.sh:2661 install.sh:2676
-#: install.sh:2681 install.sh:2686 install.sh:2687
+#: install.sh:437 install.sh:440 install.sh:527 install.sh:549 install.sh:2664
+#: install.sh:2669 install.sh:2674 install.sh:2675 install.sh:2690
+#: install.sh:2695 install.sh:2700 install.sh:2701
 msgid "请输入 0-65535 之间的值"
 msgstr "لطفا مقداری بین ۰ تا ۶۵۵۳۵ وارد کنید"
 
@@ -174,24 +174,24 @@ msgstr "پورت مجاز نیست استفاده شود لطفا مجدد تل�
 msgid "请选择安装协议"
 msgstr "لطفا قرارداد نصب را انتخاب کنید"
 
-#: install.sh:449 install.sh:1474 install.sh:1511 install.sh:1562
-#: install.sh:2737 install.sh:2808 install.sh:2857 fail2ban_manager.sh:154
+#: install.sh:449 install.sh:1488 install.sh:1525 install.sh:1576
+#: install.sh:2751 install.sh:2822 install.sh:2871 fail2ban_manager.sh:154
 #: fail2ban_manager.sh:155
 msgid "默认"
 msgstr "پیش‌فرض"
 
-#: install.sh:453 install.sh:816 install.sh:859 install.sh:1478 install.sh:1491
-#: install.sh:1513 install.sh:1566 install.sh:1576 install.sh:2600
-#: install.sh:2650 install.sh:2655 install.sh:2660 install.sh:2661
-#: install.sh:2676 install.sh:2681 install.sh:2686 install.sh:2687
-#: install.sh:2740 install.sh:2749 install.sh:2811 install.sh:2860
-#: install.sh:2869 fail2ban_manager.sh:119 fail2ban_manager.sh:152
+#: install.sh:453 install.sh:816 install.sh:859 install.sh:1492 install.sh:1505
+#: install.sh:1527 install.sh:1580 install.sh:1590 install.sh:2614
+#: install.sh:2664 install.sh:2669 install.sh:2674 install.sh:2675
+#: install.sh:2690 install.sh:2695 install.sh:2700 install.sh:2701
+#: install.sh:2754 install.sh:2763 install.sh:2825 install.sh:2874
+#: install.sh:2883 fail2ban_manager.sh:119 fail2ban_manager.sh:152
 #: file_manager.sh:81
 msgid "请输入"
 msgstr "لطفاً ورودی را وارد کنید"
 
-#: install.sh:453 install.sh:1478 install.sh:1513 install.sh:1566
-#: install.sh:2600 install.sh:2740 install.sh:2811 install.sh:2860
+#: install.sh:453 install.sh:1492 install.sh:1527 install.sh:1580
+#: install.sh:2614 install.sh:2754 install.sh:2825 install.sh:2874
 msgid "请输入有效的数字"
 msgstr "لطفاً یک عدد معتبر وارد کنید"
 
@@ -240,8 +240,8 @@ msgstr "بازکردن پورت های مرتبط با دیواره آتش"
 msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "اگر پیکربندی را تغییر دهید، مراقب بستن پورت‌های مرتبط با دیواره feu دیگری باشید"
 
-#: install.sh:614 install.sh:3401 install.sh:3414 install.sh:3415
-#: install.sh:3729 install.sh:3748 fail2ban_manager.sh:89
+#: install.sh:614 install.sh:3415 install.sh:3428 install.sh:3429
+#: install.sh:3743 install.sh:3762 fail2ban_manager.sh:89
 msgid "配置"
 msgstr "تنظیم کردن"
 
@@ -263,7 +263,7 @@ msgstr "بدون نیاز"
 msgid "是否需要修改"
 msgstr "آیا نیاز است که تغییر کند"
 
-#: install.sh:691 install.sh:701 install.sh:2770
+#: install.sh:691 install.sh:701 install.sh:2784
 msgid "用户名"
 msgstr "نام کاربری"
 
@@ -287,8 +287,8 @@ msgstr "حداکثر ۳۰ کاراکتر"
 msgid "自定义字符串"
 msgstr "رشته سفارشی"
 
-#: install.sh:721 install.sh:2454 install.sh:3417 install.sh:3724
-#: install.sh:3812
+#: install.sh:721 install.sh:2468 install.sh:3431 install.sh:3738
+#: install.sh:3826
 msgid "映射字符串"
 msgstr "مיפוי رشته"
 
@@ -328,7 +328,7 @@ msgstr "این نام دامنه شرایط مورد نیاز را احتمال�
 msgid "是否仍要设置此域名"
 msgstr "آیا هنوز قصد دارید این نام دامنه را تنظیم کنید؟"
 
-#: install.sh:797 install.sh:802 install.sh:1476
+#: install.sh:797 install.sh:802 install.sh:1490
 msgid "域名"
 msgstr "نام دامنه"
 
@@ -376,7 +376,7 @@ msgstr "لطفاً عدد صحیح را مجددا وارد کنید"
 msgid "本地文件 file_manager.sh 不存在, 正在下载"
 msgstr "فایل محلی file_manager.sh وجود ندارد، در حال دانلود است"
 
-#: install.sh:867 install.sh:904 install.sh:2147 fail2ban_manager.sh:258
+#: install.sh:867 install.sh:904 install.sh:2161 fail2ban_manager.sh:260
 #: file_manager.sh:236
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr "دانلود با شکست مواجه شد، دانلود و نصب نسخه جدید را دستی انجام دهید"
@@ -385,8 +385,8 @@ msgstr "دانلود با شکست مواجه شد، دانلود و نصب نس
 msgid "无效选项 请重试"
 msgstr "گزینه نامعتبر است لطفا مجددا تلاش کنید"
 
-#: install.sh:885 install.sh:914 install.sh:2083 install.sh:2121
-#: install.sh:2137
+#: install.sh:885 install.sh:914 install.sh:2097 install.sh:2135
+#: install.sh:2151
 msgid "当前模式不支持此操作"
 msgstr "قالب فعلی این عمل را پشتیبانی نمی کند"
 
@@ -396,14 +396,14 @@ msgstr "استفاده از آن را می توانید در مقاله مراج
 
 #: install.sh:936 install.sh:940 install.sh:944 install.sh:956 install.sh:961
 #: install.sh:967 install.sh:987 install.sh:993 install.sh:1043 install.sh:1062
-#: install.sh:3415 install.sh:3692
+#: install.sh:3429 install.sh:3706
 msgid "修改"
 msgstr "تغییر"
 
-#: install.sh:995 install.sh:2434 install.sh:2436 install.sh:2438
-#: install.sh:2439 install.sh:2442 install.sh:2446 install.sh:2448
-#: install.sh:2450 install.sh:2451 install.sh:2478 install.sh:2481
-#: install.sh:2484 install.sh:2486 install.sh:2644
+#: install.sh:995 install.sh:2448 install.sh:2450 install.sh:2452
+#: install.sh:2453 install.sh:2456 install.sh:2460 install.sh:2462
+#: install.sh:2464 install.sh:2465 install.sh:2492 install.sh:2495
+#: install.sh:2498 install.sh:2500 install.sh:2658
 msgid "端口"
 msgstr "نوع دریچه"
 
@@ -419,8 +419,8 @@ msgstr "نام کاربری ویرایش"
 msgid "请先删除多余的用户"
 msgstr "لطفاً کاربران اضافی را حذف کنید"
 
-#: install.sh:1073 install.sh:1081 install.sh:1088 install.sh:1839
-#: install.sh:1909 install.sh:1971 install.sh:1980 install.sh:2003
+#: install.sh:1073 install.sh:1081 install.sh:1088 install.sh:1853
+#: install.sh:1923 install.sh:1985 install.sh:1994 install.sh:2017
 msgid "配置修改"
 msgstr "تغییرات پیکربندی"
 
@@ -452,36 +452,36 @@ msgstr "قالب ممکن است با این نسخه سازگار نباشد"
 msgid "是否更新"
 msgstr "آیا به روز رسانی می شود"
 
-#: install.sh:1129 install.sh:1152 install.sh:1390 install.sh:3710
-#: install.sh:3711 install.sh:3712
+#: install.sh:1129 install.sh:1152 install.sh:1404 install.sh:3724
+#: install.sh:3725 install.sh:3726
 msgid "升级"
 msgstr "به روز رسانی"
 
-#: install.sh:1133 install.sh:1357
+#: install.sh:1133 install.sh:1371
 msgid "启动失败"
 msgstr "استارتاپ شکست خورد"
 
-#: install.sh:1134 install.sh:1360
+#: install.sh:1134 install.sh:1374
 msgid "是否回滚到之前的版本"
 msgstr "آیا باید به نسخه قبلی برگردید"
 
-#: install.sh:1138 install.sh:1370
+#: install.sh:1138 install.sh:1384
 msgid "未执行回滚操作"
 msgstr "هیچ عملیاتی برگشت انجام نشده است"
 
-#: install.sh:1141 install.sh:1373
+#: install.sh:1141 install.sh:1387
 msgid "正在回滚"
 msgstr "نورد"
 
-#: install.sh:1145 install.sh:1378
+#: install.sh:1145 install.sh:1392
 msgid "已成功回滚到之前的"
 msgstr "با موفقیت به قبلی برگشت"
 
-#: install.sh:1145 install.sh:1378 install.sh:3727 install.sh:3827
+#: install.sh:1145 install.sh:1392 install.sh:3741 install.sh:3841
 msgid "版本"
 msgstr "نسخه"
 
-#: install.sh:1147 install.sh:1383
+#: install.sh:1147 install.sh:1397
 msgid "回滚失败"
 msgstr "بازگشت برگشت"
 
@@ -537,1163 +537,1167 @@ msgstr "تشخیص داده شده که nginx در سایر بسته های نص
 msgid "即将下载已编译的"
 msgstr "در حال دانلود کردن کد شده"
 
-#: install.sh:1303 install.sh:1304 install.sh:1311 install.sh:1312
+#: install.sh:1267
+msgid "不支持的系统架构"
+msgstr "در حال دانلود کردن کد شده"
+
+#: install.sh:1317 install.sh:1318 install.sh:1325 install.sh:1326
 msgid "配置文件不完整, 退出升级"
 msgstr "پرونده‌ی کاربری ناقص است، بروز رسانی متوقف می‌شود"
 
-#: install.sh:1316 install.sh:1317
+#: install.sh:1330 install.sh:1331
 msgid "当前安装模式不需要"
 msgstr "قالب نصب فعلی besoin"
 
-#: install.sh:1321 install.sh:1322
+#: install.sh:1335 install.sh:1336
 msgid "配置文件不存在, 退出升级"
 msgstr "پرونده پیکربندی موجود نیست، بروز رسانی خارج شد"
 
-#: install.sh:1328
+#: install.sh:1342
 msgid "备份旧版"
 msgstr "پشتیبانی از نسخه قدیمی"
 
-#: install.sh:1329
+#: install.sh:1343
 msgid "删除旧版"
 msgstr "حذف نسخه قدیمی"
 
-#: install.sh:1333
+#: install.sh:1347
 msgid "是否保留原 Nginx 配置文件"
 msgstr "آیا فایل های پیکربندی اصلی nginx حفظ می شوند؟"
 
-#: install.sh:1341 install.sh:1660
+#: install.sh:1355 install.sh:1674
 msgid "原配置文件已删除"
 msgstr "پروندهٔ اصلی حذف شده است"
 
-#: install.sh:1345
+#: install.sh:1359
 msgid "原配置文件已保留"
 msgstr "پروندهٔ اصلی حفظ شده است"
 
-#: install.sh:1392 install.sh:3733
+#: install.sh:1406 install.sh:3747
 msgid "删除"
 msgstr "حذف"
 
-#: install.sh:1392 install.sh:3755
+#: install.sh:1406 install.sh:3769
 msgid "备份"
 msgstr "تهیه نسخه پشتیبان"
 
-#: install.sh:1395
+#: install.sh:1409
 msgid "已为最新版"
 msgstr "از جدیدترین نسخه استudded"
 
-#: install.sh:1410
+#: install.sh:1424
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr "تنظیم به روز رسانی خودکار پس زمینه برنامه (شامل: اسکریپت / xray / nginx)"
 
-#: install.sh:1411
+#: install.sh:1425
 msgid "可能自动更新后有兼容问题, 谨慎开启"
 msgstr "شاید پس از به روز رسانی خودکار مشکلات سازگاری وجود داشته باشد، بازخورد را با دقت روشن کنید"
 
-#: install.sh:1412
+#: install.sh:1426
 msgid "是否开启"
 msgstr "آیا فعال شود؟"
 
-#: install.sh:1418 install.sh:3402
+#: install.sh:1432 install.sh:3416
 msgid "设置自动更新"
 msgstr "تنظیم بهروزی خودکار"
 
-#: install.sh:1423
+#: install.sh:1437
 msgid "已设置自动更新"
 msgstr "تنظیم به روز رسانی خودکار شده است"
 
-#: install.sh:1424
+#: install.sh:1438
 msgid "是否关闭"
 msgstr "آیا بسته شود؟"
 
-#: install.sh:1430
+#: install.sh:1444
 msgid "删除自动更新"
 msgstr "حذف به روز رسانی خودکار"
 
-#: install.sh:1439
+#: install.sh:1453
 msgid "安装 SSL 证书生成脚本依赖"
 msgstr "نصب اس اس ال گواهینامه به کمک اسکریپت ها"
 
-#: install.sh:1441
+#: install.sh:1455
 msgid "安装 SSL 证书生成脚本"
 msgstr "نصب اسکریپت گенراتور گواهنامه ssl"
 
-#: install.sh:1447
+#: install.sh:1461
 msgid "检测到原域名配置存在, 是否跳过域名设置"
 msgstr "تشخیص داده شد که پیکربندی دامنه اصلی موجود است، آیا می‌خواهید تنظیمات دامنه را رد کنید؟"
 
-#: install.sh:1462 install.sh:1499 install.sh:1550 install.sh:1583
+#: install.sh:1476 install.sh:1513 install.sh:1564 install.sh:1597
 msgid "无法获取公网IP地址"
 msgstr "به دست آوردن آدرس ip عمومی امکان پذیر نیست"
 
-#: install.sh:1462 install.sh:1499 install.sh:1522 install.sh:1550
-#: install.sh:1583
+#: install.sh:1476 install.sh:1513 install.sh:1536 install.sh:1564
+#: install.sh:1597
 msgid "安装终止"
 msgstr "نصب پایان یافتن"
 
-#: install.sh:1465
+#: install.sh:1479
 msgid "已跳过域名设置"
 msgstr "تخطی شد تنظیمات دامنه"
 
-#: install.sh:1471
+#: install.sh:1485
 msgid "确定域名信息"
 msgstr "تعیین اطلاعات نام دامنه"
 
-#: install.sh:1472
+#: install.sh:1486
 msgid "请输入你的域名信息"
 msgstr "لطفا اطلاعات دامنه خود را وارد کنید"
 
-#: install.sh:1473
+#: install.sh:1487
 msgid "请选择公网IP(IPv4/IPv6)或手动输入域名"
 msgstr "لطفاً ip عام (ipv4/ipv6) را انتخاب کنید یا دامنه را دستی وارد کنید"
 
-#: install.sh:1475 install.sh:1563
+#: install.sh:1489 install.sh:1577
 msgid "不推荐"
 msgstr "پیشنهاد نمی‌شود"
 
-#: install.sh:1479 install.sh:1568
+#: install.sh:1493 install.sh:1582
 msgid "正在获取公网IP信息, 请耐心等待"
 msgstr "در حال دریافت اطلاعات آدرس آی‌پی عمومی، لطفاً صبور باشید"
 
-#: install.sh:1489
+#: install.sh:1503
 msgid "此选项用于服务器商仅提供域名访问服务器"
 msgstr "این گزینه برای فروشندگان هاست است که فقط از طریق نام دامنه به سرور دسترسی دارند"
 
-#: install.sh:1490
+#: install.sh:1504
 msgid "注意服务器商域名添加 CNAME 记录"
 msgstr "توجه داده کنید که فرملند دامنه فروشگاهی خود را cname رکورد اضافه کنید"
 
-#: install.sh:1502
+#: install.sh:1516
 msgid "域名DNS解析IP"
 msgstr "نام دامنه dns به ip ترجمه می شود"
 
-#: install.sh:1503 install.sh:1586
+#: install.sh:1517 install.sh:1600
 msgid "公网IP/域名"
 msgstr "آدرس آی‌پی عام/نام دامنه"
 
-#: install.sh:1505
+#: install.sh:1519
 msgid "域名DNS解析IP与公网IP匹配"
 msgstr "نام دومین (dns) ip متناظر با ip عمومی مطابقت دارد"
 
-#: install.sh:1507
+#: install.sh:1521
 msgid "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray"
 msgstr "لطفا مطمئن شوید که دامنه صحیح رکورد a/aaaa اضافه شده است، در غیر این صورت xray به درستی کار نخواهد کرد"
 
-#: install.sh:1508
+#: install.sh:1522
 msgid "域名DNS解析IP与公网IP不匹配, 请选择"
 msgstr "نام دومین (dns) پیکربندی شده ip و ip عمومی مطابقت ندارد، لطفا انتخاب کنید"
 
-#: install.sh:1509 install.sh:1516
+#: install.sh:1523 install.sh:1530
 msgid "继续安装"
 msgstr "ادامه نصب"
 
-#: install.sh:1510
+#: install.sh:1524
 msgid "重新输入"
 msgstr "دوباره وارد کنید"
 
-#: install.sh:1511
+#: install.sh:1525
 msgid "终止安装"
 msgstr "انصراف از نصب"
 
-#: install.sh:1533
+#: install.sh:1547
 msgid "检测到原IP配置存在, 是否跳过IP设置"
 msgstr "ip پیکربندی اصلی تشخیص داده شده است، آیا ip را نمی گذراند؟"
 
-#: install.sh:1554
+#: install.sh:1568
 msgid "已跳过IP设置"
 msgstr "از تنظیمات ip گذشت شده است"
 
-#: install.sh:1560
+#: install.sh:1574
 msgid "确定公网IP信息"
 msgstr "تعیین اطلاعات آدرس آی پی همگانی"
 
-#: install.sh:1561
+#: install.sh:1575
 msgid "请选择公网IP为IPv4或IPv6"
 msgstr "لطفاً آدرس ip سرور را یا به پروتکل ipv4 و یا به پروتکل ipv6 انتخاب کنید"
 
-#: install.sh:1564
+#: install.sh:1578
 msgid "手动输入"
 msgstr "ورود دستی"
 
-#: install.sh:1591
+#: install.sh:1605
 msgid "端口未被占用"
 msgstr "بندر اشغال نشده است"
 
-#: install.sh:1593
+#: install.sh:1607
 msgid "检测到"
 msgstr "تشخیص داده شد"
 
-#: install.sh:1593
+#: install.sh:1607
 msgid "端口被占用"
 msgstr "نوعی برنامه یا سرویس در این پورت فعال است"
 
-#: install.sh:1593
+#: install.sh:1607
 msgid "以下为"
 msgstr "زیرا"
 
-#: install.sh:1593
+#: install.sh:1607
 msgid "端口占用信息"
 msgstr "اطلاعات درباره یک پورت مشغول"
 
-#: install.sh:1595
+#: install.sh:1609
 msgid "尝试终止占用的进程"
 msgstr "سعي برای خاتمه دادن به فرآيند حاكم علينصند"
 
-#: install.sh:1606
+#: install.sh:1620
 msgid "证书测试签发成功, 开始正式签发"
 msgstr "مجوز تست به موفقیت صادر شد، شروع به صادر کردن رسمی کنید"
 
-#: install.sh:1609
+#: install.sh:1623
 msgid "证书测试签发失败"
 msgstr "گواهی گرفتن در طی فرآیند تست شکنی رخ داد"
 
-#: install.sh:1616
+#: install.sh:1630
 msgid "证书生成成功"
 msgstr "گواهینامه با موفقیت ایجاد شد"
 
-#: install.sh:1622
+#: install.sh:1636
 msgid "证书配置成功"
 msgstr "گواهی با موفقیت کانفیگوره شده"
 
-#: install.sh:1626
+#: install.sh:1640
 msgid "证书生成失败"
 msgstr "گواهی تولید نشد"
 
-#: install.sh:1654
+#: install.sh:1668
 msgid "检测到 Xray 配置过多用户"
 msgstr "تشخیص از کانفیگ xray برای تعداد زیادی کاربر"
 
-#: install.sh:1655
+#: install.sh:1669
 msgid "是否保留原 Xray 配置文件"
 msgstr "آیا فایل های پیکربندی xray باقی ماند؟"
 
-#: install.sh:1673
+#: install.sh:1687
 msgid "添加简单 ws/gRPC 协议"
 msgstr "افزودن پروتکل ساده ws/grpc"
 
-#: install.sh:1688
+#: install.sh:1702
 msgid "检测到配置文件, 是否读取配置文件"
 msgstr "تشخیص فایل پیکربندی، آیا از فایل پیکربندی خواند خواهد شد"
 
-#: install.sh:1693 install.sh:1714 install.sh:1810 install.sh:3024
+#: install.sh:1707 install.sh:1728 install.sh:1824 install.sh:3038
 msgid "已删除配置文件"
 msgstr "حذف شده پرونده سازنده"
 
-#: install.sh:1696 install.sh:1709 install.sh:1805 install.sh:3020
+#: install.sh:1710 install.sh:1723 install.sh:1819 install.sh:3034
 msgid "已保留配置文件"
 msgstr "پرونده ذخیره شده است"
 
-#: install.sh:1703
+#: install.sh:1717
 msgid "检测到当前安装模式与配置文件的安装模式不一致"
 msgstr "شناسایی شد که حالت نصب فعلی با حالت نصب در فایل متفاوت است"
 
-#: install.sh:1704
+#: install.sh:1718
 msgid "是否保留配置文件 (强烈不建议)"
 msgstr "آیا پروفایل حفظ شود (بسیار توصیه نمی‌شود)"
 
-#: install.sh:1708
+#: install.sh:1722
 msgid "请务必确保配置文件正确"
 msgstr "لطفا مطمئن شوید که فایل پیکربندی صحیح است"
 
-#: install.sh:1800
+#: install.sh:1814
 msgid "检测到配置文件不完整, 是否保留配置文件"
 msgstr "تشخیص عدم کامل بودن فایل پیکربندی، آیا مایلید فایل پیکربندی را حفظ کنید؟"
 
-#: install.sh:1987
+#: install.sh:2001
 msgid "配置删除"
 msgstr "configurer حذف"
 
-#: install.sh:2008
+#: install.sh:2022
 msgid "设置 Nginx 开机自启"
 msgstr "تنظیم نگینکس برای شروع خودکار در زمان راه‌اندازی سیستم"
 
-#: install.sh:2011 install.sh:3746 install.sh:3749 install.sh:3750
-#: install.sh:3751 fail2ban_manager.sh:10
+#: install.sh:2025 install.sh:3760 install.sh:3763 install.sh:3764
+#: install.sh:3765 fail2ban_manager.sh:10
 msgid "设置"
 msgstr "تنظیمات"
 
-#: install.sh:2011 install.sh:2019
+#: install.sh:2025 install.sh:2033
 msgid "开机自启"
 msgstr "اجرای خودکار در هنگام روشن کردن"
 
-#: install.sh:2016
+#: install.sh:2030
 msgid "关闭 Nginx 开机自启"
 msgstr "بستن شروع خودکار nginx در زمان راه‌اندازی سیستم"
 
-#: install.sh:2019
+#: install.sh:2033
 msgid "关闭"
 msgstr "بستن"
 
-#: install.sh:2026
+#: install.sh:2040
 msgid "停止已有服务"
 msgstr "این سرویس را متوقف کنید"
 
-#: install.sh:2032 install.sh:2035 install.sh:2608 install.sh:2610
-#: install.sh:3739 fail2ban_manager.sh:114 fail2ban_manager.sh:204
+#: install.sh:2046 install.sh:2049 install.sh:2622 install.sh:2624
+#: install.sh:3753 fail2ban_manager.sh:114 fail2ban_manager.sh:204
 msgid "重启"
 msgstr "ریستارت کردن"
 
-#: install.sh:2040 install.sh:2043 install.sh:3740 fail2ban_manager.sh:113
+#: install.sh:2054 install.sh:2057 install.sh:3754 fail2ban_manager.sh:113
 #: fail2ban_manager.sh:174
 msgid "启动"
 msgstr "شروع کنید"
 
-#: install.sh:2048 install.sh:2051 install.sh:2111 install.sh:3741
+#: install.sh:2062 install.sh:2065 install.sh:2125 install.sh:3755
 #: fail2ban_manager.sh:115
 msgid "停止"
 msgstr "این دستور متوقف کن"
 
-#: install.sh:2064 install.sh:2080
+#: install.sh:2078 install.sh:2094
 msgid "新版本已自动设置证书自动更新"
 msgstr "نسخه جدید به طور خودکار تنظیم به روز رسانی گواهنامه شده است"
 
-#: install.sh:2065
+#: install.sh:2079
 msgid "老版本请及时删除 废弃的 改版证书自动更新"
 msgstr "نسخه های قدیمی به زودی حذف شوند نسخه جدید گواهی خودکار به روز رسانی می شود"
 
-#: install.sh:2066
+#: install.sh:2080
 msgid "已设置改版证书自动更新"
 msgstr "تنظیم شده است که گواهینامه بازنگری شده به صورت خودکار بروزرسانی شود"
 
-#: install.sh:2067
+#: install.sh:2081
 msgid "是否需要删除改版证书自动更新 (请删除)"
 msgstr "آیا نیاز است گواهینامه بازنگری شده خودکار به روز رسانی شود (لطفا حذف کنید)"
 
-#: install.sh:2074
+#: install.sh:2088
 msgid "删除改版证书自动更新"
 msgstr "حذف گواهی بازنمایی شده به روز رسانی خودکار"
 
-#: install.sh:2098
+#: install.sh:2112
 msgid "已过期"
 msgstr "منقضی شده"
 
-#: install.sh:2100
+#: install.sh:2114
 msgid "证书生成日期"
 msgstr "تاریخ ایجاد گواهینامه"
 
-#: install.sh:2101
+#: install.sh:2115
 msgid "证书生成天数"
 msgstr "تعداد روزهای تولید گواهینامه"
 
-#: install.sh:2102
+#: install.sh:2116
 msgid "证书剩余天数"
 msgstr "مابقی روزهای گواهینامه"
 
-#: install.sh:2106
+#: install.sh:2120
 msgid "是否立即更新证书"
 msgstr "آیا مجوز را همین حالا به روز می کنید؟"
 
-#: install.sh:2118 install.sh:2130
+#: install.sh:2132 install.sh:2144
 msgid "证书签发工具不存在, 请确认是否证书为脚本签发"
 msgstr "ابزار صدور گواهی وجود ندارد، لطفاً مطمئن شوید که گواهی توسط اسکریپت صادر شده است"
 
-#: install.sh:2134
+#: install.sh:2148
 msgid "证书更新"
 msgstr "certificat آپدیت شود"
 
-#: install.sh:2144
+#: install.sh:2158
 msgid "本地文件 fail2ban_manager.sh 不存在, 正在下载"
 msgstr "فایل محلی fail2ban_manager.sh موجود نیست، در حال دانلود آن "
 
-#: install.sh:2158
+#: install.sh:2172
 msgid "检测到日志文件大小如下:"
 msgstr "logfile size detected as follows"
 
-#: install.sh:2160
+#: install.sh:2174
 msgid "即将清除"
 msgstr "به زودی حذف می‌شود"
 
-#: install.sh:2162
+#: install.sh:2176
 msgid "日志清理"
 msgstr "ログクリーニング"
 
-#: install.sh:2172
+#: install.sh:2186
 msgid "已设置旧版自动清理日志任务"
 msgstr "تنظیم شده است که وظیفه تمیز خودکار قدیمی را یادگیری کند"
 
-#: install.sh:2173
+#: install.sh:2187
 msgid "是否需要删除旧版自动清理日志任务"
 msgstr "آیا نیاز است وظیفه خودکار پاک کردن روزانه قدیمی حذف شود"
 
-#: install.sh:2177 install.sh:2211
+#: install.sh:2191 install.sh:2225
 msgid "保留现有自动清理日志任务"
 msgstr "حذف کردن تسک پاکسازی خودکار روزانه لگ ها"
 
-#: install.sh:2182
+#: install.sh:2196
 msgid "删除旧版自动清理日志任务"
 msgstr "حذف وظیفه لاگ تمیز خودکار نسخه قدیمی"
 
-#: install.sh:2189
+#: install.sh:2203
 msgid "是否需要设置自动清理日志"
 msgstr "آیا نیاز است که تمیز خودکار لاگ تنظیم شود"
 
-#: install.sh:2193 install.sh:3771 install.sh:3780 install.sh:3832
-#: install.sh:3838 install.sh:3874 install.sh:3880 install.sh:3886
-#: install.sh:3915 install.sh:3950 install.sh:3957 install.sh:3962
+#: install.sh:2207 install.sh:3785 install.sh:3794 install.sh:3846
+#: install.sh:3852 install.sh:3888 install.sh:3894 install.sh:3900
+#: install.sh:3929 install.sh:3964 install.sh:3971 install.sh:3976
 #: fail2ban_manager.sh:175 fail2ban_manager.sh:188 fail2ban_manager.sh:197
 #: fail2ban_manager.sh:205
 msgid "清空屏幕"
 msgstr "پاک کردن صفحه نمایش"
 
-#: install.sh:2197
+#: install.sh:2211
 msgid "将在 每周三 04:00 自动清空日志"
 msgstr "خروج از سیستم در روزهای چهارشنبه هر هفته در ساعت ۴:۰۰ صبح خودکار انجام می‌شود"
 
-#: install.sh:2202
+#: install.sh:2216
 msgid "已设置自动清理日志任务"
 msgstr " تنظیم کردن وظیفه پاک کردن خودکار لاگ ها"
 
-#: install.sh:2203
+#: install.sh:2217
 msgid "是否需要删除现有自动清理日志任务"
 msgstr "آیا نیاز است که وظیفه خودکار پاک کردن روزانه ی ثبت ها حذف شود"
 
-#: install.sh:2208
+#: install.sh:2222
 msgid "删除自动清理日志任务"
 msgstr "حذف وظیفه تمیز خودکار لاگ"
 
-#: install.sh:2226
+#: install.sh:2240
 msgid "设置自动清理日志"
 msgstr "تنظیم خودکار پاک کردن لگ ها"
 
-#: install.sh:2351
+#: install.sh:2365
 msgid "配置分享"
 msgstr "تعداد کاربرانی که می توانند یک پروتکل را در یک بازه زمانی مشترک داشته باشند را تنظیم کنید"
 
-#: install.sh:2353 install.sh:2359 install.sh:2364 install.sh:2369
-#: install.sh:2373 install.sh:2781
+#: install.sh:2367 install.sh:2373 install.sh:2378 install.sh:2383
+#: install.sh:2387 install.sh:2795
 msgid "分享链接"
 msgstr "لینک را به اشتراک بگذارید"
 
-#: install.sh:2354 install.sh:2360 install.sh:2365 install.sh:2370
-#: install.sh:2374
+#: install.sh:2368 install.sh:2374 install.sh:2379 install.sh:2384
+#: install.sh:2388
 msgid "二维码"
 msgstr "کد qr"
 
-#: install.sh:2383
+#: install.sh:2397
 msgid "生成分享链接"
 msgstr "ساخت لینک به_partagenشareth"
 
-#: install.sh:2397 install.sh:2400 install.sh:2403 install.sh:2406
-#: install.sh:2409 install.sh:2412 install.sh:2415 install.sh:2418
-#: install.sh:2421 install.sh:2424
+#: install.sh:2411 install.sh:2414 install.sh:2417 install.sh:2420
+#: install.sh:2423 install.sh:2426 install.sh:2429 install.sh:2432
+#: install.sh:2435 install.sh:2438
 msgid "安装成功"
 msgstr "نصب موفقیت آمیز بود"
 
-#: install.sh:2428
+#: install.sh:2442
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr "در حال حاضر، قوانین لینک به اشتراک گذاری در مرحله آزمایشی هستند، لطفاً خودتان بررسی کنید که آیا مناسب است یا نه"
 
-#: install.sh:2430 install.sh:3737
+#: install.sh:2444 install.sh:3751
 msgid "配置信息"
 msgstr "اطلاعات پیکربندی"
 
-#: install.sh:2431
+#: install.sh:2445
 msgid "主机"
 msgstr "میزبان"
 
-#: install.sh:2455
+#: install.sh:2469
 msgid "用户id"
 msgstr "شناسه کاربری"
 
-#: install.sh:2457
+#: install.sh:2471
 msgid "加密"
 msgstr "رمزگذاری"
 
-#: install.sh:2458
+#: install.sh:2472
 msgid "传输协议"
 msgstr "پروتکل انتقال"
 
-#: install.sh:2459
+#: install.sh:2473
 msgid "底层传输安全"
 msgstr "امنیت حمل ارتباطات پایین سطح"
 
-#: install.sh:2462 install.sh:2466 install.sh:2479 install.sh:2485
+#: install.sh:2476 install.sh:2480 install.sh:2493 install.sh:2499
 msgid "路径"
 msgstr "مسیر"
 
-#: install.sh:2462 install.sh:2466 install.sh:2479 install.sh:2485
+#: install.sh:2476 install.sh:2480 install.sh:2493 install.sh:2499
 msgid "不要落下"
 msgstr "نباشید"
 
-#: install.sh:2464 install.sh:2467 install.sh:2482 install.sh:2487
+#: install.sh:2478 install.sh:2481 install.sh:2496 install.sh:2501
 msgid "不需要加"
 msgstr "بدون نیاز به افزودن"
 
-#: install.sh:2470
+#: install.sh:2484
 msgid "流控"
 msgstr "کنترل جریان"
 
-#: install.sh:2501
+#: install.sh:2515
 msgid "即将申请证书, 支持使用自定义证书"
 msgstr "در حال درخواست گواهینامه ، پشتیبانی از استفاده از گواهینامه سفارشی"
 
-#: install.sh:2502
+#: install.sh:2516
 msgid "如需使用自定义证书, 请按如下步骤:"
 msgstr "برای استفاده از گواهی سفارشی ، لطفاً مراحل زیر را دنبال کنید"
 
-#: install.sh:2503
+#: install.sh:2517
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr "۱. نام فایل مجوز را تغییر دادن: کلید خصوصی (xray.key)، مجوز (xray.crt)"
 
-#: install.sh:2504
+#: install.sh:2518
 msgid "2. 将重命名后的证书文件放入"
 msgstr "2. فایل گواهی با نام جدید را قرار دادید"
 
-#: install.sh:2504
+#: install.sh:2518
 msgid "目录后再运行脚本"
 msgstr "فهرست سپس اسکریپت را اجرا کنید"
 
-#: install.sh:2505
+#: install.sh:2519
 msgid "3. 重新运行脚本"
 msgstr "۳. مجدد اسکریپت را اجرا کنید"
 
-#: install.sh:2506 install.sh:2939
+#: install.sh:2520 install.sh:2953
 msgid "是否继续"
 msgstr "آیا ادامه دادن؟"
 
-#: install.sh:2514
+#: install.sh:2528
 msgid "所有证书文件均已存在, 是否保留"
 msgstr "تمام فایل‌های گواهی موجود هستند، آیا مورد حفظ قرار گرفته شوند؟"
 
-#: install.sh:2520 install.sh:2535 install.sh:2551 file_manager.sh:167
+#: install.sh:2534 install.sh:2549 install.sh:2565 file_manager.sh:167
 msgid "已删除"
 msgstr "حذف شده"
 
-#: install.sh:2526 install.sh:2541 install.sh:2558
+#: install.sh:2540 install.sh:2555 install.sh:2572
 msgid "证书应用"
 msgstr "گواهینامه استفاده شود"
 
-#: install.sh:2530
+#: install.sh:2544
 msgid "证书文件已存在, 是否保留"
 msgstr "فایل گواهی موجود است، آیا باید نگهداری شود؟"
 
-#: install.sh:2546
+#: install.sh:2560
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr "فایل های باقی مانده از صدور گواهینامه وجود دارند، آیا باید نگهداری شوند؟"
 
-#: install.sh:2588 install.sh:3732
+#: install.sh:2602 install.sh:3746
 msgid "添加"
 msgstr "اضافه کردن"
 
-#: install.sh:2595
+#: install.sh:2609
 msgid "请选择支持的 TLS 版本"
 msgstr "لطفا نسخه پروتکل tls را انتخاب کنید"
 
-#: install.sh:2596
+#: install.sh:2610
 msgid "建议选择 TLS1.3 only (安全模式)"
 msgstr "پیشنهاد می‌شود تنها tls1.3 (حالت امن) را انتخاب کنید"
 
-#: install.sh:2597
+#: install.sh:2611
 msgid "兼容模式"
 msgstr "حالت سازگاری"
 
-#: install.sh:2598
+#: install.sh:2612
 msgid "安全模式"
 msgstr "حالت امنیتی"
 
-#: install.sh:2602
+#: install.sh:2616
 msgid "由于 h3 仅支持 TLS1.3, 只支持 TLS1.3 only (安全模式)"
 msgstr "از آنجا که h3 فقط از tls1.3 پشتیبانی می کند ، فقط از tls1.3 (حالت ایمن) پشتیبانی می کند"
 
-#: install.sh:2606
+#: install.sh:2620
 msgid "已切换至"
 msgstr "تغییر به"
 
-#: install.sh:2612
+#: install.sh:2626
 msgid "Nginx/配置文件不存在 或 当前模式不支持"
 msgstr "nginx/فایل مورد نیاز وجود ندارد یا حالت فعلی پشتیبانی آن را فرا نمی‌گیرد"
 
-#: install.sh:2633 install.sh:2703 install.sh:2727 install.sh:2796
-#: install.sh:2846 install.sh:2905 install.sh:2957
+#: install.sh:2647 install.sh:2717 install.sh:2741 install.sh:2810
+#: install.sh:2860 install.sh:2919 install.sh:2971
 msgid "请先安装"
 msgstr "لطفاً ابتدا نصب کنید"
 
-#: install.sh:2725
+#: install.sh:2739
 msgid "此模式不支持修改"
 msgstr "این الگو حمایت از ویرایش را ندارد"
 
-#: install.sh:2734
+#: install.sh:2748
 msgid "即将显示用户, 一次仅能显示一个"
 msgstr "به زودی کاربر نمایش داده می‌شود، فقط یک کاربر در باره نمایش داده می‌شود"
 
-#: install.sh:2736
+#: install.sh:2750
 msgid "请选择显示用户使用的协议"
 msgstr "لطفا پروتکلی را انتخاب کنید که کاربران از آن استفاده می‌کنند"
 
-#: install.sh:2746
+#: install.sh:2760
 msgid "请选择要显示的用户编号"
 msgstr "لطفا کد کاربری را انتخاب کنید"
 
-#: install.sh:2751 install.sh:2762 install.sh:2871 install.sh:2894
+#: install.sh:2765 install.sh:2776 install.sh:2885 install.sh:2908
 msgid "选择错误"
 msgstr "انتخاب اشتباه"
 
-#: install.sh:2754
+#: install.sh:2768
 msgid "请直接在主菜单选择 [15] 显示主用户"
 msgstr "لطفاً در منوی اصلی، گزینه [15] نمایش کاربر اصلی را انتخاب کنید"
 
-#: install.sh:2755 install.sh:2766 install.sh:2876 install.sh:2898
-#: install.sh:3844 install.sh:3849 install.sh:3854 install.sh:3899
-#: install.sh:3904 install.sh:3909 install.sh:3929
+#: install.sh:2769 install.sh:2780 install.sh:2890 install.sh:2912
+#: install.sh:3858 install.sh:3863 install.sh:3868 install.sh:3913
+#: install.sh:3918 install.sh:3923 install.sh:3943
 msgid "回到菜单"
 msgstr "برو به منو"
 
-#: install.sh:2765 install.sh:2897
+#: install.sh:2779 install.sh:2911
 msgid "请先检测 Xray 是否正确安装"
 msgstr "لطفاً قبل از هرچیز xray را بررسی کنید که نصب شده است"
 
-#: install.sh:2785
+#: install.sh:2799
 msgid "是否继续显示用户"
 msgstr "آیا نمایش ادامه یابد برای کاربر"
 
-#: install.sh:2794 install.sh:2903
+#: install.sh:2808 install.sh:2917
 msgid "此模式不支持删除用户"
 msgstr "این الگو حذف کاربر را پشتیبانی نمی کند"
 
-#: install.sh:2805
+#: install.sh:2819
 msgid "即将添加用户, 一次仅能添加一个"
 msgstr "به زودی کاربران اضافه می‌شوند، فقط یک کاربر در باره اول اضافه می‌شود"
 
-#: install.sh:2807
+#: install.sh:2821
 msgid "请选择添加用户使用的协议"
 msgstr "لطفا پروتکلی را انتخاب کنید که کاربران از آن استفاده می‌کنند"
 
-#: install.sh:2829
+#: install.sh:2843
 msgid "添加用户"
 msgstr "اضافه کردن کاربر"
 
-#: install.sh:2834
+#: install.sh:2848
 msgid "是否继续添加用户"
 msgstr "آیا می‌خواهید کاربران دیگری اضافه شوند؟"
 
-#: install.sh:2844
+#: install.sh:2858
 msgid "此模式不支持添加用户"
 msgstr "این الگو پشتیبانی از افزودن کاربران را ندارد"
 
-#: install.sh:2854
+#: install.sh:2868
 msgid "即将删除用户, 一次仅能删除一个"
 msgstr "به زودی کاربر حذف می‌شود، در هر مرحله فقط یک کاربر حذف می‌شود"
 
-#: install.sh:2856
+#: install.sh:2870
 msgid "请选择删除用户使用的协议"
 msgstr "لطفا پروتکلی که کاربر استفاده می کند را حذف کنید"
 
-#: install.sh:2866
+#: install.sh:2880
 msgid "请选择要删除的用户编号"
 msgstr "لطفا کد کاربری حذف شده را انتخاب کنید"
 
-#: install.sh:2875
+#: install.sh:2889
 msgid "请直接在主菜单修改主用户的"
 msgstr "لطفاً در منوی اصلی، کاربر اصلی را ویرایش کنید"
 
-#: install.sh:2882
+#: install.sh:2896
 msgid "删除用户"
 msgstr "حذف کاربر"
 
-#: install.sh:2885
+#: install.sh:2899
 msgid "是否继续删除用户"
 msgstr "آیا می‌خواهید کاربر حذف شود؟"
 
-#: install.sh:2910 install.sh:2914
+#: install.sh:2924 install.sh:2928
 msgid "文件不存在"
 msgstr "فایل موجود نیست"
 
-#: install.sh:2921
+#: install.sh:2935
 msgid "已配置 Xray 流量统计"
 msgstr "ایجاد آمار جریان xray"
 
-#: install.sh:2922
+#: install.sh:2936
 msgid "是否需要关闭此功能"
 msgstr "آیا نیاز است این قابلیت خاموش شود"
 
-#: install.sh:2928
+#: install.sh:2942
 msgid "关闭 Xray 流量统计"
 msgstr "بستن آمار جریان xray"
 
-#: install.sh:2937
+#: install.sh:2951
 msgid "流量统计需要使用"
 msgstr "آمار جریان باید از روشی استفاده کند"
 
-#: install.sh:2938
+#: install.sh:2952
 msgid "可能会影响 Xray 性能"
 msgstr "شاید به ایجاد تأثیری بر عملکرد xray بپردازد"
 
-#: install.sh:2949
+#: install.sh:2963
 msgid "设置 Xray 流量统计"
 msgstr "تنظیم آمار جریان xray"
 
-#: install.sh:2979 install.sh:2994
+#: install.sh:2993 install.sh:3008
 msgid "已卸载"
 msgstr "از حافظه خارجی حذف شد"
 
-#: install.sh:2982
+#: install.sh:2996
 msgid "是否卸载"
 msgstr "آیا آن را خارج کردن"
 
-#: install.sh:2999
+#: install.sh:3013
 msgid "是否删除所有脚本文件"
 msgstr "آیا تمام فایل‌های اسکریپت حذف شوند؟"
 
-#: install.sh:3006
+#: install.sh:3020
 msgid "已删除所有文件"
 msgstr "حذف شدن تمامی فایل ها"
 
-#: install.sh:3007
+#: install.sh:3021
 msgid "ヾ(￣▽￣) 拜拜~"
 msgstr "چون (￣▽￣) بای بای ~"
 
-#: install.sh:3012
+#: install.sh:3026
 msgid "已保留脚本文件 (包含 SSL 证书等)"
 msgstr "فایل نمایش ذخیره شده (که می‌تواند مجوز ssl و سایر چیزها را شامل شود)"
 
-#: install.sh:3016
+#: install.sh:3030
 msgid "是否保留配置文件"
 msgstr "آیا پروفایل حفظ شود؟"
 
-#: install.sh:3033
+#: install.sh:3047
 msgid "已清空证书遗留文件"
 msgstr "این کار مانیفست فایل های گواهی خالی شده است"
 
-#: install.sh:3063
+#: install.sh:3077
 msgid "秒后"
 msgstr "ثانیه دیگر"
 
-#: install.sh:3226
+#: install.sh:3240
 msgid "检测最新版本失败"
 msgstr "شکست در بررسی آخرین نسخه"
 
-#: install.sh:3235
+#: install.sh:3249
 msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
 msgstr "وجود نسخه جدیدی وجود دارد اما تغییرات زیادی با نسخه قبلی دارد ممکن است سازگاری وجود نداشته باشد آیا مایل به به روز رسانی هستید"
 
-#: install.sh:3238
+#: install.sh:3252
 msgid "存在新版本, 是否更新"
 msgstr "نسخه جدیدی موجود است، آیا می خواهید به روز رسانی شود؟"
 
-#: install.sh:3242
+#: install.sh:3256
 msgid "检测 脚本 最新版本失败"
 msgstr "بررسی آخرین نسخه از فایل اسکریپت با شکست مواجه شد"
 
-#: install.sh:3243
+#: install.sh:3257
 msgid "脚本 版本差别过大, 跳过更新"
 msgstr "سکریپت نسخه های بسیار متفاوتی دارد، به روز رسانی را اجتیاز می کند"
 
-#: install.sh:3253
+#: install.sh:3267
 msgid "更新完成"
 msgstr "به‌روزرسانی انجام شد"
 
-#: install.sh:3254 install.sh:3447
+#: install.sh:3268 install.sh:3461
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
 msgstr "نسخه فایل اسکریپت تغییرات زیادی داشته است، در صورتی که خدمات به درستی کار نکنند، لطفاً آنها را حذف و مجدداً نصب کنید"
 
-#: install.sh:3260
+#: install.sh:3274
 msgid "当前版本为最新版本"
 msgstr "نسخه فعلی آخرین نسخه است"
 
-#: install.sh:3272 install.sh:3434 install.sh:3445 install.sh:3457
+#: install.sh:3286 install.sh:3448 install.sh:3459 install.sh:3471
 msgid "下载最新脚本"
 msgstr "دانلود آخرین فایل اسکریپت"
 
-#: install.sh:3286
+#: install.sh:3300
 msgid "该选项暂时无法使用"
 msgstr "این گزینه به طور موقت در دسترس نیست"
 
-#: install.sh:3305 install.sh:3798
+#: install.sh:3319 install.sh:3812
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr "این الگو برای بار متعادل کردن توصیه می‌شود، به طور کلی پیشنهاد استفاده نمی‌شود، آیا نصب شود"
 
-#: install.sh:3400 install.sh:3401 install.sh:3410 install.sh:3413
-#: install.sh:3417 install.sh:3724 install.sh:3725 install.sh:3726
-#: install.sh:3727 install.sh:3728 install.sh:3729 install.sh:3812
-#: install.sh:3817 install.sh:3822 install.sh:3827
+#: install.sh:3414 install.sh:3415 install.sh:3424 install.sh:3427
+#: install.sh:3431 install.sh:3738 install.sh:3739 install.sh:3740
+#: install.sh:3741 install.sh:3742 install.sh:3743 install.sh:3826
+#: install.sh:3831 install.sh:3836 install.sh:3841
 msgid "变更"
 msgstr "تغییر"
 
-#: install.sh:3400 install.sh:3728
+#: install.sh:3414 install.sh:3742
 msgid "负载均衡配置"
 msgstr "پیکربندی متعادل کننده بار"
 
-#: install.sh:3403
+#: install.sh:3417
 msgid "清除日志文件"
 msgstr "حذف فایل‌های لاگ"
 
-#: install.sh:3404
+#: install.sh:3418
 msgid "查看证书状态"
 msgstr "مشاهده وضعیت گواهینامه"
 
-#: install.sh:3405
+#: install.sh:3419
 msgid "更新证书有效期"
 msgstr "به روز رسانی مدت اعتبار گواهینامه"
 
-#: install.sh:3406
+#: install.sh:3420
 msgid "设置证书自动更新"
 msgstr "تنظیم به روز رسانی خودکار گواهنامه"
 
-#: install.sh:3407
+#: install.sh:3421
 msgid "设置 Fail2ban 防暴力破解"
 msgstr "تنظیم fail2ban برای جلوگیری از حملات دسته جمعی"
 
-#: install.sh:3408
+#: install.sh:3422
 msgid "显示帮助"
 msgstr "نمایش کمک"
 
-#: install.sh:3409 install.sh:3420 install.sh:3745
+#: install.sh:3423 install.sh:3434 install.sh:3759
 msgid "更新"
 msgstr "به‌روز رسانی"
 
-#: install.sh:3411
+#: install.sh:3425
 msgid "脚本卸载"
 msgstr "فایل اسکریپت بارگذاری نشده"
 
-#: install.sh:3412
+#: install.sh:3426
 msgid "显示安装信息"
 msgstr "نمایش اطلاعات نصب"
 
-#: install.sh:3414 install.sh:3749
+#: install.sh:3428 install.sh:3763
 msgid "加速"
 msgstr "سرعت دادن"
 
-#: install.sh:3416
+#: install.sh:3430
 msgid "升级脚本"
 msgstr "به روز رسانی اسکریپت"
 
-#: install.sh:3418 install.sh:3419
+#: install.sh:3432 install.sh:3433
 msgid "显示"
 msgstr "نمایش"
 
-#: install.sh:3418
+#: install.sh:3432
 msgid "访问信息"
 msgstr "بازدید از اطلاعات"
 
-#: install.sh:3419
+#: install.sh:3433
 msgid "错误信息"
 msgstr "پیام خطا"
 
-#: install.sh:3439
+#: install.sh:3453
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr "نسخه فایل اسکریپت تغییر زیادی داشته است، شاید سازگاری میان نسخه ها وجود نداشته باشد، آیا ادامه استفاده از آن مورد نظر شماست؟"
 
-#: install.sh:3464
+#: install.sh:3478
 msgid "检测失败"
 msgstr "آزمایش شکست خورد"
 
-#: install.sh:3468 install.sh:3478 install.sh:3487
+#: install.sh:3482 install.sh:3492 install.sh:3501
 msgid "有新版"
 msgstr "نسخه جدیدی وجود دارد"
 
-#: install.sh:3471 install.sh:3480 install.sh:3490
+#: install.sh:3485 install.sh:3494 install.sh:3504
 msgid "最新版"
 msgstr "آخرین نسخه"
 
-#: install.sh:3485
+#: install.sh:3499
 msgid "版本未知"
 msgstr "نسخه مشخص نشده است"
 
-#: install.sh:3505 install.sh:3512
+#: install.sh:3519 install.sh:3526
 msgid "运行中"
 msgstr "در حال اجرا"
 
-#: install.sh:3507 install.sh:3530 install.sh:3532
+#: install.sh:3521 install.sh:3544 install.sh:3546
 msgid "无需测试"
 msgstr "بدون آزمایش"
 
-#: install.sh:3509 install.sh:3514
+#: install.sh:3523 install.sh:3528
 msgid "未运行"
 msgstr "کار نکرده است"
 
-#: install.sh:3524
+#: install.sh:3538
 msgid "无法连通"
 msgstr "نمی‌توان ارتباط برقرار کرد"
 
-#: install.sh:3526 install.sh:3527 install.sh:3528
+#: install.sh:3540 install.sh:3541 install.sh:3542
 msgid "本地正常"
 msgstr "در محل عادی"
 
-#: install.sh:3543
+#: install.sh:3557
 msgid "脚本维护中.. 请稍后再试"
 msgstr "پیکربندی اسکریپت در حال انجام است.. لطفاً کمی صبر کنید و دوباره تلاش کنید"
 
-#: install.sh:3545
+#: install.sh:3559
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr "نمی توان وابسته های مورد نیاز را آنلاین بررسی کرد، لطفا دوباره سعی کنید"
 
-#: install.sh:3562
+#: install.sh:3576
 msgid "请输入数字"
 msgstr "لطفاً عدد وارد کنید"
 
-#: install.sh:3562
+#: install.sh:3576
 msgid "请输入 1 到 5 之间的有效数字"
 msgstr "لطفا یک عدد معتبر از ۱ تا ۵ وارد کنید"
 
-#: install.sh:3583
+#: install.sh:3597
 msgid "无效的选择"
 msgstr "انتخاب نامعتبر"
 
-#: install.sh:3619
+#: install.sh:3633
 msgid "请输入备份名称"
 msgstr "لطفاً نام پشتیبان را وارد کنید"
 
-#: install.sh:3619
+#: install.sh:3633
 msgid "不需要后缀"
 msgstr "پسوند لازم نیست"
 
-#: install.sh:3627
+#: install.sh:3641
 msgid "报错信息"
 msgstr "گزارش یک پیام خطا"
 
-#: install.sh:3629
+#: install.sh:3643
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
 msgstr "egrity ممکن است تحت تأثیر قرار گرفته باشد، لطفاً اطلاعات خطا فوق را بررسی کنید"
 
-#: install.sh:3633
+#: install.sh:3647
 msgid "备份失败"
 msgstr "پشتیبان گیری ناموفق شد"
 
-#: install.sh:3635
+#: install.sh:3649
 msgid "备份成功"
 msgstr "پشتیبان‌گیری موفقیت آمیز بود"
 
-#: install.sh:3641
+#: install.sh:3655
 msgid "请确保备份文件在目录"
 msgstr "لطفا فایل پشتیبان در دایرکتوری را مطمئن شوید"
 
-#: install.sh:3645
+#: install.sh:3659
 msgid "没有找到备份文件"
 msgstr "فایل پشتیبان یافت نشد"
 
-#: install.sh:3650
+#: install.sh:3664
 msgid "发现多个备份文件"
 msgstr "یافتن چندین فایل پشتیبان"
 
-#: install.sh:3650
+#: install.sh:3664
 msgid "将使用最新的文件进行恢复"
 msgstr "از آخرین فایل برای بازیابی استفاده خواهد شد"
 
-#: install.sh:3654
+#: install.sh:3668
 msgid "找到最新备份文件"
 msgstr "یافتن آخرین فایل پشتیبان گرفته شده"
 
-#: install.sh:3656
+#: install.sh:3670
 msgid "恢复备份"
 msgstr "بازیابی نسخه پشتیبان"
 
-#: install.sh:3660
+#: install.sh:3674
 msgid "恢复成功"
 msgstr "بازگشت به حالت اول موفقیت آمیز بود"
 
-#: install.sh:3661 install.sh:3663
+#: install.sh:3675 install.sh:3677
 msgid "记得安装"
 msgstr "به یاد بسپارید که نصب کنید"
 
-#: install.sh:3666
+#: install.sh:3680
 msgid "恢复失败"
 msgstr "بازیابی شکست خورد"
 
-#: install.sh:3675
+#: install.sh:3689
 msgid "检测存在到"
 msgstr "تشخیص وجود"
 
-#: install.sh:3676
+#: install.sh:3690
 msgid "来源于自动清理日志错误的设置"
 msgstr "تنظیمات پاک کردن خودکار خطاهای لگ"
 
-#: install.sh:3677
+#: install.sh:3691
 msgid "开始修复"
 msgstr "شروع به تعمیر"
 
-#: install.sh:3681
+#: install.sh:3695
 msgid "错误的配置文件删除"
 msgstr "پرونده‌ی خطا حذف شد"
 
-#: install.sh:3682
+#: install.sh:3696
 msgid "即将重新设置自动清理日志"
 msgstr "به زودی تمایز بین فایل های لاگ انجام می شود"
 
-#: install.sh:3690
+#: install.sh:3704
 msgid "安装管理脚本"
 msgstr "نصاب اسکریپت مدیریت"
 
-#: install.sh:3691
+#: install.sh:3705
 msgid "作者"
 msgstr "نویسنده"
 
-#: install.sh:3695
+#: install.sh:3709
 msgid "当前模式"
 msgstr "قالب فعلی"
 
-#: install.sh:3696
+#: install.sh:3710
 msgid "当前语言"
 msgstr "زبان فعلی"
 
-#: install.sh:3699
+#: install.sh:3713
 msgid "可以使用"
 msgstr "می توان از آن استفاده کرد"
 
-#: install.sh:3699
+#: install.sh:3713
 msgid "命令管理脚本"
 msgstr "دستور مدیریت فایلهای اسکریپت"
 
-#: install.sh:3701
+#: install.sh:3715
 msgid "版本检测"
 msgstr "ترجمه نسخه بررسی"
 
-#: install.sh:3702 install.sh:3710 install.sh:3758
+#: install.sh:3716 install.sh:3724 install.sh:3772
 msgid "脚本"
 msgstr "سکریپت"
 
-#: install.sh:3705
+#: install.sh:3719
 msgid "运行状态"
 msgstr "وضعیت اجرا"
 
-#: install.sh:3708
+#: install.sh:3722
 msgid "连通性"
 msgstr "ارتباطی"
 
-#: install.sh:3709
+#: install.sh:3723
 msgid "升级向导"
 msgstr "راه‌انداز به‌روز رسانی"
 
-#: install.sh:3719
+#: install.sh:3733
 msgid "安装向导"
 msgstr "راه‌اندازی"
 
-#: install.sh:3723
+#: install.sh:3737
 msgid "配置变更"
 msgstr "تغییرات در تهیه"
 
-#: install.sh:3730
+#: install.sh:3744
 msgid "用户管理"
 msgstr "مدیریت کاربران"
 
-#: install.sh:3731 install.sh:3735 install.sh:3736 install.sh:3737
-#: install.sh:3742 install.sh:3744 fail2ban_manager.sh:15
+#: install.sh:3745 install.sh:3749 install.sh:3750 install.sh:3751
+#: install.sh:3756 install.sh:3758 fail2ban_manager.sh:15
 msgid "查看"
 msgstr "چکیده"
 
-#: install.sh:3731 install.sh:3732 install.sh:3733
+#: install.sh:3745 install.sh:3746 install.sh:3747
 msgid "用户"
 msgstr "کاربر"
 
-#: install.sh:3734
+#: install.sh:3748
 msgid "查看信息"
 msgstr "چک کردن اطلاعات"
 
-#: install.sh:3735
+#: install.sh:3749
 msgid "实时访问日志"
 msgstr "دسترسی زنده به ورودی ها"
 
-#: install.sh:3736
+#: install.sh:3750
 msgid "实时错误日志"
 msgstr "ログリアルタイムエラー"
 
-#: install.sh:3738
+#: install.sh:3752
 msgid "服务相关"
 msgstr "خدمات مربوطه"
 
-#: install.sh:3739 install.sh:3740 install.sh:3741 install.sh:3742
+#: install.sh:3753 install.sh:3754 install.sh:3755 install.sh:3756
 msgid "所有服务"
 msgstr "تمام خدمات"
 
-#: install.sh:3743
+#: install.sh:3757
 msgid "证书相关"
 msgstr "ترجمه مرتبط به گواهی ها"
 
-#: install.sh:3744
+#: install.sh:3758
 msgid "证书状态"
 msgstr "وضعیت گواهی"
 
-#: install.sh:3745
+#: install.sh:3759
 msgid "证书有效期"
 msgstr "مدت اعتبار گواهینامه"
 
-#: install.sh:3746
+#: install.sh:3760
 msgid "证书自动更新"
 msgstr "مجوز به طور خودکار به روز رسانی شده است"
 
-#: install.sh:3747
+#: install.sh:3761
 msgid "其他选项"
 msgstr "سایر گزینه ها"
 
-#: install.sh:3748
+#: install.sh:3762
 msgid "自动更新"
 msgstr "به روز رسانی خودکار"
 
-#: install.sh:3750
+#: install.sh:3764
 msgid "防暴力破解"
 msgstr "جلوگیری از شکستن رمز با استفاده از روش های تجربی"
 
-#: install.sh:3751
+#: install.sh:3765
 msgid "流量统计"
 msgstr "آمار جریان کاربران"
 
-#: install.sh:3752
+#: install.sh:3766
 msgid "清除"
 msgstr "پاک کردن"
 
-#: install.sh:3752
+#: install.sh:3766
 msgid "日志文件"
 msgstr "فایل های لاگ"
 
-#: install.sh:3753
+#: install.sh:3767
 msgid "测试"
 msgstr "آزمون"
 
-#: install.sh:3753
+#: install.sh:3767
 msgid "服务器网速"
 msgstr "سرعت شبکه سرور"
 
-#: install.sh:3754
+#: install.sh:3768
 msgid "备份恢复"
 msgstr "بازیابی از نسخه پشتیبان"
 
-#: install.sh:3755 install.sh:3756
+#: install.sh:3769 install.sh:3770
 msgid "全部文件"
 msgstr "تمامی فایل ها"
 
-#: install.sh:3756
+#: install.sh:3770
 msgid "恢复"
 msgstr "بازگرداندن"
 
-#: install.sh:3757
+#: install.sh:3771
 msgid "卸载向导"
 msgstr "راه‌اندازی دیسک"
 
-#: install.sh:3758 fail2ban_manager.sh:14 fail2ban_manager.sh:187
+#: install.sh:3772 fail2ban_manager.sh:14 fail2ban_manager.sh:187
 msgid "卸载"
 msgstr "برداشتن"
 
-#: install.sh:3759
+#: install.sh:3773
 msgid "清空"
 msgstr "خالی کردن"
 
-#: install.sh:3759
+#: install.sh:3773
 msgid "证书文件"
 msgstr "فایل گواهی"
 
-#: install.sh:3760 fail2ban_manager.sh:16 file_manager.sh:196
+#: install.sh:3774 fail2ban_manager.sh:16 file_manager.sh:196
 msgid "退出"
 msgstr "خروج"
 
-#: install.sh:3763
+#: install.sh:3777
 msgid "请输入选项"
 msgstr "لطفاً گزینه را وارد کنید"
 
-#: install.sh:3763
+#: install.sh:3777
 msgid "请输入 0 到 36 之间的有效数字"
 msgstr "عدد معتبری از ۰ تا ۳۶ وارد کنید"
 
-#: install.sh:3777
+#: install.sh:3791
 msgid "不建议"
 msgstr "پیشنهاد نمی‌شود"
 
-#: install.sh:3777
+#: install.sh:3791
 msgid "频繁升级 Nginx, 请确认 Nginx 有升级的必要"
 msgstr "به طور مداوم نگینکس را به روز رسانی کنید، لطفا مطمئن شوید نیاز به به روز رسانی نگینکس وجود دارد"
 
-#: install.sh:3778
+#: install.sh:3792
 msgid "开始升级"
 msgstr "شروع به به روز رسانی"
 
-#: install.sh:3972
+#: install.sh:3986
 msgid "请输入正确的数字"
 msgstr "لطفاً عدد صحیح وارد کنید"
 
@@ -1813,43 +1817,43 @@ msgstr "وضعیت کلی"
 msgid "默认启用的 Jail 状态"
 msgstr "وضعیت پیش‌فرض فعال شدهٔ زیال"
 
-#: fail2ban_manager.sh:221 fail2ban_manager.sh:224 fail2ban_manager.sh:228
+#: fail2ban_manager.sh:221 fail2ban_manager.sh:224 fail2ban_manager.sh:229
 msgid "封锁情况"
 msgstr "بند کردن وضعیت"
 
-#: fail2ban_manager.sh:242 file_manager.sh:220
+#: fail2ban_manager.sh:244 file_manager.sh:220
 msgid "新版本可用"
 msgstr "نسخه جدید در دسترس است"
 
-#: fail2ban_manager.sh:242 file_manager.sh:220
+#: fail2ban_manager.sh:244 file_manager.sh:220
 msgid "当前版本"
 msgstr "نسخه فعلی"
 
-#: fail2ban_manager.sh:243 file_manager.sh:221
+#: fail2ban_manager.sh:245 file_manager.sh:221
 msgid "请访问"
 msgstr "لطفا بازدید کنید"
 
-#: fail2ban_manager.sh:243 file_manager.sh:221
+#: fail2ban_manager.sh:245 file_manager.sh:221
 msgid "查看更新说明"
 msgstr "مشاهده ملاحظات بروز رسانی"
 
-#: fail2ban_manager.sh:245 file_manager.sh:223
+#: fail2ban_manager.sh:247 file_manager.sh:223
 msgid "是否要下载并安装新版本"
 msgstr "آیا می‌خواهید نسخه جدید را دانلود و نصب کنید؟"
 
-#: fail2ban_manager.sh:249 file_manager.sh:227
+#: fail2ban_manager.sh:251 file_manager.sh:227
 msgid "正在下载新版本"
 msgstr "در حال دانلود نسخه جدید"
 
-#: fail2ban_manager.sh:254 file_manager.sh:232
+#: fail2ban_manager.sh:256 file_manager.sh:232
 msgid "下载完成, 请重新运行脚本"
 msgstr "دانلود کامل شد، لطفا اسکریپت را مجدد اجرا کنید"
 
-#: fail2ban_manager.sh:262 file_manager.sh:240
+#: fail2ban_manager.sh:264 file_manager.sh:240
 msgid "跳过更新"
 msgstr "پرش کردن از روزآمد سازی"
 
-#: fail2ban_manager.sh:266 file_manager.sh:244
+#: fail2ban_manager.sh:268 file_manager.sh:244
 msgid "当前已经是最新版本"
 msgstr "نسخه فعلی آخرین نسخه است"
 
