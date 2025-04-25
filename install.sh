@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.2"
+shell_version="2.5.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1255,9 +1255,23 @@ nginx_install() {
     cd "$temp_dir" || exit
 
     log_echo "${OK} ${GreenBG} $(gettext "即将下载已编译的") Nginx ${Font}"
-    local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}/xray-nginx-custom.tar.gz"
-    wget -q --show-progress --progress=bar:force:noscroll "$url" -O xray-nginx-custom.tar.gz
-    tar -xzvf xray-nginx-custom.tar.gz -C ./
+    local nginx_filename
+    case $(uname -m) in
+        x86_64)
+            nginx_filename="xray_nginx_custom_x86.tar.gz"
+            ;;
+        armv7l|armv8l|aarch64)
+            nginx_filename="xray_nginx_custom_arm.tar.gz"
+            ;;
+        *)
+            log_echo "${Error} ${RedBG} $(gettext "不支持的系统架构"): $(uname -m) ${Font}"
+            exit 1
+            ;;
+    esac
+
+    local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}/${nginx_filename}"
+    wget -q --show-progress --progress=bar:force:noscroll "$url" -O "$nginx_filename"
+    tar -xzvf "$nginx_filename" -C ./
     [[ -d ${nginx_dir} ]] && rm -rf "${nginx_dir}"
     mv ./nginx "${nginx_dir}"
 
