@@ -60,7 +60,7 @@ def contains_target_language_characters(text, target_lang):
 def translate_text_deepseek(text, target_lang):
     client = OpenAI(
         api_key=os.getenv("AI_API_KEY"),
-        base_url="https://api.deepseek.com/v1",
+        base_url="https://api.deepseek.com",
     )
     completion = client.chat.completions.create(
         model="deepseek-chat",
@@ -68,7 +68,7 @@ def translate_text_deepseek(text, target_lang):
             {'role': 'system', 'content': 'You are a professional text translation assistant, focused on translating short Chinese texts into voice content in the specified target language. Your task is to translate only the Chinese parts of the text into the corresponding target language, leaving English portions as they are. The translation process should not consider context between sentences; ensure each individual sentence is translated accurately. Avoid adding any punctuation at the end of the translated sentences. The goal is to assist in the internationalization of scripts while ensuring translations are concise and accurate.Translation does not need to be bound by grammar, the simpler the better.'},
             {'role': 'user', 'content': f'Translate the following text to {target_lang}: {text}'}
         ],
-        stream=False
+        stream=True
     )
     full_content = ""
     for chunk in completion:
