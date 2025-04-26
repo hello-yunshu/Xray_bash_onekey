@@ -9,7 +9,7 @@
 ## 使用说明
 
 * 可以直接输入命令：`idleleo` 管理脚本。
-* 使用 Qwen AI 实现多国语言精准翻译。
+* 使用 DeepSeek AI 实现多国语言精准翻译。
 * Reality 建议使用 Nginx 前置，在脚本中安装即可。
 * 建议开启 fail2ban ，在脚本中安装即可。
 * 使用来自 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91) (beta)，支持 Qv2ray、V2rayN、V2rayNG。
