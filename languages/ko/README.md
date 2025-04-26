@@ -9,7 +9,7 @@
 ## 사용 방법
 
 * `idleleo` 명령을 직접 입력하여 스크립트를 관리할 수 있습니다.
-* Qwen AI를 사용해서 여러 언어를 정확하게 번역해.
+* DeepSeek AI를 사용해서 여러 언어를 정확하게 번역해.
 * Reality는 Nginx 프론트엔드를 권장하며, 스크립트에서 설치할 수 있습니다.
 * fail2ban 활성화를 권장하며, 스크립트에서 설치할 수 있습니다.
 * [@DuckSoft](https://github.com/DuckSoft)의 공유 링크 제안[제안](https://github.com/XTLS/Xray-core/issues/91) (beta)을 사용합니다. Qv2ray, V2rayN, V2rayNG 지원.
