@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-04-25 10:18+0000\n"
-"PO-Revision-Date: 2025-04-25 10:18+0000\n"
+"POT-Creation-Date: 2025-04-26 05:06+0000\n"
+"PO-Revision-Date: 2025-04-26 05:06+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ko\n"
@@ -540,7 +540,7 @@ msgstr "즉시 다운로드할 컴파일된 것을"
 
 #: install.sh:1267
 msgid "不支持的系统架构"
-msgstr "즉시 다운로드할 컴파일된 것을"
+msgstr "지원되지 않는 시스템 아키텍처"
 
 #: install.sh:1317 install.sh:1318 install.sh:1325 install.sh:1326
 msgid "配置文件不完整, 退出升级"
