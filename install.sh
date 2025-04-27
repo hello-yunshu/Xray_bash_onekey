@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.3"
+shell_version="2.5.4"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1258,10 +1258,10 @@ nginx_install() {
     local nginx_filename
     case $(uname -m) in
         x86_64)
-            nginx_filename="xray_nginx_custom_x86.tar.gz"
+            nginx_filename="xray-nginx-custom-x86.tar.gz"
             ;;
         armv7l|armv8l|aarch64)
-            nginx_filename="xray_nginx_custom_arm.tar.gz"
+            nginx_filename="xray-nginx-custom-arm.tar.gz"
             ;;
         *)
             log_echo "${Error} ${RedBG} $(gettext "不支持的系统架构"): $(uname -m) ${Font}"
@@ -1367,7 +1367,9 @@ nginx_update() {
             elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_reality_conf_add
             fi
-            if ! service_start; then
+            service_start
+            sleep 1
+            if ! systemctl -q is-active nginx; then
                 log_echo "${Error} ${RedBG} Nginx $(gettext "启动失败")! ${Font}"
                 if [[ ${auto_update} != "YES" ]]; then
                     echo
@@ -1382,19 +1384,23 @@ nginx_update() {
                 case $rollback_fq in
                 [nN][oO] | [nN])
                     log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
+                    exit 1
                     ;;
                 *)
                     log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
                     service_stop
                     rm -rf ${nginx_dir}
                     mv ${backup_nginx_dir} ${nginx_dir}
-                    if service_start; then
+                    service_start
+                    sleep 1
+                    if systemctl -q is-active nginx; then
                         log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
                         jq --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
                         mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
                         rm -rf ${backup_nginx_dir}
                     else
                         log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
+                        exit 1
                     fi
                     ;;
                 esac
@@ -3724,7 +3730,7 @@ menu() {
     echo -e "${Green}0.${Font}  $(gettext "升级") $(gettext "脚本")"
     echo -e "${Green}1.${Font}  $(gettext "升级") Xray"
     echo -e "${Green}2.${Font}  $(gettext "升级") Nginx"
-    echo -e "—————————————— ${GreenW}Language / 语言${Font} ———————"
+    echo -e "—————————————— ${GreenW}语言 / Language${Font} ———————"
     echo -e "${Green}36.${Font} 中文"
     echo -e "    English"
     echo -e "    فارسی    "
