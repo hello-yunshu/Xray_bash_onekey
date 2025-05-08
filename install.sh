@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.4"
+shell_version="2.5.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1235,7 +1235,7 @@ nginx_exist_check() {
             rm -rf /etc/nginx/
             [[ -f "${nginx_systemd_file}" ]] && rm -rf ${nginx_systemd_file}
             [[ -d "${nginx_conf_dir}" ]] && rm -rf ${nginx_conf_dir}/*.conf
-            log_echo "${Warning} ${GreenBG} $(gettext "日志目录已更改, 日志清除需要重新设置") ! ${Font}"
+            log_echo "${Warning} ${GreenBG} $(gettext "日志目录已更改, 日志清除需要重新设置")! ${Font}"
             nginx_install
             ;;
         esac
@@ -2768,23 +2768,20 @@ show_user() {
         local show_user_index
         read_optimize "$(gettext "请输入"): " "show_user_index" "NULL"
         if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -lt ${show_user_index} ]] || [[ ${show_user_index} == 0 ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "选择错误") ! ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
             show_user
         elif [[ ${show_user_index} == 1 ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "请直接在主菜单选择 [15] 显示主用户") ${Font}"
-            timeout "$(gettext "回到菜单") !"
-            menu
+            log_echo "${Error} ${RedBG} $(gettext "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户") ${Font}"
+            echo
         elif [[ ${show_user_index} -gt 1 ]]; then
             show_user_index=$((show_user_index - 1))
             user_email=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${show_user_index}'].email' ${xray_conf})
             user_id=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${show_user_index}'].id' ${xray_conf})
         elif [[ ! -z $(echo ${show_user_index} | sed 's/[0-9]//g') ]] || [[ ${show_user_index} == '' ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "选择错误") ! ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
             show_user
         else
-            log_echo "${Warning} ${YellowBG} $(gettext "请先检测 Xray 是否正确安装") ! ${Font}"
-            timeout "$(gettext "回到菜单") !"
-            menu
+            log_echo "${Warning} ${YellowBG} $(gettext "请先检测 Xray 是否正确安装")! ${Font}"
         fi
         if [[ ! -z ${user_email} ]] && [[ ! -z ${user_id} ]]; then
             log_echo "${Green} $(gettext "用户名"): ${user_email} ${Font}"
@@ -2811,7 +2808,7 @@ show_user() {
         *) ;;
         esac
     elif [[ ${tls_mode} == "None" ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持删除用户") ! ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持删除用户")! ${Font}"
     else
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
     fi
@@ -2820,7 +2817,6 @@ show_user() {
 add_user() {
     local choose_user_prot reality_user_more
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
-        service_stop
         echo
         log_echo "${GreenBG} $(gettext "即将添加用户, 一次仅能添加一个") ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
@@ -2830,20 +2826,20 @@ add_user() {
             local choose_user_prot
             read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")"
             choose_user_prot=$((choose_user_prot - 1))
-            reality_user_more=""
+            reality_user_more="{}"
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
-            reality_user_more="\"flow\":\"xtls-rprx-vision\""
+            reality_user_more='{"flow":"xtls-rprx-vision"}'
         fi
         email_set
         UUID_set
         jq --argjson choose_user_prot "${choose_user_prot}" \
            --arg UUID "${UUID}" \
-           --arg reality_user_more "${reality_user_more}" \
+           --argjson reality_user_more "${reality_user_more}" \
            --arg custom_email "${custom_email}" \
            '.inbounds[$choose_user_prot].settings.clients += [
                {"id": $UUID} +
-               if $reality_user_more != "" then ($reality_user_more | fromjson) else {} end +
+               ($reality_user_more // {}) +
                {"level": 0, "email": $custom_email}
            ]' "${xray_conf}" > "${xray_conf}.tmp"
         judge "$(gettext "添加用户")"
@@ -2859,9 +2855,8 @@ add_user() {
             ;;
         *) ;;
         esac
-        service_start
     elif [[ ${tls_mode} == "None" ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持添加用户") ! ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持添加用户")! ${Font}"
     else
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
     fi
@@ -2869,7 +2864,6 @@ add_user() {
 
 remove_user() {
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
-        service_stop
         echo
         log_echo "${GreenBG} $(gettext "即将删除用户, 一次仅能删除一个") ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
@@ -2887,14 +2881,13 @@ remove_user() {
         jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email ${xray_conf} | awk '{print NR""": "$0}'
         local del_user_index
         read_optimize "$(gettext "请输入"): " "del_user_index" "NULL"
-        if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -lt ${del_user_index} ]] || [[ ${show_user_index} == 0 ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "选择错误") ! ${Font}"
+        if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -lt ${del_user_index} ]] || [[ ${del_user_index} == 0 ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
             remove_user
         elif [[ ${del_user_index} == 1 ]]; then
             echo
-            log_echo "${Error} ${RedBG} $(gettext "请直接在主菜单修改主用户的") UUID/Email ! ${Font}"
-            timeout "$(gettext "回到菜单") !"
-            menu
+            log_echo "${Error} ${RedBG} $(gettext "主用户无法删除")! ${Font}"
+            echo
         elif [[ ${del_user_index} -gt 1 ]]; then
             del_user_index=$((del_user_index - 1))
             jq --argjson choose_user_prot "${choose_user_prot}" --argjson del_user_index "${del_user_index}" \
@@ -2911,27 +2904,24 @@ remove_user() {
             *) ;;
             esac
         elif [[ ! -z $(echo ${del_user_index} | sed 's/[0-9]//g') ]] || [[ ${del_user_index} == '' ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "选择错误") ! ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
             remove_user
         else
-            log_echo "${Warning} ${YellowBG} $(gettext "请先检测 Xray 是否正确安装") ! ${Font}"
-            timeout "$(gettext "回到菜单") !"
-            menu
+            log_echo "${Warning} ${YellowBG} $(gettext "请先检测 Xray 是否正确安装")! ${Font}"
         fi
-        service_start
     elif [[ ${tls_mode} == "None" ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持删除用户") ! ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持删除用户")! ${Font}"
     else
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
     fi
 }
 
 show_access_log() {
-    [[ -f "${xray_access_log}" ]] && tail -f ${xray_access_log} || log_echo "${Error} ${RedBG} log $(gettext "文件不存在") ! ${Font}"
+    [[ -f "${xray_access_log}" ]] && tail -f ${xray_access_log} || log_echo "${Error} ${RedBG} log $(gettext "文件不存在")! ${Font}"
 }
 
 show_error_log() {
-    [[ -f "${xray_error_log}" ]] && tail -f ${xray_error_log} || log_echo "${Error} ${RedBG} log $(gettext "文件不存在") ! ${Font}"
+    [[ -f "${xray_error_log}" ]] && tail -f ${xray_error_log} || log_echo "${Error} ${RedBG} log $(gettext "文件不存在")! ${Font}"
 }
 
 xray_status_add() {
@@ -3303,7 +3293,7 @@ read_version() {
 }
 
 maintain() {
-    log_echo "${Error} ${RedBG} $(gettext "该选项暂时无法使用") ! ${Font}"
+    log_echo "${Error} ${RedBG} $(gettext "该选项暂时无法使用")! ${Font}"
     log_echo "${Error} ${RedBG} $(gettext "$1") ${Font}"
     exit 0
 }
@@ -3464,7 +3454,7 @@ idleleo_commend() {
                     wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
                     judge "$(gettext "下载最新脚本")"
                     clear
-                    log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装") ! ${Font}"
+                    log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
                     echo
                     ;;
                 *)
@@ -3865,12 +3855,16 @@ menu() {
         menu
         ;;
     13)
+        service_stop
         add_user
+        service_start
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
     14)
+        service_stop
         remove_user
+        service_start
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
