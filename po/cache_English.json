@@ -245,7 +245,6 @@
   "请选择显示用户使用的协议": "please select the protocol used by the user",
   "请选择要显示的用户编号": "please select the user number to display",
   "选择错误": "choose incorrectly",
-  "请直接在主菜单选择 [15] 显示主用户": "please select [15] display main user directly from the main menu",
   "回到菜单": "back to menu",
   "请先检测 Xray 是否正确安装": "please first check if xray is correctly installed",
   "是否继续显示用户": "whether to continue displaying the user",
@@ -258,7 +257,6 @@
   "即将删除用户, 一次仅能删除一个": "the user will be deleted soon, one at a time",
   "请选择删除用户使用的协议": "please select the protocol used by the user for deletion",
   "请选择要删除的用户编号": "please select the user number to delete",
-  "请直接在主菜单修改主用户的": "please modify the main user directly in the main menu",
   "删除用户": "delete user",
   "是否继续删除用户": "whether to continue deleting the user",
   "文件不存在": "the file does not exist",
@@ -475,5 +473,7 @@
   "规则": "rule",
   "跳过启用": "skip to enable",
   "已启用": "enabled",
-  "不支持的系统架构": "unsupported system architecture"
+  "不支持的系统架构": "unsupported system architecture",
+  "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户": "please directly select [view xray configuration information] in the main menu to display the main user",
+  "主用户无法删除": "the main user cannot delete it"
 }
