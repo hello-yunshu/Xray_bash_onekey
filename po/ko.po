@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-05-08 06:04+0000\n"
-"PO-Revision-Date: 2025-05-08 06:04+0000\n"
+"POT-Creation-Date: 2025-05-12 22:24+0000\n"
+"PO-Revision-Date: 2025-05-12 22:24+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ko\n"
@@ -30,8 +30,8 @@ msgstr "오류"
 msgid "警告"
 msgstr "경고"
 
-#: install.sh:39 install.sh:1418 install.sh:3486 install.sh:3503
-#: install.sh:3506 install.sh:3507 install.sh:3545
+#: install.sh:39 install.sh:1418 install.sh:3495 install.sh:3512
+#: install.sh:3515 install.sh:3516 install.sh:3554
 msgid "未安装"
 msgstr "설치되지 않음"
 
@@ -123,13 +123,13 @@ msgstr "실패"
 msgid "在线版本检测失败, 请稍后再试"
 msgstr "온라인 버전 검사 실패했습니다 다시 시도해주세요"
 
-#: install.sh:340 install.sh:348 install.sh:1104 install.sh:3407
-#: install.sh:3408 install.sh:3409 install.sh:3730 install.sh:3731
-#: install.sh:3732 fail2ban_manager.sh:12 fail2ban_manager.sh:39
+#: install.sh:340 install.sh:348 install.sh:1104 install.sh:3410
+#: install.sh:3411 install.sh:3412 install.sh:3739 install.sh:3740
+#: install.sh:3741 fail2ban_manager.sh:12 fail2ban_manager.sh:39
 msgid "安装"
 msgstr "설치"
 
-#: install.sh:342 install.sh:350 install.sh:1111 install.sh:3495
+#: install.sh:342 install.sh:350 install.sh:1111 install.sh:3504
 msgid "已安装"
 msgstr "이미 설치되어 있습니다"
 
@@ -241,8 +241,8 @@ msgstr "방화벽 관련 포트 열기"
 msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "설정을 수정할 때 방화벽 관련 포트를 닫는 것에 주의하세요"
 
-#: install.sh:614 install.sh:3411 install.sh:3424 install.sh:3425
-#: install.sh:3739 install.sh:3758 fail2ban_manager.sh:89
+#: install.sh:614 install.sh:3414 install.sh:3427 install.sh:3428
+#: install.sh:3748 install.sh:3767 fail2ban_manager.sh:89
 msgid "配置"
 msgstr "설정"
 
@@ -288,8 +288,8 @@ msgstr "최대 30자까지"
 msgid "自定义字符串"
 msgstr "사용자 정의 문자열"
 
-#: install.sh:721 install.sh:2474 install.sh:3427 install.sh:3734
-#: install.sh:3822
+#: install.sh:721 install.sh:2474 install.sh:3430 install.sh:3743
+#: install.sh:3831
 msgid "映射字符串"
 msgstr "매핑 문자열"
 
@@ -397,7 +397,7 @@ msgstr "사용 용도는 문서를 참조할 수 있습니다"
 
 #: install.sh:936 install.sh:940 install.sh:944 install.sh:956 install.sh:961
 #: install.sh:967 install.sh:987 install.sh:993 install.sh:1043 install.sh:1062
-#: install.sh:3425 install.sh:3702
+#: install.sh:3428 install.sh:3711
 msgid "修改"
 msgstr "수정"
 
@@ -453,8 +453,8 @@ msgstr "시나리오가 이 버전과 호환되지 않을 수 있습니다"
 msgid "是否更新"
 msgstr "업데이트할까요"
 
-#: install.sh:1129 install.sh:1152 install.sh:1410 install.sh:3720
-#: install.sh:3721 install.sh:3722
+#: install.sh:1129 install.sh:1152 install.sh:1410 install.sh:3729
+#: install.sh:3730 install.sh:3731
 msgid "升级"
 msgstr "업그레이드"
 
@@ -478,7 +478,7 @@ msgstr "롤백"
 msgid "已成功回滚到之前的"
 msgstr "성공적으로 이전으로 롤백했습니다"
 
-#: install.sh:1145 install.sh:1397 install.sh:3737 install.sh:3837
+#: install.sh:1145 install.sh:1397 install.sh:3746 install.sh:3846
 msgid "版本"
 msgstr "버전"
 
@@ -574,11 +574,11 @@ msgstr "기존 구성 파일이 삭제되었습니다"
 msgid "原配置文件已保留"
 msgstr "기존 구성 파일이 보관되었습니다"
 
-#: install.sh:1412 install.sh:3743
+#: install.sh:1412 install.sh:3752
 msgid "删除"
 msgstr "삭제"
 
-#: install.sh:1412 install.sh:3765
+#: install.sh:1412 install.sh:3774
 msgid "备份"
 msgstr "백업"
 
@@ -598,7 +598,7 @@ msgstr "자동 업데이트 후 호환성 문제가 발생할 수 있으니 주�
 msgid "是否开启"
 msgstr "시작할까요"
 
-#: install.sh:1438 install.sh:3412
+#: install.sh:1438 install.sh:3415
 msgid "设置自动更新"
 msgstr "자동 업데이트 설정"
 
@@ -811,8 +811,8 @@ msgstr "삭제 설정"
 msgid "设置 Nginx 开机自启"
 msgstr "nginx를 부팅 시 자동으로 시작되게 설정"
 
-#: install.sh:2031 install.sh:3756 install.sh:3759 install.sh:3760
-#: install.sh:3761 fail2ban_manager.sh:10
+#: install.sh:2031 install.sh:3765 install.sh:3768 install.sh:3769
+#: install.sh:3770 fail2ban_manager.sh:10
 msgid "设置"
 msgstr "설정"
 
@@ -833,16 +833,16 @@ msgid "停止已有服务"
 msgstr "이미 있는 서비스를 중지"
 
 #: install.sh:2052 install.sh:2055 install.sh:2628 install.sh:2630
-#: install.sh:3749 fail2ban_manager.sh:114 fail2ban_manager.sh:204
+#: install.sh:3758 fail2ban_manager.sh:114 fail2ban_manager.sh:204
 msgid "重启"
 msgstr "재시작"
 
-#: install.sh:2060 install.sh:2063 install.sh:3750 fail2ban_manager.sh:113
+#: install.sh:2060 install.sh:2063 install.sh:3759 fail2ban_manager.sh:113
 #: fail2ban_manager.sh:174
 msgid "启动"
 msgstr "시작"
 
-#: install.sh:2068 install.sh:2071 install.sh:2131 install.sh:3751
+#: install.sh:2068 install.sh:2071 install.sh:2131 install.sh:3760
 #: fail2ban_manager.sh:115
 msgid "停止"
 msgstr "정지"
@@ -931,9 +931,9 @@ msgstr "구형 자동 정리 로그 작업 삭제"
 msgid "是否需要设置自动清理日志"
 msgstr "자동으로 로그를 정리할 필요가 있습니까"
 
-#: install.sh:2213 install.sh:3781 install.sh:3790 install.sh:3842
-#: install.sh:3848 install.sh:3888 install.sh:3894 install.sh:3900
-#: install.sh:3929 install.sh:3964 install.sh:3971 install.sh:3976
+#: install.sh:2213 install.sh:3790 install.sh:3799 install.sh:3851
+#: install.sh:3857 install.sh:3897 install.sh:3903 install.sh:3909
+#: install.sh:3938 install.sh:3973 install.sh:3980 install.sh:3985
 #: fail2ban_manager.sh:175 fail2ban_manager.sh:188 fail2ban_manager.sh:197
 #: fail2ban_manager.sh:205
 msgid "清空屏幕"
@@ -987,7 +987,7 @@ msgstr "설치가 성공하였습니다"
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr "현재 공유 링크 사양은 실험 단계에 있습니다. 직접 적용 할 수 있는지 판단하십시오"
 
-#: install.sh:2450 install.sh:3747
+#: install.sh:2450 install.sh:3756
 msgid "配置信息"
 msgstr "설정 정보"
 
@@ -1075,7 +1075,7 @@ msgstr "기존에 인증서 파일이 존재합니다, 유지하시겠습니까"
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr "발급certificate에 대한 잔여 파일이 이미 존재합니다, 유지하시겠습니까"
 
-#: install.sh:2608 install.sh:3742
+#: install.sh:2608 install.sh:3751
 msgid "添加"
 msgstr "추가"
 
@@ -1260,444 +1260,452 @@ msgstr "몇 초 후"
 msgid "检测最新版本失败"
 msgstr "최신 버전 확인 실패"
 
-#: install.sh:3245
+#: install.sh:3244 install.sh:3452
+msgid "新版本"
+msgstr "새 버전"
+
+#: install.sh:3244 install.sh:3452
+msgid "更新内容"
+msgstr "업데이트 내용"
+
+#: install.sh:3248
 msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
 msgstr "새 버전이 있지만 버전 변경 사항이 크므로 호환성 문제가 있을 수 있습니다. 업데이트하시겠습니까"
 
-#: install.sh:3248
+#: install.sh:3251
 msgid "存在新版本, 是否更新"
 msgstr "새 버전이 있습니다, 업데이트하시겠습니까"
 
-#: install.sh:3252
+#: install.sh:3255
 msgid "检测 脚本 最新版本失败"
 msgstr "검색 스크립트의 최신 버전 확인 실패"
 
-#: install.sh:3253
+#: install.sh:3256
 msgid "脚本 版本差别过大, 跳过更新"
 msgstr "시나리오 버전 차이가 너무 크므로 업데이트를 건너뜁"
 
-#: install.sh:3263
+#: install.sh:3266
 msgid "更新完成"
 msgstr "업데이트 완료"
 
-#: install.sh:3264 install.sh:3457
+#: install.sh:3267 install.sh:3464
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
 msgstr "각본 버전 변화가 크므로 서비스가 정상적으로 작동하지 않으면 재설치를 위해 언install한 후 다시 설치해주세요"
 
-#: install.sh:3270
+#: install.sh:3273
 msgid "当前版本为最新版本"
 msgstr "현재 버전은 최신 버전입니다"
 
-#: install.sh:3282 install.sh:3444 install.sh:3455 install.sh:3467
+#: install.sh:3285 install.sh:3447 install.sh:3462 install.sh:3475
 msgid "下载最新脚本"
 msgstr "최신 스크립트 다운로드"
 
-#: install.sh:3296
+#: install.sh:3299
 msgid "该选项暂时无法使用"
 msgstr "이 옵션은 현재 사용할 수 없습니다"
 
-#: install.sh:3315 install.sh:3808
+#: install.sh:3318 install.sh:3817
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr "이 모드는 로드 밸런싱에 권장됩니다. 일반적으로 권장되지 않으므로 설치하시겠습니까"
 
-#: install.sh:3410 install.sh:3411 install.sh:3420 install.sh:3423
-#: install.sh:3427 install.sh:3734 install.sh:3735 install.sh:3736
-#: install.sh:3737 install.sh:3738 install.sh:3739 install.sh:3822
-#: install.sh:3827 install.sh:3832 install.sh:3837
+#: install.sh:3413 install.sh:3414 install.sh:3423 install.sh:3426
+#: install.sh:3430 install.sh:3743 install.sh:3744 install.sh:3745
+#: install.sh:3746 install.sh:3747 install.sh:3748 install.sh:3831
+#: install.sh:3836 install.sh:3841 install.sh:3846
 msgid "变更"
 msgstr "변경"
 
-#: install.sh:3410 install.sh:3738
+#: install.sh:3413 install.sh:3747
 msgid "负载均衡配置"
 msgstr "로드 밸런싱 구성"
 
-#: install.sh:3413
+#: install.sh:3416
 msgid "清除日志文件"
 msgstr "로그 파일을 지웁니다"
 
-#: install.sh:3414
+#: install.sh:3417
 msgid "查看证书状态"
 msgstr "증명서 상태 확인"
 
-#: install.sh:3415
+#: install.sh:3418
 msgid "更新证书有效期"
 msgstr "증명서 유효 기간 갱신"
 
-#: install.sh:3416
+#: install.sh:3419
 msgid "设置证书自动更新"
 msgstr "인증서 자동 갱신 설정"
 
-#: install.sh:3417
+#: install.sh:3420
 msgid "设置 Fail2ban 防暴力破解"
 msgstr "fail2ban을 사용하여 강력한 암호가 없을 때 대비 설정"
 
-#: install.sh:3418
+#: install.sh:3421
 msgid "显示帮助"
 msgstr "도움 보기 표시"
 
-#: install.sh:3419 install.sh:3430 install.sh:3755
+#: install.sh:3422 install.sh:3433 install.sh:3764
 msgid "更新"
 msgstr "업데이트"
 
-#: install.sh:3421
+#: install.sh:3424
 msgid "脚本卸载"
 msgstr "시나리오 언로드"
 
-#: install.sh:3422
+#: install.sh:3425
 msgid "显示安装信息"
 msgstr "설치 정보 표시"
 
-#: install.sh:3424 install.sh:3759
+#: install.sh:3427 install.sh:3768
 msgid "加速"
 msgstr "가속"
 
-#: install.sh:3426
+#: install.sh:3429
 msgid "升级脚本"
 msgstr "업그레이드 스크립트"
 
-#: install.sh:3428 install.sh:3429
+#: install.sh:3431 install.sh:3432
 msgid "显示"
 msgstr "표시"
 
-#: install.sh:3428
+#: install.sh:3431
 msgid "访问信息"
 msgstr "정보 방문"
 
-#: install.sh:3429
+#: install.sh:3432
 msgid "错误信息"
 msgstr "오류 메시지"
 
-#: install.sh:3449
+#: install.sh:3456
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr "각본 버전의 변경 사항이 크므로 호환성 문제가 발생할 수 있습니다. 계속 사용하시겠습니까"
 
-#: install.sh:3474
+#: install.sh:3483
 msgid "检测失败"
 msgstr "검출 실패"
 
-#: install.sh:3478 install.sh:3488 install.sh:3497
+#: install.sh:3487 install.sh:3497 install.sh:3506
 msgid "有新版"
 msgstr "새 버전이 있습니다"
 
-#: install.sh:3481 install.sh:3490 install.sh:3500
+#: install.sh:3490 install.sh:3499 install.sh:3509
 msgid "最新版"
 msgstr "최신 버전"
 
-#: install.sh:3495
+#: install.sh:3504
 msgid "版本未知"
 msgstr "unknown version"
 
-#: install.sh:3515 install.sh:3522
+#: install.sh:3524 install.sh:3531
 msgid "运行中"
 msgstr "작동 중"
 
-#: install.sh:3517 install.sh:3540 install.sh:3542
+#: install.sh:3526 install.sh:3549 install.sh:3551
 msgid "无需测试"
 msgstr "테스트 필요하지 않음"
 
-#: install.sh:3519 install.sh:3524
+#: install.sh:3528 install.sh:3533
 msgid "未运行"
 msgstr "실행되지 않음"
 
-#: install.sh:3534
+#: install.sh:3543
 msgid "无法连通"
 msgstr "연결할 수 없음"
 
-#: install.sh:3536 install.sh:3537 install.sh:3538
+#: install.sh:3545 install.sh:3546 install.sh:3547
 msgid "本地正常"
 msgstr "지역 일반적으로"
 
-#: install.sh:3553
+#: install.sh:3562
 msgid "脚本维护中.. 请稍后再试"
 msgstr "시나리오 유지보수 중입니다.. 나중에 다시 시도해주세요"
 
-#: install.sh:3555
+#: install.sh:3564
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr "의존 해야하는 온라인 버전은 감지 할 수 없습니다. 나중에 다시 시도하십시오"
 
-#: install.sh:3572
+#: install.sh:3581
 msgid "请输入数字"
 msgstr "숫자를 입력하세요"
 
-#: install.sh:3572
+#: install.sh:3581
 msgid "请输入 1 到 5 之间的有效数字"
 msgstr "1부터 5 사이의 유효한 숫자를 입력하세요"
 
-#: install.sh:3593
+#: install.sh:3602
 msgid "无效的选择"
 msgstr "무효된 선택"
 
-#: install.sh:3629
+#: install.sh:3638
 msgid "请输入备份名称"
 msgstr "백업 이름을 입력하세요"
 
-#: install.sh:3629
+#: install.sh:3638
 msgid "不需要后缀"
 msgstr "뒤 접미사가 필요하지 않아"
 
-#: install.sh:3637
+#: install.sh:3646
 msgid "报错信息"
 msgstr "오류 메시지"
 
-#: install.sh:3639
+#: install.sh:3648
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
 msgstr "백업 무결성에 영향을 미칠 수 있으니 위의 오류 메시지를 확인하세요"
 
-#: install.sh:3643
+#: install.sh:3652
 msgid "备份失败"
 msgstr "백업 실패"
 
-#: install.sh:3645
+#: install.sh:3654
 msgid "备份成功"
 msgstr "백업이 성공하였습니다"
 
-#: install.sh:3651
+#: install.sh:3660
 msgid "请确保备份文件在目录"
 msgstr "백업 파일이 디렉토리에 있는지 확인하십시오"
 
-#: install.sh:3655
+#: install.sh:3664
 msgid "没有找到备份文件"
 msgstr "백업 파일을 찾지 못했습니다"
 
-#: install.sh:3660
+#: install.sh:3669
 msgid "发现多个备份文件"
 msgstr "여러 개의 백업 파일 발견되었습니다"
 
-#: install.sh:3660
+#: install.sh:3669
 msgid "将使用最新的文件进行恢复"
 msgstr "가장 최신의 파일로 복원할 것입니다"
 
-#: install.sh:3664
+#: install.sh:3673
 msgid "找到最新备份文件"
 msgstr "마지막 백업 파일 찾기"
 
-#: install.sh:3666
+#: install.sh:3675
 msgid "恢复备份"
 msgstr "백업 복원"
 
-#: install.sh:3670
+#: install.sh:3679
 msgid "恢复成功"
 msgstr "복구에 성공했습니다"
 
-#: install.sh:3671 install.sh:3673
+#: install.sh:3680 install.sh:3682
 msgid "记得安装"
 msgstr "기억하세요 설치를"
 
-#: install.sh:3676
+#: install.sh:3685
 msgid "恢复失败"
 msgstr "복구 실패"
 
-#: install.sh:3685
+#: install.sh:3694
 msgid "检测存在到"
 msgstr "검출 존재"
 
-#: install.sh:3686
+#: install.sh:3695
 msgid "来源于自动清理日志错误的设置"
 msgstr "자동으로 로그 오류를 정리하는 설정에서 유래되었습니다"
 
-#: install.sh:3687
+#: install.sh:3696
 msgid "开始修复"
 msgstr "시작 수리"
 
-#: install.sh:3691
+#: install.sh:3700
 msgid "错误的配置文件删除"
 msgstr "잘못된 구성 파일 삭제"
 
-#: install.sh:3692
+#: install.sh:3701
 msgid "即将重新设置自动清理日志"
 msgstr "자동 정리 로그를 재설정할 예정입니다"
 
-#: install.sh:3700
+#: install.sh:3709
 msgid "安装管理脚本"
 msgstr "설치 관리 스크립트"
 
-#: install.sh:3701
+#: install.sh:3710
 msgid "作者"
 msgstr "작자"
 
-#: install.sh:3705
+#: install.sh:3714
 msgid "当前模式"
 msgstr "현재 모드"
 
-#: install.sh:3706
+#: install.sh:3715
 msgid "当前语言"
 msgstr "현재 언어"
 
-#: install.sh:3709
+#: install.sh:3718
 msgid "可以使用"
 msgstr "사용할 수 있습니다"
 
-#: install.sh:3709
+#: install.sh:3718
 msgid "命令管理脚本"
 msgstr "명령 관리 스크립트"
 
-#: install.sh:3711
+#: install.sh:3720
 msgid "版本检测"
 msgstr "버전 검사"
 
-#: install.sh:3712 install.sh:3720 install.sh:3768
+#: install.sh:3721 install.sh:3729 install.sh:3777
 msgid "脚本"
 msgstr "시나리오"
 
-#: install.sh:3715
+#: install.sh:3724
 msgid "运行状态"
 msgstr "작동 상태"
 
-#: install.sh:3718
+#: install.sh:3727
 msgid "连通性"
 msgstr "연결성"
 
-#: install.sh:3719
+#: install.sh:3728
 msgid "升级向导"
 msgstr "업그레이드 마법사"
 
-#: install.sh:3729
+#: install.sh:3738
 msgid "安装向导"
 msgstr "설치 안내 프로그램"
 
-#: install.sh:3733
+#: install.sh:3742
 msgid "配置变更"
 msgstr "구성 변경"
 
-#: install.sh:3740
+#: install.sh:3749
 msgid "用户管理"
 msgstr "사용자 관리"
 
-#: install.sh:3741 install.sh:3745 install.sh:3746 install.sh:3747
-#: install.sh:3752 install.sh:3754 fail2ban_manager.sh:15
+#: install.sh:3750 install.sh:3754 install.sh:3755 install.sh:3756
+#: install.sh:3761 install.sh:3763 fail2ban_manager.sh:15
 msgid "查看"
 msgstr "확인"
 
-#: install.sh:3741 install.sh:3742 install.sh:3743
+#: install.sh:3750 install.sh:3751 install.sh:3752
 msgid "用户"
 msgstr "유저"
 
-#: install.sh:3744
+#: install.sh:3753
 msgid "查看信息"
 msgstr "정보 확인"
 
-#: install.sh:3745
+#: install.sh:3754
 msgid "实时访问日志"
 msgstr "실시간으로 접근 로그 확인"
 
-#: install.sh:3746
+#: install.sh:3755
 msgid "实时错误日志"
 msgstr "실시간 오류 로그"
 
-#: install.sh:3748
+#: install.sh:3757
 msgid "服务相关"
 msgstr "서비스 관련"
 
-#: install.sh:3749 install.sh:3750 install.sh:3751 install.sh:3752
+#: install.sh:3758 install.sh:3759 install.sh:3760 install.sh:3761
 msgid "所有服务"
 msgstr "모든 서비스"
 
-#: install.sh:3753
+#: install.sh:3762
 msgid "证书相关"
 msgstr "자격 증명 관련"
 
-#: install.sh:3754
+#: install.sh:3763
 msgid "证书状态"
 msgstr "인증서 상태"
 
-#: install.sh:3755
+#: install.sh:3764
 msgid "证书有效期"
 msgstr "자격 증명서 유효 기간"
 
-#: install.sh:3756
+#: install.sh:3765
 msgid "证书自动更新"
 msgstr "인증서 자동 갱신"
 
-#: install.sh:3757
+#: install.sh:3766
 msgid "其他选项"
 msgstr "기타 옵션"
 
-#: install.sh:3758
+#: install.sh:3767
 msgid "自动更新"
 msgstr "자동 업데이트"
 
-#: install.sh:3760
+#: install.sh:3769
 msgid "防暴力破解"
 msgstr "방폭력해석"
 
-#: install.sh:3761
+#: install.sh:3770
 msgid "流量统计"
 msgstr "트래픽 통계"
 
-#: install.sh:3762
+#: install.sh:3771
 msgid "清除"
 msgstr "제거"
 
-#: install.sh:3762
+#: install.sh:3771
 msgid "日志文件"
 msgstr "로그 파일"
 
-#: install.sh:3763
+#: install.sh:3772
 msgid "测试"
 msgstr "테스트"
 
-#: install.sh:3763
+#: install.sh:3772
 msgid "服务器网速"
 msgstr "서버 네트워크 속도"
 
-#: install.sh:3764
+#: install.sh:3773
 msgid "备份恢复"
 msgstr "백업 복원"
 
-#: install.sh:3765 install.sh:3766
+#: install.sh:3774 install.sh:3775
 msgid "全部文件"
 msgstr "모든 문서"
 
-#: install.sh:3766
+#: install.sh:3775
 msgid "恢复"
 msgstr "복원"
 
-#: install.sh:3767
+#: install.sh:3776
 msgid "卸载向导"
 msgstr "설치 마법사 해제"
 
-#: install.sh:3768 fail2ban_manager.sh:14 fail2ban_manager.sh:187
+#: install.sh:3777 fail2ban_manager.sh:14 fail2ban_manager.sh:187
 msgid "卸载"
 msgstr "설치 해제"
 
-#: install.sh:3769
+#: install.sh:3778
 msgid "清空"
 msgstr "비우기"
 
-#: install.sh:3769
+#: install.sh:3778
 msgid "证书文件"
 msgstr "인증 파일"
 
-#: install.sh:3770 fail2ban_manager.sh:16 file_manager.sh:196
+#: install.sh:3779 fail2ban_manager.sh:16 file_manager.sh:196
 msgid "退出"
 msgstr "나가기"
 
-#: install.sh:3773
+#: install.sh:3782
 msgid "请输入选项"
 msgstr "옵션을 입력하세요"
 
-#: install.sh:3773
+#: install.sh:3782
 msgid "请输入 0 到 36 之间的有效数字"
 msgstr "0과 36 사이의 유효한 숫자를 입력하세요"
 
-#: install.sh:3787
+#: install.sh:3796
 msgid "不建议"
 msgstr "권장하지 않습니다"
 
-#: install.sh:3787
+#: install.sh:3796
 msgid "频繁升级 Nginx, 请确认 Nginx 有升级的必要"
 msgstr "자주 업그레이드 nginx, nginx 업그레이드가 필요한지 확인하세요"
 
-#: install.sh:3788
+#: install.sh:3797
 msgid "开始升级"
 msgstr "업그레이드를 시작합니다"
 
-#: install.sh:3854 install.sh:3861 install.sh:3868 install.sh:3913
-#: install.sh:3918 install.sh:3923 install.sh:3943
+#: install.sh:3863 install.sh:3870 install.sh:3877 install.sh:3922
+#: install.sh:3927 install.sh:3932 install.sh:3952
 msgid "回到菜单"
 msgstr "메뉴로 돌아가기"
 
-#: install.sh:3986
+#: install.sh:3995
 msgid "请输入正确的数字"
 msgstr "옳바른 숫자를 입력하세요"
 

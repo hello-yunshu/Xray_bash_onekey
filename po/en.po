@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-05-08 06:04+0000\n"
-"PO-Revision-Date: 2025-05-08 06:04+0000\n"
+"POT-Creation-Date: 2025-05-12 22:24+0000\n"
+"PO-Revision-Date: 2025-05-12 22:24+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -30,8 +30,8 @@ msgstr "error"
 msgid "警告"
 msgstr "warning"
 
-#: install.sh:39 install.sh:1418 install.sh:3486 install.sh:3503
-#: install.sh:3506 install.sh:3507 install.sh:3545
+#: install.sh:39 install.sh:1418 install.sh:3495 install.sh:3512
+#: install.sh:3515 install.sh:3516 install.sh:3554
 msgid "未安装"
 msgstr "not installed"
 
@@ -123,13 +123,13 @@ msgstr "fail"
 msgid "在线版本检测失败, 请稍后再试"
 msgstr "online version detection failed, please try again later"
 
-#: install.sh:340 install.sh:348 install.sh:1104 install.sh:3407
-#: install.sh:3408 install.sh:3409 install.sh:3730 install.sh:3731
-#: install.sh:3732 fail2ban_manager.sh:12 fail2ban_manager.sh:39
+#: install.sh:340 install.sh:348 install.sh:1104 install.sh:3410
+#: install.sh:3411 install.sh:3412 install.sh:3739 install.sh:3740
+#: install.sh:3741 fail2ban_manager.sh:12 fail2ban_manager.sh:39
 msgid "安装"
 msgstr "install"
 
-#: install.sh:342 install.sh:350 install.sh:1111 install.sh:3495
+#: install.sh:342 install.sh:350 install.sh:1111 install.sh:3504
 msgid "已安装"
 msgstr "installed"
 
@@ -241,8 +241,8 @@ msgstr "open the firewall-related ports"
 msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "if you modify the configuration, please note to close the firewall-related ports"
 
-#: install.sh:614 install.sh:3411 install.sh:3424 install.sh:3425
-#: install.sh:3739 install.sh:3758 fail2ban_manager.sh:89
+#: install.sh:614 install.sh:3414 install.sh:3427 install.sh:3428
+#: install.sh:3748 install.sh:3767 fail2ban_manager.sh:89
 msgid "配置"
 msgstr "configure"
 
@@ -288,8 +288,8 @@ msgstr "up to 30 characters"
 msgid "自定义字符串"
 msgstr "custom string"
 
-#: install.sh:721 install.sh:2474 install.sh:3427 install.sh:3734
-#: install.sh:3822
+#: install.sh:721 install.sh:2474 install.sh:3430 install.sh:3743
+#: install.sh:3831
 msgid "映射字符串"
 msgstr "mapping string"
 
@@ -397,7 +397,7 @@ msgstr "configuration usage can refer to the article"
 
 #: install.sh:936 install.sh:940 install.sh:944 install.sh:956 install.sh:961
 #: install.sh:967 install.sh:987 install.sh:993 install.sh:1043 install.sh:1062
-#: install.sh:3425 install.sh:3702
+#: install.sh:3428 install.sh:3711
 msgid "修改"
 msgstr "modify"
 
@@ -453,8 +453,8 @@ msgstr "the script may not be compatible with this version"
 msgid "是否更新"
 msgstr "whether to update"
 
-#: install.sh:1129 install.sh:1152 install.sh:1410 install.sh:3720
-#: install.sh:3721 install.sh:3722
+#: install.sh:1129 install.sh:1152 install.sh:1410 install.sh:3729
+#: install.sh:3730 install.sh:3731
 msgid "升级"
 msgstr "upgrade"
 
@@ -478,7 +478,7 @@ msgstr "rolling back"
 msgid "已成功回滚到之前的"
 msgstr "successfully rolled back to previous"
 
-#: install.sh:1145 install.sh:1397 install.sh:3737 install.sh:3837
+#: install.sh:1145 install.sh:1397 install.sh:3746 install.sh:3846
 msgid "版本"
 msgstr "version"
 
@@ -574,11 +574,11 @@ msgstr "the original configuration file has been deleted"
 msgid "原配置文件已保留"
 msgstr "the original configuration file has been retained"
 
-#: install.sh:1412 install.sh:3743
+#: install.sh:1412 install.sh:3752
 msgid "删除"
 msgstr "delete"
 
-#: install.sh:1412 install.sh:3765
+#: install.sh:1412 install.sh:3774
 msgid "备份"
 msgstr "backup"
 
@@ -598,7 +598,7 @@ msgstr "it may cause compatibility issues after automatic updates, so proceed wi
 msgid "是否开启"
 msgstr "whether to enable"
 
-#: install.sh:1438 install.sh:3412
+#: install.sh:1438 install.sh:3415
 msgid "设置自动更新"
 msgstr "set automatic updates"
 
@@ -811,8 +811,8 @@ msgstr "configure deletion"
 msgid "设置 Nginx 开机自启"
 msgstr "enable nginx to start at boot"
 
-#: install.sh:2031 install.sh:3756 install.sh:3759 install.sh:3760
-#: install.sh:3761 fail2ban_manager.sh:10
+#: install.sh:2031 install.sh:3765 install.sh:3768 install.sh:3769
+#: install.sh:3770 fail2ban_manager.sh:10
 msgid "设置"
 msgstr "setting"
 
@@ -833,16 +833,16 @@ msgid "停止已有服务"
 msgstr "stop existing service"
 
 #: install.sh:2052 install.sh:2055 install.sh:2628 install.sh:2630
-#: install.sh:3749 fail2ban_manager.sh:114 fail2ban_manager.sh:204
+#: install.sh:3758 fail2ban_manager.sh:114 fail2ban_manager.sh:204
 msgid "重启"
 msgstr "restart"
 
-#: install.sh:2060 install.sh:2063 install.sh:3750 fail2ban_manager.sh:113
+#: install.sh:2060 install.sh:2063 install.sh:3759 fail2ban_manager.sh:113
 #: fail2ban_manager.sh:174
 msgid "启动"
 msgstr "start"
 
-#: install.sh:2068 install.sh:2071 install.sh:2131 install.sh:3751
+#: install.sh:2068 install.sh:2071 install.sh:2131 install.sh:3760
 #: fail2ban_manager.sh:115
 msgid "停止"
 msgstr "stop"
@@ -931,9 +931,9 @@ msgstr "delete the old automatic cleanup log task"
 msgid "是否需要设置自动清理日志"
 msgstr "do you need to set up automatic log cleanup"
 
-#: install.sh:2213 install.sh:3781 install.sh:3790 install.sh:3842
-#: install.sh:3848 install.sh:3888 install.sh:3894 install.sh:3900
-#: install.sh:3929 install.sh:3964 install.sh:3971 install.sh:3976
+#: install.sh:2213 install.sh:3790 install.sh:3799 install.sh:3851
+#: install.sh:3857 install.sh:3897 install.sh:3903 install.sh:3909
+#: install.sh:3938 install.sh:3973 install.sh:3980 install.sh:3985
 #: fail2ban_manager.sh:175 fail2ban_manager.sh:188 fail2ban_manager.sh:197
 #: fail2ban_manager.sh:205
 msgid "清空屏幕"
@@ -987,7 +987,7 @@ msgstr "installation successful"
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr "currently, the sharing link guidelines are in the experimental stage, please judge for yourself whether they are applicable"
 
-#: install.sh:2450 install.sh:3747
+#: install.sh:2450 install.sh:3756
 msgid "配置信息"
 msgstr "configuration information"
 
@@ -1075,7 +1075,7 @@ msgstr "the certificate file already exists, do you want to keep it"
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr "the certificate issuance residual files already exist, do you want to keep them"
 
-#: install.sh:2608 install.sh:3742
+#: install.sh:2608 install.sh:3751
 msgid "添加"
 msgstr "add"
 
@@ -1260,444 +1260,452 @@ msgstr "a second later"
 msgid "检测最新版本失败"
 msgstr "failed to detect the latest version"
 
-#: install.sh:3245
+#: install.sh:3244 install.sh:3452
+msgid "新版本"
+msgstr "new version"
+
+#: install.sh:3244 install.sh:3452
+msgid "更新内容"
+msgstr "update content"
+
+#: install.sh:3248
 msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
 msgstr "there is a new version available, but there are significant changes that may cause compatibility issues. do you want to update"
 
-#: install.sh:3248
+#: install.sh:3251
 msgid "存在新版本, 是否更新"
 msgstr "there is a new version, update"
 
-#: install.sh:3252
+#: install.sh:3255
 msgid "检测 脚本 最新版本失败"
 msgstr "failed to detect the latest version of the script"
 
-#: install.sh:3253
+#: install.sh:3256
 msgid "脚本 版本差别过大, 跳过更新"
 msgstr "script versions differ too much, skip update"
 
-#: install.sh:3263
+#: install.sh:3266
 msgid "更新完成"
 msgstr "update completed"
 
-#: install.sh:3264 install.sh:3457
+#: install.sh:3267 install.sh:3464
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
 msgstr "the script version has changed significantly. if the service does not run properly, please uninstall and reinstall"
 
-#: install.sh:3270
+#: install.sh:3273
 msgid "当前版本为最新版本"
 msgstr "the current version is the latest version"
 
-#: install.sh:3282 install.sh:3444 install.sh:3455 install.sh:3467
+#: install.sh:3285 install.sh:3447 install.sh:3462 install.sh:3475
 msgid "下载最新脚本"
 msgstr "download the latest script"
 
-#: install.sh:3296
+#: install.sh:3299
 msgid "该选项暂时无法使用"
 msgstr "this option is temporarily unavailable"
 
-#: install.sh:3315 install.sh:3808
+#: install.sh:3318 install.sh:3817
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr "this mode is recommended for load balancing. it is generally not recommended for use. install or not"
 
-#: install.sh:3410 install.sh:3411 install.sh:3420 install.sh:3423
-#: install.sh:3427 install.sh:3734 install.sh:3735 install.sh:3736
-#: install.sh:3737 install.sh:3738 install.sh:3739 install.sh:3822
-#: install.sh:3827 install.sh:3832 install.sh:3837
+#: install.sh:3413 install.sh:3414 install.sh:3423 install.sh:3426
+#: install.sh:3430 install.sh:3743 install.sh:3744 install.sh:3745
+#: install.sh:3746 install.sh:3747 install.sh:3748 install.sh:3831
+#: install.sh:3836 install.sh:3841 install.sh:3846
 msgid "变更"
 msgstr "change"
 
-#: install.sh:3410 install.sh:3738
+#: install.sh:3413 install.sh:3747
 msgid "负载均衡配置"
 msgstr "load balancing configuration"
 
-#: install.sh:3413
+#: install.sh:3416
 msgid "清除日志文件"
 msgstr "clear log files"
 
-#: install.sh:3414
+#: install.sh:3417
 msgid "查看证书状态"
 msgstr "check certificate status"
 
-#: install.sh:3415
+#: install.sh:3418
 msgid "更新证书有效期"
 msgstr "update certificate expiration date"
 
-#: install.sh:3416
+#: install.sh:3419
 msgid "设置证书自动更新"
 msgstr "set certificate for automatic update"
 
-#: install.sh:3417
+#: install.sh:3420
 msgid "设置 Fail2ban 防暴力破解"
 msgstr "set up fail2ban to prevent brute force attacks"
 
-#: install.sh:3418
+#: install.sh:3421
 msgid "显示帮助"
 msgstr "show help"
 
-#: install.sh:3419 install.sh:3430 install.sh:3755
+#: install.sh:3422 install.sh:3433 install.sh:3764
 msgid "更新"
 msgstr "update"
 
-#: install.sh:3421
+#: install.sh:3424
 msgid "脚本卸载"
 msgstr "the script unloads"
 
-#: install.sh:3422
+#: install.sh:3425
 msgid "显示安装信息"
 msgstr "display installation information"
 
-#: install.sh:3424 install.sh:3759
+#: install.sh:3427 install.sh:3768
 msgid "加速"
 msgstr "accelerate"
 
-#: install.sh:3426
+#: install.sh:3429
 msgid "升级脚本"
 msgstr "upgrade script"
 
-#: install.sh:3428 install.sh:3429
+#: install.sh:3431 install.sh:3432
 msgid "显示"
 msgstr "display"
 
-#: install.sh:3428
+#: install.sh:3431
 msgid "访问信息"
 msgstr "access information"
 
-#: install.sh:3429
+#: install.sh:3432
 msgid "错误信息"
 msgstr "error message"
 
-#: install.sh:3449
+#: install.sh:3456
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr "the script version has changed significantly, there may be compatibility issues, continue to use"
 
-#: install.sh:3474
+#: install.sh:3483
 msgid "检测失败"
 msgstr "detection failed"
 
-#: install.sh:3478 install.sh:3488 install.sh:3497
+#: install.sh:3487 install.sh:3497 install.sh:3506
 msgid "有新版"
 msgstr "there is a new version"
 
-#: install.sh:3481 install.sh:3490 install.sh:3500
+#: install.sh:3490 install.sh:3499 install.sh:3509
 msgid "最新版"
 msgstr "latest version"
 
-#: install.sh:3495
+#: install.sh:3504
 msgid "版本未知"
 msgstr "version unknown"
 
-#: install.sh:3515 install.sh:3522
+#: install.sh:3524 install.sh:3531
 msgid "运行中"
 msgstr "operating"
 
-#: install.sh:3517 install.sh:3540 install.sh:3542
+#: install.sh:3526 install.sh:3549 install.sh:3551
 msgid "无需测试"
 msgstr "no need to test"
 
-#: install.sh:3519 install.sh:3524
+#: install.sh:3528 install.sh:3533
 msgid "未运行"
 msgstr "not running"
 
-#: install.sh:3534
+#: install.sh:3543
 msgid "无法连通"
 msgstr "unable to connect"
 
-#: install.sh:3536 install.sh:3537 install.sh:3538
+#: install.sh:3545 install.sh:3546 install.sh:3547
 msgid "本地正常"
 msgstr "locally normal"
 
-#: install.sh:3553
+#: install.sh:3562
 msgid "脚本维护中.. 请稍后再试"
 msgstr "script maintenance in progress.. please try again later"
 
-#: install.sh:3555
+#: install.sh:3564
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr "unable to detect the online version of the required dependency, please try again later"
 
-#: install.sh:3572
+#: install.sh:3581
 msgid "请输入数字"
 msgstr "enter a number"
 
-#: install.sh:3572
+#: install.sh:3581
 msgid "请输入 1 到 5 之间的有效数字"
 msgstr "enter a valid number between 1 and 5"
 
-#: install.sh:3593
+#: install.sh:3602
 msgid "无效的选择"
 msgstr "invalid selection"
 
-#: install.sh:3629
+#: install.sh:3638
 msgid "请输入备份名称"
 msgstr "please enter a backup name"
 
-#: install.sh:3629
+#: install.sh:3638
 msgid "不需要后缀"
 msgstr "no suffix required"
 
-#: install.sh:3637
+#: install.sh:3646
 msgid "报错信息"
 msgstr "report an error message"
 
-#: install.sh:3639
+#: install.sh:3648
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
 msgstr "backup integrity may be affected, please check the above error message"
 
-#: install.sh:3643
+#: install.sh:3652
 msgid "备份失败"
 msgstr "backup failed"
 
-#: install.sh:3645
+#: install.sh:3654
 msgid "备份成功"
 msgstr "successful backup"
 
-#: install.sh:3651
+#: install.sh:3660
 msgid "请确保备份文件在目录"
 msgstr "please make sure the backup file is in the directory"
 
-#: install.sh:3655
+#: install.sh:3664
 msgid "没有找到备份文件"
 msgstr "no backup file found"
 
-#: install.sh:3660
+#: install.sh:3669
 msgid "发现多个备份文件"
 msgstr "discover multiple backup files"
 
-#: install.sh:3660
+#: install.sh:3669
 msgid "将使用最新的文件进行恢复"
 msgstr "recovery using the latest files"
 
-#: install.sh:3664
+#: install.sh:3673
 msgid "找到最新备份文件"
 msgstr "find the latest backup file"
 
-#: install.sh:3666
+#: install.sh:3675
 msgid "恢复备份"
 msgstr "restore backup"
 
-#: install.sh:3670
+#: install.sh:3679
 msgid "恢复成功"
 msgstr "recovery successfully"
 
-#: install.sh:3671 install.sh:3673
+#: install.sh:3680 install.sh:3682
 msgid "记得安装"
 msgstr "remember to install"
 
-#: install.sh:3676
+#: install.sh:3685
 msgid "恢复失败"
 msgstr "recovery failed"
 
-#: install.sh:3685
+#: install.sh:3694
 msgid "检测存在到"
 msgstr "detecting presence to"
 
-#: install.sh:3686
+#: install.sh:3695
 msgid "来源于自动清理日志错误的设置"
 msgstr "derived from the settings for automatic log error cleanup"
 
-#: install.sh:3687
+#: install.sh:3696
 msgid "开始修复"
 msgstr "start repair"
 
-#: install.sh:3691
+#: install.sh:3700
 msgid "错误的配置文件删除"
 msgstr "incorrect configuration file deletion"
 
-#: install.sh:3692
+#: install.sh:3701
 msgid "即将重新设置自动清理日志"
 msgstr "will reset the automatic log cleanup"
 
-#: install.sh:3700
+#: install.sh:3709
 msgid "安装管理脚本"
 msgstr "install management script"
 
-#: install.sh:3701
+#: install.sh:3710
 msgid "作者"
 msgstr "the author is"
 
-#: install.sh:3705
+#: install.sh:3714
 msgid "当前模式"
 msgstr "current model"
 
-#: install.sh:3706
+#: install.sh:3715
 msgid "当前语言"
 msgstr "current language"
 
-#: install.sh:3709
+#: install.sh:3718
 msgid "可以使用"
 msgstr "you can use"
 
-#: install.sh:3709
+#: install.sh:3718
 msgid "命令管理脚本"
 msgstr "command management script"
 
-#: install.sh:3711
+#: install.sh:3720
 msgid "版本检测"
 msgstr "version detection"
 
-#: install.sh:3712 install.sh:3720 install.sh:3768
+#: install.sh:3721 install.sh:3729 install.sh:3777
 msgid "脚本"
 msgstr "script"
 
-#: install.sh:3715
+#: install.sh:3724
 msgid "运行状态"
 msgstr "operating status"
 
-#: install.sh:3718
+#: install.sh:3727
 msgid "连通性"
 msgstr "connectivity"
 
-#: install.sh:3719
+#: install.sh:3728
 msgid "升级向导"
 msgstr "upgrade wizard"
 
-#: install.sh:3729
+#: install.sh:3738
 msgid "安装向导"
 msgstr "installation wizard"
 
-#: install.sh:3733
+#: install.sh:3742
 msgid "配置变更"
 msgstr "configuration change"
 
-#: install.sh:3740
+#: install.sh:3749
 msgid "用户管理"
 msgstr "user management"
 
-#: install.sh:3741 install.sh:3745 install.sh:3746 install.sh:3747
-#: install.sh:3752 install.sh:3754 fail2ban_manager.sh:15
+#: install.sh:3750 install.sh:3754 install.sh:3755 install.sh:3756
+#: install.sh:3761 install.sh:3763 fail2ban_manager.sh:15
 msgid "查看"
 msgstr "check"
 
-#: install.sh:3741 install.sh:3742 install.sh:3743
+#: install.sh:3750 install.sh:3751 install.sh:3752
 msgid "用户"
 msgstr "user"
 
-#: install.sh:3744
+#: install.sh:3753
 msgid "查看信息"
 msgstr "check information"
 
-#: install.sh:3745
+#: install.sh:3754
 msgid "实时访问日志"
 msgstr "real-time access logs"
 
-#: install.sh:3746
+#: install.sh:3755
 msgid "实时错误日志"
 msgstr "real-time error log"
 
-#: install.sh:3748
+#: install.sh:3757
 msgid "服务相关"
 msgstr "service related"
 
-#: install.sh:3749 install.sh:3750 install.sh:3751 install.sh:3752
+#: install.sh:3758 install.sh:3759 install.sh:3760 install.sh:3761
 msgid "所有服务"
 msgstr "all services"
 
-#: install.sh:3753
+#: install.sh:3762
 msgid "证书相关"
 msgstr "certificate related"
 
-#: install.sh:3754
+#: install.sh:3763
 msgid "证书状态"
 msgstr "certificate status"
 
-#: install.sh:3755
+#: install.sh:3764
 msgid "证书有效期"
 msgstr "the certificate validity period"
 
-#: install.sh:3756
+#: install.sh:3765
 msgid "证书自动更新"
 msgstr "certificate auto renewal"
 
-#: install.sh:3757
+#: install.sh:3766
 msgid "其他选项"
 msgstr "other options"
 
-#: install.sh:3758
+#: install.sh:3767
 msgid "自动更新"
 msgstr "auto-update"
 
-#: install.sh:3760
+#: install.sh:3769
 msgid "防暴力破解"
 msgstr "prevent brute force attack"
 
-#: install.sh:3761
+#: install.sh:3770
 msgid "流量统计"
 msgstr "traffic statistics"
 
-#: install.sh:3762
+#: install.sh:3771
 msgid "清除"
 msgstr "clear"
 
-#: install.sh:3762
+#: install.sh:3771
 msgid "日志文件"
 msgstr "log file"
 
-#: install.sh:3763
+#: install.sh:3772
 msgid "测试"
 msgstr "testing"
 
-#: install.sh:3763
+#: install.sh:3772
 msgid "服务器网速"
 msgstr "server network speed"
 
-#: install.sh:3764
+#: install.sh:3773
 msgid "备份恢复"
 msgstr "backup and restore"
 
-#: install.sh:3765 install.sh:3766
+#: install.sh:3774 install.sh:3775
 msgid "全部文件"
 msgstr "all files"
 
-#: install.sh:3766
+#: install.sh:3775
 msgid "恢复"
 msgstr "recover"
 
-#: install.sh:3767
+#: install.sh:3776
 msgid "卸载向导"
 msgstr "uninstall wizard"
 
-#: install.sh:3768 fail2ban_manager.sh:14 fail2ban_manager.sh:187
+#: install.sh:3777 fail2ban_manager.sh:14 fail2ban_manager.sh:187
 msgid "卸载"
 msgstr "uninstall"
 
-#: install.sh:3769
+#: install.sh:3778
 msgid "清空"
 msgstr "clear"
 
-#: install.sh:3769
+#: install.sh:3778
 msgid "证书文件"
 msgstr "certificate file"
 
-#: install.sh:3770 fail2ban_manager.sh:16 file_manager.sh:196
+#: install.sh:3779 fail2ban_manager.sh:16 file_manager.sh:196
 msgid "退出"
 msgstr "exit"
 
-#: install.sh:3773
+#: install.sh:3782
 msgid "请输入选项"
 msgstr "please enter an option"
 
-#: install.sh:3773
+#: install.sh:3782
 msgid "请输入 0 到 36 之间的有效数字"
 msgstr "please enter a valid number between 0 and 36"
 
-#: install.sh:3787
+#: install.sh:3796
 msgid "不建议"
 msgstr "not recommended"
 
-#: install.sh:3787
+#: install.sh:3796
 msgid "频繁升级 Nginx, 请确认 Nginx 有升级的必要"
 msgstr "frequent nginx upgrades, please confirm if nginx needs to be upgraded"
 
-#: install.sh:3788
+#: install.sh:3797
 msgid "开始升级"
 msgstr "start upgrade"
 
-#: install.sh:3854 install.sh:3861 install.sh:3868 install.sh:3913
-#: install.sh:3918 install.sh:3923 install.sh:3943
+#: install.sh:3863 install.sh:3870 install.sh:3877 install.sh:3922
+#: install.sh:3927 install.sh:3932 install.sh:3952
 msgid "回到菜单"
 msgstr "back to menu"
 
-#: install.sh:3986
+#: install.sh:3995
 msgid "请输入正确的数字"
 msgstr "enter the correct number"
 
