@@ -475,5 +475,7 @@
   "已启用": "enabled",
   "不支持的系统架构": "unsupported system architecture",
   "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户": "please directly select [view xray configuration information] in the main menu to display the main user",
-  "主用户无法删除": "the main user cannot delete it"
+  "主用户无法删除": "the main user cannot delete it",
+  "新版本": "new version",
+  "更新内容": "update content"
 }
