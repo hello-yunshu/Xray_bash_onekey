@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.5"
+shell_version="2.5.6"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -3240,6 +3240,9 @@ update_sh() {
     version_difference=$(echo "(${newest_version:0:3}-${oldest_version:0:3})>0" | bc)
     if [[ ${shell_version} != ${newest_version} ]]; then
         if [[ ${auto_update} != "YES" ]]; then
+            echo
+            log_echo "${GreenBG} $(gettext "新版本")(${newest_version}) $(gettext "更新内容"): ${Font}"
+            log_echo "${Green} $(check_version shell_upgrade_details) ${Font}"
             if [[ ${version_difference} == 1 ]]; then
                 echo
                 log_echo "${Warning} ${YellowBG} $(gettext "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
@@ -3445,7 +3448,11 @@ idleleo_commend() {
             clear
             source "$idleleo"
         elif [[ ${shell_version} != ${oldest_version} ]]; then
+            echo
+            log_echo "${GreenBG} $(gettext "新版本")(${shell_version}) $(gettext "更新内容"): ${Font}"
+            log_echo "${Green} $(check_version shell_upgrade_details) ${Font}"
             if [[ ${version_difference} == 1 ]]; then
+                echo
                 log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
                 read -r update_sh_fq
                 case $update_sh_fq in
@@ -3464,8 +3471,10 @@ idleleo_commend() {
             else
                 rm -rf ${idleleo}
                 wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
+                echo
                 judge "$(gettext "下载最新脚本")"
                 clear
+                echo
             fi
             source "$idleleo"
         else
