@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.6"
+shell_version="2.5.7"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1869,13 +1869,14 @@ server {
     listen [::]:443 quic reuseport;
 
     http2 on;
-    set_real_ip_from    127.0.0.1;
-    real_ip_header      X-Forwarded-For;
-    real_ip_recursive   on;
+    set_real_ip_from      127.0.0.1;
+    real_ip_header        X-Forwarded-For;
+    real_ip_recursive     on;
     ssl_certificate       ${idleleo_dir}/cert/xray.crt;
     ssl_certificate_key   ${idleleo_dir}/cert/xray.key;
     ssl_protocols         TLSv1.3;
-    ssl_ciphers           TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES128-SHA;
+    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;
+    ssl_ecdh_curve        X25519:prime256v1:secp384r1;
     server_name           serveraddr.com;
     index index.html index.htm;
     root /403.html;
