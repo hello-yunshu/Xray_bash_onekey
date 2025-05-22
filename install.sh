@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.7"
+shell_version="2.5.8"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1136,6 +1136,7 @@ xray_update() {
                     case $rollback_fq in
                     [nN][oO] | [nN])
                         log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
+                        return 0
                         ;;
                     *)
                         log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
@@ -1145,6 +1146,7 @@ xray_update() {
                             log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
                         else
                             log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
+                            return 1
                         fi
                         ;;
                     esac
@@ -1168,6 +1170,7 @@ xray_update() {
     else
         timeout "$(gettext "重装") Xray !"
         systemctl stop xray
+        xray_version=${xray_online_version}
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
         judge "Xray $(gettext "重装")"
     fi
