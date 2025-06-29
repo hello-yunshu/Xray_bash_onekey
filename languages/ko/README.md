@@ -22,7 +22,7 @@
 
 ## Telegram 그룹
 
-* Telegram 대화방: <https://t.me/idleleo_chat>
+* Telegram 대화방: [링크 클릭](https://t.me/48VSqv7xIIFmZDZl)
 
 ## 준비 작업
 
