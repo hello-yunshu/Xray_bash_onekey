@@ -22,7 +22,7 @@
 
 ## Telegram 群组
 
-* Telegram 交流群：<https://t.me/idleleo_chat>
+* Telegram 交流群：[点击链接](https://t.me/+48VSqv7xIIFmZDZl)
 
 ## 准备工作
 
