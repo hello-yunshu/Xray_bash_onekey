@@ -22,7 +22,7 @@
 
 ## Telegram Group
 
-* Telegram discussion group: <https://t.me/idleleo_chat>
+* Telegram discussion group: [Click the link](https://t.me/+48VSqv7xIIFmZDZl)
 
 ## Preparation
 
