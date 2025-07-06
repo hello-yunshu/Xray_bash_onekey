@@ -58,28 +58,40 @@ def contains_target_language_characters(text, target_lang):
         return False
 
 def translate_text_deepseek(text, target_lang):
+    api_key = os.getenv("AI_API_KEY")
+    if not api_key:
+        raise ValueError("AI_API_KEY environment variable is not set.")
+    
     client = OpenAI(
-        api_key=os.getenv("AI_API_KEY"),
+        api_key=api_key,
         base_url="https://api.deepseek.com",
     )
-    completion = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[
-            {'role': 'system', 'content': 'You are a professional text translation assistant, focused on translating short Chinese texts into voice content in the specified target language. Your task is to translate only the Chinese parts of the text into the corresponding target language, leaving English portions as they are. The translation process should not consider context between sentences; ensure each individual sentence is translated accurately. Avoid adding any punctuation at the end of the translated sentences. The goal is to assist in the internationalization of scripts while ensuring translations are concise and accurate.Translation does not need to be bound by grammar, the simpler the better.'},
-            {'role': 'user', 'content': f'Translate the following text to {target_lang}: {text}'}
-        ],
-        stream=True
-    )
-    full_content = ""
-    for chunk in completion:
-        full_content += chunk.choices[0].delta.content
-    return full_content.capitalize().lower().rstrip('.,!?;:')
+    try:
+        completion = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[
+                {'role': 'system', 'content': 'You are a professional text translation assistant, focused on translating short Chinese texts into voice content in the specified target language. Your task is to translate only the Chinese parts of the text into the corresponding target language, leaving English portions as they are. The translation process should not consider context between sentences; ensure each individual sentence is translated accurately. Avoid adding any punctuation at the end of the translated sentences. The goal is to assist in the internationalization of scripts while ensuring translations are concise and accurate.Translation does not need to be bound by grammar, the simpler the better.'},
+                {'role': 'user', 'content': f'Translate the following text to {target_lang}: {text}'}
+            ],
+            stream=True
+        )
+        full_content = ""
+        for chunk in completion:
+            full_content += chunk.choices[0].delta.content
+        return full_content.capitalize().lower().rstrip('.,!?;:')
+    except Exception as e:
+        print(f"DeepSeek translation failed: {e}")
+        return ""
 
 def translate_text_google(text, target_lang):
-    translator = Translator(service_urls=['translate.google.com'])
-    translation = translator.translate(text, src='auto', dest=target_lang)
-    translated_text = translation.text
-    return translated_text.capitalize().lower().rstrip('.,!?;:')
+    try:
+        translator = Translator(service_urls=['translate.google.com'])
+        translation = translator.translate(text, src='auto', dest=target_lang)
+        translated_text = translation.text
+        return translated_text.capitalize().lower().rstrip('.,!?;:')
+    except Exception as e:
+        print(f"Google Translate failed: {e}")
+        return ""
 
 def needs_fallback_translation(translated_text):
     return '\n' in translated_text or '"' in translated_text
@@ -198,6 +210,7 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
         if key not in used_translations:
             print(f"Removing unused cache entry: {key}")
             del translations[key]
+            updated = True
 
     if updated:
         save_translation_cache(cache_file, translations)
