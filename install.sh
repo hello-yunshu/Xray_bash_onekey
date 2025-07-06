@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.8"
+shell_version="2.5.9"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1495,7 +1495,7 @@ domain_check() {
     read_optimize "$(gettext "请输入你的域名信息") (e.g. www.idleleo.com):" "domain" "NULL"
     echo -e "\n${GreenBG} $(gettext "请选择公网IP(IPv4/IPv6)或手动输入域名") ${Font}"
     echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
-    echo "2: IPv6 ($(gettext "不推荐"))"
+    echo "2: IPv6"
     echo "3: $(gettext "域名")"
     local ip_version_fq
     read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")"
@@ -1583,7 +1583,7 @@ ip_check() {
     log_echo "${GreenBG} $(gettext "确定公网IP信息") ${Font}"
     log_echo "${GreenBG} $(gettext "请选择公网IP为IPv4或IPv6") ${Font}"
     echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
-    echo "2: IPv6 ($(gettext "不推荐"))"
+    echo "2: IPv6"
     echo "3: $(gettext "手动输入")"
     local ip_version_fq
     read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")"
