@@ -179,7 +179,7 @@ check_and_create_user_group() {
 check_language_update() {
     local lang_code="$1"
     local local_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/xray_install.mo"
-    local version_file_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/refs/heads/main/languages/${lang_code}/LC_MESSAGES/version"
+    local version_file_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/languages/${lang_code}/LC_MESSAGES/version"
 
     [[ ! -f "${local_file}" ]] && return 0
 
@@ -1100,7 +1100,7 @@ xray_privilege_escalation() {
 
 xray_install() {
     if [[ $(xray version) == "" ]] || [[ ! -f "${xray_conf}" ]]; then
-        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
+        bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_online_version}
         judge "$(gettext "安装") Xray"
         systemctl daemon-reload
         xray_privilege_escalation
@@ -1128,7 +1128,7 @@ xray_update() {
             [yY][eE][sS] | [yY])
                 log_echo "${OK} ${GreenBG} $(gettext "升级") Xray ! ${Font}"
                 systemctl stop xray
-                bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
+                bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_online_version}
                 if ! ${xray_bin_dir}/xray -version &> /dev/null; then
                     log_echo "${Error} ${RedBG} Xray $(gettext "启动失败")! ${Font}"
                     log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -1141,7 +1141,7 @@ xray_update() {
                     *)
                         log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
                         xray_version=$(info_extraction xray_version)
-                        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+                        bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_version}
                         if ${xray_bin_dir}/xray -version &> /dev/null; then
                             log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
                         else
@@ -1161,17 +1161,17 @@ xray_update() {
             esac
         else
             systemctl stop xray
-            bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
+            bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_online_version}
             if ! ${xray_bin_dir}/xray -version &> /dev/null; then
                 xray_version=$(info_extraction xray_version)
-                bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_version}
+                bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_version}
             fi
         fi
     else
         timeout "$(gettext "重装") Xray !"
         systemctl stop xray
         xray_version=${xray_online_version}
-        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -f --version v${xray_online_version}
+        bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_online_version}
         judge "Xray $(gettext "重装")"
     fi
     xray_privilege_escalation
@@ -2984,7 +2984,7 @@ uninstall_all() {
     stop_service_all
     if [[ -f "${xray_bin_dir}/xray" ]]; then
         systemctl disable xray
-        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove --purge
+        bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ remove --purge
         [[ -d "${xray_conf_dir}" ]] && rm -rf ${xray_conf_dir}
         if [[ -f "${xray_qr_config_file}" ]]; then
             jq -r 'del(.xray_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
@@ -3560,7 +3560,7 @@ check_xray_local_connect() {
 }
 
 check_online_version_connect() {
-    maintain_file_status=$(curl -s -o /dev/null -w "%{http_code}" "https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey@main/maintain")
+    maintain_file_status=$(curl -s -o /dev/null -w "%{http_code}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/maintain")
 
     if [[ ${maintain_file_status} == "200" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "脚本维护中.. 请稍后再试")! ${Font}"
