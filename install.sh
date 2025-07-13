@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.5.9"
+shell_version="2.6.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -67,7 +67,7 @@ auto_update_file="${idleleo_dir}/auto_update.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 myemali="my@example.com"
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
-get_versions_all=$(curl -s https://www.idleleo.com/api/xray_shell_versions)
+get_versions_all=$(curl -s https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json)
 read_config_status=1
 reality_add_more="off"
 reality_add_nginx="off"
@@ -3560,13 +3560,17 @@ check_xray_local_connect() {
 }
 
 check_online_version_connect() {
-    xray_online_version_status=$(curl_local_connect "www.idleleo.com" "api/xray_shell_versions")
+    maintain_file_status=$(curl -s -o /dev/null -w "%{http_code}" "https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey@main/maintain")
+
+    if [[ ${maintain_file_status} == "200" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "脚本维护中.. 请稍后再试")! ${Font}"
+        sleep 0.5
+        exit 0
+    fi
+
+    xray_online_version_status=$(curl -s -o /dev/null -w "%{http_code}" "https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json")
     if [[ ${xray_online_version_status} != "200" ]]; then
-        if [[ ${xray_online_version_status} == "403" ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "脚本维护中.. 请稍后再试")! ${Font}"
-        else
-            log_echo "${Error} ${RedBG} $(gettext "无法检测所需依赖的在线版本, 请稍后再试")! ${Font}"
-        fi
+        log_echo "${Error} ${RedBG} $(gettext "无法检测所需依赖的在线版本, 请稍后再试")! ${Font}"
         sleep 0.5
         exit 0
     fi

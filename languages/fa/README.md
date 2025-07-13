@@ -39,7 +39,7 @@
 البند زیر یک نسخه از متن با ترجمه بخش‌های فارسی به زبان پارسی است:
 
 ``` bash
-bash <(curl -Ss https://www.idleleo.com/install.sh)
+bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
 ## نکات مهم
