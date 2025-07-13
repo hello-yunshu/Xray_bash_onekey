@@ -37,7 +37,7 @@
 복사하여 실행:
 
 ``` bash
-bash <(curl -Ss https://www.idleleo.com/install.sh)
+bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
 ## 주의사항
