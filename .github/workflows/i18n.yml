@@ -55,7 +55,7 @@ jobs:
       - name: Setup directories
         run: |
           mkdir -p po
-          mkdir -p languages/{en,fa,ru,zh_CN,ko}/LC_MESSAGES
+          mkdir -p languages/{en,fa,ru,zh_CN,ko,fr}/LC_MESSAGES
       
       - name: Extract strings from specified scripts
         run: |
@@ -77,7 +77,7 @@ jobs:
       - name: Update/Create PO files
         run: |
           rm -f po/*.po
-          for lang in zh_CN en fa ru ko; do
+          for lang in zh_CN en fa ru ko fr; do
             msginit --no-translator --locale=$lang --input=po/xray_install.pot --output=po/$lang.po
           done
       
@@ -89,7 +89,7 @@ jobs:
       - name: Compile MO files if necessary
         run: |
           needs_compile=false
-          for lang in en fa ru ko; do
+          for lang in en fa ru ko fr; do
             if [ ! -f "po/${lang}.po.no-update" ]; then
               needs_compile=true
               if ! msgfmt --check -v --statistics -o languages/${lang}/LC_MESSAGES/xray_install.mo po/${lang}.po; then
@@ -108,7 +108,7 @@ jobs:
       
       - name: Run i18nspector checks on MO files if compiled
         run: |
-          for lang in en fa ru ko; do
+          for lang in en fa ru ko fr; do
             if [ ! -f "po/${lang}.po.no-update" ] && [ -f "languages/${lang}/LC_MESSAGES/xray_install.mo" ]; then
               i18nspector check-binary languages/${lang}/LC_MESSAGES/xray_install.mo
             fi
@@ -128,7 +128,7 @@ jobs:
       - name: Commit changes if necessary
         run: |
           needs_commit=false
-          for lang in en fa ru ko; do
+          for lang in en fa ru ko fr; do
             if [ ! -f "po/${lang}.po.no-update" ]; then
               needs_commit=true
               break

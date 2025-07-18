@@ -1,6 +1,6 @@
 # Xray 支持 Reality / VLESS WebSocket/gRPC+TLS 协议 + Nginx 的一键安装脚本
 
-简体中文 | [English](/languages/en/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
+简体中文 | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
@@ -8,7 +8,7 @@
 
 ## 使用说明
 
-* 可以直接输入命令：`idleleo` 管理脚本。
+* 可以直接输入命令：`idleleo` 管理脚本。 ( [查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#%E9%80%8D%E9%81%A5%E4%BB%99%E9%80%94idleleo-%E4%B9%8B%E5%90%8D) )
 * 使用 DeepSeek AI 实现多国语言精准翻译。
 * Reality 建议使用 Nginx 前置，在脚本中安装即可。
 * 建议开启 fail2ban ，在脚本中安装即可。

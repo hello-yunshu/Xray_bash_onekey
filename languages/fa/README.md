@@ -1,6 +1,6 @@
 # Xray supports Reality / VLESS WebSocket/gRPC+TLS protocol + Nginx one-click installation script
 
-[简体中文](/README.md) | [English](/languages/en/README.md) | [Русский](/languages/ru/README.md) | فارسی | [한국어](/languages/ko/README.md)
+[简体中文](/README.md) | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | فارسی | [한국어](/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
@@ -8,7 +8,7 @@
 
 ## راهنماي استفاده
 
-* شما می‌توانید مستقیماً دستور: `idleleo` را وارد کنید تا اسکریبت را مدیریت کنید.
+* می‌توانید دستور `idleleo` را مستقیماً وارد کنید تا اسکریپت را مدیریت کنید. ( [مشاهده پیشینهٔ داستان `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#%D8%B1%D8%A7%D9%87-%D9%81%D8%B1%D8%A7%D9%85%D9%88%D8%B4%DA%A9%D9%86%D9%86%D8%AF%D9%87-%D8%A7%D9%84%D9%87%DB%8C-%D8%AF%D8%A7%D8%B3%D8%AA%D8%A7%D9%86-idleleo) )
 * با استفاده از DeepSeek AI ترجمه دقیق به چند زبان رو انجام بده.
 * برای Reality، استفاده از Nginx به عنوان پیشگام توصیه می‌شود که در اسکریبت قابل نصب است.
 * توصیه می‌شود fail2ban را فعال کنید که در اسکریпт قابل نصب است.
