@@ -1,6 +1,6 @@
 # Xray supports Reality / VLESS WebSocket/gRPC+TLS protocol + Nginx one-click installation script
 
-[简体中文](/README.md) | English | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
+[简体中文](/README.md) | English | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
@@ -8,7 +8,7 @@
 
 ## Usage Instructions
 
-* You can directly input the command: `idleleo` to manage the script.
+* You can directly input the command: `idleleo` to manage the script. ( [View the background story of `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#the-immortal-path-of-idelao-the-legend-of-idleleo) )
 * Use DeepSeek AI for accurate translations in multiple languages.
 * It is recommended to use Nginx as a reverse proxy for Reality, which can be installed in the script.
 * It is recommended to enable fail2ban, which can be installed in the script.
