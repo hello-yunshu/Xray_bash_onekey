@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.6.0"
+shell_version="2.6.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -277,6 +277,7 @@ init_language() {
                 "fa_IR") lang_code="fa" ;;
                 "ru_RU") lang_code="ru" ;;
                 "ko_KR") lang_code="ko" ;;
+                "fr_FR") lang_code="fr" ;;
                 *)
                     log_echo "${Warning} ${YellowBG} $(gettext "不支持的语言"):${LANG%.*}, $(gettext "将使用默认语言") ${Font}"
                     export LANG=zh_CN.UTF-8
@@ -3581,12 +3582,13 @@ set_language() {
     log_echo "${GreenBG} 选择语言 / Select Language / انتخاب زبان / Выберите язык ${Font}"
     echo -e "${Green}1.${Font} 中文"
     echo -e "${Green}2.${Font} English"
-    echo -e "${Green}3.${Font} فارسی"
-    echo -e "${Green}4.${Font} Русский"
-    echo -e "${Green}5.${Font} 한국어"
+    echo -e "${Green}3.${Font} Français"
+    echo -e "${Green}4.${Font} فارسی"
+    echo -e "${Green}5.${Font} Русский"
+    echo -e "${Green}6.${Font} 한국어"
 
     local lang_choice
-    read_optimize "$(gettext "请输入数字"): " "lang_choice" "NULL" 1 5 "$(gettext "请输入 1 到 5 之间的有效数字")"
+    read_optimize "$(gettext "请输入数字"): " "lang_choice" "NULL" 1 6 "$(gettext "请输入 1 到 6 之间的有效数字")"
 
     case $lang_choice in
         1)
@@ -3598,12 +3600,15 @@ set_language() {
             export LANG=en_US.UTF-8
             ;;
         3)
-            export LANG=fa_IR.UTF-8
+            export LANG=fr_FR.UTF-8
             ;;
         4)
-            export LANG=ru_RU.UTF-8
+            export LANG=fa_IR.UTF-8
             ;;
         5)
+            export LANG=ru_RU.UTF-8
+            ;;
+        6)
             export LANG=ko_KR.UTF-8
             ;;
         *)
@@ -3740,6 +3745,7 @@ menu() {
     echo -e "—————————————— ${GreenW}语言 / Language${Font} ———————"
     echo -e "${Green}36.${Font} 中文"
     echo -e "    English"
+    echo -e "    Français" 
     echo -e "    فارسی    "
     echo -e "    Русский"
     echo -e "    한국어"

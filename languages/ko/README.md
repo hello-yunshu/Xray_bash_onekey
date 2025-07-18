@@ -1,6 +1,6 @@
 # Xray Reality / VLESS WebSocket/gRPC+TLS 프로토콜 + Nginx 일괄 설치 스크립트
 
-[简体中文](/README.md) | [English](/languages/en/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | 한국어
+[简体中文](/README.md) | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | 한국어
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
@@ -8,7 +8,7 @@
 
 ## 사용 방법
 
-* `idleleo` 명령을 직접 입력하여 스크립트를 관리할 수 있습니다.
+* `idleleo` 명령을 직접 입력하여 스크립트를 관리할 수 있습니다. ( [`idleleo` 배경 이야기 보기](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#%EB%AC%B4%EB%A6%89%EC%84%A0%EB%8F%84%E6%AD%A6%E9%99%B5%E4%BB%99%E9%81%93-%EC%95%84%EC%9D%B4%EB%93%A4%EB%A0%88%EC%98%A4%EC%9D%98-%EC%A0%84%EC%84%A4) )
 * DeepSeek AI를 사용해서 여러 언어를 정확하게 번역해.
 * Reality는 Nginx 프론트엔드를 권장하며, 스크립트에서 설치할 수 있습니다.
 * fail2ban 활성화를 권장하며, 스크립트에서 설치할 수 있습니다.

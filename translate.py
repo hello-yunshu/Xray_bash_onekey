@@ -44,18 +44,13 @@ def update_version(version_file):
 def contains_chinese(text):
     return any('\u4e00' <= char <= '\u9fff' for char in text)
 
-def is_english_dominant(text, threshold=0.4):
-    english_count = sum(1 for char in text if char.isascii())
-    total_count = len(text)
-    return english_count / total_count > threshold
-
-def contains_target_language_characters(text, target_lang):
-    try:
-        detected_lang = detect(text)
-        return detected_lang == target_lang
-    except Exception as e:
-        print(f"Language detection failed: {e}")
-        return False
+# def contains_target_language_characters(text, target_lang):
+#     try:
+#         detected_lang = detect(text)
+#         return detected_lang == target_lang
+#     except Exception as e:
+#         print(f"Language detection failed: {e}")
+#         return False
 
 def translate_text_deepseek(text, target_lang):
     api_key = os.getenv("AI_API_KEY")
@@ -161,9 +156,7 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
                     
                     # 检查翻译结果是否仍包含中文或需要回退翻译
                     if (contains_chinese(translated_text) or 
-                        needs_fallback_translation(translated_text) or 
-                        not contains_target_language_characters(translated_text, target_lang_code) or 
-                        is_english_dominant(translated_text)):
+                        needs_fallback_translation(translated_text)):
                         print(f"Translation does not meet criteria using DeepSeek. Using Google Translate...")
                         translated_text = translate_text_google(msgid_text, target_lang_code)
                     
@@ -184,7 +177,7 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
                     if attempt == max_retries - 1:
                         raise e
                     print(f"Retry {attempt + 1}/{max_retries} for: {msgid_text}")
-                    time.sleep(0.3)  # 重试前等待更长时间
+                    time.sleep(0.1)  # 重试前等待更长时间
         except Exception as e:
             print(f"Translation failed for: {msgid_text}")
             print(f"Error: {e}")
@@ -230,7 +223,7 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
         f.write(content)
 
 if __name__ == '__main__':
-    for lang_code, lang_name in [('en', 'English'), ('fa', 'Persian'), ('ru', 'Russian'), ('ko', 'Korean')]:
+    for lang_code, lang_name in [('en', 'English'), ('fa', 'Persian'), ('ru', 'Russian'), ('ko', 'Korean'), ('fr', 'French')]:
         print(f"\nTranslating to {lang_name} ({lang_code})...")
         input_file = f'po/{lang_code}.po'
         output_file = f'po/{lang_code}.po'
