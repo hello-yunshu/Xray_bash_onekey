@@ -313,7 +313,6 @@
   "脚本维护中.. 请稍后再试": "script maintenance in progress.. please try again later",
   "无法检测所需依赖的在线版本, 请稍后再试": "unable to detect the online version of the required dependency, please try again later",
   "请输入数字": "enter a number",
-  "请输入 1 到 5 之间的有效数字": "enter a valid number between 1 and 5",
   "无效的选择": "invalid selection",
   "检测存在到": "detecting presence to",
   "来源于自动清理日志错误的设置": "derived from the settings for automatic log error cleanup",
@@ -476,5 +475,6 @@
   "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户": "please directly select [view xray configuration information] in the main menu to display the main user",
   "主用户无法删除": "the main user cannot delete it",
   "新版本": "new version",
-  "更新内容": "update content"
+  "更新内容": "update content",
+  "请输入 1 到 6 之间的有效数字": "please enter a valid number between 1 and 6"
 }
