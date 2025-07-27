@@ -476,5 +476,8 @@
   "无效选项, 请重试": "option invalide, veuillez réessayer",
   "重启成功": "redémarrage réussi",
   "重启失败": "redémarrage échoué",
-  "请检查配置文件是否有误": "veuillez vérifier si le fichier de configuration contient des erreurs"
+  "请检查配置文件是否有误": "veuillez vérifier si le fichier de configuration contient des erreurs",
+  "日志文件未找到": "fichier de journal non trouvé",
+  "跳过 SSH 的 Fail2ban 配置": "ignorer la configuration de fail2ban pour ssh",
+  "无法显示 SSH 的 Fail2ban 状态": "impossible d'afficher l'état de fail2ban pour ssh"
 }
