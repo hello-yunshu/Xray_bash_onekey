@@ -476,5 +476,8 @@
   "无效选项, 请重试": "invalid option, please try again",
   "重启成功": "restart successful",
   "重启失败": "restart failed",
-  "请检查配置文件是否有误": "please check if there is an error in the configuration file"
+  "请检查配置文件是否有误": "please check if there is an error in the configuration file",
+  "日志文件未找到": "log file not found",
+  "跳过 SSH 的 Fail2ban 配置": "skip fail2ban configuration for ssh",
+  "无法显示 SSH 的 Fail2ban 状态": "unable to display the fail2ban status for ssh"
 }
