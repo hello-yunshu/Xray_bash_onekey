@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.1.6"
+mf_SCRIPT_VERSION="1.1.8"
 
 mf_main_menu() {
     check_system
@@ -41,10 +41,40 @@ mf_install_fail2ban() {
     fi
 }
 
+mf_ensure_sshd_config() {
+    local jail_file="/etc/fail2ban/jail.local"
+    local sshd_block="[sshd]
+enabled = true
+filter = sshd
+logpath = %(sshd_log)s
+backend = systemd
+maxretry = 5
+bantime = 604800"
+
+    # 1) 删除旧[sshd]整段（含段名）
+    awk '
+        /^[[]sshd[]]/ { skip=1; next }
+        skip && /^\[/  { skip=0 }
+        !skip          { print }
+    ' "$jail_file" >"${jail_file}.tmp" && mv "${jail_file}.tmp" "$jail_file"
+
+    # 2) 追加新[sshd]（保证前面有换行）
+    [[ -n $(tail -c1 "$jail_file") ]] && echo >> "$jail_file"
+    printf '\n%s' "$sshd_block" >> "$jail_file"
+}
+
 mf_configure_fail2ban() {
 
     if [[ ! -f "/etc/fail2ban/jail.local" ]]; then
         cp -fp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+    fi
+
+    # systemd SSH 日志检查
+    if ! journalctl -u ssh --since "1 hour ago" --no-pager -q | head -n 1 >/dev/null 2>&1; then
+        log_echo "${Warning} ${YellowBG} $(gettext "systemd 未能读取 SSH 日志") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "跳过启用") SSH $(gettext "规则") ${Font}"
+    else
+        mf_ensure_sshd_config
     fi
 
     # 检查 Nginx 是否安装
@@ -55,10 +85,7 @@ mf_configure_fail2ban() {
         fi
     fi
 
-    if [[ -z $(grep "filter   = sshd" /etc/fail2ban/jail.local) ]]; then
-        sed -i "/sshd_log/i \enabled  = true\\nfilter   = sshd\\nmaxretry = 5\\nbantime  = 604800" /etc/fail2ban/jail.local
-    fi
-
+    # 配置 Nginx 相关规则
     if [[ ${tls_mode} == "TLS" || ${reality_add_nginx} == "on" ]]; then
         sed -i "/nginx_error_log/d" /etc/fail2ban/jail.local
         sed -i "s/http,https$/http,https,8080/g" /etc/fail2ban/jail.local
@@ -159,6 +186,7 @@ mf_add_custom_rule() {
         return
     fi
 
+    [[ -n "$(tail -c1 /etc/fail2ban/jail.local)" ]] && echo >> /etc/fail2ban/jail.local
     echo -e "[$jail_name]\nenabled  = true\nfilter   = $filter_name\nlogpath  = $log_path\nmaxretry = $max_retry\nbantime  = $ban_time\n" >> /etc/fail2ban/jail.local
     log_echo "${OK} ${GreenBG} $(gettext "自定义规则添加成功") ${Font}"
 
@@ -218,8 +246,15 @@ mf_display_fail2ban_status() {
     echo
     log_echo "${Green} $(gettext "默认启用的 Jail 状态"): ${Font}"
     echo "----------------------------------------"
-    log_echo "${Green} SSH $(gettext "封锁情况"): ${Font}"
-    fail2ban-client status sshd
+    
+    # 检查 SSH 日志文件是否存在并显示状态
+    if fail2ban-client status | grep -q 'Jail list:.*sshd'; then
+        log_echo "${Green} SSH $(gettext "封锁情况"): ${Font}"
+        fail2ban-client status sshd
+    else
+        log_echo "${Warning} ${YellowBG} SSH Jail $(gettext "未启用或配置异常") ${Font}"
+    fi
+
     if [[ ${tls_mode} == "TLS" || ${reality_add_nginx} == "on" ]]; then
         log_echo "${Green} Fail2ban Nginx $(gettext "封锁情况"): ${Font}"
         fail2ban-client status nginx-badbots
