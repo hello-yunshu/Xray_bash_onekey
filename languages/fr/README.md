@@ -9,7 +9,7 @@
 ## Instructions d'utilisation
 
 * Vous pouvez simplement entrer la commande : `idleleo` pour gérer le script. ( [Voir l'histoire de `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#la-voie-immortelle-didleleo) )
-* Traduction multilingue précise réalisée avec l'IA DeepSeek.
+* Traduction multilingue précise réalisée avec l'IA Qwen-MT-Plus.
 * Il est recommandé d'utiliser Nginx devant Reality, vous pouvez l'installer directement via le script.
 * Il est conseillé d'activer fail2ban, vous pouvez l'installer via le script.
 * Utilisation de la proposition de lien de partage de [@DuckSoft](https://github.com/DuckSoft) (beta), compatible avec Qv2ray, V2rayN, V2rayNG.
