@@ -9,7 +9,7 @@
 ## Инструкция по использованию
 
 * Вы можете напрямую ввести команду: `idleleo` для управления скриптом. ( [Посмотреть предысторию `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#%D0%BF%D1%83%D1%82%D1%8C-%D0%B1%D0%B5%D1%81%D1%81%D0%BC%D0%B5%D1%80%D1%82%D0%BD%D0%BE%D0%B3%D0%BE-idleleo-%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0-%D0%BE-idleleo) )
-* Используй DeepSeek AI для точного перевода на несколько языков.
+* Используй Qwen-MT-Plus AI для точного перевода на несколько языков.
 * Для Reality рекомендуется использовать Nginx как обратный прокси, который можно установить через скрипт.
 * Рекомендуется включить fail2ban, который также можно установить через скрипт.
 * Используйте предложение о ссылке для обмена от [@DuckSoft](https://github.com/DuckSoft) [(beta)](https://github.com/XTLS/Xray-core/issues/91), поддерживающее Qv2ray, V2rayN, V2rayNG.
