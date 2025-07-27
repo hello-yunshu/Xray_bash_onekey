@@ -1,4 +1,4 @@
-# Chinese translations for xray_install package.
+# French translations for xray_install package.
 # Copyright (C) 2025 yunshu
 # This file is distributed under the same license as the xray_install package.
 # Automatically generated, 2025.
@@ -12,173 +12,174 @@ msgstr ""
 "PO-Revision-Date: 2025-07-27 14:36+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
-"Language: zh_CN\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: install.sh:33
 msgid "提醒"
-msgstr ""
+msgstr "rappel"
 
 #: install.sh:35
 msgid "错误"
-msgstr ""
+msgstr "erreur"
 
 #: install.sh:36
 msgid "警告"
-msgstr ""
+msgstr "avertissement"
 
 #: install.sh:39 install.sh:1422 install.sh:3500 install.sh:3517
 #: install.sh:3520 install.sh:3521 install.sh:3559
 msgid "未安装"
-msgstr ""
+msgstr "non installé"
 
 #: install.sh:99
 msgid "日志文件归档失败"
-msgstr ""
+msgstr "échec de l'archivage du fichier journal"
 
 #: install.sh:104
 msgid "清空日志文件失败"
-msgstr ""
+msgstr "échec de l'effacement du fichier journal"
 
 #: install.sh:108
 msgid "日志文件已轮转并归档为"
-msgstr ""
+msgstr "le fichier journal a été tourné et archivé sous "
 
 #: install.sh:137 install.sh:141 install.sh:145 install.sh:155
 msgid "当前系统为"
-msgstr ""
+msgstr "le système actuel est"
 
 #: install.sh:155
 msgid "不在支持的系统列表内, 安装中断"
-msgstr ""
+msgstr "non inclus dans la liste des systèmes pris en charge, l'installation est interrompue"
 
 #: install.sh:162
 msgid "当前用户是 root 用户, 进入安装流程"
-msgstr ""
+msgstr "l'utilisateur actuel est l'utilisateur root, entrer dans le processus d'installation"
 
 #: install.sh:164
 msgid "当前用户不是 root 用户, 请切换到 root 用户后重新执行脚本"
-msgstr ""
+msgstr "l'utilisateur actuel n'est pas l'utilisateur root. veuillez passer à l'utilisateur root avant de relancer le script"
 
 #: install.sh:190
 msgid "无法获取远程语言文件信息"
-msgstr ""
+msgstr "impossible d'obtenir les informations sur le fichier de langue distant"
 
 #: install.sh:208
 msgid "正在更新语言文件"
-msgstr ""
+msgstr "mise à jour du fichier de langue en cours"
 
 #: install.sh:211 install.sh:291
 msgid "语言文件更新失败"
-msgstr ""
+msgstr "échec de la mise à jour du fichier de langue"
 
 #: install.sh:216
 msgid "语言文件无效"
-msgstr ""
+msgstr "fichier de langue invalide"
 
 #: install.sh:222
 msgid "版本文件更新失败"
-msgstr ""
+msgstr "échec de la mise à jour du fichier de version"
 
 #: install.sh:229
 msgid "语言文件更新完成"
-msgstr ""
+msgstr "mise à jour du fichier de langue terminée"
 
 #: install.sh:234
 msgid "正在安装"
-msgstr ""
+msgstr "en cours d'installation"
 
 #: install.sh:237
 msgid "安装失败"
-msgstr ""
+msgstr "échec de l'installation"
 
 #: install.sh:237 install.sh:260 install.sh:282 install.sh:291
 msgid "将使用默认语言"
-msgstr ""
+msgstr "utilisera la langue par défaut"
 
 #: install.sh:260
 msgid "未找到"
-msgstr ""
+msgstr "non trouvé"
 
 #: install.sh:282
 msgid "不支持的语言"
-msgstr ""
+msgstr "langue non prise en charge"
 
 #: install.sh:296
 msgid "发现语言文件更新"
-msgstr ""
+msgstr "découvrir la mise à jour du fichier de langue"
 
 #: install.sh:309 install.sh:1621
 msgid "完成"
-msgstr ""
+msgstr "terminé"
 
 #: install.sh:312
 msgid "失败"
-msgstr ""
+msgstr "échec"
 
 #: install.sh:319
 msgid "在线版本检测失败, 请稍后再试"
-msgstr ""
+msgstr "la vérification de la version en ligne a échoué, veuillez réessayer plus tard"
 
 #: install.sh:341 install.sh:349 install.sh:1105 install.sh:3415
 #: install.sh:3416 install.sh:3417 install.sh:3753 install.sh:3754
 #: install.sh:3755 fail2ban_manager.sh:12 fail2ban_manager.sh:39
 msgid "安装"
-msgstr ""
+msgstr "installation"
 
 #: install.sh:343 install.sh:351 install.sh:1112 install.sh:3509
 msgid "已安装"
-msgstr ""
+msgstr "déjà installé"
 
 #: install.sh:368 install.sh:372
 msgid "自启动配置"
-msgstr ""
+msgstr "configuration de démarrage automatique"
 
 #: install.sh:381
 msgid "链接库安装"
-msgstr ""
+msgstr "installation de la bibliothèque liée"
 
 #: install.sh:386
 msgid "值为空或超出范围, 请重新输入"
-msgstr ""
+msgstr "la valeur est vide ou hors de la plage, veuillez saisir à nouveau"
 
 #: install.sh:395
 msgid "值为空, 请重新输入"
-msgstr ""
+msgstr "valeur vide, veuillez saisir à nouveau"
 
 #: install.sh:437
 msgid "确定端口"
-msgstr ""
+msgstr "déterminer le port"
 
 #: install.sh:438 install.sh:441 file_manager.sh:97
 msgid "请输入端口"
-msgstr ""
+msgstr "veuillez entrer le port"
 
 #: install.sh:438 install.sh:441 file_manager.sh:98
 msgid "默认值"
-msgstr ""
+msgstr "valeur par défaut"
 
 #: install.sh:438 install.sh:441 install.sh:528 install.sh:550 install.sh:2675
 #: install.sh:2680 install.sh:2685 install.sh:2686 install.sh:2701
 #: install.sh:2706 install.sh:2711 install.sh:2712
 msgid "请输入 0-65535 之间的值"
-msgstr ""
+msgstr "veuillez saisir une valeur comprise entre 0 et 65535"
 
 #: install.sh:440
 msgid "端口不允许使用, 请重新输入"
-msgstr ""
+msgstr "le port n'est pas autorisé, veuillez entrer à nouveau"
 
 #: install.sh:449
 msgid "请选择安装协议"
-msgstr ""
+msgstr "veuillez sélectionner le contrat d'installation"
 
 #: install.sh:450 install.sh:1498 install.sh:1535 install.sh:1586
 #: install.sh:2762 install.sh:2829 install.sh:2876 fail2ban_manager.sh:154
 #: fail2ban_manager.sh:155
 msgid "默认"
-msgstr ""
+msgstr "par défaut"
 
 #: install.sh:454 install.sh:817 install.sh:860 install.sh:1502 install.sh:1515
 #: install.sh:1537 install.sh:1590 install.sh:1600 install.sh:2625
@@ -188,743 +189,743 @@ msgstr ""
 #: install.sh:2888 fail2ban_manager.sh:119 fail2ban_manager.sh:152
 #: file_manager.sh:81
 msgid "请输入"
-msgstr ""
+msgstr "veuillez entrer"
 
 #: install.sh:454 install.sh:1502 install.sh:1537 install.sh:1590
 #: install.sh:2625 install.sh:2765 install.sh:2832 install.sh:2879
 msgid "请输入有效的数字"
-msgstr ""
+msgstr "veuillez saisir un nombre valide"
 
 #: install.sh:475
 msgid "是否添加简单 ws/gRPC 协议 用于负载均衡"
-msgstr ""
+msgstr "ajouter ou non le protocole simple ws/grpc pour l'équilibrage de charge"
 
 #: install.sh:476
 msgid "如不清楚具体用途, 请勿选择"
-msgstr ""
+msgstr "si l'utilisation spécifique n'est pas claire, veuillez ne pas choisir"
 
 #: install.sh:495
 msgid "已跳过添加简单 ws/gRPC 协议"
-msgstr ""
+msgstr "ajout du protocole simple ws/grpc déjà ignoré"
 
 #: install.sh:524 install.sh:546 install.sh:627 install.sh:660 install.sh:692
 msgid "是否需要自定义"
-msgstr ""
+msgstr "a-t-on besoin d'une personnalisation "
 
 #: install.sh:528 install.sh:550 install.sh:631 install.sh:664
 msgid "请输入自定义"
-msgstr ""
+msgstr "veuillez saisir une valeur personnalisée"
 
 #: install.sh:528 install.sh:550
 msgid "请勿与其他端口相同"
-msgstr ""
+msgstr "veuillez ne pas utiliser le même port que les autres"
 
 #: install.sh:567 file_manager.sh:105
 msgid "是否需要设置防火墙"
-msgstr ""
+msgstr "doit-on configurer un pare-feu "
 
 #: install.sh:607 install.sh:611 file_manager.sh:119 file_manager.sh:123
 #: file_manager.sh:127
 msgid "防火墙"
-msgstr ""
+msgstr "pare-feu"
 
 #: install.sh:607 install.sh:611 file_manager.sh:123 file_manager.sh:127
 msgid "重启完成"
-msgstr ""
+msgstr "redémarrage terminé"
 
 #: install.sh:613
 msgid "开放防火墙相关端口"
-msgstr ""
+msgstr "ouvrir les ports du pare-feu correspondants"
 
 #: install.sh:614
 msgid "若修改配置, 请注意关闭防火墙相关端口"
-msgstr ""
+msgstr "si vous modifiez la configuration, veuillez veiller à désactiver les ports associés au pare-feu"
 
 #: install.sh:615 install.sh:3419 install.sh:3432 install.sh:3433
 #: install.sh:3762 install.sh:3781 fail2ban_manager.sh:89
 msgid "配置"
-msgstr ""
+msgstr "configuration"
 
 #: install.sh:618 file_manager.sh:131
 msgid "跳过防火墙设置"
-msgstr ""
+msgstr "passer la configuration du pare-feu"
 
 #: install.sh:627 install.sh:631 install.sh:632 install.sh:636 install.sh:644
 #: install.sh:660 install.sh:664 install.sh:665 install.sh:669 install.sh:677
 #: install.sh:1044
 msgid "伪装路径"
-msgstr ""
+msgstr "chemin de camouflage"
 
 #: install.sh:631 install.sh:664
 msgid "不需要"
-msgstr ""
+msgstr "pas besoin"
 
 #: install.sh:644 install.sh:677 install.sh:811
 msgid "是否需要修改"
-msgstr ""
+msgstr "doit-on modifier "
 
 #: install.sh:692 install.sh:702 install.sh:2792
 msgid "用户名"
-msgstr ""
+msgstr "nom d'utilisateur"
 
 #: install.sh:696
 msgid "请输入正确的 email"
-msgstr ""
+msgstr "veuillez saisir une adresse e-mail correcte"
 
 #: install.sh:709
 msgid "是否需要自定义字符串映射"
-msgstr ""
+msgstr "a-t-on besoin d'une correspondance de chaînes personnalisée "
 
 #: install.sh:713
 msgid "请输入自定义字符串"
-msgstr ""
+msgstr "veuillez saisir une chaîne personnalisée"
 
 #: install.sh:713
 msgid "最多30字符"
-msgstr ""
+msgstr "maximum 30 caractères"
 
 #: install.sh:715
 msgid "自定义字符串"
-msgstr ""
+msgstr "chaîne personnalisée"
 
 #: install.sh:722 install.sh:2479 install.sh:3435 install.sh:3757
 #: install.sh:3845
 msgid "映射字符串"
-msgstr ""
+msgstr "chaîne de mappage"
 
 #: install.sh:733
 msgid "检测到 target 域名已配置, 是否保留"
-msgstr ""
+msgstr "cible détectée, domaine déjà configuré, souhaitez-vous le conserver "
 
 #: install.sh:753
 msgid "请输入一个域名"
-msgstr ""
+msgstr "veuillez saisir un nom de domaine"
 
 #: install.sh:754
 msgid "域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用"
-msgstr ""
+msgstr "le nom de domaine doit prendre en charge tlsv1.3, x25519 et h2, et ne pas être utilisé pour les redirections"
 
 #: install.sh:755
 msgid "确认域名符合要求后请输入"
-msgstr ""
+msgstr "après avoir confirmé que le nom de domaine est conforme aux exigences, veuillez entrer"
 
 #: install.sh:756
 msgid "正在检测域名请等待"
-msgstr ""
+msgstr "vérification du nom de domaine en cours, veuillez patienter"
 
 #: install.sh:763 install.sh:768 install.sh:773
 msgid "该域名不支持"
-msgstr ""
+msgstr "ce nom de domaine n'est pas pris en charge"
 
 #: install.sh:778
 msgid "该域名发生了跳转"
-msgstr ""
+msgstr "ce nom de domaine a subi une redirection"
 
 #: install.sh:785
 msgid "该域名可能不满足所有要求"
-msgstr ""
+msgstr "ce nom de domaine pourrait ne pas répondre à toutes les exigences"
 
 #: install.sh:786
 msgid "是否仍要设置此域名"
-msgstr ""
+msgstr "voulez-vous toujours configurer ce nom de domaine "
 
 #: install.sh:798 install.sh:803 install.sh:1500
 msgid "域名"
-msgstr ""
+msgstr "nom de domaine"
 
 #: install.sh:798
 msgid "满足所有要求"
-msgstr ""
+msgstr "satisfaire toutes les exigences"
 
 #: install.sh:811
 msgid "域名的"
-msgstr ""
+msgstr "du nom de domaine"
 
 #: install.sh:812
 msgid "默认为"
-msgstr ""
+msgstr "par défaut pour"
 
 #: install.sh:812
 msgid "域名本身"
-msgstr ""
+msgstr "le nom de domaine lui-même"
 
 #: install.sh:813 install.sh:851 install.sh:894
 msgid "如不清楚具体用途, 请勿继续"
-msgstr ""
+msgstr "si l'utilisation spécifique n'est pas claire, veuillez ne pas continuer"
 
 #: install.sh:850 install.sh:893
 msgid "是否变更"
-msgstr ""
+msgstr "est-ce que cela change"
 
 #: install.sh:850
 msgid "负载均衡"
-msgstr ""
+msgstr "équilibrage de charge"
 
 #: install.sh:855
 msgid "请选择协议为 ws 或 gRPC"
-msgstr ""
+msgstr "veuillez sélectionner le protocole ws ou grpc"
 
 #: install.sh:858 fail2ban_manager.sh:117
 msgid "返回"
-msgstr ""
+msgstr "retour"
 
 #: install.sh:860
 msgid "请重新输入正确的数字"
-msgstr ""
+msgstr "veuillez saisir à nouveau le bon numéro"
 
 #: install.sh:865 install.sh:902
 msgid "本地文件 file_manager.sh 不存在, 正在下载"
-msgstr ""
+msgstr "le fichier local file_manager.sh n'existe pas, téléchargement en cours"
 
 #: install.sh:868 install.sh:905 install.sh:2172 fail2ban_manager.sh:260
 #: file_manager.sh:236
 msgid "下载失败, 请手动下载并安装新版本"
-msgstr ""
+msgstr "échec du téléchargement, veuillez télécharger manuellement et installer la nouvelle version"
 
 #: install.sh:878
 msgid "无效选项 请重试"
-msgstr ""
+msgstr "option invalide, veuillez réessayer"
 
 #: install.sh:886 install.sh:915 install.sh:2108 install.sh:2146
 #: install.sh:2162
 msgid "当前模式不支持此操作"
-msgstr ""
+msgstr "le mode actuel ne prend pas en charge cette opération"
 
 #: install.sh:895
 msgid "配置用途可以参考文章"
-msgstr ""
+msgstr "pour la configuration d'utilisation, vous pouvez consulter l'article"
 
 #: install.sh:937 install.sh:941 install.sh:945 install.sh:957 install.sh:962
 #: install.sh:968 install.sh:988 install.sh:994 install.sh:1044 install.sh:1063
 #: install.sh:3433 install.sh:3724
 msgid "修改"
-msgstr ""
+msgstr "modifier"
 
 #: install.sh:996 install.sh:2459 install.sh:2461 install.sh:2463
 #: install.sh:2464 install.sh:2467 install.sh:2471 install.sh:2473
 #: install.sh:2475 install.sh:2476 install.sh:2503 install.sh:2506
 #: install.sh:2509 install.sh:2511 install.sh:2669
 msgid "端口"
-msgstr ""
+msgstr "port"
 
 #: install.sh:1046
 msgid "不支持"
-msgstr ""
+msgstr "ne prend pas en charge"
 
 #: install.sh:1053
 msgid "用户名修改"
-msgstr ""
+msgstr "modification du nom d'utilisateur"
 
 #: install.sh:1056 install.sh:1066
 msgid "请先删除多余的用户"
-msgstr ""
+msgstr "veuillez d'abord supprimer les utilisateurs en trop"
 
 #: install.sh:1074 install.sh:1082 install.sh:1089 install.sh:1863
 #: install.sh:1934 install.sh:1996 install.sh:2005 install.sh:2028
 msgid "配置修改"
-msgstr ""
+msgstr "modification de la configuration"
 
 #: install.sh:1094
 msgid "检测到 Xray 的权限控制, 启动修改程序"
-msgstr ""
+msgstr "contrôle d'autorisation xray détecté, lancement du programme de modification"
 
 #: install.sh:1099
 msgid "修改完成"
-msgstr ""
+msgstr "modification terminée"
 
 #: install.sh:1118
 msgid "若更新无效, 建议直接卸载再安装"
-msgstr ""
+msgstr "si la mise à jour n'est pas effective, il est recommandé de désinstaller puis réinstaller directement"
 
 #: install.sh:1119
 msgid "部分新功能需要重新安装才可生效"
-msgstr ""
+msgstr "certaines nouvelles fonctionnalités nécessitent une réinstallation pour entrer en vigueur"
 
 #: install.sh:1124
 msgid "检测到存在最新版"
-msgstr ""
+msgstr "dernière version détectée"
 
 #: install.sh:1125
 msgid "脚本可能未兼容此版本"
-msgstr ""
+msgstr "le script pourrait ne pas être compatible avec cette version"
 
 #: install.sh:1126
 msgid "是否更新"
-msgstr ""
+msgstr "mettre à jour ou non"
 
 #: install.sh:1130 install.sh:1155 install.sh:1414 install.sh:3742
 #: install.sh:3743 install.sh:3744
 msgid "升级"
-msgstr ""
+msgstr "mise à niveau"
 
 #: install.sh:1134 install.sh:1377
 msgid "启动失败"
-msgstr ""
+msgstr "départ échoué"
 
 #: install.sh:1135 install.sh:1380
 msgid "是否回滚到之前的版本"
-msgstr ""
+msgstr "revenir à la version précédente "
 
 #: install.sh:1139 install.sh:1390
 msgid "未执行回滚操作"
-msgstr ""
+msgstr "opération de rollback non effectuée"
 
 #: install.sh:1143 install.sh:1394
 msgid "正在回滚"
-msgstr ""
+msgstr "en train de revenir en arrière"
 
 #: install.sh:1147 install.sh:1401
 msgid "已成功回滚到之前的"
-msgstr ""
+msgstr "rétrogradé avec succès à l'ancien"
 
 #: install.sh:1147 install.sh:1401 install.sh:3760 install.sh:3860
 msgid "版本"
-msgstr ""
+msgstr "version"
 
 #: install.sh:1149 install.sh:1406
 msgid "回滚失败"
-msgstr ""
+msgstr "échec du retour en arrière"
 
 #: install.sh:1172 install.sh:1176
 msgid "重装"
-msgstr ""
+msgstr "réinstallation"
 
 #: install.sh:1189
 msgid "Reality 协议有流量偷跑的风险"
-msgstr ""
+msgstr "le protocole reality présente un risque de fuite de trafic"
 
 #: install.sh:1190
 msgid "该风险在 target 网址被 cdn 加速时存在"
-msgstr ""
+msgstr "ce risque existe lorsque l'url cible est accélérée par un cdn"
 
 #: install.sh:1191
 msgid "是否额外安装 nginx 前置保护(推荐)"
-msgstr ""
+msgstr "installer un proxy nginx supplémentaire (recommandé)"
 
 #: install.sh:1195
 msgid "已跳过安装"
-msgstr ""
+msgstr "installation ignorée"
 
 #: install.sh:1226
 msgid "已存在, 跳过编译安装过程"
-msgstr ""
+msgstr "déjà existant, sauter le processus de compilation et d'installation"
 
 #: install.sh:1229
 msgid "检测到旧版本安装的"
-msgstr ""
+msgstr "ancienne version détectée installée"
 
 #: install.sh:1230
 msgid "请先做好备份"
-msgstr ""
+msgstr "veuillez d'abord effectuer une sauvegarde"
 
 #: install.sh:1231
 msgid "是否需要删除 (请删除)"
-msgstr ""
+msgstr "doit-on supprimer (veuillez supprimer)"
 
 #: install.sh:1235
 msgid "已跳过删除"
-msgstr ""
+msgstr "suppression déjà ignorée"
 
 #: install.sh:1242
 msgid "日志目录已更改, 日志清除需要重新设置"
-msgstr ""
+msgstr "le répertoire des journaux a été modifié, la suppression des journaux doit être reconfigurée"
 
 #: install.sh:1248
 msgid "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装"
-msgstr ""
+msgstr "un nginx installé par un autre paquet a été détecté. la poursuite de l'installation entraînera des conflits. veuillez résoudre ce problème avant d'installer"
 
 #: install.sh:1261
 msgid "即将下载已编译的"
-msgstr ""
+msgstr "téléchargement imminent du compilé"
 
 #: install.sh:1271
 msgid "不支持的系统架构"
-msgstr ""
+msgstr "architecture système non prise en charge"
 
 #: install.sh:1321 install.sh:1322 install.sh:1329 install.sh:1330
 msgid "配置文件不完整, 退出升级"
-msgstr ""
+msgstr "le fichier de configuration est incomplet, quitter la mise à niveau"
 
 #: install.sh:1334 install.sh:1335
 msgid "当前安装模式不需要"
-msgstr ""
+msgstr "le mode d'installation actuel n'est pas nécessaire"
 
 #: install.sh:1339 install.sh:1340
 msgid "配置文件不存在, 退出升级"
-msgstr ""
+msgstr "le fichier de configuration n'existe pas, quitter la mise à niveau"
 
 #: install.sh:1346
 msgid "备份旧版"
-msgstr ""
+msgstr "sauvegarder l'ancienne version"
 
 #: install.sh:1347
 msgid "删除旧版"
-msgstr ""
+msgstr "supprimer l'ancienne version"
 
 #: install.sh:1351
 msgid "是否保留原 Nginx 配置文件"
-msgstr ""
+msgstr "conserver le fichier de configuration nginx original "
 
 #: install.sh:1359 install.sh:1684
 msgid "原配置文件已删除"
-msgstr ""
+msgstr "le fichier de configuration d'origine a été supprimé"
 
 #: install.sh:1363
 msgid "原配置文件已保留"
-msgstr ""
+msgstr "le fichier de configuration d'origine a été conservé"
 
 #: install.sh:1416 install.sh:3766
 msgid "删除"
-msgstr ""
+msgstr "supprimer"
 
 #: install.sh:1416 install.sh:3788
 msgid "备份"
-msgstr ""
+msgstr "sauvegarde"
 
 #: install.sh:1419
 msgid "已为最新版"
-msgstr ""
+msgstr "déjà à la dernière version"
 
 #: install.sh:1434
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
-msgstr ""
+msgstr "configurer un programme de mise à jour automatique en arrière-plan (incluant : script/xray/nginx)"
 
 #: install.sh:1435
 msgid "可能自动更新后有兼容问题, 谨慎开启"
-msgstr ""
+msgstr "il est possible qu'il y ait des problèmes de compatibilité après la mise à jour automatique ; veuillez l'activer avec prudence"
 
 #: install.sh:1436
 msgid "是否开启"
-msgstr ""
+msgstr "activer ou non"
 
 #: install.sh:1442 install.sh:3420
 msgid "设置自动更新"
-msgstr ""
+msgstr "configurer la mise à jour automatique"
 
 #: install.sh:1447
 msgid "已设置自动更新"
-msgstr ""
+msgstr "mise à jour automatique configurée"
 
 #: install.sh:1448
 msgid "是否关闭"
-msgstr ""
+msgstr "fermer ou non"
 
 #: install.sh:1454
 msgid "删除自动更新"
-msgstr ""
+msgstr "supprimer la mise à jour automatique"
 
 #: install.sh:1463
 msgid "安装 SSL 证书生成脚本依赖"
-msgstr ""
+msgstr "installer les dépendances du script de génération de certificat ssl"
 
 #: install.sh:1465
 msgid "安装 SSL 证书生成脚本"
-msgstr ""
+msgstr "installer le script de génération de certificat ssl"
 
 #: install.sh:1471
 msgid "检测到原域名配置存在, 是否跳过域名设置"
-msgstr ""
+msgstr "la configuration du domaine d'origine a été détectée. voulez-vous ignorer la configuration du domaine "
 
 #: install.sh:1486 install.sh:1523 install.sh:1574 install.sh:1607
 msgid "无法获取公网IP地址"
-msgstr ""
+msgstr "impossible d'obtenir une adresse ip publique"
 
 #: install.sh:1486 install.sh:1523 install.sh:1546 install.sh:1574
 #: install.sh:1607
 msgid "安装终止"
-msgstr ""
+msgstr "installation terminée"
 
 #: install.sh:1489
 msgid "已跳过域名设置"
-msgstr ""
+msgstr "configuration du domaine ignorée"
 
 #: install.sh:1495
 msgid "确定域名信息"
-msgstr ""
+msgstr "déterminer les informations du domaine"
 
 #: install.sh:1496
 msgid "请输入你的域名信息"
-msgstr ""
+msgstr "veuillez saisir les informations de votre domaine"
 
 #: install.sh:1497
 msgid "请选择公网IP(IPv4/IPv6)或手动输入域名"
-msgstr ""
+msgstr "veuillez sélectionner une adresse ip publique (ipv4/ipv6) ou saisir manuellement un nom de domaine"
 
 #: install.sh:1503 install.sh:1592
 msgid "正在获取公网IP信息, 请耐心等待"
-msgstr ""
+msgstr "obtention des informations sur l'adresse ip publique, veuillez patienter"
 
 #: install.sh:1513
 msgid "此选项用于服务器商仅提供域名访问服务器"
-msgstr ""
+msgstr "cette option est utilisée lorsque le fournisseur de serveur ne fournit que l'accès au serveur via un nom de domaine"
 
 #: install.sh:1514
 msgid "注意服务器商域名添加 CNAME 记录"
-msgstr ""
+msgstr "veuillez noter que le fournisseur de serveur doit ajouter un enregistrement cname au nom de domaine"
 
 #: install.sh:1526
 msgid "域名DNS解析IP"
-msgstr ""
+msgstr "résolution dns de nom de domaine vers ip"
 
 #: install.sh:1527 install.sh:1610
 msgid "公网IP/域名"
-msgstr ""
+msgstr "adresse ip publique/domaine"
 
 #: install.sh:1529
 msgid "域名DNS解析IP与公网IP匹配"
-msgstr ""
+msgstr "le dns du nom de domaine résout l'ip correspondant à l'adresse ip publique"
 
 #: install.sh:1531
 msgid "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray"
-msgstr ""
+msgstr "veuillez vous assurer que les enregistrements a/aaaa corrects ont été ajoutés au domaine, sinon xray ne pourra pas fonctionner normalement"
 
 #: install.sh:1532
 msgid "域名DNS解析IP与公网IP不匹配, 请选择"
-msgstr ""
+msgstr "l'adresse ip obtenue par la résolution dns du nom de domaine ne correspond pas à l'adresse ip publique, veuillez sélectionner"
 
 #: install.sh:1533 install.sh:1540
 msgid "继续安装"
-msgstr ""
+msgstr "continuer l'installation"
 
 #: install.sh:1534
 msgid "重新输入"
-msgstr ""
+msgstr "saisir à nouveau"
 
 #: install.sh:1535
 msgid "终止安装"
-msgstr ""
+msgstr "arrêter l'installation"
 
 #: install.sh:1557
 msgid "检测到原IP配置存在, 是否跳过IP设置"
-msgstr ""
+msgstr "configuration ip originale détectée, souhaitez-vous ignorer la configuration ip "
 
 #: install.sh:1578
 msgid "已跳过IP设置"
-msgstr ""
+msgstr "paramètres ip ignorés"
 
 #: install.sh:1584
 msgid "确定公网IP信息"
-msgstr ""
+msgstr "déterminer les informations sur l'adresse ip publique"
 
 #: install.sh:1585
 msgid "请选择公网IP为IPv4或IPv6"
-msgstr ""
+msgstr "veuillez sélectionner une adresse ip publique en ipv4 ou ipv6"
 
 #: install.sh:1588
 msgid "手动输入"
-msgstr ""
+msgstr "saisie manuelle"
 
 #: install.sh:1615
 msgid "端口未被占用"
-msgstr ""
+msgstr "le port n'est pas occupé"
 
 #: install.sh:1617
 msgid "检测到"
-msgstr ""
+msgstr "détecté"
 
 #: install.sh:1617
 msgid "端口被占用"
-msgstr ""
+msgstr "le port est occupé"
 
 #: install.sh:1617
 msgid "以下为"
-msgstr ""
+msgstr "voici"
 
 #: install.sh:1617
 msgid "端口占用信息"
-msgstr ""
+msgstr "informations sur l'utilisation du port"
 
 #: install.sh:1619
 msgid "尝试终止占用的进程"
-msgstr ""
+msgstr "essayez de terminer le processus occupé"
 
 #: install.sh:1630
 msgid "证书测试签发成功, 开始正式签发"
-msgstr ""
+msgstr "test de certificat émis avec succès, début de la délivrance officielle"
 
 #: install.sh:1633
 msgid "证书测试签发失败"
-msgstr ""
+msgstr "échec de la signature du certificat de test"
 
 #: install.sh:1640
 msgid "证书生成成功"
-msgstr ""
+msgstr "génération de certificat réussie"
 
 #: install.sh:1646
 msgid "证书配置成功"
-msgstr ""
+msgstr "configuration du certificat réussie"
 
 #: install.sh:1650
 msgid "证书生成失败"
-msgstr ""
+msgstr "échec de la génération du certificat"
 
 #: install.sh:1678
 msgid "检测到 Xray 配置过多用户"
-msgstr ""
+msgstr "détection d'un nombre excessif d'utilisateurs configurés pour xray"
 
 #: install.sh:1679
 msgid "是否保留原 Xray 配置文件"
-msgstr ""
+msgstr "conserver le fichier de configuration xray original "
 
 #: install.sh:1697
 msgid "添加简单 ws/gRPC 协议"
-msgstr ""
+msgstr "ajouter le protocole simple ws/grpc"
 
 #: install.sh:1712
 msgid "检测到配置文件, 是否读取配置文件"
-msgstr ""
+msgstr "fichier de configuration détecté, souhaitez-vous lire le fichier de configuration "
 
 #: install.sh:1717 install.sh:1738 install.sh:1834 install.sh:3039
 msgid "已删除配置文件"
-msgstr ""
+msgstr "profil supprimé"
 
 #: install.sh:1720 install.sh:1733 install.sh:1829 install.sh:3035
 msgid "已保留配置文件"
-msgstr ""
+msgstr "profil déjà réservé"
 
 #: install.sh:1727
 msgid "检测到当前安装模式与配置文件的安装模式不一致"
-msgstr ""
+msgstr "le mode d'installation actuel est détecté comme étant incompatible avec le mode d'installation du profil"
 
 #: install.sh:1728
 msgid "是否保留配置文件 (强烈不建议)"
-msgstr ""
+msgstr "conserver le fichier de configuration (fortement déconseillé)"
 
 #: install.sh:1732
 msgid "请务必确保配置文件正确"
-msgstr ""
+msgstr "veuillez vous assurer que le fichier de configuration est correct"
 
 #: install.sh:1824
 msgid "检测到配置文件不完整, 是否保留配置文件"
-msgstr ""
+msgstr "fichier de configuration détecté incomplet, souhaitez-vous conserver le fichier de configuration "
 
 #: install.sh:2012
 msgid "配置删除"
-msgstr ""
+msgstr "configuration supprimée"
 
 #: install.sh:2033
 msgid "设置 Nginx 开机自启"
-msgstr ""
+msgstr "configurer le démarrage automatique de nginx"
 
 #: install.sh:2036 install.sh:3779 install.sh:3782 install.sh:3783
 #: install.sh:3784 fail2ban_manager.sh:10
 msgid "设置"
-msgstr ""
+msgstr "configurer"
 
 #: install.sh:2036 install.sh:2044
 msgid "开机自启"
-msgstr ""
+msgstr "démarrage automatique"
 
 #: install.sh:2041
 msgid "关闭 Nginx 开机自启"
-msgstr ""
+msgstr "désactiver le démarrage automatique de nginx"
 
 #: install.sh:2044
 msgid "关闭"
-msgstr ""
+msgstr "fermer"
 
 #: install.sh:2051
 msgid "停止已有服务"
-msgstr ""
+msgstr "arrêter le service existant"
 
 #: install.sh:2057 install.sh:2060 install.sh:2633 install.sh:2635
 #: install.sh:3772 fail2ban_manager.sh:114 fail2ban_manager.sh:204
 msgid "重启"
-msgstr ""
+msgstr "redémarrer"
 
 #: install.sh:2065 install.sh:2068 install.sh:3773 fail2ban_manager.sh:113
 #: fail2ban_manager.sh:174
 msgid "启动"
-msgstr ""
+msgstr "démarrer"
 
 #: install.sh:2073 install.sh:2076 install.sh:2136 install.sh:3774
 #: fail2ban_manager.sh:115
 msgid "停止"
-msgstr ""
+msgstr "arrêter"
 
 #: install.sh:2089 install.sh:2105
 msgid "新版本已自动设置证书自动更新"
-msgstr ""
+msgstr "la nouvelle version a automatiquement configuré la mise à jour automatique des certificats"
 
 #: install.sh:2090
 msgid "老版本请及时删除 废弃的 改版证书自动更新"
-msgstr ""
+msgstr "veuillez supprimer rapidement les anciennes versions. les certificats obsolètes seront automatiquement mis à jour"
 
 #: install.sh:2091
 msgid "已设置改版证书自动更新"
-msgstr ""
+msgstr "la mise à jour automatique du certificat de révision est déjà configurée"
 
 #: install.sh:2092
 msgid "是否需要删除改版证书自动更新 (请删除)"
-msgstr ""
+msgstr "doit-on supprimer la mise à jour automatique du certificat de révision (veuillez supprimer) "
 
 #: install.sh:2099
 msgid "删除改版证书自动更新"
-msgstr ""
+msgstr "supprimer la mise à jour automatique du certificat révisé"
 
 #: install.sh:2123
 msgid "已过期"
-msgstr ""
+msgstr "dépassé"
 
 #: install.sh:2125
 msgid "证书生成日期"
-msgstr ""
+msgstr "date de génération du certificat"
 
 #: install.sh:2126
 msgid "证书生成天数"
-msgstr ""
+msgstr "nombre de jours pour la génération du certificat"
 
 #: install.sh:2127
 msgid "证书剩余天数"
-msgstr ""
+msgstr "nombre de jours restants du certificat"
 
 #: install.sh:2131
 msgid "是否立即更新证书"
-msgstr ""
+msgstr "mettre à jour immédiatement le certificat "
 
 #: install.sh:2143 install.sh:2155
 msgid "证书签发工具不存在, 请确认是否证书为脚本签发"
-msgstr ""
+msgstr "l'outil de génération des certificats n'existe pas, veuillez vérifier si le certificat a été généré par un script"
 
 #: install.sh:2159
 msgid "证书更新"
-msgstr ""
+msgstr "mise à jour du certificat"
 
 #: install.sh:2169
 msgid "本地文件 fail2ban_manager.sh 不存在, 正在下载"
-msgstr ""
+msgstr "le fichier local fail2ban_manager.sh n'existe pas, téléchargement en cours"
 
 #: install.sh:2183
 msgid "检测到日志文件大小如下:"
-msgstr ""
+msgstr "taille du fichier journal détectée comme suit "
 
 #: install.sh:2185
 msgid "即将清除"
-msgstr ""
+msgstr "bientôt effacé"
 
 #: install.sh:2187
 msgid "日志清理"
-msgstr ""
+msgstr "nettoyage des journaux"
 
 #: install.sh:2197
 msgid "已设置旧版自动清理日志任务"
-msgstr ""
+msgstr "la tâche de nettoyage automatique des journaux de l'ancienne version a été configurée"
 
 #: install.sh:2198
 msgid "是否需要删除旧版自动清理日志任务"
-msgstr ""
+msgstr "doit-on supprimer la tâche de nettoyage automatique des journaux de l'ancienne version "
 
 #: install.sh:2202 install.sh:2236
 msgid "保留现有自动清理日志任务"
-msgstr ""
+msgstr "conserver la tâche existante de nettoyage automatique des journaux"
 
 #: install.sh:2207
 msgid "删除旧版自动清理日志任务"
-msgstr ""
+msgstr "supprimer la tâche de nettoyage automatique des journaux de l'ancienne version"
 
 #: install.sh:2214
 msgid "是否需要设置自动清理日志"
-msgstr ""
+msgstr "doit-on configurer la suppression automatique des journaux "
 
 #: install.sh:2218 install.sh:3804 install.sh:3813 install.sh:3865
 #: install.sh:3871 install.sh:3911 install.sh:3917 install.sh:3923
@@ -932,1048 +933,1048 @@ msgstr ""
 #: fail2ban_manager.sh:175 fail2ban_manager.sh:188 fail2ban_manager.sh:197
 #: fail2ban_manager.sh:205
 msgid "清空屏幕"
-msgstr ""
+msgstr "effacer l'écran"
 
 #: install.sh:2222
 msgid "将在 每周三 04:00 自动清空日志"
-msgstr ""
+msgstr "les journaux seront automatiquement vidés tous les mercredis à 04h00"
 
 #: install.sh:2227
 msgid "已设置自动清理日志任务"
-msgstr ""
+msgstr "la tâche de nettoyage automatique des journaux a été configurée"
 
 #: install.sh:2228
 msgid "是否需要删除现有自动清理日志任务"
-msgstr ""
+msgstr "doit-on supprimer la tâche existante de nettoyage automatique des journaux "
 
 #: install.sh:2233
 msgid "删除自动清理日志任务"
-msgstr ""
+msgstr "supprimer la tâche de nettoyage automatique des journaux"
 
 #: install.sh:2251
 msgid "设置自动清理日志"
-msgstr ""
+msgstr "configurer la suppression automatique des journaux"
 
 #: install.sh:2376
 msgid "配置分享"
-msgstr ""
+msgstr "partage de configuration"
 
 #: install.sh:2378 install.sh:2384 install.sh:2389 install.sh:2394
 #: install.sh:2398 install.sh:2803
 msgid "分享链接"
-msgstr ""
+msgstr "partager le lien"
 
 #: install.sh:2379 install.sh:2385 install.sh:2390 install.sh:2395
 #: install.sh:2399
 msgid "二维码"
-msgstr ""
+msgstr "code qr"
 
 #: install.sh:2408
 msgid "生成分享链接"
-msgstr ""
+msgstr "générer un lien de partage"
 
 #: install.sh:2422 install.sh:2425 install.sh:2428 install.sh:2431
 #: install.sh:2434 install.sh:2437 install.sh:2440 install.sh:2443
 #: install.sh:2446 install.sh:2449
 msgid "安装成功"
-msgstr ""
+msgstr "installation réussie"
 
 #: install.sh:2453
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
-msgstr ""
+msgstr "la norme de partage des liens est actuellement en phase expérimentale ; veuillez déterminer vous-même si elle s'applique"
 
 #: install.sh:2455 install.sh:3770
 msgid "配置信息"
-msgstr ""
+msgstr "informations de configuration"
 
 #: install.sh:2456
 msgid "主机"
-msgstr ""
+msgstr "hôte"
 
 #: install.sh:2480
 msgid "用户id"
-msgstr ""
+msgstr "identifiant d'utilisateur"
 
 #: install.sh:2482
 msgid "加密"
-msgstr ""
+msgstr "chiffrement"
 
 #: install.sh:2483
 msgid "传输协议"
-msgstr ""
+msgstr "protocole de transmission"
 
 #: install.sh:2484
 msgid "底层传输安全"
-msgstr ""
+msgstr "sécurité de la couche de transport"
 
 #: install.sh:2487 install.sh:2491 install.sh:2504 install.sh:2510
 msgid "路径"
-msgstr ""
+msgstr "chemin"
 
 #: install.sh:2487 install.sh:2491 install.sh:2504 install.sh:2510
 msgid "不要落下"
-msgstr ""
+msgstr "ne pas laisser tomber"
 
 #: install.sh:2489 install.sh:2492 install.sh:2507 install.sh:2512
 msgid "不需要加"
-msgstr ""
+msgstr "pas besoin d'ajouter"
 
 #: install.sh:2495
 msgid "流控"
-msgstr ""
+msgstr "contrôle de flux"
 
 #: install.sh:2526
 msgid "即将申请证书, 支持使用自定义证书"
-msgstr ""
+msgstr "vais demander un certificat, supporte l'utilisation de certificats personnalisés"
 
 #: install.sh:2527
 msgid "如需使用自定义证书, 请按如下步骤:"
-msgstr ""
+msgstr "si vous souhaitez utiliser un certificat personnalisé, veuillez suivre les étapes ci-dessous "
 
 #: install.sh:2528
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
-msgstr ""
+msgstr "1. renommer le fichier de certificat : clé privée (xray.key), certificat (xray.crt)"
 
 #: install.sh:2529
 msgid "2. 将重命名后的证书文件放入"
-msgstr ""
+msgstr "2. placez le fichier de certificat renommé dans"
 
 #: install.sh:2529
 msgid "目录后再运行脚本"
-msgstr ""
+msgstr "exécuter le script après la table des matières"
 
 #: install.sh:2530
 msgid "3. 重新运行脚本"
-msgstr ""
+msgstr "3. exécuter à nouveau le script"
 
 #: install.sh:2531 install.sh:2954
 msgid "是否继续"
-msgstr ""
+msgstr "continuer ou non"
 
 #: install.sh:2539
 msgid "所有证书文件均已存在, 是否保留"
-msgstr ""
+msgstr "tous les fichiers de certificat existent déjà, souhaitez-vous les conserver "
 
 #: install.sh:2545 install.sh:2560 install.sh:2576 file_manager.sh:167
 msgid "已删除"
-msgstr ""
+msgstr "supprimé"
 
 #: install.sh:2551 install.sh:2566 install.sh:2583
 msgid "证书应用"
-msgstr ""
+msgstr "application de certificat"
 
 #: install.sh:2555
 msgid "证书文件已存在, 是否保留"
-msgstr ""
+msgstr "le fichier de certificat existe déjà, souhaitez-vous le conserver "
 
 #: install.sh:2571
 msgid "证书签发残留文件已存在, 是否保留"
-msgstr ""
+msgstr "le fichier résiduel de la signature du certificat existe déjà, souhaitez-vous le conserver "
 
 #: install.sh:2613 install.sh:3765
 msgid "添加"
-msgstr ""
+msgstr "ajouter"
 
 #: install.sh:2620
 msgid "请选择支持的 TLS 版本"
-msgstr ""
+msgstr "veuillez sélectionner la version tls prise en charge"
 
 #: install.sh:2621
 msgid "建议选择 TLS1.3 only (安全模式)"
-msgstr ""
+msgstr "il est recommandé de choisir tls1.3 uniquement (mode sécurisé)"
 
 #: install.sh:2622
 msgid "兼容模式"
-msgstr ""
+msgstr "mode de compatibilité"
 
 #: install.sh:2623
 msgid "安全模式"
-msgstr ""
+msgstr "mode sécurisé"
 
 #: install.sh:2627
 msgid "由于 h3 仅支持 TLS1.3, 只支持 TLS1.3 only (安全模式)"
-msgstr ""
+msgstr "comme h3 ne supporte que tls1.3, il ne supporte que tls1.3 (mode sécurisé)"
 
 #: install.sh:2631
 msgid "已切换至"
-msgstr ""
+msgstr "déjà basculé vers"
 
 #: install.sh:2637
 msgid "Nginx/配置文件不存在 或 当前模式不支持"
-msgstr ""
+msgstr "nginx/fichier de configuration inexistant ou mode actuel non pris en charge"
 
 #: install.sh:2658 install.sh:2728 install.sh:2752 install.sh:2818
 #: install.sh:2866 install.sh:2920 install.sh:2972
 msgid "请先安装"
-msgstr ""
+msgstr "veuillez installer d'abord"
 
 #: install.sh:2750
 msgid "此模式不支持修改"
-msgstr ""
+msgstr "ce mode ne supporte pas la modification"
 
 #: install.sh:2759
 msgid "即将显示用户, 一次仅能显示一个"
-msgstr ""
+msgstr "affichage des utilisateurs à venir, un seul utilisateur peut être affiché à la fois"
 
 #: install.sh:2761
 msgid "请选择显示用户使用的协议"
-msgstr ""
+msgstr "veuillez sélectionner le protocole utilisé par l'utilisateur à afficher"
 
 #: install.sh:2771
 msgid "请选择要显示的用户编号"
-msgstr ""
+msgstr "veuillez sélectionner le numéro d'utilisateur à afficher"
 
 #: install.sh:2776 install.sh:2786 install.sh:2890 install.sh:2912
 msgid "选择错误"
-msgstr ""
+msgstr "erreur de sélection"
 
 #: install.sh:2779
 msgid "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户"
-msgstr ""
+msgstr "veuillez sélectionner directement [afficher les informations de configuration xray] dans le menu principal pour afficher l'utilisateur principal"
 
 #: install.sh:2789 install.sh:2915
 msgid "请先检测 Xray 是否正确安装"
-msgstr ""
+msgstr "veuillez d'abord vérifier que xray est correctement installé"
 
 #: install.sh:2807
 msgid "是否继续显示用户"
-msgstr ""
+msgstr "continuer à afficher l'utilisateur"
 
 #: install.sh:2816 install.sh:2918
 msgid "此模式不支持删除用户"
-msgstr ""
+msgstr "ce mode ne prend pas en charge la suppression d'utilisateurs"
 
 #: install.sh:2826
 msgid "即将添加用户, 一次仅能添加一个"
-msgstr ""
+msgstr "ajout d'utilisateur en cours, un seul utilisateur peut être ajouté à la fois"
 
 #: install.sh:2828
 msgid "请选择添加用户使用的协议"
-msgstr ""
+msgstr "veuillez sélectionner le protocole utilisé pour ajouter l'utilisateur"
 
 #: install.sh:2850
 msgid "添加用户"
-msgstr ""
+msgstr "ajouter un utilisateur"
 
 #: install.sh:2855
 msgid "是否继续添加用户"
-msgstr ""
+msgstr "voulez-vous continuer à ajouter des utilisateurs "
 
 #: install.sh:2864
 msgid "此模式不支持添加用户"
-msgstr ""
+msgstr "ce mode ne prend pas en charge l'ajout d'utilisateurs"
 
 #: install.sh:2873
 msgid "即将删除用户, 一次仅能删除一个"
-msgstr ""
+msgstr "l'utilisateur sera supprimé, une seule suppression à la fois"
 
 #: install.sh:2875
 msgid "请选择删除用户使用的协议"
-msgstr ""
+msgstr "veuillez sélectionner le protocole utilisé par l'utilisateur à supprimer"
 
 #: install.sh:2885
 msgid "请选择要删除的用户编号"
-msgstr ""
+msgstr "veuillez sélectionner le numéro d'utilisateur à supprimer"
 
 #: install.sh:2894
 msgid "主用户无法删除"
-msgstr ""
+msgstr "l'utilisateur principal ne peut pas être supprimé"
 
 #: install.sh:2900
 msgid "删除用户"
-msgstr ""
+msgstr "supprimer l'utilisateur"
 
 #: install.sh:2903
 msgid "是否继续删除用户"
-msgstr ""
+msgstr "voulez-vous continuer à supprimer l'utilisateur "
 
 #: install.sh:2925 install.sh:2929
 msgid "文件不存在"
-msgstr ""
+msgstr "le fichier n'existe pas"
 
 #: install.sh:2936
 msgid "已配置 Xray 流量统计"
-msgstr ""
+msgstr "statistiques de trafic xray déjà configurées"
 
 #: install.sh:2937
 msgid "是否需要关闭此功能"
-msgstr ""
+msgstr "doit-on désactiver cette fonctionnalité "
 
 #: install.sh:2943
 msgid "关闭 Xray 流量统计"
-msgstr ""
+msgstr "fermer la statistique du trafic xray"
 
 #: install.sh:2952
 msgid "流量统计需要使用"
-msgstr ""
+msgstr "la statistique du trafic doit être utilisée"
 
 #: install.sh:2953
 msgid "可能会影响 Xray 性能"
-msgstr ""
+msgstr "cela pourrait affecter les performances de l'analyseur xray"
 
 #: install.sh:2964
 msgid "设置 Xray 流量统计"
-msgstr ""
+msgstr "configurer la statistique du trafic xray"
 
 #: install.sh:2994 install.sh:3009
 msgid "已卸载"
-msgstr ""
+msgstr "déjà désinstallé"
 
 #: install.sh:2997
 msgid "是否卸载"
-msgstr ""
+msgstr "est-ce que je désinstalle "
 
 #: install.sh:3014
 msgid "是否删除所有脚本文件"
-msgstr ""
+msgstr "supprimer tous les fichiers de script "
 
 #: install.sh:3021
 msgid "已删除所有文件"
-msgstr ""
+msgstr "tous les fichiers ont été supprimés"
 
 #: install.sh:3022
 msgid "ヾ(￣▽￣) 拜拜~"
-msgstr ""
+msgstr "(￣▽￣) ヾ salut~"
 
 #: install.sh:3027
 msgid "已保留脚本文件 (包含 SSL 证书等)"
-msgstr ""
+msgstr "fichier de script déjà conservé (contenant certificat ssl, etc.)"
 
 #: install.sh:3031
 msgid "是否保留配置文件"
-msgstr ""
+msgstr "conserver le fichier de configuration "
 
 #: install.sh:3048
 msgid "已清空证书遗留文件"
-msgstr ""
+msgstr "les fichiers résiduels du certificat ont été effacés"
 
 #: install.sh:3078
 msgid "秒后"
-msgstr ""
+msgstr "seconde(s) après"
 
 #: install.sh:3241
 msgid "检测最新版本失败"
-msgstr ""
+msgstr "échec de la vérification de la dernière version"
 
 #: install.sh:3249 install.sh:3457
 msgid "新版本"
-msgstr ""
+msgstr "nouvelle version"
 
 #: install.sh:3249 install.sh:3457
 msgid "更新内容"
-msgstr ""
+msgstr "contenu de la mise à jour"
 
 #: install.sh:3253
 msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
-msgstr ""
+msgstr "une nouvelle version est disponible, mais les changements sont importants, il pourrait y avoir des incompatibilités. voulez-vous mettre à jour "
 
 #: install.sh:3256
 msgid "存在新版本, 是否更新"
-msgstr ""
+msgstr "une nouvelle version est disponible, souhaitez-vous la mettre à jour "
 
 #: install.sh:3260
 msgid "检测 脚本 最新版本失败"
-msgstr ""
+msgstr "échec de la vérification de la dernière version du script"
 
 #: install.sh:3261
 msgid "脚本 版本差别过大, 跳过更新"
-msgstr ""
+msgstr "la différence de version du script est trop grande, mise à jour ignorée"
 
 #: install.sh:3271
 msgid "更新完成"
-msgstr ""
+msgstr "mise à jour terminée"
 
 #: install.sh:3272 install.sh:3469
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
-msgstr ""
+msgstr "la version du script a beaucoup changé. si le service ne fonctionne pas correctement, veuillez le désinstaller puis le réinstaller"
 
 #: install.sh:3278
 msgid "当前版本为最新版本"
-msgstr ""
+msgstr "la version actuelle est la dernière version"
 
 #: install.sh:3290 install.sh:3452 install.sh:3467 install.sh:3480
 msgid "下载最新脚本"
-msgstr ""
+msgstr "télécharger le script le plus récent"
 
 #: install.sh:3304
 msgid "该选项暂时无法使用"
-msgstr ""
+msgstr "cette option n'est pas disponible pour le moment"
 
 #: install.sh:3323 install.sh:3831
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
-msgstr ""
+msgstr "ce mode est recommandé pour l'équilibrage de charge, il n'est généralement pas recommandé d'utiliser, souhaitez-vous installer "
 
 #: install.sh:3418 install.sh:3419 install.sh:3428 install.sh:3431
 #: install.sh:3435 install.sh:3757 install.sh:3758 install.sh:3759
 #: install.sh:3760 install.sh:3761 install.sh:3762 install.sh:3845
 #: install.sh:3850 install.sh:3855 install.sh:3860
 msgid "变更"
-msgstr ""
+msgstr "changement"
 
 #: install.sh:3418 install.sh:3761
 msgid "负载均衡配置"
-msgstr ""
+msgstr "configuration d'équilibrage de charge"
 
 #: install.sh:3421
 msgid "清除日志文件"
-msgstr ""
+msgstr "effacer les fichiers journaux"
 
 #: install.sh:3422
 msgid "查看证书状态"
-msgstr ""
+msgstr "vérifier l'état du certificat"
 
 #: install.sh:3423
 msgid "更新证书有效期"
-msgstr ""
+msgstr "mettre à jour la validité du certificat"
 
 #: install.sh:3424
 msgid "设置证书自动更新"
-msgstr ""
+msgstr "configurer la mise à jour automatique des certificats"
 
 #: install.sh:3425
 msgid "设置 Fail2ban 防暴力破解"
-msgstr ""
+msgstr "configurer fail2ban pour prévenir les attaques par force brute"
 
 #: install.sh:3426
 msgid "显示帮助"
-msgstr ""
+msgstr "afficher l'aide"
 
 #: install.sh:3427 install.sh:3438 install.sh:3778
 msgid "更新"
-msgstr ""
+msgstr "mise à jour"
 
 #: install.sh:3429
 msgid "脚本卸载"
-msgstr ""
+msgstr "désinstallation de script"
 
 #: install.sh:3430
 msgid "显示安装信息"
-msgstr ""
+msgstr "afficher les informations d'installation"
 
 #: install.sh:3432 install.sh:3782
 msgid "加速"
-msgstr ""
+msgstr "accélérer"
 
 #: install.sh:3434
 msgid "升级脚本"
-msgstr ""
+msgstr "script de mise à niveau"
 
 #: install.sh:3436 install.sh:3437
 msgid "显示"
-msgstr ""
+msgstr "afficher"
 
 #: install.sh:3436
 msgid "访问信息"
-msgstr ""
+msgstr "informations de visite"
 
 #: install.sh:3437
 msgid "错误信息"
-msgstr ""
+msgstr "message d'erreur"
 
 #: install.sh:3461
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
-msgstr ""
+msgstr "la version du script a beaucoup changé, il pourrait y avoir des incompatibilités. voulez-vous continuer à l'utiliser "
 
 #: install.sh:3488
 msgid "检测失败"
-msgstr ""
+msgstr "échec de la détection"
 
 #: install.sh:3492 install.sh:3502 install.sh:3511
 msgid "有新版"
-msgstr ""
+msgstr "il y a une nouvelle version"
 
 #: install.sh:3495 install.sh:3504 install.sh:3514
 msgid "最新版"
-msgstr ""
+msgstr "dernière version"
 
 #: install.sh:3509
 msgid "版本未知"
-msgstr ""
+msgstr "version inconnue"
 
 #: install.sh:3529 install.sh:3536
 msgid "运行中"
-msgstr ""
+msgstr "en cours d'exécution"
 
 #: install.sh:3531 install.sh:3554 install.sh:3556
 msgid "无需测试"
-msgstr ""
+msgstr "pas besoin de tester"
 
 #: install.sh:3533 install.sh:3538
 msgid "未运行"
-msgstr ""
+msgstr "non exécuté"
 
 #: install.sh:3548
 msgid "无法连通"
-msgstr ""
+msgstr "impossible de se connecter"
 
 #: install.sh:3550 install.sh:3551 install.sh:3552
 msgid "本地正常"
-msgstr ""
+msgstr "normal localement"
 
 #: install.sh:3567
 msgid "脚本维护中.. 请稍后再试"
-msgstr ""
+msgstr "script en cours de maintenance... veuillez réessayer plus tard"
 
 #: install.sh:3574
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
-msgstr ""
+msgstr "impossible de détecter la version en ligne des dépendances requises, veuillez réessayer plus tard"
 
 #: install.sh:3591
 msgid "请输入数字"
-msgstr ""
+msgstr "veuillez entrer un chiffre"
 
 #: install.sh:3591
 msgid "请输入 1 到 6 之间的有效数字"
-msgstr ""
+msgstr "veuillez saisir un chiffre valide entre 1 et 6"
 
 #: install.sh:3615
 msgid "无效的选择"
-msgstr ""
+msgstr "choix invalide"
 
 #: install.sh:3651
 msgid "请输入备份名称"
-msgstr ""
+msgstr "veuillez saisir le nom de la sauvegarde"
 
 #: install.sh:3651
 msgid "不需要后缀"
-msgstr ""
+msgstr "pas besoin de suffixe"
 
 #: install.sh:3659
 msgid "报错信息"
-msgstr ""
+msgstr "message d'erreur"
 
 #: install.sh:3661
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
-msgstr ""
+msgstr "l'intégrité de la sauvegarde pourrait être affectée, veuillez vérifier les informations d'erreur ci-dessus"
 
 #: install.sh:3665
 msgid "备份失败"
-msgstr ""
+msgstr "échec de la sauvegarde"
 
 #: install.sh:3667
 msgid "备份成功"
-msgstr ""
+msgstr "sauvegarde réussie"
 
 #: install.sh:3673
 msgid "请确保备份文件在目录"
-msgstr ""
+msgstr "veuillez vous assurer que le fichier de sauvegarde se trouve dans le répertoire"
 
 #: install.sh:3677
 msgid "没有找到备份文件"
-msgstr ""
+msgstr "aucun fichier de sauvegarde n'a été trouvé"
 
 #: install.sh:3682
 msgid "发现多个备份文件"
-msgstr ""
+msgstr "découverte de plusieurs fichiers de sauvegarde"
 
 #: install.sh:3682
 msgid "将使用最新的文件进行恢复"
-msgstr ""
+msgstr "la restauration sera effectuée à partir du fichier le plus récent"
 
 #: install.sh:3686
 msgid "找到最新备份文件"
-msgstr ""
+msgstr "trouver le fichier de sauvegarde le plus récent"
 
 #: install.sh:3688
 msgid "恢复备份"
-msgstr ""
+msgstr "restaurer la sauvegarde"
 
 #: install.sh:3692
 msgid "恢复成功"
-msgstr ""
+msgstr "restauration réussie"
 
 #: install.sh:3693 install.sh:3695
 msgid "记得安装"
-msgstr ""
+msgstr "rappelez-vous d'installer"
 
 #: install.sh:3698
 msgid "恢复失败"
-msgstr ""
+msgstr "échec de la restauration"
 
 #: install.sh:3707
 msgid "检测存在到"
-msgstr ""
+msgstr "détection de la présence à"
 
 #: install.sh:3708
 msgid "来源于自动清理日志错误的设置"
-msgstr ""
+msgstr "provenant des paramètres de nettoyage automatique des journaux d'erreurs"
 
 #: install.sh:3709
 msgid "开始修复"
-msgstr ""
+msgstr "commencer la réparation"
 
 #: install.sh:3713
 msgid "错误的配置文件删除"
-msgstr ""
+msgstr "suppression du fichier de configuration incorrect"
 
 #: install.sh:3714
 msgid "即将重新设置自动清理日志"
-msgstr ""
+msgstr "la suppression automatique des journaux va être réinitialisée"
 
 #: install.sh:3722
 msgid "安装管理脚本"
-msgstr ""
+msgstr "installer le script de gestion"
 
 #: install.sh:3723
 msgid "作者"
-msgstr ""
+msgstr "auteur"
 
 #: install.sh:3727
 msgid "当前模式"
-msgstr ""
+msgstr "mode actuel"
 
 #: install.sh:3728
 msgid "当前语言"
-msgstr ""
+msgstr "langue actuelle"
 
 #: install.sh:3731
 msgid "可以使用"
-msgstr ""
+msgstr "peut être utilisé"
 
 #: install.sh:3731
 msgid "命令管理脚本"
-msgstr ""
+msgstr "script de gestion des commandes"
 
 #: install.sh:3733
 msgid "版本检测"
-msgstr ""
+msgstr "détection de version"
 
 #: install.sh:3734 install.sh:3742 install.sh:3791
 msgid "脚本"
-msgstr ""
+msgstr "script"
 
 #: install.sh:3737
 msgid "运行状态"
-msgstr ""
+msgstr "état de fonctionnement"
 
 #: install.sh:3740
 msgid "连通性"
-msgstr ""
+msgstr "connectivité"
 
 #: install.sh:3741
 msgid "升级向导"
-msgstr ""
+msgstr "assistant de mise à niveau"
 
 #: install.sh:3752
 msgid "安装向导"
-msgstr ""
+msgstr "assistant d'installation"
 
 #: install.sh:3756
 msgid "配置变更"
-msgstr ""
+msgstr "changement de configuration"
 
 #: install.sh:3763
 msgid "用户管理"
-msgstr ""
+msgstr "gestion des utilisateurs"
 
 #: install.sh:3764 install.sh:3768 install.sh:3769 install.sh:3770
 #: install.sh:3775 install.sh:3777 fail2ban_manager.sh:15
 msgid "查看"
-msgstr ""
+msgstr "voir"
 
 #: install.sh:3764 install.sh:3765 install.sh:3766
 msgid "用户"
-msgstr ""
+msgstr "utilisateur"
 
 #: install.sh:3767
 msgid "查看信息"
-msgstr ""
+msgstr "afficher les informations"
 
 #: install.sh:3768
 msgid "实时访问日志"
-msgstr ""
+msgstr "journal d'accès en temps réel"
 
 #: install.sh:3769
 msgid "实时错误日志"
-msgstr ""
+msgstr "journal des erreurs en temps réel"
 
 #: install.sh:3771
 msgid "服务相关"
-msgstr ""
+msgstr "service lié"
 
 #: install.sh:3772 install.sh:3773 install.sh:3774 install.sh:3775
 msgid "所有服务"
-msgstr ""
+msgstr "tous les services"
 
 #: install.sh:3776
 msgid "证书相关"
-msgstr ""
+msgstr "relatif aux certificats"
 
 #: install.sh:3777
 msgid "证书状态"
-msgstr ""
+msgstr "état du certificat"
 
 #: install.sh:3778
 msgid "证书有效期"
-msgstr ""
+msgstr "durée de validité du certificat"
 
 #: install.sh:3779
 msgid "证书自动更新"
-msgstr ""
+msgstr "mise à jour automatique des certificats"
 
 #: install.sh:3780
 msgid "其他选项"
-msgstr ""
+msgstr "autres options"
 
 #: install.sh:3781
 msgid "自动更新"
-msgstr ""
+msgstr "mise à jour automatique"
 
 #: install.sh:3783
 msgid "防暴力破解"
-msgstr ""
+msgstr "protection contre les attaques par force brute"
 
 #: install.sh:3784
 msgid "流量统计"
-msgstr ""
+msgstr "statistiques de trafic"
 
 #: install.sh:3785
 msgid "清除"
-msgstr ""
+msgstr "effacer"
 
 #: install.sh:3785
 msgid "日志文件"
-msgstr ""
+msgstr "fichier de journal"
 
 #: install.sh:3786
 msgid "测试"
-msgstr ""
+msgstr "test"
 
 #: install.sh:3786
 msgid "服务器网速"
-msgstr ""
+msgstr "vitesse de connexion du serveur"
 
 #: install.sh:3787
 msgid "备份恢复"
-msgstr ""
+msgstr "sauvegarde et restauration"
 
 #: install.sh:3788 install.sh:3789
 msgid "全部文件"
-msgstr ""
+msgstr "tous les fichiers"
 
 #: install.sh:3789
 msgid "恢复"
-msgstr ""
+msgstr "récupération"
 
 #: install.sh:3790
 msgid "卸载向导"
-msgstr ""
+msgstr "assistant de désinstallation"
 
 #: install.sh:3791 fail2ban_manager.sh:14 fail2ban_manager.sh:187
 msgid "卸载"
-msgstr ""
+msgstr "désinstaller"
 
 #: install.sh:3792
 msgid "清空"
-msgstr ""
+msgstr "vider"
 
 #: install.sh:3792
 msgid "证书文件"
-msgstr ""
+msgstr "fichier de certificat"
 
 #: install.sh:3793 fail2ban_manager.sh:16 file_manager.sh:196
 msgid "退出"
-msgstr ""
+msgstr "quitter"
 
 #: install.sh:3796
 msgid "请输入选项"
-msgstr ""
+msgstr "veuillez saisir une option"
 
 #: install.sh:3796
 msgid "请输入 0 到 36 之间的有效数字"
-msgstr ""
+msgstr "veuillez saisir un chiffre valide entre 0 et 36"
 
 #: install.sh:3810
 msgid "不建议"
-msgstr ""
+msgstr "déconseillé"
 
 #: install.sh:3810
 msgid "频繁升级 Nginx, 请确认 Nginx 有升级的必要"
-msgstr ""
+msgstr "mise à jour fréquente de nginx, veuillez confirmer si une mise à jour de nginx est nécessaire"
 
 #: install.sh:3811
 msgid "开始升级"
-msgstr ""
+msgstr "commencer la mise à niveau"
 
 #: install.sh:3877 install.sh:3884 install.sh:3891 install.sh:3936
 #: install.sh:3941 install.sh:3946 install.sh:3966
 msgid "回到菜单"
-msgstr ""
+msgstr "retour au menu"
 
 #: install.sh:4009
 msgid "请输入正确的数字"
-msgstr ""
+msgstr "veuillez saisir le bon numéro"
 
 #: fail2ban_manager.sh:10
 msgid "用于防止暴力破解"
-msgstr ""
+msgstr "utilisé pour prévenir les attaques par force brute"
 
 #: fail2ban_manager.sh:11 file_manager.sh:191
 msgid "主菜单"
-msgstr ""
+msgstr "menu principal"
 
 #: fail2ban_manager.sh:13
 msgid "管理"
-msgstr ""
+msgstr "gestion"
 
 #: fail2ban_manager.sh:15
 msgid "状态"
-msgstr ""
+msgstr "état"
 
 #: fail2ban_manager.sh:18 file_manager.sh:198
 msgid "请选择一个选项"
-msgstr ""
+msgstr "veuillez sélectionner une option"
 
 #: fail2ban_manager.sh:27 fail2ban_manager.sh:138
 msgid "无效的选择请重试"
-msgstr ""
+msgstr "sélection invalide, veuillez réessayer"
 
 #: fail2ban_manager.sh:35
 msgid "已经安装, 跳过安装步骤"
-msgstr ""
+msgstr "déjà installé, sauter l'étape d'installation"
 
 #: fail2ban_manager.sh:53 fail2ban_manager.sh:106 fail2ban_manager.sh:211
 msgid "未安装, 请先安装"
-msgstr ""
+msgstr "non installé, veuillez installer d'abord"
 
 #: fail2ban_manager.sh:73
 msgid "是否要启用"
-msgstr ""
+msgstr "voulez-vous activer"
 
 #: fail2ban_manager.sh:73 fail2ban_manager.sh:77 fail2ban_manager.sh:82
 msgid "规则"
-msgstr ""
+msgstr "règle"
 
 #: fail2ban_manager.sh:77
 msgid "跳过启用"
-msgstr ""
+msgstr "passer l'activation"
 
 #: fail2ban_manager.sh:82
 msgid "已启用"
-msgstr ""
+msgstr "déjà activé"
 
 #: fail2ban_manager.sh:112
 msgid "请选择"
-msgstr ""
+msgstr "veuillez sélectionner"
 
 #: fail2ban_manager.sh:112
 msgid "操作"
-msgstr ""
+msgstr "opération"
 
 #: fail2ban_manager.sh:116
 msgid "添加自定义规则"
-msgstr ""
+msgstr "ajouter une règle personnalisée"
 
 #: fail2ban_manager.sh:151
 msgid "请输入新的"
-msgstr ""
+msgstr "veuillez entrer le nouveau"
 
 #: fail2ban_manager.sh:151 fail2ban_manager.sh:152
 msgid "名称"
-msgstr ""
+msgstr "nom"
 
 #: fail2ban_manager.sh:153
 msgid "请输入日志路径"
-msgstr ""
+msgstr "veuillez saisir le chemin du journal"
 
 #: fail2ban_manager.sh:154
 msgid "请输入最大重试次数"
-msgstr ""
+msgstr "veuillez saisir le nombre maximum de tentatives"
 
 #: fail2ban_manager.sh:154
 msgid "最大重试次数必须在 1 到 99 之间"
-msgstr ""
+msgstr "le nombre maximum de tentatives doit être compris entre 1 et 99"
 
 #: fail2ban_manager.sh:155
 msgid "请输入封禁时间"
-msgstr ""
+msgstr "veuillez saisir le temps de blocage"
 
 #: fail2ban_manager.sh:155
 msgid "秒"
-msgstr ""
+msgstr "seconde"
 
 #: fail2ban_manager.sh:155
 msgid "封禁时间必须在 1 到 8640000 秒之间"
-msgstr ""
+msgstr "la durée de blocage doit être comprise entre 1 et 8640000 secondes"
 
 #: fail2ban_manager.sh:158
 msgid "已存在"
-msgstr ""
+msgstr "déjà existant"
 
 #: fail2ban_manager.sh:163
 msgid "自定义规则添加成功"
-msgstr ""
+msgstr "règle personnalisée ajoutée avec succès"
 
 #: fail2ban_manager.sh:167
 msgid "重启以应用新规则"
-msgstr ""
+msgstr "redémarrez pour appliquer les nouvelles règles"
 
 #: fail2ban_manager.sh:196
 msgid "停止成功"
-msgstr ""
+msgstr "arrêt réussi"
 
 #: fail2ban_manager.sh:215
 msgid "总体状态"
-msgstr ""
+msgstr "état général"
 
 #: fail2ban_manager.sh:219
 msgid "默认启用的 Jail 状态"
-msgstr ""
+msgstr "état jail activé par défaut"
 
 #: fail2ban_manager.sh:221 fail2ban_manager.sh:224 fail2ban_manager.sh:229
 msgid "封锁情况"
-msgstr ""
+msgstr "situation de blocus"
 
 #: fail2ban_manager.sh:244 file_manager.sh:220
 msgid "新版本可用"
-msgstr ""
+msgstr "nouvelle version disponible"
 
 #: fail2ban_manager.sh:244 file_manager.sh:220
 msgid "当前版本"
-msgstr ""
+msgstr "version actuelle"
 
 #: fail2ban_manager.sh:245 file_manager.sh:221
 msgid "请访问"
-msgstr ""
+msgstr "veuillez visiter"
 
 #: fail2ban_manager.sh:245 file_manager.sh:221
 msgid "查看更新说明"
-msgstr ""
+msgstr "voir les notes de mise à jour"
 
 #: fail2ban_manager.sh:247 file_manager.sh:223
 msgid "是否要下载并安装新版本"
-msgstr ""
+msgstr "voulez-vous télécharger et installer la nouvelle version "
 
 #: fail2ban_manager.sh:251 file_manager.sh:227
 msgid "正在下载新版本"
-msgstr ""
+msgstr "téléchargement de la nouvelle version en cours"
 
 #: fail2ban_manager.sh:256 file_manager.sh:232
 msgid "下载完成, 请重新运行脚本"
-msgstr ""
+msgstr "téléchargement terminé, veuillez relancer le script"
 
 #: fail2ban_manager.sh:264 file_manager.sh:240
 msgid "跳过更新"
-msgstr ""
+msgstr "ignorer la mise à jour"
 
 #: fail2ban_manager.sh:268 file_manager.sh:244
 msgid "当前已经是最新版本"
-msgstr ""
+msgstr "c'est déjà la version la plus récente"
 
 #: file_manager.sh:7
 msgid "用法"
-msgstr ""
+msgstr "utilisation"
 
 #: file_manager.sh:7
 msgid "文件扩展名"
-msgstr ""
+msgstr "extension de fichier"
 
 #: file_manager.sh:7
 msgid "目录路径"
-msgstr ""
+msgstr "chemin du répertoire"
 
 #: file_manager.sh:16
 msgid "目录"
-msgstr ""
+msgstr "table des matières"
 
 #: file_manager.sh:16
 msgid "不存在, 请检查路径"
-msgstr ""
+msgstr "inexistant, veuillez vérifier le chemin"
 
 #: file_manager.sh:26 file_manager.sh:192
 msgid "列出所有"
-msgstr ""
+msgstr "énumérer tout"
 
 #: file_manager.sh:26 file_manager.sh:35 file_manager.sh:88 file_manager.sh:102
 #: file_manager.sh:151 file_manager.sh:167 file_manager.sh:192
 #: file_manager.sh:193 file_manager.sh:194 file_manager.sh:195
 msgid "文件"
-msgstr ""
+msgstr "fichier"
 
 #: file_manager.sh:35
 msgid "没有找到"
-msgstr ""
+msgstr "non trouvé"
 
 #: file_manager.sh:53
 msgid "文件名"
-msgstr ""
+msgstr "nom du fichier"
 
 #: file_manager.sh:59
 msgid "序号"
-msgstr ""
+msgstr "numéro de série"
 
 #: file_manager.sh:79
 msgid "请输入网址 (例如 hey.run)"
-msgstr ""
+msgstr "veuillez saisir l'adresse url (par exemple hey.run)"
 
 #: file_manager.sh:80
 msgid "不要包含 http:// 或 https:// 开头"
-msgstr ""
+msgstr "ne pas inclure http:// ou https:// au début"
 
 #: file_manager.sh:84
 msgid "网址不能包含 http:// 或 https:// 开头"
-msgstr ""
+msgstr "l'adresse url ne peut pas commencer par http:// ou https://"
 
 #: file_manager.sh:88 file_manager.sh:102
 msgid "已创建"
-msgstr ""
+msgstr "déjà créé"
 
 #: file_manager.sh:96
 msgid "请输入主机"
-msgstr ""
+msgstr "veuillez entrer l'hôte"
 
 #: file_manager.sh:98
 msgid "请输入权重"
-msgstr ""
+msgstr "veuillez entrer le poids"
 
 #: file_manager.sh:119
 msgid "追加完成"
-msgstr ""
+msgstr "ajout complété"
 
 #: file_manager.sh:142
 msgid "请输入要编辑的文件编号"
-msgstr ""
+msgstr "veuillez saisir le numéro du fichier à éditer"
 
 #: file_manager.sh:147
 msgid "未安装, 正在尝试安装"
-msgstr ""
+msgstr "non installé, en cours d'installation"
 
 #: file_manager.sh:151
 msgid "已编辑"
-msgstr ""
+msgstr "déjà édité"
 
 #: file_manager.sh:162
 msgid "请输入要删除的文件编号"
-msgstr ""
+msgstr "veuillez saisir le numéro du fichier à supprimer"
 
 #: file_manager.sh:182
 msgid "不支持的文件扩展名"
-msgstr ""
+msgstr "extension de fichier non prise en charge"
 
 #: file_manager.sh:193
 msgid "创建一个新的"
-msgstr ""
+msgstr "créer un nouveau"
 
 #: file_manager.sh:194
 msgid "编辑一个已存在的"
-msgstr ""
+msgstr "modifier un existant"
 
 #: file_manager.sh:195
 msgid "删除一个已存在的"
-msgstr ""
+msgstr "supprimer un existant"
 
 #: file_manager.sh:208
 msgid "无效选项, 请重试"
-msgstr ""
+msgstr "option invalide, veuillez réessayer"
 
 #: file_manager.sh:253
 msgid "重启成功"
-msgstr ""
+msgstr "redémarrage réussi"
 
 #: file_manager.sh:256
 msgid "重启失败"
-msgstr ""
+msgstr "redémarrage échoué"
 
 #: file_manager.sh:256
 msgid "请检查配置文件是否有误"
-msgstr ""
+msgstr "veuillez vérifier si le fichier de configuration contient des erreurs"
