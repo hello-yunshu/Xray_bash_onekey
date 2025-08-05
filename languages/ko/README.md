@@ -26,7 +26,7 @@
 
 ## 준비 작업
 
-* 중국 외부에서 실행되는 서버, 공인 IP가 필요합니다.
+* 서버를 준비하여, 해외에서 운영하고 공인 IP를 확보하십시오.
 * Reality 프로토콜 설치 시, Xray 요구 사항을 충족하는 도메인이 필요합니다.
 * TLS 버전 설치 시, 도메인이 필요하며 A레코드를 추가해야 합니다.
 * [Xray 공식 설명서](https://xtls.github.io)를 읽고 Reality TLS WebSocket gRPC 및 Xray 관련 정보를 이해하고, Reality target 도메인 요구 사항을 확인하세요.

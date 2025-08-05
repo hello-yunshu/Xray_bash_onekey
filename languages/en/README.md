@@ -26,7 +26,7 @@
 
 ## Preparation
 
-* Prepare a server running outside China with a public IP.
+* Prepare a server to be operated overseas, with a public IP address.
 * If installing Reality protocol, find a domain name that meets Xray's requirements.
 * If installing TLS version, prepare a domain name and add an A record.
 * Read the [Xray official documentation](https://xtls.github.io) to understand Reality TLS WebSocket gRPC and related information about Xray, including the domain name requirements for Reality target.

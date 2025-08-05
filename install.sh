@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.6.1"
+shell_version="2.6.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -488,6 +488,7 @@ xray_reality_add_more_choose() {
             ;;
         *)
             reality_add_more="off"
+            ws_grpc_mode="None"
             ws_inbound_port_set
             grpc_inbound_port_set
             ws_path_set
@@ -519,7 +520,7 @@ ws_grpc_qr() {
 
 ws_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] && [[ ${reality_add_more} != "off" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") ws inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
@@ -541,7 +542,7 @@ ws_inbound_port_set() {
 
 grpc_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] && [[ ${reality_add_more} != "off" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
@@ -622,7 +623,7 @@ firewall_set() {
 
 ws_path_set() {
     if [[ "on" != ${old_config_status} ]] || [[ ${change_ws_path} == "yes" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] && [[ ${reality_add_more} != "off" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r path_modify_fq
@@ -655,7 +656,7 @@ ws_path_set() {
 
 grpc_path_set() {
     if [[ "on" != ${old_config_status} ]] || [[ ${change_grpc_path} == "yes" ]]; then
-        if [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] && [[ ${reality_add_more} != "off" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r path_modify_fq
@@ -1681,6 +1682,8 @@ xray_conf_add() {
         case $save_originxray_fq in
         [nN][oO] | [nN])
             rm -rf ${xray_conf}
+            jq 'del(.multi_user)' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             log_echo "${OK} ${GreenBG} $(gettext "原配置文件已删除")! ${Font}"
             xray_conf_add
             ;;
@@ -2353,13 +2356,15 @@ vless_qr_link_image() {
         fi
     elif [[ ${tls_mode} == "Reality" ]]; then
         vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=$(info_extraction publicKey)&sni=$(info_extraction serverNames)&target=$(info_extraction target)&sid=$(info_extraction shortIds)#$(vless_urlquote $(info_extraction host))+Reality%E5%8D%8F%E8%AE%AE"
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+        if [[ ${reality_add_more} == "on" ]]; then
+            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+            elif [[ ${ws_grpc_mode} == "all" ]]; then
+                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+            fi
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
