@@ -478,5 +478,5 @@
   "重启失败": "redémarrage échoué",
   "请检查配置文件是否有误": "veuillez vérifier si le fichier de configuration contient des erreurs",
   "未启用或配置异常": "non activé ou configuration anormale",
-  "systemd 未能读取 SSH 日志": ""
+  "systemd 未能读取 SSH 日志": "systemd n'a pas réussi à lire les journaux ssh"
 }
