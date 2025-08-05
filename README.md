@@ -26,7 +26,7 @@
 
 ## 准备工作
 
-* 准备一个服务器，在中国大陆境外运行、有公网ip。
+* 准备一个服务器，在境外运行、有公网ip。
 * 安装 Reality 协议的，找好一个符合 Xray 要求的域名。
 * 安装 TLS 版本的，准备一个域名，并将 A记录 添加好。
 * 阅读[Xray官方说明](https://xtls.github.io)，大概了解 Reality TLS WebSocket gRPC 及 Xray 相关信息，了解 Reality target 的域名要求。
