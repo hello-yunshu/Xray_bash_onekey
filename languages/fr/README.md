@@ -26,7 +26,7 @@
 
 ## Préparation
 
-* Préparer un serveur fonctionnant en dehors de la Chine continentale, disposant d'une IP publique.
+* Préparez un serveur, qui fonctionnera à l'étranger et aura une adresse IP publique.
 * Pour l'installation de Reality, trouver un domaine conforme aux exigences de Xray.
 * Pour l'installation avec TLS, préparer un domaine et configurer correctement son enregistrement A.
 * Lire la documentation officielle de [Xray](https://xtls.github.io), pour comprendre les protocoles Reality, TLS, WebSocket, gRPC ainsi que les exigences sur le domaine utilisé pour Reality.
