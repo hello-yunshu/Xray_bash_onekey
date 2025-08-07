@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.6.2"
+shell_version="2.6.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -520,7 +520,7 @@ ws_grpc_qr() {
 
 ws_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] && [[ ${reality_add_more} != "off" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") ws inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
@@ -542,7 +542,7 @@ ws_inbound_port_set() {
 
 grpc_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] && [[ ${reality_add_more} != "off" ]]; then
+        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
@@ -623,7 +623,7 @@ firewall_set() {
 
 ws_path_set() {
     if [[ "on" != ${old_config_status} ]] || [[ ${change_ws_path} == "yes" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] && [[ ${reality_add_more} != "off" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r path_modify_fq
@@ -656,7 +656,7 @@ ws_path_set() {
 
 grpc_path_set() {
     if [[ "on" != ${old_config_status} ]] || [[ ${change_grpc_path} == "yes" ]]; then
-        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] && [[ ${reality_add_more} != "off" ]]; then
+        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r path_modify_fq
@@ -2644,6 +2644,7 @@ tls_type() {
 }
 
 reset_vless_qr_config() {
+    [[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
     basic_information
     vless_qr_link_image
     show_information
