@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.6.3"
+shell_version="2.6.4"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -828,14 +828,29 @@ serverNames_set() {
 
 keys_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        local keys
-        keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
-        privateKey=$(echo "${keys}" | awk -F"Private key: " '{print $2}' | awk '{print $1}')
-        publicKey=$(echo "${keys}" | awk -F"Public key: " '{print $2}' | awk '{print $1}')
+        local keys custom_keys_fq
+        echo
+        log_echo "${GreenBG} $(gettext "是否需要自定义") privateKey [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        echo -e "${Warning} ${YellowBG} $(gettext "如不清楚具体用途, 请勿继续")! ${Font}"
+        read -r custom_keys_fq
+        case $custom_keys_fq in
+        [yY][eE][sS] | [yY])
+            read_optimize "$(gettext "请输入") privateKey:" "privateKey" "NULL"
+            keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}" | tr '\n' ' ')
+            password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
+            ;;
+        *)
+            keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
+            privateKey=$(echo "${keys}" | awk -F"Privatekey: " '{print $2}' | awk '{print $1}')
+            password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
+            ;;
+        esac
         log_echo "${Green} privateKey: ${privateKey} ${Font}"
-        log_echo "${Green} publicKey: ${publicKey} ${Font}"
+        log_echo "${Green} Password: ${password} ${Font}"
+        echo
     fi
 }
+
 
 shortIds_set() {
     if [[ "on" != ${old_config_status} ]]; then
@@ -1775,7 +1790,10 @@ old_config_input() {
         target=$(info_extraction target)
         serverNames=$(info_extraction serverNames)
         privateKey=$(info_extraction privateKey)
-        publicKey=$(info_extraction publicKey)
+        password=$(info_extraction password)
+        ## 以下兼容 xray-core 旧版本，下个大版本删除
+        [ -z "$password" ] && password=$(info_extraction publicKey)
+        ##
         shortIds=$(info_extraction shortIds)
         if [[ ${reality_add_more} == "on" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
@@ -2297,7 +2315,7 @@ vless_qr_config_reality() {
     "target": "${target}",
     "serverNames":"${serverNames}",
     "privateKey":"${privateKey}",
-    "publicKey":"${publicKey}",
+    "password":"${password}",
     "shortIds":"${shortIds}",
     "reality_add_nginx": "${reality_add_nginx}",
     "reality_add_more": "${reality_add_more}",
@@ -2355,7 +2373,7 @@ vless_qr_link_image() {
             vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
         fi
     elif [[ ${tls_mode} == "Reality" ]]; then
-        vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=$(info_extraction publicKey)&sni=$(info_extraction serverNames)&target=$(info_extraction target)&sid=$(info_extraction shortIds)#$(vless_urlquote $(info_extraction host))+Reality%E5%8D%8F%E8%AE%AE"
+        vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=$(info_extraction password)&sni=$(info_extraction serverNames)&target=$(info_extraction target)&sid=$(info_extraction shortIds)#$(vless_urlquote $(info_extraction host))+Reality%E5%8D%8F%E8%AE%AE"
         if [[ ${reality_add_more} == "on" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                 vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
@@ -2501,7 +2519,7 @@ basic_information() {
             log_echo "${Red} target:${Font} $(info_extraction target) "
             log_echo "${Red} serverNames:${Font} $(info_extraction serverNames) "
             log_echo "${Red} privateKey:${Font} $(info_extraction privateKey) "
-            log_echo "${Red} publicKey:${Font} $(info_extraction publicKey) "
+            log_echo "${Red} Password:${Font} $(info_extraction password) "
             log_echo "${Red} shortIds:${Font} $(info_extraction shortIds) "
             if [[ "$reality_add_more" == "on" ]]; then
                 if [[ ${ws_grpc_mode} == "onlyws" ]]; then
