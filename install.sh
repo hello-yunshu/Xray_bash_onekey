@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.6.4"
+shell_version="2.6.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -729,7 +729,7 @@ UUID_set() {
 }
 
 target_set() {
-    if [[ "on" == ${old_config_status} ]] && [[ $(info_extraction target) != null ]]; then
+    if [[ "on" == ${old_config_status} ]] && [[ -n $(info_extraction target) ]]; then
         echo
         log_echo "${GreenBG} $(gettext "检测到 target 域名已配置, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r old_host_fq
@@ -841,7 +841,7 @@ keys_set() {
             ;;
         *)
             keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
-            privateKey=$(echo "${keys}" | awk -F"Privatekey: " '{print $2}' | awk '{print $1}')
+            privateKey=$(echo "${keys}" | awk -F"PrivateKey: " '{print $2}' | awk '{print $1}')
             password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
             ;;
         esac
@@ -1222,7 +1222,7 @@ reality_nginx_add_fq() {
 }
 
 nginx_exist_check() {
-    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ "$(info_extraction nginx_build_version)" != "null" ]]; then
+    if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ -n "$(info_extraction nginx_build_version)" ]]; then
         if [[ -d "${nginx_conf_dir}" ]]; then
             rm -rf ${nginx_conf_dir}/*.conf
             if [[ -f "${nginx_conf_dir}/nginx.default" ]]; then
@@ -1241,7 +1241,7 @@ nginx_exist_check() {
         nginx_build_version=$(info_extraction nginx_build_version)
         log_echo "${OK} ${GreenBG} Nginx $(gettext "已存在, 跳过编译安装过程") ${Font}"
     #兼容代码, 下个大版本删除
-    elif [[ -d "/etc/nginx" ]] && [[ "$(info_extraction nginx_version)" == "null" ]]; then
+    elif [[ -d "/etc/nginx" ]] && [[ -z "$(info_extraction nginx_version)" ]]; then
         log_echo "${Error} ${GreenBG} $(gettext "检测到旧版本安装的") nginx ! ${Font}"
         log_echo "${Warning} ${GreenBG} $(gettext "请先做好备份") ${Font}"
         log_echo "${GreenBG} $(gettext "是否需要删除 (请删除)") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -1260,7 +1260,7 @@ nginx_exist_check() {
             ;;
         esac
     #兼容代码结束
-    elif [[ -d "/etc/nginx" ]] && [[ "$(info_extraction nginx_version)" == "null" ]]; then
+    elif [[ -d "/etc/nginx" ]] && [[ -z "$(info_extraction nginx_version)" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装")! ${Font}"
         exit 1
     else
@@ -1482,7 +1482,7 @@ ssl_install() {
 }
 
 domain_check() {
-    if [[ "on" == ${old_config_status} ]] && [[ $(info_extraction host) != null ]] && [[ $(info_extraction ip_version) != null ]]; then
+    if [[ "on" == ${old_config_status} ]] && [[ -n $(info_extraction host) ]] && [[ -n $(info_extraction ip_version) ]]; then
         echo
         log_echo "${GreenBG} $(gettext "检测到原域名配置存在, 是否跳过域名设置") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r old_host_fq
@@ -1567,7 +1567,7 @@ domain_check() {
 }
 
 ip_check() {
-    if [[ "on" == ${old_config_status} || ${auto_update} == "YES" ]] && [[ $(info_extraction host) != null ]] && [[ $(info_extraction ip_version) != null ]]; then
+    if [[ "on" == ${old_config_status} || ${auto_update} == "YES" ]] && [[ -n $(info_extraction host) ]] && [[ -n $(info_extraction ip_version) ]]; then
         if [[ ${auto_update} != "YES" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "检测到原IP配置存在, 是否跳过IP设置") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -1792,7 +1792,7 @@ old_config_input() {
         privateKey=$(info_extraction privateKey)
         password=$(info_extraction password)
         ## 以下兼容 xray-core 旧版本，下个大版本删除
-        [ -z "$password" ] && password=$(info_extraction publicKey)
+        [[ -z "$password" ]] && password=$(info_extraction publicKey)
         ##
         shortIds=$(info_extraction shortIds)
         if [[ ${reality_add_more} == "on" ]]; then
@@ -2433,8 +2433,15 @@ vless_link_image_choice() {
 }
 
 info_extraction() {
-    echo ${info_extraction_all} | jq -r ".$1"
-    [[ 0 -ne $? ]] && read_config_status=0
+    local result
+    result=$(echo "${info_extraction_all}" | jq -r ".$1 // empty" 2>/dev/null)
+    local jq_exit_code=$?
+
+    echo "$result"
+
+    if [[ $jq_exit_code -ne 0 ]]; then
+        read_config_status=0
+    fi
 }
 
 basic_information() {
@@ -2955,7 +2962,7 @@ show_error_log() {
 
 xray_status_add() {
     if [[ -f "${xray_conf}" ]]; then
-        if [[ $(jq -r .stats ${xray_conf}) != null ]]; then
+        if [[ $(jq -r .stats ${xray_conf}) != "null" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "已配置 Xray 流量统计") ${Font}"
             log_echo "${GreenBG} $(gettext "是否需要关闭此功能") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -3520,7 +3527,7 @@ idleleo_commend() {
                 shell_emoji="${Green}^O^${Font}"
             fi
             if [[ -f "${xray_qr_config_file}" ]]; then
-                if [[ "$(info_extraction nginx_build_version)" == "null" ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
+                if [[ -z "$(info_extraction nginx_build_version)" ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
                     nginx_need_update="${Green}[$(gettext "未安装")]${Font}"
                 elif [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
                     nginx_need_update="${Green}[$(gettext "有新版")!]${Font}"
@@ -3529,7 +3536,7 @@ idleleo_commend() {
                 fi
                 if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f "${xray_bin_dir}/xray" ]]; then
                     ##xray_online_version=$(check_version xray_online_pre_version)
-                    if [[ "$(info_extraction xray_version)" == "null" ]]; then
+                    if [[ -z "$(info_extraction xray_version)" ]]; then
                         xray_need_update="${Green}[$(gettext "已安装")] ($(gettext "版本未知"))${Font}"
                     elif [[ ${xray_online_version} != $(info_extraction xray_version) ]]; then
                         xray_need_update="${Green}[$(gettext "有新版")!]${Font}"
