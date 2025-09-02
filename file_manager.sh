@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.1.0"
+fm_SCRIPT_VERSION="1.2.1"
 
 if [ -z "$1" ]; then
     echo "$(gettext "用法"):" $0 <$(gettext "文件扩展名")> [<$(gettext "目录路径")>]
@@ -90,11 +90,20 @@ fm_create_servername_file() {
     fm_list_files
 }
 
-fm_create_ws_or_grpc_server_file() {
+fm_create_server_file() {
+    local default_port="$1"
     local host port weight content firewall_set_fq
+
     fm_list_files
+
     read_optimize "$(gettext "请输入主机") (host):" host
-    read_optimize "$(gettext "请输入端口") (port):" port "" 1 65535
+
+    if [[ -n "$default_port" ]]; then
+        read_optimize "$(gettext "请输入端口") (port $(gettext "默认值"): ${default_port}):" port "${default_port}" 1 65535
+    else
+        read_optimize "$(gettext "请输入端口") (port):" port "" 1 65535
+    fi
+
     read_optimize "$(gettext "请输入权重") (0~100 $(gettext "默认值") 50):" weight "50" 0 100
 
     content="server ${host}:${port} weight=${weight} max_fails=2 fail_timeout=10;"
@@ -126,7 +135,7 @@ fm_create_ws_or_grpc_server_file() {
             systemctl restart iptables
             log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启完成") ${Font}"
         fi
-    ;;
+        ;;
     *)
         log_echo "${OK} ${GreenBG} $(gettext "跳过防火墙设置") ${Font}"
         ;;
@@ -175,8 +184,11 @@ fm_create_file() {
             fm_create_servername_file
             ;;
         wsServers|grpcServers)
-            fm_create_ws_or_grpc_server_file
-            ;;
+             fm_create_server_file ""
+             ;;
+        realityServers)
+             fm_create_server_file ""
+             ;;
         *)
             echo
             log_echo "${Error} ${RedBG} $(gettext "不支持的文件扩展名") $fm_EXTENSION ${Font}"
