@@ -85,7 +85,6 @@
   "请重新输入正确的数字": "veuillez saisir à nouveau le bon numéro",
   "本地文件 file_manager.sh 不存在, 正在下载": "le fichier local file_manager.sh n'existe pas, téléchargement en cours",
   "下载失败, 请手动下载并安装新版本": "échec du téléchargement, veuillez télécharger manuellement et installer la nouvelle version",
-  "无效选项 请重试": "option invalide, veuillez réessayer",
   "当前模式不支持此操作": "le mode actuel ne prend pas en charge cette opération",
   "配置用途可以参考文章": "pour la configuration d'utilisation, vous pouvez consulter l'article",
   "修改": "modifier",
@@ -111,8 +110,6 @@
   "回滚失败": "échec du retour en arrière",
   "重装": "réinstallation",
   "Reality 协议有流量偷跑的风险": "le protocole reality présente un risque de fuite de trafic",
-  "该风险在 target 网址被 cdn 加速时存在": "ce risque existe lorsque l'url cible est accélérée par un cdn",
-  "是否额外安装 nginx 前置保护(推荐)": "installer un proxy nginx supplémentaire (recommandé)",
   "已跳过安装": "installation ignorée",
   "已存在, 跳过编译安装过程": "déjà existant, sauter le processus de compilation et d'installation",
   "检测到旧版本安装的": "ancienne version détectée installée",
@@ -478,5 +475,13 @@
   "重启失败": "redémarrage échoué",
   "请检查配置文件是否有误": "veuillez vérifier si le fichier de configuration contient des erreurs",
   "未启用或配置异常": "non activé ou configuration anormale",
-  "systemd 未能读取 SSH 日志": "systemd n'a pas réussi à lire les journaux ssh"
+  "systemd 未能读取 SSH 日志": "systemd n'a pas réussi à lire les journaux ssh",
+  "是否添加 Reality 负载均衡": "ajouter ou non la charge de réalité",
+  "使用此功能前，建议先阅读作者教程": "avant d'utiliser cette fonction, il est recommandé de lire le tutoriel de l'auteur",
+  "已开启": "déjà activé",
+  "已跳过": "déjà sauté",
+  "如用作 Reality 负载均衡二级服务器则无需安装": "s'il est utilisé comme serveur secondaire de chargement du répartiteur de charge reality, aucune installation n'est nécessaire",
+  "是否额外安装 nginx 前置保护": "installer ou non une protection frontale nginx supplémentaire",
+  "推荐": "recommandé",
+  "检测到已开启 Reality 负载均衡": "réalité de charge équilibrée détectée active"
 }
