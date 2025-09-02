@@ -483,5 +483,6 @@
   "如用作 Reality 负载均衡二级服务器则无需安装": "s'il est utilisé comme serveur secondaire de chargement du répartiteur de charge reality, aucune installation n'est nécessaire",
   "是否额外安装 nginx 前置保护": "installer ou non une protection frontale nginx supplémentaire",
   "推荐": "recommandé",
-  "检测到已开启 Reality 负载均衡": "réalité de charge équilibrée détectée active"
+  "检测到已开启 Reality 负载均衡": "réalité de charge équilibrée détectée active",
+  "如用作 Reality 负载均衡主服务器必须安装": "si utilisé comme serveur principal de chargement équilibré reality, il doit être installé"
 }
