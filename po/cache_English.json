@@ -85,7 +85,6 @@
   "请重新输入正确的数字": "please re-enter the correct number",
   "本地文件 file_manager.sh 不存在, 正在下载": "the local file file_manager.sh does not exist, downloading now",
   "下载失败, 请手动下载并安装新版本": "download failed, please manually download and install the new version",
-  "无效选项 请重试": "invalid option. please try again",
   "当前模式不支持此操作": "the current mode does not support this operation",
   "配置用途可以参考文章": "for configuration purposes, please refer to the article",
   "修改": "modify",
@@ -111,8 +110,6 @@
   "回滚失败": "rollback failed",
   "重装": "reinstall",
   "Reality 协议有流量偷跑的风险": "reality protocol has the risk of traffic leakage",
-  "该风险在 target 网址被 cdn 加速时存在": "this risk exists when the target url is accelerated by cdn",
-  "是否额外安装 nginx 前置保护(推荐)": "whether to install an additional nginx front-end protection (recommended)",
   "已跳过安装": "installation skipped",
   "已存在, 跳过编译安装过程": "already exists, skip the compilation and installation process",
   "检测到旧版本安装的": "detected an old version installed",
@@ -478,5 +475,13 @@
   "重启失败": "restart failed",
   "请检查配置文件是否有误": "please check if there is an error in the configuration file",
   "未启用或配置异常": "not enabled or configuration exception",
-  "systemd 未能读取 SSH 日志": "systemd failed to read ssh logs"
+  "systemd 未能读取 SSH 日志": "systemd failed to read ssh logs",
+  "是否添加 Reality 负载均衡": "whether to add reality load balancing",
+  "使用此功能前，建议先阅读作者教程": "before using this feature, it is recommended to first read the author's tutorial",
+  "已开启": "already activated",
+  "已跳过": "skipped",
+  "如用作 Reality 负载均衡二级服务器则无需安装": "if used as a secondary server for reality load balancing, installation is not required",
+  "是否额外安装 nginx 前置保护": "whether to additionally install nginx as a front-end protection",
+  "推荐": "recommend",
+  "检测到已开启 Reality 负载均衡": "reality load balancing has been detected as enabled"
 }
