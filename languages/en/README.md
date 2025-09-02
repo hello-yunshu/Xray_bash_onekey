@@ -17,7 +17,8 @@
 * Reality installation guide: [Setting up Xray Reality Protocol Server](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
 * Risks of Reality protocol: [Risks of Xray Reality Protocol](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * Accelerating server using Reality protocol: [Accelerate Server Using Reality Protocol "Vulnerability"](https://hey.run/archives/use-reality).
-* Adding load balancing configuration, tutorial: [XRay Advanced Play - Setting Up Backend Server Load Balancing](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
+* Added Reality load balancing configuration. Tutorial: [How to Deploy a Reality Protocol Server Load Balancer](https://hey.run/archives/bushu-reality-balance).
+* Added ws/grpc load balancing configuration. Tutorial: [XRay Advanced Techniques – Building a Backend Server Load Balancer](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 * Adding support for gRPC protocol, see details: [XRay Advanced Play - Using gRPC Protocol](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
 
 ## Telegram Group
