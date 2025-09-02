@@ -17,7 +17,8 @@
 * Reality 설치 안내: [Xray Reality 프로토콜 서버 설정](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
 * Reality 프로토콜 위험: [Xray Reality 프로토콜 위험](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * Reality 프로토콜을 이용한 서버 가속: [Reality 프로토콜 "취약점"을 이용한 서버 가속](https://hey.run/archives/use-reality).
-* 부하 분산 구성 추가, 튜토리얼: [XRay 고급 기능 – 백엔드 서버 로드 밸런싱 설정](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
+* Reality 로드 밸런싱 구성 추가. 튜토리얼: [Reality 프로토콜 서버 로드 밸런서 배포 방법](https://hey.run/archives/bushu-reality-balance).
+* ws/grpc 로드 밸런싱 구성 추가. 튜토리얼: [XRay 고급 활용법 – 백엔드 서버 로드 밸런서 구축](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 * gRPC 프로토콜 지원 추가, 자세히 보기: [Xray 고급 기능 – gRPC 프로토콜 사용](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
 
 ## Telegram 그룹

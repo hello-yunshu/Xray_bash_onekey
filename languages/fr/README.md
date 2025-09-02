@@ -17,7 +17,8 @@
 * Instructions d'installation de Reality : [Configurer un serveur Xray avec le protocole Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
 * Risques liés au protocole Reality : [Risques associés au protocole Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * Accélérer le serveur grâce au protocole Reality : [Accélérer le serveur en utilisant un "bug" du protocole Reality](https://hey.run/archives/use-reality).
-* Ajout de la configuration d'équilibrage de charge, tutoriel : [Avancées avec XRay – Configurer un équilibrage de charge backend](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
+* Ajout de la configuration d'équilibrage de charge Reality. Tutoriel : [Comment déployer un équilibreur de charge de protocole Reality](https://hey.run/archives/bushu-reality-balance).
+* Ajout de la configuration d'équilibrage de charge ws/grpc. Tutoriel : [Techniques avancées avec XRay – Mettre en place un équilibreur de charge pour serveur backend](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 * Ajout de la prise en charge du protocole gRPC, voir : [Avancées avec XRay – Utiliser le protocole gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
 
 ## Groupe Telegram

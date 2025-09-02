@@ -17,7 +17,8 @@
 * Reality 安装说明：[搭建 Xray Reality 协议服务器](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)。
 * Reality 协议的风险：[Xray Reality 协议的风险](https://hey.run/archives/reality-xie-yi-de-feng-xian)。
 * 利用 Reality 协议加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/archives/use-reality)。
-* 添加负载均衡配置，教程：[XRay进阶玩法 – 搭建后端服务器负载均衡](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)。
+* 添加 Reality 负载均衡配置，教程：[如何部署 Reality协议 服务端负载均衡](https://hey.run/archives/bushu-reality-balance)。
+* 添加 ws/grpc 负载均衡配置，教程：[XRay进阶玩法 – 搭建后端服务器负载均衡](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)。
 * 添加 gRPC 协议的支持，具体可见：[Xray进阶玩法 – 使用gRPC协议](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)。
 
 ## Telegram 群组
