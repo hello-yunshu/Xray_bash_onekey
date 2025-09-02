@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.6.5"
+shell_version="2.7.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -71,6 +71,7 @@ get_versions_all=$(curl -s https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_on
 read_config_status=1
 reality_add_more="off"
 reality_add_nginx="off"
+reality_add_balance="off"
 old_config_status="off"
 old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
@@ -831,7 +832,6 @@ keys_set() {
         local keys custom_keys_fq
         echo
         log_echo "${GreenBG} $(gettext "是否需要自定义") privateKey [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        echo -e "${Warning} ${YellowBG} $(gettext "如不清楚具体用途, 请勿继续")! ${Font}"
         read -r custom_keys_fq
         case $custom_keys_fq in
         [yY][eE][sS] | [yY])
@@ -854,20 +854,48 @@ keys_set() {
 
 shortIds_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        pkg_install "openssl"
-        shortIds=$(openssl rand -hex 4)
+        local custom_shortids_fq
+        echo
+        log_echo "${GreenBG} $(gettext "是否需要自定义") shortIds [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r custom_shortids_fq
+        case $custom_shortids_fq in
+        [yY][eE][sS] | [yY])
+            read_optimize "$(gettext "请输入") shortIds:" "shortIds" "NULL"
+            ;;
+        *)
+            pkg_install "openssl"
+            shortIds=$(openssl rand -hex 8)
+            ;;
+        esac
         log_echo "${Green} shortIds: ${shortIds} ${Font}"
+        echo
     fi
 }
 
+ensure_file_manager() {
+    local fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
+    local fm_local_path="${idleleo_dir}/file_manager.sh"
+
+    if [[ ! -f "${fm_local_path}" ]]; then
+        log_echo "${Info} ${Green} $(gettext "本地文件 file_manager.sh 不存在, 正在下载")... ${Font}"
+        if ! curl -sL "$fm_remote_url" -o "$fm_local_path"; then
+            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+            return 1
+        fi
+        chmod +x "$fm_local_path"
+    fi
+    return 0
+}
+
+
 nginx_upstream_server_set() {
-    if [[ ${tls_mode} == "TLS" ]]; then
-        echo
-        log_echo "${GreenBG} $(gettext "是否变更") Nginx $(gettext "负载均衡") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        echo -e "${Warning} ${YellowBG} $(gettext "如不清楚具体用途, 请勿继续")! ${Font}"
-        read -r nginx_upstream_server_fq
-        case $nginx_upstream_server_fq in
-        [yY][eE][sS] | [yY])
+    echo
+    log_echo "${GreenBG} $(gettext "是否变更") Nginx $(gettext "负载均衡") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    echo -e "${Warning} ${YellowBG} $(gettext "如不清楚具体用途, 请勿继续")! ${Font}"
+    read -r nginx_upstream_server_fq
+    case $nginx_upstream_server_fq in
+    [yY][eE][sS] | [yY])
+        if [[ ${tls_mode} == "TLS" ]]; then
             echo -e "\n${GreenBG} $(gettext "请选择协议为 ws 或 gRPC") ${Font}"
             echo "1: ws"
             echo "2: gRPC"
@@ -875,32 +903,28 @@ nginx_upstream_server_set() {
             local upstream_choose
             read_optimize "$(gettext "请输入"): " "upstream_choose" "NULL" 1 3 "$(gettext "请重新输入正确的数字")"
 
-            fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
-            fm_file_path=${nginx_conf_dir}
-            if [ ! -f "${idleleo_dir}/file_manager.sh" ]; then
-                log_echo "${Info} ${Green} $(gettext "本地文件 file_manager.sh 不存在, 正在下载")... ${Font}"
-                curl -sL "$fm_remote_url" -o "${idleleo_dir}/file_manager.sh"
-                if [ $? -ne 0 ]; then
-                    log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
-                    return 1
-                fi
-                chmod +x "${idleleo_dir}/file_manager.sh"
+            if ensure_file_manager; then
+                case $upstream_choose in
+                1) source "${idleleo_dir}/file_manager.sh" wsServers ${nginx_conf_dir} ;;
+                2) source "${idleleo_dir}/file_manager.sh" grpcServers ${nginx_conf_dir} ;;
+                3) ;;
+                *)
+                    log_echo "${Error} ${RedBG} $(gettext "无效选项, 请重试")! ${Font}"
+                    nginx_upstream_server_set
+                    ;;
+                esac
             fi
-            case $upstream_choose in
-            1) source "${idleleo_dir}/file_manager.sh" wsServers ${fm_file_path} ;;
-            2) source "${idleleo_dir}/file_manager.sh" grpcServers ${fm_file_path} ;;
-            3) ;;
-            *)
-                log_echo "${Error} ${RedBG} $(gettext "无效选项 请重试") ${Font}"
-                nginx_upstream_server_set
-                ;;
-            esac
-            ;;
-        *) ;;
-        esac
-    else
-        log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
-    fi
+        elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_balance} == "on" ]] && [[ ${reality_add_nginx} == "on" ]]; then
+            if ensure_file_manager; then
+                source "${idleleo_dir}/file_manager.sh" realityServers ${nginx_conf_dir}
+            fi
+        else
+            log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
+            return 1
+        fi
+        ;;
+    *) ;;
+    esac
 }
 
 nginx_servernames_server_set() {
@@ -912,18 +936,9 @@ nginx_servernames_server_set() {
         read -r nginx_servernames_server_fq
         case $nginx_servernames_server_fq in
         [yY][eE][sS] | [yY])
-            fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
-            fm_file_path=${nginx_conf_dir}
-            if [ ! -f "${idleleo_dir}/file_manager.sh" ]; then
-                log_echo "${Info} ${Green} $(gettext "本地文件 file_manager.sh 不存在, 正在下载")... ${Font}"
-                curl -sL "$fm_remote_url" -o "${idleleo_dir}/file_manager.sh"
-                if [ $? -ne 0 ]; then
-                    log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
-                    return 1
-                fi
-                chmod +x "${idleleo_dir}/file_manager.sh"
+            if ensure_file_manager; then
+                source "${idleleo_dir}/file_manager.sh" serverNames ${nginx_conf_dir}
             fi
-            source "${idleleo_dir}/file_manager.sh" serverNames ${fm_file_path}
         ;;
         *) ;;
         esac
@@ -1200,25 +1215,65 @@ xray_update() {
     systemctl start xray
 }
 
-reality_nginx_add_fq() {
+reality_balance_add_fq() {
     echo
-    log_echo "${Warning} ${Green} $(gettext "Reality 协议有流量偷跑的风险") ${Font}"
-    log_echo "${Warning} ${Green} $(gettext "该风险在 target 网址被 cdn 加速时存在") ${Font}"
-    log_echo "${GreenBG} $(gettext "是否额外安装 nginx 前置保护(推荐)") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-    read -r reality_nginx_add_fq
-    case $reality_nginx_add_fq in
-        [nN][oO] | [nN])
-            log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
+    log_echo "${GreenBG} $(gettext "是否添加 Reality 负载均衡") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    echo -e "${Warning} ${Green} $(gettext "使用此功能前，建议先阅读作者教程")! ${Font}"
+    echo -e "${Warning} ${YellowBG} $(gettext "如不清楚具体用途, 请勿选择")! ${Font}"
+    read -r reality_balance_add_fq
+    case $reality_balance_add_fq in
+        [yY][eE][sS] | [yY])
+            reality_add_balance="on"
+            log_echo "${OK} ${GreenBG} $(gettext "已开启") ${Font}"
         ;;
         *)
-            reality_add_nginx="on"
-            nginx_exist_check
-            nginx_systemd
-            nginx_reality_conf_add
-            nginx_reality_serverNames_add
+            log_echo "${OK} ${GreenBG} $(gettext "已跳过") ${Font}"
         ;;
 
     esac
+}
+
+
+reality_nginx_add_fq() {
+    echo
+    log_echo "${Warning} ${Green} $(gettext "Reality 协议有流量偷跑的风险") ${Font}"
+    if [[ ${reality_add_balance} == "off" ]]; then
+        log_echo "${GreenBG} $(gettext "是否额外安装 nginx 前置保护")($(gettext "推荐")) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        read -r reality_nginx_add_fq
+        case $reality_nginx_add_fq in
+            [nN][oO] | [nN])
+                log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
+            ;;
+            *)
+                reality_add_nginx="on"
+                nginx_exist_check
+                nginx_systemd
+                nginx_reality_conf_add
+                nginx_reality_servers_add
+                nginx_reality_serverNames_add
+            ;;
+
+        esac
+    else
+        log_echo "${Warning} ${Green} $(gettext "检测到已开启 Reality 负载均衡") ${Font}"
+        log_echo "${Warning} ${Green} $(gettext "如用作 Reality 负载均衡主服务器必须安装") ${Font}"
+        log_echo "${Warning} ${Green} $(gettext "如用作 Reality 负载均衡二级服务器则无需安装") ${Font}"
+        log_echo "${GreenBG} $(gettext "是否额外安装 nginx 前置保护") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r reality_nginx_add_fq
+        case $reality_nginx_add_fq in
+            [yY][eE][sS] | [yY])
+                reality_add_nginx="on"
+                nginx_exist_check
+                nginx_systemd
+                nginx_reality_conf_add
+                nginx_reality_servers_add
+                nginx_reality_serverNames_add
+            ;;
+            *)
+                log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
+            ;;
+        esac
+    fi    
 }
 
 nginx_exist_check() {
@@ -1386,6 +1441,9 @@ nginx_update() {
                 nginx_servers_conf_add
             elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_reality_conf_add
+                #以下为兼容代码, 1个大版本后删除 from 2.3.5
+                nginx_reality_servers_add
+                #兼容代码接受
             fi
             service_start
             sleep 1
@@ -1718,7 +1776,7 @@ xray_reality_add_more() {
         modify_inbound_port
     fi
 
-    if [[ ${reality_add_nginx} == "on" ]]; then
+    if [[ ${reality_add_nginx} == "on" ]] && [[ ${reality_add_balance} == "off" ]]; then
         modify_reality_listen_address
     fi
 }
@@ -1793,7 +1851,7 @@ old_config_input() {
         password=$(info_extraction password)
         ## 以下兼容 xray-core 旧版本，下个大版本删除
         [[ -z "$password" ]] && password=$(info_extraction publicKey)
-        ##
+        ## 兼容代码结束
         shortIds=$(info_extraction shortIds)
         if [[ ${reality_add_more} == "on" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
@@ -1983,7 +2041,7 @@ stream {
     }
 
     upstream reality {
-        server 127.0.0.1:9443;
+        include ${nginx_conf_dir}/*.realityServers;
     }
 
     upstream deny {
@@ -2017,12 +2075,20 @@ EOF
     judge "Nginx $(gettext "配置修改")"
 }
 
+nginx_reality_servers_add () {
+    touch ${nginx_conf_dir}/127.0.0.1.realityServers
+    cat >${nginx_conf_dir}/127.0.0.1.realityServers <<EOF
+server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;
+EOF
+    judge "Nginx servers $(gettext "配置修改")"
+
+}
+
 nginx_reality_serverNames_add () {
     touch ${nginx_conf_dir}/${serverNames}.serverNames
     cat >${nginx_conf_dir}/${serverNames}.serverNames <<EOF
 ${serverNames} reality;
 EOF
-    # modify_nginx_reality_serverNames
     judge "Nginx serverNames $(gettext "配置修改")"
 
 }
@@ -2318,6 +2384,7 @@ vless_qr_config_reality() {
     "password":"${password}",
     "shortIds":"${shortIds}",
     "reality_add_nginx": "${reality_add_nginx}",
+    "reality_add_balance": "${reality_add_balance}",
     "reality_add_more": "${reality_add_more}",
     "ws_port": "${artxport}",
     "grpc_port": "${artgport}",
@@ -3139,7 +3206,7 @@ judge_mode() {
             Reality)
                 reality_add_more=$(info_extraction reality_add_more)
                 reality_add_nginx=$(info_extraction reality_add_nginx)
-
+                reality_add_balance=$(info_extraction reality_add_balance)
                 if [[ ${reality_add_more} == "on" && ${reality_add_nginx} == "off" ]]; then
                     shell_mode="Reality+${ws_grpc_mode_add}"
                 elif [[ ${reality_add_nginx} == "on" && ${reality_add_more} == "on" ]]; then
@@ -3148,6 +3215,9 @@ judge_mode() {
                     shell_mode="Nginx+Reality"
                 else
                     shell_mode="Reality"
+                fi
+                if [[ ${reality_add_balance} == "on" ]]; then
+                    shell_mode=${shell_mode}"+Balance"
                 fi
                 ;;
             None)
@@ -3223,6 +3293,7 @@ install_xray_reality() {
     firewall_set
     stop_service_all
     port_exist_check "${port}"
+    reality_balance_add_fq
     reality_nginx_add_fq
     xray_conf_add
     vless_qr_config_reality
