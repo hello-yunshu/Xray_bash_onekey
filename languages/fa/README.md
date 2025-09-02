@@ -17,7 +17,8 @@
 * راهنمای نصب Reality: [راه اندازی سرور پروتکل Xray Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
 * ریسک‌های پروتکل Reality: [ریسک‌های پروتکل Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * سرعت‌دهی سرور با استفاده از پروتکل Reality: [سرعت‌دهی سرور با استفاده از "سلب‌معنایی" پروتکل Reality](https://hey.run/archives/use-reality).
-* افزودن تنظیمات均衡 بارگذاری، راهنما: [XRay پیشرفته – راه اندازی تعادل بارگذاری سرور پشتیبان](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
+* پیکربندی تعادل بار Reality اضافه شد. آموزش: [نحوه استقرار تعادل بار پروتکل Reality](https://hey.run/archives/bushu-reality-balance).
+* پیکربندی تعادل بار ws/grpc اضافه شد. آموزش: [تکنیک‌های پیشرفته XRay – ساخت تعادل بار سرور پس‌زمینه](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 * اضافه کردن پشتیبانی از پروتکل gRPC، جزئیات بیشتر: [XRay پیشرفته – استفاده از پروتکل gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
 
 ## گروه تلگرام

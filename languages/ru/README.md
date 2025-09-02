@@ -17,7 +17,8 @@
 * Установка Reality: [Установка сервера протокола Xray Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
 * Риски использования протокола Reality: [Риски использования протокола Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * Ускорение сервера с помощью протокола Reality: [Ускорение сервера с помощью "утечек" протокола Reality](https://hey.run/archives/use-reality).
-* Добавление конфигурации балансировки нагрузки, руководство: [XRay продвинутые возможности – Настройка балансировки нагрузки на сервере](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
+* Добавлена конфигурация балансировки нагрузки Reality. Руководство: [Как развернуть балансировку нагрузки для протокола Reality](https://hey.run/archives/bushu-reality-balance).
+* Добавлена конфигурация балансировки нагрузки ws/grpc. Руководство: [Расширенные возможности XRay – Создание балансировки нагрузки для сервера бэкенда](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 * Поддержка протокола gRPC, подробнее: [XRay продвинутые возможности – Использование протокола gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
 
 ## Telegram группа
