@@ -484,5 +484,7 @@
   "是否额外安装 nginx 前置保护": "whether to additionally install nginx as a front-end protection",
   "推荐": "recommend",
   "检测到已开启 Reality 负载均衡": "reality load balancing has been detected as enabled",
-  "如用作 Reality 负载均衡主服务器必须安装": "if used as a reality load balancing master server, it must be installed"
+  "如用作 Reality 负载均衡主服务器必须安装": "if used as a reality load balancing master server, it must be installed",
+  "检测到已安装": "installed detected",
+  "已取消卸载": "uninstallation canceled"
 }
