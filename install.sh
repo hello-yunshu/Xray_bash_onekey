@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.7.0"
+shell_version="2.7.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1227,6 +1227,7 @@ reality_balance_add_fq() {
             log_echo "${OK} ${GreenBG} $(gettext "已开启") ${Font}"
         ;;
         *)
+            reality_add_balance="off"
             log_echo "${OK} ${GreenBG} $(gettext "已跳过") ${Font}"
         ;;
 
@@ -1242,7 +1243,14 @@ reality_nginx_add_fq() {
         read -r reality_nginx_add_fq
         case $reality_nginx_add_fq in
             [nN][oO] | [nN])
-                log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
+                reality_add_nginx="off"
+                if [[ -d "${nginx_dir}" ]]; then
+                    echo
+                    log_echo "${Warning} ${Green} $(gettext "检测到已安装") nginx ${Font}"
+                    uninstall_nginx
+                else
+                    log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
+                fi
             ;;
             *)
                 reality_add_nginx="on"
@@ -1270,7 +1278,14 @@ reality_nginx_add_fq() {
                 nginx_reality_serverNames_add
             ;;
             *)
-                log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
+                reality_add_nginx="off"
+                if [[ -d "${nginx_dir}" ]]; then
+                    echo
+                    log_echo "${Warning} ${Green} $(gettext "检测到已安装") nginx ${Font}"
+                    uninstall_nginx
+                else
+                    log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
+                fi
             ;;
         esac
     fi    
@@ -3079,36 +3094,45 @@ bbr_boost_sh() {
     fi
 }
 
-uninstall_all() {
-    stop_service_all
-    if [[ -f "${xray_bin_dir}/xray" ]]; then
-        systemctl disable xray
-        bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ remove --purge
-        [[ -d "${xray_conf_dir}" ]] && rm -rf ${xray_conf_dir}
+uninstall_xray() {
+    systemctl disable xray
+    bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ remove --purge
+    [[ -d "${xray_conf_dir}" ]] && rm -rf ${xray_conf_dir}
+    if [[ -f "${xray_qr_config_file}" ]]; then
+        jq -r 'del(.xray_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
+        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "已卸载") Xray ${Font}"
+}
+
+uninstall_nginx() { 
+    log_echo "${GreenBG} $(gettext "是否卸载") Nginx [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+    read -r uninstall_nginx
+    case $uninstall_nginx in
+    [nN][oO] | [nN]) 
+        log_echo "${OK} ${GreenBG} $(gettext "已取消卸载") Nginx ${Font}"        
+        return
+        ;;
+    *)
+        systemctl disable nginx
+        rm -rf ${nginx_dir}
+        rm -rf ${nginx_conf_dir}/*
+        [[ -f "${nginx_systemd_file}" ]] && rm -rf ${nginx_systemd_file}
         if [[ -f "${xray_qr_config_file}" ]]; then
-            jq -r 'del(.xray_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
+            jq 'del(.nginx_build_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
         fi
-        log_echo "${OK} ${GreenBG} $(gettext "已卸载") Xray ${Font}"
-    fi
-    if [[ -d "${nginx_dir}" ]]; then
-        log_echo "${GreenBG} $(gettext "是否卸载") Nginx [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        read -r uninstall_nginx
-        case $uninstall_nginx in
-        [yY][eE][sS] | [yY])
-            systemctl disable nginx
-            rm -rf ${nginx_dir}
-            rm -rf ${nginx_conf_dir}/*
-            [[ -f "${nginx_systemd_file}" ]] && rm -rf ${nginx_systemd_file}
-            if [[ -f "${xray_qr_config_file}" ]]; then
-                jq 'del(.nginx_build_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
-                mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
-            fi
-            log_echo "${OK} ${GreenBG} $(gettext "已卸载") Nginx ${Font}"
-            ;;
-        *) ;;
-        esac
-    fi
+        log_echo "${OK} ${GreenBG} $(gettext "已卸载") Nginx ${Font}"
+        ;;
+    esac
+}
+
+uninstall_all() {
+    stop_service_all
+    [[ -f "${xray_bin_dir}/xray" ]] && uninstall_xray
+    echo
+    [[ -d "${nginx_dir}" ]] && uninstall_nginx
+    echo
     log_echo "${GreenBG} $(gettext "是否删除所有脚本文件") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
     read -r remove_all_idleleo_file_fq
     case $remove_all_idleleo_file_fq in
