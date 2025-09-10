@@ -35,7 +35,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.7.1"
+shell_version="2.7.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -236,7 +236,8 @@ init_language() {
         pkg_install "gettext"
         if [ $? -ne 0 ]; then
             log_echo "${Error} ${RedBG} gettext $(gettext "安装失败"), $(gettext "将使用默认语言") ${Font}"
-            export LANG=zh_CN.UTF-8
+            unset LANG
+            unset LC_MESSAGES
             return 1
         fi
     fi
@@ -259,7 +260,8 @@ init_language() {
 
     if [ -z "$gettext_sh" ]; then
         log_echo "${Error} ${RedBG} $(gettext "未找到") gettext.sh, $(gettext "将使用默认语言") ${Font}"
-        export LANG=zh_CN.UTF-8
+        unset LANG
+        unset LC_MESSAGES
         return 1
     fi
 
@@ -281,7 +283,8 @@ init_language() {
                 "fr_FR") lang_code="fr" ;;
                 *)
                     log_echo "${Warning} ${YellowBG} $(gettext "不支持的语言"):${LANG%.*}, $(gettext "将使用默认语言") ${Font}"
-                    export LANG=zh_CN.UTF-8
+                    unset LANG
+                    unset LC_MESSAGES
                     return 0
                     ;;
             esac
@@ -290,7 +293,8 @@ init_language() {
             if [ ! -f "$lang_file" ]; then
                 if ! update_language_file "$lang_code"; then
                     log_echo "${Warning} ${YellowBG} $(gettext "语言文件更新失败"), $(gettext "将使用默认语言") ${Font}"
-                    export LANG=zh_CN.UTF-8
+                    unset LANG
+                    unset LC_MESSAGES
                     return 0
                 fi
             elif check_language_update "$lang_code"; then
@@ -300,8 +304,10 @@ init_language() {
                 fi
             fi
         fi
-    else
-        export LANG=zh_CN.UTF-8
+    # else
+        # log_echo "${Info} ${Green} $(gettext "未找到") language.conf, $(gettext "将使用默认语言") ${Font}"
+        # unset LANG
+        # unset LC_MESSAGES
     fi
 }
 
@@ -356,7 +362,7 @@ pkg_install() {
 }
 
 dependency_install() {
-    pkg_install "bc,curl,dbus,git,jq,lsof,python3,qrencode,wget"
+    pkg_install "bc,curl,dbus,git,jq,lsof,python3,qrencode"
     if [[ "${ID}" == "centos" ]]; then
         pkg_install "crontabs"
     else
@@ -1360,7 +1366,7 @@ nginx_install() {
     esac
 
     local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}/${nginx_filename}"
-    wget -q --show-progress --progress=bar:force:noscroll "$url" -O "$nginx_filename"
+    curl -L -# -o "$nginx_filename" "$url"
     tar -xzvf "$nginx_filename" -C ./
     [[ -d ${nginx_dir} ]] && rm -rf "${nginx_dir}"
     mv ./nginx "${nginx_dir}"
@@ -1526,7 +1532,7 @@ auto_update() {
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
-            wget -N -P ${idleleo_dir} --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh && chmod +x ${auto_update_file}
+            curl -L -o "${idleleo_dir}/auto_update.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh" && chmod +x ${auto_update_file}
             echo "0 1 15 * * bash ${auto_update_file}" >>${crontab_file}
             judge "$(gettext "设置自动更新")"
             ;;
@@ -1745,17 +1751,17 @@ acme() {
 xray_conf_add() {
     if [[ $(info_extraction multi_user) != "yes" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
-            wget --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json -O ${xray_conf}
+            curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json"
             modify_listen_address
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "Reality" ]]; then
-            wget --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_reality/config.json -O ${xray_conf}
+            curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_reality/config.json"
             modify_target_serverNames
             modify_privateKey_shortIds
             xray_reality_add_more
         elif [[ ${tls_mode} == "None" ]]; then
-            wget --no-check-certificate https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json -O ${xray_conf}
+            curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json"
             modify_listen_address
             modify_path
             modify_inbound_port
@@ -3069,7 +3075,7 @@ xray_status_add() {
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
                 service_stop
-                wget -nc --no-check-certificate "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json" -O ${xray_status_conf}
+                curl -L -o "${xray_status_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json"
                 local status_config
                 status_config=$(jq -c . "${xray_status_conf}")
                 jq --argjson status_config "${status_config}" \
@@ -3090,7 +3096,7 @@ bbr_boost_sh() {
     if [[ -f "${idleleo_dir}/tcp.sh" ]]; then
         cd ${idleleo_dir} && chmod +x ./tcp.sh && ./tcp.sh
     else
-        wget -N --no-check-certificate -P ${idleleo_dir} "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x ${idleleo_dir}/tcp.sh && ${idleleo_dir}/tcp.sh
+        curl -L -o "${idleleo_dir}/tcp.sh" "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x "${idleleo_dir}/tcp.sh" && "${idleleo_dir}/tcp.sh"
     fi
 }
 
@@ -3390,7 +3396,7 @@ update_sh() {
         case $update_confirm in
         [yY][eE][sS] | [yY])
             [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
-            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
+            curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
             ln -s ${idleleo} ${idleleo_commend_file}
             [[ -f "${xray_qr_config_file}" ]] && jq --arg shell_version "${shell_version}" '.shell_version = $shell_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             clear
@@ -3409,10 +3415,10 @@ update_sh() {
 check_file_integrity() {
     if [[ ! -L "${idleleo_commend_file}" ]] && [[ ! -f "${idleleo}" ]]; then
         check_system
-        pkg_install "bc,jq,wget"
+        pkg_install "bc,jq"
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
         [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p ${idleleo_dir}/tmp
-        wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
+        curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
         judge "$(gettext "下载最新脚本")"
         ln -s ${idleleo} ${idleleo_commend_file}
         clear
@@ -3574,7 +3580,7 @@ idleleo_commend() {
         oldest_version=$(sort -V ${shell_version_tmp} | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
-            wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
+            curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
             judge "$(gettext "下载最新脚本")"
             clear
             source "$idleleo"
@@ -3589,7 +3595,7 @@ idleleo_commend() {
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
                     rm -rf ${idleleo}
-                    wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
+                    curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
                     judge "$(gettext "下载最新脚本")"
                     clear
                     log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
@@ -3601,7 +3607,7 @@ idleleo_commend() {
                 esac
             else
                 rm -rf ${idleleo}
-                wget -N --no-check-certificate -P ${idleleo_dir} https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh && chmod +x ${idleleo}
+                curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
                 echo
                 judge "$(gettext "下载最新脚本")"
                 clear
@@ -3706,7 +3712,7 @@ check_online_version_connect() {
 set_language() {
     echo
     log_echo "${GreenBG} 选择语言 / Select Language / انتخاب زبان / Выберите язык ${Font}"
-    echo -e "${Green}1.${Font} 中文"
+    echo -e "${Green}1.${Font} 中文 (默认)"
     echo -e "${Green}2.${Font} English"
     echo -e "${Green}3.${Font} Français"
     echo -e "${Green}4.${Font} فارسی"
@@ -3718,24 +3724,30 @@ set_language() {
 
     case $lang_choice in
         1)
-            export LANG=zh_CN.UTF-8
+            unset LANG
+            unset LC_MESSAGES
             rm -f "${idleleo_dir}/language.conf"
             rm -rf "${idleleo_dir}/languages"
             ;;
         2)
             export LANG=en_US.UTF-8
+            export LC_MESSAGES=en_US.UTF-8
             ;;
         3)
             export LANG=fr_FR.UTF-8
+            export LC_MESSAGES=fr_FR.UTF-8
             ;;
         4)
             export LANG=fa_IR.UTF-8
+            export LC_MESSAGES=fa_IR.UTF-8
             ;;
         5)
             export LANG=ru_RU.UTF-8
+            export LC_MESSAGES=ru_RU.UTF-8
             ;;
         6)
             export LANG=ko_KR.UTF-8
+            export LC_MESSAGES=ko_KR.UTF-8
             ;;
         *)
             log_echo "${Error} ${RedBG} $(gettext "无效的选择") ${Font}"
@@ -3748,22 +3760,27 @@ set_language() {
         check_system
 
         echo "LANG=$LANG" > "${idleleo_dir}/language.conf"
+        echo "LC_MESSAGES=$LC_MESSAGES" >> "${idleleo_dir}/language.conf"
 
         case $ID in
             debian|ubuntu)
                 if ! dpkg -s locales-all >/dev/null 2>&1; then
                     pkg_install "locales-all"
-                    #locale-gen "$LANG"
                 fi
-                #update-locale "LANG=$LANG"
+
+                if command -v locale-gen >/dev/null 2>&1; then
+                     locale-gen "$LANG" 2>/dev/null || true # 忽略可能的错误
+                fi
                 ;;
             centos)
                 local ins_lang_code="${LANG%%_*}"
                 if ! rpm -q "glibc-langpack-$ins_lang_code" >/dev/null 2>&1; then
                     pkg_install "glibc-langpack-$ins_lang_code"
-                    #localedef -c -i "${LANG%.*}" -f UTF-8 "$LANG"
                 fi
-                #localectl set-locale "LANG=$LANG"
+                # 尝试生成 locale (非必需，但可能有帮助)
+                if command -v localedef >/dev/null 2>&1 && [ -f "/usr/share/i18n/locales/${LANG%.*}" ]; then
+                    localedef -c -i "${LANG%.*}" -f UTF-8 "$LANG" 2>/dev/null || true # 忽略可能的错误
+                fi
                 ;;
         esac
     fi
@@ -3869,7 +3886,7 @@ menu() {
     echo -e "${Green}1.${Font}  $(gettext "升级") Xray"
     echo -e "${Green}2.${Font}  $(gettext "升级") Nginx"
     echo -e "—————————————— ${GreenW}语言 / Language${Font} ———————"
-    echo -e "${Green}36.${Font} 中文"
+    echo -e "${Green}36.${Font} 中文 (默认)"
     echo -e "    English"
     echo -e "    Français" 
     echo -e "    فارسی    "
