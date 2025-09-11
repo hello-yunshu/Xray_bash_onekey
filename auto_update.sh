@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.0.0"
+VERSION="1.0.1"
 
 idleleo_dir="/etc/idleleo"
 local_bin="/usr/local"
@@ -13,7 +13,7 @@ log_dir="${idleleo_dir}/logs"
 log_file="${log_dir}/auto_update.log"
 running_file="${log_dir}/auto_update.running"
 xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
-get_versions_all=$(curl -s https://www.idleleo.com/api/xray_shell_versions)
+get_versions_all=$(curl -s https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json)
 info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 
 [[ ! -d "${log_dir}" ]] && mkdir -p ${log_dir}

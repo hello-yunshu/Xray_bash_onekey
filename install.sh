@@ -14,7 +14,6 @@ cd "$(
 #	Author:	hello-yunshu
 #	Dscription: Xray Onekey Management
 #	Version: 2.0
-#	email: admin@idleleo.com
 #	Official document: hey.run
 #=====================================================
 
@@ -35,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.7.2"
+shell_version="2.7.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -701,10 +700,10 @@ email_set() {
         read -r custom_email_fq
         case $custom_email_fq in
         [yY][eE][sS] | [yY])
-            read_optimize "$(gettext "请输入正确的 email") (e.g. me@idleleo.com): " "custom_email" "NULL"
+            read_optimize "$(gettext "请输入正确的 email") (e.g. me@hey.run): " "custom_email" "NULL"
             ;;
         *)
-            custom_email="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})@idleleo.com"
+            custom_email="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})@hey.run"
             ;;
         esac
         log_echo "${Green} Xray $(gettext "用户名") (email): ${custom_email} ${Font}"
@@ -1588,7 +1587,7 @@ domain_check() {
     fi
     echo
     log_echo "${GreenBG} $(gettext "确定域名信息") ${Font}"
-    read_optimize "$(gettext "请输入你的域名信息") (e.g. www.idleleo.com):" "domain" "NULL"
+    read_optimize "$(gettext "请输入你的域名信息") (e.g. www.hey.run):" "domain" "NULL"
     echo -e "\n${GreenBG} $(gettext "请选择公网IP(IPv4/IPv6)或手动输入域名") ${Font}"
     echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
     echo "2: IPv6"
@@ -1955,7 +1954,7 @@ server {
     }
 
     location / {
-        return 301 https://www.idleleo.com\$request_uri;
+        return 301 https://www.hey.run\$request_uri;
     }
 }
 EOF
@@ -1984,7 +1983,7 @@ server {
     server_name           serveraddr.com;
     index index.html index.htm;
     root /403.html;
-    error_page 403 https://www.idleleo.com/helloworld;
+    error_page 403 https://hey.run/helloworld;
     ssl_session_cache shared:SSL:10m;
     ssl_session_timeout 1d;
     ssl_session_tickets off;
