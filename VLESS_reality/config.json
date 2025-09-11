@@ -16,7 +16,7 @@
                         "id": "UUID",
                         "flow": "xtls-rprx-vision",
                         "level": 0,
-                        "email": "me@idleleo.com"
+                        "email": "me@hey.run"
                     }
                 ],
                 "decryption": "none"
@@ -42,7 +42,7 @@
                     {
                         "id": "UUID",
                         "level": 0,
-                        "email": "ws@idleleo.com"
+                        "email": "ws@hey.run"
                     }
                 ],
                 "decryption": "none"
@@ -65,7 +65,7 @@
                     {
                         "id": "UUID",
                         "level": 0,
-                        "email": "me@idleleo.com"
+                        "email": "me@hey.run"
                     }
                 ],
                 "decryption": "none"
