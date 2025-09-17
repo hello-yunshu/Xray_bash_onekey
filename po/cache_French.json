@@ -486,5 +486,8 @@
   "检测到已开启 Reality 负载均衡": "réalité de charge équilibrée détectée active",
   "如用作 Reality 负载均衡主服务器必须安装": "si utilisé comme serveur principal de chargement équilibré reality, il doit être installé",
   "检测到已安装": "détecté comme déjà installé",
-  "已取消卸载": "désinstallation annulée"
+  "已取消卸载": "désinstallation annulée",
+  "下载失败": "échec du téléchargement",
+  "下载成功": "téléchargement réussi",
+  "解压失败": "échec du décompression"
 }
