@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.7.3"
+shell_version="2.7.4"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1360,13 +1360,26 @@ nginx_install() {
             ;;
         *)
             log_echo "${Error} ${RedBG} $(gettext "不支持的系统架构"): $(uname -m) ${Font}"
+            cd "$current_dir" && rm -rf "$temp_dir"
             exit 1
             ;;
     esac
 
     local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}/${nginx_filename}"
-    curl -L -# -o "$nginx_filename" "$url"
-    tar -xzvf "$nginx_filename" -C ./
+
+    if ! curl -L -# -o "$nginx_filename" "$url"; then
+        log_echo "${Error} ${RedBG} Nginx $(gettext "下载失败") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        exit 1
+    fi
+    log_echo "${OK} ${GreenBG} Nginx $(gettext "下载成功") ${Font}"
+
+    if ! tar -xzf "$nginx_filename" -C ./; then
+        log_echo "${Error} ${RedBG} Nginx $(gettext "解压失败") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        exit 1
+    fi
+
     [[ -d ${nginx_dir} ]] && rm -rf "${nginx_dir}"
     mv ./nginx "${nginx_dir}"
 
