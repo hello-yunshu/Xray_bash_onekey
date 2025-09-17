@@ -486,5 +486,8 @@
   "检测到已开启 Reality 负载均衡": "reality load balancing has been detected as enabled",
   "如用作 Reality 负载均衡主服务器必须安装": "if used as a reality load balancing master server, it must be installed",
   "检测到已安装": "installed detected",
-  "已取消卸载": "uninstallation canceled"
+  "已取消卸载": "uninstallation canceled",
+  "下载失败": "download failed",
+  "下载成功": "download successful",
+  "解压失败": "decompression failed"
 }
