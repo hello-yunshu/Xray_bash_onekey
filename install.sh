@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.7.4"
+shell_version="2.7.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -2465,38 +2465,159 @@ vless_urlquote() {
 vless_qr_link_image() {
     if [[ ${tls_mode} == "TLS" ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
+            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
+            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
+            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
+            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
         fi
     elif [[ ${tls_mode} == "Reality" ]]; then
         vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=$(info_extraction password)&sni=$(info_extraction serverNames)&target=$(info_extraction target)&sid=$(info_extraction shortIds)#$(vless_urlquote $(info_extraction host))+Reality%E5%8D%8F%E8%AE%AE"
         if [[ ${reality_add_more} == "on" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
             elif [[ ${ws_grpc_mode} == "all" ]]; then
-                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
             fi
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
         fi
     fi
+
+    # 生成Clash配置
+    generate_clash_config() {
+        local type=$1
+        local port=$2
+        local path=$3
+        local service_name=$4
+        local security=$5
+        local flow=$6
+        local pbk=$7
+        local sni=$8
+        local target=$9
+        local sid=${10}
+        local tls=${11}
+        
+        local clash_name="VLESS-$(info_extraction host)-${type}"
+        local clash_config=""
+        
+        if [[ ${type} == "ws" ]]; then
+            clash_config="  - name: ${clash_name}
+    type: vless
+    server: $(info_extraction host)
+    port: ${port}
+    uuid: $(info_extraction id)
+    client-fingerprint: chrome
+    tls: ${tls}
+    flow: ${flow}
+    network: ws
+    ws-opts:
+      path: ${path}
+      headers:
+        Host: $(info_extraction host)
+    skip-cert-verify: false"
+            
+        elif [[ ${type} == "grpc" ]]; then
+            clash_config="  - name: ${clash_name}
+    type: vless
+    server: $(info_extraction host)
+    port: ${port}
+    uuid: $(info_extraction id)
+    client-fingerprint: chrome
+    tls: ${tls}
+    flow: ${flow}
+    network: grpc
+    grpc-opts:
+      grpc-service-name: ${service_name}
+    skip-cert-verify: false"
+            
+        elif [[ ${type} == "tcp" ]]; then
+            clash_config="  - name: ${clash_name}
+    type: vless
+    server: $(info_extraction host)
+    port: ${port}
+    uuid: $(info_extraction id)
+    client-fingerprint: chrome
+    tls: ${tls}
+    flow: ${flow}
+    network: tcp
+    skip-cert-verify: false"
+        fi
+        
+        # 添加Reality相关配置
+        if [[ ${security} == "reality" ]]; then
+            clash_config="${clash_config}
+    servername: ${sni}
+    reality-opts:
+      public-key: ${pbk}
+      short-id: ${sid}"
+        fi
+        
+        echo "${clash_config}"
+    }
+
+    # 生成Clash配置内容（仅节点部分）
+    clash_config_content="proxies:"
+    
+    if [[ ${tls_mode} == "TLS" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "ws" "$(info_extraction port)" "$(info_extraction path)" "" "tls" "" "" "" "" "" "true")"
+        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_extraction serviceName)" "tls" "" "" "" "" "" "true")"
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "ws" "$(info_extraction port)" "$(info_extraction path)" "" "tls" "" "" "" "" "" "true")
+$(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_extraction serviceName)" "tls" "" "" "" "" "" "true")"
+        fi
+    elif [[ ${tls_mode} == "Reality" ]]; then
+        # Reality模式下的TCP节点
+        clash_config_content="${clash_config_content}
+$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rprx-vision" "$(info_extraction password)" "$(info_extraction serverNames)" "$(info_extraction target)" "$(info_extraction shortIds)" "true")"
+        
+        # 如果启用了额外配置，则生成ws和grpc节点
+        if [[ ${reality_add_more} == "on" ]]; then
+            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                clash_config_content="${clash_config_content}
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")"
+            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                clash_config_content="${clash_config_content}
+$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
+            elif [[ ${ws_grpc_mode} == "all" ]]; then
+                clash_config_content="${clash_config_content}
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")
+$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
+            fi
+        fi
+    elif [[ ${tls_mode} == "None" ]]; then
+        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")"
+        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
+        elif [[ ${ws_grpc_mode} == "all" ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")
+$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
+        fi
+    fi
+    
     {
         echo
-        log_echo "${Red} —————————————— Xray $(gettext "配置分享") —————————————— ${Font}"
+        log_echo "${Red} —————————————— Xray $(gettext "链接分享") —————————————— ${Font}"
         if [[ ${tls_mode} == "Reality" ]]; then
             log_echo "${Red} URL $(gettext "分享链接"):${Font} ${vless_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
@@ -2523,7 +2644,19 @@ vless_qr_link_image() {
             echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
             echo
         fi
+        
+        # 输出Clash配置
+        log_echo "${Red} —————————————— Clash $(gettext "配置分享") —————————————— ${Font}"
+        log_echo "${Red} Clash $(gettext "配置分享"): ${Font}"
+        echo "${clash_config_content}"
+        echo
+        # 添加结束线
+        log_echo "${Red} ——————————————————  END  —————————————————— ${Font}"
+        echo
     } >>"${xray_info_file}"
+    
+    # 保存Clash配置到文件
+    echo "${clash_config_content}" > "${xray_info_file%.*}_clash.yaml"
 }
 
 vless_link_image_choice() {
