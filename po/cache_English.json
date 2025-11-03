@@ -489,5 +489,6 @@
   "已取消卸载": "uninstallation canceled",
   "下载失败": "download failed",
   "下载成功": "download successful",
-  "解压失败": "decompression failed"
+  "解压失败": "decompression failed",
+  "链接分享": "link sharing"
 }
