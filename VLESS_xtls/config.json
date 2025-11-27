@@ -93,6 +93,9 @@
     "outbounds": [
         {
             "protocol": "freedom",
+            "settings": {
+                "domainStrategy": "UseIPv4v6"
+            },
             "tag": "direct"
         },
         {
@@ -102,14 +105,15 @@
     ],
     "dns": {
         "servers": [
-            "8.8.8.8",
-            "8.8.4.4",
-            "1.1.1.1",
-            "1.0.0.1",
-            "localhost",
             "https+local://dns.google/dns-query",
-            "https+local://1.1.1.1/dns-query"
-        ]
+            "https+local://cloudflare-dns.com/dns-query",
+            "https+local://doh.opendns.com/dns-query",
+            "208.67.222.222",
+            "8.8.8.8",
+            "1.1.1.1",
+            "localhost"
+        ],
+        "disableCache": false
     },
     "routing": {
         "domainStrategy": "AsIs",
