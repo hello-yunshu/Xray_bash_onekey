@@ -6,7 +6,7 @@ cert_group="nobody"
 idleleo_dir="/etc/idleleo"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 ssl_chainpath="${idleleo_dir}/cert"
-xray_qr_config_file="${idleleo_dir}/info/vmess_qr.json"
+xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
 host=$(jq -r '.host' ${xray_qr_config_file})
 bt_nginx=$(jq -r '.bt_nginx' ${xray_qr_config_file})
 

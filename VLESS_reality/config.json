@@ -108,7 +108,7 @@
             {
                 "type": "field",
                 "inboundTag": [
-                    "VLESS-XTLS-in",
+                    "VLESS-Reality-in",
                     "VLESS-ws-in",
                     "VLESS-gRPC-in"
                 ],
