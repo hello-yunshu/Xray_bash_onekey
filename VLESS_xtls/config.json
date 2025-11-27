@@ -44,30 +44,7 @@
         {
             "port": 10086,
             "listen": "127.0.0.1",
-            "tag": "VLESS-ws-in",
-            "protocol": "VLESS",
-            "settings": {
-                "clients": [
-                    {
-                        "id": "UUID",
-                        "level": 0,
-                        "email": "ws@hey.run"
-                    }
-                ],
-                "decryption": "none"
-            },
-            "streamSettings": {
-                "network": "ws",
-                "security": "none",
-                "wsSettings": {
-                    "path": "/websocket"
-                }
-            }
-        },
-        {
-            "port": 10087,
-            "listen": "127.0.0.1",
-            "tag": "VLESS-gRPC-in",
+            "tag": "VLESS-xhttp-in",
             "protocol": "VLESS",
             "settings": {
                 "clients": [
@@ -80,12 +57,10 @@
                 "decryption": "none"
             },
             "streamSettings": {
-                "network": "grpc",
+                "network": "xhttp",
                 "security": "none",
-                "grpcSettings": {
-                    "serviceName": "grpc",
-                    "multiMode": true,
-                    "idle_timeout": 20
+                "xhttpSettings": {
+                    "path": "/xhttp"
                 }
             }
         }
@@ -118,8 +93,7 @@
                 "type": "field",
                 "inboundTag": [
                     "VLESS-XTLS-in",
-                    "VLESS-ws-in",
-                    "VLESS-gRPC-in"
+                    "VLESS-xhttp-in"
                 ],
                 "outboundTag": "direct"
             }

@@ -37,7 +37,7 @@ Warning="${RedW}[$(gettext "警告")]${Font}"
 shell_version="2.7.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
-ws_grpc_mode="None"
+# 现在只使用xhttp协议
 local_bin="/usr/local"
 idleleo_dir="/etc/idleleo"
 idleleo="${idleleo_dir}/install.sh"
@@ -449,125 +449,93 @@ port_set() {
     fi
 }
 
-ws_grpc_choose() {
+# 新的xhttp协议选择函数
+xhttp_protocol_choose() {
     if [[ "on" != ${old_config_status} ]]; then
         echo
-        log_echo "${GreenBG} $(gettext "请选择安装协议") ws/gRPC ${Font}"
-        echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
-        echo "2: gRPC"
-        echo "3: ws+gRPC"
+        log_echo "${GreenBG} $(gettext "请选择安装协议") xhttp ${Font}"
+        echo -e "${Red}1${Font}: xhttp ($(gettext "默认"))"
         local choose_network
-        read_optimize "$(gettext "请输入"): " "choose_network" 1 1 3 "$(gettext "请输入有效的数字")"
-        if [[ $choose_network == 2 ]]; then
-            [[ ${shell_mode} == "Nginx+ws+TLS" ]] && shell_mode="Nginx+gRPC+TLS"
-            [[ ${shell_mode} == "Reality" ]] && shell_mode="Reality+gRPC"
-            [[ ${shell_mode} == "ws ONLY" ]] && shell_mode="gRPC ONLY"
-            ws_grpc_mode="onlygRPC"
-        elif [[ $choose_network == 3 ]]; then
-            [[ ${shell_mode} == "Nginx+ws+TLS" ]] && shell_mode="Nginx+ws+gRPC+TLS"
-            [[ ${shell_mode} == "Reality" ]] && shell_mode="Reality+ws+gRPC"
-            [[ ${shell_mode} == "ws ONLY" ]] && shell_mode="ws+gRPC ONLY"
-            ws_grpc_mode="all"
-        else
-            [[ ${shell_mode} == "Reality" ]] && shell_mode="Reality+ws"
-            ws_grpc_mode="onlyws"
-        fi
+        read_optimize "$(gettext "请输入"): " "choose_network" 1 1 1 "$(gettext "请输入有效的数字")"
+        # 统一使用xhttp协议
+        protocol_mode="onlyxhttp"
+        # 现在只使用xhttp协议
+        # 更新shell_mode以反映新的协议
+        [[ ${shell_mode} == "Nginx+ws+TLS" ]] && shell_mode="Nginx+xhttp+TLS"
+        [[ ${shell_mode} == "Reality" ]] && shell_mode="Reality+xhttp"
+        [[ ${shell_mode} == "ws ONLY" ]] && shell_mode="xhttp ONLY"
     fi
 }
+
+# 已删除冗余的兼容函数 xhttp_choose
+# 该函数没有被调用且不再需要
 
 xray_reality_add_more_choose() {
     if [[ "on" != ${old_config_status} ]]; then
         echo
-        log_echo "${GreenBG} $(gettext "是否添加简单 ws/gRPC 协议 用于负载均衡") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} $(gettext "是否添加简单 xhttp 协议 用于负载均衡") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Warning} ${YellowBG} $(gettext "如不清楚具体用途, 请勿选择")! ${Font}"
         read -r reality_add_more_fq
         case $reality_add_more_fq in
         [yY][eE][sS] | [yY])
             reality_add_more="on"
-            ws_grpc_choose
-            ws_inbound_port_set
-            grpc_inbound_port_set
-            ws_path_set
-            grpc_path_set
-            port_exist_check "${xport}"
-            port_exist_check "${gport}"
+            xhttp_protocol_choose
+            xhttp_port_set
+            # xhttp_port 已在 xhttp_port_set 中设置
+            xhttp_path_set
+            port_exist_check "${xhttp_port}"
             ;;
         *)
             reality_add_more="off"
-            ws_grpc_mode="None"
-            ws_inbound_port_set
-            grpc_inbound_port_set
-            ws_path_set
-            grpc_path_set
-            log_echo "${OK} ${GreenBG} $(gettext "已跳过添加简单 ws/gRPC 协议") ${Font}"
+            # 现在只使用xhttp协议
+            xhttp_port_set
+            xhttp_path_set
+            log_echo "${OK} ${GreenBG} $(gettext "已跳过添加简单 xhttp 协议") ${Font}"
             ;;
         esac
     fi
 }
 
-ws_grpc_qr() {
+# xhttp_qr函数已简化，只使用xhttp协议
+xhttp_qr() {
     artpath="None"
     artxport="None"
-    artserviceName="None"
-    artgport="None"
-    if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-        artxport=${xport}
+    if [[ ${protocol_mode} == "onlyxhttp" ]]; then
+        artxport=${xhttp_port}
         artpath=${path}
-    elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-        artgport=${gport}
-        artserviceName=${serviceName}
-    elif [[ ${ws_grpc_mode} == "all" ]]; then
-        artxport=${xport}
-        artpath=${path}
-        artgport=${gport}
-        artserviceName=${serviceName}
     fi
 }
 
-ws_inbound_port_set() {
+# 新的xhttp端口设置函数
+xhttp_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
+        if [[ ${protocol_mode} == "onlyxhttp" ]] || [[ ${reality_add_more} == "on" ]]; then
             echo
-            log_echo "${GreenBG} $(gettext "是否需要自定义") ws inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "${GreenBG} $(gettext "是否需要自定义") xhttp inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入自定义") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+                read_optimize "$(gettext "请输入自定义") xhttp inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                # 使用xhttp_port变量来存储xhttp协议端口
+                xhttp_port=${xport}
+                log_echo "${Green} xhttp inbound_port: ${xhttp_port} ${Font}"
                 ;;
             *)
                 xport=$((RANDOM % 1000 + 10000))
-                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+                # 使用xhttp_port变量来存储xhttp协议端口
+                xhttp_port=${xport}
+                log_echo "${Green} xhttp inbound_port: ${xhttp_port} ${Font}"
                 ;;
             esac
         else
             xport=$((RANDOM % 1000 + 20000))
+            xhttp_port=${xport}
         fi
     fi
 }
 
-grpc_inbound_port_set() {
-    if [[ "on" != ${old_config_status} ]]; then
-        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
-            echo
-            log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-            read -r inbound_port_modify_fq
-            case $inbound_port_modify_fq in
-            [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入自定义") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-                ;;
-            *)
-                gport=$((RANDOM % 1000 + 10000))
-                [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 10000))
-                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-                ;;
-            esac
-        else
-            gport=$((RANDOM % 1000 + 30000))
-        fi
-    fi
-}
+# 已删除冗余的兼容函数 ws_inbound_port_set 和 grpc_inbound_port_set
+# 这些函数没有被调用且不再需要
 
 firewall_set() {
     echo
@@ -589,23 +557,11 @@ firewall_set() {
             iptables -I OUTPUT -p udp -m multiport --sport 53,80,${port} -j ACCEPT
             iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
         fi
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,${xport} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,${xport} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,${xport} -j ACCEPT
-            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,${gport} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,${gport} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,${gport} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,${gport} -j ACCEPT
-            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,${xport},${gport} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,${xport},${gport} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport},${gport} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,${xport},${gport} -j ACCEPT
+        # 现在只使用xhttp协议
+            iptables -I INPUT -p tcp -m multiport --dport 53,${xhttp_port} -j ACCEPT
+            iptables -I INPUT -p udp -m multiport --dport 53,${xhttp_port} -j ACCEPT
+            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xhttp_port} -j ACCEPT
+            iptables -I OUTPUT -p udp -m multiport --sport 53,${xhttp_port} -j ACCEPT
             iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
         fi
         if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
@@ -627,70 +583,48 @@ firewall_set() {
     esac
 }
 
-ws_path_set() {
-    if [[ "on" != ${old_config_status} ]] || [[ ${change_ws_path} == "yes" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
-            echo
-            log_echo "${GreenBG} $(gettext "是否需要自定义") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-            read -r path_modify_fq
-            case $path_modify_fq in
-            [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入自定义") ws $(gettext "伪装路径") ($(gettext "不需要")"/"):" "path" "NULL"
-                log_echo "${Green} ws $(gettext "伪装路径"): ${path} ${Font}"
-                ;;
-            *)
-                path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                log_echo "${Green} ws $(gettext "伪装路径"): ${path} ${Font}"
-                ;;
-            esac
-        else
-            path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-        fi
-    elif [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+# xhttp_path_set函数提供所有路径设置功能
+xhttp_path_set() {
+    if [[ "on" != ${old_config_status} ]]; then
         echo
-        log_echo "${GreenBG} $(gettext "是否需要修改") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        read -r change_ws_path_fq
-        case $change_ws_path_fq in
+        log_echo "${GreenBG} $(gettext "是否需要修改") xhttp path [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r custom_path_fq
+        case $custom_path_fq in
         [yY][eE][sS] | [yY])
-            change_ws_path="yes"
-            ws_path_set
+            read_optimize "$(gettext "请输入自定义") xhttp path ($(gettext "最多30字符")): " "path" "NULL"
             ;;
-        *) ;;
+        *)
+            # 随机生成path，使用8个字符的随机字符串
+            path="$(head -n 10 /dev/urandom | md5sum | head -c 8)"
+            ;;
         esac
     fi
+    log_echo "${Green} xhttp path: ${path} ${Font}"
 }
 
-grpc_path_set() {
-    if [[ "on" != ${old_config_status} ]] || [[ ${change_grpc_path} == "yes" ]]; then
-        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
-            echo
-            log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-            read -r path_modify_fq
-            case $path_modify_fq in
-            [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入自定义") gRPC $(gettext "伪装路径") ($(gettext "不需要")"/"):" "serviceName" "NULL"
-                log_echo "${Green} gRPC $(gettext "伪装路径"): ${serviceName} ${Font}"
-                ;;
-            *)
-                serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                log_echo "${Green} gRPC $(gettext "伪装路径"): ${serviceName} ${Font}"
-                ;;
-            esac
-        else
-            serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-        fi
-    elif [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
+# 新的xhttp service设置函数
+xhttp_service_set() {
+    if [[ "on" != ${old_config_status} ]]; then
         echo
-        log_echo "${GreenBG} $(gettext "是否需要修改") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        read -r change_grpc_path_fq
-        case $change_grpc_path_fq in
+        log_echo "${GreenBG} $(gettext "是否需要修改") xhttp serviceName [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r custom_serviceName_fq
+        case $custom_serviceName_fq in
         [yY][eE][sS] | [yY])
-            change_grpc_path="yes"
-            grpc_path_set
+            read_optimize "$(gettext "请输入自定义") xhttp serviceName ($(gettext "最多30字符")): " "serviceName" "NULL"
             ;;
-        *) ;;
+        *)
+            # 对于xhttp协议，使用path作为serviceName
+            serviceName="${path}"
+            ;;
         esac
+    else
+        # 对于xhttp协议，使用path作为serviceName
+        serviceName="${path}"
     fi
+    log_echo "${Green} xhttp serviceName: ${serviceName} ${Font}"
+}
+
+# 只使用xhttp协议
 }
 
 email_set() {
@@ -711,27 +645,31 @@ email_set() {
 }
 
 UUID_set() {
-    if [[ "on" != ${old_config_status} ]]; then
-        echo
-        log_echo "${GreenBG} $(gettext "是否需要自定义字符串映射") (UUIDv5) [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        read -r need_UUID5
-        case $need_UUID5 in
-        [yY][eE][sS] | [yY])
-            read_optimize "$(gettext "请输入自定义字符串") ($(gettext "最多30字符")):" "UUID5_char" "NULL"
-            UUID="$(UUIDv5_tranc ${UUID5_char})"
-            log_echo "${Green} $(gettext "自定义字符串"): ${UUID5_char} ${Font}"
-            log_echo "${Green} UUIDv5: ${UUID} ${Font}"
-            echo
-            ;;
-        *)
-            UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-            UUID="$(UUIDv5_tranc ${UUID5_char})"
-            log_echo "${Green} UUID $(gettext "映射字符串"): ${UUID5_char} ${Font}"
-            log_echo "${Green} UUID: ${UUID} ${Font}"
-            echo
-            ;;
-        esac
+    # 当使用旧配置且UUID已从配置文件提取时，不再重新设置
+    if [[ "on" == ${old_config_status} ]] && [[ -n "${UUID}" ]]; then
+        log_echo "${Green} $(gettext "从配置文件读取UUID"): ${UUID} ${Font}"
+        return
     fi
+    
+    echo
+    log_echo "${GreenBG} $(gettext "是否需要自定义字符串映射") (UUIDv5) [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    read -r need_UUID5
+    case $need_UUID5 in
+    [yY][eE][sS] | [yY])
+        read_optimize "$(gettext "请输入自定义字符串") ($(gettext "最多30字符")):" "UUID5_char" "NULL"
+        UUID="$(UUIDv5_tranc ${UUID5_char})"
+        log_echo "${Green} $(gettext "自定义字符串"): ${UUID5_char} ${Font}"
+        log_echo "${Green} UUIDv5: ${UUID} ${Font}"
+        echo
+        ;;
+    *)
+        UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+        UUID="$(UUIDv5_tranc ${UUID5_char})"
+        log_echo "${Green} UUID $(gettext "映射字符串"): ${UUID5_char} ${Font}"
+        log_echo "${Green} UUID: ${UUID} ${Font}"
+        echo
+        ;;
+    esac
 }
 
 target_set() {
@@ -912,7 +850,7 @@ nginx_upstream_server_set() {
                 case $upstream_choose in
                 1) source "${idleleo_dir}/file_manager.sh" wsServers ${nginx_conf_dir} ;;
                 2) source "${idleleo_dir}/file_manager.sh" grpcServers ${nginx_conf_dir} ;;
-                3) ;;
+                3) source "${idleleo_dir}/file_manager.sh" xhttpServers ${nginx_conf_dir} ;;
                 *)
                     log_echo "${Error} ${RedBG} $(gettext "无效选项, 请重试")! ${Font}"
                     nginx_upstream_server_set
@@ -958,49 +896,35 @@ UUIDv5_tranc() {
 }
 
 modify_listen_address() {
-    local modifynum modifynum2
+    local modifynum
     if [[ ${tls_mode} == "Reality" ]]; then
         modifynum=1
-        modifynum2=2
     else
         modifynum=0
-        modifynum2=1
     fi
 
-    if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-        jq --argjson modifynum "$modifynum" \
-           '.inbounds[$modifynum].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
-        judge "Xray listen address $(gettext "修改")"
-    elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-        jq --argjson modifynum2 "$modifynum2" \
-           '.inbounds[$modifynum2].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
-        judge "Xray listen address $(gettext "修改")"
-    elif [[ ${ws_grpc_mode} == "all" ]]; then
-        jq --argjson modifynum "$modifynum" --argjson modifynum2 "$modifynum2" \
-           '.inbounds[$modifynum].listen = "0.0.0.0" | .inbounds[$modifynum2].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
-        judge "Xray listen address $(gettext "修改")"
-    fi
+    # 只使用xhttp协议
+    jq --argjson modifynum "$modifynum" \
+       '.inbounds[$modifynum].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
+    judge "Xray listen address $(gettext "修改")"
     mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 modify_inbound_port() {
     if [[ ${tls_mode} == "Reality" ]]; then
         if [[ ${reality_add_nginx} == "off" ]]; then
-            jq --argjson port "${port}" --argjson xport "${xport}" --argjson gport "${gport}" \
+            jq --argjson port "${port}" --argjson xport "${xport}" \
                '.inbounds[0].port = $port |
-                .inbounds[1].port = $xport |
-                .inbounds[2].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
+                .inbounds[1].port = $xport' "${xray_conf}" > "${xray_conf}.tmp"
             judge "Xray inbound port $(gettext "修改")"
         else
-            jq --argjson xport "${xport}" --argjson gport "${gport}" \
-               '.inbounds[1].port = $xport |
-                .inbounds[2].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
+            jq --argjson xport "${xport}" \
+               '.inbounds[1].port = $xport' "${xray_conf}" > "${xray_conf}.tmp"
             judge "Xray inbound port $(gettext "修改")"
         fi
     else
-        jq --argjson xport "${xport}" --argjson gport "${gport}" \
-           '.inbounds[0].port = $xport |
-            .inbounds[1].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
+        jq --argjson xport "${xport}" \
+           '.inbounds[0].port = $xport' "${xray_conf}" > "${xray_conf}.tmp"
         judge "Xray inbound port $(gettext "修改")"
     fi
     mv "${xray_conf}.tmp" "${xray_conf}"
@@ -1049,32 +973,23 @@ modify_nginx_other() {
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
         sed -i "s/^\( *\)location grpc$/\1location \/${serviceName}/" ${nginx_conf}
         sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${domain}\$request_uri;/" ${nginx_conf}
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
-            sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" ${nginx_conf}
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
-            sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
-            sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" ${nginx_conf}
-        fi
+        # 只使用xhttp协议
+        sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
+        sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
     fi
 }
 
 nginx_servers_add() {
-    touch ${nginx_conf_dir}/127.0.0.1.wsServers
-    cat >${nginx_conf_dir}/127.0.0.1.wsServers <<EOF
-server 127.0.0.1:${xport} weight=50 max_fails=2 fail_timeout=10;
-EOF
-    touch ${nginx_conf_dir}/127.0.0.1.grpcServers
-    cat >${nginx_conf_dir}/127.0.0.1.grpcServers<<EOF
-server 127.0.0.1:${gport} weight=50 max_fails=2 fail_timeout=10;
+    touch ${nginx_conf_dir}/127.0.0.1.xhttpServers
+    cat >${nginx_conf_dir}/127.0.0.1.xhttpServers <<EOF
+server 127.0.0.1:${xhttp_port} weight=50 max_fails=2 fail_timeout=10;
 EOF
 }
 
 modify_path() {
+    # 为xhttp协议修改配置路径
     sed -i "s/^\( *\)\"path\".*/\1\"path\": \"\/${path}\"/" ${xray_conf}
+    # serviceName仍然保留，以确保兼容性
     sed -i "s/^\( *\)\"serviceName\".*/\1\"serviceName\": \"${serviceName}\",/" ${xray_conf}
     if [[ ${tls_mode} != "Reality" ]] || [[ "$reality_add_more" == "off" ]]; then
         judge "Xray $(gettext "伪装路径") $(gettext "修改")"
@@ -1404,23 +1319,9 @@ nginx_update() {
                 domain=$(info_extraction host)
                 if [[ ${tls_mode} == "TLS" ]]; then
                     port=$(info_extraction port)
-                    if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                        xport=$(info_extraction ws_port)
-                        path=$(info_extraction path)
-                        gport=$((RANDOM % 1000 + 30000))
-                        [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
-                        serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                    elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                        gport=$(info_extraction grpc_port)
-                        serviceName=$(info_extraction serviceName)
-                        xport=$((RANDOM % 1000 + 20000))
-                        path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                    elif [[ ${ws_grpc_mode} == "all" ]]; then
-                        xport=$(info_extraction ws_port)
-                        path=$(info_extraction path)
-                        gport=$(info_extraction grpc_port)
-                        serviceName=$(info_extraction serviceName)
-                    fi
+                    # 现在只使用xhttp协议
+                    xhttp_port=$(info_extraction xhttp_port)
+                    xhttp_path=$(info_extraction xhttp_path)
                     if [[ 0 -eq ${read_config_status} ]]; then
                         [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置文件不完整, 退出升级")!" && exit 1
                         log_echo "${Error} ${RedBG} $(gettext "配置文件不完整, 退出升级")! ${Font}"
@@ -1858,24 +1759,12 @@ old_config_input() {
     UUID=$(info_extraction id)
     if [[ ${tls_mode} == "TLS" ]]; then
         port=$(info_extraction port)
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            xport=$(info_extraction ws_port)
-            path=$(info_extraction path)
-            gport=$((RANDOM % 1000 + 30000))
-            [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
-            serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            gport=$(info_extraction grpc_port)
-            serviceName=$(info_extraction serviceName)
-            xport=$((RANDOM % 1000 + 20000))
-            [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
-            path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            xport=$(info_extraction ws_port)
-            path=$(info_extraction path)
-            gport=$(info_extraction grpc_port)
-            serviceName=$(info_extraction serviceName)
-        fi
+        # 只使用xhttp协议
+        xport=$(info_extraction xhttp_port)
+        path=$(info_extraction path)
+        serviceName=$(info_extraction serviceName)
+        # 调用xhttp_path_set函数进行路径设置
+        xhttp_path_set
     elif [[ ${tls_mode} == "Reality" ]]; then
         port=$(info_extraction port)
         target=$(info_extraction target)
@@ -1887,49 +1776,26 @@ old_config_input() {
         ## 兼容代码结束
         shortIds=$(info_extraction shortIds)
         if [[ ${reality_add_more} == "on" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                xport=$(info_extraction ws_port)
-                path=$(info_extraction ws_path)
-                gport=$((RANDOM % 1000 + 30000))
-                [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
-                serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                gport=$(info_extraction grpc_port)
-                serviceName=$(info_extraction grpc_serviceName)
-                xport=$((RANDOM % 1000 + 20000))
-                [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
-                path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                xport=$(info_extraction ws_port)
-                path=$(info_extraction ws_path)
-                gport=$(info_extraction grpc_port)
-                serviceName=$(info_extraction grpc_serviceName)
-            fi
+            # 只使用xhttp协议
+            xport=$(info_extraction xhttp_port)
+            path=$(info_extraction xhttp_path)
+            serviceName=$(info_extraction serviceName)
+            # 调用xhttp_path_set函数进行路径设置
+            xhttp_path_set
         else
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             xport=$((RANDOM % 1000 + 20000))
-            gport=$((RANDOM % 1000 + 30000))
+            # 调用xhttp_path_set函数进行路径设置
+            xhttp_path_set
         fi
     elif [[ ${tls_mode} == "None" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            xport=$(info_extraction ws_port)
-            path=$(info_extraction path)
-            gport=$((RANDOM % 1000 + 30000))
-            [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
-            serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            gport=$(info_extraction grpc_port)
-            serviceName=$(info_extraction serviceName)
-            xport=$((RANDOM % 1000 + 20000))
-            [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
-            path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            xport=$(info_extraction ws_port)
-            path=$(info_extraction path)
-            gport=$(info_extraction grpc_port)
-            serviceName=$(info_extraction serviceName)
-        fi
+        # 只使用xhttp协议
+        xport=$(info_extraction xhttp_port)
+        path=$(info_extraction path)
+        serviceName=$(info_extraction serviceName)
+        # 调用xhttp_path_set函数进行路径设置
+        xhttp_path_set
     fi
     if [[ 0 -eq ${read_config_status} ]]; then
         echo
@@ -2006,19 +1872,8 @@ server {
     ssl_prefer_server_ciphers on;
     add_header Strict-Transport-Security "max-age=31536000";
 
-    location grpc
-    {
-        #grpc_pass grpc://xray-grpc-server;
-        grpc_connect_timeout 60s;
-        grpc_read_timeout 720m;
-        grpc_send_timeout 720m;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP \$remote_addr;
-        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        grpc_set_header Early-Data \$ssl_early_data;
-    }
-
-    location ws
+    # 移除了gRPC和ws配置，统一使用xhttp协议
+    location xhttp
     {
         #proxy_pass http://xray-ws-server;
         proxy_redirect off;
@@ -2136,12 +1991,8 @@ nginx_reality_serverNames_del () {
 nginx_servers_conf_add() {
     touch ${nginx_upstream_conf}
     cat >${nginx_upstream_conf} <<EOF
-upstream xray-ws-server {
-    include ${nginx_conf_dir}/*.wsServers;
-}
-
-upstream xray-grpc-server {
-    include ${nginx_conf_dir}/*.grpcServers;
+upstream xray-xhttp-server {
+    include ${nginx_conf_dir}/*.xhttpServers;
 }
 EOF
     nginx_servers_add
@@ -2377,7 +2228,7 @@ vless_qr_config_tls_ws() {
     cat >${xray_qr_config_file} <<-EOF
 {
     "shell_mode": "${shell_mode}",
-    "ws_grpc_mode": "${ws_grpc_mode}",
+    "protocol_mode": "onlyxhttp",
     "host": "${domain}",
     "ip_version": "${ip_version}",
     "port": ${port},
@@ -2387,7 +2238,7 @@ vless_qr_config_tls_ws() {
     "email": "${custom_email}",
     "idc": "${UUID5_char}",
     "id": "${UUID}",
-    "net": "ws/gRPC",
+    "net": "xhttp",
     "path": "${artpath}",
     "serviceName": "${artserviceName}",
     "shell_version": "${shell_version}",
@@ -2402,7 +2253,7 @@ vless_qr_config_reality() {
     cat >${xray_qr_config_file} <<-EOF
 {
     "shell_mode": "${shell_mode}",
-    "ws_grpc_mode": "${ws_grpc_mode}",
+    "protocol_mode": "onlyxhttp",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
     "port": ${port},
@@ -2421,7 +2272,7 @@ vless_qr_config_reality() {
     "reality_add_more": "${reality_add_more}",
     "ws_port": "${artxport}",
     "grpc_port": "${artgport}",
-    "ws_path": "${artpath}",
+    "xhttp_path": "${artpath}",
     "grpc_serviceName": "${artserviceName}",
     "shell_version": "${shell_version}",
     "xray_version": "${xray_version}"
@@ -2434,22 +2285,20 @@ EOF
     info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 }
 
-vless_qr_config_ws_only() {
+vless_qr_config_xhttp_only() {
     cat >${xray_qr_config_file} <<-EOF
 {
     "shell_mode": "${shell_mode}",
-    "ws_grpc_mode": "${ws_grpc_mode}",
+    "protocol_mode": "onlyxhttp",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
-    "ws_port": "${artxport}",
-    "grpc_port": "${artgport}",
+    "xhttp_port": "${artxport}",
     "tls": "None",
     "email": "${custom_email}",
     "idc": "${UUID5_char}",
     "id": "${UUID}",
-    "net": "ws/gRPC",
+    "net": "xhttp",
     "path": "${artpath}",
-    "serviceName": "${artserviceName}",
     "shell_version": "${shell_version}",
     "xray_version": "${xray_version}"
 }
@@ -2463,36 +2312,16 @@ vless_urlquote() {
 }
 
 vless_qr_link_image() {
+    # 只使用xhttp协议
     if [[ ${tls_mode} == "TLS" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
-        fi
+        vless_xhttp_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=xhttp&fp=chrome#$(vless_urlquote $(info_extraction host))+xhttp%E5%8D%8F%E8%AE%AE"
     elif [[ ${tls_mode} == "Reality" ]]; then
         vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=$(info_extraction password)&sni=$(info_extraction serverNames)&target=$(info_extraction target)&sid=$(info_extraction shortIds)#$(vless_urlquote $(info_extraction host))+Reality%E5%8D%8F%E8%AE%AE"
         if [[ ${reality_add_more} == "on" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
-            fi
+            vless_xhttp_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction xhttp_port)?path=%2f$(vless_urlquote $(info_extraction xhttp_path))%3Fed%3D2048&encryption=none&type=xhttp&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADxhttp%E5%8D%8F%E8%AE%AE"
         fi
     elif [[ ${tls_mode} == "None" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
-        fi
+        vless_xhttp_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction xhttp_port)?path=%2f$(vless_urlquote $(info_extraction xhttp_path))%3Fed%3D2048&encryption=none&type=xhttp&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADxhttp%E5%8D%8F%E8%AE%AE"
     fi
 
     # 生成Clash配置
@@ -2509,11 +2338,9 @@ vless_qr_link_image() {
         local sid=${10}
         local tls=${11}
         
-        local clash_name="VLESS-$(info_extraction host)-${type}"
-        local clash_config=""
-        
-        if [[ ${type} == "ws" ]]; then
-            clash_config="  - name: ${clash_name}
+        # 只支持xhttp协议
+        local clash_name="VLESS-$(info_extraction host)-xhttp"
+        local clash_config="  - name: ${clash_name}
     type: vless
     server: $(info_extraction host)
     port: ${port}
@@ -2521,39 +2348,12 @@ vless_qr_link_image() {
     client-fingerprint: chrome
     tls: ${tls}
     flow: ${flow}
-    network: ws
-    ws-opts:
+    network: xhttp
+    xhttp-opts:
       path: ${path}
       headers:
         Host: $(info_extraction host)
     skip-cert-verify: false"
-            
-        elif [[ ${type} == "grpc" ]]; then
-            clash_config="  - name: ${clash_name}
-    type: vless
-    server: $(info_extraction host)
-    port: ${port}
-    uuid: $(info_extraction id)
-    client-fingerprint: chrome
-    tls: ${tls}
-    flow: ${flow}
-    network: grpc
-    grpc-opts:
-      grpc-service-name: ${service_name}
-    skip-cert-verify: false"
-            
-        elif [[ ${type} == "tcp" ]]; then
-            clash_config="  - name: ${clash_name}
-    type: vless
-    server: $(info_extraction host)
-    port: ${port}
-    uuid: $(info_extraction id)
-    client-fingerprint: chrome
-    tls: ${tls}
-    flow: ${flow}
-    network: tcp
-    skip-cert-verify: false"
-        fi
         
         # 添加Reality相关配置
         if [[ ${security} == "reality" ]]; then
@@ -2571,47 +2371,24 @@ vless_qr_link_image() {
     clash_config_content="proxies:"
     
     if [[ ${tls_mode} == "TLS" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction port)" "$(info_extraction path)" "" "tls" "" "" "" "" "" "true")"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            clash_config_content="${clash_config_content}
-$(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_extraction serviceName)" "tls" "" "" "" "" "" "true")"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction port)" "$(info_extraction path)" "" "tls" "" "" "" "" "" "true")
-$(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_extraction serviceName)" "tls" "" "" "" "" "" "true")"
-        fi
+        # 只使用xhttp协议
+        clash_config_content="${clash_config_content}
+$(generate_clash_config "xhttp" "$(info_extraction port)" "$(info_extraction xhttp_path)" "" "tls" "" "" "" "" "" "true")"
     elif [[ ${tls_mode} == "Reality" ]]; then
         # Reality模式下的TCP节点
         clash_config_content="${clash_config_content}
 $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rprx-vision" "$(info_extraction password)" "$(info_extraction serverNames)" "$(info_extraction target)" "$(info_extraction shortIds)" "true")"
         
-        # 如果启用了额外配置，则生成ws和grpc节点
+        # 如果启用了额外配置，则生成xhttp节点
         if [[ ${reality_add_more} == "on" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")"
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                clash_config_content="${clash_config_content}
-$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")
-$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
-            fi
+            # 只使用xhttp协议
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(info_extraction xhttp_path)" "" "none" "" "" "" "" "" "" "false")"
         fi
     elif [[ ${tls_mode} == "None" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            clash_config_content="${clash_config_content}
-$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")
-$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
+        # 只使用xhttp协议
+        clash_config_content="${clash_config_content}
+$(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(info_extraction xhttp_path)" "" "none" "" "" "" "" "" "" "false")"
         fi
     fi
     
@@ -2624,26 +2401,11 @@ $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extract
             echo -n "${vless_link}" | qrencode -o - -t utf8
             echo
         fi
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            log_echo "${Red} ws URL $(gettext "分享链接"):${Font} ${vless_ws_link}"
-            log_echo "${Red} $(gettext "二维码"): ${Font}"
-            echo -n "${vless_ws_link}" | qrencode -o - -t utf8
-            echo
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            log_echo "${Red} gRPC URL $(gettext "分享链接"):${Font} ${vless_grpc_link}"
-            log_echo "${Red} $(gettext "二维码"): ${Font}"
-            echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
-            echo
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            log_echo "${Red} ws URL $(gettext "分享链接"):${Font} ${vless_ws_link}"
-            log_echo "${Red} $(gettext "二维码"): ${Font}"
-            echo -n "${vless_ws_link}" | qrencode -o - -t utf8
-            echo
-            log_echo "${Red} gRPC URL $(gettext "分享链接"):${Font} ${vless_grpc_link}"
-            log_echo "${Red} $(gettext "二维码"): ${Font}"
-            echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
-            echo
-        fi
+        # 只使用xhttp协议
+        log_echo "${Red} xhttp URL $(gettext "分享链接"):${Font} ${vless_xhttp_link}"
+        log_echo "${Red} $(gettext "二维码"): ${Font}"
+        echo -n "${vless_xhttp_link}" | qrencode -o - -t utf8
+        echo
         
         # 输出Clash配置
         log_echo "${Red} —————————————— Clash $(gettext "配置分享") —————————————— ${Font}"
@@ -2681,35 +2443,20 @@ basic_information() {
     {
         echo
         case ${shell_mode} in
-        Nginx+ws+TLS)
-            log_echo "${OK} ${GreenBG} Xray+Nginx+ws+TLS $(gettext "安装成功") ${Font}"
-            ;;
-        Nginx+gRPC+TLS)
-            log_echo "${OK} ${GreenBG} Xray+Nginx+grpc+TLS $(gettext "安装成功") ${Font}"
-            ;;
-        Nginx+ws+gRPC+TLS)
-            log_echo "${OK} ${GreenBG} Xray+Nginx+ws+gRPC+TLS $(gettext "安装成功") ${Font}"
+        Nginx+xhttp+TLS)
+            log_echo "${OK} ${GreenBG} Xray+Nginx+xhttp+TLS $(gettext "安装成功") ${Font}"
             ;;
         Reality)
             log_echo "${OK} ${GreenBG} Xray+Reality $(gettext "安装成功") ${Font}"
             ;;
-        Reality+ws)
-            log_echo "${OK} ${GreenBG} Xray+Reality+ws $(gettext "安装成功") ${Font}"
+        Reality+xhttp)
+            log_echo "${OK} ${GreenBG} Xray+Reality+xhttp $(gettext "安装成功") ${Font}"
             ;;
-        Reality+gRPC)
-            log_echo "${OK} ${GreenBG} Xray+Reality+gRPC $(gettext "安装成功") ${Font}"
+        Nginx+Reality+xhttp)
+            log_echo "${OK} ${GreenBG} Xray+Nginx+Reality+xhttp $(gettext "安装成功") ${Font}"
             ;;
-        Reality+ws+gRPC)
-            log_echo "${OK} ${GreenBG} Xray+Reality+ws+gRPC $(gettext "安装成功") ${Font}"
-            ;;
-        ws\ ONLY)
-            log_echo "${OK} ${GreenBG} ws ONLY $(gettext "安装成功") ${Font}"
-            ;;
-        gRPC\ ONLY)
-            log_echo "${OK} ${GreenBG} gRPC ONLY $(gettext "安装成功") ${Font}"
-            ;;
-        ws+gRPC\ ONLY)
-            log_echo "${OK} ${GreenBG} ws+gRPC ONLY $(gettext "安装成功") ${Font}"
+        xhttp\ ONLY)
+            log_echo "${OK} ${GreenBG} xhttp ONLY $(gettext "安装成功") ${Font}"
             ;;
         esac
         echo
@@ -2718,26 +2465,12 @@ basic_information() {
         log_echo "${Red} —————————————— Xray $(gettext "配置信息") —————————————— ${Font}"
         log_echo "${Red} $(gettext "主机") (host):${Font} $(info_extraction host) "
         if [[ ${tls_mode} == "None" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
-                log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
-            fi
+            log_echo "${Red} xhttp $(gettext "端口") (port):${Font} $(info_extraction xhttp_port) "
         else
             log_echo "${Red} $(gettext "端口") (port):${Font} $(info_extraction port) "
         fi
         if [[ ${tls_mode} == "TLS" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                log_echo "${Red} Xray ws $(gettext "端口") (inbound_port):${Font} $(info_extraction ws_port) "
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                log_echo "${Red} Xray gRPC $(gettext "端口") (inbound_port):${Font} $(info_extraction grpc_port) "
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                log_echo "${Red} Xray ws $(gettext "端口") (inbound_port):${Font} $(info_extraction ws_port) "
-                log_echo "${Red} Xray gRPC $(gettext "端口") (inbound_port):${Font} $(info_extraction grpc_port) "
-            fi
+            log_echo "${Red} Xray xhttp $(gettext "端口") (inbound_port):${Font} $(info_extraction xhttp_port) "
         fi
         log_echo "${Red} UUIDv5 $(gettext "映射字符串"):${Font} $(info_extraction idc)"
         log_echo "${Red} $(gettext "用户id") (UUID):${Font} $(info_extraction id)"
@@ -2746,14 +2479,8 @@ basic_information() {
         log_echo "${Red} $(gettext "传输协议") (network):${Font} $(info_extraction net) "
         log_echo "${Red} $(gettext "底层传输安全") (tls):${Font} $(info_extraction tls) "
         if [[ ${tls_mode} != "Reality" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                log_echo "${Red} $(gettext "路径") (path $(gettext "不要落下")/):${Font} /$(info_extraction path) "
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                log_echo "${Red} serviceName ($(gettext "不需要加")/):${Font} $(info_extraction serviceName) "
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                log_echo "${Red} $(gettext "路径") (path $(gettext "不要落下")/):${Font} /$(info_extraction path) "
-                log_echo "${Red} serviceName ($(gettext "不需要加")/):${Font} $(info_extraction serviceName) "
-            fi
+            log_echo "${Red} $(gettext "路径") (path $(gettext "不要落下")/):${Font} /$(info_extraction path) "
+            log_echo "${Red} serviceName ($(gettext "不需要加")/):${Font} $(info_extraction serviceName) "
         else
             log_echo "${Red} $(gettext "流控") (flow):${Font} xtls-rprx-vision "
             log_echo "${Red} target:${Font} $(info_extraction target) "
@@ -2762,18 +2489,9 @@ basic_information() {
             log_echo "${Red} Password:${Font} $(info_extraction password) "
             log_echo "${Red} shortIds:${Font} $(info_extraction shortIds) "
             if [[ "$reality_add_more" == "on" ]]; then
-                if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                    log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
-                    log_echo "${Red} ws $(gettext "路径") ($(gettext "不要落下")/):${Font} /$(info_extraction ws_path) "
-                elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                    log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
-                    log_echo "${Red} gRPC serviceName ($(gettext "不需要加")/):${Font} $(info_extraction grpc_serviceName) "
-                elif [[ ${ws_grpc_mode} == "all" ]]; then
-                    log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
-                    log_echo "${Red} ws $(gettext "路径") ($(gettext "不要落下")/):${Font} /$(info_extraction ws_path) "
-                    log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
-                    log_echo "${Red} gRPC serviceName ($(gettext "不需要加")/):${Font} $(info_extraction grpc_serviceName) "
-                fi
+                log_echo "${Red} xhttp $(gettext "端口") (port):${Font} $(info_extraction xhttp_port) "
+                log_echo "${Red} xhttp $(gettext "路径") ($(gettext "不要落下")/):${Font} /$(info_extraction xhttp_path) "
+                log_echo "${Red} xhttp serviceName ($(gettext "不需要加")/):${Font} $(info_extraction xhttp_serviceName) "
             fi
         fi
     } >"${xray_info_file}"
@@ -2935,53 +2653,24 @@ reset_port() {
             port_set
             xport=$((RANDOM % 1000 + 20000))
             gport=$((RANDOM % 1000 + 30000))
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                port_exist_check "${xport}"
-                gport=$((RANDOM % 1000 + 30000))
-                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-            elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                port_exist_check "${gport}"
-                xport=$((RANDOM % 1000 + 20000))
-                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                port_exist_check "${xport}"
-                port_exist_check "${gport}"
-                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-            fi
+            # 现在只使用xhttp协议
+            read_optimize "$(gettext "请输入") xhttp inbound_port:" "xhttp_port" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+            port_exist_check "${xhttp_port}"
+            log_echo "${Green} xhttp inbound_port: ${xhttp_port} ${Font}"
             jq --argjson port "$port" \
-               --argjson ws_port "$xport" \
-               --argjson grpc_port "$gport" \
-               '.port = $port | .ws_port = $ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+               --argjson xhttp_port "$xhttp_port" \
+                 '.port = $port | .xhttp_port = $xhttp_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             modify_inbound_port
             [[ ${reality_add_nginx} == "on" ]] && modify_nginx_port
         elif [[ ${tls_mode} == "None" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                port_exist_check "${xport}"
-                gport=$((RANDOM % 1000 + 30000))
-                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-            elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                port_exist_check "${gport}"
-                xport=$((RANDOM % 1000 + 20000))
-                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                port_exist_check "${xport}"
-                port_exist_check "${gport}"
-                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-            fi
-            jq --argjson ws_port "$xport" \
-               --argjson grpc_port "$gport" \
-               '.ws_port = ($ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+            # 只使用xhttp协议
+            read_optimize "$(gettext "请输入") xhttp inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+            port_exist_check "${xport}"
+            log_echo "${Green} xhttp inbound_port: ${xport} ${Font}"
+            
+            jq --argjson xhttp_port "$xport" \
+               '.xhttp_port = $xhttp_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             modify_inbound_port
         fi
@@ -3057,9 +2746,10 @@ show_user() {
             log_echo "${Green} UUID: ${user_id} ${Font}"
             if [[ ${tls_mode} == "TLS" ]]; then
                 if [[ ${choose_user_prot} == 0 ]]; then
-                    user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
+                    user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction xhttp_port)?path=%2f$(vless_urlquote $(info_extraction xhttp_path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=xhttp&fp=chrome#$(vless_urlquote $(info_extraction host))+xhttp%E5%8D%8F%E8%AE%AE"
                 elif [[ ${choose_user_prot} == 1 ]]; then
-                    user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
+                      # 使用xhttp协议替代gRPC
+                      user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction xhttp_port)?path=%2f$(vless_urlquote $(info_extraction xhttp_path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=xhttp&fp=chrome#$(vless_urlquote $(info_extraction host))+xhttp%E5%8D%8F%E8%AE%AE"
                 fi
             elif [[ ${tls_mode} == "Reality" ]]; then
                 user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=tls&encryption=none&headerType=none&type=raw&flow=xtls-rprx-vision#$(vless_urlquote $(info_extraction host))+reality%E5%8D%8F%E8%AE%AE"
@@ -3362,30 +3052,23 @@ timeout() {
 }
 
 judge_mode() {
-    local ws_grpc_mode_add
+    local protocol_add="xhttp"
     if [[ -f "${xray_qr_config_file}" ]]; then
-        ws_grpc_mode=$(info_extraction ws_grpc_mode)
         tls_mode=$(info_extraction tls)
-
-        case ${ws_grpc_mode} in
-            onlyws) ws_grpc_mode_add="ws";;
-            onlygRPC) ws_grpc_mode_add="gRPC";;
-            all) ws_grpc_mode_add="ws+gRPC";;
-            *);;
-        esac
+        # 只使用xhttp协议，不再支持ws和gRPC
 
         case ${tls_mode} in
             TLS)
-                shell_mode="Nginx+${ws_grpc_mode_add}+TLS"
+                shell_mode="Nginx+${protocol_add}+TLS"
                 ;;
             Reality)
                 reality_add_more=$(info_extraction reality_add_more)
                 reality_add_nginx=$(info_extraction reality_add_nginx)
                 reality_add_balance=$(info_extraction reality_add_balance)
                 if [[ ${reality_add_more} == "on" && ${reality_add_nginx} == "off" ]]; then
-                    shell_mode="Reality+${ws_grpc_mode_add}"
+                    shell_mode="Reality+${protocol_add}"
                 elif [[ ${reality_add_nginx} == "on" && ${reality_add_more} == "on" ]]; then
-                    shell_mode="Nginx+Reality+${ws_grpc_mode_add}"
+                    shell_mode="Nginx+Reality+${protocol_add}"
                 elif [[ ${reality_add_nginx} == "on" && ${reality_add_more} == "off" ]]; then
                     shell_mode="Nginx+Reality"
                 else
@@ -3396,7 +3079,7 @@ judge_mode() {
                 fi
                 ;;
             None)
-                shell_mode="${ws_grpc_mode_add} ONLY"
+                shell_mode="${protocol_add} ONLY"
                 ;;
             *)
                 ;;
@@ -3405,7 +3088,7 @@ judge_mode() {
     fi
 }
 
-install_xray_ws_tls() {
+install_xray_xhttp_tls() {
     is_root
     check_and_create_user_group
     check_system
@@ -3414,16 +3097,16 @@ install_xray_ws_tls() {
     create_directory
     old_config_exist_check
     domain_check
-    ws_grpc_choose
+    xhttp_protocol_choose
     port_set
-    ws_inbound_port_set
-    grpc_inbound_port_set
+    xhttp_port_set
+    # 已清理所有兼容性函数
     firewall_set
-    ws_path_set
-    grpc_path_set
+    xhttp_path_set
+    xhttp_service_set
     email_set
     UUID_set
-    ws_grpc_qr
+    xhttp_qr
     vless_qr_config_tls_ws
     stop_service_all
     xray_install
@@ -3464,7 +3147,7 @@ install_xray_reality() {
     keys_set
     shortIds_set
     xray_reality_add_more_choose
-    ws_grpc_qr
+    xhttp_qr
     firewall_set
     stop_service_all
     port_exist_check "${port}"
@@ -3480,7 +3163,7 @@ install_xray_reality() {
     show_information
 }
 
-install_xray_ws_only() {
+install_xray_xhttp_only() {
     is_root
     check_and_create_user_group
     check_system
@@ -3489,16 +3172,16 @@ install_xray_ws_only() {
     create_directory
     old_config_exist_check
     ip_check
-    ws_grpc_choose
-    ws_inbound_port_set
-    grpc_inbound_port_set
+    xhttp_protocol_choose
+    xhttp_port_set
+    # grpc_inbound_port_set 已不再需要
     firewall_set
-    ws_path_set
-    grpc_path_set
+    xhttp_path_set
+    xhttp_service_set
     email_set
     UUID_set
-    ws_grpc_qr
-    vless_qr_config_ws_only
+    xhttp_qr
+    vless_qr_config_xhttp_only
     stop_service_all
     xray_install
     port_exist_check "${xport}"
@@ -3588,7 +3271,7 @@ list() {
     '-1' | '--install-tls')
         shell_mode="Nginx+ws+TLS"
         tls_mode="TLS"
-        install_xray_ws_tls
+        install_xray_xhttp_tls
         ;;
     '-2' | '--install-reality')
         shell_mode="Reality"
@@ -3603,7 +3286,7 @@ list() {
         [yY][eE][sS] | [yY])
             shell_mode="ws ONLY"
             tls_mode="None"
-            install_xray_ws_only
+            install_xray_xhttp_only
             ;;
         *) ;;
         esac
@@ -3689,9 +3372,9 @@ show_help() {
     echo "usage: idleleo [OPTION]"
     echo
     echo "OPTION:"
-    echo "  -1, --install-tls           $(gettext "安装") Xray (Nginx+ws/gRPC+TLS)"
-    echo "  -2, --install-reality       $(gettext "安装") Xray (Nginx+Reality+ws/gRPC)"
-    echo "  -3, --install-none          $(gettext "安装") Xray (ws/gRPC ONLY)"
+    echo "  -1, --install-tls           $(gettext "安装") Xray (Nginx+xhttp+TLS)"
+echo "  -2, --install-reality       $(gettext "安装") Xray (Nginx+Reality+xhttp)"
+echo "  -3, --install-none          $(gettext "安装") Xray (xhttp ONLY)"
     echo "  -4, --add-upstream          $(gettext "变更") Nginx $(gettext "负载均衡配置")"
     echo "  -5, --add-servernames       $(gettext "变更") Nginx serverNames $(gettext "配置")"
     echo "  -au, --auto-update          $(gettext "设置自动更新")"
@@ -3824,9 +3507,8 @@ check_xray_local_connect() {
     if [[ -f "${xray_qr_config_file}" ]]; then
         xray_local_connect_status="${Red}$(gettext "无法连通")${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
-            [[ ${ws_grpc_mode} == "onlyws" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
-            [[ ${ws_grpc_mode} == "onlygrpc" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction serviceName)) == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
-            [[ ${ws_grpc_mode} == "all" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction serviceName)) == "502" && $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+            # 只使用xhttp协议进行本地连接检查
+[[ $(curl_local_connect $(info_extraction host) $(info_extraction xhttp_path)) == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
         elif [[ ${tls_mode} == "Reality" ]]; then
             xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
         elif [[ ${tls_mode} == "None" ]]; then
@@ -4038,9 +3720,9 @@ menu() {
     echo -e "    Русский"
     echo -e "    한국어"
     echo -e "—————————————— ${GreenW}$(gettext "安装向导")${Font} ——————————————"
-    echo -e "${Green}3.${Font}  $(gettext "安装") Xray (Reality+ws/gRPC+Nginx)"
-    echo -e "${Green}4.${Font}  $(gettext "安装") Xray (Nginx+ws/gRPC+TLS)"
-    echo -e "${Green}5.${Font}  $(gettext "安装") Xray (ws/gRPC ONLY)"
+    echo -e "${Green}3.${Font}  $(gettext "安装") Xray (Reality+xhttp+Nginx)"
+    echo -e "${Green}4.${Font}  $(gettext "安装") Xray (Nginx+xhttp+TLS)"
+    echo -e "${Green}5.${Font}  $(gettext "安装") Xray (xhttp ONLY)"
     echo -e "—————————————— ${GreenW}$(gettext "配置变更")${Font} ——————————————"
     echo -e "${Green}6.${Font}  $(gettext "变更") UUIDv5/$(gettext "映射字符串")"
     echo -e "${Green}7.${Font}  $(gettext "变更") port"
@@ -4109,20 +3791,20 @@ menu() {
         source "$idleleo"
         ;;
     4)
-        shell_mode="Nginx+ws+TLS"
+        shell_mode="Nginx+xhttp+TLS"
         tls_mode="TLS"
-        install_xray_ws_tls
+        install_xray_xhttp_tls
         source "$idleleo"
         ;;
     5)
         echo
         log_echo "${Warning} ${YellowBG} $(gettext "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
-        read -r wsonly_fq
-        case $wsonly_fq in
+        read -r xhttponly_fq
+        case $xhttponly_fq in
         [yY][eE][sS] | [yY])
-            shell_mode="ws ONLY"
+            shell_mode="xhttp ONLY"
             tls_mode="None"
-            install_xray_ws_only
+            install_xray_xhttp_only
             ;;
         *) ;;
         esac

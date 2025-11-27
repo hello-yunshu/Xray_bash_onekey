@@ -1,4 +1,4 @@
-# Xray 支持 Reality / VLESS WebSocket/gRPC+TLS 协议 + Nginx 的一键安装脚本
+# Xray 支持 Reality / VLESS xhttp+TLS 协议 + Nginx 的一键安装脚本
 
 简体中文 | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
@@ -18,8 +18,7 @@
 * Reality 协议的风险：[Xray Reality 协议的风险](https://hey.run/archives/reality-xie-yi-de-feng-xian)。
 * 利用 Reality 协议加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/archives/use-reality)。
 * 添加 Reality 负载均衡配置，教程：[如何部署 Reality协议 服务端负载均衡](https://hey.run/archives/bushu-reality-balance)。
-* 添加 ws/grpc 负载均衡配置，教程：[XRay进阶玩法 – 搭建后端服务器负载均衡](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)。
-* 添加 gRPC 协议的支持，具体可见：[Xray进阶玩法 – 使用gRPC协议](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)。
+* 添加 xhttp 负载均衡配置，教程：[XRay进阶玩法 – 搭建后端服务器负载均衡](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)。
 
 ## Telegram 群组
 
@@ -30,7 +29,7 @@
 * 准备一个服务器，在境外运行、有公网ip。
 * 安装 Reality 协议的，找好一个符合 Xray 要求的域名。
 * 安装 TLS 版本的，准备一个域名，并将 A记录 添加好。
-* 阅读[Xray官方说明](https://xtls.github.io)，大概了解 Reality TLS WebSocket gRPC 及 Xray 相关信息，了解 Reality target 的域名要求。
+* 阅读[Xray官方说明](https://xtls.github.io)，大概了解 Reality TLS xhttp 及 Xray 相关信息，了解 Reality target 的域名要求。
 * **安装好 curl**，Centos用户运行：`yum install -y curl`；Debian/Ubuntu用户运行：`apt install -y curl`。
 
 ## 安装方式

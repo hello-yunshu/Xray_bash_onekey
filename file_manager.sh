@@ -183,7 +183,7 @@ fm_create_file() {
         serverNames)
             fm_create_servername_file
             ;;
-        wsServers|grpcServers)
+        wsServers|grpcServers|xhttpServers)
              fm_create_server_file ""
              ;;
         realityServers)

@@ -1,4 +1,4 @@
-# Xray prend en charge Reality / VLESS WebSocket/gRPC+TLS avec Nginx - Script d'installation automatique
+# Xray prend en charge Reality / VLESS xhttp+TLS avec Nginx - Script d'installation automatique
 
 [简体中文](/README.md) | [English](/languages/en/README.md) | Français | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
@@ -18,8 +18,7 @@
 * Risques liés au protocole Reality : [Risques associés au protocole Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * Accélérer le serveur grâce au protocole Reality : [Accélérer le serveur en utilisant un "bug" du protocole Reality](https://hey.run/archives/use-reality).
 * Ajout de la configuration d'équilibrage de charge Reality. Tutoriel : [Comment déployer un équilibreur de charge de protocole Reality](https://hey.run/archives/bushu-reality-balance).
-* Ajout de la configuration d'équilibrage de charge ws/grpc. Tutoriel : [Techniques avancées avec XRay – Mettre en place un équilibreur de charge pour serveur backend](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
-* Ajout de la prise en charge du protocole gRPC, voir : [Avancées avec XRay – Utiliser le protocole gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
+* Ajout de la configuration d'équilibrage de charge xhttp. Tutoriel : [Techniques avancées avec XRay – Mettre en place un équilibreur de charge pour serveur backend](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 
 ## Groupe Telegram
 
@@ -30,7 +29,7 @@
 * Préparez un serveur, qui fonctionnera à l'étranger et aura une adresse IP publique.
 * Pour l'installation de Reality, trouver un domaine conforme aux exigences de Xray.
 * Pour l'installation avec TLS, préparer un domaine et configurer correctement son enregistrement A.
-* Lire la documentation officielle de [Xray](https://xtls.github.io), pour comprendre les protocoles Reality, TLS, WebSocket, gRPC ainsi que les exigences sur le domaine utilisé pour Reality.
+* Lire la documentation officielle de [Xray](https://xtls.github.io), pour comprendre les protocoles Reality, TLS, xhttp ainsi que les exigences sur le domaine utilisé pour Reality.
 * **Installer curl**, les utilisateurs de Centos doivent exécuter : `yum install -y curl` ; les utilisateurs Debian/Ubuntu doivent exécuter : `apt install -y curl`.
 
 ## Méthode d'installation

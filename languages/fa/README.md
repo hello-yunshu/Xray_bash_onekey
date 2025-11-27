@@ -1,4 +1,4 @@
-# Xray supports Reality / VLESS WebSocket/gRPC+TLS protocol + Nginx one-click installation script
+# Xray supports Reality / VLESS xhttp+TLS protocol + Nginx one-click installation script
 
 [简体中文](/README.md) | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | فارسی | [한국어](/languages/ko/README.md)
 
@@ -18,8 +18,7 @@
 * ریسک‌های پروتکل Reality: [ریسک‌های پروتکل Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * سرعت‌دهی سرور با استفاده از پروتکل Reality: [سرعت‌دهی سرور با استفاده از "سلب‌معنایی" پروتکل Reality](https://hey.run/archives/use-reality).
 * پیکربندی تعادل بار Reality اضافه شد. آموزش: [نحوه استقرار تعادل بار پروتکل Reality](https://hey.run/archives/bushu-reality-balance).
-* پیکربندی تعادل بار ws/grpc اضافه شد. آموزش: [تکنیک‌های پیشرفته XRay – ساخت تعادل بار سرور پس‌زمینه](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
-* اضافه کردن پشتیبانی از پروتکل gRPC، جزئیات بیشتر: [XRay پیشرفته – استفاده از پروتکل gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
+* پیکربندی تعادل بار xhttp اضافه شد. آموزش: [تکنیک‌های پیشرفته XRay – ساخت تعادل بار سرور پس‌زمینه](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 
 ## گروه تلگرام
 
@@ -30,7 +29,7 @@
 * یک سرور آماده کنید که در خارج از کشور فعالیت کند و دارای آدرس آی‌پی عمومی باشد.
 * برای نصب پروتکل Reality، یک دامنه را که به الزم معیارهای Xray منطبق است پیدا کنید.
 * برای نسخه TLS، یک دامنه آماده کنید و رکورد A را اضافه کنید.
-* [مستندات رسمی Xray](https://xtls.github.io) را بخوانید تا به طور کلی اطلاعات مربوط به Reality TLS WebSocket gRPC و اطلاعات مرتبط با Xray را واقع شوید و نیازهای دامنه برای هدف Reality را بشناسید.
+* [مستندات رسمی Xray](https://xtls.github.io) را بخوانید تا به طور کلی اطلاعات مربوط به Reality TLS xhttp و اطلاعات مرتبط با Xray را واقع شوید و نیازهای دامنه برای هدف Reality را بشناسید.
 * **به اطمینان از نصب curl**، کاربران CentOS باید اجرا کنند: `yum install -y curl`; کاربران Debian/Ubuntu باید اجرا کنند: `apt install -y curl`.
 
 ## روش نصب

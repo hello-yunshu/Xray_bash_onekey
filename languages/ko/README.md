@@ -1,4 +1,4 @@
-# Xray Reality / VLESS WebSocket/gRPC+TLS 프로토콜 + Nginx 일괄 설치 스크립트
+# Xray Reality / VLESS xhttp+TLS 프로토콜 + Nginx 일괄 설치 스크립트
 
 [简体中文](/README.md) | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | 한국어
 
@@ -18,8 +18,7 @@
 * Reality 프로토콜 위험: [Xray Reality 프로토콜 위험](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * Reality 프로토콜을 이용한 서버 가속: [Reality 프로토콜 "취약점"을 이용한 서버 가속](https://hey.run/archives/use-reality).
 * Reality 로드 밸런싱 구성 추가. 튜토리얼: [Reality 프로토콜 서버 로드 밸런서 배포 방법](https://hey.run/archives/bushu-reality-balance).
-* ws/grpc 로드 밸런싱 구성 추가. 튜토리얼: [XRay 고급 활용법 – 백엔드 서버 로드 밸런서 구축](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
-* gRPC 프로토콜 지원 추가, 자세히 보기: [Xray 고급 기능 – gRPC 프로토콜 사용](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
+* xhttp 로드 밸런싱 구성 추가. 튜토리얼: [XRay 고급 활용법 – 백엔드 서버 로드 밸런서 구축](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 
 ## Telegram 그룹
 
@@ -30,7 +29,7 @@
 * 서버를 준비하여, 해외에서 운영하고 공인 IP를 확보하십시오.
 * Reality 프로토콜 설치 시, Xray 요구 사항을 충족하는 도메인이 필요합니다.
 * TLS 버전 설치 시, 도메인이 필요하며 A레코드를 추가해야 합니다.
-* [Xray 공식 설명서](https://xtls.github.io)를 읽고 Reality TLS WebSocket gRPC 및 Xray 관련 정보를 이해하고, Reality target 도메인 요구 사항을 확인하세요.
+* [Xray 공식 설명서](https://xtls.github.io)를 읽고 Reality TLS xhttp 및 Xray 관련 정보를 이해하고, Reality target 도메인 요구 사항을 확인하세요.
 * **curl이 설치되어 있어야 합니다**. CentOS 사용자는 `yum install -y curl`을, Debian/Ubuntu 사용자는 `apt install -y curl`을 실행하세요.
 
 ## 설치 방법

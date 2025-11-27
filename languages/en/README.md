@@ -1,4 +1,4 @@
-# Xray supports Reality / VLESS WebSocket/gRPC+TLS protocol + Nginx one-click installation script
+# Xray supports Reality / VLESS xhttp+TLS protocol + Nginx one-click installation script
 
 [简体中文](/README.md) | English | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
@@ -18,8 +18,7 @@
 * Risks of Reality protocol: [Risks of Xray Reality Protocol](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * Accelerating server using Reality protocol: [Accelerate Server Using Reality Protocol "Vulnerability"](https://hey.run/archives/use-reality).
 * Added Reality load balancing configuration. Tutorial: [How to Deploy a Reality Protocol Server Load Balancer](https://hey.run/archives/bushu-reality-balance).
-* Added ws/grpc load balancing configuration. Tutorial: [XRay Advanced Techniques – Building a Backend Server Load Balancer](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
-* Adding support for gRPC protocol, see details: [XRay Advanced Play - Using gRPC Protocol](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
+* Added xhttp load balancing configuration. Tutorial: [XRay Advanced Techniques – Building a Backend Server Load Balancer](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 
 ## Telegram Group
 
@@ -30,7 +29,7 @@
 * Prepare a server to be operated overseas, with a public IP address.
 * If installing Reality protocol, find a domain name that meets Xray's requirements.
 * If installing TLS version, prepare a domain name and add an A record.
-* Read the [Xray official documentation](https://xtls.github.io) to understand Reality TLS WebSocket gRPC and related information about Xray, including the domain name requirements for Reality target.
+* Read the [Xray official documentation](https://xtls.github.io) to understand Reality TLS xhttp and related information about Xray, including the domain name requirements for Reality target.
 * **Ensure curl is installed**, CentOS users run: `yum install -y curl`; Debian/Ubuntu users run: `apt install -y curl`.
 
 ## Installation Method

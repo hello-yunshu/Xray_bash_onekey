@@ -1,4 +1,4 @@
-# Xray supports Reality / VLESS WebSocket/gRPC+TLS protocol + Nginx one-click installation script
+# Xray supports Reality / VLESS xhttp+TLS protocol + Nginx one-click installation script
 
 [简体中文](/README.md) | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | Русский | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
@@ -18,8 +18,7 @@
 * Риски использования протокола Reality: [Риски использования протокола Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian).
 * Ускорение сервера с помощью протокола Reality: [Ускорение сервера с помощью "утечек" протокола Reality](https://hey.run/archives/use-reality).
 * Добавлена конфигурация балансировки нагрузки Reality. Руководство: [Как развернуть балансировку нагрузки для протокола Reality](https://hey.run/archives/bushu-reality-balance).
-* Добавлена конфигурация балансировки нагрузки ws/grpc. Руководство: [Расширенные возможности XRay – Создание балансировки нагрузки для сервера бэкенда](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
-* Поддержка протокола gRPC, подробнее: [XRay продвинутые возможности – Использование протокола gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
+* Добавлена конфигурация балансировки нагрузки xhttp. Руководство: [Расширенные возможности XRay – Создание балансировки нагрузки для сервера бэкенда](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
 
 ## Telegram группа
 
@@ -30,7 +29,7 @@
 * Подготовьте сервер, который будет работать за границей и будет иметь публичный IP-адрес.
 * Если вы устанавливаете протокол Reality, найдите доменное имя, соответствующее требованиям Xray.
 * Если вы устанавливаете версию с TLS, подготовьте доменное имя и добавьте запись A.
-* Прочитайте [официальную документацию Xray](https://xtls.github.io), чтобы понять протоколы Reality TLS WebSocket gRPC и информацию о Xray, а также требования к доменному имени для целевого объекта Reality.
+* Прочитайте [официальную документацию Xray](https://xtls.github.io), чтобы понять протоколы Reality TLS xhttp и информацию о Xray, а также требования к доменному имени для целевого объекта Reality.
 * **Убедитесь, что установлен curl**, пользователи CentOS выполняют: `yum install -y curl`; пользователи Debian/Ubuntu выполняют: `apt install -y curl`.
 
 ## Способ установки

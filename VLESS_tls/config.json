@@ -8,51 +8,26 @@
         {
             "port": 10086,
             "listen": "127.0.0.1",
-            "tag": "VLESS-ws-in",
+            "tag": "VLESS-xhttp-in",
             "protocol": "VLESS",
             "settings": {
-                "clients": [
-                    {
-                        "id": "UUID",
-                        "level": 0,
-                        "email": "me@hey.run"
-                    }
-                ],
-                "decryption": "none"
+              "clients": [
+                {
+                  "id": "UUID",
+                  "level": 0,
+                  "email": "me@hey.run"
+                }
+              ],
+              "decryption": "none"
             },
             "streamSettings": {
-                "network": "ws",
-                "security": "none",
-                "wsSettings": {
-                    "path": "/ray/"
-                }
+              "network": "xhttp",
+              "security": "none",
+              "xhttpSettings": {
+                "path": "/ray/"
+              }
             }
-        },
-        {
-            "port": 10087,
-            "listen": "127.0.0.1",
-            "tag": "VLESS-gRPC-in",
-            "protocol": "VLESS",
-            "settings": {
-                "clients": [
-                    {
-                        "id": "UUID",
-                        "level": 0,
-                        "email": "me@hey.run"
-                    }
-                ],
-                "decryption": "none"
-            },
-            "streamSettings": {
-                "network": "grpc",
-                "security": "none",
-                "grpcSettings": {
-                    "serviceName": "grpc",
-                    "multiMode": true,
-                    "idle_timeout": 20
-                }
-            }
-        }
+          }
     ],
     "outbounds": [
         {
@@ -81,8 +56,7 @@
             {
                 "type": "field",
                 "inboundTag": [
-                    "VLESS-ws-in",
-                    "VLESS-gRPC-in"
+                    "VLESS-xhttp-in"
                 ],
                 "outboundTag": "direct"
             }
