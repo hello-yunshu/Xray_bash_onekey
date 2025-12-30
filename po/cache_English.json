@@ -490,5 +490,8 @@
   "下载失败": "download failed",
   "下载成功": "download successful",
   "解压失败": "decompression failed",
-  "链接分享": "link sharing"
+  "链接分享": "link sharing",
+  "此模式仅用于中转, 不建议在其他情况下使用, 是否安装": "this mode is only for transit and is not recommended for other use cases. do you want to install it",
+  "修改语言": "change language",
+  "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装": "this mode is only intended for traffic forwarding and is not recommended for other use cases. do you want to install it"
 }
