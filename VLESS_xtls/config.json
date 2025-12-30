@@ -22,71 +22,14 @@
                 "decryption": "none",
                 "fallbacks": [
                     {
-                        "dest": 8080,
+                        "outboundTag": "blocked",
                         "xver": 1
                     }
                 ]
             },
             "streamSettings": {
                 "network": "raw",
-                "security": "tls",
-                "tlsSettings": {
-                    "rejectUnknownSni": true,
-                    "certificates": [
-                        {
-                            "certificateFile": "/etc/idleleo/cert/xray.crt",
-                            "keyFile": "/etc/idleleo/cert/xray.key"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "port": 10086,
-            "listen": "127.0.0.1",
-            "tag": "VLESS-ws-in",
-            "protocol": "VLESS",
-            "settings": {
-                "clients": [
-                    {
-                        "id": "UUID",
-                        "level": 0,
-                        "email": "ws@hey.run"
-                    }
-                ],
-                "decryption": "none"
-            },
-            "streamSettings": {
-                "network": "ws",
-                "security": "none",
-                "wsSettings": {
-                    "path": "/websocket"
-                }
-            }
-        },
-        {
-            "port": 10087,
-            "listen": "127.0.0.1",
-            "tag": "VLESS-gRPC-in",
-            "protocol": "VLESS",
-            "settings": {
-                "clients": [
-                    {
-                        "id": "UUID",
-                        "level": 0,
-                        "email": "me@hey.run"
-                    }
-                ],
-                "decryption": "none"
-            },
-            "streamSettings": {
-                "network": "grpc",
-                "security": "none",
-                "grpcSettings": {
-                    "serviceName": "grpc",
-                    "multiMode": true,
-                    "idle_timeout": 20
-                }
+                "security": "none"
             }
         }
     ],
@@ -105,10 +48,6 @@
     ],
     "dns": {
         "servers": [
-            "https+local://dns.google/dns-query",
-            "https+local://cloudflare-dns.com/dns-query",
-            "https+local://doh.opendns.com/dns-query",
-            "208.67.222.222",
             "8.8.8.8",
             "1.1.1.1",
             "localhost"
@@ -121,9 +60,7 @@
             {
                 "type": "field",
                 "inboundTag": [
-                    "VLESS-XTLS-in",
-                    "VLESS-ws-in",
-                    "VLESS-gRPC-in"
+                    "VLESS-XTLS-in"
                 ],
                 "outboundTag": "direct"
             }
