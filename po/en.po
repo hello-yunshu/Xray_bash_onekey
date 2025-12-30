@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-12-30 17:17+0000\n"
-"PO-Revision-Date: 2025-12-30 17:17+0000\n"
+"POT-Creation-Date: 2025-12-30 17:21+0000\n"
+"PO-Revision-Date: 2025-12-30 17:21+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -1359,9 +1359,9 @@ msgstr "this option is temporarily unavailable"
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr "this mode is recommended for load balancing; it is generally not recommended for use. do you want to install"
 
-#: install.sh:3686
-msgid "此模式仅用于中转, 不建议在其他情况下使用, 是否安装"
-msgstr "this mode is only for transit and is not recommended for other use cases. do you want to install it"
+#: install.sh:3686 install.sh:4225
+msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
+msgstr "this mode is only intended for traffic forwarding and is not recommended for other use cases. do you want to install it"
 
 #: install.sh:3785 install.sh:3786 install.sh:3796 install.sh:3799
 #: install.sh:3803 install.sh:4137 install.sh:4138 install.sh:4139
@@ -1758,10 +1758,6 @@ msgstr "frequent upgrades of nginx. please confirm whether an upgrade of nginx i
 #: install.sh:4191
 msgid "开始升级"
 msgstr "start upgrading"
-
-#: install.sh:4225
-msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
-msgstr "this mode is only intended for traffic forwarding and is not recommended for other use cases. do you want to install it"
 
 #: install.sh:4271 install.sh:4278 install.sh:4285 install.sh:4330
 #: install.sh:4335 install.sh:4340 install.sh:4360
