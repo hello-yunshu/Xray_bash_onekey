@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.7.5"
+shell_version="2.8.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -582,7 +582,7 @@ firewall_set() {
         fi
         iptables -A INPUT -i lo -j ACCEPT
         iptables -A OUTPUT -o lo -j ACCEPT
-        if [[ ${tls_mode} == "TLS" ]]; then
+        if [[ ${tls_mode} == "TLS" || ${tls_mode} == "XTLS" ]]; then
             iptables -I INPUT -p tcp -m multiport --dport 53,80,${port} -j ACCEPT
             iptables -I INPUT -p udp -m multiport --dport 53,80,${port} -j ACCEPT
             iptables -I OUTPUT -p tcp -m multiport --sport 53,80,${port} -j ACCEPT
@@ -962,6 +962,11 @@ modify_listen_address() {
     if [[ ${tls_mode} == "Reality" ]]; then
         modifynum=1
         modifynum2=2
+    elif [[ ${tls_mode} == "XTLS" ]]; then
+        jq '.inbounds[0].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
+        judge "Xray listen address $(gettext "修改")"
+        mv "${xray_conf}.tmp" "${xray_conf}"
+        return
     else
         modifynum=0
         modifynum2=1
@@ -997,6 +1002,9 @@ modify_inbound_port() {
                 .inbounds[2].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
             judge "Xray inbound port $(gettext "修改")"
         fi
+    elif [[ ${tls_mode} == "XTLS" ]]; then
+        jq --argjson port "${port}" '.inbounds[0].port = $port' "${xray_conf}" > "${xray_conf}.tmp"
+        judge "Xray inbound port $(gettext "修改")"
     else
         jq --argjson xport "${xport}" --argjson gport "${gport}" \
            '.inbounds[0].port = $xport |
@@ -1777,6 +1785,10 @@ xray_conf_add() {
             modify_listen_address
             modify_path
             modify_inbound_port
+        elif [[ ${tls_mode} == "XTLS" ]]; then
+            curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_xtls/config.json"
+            modify_listen_address
+            modify_inbound_port
         fi
         modify_email_address
         modify_UUID
@@ -1930,6 +1942,8 @@ old_config_input() {
             gport=$(info_extraction grpc_port)
             serviceName=$(info_extraction serviceName)
         fi
+    elif [[ ${tls_mode} == "XTLS" ]]; then
+        port=$(info_extraction port)
     fi
     if [[ 0 -eq ${read_config_status} ]]; then
         echo
@@ -2434,6 +2448,30 @@ EOF
     info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 }
 
+vless_qr_config_xtls_only() {
+    if [[ "on" == ${old_config_status} ]]; then
+        port=$(info_extraction port)
+    fi
+    cat >${xray_qr_config_file} <<-EOF
+{
+    "shell_mode": "${shell_mode}",
+    "host": "${local_ip}",
+    "ip_version": "${ip_version}",
+    "port": "${port}",
+    "tls": "XTLS",
+    "email": "${custom_email}",
+    "idc": "${UUID5_char}",
+    "id": "${UUID}",
+    "net": "raw",
+    "security": "none",
+    "flow": "xtls-rprx-vision",
+    "shell_version": "${shell_version}",
+    "xray_version": "${xray_version}"
+}
+EOF
+    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+}
+
 vless_qr_config_ws_only() {
     cat >${xray_qr_config_file} <<-EOF
 {
@@ -2493,6 +2531,8 @@ vless_qr_link_image() {
             vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
             vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
         fi
+    elif [[ ${tls_mode} == "XTLS" ]]; then
+        vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=none&encryption=none&headerType=none&type=raw&flow=xtls-rprx-vision#$(vless_urlquote $(info_extraction host))+XTLS%E5%8D%8F%E8%AE%AE"
     fi
 
     # 生成Clash配置
@@ -2711,6 +2751,9 @@ basic_information() {
         ws+gRPC\ ONLY)
             log_echo "${OK} ${GreenBG} ws+gRPC ONLY $(gettext "安装成功") ${Font}"
             ;;
+        XTLS\ ONLY)
+            log_echo "${OK} ${GreenBG} Xray+XTLS $(gettext "安装成功") ${Font}"
+            ;;
         esac
         echo
         log_echo "${Warning} ${YellowBG} VLESS $(gettext "目前分享链接规范为实验阶段, 请自行判断是否适用") ${Font}"
@@ -2745,7 +2788,7 @@ basic_information() {
         log_echo "${Red} $(gettext "加密") (encryption):${Font} None "
         log_echo "${Red} $(gettext "传输协议") (network):${Font} $(info_extraction net) "
         log_echo "${Red} $(gettext "底层传输安全") (tls):${Font} $(info_extraction tls) "
-        if [[ ${tls_mode} != "Reality" ]]; then
+        if [[ ${tls_mode} != "Reality" && ${tls_mode} != "XTLS" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                 log_echo "${Red} $(gettext "路径") (path $(gettext "不要落下")/):${Font} /$(info_extraction path) "
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
@@ -2756,23 +2799,25 @@ basic_information() {
             fi
         else
             log_echo "${Red} $(gettext "流控") (flow):${Font} xtls-rprx-vision "
-            log_echo "${Red} target:${Font} $(info_extraction target) "
-            log_echo "${Red} serverNames:${Font} $(info_extraction serverNames) "
-            log_echo "${Red} privateKey:${Font} $(info_extraction privateKey) "
-            log_echo "${Red} Password:${Font} $(info_extraction password) "
-            log_echo "${Red} shortIds:${Font} $(info_extraction shortIds) "
-            if [[ "$reality_add_more" == "on" ]]; then
-                if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                    log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
-                    log_echo "${Red} ws $(gettext "路径") ($(gettext "不要落下")/):${Font} /$(info_extraction ws_path) "
-                elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                    log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
-                    log_echo "${Red} gRPC serviceName ($(gettext "不需要加")/):${Font} $(info_extraction grpc_serviceName) "
-                elif [[ ${ws_grpc_mode} == "all" ]]; then
-                    log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
-                    log_echo "${Red} ws $(gettext "路径") ($(gettext "不要落下")/):${Font} /$(info_extraction ws_path) "
-                    log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
-                    log_echo "${Red} gRPC serviceName ($(gettext "不需要加")/):${Font} $(info_extraction grpc_serviceName) "
+            if [[ ${tls_mode} == "Reality" ]]; then
+                log_echo "${Red} target:${Font} $(info_extraction target) "
+                log_echo "${Red} serverNames:${Font} $(info_extraction serverNames) "
+                log_echo "${Red} privateKey:${Font} $(info_extraction privateKey) "
+                log_echo "${Red} Password:${Font} $(info_extraction password) "
+                log_echo "${Red} shortIds:${Font} $(info_extraction shortIds) "
+                if [[ "$reality_add_more" == "on" ]]; then
+                    if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                        log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
+                        log_echo "${Red} ws $(gettext "路径") ($(gettext "不要落下")/):${Font} /$(info_extraction ws_path) "
+                    elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+                        log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
+                        log_echo "${Red} gRPC serviceName ($(gettext "不需要加")/):${Font} $(info_extraction grpc_serviceName) "
+                    elif [[ ${ws_grpc_mode} == "all" ]]; then
+                        log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
+                        log_echo "${Red} ws $(gettext "路径") ($(gettext "不要落下")/):${Font} /$(info_extraction ws_path) "
+                        log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
+                        log_echo "${Red} gRPC serviceName ($(gettext "不需要加")/):${Font} $(info_extraction grpc_serviceName) "
+                    fi
                 fi
             fi
         fi
@@ -3480,6 +3525,34 @@ install_xray_reality() {
     show_information
 }
 
+install_xray_xtls_only() {
+    is_root
+    check_and_create_user_group
+    check_system
+    dependency_install
+    basic_optimization
+    create_directory
+    old_config_exist_check
+    ip_check
+    shell_mode="XTLS ONLY"
+    tls_mode="XTLS"
+    port_set
+    firewall_set
+    email_set
+    UUID_set
+    vless_qr_config_xtls_only
+    stop_service_all
+    xray_install
+    port_exist_check "${port}"
+    xray_conf_add
+    basic_information
+    enable_process_systemd
+    auto_update
+    service_restart
+    vless_link_image_choice
+    show_information
+}
+
 install_xray_ws_only() {
     is_root
     check_and_create_user_group
@@ -3505,9 +3578,9 @@ install_xray_ws_only() {
     port_exist_check "${gport}"
     xray_conf_add
     basic_information
-    service_restart
     enable_process_systemd
     auto_update
+    service_restart
     vless_link_image_choice
     show_information
 }
@@ -3608,10 +3681,23 @@ list() {
         *) ;;
         esac
         ;;
-    '-4' | '--add-upstream')
+    '-4' | '--install-xtls')
+        echo
+        log_echo "${Warning} ${YellowBG} $(gettext "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+        read -r xtlsonly_fq
+        case $xtlsonly_fq in
+        [yY][eE][sS] | [yY])
+            shell_mode="XTLS ONLY"
+            tls_mode="XTLS"
+            install_xray_xtls_only
+            ;;
+        *) ;;
+        esac
+        ;;
+    '-5' | '--add-upstream')
         nginx_upstream_server_set
         ;;
-    '-5' | '--add-servernames')
+    '-6' | '--add-servernames')
         nginx_servernames_server_set
         ;;
     '-au' | '--auto-update')
@@ -3634,6 +3720,9 @@ list() {
         ;;
     '-h' | '--help')
         show_help
+        ;;
+    '-l' | '--language')
+        set_language
         ;;
     '-n' | '--nginx-update')
         [[ $2 == "auto_update" ]] && auto_update="YES" && log_file="${log_dir}/auto_update.log"
@@ -3692,8 +3781,9 @@ show_help() {
     echo "  -1, --install-tls           $(gettext "安装") Xray (Nginx+ws/gRPC+TLS)"
     echo "  -2, --install-reality       $(gettext "安装") Xray (Nginx+Reality+ws/gRPC)"
     echo "  -3, --install-none          $(gettext "安装") Xray (ws/gRPC ONLY)"
-    echo "  -4, --add-upstream          $(gettext "变更") Nginx $(gettext "负载均衡配置")"
-    echo "  -5, --add-servernames       $(gettext "变更") Nginx serverNames $(gettext "配置")"
+    echo "  -4, --install-xtls          $(gettext "安装") Xray (XTLS ONLY)"
+    echo "  -5, --add-upstream          $(gettext "变更") Nginx $(gettext "负载均衡配置")"
+    echo "  -6, --add-servernames       $(gettext "变更") Nginx serverNames $(gettext "配置")"
     echo "  -au, --auto-update          $(gettext "设置自动更新")"
     echo "  -c, --clean-logs            $(gettext "清除日志文件")"
     echo "  -cs, --cert-status          $(gettext "查看证书状态")"
@@ -3701,6 +3791,7 @@ show_help() {
     echo "  -cau, --cert-auto-update    $(gettext "设置证书自动更新")"
     echo "  -f, --set-fail2ban          $(gettext "设置 Fail2ban 防暴力破解")"
     echo "  -h, --help                  $(gettext "显示帮助")"
+    echo "  -l, --language              $(gettext "修改语言")"
     echo "  -n, --nginx-update          $(gettext "更新") Nginx"
     echo "  -p, --port-reset            $(gettext "变更") port"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
@@ -4031,7 +4122,7 @@ menu() {
     echo -e "${Green}1.${Font}  $(gettext "升级") Xray"
     echo -e "${Green}2.${Font}  $(gettext "升级") Nginx"
     echo -e "—————————————— ${GreenW}语言 / Language${Font} ———————"
-    echo -e "${Green}36.${Font} 中文 (默认)"
+    echo -e "${Green}99.${Font} 中文 (默认)"
     echo -e "    English"
     echo -e "    Français" 
     echo -e "    فارسی    "
@@ -4041,44 +4132,45 @@ menu() {
     echo -e "${Green}3.${Font}  $(gettext "安装") Xray (Reality+ws/gRPC+Nginx)"
     echo -e "${Green}4.${Font}  $(gettext "安装") Xray (Nginx+ws/gRPC+TLS)"
     echo -e "${Green}5.${Font}  $(gettext "安装") Xray (ws/gRPC ONLY)"
+    echo -e "${Green}6.${Font}  $(gettext "安装") Xray (XTLS ONLY)"
     echo -e "—————————————— ${GreenW}$(gettext "配置变更")${Font} ——————————————"
-    echo -e "${Green}6.${Font}  $(gettext "变更") UUIDv5/$(gettext "映射字符串")"
-    echo -e "${Green}7.${Font}  $(gettext "变更") port"
-    echo -e "${Green}8.${Font}  $(gettext "变更") target"
-    echo -e "${Green}9.${Font}  $(gettext "变更") TLS $(gettext "版本")"
-    echo -e "${Green}10.${Font} $(gettext "变更") Nginx $(gettext "负载均衡配置")"
-    echo -e "${Green}11.${Font} $(gettext "变更") Nginx serverNames $(gettext "配置")"
+    echo -e "${Green}7.${Font}  $(gettext "变更") UUIDv5/$(gettext "映射字符串")"
+    echo -e "${Green}8.${Font}  $(gettext "变更") port"
+    echo -e "${Green}9.${Font}  $(gettext "变更") target"
+    echo -e "${Green}10.${Font} $(gettext "变更") TLS $(gettext "版本")"
+    echo -e "${Green}11.${Font} $(gettext "变更") Nginx $(gettext "负载均衡配置")"
+    echo -e "${Green}12.${Font} $(gettext "变更") Nginx serverNames $(gettext "配置")"
     echo -e "—————————————— ${GreenW}$(gettext "用户管理")${Font} ——————————————"
-    echo -e "${Green}12.${Font} $(gettext "查看") Xray $(gettext "用户")"
-    echo -e "${Green}13.${Font} $(gettext "添加") Xray $(gettext "用户")"
-    echo -e "${Green}14.${Font} $(gettext "删除") Xray $(gettext "用户")"
+    echo -e "${Green}13.${Font} $(gettext "查看") Xray $(gettext "用户")"
+    echo -e "${Green}14.${Font} $(gettext "添加") Xray $(gettext "用户")"
+    echo -e "${Green}15.${Font} $(gettext "删除") Xray $(gettext "用户")"
     echo -e "—————————————— ${GreenW}$(gettext "查看信息")${Font} ——————————————"
-    echo -e "${Green}15.${Font} $(gettext "查看") Xray $(gettext "实时访问日志")"
-    echo -e "${Green}16.${Font} $(gettext "查看") Xray $(gettext "实时错误日志")"
-    echo -e "${Green}17.${Font} $(gettext "查看") Xray $(gettext "配置信息")"
+    echo -e "${Green}16.${Font} $(gettext "查看") Xray $(gettext "实时访问日志")"
+    echo -e "${Green}17.${Font} $(gettext "查看") Xray $(gettext "实时错误日志")"
+    echo -e "${Green}18.${Font} $(gettext "查看") Xray $(gettext "配置信息")"
     echo -e "—————————————— ${GreenW}$(gettext "服务相关")${Font} ——————————————"
-    echo -e "${Green}18.${Font} $(gettext "重启") $(gettext "所有服务")"
-    echo -e "${Green}19.${Font} $(gettext "启动") $(gettext "所有服务")"
-    echo -e "${Green}20.${Font} $(gettext "停止") $(gettext "所有服务")"
-    echo -e "${Green}21.${Font} $(gettext "查看") $(gettext "所有服务")"
+    echo -e "${Green}19.${Font} $(gettext "重启") $(gettext "所有服务")"
+    echo -e "${Green}20.${Font} $(gettext "启动") $(gettext "所有服务")"
+    echo -e "${Green}21.${Font} $(gettext "停止") $(gettext "所有服务")"
+    echo -e "${Green}22.${Font} $(gettext "查看") $(gettext "所有服务")"
     echo -e "—————————————— ${GreenW}$(gettext "证书相关")${Font} ——————————————"
-    echo -e "${Green}22.${Font} $(gettext "查看") $(gettext "证书状态")"
-    echo -e "${Green}23.${Font} $(gettext "更新") $(gettext "证书有效期")"
-    echo -e "${Green}24.${Font} $(gettext "设置") $(gettext "证书自动更新")"
+    echo -e "${Green}23.${Font} $(gettext "查看") $(gettext "证书状态")"
+    echo -e "${Green}24.${Font} $(gettext "更新") $(gettext "证书有效期")"
+    echo -e "${Green}25.${Font} $(gettext "设置") $(gettext "证书自动更新")"
     echo -e "—————————————— ${GreenW}$(gettext "其他选项")${Font} ——————————————"
-    echo -e "${Green}25.${Font} $(gettext "配置") $(gettext "自动更新")"
-    echo -e "${Green}26.${Font} $(gettext "设置") TCP $(gettext "加速")"
-    echo -e "${Green}27.${Font} $(gettext "设置") Fail2ban $(gettext "防暴力破解")"
-    echo -e "${Green}28.${Font} $(gettext "设置") Xray $(gettext "流量统计")"
-    echo -e "${Green}29.${Font} $(gettext "清除") $(gettext "日志文件")"
-    echo -e "${Green}30.${Font} $(gettext "测试") $(gettext "服务器网速")"
+    echo -e "${Green}26.${Font} $(gettext "配置") $(gettext "自动更新")"
+    echo -e "${Green}27.${Font} $(gettext "设置") TCP $(gettext "加速")"
+    echo -e "${Green}28.${Font} $(gettext "设置") Fail2ban $(gettext "防暴力破解")"
+    echo -e "${Green}29.${Font} $(gettext "设置") Xray $(gettext "流量统计")"
+    echo -e "${Green}30.${Font} $(gettext "清除") $(gettext "日志文件")"
+    echo -e "${Green}31.${Font} $(gettext "测试") $(gettext "服务器网速")"
     echo -e "—————————————— ${GreenW}$(gettext "备份恢复")${Font} ——————————————"
-    echo -e "${Green}31.${Font} $(gettext "备份") $(gettext "全部文件")"
-    echo -e "${Green}32.${Font} $(gettext "恢复") $(gettext "全部文件")"
+    echo -e "${Green}32.${Font} $(gettext "备份") $(gettext "全部文件")"
+    echo -e "${Green}33.${Font} $(gettext "恢复") $(gettext "全部文件")"
     echo -e "—————————————— ${GreenW}$(gettext "卸载向导")${Font} ——————————————"
-    echo -e "${Green}33.${Font} $(gettext "卸载") $(gettext "脚本")"
-    echo -e "${Green}34.${Font} $(gettext "清空") $(gettext "证书文件")"
-    echo -e "${Green}35.${Font} $(gettext "退出") \n"
+    echo -e "${Green}34.${Font} $(gettext "卸载") $(gettext "脚本")"
+    echo -e "${Green}35.${Font} $(gettext "清空") $(gettext "证书文件")"
+    echo -e "${Green}36.${Font} $(gettext "退出") \n"
 
     local menu_num
     read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 36 "$(gettext "请输入 0 到 36 之间的有效数字")"
@@ -4129,166 +4221,180 @@ menu() {
         source "$idleleo"
         ;;
     6)
+        echo
+        log_echo "${Warning} ${YellowBG} $(gettext "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+        read -r xtlsonly_fq
+        case $xtlsonly_fq in
+        [yY][eE][sS] | [yY])
+            shell_mode="XTLS ONLY"
+            tls_mode="XTLS"
+            install_xray_xtls_only
+            ;;
+        *) ;;
+        esac
+        source "$idleleo"
+        ;;
+    7)
         reset_UUID
         judge "$(gettext "变更") UUIDv5/$(gettext "映射字符串")"
         menu
         ;;
-    7)
+    8)
         reset_port
         judge "$(gettext "变更") port"
         menu
         ;;
-    8)
+    9)
         reset_target
         judge "$(gettext "变更") target"
         menu
         ;;
-    9)
+    10)
         tls_type
         judge "$(gettext "变更") TLS $(gettext "版本")"
         menu
         ;;
-    10)
+    11)
         nginx_upstream_server_set
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    11)
+    12)
         nginx_servernames_server_set
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    12)
+    13)
         show_user
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
-    13)
+    14)
         service_stop
         add_user
         service_start
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
-    14)
+    15)
         service_stop
         remove_user
         service_start
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
-    15)
+    16)
         clear
         show_access_log
         ;;
-    16)
+    17)
         clear
         show_error_log
         ;;
-    17)
+    18)
         clear
         basic_information
         vless_qr_link_image
         show_information
         menu
         ;;
-    18)
+    19)
         service_restart
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    19)
+    20)
         service_start
         timeout "$(gettext "清空屏幕")!"
         clear
         source "$idleleo"
         ;;
-    20)
+    21)
         service_stop
         timeout "$(gettext "清空屏幕")!"
         clear
         source "$idleleo"
         ;;
-    21)
+    22)
         if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
             systemctl status nginx
         fi
         systemctl status xray
         menu
         ;;
-    22)
+    23)
         check_cert_status
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
-    23)
+    24)
         cert_update_manuel
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
-    24)
+    25)
         acme_cron_update
         timeout "$(gettext "回到菜单")!"
         clear
         menu
         ;;
-    25)
+    26)
         auto_update
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    26)
+    27)
         clear
         bbr_boost_sh
         ;;
-    27)
+    28)
         set_fail2ban
         menu
         ;;
-    28)
+    29)
         xray_status_add
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
-    29)
+    30)
         clean_logs
         menu
         ;;
-    30)
+    31)
         clear
         bash <(curl -Lso- https://git.io/Jlkmw)
         ;;
-    31)
+    32)
         backup_directories
         menu
         ;;
-    32)
+    33)
         restore_directories
         menu
         ;;
-    33)
+    34)
         uninstall_all
         timeout "$(gettext "清空屏幕")!"
         clear
         source "$idleleo"
         ;;
-    34)
+    35)
         delete_tls_key_and_crt
         rm -rf ${ssl_chainpath}/*
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    35)
+    36)
         timeout "$(gettext "清空屏幕")!"
         clear
         exit 0
         ;;
-    36)
+    99)
         set_language
         bash idleleo
         ;;
