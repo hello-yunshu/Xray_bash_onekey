@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-12-30 17:17+0000\n"
+"POT-Creation-Date: 2025-12-30 17:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1359,8 +1359,8 @@ msgstr ""
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
 
-#: install.sh:3686
-msgid "此模式仅用于中转, 不建议在其他情况下使用, 是否安装"
+#: install.sh:3686 install.sh:4225
+msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
 
 #: install.sh:3785 install.sh:3786 install.sh:3796 install.sh:3799
@@ -1757,10 +1757,6 @@ msgstr ""
 
 #: install.sh:4191
 msgid "开始升级"
-msgstr ""
-
-#: install.sh:4225
-msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
 
 #: install.sh:4271 install.sh:4278 install.sh:4285 install.sh:4330

@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-12-30 17:17+0000\n"
-"PO-Revision-Date: 2025-12-30 17:17+0000\n"
+"POT-Creation-Date: 2025-12-30 17:21+0000\n"
+"PO-Revision-Date: 2025-12-30 17:21+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: fa\n"
@@ -1358,9 +1358,9 @@ msgstr "این گزینه در حال حاضر قابل استفاده نیست"
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr "این روش برای توازن بار توصیه می‌شود، در شرایط عادی توصیه نمی‌شود که استفاده شود، آیا نصب می‌کنید"
 
-#: install.sh:3686
-msgid "此模式仅用于中转, 不建议在其他情况下使用, 是否安装"
-msgstr "این روش فقط برای انتقال استفاده می‌شود و توصیه نمی‌شود در سایر موارد استفاده شود. آیا می‌خواهید نصب کنید؟"
+#: install.sh:3686 install.sh:4225
+msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
+msgstr "این روش فقط برای انتقال ترافیک استفاده می‌شود و در سایر موارد توصیه نمی‌شود. آیا می‌خواهید نصب کنید؟"
 
 #: install.sh:3785 install.sh:3786 install.sh:3796 install.sh:3799
 #: install.sh:3803 install.sh:4137 install.sh:4138 install.sh:4139
@@ -1757,10 +1757,6 @@ msgstr "به‌طور مکرر nginx را به‌روزرسانی کنید، ل�
 #: install.sh:4191
 msgid "开始升级"
 msgstr "شروع به به‌روزرسانی کردن"
-
-#: install.sh:4225
-msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
-msgstr "این روش فقط برای انتقال ترافیک استفاده می‌شود و در سایر موارد توصیه نمی‌شود. آیا می‌خواهید نصب کنید؟"
 
 #: install.sh:4271 install.sh:4278 install.sh:4285 install.sh:4330
 #: install.sh:4335 install.sh:4340 install.sh:4360
