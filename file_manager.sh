@@ -32,7 +32,7 @@ fm_list_files() {
     files=(*.$fm_EXTENSION)
 
     if [ ${#files[@]} -eq 0 ]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "没有找到") .$fm_EXTENSION $(gettext "文件") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "未找到") .$fm_EXTENSION $(gettext "文件") ${Font}"
         return 1
     else
         local max_length=0
@@ -81,7 +81,7 @@ fm_create_servername_file() {
     read_optimize "$(gettext "请输入"):" url
     if [[ $url =~ ^(http|https):// ]]; then
         echo
-        log_echo "${Error} ${RedBG} $(gettext "网址不能包含 http:// 或 https:// 开头") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "网址不能包含 http:// 或 https:// 前缀") ${Font}"
         return
     fi
     echo "${url} reality;" > "${url}.serverNames"
