@@ -46,7 +46,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 * 如果你不了解脚本中各项设置的具体含义，除必填项外，请使用脚本提供的默认值 (全程回车到底)。
 * Cloudflare 用户请安装完毕后再开启CDN功能。
 * 使用本脚本需要你拥有 Linux 基础及使用经验，了解计算机网络部分知识，计算机基础操作。
-* 目前支持 Debian 9+ / Ubuntu 18.04+ / Centos7+ ，部分 Centos 模板可能存在难以处理的编译问题，建议遇到编译问题时，请更换至其他系统模板。
+* 目前支持 Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+ ，部分 Centos 模板可能存在难以处理的编译问题，建议遇到编译问题时，请更换至其他系统模板。
 * 作者仅提供有限的支持，应为太笨了。
 * 分享链接为实验版本，不排除未来变动的可能，请自行确认客户端是否支持。
 * 自定义字符串映射至 UUIDv5 需要客户端支持。

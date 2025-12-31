@@ -46,7 +46,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 * Si vous ne comprenez pas les paramètres proposés par le script, sauf pour les champs obligatoires, utilisez les valeurs par défaut proposées (tapez Entrée à chaque fois).
 * Les utilisateurs de Cloudflare doivent activer la fonction CDN après l'installation.
 * Ce script nécessite des bases en Linux, une expérience de son utilisation, ainsi qu'une compréhension des réseaux informatiques et des opérations basiques.
-* Actuellement, il supporte Debian 9+ / Ubuntu 18.04+ / Centos7+ ; certains modèles Centos peuvent rencontrer des problèmes de compilation, il est donc recommandé de changer de modèle système en cas de difficultés.
+* Actuellement, il supporte Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+ ; certains modèles Centos peuvent rencontrer des problèmes de compilation, il est donc recommandé de changer de modèle système en cas de difficultés.
 * L'auteur fournit un support limité, car il estime ne pas être très compétent.
 * Les liens de partage sont en version expérimentale, des changements futurs sont possibles, veuillez vérifier si votre client les supporte.
 * Le mappage d'une chaîne personnalisée vers UUIDv5 nécessite que le client le prenne en charge.
