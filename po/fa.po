@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-12-30 17:21+0000\n"
-"PO-Revision-Date: 2025-12-30 17:21+0000\n"
+"POT-Creation-Date: 2025-12-31 05:04+0000\n"
+"PO-Revision-Date: 2025-12-31 05:04+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: fa\n"
@@ -18,8 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: install.sh:32
-msgid "提醒"
-msgstr "یادآوری"
+msgid "信息"
+msgstr "اطلاعات"
 
 #: install.sh:34
 msgid "错误"
@@ -39,8 +39,8 @@ msgid "日志文件归档失败"
 msgstr "ارشیو شدن فایل روزنامه با موفقیت انجام نشد"
 
 #: install.sh:104
-msgid "清空日志文件失败"
-msgstr "شکست در خالی کردن فایل روزنامه"
+msgid "日志文件清空失败"
+msgstr "پاکسازی فایل روزنامه ناموفق بود"
 
 #: install.sh:108
 msgid "日志文件已轮转并归档为"
@@ -55,12 +55,12 @@ msgid "不在支持的系统列表内, 安装中断"
 msgstr "در لیست سیستم‌های پشتیبانی نیست، نصب متوقف شد"
 
 #: install.sh:162
-msgid "当前用户是 root 用户, 进入安装流程"
-msgstr "کاربر فعلی کاربر روت است، وارد فرآیند نصب شوید"
+msgid "当前用户是 root 用户, 开始安装"
+msgstr "کاربر فعلی، کاربر روت است؛ نصب را شروع کنید"
 
 #: install.sh:164
-msgid "当前用户不是 root 用户, 请切换到 root 用户后重新执行脚本"
-msgstr "کاربر فعلی کاربر root نیست، لطفاً پس از تغییر به کاربر root دوباره اسکریپت را اجرا کنید"
+msgid "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本"
+msgstr "کاربر فعلی روت نیست، لطفاً به کاربر روت تغییر مسیر دهید و سپس اسکریپت را دوباره اجرا کنید"
 
 #: install.sh:190
 msgid "无法获取远程语言文件信息"
@@ -98,7 +98,7 @@ msgstr "ناموفقیت نصب"
 msgid "将使用默认语言"
 msgstr "از زبان پیش فرض استفاده خواهد شد"
 
-#: install.sh:261
+#: install.sh:261 file_manager.sh:35
 msgid "未找到"
 msgstr "پیدا نشد"
 
@@ -181,18 +181,20 @@ msgstr "لطفاً توافق نامه نصب را انتخاب کنید"
 msgid "默认"
 msgstr "پیش فرض"
 
-#: install.sh:460 install.sh:824 install.sh:843 install.sh:868 install.sh:909
-#: install.sh:1617 install.sh:1630 install.sh:1652 install.sh:1705
-#: install.sh:1715 install.sh:2933 install.sh:2984 install.sh:2989
-#: install.sh:2994 install.sh:2995 install.sh:3010 install.sh:3015
-#: install.sh:3020 install.sh:3021 install.sh:3074 install.sh:3083
-#: install.sh:3141 install.sh:3188 install.sh:3197 fail2ban_manager.sh:146
+#: install.sh:460 install.sh:535 install.sh:557 install.sh:638 install.sh:671
+#: install.sh:824 install.sh:843 install.sh:868 install.sh:909 install.sh:1617
+#: install.sh:1630 install.sh:1652 install.sh:1705 install.sh:1715
+#: install.sh:2933 install.sh:2984 install.sh:2989 install.sh:2994
+#: install.sh:2995 install.sh:3010 install.sh:3015 install.sh:3020
+#: install.sh:3021 install.sh:3074 install.sh:3083 install.sh:3141
+#: install.sh:3188 install.sh:3197 fail2ban_manager.sh:146
 #: fail2ban_manager.sh:179 file_manager.sh:81
 msgid "请输入"
 msgstr "لطفاً وارد کنید"
 
-#: install.sh:460 install.sh:1617 install.sh:1652 install.sh:1705
-#: install.sh:2933 install.sh:3074 install.sh:3141 install.sh:3188
+#: install.sh:460 install.sh:909 install.sh:1617 install.sh:1652
+#: install.sh:1705 install.sh:2933 install.sh:3074 install.sh:3141
+#: install.sh:3188 install.sh:4176 install.sh:4403
 msgid "请输入有效的数字"
 msgstr "لطفاً عدد معتبری وارد کنید"
 
@@ -208,14 +210,10 @@ msgstr "اگر کاربرد دقیق آن را نمی‌دانید، لطفاً 
 msgid "已跳过添加简单 ws/gRPC 协议"
 msgstr "اضافه کردن پروتکل‌های ساده ws/grpc رد شد"
 
-#: install.sh:531 install.sh:553 install.sh:634 install.sh:667 install.sh:699
-#: install.sh:839 install.sh:864
+#: install.sh:531 install.sh:553 install.sh:634 install.sh:651 install.sh:667
+#: install.sh:684 install.sh:699 install.sh:818 install.sh:839 install.sh:864
 msgid "是否需要自定义"
 msgstr "آیا نیاز به سفارشی‌سازی دارید؟"
-
-#: install.sh:535 install.sh:557 install.sh:638 install.sh:671
-msgid "请输入自定义"
-msgstr "لطفاً سفارشی را وارد کنید"
 
 #: install.sh:535 install.sh:557
 msgid "请勿与其他端口相同"
@@ -230,9 +228,11 @@ msgstr "آیا نیاز به تنظیم فایروال دارید؟"
 msgid "防火墙"
 msgstr "دیوار آتش"
 
-#: install.sh:614 install.sh:618 file_manager.sh:132 file_manager.sh:136
-msgid "重启完成"
-msgstr "بازنشانی کامل شد"
+#: install.sh:614 install.sh:618 install.sh:2191 install.sh:2194
+#: install.sh:2941 install.sh:2943 install.sh:4152 fail2ban_manager.sh:141
+#: fail2ban_manager.sh:232
+msgid "重启"
+msgstr "بازنشانی"
 
 #: install.sh:620
 msgid "开放防火墙相关端口"
@@ -260,10 +260,6 @@ msgstr "مسیر مخفی"
 #: install.sh:638 install.sh:671
 msgid "不需要"
 msgstr "نیاز نیست"
-
-#: install.sh:651 install.sh:684 install.sh:818
-msgid "是否需要修改"
-msgstr "آیا نیاز به تغییر است"
 
 #: install.sh:699 install.sh:709 install.sh:3101
 msgid "用户名"
@@ -378,10 +374,6 @@ msgstr "لطفاً پروتکل را به عنوان ws یا grpc انتخاب �
 msgid "返回"
 msgstr "بازگشت"
 
-#: install.sh:909
-msgid "请重新输入正确的数字"
-msgstr "لطفاً شماره درست را دوباره وارد کنید"
-
 #: install.sh:917 file_manager.sh:220
 msgid "无效选项, 请重试"
 msgstr "گزینه نامعتبر، لطفاً دوباره تلاش کنید"
@@ -455,9 +447,10 @@ msgstr "اسکریپت ممکن است با این نسخه سازگار نبا�
 msgid "是否更新"
 msgstr "آیا به‌روزرسانی می‌شود"
 
-#: install.sh:1174 install.sh:1199 install.sh:1529 install.sh:4121
-#: install.sh:4122 install.sh:4123
-msgid "升级"
+#: install.sh:1174 install.sh:1199 install.sh:1529 install.sh:3795
+#: install.sh:3806 install.sh:4121 install.sh:4122 install.sh:4123
+#: install.sh:4158
+msgid "更新"
 msgstr "به‌روزرسانی"
 
 #: install.sh:1178 install.sh:1492
@@ -589,16 +582,16 @@ msgid "解压失败"
 msgstr "بازکردن فایل ناموفق بود"
 
 #: install.sh:1433 install.sh:1434 install.sh:1441 install.sh:1442
-msgid "配置文件不完整, 退出升级"
-msgstr "پرونده تنظیمات ناقص است، از به‌روزرسانی خارج شوید"
+msgid "配置不完整, 退出更新"
+msgstr "پیکربندی ناقص است، به‌روزرسانی را ترک کنید"
 
 #: install.sh:1446 install.sh:1447
 msgid "当前安装模式不需要"
 msgstr "حالت فعلی نصب نیاز به آن ندارد"
 
 #: install.sh:1451 install.sh:1452
-msgid "配置文件不存在, 退出升级"
-msgstr "پرونده تنظیمات وجود ندارد، از به‌روزرسانی خارج شوید"
+msgid "配置不存在, 退出更新"
+msgstr "پیکربندی موجود نیست، به‌روزرسانی را ترک کنید"
 
 #: install.sh:1458
 msgid "备份旧版"
@@ -870,24 +863,15 @@ msgstr "nginx را در زمان روشن شدن خودکار غیرفعال ک�
 msgid "关闭"
 msgstr "بستن"
 
-#: install.sh:2185
-msgid "停止已有服务"
-msgstr "خدمات موجود را متوقف کنید"
-
-#: install.sh:2191 install.sh:2194 install.sh:2941 install.sh:2943
-#: install.sh:4152 fail2ban_manager.sh:141 fail2ban_manager.sh:232
-msgid "重启"
-msgstr "بازنشانی"
+#: install.sh:2185 install.sh:2207 install.sh:2210 install.sh:2270
+#: install.sh:4154 fail2ban_manager.sh:142
+msgid "停止"
+msgstr "متوقف شوید"
 
 #: install.sh:2199 install.sh:2202 install.sh:4153 fail2ban_manager.sh:140
 #: fail2ban_manager.sh:202
 msgid "启动"
 msgstr "شروع کردن"
-
-#: install.sh:2207 install.sh:2210 install.sh:2270 install.sh:4154
-#: fail2ban_manager.sh:142
-msgid "停止"
-msgstr "متوقف شوید"
 
 #: install.sh:2223 install.sh:2239
 msgid "新版本已自动设置证书自动更新"
@@ -1401,10 +1385,6 @@ msgstr "نمایش کمک"
 msgid "修改语言"
 msgstr "زبان را ویرایش کنید"
 
-#: install.sh:3795 install.sh:3806 install.sh:4158
-msgid "更新"
-msgstr "به‌روزرسانی"
-
 #: install.sh:3797
 msgid "脚本卸载"
 msgstr "اسکریپت‌های خارج شده"
@@ -1742,10 +1722,6 @@ msgstr "خروج"
 msgid "请输入选项"
 msgstr "لطفاً گزینه را وارد کنید"
 
-#: install.sh:4176
-msgid "请输入 0 到 36 之间的有效数字"
-msgstr "لطفاً عدد معتبر بین ۰ تا ۳۶ را وارد کنید"
-
 #: install.sh:4190
 msgid "不建议"
 msgstr "توصیه نمی‌شود"
@@ -1762,10 +1738,6 @@ msgstr "شروع به به‌روزرسانی کردن"
 #: install.sh:4335 install.sh:4340 install.sh:4360
 msgid "回到菜单"
 msgstr "برگرد به منو"
-
-#: install.sh:4403
-msgid "请输入正确的数字"
-msgstr "لطفاً عدد درست را وارد کنید"
 
 #: fail2ban_manager.sh:10
 msgid "用于防止暴力破解"
@@ -1787,17 +1759,17 @@ msgstr "وضع"
 msgid "请选择一个选项"
 msgstr "یک گزینه انتخاب کنید"
 
-#: fail2ban_manager.sh:27 fail2ban_manager.sh:165
-msgid "无效的选择请重试"
-msgstr "انتخاب نامعتبر است، لطفاً دوباره تلاش کنید"
+#: fail2ban_manager.sh:27
+msgid "无效的选择, 请重试"
+msgstr "انتخاب نامعتبر، لطفاً دوباره تلاش کنید"
 
 #: fail2ban_manager.sh:35
 msgid "已经安装, 跳过安装步骤"
 msgstr "قبلاً نصب شده است، گام نصب را رد کنید"
 
 #: fail2ban_manager.sh:74
-msgid "systemd 未能读取 SSH 日志"
-msgstr "systemd نتوانست روزنامه ssh را بخواند"
+msgid "systemd 无法读取 SSH 日志"
+msgstr "systemd نمی‌تواند روزنامه‌های ssh را بخواند"
 
 #: fail2ban_manager.sh:75 fail2ban_manager.sh:104
 msgid "跳过启用"
@@ -1831,6 +1803,10 @@ msgstr "عملیات"
 #: fail2ban_manager.sh:143
 msgid "添加自定义规则"
 msgstr "قوانین سفارشی اضافه کنید"
+
+#: fail2ban_manager.sh:165
+msgid "无效的选择请重试"
+msgstr "انتخاب نامعتبر است، لطفاً دوباره تلاش کنید"
 
 #: fail2ban_manager.sh:178
 msgid "请输入新的"
@@ -1962,10 +1938,6 @@ msgstr "همه را لیست کنید"
 msgid "文件"
 msgstr "فایل"
 
-#: file_manager.sh:35
-msgid "没有找到"
-msgstr "پیدا نشد"
-
 #: file_manager.sh:53
 msgid "文件名"
 msgstr "نام فایل"
@@ -1983,8 +1955,8 @@ msgid "不要包含 http:// 或 https:// 开头"
 msgstr "نامی که با http:// یا https:// شروع می‌شود را شامل نکنید"
 
 #: file_manager.sh:84
-msgid "网址不能包含 http:// 或 https:// 开头"
-msgstr "آدرس وب نمی‌تواند با http:// یا https:// شروع شود"
+msgid "网址不能包含 http:// 或 https:// 前缀"
+msgstr "آدرس وب نباید پیشوند http:// یا https:// داشته باشد"
 
 #: file_manager.sh:88 file_manager.sh:111
 msgid "已创建"
@@ -2001,6 +1973,10 @@ msgstr "لطفاً وزن را وارد کنید"
 #: file_manager.sh:128
 msgid "追加完成"
 msgstr "اضافه کردن به پایان رسیدن"
+
+#: file_manager.sh:132 file_manager.sh:136
+msgid "重启完成"
+msgstr "بازنشانی کامل شد"
 
 #: file_manager.sh:151
 msgid "请输入要编辑的文件编号"
