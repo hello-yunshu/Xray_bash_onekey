@@ -24,7 +24,7 @@ mf_main_menu() {
             5) source "${idleleo}" ;;
             *)
                 echo
-                log_echo "${Error} ${RedBG} $(gettext "无效的选择请重试") ${Font}"
+                log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
                 ;;
         esac
     done    
@@ -71,7 +71,7 @@ mf_configure_fail2ban() {
 
     # systemd SSH 日志检查
     if ! journalctl -u ssh --since "1 hour ago" --no-pager -q | head -n 1 >/dev/null 2>&1; then
-        log_echo "${Warning} ${YellowBG} $(gettext "systemd 未能读取 SSH 日志") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "systemd 无法读取 SSH 日志") ${Font}"
         log_echo "${Warning} ${YellowBG} $(gettext "跳过启用") SSH $(gettext "规则") ${Font}"
     else
         mf_ensure_sshd_config
