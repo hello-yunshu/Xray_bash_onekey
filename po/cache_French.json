@@ -485,5 +485,6 @@
   "网址不能包含 http:// 或 https:// 前缀": "l’adresse url ne peut pas contenir le préfixe http:// ou https://",
   "日志文件清空失败": "échec de l’effacement du fichier journal",
   "当前用户是 root 用户, 开始安装": "l’utilisateur actuel est l’utilisateur root, commencez l’installation",
-  "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本": "l’utilisateur actuel n’est pas l’utilisateur root. veuillez passer à l’utilisateur root et exécuter à nouveau le script"
+  "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本": "l’utilisateur actuel n’est pas l’utilisateur root. veuillez passer à l’utilisateur root et exécuter à nouveau le script",
+  "已跳过设置自动清理日志": "la configuration de l’effacement automatique des journaux a été ignorée"
 }

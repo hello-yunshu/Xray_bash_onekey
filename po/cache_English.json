@@ -485,5 +485,6 @@
   "网址不能包含 http:// 或 https:// 前缀": "the url cannot contain the http:// or https:// prefix",
   "日志文件清空失败": "failed to clear the log file",
   "当前用户是 root 用户, 开始安装": "the current user is the root user. starting installation",
-  "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本": "the current user is not the root user. please switch to the root user and then run the script again"
+  "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本": "the current user is not the root user. please switch to the root user and then run the script again",
+  "已跳过设置自动清理日志": "automatic log cleanup has been skipped"
 }
