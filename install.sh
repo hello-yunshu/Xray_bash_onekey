@@ -29,12 +29,12 @@ YellowBG="\033[43;30m"
 Font="\033[0m"
 
 #notification information
-Info="${Green}[$(gettext "提醒")]${Font}"
+Info="${Green}[$(gettext "信息")]${Font}"
 OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.0"
+shell_version="2.8.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -101,7 +101,7 @@ log_rotate() {
     fi
 
     if ! :> "$LOG_FILE"; then
-        log_echo "${Error} ${RedBG} $(gettext "清空日志文件失败") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "日志文件清空失败") ${Font}"
         return 1
     fi
 
@@ -159,9 +159,9 @@ check_system() {
 
 is_root() {
     if [[ 0 == $UID ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "当前用户是 root 用户, 进入安装流程") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "当前用户是 root 用户, 开始安装") ${Font}"
     else
-        log_echo "${Error} ${RedBG} $(gettext "当前用户不是 root 用户, 请切换到 root 用户后重新执行脚本")! ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本")! ${Font}"
         exit 1
     fi
 }
@@ -532,7 +532,7 @@ ws_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入自定义") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
             *)
@@ -554,7 +554,7 @@ grpc_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入自定义") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             *)
@@ -611,11 +611,11 @@ firewall_set() {
         if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
             service iptables save
             service iptables restart
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启完成") ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
         else
             netfilter-persistent save
             systemctl restart iptables
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启完成") ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
         fi
         log_echo "${OK} ${GreenBG} $(gettext "开放防火墙相关端口") ${Font}"
         log_echo "${GreenBG} $(gettext "若修改配置, 请注意关闭防火墙相关端口") ${Font}"
@@ -635,7 +635,7 @@ ws_path_set() {
             read -r path_modify_fq
             case $path_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入自定义") ws $(gettext "伪装路径") ($(gettext "不需要")"/"):" "path" "NULL"
+                read_optimize "$(gettext "请输入") ws $(gettext "伪装路径") ($(gettext "不需要")"/":)" "path" "NULL"
                 log_echo "${Green} ws $(gettext "伪装路径"): ${path} ${Font}"
                 ;;
             *)
@@ -648,7 +648,7 @@ ws_path_set() {
         fi
     elif [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
         echo
-        log_echo "${GreenBG} $(gettext "是否需要修改") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} $(gettext "是否需要自定义") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r change_ws_path_fq
         case $change_ws_path_fq in
         [yY][eE][sS] | [yY])
@@ -668,7 +668,7 @@ grpc_path_set() {
             read -r path_modify_fq
             case $path_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入自定义") gRPC $(gettext "伪装路径") ($(gettext "不需要")"/"):" "serviceName" "NULL"
+                read_optimize "$(gettext "请输入") gRPC $(gettext "伪装路径") ($(gettext "不需要")"/":)" "serviceName" "NULL"
                 log_echo "${Green} gRPC $(gettext "伪装路径"): ${serviceName} ${Font}"
                 ;;
             *)
@@ -681,7 +681,7 @@ grpc_path_set() {
         fi
     elif [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
         echo
-        log_echo "${GreenBG} $(gettext "是否需要修改") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r change_grpc_path_fq
         case $change_grpc_path_fq in
         [yY][eE][sS] | [yY])
@@ -815,7 +815,7 @@ serverNames_set() {
     if [[ ${target_reset} == 1 ]] || [[ "on" != ${old_config_status} ]]; then
         local custom_serverNames_fq
         echo
-        log_echo "${GreenBG} $(gettext "是否需要修改") ${target} $(gettext "域名的") serverNames [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} $(gettext "是否需要自定义") ${target} $(gettext "域名的") serverNames [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Green} $(gettext "默认为") ${target} $(gettext "域名本身")${Font}"
         echo -e "${Warning} ${YellowBG} $(gettext "如不清楚具体用途, 请勿继续")! ${Font}"
         read -r custom_serverNames_fq
@@ -906,7 +906,7 @@ nginx_upstream_server_set() {
             echo "2: gRPC"
             echo "3: $(gettext "返回")"
             local upstream_choose
-            read_optimize "$(gettext "请输入"): " "upstream_choose" "NULL" 1 3 "$(gettext "请重新输入正确的数字")"
+            read_optimize "$(gettext "请输入"): " "upstream_choose" "NULL" 1 3 "$(gettext "请输入有效的数字")"
 
             if ensure_file_manager; then
                 case $upstream_choose in
@@ -1171,7 +1171,7 @@ xray_update() {
             read -r xray_test_fq
             case $xray_test_fq in
             [yY][eE][sS] | [yY])
-                log_echo "${OK} ${GreenBG} $(gettext "升级") Xray ! ${Font}"
+                log_echo "${OK} ${GreenBG} $(gettext "更新") Xray ! ${Font}"
                 systemctl stop xray
                 bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_online_version}
                 if ! ${xray_bin_dir}/xray -version &> /dev/null; then
@@ -1196,7 +1196,7 @@ xray_update() {
                         ;;
                     esac
                 else
-                    judge "Xray $(gettext "升级")"
+                    judge "Xray $(gettext "更新")"
                     xray_version=${xray_online_version}
                 fi
                 ;;
@@ -1430,16 +1430,16 @@ nginx_update() {
                         serviceName=$(info_extraction serviceName)
                     fi
                     if [[ 0 -eq ${read_config_status} ]]; then
-                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置文件不完整, 退出升级")!" && exit 1
-                        log_echo "${Error} ${RedBG} $(gettext "配置文件不完整, 退出升级")! ${Font}"
+                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" && exit 1
+                        log_echo "${Error} ${RedBG} $(gettext "配置不完整, 退出更新")! ${Font}"
                         return 1
                     fi
                 elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
                     port=$(info_extraction port)
                     serverNames=$(info_extraction serverNames)
                     if [[ 0 -eq ${read_config_status} ]]; then
-                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置文件不完整, 退出升级")!" && exit 1
-                        log_echo "${Error} ${RedBG} $(gettext "配置文件不完整, 退出升级")! ${Font}"
+                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" && exit 1
+                        log_echo "${Error} ${RedBG} $(gettext "配置不完整, 退出更新")! ${Font}"
                         return 1
                     fi
                 elif [[ ${tls_mode} == "None" ]]; then
@@ -1448,8 +1448,8 @@ nginx_update() {
                     return 1
                 fi
             else
-                [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置文件不存在, 退出升级")!" && exit 1
-                log_echo "${Error} ${RedBG} $(gettext "配置文件不存在, 退出升级")! ${Font}"
+                [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不存在, 退出更新")!" && exit 1
+                log_echo "${Error} ${RedBG} $(gettext "配置不存在, 退出更新")! ${Font}"
                 return 1
             fi
             service_stop
@@ -1526,7 +1526,7 @@ nginx_update() {
             else
                 jq --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
                 mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
-                judge "Nginx $(gettext "升级")"
+                judge "Nginx $(gettext "更新")"
                 rm -rf ${backup_nginx_dir}
                 judge "$(gettext "删除") Nginx $(gettext "备份")"
             fi
@@ -2182,7 +2182,7 @@ stop_service_all() {
     [[ -f "${nginx_systemd_file}" ]] && systemctl stop nginx && systemctl disable nginx
     systemctl stop xray
     systemctl disable xray
-    log_echo "${OK} ${GreenBG} $(gettext "停止已有服务") ${Font}"
+    log_echo "${OK} ${GreenBG} $(gettext "停止") ${Font}"
 }
 
 service_restart() {
@@ -4118,9 +4118,9 @@ menu() {
     log_echo "Nginx:  ${nignx_status}"
     log_echo "$(gettext "连通性"): ${xray_local_connect_status}"
     echo -e "—————————————— ${GreenW}$(gettext "升级向导")${Font} ——————————————"
-    echo -e "${Green}0.${Font}  $(gettext "升级") $(gettext "脚本")"
-    echo -e "${Green}1.${Font}  $(gettext "升级") Xray"
-    echo -e "${Green}2.${Font}  $(gettext "升级") Nginx"
+    echo -e "${Green}0.${Font}  $(gettext "更新") $(gettext "脚本")"
+    echo -e "${Green}1.${Font}  $(gettext "更新") Xray"
+    echo -e "${Green}2.${Font}  $(gettext "更新") Nginx"
     echo -e "—————————————— ${GreenW}语言 / Language${Font} ———————"
     echo -e "${Green}99.${Font} 中文 (默认)"
     echo -e "    English"
@@ -4173,7 +4173,7 @@ menu() {
     echo -e "${Green}36.${Font} $(gettext "退出") \n"
 
     local menu_num
-    read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 36 "$(gettext "请输入 0 到 36 之间的有效数字")"
+    read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 99 "$(gettext "请输入有效的数字")"
     case $menu_num in
     0)
         update_sh
@@ -4400,7 +4400,7 @@ menu() {
         ;;
     *)
         clear
-        log_echo "${Error} ${RedBG} $(gettext "请输入正确的数字")! ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "请输入有效的数字")! ${Font}"
         menu
         ;;
     esac
