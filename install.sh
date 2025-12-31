@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.1"
+shell_version="2.8.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -457,7 +457,7 @@ ws_grpc_choose() {
         echo "2: gRPC"
         echo "3: ws+gRPC"
         local choose_network
-        read_optimize "$(gettext "请输入"): " "choose_network" 1 1 3 "$(gettext "请输入有效的数字")"
+        read_optimize "$(gettext "请输入"): " "choose_network" 1 1 3 "$(gettext "请输入有效的数字")!"
         if [[ $choose_network == 2 ]]; then
             [[ ${shell_mode} == "Nginx+ws+TLS" ]] && shell_mode="Nginx+gRPC+TLS"
             [[ ${shell_mode} == "Reality" ]] && shell_mode="Reality+gRPC"
@@ -906,7 +906,7 @@ nginx_upstream_server_set() {
             echo "2: gRPC"
             echo "3: $(gettext "返回")"
             local upstream_choose
-            read_optimize "$(gettext "请输入"): " "upstream_choose" "NULL" 1 3 "$(gettext "请输入有效的数字")"
+            read_optimize "$(gettext "请输入"): " "upstream_choose" "NULL" 1 3 "$(gettext "请输入有效的数字")!"
 
             if ensure_file_manager; then
                 case $upstream_choose in
@@ -1614,7 +1614,7 @@ domain_check() {
     echo "2: IPv6"
     echo "3: $(gettext "域名")"
     local ip_version_fq
-    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")"
+    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!"
     log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
         local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
@@ -1649,7 +1649,7 @@ domain_check() {
         echo "2: $(gettext "重新输入")"
         log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
         local install
-        read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")"
+        read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!"
         case $install in
         1)
             log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
@@ -1702,7 +1702,7 @@ ip_check() {
     echo "2: IPv6"
     echo "3: $(gettext "手动输入")"
     local ip_version_fq
-    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")"
+    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!"
     [[ -z ${ip_version_fq} ]] && ip_version=1
     log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
@@ -2311,14 +2311,9 @@ set_fail2ban() {
     source "${idleleo_dir}/fail2ban_manager.sh"
 }
 
-clean_logs() {
+setup_auto_clean_logs() {
     local cron_file logrotate_config
     echo
-    log_echo "${Green} $(gettext "检测到日志文件大小如下:") ${Font}"
-    log_echo "${Green}$(du -sh /var/log/xray ${nginx_dir}/logs)${Font}"
-    timeout "$(gettext "即将清除")!"
-    for i in $(find /var/log/xray/ ${nginx_dir}/logs -name "*.log"); do cat /dev/null >"$i"; done
-    judge "$(gettext "日志清理")"
 
     #以下为兼容代码, 1个大版本后删除
     if [[ "${ID}" == "centos" ]]; then
@@ -2327,7 +2322,7 @@ clean_logs() {
         cron_file="/var/spool/cron/crontabs/root"
     fi
 
-    if [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" "$cron_file") -ne '0' ]]; then
+    if [[ -f "$cron_file" ]] && [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" "$cron_file") -ne '0' ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "已设置旧版自动清理日志任务") ${Font}"
         log_echo "${GreenBG} $(gettext "是否需要删除旧版自动清理日志任务") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r delete_task
@@ -2344,13 +2339,11 @@ clean_logs() {
     fi
     #兼容代码结束
 
-    echo
     log_echo "${GreenBG} $(gettext "是否需要设置自动清理日志") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r auto_clean_logs_fq
     case $auto_clean_logs_fq in
     [nN][oO] | [nN])
-        timeout "$(gettext "清空屏幕")!"
-        clear
+        log_echo "${OK} ${Green} $(gettext "已跳过设置自动清理日志") ${Font}"
         ;;
     *)
         log_echo "${OK} ${Green} $(gettext "将在 每周三 04:00 自动清空日志") ${Font}"
@@ -2385,6 +2378,16 @@ clean_logs() {
         judge "$(gettext "设置自动清理日志")"
         ;;
     esac
+}
+
+clean_logs() {
+    echo
+    log_echo "${Green} $(gettext "检测到日志文件大小如下:") ${Font}"
+    log_echo "${Green}$(du -sh /var/log/xray ${nginx_dir}/logs 2>/dev/null)${Font}"
+    timeout "$(gettext "即将清除")!"
+    for i in $(find /var/log/xray/ ${nginx_dir}/logs -name "*.log" 2>/dev/null); do cat /dev/null >"$i" 2>/dev/null; done
+    judge "$(gettext "日志清理")"
+    setup_auto_clean_logs
 }
 
 vless_qr_config_tls_ws() {
@@ -2930,7 +2933,7 @@ tls_type() {
         echo -e "1: TLS1.2 and TLS1.3 ($(gettext "兼容模式"))"
         echo -e "${Red}2${Font}: TLS1.3 only ($(gettext "安全模式"))"
         local choose_tls
-        read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")"
+        read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")!"
         if [[ ${choose_tls} == 1 ]]; then
             log_echo "${Error} ${RedBG} $(gettext "由于 h3 仅支持 TLS1.3, 只支持 TLS1.3 only (安全模式)")! ${Font}"
             tls_type
@@ -3071,7 +3074,7 @@ show_user() {
             echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
             echo "2: gRPC"
             local choose_user_prot
-            read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")"
+            read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
             choose_user_prot=$((choose_user_prot - 1))
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
@@ -3138,7 +3141,7 @@ add_user() {
             echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
             echo "2: gRPC"
             local choose_user_prot
-            read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")"
+            read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
             choose_user_prot=$((choose_user_prot - 1))
             reality_user_more="{}"
         elif [[ ${tls_mode} == "Reality" ]]; then
@@ -3185,7 +3188,7 @@ remove_user() {
             echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
             echo "2: gRPC"
             local choose_user_prot
-            read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")"
+            read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
             choose_user_prot=$((choose_user_prot - 1))
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
@@ -3487,6 +3490,7 @@ install_xray_ws_tls() {
     acme_cron_update
     auto_update
     service_restart
+    setup_auto_clean_logs
     vless_link_image_choice
     show_information
 }
@@ -3521,6 +3525,7 @@ install_xray_reality() {
     enable_process_systemd
     auto_update
     service_restart
+    setup_auto_clean_logs
     vless_link_image_choice
     show_information
 }
@@ -3549,6 +3554,7 @@ install_xray_xtls_only() {
     enable_process_systemd
     auto_update
     service_restart
+    setup_auto_clean_logs
     vless_link_image_choice
     show_information
 }
@@ -3581,6 +3587,7 @@ install_xray_ws_only() {
     enable_process_systemd
     auto_update
     service_restart
+    setup_auto_clean_logs
     vless_link_image_choice
     show_information
 }
@@ -4173,7 +4180,7 @@ menu() {
     echo -e "${Green}36.${Font} $(gettext "退出") \n"
 
     local menu_num
-    read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 99 "$(gettext "请输入有效的数字")"
+    read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 99 "$(gettext "请输入有效的数字")!"
     case $menu_num in
     0)
         update_sh
