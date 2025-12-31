@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.2.1"
+fm_SCRIPT_VERSION="1.2.2"
 
 if [ -z "$1" ]; then
     echo "$(gettext "用法"):" $0 <$(gettext "文件扩展名")> [<$(gettext "目录路径")>]

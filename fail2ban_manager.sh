@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.1.8"
+mf_SCRIPT_VERSION="1.1.9"
 
 mf_main_menu() {
     check_system
