@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2025-12-30 17:21+0000\n"
+"POT-Creation-Date: 2025-12-31 05:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: install.sh:32
-msgid "提醒"
+msgid "信息"
 msgstr ""
 
 #: install.sh:34
@@ -40,7 +40,7 @@ msgid "日志文件归档失败"
 msgstr ""
 
 #: install.sh:104
-msgid "清空日志文件失败"
+msgid "日志文件清空失败"
 msgstr ""
 
 #: install.sh:108
@@ -56,11 +56,11 @@ msgid "不在支持的系统列表内, 安装中断"
 msgstr ""
 
 #: install.sh:162
-msgid "当前用户是 root 用户, 进入安装流程"
+msgid "当前用户是 root 用户, 开始安装"
 msgstr ""
 
 #: install.sh:164
-msgid "当前用户不是 root 用户, 请切换到 root 用户后重新执行脚本"
+msgid "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本"
 msgstr ""
 
 #: install.sh:190
@@ -99,7 +99,7 @@ msgstr ""
 msgid "将使用默认语言"
 msgstr ""
 
-#: install.sh:261
+#: install.sh:261 file_manager.sh:35
 msgid "未找到"
 msgstr ""
 
@@ -182,18 +182,20 @@ msgstr ""
 msgid "默认"
 msgstr ""
 
-#: install.sh:460 install.sh:824 install.sh:843 install.sh:868 install.sh:909
-#: install.sh:1617 install.sh:1630 install.sh:1652 install.sh:1705
-#: install.sh:1715 install.sh:2933 install.sh:2984 install.sh:2989
-#: install.sh:2994 install.sh:2995 install.sh:3010 install.sh:3015
-#: install.sh:3020 install.sh:3021 install.sh:3074 install.sh:3083
-#: install.sh:3141 install.sh:3188 install.sh:3197 fail2ban_manager.sh:146
+#: install.sh:460 install.sh:535 install.sh:557 install.sh:638 install.sh:671
+#: install.sh:824 install.sh:843 install.sh:868 install.sh:909 install.sh:1617
+#: install.sh:1630 install.sh:1652 install.sh:1705 install.sh:1715
+#: install.sh:2933 install.sh:2984 install.sh:2989 install.sh:2994
+#: install.sh:2995 install.sh:3010 install.sh:3015 install.sh:3020
+#: install.sh:3021 install.sh:3074 install.sh:3083 install.sh:3141
+#: install.sh:3188 install.sh:3197 fail2ban_manager.sh:146
 #: fail2ban_manager.sh:179 file_manager.sh:81
 msgid "请输入"
 msgstr ""
 
-#: install.sh:460 install.sh:1617 install.sh:1652 install.sh:1705
-#: install.sh:2933 install.sh:3074 install.sh:3141 install.sh:3188
+#: install.sh:460 install.sh:909 install.sh:1617 install.sh:1652
+#: install.sh:1705 install.sh:2933 install.sh:3074 install.sh:3141
+#: install.sh:3188 install.sh:4176 install.sh:4403
 msgid "请输入有效的数字"
 msgstr ""
 
@@ -209,13 +211,9 @@ msgstr ""
 msgid "已跳过添加简单 ws/gRPC 协议"
 msgstr ""
 
-#: install.sh:531 install.sh:553 install.sh:634 install.sh:667 install.sh:699
-#: install.sh:839 install.sh:864
+#: install.sh:531 install.sh:553 install.sh:634 install.sh:651 install.sh:667
+#: install.sh:684 install.sh:699 install.sh:818 install.sh:839 install.sh:864
 msgid "是否需要自定义"
-msgstr ""
-
-#: install.sh:535 install.sh:557 install.sh:638 install.sh:671
-msgid "请输入自定义"
 msgstr ""
 
 #: install.sh:535 install.sh:557
@@ -231,8 +229,10 @@ msgstr ""
 msgid "防火墙"
 msgstr ""
 
-#: install.sh:614 install.sh:618 file_manager.sh:132 file_manager.sh:136
-msgid "重启完成"
+#: install.sh:614 install.sh:618 install.sh:2191 install.sh:2194
+#: install.sh:2941 install.sh:2943 install.sh:4152 fail2ban_manager.sh:141
+#: fail2ban_manager.sh:232
+msgid "重启"
 msgstr ""
 
 #: install.sh:620
@@ -260,10 +260,6 @@ msgstr ""
 
 #: install.sh:638 install.sh:671
 msgid "不需要"
-msgstr ""
-
-#: install.sh:651 install.sh:684 install.sh:818
-msgid "是否需要修改"
 msgstr ""
 
 #: install.sh:699 install.sh:709 install.sh:3101
@@ -379,10 +375,6 @@ msgstr ""
 msgid "返回"
 msgstr ""
 
-#: install.sh:909
-msgid "请重新输入正确的数字"
-msgstr ""
-
 #: install.sh:917 file_manager.sh:220
 msgid "无效选项, 请重试"
 msgstr ""
@@ -456,9 +448,10 @@ msgstr ""
 msgid "是否更新"
 msgstr ""
 
-#: install.sh:1174 install.sh:1199 install.sh:1529 install.sh:4121
-#: install.sh:4122 install.sh:4123
-msgid "升级"
+#: install.sh:1174 install.sh:1199 install.sh:1529 install.sh:3795
+#: install.sh:3806 install.sh:4121 install.sh:4122 install.sh:4123
+#: install.sh:4158
+msgid "更新"
 msgstr ""
 
 #: install.sh:1178 install.sh:1492
@@ -590,7 +583,7 @@ msgid "解压失败"
 msgstr ""
 
 #: install.sh:1433 install.sh:1434 install.sh:1441 install.sh:1442
-msgid "配置文件不完整, 退出升级"
+msgid "配置不完整, 退出更新"
 msgstr ""
 
 #: install.sh:1446 install.sh:1447
@@ -598,7 +591,7 @@ msgid "当前安装模式不需要"
 msgstr ""
 
 #: install.sh:1451 install.sh:1452
-msgid "配置文件不存在, 退出升级"
+msgid "配置不存在, 退出更新"
 msgstr ""
 
 #: install.sh:1458
@@ -871,23 +864,14 @@ msgstr ""
 msgid "关闭"
 msgstr ""
 
-#: install.sh:2185
-msgid "停止已有服务"
-msgstr ""
-
-#: install.sh:2191 install.sh:2194 install.sh:2941 install.sh:2943
-#: install.sh:4152 fail2ban_manager.sh:141 fail2ban_manager.sh:232
-msgid "重启"
+#: install.sh:2185 install.sh:2207 install.sh:2210 install.sh:2270
+#: install.sh:4154 fail2ban_manager.sh:142
+msgid "停止"
 msgstr ""
 
 #: install.sh:2199 install.sh:2202 install.sh:4153 fail2ban_manager.sh:140
 #: fail2ban_manager.sh:202
 msgid "启动"
-msgstr ""
-
-#: install.sh:2207 install.sh:2210 install.sh:2270 install.sh:4154
-#: fail2ban_manager.sh:142
-msgid "停止"
 msgstr ""
 
 #: install.sh:2223 install.sh:2239
@@ -1402,10 +1386,6 @@ msgstr ""
 msgid "修改语言"
 msgstr ""
 
-#: install.sh:3795 install.sh:3806 install.sh:4158
-msgid "更新"
-msgstr ""
-
 #: install.sh:3797
 msgid "脚本卸载"
 msgstr ""
@@ -1743,10 +1723,6 @@ msgstr ""
 msgid "请输入选项"
 msgstr ""
 
-#: install.sh:4176
-msgid "请输入 0 到 36 之间的有效数字"
-msgstr ""
-
 #: install.sh:4190
 msgid "不建议"
 msgstr ""
@@ -1762,10 +1738,6 @@ msgstr ""
 #: install.sh:4271 install.sh:4278 install.sh:4285 install.sh:4330
 #: install.sh:4335 install.sh:4340 install.sh:4360
 msgid "回到菜单"
-msgstr ""
-
-#: install.sh:4403
-msgid "请输入正确的数字"
 msgstr ""
 
 #: fail2ban_manager.sh:10
@@ -1788,8 +1760,8 @@ msgstr ""
 msgid "请选择一个选项"
 msgstr ""
 
-#: fail2ban_manager.sh:27 fail2ban_manager.sh:165
-msgid "无效的选择请重试"
+#: fail2ban_manager.sh:27
+msgid "无效的选择, 请重试"
 msgstr ""
 
 #: fail2ban_manager.sh:35
@@ -1797,7 +1769,7 @@ msgid "已经安装, 跳过安装步骤"
 msgstr ""
 
 #: fail2ban_manager.sh:74
-msgid "systemd 未能读取 SSH 日志"
+msgid "systemd 无法读取 SSH 日志"
 msgstr ""
 
 #: fail2ban_manager.sh:75 fail2ban_manager.sh:104
@@ -1831,6 +1803,10 @@ msgstr ""
 
 #: fail2ban_manager.sh:143
 msgid "添加自定义规则"
+msgstr ""
+
+#: fail2ban_manager.sh:165
+msgid "无效的选择请重试"
 msgstr ""
 
 #: fail2ban_manager.sh:178
@@ -1963,10 +1939,6 @@ msgstr ""
 msgid "文件"
 msgstr ""
 
-#: file_manager.sh:35
-msgid "没有找到"
-msgstr ""
-
 #: file_manager.sh:53
 msgid "文件名"
 msgstr ""
@@ -1984,7 +1956,7 @@ msgid "不要包含 http:// 或 https:// 开头"
 msgstr ""
 
 #: file_manager.sh:84
-msgid "网址不能包含 http:// 或 https:// 开头"
+msgid "网址不能包含 http:// 或 https:// 前缀"
 msgstr ""
 
 #: file_manager.sh:88 file_manager.sh:111
@@ -2001,6 +1973,10 @@ msgstr ""
 
 #: file_manager.sh:128
 msgid "追加完成"
+msgstr ""
+
+#: file_manager.sh:132 file_manager.sh:136
+msgid "重启完成"
 msgstr ""
 
 #: file_manager.sh:151
