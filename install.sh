@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.3"
+shell_version="2.8.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -3300,11 +3300,13 @@ xray_status_add() {
 }
 
 bbr_boost_sh() {
+    read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
     if [[ -f "${idleleo_dir}/tcp.sh" ]]; then
         cd ${idleleo_dir} && chmod +x ./tcp.sh && ./tcp.sh
     else
         curl -L -o "${idleleo_dir}/tcp.sh" "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x "${idleleo_dir}/tcp.sh" && "${idleleo_dir}/tcp.sh"
     fi
+    read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
 }
 
 uninstall_xray() {
@@ -4380,6 +4382,8 @@ menu() {
     27)
         clear
         bbr_boost_sh
+        echo
+        menu
         ;;
     28)
         set_fail2ban
@@ -4396,7 +4400,11 @@ menu() {
         ;;
     31)
         clear
+        read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
         bash <(curl -Lso- https://git.io/Jlkmw)
+        read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
+        echo
+        menu
         ;;
     32)
         backup_directories
