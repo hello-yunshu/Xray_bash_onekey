@@ -308,7 +308,6 @@
   "脚本卸载": "script uninstallation",
   "显示安装信息": "show installation information",
   "加速": "accelerate",
-  "升级脚本": "upgrade script",
   "显示": "display",
   "访问信息": "access information",
   "错误信息": "error message",
@@ -357,7 +356,6 @@
   "脚本": "script",
   "运行状态": "running status",
   "连通性": "connectivity",
-  "升级向导": "upgrade wizard",
   "安装向导": "installation wizard",
   "配置变更": "configuration change",
   "用户管理": "user management",
@@ -390,8 +388,6 @@
   "退出": "exit",
   "请输入选项": "please enter an option",
   "不建议": "not recommended",
-  "频繁升级 Nginx, 请确认 Nginx 有升级的必要": "frequent upgrades of nginx. please confirm whether an upgrade of nginx is necessary",
-  "开始升级": "start upgrading",
   "回到菜单": "back to menu",
   "用于防止暴力破解": "used to prevent brute-force attacks",
   "主菜单": "main menu",
@@ -486,5 +482,11 @@
   "日志文件清空失败": "failed to clear the log file",
   "当前用户是 root 用户, 开始安装": "the current user is the root user. starting installation",
   "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本": "the current user is not the root user. please switch to the root user and then run the script again",
-  "已跳过设置自动清理日志": "automatic log cleanup has been skipped"
+  "已跳过设置自动清理日志": "automatic log cleanup has been skipped",
+  "脚本更新失败": "script update failed",
+  "更新失败": "update failed",
+  "更新脚本": "update script",
+  "更新向导": "update wizard",
+  "频繁更新 Nginx, 请确认 Nginx 有更新的必要": "nginx is updated frequently. please confirm whether an update is actually necessary",
+  "开始更新": "starting update"
 }

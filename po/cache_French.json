@@ -308,7 +308,6 @@
   "脚本卸载": "désinstallation de script",
   "显示安装信息": "afficher les informations d'installation",
   "加速": "accélérer",
-  "升级脚本": "script de mise à niveau",
   "显示": "afficher",
   "访问信息": "informations de visite",
   "错误信息": "message d'erreur",
@@ -357,7 +356,6 @@
   "脚本": "script",
   "运行状态": "état de fonctionnement",
   "连通性": "connectivité",
-  "升级向导": "assistant de mise à niveau",
   "安装向导": "assistant d'installation",
   "配置变更": "changement de configuration",
   "用户管理": "gestion des utilisateurs",
@@ -390,8 +388,6 @@
   "退出": "quitter",
   "请输入选项": "veuillez saisir une option",
   "不建议": "déconseillé",
-  "频繁升级 Nginx, 请确认 Nginx 有升级的必要": "mise à jour fréquente de nginx, veuillez confirmer si une mise à jour de nginx est nécessaire",
-  "开始升级": "commencer la mise à niveau",
   "回到菜单": "retour au menu",
   "用于防止暴力破解": "utilisé pour prévenir les attaques par force brute",
   "主菜单": "menu principal",
@@ -486,5 +482,11 @@
   "日志文件清空失败": "échec de l’effacement du fichier journal",
   "当前用户是 root 用户, 开始安装": "l’utilisateur actuel est l’utilisateur root, commencez l’installation",
   "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本": "l’utilisateur actuel n’est pas l’utilisateur root. veuillez passer à l’utilisateur root et exécuter à nouveau le script",
-  "已跳过设置自动清理日志": "la configuration de l’effacement automatique des journaux a été ignorée"
+  "已跳过设置自动清理日志": "la configuration de l’effacement automatique des journaux a été ignorée",
+  "脚本更新失败": "mise à jour du script échouée",
+  "更新失败": "mise à jour échouée",
+  "更新脚本": "mettre à jour le script",
+  "更新向导": "assistant de mise à jour",
+  "频繁更新 Nginx, 请确认 Nginx 有更新的必要": "mettez nginx à jour fréquemment et vérifiez qu’il est nécessaire de le mettre à jour",
+  "开始更新": "commencer la mise à jour"
 }
