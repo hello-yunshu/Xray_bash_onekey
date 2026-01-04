@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.2"
+shell_version="2.8.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1159,6 +1159,7 @@ xray_install() {
 }
 
 xray_update() {
+    [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
     [[ ! -d "${local_bin}/etc/xray" ]] && log_echo "${GreenBG} $(gettext "若更新无效, 建议直接卸载再安装")! ${Font}"
     log_echo "${Warning} ${GreenBG} $(gettext "部分新功能需要重新安装才可生效") ${Font}"
     ## xray_online_version=$(check_version xray_online_pre_version)
@@ -1190,7 +1191,7 @@ xray_update() {
                         if ${xray_bin_dir}/xray -version &> /dev/null; then
                             log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
                         else
-                            log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
+                            log_echo "${Error} ${RedBG} Xray $(gettext "回滚失败")! ${Font}"
                             return 1
                         fi
                         ;;
@@ -1210,6 +1211,10 @@ xray_update() {
             if ! ${xray_bin_dir}/xray -version &> /dev/null; then
                 xray_version=$(info_extraction xray_version)
                 bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_version}
+                if ! ${xray_bin_dir}/xray -version &> /dev/null; then
+                    echo "Xray $(gettext "回滚失败")!" >>${log_file}
+                    return 1
+                fi
             fi
         fi
     else
@@ -1226,6 +1231,12 @@ xray_update() {
     mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
     systemctl daemon-reload
     systemctl start xray
+    if ! ${xray_bin_dir}/xray -version &> /dev/null; then
+        [[ ${auto_update} == "YES" ]] && echo "Xray $(gettext "更新失败")!" >>${log_file}
+        [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} Xray $(gettext "更新失败")! ${Font}"
+        return 1
+    fi
+    return 0
 }
 
 reality_balance_add_fq() {
@@ -1404,6 +1415,7 @@ nginx_install() {
 }
 
 nginx_update() {
+    [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
     if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         current_nginx_build_version=$(info_extraction nginx_build_version)
         if [[ ${nginx_build_version} != ${current_nginx_build_version} ]]; then
@@ -1430,7 +1442,7 @@ nginx_update() {
                         serviceName=$(info_extraction serviceName)
                     fi
                     if [[ 0 -eq ${read_config_status} ]]; then
-                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" && exit 1
+                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" >>${log_file} && return 1
                         log_echo "${Error} ${RedBG} $(gettext "配置不完整, 退出更新")! ${Font}"
                         return 1
                     fi
@@ -1438,17 +1450,17 @@ nginx_update() {
                     port=$(info_extraction port)
                     serverNames=$(info_extraction serverNames)
                     if [[ 0 -eq ${read_config_status} ]]; then
-                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" && exit 1
+                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" >>${log_file} && return 1
                         log_echo "${Error} ${RedBG} $(gettext "配置不完整, 退出更新")! ${Font}"
                         return 1
                     fi
                 elif [[ ${tls_mode} == "None" ]]; then
-                    [[ ${auto_update} == "YES" ]] && echo "$(gettext "当前安装模式不需要") Nginx !" && exit 1
+                    [[ ${auto_update} == "YES" ]] && echo "$(gettext "当前安装模式不需要") Nginx !" >>${log_file} && return 1
                     log_echo "${Error} ${RedBG} $(gettext "当前安装模式不需要") Nginx ! ${Font}"
                     return 1
                 fi
             else
-                [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不存在, 退出更新")!" && exit 1
+                [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不存在, 退出更新")!" >>${log_file} && return 1
                 log_echo "${Error} ${RedBG} $(gettext "配置不存在, 退出更新")! ${Font}"
                 return 1
             fi
@@ -1503,7 +1515,7 @@ nginx_update() {
                 case $rollback_fq in
                 [nN][oO] | [nN])
                     log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
-                    exit 1
+                    return 1
                     ;;
                 *)
                     log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
@@ -1517,9 +1529,10 @@ nginx_update() {
                         jq --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
                         mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
                         rm -rf ${backup_nginx_dir}
+                        return 1
                     else
                         log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
-                        exit 1
+                        return 1
                     fi
                     ;;
                 esac
@@ -1536,6 +1549,7 @@ nginx_update() {
     else
         log_echo "${Error} ${RedBG} Nginx $(gettext "未安装") ${Font}"
     fi
+    return 0
 }
 
 auto_update() {
@@ -1547,7 +1561,7 @@ auto_update() {
     if [[ ! -f "${auto_update_file}" ]] || [[ $(crontab -l | grep -c "auto_update.sh") -lt 1 ]]; then
         echo
         log_echo "${GreenBG} $(gettext "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)") ${Font}"
-        log_echo "${GreenBG} $(gettext "可能自动更新后有兼容问题, 谨慎开启") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "可能自动更新后有兼容问题, 谨慎开启") ${Font}"
         log_echo "${GreenBG} $(gettext "是否开启") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r auto_update_fq
         case $auto_update_fq in
@@ -1562,7 +1576,7 @@ auto_update() {
         log_echo "${OK} ${GreenBG} $(gettext "已设置自动更新") ${Font}"
         log_echo "${GreenBG} $(gettext "是否关闭") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r auto_update_close_fq
-        case $auto_update_fq in
+        case $auto_update_close_fq in
         [yY][eE][sS] | [yY])
             sed -i "/auto_update.sh/d" ${crontab_file}
             rm -rf ${auto_update_file}
@@ -3614,26 +3628,35 @@ update_sh() {
             fi
             read -r update_confirm
         else
-            [[ -z ${ol_version} ]] && echo "$(gettext "检测 脚本 最新版本失败")!" >>${log_file} && exit 1
-            [[ ${version_difference} == 1 ]] && echo "$(gettext "脚本 版本差别过大, 跳过更新")!" >>${log_file} && exit 1
+            [[ -z ${ol_version} ]] && echo "$(gettext "检测 脚本 最新版本失败")!" >>${log_file} && return 1
+            [[ ${version_difference} == 1 ]] && echo "$(gettext "脚本 版本差别过大, 跳过更新")!" >>${log_file} && return 1
             update_confirm="YES"
         fi
         case $update_confirm in
         [yY][eE][sS] | [yY])
             [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
             curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
+            if [[ $? -ne 0 ]]; then
+                [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>${log_file}
+                [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
+                return 1
+            fi
             ln -s ${idleleo} ${idleleo_commend_file}
             [[ -f "${xray_qr_config_file}" ]] && jq --arg shell_version "${shell_version}" '.shell_version = $shell_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             clear
             log_echo "${OK} ${GreenBG} $(gettext "更新完成") ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
+            return 0
             ;;
-        *) ;;
+        *)
+            return 0
+            ;;
         esac
     else
         clear
         log_echo "${OK} ${GreenBG} $(gettext "当前版本为最新版本") ${Font}"
     fi
+    return 0
 
 }
 
@@ -3806,7 +3829,7 @@ show_help() {
     echo "  -t, --target-reset          $(gettext "变更") target"
     echo "  -tcp, --tcp                 $(gettext "配置") TCP $(gettext "加速")"
     echo "  -tls, --tls                 $(gettext "修改") TLS $(gettext "配置")"
-    echo "  -u, --update                $(gettext "升级脚本")"
+    echo "  -u, --update                $(gettext "更新脚本")"
     echo "  -uu, --uuid-reset           $(gettext "变更") UUIDv5/$(gettext "映射字符串")"
     echo "  -xa, --xray-access          $(gettext "显示") Xray $(gettext "访问信息")"
     echo "  -xe, --xray-error           $(gettext "显示") Xray $(gettext "错误信息")"
@@ -4124,7 +4147,7 @@ menu() {
     log_echo "Xray:   ${xray_status}"
     log_echo "Nginx:  ${nignx_status}"
     log_echo "$(gettext "连通性"): ${xray_local_connect_status}"
-    echo -e "—————————————— ${GreenW}$(gettext "升级向导")${Font} ——————————————"
+    echo -e "—————————————— ${GreenW}$(gettext "更新向导")${Font} ——————————————"
     echo -e "${Green}0.${Font}  $(gettext "更新") $(gettext "脚本")"
     echo -e "${Green}1.${Font}  $(gettext "更新") Xray"
     echo -e "${Green}2.${Font}  $(gettext "更新") Nginx"
@@ -4194,8 +4217,8 @@ menu() {
         ;;
     2)
         echo
-        log_echo "${Red}[$(gettext "不建议")]${Font} $(gettext "频繁升级 Nginx, 请确认 Nginx 有升级的必要")!"
-        timeout "$(gettext "开始升级")!"
+        log_echo "${Red}[$(gettext "不建议")]${Font} $(gettext "频繁更新 Nginx, 请确认 Nginx 有更新的必要")!"
+        timeout "$(gettext "开始更新")!"
         nginx_update
         timeout "$(gettext "清空屏幕")!"
         clear
