@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.5"
+shell_version="2.8.6"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -2080,7 +2080,7 @@ nginx_reality_conf_add() {
 
 stream {
     map \$ssl_preread_protocol \$is_valid_protocol {
-        TLSv1.2    1;
+        #TLSv1.2    1;
         TLSv1.3    1;
         default    0;
     }
