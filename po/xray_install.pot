@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-02-23 07:18+0000\n"
+"POT-Creation-Date: 2026-02-23 10:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -499,8 +499,9 @@ msgstr ""
 msgid "使用此功能前，建议先阅读作者教程"
 msgstr ""
 
-#: install.sh:1251
-msgid "已开启"
+#: install.sh:1251 fail2ban_manager.sh:93 fail2ban_manager.sh:103
+#: fail2ban_manager.sh:128 fail2ban_manager.sh:154 fail2ban_manager.sh:347
+msgid "已启用"
 msgstr ""
 
 #: install.sh:1255
@@ -636,11 +637,11 @@ msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
 
 #: install.sh:1564
-msgid "可能自动更新后有兼容问题, 谨慎开启"
+msgid "可能自动更新后有兼容问题, 谨慎启用"
 msgstr ""
 
-#: install.sh:1565
-msgid "是否开启"
+#: install.sh:1565 fail2ban_manager.sh:120 fail2ban_manager.sh:146
+msgid "是否启用"
 msgstr ""
 
 #: install.sh:1571 install.sh:3863
@@ -1810,15 +1811,6 @@ msgstr ""
 msgid "未安装, 请先安装"
 msgstr ""
 
-#: fail2ban_manager.sh:93 fail2ban_manager.sh:103 fail2ban_manager.sh:128
-#: fail2ban_manager.sh:154 fail2ban_manager.sh:347
-msgid "已启用"
-msgstr ""
-
-#: fail2ban_manager.sh:120 fail2ban_manager.sh:146
-msgid "是否要启用"
-msgstr ""
-
 #: fail2ban_manager.sh:125 fail2ban_manager.sh:151 fail2ban_manager.sh:349
 msgid "已禁用"
 msgstr ""
@@ -1912,7 +1904,7 @@ msgid "禁用"
 msgstr ""
 
 #: fail2ban_manager.sh:378
-msgid "是否要"
+msgid "是否"
 msgstr ""
 
 #: fail2ban_manager.sh:378 fail2ban_manager.sh:386
@@ -1961,7 +1953,7 @@ msgid "查看更新说明"
 msgstr ""
 
 #: fail2ban_manager.sh:487 file_manager.sh:235
-msgid "是否要下载并安装新版本"
+msgid "是否下载并安装新版本"
 msgstr ""
 
 #: fail2ban_manager.sh:491 file_manager.sh:239

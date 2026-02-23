@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-02-23 07:18+0000\n"
-"PO-Revision-Date: 2026-02-23 07:18+0000\n"
+"POT-Creation-Date: 2026-02-23 10:29+0000\n"
+"PO-Revision-Date: 2026-02-23 10:29+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ko\n"
@@ -499,9 +499,10 @@ msgstr "리얼리티 로드 밸런싱을 추가할지 여부"
 msgid "使用此功能前，建议先阅读作者教程"
 msgstr "이 기능을 사용하기 전에 먼저 작성자의 튜토리얼을 읽는 것을 권장합니다"
 
-#: install.sh:1251
-msgid "已开启"
-msgstr "이미 활성화되었습니다"
+#: install.sh:1251 fail2ban_manager.sh:93 fail2ban_manager.sh:103
+#: fail2ban_manager.sh:128 fail2ban_manager.sh:154 fail2ban_manager.sh:347
+msgid "已启用"
+msgstr "활성화됨"
 
 #: install.sh:1255
 msgid "已跳过"
@@ -636,11 +637,11 @@ msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr "백그라운드에서 자동 업데이트 프로그램 설정 (포함: 스크립트/xray/nginx)"
 
 #: install.sh:1564
-msgid "可能自动更新后有兼容问题, 谨慎开启"
-msgstr "자동 업데이트 후 호환 문제가 있을 수 있으니 신중히 활성화하세요"
+msgid "可能自动更新后有兼容问题, 谨慎启用"
+msgstr "자동 업데이트 후 호환성 문제가 발생할 수 있으니 신중히 활성화하세요"
 
-#: install.sh:1565
-msgid "是否开启"
+#: install.sh:1565 fail2ban_manager.sh:120 fail2ban_manager.sh:146
+msgid "是否启用"
 msgstr "활성화 여부"
 
 #: install.sh:1571 install.sh:3863
@@ -1810,15 +1811,6 @@ msgstr "규칙"
 msgid "未安装, 请先安装"
 msgstr "설치되지 않았습니다. 먼저 설치해 주세요"
 
-#: fail2ban_manager.sh:93 fail2ban_manager.sh:103 fail2ban_manager.sh:128
-#: fail2ban_manager.sh:154 fail2ban_manager.sh:347
-msgid "已启用"
-msgstr "활성화됨"
-
-#: fail2ban_manager.sh:120 fail2ban_manager.sh:146
-msgid "是否要启用"
-msgstr "활성화할까요"
-
 #: fail2ban_manager.sh:125 fail2ban_manager.sh:151 fail2ban_manager.sh:349
 msgid "已禁用"
 msgstr "비활성화됨"
@@ -1912,8 +1904,8 @@ msgid "禁用"
 msgstr "비활성화"
 
 #: fail2ban_manager.sh:378
-msgid "是否要"
-msgstr "할까요"
+msgid "是否"
+msgstr "그것이…"
 
 #: fail2ban_manager.sh:378 fail2ban_manager.sh:386
 msgid "模块"
@@ -1961,8 +1953,8 @@ msgid "查看更新说明"
 msgstr "업데이트 설명 보기"
 
 #: fail2ban_manager.sh:487 file_manager.sh:235
-msgid "是否要下载并安装新版本"
-msgstr "새 버전을 다운로드하여 설치하시겠습니까"
+msgid "是否下载并安装新版本"
+msgstr "새 버전을 다운로드하고 설치하시겠습니까"
 
 #: fail2ban_manager.sh:491 file_manager.sh:239
 msgid "正在下载新版本"
