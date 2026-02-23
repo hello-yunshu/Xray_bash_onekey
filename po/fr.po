@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-02-23 07:18+0000\n"
-"PO-Revision-Date: 2026-02-23 07:18+0000\n"
+"POT-Creation-Date: 2026-02-23 10:29+0000\n"
+"PO-Revision-Date: 2026-02-23 10:29+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: fr\n"
@@ -499,8 +499,9 @@ msgstr "ajouter ou non la charge de réalité"
 msgid "使用此功能前，建议先阅读作者教程"
 msgstr "avant d'utiliser cette fonction, il est recommandé de lire le tutoriel de l'auteur"
 
-#: install.sh:1251
-msgid "已开启"
+#: install.sh:1251 fail2ban_manager.sh:93 fail2ban_manager.sh:103
+#: fail2ban_manager.sh:128 fail2ban_manager.sh:154 fail2ban_manager.sh:347
+msgid "已启用"
 msgstr "déjà activé"
 
 #: install.sh:1255
@@ -636,11 +637,11 @@ msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr "configurer un programme de mise à jour automatique en arrière-plan (incluant : script/xray/nginx)"
 
 #: install.sh:1564
-msgid "可能自动更新后有兼容问题, 谨慎开启"
-msgstr "il est possible qu'il y ait des problèmes de compatibilité après la mise à jour automatique ; veuillez l'activer avec prudence"
+msgid "可能自动更新后有兼容问题, 谨慎启用"
+msgstr "il peut y avoir des problèmes de compatibilité après une mise à jour automatique ; activez avec prudence"
 
-#: install.sh:1565
-msgid "是否开启"
+#: install.sh:1565 fail2ban_manager.sh:120 fail2ban_manager.sh:146
+msgid "是否启用"
 msgstr "activer ou non"
 
 #: install.sh:1571 install.sh:3863
@@ -1810,15 +1811,6 @@ msgstr "règle"
 msgid "未安装, 请先安装"
 msgstr "non installé, veuillez installer d'abord"
 
-#: fail2ban_manager.sh:93 fail2ban_manager.sh:103 fail2ban_manager.sh:128
-#: fail2ban_manager.sh:154 fail2ban_manager.sh:347
-msgid "已启用"
-msgstr "déjà activé"
-
-#: fail2ban_manager.sh:120 fail2ban_manager.sh:146
-msgid "是否要启用"
-msgstr "voulez-vous activer"
-
 #: fail2ban_manager.sh:125 fail2ban_manager.sh:151 fail2ban_manager.sh:349
 msgid "已禁用"
 msgstr "désactivé"
@@ -1912,8 +1904,8 @@ msgid "禁用"
 msgstr "désactiver"
 
 #: fail2ban_manager.sh:378
-msgid "是否要"
-msgstr "est-ce que vous voulez…"
+msgid "是否"
+msgstr "est-ce que…"
 
 #: fail2ban_manager.sh:378 fail2ban_manager.sh:386
 msgid "模块"
@@ -1961,8 +1953,8 @@ msgid "查看更新说明"
 msgstr "voir les notes de mise à jour"
 
 #: fail2ban_manager.sh:487 file_manager.sh:235
-msgid "是否要下载并安装新版本"
-msgstr "voulez-vous télécharger et installer la nouvelle version "
+msgid "是否下载并安装新版本"
+msgstr "télécharger et installer la nouvelle version "
 
 #: fail2ban_manager.sh:491 file_manager.sh:239
 msgid "正在下载新版本"

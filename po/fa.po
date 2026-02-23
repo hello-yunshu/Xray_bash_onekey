@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-02-23 07:18+0000\n"
-"PO-Revision-Date: 2026-02-23 07:18+0000\n"
+"POT-Creation-Date: 2026-02-23 10:29+0000\n"
+"PO-Revision-Date: 2026-02-23 10:29+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: fa\n"
@@ -498,8 +498,9 @@ msgstr "آیا بارگیری واقعی اضافه شود"
 msgid "使用此功能前，建议先阅读作者教程"
 msgstr "قبل از استفاده از این ویژگی، توصیه می‌شود که آموزش نویسنده را بخوانید"
 
-#: install.sh:1251
-msgid "已开启"
+#: install.sh:1251 fail2ban_manager.sh:93 fail2ban_manager.sh:103
+#: fail2ban_manager.sh:128 fail2ban_manager.sh:154 fail2ban_manager.sh:347
+msgid "已启用"
 msgstr "فعال شده است"
 
 #: install.sh:1255
@@ -635,12 +636,12 @@ msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr "تنظیم برنامه‌های خودکار به‌روزرسانی پس‌زمینه (شامل: اسکریپت/xray/nginx)"
 
 #: install.sh:1564
-msgid "可能自动更新后有兼容问题, 谨慎开启"
-msgstr "ممکن است پس از به‌روزرسانی خودکار مشکل سازگاری وجود داشته باشد، بنابراین با احتیاط روشن کنید"
+msgid "可能自动更新后有兼容问题, 谨慎启用"
+msgstr "ممکن است پس از به‌روزرسانی خودکار مشکلات سازگاری وجود داشته باشد؛ لطفاً با احتیاط فعال کنید"
 
-#: install.sh:1565
-msgid "是否开启"
-msgstr "آیا فعال است"
+#: install.sh:1565 fail2ban_manager.sh:120 fail2ban_manager.sh:146
+msgid "是否启用"
+msgstr "فعال‌سازی شود؟"
 
 #: install.sh:1571 install.sh:3863
 msgid "设置自动更新"
@@ -1809,15 +1810,6 @@ msgstr "قوانین"
 msgid "未安装, 请先安装"
 msgstr "نصب نشده است، لطفاً ابتدا نصب کنید"
 
-#: fail2ban_manager.sh:93 fail2ban_manager.sh:103 fail2ban_manager.sh:128
-#: fail2ban_manager.sh:154 fail2ban_manager.sh:347
-msgid "已启用"
-msgstr "فعال شده است"
-
-#: fail2ban_manager.sh:120 fail2ban_manager.sh:146
-msgid "是否要启用"
-msgstr "آیا می‌خواهید فعال کنید"
-
 #: fail2ban_manager.sh:125 fail2ban_manager.sh:151 fail2ban_manager.sh:349
 msgid "已禁用"
 msgstr "غیرفعال شده است"
@@ -1911,8 +1903,8 @@ msgid "禁用"
 msgstr "غیرفعال کردن"
 
 #: fail2ban_manager.sh:378
-msgid "是否要"
-msgstr "آیا می‌خواهید؟"
+msgid "是否"
+msgstr "آیا"
 
 #: fail2ban_manager.sh:378 fail2ban_manager.sh:386
 msgid "模块"
@@ -1960,8 +1952,8 @@ msgid "查看更新说明"
 msgstr "دستورالعمل‌های به‌روزرسانی را مشاهده کنید"
 
 #: fail2ban_manager.sh:487 file_manager.sh:235
-msgid "是否要下载并安装新版本"
-msgstr "آیا می‌خواهید نسخه جدید را دانلود و نصب کنید؟"
+msgid "是否下载并安装新版本"
+msgstr "آیا نسخه جدید را دانلود و نصب می‌کنید؟"
 
 #: fail2ban_manager.sh:491 file_manager.sh:239
 msgid "正在下载新版本"
