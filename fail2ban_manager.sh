@@ -117,7 +117,7 @@ maxretry = 5
 findtime = 120
 EOF
             
-            log_echo "${GreenBG} $(gettext "是否要启用") nginx-no-host $(gettext "规则")? [${Red}Y${Font}${Green}/N] ${Font}"
+            log_echo "${GreenBG} $(gettext "是否启用") nginx-no-host $(gettext "规则")? [${Red}Y${Font}${GreenBG}/N] ${Font}"
             read -r enable_nginx_no_host
             case $enable_nginx_no_host in
                 [nN][oO] | [nN])
@@ -143,7 +143,7 @@ maxretry = 8
 findtime = 300
 EOF
             
-            log_echo "${GreenBG} $(gettext "是否要启用") nginx-tls-error $(gettext "规则")? [${Red}Y${Font}${Green}/N] ${Font}"
+            log_echo "${GreenBG} $(gettext "是否启用") nginx-tls-error $(gettext "规则")? [${Red}Y${Font}${GreenBG}/N] ${Font}"
             read -r enable_nginx_tls_error
             case $enable_nginx_tls_error in
                 [nN][oO] | [nN])
@@ -375,7 +375,7 @@ mf_manage_modules() {
     local status_text=$([[ "$new_status" == "true" ]] && echo "$(gettext "启用")" || echo "$(gettext "禁用")")
     
     # 确认操作
-    log_echo "${GreenBG} $(gettext "是否要") $status_text $selected_name $(gettext "模块") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+    log_echo "${GreenBG} $(gettext "是否") $status_text $selected_name $(gettext "模块") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r confirm
     
     if [[ ! $confirm =~ ^[nN][oO]|[nN]$ ]]; then
@@ -484,7 +484,7 @@ mf_check_for_updates() {
         log_echo "${Warning} ${YellowBG} $(gettext "新版本可用"): $latest_version $(gettext "当前版本"): $mf_SCRIPT_VERSION ${Font}"
         log_echo "${Warning} ${YellowBG} $(gettext "请访问") https://github.com/hello-yunshu/Xray_bash_onekey $(gettext "查看更新说明") ${Font}"
 
-        log_echo "${GreenBG} $(gettext "是否要下载并安装新版本") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} $(gettext "是否下载并安装新版本") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r update_choice
         case $update_choice in
             [yY][eE][sS] | [yY])

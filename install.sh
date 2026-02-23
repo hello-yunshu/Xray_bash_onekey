@@ -1248,7 +1248,7 @@ reality_balance_add_fq() {
     case $reality_balance_add_fq in
         [yY][eE][sS] | [yY])
             reality_add_balance="on"
-            log_echo "${OK} ${GreenBG} $(gettext "已开启") ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "已启用") ${Font}"
         ;;
         *)
             reality_add_balance="off"
@@ -1561,8 +1561,8 @@ auto_update() {
     if [[ ! -f "${auto_update_file}" ]] || [[ $(crontab -l | grep -c "auto_update.sh") -lt 1 ]]; then
         echo
         log_echo "${GreenBG} $(gettext "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)") ${Font}"
-        log_echo "${Warning} ${YellowBG} $(gettext "可能自动更新后有兼容问题, 谨慎开启") ${Font}"
-        log_echo "${GreenBG} $(gettext "是否开启") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "可能自动更新后有兼容问题, 谨慎启用") ${Font}"
+        log_echo "${GreenBG} $(gettext "是否启用") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
