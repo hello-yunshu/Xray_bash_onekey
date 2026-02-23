@@ -9,13 +9,13 @@ cd "$(
     pwd
 )" || exit
 
-#=====================================================
-#	System Request: Debian 9+/Ubuntu 18.04+/Centos 7+
-#	Author:	hello-yunshu
+#=================================================================
+#	System Request: Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+
+#	Author:	yunyunshu
 #	Dscription: Xray Onekey Management
-#	Version: 2.0
+#	Version: 2.8
 #	Official document: hey.run
-#=====================================================
+#=================================================================
 
 #fonts color
 Green="\033[32m"
@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.6"
+shell_version="2.8.7"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -2101,6 +2101,25 @@ stream {
         default 0;
     }
 
+    map "\$sni_upstream:\$is_valid_protocol" \$error_type {
+        ~^reality:0\$     "tls_error";
+        ~^deny:1\$        "sni_error";
+        ~^deny:0\$        "tls_sni_error";
+        default          "other_error";
+    }
+
+    map \$error_type \$is_tls_error {
+        "tls_error"      1;
+        #"tls_sni_error"  1;
+        default          0;
+    }
+
+    map \$error_type \$is_sni_error {
+        "sni_error"      1;
+        "tls_sni_error"  1;
+        default          0;
+    }
+
     upstream reality {
         include ${nginx_conf_dir}/*.realityServers;
     }
@@ -2109,7 +2128,10 @@ stream {
         server 127.0.0.1:9403;
     }
 
-    log_format sni_log_abnormal '\$remote_addr [\$time_local] "\$ssl_preread_server_name" '
+    log_format tls_error_log '\$remote_addr [\$time_local] "\$ssl_preread_server_name" ' 
+                             '\$ssl_preread_protocol \$status';
+
+    log_format sni_error_log '\$remote_addr [\$time_local] "\$ssl_preread_server_name" ' 
                              '\$ssl_preread_protocol \$status';
 
     server {
@@ -2118,7 +2140,8 @@ stream {
         ssl_preread on;
         proxy_connect_timeout 5s;
         proxy_timeout 300s;
-        access_log ${nginx_dir}/logs/sni_abnormal.log sni_log_abnormal if=\$is_abnormal;
+        access_log ${nginx_dir}/logs/tls_error.log tls_error_log buffer=8k flush=3s if=\$is_tls_error;
+        access_log ${nginx_dir}/logs/sni_error.log sni_error_log buffer=8k flush=3s if=\$is_sni_error;
     }
 
     server {
@@ -2940,26 +2963,46 @@ EOF
 }
 
 tls_type() {
-    if [[ -f "${nginx_conf}" ]] && [[ ${tls_mode} == "TLS" ]]; then
-        echo
-        log_echo "${GreenBG} $(gettext "请选择支持的 TLS 版本") (default:2): ${Font}"
-        log_echo "${GreenBG} $(gettext "建议选择 TLS1.3 only (安全模式)") ${Font}"
-        echo -e "1: TLS1.2 and TLS1.3 ($(gettext "兼容模式"))"
-        echo -e "${Red}2${Font}: TLS1.3 only ($(gettext "安全模式"))"
-        local choose_tls
-        read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")!"
-        if [[ ${choose_tls} == 1 ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "由于 h3 仅支持 TLS1.3, 只支持 TLS1.3 only (安全模式)")! ${Font}"
-            tls_type
+    if [[ -f "${nginx_conf}" ]]; then
+        if [[ ${tls_mode} == "TLS" ]]; then
+            echo
+            log_echo "${GreenBG} $(gettext "请选择支持的 TLS 版本") (default:2): ${Font}"
+            log_echo "${GreenBG} $(gettext "建议选择 TLSv1.3 only (安全模式)") ${Font}"
+            echo -e "1: TLSv1.2 and TLSv1.3 ($(gettext "兼容模式"))"
+            echo -e "${Red}2${Font}: TLSv1.3 only ($(gettext "安全模式"))"
+            local choose_tls
+            read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")!"
+            if [[ ${choose_tls} == 1 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "由于 h3 仅支持 TLSv1.3, 只支持 TLSv1.3 only (安全模式)")! ${Font}"
+                tls_type
+            else
+                sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
+                log_echo "${OK} ${GreenBG} $(gettext "已切换至") TLSv1.3 only ${Font}"
+            fi
+        elif [[ ${tls_mode} == "Reality" && ${reality_add_nginx} == "on" ]]; then
+            echo
+            log_echo "${GreenBG} $(gettext "请选择 TLS 版本") (default:1): ${Font}"
+            log_echo "${GreenBG} $(gettext "建议选择 TLSv1.3 (安全模式)") ${Font}"
+            echo -e "${Red}1${Font}: TLSv1.3 ($(gettext "默认"))"
+            echo -e "2: TLSv1.2+ ($(gettext "兼容模式"))"
+            local tls_version_choice
+            read_optimize "$(gettext "请输入"): " "tls_version_choice" 1 1 2 "$(gettext "请输入有效的数字")!"
+            if [[ ${tls_version_choice} == 2 ]]; then
+                sed -i "s/^\( *\)#TLSv1.2\( *\)1;\( *\)$/\1TLSv1.2\21;\3/" $nginx_conf
+                log_echo "${OK} ${GreenBG} $(gettext "已切换至") TLSv1.2+ ${Font}"
+            else
+                sed -i "s/^\( *\)TLSv1.2\( *\)1;\( *\)$/\1#TLSv1.2\21;\3/" $nginx_conf
+                log_echo "${OK} ${GreenBG} $(gettext "已切换至") TLSv1.3 ${Font}"
+            fi
         else
-            sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
-            log_echo "${OK} ${GreenBG} $(gettext "已切换至") TLS1.3 only ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "当前模式不支持") ${Font}"
+            return 1
         fi
         [[ -f "${nginx_systemd_file}" ]] && systemctl restart nginx && judge "Nginx $(gettext "重启")"
         systemctl restart xray
         judge "Xray $(gettext "重启")"
     else
-        log_echo "${Error} ${RedBG} $(gettext "Nginx/配置文件不存在 或 当前模式不支持") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "Nginx配置文件不存在 或 当前模式不支持") ${Font}"
     fi
 }
 
@@ -3537,6 +3580,7 @@ install_xray_reality() {
     reality_nginx_add_fq
     xray_conf_add
     vless_qr_config_reality
+    tls_type
     basic_information
     enable_process_systemd
     auto_update
