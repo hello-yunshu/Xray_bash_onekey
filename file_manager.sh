@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.2.2"
+fm_SCRIPT_VERSION="1.2.3"
 
 if [ -z "$1" ]; then
     echo "$(gettext "用法"):" $0 <$(gettext "文件扩展名")> [<$(gettext "目录路径")>]
@@ -232,7 +232,7 @@ fm_check_for_updates() {
         log_echo "${Warning} ${YellowBG} $(gettext "新版本可用"): $latest_version $(gettext "当前版本"): $fm_SCRIPT_VERSION ${Font}"
         log_echo "${Warning} ${YellowBG} $(gettext "请访问") https://github.com/hello-yunshu/Xray_bash_onekey $(gettext "查看更新说明") ${Font}"
 
-        log_echo "${GreenBG} $(gettext "是否要下载并安装新版本") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} $(gettext "是否下载并安装新版本") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r update_choice
         case $update_choice in
             [yY][eE][sS] | [yY])
