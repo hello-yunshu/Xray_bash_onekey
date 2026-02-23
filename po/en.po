@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-02-23 07:18+0000\n"
-"PO-Revision-Date: 2026-02-23 07:18+0000\n"
+"POT-Creation-Date: 2026-02-23 10:29+0000\n"
+"PO-Revision-Date: 2026-02-23 10:29+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -499,9 +499,10 @@ msgstr "whether to add reality load balancing"
 msgid "使用此功能前，建议先阅读作者教程"
 msgstr "before using this feature, it is recommended to first read the author's tutorial"
 
-#: install.sh:1251
-msgid "已开启"
-msgstr "already activated"
+#: install.sh:1251 fail2ban_manager.sh:93 fail2ban_manager.sh:103
+#: fail2ban_manager.sh:128 fail2ban_manager.sh:154 fail2ban_manager.sh:347
+msgid "已启用"
+msgstr "enabled"
 
 #: install.sh:1255
 msgid "已跳过"
@@ -636,12 +637,12 @@ msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr "set up a background scheduled automatic update program (including: script/xray/nginx)"
 
 #: install.sh:1564
-msgid "可能自动更新后有兼容问题, 谨慎开启"
-msgstr "there may be compatibility issues after automatic updates; proceed with caution"
+msgid "可能自动更新后有兼容问题, 谨慎启用"
+msgstr "there may be compatibility issues after an automatic update, so enable it with caution"
 
-#: install.sh:1565
-msgid "是否开启"
-msgstr "whether to enable"
+#: install.sh:1565 fail2ban_manager.sh:120 fail2ban_manager.sh:146
+msgid "是否启用"
+msgstr "enable or not"
 
 #: install.sh:1571 install.sh:3863
 msgid "设置自动更新"
@@ -1810,15 +1811,6 @@ msgstr "rule"
 msgid "未安装, 请先安装"
 msgstr "not installed, please install first"
 
-#: fail2ban_manager.sh:93 fail2ban_manager.sh:103 fail2ban_manager.sh:128
-#: fail2ban_manager.sh:154 fail2ban_manager.sh:347
-msgid "已启用"
-msgstr "enabled"
-
-#: fail2ban_manager.sh:120 fail2ban_manager.sh:146
-msgid "是否要启用"
-msgstr "whether to enable"
-
 #: fail2ban_manager.sh:125 fail2ban_manager.sh:151 fail2ban_manager.sh:349
 msgid "已禁用"
 msgstr "disabled"
@@ -1912,8 +1904,8 @@ msgid "禁用"
 msgstr "disable"
 
 #: fail2ban_manager.sh:378
-msgid "是否要"
-msgstr "whether to…"
+msgid "是否"
+msgstr "whether… or not"
 
 #: fail2ban_manager.sh:378 fail2ban_manager.sh:386
 msgid "模块"
@@ -1961,7 +1953,7 @@ msgid "查看更新说明"
 msgstr "view update notes"
 
 #: fail2ban_manager.sh:487 file_manager.sh:235
-msgid "是否要下载并安装新版本"
+msgid "是否下载并安装新版本"
 msgstr "do you want to download and install the new version"
 
 #: fail2ban_manager.sh:491 file_manager.sh:239
