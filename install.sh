@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.7"
+shell_version="2.8.8"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -2757,6 +2757,54 @@ info_extraction() {
     fi
 }
 
+install_iftop() {
+    if ! command -v iftop &>/dev/null; then
+        log_echo "${Info} ${Green} $(gettext "正在安装") iftop... ${Font}"
+        check_system
+        pkg_install "iftop"
+    else
+        log_echo "${OK} ${GreenBG} $(gettext "已安装") iftop ${Font}"
+    fi
+}
+
+monitor_traffic_with_iftop() {
+    if [[ ! -f "${xray_qr_config_file}" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
+        exit 1
+    fi
+
+    install_iftop
+
+    local port
+    local interface
+
+    port=$(info_extraction port)
+    if [[ -z "${port}" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
+        exit 1
+    fi
+
+    interface=$(ip route show | awk '/default/ {print $5; exit}')
+    if [[ -z "${interface}" ]]; then
+        interface="any"
+        log_echo "${Warning} ${YellowBG} $(gettext "无法获取网卡, 将监控所有网卡") ${Font}"
+    else
+        log_echo "${OK} ${GreenBG} $(gettext "监控网卡"): ${interface} ${Font}"
+    fi
+
+    log_echo "${OK} ${GreenBG} $(gettext "监控端口"): ${port} ${Font}"
+    echo
+    log_echo "${Info} ${Green} $(gettext "按 q 键退出 iftop") ${Font}"
+    timeout "$(gettext "启动") iftop"
+    sleep 3
+
+    if [[ "${interface}" == "any" ]]; then
+        iftop -i any -n -f "port ${port}"
+    else
+        iftop -i "${interface}" -n -f "port ${port}"
+    fi
+}
+
 basic_information() {
     {
         echo
@@ -3807,6 +3855,10 @@ list() {
     '-p' | '--port-reset')
         reset_port
         ;;
+    '-pt' | '--port-traffic')
+        clear
+        monitor_traffic_with_iftop
+        ;;
     '--purge' | '--uninstall')
         uninstall_all
         ;;
@@ -3870,6 +3922,7 @@ show_help() {
     echo "  -l, --language              $(gettext "修改语言")"
     echo "  -n, --nginx-update          $(gettext "更新") Nginx"
     echo "  -p, --port-reset            $(gettext "变更") port"
+    echo "  -pt, --port-traffic         $(gettext "查看") port $(gettext "实时流量")"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
     echo "  -s, --show                  $(gettext "显示安装信息")"
     echo "  -t, --target-reset          $(gettext "变更") target"
@@ -4224,29 +4277,30 @@ menu() {
     echo -e "${Green}16.${Font} $(gettext "查看") Xray $(gettext "实时访问日志")"
     echo -e "${Green}17.${Font} $(gettext "查看") Xray $(gettext "实时错误日志")"
     echo -e "${Green}18.${Font} $(gettext "查看") Xray $(gettext "配置信息")"
+    echo -e "${Green}19.${Font} $(gettext "查看") port $(gettext "实时流量")"
     echo -e "—————————————— ${GreenW}$(gettext "服务相关")${Font} ——————————————"
-    echo -e "${Green}19.${Font} $(gettext "重启") $(gettext "所有服务")"
-    echo -e "${Green}20.${Font} $(gettext "启动") $(gettext "所有服务")"
-    echo -e "${Green}21.${Font} $(gettext "停止") $(gettext "所有服务")"
-    echo -e "${Green}22.${Font} $(gettext "查看") $(gettext "所有服务")"
+    echo -e "${Green}20.${Font} $(gettext "重启") $(gettext "所有服务")"
+    echo -e "${Green}21.${Font} $(gettext "启动") $(gettext "所有服务")"
+    echo -e "${Green}22.${Font} $(gettext "停止") $(gettext "所有服务")"
+    echo -e "${Green}23.${Font} $(gettext "查看") $(gettext "所有服务")"
     echo -e "—————————————— ${GreenW}$(gettext "证书相关")${Font} ——————————————"
-    echo -e "${Green}23.${Font} $(gettext "查看") $(gettext "证书状态")"
-    echo -e "${Green}24.${Font} $(gettext "更新") $(gettext "证书有效期")"
-    echo -e "${Green}25.${Font} $(gettext "设置") $(gettext "证书自动更新")"
+    echo -e "${Green}24.${Font} $(gettext "查看") $(gettext "证书状态")"
+    echo -e "${Green}25.${Font} $(gettext "更新") $(gettext "证书有效期")"
+    echo -e "${Green}26.${Font} $(gettext "设置") $(gettext "证书自动更新")"
     echo -e "—————————————— ${GreenW}$(gettext "其他选项")${Font} ——————————————"
-    echo -e "${Green}26.${Font} $(gettext "配置") $(gettext "自动更新")"
-    echo -e "${Green}27.${Font} $(gettext "设置") TCP $(gettext "加速")"
-    echo -e "${Green}28.${Font} $(gettext "设置") Fail2ban $(gettext "防暴力破解")"
-    echo -e "${Green}29.${Font} $(gettext "设置") Xray $(gettext "流量统计")"
-    echo -e "${Green}30.${Font} $(gettext "清除") $(gettext "日志文件")"
-    echo -e "${Green}31.${Font} $(gettext "测试") $(gettext "服务器网速")"
+    echo -e "${Green}27.${Font} $(gettext "配置") $(gettext "自动更新")"
+    echo -e "${Green}28.${Font} $(gettext "设置") TCP $(gettext "加速")"
+    echo -e "${Green}29.${Font} $(gettext "设置") Fail2ban $(gettext "防暴力破解")"
+    echo -e "${Green}30.${Font} $(gettext "设置") Xray $(gettext "流量统计")"
+    echo -e "${Green}31.${Font} $(gettext "清除") $(gettext "日志文件")"
+    echo -e "${Green}32.${Font} $(gettext "测试") $(gettext "服务器网速")"
     echo -e "—————————————— ${GreenW}$(gettext "备份恢复")${Font} ——————————————"
-    echo -e "${Green}32.${Font} $(gettext "备份") $(gettext "全部文件")"
-    echo -e "${Green}33.${Font} $(gettext "恢复") $(gettext "全部文件")"
+    echo -e "${Green}33.${Font} $(gettext "备份") $(gettext "全部文件")"
+    echo -e "${Green}34.${Font} $(gettext "恢复") $(gettext "全部文件")"
     echo -e "—————————————— ${GreenW}$(gettext "卸载向导")${Font} ——————————————"
-    echo -e "${Green}34.${Font} $(gettext "卸载") $(gettext "脚本")"
-    echo -e "${Green}35.${Font} $(gettext "清空") $(gettext "证书文件")"
-    echo -e "${Green}36.${Font} $(gettext "退出") \n"
+    echo -e "${Green}35.${Font} $(gettext "卸载") $(gettext "脚本")"
+    echo -e "${Green}36.${Font} $(gettext "清空") $(gettext "证书文件")"
+    echo -e "${Green}37.${Font} $(gettext "退出") \n"
 
     local menu_num
     read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 99 "$(gettext "请输入有效的数字")!"
@@ -4377,72 +4431,77 @@ menu() {
         menu
         ;;
     19)
+        clear
+        monitor_traffic_with_iftop
+        menu
+        ;;
+    20)
         service_restart
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    20)
+    21)
         service_start
         timeout "$(gettext "清空屏幕")!"
         clear
         source "$idleleo"
         ;;
-    21)
+    22)
         service_stop
         timeout "$(gettext "清空屏幕")!"
         clear
         source "$idleleo"
         ;;
-    22)
+    23)
         if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
             systemctl status nginx
         fi
         systemctl status xray
         menu
         ;;
-    23)
+    24)
         check_cert_status
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
-    24)
+    25)
         cert_update_manuel
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
-    25)
+    26)
         acme_cron_update
         timeout "$(gettext "回到菜单")!"
         clear
         menu
         ;;
-    26)
+    27)
         auto_update
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    27)
+    28)
         clear
         bbr_boost_sh
         echo
         menu
         ;;
-    28)
+    29)
         set_fail2ban
         menu
         ;;
-    29)
+    30)
         xray_status_add
         timeout "$(gettext "回到菜单")!"
         menu
         ;;
-    30)
+    31)
         clean_logs
         menu
         ;;
-    31)
+    32)
         clear
         read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
         bash <(curl -Lso- https://git.io/Jlkmw)
@@ -4450,28 +4509,28 @@ menu() {
         echo
         menu
         ;;
-    32)
+    33)
         backup_directories
         menu
         ;;
-    33)
+    34)
         restore_directories
         menu
         ;;
-    34)
+    35)
         uninstall_all
         timeout "$(gettext "清空屏幕")!"
         clear
         source "$idleleo"
         ;;
-    35)
+    36)
         delete_tls_key_and_crt
         rm -rf ${ssl_chainpath}/*
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    36)
+    37)
         timeout "$(gettext "清空屏幕")!"
         clear
         exit 0
