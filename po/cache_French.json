@@ -499,5 +499,10 @@
   "可能自动更新后有兼容问题, 谨慎启用": "il peut y avoir des problèmes de compatibilité après une mise à jour automatique ; activez avec prudence",
   "是否启用": "activer ou non",
   "是否": "est-ce que…",
-  "是否下载并安装新版本": "télécharger et installer la nouvelle version "
+  "是否下载并安装新版本": "télécharger et installer la nouvelle version ",
+  "无法获取网卡, 将监控所有网卡": "impossible d’obtenir la carte réseau ; toutes les cartes réseaux seront surveillées",
+  "监控网卡": "surveiller la carte réseau",
+  "监控端口": "port de surveillance",
+  "按 q 键退出 iftop": "appuyez sur la touche q pour quitter iftop",
+  "实时流量": "trafic en temps réel"
 }
