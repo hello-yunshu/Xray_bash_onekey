@@ -499,5 +499,10 @@
   "可能自动更新后有兼容问题, 谨慎启用": "there may be compatibility issues after an automatic update, so enable it with caution",
   "是否启用": "enable or not",
   "是否": "whether… or not",
-  "是否下载并安装新版本": "do you want to download and install the new version"
+  "是否下载并安装新版本": "do you want to download and install the new version",
+  "无法获取网卡, 将监控所有网卡": "unable to obtain the network adapter; monitoring all network adapters",
+  "监控网卡": "monitor network card",
+  "监控端口": "monitoring port",
+  "按 q 键退出 iftop": "press the q key to exit iftop",
+  "实时流量": "real-time traffic"
 }
