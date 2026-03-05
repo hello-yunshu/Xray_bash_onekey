@@ -8,7 +8,7 @@
 
 ## Usage Instructions
 
-* You can directly input the command: `idleleo` to manage the script. ( [View the background story of `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#the-immortal-path-of-idelao-the-legend-of-idleleo) )
+* You can directly input the command: `idleleo` to manage the script. ( [View the background story of `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/The-True-Face-Behind-the-Fog) )
 * Use Qwen-MT-Plus AI for accurate translations in multiple languages.
 * It is recommended to use Nginx as a reverse proxy for Reality, which can be installed in the script.
 * It is recommended to enable fail2ban, which can be installed in the script.
@@ -48,7 +48,6 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 * Using this script requires basic Linux knowledge and experience, understanding of computer network basics, and basic computer operations.
 * Currently supports Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+, some Centos templates may have difficult-to-handle compilation issues; it is suggested to switch to other system templates if compilation issues occur.
 * The author provides limited support, as they are quite笨.
-* The sharing link is an experimental version, future changes are possible, please confirm whether your client supports it.
 * Mapping custom strings to UUIDv5 requires client support.
 
 ## Acknowledgments
@@ -76,14 +75,12 @@ The script supports automatically generating Let's Encrypt certificates, valid f
 
 * This script defaults to installing the latest version of Xray core.
 * It is recommended to use the default port 443 as the connection port.
-* The disguise content can be replaced at will.
 
 ## Other Notes
 
 * It is recommended to use this script in a clean environment; beginners are advised not to use the Centos system.
 * Before applying this program to production environments, ensure it works correctly.
 * This program depends on Nginx to implement related functions; users who have previously installed Nginx using [LNMP](https://lnmp.org) or similar scripts should pay special attention, as using this script may cause unpredictable errors.
-* Centos system users should pre-open relevant ports in the firewall (default: 80, 443).
 
 ## Startup Methods
 

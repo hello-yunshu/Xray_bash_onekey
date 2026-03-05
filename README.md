@@ -8,7 +8,7 @@
 
 ## 使用说明
 
-* 可以直接输入命令：`idleleo` 管理脚本。 ( [查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#%E9%80%8D%E9%81%A5%E4%BB%99%E9%80%94idleleo-%E4%B9%8B%E5%90%8D) )
+* 可以直接输入命令：`idleleo` 管理脚本。 ( [查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9) )
 * 使用 Qwen-MT-Plus AI 实现多国语言精准翻译。
 * Reality 建议使用 Nginx 前置，在脚本中安装即可。
 * 建议开启 fail2ban ，在脚本中安装即可。
@@ -48,7 +48,6 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 * 使用本脚本需要你拥有 Linux 基础及使用经验，了解计算机网络部分知识，计算机基础操作。
 * 目前支持 Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+ ，部分 Centos 模板可能存在难以处理的编译问题，建议遇到编译问题时，请更换至其他系统模板。
 * 作者仅提供有限的支持，应为太笨了。
-* 分享链接为实验版本，不排除未来变动的可能，请自行确认客户端是否支持。
 * 自定义字符串映射至 UUIDv5 需要客户端支持。
 
 ## 鸣谢
@@ -76,14 +75,12 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 
 * 本脚本默认安装最新版本的 Xray core。
 * 建议使用默认的 443 端口作为连接端口。
-* 伪装内容可自行替换。
 
 ## 其他注意事项
 
 * 推荐在纯净环境下使用本脚本，如果你是新手，请不要使用 Centos 系统。
 * 在尝试本脚本确实可用之前，请不要将本程序应用于生产环境中。
 * 该程序依赖 Nginx 实现相关功能，请使用 [LNMP](https://lnmp.org) 或其他类似携带 Nginx 脚本安装过 Nginx 的用户特别留意，使用本脚本可能会导致无法预知的错误。
-* Centos 系统用户请预先在防火墙中放行程序相关端口（默认：80，443）。
 
 ## 启动方式
 

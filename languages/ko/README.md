@@ -8,7 +8,7 @@
 
 ## 사용 방법
 
-* `idleleo` 명령을 직접 입력하여 스크립트를 관리할 수 있습니다. ( [`idleleo` 배경 이야기 보기](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#%EB%AC%B4%EB%A6%89%EC%84%A0%EB%8F%84%E6%AD%A6%E9%99%B5%E4%BB%99%E9%81%93-%EC%95%84%EC%9D%B4%EB%93%A4%EB%A0%88%EC%98%A4%EC%9D%98-%EC%A0%84%EC%84%A4) )
+* `idleleo` 명령을 직접 입력하여 스크립트를 관리할 수 있습니다. ( [`idleleo` 배경 이야기 보기](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%EC%95%88%EA%B0%9C-%EB%92%A4%EC%9D%98-%EC%A7%84%EC%8B%A4%EB%90%9C-%EC%96%BC%EA%B5%B4) )
 * Qwen-MT-Plus AI를 사용해서 여러 언어를 정확하게 번역해.
 * Reality는 Nginx 프론트엔드를 권장하며, 스크립트에서 설치할 수 있습니다.
 * fail2ban 활성화를 권장하며, 스크립트에서 설치할 수 있습니다.
@@ -48,7 +48,6 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 * 이 스크립트를 사용하려면 Linux 기초 지식과 경험, 컴퓨터 네트워크 부분 지식, 컴퓨터 기본 조작 능력이 필요합니다.
 * 현재 Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+ 를 지원하며 일부 Centos 템플릿에서는 처리하기 어려운 컴파일 문제가 발생할 수 있으므로 문제 발생 시 다른 시스템 템플릿으로 변경하세요.
 * 저자는 한정적인 지원만 제공하며 너무 멍청해서요.
-* 공유 링크는 실험 버전이며 미래 변경 가능성이 있으니 클라이언트 호환 여부를 스스로 확인하세요.
 * 사용자 정의 문자열을 UUIDv5로 매핑하려면 클라이언트가 이를 지원해야 합니다.
 
 ## 감사의 말
@@ -76,14 +75,12 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 
 * 본 스크립트는 최신 버전의 Xray core를 기본으로 설치합니다.
 * 연결 포트로 기본 443 포트 사용을 권장합니다.
-* 가짜 내용은 사용자가 교체할 수 있습니다.
 
 ## 기타 주의사항
 
 * 순수 환경에서 본 스크립트를 사용하는 것이 좋으며 초보자라면 CentOS 시스템을 사용하지 마세요.
 * 본 스크립트가 실제로 작동하는지 확인하기 전까지 생산 환경에 적용하지 마세요.
 * 해당 프로그램은 Nginx를 통해 다양한 기능을 구현하는데 의존하므로 [LNMP](https://lnmp.org) 또는 기타 유사한 Nginx 포함 설치 스크립트를 사용한 사용자는 예측 불가능한 오류가 발생할 수 있다는 점에 특히 주의해야 합니다.
-* CentOS 사용자는 방화벽에서 프로그램 관련 포트(기본값: 80, 443)를 미리 열어야 합니다.
 
 ## 시작 방법
 
