@@ -8,7 +8,7 @@
 
 ## Instructions d'utilisation
 
-* Vous pouvez simplement entrer la commande : `idleleo` pour gérer le script. ( [Voir l'histoire de `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Backstory#la-voie-immortelle-didleleo) )
+* Vous pouvez simplement entrer la commande : `idleleo` pour gérer le script. ( [Voir l'histoire de `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Le-Vrai-Visage-Derri%C3%A8re-la-Brume) )
 * Traduction multilingue précise réalisée avec l'IA Qwen-MT-Plus.
 * Il est recommandé d'utiliser Nginx devant Reality, vous pouvez l'installer directement via le script.
 * Il est conseillé d'activer fail2ban, vous pouvez l'installer via le script.
@@ -48,7 +48,6 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 * Ce script nécessite des bases en Linux, une expérience de son utilisation, ainsi qu'une compréhension des réseaux informatiques et des opérations basiques.
 * Actuellement, il supporte Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+ ; certains modèles Centos peuvent rencontrer des problèmes de compilation, il est donc recommandé de changer de modèle système en cas de difficultés.
 * L'auteur fournit un support limité, car il estime ne pas être très compétent.
-* Les liens de partage sont en version expérimentale, des changements futurs sont possibles, veuillez vérifier si votre client les supporte.
 * Le mappage d'une chaîne personnalisée vers UUIDv5 nécessite que le client le prenne en charge.
 
 ## Remerciements
@@ -76,14 +75,12 @@ Le script prend en charge la génération automatique de certificats Let's Encry
 
 * Ce script installe par défaut la dernière version du noyau Xray.
 * Il est recommandé d'utiliser le port 443 par défaut comme port de connexion.
-* Le contenu de brouillage peut être remplacé manuellement.
 
 ## Autres remarques
 
 * Il est recommandé d'utiliser ce script dans un environnement propre. Si vous êtes débutant, évitez d'utiliser le système Centos.
 * Avant de confirmer que ce script fonctionne correctement, veuillez ne pas l'utiliser dans un environnement de production.
 * Ce programme dépend de Nginx pour fonctionner. Les utilisateurs ayant installé Nginx via [LNMP](https://lnmp.org) ou d'autres scripts similaires doivent faire attention, car l'utilisation de ce script pourrait entraîner des erreurs imprévues.
-* Les utilisateurs de Centos doivent ouvrir les ports nécessaires (par défaut : 80, 443) dans le pare-feu.
 
 ## Démarrage
 
