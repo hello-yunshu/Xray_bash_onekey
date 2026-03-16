@@ -21,17 +21,17 @@ jobs:
     
     steps:
       - name: Check running workflows
-        uses: styfle/cancel-workflow-action@0.12.1
+        uses: styfle/cancel-workflow-action@main
         with:
           access_token: ${{ github.token }}
       
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@main
         with:
           persist-credentials: true
       
       - name: Restore translation cache
         id: cache-translations
-        uses: actions/cache@v3
+        uses: actions/cache@main
         with:
           path: po/cache_*.json
           key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
@@ -45,7 +45,7 @@ jobs:
           pip3 install googletrans-py langdetect openai
 
       - name: Cache Python dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@main
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-googletrans-py-langdetect-openai
@@ -116,7 +116,7 @@ jobs:
       
       - name: Save translation cache
         if: always()
-        uses: actions/cache@v3
+        uses: actions/cache@main
         with:
           path: po/cache_*.json
           key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
