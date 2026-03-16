@@ -14,16 +14,16 @@ jobs:
     
     steps:
       - name: Check running workflows
-        uses: styfle/cancel-workflow-action@0.12.1
+        uses: styfle/cancel-workflow-action@main
         with:
           access_token: ${{ github.token }}
       
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@main
         with:
           persist-credentials: true
       
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@main
         with:
           python-version: '3.x'
       
@@ -36,7 +36,7 @@ jobs:
         # 确保使用具体版本，避免兼容性问题
       
       - name: Cache Python dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@main
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/translate_readme.py') }}
