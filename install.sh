@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.8"
+shell_version="2.8.9"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -842,12 +842,28 @@ keys_set() {
         [yY][eE][sS] | [yY])
             read_optimize "$(gettext "请输入") privateKey:" "privateKey" "NULL"
             keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}" | tr '\n' ' ')
-            password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
+            ## 兼容之前的xray版本，一个大版本后删除
+            if echo "${keys}" | grep -q "Password (PublicKey): "; then
+                password=$(echo "${keys}" | awk -F"Password (PublicKey): " '{print $2}' | awk '{print $1}')
+            elif echo "${keys}" | grep -q "Password: "; then
+                password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
+            elif echo "${keys}" | grep -q "PublicKey: "; then
+                password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
+            fi
+            ## 兼容结束
             ;;
         *)
             keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
             privateKey=$(echo "${keys}" | awk -F"PrivateKey: " '{print $2}' | awk '{print $1}')
-            password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
+            ## 兼容之前的xray版本，一个大版本后删除
+            if echo "${keys}" | grep -q "Password (PublicKey): "; then
+                password=$(echo "${keys}" | awk -F"Password (PublicKey): " '{print $2}' | awk '{print $1}')
+            elif echo "${keys}" | grep -q "Password: "; then
+                password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
+            elif echo "${keys}" | grep -q "PublicKey: "; then
+                password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
+            fi
+            ## 兼容结束
             ;;
         esac
         log_echo "${Green} privateKey: ${privateKey} ${Font}"
