@@ -63,7 +63,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 
 ## 클라이언트 구성을 확인
 
-`cat /etc/idleleo/xray_info.txt`
+`cat /etc/idleleo/info/xray_info.inf`
 
 ## Xray 소개
 

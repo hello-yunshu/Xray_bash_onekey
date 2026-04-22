@@ -63,7 +63,7 @@ Le script prend en charge la génération automatique de certificats Let's Encry
 
 ## Afficher la configuration client
 
-`cat /etc/idleleo/xray_info.txt`
+`cat /etc/idleleo/info/xray_info.inf`
 
 ## Présentation de Xray
 
