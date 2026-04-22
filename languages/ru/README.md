@@ -63,7 +63,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 
 ## Просмотр конфигурации клиента
 
-`cat /etc/idleleo/xray_info.txt`
+`cat /etc/idleleo/info/xray_info.inf`
 
 ## Описание Xray
 

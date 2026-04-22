@@ -47,7 +47,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 * Cloudflare users should enable CDN functionality after installation.
 * Using this script requires basic Linux knowledge and experience, understanding of computer network basics, and basic computer operations.
 * Currently supports Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+, some Centos templates may have difficult-to-handle compilation issues; it is suggested to switch to other system templates if compilation issues occur.
-* The author provides limited support, as they are quite笨.
+* The author provides limited support, as they are not very competent.
 * Mapping custom strings to UUIDv5 requires client support.
 
 ## Acknowledgments
@@ -63,7 +63,7 @@ The script supports automatically generating Let's Encrypt certificates, valid f
 
 ## View Client Configuration
 
-`cat /etc/idleleo/xray_info.txt`
+`cat /etc/idleleo/info/xray_info.inf`
 
 ## Introduction to Xray
 
