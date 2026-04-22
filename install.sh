@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.10"
+shell_version="2.8.11"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -4520,7 +4520,7 @@ menu() {
     32)
         clear
         read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
-        bash <(curl -Lso- https://git.io/Jlkmw)
+        bash <(curl -Lso- https://cdn.jsdelivr.net/gh/hello-yunshu/superspeed@master/superspeed.sh)
         read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
         echo
         menu
