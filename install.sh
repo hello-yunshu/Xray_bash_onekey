@@ -125,9 +125,6 @@ log_echo() {
     log "$message"
 }
 
-##兼容代码, 未来删除
-[[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p ${idleleo_dir}/tmp
-
 source '/etc/os-release'
 
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
@@ -842,7 +839,7 @@ keys_set() {
         [yY][eE][sS] | [yY])
             read_optimize "$(gettext "请输入") privateKey:" "privateKey" "NULL"
             keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}" | tr '\n' ' ')
-            ## 兼容之前的xray版本，一个大版本后删除
+            ## 兼容之前的xray版本，一个大版本后删除 from: 2.8.9
             if echo "${keys}" | grep -q "Password (PublicKey): "; then
                 password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
             elif echo "${keys}" | grep -q "Password: "; then
@@ -855,7 +852,7 @@ keys_set() {
         *)
             keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
             privateKey=$(echo "${keys}" | awk -F"PrivateKey: " '{print $2}' | awk '{print $1}')
-            ## 兼容之前的xray版本，一个大版本后删除
+            ## 兼容之前的xray版本，一个大版本后删除  from: 2.8.9
             if echo "${keys}" | grep -q "Password (PublicKey): "; then
                 password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
             elif echo "${keys}" | grep -q "Password: "; then
@@ -1350,26 +1347,6 @@ nginx_exist_check() {
         modify_nginx_origin_conf
         nginx_build_version=$(info_extraction nginx_build_version)
         log_echo "${OK} ${GreenBG} Nginx $(gettext "已存在, 跳过编译安装过程") ${Font}"
-    #兼容代码, 下个大版本删除
-    elif [[ -d "/etc/nginx" ]] && [[ -z "$(info_extraction nginx_version)" ]]; then
-        log_echo "${Error} ${GreenBG} $(gettext "检测到旧版本安装的") nginx ! ${Font}"
-        log_echo "${Warning} ${GreenBG} $(gettext "请先做好备份") ${Font}"
-        log_echo "${GreenBG} $(gettext "是否需要删除 (请删除)") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-        read -r remove_nginx_fq
-        case $remove_nginx_fq in
-        [nN][oO] | [nN])
-        log_echo "${OK} ${GreenBG} $(gettext "已跳过删除") nginx ${Font}"
-        source "$idleleo"
-            ;;
-        *)
-            rm -rf /etc/nginx/
-            [[ -f "${nginx_systemd_file}" ]] && rm -rf ${nginx_systemd_file}
-            [[ -d "${nginx_conf_dir}" ]] && rm -rf ${nginx_conf_dir}/*.conf
-            log_echo "${Warning} ${GreenBG} $(gettext "日志目录已更改, 日志清除需要重新设置")! ${Font}"
-            nginx_install
-            ;;
-        esac
-    #兼容代码结束
     elif [[ -d "/etc/nginx" ]] && [[ -n "$(info_extraction nginx_version)" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装")! ${Font}"
         exit 1
@@ -1510,9 +1487,6 @@ nginx_update() {
                 nginx_servers_conf_add
             elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_reality_conf_add
-                #以下为兼容代码, 1个大版本后删除 from 2.3.5
-                nginx_reality_servers_add
-                #兼容代码接受
             fi
             service_start
             sleep 1
@@ -1924,9 +1898,6 @@ old_config_input() {
         serverNames=$(info_extraction serverNames)
         privateKey=$(info_extraction privateKey)
         password=$(info_extraction password)
-        ## 以下兼容 xray-core 旧版本，下个大版本删除
-        [[ -z "$password" ]] && password=$(info_extraction publicKey)
-        ## 兼容代码结束
         shortIds=$(info_extraction shortIds)
         if [[ ${reality_add_more} == "on" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
@@ -2365,32 +2336,8 @@ set_fail2ban() {
 }
 
 setup_auto_clean_logs() {
-    local cron_file logrotate_config
+    local logrotate_config
     echo
-
-    #以下为兼容代码, 1个大版本后删除
-    if [[ "${ID}" == "centos" ]]; then
-        cron_file="/var/spool/cron/root"
-    else
-        cron_file="/var/spool/cron/crontabs/root"
-    fi
-
-    if [[ -f "$cron_file" ]] && [[ $(grep -c "find /var/log/xray/ /etc/nginx/logs -name" "$cron_file") -ne '0' ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "已设置旧版自动清理日志任务") ${Font}"
-        log_echo "${GreenBG} $(gettext "是否需要删除旧版自动清理日志任务") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-        read -r delete_task
-        case $delete_task in
-        [nN][oO] | [nN])
-            log_echo "${OK} ${Green} $(gettext "保留现有自动清理日志任务") ${Font}"
-            return
-            ;;
-        *)
-            sed -i "/find \/var\/log\/xray\/ \/etc\/nginx\/logs -name/d" "$cron_file"
-            judge "$(gettext "删除旧版自动清理日志任务")"
-            ;;
-        esac
-    fi
-    #兼容代码结束
 
     log_echo "${GreenBG} $(gettext "是否需要设置自动清理日志") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r auto_clean_logs_fq
@@ -4222,24 +4169,6 @@ function restore_directories() {
         log_echo "${Error} ${RedBG} $(gettext "恢复失败") ${Font}"
     fi
 }
-
-#以下为兼容代码, 1个大版本后删除
-fix_bugs() {
-    local log_cleanup_file_path="/etc/logrotate.d/custom_log_cleanup"
-    if [[ -f "${log_cleanup_file_path}" ]]; then
-        echo
-        log_echo "${Warning} ${RedBG} $(gettext "检测存在到") BUG ! ${Font}"
-        log_echo "${Warning} ${YellowBG} BUG $(gettext "来源于自动清理日志错误的设置") ${Font}"
-        log_echo "${Warning} ${YellowBG} $(gettext "开始修复")... ${Font}"
-        [[ -f "${nginx_dir}/sbin/nginx" ]] && chown -fR nobody:nogroup "${nginx_dir}/logs"
-        chown -fR nobody:nogroup /var/log/xray/
-        rm -f "${log_cleanup_file_path}"
-        judge "$(gettext "错误的配置文件删除")"
-        log_echo "${Warning} ${YellowBG} $(gettext "即将重新设置自动清理日志")... ${Font}"
-        bash "${idleleo}" --clean-logs
-    fi
-}
-#兼容代码结束
 
 menu() {
     echo
