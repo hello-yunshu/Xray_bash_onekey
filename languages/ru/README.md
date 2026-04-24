@@ -43,6 +43,17 @@
 bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
+## Развёртывание Docker
+
+Поддерживается развёртывание через Docker. Подробности см. в [Руководстве по развёртыванию Docker](/languages/ru/DOCKER.md).
+
+```bash
+git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
+cd Xray_bash_onekey
+docker compose up -d
+docker attach xray-onekey
+```
+
 ## Важные замечания
 
 * Если вы не знакомы с настройками, используйте значения по умолчанию для необязательных полей (просто нажимайте Enter)

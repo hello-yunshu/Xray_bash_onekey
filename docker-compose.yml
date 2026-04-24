@@ -1,0 +1,27 @@
+services:
+  xray-onekey:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xray-onekey
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - xray-conf:/etc/idleleo/conf
+      - xray-cert:/etc/idleleo/cert
+      - xray-info:/etc/idleleo/info
+      - xray-logs:/var/log/xray
+      - acme-data:/root/.acme.sh
+    stdin_open: true
+    tty: true
+
+volumes:
+  xray-conf:
+  xray-cert:
+  xray-info:
+  xray-logs:
+  acme-data:

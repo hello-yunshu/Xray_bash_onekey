@@ -43,6 +43,17 @@
 bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
+## استقرار Docker
+
+استقرار با Docker پشتیبانی می‌شود. برای جزئیات [راهنمای استقرار Docker](/languages/fa/DOCKER.md) را ببینید.
+
+```bash
+git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
+cd Xray_bash_onekey
+docker compose up -d
+docker attach xray-onekey
+```
+
 ## نکات مهم
 
 * اگر با تنظیمات آشنا نیستید، برای فیلدهای غیرضروری از مقادیر پیش‌فرض استفاده کنید (فقط Enter بزنید)
