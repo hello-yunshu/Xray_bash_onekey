@@ -43,6 +43,17 @@
 bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
+## Docker 배포
+
+Docker 배포가 지원됩니다. 자세한 내용은 [Docker 배포 가이드](/languages/ko/DOCKER.md)를 참조하세요.
+
+```bash
+git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
+cd Xray_bash_onekey
+docker compose up -d
+docker attach xray-onekey
+```
+
 ## 주의사항
 
 * 설정의 의미를 모르면 필수 항목 외에는 기본값을 사용하세요 (계속 Enter)

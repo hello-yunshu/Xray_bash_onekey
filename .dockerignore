@@ -1,0 +1,16 @@
+.github/
+.git/
+.gitignore
+.editorconfig
+LICENSE
+README.md
+DOCKER.md
+*.md
+po/
+Dockerfile
+docker-compose.yml
+docker-entrypoint.sh
+fake-systemctl
+.dockerignore
+translate.py
+translate_readme.py

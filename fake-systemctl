@@ -1,0 +1,211 @@
+#!/bin/bash
+
+XRAY_PID_FILE="/var/run/xray.pid"
+NGINX_PID_FILE="/usr/local/nginx/logs/nginx.pid"
+XRAY_BIN="/usr/local/bin/xray"
+NGINX_BIN="/usr/local/nginx/sbin/nginx"
+XRAY_CONF="/etc/idleleo/conf/xray/config.json"
+NGINX_CONF="/usr/local/nginx/conf/nginx.conf"
+
+_xray_is_running() {
+    if [[ -f "$XRAY_PID_FILE" ]]; then
+        local pid
+        pid=$(cat "$XRAY_PID_FILE" 2>/dev/null)
+        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+            return 0
+        fi
+    fi
+    pgrep -f "$XRAY_BIN" >/dev/null 2>&1
+}
+
+_nginx_is_running() {
+    if [[ -f "$NGINX_PID_FILE" ]]; then
+        local pid
+        pid=$(cat "$NGINX_PID_FILE" 2>/dev/null)
+        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+            return 0
+        fi
+    fi
+    pgrep -f "$NGINX_BIN" >/dev/null 2>&1
+}
+
+_start_xray() {
+    if _xray_is_running; then
+        return 0
+    fi
+    if [[ -x "$XRAY_BIN" ]] && [[ -f "$XRAY_CONF" ]]; then
+        nohup "$XRAY_BIN" run -config "$XRAY_CONF" >/var/log/xray/access.log 2>/var/log/xray/error.log &
+        echo $! > "$XRAY_PID_FILE"
+        sleep 1
+        if _xray_is_running; then
+            return 0
+        else
+            rm -f "$XRAY_PID_FILE"
+            return 1
+        fi
+    fi
+    return 1
+}
+
+_stop_xray() {
+    if [[ -f "$XRAY_PID_FILE" ]]; then
+        local pid
+        pid=$(cat "$XRAY_PID_FILE" 2>/dev/null)
+        if [[ -n "$pid" ]]; then
+            kill "$pid" 2>/dev/null
+            sleep 1
+            kill -9 "$pid" 2>/dev/null
+        fi
+        rm -f "$XRAY_PID_FILE"
+    fi
+    pkill -f "$XRAY_BIN" 2>/dev/null
+    return 0
+}
+
+_start_nginx() {
+    if _nginx_is_running; then
+        return 0
+    fi
+    if [[ -x "$NGINX_BIN" ]] && [[ -f "$NGINX_CONF" ]]; then
+        "$NGINX_BIN" -c "$NGINX_CONF" 2>/dev/null
+        sleep 1
+        if _nginx_is_running; then
+            return 0
+        else
+            return 1
+        fi
+    fi
+    return 1
+}
+
+_stop_nginx() {
+    if [[ -x "$NGINX_BIN" ]] && [[ -f "$NGINX_PID_FILE" ]]; then
+        "$NGINX_BIN" -s stop 2>/dev/null
+        sleep 1
+    fi
+    pkill -f "$NGINX_BIN" 2>/dev/null
+    rm -f "$NGINX_PID_FILE"
+    return 0
+}
+
+_reload_nginx() {
+    if _nginx_is_running; then
+        "$NGINX_BIN" -s reload 2>/dev/null
+        return $?
+    fi
+    return 0
+}
+
+case "$1" in
+    start)
+        case "$2" in
+            xray)   _start_xray ;;
+            nginx)  _start_nginx ;;
+            crond|cron) cron ;;
+            fail2ban) fail2ban-client start 2>/dev/null ;;
+            *)      ;;
+        esac
+        ;;
+    stop)
+        case "$2" in
+            xray)   _stop_xray ;;
+            nginx)  _stop_nginx ;;
+            fail2ban) fail2ban-client stop 2>/dev/null ;;
+            *)      ;;
+        esac
+        ;;
+    restart)
+        case "$2" in
+            xray)   _stop_xray; sleep 1; _start_xray ;;
+            nginx)  _stop_nginx; sleep 1; _start_nginx ;;
+            iptables) ;;
+            fail2ban) fail2ban-client restart 2>/dev/null ;;
+            *)      ;;
+        esac
+        ;;
+    reload)
+        case "$2" in
+            nginx)  _reload_nginx ;;
+            *)      ;;
+        esac
+        ;;
+    enable)
+        exit 0
+        ;;
+    disable)
+        exit 0
+        ;;
+    is-active)
+        shift
+        if [[ "$1" == "--quiet" ]] || [[ "$1" == "-q" ]]; then
+            shift
+        fi
+        case "$1" in
+            xray)
+                if _xray_is_running; then echo "active"; exit 0; else echo "inactive"; exit 3; fi
+                ;;
+            nginx)
+                if _nginx_is_running; then echo "active"; exit 0; else echo "inactive"; exit 3; fi
+                ;;
+            fail2ban)
+                if pgrep -f "fail2ban-server" >/dev/null 2>&1; then echo "active"; exit 0; else echo "inactive"; exit 3; fi
+                ;;
+            *)
+                echo "unknown"
+                exit 3
+                ;;
+        esac
+        ;;
+    is-enabled)
+        exit 0
+        ;;
+    daemon-reload)
+        exit 0
+        ;;
+    status)
+        case "$2" in
+            xray)
+                if _xray_is_running; then
+                    echo "● xray.service - Xray Service"
+                    echo "   Active: active (running)"
+                else
+                    echo "● xray.service - Xray Service"
+                    echo "   Active: inactive (dead)"
+                fi
+                ;;
+            nginx)
+                if _nginx_is_running; then
+                    echo "● nginx.service - NGINX HTTP and reverse proxy server"
+                    echo "   Active: active (running)"
+                else
+                    echo "● nginx.service - NGINX HTTP and reverse proxy server"
+                    echo "   Active: inactive (dead)"
+                fi
+                ;;
+            *)
+                echo "Unknown service: $2"
+                ;;
+        esac
+        ;;
+    -q)
+        if [[ "$2" == "is-active" ]]; then
+            case "$3" in
+                xray)
+                    if _xray_is_running; then exit 0; else exit 3; fi
+                    ;;
+                nginx)
+                    if _nginx_is_running; then exit 0; else exit 3; fi
+                    ;;
+                fail2ban)
+                    if pgrep -f "fail2ban-server" >/dev/null 2>&1; then exit 0; else exit 3; fi
+                    ;;
+                *) exit 3 ;;
+            esac
+        fi
+        ;;
+    *)
+        echo "Fake systemctl for Docker environment"
+        echo "Usage: systemctl {start|stop|restart|reload|enable|disable|is-active|is-enabled|daemon-reload|status} {service}"
+        exit 0
+        ;;
+esac

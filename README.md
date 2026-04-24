@@ -43,6 +43,17 @@
 bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
+## Docker 部署
+
+支持使用 Docker 部署，详见 [Docker 部署指南](/DOCKER.md)。
+
+```bash
+git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
+cd Xray_bash_onekey
+docker compose up -d
+docker attach xray-onekey
+```
+
 ## 注意事项
 
 * 不了解各项设置含义时，除必填项外请使用默认值（全程回车即可）
