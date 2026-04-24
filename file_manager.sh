@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.2.3"
+fm_SCRIPT_VERSION="1.2.4"
 
 if [ -z "$1" ]; then
     echo "$(gettext "用法"):" $0 <$(gettext "文件扩展名")> [<$(gettext "目录路径")>]
@@ -26,7 +26,7 @@ fm_list_files() {
     log_echo "${GreenBG} $(gettext "列出所有") .$fm_EXTENSION $(gettext "文件") ${Font}"
 
     # 设置 dotglob 选项，使通配符 * 包括以点开头的文件
-    shopt -s dotglob
+    shopt -s dotglob nullglob
 
     # 使用数组存储匹配到的文件
     files=(*.$fm_EXTENSION)

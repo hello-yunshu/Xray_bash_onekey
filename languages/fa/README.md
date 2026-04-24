@@ -1,4 +1,4 @@
-# Xray supports Reality / VLESS WebSocket/gRPC+TLS protocol + Nginx one-click installation script
+# اسکریپت نصب خودکار Xray — Reality / VLESS WebSocket/gRPC+TLS + Nginx
 
 [简体中文](/README.md) | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | فارسی | [한국어](/languages/ko/README.md)
 
@@ -6,98 +6,93 @@
 
 > سپاس از اجازه توسعه آزاد و غیرتجاری توسط JetBrains
 
-## راهنماي استفاده
+## ویژگی‌ها
 
-* می‌توانید دستور `idleleo` را مستقیماً وارد کنید تا اسکریپت را مدیریت کنید. ( [مشاهده پیشینهٔ داستان `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%DA%86%D9%87%D8%B1%D9%87-%D9%88%D8%A7%D9%82%D8%B9%DB%8C-%D9%BE%D8%B4%D8%AA-%D9%85%D9%87) )
-* با استفاده از Qwen-MT-Plus AI ترجمه دقیق به چند زبان رو انجام بده.
-* برای Reality، استفاده از Nginx به عنوان پیشگام توصیه می‌شود که در اسکریبت قابل نصب است.
-* توصیه می‌شود fail2ban را فعال کنید که در اسکریпт قابل نصب است.
-* از پیشنهاد لینک به اشتراک‌گذاری از [@DuckSoft](https://github.com/DuckSoft) [(beta)](https://github.com/XTLS/Xray-core/issues/91)، که Qv2ray، V2rayN، V2rayNG را پشتیبانی می‌کند استفاده کنید.
-* از پیشنهاد پروژه [XTLS](https://github.com/XTLS/Xray-core/issues/158)، با دنبال کردن استاندارد [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)، می‌توانید رشته‌های سفارشی خود را به UUID VLESS مپ کنید.
-* راهنمای نصب Reality: [راه اندازی سرور پروتکل Xray Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
-* ریسک‌های پروتکل Reality: [ریسک‌های پروتکل Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian).
-* سرعت‌دهی سرور با استفاده از پروتکل Reality: [سرعت‌دهی سرور با استفاده از "سلب‌معنایی" پروتکل Reality](https://hey.run/archives/use-reality).
-* پیکربندی تعادل بار Reality اضافه شد. آموزش: [نحوه استقرار تعادل بار پروتکل Reality](https://hey.run/archives/bushu-reality-balance).
-* پیکربندی تعادل بار ws/grpc اضافه شد. آموزش: [تکنیک‌های پیشرفته XRay – ساخت تعادل بار سرور پس‌زمینه](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
-* اضافه کردن پشتیبانی از پروتکل gRPC، جزئیات بیشتر: [XRay پیشرفته – استفاده از پروتکل gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
+* دستور `idleleo` را وارد کنید تا اسکریپت را مدیریت کنید ([مشاهده پیشینهٔ داستان `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%DA%86%D9%87%D8%B1%D9%87-%D9%88%D8%A7%D9%82%D8%B9%DB%8C-%D9%BE%D8%B4%D8%AA-%D9%85%D9%87))
+* ترجمه دقیق چندزبانه با Qwen-MT-Plus AI
+* پشتیبانی از پروتکل Reality با Nginx پیشگام توصیه‌شده (قابل نصب از طریق اسکریپت)
+* حفاظت داخلی fail2ban (قابل نصب از طریق اسکریپت)
+* استفاده از [پیشنهاد](https://github.com/XTLS/Xray-core/issues/91) لینک اشتراک‌گذاری [@DuckSoft](https://github.com/DuckSoft) (بتا)، سازگار با Qv2ray، V2rayN، V2rayNG
+* استفاده از پیشنهاد پروژه [XTLS](https://github.com/XTLS/Xray-core/issues/158)، پیروی از استاندارد [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)، پشتیبانی از نگاشت رشته‌های سفارشی به UUID VLESS
+* پشتیبانی از پروتکل gRPC: [استفاده از پروتکل gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* پشتیبانی از تعادل بار Reality / ws/gRPC:
+  - [استقرار تعادل بار Reality](https://hey.run/archives/bushu-reality-balance)
+  - [ساخت تعادل بار بک‌اند](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+
+## مطالعه بیشتر
+
+* راهنمای نصب Reality: [راه‌اندازی سرور Xray Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* خطرات پروتکل Reality: [خطرات پروتکل Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian)
+* تسریع سرور با Reality: [تسریع سرور از طریق «آسیب‌پذیری» پروتکل Reality](https://hey.run/archives/use-reality)
 
 ## گروه تلگرام
 
-* گروه تلگرام: [لینک را کلیک کنید](https://t.me/+48VSqv7xIIFmZDZl)
+* گروه بحث: [کلیک برای عضویت](https://t.me/+48VSqv7xIIFmZDZl)
 
-## آمادگی
+## پیش‌نیازها
 
-* یک سرور آماده کنید که در خارج از کشور فعالیت کند و دارای آدرس آی‌پی عمومی باشد.
-* برای نصب پروتکل Reality، یک دامنه را که به الزم معیارهای Xray منطبق است پیدا کنید.
-* برای نسخه TLS، یک دامنه آماده کنید و رکورد A را اضافه کنید.
-* [مستندات رسمی Xray](https://xtls.github.io) را بخوانید تا به طور کلی اطلاعات مربوط به Reality TLS WebSocket gRPC و اطلاعات مرتبط با Xray را واقع شوید و نیازهای دامنه برای هدف Reality را بشناسید.
-* **به اطمینان از نصب curl**، کاربران CentOS باید اجرا کنند: `yum install -y curl`; کاربران Debian/Ubuntu باید اجرا کنند: `apt install -y curl`.
+* یک سرور خارج از کشور با آدرس آی‌پی عمومی
+* برای پروتکل Reality: یک دامنه هدف مطابق با الزامات Xray آماده کنید
+* برای نسخه TLS: یک دامنه آماده کنید و رکورد A اضافه کنید
+* [مستندات رسمی Xray](https://xtls.github.io) را بخوانید تا با Reality، TLS، WebSocket، gRPC و مفاهیم مرتبط Xray آشنا شوید
+* **اطمینان از نصب curl**: کاربران CentOS دستور `yum install -y curl` را اجرا کنند؛ کاربران Debian/Ubuntu دستور `apt install -y curl` را اجرا کنند
 
-## روش نصب
+## نصب سریع
 
-کپی و اجرای دستور زیر:
-
-``` bash
+```bash
 bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
 ## نکات مهم
 
-* اگر شما مقدار دقیق تنظیمات مختلف در اسکریبت را نمی‌دانید، به جز موارد ضروری، از مقادیر پیشفرض اسکریبت استفاده کنید (تمام موارد را با Enter تایید کنید).
-* کاربران Cloudflare بعد از نصب برنامه CDN را فعال کنید.
-* برای استفاده از این اسکریبت نیاز به داشتن دانش و تجربه اولیه Linux و درک اصول شبکه کامپیوتر دارید.
-* در حال حاضر این اسکریپت برای Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+ پشتیبانی می‌شود، برخی الگوهای Centos ممکن است مشکلات نسبتاً پیچیده در زمان کامپایل داشته باشند، بنابراین در صورت وجود مشکلات کامپایل، توصیه می‌شود به سیستم‌های قالب دیگر تغییر دهید.
-* نویسنده فقط حمایت محدودی فراهم می‌کند، زیرا او خیلی بد است.
-* نقشه‌گذاری رشته‌های سفارشی به UUIDv5 نیازمند پشتیبانی از سوی کلاینت است.
+* اگر با تنظیمات آشنا نیستید، برای فیلدهای غیرضروری از مقادیر پیش‌فرض استفاده کنید (فقط Enter بزنید)
+* کاربران Cloudflare فقط پس از اتمام نصب CDN را فعال کنند
+* این اسکریپت به دانش پایه Linux و شبکه‌های کامپیوتری نیاز دارد
+* پشتیبانی از Debian 12+ / Ubuntu 24.04+ / CentOS Stream 8+؛ برخی قالب‌های CentOS ممکن است مشکل کامپایل داشته باشند — در صورت بروز مشکل، تغییر سیستم‌عامل توصیه می‌شود
+* توصیه می‌شود فقط یک پروکسی در هر سرور مستقر کنید و از پورت پیش‌فرض 443 استفاده کنید
+* نگاشت رشته‌های سفارشی به UUIDv5 نیازمند پشتیبانی سمت کلاینت است
+* از این اسکریپت در محیط تمیز استفاده کنید؛ مبتدیان از CentOS استفاده نکنند
+* این برنامه به Nginx وابسته است — کاربرانی که Nginx را از طریق [LNMP](https://lnmp.org) یا اسکریپت‌های مشابه نصب کرده‌اند، به تداخلات احتمالی توجه کنند
+* قبل از تأیید عملکرد، از این اسکریپت در محیط تولیدی استفاده نکنید
+* نویسنده فقط پشتیبانی محدودی ارائه می‌دهد (چون خیلی باهوش نیست)
 
 ## تشکر
 
-* این اسکریپت از <https://github.com/wulabing/V2Ray_ws-tls_bash_onekey> الهام گرفته است، از wulabing ممنون می‌شوم.
-* پروژه تسهیل TCP در این اسکریپت از <https://github.com/ylx2016/Linux-NetSpeed> بهره می‌گیرد، از ylx2016 ممنون می‌شوم.
+* بر اساس [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)
+* اسکریپت تسریع TCP از [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
-## گواهی‌نامه
+## پیکربندی گواهی‌نامه
 
-اگر شما فایل‌های گواهی‌نامه برای دامنه‌ای که استفاده می‌کنید قبلاً دارید، فایل‌های crt و key را به نام xray.crt و xray.key در دایرکتوری /etc/idleleo/cert قرار دهید (در صورت عدم وجود دایرکتوری، آن را ایجاد کنید)، لطفاً به تنظیمات دسترسی فایل‌های گواهی‌نامه و مدت اعتبار آنها توجه کنید، اگر مدت اعتبار گواهی‌نامه سفارشی شما تمام شد، شما باید آن را به صورت دستی تمدید کنید.
+**گواهی سفارشی**: فایل‌های crt و key را به `xray.crt` و `xray.key` تغییر نام دهید و در مسیر `/etc/idleleo/cert` قرار دهید (در صورت عدم وجود، دایرکتوری را ایجاد کنید). به مجوزها و مدت اعتبار گواهی توجه کنید — گواهی‌های سفارشی پس از انقضا باید به صورت دستی تمدید شوند.
 
-اسکریپت قادر به تولید خودکار گواهی‌نامه Let's encrypted است، مدت اعتبار آن ۳ ماه است، نظریاً گواهی‌نامه‌های تولید شده خودکار امکان تمدید خودکار را دارند.
+**گواهی خودکار**: اسکریپت از تولید خودکار گواهی Let's Encrypt پشتیبانی می‌کند (اعتبار ۳ ماهه)، با پشتیبانی نظری از تمدید خودکار.
 
 ## مشاهده تنظیمات کلاینت
 
-`cat /etc/idleleo/info/xray_info.inf`
+```bash
+cat /etc/idleleo/info/xray_info.inf
+```
 
-## معرفی Xray
+## درباره Xray
 
-* Xray یک ابزار شبکهٔ پروکسی باز‌سورس عالی است که به شما کمک می‌کند تا اینترنت را با لذت بگذرانید و در حال حاضر برای تمامی سیستم‌عامل‌های Windows، Mac، Android، IOS و Linux موجود است.
-* این اسکریپت یک اسکریپت تنظیم کامل یک کلید است که پس از انجام صحیح تمامی مراحل، می‌توانید تنظیمات خروجی را بر اساس نتایج تنظیم کلاینت خود استفاده کنید.
-* لطفاً توجه داشته باشید: ما همچنان به طور قوی توصیه می‌کنیم شما تمام جنبه‌های فرآیند و اصول برنامه را بفهمید.
+* Xray یک ابزار پروکسی شبکه متن‌باز عالی است که از Windows، macOS، Android، iOS، Linux و سایر پلتفرم‌ها پشتیبانی می‌کند
+* این اسکریپت یک پیکربندی کامل یک‌کلیکی ارائه می‌دهد — پس از پایان موفقیت‌آمیز تمام فرآیندها، کلاینت خود را بر اساس نتایج خروجی تنظیم کنید
+* **به شدت توصیه می‌شود** فرآیند کار و اصول برنامه را به طور کامل درک کنید
 
-## پیشنهاد تنظیم فقط یک پروکسی روی یک سرور
+## مدیریت سرویس
 
-* این اسکریپت به طور پیش‌فرض آخرین نسخه از مرکز Xray را نصب می‌کند.
-* پیشنهاد می‌شود از порت ۴۴۳ به عنوان پورت اتصال استفاده کنید.
+| عمل | دستور |
+|-----|-------|
+| راه‌اندازی Xray | `systemctl start xray` |
+| توقف Xray | `systemctl stop xray` |
+| راه‌اندازی Nginx | `systemctl start nginx` |
+| توقف Nginx | `systemctl stop nginx` |
 
-## نکات مهم دیگر
+## دایرکتوری‌ها
 
-* توصیه می‌شود این اسکریپت را در محیط نظيف استفاده کنید، اگر شما نویسنده جدید هستید، از سیستم CentOS استفاده نکنید.
-* قبل از اعمال این برنامه در محیط تولیدی، مطمئن شوید که آن کار می‌کند.
-* این برنامه به Nginx برای اجرای برخی ویژگی‌ها بستگی دارد، کاربرانی که قبلاً با استفاده از [LNMP](https://lnmp.org) یا اسکریپت‌های مشابه دیگر Nginx را نصب کرده‌اند باید به توجه خاص به آن‌ها داشته باشند، استفاده از این اسکریپت ممکن است به خطاهای پیش‌بینی نشده منجر شود.
-
-## روش راه‌اندازی
-
-راه‌اندازی Xray: `systemctl start xray`
-
-توقف Xray: `systemctl stop xray`
-
-راه‌اندازی Nginx: `systemctl start nginx`
-
-توقف Nginx: `systemctl stop nginx`
-
-## دایرکتوری‌های مرتبط
-
-تنظیمات سرور Xray: `/etc/idleleo/conf/xray/config.json`
-
-دایرکتوری Nginx: `/usr/local/nginx`
-
-فایل‌های گواهی‌نامه: `/etc/idleleo/cert/xray.key` و `/etc/idleleo/cert/xray.crt` لطفاً تنظیمات دسترسی به فایل‌های گواهی‌نامه را توجه کنید
-
-فایل‌های اطلاعات تنظیمات و غیره: `/etc/idleleo`
+| مورد | مسیر |
+|------|------|
+| تنظیمات سرور Xray | `/etc/idleleo/conf/xray/config.json` |
+| دایرکتوری Nginx | `/usr/local/nginx` |
+| فایل‌های گواهی | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
+| اطلاعات پیکربندی و غیره | `/etc/idleleo` |
