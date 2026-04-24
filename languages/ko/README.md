@@ -1,103 +1,98 @@
-# Xray Reality / VLESS WebSocket/gRPC+TLS 프로토콜 + Nginx 일괄 설치 스크립트
+# Xray 원클릭 설치 스크립트 — Reality / VLESS WebSocket/gRPC+TLS + Nginx
 
 [简体中文](/README.md) | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | 한국어
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
-> JetBrains 허가에 감사드립니다.
+> JetBrains의 비상업 오픈소스 개발 라이선스 지원에 감사드립니다
 
-## 사용 방법
+## 주요 기능
 
-* `idleleo` 명령을 직접 입력하여 스크립트를 관리할 수 있습니다. ( [`idleleo` 배경 이야기 보기](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%EC%95%88%EA%B0%9C-%EB%92%A4%EC%9D%98-%EC%A7%84%EC%8B%A4%EB%90%9C-%EC%96%BC%EA%B5%B4) )
-* Qwen-MT-Plus AI를 사용해서 여러 언어를 정확하게 번역해.
-* Reality는 Nginx 프론트엔드를 권장하며, 스크립트에서 설치할 수 있습니다.
-* fail2ban 활성화를 권장하며, 스크립트에서 설치할 수 있습니다.
-* [@DuckSoft](https://github.com/DuckSoft)의 공유 링크 제안[제안](https://github.com/XTLS/Xray-core/issues/91) (beta)을 사용합니다. Qv2ray, V2rayN, V2rayNG 지원.
-* [XTLS](https://github.com/XTLS/Xray-core/issues/158) 프로젝트의 제안을 따르며, [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 표준을 준수하여 사용자 정의 문자열을 VLESS UUID로 매핑할 수 있습니다.
-* Reality 설치 안내: [Xray Reality 프로토콜 서버 설정](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
-* Reality 프로토콜 위험: [Xray Reality 프로토콜 위험](https://hey.run/archives/reality-xie-yi-de-feng-xian).
-* Reality 프로토콜을 이용한 서버 가속: [Reality 프로토콜 "취약점"을 이용한 서버 가속](https://hey.run/archives/use-reality).
-* Reality 로드 밸런싱 구성 추가. 튜토리얼: [Reality 프로토콜 서버 로드 밸런서 배포 방법](https://hey.run/archives/bushu-reality-balance).
-* ws/grpc 로드 밸런싱 구성 추가. 튜토리얼: [XRay 고급 활용법 – 백엔드 서버 로드 밸런서 구축](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
-* gRPC 프로토콜 지원 추가, 자세히 보기: [Xray 고급 기능 – gRPC 프로토콜 사용](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
+* `idleleo` 명령어로 스크립트 관리 ([`idleleo` 배경 이야기 보기](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%EC%95%88%EA%B0%9C-%EB%92%A4%EC%9D%98-%EC%A7%84%EC%8B%A4%EB%90%9C-%EC%96%BC%EA%B5%B4))
+* Qwen-MT-Plus AI 기반 정확한 다국어 번역
+* Reality 프로토콜 지원, Nginx 프론트엔드 권장 (스크립트 내 설치 가능)
+* fail2ban 보호 내장 (스크립트 내 설치 가능)
+* [@DuckSoft](https://github.com/DuckSoft)의 공유 링크 [제안](https://github.com/XTLS/Xray-core/issues/91) (beta) 채택, Qv2ray, V2rayN, V2rayNG 호환
+* [XTLS](https://github.com/XTLS/Xray-core/issues/158) 프로젝트 제안 채택, [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 표준 준수, 사용자 정의 문자열을 VLESS UUID로 매핑 지원
+* gRPC 프로토콜 지원: [gRPC 프로토콜 사용하기](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* Reality / ws/gRPC 로드 밸런싱 지원:
+  - [Reality 로드 밸런서 배포](https://hey.run/archives/bushu-reality-balance)
+  - [백엔드 로드 밸런서 구축](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+
+## 추가 자료
+
+* Reality 설치 가이드: [Xray Reality 서버 구축](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality 프로토콜 위험: [Xray Reality 프로토콜의 위험](https://hey.run/archives/reality-xie-yi-de-feng-xian)
+* Reality로 서버 가속: [Reality 프로토콜 "취약점"으로 서버 가속](https://hey.run/archives/use-reality)
 
 ## Telegram 그룹
 
-* Telegram 대화방: [링크 클릭](https://t.me/48VSqv7xIIFmZDZl)
+* 토론 그룹: [클릭하여 참여](https://t.me/+48VSqv7xIIFmZDZl)
 
-## 준비 작업
+## 사전 준비
 
-* 서버를 준비하여, 해외에서 운영하고 공인 IP를 확보하십시오.
-* Reality 프로토콜 설치 시, Xray 요구 사항을 충족하는 도메인이 필요합니다.
-* TLS 버전 설치 시, 도메인이 필요하며 A레코드를 추가해야 합니다.
-* [Xray 공식 설명서](https://xtls.github.io)를 읽고 Reality TLS WebSocket gRPC 및 Xray 관련 정보를 이해하고, Reality target 도메인 요구 사항을 확인하세요.
-* **curl이 설치되어 있어야 합니다**. CentOS 사용자는 `yum install -y curl`을, Debian/Ubuntu 사용자는 `apt install -y curl`을 실행하세요.
+* 공인 IP를 가진 해외 서버
+* Reality 프로토콜: Xray 요구사항을 충족하는 대상 도메인 준비
+* TLS 버전: 도메인 준비 및 A 레코드 추가
+* [Xray 공식 문서](https://xtls.github.io)를 읽고 Reality, TLS, WebSocket, gRPC 및 Xray 관련 개념 이해
+* **curl 설치 확인**: CentOS 사용자는 `yum install -y curl` 실행; Debian/Ubuntu 사용자는 `apt install -y curl` 실행
 
-## 설치 방법
+## 빠른 설치
 
-복사하여 실행:
-
-``` bash
+```bash
 bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
 ## 주의사항
 
-* 스크립트 중 항목별 세부 의미를 모르시다면 필수 입력값 외에는 스크립트 제공 기본값을 사용하세요 (계속 엔터).
-* Cloudflare 사용자는 설치 후 CDN 기능을 활성화하세요.
-* 이 스크립트를 사용하려면 Linux 기초 지식과 경험, 컴퓨터 네트워크 부분 지식, 컴퓨터 기본 조작 능력이 필요합니다.
-* 현재 Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+ 를 지원하며 일부 Centos 템플릿에서는 처리하기 어려운 컴파일 문제가 발생할 수 있으므로 문제 발생 시 다른 시스템 템플릿으로 변경하세요.
-* 저자는 한정적인 지원만 제공하며 너무 멍청해서요.
-* 사용자 정의 문자열을 UUIDv5로 매핑하려면 클라이언트가 이를 지원해야 합니다.
+* 설정의 의미를 모르면 필수 항목 외에는 기본값을 사용하세요 (계속 Enter)
+* Cloudflare 사용자는 설치 완료 후에만 CDN을 활성화하세요
+* 이 스크립트는 Linux 기초 지식과 컴퓨터 네트워크 기본이 필요합니다
+* Debian 12+ / Ubuntu 24.04+ / CentOS Stream 8+ 지원; 일부 CentOS 템플릿에서 컴파일 문제가 발생할 수 있으며, 문제 시 다른 OS로 전환 권장
+* 서버당 하나의 프록시만 배포하고 기본 포트 443 사용을 권장합니다
+* 사용자 정의 문자열을 UUIDv5로 매핑하려면 클라이언트 지원이 필요합니다
+* 깨끗한 환경에서 사용하세요; 초보자는 CentOS를 피하세요
+* 이 프로그램은 Nginx에 의존합니다 — [LNMP](https://lnmp.org) 등으로 Nginx를 설치한 사용자는 잠재적 충돌에 주의하세요
+* 작동을 확인하기 전까지 프로덕션 환경에 사용하지 마세요
+* 작성자는 제한된 지원만 제공합니다 (너무 멍청해서요)
 
 ## 감사의 말
 
-* 본 스크립트는 <https://github.com/wulabing/V2Ray_ws-tls_bash_onekey> 에서 유래하였으며 여기에 wulabing님에게 감사드립니다.
-* 본 스크립트의 TCP 가속 스크립트 프로젝트는 <https://github.com/ylx2016/Linux-NetSpeed> 를 참고하였으며 여기에 ylx2016님에게 감사드립니다.
+* [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey) 기반
+* TCP 가속 스크립트 출처: [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
-## 인증서
+## 인증서 설정
 
-이미 사용 중인 도메인의 인증서 파일이 있다면 crt와 key 파일을 xray.crt와 xray.key로 이름을 바꾸어 /etc/idleleo/cert 디렉토리 아래에 두세요 (디렉토리가 없으면 먼저 생성하세요). 인증서 파일 권한 및 유효기간을 주의하시고 사용자 정의 인증서 만료 후 재발급해야 합니다.
+**사용자 정의 인증서**: crt 및 key 파일을 `xray.crt`와 `xray.key`로 이름을 변경한 후 `/etc/idleleo/cert` 디렉토리에 넣으세요 (디렉토리가 없으면 생성). 인증서 권한 및 유효기간에 주의하세요 — 사용자 정의 인증서는 만료 후 수동으로 갱신해야 합니다.
 
-스크립트는 Let's encrypted 인증서를 자동 생성할 수 있으며 유효기간은 3개월입니다. 이론적으로 자동 생성된 인증서는 자동 갱신됩니다.
+**자동 인증서**: 스크립트는 Let's Encrypt 인증서 자동 생성을 지원합니다 (유효기간 3개월), 이론적으로 자동 갱신이 지원됩니다.
 
-## 클라이언트 구성을 확인
+## 클라이언트 설정 확인
 
-`cat /etc/idleleo/info/xray_info.inf`
+```bash
+cat /etc/idleleo/info/xray_info.inf
+```
 
 ## Xray 소개
 
-* Xray는 우수한 오픈 소스 네트워크 프록시 도구로서 인터넷을 원활하게 즐길 수 있도록 돕습니다. 이미 Windows, Mac, Android, IOS, Linux 등 모든 플랫폼에서 사용할 수 있습니다.
-* 본 스크립트는 일체형 완전 설정 스크립트로서 모든 절차가 정상적으로 진행되면 출력 결과에 따라 클라이언트를 설정하면 사용할 수 있습니다.
-* 주의: 우리는 여전히 전체 프로그램의 작동 과정 및 원리를 전반적으로 이해하도록 강력히 권장합니다.
+* Xray는 Windows, macOS, Android, iOS, Linux 등을 지원하는 우수한 오픈소스 네트워크 프록시 도구입니다
+* 이 스크립트는 원클릭 완전 설정 스크립트입니다 — 모든 프로세스가 정상적으로 완료되면 출력 결과에 따라 클라이언트를 설정하기만 하면 됩니다
+* **프로그램의 작동 방식과 원리를 완전히 이해할 것을 강력히 권장합니다**
 
-## 단일 서버에 단일 프록시만 설정하는 것을 권장합니다
+## 서비스 관리
 
-* 본 스크립트는 최신 버전의 Xray core를 기본으로 설치합니다.
-* 연결 포트로 기본 443 포트 사용을 권장합니다.
+| 작업 | 명령어 |
+|------|--------|
+| Xray 시작 | `systemctl start xray` |
+| Xray 중지 | `systemctl stop xray` |
+| Nginx 시작 | `systemctl start nginx` |
+| Nginx 중지 | `systemctl stop nginx` |
 
-## 기타 주의사항
+## 디렉토리
 
-* 순수 환경에서 본 스크립트를 사용하는 것이 좋으며 초보자라면 CentOS 시스템을 사용하지 마세요.
-* 본 스크립트가 실제로 작동하는지 확인하기 전까지 생산 환경에 적용하지 마세요.
-* 해당 프로그램은 Nginx를 통해 다양한 기능을 구현하는데 의존하므로 [LNMP](https://lnmp.org) 또는 기타 유사한 Nginx 포함 설치 스크립트를 사용한 사용자는 예측 불가능한 오류가 발생할 수 있다는 점에 특히 주의해야 합니다.
-
-## 시작 방법
-
-Xray 시작: `systemctl start xray`
-
-Xray 종료: `systemctl stop xray`
-
-Nginx 시작: `systemctl start nginx`
-
-Nginx 종료: `systemctl stop nginx`
-
-## 관련 디렉토리
-
-Xray 서버 설정: `/etc/idleleo/conf/xray/config.json`
-
-Nginx 디렉토리: `/usr/local/nginx`
-
-인증서 파일: `/etc/idleleo/cert/xray.key` 그리고 `/etc/idleleo/cert/xray.crt` 인증서 권한 설정에 주의하세요
-
-구성 정보 파일 등: `/etc/idleleo`
+| 항목 | 경로 |
+|------|------|
+| Xray 서버 설정 | `/etc/idleleo/conf/xray/config.json` |
+| Nginx 디렉토리 | `/usr/local/nginx` |
+| 인증서 파일 | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
+| 설정 정보 등 | `/etc/idleleo` |

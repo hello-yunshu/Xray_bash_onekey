@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.11"
+shell_version="2.8.12"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -559,7 +559,7 @@ grpc_inbound_port_set() {
                 ;;
             *)
                 gport=$((RANDOM % 1000 + 10000))
-                [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 10000))
+                while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 10000)); done
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             esac
@@ -970,7 +970,7 @@ nginx_servernames_server_set() {
 
 UUIDv5_tranc() {
     [[ $# = 0 ]] && return
-    echo "import uuid;UUID_NAMESPACE=uuid.UUID('00000000-0000-0000-0000-000000000000');print(uuid.uuid5(UUID_NAMESPACE,'$1'));" | python3
+    python3 -c "import uuid,sys;UUID_NAMESPACE=uuid.UUID('00000000-0000-0000-0000-000000000000');print(uuid.uuid5(UUID_NAMESPACE,sys.argv[1]))" "$1"
 }
 
 modify_listen_address() {
@@ -1370,7 +1370,7 @@ nginx_exist_check() {
             ;;
         esac
     #兼容代码结束
-    elif [[ -d "/etc/nginx" ]] && [[ -z "$(info_extraction nginx_version)" ]]; then
+    elif [[ -d "/etc/nginx" ]] && [[ -n "$(info_extraction nginx_version)" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装")! ${Font}"
         exit 1
     else
@@ -1444,7 +1444,7 @@ nginx_update() {
                         xport=$(info_extraction ws_port)
                         path=$(info_extraction path)
                         gport=$((RANDOM % 1000 + 30000))
-                        [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
+                        while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 30000)); done
                         serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                         gport=$(info_extraction grpc_port)
@@ -1904,13 +1904,13 @@ old_config_input() {
             xport=$(info_extraction ws_port)
             path=$(info_extraction path)
             gport=$((RANDOM % 1000 + 30000))
-            [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
+            while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 30000)); done
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
             gport=$(info_extraction grpc_port)
             serviceName=$(info_extraction serviceName)
             xport=$((RANDOM % 1000 + 20000))
-            [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
+            while [[ ${gport} == ${xport} ]]; do xport=$((RANDOM % 1000 + 20000)); done
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             xport=$(info_extraction ws_port)
@@ -1933,13 +1933,13 @@ old_config_input() {
                 xport=$(info_extraction ws_port)
                 path=$(info_extraction ws_path)
                 gport=$((RANDOM % 1000 + 30000))
-                [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
+                while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 30000)); done
                 serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                 gport=$(info_extraction grpc_port)
                 serviceName=$(info_extraction grpc_serviceName)
                 xport=$((RANDOM % 1000 + 20000))
-                [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
+                while [[ ${gport} == ${xport} ]]; do xport=$((RANDOM % 1000 + 20000)); done
                 path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             elif [[ ${ws_grpc_mode} == "all" ]]; then
                 xport=$(info_extraction ws_port)
@@ -1958,13 +1958,13 @@ old_config_input() {
             xport=$(info_extraction ws_port)
             path=$(info_extraction path)
             gport=$((RANDOM % 1000 + 30000))
-            [[ ${gport} == ${xport} ]] && gport=$((RANDOM % 1000 + 30000))
+            while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 30000)); done
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
             gport=$(info_extraction grpc_port)
             serviceName=$(info_extraction serviceName)
             xport=$((RANDOM % 1000 + 20000))
-            [[ ${gport} == ${xport} ]] && xport=$((RANDOM % 1000 + 20000))
+            while [[ ${gport} == ${xport} ]]; do xport=$((RANDOM % 1000 + 20000)); done
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             xport=$(info_extraction ws_port)
@@ -2553,7 +2553,7 @@ EOF
 
 vless_urlquote() {
     [[ $# = 0 ]] && return 1
-    echo "import urllib.request;print(urllib.request.quote('$1'));" | python3
+    python3 -c "import urllib.request,sys;print(urllib.request.quote(sys.argv[1]))" "$1"
 }
 
 vless_qr_link_image() {
@@ -3109,7 +3109,7 @@ reset_port() {
                 port_exist_check "${xport}"
                 gport=$((RANDOM % 1000 + 30000))
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-            elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
+            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                 read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${gport}"
                 xport=$((RANDOM % 1000 + 20000))
@@ -3135,7 +3135,7 @@ reset_port() {
                 port_exist_check "${xport}"
                 gport=$((RANDOM % 1000 + 30000))
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-            elif [[ ${ws_grpc_mode} == "onlygrpc" ]]; then
+            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                 read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${gport}"
                 xport=$((RANDOM % 1000 + 20000))
@@ -3150,7 +3150,7 @@ reset_port() {
             fi
             jq --argjson ws_port "$xport" \
                --argjson grpc_port "$gport" \
-               '.ws_port = ($ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
+               '.ws_port = $ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
             mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
             modify_inbound_port
         fi
@@ -4039,11 +4039,11 @@ idleleo_commend() {
 
 check_program() {
     if [[ -n $(pgrep nginx) ]]; then
-        nignx_status="${Green}$(gettext "运行中")..${Font}"
+        nginx_status="${Green}$(gettext "运行中")..${Font}"
     elif [[ ${tls_mode} == "None" ]] || [[ ${reality_add_nginx} == "off" ]]; then
-        nignx_status="${Green}$(gettext "无需测试")${Font}"
+        nginx_status="${Green}$(gettext "无需测试")${Font}"
     else
-        nignx_status="${Red}$(gettext "未运行")${Font}"
+        nginx_status="${Red}$(gettext "未运行")${Font}"
     fi
     if [[ -n $(pgrep xray) ]]; then
         xray_status="${Green}$(gettext "运行中")..${Font}"
@@ -4061,7 +4061,7 @@ check_xray_local_connect() {
         xray_local_connect_status="${Red}$(gettext "无法连通")${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
             [[ ${ws_grpc_mode} == "onlyws" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
-            [[ ${ws_grpc_mode} == "onlygrpc" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction serviceName)) == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+            [[ ${ws_grpc_mode} == "onlygRPC" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction serviceName)) == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             [[ ${ws_grpc_mode} == "all" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_extraction serviceName)) == "502" && $(curl_local_connect $(info_extraction host) $(info_extraction path)) == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
         elif [[ ${tls_mode} == "Reality" ]]; then
             xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
@@ -4177,11 +4177,12 @@ function backup_directories() {
     local backup_path="/etc/idleleo/${backup_filename}"
 
     local tar_output
-    tar --exclude='/etc/idleleo/xray_bash_*.tar.gz' -czf "${backup_path}" /etc/idleleo /usr/local/nginx 2>&1 > /dev/null | tee tar_output
+    tar_output=''
+    tar_output=$(tar --exclude='/etc/idleleo/xray_bash_*.tar.gz' -czf "${backup_path}" /etc/idleleo /usr/local/nginx 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log_echo "${Green} tar $(gettext "报错信息"): ${Font}"
-        cat tar_output
+        echo "${tar_output}"
         log_echo "${Warning} ${YellowBG} $(gettext "备份完整性可能受到影响, 请检查上述错误信息") ${Font}"
     fi
 
@@ -4190,7 +4191,6 @@ function backup_directories() {
     else
         log_echo "${OK} ${GreenBG} $(gettext "备份成功"): ${backup_path} ${Font}"
     fi
-    rm -f tar_output
 }
 
 function restore_directories() {
@@ -4260,7 +4260,7 @@ menu() {
     log_echo "Nginx: ${nginx_need_update}"
     log_echo "—————————————— ${GreenW}$(gettext "运行状态")${Font} ——————————————"
     log_echo "Xray:   ${xray_status}"
-    log_echo "Nginx:  ${nignx_status}"
+    log_echo "Nginx:  ${nginx_status}"
     log_echo "$(gettext "连通性"): ${xray_local_connect_status}"
     echo -e "—————————————— ${GreenW}$(gettext "更新向导")${Font} ——————————————"
     echo -e "${Green}0.${Font}  $(gettext "更新") $(gettext "脚本")"
