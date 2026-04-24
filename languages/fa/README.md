@@ -45,7 +45,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 
 ## استقرار Docker
 
-استقرار با Docker پشتیبانی می‌شود. برای جزئیات [راهنمای استقرار Docker](/languages/fa/DOCKER.md) را ببینید.
+استقرار با Docker پشتیبانی می‌شود. ایمیج شامل Xray و Nginx پیش‌نصب‌شده است و تمام قابلیت‌های اسکریپت اصلی در کانتینر در دسترس هستند. برای جزئیات [راهنمای استقرار Docker](/languages/fa/DOCKER.md) را ببینید.
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git

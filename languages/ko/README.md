@@ -45,7 +45,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 
 ## Docker 배포
 
-Docker 배포가 지원됩니다. 자세한 내용은 [Docker 배포 가이드](/languages/ko/DOCKER.md)를 참조하세요.
+Docker 배포가 지원됩니다. 이미지에 Xray와 Nginx가 사전 설치되어 있으며, 컨테이너 내에서 원본 스크립트의 모든 기능을 사용할 수 있습니다. 자세한 내용은 [Docker 배포 가이드](/languages/ko/DOCKER.md)를 참조하세요.
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
