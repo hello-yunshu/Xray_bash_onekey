@@ -45,7 +45,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 
 ## Déploiement Docker
 
-Le déploiement Docker est pris en charge. Consultez le [Guide de déploiement Docker](/languages/fr/DOCKER.md) pour plus de détails.
+Le déploiement Docker est pris en charge. L'image intègre Xray et Nginx préinstallés, et toutes les fonctionnalités du script original sont disponibles dans le conteneur. Consultez le [Guide de déploiement Docker](/languages/fr/DOCKER.md) pour plus de détails.
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git

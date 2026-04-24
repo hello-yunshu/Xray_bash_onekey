@@ -45,7 +45,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/
 
 ## Развёртывание Docker
 
-Поддерживается развёртывание через Docker. Подробности см. в [Руководстве по развёртыванию Docker](/languages/ru/DOCKER.md).
+Поддерживается развёртывание через Docker. Образ поставляется с предустановленными Xray и Nginx, все функции оригинального скрипта доступны в контейнере. Подробности см. в [Руководстве по развёртыванию Docker](/languages/ru/DOCKER.md).
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
