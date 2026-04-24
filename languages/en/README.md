@@ -43,6 +43,17 @@
 bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
+## Docker Deployment
+
+Docker deployment is supported. See the [Docker Deployment Guide](/languages/en/DOCKER.md) for details.
+
+```bash
+git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
+cd Xray_bash_onekey
+docker compose up -d
+docker attach xray-onekey
+```
+
 ## Important Notes
 
 * If you are unfamiliar with the settings, use the default values for all non-required fields (just press Enter throughout)
