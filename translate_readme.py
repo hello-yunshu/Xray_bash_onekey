@@ -43,7 +43,7 @@ def should_translate(segment):
     # 定义需要跳过翻译的模式
     skip_patterns = [
         r'\[简体中文\]\(README\.md\)',  # 只要匹配到[简体中文](README.md)，就跳过该段落
-        r'\[.*\]\(.*\)'  # 跳过所有包含 markdown 链接的段落
+        r'\[.*?\]\(.*?\)'  # 跳过所有包含 markdown 链接的段落
     ]
     for pattern in skip_patterns:
         if re.search(pattern, segment):

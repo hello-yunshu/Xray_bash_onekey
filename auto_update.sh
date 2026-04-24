@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.0.3"
+VERSION="1.0.4"
 
 idleleo_dir="/etc/idleleo"
 local_bin="/usr/local"
@@ -59,6 +59,13 @@ echo "Update time: $(date '+%Y-%m-%d %H:%M')" >${log_file}
 check_update
 
 get_versions_all=$(curl -s https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json)
+
+if [[ ! -f ${xray_qr_config_file} ]]; then
+    echo "Config file not found, skipping update checks." >>${log_file}
+    rm -rf ${running_file}
+    exit 0
+fi
+
 info_extraction_all=$(jq -rc . ${xray_qr_config_file})
 
 check_online_version() {

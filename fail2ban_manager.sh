@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.2.0"
+mf_SCRIPT_VERSION="1.2.1"
 
 mf_main_menu() {
     check_system
@@ -378,7 +378,7 @@ mf_manage_modules() {
     log_echo "${GreenBG} $(gettext "是否") $status_text $selected_name $(gettext "模块") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
     read -r confirm
     
-    if [[ ! $confirm =~ ^[nN][oO]|[nN]$ ]]; then
+    if [[ ! $confirm =~ ^[nN]([oO])?$ ]]; then
         sed -i "s/enabled\s*=\s*\w*/enabled = $new_status/" "$selected_file"
 
         mf_restart_fail2ban

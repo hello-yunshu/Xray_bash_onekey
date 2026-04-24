@@ -1,4 +1,4 @@
-# Xray 支持 Reality / VLESS WebSocket/gRPC+TLS 协议 + Nginx 的一键安装脚本
+# Xray 一键安装脚本 — Reality / VLESS WebSocket/gRPC+TLS + Nginx
 
 简体中文 | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
@@ -6,98 +6,93 @@
 
 > Thanks for non-commercial open source development authorization by JetBrains
 
-## 使用说明
+## 功能特性
 
-* 可以直接输入命令：`idleleo` 管理脚本。 ( [查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9) )
-* 使用 Qwen-MT-Plus AI 实现多国语言精准翻译。
-* Reality 建议使用 Nginx 前置，在脚本中安装即可。
-* 建议开启 fail2ban ，在脚本中安装即可。
-* 使用来自 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91) (beta)，支持 Qv2ray、V2rayN、V2rayNG。
-* 使用来自 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 项目的提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，可以将自定义字符串映射至 VLESS UUID 。
-* Reality 安装说明：[搭建 Xray Reality 协议服务器](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)。
-* Reality 协议的风险：[Xray Reality 协议的风险](https://hey.run/archives/reality-xie-yi-de-feng-xian)。
-* 利用 Reality 协议加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/archives/use-reality)。
-* 添加 Reality 负载均衡配置，教程：[如何部署 Reality协议 服务端负载均衡](https://hey.run/archives/bushu-reality-balance)。
-* 添加 ws/grpc 负载均衡配置，教程：[XRay进阶玩法 – 搭建后端服务器负载均衡](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)。
-* 添加 gRPC 协议的支持，具体可见：[Xray进阶玩法 – 使用gRPC协议](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)。
+* 输入 `idleleo` 即可管理脚本（[查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)）
+* 采用 Qwen-MT-Plus AI 实现多语言精准翻译
+* 支持 Reality 协议，建议搭配 Nginx 前置（脚本内可安装）
+* 内置 fail2ban 防护（脚本内可安装）
+* 采用 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91)（beta），兼容 Qv2ray、V2rayN、V2rayNG
+* 采用 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，支持自定义字符串映射至 VLESS UUID
+* 支持 gRPC 协议：[使用 gRPC 协议](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* 支持 Reality / ws/gRPC 负载均衡：
+  - [部署 Reality 负载均衡](https://hey.run/archives/bushu-reality-balance)
+  - [搭建后端负载均衡](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+
+## 延伸阅读
+
+* Reality 安装指南：[搭建 Xray Reality 服务器](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality 协议风险：[Xray Reality 协议的风险](https://hey.run/archives/reality-xie-yi-de-feng-xian)
+* Reality 加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/archives/use-reality)
 
 ## Telegram 群组
 
-* Telegram 交流群：[点击链接](https://t.me/+48VSqv7xIIFmZDZl)
+* 交流群：[点击加入](https://t.me/+48VSqv7xIIFmZDZl)
 
 ## 准备工作
 
-* 准备一个服务器，在境外运行、有公网ip。
-* 安装 Reality 协议的，找好一个符合 Xray 要求的域名。
-* 安装 TLS 版本的，准备一个域名，并将 A记录 添加好。
-* 阅读[Xray官方说明](https://xtls.github.io)，大概了解 Reality TLS WebSocket gRPC 及 Xray 相关信息，了解 Reality target 的域名要求。
-* **安装好 curl**，Centos用户运行：`yum install -y curl`；Debian/Ubuntu用户运行：`apt install -y curl`。
+* 一台境外服务器，具备公网 IP
+* 安装 Reality 协议：需准备符合 Xray 要求的目标域名
+* 安装 TLS 版本：需准备域名并添加 A 记录
+* 阅读 [Xray 官方文档](https://xtls.github.io)，了解 Reality、TLS、WebSocket、gRPC 及 Xray 相关概念
+* **确保已安装 curl**：CentOS 用户执行 `yum install -y curl`；Debian/Ubuntu 用户执行 `apt install -y curl`
 
-## 安装方式
+## 快速安装
 
-复制运行：
-
-``` bash
+```bash
 bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
 ## 注意事项
 
-* 如果你不了解脚本中各项设置的具体含义，除必填项外，请使用脚本提供的默认值 (全程回车到底)。
-* Cloudflare 用户请安装完毕后再开启CDN功能。
-* 使用本脚本需要你拥有 Linux 基础及使用经验，了解计算机网络部分知识，计算机基础操作。
-* 目前支持 Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+ ，部分 Centos 模板可能存在难以处理的编译问题，建议遇到编译问题时，请更换至其他系统模板。
-* 作者仅提供有限的支持，因为太笨了。
-* 自定义字符串映射至 UUIDv5 需要客户端支持。
+* 不了解各项设置含义时，除必填项外请使用默认值（全程回车即可）
+* Cloudflare 用户请在安装完成后再开启 CDN
+* 本脚本需要 Linux 基础知识及计算机网络常识
+* 支持 Debian 12+ / Ubuntu 24.04+ / CentOS Stream 8+，部分 CentOS 模板可能存在编译问题，建议遇到问题时更换系统
+* 建议单服务器仅部署单个代理，使用默认 443 端口
+* 自定义字符串映射至 UUIDv5 需要客户端支持
+* 推荐在纯净环境下使用；新手请勿使用 CentOS
+* 本程序依赖 Nginx，已通过 [LNMP](https://lnmp.org) 等脚本安装过 Nginx 的用户请注意潜在冲突
+* 请勿在未验证可用性前将本脚本用于生产环境
+* 作者仅提供有限支持（因为太笨了）
 
 ## 鸣谢
 
-* 本脚本来源于 <https://github.com/wulabing/V2Ray_ws-tls_bash_onekey> 在此感谢 wulabing
-* 本脚本中 TCP加速 脚本项目引用 <https://github.com/ylx2016/Linux-NetSpeed> 在此感谢 ylx2016
+* 基于 [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey) 开发
+* TCP 加速脚本引用自 [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
-## 证书
+## 证书配置
 
-如果你已经拥有了你所使用域名的证书文件，可以将 crt 和 key 文件命名为 xray.crt 和 xray.key 放在 /etc/idleleo/cert 目录下（若目录不存在请先建目录），请注意证书文件权限及证书有效期，自定义证书有效期过期后需自行续签。
+**自定义证书**：将 crt 和 key 文件分别命名为 `xray.crt` 和 `xray.key`，放入 `/etc/idleleo/cert` 目录（目录不存在则先创建）。请注意证书权限及有效期，自定义证书过期后需自行续签。
 
-脚本支持自动生成 Let's encrypted 证书，有效期3个月，理论上自动生成的证书支持自动续签。
+**自动证书**：脚本支持自动生成 Let's Encrypt 证书（有效期 3 个月），理论上支持自动续签。
 
 ## 查看客户端配置
 
-`cat /etc/idleleo/info/xray_info.inf`
+```bash
+cat /etc/idleleo/info/xray_info.inf
+```
 
 ## Xray 简介
 
-* Xray 是一个优秀的开源网络代理工具，可以帮助你畅爽体验互联网，目前已经全平台支持 Windows、Mac、Android、IOS、Linux 等操作系统的使用。
-* 本脚本为一键完全配置脚本，在所有流程正常运行完毕后，直接按照输出结果设置客户端即可使用。
-* 请注意：我们依然强烈建议你全方面的了解整个程序的工作流程及原理。
+* Xray 是一款优秀的开源网络代理工具，支持 Windows、macOS、Android、iOS、Linux 等全平台
+* 本脚本为一键完整配置脚本，所有流程正常完成后，按输出结果设置客户端即可使用
+* **强烈建议**全面了解程序的工作流程及原理
 
-## 建议单服务器仅搭建单个代理
+## 服务管理
 
-* 本脚本默认安装最新版本的 Xray core。
-* 建议使用默认的 443 端口作为连接端口。
-
-## 其他注意事项
-
-* 推荐在纯净环境下使用本脚本，如果你是新手，请不要使用 Centos 系统。
-* 在尝试本脚本确实可用之前，请不要将本程序应用于生产环境中。
-* 该程序依赖 Nginx 实现相关功能，请使用 [LNMP](https://lnmp.org) 或其他类似携带 Nginx 脚本安装过 Nginx 的用户特别留意，使用本脚本可能会导致无法预知的错误。
-
-## 启动方式
-
-启动 Xray：`systemctl start xray`
-
-停止 Xray：`systemctl stop xray`
-
-启动 Nginx：`systemctl start nginx`
-
-停止 Nginx：`systemctl stop nginx`
+| 操作 | 命令 |
+|------|------|
+| 启动 Xray | `systemctl start xray` |
+| 停止 Xray | `systemctl stop xray` |
+| 启动 Nginx | `systemctl start nginx` |
+| 停止 Nginx | `systemctl stop nginx` |
 
 ## 相关目录
 
-Xray 服务端配置：`/etc/idleleo/conf/xray/config.json`
-
-Nginx 目录： `/usr/local/nginx`
-
-证书文件：`/etc/idleleo/cert/xray.key` 和 `/etc/idleleo/cert/xray.crt` 请注意证书权限设置
-
-配置信息文件等：`/etc/idleleo`
+| 内容 | 路径 |
+|------|------|
+| Xray 服务端配置 | `/etc/idleleo/conf/xray/config.json` |
+| Nginx 目录 | `/usr/local/nginx` |
+| 证书文件 | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
+| 配置信息等 | `/etc/idleleo` |

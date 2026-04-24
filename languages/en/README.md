@@ -1,4 +1,4 @@
-# Xray supports Reality / VLESS WebSocket/gRPC+TLS protocol + Nginx one-click installation script
+# Xray One-Click Installation Script — Reality / VLESS WebSocket/gRPC+TLS + Nginx
 
 [简体中文](/README.md) | English | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
@@ -6,98 +6,93 @@
 
 > Thanks for non-commercial open source development authorization by JetBrains
 
-## Usage Instructions
+## Features
 
-* You can directly input the command: `idleleo` to manage the script. ( [View the background story of `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/The-True-Face-Behind-the-Fog) )
-* Use Qwen-MT-Plus AI for accurate translations in multiple languages.
-* It is recommended to use Nginx as a reverse proxy for Reality, which can be installed in the script.
-* It is recommended to enable fail2ban, which can be installed in the script.
-* Using the share link from [@DuckSoft](https://github.com/DuckSoft)'s proposal [(beta)](https://github.com/XTLS/Xray-core/issues/91), supporting Qv2ray, V2rayN, V2rayNG.
-* Using the proposal from the [XTLS](https://github.com/XTLS/Xray-core/issues/158) project, following the [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) standard, you can map custom strings to VLESS UUID.
-* Reality installation guide: [Setting up Xray Reality Protocol Server](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi).
-* Risks of Reality protocol: [Risks of Xray Reality Protocol](https://hey.run/archives/reality-xie-yi-de-feng-xian).
-* Accelerating server using Reality protocol: [Accelerate Server Using Reality Protocol "Vulnerability"](https://hey.run/archives/use-reality).
-* Added Reality load balancing configuration. Tutorial: [How to Deploy a Reality Protocol Server Load Balancer](https://hey.run/archives/bushu-reality-balance).
-* Added ws/grpc load balancing configuration. Tutorial: [XRay Advanced Techniques – Building a Backend Server Load Balancer](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng).
-* Adding support for gRPC protocol, see details: [XRay Advanced Play - Using gRPC Protocol](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi).
+* Type `idleleo` to manage the script ([View the backstory of `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/The-True-Face-Behind-the-Fog))
+* Powered by Qwen-MT-Plus AI for accurate multilingual translation
+* Supports Reality protocol with recommended Nginx frontend (installable via script)
+* Built-in fail2ban protection (installable via script)
+* Adopts the share link [proposal](https://github.com/XTLS/Xray-core/issues/91) by [@DuckSoft](https://github.com/DuckSoft) (beta), compatible with Qv2ray, V2rayN, V2rayNG
+* Adopts the [XTLS](https://github.com/XTLS/Xray-core/issues/158) proposal, following the [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) standard, supporting custom string mapping to VLESS UUID
+* Supports gRPC protocol: [Using gRPC Protocol](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* Supports Reality / ws/gRPC load balancing:
+  - [Deploy Reality Load Balancer](https://hey.run/archives/bushu-reality-balance)
+  - [Build Backend Load Balancer](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+
+## Further Reading
+
+* Reality installation guide: [Setting Up Xray Reality Server](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality protocol risks: [Risks of Xray Reality Protocol](https://hey.run/archives/reality-xie-yi-de-feng-xian)
+* Accelerating server with Reality: [Accelerate Server Using Reality Protocol "Vulnerability"](https://hey.run/archives/use-reality)
 
 ## Telegram Group
 
-* Telegram discussion group: [Click the link](https://t.me/+48VSqv7xIIFmZDZl)
+* Discussion group: [Click to join](https://t.me/+48VSqv7xIIFmZDZl)
 
-## Preparation
+## Prerequisites
 
-* Prepare a server to be operated overseas, with a public IP address.
-* If installing Reality protocol, find a domain name that meets Xray's requirements.
-* If installing TLS version, prepare a domain name and add an A record.
-* Read the [Xray official documentation](https://xtls.github.io) to understand Reality TLS WebSocket gRPC and related information about Xray, including the domain name requirements for Reality target.
-* **Ensure curl is installed**, CentOS users run: `yum install -y curl`; Debian/Ubuntu users run: `apt install -y curl`.
+* An overseas server with a public IP address
+* For Reality protocol: prepare a target domain that meets Xray's requirements
+* For TLS version: prepare a domain and add an A record
+* Read the [Xray official documentation](https://xtls.github.io) to understand Reality, TLS, WebSocket, gRPC, and related Xray concepts
+* **Ensure curl is installed**: CentOS users run `yum install -y curl`; Debian/Ubuntu users run `apt install -y curl`
 
-## Installation Method
+## Quick Install
 
-Copy and run:
-
-``` bash
+```bash
 bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
-## Notes
+## Important Notes
 
-* If you do not understand the specific meanings of each setting in the script, except for required fields, please use the default values provided by the script (press Enter all the way through).
-* Cloudflare users should enable CDN functionality after installation.
-* Using this script requires basic Linux knowledge and experience, understanding of computer network basics, and basic computer operations.
-* Currently supports Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+, some Centos templates may have difficult-to-handle compilation issues; it is suggested to switch to other system templates if compilation issues occur.
-* The author provides limited support, as they are not very competent.
-* Mapping custom strings to UUIDv5 requires client support.
+* If you are unfamiliar with the settings, use the default values for all non-required fields (just press Enter throughout)
+* Cloudflare users should enable CDN only after installation is complete
+* This script requires basic Linux knowledge and computer networking fundamentals
+* Supports Debian 12+ / Ubuntu 24.04+ / CentOS Stream 8+; some CentOS templates may have compilation issues — consider switching to another OS if problems occur
+* It is recommended to deploy only one proxy per server and use the default port 443
+* Custom string mapping to UUIDv5 requires client-side support
+* Use this script in a clean environment; beginners should avoid CentOS
+* This program depends on Nginx — users who have installed Nginx via [LNMP](https://lnmp.org) or similar scripts should be aware of potential conflicts
+* Do not use this script in production environments before verifying its functionality
+* The author provides limited support (because they're not very smart)
 
 ## Acknowledgments
 
-* This script originates from <https://github.com/wulabing/V2Ray_ws-tls_bash_onekey>, thank wulabing.
-* The TCP acceleration script project referenced in this script comes from <https://github.com/ylx2016/Linux-NetSpeed>, thank ylx2016.
+* Based on [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)
+* TCP acceleration script from [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
-## Certificate
+## Certificate Configuration
 
-If you already have certificate files for the domain you are using, rename the crt and key files to xray.crt and xray.key and place them in the /etc/idleleo/cert directory (create the directory if it does not exist). Please note the permissions and validity period of the certificate file; self-signed certificates need to be renewed manually after expiration.
+**Custom Certificate**: Rename your crt and key files to `xray.crt` and `xray.key`, then place them in the `/etc/idleleo/cert` directory (create it if it doesn't exist). Note the certificate permissions and validity period — custom certificates must be renewed manually after expiration.
 
-The script supports automatically generating Let's Encrypt certificates, valid for 3 months, theoretically these certificates support automatic renewal.
+**Auto Certificate**: The script supports automatic Let's Encrypt certificate generation (valid for 3 months), with theoretical support for auto-renewal.
 
 ## View Client Configuration
 
-`cat /etc/idleleo/info/xray_info.inf`
+```bash
+cat /etc/idleleo/info/xray_info.inf
+```
 
-## Introduction to Xray
+## About Xray
 
-* Xray is an excellent open-source network proxy tool that helps you enjoy internet smoothly, currently supporting Windows, Mac, Android, IOS, Linux, etc.
-* This script is a one-click complete configuration script; once all processes run normally, set up the client according to the output results to use.
-* Note: We still strongly recommend that you fully understand the entire program's workflow and principles.
+* Xray is an excellent open-source network proxy tool supporting Windows, macOS, Android, iOS, Linux, and more
+* This script provides one-click complete configuration — once all processes finish successfully, simply configure your client using the output
+* **Strongly recommended** to fully understand the program's workflow and principles
 
-## Suggest Single Proxy per Server
+## Service Management
 
-* This script defaults to installing the latest version of Xray core.
-* It is recommended to use the default port 443 as the connection port.
+| Action | Command |
+|--------|---------|
+| Start Xray | `systemctl start xray` |
+| Stop Xray | `systemctl stop xray` |
+| Start Nginx | `systemctl start nginx` |
+| Stop Nginx | `systemctl stop nginx` |
 
-## Other Notes
+## Directories
 
-* It is recommended to use this script in a clean environment; beginners are advised not to use the Centos system.
-* Before applying this program to production environments, ensure it works correctly.
-* This program depends on Nginx to implement related functions; users who have previously installed Nginx using [LNMP](https://lnmp.org) or similar scripts should pay special attention, as using this script may cause unpredictable errors.
-
-## Startup Methods
-
-Start Xray: `systemctl start xray`
-
-Stop Xray: `systemctl stop xray`
-
-Start Nginx: `systemctl start nginx`
-
-Stop Nginx: `systemctl stop nginx`
-
-## Related Directories
-
-Xray server configuration: `/etc/idleleo/conf/xray/config.json`
-
-Nginx directory: `/usr/local/nginx`
-
-Certificate files: `/etc/idleleo/cert/xray.key` and `/etc/idleleo/cert/xray.crt`, please note the permission settings of the certificate file
-
-Configuration information files, etc.: `/etc/idleleo`
+| Item | Path |
+|------|------|
+| Xray server config | `/etc/idleleo/conf/xray/config.json` |
+| Nginx directory | `/usr/local/nginx` |
+| Certificate files | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
+| Config info etc. | `/etc/idleleo` |

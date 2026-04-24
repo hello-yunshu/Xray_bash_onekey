@@ -77,7 +77,7 @@ def translate_text_qwen_mt(text, target_lang):
             }
         )
         translated_text = completion.choices[0].message.content
-        return translated_text.capitalize().lower().rstrip('.,!?;:')
+        return translated_text.lower().rstrip('.,!?;:')
     except Exception as e:
         print(f"Qwen-MT-Plus translation failed: {e}")
         return ""
@@ -87,7 +87,7 @@ def translate_text_google(text, target_lang):
         translator = Translator(service_urls=['translate.google.com'])
         translation = translator.translate(text, src='zh-cn', dest=target_lang)  # 指定源语言为中文
         translated_text = translation.text
-        return translated_text.capitalize().lower().rstrip('.,!?;:')
+        return translated_text.lower().rstrip('.,!?;:')
     except Exception as e:
         print(f"Google Translate failed: {e}")
         return ""
