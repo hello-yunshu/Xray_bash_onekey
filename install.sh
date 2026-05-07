@@ -130,11 +130,12 @@ log_rotate() {
 }
 
 rotate_archives() {
-    local archives=($(ls ${LOG_FILE}.*.gz 2>/dev/null))
+    local archives
+    mapfile -t archives < <(ls "${LOG_FILE}".*.gz 2>/dev/null)
     while [ ${#archives[@]} -gt $MAX_ARCHIVES ]; do
         oldest_archive=${archives[0]}
         rm "$oldest_archive"
-        archives=($(ls ${LOG_FILE}.*.gz 2>/dev/null))
+        mapfile -t archives < <(ls "${LOG_FILE}".*.gz 2>/dev/null)
     done
 }
 
@@ -1101,33 +1102,33 @@ modify_inbound_port() {
 }
 
 modify_nginx_origin_conf() {
-    sed -i "s/worker_processes  1;/worker_processes  auto;/" ${nginx_dir}/conf/nginx.conf
-    sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" ${nginx_dir}/conf/nginx.conf
+    sed -i "s/worker_processes  1;/worker_processes  auto;/" "${nginx_dir}"/conf/nginx.conf
+    sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" "${nginx_dir}"/conf/nginx.conf
     if [[ ${tls_mode} == "TLS" ]]; then
-        sed -i "\$i include ${nginx_conf_dir}/*.conf;" ${nginx_dir}/conf/nginx.conf
+        sed -i "\$i include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
     elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-        sed -i "\$a include ${nginx_conf_dir}/*.conf;" ${nginx_dir}/conf/nginx.conf
+        sed -i "\$a include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
     fi
-    sed -i "/http\( *\){/a \\\tserver_tokens off;" ${nginx_dir}/conf/nginx.conf
-    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 403;\\n\\t\\t}" ${nginx_dir}/conf/nginx.conf
+    sed -i "/http\( *\){/a \\\tserver_tokens off;" "${nginx_dir}"/conf/nginx.conf
+    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 403;\\n\\t\\t}" "${nginx_dir}"/conf/nginx.conf
 }
 
 modify_nginx_port() {
     if [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-        sed -i "s/^\( *\)listen.*so_keepalive=on.*/\1listen ${port} reuseport so_keepalive=on backlog=65535;/" ${nginx_conf}
+        sed -i "s/^\( *\)listen.*so_keepalive=on.*/\1listen ${port} reuseport so_keepalive=on backlog=65535;/" "${nginx_conf}"
         judge "Nginx port $(gettext "修改")"
     elif [[ ${tls_mode} == "TLS" ]]; then
-        sed -i "2s/^\( *\).*ssl reuseport;$/\1listen ${port} ssl reuseport;/" ${nginx_conf}
-        sed -i "3s/^\( *\).*ssl reuseport;$/\1listen [::]:${port} ssl reuseport;/" ${nginx_conf}
-        sed -i "4s/^\( *\).*quic reuseport;$/\1listen ${port} quic reuseport;/" ${nginx_conf}
-        sed -i "5s/^\( *\).*quic reuseport;$/\1listen [::]:${port} quic reuseport;/" ${nginx_conf}
+        sed -i "2s/^\( *\).*ssl reuseport;$/\1listen ${port} ssl reuseport;/" "${nginx_conf}"
+        sed -i "3s/^\( *\).*ssl reuseport;$/\1listen [::]:${port} ssl reuseport;/" "${nginx_conf}"
+        sed -i "4s/^\( *\).*quic reuseport;$/\1listen ${port} quic reuseport;/" "${nginx_conf}"
+        sed -i "5s/^\( *\).*quic reuseport;$/\1listen [::]:${port} quic reuseport;/" "${nginx_conf}"
         judge "Xray port $(gettext "修改")"
     fi
     [[ "on" != ${old_config_status} ]] && log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
 }
 
 modify_nginx_ssl_other() {
-    if [[ -f "${nginx_dir}/conf/nginx.conf" ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]]; then
+    if [[ -f "${nginx_dir}/conf/nginx.conf" ]] && [[ $(grep -c "server_tokens off;" "${nginx_dir}"/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]]; then
         modify_nginx_origin_conf
     fi
     sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_ssl_conf}
@@ -1135,20 +1136,20 @@ modify_nginx_ssl_other() {
 }
 
 modify_nginx_other() {
-    if [[ -f "${nginx_dir}/conf/nginx.conf" ]] && [[ $(grep -c "server_tokens off;" ${nginx_dir}/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]]; then
+    if [[ -f "${nginx_dir}/conf/nginx.conf" ]] && [[ $(grep -c "server_tokens off;" "${nginx_dir}"/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]]; then
         modify_nginx_origin_conf
     fi
     if [[ ${tls_mode} == "TLS" ]]; then
-        sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_conf}
-        sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
-        sed -i "s/^\( *\)location grpc$/\1location \/${serviceName}/" ${nginx_conf}
-        sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${domain}\$request_uri;/" ${nginx_conf}
+        sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" "${nginx_conf}"
+        sed -i "s/^\( *\)location ws$/\1location \/${path}/" "${nginx_conf}"
+        sed -i "s/^\( *\)location grpc$/\1location \/${serviceName}/" "${nginx_conf}"
+        sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${domain}\$request_uri;/" "${nginx_conf}"
         if is_ws_mode; then
-            sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
-            sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
+            sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" "${nginx_conf}"
+            sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" "${nginx_conf}"
         fi
         if is_grpc_mode; then
-            sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" ${nginx_conf}
+            sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" "${nginx_conf}"
         fi
     fi
 }
@@ -1165,8 +1166,8 @@ EOF
 }
 
 modify_path() {
-    sed -i "s/^\( *\)\"path\".*/\1\"path\": \"\/${path}\"/" ${xray_conf}
-    sed -i "s/^\( *\)\"serviceName\".*/\1\"serviceName\": \"${serviceName}\",/" ${xray_conf}
+    sed -i "s/^\( *\)\"path\".*/\1\"path\": \"\/${path}\"/" "${xray_conf}"
+    sed -i "s/^\( *\)\"serviceName\".*/\1\"serviceName\": \"${serviceName}\",/" "${xray_conf}"
     if [[ ${tls_mode} != "Reality" ]] || [[ "$reality_add_more" == "off" ]]; then
         judge "Xray $(gettext "伪装路径") $(gettext "修改")"
     else
@@ -1175,8 +1176,8 @@ modify_path() {
 }
 
 modify_email_address() {
-    if [[ $(jq -r '.inbounds[0].settings.clients|length' ${xray_conf}) == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' ${xray_conf}) == 1 ]]; then
-        sed -i "s/^\( *\)\"email\".*/\1\"email\": \"${custom_email}\"/g" ${xray_conf}
+    if [[ $(jq -r '.inbounds[0].settings.clients|length' "${xray_conf}") == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' "${xray_conf}") == 1 ]]; then
+        sed -i "s/^\( *\)\"email\".*/\1\"email\": \"${custom_email}\"/g" "${xray_conf}"
         judge "Xray $(gettext "用户名修改")"
     else
         echo
@@ -1185,8 +1186,8 @@ modify_email_address() {
 }
 
 modify_UUID() {
-    if [[ $(jq -r '.inbounds[0].settings.clients|length' ${xray_conf}) == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' ${xray_conf}) == 1 ]]; then
-        sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/g" ${xray_conf}
+    if [[ $(jq -r '.inbounds[0].settings.clients|length' "${xray_conf}") == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' "${xray_conf}") == 1 ]]; then
+        sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/g" "${xray_conf}"
         judge "Xray UUID $(gettext "修改")"
     else
         echo
@@ -1292,7 +1293,7 @@ xray_update() {
                 xray_version=$(info_extraction xray_version)
                 bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_version}
                 if ! ${xray_bin_dir}/xray -version &> /dev/null; then
-                    echo "Xray $(gettext "回滚失败")!" >>${log_file}
+                    echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
                     return 1
                 fi
             fi
@@ -1311,7 +1312,7 @@ xray_update() {
     systemctl daemon-reload
     systemctl start xray
     if ! ${xray_bin_dir}/xray -version &> /dev/null; then
-        [[ ${auto_update} == "YES" ]] && echo "Xray $(gettext "更新失败")!" >>${log_file}
+        [[ ${auto_update} == "YES" ]] && echo "Xray $(gettext "更新失败")!" >>"${log_file}"
         [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} Xray $(gettext "更新失败")! ${Font}"
         return 1
     fi
@@ -1399,16 +1400,16 @@ nginx_exist_check() {
         if [[ -d "${nginx_conf_dir}" ]]; then
             rm -rf "${nginx_conf_dir}"/*.conf
             if [[ -f "${nginx_conf_dir}/nginx.default" ]]; then
-                cp -fp "${nginx_conf_dir}"/nginx.default ${nginx_dir}/conf/nginx.conf
+                cp -fp "${nginx_conf_dir}"/nginx.default "${nginx_dir}"/conf/nginx.conf
             elif [[ -f "${nginx_dir}/conf/nginx.conf.default" ]]; then
-                cp -fp "${nginx_dir}"/conf/nginx.conf.default ${nginx_dir}/conf/nginx.conf
+                cp -fp "${nginx_dir}"/conf/nginx.conf.default "${nginx_dir}"/conf/nginx.conf
             else
-                sed -i "/if \(.*\) {$/,+2d" ${nginx_dir}/conf/nginx.conf
-                sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
+                sed -i "/if \(.*\) {$/,+2d" "${nginx_dir}"/conf/nginx.conf
+                sed -i "/^include.*\*\.conf;$/d" "${nginx_dir}"/conf/nginx.conf
             fi
         else
-            sed -i "/if \(.*\) {$/,+2d" ${nginx_dir}/conf/nginx.conf
-            sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
+            sed -i "/if \(.*\) {$/,+2d" "${nginx_dir}"/conf/nginx.conf
+            sed -i "/^include.*\*\.conf;$/d" "${nginx_dir}"/conf/nginx.conf
         fi
         modify_nginx_origin_conf
         nginx_build_version=$(info_extraction nginx_build_version)
@@ -1461,7 +1462,7 @@ nginx_install() {
     [[ -d "${nginx_dir}" ]] && safe_rm "${nginx_dir}"
     mv ./nginx "${nginx_dir}"
 
-    cp -fp "${nginx_dir}"/conf/nginx.conf ${nginx_conf_dir}/nginx.default
+    cp -fp "${nginx_dir}"/conf/nginx.conf "${nginx_conf_dir}"/nginx.default
 
     # 修改基本配置
     #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
@@ -1501,7 +1502,7 @@ nginx_update() {
                         serviceName=$(info_extraction serviceName)
                     fi
                     if [[ 0 -eq ${read_config_status} ]]; then
-                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" >>${log_file} && return 1
+                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" >>"${log_file}" && return 1
                         log_echo "${Error} ${RedBG} $(gettext "配置不完整, 退出更新")! ${Font}"
                         return 1
                     fi
@@ -1509,26 +1510,26 @@ nginx_update() {
                     port=$(info_extraction port)
                     serverNames=$(info_extraction serverNames)
                     if [[ 0 -eq ${read_config_status} ]]; then
-                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" >>${log_file} && return 1
+                        [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不完整, 退出更新")!" >>"${log_file}" && return 1
                         log_echo "${Error} ${RedBG} $(gettext "配置不完整, 退出更新")! ${Font}"
                         return 1
                     fi
                 elif [[ ${tls_mode} == "None" ]]; then
-                    [[ ${auto_update} == "YES" ]] && echo "$(gettext "当前安装模式不需要") Nginx !" >>${log_file} && return 1
+                    [[ ${auto_update} == "YES" ]] && echo "$(gettext "当前安装模式不需要") Nginx !" >>"${log_file}" && return 1
                     log_echo "${Error} ${RedBG} $(gettext "当前安装模式不需要") Nginx ! ${Font}"
                     return 1
                 fi
             else
-                [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不存在, 退出更新")!" >>${log_file} && return 1
+                [[ ${auto_update} == "YES" ]] && echo "Nginx $(gettext "配置不存在, 退出更新")!" >>"${log_file}" && return 1
                 log_echo "${Error} ${RedBG} $(gettext "配置不存在, 退出更新")! ${Font}"
                 return 1
             fi
             service_stop
             backup_nginx_dir="${nginx_dir}_backup_${current_nginx_build_version}"
-            cp -r "${nginx_dir}" ${backup_nginx_dir}
+            cp -r "${nginx_dir}" "${backup_nginx_dir}"
             judge "$(gettext "备份旧版") Nginx"
             timeout "$(gettext "删除旧版") Nginx !"
-            rm -rf "${nginx_dir}"
+            safe_rm "${nginx_dir}"
             if [[ ${auto_update} != "YES" ]]; then
                 echo
                 log_echo "${GreenBG} $(gettext "是否保留原 Nginx 配置文件") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -1564,8 +1565,8 @@ nginx_update() {
                     read -r rollback_fq
                 else
                     service_stop
-                    rm -rf "${nginx_dir}"
-                    mv ${backup_nginx_dir} ${nginx_dir}
+                    safe_rm "${nginx_dir}"
+                    mv "${backup_nginx_dir}" "${nginx_dir}"
                     service_start
                 fi
                 case $rollback_fq in
@@ -1576,14 +1577,14 @@ nginx_update() {
                 *)
                     log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
                     service_stop
-                    rm -rf "${nginx_dir}"
-                    mv ${backup_nginx_dir} ${nginx_dir}
+                    safe_rm "${nginx_dir}"
+                    mv "${backup_nginx_dir}" "${nginx_dir}"
                     service_start
                     sleep 1
                     if systemctl -q is-active nginx; then
                         log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
                         update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version'
-                        rm -rf "${backup_nginx_dir}"
+                        safe_rm "${backup_nginx_dir}"
                         return 1
                     else
                         log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
@@ -1594,7 +1595,7 @@ nginx_update() {
             else
                 update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version'
                 judge "Nginx $(gettext "更新")"
-                rm -rf "${backup_nginx_dir}"
+                safe_rm "${backup_nginx_dir}"
                 judge "$(gettext "删除") Nginx $(gettext "备份")"
             fi
         else
@@ -1620,8 +1621,8 @@ auto_update() {
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
-            curl -L -o "${idleleo_dir}/auto_update.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh" && chmod +x ${auto_update_file}
-            echo "0 1 15 * * bash "${auto_update_file}"" >>${crontab_file}
+            curl -L -o "${idleleo_dir}/auto_update.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh" && chmod +x "${auto_update_file}"
+            echo "0 1 15 * * bash \"${auto_update_file}\"" >>"${crontab_file}"
             judge "$(gettext "设置自动更新")"
             ;;
         *) ;;
@@ -1632,7 +1633,7 @@ auto_update() {
         read -r auto_update_close_fq
         case $auto_update_close_fq in
         [yY][eE][sS] | [yY])
-            sed -i "/auto_update.sh/d" ${crontab_file}
+            sed -i "/auto_update.sh/d" "${crontab_file}"
             rm -rf "${auto_update_file}"
             judge "$(gettext "删除自动更新")"
             ;;
@@ -2316,7 +2317,7 @@ acme_cron_update() {
             case $remove_acme_cron_update_fq in
             [nN][oO] | [nN]) ;;
             *)
-                sed -i "/ssl_update.sh/d" ${crontab_file}
+                sed -i "/ssl_update.sh/d" "${crontab_file}"
                 rm -rf "${ssl_update_file}"
                 judge "$(gettext "删除改版证书自动更新")"
                 ;;
@@ -2446,9 +2447,9 @@ setup_auto_clean_logs() {
 clean_logs() {
     echo
     log_echo "${Green} $(gettext "检测到日志文件大小如下:") ${Font}"
-    log_echo "${Green}$(du -sh /var/log/xray ${nginx_dir}/logs 2>/dev/null)${Font}"
+    log_echo "${Green}$(du -sh /var/log/xray "${nginx_dir}"/logs 2>/dev/null)${Font}"
     timeout "$(gettext "即将清除")!"
-    for i in $(find /var/log/xray/ ${nginx_dir}/logs -name "*.log" 2>/dev/null); do cat /dev/null >"$i" 2>/dev/null; done
+    for i in $(find /var/log/xray/ "${nginx_dir}"/logs -name "*.log" 2>/dev/null); do cat /dev/null >"$i" 2>/dev/null; done
     judge "$(gettext "日志清理")"
     setup_auto_clean_logs
 }
@@ -3254,15 +3255,15 @@ show_user() {
         fi
         echo
         log_echo "${GreenBG} $(gettext "请选择要显示的用户编号"): ${Font}"
-        jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email ${xray_conf} | awk '{print NR""": "$0}'
+        jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email "${xray_conf}" | awk '{print NR""": "$0}'
         read_optimize "$(gettext "请输入"): " "show_user_index" "NULL"
         if [[ ${show_user_index} == 1 ]]; then
             log_echo "${Error} ${RedBG} $(gettext "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户") ${Font}"
             echo
-        elif [[ ${show_user_index} -gt 1 ]] && [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -ge ${show_user_index} ]]; then
+        elif [[ ${show_user_index} -gt 1 ]] && [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' "${xray_conf}") -ge ${show_user_index} ]]; then
             local idx=$((show_user_index - 1))
-            user_email=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${idx}'].email' ${xray_conf})
-            user_id=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${idx}'].id' ${xray_conf})
+            user_email=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${idx}'].email' "${xray_conf}")
+            user_id=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${idx}'].id' "${xray_conf}")
         else
             log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
             continue
@@ -3357,10 +3358,10 @@ remove_user() {
         fi
         echo
         log_echo "${GreenBG} $(gettext "请选择要删除的用户编号") ${Font}"
-        jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email ${xray_conf} | awk '{print NR""": "$0}'
+        jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email "${xray_conf}" | awk '{print NR""": "$0}'
         local del_user_index
         read_optimize "$(gettext "请输入"): " "del_user_index" "NULL"
-        if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -lt ${del_user_index} ]] || [[ ${del_user_index} == 0 ]]; then
+        if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' "${xray_conf}") -lt ${del_user_index} ]] || [[ ${del_user_index} == 0 ]]; then
             log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
             remove_user
         elif [[ ${del_user_index} == 1 ]]; then
@@ -3404,7 +3405,7 @@ show_error_log() {
 
 xray_status_add() {
     if [[ -f "${xray_conf}" ]]; then
-        if [[ $(jq -r .stats ${xray_conf}) != "null" ]]; then
+        if [[ $(jq -r .stats "${xray_conf}") != "null" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "已配置 Xray 流量统计") ${Font}"
             log_echo "${GreenBG} $(gettext "是否需要关闭此功能") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -3754,11 +3755,11 @@ install_xray_ws_only() {
 
 update_sh() {
     ol_version=${shell_online_version}
-    echo "${ol_version}" >${shell_version_tmp}
+    echo "${ol_version}" >"${shell_version_tmp}"
     [[ -z ${ol_version} ]] && log_echo "${Error} ${RedBG} $(gettext "检测最新版本失败")! ${Font}" && return 1
-    echo "${shell_version}" >>${shell_version_tmp}
-    newest_version=$(sort -rV ${shell_version_tmp} | head -1)
-    oldest_version=$(sort -V ${shell_version_tmp} | head -1)
+    echo "${shell_version}" >>"${shell_version_tmp}"
+    newest_version=$(sort -rV "${shell_version_tmp}" | head -1)
+    oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
     version_difference=$(echo "(${newest_version:0:3}-${oldest_version:0:3})>0" | bc)
     if [[ ${shell_version} != ${newest_version} ]]; then
         if [[ ${auto_update} != "YES" ]]; then
@@ -3774,8 +3775,8 @@ update_sh() {
             fi
             read -r update_confirm
         else
-            [[ -z ${ol_version} ]] && echo "$(gettext "检测 脚本 最新版本失败")!" >>${log_file} && return 1
-            [[ ${version_difference} == 1 ]] && echo "$(gettext "脚本 版本差别过大, 跳过更新")!" >>${log_file} && return 1
+            [[ -z ${ol_version} ]] && echo "$(gettext "检测 脚本 最新版本失败")!" >>"${log_file}" && return 1
+            [[ ${version_difference} == 1 ]] && echo "$(gettext "脚本 版本差别过大, 跳过更新")!" >>"${log_file}" && return 1
             update_confirm="YES"
         fi
         case $update_confirm in
@@ -3783,7 +3784,7 @@ update_sh() {
             [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
             curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
             if [[ $? -ne 0 ]]; then
-                [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>${log_file}
+                [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>"${log_file}"
                 [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
                 return 1
             fi
@@ -3990,11 +3991,11 @@ show_help() {
 
 idleleo_commend() {
     if [[ -L "${idleleo_commend_file}" ]] || [[ -f "${idleleo}" ]]; then
-        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x ${idleleo} && ln -s "${idleleo}" "${idleleo_commend_file}"
-        old_version=$(grep "shell_version=" ${idleleo} | head -1 | awk -F '=|"' '{print $3}')
-        echo "${old_version}" >${shell_version_tmp}
-        echo "${shell_version}" >>${shell_version_tmp}
-        oldest_version=$(sort -V ${shell_version_tmp} | head -1)
+        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x "${idleleo}" && ln -s "${idleleo}" "${idleleo_commend_file}"
+        old_version=$(grep "shell_version=" "${idleleo}" | head -1 | awk -F '=|"' '{print $3}')
+        echo "${old_version}" >"${shell_version_tmp}"
+        echo "${shell_version}" >>"${shell_version_tmp}"
+        oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
             curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
@@ -4033,10 +4034,10 @@ idleleo_commend() {
             source "$idleleo"
         else
             ol_version=${shell_online_version}
-            echo "${ol_version}" >${shell_version_tmp}
+            echo "${ol_version}" >"${shell_version_tmp}"
             [[ -z ${ol_version} ]] && shell_need_update="${Red}[$(gettext "检测失败")]!${Font}"
-            echo "${shell_version}" >>${shell_version_tmp}
-            newest_version=$(sort -rV ${shell_version_tmp} | head -1)
+            echo "${shell_version}" >>"${shell_version_tmp}"
+            newest_version=$(sort -rV "${shell_version_tmp}" | head -1)
             if [[ ${shell_version} != ${newest_version} ]]; then
                 shell_need_update="${Red}[$(gettext "有新版")!]${Font}"
                 shell_emoji="${Red}>_<${Font}"
