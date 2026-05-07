@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.2.1"
+mf_SCRIPT_VERSION="1.2.2"
 
 mf_main_menu() {
     check_system
@@ -404,13 +404,13 @@ mf_uninstall_fail2ban() {
     systemctl stop fail2ban
     systemctl disable fail2ban
     ${INS} -y remove fail2ban
-    [[ -f "/etc/fail2ban/jail.local" ]] && rm -rf /etc/fail2ban/jail.local
-    rm -rf /etc/fail2ban/jail.d/*.local
+    [[ -f "/etc/fail2ban/jail.local" ]] && rm -f "/etc/fail2ban/jail.local"
+    rm -f /etc/fail2ban/jail.d/*.local
     if [[ -f "/etc/fail2ban/filter.d/nginx-no-host.conf" ]]; then
-        rm -rf /etc/fail2ban/filter.d/nginx-no-host.conf
+        rm -f "/etc/fail2ban/filter.d/nginx-no-host.conf"
     fi
     if [[ -f "/etc/fail2ban/filter.d/nginx-tls-error.conf" ]]; then
-        rm -rf /etc/fail2ban/filter.d/nginx-tls-error.conf
+        rm -f "/etc/fail2ban/filter.d/nginx-tls-error.conf"
     fi
     judge "Fail2ban $(gettext "卸载")"
     timeout "$(gettext "清空屏幕")!"
