@@ -491,5 +491,12 @@
   "监控网卡": "surveiller la carte réseau",
   "监控端口": "port de surveillance",
   "按 q 键退出 iftop": "appuyez sur la touche q pour quitter iftop",
-  "实时流量": "trafic en temps réel"
+  "实时流量": "trafic en temps réel",
+  "拒绝删除空路径或根目录": "refuser de supprimer un chemin vide ou le répertoire racine",
+  "参数不能为空": "le paramètre ne peut pas être vide",
+  "下载 Xray TLS 配置": "télécharger la configuration xray tls",
+  "下载 Xray Reality 配置": "télécharger la configuration xray reality",
+  "下载 Xray 配置": "télécharger la configuration xray",
+  "下载 Xray XTLS 配置": "télécharger la configuration xray xtls",
+  "下载流量统计配置": "télécharger la configuration du suivi du trafic"
 }

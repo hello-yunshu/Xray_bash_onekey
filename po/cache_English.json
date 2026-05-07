@@ -491,5 +491,12 @@
   "监控网卡": "monitor network card",
   "监控端口": "monitoring port",
   "按 q 键退出 iftop": "press the q key to exit iftop",
-  "实时流量": "real-time traffic"
+  "实时流量": "real-time traffic",
+  "拒绝删除空路径或根目录": "refuse to delete empty paths or the root directory",
+  "参数不能为空": "the parameter cannot be empty",
+  "下载 Xray TLS 配置": "download xray tls configuration",
+  "下载 Xray Reality 配置": "download xray reality configuration",
+  "下载 Xray 配置": "download xray configuration",
+  "下载 Xray XTLS 配置": "download xray xtls configuration",
+  "下载流量统计配置": "download traffic statistics configuration"
 }
