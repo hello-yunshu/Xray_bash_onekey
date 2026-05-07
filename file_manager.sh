@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.2.4"
+fm_SCRIPT_VERSION="1.2.5"
 
 if [ -z "$1" ]; then
     echo "$(gettext "用法"):" $0 <$(gettext "文件扩展名")> [<$(gettext "目录路径")>]
@@ -25,13 +25,17 @@ fm_list_files() {
     local max_length
     log_echo "${GreenBG} $(gettext "列出所有") .$fm_EXTENSION $(gettext "文件") ${Font}"
 
+    local _prev_dotglob=$(shopt -p dotglob)
+    local _prev_nullglob=$(shopt -p nullglob)
+
     # 设置 dotglob 选项，使通配符 * 包括以点开头的文件
     shopt -s dotglob nullglob
 
-    # 使用数组存储匹配到的文件
     files=(*.$fm_EXTENSION)
 
     if [ ${#files[@]} -eq 0 ]; then
+        eval "${_prev_dotglob}"
+        eval "${_prev_nullglob}"
         log_echo "${Warning} ${YellowBG} $(gettext "未找到") .$fm_EXTENSION $(gettext "文件") ${Font}"
         return 1
     else
@@ -68,6 +72,8 @@ fm_list_files() {
 
         printf "%-${total_width}s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
 
+        eval "${_prev_dotglob}"
+        eval "${_prev_nullglob}"
         return 0
     fi
 }

@@ -39,8 +39,10 @@ _start_xray() {
 _stop_xray() {
     if [[ -f "$XRAY_PID_FILE" ]]; then
         kill "$(cat "$XRAY_PID_FILE" 2>/dev/null)" 2>/dev/null
-        sleep 1
-        kill -9 "$(cat "$XRAY_PID_FILE" 2>/dev/null)" 2>/dev/null
+        sleep 3
+        if _xray_is_running; then
+            kill -9 "$(cat "$XRAY_PID_FILE" 2>/dev/null)" 2>/dev/null
+        fi
         rm -f "$XRAY_PID_FILE"
     fi
     pkill -f "$XRAY_BIN" 2>/dev/null

@@ -16,13 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     gnupg \
     gzip \
-    iftop \
     iptables \
     iptables-persistent \
     jq \
     lsof \
     netcat-openbsd \
-    nmap \
     openssl \
     procps \
     psmisc \
@@ -31,7 +29,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     socat \
     sysvinit-utils \
     unzip \
-    vim \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -f nogroup && \
@@ -71,6 +68,9 @@ RUN mkdir -p /etc/systemd/system && \
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD pgrep -f "/usr/local/bin/xray" > /dev/null 2>&1 || exit 1
 
 EXPOSE 443 80
 
