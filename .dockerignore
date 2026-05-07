@@ -2,6 +2,7 @@
 .git/
 .gitignore
 .editorconfig
+.trae/
 LICENSE
 po/
 translate.py
@@ -11,3 +12,4 @@ docker-compose.yml
 docker-entrypoint.sh
 fake-systemctl
 .dockerignore
+*.md

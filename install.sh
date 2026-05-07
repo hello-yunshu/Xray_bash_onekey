@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.8.12"
+shell_version="2.9.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -66,7 +66,14 @@ auto_update_file="${idleleo_dir}/auto_update.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 myemali="my@example.com"
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
-get_versions_all=$(curl -s https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json)
+get_versions_all=""
+_get_versions_loaded=0
+load_versions() {
+    if [[ ${_get_versions_loaded} -eq 0 ]]; then
+        get_versions_all=$(curl -s https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json)
+        _get_versions_loaded=1
+    fi
+}
 read_config_status=1
 reality_add_more="off"
 reality_add_nginx="off"
@@ -74,21 +81,33 @@ reality_add_balance="off"
 old_config_status="off"
 old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
-[[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+[[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
 
-[[ ! -d ${log_dir} ]] && mkdir -p ${log_dir}
-[[ ! -f "${log_dir}/install.log" ]] && touch ${log_dir}/install.log
+is_ws_mode() {
+    [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]]
+}
+
+is_grpc_mode() {
+    [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]]
+}
+
+[[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}"
+[[ ! -f "${log_dir}/install.log" ]] && touch "${log_dir}"/install.log
 LOG_FILE="${log_dir}/install.log"
-LOG_MAX_SIZE=$((3 * 1024 * 1024))  # 3 MB
+LOG_MAX_SIZE=$((3 * 1024 * 1024))
 MAX_ARCHIVES=5
+_log_check_counter=0
 
 log() {
-    if [ $(stat -c%s "$LOG_FILE" 2>/dev/null) -gt $LOG_MAX_SIZE ]; then
-        log_rotate
+    _log_check_counter=$((_log_check_counter + 1))
+    if [[ $((_log_check_counter % 100)) -eq 1 ]]; then
+        if [ $(stat -c%s "$LOG_FILE" 2>/dev/null) -gt $LOG_MAX_SIZE ]; then
+            log_rotate
+        fi
     fi
 
     local message=$(echo -e "$1" | sed 's/\x1B\[\([0-9]\(;[0-9]\)*\)*m//g' | tr -d '\n')
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" | tee -a $LOG_FILE >/dev/null
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" | tee -a "$LOG_FILE" >/dev/null
 }
 
 log_rotate() {
@@ -123,6 +142,54 @@ log_echo() {
     local message=$(printf "%b" "$@")
     echo -e "$message"
     log "$message"
+}
+
+safe_rm() {
+    local target="$1"
+    if [[ -z "${target}" || "${target}" == "/" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "拒绝删除空路径或根目录"): ${target} ${Font}"
+        return 1
+    fi
+    rm -rf "${target}"
+}
+
+update_json_config() {
+    local config_file="$1"
+    shift
+    if [[ -z "${config_file}" ]] || [[ $# -eq 0 ]]; then
+        log_echo "${Error} ${RedBG} update_json_config: $(gettext "参数不能为空") ${Font}"
+        return 1
+    fi
+    jq "$@" "${config_file}" > "${config_file}.tmp"
+    if [[ $? -ne 0 ]]; then
+        rm -f "${config_file}.tmp"
+        return 1
+    fi
+    mv "${config_file}.tmp" "${config_file}"
+}
+
+get_public_ip() {
+    local ip_version="$1"
+    if [[ "${ip_version}" == "IPv6" ]]; then
+        curl -6 ip.me 2>/dev/null || curl -6 ip.im
+    else
+        curl -4 ip.me 2>/dev/null || curl -4 ip.im
+    fi
+}
+
+generate_random_port() {
+    local min="$1"
+    local max="$2"
+    local exclude_ports="${3:-}"
+    local port
+    while true; do
+        port=$((RANDOM % (max - min + 1) + min))
+        local is_excluded=0
+        for ep in ${exclude_ports}; do
+            [[ "${port}" == "${ep}" ]] && is_excluded=1 && break
+        done
+        [[ ${is_excluded} -eq 0 ]] && echo "${port}" && return
+    done
 }
 
 source '/etc/os-release'
@@ -308,18 +375,38 @@ init_language() {
 }
 
 judge() {
-    if [[ 0 -eq $? ]]; then
-        log_echo "${OK} ${GreenBG} $1 $(gettext "完成") ${Font}"
-        sleep 0.5
+    local desc="$1"
+    if [[ $# -gt 1 ]]; then
+        "${@:2}"
+        local ret=$?
+        if [[ $ret -eq 0 ]]; then
+            log_echo "${OK} ${GreenBG} ${desc} $(gettext "完成") ${Font}"
+            sleep 0.5
+        else
+            log_echo "${Error} ${RedBG} ${desc} $(gettext "失败") ${Font}"
+            exit 1
+        fi
+        return $ret
     else
-        log_echo "${Error} ${RedBG} $1 $(gettext "失败") ${Font}"
-        exit 1
+        if [[ 0 -eq $? ]]; then
+            log_echo "${OK} ${GreenBG} ${desc} $(gettext "完成") ${Font}"
+            sleep 0.5
+        else
+            log_echo "${Error} ${RedBG} ${desc} $(gettext "失败") ${Font}"
+            exit 1
+        fi
     fi
 }
 
 check_version() {
-    echo ${get_versions_all} | jq -rc ".$1"
-    [[ 0 -ne $? ]] && log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}" && exit 1
+    load_versions
+    local result
+    result=$(echo "${get_versions_all}" | jq -rc ".$1" 2>/dev/null)
+    if [[ $? -ne 0 ]] || [[ -z "${result}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}"
+        exit 1
+    fi
+    echo "${result}"
 }
 
 pkg_install_judge() {
@@ -336,7 +423,7 @@ pkg_install() {
     if [[ ${#install_array[@]} -gt 1 ]]; then
         for install_var in ${install_array[@]}; do
             if [[ -z $(pkg_install_judge "${install_var}") ]]; then
-                ${INS} -y install ${install_var}
+                ${INS} -y install "${install_var}"
                 install_status=0
             fi
         done
@@ -389,27 +476,29 @@ read_optimize() {
     local prompt="$1" var_name="$2" default_value="${3:-NULL}" min_value="${4:-}" max_value="${5:-}" error_msg="${6:-$(gettext "值为空或超出范围, 请重新输入")!}"
     local user_input
 
-    read -rp "$prompt" user_input
+    while true; do
+        read -rp "$prompt" user_input
 
-    if [[ -z $user_input ]]; then
-        if [[ $default_value != "NULL" ]]; then
-            user_input=$default_value
-        else
-            log_echo "${Error} ${RedBG} $(gettext "值为空, 请重新输入")! ${Font}"
-            read_optimize "$prompt" "$var_name" "$default_value" "$min_value" "$max_value" "$error_msg"
-            return
+        if [[ -z $user_input ]]; then
+            if [[ $default_value != "NULL" ]]; then
+                user_input=$default_value
+                break
+            else
+                log_echo "${Error} ${RedBG} $(gettext "值为空, 请重新输入")! ${Font}"
+                continue
+            fi
         fi
-    fi
+
+        if [[ -n $min_value ]] && [[ -n $max_value ]]; then
+            if (( user_input < min_value )) || (( user_input > max_value )); then
+                log_echo "${Error} ${RedBG} $error_msg ${Font}"
+                continue
+            fi
+        fi
+        break
+    done
 
     printf -v "$var_name" "%s" "$user_input"
-
-    if [[ -n $min_value ]] && [[ -n $max_value ]]; then
-        if (( user_input < min_value )) || (( user_input > max_value )); then
-            log_echo "${Error} ${RedBG} $error_msg ${Font}"
-            read_optimize "$prompt" "$var_name" "$default_value" "$min_value" "$max_value" "$error_msg"
-            return
-        fi
-    fi
 }
 
 basic_optimization() {
@@ -427,11 +516,11 @@ basic_optimization() {
 
 create_directory() {
     if [[ ${tls_mode} != "None" ]]; then
-        [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p ${nginx_conf_dir}
+        [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p "${nginx_conf_dir}"
     fi
-    [[ ! -d "${ssl_chainpath}" ]] && mkdir -p ${ssl_chainpath}
-    [[ ! -d "${xray_conf_dir}" ]] && mkdir -p ${xray_conf_dir}
-    [[ ! -d "${idleleo_dir}/info" ]] && mkdir -p ${idleleo_dir}/info
+    [[ ! -d "${ssl_chainpath}" ]] && mkdir -p "${ssl_chainpath}"
+    [[ ! -d "${xray_conf_dir}" ]] && mkdir -p "${xray_conf_dir}"
+    [[ ! -d "${idleleo_dir}/info" ]] && mkdir -p "${idleleo_dir}"/info
 }
 
 port_set() {
@@ -507,15 +596,11 @@ ws_grpc_qr() {
     artxport="None"
     artserviceName="None"
     artgport="None"
-    if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+    if is_ws_mode; then
         artxport=${xport}
         artpath=${path}
-    elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-        artgport=${gport}
-        artserviceName=${serviceName}
-    elif [[ ${ws_grpc_mode} == "all" ]]; then
-        artxport=${xport}
-        artpath=${path}
+    fi
+    if is_grpc_mode; then
         artgport=${gport}
         artserviceName=${serviceName}
     fi
@@ -523,7 +608,7 @@ ws_grpc_qr() {
 
 ws_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
+        if is_ws_mode || [[ ${reality_add_more} == "on" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") ws inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
@@ -533,19 +618,19 @@ ws_inbound_port_set() {
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
             *)
-                xport=$((RANDOM % 1000 + 10000))
+                xport=$(generate_random_port 10000 10999)
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
             esac
         else
-            xport=$((RANDOM % 1000 + 20000))
+            xport=$(generate_random_port 20000 20999)
         fi
     fi
 }
 
 grpc_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
+        if is_grpc_mode || [[ ${reality_add_more} == "on" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
@@ -555,13 +640,13 @@ grpc_inbound_port_set() {
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             *)
-                gport=$((RANDOM % 1000 + 10000))
-                while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 10000)); done
+                gport=$(generate_random_port 10000 10999)
+                while [[ ${gport} == ${xport} ]]; do gport=$(generate_random_port 10000 10999); done
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             esac
         else
-            gport=$((RANDOM % 1000 + 30000))
+            gport=$(generate_random_port 30000 30999)
         fi
     fi
 }
@@ -625,69 +710,81 @@ firewall_set() {
 }
 
 ws_path_set() {
-    if [[ "on" != ${old_config_status} ]] || [[ ${change_ws_path} == "yes" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
+    while true; do
+        if [[ "on" != ${old_config_status} ]] || [[ ${change_ws_path} == "yes" ]]; then
+            if is_ws_mode || [[ ${reality_add_more} == "on" ]]; then
+                echo
+                log_echo "${GreenBG} $(gettext "是否需要自定义") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+                read -r path_modify_fq
+                case $path_modify_fq in
+                [yY][eE][sS] | [yY])
+                    read_optimize "$(gettext "请输入") ws $(gettext "伪装路径") ($(gettext "不需要")"/":)" "path" "NULL"
+                    log_echo "${Green} ws $(gettext "伪装路径"): ${path} ${Font}"
+                    ;;
+                *)
+                    path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+                    log_echo "${Green} ws $(gettext "伪装路径"): ${path} ${Font}"
+                    ;;
+                esac
+            else
+                path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            fi
+            break
+        elif is_ws_mode; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-            read -r path_modify_fq
-            case $path_modify_fq in
+            read -r change_ws_path_fq
+            case $change_ws_path_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入") ws $(gettext "伪装路径") ($(gettext "不需要")"/":)" "path" "NULL"
-                log_echo "${Green} ws $(gettext "伪装路径"): ${path} ${Font}"
+                change_ws_path="yes"
+                continue
                 ;;
-            *)
-                path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                log_echo "${Green} ws $(gettext "伪装路径"): ${path} ${Font}"
-                ;;
+            *) ;;
             esac
+            break
         else
-            path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            break
         fi
-    elif [[ ${ws_grpc_mode} == "onlyws" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
-        echo
-        log_echo "${GreenBG} $(gettext "是否需要自定义") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        read -r change_ws_path_fq
-        case $change_ws_path_fq in
-        [yY][eE][sS] | [yY])
-            change_ws_path="yes"
-            ws_path_set
-            ;;
-        *) ;;
-        esac
-    fi
+    done
 }
 
 grpc_path_set() {
-    if [[ "on" != ${old_config_status} ]] || [[ ${change_grpc_path} == "yes" ]]; then
-        if [[ ${ws_grpc_mode} == "onlygRPC" || ${ws_grpc_mode} == "all" ]] || [[ ${reality_add_more} == "on" ]]; then
+    while true; do
+        if [[ "on" != ${old_config_status} ]] || [[ ${change_grpc_path} == "yes" ]]; then
+            if is_grpc_mode || [[ ${reality_add_more} == "on" ]]; then
+                echo
+                log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+                read -r path_modify_fq
+                case $path_modify_fq in
+                [yY][eE][sS] | [yY])
+                    read_optimize "$(gettext "请输入") gRPC $(gettext "伪装路径") ($(gettext "不需要")"/":)" "serviceName" "NULL"
+                    log_echo "${Green} gRPC $(gettext "伪装路径"): ${serviceName} ${Font}"
+                    ;;
+                *)
+                    serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+                    log_echo "${Green} gRPC $(gettext "伪装路径"): ${serviceName} ${Font}"
+                    ;;
+                esac
+            else
+                serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            fi
+            break
+        elif is_grpc_mode; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-            read -r path_modify_fq
-            case $path_modify_fq in
+            read -r change_grpc_path_fq
+            case $change_grpc_path_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入") gRPC $(gettext "伪装路径") ($(gettext "不需要")"/":)" "serviceName" "NULL"
-                log_echo "${Green} gRPC $(gettext "伪装路径"): ${serviceName} ${Font}"
+                change_grpc_path="yes"
+                continue
                 ;;
-            *)
-                serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                log_echo "${Green} gRPC $(gettext "伪装路径"): ${serviceName} ${Font}"
-                ;;
+            *) ;;
             esac
+            break
         else
-            serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+            break
         fi
-    elif [[ ${ws_grpc_mode} == "onlygRPC" ]] || [[ ${ws_grpc_mode} == "all" ]]; then
-        echo
-        log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        read -r change_grpc_path_fq
-        case $change_grpc_path_fq in
-        [yY][eE][sS] | [yY])
-            change_grpc_path="yes"
-            grpc_path_set
-            ;;
-        *) ;;
-        esac
-    fi
+    done
 }
 
 email_set() {
@@ -839,28 +936,12 @@ keys_set() {
         [yY][eE][sS] | [yY])
             read_optimize "$(gettext "请输入") privateKey:" "privateKey" "NULL"
             keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}" | tr '\n' ' ')
-            ## 兼容之前的xray版本，一个大版本后删除 from: 2.8.9
-            if echo "${keys}" | grep -q "Password (PublicKey): "; then
-                password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
-            elif echo "${keys}" | grep -q "Password: "; then
-                password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
-            elif echo "${keys}" | grep -q "PublicKey: "; then
-                password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
-            fi
-            ## 兼容结束
+            password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
             ;;
         *)
             keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
             privateKey=$(echo "${keys}" | awk -F"PrivateKey: " '{print $2}' | awk '{print $1}')
-            ## 兼容之前的xray版本，一个大版本后删除  from: 2.8.9
-            if echo "${keys}" | grep -q "Password (PublicKey): "; then
-                password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
-            elif echo "${keys}" | grep -q "Password: "; then
-                password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
-            elif echo "${keys}" | grep -q "PublicKey: "; then
-                password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
-            fi
-            ## 兼容结束
+            password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
             ;;
         esac
         log_echo "${Green} privateKey: ${privateKey} ${Font}"
@@ -891,16 +972,14 @@ shortIds_set() {
 }
 
 ensure_file_manager() {
-    local fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
-    local fm_local_path="${idleleo_dir}/file_manager.sh"
-
-    if [[ ! -f "${fm_local_path}" ]]; then
+    fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
+    if [ ! -f "${idleleo_dir}/file_manager.sh" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件 file_manager.sh 不存在, 正在下载")... ${Font}"
-        if ! curl -sL "$fm_remote_url" -o "$fm_local_path"; then
+        if ! curl -sL "$fm_remote_url" -o "${idleleo_dir}/file_manager.sh"; then
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
         fi
-        chmod +x "$fm_local_path"
+        chmod +x "${idleleo_dir}/file_manager.sh"
     fi
     return 0
 }
@@ -976,55 +1055,49 @@ modify_listen_address() {
         modifynum=1
         modifynum2=2
     elif [[ ${tls_mode} == "XTLS" ]]; then
-        jq '.inbounds[0].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
+        update_json_config "${xray_conf}" '.inbounds[0].listen = "0.0.0.0"'
         judge "Xray listen address $(gettext "修改")"
-        mv "${xray_conf}.tmp" "${xray_conf}"
         return
     else
         modifynum=0
         modifynum2=1
     fi
 
-    if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-        jq --argjson modifynum "$modifynum" \
-           '.inbounds[$modifynum].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
-        judge "Xray listen address $(gettext "修改")"
-    elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-        jq --argjson modifynum2 "$modifynum2" \
-           '.inbounds[$modifynum2].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
-        judge "Xray listen address $(gettext "修改")"
-    elif [[ ${ws_grpc_mode} == "all" ]]; then
-        jq --argjson modifynum "$modifynum" --argjson modifynum2 "$modifynum2" \
-           '.inbounds[$modifynum].listen = "0.0.0.0" | .inbounds[$modifynum2].listen = "0.0.0.0"' "${xray_conf}" > "${xray_conf}.tmp"
+    if is_ws_mode; then
+        update_json_config "${xray_conf}" --argjson modifynum "$modifynum" \
+           '.inbounds[$modifynum].listen = "0.0.0.0"'
         judge "Xray listen address $(gettext "修改")"
     fi
-    mv "${xray_conf}.tmp" "${xray_conf}"
+    if is_grpc_mode; then
+        update_json_config "${xray_conf}" --argjson modifynum2 "$modifynum2" \
+           '.inbounds[$modifynum2].listen = "0.0.0.0"'
+        judge "Xray listen address $(gettext "修改")"
+    fi
 }
 
 modify_inbound_port() {
     if [[ ${tls_mode} == "Reality" ]]; then
         if [[ ${reality_add_nginx} == "off" ]]; then
-            jq --argjson port "${port}" --argjson xport "${xport}" --argjson gport "${gport}" \
+            update_json_config "${xray_conf}" --argjson port "${port}" --argjson xport "${xport}" --argjson gport "${gport}" \
                '.inbounds[0].port = $port |
                 .inbounds[1].port = $xport |
-                .inbounds[2].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
+                .inbounds[2].port = $gport'
             judge "Xray inbound port $(gettext "修改")"
         else
-            jq --argjson xport "${xport}" --argjson gport "${gport}" \
+            update_json_config "${xray_conf}" --argjson xport "${xport}" --argjson gport "${gport}" \
                '.inbounds[1].port = $xport |
-                .inbounds[2].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
+                .inbounds[2].port = $gport'
             judge "Xray inbound port $(gettext "修改")"
         fi
     elif [[ ${tls_mode} == "XTLS" ]]; then
-        jq --argjson port "${port}" '.inbounds[0].port = $port' "${xray_conf}" > "${xray_conf}.tmp"
+        update_json_config "${xray_conf}" --argjson port "${port}" '.inbounds[0].port = $port'
         judge "Xray inbound port $(gettext "修改")"
     else
-        jq --argjson xport "${xport}" --argjson gport "${gport}" \
+        update_json_config "${xray_conf}" --argjson xport "${xport}" --argjson gport "${gport}" \
            '.inbounds[0].port = $xport |
-            .inbounds[1].port = $gport' "${xray_conf}" > "${xray_conf}.tmp"
+            .inbounds[1].port = $gport'
         judge "Xray inbound port $(gettext "修改")"
     fi
-    mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 modify_nginx_origin_conf() {
@@ -1070,26 +1143,23 @@ modify_nginx_other() {
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" ${nginx_conf}
         sed -i "s/^\( *\)location grpc$/\1location \/${serviceName}/" ${nginx_conf}
         sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${domain}\$request_uri;/" ${nginx_conf}
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+        if is_ws_mode; then
             sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
             sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" ${nginx_conf}
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" ${nginx_conf}
-            sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" ${nginx_conf}
+        fi
+        if is_grpc_mode; then
             sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" ${nginx_conf}
         fi
     fi
 }
 
 nginx_servers_add() {
-    touch ${nginx_conf_dir}/127.0.0.1.wsServers
-    cat >${nginx_conf_dir}/127.0.0.1.wsServers <<EOF
+    touch "${nginx_conf_dir}"/127.0.0.1.wsServers
+    cat >"${nginx_conf_dir}"/127.0.0.1.wsServers <<EOF
 server 127.0.0.1:${xport} weight=50 max_fails=2 fail_timeout=10;
 EOF
-    touch ${nginx_conf_dir}/127.0.0.1.grpcServers
-    cat >${nginx_conf_dir}/127.0.0.1.grpcServers<<EOF
+    touch "${nginx_conf_dir}"/127.0.0.1.grpcServers
+    cat >"${nginx_conf_dir}"/127.0.0.1.grpcServers<<EOF
 server 127.0.0.1:${gport} weight=50 max_fails=2 fail_timeout=10;
 EOF
 }
@@ -1125,24 +1195,21 @@ modify_UUID() {
 }
 
 modify_target_serverNames() {
-  jq --arg target "${target}:443" --arg serverNames "${serverNames}" '
+  update_json_config "${xray_conf}" --arg target "${target}:443" --arg serverNames "${serverNames}" '
      .inbounds[0].streamSettings.realitySettings.target = $target |
-     .inbounds[0].streamSettings.realitySettings.serverNames = [$serverNames]' "${xray_conf}" > "${xray_conf}.tmp"
+     .inbounds[0].streamSettings.realitySettings.serverNames = [$serverNames]'
   judge "target serverNames $(gettext "配置修改")"
-  mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 modify_privateKey_shortIds() {
-  jq --arg privateKey "${privateKey}" --arg shortIds "${shortIds}" '
+  update_json_config "${xray_conf}" --arg privateKey "${privateKey}" --arg shortIds "${shortIds}" '
      .inbounds[0].streamSettings.realitySettings.privateKey = $privateKey |
-     .inbounds[0].streamSettings.realitySettings.shortIds = [$shortIds]' "${xray_conf}" > "${xray_conf}.tmp"
+     .inbounds[0].streamSettings.realitySettings.shortIds = [$shortIds]'
   judge "privateKey shortIds $(gettext "配置修改")"
-  mv "${xray_conf}.tmp" "${xray_conf}"
 }
 
 modify_reality_listen_address () {
-    jq '.inbounds[0].listen = "127.0.0.1"' "${xray_conf}" > "${xray_conf}.tmp"
-    mv "${xray_conf}.tmp" "${xray_conf}"
+    update_json_config "${xray_conf}" '.inbounds[0].listen = "127.0.0.1"'
     judge "Xray reality listen address $(gettext "配置修改")"
 }
 
@@ -1151,7 +1218,7 @@ xray_privilege_escalation() {
         log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动修改程序") ${Font}"
         chmod -fR a+rw /var/log/xray/
         chown -fR nobody:nogroup /var/log/xray/
-        [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR nobody:nogroup ${ssl_chainpath}/*
+        [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR nobody:nogroup "${ssl_chainpath}"/*
     fi
     log_echo "${OK} ${GreenBG} Xray $(gettext "修改完成") ${Font}"
 }
@@ -1162,8 +1229,8 @@ xray_install() {
         judge "$(gettext "安装") Xray"
         systemctl daemon-reload
         xray_privilege_escalation
-        [[ -f "${xray_default_conf}" ]] && rm -rf ${xray_default_conf}
-        ln -s ${xray_conf} ${xray_default_conf}
+        [[ -f "${xray_default_conf}" ]] && rm -rf "${xray_default_conf}"
+        ln -s "${xray_conf}" "${xray_default_conf}"
         xray_version=${xray_online_version}
     else
         log_echo "${OK} ${GreenBG} $(gettext "已安装") Xray ${Font}"
@@ -1238,10 +1305,9 @@ xray_update() {
         judge "Xray $(gettext "重装")"
     fi
     xray_privilege_escalation
-    [[ -f "${xray_default_conf}" ]] && rm -rf ${xray_default_conf}
-    ln -s ${xray_conf} ${xray_default_conf}
-    jq --arg xray_version "${xray_version}" '.xray_version = $xray_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-    mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+    [[ -f "${xray_default_conf}" ]] && rm -rf "${xray_default_conf}"
+    ln -s "${xray_conf}" "${xray_default_conf}"
+    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     systemctl daemon-reload
     systemctl start xray
     if ! ${xray_bin_dir}/xray -version &> /dev/null; then
@@ -1331,11 +1397,11 @@ reality_nginx_add_fq() {
 nginx_exist_check() {
     if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ -n "$(info_extraction nginx_build_version)" ]]; then
         if [[ -d "${nginx_conf_dir}" ]]; then
-            rm -rf ${nginx_conf_dir}/*.conf
+            rm -rf "${nginx_conf_dir}"/*.conf
             if [[ -f "${nginx_conf_dir}/nginx.default" ]]; then
-                cp -fp ${nginx_conf_dir}/nginx.default ${nginx_dir}/conf/nginx.conf
+                cp -fp "${nginx_conf_dir}"/nginx.default ${nginx_dir}/conf/nginx.conf
             elif [[ -f "${nginx_dir}/conf/nginx.conf.default" ]]; then
-                cp -fp ${nginx_dir}/conf/nginx.conf.default ${nginx_dir}/conf/nginx.conf
+                cp -fp "${nginx_dir}"/conf/nginx.conf.default ${nginx_dir}/conf/nginx.conf
             else
                 sed -i "/if \(.*\) {$/,+2d" ${nginx_dir}/conf/nginx.conf
                 sed -i "/^include.*\*\.conf;$/d" ${nginx_dir}/conf/nginx.conf
@@ -1392,10 +1458,10 @@ nginx_install() {
         exit 1
     fi
 
-    [[ -d ${nginx_dir} ]] && rm -rf "${nginx_dir}"
+    [[ -d "${nginx_dir}" ]] && safe_rm "${nginx_dir}"
     mv ./nginx "${nginx_dir}"
 
-    cp -fp ${nginx_dir}/conf/nginx.conf ${nginx_conf_dir}/nginx.default
+    cp -fp "${nginx_dir}"/conf/nginx.conf ${nginx_conf_dir}/nginx.default
 
     # 修改基本配置
     #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
@@ -1420,13 +1486,13 @@ nginx_update() {
                     if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                         xport=$(info_extraction ws_port)
                         path=$(info_extraction path)
-                        gport=$((RANDOM % 1000 + 30000))
-                        while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 30000)); done
+                        gport=$(generate_random_port 30000 30999)
+                        while [[ ${gport} == ${xport} ]]; do gport=$(generate_random_port 30000 30999); done
                         serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                         gport=$(info_extraction grpc_port)
                         serviceName=$(info_extraction serviceName)
-                        xport=$((RANDOM % 1000 + 20000))
+                        xport=$(generate_random_port 20000 20999)
                         path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${ws_grpc_mode} == "all" ]]; then
                         xport=$(info_extraction ws_port)
@@ -1459,10 +1525,10 @@ nginx_update() {
             fi
             service_stop
             backup_nginx_dir="${nginx_dir}_backup_${current_nginx_build_version}"
-            cp -r ${nginx_dir} ${backup_nginx_dir}
+            cp -r "${nginx_dir}" ${backup_nginx_dir}
             judge "$(gettext "备份旧版") Nginx"
             timeout "$(gettext "删除旧版") Nginx !"
-            rm -rf ${nginx_dir}
+            rm -rf "${nginx_dir}"
             if [[ ${auto_update} != "YES" ]]; then
                 echo
                 log_echo "${GreenBG} $(gettext "是否保留原 Nginx 配置文件") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -1472,7 +1538,7 @@ nginx_update() {
             fi
             case $save_originconf_fq in
             [nN][oO] | [nN])
-                rm -rf ${nginx_conf_dir}/*.conf
+                rm -rf "${nginx_conf_dir}"/*.conf
                 log_echo "${OK} ${GreenBG} $(gettext "原配置文件已删除")! ${Font}"
                 ;;
             *)
@@ -1498,7 +1564,7 @@ nginx_update() {
                     read -r rollback_fq
                 else
                     service_stop
-                    rm -rf ${nginx_dir}
+                    rm -rf "${nginx_dir}"
                     mv ${backup_nginx_dir} ${nginx_dir}
                     service_start
                 fi
@@ -1510,15 +1576,14 @@ nginx_update() {
                 *)
                     log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
                     service_stop
-                    rm -rf ${nginx_dir}
+                    rm -rf "${nginx_dir}"
                     mv ${backup_nginx_dir} ${nginx_dir}
                     service_start
                     sleep 1
                     if systemctl -q is-active nginx; then
                         log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
-                        jq --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-                        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
-                        rm -rf ${backup_nginx_dir}
+                        update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version'
+                        rm -rf "${backup_nginx_dir}"
                         return 1
                     else
                         log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
@@ -1527,10 +1592,9 @@ nginx_update() {
                     ;;
                 esac
             else
-                jq --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-                mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+                update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version'
                 judge "Nginx $(gettext "更新")"
-                rm -rf ${backup_nginx_dir}
+                rm -rf "${backup_nginx_dir}"
                 judge "$(gettext "删除") Nginx $(gettext "备份")"
             fi
         else
@@ -1557,7 +1621,7 @@ auto_update() {
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
             curl -L -o "${idleleo_dir}/auto_update.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh" && chmod +x ${auto_update_file}
-            echo "0 1 15 * * bash ${auto_update_file}" >>${crontab_file}
+            echo "0 1 15 * * bash "${auto_update_file}"" >>${crontab_file}
             judge "$(gettext "设置自动更新")"
             ;;
         *) ;;
@@ -1569,7 +1633,7 @@ auto_update() {
         case $auto_update_close_fq in
         [yY][eE][sS] | [yY])
             sed -i "/auto_update.sh/d" ${crontab_file}
-            rm -rf ${auto_update_file}
+            rm -rf "${auto_update_file}"
             judge "$(gettext "删除自动更新")"
             ;;
         *) ;;
@@ -1595,9 +1659,9 @@ domain_check() {
             domain=$(info_extraction host)
             ip_version=$(info_extraction ip_version)
             if [[ ${ip_version} == "IPv4" ]]; then
-                local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
+                local_ip=$(get_public_ip "IPv4")
             elif [[ ${ip_version} == "IPv6" ]]; then
-                local_ip=$(curl -6 ip.me 2>/dev/null || curl -6 ip.im)
+                local_ip=$(get_public_ip "IPv6")
             else
                 local_ip=${ip_version}
             fi
@@ -1621,11 +1685,11 @@ domain_check() {
     read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!"
     log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
-        local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
+        local_ip=$(get_public_ip "IPv4")
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
         ip_version="IPv4"
     elif [[ ${ip_version_fq} == 2 ]]; then
-        local_ip=$(curl -6 ip.me 2>/dev/null || curl -6 ip.im)
+        local_ip=$(get_public_ip "IPv6")
         domain_ip=$(ping -6 "${domain}" -c 1 | sed '2{s/[^(]*(//;s/).*//;q}' | tail -n +2)
         ip_version="IPv6"
     elif [[ ${ip_version_fq} == 3 ]]; then
@@ -1634,7 +1698,7 @@ domain_check() {
         read_optimize "$(gettext "请输入"): " "local_ip" "NULL"
         ip_version=${local_ip}
     else
-        local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
+        local_ip=$(get_public_ip "IPv4")
         domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
         ip_version="IPv4"
     fi
@@ -1683,9 +1747,9 @@ ip_check() {
         *)
             ip_version=$(info_extraction ip_version)
             if [[ ${ip_version} == "IPv4" ]]; then
-                local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
+                local_ip=$(get_public_ip "IPv4")
             elif [[ ${ip_version} == "IPv6" ]]; then
-                local_ip=$(curl -6 ip.me 2>/dev/null || curl -6 ip.im)
+                local_ip=$(get_public_ip "IPv6")
             else
                 local_ip=${ip_version}
             fi
@@ -1710,16 +1774,16 @@ ip_check() {
     [[ -z ${ip_version_fq} ]] && ip_version=1
     log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
-        local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
+        local_ip=$(get_public_ip "IPv4")
         ip_version="IPv4"
     elif [[ ${ip_version_fq} == 2 ]]; then
-        local_ip=$(curl -6 ip.me 2>/dev/null || curl -6 ip.im)
+        local_ip=$(get_public_ip "IPv6")
         ip_version="IPv6"
     elif [[ ${ip_version_fq} == 3 ]]; then
         read_optimize "$(gettext "请输入"): " "local_ip" "NULL"
         ip_version=${local_ip}
     else
-        local_ip=$(curl -4 ip.me 2>/dev/null || curl -4 ip.im)
+        local_ip=$(get_public_ip "IPv4")
         ip_version="IPv4"
     fi
     if [[ -z ${local_ip} ]]; then
@@ -1757,11 +1821,11 @@ acme() {
     if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --server letsencrypt --keylength ec-256 --force; then
     #if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成成功") ${Font}"
-        mkdir -p ${ssl_chainpath}
+        mkdir -p "${ssl_chainpath}"
         if "$HOME"/.acme.sh/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
-            chmod -f a+rw ${ssl_chainpath}/xray.crt
-            chmod -f a+rw ${ssl_chainpath}/xray.key
-            chown -fR nobody:nogroup ${ssl_chainpath}/*
+            chmod -f a+rw "${ssl_chainpath}"/xray.crt
+            chmod -f a+rw "${ssl_chainpath}"/xray.key
+            chown -fR nobody:nogroup "${ssl_chainpath}"/*
             log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置成功") ${Font}"
             systemctl stop nginx
         fi
@@ -1775,22 +1839,22 @@ acme() {
 xray_conf_add() {
     if [[ $(info_extraction multi_user) != "yes" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
-            curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json"
+            judge "$(gettext "下载 Xray TLS 配置")" curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json"
             modify_listen_address
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "Reality" ]]; then
-            curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_reality/config.json"
+            judge "$(gettext "下载 Xray Reality 配置")" curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_reality/config.json"
             modify_target_serverNames
             modify_privateKey_shortIds
             xray_reality_add_more
         elif [[ ${tls_mode} == "None" ]]; then
-            curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json"
+            judge "$(gettext "下载 Xray 配置")" curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json"
             modify_listen_address
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "XTLS" ]]; then
-            curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_xtls/config.json"
+            judge "$(gettext "下载 Xray XTLS 配置")" curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_xtls/config.json"
             modify_listen_address
             modify_inbound_port
         fi
@@ -1803,9 +1867,8 @@ xray_conf_add() {
         read -r save_originxray_fq
         case $save_originxray_fq in
         [nN][oO] | [nN])
-            rm -rf ${xray_conf}
-            jq 'del(.multi_user)' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            rm -rf "${xray_conf}"
+            update_json_config "${xray_qr_config_file}" 'del(.multi_user)'
             log_echo "${OK} ${GreenBG} $(gettext "原配置文件已删除")! ${Font}"
             xray_conf_add
             ;;
@@ -1838,7 +1901,7 @@ old_config_exist_check() {
             read -r old_config_fq
             case $old_config_fq in
             [nN][oO] | [nN])
-                rm -rf ${xray_qr_config_file}
+                rm -rf "${xray_qr_config_file}"
                 log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
                 ;;
             *)
@@ -1859,7 +1922,7 @@ old_config_exist_check() {
                 menu
                 ;;
             *)
-                rm -rf ${xray_qr_config_file}
+                rm -rf "${xray_qr_config_file}"
                 log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
                 ;;
             esac
@@ -1868,7 +1931,8 @@ old_config_exist_check() {
 }
 
 old_config_input() {
-    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    _info_cache_invalidate
     custom_email=$(info_extraction email)
     UUID5_char=$(info_extraction idc)
     UUID=$(info_extraction id)
@@ -1877,14 +1941,14 @@ old_config_input() {
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             xport=$(info_extraction ws_port)
             path=$(info_extraction path)
-            gport=$((RANDOM % 1000 + 30000))
-            while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 30000)); done
+            gport=$(generate_random_port 30000 30999)
+            while [[ ${gport} == ${xport} ]]; do gport=$(generate_random_port 30000 30999); done
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
             gport=$(info_extraction grpc_port)
             serviceName=$(info_extraction serviceName)
-            xport=$((RANDOM % 1000 + 20000))
-            while [[ ${gport} == ${xport} ]]; do xport=$((RANDOM % 1000 + 20000)); done
+            xport=$(generate_random_port 20000 20999)
+            while [[ ${gport} == ${xport} ]]; do xport=$(generate_random_port 20000 20999); done
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             xport=$(info_extraction ws_port)
@@ -1903,14 +1967,14 @@ old_config_input() {
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                 xport=$(info_extraction ws_port)
                 path=$(info_extraction ws_path)
-                gport=$((RANDOM % 1000 + 30000))
-                while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 30000)); done
+                gport=$(generate_random_port 30000 30999)
+                while [[ ${gport} == ${xport} ]]; do gport=$(generate_random_port 30000 30999); done
                 serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                 gport=$(info_extraction grpc_port)
                 serviceName=$(info_extraction grpc_serviceName)
-                xport=$((RANDOM % 1000 + 20000))
-                while [[ ${gport} == ${xport} ]]; do xport=$((RANDOM % 1000 + 20000)); done
+                xport=$(generate_random_port 20000 20999)
+                while [[ ${gport} == ${xport} ]]; do xport=$(generate_random_port 20000 20999); done
                 path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             elif [[ ${ws_grpc_mode} == "all" ]]; then
                 xport=$(info_extraction ws_port)
@@ -1921,21 +1985,21 @@ old_config_input() {
         else
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-            xport=$((RANDOM % 1000 + 20000))
-            gport=$((RANDOM % 1000 + 30000))
+            xport=$(generate_random_port 20000 20999)
+            gport=$(generate_random_port 30000 30999)
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
             xport=$(info_extraction ws_port)
             path=$(info_extraction path)
-            gport=$((RANDOM % 1000 + 30000))
-            while [[ ${gport} == ${xport} ]]; do gport=$((RANDOM % 1000 + 30000)); done
+            gport=$(generate_random_port 30000 30999)
+            while [[ ${gport} == ${xport} ]]; do gport=$(generate_random_port 30000 30999); done
             serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
             gport=$(info_extraction grpc_port)
             serviceName=$(info_extraction serviceName)
-            xport=$((RANDOM % 1000 + 20000))
-            while [[ ${gport} == ${xport} ]]; do xport=$((RANDOM % 1000 + 20000)); done
+            xport=$(generate_random_port 20000 20999)
+            while [[ ${gport} == ${xport} ]]; do xport=$(generate_random_port 20000 20999); done
             path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
         elif [[ ${ws_grpc_mode} == "all" ]]; then
             xport=$(info_extraction ws_port)
@@ -1956,7 +2020,7 @@ old_config_input() {
             log_echo "${OK} ${GreenBG} $(gettext "已保留配置文件") ${Font}"
             ;;
         *)
-            rm -rf ${xray_qr_config_file}
+            rm -rf "${xray_qr_config_file}"
             old_config_status="off"
             log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
             ;;
@@ -1965,8 +2029,8 @@ old_config_input() {
 }
 
 nginx_ssl_conf_add() {
-    touch ${nginx_ssl_conf}
-    cat >${nginx_ssl_conf} <<EOF
+    touch "${nginx_ssl_conf}"
+    cat >"${nginx_ssl_conf}" <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -1991,8 +2055,8 @@ EOF
 }
 
 nginx_conf_add() {
-    touch ${nginx_conf}
-    cat >${nginx_conf} <<EOF
+    touch "${nginx_conf}"
+    cat >"${nginx_conf}" <<EOF
 server {
     listen 443 ssl reuseport;
     listen [::]:443 ssl reuseport;
@@ -2062,8 +2126,8 @@ EOF
 }
 
 nginx_reality_conf_add() {
-    touch ${nginx_conf}
-    cat >${nginx_conf} <<EOF
+    touch "${nginx_conf}"
+    cat >"${nginx_conf}" <<EOF
 
 stream {
     map \$ssl_preread_protocol \$is_valid_protocol {
@@ -2147,8 +2211,8 @@ EOF
 }
 
 nginx_reality_servers_add () {
-    touch ${nginx_conf_dir}/127.0.0.1.realityServers
-    cat >${nginx_conf_dir}/127.0.0.1.realityServers <<EOF
+    touch "${nginx_conf_dir}"/127.0.0.1.realityServers
+    cat >"${nginx_conf_dir}"/127.0.0.1.realityServers <<EOF
 server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;
 EOF
     judge "Nginx servers $(gettext "配置修改")"
@@ -2156,8 +2220,8 @@ EOF
 }
 
 nginx_reality_serverNames_add () {
-    touch ${nginx_conf_dir}/${serverNames}.serverNames
-    cat >${nginx_conf_dir}/${serverNames}.serverNames <<EOF
+    touch "${nginx_conf_dir}"/${serverNames}.serverNames
+    cat >"${nginx_conf_dir}"/${serverNames}.serverNames <<EOF
 ${serverNames} reality;
 EOF
     judge "Nginx serverNames $(gettext "配置修改")"
@@ -2172,8 +2236,8 @@ nginx_reality_serverNames_del () {
 }
 
 nginx_servers_conf_add() {
-    touch ${nginx_upstream_conf}
-    cat >${nginx_upstream_conf} <<EOF
+    touch "${nginx_upstream_conf}"
+    cat >"${nginx_upstream_conf}" <<EOF
 upstream xray-ws-server {
     include ${nginx_conf_dir}/*.wsServers;
 }
@@ -2253,7 +2317,7 @@ acme_cron_update() {
             [nN][oO] | [nN]) ;;
             *)
                 sed -i "/ssl_update.sh/d" ${crontab_file}
-                rm -rf ${ssl_update_file}
+                rm -rf "${ssl_update_file}"
                 judge "$(gettext "删除改版证书自动更新")"
                 ;;
 
@@ -2325,8 +2389,7 @@ set_fail2ban() {
     mf_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh"
     if [ ! -f "${idleleo_dir}/fail2ban_manager.sh" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件 fail2ban_manager.sh 不存在, 正在下载")... ${Font}"
-        curl -sL "$mf_remote_url" -o "${idleleo_dir}/fail2ban_manager.sh"
-        if [ $? -ne 0 ]; then
+        if ! curl -sL "$mf_remote_url" -o "${idleleo_dir}/fail2ban_manager.sh"; then
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
         fi
@@ -2391,7 +2454,7 @@ clean_logs() {
 }
 
 vless_qr_config_tls_ws() {
-    cat >${xray_qr_config_file} <<-EOF
+    cat >"${xray_qr_config_file}" <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "ws_grpc_mode": "${ws_grpc_mode}",
@@ -2412,11 +2475,12 @@ vless_qr_config_tls_ws() {
     "nginx_build_version": "${nginx_build_version}"
 }
 EOF
-    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    _info_cache_invalidate
 }
 
 vless_qr_config_reality() {
-    cat >${xray_qr_config_file} <<-EOF
+    cat >"${xray_qr_config_file}" <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "ws_grpc_mode": "${ws_grpc_mode}",
@@ -2445,17 +2509,17 @@ vless_qr_config_reality() {
 }
 EOF
     if [[ ${reality_add_nginx} == "on" ]]; then
-        jq --arg nginx_build_version "${nginx_build_version}" '. + {"nginx_build_version": $nginx_build_version}' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+        update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${nginx_build_version}" '. + {"nginx_build_version": $nginx_build_version}'
     fi
-    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    _info_cache_invalidate
 }
 
 vless_qr_config_xtls_only() {
     if [[ "on" == ${old_config_status} ]]; then
         port=$(info_extraction port)
     fi
-    cat >${xray_qr_config_file} <<-EOF
+    cat >"${xray_qr_config_file}" <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "host": "${local_ip}",
@@ -2472,11 +2536,12 @@ vless_qr_config_xtls_only() {
     "xray_version": "${xray_version}"
 }
 EOF
-    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    _info_cache_invalidate
 }
 
 vless_qr_config_ws_only() {
-    cat >${xray_qr_config_file} <<-EOF
+    cat >"${xray_qr_config_file}" <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "ws_grpc_mode": "${ws_grpc_mode}",
@@ -2495,7 +2560,8 @@ vless_qr_config_ws_only() {
     "xray_version": "${xray_version}"
 }
 EOF
-    info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    _info_cache_invalidate
 }
 
 vless_urlquote() {
@@ -2503,39 +2569,77 @@ vless_urlquote() {
     python3 -c "import urllib.request,sys;print(urllib.request.quote(sys.argv[1]))" "$1"
 }
 
+generate_vless_link() {
+    local user_id="$1"
+    local mode="$2"
+    local host port quoted_host result
+
+    quoted_host=$(vless_urlquote "$(info_extraction host)")
+
+    case "$mode" in
+        ws_tls)
+            port=$(info_extraction port)
+            local path
+            path=$(vless_urlquote "$(info_extraction path)")
+            result="vless://${user_id}@${quoted_host}:${port}?path=%2f${path}%3Fed%3D2048&security=tls&encryption=none&host=${quoted_host}&type=ws&fp=chrome#${quoted_host}+ws%E5%8D%8F%E8%AE%AE"
+            ;;
+        grpc_tls)
+            port=$(info_extraction port)
+            local service_name
+            service_name=$(vless_urlquote "$(info_extraction serviceName)")
+            result="vless://${user_id}@${quoted_host}:${port}?serviceName=${service_name}&security=tls&encryption=none&host=${quoted_host}&type=grpc&fp=chrome#${quoted_host}+gRPC%E5%8D%8F%E8%AE%AE"
+            ;;
+        ws)
+            port=$(info_extraction ws_port)
+            local path
+            path=$(vless_urlquote "$(info_extraction path)")
+            result="vless://${user_id}@${quoted_host}:${port}?path=%2f${path}%3Fed%3D2048&encryption=none&type=ws&fp=chrome#${quoted_host}+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+            ;;
+        grpc)
+            port=$(info_extraction grpc_port)
+            local service_name
+            service_name=$(vless_urlquote "$(info_extraction serviceName)")
+            result="vless://${user_id}@${quoted_host}:${port}?serviceName=${service_name}&encryption=none&type=grpc&fp=chrome#${quoted_host}+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+            ;;
+        reality)
+            port=$(info_extraction port)
+            local pbk sni target sid
+            pbk=$(info_extraction password)
+            sni=$(info_extraction serverNames)
+            target=$(info_extraction target)
+            sid=$(info_extraction shortIds)
+            result="vless://${user_id}@${quoted_host}:${port}?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=${pbk}&sni=${sni}&target=${target}&sid=${sid}#${quoted_host}+Reality%E5%8D%8F%E8%AE%AE"
+            ;;
+        xtls)
+            port=$(info_extraction port)
+            result="vless://${user_id}@${quoted_host}:${port}?security=none&encryption=none&headerType=none&type=raw&flow=xtls-rprx-vision#${quoted_host}+XTLS%E5%8D%8F%E8%AE%AE"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+
+    echo "$result"
+}
+
 vless_qr_link_image() {
+    local main_id
+    main_id=$(info_extraction id)
+
     if [[ ${tls_mode} == "TLS" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
-        fi
+        is_ws_mode && vless_ws_link=$(generate_vless_link "$main_id" "ws_tls")
+        is_grpc_mode && vless_grpc_link=$(generate_vless_link "$main_id" "grpc_tls")
     elif [[ ${tls_mode} == "Reality" ]]; then
-        vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=$(info_extraction password)&sni=$(info_extraction serverNames)&target=$(info_extraction target)&sid=$(info_extraction shortIds)#$(vless_urlquote $(info_extraction host))+Reality%E5%8D%8F%E8%AE%AE"
+        vless_link=$(generate_vless_link "$main_id" "reality")
         if [[ ${reality_add_more} == "on" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-                vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
-            fi
+            is_ws_mode && vless_ws_link=$(generate_vless_link "$main_id" "ws")
+            is_grpc_mode && vless_grpc_link=$(generate_vless_link "$main_id" "grpc")
         fi
     elif [[ ${tls_mode} == "None" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            vless_ws_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction ws_port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&encryption=none&type=ws&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
-            vless_grpc_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction grpc_port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&encryption=none&type=grpc&fp=chrome#$(vless_urlquote $(info_extraction host))+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
-        fi
+        is_ws_mode && vless_ws_link=$(generate_vless_link "$main_id" "ws")
+        is_grpc_mode && vless_grpc_link=$(generate_vless_link "$main_id" "grpc")
     elif [[ ${tls_mode} == "XTLS" ]]; then
-        vless_link="vless://$(info_extraction id)@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=none&encryption=none&headerType=none&type=raw&flow=xtls-rprx-vision#$(vless_urlquote $(info_extraction host))+XTLS%E5%8D%8F%E8%AE%AE"
+        vless_link=$(generate_vless_link "$main_id" "xtls")
     fi
 
     # 生成Clash配置
@@ -2614,46 +2718,35 @@ vless_qr_link_image() {
     clash_config_content="proxies:"
     
     if [[ ${tls_mode} == "TLS" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+        if is_ws_mode; then
             clash_config_content="${clash_config_content}
 $(generate_clash_config "ws" "$(info_extraction port)" "$(info_extraction path)" "" "tls" "" "" "" "" "" "true")"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+        fi
+        if is_grpc_mode; then
             clash_config_content="${clash_config_content}
-$(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_extraction serviceName)" "tls" "" "" "" "" "" "true")"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction port)" "$(info_extraction path)" "" "tls" "" "" "" "" "" "true")
 $(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_extraction serviceName)" "tls" "" "" "" "" "" "true")"
         fi
     elif [[ ${tls_mode} == "Reality" ]]; then
-        # Reality模式下的TCP节点
         clash_config_content="${clash_config_content}
 $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rprx-vision" "$(info_extraction password)" "$(info_extraction serverNames)" "$(info_extraction target)" "$(info_extraction shortIds)" "true")"
         
-        # 如果启用了额外配置，则生成ws和grpc节点
         if [[ ${reality_add_more} == "on" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            if is_ws_mode; then
                 clash_config_content="${clash_config_content}
 $(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")"
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+            fi
+            if is_grpc_mode; then
                 clash_config_content="${clash_config_content}
-$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")
 $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
             fi
         fi
     elif [[ ${tls_mode} == "None" ]]; then
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+        if is_ws_mode; then
             clash_config_content="${clash_config_content}
 $(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")"
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
+        fi
+        if is_grpc_mode; then
             clash_config_content="${clash_config_content}
-$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")
 $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
         fi
     fi
@@ -2667,21 +2760,13 @@ $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extract
             echo -n "${vless_link}" | qrencode -o - -t utf8
             echo
         fi
-        if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+        if is_ws_mode; then
             log_echo "${Red} ws URL $(gettext "分享链接"):${Font} ${vless_ws_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_ws_link}" | qrencode -o - -t utf8
             echo
-        elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-            log_echo "${Red} gRPC URL $(gettext "分享链接"):${Font} ${vless_grpc_link}"
-            log_echo "${Red} $(gettext "二维码"): ${Font}"
-            echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
-            echo
-        elif [[ ${ws_grpc_mode} == "all" ]]; then
-            log_echo "${Red} ws URL $(gettext "分享链接"):${Font} ${vless_ws_link}"
-            log_echo "${Red} $(gettext "二维码"): ${Font}"
-            echo -n "${vless_ws_link}" | qrencode -o - -t utf8
-            echo
+        fi
+        if is_grpc_mode; then
             log_echo "${Red} gRPC URL $(gettext "分享链接"):${Font} ${vless_grpc_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
@@ -2708,15 +2793,37 @@ vless_link_image_choice() {
     vless_qr_link_image
 }
 
+declare -A _info_cache=()
+_info_cache_loaded=0
+
+_info_cache_invalidate() {
+    _info_cache=()
+    _info_cache_loaded=0
+}
+
+_info_cache_load() {
+    if [[ ${_info_cache_loaded} -eq 0 ]] && [[ -n "${info_extraction_all}" ]]; then
+        while IFS=$'\t' read -r key value; do
+            _info_cache["$key"]="$value"
+        done < <(echo "${info_extraction_all}" | jq -r 'to_entries | .[] | [.key, .value // ""] | @tsv' 2>/dev/null)
+        _info_cache_loaded=1
+    fi
+}
+
 info_extraction() {
-    local result
-    result=$(echo "${info_extraction_all}" | jq -r ".$1 // empty" 2>/dev/null)
-    local jq_exit_code=$?
-
-    echo "$result"
-
-    if [[ $jq_exit_code -ne 0 ]]; then
-        read_config_status=0
+    if [[ ${_info_cache_loaded} -eq 0 ]]; then
+        _info_cache_load
+    fi
+    if [[ -n "${_info_cache[$1]+x}" ]]; then
+        echo "${_info_cache[$1]}"
+    else
+        local result
+        result=$(echo "${info_extraction_all}" | jq -r ".$1 // empty" 2>/dev/null)
+        local jq_exit_code=$?
+        echo "$result"
+        if [[ $jq_exit_code -ne 0 ]]; then
+            read_config_status=0
+        fi
     fi
 }
 
@@ -2812,24 +2919,20 @@ basic_information() {
         log_echo "${Red} —————————————— Xray $(gettext "配置信息") —————————————— ${Font}"
         log_echo "${Red} $(gettext "主机") (host):${Font} $(info_extraction host) "
         if [[ ${tls_mode} == "None" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            if is_ws_mode; then
                 log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
+            fi
+            if is_grpc_mode; then
                 log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
             fi
         else
             log_echo "${Red} $(gettext "端口") (port):${Font} $(info_extraction port) "
         fi
         if [[ ${tls_mode} == "TLS" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            if is_ws_mode; then
                 log_echo "${Red} Xray ws $(gettext "端口") (inbound_port):${Font} $(info_extraction ws_port) "
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                log_echo "${Red} Xray gRPC $(gettext "端口") (inbound_port):${Font} $(info_extraction grpc_port) "
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                log_echo "${Red} Xray ws $(gettext "端口") (inbound_port):${Font} $(info_extraction ws_port) "
+            fi
+            if is_grpc_mode; then
                 log_echo "${Red} Xray gRPC $(gettext "端口") (inbound_port):${Font} $(info_extraction grpc_port) "
             fi
         fi
@@ -2840,12 +2943,10 @@ basic_information() {
         log_echo "${Red} $(gettext "传输协议") (network):${Font} $(info_extraction net) "
         log_echo "${Red} $(gettext "底层传输安全") (tls):${Font} $(info_extraction tls) "
         if [[ ${tls_mode} != "Reality" && ${tls_mode} != "XTLS" ]]; then
-            if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+            if is_ws_mode; then
                 log_echo "${Red} $(gettext "路径") (path $(gettext "不要落下")/):${Font} /$(info_extraction path) "
-            elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                log_echo "${Red} serviceName ($(gettext "不需要加")/):${Font} $(info_extraction serviceName) "
-            elif [[ ${ws_grpc_mode} == "all" ]]; then
-                log_echo "${Red} $(gettext "路径") (path $(gettext "不要落下")/):${Font} /$(info_extraction path) "
+            fi
+            if is_grpc_mode; then
                 log_echo "${Red} serviceName ($(gettext "不需要加")/):${Font} $(info_extraction serviceName) "
             fi
         else
@@ -2857,15 +2958,11 @@ basic_information() {
                 log_echo "${Red} Password:${Font} $(info_extraction password) "
                 log_echo "${Red} shortIds:${Font} $(info_extraction shortIds) "
                 if [[ "$reality_add_more" == "on" ]]; then
-                    if [[ ${ws_grpc_mode} == "onlyws" ]]; then
+                    if is_ws_mode; then
                         log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
                         log_echo "${Red} ws $(gettext "路径") ($(gettext "不要落下")/):${Font} /$(info_extraction ws_path) "
-                    elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
-                        log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
-                        log_echo "${Red} gRPC serviceName ($(gettext "不需要加")/):${Font} $(info_extraction grpc_serviceName) "
-                    elif [[ ${ws_grpc_mode} == "all" ]]; then
-                        log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
-                        log_echo "${Red} ws $(gettext "路径") ($(gettext "不要落下")/):${Font} /$(info_extraction ws_path) "
+                    fi
+                    if is_grpc_mode; then
                         log_echo "${Red} gRPC $(gettext "端口") (port):${Font} $(info_extraction grpc_port) "
                         log_echo "${Red} gRPC serviceName ($(gettext "不需要加")/):${Font} $(info_extraction grpc_serviceName) "
                     fi
@@ -2900,13 +2997,13 @@ ssl_judge_and_install() {
             case $ssl_delete_1 in
             [nN][oO] | [nN])
                 delete_tls_key_and_crt
-                rm -rf ${ssl_chainpath}/*
+                rm -rf "${ssl_chainpath}"/*
                 log_echo "${OK} ${GreenBG} $(gettext "已删除") ${Font}"
                 ssl_install
                 acme
                 ;;
             *)
-                chown -fR nobody:nogroup ${ssl_chainpath}/*
+                chown -fR nobody:nogroup "${ssl_chainpath}"/*
                 judge "$(gettext "证书应用")"
                 ;;
             esac
@@ -2915,13 +3012,13 @@ ssl_judge_and_install() {
             read -r ssl_delete_2
             case $ssl_delete_2 in
             [nN][oO] | [nN])
-                rm -rf ${ssl_chainpath}/*
+                rm -rf "${ssl_chainpath}"/*
                 log_echo "${OK} ${GreenBG} $(gettext "已删除") ${Font}"
                 ssl_install
                 acme
                 ;;
             *)
-                chown -fR nobody:nogroup ${ssl_chainpath}/*
+                chown -fR nobody:nogroup "${ssl_chainpath}"/*
                 judge "$(gettext "证书应用")"
                 ssl_self="on"
                 ;;
@@ -2938,7 +3035,7 @@ ssl_judge_and_install() {
                 ;;
             *)
                 "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
-                chown -fR nobody:nogroup ${ssl_chainpath}/*
+                chown -fR nobody:nogroup "${ssl_chainpath}"/*
                 judge "$(gettext "证书应用")"
                 ;;
             esac
@@ -2951,7 +3048,7 @@ ssl_judge_and_install() {
 }
 
 nginx_systemd() {
-    cat >${nginx_systemd_file} <<EOF
+    cat >"${nginx_systemd_file}" <<EOF
 [Unit]
 Description=The NGINX HTTP and reverse proxy server
 After=syslog.target network.target remote-fs.target nss-lookup.target
@@ -3018,7 +3115,8 @@ tls_type() {
 }
 
 reset_vless_qr_config() {
-    [[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . ${xray_qr_config_file})
+    [[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    _info_cache_invalidate
     basic_information
     vless_qr_link_image
     show_information
@@ -3028,10 +3126,9 @@ reset_UUID() {
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         UUID_set
         modify_UUID
-        jq --arg uuid "${UUID}" \
+        update_json_config "${xray_qr_config_file}" --arg uuid "${UUID}" \
            --arg uuid5_char "${UUID5_char}" \
-           '.id = $uuid | .idc = $uuid5_char' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+           '.id = $uuid | .idc = $uuid5_char'
         service_restart
         reset_vless_qr_config
     else
@@ -3044,22 +3141,21 @@ reset_port() {
         if [[ ${tls_mode} == "TLS" ]]; then
             port_set
             modify_nginx_port
-            jq --argjson port "${port}" '.port = $port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            update_json_config "${xray_qr_config_file}" --argjson port "${port}" '.port = $port'
             log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         elif [[ ${tls_mode} == "Reality" ]]; then
             port_set
-            xport=$((RANDOM % 1000 + 20000))
-            gport=$((RANDOM % 1000 + 30000))
+            xport=$(generate_random_port 20000 20999)
+            gport=$(generate_random_port 30000 30999)
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                 read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${xport}"
-                gport=$((RANDOM % 1000 + 30000))
+                gport=$(generate_random_port 30000 30999)
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                 read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${gport}"
-                xport=$((RANDOM % 1000 + 20000))
+                xport=$(generate_random_port 20000 20999)
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             elif [[ ${ws_grpc_mode} == "all" ]]; then
                 read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
@@ -3069,23 +3165,22 @@ reset_port() {
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             fi
-            jq --argjson port "$port" \
+            update_json_config "${xray_qr_config_file}" --argjson port "$port" \
                --argjson ws_port "$xport" \
                --argjson grpc_port "$gport" \
-               '.port = $port | .ws_port = $ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+               '.port = $port | .ws_port = $ws_port | .grpc_port = $grpc_port'
             modify_inbound_port
             [[ ${reality_add_nginx} == "on" ]] && modify_nginx_port
         elif [[ ${tls_mode} == "None" ]]; then
             if [[ ${ws_grpc_mode} == "onlyws" ]]; then
                 read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${xport}"
-                gport=$((RANDOM % 1000 + 30000))
+                gport=$(generate_random_port 30000 30999)
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
             elif [[ ${ws_grpc_mode} == "onlygRPC" ]]; then
                 read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
                 port_exist_check "${gport}"
-                xport=$((RANDOM % 1000 + 20000))
+                xport=$(generate_random_port 20000 20999)
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             elif [[ ${ws_grpc_mode} == "all" ]]; then
                 read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
@@ -3095,10 +3190,9 @@ reset_port() {
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             fi
-            jq --argjson ws_port "$xport" \
+            update_json_config "${xray_qr_config_file}" --argjson ws_port "$xport" \
                --argjson grpc_port "$gport" \
-               '.ws_port = $ws_port | .grpc_port = $grpc_port' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+               '.ws_port = $ws_port | .grpc_port = $grpc_port'
             modify_inbound_port
         fi
         firewall_set
@@ -3120,10 +3214,9 @@ reset_target() {
         if [[ ${reality_add_nginx} == "on" ]]; then
             nginx_reality_serverNames_add
         fi
-        jq --arg target "${target}" \
+        update_json_config "${xray_qr_config_file}" --arg target "${target}" \
            --arg serverNames "${serverNames}" \
-           '.target = $target | .serverNames = $serverNames' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp"
-        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+           '.target = $target | .serverNames = $serverNames'
         service_restart
         reset_vless_qr_config
     elif [[ ${tls_mode} != "Reality" ]]; then
@@ -3134,14 +3227,26 @@ reset_target() {
 }
 
 show_user() {
-    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
+    if [[ ${tls_mode} == "None" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持删除用户")! ${Font}"
+        return
+    fi
+    if [[ ! -f "${xray_qr_config_file}" ]] || [[ ! -f "${xray_conf}" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
+        return
+    fi
+
+    local choose_user_prot show_user_index user_email user_id user_vless_link show_user_continue
+
+    while true; do
+        user_email=""
+        user_id=""
         echo
         log_echo "${GreenBG} $(gettext "即将显示用户, 一次仅能显示一个") ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
             log_echo "${GreenBG} $(gettext "请选择显示用户使用的协议") ws/gRPC ${Font}"
             echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
             echo "2: gRPC"
-            local choose_user_prot
             read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
             choose_user_prot=$((choose_user_prot - 1))
         elif [[ ${tls_mode} == "Reality" ]]; then
@@ -3150,35 +3255,29 @@ show_user() {
         echo
         log_echo "${GreenBG} $(gettext "请选择要显示的用户编号"): ${Font}"
         jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email ${xray_conf} | awk '{print NR""": "$0}'
-        local show_user_index
         read_optimize "$(gettext "请输入"): " "show_user_index" "NULL"
-        if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -lt ${show_user_index} ]] || [[ ${show_user_index} == 0 ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
-            show_user
-        elif [[ ${show_user_index} == 1 ]]; then
+        if [[ ${show_user_index} == 1 ]]; then
             log_echo "${Error} ${RedBG} $(gettext "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户") ${Font}"
             echo
-        elif [[ ${show_user_index} -gt 1 ]]; then
-            show_user_index=$((show_user_index - 1))
-            user_email=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${show_user_index}'].email' ${xray_conf})
-            user_id=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${show_user_index}'].id' ${xray_conf})
-        elif [[ ! -z $(echo ${show_user_index} | sed 's/[0-9]//g') ]] || [[ ${show_user_index} == '' ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
-            show_user
+        elif [[ ${show_user_index} -gt 1 ]] && [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' ${xray_conf}) -ge ${show_user_index} ]]; then
+            local idx=$((show_user_index - 1))
+            user_email=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${idx}'].email' ${xray_conf})
+            user_id=$(jq -r -c '.inbounds['${choose_user_prot}'].settings.clients['${idx}'].id' ${xray_conf})
         else
-            log_echo "${Warning} ${YellowBG} $(gettext "请先检测 Xray 是否正确安装")! ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
+            continue
         fi
-        if [[ ! -z ${user_email} ]] && [[ ! -z ${user_id} ]]; then
+        if [[ -n ${user_email} ]] && [[ -n ${user_id} ]]; then
             log_echo "${Green} $(gettext "用户名"): ${user_email} ${Font}"
             log_echo "${Green} UUID: ${user_id} ${Font}"
             if [[ ${tls_mode} == "TLS" ]]; then
                 if [[ ${choose_user_prot} == 0 ]]; then
-                    user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?path=%2f$(vless_urlquote $(info_extraction path))%3Fed%3D2048&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=ws#$(vless_urlquote $(info_extraction host))+ws%E5%8D%8F%E8%AE%AE"
+                    user_vless_link=$(generate_vless_link "$user_id" "ws_tls")
                 elif [[ ${choose_user_prot} == 1 ]]; then
-                    user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?serviceName=$(vless_urlquote $(info_extraction serviceName))&security=tls&encryption=none&host=$(vless_urlquote $(info_extraction host))&type=grpc#$(vless_urlquote $(info_extraction host))+gRPC%E5%8D%8F%E8%AE%AE"
+                    user_vless_link=$(generate_vless_link "$user_id" "grpc_tls")
                 fi
             elif [[ ${tls_mode} == "Reality" ]]; then
-                user_vless_link="vless://${user_id}@$(vless_urlquote $(info_extraction host)):$(info_extraction port)?security=tls&encryption=none&headerType=none&type=raw&flow=xtls-rprx-vision#$(vless_urlquote $(info_extraction host))+reality%E5%8D%8F%E8%AE%AE"
+                user_vless_link=$(generate_vless_link "$user_id" "reality")
             fi
             log_echo "${Red} URL $(gettext "分享链接"):${Font} ${user_vless_link}"
             echo -n "${user_vless_link}" | qrencode -o - -t utf8
@@ -3188,15 +3287,12 @@ show_user() {
         read -r show_user_continue
         case $show_user_continue in
         [yY][eE][sS] | [yY])
-            show_user
             ;;
-        *) ;;
+        *)
+            break
+            ;;
         esac
-    elif [[ ${tls_mode} == "None" ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持删除用户")! ${Font}"
-    else
-        log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
-    fi
+    done
 }
 
 add_user() {
@@ -3218,7 +3314,7 @@ add_user() {
         fi
         email_set
         UUID_set
-        jq --argjson choose_user_prot "${choose_user_prot}" \
+        update_json_config "${xray_conf}" --argjson choose_user_prot "${choose_user_prot}" \
            --arg UUID "${UUID}" \
            --argjson reality_user_more "${reality_user_more}" \
            --arg custom_email "${custom_email}" \
@@ -3226,11 +3322,9 @@ add_user() {
                {"id": $UUID} +
                ($reality_user_more // {}) +
                {"level": 0, "email": $custom_email}
-           ]' "${xray_conf}" > "${xray_conf}.tmp"
+           ]'
         judge "$(gettext "添加用户")"
-        mv "${xray_conf}.tmp" "${xray_conf}"
-        jq ". += {\"multi_user\": \"yes\"}" ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
-        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+        update_json_config "${xray_qr_config_file}" ". += {\"multi_user\": \"yes\"}"
         echo
         log_echo "${GreenBG} $(gettext "是否继续添加用户") [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
         read -r add_user_continue
@@ -3275,10 +3369,9 @@ remove_user() {
             echo
         elif [[ ${del_user_index} -gt 1 ]]; then
             del_user_index=$((del_user_index - 1))
-            jq --argjson choose_user_prot "${choose_user_prot}" --argjson del_user_index "${del_user_index}" \
-               'del(.inbounds[$choose_user_prot].settings.clients[$del_user_index])' ${xray_conf} > "${xray_conf}.tmp"
+            update_json_config "${xray_conf}" --argjson choose_user_prot "${choose_user_prot}" --argjson del_user_index "${del_user_index}" \
+               'del(.inbounds[$choose_user_prot].settings.clients[$del_user_index])'
             judge "$(gettext "删除用户")"
-            mv "${xray_conf}.tmp" "${xray_conf}"
             echo
             log_echo "${GreenBG} $(gettext "是否继续删除用户") [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
             read -r remove_user_continue
@@ -3319,11 +3412,10 @@ xray_status_add() {
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
                 service_stop
-                jq "del(.api)|del(.stats)|del(.policy)" ${xray_conf} > "${xray_conf}.tmp"
+                update_json_config "${xray_conf}" "del(.api)|del(.stats)|del(.policy)"
                 judge "$(gettext "关闭 Xray 流量统计")"
-                mv "${xray_conf}.tmp" "${xray_conf}"
                 service_start
-                [[ -f "${xray_status_conf}" ]] && rm -rf ${xray_status_conf}
+                [[ -f "${xray_status_conf}" ]] && rm -rf "${xray_status_conf}"
                 ;;
             *) ;;
             esac
@@ -3336,13 +3428,12 @@ xray_status_add() {
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
                 service_stop
-                curl -L -o "${xray_status_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json"
+                judge "$(gettext "下载流量统计配置")" curl -L -o "${xray_status_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json"
                 local status_config
                 status_config=$(jq -c . "${xray_status_conf}")
-                jq --argjson status_config "${status_config}" \
-                    '. += $status_config' "${xray_conf}" > "${xray_conf}.tmp"
+                update_json_config "${xray_conf}" --argjson status_config "${status_config}" \
+                    '. += $status_config'
                 judge "$(gettext "设置 Xray 流量统计")"
-                mv "${xray_conf}.tmp" "${xray_conf}"
                 service_start
                 ;;
             *) ;;
@@ -3366,10 +3457,9 @@ bbr_boost_sh() {
 uninstall_xray() {
     systemctl disable xray
     bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ remove --purge
-    [[ -d "${xray_conf_dir}" ]] && rm -rf ${xray_conf_dir}
+    [[ -d "${xray_conf_dir}" ]] && safe_rm "${xray_conf_dir}"
     if [[ -f "${xray_qr_config_file}" ]]; then
-        jq -r 'del(.xray_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
-        mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+        update_json_config "${xray_qr_config_file}" -r 'del(.xray_version)'
     fi
     log_echo "${OK} ${GreenBG} $(gettext "已卸载") Xray ${Font}"
 }
@@ -3384,12 +3474,11 @@ uninstall_nginx() {
         ;;
     *)
         systemctl disable nginx
-        rm -rf ${nginx_dir}
-        rm -rf ${nginx_conf_dir}/*
-        [[ -f "${nginx_systemd_file}" ]] && rm -rf ${nginx_systemd_file}
+        safe_rm "${nginx_dir}"
+        safe_rm "${nginx_conf_dir}"
+        [[ -f "${nginx_systemd_file}" ]] && safe_rm "${nginx_systemd_file}"
         if [[ -f "${xray_qr_config_file}" ]]; then
-            jq 'del(.nginx_build_version)' ${xray_qr_config_file} > "${xray_qr_config_file}.tmp"
-            mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            update_json_config "${xray_qr_config_file}" 'del(.nginx_build_version)'
         fi
         log_echo "${OK} ${GreenBG} $(gettext "已卸载") Nginx ${Font}"
         ;;
@@ -3406,8 +3495,8 @@ uninstall_all() {
     read -r remove_all_idleleo_file_fq
     case $remove_all_idleleo_file_fq in
     [yY][eE][sS] | [yY])
-        rm -rf ${idleleo_commend_file}
-        rm -rf ${idleleo_dir}
+        safe_rm "${idleleo_commend_file}"
+        safe_rm "${idleleo_dir}"
         systemctl daemon-reload
         log_echo "${OK} ${GreenBG} $(gettext "已删除所有文件") ${Font}"
         log_echo "${GreenBG} $(gettext "ヾ(￣▽￣) 拜拜~") ${Font}"
@@ -3426,7 +3515,7 @@ uninstall_all() {
             log_echo "${OK} ${GreenBG} $(gettext "已保留配置文件") ${Font}"
             ;;
         *)
-            rm -rf ${xray_qr_config_file}
+            rm -rf "${xray_qr_config_file}"
             log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
             ;;
         esac
@@ -3698,8 +3787,8 @@ update_sh() {
                 [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
                 return 1
             fi
-            ln -s ${idleleo} ${idleleo_commend_file}
-            [[ -f "${xray_qr_config_file}" ]] && jq --arg shell_version "${shell_version}" '.shell_version = $shell_version' "${xray_qr_config_file}" > "${xray_qr_config_file}.tmp" && mv "${xray_qr_config_file}.tmp" "${xray_qr_config_file}"
+            ln -s "${idleleo}" "${idleleo_commend_file}"
+            [[ -f "${xray_qr_config_file}" ]] && update_json_config "${xray_qr_config_file}" --arg shell_version "${shell_version}" '.shell_version = $shell_version'
             clear
             log_echo "${OK} ${GreenBG} $(gettext "更新完成") ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
@@ -3721,11 +3810,11 @@ check_file_integrity() {
     if [[ ! -L "${idleleo_commend_file}" ]] && [[ ! -f "${idleleo}" ]]; then
         check_system
         pkg_install "bc,jq"
-        [[ ! -d "${idleleo_dir}" ]] && mkdir -p ${idleleo_dir}
-        [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p ${idleleo_dir}/tmp
+        [[ ! -d "${idleleo_dir}" ]] && mkdir -p "${idleleo_dir}"
+        [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p "${idleleo_dir}"/tmp
         curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
         judge "$(gettext "下载最新脚本")"
-        ln -s ${idleleo} ${idleleo_commend_file}
+        ln -s "${idleleo}" "${idleleo_commend_file}"
         clear
         source "$idleleo"
     fi
@@ -3901,7 +3990,7 @@ show_help() {
 
 idleleo_commend() {
     if [[ -L "${idleleo_commend_file}" ]] || [[ -f "${idleleo}" ]]; then
-        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x ${idleleo} && ln -s ${idleleo} ${idleleo_commend_file}
+        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x ${idleleo} && ln -s "${idleleo}" "${idleleo_commend_file}"
         old_version=$(grep "shell_version=" ${idleleo} | head -1 | awk -F '=|"' '{print $3}')
         echo "${old_version}" >${shell_version_tmp}
         echo "${shell_version}" >>${shell_version_tmp}
@@ -3922,7 +4011,7 @@ idleleo_commend() {
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
-                    rm -rf ${idleleo}
+                    rm -rf "${idleleo}"
                     curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
                     judge "$(gettext "下载最新脚本")"
                     clear
@@ -3934,7 +4023,7 @@ idleleo_commend() {
                     ;;
                 esac
             else
-                rm -rf ${idleleo}
+                rm -rf "${idleleo}"
                 curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
                 echo
                 judge "$(gettext "下载最新脚本")"
@@ -4470,7 +4559,7 @@ menu() {
         ;;
     36)
         delete_tls_key_and_crt
-        rm -rf ${ssl_chainpath}/*
+        rm -rf "${ssl_chainpath}"/*
         timeout "$(gettext "清空屏幕")!"
         clear
         menu

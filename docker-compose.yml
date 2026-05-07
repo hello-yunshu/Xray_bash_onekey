@@ -16,6 +16,16 @@ services:
       - xray-info:/etc/idleleo/info
       - xray-logs:/var/log/xray
       - acme-data:/root/.acme.sh
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
     stdin_open: true
     tty: true
 

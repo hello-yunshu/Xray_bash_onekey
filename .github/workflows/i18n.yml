@@ -42,13 +42,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gettext python3 python3-pip i18nspector
-          pip3 install googletrans-py langdetect openai
+          pip3 install polib deep-translator langdetect openai
 
       - name: Cache Python dependencies
         uses: actions/cache@main
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-googletrans-py-langdetect-openai
+          key: ${{ runner.os }}-pip-polib-deep-translator-langdetect-openai
           restore-keys: |
             ${{ runner.os }}-pip-
 
