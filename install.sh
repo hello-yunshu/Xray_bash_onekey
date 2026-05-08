@@ -376,27 +376,21 @@ init_language() {
 }
 
 judge() {
+    local ret=$?
     local desc="$1"
     if [[ $# -gt 1 ]]; then
         "${@:2}"
-        local ret=$?
-        if [[ $ret -eq 0 ]]; then
-            log_echo "${OK} ${GreenBG} ${desc} $(gettext "完成") ${Font}"
-            sleep 0.5
-        else
-            log_echo "${Error} ${RedBG} ${desc} $(gettext "失败") ${Font}"
-            exit 1
-        fi
-        return $ret
-    else
-        if [[ 0 -eq $? ]]; then
-            log_echo "${OK} ${GreenBG} ${desc} $(gettext "完成") ${Font}"
-            sleep 0.5
-        else
-            log_echo "${Error} ${RedBG} ${desc} $(gettext "失败") ${Font}"
-            exit 1
-        fi
+        ret=$?
     fi
+
+    if [[ $ret -eq 0 ]]; then
+        log_echo "${OK} ${GreenBG} ${desc} $(gettext "完成") ${Font}"
+        sleep 0.5
+    else
+        log_echo "${Error} ${RedBG} ${desc} $(gettext "失败") ${Font}"
+        exit 1
+    fi
+    return $ret
 }
 
 check_version() {
