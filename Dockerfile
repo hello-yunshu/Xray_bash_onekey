@@ -70,7 +70,7 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD pgrep -f "/usr/local/bin/xray" > /dev/null 2>&1 || exit 1
+    CMD test ! -f /etc/idleleo/conf/xray/config.json || pgrep -f "/usr/local/bin/xray" > /dev/null 2>&1 || exit 1
 
 EXPOSE 443 80
 

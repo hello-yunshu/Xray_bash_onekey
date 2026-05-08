@@ -7,7 +7,7 @@ idleleo_dir="/etc/idleleo"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 ssl_chainpath="${idleleo_dir}/cert"
 xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
-acme_sh_dir="${HOME}/.acme.sh"
+acme_sh_dir="${HOME:-/root}/.acme.sh"
 host=$(jq -r '.host' "${xray_qr_config_file}")
 
 [[ -f "${nginx_systemd_file}" ]] && systemctl stop nginx &> /dev/null
