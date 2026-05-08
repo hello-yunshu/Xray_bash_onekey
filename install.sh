@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.9.0"
+shell_version="2.9.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -166,7 +166,14 @@ update_json_config() {
         rm -f "${config_file}.tmp"
         return 1
     fi
-    mv "${config_file}.tmp" "${config_file}"
+    if ! mv "${config_file}.tmp" "${config_file}"; then
+        return 1
+    fi
+    if [[ "${config_file}" == "${xray_qr_config_file}" ]]; then
+        info_extraction_all=$(jq -rc . "${config_file}" 2>/dev/null) || return 1
+        declare -F _info_cache_invalidate >/dev/null && _info_cache_invalidate
+    fi
+    return 0
 }
 
 get_public_ip() {
@@ -931,12 +938,24 @@ keys_set() {
         [yY][eE][sS] | [yY])
             read_optimize "$(gettext "请输入") privateKey:" "privateKey" "NULL"
             keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}" | tr '\n' ' ')
-            password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
+            if echo "${keys}" | grep -q "Password (PublicKey): "; then
+                password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
+            elif echo "${keys}" | grep -q "Password: "; then
+                password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
+            elif echo "${keys}" | grep -q "PublicKey: "; then
+                password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
+            fi
             ;;
         *)
             keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
             privateKey=$(echo "${keys}" | awk -F"PrivateKey: " '{print $2}' | awk '{print $1}')
-            password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
+            if echo "${keys}" | grep -q "Password (PublicKey): "; then
+                password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
+            elif echo "${keys}" | grep -q "Password: "; then
+                password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
+            elif echo "${keys}" | grep -q "PublicKey: "; then
+                password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
+            fi
             ;;
         esac
         log_echo "${Green} privateKey: ${privateKey} ${Font}"
@@ -1224,7 +1243,7 @@ xray_install() {
         judge "$(gettext "安装") Xray"
         systemctl daemon-reload
         xray_privilege_escalation
-        [[ -f "${xray_default_conf}" ]] && rm -rf "${xray_default_conf}"
+        [[ -e "${xray_default_conf}" || -L "${xray_default_conf}" ]] && rm -f "${xray_default_conf}"
         ln -s "${xray_conf}" "${xray_default_conf}"
         xray_version=${xray_online_version}
     else
@@ -1234,12 +1253,15 @@ xray_install() {
 }
 
 xray_update() {
+    local current_xray_version
+    local update_rolled_back=0
+    current_xray_version=$(info_extraction xray_version)
     [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
     [[ ! -d "${local_bin}/etc/xray" ]] && log_echo "${GreenBG} $(gettext "若更新无效, 建议直接卸载再安装")! ${Font}"
     log_echo "${Warning} ${GreenBG} $(gettext "部分新功能需要重新安装才可生效") ${Font}"
     ## xray_online_version=$(check_version xray_online_pre_version)
     ## if [[ $(info_extraction xray_version) != ${xray_online_version} ]] && [[ ${xray_version} != ${xray_online_version} ]]; then
-    if [[ $(info_extraction xray_version) != ${xray_online_version} ]]; then
+    if [[ ${current_xray_version} != ${xray_online_version} ]]; then
         if [[ ${auto_update} != "YES" ]]; then
             log_echo "${Warning} ${GreenBG} $(gettext "检测到存在最新版") ${Font}"
             log_echo "${Warning} ${GreenBG} $(gettext "脚本可能未兼容此版本") ${Font}"
@@ -1249,8 +1271,7 @@ xray_update() {
             [yY][eE][sS] | [yY])
                 log_echo "${OK} ${GreenBG} $(gettext "更新") Xray ! ${Font}"
                 systemctl stop xray
-                bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_online_version}
-                if ! ${xray_bin_dir}/xray -version &> /dev/null; then
+                if ! bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
                     log_echo "${Error} ${RedBG} Xray $(gettext "启动失败")! ${Font}"
                     log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                     read -r rollback_fq
@@ -1261,10 +1282,14 @@ xray_update() {
                         ;;
                     *)
                         log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
-                        xray_version=$(info_extraction xray_version)
-                        bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_version}
-                        if ${xray_bin_dir}/xray -version &> /dev/null; then
+                        if [[ -z "${current_xray_version}" || "${current_xray_version}" == "null" ]]; then
+                            log_echo "${Error} ${RedBG} Xray $(gettext "版本未知"), $(gettext "回滚失败")! ${Font}"
+                            return 1
+                        fi
+                        xray_version=${current_xray_version}
+                        if bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version "v${xray_version}" && "${xray_bin_dir}/xray" -version &> /dev/null; then
                             log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
+                            update_rolled_back=1
                         else
                             log_echo "${Error} ${RedBG} Xray $(gettext "回滚失败")! ${Font}"
                             return 1
@@ -1272,8 +1297,8 @@ xray_update() {
                         ;;
                     esac
                 else
-                    judge "Xray $(gettext "更新")"
                     xray_version=${xray_online_version}
+                    judge "Xray $(gettext "更新")" true
                 fi
                 ;;
             *)
@@ -1282,14 +1307,19 @@ xray_update() {
             esac
         else
             systemctl stop xray
-            bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_online_version}
-            if ! ${xray_bin_dir}/xray -version &> /dev/null; then
-                xray_version=$(info_extraction xray_version)
-                bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_version}
-                if ! ${xray_bin_dir}/xray -version &> /dev/null; then
+            if ! bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
+                if [[ -z "${current_xray_version}" || "${current_xray_version}" == "null" ]]; then
                     echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
                     return 1
                 fi
+                xray_version=${current_xray_version}
+                if ! bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version "v${xray_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
+                    echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
+                    return 1
+                fi
+                update_rolled_back=1
+            else
+                xray_version=${xray_online_version}
             fi
         fi
     else
@@ -1300,9 +1330,9 @@ xray_update() {
         judge "Xray $(gettext "重装")"
     fi
     xray_privilege_escalation
-    [[ -f "${xray_default_conf}" ]] && rm -rf "${xray_default_conf}"
+    [[ -e "${xray_default_conf}" || -L "${xray_default_conf}" ]] && rm -f "${xray_default_conf}"
     ln -s "${xray_conf}" "${xray_default_conf}"
-    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
+    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version' || return 1
     systemctl daemon-reload
     systemctl start xray
     if ! ${xray_bin_dir}/xray -version &> /dev/null; then
@@ -1310,6 +1340,7 @@ xray_update() {
         [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} Xray $(gettext "更新失败")! ${Font}"
         return 1
     fi
+    [[ ${auto_update} == "YES" && ${update_rolled_back} -eq 1 ]] && return 1
     return 0
 }
 
@@ -1456,6 +1487,7 @@ nginx_install() {
     [[ -d "${nginx_dir}" ]] && safe_rm "${nginx_dir}"
     mv ./nginx "${nginx_dir}"
 
+    [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p "${nginx_conf_dir}"
     cp -fp "${nginx_dir}"/conf/nginx.conf "${nginx_conf_dir}"/nginx.default
 
     # 修改基本配置
@@ -1466,6 +1498,19 @@ nginx_install() {
     cd "$current_dir" && rm -rf "$temp_dir"
     chown -fR nobody:nogroup "${nginx_dir}"
     chmod -fR 755 "${nginx_dir}"
+}
+
+restore_nginx_backup() {
+    local backup_dir="$1"
+
+    service_stop
+    safe_rm "${nginx_dir}"
+    if ! mv "${backup_dir}" "${nginx_dir}"; then
+        return 1
+    fi
+    service_start
+    sleep 1
+    systemctl -q is-active nginx
 }
 
 nginx_update() {
@@ -1520,6 +1565,9 @@ nginx_update() {
             fi
             service_stop
             backup_nginx_dir="${nginx_dir}_backup_${current_nginx_build_version}"
+            if [[ -e "${backup_nginx_dir}" || -L "${backup_nginx_dir}" ]]; then
+                safe_rm "${backup_nginx_dir}" || return 1
+            fi
             cp -r "${nginx_dir}" "${backup_nginx_dir}"
             judge "$(gettext "备份旧版") Nginx"
             timeout "$(gettext "删除旧版") Nginx !"
@@ -1558,10 +1606,14 @@ nginx_update() {
                     log_echo "${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                     read -r rollback_fq
                 else
-                    service_stop
-                    safe_rm "${nginx_dir}"
-                    mv "${backup_nginx_dir}" "${nginx_dir}"
-                    service_start
+                    log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
+                    if restore_nginx_backup "${backup_nginx_dir}"; then
+                        log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
+                        update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' || return 1
+                    else
+                        log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
+                    fi
+                    return 1
                 fi
                 case $rollback_fq in
                 [nN][oO] | [nN])
@@ -1570,14 +1622,9 @@ nginx_update() {
                     ;;
                 *)
                     log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
-                    service_stop
-                    safe_rm "${nginx_dir}"
-                    mv "${backup_nginx_dir}" "${nginx_dir}"
-                    service_start
-                    sleep 1
-                    if systemctl -q is-active nginx; then
+                    if restore_nginx_backup "${backup_nginx_dir}"; then
                         log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
-                        update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version'
+                        update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' || return 1
                         safe_rm "${backup_nginx_dir}"
                         return 1
                     else
