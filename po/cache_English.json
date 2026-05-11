@@ -601,5 +601,6 @@
   "下载完成, 正在重新加载...": "download complete, reloading",
   "Nginx 未运行, 是否继续编辑": "nginx is not running. do you want to continue editing",
   "没有可编辑的文件": "no editable files found",
-  "Nginx 未运行, 请手动修复配置": "nginx is not running; please manually fix the configuration"
+  "Nginx 未运行, 请手动修复配置": "nginx is not running; please manually fix the configuration",
+  "版本过旧, 正在更新": "outdated version; updating now"
 }
