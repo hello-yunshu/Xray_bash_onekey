@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-05-11 21:04+0000\n"
+"POT-Creation-Date: 2026-05-11 21:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,7 +108,7 @@ msgstr ""
 msgid "将使用默认语言"
 msgstr ""
 
-#: install.sh:403 file_manager.sh:40
+#: install.sh:403 file_manager.sh:39
 msgid "未找到"
 msgstr ""
 
@@ -134,8 +134,8 @@ msgstr ""
 
 #: install.sh:503 install.sh:511 install.sh:1321 install.sh:4132
 #: install.sh:4133 install.sh:4134 install.sh:4135 install.sh:4465
-#: install.sh:4466 install.sh:4467 install.sh:4468 fail2ban_manager.sh:13
-#: fail2ban_manager.sh:40
+#: install.sh:4466 install.sh:4467 install.sh:4468 fail2ban_manager.sh:12
+#: fail2ban_manager.sh:39
 msgid "安装"
 msgstr ""
 
@@ -164,11 +164,11 @@ msgstr ""
 msgid "确定端口"
 msgstr ""
 
-#: install.sh:602 install.sh:605 file_manager.sh:109 file_manager.sh:111
+#: install.sh:602 install.sh:605 file_manager.sh:108 file_manager.sh:110
 msgid "请输入端口"
 msgstr ""
 
-#: install.sh:602 install.sh:605 file_manager.sh:109 file_manager.sh:114
+#: install.sh:602 install.sh:605 file_manager.sh:108 file_manager.sh:113
 msgid "默认值"
 msgstr ""
 
@@ -188,7 +188,7 @@ msgstr ""
 
 #: install.sh:614 install.sh:1816 install.sh:1853 install.sh:1905
 #: install.sh:3242 install.sh:3396 install.sh:3455 install.sh:3501
-#: fail2ban_manager.sh:279 fail2ban_manager.sh:280
+#: fail2ban_manager.sh:278 fail2ban_manager.sh:279
 msgid "默认"
 msgstr ""
 
@@ -199,8 +199,8 @@ msgstr ""
 #: install.sh:3304 install.sh:3309 install.sh:3310 install.sh:3324
 #: install.sh:3329 install.sh:3334 install.sh:3335 install.sh:3398
 #: install.sh:3406 install.sh:3457 install.sh:3503 install.sh:3515
-#: fail2ban_manager.sh:216 fail2ban_manager.sh:235 fail2ban_manager.sh:277
-#: file_manager.sh:88
+#: fail2ban_manager.sh:215 fail2ban_manager.sh:234 fail2ban_manager.sh:276
+#: file_manager.sh:87
 msgid "请输入"
 msgstr ""
 
@@ -231,18 +231,18 @@ msgstr ""
 msgid "请勿与其他端口相同"
 msgstr ""
 
-#: install.sh:728 file_manager.sh:121
+#: install.sh:728 file_manager.sh:120
 msgid "是否需要设置防火墙"
 msgstr ""
 
-#: install.sh:768 install.sh:772 file_manager.sh:135 file_manager.sh:139
-#: file_manager.sh:143
+#: install.sh:768 install.sh:772 file_manager.sh:134 file_manager.sh:138
+#: file_manager.sh:142
 msgid "防火墙"
 msgstr ""
 
 #: install.sh:768 install.sh:772 install.sh:2415 install.sh:2418
-#: install.sh:3257 install.sh:3259 install.sh:4486 fail2ban_manager.sh:232
-#: fail2ban_manager.sh:428 traffic_blocker.sh:550 traffic_blocker.sh:575
+#: install.sh:3257 install.sh:3259 install.sh:4486 fail2ban_manager.sh:231
+#: fail2ban_manager.sh:427 traffic_blocker.sh:550 traffic_blocker.sh:575
 msgid "重启"
 msgstr ""
 
@@ -255,11 +255,11 @@ msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr ""
 
 #: install.sh:776 install.sh:4137 install.sh:4153 install.sh:4154
-#: install.sh:4475 install.sh:4495 fail2ban_manager.sh:162
+#: install.sh:4475 install.sh:4495 fail2ban_manager.sh:161
 msgid "配置"
 msgstr ""
 
-#: install.sh:779 file_manager.sh:147
+#: install.sh:779 file_manager.sh:146
 msgid "跳过防火墙设置"
 msgstr ""
 
@@ -366,8 +366,8 @@ msgstr ""
 msgid "本地文件 file_manager.sh 不存在, 正在下载"
 msgstr ""
 
-#: install.sh:1063 install.sh:2528 install.sh:2544 fail2ban_manager.sh:492
-#: file_manager.sh:252
+#: install.sh:1063 install.sh:2528 install.sh:2544 fail2ban_manager.sh:490
+#: file_manager.sh:251 traffic_blocker.sh:994
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr ""
 
@@ -383,14 +383,14 @@ msgstr ""
 msgid "请选择协议为 ws 或 gRPC"
 msgstr ""
 
-#: install.sh:1082 fail2ban_manager.sh:214 fail2ban_manager.sh:233
-#: fail2ban_manager.sh:328 fail2ban_manager.sh:357 traffic_blocker.sh:228
+#: install.sh:1082 fail2ban_manager.sh:213 fail2ban_manager.sh:232
+#: fail2ban_manager.sh:327 fail2ban_manager.sh:356 traffic_blocker.sh:228
 #: traffic_blocker.sh:265 traffic_blocker.sh:452 traffic_blocker.sh:508
 #: traffic_blocker.sh:653
 msgid "返回"
 msgstr ""
 
-#: install.sh:1092 file_manager.sh:227
+#: install.sh:1092 file_manager.sh:226
 msgid "无效选项, 请重试"
 msgstr ""
 
@@ -518,8 +518,8 @@ msgstr ""
 msgid "使用此功能前，建议先阅读作者教程"
 msgstr ""
 
-#: install.sh:1433 fail2ban_manager.sh:94 fail2ban_manager.sh:104
-#: fail2ban_manager.sh:129 fail2ban_manager.sh:155 fail2ban_manager.sh:348
+#: install.sh:1433 fail2ban_manager.sh:93 fail2ban_manager.sh:103
+#: fail2ban_manager.sh:128 fail2ban_manager.sh:154 fail2ban_manager.sh:347
 #: traffic_blocker.sh:443 traffic_blocker.sh:644
 msgid "已启用"
 msgstr ""
@@ -640,7 +640,7 @@ msgstr ""
 msgid "可能自动更新后有兼容问题, 谨慎启用"
 msgstr ""
 
-#: install.sh:1738 fail2ban_manager.sh:121 fail2ban_manager.sh:147
+#: install.sh:1738 fail2ban_manager.sh:120 fail2ban_manager.sh:146
 msgid "是否启用"
 msgstr ""
 
@@ -878,7 +878,7 @@ msgid "设置 Nginx 开机自启"
 msgstr ""
 
 #: install.sh:2394 install.sh:4493 install.sh:4496 install.sh:4497
-#: install.sh:4498 install.sh:4499 fail2ban_manager.sh:11
+#: install.sh:4498 install.sh:4499 fail2ban_manager.sh:10
 #: traffic_blocker.sh:399
 msgid "设置"
 msgstr ""
@@ -896,12 +896,12 @@ msgid "关闭"
 msgstr ""
 
 #: install.sh:2409 install.sh:2431 install.sh:2434 install.sh:2493
-#: install.sh:4488 fail2ban_manager.sh:231
+#: install.sh:4488 fail2ban_manager.sh:230
 msgid "停止"
 msgstr ""
 
 #: install.sh:2423 install.sh:2426 install.sh:3016 install.sh:4487
-#: fail2ban_manager.sh:230 fail2ban_manager.sh:394
+#: fail2ban_manager.sh:229 fail2ban_manager.sh:393
 msgid "启动"
 msgstr ""
 
@@ -1133,7 +1133,7 @@ msgstr ""
 msgid "所有证书文件均已存在, 是否保留"
 msgstr ""
 
-#: install.sh:3149 install.sh:3164 install.sh:3180 file_manager.sh:183
+#: install.sh:3149 install.sh:3164 install.sh:3180 file_manager.sh:182
 msgid "已删除"
 msgstr ""
 
@@ -1450,7 +1450,7 @@ msgstr ""
 
 #: install.sh:4149 install.sh:4477 install.sh:4481 install.sh:4482
 #: install.sh:4483 install.sh:4484 install.sh:4489 install.sh:4491
-#: fail2ban_manager.sh:16
+#: fail2ban_manager.sh:15
 msgid "查看"
 msgstr ""
 
@@ -1750,7 +1750,7 @@ msgstr ""
 msgid "卸载向导"
 msgstr ""
 
-#: install.sh:4506 fail2ban_manager.sh:15 fail2ban_manager.sh:411
+#: install.sh:4506 fail2ban_manager.sh:14 fail2ban_manager.sh:410
 msgid "卸载"
 msgstr ""
 
@@ -1762,7 +1762,7 @@ msgstr ""
 msgid "证书文件"
 msgstr ""
 
-#: install.sh:4508 fail2ban_manager.sh:17 file_manager.sh:215
+#: install.sh:4508 fail2ban_manager.sh:16 file_manager.sh:214
 #: traffic_blocker.sh:406
 msgid "退出"
 msgstr ""
@@ -1773,7 +1773,7 @@ msgstr ""
 
 #: install.sh:4519 install.sh:4528 install.sh:4594 install.sh:4600
 #: install.sh:4645 install.sh:4651 install.sh:4657 install.sh:4686
-#: install.sh:4737 install.sh:4744 install.sh:4749 fail2ban_manager.sh:412
+#: install.sh:4737 install.sh:4744 install.sh:4749 fail2ban_manager.sh:411
 msgid "清空屏幕"
 msgstr ""
 
@@ -1798,331 +1798,332 @@ msgstr ""
 msgid "网速测试脚本下载失败"
 msgstr ""
 
-#: fail2ban_manager.sh:11
+#: fail2ban_manager.sh:10
 msgid "用于防止暴力破解"
 msgstr ""
 
-#: fail2ban_manager.sh:12 file_manager.sh:210 traffic_blocker.sh:400
+#: fail2ban_manager.sh:11 file_manager.sh:209 traffic_blocker.sh:400
 msgid "主菜单"
 msgstr ""
 
-#: fail2ban_manager.sh:14
+#: fail2ban_manager.sh:13
 msgid "管理"
 msgstr ""
 
-#: fail2ban_manager.sh:16 fail2ban_manager.sh:340 traffic_blocker.sh:435
+#: fail2ban_manager.sh:15 fail2ban_manager.sh:339 traffic_blocker.sh:435
 #: traffic_blocker.sh:636
 msgid "状态"
 msgstr ""
 
-#: fail2ban_manager.sh:19 file_manager.sh:217 traffic_blocker.sh:267
+#: fail2ban_manager.sh:18 file_manager.sh:216 traffic_blocker.sh:267
 #: traffic_blocker.sh:408 traffic_blocker.sh:510
 msgid "请选择一个选项"
 msgstr ""
 
-#: fail2ban_manager.sh:28 fail2ban_manager.sh:251 fail2ban_manager.sh:259
-#: fail2ban_manager.sh:361 traffic_blocker.sh:274 traffic_blocker.sh:418
+#: fail2ban_manager.sh:27 fail2ban_manager.sh:250 fail2ban_manager.sh:258
+#: fail2ban_manager.sh:360 traffic_blocker.sh:274 traffic_blocker.sh:418
 #: traffic_blocker.sh:519 traffic_blocker.sh:657
 msgid "无效的选择, 请重试"
 msgstr ""
 
-#: fail2ban_manager.sh:36
+#: fail2ban_manager.sh:35
 msgid "已经安装, 跳过安装步骤"
 msgstr ""
 
-#: fail2ban_manager.sh:69
+#: fail2ban_manager.sh:68
 msgid "systemd 无法读取 SSH 日志"
 msgstr ""
 
-#: fail2ban_manager.sh:70
+#: fail2ban_manager.sh:69
 msgid "跳过启用"
 msgstr ""
 
-#: fail2ban_manager.sh:70 fail2ban_manager.sh:94 fail2ban_manager.sh:104
-#: fail2ban_manager.sh:121 fail2ban_manager.sh:126 fail2ban_manager.sh:129
-#: fail2ban_manager.sh:147 fail2ban_manager.sh:152 fail2ban_manager.sh:155
+#: fail2ban_manager.sh:69 fail2ban_manager.sh:93 fail2ban_manager.sh:103
+#: fail2ban_manager.sh:120 fail2ban_manager.sh:125 fail2ban_manager.sh:128
+#: fail2ban_manager.sh:146 fail2ban_manager.sh:151 fail2ban_manager.sh:154
 #: traffic_blocker.sh:680 traffic_blocker.sh:685
 msgid "规则"
 msgstr ""
 
-#: fail2ban_manager.sh:78 fail2ban_manager.sh:204 fail2ban_manager.sh:436
+#: fail2ban_manager.sh:77 fail2ban_manager.sh:203 fail2ban_manager.sh:435
 msgid "未安装, 请先安装"
 msgstr ""
 
-#: fail2ban_manager.sh:126 fail2ban_manager.sh:152 fail2ban_manager.sh:350
+#: fail2ban_manager.sh:125 fail2ban_manager.sh:151 fail2ban_manager.sh:349
 #: traffic_blocker.sh:445 traffic_blocker.sh:646
 msgid "已禁用"
 msgstr ""
 
-#: fail2ban_manager.sh:210
+#: fail2ban_manager.sh:209
 msgid "请选择"
 msgstr ""
 
-#: fail2ban_manager.sh:210
+#: fail2ban_manager.sh:209
 msgid "操作"
 msgstr ""
 
-#: fail2ban_manager.sh:211
+#: fail2ban_manager.sh:210
 msgid "管理模块"
 msgstr ""
 
-#: fail2ban_manager.sh:212
+#: fail2ban_manager.sh:211
 msgid "添加自定义规则"
 msgstr ""
 
-#: fail2ban_manager.sh:213 fail2ban_manager.sh:229
+#: fail2ban_manager.sh:212 fail2ban_manager.sh:228
 msgid "服务管理"
 msgstr ""
 
-#: fail2ban_manager.sh:272
+#: fail2ban_manager.sh:271
 msgid "请输入新的"
 msgstr ""
 
-#: fail2ban_manager.sh:272 fail2ban_manager.sh:277
+#: fail2ban_manager.sh:271 fail2ban_manager.sh:276
 msgid "名称"
 msgstr ""
 
-#: fail2ban_manager.sh:274
+#: fail2ban_manager.sh:273
 msgid "名称不能包含路径分隔符或为空"
 msgstr ""
 
-#: fail2ban_manager.sh:278
+#: fail2ban_manager.sh:277
 msgid "请输入日志路径"
 msgstr ""
 
-#: fail2ban_manager.sh:279
+#: fail2ban_manager.sh:278
 msgid "请输入最大重试次数"
 msgstr ""
 
-#: fail2ban_manager.sh:279
+#: fail2ban_manager.sh:278
 msgid "最大重试次数必须在 1 到 99 之间"
 msgstr ""
 
-#: fail2ban_manager.sh:280
+#: fail2ban_manager.sh:279
 msgid "请输入封禁时间"
 msgstr ""
 
-#: fail2ban_manager.sh:280
+#: fail2ban_manager.sh:279
 msgid "秒"
 msgstr ""
 
-#: fail2ban_manager.sh:280
+#: fail2ban_manager.sh:279
 msgid "封禁时间必须在 1 到 8640000 秒之间"
 msgstr ""
 
-#: fail2ban_manager.sh:290
+#: fail2ban_manager.sh:289
 msgid "自定义规则添加成功"
 msgstr ""
 
-#: fail2ban_manager.sh:294
+#: fail2ban_manager.sh:293
 msgid "重启以应用新规则"
 msgstr ""
 
-#: fail2ban_manager.sh:300
+#: fail2ban_manager.sh:299
 msgid "管理 Fail2ban 模块"
 msgstr ""
 
-#: fail2ban_manager.sh:315
+#: fail2ban_manager.sh:314
 msgid "未找到任何模块化配置文件"
 msgstr ""
 
-#: fail2ban_manager.sh:322 fail2ban_manager.sh:340
+#: fail2ban_manager.sh:321 fail2ban_manager.sh:339
 msgid "模块名称"
 msgstr ""
 
-#: fail2ban_manager.sh:340 file_manager.sh:64
+#: fail2ban_manager.sh:339 file_manager.sh:63
 msgid "序号"
 msgstr ""
 
-#: fail2ban_manager.sh:361
+#: fail2ban_manager.sh:360
 msgid "请选择要管理的模块"
 msgstr ""
 
-#: fail2ban_manager.sh:372 traffic_blocker.sh:672
+#: fail2ban_manager.sh:371 traffic_blocker.sh:672
 msgid "启用"
 msgstr ""
 
-#: fail2ban_manager.sh:372 traffic_blocker.sh:672
+#: fail2ban_manager.sh:371 traffic_blocker.sh:672
 msgid "禁用"
 msgstr ""
 
-#: fail2ban_manager.sh:374 traffic_blocker.sh:680
+#: fail2ban_manager.sh:373 traffic_blocker.sh:680
 msgid "是否"
 msgstr ""
 
-#: fail2ban_manager.sh:374 fail2ban_manager.sh:382
+#: fail2ban_manager.sh:373 fail2ban_manager.sh:381
 msgid "模块"
 msgstr ""
 
-#: fail2ban_manager.sh:384 traffic_blocker.sh:171 traffic_blocker.sh:688
+#: fail2ban_manager.sh:383 traffic_blocker.sh:171 traffic_blocker.sh:688
 #: traffic_blocker.sh:865 traffic_blocker.sh:937
 msgid "操作已取消"
 msgstr ""
 
-#: fail2ban_manager.sh:420
+#: fail2ban_manager.sh:419
 msgid "停止成功"
 msgstr ""
 
-#: fail2ban_manager.sh:440
+#: fail2ban_manager.sh:439
 msgid "总体状态"
 msgstr ""
 
-#: fail2ban_manager.sh:444
+#: fail2ban_manager.sh:443
 msgid "默认启用的 Jail 状态"
 msgstr ""
 
-#: fail2ban_manager.sh:448 fail2ban_manager.sh:454
+#: fail2ban_manager.sh:447 fail2ban_manager.sh:453
 msgid "封锁情况"
 msgstr ""
 
-#: fail2ban_manager.sh:449 fail2ban_manager.sh:455 fail2ban_manager.sh:458
-#: fail2ban_manager.sh:462 fail2ban_manager.sh:465
+#: fail2ban_manager.sh:448 fail2ban_manager.sh:454 fail2ban_manager.sh:457
+#: fail2ban_manager.sh:461 fail2ban_manager.sh:464
 msgid "未启用或配置异常"
 msgstr ""
 
-#: fail2ban_manager.sh:479 file_manager.sh:239
+#: fail2ban_manager.sh:477 file_manager.sh:238 traffic_blocker.sh:981
 msgid "新版本可用"
 msgstr ""
 
-#: fail2ban_manager.sh:479 file_manager.sh:239 traffic_blocker.sh:561
+#: fail2ban_manager.sh:477 file_manager.sh:238 traffic_blocker.sh:561
+#: traffic_blocker.sh:981
 msgid "当前版本"
 msgstr ""
 
-#: fail2ban_manager.sh:480 file_manager.sh:240
+#: fail2ban_manager.sh:478 file_manager.sh:239 traffic_blocker.sh:982
 msgid "请访问"
 msgstr ""
 
-#: fail2ban_manager.sh:480 file_manager.sh:240
+#: fail2ban_manager.sh:478 file_manager.sh:239 traffic_blocker.sh:982
 msgid "查看更新说明"
 msgstr ""
 
-#: fail2ban_manager.sh:482 file_manager.sh:242
+#: fail2ban_manager.sh:480 file_manager.sh:241 traffic_blocker.sh:984
 msgid "是否下载并安装新版本"
 msgstr ""
 
-#: fail2ban_manager.sh:486 file_manager.sh:246
+#: fail2ban_manager.sh:484 file_manager.sh:245 traffic_blocker.sh:988
 msgid "正在下载新版本"
 msgstr ""
 
-#: fail2ban_manager.sh:488 file_manager.sh:248
+#: fail2ban_manager.sh:486 file_manager.sh:247 traffic_blocker.sh:990
 msgid "下载完成, 请重新运行脚本"
 msgstr ""
 
-#: fail2ban_manager.sh:496 file_manager.sh:256
+#: fail2ban_manager.sh:494 file_manager.sh:255 traffic_blocker.sh:998
 msgid "跳过更新"
 msgstr ""
 
-#: fail2ban_manager.sh:500 file_manager.sh:260
+#: fail2ban_manager.sh:498 file_manager.sh:259 traffic_blocker.sh:1002
 msgid "当前已经是最新版本"
 msgstr ""
 
-#: file_manager.sh:8
+#: file_manager.sh:7
 msgid "用法"
 msgstr ""
 
-#: file_manager.sh:8
+#: file_manager.sh:7
 msgid "文件扩展名"
 msgstr ""
 
-#: file_manager.sh:8
+#: file_manager.sh:7
 msgid "目录路径"
 msgstr ""
 
-#: file_manager.sh:17
+#: file_manager.sh:16
 msgid "目录"
 msgstr ""
 
-#: file_manager.sh:17
+#: file_manager.sh:16
 msgid "不存在, 请检查路径"
 msgstr ""
 
-#: file_manager.sh:27 file_manager.sh:211
+#: file_manager.sh:26 file_manager.sh:210
 msgid "列出所有"
 msgstr ""
 
-#: file_manager.sh:27 file_manager.sh:40 file_manager.sh:95 file_manager.sh:118
-#: file_manager.sh:167 file_manager.sh:183 file_manager.sh:211
-#: file_manager.sh:212 file_manager.sh:213 file_manager.sh:214
+#: file_manager.sh:26 file_manager.sh:39 file_manager.sh:94 file_manager.sh:117
+#: file_manager.sh:166 file_manager.sh:182 file_manager.sh:210
+#: file_manager.sh:211 file_manager.sh:212 file_manager.sh:213
 msgid "文件"
 msgstr ""
 
-#: file_manager.sh:58
+#: file_manager.sh:57
 msgid "文件名"
 msgstr ""
 
-#: file_manager.sh:86
+#: file_manager.sh:85
 msgid "请输入网址 (例如 hey.run)"
 msgstr ""
 
-#: file_manager.sh:87
+#: file_manager.sh:86
 msgid "不要包含 http:// 或 https:// 开头"
 msgstr ""
 
-#: file_manager.sh:91
+#: file_manager.sh:90
 msgid "网址不能包含 http:// 或 https:// 前缀"
 msgstr ""
 
-#: file_manager.sh:95 file_manager.sh:118
+#: file_manager.sh:94 file_manager.sh:117
 msgid "已创建"
 msgstr ""
 
-#: file_manager.sh:106
+#: file_manager.sh:105
 msgid "请输入主机"
 msgstr ""
 
-#: file_manager.sh:114
+#: file_manager.sh:113
 msgid "请输入权重"
 msgstr ""
 
-#: file_manager.sh:135
+#: file_manager.sh:134
 msgid "追加完成"
 msgstr ""
 
-#: file_manager.sh:139 file_manager.sh:143
+#: file_manager.sh:138 file_manager.sh:142
 msgid "重启完成"
 msgstr ""
 
-#: file_manager.sh:158
+#: file_manager.sh:157
 msgid "请输入要编辑的文件编号"
 msgstr ""
 
-#: file_manager.sh:163
+#: file_manager.sh:162
 msgid "未安装, 正在尝试安装"
 msgstr ""
 
-#: file_manager.sh:167
+#: file_manager.sh:166
 msgid "已编辑"
 msgstr ""
 
-#: file_manager.sh:178
+#: file_manager.sh:177
 msgid "请输入要删除的文件编号"
 msgstr ""
 
-#: file_manager.sh:201
+#: file_manager.sh:200
 msgid "不支持的文件扩展名"
 msgstr ""
 
-#: file_manager.sh:212
+#: file_manager.sh:211
 msgid "创建一个新的"
 msgstr ""
 
-#: file_manager.sh:213
+#: file_manager.sh:212
 msgid "编辑一个已存在的"
 msgstr ""
 
-#: file_manager.sh:214
+#: file_manager.sh:213
 msgid "删除一个已存在的"
 msgstr ""
 
-#: file_manager.sh:269
+#: file_manager.sh:268
 msgid "重启成功"
 msgstr ""
 
-#: file_manager.sh:272
+#: file_manager.sh:271
 msgid "重启失败"
 msgstr ""
 
-#: file_manager.sh:272
+#: file_manager.sh:271
 msgid "请检查配置文件是否有误"
 msgstr ""
 
