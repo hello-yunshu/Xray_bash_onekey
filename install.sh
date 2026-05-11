@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.9.3"
+shell_version="2.10.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1059,6 +1059,12 @@ ensure_file_manager() {
     fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
     if [ ! -f "${idleleo_dir}/file_manager.sh" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件 file_manager.sh 不存在, 正在下载")... ${Font}"
+        if ! download_script_file "$fm_remote_url" "${idleleo_dir}/file_manager.sh"; then
+            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+            return 1
+        fi
+    elif ! grep -q 'fm_MIN_MAIN_VERSION' "${idleleo_dir}/file_manager.sh"; then
+        log_echo "${Warning} ${YellowBG} file_manager.sh $(gettext "版本过旧, 正在更新")... ${Font}"
         if ! download_script_file "$fm_remote_url" "${idleleo_dir}/file_manager.sh"; then
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
@@ -2532,6 +2538,12 @@ set_fail2ban() {
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
         fi
+    elif ! grep -q 'mf_MIN_MAIN_VERSION' "${idleleo_dir}/fail2ban_manager.sh"; then
+        log_echo "${Warning} ${YellowBG} fail2ban_manager.sh $(gettext "版本过旧, 正在更新")... ${Font}"
+        if ! download_script_file "$mf_remote_url" "${idleleo_dir}/fail2ban_manager.sh"; then
+            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+            return 1
+        fi
     fi
     source "${idleleo_dir}/fail2ban_manager.sh"
     mf_check_for_updates
@@ -2546,6 +2558,12 @@ set_traffic_blocker() {
     tb_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"
     if [ ! -f "${idleleo_dir}/traffic_blocker.sh" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件 traffic_blocker.sh 不存在, 正在下载")... ${Font}"
+        if ! download_script_file "$tb_remote_url" "${idleleo_dir}/traffic_blocker.sh"; then
+            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+            return 1
+        fi
+    elif ! grep -q 'tb_MIN_MAIN_VERSION' "${idleleo_dir}/traffic_blocker.sh"; then
+        log_echo "${Warning} ${YellowBG} traffic_blocker.sh $(gettext "版本过旧, 正在更新")... ${Font}"
         if ! download_script_file "$tb_remote_url" "${idleleo_dir}/traffic_blocker.sh"; then
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
