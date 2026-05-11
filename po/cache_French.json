@@ -595,5 +595,11 @@
   "所有 GeoData 均为最新版本": "toutes les données géographiques sont à jour",
   "缺少 GeoData 文件": "fichier geodata manquant",
   "以下 GeoData 文件有更新可用": "les fichiers geodata suivants sont disponibles dans une version mise à jour",
-  "GeoData 下载失败, 无法应用规则": "échec du téléchargement des données géographiques ; impossible d’appliquer la règle"
+  "GeoData 下载失败, 无法应用规则": "échec du téléchargement des données géographiques ; impossible d’appliquer la règle",
+  "需要主脚本版本": "besoin de la version du script principal",
+  "请先更新主脚本": "veuillez d’abord mettre à jour le script principal",
+  "下载完成, 正在重新加载...": "téléchargement terminé, en cours de rechargement",
+  "Nginx 未运行, 是否继续编辑": "nginx n’est pas en cours d’exécution. continuer la modification ",
+  "没有可编辑的文件": "aucun fichier n’est modifiable",
+  "Nginx 未运行, 请手动修复配置": "nginx n’est pas en cours d’exécution, veuillez corriger manuellement la configuration"
 }
