@@ -2,7 +2,6 @@
 
 # 定义当前版本号
 fm_SCRIPT_VERSION="1.3.0"
-fm_remote_url="${fm_remote_url:-https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh}"
 
 if [ -z "$1" ]; then
     echo "$(gettext "用法"):" $0 \<$(gettext "文件扩展名")\> [\<$(gettext "目录路径")\>]
