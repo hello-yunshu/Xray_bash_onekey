@@ -12,6 +12,15 @@ _start_cron() {
     pgrep -f "cron" >/dev/null 2>&1 || cron
 }
 
+_f2b_configured() {
+    [[ -f /etc/fail2ban/jail.local ]] && return 0
+    local f
+    for f in /etc/fail2ban/jail.d/*.local; do
+        [[ -f "$f" ]] && return 0
+    done
+    return 1
+}
+
 _start_services() {
     if [[ -f "$XRAY_CONF" ]] && [[ -x "$XRAY_BIN" ]]; then
         echo "[entrypoint] Starting Xray..."
@@ -21,7 +30,7 @@ _start_services() {
         echo "[entrypoint] Starting Nginx..."
         systemctl start nginx
     fi
-    if [[ -f /etc/fail2ban/jail.local ]] || [[ -f /etc/fail2ban/jail.d/custom_*.conf ]] 2>/dev/null; then
+    if command -v fail2ban-client >/dev/null 2>&1 && _f2b_configured; then
         echo "[entrypoint] Starting Fail2ban..."
         systemctl start fail2ban
     fi
@@ -58,7 +67,7 @@ _watchdog() {
                 systemctl start nginx
             fi
         fi
-        if [[ -f /etc/fail2ban/jail.local ]] || [[ -f /etc/fail2ban/jail.d/custom_*.conf ]] 2>/dev/null; then
+        if command -v fail2ban-client >/dev/null 2>&1 && _f2b_configured; then
             if ! systemctl -q is-active fail2ban 2>/dev/null; then
                 echo "[watchdog] Fail2ban not running, restarting..."
                 systemctl start fail2ban

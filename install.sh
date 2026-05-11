@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.9.2"
+shell_version="2.9.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1085,8 +1085,8 @@ nginx_upstream_server_set() {
 
             if ensure_file_manager; then
                 case $upstream_choose in
-                1) source "${idleleo_dir}/file_manager.sh" wsServers ${nginx_conf_dir} ;;
-                2) source "${idleleo_dir}/file_manager.sh" grpcServers ${nginx_conf_dir} ;;
+                1) source "${idleleo_dir}/file_manager.sh" wsServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
+                2) source "${idleleo_dir}/file_manager.sh" grpcServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
                 3) ;;
                 *)
                     log_echo "${Error} ${RedBG} $(gettext "无效选项, 请重试")! ${Font}"
@@ -1097,6 +1097,8 @@ nginx_upstream_server_set() {
         elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_balance} == "on" ]] && [[ ${reality_add_nginx} == "on" ]]; then
             if ensure_file_manager; then
                 source "${idleleo_dir}/file_manager.sh" realityServers ${nginx_conf_dir}
+                fm_check_for_updates
+                fm_main_menu
             fi
         else
             log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
@@ -1118,6 +1120,8 @@ nginx_servernames_server_set() {
         [yY][eE][sS] | [yY])
             if ensure_file_manager; then
                 source "${idleleo_dir}/file_manager.sh" serverNames ${nginx_conf_dir}
+                fm_check_for_updates
+                fm_main_menu
             fi
         ;;
         *) ;;
@@ -2530,6 +2534,8 @@ set_fail2ban() {
         fi
     fi
     source "${idleleo_dir}/fail2ban_manager.sh"
+    mf_check_for_updates
+    mf_main_menu
 }
 
 set_traffic_blocker() {
@@ -2546,6 +2552,8 @@ set_traffic_blocker() {
         fi
     fi
     source "${idleleo_dir}/traffic_blocker.sh"
+    tb_check_for_updates
+    tb_main_menu
 }
 
 setup_auto_clean_logs() {
