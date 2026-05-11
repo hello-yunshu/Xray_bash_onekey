@@ -2,7 +2,6 @@
 
 # 定义当前版本号
 mf_SCRIPT_VERSION="1.3.0"
-mf_remote_url="${mf_remote_url:-https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh}"
 
 mf_main_menu() {
     check_system
@@ -473,7 +472,6 @@ mf_check_for_updates() {
     local latest_version
     local update_choice
 
-    # 直接使用 curl 下载远程版本信息
     latest_version=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 "$mf_remote_url" 2>/dev/null | grep 'mf_SCRIPT_VERSION=' | head -n 1 | sed 's/mf_SCRIPT_VERSION="//; s/"//')
     if [ -n "$latest_version" ] && [ "$latest_version" != "$mf_SCRIPT_VERSION" ]; then
         log_echo "${Warning} ${YellowBG} $(gettext "新版本可用"): $latest_version $(gettext "当前版本"): $mf_SCRIPT_VERSION ${Font}"
@@ -501,7 +499,5 @@ mf_check_for_updates() {
     fi
 }
 
-# 检查更新
 mf_check_for_updates
-
 mf_main_menu
