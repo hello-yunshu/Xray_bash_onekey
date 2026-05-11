@@ -1,7 +1,16 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.3.0"
+mf_SCRIPT_VERSION="1.4.0"
+mf_MIN_MAIN_VERSION="2.9.3"
+
+if [ -n "$shell_version" ]; then
+    oldest=$(printf '%s\n%s\n' "$mf_MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)
+    if [ "$oldest" != "$mf_MIN_MAIN_VERSION" ]; then
+        echo "${Error} ${RedBG} fail2ban_manager.sh $(gettext "需要主脚本版本") >= ${mf_MIN_MAIN_VERSION}，$(gettext "当前版本"): ${shell_version}，$(gettext "请先更新主脚本") ${Font}"
+        return 1
+    fi
+fi
 
 mf_main_menu() {
     check_system
@@ -21,7 +30,7 @@ mf_main_menu() {
             2) mf_manage_fail2ban ;;
             3) mf_uninstall_fail2ban ;;
             4) mf_display_fail2ban_status ;;
-            5) exec "${BASH:-bash}" "${idleleo}" ;;
+            5) return ;;
             *)
                 echo
                 log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
@@ -37,7 +46,25 @@ mf_install_fail2ban() {
         pkg_install "fail2ban"
         mf_configure_fail2ban
         judge "Fail2ban $(gettext "安装")"
-        exec "${BASH:-bash}" "${idleleo}"
+        return
+    fi
+}
+
+mf_ensure_restart_policy() {
+    local override_dir="/etc/systemd/system/fail2ban.service.d"
+    local override_file="${override_dir}/restart-policy.conf"
+    if [[ ! -f "$override_file" ]]; then
+        mkdir -p "$override_dir"
+        cat > "$override_file" << 'EOF'
+[Unit]
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Restart=on-failure
+RestartSec=10
+EOF
+        systemctl daemon-reload
     fi
 }
 
@@ -156,7 +183,9 @@ EOF
             esac
         fi
     fi
+    mf_ensure_restart_policy
     systemctl daemon-reload
+    systemctl enable fail2ban
     systemctl restart fail2ban
     judge "Fail2ban $(gettext "配置")"
 }
@@ -483,8 +512,9 @@ mf_check_for_updates() {
             [yY][eE][sS] | [yY])
                 log_echo "${Info} ${Green} $(gettext "正在下载新版本")... ${Font}"
                 if download_script_file "$mf_remote_url" "${idleleo_dir}/fail2ban_manager.sh"; then
-                    log_echo "${OK} ${GreenBG} $(gettext "下载完成, 请重新运行脚本") ${Font}"
-                    exec "${BASH:-bash}" "${idleleo}"
+                    log_echo "${OK} ${GreenBG} $(gettext "下载完成, 正在重新加载...") ${Font}"
+                    source "${idleleo_dir}/fail2ban_manager.sh"
+                    return
                 else
                     echo
                     log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
@@ -498,6 +528,3 @@ mf_check_for_updates() {
         log_echo "${OK} ${Green} $(gettext "当前已经是最新版本"): $mf_SCRIPT_VERSION ${Font}"
     fi
 }
-
-mf_check_for_updates
-mf_main_menu

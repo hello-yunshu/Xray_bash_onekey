@@ -1,6 +1,15 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.4.0"
+tb_SCRIPT_VERSION="1.5.0"
+tb_MIN_MAIN_VERSION="2.9.3"
+
+if [ -n "$shell_version" ]; then
+    oldest=$(printf '%s\n%s\n' "$tb_MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)
+    if [ "$oldest" != "$tb_MIN_MAIN_VERSION" ]; then
+        echo "${Error} ${RedBG} traffic_blocker.sh $(gettext "需要主脚本版本") >= ${tb_MIN_MAIN_VERSION}，$(gettext "当前版本"): ${shell_version}，$(gettext "请先更新主脚本") ${Font}"
+        return 1
+    fi
+fi
 
 tb_config_file="${xray_conf_dir}/traffic_blocker.json"
 tb_geo_dir="${local_bin}/share/xray"
@@ -76,6 +85,24 @@ tb_set_countries() {
     fi
     local tmp_file="${tb_config_file}.tmp"
     jq --argjson val "$countries_json" '.country_block = $val' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
+}
+
+tb_display_width() {
+    local str="$1"
+    local width=0
+    local i=0
+    while (( i < ${#str} )); do
+        local char="${str:i:1}"
+        local code
+        printf -v code '%d' "'$char" 2>/dev/null || code=0
+        if (( code > 127 )); then
+            width=$((width + 2))
+        else
+            width=$((width + 1))
+        fi
+        i=$((i + 1))
+    done
+    echo "$width"
 }
 
 tb_printf_col() {
@@ -260,9 +287,9 @@ tb_country_menu() {
         fi
 
         echo
-        echo "1. ${Green}$(gettext "添加国家/地区")${Font}"
-        echo "2. ${Green}$(gettext "移除国家/地区")${Font}"
-        echo "3. ${Green}$(gettext "返回")${Font}"
+        echo "1. $(gettext "添加国家/地区")"
+        echo "2. $(gettext "移除国家/地区")"
+        echo "3. $(gettext "返回")"
         local country_choice
         read_optimize "$(gettext "请选择一个选项"):" country_choice "" 1
         case $country_choice in
@@ -392,47 +419,28 @@ tb_download_geo_file() {
     fi
 }
 
-tb_main_menu() {
-    check_system
-    while true; do
-        echo
-        log_echo "${GreenBG} $(gettext "设置") Xray $(gettext "流量阻断") ${Font}"
-        log_echo "${Green} $(gettext "主菜单") ${Font}"
-        log_echo "1. ${Green}$(gettext "查看阻断规则状态")${Font}"
-        log_echo "2. ${Green}$(gettext "管理阻断规则")${Font}"
-        log_echo "3. ${Green}$(gettext "应用阻断规则")${Font}"
-        log_echo "4. ${Green}$(gettext "更新 GeoData")${Font}"
-        log_echo "5. ${Green}$(gettext "重置所有阻断规则")${Font}"
-        log_echo "6. ${Green}$(gettext "退出")${Font}"
-        local tb_choice
-        read_optimize "$(gettext "请选择一个选项"):" tb_choice "" 1
-        case $tb_choice in
-            1) tb_display_status ;;
-            2) tb_manage_rules ;;
-            3) tb_apply_rules ;;
-            4) tb_geo_menu ;;
-            5) tb_reset_rules ;;
-            6) exec "${BASH:-bash}" "${idleleo}" ;;
-            *)
-                echo
-                log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
-                ;;
-        esac
-    done
-}
-
 tb_display_status() {
-    echo
-    log_echo "${GreenBG} Xray $(gettext "流量阻断规则状态"): ${Font}"
-    echo "================================================"
-
     tb_init_config
 
-    local name_col_width=40
-    local total_width=$((name_col_width + 22))
+    local max_name_length=10
+    local compare_strings=()
+    compare_strings+=("$(gettext "规则名称")")
+    for rule_name in "${tb_all_rule_names[@]}"; do
+        compare_strings+=("$(tb_rule_display_name "$rule_name")")
+    done
+    compare_strings+=("$(gettext "返回")")
+
+    for str in "${compare_strings[@]}"; do
+        local w=$(tb_display_width "$str")
+        if (( w > max_name_length )); then
+            max_name_length=$w
+        fi
+    done
+
+    local total_width=$((max_name_length + 24))
 
     printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-    printf "| %-4s | "; tb_printf_col "$(gettext "规则名称")" "$name_col_width"; printf " | %-10s |\n" "$(gettext "状态")"
+    printf "| %-4s | "; tb_printf_col "$(gettext "规则名称")" "$max_name_length"; printf " | %-10s |\n" "$(gettext "状态")"
     printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
 
     local index=1
@@ -444,19 +452,49 @@ tb_display_status() {
         else
             local status_text="$(gettext "已禁用")"
         fi
-        printf "| %4d | "; tb_printf_col "$display_name" "$name_col_width"; printf " | %-10s |\n" "$status_text"
+        printf "| %4d | " "$index"; tb_printf_col "$display_name" "$max_name_length"; printf " | %-10s |\n" "$status_text"
         index=$((index + 1))
     done
 
     printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-    printf "| %4d | "; tb_printf_col "$(gettext "返回")" "$name_col_width"; printf " | %-10s |\n" ""
+    printf "| %4d | " 0; tb_printf_col "$(gettext "返回")" "$max_name_length"; printf " | %-10s |\n" ""
     printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
 
     echo
     tb_display_geo_summary
+}
 
-    echo
-    read -rp "$(gettext "按回车键返回")..."
+tb_main_menu() {
+    check_system
+    while true; do
+        echo
+        log_echo "${GreenBG} $(gettext "设置") Xray $(gettext "流量阻断") ${Font}"
+
+        tb_display_status
+
+        echo
+        log_echo "${Green} $(gettext "主菜单") ${Font}"
+        log_echo "1. $(gettext "查看阻断规则状态")"
+        log_echo "2. $(gettext "管理阻断规则")"
+        log_echo "3. $(gettext "应用阻断规则")"
+        log_echo "4. $(gettext "更新 GeoData")"
+        log_echo "5. $(gettext "重置所有阻断规则")"
+        log_echo "6. $(gettext "退出")"
+        local tb_choice
+        read_optimize "$(gettext "请选择一个选项"):" tb_choice "" 1
+        case $tb_choice in
+            1) continue ;;
+            2) tb_manage_rules ;;
+            3) tb_apply_rules ;;
+            4) tb_geo_menu ;;
+            5) tb_reset_rules ;;
+            6) return ;;
+            *)
+                echo
+                log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
+                ;;
+        esac
+    done
 }
 
 tb_display_geo_summary() {
@@ -501,11 +539,11 @@ tb_geo_menu() {
         echo
         tb_display_geo_summary
         echo
-        echo "1. ${Green}$(gettext "更新全部 GeoData")${Font}"
-        echo "2. ${Green}$(gettext "更新") geoip.dat${Font}"
-        echo "3. ${Green}$(gettext "更新") geosite.dat${Font}"
-        echo "4. ${Green}$(gettext "检查更新")${Font}"
-        echo "5. ${Green}$(gettext "返回")${Font}"
+        echo "1. $(gettext "更新全部 GeoData")"
+        echo "2. $(gettext "更新") geoip.dat"
+        echo "3. $(gettext "更新") geosite.dat"
+        echo "4. $(gettext "检查更新")"
+        echo "5. $(gettext "返回")"
         local geo_choice
         read_optimize "$(gettext "请选择一个选项"):" geo_choice "" 1
         case $geo_choice in
@@ -629,11 +667,25 @@ tb_manage_rules() {
 
         tb_init_config
 
-        local name_col_width=40
-        local total_width=$((name_col_width + 22))
+        local max_name_length=10
+        local compare_strings=()
+        compare_strings+=("$(gettext "规则名称")")
+        for rule_name in "${tb_all_rule_names[@]}"; do
+            compare_strings+=("$(tb_rule_display_name "$rule_name")")
+        done
+        compare_strings+=("$(gettext "返回")")
+
+        for str in "${compare_strings[@]}"; do
+            local w=$(tb_display_width "$str")
+            if (( w > max_name_length )); then
+                max_name_length=$w
+            fi
+        done
+
+        local total_width=$((max_name_length + 24))
 
         printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        printf "| %-4s | "; tb_printf_col "$(gettext "规则名称")" "$name_col_width"; printf " | %-10s |\n" "$(gettext "状态")"
+        printf "| %-4s | "; tb_printf_col "$(gettext "规则名称")" "$max_name_length"; printf " | %-10s |\n" "$(gettext "状态")"
         printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
 
         local index=1
@@ -645,12 +697,12 @@ tb_manage_rules() {
             else
                 local status_text="$(gettext "已禁用")"
             fi
-            printf "| %4d | "; tb_printf_col "$display_name" "$name_col_width"; printf " | %-10s |\n" "$status_text"
+            printf "| %4d | " "$index"; tb_printf_col "$display_name" "$max_name_length"; printf " | %-10s |\n" "$status_text"
             index=$((index + 1))
         done
 
         printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        printf "| %4d | "; tb_printf_col "$(gettext "返回")" "$name_col_width"; printf " | %-10s |\n" ""
+        printf "| %4d | " 0; tb_printf_col "$(gettext "返回")" "$max_name_length"; printf " | %-10s |\n" ""
         printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
 
         local rule_choice
@@ -987,8 +1039,9 @@ tb_check_for_updates() {
             [yY][eE][sS] | [yY])
                 log_echo "${Info} ${Green} $(gettext "正在下载新版本")... ${Font}"
                 if download_script_file "$tb_remote_url" "${idleleo_dir}/traffic_blocker.sh"; then
-                    log_echo "${OK} ${GreenBG} $(gettext "下载完成, 请重新运行脚本") ${Font}"
-                    exec "${BASH:-bash}" "${idleleo}"
+                    log_echo "${OK} ${GreenBG} $(gettext "下载完成, 正在重新加载...") ${Font}"
+                    source "${idleleo_dir}/traffic_blocker.sh"
+                    return
                 else
                     echo
                     log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
@@ -1002,6 +1055,3 @@ tb_check_for_updates() {
         log_echo "${OK} ${Green} $(gettext "当前已经是最新版本"): $tb_SCRIPT_VERSION ${Font}"
     fi
 }
-
-tb_check_for_updates
-tb_main_menu
