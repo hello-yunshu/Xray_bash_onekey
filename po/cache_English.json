@@ -595,5 +595,11 @@
   "所有 GeoData 均为最新版本": "all geodata are in the latest version",
   "缺少 GeoData 文件": "geodata file is missing",
   "以下 GeoData 文件有更新可用": "updates are available for the following geodata file",
-  "GeoData 下载失败, 无法应用规则": "geodata download failed; unable to apply the rule"
+  "GeoData 下载失败, 无法应用规则": "geodata download failed; unable to apply the rule",
+  "需要主脚本版本": "main script version required",
+  "请先更新主脚本": "please update the main script first",
+  "下载完成, 正在重新加载...": "download complete, reloading",
+  "Nginx 未运行, 是否继续编辑": "nginx is not running. do you want to continue editing",
+  "没有可编辑的文件": "no editable files found",
+  "Nginx 未运行, 请手动修复配置": "nginx is not running; please manually fix the configuration"
 }
