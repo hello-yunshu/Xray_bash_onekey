@@ -2,7 +2,7 @@
 
 # 定义当前版本号
 fm_SCRIPT_VERSION="1.4.0"
-fm_MIN_MAIN_VERSION="2.9.3"
+fm_MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
     oldest=$(printf '%s\n%s\n' "$fm_MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)

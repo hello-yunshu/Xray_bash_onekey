@@ -1,7 +1,7 @@
 #!/bin/bash
 
 tb_SCRIPT_VERSION="1.5.0"
-tb_MIN_MAIN_VERSION="2.9.3"
+tb_MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
     oldest=$(printf '%s\n%s\n' "$tb_MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)
