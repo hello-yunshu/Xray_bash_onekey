@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-05-11 20:31+0000\n"
+"POT-Creation-Date: 2026-05-11 21:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,8 +31,8 @@ msgid "警告"
 msgstr ""
 
 #: install.sh:38 install.sh:1723 install.sh:4219 install.sh:4236
-#: install.sh:4239 install.sh:4240 install.sh:4278 traffic_blocker.sh:293
-#: traffic_blocker.sh:305 traffic_blocker.sh:420
+#: install.sh:4239 install.sh:4240 install.sh:4278 traffic_blocker.sh:481
+#: traffic_blocker.sh:493 traffic_blocker.sh:608
 msgid "未安装"
 msgstr ""
 
@@ -242,7 +242,7 @@ msgstr ""
 
 #: install.sh:768 install.sh:772 install.sh:2415 install.sh:2418
 #: install.sh:3257 install.sh:3259 install.sh:4486 fail2ban_manager.sh:232
-#: fail2ban_manager.sh:428 traffic_blocker.sh:362 traffic_blocker.sh:387
+#: fail2ban_manager.sh:428 traffic_blocker.sh:550 traffic_blocker.sh:575
 msgid "重启"
 msgstr ""
 
@@ -384,9 +384,9 @@ msgid "请选择协议为 ws 或 gRPC"
 msgstr ""
 
 #: install.sh:1082 fail2ban_manager.sh:214 fail2ban_manager.sh:233
-#: fail2ban_manager.sh:328 fail2ban_manager.sh:357 traffic_blocker.sh:235
-#: traffic_blocker.sh:264 traffic_blocker.sh:320 traffic_blocker.sh:450
-#: traffic_blocker.sh:479
+#: fail2ban_manager.sh:328 fail2ban_manager.sh:357 traffic_blocker.sh:228
+#: traffic_blocker.sh:265 traffic_blocker.sh:452 traffic_blocker.sh:508
+#: traffic_blocker.sh:653
 msgid "返回"
 msgstr ""
 
@@ -464,7 +464,7 @@ msgstr ""
 
 #: install.sh:1350 install.sh:1379 install.sh:1715 install.sh:4147
 #: install.sh:4159 install.sh:4454 install.sh:4455 install.sh:4456
-#: install.sh:4492 traffic_blocker.sh:317 traffic_blocker.sh:318
+#: install.sh:4492 traffic_blocker.sh:505 traffic_blocker.sh:506
 msgid "更新"
 msgstr ""
 
@@ -506,7 +506,7 @@ msgstr ""
 msgid "重装"
 msgstr ""
 
-#: install.sh:1416 install.sh:1417 traffic_blocker.sh:626
+#: install.sh:1416 install.sh:1417 traffic_blocker.sh:811
 msgid "更新失败"
 msgstr ""
 
@@ -520,7 +520,7 @@ msgstr ""
 
 #: install.sh:1433 fail2ban_manager.sh:94 fail2ban_manager.sh:104
 #: fail2ban_manager.sh:129 fail2ban_manager.sh:155 fail2ban_manager.sh:348
-#: traffic_blocker.sh:255 traffic_blocker.sh:470
+#: traffic_blocker.sh:443 traffic_blocker.sh:644
 msgid "已启用"
 msgstr ""
 
@@ -576,7 +576,7 @@ msgstr ""
 msgid "不支持的系统架构"
 msgstr ""
 
-#: install.sh:1552 traffic_blocker.sh:188
+#: install.sh:1552 traffic_blocker.sh:390
 msgid "下载失败"
 msgstr ""
 
@@ -879,7 +879,7 @@ msgstr ""
 
 #: install.sh:2394 install.sh:4493 install.sh:4496 install.sh:4497
 #: install.sh:4498 install.sh:4499 fail2ban_manager.sh:11
-#: traffic_blocker.sh:197
+#: traffic_blocker.sh:399
 msgid "设置"
 msgstr ""
 
@@ -1538,7 +1538,7 @@ msgstr ""
 msgid "请输入 1 到 6 之间的有效数字"
 msgstr ""
 
-#: install.sh:4340
+#: install.sh:4340 traffic_blocker.sh:239
 msgid "无效的选择"
 msgstr ""
 
@@ -1714,7 +1714,7 @@ msgstr ""
 msgid "流量统计"
 msgstr ""
 
-#: install.sh:4499 traffic_blocker.sh:197
+#: install.sh:4499 traffic_blocker.sh:399
 msgid "流量阻断"
 msgstr ""
 
@@ -1763,7 +1763,7 @@ msgid "证书文件"
 msgstr ""
 
 #: install.sh:4508 fail2ban_manager.sh:17 file_manager.sh:215
-#: traffic_blocker.sh:204
+#: traffic_blocker.sh:406
 msgid "退出"
 msgstr ""
 
@@ -1802,7 +1802,7 @@ msgstr ""
 msgid "用于防止暴力破解"
 msgstr ""
 
-#: fail2ban_manager.sh:12 file_manager.sh:210 traffic_blocker.sh:198
+#: fail2ban_manager.sh:12 file_manager.sh:210 traffic_blocker.sh:400
 msgid "主菜单"
 msgstr ""
 
@@ -1810,19 +1810,19 @@ msgstr ""
 msgid "管理"
 msgstr ""
 
-#: fail2ban_manager.sh:16 fail2ban_manager.sh:340 traffic_blocker.sh:247
-#: traffic_blocker.sh:462
+#: fail2ban_manager.sh:16 fail2ban_manager.sh:340 traffic_blocker.sh:435
+#: traffic_blocker.sh:636
 msgid "状态"
 msgstr ""
 
-#: fail2ban_manager.sh:19 file_manager.sh:217 traffic_blocker.sh:206
-#: traffic_blocker.sh:322
+#: fail2ban_manager.sh:19 file_manager.sh:217 traffic_blocker.sh:267
+#: traffic_blocker.sh:408 traffic_blocker.sh:510
 msgid "请选择一个选项"
 msgstr ""
 
 #: fail2ban_manager.sh:28 fail2ban_manager.sh:251 fail2ban_manager.sh:259
-#: fail2ban_manager.sh:361 traffic_blocker.sh:216 traffic_blocker.sh:331
-#: traffic_blocker.sh:483
+#: fail2ban_manager.sh:361 traffic_blocker.sh:274 traffic_blocker.sh:418
+#: traffic_blocker.sh:519 traffic_blocker.sh:657
 msgid "无效的选择, 请重试"
 msgstr ""
 
@@ -1841,7 +1841,7 @@ msgstr ""
 #: fail2ban_manager.sh:70 fail2ban_manager.sh:94 fail2ban_manager.sh:104
 #: fail2ban_manager.sh:121 fail2ban_manager.sh:126 fail2ban_manager.sh:129
 #: fail2ban_manager.sh:147 fail2ban_manager.sh:152 fail2ban_manager.sh:155
-#: traffic_blocker.sh:500 traffic_blocker.sh:505
+#: traffic_blocker.sh:680 traffic_blocker.sh:685
 msgid "规则"
 msgstr ""
 
@@ -1850,7 +1850,7 @@ msgid "未安装, 请先安装"
 msgstr ""
 
 #: fail2ban_manager.sh:126 fail2ban_manager.sh:152 fail2ban_manager.sh:350
-#: traffic_blocker.sh:257 traffic_blocker.sh:472
+#: traffic_blocker.sh:445 traffic_blocker.sh:646
 msgid "已禁用"
 msgstr ""
 
@@ -1930,8 +1930,7 @@ msgstr ""
 msgid "模块名称"
 msgstr ""
 
-#: fail2ban_manager.sh:340 file_manager.sh:64 traffic_blocker.sh:247
-#: traffic_blocker.sh:462
+#: fail2ban_manager.sh:340 file_manager.sh:64
 msgid "序号"
 msgstr ""
 
@@ -1939,15 +1938,15 @@ msgstr ""
 msgid "请选择要管理的模块"
 msgstr ""
 
-#: fail2ban_manager.sh:372 traffic_blocker.sh:492
+#: fail2ban_manager.sh:372 traffic_blocker.sh:672
 msgid "启用"
 msgstr ""
 
-#: fail2ban_manager.sh:372 traffic_blocker.sh:492
+#: fail2ban_manager.sh:372 traffic_blocker.sh:672
 msgid "禁用"
 msgstr ""
 
-#: fail2ban_manager.sh:374 traffic_blocker.sh:500
+#: fail2ban_manager.sh:374 traffic_blocker.sh:680
 msgid "是否"
 msgstr ""
 
@@ -1955,8 +1954,8 @@ msgstr ""
 msgid "模块"
 msgstr ""
 
-#: fail2ban_manager.sh:384 traffic_blocker.sh:508 traffic_blocker.sh:680
-#: traffic_blocker.sh:752
+#: fail2ban_manager.sh:384 traffic_blocker.sh:171 traffic_blocker.sh:688
+#: traffic_blocker.sh:865 traffic_blocker.sh:937
 msgid "操作已取消"
 msgstr ""
 
@@ -1985,7 +1984,7 @@ msgstr ""
 msgid "新版本可用"
 msgstr ""
 
-#: fail2ban_manager.sh:479 file_manager.sh:239 traffic_blocker.sh:373
+#: fail2ban_manager.sh:479 file_manager.sh:239 traffic_blocker.sh:561
 msgid "当前版本"
 msgstr ""
 
@@ -2127,257 +2126,304 @@ msgstr ""
 msgid "请检查配置文件是否有误"
 msgstr ""
 
-#: traffic_blocker.sh:57
-msgid "中国 IP"
+#: traffic_blocker.sh:122 traffic_blocker.sh:124
+msgid "国家/地区阻断"
 msgstr ""
 
-#: traffic_blocker.sh:58
-msgid "中国域名"
+#: traffic_blocker.sh:124
+msgid "未配置"
 msgstr ""
 
-#: traffic_blocker.sh:59
+#: traffic_blocker.sh:127
 msgid "BT 下载"
 msgstr ""
 
-#: traffic_blocker.sh:60
+#: traffic_blocker.sh:128
 msgid "私有网络"
 msgstr ""
 
-#: traffic_blocker.sh:61
+#: traffic_blocker.sh:129
 msgid "广告域名"
 msgstr ""
 
-#: traffic_blocker.sh:69
-msgid "阻断访问中国 IP 的流量"
+#: traffic_blocker.sh:137
+msgid "阻断指定国家/地区的 IP 和域名流量"
 msgstr ""
 
-#: traffic_blocker.sh:70
-msgid "阻断访问中国域名的流量"
-msgstr ""
-
-#: traffic_blocker.sh:71
+#: traffic_blocker.sh:138
 msgid "阻断 BT 下载协议流量"
 msgstr ""
 
-#: traffic_blocker.sh:72
+#: traffic_blocker.sh:139
 msgid "阻断访问私有网络地址的流量"
 msgstr ""
 
-#: traffic_blocker.sh:73
+#: traffic_blocker.sh:140
 msgid "阻断广告域名的流量"
 msgstr ""
 
-#: traffic_blocker.sh:142
-msgid "不存在"
+#: traffic_blocker.sh:147
+msgid "常用国家/地区"
 msgstr ""
 
-#: traffic_blocker.sh:145 traffic_blocker.sh:288 traffic_blocker.sh:290
-#: traffic_blocker.sh:300 traffic_blocker.sh:302 traffic_blocker.sh:373
-#: traffic_blocker.sh:414 traffic_blocker.sh:417
-msgid "未知"
+#: traffic_blocker.sh:167
+msgid "请输入国家/地区代码 (例如: cn, jp, ru)"
 msgstr ""
 
-#: traffic_blocker.sh:181 traffic_blocker.sh:598
-msgid "正在下载"
+#: traffic_blocker.sh:183
+msgid "无效的国家代码, 已跳过"
 msgstr ""
 
-#: traffic_blocker.sh:185
-msgid "下载完成"
+#: traffic_blocker.sh:196
+msgid "已添加"
 msgstr ""
 
 #: traffic_blocker.sh:199
+msgid "已存在, 已跳过"
+msgstr ""
+
+#: traffic_blocker.sh:202
+msgid "未添加任何国家/地区"
+msgstr ""
+
+#: traffic_blocker.sh:209 traffic_blocker.sh:259
+msgid "当前未配置任何国家/地区"
+msgstr ""
+
+#: traffic_blocker.sh:215 traffic_blocker.sh:257
+msgid "当前已阻断"
+msgstr ""
+
+#: traffic_blocker.sh:232
+msgid "请选择要移除的编号"
+msgstr ""
+
+#: traffic_blocker.sh:247
+msgid "已移除"
+msgstr ""
+
+#: traffic_blocker.sh:253
+msgid "国家/地区阻断管理"
+msgstr ""
+
+#: traffic_blocker.sh:263
+msgid "添加国家/地区"
+msgstr ""
+
+#: traffic_blocker.sh:264
+msgid "移除国家/地区"
+msgstr ""
+
+#: traffic_blocker.sh:344
+msgid "不存在"
+msgstr ""
+
+#: traffic_blocker.sh:347 traffic_blocker.sh:476 traffic_blocker.sh:478
+#: traffic_blocker.sh:488 traffic_blocker.sh:490 traffic_blocker.sh:561
+#: traffic_blocker.sh:602 traffic_blocker.sh:605
+msgid "未知"
+msgstr ""
+
+#: traffic_blocker.sh:383 traffic_blocker.sh:783
+msgid "正在下载"
+msgstr ""
+
+#: traffic_blocker.sh:387
+msgid "下载完成"
+msgstr ""
+
+#: traffic_blocker.sh:401
 msgid "查看阻断规则状态"
 msgstr ""
 
-#: traffic_blocker.sh:200
+#: traffic_blocker.sh:402
 msgid "管理阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:201
+#: traffic_blocker.sh:403
 msgid "应用阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:202 traffic_blocker.sh:312
-msgid "管理地理数据文件"
+#: traffic_blocker.sh:404 traffic_blocker.sh:500
+msgid "更新 GeoData"
 msgstr ""
 
-#: traffic_blocker.sh:203
+#: traffic_blocker.sh:405
 msgid "重置所有阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:224
+#: traffic_blocker.sh:426
 msgid "流量阻断规则状态"
 msgstr ""
 
-#: traffic_blocker.sh:231 traffic_blocker.sh:247 traffic_blocker.sh:446
-#: traffic_blocker.sh:462
+#: traffic_blocker.sh:435 traffic_blocker.sh:636
 msgid "规则名称"
 msgstr ""
 
-#: traffic_blocker.sh:271
+#: traffic_blocker.sh:459
 msgid "按回车键返回"
 msgstr ""
 
-#: traffic_blocker.sh:275
-msgid "地理数据文件状态"
+#: traffic_blocker.sh:463
+msgid "GeoData 状态"
 msgstr ""
 
-#: traffic_blocker.sh:288 traffic_blocker.sh:300 traffic_blocker.sh:414
+#: traffic_blocker.sh:476 traffic_blocker.sh:488 traffic_blocker.sh:602
 msgid "有更新可用"
 msgstr ""
 
-#: traffic_blocker.sh:288 traffic_blocker.sh:300
+#: traffic_blocker.sh:476 traffic_blocker.sh:488
 msgid "本地版本"
 msgstr ""
 
-#: traffic_blocker.sh:288 traffic_blocker.sh:300 traffic_blocker.sh:414
+#: traffic_blocker.sh:476 traffic_blocker.sh:488 traffic_blocker.sh:602
 msgid "更新时间"
 msgstr ""
 
-#: traffic_blocker.sh:290 traffic_blocker.sh:302 traffic_blocker.sh:417
+#: traffic_blocker.sh:478 traffic_blocker.sh:490 traffic_blocker.sh:605
 msgid "已是最新"
 msgstr ""
 
-#: traffic_blocker.sh:316
-msgid "更新全部地理数据文件"
+#: traffic_blocker.sh:504
+msgid "更新全部 GeoData"
 msgstr ""
 
-#: traffic_blocker.sh:319
+#: traffic_blocker.sh:507
 msgid "检查更新"
 msgstr ""
 
-#: traffic_blocker.sh:339
-msgid "正在更新全部地理数据文件"
+#: traffic_blocker.sh:527
+msgid "正在更新全部 GeoData"
 msgstr ""
 
-#: traffic_blocker.sh:352
+#: traffic_blocker.sh:540
 msgid "部分文件更新失败"
 msgstr ""
 
-#: traffic_blocker.sh:354
-msgid "全部地理数据文件已更新"
+#: traffic_blocker.sh:542
+msgid "全部 GeoData 已更新"
 msgstr ""
 
-#: traffic_blocker.sh:358 traffic_blocker.sh:383
+#: traffic_blocker.sh:546 traffic_blocker.sh:571
 msgid "是否重启 Xray 以加载新数据"
 msgstr ""
 
-#: traffic_blocker.sh:375
+#: traffic_blocker.sh:563
 msgid "文件不存在, 将下载最新版本"
 msgstr ""
 
-#: traffic_blocker.sh:380
+#: traffic_blocker.sh:568
 msgid "已更新至"
 msgstr ""
 
-#: traffic_blocker.sh:395
+#: traffic_blocker.sh:583
 msgid "正在检查远程版本"
 msgstr ""
 
-#: traffic_blocker.sh:400
+#: traffic_blocker.sh:588
 msgid "无法获取远程版本信息, 请检查网络连接"
 msgstr ""
 
-#: traffic_blocker.sh:404
+#: traffic_blocker.sh:592
 msgid "远程最新版本"
 msgstr ""
 
-#: traffic_blocker.sh:427
+#: traffic_blocker.sh:615
 msgid "是否更新所有过期的文件"
 msgstr ""
 
-#: traffic_blocker.sh:433
-msgid "所有地理数据文件均为最新版本"
+#: traffic_blocker.sh:621
+msgid "所有 GeoData 均为最新版本"
 msgstr ""
 
-#: traffic_blocker.sh:440
+#: traffic_blocker.sh:628
 msgid "管理流量阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:483
+#: traffic_blocker.sh:657
 msgid "请选择要管理的规则"
 msgstr ""
 
-#: traffic_blocker.sh:506
+#: traffic_blocker.sh:686
 msgid "请选择「应用阻断规则」以使更改生效"
 msgstr ""
 
-#: traffic_blocker.sh:554
+#: traffic_blocker.sh:739
 msgid "备份 Xray 配置失败"
 msgstr ""
 
-#: traffic_blocker.sh:567
+#: traffic_blocker.sh:752
 msgid "重启失败, 已恢复原配置"
 msgstr ""
 
-#: traffic_blocker.sh:597
-msgid "缺少地理数据文件"
+#: traffic_blocker.sh:782
+msgid "缺少 GeoData 文件"
 msgstr ""
 
-#: traffic_blocker.sh:620
-msgid "以下地理数据文件有更新可用"
+#: traffic_blocker.sh:805
+msgid "以下 GeoData 文件有更新可用"
 msgstr ""
 
-#: traffic_blocker.sh:621
+#: traffic_blocker.sh:806
 msgid "是否立即更新"
 msgstr ""
 
-#: traffic_blocker.sh:638
+#: traffic_blocker.sh:823
 msgid "Xray 配置文件不存在"
 msgstr ""
 
-#: traffic_blocker.sh:643
+#: traffic_blocker.sh:828
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:648
+#: traffic_blocker.sh:833
 msgid "Xray 配置中缺少 direct 出站, 无法应用阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:663
+#: traffic_blocker.sh:848
 msgid "当前阻断规则配置"
 msgstr ""
 
-#: traffic_blocker.sh:675
+#: traffic_blocker.sh:860
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
 
-#: traffic_blocker.sh:676
+#: traffic_blocker.sh:861
 msgid "确认应用以上阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:686
-msgid "地理数据文件下载失败, 无法应用规则"
+#: traffic_blocker.sh:871
+msgid "GeoData 下载失败, 无法应用规则"
 msgstr ""
 
-#: traffic_blocker.sh:703 traffic_blocker.sh:769
+#: traffic_blocker.sh:888 traffic_blocker.sh:954
 msgid "无法从 Xray 配置中提取入站标签"
 msgstr ""
 
-#: traffic_blocker.sh:730 traffic_blocker.sh:780
+#: traffic_blocker.sh:915 traffic_blocker.sh:965
 msgid "修改 Xray 配置失败"
 msgstr ""
 
-#: traffic_blocker.sh:739
+#: traffic_blocker.sh:924
 msgid "流量阻断规则已应用"
 msgstr ""
 
-#: traffic_blocker.sh:741
+#: traffic_blocker.sh:926
 msgid "域名解析策略已设置为"
 msgstr ""
 
-#: traffic_blocker.sh:741
+#: traffic_blocker.sh:926
 msgid "以支持基于 IP 的阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:747
+#: traffic_blocker.sh:932
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr ""
 
-#: traffic_blocker.sh:748
+#: traffic_blocker.sh:933
 msgid "确认重置"
 msgstr ""
 
-#: traffic_blocker.sh:787
+#: traffic_blocker.sh:972
 msgid "所有阻断规则已重置"
 msgstr ""
