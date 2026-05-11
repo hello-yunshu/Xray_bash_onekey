@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.0"
+tb_SCRIPT_VERSION="1.5.1"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -14,6 +14,7 @@ fi
 tb_config_file="${xray_conf_dir}/traffic_blocker.json"
 tb_geo_dir="${local_bin}/share/xray"
 tb_geo_remote="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
+tb_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"
 
 tb_all_rule_names=("country_block" "bittorrent" "private_ip" "ads")
 
@@ -87,41 +88,23 @@ tb_set_countries() {
     jq --argjson val "$countries_json" '.country_block = $val' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
 }
 
-tb_display_width() {
-    local str="$1"
-    local width=0
-    local i=0
-    while (( i < ${#str} )); do
-        local char="${str:i:1}"
-        local code
-        printf -v code '%d' "'$char" 2>/dev/null || code=0
-        if (( code > 127 )); then
-            width=$((width + 2))
-        else
-            width=$((width + 1))
-        fi
-        i=$((i + 1))
-    done
-    echo "$width"
-}
-
-tb_printf_col() {
+tb_pad() {
     local str="$1"
     local target_width="$2"
-    local char_width=0
+    local w=0
     local i=0
     while (( i < ${#str} )); do
         local char="${str:i:1}"
         local code
         printf -v code '%d' "'$char" 2>/dev/null || code=0
         if (( code > 127 )); then
-            char_width=$((char_width + 2))
+            w=$((w + 2))
         else
-            char_width=$((char_width + 1))
+            w=$((w + 1))
         fi
         i=$((i + 1))
     done
-    local padding=$((target_width - char_width))
+    local padding=$((target_width - w))
     if (( padding > 0 )); then
         printf '%s%*s' "$str" "$padding" ""
     else
@@ -196,7 +179,7 @@ tb_add_country() {
 
     if [[ -z "$input_codes" ]]; then
         log_echo "${Green} $(gettext "操作已取消") ${Font}"
-        return
+        return 1
     fi
 
     IFS=',' read -ra new_codes <<< "$input_codes"
@@ -228,13 +211,15 @@ tb_add_country() {
     if [[ ${#added[@]} -eq 0 && ${#skipped[@]} -eq 0 ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "未添加任何国家/地区") ${Font}"
     fi
+
+    [[ ${#added[@]} -gt 0 ]] && return 0 || return 1
 }
 
 tb_remove_country() {
     local countries_str=$(tb_get_countries)
     if [[ -z "$countries_str" ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "当前未配置任何国家/地区") ${Font}"
-        return
+        return 1
     fi
 
     IFS=',' read -ra countries <<< "$countries_str"
@@ -259,12 +244,12 @@ tb_remove_country() {
     read_optimize "$(gettext "请选择要移除的编号"):" remove_choice "" 1
 
     if [[ "$remove_choice" -eq 0 ]] 2>/dev/null; then
-        return
+        return 1
     fi
 
     if [[ "$remove_choice" -lt 1 || "$remove_choice" -gt ${#countries[@]} ]] 2>/dev/null; then
         log_echo "${Error} ${RedBG} $(gettext "无效的选择") ${Font}"
-        return
+        return 1
     fi
 
     local remove_code="${countries[$((remove_choice - 1))]}"
@@ -272,6 +257,7 @@ tb_remove_country() {
     current_json=$(echo "$current_json" | jq --arg c "$remove_code" 'del(.[] | select(. == $c))')
     tb_set_countries "$current_json"
     log_echo "${OK} ${GreenBG} $(gettext "已移除"): $remove_code ${Font}"
+    return 0
 }
 
 tb_country_menu() {
@@ -293,8 +279,8 @@ tb_country_menu() {
         local country_choice
         read_optimize "$(gettext "请选择一个选项"):" country_choice "" 1
         case $country_choice in
-            1) tb_add_country ;;
-            2) tb_remove_country ;;
+            1) tb_add_country && tb_apply_rules ;;
+            2) tb_remove_country && tb_apply_rules ;;
             3) return ;;
             *)
                 echo
@@ -422,26 +408,13 @@ tb_download_geo_file() {
 tb_display_status() {
     tb_init_config
 
-    local max_name_length=10
-    local compare_strings=()
-    compare_strings+=("$(gettext "规则名称")")
-    for rule_name in "${tb_all_rule_names[@]}"; do
-        compare_strings+=("$(tb_rule_display_name "$rule_name")")
-    done
-    compare_strings+=("$(gettext "返回")")
+    local name_w=44
+    local status_w=10
+    local total_w=$((name_w + 24))
 
-    for str in "${compare_strings[@]}"; do
-        local w=$(tb_display_width "$str")
-        if (( w > max_name_length )); then
-            max_name_length=$w
-        fi
-    done
-
-    local total_width=$((max_name_length + 24))
-
-    printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-    printf "| %-4s | "; tb_printf_col "$(gettext "规则名称")" "$max_name_length"; printf " | %-10s |\n" "$(gettext "状态")"
-    printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+    printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
+    printf "| %-4s | "; tb_pad "$(gettext "规则名称")" "$name_w"; printf " | "; tb_pad "$(gettext "状态")" "$status_w"; printf " |\n"
+    printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
 
     local index=1
     for rule_name in "${tb_all_rule_names[@]}"; do
@@ -452,13 +425,13 @@ tb_display_status() {
         else
             local status_text="$(gettext "已禁用")"
         fi
-        printf "| %4d | " "$index"; tb_printf_col "$display_name" "$max_name_length"; printf " | %-10s |\n" "$status_text"
+        printf "| %4d | " "$index"; tb_pad "$display_name" "$name_w"; printf " | "; tb_pad "$status_text" "$status_w"; printf " |\n"
         index=$((index + 1))
     done
 
-    printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-    printf "| %4d | " 0; tb_printf_col "$(gettext "返回")" "$max_name_length"; printf " | %-10s |\n" ""
-    printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+    printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
+    printf "| %4d | " 0; tb_pad "$(gettext "返回")" "$name_w"; printf " | "; tb_pad "" "$status_w"; printf " |\n"
+    printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
 
     echo
     tb_display_geo_summary
@@ -476,19 +449,17 @@ tb_main_menu() {
         log_echo "${Green} $(gettext "主菜单") ${Font}"
         log_echo "1. $(gettext "查看阻断规则状态")"
         log_echo "2. $(gettext "管理阻断规则")"
-        log_echo "3. $(gettext "应用阻断规则")"
-        log_echo "4. $(gettext "更新 GeoData")"
-        log_echo "5. $(gettext "重置所有阻断规则")"
-        log_echo "6. $(gettext "退出")"
+        log_echo "3. $(gettext "更新 GeoData")"
+        log_echo "4. $(gettext "重置所有阻断规则")"
+        log_echo "5. $(gettext "退出")"
         local tb_choice
         read_optimize "$(gettext "请选择一个选项"):" tb_choice "" 1
         case $tb_choice in
             1) continue ;;
             2) tb_manage_rules ;;
-            3) tb_apply_rules ;;
-            4) tb_geo_menu ;;
-            5) tb_reset_rules ;;
-            6) return ;;
+            3) tb_geo_menu ;;
+            4) tb_reset_rules ;;
+            5) return ;;
             *)
                 echo
                 log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
@@ -667,26 +638,13 @@ tb_manage_rules() {
 
         tb_init_config
 
-        local max_name_length=10
-        local compare_strings=()
-        compare_strings+=("$(gettext "规则名称")")
-        for rule_name in "${tb_all_rule_names[@]}"; do
-            compare_strings+=("$(tb_rule_display_name "$rule_name")")
-        done
-        compare_strings+=("$(gettext "返回")")
+        local name_w=44
+        local status_w=10
+        local total_w=$((name_w + 24))
 
-        for str in "${compare_strings[@]}"; do
-            local w=$(tb_display_width "$str")
-            if (( w > max_name_length )); then
-                max_name_length=$w
-            fi
-        done
-
-        local total_width=$((max_name_length + 24))
-
-        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        printf "| %-4s | "; tb_printf_col "$(gettext "规则名称")" "$max_name_length"; printf " | %-10s |\n" "$(gettext "状态")"
-        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+        printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
+        printf "| %-4s | "; tb_pad "$(gettext "规则名称")" "$name_w"; printf " | "; tb_pad "$(gettext "状态")" "$status_w"; printf " |\n"
+        printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
 
         local index=1
         for rule_name in "${tb_all_rule_names[@]}"; do
@@ -697,13 +655,13 @@ tb_manage_rules() {
             else
                 local status_text="$(gettext "已禁用")"
             fi
-            printf "| %4d | " "$index"; tb_printf_col "$display_name" "$max_name_length"; printf " | %-10s |\n" "$status_text"
+            printf "| %4d | " "$index"; tb_pad "$display_name" "$name_w"; printf " | "; tb_pad "$status_text" "$status_w"; printf " |\n"
             index=$((index + 1))
         done
 
-        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        printf "| %4d | " 0; tb_printf_col "$(gettext "返回")" "$max_name_length"; printf " | %-10s |\n" ""
-        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+        printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
+        printf "| %4d | " 0; tb_pad "$(gettext "返回")" "$name_w"; printf " | "; tb_pad "" "$status_w"; printf " |\n"
+        printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
 
         local rule_choice
         read_optimize "$(gettext "请选择要管理的规则"): " "rule_choice" 0 0 ${#tb_all_rule_names[@]} "$(gettext "无效的选择, 请重试")"
@@ -735,7 +693,7 @@ tb_manage_rules() {
         if [[ ! $confirm =~ ^[nN]([oO])?$ ]]; then
             tb_set_rule_status "$selected_rule" "$new_status"
             log_echo "${OK} ${GreenBG} $display_name $(gettext "规则") $status_text ${Font}"
-            log_echo "${Warning} ${YellowBG} $(gettext "请选择「应用阻断规则」以使更改生效") ${Font}"
+            tb_apply_rules
         else
             log_echo "${Green} $(gettext "操作已取消") ${Font}"
         fi
@@ -910,13 +868,6 @@ tb_apply_rules() {
 
     echo
     log_echo "${Warning} ${YellowBG} $(gettext "应用规则将重建路由配置, 自定义路由规则将被覆盖") ${Font}"
-    log_echo "${GreenBG} $(gettext "确认应用以上阻断规则") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-    read -r apply_confirm
-
-    if [[ ! $apply_confirm =~ ^[yY]([eE][sS])?$ ]]; then
-        log_echo "${Green} $(gettext "操作已取消") ${Font}"
-        return
-    fi
 
     if [[ "$has_any_enabled" == "true" ]]; then
         if ! tb_check_geo_files; then
@@ -936,7 +887,7 @@ tb_apply_rules() {
 
     block_rules=$(tb_build_block_rules)
     direct_rule=$(tb_build_direct_rule)
-    if [[ $? -ne 0 ]]; then
+    if [[ "$direct_rule" == "{}" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "无法从 Xray 配置中提取入站标签") ${Font}"
         return
     fi
@@ -1002,7 +953,7 @@ tb_reset_rules() {
         local reset_domain_strategy
 
         direct_rule=$(tb_build_direct_rule)
-        if [[ $? -ne 0 ]]; then
+        if [[ "$direct_rule" == "{}" ]]; then
             log_echo "${Error} ${RedBG} $(gettext "无法从 Xray 配置中提取入站标签") ${Font}"
             return
         fi
