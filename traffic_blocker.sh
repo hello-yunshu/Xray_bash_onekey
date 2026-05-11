@@ -972,4 +972,36 @@ tb_reset_rules() {
     log_echo "${OK} ${GreenBG} $(gettext "所有阻断规则已重置") ${Font}"
 }
 
+tb_check_for_updates() {
+    local latest_version
+    local update_choice
+
+    latest_version=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 "$tb_remote_url" 2>/dev/null | grep 'tb_SCRIPT_VERSION=' | head -n 1 | sed 's/tb_SCRIPT_VERSION="//; s/"//')
+    if [ -n "$latest_version" ] && [ "$latest_version" != "$tb_SCRIPT_VERSION" ]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "新版本可用"): $latest_version $(gettext "当前版本"): $tb_SCRIPT_VERSION ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "请访问") https://github.com/hello-yunshu/Xray_bash_onekey $(gettext "查看更新说明") ${Font}"
+
+        log_echo "${GreenBG} $(gettext "是否下载并安装新版本") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r update_choice
+        case $update_choice in
+            [yY][eE][sS] | [yY])
+                log_echo "${Info} ${Green} $(gettext "正在下载新版本")... ${Font}"
+                if download_script_file "$tb_remote_url" "${idleleo_dir}/traffic_blocker.sh"; then
+                    log_echo "${OK} ${GreenBG} $(gettext "下载完成, 请重新运行脚本") ${Font}"
+                    exec "${BASH:-bash}" "${idleleo}"
+                else
+                    echo
+                    log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+                fi
+                ;;
+            *)
+                log_echo "${OK} ${Green} $(gettext "跳过更新") ${Font}"
+                ;;
+        esac
+    else
+        log_echo "${OK} ${Green} $(gettext "当前已经是最新版本"): $tb_SCRIPT_VERSION ${Font}"
+    fi
+}
+
+tb_check_for_updates
 tb_main_menu
