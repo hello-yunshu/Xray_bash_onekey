@@ -1,19 +1,18 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.3.0"
+tb_SCRIPT_VERSION="1.4.0"
 
 tb_config_file="${xray_conf_dir}/traffic_blocker.json"
 tb_geo_dir="${local_bin}/share/xray"
 tb_geo_remote="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
 
-tb_all_rule_names=("china_ip" "china_domain" "bittorrent" "private_ip" "ads")
+tb_all_rule_names=("country_block" "bittorrent" "private_ip" "ads")
 
 tb_init_config() {
     if [[ ! -f "${tb_config_file}" ]]; then
         cat > "${tb_config_file}" << 'EOF'
 {
-    "china_ip": false,
-    "china_domain": false,
+    "country_block": [],
     "bittorrent": false,
     "private_ip": false,
     "ads": false,
@@ -22,8 +21,7 @@ tb_init_config() {
 EOF
     else
         local tmp_file="${tb_config_file}.tmp"
-        jq '.china_ip //= false |
-            .china_domain //= false |
+        jq '.country_block //= [] |
             .bittorrent //= false |
             .private_ip //= false |
             .ads //= false |
@@ -35,6 +33,15 @@ tb_get_rule_status() {
     local rule_name="$1"
     if [[ ! -f "${tb_config_file}" ]]; then
         echo "false"
+        return
+    fi
+    if [[ "$rule_name" == "country_block" ]]; then
+        local count=$(jq '.country_block | length' "${tb_config_file}" 2>/dev/null)
+        if [[ -n "$count" ]] && (( count > 0 )); then
+            echo "true"
+        else
+            echo "false"
+        fi
         return
     fi
     local status=$(jq -r --arg name "$rule_name" '.[$name]' "${tb_config_file}" 2>/dev/null)
@@ -51,11 +58,72 @@ tb_set_rule_status() {
     jq --arg name "$rule_name" --argjson val "${status}" '.[$name] = $val' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
 }
 
+tb_preset_countries=("cn:中国" "ru:俄罗斯" "ir:伊朗" "kp:朝鲜" "gb:英国" "au:澳大利亚" "tr:土耳其")
+
+tb_get_countries() {
+    if [[ ! -f "${tb_config_file}" ]]; then
+        echo ""
+        return
+    fi
+    local countries=$(jq -r '.country_block // [] | join(",")' "${tb_config_file}" 2>/dev/null)
+    echo "${countries}"
+}
+
+tb_set_countries() {
+    local countries_json="$1"
+    if [[ ! -f "${tb_config_file}" ]]; then
+        tb_init_config
+    fi
+    local tmp_file="${tb_config_file}.tmp"
+    jq --argjson val "$countries_json" '.country_block = $val' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
+}
+
+tb_printf_col() {
+    local str="$1"
+    local target_width="$2"
+    local char_width=0
+    local i=0
+    while (( i < ${#str} )); do
+        local char="${str:i:1}"
+        local code
+        printf -v code '%d' "'$char" 2>/dev/null || code=0
+        if (( code > 127 )); then
+            char_width=$((char_width + 2))
+        else
+            char_width=$((char_width + 1))
+        fi
+        i=$((i + 1))
+    done
+    local padding=$((target_width - char_width))
+    if (( padding > 0 )); then
+        printf '%s%*s' "$str" "$padding" ""
+    else
+        printf '%s' "$str"
+    fi
+}
+
 tb_rule_display_name() {
     local rule_name="$1"
     case "$rule_name" in
-        china_ip)    echo "$(gettext "中国 IP") (geoip:cn)" ;;
-        china_domain) echo "$(gettext "中国域名") (geosite:cn)" ;;
+        country_block)
+            local countries=$(tb_get_countries)
+            if [[ -n "$countries" ]]; then
+                local max_list_len=28
+                local display_list=""
+                IFS=',' read -ra codes <<< "$countries"
+                for code in "${codes[@]}"; do
+                    local item="${display_list:+$display_list, }$code"
+                    if (( ${#item} > max_list_len )); then
+                        display_list="${display_list}, ..."
+                        break
+                    fi
+                    display_list="$item"
+                done
+                echo "$(gettext "国家/地区阻断") (${display_list})"
+            else
+                echo "$(gettext "国家/地区阻断") ($(gettext "未配置"))"
+            fi
+            ;;
         bittorrent)  echo "$(gettext "BT 下载") (protocol:bittorrent)" ;;
         private_ip)  echo "$(gettext "私有网络") (geoip:private)" ;;
         ads)         echo "$(gettext "广告域名") (geosite:category-ads-all)" ;;
@@ -66,13 +134,147 @@ tb_rule_display_name() {
 tb_rule_description() {
     local rule_name="$1"
     case "$rule_name" in
-        china_ip)    echo "$(gettext "阻断访问中国 IP 的流量")" ;;
-        china_domain) echo "$(gettext "阻断访问中国域名的流量")" ;;
+        country_block) echo "$(gettext "阻断指定国家/地区的 IP 和域名流量")" ;;
         bittorrent)  echo "$(gettext "阻断 BT 下载协议流量")" ;;
         private_ip)  echo "$(gettext "阻断访问私有网络地址的流量")" ;;
         ads)         echo "$(gettext "阻断广告域名的流量")" ;;
         *)           echo "" ;;
     esac
+}
+
+tb_add_country() {
+    echo
+    log_echo "${Green} $(gettext "常用国家/地区"): ${Font}"
+    local line=""
+    local col=0
+    for entry in "${tb_preset_countries[@]}"; do
+        local code="${entry%%:*}"
+        local name="${entry#*:}"
+        local item="  ${code} - ${name}"
+        if (( col + ${#item} > 60 )); then
+            echo "$line"
+            line="$item"
+            col=${#item}
+        else
+            line="${line}${item}"
+            col=$((col + ${#item}))
+        fi
+    done
+    if [[ -n "$line" ]]; then
+        echo "$line"
+    fi
+    echo
+    echo "$(gettext "请输入国家/地区代码 (例如: cn, jp, ru)"):"
+    read -r input_codes
+
+    if [[ -z "$input_codes" ]]; then
+        log_echo "${Green} $(gettext "操作已取消") ${Font}"
+        return
+    fi
+
+    IFS=',' read -ra new_codes <<< "$input_codes"
+    local current_json=$(jq -c '.country_block // []' "${tb_config_file}" 2>/dev/null)
+    local added=()
+    local skipped=()
+
+    for code in "${new_codes[@]}"; do
+        code=$(echo "$code" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+        if [[ ! "$code" =~ ^[a-z]{2}$ ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "无效的国家代码, 已跳过"): $code ${Font}"
+            continue
+        fi
+        if echo "$current_json" | jq -e --arg c "$code" 'index($c)' >/dev/null 2>&1; then
+            skipped+=("$code")
+            continue
+        fi
+        current_json=$(echo "$current_json" | jq --arg c "$code" '. += [$c]')
+        added+=("$code")
+    done
+
+    if [[ ${#added[@]} -gt 0 ]]; then
+        tb_set_countries "$current_json"
+        log_echo "${OK} ${GreenBG} $(gettext "已添加"): ${added[*]} ${Font}"
+    fi
+    if [[ ${#skipped[@]} -gt 0 ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "已存在, 已跳过"): ${skipped[*]} ${Font}"
+    fi
+    if [[ ${#added[@]} -eq 0 && ${#skipped[@]} -eq 0 ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "未添加任何国家/地区") ${Font}"
+    fi
+}
+
+tb_remove_country() {
+    local countries_str=$(tb_get_countries)
+    if [[ -z "$countries_str" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "当前未配置任何国家/地区") ${Font}"
+        return
+    fi
+
+    IFS=',' read -ra countries <<< "$countries_str"
+    echo
+    log_echo "${Green} $(gettext "当前已阻断"): ${Font}"
+    local i=1
+    for code in "${countries[@]}"; do
+        local display_name="$code"
+        for entry in "${tb_preset_countries[@]}"; do
+            if [[ "${entry%%:*}" == "$code" ]]; then
+                display_name="$code - ${entry#*:}"
+                break
+            fi
+        done
+        echo "  ${i}. ${display_name}"
+        i=$((i + 1))
+    done
+    echo "  0. $(gettext "返回")"
+    echo
+
+    local remove_choice
+    read_optimize "$(gettext "请选择要移除的编号"):" remove_choice "" 1
+
+    if [[ "$remove_choice" -eq 0 ]] 2>/dev/null; then
+        return
+    fi
+
+    if [[ "$remove_choice" -lt 1 || "$remove_choice" -gt ${#countries[@]} ]] 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "无效的选择") ${Font}"
+        return
+    fi
+
+    local remove_code="${countries[$((remove_choice - 1))]}"
+    local current_json=$(jq -c '.country_block // []' "${tb_config_file}" 2>/dev/null)
+    current_json=$(echo "$current_json" | jq --arg c "$remove_code" 'del(.[] | select(. == $c))')
+    tb_set_countries "$current_json"
+    log_echo "${OK} ${GreenBG} $(gettext "已移除"): $remove_code ${Font}"
+}
+
+tb_country_menu() {
+    while true; do
+        echo
+        log_echo "${GreenBG} $(gettext "国家/地区阻断管理") ${Font}"
+
+        local countries_str=$(tb_get_countries)
+        if [[ -n "$countries_str" ]]; then
+            log_echo "${Info} ${Green} $(gettext "当前已阻断"): ${countries_str} ${Font}"
+        else
+            log_echo "${Info} $(gettext "当前未配置任何国家/地区")"
+        fi
+
+        echo
+        echo "1. ${Green}$(gettext "添加国家/地区")${Font}"
+        echo "2. ${Green}$(gettext "移除国家/地区")${Font}"
+        echo "3. ${Green}$(gettext "返回")${Font}"
+        local country_choice
+        read_optimize "$(gettext "请选择一个选项"):" country_choice "" 1
+        case $country_choice in
+            1) tb_add_country ;;
+            2) tb_remove_country ;;
+            3) return ;;
+            *)
+                echo
+                log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
+                ;;
+        esac
+    done
 }
 
 tb_get_geo_remote_version() {
@@ -199,7 +401,7 @@ tb_main_menu() {
         log_echo "1. ${Green}$(gettext "查看阻断规则状态")${Font}"
         log_echo "2. ${Green}$(gettext "管理阻断规则")${Font}"
         log_echo "3. ${Green}$(gettext "应用阻断规则")${Font}"
-        log_echo "4. ${Green}$(gettext "管理地理数据文件")${Font}"
+        log_echo "4. ${Green}$(gettext "更新 GeoData")${Font}"
         log_echo "5. ${Green}$(gettext "重置所有阻断规则")${Font}"
         log_echo "6. ${Green}$(gettext "退出")${Font}"
         local tb_choice
@@ -226,25 +428,11 @@ tb_display_status() {
 
     tb_init_config
 
-    local max_name_length=25
-    local compare_strings=()
-    compare_strings+=("$(gettext "规则名称")")
-    for rule_name in "${tb_all_rule_names[@]}"; do
-        compare_strings+=("$(tb_rule_display_name "$rule_name")")
-    done
-    compare_strings+=("$(gettext "返回")")
-
-    for str in "${compare_strings[@]}"; do
-        local length=${#str}
-        if (( length > max_name_length )); then
-            max_name_length=$length
-        fi
-    done
-
-    local total_width=$((max_name_length + 22))
+    local name_col_width=40
+    local total_width=$((name_col_width + 22))
 
     printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-    printf "| %-4s | %-${max_name_length}s | %-10s |\n" "$(gettext "序号")" "$(gettext "规则名称")" "$(gettext "状态")"
+    printf "| %-4s | "; tb_printf_col "$(gettext "规则名称")" "$name_col_width"; printf " | %-10s |\n" "$(gettext "状态")"
     printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
 
     local index=1
@@ -256,12 +444,12 @@ tb_display_status() {
         else
             local status_text="$(gettext "已禁用")"
         fi
-        printf "| %4d | %-${max_name_length}s | %-10s |\n" $index "$display_name" "$status_text"
+        printf "| %4d | "; tb_printf_col "$display_name" "$name_col_width"; printf " | %-10s |\n" "$status_text"
         index=$((index + 1))
     done
 
     printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-    printf "| %4d | %-${max_name_length}s | %-10s |\n" 0 "$(gettext "返回")" ""
+    printf "| %4d | "; tb_printf_col "$(gettext "返回")" "$name_col_width"; printf " | %-10s |\n" ""
     printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
 
     echo
@@ -272,7 +460,7 @@ tb_display_status() {
 }
 
 tb_display_geo_summary() {
-    log_echo "${Green} $(gettext "地理数据文件状态"): ${Font}"
+    log_echo "${Green} $(gettext "GeoData 状态"): ${Font}"
 
     local remote_version=$(tb_get_geo_remote_version)
 
@@ -309,11 +497,11 @@ tb_display_geo_summary() {
 tb_geo_menu() {
     while true; do
         echo
-        log_echo "${GreenBG} $(gettext "管理地理数据文件") ${Font}"
+        log_echo "${GreenBG} $(gettext "更新 GeoData") ${Font}"
         echo
         tb_display_geo_summary
         echo
-        echo "1. ${Green}$(gettext "更新全部地理数据文件")${Font}"
+        echo "1. ${Green}$(gettext "更新全部 GeoData")${Font}"
         echo "2. ${Green}$(gettext "更新") geoip.dat${Font}"
         echo "3. ${Green}$(gettext "更新") geosite.dat${Font}"
         echo "4. ${Green}$(gettext "检查更新")${Font}"
@@ -336,7 +524,7 @@ tb_geo_menu() {
 
 tb_update_all_geo() {
     echo
-    log_echo "${Info} ${Green} $(gettext "正在更新全部地理数据文件")... ${Font}"
+    log_echo "${Info} ${Green} $(gettext "正在更新全部 GeoData")... ${Font}"
 
     local remote_version=$(tb_get_geo_remote_version)
     local has_error=false
@@ -351,7 +539,7 @@ tb_update_all_geo() {
     if [[ "$has_error" == "true" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "部分文件更新失败") ${Font}"
     else
-        log_echo "${OK} ${GreenBG} $(gettext "全部地理数据文件已更新") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "全部 GeoData 已更新") ${Font}"
     fi
 
     if [[ -f "${xray_conf}" ]]; then
@@ -430,7 +618,7 @@ tb_check_geo_updates() {
             tb_update_all_geo
         fi
     else
-        log_echo "${OK} ${GreenBG} $(gettext "所有地理数据文件均为最新版本") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "所有 GeoData 均为最新版本") ${Font}"
     fi
 }
 
@@ -441,25 +629,11 @@ tb_manage_rules() {
 
         tb_init_config
 
-        local max_name_length=25
-        local compare_strings=()
-        compare_strings+=("$(gettext "规则名称")")
-        for rule_name in "${tb_all_rule_names[@]}"; do
-            compare_strings+=("$(tb_rule_display_name "$rule_name")")
-        done
-        compare_strings+=("$(gettext "返回")")
-
-        for str in "${compare_strings[@]}"; do
-            local length=${#str}
-            if (( length > max_name_length )); then
-                max_name_length=$length
-            fi
-        done
-
-        local total_width=$((max_name_length + 22))
+        local name_col_width=40
+        local total_width=$((name_col_width + 22))
 
         printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        printf "| %-4s | %-${max_name_length}s | %-10s |\n" "$(gettext "序号")" "$(gettext "规则名称")" "$(gettext "状态")"
+        printf "| %-4s | "; tb_printf_col "$(gettext "规则名称")" "$name_col_width"; printf " | %-10s |\n" "$(gettext "状态")"
         printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
 
         local index=1
@@ -471,12 +645,12 @@ tb_manage_rules() {
             else
                 local status_text="$(gettext "已禁用")"
             fi
-            printf "| %4d | %-${max_name_length}s | %-10s |\n" $index "$display_name" "$status_text"
+            printf "| %4d | "; tb_printf_col "$display_name" "$name_col_width"; printf " | %-10s |\n" "$status_text"
             index=$((index + 1))
         done
 
         printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        printf "| %4d | %-${max_name_length}s | %-10s |\n" 0 "$(gettext "返回")" ""
+        printf "| %4d | "; tb_printf_col "$(gettext "返回")" "$name_col_width"; printf " | %-10s |\n" ""
         printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
 
         local rule_choice
@@ -487,6 +661,12 @@ tb_manage_rules() {
         fi
 
         local selected_rule=${tb_all_rule_names[$((rule_choice - 1))]}
+
+        if [[ "$selected_rule" == "country_block" ]]; then
+            tb_country_menu
+            continue
+        fi
+
         local current_status=$(tb_get_rule_status "$selected_rule")
         local new_status=$([[ "$current_status" == "true" ]] && echo "false" || echo "true")
         local status_text=$([[ "$new_status" == "true" ]] && echo "$(gettext "启用")" || echo "$(gettext "禁用")")
@@ -514,20 +694,25 @@ tb_manage_rules() {
 tb_build_block_rules() {
     local rules_json='[]'
 
+    if [[ "$(tb_get_rule_status country_block)" == "true" ]]; then
+        local countries_str=$(tb_get_countries)
+        IFS=',' read -ra countries <<< "$countries_str"
+        for code in "${countries[@]}"; do
+            local rule=$(jq -n --arg c "$code" '{"type":"field","outboundTag":"blocked","domain":["geosite:" + $c]}')
+            rules_json=$(echo "$rules_json" | jq --argjson r "$rule" '. += [$r]')
+        done
+        for code in "${countries[@]}"; do
+            local rule=$(jq -n --arg c "$code" '{"type":"field","outboundTag":"blocked","ip":["geoip:" + $c]}')
+            rules_json=$(echo "$rules_json" | jq --argjson r "$rule" '. += [$r]')
+        done
+    fi
+
     if [[ "$(tb_get_rule_status bittorrent)" == "true" ]]; then
         rules_json=$(echo "$rules_json" | jq --argjson rule '{"type":"field","outboundTag":"blocked","protocol":["bittorrent"]}' '. += [$rule]')
     fi
 
-    if [[ "$(tb_get_rule_status china_domain)" == "true" ]]; then
-        rules_json=$(echo "$rules_json" | jq --argjson rule '{"type":"field","outboundTag":"blocked","domain":["geosite:cn"]}' '. += [$rule]')
-    fi
-
     if [[ "$(tb_get_rule_status ads)" == "true" ]]; then
         rules_json=$(echo "$rules_json" | jq --argjson rule '{"type":"field","outboundTag":"blocked","domain":["geosite:category-ads-all"]}' '. += [$rule]')
-    fi
-
-    if [[ "$(tb_get_rule_status china_ip)" == "true" ]]; then
-        rules_json=$(echo "$rules_json" | jq --argjson rule '{"type":"field","outboundTag":"blocked","ip":["geoip:cn"]}' '. += [$rule]')
     fi
 
     if [[ "$(tb_get_rule_status private_ip)" == "true" ]]; then
@@ -579,10 +764,10 @@ tb_check_geo_files() {
     local needs_geoip=false
     local needs_geosite=false
 
-    if [[ "$(tb_get_rule_status china_ip)" == "true" ]] || [[ "$(tb_get_rule_status private_ip)" == "true" ]]; then
+    if [[ "$(tb_get_rule_status country_block)" == "true" ]] || [[ "$(tb_get_rule_status private_ip)" == "true" ]]; then
         needs_geoip=true
     fi
-    if [[ "$(tb_get_rule_status china_domain)" == "true" ]] || [[ "$(tb_get_rule_status ads)" == "true" ]]; then
+    if [[ "$(tb_get_rule_status country_block)" == "true" ]] || [[ "$(tb_get_rule_status ads)" == "true" ]]; then
         needs_geosite=true
     fi
 
@@ -594,7 +779,7 @@ tb_check_geo_files() {
     fi
 
     if [[ ${#missing_files[@]} -gt 0 ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "缺少地理数据文件"): ${missing_files[*]} ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "缺少 GeoData 文件"): ${missing_files[*]} ${Font}"
         log_echo "${Info} ${Green} $(gettext "正在下载")... ${Font}"
 
         remote_version=$(tb_get_geo_remote_version)
@@ -617,7 +802,7 @@ tb_check_geo_files() {
     fi
 
     if [[ ${#outdated_files[@]} -gt 0 ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "以下地理数据文件有更新可用"): ${outdated_files[*]} ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "以下 GeoData 文件有更新可用"): ${outdated_files[*]} ${Font}"
         log_echo "${GreenBG} $(gettext "是否立即更新") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r geo_update_confirm
         if [[ ! $geo_update_confirm =~ ^[nN]([oO])?$ ]]; then
@@ -683,7 +868,7 @@ tb_apply_rules() {
 
     if [[ "$has_any_enabled" == "true" ]]; then
         if ! tb_check_geo_files; then
-            log_echo "${Error} ${RedBG} $(gettext "地理数据文件下载失败, 无法应用规则") ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "GeoData 下载失败, 无法应用规则") ${Font}"
             return
         fi
     fi
@@ -708,7 +893,7 @@ tb_apply_rules() {
     saved_domain_strategy=$(tb_get_previous_domain_strategy)
     new_domain_strategy="${current_domain_strategy:-AsIs}"
 
-    if [[ "$(tb_get_rule_status china_ip)" == "true" ]] || [[ "$(tb_get_rule_status private_ip)" == "true" ]]; then
+    if [[ "$(tb_get_rule_status country_block)" == "true" ]] || [[ "$(tb_get_rule_status private_ip)" == "true" ]]; then
         if [[ -z "$saved_domain_strategy" ]]; then
             save_domain_strategy="${current_domain_strategy:-AsIs}"
         fi
@@ -756,7 +941,7 @@ tb_reset_rules() {
     tb_init_config
 
     local tmp_file="${tb_config_file}.tmp"
-    jq '.china_ip = false | .china_domain = false | .bittorrent = false | .private_ip = false | .ads = false' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return; }
+    jq '.country_block = [] | .bittorrent = false | .private_ip = false | .ads = false' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return; }
 
     if [[ -f "${xray_conf}" ]]; then
         local direct_rule
