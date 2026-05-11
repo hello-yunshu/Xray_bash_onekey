@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.0.6"
+VERSION="1.1.0"
 
 idleleo_dir="/etc/idleleo"
 local_bin="/usr/local"
@@ -16,9 +16,11 @@ xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
 failed_update_marker="${log_dir}/update_failed.mark"
 
 check_update() {
-    temp_file="/tmp/temp_script.sh"
-    if ! curl -s -o "$temp_file" "https://github.com/hello-yunshu/Xray_bash_onekey/raw/refs/heads/main/auto_update.sh"; then
+    local temp_file
+    temp_file=$(mktemp /tmp/idleleo_auto_update.XXXXXX) || return 1
+    if ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "$temp_file" "https://github.com/hello-yunshu/Xray_bash_onekey/raw/refs/heads/main/auto_update.sh"; then
         echo "Failed to download remote script" >>"${log_file}"
+        rm -f "$temp_file"
         return 1
     fi
 
@@ -31,10 +33,17 @@ check_update() {
 
     if [ "$VERSION" != "$remote_version" ]; then
         echo "New version found: $remote_version" >>"${log_file}"
-        cp "$temp_file" "$0"
-        chmod +x "$0"
-        rm -f "$temp_file"
-        exec "$0" "$@"
+        if bash -n "$temp_file" 2>/dev/null; then
+            cp "$temp_file" "$0"
+            chmod +x "$0"
+            rm -f "$temp_file"
+            rm -f "${running_file}"
+            exec "$0" "$@"
+        else
+            echo "Downloaded script failed syntax check, skipping update" >>"${log_file}"
+            rm -f "$temp_file"
+            return 1
+        fi
     fi
 
     rm -f "$temp_file"
@@ -47,27 +56,25 @@ if [[ -f "${failed_update_marker}" ]]; then
 fi
 
 [[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}"
-if [[ -f "${running_file}" ]]; then
+if ! mkdir "${running_file}" 2>/dev/null; then
     echo "Previous auto update process is still running! Checked at: $(date '+%Y-%m-%d %H:%M') Manual troubleshooting recommended!" >>"${log_file}"
     exit 1
-else
-    touch "${running_file}"
 fi
+trap 'rm -rf "${running_file}"' EXIT
 [[ -f "${log_file}" ]] && rm -f "${log_file}"
 
 echo "Update time: $(date '+%Y-%m-%d %H:%M')" >"${log_file}"
 
 check_update
 
-get_versions_all=$(curl -s https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json)
+get_versions_all=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json 2>/dev/null)
 
 if [[ ! -f "${xray_qr_config_file}" ]]; then
     echo "Config file not found, skipping update checks." >>"${log_file}"
-    rm -f "${running_file}"
     exit 0
 fi
 
-info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+info_extraction_all=$(jq -rc . "${xray_qr_config_file}" 2>/dev/null)
 
 check_online_version() {
     local result
@@ -80,7 +87,7 @@ check_online_version() {
 }
 
 info_extraction() {
-    echo "${info_extraction_all}" | jq -r ".$1"
+    echo "${info_extraction_all}" | jq -r ".$1" 2>/dev/null
 }
 
 shell_online_version="$(check_online_version shell_online_version)"
@@ -89,18 +96,21 @@ nginx_online_version="$(check_online_version nginx_build_version)"
 
 if [[ -f "${xray_qr_config_file}" ]]; then
     if [[ $(info_extraction shell_version) == null ]] || [[ $(info_extraction shell_version) != "${shell_online_version}" ]]; then
-        bash idleleo -u auto_update
+        bash "${idleleo_dir}/install.sh" -u auto_update
         [[ 0 -ne $? ]] && echo "Script update failed!" >>"${log_file}" && exit 1
         echo "Script updated successfully!" >>"${log_file}"
-        add_shell_version=$(jq -r ". += {\"shell_version\": \"${shell_online_version}\"}" "${xray_qr_config_file}")
-        echo "${add_shell_version}" | jq . >"${xray_qr_config_file}"
+        add_shell_version=$(jq -r ". += {\"shell_version\": \"${shell_online_version}\"}" "${xray_qr_config_file}" 2>/dev/null)
+        if [[ -n "${add_shell_version}" ]]; then
+            tmp_config="${xray_qr_config_file}.tmp.$$"
+            echo "${add_shell_version}" | jq . >"${tmp_config}" 2>/dev/null && mv "${tmp_config}" "${xray_qr_config_file}" || rm -f "${tmp_config}"
+        fi
     else
         echo "Script is up to date!" >>"${log_file}"
     fi
     if [[ $(info_extraction nginx_build_version) != null ]] && [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         if [[ "${nginx_online_version}" != $(info_extraction nginx_build_version) ]]; then
             echo "Updating Nginx..." >>"${log_file}"
-            auto_update=YES bash idleleo -n auto_update
+            auto_update=YES bash "${idleleo_dir}/install.sh" -n auto_update
             if [[ $? -ne 0 ]]; then
                 echo "Nginx update failed!" >>"${log_file}"
                 touch "${failed_update_marker}"
@@ -117,7 +127,7 @@ if [[ -f "${xray_qr_config_file}" ]]; then
         if [[ $(info_extraction xray_version) != null ]]; then
             if [[ "${xray_online_version}" != $(info_extraction xray_version) ]]; then
                 echo "Updating Xray..." >>"${log_file}"
-                auto_update=YES bash idleleo -x auto_update
+                auto_update=YES bash "${idleleo_dir}/install.sh" -x auto_update
                 if [[ $? -ne 0 ]]; then
                     echo "Xray update failed!" >>"${log_file}"
                     touch "${failed_update_marker}"
@@ -134,4 +144,3 @@ if [[ -f "${xray_qr_config_file}" ]]; then
         echo "Xray not installed!" >>"${log_file}"
     fi
 fi
-rm -f "${running_file}"
