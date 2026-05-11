@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.2.5"
+fm_SCRIPT_VERSION="1.3.0"
+fm_remote_url="${fm_remote_url:-https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh}"
 
 if [ -z "$1" ]; then
-    echo "$(gettext "用法"):" $0 <$(gettext "文件扩展名")> [<$(gettext "目录路径")>]
-    exit 1
+    echo "$(gettext "用法"):" $0 \<$(gettext "文件扩展名")\> [\<$(gettext "目录路径")\>]
+    return 1
 fi
 
 fm_EXTENSION="$1"
@@ -14,7 +15,7 @@ fm_WORKDIR="${2:-$(pwd)}"
 if [ ! -d "$fm_WORKDIR" ]; then
     echo
     log_echo "${Error} ${RedBG} $(gettext "目录") $fm_WORKDIR $(gettext "不存在, 请检查路径") ${Font}"
-    exit 1
+    return 1
 fi
 
 fm_original_dir=$(pwd)
@@ -220,7 +221,7 @@ fm_main_menu() {
             2) fm_create_file ;;
             3) fm_edit_file ;;
             4) fm_delete_file ;;
-            5) source "$idleleo" ;;
+            5) exec "${BASH:-bash}" "${idleleo}" ;;
             *)
                 echo
                 log_echo "${Error} ${RedBG} $(gettext "无效选项, 请重试") ${Font}"
@@ -233,7 +234,7 @@ fm_check_for_updates() {
     local latest_version
     local update_choice
 
-    latest_version=$(curl -s "$fm_remote_url" | grep 'fm_SCRIPT_VERSION=' | head -n 1 | sed 's/fm_SCRIPT_VERSION="//; s/"//')
+    latest_version=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 "$fm_remote_url" 2>/dev/null | grep 'fm_SCRIPT_VERSION=' | head -n 1 | sed 's/fm_SCRIPT_VERSION="//; s/"//')
     if [ -n "$latest_version" ] && [ "$latest_version" != "$fm_SCRIPT_VERSION" ]; then
         log_echo "${Warning} ${YellowBG} $(gettext "新版本可用"): $latest_version $(gettext "当前版本"): $fm_SCRIPT_VERSION ${Font}"
         log_echo "${Warning} ${YellowBG} $(gettext "请访问") https://github.com/hello-yunshu/Xray_bash_onekey $(gettext "查看更新说明") ${Font}"
@@ -243,12 +244,9 @@ fm_check_for_updates() {
         case $update_choice in
             [yY][eE][sS] | [yY])
                 log_echo "${Info} ${Green} $(gettext "正在下载新版本")... ${Font}"
-                curl -sL "$fm_remote_url" -o "${idleleo_dir}/file_manager.sh"
-
-                if [ $? -eq 0 ]; then
-                    chmod +x "${idleleo_dir}/file_manager.sh"
+                if download_script_file "$fm_remote_url" "${idleleo_dir}/file_manager.sh"; then
                     log_echo "${OK} ${GreenBG} $(gettext "下载完成, 请重新运行脚本") ${Font}"
-                    bash "${idleleo}"
+                    exec "${BASH:-bash}" "${idleleo}"
                 else
                     echo
                     log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
@@ -280,4 +278,4 @@ fm_restart_nginx_and_check_status() {
 fm_check_for_updates
 fm_main_menu
 
-cd "$fm_original_dir" || exit 1
+cd "$fm_original_dir" || return 1

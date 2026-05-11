@@ -21,6 +21,10 @@ _start_services() {
         echo "[entrypoint] Starting Nginx..."
         systemctl start nginx
     fi
+    if [[ -f /etc/fail2ban/jail.local ]] || [[ -f /etc/fail2ban/jail.d/custom_*.conf ]] 2>/dev/null; then
+        echo "[entrypoint] Starting Fail2ban..."
+        systemctl start fail2ban
+    fi
 }
 
 STOPPING=0
@@ -52,6 +56,12 @@ _watchdog() {
             if ! systemctl -q is-active nginx 2>/dev/null; then
                 echo "[watchdog] Nginx not running, restarting..."
                 systemctl start nginx
+            fi
+        fi
+        if [[ -f /etc/fail2ban/jail.local ]] || [[ -f /etc/fail2ban/jail.d/custom_*.conf ]] 2>/dev/null; then
+            if ! systemctl -q is-active fail2ban 2>/dev/null; then
+                echo "[watchdog] Fail2ban not running, restarting..."
+                systemctl start fail2ban
             fi
         fi
         sleep 30
