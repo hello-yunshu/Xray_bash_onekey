@@ -2,12 +2,12 @@
 
 # 定义当前版本号
 mf_SCRIPT_VERSION="1.4.0"
-mf_MIN_MAIN_VERSION="2.10.0"
+MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
-    oldest=$(printf '%s\n%s\n' "$mf_MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)
-    if [ "$oldest" != "$mf_MIN_MAIN_VERSION" ]; then
-        echo "${Error} ${RedBG} fail2ban_manager.sh $(gettext "需要主脚本版本") >= ${mf_MIN_MAIN_VERSION}，$(gettext "当前版本"): ${shell_version}，$(gettext "请先更新主脚本") ${Font}"
+    oldest=$(printf '%s\n%s\n' "$MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)
+    if [ "$oldest" != "$MIN_MAIN_VERSION" ]; then
+        echo "${Error} ${RedBG} fail2ban_manager.sh $(gettext "需要主脚本版本") >= ${MIN_MAIN_VERSION}，$(gettext "当前版本"): ${shell_version}，$(gettext "请先更新主脚本") ${Font}"
         return 1
     fi
 fi

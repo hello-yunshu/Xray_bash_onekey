@@ -1055,19 +1055,33 @@ shortIds_set() {
     fi
 }
 
-ensure_file_manager() {
-    fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
-    if [ ! -f "${idleleo_dir}/file_manager.sh" ]; then
-        log_echo "${Info} ${Green} $(gettext "本地文件 file_manager.sh 不存在, 正在下载")... ${Font}"
-        if ! download_script_file "$fm_remote_url" "${idleleo_dir}/file_manager.sh"; then
+ensure_sub_script() {
+    local script_name="$1"
+    local remote_url="$2"
+    local local_file="${idleleo_dir}/${script_name}"
+
+    if [ ! -f "$local_file" ]; then
+        log_echo "${Info} ${Green} $(gettext "本地文件") ${script_name} $(gettext "不存在, 正在下载")... ${Font}"
+        if ! download_script_file "$remote_url" "$local_file"; then
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
         fi
-    elif ! grep -q 'fm_MIN_MAIN_VERSION' "${idleleo_dir}/file_manager.sh"; then
-        log_echo "${Warning} ${YellowBG} file_manager.sh $(gettext "版本过旧, 正在更新")... ${Font}"
-        if ! download_script_file "$fm_remote_url" "${idleleo_dir}/file_manager.sh"; then
-            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
-            return 1
+    else
+        local required_version
+        required_version=$(grep '^MIN_MAIN_VERSION=' "$local_file" | head -1 | sed 's/MIN_MAIN_VERSION="//; s/"//')
+        if [ -z "$required_version" ]; then
+            log_echo "${Warning} ${YellowBG} ${script_name} $(gettext "版本过旧, 正在更新")... ${Font}"
+            if ! download_script_file "$remote_url" "$local_file"; then
+                log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+                return 1
+            fi
+        else
+            local oldest
+            oldest=$(printf '%s\n%s\n' "$required_version" "$shell_version" | sort -V | head -1)
+            if [ "$oldest" != "$required_version" ]; then
+                log_echo "${Error} ${RedBG} ${script_name} $(gettext "需要主脚本版本") >= ${required_version}，$(gettext "当前版本"): ${shell_version}，$(gettext "请先更新主脚本") ${Font}"
+                return 1
+            fi
         fi
     fi
     return 0
@@ -1089,7 +1103,7 @@ nginx_upstream_server_set() {
             local upstream_choose
             read_optimize "$(gettext "请输入"): " "upstream_choose" "NULL" 1 3 "$(gettext "请输入有效的数字")!"
 
-            if ensure_file_manager; then
+            if ensure_sub_script "file_manager.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"; then
                 case $upstream_choose in
                 1) source "${idleleo_dir}/file_manager.sh" wsServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
                 2) source "${idleleo_dir}/file_manager.sh" grpcServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
@@ -1101,7 +1115,7 @@ nginx_upstream_server_set() {
                 esac
             fi
         elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_balance} == "on" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-            if ensure_file_manager; then
+            if ensure_sub_script "file_manager.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"; then
                 source "${idleleo_dir}/file_manager.sh" realityServers ${nginx_conf_dir}
                 fm_check_for_updates
                 fm_main_menu
@@ -1124,7 +1138,7 @@ nginx_servernames_server_set() {
         read -r nginx_servernames_server_fq
         case $nginx_servernames_server_fq in
         [yY][eE][sS] | [yY])
-            if ensure_file_manager; then
+            if ensure_sub_script "file_manager.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"; then
                 source "${idleleo_dir}/file_manager.sh" serverNames ${nginx_conf_dir}
                 fm_check_for_updates
                 fm_main_menu
@@ -2531,19 +2545,8 @@ cert_update_manuel() {
 }
 
 set_fail2ban() {
-    mf_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh"
-    if [ ! -f "${idleleo_dir}/fail2ban_manager.sh" ]; then
-        log_echo "${Info} ${Green} $(gettext "本地文件 fail2ban_manager.sh 不存在, 正在下载")... ${Font}"
-        if ! download_script_file "$mf_remote_url" "${idleleo_dir}/fail2ban_manager.sh"; then
-            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
-            return 1
-        fi
-    elif ! grep -q 'mf_MIN_MAIN_VERSION' "${idleleo_dir}/fail2ban_manager.sh"; then
-        log_echo "${Warning} ${YellowBG} fail2ban_manager.sh $(gettext "版本过旧, 正在更新")... ${Font}"
-        if ! download_script_file "$mf_remote_url" "${idleleo_dir}/fail2ban_manager.sh"; then
-            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
-            return 1
-        fi
+    if ! ensure_sub_script "fail2ban_manager.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh"; then
+        return 1
     fi
     source "${idleleo_dir}/fail2ban_manager.sh"
     mf_check_for_updates
@@ -2555,19 +2558,8 @@ set_traffic_blocker() {
         log_echo "${Error} ${RedBG} $(gettext "Xray 未安装, 请先安装") Xray ${Font}"
         return 1
     fi
-    tb_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"
-    if [ ! -f "${idleleo_dir}/traffic_blocker.sh" ]; then
-        log_echo "${Info} ${Green} $(gettext "本地文件 traffic_blocker.sh 不存在, 正在下载")... ${Font}"
-        if ! download_script_file "$tb_remote_url" "${idleleo_dir}/traffic_blocker.sh"; then
-            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
-            return 1
-        fi
-    elif ! grep -q 'tb_MIN_MAIN_VERSION' "${idleleo_dir}/traffic_blocker.sh"; then
-        log_echo "${Warning} ${YellowBG} traffic_blocker.sh $(gettext "版本过旧, 正在更新")... ${Font}"
-        if ! download_script_file "$tb_remote_url" "${idleleo_dir}/traffic_blocker.sh"; then
-            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
-            return 1
-        fi
+    if ! ensure_sub_script "traffic_blocker.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"; then
+        return 1
     fi
     source "${idleleo_dir}/traffic_blocker.sh"
     tb_check_for_updates
