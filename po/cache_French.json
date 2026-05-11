@@ -601,5 +601,6 @@
   "下载完成, 正在重新加载...": "téléchargement terminé, en cours de rechargement",
   "Nginx 未运行, 是否继续编辑": "nginx n’est pas en cours d’exécution. continuer la modification ",
   "没有可编辑的文件": "aucun fichier n’est modifiable",
-  "Nginx 未运行, 请手动修复配置": "nginx n’est pas en cours d’exécution, veuillez corriger manuellement la configuration"
+  "Nginx 未运行, 请手动修复配置": "nginx n’est pas en cours d’exécution, veuillez corriger manuellement la configuration",
+  "版本过旧, 正在更新": "version trop ancienne, mise à jour en cours"
 }
