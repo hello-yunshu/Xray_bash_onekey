@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.2.2"
+mf_SCRIPT_VERSION="1.3.0"
+mf_remote_url="${mf_remote_url:-https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh}"
 
 mf_main_menu() {
     check_system
@@ -21,7 +22,7 @@ mf_main_menu() {
             2) mf_manage_fail2ban ;;
             3) mf_uninstall_fail2ban ;;
             4) mf_display_fail2ban_status ;;
-            5) source "${idleleo}" ;;
+            5) exec "${BASH:-bash}" "${idleleo}" ;;
             *)
                 echo
                 log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
@@ -37,7 +38,7 @@ mf_install_fail2ban() {
         pkg_install "fail2ban"
         mf_configure_fail2ban
         judge "Fail2ban $(gettext "安装")"
-        source "${idleleo}"
+        exec "${BASH:-bash}" "${idleleo}"
     fi
 }
 
@@ -269,6 +270,10 @@ mf_add_custom_rule() {
     local ban_time
 
     read_optimize "$(gettext "请输入新的") Jail $(gettext "名称"):" "jail_name" NULL
+    if [[ "${jail_name}" =~ [/\\] ]] || [[ -z "${jail_name}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "名称不能包含路径分隔符或为空") ${Font}"
+        return
+    fi
     read_optimize "$(gettext "请输入") Filter $(gettext "名称"):" "filter_name" NULL
     read_optimize "$(gettext "请输入日志路径"):" "log_path" NULL
     read_optimize "$(gettext "请输入最大重试次数") ($(gettext "默认") 5):" "max_retry" 5 1 99 "$(gettext "最大重试次数必须在 1 到 99 之间")"
@@ -290,105 +295,96 @@ EOF
 }
 
 mf_manage_modules() {
-    echo
-    log_echo "${Green} $(gettext "管理 Fail2ban 模块") ${Font}"
-    
-    # 列出所有模块化配置文件
-    local module_files=()
-    local module_names=()
-    local index=1
-    
-    # 查找所有 .local 文件
-    for file in /etc/fail2ban/jail.d/*.local; do
-        if [[ -f "$file" ]]; then
-            module_files[$index]="$file"
-            module_names[$index]=$(basename "$file" .local)
-            index=$((index + 1))
-        fi
-    done
-    
-    if [[ ${#module_files[@]} -eq 0 ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "未找到任何模块化配置文件") ${Font}"
-        return
-    fi
-    
-    # 计算列宽
-    local max_name_length=15
+    while true; do
+        echo
+        log_echo "${Green} $(gettext "管理 Fail2ban 模块") ${Font}"
 
-    local compare_strings=()
-    compare_strings+=("$(gettext "模块名称")")
-    
-    for ((i=1; i<${#module_files[@]}+1; i++)); do
-        compare_strings+=("${module_names[$i]}")
-    done
-    
-    compare_strings+=("$(gettext "返回")")
-    
-    for str in "${compare_strings[@]}"; do
-        local length=${#str}
-        if (( length > max_name_length )); then
-            max_name_length=$length
+        local module_files=()
+        local module_names=()
+        local index=1
+
+        for file in /etc/fail2ban/jail.d/*.local; do
+            if [[ -f "$file" ]]; then
+                module_files[$index]="$file"
+                module_names[$index]=$(basename "$file" .local)
+                index=$((index + 1))
+            fi
+        done
+
+        if [[ ${#module_files[@]} -eq 0 ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "未找到任何模块化配置文件") ${Font}"
+            return
         fi
-    done
-    
-    # 计算总宽度
-    local total_width=$((max_name_length + 20))
-    
-    # 打印表头
-    printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-    printf "| %-4s | %-${max_name_length}s | %-10s |\n" "$(gettext "序号")" "$(gettext "模块名称")" "$(gettext "状态")"
-    printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-    
-    for ((i=1; i<${#module_files[@]}+1; i++)); do
-        local module_file=${module_files[$i]}
-        local module_name=${module_names[$i]}
-        
-        if mf_is_module_enabled "$module_file"; then
-            local status_text="$(gettext "已启用")"
+
+        local max_name_length=15
+
+        local compare_strings=()
+        compare_strings+=("$(gettext "模块名称")")
+
+        for ((i=1; i<${#module_files[@]}+1; i++)); do
+            compare_strings+=("${module_names[$i]}")
+        done
+
+        compare_strings+=("$(gettext "返回")")
+
+        for str in "${compare_strings[@]}"; do
+            local length=${#str}
+            if (( length > max_name_length )); then
+                max_name_length=$length
+            fi
+        done
+
+        local total_width=$((max_name_length + 20))
+
+        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+        printf "| %-4s | %-${max_name_length}s | %-10s |\n" "$(gettext "序号")" "$(gettext "模块名称")" "$(gettext "状态")"
+        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+
+        for ((i=1; i<${#module_files[@]}+1; i++)); do
+            local module_file=${module_files[$i]}
+            local module_name=${module_names[$i]}
+
+            if mf_is_module_enabled "$module_file"; then
+                local status_text="$(gettext "已启用")"
+            else
+                local status_text="$(gettext "已禁用")"
+            fi
+
+            printf "| %4d | %-${max_name_length}s | %-10s |\n" $i "$module_name" "$status_text"
+        done
+
+        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+        printf "| %4d | %-${max_name_length}s | %-10s |\n" 0 "$(gettext "返回")" ""
+        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+
+        local module_choice
+        read_optimize "$(gettext "请选择要管理的模块"): " "module_choice" 0 0 ${#module_files[@]} "$(gettext "无效的选择, 请重试")"
+
+        if [[ $module_choice -eq 0 ]]; then
+            return
+        fi
+
+        local selected_file=${module_files[$module_choice]}
+        local selected_name=${module_names[$module_choice]}
+
+        local current_status=$(grep -oP 'enabled\s*=\s*\K\w+' "$selected_file" 2>/dev/null || echo "true")
+        local new_status=$([[ "$current_status" == "true" ]] && echo "false" || echo "true")
+        local status_text=$([[ "$new_status" == "true" ]] && echo "$(gettext "启用")" || echo "$(gettext "禁用")")
+
+        log_echo "${GreenBG} $(gettext "是否") $status_text $selected_name $(gettext "模块") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        read -r confirm
+
+        if [[ ! $confirm =~ ^[nN]([oO])?$ ]]; then
+            sed -i "s/enabled\s*=\s*\w*/enabled = $new_status/" "$selected_file"
+
+            mf_restart_fail2ban
+
+            log_echo "${OK} ${GreenBG} $selected_name $(gettext "模块") $status_text ${Font}"
         else
-            local status_text="$(gettext "已禁用")"
+            log_echo "${Green} $(gettext "操作已取消") ${Font}"
         fi
-        
-        printf "| %4d | %-${max_name_length}s | %-10s |\n" $i "$module_name" "$status_text"
+
     done
-    
-    # 打印表尾
-    printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-    printf "| %4d | %-${max_name_length}s | %-10s |\n" 0 "$(gettext "返回")" ""
-    printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-
-    
-    # 让用户选择要管理的模块
-    local module_choice
-    read_optimize "$(gettext "请选择要管理的模块"): " "module_choice" 0 0 ${#module_files[@]} "$(gettext "无效的选择, 请重试")"
-    
-    if [[ $module_choice -eq 0 ]]; then
-        return
-    fi
-    
-    local selected_file=${module_files[$module_choice]}
-    local selected_name=${module_names[$module_choice]}
-    
-    # 获取当前状态
-    local current_status=$(grep -oP 'enabled\s*=\s*\K\w+' "$selected_file" 2>/dev/null || echo "true")
-    local new_status=$([[ "$current_status" == "true" ]] && echo "false" || echo "true")
-    local status_text=$([[ "$new_status" == "true" ]] && echo "$(gettext "启用")" || echo "$(gettext "禁用")")
-    
-    # 确认操作
-    log_echo "${GreenBG} $(gettext "是否") $status_text $selected_name $(gettext "模块") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-    read -r confirm
-    
-    if [[ ! $confirm =~ ^[nN]([oO])?$ ]]; then
-        sed -i "s/enabled\s*=\s*\w*/enabled = $new_status/" "$selected_file"
-
-        mf_restart_fail2ban
-        
-        log_echo "${OK} ${GreenBG} $selected_name $(gettext "模块") $status_text ${Font}"
-    else
-        log_echo "${Green} $(gettext "操作已取消") ${Font}"
-    fi
-    
-    mf_manage_modules
 }
 
 mf_start_enable_fail2ban() {
@@ -415,7 +411,7 @@ mf_uninstall_fail2ban() {
     judge "Fail2ban $(gettext "卸载")"
     timeout "$(gettext "清空屏幕")!"
     clear
-    source "${idleleo}"
+    exec "${BASH:-bash}" "${idleleo}"
 }
 
 mf_stop_disable_fail2ban() {
@@ -471,7 +467,6 @@ mf_display_fail2ban_status() {
         fi
     fi
     echo
-    mf_main_menu
 }
 
 mf_check_for_updates() {
@@ -479,7 +474,7 @@ mf_check_for_updates() {
     local update_choice
 
     # 直接使用 curl 下载远程版本信息
-    latest_version=$(curl -s "$mf_remote_url" | grep 'mf_SCRIPT_VERSION=' | head -n 1 | sed 's/mf_SCRIPT_VERSION="//; s/"//')
+    latest_version=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 "$mf_remote_url" 2>/dev/null | grep 'mf_SCRIPT_VERSION=' | head -n 1 | sed 's/mf_SCRIPT_VERSION="//; s/"//')
     if [ -n "$latest_version" ] && [ "$latest_version" != "$mf_SCRIPT_VERSION" ]; then
         log_echo "${Warning} ${YellowBG} $(gettext "新版本可用"): $latest_version $(gettext "当前版本"): $mf_SCRIPT_VERSION ${Font}"
         log_echo "${Warning} ${YellowBG} $(gettext "请访问") https://github.com/hello-yunshu/Xray_bash_onekey $(gettext "查看更新说明") ${Font}"
@@ -489,12 +484,9 @@ mf_check_for_updates() {
         case $update_choice in
             [yY][eE][sS] | [yY])
                 log_echo "${Info} ${Green} $(gettext "正在下载新版本")... ${Font}"
-                curl -sL "$mf_remote_url" -o "${idleleo_dir}/fail2ban_manager.sh"
-
-                if [ $? -eq 0 ]; then
-                    chmod +x "${idleleo_dir}/fail2ban_manager.sh"
+                if download_script_file "$mf_remote_url" "${idleleo_dir}/fail2ban_manager.sh"; then
                     log_echo "${OK} ${GreenBG} $(gettext "下载完成, 请重新运行脚本") ${Font}"
-                    bash "${idleleo}"
+                    exec "${BASH:-bash}" "${idleleo}"
                 else
                     echo
                     log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"

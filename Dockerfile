@@ -36,13 +36,14 @@ RUN groupadd -f nogroup && \
 
 RUN temp_dir=$(mktemp -d) && cd "$temp_dir" && \
     nginx_filename="xray-nginx-custom-$(dpkg --print-architecture).tar.gz" && \
-    curl -L -o "$nginx_filename" "https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${NGINX_BUILD_VERSION}/$nginx_filename" && \
+    curl -fL -o "$nginx_filename" "https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${NGINX_BUILD_VERSION}/$nginx_filename" && \
     tar -xzf "$nginx_filename" && \
     mv ./nginx /usr/local/nginx && \
     cd / && rm -rf "$temp_dir"
 
-RUN curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install -f --version v${XRAY_VERSION} && \
-    rm -f /usr/local/etc/xray/config.json
+RUN curl -fL -o /tmp/xray-install-release.sh https://github.com/XTLS/Xray-install/raw/main/install-release.sh && \
+    bash /tmp/xray-install-release.sh install -f --version v${XRAY_VERSION} && \
+    rm -f /tmp/xray-install-release.sh /usr/local/etc/xray/config.json
 
 COPY fake-systemctl /usr/local/bin/systemctl
 RUN chmod +x /usr/local/bin/systemctl
@@ -52,10 +53,10 @@ WORKDIR /etc/idleleo
 COPY . /etc/idleleo/
 
 RUN ln -sf /etc/idleleo/install.sh /usr/bin/idleleo && \
-    ln -sf /etc/idleleo/conf/xray/config.json /usr/local/etc/xray/config.json && \
     chmod +x /etc/idleleo/install.sh /etc/idleleo/auto_update.sh \
-    /etc/idleleo/ssl_update.sh /etc/idleleo/fail2ban_manager.sh \
-    /etc/idleleo/file_manager.sh && \
+    /etc/idleleo/fail2ban_manager.sh \
+    /etc/idleleo/file_manager.sh /etc/idleleo/traffic_blocker.sh \
+    /etc/idleleo/ssl_update.sh && \
     mkdir -p /etc/idleleo/conf/xray /etc/idleleo/conf/nginx \
     /etc/idleleo/cert /etc/idleleo/info /etc/idleleo/logs \
     /etc/idleleo/tmp /var/log/xray /root/.acme.sh

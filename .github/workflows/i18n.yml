@@ -6,6 +6,7 @@ on:
       - 'install.sh'
       - 'fail2ban_manager.sh'
       - 'file_manager.sh'
+      - 'traffic_blocker.sh'
       - 'translate.py'
     branches:
       - main
@@ -62,6 +63,7 @@ jobs:
           echo "install.sh" > po/POTFILES.in
           echo "fail2ban_manager.sh" >> po/POTFILES.in
           echo "file_manager.sh" >> po/POTFILES.in
+          echo "traffic_blocker.sh" >> po/POTFILES.in
           
           xgettext \
             --files-from=po/POTFILES.in \

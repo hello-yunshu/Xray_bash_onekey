@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.9.1"
+shell_version="2.9.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -48,7 +48,7 @@ xray_conf_dir="${idleleo_conf_dir}/xray"
 nginx_conf_dir="${idleleo_conf_dir}/nginx"
 xray_conf="${xray_conf_dir}/config.json"
 xray_status_conf="${xray_conf_dir}/status_config.json"
-xray_default_conf="${local_bin}/etc/xray/config.json"
+xray_default_conf="${local_bin}/etc/xray/config.json" # COMPAT: 旧版使用符号链接指向此路径，仅用于清理旧链接和 sed 匹配，未来可删除
 nginx_conf="${nginx_conf_dir}/00-xray.conf"
 nginx_ssl_conf="${nginx_conf_dir}/01-xray-80.conf"
 nginx_upstream_conf="${nginx_conf_dir}/02-xray-server.conf"
@@ -70,7 +70,7 @@ get_versions_all=""
 _get_versions_loaded=0
 load_versions() {
     if [[ ${_get_versions_loaded} -eq 0 ]]; then
-        get_versions_all=$(curl -s https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json)
+        get_versions_all=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json 2>/dev/null)
         _get_versions_loaded=1
     fi
 }
@@ -176,12 +176,82 @@ update_json_config() {
     return 0
 }
 
+download_file() {
+    local url="$1"
+    local dest_file="$2"
+    local tmp_file="${dest_file}.tmp.$$"
+
+    mkdir -p "$(dirname "${dest_file}")"
+    rm -f "${tmp_file}"
+    if ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "${tmp_file}" "$url"; then
+        rm -f "${tmp_file}"
+        return 1
+    fi
+    if [[ ! -s "${tmp_file}" ]]; then
+        rm -f "${tmp_file}"
+        return 1
+    fi
+    mv "${tmp_file}" "${dest_file}"
+}
+
+download_script_file() {
+    local url="$1"
+    local dest_file="$2"
+    local syntax_shell="${3:-bash}"
+    local tmp_file="${dest_file}.tmp.$$"
+
+    mkdir -p "$(dirname "${dest_file}")"
+    rm -f "${tmp_file}"
+    if ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "${tmp_file}" "$url"; then
+        rm -f "${tmp_file}"
+        return 1
+    fi
+    if [[ ! -s "${tmp_file}" ]] || ! "${syntax_shell}" -n "${tmp_file}" 2>/dev/null; then
+        rm -f "${tmp_file}"
+        return 1
+    fi
+    mv "${tmp_file}" "${dest_file}"
+    chmod +x "${dest_file}"
+}
+
+download_json_file() {
+    local url="$1"
+    local dest_file="$2"
+    local tmp_file="${dest_file}.tmp.$$"
+
+    mkdir -p "$(dirname "${dest_file}")"
+    rm -f "${tmp_file}"
+    if ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "${tmp_file}" "$url"; then
+        rm -f "${tmp_file}"
+        return 1
+    fi
+    if [[ ! -s "${tmp_file}" ]] || ! jq empty "${tmp_file}" >/dev/null 2>&1; then
+        rm -f "${tmp_file}"
+        return 1
+    fi
+    mv "${tmp_file}" "${dest_file}"
+}
+
+xray_install_release() {
+    local installer="${idleleo_dir}/tmp/xray-install-release.sh"
+    local installer_url="https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh"
+    local ret
+
+    if ! download_script_file "$installer_url" "$installer"; then
+        return 1
+    fi
+    bash "$installer" "$@"
+    ret=$?
+    rm -f "$installer"
+    return "$ret"
+}
+
 get_public_ip() {
     local ip_version="$1"
     if [[ "${ip_version}" == "IPv6" ]]; then
-        curl -6 ip.me 2>/dev/null || curl -6 ip.im
+        curl -6 -fsSL --max-time 10 ip.me 2>/dev/null || curl -6 -fsSL --max-time 10 ip.im 2>/dev/null
     else
-        curl -4 ip.me 2>/dev/null || curl -4 ip.im
+        curl -4 -fsSL --max-time 10 ip.me 2>/dev/null || curl -4 -fsSL --max-time 10 ip.im 2>/dev/null
     fi
 }
 
@@ -205,15 +275,15 @@ source '/etc/os-release'
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 
 check_system() {
-    if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+    if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 8 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Centos ${VERSION_ID} ${VERSION} ${Font}"
         INS="yum"
         [[ ! -f "${xray_qr_config_file}" ]] && $INS update || true
-    elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 ]]; then
+    elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 12 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Debian ${VERSION_ID} ${VERSION} ${Font}"
         INS="apt"
         [[ ! -f "${xray_qr_config_file}" ]] && $INS update || true
-    elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 16 ]]; then
+    elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 24 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
         INS="apt"
         if [[ ! -f "${xray_qr_config_file}" ]]; then
@@ -256,7 +326,7 @@ check_language_update() {
     [[ ! -f "${local_file}" ]] && return 0
 
     local remote_version
-    remote_version=$(curl -s "${version_file_url}" || echo "")
+    remote_version=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 "${version_file_url}" 2>/dev/null || echo "")
 
     if [ -z "$remote_version" ]; then
         log_echo "${Warning} ${YellowBG} $(gettext "无法获取远程语言文件信息") ${Font}"
@@ -279,7 +349,7 @@ update_language_file() {
 
     log_echo "${Info} ${Green} $(gettext "正在更新语言文件")... ${Font}"
 
-    if ! curl -s -o "${mo_file}" "${github_url}/${lang_code}/LC_MESSAGES/xray_install.mo"; then
+    if ! download_file "${github_url}/${lang_code}/LC_MESSAGES/xray_install.mo" "${mo_file}"; then
         log_echo "${Error} ${RedBG} $(gettext "语言文件更新失败") ${Font}"
         return 1
     fi
@@ -290,7 +360,7 @@ update_language_file() {
         return 1
     fi
 
-    if ! curl -s -o "${version_file}" "${github_url}/${lang_code}/LC_MESSAGES/version"; then
+    if ! download_file "${github_url}/${lang_code}/LC_MESSAGES/version" "${version_file}"; then
         log_echo "${Error} ${RedBG} $(gettext "版本文件更新失败") ${Font}"
         return 1
     fi
@@ -989,11 +1059,10 @@ ensure_file_manager() {
     fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
     if [ ! -f "${idleleo_dir}/file_manager.sh" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件 file_manager.sh 不存在, 正在下载")... ${Font}"
-        if ! curl -sL "$fm_remote_url" -o "${idleleo_dir}/file_manager.sh"; then
+        if ! download_script_file "$fm_remote_url" "${idleleo_dir}/file_manager.sh"; then
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
         fi
-        chmod +x "${idleleo_dir}/file_manager.sh"
     fi
     return 0
 }
@@ -1230,21 +1299,29 @@ modify_reality_listen_address () {
 xray_privilege_escalation() {
     if [[ -n "$(grep "User=nobody" ${xray_systemd_file})" ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动修改程序") ${Font}"
-        chmod -fR a+rw /var/log/xray/
+        chmod -fR 644 /var/log/xray/
         chown -fR nobody:nogroup /var/log/xray/
         [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR nobody:nogroup "${ssl_chainpath}"/*
     fi
     log_echo "${OK} ${GreenBG} Xray $(gettext "修改完成") ${Font}"
 }
 
+set_xray_config_path() {
+    # COMPAT: 以下清理旧版符号链接的代码，旧版通过 ln -s 将 xray_default_conf 指向 xray_conf，未来可删除
+    [[ -L "${xray_default_conf}" || -e "${xray_default_conf}" ]] && rm -f "${xray_default_conf}"
+    if [[ -f "${xray_systemd_file}" ]]; then
+        # COMPAT: sed 匹配旧版默认路径，新版安装后 service 中不再有 xray_default_conf，未来可改为直接写入
+        sed -i "s|-config ${xray_default_conf}|-config ${xray_conf}|g" "${xray_systemd_file}"
+    fi
+}
+
 xray_install() {
     if [[ $(xray version) == "" ]] || [[ ! -f "${xray_conf}" ]]; then
-        bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_online_version}
+        xray_install_release install -f --version v${xray_online_version}
         judge "$(gettext "安装") Xray"
-        systemctl daemon-reload
         xray_privilege_escalation
-        [[ -e "${xray_default_conf}" || -L "${xray_default_conf}" ]] && rm -f "${xray_default_conf}"
-        ln -s "${xray_conf}" "${xray_default_conf}"
+        set_xray_config_path
+        systemctl daemon-reload
         xray_version=${xray_online_version}
     else
         log_echo "${OK} ${GreenBG} $(gettext "已安装") Xray ${Font}"
@@ -1257,6 +1334,7 @@ xray_update() {
     local update_rolled_back=0
     current_xray_version=$(info_extraction xray_version)
     [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
+    # COMPAT: 旧版依赖 /usr/local/etc/xray 目录存放默认配置，新版不再使用，未来可删除
     [[ ! -d "${local_bin}/etc/xray" ]] && log_echo "${GreenBG} $(gettext "若更新无效, 建议直接卸载再安装")! ${Font}"
     log_echo "${Warning} ${GreenBG} $(gettext "部分新功能需要重新安装才可生效") ${Font}"
     ## xray_online_version=$(check_version xray_online_pre_version)
@@ -1271,7 +1349,7 @@ xray_update() {
             [yY][eE][sS] | [yY])
                 log_echo "${OK} ${GreenBG} $(gettext "更新") Xray ! ${Font}"
                 systemctl stop xray
-                if ! bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
+                if ! xray_install_release install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
                     log_echo "${Error} ${RedBG} Xray $(gettext "启动失败")! ${Font}"
                     log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                     read -r rollback_fq
@@ -1287,7 +1365,7 @@ xray_update() {
                             return 1
                         fi
                         xray_version=${current_xray_version}
-                        if bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version "v${xray_version}" && "${xray_bin_dir}/xray" -version &> /dev/null; then
+                        if xray_install_release install -f --version "v${xray_version}" && "${xray_bin_dir}/xray" -version &> /dev/null; then
                             log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
                             update_rolled_back=1
                         else
@@ -1307,13 +1385,13 @@ xray_update() {
             esac
         else
             systemctl stop xray
-            if ! bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
+            if ! xray_install_release install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
                 if [[ -z "${current_xray_version}" || "${current_xray_version}" == "null" ]]; then
                     echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
                     return 1
                 fi
                 xray_version=${current_xray_version}
-                if ! bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version "v${xray_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
+                if ! xray_install_release install -f --version "v${xray_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
                     echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
                     return 1
                 fi
@@ -1326,12 +1404,11 @@ xray_update() {
         timeout "$(gettext "重装") Xray !"
         systemctl stop xray
         xray_version=${xray_online_version}
-        bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ install -f --version v${xray_online_version}
+        xray_install_release install -f --version v${xray_online_version}
         judge "Xray $(gettext "重装")"
     fi
     xray_privilege_escalation
-    [[ -e "${xray_default_conf}" || -L "${xray_default_conf}" ]] && rm -f "${xray_default_conf}"
-    ln -s "${xray_conf}" "${xray_default_conf}"
+    set_xray_config_path
     update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version' || return 1
     systemctl daemon-reload
     systemctl start xray
@@ -1471,7 +1548,7 @@ nginx_install() {
 
     local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}/${nginx_filename}"
 
-    if ! curl -L -# -o "$nginx_filename" "$url"; then
+    if ! curl -fL -# --connect-timeout 10 --retry 2 --retry-delay 1 -o "$nginx_filename" "$url"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "下载失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
         exit 1
@@ -1662,7 +1739,8 @@ auto_update() {
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
-            curl -L -o "${idleleo_dir}/auto_update.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh" && chmod +x "${auto_update_file}"
+            download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh" "${auto_update_file}"
+            judge "$(gettext "下载自动更新脚本")"
             echo "0 1 15 * * bash \"${auto_update_file}\"" >>"${crontab_file}"
             judge "$(gettext "设置自动更新")"
             ;;
@@ -1686,93 +1764,109 @@ auto_update() {
 ssl_install() {
     pkg_install "socat"
     judge "$(gettext "安装 SSL 证书生成脚本依赖")"
-    curl https://get.acme.sh | sh -s email=${custom_email}
-    judge "$(gettext "安装 SSL 证书生成脚本")"
+    local acme_install_file="${idleleo_dir}/tmp/acme-install.sh"
+    if ! download_script_file "https://get.acme.sh" "$acme_install_file" sh; then
+        log_echo "${Error} ${RedBG} $(gettext "下载 SSL 证书生成脚本失败") ${Font}"
+        exit 1
+    fi
+    sh "$acme_install_file" email=${custom_email}
+    local acme_install_ret=$?
+    rm -f "$acme_install_file"
+    if [[ $acme_install_ret -eq 0 ]]; then
+        log_echo "${OK} ${GreenBG} $(gettext "安装 SSL 证书生成脚本") $(gettext "完成") ${Font}"
+        sleep 0.5
+    else
+        log_echo "${Error} ${RedBG} $(gettext "安装 SSL 证书生成脚本") $(gettext "失败") ${Font}"
+        exit 1
+    fi
 }
 
 domain_check() {
-    if [[ "on" == ${old_config_status} ]] && [[ -n $(info_extraction host) ]] && [[ -n $(info_extraction ip_version) ]]; then
+    local ip_version_fq install
+    while true; do
+        if [[ "on" == ${old_config_status} ]] && [[ -n $(info_extraction host) ]] && [[ -n $(info_extraction ip_version) ]]; then
+            echo
+            log_echo "${GreenBG} $(gettext "检测到原域名配置存在, 是否跳过域名设置") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            read -r old_host_fq
+            case $old_host_fq in
+            [nN][oO] | [nN]) ;;
+            *)
+                domain=$(info_extraction host)
+                ip_version=$(info_extraction ip_version)
+                if [[ ${ip_version} == "IPv4" ]]; then
+                    local_ip=$(get_public_ip "IPv4")
+                elif [[ ${ip_version} == "IPv6" ]]; then
+                    local_ip=$(get_public_ip "IPv6")
+                else
+                    local_ip=${ip_version}
+                fi
+                if [[ -z ${local_ip} ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
+                    return 1
+                fi
+                log_echo "${OK} ${GreenBG} $(gettext "已跳过域名设置") ${Font}"
+                return 0
+                ;;
+            esac
+        fi
         echo
-        log_echo "${GreenBG} $(gettext "检测到原域名配置存在, 是否跳过域名设置") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-        read -r old_host_fq
-        case $old_host_fq in
-        [nN][oO] | [nN]) ;;
-        *)
-            domain=$(info_extraction host)
-            ip_version=$(info_extraction ip_version)
-            if [[ ${ip_version} == "IPv4" ]]; then
-                local_ip=$(get_public_ip "IPv4")
-            elif [[ ${ip_version} == "IPv6" ]]; then
-                local_ip=$(get_public_ip "IPv6")
-            else
-                local_ip=${ip_version}
-            fi
-            if [[ -z ${local_ip} ]]; then
-                log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
-                return 1
-            fi
-            log_echo "${OK} ${GreenBG} $(gettext "已跳过域名设置") ${Font}"
-            return 0
-            ;;
-        esac
-    fi
-    echo
-    log_echo "${GreenBG} $(gettext "确定域名信息") ${Font}"
-    read_optimize "$(gettext "请输入你的域名信息") (e.g. www.hey.run):" "domain" "NULL"
-    echo -e "\n${GreenBG} $(gettext "请选择公网IP(IPv4/IPv6)或手动输入域名") ${Font}"
-    echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
-    echo "2: IPv6"
-    echo "3: $(gettext "域名")"
-    local ip_version_fq
-    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!"
-    log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
-    if [[ ${ip_version_fq} == 1 ]]; then
-        local_ip=$(get_public_ip "IPv4")
-        domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
-        ip_version="IPv4"
-    elif [[ ${ip_version_fq} == 2 ]]; then
-        local_ip=$(get_public_ip "IPv6")
-        domain_ip=$(ping -6 "${domain}" -c 1 | sed '2{s/[^(]*(//;s/).*//;q}' | tail -n +2)
-        ip_version="IPv6"
-    elif [[ ${ip_version_fq} == 3 ]]; then
-        log_echo "${Warning} ${GreenBG} $(gettext "此选项用于服务器商仅提供域名访问服务器") ${Font}"
-        log_echo "${Warning} ${GreenBG} $(gettext "注意服务器商域名添加 CNAME 记录") ${Font}"
-        read_optimize "$(gettext "请输入"): " "local_ip" "NULL"
-        ip_version=${local_ip}
-    else
-        local_ip=$(get_public_ip "IPv4")
-        domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
-        ip_version="IPv4"
-    fi
-    if [[ -z ${local_ip} ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
-        return 1
-    fi
-    log_echo "$(gettext "域名DNS解析IP"): ${domain_ip}"
-    log_echo "$(gettext "公网IP/域名"): ${local_ip}"
-    if [[ ${ip_version_fq} != 3 ]] && [[ ${local_ip} == ${domain_ip} ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "域名DNS解析IP与公网IP匹配") ${Font}"
-    else
-        log_echo "${Warning} ${YellowBG} $(gettext "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray") ${Font}"
-        log_echo "${Error} ${RedBG} $(gettext "域名DNS解析IP与公网IP不匹配, 请选择"): ${Font}"
-        echo "1: $(gettext "继续安装")"
-        echo "2: $(gettext "重新输入")"
-        log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
-        local install
-        read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!"
-        case $install in
-        1)
-            log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
-            ;;
-        2)
-            domain_check
-            ;;
-        *)
-            log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"
-            exit 2
-            ;;
-        esac
-    fi
+        log_echo "${GreenBG} $(gettext "确定域名信息") ${Font}"
+        read_optimize "$(gettext "请输入你的域名信息") (e.g. www.hey.run):" "domain" "NULL"
+        echo -e "\n${GreenBG} $(gettext "请选择公网IP(IPv4/IPv6)或手动输入域名") ${Font}"
+        echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
+        echo "2: IPv6"
+        echo "3: $(gettext "域名")"
+        read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!"
+        log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
+        if [[ ${ip_version_fq} == 1 ]]; then
+            local_ip=$(get_public_ip "IPv4")
+            domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
+            ip_version="IPv4"
+        elif [[ ${ip_version_fq} == 2 ]]; then
+            local_ip=$(get_public_ip "IPv6")
+            domain_ip=$(ping -6 "${domain}" -c 1 | sed '2{s/[^(]*(//;s/).*//;q}' | tail -n +2)
+            ip_version="IPv6"
+        elif [[ ${ip_version_fq} == 3 ]]; then
+            log_echo "${Warning} ${GreenBG} $(gettext "此选项用于服务器商仅提供域名访问服务器") ${Font}"
+            log_echo "${Warning} ${GreenBG} $(gettext "注意服务器商域名添加 CNAME 记录") ${Font}"
+            read_optimize "$(gettext "请输入"): " "local_ip" "NULL"
+            ip_version=${local_ip}
+        else
+            local_ip=$(get_public_ip "IPv4")
+            domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
+            ip_version="IPv4"
+        fi
+        if [[ -z ${local_ip} ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
+            return 1
+        fi
+        log_echo "$(gettext "域名DNS解析IP"): ${domain_ip}"
+        log_echo "$(gettext "公网IP/域名"): ${local_ip}"
+        if [[ ${ip_version_fq} != 3 ]] && [[ ${local_ip} == ${domain_ip} ]]; then
+            log_echo "${OK} ${GreenBG} $(gettext "域名DNS解析IP与公网IP匹配") ${Font}"
+            break
+        else
+            log_echo "${Warning} ${YellowBG} $(gettext "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray") ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "域名DNS解析IP与公网IP不匹配, 请选择"): ${Font}"
+            echo "1: $(gettext "继续安装")"
+            echo "2: $(gettext "重新输入")"
+            log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+            read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!"
+            case $install in
+            1)
+                log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
+                break
+                ;;
+            2)
+                continue
+                ;;
+            *)
+                log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"
+                exit 2
+                ;;
+            esac
+        fi
+    done
 }
 
 ip_check() {
@@ -1865,8 +1959,8 @@ acme() {
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
         if "$HOME"/.acme.sh/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
-            chmod -f a+rw "${ssl_chainpath}"/xray.crt
-            chmod -f a+rw "${ssl_chainpath}"/xray.key
+            chmod -f 644 "${ssl_chainpath}"/xray.crt
+            chmod -f 600 "${ssl_chainpath}"/xray.key
             chown -fR nobody:nogroup "${ssl_chainpath}"/*
             log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置成功") ${Font}"
             systemctl stop nginx
@@ -1881,22 +1975,22 @@ acme() {
 xray_conf_add() {
     if [[ $(info_extraction multi_user) != "yes" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
-            judge "$(gettext "下载 Xray TLS 配置")" curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json"
+            judge "$(gettext "下载 Xray TLS 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json" "${xray_conf}"
             modify_listen_address
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "Reality" ]]; then
-            judge "$(gettext "下载 Xray Reality 配置")" curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_reality/config.json"
+            judge "$(gettext "下载 Xray Reality 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_reality/config.json" "${xray_conf}"
             modify_target_serverNames
             modify_privateKey_shortIds
             xray_reality_add_more
         elif [[ ${tls_mode} == "None" ]]; then
-            judge "$(gettext "下载 Xray 配置")" curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json"
+            judge "$(gettext "下载 Xray 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json" "${xray_conf}"
             modify_listen_address
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "XTLS" ]]; then
-            judge "$(gettext "下载 Xray XTLS 配置")" curl -L -o "${xray_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_xtls/config.json"
+            judge "$(gettext "下载 Xray XTLS 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_xtls/config.json" "${xray_conf}"
             modify_listen_address
             modify_inbound_port
         fi
@@ -2377,8 +2471,7 @@ check_cert_status() {
     if [[ ${tls_mode} == "TLS" ]]; then
         host="$(info_extraction host)"
         if [[ -d "$HOME/.acme.sh/${host}_ecc" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.key" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.cer" ]]; then
-            modifyTime=$(stat "$HOME/.acme.sh/${host}_ecc/${host}.cer" | sed -n '7,6p' | awk '{print $2" "$3" "$4" "$5}')
-            modifyTime=$(date +%s -d "${modifyTime}")
+            modifyTime=$(stat -c %Y "$HOME/.acme.sh/${host}_ecc/${host}.cer" 2>/dev/null || stat -f %m "$HOME/.acme.sh/${host}_ecc/${host}.cer" 2>/dev/null)
             currentTime=$(date +%s)
             ((stampDiff = currentTime - modifyTime))
             ((days = stampDiff / 86400))
@@ -2431,13 +2524,28 @@ set_fail2ban() {
     mf_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh"
     if [ ! -f "${idleleo_dir}/fail2ban_manager.sh" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件 fail2ban_manager.sh 不存在, 正在下载")... ${Font}"
-        if ! curl -sL "$mf_remote_url" -o "${idleleo_dir}/fail2ban_manager.sh"; then
+        if ! download_script_file "$mf_remote_url" "${idleleo_dir}/fail2ban_manager.sh"; then
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
         fi
-        chmod +x "${idleleo_dir}/fail2ban_manager.sh"
     fi
     source "${idleleo_dir}/fail2ban_manager.sh"
+}
+
+set_traffic_blocker() {
+    if [[ ! -f "${xray_conf}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "Xray 未安装, 请先安装") Xray ${Font}"
+        return 1
+    fi
+    tb_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"
+    if [ ! -f "${idleleo_dir}/traffic_blocker.sh" ]; then
+        log_echo "${Info} ${Green} $(gettext "本地文件 traffic_blocker.sh 不存在, 正在下载")... ${Font}"
+        if ! download_script_file "$tb_remote_url" "${idleleo_dir}/traffic_blocker.sh"; then
+            log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+            return 1
+        fi
+    fi
+    source "${idleleo_dir}/traffic_blocker.sh"
 }
 
 setup_auto_clean_logs() {
@@ -2664,6 +2772,76 @@ generate_vless_link() {
     echo "$result"
 }
 
+generate_clash_config() {
+    local type=$1
+    local port=$2
+    local path=$3
+    local service_name=$4
+    local security=$5
+    local flow=$6
+    local pbk=$7
+    local sni=$8
+    local target=$9
+    local sid=${10}
+    local tls=${11}
+
+    local clash_name="VLESS-$(info_extraction host)-${type}"
+    local clash_config=""
+
+    if [[ ${type} == "ws" ]]; then
+        clash_config="  - name: ${clash_name}
+    type: vless
+    server: $(info_extraction host)
+    port: ${port}
+    uuid: $(info_extraction id)
+    client-fingerprint: chrome
+    tls: ${tls}
+    flow: ${flow}
+    network: ws
+    ws-opts:
+      path: ${path}
+      headers:
+        Host: $(info_extraction host)
+    skip-cert-verify: false"
+
+    elif [[ ${type} == "grpc" ]]; then
+        clash_config="  - name: ${clash_name}
+    type: vless
+    server: $(info_extraction host)
+    port: ${port}
+    uuid: $(info_extraction id)
+    client-fingerprint: chrome
+    tls: ${tls}
+    flow: ${flow}
+    network: grpc
+    grpc-opts:
+      grpc-service-name: ${service_name}
+    skip-cert-verify: false"
+
+    elif [[ ${type} == "tcp" ]]; then
+        clash_config="  - name: ${clash_name}
+    type: vless
+    server: $(info_extraction host)
+    port: ${port}
+    uuid: $(info_extraction id)
+    client-fingerprint: chrome
+    tls: ${tls}
+    flow: ${flow}
+    network: tcp
+    skip-cert-verify: false"
+    fi
+
+    if [[ ${security} == "reality" ]]; then
+        clash_config="${clash_config}
+    servername: ${sni}
+    reality-opts:
+      public-key: ${pbk}
+      short-id: ${sid}"
+    fi
+
+    echo "${clash_config}"
+}
+
 vless_qr_link_image() {
     local main_id
     main_id=$(info_extraction id)
@@ -2683,78 +2861,6 @@ vless_qr_link_image() {
     elif [[ ${tls_mode} == "XTLS" ]]; then
         vless_link=$(generate_vless_link "$main_id" "xtls")
     fi
-
-    # 生成Clash配置
-    generate_clash_config() {
-        local type=$1
-        local port=$2
-        local path=$3
-        local service_name=$4
-        local security=$5
-        local flow=$6
-        local pbk=$7
-        local sni=$8
-        local target=$9
-        local sid=${10}
-        local tls=${11}
-        
-        local clash_name="VLESS-$(info_extraction host)-${type}"
-        local clash_config=""
-        
-        if [[ ${type} == "ws" ]]; then
-            clash_config="  - name: ${clash_name}
-    type: vless
-    server: $(info_extraction host)
-    port: ${port}
-    uuid: $(info_extraction id)
-    client-fingerprint: chrome
-    tls: ${tls}
-    flow: ${flow}
-    network: ws
-    ws-opts:
-      path: ${path}
-      headers:
-        Host: $(info_extraction host)
-    skip-cert-verify: false"
-            
-        elif [[ ${type} == "grpc" ]]; then
-            clash_config="  - name: ${clash_name}
-    type: vless
-    server: $(info_extraction host)
-    port: ${port}
-    uuid: $(info_extraction id)
-    client-fingerprint: chrome
-    tls: ${tls}
-    flow: ${flow}
-    network: grpc
-    grpc-opts:
-      grpc-service-name: ${service_name}
-    skip-cert-verify: false"
-            
-        elif [[ ${type} == "tcp" ]]; then
-            clash_config="  - name: ${clash_name}
-    type: vless
-    server: $(info_extraction host)
-    port: ${port}
-    uuid: $(info_extraction id)
-    client-fingerprint: chrome
-    tls: ${tls}
-    flow: ${flow}
-    network: tcp
-    skip-cert-verify: false"
-        fi
-        
-        # 添加Reality相关配置
-        if [[ ${security} == "reality" ]]; then
-            clash_config="${clash_config}
-    servername: ${sni}
-    reality-opts:
-      public-key: ${pbk}
-      short-id: ${sid}"
-        fi
-        
-        echo "${clash_config}"
-    }
 
     # 生成Clash配置内容（仅节点部分）
     clash_config_content="proxies:"
@@ -3340,42 +3446,46 @@ show_user() {
 add_user() {
     local choose_user_prot reality_user_more
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
-        echo
-        log_echo "${GreenBG} $(gettext "即将添加用户, 一次仅能添加一个") ${Font}"
-        if [[ ${tls_mode} == "TLS" ]]; then
-            log_echo "${GreenBG} $(gettext "请选择添加用户使用的协议") ws/gRPC ${Font}"
-            echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
-            echo "2: gRPC"
-            local choose_user_prot
-            read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
-            choose_user_prot=$((choose_user_prot - 1))
-            reality_user_more="{}"
-        elif [[ ${tls_mode} == "Reality" ]]; then
-            choose_user_prot=0
-            reality_user_more='{"flow":"xtls-rprx-vision"}'
-        fi
-        email_set
-        UUID_set
-        update_json_config "${xray_conf}" --argjson choose_user_prot "${choose_user_prot}" \
-           --arg UUID "${UUID}" \
-           --argjson reality_user_more "${reality_user_more}" \
-           --arg custom_email "${custom_email}" \
-           '.inbounds[$choose_user_prot].settings.clients += [
-               {"id": $UUID} +
-               ($reality_user_more // {}) +
-               {"level": 0, "email": $custom_email}
-           ]'
-        judge "$(gettext "添加用户")"
-        update_json_config "${xray_qr_config_file}" ". += {\"multi_user\": \"yes\"}"
-        echo
-        log_echo "${GreenBG} $(gettext "是否继续添加用户") [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
-        read -r add_user_continue
-        case $add_user_continue in
-        [yY][eE][sS] | [yY])
-            add_user
-            ;;
-        *) ;;
-        esac
+        local add_user_continue
+        while true; do
+            echo
+            log_echo "${GreenBG} $(gettext "即将添加用户, 一次仅能添加一个") ${Font}"
+            if [[ ${tls_mode} == "TLS" ]]; then
+                log_echo "${GreenBG} $(gettext "请选择添加用户使用的协议") ws/gRPC ${Font}"
+                echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
+                echo "2: gRPC"
+                read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
+                choose_user_prot=$((choose_user_prot - 1))
+                reality_user_more="{}"
+            elif [[ ${tls_mode} == "Reality" ]]; then
+                choose_user_prot=0
+                reality_user_more='{"flow":"xtls-rprx-vision"}'
+            fi
+            email_set
+            UUID_set
+            update_json_config "${xray_conf}" --argjson choose_user_prot "${choose_user_prot}" \
+               --arg UUID "${UUID}" \
+               --argjson reality_user_more "${reality_user_more}" \
+               --arg custom_email "${custom_email}" \
+               '.inbounds[$choose_user_prot].settings.clients += [
+                   {"id": $UUID} +
+                   ($reality_user_more // {}) +
+                   {"level": 0, "email": $custom_email}
+               ]'
+            judge "$(gettext "添加用户")"
+            update_json_config "${xray_qr_config_file}" ". += {\"multi_user\": \"yes\"}"
+            echo
+            log_echo "${GreenBG} $(gettext "是否继续添加用户") [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
+            read -r add_user_continue
+            case $add_user_continue in
+            [yY][eE][sS] | [yY])
+                continue
+                ;;
+            *)
+                break
+                ;;
+            esac
+        done
     elif [[ ${tls_mode} == "None" ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持添加用户")! ${Font}"
     else
@@ -3385,50 +3495,61 @@ add_user() {
 
 remove_user() {
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
-        echo
-        log_echo "${GreenBG} $(gettext "即将删除用户, 一次仅能删除一个") ${Font}"
+        local choose_user_prot
         if [[ ${tls_mode} == "TLS" ]]; then
             log_echo "${GreenBG} $(gettext "请选择删除用户使用的协议") ws/gRPC ${Font}"
             echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
             echo "2: gRPC"
-            local choose_user_prot
             read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
             choose_user_prot=$((choose_user_prot - 1))
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_prot=0
         fi
-        echo
-        log_echo "${GreenBG} $(gettext "请选择要删除的用户编号") ${Font}"
-        jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email "${xray_conf}" | awk '{print NR""": "$0}'
         local del_user_index
-        read_optimize "$(gettext "请输入"): " "del_user_index" "NULL"
-        if [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' "${xray_conf}") -lt ${del_user_index} ]] || [[ ${del_user_index} == 0 ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
-            remove_user
-        elif [[ ${del_user_index} == 1 ]]; then
+        local remove_user_continue
+        while true; do
             echo
-            log_echo "${Error} ${RedBG} $(gettext "主用户无法删除")! ${Font}"
-            echo
-        elif [[ ${del_user_index} -gt 1 ]]; then
-            del_user_index=$((del_user_index - 1))
-            update_json_config "${xray_conf}" --argjson choose_user_prot "${choose_user_prot}" --argjson del_user_index "${del_user_index}" \
-               'del(.inbounds[$choose_user_prot].settings.clients[$del_user_index])'
-            judge "$(gettext "删除用户")"
+            log_echo "${GreenBG} $(gettext "即将删除用户, 一次仅能删除一个") ${Font}"
+            log_echo "${GreenBG} $(gettext "请选择要删除的用户编号") ${Font}"
+            jq -r -c .inbounds[${choose_user_prot}].settings.clients[].email "${xray_conf}" | awk '{print NR""": "$0}'
+            read_optimize "$(gettext "请输入"): " "del_user_index" "NULL"
+            if [[ -z "${del_user_index}" ]] || [[ -n $(echo "${del_user_index}" | sed 's/[0-9]//g') ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
+                continue
+            elif [[ ${del_user_index} == 0 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
+                continue
+            elif [[ $(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' "${xray_conf}") -lt ${del_user_index} ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
+                continue
+            elif [[ ${del_user_index} == 1 ]]; then
+                echo
+                log_echo "${Error} ${RedBG} $(gettext "主用户无法删除")! ${Font}"
+                echo
+                continue
+            elif [[ ${del_user_index} -gt 1 ]]; then
+                del_user_index=$((del_user_index - 1))
+                update_json_config "${xray_conf}" --argjson choose_user_prot "${choose_user_prot}" --argjson del_user_index "${del_user_index}" \
+                   'del(.inbounds[$choose_user_prot].settings.clients[$del_user_index])'
+                judge "$(gettext "删除用户")"
+                local remaining_count
+                remaining_count=$(jq -r '.inbounds['${choose_user_prot}'].settings.clients|length' "${xray_conf}" 2>/dev/null)
+                if [[ "${remaining_count}" -le 1 ]]; then
+                    update_json_config "${xray_qr_config_file}" 'del(.multi_user)'
+                fi
+            fi
             echo
             log_echo "${GreenBG} $(gettext "是否继续删除用户") [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
             read -r remove_user_continue
             case $remove_user_continue in
             [yY][eE][sS] | [yY])
-                remove_user
+                continue
                 ;;
-            *) ;;
+            *)
+                break
+                ;;
             esac
-        elif [[ ! -z $(echo ${del_user_index} | sed 's/[0-9]//g') ]] || [[ ${del_user_index} == '' ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "选择错误")! ${Font}"
-            remove_user
-        else
-            log_echo "${Warning} ${YellowBG} $(gettext "请先检测 Xray 是否正确安装")! ${Font}"
-        fi
+        done
     elif [[ ${tls_mode} == "None" ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持删除用户")! ${Font}"
     else
@@ -3470,7 +3591,7 @@ xray_status_add() {
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
                 service_stop
-                judge "$(gettext "下载流量统计配置")" curl -L -o "${xray_status_conf}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json"
+                judge "$(gettext "下载流量统计配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json" "${xray_status_conf}"
                 local status_config
                 status_config=$(jq -c . "${xray_status_conf}")
                 update_json_config "${xray_conf}" --argjson status_config "${status_config}" \
@@ -3491,14 +3612,19 @@ bbr_boost_sh() {
     if [[ -f "${idleleo_dir}/tcp.sh" ]]; then
         cd ${idleleo_dir} && chmod +x ./tcp.sh && ./tcp.sh
     else
-        curl -L -o "${idleleo_dir}/tcp.sh" "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x "${idleleo_dir}/tcp.sh" && "${idleleo_dir}/tcp.sh"
+        if download_script_file "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" "${idleleo_dir}/tcp.sh"; then
+            "${idleleo_dir}/tcp.sh"
+        else
+            log_echo "${Error} ${RedBG} TCP $(gettext "加速脚本下载失败") ${Font}"
+            return 1
+        fi
     fi
     read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
 }
 
 uninstall_xray() {
     systemctl disable xray
-    bash -c "$(curl -L https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh)" @ remove --purge
+    xray_install_release remove --purge
     [[ -d "${xray_conf_dir}" ]] && safe_rm "${xray_conf_dir}"
     if [[ -f "${xray_qr_config_file}" ]]; then
         update_json_config "${xray_qr_config_file}" -r 'del(.xray_version)'
@@ -3823,7 +3949,7 @@ update_sh() {
         case $update_confirm in
         [yY][eE][sS] | [yY])
             [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
-            curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
+            download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
             if [[ $? -ne 0 ]]; then
                 [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>"${log_file}"
                 [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
@@ -3854,11 +3980,11 @@ check_file_integrity() {
         pkg_install "bc,jq"
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p "${idleleo_dir}"
         [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p "${idleleo_dir}"/tmp
-        curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
+        download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
         judge "$(gettext "下载最新脚本")"
         ln -s "${idleleo}" "${idleleo_commend_file}"
         clear
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
     fi
 }
 
@@ -3936,6 +4062,9 @@ list() {
     '-f' | '--set-fail2ban')
         set_fail2ban
         ;;
+    '-tb' | '--traffic-blocker')
+        set_traffic_blocker
+        ;;
     '-h' | '--help')
         show_help
         ;;
@@ -3956,7 +4085,7 @@ list() {
     '--purge' | '--uninstall')
         uninstall_all
         ;;
-    '-s' | '-show')
+    '-s' | '--show')
         clear
         basic_information
         vless_qr_link_image
@@ -4012,6 +4141,7 @@ show_help() {
     echo "  -cu, --cert-update          $(gettext "更新证书有效期")"
     echo "  -cau, --cert-auto-update    $(gettext "设置证书自动更新")"
     echo "  -f, --set-fail2ban          $(gettext "设置 Fail2ban 防暴力破解")"
+    echo "  -tb, --traffic-blocker      $(gettext "设置 Xray 流量阻断")"
     echo "  -h, --help                  $(gettext "显示帮助")"
     echo "  -l, --language              $(gettext "修改语言")"
     echo "  -n, --nginx-update          $(gettext "更新") Nginx"
@@ -4039,10 +4169,10 @@ idleleo_commend() {
         oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
-            curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
+            download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
             judge "$(gettext "下载最新脚本")"
             clear
-            source "$idleleo"
+            exec "${BASH:-bash}" "${idleleo}"
         elif [[ ${shell_version} != ${oldest_version} ]]; then
             echo
             log_echo "${GreenBG} $(gettext "新版本")(${shell_version}) $(gettext "更新内容"): ${Font}"
@@ -4053,26 +4183,24 @@ idleleo_commend() {
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
-                    rm -rf "${idleleo}"
-                    curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
+                    download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
                     judge "$(gettext "下载最新脚本")"
                     clear
                     log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
                     echo
                     ;;
                 *)
-                    source "$idleleo"
+                    exec "${BASH:-bash}" "${idleleo}"
                     ;;
                 esac
             else
-                rm -rf "${idleleo}"
-                curl -L -o "${idleleo_dir}/install.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" && chmod +x "${idleleo_dir}/install.sh"
+                download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
                 echo
                 judge "$(gettext "下载最新脚本")"
                 clear
                 echo
             fi
-            source "$idleleo"
+            exec "${BASH:-bash}" "${idleleo}"
         else
             ol_version=${shell_online_version}
             echo "${ol_version}" >"${shell_version_tmp}"
@@ -4131,7 +4259,7 @@ check_program() {
 }
 
 curl_local_connect() {
-    curl -Is -o /dev/null -w %{http_code} "https://$1/$2"
+    curl -Is -o /dev/null -w %{http_code} --max-time 10 "https://$1/$2"
 }
 
 check_xray_local_connect() {
@@ -4152,7 +4280,7 @@ check_xray_local_connect() {
 }
 
 check_online_version_connect() {
-    maintain_file_status=$(curl -s -o /dev/null -w "%{http_code}" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/maintain")
+    maintain_file_status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/maintain")
 
     if [[ ${maintain_file_status} == "200" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "脚本维护中.. 请稍后再试")! ${Font}"
@@ -4160,7 +4288,7 @@ check_online_version_connect() {
         exit 0
     fi
 
-    xray_online_version_status=$(curl -s -o /dev/null -w "%{http_code}" "https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json")
+    xray_online_version_status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json")
     if [[ ${xray_online_version_status} != "200" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "无法检测所需依赖的在线版本, 请稍后再试")! ${Font}"
         sleep 0.5
@@ -4244,7 +4372,7 @@ set_language() {
         esac
     fi
 
-    source "$idleleo"
+    exec "${BASH:-bash}" "${idleleo}"
 }
 
 function backup_directories() {
@@ -4368,28 +4496,29 @@ menu() {
     echo -e "${Green}28.${Font} $(gettext "设置") TCP $(gettext "加速")"
     echo -e "${Green}29.${Font} $(gettext "设置") Fail2ban $(gettext "防暴力破解")"
     echo -e "${Green}30.${Font} $(gettext "设置") Xray $(gettext "流量统计")"
-    echo -e "${Green}31.${Font} $(gettext "清除") $(gettext "日志文件")"
-    echo -e "${Green}32.${Font} $(gettext "测试") $(gettext "服务器网速")"
+    echo -e "${Green}31.${Font} $(gettext "设置") Xray $(gettext "流量阻断")"
+    echo -e "${Green}32.${Font} $(gettext "清除") $(gettext "日志文件")"
+    echo -e "${Green}33.${Font} $(gettext "测试") $(gettext "服务器网速")"
     echo -e "—————————————— ${GreenW}$(gettext "备份恢复")${Font} ——————————————"
-    echo -e "${Green}33.${Font} $(gettext "备份") $(gettext "全部文件")"
-    echo -e "${Green}34.${Font} $(gettext "恢复") $(gettext "全部文件")"
+    echo -e "${Green}34.${Font} $(gettext "备份") $(gettext "全部文件")"
+    echo -e "${Green}35.${Font} $(gettext "恢复") $(gettext "全部文件")"
     echo -e "—————————————— ${GreenW}$(gettext "卸载向导")${Font} ——————————————"
-    echo -e "${Green}35.${Font} $(gettext "卸载") $(gettext "脚本")"
-    echo -e "${Green}36.${Font} $(gettext "清空") $(gettext "证书文件")"
-    echo -e "${Green}37.${Font} $(gettext "退出") \n"
+    echo -e "${Green}36.${Font} $(gettext "卸载") $(gettext "脚本")"
+    echo -e "${Green}37.${Font} $(gettext "清空") $(gettext "证书文件")"
+    echo -e "${Green}38.${Font} $(gettext "退出") \n"
 
     local menu_num
     read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 99 "$(gettext "请输入有效的数字")!"
     case $menu_num in
     0)
         update_sh
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     1)
         xray_update
         timeout "$(gettext "清空屏幕")!"
         clear
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     2)
         echo
@@ -4398,19 +4527,19 @@ menu() {
         nginx_update
         timeout "$(gettext "清空屏幕")!"
         clear
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     3)
         shell_mode="Reality"
         tls_mode="Reality"
         install_xray_reality
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     4)
         shell_mode="Nginx+ws+TLS"
         tls_mode="TLS"
         install_xray_ws_tls
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     5)
         echo
@@ -4424,7 +4553,7 @@ menu() {
             ;;
         *) ;;
         esac
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     6)
         echo
@@ -4438,7 +4567,7 @@ menu() {
             ;;
         *) ;;
         esac
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     7)
         reset_UUID
@@ -4521,13 +4650,13 @@ menu() {
         service_start
         timeout "$(gettext "清空屏幕")!"
         clear
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     22)
         service_stop
         timeout "$(gettext "清空屏幕")!"
         clear
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     23)
         if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
@@ -4574,46 +4703,56 @@ menu() {
         menu
         ;;
     31)
-        clean_logs
+        set_traffic_blocker
         menu
         ;;
     32)
+        clean_logs
+        menu
+        ;;
+    33)
         clear
         read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
-        bash <(curl -Lso- https://cdn.jsdelivr.net/gh/hello-yunshu/superspeed@master/superspeed.sh)
+        local superspeed_script="${idleleo_dir}/tmp/superspeed.sh"
+        if download_script_file "https://cdn.jsdelivr.net/gh/hello-yunshu/superspeed@master/superspeed.sh" "$superspeed_script"; then
+            bash "$superspeed_script"
+            rm -f "$superspeed_script"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "网速测试脚本下载失败") ${Font}"
+        fi
         read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
         echo
         menu
         ;;
-    33)
+    34)
         backup_directories
         menu
         ;;
-    34)
+    35)
         restore_directories
         menu
         ;;
-    35)
+    36)
         uninstall_all
         timeout "$(gettext "清空屏幕")!"
         clear
-        source "$idleleo"
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
-    36)
+    37)
         delete_tls_key_and_crt
         rm -rf "${ssl_chainpath}"/*
         timeout "$(gettext "清空屏幕")!"
         clear
         menu
         ;;
-    37)
+    38)
         timeout "$(gettext "清空屏幕")!"
         clear
         exit 0
         ;;
     99)
         set_language
-        bash idleleo
+        exec "${BASH:-bash}" "${idleleo}"
         ;;
     *)
         clear
@@ -4631,5 +4770,4 @@ judge_mode
 idleleo_commend
 check_program
 check_xray_local_connect
-fix_bugs
 list "$@"
