@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.4.1"
+fm_SCRIPT_VERSION="1.5.1"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
