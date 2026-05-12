@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.4.0"
+fm_SCRIPT_VERSION="1.4.1"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -245,12 +245,12 @@ fm_main_menu() {
     fm_list_files
     while true; do
         echo
-        log_echo "${GreenBG} $(gettext "主菜单") ${Font}"
-        log_echo "1 ${Green}$(gettext "列出所有") $fm_EXTENSION $(gettext "文件")${Font}"
-        log_echo "2 ${Green}$(gettext "创建一个新的") $fm_EXTENSION $(gettext "文件")${Font}"
-        log_echo "3 ${Green}$(gettext "编辑一个已存在的") $fm_EXTENSION $(gettext "文件")${Font}"
-        log_echo "4 ${Green}$(gettext "删除一个已存在的") $fm_EXTENSION $(gettext "文件")${Font}"
-        log_echo "5 ${Green}$(gettext "退出")${Font}"
+        echo -e "${GreenBG} $(gettext "主菜单") ${Font}"
+        echo -e "${Green}1.${Font} $(gettext "列出所有") $fm_EXTENSION $(gettext "文件")"
+        echo -e "${Green}2.${Font} $(gettext "创建一个新的") $fm_EXTENSION $(gettext "文件")"
+        echo -e "${Green}3.${Font} $(gettext "编辑一个已存在的") $fm_EXTENSION $(gettext "文件")"
+        echo -e "${Green}4.${Font} $(gettext "删除一个已存在的") $fm_EXTENSION $(gettext "文件")"
+        echo -e "${Green}5.${Font} $(gettext "退出")"
         local choice
         read_optimize "$(gettext "请选择一个选项"):" choice "" 1 5
 

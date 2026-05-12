@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.4.0"
+mf_SCRIPT_VERSION="1.4.1"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -16,13 +16,13 @@ mf_main_menu() {
     check_system
     while true; do
         echo
-        log_echo "${GreenBG} $(gettext "设置") Fail2ban $(gettext "用于防止暴力破解") ${Font}"
-        log_echo "${Green} $(gettext "主菜单") ${Font}"
-        log_echo "1. ${Green}$(gettext "安装") Fail2ban${Font}"
-        log_echo "2. ${Green}$(gettext "管理") Fail2ban${Font}"
-        log_echo "3. ${Green}$(gettext "卸载") Fail2ban${Font}"
-        log_echo "4. ${Green}$(gettext "查看") Fail2ban $(gettext "状态")${Font}"
-        log_echo "5. ${Green}$(gettext "退出")${Font}"
+        echo -e "${GreenBG} $(gettext "设置") Fail2ban $(gettext "用于防止暴力破解") ${Font}"
+        echo -e "${Green} $(gettext "主菜单") ${Font}"
+        echo -e "${Green}1.${Font} $(gettext "安装") Fail2ban"
+        echo -e "${Green}2.${Font} $(gettext "管理") Fail2ban"
+        echo -e "${Green}3.${Font} $(gettext "卸载") Fail2ban"
+        echo -e "${Green}4.${Font} $(gettext "查看") Fail2ban $(gettext "状态")"
+        echo -e "${Green}5.${Font} $(gettext "退出")"
         local fail2ban_fq
         read_optimize "$(gettext "请选择一个选项"):" fail2ban_fq "" 1
         case $fail2ban_fq in
@@ -235,7 +235,7 @@ mf_manage_fail2ban() {
 
     while true; do
         echo
-        log_echo "${Green} $(gettext "请选择") Fail2ban $(gettext "操作"): ${Font}"
+        echo -e "${Green} $(gettext "请选择") Fail2ban $(gettext "操作"): ${Font}"
         echo "1. $(gettext "管理模块")"
         echo "2. $(gettext "添加自定义规则")"
         echo "3. $(gettext "服务管理")"
@@ -254,7 +254,7 @@ mf_manage_fail2ban() {
             # 服务管理子菜单
             while true; do
                 echo
-                log_echo "${Green} $(gettext "服务管理"): ${Font}"
+                echo -e "${Green} $(gettext "服务管理"): ${Font}"
                 echo "1. $(gettext "启动") Fail2ban"
                 echo "2. $(gettext "停止") Fail2ban"
                 echo "3. $(gettext "重启") Fail2ban"
@@ -325,7 +325,7 @@ EOF
 mf_manage_modules() {
     while true; do
         echo
-        log_echo "${Green} $(gettext "管理 Fail2ban 模块") ${Font}"
+        echo -e "${Green} $(gettext "管理 Fail2ban 模块") ${Font}"
 
         local module_files=()
         local module_names=()
@@ -437,8 +437,6 @@ mf_uninstall_fail2ban() {
         rm -f "/etc/fail2ban/filter.d/nginx-tls-error.conf"
     fi
     judge "Fail2ban $(gettext "卸载")"
-    timeout "$(gettext "清空屏幕")!"
-    clear
     exec "${BASH:-bash}" "${idleleo}"
 }
 
