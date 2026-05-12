@@ -151,6 +151,12 @@ if [[ "$has_error" == "true" ]]; then
 fi
 
 if [[ "$has_update" == "true" ]] && [[ -f "${xray_conf}" ]]; then
+    xray_systemd_file="/etc/systemd/system/xray.service"
+    if [[ -f "${xray_systemd_file}" ]] && ! grep -q "XRAY_LOCATION_ASSET" "${xray_systemd_file}"; then
+        sed -i "/^\[Service\]/a Environment=XRAY_LOCATION_ASSET=${idleleo_dir}/share/xray" "${xray_systemd_file}"
+        systemctl daemon-reload
+        echo "Added XRAY_LOCATION_ASSET to xray service" >>"${log_file}"
+    fi
     if systemctl is-active --quiet xray 2>/dev/null; then
         systemctl restart xray
         if systemctl is-active --quiet xray 2>/dev/null; then

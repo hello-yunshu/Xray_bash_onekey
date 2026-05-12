@@ -1353,10 +1353,6 @@ set_xray_config_path() {
     if [[ -f "${xray_systemd_file}" ]]; then
         # COMPAT: sed 匹配旧版默认路径，新版安装后 service 中不再有 xray_default_conf，未来可改为直接写入
         sed -i "s|-config ${xray_default_conf}|-config ${xray_conf}|g" "${xray_systemd_file}"
-
-        if ! grep -q "XRAY_LOCATION_ASSET" "${xray_systemd_file}"; then
-            sed -i "/^\[Service\]/a Environment=XRAY_LOCATION_ASSET=${idleleo_dir}/share/xray" "${xray_systemd_file}"
-        fi
     fi
 }
 

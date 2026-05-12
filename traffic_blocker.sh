@@ -397,6 +397,10 @@ tb_download_geo_file() {
     if download_file "$download_url" "${tb_geo_dir}/${file_name}"; then
         tb_set_geo_local_version "$file_name" "${remote_version}"
         log_echo "${OK} ${GreenBG} $(gettext "下载完成"): ${file_name} (${remote_version}) ${Font}"
+        if [[ -f "${xray_systemd_file}" ]] && ! grep -q "XRAY_LOCATION_ASSET" "${xray_systemd_file}"; then
+            sed -i "/^\[Service\]/a Environment=XRAY_LOCATION_ASSET=${idleleo_dir}/share/xray" "${xray_systemd_file}"
+            systemctl daemon-reload
+        fi
         return 0
     else
         log_echo "${Error} ${RedBG} $(gettext "下载失败"): ${file_name} ${Font}"
