@@ -604,5 +604,7 @@
   "Nginx 未运行, 请手动修复配置": "nginx n’est pas en cours d’exécution, veuillez corriger manuellement la configuration",
   "版本过旧, 正在更新": "version trop ancienne, mise à jour en cours",
   "本地文件": "fichier local",
-  "不存在, 正在下载": "n’existe pas, en cours de téléchargement"
+  "不存在, 正在下载": "n’existe pas, en cours de téléchargement",
+  "版本过旧, 建议更新": "la version est trop ancienne, il est recommandé de la mettre à jour",
+  "版本过旧, 可能存在兼容性问题": "la version est trop ancienne ; des problèmes de compatibilité sont possibles"
 }

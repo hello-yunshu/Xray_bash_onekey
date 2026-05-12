@@ -604,5 +604,7 @@
   "Nginx 未运行, 请手动修复配置": "nginx is not running; please manually fix the configuration",
   "版本过旧, 正在更新": "outdated version; updating now",
   "本地文件": "local file",
-  "不存在, 正在下载": "does not exist, downloading now"
+  "不存在, 正在下载": "does not exist, downloading now",
+  "版本过旧, 建议更新": "the version is too old; please update",
+  "版本过旧, 可能存在兼容性问题": "the version is too old and may have compatibility issues"
 }
