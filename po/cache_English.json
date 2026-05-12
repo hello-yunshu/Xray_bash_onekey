@@ -606,5 +606,11 @@
   "本地文件": "local file",
   "不存在, 正在下载": "does not exist, downloading now",
   "版本过旧, 建议更新": "the version is too old; please update",
-  "版本过旧, 可能存在兼容性问题": "the version is too old and may have compatibility issues"
+  "版本过旧, 可能存在兼容性问题": "the version is too old and may have compatibility issues",
+  "设置 GeoData 定时自动更新 (每周一凌晨3点)": "configure geodata to update automatically on a schedule (every monday at 3:00 am)",
+  "下载 GeoData 自动更新脚本": "download the geodata automatic update script",
+  "设置 GeoData 自动更新": "enable automatic geodata updates",
+  "已设置 GeoData 自动更新": "geodata automatic updates have been enabled",
+  "当前计划": "current plan",
+  "删除 GeoData 自动更新": "disable geodata automatic updates"
 }
