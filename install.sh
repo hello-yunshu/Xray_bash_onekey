@@ -4774,8 +4774,6 @@ menu() {
         menu
         ;;
     38)
-        timeout "$(gettext "清空屏幕")!"
-        clear
         exit 0
         ;;
     99)
@@ -4783,7 +4781,6 @@ menu() {
         exec "${BASH:-bash}" "${idleleo}"
         ;;
     *)
-        clear
         log_echo "${Error} ${RedBG} $(gettext "请输入有效的数字")! ${Font}"
         menu
         ;;

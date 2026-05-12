@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.1"
+tb_SCRIPT_VERSION="1.5.2"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -263,7 +263,7 @@ tb_remove_country() {
 tb_country_menu() {
     while true; do
         echo
-        log_echo "${GreenBG} $(gettext "国家/地区阻断管理") ${Font}"
+        echo -e "${Green} $(gettext "国家/地区阻断管理") ${Font}"
 
         local countries_str=$(tb_get_countries)
         if [[ -n "$countries_str" ]]; then
@@ -441,17 +441,17 @@ tb_main_menu() {
     check_system
     while true; do
         echo
-        log_echo "${GreenBG} $(gettext "设置") Xray $(gettext "流量阻断") ${Font}"
+        echo -e "${GreenBG} $(gettext "设置") Xray $(gettext "流量阻断") ${Font}"
 
         tb_display_status
 
         echo
-        log_echo "${Green} $(gettext "主菜单") ${Font}"
-        log_echo "1. $(gettext "查看阻断规则状态")"
-        log_echo "2. $(gettext "管理阻断规则")"
-        log_echo "3. $(gettext "更新 GeoData")"
-        log_echo "4. $(gettext "重置所有阻断规则")"
-        log_echo "5. $(gettext "退出")"
+        echo -e "${Green} $(gettext "主菜单") ${Font}"
+        echo -e "${Green}1.${Font} $(gettext "查看阻断规则状态")"
+        echo -e "${Green}2.${Font} $(gettext "管理阻断规则")"
+        echo -e "${Green}3.${Font} $(gettext "更新 GeoData")"
+        echo -e "${Green}4.${Font} $(gettext "重置所有阻断规则")"
+        echo -e "${Green}5.${Font} $(gettext "退出")"
         local tb_choice
         read_optimize "$(gettext "请选择一个选项"):" tb_choice "" 1
         case $tb_choice in
@@ -506,7 +506,7 @@ tb_display_geo_summary() {
 tb_geo_menu() {
     while true; do
         echo
-        log_echo "${GreenBG} $(gettext "更新 GeoData") ${Font}"
+        echo -e "${Green} $(gettext "更新 GeoData") ${Font}"
         echo
         tb_display_geo_summary
         echo
@@ -634,7 +634,7 @@ tb_check_geo_updates() {
 tb_manage_rules() {
     while true; do
         echo
-        log_echo "${Green} $(gettext "管理流量阻断规则") ${Font}"
+        echo -e "${Green} $(gettext "管理流量阻断规则") ${Font}"
 
         tb_init_config
 
