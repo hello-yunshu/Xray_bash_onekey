@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.0.0"
+VERSION="1.0.1"
 
 idleleo_dir="/etc/idleleo"
 xray_conf_dir="${idleleo_dir}/conf/xray"
@@ -152,10 +152,26 @@ fi
 
 if [[ "$has_update" == "true" ]] && [[ -f "${xray_conf}" ]]; then
     xray_systemd_file="/etc/systemd/system/xray.service"
-    if [[ -f "${xray_systemd_file}" ]] && ! grep -q "XRAY_LOCATION_ASSET" "${xray_systemd_file}"; then
-        sed -i "/^\[Service\]/a Environment=XRAY_LOCATION_ASSET=${idleleo_dir}/share/xray" "${xray_systemd_file}"
-        systemctl daemon-reload
-        echo "Added XRAY_LOCATION_ASSET to xray service" >>"${log_file}"
+    if [[ -f "${xray_systemd_file}" ]]; then
+        _systemd_files=("${xray_systemd_file}")
+        _override_dir="${xray_systemd_file}.d"
+        if [[ -d "${_override_dir}" ]]; then
+            for _conf_file in "${_override_dir}"/*.conf; do
+                [[ -f "$_conf_file" ]] && _systemd_files+=("$_conf_file")
+            done
+        fi
+        _has_asset_env=false
+        for _svc_file in "${_systemd_files[@]}"; do
+            if grep -q "XRAY_LOCATION_ASSET" "$_svc_file"; then
+                _has_asset_env=true
+                break
+            fi
+        done
+        if [[ "$_has_asset_env" == "false" ]]; then
+            sed -i "/^\[Service\]/a Environment=XRAY_LOCATION_ASSET=${idleleo_dir}/share/xray" "${xray_systemd_file}"
+            systemctl daemon-reload
+            echo "Added XRAY_LOCATION_ASSET to xray service" >>"${log_file}"
+        fi
     fi
     if systemctl is-active --quiet xray 2>/dev/null; then
         systemctl restart xray

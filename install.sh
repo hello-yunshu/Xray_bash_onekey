@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.10.2"
+shell_version="2.10.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -535,7 +535,7 @@ dependency_install() {
             judge "crontab $(gettext "自启动配置")"
         fi
     fi
-    if [[ ${tls_mode} != "None" ]]; then
+    if [[ ${tls_mode} != "None" ]] && [[ ${tls_mode} != "XTLS" ]]; then
         if [[ "${ID}" == "centos" ]]; then
             pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel,perl-IPC-Cmd"
         else
@@ -588,7 +588,7 @@ basic_optimization() {
 }
 
 create_directory() {
-    if [[ ${tls_mode} != "None" ]]; then
+    if [[ ${tls_mode} != "None" ]] && [[ ${tls_mode} != "XTLS" ]]; then
         [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p "${nginx_conf_dir}"
     fi
     [[ ! -d "${ssl_chainpath}" ]] && mkdir -p "${ssl_chainpath}"
@@ -737,11 +737,17 @@ firewall_set() {
         fi
         iptables -A INPUT -i lo -j ACCEPT
         iptables -A OUTPUT -o lo -j ACCEPT
-        if [[ ${tls_mode} == "TLS" || ${tls_mode} == "XTLS" ]]; then
+        if [[ ${tls_mode} == "TLS" ]]; then
             iptables -I INPUT -p tcp -m multiport --dport 53,80,${port} -j ACCEPT
             iptables -I INPUT -p udp -m multiport --dport 53,80,${port} -j ACCEPT
             iptables -I OUTPUT -p tcp -m multiport --sport 53,80,${port} -j ACCEPT
             iptables -I OUTPUT -p udp -m multiport --sport 53,80,${port} -j ACCEPT
+            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+        elif [[ ${tls_mode} == "XTLS" || ${tls_mode} == "Reality" ]]; then
+            iptables -I INPUT -p tcp -m multiport --dport 53,${port} -j ACCEPT
+            iptables -I INPUT -p udp -m multiport --dport 53,${port} -j ACCEPT
+            iptables -I OUTPUT -p tcp -m multiport --sport 53,${port} -j ACCEPT
+            iptables -I OUTPUT -p udp -m multiport --sport 53,${port} -j ACCEPT
             iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
         fi
         if [[ ${ws_grpc_mode} == "onlyws" ]]; then
@@ -988,7 +994,7 @@ serverNames_set() {
         read -r custom_serverNames_fq
         case $custom_serverNames_fq in
         [yY][eE][sS] | [yY])
-            read_optimize "$(gettext "请输入"): " "serverNames" "NULL"
+            read_optimize "$(gettext "请输入单个域名"): " "serverNames" "NULL"
             ;;
         *)
             serverNames=$target
@@ -1044,7 +1050,7 @@ shortIds_set() {
         read -r custom_shortids_fq
         case $custom_shortids_fq in
         [yY][eE][sS] | [yY])
-            read_optimize "$(gettext "请输入") shortIds:" "shortIds" "NULL"
+            read_optimize "$(gettext "请输入单个 shortId"): " "shortIds" "NULL"
             ;;
         *)
             pkg_install "openssl"
@@ -1241,10 +1247,10 @@ modify_nginx_port() {
         sed -i "s/^\( *\)listen.*so_keepalive=on.*/\1listen ${port} reuseport so_keepalive=on backlog=65535;/" "${nginx_conf}"
         judge "Nginx port $(gettext "修改")"
     elif [[ ${tls_mode} == "TLS" ]]; then
-        sed -i "2s/^\( *\).*ssl reuseport;$/\1listen ${port} ssl reuseport;/" "${nginx_conf}"
-        sed -i "3s/^\( *\).*ssl reuseport;$/\1listen [::]:${port} ssl reuseport;/" "${nginx_conf}"
-        sed -i "4s/^\( *\).*quic reuseport;$/\1listen ${port} quic reuseport;/" "${nginx_conf}"
-        sed -i "5s/^\( *\).*quic reuseport;$/\1listen [::]:${port} quic reuseport;/" "${nginx_conf}"
+        sed -i "s/^\( *\)listen [^[]*ssl reuseport;$/\1listen ${port} ssl reuseport;/" "${nginx_conf}"
+        sed -i "s/^\( *\)listen \[::\].*ssl reuseport;$/\1listen [::]:${port} ssl reuseport;/" "${nginx_conf}"
+        sed -i "s/^\( *\)listen [^[]*quic reuseport;$/\1listen ${port} quic reuseport;/" "${nginx_conf}"
+        sed -i "s/^\( *\)listen \[::\].*quic reuseport;$/\1listen [::]:${port} quic reuseport;/" "${nginx_conf}"
         judge "Xray port $(gettext "修改")"
     fi
     [[ "on" != ${old_config_status} ]] && log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
@@ -1266,10 +1272,8 @@ modify_nginx_other() {
         sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" "${nginx_conf}"
         sed -i "s/^\( *\)location ws$/\1location \/${path}/" "${nginx_conf}"
         sed -i "s/^\( *\)location grpc$/\1location \/${serviceName}/" "${nginx_conf}"
-        sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${domain}\$request_uri;/" "${nginx_conf}"
         if is_ws_mode; then
             sed -i "s/^\( *\)#proxy_pass\(.*\)/\1proxy_pass\2/" "${nginx_conf}"
-            sed -i "s/^\( *\)#proxy_redirect default;/\1proxy_redirect default;/" "${nginx_conf}"
         fi
         if is_grpc_mode; then
             sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" "${nginx_conf}"
@@ -1291,44 +1295,68 @@ EOF
 modify_path() {
     sed -i "s/^\( *\)\"path\".*/\1\"path\": \"\/${path}\"/" "${xray_conf}"
     sed -i "s/^\( *\)\"serviceName\".*/\1\"serviceName\": \"${serviceName}\",/" "${xray_conf}"
-    if [[ ${tls_mode} != "Reality" ]] || [[ "$reality_add_more" == "off" ]]; then
-        judge "Xray $(gettext "伪装路径") $(gettext "修改")"
-    else
+    if [[ ${tls_mode} == "Reality" ]] && [[ "$reality_add_more" == "off" ]]; then
         log_echo "${Warning} ${YellowBG} Reality $(gettext "不支持") path ${Font}"
+    else
+        judge "Xray $(gettext "伪装路径") $(gettext "修改")"
     fi
 }
 
 modify_email_address() {
-    if [[ $(jq -r '.inbounds[0].settings.clients|length' "${xray_conf}") == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' "${xray_conf}") == 1 ]]; then
-        sed -i "s/^\( *\)\"email\".*/\1\"email\": \"${custom_email}\"/g" "${xray_conf}"
-        judge "Xray $(gettext "用户名修改")"
+    local inbound_count
+    inbound_count=$(jq '.inbounds | length' "${xray_conf}")
+    if [[ ${inbound_count} -eq 1 ]]; then
+        if [[ $(jq -r '.inbounds[0].settings.clients|length' "${xray_conf}") == 1 ]]; then
+            sed -i "s/^\( *\)\"email\".*/\1\"email\": \"${custom_email}\"/g" "${xray_conf}"
+            judge "Xray $(gettext "用户名修改")"
+        else
+            echo
+            log_echo "${Warning} ${YellowBG} $(gettext "请先删除多余的用户") ${Font}"
+        fi
     else
-        echo
-        log_echo "${Warning} ${YellowBG} $(gettext "请先删除多余的用户") ${Font}"
+        if [[ $(jq -r '.inbounds[0].settings.clients|length' "${xray_conf}") == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' "${xray_conf}") == 1 ]]; then
+            sed -i "s/^\( *\)\"email\".*/\1\"email\": \"${custom_email}\"/g" "${xray_conf}"
+            judge "Xray $(gettext "用户名修改")"
+        else
+            echo
+            log_echo "${Warning} ${YellowBG} $(gettext "请先删除多余的用户") ${Font}"
+        fi
     fi
 }
 
 modify_UUID() {
-    if [[ $(jq -r '.inbounds[0].settings.clients|length' "${xray_conf}") == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' "${xray_conf}") == 1 ]]; then
-        sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/g" "${xray_conf}"
-        judge "Xray UUID $(gettext "修改")"
+    local inbound_count
+    inbound_count=$(jq '.inbounds | length' "${xray_conf}")
+    if [[ ${inbound_count} -eq 1 ]]; then
+        if [[ $(jq -r '.inbounds[0].settings.clients|length' "${xray_conf}") == 1 ]]; then
+            sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/g" "${xray_conf}"
+            judge "Xray UUID $(gettext "修改")"
+        else
+            echo
+            log_echo "${Warning} ${YellowBG} $(gettext "请先删除多余的用户") ${Font}"
+        fi
     else
-        echo
-        log_echo "${Warning} ${YellowBG} $(gettext "请先删除多余的用户") ${Font}"
+        if [[ $(jq -r '.inbounds[0].settings.clients|length' "${xray_conf}") == 1 ]] && [[ $(jq -r '.inbounds[1].settings.clients|length' "${xray_conf}") == 1 ]]; then
+            sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/g" "${xray_conf}"
+            judge "Xray UUID $(gettext "修改")"
+        else
+            echo
+            log_echo "${Warning} ${YellowBG} $(gettext "请先删除多余的用户") ${Font}"
+        fi
     fi
 }
 
 modify_target_serverNames() {
-  update_json_config "${xray_conf}" --arg target "${target}:443" --arg serverNames "${serverNames}" '
+  update_json_config "${xray_conf}" --arg target "${target}:443" --arg serverName "${serverNames}" '
      .inbounds[0].streamSettings.realitySettings.target = $target |
-     .inbounds[0].streamSettings.realitySettings.serverNames = [$serverNames]'
+     .inbounds[0].streamSettings.realitySettings.serverNames = [$serverName]'
   judge "target serverNames $(gettext "配置修改")"
 }
 
 modify_privateKey_shortIds() {
-  update_json_config "${xray_conf}" --arg privateKey "${privateKey}" --arg shortIds "${shortIds}" '
+  update_json_config "${xray_conf}" --arg privateKey "${privateKey}" --arg shortId "${shortIds}" '
      .inbounds[0].streamSettings.realitySettings.privateKey = $privateKey |
-     .inbounds[0].streamSettings.realitySettings.shortIds = [$shortIds]'
+     .inbounds[0].streamSettings.realitySettings.shortIds = [$shortId]'
   judge "privateKey shortIds $(gettext "配置修改")"
 }
 
@@ -1350,9 +1378,18 @@ xray_privilege_escalation() {
 set_xray_config_path() {
     # COMPAT: 以下清理旧版符号链接的代码，旧版通过 ln -s 将 xray_default_conf 指向 xray_conf，未来可删除
     [[ -L "${xray_default_conf}" || -e "${xray_default_conf}" ]] && rm -f "${xray_default_conf}"
-    if [[ -f "${xray_systemd_file}" ]]; then
-        # COMPAT: sed 匹配旧版默认路径，新版安装后 service 中不再有 xray_default_conf，未来可改为直接写入
-        sed -i "s|-config ${xray_default_conf}|-config ${xray_conf}|g" "${xray_systemd_file}"
+    if [[ ! -f "${xray_systemd_file}" ]]; then
+        return
+    fi
+    # COMPAT: sed 匹配旧版默认路径，新版安装后 service 中不再有 xray_default_conf，未来可改为直接写入
+    sed -i "s|-config ${xray_default_conf}|-config ${xray_conf}|g" "${xray_systemd_file}"
+    # COMPAT: Xray 官方安装脚本将 ExecStart 放在 override drop-in 文件中，优先级高于主服务文件，需同步修改
+    local systemd_override_dir="${xray_systemd_file}.d"
+    if [[ -d "${systemd_override_dir}" ]]; then
+        local conf_file
+        for conf_file in "${systemd_override_dir}"/*.conf; do
+            [[ -f "$conf_file" ]] && sed -i "s|-config ${xray_default_conf}|-config ${xray_conf}|g" "$conf_file"
+        done
     fi
 }
 
@@ -1367,6 +1404,9 @@ xray_install() {
     else
         log_echo "${OK} ${GreenBG} $(gettext "已安装") Xray ${Font}"
         xray_version=$(info_extraction xray_version)
+        if [[ -z "${xray_version}" ]]; then
+            xray_version=$(${xray_bin_dir}/xray version | head -1 | awk '{print $2}')
+        fi
     fi
 }
 
@@ -1672,6 +1712,10 @@ nginx_update() {
                         return 1
                     fi
                 elif [[ ${tls_mode} == "None" ]]; then
+                    [[ ${auto_update} == "YES" ]] && echo "$(gettext "当前安装模式不需要") Nginx !" >>"${log_file}" && return 1
+                    log_echo "${Error} ${RedBG} $(gettext "当前安装模式不需要") Nginx ! ${Font}"
+                    return 1
+                elif [[ ${tls_mode} == "XTLS" ]]; then
                     [[ ${auto_update} == "YES" ]] && echo "$(gettext "当前安装模式不需要") Nginx !" >>"${log_file}" && return 1
                     log_echo "${Error} ${RedBG} $(gettext "当前安装模式不需要") Nginx ! ${Font}"
                     return 1
@@ -2250,8 +2294,7 @@ server {
     ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;
     ssl_ecdh_curve        X25519:prime256v1:secp384r1;
     server_name           serveraddr.com;
-    index index.html index.htm;
-    root /403.html;
+    root /var/www/html;
     error_page 403 https://hey.run/helloworld;
     ssl_session_cache shared:SSL:10m;
     ssl_session_timeout 1d;
@@ -2407,7 +2450,6 @@ EOF
 
 nginx_reality_serverNames_del () {
     [[ -f "${nginx_conf_dir}/${serverNames}.serverNames" ]] && rm -f "${nginx_conf_dir}/${serverNames}.serverNames"
-    # modify_nginx_reality_serverNames
     judge "Nginx serverNames $(gettext "配置删除")"
 
 }
@@ -2444,9 +2486,9 @@ disable_process_systemd() {
 }
 
 stop_service_all() {
-    [[ -f "${nginx_systemd_file}" ]] && systemctl stop nginx && systemctl disable nginx
-    systemctl stop xray
-    systemctl disable xray
+    [[ -f "${nginx_systemd_file}" ]] && { systemctl stop nginx 2>/dev/null; systemctl disable nginx 2>/dev/null; }
+    systemctl stop xray 2>/dev/null
+    systemctl disable xray 2>/dev/null
     log_echo "${OK} ${GreenBG} $(gettext "停止") ${Font}"
 }
 
@@ -2701,15 +2743,13 @@ EOF
 }
 
 vless_qr_config_xtls_only() {
-    if [[ "on" == ${old_config_status} ]]; then
-        port=$(info_extraction port)
-    fi
     cat >"${xray_qr_config_file}" <<-EOF
 {
     "shell_mode": "${shell_mode}",
+    "ws_grpc_mode": "None",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
-    "port": "${port}",
+    "port": ${port},
     "tls": "XTLS",
     "email": "${custom_email}",
     "idc": "${UUID5_char}",
@@ -2916,28 +2956,31 @@ $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rp
         if [[ ${reality_add_more} == "on" ]]; then
             if is_ws_mode; then
                 clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")"
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "false")"
             fi
             if is_grpc_mode; then
                 clash_config_content="${clash_config_content}
-$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
+$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "false")"
             fi
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         if is_ws_mode; then
             clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "" "false")"
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_extraction path)" "" "none" "" "" "" "" "" "false")"
         fi
         if is_grpc_mode; then
             clash_config_content="${clash_config_content}
-$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "" "false")"
+$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_extraction serviceName)" "none" "" "" "" "" "" "false")"
         fi
+    elif [[ ${tls_mode} == "XTLS" ]]; then
+        clash_config_content="${clash_config_content}
+$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "xtls-rprx-vision" "" "" "" "" "false")"
     fi
     
     {
         echo
         log_echo "${Red} —————————————— Xray $(gettext "链接分享") —————————————— ${Font}"
-        if [[ ${tls_mode} == "Reality" ]]; then
+        if [[ ${tls_mode} == "Reality" ]] || [[ ${tls_mode} == "XTLS" ]]; then
             log_echo "${Red} URL $(gettext "分享链接"):${Font} ${vless_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_link}" | qrencode -o - -t utf8
@@ -3083,6 +3126,21 @@ basic_information() {
         Reality+ws+gRPC)
             log_echo "${OK} ${GreenBG} Xray+Reality+ws+gRPC $(gettext "安装成功") ${Font}"
             ;;
+        Nginx+Reality)
+            log_echo "${OK} ${GreenBG} Xray+Nginx+Reality $(gettext "安装成功") ${Font}"
+            ;;
+        Nginx+Reality+ws)
+            log_echo "${OK} ${GreenBG} Xray+Nginx+Reality+ws $(gettext "安装成功") ${Font}"
+            ;;
+        Nginx+Reality+gRPC)
+            log_echo "${OK} ${GreenBG} Xray+Nginx+Reality+gRPC $(gettext "安装成功") ${Font}"
+            ;;
+        Nginx+Reality+ws+gRPC)
+            log_echo "${OK} ${GreenBG} Xray+Nginx+Reality+ws+gRPC $(gettext "安装成功") ${Font}"
+            ;;
+        *+Balance)
+            log_echo "${OK} ${GreenBG} Xray+${shell_mode} $(gettext "安装成功") ${Font}"
+            ;;
         ws\ ONLY)
             log_echo "${OK} ${GreenBG} ws ONLY $(gettext "安装成功") ${Font}"
             ;;
@@ -3190,7 +3248,7 @@ ssl_judge_and_install() {
                 judge "$(gettext "证书应用")"
                 ;;
             esac
-        elif [[ -f "${ssl_chainpath}/xray.key" || -f "${ssl_chainpath}/xray.crt" ]] && [[ ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+        elif [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] && [[ ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
             log_echo "${GreenBG} $(gettext "证书文件已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r ssl_delete_2
             case $ssl_delete_2 in
@@ -3203,7 +3261,6 @@ ssl_judge_and_install() {
             *)
                 chown -fR nobody:nogroup "${ssl_chainpath}"/*
                 judge "$(gettext "证书应用")"
-                ssl_self="on"
                 ;;
             esac
         elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt" ]]; then
@@ -3256,20 +3313,22 @@ EOF
 tls_type() {
     if [[ -f "${nginx_conf}" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
-            echo
-            log_echo "${GreenBG} $(gettext "请选择支持的 TLS 版本") (default:2): ${Font}"
-            log_echo "${GreenBG} $(gettext "建议选择 TLSv1.3 only (安全模式)") ${Font}"
-            echo -e "1: TLSv1.2 and TLSv1.3 ($(gettext "兼容模式"))"
-            echo -e "${Red}2${Font}: TLSv1.3 only ($(gettext "安全模式"))"
-            local choose_tls
-            read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")!"
-            if [[ ${choose_tls} == 1 ]]; then
-                log_echo "${Error} ${RedBG} $(gettext "由于 h3 仅支持 TLSv1.3, 只支持 TLSv1.3 only (安全模式)")! ${Font}"
-                tls_type
-            else
-                sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
-                log_echo "${OK} ${GreenBG} $(gettext "已切换至") TLSv1.3 only ${Font}"
-            fi
+            while true; do
+                echo
+                log_echo "${GreenBG} $(gettext "请选择支持的 TLS 版本") (default:2): ${Font}"
+                log_echo "${GreenBG} $(gettext "建议选择 TLSv1.3 only (安全模式)") ${Font}"
+                echo -e "1: TLSv1.2 and TLSv1.3 ($(gettext "兼容模式"))"
+                echo -e "${Red}2${Font}: TLSv1.3 only ($(gettext "安全模式"))"
+                local choose_tls
+                read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")!"
+                if [[ ${choose_tls} == 1 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "由于 h3 仅支持 TLSv1.3, 只支持 TLSv1.3 only (安全模式)")! ${Font}"
+                else
+                    sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
+                    log_echo "${OK} ${GreenBG} $(gettext "已切换至") TLSv1.3 only ${Font}"
+                    break
+                fi
+            done
         elif [[ ${tls_mode} == "Reality" && ${reality_add_nginx} == "on" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "请选择 TLS 版本") (default:1): ${Font}"
@@ -3377,6 +3436,11 @@ reset_port() {
                --argjson grpc_port "$gport" \
                '.ws_port = $ws_port | .grpc_port = $grpc_port'
             modify_inbound_port
+        elif [[ ${tls_mode} == "XTLS" ]]; then
+            port_set
+            update_json_config "${xray_qr_config_file}" --argjson port "${port}" '.port = $port'
+            modify_inbound_port
+            log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         fi
         firewall_set
         service_restart
@@ -3411,7 +3475,7 @@ reset_target() {
 
 show_user() {
     if [[ ${tls_mode} == "None" ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持删除用户")! ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持查看用户")! ${Font}"
         return
     fi
     if [[ ! -f "${xray_qr_config_file}" ]] || [[ ! -f "${xray_conf}" ]]; then
@@ -3433,6 +3497,8 @@ show_user() {
             read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
             choose_user_prot=$((choose_user_prot - 1))
         elif [[ ${tls_mode} == "Reality" ]]; then
+            choose_user_prot=0
+        elif [[ ${tls_mode} == "XTLS" ]]; then
             choose_user_prot=0
         fi
         echo
@@ -3461,6 +3527,8 @@ show_user() {
                 fi
             elif [[ ${tls_mode} == "Reality" ]]; then
                 user_vless_link=$(generate_vless_link "$user_id" "reality")
+            elif [[ ${tls_mode} == "XTLS" ]]; then
+                user_vless_link=$(generate_vless_link "$user_id" "xtls")
             fi
             log_echo "${Red} URL $(gettext "分享链接"):${Font} ${user_vless_link}"
             echo -n "${user_vless_link}" | qrencode -o - -t utf8
@@ -3493,6 +3561,9 @@ add_user() {
                 choose_user_prot=$((choose_user_prot - 1))
                 reality_user_more="{}"
             elif [[ ${tls_mode} == "Reality" ]]; then
+                choose_user_prot=0
+                reality_user_more='{"flow":"xtls-rprx-vision"}'
+            elif [[ ${tls_mode} == "XTLS" ]]; then
                 choose_user_prot=0
                 reality_user_more='{"flow":"xtls-rprx-vision"}'
             fi
@@ -3538,6 +3609,8 @@ remove_user() {
             read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
             choose_user_prot=$((choose_user_prot - 1))
         elif [[ ${tls_mode} == "Reality" ]]; then
+            choose_user_prot=0
+        elif [[ ${tls_mode} == "XTLS" ]]; then
             choose_user_prot=0
         fi
         local del_user_index
@@ -3808,6 +3881,9 @@ judge_mode() {
             None)
                 shell_mode="${ws_grpc_mode_add} ONLY"
                 ;;
+            XTLS)
+                shell_mode="XTLS ONLY"
+                ;;
             *)
                 ;;
         esac
@@ -3837,6 +3913,7 @@ install_xray_ws_tls() {
     vless_qr_config_tls_ws
     stop_service_all
     xray_install
+    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check 80
     port_exist_check "${port}"
     nginx_exist_check
@@ -3883,6 +3960,7 @@ install_xray_reality() {
     reality_nginx_add_fq
     xray_conf_add
     vless_qr_config_reality
+    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     tls_type
     basic_information
     enable_process_systemd
@@ -3911,6 +3989,7 @@ install_xray_xtls_only() {
     vless_qr_config_xtls_only
     stop_service_all
     xray_install
+    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check "${port}"
     xray_conf_add
     basic_information
@@ -3943,6 +4022,7 @@ install_xray_ws_only() {
     vless_qr_config_ws_only
     stop_service_all
     xray_install
+    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check "${xport}"
     port_exist_check "${gport}"
     xray_conf_add
@@ -4281,7 +4361,7 @@ idleleo_commend() {
 check_program() {
     if [[ -n $(pgrep nginx) ]]; then
         nginx_status="${Green}$(gettext "运行中")..${Font}"
-    elif [[ ${tls_mode} == "None" ]] || [[ ${reality_add_nginx} == "off" ]]; then
+    elif [[ ${tls_mode} == "None" ]] || [[ ${tls_mode} == "XTLS" ]] || [[ ${tls_mode} == "Reality" && ${reality_add_nginx} != "on" ]]; then
         nginx_status="${Green}$(gettext "无需测试")${Font}"
     else
         nginx_status="${Red}$(gettext "未运行")${Font}"
@@ -4307,6 +4387,8 @@ check_xray_local_connect() {
         elif [[ ${tls_mode} == "Reality" ]]; then
             xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
         elif [[ ${tls_mode} == "None" ]]; then
+            xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
+        elif [[ ${tls_mode} == "XTLS" ]]; then
             xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
         fi
     else
