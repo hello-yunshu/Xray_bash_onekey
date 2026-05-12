@@ -1070,11 +1070,21 @@ ensure_sub_script() {
         local required_version
         required_version=$(grep '^MIN_MAIN_VERSION=' "$local_file" | head -1 | sed 's/MIN_MAIN_VERSION="//; s/"//')
         if [ -z "$required_version" ]; then
-            log_echo "${Warning} ${YellowBG} ${script_name} $(gettext "版本过旧, 正在更新")... ${Font}"
-            if ! download_script_file "$remote_url" "$local_file"; then
-                log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
-                return 1
-            fi
+            log_echo "${Warning} ${YellowBG} ${script_name} $(gettext "版本过旧, 建议更新") ${Font}"
+            log_echo "${GreenBG} $(gettext "是否下载并安装新版本") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            local update_choice
+            read -r update_choice
+            case $update_choice in
+                [yY][eE][sS] | [yY])
+                    if ! download_script_file "$remote_url" "$local_file"; then
+                        log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+                        return 1
+                    fi
+                    ;;
+                *)
+                    log_echo "${Warning} ${YellowBG} ${script_name} $(gettext "版本过旧, 可能存在兼容性问题") ${Font}"
+                    ;;
+            esac
         else
             local oldest
             oldest=$(printf '%s\n%s\n' "$required_version" "$shell_version" | sort -V | head -1)
