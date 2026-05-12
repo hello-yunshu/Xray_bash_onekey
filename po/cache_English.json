@@ -612,5 +612,8 @@
   "设置 GeoData 自动更新": "enable automatic geodata updates",
   "已设置 GeoData 自动更新": "geodata automatic updates have been enabled",
   "当前计划": "current plan",
-  "删除 GeoData 自动更新": "disable geodata automatic updates"
+  "删除 GeoData 自动更新": "disable geodata automatic updates",
+  "请输入单个域名": "please enter a single domain name",
+  "请输入单个 shortId": "please enter a single short id",
+  "此模式不支持查看用户": "this mode does not support viewing users"
 }
