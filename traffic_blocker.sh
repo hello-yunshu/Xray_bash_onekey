@@ -14,7 +14,6 @@ fi
 tb_config_file="${xray_conf_dir}/traffic_blocker.json"
 tb_geo_dir="${local_bin}/share/xray"
 tb_geo_remote="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
-tb_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"
 
 tb_all_rule_names=("country_block" "bittorrent" "private_ip" "ads")
 
