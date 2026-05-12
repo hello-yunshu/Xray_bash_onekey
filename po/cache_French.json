@@ -606,5 +606,11 @@
   "本地文件": "fichier local",
   "不存在, 正在下载": "n’existe pas, en cours de téléchargement",
   "版本过旧, 建议更新": "la version est trop ancienne, il est recommandé de la mettre à jour",
-  "版本过旧, 可能存在兼容性问题": "la version est trop ancienne ; des problèmes de compatibilité sont possibles"
+  "版本过旧, 可能存在兼容性问题": "la version est trop ancienne ; des problèmes de compatibilité sont possibles",
+  "设置 GeoData 定时自动更新 (每周一凌晨3点)": "configurer la mise à jour automatique des données géographiques (chaque lundi à 3 heures du matin)",
+  "下载 GeoData 自动更新脚本": "télécharger le script de mise à jour automatique de geodata",
+  "设置 GeoData 自动更新": "configurer la mise à jour automatique des données géographiques",
+  "已设置 GeoData 自动更新": "la mise à jour automatique des données géographiques a été configurée",
+  "当前计划": "plan actuel",
+  "删除 GeoData 自动更新": "supprimer la mise à jour automatique des données géographiques"
 }
