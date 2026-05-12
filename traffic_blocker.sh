@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.2"
+tb_SCRIPT_VERSION="1.5.3"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -12,7 +12,7 @@ if [ -n "$shell_version" ]; then
 fi
 
 tb_config_file="${xray_conf_dir}/traffic_blocker.json"
-tb_geo_dir="${local_bin}/share/xray"
+tb_geo_dir="${idleleo_dir}/share/xray"
 tb_geo_remote="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
 
 tb_all_rule_names=("country_block" "bittorrent" "private_ip" "ads")
@@ -502,6 +502,48 @@ tb_display_geo_summary() {
     fi
 }
 
+tb_geo_auto_update() {
+    if [[ $(crontab -l 2>/dev/null | grep -c "geo_update.sh") -lt 1 ]]; then
+        echo
+        log_echo "${GreenBG} $(gettext "设置 GeoData 定时自动更新 (每周一凌晨3点)") ${Font}"
+        log_echo "${GreenBG} $(gettext "是否启用") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r geo_auto_fq
+        case $geo_auto_fq in
+        [yY][eE][sS] | [yY])
+            if [[ ! -f "${geo_update_file}" ]]; then
+                download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/geo_update.sh" "${geo_update_file}"
+                judge "$(gettext "下载 GeoData 自动更新脚本")"
+            fi
+            if [[ -f "${geo_update_file}" ]]; then
+                if [[ "${ID}" == "centos" ]]; then
+                    pkg_install "crontabs"
+                    systemctl start crond >/dev/null 2>&1 && systemctl enable crond >/dev/null 2>&1
+                else
+                    pkg_install "cron"
+                    systemctl start cron >/dev/null 2>&1 && systemctl enable cron >/dev/null 2>&1
+                fi
+                (crontab -l 2>/dev/null; echo "0 3 * * 1 bash \"${geo_update_file}\"") | crontab -
+                judge "$(gettext "设置 GeoData 自动更新")"
+            fi
+            ;;
+        *) ;;
+        esac
+    else
+        log_echo "${OK} ${GreenBG} $(gettext "已设置 GeoData 自动更新") ${Font}"
+        log_echo "${Info} ${Green} $(gettext "当前计划"): $(crontab -l 2>/dev/null | grep "geo_update.sh") ${Font}"
+        log_echo "${GreenBG} $(gettext "是否关闭") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r geo_auto_close_fq
+        case $geo_auto_close_fq in
+        [yY][eE][sS] | [yY])
+            crontab -l 2>/dev/null | grep -v "geo_update.sh" | crontab -
+            rm -rf "${geo_update_file}"
+            judge "$(gettext "删除 GeoData 自动更新")"
+            ;;
+        *) ;;
+        esac
+    fi
+}
+
 tb_geo_menu() {
     while true; do
         echo
@@ -513,7 +555,8 @@ tb_geo_menu() {
         echo "2. $(gettext "更新") geoip.dat"
         echo "3. $(gettext "更新") geosite.dat"
         echo "4. $(gettext "检查更新")"
-        echo "5. $(gettext "返回")"
+        echo "5. $(gettext "设置自动更新")"
+        echo "6. $(gettext "返回")"
         local geo_choice
         read_optimize "$(gettext "请选择一个选项"):" geo_choice "" 1
         case $geo_choice in
@@ -521,7 +564,8 @@ tb_geo_menu() {
             2) tb_update_geo_file "geoip.dat" ;;
             3) tb_update_geo_file "geosite.dat" ;;
             4) tb_check_geo_updates ;;
-            5) return ;;
+            5) tb_geo_auto_update ;;
+            6) return ;;
             *)
                 echo
                 log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"

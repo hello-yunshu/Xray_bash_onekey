@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.10.1"
+shell_version="2.10.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -64,6 +64,7 @@ xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 auto_update_file="${idleleo_dir}/auto_update.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
+geo_update_file="${idleleo_dir}/geo_update.sh"
 myemali="my@example.com"
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=""
@@ -1352,6 +1353,21 @@ set_xray_config_path() {
     if [[ -f "${xray_systemd_file}" ]]; then
         # COMPAT: sed 匹配旧版默认路径，新版安装后 service 中不再有 xray_default_conf，未来可改为直接写入
         sed -i "s|-config ${xray_default_conf}|-config ${xray_conf}|g" "${xray_systemd_file}"
+
+        if ! grep -q "XRAY_LOCATION_ASSET" "${xray_systemd_file}"; then
+            sed -i "/^\[Service\]/a Environment=XRAY_LOCATION_ASSET=${idleleo_dir}/share/xray" "${xray_systemd_file}"
+        fi
+    fi
+
+    # COMPAT: 迁移旧版 /usr/local/share/xray 下的 geodata 文件到 idleleo 目录
+    local old_geo_dir="${local_bin}/share/xray"
+    local new_geo_dir="${idleleo_dir}/share/xray"
+    if [[ -d "${old_geo_dir}" ]] && [[ "$(ls -A "${old_geo_dir}" 2>/dev/null)" ]]; then
+        mkdir -p "${new_geo_dir}"
+        for f in "${old_geo_dir}"/*; do
+            [[ -f "$f" ]] && mv "$f" "${new_geo_dir}/"
+        done
+        rmdir "${old_geo_dir}" 2>/dev/null || true
     fi
 }
 
@@ -4550,8 +4566,6 @@ menu() {
         ;;
     1)
         xray_update
-        timeout "$(gettext "清空屏幕")!"
-        clear
         exec "${BASH:-bash}" "${idleleo}"
         ;;
     2)
@@ -4559,8 +4573,6 @@ menu() {
         log_echo "${Red}[$(gettext "不建议")]${Font} $(gettext "频繁更新 Nginx, 请确认 Nginx 有更新的必要")!"
         timeout "$(gettext "开始更新")!"
         nginx_update
-        timeout "$(gettext "清空屏幕")!"
-        clear
         exec "${BASH:-bash}" "${idleleo}"
         ;;
     3)
@@ -4625,14 +4637,10 @@ menu() {
         ;;
     11)
         nginx_upstream_server_set
-        timeout "$(gettext "清空屏幕")!"
-        clear
         menu
         ;;
     12)
         nginx_servernames_server_set
-        timeout "$(gettext "清空屏幕")!"
-        clear
         menu
         ;;
     13)
@@ -4676,20 +4684,14 @@ menu() {
         ;;
     20)
         service_restart
-        timeout "$(gettext "清空屏幕")!"
-        clear
         menu
         ;;
     21)
         service_start
-        timeout "$(gettext "清空屏幕")!"
-        clear
         exec "${BASH:-bash}" "${idleleo}"
         ;;
     22)
         service_stop
-        timeout "$(gettext "清空屏幕")!"
-        clear
         exec "${BASH:-bash}" "${idleleo}"
         ;;
     23)
@@ -4711,14 +4713,10 @@ menu() {
         ;;
     26)
         acme_cron_update
-        timeout "$(gettext "回到菜单")!"
-        clear
         menu
         ;;
     27)
         auto_update
-        timeout "$(gettext "清空屏幕")!"
-        clear
         menu
         ;;
     28)
@@ -4768,15 +4766,11 @@ menu() {
         ;;
     36)
         uninstall_all
-        timeout "$(gettext "清空屏幕")!"
-        clear
         exec "${BASH:-bash}" "${idleleo}"
         ;;
     37)
         delete_tls_key_and_crt
         rm -rf "${ssl_chainpath}"/*
-        timeout "$(gettext "清空屏幕")!"
-        clear
         menu
         ;;
     38)
