@@ -56,13 +56,13 @@ RUN ln -sf /etc/idleleo/install.sh /usr/bin/idleleo && \
     chmod +x /etc/idleleo/install.sh /etc/idleleo/auto_update.sh \
     /etc/idleleo/fail2ban_manager.sh \
     /etc/idleleo/file_manager.sh /etc/idleleo/traffic_blocker.sh \
-    /etc/idleleo/ssl_update.sh && \
+    /etc/idleleo/ssl_update.sh /etc/idleleo/geo_update.sh && \
     mkdir -p /etc/idleleo/conf/xray /etc/idleleo/conf/nginx \
     /etc/idleleo/cert /etc/idleleo/info /etc/idleleo/logs \
     /etc/idleleo/tmp /var/log/xray /root/.acme.sh
 
 RUN mkdir -p /etc/systemd/system && \
-    printf '[Unit]\nDescription=Xray Service\n[Service]\nType=simple\nExecStart=/usr/local/bin/xray run -config /etc/idleleo/conf/xray/config.json\n[Install]\nWantedBy=multi-user.target\n' > /etc/systemd/system/xray.service && \
+    printf '[Unit]\nDescription=Xray Service\n[Service]\nType=simple\nEnvironment=XRAY_LOCATION_ASSET=/etc/idleleo/share/xray\nExecStart=/usr/local/bin/xray run -config /etc/idleleo/conf/xray/config.json\n[Install]\nWantedBy=multi-user.target\n' > /etc/systemd/system/xray.service && \
     printf '[Unit]\nDescription=NGINX HTTP and reverse proxy server\n[Service]\nType=forking\nPIDFile=/usr/local/nginx/logs/nginx.pid\nExecStart=/usr/local/nginx/sbin/nginx\nExecReload=/usr/local/nginx/sbin/nginx -s reload\nExecStop=/bin/kill -s QUIT \\$MAINPID\n[Install]\nWantedBy=multi-user.target\n' > /etc/systemd/system/nginx.service && \
     echo '* soft nofile 65536' >> /etc/security/limits.conf && \
     echo '* hard nofile 65536' >> /etc/security/limits.conf
