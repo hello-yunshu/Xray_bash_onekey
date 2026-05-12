@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.10.0"
+shell_version="2.10.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1059,6 +1059,12 @@ ensure_sub_script() {
     local script_name="$1"
     local remote_url="$2"
     local local_file="${idleleo_dir}/${script_name}"
+
+    case "$script_name" in
+        fail2ban_manager.sh) mf_remote_url="$remote_url" ;;
+        file_manager.sh) fm_remote_url="$remote_url" ;;
+        traffic_blocker.sh) tb_remote_url="$remote_url" ;;
+    esac
 
     if [ ! -f "$local_file" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件") ${script_name} $(gettext "不存在, 正在下载")... ${Font}"
