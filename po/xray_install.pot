@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-05-12 00:40+0000\n"
+"POT-Creation-Date: 2026-05-12 01:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,9 +30,9 @@ msgstr ""
 msgid "警告"
 msgstr ""
 
-#: install.sh:38 install.sh:1757 install.sh:4247 install.sh:4264
-#: install.sh:4267 install.sh:4268 install.sh:4306 traffic_blocker.sh:490
-#: traffic_blocker.sh:502 traffic_blocker.sh:617
+#: install.sh:38 install.sh:1763 install.sh:4253 install.sh:4270
+#: install.sh:4273 install.sh:4274 install.sh:4312 traffic_blocker.sh:489
+#: traffic_blocker.sh:501 traffic_blocker.sh:616
 msgid "未安装"
 msgstr ""
 
@@ -96,7 +96,7 @@ msgstr ""
 msgid "语言文件更新完成"
 msgstr ""
 
-#: install.sh:376 install.sh:3008
+#: install.sh:376 install.sh:3014
 msgid "正在安装"
 msgstr ""
 
@@ -120,11 +120,11 @@ msgstr ""
 msgid "发现语言文件更新"
 msgstr ""
 
-#: install.sh:464 install.sh:1810 install.sh:1974
+#: install.sh:464 install.sh:1816 install.sh:1980
 msgid "完成"
 msgstr ""
 
-#: install.sh:467 install.sh:1813
+#: install.sh:467 install.sh:1819
 msgid "失败"
 msgstr ""
 
@@ -132,15 +132,15 @@ msgstr ""
 msgid "在线版本检测失败, 请稍后再试"
 msgstr ""
 
-#: install.sh:503 install.sh:511 install.sh:1355 install.sh:4160
-#: install.sh:4161 install.sh:4162 install.sh:4163 install.sh:4493
-#: install.sh:4494 install.sh:4495 install.sh:4496 fail2ban_manager.sh:21
+#: install.sh:503 install.sh:511 install.sh:1361 install.sh:4166
+#: install.sh:4167 install.sh:4168 install.sh:4169 install.sh:4499
+#: install.sh:4500 install.sh:4501 install.sh:4502 fail2ban_manager.sh:21
 #: fail2ban_manager.sh:48
 msgid "安装"
 msgstr ""
 
-#: install.sh:505 install.sh:513 install.sh:1361 install.sh:3012
-#: install.sh:4256
+#: install.sh:505 install.sh:513 install.sh:1367 install.sh:3018
+#: install.sh:4262
 msgid "已安装"
 msgstr ""
 
@@ -172,9 +172,9 @@ msgstr ""
 msgid "默认值"
 msgstr ""
 
-#: install.sh:602 install.sh:605 install.sh:689 install.sh:711 install.sh:3327
-#: install.sh:3332 install.sh:3337 install.sh:3338 install.sh:3352
-#: install.sh:3357 install.sh:3362 install.sh:3363
+#: install.sh:602 install.sh:605 install.sh:689 install.sh:711 install.sh:3333
+#: install.sh:3338 install.sh:3343 install.sh:3344 install.sh:3358
+#: install.sh:3363 install.sh:3368 install.sh:3369
 msgid "请输入 0-65535 之间的值"
 msgstr ""
 
@@ -186,27 +186,27 @@ msgstr ""
 msgid "请选择安装协议"
 msgstr ""
 
-#: install.sh:614 install.sh:1850 install.sh:1887 install.sh:1939
-#: install.sh:3270 install.sh:3424 install.sh:3483 install.sh:3529
+#: install.sh:614 install.sh:1856 install.sh:1893 install.sh:1945
+#: install.sh:3276 install.sh:3430 install.sh:3489 install.sh:3535
 #: fail2ban_manager.sh:307 fail2ban_manager.sh:308
 msgid "默认"
 msgstr ""
 
 #: install.sh:618 install.sh:689 install.sh:711 install.sh:793 install.sh:832
-#: install.sh:990 install.sh:1009 install.sh:1046 install.sh:1114
-#: install.sh:1853 install.sh:1866 install.sh:1888 install.sh:1943
-#: install.sh:1953 install.sh:3258 install.sh:3273 install.sh:3327
-#: install.sh:3332 install.sh:3337 install.sh:3338 install.sh:3352
-#: install.sh:3357 install.sh:3362 install.sh:3363 install.sh:3426
-#: install.sh:3434 install.sh:3485 install.sh:3531 install.sh:3543
+#: install.sh:990 install.sh:1009 install.sh:1046 install.sh:1120
+#: install.sh:1859 install.sh:1872 install.sh:1894 install.sh:1949
+#: install.sh:1959 install.sh:3264 install.sh:3279 install.sh:3333
+#: install.sh:3338 install.sh:3343 install.sh:3344 install.sh:3358
+#: install.sh:3363 install.sh:3368 install.sh:3369 install.sh:3432
+#: install.sh:3440 install.sh:3491 install.sh:3537 install.sh:3549
 #: fail2ban_manager.sh:244 fail2ban_manager.sh:263 fail2ban_manager.sh:305
 #: file_manager.sh:96
 msgid "请输入"
 msgstr ""
 
-#: install.sh:618 install.sh:1114 install.sh:1853 install.sh:1888
-#: install.sh:1943 install.sh:3258 install.sh:3273 install.sh:3426
-#: install.sh:3485 install.sh:3531 install.sh:4539 install.sh:4784
+#: install.sh:618 install.sh:1120 install.sh:1859 install.sh:1894
+#: install.sh:1949 install.sh:3264 install.sh:3279 install.sh:3432
+#: install.sh:3491 install.sh:3537 install.sh:4545 install.sh:4790
 msgid "请输入有效的数字"
 msgstr ""
 
@@ -214,7 +214,7 @@ msgstr ""
 msgid "是否添加简单 ws/gRPC 协议 用于负载均衡"
 msgstr ""
 
-#: install.sh:640 install.sh:1462
+#: install.sh:640 install.sh:1468
 msgid "如不清楚具体用途, 请勿选择"
 msgstr ""
 
@@ -240,9 +240,9 @@ msgstr ""
 msgid "防火墙"
 msgstr ""
 
-#: install.sh:768 install.sh:772 install.sh:2449 install.sh:2452
-#: install.sh:3285 install.sh:3287 install.sh:4514 fail2ban_manager.sh:260
-#: fail2ban_manager.sh:454 traffic_blocker.sh:559 traffic_blocker.sh:584
+#: install.sh:768 install.sh:772 install.sh:2455 install.sh:2458
+#: install.sh:3291 install.sh:3293 install.sh:4520 fail2ban_manager.sh:260
+#: fail2ban_manager.sh:454 traffic_blocker.sh:558 traffic_blocker.sh:583
 msgid "重启"
 msgstr ""
 
@@ -254,8 +254,8 @@ msgstr ""
 msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr ""
 
-#: install.sh:776 install.sh:4165 install.sh:4181 install.sh:4182
-#: install.sh:4503 install.sh:4523 fail2ban_manager.sh:190
+#: install.sh:776 install.sh:4171 install.sh:4187 install.sh:4188
+#: install.sh:4509 install.sh:4529 fail2ban_manager.sh:190
 msgid "配置"
 msgstr ""
 
@@ -265,7 +265,7 @@ msgstr ""
 
 #: install.sh:789 install.sh:793 install.sh:794 install.sh:798 install.sh:807
 #: install.sh:828 install.sh:832 install.sh:833 install.sh:837 install.sh:846
-#: install.sh:1288
+#: install.sh:1294
 msgid "伪装路径"
 msgstr ""
 
@@ -273,7 +273,7 @@ msgstr ""
 msgid "不需要"
 msgstr ""
 
-#: install.sh:865 install.sh:875 install.sh:3447
+#: install.sh:865 install.sh:875 install.sh:3453
 msgid "用户名"
 msgstr ""
 
@@ -297,8 +297,8 @@ msgstr ""
 msgid "自定义字符串"
 msgstr ""
 
-#: install.sh:895 install.sh:3115 install.sh:4184 install.sh:4498
-#: install.sh:4602
+#: install.sh:895 install.sh:3121 install.sh:4190 install.sh:4504
+#: install.sh:4608
 msgid "映射字符串"
 msgstr ""
 
@@ -338,7 +338,7 @@ msgstr ""
 msgid "是否仍要设置此域名"
 msgstr ""
 
-#: install.sh:971 install.sh:976 install.sh:1852
+#: install.sh:971 install.sh:976 install.sh:1858
 msgid "域名"
 msgstr ""
 
@@ -358,1468 +358,1468 @@ msgstr ""
 msgid "域名本身"
 msgstr ""
 
-#: install.sh:986 install.sh:1104 install.sh:1146
+#: install.sh:986 install.sh:1110 install.sh:1152
 msgid "如不清楚具体用途, 请勿继续"
 msgstr ""
 
-#: install.sh:1064
+#: install.sh:1070
 msgid "本地文件"
 msgstr ""
 
-#: install.sh:1064
+#: install.sh:1070
 msgid "不存在, 正在下载"
 msgstr ""
 
-#: install.sh:1066 install.sh:1080 fail2ban_manager.sh:518 file_manager.sh:291
-#: traffic_blocker.sh:998
+#: install.sh:1072 install.sh:1086 fail2ban_manager.sh:518 file_manager.sh:291
+#: traffic_blocker.sh:997
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr ""
 
-#: install.sh:1073
+#: install.sh:1079
 msgid "版本过旧, 建议更新"
 msgstr ""
 
-#: install.sh:1074 fail2ban_manager.sh:507 file_manager.sh:280
-#: traffic_blocker.sh:987
+#: install.sh:1080 fail2ban_manager.sh:507 file_manager.sh:280
+#: traffic_blocker.sh:986
 msgid "是否下载并安装新版本"
 msgstr ""
 
-#: install.sh:1085
+#: install.sh:1091
 msgid "版本过旧, 可能存在兼容性问题"
 msgstr ""
 
-#: install.sh:1092 fail2ban_manager.sh:10 file_manager.sh:10
+#: install.sh:1098 fail2ban_manager.sh:10 file_manager.sh:10
 #: traffic_blocker.sh:9
 msgid "需要主脚本版本"
 msgstr ""
 
-#: install.sh:1092 fail2ban_manager.sh:10 fail2ban_manager.sh:504
+#: install.sh:1098 fail2ban_manager.sh:10 fail2ban_manager.sh:504
 #: file_manager.sh:10 file_manager.sh:277 traffic_blocker.sh:9
-#: traffic_blocker.sh:570 traffic_blocker.sh:984
+#: traffic_blocker.sh:569 traffic_blocker.sh:983
 msgid "当前版本"
 msgstr ""
 
-#: install.sh:1092 fail2ban_manager.sh:10 file_manager.sh:10
+#: install.sh:1098 fail2ban_manager.sh:10 file_manager.sh:10
 #: traffic_blocker.sh:9
 msgid "请先更新主脚本"
 msgstr ""
 
-#: install.sh:1103 install.sh:1145
+#: install.sh:1109 install.sh:1151
 msgid "是否变更"
 msgstr ""
 
-#: install.sh:1103
+#: install.sh:1109
 msgid "负载均衡"
 msgstr ""
 
-#: install.sh:1109
+#: install.sh:1115
 msgid "请选择协议为 ws 或 gRPC"
 msgstr ""
 
-#: install.sh:1112 fail2ban_manager.sh:242 fail2ban_manager.sh:261
-#: fail2ban_manager.sh:356 fail2ban_manager.sh:385 traffic_blocker.sh:240
-#: traffic_blocker.sh:278 traffic_blocker.sh:433 traffic_blocker.sh:517
-#: traffic_blocker.sh:663
+#: install.sh:1118 fail2ban_manager.sh:242 fail2ban_manager.sh:261
+#: fail2ban_manager.sh:356 fail2ban_manager.sh:385 traffic_blocker.sh:239
+#: traffic_blocker.sh:277 traffic_blocker.sh:432 traffic_blocker.sh:516
+#: traffic_blocker.sh:662
 msgid "返回"
 msgstr ""
 
-#: install.sh:1122 file_manager.sh:265
+#: install.sh:1128 file_manager.sh:265
 msgid "无效选项, 请重试"
 msgstr ""
 
-#: install.sh:1134 install.sh:1160 install.sh:2500 install.sh:2537
-#: install.sh:2553
+#: install.sh:1140 install.sh:1166 install.sh:2506 install.sh:2543
+#: install.sh:2559
 msgid "当前模式不支持此操作"
 msgstr ""
 
-#: install.sh:1147
+#: install.sh:1153
 msgid "配置用途可以参考文章"
 msgstr ""
 
-#: install.sh:1176 install.sh:1186 install.sh:1191 install.sh:1202
-#: install.sh:1207 install.sh:1211 install.sh:1216 install.sh:1235
-#: install.sh:1241 install.sh:1288 install.sh:1307 install.sh:4182
-#: install.sh:4464
+#: install.sh:1182 install.sh:1192 install.sh:1197 install.sh:1208
+#: install.sh:1213 install.sh:1217 install.sh:1222 install.sh:1241
+#: install.sh:1247 install.sh:1294 install.sh:1313 install.sh:4188
+#: install.sh:4470
 msgid "修改"
 msgstr ""
 
-#: install.sh:1243 install.sh:3099 install.sh:3102 install.sh:3105
-#: install.sh:3109 install.sh:3112 install.sh:3138 install.sh:3142
-#: install.sh:3321
+#: install.sh:1249 install.sh:3105 install.sh:3108 install.sh:3111
+#: install.sh:3115 install.sh:3118 install.sh:3144 install.sh:3148
+#: install.sh:3327
 msgid "端口"
 msgstr ""
 
-#: install.sh:1290
+#: install.sh:1296
 msgid "不支持"
 msgstr ""
 
-#: install.sh:1297
+#: install.sh:1303
 msgid "用户名修改"
 msgstr ""
 
-#: install.sh:1300 install.sh:1310
+#: install.sh:1306 install.sh:1316
 msgid "请先删除多余的用户"
 msgstr ""
 
-#: install.sh:1318 install.sh:1325 install.sh:1330 install.sh:2224
-#: install.sh:2295 install.sh:2380 install.sh:2388 install.sh:2397
-#: install.sh:2420
+#: install.sh:1324 install.sh:1331 install.sh:1336 install.sh:2230
+#: install.sh:2301 install.sh:2386 install.sh:2394 install.sh:2403
+#: install.sh:2426
 msgid "配置修改"
 msgstr ""
 
-#: install.sh:1335
+#: install.sh:1341
 msgid "检测到 Xray 的权限控制, 启动修改程序"
 msgstr ""
 
-#: install.sh:1340
+#: install.sh:1346
 msgid "修改完成"
 msgstr ""
 
-#: install.sh:1372
+#: install.sh:1378
 msgid "若更新无效, 建议直接卸载再安装"
 msgstr ""
 
-#: install.sh:1373
+#: install.sh:1379
 msgid "部分新功能需要重新安装才可生效"
 msgstr ""
 
-#: install.sh:1378
+#: install.sh:1384
 msgid "检测到存在最新版"
 msgstr ""
 
-#: install.sh:1379
+#: install.sh:1385
 msgid "脚本可能未兼容此版本"
 msgstr ""
 
-#: install.sh:1380
+#: install.sh:1386
 msgid "是否更新"
 msgstr ""
 
-#: install.sh:1384 install.sh:1413 install.sh:1749 install.sh:4175
-#: install.sh:4187 install.sh:4482 install.sh:4483 install.sh:4484
-#: install.sh:4520 traffic_blocker.sh:514 traffic_blocker.sh:515
+#: install.sh:1390 install.sh:1419 install.sh:1755 install.sh:4181
+#: install.sh:4193 install.sh:4488 install.sh:4489 install.sh:4490
+#: install.sh:4526 traffic_blocker.sh:513 traffic_blocker.sh:514
 msgid "更新"
 msgstr ""
 
-#: install.sh:1387 install.sh:1714
+#: install.sh:1393 install.sh:1720
 msgid "启动失败"
 msgstr ""
 
-#: install.sh:1388 install.sh:1717
+#: install.sh:1394 install.sh:1723
 msgid "是否回滚到之前的版本"
 msgstr ""
 
-#: install.sh:1392 install.sh:1731
+#: install.sh:1398 install.sh:1737
 msgid "未执行回滚操作"
 msgstr ""
 
-#: install.sh:1396 install.sh:1720 install.sh:1735
+#: install.sh:1402 install.sh:1726 install.sh:1741
 msgid "正在回滚"
 msgstr ""
 
-#: install.sh:1398 install.sh:4256
+#: install.sh:1404 install.sh:4262
 msgid "版本未知"
 msgstr ""
 
-#: install.sh:1398 install.sh:1406 install.sh:1424 install.sh:1429
-#: install.sh:1725 install.sh:1742
+#: install.sh:1404 install.sh:1412 install.sh:1430 install.sh:1435
+#: install.sh:1731 install.sh:1748
 msgid "回滚失败"
 msgstr ""
 
-#: install.sh:1403 install.sh:1722 install.sh:1737
+#: install.sh:1409 install.sh:1728 install.sh:1743
 msgid "已成功回滚到之前的"
 msgstr ""
 
-#: install.sh:1403 install.sh:1722 install.sh:1737 install.sh:4501
-#: install.sh:4617
+#: install.sh:1409 install.sh:1728 install.sh:1743 install.sh:4507
+#: install.sh:4623
 msgid "版本"
 msgstr ""
 
-#: install.sh:1438 install.sh:1442
+#: install.sh:1444 install.sh:1448
 msgid "重装"
 msgstr ""
 
-#: install.sh:1450 install.sh:1451 traffic_blocker.sh:821
+#: install.sh:1456 install.sh:1457 traffic_blocker.sh:820
 msgid "更新失败"
 msgstr ""
 
-#: install.sh:1460
+#: install.sh:1466
 msgid "是否添加 Reality 负载均衡"
 msgstr ""
 
-#: install.sh:1461
+#: install.sh:1467
 msgid "使用此功能前，建议先阅读作者教程"
 msgstr ""
 
-#: install.sh:1467 fail2ban_manager.sh:120 fail2ban_manager.sh:130
+#: install.sh:1473 fail2ban_manager.sh:120 fail2ban_manager.sh:130
 #: fail2ban_manager.sh:155 fail2ban_manager.sh:181 fail2ban_manager.sh:376
-#: traffic_blocker.sh:424 traffic_blocker.sh:654
+#: traffic_blocker.sh:423 traffic_blocker.sh:653
 msgid "已启用"
 msgstr ""
 
-#: install.sh:1471
+#: install.sh:1477
 msgid "已跳过"
 msgstr ""
 
-#: install.sh:1480
+#: install.sh:1486
 msgid "Reality 协议有流量偷跑的风险"
 msgstr ""
 
-#: install.sh:1482 install.sh:1509
+#: install.sh:1488 install.sh:1515
 msgid "是否额外安装 nginx 前置保护"
 msgstr ""
 
-#: install.sh:1482
+#: install.sh:1488
 msgid "推荐"
 msgstr ""
 
-#: install.sh:1489 install.sh:1524
+#: install.sh:1495 install.sh:1530
 msgid "检测到已安装"
 msgstr ""
 
-#: install.sh:1492 install.sh:1527
+#: install.sh:1498 install.sh:1533
 msgid "已跳过安装"
 msgstr ""
 
-#: install.sh:1506
+#: install.sh:1512
 msgid "检测到已开启 Reality 负载均衡"
 msgstr ""
 
-#: install.sh:1507
+#: install.sh:1513
 msgid "如用作 Reality 负载均衡主服务器必须安装"
 msgstr ""
 
-#: install.sh:1508
+#: install.sh:1514
 msgid "如用作 Reality 负载均衡二级服务器则无需安装"
 msgstr ""
 
-#: install.sh:1552
+#: install.sh:1558
 msgid "已存在, 跳过编译安装过程"
 msgstr ""
 
-#: install.sh:1554
+#: install.sh:1560
 msgid "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装"
 msgstr ""
 
-#: install.sh:1567
+#: install.sh:1573
 msgid "即将下载已编译的"
 msgstr ""
 
-#: install.sh:1577
+#: install.sh:1583
 msgid "不支持的系统架构"
 msgstr ""
 
-#: install.sh:1586 traffic_blocker.sh:403
+#: install.sh:1592 traffic_blocker.sh:402
 msgid "下载失败"
 msgstr ""
 
-#: install.sh:1590
+#: install.sh:1596
 msgid "下载成功"
 msgstr ""
 
-#: install.sh:1593
+#: install.sh:1599
 msgid "解压失败"
 msgstr ""
 
-#: install.sh:1655 install.sh:1656 install.sh:1663 install.sh:1664
+#: install.sh:1661 install.sh:1662 install.sh:1669 install.sh:1670
 msgid "配置不完整, 退出更新"
 msgstr ""
 
-#: install.sh:1668 install.sh:1669
+#: install.sh:1674 install.sh:1675
 msgid "当前安装模式不需要"
 msgstr ""
 
-#: install.sh:1673 install.sh:1674
+#: install.sh:1679 install.sh:1680
 msgid "配置不存在, 退出更新"
 msgstr ""
 
-#: install.sh:1683
+#: install.sh:1689
 msgid "备份旧版"
 msgstr ""
 
-#: install.sh:1684
+#: install.sh:1690
 msgid "删除旧版"
 msgstr ""
 
-#: install.sh:1688
+#: install.sh:1694
 msgid "是否保留原 Nginx 配置文件"
 msgstr ""
 
-#: install.sh:1696 install.sh:2042
+#: install.sh:1702 install.sh:2048
 msgid "原配置文件已删除"
 msgstr ""
 
-#: install.sh:1700
+#: install.sh:1706
 msgid "原配置文件已保留"
 msgstr ""
 
-#: install.sh:1751 install.sh:4507
+#: install.sh:1757 install.sh:4513
 msgid "删除"
 msgstr ""
 
-#: install.sh:1751 install.sh:4531
+#: install.sh:1757 install.sh:4537
 msgid "备份"
 msgstr ""
 
-#: install.sh:1754
+#: install.sh:1760
 msgid "已为最新版"
 msgstr ""
 
-#: install.sh:1770
+#: install.sh:1776
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
 
-#: install.sh:1771
+#: install.sh:1777
 msgid "可能自动更新后有兼容问题, 谨慎启用"
 msgstr ""
 
-#: install.sh:1772 fail2ban_manager.sh:147 fail2ban_manager.sh:173
+#: install.sh:1778 fail2ban_manager.sh:147 fail2ban_manager.sh:173
 msgid "是否启用"
 msgstr ""
 
-#: install.sh:1777
+#: install.sh:1783
 msgid "下载自动更新脚本"
 msgstr ""
 
-#: install.sh:1779 install.sh:4166
+#: install.sh:1785 install.sh:4172
 msgid "设置自动更新"
 msgstr ""
 
-#: install.sh:1784
+#: install.sh:1790
 msgid "已设置自动更新"
 msgstr ""
 
-#: install.sh:1785
+#: install.sh:1791
 msgid "是否关闭"
 msgstr ""
 
-#: install.sh:1791
+#: install.sh:1797
 msgid "删除自动更新"
 msgstr ""
 
-#: install.sh:1800
+#: install.sh:1806
 msgid "安装 SSL 证书生成脚本依赖"
 msgstr ""
 
-#: install.sh:1803
+#: install.sh:1809
 msgid "下载 SSL 证书生成脚本失败"
 msgstr ""
 
-#: install.sh:1810 install.sh:1813
+#: install.sh:1816 install.sh:1819
 msgid "安装 SSL 证书生成脚本"
 msgstr ""
 
-#: install.sh:1823
+#: install.sh:1829
 msgid "检测到原域名配置存在, 是否跳过域名设置"
 msgstr ""
 
-#: install.sh:1838 install.sh:1874 install.sh:1927 install.sh:1960
+#: install.sh:1844 install.sh:1880 install.sh:1933 install.sh:1966
 msgid "无法获取公网IP地址"
 msgstr ""
 
-#: install.sh:1838 install.sh:1874 install.sh:1898 install.sh:1927
-#: install.sh:1960
+#: install.sh:1844 install.sh:1880 install.sh:1904 install.sh:1933
+#: install.sh:1966
 msgid "安装终止"
 msgstr ""
 
-#: install.sh:1841
+#: install.sh:1847
 msgid "已跳过域名设置"
 msgstr ""
 
-#: install.sh:1847
+#: install.sh:1853
 msgid "确定域名信息"
 msgstr ""
 
-#: install.sh:1848
+#: install.sh:1854
 msgid "请输入你的域名信息"
 msgstr ""
 
-#: install.sh:1849
+#: install.sh:1855
 msgid "请选择公网IP(IPv4/IPv6)或手动输入域名"
 msgstr ""
 
-#: install.sh:1854 install.sh:1945
+#: install.sh:1860 install.sh:1951
 msgid "正在获取公网IP信息, 请耐心等待"
 msgstr ""
 
-#: install.sh:1864
+#: install.sh:1870
 msgid "此选项用于服务器商仅提供域名访问服务器"
 msgstr ""
 
-#: install.sh:1865
+#: install.sh:1871
 msgid "注意服务器商域名添加 CNAME 记录"
 msgstr ""
 
-#: install.sh:1877
+#: install.sh:1883
 msgid "域名DNS解析IP"
 msgstr ""
 
-#: install.sh:1878 install.sh:1963
+#: install.sh:1884 install.sh:1969
 msgid "公网IP/域名"
 msgstr ""
 
-#: install.sh:1880
+#: install.sh:1886
 msgid "域名DNS解析IP与公网IP匹配"
 msgstr ""
 
-#: install.sh:1883
+#: install.sh:1889
 msgid "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray"
 msgstr ""
 
-#: install.sh:1884
+#: install.sh:1890
 msgid "域名DNS解析IP与公网IP不匹配, 请选择"
 msgstr ""
 
-#: install.sh:1885 install.sh:1891
+#: install.sh:1891 install.sh:1897
 msgid "继续安装"
 msgstr ""
 
-#: install.sh:1886
+#: install.sh:1892
 msgid "重新输入"
 msgstr ""
 
-#: install.sh:1887
+#: install.sh:1893
 msgid "终止安装"
 msgstr ""
 
-#: install.sh:1910
+#: install.sh:1916
 msgid "检测到原IP配置存在, 是否跳过IP设置"
 msgstr ""
 
-#: install.sh:1931
+#: install.sh:1937
 msgid "已跳过IP设置"
 msgstr ""
 
-#: install.sh:1937
+#: install.sh:1943
 msgid "确定公网IP信息"
 msgstr ""
 
-#: install.sh:1938
+#: install.sh:1944
 msgid "请选择公网IP为IPv4或IPv6"
 msgstr ""
 
-#: install.sh:1941
+#: install.sh:1947
 msgid "手动输入"
 msgstr ""
 
-#: install.sh:1968
+#: install.sh:1974
 msgid "端口未被占用"
 msgstr ""
 
-#: install.sh:1970
+#: install.sh:1976
 msgid "检测到"
 msgstr ""
 
-#: install.sh:1970
+#: install.sh:1976
 msgid "端口被占用"
 msgstr ""
 
-#: install.sh:1970
+#: install.sh:1976
 msgid "以下为"
 msgstr ""
 
-#: install.sh:1970
+#: install.sh:1976
 msgid "端口占用信息"
 msgstr ""
 
-#: install.sh:1972
+#: install.sh:1978
 msgid "尝试终止占用的进程"
 msgstr ""
 
-#: install.sh:1983
+#: install.sh:1989
 msgid "证书测试签发成功, 开始正式签发"
 msgstr ""
 
-#: install.sh:1986
+#: install.sh:1992
 msgid "证书测试签发失败"
 msgstr ""
 
-#: install.sh:1993
+#: install.sh:1999
 msgid "证书生成成功"
 msgstr ""
 
-#: install.sh:1999
+#: install.sh:2005
 msgid "证书配置成功"
 msgstr ""
 
-#: install.sh:2003
+#: install.sh:2009
 msgid "证书生成失败"
 msgstr ""
 
-#: install.sh:2012
+#: install.sh:2018
 msgid "下载 Xray TLS 配置"
 msgstr ""
 
-#: install.sh:2017
+#: install.sh:2023
 msgid "下载 Xray Reality 配置"
 msgstr ""
 
-#: install.sh:2022
+#: install.sh:2028
 msgid "下载 Xray 配置"
 msgstr ""
 
-#: install.sh:2027
+#: install.sh:2033
 msgid "下载 Xray XTLS 配置"
 msgstr ""
 
-#: install.sh:2035
+#: install.sh:2041
 msgid "检测到 Xray 配置过多用户"
 msgstr ""
 
-#: install.sh:2036
+#: install.sh:2042
 msgid "是否保留原 Xray 配置文件"
 msgstr ""
 
-#: install.sh:2055
+#: install.sh:2061
 msgid "添加简单 ws/gRPC 协议"
 msgstr ""
 
-#: install.sh:2070
+#: install.sh:2076
 msgid "检测到配置文件, 是否读取配置文件"
 msgstr ""
 
-#: install.sh:2075 install.sh:2096 install.sh:2195 install.sh:3715
+#: install.sh:2081 install.sh:2102 install.sh:2201 install.sh:3721
 msgid "已删除配置文件"
 msgstr ""
 
-#: install.sh:2078 install.sh:2091 install.sh:2190 install.sh:3711
+#: install.sh:2084 install.sh:2097 install.sh:2196 install.sh:3717
 msgid "已保留配置文件"
 msgstr ""
 
-#: install.sh:2085
+#: install.sh:2091
 msgid "检测到当前安装模式与配置文件的安装模式不一致"
 msgstr ""
 
-#: install.sh:2086
+#: install.sh:2092
 msgid "是否保留配置文件 (强烈不建议)"
 msgstr ""
 
-#: install.sh:2090
+#: install.sh:2096
 msgid "请务必确保配置文件正确"
 msgstr ""
 
-#: install.sh:2185
+#: install.sh:2191
 msgid "检测到配置文件不完整, 是否保留配置文件"
 msgstr ""
 
-#: install.sh:2404
+#: install.sh:2410
 msgid "配置删除"
 msgstr ""
 
-#: install.sh:2425
+#: install.sh:2431
 msgid "设置 Nginx 开机自启"
 msgstr ""
 
-#: install.sh:2428 install.sh:4521 install.sh:4524 install.sh:4525
-#: install.sh:4526 install.sh:4527 fail2ban_manager.sh:19
-#: traffic_blocker.sh:444
+#: install.sh:2434 install.sh:4527 install.sh:4530 install.sh:4531
+#: install.sh:4532 install.sh:4533 fail2ban_manager.sh:19
+#: traffic_blocker.sh:443
 msgid "设置"
 msgstr ""
 
-#: install.sh:2428 install.sh:2436
+#: install.sh:2434 install.sh:2442
 msgid "开机自启"
 msgstr ""
 
-#: install.sh:2433
+#: install.sh:2439
 msgid "关闭 Nginx 开机自启"
 msgstr ""
 
-#: install.sh:2436
+#: install.sh:2442
 msgid "关闭"
 msgstr ""
 
-#: install.sh:2443 install.sh:2465 install.sh:2468 install.sh:2527
-#: install.sh:4516 fail2ban_manager.sh:259
+#: install.sh:2449 install.sh:2471 install.sh:2474 install.sh:2533
+#: install.sh:4522 fail2ban_manager.sh:259
 msgid "停止"
 msgstr ""
 
-#: install.sh:2457 install.sh:2460 install.sh:3044 install.sh:4515
+#: install.sh:2463 install.sh:2466 install.sh:3050 install.sh:4521
 #: fail2ban_manager.sh:258 fail2ban_manager.sh:422
 msgid "启动"
 msgstr ""
 
-#: install.sh:2481 install.sh:2497
+#: install.sh:2487 install.sh:2503
 msgid "新版本已自动设置证书自动更新"
 msgstr ""
 
-#: install.sh:2482
+#: install.sh:2488
 msgid "老版本请及时删除 废弃的 改版证书自动更新"
 msgstr ""
 
-#: install.sh:2483
+#: install.sh:2489
 msgid "已设置改版证书自动更新"
 msgstr ""
 
-#: install.sh:2484
+#: install.sh:2490
 msgid "是否需要删除改版证书自动更新 (请删除)"
 msgstr ""
 
-#: install.sh:2491
+#: install.sh:2497
 msgid "删除改版证书自动更新"
 msgstr ""
 
-#: install.sh:2514
+#: install.sh:2520
 msgid "已过期"
 msgstr ""
 
-#: install.sh:2516
+#: install.sh:2522
 msgid "证书生成日期"
 msgstr ""
 
-#: install.sh:2517
+#: install.sh:2523
 msgid "证书生成天数"
 msgstr ""
 
-#: install.sh:2518
+#: install.sh:2524
 msgid "证书剩余天数"
 msgstr ""
 
-#: install.sh:2522
+#: install.sh:2528
 msgid "是否立即更新证书"
 msgstr ""
 
-#: install.sh:2534 install.sh:2546
+#: install.sh:2540 install.sh:2552
 msgid "证书签发工具不存在, 请确认是否证书为脚本签发"
 msgstr ""
 
-#: install.sh:2550
+#: install.sh:2556
 msgid "证书更新"
 msgstr ""
 
-#: install.sh:2568
+#: install.sh:2574
 msgid "Xray 未安装, 请先安装"
 msgstr ""
 
-#: install.sh:2583
+#: install.sh:2589
 msgid "是否需要设置自动清理日志"
 msgstr ""
 
-#: install.sh:2587
+#: install.sh:2593
 msgid "已跳过设置自动清理日志"
 msgstr ""
 
-#: install.sh:2590
+#: install.sh:2596
 msgid "将在 每周三 04:00 自动清空日志"
 msgstr ""
 
-#: install.sh:2595
+#: install.sh:2601
 msgid "已设置自动清理日志任务"
 msgstr ""
 
-#: install.sh:2596
+#: install.sh:2602
 msgid "是否需要删除现有自动清理日志任务"
 msgstr ""
 
-#: install.sh:2601
+#: install.sh:2607
 msgid "删除自动清理日志任务"
 msgstr ""
 
-#: install.sh:2604
+#: install.sh:2610
 msgid "保留现有自动清理日志任务"
 msgstr ""
 
-#: install.sh:2619
+#: install.sh:2625
 msgid "设置自动清理日志"
 msgstr ""
 
-#: install.sh:2626
+#: install.sh:2632
 msgid "检测到日志文件大小如下:"
 msgstr ""
 
-#: install.sh:2628
+#: install.sh:2634
 msgid "即将清除"
 msgstr ""
 
-#: install.sh:2630
+#: install.sh:2636
 msgid "日志清理"
 msgstr ""
 
-#: install.sh:2932
+#: install.sh:2938
 msgid "链接分享"
 msgstr ""
 
-#: install.sh:2934 install.sh:2940 install.sh:2946 install.sh:3458
+#: install.sh:2940 install.sh:2946 install.sh:2952 install.sh:3464
 msgid "分享链接"
 msgstr ""
 
-#: install.sh:2935 install.sh:2941 install.sh:2947
+#: install.sh:2941 install.sh:2947 install.sh:2953
 msgid "二维码"
 msgstr ""
 
-#: install.sh:2953 install.sh:2954
+#: install.sh:2959 install.sh:2960
 msgid "配置分享"
 msgstr ""
 
-#: install.sh:2968
+#: install.sh:2974
 msgid "生成分享链接"
 msgstr ""
 
-#: install.sh:3018 install.sh:3029 install.sh:3311 install.sh:3378
-#: install.sh:3401 install.sh:3411 install.sh:3520 install.sh:3584
-#: install.sh:3634
+#: install.sh:3024 install.sh:3035 install.sh:3317 install.sh:3384
+#: install.sh:3407 install.sh:3417 install.sh:3526 install.sh:3590
+#: install.sh:3640
 msgid "请先安装"
 msgstr ""
 
-#: install.sh:3036
+#: install.sh:3042
 msgid "无法获取网卡, 将监控所有网卡"
 msgstr ""
 
-#: install.sh:3038
+#: install.sh:3044
 msgid "监控网卡"
 msgstr ""
 
-#: install.sh:3041
+#: install.sh:3047
 msgid "监控端口"
 msgstr ""
 
-#: install.sh:3043
+#: install.sh:3049
 msgid "按 q 键退出 iftop"
 msgstr ""
 
-#: install.sh:3059 install.sh:3062 install.sh:3065 install.sh:3068
-#: install.sh:3071 install.sh:3074 install.sh:3077 install.sh:3080
-#: install.sh:3083 install.sh:3086 install.sh:3089
+#: install.sh:3065 install.sh:3068 install.sh:3071 install.sh:3074
+#: install.sh:3077 install.sh:3080 install.sh:3083 install.sh:3086
+#: install.sh:3089 install.sh:3092 install.sh:3095
 msgid "安装成功"
 msgstr ""
 
-#: install.sh:3093
+#: install.sh:3099
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr ""
 
-#: install.sh:3095 install.sh:4511
+#: install.sh:3101 install.sh:4517
 msgid "配置信息"
 msgstr ""
 
-#: install.sh:3096
+#: install.sh:3102
 msgid "主机"
 msgstr ""
 
-#: install.sh:3116
+#: install.sh:3122
 msgid "用户id"
 msgstr ""
 
-#: install.sh:3118
+#: install.sh:3124
 msgid "加密"
 msgstr ""
 
-#: install.sh:3119
+#: install.sh:3125
 msgid "传输协议"
 msgstr ""
 
-#: install.sh:3120
+#: install.sh:3126
 msgid "底层传输安全"
 msgstr ""
 
-#: install.sh:3123 install.sh:3139
+#: install.sh:3129 install.sh:3145
 msgid "路径"
 msgstr ""
 
-#: install.sh:3123 install.sh:3139
+#: install.sh:3129 install.sh:3145
 msgid "不要落下"
 msgstr ""
 
-#: install.sh:3126 install.sh:3143
+#: install.sh:3132 install.sh:3149
 msgid "不需要加"
 msgstr ""
 
-#: install.sh:3129
+#: install.sh:3135
 msgid "流控"
 msgstr ""
 
-#: install.sh:3158
+#: install.sh:3164
 msgid "即将申请证书, 支持使用自定义证书"
 msgstr ""
 
-#: install.sh:3159
+#: install.sh:3165
 msgid "如需使用自定义证书, 请按如下步骤:"
 msgstr ""
 
-#: install.sh:3160
+#: install.sh:3166
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr ""
 
-#: install.sh:3161
+#: install.sh:3167
 msgid "2. 将重命名后的证书文件放入"
 msgstr ""
 
-#: install.sh:3161
+#: install.sh:3167
 msgid "目录后再运行脚本"
 msgstr ""
 
-#: install.sh:3162
+#: install.sh:3168
 msgid "3. 重新运行脚本"
 msgstr ""
 
-#: install.sh:3163 install.sh:3617
+#: install.sh:3169 install.sh:3623
 msgid "是否继续"
 msgstr ""
 
-#: install.sh:3171
+#: install.sh:3177
 msgid "所有证书文件均已存在, 是否保留"
 msgstr ""
 
-#: install.sh:3177 install.sh:3192 install.sh:3208 file_manager.sh:221
+#: install.sh:3183 install.sh:3198 install.sh:3214 file_manager.sh:221
 msgid "已删除"
 msgstr ""
 
-#: install.sh:3183 install.sh:3198 install.sh:3215
+#: install.sh:3189 install.sh:3204 install.sh:3221
 msgid "证书应用"
 msgstr ""
 
-#: install.sh:3187
+#: install.sh:3193
 msgid "证书文件已存在, 是否保留"
 msgstr ""
 
-#: install.sh:3203
+#: install.sh:3209
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr ""
 
-#: install.sh:3245 install.sh:4506
+#: install.sh:3251 install.sh:4512
 msgid "添加"
 msgstr ""
 
-#: install.sh:3253
+#: install.sh:3259
 msgid "请选择支持的 TLS 版本"
 msgstr ""
 
-#: install.sh:3254
+#: install.sh:3260
 msgid "建议选择 TLSv1.3 only (安全模式)"
 msgstr ""
 
-#: install.sh:3255 install.sh:3271
+#: install.sh:3261 install.sh:3277
 msgid "兼容模式"
 msgstr ""
 
-#: install.sh:3256
+#: install.sh:3262
 msgid "安全模式"
 msgstr ""
 
-#: install.sh:3260
+#: install.sh:3266
 msgid "由于 h3 仅支持 TLSv1.3, 只支持 TLSv1.3 only (安全模式)"
 msgstr ""
 
-#: install.sh:3264 install.sh:3276 install.sh:3279
+#: install.sh:3270 install.sh:3282 install.sh:3285
 msgid "已切换至"
 msgstr ""
 
-#: install.sh:3268
+#: install.sh:3274
 msgid "请选择 TLS 版本"
 msgstr ""
 
-#: install.sh:3269
+#: install.sh:3275
 msgid "建议选择 TLSv1.3 (安全模式)"
 msgstr ""
 
-#: install.sh:3282
+#: install.sh:3288
 msgid "当前模式不支持"
 msgstr ""
 
-#: install.sh:3289
+#: install.sh:3295
 msgid "Nginx配置文件不存在 或 当前模式不支持"
 msgstr ""
 
-#: install.sh:3399
+#: install.sh:3405
 msgid "此模式不支持修改"
 msgstr ""
 
-#: install.sh:3407 install.sh:3582
+#: install.sh:3413 install.sh:3588
 msgid "此模式不支持删除用户"
 msgstr ""
 
-#: install.sh:3421
+#: install.sh:3427
 msgid "即将显示用户, 一次仅能显示一个"
 msgstr ""
 
-#: install.sh:3423
+#: install.sh:3429
 msgid "请选择显示用户使用的协议"
 msgstr ""
 
-#: install.sh:3432
+#: install.sh:3438
 msgid "请选择要显示的用户编号"
 msgstr ""
 
-#: install.sh:3436
+#: install.sh:3442
 msgid "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户"
 msgstr ""
 
-#: install.sh:3443 install.sh:3545 install.sh:3548 install.sh:3551
+#: install.sh:3449 install.sh:3551 install.sh:3554 install.sh:3557
 msgid "选择错误"
 msgstr ""
 
-#: install.sh:3462
+#: install.sh:3468
 msgid "是否继续显示用户"
 msgstr ""
 
-#: install.sh:3480
+#: install.sh:3486
 msgid "即将添加用户, 一次仅能添加一个"
 msgstr ""
 
-#: install.sh:3482
+#: install.sh:3488
 msgid "请选择添加用户使用的协议"
 msgstr ""
 
-#: install.sh:3503
+#: install.sh:3509
 msgid "添加用户"
 msgstr ""
 
-#: install.sh:3506
+#: install.sh:3512
 msgid "是否继续添加用户"
 msgstr ""
 
-#: install.sh:3518
+#: install.sh:3524
 msgid "此模式不支持添加用户"
 msgstr ""
 
-#: install.sh:3528
+#: install.sh:3534
 msgid "请选择删除用户使用的协议"
 msgstr ""
 
-#: install.sh:3540
+#: install.sh:3546
 msgid "即将删除用户, 一次仅能删除一个"
 msgstr ""
 
-#: install.sh:3541
+#: install.sh:3547
 msgid "请选择要删除的用户编号"
 msgstr ""
 
-#: install.sh:3555
+#: install.sh:3561
 msgid "主用户无法删除"
 msgstr ""
 
-#: install.sh:3562
+#: install.sh:3568
 msgid "删除用户"
 msgstr ""
 
-#: install.sh:3570
+#: install.sh:3576
 msgid "是否继续删除用户"
 msgstr ""
 
-#: install.sh:3589 install.sh:3593
+#: install.sh:3595 install.sh:3599
 msgid "文件不存在"
 msgstr ""
 
-#: install.sh:3600
+#: install.sh:3606
 msgid "已配置 Xray 流量统计"
 msgstr ""
 
-#: install.sh:3601
+#: install.sh:3607
 msgid "是否需要关闭此功能"
 msgstr ""
 
-#: install.sh:3607
+#: install.sh:3613
 msgid "关闭 Xray 流量统计"
 msgstr ""
 
-#: install.sh:3615
+#: install.sh:3621
 msgid "流量统计需要使用"
 msgstr ""
 
-#: install.sh:3616
+#: install.sh:3622
 msgid "可能会影响 Xray 性能"
 msgstr ""
 
-#: install.sh:3622
+#: install.sh:3628
 msgid "下载流量统计配置"
 msgstr ""
 
-#: install.sh:3627
+#: install.sh:3633
 msgid "设置 Xray 流量统计"
 msgstr ""
 
-#: install.sh:3646
+#: install.sh:3652
 msgid "加速脚本下载失败"
 msgstr ""
 
-#: install.sh:3660 install.sh:3679
+#: install.sh:3666 install.sh:3685
 msgid "已卸载"
 msgstr ""
 
-#: install.sh:3664
+#: install.sh:3670
 msgid "是否卸载"
 msgstr ""
 
-#: install.sh:3668
+#: install.sh:3674
 msgid "已取消卸载"
 msgstr ""
 
-#: install.sh:3690
+#: install.sh:3696
 msgid "是否删除所有脚本文件"
 msgstr ""
 
-#: install.sh:3697
+#: install.sh:3703
 msgid "已删除所有文件"
 msgstr ""
 
-#: install.sh:3698
+#: install.sh:3704
 msgid "ヾ(￣▽￣) 拜拜~"
 msgstr ""
 
-#: install.sh:3703
+#: install.sh:3709
 msgid "已保留脚本文件 (包含 SSL 证书等)"
 msgstr ""
 
-#: install.sh:3707
+#: install.sh:3713
 msgid "是否保留配置文件"
 msgstr ""
 
-#: install.sh:3724
+#: install.sh:3730
 msgid "已清空证书遗留文件"
 msgstr ""
 
-#: install.sh:3754
+#: install.sh:3760
 msgid "秒后"
 msgstr ""
 
-#: install.sh:3954
+#: install.sh:3960
 msgid "检测最新版本失败"
 msgstr ""
 
-#: install.sh:3962 install.sh:4206
+#: install.sh:3968 install.sh:4212
 msgid "新版本"
 msgstr ""
 
-#: install.sh:3962 install.sh:4206
+#: install.sh:3968 install.sh:4212
 msgid "更新内容"
 msgstr ""
 
-#: install.sh:3966
+#: install.sh:3972
 msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
 msgstr ""
 
-#: install.sh:3969
+#: install.sh:3975
 msgid "存在新版本, 是否更新"
 msgstr ""
 
-#: install.sh:3973
+#: install.sh:3979
 msgid "检测 脚本 最新版本失败"
 msgstr ""
 
-#: install.sh:3974
+#: install.sh:3980
 msgid "脚本 版本差别过大, 跳过更新"
 msgstr ""
 
-#: install.sh:3982 install.sh:3983
+#: install.sh:3988 install.sh:3989
 msgid "脚本更新失败"
 msgstr ""
 
-#: install.sh:3989
+#: install.sh:3995
 msgid "更新完成"
 msgstr ""
 
-#: install.sh:3990 install.sh:4217
+#: install.sh:3996 install.sh:4223
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
 msgstr ""
 
-#: install.sh:3999
+#: install.sh:4005
 msgid "当前版本为最新版本"
 msgstr ""
 
-#: install.sh:4012 install.sh:4201 install.sh:4215 install.sh:4227
+#: install.sh:4018 install.sh:4207 install.sh:4221 install.sh:4233
 msgid "下载最新脚本"
 msgstr ""
 
-#: install.sh:4026
+#: install.sh:4032
 msgid "该选项暂时无法使用"
 msgstr ""
 
-#: install.sh:4045 install.sh:4574
+#: install.sh:4051 install.sh:4580
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
 
-#: install.sh:4058 install.sh:4588
+#: install.sh:4064 install.sh:4594
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
 
-#: install.sh:4164 install.sh:4165 install.sh:4176 install.sh:4180
-#: install.sh:4184 install.sh:4498 install.sh:4499 install.sh:4500
-#: install.sh:4501 install.sh:4502 install.sh:4503 install.sh:4602
-#: install.sh:4607 install.sh:4612 install.sh:4617
+#: install.sh:4170 install.sh:4171 install.sh:4182 install.sh:4186
+#: install.sh:4190 install.sh:4504 install.sh:4505 install.sh:4506
+#: install.sh:4507 install.sh:4508 install.sh:4509 install.sh:4608
+#: install.sh:4613 install.sh:4618 install.sh:4623
 msgid "变更"
 msgstr ""
 
-#: install.sh:4164 install.sh:4502
+#: install.sh:4170 install.sh:4508
 msgid "负载均衡配置"
 msgstr ""
 
-#: install.sh:4167
+#: install.sh:4173
 msgid "清除日志文件"
 msgstr ""
 
-#: install.sh:4168
+#: install.sh:4174
 msgid "查看证书状态"
 msgstr ""
 
-#: install.sh:4169
+#: install.sh:4175
 msgid "更新证书有效期"
 msgstr ""
 
-#: install.sh:4170
+#: install.sh:4176
 msgid "设置证书自动更新"
 msgstr ""
 
-#: install.sh:4171
+#: install.sh:4177
 msgid "设置 Fail2ban 防暴力破解"
 msgstr ""
 
-#: install.sh:4172
+#: install.sh:4178
 msgid "设置 Xray 流量阻断"
 msgstr ""
 
-#: install.sh:4173
+#: install.sh:4179
 msgid "显示帮助"
 msgstr ""
 
-#: install.sh:4174
+#: install.sh:4180
 msgid "修改语言"
 msgstr ""
 
-#: install.sh:4177 install.sh:4505 install.sh:4509 install.sh:4510
-#: install.sh:4511 install.sh:4512 install.sh:4517 install.sh:4519
+#: install.sh:4183 install.sh:4511 install.sh:4515 install.sh:4516
+#: install.sh:4517 install.sh:4518 install.sh:4523 install.sh:4525
 #: fail2ban_manager.sh:24
 msgid "查看"
 msgstr ""
 
-#: install.sh:4177 install.sh:4512
+#: install.sh:4183 install.sh:4518
 msgid "实时流量"
 msgstr ""
 
-#: install.sh:4178
+#: install.sh:4184
 msgid "脚本卸载"
 msgstr ""
 
-#: install.sh:4179
+#: install.sh:4185
 msgid "显示安装信息"
 msgstr ""
 
-#: install.sh:4181 install.sh:4524
+#: install.sh:4187 install.sh:4530
 msgid "加速"
 msgstr ""
 
-#: install.sh:4183
+#: install.sh:4189
 msgid "更新脚本"
 msgstr ""
 
-#: install.sh:4185 install.sh:4186
+#: install.sh:4191 install.sh:4192
 msgid "显示"
 msgstr ""
 
-#: install.sh:4185
+#: install.sh:4191
 msgid "访问信息"
 msgstr ""
 
-#: install.sh:4186
+#: install.sh:4192
 msgid "错误信息"
 msgstr ""
 
-#: install.sh:4210
+#: install.sh:4216
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr ""
 
-#: install.sh:4235
+#: install.sh:4241
 msgid "检测失败"
 msgstr ""
 
-#: install.sh:4239 install.sh:4249 install.sh:4258
+#: install.sh:4245 install.sh:4255 install.sh:4264
 msgid "有新版"
 msgstr ""
 
-#: install.sh:4242 install.sh:4251 install.sh:4261
+#: install.sh:4248 install.sh:4257 install.sh:4267
 msgid "最新版"
 msgstr ""
 
-#: install.sh:4276 install.sh:4283
+#: install.sh:4282 install.sh:4289
 msgid "运行中"
 msgstr ""
 
-#: install.sh:4278 install.sh:4301 install.sh:4303
+#: install.sh:4284 install.sh:4307 install.sh:4309
 msgid "无需测试"
 msgstr ""
 
-#: install.sh:4280 install.sh:4285
+#: install.sh:4286 install.sh:4291
 msgid "未运行"
 msgstr ""
 
-#: install.sh:4295
+#: install.sh:4301
 msgid "无法连通"
 msgstr ""
 
-#: install.sh:4297 install.sh:4298 install.sh:4299
+#: install.sh:4303 install.sh:4304 install.sh:4305
 msgid "本地正常"
 msgstr ""
 
-#: install.sh:4314
+#: install.sh:4320
 msgid "脚本维护中.. 请稍后再试"
 msgstr ""
 
-#: install.sh:4321
+#: install.sh:4327
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
 
-#: install.sh:4338
+#: install.sh:4344
 msgid "请输入数字"
 msgstr ""
 
-#: install.sh:4338
+#: install.sh:4344
 msgid "请输入 1 到 6 之间的有效数字"
 msgstr ""
 
-#: install.sh:4368 traffic_blocker.sh:251
+#: install.sh:4374 traffic_blocker.sh:250
 msgid "无效的选择"
 msgstr ""
 
-#: install.sh:4409
+#: install.sh:4415
 msgid "请输入备份名称"
 msgstr ""
 
-#: install.sh:4409
+#: install.sh:4415
 msgid "不需要后缀"
 msgstr ""
 
-#: install.sh:4418
+#: install.sh:4424
 msgid "报错信息"
 msgstr ""
 
-#: install.sh:4420
+#: install.sh:4426
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
 msgstr ""
 
-#: install.sh:4424
+#: install.sh:4430
 msgid "备份失败"
 msgstr ""
 
-#: install.sh:4426
+#: install.sh:4432
 msgid "备份成功"
 msgstr ""
 
-#: install.sh:4431
+#: install.sh:4437
 msgid "请确保备份文件在目录"
 msgstr ""
 
-#: install.sh:4435
+#: install.sh:4441
 msgid "没有找到备份文件"
 msgstr ""
 
-#: install.sh:4440
+#: install.sh:4446
 msgid "发现多个备份文件"
 msgstr ""
 
-#: install.sh:4440
+#: install.sh:4446
 msgid "将使用最新的文件进行恢复"
 msgstr ""
 
-#: install.sh:4444
+#: install.sh:4450
 msgid "找到最新备份文件"
 msgstr ""
 
-#: install.sh:4446
+#: install.sh:4452
 msgid "恢复备份"
 msgstr ""
 
-#: install.sh:4450
+#: install.sh:4456
 msgid "恢复成功"
 msgstr ""
 
-#: install.sh:4451 install.sh:4453
+#: install.sh:4457 install.sh:4459
 msgid "记得安装"
 msgstr ""
 
-#: install.sh:4456
+#: install.sh:4462
 msgid "恢复失败"
 msgstr ""
 
-#: install.sh:4462
+#: install.sh:4468
 msgid "安装管理脚本"
 msgstr ""
 
-#: install.sh:4463
+#: install.sh:4469
 msgid "作者"
 msgstr ""
 
-#: install.sh:4467
+#: install.sh:4473
 msgid "当前模式"
 msgstr ""
 
-#: install.sh:4468
+#: install.sh:4474
 msgid "当前语言"
 msgstr ""
 
-#: install.sh:4471
+#: install.sh:4477
 msgid "可以使用"
 msgstr ""
 
-#: install.sh:4471
+#: install.sh:4477
 msgid "命令管理脚本"
 msgstr ""
 
-#: install.sh:4473
+#: install.sh:4479
 msgid "版本检测"
 msgstr ""
 
-#: install.sh:4474 install.sh:4482 install.sh:4534
+#: install.sh:4480 install.sh:4488 install.sh:4540
 msgid "脚本"
 msgstr ""
 
-#: install.sh:4477
+#: install.sh:4483
 msgid "运行状态"
 msgstr ""
 
-#: install.sh:4480
+#: install.sh:4486
 msgid "连通性"
 msgstr ""
 
-#: install.sh:4481
+#: install.sh:4487
 msgid "更新向导"
 msgstr ""
 
-#: install.sh:4492
+#: install.sh:4498
 msgid "安装向导"
 msgstr ""
 
-#: install.sh:4497
+#: install.sh:4503
 msgid "配置变更"
 msgstr ""
 
-#: install.sh:4504
+#: install.sh:4510
 msgid "用户管理"
 msgstr ""
 
-#: install.sh:4505 install.sh:4506 install.sh:4507
+#: install.sh:4511 install.sh:4512 install.sh:4513
 msgid "用户"
 msgstr ""
 
-#: install.sh:4508
+#: install.sh:4514
 msgid "查看信息"
 msgstr ""
 
-#: install.sh:4509
+#: install.sh:4515
 msgid "实时访问日志"
 msgstr ""
 
-#: install.sh:4510
+#: install.sh:4516
 msgid "实时错误日志"
 msgstr ""
 
-#: install.sh:4513
+#: install.sh:4519
 msgid "服务相关"
 msgstr ""
 
-#: install.sh:4514 install.sh:4515 install.sh:4516 install.sh:4517
+#: install.sh:4520 install.sh:4521 install.sh:4522 install.sh:4523
 msgid "所有服务"
 msgstr ""
 
-#: install.sh:4518
+#: install.sh:4524
 msgid "证书相关"
 msgstr ""
 
-#: install.sh:4519
+#: install.sh:4525
 msgid "证书状态"
 msgstr ""
 
-#: install.sh:4520
+#: install.sh:4526
 msgid "证书有效期"
 msgstr ""
 
-#: install.sh:4521
+#: install.sh:4527
 msgid "证书自动更新"
 msgstr ""
 
-#: install.sh:4522
+#: install.sh:4528
 msgid "其他选项"
 msgstr ""
 
-#: install.sh:4523
+#: install.sh:4529
 msgid "自动更新"
 msgstr ""
 
-#: install.sh:4525
+#: install.sh:4531
 msgid "防暴力破解"
 msgstr ""
 
-#: install.sh:4526
+#: install.sh:4532
 msgid "流量统计"
 msgstr ""
 
-#: install.sh:4527 traffic_blocker.sh:444
+#: install.sh:4533 traffic_blocker.sh:443
 msgid "流量阻断"
 msgstr ""
 
-#: install.sh:4528
+#: install.sh:4534
 msgid "清除"
 msgstr ""
 
-#: install.sh:4528
+#: install.sh:4534
 msgid "日志文件"
 msgstr ""
 
-#: install.sh:4529
+#: install.sh:4535
 msgid "测试"
 msgstr ""
 
-#: install.sh:4529
+#: install.sh:4535
 msgid "服务器网速"
 msgstr ""
 
-#: install.sh:4530
+#: install.sh:4536
 msgid "备份恢复"
 msgstr ""
 
-#: install.sh:4531 install.sh:4532
+#: install.sh:4537 install.sh:4538
 msgid "全部文件"
 msgstr ""
 
-#: install.sh:4532
+#: install.sh:4538
 msgid "恢复"
 msgstr ""
 
-#: install.sh:4533
+#: install.sh:4539
 msgid "卸载向导"
 msgstr ""
 
-#: install.sh:4534 fail2ban_manager.sh:23 fail2ban_manager.sh:439
+#: install.sh:4540 fail2ban_manager.sh:23 fail2ban_manager.sh:439
 msgid "卸载"
 msgstr ""
 
-#: install.sh:4535
+#: install.sh:4541
 msgid "清空"
 msgstr ""
 
-#: install.sh:4535
+#: install.sh:4541
 msgid "证书文件"
 msgstr ""
 
-#: install.sh:4536 fail2ban_manager.sh:25 file_manager.sh:253
-#: traffic_blocker.sh:454
+#: install.sh:4542 fail2ban_manager.sh:25 file_manager.sh:253
+#: traffic_blocker.sh:453
 msgid "退出"
 msgstr ""
 
-#: install.sh:4539
+#: install.sh:4545
 msgid "请输入选项"
 msgstr ""
 
-#: install.sh:4547 install.sh:4556 install.sh:4622 install.sh:4628
-#: install.sh:4673 install.sh:4679 install.sh:4685 install.sh:4714
-#: install.sh:4765 install.sh:4772
+#: install.sh:4553 install.sh:4562 install.sh:4628 install.sh:4634
+#: install.sh:4679 install.sh:4685 install.sh:4691 install.sh:4720
+#: install.sh:4771 install.sh:4778
 msgid "清空屏幕"
 msgstr ""
 
-#: install.sh:4553
+#: install.sh:4559
 msgid "不建议"
 msgstr ""
 
-#: install.sh:4553
+#: install.sh:4559
 msgid "频繁更新 Nginx, 请确认 Nginx 有更新的必要"
 msgstr ""
 
-#: install.sh:4554
+#: install.sh:4560
 msgid "开始更新"
 msgstr ""
 
-#: install.sh:4634 install.sh:4641 install.sh:4648 install.sh:4698
-#: install.sh:4703 install.sh:4708 install.sh:4730
+#: install.sh:4640 install.sh:4647 install.sh:4654 install.sh:4704
+#: install.sh:4709 install.sh:4714 install.sh:4736
 msgid "回到菜单"
 msgstr ""
 
-#: install.sh:4749
+#: install.sh:4755
 msgid "网速测试脚本下载失败"
 msgstr ""
 
@@ -1827,7 +1827,7 @@ msgstr ""
 msgid "用于防止暴力破解"
 msgstr ""
 
-#: fail2ban_manager.sh:20 file_manager.sh:248 traffic_blocker.sh:449
+#: fail2ban_manager.sh:20 file_manager.sh:248 traffic_blocker.sh:448
 msgid "主菜单"
 msgstr ""
 
@@ -1835,19 +1835,19 @@ msgstr ""
 msgid "管理"
 msgstr ""
 
-#: fail2ban_manager.sh:24 fail2ban_manager.sh:368 traffic_blocker.sh:416
-#: traffic_blocker.sh:646
+#: fail2ban_manager.sh:24 fail2ban_manager.sh:368 traffic_blocker.sh:415
+#: traffic_blocker.sh:645
 msgid "状态"
 msgstr ""
 
-#: fail2ban_manager.sh:27 file_manager.sh:255 traffic_blocker.sh:280
-#: traffic_blocker.sh:456 traffic_blocker.sh:519
+#: fail2ban_manager.sh:27 file_manager.sh:255 traffic_blocker.sh:279
+#: traffic_blocker.sh:455 traffic_blocker.sh:518
 msgid "请选择一个选项"
 msgstr ""
 
 #: fail2ban_manager.sh:36 fail2ban_manager.sh:279 fail2ban_manager.sh:287
-#: fail2ban_manager.sh:389 traffic_blocker.sh:287 traffic_blocker.sh:465
-#: traffic_blocker.sh:528 traffic_blocker.sh:667
+#: fail2ban_manager.sh:389 traffic_blocker.sh:286 traffic_blocker.sh:464
+#: traffic_blocker.sh:527 traffic_blocker.sh:666
 msgid "无效的选择, 请重试"
 msgstr ""
 
@@ -1866,7 +1866,7 @@ msgstr ""
 #: fail2ban_manager.sh:96 fail2ban_manager.sh:120 fail2ban_manager.sh:130
 #: fail2ban_manager.sh:147 fail2ban_manager.sh:152 fail2ban_manager.sh:155
 #: fail2ban_manager.sh:173 fail2ban_manager.sh:178 fail2ban_manager.sh:181
-#: traffic_blocker.sh:690 traffic_blocker.sh:695
+#: traffic_blocker.sh:689 traffic_blocker.sh:694
 msgid "规则"
 msgstr ""
 
@@ -1875,7 +1875,7 @@ msgid "未安装, 请先安装"
 msgstr ""
 
 #: fail2ban_manager.sh:152 fail2ban_manager.sh:178 fail2ban_manager.sh:378
-#: traffic_blocker.sh:426 traffic_blocker.sh:656
+#: traffic_blocker.sh:425 traffic_blocker.sh:655
 msgid "已禁用"
 msgstr ""
 
@@ -1963,15 +1963,15 @@ msgstr ""
 msgid "请选择要管理的模块"
 msgstr ""
 
-#: fail2ban_manager.sh:400 traffic_blocker.sh:682
+#: fail2ban_manager.sh:400 traffic_blocker.sh:681
 msgid "启用"
 msgstr ""
 
-#: fail2ban_manager.sh:400 traffic_blocker.sh:682
+#: fail2ban_manager.sh:400 traffic_blocker.sh:681
 msgid "禁用"
 msgstr ""
 
-#: fail2ban_manager.sh:402 traffic_blocker.sh:690
+#: fail2ban_manager.sh:402 traffic_blocker.sh:689
 msgid "是否"
 msgstr ""
 
@@ -1979,8 +1979,8 @@ msgstr ""
 msgid "模块"
 msgstr ""
 
-#: fail2ban_manager.sh:412 traffic_blocker.sh:181 traffic_blocker.sh:698
-#: traffic_blocker.sh:940
+#: fail2ban_manager.sh:412 traffic_blocker.sh:180 traffic_blocker.sh:697
+#: traffic_blocker.sh:939
 msgid "操作已取消"
 msgstr ""
 
@@ -2005,31 +2005,31 @@ msgstr ""
 msgid "未启用或配置异常"
 msgstr ""
 
-#: fail2ban_manager.sh:504 file_manager.sh:277 traffic_blocker.sh:984
+#: fail2ban_manager.sh:504 file_manager.sh:277 traffic_blocker.sh:983
 msgid "新版本可用"
 msgstr ""
 
-#: fail2ban_manager.sh:505 file_manager.sh:278 traffic_blocker.sh:985
+#: fail2ban_manager.sh:505 file_manager.sh:278 traffic_blocker.sh:984
 msgid "请访问"
 msgstr ""
 
-#: fail2ban_manager.sh:505 file_manager.sh:278 traffic_blocker.sh:985
+#: fail2ban_manager.sh:505 file_manager.sh:278 traffic_blocker.sh:984
 msgid "查看更新说明"
 msgstr ""
 
-#: fail2ban_manager.sh:511 file_manager.sh:284 traffic_blocker.sh:991
+#: fail2ban_manager.sh:511 file_manager.sh:284 traffic_blocker.sh:990
 msgid "正在下载新版本"
 msgstr ""
 
-#: fail2ban_manager.sh:513 file_manager.sh:286 traffic_blocker.sh:993
+#: fail2ban_manager.sh:513 file_manager.sh:286 traffic_blocker.sh:992
 msgid "下载完成, 正在重新加载..."
 msgstr ""
 
-#: fail2ban_manager.sh:522 file_manager.sh:295 traffic_blocker.sh:1002
+#: fail2ban_manager.sh:522 file_manager.sh:295 traffic_blocker.sh:1001
 msgid "跳过更新"
 msgstr ""
 
-#: fail2ban_manager.sh:526 file_manager.sh:299 traffic_blocker.sh:1006
+#: fail2ban_manager.sh:526 file_manager.sh:299 traffic_blocker.sh:1005
 msgid "当前已经是最新版本"
 msgstr ""
 
@@ -2156,284 +2156,284 @@ msgstr ""
 msgid "请检查配置文件是否有误"
 msgstr ""
 
-#: traffic_blocker.sh:132 traffic_blocker.sh:134
+#: traffic_blocker.sh:131 traffic_blocker.sh:133
 msgid "国家/地区阻断"
 msgstr ""
 
-#: traffic_blocker.sh:134
+#: traffic_blocker.sh:133
 msgid "未配置"
 msgstr ""
 
-#: traffic_blocker.sh:137
+#: traffic_blocker.sh:136
 msgid "BT 下载"
 msgstr ""
 
-#: traffic_blocker.sh:138
+#: traffic_blocker.sh:137
 msgid "私有网络"
 msgstr ""
 
-#: traffic_blocker.sh:139
+#: traffic_blocker.sh:138
 msgid "广告域名"
 msgstr ""
 
-#: traffic_blocker.sh:147
+#: traffic_blocker.sh:146
 msgid "阻断指定国家/地区的 IP 和域名流量"
 msgstr ""
 
-#: traffic_blocker.sh:148
+#: traffic_blocker.sh:147
 msgid "阻断 BT 下载协议流量"
 msgstr ""
 
-#: traffic_blocker.sh:149
+#: traffic_blocker.sh:148
 msgid "阻断访问私有网络地址的流量"
 msgstr ""
 
-#: traffic_blocker.sh:150
+#: traffic_blocker.sh:149
 msgid "阻断广告域名的流量"
 msgstr ""
 
-#: traffic_blocker.sh:157
+#: traffic_blocker.sh:156
 msgid "常用国家/地区"
 msgstr ""
 
-#: traffic_blocker.sh:177
+#: traffic_blocker.sh:176
 msgid "请输入国家/地区代码 (例如: cn, jp, ru)"
 msgstr ""
 
-#: traffic_blocker.sh:193
+#: traffic_blocker.sh:192
 msgid "无效的国家代码, 已跳过"
 msgstr ""
 
-#: traffic_blocker.sh:206
+#: traffic_blocker.sh:205
 msgid "已添加"
 msgstr ""
 
-#: traffic_blocker.sh:209
+#: traffic_blocker.sh:208
 msgid "已存在, 已跳过"
 msgstr ""
 
-#: traffic_blocker.sh:212
+#: traffic_blocker.sh:211
 msgid "未添加任何国家/地区"
 msgstr ""
 
-#: traffic_blocker.sh:221 traffic_blocker.sh:272
+#: traffic_blocker.sh:220 traffic_blocker.sh:271
 msgid "当前未配置任何国家/地区"
 msgstr ""
 
-#: traffic_blocker.sh:227 traffic_blocker.sh:270
+#: traffic_blocker.sh:226 traffic_blocker.sh:269
 msgid "当前已阻断"
 msgstr ""
 
-#: traffic_blocker.sh:244
+#: traffic_blocker.sh:243
 msgid "请选择要移除的编号"
 msgstr ""
 
-#: traffic_blocker.sh:259
+#: traffic_blocker.sh:258
 msgid "已移除"
 msgstr ""
 
-#: traffic_blocker.sh:266
+#: traffic_blocker.sh:265
 msgid "国家/地区阻断管理"
 msgstr ""
 
-#: traffic_blocker.sh:276
+#: traffic_blocker.sh:275
 msgid "添加国家/地区"
 msgstr ""
 
-#: traffic_blocker.sh:277
+#: traffic_blocker.sh:276
 msgid "移除国家/地区"
 msgstr ""
 
-#: traffic_blocker.sh:357
+#: traffic_blocker.sh:356
 msgid "不存在"
 msgstr ""
 
-#: traffic_blocker.sh:360 traffic_blocker.sh:485 traffic_blocker.sh:487
-#: traffic_blocker.sh:497 traffic_blocker.sh:499 traffic_blocker.sh:570
-#: traffic_blocker.sh:611 traffic_blocker.sh:614
+#: traffic_blocker.sh:359 traffic_blocker.sh:484 traffic_blocker.sh:486
+#: traffic_blocker.sh:496 traffic_blocker.sh:498 traffic_blocker.sh:569
+#: traffic_blocker.sh:610 traffic_blocker.sh:613
 msgid "未知"
 msgstr ""
 
-#: traffic_blocker.sh:396 traffic_blocker.sh:793
+#: traffic_blocker.sh:395 traffic_blocker.sh:792
 msgid "正在下载"
 msgstr ""
 
-#: traffic_blocker.sh:400
+#: traffic_blocker.sh:399
 msgid "下载完成"
 msgstr ""
 
-#: traffic_blocker.sh:416 traffic_blocker.sh:646
+#: traffic_blocker.sh:415 traffic_blocker.sh:645
 msgid "规则名称"
 msgstr ""
 
-#: traffic_blocker.sh:450
+#: traffic_blocker.sh:449
 msgid "查看阻断规则状态"
 msgstr ""
 
-#: traffic_blocker.sh:451
+#: traffic_blocker.sh:450
 msgid "管理阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:452 traffic_blocker.sh:509
+#: traffic_blocker.sh:451 traffic_blocker.sh:508
 msgid "更新 GeoData"
 msgstr ""
 
-#: traffic_blocker.sh:453
+#: traffic_blocker.sh:452
 msgid "重置所有阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:472
+#: traffic_blocker.sh:471
 msgid "GeoData 状态"
 msgstr ""
 
-#: traffic_blocker.sh:485 traffic_blocker.sh:497 traffic_blocker.sh:611
+#: traffic_blocker.sh:484 traffic_blocker.sh:496 traffic_blocker.sh:610
 msgid "有更新可用"
 msgstr ""
 
-#: traffic_blocker.sh:485 traffic_blocker.sh:497
+#: traffic_blocker.sh:484 traffic_blocker.sh:496
 msgid "本地版本"
 msgstr ""
 
-#: traffic_blocker.sh:485 traffic_blocker.sh:497 traffic_blocker.sh:611
+#: traffic_blocker.sh:484 traffic_blocker.sh:496 traffic_blocker.sh:610
 msgid "更新时间"
 msgstr ""
 
-#: traffic_blocker.sh:487 traffic_blocker.sh:499 traffic_blocker.sh:614
+#: traffic_blocker.sh:486 traffic_blocker.sh:498 traffic_blocker.sh:613
 msgid "已是最新"
 msgstr ""
 
-#: traffic_blocker.sh:513
+#: traffic_blocker.sh:512
 msgid "更新全部 GeoData"
 msgstr ""
 
-#: traffic_blocker.sh:516
+#: traffic_blocker.sh:515
 msgid "检查更新"
 msgstr ""
 
-#: traffic_blocker.sh:536
+#: traffic_blocker.sh:535
 msgid "正在更新全部 GeoData"
 msgstr ""
 
-#: traffic_blocker.sh:549
+#: traffic_blocker.sh:548
 msgid "部分文件更新失败"
 msgstr ""
 
-#: traffic_blocker.sh:551
+#: traffic_blocker.sh:550
 msgid "全部 GeoData 已更新"
 msgstr ""
 
-#: traffic_blocker.sh:555 traffic_blocker.sh:580
+#: traffic_blocker.sh:554 traffic_blocker.sh:579
 msgid "是否重启 Xray 以加载新数据"
 msgstr ""
 
-#: traffic_blocker.sh:572
+#: traffic_blocker.sh:571
 msgid "文件不存在, 将下载最新版本"
 msgstr ""
 
-#: traffic_blocker.sh:577
+#: traffic_blocker.sh:576
 msgid "已更新至"
 msgstr ""
 
-#: traffic_blocker.sh:592
+#: traffic_blocker.sh:591
 msgid "正在检查远程版本"
 msgstr ""
 
-#: traffic_blocker.sh:597
+#: traffic_blocker.sh:596
 msgid "无法获取远程版本信息, 请检查网络连接"
 msgstr ""
 
-#: traffic_blocker.sh:601
+#: traffic_blocker.sh:600
 msgid "远程最新版本"
 msgstr ""
 
-#: traffic_blocker.sh:624
+#: traffic_blocker.sh:623
 msgid "是否更新所有过期的文件"
 msgstr ""
 
-#: traffic_blocker.sh:630
+#: traffic_blocker.sh:629
 msgid "所有 GeoData 均为最新版本"
 msgstr ""
 
-#: traffic_blocker.sh:637
+#: traffic_blocker.sh:636
 msgid "管理流量阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:667
+#: traffic_blocker.sh:666
 msgid "请选择要管理的规则"
 msgstr ""
 
-#: traffic_blocker.sh:749
+#: traffic_blocker.sh:748
 msgid "备份 Xray 配置失败"
 msgstr ""
 
-#: traffic_blocker.sh:762
+#: traffic_blocker.sh:761
 msgid "重启失败, 已恢复原配置"
 msgstr ""
 
-#: traffic_blocker.sh:792
+#: traffic_blocker.sh:791
 msgid "缺少 GeoData 文件"
 msgstr ""
 
-#: traffic_blocker.sh:815
+#: traffic_blocker.sh:814
 msgid "以下 GeoData 文件有更新可用"
 msgstr ""
 
-#: traffic_blocker.sh:816
+#: traffic_blocker.sh:815
 msgid "是否立即更新"
 msgstr ""
 
-#: traffic_blocker.sh:833
+#: traffic_blocker.sh:832
 msgid "Xray 配置文件不存在"
 msgstr ""
 
-#: traffic_blocker.sh:838
+#: traffic_blocker.sh:837
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:843
+#: traffic_blocker.sh:842
 msgid "Xray 配置中缺少 direct 出站, 无法应用阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:858
+#: traffic_blocker.sh:857
 msgid "当前阻断规则配置"
 msgstr ""
 
-#: traffic_blocker.sh:870
+#: traffic_blocker.sh:869
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
 
-#: traffic_blocker.sh:874
+#: traffic_blocker.sh:873
 msgid "GeoData 下载失败, 无法应用规则"
 msgstr ""
 
-#: traffic_blocker.sh:891 traffic_blocker.sh:957
+#: traffic_blocker.sh:890 traffic_blocker.sh:956
 msgid "无法从 Xray 配置中提取入站标签"
 msgstr ""
 
-#: traffic_blocker.sh:918 traffic_blocker.sh:968
+#: traffic_blocker.sh:917 traffic_blocker.sh:967
 msgid "修改 Xray 配置失败"
 msgstr ""
 
-#: traffic_blocker.sh:927
+#: traffic_blocker.sh:926
 msgid "流量阻断规则已应用"
 msgstr ""
 
-#: traffic_blocker.sh:929
+#: traffic_blocker.sh:928
 msgid "域名解析策略已设置为"
 msgstr ""
 
-#: traffic_blocker.sh:929
+#: traffic_blocker.sh:928
 msgid "以支持基于 IP 的阻断规则"
 msgstr ""
 
-#: traffic_blocker.sh:935
+#: traffic_blocker.sh:934
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr ""
 
-#: traffic_blocker.sh:936
+#: traffic_blocker.sh:935
 msgid "确认重置"
 msgstr ""
 
-#: traffic_blocker.sh:975
+#: traffic_blocker.sh:974
 msgid "所有阻断规则已重置"
 msgstr ""
