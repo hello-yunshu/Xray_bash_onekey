@@ -1358,17 +1358,6 @@ set_xray_config_path() {
             sed -i "/^\[Service\]/a Environment=XRAY_LOCATION_ASSET=${idleleo_dir}/share/xray" "${xray_systemd_file}"
         fi
     fi
-
-    # COMPAT: 迁移旧版 /usr/local/share/xray 下的 geodata 文件到 idleleo 目录
-    local old_geo_dir="${local_bin}/share/xray"
-    local new_geo_dir="${idleleo_dir}/share/xray"
-    if [[ -d "${old_geo_dir}" ]] && [[ "$(ls -A "${old_geo_dir}" 2>/dev/null)" ]]; then
-        mkdir -p "${new_geo_dir}"
-        for f in "${old_geo_dir}"/*; do
-            [[ -f "$f" ]] && mv "$f" "${new_geo_dir}/"
-        done
-        rmdir "${old_geo_dir}" 2>/dev/null || true
-    fi
 }
 
 xray_install() {
