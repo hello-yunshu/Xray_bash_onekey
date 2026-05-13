@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.10.3"
+shell_version="2.10.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 ws_grpc_mode="None"
@@ -1366,30 +1366,49 @@ modify_reality_listen_address () {
 }
 
 xray_privilege_escalation() {
-    if [[ -n "$(grep "User=nobody" ${xray_systemd_file})" ]]; then
+    local _systemd_files=("${xray_systemd_file}")
+    local _override_dir="${xray_systemd_file}.d"
+    if [[ -d "${_override_dir}" ]]; then
+        local _conf_file
+        for _conf_file in "${_override_dir}"/*.conf; do
+            [[ -f "$_conf_file" ]] && _systemd_files+=("$_conf_file")
+        done
+    fi
+    local _has_nobody_user=false
+    local _svc_file
+    for _svc_file in "${_systemd_files[@]}"; do
+        if grep -q "User=nobody" "$_svc_file"; then
+            _has_nobody_user=true
+            break
+        fi
+    done
+    if [[ "${_has_nobody_user}" == "true" ]]; then
+        local _nobody_group
+        _nobody_group=$(id -gn nobody 2>/dev/null || echo "nogroup")
         log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动修改程序") ${Font}"
-        chmod -fR 644 /var/log/xray/
-        chown -fR nobody:nogroup /var/log/xray/
-        [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR nobody:nogroup "${ssl_chainpath}"/*
+        mkdir -p /var/log/xray/
+        chown -fR "nobody:${_nobody_group}" /var/log/xray/
+        chmod -f 755 /var/log/xray/
+        find /var/log/xray/ -type f -exec chmod -f 644 {} \;
+        [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR "nobody:${_nobody_group}" "${ssl_chainpath}"/*
     fi
     log_echo "${OK} ${GreenBG} Xray $(gettext "修改完成") ${Font}"
 }
 
 set_xray_config_path() {
-    # COMPAT: 以下清理旧版符号链接的代码，旧版通过 ln -s 将 xray_default_conf 指向 xray_conf，未来可删除
     [[ -L "${xray_default_conf}" || -e "${xray_default_conf}" ]] && rm -f "${xray_default_conf}"
-    if [[ ! -f "${xray_systemd_file}" ]]; then
-        return
-    fi
-    # COMPAT: sed 匹配旧版默认路径，新版安装后 service 中不再有 xray_default_conf，未来可改为直接写入
-    sed -i "s|-config ${xray_default_conf}|-config ${xray_conf}|g" "${xray_systemd_file}"
-    # COMPAT: Xray 官方安装脚本将 ExecStart 放在 override drop-in 文件中，优先级高于主服务文件，需同步修改
-    local systemd_override_dir="${xray_systemd_file}.d"
-    if [[ -d "${systemd_override_dir}" ]]; then
-        local conf_file
-        for conf_file in "${systemd_override_dir}"/*.conf; do
-            [[ -f "$conf_file" ]] && sed -i "s|-config ${xray_default_conf}|-config ${xray_conf}|g" "$conf_file"
+    ln -s "${xray_conf}" "${xray_default_conf}"
+    local _default_geo_dir="${local_bin}/share/xray"
+    if [[ -d "${_default_geo_dir}" ]] && [[ ! -L "${_default_geo_dir}" ]]; then
+        local _new_geo_dir="${idleleo_dir}/share/xray"
+        mkdir -p "${_new_geo_dir}"
+        for _f in "${_default_geo_dir}"/*; do
+            [[ -f "$_f" ]] && mv "$_f" "${_new_geo_dir}/"
         done
+        rmdir "${_default_geo_dir}" 2>/dev/null || rm -rf "${_default_geo_dir}"
+    fi
+    if [[ ! -L "${_default_geo_dir}" ]]; then
+        ln -s "${idleleo_dir}/share/xray" "${_default_geo_dir}"
     fi
 }
 
@@ -1654,7 +1673,7 @@ nginx_install() {
 
     # 删除临时文件
     cd "$current_dir" && rm -rf "$temp_dir"
-    chown -fR nobody:nogroup "${nginx_dir}"
+    chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${nginx_dir}"
     chmod -fR 755 "${nginx_dir}"
 }
 
@@ -2046,7 +2065,7 @@ acme() {
         if "$HOME"/.acme.sh/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
             chmod -f 644 "${ssl_chainpath}"/xray.crt
             chmod -f 600 "${ssl_chainpath}"/xray.key
-            chown -fR nobody:nogroup "${ssl_chainpath}"/*
+            chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
             log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置成功") ${Font}"
             systemctl stop nginx
         fi
@@ -2662,7 +2681,9 @@ setup_auto_clean_logs() {
         echo "    compress" >> "$logrotate_config"
         echo "    missingok" >> "$logrotate_config"
         echo "    notifempty" >> "$logrotate_config"
-        echo "    create 640 nobody nogroup" >> "$logrotate_config"
+        local _logrotate_group
+        _logrotate_group=$(id -gn nobody 2>/dev/null || echo "nogroup")
+        echo "    create 640 nobody ${_logrotate_group}" >> "$logrotate_config"
         echo "}" >> "$logrotate_config"
 
         judge "$(gettext "设置自动清理日志")"
@@ -3244,7 +3265,7 @@ ssl_judge_and_install() {
                 acme
                 ;;
             *)
-                chown -fR nobody:nogroup "${ssl_chainpath}"/*
+                chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
                 judge "$(gettext "证书应用")"
                 ;;
             esac
@@ -3259,7 +3280,7 @@ ssl_judge_and_install() {
                 acme
                 ;;
             *)
-                chown -fR nobody:nogroup "${ssl_chainpath}"/*
+                chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
                 judge "$(gettext "证书应用")"
                 ;;
             esac
@@ -3275,7 +3296,7 @@ ssl_judge_and_install() {
                 ;;
             *)
                 "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
-                chown -fR nobody:nogroup "${ssl_chainpath}"/*
+                chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
                 judge "$(gettext "证书应用")"
                 ;;
             esac
@@ -3767,22 +3788,7 @@ uninstall_all() {
     echo
     [[ -d "${nginx_dir}" ]] && uninstall_nginx
     echo
-    log_echo "${GreenBG} $(gettext "是否删除所有脚本文件") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-    read -r remove_all_idleleo_file_fq
-    case $remove_all_idleleo_file_fq in
-    [yY][eE][sS] | [yY])
-        safe_rm "${idleleo_commend_file}"
-        safe_rm "${idleleo_dir}"
-        systemctl daemon-reload
-        log_echo "${OK} ${GreenBG} $(gettext "已删除所有文件") ${Font}"
-        log_echo "${GreenBG} $(gettext "ヾ(￣▽￣) 拜拜~") ${Font}"
-        exit 0
-        ;;
-    *)
-        systemctl daemon-reload
-        log_echo "${OK} ${GreenBG} $(gettext "已保留脚本文件 (包含 SSL 证书等)") ${Font}"
-        ;;
-    esac
+    local keep_config=true
     if [[ -f "${xray_qr_config_file}" ]]; then
         log_echo "${GreenBG} $(gettext "是否保留配置文件") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r remove_config_fq
@@ -3791,11 +3797,41 @@ uninstall_all() {
             log_echo "${OK} ${GreenBG} $(gettext "已保留配置文件") ${Font}"
             ;;
         *)
-            rm -rf "${xray_qr_config_file}"
-            log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
+            keep_config=false
+            log_echo "${OK} ${GreenBG} $(gettext "将删除配置文件") ${Font}"
             ;;
         esac
     fi
+    log_echo "${GreenBG} $(gettext "是否删除所有脚本文件") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    read -r remove_all_idleleo_file_fq
+    case $remove_all_idleleo_file_fq in
+    [yY][eE][sS] | [yY])
+        if [[ "${keep_config}" == "true" && -f "${xray_qr_config_file}" ]]; then
+            local _tmp_config
+            _tmp_config=$(mktemp)
+            cp -f "${xray_qr_config_file}" "${_tmp_config}"
+            safe_rm "${idleleo_commend_file}"
+            safe_rm "${idleleo_dir}"
+            mkdir -p "${idleleo_dir}/info"
+            mv -f "${_tmp_config}" "${xray_qr_config_file}"
+        else
+            safe_rm "${idleleo_commend_file}"
+            safe_rm "${idleleo_dir}"
+        fi
+        systemctl daemon-reload
+        log_echo "${OK} ${GreenBG} $(gettext "已删除所有文件") ${Font}"
+        log_echo "${GreenBG} $(gettext "ヾ(￣▽￣) 拜拜~") ${Font}"
+        exit 0
+        ;;
+    *)
+        if [[ "${keep_config}" == "false" && -f "${xray_qr_config_file}" ]]; then
+            rm -rf "${xray_qr_config_file}"
+            log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
+        fi
+        systemctl daemon-reload
+        log_echo "${OK} ${GreenBG} $(gettext "已保留脚本文件 (包含 SSL 证书等)") ${Font}"
+        ;;
+    esac
 }
 
 delete_tls_key_and_crt() {

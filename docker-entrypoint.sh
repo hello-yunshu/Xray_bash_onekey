@@ -5,7 +5,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
 XRAY_BIN="/usr/local/bin/xray"
 NGINX_BIN="/usr/local/nginx/sbin/nginx"
-XRAY_CONF="/etc/idleleo/conf/xray/config.json"
+XRAY_CONF="/usr/local/etc/xray/config.json"
 NGINX_CONF="/usr/local/nginx/conf/nginx.conf"
 
 _start_cron() {

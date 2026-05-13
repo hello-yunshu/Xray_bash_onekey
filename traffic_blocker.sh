@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.5"
+tb_SCRIPT_VERSION="1.5.6"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -397,32 +397,6 @@ tb_download_geo_file() {
     if download_file "$download_url" "${tb_geo_dir}/${file_name}"; then
         tb_set_geo_local_version "$file_name" "${remote_version}"
         log_echo "${OK} ${GreenBG} $(gettext "下载完成"): ${file_name} (${remote_version}) ${Font}"
-        if [[ ! -f "${xray_systemd_file}" ]]; then
-            return 0
-        fi
-        local _need_daemon_reload=false
-        local _systemd_files=("${xray_systemd_file}")
-        local _override_dir="${xray_systemd_file}.d"
-        if [[ -d "${_override_dir}" ]]; then
-            local _conf_file
-            for _conf_file in "${_override_dir}"/*.conf; do
-                [[ -f "$_conf_file" ]] && _systemd_files+=("$_conf_file")
-            done
-        fi
-        local _has_asset_env=false
-        for _svc_file in "${_systemd_files[@]}"; do
-            if grep -q "XRAY_LOCATION_ASSET" "$_svc_file"; then
-                _has_asset_env=true
-                break
-            fi
-        done
-        if [[ "$_has_asset_env" == "false" ]]; then
-            sed -i "/^\[Service\]/a Environment=XRAY_LOCATION_ASSET=${idleleo_dir}/share/xray" "${xray_systemd_file}"
-            _need_daemon_reload=true
-        fi
-        if [[ "$_need_daemon_reload" == "true" ]]; then
-            systemctl daemon-reload
-        fi
         return 0
     else
         log_echo "${Error} ${RedBG} $(gettext "下载失败"): ${file_name} ${Font}"
