@@ -615,5 +615,6 @@
   "删除 GeoData 自动更新": "supprimer la mise à jour automatique des données géographiques",
   "请输入单个域名": "veuillez saisir un seul nom de domaine",
   "请输入单个 shortId": "veuillez saisir un seul shortid",
-  "此模式不支持查看用户": "ce mode ne permet pas d’afficher les utilisateurs"
+  "此模式不支持查看用户": "ce mode ne permet pas d’afficher les utilisateurs",
+  "将删除配置文件": "le fichier de configuration sera supprimé"
 }
