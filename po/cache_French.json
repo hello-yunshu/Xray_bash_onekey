@@ -616,5 +616,9 @@
   "请输入单个域名": "veuillez saisir un seul nom de domaine",
   "请输入单个 shortId": "veuillez saisir un seul shortid",
   "此模式不支持查看用户": "ce mode ne permet pas d’afficher les utilisateurs",
-  "将删除配置文件": "le fichier de configuration sera supprimé"
+  "将删除配置文件": "le fichier de configuration sera supprimé",
+  "请选择传输方式": "veuillez sélectionner le mode de transmission",
+  "普通模式": "mode normal",
+  "请选择 xHTTP 负载均衡通道": "veuillez sélectionner le canal d’équilibrage de charge xhttp",
+  "传输方式": "mode de transmission"
 }
