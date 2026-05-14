@@ -54,5 +54,9 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add languages/
-          git commit -m "Update translations for README [$(date +%Y-%m-%d)]" || echo "No changes to commit"
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update translations for README [$(date +%Y-%m-%d)]"
+            git push
+          fi
