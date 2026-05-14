@@ -35,8 +35,19 @@ RUN groupadd -f nogroup && \
     id nobody >/dev/null 2>&1 || useradd -g nogroup -s /usr/sbin/nologin nobody
 
 RUN temp_dir=$(mktemp -d) && cd "$temp_dir" && \
-    nginx_filename="xray-nginx-custom-$(dpkg --print-architecture).tar.gz" && \
-    curl -fL -o "$nginx_filename" "https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${NGINX_BUILD_VERSION}/$nginx_filename" && \
+    base_url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${NGINX_BUILD_VERSION}" && \
+    case "$(dpkg --print-architecture)" in \
+      amd64) nginx_arch="x86"; nginx_filename="xray-nginx-custom-x86.tar.gz" ;; \
+      arm64) nginx_arch="arm"; nginx_filename="xray-nginx-custom-arm.tar.gz" ;; \
+      *) echo "Unsupported architecture: $(dpkg --print-architecture)" && exit 1 ;; \
+    esac && \
+    if curl -fL -o release-manifest.json "$base_url/release-manifest.json"; then \
+      manifest_filename="$(jq -r --arg arch "$nginx_arch" '.assets[]? | select(.arch == $arch) | .filename // empty' release-manifest.json | head -n 1)" && \
+      manifest_sha256="$(jq -r --arg arch "$nginx_arch" '.assets[]? | select(.arch == $arch) | .sha256 // empty' release-manifest.json | head -n 1)" && \
+      if [ -n "$manifest_filename" ]; then nginx_filename="$manifest_filename"; fi; \
+    fi && \
+    curl -fL -o "$nginx_filename" "$base_url/$nginx_filename" && \
+    if [ -n "$manifest_sha256" ] && [ "$manifest_sha256" != "null" ]; then echo "$manifest_sha256  $nginx_filename" | sha256sum -c -; fi && \
     tar -xzf "$nginx_filename" && \
     mv ./nginx /usr/local/nginx && \
     cd / && rm -rf "$temp_dir"

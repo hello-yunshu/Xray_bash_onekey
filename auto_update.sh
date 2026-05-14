@@ -79,7 +79,7 @@ info_extraction_all=$(jq -rc . "${xray_qr_config_file}" 2>/dev/null)
 check_online_version() {
     local result
     result=$(echo "${get_versions_all}" | jq -rc ".$1" 2>/dev/null)
-    if [[ $? -ne 0 ]] || [[ -z "${result}" ]]; then
+    if [[ $? -ne 0 ]] || [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
         echo "Online version check failed, please try again later!" >>"${log_file}"
         exit 1
     fi
@@ -92,7 +92,7 @@ info_extraction() {
 
 shell_online_version="$(check_online_version shell_online_version)"
 xray_online_version="$(check_online_version xray_online_version)"
-nginx_online_version="$(check_online_version nginx_build_version)"
+nginx_online_version="$(check_online_version nginx_build_online_version)"
 
 if [[ -f "${xray_qr_config_file}" ]]; then
     if [[ $(info_extraction shell_version) == null ]] || [[ $(info_extraction shell_version) != "${shell_online_version}" ]]; then
