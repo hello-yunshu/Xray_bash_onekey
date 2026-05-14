@@ -65,6 +65,10 @@ jobs:
           echo "file_manager.sh" >> po/POTFILES.in
           echo "traffic_blocker.sh" >> po/POTFILES.in
           
+          if [ -f po/xray_install.pot ]; then
+            cp po/xray_install.pot po/xray_install.pot.old
+          fi
+          
           xgettext \
             --files-from=po/POTFILES.in \
             --from-code=UTF-8 \
@@ -75,12 +79,26 @@ jobs:
             --msgid-bugs-address=https://github.com/hello-yunshu/Xray_bash_onekey/issues \
             --copyright-holder="yunshu" \
             --output=po/xray_install.pot
+          
+          if [ -f po/xray_install.pot.old ]; then
+            if diff <(grep -v '^"POT-Creation-Date:' po/xray_install.pot) \
+                     <(grep -v '^"POT-Creation-Date:' po/xray_install.pot.old) > /dev/null 2>&1; then
+              mv po/xray_install.pot.old po/xray_install.pot
+              echo "No string changes detected. Preserving original .pot file."
+            else
+              rm -f po/xray_install.pot.old
+              echo "String changes detected. Using new .pot file."
+            fi
+          fi
       
       - name: Update/Create PO files
         run: |
-          rm -f po/*.po
           for lang in zh_CN en fa ru ko fr; do
-            msginit --no-translator --locale=$lang --input=po/xray_install.pot --output=po/$lang.po
+            if [ -f "po/$lang.po" ]; then
+              msgmerge --previous --update "po/$lang.po" po/xray_install.pot
+            else
+              msginit --no-translator --locale=$lang --input=po/xray_install.pot --output=po/$lang.po
+            fi
           done
       
       - name: Auto translate
@@ -129,21 +147,17 @@ jobs:
       
       - name: Commit changes if necessary
         run: |
-          needs_commit=false
           for lang in en fa ru ko fr; do
-            if [ ! -f "po/${lang}.po.no-update" ]; then
-              needs_commit=true
-              break
-            else
-                rm po/${lang}.po.no-update
+            if [ -f "po/${lang}.po.no-update" ]; then
+              rm "po/${lang}.po.no-update"
             fi
           done
-          if [ "$needs_commit" = true ]; then
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git add po/ languages/
-            git commit -m "Update translations for all languages [$(date +%Y-%m-%d)]" || echo "No changes to commit"
-            git push 
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add po/ languages/
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
           else
-            echo "No translations were updated. Skipping commit and push."
+            git commit -m "Update translations for all languages [$(date +%Y-%m-%d)]"
+            git push
           fi

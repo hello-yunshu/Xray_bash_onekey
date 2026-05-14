@@ -98,7 +98,13 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
     current_version = get_version(version_file)
 
     po = polib.pofile(input_file)
-    updated = False
+
+    original_msgstrs = {}
+    original_fuzzy = {}
+    for entry in po:
+        if entry.msgid:
+            original_msgstrs[entry.msgid] = entry.msgstr
+            original_fuzzy[entry.msgid] = entry.fuzzy
 
     for entry in po:
         if not entry.msgid:
@@ -109,13 +115,12 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
         if msgid_text in translations:
             translated_text = clean_translation(translations[msgid_text])
             if translated_text == "":
-                updated = True
                 print(f"Cached translation is empty for: {msgid_text}. Re-translating...")
             else:
                 print(f"Using cached translation: {msgid_text} -> {translated_text}")
-                if entry.msgstr != translated_text:
-                    updated = True
                 entry.msgstr = translated_text
+                if entry.fuzzy:
+                    entry.fuzzy = False
                 continue
 
         try:
@@ -132,15 +137,11 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
 
                     translated_text = clean_translation(translated_text)
 
-                    if msgid_text in translations and translations[msgid_text] != translated_text:
-                        print(f"Translation changed for: {msgid_text} -> {translated_text}")
-                        updated = True
-
                     translations[msgid_text] = translated_text
                     print(f"New translation [{target_lang_code}]: {msgid_text} -> {translated_text}")
-                    if entry.msgstr != translated_text:
-                        updated = True
                     entry.msgstr = translated_text
+                    if entry.fuzzy:
+                        entry.fuzzy = False
                     break
                 except Exception as e:
                     if attempt == max_retries - 1:
@@ -152,23 +153,32 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
             print(f"Error: {e}")
             if msgid_text in translations:
                 del translations[msgid_text]
-                updated = True
-                continue
+            continue
 
-        if entry.msgstr:
-            updated = True
+    updated = False
+    for entry in po:
+        if entry.msgid:
+            if entry.msgid not in original_msgstrs:
+                if entry.msgstr:
+                    updated = True
+                    break
+            elif entry.msgstr != original_msgstrs[entry.msgid]:
+                updated = True
+                break
+            elif entry.fuzzy != original_fuzzy.get(entry.msgid, False):
+                updated = True
+                break
 
     if updated:
+        po.save(output_file)
         save_translation_cache(cache_file, translations)
         new_version = update_version(version_file)
         print(f"Updated version from {current_version} to {new_version}")
     else:
-        print("No updates.")
+        print("No translation updates.")
         no_update_file = os.path.join(os.path.dirname(output_file), f'{os.path.basename(output_file)}.no-update')
         with open(no_update_file, 'w', encoding='utf-8') as f:
             f.write("# No updates.\n")
-
-    po.save(output_file)
 
 if __name__ == '__main__':
     for lang_code, lang_name in [('en', 'English'), ('fa', 'Persian'), ('ru', 'Russian'), ('ko', 'Korean'), ('fr', 'French')]:
