@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.1.0"
+VERSION="1.1.1"
 
 idleleo_dir="/etc/idleleo"
 local_bin="/usr/local"
@@ -78,7 +78,7 @@ info_extraction_all=$(jq -rc . "${xray_qr_config_file}" 2>/dev/null)
 
 check_online_version() {
     local result
-    result=$(echo "${get_versions_all}" | jq -rc ".$1" 2>/dev/null)
+    result=$(echo "${get_versions_all}" | jq -rc --arg key "$1" '.[$key]' 2>/dev/null)
     if [[ $? -ne 0 ]] || [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
         echo "Online version check failed, please try again later!" >>"${log_file}"
         exit 1
@@ -87,7 +87,7 @@ check_online_version() {
 }
 
 info_extraction() {
-    echo "${info_extraction_all}" | jq -r ".$1" 2>/dev/null
+    echo "${info_extraction_all}" | jq -r --arg key "$1" '.[$key]' 2>/dev/null
 }
 
 shell_online_version="$(check_online_version shell_online_version)"
@@ -99,7 +99,7 @@ if [[ -f "${xray_qr_config_file}" ]]; then
         bash "${idleleo_dir}/install.sh" -u auto_update
         [[ 0 -ne $? ]] && echo "Script update failed!" >>"${log_file}" && exit 1
         echo "Script updated successfully!" >>"${log_file}"
-        add_shell_version=$(jq -r ". += {\"shell_version\": \"${shell_online_version}\"}" "${xray_qr_config_file}" 2>/dev/null)
+        add_shell_version=$(jq -r --arg sv "${shell_online_version}" '. += {"shell_version": $sv}' "${xray_qr_config_file}" 2>/dev/null)
         if [[ -n "${add_shell_version}" ]]; then
             tmp_config="${xray_qr_config_file}.tmp.$$"
             echo "${add_shell_version}" | jq . >"${tmp_config}" 2>/dev/null && mv "${tmp_config}" "${xray_qr_config_file}" || rm -f "${tmp_config}"
