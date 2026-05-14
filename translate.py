@@ -169,6 +169,14 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
                 updated = True
                 break
 
+    if po.obsolete_entries():
+        for entry in po.obsolete_entries():
+            if entry.msgid in translations:
+                del translations[entry.msgid]
+                print(f"Removed obsolete translation: {entry.msgid}")
+        po.remove_obsolete_entries()
+        updated = True
+
     if updated:
         po.save(output_file)
         save_translation_cache(cache_file, translations)
