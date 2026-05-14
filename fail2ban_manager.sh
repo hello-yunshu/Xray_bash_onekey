@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.5.1"
+mf_SCRIPT_VERSION="1.5.2"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -248,7 +248,6 @@ mf_manage_fail2ban() {
             ;;
         2)
             mf_add_custom_rule
-            mf_main_menu
             ;;
         3)
             # 服务管理子菜单
@@ -281,7 +280,7 @@ mf_manage_fail2ban() {
                 esac
             done
             ;;
-        4) mf_main_menu ;;
+        4) return ;;
         *)
             echo
             log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
