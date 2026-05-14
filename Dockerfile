@@ -1,7 +1,7 @@
 FROM debian:bookworm-slim
 
-ARG XRAY_VERSION=26.3.27
-ARG NGINX_BUILD_VERSION=2026.04.14
+ARG XRAY_VERSION
+ARG NGINX_BUILD_VERSION
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -34,7 +34,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd -f nogroup && \
     id nobody >/dev/null 2>&1 || useradd -g nogroup -s /usr/sbin/nologin nobody
 
-RUN temp_dir=$(mktemp -d) && cd "$temp_dir" && \
+RUN VERSIONS_JSON=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 \
+    https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json) && \
+    XRAY_VERSION=${XRAY_VERSION:-$(echo "$VERSIONS_JSON" | jq -r '.xray_online_version')} && \
+    NGINX_BUILD_VERSION=${NGINX_BUILD_VERSION:-$(echo "$VERSIONS_JSON" | jq -r '.nginx_build_online_version')} && \
+    echo "XRAY_VERSION=${XRAY_VERSION}" >> /etc/idleleo_build_versions && \
+    echo "NGINX_BUILD_VERSION=${NGINX_BUILD_VERSION}" >> /etc/idleleo_build_versions
+
+RUN . /etc/idleleo_build_versions && \
+    temp_dir=$(mktemp -d) && cd "$temp_dir" && \
     base_url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${NGINX_BUILD_VERSION}" && \
     case "$(dpkg --print-architecture)" in \
       amd64) nginx_arch="x86"; nginx_filename="xray-nginx-custom-x86.tar.gz" ;; \
@@ -52,7 +60,8 @@ RUN temp_dir=$(mktemp -d) && cd "$temp_dir" && \
     mv ./nginx /usr/local/nginx && \
     cd / && rm -rf "$temp_dir"
 
-RUN curl -fL -o /tmp/xray-install-release.sh https://github.com/XTLS/Xray-install/raw/main/install-release.sh && \
+RUN . /etc/idleleo_build_versions && \
+    curl -fL -o /tmp/xray-install-release.sh https://github.com/XTLS/Xray-install/raw/main/install-release.sh && \
     bash /tmp/xray-install-release.sh install -f --version v${XRAY_VERSION} && \
     rm -f /tmp/xray-install-release.sh /usr/local/etc/xray/config.json
 
