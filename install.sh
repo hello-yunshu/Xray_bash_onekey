@@ -475,7 +475,7 @@ check_version() {
     load_versions
     local result
     result=$(echo "${get_versions_all}" | jq -rc ".$1" 2>/dev/null)
-    if [[ $? -ne 0 ]] || [[ -z "${result}" ]]; then
+    if [[ $? -ne 0 ]] || [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}"
         exit 1
     fi
@@ -1631,12 +1631,15 @@ nginx_install() {
     cd "$temp_dir" || exit
 
     log_echo "${OK} ${GreenBG} $(gettext "即将下载已编译的") Nginx ${Font}"
+    local nginx_arch
     local nginx_filename
     case $(uname -m) in
         x86_64)
+            nginx_arch="x86"
             nginx_filename="xray-nginx-custom-x86.tar.gz"
             ;;
-        armv7l|armv8l|aarch64)
+        aarch64|arm64)
+            nginx_arch="arm"
             nginx_filename="xray-nginx-custom-arm.tar.gz"
             ;;
         *)
@@ -1646,7 +1649,22 @@ nginx_install() {
             ;;
     esac
 
-    local url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}/${nginx_filename}"
+    local base_url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}"
+    local manifest_file="${temp_dir}/release-manifest.json"
+    local nginx_sha256=""
+
+    if download_json_file "${base_url}/release-manifest.json" "${manifest_file}"; then
+        local manifest_filename
+        local manifest_sha256
+        manifest_filename=$(jq -r --arg arch "${nginx_arch}" '.assets[]? | select(.arch == $arch) | .filename // empty' "${manifest_file}" | head -n 1)
+        manifest_sha256=$(jq -r --arg arch "${nginx_arch}" '.assets[]? | select(.arch == $arch) | .sha256 // empty' "${manifest_file}" | head -n 1)
+        if [[ -n "${manifest_filename}" ]]; then
+            nginx_filename="${manifest_filename}"
+            nginx_sha256="${manifest_sha256}"
+        fi
+    fi
+
+    local url="${base_url}/${nginx_filename}"
 
     if ! curl -fL -# --connect-timeout 10 --retry 2 --retry-delay 1 -o "$nginx_filename" "$url"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "下载失败") ${Font}"
@@ -1654,6 +1672,14 @@ nginx_install() {
         exit 1
     fi
     log_echo "${OK} ${GreenBG} Nginx $(gettext "下载成功") ${Font}"
+
+    if [[ -n "${nginx_sha256}" ]] && [[ "${nginx_sha256}" != "null" ]]; then
+        if ! echo "${nginx_sha256}  ${nginx_filename}" | sha256sum -c - >/dev/null 2>&1; then
+            log_echo "${Error} ${RedBG} Nginx SHA256 校验失败 ${Font}"
+            cd "$current_dir" && rm -rf "$temp_dir"
+            exit 1
+        fi
+    fi
 
     if ! tar -xzf "$nginx_filename" -C ./; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "解压失败") ${Font}"
