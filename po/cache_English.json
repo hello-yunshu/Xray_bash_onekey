@@ -617,5 +617,6 @@
   "此模式不支持查看用户": "this mode does not support viewing users",
   "将删除配置文件": "the configuration file will be deleted",
   "请选择传输方式": "please select the transmission method",
-  "xHTTP 不支持 Clash 客户端": "xhttp is not supported by clash clients"
+  "xHTTP 不支持 Clash 客户端": "xhttp is not supported by clash clients",
+  "已清理残留的证书自动更新定时任务": "residual certificate auto-update scheduled tasks have been cleared"
 }

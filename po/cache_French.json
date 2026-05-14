@@ -617,5 +617,6 @@
   "此模式不支持查看用户": "ce mode ne permet pas d’afficher les utilisateurs",
   "将删除配置文件": "le fichier de configuration sera supprimé",
   "请选择传输方式": "veuillez sélectionner le mode de transmission",
-  "xHTTP 不支持 Clash 客户端": "xhttp n’est pas pris en charge par le client clash"
+  "xHTTP 不支持 Clash 客户端": "xhttp n’est pas pris en charge par le client clash",
+  "已清理残留的证书自动更新定时任务": "la tâche planifiée de mise à jour automatique des certificats résiduels a été nettoyée"
 }
