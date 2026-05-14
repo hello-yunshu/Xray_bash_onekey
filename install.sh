@@ -65,7 +65,6 @@ amce_sh_file="/root/.acme.sh/acme.sh"
 auto_update_file="${idleleo_dir}/auto_update.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 geo_update_file="${idleleo_dir}/geo_update.sh"
-myemali="my@example.com"
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=""
 _get_versions_loaded=0
@@ -85,20 +84,21 @@ random_num=$((RANDOM % 12 + 4))
 [[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
 
 is_ws_mode() {
-    [[ ${transport_mode} == *ws* ]]
+    [[ ${transport_mode} == *ws* || ${transport_mode} == "all" ]]
 }
 
 is_grpc_mode() {
-    [[ ${transport_mode} == *gRPC* ]]
+    [[ ${transport_mode} == *gRPC* || ${transport_mode} == "all" ]]
 }
 
 is_xhttp_mode() {
-    [[ ${transport_mode} == *xhttp* ]]
+    [[ ${transport_mode} == *xhttp* || ${transport_mode} == "all" ]]
 }
 
 [[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}"
 [[ ! -f "${log_dir}/install.log" ]] && touch "${log_dir}"/install.log
 LOG_FILE="${log_dir}/install.log"
+log_file="${LOG_FILE}"
 LOG_MAX_SIZE=$((3 * 1024 * 1024))
 MAX_ARCHIVES=5
 _log_check_counter=0
@@ -150,6 +150,11 @@ log_echo() {
     log "$message"
 }
 
+log_echo_secure() {
+    local message=$(printf "%b" "$@")
+    echo -e "$message"
+}
+
 safe_rm() {
     local target="$1"
     if [[ -z "${target}" || "${target}" == "/" ]]; then
@@ -159,11 +164,23 @@ safe_rm() {
     rm -rf "${target}"
 }
 
+sed_escape() {
+    local str="$1"
+    str="${str//\\/\\\\}"
+    str="${str//&/\\&}"
+    str="${str//\//\\/}"
+    printf '%s' "$str"
+}
+
 update_json_config() {
     local config_file="$1"
     shift
     if [[ -z "${config_file}" ]] || [[ $# -eq 0 ]]; then
         log_echo "${Error} ${RedBG} update_json_config: $(gettext "参数不能为空") ${Font}"
+        return 1
+    fi
+    if [[ ! -f "${config_file}" ]]; then
+        log_echo "${Error} ${RedBG} update_json_config: ${config_file} $(gettext "文件不存在") ${Font}"
         return 1
     fi
     jq "$@" "${config_file}" > "${config_file}.tmp"
@@ -280,8 +297,8 @@ source '/etc/os-release'
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 
 check_system() {
-    if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 8 ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Centos ${VERSION_ID} ${VERSION} ${Font}"
+    if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]] && [[ ${VERSION_ID%%.*} -ge 8 ]]; then
+        log_echo "${OK} ${GreenBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} ${VERSION} ${Font}"
         INS="yum"
         [[ ! -f "${xray_qr_config_file}" ]] && $INS update || true
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 12 ]]; then
@@ -604,10 +621,10 @@ port_set() {
     if [[ "on" != ${old_config_status} ]]; then
         echo
         log_echo "${GreenBG} $(gettext "确定端口") ${Font}"
-        read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+        read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
         if [[ ${port} -eq 9443 || ${port} -eq 9403 ]] && [[ ${tls_mode} == "Reality" ]]; then
             echo -e "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
-            read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+            read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
         fi
     fi
 }
@@ -745,7 +762,7 @@ ws_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
             *)
@@ -765,7 +782,7 @@ grpc_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             *)
@@ -786,7 +803,7 @@ xhttp_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入") xHTTP inbound_port ($(gettext "请勿与其他端口相同")!): " "xhttpport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") xHTTP inbound_port ($(gettext "请勿与其他端口相同")!): " "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
                 ;;
             *)
@@ -850,13 +867,12 @@ firewall_set() {
             iptables -I OUTPUT -p udp -m multiport --sport 53,${xport},${gport},${xhttpport} -j ACCEPT
             iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
         fi
-        if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-            service iptables save
-            service iptables restart
+        if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
+            service iptables save 2>/dev/null || iptables-save > /etc/sysconfig/iptables 2>/dev/null || true
+            service iptables restart 2>/dev/null || true
             log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
         else
-            netfilter-persistent save
-            systemctl restart iptables
+            netfilter-persistent save 2>/dev/null || iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
             log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
         fi
         log_echo "${OK} ${GreenBG} $(gettext "开放防火墙相关端口") ${Font}"
@@ -879,6 +895,7 @@ ws_path_set() {
                 case $path_modify_fq in
                 [yY][eE][sS] | [yY])
                     read_optimize "$(gettext "请输入") ws $(gettext "伪装路径") ($(gettext "不需要")"/":)" "path" "NULL"
+                    path="${path#/}"
                     log_echo "${Green} ws $(gettext "伪装路径"): ${path} ${Font}"
                     ;;
                 *)
@@ -916,6 +933,7 @@ grpc_path_set() {
                 case $path_modify_fq in
                 [yY][eE][sS] | [yY])
                     read_optimize "$(gettext "请输入") gRPC $(gettext "伪装路径") ($(gettext "不需要")"/":)" "serviceName" "NULL"
+                    serviceName="${serviceName#/}"
                     log_echo "${Green} gRPC $(gettext "伪装路径"): ${serviceName} ${Font}"
                     ;;
                 *)
@@ -953,6 +971,7 @@ xhttp_path_set() {
                 case $path_modify_fq in
                 [yY][eE][sS] | [yY])
                     read_optimize "$(gettext "请输入") xHTTP $(gettext "伪装路径") ($(gettext "不需要")"/":)" "xhttppath" "NULL"
+                    xhttppath="${xhttppath#/}"
                     log_echo "${Green} xHTTP $(gettext "伪装路径"): ${xhttppath} ${Font}"
                     ;;
                 *)
@@ -1007,14 +1026,14 @@ UUID_set() {
             read_optimize "$(gettext "请输入自定义字符串") ($(gettext "最多30字符")):" "UUID5_char" "NULL"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
             log_echo "${Green} $(gettext "自定义字符串"): ${UUID5_char} ${Font}"
-            log_echo "${Green} UUIDv5: ${UUID} ${Font}"
+            log_echo_secure "${Green} UUIDv5: ${UUID} ${Font}"
             echo
             ;;
         *)
             UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
             log_echo "${Green} UUID $(gettext "映射字符串"): ${UUID5_char} ${Font}"
-            log_echo "${Green} UUID: ${UUID} ${Font}"
+            log_echo_secure "${Green} UUID: ${UUID} ${Font}"
             echo
             ;;
         esac
@@ -1121,14 +1140,14 @@ serverNames_set() {
 
 keys_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        local keys custom_keys_fq
+        local custom_keys_fq
         echo
         log_echo "${GreenBG} $(gettext "是否需要自定义") privateKey [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r custom_keys_fq
         case $custom_keys_fq in
         [yY][eE][sS] | [yY])
             read_optimize "$(gettext "请输入") privateKey:" "privateKey" "NULL"
-            keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}" | tr '\n' ' ')
+            local keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}" | tr '\n' ' ')
             if echo "${keys}" | grep -q "Password (PublicKey): "; then
                 password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
             elif echo "${keys}" | grep -q "Password: "; then
@@ -1138,7 +1157,7 @@ keys_set() {
             fi
             ;;
         *)
-            keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
+            local keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
             privateKey=$(echo "${keys}" | awk -F"PrivateKey: " '{print $2}' | awk '{print $1}')
             if echo "${keys}" | grep -q "Password (PublicKey): "; then
                 password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
@@ -1149,8 +1168,8 @@ keys_set() {
             fi
             ;;
         esac
-        log_echo "${Green} privateKey: ${privateKey} ${Font}"
-        log_echo "${Green} Password: ${password} ${Font}"
+        log_echo_secure "${Green} privateKey: ${privateKey} ${Font}"
+        log_echo_secure "${Green} Password: ${password} ${Font}"
         echo
     fi
 }
@@ -1180,12 +1199,6 @@ ensure_sub_script() {
     local script_name="$1"
     local remote_url="$2"
     local local_file="${idleleo_dir}/${script_name}"
-
-    case "$script_name" in
-        fail2ban_manager.sh) mf_remote_url="$remote_url" ;;
-        file_manager.sh) fm_remote_url="$remote_url" ;;
-        traffic_blocker.sh) tb_remote_url="$remote_url" ;;
-    esac
 
     if [ ! -f "$local_file" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件") ${script_name} $(gettext "不存在, 正在下载")... ${Font}"
@@ -1324,51 +1337,51 @@ modify_listen_address() {
 modify_inbound_port() {
     if [[ ${tls_mode} == "Reality" ]]; then
         if [[ ${reality_add_nginx} == "off" ]]; then
-            update_json_config "${xray_conf}" --argjson port "${port}" \
+            update_json_config "${xray_conf}" --argjson port "${port:-0}" \
                '(.inbounds[] | select(.tag == "VLESS-Reality-in")).port = $port'
             if is_ws_mode; then
-                update_json_config "${xray_conf}" --argjson xport "${xport}" \
+                update_json_config "${xray_conf}" --argjson xport "${xport:-0}" \
                    '(.inbounds[] | select(.tag == "VLESS-ws-in")).port = $xport'
             fi
             if is_grpc_mode; then
-                update_json_config "${xray_conf}" --argjson gport "${gport}" \
+                update_json_config "${xray_conf}" --argjson gport "${gport:-0}" \
                    '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).port = $gport'
             fi
             if is_xhttp_mode; then
-                update_json_config "${xray_conf}" --argjson xhttpport "${xhttpport}" \
+                update_json_config "${xray_conf}" --argjson xhttpport "${xhttpport:-0}" \
                    '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport'
             fi
             judge "Xray inbound port $(gettext "修改")"
         else
             if is_ws_mode; then
-                update_json_config "${xray_conf}" --argjson xport "${xport}" \
+                update_json_config "${xray_conf}" --argjson xport "${xport:-0}" \
                    '(.inbounds[] | select(.tag == "VLESS-ws-in")).port = $xport'
             fi
             if is_grpc_mode; then
-                update_json_config "${xray_conf}" --argjson gport "${gport}" \
+                update_json_config "${xray_conf}" --argjson gport "${gport:-0}" \
                    '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).port = $gport'
             fi
             if is_xhttp_mode; then
-                update_json_config "${xray_conf}" --argjson xhttpport "${xhttpport}" \
+                update_json_config "${xray_conf}" --argjson xhttpport "${xhttpport:-0}" \
                    '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport'
             fi
             judge "Xray inbound port $(gettext "修改")"
         fi
     elif [[ ${tls_mode} == "XTLS" ]]; then
-        update_json_config "${xray_conf}" --argjson port "${port}" \
+        update_json_config "${xray_conf}" --argjson port "${port:-0}" \
            '(.inbounds[] | select(.tag == "VLESS-XTLS-in")).port = $port'
         judge "Xray inbound port $(gettext "修改")"
     else
         if is_ws_mode; then
-            update_json_config "${xray_conf}" --argjson xport "${xport}" \
+            update_json_config "${xray_conf}" --argjson xport "${xport:-0}" \
                '(.inbounds[] | select(.tag == "VLESS-ws-in")).port = $xport'
         fi
         if is_grpc_mode; then
-            update_json_config "${xray_conf}" --argjson gport "${gport}" \
+            update_json_config "${xray_conf}" --argjson gport "${gport:-0}" \
                '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).port = $gport'
         fi
         if is_xhttp_mode; then
-            update_json_config "${xray_conf}" --argjson xhttpport "${xhttpport}" \
+            update_json_config "${xray_conf}" --argjson xhttpport "${xhttpport:-0}" \
                '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport'
         fi
         judge "Xray inbound port $(gettext "修改")"
@@ -1381,7 +1394,7 @@ add_ws_inbound() {
     local ws_path="${3:-/ray/}"
     update_json_config "${xray_conf}" \
        --arg listen "${listen_addr}" \
-       --argjson port "${ws_port}" \
+       --argjson port "${ws_port:-0}" \
        --arg path "${ws_path}" \
        '.inbounds += [{
            "port": $port,
@@ -1407,7 +1420,7 @@ add_grpc_inbound() {
     local grpc_service="${3:-grpc}"
     update_json_config "${xray_conf}" \
        --arg listen "${listen_addr}" \
-       --argjson port "${grpc_port}" \
+       --argjson port "${grpc_port:-0}" \
        --arg serviceName "${grpc_service}" \
        '.inbounds += [{
            "port": $port,
@@ -1434,7 +1447,7 @@ add_xhttp_inbound() {
     xhttp_path="/${xhttp_path#/}"
     update_json_config "${xray_conf}" \
        --arg listen "${listen_addr}" \
-       --argjson port "${xhttp_port}" \
+       --argjson port "${xhttp_port:-0}" \
        --arg xhttp_path "${xhttp_path}" \
        '.inbounds += [{
            "port": $port,
@@ -1484,8 +1497,10 @@ modify_nginx_ssl_other() {
     if [[ -f "${nginx_dir}/conf/nginx.conf" ]] && [[ $(grep -c "server_tokens off;" "${nginx_dir}"/conf/nginx.conf) -eq '0' ]] && [[ ${save_originconf} != "Yes" ]]; then
         modify_nginx_origin_conf
     fi
-    sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" ${nginx_ssl_conf}
-    sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${domain}\$request_uri;/" ${nginx_ssl_conf}
+    local escaped_domain
+    escaped_domain=$(sed_escape "${domain}")
+    sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${escaped_domain};/g" "${nginx_ssl_conf}"
+    sed -i "s/^\( *\)return 301.*/\1return 301 https:\/\/${escaped_domain}\$request_uri;/" "${nginx_ssl_conf}"
 }
 
 modify_nginx_other() {
@@ -1493,21 +1508,26 @@ modify_nginx_other() {
         modify_nginx_origin_conf
     fi
     if [[ ${tls_mode} == "TLS" ]]; then
-        sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${domain};/g" "${nginx_conf}"
+        local escaped_domain escaped_path escaped_serviceName escaped_xhttppath
+        escaped_domain=$(sed_escape "${domain}")
+        escaped_path=$(sed_escape "${path}")
+        escaped_serviceName=$(sed_escape "${serviceName}")
+        escaped_xhttppath=$(sed_escape "${xhttppath}")
+        sed -i "s/^\( *\)server_name\( *\).*/\1server_name\2${escaped_domain};/g" "${nginx_conf}"
         if is_ws_mode; then
-            sed -i "s/^\( *\)location ws$/\1location \/${path}/" "${nginx_conf}"
+            sed -i "s/^\( *\)location ws$/\1location \/${escaped_path}/" "${nginx_conf}"
             sed -i "s/^\( *\)#proxy_pass http:\/\/xray-ws-server;/\1proxy_pass http:\/\/xray-ws-server;/" "${nginx_conf}"
         else
             sed -i "/^\s*location ws$/,/^\s*}/s/^/#/" "${nginx_conf}"
         fi
         if is_grpc_mode; then
-            sed -i "s/^\( *\)location grpc$/\1location \/${serviceName}/" "${nginx_conf}"
+            sed -i "s/^\( *\)location grpc$/\1location \/${escaped_serviceName}/" "${nginx_conf}"
             sed -i "s/^\( *\)#grpc_pass\(.*\)/\1grpc_pass\2/" "${nginx_conf}"
         else
             sed -i "/^\s*location grpc$/,/^\s*}/s/^/#/" "${nginx_conf}"
         fi
         if is_xhttp_mode; then
-            sed -i "s/^\( *\)location xhttp$/\1location \/${xhttppath}/" "${nginx_conf}"
+            sed -i "s/^\( *\)location xhttp$/\1location \/${escaped_xhttppath}/" "${nginx_conf}"
             sed -i "s/^\( *\)#proxy_pass http:\/\/xray-xhttp-server;/\1proxy_pass http:\/\/xray-xhttp-server;/" "${nginx_conf}"
         else
             sed -i "/^\s*location xhttp$/,/^\s*}/s/^/#/" "${nginx_conf}"
@@ -1538,8 +1558,10 @@ EOF
 
 
 modify_path() {
-    is_ws_mode && sed -i "s/^\( *\)\"path\".*/\1\"path\": \"\/${path}\"/" "${xray_conf}"
-    is_grpc_mode && sed -i "s/^\( *\)\"serviceName\".*/\1\"serviceName\": \"${serviceName}\",/" "${xray_conf}"
+    is_ws_mode && update_json_config "${xray_conf}" --arg ws_path "/${path}" \
+       '(.inbounds[] | select(.tag == "VLESS-ws-in")).streamSettings.wsSettings.path = $ws_path'
+    is_grpc_mode && update_json_config "${xray_conf}" --arg serviceName "${serviceName}" \
+       '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).streamSettings.grpcSettings.serviceName = $serviceName'
     is_xhttp_mode && update_json_config "${xray_conf}" --arg xhttp_path "/${xhttppath#/}" \
        '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).streamSettings.xhttpSettings.path = $xhttp_path'
     if [[ ${tls_mode} == "Reality" ]] && [[ "$reality_add_more" == "off" ]]; then
@@ -1556,7 +1578,8 @@ modify_email_address() {
         echo
         log_echo "${Warning} ${YellowBG} $(gettext "请先删除多余的用户") ${Font}"
     else
-        sed -i "s/^\( *\)\"email\".*/\1\"email\": \"${custom_email}\"/g" "${xray_conf}"
+        update_json_config "${xray_conf}" --arg custom_email "${custom_email}" \
+           '(.inbounds[].settings.clients[].email) = $custom_email'
         judge "Xray $(gettext "用户名修改")"
     fi
 }
@@ -1568,7 +1591,8 @@ modify_UUID() {
         echo
         log_echo "${Warning} ${YellowBG} $(gettext "请先删除多余的用户") ${Font}"
     else
-        sed -i "s/^\( *\)\"id\".*/\1\"id\": \"${UUID}\",/g" "${xray_conf}"
+        update_json_config "${xray_conf}" --arg UUID "${UUID}" \
+           '(.inbounds[].settings.clients[].id) = $UUID'
         judge "Xray UUID $(gettext "修改")"
     fi
 }
@@ -2310,8 +2334,8 @@ port_exist_check() {
 acme() {
     systemctl restart nginx
     #暂时解决ca问题
-    if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --server letsencrypt --keylength ec-256 --force --test; then
-    #if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force --test; then
+    if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force --test; then
+    #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force --test; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书测试签发成功, 开始正式签发") ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
     else
@@ -2320,11 +2344,11 @@ acme() {
         exit 1
     fi
 
-    if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --server letsencrypt --keylength ec-256 --force; then
-    #if "$HOME"/.acme.sh/acme.sh --issue -d ${domain} -w ${idleleo_conf_dir} --keylength ec-256 --force; then
+    if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force; then
+    #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
-        if "$HOME"/.acme.sh/acme.sh --installcert -d ${domain} --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc --force; then
+        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force; then
             chmod -f 644 "${ssl_chainpath}"/xray.crt
             chmod -f 600 "${ssl_chainpath}"/xray.key
             chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
@@ -2920,7 +2944,7 @@ cert_update_manuel() {
             log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
         fi
         host="$(info_extraction host)"
-        "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
+        "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc
         judge "$(gettext "证书更新")"
         service_restart
     else
@@ -3329,7 +3353,7 @@ vless_qr_link_image() {
     if [[ ${tls_mode} == "TLS" ]]; then
         if is_ws_mode; then
             clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction port)" "$(info_ws_path)" "" "tls" "" "" "" "" "" "true")"
+$(generate_clash_config "ws" "$(info_extraction port)" "/$(info_ws_path)" "" "tls" "" "" "" "" "" "true")"
         fi
         if is_grpc_mode; then
             clash_config_content="${clash_config_content}
@@ -3337,7 +3361,7 @@ $(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_grpc_service
         fi
         if is_xhttp_mode; then
             clash_config_content="${clash_config_content}
-# Clash $(gettext "不支持") xHTTP $(gettext "传输协议")"
+# Clash $(gettext "不支持 xHTTP 传输协议")"
         fi
     elif [[ ${tls_mode} == "Reality" ]]; then
         clash_config_content="${clash_config_content}
@@ -3346,7 +3370,7 @@ $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rp
         if [[ ${reality_add_more} == "on" ]]; then
             if is_ws_mode; then
                 clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_ws_path)" "" "none" "" "" "" "" "" "false")"
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "/$(info_ws_path)" "" "none" "" "" "" "" "" "false")"
             fi
             if is_grpc_mode; then
                 clash_config_content="${clash_config_content}
@@ -3354,13 +3378,13 @@ $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_grpc_se
             fi
             if is_xhttp_mode; then
                 clash_config_content="${clash_config_content}
-# Clash $(gettext "不支持") xHTTP $(gettext "传输协议")"
+# Clash $(gettext "不支持 xHTTP 传输协议")"
             fi
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         if is_ws_mode; then
             clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction ws_port)" "$(info_ws_path)" "" "none" "" "" "" "" "" "false")"
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "/$(info_ws_path)" "" "none" "" "" "" "" "" "false")"
         fi
         if is_grpc_mode; then
             clash_config_content="${clash_config_content}
@@ -3368,7 +3392,7 @@ $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_grpc_se
         fi
         if is_xhttp_mode; then
             clash_config_content="${clash_config_content}
-# Clash $(gettext "不支持") xHTTP $(gettext "传输协议")"
+# Clash $(gettext "不支持 xHTTP 传输协议")"
         fi
     elif [[ ${tls_mode} == "XTLS" ]]; then
         clash_config_content="${clash_config_content}
@@ -3511,6 +3535,9 @@ basic_information() {
         log_echo "${OK} ${GreenBG} Xray+${shell_mode} $(gettext "安装成功") ${Font}"
         echo
         log_echo "${Warning} ${YellowBG} VLESS $(gettext "目前分享链接规范为实验阶段, 请自行判断是否适用") ${Font}"
+        if is_xhttp_mode; then
+            log_echo "${Warning} ${YellowBG} $(gettext "xHTTP 不支持 Clash 客户端") ${Font}"
+        fi
         echo
         log_echo "${Red} —————————————— Xray $(gettext "配置信息") —————————————— ${Font}"
         log_echo "${Red} $(gettext "主机") (host):${Font} $(info_extraction host) "
@@ -3539,7 +3566,7 @@ basic_information() {
             fi
         fi
         log_echo "${Red} UUIDv5 $(gettext "映射字符串"):${Font} $(info_extraction idc)"
-        log_echo "${Red} $(gettext "用户id") (UUID):${Font} $(info_extraction id)"
+        log_echo_secure "${Red} $(gettext "用户id") (UUID):${Font} $(info_extraction id)"
 
         log_echo "${Red} $(gettext "加密") (encryption):${Font} None "
         log_echo "${Red} $(gettext "传输协议") (network):${Font} $(info_extraction net) "
@@ -3559,8 +3586,8 @@ basic_information() {
             if [[ ${tls_mode} == "Reality" ]]; then
                 log_echo "${Red} target:${Font} $(info_extraction target) "
                 log_echo "${Red} serverNames:${Font} $(info_extraction serverNames) "
-                log_echo "${Red} privateKey:${Font} $(info_extraction privateKey) "
-                log_echo "${Red} Password:${Font} $(info_extraction password) "
+                log_echo_secure "${Red} privateKey:${Font} $(info_extraction privateKey) "
+                log_echo_secure "${Red} Password:${Font} $(info_extraction password) "
                 log_echo "${Red} shortIds:${Font} $(info_extraction shortIds) "
                 if [[ "$reality_add_more" == "on" ]]; then
                     if is_ws_mode; then
@@ -3579,6 +3606,7 @@ basic_information() {
             fi
         fi
     } >"${xray_info_file}"
+        chmod -f 600 "${xray_info_file}" 2>/dev/null
 }
 
 show_information() {
@@ -3642,7 +3670,7 @@ ssl_judge_and_install() {
                 acme
                 ;;
             *)
-                "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath ${ssl_chainpath}/xray.crt --keypath ${ssl_chainpath}/xray.key --ecc
+                "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc
                 chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
                 judge "$(gettext "证书应用")"
                 ;;
@@ -3751,26 +3779,26 @@ reset_port() {
         if [[ ${tls_mode} == "TLS" ]]; then
             port_set
             modify_nginx_port
-            update_json_config "${xray_qr_config_file}" --argjson port "${port}" '.port = $port'
+            update_json_config "${xray_qr_config_file}" --argjson port "${port:-0}" '.port = $port'
             log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         elif [[ ${tls_mode} == "Reality" ]]; then
             port_set
             if [[ ${transport_mode} == "onlyws" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${xport}"
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
             elif [[ ${transport_mode} == "onlygRPC" ]]; then
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${gport}"
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             elif [[ ${transport_mode} == "onlyxhttp" ]]; then
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${xhttpport}"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
             elif [[ ${transport_mode} == "all" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${xport}"
                 port_exist_check "${gport}"
                 port_exist_check "${xhttpport}"
@@ -3788,7 +3816,7 @@ reset_port() {
             if is_xhttp_mode; then
                 port_update_expr="${port_update_expr} | .xhttp_port = \$xhttp_port"
             fi
-            update_json_config "${xray_qr_config_file}" --argjson port "$port" \
+            update_json_config "${xray_qr_config_file}" --argjson port "${port:-0}" \
                --argjson ws_port "${xport:-0}" \
                --argjson grpc_port "${gport:-0}" \
                --argjson xhttp_port "${xhttpport:-0}" \
@@ -3797,21 +3825,21 @@ reset_port() {
             [[ ${reality_add_nginx} == "on" ]] && modify_nginx_port
         elif [[ ${tls_mode} == "None" ]]; then
             if [[ ${transport_mode} == "onlyws" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${xport}"
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
             elif [[ ${transport_mode} == "onlygRPC" ]]; then
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${gport}"
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             elif [[ ${transport_mode} == "onlyxhttp" ]]; then
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${xhttpport}"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
             elif [[ ${transport_mode} == "all" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 0 65535 "$(gettext "请输入 0-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${xport}"
                 port_exist_check "${gport}"
                 port_exist_check "${xhttpport}"
@@ -3838,7 +3866,7 @@ reset_port() {
             modify_inbound_port
         elif [[ ${tls_mode} == "XTLS" ]]; then
             port_set
-            update_json_config "${xray_qr_config_file}" --argjson port "${port}" '.port = $port'
+            update_json_config "${xray_qr_config_file}" --argjson port "${port:-0}" '.port = $port'
             modify_inbound_port
             log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         fi
@@ -4087,9 +4115,9 @@ remove_user() {
                 update_json_config "${xray_conf}" --arg choose_user_tag "${choose_user_tag}" --argjson del_user_index "${del_user_index}" \
                    'del((.inbounds[] | select(.tag == $choose_user_tag)).settings.clients[$del_user_index])'
                 judge "$(gettext "删除用户")"
-                local remaining_count
-                remaining_count=$(jq -r --arg tag "${choose_user_tag}" '(.inbounds[] | select(.tag == $tag)).settings.clients|length' "${xray_conf}" 2>/dev/null)
-                if [[ "${remaining_count}" -le 1 ]]; then
+                local remaining_multi_user
+                remaining_multi_user=$(jq '[.inbounds[].settings.clients | length] | any(. > 1)' "${xray_conf}" 2>/dev/null)
+                if [[ "${remaining_multi_user}" != "true" ]]; then
                     update_json_config "${xray_qr_config_file}" 'del(.multi_user)'
                 fi
             fi
@@ -4808,7 +4836,7 @@ check_program() {
 }
 
 curl_local_connect() {
-    curl -Is -o /dev/null -w %{http_code} --max-time 10 "https://$1/$2"
+    curl -Is -o /dev/null -w '%{http_code}' --max-time 10 "https://$1/$2"
 }
 
 check_xray_local_connect() {
@@ -4818,9 +4846,9 @@ check_xray_local_connect() {
             if [[ ${transport_mode} == "onlyxhttp" ]]; then
                 xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
             else
-                [[ ${transport_mode} == "onlyws" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_ws_path)) == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
-                [[ ${transport_mode} == "onlygRPC" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_grpc_serviceName)) == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
-                [[ ${transport_mode} == "all" ]] && [[ $(curl_local_connect $(info_extraction host) $(info_grpc_serviceName)) == "502" && $(curl_local_connect $(info_extraction host) $(info_ws_path)) == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+                [[ ${transport_mode} == "onlyws" ]] && [[ $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+                [[ ${transport_mode} == "onlygRPC" ]] && [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+                [[ ${transport_mode} == "all" ]] && [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" && $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             fi
         elif [[ ${tls_mode} == "Reality" ]]; then
             xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
