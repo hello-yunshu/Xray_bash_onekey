@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
-"POT-Creation-Date: 2026-05-13 16:21+0000\n"
-"PO-Revision-Date: 2026-05-13 16:21+0000\n"
+"POT-Creation-Date: 2026-05-14 03:23+0000\n"
+"PO-Revision-Date: 2026-05-14 03:23+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -189,7 +189,7 @@ msgstr "please select the installation agreement"
 
 #: install.sh:615 install.sh:1920 install.sh:1957 install.sh:2009
 #: install.sh:3357 install.sh:3516 install.sh:3579 install.sh:3628
-#: fail2ban_manager.sh:307 fail2ban_manager.sh:308
+#: fail2ban_manager.sh:306 fail2ban_manager.sh:307
 msgid "默认"
 msgstr "default"
 
@@ -200,7 +200,7 @@ msgstr "default"
 #: install.sh:3425 install.sh:3439 install.sh:3444 install.sh:3449
 #: install.sh:3450 install.sh:3518 install.sh:3528 install.sh:3581
 #: install.sh:3630 install.sh:3644 fail2ban_manager.sh:244
-#: fail2ban_manager.sh:263 fail2ban_manager.sh:305 file_manager.sh:96
+#: fail2ban_manager.sh:262 fail2ban_manager.sh:304 file_manager.sh:96
 msgid "请输入"
 msgstr "please enter"
 
@@ -242,8 +242,8 @@ msgid "防火墙"
 msgstr "firewall"
 
 #: install.sh:775 install.sh:779 install.sh:2517 install.sh:2520
-#: install.sh:3372 install.sh:3374 install.sh:4639 fail2ban_manager.sh:260
-#: fail2ban_manager.sh:454 traffic_blocker.sh:602 traffic_blocker.sh:627
+#: install.sh:3372 install.sh:3374 install.sh:4639 fail2ban_manager.sh:259
+#: fail2ban_manager.sh:453 traffic_blocker.sh:602 traffic_blocker.sh:627
 msgid "重启"
 msgstr "restart"
 
@@ -384,7 +384,7 @@ msgstr "local file"
 msgid "不存在, 正在下载"
 msgstr "does not exist, downloading now"
 
-#: install.sh:1079 install.sh:1093 fail2ban_manager.sh:518 file_manager.sh:291
+#: install.sh:1079 install.sh:1093 fail2ban_manager.sh:517 file_manager.sh:291
 #: traffic_blocker.sh:1041
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr "download failed, please manually download and install the new version"
@@ -393,7 +393,7 @@ msgstr "download failed, please manually download and install the new version"
 msgid "版本过旧, 建议更新"
 msgstr "the version is too old; please update"
 
-#: install.sh:1087 fail2ban_manager.sh:507 file_manager.sh:280
+#: install.sh:1087 fail2ban_manager.sh:506 file_manager.sh:280
 #: traffic_blocker.sh:1030
 msgid "是否下载并安装新版本"
 msgstr "do you want to download and install the new version"
@@ -407,7 +407,7 @@ msgstr "the version is too old and may have compatibility issues"
 msgid "需要主脚本版本"
 msgstr "main script version required"
 
-#: install.sh:1105 fail2ban_manager.sh:10 fail2ban_manager.sh:504
+#: install.sh:1105 fail2ban_manager.sh:10 fail2ban_manager.sh:503
 #: file_manager.sh:10 file_manager.sh:277 traffic_blocker.sh:9
 #: traffic_blocker.sh:613 traffic_blocker.sh:1027
 msgid "当前版本"
@@ -430,8 +430,8 @@ msgstr "load balancing"
 msgid "请选择协议为 ws 或 gRPC"
 msgstr "please select the protocol as ws or grpc"
 
-#: install.sh:1125 fail2ban_manager.sh:242 fail2ban_manager.sh:261
-#: fail2ban_manager.sh:356 fail2ban_manager.sh:385 traffic_blocker.sh:239
+#: install.sh:1125 fail2ban_manager.sh:242 fail2ban_manager.sh:260
+#: fail2ban_manager.sh:355 fail2ban_manager.sh:384 traffic_blocker.sh:239
 #: traffic_blocker.sh:277 traffic_blocker.sh:432 traffic_blocker.sh:559
 #: traffic_blocker.sh:706
 msgid "返回"
@@ -570,7 +570,7 @@ msgstr ""
 "tutorial"
 
 #: install.sh:1533 fail2ban_manager.sh:120 fail2ban_manager.sh:130
-#: fail2ban_manager.sh:155 fail2ban_manager.sh:181 fail2ban_manager.sh:376
+#: fail2ban_manager.sh:155 fail2ban_manager.sh:181 fail2ban_manager.sh:375
 #: traffic_blocker.sh:423 traffic_blocker.sh:697
 msgid "已启用"
 msgstr "enabled"
@@ -971,12 +971,12 @@ msgid "关闭"
 msgstr "close"
 
 #: install.sh:2511 install.sh:2533 install.sh:2536 install.sh:2595
-#: install.sh:4641 fail2ban_manager.sh:259
+#: install.sh:4641 fail2ban_manager.sh:258
 msgid "停止"
 msgstr "stop"
 
 #: install.sh:2525 install.sh:2528 install.sh:3115 install.sh:4640
-#: fail2ban_manager.sh:258 fail2ban_manager.sh:422
+#: fail2ban_manager.sh:257 fail2ban_manager.sh:421
 msgid "启动"
 msgstr "start"
 
@@ -1859,7 +1859,7 @@ msgstr "recovery"
 msgid "卸载向导"
 msgstr "uninstall wizard"
 
-#: install.sh:4659 fail2ban_manager.sh:23 fail2ban_manager.sh:439
+#: install.sh:4659 fail2ban_manager.sh:23 fail2ban_manager.sh:438
 msgid "卸载"
 msgstr "uninstall"
 
@@ -1915,7 +1915,7 @@ msgstr "main menu"
 msgid "管理"
 msgstr "management"
 
-#: fail2ban_manager.sh:24 fail2ban_manager.sh:368 traffic_blocker.sh:415
+#: fail2ban_manager.sh:24 fail2ban_manager.sh:367 traffic_blocker.sh:415
 #: traffic_blocker.sh:689
 msgid "状态"
 msgstr "status"
@@ -1925,8 +1925,8 @@ msgstr "status"
 msgid "请选择一个选项"
 msgstr "please select an option"
 
-#: fail2ban_manager.sh:36 fail2ban_manager.sh:279 fail2ban_manager.sh:287
-#: fail2ban_manager.sh:389 traffic_blocker.sh:286 traffic_blocker.sh:464
+#: fail2ban_manager.sh:36 fail2ban_manager.sh:278 fail2ban_manager.sh:286
+#: fail2ban_manager.sh:388 traffic_blocker.sh:286 traffic_blocker.sh:464
 #: traffic_blocker.sh:571 traffic_blocker.sh:710
 msgid "无效的选择, 请重试"
 msgstr "invalid selection, please try again"
@@ -1950,11 +1950,11 @@ msgstr "skip activation"
 msgid "规则"
 msgstr "rule"
 
-#: fail2ban_manager.sh:104 fail2ban_manager.sh:232 fail2ban_manager.sh:462
+#: fail2ban_manager.sh:104 fail2ban_manager.sh:232 fail2ban_manager.sh:461
 msgid "未安装, 请先安装"
 msgstr "not installed, please install first"
 
-#: fail2ban_manager.sh:152 fail2ban_manager.sh:178 fail2ban_manager.sh:378
+#: fail2ban_manager.sh:152 fail2ban_manager.sh:178 fail2ban_manager.sh:377
 #: traffic_blocker.sh:425 traffic_blocker.sh:699
 msgid "已禁用"
 msgstr "disabled"
@@ -1975,141 +1975,141 @@ msgstr "management module"
 msgid "添加自定义规则"
 msgstr "add custom rule"
 
-#: fail2ban_manager.sh:241 fail2ban_manager.sh:257
+#: fail2ban_manager.sh:241 fail2ban_manager.sh:256
 msgid "服务管理"
 msgstr "service management"
 
-#: fail2ban_manager.sh:300
+#: fail2ban_manager.sh:299
 msgid "请输入新的"
 msgstr "please enter the new one"
 
-#: fail2ban_manager.sh:300 fail2ban_manager.sh:305
+#: fail2ban_manager.sh:299 fail2ban_manager.sh:304
 msgid "名称"
 msgstr "name"
 
-#: fail2ban_manager.sh:302
+#: fail2ban_manager.sh:301
 msgid "名称不能包含路径分隔符或为空"
 msgstr "the name cannot contain path separators or be empty"
 
-#: fail2ban_manager.sh:306
+#: fail2ban_manager.sh:305
 msgid "请输入日志路径"
 msgstr "please enter the log path"
 
-#: fail2ban_manager.sh:307
+#: fail2ban_manager.sh:306
 msgid "请输入最大重试次数"
 msgstr "please enter the maximum number of retries"
 
-#: fail2ban_manager.sh:307
+#: fail2ban_manager.sh:306
 msgid "最大重试次数必须在 1 到 99 之间"
 msgstr "the maximum number of retries must be between 1 and 99"
 
-#: fail2ban_manager.sh:308
+#: fail2ban_manager.sh:307
 msgid "请输入封禁时间"
 msgstr "please enter the ban time"
 
-#: fail2ban_manager.sh:308
+#: fail2ban_manager.sh:307
 msgid "秒"
 msgstr "second"
 
-#: fail2ban_manager.sh:308
+#: fail2ban_manager.sh:307
 msgid "封禁时间必须在 1 到 8640000 秒之间"
 msgstr "the ban duration must be between 1 and 8,640,000 seconds"
 
-#: fail2ban_manager.sh:318
+#: fail2ban_manager.sh:317
 msgid "自定义规则添加成功"
 msgstr "custom rule added successfully"
 
-#: fail2ban_manager.sh:322
+#: fail2ban_manager.sh:321
 msgid "重启以应用新规则"
 msgstr "restart to apply new rules"
 
-#: fail2ban_manager.sh:328
+#: fail2ban_manager.sh:327
 msgid "管理 Fail2ban 模块"
 msgstr "manage the fail2ban module"
 
-#: fail2ban_manager.sh:343
+#: fail2ban_manager.sh:342
 msgid "未找到任何模块化配置文件"
 msgstr "no modular configuration files were found"
 
-#: fail2ban_manager.sh:350 fail2ban_manager.sh:368
+#: fail2ban_manager.sh:349 fail2ban_manager.sh:367
 msgid "模块名称"
 msgstr "module name"
 
-#: fail2ban_manager.sh:368 file_manager.sh:72
+#: fail2ban_manager.sh:367 file_manager.sh:72
 msgid "序号"
 msgstr "serial number"
 
-#: fail2ban_manager.sh:389
+#: fail2ban_manager.sh:388
 msgid "请选择要管理的模块"
 msgstr "please select the module you want to manage"
 
-#: fail2ban_manager.sh:400 traffic_blocker.sh:725
+#: fail2ban_manager.sh:399 traffic_blocker.sh:725
 msgid "启用"
 msgstr "enable"
 
-#: fail2ban_manager.sh:400 traffic_blocker.sh:725
+#: fail2ban_manager.sh:399 traffic_blocker.sh:725
 msgid "禁用"
 msgstr "disable"
 
-#: fail2ban_manager.sh:402 traffic_blocker.sh:733
+#: fail2ban_manager.sh:401 traffic_blocker.sh:733
 msgid "是否"
 msgstr "whether… or not"
 
-#: fail2ban_manager.sh:402 fail2ban_manager.sh:410
+#: fail2ban_manager.sh:401 fail2ban_manager.sh:409
 msgid "模块"
 msgstr "module"
 
-#: fail2ban_manager.sh:412 traffic_blocker.sh:180 traffic_blocker.sh:741
+#: fail2ban_manager.sh:411 traffic_blocker.sh:180 traffic_blocker.sh:741
 #: traffic_blocker.sh:983
 msgid "操作已取消"
 msgstr "operation canceled"
 
-#: fail2ban_manager.sh:446
+#: fail2ban_manager.sh:445
 msgid "停止成功"
 msgstr "stopped successfully"
 
-#: fail2ban_manager.sh:466
+#: fail2ban_manager.sh:465
 msgid "总体状态"
 msgstr "overall status"
 
-#: fail2ban_manager.sh:470
+#: fail2ban_manager.sh:469
 msgid "默认启用的 Jail 状态"
 msgstr "default enabled jail status"
 
-#: fail2ban_manager.sh:474 fail2ban_manager.sh:480
+#: fail2ban_manager.sh:473 fail2ban_manager.sh:479
 msgid "封锁情况"
 msgstr "lockdown situation"
 
-#: fail2ban_manager.sh:475 fail2ban_manager.sh:481 fail2ban_manager.sh:484
-#: fail2ban_manager.sh:488 fail2ban_manager.sh:491
+#: fail2ban_manager.sh:474 fail2ban_manager.sh:480 fail2ban_manager.sh:483
+#: fail2ban_manager.sh:487 fail2ban_manager.sh:490
 msgid "未启用或配置异常"
 msgstr "not enabled or configuration exception"
 
-#: fail2ban_manager.sh:504 file_manager.sh:277 traffic_blocker.sh:1027
+#: fail2ban_manager.sh:503 file_manager.sh:277 traffic_blocker.sh:1027
 msgid "新版本可用"
 msgstr "new version available"
 
-#: fail2ban_manager.sh:505 file_manager.sh:278 traffic_blocker.sh:1028
+#: fail2ban_manager.sh:504 file_manager.sh:278 traffic_blocker.sh:1028
 msgid "请访问"
 msgstr "please visit"
 
-#: fail2ban_manager.sh:505 file_manager.sh:278 traffic_blocker.sh:1028
+#: fail2ban_manager.sh:504 file_manager.sh:278 traffic_blocker.sh:1028
 msgid "查看更新说明"
 msgstr "view update notes"
 
-#: fail2ban_manager.sh:511 file_manager.sh:284 traffic_blocker.sh:1034
+#: fail2ban_manager.sh:510 file_manager.sh:284 traffic_blocker.sh:1034
 msgid "正在下载新版本"
 msgstr "downloading the new version"
 
-#: fail2ban_manager.sh:513 file_manager.sh:286 traffic_blocker.sh:1036
+#: fail2ban_manager.sh:512 file_manager.sh:286 traffic_blocker.sh:1036
 msgid "下载完成, 正在重新加载..."
 msgstr "download complete, reloading"
 
-#: fail2ban_manager.sh:522 file_manager.sh:295 traffic_blocker.sh:1045
+#: fail2ban_manager.sh:521 file_manager.sh:295 traffic_blocker.sh:1045
 msgid "跳过更新"
 msgstr "skip update"
 
-#: fail2ban_manager.sh:526 file_manager.sh:299 traffic_blocker.sh:1049
+#: fail2ban_manager.sh:525 file_manager.sh:299 traffic_blocker.sh:1049
 msgid "当前已经是最新版本"
 msgstr "it is already the latest version"
 
