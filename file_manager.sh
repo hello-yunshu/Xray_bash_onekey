@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.5.1"
+fm_SCRIPT_VERSION="1.5.2"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -228,10 +228,7 @@ fm_create_file() {
         serverNames)
             fm_create_servername_file
             ;;
-        wsServers|grpcServers)
-             fm_create_server_file ""
-             ;;
-        realityServers)
+        *Servers)
              fm_create_server_file ""
              ;;
         *)

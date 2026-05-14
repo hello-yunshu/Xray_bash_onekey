@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.0"
+shell_version="2.12.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -756,7 +756,7 @@ transport_qr() {
 
 ws_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if is_ws_mode || [[ ${reality_add_more} == "on" ]]; then
+        if is_ws_mode; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") ws inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
@@ -776,7 +776,7 @@ ws_inbound_port_set() {
 
 grpc_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if is_grpc_mode || [[ ${reality_add_more} == "on" ]]; then
+        if is_grpc_mode; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
@@ -797,7 +797,7 @@ grpc_inbound_port_set() {
 
 xhttp_inbound_port_set() {
     if [[ "on" != ${old_config_status} ]]; then
-        if is_xhttp_mode || [[ ${reality_add_more} == "on" ]]; then
+        if is_xhttp_mode; then
             echo
             log_echo "${GreenBG} $(gettext "是否需要自定义") xHTTP inbound_port [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r inbound_port_modify_fq
@@ -888,7 +888,7 @@ firewall_set() {
 ws_path_set() {
     while true; do
         if [[ "on" != ${old_config_status} ]] || [[ ${change_ws_path} == "yes" ]]; then
-            if is_ws_mode || [[ ${reality_add_more} == "on" ]]; then
+            if is_ws_mode; then
                 echo
                 log_echo "${GreenBG} $(gettext "是否需要自定义") ws $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
                 read -r path_modify_fq
@@ -926,7 +926,7 @@ ws_path_set() {
 grpc_path_set() {
     while true; do
         if [[ "on" != ${old_config_status} ]] || [[ ${change_grpc_path} == "yes" ]]; then
-            if is_grpc_mode || [[ ${reality_add_more} == "on" ]]; then
+            if is_grpc_mode; then
                 echo
                 log_echo "${GreenBG} $(gettext "是否需要自定义") gRPC $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
                 read -r path_modify_fq
@@ -964,7 +964,7 @@ grpc_path_set() {
 xhttp_path_set() {
     while true; do
         if [[ "on" != ${old_config_status} ]] || [[ ${change_xhttp_path} == "yes" ]]; then
-            if is_xhttp_mode || [[ ${reality_add_more} == "on" ]]; then
+            if is_xhttp_mode; then
                 echo
                 log_echo "${GreenBG} $(gettext "是否需要自定义") xHTTP $(gettext "伪装路径") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
                 read -r path_modify_fq
@@ -1528,7 +1528,7 @@ modify_nginx_other() {
         fi
         if is_xhttp_mode; then
             sed -i "s/^\( *\)location xhttp$/\1location \/${escaped_xhttppath}/" "${nginx_conf}"
-            sed -i "s/^\( *\)#proxy_pass http:\/\/xray-xhttp-server;/\1proxy_pass http:\/\/xray-xhttp-server;/" "${nginx_conf}"
+            sed -i "s/^\( *\)#grpc_pass\(.*xray-xhttp-server\)/\1grpc_pass\2/" "${nginx_conf}"
         else
             sed -i "/^\s*location xhttp$/,/^\s*}/s/^/#/" "${nginx_conf}"
         fi
@@ -2348,7 +2348,7 @@ acme() {
     #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
-        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force; then
+        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"; then
             chmod -f 644 "${ssl_chainpath}"/xray.crt
             chmod -f 600 "${ssl_chainpath}"/xray.key
             chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
@@ -2666,7 +2666,11 @@ server {
 
     location xhttp
     {
+        #grpc_pass grpc://xray-xhttp-server;
         #proxy_pass http://xray-xhttp-server;
+        grpc_connect_timeout 60s;
+        grpc_read_timeout 720m;
+        grpc_send_timeout 720m;
         proxy_redirect off;
         proxy_http_version 1.1;
         proxy_connect_timeout 60s;
@@ -2674,6 +2678,9 @@ server {
         proxy_read_timeout 720m;
         proxy_buffering off;
         client_max_body_size 0;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        grpc_set_header Early-Data \$ssl_early_data;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Host \$http_host;
@@ -2838,7 +2845,18 @@ stop_service_all() {
     [[ -f "${nginx_systemd_file}" ]] && { systemctl stop nginx 2>/dev/null; systemctl disable nginx 2>/dev/null; }
     systemctl stop xray 2>/dev/null
     systemctl disable xray 2>/dev/null
+    if [[ ${tls_mode} != "TLS" ]] && [[ -f "$HOME/.acme.sh/acme.sh" ]]; then
+        /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
+        log_echo "${OK} ${GreenBG} $(gettext "已清理残留的证书自动更新定时任务") ${Font}"
+    fi
     log_echo "${OK} ${GreenBG} $(gettext "停止") ${Font}"
+}
+
+acme_cron_cleanup() {
+    if [[ -f "$HOME/.acme.sh/acme.sh" ]]; then
+        /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
+        log_echo "${OK} ${GreenBG} $(gettext "已清理证书自动更新定时任务") ${Font}"
+    fi
 }
 
 service_restart() {
@@ -2888,7 +2906,6 @@ acme_cron_update() {
                 rm -rf "${ssl_update_file}"
                 judge "$(gettext "删除改版证书自动更新")"
                 ;;
-
             esac
         else
             echo
@@ -2944,7 +2961,7 @@ cert_update_manuel() {
             log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
         fi
         host="$(info_extraction host)"
-        "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc
+        "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
         judge "$(gettext "证书更新")"
         service_restart
     else
@@ -3177,9 +3194,6 @@ format_xhttp_path() {
 info_xhttp_path() {
     local value
     value=$(info_extraction xhttp_path)
-    if [[ -z ${value} || ${value} == "None" ]]; then
-        value=$(info_extraction path)
-    fi
     echo "${value}"
 }
 
@@ -3217,21 +3231,21 @@ generate_vless_link() {
             local path
             path=$(info_ws_path)
             path=$(vless_urlquote "${path}")
-            result="vless://${user_id}@${quoted_host}:${port}?path=%2f${path}%3Fed%3D2048&encryption=none&type=ws&fp=chrome#${quoted_host}+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${quoted_host}:${port}?path=%2f${path}%3Fed%3D2048&encryption=none&type=ws#${quoted_host}+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
             ;;
         grpc)
             port=$(info_extraction grpc_port)
             local service_name
             service_name=$(info_grpc_serviceName)
             service_name=$(vless_urlquote "${service_name}")
-            result="vless://${user_id}@${quoted_host}:${port}?serviceName=${service_name}&encryption=none&type=grpc&fp=chrome#${quoted_host}+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${quoted_host}:${port}?serviceName=${service_name}&encryption=none&type=grpc#${quoted_host}+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
             ;;
         xhttp)
             port=$(info_extraction xhttp_port)
             local xhttp_path
             xhttp_path=$(info_xhttp_path)
             xhttp_path=$(vless_urlquote "$(format_xhttp_path "${xhttp_path}")")
-            result="vless://${user_id}@${quoted_host}:${port}?path=${xhttp_path}&mode=auto&security=none&encryption=none&host=${quoted_host}&type=xhttp&fp=chrome#${quoted_host}+%E5%8D%95%E7%8B%ADxHTTP%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${quoted_host}:${port}?path=${xhttp_path}&mode=auto&security=none&encryption=none&host=${quoted_host}&type=xhttp#${quoted_host}+%E5%8D%95%E7%8B%ADxHTTP%E5%8D%8F%E8%AE%AE"
             ;;
         reality)
             port=$(info_extraction port)
@@ -3670,7 +3684,7 @@ ssl_judge_and_install() {
                 acme
                 ;;
             *)
-                "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc
+                "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
                 chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
                 judge "$(gettext "证书应用")"
                 ;;
@@ -4238,6 +4252,7 @@ uninstall_nginx() {
 
 uninstall_all() {
     stop_service_all
+    acme_cron_cleanup
     [[ -f "${xray_bin_dir}/xray" ]] && uninstall_xray
     echo
     [[ -d "${nginx_dir}" ]] && uninstall_nginx
@@ -4487,6 +4502,7 @@ install_xray_ws_only() {
     update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check "${xport}"
     port_exist_check "${gport}"
+    port_exist_check "${xhttpport}"
     xray_conf_add
     basic_information
     enable_process_systemd
@@ -4845,10 +4861,12 @@ check_xray_local_connect() {
         if [[ ${tls_mode} == "TLS" ]]; then
             if [[ ${transport_mode} == "onlyxhttp" ]]; then
                 xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
-            else
-                [[ ${transport_mode} == "onlyws" ]] && [[ $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
-                [[ ${transport_mode} == "onlygRPC" ]] && [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
-                [[ ${transport_mode} == "all" ]] && [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" && $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+            elif [[ ${transport_mode} == "onlyws" ]]; then
+                [[ $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+            elif [[ ${transport_mode} == "onlygRPC" ]]; then
+                [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+            elif [[ ${transport_mode} == "all" ]]; then
+                [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" && $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             fi
         elif [[ ${tls_mode} == "Reality" ]]; then
             xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
