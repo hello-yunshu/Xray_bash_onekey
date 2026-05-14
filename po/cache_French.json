@@ -32,7 +32,6 @@
   "默认值": "valeur par défaut",
   "请输入 0-65535 之间的值": "veuillez saisir une valeur comprise entre 0 et 65535",
   "端口不允许使用, 请重新输入": "le port n'est pas autorisé, veuillez entrer à nouveau",
-  "请选择安装协议": "veuillez sélectionner le contrat d'installation",
   "默认": "par défaut",
   "请输入": "veuillez entrer",
   "请输入有效的数字": "veuillez saisir un nombre valide",
@@ -618,7 +617,5 @@
   "此模式不支持查看用户": "ce mode ne permet pas d’afficher les utilisateurs",
   "将删除配置文件": "le fichier de configuration sera supprimé",
   "请选择传输方式": "veuillez sélectionner le mode de transmission",
-  "普通模式": "mode normal",
-  "请选择 xHTTP 负载均衡通道": "veuillez sélectionner le canal d’équilibrage de charge xhttp",
-  "传输方式": "mode de transmission"
+  "xHTTP 不支持 Clash 客户端": "xhttp n’est pas pris en charge par le client clash"
 }
