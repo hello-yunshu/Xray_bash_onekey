@@ -174,7 +174,8 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
             if entry.msgid in translations:
                 del translations[entry.msgid]
                 print(f"Removed obsolete translation: {entry.msgid}")
-        po.remove_obsolete_entries()
+        for entry in list(po.obsolete_entries()):
+            po.remove(entry)
         updated = True
 
     if updated:
