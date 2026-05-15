@@ -1,4 +1,4 @@
-# اسکریپت نصب خودکار Xray — Reality / VLESS WebSocket/gRPC+TLS + Nginx
+# اسکریپت نصب خودکار Xray — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
 [简体中文](/README.md) | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | فارسی | [한국어](/languages/ko/README.md)
 
@@ -10,12 +10,15 @@
 
 * دستور `idleleo` را وارد کنید تا اسکریپت را مدیریت کنید ([مشاهده پیشینهٔ داستان `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%DA%86%D9%87%D8%B1%D9%87-%D9%88%D8%A7%D9%82%D8%B9%DB%8C-%D9%BE%D8%B4%D8%AA-%D9%85%D9%87))
 * ترجمه دقیق چندزبانه با Qwen-MT-Plus AI
-* پشتیبانی از پروتکل Reality با Nginx پیشگام توصیه‌شده (قابل نصب از طریق اسکریپت)
+* پشتیبانی از پروتکل Reality با Nginx به‌عنوان فرانت‌اند پیشنهادی (قابل نصب از طریق اسکریپت)
+* پشتیبانی از انتقال‌های WebSocket، gRPC و xHTTP، با امکان فعال‌سازی یک انتقال یا `ws+gRPC+xHTTP` به‌صورت هم‌زمان
 * حفاظت داخلی fail2ban (قابل نصب از طریق اسکریپت)
+* آمار ترافیک Xray، مسدودسازی ترافیک، به‌روزرسانی قوانین GeoIP/GeoSite و به‌روزرسانی زمان‌بندی‌شده به‌صورت داخلی
+* پشتیبانی از به‌روزرسانی خودکار اسکریپت، Xray، Nginx و گواهی‌ها، همراه با پشتیبان‌گیری و بازیابی کامل
 * استفاده از [پیشنهاد](https://github.com/XTLS/Xray-core/issues/91) لینک اشتراک‌گذاری [@DuckSoft](https://github.com/DuckSoft) (بتا)، سازگار با Qv2ray، V2rayN، V2rayNG
 * استفاده از پیشنهاد پروژه [XTLS](https://github.com/XTLS/Xray-core/issues/158)، پیروی از استاندارد [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)، پشتیبانی از نگاشت رشته‌های سفارشی به UUID VLESS
 * پشتیبانی از پروتکل gRPC: [استفاده از پروتکل gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
-* پشتیبانی از تعادل بار Reality / ws/gRPC:
+* پشتیبانی از تعادل بار Reality / ws/gRPC/xHTTP:
   - [استقرار تعادل بار Reality](https://hey.run/archives/bushu-reality-balance)
   - [ساخت تعادل بار بک‌اند](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
 
@@ -33,15 +36,44 @@
 
 * یک سرور خارج از کشور با آدرس آی‌پی عمومی
 * برای پروتکل Reality: یک دامنه هدف مطابق با الزامات Xray آماده کنید
-* برای نسخه TLS: یک دامنه آماده کنید و رکورد A اضافه کنید
+* برای حالت TLS: یک دامنه آماده کنید و رکورد A اضافه کنید
 * [مستندات رسمی Xray](https://xtls.github.io) را بخوانید تا با Reality، TLS، WebSocket، gRPC و مفاهیم مرتبط Xray آشنا شوید
 * **اطمینان از نصب curl**: کاربران CentOS دستور `yum install -y curl` را اجرا کنند؛ کاربران Debian/Ubuntu دستور `apt install -y curl` را اجرا کنند
 
 ## نصب سریع
 
 ```bash
-bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
+
+## حالت‌های نصب
+
+| حالت | توضیح |
+|------|-------|
+| Reality + Nginx | حالت پیشنهادی، با انتقال‌های کمکی اختیاری ws/gRPC/xHTTP برای تعادل بار |
+| Nginx + TLS | پشتیبانی از ws/gRPC/xHTTP و صدور و تمدید خودکار گواهی‌های Let's Encrypt |
+| ws/gRPC/xHTTP ONLY | حالت ورودی مستقل بدون TLS، عمدتاً برای سناریوهای بک‌اند یا تعادل بار |
+| XTLS ONLY | فقط برای رله ترافیک و سناریوهای خاص |
+| Docker | ایمیج دارای Xray، Nginx و اسکریپت اصلی از پیش نصب‌شده |
+
+هنگام نصب حالت‌های مرتبط با ws/gRPC/xHTTP می‌توانید `ws`، `gRPC`، `xHTTP` یا `ws+gRPC+xHTTP` را انتخاب کنید. اسکریپت پورت‌ها، مسیرها، لینک‌های اشتراک‌گذاری و کدهای QR مربوط را تولید می‌کند. Clash در حال حاضر از xHTTP پشتیبانی نمی‌کند و اسکریپت این موضوع را در خروجی پیکربندی تولیدشده اعلام می‌کند.
+
+## دستورات رایج
+
+| عمل | دستور |
+|-----|-------|
+| باز کردن منوی مدیریت | `idleleo` |
+| نمایش راهنما | `idleleo --help` |
+| نصب حالت Reality | `idleleo --install-reality` |
+| نصب حالت TLS | `idleleo --install-tls` |
+| نصب ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
+| نمایش اطلاعات نصب | `idleleo --show` |
+| به‌روزرسانی اسکریپت | `idleleo --update` |
+| به‌روزرسانی Xray | `idleleo --xray-update` |
+| به‌روزرسانی Nginx | `idleleo --nginx-update` |
+| پیکربندی Fail2ban | `idleleo --set-fail2ban` |
+| پیکربندی مسدودسازی ترافیک | `idleleo --traffic-blocker` |
+| مشاهده ترافیک لحظه‌ای پورت | `idleleo --port-traffic` |
 
 ## استقرار Docker
 
@@ -64,6 +96,7 @@ docker attach xray-onekey
 * نگاشت رشته‌های سفارشی به UUIDv5 نیازمند پشتیبانی سمت کلاینت است
 * از این اسکریپت در محیط تمیز استفاده کنید؛ مبتدیان از CentOS استفاده نکنند
 * این برنامه به Nginx وابسته است — کاربرانی که Nginx را از طریق [LNMP](https://lnmp.org) یا اسکریپت‌های مشابه نصب کرده‌اند، به تداخلات احتمالی توجه کنند
+* لینک‌های اشتراک‌گذاری xHTTP برای کلاینت‌هایی است که از xHTTP پشتیبانی می‌کنند؛ خروجی پیکربندی Clash از xHTTP صرف‌نظر می‌کند
 * قبل از تأیید عملکرد، از این اسکریپت در محیط تولیدی استفاده نکنید
 * نویسنده فقط پشتیبانی محدودی ارائه می‌دهد (چون خیلی باهوش نیست)
 

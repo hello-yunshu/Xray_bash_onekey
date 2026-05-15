@@ -1,4 +1,4 @@
-# Скрипт автоматической установки Xray — Reality / VLESS WebSocket/gRPC+TLS + Nginx
+# Скрипт автоматической установки Xray — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
 [简体中文](/README.md) | [English](/languages/en/README.md) | [Français](/languages/fr/README.md) | Русский | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
@@ -11,11 +11,14 @@
 * Введите `idleleo` для управления скриптом ([Узнать предысторию `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%D0%98%D1%81%D1%82%D0%B8%D0%BD%D0%BD%D0%BE%D0%B5-%D0%9B%D0%B8%D1%86%D0%BE-%D0%97%D0%B0-%D0%A2%D1%83%D0%BC%D0%B0%D0%BD%D0%BE%D0%BC))
 * Точный многоязычный перевод на базе Qwen-MT-Plus AI
 * Поддержка протокола Reality с рекомендуемым фронтендом Nginx (устанавливается через скрипт)
+* Поддержка транспортов WebSocket, gRPC и xHTTP: можно включить один транспорт или `ws+gRPC+xHTTP` одновременно
 * Встроенная защита fail2ban (устанавливается через скрипт)
+* Встроенная статистика трафика Xray, блокировка трафика, обновление правил GeoIP/GeoSite и обновления по расписанию
+* Поддержка автообновления скрипта, Xray, Nginx и сертификатов, а также полного резервного копирования и восстановления
 * Использует [предложение](https://github.com/XTLS/Xray-core/issues/91) ссылки для обмена от [@DuckSoft](https://github.com/DuckSoft) (beta), совместимое с Qv2ray, V2rayN, V2rayNG
 * Использует предложение проекта [XTLS](https://github.com/XTLS/Xray-core/issues/158), следуя стандарту [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3), поддерживая маппинг пользовательских строк в UUID VLESS
 * Поддержка протокола gRPC: [Использование протокола gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
-* Поддержка балансировки нагрузки Reality / ws/gRPC:
+* Поддержка балансировки нагрузки Reality / ws/gRPC/xHTTP:
   - [Развёртывание балансировщика нагрузки Reality](https://hey.run/archives/bushu-reality-balance)
   - [Создание балансировщика нагрузки бэкенда](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
 
@@ -33,15 +36,44 @@
 
 * Заграничный сервер с публичным IP-адресом
 * Для протокола Reality: подготовьте целевой домен, соответствующий требованиям Xray
-* Для версии с TLS: подготовьте домен и добавьте A-запись
+* Для режима TLS: подготовьте домен и добавьте A-запись
 * Прочитайте [официальную документацию Xray](https://xtls.github.io), чтобы понять Reality, TLS, WebSocket, gRPC и связанные концепции Xray
 * **Убедитесь, что установлен curl**: пользователи CentOS выполняют `yum install -y curl`; пользователи Debian/Ubuntu выполняют `apt install -y curl`
 
 ## Быстрая установка
 
 ```bash
-bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
+
+## Режимы установки
+
+| Режим | Описание |
+|-------|----------|
+| Reality + Nginx | Рекомендуемый режим, с опциональными вспомогательными транспортами ws/gRPC/xHTTP для балансировки нагрузки |
+| Nginx + TLS | Поддерживает ws/gRPC/xHTTP и автоматически выпускает и продлевает сертификаты Let's Encrypt |
+| ws/gRPC/xHTTP ONLY | Автономный входящий режим без TLS, в основном для серверных сценариев или балансировки нагрузки |
+| XTLS ONLY | Только для ретрансляции трафика и других специальных сценариев |
+| Docker | Образ с предустановленными Xray, Nginx и основным скриптом |
+
+При установке режимов ws/gRPC/xHTTP можно выбрать `ws`, `gRPC`, `xHTTP` или `ws+gRPC+xHTTP`. Скрипт создаёт соответствующие порты, пути, ссылки для обмена и QR-коды. Clash пока не поддерживает xHTTP, и скрипт укажет это в сгенерированном выводе конфигурации.
+
+## Частые команды
+
+| Действие | Команда |
+|----------|---------|
+| Открыть меню управления | `idleleo` |
+| Показать справку | `idleleo --help` |
+| Установить режим Reality | `idleleo --install-reality` |
+| Установить режим TLS | `idleleo --install-tls` |
+| Установить ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
+| Показать сведения об установке | `idleleo --show` |
+| Обновить скрипт | `idleleo --update` |
+| Обновить Xray | `idleleo --xray-update` |
+| Обновить Nginx | `idleleo --nginx-update` |
+| Настроить Fail2ban | `idleleo --set-fail2ban` |
+| Настроить блокировку трафика | `idleleo --traffic-blocker` |
+| Смотреть трафик портов в реальном времени | `idleleo --port-traffic` |
 
 ## Развёртывание Docker
 
@@ -61,10 +93,11 @@ docker attach xray-onekey
 * Этот скрипт требует базовых знаний Linux и компьютерных сетей
 * Поддерживаются Debian 12+ / Ubuntu 24.04+ / CentOS Stream 8+; некоторые шаблоны CentOS могут иметь проблемы с компиляцией — при возникновении проблем рекомендуется сменить ОС
 * Рекомендуется развёртывать только один прокси на сервер и использовать порт 443 по умолчанию
-* Маппинг пользовательских строк в UUIDv5 требует поддержки на стороне клиента
+* Сопоставление пользовательских строк с UUIDv5 требует поддержки на стороне клиента
 * Используйте этот скрипт в чистой среде; новичкам не рекомендуется использовать CentOS
 * Эта программа зависит от Nginx — пользователи, установившие Nginx через [LNMP](https://lnmp.org) или аналогичные скрипты, должны учитывать возможные конфликты
-* Не используйте этот скрипт в продакшене, не проверив его работоспособность
+* Ссылки xHTTP предназначены для клиентов с поддержкой xHTTP; вывод конфигурации Clash пропускает xHTTP
+* Не используйте этот скрипт в рабочей среде, не проверив его работоспособность
 * Автор предоставляет ограниченную поддержку (потому что не очень умён)
 
 ## Благодарности

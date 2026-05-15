@@ -1,4 +1,4 @@
-# Xray One-Click Installation Script — Reality / VLESS WebSocket/gRPC+TLS + Nginx
+# Xray One-Click Installation Script — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
 [简体中文](/README.md) | English | [Français](/languages/fr/README.md) | [Русский](/languages/ru/README.md) | [فارسی](/languages/fa/README.md) | [한국어](/languages/ko/README.md)
 
@@ -11,11 +11,14 @@
 * Type `idleleo` to manage the script ([View the backstory of `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/The-True-Face-Behind-the-Fog))
 * Powered by Qwen-MT-Plus AI for accurate multilingual translation
 * Supports Reality protocol with recommended Nginx frontend (installable via script)
+* Supports WebSocket, gRPC, and xHTTP transport, with either a single transport or `ws+gRPC+xHTTP` enabled together
 * Built-in fail2ban protection (installable via script)
+* Built-in Xray traffic statistics, traffic blocking, GeoIP/GeoSite rule updates, and scheduled updates
+* Supports automatic updates for the script, Xray, Nginx, and certificates, with full backup and restore
 * Adopts the share link [proposal](https://github.com/XTLS/Xray-core/issues/91) by [@DuckSoft](https://github.com/DuckSoft) (beta), compatible with Qv2ray, V2rayN, V2rayNG
 * Adopts the [XTLS](https://github.com/XTLS/Xray-core/issues/158) proposal, following the [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) standard, supporting custom string mapping to VLESS UUID
 * Supports gRPC protocol: [Using gRPC Protocol](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
-* Supports Reality / ws/gRPC load balancing:
+* Supports Reality / ws/gRPC/xHTTP load balancing:
   - [Deploy Reality Load Balancer](https://hey.run/archives/bushu-reality-balance)
   - [Build Backend Load Balancer](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
 
@@ -33,15 +36,44 @@
 
 * An overseas server with a public IP address
 * For Reality protocol: prepare a target domain that meets Xray's requirements
-* For TLS version: prepare a domain and add an A record
+* For TLS mode: prepare a domain and add an A record
 * Read the [Xray official documentation](https://xtls.github.io) to understand Reality, TLS, WebSocket, gRPC, and related Xray concepts
 * **Ensure curl is installed**: CentOS users run `yum install -y curl`; Debian/Ubuntu users run `apt install -y curl`
 
 ## Quick Install
 
 ```bash
-bash <(curl -Ss https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
+
+## Installation Modes
+
+| Mode | Description |
+|------|-------------|
+| Reality + Nginx | Recommended mode, with optional ws/gRPC/xHTTP auxiliary transports for load balancing |
+| Nginx + TLS | Supports ws/gRPC/xHTTP and automatically issues and renews Let's Encrypt certificates |
+| ws/gRPC/xHTTP ONLY | Standalone inbound mode without TLS, mainly for backend or load-balancing scenarios |
+| XTLS ONLY | For traffic relay and other specific scenarios only |
+| Docker | Image with Xray, Nginx, and the main script pre-installed |
+
+When installing ws/gRPC/xHTTP-related modes, you can choose `ws`, `gRPC`, `xHTTP`, or `ws+gRPC+xHTTP`. The script generates the corresponding ports, paths, share links, and QR codes. Clash does not currently support xHTTP, and the script will note this in the generated configuration output.
+
+## Common Commands
+
+| Action | Command |
+|--------|---------|
+| Open management menu | `idleleo` |
+| Show help | `idleleo --help` |
+| Install Reality mode | `idleleo --install-reality` |
+| Install TLS mode | `idleleo --install-tls` |
+| Install ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
+| Show installation info | `idleleo --show` |
+| Update script | `idleleo --update` |
+| Update Xray | `idleleo --xray-update` |
+| Update Nginx | `idleleo --nginx-update` |
+| Configure Fail2ban | `idleleo --set-fail2ban` |
+| Configure traffic blocking | `idleleo --traffic-blocker` |
+| View real-time port traffic | `idleleo --port-traffic` |
 
 ## Docker Deployment
 
@@ -64,6 +96,7 @@ docker attach xray-onekey
 * Custom string mapping to UUIDv5 requires client-side support
 * Use this script in a clean environment; beginners should avoid CentOS
 * This program depends on Nginx — users who have installed Nginx via [LNMP](https://lnmp.org) or similar scripts should be aware of potential conflicts
+* xHTTP share links are for clients that support xHTTP; Clash configuration output skips xHTTP
 * Do not use this script in production environments before verifying its functionality
 * The author provides limited support (because they're not very smart)
 
