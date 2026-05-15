@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.1"
+shell_version="2.12.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -65,6 +65,9 @@ amce_sh_file="/root/.acme.sh/acme.sh"
 auto_update_file="${idleleo_dir}/auto_update.sh"
 ssl_update_file="${idleleo_dir}/ssl_update.sh"
 geo_update_file="${idleleo_dir}/geo_update.sh"
+mf_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh"
+tb_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"
+fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=""
 _get_versions_loaded=0
@@ -476,6 +479,11 @@ init_language() {
 
 judge() {
     local ret=$?
+    local judge_mode="exit"
+    if [[ "$1" == "-r" || "$1" == "--return" ]]; then
+        judge_mode="return"
+        shift
+    fi
     local desc="$1"
     if [[ $# -gt 1 ]]; then
         "${@:2}"
@@ -487,7 +495,11 @@ judge() {
         sleep 0.5
     else
         log_echo "${Error} ${RedBG} ${desc} $(gettext "失败") ${Font}"
-        exit 1
+        if [[ "${judge_mode}" == "return" ]]; then
+            return 1
+        else
+            exit 1
+        fi
     fi
     return $ret
 }
@@ -498,7 +510,7 @@ check_version() {
     result=$(echo "${get_versions_all}" | jq -rc ".$1" 2>/dev/null)
     if [[ $? -ne 0 ]] || [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}"
-        exit 1
+        return 1
     fi
     echo "${result}"
 }
@@ -622,10 +634,10 @@ port_set() {
         echo
         log_echo "${GreenBG} $(gettext "确定端口") ${Font}"
         read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-        if [[ ${port} -eq 9443 || ${port} -eq 9403 ]] && [[ ${tls_mode} == "Reality" ]]; then
+        while [[ ${port} -eq 9443 || ${port} -eq 9403 ]] && [[ ${tls_mode} == "Reality" ]]; do
             echo -e "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
             read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-        fi
+        done
     fi
 }
 
@@ -1335,57 +1347,59 @@ modify_listen_address() {
 }
 
 modify_inbound_port() {
+    local _port_failed=0
     if [[ ${tls_mode} == "Reality" ]]; then
         if [[ ${reality_add_nginx} == "off" ]]; then
             update_json_config "${xray_conf}" --argjson port "${port:-0}" \
-               '(.inbounds[] | select(.tag == "VLESS-Reality-in")).port = $port'
+               '(.inbounds[] | select(.tag == "VLESS-Reality-in")).port = $port' || _port_failed=1
             if is_ws_mode; then
                 update_json_config "${xray_conf}" --argjson xport "${xport:-0}" \
-                   '(.inbounds[] | select(.tag == "VLESS-ws-in")).port = $xport'
+                   '(.inbounds[] | select(.tag == "VLESS-ws-in")).port = $xport' || _port_failed=1
             fi
             if is_grpc_mode; then
                 update_json_config "${xray_conf}" --argjson gport "${gport:-0}" \
-                   '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).port = $gport'
+                   '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).port = $gport' || _port_failed=1
             fi
             if is_xhttp_mode; then
                 update_json_config "${xray_conf}" --argjson xhttpport "${xhttpport:-0}" \
-                   '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport'
+                   '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport' || _port_failed=1
             fi
-            judge "Xray inbound port $(gettext "修改")"
         else
             if is_ws_mode; then
                 update_json_config "${xray_conf}" --argjson xport "${xport:-0}" \
-                   '(.inbounds[] | select(.tag == "VLESS-ws-in")).port = $xport'
+                   '(.inbounds[] | select(.tag == "VLESS-ws-in")).port = $xport' || _port_failed=1
             fi
             if is_grpc_mode; then
                 update_json_config "${xray_conf}" --argjson gport "${gport:-0}" \
-                   '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).port = $gport'
+                   '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).port = $gport' || _port_failed=1
             fi
             if is_xhttp_mode; then
                 update_json_config "${xray_conf}" --argjson xhttpport "${xhttpport:-0}" \
-                   '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport'
+                   '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport' || _port_failed=1
             fi
-            judge "Xray inbound port $(gettext "修改")"
         fi
     elif [[ ${tls_mode} == "XTLS" ]]; then
         update_json_config "${xray_conf}" --argjson port "${port:-0}" \
-           '(.inbounds[] | select(.tag == "VLESS-XTLS-in")).port = $port'
-        judge "Xray inbound port $(gettext "修改")"
+           '(.inbounds[] | select(.tag == "VLESS-XTLS-in")).port = $port' || _port_failed=1
     else
         if is_ws_mode; then
             update_json_config "${xray_conf}" --argjson xport "${xport:-0}" \
-               '(.inbounds[] | select(.tag == "VLESS-ws-in")).port = $xport'
+               '(.inbounds[] | select(.tag == "VLESS-ws-in")).port = $xport' || _port_failed=1
         fi
         if is_grpc_mode; then
             update_json_config "${xray_conf}" --argjson gport "${gport:-0}" \
-               '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).port = $gport'
+               '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).port = $gport' || _port_failed=1
         fi
         if is_xhttp_mode; then
             update_json_config "${xray_conf}" --argjson xhttpport "${xhttpport:-0}" \
-               '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport'
+               '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport' || _port_failed=1
         fi
-        judge "Xray inbound port $(gettext "修改")"
     fi
+    if [[ ${_port_failed} -eq 1 ]]; then
+        log_echo "${Error} ${RedBG} Xray inbound port $(gettext "修改") $(gettext "失败") ${Font}"
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} Xray inbound port $(gettext "修改") $(gettext "完成") ${Font}"
 }
 
 add_ws_inbound() {
@@ -1470,10 +1484,8 @@ add_xhttp_inbound() {
 modify_nginx_origin_conf() {
     sed -i "s/worker_processes  1;/worker_processes  auto;/" "${nginx_dir}"/conf/nginx.conf
     sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" "${nginx_dir}"/conf/nginx.conf
-    if [[ ${tls_mode} == "TLS" ]]; then
+    if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "Reality" && ${reality_add_nginx} == "on" ]]; then
         sed -i "\$i include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
-    elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-        sed -i "\$a include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
     fi
     sed -i "/http\( *\){/a \\\tserver_tokens off;" "${nginx_dir}"/conf/nginx.conf
     sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 403;\\n\\t\\t}" "${nginx_dir}"/conf/nginx.conf
@@ -1558,16 +1570,21 @@ EOF
 
 
 modify_path() {
-    is_ws_mode && update_json_config "${xray_conf}" --arg ws_path "/${path}" \
-       '(.inbounds[] | select(.tag == "VLESS-ws-in")).streamSettings.wsSettings.path = $ws_path'
-    is_grpc_mode && update_json_config "${xray_conf}" --arg serviceName "${serviceName}" \
-       '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).streamSettings.grpcSettings.serviceName = $serviceName'
-    is_xhttp_mode && update_json_config "${xray_conf}" --arg xhttp_path "/${xhttppath#/}" \
-       '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).streamSettings.xhttpSettings.path = $xhttp_path'
+    local _path_failed=0
+    is_ws_mode && { update_json_config "${xray_conf}" --arg ws_path "/${path}" \
+       '(.inbounds[] | select(.tag == "VLESS-ws-in")).streamSettings.wsSettings.path = $ws_path' || _path_failed=1; }
+    is_grpc_mode && { update_json_config "${xray_conf}" --arg serviceName "${serviceName}" \
+       '(.inbounds[] | select(.tag == "VLESS-gRPC-in")).streamSettings.grpcSettings.serviceName = $serviceName' || _path_failed=1; }
+    is_xhttp_mode && { update_json_config "${xray_conf}" --arg xhttp_path "/${xhttppath#/}" \
+       '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).streamSettings.xhttpSettings.path = $xhttp_path' || _path_failed=1; }
+    if [[ ${_path_failed} -eq 1 ]]; then
+        log_echo "${Error} ${RedBG} Xray $(gettext "伪装路径") $(gettext "修改") $(gettext "失败") ${Font}"
+        return 1
+    fi
     if [[ ${tls_mode} == "Reality" ]] && [[ "$reality_add_more" == "off" ]]; then
         log_echo "${Warning} ${YellowBG} Reality $(gettext "不支持") path ${Font}"
     else
-        judge "Xray $(gettext "伪装路径") $(gettext "修改")"
+        log_echo "${OK} ${GreenBG} Xray $(gettext "伪装路径") $(gettext "修改") $(gettext "完成") ${Font}"
     fi
 }
 
@@ -1752,7 +1769,7 @@ xray_update() {
             fi
         fi
     else
-        timeout "$(gettext "重装") Xray !"
+        countdown "$(gettext "重装") Xray !"
         systemctl stop xray
         xray_version=${xray_online_version}
         xray_install_release install -f --version v${xray_online_version}
@@ -1957,12 +1974,12 @@ nginx_install() {
 restore_nginx_backup() {
     local backup_dir="$1"
 
-    service_stop
+    service_stop || return 1
     safe_rm "${nginx_dir}"
     if ! mv "${backup_dir}" "${nginx_dir}"; then
         return 1
     fi
-    service_start
+    service_start || return 1
     sleep 1
     systemctl -q is-active nginx
 }
@@ -2030,14 +2047,14 @@ nginx_update() {
                 log_echo "${Error} ${RedBG} $(gettext "配置不存在, 退出更新")! ${Font}"
                 return 1
             fi
-            service_stop
+            service_stop || return 1
             backup_nginx_dir="${nginx_dir}_backup_${current_nginx_build_version}"
             if [[ -e "${backup_nginx_dir}" || -L "${backup_nginx_dir}" ]]; then
                 safe_rm "${backup_nginx_dir}" || return 1
             fi
             cp -r "${nginx_dir}" "${backup_nginx_dir}"
             judge "$(gettext "备份旧版") Nginx"
-            timeout "$(gettext "删除旧版") Nginx !"
+            countdown "$(gettext "删除旧版") Nginx !"
             safe_rm "${nginx_dir}"
             if [[ ${auto_update} != "YES" ]]; then
                 echo
@@ -2064,7 +2081,7 @@ nginx_update() {
             elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_reality_conf_add
             fi
-            service_start
+            service_start || return 1
             sleep 1
             if ! systemctl -q is-active nginx; then
                 log_echo "${Error} ${RedBG} Nginx $(gettext "启动失败")! ${Font}"
@@ -2130,9 +2147,9 @@ auto_update() {
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
             download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh" "${auto_update_file}"
-            judge "$(gettext "下载自动更新脚本")"
+            judge -r "$(gettext "下载自动更新脚本")" || return 1
             echo "0 1 15 * * bash \"${auto_update_file}\"" >>"${crontab_file}"
-            judge "$(gettext "设置自动更新")"
+            judge -r "$(gettext "设置自动更新")"
             ;;
         *) ;;
         esac
@@ -2144,7 +2161,7 @@ auto_update() {
         [yY][eE][sS] | [yY])
             sed -i "/auto_update.sh/d" "${crontab_file}"
             rm -rf "${auto_update_file}"
-            judge "$(gettext "删除自动更新")"
+            judge -r "$(gettext "删除自动更新")"
             ;;
         *) ;;
         esac
@@ -2153,7 +2170,7 @@ auto_update() {
 
 ssl_install() {
     pkg_install "socat"
-    judge "$(gettext "安装 SSL 证书生成脚本依赖")"
+    judge -r "$(gettext "安装 SSL 证书生成脚本依赖")" || return 1
     local acme_install_file="${idleleo_dir}/tmp/acme-install.sh"
     if ! download_script_file "https://get.acme.sh" "$acme_install_file" sh; then
         log_echo "${Error} ${RedBG} $(gettext "下载 SSL 证书生成脚本失败") ${Font}"
@@ -2325,7 +2342,7 @@ port_exist_check() {
     else
         log_echo "${Error} ${RedBG} $(gettext "检测到") $1 $(gettext "端口被占用"), $(gettext "以下为") $1 $(gettext "端口占用信息") ${Font}"
         lsof -i:"$1"
-        timeout "$(gettext "尝试终止占用的进程")!"
+        countdown "$(gettext "尝试终止占用的进程")!"
         lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
         log_echo "${OK} ${GreenBG} kill $(gettext "完成") ${Font}"
     fi
@@ -2827,18 +2844,24 @@ EOF
 
 enable_process_systemd() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f "${nginx_systemd_file}" ]] && systemctl enable nginx && judge "$(gettext "设置 Nginx 开机自启")"
+        if [[ -f "${nginx_systemd_file}" ]]; then
+            systemctl enable nginx
+            judge -r "$(gettext "设置 Nginx 开机自启")" || return 1
+        fi
     fi
     systemctl enable xray
-    judge "$(gettext "设置") Xray $(gettext "开机自启")"
+    judge -r "$(gettext "设置") Xray $(gettext "开机自启")" || return 1
 }
 
 disable_process_systemd() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f "${nginx_systemd_file}" ]] && systemctl stop nginx && systemctl disable nginx && judge "$(gettext "关闭 Nginx 开机自启")"
+        if [[ -f "${nginx_systemd_file}" ]]; then
+            systemctl stop nginx && systemctl disable nginx
+            judge -r "$(gettext "关闭 Nginx 开机自启")" || return 1
+        fi
     fi
     systemctl disable xray
-    judge "$(gettext "关闭") Xray $(gettext "开机自启")"
+    judge -r "$(gettext "关闭") Xray $(gettext "开机自启")" || return 1
 }
 
 stop_service_all() {
@@ -2862,26 +2885,35 @@ acme_cron_cleanup() {
 service_restart() {
     systemctl daemon-reload
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f "${nginx_systemd_file}" ]] && systemctl restart nginx && judge "Nginx $(gettext "重启")"
+        if [[ -f "${nginx_systemd_file}" ]]; then
+            systemctl restart nginx
+            judge -r "Nginx $(gettext "重启")" || return 1
+        fi
     fi
     systemctl restart xray
-    judge "Xray $(gettext "重启")"
+    judge -r "Xray $(gettext "重启")" || return 1
 }
 
 service_start() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f "${nginx_systemd_file}" ]] && systemctl start nginx && judge "Nginx $(gettext "启动")"
+        if [[ -f "${nginx_systemd_file}" ]]; then
+            systemctl start nginx
+            judge -r "Nginx $(gettext "启动")" || return 1
+        fi
     fi
     systemctl start xray
-    judge "Xray $(gettext "启动")"
+    judge -r "Xray $(gettext "启动")" || return 1
 }
 
 service_stop() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
-        [[ -f "${nginx_systemd_file}" ]] && systemctl stop nginx && judge "Nginx $(gettext "停止")"
+        if [[ -f "${nginx_systemd_file}" ]]; then
+            systemctl stop nginx
+            judge -r "Nginx $(gettext "停止")" || return 1
+        fi
     fi
     systemctl stop xray
-    judge "Xray $(gettext "停止")"
+    judge -r "Xray $(gettext "停止")" || return 1
 }
 
 acme_cron_update() {
@@ -2904,7 +2936,7 @@ acme_cron_update() {
             *)
                 sed -i "/ssl_update.sh/d" "${crontab_file}"
                 rm -rf "${ssl_update_file}"
-                judge "$(gettext "删除改版证书自动更新")"
+                judge -r "$(gettext "删除改版证书自动更新")"
                 ;;
             esac
         else
@@ -2939,7 +2971,7 @@ check_cert_status() {
                 case $cert_update_manuel_fq in
                 [yY][eE][sS] | [yY])
                     systemctl stop xray
-                    judge "Xray $(gettext "停止")"
+                    judge -r "Xray $(gettext "停止")" || return 1
                     cert_update_manuel
                     ;;
                 *) ;;
@@ -2962,8 +2994,8 @@ cert_update_manuel() {
         fi
         host="$(info_extraction host)"
         "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
-        judge "$(gettext "证书更新")"
-        service_restart
+        judge -r "$(gettext "证书更新")" || return 1
+        service_restart || return 1
     else
         log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
     fi
@@ -3013,7 +3045,7 @@ setup_auto_clean_logs() {
             case $delete_task in
             [yY][eE][sS] | [yY])
                 rm -f "$logrotate_config"
-                judge "$(gettext "删除自动清理日志任务")"
+                judge -r "$(gettext "删除自动清理日志任务")"
                 ;;
             *)
                 log_echo "${OK} ${Green} $(gettext "保留现有自动清理日志任务") ${Font}"
@@ -3033,7 +3065,7 @@ setup_auto_clean_logs() {
         echo "    create 640 nobody ${_logrotate_group}" >> "$logrotate_config"
         echo "}" >> "$logrotate_config"
 
-        judge "$(gettext "设置自动清理日志")"
+        judge -r "$(gettext "设置自动清理日志")"
         ;;
     esac
 }
@@ -3042,9 +3074,9 @@ clean_logs() {
     echo
     log_echo "${Green} $(gettext "检测到日志文件大小如下:") ${Font}"
     log_echo "${Green}$(du -sh /var/log/xray "${nginx_dir}"/logs 2>/dev/null)${Font}"
-    timeout "$(gettext "即将清除")!"
+    countdown "$(gettext "即将清除")!"
     for i in $(find /var/log/xray/ "${nginx_dir}"/logs -name "*.log" 2>/dev/null); do cat /dev/null >"$i" 2>/dev/null; done
-    judge "$(gettext "日志清理")"
+    judge -r "$(gettext "日志清理")" || return 1
     setup_auto_clean_logs
 }
 
@@ -3533,7 +3565,7 @@ monitor_traffic_with_iftop() {
     log_echo "${OK} ${GreenBG} $(gettext "监控端口"): ${port} ${Font}"
     echo
     log_echo "${Info} ${Green} $(gettext "按 q 键退出 iftop") ${Font}"
-    timeout "$(gettext "启动") iftop"
+    countdown "$(gettext "启动") iftop"
     sleep 3
 
     if [[ "${interface}" == "any" ]]; then
@@ -3716,7 +3748,7 @@ PrivateTmp=true
 WantedBy=multi-user.target
 EOF
 
-    judge "Nginx systemd ServerFile $(gettext "添加")"
+    judge -r "Nginx systemd ServerFile $(gettext "添加")" || return 1
     systemctl daemon-reload
 }
 
@@ -3758,11 +3790,16 @@ tls_type() {
             log_echo "${Error} ${RedBG} $(gettext "当前模式不支持") ${Font}"
             return 1
         fi
-        [[ -f "${nginx_systemd_file}" ]] && systemctl restart nginx && judge "Nginx $(gettext "重启")"
+        if [[ -f "${nginx_systemd_file}" ]]; then
+            systemctl restart nginx
+            judge -r "Nginx $(gettext "重启")" || return 1
+        fi
         systemctl restart xray
-        judge "Xray $(gettext "重启")"
+        judge -r "Xray $(gettext "重启")" || return 1
+        return 0
     else
         log_echo "${Error} ${RedBG} $(gettext "Nginx配置文件不存在 或 当前模式不支持") ${Font}"
+        return 1
     fi
 }
 
@@ -3776,20 +3813,27 @@ reset_vless_qr_config() {
 
 reset_UUID() {
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
+        local _saved_old_config_status="${old_config_status}"
+        old_config_status="off"
         UUID_set
+        old_config_status="${_saved_old_config_status}"
         modify_UUID
         update_json_config "${xray_qr_config_file}" --arg uuid "${UUID}" \
            --arg uuid5_char "${UUID5_char}" \
            '.id = $uuid | .idc = $uuid5_char'
-        service_restart
+        service_restart || return 1
         reset_vless_qr_config
+        return 0
     else
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
+        return 1
     fi
 }
 
 reset_port() {
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
+        local _saved_old_config_status="${old_config_status}"
+        old_config_status="off"
         if [[ ${tls_mode} == "TLS" ]]; then
             port_set
             modify_nginx_port
@@ -3885,10 +3929,16 @@ reset_port() {
             log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         fi
         firewall_set
-        service_restart
+        if ! service_restart; then
+            old_config_status="${_saved_old_config_status}"
+            return 1
+        fi
         reset_vless_qr_config
+        old_config_status="${_saved_old_config_status}"
+        return 0
     else
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
+        return 1
     fi
 }
 
@@ -3906,12 +3956,15 @@ reset_target() {
         update_json_config "${xray_qr_config_file}" --arg target "${target}" \
            --arg serverNames "${serverNames}" \
            '.target = $target | .serverNames = $serverNames'
-        service_restart
+        service_restart || return 1
         reset_vless_qr_config
+        return 0
     elif [[ ${tls_mode} != "Reality" ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持修改") target ! ${Font}"
+        return 1
     else
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
+        return 1
     fi
 }
 
@@ -4042,6 +4095,13 @@ add_user() {
                 reality_user_more='{"flow":"xtls-rprx-vision"}'
             fi
             email_set
+            local existing_emails=$(jq -r --arg tag "${choose_user_tag}" \
+                '.inbounds[] | select(.tag == $tag) | .settings.clients[].email' \
+                "${xray_conf}" 2>/dev/null)
+            if echo "${existing_emails}" | grep -qFx "${custom_email}"; then
+                log_echo "${Error} ${RedBG} $(gettext "该用户名已存在, 请使用不同的用户名")! ${Font}"
+                continue
+            fi
             UUID_set
             update_json_config "${xray_conf}" --arg choose_user_tag "${choose_user_tag}" \
                --arg UUID "${UUID}" \
@@ -4052,7 +4112,7 @@ add_user() {
                    ($reality_user_more // {}) +
                    {"level": 0, "email": $custom_email}
                ]'
-            judge "$(gettext "添加用户")"
+            judge -r "$(gettext "添加用户")" || return 1
             update_json_config "${xray_qr_config_file}" ". += {\"multi_user\": \"yes\"}"
             echo
             log_echo "${GreenBG} $(gettext "是否继续添加用户") [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
@@ -4128,7 +4188,7 @@ remove_user() {
                 del_user_index=$((del_user_index - 1))
                 update_json_config "${xray_conf}" --arg choose_user_tag "${choose_user_tag}" --argjson del_user_index "${del_user_index}" \
                    'del((.inbounds[] | select(.tag == $choose_user_tag)).settings.clients[$del_user_index])'
-                judge "$(gettext "删除用户")"
+                judge -r "$(gettext "删除用户")" || return 1
                 local remaining_multi_user
                 remaining_multi_user=$(jq '[.inbounds[].settings.clients | length] | any(. > 1)' "${xray_conf}" 2>/dev/null)
                 if [[ "${remaining_multi_user}" != "true" ]]; then
@@ -4171,10 +4231,13 @@ xray_status_add() {
             read -r xray_status_add_fq
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
-                service_stop
+                service_stop || return 1
                 update_json_config "${xray_conf}" "del(.api)|del(.stats)|del(.policy)"
-                judge "$(gettext "关闭 Xray 流量统计")"
-                service_start
+                if ! judge -r "$(gettext "关闭 Xray 流量统计")"; then
+                    service_start
+                    return 1
+                fi
+                service_start || return 1
                 [[ -f "${xray_status_conf}" ]] && rm -rf "${xray_status_conf}"
                 ;;
             *) ;;
@@ -4187,14 +4250,24 @@ xray_status_add() {
             read -r xray_status_add_fq
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
-                service_stop
-                judge "$(gettext "下载流量统计配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json" "${xray_status_conf}"
+                service_stop || return 1
+                if ! judge -r "$(gettext "下载流量统计配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json" "${xray_status_conf}"; then
+                    service_start
+                    return 1
+                fi
                 local status_config
-                status_config=$(jq -c . "${xray_status_conf}")
+                if ! status_config=$(jq -c . "${xray_status_conf}"); then
+                    log_echo "${Error} ${RedBG} $(gettext "流量统计配置解析失败") ${Font}"
+                    service_start
+                    return 1
+                fi
                 update_json_config "${xray_conf}" --argjson status_config "${status_config}" \
                     '. += $status_config'
-                judge "$(gettext "设置 Xray 流量统计")"
-                service_start
+                if ! judge -r "$(gettext "设置 Xray 流量统计")"; then
+                    service_start
+                    return 1
+                fi
+                service_start || return 1
                 ;;
             *) ;;
             esac
@@ -4230,32 +4303,46 @@ uninstall_xray() {
 }
 
 uninstall_nginx() { 
-    log_echo "${GreenBG} $(gettext "是否卸载") Nginx [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-    read -r uninstall_nginx
-    case $uninstall_nginx in
-    [nN][oO] | [nN]) 
-        log_echo "${OK} ${GreenBG} $(gettext "已取消卸载") Nginx ${Font}"        
-        return
-        ;;
-    *)
-        systemctl disable nginx
-        safe_rm "${nginx_dir}"
-        safe_rm "${nginx_conf_dir}"
-        [[ -f "${nginx_systemd_file}" ]] && safe_rm "${nginx_systemd_file}"
-        if [[ -f "${xray_qr_config_file}" ]]; then
-            update_json_config "${xray_qr_config_file}" 'del(.nginx_build_version)'
-        fi
-        log_echo "${OK} ${GreenBG} $(gettext "已卸载") Nginx ${Font}"
-        ;;
-    esac
+    if [[ "${1}" != "--force" ]]; then
+        log_echo "${GreenBG} $(gettext "是否卸载") Nginx [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        read -r uninstall_nginx
+        case $uninstall_nginx in
+        [nN][oO] | [nN]) 
+            log_echo "${OK} ${GreenBG} $(gettext "已取消卸载") Nginx ${Font}"        
+            return
+            ;;
+        esac
+    fi
+    systemctl disable nginx
+    safe_rm "${nginx_dir}"
+    safe_rm "${nginx_conf_dir}"
+    [[ -f "${nginx_systemd_file}" ]] && safe_rm "${nginx_systemd_file}"
+    if [[ -f "${xray_qr_config_file}" ]]; then
+        update_json_config "${xray_qr_config_file}" 'del(.nginx_build_version)'
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "已卸载") Nginx ${Font}"
 }
 
 uninstall_all() {
     stop_service_all
     acme_cron_cleanup
+    local crontab_file
+    if [[ "${ID}" == "centos" ]]; then
+        crontab_file="/var/spool/cron/root"
+    else
+        crontab_file="/var/spool/cron/crontabs/root"
+    fi
+    if [[ -f "${crontab_file}" ]]; then
+        sed -i "/auto_update.sh/d" "${crontab_file}"
+        sed -i "/geo_update.sh/d" "${crontab_file}"
+        sed -i "/ssl_update.sh/d" "${crontab_file}"
+    fi
+    [[ -f "/etc/logrotate.d/xray_log_cleanup" ]] && rm -f "/etc/logrotate.d/xray_log_cleanup"
+    [[ -L "/usr/local/etc/xray/config.json" ]] && rm -f "/usr/local/etc/xray/config.json"
+    [[ -L "/usr/local/share/xray" ]] && rm -f "/usr/local/share/xray"
     [[ -f "${xray_bin_dir}/xray" ]] && uninstall_xray
     echo
-    [[ -d "${nginx_dir}" ]] && uninstall_nginx
+    [[ -d "${nginx_dir}" ]] && uninstall_nginx --force
     echo
     local keep_config=true
     if [[ -f "${xray_qr_config_file}" ]]; then
@@ -4309,43 +4396,43 @@ delete_tls_key_and_crt() {
     log_echo "${OK} ${GreenBG} $(gettext "已清空证书遗留文件") ${Font}"
 }
 
-timeout() {
-    timeout=0
-    timeout_str=""
-    while [[ ${timeout} -le 30 ]]; do
-        let timeout++
-        timeout_str+="#"
+countdown() {
+    countdown_cnt=0
+    countdown_str=""
+    while [[ ${countdown_cnt} -le 30 ]]; do
+        let countdown_cnt++
+        countdown_str+="#"
     done
-    let timeout=timeout+5
-    while [[ ${timeout} -gt 0 ]]; do
-        let timeout--
-        if [[ ${timeout} -gt 25 ]]; then
-            let timeout_color=32
-            let timeout_bg=42
-            timeout_index="3"
-        elif [[ ${timeout} -gt 15 ]]; then
-            let timeout_color=33
-            let timeout_bg=43
-            timeout_index="2"
-        elif [[ ${timeout} -gt 5 ]]; then
-            let timeout_color=31
-            let timeout_bg=41
-            timeout_index="1"
+    let countdown_cnt=countdown_cnt+5
+    while [[ ${countdown_cnt} -gt 0 ]]; do
+        let countdown_cnt--
+        if [[ ${countdown_cnt} -gt 25 ]]; then
+            let countdown_color=32
+            let countdown_bg=42
+            countdown_index="3"
+        elif [[ ${countdown_cnt} -gt 15 ]]; then
+            let countdown_color=33
+            let countdown_bg=43
+            countdown_index="2"
+        elif [[ ${countdown_cnt} -gt 5 ]]; then
+            let countdown_color=31
+            let countdown_bg=41
+            countdown_index="1"
         else
-            timeout_index="0"
+            countdown_index="0"
         fi
         printf "${Warning} ${GreenBG} %d%s%s ${Font} \033[%d;%dm%-s\033[0m \033[%dm%d\033[0m \r" \
-            "$timeout_index" \
+            "$countdown_index" \
             " $(gettext "秒后") " \
             "$1" \
-            "$timeout_color" \
-            "$timeout_bg" \
-            "$timeout_str" \
-            "$timeout_color" \
-            "$timeout_index"
+            "$countdown_color" \
+            "$countdown_bg" \
+            "$countdown_str" \
+            "$countdown_color" \
+            "$countdown_index"
         sleep 0.1
-        timeout_str=${timeout_str%?}
-        [[ ${timeout} -eq 0 ]] && printf "\n"
+        countdown_str=${countdown_str%?}
+        [[ ${countdown_cnt} -eq 0 ]] && printf "\n"
     done
 }
 
@@ -4398,13 +4485,13 @@ install_xray_ws_tls() {
     nginx_conf_add
     nginx_servers_conf_add
     xray_conf_add
-    tls_type
+    tls_type || return 1
     basic_information
-    enable_process_systemd
+    enable_process_systemd || return 1
     acme_cron_update
-    auto_update
-    service_restart
-    setup_auto_clean_logs
+    auto_update || return 1
+    service_restart || return 1
+    setup_auto_clean_logs || return 1
     vless_link_image_choice
     show_information
 }
@@ -4436,12 +4523,12 @@ install_xray_reality() {
     xray_conf_add
     vless_qr_config_reality
     update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    tls_type
+    tls_type || return 1
     basic_information
-    enable_process_systemd
-    auto_update
-    service_restart
-    setup_auto_clean_logs
+    enable_process_systemd || return 1
+    auto_update || return 1
+    service_restart || return 1
+    setup_auto_clean_logs || return 1
     vless_link_image_choice
     show_information
 }
@@ -4468,10 +4555,10 @@ install_xray_xtls_only() {
     port_exist_check "${port}"
     xray_conf_add
     basic_information
-    enable_process_systemd
-    auto_update
-    service_restart
-    setup_auto_clean_logs
+    enable_process_systemd || return 1
+    auto_update || return 1
+    service_restart || return 1
+    setup_auto_clean_logs || return 1
     vless_link_image_choice
     show_information
 }
@@ -4505,10 +4592,10 @@ install_xray_ws_only() {
     port_exist_check "${xhttpport}"
     xray_conf_add
     basic_information
-    enable_process_systemd
-    auto_update
-    service_restart
-    setup_auto_clean_logs
+    enable_process_systemd || return 1
+    auto_update || return 1
+    service_restart || return 1
+    setup_auto_clean_logs || return 1
     vless_link_image_choice
     show_information
 }
@@ -5016,7 +5103,7 @@ function restore_directories() {
     local latest_backup_file=${backup_files[-1]}
     log_echo "${Green} $(gettext "找到最新备份文件"): ${latest_backup_file} ${Font}"
 
-    timeout "$(gettext "恢复备份")!"
+    countdown "$(gettext "恢复备份")!"
     tar -xzf "${latest_backup_file}" -C / &> /dev/null
 
     if [[ $? -eq 0 ]]; then
@@ -5122,7 +5209,7 @@ menu() {
     2)
         echo
         log_echo "${Red}[$(gettext "不建议")]${Font} $(gettext "频繁更新 Nginx, 请确认 Nginx 有更新的必要")!"
-        timeout "$(gettext "开始更新")!"
+        countdown "$(gettext "开始更新")!"
         nginx_update
         exec "${BASH:-bash}" "${idleleo}"
         ;;
@@ -5168,22 +5255,22 @@ menu() {
         ;;
     7)
         reset_UUID
-        judge "$(gettext "变更") UUIDv5/$(gettext "映射字符串")"
+        judge -r "$(gettext "变更") UUIDv5/$(gettext "映射字符串")"
         menu
         ;;
     8)
         reset_port
-        judge "$(gettext "变更") port"
+        judge -r "$(gettext "变更") port"
         menu
         ;;
     9)
         reset_target
-        judge "$(gettext "变更") target"
+        judge -r "$(gettext "变更") target"
         menu
         ;;
     10)
         tls_type
-        judge "$(gettext "变更") TLS $(gettext "版本")"
+        judge -r "$(gettext "变更") TLS $(gettext "版本")"
         menu
         ;;
     11)
@@ -5196,21 +5283,21 @@ menu() {
         ;;
     13)
         show_user
-        timeout "$(gettext "回到菜单")!"
+        countdown "$(gettext "回到菜单")!"
         menu
         ;;
     14)
-        service_stop
-        add_user
-        service_start
-        timeout "$(gettext "回到菜单")!"
+        if service_stop; then
+            add_user && service_start
+        fi
+        countdown "$(gettext "回到菜单")!"
         menu
         ;;
     15)
-        service_stop
-        remove_user
-        service_start
-        timeout "$(gettext "回到菜单")!"
+        if service_stop; then
+            remove_user && service_start
+        fi
+        countdown "$(gettext "回到菜单")!"
         menu
         ;;
     16)
@@ -5238,12 +5325,20 @@ menu() {
         menu
         ;;
     21)
-        service_start
-        exec "${BASH:-bash}" "${idleleo}"
+        if service_start; then
+            exec "${BASH:-bash}" "${idleleo}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "服务启动失败") ${Font}"
+        fi
+        menu
         ;;
     22)
-        service_stop
-        exec "${BASH:-bash}" "${idleleo}"
+        if service_stop; then
+            exec "${BASH:-bash}" "${idleleo}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "服务停止失败") ${Font}"
+        fi
+        menu
         ;;
     23)
         if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
@@ -5254,12 +5349,12 @@ menu() {
         ;;
     24)
         check_cert_status
-        timeout "$(gettext "回到菜单")!"
+        countdown "$(gettext "回到菜单")!"
         menu
         ;;
     25)
         cert_update_manuel
-        timeout "$(gettext "回到菜单")!"
+        countdown "$(gettext "回到菜单")!"
         menu
         ;;
     26)
@@ -5282,7 +5377,7 @@ menu() {
         ;;
     30)
         xray_status_add
-        timeout "$(gettext "回到菜单")!"
+        countdown "$(gettext "回到菜单")!"
         menu
         ;;
     31)

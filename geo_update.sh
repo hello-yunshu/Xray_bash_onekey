@@ -2,7 +2,9 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.0.2"
+VERSION="1.0.3"
+
+_script_args=("$@")
 
 idleleo_dir="/etc/idleleo"
 xray_conf_dir="${idleleo_dir}/conf/xray"
@@ -10,6 +12,7 @@ xray_conf="${xray_conf_dir}/config.json"
 log_dir="${idleleo_dir}/logs"
 log_file="${log_dir}/geo_update.log"
 running_file="${log_dir}/geo_update.running"
+running_file_max_age_minutes=60
 geo_dir="${idleleo_dir}/share/xray"
 geo_remote="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
 geo_version_file="${xray_conf_dir}/geo_version.json"
@@ -38,8 +41,8 @@ check_self_update() {
             cp "$temp_file" "$0"
             chmod +x "$0"
             rm -f "$temp_file"
-            rm -f "${running_file}"
-            exec "$0" "$@"
+            rm -rf "${running_file}"
+            exec "$0" "${_script_args[@]}"
         else
             echo "Downloaded script failed syntax check, skipping update" >>"${log_file}"
             rm -f "$temp_file"
@@ -56,15 +59,20 @@ check_self_update() {
 
 check_self_update
 
-if [[ -f "${running_file}" ]] && [[ $(find "${running_file}" -mmin -60 2>/dev/null) ]]; then
+if [[ -d "${running_file}" ]] && [[ -n $(find "${running_file}" -maxdepth 0 -mmin +"${running_file_max_age_minutes}" 2>/dev/null) ]]; then
+    echo "Removing stale geo update lock: ${running_file}" >>"${log_file}"
+    rm -rf "${running_file}"
+fi
+
+if ! mkdir "${running_file}" 2>/dev/null; then
     echo "Previous geo update process is still running! Checked at: $(date '+%Y-%m-%d %H:%M')" >>"${log_file}"
     exit 1
 fi
+printf '%s\n' "$$" >"${running_file}/pid"
 
 echo "GeoData update time: $(date '+%Y-%m-%d %H:%M')" >>"${log_file}"
 
-touch "${running_file}"
-trap 'rm -f "${running_file}"' EXIT
+trap 'rm -rf "${running_file}"' EXIT
 
 get_remote_version() {
     curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o /dev/null -w '%{url_effective}' "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest" 2>/dev/null | sed 's|.*/tag/||' | sed 's/^v//'
@@ -85,7 +93,7 @@ set_local_version() {
         jq --arg name "$file_name" --arg v "$version" '.geo_versions[$name] = $v' "${geo_version_file}" >"${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${geo_version_file}" || rm -f "${tmp_file}"
     else
         mkdir -p "$(dirname "${geo_version_file}")"
-        echo "{\"geo_versions\":{\"${file_name}\":\"${version}\"}}" | jq . >"${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${geo_version_file}" || rm -f "${tmp_file}"
+        jq -n --arg name "$file_name" --arg v "$version" '{"geo_versions":{($name):$v}}' >"${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${geo_version_file}" || rm -f "${tmp_file}"
     fi
 }
 

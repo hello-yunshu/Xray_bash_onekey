@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.5.2"
+mf_SCRIPT_VERSION="1.5.3"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -44,8 +44,9 @@ mf_install_fail2ban() {
         log_echo "${OK} ${Green} Fail2ban $(gettext "已经安装, 跳过安装步骤") ${Font}"
     else
         pkg_install "fail2ban"
+        judge -r "Fail2ban $(gettext "安装")" || return 1
         mf_configure_fail2ban
-        judge "Fail2ban $(gettext "安装")"
+        judge -r "Fail2ban $(gettext "配置")"
         return
     fi
 }
@@ -91,7 +92,13 @@ mf_configure_fail2ban() {
     fi
 
     # systemd SSH 日志检查
-    if ! journalctl -u ssh --since "1 hour ago" --no-pager -q | head -n 1 >/dev/null 2>&1; then
+    local _ssh_unit=""
+    if systemctl -q is-active ssh 2>/dev/null; then
+        _ssh_unit="ssh"
+    elif systemctl -q is-active sshd 2>/dev/null; then
+        _ssh_unit="sshd"
+    fi
+    if [[ -z "${_ssh_unit}" ]] || ! journalctl -u "${_ssh_unit}" --since "1 hour ago" --no-pager -q | head -n 1 >/dev/null 2>&1; then
         log_echo "${Warning} ${YellowBG} $(gettext "systemd 无法读取 SSH 日志") ${Font}"
         log_echo "${Warning} ${YellowBG} $(gettext "跳过启用") SSH $(gettext "规则") ${Font}"
     else
@@ -99,15 +106,16 @@ mf_configure_fail2ban() {
     fi
 
     # 检查 Nginx 是否安装
+    local nginx_available=true
     if [[ ${tls_mode} == "TLS" || ${reality_add_nginx} == "on" ]]; then
         if [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
             log_echo "${Warning} ${YellowBG} Nginx $(gettext "未安装, 请先安装") Nginx ${Font}"
-            return
+            nginx_available=false
         fi
     fi
 
     # 配置 Nginx 相关规则
-    if [[ ${tls_mode} == "TLS" || ${reality_add_nginx} == "on" ]]; then
+    if [[ ${nginx_available} == "true" ]] && [[ ${tls_mode} == "TLS" || ${reality_add_nginx} == "on" ]]; then
         cat > /etc/fail2ban/jail.d/nginx-badbots.local << EOF
 [nginx-badbots]
 enabled  = true
@@ -131,7 +139,7 @@ EOF
     fi
 
     # 启用 nginx-no-host 规则
-    if [[ ${reality_add_nginx} == "on" ]]; then
+    if [[ ${nginx_available} == "true" ]] && [[ ${reality_add_nginx} == "on" ]]; then
         if [[ ! -f "/etc/fail2ban/jail.d/nginx-no-host.local" ]]; then
             mf_create_nginx_no_host_filter
             cat > /etc/fail2ban/jail.d/nginx-no-host.local << EOF
@@ -187,7 +195,7 @@ EOF
     systemctl daemon-reload
     systemctl enable fail2ban
     systemctl restart fail2ban
-    judge "Fail2ban $(gettext "配置")"
+    judge -r "Fail2ban $(gettext "配置")"
 }
 
 mf_create_nginx_no_host_filter() {
@@ -218,12 +226,15 @@ EOF
 mf_is_module_enabled() {
     local module_file="$1"
     local default_status="${2:-true}"
-    
+
     if [[ ! -f "$module_file" ]]; then
         return 1
     fi
-    
-    local enabled_status=$(grep -oP 'enabled\s*=\s*\K\w+' "$module_file" 2>/dev/null || echo "$default_status")
+
+    local enabled_status=$(grep -oP 'enabled\s*=\s*\K\w+' "$module_file" 2>/dev/null)
+    if [[ -z "$enabled_status" ]]; then
+        [[ "$default_status" == "true" ]] && return 0 || return 1
+    fi
     [[ "$enabled_status" == "true" ]]
 }
 
@@ -318,7 +329,7 @@ EOF
 
     systemctl daemon-reload
     systemctl restart fail2ban
-    judge "Fail2ban $(gettext "重启以应用新规则")"
+    judge -r "Fail2ban $(gettext "重启以应用新规则")"
 }
 
 mf_manage_modules() {
@@ -417,16 +428,15 @@ mf_manage_modules() {
 mf_start_enable_fail2ban() {
     systemctl daemon-reload
     systemctl start fail2ban
+    judge -r "Fail2ban $(gettext "启动")"
     systemctl enable fail2ban
-    judge "Fail2ban $(gettext "启动")"
-    # timeout "$(gettext "清空屏幕")!"
-    # clear
 }
 
 mf_uninstall_fail2ban() {
     systemctl stop fail2ban
     systemctl disable fail2ban
     ${INS} -y remove fail2ban
+    judge -r "Fail2ban $(gettext "卸载")"
     [[ -f "/etc/fail2ban/jail.local" ]] && rm -f "/etc/fail2ban/jail.local"
     rm -f /etc/fail2ban/jail.d/*.local
     if [[ -f "/etc/fail2ban/filter.d/nginx-no-host.conf" ]]; then
@@ -435,7 +445,6 @@ mf_uninstall_fail2ban() {
     if [[ -f "/etc/fail2ban/filter.d/nginx-tls-error.conf" ]]; then
         rm -f "/etc/fail2ban/filter.d/nginx-tls-error.conf"
     fi
-    judge "Fail2ban $(gettext "卸载")"
     exec "${BASH:-bash}" "${idleleo}"
 }
 
@@ -450,7 +459,7 @@ mf_stop_disable_fail2ban() {
 mf_restart_fail2ban() {
     systemctl daemon-reload
     systemctl restart fail2ban
-    judge "Fail2ban $(gettext "重启")"
+    judge -r "Fail2ban $(gettext "重启")"
     # timeout "$(gettext "清空屏幕")!"
     # clear
 }
