@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.6"
+tb_SCRIPT_VERSION="1.5.7"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -14,6 +14,9 @@ fi
 tb_config_file="${xray_conf_dir}/traffic_blocker.json"
 tb_geo_dir="${idleleo_dir}/share/xray"
 tb_geo_remote="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
+
+_tb_cached_remote_version=""
+_tb_cached_remote_time=0
 
 tb_all_rule_names=("country_block" "bittorrent" "private_ip" "ads")
 
@@ -329,6 +332,9 @@ tb_get_previous_domain_strategy() {
 
 tb_set_previous_domain_strategy() {
     local strategy="$1"
+    if [[ ! -f "${tb_config_file}" ]]; then
+        tb_init_config
+    fi
     local tmp_file="${tb_config_file}.tmp"
     jq --arg ds "$strategy" '.previous_domain_strategy = $ds' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
 }
@@ -470,7 +476,15 @@ tb_main_menu() {
 tb_display_geo_summary() {
     log_echo "${Green} $(gettext "GeoData 状态"): ${Font}"
 
-    local remote_version=$(tb_get_geo_remote_version)
+    local now=$(date +%s)
+    local remote_version=""
+    if [[ $((now - _tb_cached_remote_time)) -gt 300 ]]; then
+        remote_version=$(tb_get_geo_remote_version)
+        _tb_cached_remote_version="${remote_version}"
+        _tb_cached_remote_time=${now}
+    else
+        remote_version="${_tb_cached_remote_version}"
+    fi
 
     local geoip_exists="false"
     local geosite_exists="false"
@@ -512,7 +526,7 @@ tb_geo_auto_update() {
         [yY][eE][sS] | [yY])
             if [[ ! -f "${geo_update_file}" ]]; then
                 download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/geo_update.sh" "${geo_update_file}"
-                judge "$(gettext "下载 GeoData 自动更新脚本")"
+                judge -r "$(gettext "下载 GeoData 自动更新脚本")" || return 1
             fi
             if [[ -f "${geo_update_file}" ]]; then
                 if [[ "${ID}" == "centos" ]]; then
@@ -523,7 +537,7 @@ tb_geo_auto_update() {
                     systemctl start cron >/dev/null 2>&1 && systemctl enable cron >/dev/null 2>&1
                 fi
                 (crontab -l 2>/dev/null; echo "0 3 * * 1 bash \"${geo_update_file}\"") | crontab -
-                judge "$(gettext "设置 GeoData 自动更新")"
+                judge -r "$(gettext "设置 GeoData 自动更新")" || return 1
             fi
             ;;
         *) ;;
@@ -537,7 +551,7 @@ tb_geo_auto_update() {
         [yY][eE][sS] | [yY])
             crontab -l 2>/dev/null | grep -v "geo_update.sh" | crontab -
             rm -rf "${geo_update_file}"
-            judge "$(gettext "删除 GeoData 自动更新")"
+            judge -r "$(gettext "删除 GeoData 自动更新")"
             ;;
         *) ;;
         esac
@@ -599,7 +613,7 @@ tb_update_all_geo() {
         read -r restart_confirm
         if [[ $restart_confirm =~ ^[yY]([eE][sS])?$ ]]; then
             systemctl restart xray
-            judge "Xray $(gettext "重启")"
+            judge -r "Xray $(gettext "重启")" || return 1
         fi
     fi
 }
@@ -624,7 +638,7 @@ tb_update_geo_file() {
             read -r restart_confirm
             if [[ $restart_confirm =~ ^[yY]([eE][sS])?$ ]]; then
                 systemctl restart xray
-                judge "Xray $(gettext "重启")"
+                judge -r "Xray $(gettext "重启")" || return 1
             fi
         fi
     fi

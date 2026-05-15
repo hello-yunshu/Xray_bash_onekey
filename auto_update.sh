@@ -2,7 +2,9 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.1.1"
+VERSION="1.1.2"
+
+_script_args=("$@")
 
 idleleo_dir="/etc/idleleo"
 local_bin="/usr/local"
@@ -38,7 +40,7 @@ check_update() {
             chmod +x "$0"
             rm -f "$temp_file"
             rm -f "${running_file}"
-            exec "$0" "$@"
+            exec "$0" "${_script_args[@]}"
         else
             echo "Downloaded script failed syntax check, skipping update" >>"${log_file}"
             rm -f "$temp_file"
@@ -68,6 +70,11 @@ echo "Update time: $(date '+%Y-%m-%d %H:%M')" >"${log_file}"
 check_update
 
 get_versions_all=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json 2>/dev/null)
+
+if [[ -z "${get_versions_all}" ]]; then
+    echo "Failed to fetch version information, skipping update checks." >>"${log_file}"
+    exit 0
+fi
 
 if [[ ! -f "${xray_qr_config_file}" ]]; then
     echo "Config file not found, skipping update checks." >>"${log_file}"
@@ -103,12 +110,13 @@ if [[ -f "${xray_qr_config_file}" ]]; then
         if [[ -n "${add_shell_version}" ]]; then
             tmp_config="${xray_qr_config_file}.tmp.$$"
             echo "${add_shell_version}" | jq . >"${tmp_config}" 2>/dev/null && mv "${tmp_config}" "${xray_qr_config_file}" || rm -f "${tmp_config}"
+            info_extraction_all=$(jq -rc . "${xray_qr_config_file}" 2>/dev/null)
         fi
     else
         echo "Script is up to date!" >>"${log_file}"
     fi
     if [[ $(info_extraction nginx_build_version) != null ]] && [[ -f "${nginx_dir}/sbin/nginx" ]]; then
-        if [[ "${nginx_online_version}" != $(info_extraction nginx_build_version) ]]; then
+        if [[ "${nginx_online_version}" != "$(info_extraction nginx_build_version)" ]]; then
             echo "Updating Nginx..." >>"${log_file}"
             auto_update=YES bash "${idleleo_dir}/install.sh" -n auto_update
             if [[ $? -ne 0 ]]; then
@@ -125,7 +133,7 @@ if [[ -f "${xray_qr_config_file}" ]]; then
     fi
     if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f /usr/local/bin/xray ]]; then
         if [[ $(info_extraction xray_version) != null ]]; then
-            if [[ "${xray_online_version}" != $(info_extraction xray_version) ]]; then
+            if [[ "${xray_online_version}" != "$(info_extraction xray_version)" ]]; then
                 echo "Updating Xray..." >>"${log_file}"
                 auto_update=YES bash "${idleleo_dir}/install.sh" -x auto_update
                 if [[ $? -ne 0 ]]; then

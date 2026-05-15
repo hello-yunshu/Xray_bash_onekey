@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.5.2"
+fm_SCRIPT_VERSION="1.5.3"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -97,7 +97,11 @@ fm_create_servername_file() {
     if [[ $url =~ ^(http|https):// ]]; then
         echo
         log_echo "${Error} ${RedBG} $(gettext "网址不能包含 http:// 或 https:// 前缀") ${Font}"
-        return
+        return 1
+    fi
+    if [[ "${url}" =~ [/\ \;\&\|\$\`] ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "网址包含非法字符")! ${Font}"
+        return 1
     fi
     echo "${url} reality;" > "${url}.serverNames"
     log_echo "${OK} ${GreenBG} $(gettext "文件") ${url}.serverNames $(gettext "已创建") ${Font}"
@@ -112,6 +116,11 @@ fm_create_server_file() {
     fm_list_files
 
     read_optimize "$(gettext "请输入主机") (host):" host
+
+    if [[ "${host}" =~ [/\ \;\&\|\$\`] ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "主机地址包含非法字符")! ${Font}"
+        return 1
+    fi
 
     if [[ -n "$default_port" ]]; then
         read_optimize "$(gettext "请输入端口") (port $(gettext "默认值"): ${default_port}):" port "${default_port}" 1 65535
