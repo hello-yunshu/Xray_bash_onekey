@@ -618,5 +618,9 @@
   "将删除配置文件": "le fichier de configuration sera supprimé",
   "请选择传输方式": "veuillez sélectionner le mode de transmission",
   "xHTTP 不支持 Clash 客户端": "xhttp n’est pas pris en charge par le client clash",
-  "已清理残留的证书自动更新定时任务": "la tâche planifiée de mise à jour automatique des certificats résiduels a été nettoyée"
+  "已清理残留的证书自动更新定时任务": "la tâche planifiée de mise à jour automatique des certificats résiduels a été nettoyée",
+  "该用户名已存在, 请使用不同的用户名": "ce nom d’utilisateur existe déjà. veuillez en choisir un autre",
+  "服务停止失败": "échec de l’arrêt du service",
+  "网址包含非法字符": "l’adresse url contient des caractères illégaux",
+  "主机地址包含非法字符": "l’adresse de l’hôte contient des caractères non autorisés"
 }
