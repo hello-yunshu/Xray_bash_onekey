@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
@@ -42,14 +41,15 @@ _stop_services() {
     if [[ "$STOPPING" -eq 1 ]]; then return; fi
     STOPPING=1
     echo "[entrypoint] Stopping services..."
-    if [[ -f /usr/local/nginx/logs/nginx.pid ]]; then
-        "$NGINX_BIN" -s stop 2>/dev/null || true
+    if command -v fail2ban-client >/dev/null 2>&1 && _f2b_configured; then
+        systemctl stop fail2ban 2>/dev/null || true
     fi
-    pkill -f "$NGINX_BIN" 2>/dev/null || true
-    if [[ -f /var/run/xray.pid ]]; then
-        kill "$(cat /var/run/xray.pid 2>/dev/null)" 2>/dev/null || true
+    if [[ -f "$NGINX_CONF" ]] && [[ -x "$NGINX_BIN" ]]; then
+        systemctl stop nginx 2>/dev/null || true
     fi
-    pkill -f "$XRAY_BIN" 2>/dev/null || true
+    if [[ -f "$XRAY_CONF" ]] && [[ -x "$XRAY_BIN" ]]; then
+        systemctl stop xray 2>/dev/null || true
+    fi
     echo "[entrypoint] Services stopped."
 }
 
