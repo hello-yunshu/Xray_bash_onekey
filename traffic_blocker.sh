@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.7"
+tb_SCRIPT_VERSION="1.5.9"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -90,28 +90,46 @@ tb_set_countries() {
     jq --argjson val "$countries_json" '.country_block = $val' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
 }
 
+tb_display_width() {
+    local str="$1"
+    local lang="zh_CN"
+    if [[ -z "${idleleo_dir:-}" || -f "${idleleo_dir}/language.conf" ]]; then
+        lang="${LC_MESSAGES:-${LANG:-zh_CN}}"
+    fi
+    lang="${lang%%.*}"
+    lang="${lang%%@*}"
+
+    if [[ "$lang" != "zh_CN" && "$lang" != "ko_KR" ]]; then
+        echo "${#str}"
+        return
+    fi
+
+    local width=0 i=0 char code
+    while (( i < ${#str} )); do
+        char="${str:i:1}"
+        printf -v code '%d' "'$char" 2>/dev/null || code=0
+        (( code < 0 || code > 127 )) && width=$((width + 2)) || width=$((width + 1))
+        i=$((i + 1))
+    done
+    echo "$width"
+}
+
 tb_pad() {
     local str="$1"
     local target_width="$2"
-    local w=0
-    local i=0
-    while (( i < ${#str} )); do
-        local char="${str:i:1}"
-        local code
-        printf -v code '%d' "'$char" 2>/dev/null || code=0
-        if (( code > 127 )); then
-            w=$((w + 2))
-        else
-            w=$((w + 1))
-        fi
-        i=$((i + 1))
-    done
-    local padding=$((target_width - w))
+    local width
+    width=$(tb_display_width "$str")
+    local padding=$((target_width - width))
     if (( padding > 0 )); then
         printf '%s%*s' "$str" "$padding" ""
     else
         printf '%s' "$str"
     fi
+}
+
+tb_table_line() {
+    local width="$1"
+    printf '%*s\n' "$width" "" | tr ' ' '-'
 }
 
 tb_rule_display_name() {
@@ -413,30 +431,59 @@ tb_download_geo_file() {
 tb_display_status() {
     tb_init_config
 
-    local name_w=44
-    local status_w=10
-    local total_w=$((name_w + 24))
+    local names=()
+    local statuses=()
+    local name_w
+    local status_w
+    local header_name="$(gettext "规则名称")"
+    local header_status="$(gettext "状态")"
+    local enabled_text="$(gettext "已启用")"
+    local disabled_text="$(gettext "已禁用")"
+    name_w=$(tb_display_width "$header_name")
+    status_w=$(tb_display_width "$header_status")
 
-    printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
-    printf "| %-4s | "; tb_pad "$(gettext "规则名称")" "$name_w"; printf " | "; tb_pad "$(gettext "状态")" "$status_w"; printf " |\n"
-    printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
-
-    local index=1
+    local index=0
     for rule_name in "${tb_all_rule_names[@]}"; do
         local display_name=$(tb_rule_display_name "$rule_name")
         local status=$(tb_get_rule_status "$rule_name")
         if [[ "$status" == "true" ]]; then
-            local status_text="$(gettext "已启用")"
+            local status_text="$enabled_text"
         else
-            local status_text="$(gettext "已禁用")"
+            local status_text="$disabled_text"
         fi
-        printf "| %4d | " "$index"; tb_pad "$display_name" "$name_w"; printf " | "; tb_pad "$status_text" "$status_w"; printf " |\n"
         index=$((index + 1))
+        names[$index]="$display_name"
+        statuses[$index]="$status_text"
+
+        local width
+        width=$(tb_display_width "$display_name")
+        if (( width > name_w )); then
+            name_w=$width
+        fi
+        width=$(tb_display_width "$status_text")
+        if (( width > status_w )); then
+            status_w=$width
+        fi
+    done
+    local return_width
+    return_width=$(tb_display_width "$(gettext "返回")")
+    if (( return_width > name_w )); then
+        name_w=$return_width
+    fi
+
+    local total_w=$((name_w + status_w + 14))
+
+    tb_table_line "$total_w"
+    printf "| "; tb_pad "$(gettext "序号")" 4; printf " | "; tb_pad "$header_name" "$name_w"; printf " | "; tb_pad "$header_status" "$status_w"; printf " |\n"
+    tb_table_line "$total_w"
+
+    for ((index=1; index<=${#names[@]}; index++)); do
+        printf "| %4d | " "$index"; tb_pad "${names[$index]}" "$name_w"; printf " | "; tb_pad "${statuses[$index]}" "$status_w"; printf " |\n"
     done
 
-    printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
+    tb_table_line "$total_w"
     printf "| %4d | " 0; tb_pad "$(gettext "返回")" "$name_w"; printf " | "; tb_pad "" "$status_w"; printf " |\n"
-    printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
+    tb_table_line "$total_w"
 
     echo
     tb_display_geo_summary
@@ -695,30 +742,59 @@ tb_manage_rules() {
 
         tb_init_config
 
-        local name_w=44
-        local status_w=10
-        local total_w=$((name_w + 24))
+        local names=()
+        local statuses=()
+        local name_w
+        local status_w
+        local header_name="$(gettext "规则名称")"
+        local header_status="$(gettext "状态")"
+        local enabled_text="$(gettext "已启用")"
+        local disabled_text="$(gettext "已禁用")"
+        name_w=$(tb_display_width "$header_name")
+        status_w=$(tb_display_width "$header_status")
 
-        printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
-        printf "| %-4s | "; tb_pad "$(gettext "规则名称")" "$name_w"; printf " | "; tb_pad "$(gettext "状态")" "$status_w"; printf " |\n"
-        printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
-
-        local index=1
+        local index=0
         for rule_name in "${tb_all_rule_names[@]}"; do
             local display_name=$(tb_rule_display_name "$rule_name")
             local status=$(tb_get_rule_status "$rule_name")
             if [[ "$status" == "true" ]]; then
-                local status_text="$(gettext "已启用")"
+                local status_text="$enabled_text"
             else
-                local status_text="$(gettext "已禁用")"
+                local status_text="$disabled_text"
             fi
-            printf "| %4d | " "$index"; tb_pad "$display_name" "$name_w"; printf " | "; tb_pad "$status_text" "$status_w"; printf " |\n"
             index=$((index + 1))
+            names[$index]="$display_name"
+            statuses[$index]="$status_text"
+
+            local width
+            width=$(tb_display_width "$display_name")
+            if (( width > name_w )); then
+                name_w=$width
+            fi
+            width=$(tb_display_width "$status_text")
+            if (( width > status_w )); then
+                status_w=$width
+            fi
+        done
+        local return_width
+        return_width=$(tb_display_width "$(gettext "返回")")
+        if (( return_width > name_w )); then
+            name_w=$return_width
+        fi
+
+        local total_w=$((name_w + status_w + 14))
+
+        tb_table_line "$total_w"
+        printf "| "; tb_pad "$(gettext "序号")" 4; printf " | "; tb_pad "$header_name" "$name_w"; printf " | "; tb_pad "$header_status" "$status_w"; printf " |\n"
+        tb_table_line "$total_w"
+
+        for ((index=1; index<=${#names[@]}; index++)); do
+            printf "| %4d | " "$index"; tb_pad "${names[$index]}" "$name_w"; printf " | "; tb_pad "${statuses[$index]}" "$status_w"; printf " |\n"
         done
 
-        printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
+        tb_table_line "$total_w"
         printf "| %4d | " 0; tb_pad "$(gettext "返回")" "$name_w"; printf " | "; tb_pad "" "$status_w"; printf " |\n"
-        printf "%s\n" "$(printf '%*s' "$total_w" | tr ' ' '-')"
+        tb_table_line "$total_w"
 
         local rule_choice
         read_optimize "$(gettext "请选择要管理的规则"): " "rule_choice" 0 0 ${#tb_all_rule_names[@]} "$(gettext "无效的选择, 请重试")"

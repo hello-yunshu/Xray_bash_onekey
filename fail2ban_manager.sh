@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.5.3"
+mf_SCRIPT_VERSION="1.5.5"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -11,6 +11,48 @@ if [ -n "$shell_version" ]; then
         return 1
     fi
 fi
+
+mf_display_width() {
+    local str="$1"
+    local lang="zh_CN"
+    if [[ -z "${idleleo_dir:-}" || -f "${idleleo_dir}/language.conf" ]]; then
+        lang="${LC_MESSAGES:-${LANG:-zh_CN}}"
+    fi
+    lang="${lang%%.*}"
+    lang="${lang%%@*}"
+
+    if [[ "$lang" != "zh_CN" && "$lang" != "ko_KR" ]]; then
+        echo "${#str}"
+        return
+    fi
+
+    local width=0 i=0 char code
+    while (( i < ${#str} )); do
+        char="${str:i:1}"
+        printf -v code '%d' "'$char" 2>/dev/null || code=0
+        (( code < 0 || code > 127 )) && width=$((width + 2)) || width=$((width + 1))
+        i=$((i + 1))
+    done
+    echo "$width"
+}
+
+mf_pad() {
+    local str="$1"
+    local target_width="$2"
+    local width
+    width=$(mf_display_width "$str")
+    local padding=$((target_width - width))
+    if (( padding > 0 )); then
+        printf '%s%*s' "$str" "$padding" ""
+    else
+        printf '%s' "$str"
+    fi
+}
+
+mf_table_line() {
+    local width="$1"
+    printf '%*s\n' "$width" "" | tr ' ' '-'
+}
 
 mf_main_menu() {
     check_system
@@ -355,45 +397,60 @@ mf_manage_modules() {
         fi
 
         local max_name_length=15
+        local status_width
+        local header_module="$(gettext "模块名称")"
+        local header_status="$(gettext "状态")"
+        local enabled_text="$(gettext "已启用")"
+        local disabled_text="$(gettext "已禁用")"
+        status_width=$(mf_display_width "$header_status")
 
-        local compare_strings=()
-        compare_strings+=("$(gettext "模块名称")")
+        local length
+        length=$(mf_display_width "$header_module")
+        if (( length > max_name_length )); then
+            max_name_length=$length
+        fi
+        length=$(mf_display_width "$(gettext "返回")")
+        if (( length > max_name_length )); then
+            max_name_length=$length
+        fi
+        length=$(mf_display_width "$enabled_text")
+        if (( length > status_width )); then
+            status_width=$length
+        fi
+        length=$(mf_display_width "$disabled_text")
+        if (( length > status_width )); then
+            status_width=$length
+        fi
 
         for ((i=1; i<${#module_files[@]}+1; i++)); do
-            compare_strings+=("${module_names[$i]}")
-        done
-
-        compare_strings+=("$(gettext "返回")")
-
-        for str in "${compare_strings[@]}"; do
-            local length=${#str}
+            length=$(mf_display_width "${module_names[$i]}")
             if (( length > max_name_length )); then
                 max_name_length=$length
             fi
         done
 
-        local total_width=$((max_name_length + 20))
+        local total_width=$((max_name_length + status_width + 14))
 
-        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        printf "| %-4s | %-${max_name_length}s | %-10s |\n" "$(gettext "序号")" "$(gettext "模块名称")" "$(gettext "状态")"
-        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+        mf_table_line "$total_width"
+        printf "| "; mf_pad "$(gettext "序号")" 4; printf " | "; mf_pad "$header_module" "$max_name_length"; printf " | "; mf_pad "$header_status" "$status_width"; printf " |\n"
+        mf_table_line "$total_width"
 
         for ((i=1; i<${#module_files[@]}+1; i++)); do
             local module_file=${module_files[$i]}
             local module_name=${module_names[$i]}
 
             if mf_is_module_enabled "$module_file"; then
-                local status_text="$(gettext "已启用")"
+                local status_text="$enabled_text"
             else
-                local status_text="$(gettext "已禁用")"
+                local status_text="$disabled_text"
             fi
 
-            printf "| %4d | %-${max_name_length}s | %-10s |\n" $i "$module_name" "$status_text"
+            printf "| %4d | " $i; mf_pad "$module_name" "$max_name_length"; printf " | "; mf_pad "$status_text" "$status_width"; printf " |\n"
         done
 
-        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
-        printf "| %4d | %-${max_name_length}s | %-10s |\n" 0 "$(gettext "返回")" ""
-        printf "%s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+        mf_table_line "$total_width"
+        printf "| %4d | " 0; mf_pad "$(gettext "返回")" "$max_name_length"; printf " | "; mf_pad "" "$status_width"; printf " |\n"
+        mf_table_line "$total_width"
 
         local module_choice
         read_optimize "$(gettext "请选择要管理的模块"): " "module_choice" 0 0 ${#module_files[@]} "$(gettext "无效的选择, 请重试")"

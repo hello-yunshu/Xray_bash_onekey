@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.5.3"
+fm_SCRIPT_VERSION="1.5.5"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -30,6 +30,48 @@ elif [ -z "$fm_EXTENSION" ]; then
     return 1
 fi
 
+fm_display_width() {
+    local str="$1"
+    local lang="zh_CN"
+    if [[ -z "${idleleo_dir:-}" || -f "${idleleo_dir}/language.conf" ]]; then
+        lang="${LC_MESSAGES:-${LANG:-zh_CN}}"
+    fi
+    lang="${lang%%.*}"
+    lang="${lang%%@*}"
+
+    if [[ "$lang" != "zh_CN" && "$lang" != "ko_KR" ]]; then
+        echo "${#str}"
+        return
+    fi
+
+    local width=0 i=0 char code
+    while (( i < ${#str} )); do
+        char="${str:i:1}"
+        printf -v code '%d' "'$char" 2>/dev/null || code=0
+        (( code < 0 || code > 127 )) && width=$((width + 2)) || width=$((width + 1))
+        i=$((i + 1))
+    done
+    echo "$width"
+}
+
+fm_pad() {
+    local str="$1"
+    local target_width="$2"
+    local width
+    width=$(fm_display_width "$str")
+    local padding=$((target_width - width))
+    if (( padding > 0 )); then
+        printf '%s%*s' "$str" "$padding" ""
+    else
+        printf '%s' "$str"
+    fi
+}
+
+fm_table_line() {
+    local width="$1"
+    printf '%*s\n' "$width" "" | tr ' ' '-'
+}
+
 fm_list_files() {
     local max_length
     log_echo "${GreenBG} $(gettext "列出所有") .$fm_EXTENSION $(gettext "文件") ${Font}"
@@ -48,9 +90,12 @@ fm_list_files() {
         log_echo "${Warning} ${YellowBG} $(gettext "未找到") .$fm_EXTENSION $(gettext "文件") ${Font}"
         return 1
     else
-        local max_length=0
+        local header_text="$(gettext "文件名")"
+        local max_length
+        max_length=$(fm_display_width "$header_text")
         for file in "${files[@]}"; do
-            local length=${#file}
+            local length
+            length=$(fm_display_width "$file")
             if (( length > max_length )); then
                 max_length=$length
             fi
@@ -60,26 +105,20 @@ fm_list_files() {
             max_length=10
         fi
 
-        local total_width=$((max_length + 10))
-        printf "%-${total_width}s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+        local total_width=$((max_length + 11))
+        fm_table_line "$total_width"
 
-        local header_text="$(gettext "文件名")"
-        local header_length=${#header_text}
-        local padding=$(( (total_width - header_length - 4) / 2 ))
-        local left_padding=$(( padding - 4 ))  # 加上序号列的宽度
-        local right_padding=$(( padding - 4 ))
+        printf "| "; fm_pad "$(gettext "序号")" 4; printf " | "; fm_pad "$header_text" "$max_length"; printf " |\n"
 
-        printf "| %-4s | %-${left_padding}s%-${header_length}s%-${right_padding}s |\n" "$(gettext "序号")" "" "$header_text" ""
-
-        printf "%-${total_width}s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+        fm_table_line "$total_width"
 
         local index=1
         for file in "${files[@]}"; do
-            printf "| %4d | %-*s |\n" $index $((max_length)) "$file"
+            printf "| %4d | " $index; fm_pad "$file" "$max_length"; printf " |\n"
             ((index++))
         done
 
-        printf "%-${total_width}s\n" "$(printf '%*s' "$total_width" | tr ' ' '-')"
+        fm_table_line "$total_width"
 
         eval "${_prev_dotglob}"
         eval "${_prev_nullglob}"
