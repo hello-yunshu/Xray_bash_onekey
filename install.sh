@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.2"
+shell_version="2.12.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -1241,7 +1241,7 @@ ensure_sub_script() {
             local oldest
             oldest=$(printf '%s\n%s\n' "$required_version" "$shell_version" | sort -V | head -1)
             if [ "$oldest" != "$required_version" ]; then
-                log_echo "${Error} ${RedBG} ${script_name} $(gettext "需要主脚本版本") >= ${required_version}，$(gettext "当前版本"): ${shell_version}，$(gettext "请先更新主脚本") ${Font}"
+                log_echo "${Error} ${RedBG} ${script_name} $(gettext "需要主脚本版本") >= ${required_version}, $(gettext "当前版本"): ${shell_version}, $(gettext "请先更新主脚本") ${Font}"
                 return 1
             fi
         fi
@@ -1273,7 +1273,7 @@ nginx_upstream_server_set() {
                 3) source "${idleleo_dir}/file_manager.sh" xhttpServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
                 4) ;;
                 *)
-                    log_echo "${Error} ${RedBG} $(gettext "无效选项, 请重试")! ${Font}"
+                    log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试")! ${Font}"
                     nginx_upstream_server_set
                     ;;
                 esac
@@ -1482,6 +1482,13 @@ add_xhttp_inbound() {
 }
 
 modify_nginx_origin_conf() {
+    local nginx_group
+    nginx_group="$(id -gn nobody 2>/dev/null || echo nogroup)"
+    if grep -qE '^[[:space:]]*#?[[:space:]]*user[[:space:]]+' "${nginx_dir}"/conf/nginx.conf; then
+        sed -i "/^[[:space:]]*#*[[:space:]]*user[[:space:]]/c\\user nobody ${nginx_group};" "${nginx_dir}"/conf/nginx.conf
+    else
+        sed -i "1i user nobody ${nginx_group};" "${nginx_dir}"/conf/nginx.conf
+    fi
     sed -i "s/worker_processes  1;/worker_processes  auto;/" "${nginx_dir}"/conf/nginx.conf
     sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" "${nginx_dir}"/conf/nginx.conf
     if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "Reality" && ${reality_add_nginx} == "on" ]]; then
@@ -1943,7 +1950,7 @@ nginx_install() {
 
     if [[ -n "${nginx_sha256}" ]] && [[ "${nginx_sha256}" != "null" ]]; then
         if ! echo "${nginx_sha256}  ${nginx_filename}" | sha256sum -c - >/dev/null 2>&1; then
-            log_echo "${Error} ${RedBG} Nginx SHA256 校验失败 ${Font}"
+            log_echo "${Error} ${RedBG} Nginx SHA256 $(gettext "校验失败") ${Font}"
             cd "$current_dir" && rm -rf "$temp_dir"
             exit 1
         fi
@@ -2081,9 +2088,16 @@ nginx_update() {
             elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_reality_conf_add
             fi
-            service_start || return 1
-            sleep 1
-            if ! systemctl -q is-active nginx; then
+            local nginx_start_failed=0
+            local service_start_failed=0
+            if ! service_start; then
+                service_start_failed=1
+                systemctl -q is-active nginx || nginx_start_failed=1
+            else
+                sleep 1
+                systemctl -q is-active nginx || nginx_start_failed=1
+            fi
+            if [[ ${nginx_start_failed} -eq 1 ]]; then
                 log_echo "${Error} ${RedBG} Nginx $(gettext "启动失败")! ${Font}"
                 if [[ ${auto_update} != "YES" ]]; then
                     echo
@@ -2117,6 +2131,8 @@ nginx_update() {
                     fi
                     ;;
                 esac
+            elif [[ ${service_start_failed} -eq 1 ]]; then
+                return 1
             else
                 update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version'
                 judge "Nginx $(gettext "更新")"
@@ -3012,7 +3028,7 @@ set_fail2ban() {
 
 set_traffic_blocker() {
     if [[ ! -f "${xray_conf}" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "Xray 未安装, 请先安装") Xray ${Font}"
+        log_echo "${Error} ${RedBG} Xray $(gettext "未安装"), $(gettext "请先安装") Xray ${Font}"
         return 1
     fi
     if ! ensure_sub_script "traffic_blocker.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"; then
@@ -3787,7 +3803,7 @@ tls_type() {
                 log_echo "${OK} ${GreenBG} $(gettext "已切换至") TLSv1.3 ${Font}"
             fi
         else
-            log_echo "${Error} ${RedBG} $(gettext "当前模式不支持") ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作") ${Font}"
             return 1
         fi
         if [[ -f "${nginx_systemd_file}" ]]; then
@@ -5025,7 +5041,7 @@ set_language() {
             export LC_MESSAGES=ko_KR.UTF-8
             ;;
         *)
-            log_echo "${Error} ${RedBG} $(gettext "无效的选择") ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
             return 1
             ;;
     esac
@@ -5143,7 +5159,7 @@ menu() {
     echo -e "${Green}1.${Font}  $(gettext "更新") Xray"
     echo -e "${Green}2.${Font}  $(gettext "更新") Nginx"
     echo -e "—————————————— ${GreenW}语言 / Language${Font} ———————"
-    echo -e "${Green}99.${Font} 中文 (默认)"
+    echo -e "${Green}1.${Font} 中文 ($(gettext "默认"))"
     echo -e "    English"
     echo -e "    Français" 
     echo -e "    فارسی    "
