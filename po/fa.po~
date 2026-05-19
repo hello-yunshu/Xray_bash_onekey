@@ -182,20 +182,16 @@ msgstr "مقدار پیش فرض"
 #: install.sh:3861 install.sh:3865 install.sh:3869 install.sh:3873
 #: install.sh:3874 install.sh:3875 install.sh:3902 install.sh:3906
 #: install.sh:3910 install.sh:3914 install.sh:3915 install.sh:3916
-#, fuzzy
-#| msgid "请输入 0-65535 之间的值"
 msgid "请输入 1-65535 之间的值"
-msgstr ""
+msgstr "مقداری بین 1 تا 65535 را وارد کنید"
 
 #: install.sh:638
 msgid "端口不允许使用, 请重新输入"
 msgstr "پورت مجاز نیست، لطفاً دوباره وارد کنید"
 
 #: install.sh:647
-#, fuzzy
-#| msgid "请选择传输方式"
 msgid "请选择传输协议"
-msgstr ""
+msgstr "پروتکل انتقال را انتخاب کنید"
 
 #: install.sh:648 install.sh:2239 install.sh:2276 install.sh:2328
 #: install.sh:3794 install.sh:4013 install.sh:4093 install.sh:4164
@@ -231,10 +227,8 @@ msgid "如不清楚具体用途, 请勿选择"
 msgstr "اگر کاربرد دقیق آن را نمی‌دانید، لطفاً انتخاب نکنید"
 
 #: install.sh:737
-#, fuzzy
-#| msgid "已跳过添加简单 ws/gRPC 协议"
 msgid "已跳过添加简单 ws/gRPC/xHTTP 协议"
-msgstr ""
+msgstr "افزودن پروتکل‌های ساده ws/gRPC/xHTTP نادیده گرفته شد"
 
 #: install.sh:773 install.sh:793 install.sh:814 install.sh:905 install.sh:922
 #: install.sh:943 install.sh:960 install.sh:981 install.sh:998 install.sh:1017
@@ -442,10 +436,8 @@ msgid "负载均衡"
 msgstr "تعادل بار"
 
 #: install.sh:1261
-#, fuzzy
-#| msgid "请选择协议为 ws 或 gRPC"
 msgid "请选择协议为 ws 或 gRPC 或 xHTTP"
-msgstr ""
+msgstr "برای ws یا gRPC یا xHTTP قرارداد انتخاب کنید"
 
 #: install.sh:1265 fail2ban_manager.sh:295 fail2ban_manager.sh:313
 #: fail2ban_manager.sh:412 fail2ban_manager.sh:452 traffic_blocker.sh:273
@@ -925,10 +917,8 @@ msgid "是否保留原 Xray 配置文件"
 msgstr "آیا پرونده تنظیمات اصلی xray را حفظ کنید؟"
 
 #: install.sh:2473
-#, fuzzy
-#| msgid "添加简单 ws/gRPC 协议"
 msgid "添加简单 ws/gRPC/xHTTP 协议"
-msgstr ""
+msgstr "افزودن پروتکل‌های ساده ws/gRPC/xHTTP"
 
 #: install.sh:2497
 msgid "检测到配置文件, 是否读取配置文件"
@@ -996,10 +986,8 @@ msgid "停止"
 msgstr "متوقف شوید"
 
 #: install.sh:2897
-#, fuzzy
-#| msgid "已设置改版证书自动更新"
 msgid "已清理证书自动更新定时任务"
-msgstr ""
+msgstr "واجۀ زمان‌بندی به‌روزرسانی خودکار گواهی‌نامه پاک شده است"
 
 #: install.sh:2917 install.sh:2921 install.sh:3584 install.sh:5191
 #: fail2ban_manager.sh:310 fail2ban_manager.sh:488
@@ -1114,10 +1102,8 @@ msgid "日志清理"
 msgstr "پاکسازی روزنامه"
 
 #: install.sh:3426 install.sh:3443 install.sh:3457
-#, fuzzy
-#| msgid "传输协议"
 msgid "不支持 xHTTP 传输协议"
-msgstr ""
+msgstr "پروتکل انتقال xHTTP پشتیبانی نمی‌شود"
 
 #: install.sh:3466
 msgid "链接分享"
@@ -1421,10 +1407,8 @@ msgid "下载流量统计配置"
 msgstr "دانلود تنظیمات آمار ترافیک"
 
 #: install.sh:4276
-#, fuzzy
-#| msgid "下载流量统计配置"
 msgid "流量统计配置解析失败"
-msgstr ""
+msgstr "حل تجزیه تنظیمات آمار ترافیک ناموفق بود"
 
 #: install.sh:4282
 msgid "设置 Xray 流量统计"
@@ -1935,10 +1919,8 @@ msgid "回到菜单"
 msgstr "برگرد به منو"
 
 #: install.sh:5347
-#, fuzzy
-#| msgid "启动失败"
 msgid "服务启动失败"
-msgstr ""
+msgstr "شروع خدمات ناموفق بود"
 
 #: install.sh:5355
 msgid "服务停止失败"
@@ -2317,22 +2299,16 @@ msgid "未配置"
 msgstr "غیر تنظیم شده"
 
 #: traffic_blocker.sh:171
-#, fuzzy
-#| msgid "BT 下载"
 msgid "BT 下载阻断"
-msgstr ""
+msgstr "مسدود کردن دانلود BT"
 
 #: traffic_blocker.sh:172
-#, fuzzy
-#| msgid "私有网络"
 msgid "私有网络阻断"
-msgstr ""
+msgstr "مسدود کردن شبکه خصوصی"
 
 #: traffic_blocker.sh:173
-#, fuzzy
-#| msgid "广告域名"
 msgid "广告域名阻断"
-msgstr ""
+msgstr "مسدود کردن دامنهای تبلیغاتی"
 
 #: traffic_blocker.sh:181
 msgid "阻断指定国家/地区的 IP 和域名流量"
