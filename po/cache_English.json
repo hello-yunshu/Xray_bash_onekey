@@ -625,5 +625,17 @@
   "朝鲜": "north korea",
   "英国": "united kingdom",
   "澳大利亚": "australia",
-  "土耳其": "turkey"
+  "土耳其": "turkey",
+  "请输入 1-65535 之间的值": "please enter a value between 1 and 65,535",
+  "请选择传输协议": "please select the transport protocol",
+  "已跳过添加简单 ws/gRPC/xHTTP 协议": "skipping the addition of simple ws/gRPC/xHTTP protocols",
+  "请选择协议为 ws 或 gRPC 或 xHTTP": "please select the protocol as ws, gRPC, or xHTTP",
+  "添加简单 ws/gRPC/xHTTP 协议": "add simple ws/gRPC/xHTTP protocols",
+  "已清理证书自动更新定时任务": "the scheduled task for automatic certificate updates has been cleared",
+  "不支持 xHTTP 传输协议": "xHTTP transport protocol is not supported",
+  "流量统计配置解析失败": "failed to parse traffic statistics configuration",
+  "服务启动失败": "service startup failed",
+  "BT 下载阻断": "BT download blocking",
+  "私有网络阻断": "private network blocking",
+  "广告域名阻断": "ad domain blocking"
 }

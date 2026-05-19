@@ -188,8 +188,6 @@ msgstr "valeur par défaut"
 #: install.sh:3861 install.sh:3865 install.sh:3869 install.sh:3873
 #: install.sh:3874 install.sh:3875 install.sh:3902 install.sh:3906
 #: install.sh:3910 install.sh:3914 install.sh:3915 install.sh:3916
-#, fuzzy
-#| msgid "请输入 0-65535 之间的值"
 msgid "请输入 1-65535 之间的值"
 msgstr "veuillez saisir une valeur comprise entre 1 et 65 535"
 
@@ -198,8 +196,6 @@ msgid "端口不允许使用, 请重新输入"
 msgstr "le port n'est pas autorisé, veuillez entrer à nouveau"
 
 #: install.sh:647
-#, fuzzy
-#| msgid "请选择传输方式"
 msgid "请选择传输协议"
 msgstr "veuillez sélectionner le protocole de transmission"
 
@@ -238,10 +234,8 @@ msgid "如不清楚具体用途, 请勿选择"
 msgstr "si l'utilisation spécifique n'est pas claire, veuillez ne pas choisir"
 
 #: install.sh:737
-#, fuzzy
-#| msgid "已跳过添加简单 ws/gRPC 协议"
 msgid "已跳过添加简单 ws/gRPC/xHTTP 协议"
-msgstr "l’ajout des protocoles simples ws/grpc/xhttp a été ignoré"
+msgstr "l’ajout des protocoles simples ws/gRPC/xHTTP a été ignoré"
 
 #: install.sh:773 install.sh:793 install.sh:814 install.sh:905 install.sh:922
 #: install.sh:943 install.sh:960 install.sh:981 install.sh:998 install.sh:1017
@@ -455,10 +449,8 @@ msgid "负载均衡"
 msgstr "équilibrage de charge"
 
 #: install.sh:1261
-#, fuzzy
-#| msgid "请选择协议为 ws 或 gRPC"
 msgid "请选择协议为 ws 或 gRPC 或 xHTTP"
-msgstr "veuillez sélectionner le protocole ws, grpc ou xhttp"
+msgstr "veuillez sélectionner le protocole ws, gRPC ou xHTTP"
 
 #: install.sh:1265 fail2ban_manager.sh:295 fail2ban_manager.sh:313
 #: fail2ban_manager.sh:412 fail2ban_manager.sh:452 traffic_blocker.sh:273
@@ -959,8 +951,6 @@ msgid "是否保留原 Xray 配置文件"
 msgstr "conserver le fichier de configuration xray original "
 
 #: install.sh:2473
-#, fuzzy
-#| msgid "添加简单 ws/gRPC 协议"
 msgid "添加简单 ws/gRPC/xHTTP 协议"
 msgstr "ajout des protocoles simples websocket, grpc et xhttp"
 
@@ -1036,8 +1026,6 @@ msgid "停止"
 msgstr "arrêter"
 
 #: install.sh:2897
-#, fuzzy
-#| msgid "已设置改版证书自动更新"
 msgid "已清理证书自动更新定时任务"
 msgstr ""
 "la tâche planifiée de mise à jour automatique des certificats a été nettoyée"
@@ -1158,10 +1146,8 @@ msgid "日志清理"
 msgstr "nettoyage des journaux"
 
 #: install.sh:3426 install.sh:3443 install.sh:3457
-#, fuzzy
-#| msgid "传输协议"
 msgid "不支持 xHTTP 传输协议"
-msgstr "le protocole de transfert xhttp n’est pas pris en charge"
+msgstr "le protocole de transfert xHTTP n’est pas pris en charge"
 
 #: install.sh:3466
 msgid "链接分享"
@@ -1474,10 +1460,8 @@ msgid "下载流量统计配置"
 msgstr "télécharger la configuration du suivi du trafic"
 
 #: install.sh:4276
-#, fuzzy
-#| msgid "下载流量统计配置"
 msgid "流量统计配置解析失败"
-msgstr "échec de l’analyse de la configuration de suivi du trafic"
+msgstr "échec de l’analyse de la configuration de la collecte de trafic"
 
 #: install.sh:4282
 msgid "设置 Xray 流量统计"
@@ -1991,8 +1975,6 @@ msgid "回到菜单"
 msgstr "retour au menu"
 
 #: install.sh:5347
-#, fuzzy
-#| msgid "启动失败"
 msgid "服务启动失败"
 msgstr "échec du démarrage du service"
 
@@ -2376,20 +2358,14 @@ msgid "未配置"
 msgstr "non configuré"
 
 #: traffic_blocker.sh:171
-#, fuzzy
-#| msgid "BT 下载"
 msgid "BT 下载阻断"
 msgstr "blocage du téléchargement par bittorrent"
 
 #: traffic_blocker.sh:172
-#, fuzzy
-#| msgid "私有网络"
 msgid "私有网络阻断"
 msgstr "blocage du réseau privé"
 
 #: traffic_blocker.sh:173
-#, fuzzy
-#| msgid "广告域名"
 msgid "广告域名阻断"
 msgstr "blocage des noms de domaine publicitaires"
 
