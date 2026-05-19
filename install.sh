@@ -38,6 +38,7 @@ shell_version="2.12.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
+use_system_nginx="off"
 local_bin="/usr/local"
 idleleo_dir="/etc/idleleo"
 idleleo="${idleleo_dir}/install.sh"
@@ -1492,10 +1493,16 @@ modify_nginx_origin_conf() {
     sed -i "s/worker_processes  1;/worker_processes  auto;/" "${nginx_dir}"/conf/nginx.conf
     sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" "${nginx_dir}"/conf/nginx.conf
     if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "Reality" && ${reality_add_nginx} == "on" ]]; then
-        sed -i "\$i include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
+        if ! grep -q "include ${nginx_conf_dir}/\*\.conf;" "${nginx_dir}"/conf/nginx.conf; then
+            sed -i "\$i include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
+        fi
     fi
-    sed -i "/http\( *\){/a \\\tserver_tokens off;" "${nginx_dir}"/conf/nginx.conf
-    sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 403;\\n\\t\\t}" "${nginx_dir}"/conf/nginx.conf
+    if ! grep -q "server_tokens off;" "${nginx_dir}"/conf/nginx.conf; then
+        sed -i "/http\( *\){/a \\\tserver_tokens off;" "${nginx_dir}"/conf/nginx.conf
+    fi
+    if ! grep -q "if (\$host = " "${nginx_dir}"/conf/nginx.conf; then
+        sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 403;\\n\\t\\t}" "${nginx_dir}"/conf/nginx.conf
+    fi
 }
 
 modify_nginx_port() {
@@ -1891,6 +1898,10 @@ nginx_exist_check() {
         modify_nginx_origin_conf
         nginx_build_version=$(info_extraction nginx_build_version)
         log_echo "${OK} ${GreenBG} Nginx $(gettext "已存在, 跳过编译安装过程") ${Font}"
+        # 验证已有 Nginx 二进制的兼容性
+        if ! nginx_worker_health_check; then
+            nginx_install_from_package
+        fi
     elif [[ -d "/etc/nginx" ]] && [[ -n "$(info_extraction nginx_version)" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装")! ${Font}"
         exit 1
@@ -1976,6 +1987,89 @@ nginx_install() {
     cd "$current_dir" && rm -rf "$temp_dir"
     chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${nginx_dir}"
     chmod -fR 755 "${nginx_dir}"
+
+    # 验证预编译 Nginx worker 进程是否能正常启动
+    if ! nginx_worker_health_check; then
+        nginx_install_from_package
+    fi
+}
+
+nginx_worker_health_check() {
+    log_echo "${OK} ${GreenBG} $(gettext "验证 Nginx 兼容性") ${Font}"
+    "${nginx_dir}/sbin/nginx" -c "${nginx_dir}/conf/nginx.conf" 2>/dev/null
+    sleep 3
+    local has_worker=0
+    if pgrep -f "nginx: worker process" >/dev/null 2>&1; then
+        has_worker=1
+    fi
+    "${nginx_dir}/sbin/nginx" -s stop 2>/dev/null
+    sleep 1
+    pkill -9 -f "nginx" 2>/dev/null
+    if [[ ${has_worker} -eq 0 ]]; then
+        if dmesg 2>/dev/null | tail -20 | grep -q "nginx.*segfault"; then
+            log_echo "${Error} ${RedBG} $(gettext "Nginx worker 进程发生段错误, 二进制与当前系统不兼容") ${Font}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "Nginx worker 进程异常退出") ${Font}"
+        fi
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "Nginx 兼容性验证通过") ${Font}"
+    return 0
+}
+
+nginx_install_from_package() {
+    log_echo "${Warning} ${YellowBG} $(gettext "尝试使用系统包管理器安装 Nginx 作为替代") ${Font}"
+    if [[ "${INS}" == "apt" ]]; then
+        apt install -y nginx 2>/dev/null
+    elif [[ "${INS}" == "yum" ]]; then
+        yum install -y nginx 2>/dev/null
+    fi
+    local sys_nginx
+    sys_nginx=$(command -v nginx 2>/dev/null)
+    if [[ -z "${sys_nginx}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "系统 Nginx 安装失败") ${Font}"
+        exit 1
+    fi
+    # 停止系统 nginx 服务避免冲突
+    systemctl stop nginx 2>/dev/null
+    systemctl disable nginx 2>/dev/null
+    # 备份自定义 Nginx 的配置文件
+    local backup_conf="${nginx_dir}/conf/nginx.conf"
+    local backup_mime="${nginx_dir}/conf/mime.types"
+    local backup_html="${nginx_dir}/html"
+    local tmp_backup=$(mktemp -d)
+    [[ -f "${backup_conf}" ]] && cp -f "${backup_conf}" "${tmp_backup}/nginx.conf"
+    [[ -f "${backup_mime}" ]] && cp -f "${backup_mime}" "${tmp_backup}/mime.types"
+    [[ -f "${nginx_dir}/conf/nginx.conf.default" ]] && cp -f "${nginx_dir}/conf/nginx.conf.default" "${tmp_backup}/nginx.conf.default"
+    [[ -d "${backup_html}" ]] && cp -rf "${backup_html}" "${tmp_backup}/html"
+    # 用系统二进制替换
+    cp -f "${sys_nginx}" "${nginx_dir}/sbin/nginx"
+    # 恢复配置
+    [[ -f "${tmp_backup}/nginx.conf" ]] && cp -f "${tmp_backup}/nginx.conf" "${nginx_dir}/conf/nginx.conf"
+    [[ -f "${tmp_backup}/mime.types" ]] && cp -f "${tmp_backup}/mime.types" "${nginx_dir}/conf/mime.types"
+    [[ -f "${tmp_backup}/nginx.conf.default" ]] && cp -f "${tmp_backup}/nginx.conf.default" "${nginx_dir}/conf/nginx.conf.default"
+    [[ -d "${tmp_backup}/html" ]] && cp -rf "${tmp_backup}/html/"* "${nginx_dir}/html/" 2>/dev/null
+    rm -rf "${tmp_backup}"
+    # 系统 Nginx 的默认 PID 路径与自定义 systemd service 不匹配, 需显式设置
+    mkdir -p "${nginx_dir}/logs"
+    if grep -q "^#.*pid.*logs/nginx.pid" "${nginx_dir}/conf/nginx.conf"; then
+        sed -i "s|^#.*pid.*logs/nginx.pid.*|pid ${nginx_dir}/logs/nginx.pid;|" "${nginx_dir}/conf/nginx.conf"
+    elif ! grep -q "^pid " "${nginx_dir}/conf/nginx.conf"; then
+        sed -i "1a pid ${nginx_dir}/logs/nginx.pid;" "${nginx_dir}/conf/nginx.conf"
+    fi
+    chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${nginx_dir}"
+    chmod -fR 755 "${nginx_dir}"
+    # 标记使用系统 Nginx (可能不支持 HTTP/3)
+    if ! "${nginx_dir}/sbin/nginx" -V 2>&1 | grep -q "http_v3_module"; then
+        use_system_nginx="on"
+    fi
+    # 验证系统 Nginx 是否正常工作
+    if nginx_worker_health_check; then
+        log_echo "${OK} ${GreenBG} $(gettext "已成功使用系统 Nginx 替代预编译版本") ${Font}"
+    else
+        log_echo "${Error} ${RedBG} $(gettext "系统 Nginx 也无法正常工作, 请检查系统环境") ${Font}"
+        exit 1
+    fi
 }
 
 restore_nginx_backup() {
@@ -2366,6 +2460,12 @@ port_exist_check() {
 
 acme() {
     systemctl restart nginx
+    sleep 2
+    if ! pgrep -f "nginx: worker process" >/dev/null 2>&1; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx worker 进程未正常启动, 无法签发证书") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "请检查 Nginx 错误日志") ${Font}"
+        exit 1
+    fi
     #暂时解决ca问题
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force --test; then
     #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force --test; then
@@ -2725,6 +2825,18 @@ server {
     }
 }
 EOF
+    # 如果使用系统 Nginx 且不支持 HTTP/3, 移除 quic 相关配置并适配旧版语法
+    if [[ "${use_system_nginx}" == "on" ]]; then
+        sed -i '/quic/d' "${nginx_conf}"
+        # nginx < 1.25.1: "http2 on;" 不支持, 需改为 listen 指令中加 http2
+        if grep -q "http2 on;" "${nginx_conf}"; then
+            sed -i '/http2 on;/d' "${nginx_conf}"
+            sed -i 's/listen \(.*\) ssl reuseport;/listen \1 ssl http2 reuseport;/' "${nginx_conf}"
+        fi
+        # nginx < 1.25.3: ssl_early_data 可能不支持
+        sed -i '/ssl_early_data/d' "${nginx_conf}"
+        log_echo "${Warning} ${YellowBG} $(gettext "系统 Nginx 不支持 HTTP/3, 已调整配置兼容旧版") ${Font}"
+    fi
     modify_nginx_port
     modify_nginx_other
     judge "Nginx $(gettext "配置修改")"
@@ -2841,19 +2953,30 @@ nginx_reality_serverNames_del () {
 
 nginx_servers_conf_add() {
     touch "${nginx_upstream_conf}"
-    cat >"${nginx_upstream_conf}" <<EOF
+    echo -n "" > "${nginx_upstream_conf}"
+    if is_ws_mode; then
+        cat >>"${nginx_upstream_conf}" <<EOF
 upstream xray-ws-server {
     include ${nginx_conf_dir}/*.wsServers;
 }
+EOF
+    fi
+    if is_grpc_mode; then
+        cat >>"${nginx_upstream_conf}" <<EOF
 
 upstream xray-grpc-server {
     include ${nginx_conf_dir}/*.grpcServers;
 }
+EOF
+    fi
+    if is_xhttp_mode; then
+        cat >>"${nginx_upstream_conf}" <<EOF
 
 upstream xray-xhttp-server {
     include ${nginx_conf_dir}/*.xhttpServers;
 }
 EOF
+    fi
     nginx_servers_add
     judge "Nginx servers $(gettext "配置修改")"
 }
@@ -3754,7 +3877,7 @@ After=syslog.target network.target remote-fs.target nss-lookup.target
 [Service]
 Type=forking
 PIDFile=${nginx_dir}/logs/nginx.pid
-ExecStartPre=${nginx_dir}/sbin/nginx -t
+ExecStartPre=${nginx_dir}/sbin/nginx -t -c ${nginx_dir}/conf/nginx.conf
 ExecStart=${nginx_dir}/sbin/nginx -c ${nginx_dir}/conf/nginx.conf
 ExecReload=${nginx_dir}/sbin/nginx -s reload
 ExecStop=/bin/kill -s QUIT \$MAINPID
