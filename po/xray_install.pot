@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-05-19 12:12+0000\n"
+"POT-Creation-Date: 2026-05-19 18:24+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -126,11 +126,12 @@ msgid "发现语言文件更新"
 msgstr ""
 
 #: install.sh:494 install.sh:1402 install.sh:1594 install.sh:2199
-#: install.sh:2363
+#: install.sh:2363 install.sh:3597
 msgid "完成"
 msgstr ""
 
 #: install.sh:497 install.sh:1399 install.sh:1588 install.sh:2202
+#: install.sh:5347 install.sh:5355
 msgid "失败"
 msgstr ""
 
@@ -138,10 +139,10 @@ msgstr ""
 msgid "在线版本检测失败, 请稍后再试"
 msgstr ""
 
-#: install.sh:537 install.sh:545 install.sh:1693 install.sh:4828
-#: install.sh:4829 install.sh:4830 install.sh:4831 install.sh:5169
-#: install.sh:5170 install.sh:5171 install.sh:5172 fail2ban_manager.sh:63
-#: fail2ban_manager.sh:89
+#: install.sh:537 install.sh:545 install.sh:1693 install.sh:3597
+#: install.sh:4828 install.sh:4829 install.sh:4830 install.sh:4831
+#: install.sh:5169 install.sh:5170 install.sh:5171 install.sh:5172
+#: fail2ban_manager.sh:63 fail2ban_manager.sh:89
 msgid "安装"
 msgstr ""
 
@@ -219,7 +220,7 @@ msgid "请输入有效的数字"
 msgstr ""
 
 #: install.sh:711
-msgid "是否添加简单 ws/gRPC 协议 用于负载均衡"
+msgid "是否添加用于负载均衡的 ws/gRPC 协议"
 msgstr ""
 
 #: install.sh:712 install.sh:1803
@@ -322,7 +323,7 @@ msgid "请输入一个域名"
 msgstr ""
 
 #: install.sh:1079
-msgid "域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用"
+msgid "域名必须支持 TLSv1.3、X25519、H2, 且不能跳转"
 msgstr ""
 
 #: install.sh:1080
@@ -585,7 +586,7 @@ msgid "已跳过"
 msgstr ""
 
 #: install.sh:1821
-msgid "Reality 协议有流量偷跑的风险"
+msgid "Reality 协议可能存在流量绕过风险"
 msgstr ""
 
 #: install.sh:1823 install.sh:1850
@@ -609,11 +610,11 @@ msgid "检测到已开启 Reality 负载均衡"
 msgstr ""
 
 #: install.sh:1848
-msgid "如用作 Reality 负载均衡主服务器必须安装"
+msgid "作为 Reality 负载均衡主服务器时必须安装"
 msgstr ""
 
 #: install.sh:1849
-msgid "如用作 Reality 负载均衡二级服务器则无需安装"
+msgid "作为 Reality 负载均衡二级服务器时无需安装"
 msgstr ""
 
 #: install.sh:1893
@@ -636,8 +637,8 @@ msgstr ""
 msgid "下载失败"
 msgstr ""
 
-#: install.sh:1949
-msgid "下载成功"
+#: install.sh:1949 traffic_blocker.sh:436
+msgid "下载完成"
 msgstr ""
 
 #: install.sh:1953
@@ -775,11 +776,11 @@ msgid "此选项用于服务器商仅提供域名访问服务器"
 msgstr ""
 
 #: install.sh:2254
-msgid "注意服务器商域名添加 CNAME 记录"
+msgid "请为服务器商提供的域名添加 CNAME 记录"
 msgstr ""
 
 #: install.sh:2266
-msgid "域名DNS解析IP"
+msgid "域名 DNS 解析 IP"
 msgstr ""
 
 #: install.sh:2267 install.sh:2352
@@ -787,7 +788,7 @@ msgid "公网IP/域名"
 msgstr ""
 
 #: install.sh:2269
-msgid "域名DNS解析IP与公网IP匹配"
+msgid "域名 DNS 解析 IP 与公网 IP 匹配"
 msgstr ""
 
 #: install.sh:2272
@@ -795,7 +796,7 @@ msgid "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使
 msgstr ""
 
 #: install.sh:2273
-msgid "域名DNS解析IP与公网IP不匹配, 请选择"
+msgid "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"
 msgstr ""
 
 #: install.sh:2274 install.sh:2280
@@ -961,7 +962,7 @@ msgid "已清理残留的证书自动更新定时任务"
 msgstr ""
 
 #: install.sh:2891 install.sh:2928 install.sh:2932 install.sh:2990
-#: install.sh:5192 fail2ban_manager.sh:311
+#: install.sh:5192 install.sh:5355 fail2ban_manager.sh:311
 msgid "停止"
 msgstr ""
 
@@ -970,7 +971,7 @@ msgid "已清理证书自动更新定时任务"
 msgstr ""
 
 #: install.sh:2917 install.sh:2921 install.sh:3584 install.sh:5191
-#: fail2ban_manager.sh:310 fail2ban_manager.sh:488
+#: install.sh:5347 fail2ban_manager.sh:310 fail2ban_manager.sh:488
 msgid "启动"
 msgstr ""
 
@@ -1114,10 +1115,6 @@ msgstr ""
 msgid "按 q 键退出 iftop"
 msgstr ""
 
-#: install.sh:3597
-msgid "安装成功"
-msgstr ""
-
 #: install.sh:3599
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr ""
@@ -1235,7 +1232,7 @@ msgid "安全模式"
 msgstr ""
 
 #: install.sh:3783
-msgid "由于 h3 仅支持 TLSv1.3, 只支持 TLSv1.3 only (安全模式)"
+msgid "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)"
 msgstr ""
 
 #: install.sh:3786 install.sh:3800 install.sh:3803
@@ -1251,7 +1248,7 @@ msgid "建议选择 TLSv1.3 (安全模式)"
 msgstr ""
 
 #: install.sh:3817
-msgid "Nginx配置文件不存在 或 当前模式不支持"
+msgid "Nginx 配置文件不存在或当前模式不支持"
 msgstr ""
 
 #: install.sh:3979
@@ -1418,7 +1415,7 @@ msgstr ""
 msgid "秒后"
 msgstr ""
 
-#: install.sh:4622
+#: install.sh:4622 install.sh:4641
 msgid "检测最新版本失败"
 msgstr ""
 
@@ -1438,12 +1435,8 @@ msgstr ""
 msgid "存在新版本, 是否更新"
 msgstr ""
 
-#: install.sh:4641
-msgid "检测 脚本 最新版本失败"
-msgstr ""
-
 #: install.sh:4642
-msgid "脚本 版本差别过大, 跳过更新"
+msgid "脚本版本差别过大, 跳过更新"
 msgstr ""
 
 #: install.sh:4650 install.sh:4651
@@ -1458,8 +1451,9 @@ msgstr ""
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
 msgstr ""
 
-#: install.sh:4667
-msgid "当前版本为最新版本"
+#: install.sh:4667 fail2ban_manager.sh:591 file_manager.sh:344
+#: traffic_blocker.sh:1152
+msgid "当前已经是最新版本"
 msgstr ""
 
 #: install.sh:4680 install.sh:4869 install.sh:4883 install.sh:4895
@@ -1749,6 +1743,7 @@ msgid "服务相关"
 msgstr ""
 
 #: install.sh:5190 install.sh:5191 install.sh:5192 install.sh:5193
+#: install.sh:5347 install.sh:5355
 msgid "所有服务"
 msgstr ""
 
@@ -1856,14 +1851,6 @@ msgstr ""
 #: install.sh:5302 install.sh:5309 install.sh:5316 install.sh:5368
 #: install.sh:5373 install.sh:5396
 msgid "回到菜单"
-msgstr ""
-
-#: install.sh:5347
-msgid "服务启动失败"
-msgstr ""
-
-#: install.sh:5355
-msgid "服务停止失败"
 msgstr ""
 
 #: install.sh:5415
@@ -2065,10 +2052,6 @@ msgstr ""
 
 #: fail2ban_manager.sh:587 file_manager.sh:340 traffic_blocker.sh:1148
 msgid "跳过更新"
-msgstr ""
-
-#: fail2ban_manager.sh:591 file_manager.sh:344 traffic_blocker.sh:1152
-msgid "当前已经是最新版本"
 msgstr ""
 
 #: file_manager.sh:21
@@ -2330,10 +2313,6 @@ msgstr ""
 
 #: traffic_blocker.sh:432 traffic_blocker.sh:939
 msgid "正在下载"
-msgstr ""
-
-#: traffic_blocker.sh:436
-msgid "下载完成"
 msgstr ""
 
 #: traffic_blocker.sh:451 traffic_blocker.sh:762
