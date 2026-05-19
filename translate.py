@@ -6,38 +6,42 @@ import polib
 from openai import OpenAI
 from deep_translator import GoogleTranslator
 from langdetect import detect, DetectorFactory
+from translation_terms import (
+    PLACEHOLDER_RE,
+    ensure_source_terms,
+    extract_source_terms,
+    missing_source_terms,
+    protect_terms,
+    restore_placeholders,
+    restore_source_terms,
+)
 
 DetectorFactory.seed = 0
 
 def extract_english_segments(text):
-    return re.findall(r'[A-Za-z][A-Za-z0-9/\-._]+', text)
+    return extract_source_terms(text)
+
+def protect_source_terms(text):
+    return protect_terms(text)
+
+def restore_protected_terms(translated, source):
+    return ensure_source_terms(translated, source)
 
 def restore_english_segments(translated, source):
-    segments = extract_english_segments(source)
-    segments.sort(key=len, reverse=True)
-    for seg in segments:
-        pattern = r'(?<![A-Za-z0-9/\-._])' + re.escape(seg) + r'(?![A-Za-z0-9/\-._])'
-        if re.search(pattern, translated, flags=re.IGNORECASE):
-            translated = re.sub(pattern, seg, translated, flags=re.IGNORECASE)
-        else:
-            for sub in re.split(r'[/\-._]', seg):
-                if len(sub) > 1:
-                    sub_pattern = r'(?<![A-Za-z0-9])' + re.escape(sub) + r'(?![A-Za-z0-9])'
-                    translated = re.sub(sub_pattern, sub, translated, flags=re.IGNORECASE)
-    return translated
+    return restore_source_terms(translated, source)
 
 def load_translation_cache(cache_file):
     if os.path.exists(cache_file):
         with open(cache_file, 'r', encoding='utf-8') as f:
             translations = json.load(f)
         for key in translations:
-            translations[key] = clean_translation(translations[key])
+            translations[key] = clean_translation(restore_protected_terms(translations[key], key))
         return translations
     return {}
 
 def save_translation_cache(cache_file, translations):
     for key in translations:
-        translations[key] = clean_translation(translations[key])
+        translations[key] = clean_translation(restore_protected_terms(translations[key], key))
     with open(cache_file, 'w', encoding='utf-8') as f:
         json.dump(translations, f, ensure_ascii=False, indent=2)
 
@@ -64,8 +68,9 @@ def translate_text_qwen_mt(text, target_lang):
         api_key=api_key,
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
+    protected_text, protected_terms = protect_source_terms(text)
     messages = [
-        {'role': 'user', 'content': text}
+        {'role': 'user', 'content': protected_text}
     ]
     translation_options = {
         "source_lang": "zh",
@@ -80,29 +85,30 @@ def translate_text_qwen_mt(text, target_lang):
             }
         )
         translated_text = completion.choices[0].message.content
-        translated_text = translated_text.lower().rstrip('.,!?;:')
-        return restore_english_segments(translated_text, text)
+        translated_text = restore_placeholders(translated_text, protected_terms)
+        return restore_protected_terms(translated_text, text)
     except Exception as e:
         print(f"Qwen-MT-Plus translation failed: {e}")
         return ""
 
 def translate_text_google(text, target_lang):
     try:
+        protected_text, protected_terms = protect_source_terms(text)
         translator = GoogleTranslator(source='zh-CN', target=target_lang)
-        translated_text = translator.translate(text)
+        translated_text = translator.translate(protected_text)
         if translated_text is None:
             return ""
-        translated_text = translated_text.lower().rstrip('.,!?;:')
-        return restore_english_segments(translated_text, text)
+        translated_text = restore_placeholders(translated_text, protected_terms)
+        return restore_protected_terms(translated_text, text)
     except Exception as e:
         print(f"Google Translate failed: {e}")
         return ""
 
 def needs_fallback_translation(translated_text):
-    return '\n' in translated_text or '"' in translated_text
+    return '\n' in translated_text or '"' in translated_text or PLACEHOLDER_RE.search(translated_text)
 
 def clean_translation(text):
-    return text.replace('\n', '').replace('"', '')
+    return re.sub(r'\s+', ' ', text.replace('\n', '').replace('"', '')).strip()
 
 def translate_po_file(input_file, output_file, target_lang_code, target_lang_name):
     lang_dir = os.path.dirname(output_file)
@@ -133,9 +139,11 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
         msgid_text = entry.msgid
 
         if msgid_text in translations:
-            translated_text = clean_translation(translations[msgid_text])
+            translated_text = clean_translation(restore_source_terms(translations[msgid_text], msgid_text))
             if translated_text == "":
                 print(f"Cached translation is empty for: {msgid_text}. Re-translating...")
+            elif missing_source_terms(translated_text, msgid_text):
+                print(f"Cached translation is missing protected terms for: {msgid_text}. Re-translating...")
             else:
                 print(f"Using cached translation: {msgid_text} -> {translated_text}")
                 entry.msgstr = translated_text
@@ -156,7 +164,7 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
                         print(f"Translation does not meet criteria using Qwen-MT-Plus. Using Google Translate...")
                         translated_text = translate_text_google(msgid_text, target_lang_code)
 
-                    translated_text = clean_translation(translated_text)
+                    translated_text = clean_translation(ensure_source_terms(translated_text, msgid_text))
 
                     translations[msgid_text] = translated_text
                     print(f"New translation [{target_lang_code}]: {msgid_text} -> {translated_text}")

@@ -4,6 +4,7 @@ import re
 import sys
 from deep_translator import GoogleTranslator
 import logging
+from translation_terms import protect_terms, restore_placeholders
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -20,7 +21,9 @@ MARKDOWN_PREFIX_PATTERNS = [
 LANGUAGES = {
     'en': 'english',
     'ru': 'russian',
-    'fa': 'persian'
+    'fa': 'persian',
+    'fr': 'french',
+    'ko': 'korean'
 }
 
 def load_translation_cache(cache_file):
@@ -43,10 +46,12 @@ def translate_text(text, target_lang, translator, translations):
         return translations[cache_key]
 
     try:
-        translated = translator.translate(text)
+        protected_text, protected_terms = protect_terms(text)
+        translated = translator.translate(protected_text)
         if translated is None:
             logging.error(f"翻译返回空: {text}")
             return text
+        translated = restore_placeholders(translated, protected_terms)
         translations[cache_key] = translated
         logging.info(f"翻译成功: '{text}' -> '{translated}'")
         return translated

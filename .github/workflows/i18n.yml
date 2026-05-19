@@ -8,6 +8,7 @@ on:
       - 'file_manager.sh'
       - 'traffic_blocker.sh'
       - 'translate.py'
+      - 'translation_terms.py'
     branches:
       - main
   workflow_dispatch:
