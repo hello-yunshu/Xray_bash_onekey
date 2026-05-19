@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.5.5"
+mf_SCRIPT_VERSION="1.5.6"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
     oldest=$(printf '%s\n%s\n' "$MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)
     if [ "$oldest" != "$MIN_MAIN_VERSION" ]; then
-        echo "${Error} ${RedBG} fail2ban_manager.sh $(gettext "需要主脚本版本") >= ${MIN_MAIN_VERSION}，$(gettext "当前版本"): ${shell_version}，$(gettext "请先更新主脚本") ${Font}"
+        echo "${Error} ${RedBG} fail2ban_manager.sh $(gettext "需要主脚本版本") >= ${MIN_MAIN_VERSION}, $(gettext "当前版本"): ${shell_version}, $(gettext "请先更新主脚本") ${Font}"
         return 1
     fi
 fi
@@ -151,7 +151,7 @@ mf_configure_fail2ban() {
     local nginx_available=true
     if [[ ${tls_mode} == "TLS" || ${reality_add_nginx} == "on" ]]; then
         if [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
-            log_echo "${Warning} ${YellowBG} Nginx $(gettext "未安装, 请先安装") Nginx ${Font}"
+            log_echo "${Warning} ${YellowBG} Nginx $(gettext "未安装"), $(gettext "请先安装") Nginx ${Font}"
             nginx_available=false
         fi
     fi
@@ -282,7 +282,7 @@ mf_is_module_enabled() {
 
 mf_manage_fail2ban() {
     if ! command -v fail2ban-client &> /dev/null; then
-        log_echo "${Error} ${RedBG} Fail2ban $(gettext "未安装, 请先安装") Fail2ban ${Font}"
+        log_echo "${Error} ${RedBG} Fail2ban $(gettext "未安装"), $(gettext "请先安装") Fail2ban ${Font}"
         return
     fi
 
@@ -524,7 +524,7 @@ mf_restart_fail2ban() {
 mf_display_fail2ban_status() {
     echo
     if ! command -v fail2ban-client &> /dev/null; then
-        log_echo "${Error} ${RedBG} Fail2ban $(gettext "未安装, 请先安装") Fail2ban ${Font}"
+        log_echo "${Error} ${RedBG} Fail2ban $(gettext "未安装"), $(gettext "请先安装") Fail2ban ${Font}"
         return
     fi
 
