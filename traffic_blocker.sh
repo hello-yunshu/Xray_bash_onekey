@@ -1,12 +1,12 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.9"
+tb_SCRIPT_VERSION="1.5.10"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
     oldest=$(printf '%s\n%s\n' "$MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)
     if [ "$oldest" != "$MIN_MAIN_VERSION" ]; then
-        echo "${Error} ${RedBG} traffic_blocker.sh $(gettext "需要主脚本版本") >= ${MIN_MAIN_VERSION}，$(gettext "当前版本"): ${shell_version}，$(gettext "请先更新主脚本") ${Font}"
+        echo "${Error} ${RedBG} traffic_blocker.sh $(gettext "需要主脚本版本") >= ${MIN_MAIN_VERSION}, $(gettext "当前版本"): ${shell_version}, $(gettext "请先更新主脚本") ${Font}"
         return 1
     fi
 fi
@@ -70,7 +70,21 @@ tb_set_rule_status() {
     jq --arg name "$rule_name" --argjson val "${status}" '.[$name] = $val' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
 }
 
-tb_preset_countries=("cn:中国" "ru:俄罗斯" "ir:伊朗" "kp:朝鲜" "gb:英国" "au:澳大利亚" "tr:土耳其")
+tb_preset_countries=("cn" "ru" "ir" "kp" "gb" "au" "tr")
+
+tb_country_display_name() {
+    local code="$1"
+    case "$code" in
+        cn) gettext "中国" ;;
+        ru) gettext "俄罗斯" ;;
+        ir) gettext "伊朗" ;;
+        kp) gettext "朝鲜" ;;
+        gb) gettext "英国" ;;
+        au) gettext "澳大利亚" ;;
+        tr) gettext "土耳其" ;;
+        *)  echo "$code" ;;
+    esac
+}
 
 tb_get_countries() {
     if [[ ! -f "${tb_config_file}" ]]; then
@@ -154,9 +168,9 @@ tb_rule_display_name() {
                 echo "$(gettext "国家/地区阻断") ($(gettext "未配置"))"
             fi
             ;;
-        bittorrent)  echo "$(gettext "BT 下载") (protocol:bittorrent)" ;;
-        private_ip)  echo "$(gettext "私有网络") (geoip:private)" ;;
-        ads)         echo "$(gettext "广告域名") (geosite:category-ads-all)" ;;
+        bittorrent)  echo "$(gettext "BT 下载阻断") (protocol:bittorrent)" ;;
+        private_ip)  echo "$(gettext "私有网络阻断") (geoip:private)" ;;
+        ads)         echo "$(gettext "广告域名阻断") (geosite:category-ads-all)" ;;
         *)           echo "$rule_name" ;;
     esac
 }
@@ -177,9 +191,8 @@ tb_add_country() {
     log_echo "${Green} $(gettext "常用国家/地区"): ${Font}"
     local line=""
     local col=0
-    for entry in "${tb_preset_countries[@]}"; do
-        local code="${entry%%:*}"
-        local name="${entry#*:}"
+    for code in "${tb_preset_countries[@]}"; do
+        local name=$(tb_country_display_name "$code")
         local item="  ${code} - ${name}"
         if (( col + ${#item} > 60 )); then
             echo "$line"
@@ -268,7 +281,7 @@ tb_remove_country() {
     fi
 
     if [[ "$remove_choice" -lt 1 || "$remove_choice" -gt ${#countries[@]} ]] 2>/dev/null; then
-        log_echo "${Error} ${RedBG} $(gettext "无效的选择") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
         return 1
     fi
 
