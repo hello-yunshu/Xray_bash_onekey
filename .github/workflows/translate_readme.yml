@@ -8,16 +8,15 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   translate-readme:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Check running workflows
-        uses: styfle/cancel-workflow-action@main
-        with:
-          access_token: ${{ github.token }}
-      
       - uses: actions/checkout@main
         with:
           persist-credentials: true
@@ -42,6 +41,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
       
+      - name: Restore translation cache
+        uses: actions/cache@main
+        with:
+          path: translation_cache_readme.json
+          key: ${{ runner.os }}-readme-translations-${{ hashFiles('README.md') }}
+          restore-keys: |
+            ${{ runner.os }}-readme-translations-
+
       - name: Translate README
         run: python3 translate_readme.py README.md languages/
       
