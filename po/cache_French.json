@@ -625,5 +625,17 @@
   "朝鲜": "corée du nord",
   "英国": "royaume-uni",
   "澳大利亚": "australie",
-  "土耳其": "turquie"
+  "土耳其": "turquie",
+  "请输入 1-65535 之间的值": "veuillez saisir une valeur comprise entre 1 et 65 535",
+  "请选择传输协议": "veuillez sélectionner le protocole de transmission",
+  "已跳过添加简单 ws/gRPC/xHTTP 协议": "l’ajout des protocoles simples ws/gRPC/xHTTP a été ignoré",
+  "请选择协议为 ws 或 gRPC 或 xHTTP": "veuillez sélectionner le protocole ws, gRPC ou xHTTP",
+  "添加简单 ws/gRPC/xHTTP 协议": "ajout des protocoles simples websocket, grpc et xhttp",
+  "已清理证书自动更新定时任务": "la tâche planifiée de mise à jour automatique des certificats a été nettoyée",
+  "不支持 xHTTP 传输协议": "le protocole de transfert xHTTP n’est pas pris en charge",
+  "流量统计配置解析失败": "échec de l’analyse de la configuration de la collecte de trafic",
+  "服务启动失败": "échec du démarrage du service",
+  "BT 下载阻断": "blocage du téléchargement par bittorrent",
+  "私有网络阻断": "blocage du réseau privé",
+  "广告域名阻断": "blocage des noms de domaine publicitaires"
 }

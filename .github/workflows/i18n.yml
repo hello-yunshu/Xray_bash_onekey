@@ -21,11 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Check running workflows
-        uses: styfle/cancel-workflow-action@main
-        with:
-          access_token: ${{ github.token }}
-      
       - uses: actions/checkout@main
         with:
           persist-credentials: true

@@ -1,12 +1,30 @@
 import time
 import json
 import os
+import re
 import polib
 from openai import OpenAI
 from deep_translator import GoogleTranslator
 from langdetect import detect, DetectorFactory
 
 DetectorFactory.seed = 0
+
+def extract_english_segments(text):
+    return re.findall(r'[A-Za-z][A-Za-z0-9/\-._]+', text)
+
+def restore_english_segments(translated, source):
+    segments = extract_english_segments(source)
+    segments.sort(key=len, reverse=True)
+    for seg in segments:
+        pattern = r'(?<![A-Za-z0-9/\-._])' + re.escape(seg) + r'(?![A-Za-z0-9/\-._])'
+        if re.search(pattern, translated, flags=re.IGNORECASE):
+            translated = re.sub(pattern, seg, translated, flags=re.IGNORECASE)
+        else:
+            for sub in re.split(r'[/\-._]', seg):
+                if len(sub) > 1:
+                    sub_pattern = r'(?<![A-Za-z0-9])' + re.escape(sub) + r'(?![A-Za-z0-9])'
+                    translated = re.sub(sub_pattern, sub, translated, flags=re.IGNORECASE)
+    return translated
 
 def load_translation_cache(cache_file):
     if os.path.exists(cache_file):
@@ -62,7 +80,8 @@ def translate_text_qwen_mt(text, target_lang):
             }
         )
         translated_text = completion.choices[0].message.content
-        return translated_text.lower().rstrip('.,!?;:')
+        translated_text = translated_text.lower().rstrip('.,!?;:')
+        return restore_english_segments(translated_text, text)
     except Exception as e:
         print(f"Qwen-MT-Plus translation failed: {e}")
         return ""
@@ -73,7 +92,8 @@ def translate_text_google(text, target_lang):
         translated_text = translator.translate(text)
         if translated_text is None:
             return ""
-        return translated_text.lower().rstrip('.,!?;:')
+        translated_text = translated_text.lower().rstrip('.,!?;:')
+        return restore_english_segments(translated_text, text)
     except Exception as e:
         print(f"Google Translate failed: {e}")
         return ""
@@ -130,7 +150,8 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
                     time.sleep(0.5)
                     translated_text = translate_text_qwen_mt(msgid_text, target_lang_code)
 
-                    if (contains_chinese(translated_text) or
+                    if (not translated_text or
+                        contains_chinese(translated_text) or
                         needs_fallback_translation(translated_text)):
                         print(f"Translation does not meet criteria using Qwen-MT-Plus. Using Google Translate...")
                         translated_text = translate_text_google(msgid_text, target_lang_code)

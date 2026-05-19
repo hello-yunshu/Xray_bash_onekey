@@ -184,8 +184,6 @@ msgstr "значение по умолчанию"
 #: install.sh:3861 install.sh:3865 install.sh:3869 install.sh:3873
 #: install.sh:3874 install.sh:3875 install.sh:3902 install.sh:3906
 #: install.sh:3910 install.sh:3914 install.sh:3915 install.sh:3916
-#, fuzzy
-#| msgid "请输入 0-65535 之间的值"
 msgid "请输入 1-65535 之间的值"
 msgstr "введите значение в диапазоне от 1 до 65535"
 
@@ -194,8 +192,6 @@ msgid "端口不允许使用, 请重新输入"
 msgstr "порт недоступен, введите снова"
 
 #: install.sh:647
-#, fuzzy
-#| msgid "请选择传输方式"
 msgid "请选择传输协议"
 msgstr "пожалуйста, выберите протокол передачи данных"
 
@@ -233,10 +229,8 @@ msgid "如不清楚具体用途, 请勿选择"
 msgstr "если неясно конкретное назначение, пожалуйста, не выбирайте"
 
 #: install.sh:737
-#, fuzzy
-#| msgid "已跳过添加简单 ws/gRPC 协议"
 msgid "已跳过添加简单 ws/gRPC/xHTTP 协议"
-msgstr "добавление простых протоколов ws/grpc/xhttp пропущено"
+msgstr "добавление простых протоколов ws/gRPC/xHTTP пропущено"
 
 #: install.sh:773 install.sh:793 install.sh:814 install.sh:905 install.sh:922
 #: install.sh:943 install.sh:960 install.sh:981 install.sh:998 install.sh:1017
@@ -446,10 +440,8 @@ msgid "负载均衡"
 msgstr "балансировка нагрузки"
 
 #: install.sh:1261
-#, fuzzy
-#| msgid "请选择协议为 ws 或 gRPC"
 msgid "请选择协议为 ws 或 gRPC 或 xHTTP"
-msgstr "пожалуйста, выберите протокол: ws, grpc или xhttp"
+msgstr "пожалуйста, выберите протокол: ws, gRPC или xHTTP"
 
 #: install.sh:1265 fail2ban_manager.sh:295 fail2ban_manager.sh:313
 #: fail2ban_manager.sh:412 fail2ban_manager.sh:452 traffic_blocker.sh:273
@@ -942,10 +934,8 @@ msgid "是否保留原 Xray 配置文件"
 msgstr "сохранить ли исходный файл конфигурации xray"
 
 #: install.sh:2473
-#, fuzzy
-#| msgid "添加简单 ws/gRPC 协议"
 msgid "添加简单 ws/gRPC/xHTTP 协议"
-msgstr "добавить простые протоколы ws/grpc/xhttp"
+msgstr "добавить простые протоколы ws/gRPC/xHTTP"
 
 #: install.sh:2497
 msgid "检测到配置文件, 是否读取配置文件"
@@ -1017,10 +1007,8 @@ msgid "停止"
 msgstr "остановить"
 
 #: install.sh:2897
-#, fuzzy
-#| msgid "已设置改版证书自动更新"
 msgid "已清理证书自动更新定时任务"
-msgstr "задача по автоматическому обновлению сертификатов очищена"
+msgstr "задача планирования автоматического обновления сертификатов очищена"
 
 #: install.sh:2917 install.sh:2921 install.sh:3584 install.sh:5191
 #: fail2ban_manager.sh:310 fail2ban_manager.sh:488
@@ -1135,10 +1123,8 @@ msgid "日志清理"
 msgstr "очистка журнала"
 
 #: install.sh:3426 install.sh:3443 install.sh:3457
-#, fuzzy
-#| msgid "传输协议"
 msgid "不支持 xHTTP 传输协议"
-msgstr "не поддерживается транспортный протокол xhttp"
+msgstr "не поддерживается транспортный протокол xHTTP"
 
 #: install.sh:3466
 msgid "链接分享"
@@ -1447,8 +1433,6 @@ msgid "下载流量统计配置"
 msgstr "скачать настройки статистики трафика"
 
 #: install.sh:4276
-#, fuzzy
-#| msgid "下载流量统计配置"
 msgid "流量统计配置解析失败"
 msgstr "сбой при парсинге конфигурации статистики трафика"
 
@@ -1961,8 +1945,6 @@ msgid "回到菜单"
 msgstr "вернуться к меню"
 
 #: install.sh:5347
-#, fuzzy
-#| msgid "启动失败"
 msgid "服务启动失败"
 msgstr "сбой запуска службы"
 
@@ -2343,20 +2325,14 @@ msgid "未配置"
 msgstr "не настроено"
 
 #: traffic_blocker.sh:171
-#, fuzzy
-#| msgid "BT 下载"
 msgid "BT 下载阻断"
 msgstr "блокировка торрент-скачиваний"
 
 #: traffic_blocker.sh:172
-#, fuzzy
-#| msgid "私有网络"
 msgid "私有网络阻断"
 msgstr "блокировка частной сети"
 
 #: traffic_blocker.sh:173
-#, fuzzy
-#| msgid "广告域名"
 msgid "广告域名阻断"
 msgstr "блокировка рекламных доменов"
 
