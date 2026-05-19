@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'README.md'
+      - 'translate_readme.py'
+      - 'translation_terms.py'
     branches:
       - main
   workflow_dispatch:

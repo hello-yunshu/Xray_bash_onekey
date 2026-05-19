@@ -34,7 +34,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.3"
+shell_version="2.12.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -708,7 +708,7 @@ _transport_set_shell_mode() {
 xray_reality_add_more_choose() {
     if [[ "on" != ${old_config_status} ]]; then
         echo
-        log_echo "${GreenBG} $(gettext "是否添加简单 ws/gRPC 协议 用于负载均衡") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        log_echo "${GreenBG} $(gettext "是否添加用于负载均衡的 ws/gRPC 协议") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         echo -e "${Warning} ${YellowBG} $(gettext "如不清楚具体用途, 请勿选择")! ${Font}"
         read -r reality_add_more_fq
         case $reality_add_more_fq in
@@ -1076,7 +1076,7 @@ target_set() {
         while true; do
             echo
             log_echo "${GreenBG} $(gettext "请输入一个域名") (e.g. bing.com)${Font}"
-            log_echo "${Green}$(gettext "域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用")${Font}"
+            log_echo "${Green}$(gettext "域名必须支持 TLSv1.3、X25519、H2, 且不能跳转")${Font}"
             read_optimize "$(gettext "确认域名符合要求后请输入"): " "domain" "NULL"
             log_echo "${Green}$(gettext "正在检测域名请等待")...${Font}"
 
@@ -1818,7 +1818,7 @@ reality_balance_add_fq() {
 
 reality_nginx_add_fq() {
     echo
-    log_echo "${Warning} ${Green} $(gettext "Reality 协议有流量偷跑的风险") ${Font}"
+    log_echo "${Warning} ${Green} $(gettext "Reality 协议可能存在流量绕过风险") ${Font}"
     if [[ ${reality_add_balance} == "off" ]]; then
         log_echo "${GreenBG} $(gettext "是否额外安装 nginx 前置保护")($(gettext "推荐")) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r reality_nginx_add_fq
@@ -1845,8 +1845,8 @@ reality_nginx_add_fq() {
         esac
     else
         log_echo "${Warning} ${Green} $(gettext "检测到已开启 Reality 负载均衡") ${Font}"
-        log_echo "${Warning} ${Green} $(gettext "如用作 Reality 负载均衡主服务器必须安装") ${Font}"
-        log_echo "${Warning} ${Green} $(gettext "如用作 Reality 负载均衡二级服务器则无需安装") ${Font}"
+        log_echo "${Warning} ${Green} $(gettext "作为 Reality 负载均衡主服务器时必须安装") ${Font}"
+        log_echo "${Warning} ${Green} $(gettext "作为 Reality 负载均衡二级服务器时无需安装") ${Font}"
         log_echo "${GreenBG} $(gettext "是否额外安装 nginx 前置保护") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r reality_nginx_add_fq
         case $reality_nginx_add_fq in
@@ -1946,7 +1946,7 @@ nginx_install() {
         cd "$current_dir" && rm -rf "$temp_dir"
         exit 1
     fi
-    log_echo "${OK} ${GreenBG} Nginx $(gettext "下载成功") ${Font}"
+    log_echo "${OK} ${GreenBG} Nginx $(gettext "下载完成") ${Font}"
 
     if [[ -n "${nginx_sha256}" ]] && [[ "${nginx_sha256}" != "null" ]]; then
         if ! echo "${nginx_sha256}  ${nginx_filename}" | sha256sum -c - >/dev/null 2>&1; then
@@ -2251,7 +2251,7 @@ domain_check() {
             ip_version="IPv6"
         elif [[ ${ip_version_fq} == 3 ]]; then
             log_echo "${Warning} ${GreenBG} $(gettext "此选项用于服务器商仅提供域名访问服务器") ${Font}"
-            log_echo "${Warning} ${GreenBG} $(gettext "注意服务器商域名添加 CNAME 记录") ${Font}"
+            log_echo "${Warning} ${GreenBG} $(gettext "请为服务器商提供的域名添加 CNAME 记录") ${Font}"
             read_optimize "$(gettext "请输入"): " "local_ip" "NULL"
             ip_version=${local_ip}
         else
@@ -2263,14 +2263,14 @@ domain_check() {
             log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
             return 1
         fi
-        log_echo "$(gettext "域名DNS解析IP"): ${domain_ip}"
+        log_echo "$(gettext "域名 DNS 解析 IP"): ${domain_ip}"
         log_echo "$(gettext "公网IP/域名"): ${local_ip}"
         if [[ ${ip_version_fq} != 3 ]] && [[ ${local_ip} == ${domain_ip} ]]; then
-            log_echo "${OK} ${GreenBG} $(gettext "域名DNS解析IP与公网IP匹配") ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "域名 DNS 解析 IP 与公网 IP 匹配") ${Font}"
             break
         else
             log_echo "${Warning} ${YellowBG} $(gettext "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray") ${Font}"
-            log_echo "${Error} ${RedBG} $(gettext "域名DNS解析IP与公网IP不匹配, 请选择"): ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"): ${Font}"
             echo "1: $(gettext "继续安装")"
             echo "2: $(gettext "重新输入")"
             log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
@@ -3594,7 +3594,7 @@ monitor_traffic_with_iftop() {
 basic_information() {
     {
         echo
-        log_echo "${OK} ${GreenBG} Xray+${shell_mode} $(gettext "安装成功") ${Font}"
+        log_echo "${OK} ${GreenBG} Xray+${shell_mode} $(gettext "安装") $(gettext "完成") ${Font}"
         echo
         log_echo "${Warning} ${YellowBG} VLESS $(gettext "目前分享链接规范为实验阶段, 请自行判断是否适用") ${Font}"
         if is_xhttp_mode; then
@@ -3780,7 +3780,7 @@ tls_type() {
                 local choose_tls
                 read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")!"
                 if [[ ${choose_tls} == 1 ]]; then
-                    log_echo "${Error} ${RedBG} $(gettext "由于 h3 仅支持 TLSv1.3, 只支持 TLSv1.3 only (安全模式)")! ${Font}"
+                    log_echo "${Error} ${RedBG} $(gettext "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)")! ${Font}"
                 else
                     sed -i "s/^\( *\)ssl_protocols\( *\).*/\1ssl_protocols\2TLSv1.3;/" $nginx_conf
                     log_echo "${OK} ${GreenBG} $(gettext "已切换至") TLSv1.3 only ${Font}"
@@ -3814,7 +3814,7 @@ tls_type() {
         judge -r "Xray $(gettext "重启")" || return 1
         return 0
     else
-        log_echo "${Error} ${RedBG} $(gettext "Nginx配置文件不存在 或 当前模式不支持") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 配置文件不存在或当前模式不支持") ${Font}"
         return 1
     fi
 }
@@ -4638,8 +4638,8 @@ update_sh() {
             fi
             read -r update_confirm
         else
-            [[ -z ${ol_version} ]] && echo "$(gettext "检测 脚本 最新版本失败")!" >>"${log_file}" && return 1
-            [[ ${version_difference} == 1 ]] && echo "$(gettext "脚本 版本差别过大, 跳过更新")!" >>"${log_file}" && return 1
+            [[ -z ${ol_version} ]] && echo "$(gettext "检测最新版本失败")!" >>"${log_file}" && return 1
+            [[ ${version_difference} == 1 ]] && echo "$(gettext "脚本版本差别过大, 跳过更新")!" >>"${log_file}" && return 1
             update_confirm="YES"
         fi
         case $update_confirm in
@@ -4664,7 +4664,7 @@ update_sh() {
         esac
     else
         clear
-        log_echo "${OK} ${GreenBG} $(gettext "当前版本为最新版本") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "当前已经是最新版本") ${Font}"
     fi
     return 0
 
@@ -5344,7 +5344,7 @@ menu() {
         if service_start; then
             exec "${BASH:-bash}" "${idleleo}"
         else
-            log_echo "${Error} ${RedBG} $(gettext "服务启动失败") ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "所有服务") $(gettext "启动") $(gettext "失败") ${Font}"
         fi
         menu
         ;;
@@ -5352,7 +5352,7 @@ menu() {
         if service_stop; then
             exec "${BASH:-bash}" "${idleleo}"
         else
-            log_echo "${Error} ${RedBG} $(gettext "服务停止失败") ${Font}"
+            log_echo "${Error} ${RedBG} $(gettext "所有服务") $(gettext "停止") $(gettext "失败") ${Font}"
         fi
         menu
         ;;
