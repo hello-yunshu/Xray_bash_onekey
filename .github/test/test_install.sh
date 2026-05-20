@@ -3,9 +3,9 @@
 MODE="${1:-}"
 
 case "$MODE" in
-xtls_only | ws_only | reality | tls) ;;
+xtls_only | ws_grpc_xhttp | reality | tls) ;;
 *)
-    echo "Usage: $0 <xtls_only|ws_only|reality|tls>"
+    echo "Usage: $0 <xtls_only|ws_grpc_xhttp|reality|tls>"
     exit 1
     ;;
 esac
@@ -92,21 +92,41 @@ ip_check() {
 }
 
 transport_choose() {
-    transport_mode="onlyws"
+    if [[ "${MODE}" == "ws_grpc_xhttp" ]]; then
+        transport_mode="all"
+    else
+        transport_mode="onlyws"
+    fi
     _transport_set_shell_mode
 }
 
 ws_inbound_port_set() { xport=${_CI_XPORT}; }
 
-grpc_inbound_port_set() { :; }
+grpc_inbound_port_set() {
+    if is_grpc_mode; then
+        gport=${_CI_GRPC_PORT}
+    fi
+}
 
-xhttp_inbound_port_set() { :; }
+xhttp_inbound_port_set() {
+    if is_xhttp_mode; then
+        xhttpport=${_CI_XHTTP_PORT}
+    fi
+}
 
 ws_path_set() { path="ciws$(head -c 6 /dev/urandom | od -An -tx1 | tr -d ' \n')"; }
 
-grpc_path_set() { :; }
+grpc_path_set() {
+    if is_grpc_mode; then
+        serviceName="cigrpc$(head -c 6 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+    fi
+}
 
-xhttp_path_set() { :; }
+xhttp_path_set() {
+    if is_xhttp_mode; then
+        xhttppath="cixhttp$(head -c 6 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+    fi
+}
 
 target_set() { target="www.microsoft.com"; }
 
@@ -184,8 +204,8 @@ xtls_only)
     tls_mode="XTLS"
     install_xray_xtls_only || INSTALL_EXIT_CODE=$?
     ;;
-ws_only)
-    shell_mode="ws ONLY"
+ws_grpc_xhttp)
+    shell_mode="ws+gRPC+xHTTP ONLY"
     tls_mode="None"
     install_xray_ws_only || INSTALL_EXIT_CODE=$?
     ;;
@@ -222,6 +242,7 @@ assert_ok() {
     fi
 }
 
+assert_ok "Install command exited successfully" test "${INSTALL_EXIT_CODE}" -eq 0
 assert_ok "Xray binary exists" test -f "${xray_bin_dir}/xray"
 assert_ok "Xray config exists" test -f "${xray_conf}"
 assert_ok "QR config exists" test -f "${xray_qr_config_file}"
@@ -244,7 +265,7 @@ assert_ok "Xray service is active" systemctl is-active --quiet xray
 if [[ "${MODE}" == "tls" ]]; then
     assert_ok "Nginx binary exists" test -f "${nginx_dir}/sbin/nginx"
     assert_ok "Nginx config exists" test -f "${nginx_conf}"
-    assert_ok "Nginx systemd service exists" test -f "${xray_systemd_file}"
+    assert_ok "Nginx systemd service exists" test -f "${nginx_systemd_file}"
     assert_ok "Nginx service is active" systemctl is-active --quiet nginx
     assert_ok "SSL certificate exists" test -f "${ssl_chainpath}/xray.crt"
     assert_ok "SSL key exists" test -f "${ssl_chainpath}/xray.key"
@@ -253,6 +274,12 @@ fi
 if [[ "${MODE}" == "reality" ]]; then
     assert_ok "Reality target is set" test -n "${target}"
     assert_ok "Reality privateKey is set" test -n "${privateKey}"
+fi
+
+if [[ "${MODE}" == "ws_grpc_xhttp" ]]; then
+    assert_ok "QR transport mode is all" test "$(jq -r '.transport_mode' "${xray_qr_config_file}")" = "all"
+    assert_ok "gRPC inbound exists" jq -e '.inbounds[] | select(.tag == "VLESS-gRPC-in")' "${xray_conf}"
+    assert_ok "xHTTP inbound exists" jq -e '.inbounds[] | select(.tag == "VLESS-xhttp-in")' "${xray_conf}"
 fi
 
 echo ""
