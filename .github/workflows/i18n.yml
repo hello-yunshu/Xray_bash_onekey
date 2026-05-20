@@ -28,7 +28,7 @@ jobs:
       
       - name: Restore translation cache
         id: cache-translations
-        uses: actions/cache@main
+        uses: actions/cache/restore@main
         with:
           path: po/cache_*.json
           key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
@@ -132,7 +132,7 @@ jobs:
       
       - name: Save translation cache
         if: always()
-        uses: actions/cache@main
+        uses: actions/cache/save@main
         with:
           path: po/cache_*.json
           key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
@@ -150,7 +150,7 @@ jobs:
           done
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add po/ languages/
+          git add po/*.po po/*.pot po/POTFILES.in languages/
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

@@ -125,6 +125,14 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
 
     po = polib.pofile(input_file)
 
+    po_fallback_count = 0
+    for entry in po:
+        if entry.msgid and entry.msgid not in translations and entry.msgstr and not entry.fuzzy:
+            translations[entry.msgid] = entry.msgstr
+            po_fallback_count += 1
+    if po_fallback_count > 0:
+        print(f"Loaded {po_fallback_count} translations from .po file as cache fallback")
+
     original_msgstrs = {}
     original_fuzzy = {}
     for entry in po:
