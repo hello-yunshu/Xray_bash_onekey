@@ -91,7 +91,7 @@ docker attach xray-onekey
 * 不了解各项设置含义时，除必填项外请使用默认值（全程回车即可）
 * Cloudflare 用户请在安装完成后再开启 CDN
 * 本脚本需要 Linux 基础知识及计算机网络常识
-* 支持 Debian 12+ / Ubuntu 24.04+ / CentOS Stream 8+，部分 CentOS 模板可能存在编译问题，建议遇到问题时更换系统
+* 支持 Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+，部分 CentOS 模板可能存在编译问题，建议遇到问题时更换系统
 * 建议单服务器仅部署单个代理，使用默认 443 端口
 * 自定义字符串映射至 UUIDv5 需要客户端支持
 * 推荐在纯净环境下使用；新手请勿使用 CentOS

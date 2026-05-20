@@ -91,7 +91,7 @@ docker attach xray-onekey
 * Si vous n'êtes pas familier avec les paramètres, utilisez les valeurs par défaut pour les champs non obligatoires (appuyez simplement sur Entrée)
 * Les utilisateurs Cloudflare doivent activer le CDN uniquement après l'installation
 * Ce script nécessite des connaissances de base en Linux et en réseaux informatiques
-* Compatible Debian 12+ / Ubuntu 24.04+ / CentOS Stream 8+ ; certains modèles CentOS peuvent rencontrer des problèmes de compilation — envisagez de changer de système si nécessaire
+* Compatible Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+ ; certains modèles CentOS peuvent rencontrer des problèmes de compilation — envisagez de changer de système si nécessaire
 * Il est recommandé de ne déployer qu'un seul proxy par serveur et d'utiliser le port 443 par défaut
 * Le mappage de chaînes personnalisées vers UUIDv5 nécessite la prise en charge du client
 * Utilisez ce script dans un environnement propre ; les débutants doivent éviter CentOS
