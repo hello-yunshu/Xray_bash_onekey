@@ -4,10 +4,12 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 #stty erase ^?
 
-cd "$(
-    cd "$(dirname "$0")" || exit
-    pwd
-)" || exit
+if [[ "${_TEST_MODE:-0}" != "1" ]]; then
+    cd "$(
+        cd "$(dirname "$0")" || exit
+        pwd
+    )" || exit
+fi
 
 #=================================================================
 #	System Request: Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+
@@ -34,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.5"
+shell_version="2.12.6"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -2841,19 +2843,31 @@ nginx_reality_serverNames_del () {
 
 nginx_servers_conf_add() {
     touch "${nginx_upstream_conf}"
-    cat >"${nginx_upstream_conf}" <<EOF
+    > "${nginx_upstream_conf}"
+    if is_ws_mode; then
+        cat >>"${nginx_upstream_conf}" <<EOF
 upstream xray-ws-server {
     include ${nginx_conf_dir}/*.wsServers;
 }
 
+EOF
+    fi
+    if is_grpc_mode; then
+        cat >>"${nginx_upstream_conf}" <<EOF
 upstream xray-grpc-server {
     include ${nginx_conf_dir}/*.grpcServers;
 }
 
+EOF
+    fi
+    if is_xhttp_mode; then
+        cat >>"${nginx_upstream_conf}" <<EOF
 upstream xray-xhttp-server {
     include ${nginx_conf_dir}/*.xhttpServers;
 }
+
 EOF
+    fi
     nginx_servers_add
     judge "Nginx servers $(gettext "配置修改")"
 }
@@ -5448,6 +5462,8 @@ menu() {
         ;;
     esac
 }
+
+[[ "${_TEST_MODE:-0}" == "1" ]] && return 0
 
 check_file_integrity
 check_online_version_connect
