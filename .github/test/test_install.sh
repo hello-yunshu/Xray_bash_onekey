@@ -38,6 +38,71 @@ source ./install.sh
 init_language
 read_version
 
+echo ""
+echo "--- Pre-flight checks: verifying install.sh functions ---"
+
+REQUIRED_INSTALL_FUNCS=(
+    install_xray_xtls_only
+    install_xray_ws_only
+    install_xray_reality
+    install_xray_ws_tls
+)
+
+MOCK_FUNCS=(
+    port_set
+    email_set
+    UUID_set
+    ip_check
+    domain_check
+    ssl_judge_and_install
+    firewall_set
+    show_information
+    keys_set
+    transport_choose
+    ws_inbound_port_set
+    grpc_inbound_port_set
+    xhttp_inbound_port_set
+    ws_path_set
+    grpc_path_set
+    xhttp_path_set
+    target_set
+    serverNames_set
+    shortIds_set
+    xray_reality_add_more_choose
+    reality_balance_add_fq
+    reality_nginx_add_fq
+    tls_type
+    old_config_exist_check
+    vless_link_image_choice
+    auto_update
+    acme_cron_update
+    setup_auto_clean_logs
+)
+
+PRECHECK_FAIL=0
+
+for func in "${REQUIRED_INSTALL_FUNCS[@]}"; do
+    if ! declare -f "$func" >/dev/null 2>&1; then
+        echo "  ❌ Required install function '$func' not found in install.sh"
+        PRECHECK_FAIL=$((PRECHECK_FAIL + 1))
+    fi
+done
+
+for func in "${MOCK_FUNCS[@]}"; do
+    if ! declare -f "$func" >/dev/null 2>&1; then
+        echo "  ⚠️  Mock target '$func' not found in install.sh (may have been renamed)"
+        PRECHECK_FAIL=$((PRECHECK_FAIL + 1))
+    fi
+done
+
+if [[ ${PRECHECK_FAIL} -gt 0 ]]; then
+    echo ""
+    echo "❌ Pre-flight check failed (${PRECHECK_FAIL} issue(s))."
+    echo "   install.sh may have changed function names without updating this test."
+    exit 1
+fi
+echo "  ✅ All required functions and mock targets verified"
+
 _CI_PORT=14431
 _CI_XPORT=14432
 _CI_GRPC_PORT=14433
@@ -242,6 +307,52 @@ assert_ok() {
     fi
 }
 
+port_is_listening() {
+    local listen_port="$1"
+    if command -v ss >/dev/null 2>&1; then
+        ss -ltnH | awk -v port=":${listen_port}" '$4 ~ port "$" { found=1 } END { exit !found }'
+    elif command -v netstat >/dev/null 2>&1; then
+        netstat -ltn | awk -v port=":${listen_port}" '$4 ~ port "$" { found=1 } END { exit !found }'
+    else
+        return 1
+    fi
+}
+
+qr_value() {
+    jq -r --arg field "$1" '.[$field]' "${xray_qr_config_file}"
+}
+
+config_value() {
+    local tag="$1"
+    local filter="$2"
+    jq -r --arg tag "${tag}" ".inbounds[] | select(.tag == \$tag) | ${filter}" "${xray_conf}"
+}
+
+http_probe_has_status() {
+    local url="$1"
+    local status
+    status=$(curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 "${url}" 2>/dev/null || true)
+    [[ ${status} =~ ^[1-5][0-9][0-9]$ ]]
+}
+
+https_probe_has_status() {
+    local host="$1"
+    local port="$2"
+    local path="$3"
+    local status
+    status=$(curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 \
+        --resolve "${host}:${port}:127.0.0.1" "https://${host}:${port}/${path#/}" 2>/dev/null || true)
+    [[ ${status} =~ ^[1-5][0-9][0-9]$ ]]
+}
+
+assert_qr_matches_config() {
+    local desc="$1"
+    local qr_field="$2"
+    local tag="$3"
+    local config_filter="$4"
+    assert_ok "${desc}" test "$(qr_value "${qr_field}")" = "$(config_value "${tag}" "${config_filter}")"
+}
+
 assert_ok "Install command exited successfully" test "${INSTALL_EXIT_CODE}" -eq 0
 assert_ok "Xray binary exists" test -f "${xray_bin_dir}/xray"
 assert_ok "Xray config exists" test -f "${xray_conf}"
@@ -262,6 +373,35 @@ echo ""
 echo "--- Service status checks ---"
 assert_ok "Xray service is active" systemctl is-active --quiet xray
 
+echo ""
+echo "--- Listener checks ---"
+case "${MODE}" in
+xtls_only | reality)
+    assert_ok "Main Xray port is listening" port_is_listening "$(qr_value port)"
+    ;;
+ws_grpc_xhttp)
+    assert_ok "ws inbound port is listening" port_is_listening "$(qr_value ws_port)"
+    assert_ok "gRPC inbound port is listening" port_is_listening "$(qr_value grpc_port)"
+    assert_ok "xHTTP inbound port is listening" port_is_listening "$(qr_value xhttp_port)"
+    ;;
+tls)
+    assert_ok "Nginx public TLS port is listening" port_is_listening "$(qr_value port)"
+    assert_ok "Xray ws backend port is listening" port_is_listening "$(qr_value ws_port)"
+    ;;
+esac
+
+echo ""
+echo "--- Local HTTP probe checks ---"
+case "${MODE}" in
+ws_grpc_xhttp)
+    assert_ok "ws path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value ws_port)/$(qr_value path)"
+    assert_ok "xHTTP path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value xhttp_port)/$(qr_value xhttp_path)"
+    ;;
+tls)
+    assert_ok "Nginx ws path returns an HTTPS status" https_probe_has_status "$(qr_value host)" "$(qr_value port)" "$(qr_value path)"
+    ;;
+esac
+
 if [[ "${MODE}" == "tls" ]]; then
     assert_ok "Nginx binary exists" test -f "${nginx_dir}/sbin/nginx"
     assert_ok "Nginx config exists" test -f "${nginx_conf}"
@@ -276,10 +416,37 @@ if [[ "${MODE}" == "reality" ]]; then
     assert_ok "Reality privateKey is set" test -n "${privateKey}"
 fi
 
+echo ""
+echo "--- QR/config consistency checks ---"
+assert_ok "QR UUID matches Xray clients" jq -e --arg id "$(qr_value id)" '[.inbounds[].settings.clients[]?.id] as $ids | ($ids | length > 0) and ($ids | all(. == $id))' "${xray_conf}"
+case "${MODE}" in
+xtls_only)
+    assert_qr_matches_config "XTLS port matches config" port "VLESS-XTLS-in" ".port"
+    ;;
+reality)
+    assert_qr_matches_config "Reality port matches config" port "VLESS-Reality-in" ".port"
+    assert_qr_matches_config "Reality privateKey matches config" privateKey "VLESS-Reality-in" ".streamSettings.realitySettings.privateKey"
+    assert_ok "Reality shortId is in config" jq -e --arg short_id "$(qr_value shortIds)" '.inbounds[] | select(.tag == "VLESS-Reality-in") | .streamSettings.realitySettings.shortIds | index($short_id)' "${xray_conf}"
+    ;;
+ws_grpc_xhttp)
+    assert_qr_matches_config "ws port matches config" ws_port "VLESS-ws-in" ".port"
+    assert_qr_matches_config "ws path matches config" path "VLESS-ws-in" ".streamSettings.wsSettings.path | ltrimstr(\"/\")"
+    assert_qr_matches_config "gRPC port matches config" grpc_port "VLESS-gRPC-in" ".port"
+    assert_qr_matches_config "gRPC serviceName matches config" serviceName "VLESS-gRPC-in" ".streamSettings.grpcSettings.serviceName"
+    assert_qr_matches_config "xHTTP port matches config" xhttp_port "VLESS-xhttp-in" ".port"
+    assert_qr_matches_config "xHTTP path matches config" xhttp_path "VLESS-xhttp-in" ".streamSettings.xhttpSettings.path | ltrimstr(\"/\")"
+    ;;
+tls)
+    assert_qr_matches_config "TLS ws backend port matches config" ws_port "VLESS-ws-in" ".port"
+    assert_qr_matches_config "TLS ws path matches config" path "VLESS-ws-in" ".streamSettings.wsSettings.path | ltrimstr(\"/\")"
+    ;;
+esac
+
 if [[ "${MODE}" == "ws_grpc_xhttp" ]]; then
     assert_ok "QR transport mode is all" test "$(jq -r '.transport_mode' "${xray_qr_config_file}")" = "all"
     assert_ok "gRPC inbound exists" jq -e '.inbounds[] | select(.tag == "VLESS-gRPC-in")' "${xray_conf}"
     assert_ok "xHTTP inbound exists" jq -e '.inbounds[] | select(.tag == "VLESS-xhttp-in")' "${xray_conf}"
+    assert_ok "All transport inbounds are routed" jq -e '[.routing.rules[].inboundTag[]] | contains(["VLESS-ws-in", "VLESS-gRPC-in", "VLESS-xhttp-in"])' "${xray_conf}"
 fi
 
 echo ""
