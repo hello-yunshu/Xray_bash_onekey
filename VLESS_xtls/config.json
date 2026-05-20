@@ -19,13 +19,7 @@
                         "email": "me@hey.run"
                     }
                 ],
-                "decryption": "none",
-                "fallbacks": [
-                    {
-                        "outboundTag": "blocked",
-                        "xver": 1
-                    }
-                ]
+                "decryption": "none"
             },
             "streamSettings": {
                 "network": "raw",
