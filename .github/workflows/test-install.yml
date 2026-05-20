@@ -1,0 +1,56 @@
+name: Test Install
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: test-install-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        mode:
+          - xtls_only
+          - ws_only
+          - reality
+          - tls
+
+    name: Install (${{ matrix.mode }})
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Run install test (${{ matrix.mode }})
+        run: sudo bash .github/test/test_install.sh ${{ matrix.mode }}
+
+      - name: Collect debug info on failure
+        if: failure()
+        run: |
+          echo "=== Xray config ==="
+          sudo cat /etc/idleleo/conf/xray/config.json 2>/dev/null || echo "(not found)"
+          echo ""
+          echo "=== QR config ==="
+          sudo cat /etc/idleleo/info/vless_qr.json 2>/dev/null || echo "(not found)"
+          echo ""
+          echo "=== Xray service status ==="
+          sudo systemctl status xray 2>&1 || true
+          echo ""
+          echo "=== Xray error log ==="
+          sudo tail -50 /var/log/xray/error.log 2>/dev/null || echo "(not found)"
+          echo ""
+          echo "=== Nginx service status ==="
+          sudo systemctl status nginx 2>&1 || true
+          echo ""
+          echo "=== Nginx error log ==="
+          sudo tail -50 /usr/local/nginx/logs/error.log 2>/dev/null || echo "(not found)"
+          echo ""
+          echo "=== Install log ==="
+          sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null || echo "(not found)"
