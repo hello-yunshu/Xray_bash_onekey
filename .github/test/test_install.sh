@@ -296,6 +296,11 @@ TEST_PASS=0
 TEST_FAIL=0
 
 assert_ok() {
+    local diag_cmd=""
+    if [[ "$1" == "--diag" ]]; then
+        diag_cmd="$2"
+        shift 2
+    fi
     local desc="$1"
     shift
     if "$@"; then
@@ -304,6 +309,10 @@ assert_ok() {
     else
         echo "  ❌ FAIL: ${desc}"
         TEST_FAIL=$((TEST_FAIL + 1))
+        if [[ -n "${diag_cmd}" ]]; then
+            echo "  ℹ️  Diagnostic:"
+            eval "${diag_cmd}" 2>&1 | sed 's/^/     /'
+        fi
     fi
 }
 
@@ -354,10 +363,10 @@ assert_qr_matches_config() {
 }
 
 assert_ok "Install command exited successfully" test "${INSTALL_EXIT_CODE}" -eq 0
-assert_ok "Xray binary exists" test -f "${xray_bin_dir}/xray"
-assert_ok "Xray config exists" test -f "${xray_conf}"
-assert_ok "QR config exists" test -f "${xray_qr_config_file}"
-assert_ok "Xray systemd service exists" test -f "${xray_systemd_file}"
+assert_ok --diag "ls -la ${xray_bin_dir}/xray 2>/dev/null; echo; file ${xray_bin_dir}/xray 2>/dev/null" "Xray binary exists" test -f "${xray_bin_dir}/xray"
+assert_ok --diag "ls -la ${xray_conf} 2>/dev/null; echo; jq . "${xray_conf}" 2>&1 | head -20" "Xray config exists" test -f "${xray_conf}"
+assert_ok --diag "ls -la ${xray_qr_config_file} 2>/dev/null; echo; jq . "${xray_qr_config_file}" 2>&1 | head -20" "QR config exists" test -f "${xray_qr_config_file}"
+assert_ok --diag "cat ${xray_systemd_file} 2>/dev/null" "Xray systemd service exists" test -f "${xray_systemd_file}"
 
 echo ""
 echo "--- Xray config validation ---"
@@ -371,22 +380,22 @@ fi
 
 echo ""
 echo "--- Service status checks ---"
-assert_ok "Xray service is active" systemctl is-active --quiet xray
+assert_ok --diag "systemctl status xray 2>&1 | head -15; echo; journalctl -u xray --no-pager -n 10 2>&1" "Xray service is active" systemctl is-active --quiet xray
 
 echo ""
 echo "--- Listener checks ---"
 case "${MODE}" in
 xtls_only | reality)
-    assert_ok "Main Xray port is listening" port_is_listening "$(qr_value port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "Main Xray port is listening" port_is_listening "$(qr_value port)"
     ;;
 ws_grpc_xhttp)
-    assert_ok "ws inbound port is listening" port_is_listening "$(qr_value ws_port)"
-    assert_ok "gRPC inbound port is listening" port_is_listening "$(qr_value grpc_port)"
-    assert_ok "xHTTP inbound port is listening" port_is_listening "$(qr_value xhttp_port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "ws inbound port is listening" port_is_listening "$(qr_value ws_port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "gRPC inbound port is listening" port_is_listening "$(qr_value grpc_port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "xHTTP inbound port is listening" port_is_listening "$(qr_value xhttp_port)"
     ;;
 tls)
-    assert_ok "Nginx public TLS port is listening" port_is_listening "$(qr_value port)"
-    assert_ok "Xray ws backend port is listening" port_is_listening "$(qr_value ws_port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status nginx 2>&1 | head -10" "Nginx public TLS port is listening" port_is_listening "$(qr_value port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "Xray ws backend port is listening" port_is_listening "$(qr_value ws_port)"
     ;;
 esac
 
@@ -394,37 +403,20 @@ echo ""
 echo "--- Local HTTP probe checks ---"
 case "${MODE}" in
 ws_grpc_xhttp)
-    assert_ok "ws path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value ws_port)/$(qr_value path)"
-    assert_ok "xHTTP path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value xhttp_port)/$(qr_value xhttp_path)"
+    assert_ok --diag "curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 http://127.0.0.1:$(qr_value ws_port)/$(qr_value path) 2>&1; echo; ss -ltnH 2>/dev/null | head -10; echo; ps aux | grep -E '[x]ray' | head -5" "ws path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value ws_port)/$(qr_value path)"
+    assert_ok --diag "curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 http://127.0.0.1:$(qr_value xhttp_port)/$(qr_value xhttp_path) 2>&1; echo; ss -ltnH 2>/dev/null | head -10; echo; ps aux | grep -E '[x]ray' | head -5" "xHTTP path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value xhttp_port)/$(qr_value xhttp_path)"
     ;;
 tls)
-    if https_probe_has_status "$(qr_value host)" "$(qr_value port)" "$(qr_value path)"; then
-        echo "  ✅ PASS: Nginx ws path returns an HTTPS status"
-        TEST_PASS=$((TEST_PASS + 1))
-    else
-        echo "  ❌ FAIL: Nginx ws path returns an HTTPS status"
-        TEST_FAIL=$((TEST_FAIL + 1))
-        echo "  ℹ️  KNOWN ISSUE: Pre-built nginx binary (compiled on Ubuntu 22.04 / glibc 2.35)"
-        echo "     crashes with SIGSEGV on Ubuntu 24.04+ (glibc 2.39) due to ABI incompatibility."
-        echo "     The static-linked glibc binary triggers NSS dlopen() which loads the system's"
-        echo "     incompatible glibc. Fix: rebuild nginx with musl libc or on Ubuntu 24.04."
-        echo "  ℹ️  Diagnostic: curl response code and nginx worker status:"
-        local _probe_status
-        _probe_status=$(curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 \
-            --resolve "$(qr_value host):$(qr_value port):127.0.0.1" "https://$(qr_value host):$(qr_value port)/$(qr_value path | sed 's#^/##')" 2>&1 || true)
-        echo "     curl HTTP code: ${_probe_status}"
-        echo "     nginx worker processes:"
-        ps aux | grep 'nginx: worker' | grep -v grep || echo "     (no worker processes found — likely crashed)"
-    fi
+    assert_ok --diag "curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 --resolve '$(qr_value host):$(qr_value port):127.0.0.1' 'https://$(qr_value host):$(qr_value port)/$(qr_value path)' 2>&1; echo; ss -ltnH 2>/dev/null | head -10; echo; ps aux | grep -E '[n]ginx' | head -5; echo; tail -5 /usr/local/nginx/logs/error.log 2>/dev/null" "Nginx ws path returns an HTTPS status" https_probe_has_status "$(qr_value host)" "$(qr_value port)" "$(qr_value path)"
     ;;
 esac
 
 if [[ "${MODE}" == "tls" ]]; then
-    assert_ok "Nginx binary exists" test -f "${nginx_dir}/sbin/nginx"
-    assert_ok "Nginx config exists" test -f "${nginx_conf}"
-    assert_ok "Nginx systemd service exists" test -f "${nginx_systemd_file}"
-    assert_ok "Nginx service is active" systemctl is-active --quiet nginx
-    assert_ok "SSL certificate exists" test -f "${ssl_chainpath}/xray.crt"
+    assert_ok --diag "ls -la ${nginx_dir}/sbin/nginx 2>/dev/null; echo; file ${nginx_dir}/sbin/nginx 2>/dev/null; echo; ldd ${nginx_dir}/sbin/nginx 2>/dev/null" "Nginx binary exists" test -f "${nginx_dir}/sbin/nginx"
+    assert_ok --diag "ls -la ${nginx_conf} 2>/dev/null; echo; cat ${nginx_conf} 2>/dev/null | head -30" "Nginx config exists" test -f "${nginx_conf}"
+    assert_ok --diag "cat ${nginx_systemd_file} 2>/dev/null" "Nginx systemd service exists" test -f "${nginx_systemd_file}"
+    assert_ok --diag "systemctl status nginx 2>&1 | head -15; echo; journalctl -u nginx --no-pager -n 10 2>&1; echo; ps aux | grep -E '[n]ginx' | head -5" "Nginx service is active" systemctl is-active --quiet nginx
+    assert_ok --diag "ls -la ${ssl_chainpath}/ 2>/dev/null; echo; openssl x509 -noout -subject -dates -in ${ssl_chainpath}/xray.crt 2>/dev/null" "SSL certificate exists" test -f "${ssl_chainpath}/xray.crt"
     assert_ok "SSL key exists" test -f "${ssl_chainpath}/xray.key"
 fi
 
