@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.5.6"
-MIN_MAIN_VERSION="2.10.0"
+fm_SCRIPT_VERSION="1.5.7"
+MIN_MAIN_VERSION="2.12.7"
 
 if [ -n "$shell_version" ]; then
     oldest=$(printf '%s\n%s\n' "$MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)
@@ -353,7 +353,8 @@ fm_restart_nginx_and_check_status() {
             log_echo "${OK} ${GreenBG} Nginx $(gettext "重启成功") ${Font}"
         else
             echo
-            log_echo "${Error} ${RedBG} Nginx $(gettext "重启失败"), $(gettext "请检查配置文件是否有误") ${Font}"
+            log_echo "${Error} ${RedBG} Nginx $(gettext "重启失败") ${Font}"
+            nginx_diagnose
         fi
     fi
 }

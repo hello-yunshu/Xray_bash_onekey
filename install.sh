@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.6"
+shell_version="2.12.7"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -1691,6 +1691,7 @@ set_xray_config_path() {
 
 xray_install() {
     if [[ $(xray version) == "" ]] || [[ ! -f "${xray_conf}" ]]; then
+        log_echo "${OK} ${GreenBG} $(gettext "即将安装") Xray v${xray_online_version} ${Font}"
         xray_install_release install -f --version v${xray_online_version}
         judge "$(gettext "安装") Xray"
         xray_privilege_escalation
@@ -1717,6 +1718,7 @@ xray_update() {
     ## xray_online_version=$(check_version xray_online_pre_version)
     ## if [[ $(info_extraction xray_version) != ${xray_online_version} ]] && [[ ${xray_version} != ${xray_online_version} ]]; then
     if [[ ${current_xray_version} != ${xray_online_version} ]]; then
+        log_echo "${Info} ${GreenBG} Xray $(gettext "更新"): v${current_xray_version} → v${xray_online_version} ${Font}"
         if [[ ${auto_update} != "YES" ]]; then
             log_echo "${Warning} ${GreenBG} $(gettext "检测到存在最新版") ${Font}"
             log_echo "${Warning} ${GreenBG} $(gettext "脚本可能未兼容此版本") ${Font}"
@@ -1728,6 +1730,7 @@ xray_update() {
                 systemctl stop xray
                 if ! xray_install_release install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
                     log_echo "${Error} ${RedBG} Xray $(gettext "启动失败")! ${Font}"
+                    xray_diagnose
                     log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                     read -r rollback_fq
                     case $rollback_fq in
@@ -1747,6 +1750,7 @@ xray_update() {
                             update_rolled_back=1
                         else
                             log_echo "${Error} ${RedBG} Xray $(gettext "回滚失败")! ${Font}"
+                            xray_diagnose
                             return 1
                         fi
                         ;;
@@ -1763,6 +1767,7 @@ xray_update() {
         else
             systemctl stop xray
             if ! xray_install_release install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
+                xray_diagnose
                 if [[ -z "${current_xray_version}" || "${current_xray_version}" == "null" ]]; then
                     echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
                     return 1
@@ -1770,6 +1775,7 @@ xray_update() {
                 xray_version=${current_xray_version}
                 if ! xray_install_release install -f --version "v${xray_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
                     echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
+                    xray_diagnose
                     return 1
                 fi
                 update_rolled_back=1
@@ -1792,6 +1798,7 @@ xray_update() {
     if ! ${xray_bin_dir}/xray -version &> /dev/null; then
         [[ ${auto_update} == "YES" ]] && echo "Xray $(gettext "更新失败")!" >>"${log_file}"
         [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} Xray $(gettext "更新失败")! ${Font}"
+        xray_diagnose
         return 1
     fi
     [[ ${auto_update} == "YES" && ${update_rolled_back} -eq 1 ]] && return 1
@@ -1907,7 +1914,6 @@ nginx_install() {
 
     cd "$temp_dir" || exit
 
-    log_echo "${OK} ${GreenBG} $(gettext "即将下载已编译的") Nginx ${Font}"
     local nginx_arch
     local nginx_filename
     case $(uname -m) in
@@ -1925,6 +1931,8 @@ nginx_install() {
             exit 1
             ;;
     esac
+
+    log_echo "${OK} ${GreenBG} $(gettext "即将下载已编译的") Nginx v${nginx_build_version} (${nginx_arch}) ${Font}"
 
     local base_url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}"
     local manifest_file="${temp_dir}/release-manifest.json"
@@ -1980,6 +1988,42 @@ nginx_install() {
     chmod -fR 755 "${nginx_dir}"
 }
 
+nginx_diagnose() {
+    if [[ -x "${nginx_dir}/sbin/nginx" ]]; then
+        local nginx_test_output
+        nginx_test_output=$("${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf" 2>&1)
+        log_echo "${Error} $(gettext "配置检测"): ${nginx_test_output} ${Font}"
+    fi
+    local nginx_journal_output
+    nginx_journal_output=$(journalctl -u nginx --no-pager -n 10 2>/dev/null)
+    if [[ -n "${nginx_journal_output}" ]]; then
+        log_echo "${Error} $(gettext "服务日志"): ${Font}"
+        echo "${nginx_journal_output}" | while IFS= read -r line; do log_echo "  ${line}"; done
+    fi
+}
+
+xray_diagnose() {
+    if [[ -x "${xray_bin_dir}/xray" ]]; then
+        local xray_version_output
+        xray_version_output=$("${xray_bin_dir}/xray" version 2>&1 | head -3)
+        log_echo "${Error} $(gettext "版本检测"): ${xray_version_output} ${Font}"
+    fi
+    local xray_journal_output
+    xray_journal_output=$(journalctl -u xray --no-pager -n 10 2>/dev/null)
+    if [[ -n "${xray_journal_output}" ]]; then
+        log_echo "${Error} $(gettext "服务日志"): ${Font}"
+        echo "${xray_journal_output}" | while IFS= read -r line; do log_echo "  ${line}"; done
+    fi
+    if [[ -f "${xray_error_log}" ]]; then
+        local xray_error_output
+        xray_error_output=$(tail -10 "${xray_error_log}" 2>/dev/null)
+        if [[ -n "${xray_error_output}" ]]; then
+            log_echo "${Error} $(gettext "错误日志"): ${Font}"
+            echo "${xray_error_output}" | while IFS= read -r line; do log_echo "  ${line}"; done
+        fi
+    fi
+}
+
 restore_nginx_backup() {
     local backup_dir="$1"
 
@@ -1990,7 +2034,10 @@ restore_nginx_backup() {
     fi
     service_start || return 1
     sleep 1
-    systemctl -q is-active nginx
+    if ! systemctl -q is-active nginx; then
+        nginx_diagnose
+        return 1
+    fi
 }
 
 nginx_update() {
@@ -1998,6 +2045,7 @@ nginx_update() {
     if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         current_nginx_build_version=$(info_extraction nginx_build_version)
         if [[ ${nginx_build_version} != ${current_nginx_build_version} ]]; then
+            log_echo "${Info} ${GreenBG} Nginx $(gettext "更新"): v${current_nginx_build_version} → v${nginx_build_version} ${Font}"
             ip_check
             if [[ -f "${xray_qr_config_file}" ]]; then
                 domain=$(info_extraction host)
@@ -2101,6 +2149,9 @@ nginx_update() {
             fi
             if [[ ${nginx_start_failed} -eq 1 ]]; then
                 log_echo "${Error} ${RedBG} Nginx $(gettext "启动失败")! ${Font}"
+                if [[ ${service_start_failed} -eq 0 ]]; then
+                    nginx_diagnose
+                fi
                 if [[ ${auto_update} != "YES" ]]; then
                     echo
                     log_echo "${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -2917,22 +2968,34 @@ service_restart() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
         if [[ -f "${nginx_systemd_file}" ]]; then
             systemctl restart nginx
-            judge -r "Nginx $(gettext "重启")" || return 1
+            if ! judge -r "Nginx $(gettext "重启")"; then
+                nginx_diagnose
+                return 1
+            fi
         fi
     fi
     systemctl restart xray
-    judge -r "Xray $(gettext "重启")" || return 1
+    if ! judge -r "Xray $(gettext "重启")"; then
+        xray_diagnose
+        return 1
+    fi
 }
 
 service_start() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
         if [[ -f "${nginx_systemd_file}" ]]; then
             systemctl start nginx
-            judge -r "Nginx $(gettext "启动")" || return 1
+            if ! judge -r "Nginx $(gettext "启动")"; then
+                nginx_diagnose
+                return 1
+            fi
         fi
     fi
     systemctl start xray
-    judge -r "Xray $(gettext "启动")" || return 1
+    if ! judge -r "Xray $(gettext "启动")"; then
+        xray_diagnose
+        return 1
+    fi
 }
 
 service_stop() {
