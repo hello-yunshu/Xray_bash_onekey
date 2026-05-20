@@ -1515,7 +1515,7 @@ msgstr "new version exists, update"
 #, fuzzy
 #| msgid "脚本 版本差别过大, 跳过更新"
 msgid "脚本版本差别过大, 跳过更新"
-msgstr "The script versions are too different; skipping the update."
+msgstr "The script versions are too far apart; skipping the update."
 
 #: install.sh:4664 install.sh:4665
 msgid "脚本更新失败"
