@@ -19,7 +19,7 @@ jobs:
       matrix:
         mode:
           - xtls_only
-          - ws_only
+          - ws_grpc_xhttp
           - reality
           - tls
 
