@@ -29,6 +29,7 @@ jobs:
       - uses: actions/checkout@main
 
       - name: Run install test (${{ matrix.mode }})
+        timeout-minutes: 15
         run: sudo bash .github/test/test_install.sh ${{ matrix.mode }}
 
       - name: Collect debug info on failure
