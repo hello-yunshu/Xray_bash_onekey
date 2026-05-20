@@ -44,16 +44,22 @@ _CI_GRPC_PORT=14433
 _CI_XHTTP_PORT=14434
 
 judge() {
-    local _return_flag=1
+    local ret=$?
     if [[ "$1" == "-r" || "$1" == "--return" ]]; then
         shift
     fi
-    if [[ $? -eq 0 ]]; then
-        log_echo "${OK} ${GreenBG} $1 ${Font}"
+    local desc="$1"
+    if [[ $# -gt 1 ]]; then
+        "${@:2}"
+        ret=$?
+    fi
+    if [[ $ret -eq 0 ]]; then
+        log_echo "${OK} ${GreenBG} ${desc} $(gettext "完成") ${Font}"
     else
-        log_echo "${Error} ${RedBG} $1 ${Font}"
+        log_echo "${Error} ${RedBG} ${desc} $(gettext "失败") ${Font}"
         return 1
     fi
+    return $ret
 }
 
 port_set() { port=${_CI_PORT}; }
