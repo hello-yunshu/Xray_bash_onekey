@@ -398,7 +398,24 @@ ws_grpc_xhttp)
     assert_ok "xHTTP path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value xhttp_port)/$(qr_value xhttp_path)"
     ;;
 tls)
-    assert_ok "Nginx ws path returns an HTTPS status" https_probe_has_status "$(qr_value host)" "$(qr_value port)" "$(qr_value path)"
+    if https_probe_has_status "$(qr_value host)" "$(qr_value port)" "$(qr_value path)"; then
+        echo "  ✅ PASS: Nginx ws path returns an HTTPS status"
+        TEST_PASS=$((TEST_PASS + 1))
+    else
+        echo "  ❌ FAIL: Nginx ws path returns an HTTPS status"
+        TEST_FAIL=$((TEST_FAIL + 1))
+        echo "  ℹ️  KNOWN ISSUE: Pre-built nginx binary (compiled on Ubuntu 22.04 / glibc 2.35)"
+        echo "     crashes with SIGSEGV on Ubuntu 24.04+ (glibc 2.39) due to ABI incompatibility."
+        echo "     The static-linked glibc binary triggers NSS dlopen() which loads the system's"
+        echo "     incompatible glibc. Fix: rebuild nginx with musl libc or on Ubuntu 24.04."
+        echo "  ℹ️  Diagnostic: curl response code and nginx worker status:"
+        local _probe_status
+        _probe_status=$(curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 \
+            --resolve "$(qr_value host):$(qr_value port):127.0.0.1" "https://$(qr_value host):$(qr_value port)/$(qr_value path | sed 's#^/##')" 2>&1 || true)
+        echo "     curl HTTP code: ${_probe_status}"
+        echo "     nginx worker processes:"
+        ps aux | grep 'nginx: worker' | grep -v grep || echo "     (no worker processes found — likely crashed)"
+    fi
     ;;
 esac
 
