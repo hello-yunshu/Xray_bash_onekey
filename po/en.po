@@ -6,8 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
-"issues\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
 "POT-Creation-Date: 2026-05-20 16:41+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
@@ -236,8 +235,8 @@ msgid "已跳过添加简单 ws/gRPC/xHTTP 协议"
 msgstr "skipping the addition of simple ws/gRPC/xHTTP protocols"
 
 #: install.sh:775 install.sh:795 install.sh:816 install.sh:907 install.sh:924
-#: install.sh:945 install.sh:962 install.sh:983 install.sh:1000 install.sh:1019
-#: install.sh:1138 install.sh:1159 install.sh:1196
+#: install.sh:945 install.sh:962 install.sh:983 install.sh:1000
+#: install.sh:1019 install.sh:1138 install.sh:1159 install.sh:1196
 msgid "是否需要自定义"
 msgstr "whether customization is needed"
 
@@ -630,7 +629,8 @@ msgstr "Reality load balancing has been detected as enabled"
 #| msgid "如用作 Reality 负载均衡主服务器必须安装"
 msgid "作为 Reality 负载均衡主服务器时必须安装"
 msgstr ""
-"Must be installed when serving as the Reality load balancer’s primary server."
+"Must be installed when serving as the Reality load balancer’s primary "
+"server."
 
 #: install.sh:1851
 #, fuzzy
@@ -722,8 +722,8 @@ msgstr "already updated to the latest version"
 #: install.sh:2161
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"set up a background scheduled automatic update program (including: script/"
-"xray/nginx)"
+"set up a background scheduled automatic update program (including: "
+"script/xray/nginx)"
 
 #: install.sh:2162
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -1227,13 +1227,14 @@ msgstr ""
 
 #: install.sh:3696
 msgid "如需使用自定义证书, 请按如下步骤:"
-msgstr "if you need to use a custom certificate, please follow the steps below"
+msgstr ""
+"if you need to use a custom certificate, please follow the steps below"
 
 #: install.sh:3697
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr ""
-"1. rename the certificate files: private key (xray.key), certificate (xray."
-"crt)"
+"1. rename the certificate files: private key (xray.key), certificate "
+"(xray.crt)"
 
 #: install.sh:3698
 msgid "2. 将重命名后的证书文件放入"
@@ -1270,7 +1271,8 @@ msgstr "the certificate file already exists, do you want to keep it"
 #: install.sh:3739
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr ""
-"the certificate issuance residual file already exists, do you want to keep it"
+"the certificate issuance residual file already exists, do you want to keep "
+"it"
 
 #: install.sh:3781 install.sh:5196
 msgid "添加"
@@ -1297,8 +1299,8 @@ msgstr "safe mode"
 #| msgid "由于 h3 仅支持 TLSv1.3, 只支持 TLSv1.3 only (安全模式)"
 msgid "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)"
 msgstr ""
-"Since h3 only supports TLSv1.3, only TLSv1.3 and only are supported here "
-"(safe mode)."
+"Since h3 only supports TLSv1.3, only TLSv1.3 and only are supported here (in"
+" safe mode)."
 
 #: install.sh:3800 install.sh:3814 install.sh:3817
 msgid "已切换至"
@@ -1330,7 +1332,8 @@ msgstr "this mode does not support viewing users"
 
 #: install.sh:4017
 msgid "即将显示用户, 一次仅能显示一个"
-msgstr "users will be displayed soon, only one user can be displayed at a time"
+msgstr ""
+"users will be displayed soon, only one user can be displayed at a time"
 
 #: install.sh:4026
 msgid "请选择显示用户使用的协议"
@@ -1512,7 +1515,7 @@ msgstr "new version exists, update"
 #, fuzzy
 #| msgid "脚本 版本差别过大, 跳过更新"
 msgid "脚本版本差别过大, 跳过更新"
-msgstr "The script versions are too far apart; skipping the update."
+msgstr "The script versions are too different; skipping the update."
 
 #: install.sh:4664 install.sh:4665
 msgid "脚本更新失败"
@@ -1544,14 +1547,14 @@ msgstr "this option is temporarily unavailable"
 #: install.sh:4727 install.sh:5260
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
-"this mode is recommended for load balancing; it is generally not recommended "
-"for use. do you want to install"
+"this mode is recommended for load balancing; it is generally not recommended"
+" for use. do you want to install"
 
 #: install.sh:4740 install.sh:5274
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
-"this mode is only intended for traffic forwarding and is not recommended for "
-"other use cases. do you want to install it"
+"this mode is only intended for traffic forwarding and is not recommended for"
+" other use cases. do you want to install it"
 
 #: install.sh:4846 install.sh:4847 install.sh:4858 install.sh:4862
 #: install.sh:4866 install.sh:5188 install.sh:5189 install.sh:5190
@@ -1637,8 +1640,8 @@ msgstr "error message"
 #: install.sh:4892
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr ""
-"the script version has changed significantly, and there may be compatibility "
-"issues. do you want to continue using it"
+"the script version has changed significantly, and there may be compatibility"
+" issues. do you want to continue using it"
 
 #: install.sh:4917
 msgid "检测失败"
@@ -1680,8 +1683,8 @@ msgstr "script is under maintenance. please try again later"
 #: install.sh:5011
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
-"the required online version of the dependency cannot be detected. please try "
-"again later"
+"the required online version of the dependency cannot be detected. please try"
+" again later"
 
 #: install.sh:5028
 msgid "请输入数字"

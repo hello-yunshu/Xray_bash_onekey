@@ -338,8 +338,8 @@ msgstr "veuillez saisir un nom de domaine"
 #| msgid "域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用"
 msgid "域名必须支持 TLSv1.3、X25519、H2, 且不能跳转"
 msgstr ""
-"Le nom de domaine doit prendre en charge TLSv1.3 , X25519 et H2 , et ne pas "
-"effectuer de redirection."
+"Le nom de domaine doit prendre en charge TLSv1.3, X25519 et H2, et ne doit "
+"pas effectuer de redirection."
 
 #: install.sh:1082
 msgid "确认域名符合要求后请输入"
@@ -860,8 +860,8 @@ msgstr ""
 #| msgid "域名DNS解析IP与公网IP不匹配, 请选择"
 msgid "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"
 msgstr ""
-"Le nom de domaine DNS résout en IP, ce qui ne correspond pas à l’adresse "
-"publique IP. Veuillez sélectionner."
+"Le nom de domaine DNS résout IP, ce qui ne correspond pas au réseau public "
+"IP. Veuillez sélectionner."
 
 #: install.sh:2276 install.sh:2282
 msgid "继续安装"
