@@ -12,7 +12,7 @@ if [[ "${_TEST_MODE:-0}" != "1" ]]; then
 fi
 
 #=================================================================
-#	System Request: Debian 12+ / Ubuntu 24.04+ / Centos Stream 8+
+#	System Request: Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+
 #	Author:	yunyunshu
 #	Dscription: Xray Onekey Management
 #	Version: 2.8
@@ -302,7 +302,7 @@ source '/etc/os-release'
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 
 check_system() {
-    if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]] && [[ ${VERSION_ID%%.*} -ge 8 ]]; then
+    if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]] && [[ ${VERSION_ID%%.*} -ge 10 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} ${VERSION} ${Font}"
         INS="yum"
         [[ ! -f "${xray_qr_config_file}" ]] && $INS update || true

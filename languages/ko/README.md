@@ -91,7 +91,7 @@ docker attach xray-onekey
 * 설정의 의미를 모르면 필수 항목 외에는 기본값을 사용하세요 (계속 Enter)
 * Cloudflare 사용자는 설치 완료 후에만 CDN을 활성화하세요
 * 이 스크립트는 Linux 기초 지식과 컴퓨터 네트워크 기초 지식이 필요합니다
-* Debian 12+ / Ubuntu 24.04+ / CentOS Stream 8+ 지원; 일부 CentOS 템플릿에서 컴파일 문제가 발생할 수 있으며, 문제 시 다른 OS로 전환 권장
+* Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+ 지원; 일부 CentOS 템플릿에서 컴파일 문제가 발생할 수 있으며, 문제 시 다른 OS로 전환 권장
 * 서버당 하나의 프록시만 배포하고 기본 포트 443 사용을 권장합니다
 * 사용자 정의 문자열을 UUIDv5로 매핑하려면 클라이언트 지원이 필요합니다
 * 깨끗한 환경에서 사용하세요; 초보자는 CentOS를 피하세요
