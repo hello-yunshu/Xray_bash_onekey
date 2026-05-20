@@ -33,9 +33,7 @@ if [[ -d "${REPO_DIR}/languages" ]]; then
 fi
 
 export _TEST_MODE=1
-set +e
 source ./install.sh
-set -e
 
 init_language
 read_version
@@ -44,6 +42,19 @@ _CI_PORT=14431
 _CI_XPORT=14432
 _CI_GRPC_PORT=14433
 _CI_XHTTP_PORT=14434
+
+judge() {
+    local _return_flag=1
+    if [[ "$1" == "-r" || "$1" == "--return" ]]; then
+        shift
+    fi
+    if [[ $? -eq 0 ]]; then
+        log_echo "${OK} ${GreenBG} $1 ${Font}"
+    else
+        log_echo "${Error} ${RedBG} $1 ${Font}"
+        return 1
+    fi
+}
 
 port_set() { port=${_CI_PORT}; }
 
@@ -160,31 +171,32 @@ tls_type() {
 echo ""
 echo "--- Starting installation for mode: ${MODE} ---"
 
+INSTALL_EXIT_CODE=0
 case "$MODE" in
 xtls_only)
     shell_mode="XTLS ONLY"
     tls_mode="XTLS"
-    install_xray_xtls_only
+    install_xray_xtls_only || INSTALL_EXIT_CODE=$?
     ;;
 ws_only)
     shell_mode="ws ONLY"
     tls_mode="None"
-    install_xray_ws_only
+    install_xray_ws_only || INSTALL_EXIT_CODE=$?
     ;;
 reality)
     shell_mode="Reality"
     tls_mode="Reality"
-    install_xray_reality
+    install_xray_reality || INSTALL_EXIT_CODE=$?
     ;;
 tls)
     shell_mode="Nginx+ws+TLS"
     tls_mode="TLS"
-    install_xray_ws_tls
+    install_xray_ws_tls || INSTALL_EXIT_CODE=$?
     ;;
 esac
 
 echo ""
-echo "--- Installation completed for mode: ${MODE} ---"
+echo "--- Installation for mode: ${MODE} exited with code: ${INSTALL_EXIT_CODE} ---"
 echo ""
 
 echo "=== Running post-install tests ==="
@@ -226,7 +238,7 @@ assert_ok "Xray service is active" systemctl is-active --quiet xray
 if [[ "${MODE}" == "tls" ]]; then
     assert_ok "Nginx binary exists" test -f "${nginx_dir}/sbin/nginx"
     assert_ok "Nginx config exists" test -f "${nginx_conf}"
-    assert_ok "Nginx systemd service exists" test -f "${nginx_systemd_file}"
+    assert_ok "Nginx systemd service exists" test -f "${xray_systemd_file}"
     assert_ok "Nginx service is active" systemctl is-active --quiet nginx
     assert_ok "SSL certificate exists" test -f "${ssl_chainpath}/xray.crt"
     assert_ok "SSL key exists" test -f "${ssl_chainpath}/xray.key"
