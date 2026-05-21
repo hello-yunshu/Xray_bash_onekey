@@ -131,7 +131,7 @@ jobs:
           done
       
       - name: Save translation cache
-        if: always()
+        if: always() && steps.cache-translations.outputs.cache-hit != 'true'
         uses: actions/cache/save@main
         with:
           path: po/cache_*.json
