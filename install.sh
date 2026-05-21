@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.7"
+shell_version="2.12.8"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -1493,8 +1493,14 @@ modify_nginx_origin_conf() {
     fi
     sed -i "s/worker_processes  1;/worker_processes  auto;/" "${nginx_dir}"/conf/nginx.conf
     sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" "${nginx_dir}"/conf/nginx.conf
+    sed -i "\#^[[:space:]]*include[[:space:]]\+${nginx_conf};#d" "${nginx_dir}"/conf/nginx.conf
+    sed -i "\#^[[:space:]]*include[[:space:]]\+${nginx_conf_dir}/\*\.conf;#d" "${nginx_dir}"/conf/nginx.conf
     if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "Reality" && ${reality_add_nginx} == "on" ]]; then
-        sed -i "\$i include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
+        if [[ ${tls_mode} == "Reality" ]]; then
+            printf '\ninclude %s;\n' "${nginx_conf}" >> "${nginx_dir}"/conf/nginx.conf
+        else
+            sed -i "\$i include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
+        fi
     fi
     sed -i "/http\( *\){/a \\\tserver_tokens off;" "${nginx_dir}"/conf/nginx.conf
     sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 403;\\n\\t\\t}" "${nginx_dir}"/conf/nginx.conf
@@ -2042,6 +2048,7 @@ restore_nginx_backup() {
 
 nginx_update() {
     [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
+    local save_originconf=""
     if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         current_nginx_build_version=$(info_extraction nginx_build_version)
         if [[ ${nginx_build_version} != ${current_nginx_build_version} ]]; then
@@ -2137,6 +2144,8 @@ nginx_update() {
                 nginx_servers_conf_add
             elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
                 nginx_reality_conf_add
+                nginx_reality_servers_add
+                nginx_reality_serverNames_add
             fi
             local nginx_start_failed=0
             local service_start_failed=0
