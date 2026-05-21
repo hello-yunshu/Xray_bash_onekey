@@ -327,6 +327,20 @@ port_is_listening() {
     fi
 }
 
+wait_for_port() {
+    local listen_port="$1"
+    local attempts="${2:-20}"
+    local delay="${3:-0.25}"
+    local i
+    for ((i = 1; i <= attempts; i++)); do
+        if port_is_listening "${listen_port}"; then
+            return 0
+        fi
+        sleep "${delay}"
+    done
+    return 1
+}
+
 qr_value() {
     jq -r --arg field "$1" '.[$field]' "${xray_qr_config_file}"
 }
@@ -386,16 +400,16 @@ echo ""
 echo "--- Listener checks ---"
 case "${MODE}" in
 xtls_only | reality)
-    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "Main Xray port is listening" port_is_listening "$(qr_value port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "Main Xray port is listening" wait_for_port "$(qr_value port)"
     ;;
 ws_grpc_xhttp)
-    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "ws inbound port is listening" port_is_listening "$(qr_value ws_port)"
-    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "gRPC inbound port is listening" port_is_listening "$(qr_value grpc_port)"
-    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "xHTTP inbound port is listening" port_is_listening "$(qr_value xhttp_port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "ws inbound port is listening" wait_for_port "$(qr_value ws_port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "gRPC inbound port is listening" wait_for_port "$(qr_value grpc_port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "xHTTP inbound port is listening" wait_for_port "$(qr_value xhttp_port)"
     ;;
 tls)
-    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status nginx 2>&1 | head -10" "Nginx public TLS port is listening" port_is_listening "$(qr_value port)"
-    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "Xray ws backend port is listening" port_is_listening "$(qr_value ws_port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status nginx 2>&1 | head -10" "Nginx public TLS port is listening" wait_for_port "$(qr_value port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "Xray ws backend port is listening" wait_for_port "$(qr_value ws_port)"
     ;;
 esac
 

@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.8"
+shell_version="2.12.9"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -2863,10 +2863,8 @@ stream {
     }
 
     server {
-        listen 127.0.0.1:9403 reuseport;
-        #ssl_preread on;
+        listen 127.0.0.1:9403 ssl;
         ssl_reject_handshake on;
-        return 444;
         access_log off;
         error_log /dev/null;
     }
@@ -3054,7 +3052,7 @@ check_cert_status() {
     if [[ ${tls_mode} == "TLS" ]]; then
         host="$(info_extraction host)"
         if [[ -d "$HOME/.acme.sh/${host}_ecc" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.key" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.cer" ]]; then
-            modifyTime=$(stat -c %Y "$HOME/.acme.sh/${host}_ecc/${host}.cer" 2>/dev/null || stat -f %m "$HOME/.acme.sh/${host}_ecc/${host}.cer" 2>/dev/null)
+            modifyTime=$(stat -c %Y "$HOME/.acme.sh/${host}_ecc/${host}.cer" 2>/dev/null)
             currentTime=$(date +%s)
             ((stampDiff = currentTime - modifyTime))
             ((days = stampDiff / 86400))
@@ -3202,8 +3200,8 @@ vless_qr_config_tls_ws() {
     "serviceName": "${artserviceName}",
     "xhttp_path": "${artxhttppath}",
     "shell_version": "${shell_version}",
-    "xray_version": "${xray_version}",
-    "nginx_build_version": "${nginx_build_version}"
+    "xray_version": "${xray_version:-}",
+    "nginx_build_version": "${nginx_build_version:-}"
 }
 EOF
     info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
@@ -3238,7 +3236,7 @@ vless_qr_config_reality() {
     "grpc_serviceName": "${artserviceName}",
     "xhttp_path": "${artxhttppath}",
     "shell_version": "${shell_version}",
-    "xray_version": "${xray_version}"
+    "xray_version": "${xray_version:-}"
 }
 EOF
     if [[ ${reality_add_nginx} == "on" ]]; then
@@ -3262,9 +3260,8 @@ vless_qr_config_xtls_only() {
     "id": "${UUID}",
     "net": "raw",
     "security": "none",
-    "flow": "xtls-rprx-vision",
     "shell_version": "${shell_version}",
-    "xray_version": "${xray_version}"
+    "xray_version": "${xray_version:-}"
 }
 EOF
     info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
@@ -3290,7 +3287,7 @@ vless_qr_config_ws_only() {
     "serviceName": "${artserviceName}",
     "xhttp_path": "${artxhttppath}",
     "shell_version": "${shell_version}",
-    "xray_version": "${xray_version}"
+    "xray_version": "${xray_version:-}"
 }
 EOF
     info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
@@ -3392,7 +3389,7 @@ generate_vless_link() {
             ;;
         xtls)
             port=$(info_extraction port)
-            result="vless://${user_id}@${quoted_host}:${port}?security=none&encryption=none&headerType=none&type=raw&flow=xtls-rprx-vision#${quoted_host}+XTLS%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${quoted_host}:${port}?security=none&encryption=none&headerType=none&type=raw#${quoted_host}+XTLS%E5%8D%8F%E8%AE%AE"
             ;;
         *)
             return 1
@@ -3418,6 +3415,8 @@ generate_clash_config() {
 
     local clash_name="VLESS-$(info_extraction host)-${transport_label}"
     local clash_config=""
+    local flow_line=""
+    [[ -n "${flow}" ]] && flow_line="    flow: ${flow}"
 
     if [[ ${type} == "ws" ]]; then
         clash_config="  - name: ${clash_name}
@@ -3427,7 +3426,7 @@ generate_clash_config() {
     uuid: $(info_extraction id)
     client-fingerprint: chrome
     tls: ${tls}
-    flow: ${flow}
+${flow_line}
     network: ws
     ws-opts:
       path: ${path}
@@ -3443,7 +3442,7 @@ generate_clash_config() {
     uuid: $(info_extraction id)
     client-fingerprint: chrome
     tls: ${tls}
-    flow: ${flow}
+${flow_line}
     network: grpc
     grpc-opts:
       grpc-service-name: ${service_name}
@@ -3457,7 +3456,7 @@ generate_clash_config() {
     uuid: $(info_extraction id)
     client-fingerprint: chrome
     tls: ${tls}
-    flow: ${flow}
+${flow_line}
     network: tcp
     skip-cert-verify: false"
     fi
@@ -3544,7 +3543,7 @@ $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_grpc_se
         fi
     elif [[ ${tls_mode} == "XTLS" ]]; then
         clash_config_content="${clash_config_content}
-$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "xtls-rprx-vision" "" "" "" "" "false")"
+$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" "" "" "false")"
     fi
     
     {
@@ -3599,12 +3598,12 @@ declare -A _info_cache=()
 _info_cache_loaded=0
 
 _info_cache_invalidate() {
-    _info_cache=()
+    declare -gA _info_cache=()
     _info_cache_loaded=0
 }
 
 _info_cache_load() {
-    if [[ ${_info_cache_loaded} -eq 0 ]] && [[ -n "${info_extraction_all}" ]]; then
+    if [[ ${_info_cache_loaded} -eq 0 ]] && [[ -n "${info_extraction_all:-}" ]]; then
         while IFS=$'\t' read -r key value; do
             _info_cache["$key"]="$value"
         done < <(echo "${info_extraction_all}" | jq -r 'to_entries | .[] | [.key, .value // ""] | @tsv' 2>/dev/null)
@@ -3620,7 +3619,7 @@ info_extraction() {
         echo "${_info_cache[$1]}"
     else
         local result
-        result=$(echo "${info_extraction_all}" | jq -r ".$1 // empty" 2>/dev/null)
+        result=$(echo "${info_extraction_all:-}" | jq -r ".$1 // empty" 2>/dev/null)
         local jq_exit_code=$?
         echo "$result"
         if [[ $jq_exit_code -ne 0 ]]; then
@@ -3730,8 +3729,8 @@ basic_information() {
                 log_echo "${Red} xHTTP $(gettext "路径") (path $(gettext "不要落下")/):${Font} $(format_xhttp_path "$(info_xhttp_path)") "
             fi
         else
-            log_echo "${Red} $(gettext "流控") (flow):${Font} xtls-rprx-vision "
             if [[ ${tls_mode} == "Reality" ]]; then
+                log_echo "${Red} $(gettext "流控") (flow):${Font} xtls-rprx-vision "
                 log_echo "${Red} target:${Font} $(info_extraction target) "
                 log_echo "${Red} serverNames:${Font} $(info_extraction serverNames) "
                 log_echo_secure "${Red} privateKey:${Font} $(info_extraction privateKey) "
@@ -4162,12 +4161,12 @@ show_user() {
 
 add_user() {
     local choose_user_prot reality_user_more
-    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
+    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local add_user_continue
         while true; do
             echo
             log_echo "${GreenBG} $(gettext "即将添加用户, 一次仅能添加一个") ${Font}"
-            if [[ ${tls_mode} == "TLS" ]]; then
+            if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "None" ]]; then
                 if [[ ${transport_mode} == "onlyws" ]]; then
                     choose_user_tag="VLESS-ws-in"
                 elif [[ ${transport_mode} == "onlygRPC" ]]; then
@@ -4194,7 +4193,7 @@ add_user() {
                 reality_user_more='{"flow":"xtls-rprx-vision"}'
             elif [[ ${tls_mode} == "XTLS" ]]; then
                 choose_user_tag="VLESS-XTLS-in"
-                reality_user_more='{"flow":"xtls-rprx-vision"}'
+                reality_user_more='{}'
             fi
             email_set
             local existing_emails=$(jq -r --arg tag "${choose_user_tag}" \
@@ -4228,17 +4227,15 @@ add_user() {
                 ;;
             esac
         done
-    elif [[ ${tls_mode} == "None" ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持添加用户")! ${Font}"
     else
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
     fi
 }
 
 remove_user() {
-    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} != "None" ]]; then
+    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local choose_user_prot
-        if [[ ${tls_mode} == "TLS" ]]; then
+        if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "None" ]]; then
             if [[ ${transport_mode} == "onlyws" ]]; then
                 choose_user_tag="VLESS-ws-in"
             elif [[ ${transport_mode} == "onlygRPC" ]]; then
@@ -4309,8 +4306,6 @@ remove_user() {
                 ;;
             esac
         done
-    elif [[ ${tls_mode} == "None" ]]; then
-        log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持删除用户")! ${Font}"
     else
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
     fi
@@ -5044,25 +5039,80 @@ curl_local_connect() {
     curl -Is -o /dev/null -w '%{http_code}' --max-time 10 "https://$1/$2"
 }
 
+curl_local_connect_xhttp() {
+    local host="$1"
+    local raw_path="$2"
+    local probe_path
+    local curl_args=(-s -o /dev/null -w '%{http_code}' --max-time 10)
+
+    probe_path="$(format_xhttp_path "${raw_path}")"
+    probe_path="${probe_path%/}/xhttp-probe-${RANDOM}"
+    if curl --version 2>/dev/null | grep -q 'HTTP2'; then
+        curl_args+=(--http2)
+    fi
+    curl "${curl_args[@]}" "https://${host}${probe_path}"
+}
+
+tcp_local_connect() {
+    local port="$1"
+
+    [[ ${port} =~ ^[0-9]+$ ]] || return 1
+    timeout 3 bash -c ':</dev/tcp/127.0.0.1/$1' _ "${port}" >/dev/null 2>&1
+}
+
+xray_inbound_port() {
+    local inbound_tag="$1"
+
+    [[ -f "${xray_conf}" ]] || return 1
+    jq -r --arg tag "${inbound_tag}" 'first(.inbounds[]? | select(.tag == $tag) | .port) // empty' "${xray_conf}" 2>/dev/null
+}
+
+check_transport_tcp_ports() {
+    if is_ws_mode && ! tcp_local_connect "$(info_extraction ws_port)"; then
+        return 1
+    fi
+    if is_grpc_mode && ! tcp_local_connect "$(info_extraction grpc_port)"; then
+        return 1
+    fi
+    if is_xhttp_mode && ! tcp_local_connect "$(info_extraction xhttp_port)"; then
+        return 1
+    fi
+    is_ws_mode || is_grpc_mode || is_xhttp_mode
+}
+
+check_reality_tcp_ports() {
+    local reality_port
+
+    if [[ ${reality_add_nginx} == "on" ]]; then
+        reality_port=$(xray_inbound_port "VLESS-Reality-in")
+        tcp_local_connect "$(info_extraction port)" && tcp_local_connect "${reality_port}" || return 1
+    else
+        tcp_local_connect "$(info_extraction port)" || return 1
+    fi
+    if [[ ${reality_add_more} == "on" ]]; then
+        check_transport_tcp_ports || return 1
+    fi
+}
+
 check_xray_local_connect() {
     if [[ -f "${xray_qr_config_file}" ]]; then
         xray_local_connect_status="${Red}$(gettext "无法连通")${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
             if [[ ${transport_mode} == "onlyxhttp" ]]; then
-                xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
+                [[ $(curl_local_connect_xhttp "$(info_extraction host)" "$(info_xhttp_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             elif [[ ${transport_mode} == "onlyws" ]]; then
                 [[ $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             elif [[ ${transport_mode} == "onlygRPC" ]]; then
                 [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             elif [[ ${transport_mode} == "all" ]]; then
-                [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" && $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+                [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" && $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" && $(curl_local_connect_xhttp "$(info_extraction host)" "$(info_xhttp_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             fi
         elif [[ ${tls_mode} == "Reality" ]]; then
-            xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
+            check_reality_tcp_ports && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
         elif [[ ${tls_mode} == "None" ]]; then
-            xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
+            check_transport_tcp_ports && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
         elif [[ ${tls_mode} == "XTLS" ]]; then
-            xray_local_connect_status="${Green}$(gettext "无需测试")${Font}"
+            tcp_local_connect "$(info_extraction port)" && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
         fi
     else
         xray_local_connect_status="${Red}$(gettext "未安装")${Font}"
