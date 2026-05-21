@@ -6,7 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
+"issues\n"
 "POT-Creation-Date: 2026-05-21 20:43+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
@@ -221,8 +222,6 @@ msgid "请输入有效的数字"
 msgstr "please enter a valid number"
 
 #: install.sh:713
-#, fuzzy
-#| msgid "是否添加简单 ws/gRPC 协议 用于负载均衡"
 msgid "是否添加用于负载均衡的 ws/gRPC 协议"
 msgstr "Whether to add the ws/gRPC protocol for load balancing"
 
@@ -235,8 +234,8 @@ msgid "已跳过添加简单 ws/gRPC/xHTTP 协议"
 msgstr "skipping the addition of simple ws/gRPC/xHTTP protocols"
 
 #: install.sh:775 install.sh:795 install.sh:816 install.sh:907 install.sh:924
-#: install.sh:945 install.sh:962 install.sh:983 install.sh:1000
-#: install.sh:1019 install.sh:1138 install.sh:1159 install.sh:1196
+#: install.sh:945 install.sh:962 install.sh:983 install.sh:1000 install.sh:1019
+#: install.sh:1138 install.sh:1159 install.sh:1196
 msgid "是否需要自定义"
 msgstr "whether customization is needed"
 
@@ -328,11 +327,9 @@ msgid "请输入一个域名"
 msgstr "please enter a domain name"
 
 #: install.sh:1081
-#, fuzzy
-#| msgid "域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用"
 msgid "域名必须支持 TLSv1.3、X25519、H2, 且不能跳转"
 msgstr ""
-"The domain name must support TLSv1.3, X25519, and H2, and must not redirect."
+"The domain name must support TLSv1.3, X25519, H2, and cannot be redirected"
 
 #: install.sh:1082
 msgid "确认域名符合要求后请输入"
@@ -604,10 +601,8 @@ msgid "已跳过"
 msgstr "skipped"
 
 #: install.sh:1836
-#, fuzzy
-#| msgid "Reality 协议有流量偷跑的风险"
 msgid "Reality 协议可能存在流量绕过风险"
-msgstr "Reality The protocol may pose a traffic bypass risk."
+msgstr "Reality protocol may have traffic bypass risk"
 
 #: install.sh:1838 install.sh:1865
 msgid "是否额外安装 nginx 前置保护"
@@ -630,20 +625,14 @@ msgid "检测到已开启 Reality 负载均衡"
 msgstr "Reality load balancing has been detected as enabled"
 
 #: install.sh:1863
-#, fuzzy
-#| msgid "如用作 Reality 负载均衡主服务器必须安装"
 msgid "作为 Reality 负载均衡主服务器时必须安装"
-msgstr ""
-"Must be installed when serving as the Reality load balancer’s primary "
-"server."
+msgstr "Required when serving as Reality load balancing master server"
 
 #: install.sh:1864
-#, fuzzy
-#| msgid "如用作 Reality 负载均衡二级服务器则无需安装"
 msgid "作为 Reality 负载均衡二级服务器时无需安装"
 msgstr ""
-"No installation is required when serving as a Reality load-balancing "
-"secondary server."
+"No installation required when serving as Reality load balancing secondary "
+"server"
 
 #: install.sh:1908
 msgid "已存在, 跳过编译安装过程"
@@ -693,10 +682,8 @@ msgid "版本检测"
 msgstr "version detection"
 
 #: install.sh:2027
-#, fuzzy
-#| msgid "实时错误日志"
 msgid "错误日志"
-msgstr "Error Log"
+msgstr "error log"
 
 #: install.sh:2088 install.sh:2089 install.sh:2096 install.sh:2097
 msgid "配置不完整, 退出更新"
@@ -745,8 +732,8 @@ msgstr "already updated to the latest version"
 #: install.sh:2221
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"set up a background scheduled automatic update program (including: "
-"script/xray/nginx)"
+"set up a background scheduled automatic update program (including: script/"
+"xray/nginx)"
 
 #: install.sh:2222
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -833,11 +820,9 @@ msgstr ""
 "access to the server"
 
 #: install.sh:2316
-#, fuzzy
-#| msgid "注意服务器商域名添加 CNAME 记录"
 msgid "请为服务器商提供的域名添加 CNAME 记录"
 msgstr ""
-"Please add a CNAME record for the domain provided by the server provider."
+"Please add CNAME record for the domain name provided by the server provider"
 
 #: install.sh:2328
 msgid "域名 DNS 解析 IP"
@@ -859,12 +844,10 @@ msgstr ""
 "Xray will not function properly"
 
 #: install.sh:2335
-#, fuzzy
-#| msgid "域名DNS解析IP与公网IP不匹配, 请选择"
 msgid "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"
 msgstr ""
-"The domain name DNS resolves to IP, which does not match the public network "
-"IP. Please select."
+"Domain name DNS resolution IP does not match the public network IP, please "
+"select"
 
 #: install.sh:2336 install.sh:2342
 msgid "继续安装"
@@ -1250,14 +1233,13 @@ msgstr ""
 
 #: install.sh:3767
 msgid "如需使用自定义证书, 请按如下步骤:"
-msgstr ""
-"if you need to use a custom certificate, please follow the steps below"
+msgstr "if you need to use a custom certificate, please follow the steps below"
 
 #: install.sh:3768
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr ""
-"1. rename the certificate files: private key (xray.key), certificate "
-"(xray.crt)"
+"1. rename the certificate files: private key (xray.key), certificate (xray."
+"crt)"
 
 #: install.sh:3769
 msgid "2. 将重命名后的证书文件放入"
@@ -1294,8 +1276,7 @@ msgstr "the certificate file already exists, do you want to keep it"
 #: install.sh:3810
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr ""
-"the certificate issuance residual file already exists, do you want to keep "
-"it"
+"the certificate issuance residual file already exists, do you want to keep it"
 
 #: install.sh:3852 install.sh:5318
 msgid "添加"
@@ -1318,12 +1299,10 @@ msgid "安全模式"
 msgstr "safe mode"
 
 #: install.sh:3868
-#, fuzzy
-#| msgid "由于 h3 仅支持 TLSv1.3, 只支持 TLSv1.3 only (安全模式)"
 msgid "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)"
 msgstr ""
-"Since h3 only supports TLSv1.3, only TLSv1.3 and only are supported here "
-"(safe mode)."
+"Since h3 only supports TLSv1.3, only TLSv1.3 only (safe mode) is supported "
+"here."
 
 #: install.sh:3871 install.sh:3885 install.sh:3888
 msgid "已切换至"
@@ -1338,11 +1317,9 @@ msgid "建议选择 TLSv1.3 (安全模式)"
 msgstr "we recommend selecting TLSv1.3 (secure mode)"
 
 #: install.sh:3902
-#, fuzzy
-#| msgid "Nginx配置文件不存在 或 当前模式不支持"
 msgid "Nginx 配置文件不存在或当前模式不支持"
 msgstr ""
-"The Nginx configuration file does not exist, or the current mode is not "
+"Nginx The configuration file does not exist or the current mode is not "
 "supported."
 
 #: install.sh:4064
@@ -1355,8 +1332,7 @@ msgstr "this mode does not support viewing users"
 
 #: install.sh:4088
 msgid "即将显示用户, 一次仅能显示一个"
-msgstr ""
-"users will be displayed soon, only one user can be displayed at a time"
+msgstr "users will be displayed soon, only one user can be displayed at a time"
 
 #: install.sh:4097
 msgid "请选择显示用户使用的协议"
@@ -1527,10 +1503,8 @@ msgid "存在新版本, 是否更新"
 msgstr "new version exists, update"
 
 #: install.sh:4723
-#, fuzzy
-#| msgid "脚本 版本差别过大, 跳过更新"
 msgid "脚本版本差别过大, 跳过更新"
-msgstr "The script versions are too different; skipping the update."
+msgstr "the script version difference is too big, skip the update"
 
 #: install.sh:4731 install.sh:4732
 msgid "脚本更新失败"
@@ -1562,14 +1536,14 @@ msgstr "this option is temporarily unavailable"
 #: install.sh:4794 install.sh:5382
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
-"this mode is recommended for load balancing; it is generally not recommended"
-" for use. do you want to install"
+"this mode is recommended for load balancing; it is generally not recommended "
+"for use. do you want to install"
 
 #: install.sh:4807 install.sh:5396
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
-"this mode is only intended for traffic forwarding and is not recommended for"
-" other use cases. do you want to install it"
+"this mode is only intended for traffic forwarding and is not recommended for "
+"other use cases. do you want to install it"
 
 #: install.sh:4913 install.sh:4914 install.sh:4925 install.sh:4929
 #: install.sh:4933 install.sh:5310 install.sh:5311 install.sh:5312
@@ -1655,8 +1629,8 @@ msgstr "error message"
 #: install.sh:4959
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr ""
-"the script version has changed significantly, and there may be compatibility"
-" issues. do you want to continue using it"
+"the script version has changed significantly, and there may be compatibility "
+"issues. do you want to continue using it"
 
 #: install.sh:4984
 msgid "检测失败"
@@ -1698,8 +1672,8 @@ msgstr "script is under maintenance. please try again later"
 #: install.sh:5133
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
-"the required online version of the dependency cannot be detected. please try"
-" again later"
+"the required online version of the dependency cannot be detected. please try "
+"again later"
 
 #: install.sh:5150
 msgid "请输入数字"

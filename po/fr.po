@@ -6,7 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
+"issues\n"
 "POT-Creation-Date: 2026-05-21 20:43+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
@@ -82,8 +83,7 @@ msgstr ""
 
 #: install.sh:359
 msgid "无法获取远程语言文件信息"
-msgstr ""
-"impossible d'obtenir les informations sur le fichier de langue distant"
+msgstr "impossible d'obtenir les informations sur le fichier de langue distant"
 
 #: install.sh:377
 msgid "正在更新语言文件"
@@ -142,8 +142,7 @@ msgstr "échec"
 #: install.sh:514
 msgid "在线版本检测失败, 请稍后再试"
 msgstr ""
-"la vérification de la version en ligne a échoué, veuillez réessayer plus "
-"tard"
+"la vérification de la version en ligne a échoué, veuillez réessayer plus tard"
 
 #: install.sh:539 install.sh:547 install.sh:1702 install.sh:3682
 #: install.sh:4909 install.sh:4910 install.sh:4911 install.sh:4912
@@ -226,10 +225,8 @@ msgid "请输入有效的数字"
 msgstr "veuillez saisir un nombre valide"
 
 #: install.sh:713
-#, fuzzy
-#| msgid "是否添加简单 ws/gRPC 协议 用于负载均衡"
 msgid "是否添加用于负载均衡的 ws/gRPC 协议"
-msgstr "Ajouter la protocole ws/gRPC destiné à l’équilibrage de charge ?"
+msgstr "S'il faut ajouter le protocole ws/gRPC pour l'équilibrage de charge"
 
 #: install.sh:714 install.sh:1818
 msgid "如不清楚具体用途, 请勿选择"
@@ -240,8 +237,8 @@ msgid "已跳过添加简单 ws/gRPC/xHTTP 协议"
 msgstr "l’ajout des protocoles simples ws/gRPC/xHTTP a été ignoré"
 
 #: install.sh:775 install.sh:795 install.sh:816 install.sh:907 install.sh:924
-#: install.sh:945 install.sh:962 install.sh:983 install.sh:1000
-#: install.sh:1019 install.sh:1138 install.sh:1159 install.sh:1196
+#: install.sh:945 install.sh:962 install.sh:983 install.sh:1000 install.sh:1019
+#: install.sh:1138 install.sh:1159 install.sh:1196
 msgid "是否需要自定义"
 msgstr "a-t-on besoin d'une personnalisation"
 
@@ -334,12 +331,10 @@ msgid "请输入一个域名"
 msgstr "veuillez saisir un nom de domaine"
 
 #: install.sh:1081
-#, fuzzy
-#| msgid "域名要求支持 TLSv1.3、X25519 与 H2 以及域名非跳转用"
 msgid "域名必须支持 TLSv1.3、X25519、H2, 且不能跳转"
 msgstr ""
-"Le nom de domaine doit prendre en charge TLSv1.3, X25519 et H2, et ne doit "
-"pas effectuer de redirection."
+"Le nom de domaine doit prendre en charge TLSv1.3, X25519, H2 et ne peut pas "
+"être redirigé"
 
 #: install.sh:1082
 msgid "确认域名符合要求后请输入"
@@ -619,12 +614,9 @@ msgid "已跳过"
 msgstr "déjà sauté"
 
 #: install.sh:1836
-#, fuzzy
-#| msgid "Reality 协议有流量偷跑的风险"
 msgid "Reality 协议可能存在流量绕过风险"
 msgstr ""
-"Le protocole Reality pourrait présenter un risque de contournement du "
-"trafic."
+"Le protocole Reality peut présenter un risque de contournement du trafic"
 
 #: install.sh:1838 install.sh:1865
 msgid "是否额外安装 nginx 前置保护"
@@ -647,20 +639,14 @@ msgid "检测到已开启 Reality 负载均衡"
 msgstr "réalité de charge équilibrée détectée active [Reality]"
 
 #: install.sh:1863
-#, fuzzy
-#| msgid "如用作 Reality 负载均衡主服务器必须安装"
 msgid "作为 Reality 负载均衡主服务器时必须安装"
-msgstr ""
-"Doit être installé lorsqu’il sert de serveur principal d’équilibrage de "
-"charge pour Reality"
+msgstr "Requis pour servir de serveur maître d'équilibrage de charge Reality"
 
 #: install.sh:1864
-#, fuzzy
-#| msgid "如用作 Reality 负载均衡二级服务器则无需安装"
 msgid "作为 Reality 负载均衡二级服务器时无需安装"
 msgstr ""
-"L’installation n’est pas nécessaire en tant que serveur secondaire "
-"d’équilibrage de charge Reality"
+"Aucune installation requise lorsque vous faites office de serveur secondaire "
+"d'équilibrage de charge Reality"
 
 #: install.sh:1908
 msgid "已存在, 跳过编译安装过程"
@@ -710,10 +696,8 @@ msgid "版本检测"
 msgstr "détection de version"
 
 #: install.sh:2027
-#, fuzzy
-#| msgid "实时错误日志"
 msgid "错误日志"
-msgstr "Journal des erreurs"
+msgstr "journal des erreurs"
 
 #: install.sh:2088 install.sh:2089 install.sh:2096 install.sh:2097
 msgid "配置不完整, 退出更新"
@@ -762,8 +746,8 @@ msgstr "déjà à la dernière version"
 #: install.sh:2221
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"configurer un programme de mise à jour automatique en arrière-plan (incluant"
-" : script/xray/nginx)"
+"configurer un programme de mise à jour automatique en arrière-plan "
+"(incluant : script/xray/nginx)"
 
 #: install.sh:2222
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -811,8 +795,8 @@ msgstr "installer le script de génération de certificat SSL"
 #: install.sh:2274
 msgid "检测到原域名配置存在, 是否跳过域名设置"
 msgstr ""
-"la configuration du domaine d'origine a été détectée. voulez-vous ignorer la"
-" configuration du domaine"
+"la configuration du domaine d'origine a été détectée. voulez-vous ignorer la "
+"configuration du domaine"
 
 #: install.sh:2289 install.sh:2325 install.sh:2378 install.sh:2411
 msgid "无法获取公网IP地址"
@@ -853,12 +837,10 @@ msgstr ""
 "l'accès au serveur via un nom de domaine"
 
 #: install.sh:2316
-#, fuzzy
-#| msgid "注意服务器商域名添加 CNAME 记录"
 msgid "请为服务器商提供的域名添加 CNAME 记录"
 msgstr ""
-"Veuillez ajouter un enregistrement CNAME pour le nom de domaine fourni par "
-"le fournisseur d’hébergement."
+"Veuillez ajouter l'enregistrement CNAME pour le nom de domaine fourni par le "
+"fournisseur de serveur."
 
 #: install.sh:2328
 msgid "域名 DNS 解析 IP"
@@ -879,12 +861,10 @@ msgstr ""
 "ajoutés au domaine, sinon Xray ne pourra pas fonctionner normalement"
 
 #: install.sh:2335
-#, fuzzy
-#| msgid "域名DNS解析IP与公网IP不匹配, 请选择"
 msgid "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"
 msgstr ""
-"Le nom de domaine DNS résout IP et ne correspond pas au IP public ; veuillez"
-" sélectionner."
+"Nom de domaine DNS résolution IP ne correspond pas au réseau public IP, "
+"veuillez sélectionner"
 
 #: install.sh:2336 install.sh:2342
 msgid "继续安装"
@@ -901,8 +881,8 @@ msgstr "arrêter l'installation"
 #: install.sh:2361
 msgid "检测到原IP配置存在, 是否跳过IP设置"
 msgstr ""
-"configuration IP originale détectée, souhaitez-vous ignorer la configuration"
-" IP"
+"configuration IP originale détectée, souhaitez-vous ignorer la configuration "
+"IP"
 
 #: install.sh:2382
 msgid "已跳过IP设置"
@@ -946,8 +926,7 @@ msgstr "essayez de terminer le processus occupé"
 
 #: install.sh:2434
 msgid "证书测试签发成功, 开始正式签发"
-msgstr ""
-"test de certificat émis avec succès, début de la délivrance officielle"
+msgstr "test de certificat émis avec succès, début de la délivrance officielle"
 
 #: install.sh:2437
 msgid "证书测试签发失败"
@@ -1356,12 +1335,10 @@ msgid "安全模式"
 msgstr "mode sécurisé"
 
 #: install.sh:3868
-#, fuzzy
-#| msgid "由于 h3 仅支持 TLSv1.3, 只支持 TLSv1.3 only (安全模式)"
 msgid "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)"
 msgstr ""
-"Étant donné que h3 ne prend en charge que TLSv1.3, seuls TLSv1.3 et only "
-"sont pris en charge ici (mode sécurisé)."
+"Étant donné que h3 ne prend en charge que TLSv1.3, seul TLSv1.3 (mode sans "
+"échec) est pris en charge ici."
 
 #: install.sh:3871 install.sh:3885 install.sh:3888
 msgid "已切换至"
@@ -1376,11 +1353,9 @@ msgid "建议选择 TLSv1.3 (安全模式)"
 msgstr "il est recommandé de choisir TLSv1.3 (mode sécurisé)"
 
 #: install.sh:3902
-#, fuzzy
-#| msgid "Nginx配置文件不存在 或 当前模式不支持"
 msgid "Nginx 配置文件不存在或当前模式不支持"
 msgstr ""
-"Le fichier de configuration Nginx n’existe pas ou le mode actuel n’est pas "
+"Nginx Le fichier de configuration n'existe pas ou le mode actuel n'est pas "
 "pris en charge."
 
 #: install.sh:4064
@@ -1570,10 +1545,10 @@ msgid "存在新版本, 是否更新"
 msgstr "une nouvelle version est disponible, souhaitez-vous la mettre à jour"
 
 #: install.sh:4723
-#, fuzzy
-#| msgid "脚本 版本差别过大, 跳过更新"
 msgid "脚本版本差别过大, 跳过更新"
-msgstr "La version du script est trop ancienne ; la mise à jour est ignorée."
+msgstr ""
+"la différence entre les versions du script est trop importante, ignorez la "
+"mise à jour"
 
 #: install.sh:4731 install.sh:4732
 msgid "脚本更新失败"
@@ -2626,8 +2601,8 @@ msgstr "le fichier de configuration Xray n’existe pas"
 #: traffic_blocker.sh:1055
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
-"la configuration Xray ne contient pas de règle d’interception des connexions"
-" sortantes ; les règles de blocage ne peuvent donc pas être appliquées "
+"la configuration Xray ne contient pas de règle d’interception des connexions "
+"sortantes ; les règles de blocage ne peuvent donc pas être appliquées "
 "[blocked]"
 
 #: traffic_blocker.sh:1060
@@ -2643,8 +2618,8 @@ msgstr "configuration actuelle des règles de blocage"
 #: traffic_blocker.sh:1087
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
-"l’application des règles entraînera la reconstruction de la configuration du"
-" routage, et les règles de routage personnalisées seront remplacées"
+"l’application des règles entraînera la reconstruction de la configuration du "
+"routage, et les règles de routage personnalisées seront remplacées"
 
 #: traffic_blocker.sh:1091
 msgid "GeoData 下载失败, 无法应用规则"
@@ -2682,8 +2657,7 @@ msgstr ""
 #: traffic_blocker.sh:1192
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr ""
-"cette opération réinitialisera toutes les règles de blocage en état "
-"désactivé"
+"cette opération réinitialisera toutes les règles de blocage en état désactivé"
 
 #: traffic_blocker.sh:1193
 msgid "确认重置"
