@@ -8,42 +8,31 @@ from deep_translator import GoogleTranslator
 from langdetect import detect, DetectorFactory
 from translation_terms import (
     PLACEHOLDER_RE,
-    ensure_source_terms,
-    extract_source_terms,
-    missing_source_terms,
     protect_terms,
     restore_placeholders,
-    restore_source_terms,
 )
 
 DetectorFactory.seed = 0
 
-def extract_english_segments(text):
-    return extract_source_terms(text)
+SHORT_STRING_THRESHOLD = 15
 
-def protect_source_terms(text):
-    return protect_terms(text)
-
-def restore_protected_terms(translated, source):
-    return ensure_source_terms(translated, source)
-
-def restore_english_segments(translated, source):
-    return restore_source_terms(translated, source)
 
 def load_translation_cache(cache_file):
     if os.path.exists(cache_file):
         with open(cache_file, 'r', encoding='utf-8') as f:
             translations = json.load(f)
         for key in translations:
-            translations[key] = clean_translation(restore_protected_terms(translations[key], key))
+            translations[key] = clean_translation(translations[key])
         return translations
     return {}
 
+
 def save_translation_cache(cache_file, translations):
     for key in translations:
-        translations[key] = clean_translation(restore_protected_terms(translations[key], key))
+        translations[key] = clean_translation(translations[key])
     with open(cache_file, 'w', encoding='utf-8') as f:
         json.dump(translations, f, ensure_ascii=False, indent=2)
+
 
 def get_version(version_file):
     if os.path.exists(version_file):
@@ -51,14 +40,17 @@ def get_version(version_file):
             return f.read().strip()
     return None
 
+
 def update_version(version_file):
     timestamp = str(int(time.time()))
     with open(version_file, 'w', encoding='utf-8') as f:
         f.write(timestamp)
     return timestamp
 
+
 def contains_chinese(text):
     return any('\u4e00' <= char <= '\u9fff' for char in text)
+
 
 def translate_text_qwen_mt(text, target_lang):
     api_key = os.getenv("AI_API_KEY")
@@ -68,7 +60,7 @@ def translate_text_qwen_mt(text, target_lang):
         api_key=api_key,
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
-    protected_text, protected_terms = protect_source_terms(text)
+    protected_text, protected_terms = protect_terms(text)
     messages = [
         {'role': 'user', 'content': protected_text}
     ]
@@ -85,30 +77,40 @@ def translate_text_qwen_mt(text, target_lang):
             }
         )
         translated_text = completion.choices[0].message.content
+        translated_text = clean_translation(translated_text)
+        if len(text) < SHORT_STRING_THRESHOLD:
+            translated_text = translated_text.lower()
         translated_text = restore_placeholders(translated_text, protected_terms)
-        return restore_protected_terms(translated_text, text)
+        return translated_text
     except Exception as e:
         print(f"Qwen-MT-Plus translation failed: {e}")
         return ""
 
+
 def translate_text_google(text, target_lang):
     try:
-        protected_text, protected_terms = protect_source_terms(text)
+        protected_text, protected_terms = protect_terms(text)
         translator = GoogleTranslator(source='zh-CN', target=target_lang)
         translated_text = translator.translate(protected_text)
         if translated_text is None:
             return ""
+        translated_text = clean_translation(translated_text)
+        if len(text) < SHORT_STRING_THRESHOLD:
+            translated_text = translated_text.lower()
         translated_text = restore_placeholders(translated_text, protected_terms)
-        return restore_protected_terms(translated_text, text)
+        return translated_text
     except Exception as e:
         print(f"Google Translate failed: {e}")
         return ""
 
+
 def needs_fallback_translation(translated_text):
     return '\n' in translated_text or '"' in translated_text or PLACEHOLDER_RE.search(translated_text)
 
+
 def clean_translation(text):
     return re.sub(r'\s+', ' ', text.replace('\n', '').replace('"', '')).strip()
+
 
 def translate_po_file(input_file, output_file, target_lang_code, target_lang_name):
     lang_dir = os.path.dirname(output_file)
@@ -147,16 +149,14 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
         msgid_text = entry.msgid
 
         if msgid_text in translations:
-            translated_text = clean_translation(restore_source_terms(translations[msgid_text], msgid_text))
+            translated_text = clean_translation(translations[msgid_text])
             if translated_text == "":
                 print(f"Cached translation is empty for: {msgid_text}. Re-translating...")
-            elif missing_source_terms(translated_text, msgid_text):
-                print(f"Cached translation is missing protected terms for: {msgid_text}. Re-translating...")
             else:
                 print(f"Using cached translation: {msgid_text} -> {translated_text}")
                 entry.msgstr = translated_text
-                if entry.fuzzy:
-                    entry.fuzzy = False
+                if 'fuzzy' in entry.flags:
+                    entry.flags.remove('fuzzy')
                 continue
 
         try:
@@ -172,13 +172,13 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
                         print(f"Translation does not meet criteria using Qwen-MT-Plus. Using Google Translate...")
                         translated_text = translate_text_google(msgid_text, target_lang_code)
 
-                    translated_text = clean_translation(ensure_source_terms(translated_text, msgid_text))
+                    translated_text = clean_translation(translated_text)
 
                     translations[msgid_text] = translated_text
                     print(f"New translation [{target_lang_code}]: {msgid_text} -> {translated_text}")
                     entry.msgstr = translated_text
-                    if entry.fuzzy:
-                        entry.fuzzy = False
+                    if 'fuzzy' in entry.flags:
+                        entry.flags.remove('fuzzy')
                     break
                 except Exception as e:
                     if attempt == max_retries - 1:

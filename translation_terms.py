@@ -7,15 +7,25 @@ SOURCE_TERM_RE = re.compile(
 )
 PLACEHOLDER_RE = re.compile(r'__TERM_(\d+)__', re.IGNORECASE)
 
+SOURCE_TERM_STOPWORDS = frozenset({
+    'a', 'an', 'and', 'are', 'as', 'at', 'be', 'been', 'but', 'by',
+    'can', 'could', 'did', 'do', 'does', 'for', 'from', 'had', 'has',
+    'have', 'in', 'is', 'it', 'may', 'might', 'no', 'not', 'of', 'only',
+    'or', 'that', 'the', 'this', 'to', 'was', 'were', 'will', 'with',
+})
+
 
 def extract_source_terms(text):
-    return [match.group(1) for match in SOURCE_TERM_RE.finditer(text)]
+    return [match.group(1) for match in SOURCE_TERM_RE.finditer(text)
+            if match.group(1) not in SOURCE_TERM_STOPWORDS]
 
 
 def protect_terms(text):
     protected = []
 
     def replace(match):
+        if match.group(1) in SOURCE_TERM_STOPWORDS:
+            return match.group(0)
         protected.append(match.group(1))
         return f"__TERM_{len(protected) - 1}__"
 
@@ -30,50 +40,3 @@ def restore_placeholders(text, protected):
         return match.group(0)
 
     return PLACEHOLDER_RE.sub(replace, text)
-
-
-def _term_present(text, term):
-    pattern = r'(?<![A-Za-z0-9/\-._])' + re.escape(term) + r'(?![A-Za-z0-9/\-._])'
-    return re.search(pattern, text) is not None
-
-
-def _camel_words(term):
-    words = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', term)
-    return words if words != term else ""
-
-
-def restore_source_terms(translated, source):
-    for term in sorted(set(extract_source_terms(source)), key=len, reverse=True):
-        pattern = r'(?<![A-Za-z0-9/\-._])' + re.escape(term) + r'(?![A-Za-z0-9/\-._])'
-        if re.search(pattern, translated, flags=re.IGNORECASE):
-            translated = re.sub(pattern, term, translated, flags=re.IGNORECASE)
-            continue
-
-        spaced = _camel_words(term)
-        if spaced:
-            spaced_pattern = r'(?<![A-Za-z0-9/\-._])' + re.escape(spaced) + r'(?![A-Za-z0-9/\-._])'
-            translated = re.sub(spaced_pattern, term, translated, flags=re.IGNORECASE)
-            continue
-
-        for part in re.split(r'[/\-._]', term):
-            if len(part) > 1:
-                part_pattern = r'(?<![A-Za-z0-9])' + re.escape(part) + r'(?![A-Za-z0-9])'
-                translated = re.sub(part_pattern, part, translated, flags=re.IGNORECASE)
-    return translated
-
-
-def missing_source_terms(translated, source):
-    restored = restore_source_terms(translated, source)
-    missing = []
-    for term in extract_source_terms(source):
-        if term not in missing and not _term_present(restored, term):
-            missing.append(term)
-    return missing
-
-
-def ensure_source_terms(translated, source):
-    restored = restore_source_terms(translated, source)
-    missing = missing_source_terms(restored, source)
-    if missing:
-        restored = f"{restored} [{' / '.join(missing)}]"
-    return restored
