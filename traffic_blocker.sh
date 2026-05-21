@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.10"
+tb_SCRIPT_VERSION="1.5.11"
 MIN_MAIN_VERSION="2.10.0"
 
 if [ -n "$shell_version" ]; then
@@ -378,10 +378,81 @@ tb_clear_previous_domain_strategy() {
     jq 'del(.previous_domain_strategy)' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
 }
 
+tb_get_previous_sniffing() {
+    if [[ ! -f "${tb_config_file}" ]]; then
+        echo ""
+        return
+    fi
+    jq -r '.previous_sniffing // ""' "${tb_config_file}" 2>/dev/null
+}
+
+tb_set_previous_sniffing() {
+    local sniffing_json="$1"
+    if [[ ! -f "${tb_config_file}" ]]; then
+        tb_init_config
+    fi
+    local tmp_file="${tb_config_file}.tmp"
+    jq --argjson sn "$sniffing_json" '.previous_sniffing = $sn' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
+}
+
+tb_clear_previous_sniffing() {
+    if [[ ! -f "${tb_config_file}" ]]; then
+        return
+    fi
+    local tmp_file="${tb_config_file}.tmp"
+    jq 'del(.previous_sniffing)' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
+}
+
+tb_save_current_sniffing() {
+    local saved_sniffing
+    saved_sniffing=$(tb_get_previous_sniffing)
+    [[ -n "$saved_sniffing" ]] && return
+    local current_sniffing
+    current_sniffing=$(jq -c '[.inbounds[] | {tag: .tag, sniffing: (.sniffing // null)}]' "${xray_conf}" 2>/dev/null)
+    if [[ -n "$current_sniffing" && "$current_sniffing" != "[]" ]]; then
+        tb_set_previous_sniffing "$current_sniffing"
+    fi
+}
+
+tb_build_sniffing_restore_filter() {
+    local saved_sniffing="$1"
+    local filter=""
+    local i=0
+    local count
+    count=$(echo "$saved_sniffing" | jq 'length' 2>/dev/null)
+    while [[ $i -lt $count ]]; do
+        local tag val
+        tag=$(echo "$saved_sniffing" | jq -r ".[$i].tag" 2>/dev/null)
+        val=$(echo "$saved_sniffing" | jq -c ".[$i].sniffing" 2>/dev/null)
+        if [[ "$val" == "null" ]]; then
+            filter="${filter} | (.inbounds[] | select(.tag == \"${tag}\")) |= del(.sniffing)"
+        else
+            filter="${filter} | (.inbounds[] | select(.tag == \"${tag}\")).sniffing = \$sniffing_${i}"
+        fi
+        i=$((i + 1))
+    done
+    echo "$filter"
+}
+
+tb_build_sniffing_restore_args() {
+    local saved_sniffing="$1"
+    local i=0
+    local count
+    count=$(echo "$saved_sniffing" | jq 'length' 2>/dev/null)
+    while [[ $i -lt $count ]]; do
+        local val
+        val=$(echo "$saved_sniffing" | jq -c ".[$i].sniffing" 2>/dev/null)
+        if [[ "$val" != "null" ]]; then
+            tb_sniffing_args+=("--argjson" "sniffing_${i}" "$val")
+        fi
+        i=$((i + 1))
+    done
+}
+
 tb_get_geo_file_date() {
     local file_path="$1"
     if [[ -f "$file_path" ]]; then
-        stat -c %Y "$file_path" 2>/dev/null || stat -f %m "$file_path" 2>/dev/null
+        stat -c %Y "$file_path" 2>/dev/null
     else
         echo "0"
     fi
@@ -393,7 +464,7 @@ tb_format_date() {
         echo "$(gettext "不存在")"
         return
     fi
-    date -d "@${timestamp}" "+%Y-%m-%d %H:%M" 2>/dev/null || date -r "${timestamp}" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "$(gettext "未知")"
+    date -d "@${timestamp}" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "$(gettext "未知")"
 }
 
 tb_is_geo_outdated() {
@@ -1030,6 +1101,8 @@ tb_apply_rules() {
     local new_domain_strategy
     local clear_saved_domain_strategy=false
     local save_domain_strategy=""
+    local needs_sniffing=false
+    local clear_saved_sniffing=false
 
     block_rules=$(tb_build_block_rules)
     direct_rule=$(tb_build_direct_rule)
@@ -1052,14 +1125,46 @@ tb_apply_rules() {
         clear_saved_domain_strategy=true
     fi
 
+    if [[ "$(tb_get_rule_status bittorrent)" == "true" ]] || [[ "$(tb_get_rule_status country_block)" == "true" ]] || [[ "$(tb_get_rule_status ads)" == "true" ]]; then
+        needs_sniffing=true
+    fi
+
+    local sniffing_jq_filter=""
+    if [[ "$needs_sniffing" == "true" ]]; then
+        tb_save_current_sniffing
+        sniffing_jq_filter='.inbounds[].sniffing = {"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}'
+    else
+        local saved_sniffing
+        saved_sniffing=$(tb_get_previous_sniffing)
+        if [[ -n "$saved_sniffing" ]]; then
+            sniffing_jq_filter=$(tb_build_sniffing_restore_filter "$saved_sniffing")
+            clear_saved_sniffing=true
+        fi
+    fi
+
     if [[ -n "$save_domain_strategy" ]]; then
         tb_set_previous_domain_strategy "$save_domain_strategy"
     fi
 
-    if ! tb_update_xray_config --argjson rules "$new_rules" --arg ds "$new_domain_strategy" \
-        '.routing.rules = $rules | .routing.domainStrategy = $ds'; then
+    local update_filter='.routing.rules = $rules | .routing.domainStrategy = $ds'
+    local update_args=(--argjson rules "$new_rules" --arg ds "$new_domain_strategy")
+    if [[ -n "$sniffing_jq_filter" ]]; then
+        if [[ "$clear_saved_sniffing" == "true" ]]; then
+            local saved_sniffing
+            saved_sniffing=$(tb_get_previous_sniffing)
+            tb_sniffing_args=()
+            tb_build_sniffing_restore_args "$saved_sniffing"
+            update_args+=("${tb_sniffing_args[@]}")
+        fi
+        update_filter="${update_filter}${sniffing_jq_filter}"
+    fi
+
+    if ! tb_update_xray_config "${update_args[@]}" "$update_filter"; then
         if [[ -n "$save_domain_strategy" ]]; then
             tb_clear_previous_domain_strategy
+        fi
+        if [[ "$needs_sniffing" == "true" ]]; then
+            tb_clear_previous_sniffing
         fi
         log_echo "${Error} ${RedBG} $(gettext "修改 Xray 配置失败") ${Font}"
         return
@@ -1068,11 +1173,17 @@ tb_apply_rules() {
     if [[ "$clear_saved_domain_strategy" == "true" ]]; then
         tb_clear_previous_domain_strategy
     fi
+    if [[ "$clear_saved_sniffing" == "true" ]]; then
+        tb_clear_previous_sniffing
+    fi
 
     echo
     log_echo "${OK} ${GreenBG} $(gettext "流量阻断规则已应用") ${Font}"
     if [[ "$new_domain_strategy" == "IPIfNonMatch" ]]; then
         log_echo "${Info} ${Green} $(gettext "域名解析策略已设置为") IPIfNonMatch $(gettext "以支持基于 IP 的阻断规则") ${Font}"
+    fi
+    if [[ "$needs_sniffing" == "true" ]]; then
+        log_echo "${Info} ${Green} $(gettext "协议嗅探已启用以支持流量阻断规则") ${Font}"
     fi
 }
 
@@ -1097,6 +1208,8 @@ tb_reset_rules() {
         local current_domain_strategy
         local saved_domain_strategy
         local reset_domain_strategy
+        local saved_sniffing
+        local reset_sniffing_filter=""
 
         direct_rule=$(tb_build_direct_rule)
         if [[ "$direct_rule" == "{}" ]]; then
@@ -1109,13 +1222,28 @@ tb_reset_rules() {
         saved_domain_strategy=$(tb_get_previous_domain_strategy)
         reset_domain_strategy="${saved_domain_strategy:-${current_domain_strategy:-AsIs}}"
 
-        if ! tb_update_xray_config --argjson rules "$reset_rules" --arg ds "$reset_domain_strategy" \
-            '.routing.rules = $rules | .routing.domainStrategy = $ds'; then
+        saved_sniffing=$(tb_get_previous_sniffing)
+        if [[ -n "$saved_sniffing" ]]; then
+            reset_sniffing_filter=$(tb_build_sniffing_restore_filter "$saved_sniffing")
+        fi
+
+        local reset_filter='.routing.rules = $rules | .routing.domainStrategy = $ds'"${reset_sniffing_filter}"
+        local reset_args=(--argjson rules "$reset_rules" --arg ds "$reset_domain_strategy")
+        if [[ -n "$saved_sniffing" ]]; then
+            tb_sniffing_args=()
+            tb_build_sniffing_restore_args "$saved_sniffing"
+            reset_args+=("${tb_sniffing_args[@]}")
+        fi
+
+        if ! tb_update_xray_config "${reset_args[@]}" "$reset_filter"; then
             log_echo "${Error} ${RedBG} $(gettext "修改 Xray 配置失败") ${Font}"
             return
         fi
 
         tb_clear_previous_domain_strategy
+        if [[ -n "$saved_sniffing" ]]; then
+            tb_clear_previous_sniffing
+        fi
     fi
 
     log_echo "${OK} ${GreenBG} $(gettext "所有阻断规则已重置") ${Font}"
