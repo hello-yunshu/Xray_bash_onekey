@@ -51,7 +51,7 @@ docker exec -it xray-onekey idleleo -h        # 查看帮助
 ## 使用 docker run
 
 ```bash
-docker build -t xray-onekey .
+docker build -f docker/Dockerfile -t xray-onekey .
 
 docker run -d --name xray-onekey   --network host   --cap-add NET_ADMIN   -e TZ=Asia/Shanghai   -v xray-conf:/etc/idleleo/conf   -v xray-cert:/etc/idleleo/cert   -v xray-info:/etc/idleleo/info   -v xray-logs:/var/log/xray   -v acme-data:/root/.acme.sh   -it xray-onekey
 ```

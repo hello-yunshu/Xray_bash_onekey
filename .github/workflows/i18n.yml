@@ -131,7 +131,7 @@ jobs:
           done
       
       - name: Save translation cache
-        if: always() && steps.cache-translations.outputs.cache-hit != 'true'
+        if: always() && steps.cache-translations.outputs.cache-hit != 'true' && hashFiles('i18n/po/cache_*.json') != ''
         uses: actions/cache/save@main
         with:
           path: i18n/po/cache_*.json
