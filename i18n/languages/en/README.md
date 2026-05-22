@@ -136,7 +136,11 @@ cat /etc/idleleo/info/xray_info.inf
 
 | Item | Path |
 |------|------|
-| Xray server config | `/etc/idleleo/conf/xray/config.json` |
-| Nginx directory | `/usr/local/nginx` |
+| Main directory | `/etc/idleleo` |
+| Xray config | `/etc/idleleo/conf/xray/config.json` |
+| Nginx config | `/etc/idleleo/conf/nginx/` |
+| Install info | `/etc/idleleo/info/install_config.json` |
 | Certificate files | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
-| Config info etc. | `/etc/idleleo` |
+| Log directories | `/etc/idleleo/logs/`, `/var/log/xray/` |
+| Nginx directory | `/usr/local/nginx` |
+| Management command | `/usr/bin/idleleo` |

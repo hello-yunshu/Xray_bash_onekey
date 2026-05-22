@@ -59,7 +59,7 @@ idleleo_commend_file="/usr/bin/idleleo"
 ssl_chainpath="${idleleo_dir}/cert"
 nginx_dir="${local_bin}/nginx"
 xray_info_file="${idleleo_dir}/info/xray_info.inf"
-xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
+xray_install_config_file="${idleleo_dir}/info/install_config.json"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 xray_systemd_file="/etc/systemd/system/xray.service"
 xray_access_log="/var/log/xray/access.log"
@@ -89,7 +89,7 @@ reality_add_balance="off"
 old_config_status="off"
 old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
-[[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+[[ -f "${xray_install_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_install_config_file}")
 
 is_ws_mode() {
     [[ ${transport_mode} == *ws* || ${transport_mode} == "all" ]]
@@ -199,7 +199,7 @@ update_json_config() {
     if ! mv "${config_file}.tmp" "${config_file}"; then
         return 1
     fi
-    if [[ "${config_file}" == "${xray_qr_config_file}" ]]; then
+    if [[ "${config_file}" == "${xray_install_config_file}" ]]; then
         info_extraction_all=$(jq -rc . "${config_file}" 2>/dev/null) || return 1
         declare -F _info_cache_invalidate >/dev/null && _info_cache_invalidate
     fi
@@ -308,15 +308,15 @@ check_system() {
     if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]] && [[ ${VERSION_ID%%.*} -ge 10 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} ${VERSION} ${Font}"
         INS="yum"
-        [[ ! -f "${xray_qr_config_file}" ]] && $INS update || true
+        [[ ! -f "${xray_install_config_file}" ]] && $INS update || true
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 12 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Debian ${VERSION_ID} ${VERSION} ${Font}"
         INS="apt"
-        [[ ! -f "${xray_qr_config_file}" ]] && $INS update || true
+        [[ ! -f "${xray_install_config_file}" ]] && $INS update || true
     elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 24 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
         INS="apt"
-        if [[ ! -f "${xray_qr_config_file}" ]]; then
+        if [[ ! -f "${xray_install_config_file}" ]]; then
             rm /var/lib/dpkg/lock || true
             dpkg --configure -a || true
             rm /var/lib/apt/lists/lock || true
@@ -1802,7 +1802,7 @@ xray_update() {
     fi
     xray_privilege_escalation
     set_xray_config_path
-    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version' || return 1
+    update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version' || return 1
     systemctl daemon-reload
     systemctl start xray
     if ! ${xray_bin_dir}/xray -version &> /dev/null; then
@@ -2058,7 +2058,7 @@ nginx_update() {
         if [[ ${nginx_build_version} != ${current_nginx_build_version} ]]; then
             log_echo "${Info} ${GreenBG} Nginx $(gettext "更新"): v${current_nginx_build_version} → v${nginx_build_version} ${Font}"
             ip_check
-            if [[ -f "${xray_qr_config_file}" ]]; then
+            if [[ -f "${xray_install_config_file}" ]]; then
                 domain=$(info_extraction host)
                 if [[ ${tls_mode} == "TLS" ]]; then
                     port=$(info_extraction port)
@@ -2173,7 +2173,7 @@ nginx_update() {
                     log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
                     if restore_nginx_backup "${backup_nginx_dir}"; then
                         log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
-                        update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' || return 1
+                        update_json_config "${xray_install_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' || return 1
                     else
                         log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
                     fi
@@ -2188,7 +2188,7 @@ nginx_update() {
                     log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
                     if restore_nginx_backup "${backup_nginx_dir}"; then
                         log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
-                        update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' || return 1
+                        update_json_config "${xray_install_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' || return 1
                         safe_rm "${backup_nginx_dir}"
                         return 1
                     else
@@ -2200,7 +2200,7 @@ nginx_update() {
             elif [[ ${service_start_failed} -eq 1 ]]; then
                 return 1
             else
-                update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version'
+                update_json_config "${xray_install_config_file}" --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version'
                 judge "Nginx $(gettext "更新")"
                 safe_rm "${backup_nginx_dir}"
                 judge "$(gettext "删除") Nginx $(gettext "备份")"
@@ -2513,7 +2513,7 @@ xray_conf_add() {
         case $save_originxray_fq in
         [nN][oO] | [nN])
             rm -rf "${xray_conf}"
-            update_json_config "${xray_qr_config_file}" 'del(.multi_user)'
+            update_json_config "${xray_install_config_file}" 'del(.multi_user)'
             log_echo "${OK} ${GreenBG} $(gettext "原配置文件已删除")! ${Font}"
             xray_conf_add
             ;;
@@ -2557,14 +2557,14 @@ xray_reality_add_more() {
 }
 
 old_config_exist_check() {
-    if [[ -f "${xray_qr_config_file}" ]]; then
+    if [[ -f "${xray_install_config_file}" ]]; then
         if [[ ${old_tls_mode} == ${tls_mode} ]]; then
             echo
             log_echo "${GreenBG} $(gettext "检测到配置文件, 是否读取配置文件") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
             read -r old_config_fq
             case $old_config_fq in
             [nN][oO] | [nN])
-                rm -rf "${xray_qr_config_file}"
+                rm -rf "${xray_install_config_file}"
                 log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
                 ;;
             *)
@@ -2585,7 +2585,7 @@ old_config_exist_check() {
                 menu
                 ;;
             *)
-                rm -rf "${xray_qr_config_file}"
+                rm -rf "${xray_install_config_file}"
                 log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
                 ;;
             esac
@@ -2594,7 +2594,7 @@ old_config_exist_check() {
 }
 
 old_config_input() {
-    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     _info_cache_invalidate
     custom_email=$(info_extraction email)
     UUID5_char=$(info_extraction idc)
@@ -2660,7 +2660,7 @@ old_config_input() {
             log_echo "${OK} ${GreenBG} $(gettext "已保留配置文件") ${Font}"
             ;;
         *)
-            rm -rf "${xray_qr_config_file}"
+            rm -rf "${xray_install_config_file}"
             old_config_status="off"
             log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
             ;;
@@ -3184,8 +3184,8 @@ clean_logs() {
     setup_auto_clean_logs
 }
 
-vless_qr_config_tls_ws() {
-    cat >"${xray_qr_config_file}" <<-EOF
+install_config_tls_ws() {
+    cat >"${xray_install_config_file}" <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "transport_mode": "${transport_mode}",
@@ -3208,12 +3208,12 @@ vless_qr_config_tls_ws() {
     "nginx_build_version": "${nginx_build_version:-}"
 }
 EOF
-    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     _info_cache_invalidate
 }
 
-vless_qr_config_reality() {
-    cat >"${xray_qr_config_file}" <<-EOF
+install_config_reality() {
+    cat >"${xray_install_config_file}" <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "transport_mode": "${transport_mode}",
@@ -3244,14 +3244,14 @@ vless_qr_config_reality() {
 }
 EOF
     if [[ ${reality_add_nginx} == "on" ]]; then
-        update_json_config "${xray_qr_config_file}" --arg nginx_build_version "${nginx_build_version}" '. + {"nginx_build_version": $nginx_build_version}'
+        update_json_config "${xray_install_config_file}" --arg nginx_build_version "${nginx_build_version}" '. + {"nginx_build_version": $nginx_build_version}'
     fi
-    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     _info_cache_invalidate
 }
 
-vless_qr_config_xtls_only() {
-    cat >"${xray_qr_config_file}" <<-EOF
+install_config_xtls_only() {
+    cat >"${xray_install_config_file}" <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "transport_mode": "None",
@@ -3268,12 +3268,12 @@ vless_qr_config_xtls_only() {
     "xray_version": "${xray_version:-}"
 }
 EOF
-    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     _info_cache_invalidate
 }
 
-vless_qr_config_ws_only() {
-    cat >"${xray_qr_config_file}" <<-EOF
+install_config_ws_only() {
+    cat >"${xray_install_config_file}" <<-EOF
 {
     "shell_mode": "${shell_mode}",
     "transport_mode": "${transport_mode}",
@@ -3294,7 +3294,7 @@ vless_qr_config_ws_only() {
     "xray_version": "${xray_version:-}"
 }
 EOF
-    info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+    info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     _info_cache_invalidate
 }
 
@@ -3476,7 +3476,7 @@ ${flow_line}
     echo "${clash_config}"
 }
 
-vless_qr_link_image() {
+install_link_image() {
     local main_id
     main_id=$(info_extraction id)
 
@@ -3595,7 +3595,7 @@ $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" ""
 vless_link_image_choice() {
     echo
     log_echo "${GreenBG} $(gettext "生成分享链接"): ${Font}"
-    vless_qr_link_image
+    install_link_image
 }
 
 declare -A _info_cache=()
@@ -3643,7 +3643,7 @@ install_iftop() {
 }
 
 monitor_traffic_with_iftop() {
-    if [[ ! -f "${xray_qr_config_file}" ]]; then
+    if [[ ! -f "${xray_install_config_file}" ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
         exit 1
     fi
@@ -3908,26 +3908,26 @@ tls_type() {
     fi
 }
 
-reset_vless_qr_config() {
-    [[ -f "${xray_qr_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_qr_config_file}")
+reset_install_config() {
+    [[ -f "${xray_install_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     _info_cache_invalidate
     basic_information
-    vless_qr_link_image
+    install_link_image
     show_information
 }
 
 reset_UUID() {
-    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
+    if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local _saved_old_config_status="${old_config_status}"
         old_config_status="off"
         UUID_set
         old_config_status="${_saved_old_config_status}"
         modify_UUID
-        update_json_config "${xray_qr_config_file}" --arg uuid "${UUID}" \
+        update_json_config "${xray_install_config_file}" --arg uuid "${UUID}" \
            --arg uuid5_char "${UUID5_char}" \
            '.id = $uuid | .idc = $uuid5_char'
         service_restart || return 1
-        reset_vless_qr_config
+        reset_install_config
         return 0
     else
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
@@ -3936,13 +3936,13 @@ reset_UUID() {
 }
 
 reset_port() {
-    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
+    if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local _saved_old_config_status="${old_config_status}"
         old_config_status="off"
         if [[ ${tls_mode} == "TLS" ]]; then
             port_set
             modify_nginx_port
-            update_json_config "${xray_qr_config_file}" --argjson port "${port:-0}" '.port = $port'
+            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port'
             log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         elif [[ ${tls_mode} == "Reality" ]]; then
             port_set
@@ -3979,7 +3979,7 @@ reset_port() {
             if is_xhttp_mode; then
                 port_update_expr="${port_update_expr} | .xhttp_port = \$xhttp_port"
             fi
-            update_json_config "${xray_qr_config_file}" --argjson port "${port:-0}" \
+            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" \
                --argjson ws_port "${xport:-0}" \
                --argjson grpc_port "${gport:-0}" \
                --argjson xhttp_port "${xhttpport:-0}" \
@@ -4021,7 +4021,7 @@ reset_port() {
                 none_port_update="${none_port_update} | .xhttp_port = \$xhttp_port"
             fi
             if [[ -n "${none_port_update}" ]]; then
-                update_json_config "${xray_qr_config_file}" --argjson ws_port "${xport:-0}" \
+                update_json_config "${xray_install_config_file}" --argjson ws_port "${xport:-0}" \
                    --argjson grpc_port "${gport:-0}" \
                    --argjson xhttp_port "${xhttpport:-0}" \
                    "${none_port_update# | }"
@@ -4029,7 +4029,7 @@ reset_port() {
             modify_inbound_port
         elif [[ ${tls_mode} == "XTLS" ]]; then
             port_set
-            update_json_config "${xray_qr_config_file}" --argjson port "${port:-0}" '.port = $port'
+            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port'
             modify_inbound_port
             log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         fi
@@ -4038,7 +4038,7 @@ reset_port() {
             old_config_status="${_saved_old_config_status}"
             return 1
         fi
-        reset_vless_qr_config
+        reset_install_config
         old_config_status="${_saved_old_config_status}"
         return 0
     else
@@ -4048,7 +4048,7 @@ reset_port() {
 }
 
 reset_target() {
-    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} == "Reality" ]]; then
+    if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ ${tls_mode} == "Reality" ]]; then
         target_reset=1
         serverNames=$(info_extraction serverNames)
         nginx_reality_serverNames_del
@@ -4058,11 +4058,11 @@ reset_target() {
         if [[ ${reality_add_nginx} == "on" ]]; then
             nginx_reality_serverNames_add
         fi
-        update_json_config "${xray_qr_config_file}" --arg target "${target}" \
+        update_json_config "${xray_install_config_file}" --arg target "${target}" \
            --arg serverNames "${serverNames}" \
            '.target = $target | .serverNames = $serverNames'
         service_restart || return 1
-        reset_vless_qr_config
+        reset_install_config
         return 0
     elif [[ ${tls_mode} != "Reality" ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持修改") target ! ${Font}"
@@ -4078,7 +4078,7 @@ show_user() {
         log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持查看用户")! ${Font}"
         return
     fi
-    if [[ ! -f "${xray_qr_config_file}" ]] || [[ ! -f "${xray_conf}" ]]; then
+    if [[ ! -f "${xray_install_config_file}" ]] || [[ ! -f "${xray_conf}" ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
         return
     fi
@@ -4165,7 +4165,7 @@ show_user() {
 
 add_user() {
     local choose_user_prot reality_user_more
-    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
+    if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local add_user_continue
         while true; do
             echo
@@ -4218,7 +4218,7 @@ add_user() {
                    {"level": 0, "email": $custom_email}
                ]'
             judge -r "$(gettext "添加用户")" || return 1
-            update_json_config "${xray_qr_config_file}" ". += {\"multi_user\": \"yes\"}"
+            update_json_config "${xray_install_config_file}" ". += {\"multi_user\": \"yes\"}"
             echo
             log_echo "${GreenBG} $(gettext "是否继续添加用户") [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
             read -r add_user_continue
@@ -4237,7 +4237,7 @@ add_user() {
 }
 
 remove_user() {
-    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
+    if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local choose_user_prot
         if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "None" ]]; then
             if [[ ${transport_mode} == "onlyws" ]]; then
@@ -4295,7 +4295,7 @@ remove_user() {
                 local remaining_multi_user
                 remaining_multi_user=$(jq '[.inbounds[].settings.clients | length] | any(. > 1)' "${xray_conf}" 2>/dev/null)
                 if [[ "${remaining_multi_user}" != "true" ]]; then
-                    update_json_config "${xray_qr_config_file}" 'del(.multi_user)'
+                    update_json_config "${xray_install_config_file}" 'del(.multi_user)'
                 fi
             fi
             echo
@@ -4397,8 +4397,8 @@ uninstall_xray() {
     systemctl disable xray
     xray_install_release remove --purge
     [[ -d "${xray_conf_dir}" ]] && safe_rm "${xray_conf_dir}"
-    if [[ -f "${xray_qr_config_file}" ]]; then
-        update_json_config "${xray_qr_config_file}" -r 'del(.xray_version)'
+    if [[ -f "${xray_install_config_file}" ]]; then
+        update_json_config "${xray_install_config_file}" -r 'del(.xray_version)'
     fi
     log_echo "${OK} ${GreenBG} $(gettext "已卸载") Xray ${Font}"
 }
@@ -4418,8 +4418,8 @@ uninstall_nginx() {
     safe_rm "${nginx_dir}"
     safe_rm "${nginx_conf_dir}"
     [[ -f "${nginx_systemd_file}" ]] && safe_rm "${nginx_systemd_file}"
-    if [[ -f "${xray_qr_config_file}" ]]; then
-        update_json_config "${xray_qr_config_file}" 'del(.nginx_build_version)'
+    if [[ -f "${xray_install_config_file}" ]]; then
+        update_json_config "${xray_install_config_file}" 'del(.nginx_build_version)'
     fi
     log_echo "${OK} ${GreenBG} $(gettext "已卸载") Nginx ${Font}"
 }
@@ -4446,7 +4446,7 @@ uninstall_all() {
     [[ -d "${nginx_dir}" ]] && uninstall_nginx --force
     echo
     local keep_config=true
-    if [[ -f "${xray_qr_config_file}" ]]; then
+    if [[ -f "${xray_install_config_file}" ]]; then
         log_echo "${GreenBG} $(gettext "是否保留配置文件") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r remove_config_fq
         case $remove_config_fq in
@@ -4463,14 +4463,14 @@ uninstall_all() {
     read -r remove_all_idleleo_file_fq
     case $remove_all_idleleo_file_fq in
     [yY][eE][sS] | [yY])
-        if [[ "${keep_config}" == "true" && -f "${xray_qr_config_file}" ]]; then
+        if [[ "${keep_config}" == "true" && -f "${xray_install_config_file}" ]]; then
             local _tmp_config
             _tmp_config=$(mktemp)
-            cp -f "${xray_qr_config_file}" "${_tmp_config}"
+            cp -f "${xray_install_config_file}" "${_tmp_config}"
             safe_rm "${idleleo_commend_file}"
             safe_rm "${idleleo_dir}"
             mkdir -p "${idleleo_dir}/info"
-            mv -f "${_tmp_config}" "${xray_qr_config_file}"
+            mv -f "${_tmp_config}" "${xray_install_config_file}"
         else
             safe_rm "${idleleo_commend_file}"
             safe_rm "${idleleo_dir}"
@@ -4481,8 +4481,8 @@ uninstall_all() {
         exit 0
         ;;
     *)
-        if [[ "${keep_config}" == "false" && -f "${xray_qr_config_file}" ]]; then
-            rm -rf "${xray_qr_config_file}"
+        if [[ "${keep_config}" == "false" && -f "${xray_install_config_file}" ]]; then
+            rm -rf "${xray_install_config_file}"
             log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
         fi
         systemctl daemon-reload
@@ -4538,7 +4538,7 @@ countdown() {
 }
 
 judge_mode() {
-    if [[ -f "${xray_qr_config_file}" ]]; then
+    if [[ -f "${xray_install_config_file}" ]]; then
         transport_mode=$(info_extraction transport_mode)
         [[ -z ${transport_mode} || ${transport_mode} == "null" ]] && transport_mode="None"
         tls_mode=$(info_extraction tls)
@@ -4573,10 +4573,10 @@ install_xray_ws_tls() {
     email_set
     UUID_set
     transport_qr
-    vless_qr_config_tls_ws
+    install_config_tls_ws
     stop_service_all
     xray_install
-    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
+    update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check 80
     port_exist_check "${port}"
     nginx_exist_check
@@ -4622,8 +4622,8 @@ install_xray_reality() {
     reality_balance_add_fq
     reality_nginx_add_fq
     xray_conf_add
-    vless_qr_config_reality
-    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
+    install_config_reality
+    update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     tls_type || return 1
     basic_information
     enable_process_systemd || return 1
@@ -4649,10 +4649,10 @@ install_xray_xtls_only() {
     firewall_set
     email_set
     UUID_set
-    vless_qr_config_xtls_only
+    install_config_xtls_only
     stop_service_all
     xray_install
-    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
+    update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check "${port}"
     xray_conf_add
     basic_information
@@ -4684,10 +4684,10 @@ install_xray_ws_only() {
     email_set
     UUID_set
     transport_qr
-    vless_qr_config_ws_only
+    install_config_ws_only
     stop_service_all
     xray_install
-    update_json_config "${xray_qr_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
+    update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check "${xport}"
     port_exist_check "${gport}"
     port_exist_check "${xhttpport}"
@@ -4737,7 +4737,7 @@ update_sh() {
                 return 1
             fi
             ln -s "${idleleo}" "${idleleo_commend_file}"
-            [[ -f "${xray_qr_config_file}" ]] && update_json_config "${xray_qr_config_file}" --arg shell_version "${shell_version}" '.shell_version = $shell_version'
+            [[ -f "${xray_install_config_file}" ]] && update_json_config "${xray_install_config_file}" --arg shell_version "${shell_version}" '.shell_version = $shell_version'
             clear
             log_echo "${OK} ${GreenBG} $(gettext "更新完成") ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
@@ -4770,8 +4770,15 @@ check_file_integrity() {
     fi
 }
 
-# COMPAT_START v2.15: 迁移旧版子脚本从 idleleo_dir 根目录到 scripts_dir，v2.15 后删除
-migrate_scripts_dir() {
+compat_migrate() {
+    # COMPAT: vless_qr.json → install_config.json，v2.15 后删除
+    local _old_install_config="${idleleo_dir}/info/vless_qr.json"
+    if [[ -f "${_old_install_config}" && ! -f "${xray_install_config_file}" ]]; then
+        mv "${_old_install_config}" "${xray_install_config_file}"
+        info_extraction_all=$(jq -rc . "${xray_install_config_file}")
+    fi
+    # COMPAT_END
+    # COMPAT: 子脚本从 idleleo_dir 根目录迁移到 scripts_dir，v2.15 后删除
     [[ -d "${scripts_dir}" ]] && return 0
     local _migrated=0
     local _script
@@ -4795,8 +4802,8 @@ migrate_scripts_dir() {
             sed -i "s|${idleleo_dir}/ssl_update\.sh|${scripts_dir}/ssl_update.sh|g" "${_crontab_file}"
         fi
     fi
+    # COMPAT_END
 }
-# COMPAT_END v2.15
 
 read_version() {
     shell_online_version="$(check_version shell_online_version)"
@@ -4898,7 +4905,7 @@ list() {
     '-s' | '--show')
         clear
         basic_information
-        vless_qr_link_image
+        install_link_image
         show_information
         ;;
     '-t' | '--target-reset')
@@ -5024,7 +5031,7 @@ idleleo_commend() {
                 shell_need_update="${Green}[$(gettext "最新版")]${Font}"
                 shell_emoji="${Green}^O^${Font}"
             fi
-            if [[ -f "${xray_qr_config_file}" ]]; then
+            if [[ -f "${xray_install_config_file}" ]]; then
                 if [[ -z "$(info_extraction nginx_build_version)" ]] || [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
                     nginx_need_update="${Green}[$(gettext "未安装")]${Font}"
                 elif [[ ${nginx_build_version} != $(info_extraction nginx_build_version) ]]; then
@@ -5032,7 +5039,7 @@ idleleo_commend() {
                 else
                     nginx_need_update="${Green}[$(gettext "最新版")]${Font}"
                 fi
-                if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f "${xray_bin_dir}/xray" ]]; then
+                if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f "${xray_bin_dir}/xray" ]]; then
                     ##xray_online_version=$(check_version xray_online_pre_version)
                     if [[ -z "$(info_extraction xray_version)" ]]; then
                         xray_need_update="${Green}[$(gettext "已安装")] ($(gettext "版本未知"))${Font}"
@@ -5128,7 +5135,7 @@ check_reality_tcp_ports() {
 }
 
 check_xray_local_connect() {
-    if [[ -f "${xray_qr_config_file}" ]]; then
+    if [[ -f "${xray_install_config_file}" ]]; then
         xray_local_connect_status="${Red}$(gettext "无法连通")${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
             if [[ ${transport_mode} == "onlyxhttp" ]]; then
@@ -5496,7 +5503,7 @@ menu() {
     18)
         clear
         basic_information
-        vless_qr_link_image
+        install_link_image
         show_information
         menu
         ;;
@@ -5621,9 +5628,7 @@ menu() {
 [[ "${_TEST_MODE:-0}" == "1" ]] && return 0
 
 check_file_integrity
-# COMPAT_START v2.15
-migrate_scripts_dir
-# COMPAT_END v2.15
+compat_migrate
 check_online_version_connect
 init_language
 read_version

@@ -15,7 +15,7 @@ xray_conf="${xray_conf_dir}/config.json"
 log_dir="${idleleo_dir}/logs"
 log_file="${log_dir}/auto_update.log"
 running_file="${log_dir}/auto_update.running"
-xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
+xray_install_config_file="${idleleo_dir}/info/install_config.json"
 failed_update_marker="${log_dir}/update_failed.mark"
 
 check_update() {
@@ -77,12 +77,12 @@ if [[ -z "${get_versions_all}" ]]; then
     exit 0
 fi
 
-if [[ ! -f "${xray_qr_config_file}" ]]; then
+if [[ ! -f "${xray_install_config_file}" ]]; then
     echo "Config file not found, skipping update checks." >>"${log_file}"
     exit 0
 fi
 
-info_extraction_all=$(jq -rc . "${xray_qr_config_file}" 2>/dev/null)
+info_extraction_all=$(jq -rc . "${xray_install_config_file}" 2>/dev/null)
 
 check_online_version() {
     local result
@@ -102,16 +102,16 @@ shell_online_version="$(check_online_version shell_online_version)"
 xray_online_version="$(check_online_version xray_online_version)"
 nginx_online_version="$(check_online_version nginx_build_online_version)"
 
-if [[ -f "${xray_qr_config_file}" ]]; then
+if [[ -f "${xray_install_config_file}" ]]; then
     if [[ $(info_extraction shell_version) == null ]] || [[ $(info_extraction shell_version) != "${shell_online_version}" ]]; then
         bash "${idleleo_dir}/install.sh" -u auto_update
         [[ 0 -ne $? ]] && echo "Script update failed!" >>"${log_file}" && exit 1
         echo "Script updated successfully!" >>"${log_file}"
-        add_shell_version=$(jq -r --arg sv "${shell_online_version}" '. += {"shell_version": $sv}' "${xray_qr_config_file}" 2>/dev/null)
+        add_shell_version=$(jq -r --arg sv "${shell_online_version}" '. += {"shell_version": $sv}' "${xray_install_config_file}" 2>/dev/null)
         if [[ -n "${add_shell_version}" ]]; then
-            tmp_config="${xray_qr_config_file}.tmp.$$"
-            echo "${add_shell_version}" | jq . >"${tmp_config}" 2>/dev/null && mv "${tmp_config}" "${xray_qr_config_file}" || rm -f "${tmp_config}"
-            info_extraction_all=$(jq -rc . "${xray_qr_config_file}" 2>/dev/null)
+            tmp_config="${xray_install_config_file}.tmp.$$"
+            echo "${add_shell_version}" | jq . >"${tmp_config}" 2>/dev/null && mv "${tmp_config}" "${xray_install_config_file}" || rm -f "${tmp_config}"
+            info_extraction_all=$(jq -rc . "${xray_install_config_file}" 2>/dev/null)
         fi
     else
         echo "Script is up to date!" >>"${log_file}"
@@ -132,7 +132,7 @@ if [[ -f "${xray_qr_config_file}" ]]; then
     else
         echo "Nginx not installed!" >>"${log_file}"
     fi
-    if [[ -f "${xray_qr_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f /usr/local/bin/xray ]]; then
+    if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f /usr/local/bin/xray ]]; then
         if [[ $(info_extraction xray_version) != null ]]; then
             if [[ "${xray_online_version}" != "$(info_extraction xray_version)" ]]; then
                 echo "Updating Xray..." >>"${log_file}"
