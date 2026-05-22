@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.9"
+shell_version="2.12.10"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -44,6 +44,7 @@ local_bin="/usr/local"
 idleleo_dir="/etc/idleleo"
 idleleo="${idleleo_dir}/install.sh"
 idleleo_conf_dir="${idleleo_dir}/conf"
+scripts_dir="${idleleo_dir}/scripts"
 log_dir="${idleleo_dir}/logs"
 xray_bin_dir="${local_bin}/bin"
 xray_conf_dir="${idleleo_conf_dir}/xray"
@@ -64,12 +65,14 @@ xray_systemd_file="/etc/systemd/system/xray.service"
 xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
-auto_update_file="${idleleo_dir}/auto_update.sh"
-ssl_update_file="${idleleo_dir}/ssl_update.sh"
-geo_update_file="${idleleo_dir}/geo_update.sh"
-mf_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh"
-tb_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"
-fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"
+auto_update_file="${scripts_dir}/auto_update.sh"
+ssl_update_file="${scripts_dir}/ssl_update.sh"
+geo_update_file="${scripts_dir}/geo_update.sh"
+mf_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/fail2ban_manager.sh"
+tb_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/traffic_blocker.sh"
+fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/file_manager.sh"
+au_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/auto_update.sh"
+main_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh"
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=""
 _get_versions_loaded=0
@@ -348,7 +351,7 @@ check_and_create_user_group() {
 check_language_update() {
     local lang_code="$1"
     local local_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/xray_install.mo"
-    local version_file_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/languages/${lang_code}/LC_MESSAGES/version"
+    local version_file_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/i18n/languages/${lang_code}/LC_MESSAGES/version"
 
     [[ ! -f "${local_file}" ]] && return 0
 
@@ -370,7 +373,7 @@ update_language_file() {
     local lang_code="$1"
     local mo_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/xray_install.mo"
     local version_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/version"
-    local github_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/languages"
+    local github_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/i18n/languages"
 
     mkdir -p "${idleleo_dir}/languages/${lang_code}/LC_MESSAGES"
 
@@ -1212,8 +1215,9 @@ shortIds_set() {
 ensure_sub_script() {
     local script_name="$1"
     local remote_url="$2"
-    local local_file="${idleleo_dir}/${script_name}"
+    local local_file="${scripts_dir}/${script_name}"
 
+    mkdir -p "${scripts_dir}"
     if [ ! -f "$local_file" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件") ${script_name} $(gettext "不存在, 正在下载")... ${Font}"
         if ! download_script_file "$remote_url" "$local_file"; then
@@ -1268,11 +1272,11 @@ nginx_upstream_server_set() {
             local upstream_choose
             read_optimize "$(gettext "请输入"): " "upstream_choose" "NULL" 1 4 "$(gettext "请输入有效的数字")!"
 
-            if ensure_sub_script "file_manager.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"; then
+            if ensure_sub_script "file_manager.sh" "${fm_remote_url}"; then
                 case $upstream_choose in
-                1) source "${idleleo_dir}/file_manager.sh" wsServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
-                2) source "${idleleo_dir}/file_manager.sh" grpcServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
-                3) source "${idleleo_dir}/file_manager.sh" xhttpServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
+                1) source "${scripts_dir}/file_manager.sh" wsServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
+                2) source "${scripts_dir}/file_manager.sh" grpcServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
+                3) source "${scripts_dir}/file_manager.sh" xhttpServers ${nginx_conf_dir}; fm_check_for_updates; fm_main_menu ;;
                 4) ;;
                 *)
                     log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试")! ${Font}"
@@ -1281,8 +1285,8 @@ nginx_upstream_server_set() {
                 esac
             fi
         elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_balance} == "on" ]] && [[ ${reality_add_nginx} == "on" ]]; then
-            if ensure_sub_script "file_manager.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"; then
-                source "${idleleo_dir}/file_manager.sh" realityServers ${nginx_conf_dir}
+            if ensure_sub_script "file_manager.sh" "${fm_remote_url}"; then
+                source "${scripts_dir}/file_manager.sh" realityServers ${nginx_conf_dir}
                 fm_check_for_updates
                 fm_main_menu
             fi
@@ -1304,8 +1308,8 @@ nginx_servernames_server_set() {
         read -r nginx_servernames_server_fq
         case $nginx_servernames_server_fq in
         [yY][eE][sS] | [yY])
-            if ensure_sub_script "file_manager.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/file_manager.sh"; then
-                source "${idleleo_dir}/file_manager.sh" serverNames ${nginx_conf_dir}
+            if ensure_sub_script "file_manager.sh" "${fm_remote_url}"; then
+                source "${scripts_dir}/file_manager.sh" serverNames ${nginx_conf_dir}
                 fm_check_for_updates
                 fm_main_menu
             fi
@@ -2224,7 +2228,7 @@ auto_update() {
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
-            download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/auto_update.sh" "${auto_update_file}"
+            download_script_file "${au_remote_url}" "${auto_update_file}"
             judge -r "$(gettext "下载自动更新脚本")" || return 1
             echo "0 1 15 * * bash \"${auto_update_file}\"" >>"${crontab_file}"
             judge -r "$(gettext "设置自动更新")"
@@ -2460,7 +2464,7 @@ acme() {
 xray_conf_add() {
     if [[ $(info_extraction multi_user) != "yes" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
-            judge "$(gettext "下载 Xray TLS 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json" "${xray_conf}"
+            judge "$(gettext "下载 Xray TLS 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/vless_tls.json" "${xray_conf}"
             if [[ ${transport_mode} == "onlygRPC" ]]; then
                 update_json_config "${xray_conf}" 'del(.inbounds[] | select(.tag == "VLESS-ws-in")) | .routing.rules[0].inboundTag = []'
                 add_grpc_inbound "127.0.0.1" "${gport}" "${serviceName}"
@@ -2475,12 +2479,12 @@ xray_conf_add() {
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "Reality" ]]; then
-            judge "$(gettext "下载 Xray Reality 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_reality/config.json" "${xray_conf}"
+            judge "$(gettext "下载 Xray Reality 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/vless_reality.json" "${xray_conf}"
             modify_target_serverNames
             modify_privateKey_shortIds
             xray_reality_add_more
         elif [[ ${tls_mode} == "None" ]]; then
-            judge "$(gettext "下载 Xray 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_tls/config.json" "${xray_conf}"
+            judge "$(gettext "下载 Xray 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/vless_tls.json" "${xray_conf}"
             if [[ ${transport_mode} == "onlygRPC" ]]; then
                 update_json_config "${xray_conf}" 'del(.inbounds[] | select(.tag == "VLESS-ws-in")) | .routing.rules[0].inboundTag = []'
                 add_grpc_inbound "0.0.0.0" "${gport}" "${serviceName}"
@@ -2495,7 +2499,7 @@ xray_conf_add() {
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "XTLS" ]]; then
-            judge "$(gettext "下载 Xray XTLS 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/VLESS_xtls/config.json" "${xray_conf}"
+            judge "$(gettext "下载 Xray XTLS 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/vless_xtls.json" "${xray_conf}"
             modify_listen_address
             modify_inbound_port
         fi
@@ -3102,10 +3106,10 @@ cert_update_manuel() {
 }
 
 set_fail2ban() {
-    if ! ensure_sub_script "fail2ban_manager.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/fail2ban_manager.sh"; then
+    if ! ensure_sub_script "fail2ban_manager.sh" "${mf_remote_url}"; then
         return 1
     fi
-    source "${idleleo_dir}/fail2ban_manager.sh"
+    source "${scripts_dir}/fail2ban_manager.sh"
     mf_check_for_updates
     mf_main_menu
 }
@@ -3115,10 +3119,10 @@ set_traffic_blocker() {
         log_echo "${Error} ${RedBG} Xray $(gettext "未安装"), $(gettext "请先安装") Xray ${Font}"
         return 1
     fi
-    if ! ensure_sub_script "traffic_blocker.sh" "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/traffic_blocker.sh"; then
+    if ! ensure_sub_script "traffic_blocker.sh" "${tb_remote_url}"; then
         return 1
     fi
-    source "${idleleo_dir}/traffic_blocker.sh"
+    source "${scripts_dir}/traffic_blocker.sh"
     tb_check_for_updates
     tb_main_menu
 }
@@ -4348,7 +4352,7 @@ xray_status_add() {
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
                 service_stop || return 1
-                if ! judge -r "$(gettext "下载流量统计配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/status_config.json" "${xray_status_conf}"; then
+                if ! judge -r "$(gettext "下载流量统计配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/status_config.json" "${xray_status_conf}"; then
                     service_start
                     return 1
                 fi
@@ -4376,11 +4380,11 @@ xray_status_add() {
 
 bbr_boost_sh() {
     read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
-    if [[ -f "${idleleo_dir}/tcp.sh" ]]; then
-        cd ${idleleo_dir} && chmod +x ./tcp.sh && ./tcp.sh
+    if [[ -f "${scripts_dir}/tcp.sh" ]]; then
+        cd "${scripts_dir}" && chmod +x ./tcp.sh && ./tcp.sh
     else
-        if download_script_file "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" "${idleleo_dir}/tcp.sh"; then
-            "${idleleo_dir}/tcp.sh"
+        if download_script_file "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" "${scripts_dir}/tcp.sh"; then
+            "${scripts_dir}/tcp.sh"
         else
             log_echo "${Error} ${RedBG} TCP $(gettext "加速脚本下载失败") ${Font}"
             return 1
@@ -4726,7 +4730,7 @@ update_sh() {
         case $update_confirm in
         [yY][eE][sS] | [yY])
             [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
-            download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
+            download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
             if [[ $? -ne 0 ]]; then
                 [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>"${log_file}"
                 [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
@@ -4757,13 +4761,42 @@ check_file_integrity() {
         pkg_install "bc,jq"
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p "${idleleo_dir}"
         [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p "${idleleo_dir}"/tmp
-        download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
+        [[ ! -d "${scripts_dir}" ]] && mkdir -p "${scripts_dir}"
+        download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
         judge "$(gettext "下载最新脚本")"
         ln -s "${idleleo}" "${idleleo_commend_file}"
         clear
         exec "${BASH:-bash}" "${idleleo}"
     fi
 }
+
+# COMPAT_START v2.15: 迁移旧版子脚本从 idleleo_dir 根目录到 scripts_dir，v2.15 后删除
+migrate_scripts_dir() {
+    [[ -d "${scripts_dir}" ]] && return 0
+    local _migrated=0
+    local _script
+    for _script in fail2ban_manager.sh traffic_blocker.sh file_manager.sh auto_update.sh ssl_update.sh geo_update.sh tcp.sh; do
+        if [[ -f "${idleleo_dir}/${_script}" ]]; then
+            [[ ${_migrated} -eq 0 ]] && mkdir -p "${scripts_dir}"
+            mv -f "${idleleo_dir}/${_script}" "${scripts_dir}/${_script}"
+            _migrated=1
+        fi
+    done
+    if [[ ${_migrated} -eq 1 ]]; then
+        local _crontab_file
+        if [[ "${ID}" == "centos" ]]; then
+            _crontab_file="/var/spool/cron/root"
+        else
+            _crontab_file="/var/spool/cron/crontabs/root"
+        fi
+        if [[ -f "${_crontab_file}" ]]; then
+            sed -i "s|${idleleo_dir}/auto_update\.sh|${scripts_dir}/auto_update.sh|g" "${_crontab_file}"
+            sed -i "s|${idleleo_dir}/geo_update\.sh|${scripts_dir}/geo_update.sh|g" "${_crontab_file}"
+            sed -i "s|${idleleo_dir}/ssl_update\.sh|${scripts_dir}/ssl_update.sh|g" "${_crontab_file}"
+        fi
+    fi
+}
+# COMPAT_END v2.15
 
 read_version() {
     shell_online_version="$(check_version shell_online_version)"
@@ -4946,7 +4979,7 @@ idleleo_commend() {
         oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
-            download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
+            download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
             judge "$(gettext "下载最新脚本")"
             clear
             exec "${BASH:-bash}" "${idleleo}"
@@ -4960,7 +4993,7 @@ idleleo_commend() {
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
-                    download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
+                    download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
                     judge "$(gettext "下载最新脚本")"
                     clear
                     log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
@@ -4971,7 +5004,7 @@ idleleo_commend() {
                     ;;
                 esac
             else
-                download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh" "${idleleo_dir}/install.sh"
+                download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
                 echo
                 judge "$(gettext "下载最新脚本")"
                 clear
@@ -5588,6 +5621,9 @@ menu() {
 [[ "${_TEST_MODE:-0}" == "1" ]] && return 0
 
 check_file_integrity
+# COMPAT_START v2.15
+migrate_scripts_dir
+# COMPAT_END v2.15
 check_online_version_connect
 init_language
 read_version

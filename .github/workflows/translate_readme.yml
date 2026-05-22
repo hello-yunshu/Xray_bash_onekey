@@ -4,8 +4,8 @@ on:
   push:
     paths:
       - 'README.md'
-      - 'translate_readme.py'
-      - 'translation_terms.py'
+      - 'i18n/tools/translate_readme.py'
+      - 'i18n/tools/translation_terms.py'
     branches:
       - main
   workflow_dispatch:
@@ -52,7 +52,7 @@ jobs:
             ${{ runner.os }}-readme-translations-
 
       - name: Translate README
-        run: python3 translate_readme.py README.md languages/
+        run: python3 i18n/tools/translate_readme.py README.md i18n/languages/
       
       - name: Pull changes
         run: |
@@ -62,7 +62,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add languages/
+          git add i18n/languages/
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

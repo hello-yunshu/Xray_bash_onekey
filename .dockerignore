@@ -3,11 +3,9 @@
 .gitignore
 .editorconfig
 .trae/
+config/
+docker/Dockerfile
+docker/DOCKER.md
+i18n/po/
+i18n/tools/
 LICENSE
-po/
-translate.py
-translate_readme.py
-Dockerfile
-docker-compose.yml
-.dockerignore
-*.md
