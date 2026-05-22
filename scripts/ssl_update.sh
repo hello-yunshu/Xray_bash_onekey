@@ -7,7 +7,7 @@ idleleo_dir="/etc/idleleo"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 xray_systemd_file="/etc/systemd/system/xray.service"
 ssl_chainpath="${idleleo_dir}/cert"
-xray_qr_config_file="${idleleo_dir}/info/vless_qr.json"
+xray_install_config_file="${idleleo_dir}/info/install_config.json"
 acme_sh_dir="${HOME:-/root}/.acme.sh"
 running_file="${idleleo_dir}/ssl_update_running"
 running_file_max_age_minutes=120
@@ -24,12 +24,12 @@ fi
 printf '%s\n' "$$" >"${running_file}/pid"
 trap 'rm -rf "${running_file}"' EXIT
 
-if [[ ! -f "${xray_qr_config_file}" ]]; then
-    echo "Config file not found: ${xray_qr_config_file}" >&2
+if [[ ! -f "${xray_install_config_file}" ]]; then
+    echo "Config file not found: ${xray_install_config_file}" >&2
     exit 1
 fi
 
-host=$(jq -r '.host' "${xray_qr_config_file}" 2>/dev/null)
+host=$(jq -r '.host' "${xray_install_config_file}" 2>/dev/null)
 if [[ -z "${host}" || "${host}" == "null" ]]; then
     echo "Failed to get domain from config" >&2
     exit 1

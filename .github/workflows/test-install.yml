@@ -38,8 +38,8 @@ jobs:
           echo "=== Xray config ==="
           sudo cat /etc/idleleo/conf/xray/config.json 2>/dev/null || echo "(not found)"
           echo ""
-          echo "=== QR config ==="
-          sudo cat /etc/idleleo/info/vless_qr.json 2>/dev/null || echo "(not found)"
+          echo "=== Install config ==="
+          sudo cat /etc/idleleo/info/install_config.json 2>/dev/null || echo "(not found)"
           echo ""
           echo "=== Xray service status ==="
           sudo systemctl status xray 2>&1 || true

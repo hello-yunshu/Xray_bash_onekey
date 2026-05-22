@@ -136,7 +136,11 @@ cat /etc/idleleo/info/xray_info.inf
 
 | Элемент | Путь |
 |---------|------|
-| Конфигурация сервера Xray | `/etc/idleleo/conf/xray/config.json` |
-| Каталог Nginx | `/usr/local/nginx` |
+| Основной каталог | `/etc/idleleo` |
+| Конфигурация Xray | `/etc/idleleo/conf/xray/config.json` |
+| Конфигурация Nginx | `/etc/idleleo/conf/nginx/` |
+| Информация об установке | `/etc/idleleo/info/install_config.json` |
 | Файлы сертификатов | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
-| Информация о конфигурации и т.д. | `/etc/idleleo` |
+| Каталоги логов | `/etc/idleleo/logs/`, `/var/log/xray/` |
+| Каталог Nginx | `/usr/local/nginx` |
+| Команда управления | `/usr/bin/idleleo` |
