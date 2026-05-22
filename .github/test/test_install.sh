@@ -17,19 +17,23 @@ echo "============================================"
 echo "  Testing installation mode: ${MODE}"
 echo "============================================"
 
-mkdir -p /etc/idleleo/tmp /etc/idleleo/logs /etc/idleleo/info
+mkdir -p /etc/idleleo/tmp /etc/idleleo/logs /etc/idleleo/info /etc/idleleo/scripts
 cp -f "${REPO_DIR}/install.sh" /etc/idleleo/install.sh
 ln -sf /etc/idleleo/install.sh /usr/bin/idleleo
 
-for sub in fail2ban_manager.sh traffic_blocker.sh file_manager.sh auto_update.sh ssl_update.sh geo_update.sh docker-entrypoint.sh; do
-    if [[ -f "${REPO_DIR}/${sub}" ]]; then
-        cp -f "${REPO_DIR}/${sub}" "/etc/idleleo/${sub}"
+for sub in fail2ban_manager.sh traffic_blocker.sh file_manager.sh auto_update.sh ssl_update.sh geo_update.sh; do
+    if [[ -f "${REPO_DIR}/scripts/${sub}" ]]; then
+        cp -f "${REPO_DIR}/scripts/${sub}" "/etc/idleleo/scripts/${sub}"
     fi
 done
 
-if [[ -d "${REPO_DIR}/languages" ]]; then
+if [[ -f "${REPO_DIR}/docker/docker-entrypoint.sh" ]]; then
+    cp -f "${REPO_DIR}/docker/docker-entrypoint.sh" "/etc/idleleo/docker-entrypoint.sh"
+fi
+
+if [[ -d "${REPO_DIR}/i18n/languages" ]]; then
     mkdir -p /etc/idleleo/languages
-    cp -rf "${REPO_DIR}/languages/"* /etc/idleleo/languages/ 2>/dev/null || true
+    cp -rf "${REPO_DIR}/i18n/languages/"* /etc/idleleo/languages/ 2>/dev/null || true
 fi
 
 export _TEST_MODE=1

@@ -1,2 +1,3 @@
 .trae/
-po/cache_*.json
+i18n/po/cache_*.json
+.DS_Store

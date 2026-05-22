@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - 'install.sh'
-      - 'fail2ban_manager.sh'
-      - 'file_manager.sh'
-      - 'traffic_blocker.sh'
-      - 'translate.py'
-      - 'translation_terms.py'
+      - 'scripts/fail2ban_manager.sh'
+      - 'scripts/file_manager.sh'
+      - 'scripts/traffic_blocker.sh'
+      - 'i18n/tools/translate.py'
+      - 'i18n/tools/translation_terms.py'
     branches:
       - main
   workflow_dispatch:
@@ -30,8 +30,8 @@ jobs:
         id: cache-translations
         uses: actions/cache/restore@main
         with:
-          path: po/cache_*.json
-          key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
+          path: i18n/po/cache_*.json
+          key: ${{ runner.os }}-translations-${{ hashFiles('i18n/po/*.po') }}
           restore-keys: |
             ${{ runner.os }}-translations-
       
@@ -51,22 +51,22 @@ jobs:
 
       - name: Setup directories
         run: |
-          mkdir -p po
-          mkdir -p languages/{en,fa,ru,zh_CN,ko,fr}/LC_MESSAGES
+          mkdir -p i18n/po
+          mkdir -p i18n/languages/{en,fa,ru,zh_CN,ko,fr}/LC_MESSAGES
       
       - name: Extract strings from specified scripts
         run: |
-          echo "install.sh" > po/POTFILES.in
-          echo "fail2ban_manager.sh" >> po/POTFILES.in
-          echo "file_manager.sh" >> po/POTFILES.in
-          echo "traffic_blocker.sh" >> po/POTFILES.in
+          echo "install.sh" > i18n/po/POTFILES.in
+          echo "scripts/fail2ban_manager.sh" >> i18n/po/POTFILES.in
+          echo "scripts/file_manager.sh" >> i18n/po/POTFILES.in
+          echo "scripts/traffic_blocker.sh" >> i18n/po/POTFILES.in
           
-          if [ -f po/xray_install.pot ]; then
-            cp po/xray_install.pot po/xray_install.pot.old
+          if [ -f i18n/po/xray_install.pot ]; then
+            cp i18n/po/xray_install.pot i18n/po/xray_install.pot.old
           fi
           
           xgettext \
-            --files-from=po/POTFILES.in \
+            --files-from=i18n/po/POTFILES.in \
             --from-code=UTF-8 \
             --language=Shell \
             --keyword=gettext \
@@ -74,15 +74,15 @@ jobs:
             --package-version=1.0 \
             --msgid-bugs-address=https://github.com/hello-yunshu/Xray_bash_onekey/issues \
             --copyright-holder="yunshu" \
-            --output=po/xray_install.pot
+            --output=i18n/po/xray_install.pot
           
-          if [ -f po/xray_install.pot.old ]; then
-            if diff <(grep -v '^"POT-Creation-Date:' po/xray_install.pot) \
-                     <(grep -v '^"POT-Creation-Date:' po/xray_install.pot.old) > /dev/null 2>&1; then
-              mv po/xray_install.pot.old po/xray_install.pot
+          if [ -f i18n/po/xray_install.pot.old ]; then
+            if diff <(grep -v '^"POT-Creation-Date:' i18n/po/xray_install.pot) \
+                     <(grep -v '^"POT-Creation-Date:' i18n/po/xray_install.pot.old) > /dev/null 2>&1; then
+              mv i18n/po/xray_install.pot.old i18n/po/xray_install.pot
               echo "No string changes detected. Preserving original .pot file."
             else
-              rm -f po/xray_install.pot.old
+              rm -f i18n/po/xray_install.pot.old
               echo "String changes detected. Using new .pot file."
             fi
           fi
@@ -90,15 +90,15 @@ jobs:
       - name: Update/Create PO files
         run: |
           for lang in zh_CN en fa ru ko fr; do
-            if [ -f "po/$lang.po" ]; then
-              msgmerge --previous --update "po/$lang.po" po/xray_install.pot
+            if [ -f "i18n/po/$lang.po" ]; then
+              msgmerge --previous --update --backup=none "i18n/po/$lang.po" i18n/po/xray_install.pot
             else
-              msginit --no-translator --locale=$lang --input=po/xray_install.pot --output=po/$lang.po
+              msginit --no-translator --locale=$lang --input=i18n/po/xray_install.pot --output=i18n/po/$lang.po
             fi
           done
       
       - name: Auto translate
-        run: python3 translate.py
+        run: python3 i18n/tools/translate.py
         env:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
       
@@ -106,11 +106,11 @@ jobs:
         run: |
           needs_compile=false
           for lang in en fa ru ko fr; do
-            if [ ! -f "po/${lang}.po.no-update" ]; then
+            if [ ! -f "i18n/po/${lang}.po.no-update" ]; then
               needs_compile=true
-              if ! msgfmt --check -v --statistics -o languages/${lang}/LC_MESSAGES/xray_install.mo po/${lang}.po; then
+              if ! msgfmt --check -v --statistics -o i18n/languages/${lang}/LC_MESSAGES/xray_install.mo i18n/po/${lang}.po; then
                 echo "Error in ${lang}.po file:"
-                cat po/${lang}.po
+                cat i18n/po/${lang}.po
               fi
             fi
           done
@@ -120,13 +120,13 @@ jobs:
       
       - name: Run i18nspector checks on PO files
         run: |
-          i18nspector check po/
+          i18nspector check i18n/po/
       
       - name: Run i18nspector checks on MO files if compiled
         run: |
           for lang in en fa ru ko fr; do
-            if [ ! -f "po/${lang}.po.no-update" ] && [ -f "languages/${lang}/LC_MESSAGES/xray_install.mo" ]; then
-              i18nspector check-binary languages/${lang}/LC_MESSAGES/xray_install.mo
+            if [ ! -f "i18n/po/${lang}.po.no-update" ] && [ -f "i18n/languages/${lang}/LC_MESSAGES/xray_install.mo" ]; then
+              i18nspector check-binary i18n/languages/${lang}/LC_MESSAGES/xray_install.mo
             fi
           done
       
@@ -134,8 +134,8 @@ jobs:
         if: always() && steps.cache-translations.outputs.cache-hit != 'true'
         uses: actions/cache/save@main
         with:
-          path: po/cache_*.json
-          key: ${{ runner.os }}-translations-${{ hashFiles('po/*.po') }}
+          path: i18n/po/cache_*.json
+          key: ${{ runner.os }}-translations-${{ hashFiles('i18n/po/*.po') }}
       
       - name: Pull changes
         run: |
@@ -144,13 +144,13 @@ jobs:
       - name: Commit changes if necessary
         run: |
           for lang in en fa ru ko fr; do
-            if [ -f "po/${lang}.po.no-update" ]; then
-              rm "po/${lang}.po.no-update"
+            if [ -f "i18n/po/${lang}.po.no-update" ]; then
+              rm "i18n/po/${lang}.po.no-update"
             fi
           done
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add po/*.po po/*.pot po/POTFILES.in languages/
+          git add i18n/po/*.po i18n/po/*.pot i18n/po/POTFILES.in i18n/languages/
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

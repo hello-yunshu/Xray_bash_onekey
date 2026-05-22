@@ -2,7 +2,7 @@ services:
   xray-onekey:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: xray-onekey
     restart: unless-stopped
     network_mode: host
