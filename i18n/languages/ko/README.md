@@ -136,7 +136,11 @@ cat /etc/idleleo/info/xray_info.inf
 
 | 항목 | 경로 |
 |------|------|
-| Xray 서버 설정 | `/etc/idleleo/conf/xray/config.json` |
-| Nginx 디렉토리 | `/usr/local/nginx` |
+| 메인 디렉토리 | `/etc/idleleo` |
+| Xray 설정 | `/etc/idleleo/conf/xray/config.json` |
+| Nginx 설정 | `/etc/idleleo/conf/nginx/` |
+| 설치 정보 | `/etc/idleleo/info/install_config.json` |
 | 인증서 파일 | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
-| 설정 정보 등 | `/etc/idleleo` |
+| 로그 디렉토리 | `/etc/idleleo/logs/`, `/var/log/xray/` |
+| Nginx 디렉토리 | `/usr/local/nginx` |
+| 관리 명령어 | `/usr/bin/idleleo` |

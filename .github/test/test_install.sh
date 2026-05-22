@@ -346,7 +346,7 @@ wait_for_port() {
 }
 
 qr_value() {
-    jq -r --arg field "$1" '.[$field]' "${xray_qr_config_file}"
+    jq -r --arg field "$1" '.[$field]' "${xray_install_config_file}"
 }
 
 config_value() {
@@ -383,7 +383,7 @@ assert_qr_matches_config() {
 assert_ok "Install command exited successfully" test "${INSTALL_EXIT_CODE}" -eq 0
 assert_ok --diag "ls -la ${xray_bin_dir}/xray 2>/dev/null; echo; file ${xray_bin_dir}/xray 2>/dev/null" "Xray binary exists" test -f "${xray_bin_dir}/xray"
 assert_ok --diag "ls -la ${xray_conf} 2>/dev/null; echo; jq . "${xray_conf}" 2>&1 | head -20" "Xray config exists" test -f "${xray_conf}"
-assert_ok --diag "ls -la ${xray_qr_config_file} 2>/dev/null; echo; jq . "${xray_qr_config_file}" 2>&1 | head -20" "QR config exists" test -f "${xray_qr_config_file}"
+assert_ok --diag "ls -la ${xray_install_config_file} 2>/dev/null; echo; jq . "${xray_install_config_file}" 2>&1 | head -20" "Install config exists" test -f "${xray_install_config_file}"
 assert_ok --diag "cat ${xray_systemd_file} 2>/dev/null" "Xray systemd service exists" test -f "${xray_systemd_file}"
 
 echo ""
@@ -470,20 +470,20 @@ tls)
 esac
 
 if [[ "${MODE}" == "ws_grpc_xhttp" ]]; then
-    assert_ok "QR transport mode is all" test "$(jq -r '.transport_mode' "${xray_qr_config_file}")" = "all"
+    assert_ok "Install config transport mode is all" test "$(jq -r '.transport_mode' "${xray_install_config_file}")" = "all"
     assert_ok "gRPC inbound exists" jq -e '.inbounds[] | select(.tag == "VLESS-gRPC-in")' "${xray_conf}"
     assert_ok "xHTTP inbound exists" jq -e '.inbounds[] | select(.tag == "VLESS-xhttp-in")' "${xray_conf}"
     assert_ok "All transport inbounds are routed" jq -e '[.routing.rules[].inboundTag[]] | contains(["VLESS-ws-in", "VLESS-gRPC-in", "VLESS-xhttp-in"])' "${xray_conf}"
 fi
 
 echo ""
-echo "--- QR config content check ---"
-if [[ -f "${xray_qr_config_file}" ]]; then
-    echo "  shell_mode: $(jq -r '.shell_mode' "${xray_qr_config_file}")"
-    echo "  tls_mode: $(jq -r '.tls' "${xray_qr_config_file}")"
-    echo "  transport_mode: $(jq -r '.transport_mode' "${xray_qr_config_file}")"
-    echo "  port: $(jq -r '.port' "${xray_qr_config_file}")"
-    echo "  xray_version: $(jq -r '.xray_version' "${xray_qr_config_file}")"
+echo "--- Install config content check ---"
+if [[ -f "${xray_install_config_file}" ]]; then
+    echo "  shell_mode: $(jq -r '.shell_mode' "${xray_install_config_file}")"
+    echo "  tls_mode: $(jq -r '.tls' "${xray_install_config_file}")"
+    echo "  transport_mode: $(jq -r '.transport_mode' "${xray_install_config_file}")"
+    echo "  port: $(jq -r '.port' "${xray_install_config_file}")"
+    echo "  xray_version: $(jq -r '.xray_version' "${xray_install_config_file}")"
 fi
 
 echo ""

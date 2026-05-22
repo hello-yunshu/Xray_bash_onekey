@@ -136,7 +136,11 @@ cat /etc/idleleo/info/xray_info.inf
 
 | مورد | مسیر |
 |------|------|
-| تنظیمات سرور Xray | `/etc/idleleo/conf/xray/config.json` |
-| دایرکتوری Nginx | `/usr/local/nginx` |
+| دایرکتوری اصلی | `/etc/idleleo` |
+| تنظیمات Xray | `/etc/idleleo/conf/xray/config.json` |
+| تنظیمات Nginx | `/etc/idleleo/conf/nginx/` |
+| اطلاعات نصب | `/etc/idleleo/info/install_config.json` |
 | فایل‌های گواهی | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
-| اطلاعات پیکربندی و غیره | `/etc/idleleo` |
+| دایرکتوری‌های لاگ | `/etc/idleleo/logs/`, `/var/log/xray/` |
+| دایرکتوری Nginx | `/usr/local/nginx` |
+| دستور مدیریت | `/usr/bin/idleleo` |
