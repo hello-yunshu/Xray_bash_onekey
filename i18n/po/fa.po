@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
-"POT-Creation-Date: 2026-05-23 18:12+0000\n"
+"POT-Creation-Date: 2026-05-23 18:35+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -31,8 +31,8 @@ msgstr "هشدار"
 #: install.sh:40 install.sh:2213 install.sh:3120 install.sh:5067
 #: install.sh:5084 install.sh:5087 install.sh:5088 install.sh:5189
 #: scripts/fail2ban_manager.sh:154 scripts/fail2ban_manager.sh:285
-#: scripts/fail2ban_manager.sh:527 scripts/traffic_blocker.sh:627
-#: scripts/traffic_blocker.sh:639
+#: scripts/fail2ban_manager.sh:527 scripts/traffic_blocker.sh:632
+#: scripts/traffic_blocker.sh:644
 msgid "未安装"
 msgstr "ننصب نشده است"
 
@@ -257,7 +257,7 @@ msgstr "دیوار آتش"
 #: install.sh:891 install.sh:894 install.sh:2983 install.sh:2990
 #: install.sh:3901 install.sh:3904 install.sh:5397
 #: scripts/fail2ban_manager.sh:312 scripts/fail2ban_manager.sh:519
-#: scripts/traffic_blocker.sh:738 scripts/traffic_blocker.sh:763
+#: scripts/traffic_blocker.sh:743 scripts/traffic_blocker.sh:768
 msgid "重启"
 msgstr "بازنشانی"
 
@@ -400,7 +400,7 @@ msgid "不存在, 正在下载"
 msgstr "وجود ندارد، در حال دانلود است"
 
 #: install.sh:1225 install.sh:1239 scripts/fail2ban_manager.sh:583
-#: scripts/file_manager.sh:344 scripts/traffic_blocker.sh:1219
+#: scripts/file_manager.sh:344 scripts/traffic_blocker.sh:1236
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr "دانلود ناموفق بود، لطفاً نسخه جدید را به صورت دستی دانلود و نصب کنید"
 
@@ -409,7 +409,7 @@ msgid "版本过旧, 建议更新"
 msgstr "نسخه بسیار قدیمی است، توصیه می‌شود به روز شود"
 
 #: install.sh:1233 scripts/fail2ban_manager.sh:572 scripts/file_manager.sh:333
-#: scripts/traffic_blocker.sh:1208
+#: scripts/traffic_blocker.sh:1225
 msgid "是否下载并安装新版本"
 msgstr "آیا نسخه جدید را دانلود و نصب می‌کنید؟"
 
@@ -425,7 +425,7 @@ msgstr "نسخه اصلی نیاز است"
 #: install.sh:1251 scripts/fail2ban_manager.sh:10
 #: scripts/fail2ban_manager.sh:569 scripts/file_manager.sh:10
 #: scripts/file_manager.sh:330 scripts/traffic_blocker.sh:9
-#: scripts/traffic_blocker.sh:749 scripts/traffic_blocker.sh:1205
+#: scripts/traffic_blocker.sh:754 scripts/traffic_blocker.sh:1222
 msgid "当前版本"
 msgstr "نسخه فعلی"
 
@@ -449,8 +449,8 @@ msgstr "برای ws یا gRPC یا xHTTP قرارداد انتخاب کنید"
 #: install.sh:1272 scripts/fail2ban_manager.sh:295
 #: scripts/fail2ban_manager.sh:313 scripts/fail2ban_manager.sh:412
 #: scripts/fail2ban_manager.sh:452 scripts/traffic_blocker.sh:273
-#: scripts/traffic_blocker.sh:311 scripts/traffic_blocker.sh:696
-#: scripts/traffic_blocker.sh:811 scripts/traffic_blocker.sh:827
+#: scripts/traffic_blocker.sh:311 scripts/traffic_blocker.sh:701
+#: scripts/traffic_blocker.sh:816 scripts/traffic_blocker.sh:832
 msgid "返回"
 msgstr "بازگشت"
 
@@ -458,8 +458,8 @@ msgstr "بازگشت"
 #: scripts/fail2ban_manager.sh:331 scripts/fail2ban_manager.sh:339
 #: scripts/fail2ban_manager.sh:456 scripts/file_manager.sh:318
 #: scripts/traffic_blocker.sh:284 scripts/traffic_blocker.sh:320
-#: scripts/traffic_blocker.sh:594 scripts/traffic_blocker.sh:707
-#: scripts/traffic_blocker.sh:831
+#: scripts/traffic_blocker.sh:599 scripts/traffic_blocker.sh:712
+#: scripts/traffic_blocker.sh:836
 msgid "无效的选择, 请重试"
 msgstr "انتخاب نامعتبر، لطفاً دوباره تلاش کنید"
 
@@ -529,7 +529,7 @@ msgstr "برخی از ویژگی‌های جدید نیاز به نصب مجدد
 #: install.sh:1732 install.sh:1740 install.sh:1771 install.sh:2060
 #: install.sh:2205 install.sh:4995 install.sh:5007 install.sh:5365
 #: install.sh:5366 install.sh:5367 install.sh:5403
-#: scripts/traffic_blocker.sh:693 scripts/traffic_blocker.sh:694
+#: scripts/traffic_blocker.sh:698 scripts/traffic_blocker.sh:699
 msgid "更新"
 msgstr "به‌روزرسانی"
 
@@ -583,7 +583,7 @@ msgstr "نسخه"
 msgid "重装"
 msgstr "بازسازی"
 
-#: install.sh:1810 install.sh:1811 scripts/traffic_blocker.sh:985
+#: install.sh:1810 install.sh:1811 scripts/traffic_blocker.sh:989
 msgid "更新失败"
 msgstr "به‌روزرسانی ناموفق بود"
 
@@ -598,7 +598,7 @@ msgstr "قبل از استفاده از این ویژگی، توصیه می‌ش
 #: install.sh:1828 scripts/fail2ban_manager.sh:170
 #: scripts/fail2ban_manager.sh:180 scripts/fail2ban_manager.sh:205
 #: scripts/fail2ban_manager.sh:231 scripts/fail2ban_manager.sh:403
-#: scripts/traffic_blocker.sh:524 scripts/traffic_blocker.sh:782
+#: scripts/traffic_blocker.sh:529 scripts/traffic_blocker.sh:787
 msgid "已启用"
 msgstr "فعال شده است"
 
@@ -657,11 +657,11 @@ msgstr "ساختار سیستم پشتیبانی نشده است"
 msgid "即将下载已编译的"
 msgstr "به زودی دانلود شده‌است"
 
-#: install.sh:1966 scripts/traffic_blocker.sh:510
+#: install.sh:1966 scripts/traffic_blocker.sh:515
 msgid "下载失败"
 msgstr "دریافت ناموفق است"
 
-#: install.sh:1970 scripts/traffic_blocker.sh:507
+#: install.sh:1970 scripts/traffic_blocker.sh:512
 msgid "下载完成"
 msgstr "دانلود به پایان رسید"
 
@@ -745,7 +745,7 @@ msgstr ""
 "احتیاط فعال کنید"
 
 #: install.sh:2228 scripts/fail2ban_manager.sh:197
-#: scripts/fail2ban_manager.sh:223 scripts/traffic_blocker.sh:647
+#: scripts/fail2ban_manager.sh:223 scripts/traffic_blocker.sh:652
 msgid "是否启用"
 msgstr "فعال‌سازی شود؟"
 
@@ -753,7 +753,7 @@ msgstr "فعال‌سازی شود؟"
 msgid "下载自动更新脚本"
 msgstr "دانلود اسکریپت به‌روزرسانی خودکار"
 
-#: install.sh:2235 install.sh:4986 scripts/traffic_blocker.sh:695
+#: install.sh:2235 install.sh:4986 scripts/traffic_blocker.sh:700
 msgid "设置自动更新"
 msgstr "تنظیم به‌روزرسانی خودکار"
 
@@ -761,7 +761,7 @@ msgstr "تنظیم به‌روزرسانی خودکار"
 msgid "已设置自动更新"
 msgstr "به‌روزرسانی خودکار تنظیم شده است"
 
-#: install.sh:2241 scripts/traffic_blocker.sh:672
+#: install.sh:2241 scripts/traffic_blocker.sh:677
 msgid "是否关闭"
 msgstr "آیا بسته شود"
 
@@ -995,7 +995,7 @@ msgstr "تنظیم اتوماتیک شروع Nginx در هنگام روشن شد
 
 #: install.sh:2946 install.sh:5404 install.sh:5407 install.sh:5408
 #: install.sh:5409 install.sh:5410 scripts/fail2ban_manager.sh:61
-#: scripts/traffic_blocker.sh:573
+#: scripts/traffic_blocker.sh:578
 msgid "设置"
 msgstr "تنظیمات"
 
@@ -1528,7 +1528,7 @@ msgstr ""
 "خدمات، آن را حذف کرده و دوباره نصب کنید"
 
 #: install.sh:4753 scripts/fail2ban_manager.sh:591 scripts/file_manager.sh:352
-#: scripts/traffic_blocker.sh:1227
+#: scripts/traffic_blocker.sh:1244
 msgid "当前已经是最新版本"
 msgstr "در حال حاضر، این آخرین نسخه است"
 
@@ -1861,7 +1861,7 @@ msgstr "پاداشت خرابکاری"
 msgid "流量统计"
 msgstr "آمار جریان"
 
-#: install.sh:5410 scripts/traffic_blocker.sh:573
+#: install.sh:5410 scripts/traffic_blocker.sh:578
 msgid "流量阻断"
 msgstr "جاره‌بندی ترافیک"
 
@@ -1911,7 +1911,7 @@ msgid "证书文件"
 msgstr "فایل گواهینامه"
 
 #: install.sh:5419 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:306
-#: scripts/traffic_blocker.sh:583
+#: scripts/traffic_blocker.sh:588
 msgid "退出"
 msgstr "خروج"
 
@@ -1947,7 +1947,7 @@ msgid "用于防止暴力破解"
 msgstr "برای جلوگیری از حمله به روش کلمه‌پردازی"
 
 #: scripts/fail2ban_manager.sh:62 scripts/file_manager.sh:301
-#: scripts/traffic_blocker.sh:578
+#: scripts/traffic_blocker.sh:583
 msgid "主菜单"
 msgstr "منوی اصل"
 
@@ -1956,13 +1956,13 @@ msgid "管理"
 msgstr "مدیریت"
 
 #: scripts/fail2ban_manager.sh:66 scripts/fail2ban_manager.sh:402
-#: scripts/traffic_blocker.sh:523 scripts/traffic_blocker.sh:781
+#: scripts/traffic_blocker.sh:528 scripts/traffic_blocker.sh:786
 msgid "状态"
 msgstr "وضع"
 
 #: scripts/fail2ban_manager.sh:69 scripts/file_manager.sh:308
-#: scripts/traffic_blocker.sh:313 scripts/traffic_blocker.sh:585
-#: scripts/traffic_blocker.sh:698
+#: scripts/traffic_blocker.sh:313 scripts/traffic_blocker.sh:590
+#: scripts/traffic_blocker.sh:703
 msgid "请选择一个选项"
 msgstr "یک گزینه انتخاب کنید"
 
@@ -1982,14 +1982,13 @@ msgstr "پرش از فعال‌سازی"
 #: scripts/fail2ban_manager.sh:180 scripts/fail2ban_manager.sh:197
 #: scripts/fail2ban_manager.sh:202 scripts/fail2ban_manager.sh:205
 #: scripts/fail2ban_manager.sh:223 scripts/fail2ban_manager.sh:228
-#: scripts/fail2ban_manager.sh:231 scripts/traffic_blocker.sh:854
-#: scripts/traffic_blocker.sh:859
+#: scripts/fail2ban_manager.sh:231 scripts/traffic_blocker.sh:859
 msgid "规则"
 msgstr "قوانین"
 
 #: scripts/fail2ban_manager.sh:202 scripts/fail2ban_manager.sh:228
-#: scripts/fail2ban_manager.sh:404 scripts/traffic_blocker.sh:525
-#: scripts/traffic_blocker.sh:783
+#: scripts/fail2ban_manager.sh:404 scripts/traffic_blocker.sh:530
+#: scripts/traffic_blocker.sh:788
 msgid "已禁用"
 msgstr "غیرفعال شده است"
 
@@ -2070,7 +2069,7 @@ msgid "模块名称"
 msgstr "نام مدول"
 
 #: scripts/fail2ban_manager.sh:435 scripts/file_manager.sh:112
-#: scripts/traffic_blocker.sh:819
+#: scripts/traffic_blocker.sh:824
 msgid "序号"
 msgstr "شماره ترتیب"
 
@@ -2078,15 +2077,15 @@ msgstr "شماره ترتیب"
 msgid "请选择要管理的模块"
 msgstr "ماژول مورد نظر برای مدیریت را انتخاب کنید"
 
-#: scripts/fail2ban_manager.sh:467 scripts/traffic_blocker.sh:846
+#: scripts/fail2ban_manager.sh:467 scripts/traffic_blocker.sh:851
 msgid "启用"
 msgstr "فعال کردن"
 
-#: scripts/fail2ban_manager.sh:467 scripts/traffic_blocker.sh:846
+#: scripts/fail2ban_manager.sh:467 scripts/traffic_blocker.sh:851
 msgid "禁用"
 msgstr "غیرفعال کردن"
 
-#: scripts/fail2ban_manager.sh:469 scripts/traffic_blocker.sh:854
+#: scripts/fail2ban_manager.sh:469 scripts/traffic_blocker.sh:859
 msgid "是否"
 msgstr "آیا"
 
@@ -2095,7 +2094,7 @@ msgid "模块"
 msgstr "ماژول"
 
 #: scripts/fail2ban_manager.sh:479 scripts/traffic_blocker.sh:214
-#: scripts/traffic_blocker.sh:862 scripts/traffic_blocker.sh:1144
+#: scripts/traffic_blocker.sh:866 scripts/traffic_blocker.sh:1149
 msgid "操作已取消"
 msgstr "عملیات لغو شد"
 
@@ -2122,32 +2121,32 @@ msgid "未启用或配置异常"
 msgstr "خطا در فعال‌سازی یا تنظیم"
 
 #: scripts/fail2ban_manager.sh:569 scripts/file_manager.sh:330
-#: scripts/traffic_blocker.sh:1205
+#: scripts/traffic_blocker.sh:1222
 msgid "新版本可用"
 msgstr "نسخه جدید در دسترس است"
 
 #: scripts/fail2ban_manager.sh:570 scripts/file_manager.sh:331
-#: scripts/traffic_blocker.sh:1206
+#: scripts/traffic_blocker.sh:1223
 msgid "请访问"
 msgstr "لطفاً به دیدن"
 
 #: scripts/fail2ban_manager.sh:570 scripts/file_manager.sh:331
-#: scripts/traffic_blocker.sh:1206
+#: scripts/traffic_blocker.sh:1223
 msgid "查看更新说明"
 msgstr "دستورالعمل‌های به‌روزرسانی را مشاهده کنید"
 
 #: scripts/fail2ban_manager.sh:576 scripts/file_manager.sh:337
-#: scripts/traffic_blocker.sh:1212
+#: scripts/traffic_blocker.sh:1229
 msgid "正在下载新版本"
 msgstr "در حال دانلود نسخه جدید"
 
 #: scripts/fail2ban_manager.sh:578 scripts/file_manager.sh:339
-#: scripts/traffic_blocker.sh:1214
+#: scripts/traffic_blocker.sh:1231
 msgid "下载完成, 正在重新加载..."
 msgstr "دانلود به پایان رسیده و دارد باز‌گردانی می‌شود"
 
 #: scripts/fail2ban_manager.sh:587 scripts/file_manager.sh:348
-#: scripts/traffic_blocker.sh:1223
+#: scripts/traffic_blocker.sh:1240
 msgid "跳过更新"
 msgstr "به‌روزرسانی را بگذارید"
 
@@ -2396,206 +2395,226 @@ msgstr "افزودن کشور/منطقه"
 msgid "移除国家/地区"
 msgstr "حذف کشور/منطقه"
 
-#: scripts/traffic_blocker.sh:464
+#: scripts/traffic_blocker.sh:469
 msgid "不存在"
 msgstr "وجود ندارد"
 
-#: scripts/traffic_blocker.sh:467 scripts/traffic_blocker.sh:622
-#: scripts/traffic_blocker.sh:624 scripts/traffic_blocker.sh:634
-#: scripts/traffic_blocker.sh:636 scripts/traffic_blocker.sh:749
+#: scripts/traffic_blocker.sh:472 scripts/traffic_blocker.sh:627
+#: scripts/traffic_blocker.sh:629 scripts/traffic_blocker.sh:639
+#: scripts/traffic_blocker.sh:641 scripts/traffic_blocker.sh:754
 msgid "未知"
 msgstr "نامشخص"
 
-#: scripts/traffic_blocker.sh:503 scripts/traffic_blocker.sh:957
+#: scripts/traffic_blocker.sh:508 scripts/traffic_blocker.sh:961
 msgid "正在下载"
 msgstr "در حال دانلود است"
 
-#: scripts/traffic_blocker.sh:522 scripts/traffic_blocker.sh:780
+#: scripts/traffic_blocker.sh:527 scripts/traffic_blocker.sh:785
 msgid "规则名称"
 msgstr "نام قاعده"
 
-#: scripts/traffic_blocker.sh:579
+#: scripts/traffic_blocker.sh:584
 msgid "查看阻断规则状态"
 msgstr "وضعیت قوانین مسدودکننده را بررسی کنید"
 
-#: scripts/traffic_blocker.sh:580
+#: scripts/traffic_blocker.sh:585
 msgid "管理阻断规则"
 msgstr "قوانین مسدودکننده مدیریتی"
 
-#: scripts/traffic_blocker.sh:581 scripts/traffic_blocker.sh:688
+#: scripts/traffic_blocker.sh:586 scripts/traffic_blocker.sh:693
 msgid "更新 GeoData"
 msgstr "به‌روزرسانی داده‌های جغرافیایی [GeoData]"
 
-#: scripts/traffic_blocker.sh:582
+#: scripts/traffic_blocker.sh:587
 msgid "重置所有阻断规则"
 msgstr "بازنشانی همه قوانین مسدودکننده"
 
-#: scripts/traffic_blocker.sh:601
+#: scripts/traffic_blocker.sh:606
 msgid "GeoData 状态"
 msgstr "وضعیت داده‌های جغرافیایی [GeoData]"
 
-#: scripts/traffic_blocker.sh:622 scripts/traffic_blocker.sh:634
+#: scripts/traffic_blocker.sh:627 scripts/traffic_blocker.sh:639
 msgid "有更新可用"
 msgstr "به‌روزرسانی در دسترس است"
 
-#: scripts/traffic_blocker.sh:622 scripts/traffic_blocker.sh:634
+#: scripts/traffic_blocker.sh:627 scripts/traffic_blocker.sh:639
 msgid "本地版本"
 msgstr "نسخه‌ی محلی"
 
-#: scripts/traffic_blocker.sh:622 scripts/traffic_blocker.sh:634
+#: scripts/traffic_blocker.sh:627 scripts/traffic_blocker.sh:639
 msgid "更新时间"
 msgstr "زمان به‌روزرسانی"
 
-#: scripts/traffic_blocker.sh:624 scripts/traffic_blocker.sh:636
+#: scripts/traffic_blocker.sh:629 scripts/traffic_blocker.sh:641
 msgid "已是最新"
 msgstr "همین الان جدیدترین است"
 
-#: scripts/traffic_blocker.sh:646
+#: scripts/traffic_blocker.sh:651
 msgid "设置 GeoData 定时自动更新 (每周一凌晨3点)"
 msgstr ""
 "تنظیم GeoData برای به‌روزرسانی خودکار در زمان مشخص (هر هفته ساعت 3 صبح روز "
 "دوشنبه)"
 
-#: scripts/traffic_blocker.sh:653
+#: scripts/traffic_blocker.sh:658
 msgid "下载 GeoData 自动更新脚本"
 msgstr "دانلود اسکریپت به‌روزرسانی خودکار GeoData"
 
-#: scripts/traffic_blocker.sh:664
+#: scripts/traffic_blocker.sh:669
 msgid "设置 GeoData 自动更新"
 msgstr "تنظیم به‌روزرسانی خودکار گئو دیتا [GeoData]"
 
-#: scripts/traffic_blocker.sh:670
+#: scripts/traffic_blocker.sh:675
 msgid "已设置 GeoData 自动更新"
 msgstr "به‌روزرسانی خودکار گئو دیتا تنظیم شده است [GeoData]"
 
-#: scripts/traffic_blocker.sh:671
+#: scripts/traffic_blocker.sh:676
 msgid "当前计划"
 msgstr "برنامه فعلی"
 
-#: scripts/traffic_blocker.sh:678
+#: scripts/traffic_blocker.sh:683
 msgid "删除 GeoData 自动更新"
 msgstr "حذف به‌روزرسانی خودکار گئوداتا [GeoData]"
 
-#: scripts/traffic_blocker.sh:692
+#: scripts/traffic_blocker.sh:697
 msgid "更新全部 GeoData"
 msgstr "به‌روزرسانی تمام گئوداتاها [GeoData]"
 
-#: scripts/traffic_blocker.sh:715
+#: scripts/traffic_blocker.sh:720
 msgid "正在更新全部 GeoData"
 msgstr "در حال به‌روزرسانی کل گئوداتا است [GeoData]"
 
-#: scripts/traffic_blocker.sh:728
+#: scripts/traffic_blocker.sh:733
 msgid "部分文件更新失败"
 msgstr "بروزرسانی برخی از فایل‌ها با شکست مواجه شد"
 
-#: scripts/traffic_blocker.sh:730
+#: scripts/traffic_blocker.sh:735
 msgid "全部 GeoData 已更新"
 msgstr "تمام گئوداتاها به‌روز شده است [GeoData]"
 
-#: scripts/traffic_blocker.sh:734 scripts/traffic_blocker.sh:759
+#: scripts/traffic_blocker.sh:739 scripts/traffic_blocker.sh:764
 msgid "是否重启 Xray 以加载新数据"
 msgstr "آیا Xray را برای بارگذاری داده‌های جدید بازنشانی می‌کنید؟"
 
-#: scripts/traffic_blocker.sh:751
+#: scripts/traffic_blocker.sh:756
 msgid "文件不存在, 将下载最新版本"
 msgstr "پرونده وجود ندارد، جدیدترین نسخه دانلود خواهد شد"
 
-#: scripts/traffic_blocker.sh:756
+#: scripts/traffic_blocker.sh:761
 msgid "已更新至"
 msgstr "به روز شده به"
 
-#: scripts/traffic_blocker.sh:772
+#: scripts/traffic_blocker.sh:777
 msgid "管理流量阻断规则"
 msgstr "مدیریت قوانین مسدود کردن ترافیک"
 
-#: scripts/traffic_blocker.sh:831
+#: scripts/traffic_blocker.sh:836
 msgid "请选择要管理的规则"
 msgstr "لطفاً قانون مورد نظر برای مدیریت را انتخاب کنید"
 
-#: scripts/traffic_blocker.sh:913
+#: scripts/traffic_blocker.sh:917
 msgid "备份 Xray 配置失败"
 msgstr "پشتیبان‌گیری از تنظیمات Xray ناموفق بود"
 
-#: scripts/traffic_blocker.sh:926
+#: scripts/traffic_blocker.sh:930
 msgid "重启失败, 已恢复原配置"
 msgstr "با شکست ری‌استارت، تنظیمات اصلی بازگردانده شد"
 
-#: scripts/traffic_blocker.sh:956
+#: scripts/traffic_blocker.sh:960
 msgid "缺少 GeoData 文件"
 msgstr "کمبود فایل جیو دیتا [GeoData]"
 
-#: scripts/traffic_blocker.sh:979
+#: scripts/traffic_blocker.sh:983
 msgid "以下 GeoData 文件有更新可用"
 msgstr "به‌روزرسانی برای فایل جیو دیتا زیر در دسترس است [GeoData]"
 
-#: scripts/traffic_blocker.sh:980
+#: scripts/traffic_blocker.sh:984
 msgid "是否立即更新"
 msgstr "آیا بلافاصله به‌روزرسانی می‌شود؟"
 
-#: scripts/traffic_blocker.sh:997
+#: scripts/traffic_blocker.sh:1001
 msgid "Xray 配置文件不存在"
 msgstr "فایل پیکربندی Xray موجود نیست"
 
-#: scripts/traffic_blocker.sh:1002
+#: scripts/traffic_blocker.sh:1006
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
 "در پیکربندی Xray، بلوک‌شدن خروجی وجود ندارد و قوانین مسدودکننده قابل اعمال "
 "نیستند [blocked]"
 
-#: scripts/traffic_blocker.sh:1007
+#: scripts/traffic_blocker.sh:1011
 msgid "Xray 配置中缺少 direct 出站, 无法应用阻断规则"
 msgstr ""
 "در پیکربندی Xray، خروجی مستقیم وجود ندارد و قانون مسدودسازی قابل اعمال نیست "
 "[direct]"
 
-#: scripts/traffic_blocker.sh:1022
+#: scripts/traffic_blocker.sh:1026
 msgid "当前阻断规则配置"
 msgstr "تنظیمات فعلی قوانین مسدودسازی"
 
-#: scripts/traffic_blocker.sh:1034
+#: scripts/traffic_blocker.sh:1038
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
 "با استفاده از قوانین، پیکربندی مسیردهی بازسازی می‌شود و قوانین مسیردهی "
 "سفارشی نادیده گرفته خواهند شد"
 
-#: scripts/traffic_blocker.sh:1038
+#: scripts/traffic_blocker.sh:1042
 msgid "GeoData 下载失败, 无法应用规则"
 msgstr ""
 "دریافت داده‌های جغرافیایی با شکست مواجه شد، نمی‌توان قانون را اعمال کرد "
 "[GeoData]"
 
-#: scripts/traffic_blocker.sh:1057 scripts/traffic_blocker.sh:1163
+#: scripts/traffic_blocker.sh:1061 scripts/traffic_blocker.sh:1168
 msgid "无法从 Xray 配置中提取入站标签"
 msgstr "برچسب ورودی از تنظیمات Xray قابل استخراج نیست"
 
-#: scripts/traffic_blocker.sh:1116 scripts/traffic_blocker.sh:1186
+#: scripts/traffic_blocker.sh:1120 scripts/traffic_blocker.sh:1194
 msgid "修改 Xray 配置失败"
 msgstr "اصلاح تنظیمات Xray ناموفق بود"
 
-#: scripts/traffic_blocker.sh:1128
-msgid "流量阻断规则已应用"
-msgstr "قوانین مسدودکننده ترافیک اعمال شده است"
+#: scripts/traffic_blocker.sh:1132
+#| msgid "管理流量阻断规则"
+msgid "流量阻断规则"
+msgstr "قوانین مسدود کردن ترافیک"
 
-#: scripts/traffic_blocker.sh:1130
-msgid "域名解析策略已设置为"
-msgstr "استراتژی تحلیل نام دامنه به صورت زیر تنظیم شده است"
+#: scripts/traffic_blocker.sh:1132 scripts/traffic_blocker.sh:1135
+#: scripts/traffic_blocker.sh:1138
+#| msgid "已启用"
+msgid "已应用"
+msgstr "در حال اعمال شدن است"
 
-#: scripts/traffic_blocker.sh:1130
-msgid "以支持基于 IP 的阻断规则"
-msgstr "با پشتیبانی از قوانین مسدودسازی بر اساس IP"
+#: scripts/traffic_blocker.sh:1133 scripts/traffic_blocker.sh:1206
+#| msgid "重启"
+msgid "已重启"
+msgstr "دوباره راه‌اندازی شد"
 
-#: scripts/traffic_blocker.sh:1133
-msgid "协议嗅探已启用以支持流量阻断规则"
-msgstr "شنودگری پروتکل برای پشتیبانی از قوانین جلوگیری از ترافیک فعال شده است"
+#: scripts/traffic_blocker.sh:1135 scripts/traffic_blocker.sh:1208
+#| msgid "域名解析策略已设置为"
+msgid "域名解析策略"
+msgstr "استراتژی تحلیل نام دامنه"
 
-#: scripts/traffic_blocker.sh:1139
+#: scripts/traffic_blocker.sh:1138 scripts/traffic_blocker.sh:1211
+msgid "协议嗅探"
+msgstr "شنود قرارداد"
+
+#: scripts/traffic_blocker.sh:1144
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr "این عملیات تمام قوانین مسدودکننده را به حالت غیرفعال بازنشانی می‌کند"
 
-#: scripts/traffic_blocker.sh:1140
+#: scripts/traffic_blocker.sh:1145
 msgid "确认重置"
 msgstr "تایید بازنشانی"
 
-#: scripts/traffic_blocker.sh:1196
-msgid "所有阻断规则已重置"
-msgstr "تمام قوانین مسدودکننده بازنشانی شدند"
+#: scripts/traffic_blocker.sh:1204
+#| msgid "重置所有阻断规则"
+msgid "所有阻断规则"
+msgstr "تمام قوانین مسدودکننده"
+
+#: scripts/traffic_blocker.sh:1204
+#| msgid "配置"
+msgid "已重置"
+msgstr "دوباره تنظیم شده است"
+
+#: scripts/traffic_blocker.sh:1208 scripts/traffic_blocker.sh:1211
+#| msgid "恢复"
+msgid "已恢复"
+msgstr "بازیابی شده است"
