@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.5.9"
+fm_SCRIPT_VERSION="1.5.10"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -196,15 +196,15 @@ fm_create_server_file() {
         iptables -I INPUT -p udp --dport ${port} -j ACCEPT
         iptables -I OUTPUT -p tcp --sport ${port} -j ACCEPT
         iptables -I OUTPUT -p udp --sport ${port} -j ACCEPT
-        log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "追加完成") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "追加") $(gettext "完成") ${Font}"
         if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
             service iptables save
             service iptables restart
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启完成") ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") $(gettext "完成") ${Font}"
         else
             netfilter-persistent save
             systemctl restart iptables
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启完成") ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") $(gettext "完成") ${Font}"
         fi
         ;;
     *)
@@ -249,7 +249,7 @@ fm_edit_file() {
                     systemctl restart nginx
                     if systemctl is-active --quiet nginx; then
                         echo
-                        log_echo "${OK} ${GreenBG} Nginx $(gettext "重启成功") ${Font}"
+                        log_echo "${OK} ${GreenBG} Nginx $(gettext "重启") $(gettext "成功") ${Font}"
                         break
                     fi
                     ;;
@@ -358,10 +358,10 @@ fm_restart_nginx_and_check_status() {
         systemctl restart nginx
         if systemctl is-active --quiet nginx; then
             echo
-            log_echo "${OK} ${GreenBG} Nginx $(gettext "重启成功") ${Font}"
+            log_echo "${OK} ${GreenBG} Nginx $(gettext "重启") $(gettext "成功") ${Font}"
         else
             echo
-            log_echo "${Error} ${RedBG} Nginx $(gettext "重启失败") ${Font}"
+            log_echo "${Error} ${RedBG} Nginx $(gettext "重启") $(gettext "失败") ${Font}"
             nginx_diagnose
         fi
     fi

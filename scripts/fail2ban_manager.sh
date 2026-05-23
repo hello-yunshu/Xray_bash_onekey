@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.5.7"
+mf_SCRIPT_VERSION="1.5.8"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -508,7 +508,7 @@ mf_uninstall_fail2ban() {
 mf_stop_disable_fail2ban() {
     systemctl stop fail2ban
     systemctl disable fail2ban
-    log_echo "${OK} ${GreenBG} Fail2ban $(gettext "停止成功") ${Font}"
+    log_echo "${OK} ${GreenBG} Fail2ban $(gettext "停止") $(gettext "成功") ${Font}"
     # timeout "$(gettext "清空屏幕")!"
     # clear
 }

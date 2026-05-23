@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.14"
+tb_SCRIPT_VERSION="1.6.0"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -509,10 +509,10 @@ tb_download_geo_file() {
 
     if download_file "$download_url" "${tb_geo_dir}/${file_name}"; then
         tb_set_geo_local_version "$file_name" "${remote_version}"
-        log_echo "${OK} ${GreenBG} $(gettext "下载完成"): ${file_name} (${remote_version}) ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "下载") $(gettext "完成"): ${file_name} (${remote_version}) ${Font}"
         return 0
     else
-        log_echo "${Error} ${RedBG} $(gettext "下载失败"): ${file_name} ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "下载") $(gettext "失败"): ${file_name} ${Font}"
         return 1
     fi
 }
@@ -986,7 +986,7 @@ tb_check_geo_files() {
         if [[ ! $geo_update_confirm =~ ^[nN]([oO])?$ ]]; then
             for file in "${outdated_files[@]}"; do
                 if ! tb_download_geo_file "$file" "$remote_version"; then
-                    log_echo "${Error} ${RedBG} $(gettext "更新失败"): ${file} ${Font}"
+                    log_echo "${Error} ${RedBG} $(gettext "更新") $(gettext "失败"): ${file} ${Font}"
                     return 1
                 fi
             done
