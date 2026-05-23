@@ -86,6 +86,16 @@ docker compose up -d
 docker attach xray-onekey
 ```
 
+## AI Skill 部署
+
+支持通过 AI 工具（如 Trae）自动部署 Xray，无需手动交互。详见 [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
+
+传统方式需要 SSH 到服务器、运行安装脚本、逐个回答交互式问题；Skill 方式只需告诉 AI 你的需求，AI 会自动生成非交互式脚本并执行，直接返回 VLESS 链接。
+
+**支持模式**：Reality / TLS / ws ONLY / XTLS ONLY
+
+**使用方式**：在支持 Skill 的 AI 工具中直接说"帮我在服务器上搭建 Xray"，AI 会自动收集信息、生成脚本、执行部署并返回连接信息。
+
 ## 注意事项
 
 * 不了解各项设置含义时，除必填项外请使用默认值（全程回车即可）
