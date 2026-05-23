@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.13"
+tb_SCRIPT_VERSION="1.5.14"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -421,13 +421,18 @@ tb_build_sniffing_restore_filter() {
     local count
     count=$(echo "$saved_sniffing" | jq 'length' 2>/dev/null)
     while [[ $i -lt $count ]]; do
-        local tag val
+        local tag val part
         tag=$(echo "$saved_sniffing" | jq -r ".[$i].tag" 2>/dev/null)
         val=$(echo "$saved_sniffing" | jq -c ".[$i].sniffing" 2>/dev/null)
         if [[ "$val" == "null" ]]; then
-            filter="${filter} | (.inbounds[] | select(.tag == \"${tag}\")) |= del(.sniffing)"
+            part="(.inbounds[] | select(.tag == \"${tag}\")) |= del(.sniffing)"
         else
-            filter="${filter} | (.inbounds[] | select(.tag == \"${tag}\")).sniffing = \$sniffing_${i}"
+            part="(.inbounds[] | select(.tag == \"${tag}\")).sniffing = \$sniffing_${i}"
+        fi
+        if [[ -n "$filter" ]]; then
+            filter="${filter} | ${part}"
+        else
+            filter="${part}"
         fi
         i=$((i + 1))
     done
@@ -849,14 +854,13 @@ tb_manage_rules() {
 
         echo
         if [[ -n "$description" ]]; then
-            log_echo "${Info} ${Green} ${description} ${Font}"
+            log_echo "${OK} ${GreenBG} ${description} ${Font}"
         fi
         log_echo "${GreenBG} $(gettext "是否") $status_text $display_name $(gettext "规则") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r confirm
 
         if [[ ! $confirm =~ ^[nN]([oO])?$ ]]; then
             tb_set_rule_status "$selected_rule" "$new_status"
-            log_echo "${OK} ${GreenBG} $display_name $(gettext "规则") $status_text ${Font}"
             tb_apply_rules
         else
             log_echo "${Green} $(gettext "操作已取消") ${Font}"
@@ -1125,12 +1129,13 @@ tb_apply_rules() {
     fi
 
     echo
-    log_echo "${OK} ${GreenBG} $(gettext "流量阻断规则已应用") ${Font}"
+    log_echo "${OK} ${GreenBG} $(gettext "流量阻断规则") $(gettext "已应用") ${Font}"
+    log_echo "${OK} ${GreenBG} Xray $(gettext "已重启") ${Font}"
     if [[ "$new_domain_strategy" == "IPIfNonMatch" ]]; then
-        log_echo "${Info} ${Green} $(gettext "域名解析策略已设置为") IPIfNonMatch $(gettext "以支持基于 IP 的阻断规则") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "域名解析策略") $(gettext "已应用") ${Font}"
     fi
     if [[ "$needs_sniffing" == "true" ]]; then
-        log_echo "${Info} ${Green} $(gettext "协议嗅探已启用以支持流量阻断规则") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "协议嗅探") $(gettext "已应用") ${Font}"
     fi
 }
 
@@ -1174,7 +1179,10 @@ tb_reset_rules() {
             reset_sniffing_filter=$(tb_build_sniffing_restore_filter "$saved_sniffing")
         fi
 
-        local reset_filter='.routing.rules = $rules | .routing.domainStrategy = $ds'"${reset_sniffing_filter}"
+        local reset_filter='.routing.rules = $rules | .routing.domainStrategy = $ds'
+        if [[ -n "$reset_sniffing_filter" ]]; then
+            reset_filter="${reset_filter} | ${reset_sniffing_filter}"
+        fi
         local reset_args=(--argjson rules "$reset_rules" --arg ds "$reset_domain_strategy")
         if [[ -n "$saved_sniffing" ]]; then
             tb_sniffing_args=()
@@ -1193,7 +1201,16 @@ tb_reset_rules() {
         fi
     fi
 
-    log_echo "${OK} ${GreenBG} $(gettext "所有阻断规则已重置") ${Font}"
+    log_echo "${OK} ${GreenBG} $(gettext "所有阻断规则") $(gettext "已重置") ${Font}"
+    if [[ -f "${xray_conf}" ]]; then
+        log_echo "${OK} ${GreenBG} Xray $(gettext "已重启") ${Font}"
+        if [[ "$reset_domain_strategy" != "IPIfNonMatch" ]]; then
+            log_echo "${OK} ${GreenBG} $(gettext "域名解析策略") $(gettext "已恢复") ${Font}"
+        fi
+        if [[ -n "$saved_sniffing" ]]; then
+            log_echo "${OK} ${GreenBG} $(gettext "协议嗅探") $(gettext "已恢复") ${Font}"
+        fi
+    fi
 }
 
 tb_check_for_updates() {
