@@ -86,6 +86,16 @@ docker compose up -d
 docker attach xray-onekey
 ```
 
+## AI Skill 배포
+
+AI 도구(예: Trae)를 통해 수동 상호작용 없이 Xray를 자동 배포할 수 있습니다. 자세한 내용은 [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)을 참조하세요.
+
+전통적인 방식은 서버에 SSH로 접속하여 설치 스크립트를 실행하고 대화형 질문에 하나씩 답해야 합니다; Skill 방식은 AI에게 요구사항만 말하면 자동으로 비대화형 스크립트를 생성하여 실행하고 VLESS 링크를 직접 반환합니다.
+
+**지원 모드**: Reality / TLS / ws ONLY / XTLS ONLY
+
+**사용 방법**: Skill을 지원하는 AI 도구에서 "서버에 Xray를 설치해 줘"라고 말하면, AI가 자동으로 정보를 수집하고 스크립트를 생성하여 배포를 실행하고 연결 정보를 반환합니다.
+
 ## 주의사항
 
 * 설정의 의미를 모르면 필수 항목 외에는 기본값을 사용하세요 (계속 Enter)
