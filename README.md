@@ -149,7 +149,7 @@ cat /etc/idleleo/info/xray_info.inf
 | 主目录 | `/etc/idleleo` |
 | Xray 配置 | `/etc/idleleo/conf/xray/config.json` |
 | Nginx 配置 | `/etc/idleleo/conf/nginx/` |
-| 安装信息 | `/etc/idleleo/info/install_config.json` |
+| 安装信息 | `/etc/idleleo/conf/install_config.json` |
 | 证书文件 | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
 | 日志目录 | `/etc/idleleo/logs/`、`/var/log/xray/` |
 | Nginx 安装目录 | `/usr/local/nginx` |
