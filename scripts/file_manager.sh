@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.5.8"
+fm_SCRIPT_VERSION="1.5.9"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -73,13 +73,13 @@ fm_table_line() {
 }
 
 fm_list_files() {
-    local max_length
+    local show_index="${1:-false}"
+
     log_echo "${GreenBG} $(gettext "列出所有") .$fm_EXTENSION $(gettext "文件") ${Font}"
 
     local _prev_dotglob=$(shopt -p dotglob)
     local _prev_nullglob=$(shopt -p nullglob)
 
-    # 设置 dotglob 选项，使通配符 * 包括以点开头的文件
     shopt -s dotglob nullglob
 
     files=(*.$fm_EXTENSION)
@@ -105,18 +105,26 @@ fm_list_files() {
             max_length=10
         fi
 
-        local total_width=$((max_length + 11))
-        fm_table_line "$total_width"
-
-        printf "| "; fm_pad "$(gettext "序号")" 4; printf " | "; fm_pad "$header_text" "$max_length"; printf " |\n"
-
-        fm_table_line "$total_width"
-
-        local index=1
-        for file in "${files[@]}"; do
-            printf "| %4d | " $index; fm_pad "$file" "$max_length"; printf " |\n"
-            ((index++))
-        done
+        local total_width
+        if [[ "$show_index" == "true" ]]; then
+            total_width=$((max_length + 11))
+            fm_table_line "$total_width"
+            printf "| "; fm_pad "$(gettext "序号")" 4; printf " | "; fm_pad "$header_text" "$max_length"; printf " |\n"
+            fm_table_line "$total_width"
+            local index=1
+            for file in "${files[@]}"; do
+                printf "| %4d | " $index; fm_pad "$file" "$max_length"; printf " |\n"
+                ((index++))
+            done
+        else
+            total_width=$((max_length + 4))
+            fm_table_line "$total_width"
+            printf "| "; fm_pad "$header_text" "$max_length"; printf " |\n"
+            fm_table_line "$total_width"
+            for file in "${files[@]}"; do
+                printf "| "; fm_pad "$file" "$max_length"; printf " |\n"
+            done
+        fi
 
         fm_table_line "$total_width"
 
@@ -208,7 +216,7 @@ fm_create_server_file() {
 }
 
 fm_edit_file() {
-    fm_list_files
+    fm_list_files true
     local num_files=${#files[@]}
     local choice
     read_optimize "$(gettext "请输入要编辑的文件编号") (1-$num_files): " choice "" 1 "$num_files"
@@ -229,7 +237,7 @@ fm_edit_file() {
             read -r retry_choice
             case $retry_choice in
                 [yY][eE][sS] | [yY])
-                    if ! fm_list_files; then
+                    if ! fm_list_files true; then
                         log_echo "${Warning} ${YellowBG} $(gettext "没有可编辑的文件") ${Font}"
                         break
                     fi
@@ -255,7 +263,7 @@ fm_edit_file() {
 }
 
 fm_delete_file() {
-    if ! fm_list_files; then
+    if ! fm_list_files true; then
         return
     fi
 

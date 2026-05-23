@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.5.12"
+tb_SCRIPT_VERSION="1.5.13"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -549,24 +549,17 @@ tb_display_status() {
             status_w=$width
         fi
     done
-    local return_width
-    return_width=$(tb_display_width "$(gettext "返回")")
-    if (( return_width > name_w )); then
-        name_w=$return_width
-    fi
 
-    local total_w=$((name_w + status_w + 14))
+    local total_w=$((name_w + status_w + 7))
 
     tb_table_line "$total_w"
-    printf "| "; tb_pad "$(gettext "序号")" 4; printf " | "; tb_pad "$header_name" "$name_w"; printf " | "; tb_pad "$header_status" "$status_w"; printf " |\n"
+    printf "| "; tb_pad "$header_name" "$name_w"; printf " | "; tb_pad "$header_status" "$status_w"; printf " |\n"
     tb_table_line "$total_w"
 
     for ((index=1; index<=${#names[@]}; index++)); do
-        printf "| %4d | " "$index"; tb_pad "${names[$index]}" "$name_w"; printf " | "; tb_pad "${statuses[$index]}" "$status_w"; printf " |\n"
+        printf "| "; tb_pad "${names[$index]}" "$name_w"; printf " | "; tb_pad "${statuses[$index]}" "$status_w"; printf " |\n"
     done
 
-    tb_table_line "$total_w"
-    printf "| %4d | " 0; tb_pad "$(gettext "返回")" "$name_w"; printf " | "; tb_pad "" "$status_w"; printf " |\n"
     tb_table_line "$total_w"
 
     echo
@@ -699,18 +692,16 @@ tb_geo_menu() {
         echo "1. $(gettext "更新全部 GeoData")"
         echo "2. $(gettext "更新") geoip.dat"
         echo "3. $(gettext "更新") geosite.dat"
-        echo "4. $(gettext "检查更新")"
-        echo "5. $(gettext "设置自动更新")"
-        echo "6. $(gettext "返回")"
+        echo "4. $(gettext "设置自动更新")"
+        echo "5. $(gettext "返回")"
         local geo_choice
         read_optimize "$(gettext "请选择一个选项"):" geo_choice "" 1
         case $geo_choice in
             1) tb_update_all_geo ;;
             2) tb_update_geo_file "geoip.dat" ;;
             3) tb_update_geo_file "geosite.dat" ;;
-            4) tb_check_geo_updates ;;
-            5) tb_geo_auto_update ;;
-            6) return ;;
+            4) tb_geo_auto_update ;;
+            5) return ;;
             *)
                 echo
                 log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
@@ -772,50 +763,6 @@ tb_update_geo_file() {
                 judge -r "Xray $(gettext "重启")" || return 1
             fi
         fi
-    fi
-}
-
-tb_check_geo_updates() {
-    echo
-    log_echo "${Info} ${Green} $(gettext "正在检查远程版本")... ${Font}"
-
-    local remote_version=$(tb_get_geo_remote_version)
-
-    if [[ -z "$remote_version" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "无法获取远程版本信息, 请检查网络连接") ${Font}"
-        return
-    fi
-
-    log_echo "${Info} ${Green} $(gettext "远程最新版本"): ${remote_version} ${Font}"
-    echo
-
-    local has_update=false
-
-    for file_name in "geoip.dat" "geosite.dat"; do
-        if [[ -f "${tb_geo_dir}/${file_name}" ]]; then
-            local local_version=$(tb_get_geo_local_version "$file_name")
-            local file_date=$(tb_format_date "$(tb_get_geo_file_date "${tb_geo_dir}/${file_name}")")
-            if tb_is_geo_outdated "$file_name" "$remote_version"; then
-                log_echo "${Warning} ${YellowBG} ${file_name}: $(gettext "有更新可用") (${local_version:-$(gettext "未知")} → ${remote_version}, $(gettext "更新时间"): ${file_date}) ${Font}"
-                has_update=true
-            else
-                log_echo "${OK} ${GreenBG} ${file_name}: $(gettext "已是最新") (${local_version:-$(gettext "未知")}) ${Font}"
-            fi
-        else
-            log_echo "${Warning} ${YellowBG} ${file_name}: $(gettext "未安装") ${Font}"
-            has_update=true
-        fi
-    done
-
-    if [[ "$has_update" == "true" ]]; then
-        echo
-        log_echo "${GreenBG} $(gettext "是否更新所有过期的文件") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-        read -r update_confirm
-        if [[ ! $update_confirm =~ ^[nN]([oO])?$ ]]; then
-            tb_update_all_geo
-        fi
-    else
-        log_echo "${OK} ${GreenBG} $(gettext "所有 GeoData 均为最新版本") ${Font}"
     fi
 }
 
@@ -1156,7 +1103,7 @@ tb_apply_rules() {
             tb_build_sniffing_restore_args "$saved_sniffing"
             update_args+=("${tb_sniffing_args[@]}")
         fi
-        update_filter="${update_filter}${sniffing_jq_filter}"
+        update_filter="${update_filter} | ${sniffing_jq_filter}"
     fi
 
     if ! tb_update_xray_config "${update_args[@]}" "$update_filter"; then
