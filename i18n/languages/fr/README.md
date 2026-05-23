@@ -86,6 +86,16 @@ docker compose up -d
 docker attach xray-onekey
 ```
 
+## Déploiement AI Skill
+
+Prend en charge le déploiement automatique de Xray via des outils IA (par ex. Trae) sans interaction manuelle. Consultez [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill) pour plus de détails.
+
+L'approche traditionnelle nécessite de se connecter en SSH au serveur, d'exécuter le script d'installation et de répondre aux questions interactives une par une ; l'approche Skill vous suffit de dire à l'IA vos besoins, et elle génère automatiquement un script non interactif, l'exécute et renvoie directement le lien VLESS.
+
+**Modes pris en charge** : Reality / TLS / ws ONLY / XTLS ONLY
+
+**Utilisation** : Dans un outil IA prenant en charge les Skills, dites simplement « Aidez-moi à installer Xray sur mon serveur », et l'IA collectera automatiquement les informations, générera le script, exécutera le déploiement et renverra les informations de connexion.
+
 ## Remarques importantes
 
 * Si vous n'êtes pas familier avec les paramètres, utilisez les valeurs par défaut pour les champs non obligatoires (appuyez simplement sur Entrée)
