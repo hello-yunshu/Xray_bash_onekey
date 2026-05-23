@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.0"
+shell_version="2.13.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -4772,6 +4772,9 @@ check_file_integrity() {
 }
 
 compat_migrate() {
+    local _marker_file="${idleleo_dir}/.compat_migrate_v1"
+    [[ -f "${_marker_file}" ]] && return 0
+
     # COMPAT: vless_qr.json → install_config.json，v2.15 后删除
     local _old_install_config="${idleleo_dir}/info/vless_qr.json"
     if [[ -f "${_old_install_config}" && ! -f "${xray_install_config_file}" ]]; then
@@ -4788,31 +4791,49 @@ compat_migrate() {
         info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     fi
     # COMPAT_END
-    # COMPAT: 子脚本从 idleleo_dir 根目录迁移到 scripts_dir，v2.15 后删除
-    [[ -d "${scripts_dir}" ]] && return 0
-    local _migrated=0
-    local _script
-    for _script in fail2ban_manager.sh traffic_blocker.sh file_manager.sh auto_update.sh ssl_update.sh geo_update.sh tcp.sh; do
-        if [[ -f "${idleleo_dir}/${_script}" ]]; then
-            [[ ${_migrated} -eq 0 ]] && mkdir -p "${scripts_dir}"
-            mv -f "${idleleo_dir}/${_script}" "${scripts_dir}/${_script}"
-            _migrated=1
+    # COMPAT: 删除低于仓库版本的旧子脚本(自更新下载路径错误)，v2.15 后删除
+    local _subscripts="file_manager.sh:fm_SCRIPT_VERSION:1.5.8 traffic_blocker.sh:tb_SCRIPT_VERSION:1.5.12 fail2ban_manager.sh:mf_SCRIPT_VERSION:1.5.7"
+    local _entry _script_name _ver_var _required_ver _loc _local_ver _oldest_ver
+    for _entry in $_subscripts; do
+        IFS=':' read -r _script_name _ver_var _required_ver <<< "$_entry"
+        [[ -f "${idleleo_dir}/${_script_name}" ]] && rm -f "${idleleo_dir}/${_script_name}"
+        _loc="${scripts_dir}/${_script_name}"
+        if [[ -f "$_loc" ]]; then
+            _local_ver=$(grep "^${_ver_var}=" "$_loc" | head -1 | sed 's/.*="//; s/"//')
+            if [[ -z "$_local_ver" ]]; then
+                rm -f "$_loc"
+            else
+                _oldest_ver=$(printf '%s\n%s\n' "$_required_ver" "$_local_ver" | sort -V | head -1)
+                [[ "$_oldest_ver" != "$_required_ver" ]] && rm -f "$_loc"
+            fi
         fi
     done
-    if [[ ${_migrated} -eq 1 ]]; then
-        local _crontab_file
-        if [[ "${ID}" == "centos" ]]; then
-            _crontab_file="/var/spool/cron/root"
-        else
-            _crontab_file="/var/spool/cron/crontabs/root"
+    # COMPAT_END
+    # COMPAT: 清理非交互式子脚本根目录残留 + crontab 路径修正，v2.15 后删除
+    mkdir -p "${scripts_dir}"
+    for _script_name in auto_update.sh ssl_update.sh geo_update.sh tcp.sh; do
+        if [[ -f "${idleleo_dir}/${_script_name}" ]]; then
+            if [[ -f "${scripts_dir}/${_script_name}" ]]; then
+                rm -f "${idleleo_dir}/${_script_name}"
+            else
+                mv -f "${idleleo_dir}/${_script_name}" "${scripts_dir}/${_script_name}"
+            fi
         fi
-        if [[ -f "${_crontab_file}" ]]; then
-            sed -i "s|${idleleo_dir}/auto_update\.sh|${scripts_dir}/auto_update.sh|g" "${_crontab_file}"
-            sed -i "s|${idleleo_dir}/geo_update\.sh|${scripts_dir}/geo_update.sh|g" "${_crontab_file}"
-            sed -i "s|${idleleo_dir}/ssl_update\.sh|${scripts_dir}/ssl_update.sh|g" "${_crontab_file}"
-        fi
+    done
+    local _crontab_file
+    if [[ "${ID}" == "centos" ]]; then
+        _crontab_file="/var/spool/cron/root"
+    else
+        _crontab_file="/var/spool/cron/crontabs/root"
+    fi
+    if [[ -f "${_crontab_file}" ]]; then
+        sed -i "s|${idleleo_dir}/auto_update\.sh|${scripts_dir}/auto_update.sh|g" "${_crontab_file}"
+        sed -i "s|${idleleo_dir}/geo_update\.sh|${scripts_dir}/geo_update.sh|g" "${_crontab_file}"
+        sed -i "s|${idleleo_dir}/ssl_update\.sh|${scripts_dir}/ssl_update.sh|g" "${_crontab_file}"
     fi
     # COMPAT_END
+
+    touch "${_marker_file}"
 }
 
 read_version() {
