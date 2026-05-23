@@ -6,9 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
-"issues\n"
-"POT-Creation-Date: 2026-05-23 17:56+0000\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
+"POT-Creation-Date: 2026-05-23 18:12+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -33,8 +32,8 @@ msgstr "warning"
 #: install.sh:40 install.sh:2213 install.sh:3120 install.sh:5067
 #: install.sh:5084 install.sh:5087 install.sh:5088 install.sh:5189
 #: scripts/fail2ban_manager.sh:154 scripts/fail2ban_manager.sh:285
-#: scripts/fail2ban_manager.sh:527 scripts/traffic_blocker.sh:634
-#: scripts/traffic_blocker.sh:646 scripts/traffic_blocker.sh:805
+#: scripts/fail2ban_manager.sh:527 scripts/traffic_blocker.sh:627
+#: scripts/traffic_blocker.sh:639
 msgid "未安装"
 msgstr "not installed"
 
@@ -174,13 +173,13 @@ msgstr "the value is empty, please re-enter"
 msgid "确定端口"
 msgstr "confirm port"
 
-#: install.sh:642 install.sh:645 scripts/file_manager.sh:165
-#: scripts/file_manager.sh:167
+#: install.sh:642 install.sh:645 scripts/file_manager.sh:173
+#: scripts/file_manager.sh:175
 msgid "请输入端口"
 msgstr "please enter the port"
 
-#: install.sh:642 install.sh:645 scripts/file_manager.sh:165
-#: scripts/file_manager.sh:170
+#: install.sh:642 install.sh:645 scripts/file_manager.sh:173
+#: scripts/file_manager.sh:178
 msgid "默认值"
 msgstr "default value"
 
@@ -215,7 +214,7 @@ msgstr "default"
 #: install.sh:4004 install.sh:4005 install.sh:4006 install.sh:4106
 #: install.sh:4123 install.sh:4186 install.sh:4255 install.sh:4276
 #: scripts/fail2ban_manager.sh:297 scripts/fail2ban_manager.sh:315
-#: scripts/fail2ban_manager.sh:357 scripts/file_manager.sh:135
+#: scripts/fail2ban_manager.sh:357 scripts/file_manager.sh:143
 msgid "请输入"
 msgstr "please enter"
 
@@ -238,8 +237,8 @@ msgid "已跳过添加简单 ws/gRPC/xHTTP 协议"
 msgstr "skipping the addition of simple ws/gRPC/xHTTP protocols"
 
 #: install.sh:779 install.sh:799 install.sh:820 install.sh:911 install.sh:928
-#: install.sh:949 install.sh:966 install.sh:987 install.sh:1004 install.sh:1023
-#: install.sh:1142 install.sh:1163 install.sh:1200
+#: install.sh:949 install.sh:966 install.sh:987 install.sh:1004
+#: install.sh:1023 install.sh:1142 install.sh:1163 install.sh:1200
 msgid "是否需要自定义"
 msgstr "whether customization is needed"
 
@@ -247,19 +246,19 @@ msgstr "whether customization is needed"
 msgid "请勿与其他端口相同"
 msgstr "please do not use the same port as others"
 
-#: install.sh:839 scripts/file_manager.sh:177
+#: install.sh:839 scripts/file_manager.sh:185
 msgid "是否需要设置防火墙"
 msgstr "whether a firewall needs to be set up"
 
-#: install.sh:891 install.sh:894 scripts/file_manager.sh:191
-#: scripts/file_manager.sh:195 scripts/file_manager.sh:199
+#: install.sh:891 install.sh:894 scripts/file_manager.sh:199
+#: scripts/file_manager.sh:203 scripts/file_manager.sh:207
 msgid "防火墙"
 msgstr "firewall"
 
 #: install.sh:891 install.sh:894 install.sh:2983 install.sh:2990
 #: install.sh:3901 install.sh:3904 install.sh:5397
 #: scripts/fail2ban_manager.sh:312 scripts/fail2ban_manager.sh:519
-#: scripts/traffic_blocker.sh:747 scripts/traffic_blocker.sh:772
+#: scripts/traffic_blocker.sh:738 scripts/traffic_blocker.sh:763
 msgid "重启"
 msgstr "restart"
 
@@ -279,7 +278,7 @@ msgstr ""
 msgid "配置"
 msgstr "configuration"
 
-#: install.sh:901 scripts/file_manager.sh:203
+#: install.sh:901 scripts/file_manager.sh:211
 msgid "跳过防火墙设置"
 msgstr "skip firewall settings"
 
@@ -402,7 +401,7 @@ msgid "不存在, 正在下载"
 msgstr "does not exist, downloading now"
 
 #: install.sh:1225 install.sh:1239 scripts/fail2ban_manager.sh:583
-#: scripts/file_manager.sh:336 scripts/traffic_blocker.sh:1272
+#: scripts/file_manager.sh:344 scripts/traffic_blocker.sh:1219
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr "download failed, please manually download and install the new version"
 
@@ -410,8 +409,8 @@ msgstr "download failed, please manually download and install the new version"
 msgid "版本过旧, 建议更新"
 msgstr "the version is too old; please update"
 
-#: install.sh:1233 scripts/fail2ban_manager.sh:572 scripts/file_manager.sh:325
-#: scripts/traffic_blocker.sh:1261
+#: install.sh:1233 scripts/fail2ban_manager.sh:572 scripts/file_manager.sh:333
+#: scripts/traffic_blocker.sh:1208
 msgid "是否下载并安装新版本"
 msgstr "do you want to download and install the new version"
 
@@ -426,8 +425,8 @@ msgstr "main script version required"
 
 #: install.sh:1251 scripts/fail2ban_manager.sh:10
 #: scripts/fail2ban_manager.sh:569 scripts/file_manager.sh:10
-#: scripts/file_manager.sh:322 scripts/traffic_blocker.sh:9
-#: scripts/traffic_blocker.sh:758 scripts/traffic_blocker.sh:1258
+#: scripts/file_manager.sh:330 scripts/traffic_blocker.sh:9
+#: scripts/traffic_blocker.sh:749 scripts/traffic_blocker.sh:1205
 msgid "当前版本"
 msgstr "current version"
 
@@ -451,18 +450,17 @@ msgstr "please select the protocol as ws, gRPC, or xHTTP"
 #: install.sh:1272 scripts/fail2ban_manager.sh:295
 #: scripts/fail2ban_manager.sh:313 scripts/fail2ban_manager.sh:412
 #: scripts/fail2ban_manager.sh:452 scripts/traffic_blocker.sh:273
-#: scripts/traffic_blocker.sh:311 scripts/traffic_blocker.sh:553
-#: scripts/traffic_blocker.sh:569 scripts/traffic_blocker.sh:704
-#: scripts/traffic_blocker.sh:864 scripts/traffic_blocker.sh:880
+#: scripts/traffic_blocker.sh:311 scripts/traffic_blocker.sh:696
+#: scripts/traffic_blocker.sh:811 scripts/traffic_blocker.sh:827
 msgid "返回"
 msgstr "return"
 
 #: install.sh:1283 install.sh:5251 scripts/fail2ban_manager.sh:78
 #: scripts/fail2ban_manager.sh:331 scripts/fail2ban_manager.sh:339
-#: scripts/fail2ban_manager.sh:456 scripts/file_manager.sh:310
+#: scripts/fail2ban_manager.sh:456 scripts/file_manager.sh:318
 #: scripts/traffic_blocker.sh:284 scripts/traffic_blocker.sh:320
-#: scripts/traffic_blocker.sh:601 scripts/traffic_blocker.sh:716
-#: scripts/traffic_blocker.sh:884
+#: scripts/traffic_blocker.sh:594 scripts/traffic_blocker.sh:707
+#: scripts/traffic_blocker.sh:831
 msgid "无效的选择, 请重试"
 msgstr "invalid selection, please try again"
 
@@ -532,7 +530,7 @@ msgstr "some new features require reinstallation to take effect"
 #: install.sh:1732 install.sh:1740 install.sh:1771 install.sh:2060
 #: install.sh:2205 install.sh:4995 install.sh:5007 install.sh:5365
 #: install.sh:5366 install.sh:5367 install.sh:5403
-#: scripts/traffic_blocker.sh:700 scripts/traffic_blocker.sh:701
+#: scripts/traffic_blocker.sh:693 scripts/traffic_blocker.sh:694
 msgid "更新"
 msgstr "update"
 
@@ -586,7 +584,7 @@ msgstr "version"
 msgid "重装"
 msgstr "reinstall"
 
-#: install.sh:1810 install.sh:1811 scripts/traffic_blocker.sh:1038
+#: install.sh:1810 install.sh:1811 scripts/traffic_blocker.sh:985
 msgid "更新失败"
 msgstr "update failed"
 
@@ -603,7 +601,7 @@ msgstr ""
 #: install.sh:1828 scripts/fail2ban_manager.sh:170
 #: scripts/fail2ban_manager.sh:180 scripts/fail2ban_manager.sh:205
 #: scripts/fail2ban_manager.sh:231 scripts/fail2ban_manager.sh:403
-#: scripts/traffic_blocker.sh:524 scripts/traffic_blocker.sh:835
+#: scripts/traffic_blocker.sh:524 scripts/traffic_blocker.sh:782
 msgid "已启用"
 msgstr "enabled"
 
@@ -743,8 +741,8 @@ msgstr "already updated to the latest version"
 #: install.sh:2226
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"set up a background scheduled automatic update program (including: script/"
-"xray/nginx)"
+"set up a background scheduled automatic update program (including: "
+"script/xray/nginx)"
 
 #: install.sh:2227
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -753,7 +751,7 @@ msgstr ""
 "with caution"
 
 #: install.sh:2228 scripts/fail2ban_manager.sh:197
-#: scripts/fail2ban_manager.sh:223 scripts/traffic_blocker.sh:654
+#: scripts/fail2ban_manager.sh:223 scripts/traffic_blocker.sh:647
 msgid "是否启用"
 msgstr "enable or not"
 
@@ -761,7 +759,7 @@ msgstr "enable or not"
 msgid "下载自动更新脚本"
 msgstr "download the automatic update script"
 
-#: install.sh:2235 install.sh:4986 scripts/traffic_blocker.sh:703
+#: install.sh:2235 install.sh:4986 scripts/traffic_blocker.sh:695
 msgid "设置自动更新"
 msgstr "set automatic update"
 
@@ -769,7 +767,7 @@ msgstr "set automatic update"
 msgid "已设置自动更新"
 msgstr "auto-update has been set"
 
-#: install.sh:2241 scripts/traffic_blocker.sh:679
+#: install.sh:2241 scripts/traffic_blocker.sh:672
 msgid "是否关闭"
 msgstr "whether to close"
 
@@ -1007,7 +1005,7 @@ msgstr "set Nginx to start automatically on boot"
 
 #: install.sh:2946 install.sh:5404 install.sh:5407 install.sh:5408
 #: install.sh:5409 install.sh:5410 scripts/fail2ban_manager.sh:61
-#: scripts/traffic_blocker.sh:580
+#: scripts/traffic_blocker.sh:573
 msgid "设置"
 msgstr "settings"
 
@@ -1245,13 +1243,14 @@ msgstr ""
 
 #: install.sh:3772
 msgid "如需使用自定义证书, 请按如下步骤:"
-msgstr "if you need to use a custom certificate, please follow the steps below"
+msgstr ""
+"if you need to use a custom certificate, please follow the steps below"
 
 #: install.sh:3773
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr ""
-"1. rename the certificate files: private key (xray.key), certificate (xray."
-"crt)"
+"1. rename the certificate files: private key (xray.key), certificate "
+"(xray.crt)"
 
 #: install.sh:3774
 msgid "2. 将重命名后的证书文件放入"
@@ -1273,7 +1272,7 @@ msgstr "whether to continue"
 msgid "所有证书文件均已存在, 是否保留"
 msgstr "all certificate files already exist, do you want to keep them"
 
-#: install.sh:3790 install.sh:3805 install.sh:3820 scripts/file_manager.sh:269
+#: install.sh:3790 install.sh:3805 install.sh:3820 scripts/file_manager.sh:277
 msgid "已删除"
 msgstr "deleted"
 
@@ -1288,7 +1287,8 @@ msgstr "the certificate file already exists, do you want to keep it"
 #: install.sh:3815
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr ""
-"the certificate issuance residual file already exists, do you want to keep it"
+"the certificate issuance residual file already exists, do you want to keep "
+"it"
 
 #: install.sh:3857 install.sh:5389
 msgid "添加"
@@ -1344,7 +1344,8 @@ msgstr "this mode does not support viewing users"
 
 #: install.sh:4093
 msgid "即将显示用户, 一次仅能显示一个"
-msgstr "users will be displayed soon, only one user can be displayed at a time"
+msgstr ""
+"users will be displayed soon, only one user can be displayed at a time"
 
 #: install.sh:4102
 msgid "请选择显示用户使用的协议"
@@ -1532,8 +1533,8 @@ msgstr ""
 "the script version has changed significantly. if the service cannot run "
 "properly, please uninstall and reinstall it"
 
-#: install.sh:4753 scripts/fail2ban_manager.sh:591 scripts/file_manager.sh:344
-#: scripts/traffic_blocker.sh:1280
+#: install.sh:4753 scripts/fail2ban_manager.sh:591 scripts/file_manager.sh:352
+#: scripts/traffic_blocker.sh:1227
 msgid "当前已经是最新版本"
 msgstr "it is already the latest version"
 
@@ -1548,14 +1549,14 @@ msgstr "this option is temporarily unavailable"
 #: install.sh:4865 install.sh:5453
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
-"this mode is recommended for load balancing; it is generally not recommended "
-"for use. do you want to install"
+"this mode is recommended for load balancing; it is generally not recommended"
+" for use. do you want to install"
 
 #: install.sh:4878 install.sh:5467
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
-"this mode is only intended for traffic forwarding and is not recommended for "
-"other use cases. do you want to install it"
+"this mode is only intended for traffic forwarding and is not recommended for"
+" other use cases. do you want to install it"
 
 #: install.sh:4984 install.sh:4985 install.sh:4996 install.sh:5000
 #: install.sh:5004 install.sh:5381 install.sh:5382 install.sh:5383
@@ -1641,8 +1642,8 @@ msgstr "error message"
 #: install.sh:5030
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr ""
-"the script version has changed significantly, and there may be compatibility "
-"issues. do you want to continue using it"
+"the script version has changed significantly, and there may be compatibility"
+" issues. do you want to continue using it"
 
 #: install.sh:5055
 msgid "检测失败"
@@ -1684,8 +1685,8 @@ msgstr "script is under maintenance. please try again later"
 #: install.sh:5204
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
-"the required online version of the dependency cannot be detected. please try "
-"again later"
+"the required online version of the dependency cannot be detected. please try"
+" again later"
 
 #: install.sh:5221
 msgid "请输入数字"
@@ -1865,7 +1866,7 @@ msgstr "anti-brute force"
 msgid "流量统计"
 msgstr "traffic statistics"
 
-#: install.sh:5410 scripts/traffic_blocker.sh:580
+#: install.sh:5410 scripts/traffic_blocker.sh:573
 msgid "流量阻断"
 msgstr "traffic blocking"
 
@@ -1914,8 +1915,8 @@ msgstr "empty"
 msgid "证书文件"
 msgstr "certificate file"
 
-#: install.sh:5419 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:298
-#: scripts/traffic_blocker.sh:590
+#: install.sh:5419 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:306
+#: scripts/traffic_blocker.sh:583
 msgid "退出"
 msgstr "exit"
 
@@ -1950,8 +1951,8 @@ msgstr "network speed test script download failed"
 msgid "用于防止暴力破解"
 msgstr "used to prevent brute-force attacks"
 
-#: scripts/fail2ban_manager.sh:62 scripts/file_manager.sh:293
-#: scripts/traffic_blocker.sh:585
+#: scripts/fail2ban_manager.sh:62 scripts/file_manager.sh:301
+#: scripts/traffic_blocker.sh:578
 msgid "主菜单"
 msgstr "main menu"
 
@@ -1960,13 +1961,13 @@ msgid "管理"
 msgstr "management"
 
 #: scripts/fail2ban_manager.sh:66 scripts/fail2ban_manager.sh:402
-#: scripts/traffic_blocker.sh:523 scripts/traffic_blocker.sh:834
+#: scripts/traffic_blocker.sh:523 scripts/traffic_blocker.sh:781
 msgid "状态"
 msgstr "status"
 
-#: scripts/fail2ban_manager.sh:69 scripts/file_manager.sh:300
-#: scripts/traffic_blocker.sh:313 scripts/traffic_blocker.sh:592
-#: scripts/traffic_blocker.sh:706
+#: scripts/fail2ban_manager.sh:69 scripts/file_manager.sh:308
+#: scripts/traffic_blocker.sh:313 scripts/traffic_blocker.sh:585
+#: scripts/traffic_blocker.sh:698
 msgid "请选择一个选项"
 msgstr "please select an option"
 
@@ -1986,14 +1987,14 @@ msgstr "skip activation"
 #: scripts/fail2ban_manager.sh:180 scripts/fail2ban_manager.sh:197
 #: scripts/fail2ban_manager.sh:202 scripts/fail2ban_manager.sh:205
 #: scripts/fail2ban_manager.sh:223 scripts/fail2ban_manager.sh:228
-#: scripts/fail2ban_manager.sh:231 scripts/traffic_blocker.sh:907
-#: scripts/traffic_blocker.sh:912
+#: scripts/fail2ban_manager.sh:231 scripts/traffic_blocker.sh:854
+#: scripts/traffic_blocker.sh:859
 msgid "规则"
 msgstr "rule"
 
 #: scripts/fail2ban_manager.sh:202 scripts/fail2ban_manager.sh:228
 #: scripts/fail2ban_manager.sh:404 scripts/traffic_blocker.sh:525
-#: scripts/traffic_blocker.sh:836
+#: scripts/traffic_blocker.sh:783
 msgid "已禁用"
 msgstr "disabled"
 
@@ -2073,8 +2074,8 @@ msgstr "no modular configuration files were found"
 msgid "模块名称"
 msgstr "module name"
 
-#: scripts/fail2ban_manager.sh:435 scripts/file_manager.sh:111
-#: scripts/traffic_blocker.sh:561 scripts/traffic_blocker.sh:872
+#: scripts/fail2ban_manager.sh:435 scripts/file_manager.sh:112
+#: scripts/traffic_blocker.sh:819
 msgid "序号"
 msgstr "serial number"
 
@@ -2082,15 +2083,15 @@ msgstr "serial number"
 msgid "请选择要管理的模块"
 msgstr "please select the module you want to manage"
 
-#: scripts/fail2ban_manager.sh:467 scripts/traffic_blocker.sh:899
+#: scripts/fail2ban_manager.sh:467 scripts/traffic_blocker.sh:846
 msgid "启用"
 msgstr "enable"
 
-#: scripts/fail2ban_manager.sh:467 scripts/traffic_blocker.sh:899
+#: scripts/fail2ban_manager.sh:467 scripts/traffic_blocker.sh:846
 msgid "禁用"
 msgstr "disable"
 
-#: scripts/fail2ban_manager.sh:469 scripts/traffic_blocker.sh:907
+#: scripts/fail2ban_manager.sh:469 scripts/traffic_blocker.sh:854
 msgid "是否"
 msgstr "whether… or not"
 
@@ -2099,7 +2100,7 @@ msgid "模块"
 msgstr "module"
 
 #: scripts/fail2ban_manager.sh:479 scripts/traffic_blocker.sh:214
-#: scripts/traffic_blocker.sh:915 scripts/traffic_blocker.sh:1197
+#: scripts/traffic_blocker.sh:862 scripts/traffic_blocker.sh:1144
 msgid "操作已取消"
 msgstr "operation canceled"
 
@@ -2125,33 +2126,33 @@ msgstr "lockdown situation"
 msgid "未启用或配置异常"
 msgstr "not enabled or configuration exception"
 
-#: scripts/fail2ban_manager.sh:569 scripts/file_manager.sh:322
-#: scripts/traffic_blocker.sh:1258
+#: scripts/fail2ban_manager.sh:569 scripts/file_manager.sh:330
+#: scripts/traffic_blocker.sh:1205
 msgid "新版本可用"
 msgstr "new version available"
 
-#: scripts/fail2ban_manager.sh:570 scripts/file_manager.sh:323
-#: scripts/traffic_blocker.sh:1259
+#: scripts/fail2ban_manager.sh:570 scripts/file_manager.sh:331
+#: scripts/traffic_blocker.sh:1206
 msgid "请访问"
 msgstr "please visit"
 
-#: scripts/fail2ban_manager.sh:570 scripts/file_manager.sh:323
-#: scripts/traffic_blocker.sh:1259
+#: scripts/fail2ban_manager.sh:570 scripts/file_manager.sh:331
+#: scripts/traffic_blocker.sh:1206
 msgid "查看更新说明"
 msgstr "view update notes"
 
-#: scripts/fail2ban_manager.sh:576 scripts/file_manager.sh:329
-#: scripts/traffic_blocker.sh:1265
+#: scripts/fail2ban_manager.sh:576 scripts/file_manager.sh:337
+#: scripts/traffic_blocker.sh:1212
 msgid "正在下载新版本"
 msgstr "downloading the new version"
 
-#: scripts/fail2ban_manager.sh:578 scripts/file_manager.sh:331
-#: scripts/traffic_blocker.sh:1267
+#: scripts/fail2ban_manager.sh:578 scripts/file_manager.sh:339
+#: scripts/traffic_blocker.sh:1214
 msgid "下载完成, 正在重新加载..."
 msgstr "download complete, reloading"
 
-#: scripts/fail2ban_manager.sh:587 scripts/file_manager.sh:340
-#: scripts/traffic_blocker.sh:1276
+#: scripts/fail2ban_manager.sh:587 scripts/file_manager.sh:348
+#: scripts/traffic_blocker.sh:1223
 msgid "跳过更新"
 msgstr "skip update"
 
@@ -2175,16 +2176,16 @@ msgstr "file extension"
 msgid "目录路径"
 msgstr "directory path"
 
-#: scripts/file_manager.sh:77 scripts/file_manager.sh:294
+#: scripts/file_manager.sh:78 scripts/file_manager.sh:302
 msgid "列出所有"
 msgstr "list all"
 
-#: scripts/file_manager.sh:77 scripts/file_manager.sh:90
-#: scripts/file_manager.sh:146 scripts/file_manager.sh:174
-#: scripts/file_manager.sh:223 scripts/file_manager.sh:240
-#: scripts/file_manager.sh:269 scripts/file_manager.sh:294
-#: scripts/file_manager.sh:295 scripts/file_manager.sh:296
-#: scripts/file_manager.sh:297
+#: scripts/file_manager.sh:78 scripts/file_manager.sh:90
+#: scripts/file_manager.sh:154 scripts/file_manager.sh:182
+#: scripts/file_manager.sh:231 scripts/file_manager.sh:248
+#: scripts/file_manager.sh:277 scripts/file_manager.sh:302
+#: scripts/file_manager.sh:303 scripts/file_manager.sh:304
+#: scripts/file_manager.sh:305
 msgid "文件"
 msgstr "file"
 
@@ -2192,95 +2193,95 @@ msgstr "file"
 msgid "文件名"
 msgstr "file name"
 
-#: scripts/file_manager.sh:133
+#: scripts/file_manager.sh:141
 msgid "请输入网址 (例如 hey.run)"
 msgstr "please enter the url (e.g., hey.run)"
 
-#: scripts/file_manager.sh:134
+#: scripts/file_manager.sh:142
 msgid "不要包含 http:// 或 https:// 开头"
 msgstr "do not include http:// or https:// at the beginning"
 
-#: scripts/file_manager.sh:138
+#: scripts/file_manager.sh:146
 msgid "网址不能包含 http:// 或 https:// 前缀"
 msgstr "the url cannot contain the http:// or https:// prefix"
 
-#: scripts/file_manager.sh:142
+#: scripts/file_manager.sh:150
 msgid "网址包含非法字符"
 msgstr "the url contains illegal characters"
 
-#: scripts/file_manager.sh:146 scripts/file_manager.sh:174
+#: scripts/file_manager.sh:154 scripts/file_manager.sh:182
 msgid "已创建"
 msgstr "created"
 
-#: scripts/file_manager.sh:157
+#: scripts/file_manager.sh:165
 msgid "请输入主机"
 msgstr "please enter the host"
 
-#: scripts/file_manager.sh:160
+#: scripts/file_manager.sh:168
 msgid "主机地址包含非法字符"
 msgstr "the host address contains invalid characters"
 
-#: scripts/file_manager.sh:170
+#: scripts/file_manager.sh:178
 msgid "请输入权重"
 msgstr "please enter the weight"
 
-#: scripts/file_manager.sh:191
+#: scripts/file_manager.sh:199
 msgid "追加完成"
 msgstr "additional completion"
 
-#: scripts/file_manager.sh:195 scripts/file_manager.sh:199
+#: scripts/file_manager.sh:203 scripts/file_manager.sh:207
 msgid "重启完成"
 msgstr "restart completed"
 
-#: scripts/file_manager.sh:214 scripts/file_manager.sh:237
+#: scripts/file_manager.sh:222 scripts/file_manager.sh:245
 msgid "请输入要编辑的文件编号"
 msgstr "please enter the file number to edit"
 
-#: scripts/file_manager.sh:219
+#: scripts/file_manager.sh:227
 msgid "未安装, 正在尝试安装"
 msgstr "not installed, attempting to install"
 
-#: scripts/file_manager.sh:223 scripts/file_manager.sh:240
+#: scripts/file_manager.sh:231 scripts/file_manager.sh:248
 msgid "已编辑"
 msgstr "edited"
 
-#: scripts/file_manager.sh:228
+#: scripts/file_manager.sh:236
 msgid "Nginx 未运行, 是否继续编辑"
 msgstr "Nginx is not running. do you want to continue editing"
 
-#: scripts/file_manager.sh:233
+#: scripts/file_manager.sh:241
 msgid "没有可编辑的文件"
 msgstr "no editable files found"
 
-#: scripts/file_manager.sh:244 scripts/file_manager.sh:353
+#: scripts/file_manager.sh:252 scripts/file_manager.sh:361
 msgid "重启成功"
 msgstr "restart successful"
 
-#: scripts/file_manager.sh:249
+#: scripts/file_manager.sh:257
 msgid "Nginx 未运行, 请手动修复配置"
 msgstr "Nginx is not running; please manually fix the configuration"
 
-#: scripts/file_manager.sh:264
+#: scripts/file_manager.sh:272
 msgid "请输入要删除的文件编号"
 msgstr "please enter the file number to delete"
 
-#: scripts/file_manager.sh:284
+#: scripts/file_manager.sh:292
 msgid "不支持的文件扩展名"
 msgstr "unsupported file extension"
 
-#: scripts/file_manager.sh:295
+#: scripts/file_manager.sh:303
 msgid "创建一个新的"
 msgstr "create a new"
 
-#: scripts/file_manager.sh:296
+#: scripts/file_manager.sh:304
 msgid "编辑一个已存在的"
 msgstr "edit an existing"
 
-#: scripts/file_manager.sh:297
+#: scripts/file_manager.sh:305
 msgid "删除一个已存在的"
 msgstr "delete an existing"
 
-#: scripts/file_manager.sh:356
+#: scripts/file_manager.sh:364
 msgid "重启失败"
 msgstr "restart failed"
 
@@ -2404,230 +2405,200 @@ msgstr "remove country/region"
 msgid "不存在"
 msgstr "does not exist"
 
-#: scripts/traffic_blocker.sh:467 scripts/traffic_blocker.sh:629
-#: scripts/traffic_blocker.sh:631 scripts/traffic_blocker.sh:641
-#: scripts/traffic_blocker.sh:643 scripts/traffic_blocker.sh:758
-#: scripts/traffic_blocker.sh:799 scripts/traffic_blocker.sh:802
+#: scripts/traffic_blocker.sh:467 scripts/traffic_blocker.sh:622
+#: scripts/traffic_blocker.sh:624 scripts/traffic_blocker.sh:634
+#: scripts/traffic_blocker.sh:636 scripts/traffic_blocker.sh:749
 msgid "未知"
 msgstr "unknown"
 
-#: scripts/traffic_blocker.sh:503 scripts/traffic_blocker.sh:1010
+#: scripts/traffic_blocker.sh:503 scripts/traffic_blocker.sh:957
 msgid "正在下载"
 msgstr "downloading…"
 
-#: scripts/traffic_blocker.sh:522 scripts/traffic_blocker.sh:833
+#: scripts/traffic_blocker.sh:522 scripts/traffic_blocker.sh:780
 msgid "规则名称"
 msgstr "rule name"
 
-#: scripts/traffic_blocker.sh:586
+#: scripts/traffic_blocker.sh:579
 msgid "查看阻断规则状态"
 msgstr "view the status of blocking rules"
 
-#: scripts/traffic_blocker.sh:587
+#: scripts/traffic_blocker.sh:580
 msgid "管理阻断规则"
 msgstr "management blocking rules"
 
-#: scripts/traffic_blocker.sh:588 scripts/traffic_blocker.sh:695
+#: scripts/traffic_blocker.sh:581 scripts/traffic_blocker.sh:688
 msgid "更新 GeoData"
 msgstr "update GeoData"
 
-#: scripts/traffic_blocker.sh:589
+#: scripts/traffic_blocker.sh:582
 msgid "重置所有阻断规则"
 msgstr "reset all blocking rules"
 
-#: scripts/traffic_blocker.sh:608
+#: scripts/traffic_blocker.sh:601
 msgid "GeoData 状态"
 msgstr "GeoData status"
 
-#: scripts/traffic_blocker.sh:629 scripts/traffic_blocker.sh:641
-#: scripts/traffic_blocker.sh:799
+#: scripts/traffic_blocker.sh:622 scripts/traffic_blocker.sh:634
 msgid "有更新可用"
 msgstr "an update is available"
 
-#: scripts/traffic_blocker.sh:629 scripts/traffic_blocker.sh:641
+#: scripts/traffic_blocker.sh:622 scripts/traffic_blocker.sh:634
 msgid "本地版本"
 msgstr "local version"
 
-#: scripts/traffic_blocker.sh:629 scripts/traffic_blocker.sh:641
-#: scripts/traffic_blocker.sh:799
+#: scripts/traffic_blocker.sh:622 scripts/traffic_blocker.sh:634
 msgid "更新时间"
 msgstr "update time"
 
-#: scripts/traffic_blocker.sh:631 scripts/traffic_blocker.sh:643
-#: scripts/traffic_blocker.sh:802
+#: scripts/traffic_blocker.sh:624 scripts/traffic_blocker.sh:636
 msgid "已是最新"
 msgstr "it is already the latest"
 
-#: scripts/traffic_blocker.sh:653
+#: scripts/traffic_blocker.sh:646
 msgid "设置 GeoData 定时自动更新 (每周一凌晨3点)"
 msgstr ""
 "configure GeoData to update automatically on a schedule (every monday at "
 "3:00 am)"
 
-#: scripts/traffic_blocker.sh:660
+#: scripts/traffic_blocker.sh:653
 msgid "下载 GeoData 自动更新脚本"
 msgstr "download the GeoData automatic update script"
 
-#: scripts/traffic_blocker.sh:671
+#: scripts/traffic_blocker.sh:664
 msgid "设置 GeoData 自动更新"
 msgstr "enable automatic GeoData updates"
 
-#: scripts/traffic_blocker.sh:677
+#: scripts/traffic_blocker.sh:670
 msgid "已设置 GeoData 自动更新"
 msgstr "GeoData automatic updates have been enabled"
 
-#: scripts/traffic_blocker.sh:678
+#: scripts/traffic_blocker.sh:671
 msgid "当前计划"
 msgstr "current plan"
 
-#: scripts/traffic_blocker.sh:685
+#: scripts/traffic_blocker.sh:678
 msgid "删除 GeoData 自动更新"
 msgstr "disable GeoData automatic updates"
 
-#: scripts/traffic_blocker.sh:699
+#: scripts/traffic_blocker.sh:692
 msgid "更新全部 GeoData"
 msgstr "update all GeoData"
 
-#: scripts/traffic_blocker.sh:702
-msgid "检查更新"
-msgstr "check for updates"
-
-#: scripts/traffic_blocker.sh:724
+#: scripts/traffic_blocker.sh:715
 msgid "正在更新全部 GeoData"
 msgstr "updating all GeoData"
 
-#: scripts/traffic_blocker.sh:737
+#: scripts/traffic_blocker.sh:728
 msgid "部分文件更新失败"
 msgstr "some files failed to update"
 
-#: scripts/traffic_blocker.sh:739
+#: scripts/traffic_blocker.sh:730
 msgid "全部 GeoData 已更新"
 msgstr "all GeoData has been updated"
 
-#: scripts/traffic_blocker.sh:743 scripts/traffic_blocker.sh:768
+#: scripts/traffic_blocker.sh:734 scripts/traffic_blocker.sh:759
 msgid "是否重启 Xray 以加载新数据"
 msgstr "do you want to restart Xray to load the new data"
 
-#: scripts/traffic_blocker.sh:760
+#: scripts/traffic_blocker.sh:751
 msgid "文件不存在, 将下载最新版本"
 msgstr "the file does not exist; the latest version will be downloaded"
 
-#: scripts/traffic_blocker.sh:765
+#: scripts/traffic_blocker.sh:756
 msgid "已更新至"
 msgstr "updated to"
 
-#: scripts/traffic_blocker.sh:780
-msgid "正在检查远程版本"
-msgstr "checking the remote version…"
-
-#: scripts/traffic_blocker.sh:785
-msgid "无法获取远程版本信息, 请检查网络连接"
-msgstr ""
-"unable to retrieve remote version information. please check your network "
-"connection"
-
-#: scripts/traffic_blocker.sh:789
-msgid "远程最新版本"
-msgstr "latest remote version"
-
-#: scripts/traffic_blocker.sh:812
-msgid "是否更新所有过期的文件"
-msgstr "update all expired files"
-
-#: scripts/traffic_blocker.sh:818
-msgid "所有 GeoData 均为最新版本"
-msgstr "all GeoData are in the latest version"
-
-#: scripts/traffic_blocker.sh:825
+#: scripts/traffic_blocker.sh:772
 msgid "管理流量阻断规则"
 msgstr "manage traffic blocking rules"
 
-#: scripts/traffic_blocker.sh:884
+#: scripts/traffic_blocker.sh:831
 msgid "请选择要管理的规则"
 msgstr "please select the rule to manage"
 
-#: scripts/traffic_blocker.sh:966
+#: scripts/traffic_blocker.sh:913
 msgid "备份 Xray 配置失败"
 msgstr "failed to back up the Xray configuration"
 
-#: scripts/traffic_blocker.sh:979
+#: scripts/traffic_blocker.sh:926
 msgid "重启失败, 已恢复原配置"
 msgstr "restart failed; the original configuration has been restored"
 
-#: scripts/traffic_blocker.sh:1009
+#: scripts/traffic_blocker.sh:956
 msgid "缺少 GeoData 文件"
 msgstr "GeoData file is missing"
 
-#: scripts/traffic_blocker.sh:1032
+#: scripts/traffic_blocker.sh:979
 msgid "以下 GeoData 文件有更新可用"
 msgstr "updates are available for the following GeoData file"
 
-#: scripts/traffic_blocker.sh:1033
+#: scripts/traffic_blocker.sh:980
 msgid "是否立即更新"
 msgstr "update now"
 
-#: scripts/traffic_blocker.sh:1050
+#: scripts/traffic_blocker.sh:997
 msgid "Xray 配置文件不存在"
 msgstr "the Xray configuration file does not exist"
 
-#: scripts/traffic_blocker.sh:1055
+#: scripts/traffic_blocker.sh:1002
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
 "blocked outbound is missing in the Xray configuration, and blocking rules "
 "cannot be applied"
 
-#: scripts/traffic_blocker.sh:1060
+#: scripts/traffic_blocker.sh:1007
 msgid "Xray 配置中缺少 direct 出站, 无法应用阻断规则"
 msgstr ""
 "the Xray configuration is missing the direct outbound setting, so the "
 "blocking rule cannot be applied"
 
-#: scripts/traffic_blocker.sh:1075
+#: scripts/traffic_blocker.sh:1022
 msgid "当前阻断规则配置"
 msgstr "current block rule configuration"
 
-#: scripts/traffic_blocker.sh:1087
+#: scripts/traffic_blocker.sh:1034
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
 "applying the rules will rebuild the routing configuration, and custom "
 "routing rules will be overwritten"
 
-#: scripts/traffic_blocker.sh:1091
+#: scripts/traffic_blocker.sh:1038
 msgid "GeoData 下载失败, 无法应用规则"
 msgstr "GeoData download failed; unable to apply the rule"
 
-#: scripts/traffic_blocker.sh:1110 scripts/traffic_blocker.sh:1216
+#: scripts/traffic_blocker.sh:1057 scripts/traffic_blocker.sh:1163
 msgid "无法从 Xray 配置中提取入站标签"
 msgstr "unable to extract the inbound label from the Xray configuration"
 
-#: scripts/traffic_blocker.sh:1169 scripts/traffic_blocker.sh:1239
+#: scripts/traffic_blocker.sh:1116 scripts/traffic_blocker.sh:1186
 msgid "修改 Xray 配置失败"
 msgstr "failed to modify the Xray configuration"
 
-#: scripts/traffic_blocker.sh:1181
+#: scripts/traffic_blocker.sh:1128
 msgid "流量阻断规则已应用"
 msgstr "traffic blocking rules have been applied"
 
-#: scripts/traffic_blocker.sh:1183
+#: scripts/traffic_blocker.sh:1130
 msgid "域名解析策略已设置为"
 msgstr "the domain name resolution policy has been set to"
 
-#: scripts/traffic_blocker.sh:1183
+#: scripts/traffic_blocker.sh:1130
 msgid "以支持基于 IP 的阻断规则"
 msgstr "to support IP-based blocking rules [IP]"
 
-#: scripts/traffic_blocker.sh:1186
+#: scripts/traffic_blocker.sh:1133
 msgid "协议嗅探已启用以支持流量阻断规则"
 msgstr "Protocol sniffing has been enabled to support traffic blocking rules."
 
-#: scripts/traffic_blocker.sh:1192
+#: scripts/traffic_blocker.sh:1139
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr "this operation will reset all blocking rules to the disabled state"
 
-#: scripts/traffic_blocker.sh:1193
+#: scripts/traffic_blocker.sh:1140
 msgid "确认重置"
 msgstr "confirm reset"
 
-#: scripts/traffic_blocker.sh:1249
+#: scripts/traffic_blocker.sh:1196
 msgid "所有阻断规则已重置"
 msgstr "all blocking rules have been reset"
