@@ -149,7 +149,7 @@ cat /etc/idleleo/info/xray_info.inf
 | Основной каталог | `/etc/idleleo` |
 | Конфигурация Xray | `/etc/idleleo/conf/xray/config.json` |
 | Конфигурация Nginx | `/etc/idleleo/conf/nginx/` |
-| Информация об установке | `/etc/idleleo/info/install_config.json` |
+| Информация об установке | `/etc/idleleo/conf/install_config.json` |
 | Файлы сертификатов | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
 | Каталоги логов | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Каталог Nginx | `/usr/local/nginx` |

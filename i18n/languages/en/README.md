@@ -149,7 +149,7 @@ cat /etc/idleleo/info/xray_info.inf
 | Main directory | `/etc/idleleo` |
 | Xray config | `/etc/idleleo/conf/xray/config.json` |
 | Nginx config | `/etc/idleleo/conf/nginx/` |
-| Install info | `/etc/idleleo/info/install_config.json` |
+| Install info | `/etc/idleleo/conf/install_config.json` |
 | Certificate files | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
 | Log directories | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Nginx directory | `/usr/local/nginx` |

@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.12.10"
+shell_version="2.13.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -59,7 +59,7 @@ idleleo_commend_file="/usr/bin/idleleo"
 ssl_chainpath="${idleleo_dir}/cert"
 nginx_dir="${local_bin}/nginx"
 xray_info_file="${idleleo_dir}/info/xray_info.inf"
-xray_install_config_file="${idleleo_dir}/info/install_config.json"
+xray_install_config_file="${idleleo_conf_dir}/install_config.json"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 xray_systemd_file="/etc/systemd/system/xray.service"
 xray_access_log="/var/log/xray/access.log"
@@ -632,6 +632,7 @@ create_directory() {
     [[ ! -d "${ssl_chainpath}" ]] && mkdir -p "${ssl_chainpath}"
     [[ ! -d "${xray_conf_dir}" ]] && mkdir -p "${xray_conf_dir}"
     [[ ! -d "${idleleo_dir}/info" ]] && mkdir -p "${idleleo_dir}"/info
+    [[ ! -d "${idleleo_conf_dir}" ]] && mkdir -p "${idleleo_conf_dir}"
 }
 
 port_set() {
@@ -4469,7 +4470,7 @@ uninstall_all() {
             cp -f "${xray_install_config_file}" "${_tmp_config}"
             safe_rm "${idleleo_commend_file}"
             safe_rm "${idleleo_dir}"
-            mkdir -p "${idleleo_dir}/info"
+            mkdir -p "${idleleo_conf_dir}"
             mv -f "${_tmp_config}" "${xray_install_config_file}"
         else
             safe_rm "${idleleo_commend_file}"
@@ -4774,7 +4775,16 @@ compat_migrate() {
     # COMPAT: vless_qr.json → install_config.json，v2.15 后删除
     local _old_install_config="${idleleo_dir}/info/vless_qr.json"
     if [[ -f "${_old_install_config}" && ! -f "${xray_install_config_file}" ]]; then
+        mkdir -p "${idleleo_conf_dir}"
         mv "${_old_install_config}" "${xray_install_config_file}"
+        info_extraction_all=$(jq -rc . "${xray_install_config_file}")
+    fi
+    # COMPAT_END
+    # COMPAT: info/install_config.json → conf/install_config.json，v2.15 后删除
+    local _old_install_config_path="${idleleo_dir}/info/install_config.json"
+    if [[ -f "${_old_install_config_path}" && ! -f "${xray_install_config_file}" ]]; then
+        mkdir -p "${idleleo_conf_dir}"
+        mv "${_old_install_config_path}" "${xray_install_config_file}"
         info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     fi
     # COMPAT_END

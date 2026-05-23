@@ -17,7 +17,7 @@ echo "============================================"
 echo "  Testing installation mode: ${MODE}"
 echo "============================================"
 
-mkdir -p /etc/idleleo/tmp /etc/idleleo/logs /etc/idleleo/info /etc/idleleo/scripts
+mkdir -p /etc/idleleo/tmp /etc/idleleo/logs /etc/idleleo/info /etc/idleleo/conf /etc/idleleo/scripts
 cp -f "${REPO_DIR}/install.sh" /etc/idleleo/install.sh
 ln -sf /etc/idleleo/install.sh /usr/bin/idleleo
 
