@@ -149,7 +149,7 @@ cat /etc/idleleo/info/xray_info.inf
 | 메인 디렉토리 | `/etc/idleleo` |
 | Xray 설정 | `/etc/idleleo/conf/xray/config.json` |
 | Nginx 설정 | `/etc/idleleo/conf/nginx/` |
-| 설치 정보 | `/etc/idleleo/info/install_config.json` |
+| 설치 정보 | `/etc/idleleo/conf/install_config.json` |
 | 인증서 파일 | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
 | 로그 디렉토리 | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Nginx 디렉토리 | `/usr/local/nginx` |

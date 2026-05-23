@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.1.3"
+VERSION="1.1.4"
 
 _script_args=("$@")
 
@@ -15,7 +15,7 @@ xray_conf="${xray_conf_dir}/config.json"
 log_dir="${idleleo_dir}/logs"
 log_file="${log_dir}/auto_update.log"
 running_file="${log_dir}/auto_update.running"
-xray_install_config_file="${idleleo_dir}/info/install_config.json"
+xray_install_config_file="${idleleo_dir}/conf/install_config.json"
 failed_update_marker="${log_dir}/update_failed.mark"
 
 check_update() {
