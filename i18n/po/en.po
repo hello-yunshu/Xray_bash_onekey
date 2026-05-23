@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
-"POT-Creation-Date: 2026-05-23 18:35+0000\n"
+"POT-Creation-Date: 2026-05-23 19:35+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -100,16 +100,38 @@ msgid "版本文件更新失败"
 msgstr "failed to update the version file"
 
 #: install.sh:401
-msgid "语言文件更新完成"
-msgstr "language file update completed"
+#| msgid "语言文件更新失败"
+msgid "语言文件更新"
+msgstr "language file updated"
+
+#: install.sh:401 install.sh:499 install.sh:1409 install.sh:1607
+#: install.sh:1683 install.sh:1970 install.sh:2266 install.sh:2430
+#: install.sh:3687 install.sh:4743 scripts/file_manager.sh:199
+#: scripts/file_manager.sh:203 scripts/file_manager.sh:207
+#: scripts/traffic_blocker.sh:512
+msgid "完成"
+msgstr "complete"
 
 #: install.sh:406 install.sh:3638
 msgid "正在安装"
 msgstr "installing"
 
-#: install.sh:409
-msgid "安装失败"
-msgstr "installation failed"
+#: install.sh:409 install.sh:542 install.sh:550 install.sh:1707
+#: install.sh:3687 install.sh:4980 install.sh:4981 install.sh:4982
+#: install.sh:4983 install.sh:5376 install.sh:5377 install.sh:5378
+#: install.sh:5379 scripts/fail2ban_manager.sh:63
+#: scripts/fail2ban_manager.sh:89
+msgid "安装"
+msgstr "installation"
+
+#: install.sh:409 install.sh:502 install.sh:1406 install.sh:1601
+#: install.sh:1743 install.sh:1810 install.sh:1811 install.sh:1966
+#: install.sh:1974 install.sh:1981 install.sh:2165 install.sh:2269
+#: install.sh:2459 install.sh:5307 install.sh:5339 install.sh:5554
+#: install.sh:5562 scripts/file_manager.sh:364 scripts/traffic_blocker.sh:515
+#: scripts/traffic_blocker.sh:989
+msgid "失败"
+msgstr "failure"
 
 #: install.sh:409 install.sh:433 install.sh:456 install.sh:466
 msgid "将使用默认语言"
@@ -127,26 +149,9 @@ msgstr "unsupported language"
 msgid "发现语言文件更新"
 msgstr "language file update detected"
 
-#: install.sh:499 install.sh:1409 install.sh:1607 install.sh:2266
-#: install.sh:2430 install.sh:3687
-msgid "完成"
-msgstr "complete"
-
-#: install.sh:502 install.sh:1406 install.sh:1601 install.sh:2269
-#: install.sh:5554 install.sh:5562
-msgid "失败"
-msgstr "failure"
-
 #: install.sh:517
 msgid "在线版本检测失败, 请稍后再试"
 msgstr "online version check failed, please try again later"
-
-#: install.sh:542 install.sh:550 install.sh:1707 install.sh:3687
-#: install.sh:4980 install.sh:4981 install.sh:4982 install.sh:4983
-#: install.sh:5376 install.sh:5377 install.sh:5378 install.sh:5379
-#: scripts/fail2ban_manager.sh:63 scripts/fail2ban_manager.sh:89
-msgid "安装"
-msgstr "installation"
 
 #: install.sh:544 install.sh:552 install.sh:1713 install.sh:3642
 #: install.sh:5076
@@ -258,7 +263,10 @@ msgstr "firewall"
 #: install.sh:891 install.sh:894 install.sh:2983 install.sh:2990
 #: install.sh:3901 install.sh:3904 install.sh:5397
 #: scripts/fail2ban_manager.sh:312 scripts/fail2ban_manager.sh:519
-#: scripts/traffic_blocker.sh:743 scripts/traffic_blocker.sh:768
+#: scripts/file_manager.sh:203 scripts/file_manager.sh:207
+#: scripts/file_manager.sh:252 scripts/file_manager.sh:361
+#: scripts/file_manager.sh:364 scripts/traffic_blocker.sh:743
+#: scripts/traffic_blocker.sh:768
 msgid "重启"
 msgstr "restart"
 
@@ -475,8 +483,8 @@ msgstr "for configuration purposes, please refer to the article"
 
 #: install.sh:1333 install.sh:1344 install.sh:1348 install.sh:1352
 #: install.sh:1406 install.sh:1409 install.sh:1517 install.sh:1523
-#: install.sh:1601 install.sh:1607 install.sh:1633 install.sh:5002
-#: install.sh:5347
+#: install.sh:1601 install.sh:1607 install.sh:1633 install.sh:1683
+#: install.sh:5002 install.sh:5347
 msgid "修改"
 msgstr "modify"
 
@@ -509,10 +517,6 @@ msgstr "configuration modification"
 msgid "检测到 Xray 的权限控制, 启动修改程序"
 msgstr "Xray permission control detected, starting modification program"
 
-#: install.sh:1683
-msgid "修改完成"
-msgstr "modification completed"
-
 #: install.sh:1705
 msgid "即将安装"
 msgstr "Installing soon"
@@ -527,10 +531,11 @@ msgstr ""
 msgid "部分新功能需要重新安装才可生效"
 msgstr "some new features require reinstallation to take effect"
 
-#: install.sh:1732 install.sh:1740 install.sh:1771 install.sh:2060
-#: install.sh:2205 install.sh:4995 install.sh:5007 install.sh:5365
-#: install.sh:5366 install.sh:5367 install.sh:5403
-#: scripts/traffic_blocker.sh:698 scripts/traffic_blocker.sh:699
+#: install.sh:1732 install.sh:1740 install.sh:1771 install.sh:1810
+#: install.sh:1811 install.sh:2060 install.sh:2205 install.sh:4743
+#: install.sh:4995 install.sh:5007 install.sh:5365 install.sh:5366
+#: install.sh:5367 install.sh:5403 scripts/traffic_blocker.sh:698
+#: scripts/traffic_blocker.sh:699 scripts/traffic_blocker.sh:989
 msgid "更新"
 msgstr "update"
 
@@ -546,9 +551,11 @@ msgstr "the script may not be compatible with this version"
 msgid "是否更新"
 msgstr "whether to update"
 
-#: install.sh:1743 install.sh:2165
-msgid "启动失败"
-msgstr "startup failed"
+#: install.sh:1743 install.sh:2165 install.sh:3000 install.sh:3007
+#: install.sh:3674 install.sh:5398 install.sh:5554
+#: scripts/fail2ban_manager.sh:310 scripts/fail2ban_manager.sh:488
+msgid "启动"
+msgstr "start"
 
 #: install.sh:1745 install.sh:2171
 msgid "是否回滚到之前的版本"
@@ -583,10 +590,6 @@ msgstr "version"
 #: install.sh:1798 install.sh:1802
 msgid "重装"
 msgstr "reinstall"
-
-#: install.sh:1810 install.sh:1811 scripts/traffic_blocker.sh:989
-msgid "更新失败"
-msgstr "update failed"
 
 #: install.sh:1821
 msgid "是否添加 Reality 负载均衡"
@@ -662,21 +665,21 @@ msgstr "unsupported system architecture"
 msgid "即将下载已编译的"
 msgstr "about to download the compiled"
 
-#: install.sh:1966 scripts/traffic_blocker.sh:515
-msgid "下载失败"
-msgstr "download failed"
-
-#: install.sh:1970 scripts/traffic_blocker.sh:512
-msgid "下载完成"
-msgstr "download complete"
+#: install.sh:1966 install.sh:1970 scripts/traffic_blocker.sh:512
+#: scripts/traffic_blocker.sh:515
+#| msgid "卸载"
+msgid "下载"
+msgstr "download"
 
 #: install.sh:1974
-msgid "校验失败"
-msgstr "validation failed"
+#| msgid "校验失败"
+msgid "校验"
+msgstr "verification"
 
 #: install.sh:1981
-msgid "解压失败"
-msgstr "decompression failed"
+#| msgid "解压失败"
+msgid "解压"
+msgstr "unzip"
 
 #: install.sh:2006
 msgid "配置检测"
@@ -730,7 +733,7 @@ msgstr "the original configuration file has been retained"
 msgid "删除"
 msgstr "delete"
 
-#: install.sh:2207 install.sh:5414
+#: install.sh:2207 install.sh:5307 install.sh:5309 install.sh:5414
 msgid "备份"
 msgstr "backup"
 
@@ -922,17 +925,22 @@ msgstr "certificate test issuance successful, starting official issuance"
 msgid "证书测试签发失败"
 msgstr "certificate test issuance failed"
 
-#: install.sh:2449
-msgid "证书生成成功"
-msgstr "certificate generated successfully"
+#: install.sh:2449 install.sh:2459
+#| msgid "证书生成成功"
+msgid "证书生成"
+msgstr "certificate generation"
+
+#: install.sh:2449 install.sh:2455 install.sh:5309 install.sh:5333
+#: scripts/fail2ban_manager.sh:511 scripts/file_manager.sh:252
+#: scripts/file_manager.sh:361
+#| msgid "备份成功"
+msgid "成功"
+msgstr "success"
 
 #: install.sh:2455
-msgid "证书配置成功"
-msgstr "certificate configured successfully"
-
-#: install.sh:2459
-msgid "证书生成失败"
-msgstr "certificate generation failed"
+#| msgid "证书配置成功"
+msgid "证书配置"
+msgstr "certificate configuration"
 
 #: install.sh:2468
 msgid "下载 Xray TLS 配置"
@@ -1027,18 +1035,13 @@ msgstr "residual certificate auto-update scheduled tasks have been cleared"
 
 #: install.sh:2968 install.sh:3017 install.sh:3021 install.sh:3079
 #: install.sh:5399 install.sh:5562 scripts/fail2ban_manager.sh:311
+#: scripts/fail2ban_manager.sh:511
 msgid "停止"
 msgstr "stop"
 
 #: install.sh:2974
 msgid "已清理证书自动更新定时任务"
 msgstr "the scheduled task for automatic certificate updates has been cleared"
-
-#: install.sh:3000 install.sh:3007 install.sh:3674 install.sh:5398
-#: install.sh:5554 scripts/fail2ban_manager.sh:310
-#: scripts/fail2ban_manager.sh:488
-msgid "启动"
-msgstr "start"
 
 #: install.sh:3034 install.sh:3049
 msgid "新版本已自动设置证书自动更新"
@@ -1523,10 +1526,6 @@ msgstr "the script version difference is too big, skip the update"
 msgid "脚本更新失败"
 msgstr "script update failed"
 
-#: install.sh:4743
-msgid "更新完成"
-msgstr "update completed"
-
 #: install.sh:4744 install.sh:5037
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
 msgstr ""
@@ -1713,14 +1712,6 @@ msgid "备份完整性可能受到影响, 请检查上述错误信息"
 msgstr ""
 "backup integrity may be affected. please check the error messages above"
 
-#: install.sh:5307
-msgid "备份失败"
-msgstr "backup failed"
-
-#: install.sh:5309
-msgid "备份成功"
-msgstr "backup successful"
-
 #: install.sh:5314
 msgid "请确保备份文件在目录"
 msgstr "please ensure the backup file is in the directory"
@@ -1745,17 +1736,13 @@ msgstr "find the latest backup file"
 msgid "恢复备份"
 msgstr "restore backup"
 
-#: install.sh:5333
-msgid "恢复成功"
-msgstr "recovery successful"
+#: install.sh:5333 install.sh:5339 install.sh:5415
+msgid "恢复"
+msgstr "recovery"
 
 #: install.sh:5334 install.sh:5336
 msgid "记得安装"
 msgstr "remember to install"
-
-#: install.sh:5339
-msgid "恢复失败"
-msgstr "recovery failed"
 
 #: install.sh:5345
 msgid "安装管理脚本"
@@ -1893,10 +1880,6 @@ msgstr "backup and restore"
 #: install.sh:5414 install.sh:5415
 msgid "全部文件"
 msgstr "all files"
-
-#: install.sh:5415
-msgid "恢复"
-msgstr "recovery"
 
 #: install.sh:5416
 msgid "卸载向导"
@@ -2103,10 +2086,6 @@ msgstr "module"
 msgid "操作已取消"
 msgstr "operation canceled"
 
-#: scripts/fail2ban_manager.sh:511
-msgid "停止成功"
-msgstr "stopped successfully"
-
 #: scripts/fail2ban_manager.sh:531
 msgid "总体状态"
 msgstr "overall status"
@@ -2225,12 +2204,9 @@ msgid "请输入权重"
 msgstr "please enter the weight"
 
 #: scripts/file_manager.sh:199
-msgid "追加完成"
-msgstr "additional completion"
-
-#: scripts/file_manager.sh:203 scripts/file_manager.sh:207
-msgid "重启完成"
-msgstr "restart completed"
+#| msgid "追加完成"
+msgid "追加"
+msgstr "addition"
 
 #: scripts/file_manager.sh:222 scripts/file_manager.sh:245
 msgid "请输入要编辑的文件编号"
@@ -2251,10 +2227,6 @@ msgstr "Nginx is not running. do you want to continue editing"
 #: scripts/file_manager.sh:241
 msgid "没有可编辑的文件"
 msgstr "no editable files found"
-
-#: scripts/file_manager.sh:252 scripts/file_manager.sh:361
-msgid "重启成功"
-msgstr "restart successful"
 
 #: scripts/file_manager.sh:257
 msgid "Nginx 未运行, 请手动修复配置"
@@ -2279,10 +2251,6 @@ msgstr "edit an existing"
 #: scripts/file_manager.sh:305
 msgid "删除一个已存在的"
 msgstr "delete an existing"
-
-#: scripts/file_manager.sh:364
-msgid "重启失败"
-msgstr "restart failed"
 
 #: scripts/traffic_blocker.sh:78
 msgid "中国"
@@ -2575,23 +2543,19 @@ msgid "修改 Xray 配置失败"
 msgstr "failed to modify the Xray configuration"
 
 #: scripts/traffic_blocker.sh:1132
-#| msgid "管理流量阻断规则"
 msgid "流量阻断规则"
 msgstr "traffic blocking rules"
 
 #: scripts/traffic_blocker.sh:1132 scripts/traffic_blocker.sh:1135
 #: scripts/traffic_blocker.sh:1138
-#| msgid "已启用"
 msgid "已应用"
 msgstr "applied"
 
 #: scripts/traffic_blocker.sh:1133 scripts/traffic_blocker.sh:1206
-#| msgid "重启"
 msgid "已重启"
 msgstr "restarted"
 
 #: scripts/traffic_blocker.sh:1135 scripts/traffic_blocker.sh:1208
-#| msgid "域名解析策略已设置为"
 msgid "域名解析策略"
 msgstr "domain name resolution policy"
 
@@ -2608,16 +2572,13 @@ msgid "确认重置"
 msgstr "confirm reset"
 
 #: scripts/traffic_blocker.sh:1204
-#| msgid "重置所有阻断规则"
 msgid "所有阻断规则"
 msgstr "all blocking rules"
 
 #: scripts/traffic_blocker.sh:1204
-#| msgid "配置"
 msgid "已重置"
 msgstr "reset"
 
 #: scripts/traffic_blocker.sh:1208 scripts/traffic_blocker.sh:1211
-#| msgid "恢复"
 msgid "已恢复"
 msgstr "restored"
