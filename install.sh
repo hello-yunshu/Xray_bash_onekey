@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.1"
+shell_version="2.13.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -398,7 +398,7 @@ update_language_file() {
     find "${idleleo_dir}/languages" -type d -exec chmod 755 {} \;
     find "${idleleo_dir}/languages" -type f -exec chmod 644 {} \;
 
-    log_echo "${OK} ${Green} $(gettext "语言文件更新完成") ${Font}"
+    log_echo "${OK} ${Green} $(gettext "语言文件更新") $(gettext "完成") ${Font}"
 }
 
 init_language() {
@@ -406,7 +406,7 @@ init_language() {
         log_echo "${Warning} ${YellowBG} $(gettext "正在安装") gettext... ${Font}"
         pkg_install "gettext"
         if [ $? -ne 0 ]; then
-            log_echo "${Error} ${RedBG} gettext $(gettext "安装失败"), $(gettext "将使用默认语言") ${Font}"
+            log_echo "${Error} ${RedBG} gettext $(gettext "安装") $(gettext "失败"), $(gettext "将使用默认语言") ${Font}"
             unset LANG
             unset LC_MESSAGES
             return 1
@@ -1680,7 +1680,7 @@ xray_privilege_escalation() {
         find /var/log/xray/ -type f -exec chmod -f 644 {} \;
         [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR "nobody:${_nobody_group}" "${ssl_chainpath}"/*
     fi
-    log_echo "${OK} ${GreenBG} Xray $(gettext "修改完成") ${Font}"
+    log_echo "${OK} ${GreenBG} Xray $(gettext "修改") $(gettext "完成") ${Font}"
 }
 
 set_xray_config_path() {
@@ -1740,7 +1740,7 @@ xray_update() {
                 log_echo "${OK} ${GreenBG} $(gettext "更新") Xray ! ${Font}"
                 systemctl stop xray
                 if ! xray_install_release install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
-                    log_echo "${Error} ${RedBG} Xray $(gettext "启动失败")! ${Font}"
+                    log_echo "${Error} ${RedBG} Xray $(gettext "启动") $(gettext "失败")! ${Font}"
                     xray_diagnose
                     log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                     read -r rollback_fq
@@ -1807,8 +1807,8 @@ xray_update() {
     systemctl daemon-reload
     systemctl start xray
     if ! ${xray_bin_dir}/xray -version &> /dev/null; then
-        [[ ${auto_update} == "YES" ]] && echo "Xray $(gettext "更新失败")!" >>"${log_file}"
-        [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} Xray $(gettext "更新失败")! ${Font}"
+        [[ ${auto_update} == "YES" ]] && echo "Xray $(gettext "更新") $(gettext "失败")!" >>"${log_file}"
+        [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} Xray $(gettext "更新") $(gettext "失败")! ${Font}"
         xray_diagnose
         return 1
     fi
@@ -1963,22 +1963,22 @@ nginx_install() {
     local url="${base_url}/${nginx_filename}"
 
     if ! curl -fL -# --connect-timeout 10 --retry 2 --retry-delay 1 -o "$nginx_filename" "$url"; then
-        log_echo "${Error} ${RedBG} Nginx $(gettext "下载失败") ${Font}"
+        log_echo "${Error} ${RedBG} Nginx $(gettext "下载") $(gettext "失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
         exit 1
     fi
-    log_echo "${OK} ${GreenBG} Nginx $(gettext "下载完成") ${Font}"
+    log_echo "${OK} ${GreenBG} Nginx $(gettext "下载") $(gettext "完成") ${Font}"
 
     if [[ -n "${nginx_sha256}" ]] && [[ "${nginx_sha256}" != "null" ]]; then
         if ! echo "${nginx_sha256}  ${nginx_filename}" | sha256sum -c - >/dev/null 2>&1; then
-            log_echo "${Error} ${RedBG} Nginx SHA256 $(gettext "校验失败") ${Font}"
+            log_echo "${Error} ${RedBG} Nginx SHA256 $(gettext "校验") $(gettext "失败") ${Font}"
             cd "$current_dir" && rm -rf "$temp_dir"
             exit 1
         fi
     fi
 
     if ! tar -xzf "$nginx_filename" -C ./; then
-        log_echo "${Error} ${RedBG} Nginx $(gettext "解压失败") ${Font}"
+        log_echo "${Error} ${RedBG} Nginx $(gettext "解压") $(gettext "失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
         exit 1
     fi
@@ -2162,7 +2162,7 @@ nginx_update() {
                 systemctl -q is-active nginx || nginx_start_failed=1
             fi
             if [[ ${nginx_start_failed} -eq 1 ]]; then
-                log_echo "${Error} ${RedBG} Nginx $(gettext "启动失败")! ${Font}"
+                log_echo "${Error} ${RedBG} Nginx $(gettext "启动") $(gettext "失败")! ${Font}"
                 if [[ ${service_start_failed} -eq 0 ]]; then
                     nginx_diagnose
                 fi
@@ -2446,17 +2446,17 @@ acme() {
 
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force; then
     #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force; then
-        log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成成功") ${Font}"
+        log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成") $(gettext "成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
         if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"; then
             chmod -f 644 "${ssl_chainpath}"/xray.crt
             chmod -f 600 "${ssl_chainpath}"/xray.key
             chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
-            log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置成功") ${Font}"
+            log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置") $(gettext "成功") ${Font}"
             systemctl stop nginx
         fi
     else
-        log_echo "${Error} ${RedBG} SSL $(gettext "证书生成失败") ${Font}"
+        log_echo "${Error} ${RedBG} SSL $(gettext "证书生成") $(gettext "失败") ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
         exit 1
     fi
@@ -4740,7 +4740,7 @@ update_sh() {
             ln -s "${idleleo}" "${idleleo_commend_file}"
             [[ -f "${xray_install_config_file}" ]] && update_json_config "${xray_install_config_file}" --arg shell_version "${shell_version}" '.shell_version = $shell_version'
             clear
-            log_echo "${OK} ${GreenBG} $(gettext "更新完成") ${Font}"
+            log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
             return 0
             ;;
@@ -5304,9 +5304,9 @@ function backup_directories() {
     fi
 
     if [[ ! -f "${backup_path}" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "备份失败") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "备份") $(gettext "失败") ${Font}"
     else
-        log_echo "${OK} ${GreenBG} $(gettext "备份成功"): ${backup_path} ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "备份") $(gettext "成功"): ${backup_path} ${Font}"
     fi
 }
 
@@ -5330,13 +5330,13 @@ function restore_directories() {
     tar -xzf "${latest_backup_file}" -C / &> /dev/null
 
     if [[ $? -eq 0 ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "恢复成功") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "恢复") $(gettext "成功") ${Font}"
         log_echo "${Info} ${Green} $(gettext "记得安装") xray ${Font}"
         if [[ -d "/usr/local/nginx" ]]; then
             log_echo "${Info} ${Green} $(gettext "记得安装") nginx ${Font}"
         fi
     else
-        log_echo "${Error} ${RedBG} $(gettext "恢复失败") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "恢复") $(gettext "失败") ${Font}"
     fi
 }
 
