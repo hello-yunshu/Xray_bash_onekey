@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-fm_SCRIPT_VERSION="1.5.10"
+fm_SCRIPT_VERSION="1.5.11"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -203,7 +203,7 @@ fm_create_server_file() {
             log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") $(gettext "完成") ${Font}"
         else
             netfilter-persistent save
-            systemctl restart iptables
+            netfilter-persistent reload
             log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") $(gettext "完成") ${Font}"
         fi
         ;;
@@ -216,7 +216,9 @@ fm_create_server_file() {
 }
 
 fm_edit_file() {
-    fm_list_files true
+    if ! fm_list_files true; then
+        return
+    fi
     local num_files=${#files[@]}
     local choice
     read_optimize "$(gettext "请输入要编辑的文件编号") (1-$num_files): " choice "" 1 "$num_files"

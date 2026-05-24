@@ -44,19 +44,19 @@ fi
 
 if ! "${acme_sh_dir}/acme.sh" --cron --home "${acme_sh_dir}" >/dev/null 2>&1; then
     echo "acme.sh cron renewal failed" >&2
-    [[ -f "${nginx_systemd_file}" ]] && systemctl start nginx >/dev/null 2>&1
+    [[ -f "${nginx_systemd_file}" ]] && { systemctl start nginx >/dev/null 2>&1 || echo "Warning: Nginx start failed after SSL update" >&2; }
     exit 1
 fi
 
 if ! "${acme_sh_dir}/acme.sh" --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc >/dev/null 2>&1; then
     echo "acme.sh installcert failed for ${host}" >&2
-    [[ -f "${nginx_systemd_file}" ]] && systemctl start nginx >/dev/null 2>&1
+    [[ -f "${nginx_systemd_file}" ]] && { systemctl start nginx >/dev/null 2>&1 || echo "Warning: Nginx start failed after SSL update" >&2; }
     exit 1
 fi
 
 if [[ ! -f "${ssl_chainpath}/xray.crt" || ! -f "${ssl_chainpath}/xray.key" ]]; then
     echo "Certificate files missing after installcert" >&2
-    [[ -f "${nginx_systemd_file}" ]] && systemctl start nginx >/dev/null 2>&1
+    [[ -f "${nginx_systemd_file}" ]] && { systemctl start nginx >/dev/null 2>&1 || echo "Warning: Nginx start failed after SSL update" >&2; }
     exit 1
 fi
 
@@ -66,4 +66,4 @@ chmod -f 600 "${ssl_chainpath}/xray.key"
 chown -fR nobody:"${cert_group}" "${ssl_chainpath}"
 
 [[ -f "${xray_systemd_file}" ]] && { systemctl restart xray >/dev/null 2>&1 || echo "Warning: Xray restart failed after SSL update" >&2; }
-[[ -f "${nginx_systemd_file}" ]] && systemctl start nginx >/dev/null 2>&1
+[[ -f "${nginx_systemd_file}" ]] && { systemctl start nginx >/dev/null 2>&1 || echo "Warning: Nginx start failed after SSL update" >&2; }
