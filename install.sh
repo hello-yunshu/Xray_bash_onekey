@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.2"
+shell_version="2.13.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -3094,13 +3094,14 @@ cert_update_manuel() {
     if [[ ${tls_mode} == "TLS" ]]; then
         if [[ -f "${amce_sh_file}" ]]; then
             "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
+            host="$(info_extraction host)"
+            "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
+            judge -r "$(gettext "证书更新")" || return 1
+            service_restart || return 1
         else
             log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
+            return 1
         fi
-        host="$(info_extraction host)"
-        "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
-        judge -r "$(gettext "证书更新")" || return 1
-        service_restart || return 1
     else
         log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
     fi
@@ -4587,7 +4588,9 @@ install_xray_ws_tls() {
     nginx_conf_add
     nginx_servers_conf_add
     xray_conf_add
-    tls_type || return 1
+    if [[ ${reality_add_nginx} == "on" ]]; then
+        tls_type || return 1
+    fi
     basic_information
     enable_process_systemd || return 1
     acme_cron_update
@@ -4625,7 +4628,9 @@ install_xray_reality() {
     xray_conf_add
     install_config_reality
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    tls_type || return 1
+    if [[ ${reality_add_nginx} == "on" ]]; then
+        tls_type || return 1
+    fi
     basic_information
     enable_process_systemd || return 1
     auto_update || return 1
@@ -5366,10 +5371,10 @@ menu() {
     echo -e "${Green}1.${Font}  $(gettext "更新") Xray"
     echo -e "${Green}2.${Font}  $(gettext "更新") Nginx"
     echo -e "—————————————— ${GreenW}语言 / Language${Font} ———————"
-    echo -e "${Green}1.${Font} 中文 ($(gettext "默认"))"
+    echo -e "${Green}99.${Font} 中文 ($(gettext "默认"))"
     echo -e "    English"
     echo -e "    Français" 
-    echo -e "    فارسی    "
+    echo -e "\033[4Cفارسی"
     echo -e "    Русский"
     echo -e "    한국어"
     echo -e "—————————————— ${GreenW}$(gettext "安装向导")${Font} ——————————————"
