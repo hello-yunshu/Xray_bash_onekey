@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.1.4"
+VERSION="1.1.5"
 
 _script_args=("$@")
 
@@ -53,10 +53,11 @@ check_update() {
     return 0
 }
 
+# COMPAT: 旧版使用全局 failed_update_marker，v1.2 后删除
 if [[ -f "${failed_update_marker}" ]]; then
-    echo "Previous update failed, skipping auto update. Remove ${failed_update_marker} or perform manual update to re-enable." >>"${log_file}"
-    exit 0
+    rm -f "${failed_update_marker}"
 fi
+# COMPAT_END
 
 [[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}"
 if ! mkdir "${running_file}" 2>/dev/null; then
@@ -89,7 +90,7 @@ check_online_version() {
     result=$(echo "${get_versions_all}" | jq -rc --arg key "$1" '.[$key]' 2>/dev/null)
     if [[ $? -ne 0 ]] || [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
         echo "Online version check failed, please try again later!" >>"${log_file}"
-        exit 1
+        return 1
     fi
     echo "${result}"
 }
@@ -98,9 +99,18 @@ info_extraction() {
     echo "${info_extraction_all}" | jq -r --arg key "$1" '.[$key]' 2>/dev/null
 }
 
-shell_online_version="$(check_online_version shell_online_version)"
-xray_online_version="$(check_online_version xray_online_version)"
-nginx_online_version="$(check_online_version nginx_build_online_version)"
+if ! shell_online_version="$(check_online_version shell_online_version)"; then
+    echo "Failed to check shell online version, skipping update checks." >>"${log_file}"
+    exit 1
+fi
+if ! xray_online_version="$(check_online_version xray_online_version)"; then
+    echo "Failed to check Xray online version, skipping update checks." >>"${log_file}"
+    exit 1
+fi
+if ! nginx_online_version="$(check_online_version nginx_build_online_version)"; then
+    echo "Failed to check Nginx online version, skipping update checks." >>"${log_file}"
+    exit 1
+fi
 
 if [[ -f "${xray_install_config_file}" ]]; then
     if [[ $(info_extraction shell_version) == null ]] || [[ $(info_extraction shell_version) != "${shell_online_version}" ]]; then
@@ -116,15 +126,18 @@ if [[ -f "${xray_install_config_file}" ]]; then
     else
         echo "Script is up to date!" >>"${log_file}"
     fi
-    if [[ $(info_extraction nginx_build_version) != null ]] && [[ -f "${nginx_dir}/sbin/nginx" ]]; then
+    if [[ -f "${failed_update_marker}.nginx" ]]; then
+        echo "Previous Nginx update failed, skipping. Remove ${failed_update_marker}.nginx to retry." >>"${log_file}"
+    elif [[ $(info_extraction nginx_build_version) != null ]] && [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         if [[ "${nginx_online_version}" != "$(info_extraction nginx_build_version)" ]]; then
             echo "Updating Nginx..." >>"${log_file}"
             auto_update=YES bash "${idleleo_dir}/install.sh" -n auto_update
             if [[ $? -ne 0 ]]; then
                 echo "Nginx update failed!" >>"${log_file}"
-                touch "${failed_update_marker}"
+                touch "${failed_update_marker}.nginx"
             else
                 echo "Nginx updated successfully!" >>"${log_file}"
+                rm -f "${failed_update_marker}.nginx"
             fi
         else
             echo "Nginx is up to date!" >>"${log_file}"
@@ -132,16 +145,19 @@ if [[ -f "${xray_install_config_file}" ]]; then
     else
         echo "Nginx not installed!" >>"${log_file}"
     fi
-    if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f /usr/local/bin/xray ]]; then
+    if [[ -f "${failed_update_marker}.xray" ]]; then
+        echo "Previous Xray update failed, skipping. Remove ${failed_update_marker}.xray to retry." >>"${log_file}"
+    elif [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f /usr/local/bin/xray ]]; then
         if [[ $(info_extraction xray_version) != null ]]; then
             if [[ "${xray_online_version}" != "$(info_extraction xray_version)" ]]; then
                 echo "Updating Xray..." >>"${log_file}"
                 auto_update=YES bash "${idleleo_dir}/install.sh" -x auto_update
                 if [[ $? -ne 0 ]]; then
                     echo "Xray update failed!" >>"${log_file}"
-                    touch "${failed_update_marker}"
+                    touch "${failed_update_marker}.xray"
                 else
                     echo "Xray updated successfully!" >>"${log_file}"
+                    rm -f "${failed_update_marker}.xray"
                 fi
             else
                 echo "Xray is up to date!" >>"${log_file}"

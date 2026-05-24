@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.5.8"
+mf_SCRIPT_VERSION="1.5.9"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -84,6 +84,8 @@ mf_main_menu() {
 mf_install_fail2ban() {
     if command -v fail2ban-client &> /dev/null; then
         log_echo "${OK} ${Green} Fail2ban $(gettext "已经安装, 跳过安装步骤") ${Font}"
+        mf_configure_fail2ban
+        judge -r "Fail2ban $(gettext "配置")"
     else
         pkg_install "fail2ban"
         judge -r "Fail2ban $(gettext "安装")" || return 1

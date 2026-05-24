@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.6.1"
+tb_SCRIPT_VERSION="1.6.2"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -27,17 +27,18 @@ tb_init_config() {
     "country_block": [],
     "bittorrent": false,
     "private_ip": false,
-    "ads": false,
-    "geo_versions": {}
+    "ads": false
 }
 EOF
     else
         local tmp_file="${tb_config_file}.tmp"
+        # COMPAT: geo_versions 已迁移至 geo_version.json，v1.7 后删除此清理
         jq '.country_block //= [] |
             .bittorrent //= false |
             .private_ip //= false |
             .ads //= false |
-            .geo_versions //= {}' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
+            del(.geo_versions)' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
+        # COMPAT_END
     fi
 }
 
@@ -260,13 +261,7 @@ tb_remove_country() {
     log_echo "${Green} $(gettext "当前已阻断"): ${Font}"
     local i=1
     for code in "${countries[@]}"; do
-        local display_name="$code"
-        for entry in "${tb_preset_countries[@]}"; do
-            if [[ "${entry%%:*}" == "$code" ]]; then
-                display_name="$code - ${entry#*:}"
-                break
-            fi
-        done
+        local display_name="$code - $(tb_country_display_name "$code")"
         echo "  ${i}. ${display_name}"
         i=$((i + 1))
     done
@@ -335,22 +330,26 @@ tb_get_geo_remote_version() {
 
 tb_get_geo_local_version() {
     local file_name="$1"
-    if [[ ! -f "${tb_config_file}" ]]; then
+    local gv_file="${xray_conf_dir}/geo_version.json"
+    if [[ ! -f "${gv_file}" ]]; then
         echo ""
         return
     fi
-    local version=$(jq -r --arg name "$file_name" '.geo_versions[$name] // ""' "${tb_config_file}" 2>/dev/null)
+    local version=$(jq -r --arg name "$file_name" '.geo_versions[$name] // ""' "${gv_file}" 2>/dev/null)
     echo "${version}"
 }
 
 tb_set_geo_local_version() {
     local file_name="$1"
     local version="$2"
-    if [[ ! -f "${tb_config_file}" ]]; then
-        tb_init_config
+    local gv_file="${xray_conf_dir}/geo_version.json"
+    local gv_tmp="${gv_file}.tmp.$$"
+    if [[ -f "${gv_file}" ]]; then
+        jq --arg name "$file_name" --arg v "$version" '.geo_versions[$name] = $v' "${gv_file}" >"${gv_tmp}" 2>/dev/null && mv "${gv_tmp}" "${gv_file}" || { rm -f "${gv_tmp}"; return 1; }
+    else
+        mkdir -p "$(dirname "${gv_file}")"
+        jq -n --arg name "$file_name" --arg v "$version" '{"geo_versions":{($name):$v}}' >"${gv_tmp}" 2>/dev/null && mv "${gv_tmp}" "${gv_file}" || { rm -f "${gv_tmp}"; return 1; }
     fi
-    local tmp_file="${tb_config_file}.tmp"
-    jq --arg name "$file_name" --arg v "$version" '.geo_versions[$name] = $v' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
 }
 
 tb_get_previous_domain_strategy() {
