@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.6.0"
+tb_SCRIPT_VERSION="1.6.1"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -736,12 +736,8 @@ tb_update_all_geo() {
     fi
 
     if [[ -f "${xray_conf}" ]]; then
-        log_echo "${GreenBG} $(gettext "是否重启 Xray 以加载新数据") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-        read -r restart_confirm
-        if [[ $restart_confirm =~ ^[yY]([eE][sS])?$ ]]; then
-            systemctl restart xray
-            judge -r "Xray $(gettext "重启")" || return 1
-        fi
+        systemctl restart xray
+        judge -r "Xray $(gettext "重启")" || return 1
     fi
 }
 
@@ -761,12 +757,8 @@ tb_update_geo_file() {
         log_echo "${OK} ${GreenBG} ${file_name} $(gettext "已更新至"): ${new_version} ${Font}"
 
         if [[ -f "${xray_conf}" ]]; then
-            log_echo "${GreenBG} $(gettext "是否重启 Xray 以加载新数据") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-            read -r restart_confirm
-            if [[ $restart_confirm =~ ^[yY]([eE][sS])?$ ]]; then
-                systemctl restart xray
-                judge -r "Xray $(gettext "重启")" || return 1
-            fi
+            systemctl restart xray
+            judge -r "Xray $(gettext "重启")" || return 1
         fi
     fi
 }
