@@ -17,16 +17,16 @@
 * Supports automatic updates for the script, Xray, Nginx, and certificates, with full backup and restore
 * Adopts the share link [proposal](https://github.com/XTLS/Xray-core/issues/91) by [@DuckSoft](https://github.com/DuckSoft) (beta), compatible with Qv2ray, V2rayN, V2rayNG
 * Adopts the [XTLS](https://github.com/XTLS/Xray-core/issues/158) proposal, following the [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) standard, supporting custom string mapping to VLESS UUID
-* Supports gRPC protocol: [Using gRPC Protocol](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* Supports gRPC protocol: [Using gRPC Protocol](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
 * Supports Reality / ws/gRPC/xHTTP load balancing:
-  - [Deploy Reality Load Balancer](https://hey.run/archives/bushu-reality-balance)
-  - [Build Backend Load Balancer](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+  - [Deploy Reality Load Balancer](https://hey.run/posts/bushu-reality-balance)
+  - [Build Backend Load Balancer](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
 
 ## Further Reading
 
-* Reality installation guide: [Setting Up Xray Reality Server](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Reality protocol risks: [Risks of Xray Reality Protocol](https://hey.run/archives/reality-xie-yi-de-feng-xian)
-* Accelerating server with Reality: [Accelerate Server Using Reality Protocol "Vulnerability"](https://hey.run/archives/use-reality)
+* Reality installation guide: [Setting Up Xray Reality Server](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality protocol risks: [Risks of Xray Reality Protocol](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Accelerating server with Reality: [Accelerate Server Using Reality Protocol "Vulnerability"](https://hey.run/posts/use-reality)
 
 ## Telegram Group
 

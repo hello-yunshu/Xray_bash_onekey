@@ -17,16 +17,16 @@
 * 스크립트, Xray, Nginx, 인증서 자동 업데이트 지원, 전체 백업 및 복원 제공
 * [@DuckSoft](https://github.com/DuckSoft)의 공유 링크 [제안](https://github.com/XTLS/Xray-core/issues/91) (beta) 채택, Qv2ray, V2rayN, V2rayNG 호환
 * [XTLS](https://github.com/XTLS/Xray-core/issues/158) 프로젝트 제안 채택, [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 표준 준수, 사용자 정의 문자열을 VLESS UUID로 매핑 지원
-* gRPC 프로토콜 지원: [gRPC 프로토콜 사용하기](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* gRPC 프로토콜 지원: [gRPC 프로토콜 사용하기](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
 * Reality / ws/gRPC/xHTTP 로드 밸런싱 지원:
-  - [Reality 로드 밸런서 배포](https://hey.run/archives/bushu-reality-balance)
-  - [백엔드 로드 밸런서 구축](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+  - [Reality 로드 밸런서 배포](https://hey.run/posts/bushu-reality-balance)
+  - [백엔드 로드 밸런서 구축](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
 
 ## 추가 자료
 
-* Reality 설치 가이드: [Xray Reality 서버 구축](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Reality 프로토콜 위험: [Xray Reality 프로토콜의 위험](https://hey.run/archives/reality-xie-yi-de-feng-xian)
-* Reality로 서버 가속: [Reality 프로토콜 "취약점"으로 서버 가속](https://hey.run/archives/use-reality)
+* Reality 설치 가이드: [Xray Reality 서버 구축](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality 프로토콜 위험: [Xray Reality 프로토콜의 위험](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Reality로 서버 가속: [Reality 프로토콜 "취약점"으로 서버 가속](https://hey.run/posts/use-reality)
 
 ## Telegram 그룹
 
