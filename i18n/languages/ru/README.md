@@ -17,16 +17,16 @@
 * Поддержка автообновления скрипта, Xray, Nginx и сертификатов, а также полного резервного копирования и восстановления
 * Использует [предложение](https://github.com/XTLS/Xray-core/issues/91) ссылки для обмена от [@DuckSoft](https://github.com/DuckSoft) (beta), совместимое с Qv2ray, V2rayN, V2rayNG
 * Использует предложение проекта [XTLS](https://github.com/XTLS/Xray-core/issues/158), следуя стандарту [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3), поддерживая маппинг пользовательских строк в UUID VLESS
-* Поддержка протокола gRPC: [Использование протокола gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* Поддержка протокола gRPC: [Использование протокола gRPC](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
 * Поддержка балансировки нагрузки Reality / ws/gRPC/xHTTP:
-  - [Развёртывание балансировщика нагрузки Reality](https://hey.run/archives/bushu-reality-balance)
-  - [Создание балансировщика нагрузки бэкенда](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+  - [Развёртывание балансировщика нагрузки Reality](https://hey.run/posts/bushu-reality-balance)
+  - [Создание балансировщика нагрузки бэкенда](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
 
 ## Дополнительные материалы
 
-* Руководство по установке Reality: [Настройка сервера Xray Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Риски протокола Reality: [Риски протокола Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian)
-* Ускорение сервера с помощью Reality: [Ускорение сервера через «уязвимость» протокола Reality](https://hey.run/archives/use-reality)
+* Руководство по установке Reality: [Настройка сервера Xray Reality](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Риски протокола Reality: [Риски протокола Xray Reality](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Ускорение сервера с помощью Reality: [Ускорение сервера через «уязвимость» протокола Reality](https://hey.run/posts/use-reality)
 
 ## Группа Telegram
 
