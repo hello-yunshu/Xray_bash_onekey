@@ -17,16 +17,16 @@
 * Prend en charge les mises à jour automatiques du script, de Xray, de Nginx et des certificats, avec sauvegarde et restauration complètes
 * Adopte la [proposition](https://github.com/XTLS/Xray-core/issues/91) de lien de partage de [@DuckSoft](https://github.com/DuckSoft) (beta), compatible avec Qv2ray, V2rayN, V2rayNG
 * Adopte la proposition du projet [XTLS](https://github.com/XTLS/Xray-core/issues/158), conforme à la norme [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3), permettant le mappage de chaînes personnalisées vers un UUID VLESS
-* Prend en charge le protocole gRPC : [Utiliser le protocole gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* Prend en charge le protocole gRPC : [Utiliser le protocole gRPC](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
 * Prend en charge l'équilibrage de charge Reality / ws/gRPC/xHTTP :
-  - [Déployer un équilibreur de charge Reality](https://hey.run/archives/bushu-reality-balance)
-  - [Construire un équilibreur de charge backend](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+  - [Déployer un équilibreur de charge Reality](https://hey.run/posts/bushu-reality-balance)
+  - [Construire un équilibreur de charge backend](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
 
 ## Pour aller plus loin
 
-* Guide d'installation Reality : [Configurer un serveur Xray Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Risques du protocole Reality : [Risques du protocole Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian)
-* Accélérer le serveur avec Reality : [Accélérer le serveur via la « faille » du protocole Reality](https://hey.run/archives/use-reality)
+* Guide d'installation Reality : [Configurer un serveur Xray Reality](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Risques du protocole Reality : [Risques du protocole Xray Reality](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Accélérer le serveur avec Reality : [Accélérer le serveur via la « faille » du protocole Reality](https://hey.run/posts/use-reality)
 
 ## Groupe Telegram
 

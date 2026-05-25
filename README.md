@@ -17,16 +17,16 @@
 * 支持脚本、Xray、Nginx、证书自动更新，并提供完整备份与恢复
 * 采用 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91)（beta），兼容 Qv2ray、V2rayN、V2rayNG
 * 采用 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，支持自定义字符串映射至 VLESS UUID
-* 支持 gRPC 协议：[使用 gRPC 协议](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* 支持 gRPC 协议：[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
 * 支持 Reality / ws/gRPC/xHTTP 负载均衡：
-  - [部署 Reality 负载均衡](https://hey.run/archives/bushu-reality-balance)
-  - [搭建后端负载均衡](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+  - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
+  - [搭建后端负载均衡](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
 
 ## 延伸阅读
 
-* Reality 安装指南：[搭建 Xray Reality 服务器](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Reality 协议风险：[Xray Reality 协议的风险](https://hey.run/archives/reality-xie-yi-de-feng-xian)
-* Reality 加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/archives/use-reality)
+* Reality 安装指南：[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality 协议风险：[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Reality 加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
 
 ## Telegram 群组
 

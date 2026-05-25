@@ -17,16 +17,16 @@
 * پشتیبانی از به‌روزرسانی خودکار اسکریپت، Xray، Nginx و گواهی‌ها، همراه با پشتیبان‌گیری و بازیابی کامل
 * استفاده از [پیشنهاد](https://github.com/XTLS/Xray-core/issues/91) لینک اشتراک‌گذاری [@DuckSoft](https://github.com/DuckSoft) (بتا)، سازگار با Qv2ray، V2rayN، V2rayNG
 * استفاده از پیشنهاد پروژه [XTLS](https://github.com/XTLS/Xray-core/issues/158)، پیروی از استاندارد [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)، پشتیبانی از نگاشت رشته‌های سفارشی به UUID VLESS
-* پشتیبانی از پروتکل gRPC: [استفاده از پروتکل gRPC](https://hey.run/archives/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* پشتیبانی از پروتکل gRPC: [استفاده از پروتکل gRPC](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
 * پشتیبانی از تعادل بار Reality / ws/gRPC/xHTTP:
-  - [استقرار تعادل بار Reality](https://hey.run/archives/bushu-reality-balance)
-  - [ساخت تعادل بار بک‌اند](https://hey.run/archives/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+  - [استقرار تعادل بار Reality](https://hey.run/posts/bushu-reality-balance)
+  - [ساخت تعادل بار بک‌اند](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
 
 ## مطالعه بیشتر
 
-* راهنمای نصب Reality: [راه‌اندازی سرور Xray Reality](https://hey.run/archives/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* خطرات پروتکل Reality: [خطرات پروتکل Xray Reality](https://hey.run/archives/reality-xie-yi-de-feng-xian)
-* تسریع سرور با Reality: [تسریع سرور از طریق «آسیب‌پذیری» پروتکل Reality](https://hey.run/archives/use-reality)
+* راهنمای نصب Reality: [راه‌اندازی سرور Xray Reality](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* خطرات پروتکل Reality: [خطرات پروتکل Xray Reality](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* تسریع سرور با Reality: [تسریع سرور از طریق «آسیب‌پذیری» پروتکل Reality](https://hey.run/posts/use-reality)
 
 ## گروه تلگرام
 
