@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.8"
+shell_version="2.13.9"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -2420,6 +2420,7 @@ ip_check() {
 }
 
 port_exist_check() {
+    [[ -z "$1" ]] && return 0
     if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
         log_echo "${OK} ${GreenBG} $1 $(gettext "端口未被占用") ${Font}"
     else
@@ -4695,9 +4696,9 @@ install_xray_ws_only() {
     stop_service_all
     xray_install
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    port_exist_check "${xport}"
-    port_exist_check "${gport}"
-    port_exist_check "${xhttpport}"
+    is_ws_mode && port_exist_check "${xport}"
+    is_grpc_mode && port_exist_check "${gport}"
+    is_xhttp_mode && port_exist_check "${xhttpport}"
     xray_conf_add
     basic_information
     enable_process_systemd || return 1
