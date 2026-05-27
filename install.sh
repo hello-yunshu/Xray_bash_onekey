@@ -654,9 +654,10 @@ transport_choose() {
         echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
         echo "2: gRPC"
         echo "3: xHTTP"
-        echo "4: ws+gRPC+xHTTP"
+        echo "4: ws+xHTTP"
+        echo "5: ws+gRPC+xHTTP"
         local choose_network
-        read_optimize "$(gettext "请输入"): " "choose_network" 1 1 4 "$(gettext "请输入有效的数字")!"
+        read_optimize "$(gettext "请输入"): " "choose_network" 1 1 5 "$(gettext "请输入有效的数字")!"
         case ${choose_network} in
         2)
             transport_mode="onlygRPC"
@@ -665,6 +666,9 @@ transport_choose() {
             transport_mode="onlyxhttp"
             ;;
         4)
+            transport_mode="wsxhttp"
+            ;;
+        5)
             transport_mode="all"
             ;;
         *)
@@ -681,6 +685,7 @@ _transport_set_shell_mode() {
     onlyws) transport_label="ws";;
     onlygRPC) transport_label="gRPC";;
     onlyxhttp) transport_label="xHTTP";;
+    wsxhttp) transport_label="ws+xHTTP";;
     all) transport_label="ws+gRPC+xHTTP";;
     *) return;;
     esac
@@ -769,6 +774,8 @@ transport_qr() {
     fi
     if [[ ${transport_mode} == "all" ]]; then
         artnet="ws/gRPC/xHTTP"
+    elif [[ ${transport_mode} == "wsxhttp" ]]; then
+        artnet="ws/xHTTP"
     fi
 }
 
@@ -877,6 +884,12 @@ firewall_set() {
             iptables -I INPUT -p udp -m multiport --dport 53,${xhttpport} -j ACCEPT
             iptables -I OUTPUT -p tcp -m multiport --sport 53,${xhttpport} -j ACCEPT
             iptables -I OUTPUT -p udp -m multiport --sport 53,${xhttpport} -j ACCEPT
+            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+        elif [[ ${transport_mode} == "wsxhttp" ]]; then
+            iptables -I INPUT -p tcp -m multiport --dport 53,${xport},${xhttpport} -j ACCEPT
+            iptables -I INPUT -p udp -m multiport --dport 53,${xport},${xhttpport} -j ACCEPT
+            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport},${xhttpport} -j ACCEPT
+            iptables -I OUTPUT -p udp -m multiport --sport 53,${xport},${xhttpport} -j ACCEPT
             iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
         elif [[ ${transport_mode} == "all" ]]; then
             iptables -I INPUT -p tcp -m multiport --dport 53,${xport},${gport},${xhttpport} -j ACCEPT
@@ -2081,6 +2094,13 @@ nginx_update() {
                         path="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                         gport=$(generate_random_port 30000 30999)
                         serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+                    elif [[ ${transport_mode} == "wsxhttp" ]]; then
+                        xport=$(info_extraction ws_port)
+                        path=$(info_extraction path)
+                        xhttpport=$(info_extraction xhttp_port)
+                        xhttppath=$(info_extraction xhttp_path)
+                        gport=$(generate_random_port 30000 30999)
+                        serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
                     elif [[ ${transport_mode} == "all" ]]; then
                         xport=$(info_extraction ws_port)
                         path=$(info_extraction path)
@@ -2473,6 +2493,8 @@ xray_conf_add() {
             elif [[ ${transport_mode} == "onlyxhttp" ]]; then
                 update_json_config "${xray_conf}" 'del(.inbounds[] | select(.tag == "VLESS-ws-in")) | .routing.rules[0].inboundTag = []'
                 add_xhttp_inbound "127.0.0.1" "${xhttpport}" "${xhttppath}"
+            elif [[ ${transport_mode} == "wsxhttp" ]]; then
+                add_xhttp_inbound "127.0.0.1" "${xhttpport}" "${xhttppath}"
             elif [[ ${transport_mode} == "all" ]]; then
                 add_grpc_inbound "127.0.0.1" "${gport}" "${serviceName}"
                 add_xhttp_inbound "127.0.0.1" "${xhttpport}" "${xhttppath}"
@@ -2492,6 +2514,8 @@ xray_conf_add() {
                 add_grpc_inbound "0.0.0.0" "${gport}" "${serviceName}"
             elif [[ ${transport_mode} == "onlyxhttp" ]]; then
                 update_json_config "${xray_conf}" 'del(.inbounds[] | select(.tag == "VLESS-ws-in")) | .routing.rules[0].inboundTag = []'
+                add_xhttp_inbound "0.0.0.0" "${xhttpport}" "${xhttppath}"
+            elif [[ ${transport_mode} == "wsxhttp" ]]; then
                 add_xhttp_inbound "0.0.0.0" "${xhttpport}" "${xhttppath}"
             elif [[ ${transport_mode} == "all" ]]; then
                 add_grpc_inbound "0.0.0.0" "${gport}" "${serviceName}"
@@ -3467,6 +3491,21 @@ ${flow_line}
 ${flow_line}
     network: tcp
     skip-cert-verify: false"
+
+    elif [[ ${type} == "xhttp" ]]; then
+        clash_config="  - name: ${clash_name}
+    type: vless
+    server: $(info_extraction host)
+    port: ${port}
+    uuid: $(info_extraction id)
+    client-fingerprint: chrome
+    tls: ${tls}
+${flow_line}
+    network: xhttp
+    xhttp-opts:
+      path: ${path}
+      mode: auto
+    skip-cert-verify: false"
     fi
 
     if [[ ${tls} == "true" && -n "${sni}" ]]; then
@@ -3520,7 +3559,7 @@ $(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_grpc_service
         fi
         if is_xhttp_mode; then
             clash_config_content="${clash_config_content}
-# Clash $(gettext "不支持 xHTTP 传输协议")"
+$(generate_clash_config "xhttp" "$(info_extraction port)" "$(format_xhttp_path "$(info_xhttp_path)")" "" "tls" "" "" "$(info_extraction host)" "" "" "true")"
         fi
     elif [[ ${tls_mode} == "Reality" ]]; then
         clash_config_content="${clash_config_content}
@@ -3537,7 +3576,7 @@ $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_grpc_se
             fi
             if is_xhttp_mode; then
                 clash_config_content="${clash_config_content}
-# Clash $(gettext "不支持 xHTTP 传输协议")"
+$(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(format_xhttp_path "$(info_xhttp_path)")" "" "none" "" "" "" "" "" "false")"
             fi
         fi
     elif [[ ${tls_mode} == "None" ]]; then
@@ -3551,7 +3590,7 @@ $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_grpc_se
         fi
         if is_xhttp_mode; then
             clash_config_content="${clash_config_content}
-# Clash $(gettext "不支持 xHTTP 传输协议")"
+$(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(format_xhttp_path "$(info_xhttp_path)")" "" "none" "" "" "" "" "" "false")"
         fi
     elif [[ ${tls_mode} == "XTLS" ]]; then
         clash_config_content="${clash_config_content}
@@ -3695,7 +3734,7 @@ basic_information() {
         echo
         log_echo "${Warning} ${YellowBG} VLESS $(gettext "目前分享链接规范为实验阶段, 请自行判断是否适用") ${Font}"
         if is_xhttp_mode; then
-            log_echo "${Warning} ${YellowBG} $(gettext "xHTTP 不支持 Clash 客户端") ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持") ${Font}"
         fi
         echo
         log_echo "${Red} —————————————— Xray $(gettext "配置信息") —————————————— ${Font}"
@@ -3962,6 +4001,13 @@ reset_port() {
                 read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${xhttpport}"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
+            elif [[ ${transport_mode} == "wsxhttp" ]]; then
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                port_exist_check "${xport}"
+                port_exist_check "${xhttpport}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+                log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
             elif [[ ${transport_mode} == "all" ]]; then
                 read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
@@ -4002,6 +4048,13 @@ reset_port() {
             elif [[ ${transport_mode} == "onlyxhttp" ]]; then
                 read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 port_exist_check "${xhttpport}"
+                log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
+            elif [[ ${transport_mode} == "wsxhttp" ]]; then
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                port_exist_check "${xport}"
+                port_exist_check "${xhttpport}"
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
             elif [[ ${transport_mode} == "all" ]]; then
                 read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
@@ -4101,6 +4154,16 @@ show_user() {
                 choose_user_tag="VLESS-gRPC-in"
             elif [[ ${transport_mode} == "onlyxhttp" ]]; then
                 choose_user_tag="VLESS-xhttp-in"
+            elif [[ ${transport_mode} == "wsxhttp" ]]; then
+                log_echo "${GreenBG} $(gettext "请选择显示用户使用的协议") ws/xHTTP ${Font}"
+                echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
+                echo "2: xHTTP"
+                read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
+                if [[ ${choose_user_prot} -eq 2 ]]; then
+                    choose_user_tag="VLESS-xhttp-in"
+                else
+                    choose_user_tag="VLESS-ws-in"
+                fi
             else
                 log_echo "${GreenBG} $(gettext "请选择显示用户使用的协议") ws/gRPC/xHTTP ${Font}"
                 echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
@@ -4181,6 +4244,16 @@ add_user() {
                     choose_user_tag="VLESS-gRPC-in"
                 elif [[ ${transport_mode} == "onlyxhttp" ]]; then
                     choose_user_tag="VLESS-xhttp-in"
+                elif [[ ${transport_mode} == "wsxhttp" ]]; then
+                    log_echo "${GreenBG} $(gettext "请选择添加用户使用的协议") ws/xHTTP ${Font}"
+                    echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
+                    echo "2: xHTTP"
+                    read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
+                    if [[ ${choose_user_prot} -eq 2 ]]; then
+                        choose_user_tag="VLESS-xhttp-in"
+                    else
+                        choose_user_tag="VLESS-ws-in"
+                    fi
                 else
                     log_echo "${GreenBG} $(gettext "请选择添加用户使用的协议") ws/gRPC/xHTTP ${Font}"
                     echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
@@ -4250,6 +4323,16 @@ remove_user() {
                 choose_user_tag="VLESS-gRPC-in"
             elif [[ ${transport_mode} == "onlyxhttp" ]]; then
                 choose_user_tag="VLESS-xhttp-in"
+            elif [[ ${transport_mode} == "wsxhttp" ]]; then
+                log_echo "${GreenBG} $(gettext "请选择删除用户使用的协议") ws/xHTTP ${Font}"
+                echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
+                echo "2: xHTTP"
+                read_optimize "$(gettext "请输入"): " "choose_user_prot" 1 1 2 "$(gettext "请输入有效的数字")!"
+                if [[ ${choose_user_prot} -eq 2 ]]; then
+                    choose_user_tag="VLESS-xhttp-in"
+                else
+                    choose_user_tag="VLESS-ws-in"
+                fi
             else
                 log_echo "${GreenBG} $(gettext "请选择删除用户使用的协议") ws/gRPC/xHTTP ${Font}"
                 echo -e "${Red}1${Font}: ws ($(gettext "默认"))"
@@ -5182,6 +5265,8 @@ check_xray_local_connect() {
                 [[ $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             elif [[ ${transport_mode} == "onlygRPC" ]]; then
                 [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+            elif [[ ${transport_mode} == "wsxhttp" ]]; then
+                [[ $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" && $(curl_local_connect_xhttp "$(info_extraction host)" "$(info_xhttp_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             elif [[ ${transport_mode} == "all" ]]; then
                 [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" && $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" && $(curl_local_connect_xhttp "$(info_extraction host)" "$(info_xhttp_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             fi
