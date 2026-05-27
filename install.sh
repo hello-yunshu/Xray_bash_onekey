@@ -15,7 +15,7 @@ fi
 #	System Request: Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+
 #	Author:	yunyunshu
 #	Dscription: Xray Onekey Management
-#	Version: 2.13
+#	Version: 2.13.8
 #	Official document: hey.run
 #=================================================================
 
@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.7"
+shell_version="2.13.8"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -2781,6 +2781,7 @@ server {
         grpc_set_header X-Real-IP \$remote_addr;
         grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         grpc_set_header Early-Data \$ssl_early_data;
+        grpc_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Host \$http_host;
