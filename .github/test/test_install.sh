@@ -162,7 +162,7 @@ ip_check() {
 
 transport_choose() {
     if [[ "${MODE}" == "ws_grpc_xhttp" ]]; then
-        transport_mode="all"
+        transport_mode="wsgRPCxhttp"
     else
         transport_mode="onlyws"
     fi
@@ -470,7 +470,7 @@ tls)
 esac
 
 if [[ "${MODE}" == "ws_grpc_xhttp" ]]; then
-    assert_ok "Install config transport mode is all" test "$(jq -r '.transport_mode' "${xray_install_config_file}")" = "all"
+    assert_ok "Install config transport mode is wsgRPCxhttp" test "$(jq -r '.transport_mode' "${xray_install_config_file}")" = "wsgRPCxhttp"
     assert_ok "gRPC inbound exists" jq -e '.inbounds[] | select(.tag == "VLESS-gRPC-in")' "${xray_conf}"
     assert_ok "xHTTP inbound exists" jq -e '.inbounds[] | select(.tag == "VLESS-xhttp-in")' "${xray_conf}"
     assert_ok "All transport inbounds are routed" jq -e '[.routing.rules[].inboundTag[]] | contains(["VLESS-ws-in", "VLESS-gRPC-in", "VLESS-xhttp-in"])' "${xray_conf}"

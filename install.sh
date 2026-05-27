@@ -92,15 +92,15 @@ random_num=$((RANDOM % 12 + 4))
 [[ -f "${xray_install_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_install_config_file}")
 
 is_ws_mode() {
-    [[ ${transport_mode} == *ws* || ${transport_mode} == "all" ]]
+    [[ ${transport_mode} == *ws* ]]
 }
 
 is_grpc_mode() {
-    [[ ${transport_mode} == *gRPC* || ${transport_mode} == "all" ]]
+    [[ ${transport_mode} == *gRPC* ]]
 }
 
 is_xhttp_mode() {
-    [[ ${transport_mode} == *xhttp* || ${transport_mode} == "all" ]]
+    [[ ${transport_mode} == *xhttp* ]]
 }
 
 [[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}"
@@ -669,7 +669,7 @@ transport_choose() {
             transport_mode="wsxhttp"
             ;;
         5)
-            transport_mode="all"
+            transport_mode="wsgRPCxhttp"
             ;;
         *)
             transport_mode="onlyws"
@@ -686,7 +686,7 @@ _transport_set_shell_mode() {
     onlygRPC) transport_label="gRPC";;
     onlyxhttp) transport_label="xHTTP";;
     wsxhttp) transport_label="ws+xHTTP";;
-    all) transport_label="ws+gRPC+xHTTP";;
+    wsgRPCxhttp) transport_label="ws+gRPC+xHTTP";;
     *) return;;
     esac
     case ${tls_mode} in
@@ -772,7 +772,7 @@ transport_qr() {
         artxhttppath=${xhttppath}
         artnet="xHTTP"
     fi
-    if [[ ${transport_mode} == "all" ]]; then
+    if [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
         artnet="ws/gRPC/xHTTP"
     elif [[ ${transport_mode} == "wsxhttp" ]]; then
         artnet="ws/xHTTP"
@@ -891,7 +891,7 @@ firewall_set() {
             iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport},${xhttpport} -j ACCEPT
             iptables -I OUTPUT -p udp -m multiport --sport 53,${xport},${xhttpport} -j ACCEPT
             iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-        elif [[ ${transport_mode} == "all" ]]; then
+        elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
             iptables -I INPUT -p tcp -m multiport --dport 53,${xport},${gport},${xhttpport} -j ACCEPT
             iptables -I INPUT -p udp -m multiport --dport 53,${xport},${gport},${xhttpport} -j ACCEPT
             iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport},${gport},${xhttpport} -j ACCEPT
@@ -2101,7 +2101,7 @@ nginx_update() {
                         xhttppath=$(info_extraction xhttp_path)
                         gport=$(generate_random_port 30000 30999)
                         serviceName="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-                    elif [[ ${transport_mode} == "all" ]]; then
+                    elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
                         xport=$(info_extraction ws_port)
                         path=$(info_extraction path)
                         gport=$(info_extraction grpc_port)
@@ -2495,7 +2495,7 @@ xray_conf_add() {
                 add_xhttp_inbound "127.0.0.1" "${xhttpport}" "${xhttppath}"
             elif [[ ${transport_mode} == "wsxhttp" ]]; then
                 add_xhttp_inbound "127.0.0.1" "${xhttpport}" "${xhttppath}"
-            elif [[ ${transport_mode} == "all" ]]; then
+            elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
                 add_grpc_inbound "127.0.0.1" "${gport}" "${serviceName}"
                 add_xhttp_inbound "127.0.0.1" "${xhttpport}" "${xhttppath}"
             fi
@@ -2517,7 +2517,7 @@ xray_conf_add() {
                 add_xhttp_inbound "0.0.0.0" "${xhttpport}" "${xhttppath}"
             elif [[ ${transport_mode} == "wsxhttp" ]]; then
                 add_xhttp_inbound "0.0.0.0" "${xhttpport}" "${xhttppath}"
-            elif [[ ${transport_mode} == "all" ]]; then
+            elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
                 add_grpc_inbound "0.0.0.0" "${gport}" "${serviceName}"
                 add_xhttp_inbound "0.0.0.0" "${xhttpport}" "${xhttppath}"
             fi
@@ -3520,6 +3520,7 @@ ${flow_line}
       short-id: ${sid}"
     fi
 
+    echo ""
     echo "${clash_config}"
 }
 
@@ -4008,7 +4009,7 @@ reset_port() {
                 port_exist_check "${xhttpport}"
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
-            elif [[ ${transport_mode} == "all" ]]; then
+            elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
                 read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
@@ -4056,7 +4057,7 @@ reset_port() {
                 port_exist_check "${xhttpport}"
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
-            elif [[ ${transport_mode} == "all" ]]; then
+            elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
                 read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
                 read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
@@ -5267,7 +5268,7 @@ check_xray_local_connect() {
                 [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             elif [[ ${transport_mode} == "wsxhttp" ]]; then
                 [[ $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" && $(curl_local_connect_xhttp "$(info_extraction host)" "$(info_xhttp_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
-            elif [[ ${transport_mode} == "all" ]]; then
+            elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
                 [[ $(curl_local_connect "$(info_extraction host)" "$(info_grpc_serviceName)") == "502" && $(curl_local_connect "$(info_extraction host)" "$(info_ws_path)") == "400" && $(curl_local_connect_xhttp "$(info_extraction host)" "$(info_xhttp_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
             fi
         elif [[ ${tls_mode} == "Reality" ]]; then
