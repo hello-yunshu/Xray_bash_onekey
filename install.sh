@@ -15,7 +15,7 @@ fi
 #	System Request: Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+
 #	Author:	yunyunshu
 #	Dscription: Xray Onekey Management
-#	Version: 2.8
+#	Version: 2.13
 #	Official document: hey.run
 #=================================================================
 
@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.6"
+shell_version="2.13.7"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -3467,9 +3467,13 @@ ${flow_line}
     skip-cert-verify: false"
     fi
 
+    if [[ ${tls} == "true" && -n "${sni}" ]]; then
+        clash_config="${clash_config}
+    servername: ${sni}"
+    fi
+
     if [[ ${security} == "reality" ]]; then
         clash_config="${clash_config}
-    servername: ${sni}
     reality-opts:
       public-key: ${pbk}
       short-id: ${sid}"
@@ -3506,11 +3510,11 @@ install_link_image() {
     if [[ ${tls_mode} == "TLS" ]]; then
         if is_ws_mode; then
             clash_config_content="${clash_config_content}
-$(generate_clash_config "ws" "$(info_extraction port)" "/$(info_ws_path)" "" "tls" "" "" "" "" "" "true")"
+$(generate_clash_config "ws" "$(info_extraction port)" "/$(info_ws_path)" "" "tls" "" "" "$(info_extraction host)" "" "" "true")"
         fi
         if is_grpc_mode; then
             clash_config_content="${clash_config_content}
-$(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_grpc_serviceName)" "tls" "" "" "" "" "" "true")"
+$(generate_clash_config "grpc" "$(info_extraction port)" "" "$(info_grpc_serviceName)" "tls" "" "" "$(info_extraction host)" "" "" "true")"
         fi
         if is_xhttp_mode; then
             clash_config_content="${clash_config_content}
@@ -3769,71 +3773,67 @@ show_information() {
 ssl_judge_and_install() {
     cd $HOME
     echo
-    log_echo "${GreenBG} $(gettext "即将申请证书, 支持使用自定义证书") ${Font}"
-    log_echo "${Green} $(gettext "如需使用自定义证书, 请按如下步骤:") ${Font}"
-    log_echo " $(gettext "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)")"
-    log_echo " $(gettext "2. 将重命名后的证书文件放入") ${ssl_chainpath} $(gettext "目录后再运行脚本")"
-    log_echo " $(gettext "3. 重新运行脚本")"
-    log_echo "${GreenBG} $(gettext "是否继续") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-    read -r ssl_continue
-    case $ssl_continue in
-    [nN][oO] | [nN])
-        exit 0
-        ;;
-    *)
-        if [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] && [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+    local has_cert_files="false"
+    local has_acme_files="false"
+
+    [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] && has_cert_files="true"
+    [[ -f "$HOME/.acme.sh/acme.sh" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && has_acme_files="true"
+
+    if [[ ${has_cert_files} != "true" && ${has_acme_files} != "true" ]]; then
+        log_echo "${GreenBG} $(gettext "即将申请证书, 支持使用自定义证书") ${Font}"
+        log_echo "${Green} $(gettext "如需使用自定义证书, 请按如下步骤:") ${Font}"
+        log_echo " $(gettext "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)")"
+        log_echo " $(gettext "2. 将重命名后的证书文件放入") ${ssl_chainpath} $(gettext "目录后再运行脚本")"
+        log_echo " $(gettext "3. 重新运行脚本")"
+        log_echo "${GreenBG} $(gettext "是否继续") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        read -r ssl_continue
+        case $ssl_continue in
+        [nN][oO] | [nN])
+            return 1
+            ;;
+        esac
+    fi
+
+    if [[ ${has_cert_files} == "true" ]]; then
+        if [[ ${has_acme_files} == "true" ]]; then
             log_echo "${GreenBG} $(gettext "所有证书文件均已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-            read -r ssl_delete_1
-            case $ssl_delete_1 in
-            [nN][oO] | [nN])
-                delete_tls_key_and_crt
-                rm -rf "${ssl_chainpath}"/*
-                log_echo "${OK} ${GreenBG} $(gettext "已删除") ${Font}"
-                ssl_install
-                acme
-                ;;
-            *)
-                chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
-                judge "$(gettext "证书应用")"
-                ;;
-            esac
-        elif [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] && [[ ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && ! -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
-            log_echo "${GreenBG} $(gettext "证书文件已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-            read -r ssl_delete_2
-            case $ssl_delete_2 in
-            [nN][oO] | [nN])
-                rm -rf "${ssl_chainpath}"/*
-                log_echo "${OK} ${GreenBG} $(gettext "已删除") ${Font}"
-                ssl_install
-                acme
-                ;;
-            *)
-                chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
-                judge "$(gettext "证书应用")"
-                ;;
-            esac
-        elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && [[ ! -f "${ssl_chainpath}/xray.key" || ! -f "${ssl_chainpath}/xray.crt" ]]; then
-            log_echo "${GreenBG} $(gettext "证书签发残留文件已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-            read -r ssl_delete_3
-            case $ssl_delete_3 in
-            [nN][oO] | [nN])
-                delete_tls_key_and_crt
-                log_echo "${OK} ${GreenBG} $(gettext "已删除") ${Font}"
-                ssl_install
-                acme
-                ;;
-            *)
-                "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
-                chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
-                judge "$(gettext "证书应用")"
-                ;;
-            esac
         else
+            log_echo "${GreenBG} $(gettext "证书文件已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        fi
+        read -r ssl_delete_choice
+        case $ssl_delete_choice in
+        [nN][oO] | [nN])
+            [[ ${has_acme_files} == "true" ]] && delete_tls_key_and_crt
+            rm -rf "${ssl_chainpath}"/*
+            log_echo "${OK} ${GreenBG} $(gettext "已删除") ${Font}"
             ssl_install
             acme
-        fi
-        ;;
-    esac
+            ;;
+        *)
+            chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
+            judge "$(gettext "证书应用")"
+            ;;
+        esac
+    elif [[ ${has_acme_files} == "true" ]]; then
+        log_echo "${GreenBG} $(gettext "证书签发残留文件已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        read -r ssl_delete_3
+        case $ssl_delete_3 in
+        [nN][oO] | [nN])
+            delete_tls_key_and_crt
+            log_echo "${OK} ${GreenBG} $(gettext "已删除") ${Font}"
+            ssl_install
+            acme
+            ;;
+        *)
+            "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
+            chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
+            judge "$(gettext "证书应用")"
+            ;;
+        esac
+    else
+        ssl_install
+        acme
+    fi
 }
 
 nginx_systemd() {
@@ -4584,7 +4584,7 @@ install_xray_ws_tls() {
     nginx_exist_check
     nginx_systemd
     nginx_ssl_conf_add
-    ssl_judge_and_install
+    ssl_judge_and_install || return 1
     nginx_conf_add
     nginx_servers_conf_add
     xray_conf_add
