@@ -15,7 +15,7 @@ fi
 #	System Request: Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+
 #	Author:	yunyunshu
 #	Dscription: Xray Onekey Management
-#	Version: 2.13.8
+#	Version: 2.13
 #	Official document: hey.run
 #=================================================================
 
@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${RedW}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.9"
+shell_version="2.13.10"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -907,7 +907,7 @@ firewall_set() {
             log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
         fi
         log_echo "${OK} ${GreenBG} $(gettext "开放防火墙相关端口") ${Font}"
-        log_echo "${GreenBG} $(gettext "若修改配置, 请注意关闭防火墙相关端口") ${Font}"
+        log_echo "${Warning} ${GreenBG} $(gettext "若修改配置, 请注意关闭防火墙相关端口") ${Font}"
         log_echo "${OK} ${GreenBG} $(gettext "配置") Xray FullCone ${Font}"
         ;;
     *)
@@ -2792,24 +2792,24 @@ server {
     location xhttp
     {
         #grpc_pass grpc://xray-xhttp-server;
-        #proxy_pass http://xray-xhttp-server;
         grpc_connect_timeout 60s;
         grpc_read_timeout 720m;
         grpc_send_timeout 720m;
-        proxy_redirect off;
-        proxy_http_version 1.1;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 720m;
-        proxy_read_timeout 720m;
-        proxy_buffering off;
-        client_max_body_size 0;
         grpc_set_header X-Real-IP \$remote_addr;
         grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         grpc_set_header Early-Data \$ssl_early_data;
         grpc_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header Host \$http_host;
+        #proxy_pass http://xray-xhttp-server;
+        #proxy_redirect off;
+        #proxy_http_version 1.1;
+        #proxy_connect_timeout 60s;
+        #proxy_send_timeout 720m;
+        #proxy_read_timeout 720m;
+        #proxy_buffering off;
+        #client_max_body_size 0;
+        #proxy_set_header X-Real-IP \$remote_addr;
+        #proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        #proxy_set_header Host \$http_host;
     }
 
     location /
@@ -3735,6 +3735,7 @@ basic_information() {
         echo
         log_echo "${Warning} ${YellowBG} VLESS $(gettext "目前分享链接规范为实验阶段, 请自行判断是否适用") ${Font}"
         if is_xhttp_mode; then
+            log_echo "${Warning} ${YellowBG} $(gettext "当前 xHTTP 仅支持 stream-one 和 stream-up 模式") ${Font}"
             log_echo "${Warning} ${YellowBG} $(gettext "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持") ${Font}"
         fi
         echo
