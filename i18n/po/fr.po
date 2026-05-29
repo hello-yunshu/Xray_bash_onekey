@@ -6,8 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
-"POT-Creation-Date: 2026-05-27 20:31+0000\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
+"issues\n"
+"POT-Creation-Date: 2026-05-29 14:47+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -30,7 +31,7 @@ msgid "警告"
 msgstr "avertissement"
 
 #: install.sh:40 install.sh:2233 install.sh:3147 install.sh:5159
-#: install.sh:5176 install.sh:5179 install.sh:5180 install.sh:5283
+#: install.sh:5176 install.sh:5179 install.sh:5180 install.sh:5287
 #: scripts/fail2ban_manager.sh:156 scripts/fail2ban_manager.sh:287
 #: scripts/fail2ban_manager.sh:529 scripts/traffic_blocker.sh:631
 #: scripts/traffic_blocker.sh:643
@@ -83,8 +84,7 @@ msgstr ""
 
 #: install.sh:362
 msgid "无法获取远程语言文件信息"
-msgstr ""
-"impossible d'obtenir les informations sur le fichier de langue distant"
+msgstr "impossible d'obtenir les informations sur le fichier de langue distant"
 
 #: install.sh:380
 msgid "正在更新语言文件"
@@ -118,19 +118,18 @@ msgstr "terminé"
 msgid "正在安装"
 msgstr "en cours d'installation"
 
-#: install.sh:409 install.sh:542 install.sh:550 install.sh:1720
-#: install.sh:3734 install.sh:5072 install.sh:5073 install.sh:5074
-#: install.sh:5075 install.sh:5470 install.sh:5471 install.sh:5472
-#: install.sh:5473 scripts/fail2ban_manager.sh:63
-#: scripts/fail2ban_manager.sh:91
+#: install.sh:409 install.sh:542 install.sh:550 install.sh:1720 install.sh:3734
+#: install.sh:5072 install.sh:5073 install.sh:5074 install.sh:5075
+#: install.sh:5474 install.sh:5475 install.sh:5476 install.sh:5477
+#: scripts/fail2ban_manager.sh:63 scripts/fail2ban_manager.sh:91
 msgid "安装"
 msgstr "installation"
 
 #: install.sh:409 install.sh:502 install.sh:1419 install.sh:1614
 #: install.sh:1756 install.sh:1823 install.sh:1824 install.sh:1979
 #: install.sh:1987 install.sh:1994 install.sh:2185 install.sh:2289
-#: install.sh:2480 install.sh:5401 install.sh:5433 install.sh:5648
-#: install.sh:5656 scripts/file_manager.sh:366 scripts/traffic_blocker.sh:514
+#: install.sh:2480 install.sh:5405 install.sh:5437 install.sh:5652
+#: install.sh:5660 scripts/file_manager.sh:366 scripts/traffic_blocker.sh:514
 #: scripts/traffic_blocker.sh:980
 msgid "失败"
 msgstr "échec"
@@ -154,8 +153,7 @@ msgstr "découvrir la mise à jour du fichier de langue"
 #: install.sh:517
 msgid "在线版本检测失败, 请稍后再试"
 msgstr ""
-"la vérification de la version en ligne a échoué, veuillez réessayer plus "
-"tard"
+"la vérification de la version en ligne a échoué, veuillez réessayer plus tard"
 
 #: install.sh:544 install.sh:552 install.sh:1726 install.sh:3689
 #: install.sh:5168
@@ -210,7 +208,7 @@ msgstr "veuillez sélectionner le protocole de transmission"
 
 #: install.sh:654 install.sh:2326 install.sh:2363 install.sh:2415
 #: install.sh:3928 install.sh:4161 install.sh:4171 install.sh:4251
-#: install.sh:4261 install.sh:4330 install.sh:4340 install.sh:5463
+#: install.sh:4261 install.sh:4330 install.sh:4340 install.sh:5467
 #: scripts/fail2ban_manager.sh:361 scripts/fail2ban_manager.sh:362
 msgid "默认"
 msgstr "par défaut"
@@ -233,7 +231,7 @@ msgstr "veuillez entrer"
 #: install.sh:660 install.sh:1287 install.sh:2329 install.sh:2364
 #: install.sh:2419 install.sh:3915 install.sh:3931 install.sh:4163
 #: install.sh:4174 install.sh:4253 install.sh:4264 install.sh:4332
-#: install.sh:4343 install.sh:5516 install.sh:5747
+#: install.sh:4343 install.sh:5520 install.sh:5751
 msgid "请输入有效的数字"
 msgstr "veuillez saisir un nombre valide"
 
@@ -269,7 +267,7 @@ msgid "防火墙"
 msgstr "pare-feu"
 
 #: install.sh:904 install.sh:907 install.sh:3009 install.sh:3016
-#: install.sh:3945 install.sh:3948 install.sh:5491
+#: install.sh:3945 install.sh:3948 install.sh:5495
 #: scripts/fail2ban_manager.sh:314 scripts/fail2ban_manager.sh:521
 #: scripts/file_manager.sh:203 scripts/file_manager.sh:207
 #: scripts/file_manager.sh:254 scripts/file_manager.sh:363
@@ -289,7 +287,7 @@ msgstr ""
 "associés au pare-feu"
 
 #: install.sh:911 install.sh:5077 install.sh:5093 install.sh:5094
-#: install.sh:5480 install.sh:5500 scripts/fail2ban_manager.sh:88
+#: install.sh:5484 install.sh:5504 scripts/fail2ban_manager.sh:88
 #: scripts/fail2ban_manager.sh:93 scripts/fail2ban_manager.sh:242
 msgid "配置"
 msgstr "configuration"
@@ -333,8 +331,8 @@ msgstr "maximum 30 caractères"
 msgid "自定义字符串"
 msgstr "chaîne personnalisée"
 
-#: install.sh:1066 install.sh:3768 install.sh:5096 install.sh:5475
-#: install.sh:5575
+#: install.sh:1066 install.sh:3768 install.sh:5096 install.sh:5479
+#: install.sh:5579
 msgid "映射字符串"
 msgstr "chaîne de mappage"
 
@@ -478,7 +476,7 @@ msgstr "veuillez sélectionner le protocole ws, gRPC ou xHTTP"
 msgid "返回"
 msgstr "retour"
 
-#: install.sh:1296 install.sh:5345 scripts/fail2ban_manager.sh:78
+#: install.sh:1296 install.sh:5349 scripts/fail2ban_manager.sh:78
 #: scripts/fail2ban_manager.sh:333 scripts/fail2ban_manager.sh:341
 #: scripts/fail2ban_manager.sh:458 scripts/file_manager.sh:320
 #: scripts/traffic_blocker.sh:279 scripts/traffic_blocker.sh:315
@@ -499,7 +497,7 @@ msgstr "pour la configuration d'utilisation, vous pouvez consulter l'article"
 #: install.sh:1346 install.sh:1357 install.sh:1361 install.sh:1365
 #: install.sh:1419 install.sh:1422 install.sh:1530 install.sh:1536
 #: install.sh:1614 install.sh:1620 install.sh:1646 install.sh:1696
-#: install.sh:5094 install.sh:5441
+#: install.sh:5094 install.sh:5445
 msgid "修改"
 msgstr "modifier"
 
@@ -551,8 +549,8 @@ msgstr ""
 
 #: install.sh:1745 install.sh:1753 install.sh:1784 install.sh:1823
 #: install.sh:1824 install.sh:2073 install.sh:2225 install.sh:4835
-#: install.sh:5087 install.sh:5099 install.sh:5459 install.sh:5460
-#: install.sh:5461 install.sh:5497 scripts/traffic_blocker.sh:697
+#: install.sh:5087 install.sh:5099 install.sh:5463 install.sh:5464
+#: install.sh:5465 install.sh:5501 scripts/traffic_blocker.sh:697
 #: scripts/traffic_blocker.sh:698 scripts/traffic_blocker.sh:980
 msgid "更新"
 msgstr "mise à jour"
@@ -570,7 +568,7 @@ msgid "是否更新"
 msgstr "mettre à jour ou non"
 
 #: install.sh:1756 install.sh:2185 install.sh:3026 install.sh:3033
-#: install.sh:3721 install.sh:5492 install.sh:5648
+#: install.sh:3721 install.sh:5496 install.sh:5652
 #: scripts/fail2ban_manager.sh:312 scripts/fail2ban_manager.sh:490
 msgid "启动"
 msgstr "démarrer"
@@ -600,8 +598,8 @@ msgstr "échec du retour en arrière"
 msgid "已成功回滚到之前的"
 msgstr "rétrogradé avec succès à l'ancien"
 
-#: install.sh:1773 install.sh:2196 install.sh:2211 install.sh:5478
-#: install.sh:5590
+#: install.sh:1773 install.sh:2196 install.sh:2211 install.sh:5482
+#: install.sh:5594
 msgid "版本"
 msgstr "version"
 
@@ -662,8 +660,8 @@ msgstr "Requis pour servir de serveur maître d'équilibrage de charge Reality"
 #: install.sh:1882
 msgid "作为 Reality 负载均衡二级服务器时无需安装"
 msgstr ""
-"Aucune installation requise lorsque vous faites office de serveur secondaire"
-" d'équilibrage de charge Reality"
+"Aucune installation requise lorsque vous faites office de serveur secondaire "
+"d'équilibrage de charge Reality"
 
 #: install.sh:1926
 msgid "已存在, 跳过编译安装过程"
@@ -705,7 +703,7 @@ msgstr "Détection des configurations"
 msgid "服务日志"
 msgstr "Journal des services"
 
-#: install.sh:2033 install.sh:5450
+#: install.sh:2033 install.sh:5454
 msgid "版本检测"
 msgstr "détection de version"
 
@@ -745,11 +743,11 @@ msgstr "le fichier de configuration d'origine a été supprimé"
 msgid "原配置文件已保留"
 msgstr "le fichier de configuration d'origine a été conservé"
 
-#: install.sh:2227 install.sh:5484
+#: install.sh:2227 install.sh:5488
 msgid "删除"
 msgstr "supprimer"
 
-#: install.sh:2227 install.sh:5401 install.sh:5403 install.sh:5508
+#: install.sh:2227 install.sh:5405 install.sh:5407 install.sh:5512
 msgid "备份"
 msgstr "sauvegarde"
 
@@ -760,8 +758,8 @@ msgstr "déjà à la dernière version"
 #: install.sh:2246
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"configurer un programme de mise à jour automatique en arrière-plan (incluant"
-" : script/xray/nginx)"
+"configurer un programme de mise à jour automatique en arrière-plan "
+"(incluant : script/xray/nginx)"
 
 #: install.sh:2247
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -809,8 +807,8 @@ msgstr "installer le script de génération de certificat SSL"
 #: install.sh:2299
 msgid "检测到原域名配置存在, 是否跳过域名设置"
 msgstr ""
-"la configuration du domaine d'origine a été détectée. voulez-vous ignorer la"
-" configuration du domaine"
+"la configuration du domaine d'origine a été détectée. voulez-vous ignorer la "
+"configuration du domaine"
 
 #: install.sh:2314 install.sh:2350 install.sh:2403 install.sh:2436
 msgid "无法获取公网IP地址"
@@ -853,8 +851,8 @@ msgstr ""
 #: install.sh:2341
 msgid "请为服务器商提供的域名添加 CNAME 记录"
 msgstr ""
-"Veuillez ajouter l'enregistrement CNAME pour le nom de domaine fourni par le"
-" fournisseur de serveur."
+"Veuillez ajouter l'enregistrement CNAME pour le nom de domaine fourni par le "
+"fournisseur de serveur."
 
 #: install.sh:2353
 msgid "域名 DNS 解析 IP"
@@ -895,8 +893,8 @@ msgstr "arrêter l'installation"
 #: install.sh:2386
 msgid "检测到原IP配置存在, 是否跳过IP设置"
 msgstr ""
-"configuration IP originale détectée, souhaitez-vous ignorer la configuration"
-" IP"
+"configuration IP originale détectée, souhaitez-vous ignorer la configuration "
+"IP"
 
 #: install.sh:2407
 msgid "已跳过IP设置"
@@ -940,8 +938,7 @@ msgstr "essayez de terminer le processus occupé"
 
 #: install.sh:2460
 msgid "证书测试签发成功, 开始正式签发"
-msgstr ""
-"test de certificat émis avec succès, début de la délivrance officielle"
+msgstr "test de certificat émis avec succès, début de la délivrance officielle"
 
 #: install.sh:2463
 msgid "证书测试签发失败"
@@ -951,7 +948,7 @@ msgstr "échec de la signature du certificat de test"
 msgid "证书生成"
 msgstr "génération du certificat"
 
-#: install.sh:2470 install.sh:2476 install.sh:5403 install.sh:5427
+#: install.sh:2470 install.sh:2476 install.sh:5407 install.sh:5431
 #: scripts/fail2ban_manager.sh:513 scripts/file_manager.sh:254
 #: scripts/file_manager.sh:363
 msgid "成功"
@@ -1031,8 +1028,8 @@ msgstr "configuration supprimée"
 msgid "设置 Nginx 开机自启"
 msgstr "configurer le démarrage automatique de Nginx"
 
-#: install.sh:2972 install.sh:5498 install.sh:5501 install.sh:5502
-#: install.sh:5503 install.sh:5504 scripts/fail2ban_manager.sh:61
+#: install.sh:2972 install.sh:5502 install.sh:5505 install.sh:5506
+#: install.sh:5507 install.sh:5508 scripts/fail2ban_manager.sh:61
 #: scripts/traffic_blocker.sh:577
 msgid "设置"
 msgstr "configurer"
@@ -1056,7 +1053,7 @@ msgstr ""
 "été nettoyée"
 
 #: install.sh:2994 install.sh:3043 install.sh:3047 install.sh:3105
-#: install.sh:5493 install.sh:5656 scripts/fail2ban_manager.sh:313
+#: install.sh:5497 install.sh:5660 scripts/fail2ban_manager.sh:313
 #: scripts/fail2ban_manager.sh:513
 msgid "停止"
 msgstr "arrêter"
@@ -1224,8 +1221,7 @@ msgstr ""
 #: install.sh:3738
 msgid "当前 xHTTP 仅支持 stream-one 和 stream-up 模式"
 msgstr ""
-"Actuellement, xHTTP ne prend en charge que les modes stream-one et stream-"
-"up."
+"Actuellement, xHTTP ne prend en charge que les modes stream-one et stream-up."
 
 #: install.sh:3739
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
@@ -1233,7 +1229,7 @@ msgstr ""
 "xHTTP nécessite le noyau mihomo (Meta), la version originale de Clash n’est "
 "pas prise en charge."
 
-#: install.sh:3742 install.sh:5488
+#: install.sh:3742 install.sh:5492
 msgid "配置信息"
 msgstr "informations de configuration"
 
@@ -1330,7 +1326,7 @@ msgstr ""
 "le fichier résiduel de la signature du certificat existe déjà, souhaitez-"
 "vous le conserver"
 
-#: install.sh:3901 install.sh:5483
+#: install.sh:3901 install.sh:5487
 msgid "添加"
 msgstr "ajouter"
 
@@ -1590,26 +1586,26 @@ msgstr "télécharger le script le plus récent"
 msgid "该选项暂时无法使用"
 msgstr "cette option n'est pas disponible pour le moment"
 
-#: install.sh:4957 install.sh:5547
+#: install.sh:4957 install.sh:5551
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
 "ce mode est recommandé pour l'équilibrage de charge, il n'est généralement "
 "pas recommandé d'utiliser, souhaitez-vous installer"
 
-#: install.sh:4970 install.sh:5561
+#: install.sh:4970 install.sh:5565
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
 "ce mode est uniquement utilisé pour le transit du trafic et n’est pas "
 "recommandé pour d’autres utilisations. voulez-vous l’installer"
 
 #: install.sh:5076 install.sh:5077 install.sh:5088 install.sh:5092
-#: install.sh:5096 install.sh:5475 install.sh:5476 install.sh:5477
-#: install.sh:5478 install.sh:5479 install.sh:5480 install.sh:5575
-#: install.sh:5580 install.sh:5585 install.sh:5590
+#: install.sh:5096 install.sh:5479 install.sh:5480 install.sh:5481
+#: install.sh:5482 install.sh:5483 install.sh:5484 install.sh:5579
+#: install.sh:5584 install.sh:5589 install.sh:5594
 msgid "变更"
 msgstr "changement"
 
-#: install.sh:5076 install.sh:5479
+#: install.sh:5076 install.sh:5483
 msgid "负载均衡配置"
 msgstr "configuration d'équilibrage de charge"
 
@@ -1645,13 +1641,13 @@ msgstr "afficher l'aide"
 msgid "修改语言"
 msgstr "modifier la langue"
 
-#: install.sh:5089 install.sh:5482 install.sh:5486 install.sh:5487
-#: install.sh:5488 install.sh:5489 install.sh:5494 install.sh:5496
+#: install.sh:5089 install.sh:5486 install.sh:5490 install.sh:5491
+#: install.sh:5492 install.sh:5493 install.sh:5498 install.sh:5500
 #: scripts/fail2ban_manager.sh:66
 msgid "查看"
 msgstr "voir"
 
-#: install.sh:5089 install.sh:5489
+#: install.sh:5089 install.sh:5493
 msgid "实时流量"
 msgstr "trafic en temps réel"
 
@@ -1663,7 +1659,7 @@ msgstr "désinstallation de script"
 msgid "显示安装信息"
 msgstr "afficher les informations d'installation"
 
-#: install.sh:5093 install.sh:5501
+#: install.sh:5093 install.sh:5505
 msgid "加速"
 msgstr "accélérer"
 
@@ -1713,268 +1709,268 @@ msgstr "pas besoin de tester"
 msgid "未运行"
 msgstr "non exécuté"
 
-#: install.sh:5262
+#: install.sh:5263 install.sh:5265
 msgid "无法连通"
 msgstr "impossible de se connecter"
 
-#: install.sh:5265 install.sh:5267 install.sh:5269 install.sh:5271
-#: install.sh:5273 install.sh:5276 install.sh:5278 install.sh:5280
+#: install.sh:5269 install.sh:5271 install.sh:5273 install.sh:5275
+#: install.sh:5277 install.sh:5280 install.sh:5282 install.sh:5284
 msgid "本地正常"
 msgstr "normal localement"
 
-#: install.sh:5291
+#: install.sh:5295
 msgid "脚本维护中.. 请稍后再试"
 msgstr "script en cours de maintenance... veuillez réessayer plus tard"
 
-#: install.sh:5298
+#: install.sh:5302
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
 "impossible de détecter la version en ligne des dépendances requises, "
 "veuillez réessayer plus tard"
 
-#: install.sh:5315
+#: install.sh:5319
 msgid "请输入数字"
 msgstr "veuillez entrer un chiffre"
 
-#: install.sh:5315
+#: install.sh:5319
 msgid "请输入 1 到 6 之间的有效数字"
 msgstr "veuillez saisir un chiffre valide entre 1 et 6"
 
-#: install.sh:5386
+#: install.sh:5390
 msgid "请输入备份名称"
 msgstr "veuillez saisir le nom de la sauvegarde"
 
-#: install.sh:5386
+#: install.sh:5390
 msgid "不需要后缀"
 msgstr "pas besoin de suffixe"
 
-#: install.sh:5395
+#: install.sh:5399
 msgid "报错信息"
 msgstr "message d'erreur"
 
-#: install.sh:5397
+#: install.sh:5401
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
 msgstr ""
 "l'intégrité de la sauvegarde pourrait être affectée, veuillez vérifier les "
 "informations d'erreur ci-dessus"
 
-#: install.sh:5408
+#: install.sh:5412
 msgid "请确保备份文件在目录"
 msgstr ""
 "veuillez vous assurer que le fichier de sauvegarde se trouve dans le "
 "répertoire"
 
-#: install.sh:5412
+#: install.sh:5416
 msgid "没有找到备份文件"
 msgstr "aucun fichier de sauvegarde n'a été trouvé"
 
-#: install.sh:5417
+#: install.sh:5421
 msgid "发现多个备份文件"
 msgstr "découverte de plusieurs fichiers de sauvegarde"
 
-#: install.sh:5417
+#: install.sh:5421
 msgid "将使用最新的文件进行恢复"
 msgstr "la restauration sera effectuée à partir du fichier le plus récent"
 
-#: install.sh:5421
+#: install.sh:5425
 msgid "找到最新备份文件"
 msgstr "trouver le fichier de sauvegarde le plus récent"
 
-#: install.sh:5423
+#: install.sh:5427
 msgid "恢复备份"
 msgstr "restaurer la sauvegarde"
 
-#: install.sh:5427 install.sh:5433 install.sh:5509
+#: install.sh:5431 install.sh:5437 install.sh:5513
 msgid "恢复"
 msgstr "récupération"
 
-#: install.sh:5428 install.sh:5430
+#: install.sh:5432 install.sh:5434
 msgid "记得安装"
 msgstr "rappelez-vous d'installer"
 
-#: install.sh:5439
+#: install.sh:5443
 msgid "安装管理脚本"
 msgstr "installer le script de gestion"
 
-#: install.sh:5440
+#: install.sh:5444
 msgid "作者"
 msgstr "auteur"
 
-#: install.sh:5444
+#: install.sh:5448
 msgid "当前模式"
 msgstr "mode actuel"
 
-#: install.sh:5445
+#: install.sh:5449
 msgid "当前语言"
 msgstr "langue actuelle"
 
-#: install.sh:5448
+#: install.sh:5452
 msgid "可以使用"
 msgstr "peut être utilisé"
 
-#: install.sh:5448
+#: install.sh:5452
 msgid "命令管理脚本"
 msgstr "script de gestion des commandes"
 
-#: install.sh:5451 install.sh:5459 install.sh:5511
+#: install.sh:5455 install.sh:5463 install.sh:5515
 msgid "脚本"
 msgstr "script"
 
-#: install.sh:5454
+#: install.sh:5458
 msgid "运行状态"
 msgstr "état de fonctionnement"
 
-#: install.sh:5457
+#: install.sh:5461
 msgid "连通性"
 msgstr "connectivité"
 
-#: install.sh:5458
+#: install.sh:5462
 msgid "更新向导"
 msgstr "assistant de mise à jour"
 
-#: install.sh:5469
+#: install.sh:5473
 msgid "安装向导"
 msgstr "assistant d'installation"
 
-#: install.sh:5474
+#: install.sh:5478
 msgid "配置变更"
 msgstr "changement de configuration"
 
-#: install.sh:5481
+#: install.sh:5485
 msgid "用户管理"
 msgstr "gestion des utilisateurs"
 
-#: install.sh:5482 install.sh:5483 install.sh:5484
+#: install.sh:5486 install.sh:5487 install.sh:5488
 msgid "用户"
 msgstr "utilisateur"
 
-#: install.sh:5485
+#: install.sh:5489
 msgid "查看信息"
 msgstr "afficher les informations"
 
-#: install.sh:5486
+#: install.sh:5490
 msgid "实时访问日志"
 msgstr "journal d'accès en temps réel"
 
-#: install.sh:5487
+#: install.sh:5491
 msgid "实时错误日志"
 msgstr "journal des erreurs en temps réel"
 
-#: install.sh:5490
+#: install.sh:5494
 msgid "服务相关"
 msgstr "service lié"
 
-#: install.sh:5491 install.sh:5492 install.sh:5493 install.sh:5494
-#: install.sh:5648 install.sh:5656
+#: install.sh:5495 install.sh:5496 install.sh:5497 install.sh:5498
+#: install.sh:5652 install.sh:5660
 msgid "所有服务"
 msgstr "tous les services"
 
-#: install.sh:5495
+#: install.sh:5499
 msgid "证书相关"
 msgstr "relatif aux certificats"
 
-#: install.sh:5496
+#: install.sh:5500
 msgid "证书状态"
 msgstr "état du certificat"
 
-#: install.sh:5497
+#: install.sh:5501
 msgid "证书有效期"
 msgstr "durée de validité du certificat"
 
-#: install.sh:5498
+#: install.sh:5502
 msgid "证书自动更新"
 msgstr "mise à jour automatique des certificats"
 
-#: install.sh:5499
+#: install.sh:5503
 msgid "其他选项"
 msgstr "autres options"
 
-#: install.sh:5500
+#: install.sh:5504
 msgid "自动更新"
 msgstr "mise à jour automatique"
 
-#: install.sh:5502
+#: install.sh:5506
 msgid "防暴力破解"
 msgstr "protection contre les attaques par force brute"
 
-#: install.sh:5503
+#: install.sh:5507
 msgid "流量统计"
 msgstr "statistiques de trafic"
 
-#: install.sh:5504 scripts/traffic_blocker.sh:577
+#: install.sh:5508 scripts/traffic_blocker.sh:577
 msgid "流量阻断"
 msgstr "blocage du trafic"
 
-#: install.sh:5505
+#: install.sh:5509
 msgid "清除"
 msgstr "effacer"
 
-#: install.sh:5505
+#: install.sh:5509
 msgid "日志文件"
 msgstr "fichier de journal"
 
-#: install.sh:5506
+#: install.sh:5510
 msgid "测试"
 msgstr "test"
 
-#: install.sh:5506
+#: install.sh:5510
 msgid "服务器网速"
 msgstr "vitesse de connexion du serveur"
 
-#: install.sh:5507
+#: install.sh:5511
 msgid "备份恢复"
 msgstr "sauvegarde et restauration"
 
-#: install.sh:5508 install.sh:5509
+#: install.sh:5512 install.sh:5513
 msgid "全部文件"
 msgstr "tous les fichiers"
 
-#: install.sh:5510
+#: install.sh:5514
 msgid "卸载向导"
 msgstr "assistant de désinstallation"
 
-#: install.sh:5511 scripts/fail2ban_manager.sh:65
+#: install.sh:5515 scripts/fail2ban_manager.sh:65
 #: scripts/fail2ban_manager.sh:498
 msgid "卸载"
 msgstr "désinstaller"
 
-#: install.sh:5512
+#: install.sh:5516
 msgid "清空"
 msgstr "vider"
 
-#: install.sh:5512
+#: install.sh:5516
 msgid "证书文件"
 msgstr "fichier de certificat"
 
-#: install.sh:5513 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
+#: install.sh:5517 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
 #: scripts/traffic_blocker.sh:587
 msgid "退出"
 msgstr "quitter"
 
-#: install.sh:5516
+#: install.sh:5520
 msgid "请输入选项"
 msgstr "veuillez saisir une option"
 
-#: install.sh:5528
+#: install.sh:5532
 msgid "不建议"
 msgstr "déconseillé"
 
-#: install.sh:5528
+#: install.sh:5532
 msgid "频繁更新 Nginx, 请确认 Nginx 有更新的必要"
 msgstr ""
 "mettez Nginx à jour fréquemment et vérifiez qu’il est nécessaire de le "
 "mettre à jour"
 
-#: install.sh:5529
+#: install.sh:5533
 msgid "开始更新"
 msgstr "commencer la mise à jour"
 
-#: install.sh:5603 install.sh:5610 install.sh:5617 install.sh:5669
-#: install.sh:5674 install.sh:5697
+#: install.sh:5607 install.sh:5614 install.sh:5621 install.sh:5673
+#: install.sh:5678 install.sh:5701
 msgid "回到菜单"
 msgstr "retour au menu"
 
-#: install.sh:5716
+#: install.sh:5720
 msgid "网速测试脚本下载失败"
 msgstr "échec du téléchargement du script de test de la vitesse d’internet"
 
@@ -2566,8 +2562,8 @@ msgstr "le fichier de configuration Xray n’existe pas"
 #: scripts/traffic_blocker.sh:997
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
-"la configuration Xray ne contient pas de règle d’interception des connexions"
-" sortantes ; les règles de blocage ne peuvent donc pas être appliquées "
+"la configuration Xray ne contient pas de règle d’interception des connexions "
+"sortantes ; les règles de blocage ne peuvent donc pas être appliquées "
 "[blocked]"
 
 #: scripts/traffic_blocker.sh:1002
@@ -2583,8 +2579,8 @@ msgstr "configuration actuelle des règles de blocage"
 #: scripts/traffic_blocker.sh:1029
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
-"l’application des règles entraînera la reconstruction de la configuration du"
-" routage, et les règles de routage personnalisées seront remplacées"
+"l’application des règles entraînera la reconstruction de la configuration du "
+"routage, et les règles de routage personnalisées seront remplacées"
 
 #: scripts/traffic_blocker.sh:1033
 msgid "GeoData 下载失败, 无法应用规则"
@@ -2625,8 +2621,7 @@ msgstr "épandage de protocole"
 #: scripts/traffic_blocker.sh:1135
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr ""
-"cette opération réinitialisera toutes les règles de blocage en état "
-"désactivé"
+"cette opération réinitialisera toutes les règles de blocage en état désactivé"
 
 #: scripts/traffic_blocker.sh:1136
 msgid "确认重置"
