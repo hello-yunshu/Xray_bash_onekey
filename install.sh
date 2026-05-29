@@ -24,7 +24,7 @@ Green="\033[32m"
 Red="\033[31m"
 GreenW="\033[1;32m"
 RedW="\033[1;31m"
-#Yellow="\033[33m"
+Yellow="\033[33m"
 GreenBG="\033[42;30m"
 RedBG="\033[41;30m"
 YellowBG="\033[43;30m"
@@ -34,9 +34,9 @@ Font="\033[0m"
 Info="${Green}[$(gettext "信息")]${Font}"
 OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
-Warning="${RedW}[$(gettext "警告")]${Font}"
+Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.10"
+shell_version="2.13.12"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -1535,7 +1535,7 @@ modify_nginx_port() {
         sed -i "s/^\( *\)listen \[::\].*quic reuseport;$/\1listen [::]:${port} quic reuseport;/" "${nginx_conf}"
         judge "Xray port $(gettext "修改")"
     fi
-    [[ "on" != ${old_config_status} ]] && log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
+    [[ "on" != ${old_config_status} ]] && log_echo "${OK} ${GreenBG} $(gettext "端口"): ${port} ${Font}"
 }
 
 modify_nginx_ssl_other() {
@@ -3089,7 +3089,7 @@ check_cert_status() {
             ((days = stampDiff / 86400))
             ((remainingDays = 90 - days))
             tlsStatus=${remainingDays}
-            [[ ${remainingDays} -le 0 ]] && tlsStatus="${Red}$(gettext "已过期")${Font}"
+            [[ ${remainingDays} -le 0 ]] && tlsStatus="${Yellow}$(gettext "已过期")${Font}"
             echo
             log_echo "${Green}$(gettext "证书生成日期"): $(date -d "@${modifyTime}" +"%F %H:%M:%S")${Font}"
             log_echo "${Green}$(gettext "证书生成天数"): ${days}${Font}"
@@ -5144,12 +5144,12 @@ idleleo_commend() {
         else
             ol_version=${shell_online_version}
             echo "${ol_version}" >"${shell_version_tmp}"
-            [[ -z ${ol_version} ]] && shell_need_update="${Red}[$(gettext "检测失败")]!${Font}"
+            [[ -z ${ol_version} ]] && shell_need_update="${Yellow}[$(gettext "检测失败")]!${Font}"
             echo "${shell_version}" >>"${shell_version_tmp}"
             newest_version=$(sort -rV "${shell_version_tmp}" | head -1)
             if [[ ${shell_version} != ${newest_version} ]]; then
-                shell_need_update="${Red}[$(gettext "有新版")!]${Font}"
-                shell_emoji="${Red}>_<${Font}"
+                shell_need_update="${Yellow}[$(gettext "有新版")!]${Font}"
+                shell_emoji="${Yellow}>_<${Font}"
             else
                 shell_need_update="${Green}[$(gettext "最新版")]${Font}"
                 shell_emoji="${Green}^O^${Font}"
@@ -5173,11 +5173,11 @@ idleleo_commend() {
                         xray_need_update="${Green}[$(gettext "最新版")]${Font}"
                     fi
                 else
-                    xray_need_update="${Red}[$(gettext "未安装")]${Font}"
+                    xray_need_update="${Yellow}[$(gettext "未安装")]${Font}"
                 fi
             else
                 nginx_need_update="${Green}[$(gettext "未安装")]${Font}"
-                xray_need_update="${Red}[$(gettext "未安装")]${Font}"
+                xray_need_update="${Yellow}[$(gettext "未安装")]${Font}"
             fi
         fi
     fi
@@ -5259,7 +5259,11 @@ check_reality_tcp_ports() {
 
 check_xray_local_connect() {
     if [[ -f "${xray_install_config_file}" ]]; then
-        xray_local_connect_status="${Red}$(gettext "无法连通")${Font}"
+        if [[ ${tls_mode} == "TLS" ]]; then
+            xray_local_connect_status="${Yellow}$(gettext "无法连通")${Font}"
+        else
+            xray_local_connect_status="${Red}$(gettext "无法连通")${Font}"
+        fi
         if [[ ${tls_mode} == "TLS" ]]; then
             if [[ ${transport_mode} == "onlyxhttp" ]]; then
                 [[ $(curl_local_connect_xhttp "$(info_extraction host)" "$(info_xhttp_path)") == "400" ]] && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
