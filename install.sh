@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.12"
+shell_version="2.13.13"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -3448,7 +3448,8 @@ generate_clash_config() {
     local clash_name="VLESS-$(info_extraction host)-${transport_label}"
     local clash_config=""
     local flow_line=""
-    [[ -n "${flow}" ]] && flow_line="    flow: ${flow}"
+    [[ -n "${flow}" ]] && flow_line="
+    flow: ${flow}"
 
     if [[ ${type} == "ws" ]]; then
         clash_config="  - name: ${clash_name}
@@ -3457,8 +3458,7 @@ generate_clash_config() {
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
-    tls: ${tls}
-${flow_line}
+    tls: ${tls}${flow_line}
     network: ws
     ws-opts:
       path: ${path}
@@ -3473,8 +3473,7 @@ ${flow_line}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
-    tls: ${tls}
-${flow_line}
+    tls: ${tls}${flow_line}
     network: grpc
     grpc-opts:
       grpc-service-name: ${service_name}
@@ -3487,8 +3486,7 @@ ${flow_line}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
-    tls: ${tls}
-${flow_line}
+    tls: ${tls}${flow_line}
     network: tcp
     skip-cert-verify: false"
 
@@ -3499,8 +3497,7 @@ ${flow_line}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
-    tls: ${tls}
-${flow_line}
+    tls: ${tls}${flow_line}
     network: xhttp
     xhttp-opts:
       path: ${path}
