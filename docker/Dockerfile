@@ -60,13 +60,16 @@ RUN . /etc/idleleo_build_versions && \
     mv ./nginx /usr/local/nginx && \
     cd / && rm -rf "$temp_dir"
 
-RUN . /etc/idleleo_build_versions && \
+COPY docker/fake-systemctl /usr/local/bin/systemctl
+RUN chmod +x /usr/local/bin/systemctl
+
+# BuildKit 的 RUN 环境没有运行时容器自带的 /.dockerenv；提前创建标记并提供
+# fake-systemctl，让 Xray 官方安装器按其 Docker 分支安装服务文件。
+RUN touch /.dockerenv && \
+    . /etc/idleleo_build_versions && \
     curl -fL -o /tmp/xray-install-release.sh https://github.com/XTLS/Xray-install/raw/main/install-release.sh && \
     bash /tmp/xray-install-release.sh install -f --version v${XRAY_VERSION} && \
     rm -f /tmp/xray-install-release.sh /usr/local/etc/xray/config.json
-
-COPY docker/fake-systemctl /usr/local/bin/systemctl
-RUN chmod +x /usr/local/bin/systemctl
 
 WORKDIR /etc/idleleo
 

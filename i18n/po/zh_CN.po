@@ -2495,3 +2495,107 @@ msgstr ""
 #: scripts/traffic_blocker.sh:1199 scripts/traffic_blocker.sh:1202
 msgid "已恢复"
 msgstr ""
+
+#: install.sh:1935
+msgid "异常 SNI 处理方式"
+msgstr ""
+
+#: install.sh:1936
+msgid "隔离异常流量, 不转发到 Xray"
+msgstr ""
+
+#: install.sh:1937
+msgid "使用指向本机 IP 的自建 HTTPS 站点作为回落"
+msgstr ""
+
+#: install.sh:1938
+msgid "直接拒绝异常 TLS 连接"
+msgstr ""
+
+#: install.sh:1939
+msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
+msgstr ""
+
+#: install.sh:1947
+msgid "decoy 站点设置失败, 回退到默认隔离策略"
+msgstr ""
+
+#: install.sh:1954
+msgid "已选择直接拒绝异常 TLS 连接"
+msgstr ""
+
+#: install.sh:1959
+msgid "已选择隔离异常流量"
+msgstr ""
+
+#: install.sh:1968
+msgid "decoy 站点设置"
+msgstr ""
+
+#: install.sh:1969
+msgid "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP"
+msgstr ""
+
+#: install.sh:1971
+msgid "请输入 decoy 域名"
+msgstr ""
+
+#: install.sh:1979
+msgid "无法解析该域名的 A/AAAA 记录, 请检查 DNS 是否已生效"
+msgstr ""
+
+#: install.sh:1983
+msgid "该域名 A/AAAA 记录"
+msgstr ""
+
+#: install.sh:1983
+msgid "未指向本机公网 IP"
+msgstr ""
+
+#: install.sh:1984
+msgid "请先将域名 A/AAAA 记录指向本机, 或使用默认隔离策略"
+msgstr ""
+
+#: install.sh:4657
+msgid "已为当前客户端生成独立 shortId。"
+msgstr ""
+
+#: install.sh:1989
+msgid "域名校验通过"
+msgstr ""
+
+#: install.sh:1998
+msgid "自签证书生成失败"
+msgstr ""
+
+#: install.sh:2049
+msgid "decoy 站点配置完成"
+msgstr ""
+
+#: install.sh:2050
+msgid "当前使用自签证书, 浏览器访问会有证书提示。高级用户可自行替换"
+msgstr ""
+
+#: install.sh:2050
+msgid "与"
+msgstr ""
+
+#: install.sh:1707 install.sh:1712
+msgid "配置文件权限收紧失败"
+msgstr ""
+
+#: install.sh:2005 install.sh:2006
+msgid "高级"
+msgstr ""
+
+#: scripts/fail2ban_manager.sh:281
+msgid "regex 自检未通过, 请检查日志格式"
+msgstr ""
+
+#: scripts/fail2ban_manager.sh:283
+msgid "regex 自检通过"
+msgstr ""
+
+#: scripts/fail2ban_manager.sh:286
+msgid "为空或不存在, 跳过自检"
+msgstr ""

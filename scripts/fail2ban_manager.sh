@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义当前版本号
-mf_SCRIPT_VERSION="1.5.9"
+mf_SCRIPT_VERSION="1.5.10"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -184,8 +184,8 @@ EOF
 
     # 启用 nginx-no-host 规则
     if [[ ${nginx_available} == "true" ]] && [[ ${reality_add_nginx} == "on" ]]; then
+        mf_create_nginx_no_host_filter
         if [[ ! -f "/etc/fail2ban/jail.d/nginx-no-host.local" ]]; then
-            mf_create_nginx_no_host_filter
             cat > /etc/fail2ban/jail.d/nginx-no-host.local << EOF
 [nginx-no-host]
 enabled  = true
@@ -210,8 +210,8 @@ EOF
         fi
 
         # 启用 nginx-tls-error 规则
+        mf_create_nginx_tls_error_filter
         if [[ ! -f "/etc/fail2ban/jail.d/nginx-tls-error.local" ]]; then
-            mf_create_nginx_tls_error_filter
             cat > /etc/fail2ban/jail.d/nginx-tls-error.local << EOF
 [nginx-tls-error]
 enabled  = true
@@ -235,6 +235,7 @@ EOF
             esac
         fi
     fi
+    mf_regex_self_check
     mf_ensure_restart_policy
     systemctl daemon-reload
     systemctl enable fail2ban
@@ -244,26 +245,49 @@ EOF
 
 mf_create_nginx_no_host_filter() {
     local filter_file="/etc/fail2ban/filter.d/nginx-no-host.conf"
-    if [[ ! -f "$filter_file" ]]; then
-        cat >"$filter_file" <<'EOF'
+    # 始终覆盖以保证 failregex 与 Nginx log_format 一致（修复旧版 datepattern 锚点 bug）
+    cat >"$filter_file" <<'EOF'
 [Definition]
-datepattern = ^%%d/%%b/%%Y:%%H:%%M:%%S %%z$
-failregex = ^<HOST> \[.*\] ".*".*\d+$
+datepattern = %%d/%%b/%%Y:%%H:%%M:%%S %%z
+failregex = ^<HOST> \[[^\]]*\] "[^"]*" \S* \d+$
 ignoreregex =
 EOF
-    fi
 }
 
 mf_create_nginx_tls_error_filter() {
     local filter_file="/etc/fail2ban/filter.d/nginx-tls-error.conf"
-    if [[ ! -f "$filter_file" ]]; then
-        cat >"$filter_file" <<'EOF'
+    cat >"$filter_file" <<'EOF'
 [Definition]
-datepattern = ^%%d/%%b/%%Y:%%H:%%M:%%S %%z$
-failregex = ^<HOST> \[.*\] ".*".*\d+$
+datepattern = %%d/%%b/%%Y:%%H:%%M:%%S %%z
+failregex = ^<HOST> \[[^\]]*\] "[^"]*" \S* \d+$
 ignoreregex =
 EOF
-    fi
+}
+
+# fail2ban-regex 自检：日志非空时校验 failregex 是否能匹配，日志为空时仅提示不中断
+mf_regex_self_check() {
+    [[ ${reality_add_nginx} != "on" ]] && return 0
+    command -v fail2ban-regex >/dev/null 2>&1 || return 0
+    local _jail _log _filter
+    local -A _jail_log=(
+        [nginx-no-host]="${nginx_dir}/logs/sni_error.log"
+        [nginx-tls-error]="${nginx_dir}/logs/tls_error.log"
+    )
+    for _jail in "${!_jail_log[@]}"; do
+        _log="${_jail_log[${_jail}]}"
+        _filter="/etc/fail2ban/filter.d/${_jail}.conf"
+        [[ -f "${_filter}" ]] || continue
+        if [[ -s "${_log}" ]]; then
+            if ! fail2ban-regex "${_log}" "${_filter}" >/dev/null 2>&1; then
+                log_echo "${Warning} ${YellowBG} ${_jail} $(gettext "regex 自检未通过, 请检查日志格式") ${Font}"
+            else
+                log_echo "${OK} ${GreenBG} ${_jail} $(gettext "regex 自检通过") ${Font}"
+            fi
+        else
+            log_echo "${Warning} ${YellowBG} ${_log##*/} $(gettext "为空或不存在, 跳过自检") ${Font}"
+        fi
+    done
+    return 0
 }
 
 # 检查模块是否启用

@@ -15,7 +15,7 @@ fi
 #	System Request: Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+
 #	Author:	yunyunshu
 #	Dscription: Xray Onekey Management
-#	Version: 2.13
+#	Version: 3.0
 #	Official document: hey.run
 #=================================================================
 
@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="2.13.13"
+shell_version="3.0.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -86,6 +86,11 @@ read_config_status=1
 reality_add_more="off"
 reality_add_nginx="off"
 reality_add_balance="off"
+# SNI Guard 默认值：Reality+Nginx 模式下默认启用，未知 SNI 不转发到 Xray
+reality_nginx_sni_guard="on"
+unknown_sni_policy="isolate"
+decoy_domain=""
+spiderx_path=""
 old_config_status="off"
 old_tls_mode="NULL"
 random_num=$((RANDOM % 12 + 4))
@@ -191,12 +196,24 @@ update_json_config() {
         log_echo "${Error} ${RedBG} update_json_config: ${config_file} $(gettext "文件不存在") ${Font}"
         return 1
     fi
-    jq "$@" "${config_file}" > "${config_file}.tmp"
-    if [[ $? -ne 0 ]]; then
-        rm -f "${config_file}.tmp"
+
+    local original_mode original_uid original_gid tmp_file
+    original_mode=$(stat -c '%a' "${config_file}" 2>/dev/null) || return 1
+    original_uid=$(stat -c '%u' "${config_file}" 2>/dev/null) || return 1
+    original_gid=$(stat -c '%g' "${config_file}" 2>/dev/null) || return 1
+    tmp_file="${config_file}.tmp.$$"
+
+    if ! jq "$@" "${config_file}" > "${tmp_file}"; then
+        rm -f "${tmp_file}"
         return 1
     fi
-    if ! mv "${config_file}.tmp" "${config_file}"; then
+    if ! chmod "${original_mode}" "${tmp_file}" || ! chown "${original_uid}:${original_gid}" "${tmp_file}"; then
+        rm -f "${tmp_file}"
+        log_echo "${Warning} ${YellowBG} $(gettext "配置文件权限收紧失败"): ${config_file} ${Font}"
+        return 1
+    fi
+    if ! mv "${tmp_file}" "${config_file}"; then
+        rm -f "${tmp_file}"
         return 1
     fi
     if [[ "${config_file}" == "${xray_install_config_file}" ]]; then
@@ -635,12 +652,39 @@ create_directory() {
     [[ ! -d "${idleleo_conf_dir}" ]] && mkdir -p "${idleleo_conf_dir}"
 }
 
+is_reality_reserved_port() {
+    case "$1" in
+        9403|9404|9443|9444) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+reality_reserved_port_conflict() {
+    local configured_port
+    for configured_port in "${port:-}" "${xport:-}" "${gport:-}" "${xhttpport:-}"; do
+        if [[ -n "${configured_port}" ]] && is_reality_reserved_port "${configured_port}"; then
+            echo "${configured_port}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+validate_reality_reserved_ports() {
+    local conflicting_port
+    if conflicting_port=$(reality_reserved_port_conflict); then
+        log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${conflicting_port} ${Font}"
+        return 1
+    fi
+    return 0
+}
+
 port_set() {
     if [[ "on" != ${old_config_status} ]]; then
         echo
         log_echo "${GreenBG} $(gettext "确定端口") ${Font}"
         read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-        while [[ ${port} -eq 9443 || ${port} -eq 9403 ]] && [[ ${tls_mode} == "Reality" ]]; do
+        while [[ ${tls_mode} == "Reality" ]] && is_reality_reserved_port "${port}"; do
             echo -e "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
             read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
         done
@@ -788,6 +832,10 @@ ws_inbound_port_set() {
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "$(gettext "请输入") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                while [[ ${tls_mode} == "Reality" ]] && is_reality_reserved_port "${xport}"; do
+                    log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
+                    read_optimize "$(gettext "请输入") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                done
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
             *)
@@ -808,6 +856,10 @@ grpc_inbound_port_set() {
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "$(gettext "请输入") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                while [[ ${tls_mode} == "Reality" ]] && is_reality_reserved_port "${gport}"; do
+                    log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
+                    read_optimize "$(gettext "请输入") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                done
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
             *)
@@ -829,6 +881,10 @@ xhttp_inbound_port_set() {
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
                 read_optimize "$(gettext "请输入") xHTTP inbound_port ($(gettext "请勿与其他端口相同")!): " "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                while [[ ${tls_mode} == "Reality" ]] && is_reality_reserved_port "${xhttpport}"; do
+                    log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
+                    read_optimize "$(gettext "请输入") xHTTP inbound_port ($(gettext "请勿与其他端口相同")!): " "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                done
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
                 ;;
             *)
@@ -1178,30 +1234,37 @@ keys_set() {
         case $custom_keys_fq in
         [yY][eE][sS] | [yY])
             read_optimize "$(gettext "请输入") privateKey:" "privateKey" "NULL"
-            local keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}" | tr '\n' ' ')
-            if echo "${keys}" | grep -q "Password (PublicKey): "; then
-                password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
-            elif echo "${keys}" | grep -q "Password: "; then
-                password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
-            elif echo "${keys}" | grep -q "PublicKey: "; then
-                password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
-            fi
+            local keys
+            keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}")
+            password=$(parse_reality_public_key "${keys}")
             ;;
         *)
-            local keys=$(${xray_bin_dir}/xray x25519 | tr '\n' ' ')
+            local keys
+            keys=$(${xray_bin_dir}/xray x25519)
             privateKey=$(echo "${keys}" | awk -F"PrivateKey: " '{print $2}' | awk '{print $1}')
-            if echo "${keys}" | grep -q "Password (PublicKey): "; then
-                password=$(echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}')
-            elif echo "${keys}" | grep -q "Password: "; then
-                password=$(echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}')
-            elif echo "${keys}" | grep -q "PublicKey: "; then
-                password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
-            fi
+            password=$(parse_reality_public_key "${keys}")
             ;;
         esac
+        if [[ -z "${privateKey}" || -z "${password}" ]]; then
+            log_echo "${Error} ${RedBG} Reality publicKey $(gettext "配置修改") $(gettext "失败") ${Font}"
+            return 1
+        fi
         log_echo_secure "${Green} privateKey: ${privateKey} ${Font}"
-        log_echo_secure "${Green} Password: ${password} ${Font}"
+        log_echo_secure "${Green} publicKey (Password): ${password} ${Font}"
         echo
+    fi
+}
+
+# 兼容 Xray 不同版本的 x25519 输出名称：Password、Password (PublicKey)、PublicKey
+parse_reality_public_key() {
+    local keys="$1"
+    keys=$(printf '%s\n' "${keys}" | tr '\n' ' ')
+    if echo "${keys}" | grep -q "Password (PublicKey): "; then
+        echo "${keys}" | sed 's/.*Password (PublicKey): //' | awk '{print $1}'
+    elif echo "${keys}" | grep -q "Password: "; then
+        echo "${keys}" | awk -F"Password: " '{print $2}' | awk '{print $1}'
+    elif echo "${keys}" | grep -q "PublicKey: "; then
+        echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}'
     fi
 }
 
@@ -1215,13 +1278,17 @@ shortIds_set() {
         case $custom_shortids_fq in
         [yY][eE][sS] | [yY])
             read_optimize "$(gettext "请输入单个 shortId"): " "shortIds" "NULL"
+            while [[ ! "${shortIds}" =~ ^[0-9a-fA-F]{16}$ ]]; do
+                log_echo "${Error} ${RedBG} shortIds $(gettext "值为空或超出范围, 请重新输入")! ${Font}"
+                read_optimize "$(gettext "请输入单个 shortId"): " "shortIds" "NULL"
+            done
             ;;
         *)
             pkg_install "openssl"
-            shortIds=$(openssl rand -hex 8)
+            shortIds=$(generate_reality_short_id)
             ;;
         esac
-        log_echo "${Green} shortIds: ${shortIds} ${Font}"
+        log_echo_secure "${Green} shortIds: ${shortIds} ${Font}"
         echo
     fi
 }
@@ -1661,6 +1728,62 @@ modify_privateKey_shortIds() {
   judge "privateKey shortIds $(gettext "配置修改")"
 }
 
+# 生成 16 位 hex shortId，openssl 优先，/dev/urandom 兜底
+generate_reality_short_id() {
+    if command -v openssl >/dev/null 2>&1; then
+        openssl rand -hex 8 2>/dev/null || tr -dc 'a-f0-9' </dev/urandom | head -c 16
+    else
+        tr -dc 'a-f0-9' </dev/urandom | head -c 16
+    fi
+}
+
+# 从少量普通路径模板中随机生成 spiderX，结果以 / 开头，仅含 a-z0-9/. 字符
+generate_spiderx() {
+    local r
+    r=$(tr -dc 'a-z0-9' </dev/urandom 2>/dev/null | head -c 8)
+    [[ -z "${r}" ]] && r="default$(date +%s | tail -c 5)"
+    case $((RANDOM % 4)) in
+        0) echo "/assets/${r}.css" ;;
+        1) echo "/static/${r}.js" ;;
+        2) echo "/docs/${r}/index.html" ;;
+        *) echo "/api/status/${r}" ;;
+    esac
+}
+
+# spiderX 设置：仅新安装或新增客户端时生成，不改动老用户已有配置
+spiderx_set() {
+    if [[ "${old_config_status}" != "on" ]]; then
+        spiderx_path=$(generate_spiderx)
+        log_echo "${Green} spiderX: ${spiderx_path} ${Font}"
+    fi
+}
+
+# 收紧敏感配置文件权限：不影响 Xray(nobody) 读取 config.json 与证书
+# install_config/分享文件仅 root 可读；config.json 与私钥由 nobody 持有以兼容 Xray
+apply_sensitive_file_permissions() {
+    local file="$1"
+    local owner="$2"
+    [[ -f "${file}" ]] || return 0
+    if ! chown "${owner}" "${file}" 2>/dev/null || ! chmod 600 "${file}" 2>/dev/null; then
+        log_echo "${Warning} ${YellowBG} $(gettext "配置文件权限收紧失败"): ${file} ${Font}"
+        return 1
+    fi
+    return 0
+}
+
+harden_config_permissions() {
+    local _nobody_group
+    _nobody_group=$(id -gn nobody 2>/dev/null || echo nogroup)
+
+    apply_sensitive_file_permissions "${xray_install_config_file}" "root:root" || true
+    apply_sensitive_file_permissions "${xray_conf}" "nobody:${_nobody_group}" || true
+    apply_sensitive_file_permissions "${ssl_chainpath}/xray.key" "nobody:${_nobody_group}" || true
+    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.key" "nobody:${_nobody_group}" || true
+    apply_sensitive_file_permissions "${xray_info_file}" "root:root" || true
+    apply_sensitive_file_permissions "${xray_info_file%.*}_clash.yaml" "root:root" || true
+    return 0
+}
+
 modify_reality_listen_address () {
     update_json_config "${xray_conf}" '.inbounds[0].listen = "127.0.0.1"'
     judge "Xray reality listen address $(gettext "配置修改")"
@@ -1849,6 +1972,280 @@ reality_balance_add_fq() {
 }
 
 
+# 通过公网 DNS 解析域名的 A/AAAA 记录，逐行返回 IP 或空字符串
+resolve_domain_ips() {
+    local domain="$1" result
+    if command -v dig >/dev/null 2>&1; then
+        result=$({ dig +short +time=3 +tries=1 A "${domain}" @8.8.8.8 2>/dev/null; \
+                   dig +short +time=3 +tries=1 AAAA "${domain}" @2001:4860:4860::8888 2>/dev/null; } |
+            grep -E '^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[0-9a-fA-F:]+$' | awk '!seen[$0]++')
+    elif command -v nslookup >/dev/null 2>&1; then
+        result=$({ nslookup -type=A "${domain}" 8.8.8.8 2>/dev/null; nslookup -type=AAAA "${domain}" 8.8.8.8 2>/dev/null; } |
+            awk '/^Address:/ && $2 !~ /8\.8\.[0-9.]+|8\.8\.4\.4/ {print $2}' | awk '!seen[$0]++')
+    elif command -v host >/dev/null 2>&1; then
+        result=$({ host -t A "${domain}" 8.8.8.8 2>/dev/null; host -t AAAA "${domain}" 8.8.8.8 2>/dev/null; } |
+            awk '/has address/ {print $4} /has IPv6 address/ {print $5}' | awk '!seen[$0]++')
+    else
+        result=$({ curl -fsSL --connect-timeout 5 "https://dns.google/resolve?name=${domain}&type=A" 2>/dev/null; \
+                   curl -fsSL --connect-timeout 5 "https://dns.google/resolve?name=${domain}&type=AAAA" 2>/dev/null; } |
+            jq -r '.Answer[]? | select(.type==1 or .type==28) | .data' 2>/dev/null | awk '!seen[$0]++')
+    fi
+    echo "${result}"
+}
+
+ip_in_list() {
+    local needle="$1"
+    local candidate
+    while IFS= read -r candidate; do
+        [[ -n "${candidate}" && "${candidate}" == "${needle}" ]] && return 0
+    done
+    return 1
+}
+
+ip_lists_overlap() {
+    local local_ips="$1"
+    local remote_ips="$2"
+    local remote_ip
+    while IFS= read -r remote_ip; do
+        ip_in_list "${remote_ip}" <<<"${local_ips}" && return 0
+    done <<<"${remote_ips}"
+    return 1
+}
+
+# SNI Guard 策略选择：仅新安装时交互，默认 isolate
+sni_guard_policy_choose() {
+    local force_choose="${1:-}"
+    [[ ${reality_add_nginx} != "on" ]] && return 0
+    # 老用户升级：不强行改配置，按已有/默认值处理
+    [[ "${force_choose}" != "force" && "${old_config_status}" == "on" ]] && return 0
+
+    echo
+    log_echo "${GreenBG} $(gettext "异常 SNI 处理方式") ${Font}"
+    echo -e "${Green}1${Font}: $(gettext "隔离异常流量, 不转发到 Xray") ($(gettext "推荐"))"
+    echo -e "${Green}2${Font}: $(gettext "使用指向本机 IP 的自建 HTTPS 站点作为回落") ($(gettext "高级"))"
+    echo -e "${Green}3${Font}: $(gettext "直接拒绝异常 TLS 连接") ($(gettext "高级"))"
+    echo -e "${Warning} $(gettext "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。") ${Font}"
+    local sni_policy_choice
+    read_optimize "$(gettext "请输入选项") ($(gettext "默认值"):1):" "sni_policy_choice" 1 1 3 "$(gettext "请输入有效的数字")!"
+    # 切换策略前先清理旧的 isolate/decoy http 块配置（03-isolate.conf / 03-decoy.conf + include）
+    decoy_conf_remove
+    case ${sni_policy_choice} in
+        2)
+            if decoy_site_setup; then
+                unknown_sni_policy="decoy"
+            else
+                log_echo "${Warning} ${YellowBG} $(gettext "decoy 站点设置失败, 回退到默认隔离策略") ${Font}"
+                unknown_sni_policy="isolate"
+            fi
+            ;;
+        3)
+            unknown_sni_policy="reject"
+            log_echo "${OK} ${GreenBG} $(gettext "已选择直接拒绝异常 TLS 连接") ${Font}"
+            ;;
+        *)
+            unknown_sni_policy="isolate"
+            log_echo "${OK} ${GreenBG} $(gettext "已选择隔离异常流量") ${Font}"
+            ;;
+    esac
+    reality_nginx_sni_guard="on"
+}
+
+add_sni_guard_http_include() {
+    local config_name="$1"
+    local include_line="include ${nginx_conf_dir}/${config_name};"
+    [[ -f "${nginx_dir}/conf/nginx.conf" ]] || return 1
+    if ! grep -q "${include_line}" "${nginx_dir}/conf/nginx.conf" 2>/dev/null; then
+        sed -i "/^http[[:space:]]*{/a \\    ${include_line}" "${nginx_dir}/conf/nginx.conf" || return 1
+    fi
+    grep -q "${include_line}" "${nginx_dir}/conf/nginx.conf" 2>/dev/null
+}
+
+write_isolate_site_config() {
+    mkdir -p "${nginx_conf_dir}"
+    cat >"${nginx_conf_dir}/03-isolate.conf" <<'HTTPCONF'
+# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert
+server {
+    listen 127.0.0.1:9403 ssl;
+    ssl_reject_handshake on;
+    access_log off;
+    error_log /dev/null;
+}
+HTTPCONF
+    add_sni_guard_http_include "03-isolate.conf"
+}
+
+decoy_site_artifacts_ready() {
+    local decoy_webroot="${idleleo_dir}/decoy"
+    [[ -n "${decoy_domain}" ]] || return 1
+    [[ -f "${ssl_chainpath}/decoy.key" && -f "${ssl_chainpath}/decoy.crt" && -f "${decoy_webroot}/index.html" ]]
+}
+
+write_decoy_site_config() {
+    local decoy_webroot="${idleleo_dir}/decoy"
+    decoy_site_artifacts_ready || return 1
+
+    mkdir -p "${nginx_conf_dir}"
+    cat >"${nginx_conf_dir}/03-decoy.conf" <<EOF
+# decoy 回落站点 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 HTTPS 站点
+server {
+    listen 127.0.0.1:9444 ssl;
+    server_name ${decoy_domain};
+    ssl_certificate ${ssl_chainpath}/decoy.crt;
+    ssl_certificate_key ${ssl_chainpath}/decoy.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    root ${decoy_webroot};
+    index index.html;
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOF
+    add_sni_guard_http_include "03-decoy.conf"
+}
+
+sni_guard_port_conflicts() {
+    local guard_port="$1"
+    local configured_port
+    for configured_port in "${port:-}" "${xport:-}" "${gport:-}" "${xhttpport:-}"; do
+        [[ -n "${configured_port}" && "${configured_port}" == "${guard_port}" ]] && return 0
+    done
+    return 1
+}
+
+# decoy 站点设置：校验域名指向本机、生成自签证书、生成 Nginx HTTPS 站点
+decoy_site_setup() {
+    echo
+    log_echo "${GreenBG} $(gettext "decoy 站点设置") ${Font}"
+    log_echo "${Warning} $(gettext "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP") ${Font}"
+    local decoy_input decoy_resolved local_ips
+    read_optimize "$(gettext "请输入 decoy 域名"): " "decoy_input" "NULL"
+    if [[ ! "${decoy_input}" =~ ^[A-Za-z0-9.-]+$ || "${decoy_input}" != *.* ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "请输入 decoy 域名") ${Font}"
+        return 1
+    fi
+
+    # 解析域名 A/AAAA 记录并与本机公网 IP 比对
+    decoy_resolved=$(resolve_domain_ips "${decoy_input}")
+    local_ips=$(printf "%s\n%s\n%s\n" "${local_ip}" "$(get_public_ip "IPv4" 2>/dev/null)" "$(get_public_ip "IPv6" 2>/dev/null)" |
+        awk 'NF && !seen[$0]++')
+    if [[ -z "${decoy_resolved}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "无法解析该域名的 A/AAAA 记录, 请检查 DNS 是否已生效") ${Font}"
+        return 1
+    fi
+    if ! ip_lists_overlap "${local_ips}" "${decoy_resolved}"; then
+        log_echo "${Warning} ${YellowBG} $(gettext "该域名 A/AAAA 记录") $(echo "${decoy_resolved}" | tr '\n' ' ') $(gettext "未指向本机公网 IP") $(echo "${local_ips}" | tr '\n' ' ') ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "请先将域名 A/AAAA 记录指向本机, 或使用默认隔离策略") ${Font}"
+        return 1
+    fi
+
+    decoy_domain="${decoy_input}"
+    log_echo "${OK} ${GreenBG} $(gettext "域名校验通过") ${Font}"
+
+    # 生成自签证书（高级用户可自行替换为 acme.sh 签发的正式证书）
+    pkg_install "openssl"
+    mkdir -p "${ssl_chainpath}"
+    if ! openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+        -keyout "${ssl_chainpath}/decoy.key" \
+        -out "${ssl_chainpath}/decoy.crt" \
+        -subj "/CN=${decoy_domain}" >/dev/null 2>&1; then
+        log_echo "${Error} ${RedBG} $(gettext "自签证书生成失败") ${Font}"
+        return 1
+    fi
+    chmod -f 600 "${ssl_chainpath}/decoy.key" 2>/dev/null
+    chmod -f 644 "${ssl_chainpath}/decoy.crt" 2>/dev/null
+    chown -f "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}/decoy.key" "${ssl_chainpath}/decoy.crt" 2>/dev/null
+
+    # 生成不统一的极简站点页面（含域名与随机标识，避免统一指纹）
+    local decoy_webroot="${idleleo_dir}/decoy"
+    mkdir -p "${decoy_webroot}"
+    local decoy_token
+    decoy_token=$(tr -dc 'a-z0-9' </dev/urandom 2>/dev/null | head -c 6)
+    [[ -z "${decoy_token}" ]] && decoy_token="ok$(date +%s | tail -c 5)"
+    cat >"${decoy_webroot}/index.html" <<EOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${decoy_domain}</title>
+</head>
+<body>
+<h1>It works</h1>
+<p>Service status: OK (${decoy_token})</p>
+</body>
+</html>
+EOF
+
+    # 生成 Nginx HTTPS 站点配置（监听 127.0.0.1:9444，供 stream deny upstream 回落）
+    write_decoy_site_config || return 1
+
+    log_echo "${OK} ${GreenBG} $(gettext "decoy 站点配置完成") ${Font}"
+    log_echo "${Warning} $(gettext "当前使用自签证书, 浏览器访问会有证书提示。高级用户可自行替换") ${ssl_chainpath}/decoy.crt $(gettext "与") decoy.key ${Font}"
+    return 0
+}
+
+# 清理 decoy 配置（切换策略或卸载时调用）
+decoy_conf_remove() {
+    [[ -f "${nginx_conf_dir}/03-decoy.conf" ]] && rm -f "${nginx_conf_dir}/03-decoy.conf"
+    [[ -f "${nginx_conf_dir}/03-isolate.conf" ]] && rm -f "${nginx_conf_dir}/03-isolate.conf"
+    if [[ -f "${nginx_dir}/conf/nginx.conf" ]]; then
+        sed -i "\#^[[:space:]]*include[[:space:]]\+${nginx_conf_dir}/03-decoy.conf;#d" "${nginx_dir}/conf/nginx.conf"
+        sed -i "\#^[[:space:]]*include[[:space:]]\+${nginx_conf_dir}/03-isolate.conf;#d" "${nginx_dir}/conf/nginx.conf"
+    fi
+    return 0
+}
+
+ensure_reality_sni_guard_defaults() {
+    [[ -f "${xray_install_config_file}" ]] || return 0
+    [[ "$(info_extraction tls)" != "Reality" ]] && return 0
+
+    local current_guard current_policy current_decoy defaults_present
+    current_guard=$(info_extraction reality_nginx_sni_guard)
+    current_policy=$(info_extraction unknown_sni_policy)
+    current_decoy=$(info_extraction decoy_domain)
+    [[ -z "${current_guard}" ]] && current_guard="on"
+    [[ -z "${current_policy}" ]] && current_policy="isolate"
+
+    defaults_present=$(jq -r '
+       has("reality_nginx_sni_guard") and
+       has("unknown_sni_policy") and
+       has("decoy_domain") and
+       ((.reality_nginx_sni_guard // "") != "") and
+       ((.unknown_sni_policy // "") != "")' "${xray_install_config_file}" 2>/dev/null) || return 1
+    if [[ "${defaults_present}" != "true" ]]; then
+        update_json_config "${xray_install_config_file}" \
+           --arg guard "${current_guard}" \
+           --arg policy "${current_policy}" \
+           --arg decoy "${current_decoy}" '
+           .reality_nginx_sni_guard = (if ((.reality_nginx_sni_guard // "") == "") then $guard else .reality_nginx_sni_guard end) |
+           .unknown_sni_policy = (if ((.unknown_sni_policy // "") == "") then $policy else .unknown_sni_policy end) |
+           .decoy_domain = (if has("decoy_domain") then .decoy_domain else $decoy end)' || return 1
+    fi
+    reality_nginx_sni_guard=$(info_extraction reality_nginx_sni_guard)
+    unknown_sni_policy=$(info_extraction unknown_sni_policy)
+    decoy_domain=$(info_extraction decoy_domain)
+}
+
+reset_sni_guard_policy() {
+    if [[ ! -f "${xray_install_config_file}" ]] || [[ ! -f "${nginx_conf}" ]] || [[ ${tls_mode} != "Reality" ]] || [[ ${reality_add_nginx} != "on" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "当前模式不支持此操作")! ${Font}"
+        return 1
+    fi
+    sni_guard_policy_choose force || return 1
+    nginx_reality_conf_add || return 1
+    update_json_config "${xray_install_config_file}" \
+       --arg guard "${reality_nginx_sni_guard}" \
+       --arg policy "${unknown_sni_policy}" \
+       --arg decoy "${decoy_domain}" '
+       .reality_nginx_sni_guard = $guard |
+       .unknown_sni_policy = $policy |
+       .decoy_domain = $decoy' || return 1
+    service_restart || return 1
+    reset_install_config
+}
+
+
 reality_nginx_add_fq() {
     echo
     log_echo "${Warning} ${Green} $(gettext "Reality 协议可能存在流量绕过风险") ${Font}"
@@ -1868,11 +2265,13 @@ reality_nginx_add_fq() {
             ;;
             *)
                 reality_add_nginx="on"
-                nginx_exist_check
-                nginx_systemd
-                nginx_reality_conf_add
-                nginx_reality_servers_add
-                nginx_reality_serverNames_add
+                validate_reality_reserved_ports || return 1
+                nginx_exist_check || return 1
+                nginx_systemd || return 1
+                sni_guard_policy_choose || return 1
+                nginx_reality_conf_add || return 1
+                nginx_reality_servers_add || return 1
+                nginx_reality_serverNames_add || return 1
             ;;
 
         esac
@@ -1885,11 +2284,13 @@ reality_nginx_add_fq() {
         case $reality_nginx_add_fq in
             [yY][eE][sS] | [yY])
                 reality_add_nginx="on"
-                nginx_exist_check
-                nginx_systemd
-                nginx_reality_conf_add
-                nginx_reality_servers_add
-                nginx_reality_serverNames_add
+                validate_reality_reserved_ports || return 1
+                nginx_exist_check || return 1
+                nginx_systemd || return 1
+                sni_guard_policy_choose || return 1
+                nginx_reality_conf_add || return 1
+                nginx_reality_servers_add || return 1
+                nginx_reality_serverNames_add || return 1
             ;;
             *)
                 reality_add_nginx="off"
@@ -2644,8 +3045,16 @@ old_config_input() {
         target=$(info_extraction target)
         serverNames=$(info_extraction serverNames)
         privateKey=$(info_extraction privateKey)
-        password=$(info_extraction password)
+        password=$(info_reality_public_key)
         shortIds=$(info_extraction shortIds)
+        # SNI Guard / spiderX 升级兼容：缺失字段补默认值，不覆盖老用户已有配置
+        spiderx_path=$(info_extraction spiderx_path)
+        reality_nginx_sni_guard=$(info_extraction reality_nginx_sni_guard)
+        [[ -z "${reality_nginx_sni_guard}" ]] && reality_nginx_sni_guard="on"
+        unknown_sni_policy=$(info_extraction unknown_sni_policy)
+        [[ -z "${unknown_sni_policy}" ]] && unknown_sni_policy="isolate"
+        decoy_domain=$(info_extraction decoy_domain)
+        ensure_reality_sni_guard_defaults
         if [[ ${reality_add_more} == "on" ]]; then
             if is_ws_mode; then
                 xport=$(info_extraction ws_port)
@@ -2824,7 +3233,53 @@ EOF
 }
 
 nginx_reality_conf_add() {
+    validate_reality_reserved_ports || return 1
     touch "${nginx_conf}"
+    # SNI Guard 策略分支：isolate 默认(ssl_reject_handshake)/reject 死端口/decoy 回落站点
+    # 注意：ssl_reject_handshake 属于 ngx_http_ssl_module，必须在 http{} 块内生效，
+    #       不能放在 stream{} 块里。isolate 策略下单独写入 03-isolate.conf 由 http 块 include。
+    local _deny_port
+    case "${unknown_sni_policy}" in
+        reject)
+            # 直接拒绝：指向无监听的死端口，TCP 连接被拒绝
+            _deny_port="9404"
+            ;;
+        decoy)
+            # decoy 回落：指向本地 9444 的 HTTPS 站点（由 03-decoy.conf 提供）
+            if decoy_site_artifacts_ready; then
+                _deny_port="9444"
+                if sni_guard_port_conflicts "${_deny_port}"; then
+                    log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${_deny_port} ${Font}"
+                    return 1
+                fi
+                write_decoy_site_config || return 1
+            else
+                log_echo "${Warning} ${YellowBG} $(gettext "decoy 站点设置失败, 回退到默认隔离策略") ${Font}"
+                unknown_sni_policy="isolate"
+                decoy_domain=""
+                _deny_port="9403"
+                if sni_guard_port_conflicts "${_deny_port}"; then
+                    log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${_deny_port} ${Font}"
+                    return 1
+                fi
+                write_isolate_site_config || return 1
+            fi
+            ;;
+        isolate|*)
+            # 隔离：ssl_reject_handshake 发送 TLS alert，不转发到 Xray
+            # deny upstream 指向 127.0.0.1:9403，由 http 块内的 03-isolate.conf server 提供 TLS 拒绝
+            _deny_port="9403"
+            if sni_guard_port_conflicts "${_deny_port}"; then
+                log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${_deny_port} ${Font}"
+                return 1
+            fi
+            write_isolate_site_config || return 1
+            ;;
+    esac
+    if [[ "${unknown_sni_policy}" == "reject" ]] && sni_guard_port_conflicts "${_deny_port}"; then
+        log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${_deny_port} ${Font}"
+        return 1
+    fi
     cat >"${nginx_conf}" <<EOF
 
 stream {
@@ -2874,13 +3329,13 @@ stream {
     }
 
     upstream deny {
-        server 127.0.0.1:9403;
+        server 127.0.0.1:${_deny_port};
     }
 
-    log_format tls_error_log '\$remote_addr [\$time_local] "\$ssl_preread_server_name" ' 
+    log_format tls_error_log '\$remote_addr [\$time_local] "\$ssl_preread_server_name" '
                              '\$ssl_preread_protocol \$status';
 
-    log_format sni_error_log '\$remote_addr [\$time_local] "\$ssl_preread_server_name" ' 
+    log_format sni_error_log '\$remote_addr [\$time_local] "\$ssl_preread_server_name" '
                              '\$ssl_preread_protocol \$status';
 
     server {
@@ -2891,13 +3346,6 @@ stream {
         proxy_timeout 300s;
         access_log ${nginx_dir}/logs/tls_error.log tls_error_log buffer=8k flush=3s if=\$is_tls_error;
         access_log ${nginx_dir}/logs/sni_error.log sni_error_log buffer=8k flush=3s if=\$is_sni_error;
-    }
-
-    server {
-        listen 127.0.0.1:9403 ssl;
-        ssl_reject_handshake on;
-        access_log off;
-        error_log /dev/null;
     }
 }
 EOF
@@ -3256,11 +3704,16 @@ install_config_reality() {
     "target": "${target}",
     "serverNames":"${serverNames}",
     "privateKey":"${privateKey}",
+    "publicKey":"${password}",
     "password":"${password}",
     "shortIds":"${shortIds}",
+    "spiderx_path":"${spiderx_path}",
     "reality_add_nginx": "${reality_add_nginx}",
     "reality_add_balance": "${reality_add_balance}",
     "reality_add_more": "${reality_add_more}",
+    "reality_nginx_sni_guard": "${reality_nginx_sni_guard}",
+    "unknown_sni_policy": "${unknown_sni_policy}",
+    "decoy_domain": "${decoy_domain}",
     "ws_port": "${artxport}",
     "grpc_port": "${artgport}",
     "xhttp_port": "${artxhttpport}",
@@ -3360,6 +3813,54 @@ info_xhttp_path() {
     echo "${value}"
 }
 
+# publicKey 是当前规范名称；password 是 Xray 历史名称，保留以兼容旧配置。
+info_reality_public_key() {
+    local value
+    value=$(info_extraction publicKey)
+    [[ -z "${value}" ]] && value=$(info_extraction password)
+    echo "${value}"
+}
+
+# 修复旧配置缺少公钥的情况：优先迁移旧 password，否则由 privateKey 重新推导。
+ensure_reality_public_key() {
+    [[ $(info_extraction tls) != "Reality" ]] && return 0
+    [[ ! -f "${xray_install_config_file}" ]] && return 1
+
+    local public_key private_key keys
+    public_key=$(info_reality_public_key)
+    if [[ -z "${public_key}" ]]; then
+        private_key=$(info_extraction privateKey)
+        if [[ -z "${private_key}" || ! -x "${xray_bin_dir}/xray" ]]; then
+            log_echo "${Warning} ${YellowBG} Reality publicKey $(gettext "配置修改") $(gettext "失败") ${Font}"
+            return 1
+        fi
+        if ! keys=$(${xray_bin_dir}/xray x25519 -i "${private_key}" 2>/dev/null); then
+            log_echo "${Warning} ${YellowBG} Reality publicKey $(gettext "配置修改") $(gettext "失败") ${Font}"
+            return 1
+        fi
+        public_key=$(parse_reality_public_key "${keys}")
+        if [[ -z "${public_key}" ]]; then
+            log_echo "${Warning} ${YellowBG} Reality publicKey $(gettext "配置修改") $(gettext "失败") ${Font}"
+            return 1
+        fi
+    fi
+
+    if [[ $(info_extraction publicKey) != "${public_key}" || $(info_extraction password) != "${public_key}" ]]; then
+        update_json_config "${xray_install_config_file}" --arg publicKey "${public_key}" \
+           '.publicKey = $publicKey | .password = $publicKey' || return 1
+        chmod -f 600 "${xray_install_config_file}" 2>/dev/null
+    fi
+    return 0
+}
+
+reality_client_meta() {
+    local user_id="$1"
+    local field="$2"
+    [[ -z "${user_id}" || -z "${field}" || ! -f "${xray_install_config_file}" ]] && return 0
+    jq -r --arg user_id "${user_id}" --arg field "${field}" \
+       '.reality_clients[$user_id][$field] // empty' "${xray_install_config_file}" 2>/dev/null
+}
+
 generate_vless_link() {
     local user_id="$1"
     local mode="$2"
@@ -3412,12 +3913,21 @@ generate_vless_link() {
             ;;
         reality)
             port=$(info_extraction port)
-            local pbk sni target sid
-            pbk=$(info_extraction password)
+            local pbk sni target sid spx spx_param
+            pbk=$(info_reality_public_key)
             sni=$(info_extraction serverNames)
             target=$(info_extraction target)
-            sid=$(info_extraction shortIds)
-            result="vless://${user_id}@${quoted_host}:${port}?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=${pbk}&sni=${sni}&target=${target}&sid=${sid}#${quoted_host}+Reality%E5%8D%8F%E8%AE%AE"
+            sid=$(reality_client_meta "${user_id}" shortIds)
+            [[ -z "${sid}" ]] && sid=$(info_extraction shortIds)
+            spx=$(reality_client_meta "${user_id}" spiderx_path)
+            [[ -z "${spx}" ]] && spx=$(info_extraction spiderx_path)
+            # 仅当存在 spiderX 时拼接 spx= 参数，老配置无 spiderX 保持兼容
+            if [[ -n "${spx}" ]]; then
+                spx_param="&spx=$(vless_urlquote "${spx}")"
+            else
+                spx_param=""
+            fi
+            result="vless://${user_id}@${quoted_host}:${port}?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=${pbk}&sni=${sni}&target=${target}&sid=${sid}${spx_param}#${quoted_host}+Reality%E5%8D%8F%E8%AE%AE"
             ;;
         xtls)
             port=$(info_extraction port)
@@ -3444,8 +3954,10 @@ generate_clash_config() {
     local sid=${10}
     local tls=${11}
     local transport_label=${12:-$type}
+    local spx=${13:-}
 
-    local clash_name="VLESS-$(info_extraction host)-${transport_label}"
+    local clash_name
+    clash_name="VLESS-$(info_extraction host)-${transport_label}"
     local clash_config=""
     local flow_line=""
     [[ -n "${flow}" ]] && flow_line="
@@ -3515,6 +4027,10 @@ generate_clash_config() {
     reality-opts:
       public-key: ${pbk}
       short-id: ${sid}"
+        if [[ -n "${spx}" ]]; then
+            clash_config="${clash_config}
+      spider-x: ${spx}"
+        fi
     fi
 
     echo ""
@@ -3522,6 +4038,9 @@ generate_clash_config() {
 }
 
 install_link_image() {
+    if [[ ${tls_mode} == "Reality" ]]; then
+        ensure_reality_public_key || return 1
+    fi
     local main_id
     main_id=$(info_extraction id)
 
@@ -3561,7 +4080,7 @@ $(generate_clash_config "xhttp" "$(info_extraction port)" "$(format_xhttp_path "
         fi
     elif [[ ${tls_mode} == "Reality" ]]; then
         clash_config_content="${clash_config_content}
-$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rprx-vision" "$(info_extraction password)" "$(info_extraction serverNames)" "$(info_extraction target)" "$(info_extraction shortIds)" "true")"
+$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rprx-vision" "$(info_reality_public_key)" "$(info_extraction serverNames)" "$(info_extraction target)" "$(info_extraction shortIds)" "true" "tcp" "$(info_extraction spiderx_path)")"
 
         if [[ ${reality_add_more} == "on" ]]; then
             if is_ws_mode; then
@@ -3599,25 +4118,25 @@ $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" ""
         echo
         log_echo "${Red} —————————————— Xray $(gettext "链接分享") —————————————— ${Font}"
         if [[ ${tls_mode} == "Reality" ]] || [[ ${tls_mode} == "XTLS" ]]; then
-            log_echo "${Red} URL $(gettext "分享链接"):${Font} ${vless_link}"
+            log_echo_secure "${Red} URL $(gettext "分享链接"):${Font} ${vless_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_link}" | qrencode -o - -t utf8
             echo
         fi
         if is_ws_mode && [[ -n "${vless_ws_link}" ]]; then
-            log_echo "${Red} ws URL $(gettext "分享链接"):${Font} ${vless_ws_link}"
+            log_echo_secure "${Red} ws URL $(gettext "分享链接"):${Font} ${vless_ws_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_ws_link}" | qrencode -o - -t utf8
             echo
         fi
         if is_grpc_mode && [[ -n "${vless_grpc_link}" ]]; then
-            log_echo "${Red} gRPC URL $(gettext "分享链接"):${Font} ${vless_grpc_link}"
+            log_echo_secure "${Red} gRPC URL $(gettext "分享链接"):${Font} ${vless_grpc_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
             echo
         fi
         if is_xhttp_mode && [[ -n "${vless_xhttp_link}" ]]; then
-            log_echo "${Red} xHTTP URL $(gettext "分享链接"):${Font} ${vless_xhttp_link}"
+            log_echo_secure "${Red} xHTTP URL $(gettext "分享链接"):${Font} ${vless_xhttp_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_xhttp_link}" | qrencode -o - -t utf8
             echo
@@ -3635,6 +4154,7 @@ $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" ""
     
     # 保存Clash配置到文件
     echo "${clash_config_content}" > "${xray_info_file%.*}_clash.yaml"
+    apply_sensitive_file_permissions "${xray_info_file%.*}_clash.yaml" "root:root" || true
 }
 
 vless_link_image_choice() {
@@ -3726,6 +4246,7 @@ monitor_traffic_with_iftop() {
 }
 
 basic_information() {
+    ensure_reality_public_key || true
     {
         echo
         log_echo "${OK} ${GreenBG} Xray+${shell_mode} $(gettext "安装") $(gettext "完成") ${Font}"
@@ -3784,8 +4305,11 @@ basic_information() {
                 log_echo "${Red} target:${Font} $(info_extraction target) "
                 log_echo "${Red} serverNames:${Font} $(info_extraction serverNames) "
                 log_echo_secure "${Red} privateKey:${Font} $(info_extraction privateKey) "
-                log_echo_secure "${Red} Password:${Font} $(info_extraction password) "
-                log_echo "${Red} shortIds:${Font} $(info_extraction shortIds) "
+                log_echo_secure "${Red} publicKey (Password):${Font} $(info_reality_public_key) "
+                log_echo_secure "${Red} shortIds:${Font} $(info_extraction shortIds) "
+                if [[ -n "$(info_extraction spiderx_path)" ]]; then
+                    log_echo "${Red} spiderX:${Font} $(info_extraction spiderx_path) "
+                fi
                 if [[ "$reality_add_more" == "on" ]]; then
                     if is_ws_mode; then
                         log_echo "${Red} ws $(gettext "端口") (port):${Font} $(info_extraction ws_port) "
@@ -4138,6 +4662,9 @@ show_user() {
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
         return
     fi
+    if [[ ${tls_mode} == "Reality" ]]; then
+        ensure_reality_public_key || return 1
+    fi
 
     local choose_user_prot show_user_index user_email user_id user_vless_link show_user_continue
 
@@ -4199,7 +4726,7 @@ show_user() {
         fi
         if [[ -n ${user_email} ]] && [[ -n ${user_id} ]]; then
             log_echo "${Green} $(gettext "用户名"): ${user_email} ${Font}"
-            log_echo "${Green} UUID: ${user_id} ${Font}"
+            log_echo_secure "${Green} UUID: ${user_id} ${Font}"
             if [[ ${tls_mode} == "TLS" ]]; then
                 if [[ ${choose_user_tag} == "VLESS-ws-in" ]]; then
                     user_vless_link=$(generate_vless_link "$user_id" "ws_tls")
@@ -4213,7 +4740,7 @@ show_user() {
             elif [[ ${tls_mode} == "XTLS" ]]; then
                 user_vless_link=$(generate_vless_link "$user_id" "xtls")
             fi
-            log_echo "${Red} URL $(gettext "分享链接"):${Font} ${user_vless_link}"
+            log_echo_secure "${Red} URL $(gettext "分享链接"):${Font} ${user_vless_link}"
             echo -n "${user_vless_link}" | qrencode -o - -t utf8
         fi
         echo
@@ -4236,6 +4763,7 @@ add_user() {
         while true; do
             echo
             log_echo "${GreenBG} $(gettext "即将添加用户, 一次仅能添加一个") ${Font}"
+            local new_reality_short_id="" new_reality_spiderx=""
             if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "None" ]]; then
                 if [[ ${transport_mode} == "onlyws" ]]; then
                     choose_user_tag="VLESS-ws-in"
@@ -4271,12 +4799,15 @@ add_user() {
             elif [[ ${tls_mode} == "Reality" ]]; then
                 choose_user_tag="VLESS-Reality-in"
                 reality_user_more='{"flow":"xtls-rprx-vision"}'
+                new_reality_short_id=$(generate_reality_short_id)
+                new_reality_spiderx=$(generate_spiderx)
             elif [[ ${tls_mode} == "XTLS" ]]; then
                 choose_user_tag="VLESS-XTLS-in"
                 reality_user_more='{}'
             fi
             email_set
-            local existing_emails=$(jq -r --arg tag "${choose_user_tag}" \
+            local existing_emails
+            existing_emails=$(jq -r --arg tag "${choose_user_tag}" \
                 '.inbounds[] | select(.tag == $tag) | .settings.clients[].email' \
                 "${xray_conf}" 2>/dev/null)
             if echo "${existing_emails}" | grep -qFx "${custom_email}"; then
@@ -4294,7 +4825,20 @@ add_user() {
                    {"level": 0, "email": $custom_email}
                ]'
             judge -r "$(gettext "添加用户")" || return 1
-            update_json_config "${xray_install_config_file}" ". += {\"multi_user\": \"yes\"}"
+            if [[ ${tls_mode} == "Reality" ]]; then
+                update_json_config "${xray_conf}" --arg choose_user_tag "${choose_user_tag}" --arg shortId "${new_reality_short_id}" \
+                   '(.inbounds[] | select(.tag == $choose_user_tag) | .streamSettings.realitySettings.shortIds) |= (((. // []) + [$shortId]) | unique)' || return 1
+                update_json_config "${xray_install_config_file}" --arg uuid "${UUID}" \
+                   --arg shortId "${new_reality_short_id}" \
+                   --arg spx "${new_reality_spiderx}" \
+                   '.multi_user = "yes" |
+                    .reality_clients = (.reality_clients // {}) |
+                    .reality_clients[$uuid] = {"shortIds": $shortId, "spiderx_path": $spx}' || return 1
+                log_echo_secure "${Green} $(gettext "已为当前客户端生成独立 shortId。") ${Font}"
+                log_echo "${Green} spiderX: ${new_reality_spiderx} ${Font}"
+            else
+                update_json_config "${xray_install_config_file}" ". += {\"multi_user\": \"yes\"}"
+            fi
             echo
             log_echo "${GreenBG} $(gettext "是否继续添加用户") [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
             read -r add_user_continue
@@ -4375,13 +4919,28 @@ remove_user() {
                 continue
             elif [[ ${del_user_index} -gt 1 ]]; then
                 del_user_index=$((del_user_index - 1))
+                local removed_user_id="" removed_short_id=""
+                if [[ ${tls_mode} == "Reality" ]]; then
+                    removed_user_id=$(jq -r -c --arg tag "${choose_user_tag}" --argjson idx "${del_user_index}" \
+                        '(.inbounds[] | select(.tag == $tag)).settings.clients[$idx].id // empty' "${xray_conf}")
+                    removed_short_id=$(reality_client_meta "${removed_user_id}" shortIds)
+                fi
                 update_json_config "${xray_conf}" --arg choose_user_tag "${choose_user_tag}" --argjson del_user_index "${del_user_index}" \
                    'del((.inbounds[] | select(.tag == $choose_user_tag)).settings.clients[$del_user_index])'
                 judge -r "$(gettext "删除用户")" || return 1
+                if [[ ${tls_mode} == "Reality" ]]; then
+                    if [[ -n "${removed_short_id}" ]]; then
+                        update_json_config "${xray_conf}" --arg choose_user_tag "${choose_user_tag}" --arg shortId "${removed_short_id}" \
+                           '(.inbounds[] | select(.tag == $choose_user_tag) | .streamSettings.realitySettings.shortIds) |= map(select(. != $shortId))' || return 1
+                    fi
+                    if [[ -n "${removed_user_id}" ]]; then
+                        update_json_config "${xray_install_config_file}" --arg uuid "${removed_user_id}" 'del(.reality_clients[$uuid])' || return 1
+                    fi
+                fi
                 local remaining_multi_user
                 remaining_multi_user=$(jq '[.inbounds[].settings.clients | length] | any(. > 1)' "${xray_conf}" 2>/dev/null)
                 if [[ "${remaining_multi_user}" != "true" ]]; then
-                    update_json_config "${xray_install_config_file}" 'del(.multi_user)'
+                    update_json_config "${xray_install_config_file}" 'del(.multi_user) | del(.reality_clients)'
                 fi
             fi
             echo
@@ -4672,6 +5231,7 @@ install_xray_ws_tls() {
     nginx_conf_add
     nginx_servers_conf_add
     xray_conf_add
+    harden_config_permissions
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
@@ -4700,18 +5260,20 @@ install_xray_reality() {
     UUID_set
     target_set
     serverNames_set
-    keys_set
+    keys_set || return 1
     shortIds_set
+    spiderx_set
     xray_reality_add_more_choose
     transport_qr
     firewall_set
     stop_service_all
     port_exist_check "${port}"
     reality_balance_add_fq
-    reality_nginx_add_fq
+    reality_nginx_add_fq || return 1
     xray_conf_add
     install_config_reality
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
+    harden_config_permissions
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
@@ -4745,6 +5307,7 @@ install_xray_xtls_only() {
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check "${port}"
     xray_conf_add
+    harden_config_permissions
     basic_information
     enable_process_systemd || return 1
     auto_update || return 1
@@ -4782,6 +5345,7 @@ install_xray_ws_only() {
     is_grpc_mode && port_exist_check "${gport}"
     is_xhttp_mode && port_exist_check "${xhttpport}"
     xray_conf_add
+    harden_config_permissions
     basic_information
     enable_process_systemd || return 1
     auto_update || return 1
@@ -4981,6 +5545,9 @@ list() {
     '-6' | '--add-servernames')
         nginx_servernames_server_set
         ;;
+    '-sg' | '--sni-guard')
+        reset_sni_guard_policy
+        ;;
     '-au' | '--auto-update')
         auto_update
         ;;
@@ -5072,6 +5639,7 @@ show_help() {
     echo "  -4, --install-xtls          $(gettext "安装") Xray (XTLS ONLY)"
     echo "  -5, --add-upstream          $(gettext "变更") Nginx $(gettext "负载均衡配置")"
     echo "  -6, --add-servernames       $(gettext "变更") Nginx serverNames $(gettext "配置")"
+    echo "  -sg, --sni-guard            $(gettext "变更") SNI Guard"
     echo "  -au, --auto-update          $(gettext "设置自动更新")"
     echo "  -c, --clean-logs            $(gettext "清除日志文件")"
     echo "  -cs, --cert-status          $(gettext "查看证书状态")"
@@ -5435,87 +6003,45 @@ function restore_directories() {
     fi
 }
 
-menu() {
-    echo
-    log_echo "Xray $(gettext "安装管理脚本") ${Red}[${shell_version}]${Font} ${shell_emoji}"
-    log_echo "--- $(gettext "作者"): hello-yunshu ---"
-    log_echo "--- $(gettext "修改"): hey.run ---"
-    log_echo "--- https://github.com/hello-yunshu ---"
-    echo
-    log_echo "$(gettext "当前模式"): ${shell_mode}"
-    log_echo "$(gettext "当前语言"): ${LANG%.*}"
-    echo
+menu_clear() {
+    if [[ -t 1 && -n ${TERM:-} && ${TERM} != "dumb" ]]; then
+        clear
+    else
+        echo
+    fi
+}
 
-    echo -e "$(gettext "可以使用")${RedW} idleleo ${Font}$(gettext "命令管理脚本")${Font}\n"
+menu_title() {
+    echo -e "${GreenW}╭─ $1 ─────────────────────────────────────${Font}"
+}
 
-    log_echo "—————————————— ${GreenW}$(gettext "版本检测")${Font} ——————————————"
-    log_echo "$(gettext "脚本"):  ${shell_need_update}"
-    log_echo "Xray:  ${xray_need_update}"
-    log_echo "Nginx: ${nginx_need_update}"
-    log_echo "—————————————— ${GreenW}$(gettext "运行状态")${Font} ——————————————"
-    log_echo "Xray:   ${xray_status}"
-    log_echo "Nginx:  ${nginx_status}"
-    log_echo "$(gettext "连通性"): ${xray_local_connect_status}"
-    echo -e "—————————————— ${GreenW}$(gettext "更新向导")${Font} ——————————————"
-    echo -e "${Green}0.${Font}  $(gettext "更新") $(gettext "脚本")"
-    echo -e "${Green}1.${Font}  $(gettext "更新") Xray"
-    echo -e "${Green}2.${Font}  $(gettext "更新") Nginx"
-    echo -e "—————————————— ${GreenW}语言 / Language${Font} ———————"
-    echo -e "${Green}99.${Font} 中文 ($(gettext "默认"))"
-    echo -e "    English"
-    echo -e "    Français" 
-    echo -e "\033[4Cفارسی"
-    echo -e "    Русский"
-    echo -e "    한국어"
-    echo -e "—————————————— ${GreenW}$(gettext "安装向导")${Font} ——————————————"
-    echo -e "${Green}3.${Font}  $(gettext "安装") Xray (Reality+ws/gRPC/xHTTP+Nginx)"
-    echo -e "${Green}4.${Font}  $(gettext "安装") Xray (Nginx+ws/gRPC/xHTTP+TLS)"
-    echo -e "${Green}5.${Font}  $(gettext "安装") Xray (ws/gRPC/xHTTP ONLY)"
-    echo -e "${Green}6.${Font}  $(gettext "安装") Xray (XTLS ONLY)"
-    echo -e "—————————————— ${GreenW}$(gettext "配置变更")${Font} ——————————————"
-    echo -e "${Green}7.${Font}  $(gettext "变更") UUIDv5/$(gettext "映射字符串")"
-    echo -e "${Green}8.${Font}  $(gettext "变更") port"
-    echo -e "${Green}9.${Font}  $(gettext "变更") target"
-    echo -e "${Green}10.${Font} $(gettext "变更") TLS $(gettext "版本")"
-    echo -e "${Green}11.${Font} $(gettext "变更") Nginx $(gettext "负载均衡配置")"
-    echo -e "${Green}12.${Font} $(gettext "变更") Nginx serverNames $(gettext "配置")"
-    echo -e "—————————————— ${GreenW}$(gettext "用户管理")${Font} ——————————————"
-    echo -e "${Green}13.${Font} $(gettext "查看") Xray $(gettext "用户")"
-    echo -e "${Green}14.${Font} $(gettext "添加") Xray $(gettext "用户")"
-    echo -e "${Green}15.${Font} $(gettext "删除") Xray $(gettext "用户")"
-    echo -e "—————————————— ${GreenW}$(gettext "查看信息")${Font} ——————————————"
-    echo -e "${Green}16.${Font} $(gettext "查看") Xray $(gettext "实时访问日志")"
-    echo -e "${Green}17.${Font} $(gettext "查看") Xray $(gettext "实时错误日志")"
-    echo -e "${Green}18.${Font} $(gettext "查看") Xray $(gettext "配置信息")"
-    echo -e "${Green}19.${Font} $(gettext "查看") port $(gettext "实时流量")"
-    echo -e "—————————————— ${GreenW}$(gettext "服务相关")${Font} ——————————————"
-    echo -e "${Green}20.${Font} $(gettext "重启") $(gettext "所有服务")"
-    echo -e "${Green}21.${Font} $(gettext "启动") $(gettext "所有服务")"
-    echo -e "${Green}22.${Font} $(gettext "停止") $(gettext "所有服务")"
-    echo -e "${Green}23.${Font} $(gettext "查看") $(gettext "所有服务")"
-    echo -e "—————————————— ${GreenW}$(gettext "证书相关")${Font} ——————————————"
-    echo -e "${Green}24.${Font} $(gettext "查看") $(gettext "证书状态")"
-    echo -e "${Green}25.${Font} $(gettext "更新") $(gettext "证书有效期")"
-    echo -e "${Green}26.${Font} $(gettext "设置") $(gettext "证书自动更新")"
-    echo -e "—————————————— ${GreenW}$(gettext "其他选项")${Font} ——————————————"
-    echo -e "${Green}27.${Font} $(gettext "配置") $(gettext "自动更新")"
-    echo -e "${Green}28.${Font} $(gettext "设置") TCP $(gettext "加速")"
-    echo -e "${Green}29.${Font} $(gettext "设置") Fail2ban $(gettext "防暴力破解")"
-    echo -e "${Green}30.${Font} $(gettext "设置") Xray $(gettext "流量统计")"
-    echo -e "${Green}31.${Font} $(gettext "设置") Xray $(gettext "流量阻断")"
-    echo -e "${Green}32.${Font} $(gettext "清除") $(gettext "日志文件")"
-    echo -e "${Green}33.${Font} $(gettext "测试") $(gettext "服务器网速")"
-    echo -e "—————————————— ${GreenW}$(gettext "备份恢复")${Font} ——————————————"
-    echo -e "${Green}34.${Font} $(gettext "备份") $(gettext "全部文件")"
-    echo -e "${Green}35.${Font} $(gettext "恢复") $(gettext "全部文件")"
-    echo -e "—————————————— ${GreenW}$(gettext "卸载向导")${Font} ——————————————"
-    echo -e "${Green}36.${Font} $(gettext "卸载") $(gettext "脚本")"
-    echo -e "${Green}37.${Font} $(gettext "清空") $(gettext "证书文件")"
-    echo -e "${Green}38.${Font} $(gettext "退出") \n"
+menu_footer() {
+    echo -e "${GreenW}╰──────────────────────────────────────────${Font}"
+}
 
-    local menu_num
-    read_optimize "$(gettext "请输入选项"): " "menu_num" "NULL" 0 99 "$(gettext "请输入有效的数字")!"
-    case $menu_num in
+menu_item() {
+    printf '%b%2s.%b %s\n' "${Green}" "$1" "${Font}" "$2"
+}
+
+menu_pause() {
+    echo
+    read -rp "$(gettext "回到菜单") [Enter] " _ || true
+}
+
+menu_read() {
+    local target_var="$1"
+    local max_value="$2"
+    read_optimize "$(gettext "请输入选项"): " "${target_var}" "NULL" 0 "${max_value}" "$(gettext "请输入有效的数字")!"
+}
+
+menu_submenu_begin() {
+    menu_clear
+    menu_title "$1"
+    echo
+}
+
+menu_action() {
+    case $1 in
     0)
         update_sh
         exec "${BASH:-bash}" "${idleleo}"
@@ -5574,141 +6100,143 @@ menu() {
     7)
         reset_UUID
         judge -r "$(gettext "变更") UUIDv5/$(gettext "映射字符串")"
-        menu
+        menu_pause
         ;;
     8)
         reset_port
         judge -r "$(gettext "变更") port"
-        menu
+        menu_pause
         ;;
     9)
         reset_target
         judge -r "$(gettext "变更") target"
-        menu
+        menu_pause
         ;;
     10)
         tls_type
         judge -r "$(gettext "变更") TLS $(gettext "版本")"
-        menu
+        menu_pause
         ;;
     11)
         nginx_upstream_server_set
-        menu
+        menu_pause
         ;;
     12)
         nginx_servernames_server_set
-        menu
+        menu_pause
+        ;;
+    39)
+        reset_sni_guard_policy
+        judge -r "$(gettext "变更") SNI Guard"
+        menu_pause
         ;;
     13)
         show_user
-        countdown "$(gettext "回到菜单")!"
-        menu
+        menu_pause
         ;;
     14)
         if service_stop; then
             add_user && service_start
         fi
-        countdown "$(gettext "回到菜单")!"
-        menu
+        menu_pause
         ;;
     15)
         if service_stop; then
             remove_user && service_start
         fi
-        countdown "$(gettext "回到菜单")!"
-        menu
+        menu_pause
         ;;
     16)
         clear
         show_access_log
+        menu_pause
         ;;
     17)
         clear
         show_error_log
+        menu_pause
         ;;
     18)
         clear
         basic_information
         install_link_image
         show_information
-        menu
+        menu_pause
         ;;
     19)
         clear
         monitor_traffic_with_iftop
-        menu
+        menu_pause
         ;;
     20)
         service_restart
-        menu
+        check_program
+        check_xray_local_connect
+        menu_pause
         ;;
     21)
         if service_start; then
-            exec "${BASH:-bash}" "${idleleo}"
+            check_program
+            check_xray_local_connect
         else
             log_echo "${Error} ${RedBG} $(gettext "所有服务") $(gettext "启动") $(gettext "失败") ${Font}"
         fi
-        menu
+        menu_pause
         ;;
     22)
         if service_stop; then
-            exec "${BASH:-bash}" "${idleleo}"
+            check_program
+            check_xray_local_connect
         else
             log_echo "${Error} ${RedBG} $(gettext "所有服务") $(gettext "停止") $(gettext "失败") ${Font}"
         fi
-        menu
+        menu_pause
         ;;
     23)
         if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
             systemctl status nginx
         fi
         systemctl status xray
-        menu
+        menu_pause
         ;;
     24)
         check_cert_status
-        countdown "$(gettext "回到菜单")!"
-        menu
+        menu_pause
         ;;
     25)
         cert_update_manuel
-        countdown "$(gettext "回到菜单")!"
-        menu
+        menu_pause
         ;;
     26)
         acme_cron_update
-        menu
+        menu_pause
         ;;
     27)
         auto_update
-        menu
+        menu_pause
         ;;
     28)
         clear
         bbr_boost_sh
-        echo
-        menu
+        menu_pause
         ;;
     29)
         set_fail2ban
-        menu
         ;;
     30)
         xray_status_add
-        countdown "$(gettext "回到菜单")!"
-        menu
+        menu_pause
         ;;
     31)
         set_traffic_blocker
-        menu
         ;;
     32)
         clean_logs
-        menu
+        menu_pause
         ;;
     33)
         clear
-        read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
+        read -r -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
         local superspeed_script="${idleleo_dir}/tmp/superspeed.sh"
         if download_script_file "https://cdn.jsdelivr.net/gh/hello-yunshu/superspeed@master/superspeed.sh" "$superspeed_script"; then
             bash "$superspeed_script"
@@ -5716,17 +6244,16 @@ menu() {
         else
             log_echo "${Error} ${RedBG} $(gettext "网速测试脚本下载失败") ${Font}"
         fi
-        read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
-        echo
-        menu
+        read -r -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
+        menu_pause
         ;;
     34)
         backup_directories
-        menu
+        menu_pause
         ;;
     35)
         restore_directories
-        menu
+        menu_pause
         ;;
     36)
         uninstall_all
@@ -5734,8 +6261,8 @@ menu() {
         ;;
     37)
         delete_tls_key_and_crt
-        rm -rf "${ssl_chainpath}"/*
-        menu
+        rm -rf "${ssl_chainpath:?}"/*
+        menu_pause
         ;;
     38)
         exit 0
@@ -5744,11 +6271,307 @@ menu() {
         set_language
         exec "${BASH:-bash}" "${idleleo}"
         ;;
-    *)
-        log_echo "${Error} ${RedBG} $(gettext "请输入有效的数字")! ${Font}"
-        menu
-        ;;
     esac
+}
+
+menu_install() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "安装向导")"
+        menu_item 1 "$(gettext "安装") Xray (Reality+ws/gRPC/xHTTP+Nginx)"
+        menu_item 2 "$(gettext "安装") Xray (Nginx+ws/gRPC/xHTTP+TLS)"
+        menu_item 3 "$(gettext "安装") Xray (ws/gRPC/xHTTP ONLY)"
+        menu_item 4 "$(gettext "安装") Xray (XTLS ONLY)"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 4
+        case $menu_num in
+            0) return ;;
+            1) menu_action 3 ;;
+            2) menu_action 4 ;;
+            3) menu_action 5 ;;
+            4) menu_action 6 ;;
+        esac
+    done
+}
+
+menu_user_management() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "用户管理")"
+        menu_item 1 "$(gettext "查看") Xray $(gettext "用户")"
+        menu_item 2 "$(gettext "添加") Xray $(gettext "用户")"
+        menu_item 3 "$(gettext "删除") Xray $(gettext "用户")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 3
+        case $menu_num in
+            0) return ;;
+            1) menu_action 13 ;;
+            2) menu_action 14 ;;
+            3) menu_action 15 ;;
+        esac
+    done
+}
+
+menu_connection_config() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "配置变更")"
+        menu_item 1 "$(gettext "变更") UUIDv5/$(gettext "映射字符串")"
+        menu_item 2 "$(gettext "变更") port"
+        menu_item 3 "$(gettext "变更") target"
+        menu_item 4 "$(gettext "变更") TLS $(gettext "版本")"
+        menu_item 5 "$(gettext "变更") SNI Guard"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 5
+        case $menu_num in
+            0) return ;;
+            1) menu_action 7 ;;
+            2) menu_action 8 ;;
+            3) menu_action 9 ;;
+            4) menu_action 10 ;;
+            5) menu_action 39 ;;
+        esac
+    done
+}
+
+menu_nginx_config() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "Nginx $(gettext "配置")"
+        menu_item 1 "$(gettext "变更") Nginx $(gettext "负载均衡配置")"
+        menu_item 2 "$(gettext "变更") Nginx serverNames $(gettext "配置")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 2
+        case $menu_num in
+            0) return ;;
+            1) menu_action 11 ;;
+            2) menu_action 12 ;;
+        esac
+    done
+}
+
+menu_config() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "配置变更") / $(gettext "用户管理")"
+        menu_item 1 "$(gettext "用户管理")"
+        menu_item 2 "$(gettext "配置变更")"
+        menu_item 3 "Nginx $(gettext "配置")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 3
+        case $menu_num in
+            0) return ;;
+            1) menu_user_management ;;
+            2) menu_connection_config ;;
+            3) menu_nginx_config ;;
+        esac
+    done
+}
+
+menu_information() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "查看信息")"
+        menu_item 1 "$(gettext "查看") Xray $(gettext "配置信息")"
+        menu_item 2 "$(gettext "查看") Xray $(gettext "实时访问日志")"
+        menu_item 3 "$(gettext "查看") Xray $(gettext "实时错误日志")"
+        menu_item 4 "$(gettext "查看") port $(gettext "实时流量")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 4
+        case $menu_num in
+            0) return ;;
+            1) menu_action 18 ;;
+            2) menu_action 16 ;;
+            3) menu_action 17 ;;
+            4) menu_action 19 ;;
+        esac
+    done
+}
+
+menu_service_management() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "服务相关")"
+        menu_item 1 "$(gettext "重启") $(gettext "所有服务")"
+        menu_item 2 "$(gettext "启动") $(gettext "所有服务")"
+        menu_item 3 "$(gettext "停止") $(gettext "所有服务")"
+        menu_item 4 "$(gettext "查看") $(gettext "所有服务")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 4
+        case $menu_num in
+            0) return ;;
+            1) menu_action 20 ;;
+            2) menu_action 21 ;;
+            3) menu_action 22 ;;
+            4) menu_action 23 ;;
+        esac
+    done
+}
+
+menu_certificate_management() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "证书相关")"
+        menu_item 1 "$(gettext "查看") $(gettext "证书状态")"
+        menu_item 2 "$(gettext "更新") $(gettext "证书有效期")"
+        menu_item 3 "$(gettext "设置") $(gettext "证书自动更新")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 3
+        case $menu_num in
+            0) return ;;
+            1) menu_action 24 ;;
+            2) menu_action 25 ;;
+            3) menu_action 26 ;;
+        esac
+    done
+}
+
+menu_service_and_certificate() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "服务相关") / $(gettext "证书相关")"
+        menu_item 1 "$(gettext "服务相关")"
+        menu_item 2 "$(gettext "证书相关")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 2
+        case $menu_num in
+            0) return ;;
+            1) menu_service_management ;;
+            2) menu_certificate_management ;;
+        esac
+    done
+}
+
+menu_update() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "更新向导")"
+        menu_item 1 "$(gettext "更新") $(gettext "脚本")"
+        menu_item 2 "$(gettext "更新") Xray"
+        menu_item 3 "$(gettext "更新") Nginx"
+        menu_item 4 "$(gettext "配置") $(gettext "自动更新")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 4
+        case $menu_num in
+            0) return ;;
+            1) menu_action 0 ;;
+            2) menu_action 1 ;;
+            3) menu_action 2 ;;
+            4) menu_action 27 ;;
+        esac
+    done
+}
+
+menu_tools() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "其他选项")"
+        menu_item 1 "$(gettext "设置") TCP $(gettext "加速")"
+        menu_item 2 "$(gettext "设置") Fail2ban $(gettext "防暴力破解")"
+        menu_item 3 "$(gettext "设置") Xray $(gettext "流量统计")"
+        menu_item 4 "$(gettext "设置") Xray $(gettext "流量阻断")"
+        menu_item 5 "$(gettext "清除") $(gettext "日志文件")"
+        menu_item 6 "$(gettext "测试") $(gettext "服务器网速")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 6
+        case $menu_num in
+            0) return ;;
+            1) menu_action 28 ;;
+            2) menu_action 29 ;;
+            3) menu_action 30 ;;
+            4) menu_action 31 ;;
+            5) menu_action 32 ;;
+            6) menu_action 33 ;;
+        esac
+    done
+}
+
+menu_backup_and_uninstall() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "备份恢复") / $(gettext "卸载向导")"
+        menu_item 1 "$(gettext "备份") $(gettext "全部文件")"
+        menu_item 2 "$(gettext "恢复") $(gettext "全部文件")"
+        menu_item 3 "$(gettext "清空") $(gettext "证书文件")"
+        menu_item 4 "$(gettext "卸载") $(gettext "脚本")"
+        echo
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 4
+        case $menu_num in
+            0) return ;;
+            1) menu_action 34 ;;
+            2) menu_action 35 ;;
+            3) menu_action 37 ;;
+            4) menu_action 36 ;;
+        esac
+    done
+}
+
+menu_main_header() {
+    menu_clear
+    echo -e "${GreenW}╭─ Xray $(gettext "安装管理脚本") ${Red}[${shell_version}]${Font} ${shell_emoji}"
+    log_echo "│ $(gettext "当前模式"): ${shell_mode}  ·  $(gettext "当前语言"): ${LANG%.*}"
+    log_echo "├─ $(gettext "版本检测")"
+    log_echo "│ $(gettext "脚本"): ${shell_need_update}  Xray: ${xray_need_update}  Nginx: ${nginx_need_update}"
+    log_echo "├─ $(gettext "运行状态")"
+    log_echo "│ Xray: ${xray_status}  Nginx: ${nginx_status}  $(gettext "连通性"): ${xray_local_connect_status}"
+    echo -e "${GreenW}╰──────────────────────────────────────────${Font}"
+    echo
+    menu_title "$(gettext "主菜单")  ·  idleleo $(gettext "命令管理脚本")"
+    echo
+}
+
+menu() {
+    local menu_num
+    while true; do
+        menu_main_header
+        menu_item 1 "$(gettext "安装向导")"
+        menu_item 2 "$(gettext "配置变更") / $(gettext "用户管理")"
+        menu_item 3 "$(gettext "查看信息")"
+        menu_item 4 "$(gettext "服务相关") / $(gettext "证书相关")"
+        menu_item 5 "$(gettext "更新向导")"
+        menu_item 6 "$(gettext "其他选项")"
+        menu_item 7 "$(gettext "备份恢复") / $(gettext "卸载向导")"
+        menu_item 8 "$(gettext "修改语言") / Language"
+        echo
+        menu_item 0 "$(gettext "退出")"
+        menu_footer
+        menu_read menu_num 8
+        case $menu_num in
+            0) exit 0 ;;
+            1) menu_install ;;
+            2) menu_config ;;
+            3) menu_information ;;
+            4) menu_service_and_certificate ;;
+            5) menu_update ;;
+            6) menu_tools ;;
+            7) menu_backup_and_uninstall ;;
+            8) menu_action 99 ;;
+        esac
+    done
 }
 
 [[ "${_TEST_MODE:-0}" == "1" ]] && return 0
@@ -5759,7 +6582,16 @@ check_online_version_connect
 init_language
 read_version
 judge_mode
+if [[ -f "${xray_install_config_file}" ]]; then
+    if [[ ${tls_mode} == "Reality" ]]; then
+        ensure_reality_sni_guard_defaults || log_echo "${Warning} ${YellowBG} Reality SNI Guard $(gettext "配置修改") $(gettext "失败") ${Font}"
+    fi
+    harden_config_permissions
+fi
 idleleo_commend
 check_program
+if [[ ${tls_mode} == "Reality" ]]; then
+    ensure_reality_public_key || true
+fi
 check_xray_local_connect
 list "$@"
