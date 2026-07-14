@@ -21,6 +21,7 @@
 * 支持 Reality / ws/gRPC/xHTTP 负载均衡：
   - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
   - [搭建后端负载均衡](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+* Reality + Nginx 模式默认启用 SNI Guard：未知 SNI、空 SNI 与异常 TLS 不会进入 Xray Reality 后端，默认采用隔离策略（ssl_reject_handshake），高级用户可切换为自建 decoy 站点回落或直接 TCP 拒绝。该功能用于减少主动探测与误配置暴露，不追求完美伪装
 
 ## 延伸阅读
 
