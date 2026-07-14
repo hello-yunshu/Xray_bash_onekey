@@ -2573,3 +2573,107 @@ msgstr "reset"
 #: scripts/traffic_blocker.sh:1199 scripts/traffic_blocker.sh:1202
 msgid "已恢复"
 msgstr "restored"
+
+#: install.sh:1935
+msgid "异常 SNI 处理方式"
+msgstr "Abnormal SNI handling"
+
+#: install.sh:1936
+msgid "隔离异常流量, 不转发到 Xray"
+msgstr "Isolate abnormal traffic, do not forward to Xray"
+
+#: install.sh:1937
+msgid "使用指向本机 IP 的自建 HTTPS 站点作为回落"
+msgstr "Use a self-hosted HTTPS site pointing to this machine's IP as fallback"
+
+#: install.sh:1938
+msgid "直接拒绝异常 TLS 连接"
+msgstr "Directly reject abnormal TLS connections"
+
+#: install.sh:1939
+msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
+msgstr "Option 2 requires you to have your own domain, and its A/AAAA record must point to this machine's public IP. If unsure, use the default isolation policy."
+
+#: install.sh:1947
+msgid "decoy 站点设置失败, 回退到默认隔离策略"
+msgstr "decoy site setup failed, falling back to default isolation policy"
+
+#: install.sh:1954
+msgid "已选择直接拒绝异常 TLS 连接"
+msgstr "Selected to directly reject abnormal TLS connections"
+
+#: install.sh:1959
+msgid "已选择隔离异常流量"
+msgstr "Selected to isolate abnormal traffic"
+
+#: install.sh:1968
+msgid "decoy 站点设置"
+msgstr "decoy site setup"
+
+#: install.sh:1969
+msgid "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP"
+msgstr "Please enter your own domain; its A/AAAA record must point to this machine's public IP"
+
+#: install.sh:1971
+msgid "请输入 decoy 域名"
+msgstr "Please enter the decoy domain"
+
+#: install.sh:1979
+msgid "无法解析该域名的 A/AAAA 记录, 请检查 DNS 是否已生效"
+msgstr "Unable to resolve the A/AAAA record of this domain, please check if DNS has taken effect"
+
+#: install.sh:1983
+msgid "该域名 A/AAAA 记录"
+msgstr "The A/AAAA record of this domain"
+
+#: install.sh:1983
+msgid "未指向本机公网 IP"
+msgstr "does not point to this machine's public IP"
+
+#: install.sh:1984
+msgid "请先将域名 A/AAAA 记录指向本机, 或使用默认隔离策略"
+msgstr "Please point the domain A/AAAA record to this machine first, or use the default isolation policy"
+
+#: install.sh:4657
+msgid "已为当前客户端生成独立 shortId。"
+msgstr "Generated an independent shortId for the current client."
+
+#: install.sh:1989
+msgid "域名校验通过"
+msgstr "Domain verification passed"
+
+#: install.sh:1998
+msgid "自签证书生成失败"
+msgstr "Self-signed certificate generation failed"
+
+#: install.sh:2049
+msgid "decoy 站点配置完成"
+msgstr "decoy site configuration completed"
+
+#: install.sh:2050
+msgid "当前使用自签证书, 浏览器访问会有证书提示。高级用户可自行替换"
+msgstr "Currently using a self-signed certificate; browsers will show a certificate warning. Advanced users can replace it"
+
+#: install.sh:2050
+msgid "与"
+msgstr "and"
+
+#: install.sh:1707 install.sh:1712
+msgid "配置文件权限收紧失败"
+msgstr "Failed to tighten config file permissions"
+
+#: install.sh:2005 install.sh:2006
+msgid "高级"
+msgstr "advanced"
+
+#: scripts/fail2ban_manager.sh:281
+msgid "regex 自检未通过, 请检查日志格式"
+msgstr "regex self-check failed, please check log format"
+
+#: scripts/fail2ban_manager.sh:283
+msgid "regex 自检通过"
+msgstr "regex self-check passed"
+
+#: scripts/fail2ban_manager.sh:286
+msgid "为空或不存在, 跳过自检"
+msgstr "is empty or does not exist, skipping self-check"

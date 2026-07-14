@@ -3,9 +3,9 @@
 MODE="${1:-}"
 
 case "$MODE" in
-xtls_only | ws_grpc_xhttp | reality | tls) ;;
+xtls_only | ws_grpc_xhttp | reality | reality_nginx | tls) ;;
 *)
-    echo "Usage: $0 <xtls_only|ws_grpc_xhttp|reality|tls>"
+    echo "Usage: $0 <xtls_only|ws_grpc_xhttp|reality|reality_nginx|tls>"
     exit 1
     ;;
 esac
@@ -233,7 +233,22 @@ xray_reality_add_more_choose() {
 
 reality_balance_add_fq() { reality_add_balance="off"; }
 
-reality_nginx_add_fq() { reality_add_nginx="off"; }
+reality_nginx_add_fq() {
+    if [[ "${MODE}" != "reality_nginx" ]]; then
+        reality_add_nginx="off"
+        return 0
+    fi
+
+    reality_add_nginx="on"
+    reality_nginx_sni_guard="on"
+    unknown_sni_policy="isolate"
+    decoy_domain=""
+    nginx_exist_check || return 1
+    nginx_systemd || return 1
+    nginx_reality_conf_add || return 1
+    nginx_reality_servers_add || return 1
+    nginx_reality_serverNames_add || return 1
+}
 
 domain_check() {
     domain="ci-test.example.com"
@@ -278,7 +293,7 @@ ws_grpc_xhttp)
     tls_mode="None"
     install_xray_ws_only || INSTALL_EXIT_CODE=$?
     ;;
-reality)
+reality | reality_nginx)
     shell_mode="Reality"
     tls_mode="Reality"
     install_xray_reality || INSTALL_EXIT_CODE=$?
@@ -326,6 +341,8 @@ port_is_listening() {
         ss -ltnH | awk -v port=":${listen_port}" '$4 ~ port "$" { found=1 } END { exit !found }'
     elif command -v netstat >/dev/null 2>&1; then
         netstat -ltn | awk -v port=":${listen_port}" '$4 ~ port "$" { found=1 } END { exit !found }'
+    elif command -v nc >/dev/null 2>&1; then
+        nc -z -w 1 127.0.0.1 "${listen_port}" >/dev/null 2>&1
     else
         return 1
     fi
@@ -382,8 +399,8 @@ assert_qr_matches_config() {
 
 assert_ok "Install command exited successfully" test "${INSTALL_EXIT_CODE}" -eq 0
 assert_ok --diag "ls -la ${xray_bin_dir}/xray 2>/dev/null; echo; file ${xray_bin_dir}/xray 2>/dev/null" "Xray binary exists" test -f "${xray_bin_dir}/xray"
-assert_ok --diag "ls -la ${xray_conf} 2>/dev/null; echo; jq . "${xray_conf}" 2>&1 | head -20" "Xray config exists" test -f "${xray_conf}"
-assert_ok --diag "ls -la ${xray_install_config_file} 2>/dev/null; echo; jq . "${xray_install_config_file}" 2>&1 | head -20" "Install config exists" test -f "${xray_install_config_file}"
+assert_ok --diag "ls -la \"${xray_conf}\" 2>/dev/null; echo; jq . \"${xray_conf}\" 2>&1 | head -20" "Xray config exists" test -f "${xray_conf}"
+assert_ok --diag "ls -la \"${xray_install_config_file}\" 2>/dev/null; echo; jq . \"${xray_install_config_file}\" 2>&1 | head -20" "Install config exists" test -f "${xray_install_config_file}"
 assert_ok --diag "cat ${xray_systemd_file} 2>/dev/null" "Xray systemd service exists" test -f "${xray_systemd_file}"
 
 echo ""
@@ -405,6 +422,11 @@ echo "--- Listener checks ---"
 case "${MODE}" in
 xtls_only | reality)
     assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "Main Xray port is listening" wait_for_port "$(qr_value port)"
+    ;;
+reality_nginx)
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status nginx 2>&1 | head -10" "Nginx Reality public port is listening" wait_for_port "$(qr_value port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "Xray Reality backend port is listening" wait_for_port "$(config_value VLESS-Reality-in '.port')"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status nginx 2>&1 | head -10" "SNI Guard isolate port is listening" wait_for_port 9403
     ;;
 ws_grpc_xhttp)
     assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "ws inbound port is listening" wait_for_port "$(qr_value ws_port)"
@@ -429,18 +451,28 @@ tls)
     ;;
 esac
 
-if [[ "${MODE}" == "tls" ]]; then
+if [[ "${MODE}" == "tls" || "${MODE}" == "reality_nginx" ]]; then
     assert_ok --diag "ls -la ${nginx_dir}/sbin/nginx 2>/dev/null; echo; file ${nginx_dir}/sbin/nginx 2>/dev/null; echo; ldd ${nginx_dir}/sbin/nginx 2>/dev/null" "Nginx binary exists" test -f "${nginx_dir}/sbin/nginx"
     assert_ok --diag "ls -la ${nginx_conf} 2>/dev/null; echo; cat ${nginx_conf} 2>/dev/null | head -30" "Nginx config exists" test -f "${nginx_conf}"
     assert_ok --diag "cat ${nginx_systemd_file} 2>/dev/null" "Nginx systemd service exists" test -f "${nginx_systemd_file}"
     assert_ok --diag "systemctl status nginx 2>&1 | head -15; echo; journalctl -u nginx --no-pager -n 10 2>&1; echo; ps aux | grep -E '[n]ginx' | head -5" "Nginx service is active" systemctl is-active --quiet nginx
+    assert_ok --diag "${nginx_dir}/sbin/nginx -t -c ${nginx_dir}/conf/nginx.conf 2>&1" "Nginx config is valid" "${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf"
+fi
+
+if [[ "${MODE}" == "tls" ]]; then
     assert_ok --diag "ls -la ${ssl_chainpath}/ 2>/dev/null; echo; openssl x509 -noout -subject -dates -in ${ssl_chainpath}/xray.crt 2>/dev/null" "SSL certificate exists" test -f "${ssl_chainpath}/xray.crt"
     assert_ok "SSL key exists" test -f "${ssl_chainpath}/xray.key"
 fi
 
-if [[ "${MODE}" == "reality" ]]; then
+if [[ "${MODE}" == "reality" || "${MODE}" == "reality_nginx" ]]; then
     assert_ok "Reality target is set" test -n "${target}"
     assert_ok "Reality privateKey is set" test -n "${privateKey}"
+    assert_ok "Reality publicKey is stored" test -n "$(qr_value publicKey)"
+    assert_ok "Reality publicKey keeps legacy password compatibility" test "$(qr_value publicKey)" = "$(qr_value password)"
+    assert_ok "Reality guard port 9403 is reserved" is_reality_reserved_port 9403
+    assert_ok "Reality guard port 9404 is reserved" is_reality_reserved_port 9404
+    assert_ok "Reality guard port 9443 is reserved" is_reality_reserved_port 9443
+    assert_ok "Reality guard port 9444 is reserved" is_reality_reserved_port 9444
 fi
 
 echo ""
@@ -455,6 +487,18 @@ reality)
     assert_qr_matches_config "Reality privateKey matches config" privateKey "VLESS-Reality-in" ".streamSettings.realitySettings.privateKey"
     assert_ok "Reality shortId is in config" jq -e --arg short_id "$(qr_value shortIds)" '.inbounds[] | select(.tag == "VLESS-Reality-in") | .streamSettings.realitySettings.shortIds | index($short_id)' "${xray_conf}"
     ;;
+reality_nginx)
+    assert_ok "Reality public port differs from protected backend" test "$(qr_value port)" != "$(config_value VLESS-Reality-in '.port')"
+    assert_ok "Reality protected backend uses reserved port 9443" test "$(config_value VLESS-Reality-in '.port')" = "9443"
+    assert_qr_matches_config "Reality privateKey matches config" privateKey "VLESS-Reality-in" ".streamSettings.realitySettings.privateKey"
+    assert_ok "Reality shortId is in config" jq -e --arg short_id "$(qr_value shortIds)" '.inbounds[] | select(.tag == "VLESS-Reality-in") | .streamSettings.realitySettings.shortIds | index($short_id)' "${xray_conf}"
+    assert_ok "SNI Guard defaults to isolate" test "$(qr_value unknown_sni_policy)" = "isolate"
+    assert_ok "SNI Guard is enabled" test "$(qr_value reality_nginx_sni_guard)" = "on"
+    assert_ok "Unknown SNI maps to deny" grep -Fq "default deny;" "${nginx_conf}"
+    assert_ok "Deny upstream uses isolate listener" grep -Fq "server 127.0.0.1:9403;" "${nginx_conf}"
+    assert_ok "Isolate listener config exists" test -f "${nginx_conf_dir}/03-isolate.conf"
+    assert_ok "Isolate listener rejects TLS handshakes" grep -Fq "ssl_reject_handshake on;" "${nginx_conf_dir}/03-isolate.conf"
+    ;;
 ws_grpc_xhttp)
     assert_qr_matches_config "ws port matches config" ws_port "VLESS-ws-in" ".port"
     assert_qr_matches_config "ws path matches config" path "VLESS-ws-in" ".streamSettings.wsSettings.path | ltrimstr(\"/\")"
@@ -468,6 +512,47 @@ tls)
     assert_qr_matches_config "TLS ws path matches config" path "VLESS-ws-in" ".streamSettings.wsSettings.path | ltrimstr(\"/\")"
     ;;
 esac
+
+json_update_preserves_private_mode() {
+    chmod 600 "${xray_install_config_file}" || return 1
+    update_json_config "${xray_install_config_file}" '.ci_permission_probe = true' || return 1
+    [[ "$(stat -c '%a' "${xray_install_config_file}")" == "600" ]] || return 1
+    update_json_config "${xray_install_config_file}" 'del(.ci_permission_probe)' || return 1
+    [[ "$(stat -c '%a' "${xray_install_config_file}")" == "600" ]]
+}
+
+reality_upgrade_defaults_are_safe() {
+    local private_key_before inode_before inode_after
+    private_key_before=$(qr_value privateKey)
+    update_json_config "${xray_install_config_file}" \
+        'del(.reality_nginx_sni_guard, .unknown_sni_policy, .decoy_domain)' || return 1
+    ensure_reality_sni_guard_defaults || return 1
+    [[ "$(qr_value privateKey)" == "${private_key_before}" ]] || return 1
+    [[ "$(qr_value reality_nginx_sni_guard)" == "on" ]] || return 1
+    [[ "$(qr_value unknown_sni_policy)" == "isolate" ]] || return 1
+    [[ "$(qr_value decoy_domain)" == "" ]] || return 1
+    inode_before=$(stat -c '%i' "${xray_install_config_file}") || return 1
+    ensure_reality_sni_guard_defaults || return 1
+    inode_after=$(stat -c '%i' "${xray_install_config_file}") || return 1
+    [[ "${inode_before}" == "${inode_after}" ]]
+}
+
+assert_ok "Install config is private" test "$(stat -c '%a' "${xray_install_config_file}")" = "600"
+assert_ok "Xray config is private" test "$(stat -c '%a' "${xray_conf}")" = "600"
+assert_ok "JSON updates preserve private mode" json_update_preserves_private_mode
+if [[ "${MODE}" == "reality" || "${MODE}" == "reality_nginx" ]]; then
+    assert_ok "Reality upgrade defaults preserve existing config" reality_upgrade_defaults_are_safe
+fi
+
+if [[ "${MODE}" == "reality_nginx" ]]; then
+    unknown_sni_policy="decoy"
+    decoy_domain="missing-ci-decoy.example.com"
+    rm -f "${ssl_chainpath}/decoy.key" "${ssl_chainpath}/decoy.crt" "${idleleo_dir}/decoy/index.html"
+    assert_ok "Missing decoy artifacts fall back safely" nginx_reality_conf_add
+    assert_ok "Missing decoy fallback selects isolate" test "${unknown_sni_policy}" = "isolate"
+    assert_ok "Missing decoy fallback does not target 9444" grep -Fq "server 127.0.0.1:9403;" "${nginx_conf}"
+    assert_ok "Nginx remains valid after decoy fallback" "${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf"
+fi
 
 if [[ "${MODE}" == "ws_grpc_xhttp" ]]; then
     assert_ok "Install config transport mode is wsgRPCxhttp" test "$(jq -r '.transport_mode' "${xray_install_config_file}")" = "wsgRPCxhttp"
@@ -500,7 +585,7 @@ if [[ ${TEST_FAIL} -gt 0 ]]; then
     echo ""
     echo "--- Debug: Xray error log (last 20 lines) ---"
     tail -20 /var/log/xray/error.log 2>/dev/null || echo "(no error log)"
-    if [[ "${MODE}" == "tls" ]]; then
+    if [[ "${MODE}" == "tls" || "${MODE}" == "reality_nginx" ]]; then
         echo ""
         echo "--- Debug: Nginx service status ---"
         systemctl status nginx 2>&1 || true
