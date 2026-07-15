@@ -36,7 +36,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.0.0"
+shell_version="3.0.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -6011,16 +6011,126 @@ menu_clear() {
     fi
 }
 
+menu_prepare_width() {
+    local terminal_columns=""
+
+    if [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
+        terminal_columns=$(tput cols 2>/dev/null || true)
+    fi
+    if ! [[ ${terminal_columns} =~ ^[0-9]+$ ]]; then
+        terminal_columns="${COLUMNS:-}"
+    fi
+    if ! [[ ${terminal_columns} =~ ^[0-9]+$ ]] && [[ -t 1 ]]; then
+        terminal_columns=$(stty size 2>/dev/null | awk '{print $2}')
+    fi
+    [[ ${terminal_columns} =~ ^[0-9]+$ ]] || terminal_columns=80
+
+    MENU_BOX_WIDTH=$((terminal_columns - 4))
+    ((MENU_BOX_WIDTH > 88)) && MENU_BOX_WIDTH=88
+    if ((MENU_BOX_WIDTH < 52)); then
+        MENU_BOX_WIDTH=$((terminal_columns - 2))
+    fi
+    ((MENU_BOX_WIDTH < 20)) && MENU_BOX_WIDTH=20
+}
+
+menu_ensure_width() {
+    [[ ${MENU_BOX_WIDTH:-} =~ ^[0-9]+$ ]] || menu_prepare_width
+}
+
+menu_visible_width() {
+    local plain_text visible_width
+    plain_text=$(printf '%b' "$1" | sed $'s/\033\\[[0-9;]*m//g')
+    if ! visible_width=$(printf '%s' "${plain_text}" | LC_ALL=C.UTF-8 wc -L 2>/dev/null); then
+        visible_width=$(printf '%s' "${plain_text}" | wc -L 2>/dev/null)
+    fi
+    visible_width=${visible_width//[[:space:]]/}
+    if [[ ${visible_width} =~ ^[0-9]+$ ]]; then
+        printf '%s' "${visible_width}"
+    else
+        printf '%s' "${#plain_text}"
+    fi
+}
+
+menu_repeat() {
+    local character="$1" count="$2" index
+    for ((index = 0; index < count; index++)); do
+        printf '%s' "${character}"
+    done
+}
+
 menu_title() {
-    echo -e "${GreenW}╭─ $1 ─────────────────────────────────────${Font}"
+    local title="$1" title_width line_count
+    menu_prepare_width
+    title_width=$(menu_visible_width "${title}")
+    line_count=$((MENU_BOX_WIDTH - title_width - 5))
+    ((line_count < 1)) && line_count=1
+
+    printf '%b╭─ %b%b %b' "${GreenW}" "${Font}" "${title}" "${GreenW}"
+    menu_repeat '─' "${line_count}"
+    printf '╮%b\n' "${Font}"
 }
 
 menu_footer() {
-    echo -e "${GreenW}╰──────────────────────────────────────────${Font}"
+    menu_ensure_width
+    printf '%b╰' "${GreenW}"
+    menu_repeat '─' "$((MENU_BOX_WIDTH - 2))"
+    printf '╯%b\n' "${Font}"
+}
+
+menu_divider() {
+    local title="$1" title_width line_count
+    menu_ensure_width
+    title_width=$(menu_visible_width "${title}")
+    line_count=$((MENU_BOX_WIDTH - title_width - 5))
+    ((line_count < 1)) && line_count=1
+
+    printf '%b├─ %b%b %b' "${GreenW}" "${Font}" "${title}" "${GreenW}"
+    menu_repeat '─' "${line_count}"
+    printf '┤%b\n' "${Font}"
+}
+
+menu_row() {
+    local content="$1" content_width padding
+    menu_ensure_width
+    content_width=$(menu_visible_width "${content}")
+    padding=$((MENU_BOX_WIDTH - content_width - 4))
+    ((padding < 0)) && padding=0
+
+    printf '%b│%b %b' "${GreenW}" "${Font}" "${content}"
+    printf '%*s' "${padding}" ''
+    printf '%b │%b\n' "${GreenW}" "${Font}"
+}
+
+menu_fields() {
+    local field current="" candidate candidate_width max_width
+    menu_ensure_width
+    max_width=$((MENU_BOX_WIDTH - 4))
+
+    for field in "$@"; do
+        if [[ -z ${current} ]]; then
+            current="${field}"
+            continue
+        fi
+        candidate="${current}  ·  ${field}"
+        candidate_width=$(menu_visible_width "${candidate}")
+        if ((candidate_width <= max_width)); then
+            current="${candidate}"
+        else
+            menu_row "${current}"
+            current="${field}"
+        fi
+    done
+    [[ -n ${current} ]] && menu_row "${current}"
+}
+
+menu_blank() {
+    menu_row ""
 }
 
 menu_item() {
-    printf '%b%2s.%b %s\n' "${Green}" "$1" "${Font}" "$2"
+    local item
+    printf -v item '%b%2s.%b %s' "${Green}" "$1" "${Font}" "$2"
+    menu_row "${item}"
 }
 
 menu_pause() {
@@ -6037,7 +6147,7 @@ menu_read() {
 menu_submenu_begin() {
     menu_clear
     menu_title "$1"
-    echo
+    menu_blank
 }
 
 menu_action() {
@@ -6278,11 +6388,11 @@ menu_install() {
     local menu_num
     while true; do
         menu_submenu_begin "$(gettext "安装向导")"
-        menu_item 1 "$(gettext "安装") Xray (Reality+ws/gRPC/xHTTP+Nginx)"
-        menu_item 2 "$(gettext "安装") Xray (Nginx+ws/gRPC/xHTTP+TLS)"
-        menu_item 3 "$(gettext "安装") Xray (ws/gRPC/xHTTP ONLY)"
-        menu_item 4 "$(gettext "安装") Xray (XTLS ONLY)"
-        echo
+        menu_item 1 "Reality + ws/gRPC/xHTTP + Nginx"
+        menu_item 2 "ws/gRPC/xHTTP + TLS"
+        menu_item 3 "ws/gRPC/xHTTP ONLY"
+        menu_item 4 "XTLS ONLY"
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 4
@@ -6303,7 +6413,7 @@ menu_user_management() {
         menu_item 1 "$(gettext "查看") Xray $(gettext "用户")"
         menu_item 2 "$(gettext "添加") Xray $(gettext "用户")"
         menu_item 3 "$(gettext "删除") Xray $(gettext "用户")"
-        echo
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 3
@@ -6325,7 +6435,7 @@ menu_connection_config() {
         menu_item 3 "$(gettext "变更") target"
         menu_item 4 "$(gettext "变更") TLS $(gettext "版本")"
         menu_item 5 "$(gettext "变更") SNI Guard"
-        echo
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 5
@@ -6344,9 +6454,9 @@ menu_nginx_config() {
     local menu_num
     while true; do
         menu_submenu_begin "Nginx $(gettext "配置")"
-        menu_item 1 "$(gettext "变更") Nginx $(gettext "负载均衡配置")"
-        menu_item 2 "$(gettext "变更") Nginx serverNames $(gettext "配置")"
-        echo
+        menu_item 1 "$(gettext "负载均衡")"
+        menu_item 2 "serverNames"
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 2
@@ -6361,11 +6471,11 @@ menu_nginx_config() {
 menu_config() {
     local menu_num
     while true; do
-        menu_submenu_begin "$(gettext "配置变更") / $(gettext "用户管理")"
+        menu_submenu_begin "$(gettext "配置变更")"
         menu_item 1 "$(gettext "用户管理")"
         menu_item 2 "$(gettext "配置变更")"
         menu_item 3 "Nginx $(gettext "配置")"
-        echo
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 3
@@ -6382,11 +6492,11 @@ menu_information() {
     local menu_num
     while true; do
         menu_submenu_begin "$(gettext "查看信息")"
-        menu_item 1 "$(gettext "查看") Xray $(gettext "配置信息")"
-        menu_item 2 "$(gettext "查看") Xray $(gettext "实时访问日志")"
-        menu_item 3 "$(gettext "查看") Xray $(gettext "实时错误日志")"
-        menu_item 4 "$(gettext "查看") port $(gettext "实时流量")"
-        echo
+        menu_item 1 "Xray $(gettext "配置信息")"
+        menu_item 2 "Xray $(gettext "实时访问日志")"
+        menu_item 3 "Xray $(gettext "实时错误日志")"
+        menu_item 4 "port $(gettext "实时流量")"
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 4
@@ -6408,7 +6518,7 @@ menu_service_management() {
         menu_item 2 "$(gettext "启动") $(gettext "所有服务")"
         menu_item 3 "$(gettext "停止") $(gettext "所有服务")"
         menu_item 4 "$(gettext "查看") $(gettext "所有服务")"
-        echo
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 4
@@ -6426,10 +6536,10 @@ menu_certificate_management() {
     local menu_num
     while true; do
         menu_submenu_begin "$(gettext "证书相关")"
-        menu_item 1 "$(gettext "查看") $(gettext "证书状态")"
-        menu_item 2 "$(gettext "更新") $(gettext "证书有效期")"
-        menu_item 3 "$(gettext "设置") $(gettext "证书自动更新")"
-        echo
+        menu_item 1 "$(gettext "证书状态")"
+        menu_item 2 "$(gettext "证书有效期")"
+        menu_item 3 "$(gettext "证书自动更新")"
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 3
@@ -6445,10 +6555,10 @@ menu_certificate_management() {
 menu_service_and_certificate() {
     local menu_num
     while true; do
-        menu_submenu_begin "$(gettext "服务相关") / $(gettext "证书相关")"
+        menu_submenu_begin "Xray / TLS"
         menu_item 1 "$(gettext "服务相关")"
         menu_item 2 "$(gettext "证书相关")"
-        echo
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 2
@@ -6468,7 +6578,7 @@ menu_update() {
         menu_item 2 "$(gettext "更新") Xray"
         menu_item 3 "$(gettext "更新") Nginx"
         menu_item 4 "$(gettext "配置") $(gettext "自动更新")"
-        echo
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 4
@@ -6486,13 +6596,13 @@ menu_tools() {
     local menu_num
     while true; do
         menu_submenu_begin "$(gettext "其他选项")"
-        menu_item 1 "$(gettext "设置") TCP $(gettext "加速")"
-        menu_item 2 "$(gettext "设置") Fail2ban $(gettext "防暴力破解")"
-        menu_item 3 "$(gettext "设置") Xray $(gettext "流量统计")"
-        menu_item 4 "$(gettext "设置") Xray $(gettext "流量阻断")"
+        menu_item 1 "TCP $(gettext "加速")"
+        menu_item 2 "Fail2ban"
+        menu_item 3 "Xray $(gettext "流量统计")"
+        menu_item 4 "Xray $(gettext "流量阻断")"
         menu_item 5 "$(gettext "清除") $(gettext "日志文件")"
-        menu_item 6 "$(gettext "测试") $(gettext "服务器网速")"
-        echo
+        menu_item 6 "$(gettext "服务器网速")"
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 6
@@ -6511,12 +6621,12 @@ menu_tools() {
 menu_backup_and_uninstall() {
     local menu_num
     while true; do
-        menu_submenu_begin "$(gettext "备份恢复") / $(gettext "卸载向导")"
+        menu_submenu_begin "$(gettext "备份恢复")"
         menu_item 1 "$(gettext "备份") $(gettext "全部文件")"
         menu_item 2 "$(gettext "恢复") $(gettext "全部文件")"
         menu_item 3 "$(gettext "清空") $(gettext "证书文件")"
         menu_item 4 "$(gettext "卸载") $(gettext "脚本")"
-        echo
+        menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read menu_num 4
@@ -6532,16 +6642,27 @@ menu_backup_and_uninstall() {
 
 menu_main_header() {
     menu_clear
-    echo -e "${GreenW}╭─ Xray $(gettext "安装管理脚本") ${Red}[${shell_version}]${Font} ${shell_emoji}"
-    log_echo "│ $(gettext "当前模式"): ${shell_mode}  ·  $(gettext "当前语言"): ${LANG%.*}"
-    log_echo "├─ $(gettext "版本检测")"
-    log_echo "│ $(gettext "脚本"): ${shell_need_update}  Xray: ${xray_need_update}  Nginx: ${nginx_need_update}"
-    log_echo "├─ $(gettext "运行状态")"
-    log_echo "│ Xray: ${xray_status}  Nginx: ${nginx_status}  $(gettext "连通性"): ${xray_local_connect_status}"
-    echo -e "${GreenW}╰──────────────────────────────────────────${Font}"
+    menu_title "Xray · idleleo ${Red}[${shell_version}]${Font} ${shell_emoji}"
+    local mode_field="$(gettext "当前模式"): ${shell_mode}"
+    local language_field="$(gettext "当前语言"): ${LANG%.*}"
+    local shell_version_field="$(gettext "脚本"): ${shell_need_update}"
+    local xray_version_field="Xray: ${xray_need_update}"
+    local nginx_version_field="Nginx: ${nginx_need_update}"
+    local xray_status_field="Xray: ${xray_status}"
+    local nginx_status_field="Nginx: ${nginx_status}"
+    local connect_status_field="$(gettext "连通性"): ${xray_local_connect_status}"
+    menu_fields "${mode_field}" "${language_field}"
+    menu_divider "$(gettext "版本检测")"
+    menu_fields "${shell_version_field}" "${xray_version_field}" "${nginx_version_field}"
+    menu_divider "$(gettext "运行状态")"
+    menu_fields "${xray_status_field}" "${nginx_status_field}" "${connect_status_field}"
+    menu_footer
+    log "${mode_field}  ·  ${language_field}"
+    log "${shell_version_field}  ·  ${xray_version_field}  ·  ${nginx_version_field}"
+    log "${xray_status_field}  ·  ${nginx_status_field}  ·  ${connect_status_field}"
     echo
-    menu_title "$(gettext "主菜单")  ·  idleleo $(gettext "命令管理脚本")"
-    echo
+    menu_title "$(gettext "主菜单")  ·  idleleo"
+    menu_blank
 }
 
 menu() {
@@ -6549,14 +6670,14 @@ menu() {
     while true; do
         menu_main_header
         menu_item 1 "$(gettext "安装向导")"
-        menu_item 2 "$(gettext "配置变更") / $(gettext "用户管理")"
+        menu_item 2 "$(gettext "配置变更")"
         menu_item 3 "$(gettext "查看信息")"
-        menu_item 4 "$(gettext "服务相关") / $(gettext "证书相关")"
+        menu_item 4 "Xray / TLS"
         menu_item 5 "$(gettext "更新向导")"
         menu_item 6 "$(gettext "其他选项")"
-        menu_item 7 "$(gettext "备份恢复") / $(gettext "卸载向导")"
+        menu_item 7 "$(gettext "备份恢复")"
         menu_item 8 "$(gettext "修改语言") / Language"
-        echo
+        menu_blank
         menu_item 0 "$(gettext "退出")"
         menu_footer
         menu_read menu_num 8
