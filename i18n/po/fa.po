@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
-"POT-Creation-Date: 2026-07-14 11:49+0000\n"
+"POT-Creation-Date: 2026-07-15 08:34+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -120,8 +120,7 @@ msgstr "در حال نصب"
 
 #: install.sh:426 install.sh:559 install.sh:567 install.sh:1843
 #: install.sh:4252 install.sh:5636 install.sh:5637 install.sh:5638
-#: install.sh:5639 install.sh:6281 install.sh:6282 install.sh:6283
-#: install.sh:6284 scripts/fail2ban_manager.sh:63
+#: install.sh:5639 scripts/fail2ban_manager.sh:63
 #: scripts/fail2ban_manager.sh:91
 msgid "安装"
 msgstr "نصب"
@@ -130,8 +129,8 @@ msgstr "نصب"
 #: install.sh:1681 install.sh:1879 install.sh:1946 install.sh:1947
 #: install.sh:2380 install.sh:2388 install.sh:2395 install.sh:2586
 #: install.sh:2690 install.sh:2881 install.sh:3834 install.sh:3838
-#: install.sh:3843 install.sh:5970 install.sh:6002 install.sh:6182
-#: install.sh:6191 install.sh:6587 scripts/file_manager.sh:366
+#: install.sh:3843 install.sh:5970 install.sh:6002 install.sh:6292
+#: install.sh:6301 install.sh:6708 scripts/file_manager.sh:366
 #: scripts/traffic_blocker.sh:514 scripts/traffic_blocker.sh:980
 msgid "失败"
 msgstr "شکست"
@@ -235,7 +234,7 @@ msgstr "لطفاً وارد کنید"
 #: install.sh:704 install.sh:1354 install.sh:2029 install.sh:2730
 #: install.sh:2765 install.sh:2820 install.sh:4436 install.sh:4452
 #: install.sh:4687 install.sh:4698 install.sh:4778 install.sh:4789
-#: install.sh:4873 install.sh:4884 install.sh:6034
+#: install.sh:4873 install.sh:4884 install.sh:6144
 msgid "请输入有效的数字"
 msgstr "لطفاً عدد معتبری وارد کنید"
 
@@ -272,7 +271,7 @@ msgid "防火墙"
 msgstr "دیوار آتش"
 
 #: install.sh:960 install.sh:963 install.sh:3457 install.sh:3464
-#: install.sh:4466 install.sh:4469 install.sh:6407
+#: install.sh:4466 install.sh:4469 install.sh:6517
 #: scripts/fail2ban_manager.sh:338 scripts/fail2ban_manager.sh:545
 #: scripts/file_manager.sh:203 scripts/file_manager.sh:207
 #: scripts/file_manager.sh:254 scripts/file_manager.sh:363
@@ -291,7 +290,7 @@ msgstr ""
 "اگر تنظیمات را تغییر می‌دهید، لطفاً پورت‌های مربوط به فایروال را ببندید"
 
 #: install.sh:967 install.sh:5641 install.sh:5658 install.sh:5659
-#: install.sh:6346 install.sh:6348 install.sh:6367 install.sh:6470
+#: install.sh:6456 install.sh:6477 install.sh:6580
 #: scripts/fail2ban_manager.sh:88 scripts/fail2ban_manager.sh:93
 #: scripts/fail2ban_manager.sh:243
 msgid "配置"
@@ -336,8 +335,8 @@ msgstr "حداکثر ۳۰ حرف"
 msgid "自定义字符串"
 msgstr "رشته کاربری"
 
-#: install.sh:1122 install.sh:4286 install.sh:5661 install.sh:6102
-#: install.sh:6323
+#: install.sh:1122 install.sh:4286 install.sh:5661 install.sh:6212
+#: install.sh:6433
 msgid "映射字符串"
 msgstr "رشته متنابه"
 
@@ -411,7 +410,7 @@ msgstr "یک نام دامنه وارد کنید"
 #: install.sh:1249 install.sh:1721 install.sh:1728 install.sh:1789
 #: install.sh:3129 install.sh:3232 install.sh:3354 install.sh:3362
 #: install.sh:3371 install.sh:3409 install.sh:3834 install.sh:3838
-#: install.sh:3843 install.sh:6587
+#: install.sh:3843 install.sh:6708
 msgid "配置修改"
 msgstr "تغییر تنظیمات"
 
@@ -466,7 +465,7 @@ msgstr "لطفاً ابتدا اسکریپت اصلی را به‌روزرسان
 msgid "是否变更"
 msgstr "آیا تغییر می‌کند"
 
-#: install.sh:1342
+#: install.sh:1342 install.sh:6457
 msgid "负载均衡"
 msgstr "تعادل بار"
 
@@ -474,10 +473,10 @@ msgstr "تعادل بار"
 msgid "请选择协议为 ws 或 gRPC 或 xHTTP"
 msgstr "برای ws یا gRPC یا xHTTP قرارداد انتخاب کنید"
 
-#: install.sh:1352 install.sh:6286 install.sh:6307 install.sh:6329
-#: install.sh:6350 install.sh:6369 install.sh:6390 install.sh:6412
-#: install.sh:6433 install.sh:6452 install.sh:6472 install.sh:6496
-#: install.sh:6520 scripts/fail2ban_manager.sh:321
+#: install.sh:1352 install.sh:6396 install.sh:6417 install.sh:6439
+#: install.sh:6460 install.sh:6479 install.sh:6500 install.sh:6522
+#: install.sh:6543 install.sh:6562 install.sh:6582 install.sh:6606
+#: install.sh:6630 scripts/fail2ban_manager.sh:321
 #: scripts/fail2ban_manager.sh:339 scripts/fail2ban_manager.sh:438
 #: scripts/fail2ban_manager.sh:478 scripts/traffic_blocker.sh:268
 #: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:700
@@ -549,8 +548,8 @@ msgstr "برخی از ویژگی‌های جدید نیاز به نصب مجدد
 
 #: install.sh:1868 install.sh:1876 install.sh:1907 install.sh:1946
 #: install.sh:1947 install.sh:2474 install.sh:2626 install.sh:5396
-#: install.sh:5652 install.sh:5664 install.sh:6430 install.sh:6467
-#: install.sh:6468 install.sh:6469 scripts/traffic_blocker.sh:697
+#: install.sh:5652 install.sh:5664 install.sh:6577 install.sh:6578
+#: install.sh:6579 scripts/traffic_blocker.sh:697
 #: scripts/traffic_blocker.sh:698 scripts/traffic_blocker.sh:980
 msgid "更新"
 msgstr "به‌روزرسانی"
@@ -568,7 +567,7 @@ msgid "是否更新"
 msgstr "آیا به‌روزرسانی می‌شود"
 
 #: install.sh:1879 install.sh:2586 install.sh:3474 install.sh:3481
-#: install.sh:4238 install.sh:6182 install.sh:6408
+#: install.sh:4238 install.sh:6292 install.sh:6518
 #: scripts/fail2ban_manager.sh:336 scripts/fail2ban_manager.sh:514
 msgid "启动"
 msgstr "شروع کردن"
@@ -598,8 +597,8 @@ msgstr "بازگرداندن شکست خورد"
 msgid "已成功回滚到之前的"
 msgstr "به موفقیت به نسخه قبل بازگردانده شد"
 
-#: install.sh:1896 install.sh:2597 install.sh:2612 install.sh:6117
-#: install.sh:6326
+#: install.sh:1896 install.sh:2597 install.sh:2612 install.sh:6227
+#: install.sh:6436
 msgid "版本"
 msgstr "نسخه"
 
@@ -659,7 +658,7 @@ msgstr ""
 " IP عمومی سرور خودتان اشاره کند. اگر معنای آن را نمی‌دانید، از روش جدا سازی "
 "پیش فرض استفاده کنید."
 
-#: install.sh:2029 install.sh:6034
+#: install.sh:2029 install.sh:6144
 msgid "请输入选项"
 msgstr "لطفاً گزینه را وارد کنید"
 
@@ -714,7 +713,6 @@ msgid "域名校验通过"
 msgstr "اعتبارسنجی دامنه موفق بود"
 
 #: install.sh:2152
-#| msgid "证书生成"
 msgid "自签证书生成失败"
 msgstr "ناموفق بودن تولید گواهی خود-اعلام شده"
 
@@ -801,7 +799,7 @@ msgstr "تشخیص تنظیمات"
 msgid "服务日志"
 msgstr "روز خدمات"
 
-#: install.sh:2434 install.sh:6537
+#: install.sh:2434 install.sh:6655
 msgid "版本检测"
 msgstr "تشخیص نسخه"
 
@@ -841,11 +839,11 @@ msgstr "پرونده تنظیمات اصلی حذف شده است"
 msgid "原配置文件已保留"
 msgstr "پرونده تنظیمات اصلی نگهداری شده است"
 
-#: install.sh:2628 install.sh:6305
+#: install.sh:2628 install.sh:6415
 msgid "删除"
 msgstr "حذف کردن"
 
-#: install.sh:2628 install.sh:5970 install.sh:5972 install.sh:6515
+#: install.sh:2628 install.sh:5970 install.sh:5972 install.sh:6625
 msgid "备份"
 msgstr "پشتیبان‌گیری"
 
@@ -1115,8 +1113,7 @@ msgstr "پاک کردن تنظیمات"
 msgid "设置 Nginx 开机自启"
 msgstr "تنظیم اتوماتیک شروع Nginx در هنگام روشن شدن سیستم"
 
-#: install.sh:3420 install.sh:6431 install.sh:6489 install.sh:6490
-#: install.sh:6491 install.sh:6492 scripts/fail2ban_manager.sh:61
+#: install.sh:3420 scripts/fail2ban_manager.sh:61
 #: scripts/traffic_blocker.sh:577
 msgid "设置"
 msgstr "تنظیمات"
@@ -1139,7 +1136,7 @@ msgstr ""
 "ماموریت زمان‌بندی شده به‌روزرسانی خودکار گواهینامه‌های باقی‌مانده پاکسازی شد"
 
 #: install.sh:3442 install.sh:3491 install.sh:3495 install.sh:3553
-#: install.sh:6191 install.sh:6409 scripts/fail2ban_manager.sh:337
+#: install.sh:6301 install.sh:6519 scripts/fail2ban_manager.sh:337
 #: scripts/fail2ban_manager.sh:537
 msgid "停止"
 msgstr "متوقف شوید"
@@ -1310,7 +1307,7 @@ msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
 msgstr ""
 "xHTTP نیاز به هسته mihomo (Meta) دارد، اما نسخه اصلی Clash پشتیبانی نمی‌کند"
 
-#: install.sh:4260 install.sh:6385
+#: install.sh:4260 install.sh:6495
 msgid "配置信息"
 msgstr "اطلاعات تنظیم"
 
@@ -1402,7 +1399,7 @@ msgstr "کاربرد گواهینامه"
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr "پرونده‌های باقیمانده از صدور گواهینامه وجود دارد، آیا نگهداری می‌شود؟"
 
-#: install.sh:4422 install.sh:6304
+#: install.sh:4422 install.sh:6414
 msgid "添加"
 msgstr "اضافه کردن"
 
@@ -1659,27 +1656,26 @@ msgstr "آخرین اسکریپت را دانلود کنید"
 msgid "该选项暂时无法使用"
 msgstr "این گزینه در حال حاضر قابل استفاده نیست"
 
-#: install.sh:5518 install.sh:6074
+#: install.sh:5518 install.sh:6184
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
 "این روش برای توازن بار توصیه می‌شود، در شرایط عادی توصیه نمی‌شود که استفاده "
 "شود، آیا نصب می‌کنید"
 
-#: install.sh:5531 install.sh:6088
+#: install.sh:5531 install.sh:6198
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
 "این روش فقط برای انتقال ترافیک استفاده می‌شود و در سایر موارد توصیه نمی‌شود."
 " آیا می‌خواهید نصب کنید؟"
 
 #: install.sh:5640 install.sh:5641 install.sh:5642 install.sh:5653
-#: install.sh:5657 install.sh:5661 install.sh:6102 install.sh:6107
-#: install.sh:6112 install.sh:6117 install.sh:6130 install.sh:6323
-#: install.sh:6324 install.sh:6325 install.sh:6326 install.sh:6327
-#: install.sh:6347 install.sh:6348
+#: install.sh:5657 install.sh:5661 install.sh:6212 install.sh:6217
+#: install.sh:6222 install.sh:6227 install.sh:6240 install.sh:6433
+#: install.sh:6434 install.sh:6435 install.sh:6436 install.sh:6437
 msgid "变更"
 msgstr "تغییر"
 
-#: install.sh:5640 install.sh:6347
+#: install.sh:5640
 msgid "负载均衡配置"
 msgstr "پیکربندی توازن بار"
 
@@ -1711,17 +1707,16 @@ msgstr "تنظیم مسدود کردن ترافیک Xray"
 msgid "显示帮助"
 msgstr "نمایش کمک"
 
-#: install.sh:5651 install.sh:6558
+#: install.sh:5651 install.sh:6679
 msgid "修改语言"
 msgstr "زبان را ویرایش کنید"
 
-#: install.sh:5654 install.sh:6303 install.sh:6385 install.sh:6386
-#: install.sh:6387 install.sh:6388 install.sh:6410 install.sh:6429
+#: install.sh:5654 install.sh:6413 install.sh:6520
 #: scripts/fail2ban_manager.sh:66
 msgid "查看"
 msgstr "مشاهده کنید"
 
-#: install.sh:5654 install.sh:6388
+#: install.sh:5654 install.sh:6498
 msgid "实时流量"
 msgstr "جریان زنده"
 
@@ -1733,7 +1728,7 @@ msgstr "اسکریپت‌های خارج شده"
 msgid "显示安装信息"
 msgstr "اطلاعات نصب را نشان دهید"
 
-#: install.sh:5658 install.sh:6489
+#: install.sh:5658 install.sh:6599
 msgid "加速"
 msgstr "سرعت بخشیدن"
 
@@ -1852,7 +1847,7 @@ msgstr "پیدا کردن آخرین فایل پشتیبان"
 msgid "恢复备份"
 msgstr "بازیابی پشتیبان"
 
-#: install.sh:5996 install.sh:6002 install.sh:6516
+#: install.sh:5996 install.sh:6002 install.sh:6626
 msgid "恢复"
 msgstr "بازیابی"
 
@@ -1860,180 +1855,160 @@ msgstr "بازیابی"
 msgid "记得安装"
 msgstr "یادتان باشد نصب کنید"
 
-#: install.sh:6028
+#: install.sh:6138
 msgid "回到菜单"
 msgstr "برگرد به منو"
 
-#: install.sh:6055
+#: install.sh:6165
 msgid "不建议"
 msgstr "توصیه نمی‌شود"
 
-#: install.sh:6055
+#: install.sh:6165
 msgid "频繁更新 Nginx, 请确认 Nginx 有更新的必要"
 msgstr ""
 "به‌طور مکرر Nginx را به‌روزرسانی کنید، لطفاً مطمئن شوید که Nginx نیاز به "
 "به‌روزرسانی دارد"
 
-#: install.sh:6056
+#: install.sh:6166
 msgid "开始更新"
 msgstr "آغاز به روزرسانی"
 
-#: install.sh:6182 install.sh:6191 install.sh:6407 install.sh:6408
-#: install.sh:6409 install.sh:6410
+#: install.sh:6292 install.sh:6301 install.sh:6517 install.sh:6518
+#: install.sh:6519 install.sh:6520
 msgid "所有服务"
 msgstr "تمام خدمات"
 
-#: install.sh:6245
+#: install.sh:6355
 msgid "网速测试脚本下载失败"
 msgstr "دانلود اسکریپت آزمون سرعت اینترنت ناموفق بود"
 
-#: install.sh:6280 install.sh:6551
+#: install.sh:6390 install.sh:6672
 msgid "安装向导"
 msgstr "راهنمای نصب"
 
-#: install.sh:6302 install.sh:6364 install.sh:6365 install.sh:6552
+#: install.sh:6412 install.sh:6475
 msgid "用户管理"
 msgstr "مدیریت کاربران"
 
-#: install.sh:6303 install.sh:6304 install.sh:6305
+#: install.sh:6413 install.sh:6414 install.sh:6415
 msgid "用户"
 msgstr "کاربر"
 
-#: install.sh:6322 install.sh:6364 install.sh:6366 install.sh:6552
+#: install.sh:6432 install.sh:6474 install.sh:6476 install.sh:6673
 msgid "配置变更"
 msgstr "تغییر تنظیمات"
 
-#: install.sh:6384 install.sh:6553
+#: install.sh:6494 install.sh:6674
 msgid "查看信息"
 msgstr "اطلاعات را ببینید"
 
-#: install.sh:6386
+#: install.sh:6496
 msgid "实时访问日志"
 msgstr "روگردان وقوع زمان واقع"
 
-#: install.sh:6387
+#: install.sh:6497
 msgid "实时错误日志"
 msgstr "روزنامه خطاها در زمان واقعی"
 
-#: install.sh:6406 install.sh:6448 install.sh:6449 install.sh:6554
+#: install.sh:6516 install.sh:6559
 msgid "服务相关"
 msgstr "خدمات مرتبط"
 
-#: install.sh:6428 install.sh:6448 install.sh:6450 install.sh:6554
+#: install.sh:6538 install.sh:6560
 msgid "证书相关"
 msgstr "مربوط به گواهینامه"
 
-#: install.sh:6429
+#: install.sh:6539
 msgid "证书状态"
 msgstr "وضع گواهینامه"
 
-#: install.sh:6430
+#: install.sh:6540
 msgid "证书有效期"
 msgstr "مدت اعتبار گواهینامه"
 
-#: install.sh:6431
+#: install.sh:6541
 msgid "证书自动更新"
 msgstr "به‌روزرسانی خودکار گواهینامه"
 
-#: install.sh:6466 install.sh:6555
+#: install.sh:6576 install.sh:6676
 msgid "更新向导"
 msgstr "راهنمای به‌روزرسانی"
 
-#: install.sh:6467 install.sh:6518 install.sh:6538
+#: install.sh:6577 install.sh:6628 install.sh:6648
 msgid "脚本"
 msgstr "اسکریپت"
 
-#: install.sh:6470
+#: install.sh:6580
 msgid "自动更新"
 msgstr "به‌روزرسانی خودکار"
 
-#: install.sh:6488 install.sh:6556
+#: install.sh:6598 install.sh:6677
 msgid "其他选项"
 msgstr "گزینه‌های دیگر"
 
-#: install.sh:6490
-msgid "防暴力破解"
-msgstr "پاداشت خرابکاری"
-
-#: install.sh:6491
+#: install.sh:6601
 msgid "流量统计"
 msgstr "آمار جریان"
 
-#: install.sh:6492 scripts/traffic_blocker.sh:577
+#: install.sh:6602 scripts/traffic_blocker.sh:577
 msgid "流量阻断"
 msgstr "جاره‌بندی ترافیک"
 
-#: install.sh:6493
+#: install.sh:6603
 msgid "清除"
 msgstr "پاک کردن"
 
-#: install.sh:6493
+#: install.sh:6603
 msgid "日志文件"
 msgstr "فایل روزنامه"
 
-#: install.sh:6494
-msgid "测试"
-msgstr "آزمایش"
-
-#: install.sh:6494
+#: install.sh:6604
 msgid "服务器网速"
 msgstr "سرعت اینترنت سرور"
 
-#: install.sh:6514 install.sh:6557
+#: install.sh:6624 install.sh:6678
 msgid "备份恢复"
 msgstr "بازیابی پشتیبان"
 
-#: install.sh:6514 install.sh:6557
-msgid "卸载向导"
-msgstr "راهنمای خارج کردن نصب"
-
-#: install.sh:6515 install.sh:6516
+#: install.sh:6625 install.sh:6626
 msgid "全部文件"
 msgstr "تمام فایل‌ها"
 
-#: install.sh:6517
+#: install.sh:6627
 msgid "清空"
 msgstr "خالی کردن"
 
-#: install.sh:6517
+#: install.sh:6627
 msgid "证书文件"
 msgstr "فایل گواهینامه"
 
-#: install.sh:6518 scripts/fail2ban_manager.sh:65
+#: install.sh:6628 scripts/fail2ban_manager.sh:65
 #: scripts/fail2ban_manager.sh:522
 msgid "卸载"
 msgstr "حذف کردن"
 
-#: install.sh:6535
-msgid "安装管理脚本"
-msgstr "نصب اسکریپت مدیریت"
-
-#: install.sh:6536
+#: install.sh:6646
 msgid "当前模式"
 msgstr "حالت فعلی"
 
-#: install.sh:6536
+#: install.sh:6647
 msgid "当前语言"
 msgstr "زبان فعلی"
 
-#: install.sh:6539
-msgid "运行状态"
-msgstr "حالت اجرا"
-
-#: install.sh:6540
+#: install.sh:6653
 msgid "连通性"
 msgstr "اتصال"
 
-#: install.sh:6543 scripts/fail2ban_manager.sh:62 scripts/file_manager.sh:303
+#: install.sh:6657
+msgid "运行状态"
+msgstr "حالت اجرا"
+
+#: install.sh:6664 scripts/fail2ban_manager.sh:62 scripts/file_manager.sh:303
 #: scripts/traffic_blocker.sh:582
 msgid "主菜单"
 msgstr "منوی اصل"
 
-#: install.sh:6543
-msgid "命令管理脚本"
-msgstr "اسکریپت مدیریت دستور"
-
-#: install.sh:6560 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
+#: install.sh:6681 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
 #: scripts/traffic_blocker.sh:587
 msgid "退出"
 msgstr "خروج"
