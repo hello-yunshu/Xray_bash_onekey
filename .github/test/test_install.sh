@@ -537,9 +537,41 @@ reality_upgrade_defaults_are_safe() {
     [[ "${inode_before}" == "${inode_after}" ]]
 }
 
+menu_box_layout_is_aligned() (
+    local columns expected rendered plain line width
+    for columns in 50 60 72 100; do
+        export COLUMNS="${columns}"
+        expected=$((columns - 4))
+        ((expected > 88)) && expected=88
+        ((expected < 52)) && expected=$((columns - 2))
+        ((expected < 20)) && expected=20
+
+        rendered="$(
+            menu_title "$(gettext "主菜单") · idleleo"
+            menu_divider "$(gettext "版本检测")"
+            menu_fields "$(gettext "当前模式"): Nginx+ws+xHTTP+TLS" "$(gettext "当前语言"): C.UTF-8"
+            menu_fields "$(gettext "脚本"): ${Green}[$(gettext "最新版")]${Font}" "Xray: ${Green}[$(gettext "最新版")]${Font}" "Nginx: ${Green}[$(gettext "最新版")]${Font}"
+            menu_item 1 "Reality + Nginx"
+            menu_blank
+            menu_item 0 "$(gettext "返回")"
+            menu_footer
+        )"
+        plain=$(printf '%s\n' "${rendered}" | sed $'s/\033\\[[0-9;]*m//g')
+        while IFS= read -r line; do
+            case "${line}" in
+            ╭* | ├* | │* | ╰*)
+                width=$(printf '%s' "${line}" | LC_ALL=C.UTF-8 wc -L | tr -d ' ')
+                [[ "${width}" == "${expected}" ]] || return 1
+                ;;
+            esac
+        done <<<"${plain}"
+    done
+)
+
 assert_ok "Install config is private" test "$(stat -c '%a' "${xray_install_config_file}")" = "600"
 assert_ok "Xray config is private" test "$(stat -c '%a' "${xray_conf}")" = "600"
 assert_ok "JSON updates preserve private mode" json_update_preserves_private_mode
+assert_ok "Menu box layout stays aligned" menu_box_layout_is_aligned
 if [[ "${MODE}" == "reality" || "${MODE}" == "reality_nginx" ]]; then
     assert_ok "Reality upgrade defaults preserve existing config" reality_upgrade_defaults_are_safe
 fi
