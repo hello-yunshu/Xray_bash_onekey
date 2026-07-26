@@ -1929,11 +1929,13 @@ spiderx_set() {
 
 # 收紧敏感配置文件权限：不影响 Xray(nobody) 读取 config.json 与证书
 # install_config/分享文件仅 root 可读；config.json 与私钥由 nobody 持有以兼容 Xray
+# Task E (Section 9.3): SSL certs/keys must be root-owned with worker group read (640).
 apply_sensitive_file_permissions() {
     local file="$1"
     local owner="$2"
+    local mode="${3:-600}"
     [[ -f "${file}" ]] || return 0
-    if ! chown "${owner}" "${file}" 2>/dev/null || ! chmod 600 "${file}" 2>/dev/null; then
+    if ! chown "${owner}" "${file}" 2>/dev/null || ! chmod "${mode}" "${file}" 2>/dev/null; then
         log_echo "${Warning} ${YellowBG} $(gettext "配置文件权限收紧失败"): ${file} ${Font}"
         return 1
     fi
@@ -1948,9 +1950,13 @@ harden_config_permissions() {
 
     apply_sensitive_file_permissions "${xray_install_config_file}" "root:root" || true
     apply_sensitive_file_permissions "${xray_conf}" "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" || true
-    # Task E: SSL cert files must be readable by nginx worker (idleleo-nginx).
-    apply_sensitive_file_permissions "${ssl_chainpath}/xray.key" "${_nginx_worker_user}:${_nginx_worker_group}" || true
-    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.key" "${_nginx_worker_user}:${_nginx_worker_group}" || true
+    # Task E (Section 9.3): root owns certs/keys, worker group can read but NOT write.
+    # Private key: 640 (root rw, idleleo-nginx r, others none)
+    # Public cert: 640 (root rw, idleleo-nginx r, others none)
+    apply_sensitive_file_permissions "${ssl_chainpath}/xray.key" "root:${_nginx_worker_group}" 640 || true
+    apply_sensitive_file_permissions "${ssl_chainpath}/xray.crt" "root:${_nginx_worker_group}" 640 || true
+    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.key" "root:${_nginx_worker_group}" 640 || true
+    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.crt" "root:${_nginx_worker_group}" 640 || true
     apply_sensitive_file_permissions "${xray_info_file}" "root:root" || true
     apply_sensitive_file_permissions "${xray_info_file%.*}_clash.yaml" "root:root" || true
     return 0
