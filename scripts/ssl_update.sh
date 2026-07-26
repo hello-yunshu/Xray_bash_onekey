@@ -61,9 +61,16 @@ if [[ ! -f "${ssl_chainpath}/xray.crt" || ! -f "${ssl_chainpath}/xray.key" ]]; t
 fi
 
 grep -q "^nogroup:" /etc/group && cert_group="nogroup"
+# Task E: Use dedicated idleleo-nginx user for cert ownership (fallback to nobody).
+if id -u "idleleo-nginx" >/dev/null 2>&1; then
+    cert_user="idleleo-nginx"
+    cert_group="idleleo-nginx"
+else
+    cert_user="nobody"
+fi
 chmod -f 644 "${ssl_chainpath}/xray.crt"
 chmod -f 600 "${ssl_chainpath}/xray.key"
-chown -fR nobody:"${cert_group}" "${ssl_chainpath}"
+chown -fR "${cert_user}:${cert_group}" "${ssl_chainpath}"
 
 [[ -f "${xray_systemd_file}" ]] && { systemctl restart xray >/dev/null 2>&1 || echo "Warning: Xray restart failed after SSL update" >&2; }
 [[ -f "${nginx_systemd_file}" ]] && { systemctl start nginx >/dev/null 2>&1 || echo "Warning: Nginx start failed after SSL update" >&2; }
