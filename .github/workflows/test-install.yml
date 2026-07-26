@@ -29,30 +29,38 @@ jobs:
     steps:
       - uses: actions/checkout@main
 
+      - name: Run redaction unit tests
+        run: bash .github/test/test_redact.sh
+
       - name: Run install test (${{ matrix.mode }})
         timeout-minutes: 15
         run: sudo bash .github/test/test_install.sh ${{ matrix.mode }}
 
-      - name: Collect debug info on failure
+      - name: Collect debug info on failure (redacted)
         if: failure()
         run: |
-          echo "=== Xray config ==="
-          sudo cat /etc/idleleo/conf/xray/config.json 2>/dev/null || echo "(not found)"
+          # Source unified redaction helpers (Task H: no secrets in CI output)
+          source .github/test/redact.sh
+          echo "=== Install config (summary, no secrets) ==="
+          sudo safe_print_config_summary /etc/idleleo/conf/install_config.json 2>/dev/null || echo "(not found)"
           echo ""
-          echo "=== Install config ==="
-          sudo cat /etc/idleleo/conf/install_config.json 2>/dev/null || echo "(not found)"
+          echo "=== Xray config (redacted) ==="
+          sudo redact_json_for_diagnostics /etc/idleleo/conf/xray/config.json 2>/dev/null || echo "(not found)"
+          echo ""
+          echo "=== Install config (redacted) ==="
+          sudo redact_json_for_diagnostics /etc/idleleo/conf/install_config.json 2>/dev/null || echo "(not found)"
           echo ""
           echo "=== Xray service status ==="
-          sudo systemctl status xray 2>&1 || true
+          sudo systemctl status xray 2>&1 | redact_text_for_diagnostics || true
           echo ""
-          echo "=== Xray error log ==="
-          sudo tail -50 /var/log/xray/error.log 2>/dev/null || echo "(not found)"
+          echo "=== Xray error log (redacted) ==="
+          sudo tail -50 /var/log/xray/error.log 2>/dev/null | redact_text_for_diagnostics || echo "(not found)"
           echo ""
           echo "=== Nginx service status ==="
-          sudo systemctl status nginx 2>&1 || true
+          sudo systemctl status nginx 2>&1 | redact_text_for_diagnostics || true
           echo ""
-          echo "=== Nginx error log ==="
-          sudo tail -50 /usr/local/nginx/logs/error.log 2>/dev/null || echo "(not found)"
+          echo "=== Nginx error log (redacted) ==="
+          sudo tail -50 /usr/local/nginx/logs/error.log 2>/dev/null | redact_text_for_diagnostics || echo "(not found)"
           echo ""
-          echo "=== Install log ==="
-          sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null || echo "(not found)"
+          echo "=== Install log (redacted) ==="
+          sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics || echo "(not found)"
