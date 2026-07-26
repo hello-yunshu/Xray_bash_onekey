@@ -255,12 +255,19 @@ if [[ "$(id -u)" == "0" ]] && id -u "idleleo-nginx" >/dev/null 2>&1; then
         bad "SSL cert dir mode should be 750, got ${_ssl_dir_mode}"
     fi
 
-    # Verify private key is 600
+    # Verify private key is 640 (root rw, idleleo-nginx r, others none)
+    # Task E (Section 9.3): root owns, worker group can read but NOT write.
     _key_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
-    if [[ "${_key_mode}" == "600" ]]; then
-        ok "Private key mode is 600"
+    if [[ "${_key_mode}" == "640" ]]; then
+        ok "Private key mode is 640"
     else
-        bad "Private key mode should be 600, got ${_key_mode}"
+        bad "Private key mode should be 640, got ${_key_mode}"
+    fi
+    _key_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
+    if [[ "${_key_owner}" == "root:idleleo-nginx" ]]; then
+        ok "Private key owner is root:idleleo-nginx"
+    else
+        bad "Private key owner should be root:idleleo-nginx, got ${_key_owner}"
     fi
 
     # Verify public cert is 640
@@ -269,6 +276,12 @@ if [[ "$(id -u)" == "0" ]] && id -u "idleleo-nginx" >/dev/null 2>&1; then
         ok "Public cert mode is 640"
     else
         bad "Public cert mode should be 640, got ${_crt_mode}"
+    fi
+    _crt_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}/xray.crt" 2>/dev/null || echo "")
+    if [[ "${_crt_owner}" == "root:idleleo-nginx" ]]; then
+        ok "Public cert owner is root:idleleo-nginx"
+    else
+        bad "Public cert owner should be root:idleleo-nginx, got ${_crt_owner}"
     fi
 
     # Test idempotency: running again should not change permissions

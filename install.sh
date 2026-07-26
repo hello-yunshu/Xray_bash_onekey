@@ -1750,12 +1750,10 @@ apply_nginx_layered_permissions() {
         chmod 750 "${ssl_chainpath}" 2>/dev/null || true
         while IFS= read -r -d '' cert_file; do
             chown root:"${worker_group}" "$cert_file" 2>/dev/null || true
-            # Private key files must be 600, public certs can be 640
-            if [[ "$cert_file" == *.key ]]; then
-                chmod 600 "$cert_file" 2>/dev/null || true
-            else
-                chmod 640 "$cert_file" 2>/dev/null || true
-            fi
+            # Task E (Section 9.3): root owns, worker group can read but NOT write.
+            # Private key: 640 (root rw, idleleo-nginx r, others none)
+            # Public cert: 640 (root rw, idleleo-nginx r, others none)
+            chmod 640 "$cert_file" 2>/dev/null || true
         done < <(find "${ssl_chainpath}" -type f -print0 2>/dev/null)
     fi
 
@@ -3369,10 +3367,11 @@ acme() {
     #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成") $(gettext "成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
-        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR idleleo-nginx:idleleo-nginx ${ssl_chainpath}/* 2>/dev/null || chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"; then
-            chmod -f 644 "${ssl_chainpath}"/xray.crt
-            chmod -f 600 "${ssl_chainpath}"/xray.key
-            chown -fR "$(get_nginx_worker_user):$(get_nginx_worker_group)" "${ssl_chainpath}"/*
+        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chown -fR root:idleleo-nginx ${ssl_chainpath}/* 2>/dev/null || chown -fR root:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; chmod -f 640 ${ssl_chainpath}/xray.crt; chmod -f 640 ${ssl_chainpath}/xray.key; systemctl restart nginx; systemctl restart xray"; then
+            # Task E (Section 9.3): root owns, worker group can read but NOT write.
+            chown -fR "root:$(get_nginx_worker_group)" "${ssl_chainpath}"/*
+            chmod -f 640 "${ssl_chainpath}"/xray.crt
+            chmod -f 640 "${ssl_chainpath}"/xray.key
             log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置") $(gettext "成功") ${Font}"
             systemctl stop nginx
         fi
@@ -4068,7 +4067,7 @@ cert_update_manuel() {
         if [[ -f "${amce_sh_file}" ]]; then
             "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
             host="$(info_extraction host)"
-            "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR idleleo-nginx:idleleo-nginx ${ssl_chainpath}/* 2>/dev/null || chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
+            "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -fR root:idleleo-nginx ${ssl_chainpath}/* 2>/dev/null || chown -fR root:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; chmod -f 640 ${ssl_chainpath}/xray.crt; chmod -f 640 ${ssl_chainpath}/xray.key; systemctl restart nginx; systemctl restart xray"
             judge -r "$(gettext "证书更新")" || return 1
             service_restart || return 1
         else
@@ -4888,8 +4887,8 @@ ssl_judge_and_install() {
             acme
             ;;
         *)
-            "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR idleleo-nginx:idleleo-nginx ${ssl_chainpath}/* 2>/dev/null || chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
-            chown -fR "$(get_nginx_worker_user):$(get_nginx_worker_group)" "${ssl_chainpath}"/*
+            "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -fR root:idleleo-nginx ${ssl_chainpath}/* 2>/dev/null || chown -fR root:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; chmod -f 640 ${ssl_chainpath}/xray.crt; chmod -f 640 ${ssl_chainpath}/xray.key; systemctl restart nginx; systemctl restart xray"
+            chown -fR "root:$(get_nginx_worker_group)" "${ssl_chainpath}"/*
             judge "$(gettext "证书应用")"
             ;;
         esac

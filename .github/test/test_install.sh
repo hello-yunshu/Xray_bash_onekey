@@ -268,7 +268,9 @@ ssl_judge_and_install() {
         -keyout "${ssl_chainpath}/xray.key" \
         -out "${ssl_chainpath}/xray.crt" \
         -days 365 -subj "/CN=${domain}" 2>/dev/null
-    chown -fR "$(id -u idleleo-nginx >/dev/null 2>&1 && echo idleleo-nginx || echo nobody):$(id -g idleleo-nginx >/dev/null 2>&1 && echo idleleo-nginx || (id -gn nobody 2>/dev/null || echo nogroup))" "${ssl_chainpath}"/* 2>/dev/null || true
+    # Task E (Section 9.3): root owns, worker group can read but NOT write.
+    chown -fR "root:$(getent group idleleo-nginx >/dev/null 2>&1 && echo idleleo-nginx || (id -gn nobody 2>/dev/null || echo nogroup))" "${ssl_chainpath}"/* 2>/dev/null || true
+    chmod -f 640 "${ssl_chainpath}/xray.crt" "${ssl_chainpath}/xray.key" 2>/dev/null || true
     echo "  [CI] ssl_judge_and_install: self-signed cert created for ${domain}"
 }
 
