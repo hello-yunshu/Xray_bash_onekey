@@ -1820,6 +1820,9 @@ modify_nginx_origin_conf() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "Reality" && ${reality_add_nginx} == "on" ]]; then
         if [[ ${tls_mode} == "Reality" ]]; then
             printf '\ninclude %s;\n' "${nginx_conf}" >> "${nginx_dir}"/conf/nginx.conf
+            # Create empty placeholder so nginx -t passes during nginx_install.
+            # The actual stream{} block is written later by nginx_reality_conf_add.
+            [[ -f "${nginx_conf}" ]] || touch "${nginx_conf}"
         else
             sed -i "\$i include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
         fi
