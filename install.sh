@@ -336,6 +336,91 @@ source '/etc/os-release'
 
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 
+# P1-C: Wait for apt/dpkg locks to be released instead of deleting them.
+# Waits up to $1 seconds (default 60) for the dpkg lock to become available.
+# Shows the process holding the lock if it remains held.
+# Returns 0 if the lock is available (or was acquired), 1 on timeout.
+# NEVER deletes lock files that are held by a running process — that corrupts
+# the package database.
+wait_for_apt_lock() {
+    local timeout="${1:-60}"
+    local elapsed=0
+    local lock_files=(
+        "/var/lib/dpkg/lock"
+        "/var/lib/dpkg/lock-frontend"
+        "/var/lib/apt/lists/lock"
+        "/var/cache/apt/archives/lock"
+    )
+
+    # Use flock if available — it's the standard, race-free way to test locks.
+    if command -v flock >/dev/null 2>&1; then
+        for lock_file in "${lock_files[@]}"; do
+            [[ ! -e "${lock_file}" ]] && continue
+            # Try to acquire an exclusive lock with a 1-second timeout.
+            # We use fd 9 to avoid clobbering stdin/stdout/stderr.
+            while ! (exec 9>"${lock_file}"; flock -w 1 9) 2>/dev/null; do
+                if [[ ${elapsed} -ge ${timeout} ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "等待锁超时"): ${lock_file} ${Font}"
+                    # Show the process holding the lock.
+                    local holders
+                    holders=$(fuser "${lock_file}" 2>&1 || lsof "${lock_file}" 2>/dev/null || true)
+                    if [[ -n "${holders}" ]]; then
+                        log_echo "${Error} $(gettext "锁占用进程"): ${holders} ${Font}"
+                    fi
+                    return 1
+                fi
+                if [[ $((elapsed % 10)) -eq 0 && ${elapsed} -gt 0 ]]; then
+                    log_echo "${Warning} ${YellowBG} $(gettext "等待 apt/dpkg 锁释放") (${elapsed}/${timeout}s) ${Font}"
+                fi
+                sleep 1
+                elapsed=$((elapsed + 1))
+            done
+        done
+        return 0
+    fi
+
+    # Fallback: check if any process holds the lock using lsof or fuser.
+    while [[ ${elapsed} -lt ${timeout} ]]; do
+        local locked=0
+        for lock_file in "${lock_files[@]}"; do
+            [[ ! -e "${lock_file}" ]] && continue
+            if command -v fuser >/dev/null 2>&1; then
+                if fuser "${lock_file}" >/dev/null 2>&1; then
+                    locked=1
+                    break
+                fi
+            elif command -v lsof >/dev/null 2>&1; then
+                if lsof "${lock_file}" >/dev/null 2>&1; then
+                    locked=1
+                    break
+                fi
+            fi
+        done
+
+        if [[ ${locked} -eq 0 ]]; then
+            return 0
+        fi
+
+        if [[ $((elapsed % 10)) -eq 0 && ${elapsed} -gt 0 ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "等待 apt/dpkg 锁释放") (${elapsed}/${timeout}s) ${Font}"
+        fi
+        sleep 1
+        elapsed=$((elapsed + 1))
+    done
+
+    # Timeout reached — show holders and fail.
+    log_echo "${Error} ${RedBG} $(gettext "等待 apt/dpkg 锁超时") ${Font}"
+    for lock_file in "${lock_files[@]}"; do
+        [[ ! -e "${lock_file}" ]] && continue
+        local holders
+        holders=$(fuser "${lock_file}" 2>&1 || lsof "${lock_file}" 2>/dev/null || true)
+        if [[ -n "${holders}" ]]; then
+            log_echo "${Error} ${lock_file}: ${holders} ${Font}"
+        fi
+    done
+    return 1
+}
+
 check_system() {
     if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]] && [[ ${VERSION_ID%%.*} -ge 10 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} ${VERSION} ${Font}"
@@ -349,10 +434,15 @@ check_system() {
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
         INS="apt"
         if [[ ! -f "${xray_install_config_file}" ]]; then
-            rm /var/lib/dpkg/lock || true
+            # P1-C: Wait for apt/dpkg locks instead of deleting them.
+            # Deleting locks that are held by a running process corrupts the
+            # package database and can leave the system in an unrecoverable state.
+            if ! wait_for_apt_lock 60; then
+                log_echo "${Error} ${RedBG} $(gettext "apt/dpkg 锁等待超时, 请稍后重试或手动检查占用进程") ${Font}"
+                exit 1
+            fi
+            # Configure any interrupted packages — safe now that we hold the lock.
             dpkg --configure -a || true
-            rm /var/lib/apt/lists/lock || true
-            rm /var/cache/apt/archives/lock || true
             $INS update || true
         fi
     else
@@ -433,6 +523,65 @@ update_language_file() {
     log_echo "${OK} ${Green} $(gettext "语言文件更新") $(gettext "完成") ${Font}"
 }
 
+# P1-D: Safely read language.conf without sourcing it as a shell script.
+# Only LANG= and LC_MESSAGES= assignments are parsed. The function rejects:
+#   - command substitution ($(...), `...`)
+#   - shell metacharacters (;, &&, ||, |, <, >, &)
+#   - unknown keys (anything other than LANG or LC_MESSAGES)
+#   - values that don't match the locale name pattern ([a-zA-Z0-9_.@-]+)
+# Returns 0 if the file was parsed (even partially), 1 on fatal error.
+safe_source_language_conf() {
+    local conf_file="$1"
+
+    if [[ -z "${conf_file}" || ! -f "${conf_file}" ]]; then
+        return 1
+    fi
+
+    # Read the file line by line. This avoids any shell interpretation.
+    local line key value
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        # Skip empty lines and comments.
+        line="${line#"${line%%[![:space:]]*}"}"  # trim leading whitespace
+        [[ -z "${line}" || "${line}" == \#* ]] && continue
+
+        # Reject lines that contain shell metacharacters or command substitution.
+        if [[ "${line}" == *'$('* || "${line}" == *'`'* || "${line}" == *';'* || \
+              "${line}" == *'&&'* || "${line}" == *'||'* || "${line}" == *'|'* || \
+              "${line}" == *'<'* || "${line}" == *'>'* || "${line}" == *'&'* ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "language.conf 包含可疑字符, 跳过该行"): ${line} ${Font}"
+            continue
+        fi
+
+        # Parse KEY="value" or KEY=value format.
+        if [[ "${line}" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(\"?)([^\"\n]*)\2$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[3]}"
+        else
+            log_echo "${Warning} ${YellowBG} $(gettext "language.conf 行格式无效, 跳过"): ${line} ${Font}"
+            continue
+        fi
+
+        # Allowlist: only LANG and LC_MESSAGES are permitted.
+        case "${key}" in
+            LANG|LC_MESSAGES)
+                # Validate value: only locale characters (letters, digits, _ . @ -).
+                if [[ ! "${value}" =~ ^[A-Za-z0-9_.@-]+$ ]]; then
+                    log_echo "${Warning} ${YellowBG} $(gettext "language.conf 值包含非法字符, 跳过"): ${key}=${value} ${Font}"
+                    continue
+                fi
+                # Safe to assign — value is validated to contain only safe chars.
+                export "${key}=${value}"
+                ;;
+            *)
+                log_echo "${Warning} ${YellowBG} $(gettext "language.conf 未知键, 跳过"): ${key} ${Font}"
+                continue
+                ;;
+        esac
+    done < "${conf_file}"
+
+    return 0
+}
+
 init_language() {
     if ! command -v gettext >/dev/null 2>&1; then
         log_echo "${Warning} ${YellowBG} $(gettext "正在安装") gettext... ${Font}"
@@ -474,7 +623,10 @@ init_language() {
     . "$gettext_sh"
 
     if [ -f "${idleleo_dir}/language.conf" ]; then
-        source "${idleleo_dir}/language.conf"
+        # P1-D: Safe-read language.conf instead of sourcing it directly.
+        # Only LANG= and LC_MESSAGES= assignments are allowed. Command
+        # substitution, extra shell statements, and unknown keys are rejected.
+        safe_source_language_conf "${idleleo_dir}/language.conf"
 
         if [[ "${LANG%.*}" != "zh_CN" ]]; then
             local lang_code
@@ -1992,12 +2144,11 @@ xray_privilege_escalation() {
         chown -fR "nobody:${_nobody_group}" /var/log/xray/
         chmod -f 755 /var/log/xray/
         find /var/log/xray/ -type f -exec chmod -f 644 {} \;
-        # Task E: SSL cert files owned by nginx worker (idleleo-nginx), not nobody.
-        local _nginx_worker_user
-        _nginx_worker_user=$(get_nginx_worker_user)
-        local _nginx_worker_group
-        _nginx_worker_group=$(get_nginx_worker_group)
-        [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR "${_nginx_worker_user}:${_nginx_worker_group}" "${ssl_chainpath}"/*
+        # Task E (Section 9.3): SSL cert files must be owned by root, not worker.
+        # xray_privilege_escalation() must NOT change cert ownership to worker user.
+        # Only apply_nginx_layered_permissions() and harden_config_permissions()
+        # are authoritative for cert permission model (root:idleleo-nginx 640).
+        apply_nginx_layered_permissions || true
     fi
     log_echo "${OK} ${GreenBG} Xray $(gettext "修改") $(gettext "完成") ${Font}"
 }
@@ -2071,7 +2222,11 @@ xray_update() {
                     case $rollback_fq in
                     [nN][oO] | [nN])
                         log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
-                        return 0
+                        log_echo "${Error} ${RedBG} Xray $(gettext "更新失败且未回滚, 当前服务可能不可用, 请手动检查")! ${Font}"
+                        if ! systemctl is-active xray >/dev/null 2>&1; then
+                            log_echo "${Error} ${RedBG} $(gettext "高优先级错误: Xray 服务已停止")! ${Font}"
+                        fi
+                        return 1
                         ;;
                     *)
                         log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
@@ -2348,9 +2503,11 @@ decoy_site_setup() {
         log_echo "${Error} ${RedBG} $(gettext "自签证书生成失败") ${Font}"
         return 1
     fi
-    chmod -f 600 "${ssl_chainpath}/decoy.key" 2>/dev/null
-    chmod -f 644 "${ssl_chainpath}/decoy.crt" 2>/dev/null
-    chown -f "$(get_nginx_worker_user):$(get_nginx_worker_group)" "${ssl_chainpath}/decoy.key" "${ssl_chainpath}/decoy.crt" 2>/dev/null
+    # Task E (Section 9.3): root owns certs/keys, worker group can read but NOT write.
+    # Private key: 640 (root rw, idleleo-nginx r, others none)
+    # Public cert: 640 (root rw, idleleo-nginx r, others none)
+    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.key" "root:$(get_nginx_worker_group)" 640 || true
+    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.crt" "root:$(get_nginx_worker_group)" 640 || true
 
     # 生成不统一的极简站点页面（含域名与随机标识，避免统一指纹）
     local decoy_webroot="${idleleo_dir}/decoy"
@@ -2525,19 +2682,181 @@ nginx_exist_check() {
         log_echo "${Error} ${RedBG} $(gettext "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装")! ${Font}"
         exit 1
     else
-        nginx_install
+        nginx_install || exit 1
     fi
+}
+
+# P1-B: Strict tar safety check for Nginx release archives.
+# Validates every tar entry BEFORE extraction and refuses dangerous archives.
+# Returns 0 if the archive is safe, 1 otherwise.
+# Safety rules:
+#   1. All entries MUST live under the single top-level "nginx/" prefix.
+#   2. Reject absolute paths (leading /).
+#   3. Reject parent traversal (.. anywhere in the path).
+#   4. Reject symlinks/hardlinks whose target points outside "nginx/".
+#   5. Reject device files, FIFOs, sockets and other non-regular non-dir entries.
+#   6. Reject file names containing control characters or NUL bytes.
+#   7. Extraction uses --no-same-permissions --no-same-owner to drop tainted metadata.
+# Uses Python3 tarfile for robust, cross-platform parsing (avoids tar -tvf
+# output format differences between GNU tar and bsdtar).
+nginx_tar_safe_check() {
+    local tar_file="$1"
+    local target_dir="$2"
+
+    if [[ -z "${tar_file}" || ! -f "${tar_file}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "tar 安全检查: 文件不存在") ${Font}"
+        return 1
+    fi
+    if [[ -z "${target_dir}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "tar 安全检查: 目标目录未指定") ${Font}"
+        return 1
+    fi
+
+    # Use Python3 tarfile to inspect every entry. This avoids differences
+    # between GNU tar and bsdtar output formats and gives us structured access
+    # to entry type, link target, and path.
+    local py_result
+    py_result=$(python3 - "$tar_file" <<'PYEOF' 2>&1
+import sys
+import tarfile
+import os
+import re
+
+tar_path = sys.argv[1]
+bad = False
+reason = ""
+
+try:
+    tf = tarfile.open(tar_path, "r:gz")
+except Exception as e:
+    print("ERROR: cannot open tar: %s" % e)
+    sys.exit(1)
+
+def normalize(path):
+    """Collapse . and .. components, strip leading ./"""
+    parts = []
+    for p in path.split("/"):
+        if p == "" or p == ".":
+            continue
+        if p == "..":
+            if parts:
+                parts.pop()
+            continue
+        parts.append(p)
+    return "/".join(parts)
+
+CTRL_RE = re.compile(r'[\x00-\x1f\x7f]')
+
+for member in tf.getmembers():
+    name = member.name
+    # Reject control characters in the path.
+    if CTRL_RE.search(name):
+        bad = True
+        reason = "control char in path: %r" % name
+        break
+    # Reject absolute paths.
+    if name.startswith("/"):
+        bad = True
+        reason = "absolute path: %s" % name
+        break
+    # Reject parent traversal as a full path component.
+    if ".." in name.split("/"):
+        bad = True
+        reason = "parent traversal: %s" % name
+        break
+    # Require every entry to live under "nginx/" top-level prefix.
+    normalized = normalize(name)
+    if normalized != "nginx" and not normalized.startswith("nginx/"):
+        bad = True
+        reason = "non-nginx/ top-level entry: %s" % name
+        break
+
+    # Inspect entry type.
+    if member.issym() or member.islnk():
+        # Symlink or hardlink. Verify target stays inside nginx/.
+        target = member.linkname
+        if target.startswith("/"):
+            bad = True
+            reason = "link absolute target: %s -> %s" % (name, target)
+            break
+        if ".." in target.split("/"):
+            # For symlinks, resolve relative to the entry's directory.
+            # For hardlinks, the target is relative to archive root.
+            if member.issym():
+                entry_dir = os.path.dirname(name)
+                resolved = normalize(entry_dir + "/" + target)
+            else:
+                resolved = normalize(target)
+            if resolved != "nginx" and not resolved.startswith("nginx/"):
+                bad = True
+                reason = "link target escapes nginx/: %s -> %s" % (name, target)
+                break
+        else:
+            # No ".." — still verify target is inside nginx/.
+            if member.issym():
+                entry_dir = os.path.dirname(name)
+                resolved = normalize(entry_dir + "/" + target)
+            else:
+                resolved = normalize(target)
+            if resolved != "nginx" and not resolved.startswith("nginx/"):
+                bad = True
+                reason = "link target outside nginx/: %s -> %s" % (name, target)
+                break
+    elif member.isdev():
+        bad = True
+        reason = "device file: %s" % name
+        break
+    elif member.isfifo():
+        bad = True
+        reason = "FIFO: %s" % name
+        break
+    # Regular files and directories are allowed.
+
+tf.close()
+
+if bad:
+    print("REJECT: %s" % reason)
+    sys.exit(1)
+else:
+    print("OK")
+    sys.exit(0)
+PYEOF
+    )
+    local py_exit=$?
+
+    if [[ ${py_exit} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "tar 安全检查") ${py_result} ${Font}"
+        return 1
+    fi
+
+    # Extract into staging with safe tar options: drop original owner/perms.
+    if ! tar -xzf "${tar_file}" \
+        -C "${target_dir}" \
+        --no-same-permissions \
+        --no-same-owner \
+        --no-overwrite-dir \
+        2>/dev/null; then
+        # Fallback: some tar implementations (BusyBox) don't support all flags.
+        # Retry with --no-same-owner only, which is the most critical safety flag.
+        if ! tar -xzf "${tar_file}" -C "${target_dir}" --no-same-owner 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "tar 安全检查: 解压失败") ${Font}"
+            return 1
+        fi
+    fi
+
+    return 0
 }
 
 nginx_install() {
     # Task F (Section 10): Staging-based install with mandatory manifest and SHA256.
     # Task E (Section 9): Uses dedicated idleleo-nginx user with layered permissions.
+    # P1-B: Uses nginx_tar_safe_check() for strict archive safety validation.
     local temp_dir
     temp_dir=$(mktemp -d)
     local current_dir
     current_dir=$(pwd)
 
-    cd "$temp_dir" || exit
+    cd "$temp_dir" || return 1
 
     local nginx_arch
     local nginx_filename
@@ -2553,7 +2872,7 @@ nginx_install() {
         *)
             log_echo "${Error} ${RedBG} $(gettext "不支持的系统架构"): $(uname -m) ${Font}"
             cd "$current_dir" && rm -rf "$temp_dir"
-            exit 1
+            return 1
             ;;
     esac
 
@@ -2566,7 +2885,7 @@ nginx_install() {
     if ! download_json_file "${base_url}/release-manifest.json" "${manifest_file}"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "release-manifest.json 下载失败或无效, 拒绝安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
 
     # Validate manifest structure: must have assets array with matching arch entry.
@@ -2577,13 +2896,13 @@ nginx_install() {
     if [[ -z "${manifest_filename}" || "${manifest_filename}" == "null" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "manifest 中未找到架构"): ${nginx_arch} $(gettext "的产物记录, 拒绝安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
     if [[ -z "${manifest_sha256}" || "${manifest_sha256}" == "null" ]]; then
         # Task F: SHA256 is mandatory when manifest exists. Fail-closed.
         log_echo "${Error} ${RedBG} $(gettext "manifest 中未提供 SHA256, 拒绝未校验安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
     nginx_filename="${manifest_filename}"
     local nginx_sha256="${manifest_sha256}"
@@ -2593,7 +2912,7 @@ nginx_install() {
     if ! curl -fL -# --connect-timeout 10 --retry 2 --retry-delay 1 -o "$nginx_filename" "$url"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "下载") $(gettext "失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
     log_echo "${OK} ${GreenBG} Nginx $(gettext "下载") $(gettext "完成") ${Font}"
 
@@ -2601,40 +2920,51 @@ nginx_install() {
     if ! echo "${nginx_sha256}  ${nginx_filename}" | sha256sum -c - >/dev/null 2>&1; then
         log_echo "${Error} ${RedBG} Nginx SHA256 $(gettext "校验") $(gettext "失败") $(gettext ", 拒绝安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
     log_echo "${OK} ${GreenBG} Nginx SHA256 $(gettext "校验") $(gettext "通过") ${Font}"
 
-    # Task F: Path traversal protection. Inspect tar entries before extraction.
-    # Reject absolute paths, ../ traversal, and suspicious symlinks.
-    local tar_list
-    tar_list=$(tar -tzf "$nginx_filename" 2>/dev/null)
-    if [[ -z "${tar_list}" ]]; then
-        log_echo "${Error} ${RedBG} Nginx $(gettext "压缩包无法读取或为空") ${Font}"
+    # P1-B: Strict tar safety check (replaces previous simple grep-based check).
+    # Validates every entry before extraction and extracts into a staging
+    # directory with --no-same-permissions --no-same-owner.
+    local staging_dir="${temp_dir}/staging"
+    mkdir -p "${staging_dir}"
+    if ! nginx_tar_safe_check "${nginx_filename}" "${staging_dir}"; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 压缩包安全检查失败, 拒绝安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
-    # Check for dangerous paths: absolute (leading /), parent traversal (../),
-    # or entries outside the expected top-level "nginx/" prefix.
-    local dangerous_entry
-    dangerous_entry=$(printf '%s\n' "$tar_list" | grep -E '^/|\.\./|^[^/]+/$' | grep -v '^nginx/' | head -n 1 || true)
-    if [[ -n "${dangerous_entry}" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "压缩包包含可疑路径, 拒绝解压"): ${dangerous_entry} ${Font}"
+    log_echo "${OK} ${GreenBG} $(gettext "Nginx 压缩包安全检查通过") ${Font}"
+
+    # P1-B: Verify extracted structure (sbin/nginx must be a regular file).
+    if [[ ! -f "${staging_dir}/nginx/sbin/nginx" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "解压后未找到 sbin/nginx 或不是常规文件, 结构校验失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
 
-    if ! tar -xzf "$nginx_filename" -C ./; then
-        log_echo "${Error} ${RedBG} Nginx $(gettext "解压") $(gettext "失败") ${Font}"
+    # P1-B: Verify sbin/nginx is a valid ELF binary.
+    # ELF magic: 0x7f 'E' 'L' 'F'. file(1) may be unavailable on minimal systems.
+    local nginx_bin_magic
+    nginx_bin_magic=$(head -c 4 "${staging_dir}/nginx/sbin/nginx" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')
+    if [[ "${nginx_bin_magic}" != "7f454c46" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "sbin/nginx 不是 ELF 二进制, 拒绝安装") (magic=${nginx_bin_magic:-empty}) ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
+    fi
+    # Require executable bit on the binary before trusting it.
+    if [[ ! -x "${staging_dir}/nginx/sbin/nginx" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "sbin/nginx 缺少可执行权限") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
     fi
 
-    # Task F: Verify extracted structure (sbin/nginx must exist).
-    if [[ ! -f "./nginx/sbin/nginx" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "解压后未找到 sbin/nginx, 结构校验失败") ${Font}"
+    # Move the validated staging tree into temp_dir root so subsequent code
+    # that expects "./nginx" continues to work.
+    if ! mv "${staging_dir}/nginx" "./nginx"; then
+        log_echo "${Error} ${RedBG} $(gettext "staging 目录移动失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
 
     # Task F: Backup current nginx_dir before replacement (for rollback).
@@ -2656,7 +2986,7 @@ nginx_install() {
             mv "${nginx_backup_dir}" "${nginx_dir}" 2>/dev/null || true
         fi
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
 
     # Clean up backup after successful swap
@@ -2684,7 +3014,7 @@ nginx_install() {
         _nginx_t_output=$("${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf" 2>&1)
         log_echo "${Error} ${RedBG} $(gettext "Nginx 配置校验失败"): ${_nginx_t_output} ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
 
     # 删除临时文件
@@ -2839,7 +3169,6 @@ fallback_xray_to_tested_version() {
 }
 
 # Layer 2 fallback: install Nginx from API tested_version (known-good baseline).
-# Uses a subshell so that nginx_install's exit-on-failure becomes a return.
 fallback_nginx_to_tested_version() {
     local tested_ver
     tested_ver=$(check_version_silent nginx_build_tested_version)
@@ -2852,8 +3181,7 @@ fallback_nginx_to_tested_version() {
     # Save and override global version used by nginx_install
     local _saved_version="${nginx_build_version}"
     nginx_build_version="${tested_ver}"
-    # nginx_install uses exit 1 on hard failure; wrap in subshell to convert to return
-    if ! ( nginx_install ); then
+    if ! nginx_install; then
         nginx_build_version="${_saved_version}"
         log_echo "${Error} ${RedBG} Nginx tested_version $(gettext "安装失败") ${Font}"
         return 1
@@ -3058,26 +3386,33 @@ nginx_update() {
                 log_echo "${OK} ${GreenBG} $(gettext "原配置文件已保留")! ${Font}"
                 ;;
             esac
-            nginx_install
-            if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
-                nginx_ssl_conf_add
-                nginx_conf_add
-                nginx_servers_conf_add
-            elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
-                nginx_reality_conf_add
-                nginx_reality_servers_add
-                nginx_reality_serverNames_add
-            fi
-            local nginx_start_failed=0
-            local service_start_failed=0
-            if ! service_start; then
-                service_start_failed=1
-                nginx_start_failed=1
+            if ! nginx_install; then
+                # P0-A: nginx_install returns 1 on hard failure (not exit).
+                # Enter rollback path directly — same as startup failure.
+                local nginx_start_failed=1
+                local service_start_failed=1
             else
-                sleep 1
-                # Task C (Section 7.4): comprehensive health check (nginx -t + service + port)
-                if ! health_check_nginx_update "${port}"; then
+                # nginx_install succeeded, proceed with config and startup
+                if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
+                    nginx_ssl_conf_add
+                    nginx_conf_add
+                    nginx_servers_conf_add
+                elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
+                    nginx_reality_conf_add
+                    nginx_reality_servers_add
+                    nginx_reality_serverNames_add
+                fi
+                local nginx_start_failed=0
+                local service_start_failed=0
+                if ! service_start; then
+                    service_start_failed=1
                     nginx_start_failed=1
+                else
+                    sleep 1
+                    # Task C (Section 7.4): comprehensive health check (nginx -t + service + port)
+                    if ! health_check_nginx_update "${port}"; then
+                        nginx_start_failed=1
+                    fi
                 fi
             fi
             if [[ ${nginx_start_failed} -eq 1 ]]; then
@@ -3085,7 +3420,7 @@ nginx_update() {
                 if [[ ${service_start_failed} -eq 0 ]]; then
                     nginx_diagnose
                 fi
-                # Task C (Section 7.1): Layered rollback — Layer 1 (local backup) → Layer 2 (tested_version).
+                # Task C (Section 7.1): Layered rollback — Layer 1 (local backup) → Layer 2 (tested_version) → Layer 3 (stop + diagnostics).
                 # Each layer is attempted at most once. No infinite retry, no recursive update.
                 if [[ ${auto_update} != "YES" ]]; then
                     echo
@@ -3115,7 +3450,11 @@ nginx_update() {
                         if fallback_nginx_to_tested_version; then
                             nginx_rolled_back=1
                         else
-                            log_echo "${Error} ${RedBG} Nginx $(gettext "回滚失败")! ${Font}"
+                            # Layer 3: stop service + print redacted diagnostics
+                            log_echo "${Error} ${RedBG} Nginx $(gettext "所有回滚层均失败")! ${Font}"
+                            systemctl stop nginx >/dev/null 2>&1
+                            nginx_diagnose
+                            log_echo "${Error} ${RedBG} Nginx $(gettext "更新失败且所有回滚层均失败, 请手动检查") ${Font}"
                             return 1
                         fi
                     fi
@@ -3125,10 +3464,16 @@ nginx_update() {
             elif [[ ${service_start_failed} -eq 1 ]]; then
                 return 1
             else
+                # Update version record
                 update_json_config "${xray_install_config_file}" --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version'
                 judge "Nginx $(gettext "更新")"
-                safe_rm "${backup_nginx_dir}"
-                judge "$(gettext "删除") Nginx $(gettext "备份")"
+                # Task E: Verify layered permissions before deleting backup
+                if apply_nginx_layered_permissions; then
+                    safe_rm "${backup_nginx_dir}"
+                    judge "$(gettext "删除") Nginx $(gettext "备份")"
+                else
+                    log_echo "${Warning} ${YellowBG} $(gettext "分层权限应用失败, 保留备份") ${Font}"
+                fi
             fi
         else
             log_echo "${OK} ${GreenBG} Nginx $(gettext "已为最新版") ${Font}"
@@ -3373,11 +3718,9 @@ acme() {
     #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成") $(gettext "成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
-        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chown -fR root:idleleo-nginx ${ssl_chainpath}/* 2>/dev/null || chown -fR root:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; chmod -f 640 ${ssl_chainpath}/xray.crt; chmod -f 640 ${ssl_chainpath}/xray.key; systemctl restart nginx; systemctl restart xray"; then
-            # Task E (Section 9.3): root owns, worker group can read but NOT write.
-            chown -fR "root:$(get_nginx_worker_group)" "${ssl_chainpath}"/*
-            chmod -f 640 "${ssl_chainpath}"/xray.crt
-            chmod -f 640 "${ssl_chainpath}"/xray.key
+        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key 2>/dev/null || chown -f root:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key; chmod -f 640 ${ssl_chainpath}/xray.crt; chmod -f 640 ${ssl_chainpath}/xray.key; systemctl restart nginx; systemctl restart xray"; then
+            # Task E (Section 9.3): Reuse authoritative layered permission model.
+            apply_nginx_layered_permissions || true
             log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置") $(gettext "成功") ${Font}"
             systemctl stop nginx
         fi
@@ -4073,8 +4416,10 @@ cert_update_manuel() {
         if [[ -f "${amce_sh_file}" ]]; then
             "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
             host="$(info_extraction host)"
-            "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -fR root:idleleo-nginx ${ssl_chainpath}/* 2>/dev/null || chown -fR root:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; chmod -f 640 ${ssl_chainpath}/xray.crt; chmod -f 640 ${ssl_chainpath}/xray.key; systemctl restart nginx; systemctl restart xray"
+            "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key 2>/dev/null || chown -f root:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key; chmod -f 640 ${ssl_chainpath}/xray.crt; chmod -f 640 ${ssl_chainpath}/xray.key; systemctl restart nginx; systemctl restart xray"
             judge -r "$(gettext "证书更新")" || return 1
+            # Task E (Section 9.3): Reuse authoritative layered permission model after cert renewal.
+            apply_nginx_layered_permissions || true
             service_restart || return 1
         else
             log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
@@ -4092,6 +4437,16 @@ set_fail2ban() {
     source "${scripts_dir}/fail2ban_manager.sh"
     mf_check_for_updates
     mf_main_menu
+}
+
+# P0-C: CLI entry point for Fail2ban management.
+# Reuses the same mf_cli() implementation as the menu — no duplicated logic.
+set_fail2ban_cli() {
+    if ! ensure_sub_script "fail2ban_manager.sh" "${mf_remote_url}"; then
+        return 1
+    fi
+    source "${scripts_dir}/fail2ban_manager.sh"
+    mf_cli "$@"
 }
 
 set_traffic_blocker() {
@@ -4878,7 +5233,8 @@ ssl_judge_and_install() {
             acme
             ;;
         *)
-            chown -fR "$(get_nginx_worker_user):$(get_nginx_worker_group)" "${ssl_chainpath}"/*
+            # Task E (Section 9.3): Reuse authoritative layered permission model.
+            apply_nginx_layered_permissions || true
             judge "$(gettext "证书应用")"
             ;;
         esac
@@ -4893,8 +5249,9 @@ ssl_judge_and_install() {
             acme
             ;;
         *)
-            "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -fR root:idleleo-nginx ${ssl_chainpath}/* 2>/dev/null || chown -fR root:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; chmod -f 640 ${ssl_chainpath}/xray.crt; chmod -f 640 ${ssl_chainpath}/xray.key; systemctl restart nginx; systemctl restart xray"
-            chown -fR "root:$(get_nginx_worker_group)" "${ssl_chainpath}"/*
+            "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key 2>/dev/null || chown -f root:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key; chmod -f 640 ${ssl_chainpath}/xray.crt; chmod -f 640 ${ssl_chainpath}/xray.key; systemctl restart nginx; systemctl restart xray"
+            # Task E (Section 9.3): Reuse authoritative layered permission model.
+            apply_nginx_layered_permissions || true
             judge "$(gettext "证书应用")"
             ;;
         esac
@@ -6076,6 +6433,18 @@ list() {
     '-f' | '--set-fail2ban')
         set_fail2ban
         ;;
+    '--fail2ban-list')
+        set_fail2ban_cli --list
+        ;;
+    '--fail2ban-unban')
+        set_fail2ban_cli --unban "$2" "$3"
+        ;;
+    '--fail2ban-trust-add')
+        set_fail2ban_cli --trust-add "$2" "$3"
+        ;;
+    '--fail2ban-trust-del')
+        set_fail2ban_cli --trust-del "$2" "$3"
+        ;;
     '-tb' | '--traffic-blocker')
         set_traffic_blocker
         ;;
@@ -6156,6 +6525,10 @@ show_help() {
     echo "  -cu, --cert-update          $(gettext "更新证书有效期")"
     echo "  -cau, --cert-auto-update    $(gettext "设置证书自动更新")"
     echo "  -f, --set-fail2ban          $(gettext "设置 Fail2ban 防暴力破解")"
+    echo "      --fail2ban-list         $(gettext "查看 Fail2ban 状态")"
+    echo "      --fail2ban-unban <jail> <ip>                $(gettext "快速解封 IP")"
+    echo "      --fail2ban-trust-add <jail> <ip-or-cidr>   $(gettext "添加可信 IP/CIDR")"
+    echo "      --fail2ban-trust-del <jail> <ip-or-cidr>   $(gettext "移除可信 IP/CIDR")"
     echo "  -tb, --traffic-blocker      $(gettext "设置 Xray 流量阻断")"
     echo "  -h, --help                  $(gettext "显示帮助")"
     echo "  -l, --language              $(gettext "修改语言")"

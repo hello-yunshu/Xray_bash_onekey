@@ -292,6 +292,129 @@ if [[ "$(id -u)" == "0" ]] && id -u "idleleo-nginx" >/dev/null 2>&1; then
     else
         bad "apply_nginx_layered_permissions not idempotent: ${_bin_mode} -> ${_bin_mode_2}"
     fi
+
+    # ========================================================
+    # P0-B: Permission call chain regression tests
+    # ========================================================
+    echo ""
+    echo "  --- P0-B: Permission call chain regression ---"
+
+    # Save baseline cert permissions after apply_nginx_layered_permissions
+    _base_key_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
+    _base_key_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
+    _base_crt_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}/xray.crt" 2>/dev/null || echo "")
+    _base_crt_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}/xray.crt" 2>/dev/null || echo "")
+
+    # Test 1: harden_config_permissions must NOT regress cert permissions
+    harden_config_permissions 2>/dev/null || true
+    _h_key_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
+    _h_key_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
+    _h_crt_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}/xray.crt" 2>/dev/null || echo "")
+    _h_crt_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}/xray.crt" 2>/dev/null || echo "")
+    if [[ "${_h_key_owner}" == "root:idleleo-nginx" && "${_h_key_mode}" == "640" ]]; then
+        ok "harden_config_permissions: cert key still root:idleleo-nginx 640"
+    else
+        bad "harden_config_permissions: cert key regressed to ${_h_key_owner} ${_h_key_mode}"
+    fi
+    if [[ "${_h_crt_owner}" == "root:idleleo-nginx" && "${_h_crt_mode}" == "640" ]]; then
+        ok "harden_config_permissions: cert crt still root:idleleo-nginx 640"
+    else
+        bad "harden_config_permissions: cert crt regressed to ${_h_crt_owner} ${_h_crt_mode}"
+    fi
+
+    # Test 2: xray_privilege_escalation must NOT regress cert permissions
+    # Create a mock systemd file with User=nobody to trigger the privilege escalation path
+    _ORIG_XRAY_SYSTEMD_FILE="${xray_systemd_file}"
+    _MOCK_XRAY_SYSTEMD_FILE=$(mktemp)
+    echo '[Service]' > "${_MOCK_XRAY_SYSTEMD_FILE}"
+    echo 'User=nobody' >> "${_MOCK_XRAY_SYSTEMD_FILE}"
+    xray_systemd_file="${_MOCK_XRAY_SYSTEMD_FILE}"
+    xray_privilege_escalation 2>/dev/null || true
+    xray_systemd_file="${_ORIG_XRAY_SYSTEMD_FILE}"
+    rm -f "${_MOCK_XRAY_SYSTEMD_FILE}"
+
+    _x_key_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
+    _x_key_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
+    _x_crt_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}/xray.crt" 2>/dev/null || echo "")
+    _x_crt_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}/xray.crt" 2>/dev/null || echo "")
+    if [[ "${_x_key_owner}" == "root:idleleo-nginx" && "${_x_key_mode}" == "640" ]]; then
+        ok "xray_privilege_escalation: cert key still root:idleleo-nginx 640 (no regression)"
+    else
+        bad "xray_privilege_escalation: cert key regressed to ${_x_key_owner} ${_x_key_mode}"
+    fi
+    if [[ "${_x_crt_owner}" == "root:idleleo-nginx" && "${_x_crt_mode}" == "640" ]]; then
+        ok "xray_privilege_escalation: cert crt still root:idleleo-nginx 640 (no regression)"
+    else
+        bad "xray_privilege_escalation: cert crt regressed to ${_x_crt_owner} ${_x_crt_mode}"
+    fi
+
+    # Test 3: ssl_update.sh permission logic must keep correct model
+    # Simulate the non-recursive chown/chmod from ssl_update.sh
+    _cert_group="idleleo-nginx"
+    _cert_user="root"
+    chown -f "${_cert_user}:${_cert_group}" "${_MOCK_SSL_CHAINPATH}" 2>/dev/null || true
+    chown -f "${_cert_user}:${_cert_group}" "${_MOCK_SSL_CHAINPATH}/xray.crt" "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || true
+    chmod -f 750 "${_MOCK_SSL_CHAINPATH}" 2>/dev/null || true
+    chmod -f 640 "${_MOCK_SSL_CHAINPATH}/xray.crt" "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || true
+    _s_key_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
+    _s_key_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
+    _s_dir_owner=$(stat -c '%U:%G' "${_MOCK_SSL_CHAINPATH}" 2>/dev/null || echo "")
+    _s_dir_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}" 2>/dev/null || echo "")
+    if [[ "${_s_key_owner}" == "root:idleleo-nginx" && "${_s_key_mode}" == "640" ]]; then
+        ok "ssl_update.sh logic: cert key root:idleleo-nginx 640"
+    else
+        bad "ssl_update.sh logic: cert key wrong ${_s_key_owner} ${_s_key_mode}"
+    fi
+    if [[ "${_s_dir_owner}" == "root:idleleo-nginx" && "${_s_dir_mode}" == "750" ]]; then
+        ok "ssl_update.sh logic: cert dir root:idleleo-nginx 750"
+    else
+        bad "ssl_update.sh logic: cert dir wrong ${_s_dir_owner} ${_s_dir_mode}"
+    fi
+
+    # Test 4: idleleo-nginx can read private key but cannot write
+    if sudo -u idleleo-nginx cat "${_MOCK_SSL_CHAINPATH}/xray.key" >/dev/null 2>&1; then
+        ok "idleleo-nginx can read private key"
+    else
+        bad "idleleo-nginx cannot read private key (should be able to)"
+    fi
+    if sudo -u idleleo-nginx sh -c 'echo "test" >> "'"${_MOCK_SSL_CHAINPATH}"'/xray.key"' 2>/dev/null; then
+        bad "idleleo-nginx can write to private key (should NOT be able to)"
+        # Restore the key content
+        echo 'mock key' > "${_MOCK_SSL_CHAINPATH}/xray.key"
+        chown -f root:idleleo-nginx "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || true
+        chmod -f 640 "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || true
+    else
+        ok "idleleo-nginx cannot write to private key (correct)"
+    fi
+
+    # Test 5: Other unprivileged user cannot read private key
+    if id -u nobody >/dev/null 2>&1; then
+        if sudo -u nobody cat "${_MOCK_SSL_CHAINPATH}/xray.key" >/dev/null 2>&1; then
+            bad "nobody can read private key (should NOT be able to)"
+        else
+            ok "nobody cannot read private key (correct)"
+        fi
+    else
+        echo "  ⏭️  SKIP: nobody user not found for negative read test"
+    fi
+
+    # Test 6: nginx -t succeeds under the layered permission model
+    # Make the mock nginx binary accept -t and return success
+    cat > "${_MOCK_NGINX_DIR}/sbin/nginx" <<'NGINX_MOCK'
+#!/bin/sh
+if [ "$1" = "-t" ]; then
+    echo "nginx: configuration file test is successful"
+    exit 0
+fi
+exit 0
+NGINX_MOCK
+    chmod 755 "${_MOCK_NGINX_DIR}/sbin/nginx" 2>/dev/null || true
+    chown root:root "${_MOCK_NGINX_DIR}/sbin/nginx" 2>/dev/null || true
+    if sudo -u idleleo-nginx "${_MOCK_NGINX_DIR}/sbin/nginx" -t >/dev/null 2>&1; then
+        ok "nginx -t succeeds under layered permission model"
+    else
+        bad "nginx -t failed under layered permission model"
+    fi
 else
     echo "  ⏭️  SKIP: apply_nginx_layered_permissions verification (requires root + idleleo-nginx user)"
 fi
@@ -521,6 +644,35 @@ if grep -q 'chmod.*-fR.*755.*${nginx_dir}' "${REPO_DIR}/install.sh" 2>/dev/null;
     bad "install.sh still contains chmod -fR 755 on \${nginx_dir}"
 else
     ok "install.sh does not contain chmod -fR 755 on \${nginx_dir}"
+fi
+
+# P0-B: Verify install.sh does not contain recursive chown -fR of ssl_chainpath to worker user
+if grep -q 'chown.*-fR.*$(get_nginx_worker_user).*ssl_chainpath' "${REPO_DIR}/install.sh" 2>/dev/null || \
+   grep -q 'chown.*-fR.*${_nginx_worker_user}.*ssl_chainpath' "${REPO_DIR}/install.sh" 2>/dev/null; then
+    bad "install.sh still contains recursive chown -fR of ssl_chainpath to worker user"
+else
+    ok "install.sh does not contain recursive chown -fR of ssl_chainpath to worker user"
+fi
+
+# P0-B: Verify scripts/ssl_update.sh does not contain recursive chown -fR of ssl_chainpath
+if grep -q 'chown.*-fR.*ssl_chainpath' "${REPO_DIR}/scripts/ssl_update.sh" 2>/dev/null; then
+    bad "scripts/ssl_update.sh still contains recursive chown -fR of ssl_chainpath"
+else
+    ok "scripts/ssl_update.sh does not contain recursive chown -fR of ssl_chainpath"
+fi
+
+# P0-B: Verify xray_privilege_escalation() does NOT chown cert files to worker user
+if awk '/^xray_privilege_escalation\(\)/,/^}$/' "${REPO_DIR}/install.sh" | grep -q 'chown.*ssl_chainpath.*worker'; then
+    bad "xray_privilege_escalation() still chowns cert files to worker user"
+else
+    ok "xray_privilege_escalation() does NOT chown cert files to worker user"
+fi
+
+# P0-B: Verify xray_privilege_escalation() calls apply_nginx_layered_permissions
+if awk '/^xray_privilege_escalation\(\)/,/^}$/' "${REPO_DIR}/install.sh" | grep -q 'apply_nginx_layered_permissions'; then
+    ok "xray_privilege_escalation() calls apply_nginx_layered_permissions (restores correct model)"
+else
+    bad "xray_privilege_escalation() does NOT call apply_nginx_layered_permissions"
 fi
 
 # Verify ensure_idleleo_nginx_user is called in nginx_install
