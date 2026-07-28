@@ -139,6 +139,11 @@ cat > "${_MOCK_BIN}/fail2ban-client" << 'MOCK_EOF'
 _MOCK_STATE_DIR="${_MOCK_BASE}/state"
 mkdir -p "${_MOCK_STATE_DIR}"
 
+# Production validation uses fail2ban-client -c <isolated-config-root> -t.
+if [[ "${1:-}" == "-c" ]]; then
+    shift 2
+fi
+
 case "$1" in
     status)
         if [[ $# -eq 1 ]]; then
@@ -237,6 +242,14 @@ case "$1" in
         # Config test
         if [[ -n "${_MOCK_FAIL_CONFIG:-}" ]]; then
             echo "Config test failed" >&2
+            exit 1
+        fi
+        echo "OK"
+        ;;
+
+    reload)
+        if [[ -n "${_MOCK_FAIL_RELOAD:-}" ]]; then
+            echo "Reload failed" >&2
             exit 1
         fi
         echo "OK"
@@ -467,6 +480,12 @@ for attempt in "${_injection_attempts[@]}"; do
     fi
 done
 
+if ! mf_quick_unban '.*' "1.2.3.4" 2>/dev/null; then
+    ok "Regex-like jail name is rejected instead of matching the active list"
+else
+    bad "Regex-like jail name bypassed the active-jail allowlist"
+fi
+
 # Test: IP with shell metacharacters should be rejected by validation
 _ip_injections=(
     '1.2.3.4; rm -rf /'
@@ -648,6 +667,22 @@ fi
 
 # Clear mock failure
 unset _MOCK_FAIL_CONFIG
+
+# Reload failure must restore the exact original persistent file.
+_before_reload_failure=$(cat "${_MOCK_JAIL_D}/sshd.local")
+export _MOCK_FAIL_RELOAD=1
+if ! mf_persist_ignoreip "sshd" "172.16.0.0/12" add 2>/dev/null; then
+    ok "mf_persist_ignoreip fails when reload fails"
+else
+    bad "mf_persist_ignoreip succeeds when reload fails"
+fi
+_after_reload_failure=$(cat "${_MOCK_JAIL_D}/sshd.local")
+if [[ "${_before_reload_failure}" == "${_after_reload_failure}" ]]; then
+    ok "Original config restored after reload failure"
+else
+    bad "Config changed despite reload failure"
+fi
+unset _MOCK_FAIL_RELOAD
 
 # ============================================================
 # Section 8: mf_cli (CLI entry point) tests
@@ -854,6 +889,11 @@ echo "--- Section 11: Persistence failure handling ---"
 rm -rf "${_mock_state_dir}" "${_MOCK_JAIL_D}"/*
 mkdir -p "${_mock_state_dir}" "${_MOCK_JAIL_D}"
 fail2ban-client status sshd >/dev/null 2>&1 || true
+cat > "${_MOCK_JAIL_D}/sshd.local" <<'EOF'
+[sshd]
+enabled = true
+ignoreip = 192.168.1.0/24
+EOF
 
 # Set mock to fail config validation for persistence
 export _MOCK_FAIL_CONFIG=1
