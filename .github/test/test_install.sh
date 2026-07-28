@@ -270,12 +270,11 @@ ssl_judge_and_install() {
         -days 365 -subj "/CN=${domain}" 2>/dev/null
     # Task E (Section 9.3): root owns, worker group can read but NOT write.
     # Use non-recursive chown consistent with apply_nginx_layered_permissions() in install.sh.
-    local _cert_group
-    _cert_group="$(getent group idleleo-nginx >/dev/null 2>&1 && echo idleleo-nginx || (id -gn nobody 2>/dev/null || echo nogroup))"
-    chown -f "root:${_cert_group}" "${ssl_chainpath}" 2>/dev/null || true
-    chown -f "root:${_cert_group}" "${ssl_chainpath}/xray.crt" "${ssl_chainpath}/xray.key" 2>/dev/null || true
-    chmod -f 750 "${ssl_chainpath}" 2>/dev/null || true
-    chmod -f 640 "${ssl_chainpath}/xray.crt" "${ssl_chainpath}/xray.key" 2>/dev/null || true
+    getent group idleleo-nginx >/dev/null 2>&1 || return 1
+    chown -f "root:idleleo-nginx" "${ssl_chainpath}" || return 1
+    chown -f "root:idleleo-nginx" "${ssl_chainpath}/xray.crt" "${ssl_chainpath}/xray.key" || return 1
+    chmod -f 750 "${ssl_chainpath}" || return 1
+    chmod -f 640 "${ssl_chainpath}/xray.crt" "${ssl_chainpath}/xray.key" || return 1
     echo "  [CI] ssl_judge_and_install: self-signed cert created for ${domain}"
 }
 
@@ -469,6 +468,8 @@ if [[ "${MODE}" == "tls" || "${MODE}" == "reality_nginx" ]]; then
     assert_ok --diag "cat ${nginx_systemd_file} 2>/dev/null" "Nginx systemd service exists" test -f "${nginx_systemd_file}"
     assert_ok --diag "systemctl status nginx 2>&1 | redact_text_for_diagnostics | head -15; echo; journalctl -u nginx --no-pager -n 10 2>&1 | redact_text_for_diagnostics; echo; ps aux | grep -E '[n]ginx' | head -5" "Nginx service is active" systemctl is-active --quiet nginx
     assert_ok --diag "${nginx_dir}/sbin/nginx -t -c ${nginx_dir}/conf/nginx.conf 2>&1" "Nginx config is valid" "${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf"
+    assert_ok --diag "find ${nginx_dir} ${nginx_conf_dir} ${ssl_chainpath} -maxdepth 2 -printf '%M %u:%g %p\\n' 2>/dev/null | head -80" \
+        "Nginx layered permissions pass the production verifier" verify_nginx_layered_permissions
 fi
 
 if [[ "${MODE}" == "tls" ]]; then

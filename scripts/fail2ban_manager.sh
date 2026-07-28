@@ -339,9 +339,10 @@ mf_validate_ip() {
     local ip="$1"
     [[ -z "$ip" ]] && return 1
 
-    # Use Python ipaddress module for strict validation if available
-    if command -v python3 >/dev/null 2>&1; then
-        python3 -c "
+    # Python is an installer dependency. Fail closed instead of falling back
+    # to a weaker parser when it is unexpectedly unavailable.
+    command -v python3 >/dev/null 2>&1 || return 1
+    python3 -c "
 import ipaddress, sys
 try:
     ipaddress.ip_address(sys.argv[1])
@@ -349,31 +350,6 @@ try:
 except ValueError:
     sys.exit(1)
 " "$ip" 2>/dev/null
-        return $?
-    fi
-
-    # Fallback: bash validation (less strict but still functional)
-    # IPv4 validation with octet range check
-    if [[ "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
-        local IFS='.'
-        read -ra octets <<< "$ip"
-        for octet in "${octets[@]}"; do
-            [[ "$octet" -ge 0 && "$octet" -le 255 ]] || return 1
-        done
-        return 0
-    fi
-
-    # IPv6 validation (stricter than before)
-    # Reject :::: (more than 2 consecutive colons except for ::)
-    if [[ "$ip" =~ ::: ]]; then
-        return 1
-    fi
-    # Must contain at least one : and only valid hex chars + :
-    if [[ "$ip" =~ ^[0-9a-fA-F:]+$ ]] && [[ "$ip" == *:* ]]; then
-        return 0
-    fi
-
-    return 1
 }
 
 # Task G: Validate a CIDR (IP/prefix).
@@ -395,9 +371,8 @@ mf_validate_cidr() {
         return $?
     fi
 
-    # Use Python ipaddress module for strict validation if available
-    if command -v python3 >/dev/null 2>&1; then
-        python3 -c "
+    command -v python3 >/dev/null 2>&1 || return 1
+    python3 -c "
 import ipaddress, sys
 try:
     ipaddress.ip_network(sys.argv[1], strict=False)
@@ -405,31 +380,22 @@ try:
 except ValueError:
     sys.exit(1)
 " "$cidr" 2>/dev/null
-        return $?
-    fi
-
-    # Fallback: bash validation
-    # Validate IP part
-    mf_validate_ip "$ip" || return 1
-
-    # Validate prefix based on IP version
-    if [[ "$prefix" =~ ^[0-9]+$ ]]; then
-        if [[ "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
-            # IPv4 prefix must be 0-32
-            [[ "$prefix" -ge 0 && "$prefix" -le 32 ]] || return 1
-        else
-            # IPv6 prefix must be 0-128
-            [[ "$prefix" -ge 0 && "$prefix" -le 128 ]] || return 1
-        fi
-        return 0
-    fi
-
-    return 1
 }
 
 # Task G: Get list of active jails from fail2ban-client.
 mf_get_active_jails() {
-    fail2ban-client status 2>/dev/null | grep "Jail list:" | sed 's/.*Jail list:\s*//' | tr ',' '\n' | sed 's/^\s*//;s/\s*$//' | grep -v '^$'
+    fail2ban-client status 2>/dev/null \
+        | grep "Jail list:" \
+        | sed 's/.*Jail list:[[:space:]]*//' \
+        | tr ',' '\n' \
+        | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
+        | grep -v '^$'
+}
+
+mf_jail_is_active() {
+    local jail="$1"
+    [[ "${jail}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 1
+    mf_get_active_jails | grep -Fqx -- "${jail}"
 }
 
 # Task G: View banned IPs for a specific jail.
@@ -455,9 +421,7 @@ mf_quick_unban() {
     fi
 
     # Validate jail name (strict allowlist: only active jails)
-    local active_jails
-    active_jails=$(mf_get_active_jails)
-    if ! echo "$active_jails" | grep -qw -- "$jail"; then
+    if ! mf_jail_is_active "$jail"; then
         log_echo "${Error} ${RedBG} $(gettext "jail 不在允许列表中"): ${jail} ${Font}"
         return 1
     fi
@@ -484,6 +448,7 @@ mf_quick_unban() {
         verify_list=$(fail2ban-client status "$jail" 2>/dev/null | grep "Banned IP list:" | sed 's/.*Banned IP list:\s*//')
         if echo "$verify_list" | grep -qw -- "$ip"; then
             log_echo "${Warning} ${YellowBG} ${ip} $(gettext "解封后仍在封禁列表中, 请检查") ${Font}"
+            return 1
         fi
     else
         log_echo "${Error} ${RedBG} ${ip} $(gettext "解封失败") ${Font}"
@@ -504,9 +469,7 @@ mf_add_trust_ip() {
     fi
 
     # Validate jail name
-    local active_jails
-    active_jails=$(mf_get_active_jails)
-    if ! echo "$active_jails" | grep -qw -- "$jail"; then
+    if ! mf_jail_is_active "$jail"; then
         log_echo "${Error} ${RedBG} $(gettext "jail 不在允许列表中"): ${jail} ${Font}"
         return 1
     fi
@@ -549,9 +512,7 @@ mf_remove_trust_ip() {
     fi
 
     # Validate jail name
-    local active_jails
-    active_jails=$(mf_get_active_jails)
-    if ! echo "$active_jails" | grep -qw -- "$jail"; then
+    if ! mf_jail_is_active "$jail"; then
         log_echo "${Error} ${RedBG} $(gettext "jail 不在允许列表中"): ${jail} ${Font}"
         return 1
     fi
@@ -586,97 +547,167 @@ mf_remove_trust_ip() {
 # Args: jail, cidr, action (add|del)
 # Returns 0 on success, 1 on failure (original file preserved).
 # P0-C: Uses temp file, atomic replace, config validation, and preserves owner/group/mode.
+mf_validate_candidate_config() {
+    local candidate_file="$1"
+    local config_file="$2"
+    local jail_dir="${FAIL2BAN_JAIL_D:-/etc/fail2ban/jail.d}"
+    local config_root="${FAIL2BAN_CONFIG_DIR:-$(dirname "${jail_dir}")}"
+    local validation_root
+    validation_root=$(mktemp -d) || return 1
+
+    if [[ -d "${config_root}" ]]; then
+        cp -a "${config_root}/." "${validation_root}/" 2>/dev/null || {
+            rm -rf "${validation_root}"
+            return 1
+        }
+    fi
+    mkdir -p "${validation_root}/$(basename "${jail_dir}")"
+    if ! cp "${candidate_file}" "${validation_root}/$(basename "${jail_dir}")/$(basename "${config_file}")"; then
+        rm -rf "${validation_root}"
+        return 1
+    fi
+
+    if ! fail2ban-client -c "${validation_root}" -t >/dev/null 2>&1; then
+        rm -rf "${validation_root}"
+        return 1
+    fi
+    rm -rf "${validation_root}"
+    return 0
+}
+
+mf_stat_value() {
+    local format="$1"
+    local file="$2"
+    if stat -c "${format}" "${file}" 2>/dev/null; then
+        return 0
+    fi
+    case "${format}" in
+        %u) stat -f '%u' "${file}" 2>/dev/null ;;
+        %g) stat -f '%g' "${file}" 2>/dev/null ;;
+        %a) stat -f '%Lp' "${file}" 2>/dev/null ;;
+        *) return 1 ;;
+    esac
+}
+
 mf_persist_ignoreip() {
     local jail="$1"
     local cidr="$2"
     local action="$3"
-    local config_file="${FAIL2BAN_JAIL_D:-/etc/fail2ban/jail.d}/${jail}.local"
+    local jail_dir="${FAIL2BAN_JAIL_D:-/etc/fail2ban/jail.d}"
+    local config_file="${jail_dir}/${jail}.local"
+    local _tmp_file _backup_file=""
+    local _orig_uid _orig_gid _orig_mode=644
+    _orig_uid=$(id -u)
+    _orig_gid=$(id -g)
 
-    # If config file doesn't exist, create it atomically
-    if [[ ! -f "$config_file" ]]; then
-        local _tmp_dir
-        _tmp_dir=$(mktemp -d)
-        local _tmp_file="${_tmp_dir}/$(basename "$config_file")"
-        cat > "$_tmp_file" << EOF
+    [[ "${action}" == "add" || "${action}" == "del" ]] || return 1
+    mkdir -p "${jail_dir}" || return 1
+    if [[ "${action}" == "del" && ! -f "${config_file}" ]]; then
+        return 0
+    fi
+
+    if [[ -f "${config_file}" ]]; then
+        _orig_uid=$(mf_stat_value '%u' "${config_file}") || return 1
+        _orig_gid=$(mf_stat_value '%g' "${config_file}") || return 1
+        _orig_mode=$(mf_stat_value '%a' "${config_file}") || return 1
+    fi
+
+    _tmp_file=$(mktemp "${config_file}.tmp.XXXXXX") || return 1
+    if [[ ! -f "${config_file}" ]]; then
+        cat > "${_tmp_file}" << EOF
 [${jail}]
 enabled = true
 ignoreip = ${cidr}
 EOF
-        # Validate config before applying
-        if ! fail2ban-client -t >/dev/null 2>&1; then
-            log_echo "${Error} ${RedBG} $(gettext "配置验证失败, 保留原配置") ${Font}"
-            rm -rf "$_tmp_dir"
+    else
+        cp -p "${config_file}" "${_tmp_file}" || {
+            rm -f "${_tmp_file}"
             return 1
-        fi
-        # Atomic replace
-        if ! mv "$_tmp_file" "$config_file" 2>/dev/null; then
-            rm -rf "$_tmp_dir"
-            return 1
-        fi
-        rm -rf "$_tmp_dir"
-        return 0
-    fi
-
-    # Save original file metadata
-    local _orig_owner _orig_group _orig_mode
-    _orig_owner=$(stat -c '%U' "$config_file" 2>/dev/null || echo "root")
-    _orig_group=$(stat -c '%G' "$config_file" 2>/dev/null || echo "root")
-    _orig_mode=$(stat -c '%a' "$config_file" 2>/dev/null || echo "644")
-
-    # Work on a temp copy
-    local _tmp_dir
-    _tmp_dir=$(mktemp -d)
-    local _tmp_file="${_tmp_dir}/$(basename "$config_file")"
-    cp -p "$config_file" "$_tmp_file"
-
-    # Check if ignoreip line already exists
-    local existing_line
-    existing_line=$(grep "^ignoreip" "$_tmp_file" 2>/dev/null)
-
-    if [[ "$action" == "add" ]]; then
-        if [[ -z "$existing_line" ]]; then
+        }
+        local existing_line
+        existing_line=$(grep "^[[:space:]]*ignoreip[[:space:]]*=" "${_tmp_file}" 2>/dev/null)
+        if [[ "${action}" == "add" && -z "${existing_line}" ]]; then
             # Add new ignoreip line
-            echo "ignoreip = ${cidr}" >> "$_tmp_file"
-        elif echo "$existing_line" | grep -qw -- "$cidr"; then
+            echo "ignoreip = ${cidr}" >> "${_tmp_file}"
+        elif [[ "${action}" == "add" ]] && printf '%s\n' "${existing_line#*=}" | tr ' ' '\n' | grep -Fqx -- "${cidr}"; then
             # Already exists, skip (no change needed)
-            rm -rf "$_tmp_dir"
+            rm -f "${_tmp_file}"
             return 0
-        else
+        elif [[ "${action}" == "add" ]]; then
             # Append to existing ignoreip line
-            sed -i "s|^ignoreip\(.*\)|ignoreip\1 ${cidr}|" "$_tmp_file"
-        fi
-    elif [[ "$action" == "del" ]]; then
-        if [[ -n "$existing_line" ]]; then
-            # Remove the CIDR from the ignoreip line
-            sed -i "s| ${cidr}||g" "$_tmp_file"
-            sed -i "s|${cidr} ||g" "$_tmp_file"
-            sed -i "s|${cidr}||g" "$_tmp_file"
-            # If ignoreip is now empty or has no value, remove the line
-            if grep -q "^ignoreip\s*=\s*$" "$_tmp_file"; then
-                sed -i "/^ignoreip\s*=\s*$/d" "$_tmp_file"
-            fi
+            sed -i "s|^[[:space:]]*ignoreip\\(.*\\)|ignoreip\\1 ${cidr}|" "${_tmp_file}"
+        elif [[ "${action}" == "del" && -n "${existing_line}" ]]; then
+            local filtered_file="${_tmp_file}.filtered"
+            awk -v needle="${cidr}" '
+                /^[[:space:]]*ignoreip[[:space:]]*=/ {
+                    split($0, pair, "=")
+                    count = split(pair[2], values, /[[:space:]]+/)
+                    output = ""
+                    for (i = 1; i <= count; i++) {
+                        if (values[i] != "" && values[i] != needle) {
+                            output = output " " values[i]
+                        }
+                    }
+                    if (output != "") print "ignoreip =" output
+                    next
+                }
+                { print }
+            ' "${_tmp_file}" > "${filtered_file}" || {
+                rm -f "${_tmp_file}" "${filtered_file}"
+                return 1
+            }
+            mv "${filtered_file}" "${_tmp_file}" || {
+                rm -f "${_tmp_file}" "${filtered_file}"
+                return 1
+            }
         fi
     fi
 
-    # Validate config before applying
-    if ! fail2ban-client -t >/dev/null 2>&1; then
+    # Validate the candidate in an isolated copy of the real config tree.
+    if ! mf_validate_candidate_config "${_tmp_file}" "${config_file}"; then
         log_echo "${Error} ${RedBG} $(gettext "配置验证失败, 保留原配置") ${Font}"
-        rm -rf "$_tmp_dir"
+        rm -f "${_tmp_file}"
         return 1
     fi
 
-    # Atomic replace: mv temp file to config file
-    if ! mv "$_tmp_file" "$config_file" 2>/dev/null; then
+    if ! chown "${_orig_uid}:${_orig_gid}" "${_tmp_file}" 2>/dev/null ||
+       ! chmod "${_orig_mode}" "${_tmp_file}" 2>/dev/null; then
+        rm -f "${_tmp_file}"
+        return 1
+    fi
+
+    if [[ -f "${config_file}" ]]; then
+        _backup_file="${config_file}.backup.$$"
+        cp -p "${config_file}" "${_backup_file}" || {
+            rm -f "${_tmp_file}"
+            return 1
+        }
+    fi
+
+    # Same-directory rename is atomic.
+    if ! mv "${_tmp_file}" "${config_file}" 2>/dev/null; then
         log_echo "${Error} ${RedBG} $(gettext "原子替换失败, 保留原配置") ${Font}"
-        rm -rf "$_tmp_dir"
+        rm -f "${_tmp_file}" "${_backup_file}"
         return 1
     fi
-    rm -rf "$_tmp_dir"
 
-    # Restore original owner/group/mode
-    chown "${_orig_owner}:${_orig_group}" "$config_file" 2>/dev/null || true
-    chmod "${_orig_mode}" "$config_file" 2>/dev/null || true
+    if ! fail2ban-client reload >/dev/null 2>&1; then
+        log_echo "${Error} ${RedBG} $(gettext "Fail2ban reload 失败, 恢复原配置") ${Font}"
+        if [[ -n "${_backup_file}" && -f "${_backup_file}" ]]; then
+            if cp -p "${_backup_file}" "${config_file}"; then
+                rm -f "${_backup_file}"
+            else
+                log_echo "${Error} ${RedBG} $(gettext "原配置自动恢复失败, 备份保留于"): ${_backup_file} ${Font}"
+            fi
+        else
+            rm -f "${config_file}" ||
+                log_echo "${Error} ${RedBG} $(gettext "新配置清理失败"): ${config_file} ${Font}"
+        fi
+        fail2ban-client reload >/dev/null 2>&1 || true
+        return 1
+    fi
 
+    rm -f "${_backup_file}"
     return 0
 }
 

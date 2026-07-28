@@ -11,7 +11,51 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  security-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Checkout API contract branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_api
+          ref: work/phase1-optimization
+          path: .phase1-contracts/api
+
+      - name: Checkout Nginx contract branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_Nginx
+          ref: work/phase1-optimization
+          path: .phase1-contracts/nginx
+
+      - name: Checkout Skill contract branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_skill
+          ref: work/phase1-optimization
+          path: .phase1-contracts/skill
+
+      - name: Run Phase 1 regression tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          bash .github/test/test_redact.sh
+          bash .github/test/test_fail2ban.sh
+          bash .github/test/test_nginx_tar_security.sh
+          bash .github/test/test_nginx_update_rollback.sh
+          bash .github/test/test_phase1_safety.sh
+          sudo bash .github/test/test_nginx_security.sh
+          bash .github/test/test_cross_repo_contract.sh \
+            .phase1-contracts/api \
+            .phase1-contracts/nginx \
+            .phase1-contracts/skill
+
   test-install:
+    needs: security-regression
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -27,7 +71,7 @@ jobs:
     name: Install (${{ matrix.mode }})
 
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Run redaction unit tests
         run: bash .github/test/test_redact.sh
@@ -42,25 +86,28 @@ jobs:
           # Source unified redaction helpers (Task H: no secrets in CI output)
           source .github/test/redact.sh
           echo "=== Install config (summary, no secrets) ==="
-          sudo safe_print_config_summary /etc/idleleo/conf/install_config.json 2>/dev/null || echo "(not found)"
+          sudo bash -c 'source .github/test/redact.sh; safe_print_config_summary "$1"' \
+            _ /etc/idleleo/conf/install_config.json 2>/dev/null || echo "(not found)"
           echo ""
           echo "=== Xray config (redacted) ==="
-          sudo redact_json_for_diagnostics /etc/idleleo/conf/xray/config.json 2>/dev/null || echo "(not found)"
+          sudo bash -c 'source .github/test/redact.sh; redact_json_for_diagnostics "$1"' \
+            _ /etc/idleleo/conf/xray/config.json 2>/dev/null || echo "(not found)"
           echo ""
           echo "=== Install config (redacted) ==="
-          sudo redact_json_for_diagnostics /etc/idleleo/conf/install_config.json 2>/dev/null || echo "(not found)"
+          sudo bash -c 'source .github/test/redact.sh; redact_json_for_diagnostics "$1"' \
+            _ /etc/idleleo/conf/install_config.json 2>/dev/null || echo "(not found)"
           echo ""
           echo "=== Xray service status ==="
-          sudo systemctl status xray 2>&1 | redact_text_for_diagnostics || true
+          sudo systemctl status xray 2>&1 | redact_text_for_diagnostics /dev/stdin || true
           echo ""
           echo "=== Xray error log (redacted) ==="
-          sudo tail -50 /var/log/xray/error.log 2>/dev/null | redact_text_for_diagnostics || echo "(not found)"
+          sudo tail -50 /var/log/xray/error.log 2>/dev/null | redact_text_for_diagnostics /dev/stdin || echo "(not found)"
           echo ""
           echo "=== Nginx service status ==="
-          sudo systemctl status nginx 2>&1 | redact_text_for_diagnostics || true
+          sudo systemctl status nginx 2>&1 | redact_text_for_diagnostics /dev/stdin || true
           echo ""
           echo "=== Nginx error log (redacted) ==="
-          sudo tail -50 /usr/local/nginx/logs/error.log 2>/dev/null | redact_text_for_diagnostics || echo "(not found)"
+          sudo tail -50 /usr/local/nginx/logs/error.log 2>/dev/null | redact_text_for_diagnostics /dev/stdin || echo "(not found)"
           echo ""
           echo "=== Install log (redacted) ==="
-          sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics || echo "(not found)"
+          sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics /dev/stdin || echo "(not found)"
