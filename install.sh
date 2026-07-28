@@ -2326,7 +2326,11 @@ xray_update() {
             [yY][eE][sS] | [yY])
                 log_echo "${OK} ${GreenBG} $(gettext "更新") Xray ! ${Font}"
                 # Task C (Section 7.2): backup current binary as Layer 1 rollback source
-                backup_xray_binary
+                # P0-B: backup must succeed before proceeding — refuse to overwrite without backup
+                if ! backup_xray_binary; then
+                    log_echo "${Error} ${RedBG} $(gettext "本机备份失败, 拒绝继续更新")! ${Font}"
+                    return 1
+                fi
                 systemctl stop xray
                 # Task C (Section 7.4): install + comprehensive health check
                 # (binary exec / version match / config parse / service active / port listening)
@@ -2376,7 +2380,11 @@ xray_update() {
             esac
         else
             # Task C: auto_update mode — non-interactive, automated layered rollback
-            backup_xray_binary
+            # P0-B: backup must succeed before proceeding — refuse to overwrite without backup
+            if ! backup_xray_binary; then
+                echo "$(gettext "本机备份失败, 拒绝继续更新")!" >>"${log_file}"
+                return 1
+            fi
             systemctl stop xray
             if xray_install_release install -f --version "v${xray_online_version}" && health_check_xray_update "${xray_online_version}"; then
                 xray_version=${xray_online_version}
@@ -2399,12 +2407,46 @@ xray_update() {
         fi
     else
         countdown "$(gettext "重装") Xray !"
-        # Task C: backup before reinstall too (reinstall may corrupt the binary)
-        backup_xray_binary
+        # P0-B/P0-C: backup before reinstall too (reinstall may corrupt the binary)
+        # Backup must succeed — refuse to overwrite without backup
+        if ! backup_xray_binary; then
+            log_echo "${Error} ${RedBG} $(gettext "本机备份失败, 拒绝继续重装")! ${Font}"
+            return 1
+        fi
         systemctl stop xray
         xray_version=${xray_online_version}
-        xray_install_release install -f --version v${xray_online_version}
-        judge "Xray $(gettext "重装")"
+        # P0-C: same-version reinstall must have layered rollback
+        if xray_install_release install -f --version v${xray_online_version} && health_check_xray_update "${xray_online_version}"; then
+            judge "Xray $(gettext "重装")" true
+        else
+            log_echo "${Error} ${RedBG} Xray $(gettext "重装") $(gettext "失败")! ${Font}"
+            xray_diagnose
+            # P0-C Layer 1: local backup restore
+            if [[ ${auto_update} != "YES" ]]; then
+                log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+                read -r rollback_fq
+                case $rollback_fq in
+                [nN][oO] | [nN])
+                    log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
+                    return 1
+                    ;;
+                esac
+            fi
+            log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
+            if restore_xray_binary_backup; then
+                log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
+                xray_version=${current_xray_version}
+                update_rolled_back=1
+            elif fallback_xray_to_tested_version; then
+                # P0-C Layer 2: tested_version fallback
+                xray_version=${xray_tested_version}
+                update_rolled_back=1
+            else
+                # P0-C Layer 3: stop + diagnostics (already printed above)
+                log_echo "${Error} ${RedBG} Xray $(gettext "回滚失败")! ${Font}"
+                return 1
+            fi
+        fi
     fi
     xray_privilege_escalation || return 1
     set_xray_config_path
