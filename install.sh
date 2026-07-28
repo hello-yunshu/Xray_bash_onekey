@@ -1892,6 +1892,10 @@ apply_nginx_layered_permissions() {
     local nginx_root="${nginx_dir}"
     [[ ! -d "${nginx_root}" ]] && return 0
 
+    # 0) Parent directory: root:root 755 (worker user must traverse to reach subdirs)
+    chown root:root "${nginx_root}" 2>/dev/null || failed=1
+    chmod 755 "${nginx_root}" 2>/dev/null || failed=1
+
     # 1) Binary and modules: root:root 755 (only root can modify program)
     if [[ -f "${nginx_root}/sbin/nginx" ]]; then
         chown root:root "${nginx_root}/sbin/nginx" 2>/dev/null || failed=1
