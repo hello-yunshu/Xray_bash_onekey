@@ -317,7 +317,7 @@ mf_is_module_enabled() {
 # Written to jail.d/zzz-idleleo-incremental.local so it loads last
 # and applies to all jails. Fail2ban < 0.10 silently ignores these keys.
 mf_ensure_incremental_ban() {
-    local inc_file="/etc/fail2ban/jail.d/zzz-idleleo-incremental.local"
+    local inc_file="${FAIL2BAN_JAIL_D:-/etc/fail2ban/jail.d}/zzz-idleleo-incremental.local"
     cat > "$inc_file" << 'EOF'
 # Idleleo incremental ban policy (Task G)
 # Repeat offenders get progressively longer bans.
@@ -332,12 +332,28 @@ EOF
 }
 
 # Task G: Validate an IP address (IPv4 or IPv6).
+# Uses Python ipaddress module for strict validation when available.
 # Returns 0 if valid, 1 otherwise.
+# Rejects: ::::, 999.1.1.1, empty strings, malformed addresses.
 mf_validate_ip() {
     local ip="$1"
     [[ -z "$ip" ]] && return 1
 
-    # IPv4 validation
+    # Use Python ipaddress module for strict validation if available
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -c "
+import ipaddress, sys
+try:
+    ipaddress.ip_address(sys.argv[1])
+    sys.exit(0)
+except ValueError:
+    sys.exit(1)
+" "$ip" 2>/dev/null
+        return $?
+    fi
+
+    # Fallback: bash validation (less strict but still functional)
+    # IPv4 validation with octet range check
     if [[ "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
         local IFS='.'
         read -ra octets <<< "$ip"
@@ -347,7 +363,12 @@ mf_validate_ip() {
         return 0
     fi
 
-    # Simple IPv6 validation (contains : and valid hex chars)
+    # IPv6 validation (stricter than before)
+    # Reject :::: (more than 2 consecutive colons except for ::)
+    if [[ "$ip" =~ ::: ]]; then
+        return 1
+    fi
+    # Must contain at least one : and only valid hex chars + :
     if [[ "$ip" =~ ^[0-9a-fA-F:]+$ ]] && [[ "$ip" == *:* ]]; then
         return 0
     fi
@@ -356,7 +377,10 @@ mf_validate_ip() {
 }
 
 # Task G: Validate a CIDR (IP/prefix).
+# Uses Python ipaddress module for strict validation when available.
 # Returns 0 if valid, 1 otherwise.
+# IPv4 prefix must be 0-32, IPv6 prefix must be 0-128.
+# Rejects: 1.2.3.4/100, ::::/64, 999.1.1.1/24
 mf_validate_cidr() {
     local cidr="$1"
     [[ -z "$cidr" ]] && return 1
@@ -371,11 +395,32 @@ mf_validate_cidr() {
         return $?
     fi
 
+    # Use Python ipaddress module for strict validation if available
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -c "
+import ipaddress, sys
+try:
+    ipaddress.ip_network(sys.argv[1], strict=False)
+    sys.exit(0)
+except ValueError:
+    sys.exit(1)
+" "$cidr" 2>/dev/null
+        return $?
+    fi
+
+    # Fallback: bash validation
     # Validate IP part
     mf_validate_ip "$ip" || return 1
 
-    # Validate prefix (1-128 to cover both IPv4 and IPv6)
-    if [[ "$prefix" =~ ^[0-9]+$ ]] && [[ "$prefix" -ge 0 && "$prefix" -le 128 ]]; then
+    # Validate prefix based on IP version
+    if [[ "$prefix" =~ ^[0-9]+$ ]]; then
+        if [[ "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
+            # IPv4 prefix must be 0-32
+            [[ "$prefix" -ge 0 && "$prefix" -le 32 ]] || return 1
+        else
+            # IPv6 prefix must be 0-128
+            [[ "$prefix" -ge 0 && "$prefix" -le 128 ]] || return 1
+        fi
         return 0
     fi
 
@@ -474,9 +519,17 @@ mf_add_trust_ip() {
 
     # Execute real addignoreip command
     if fail2ban-client set "$jail" addignoreip "$cidr" 2>/dev/null; then
-        log_echo "${OK} ${GreenBG} ${cidr} $(gettext "已添加到") ${jail} $(gettext "可信名单") ${Font}"
+        log_echo "${OK} ${GreenBG} ${cidr} $(gettext "已添加到") ${jail} $(gettext "可信名单 (运行态)") ${Font}"
         # Persist to .local config file so it survives restart
-        mf_persist_ignoreip "$jail" "$cidr" add
+        if mf_persist_ignoreip "$jail" "$cidr" add; then
+            log_echo "${OK} ${GreenBG} ${cidr} $(gettext "持久化成功") ${Font}"
+        else
+            # P0-C: Runtime modification succeeded but persistence failed.
+            # Must explicitly tell user, not show as fully successful.
+            log_echo "${Warning} ${YellowBG} $(gettext "运行态修改成功, 但持久化失败") ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "重启 Fail2ban 后该可信 IP 可能丢失, 请手动检查配置文件") ${Font}"
+            return 1
+        fi
     else
         log_echo "${Error} ${RedBG} ${cidr} $(gettext "添加可信名单失败") ${Font}"
         return 1
@@ -511,9 +564,17 @@ mf_remove_trust_ip() {
 
     # Execute real delignoreip command
     if fail2ban-client set "$jail" delignoreip "$cidr" 2>/dev/null; then
-        log_echo "${OK} ${GreenBG} ${cidr} $(gettext "已从") ${jail} $(gettext "可信名单移除") ${Font}"
+        log_echo "${OK} ${GreenBG} ${cidr} $(gettext "已从") ${jail} $(gettext "可信名单移除 (运行态)") ${Font}"
         # Persist removal to .local config file
-        mf_persist_ignoreip "$jail" "$cidr" del
+        if mf_persist_ignoreip "$jail" "$cidr" del; then
+            log_echo "${OK} ${GreenBG} ${cidr} $(gettext "持久化移除成功") ${Font}"
+        else
+            # P0-C: Runtime modification succeeded but persistence failed.
+            # Must explicitly tell user, not show as fully successful.
+            log_echo "${Warning} ${YellowBG} $(gettext "运行态修改成功, 但持久化失败") ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "重启 Fail2ban 后该可信 IP 可能仍在, 请手动检查配置文件") ${Font}"
+            return 1
+        fi
     else
         log_echo "${Error} ${RedBG} ${cidr} $(gettext "移除可信名单失败") ${Font}"
         return 1
@@ -523,49 +584,100 @@ mf_remove_trust_ip() {
 # Task G: Persist ignoreip changes to the jail's .local config file.
 # This ensures trusted IPs survive a fail2ban restart.
 # Args: jail, cidr, action (add|del)
+# Returns 0 on success, 1 on failure (original file preserved).
+# P0-C: Uses temp file, atomic replace, config validation, and preserves owner/group/mode.
 mf_persist_ignoreip() {
     local jail="$1"
     local cidr="$2"
     local action="$3"
-    local config_file="/etc/fail2ban/jail.d/${jail}.local"
+    local config_file="${FAIL2BAN_JAIL_D:-/etc/fail2ban/jail.d}/${jail}.local"
 
+    # If config file doesn't exist, create it atomically
     if [[ ! -f "$config_file" ]]; then
-        # Create the file if it doesn't exist
-        cat > "$config_file" << EOF
+        local _tmp_dir
+        _tmp_dir=$(mktemp -d)
+        local _tmp_file="${_tmp_dir}/$(basename "$config_file")"
+        cat > "$_tmp_file" << EOF
 [${jail}]
 enabled = true
 ignoreip = ${cidr}
 EOF
+        # Validate config before applying
+        if ! fail2ban-client -t >/dev/null 2>&1; then
+            log_echo "${Error} ${RedBG} $(gettext "配置验证失败, 保留原配置") ${Font}"
+            rm -rf "$_tmp_dir"
+            return 1
+        fi
+        # Atomic replace
+        if ! mv "$_tmp_file" "$config_file" 2>/dev/null; then
+            rm -rf "$_tmp_dir"
+            return 1
+        fi
+        rm -rf "$_tmp_dir"
         return 0
     fi
 
+    # Save original file metadata
+    local _orig_owner _orig_group _orig_mode
+    _orig_owner=$(stat -c '%U' "$config_file" 2>/dev/null || echo "root")
+    _orig_group=$(stat -c '%G' "$config_file" 2>/dev/null || echo "root")
+    _orig_mode=$(stat -c '%a' "$config_file" 2>/dev/null || echo "644")
+
+    # Work on a temp copy
+    local _tmp_dir
+    _tmp_dir=$(mktemp -d)
+    local _tmp_file="${_tmp_dir}/$(basename "$config_file")"
+    cp -p "$config_file" "$_tmp_file"
+
     # Check if ignoreip line already exists
     local existing_line
-    existing_line=$(grep "^ignoreip" "$config_file" 2>/dev/null)
+    existing_line=$(grep "^ignoreip" "$_tmp_file" 2>/dev/null)
 
     if [[ "$action" == "add" ]]; then
         if [[ -z "$existing_line" ]]; then
             # Add new ignoreip line
-            echo "ignoreip = ${cidr}" >> "$config_file"
+            echo "ignoreip = ${cidr}" >> "$_tmp_file"
         elif echo "$existing_line" | grep -qw -- "$cidr"; then
-            # Already exists, skip
+            # Already exists, skip (no change needed)
+            rm -rf "$_tmp_dir"
             return 0
         else
             # Append to existing ignoreip line
-            sed -i "s|^ignoreip\(.*\)|ignoreip\1 ${cidr}|" "$config_file"
+            sed -i "s|^ignoreip\(.*\)|ignoreip\1 ${cidr}|" "$_tmp_file"
         fi
     elif [[ "$action" == "del" ]]; then
         if [[ -n "$existing_line" ]]; then
             # Remove the CIDR from the ignoreip line
-            sed -i "s| ${cidr}||g" "$config_file"
-            sed -i "s|${cidr} ||g" "$config_file"
-            sed -i "s|${cidr}||g" "$config_file"
+            sed -i "s| ${cidr}||g" "$_tmp_file"
+            sed -i "s|${cidr} ||g" "$_tmp_file"
+            sed -i "s|${cidr}||g" "$_tmp_file"
             # If ignoreip is now empty or has no value, remove the line
-            if grep -q "^ignoreip\s*=\s*$" "$config_file"; then
-                sed -i "/^ignoreip\s*=\s*$/d" "$config_file"
+            if grep -q "^ignoreip\s*=\s*$" "$_tmp_file"; then
+                sed -i "/^ignoreip\s*=\s*$/d" "$_tmp_file"
             fi
         fi
     fi
+
+    # Validate config before applying
+    if ! fail2ban-client -t >/dev/null 2>&1; then
+        log_echo "${Error} ${RedBG} $(gettext "配置验证失败, 保留原配置") ${Font}"
+        rm -rf "$_tmp_dir"
+        return 1
+    fi
+
+    # Atomic replace: mv temp file to config file
+    if ! mv "$_tmp_file" "$config_file" 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "原子替换失败, 保留原配置") ${Font}"
+        rm -rf "$_tmp_dir"
+        return 1
+    fi
+    rm -rf "$_tmp_dir"
+
+    # Restore original owner/group/mode
+    chown "${_orig_owner}:${_orig_group}" "$config_file" 2>/dev/null || true
+    chmod "${_orig_mode}" "$config_file" 2>/dev/null || true
+
+    return 0
 }
 
 mf_manage_fail2ban() {
@@ -578,9 +690,13 @@ mf_manage_fail2ban() {
         echo
         echo -e "${Green} $(gettext "请选择") Fail2ban $(gettext "操作"): ${Font}"
         echo "1. $(gettext "管理模块")"
-        echo "2. $(gettext "添加自定义规则")"
-        echo "3. $(gettext "服务管理")"
-        echo "4. $(gettext "返回")"
+        echo "2. $(gettext "查看已封禁 IP")"
+        echo "3. $(gettext "快速解封 IP")"
+        echo "4. $(gettext "添加可信 IP/CIDR")"
+        echo "5. $(gettext "移除可信 IP/CIDR")"
+        echo "6. $(gettext "添加自定义规则")"
+        echo "7. $(gettext "服务与配置检查")"
+        echo "8. $(gettext "返回")"
         local mf_action
         read_optimize "$(gettext "请输入"):" mf_action 1
         case $mf_action in
@@ -588,40 +704,202 @@ mf_manage_fail2ban() {
             mf_manage_modules
             ;;
         2)
-            mf_add_custom_rule
+            mf_menu_view_banned_ips
             ;;
         3)
-            # 服务管理子菜单
-            while true; do
-                echo
-                echo -e "${Green} $(gettext "服务管理"): ${Font}"
-                echo "1. $(gettext "启动") Fail2ban"
-                echo "2. $(gettext "停止") Fail2ban"
-                echo "3. $(gettext "重启") Fail2ban"
-                echo "4. $(gettext "返回")"
-                local service_action
-                read_optimize "$(gettext "请输入"):" service_action 1
-                case $service_action in
-                1)
-                    mf_start_enable_fail2ban
-                    ;;
-                2)
-                    mf_stop_disable_fail2ban
-                    ;;
-                3)
-                    mf_restart_fail2ban
-                    ;;
-                4)
-                    break
-                    ;;
-                *)
-                    echo
-                    log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
-                    ;;
-                esac
-            done
+            mf_menu_quick_unban
             ;;
-        4) return ;;
+        4)
+            mf_menu_add_trust_ip
+            ;;
+        5)
+            mf_menu_remove_trust_ip
+            ;;
+        6)
+            mf_add_custom_rule
+            ;;
+        7)
+            mf_service_and_config_check
+            ;;
+        8) return ;;
+        *)
+            echo
+            log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
+            ;;
+        esac
+    done
+}
+
+# P0-C: Menu helper for viewing banned IPs.
+# Lists active jails, lets user select one, then shows its banned IP list.
+mf_menu_view_banned_ips() {
+    local active_jails
+    active_jails=$(mf_get_active_jails)
+    if [[ -z "$active_jails" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "没有活跃的 Jail") ${Font}"
+        return
+    fi
+
+    echo
+    echo -e "${Green} $(gettext "活跃的 Jail 列表"): ${Font}"
+    local jail_list=()
+    local index=1
+    while IFS= read -r jail; do
+        [[ -n "$jail" ]] || continue
+        jail_list[$index]="$jail"
+        echo "${Green}${index}.${Font} ${jail}"
+        index=$((index + 1))
+    done <<< "$active_jails"
+    echo "${Green}0.${Font} $(gettext "返回")"
+
+    local jail_choice
+    read_optimize "$(gettext "请选择要查看的 Jail"):" jail_choice 0 0 ${#jail_list[@]} "$(gettext "无效的选择, 请重试")"
+    [[ $jail_choice -eq 0 ]] && return
+
+    local selected_jail="${jail_list[$jail_choice]}"
+    echo
+    log_echo "${GreenBG} ${selected_jail} $(gettext "封禁列表"): ${Font}"
+    mf_view_banned_ips "$selected_jail"
+}
+
+# P0-C: Menu helper for quick unbanning an IP.
+# Lists active jails, lets user select one, then prompts for IP to unban.
+mf_menu_quick_unban() {
+    local active_jails
+    active_jails=$(mf_get_active_jails)
+    if [[ -z "$active_jails" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "没有活跃的 Jail") ${Font}"
+        return
+    fi
+
+    echo
+    echo -e "${Green} $(gettext "活跃的 Jail 列表"): ${Font}"
+    local jail_list=()
+    local index=1
+    while IFS= read -r jail; do
+        [[ -n "$jail" ]] || continue
+        jail_list[$index]="$jail"
+        echo "${Green}${index}.${Font} ${jail}"
+        index=$((index + 1))
+    done <<< "$active_jails"
+    echo "${Green}0.${Font} $(gettext "返回")"
+
+    local jail_choice
+    read_optimize "$(gettext "请选择要解封的 Jail"):" jail_choice 0 0 ${#jail_list[@]} "$(gettext "无效的选择, 请重试")"
+    [[ $jail_choice -eq 0 ]] && return
+
+    local selected_jail="${jail_list[$jail_choice]}"
+    local unban_ip
+    read_optimize "$(gettext "请输入要解封的 IP 地址 (仅支持单个 IP, 不支持 CIDR)"):" unban_ip NULL
+    if [[ -z "$unban_ip" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "IP 地址不能为空") ${Font}"
+        return
+    fi
+    mf_quick_unban "$selected_jail" "$unban_ip"
+}
+
+# P0-C: Menu helper for adding a trusted IP/CIDR.
+mf_menu_add_trust_ip() {
+    local active_jails
+    active_jails=$(mf_get_active_jails)
+    if [[ -z "$active_jails" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "没有活跃的 Jail") ${Font}"
+        return
+    fi
+
+    echo
+    echo -e "${Green} $(gettext "活跃的 Jail 列表"): ${Font}"
+    local jail_list=()
+    local index=1
+    while IFS= read -r jail; do
+        [[ -n "$jail" ]] || continue
+        jail_list[$index]="$jail"
+        echo "${Green}${index}.${Font} ${jail}"
+        index=$((index + 1))
+    done <<< "$active_jails"
+    echo "${Green}0.${Font} $(gettext "返回")"
+
+    local jail_choice
+    read_optimize "$(gettext "请选择要添加可信 IP 的 Jail"):" jail_choice 0 0 ${#jail_list[@]} "$(gettext "无效的选择, 请重试")"
+    [[ $jail_choice -eq 0 ]] && return
+
+    local selected_jail="${jail_list[$jail_choice]}"
+    local trust_cidr
+    read_optimize "$(gettext "请输入要添加的 IP/CIDR (支持 IPv4/IPv6/CIDR)"):" trust_cidr NULL
+    if [[ -z "$trust_cidr" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "IP/CIDR 不能为空") ${Font}"
+        return
+    fi
+    mf_add_trust_ip "$selected_jail" "$trust_cidr"
+}
+
+# P0-C: Menu helper for removing a trusted IP/CIDR.
+mf_menu_remove_trust_ip() {
+    local active_jails
+    active_jails=$(mf_get_active_jails)
+    if [[ -z "$active_jails" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "没有活跃的 Jail") ${Font}"
+        return
+    fi
+
+    echo
+    echo -e "${Green} $(gettext "活跃的 Jail 列表"): ${Font}"
+    local jail_list=()
+    local index=1
+    while IFS= read -r jail; do
+        [[ -n "$jail" ]] || continue
+        jail_list[$index]="$jail"
+        echo "${Green}${index}.${Font} ${jail}"
+        index=$((index + 1))
+    done <<< "$active_jails"
+    echo "${Green}0.${Font} $(gettext "返回")"
+
+    local jail_choice
+    read_optimize "$(gettext "请选择要移除可信 IP 的 Jail"):" jail_choice 0 0 ${#jail_list[@]} "$(gettext "无效的选择, 请重试")"
+    [[ $jail_choice -eq 0 ]] && return
+
+    local selected_jail="${jail_list[$jail_choice]}"
+    local trust_cidr
+    read_optimize "$(gettext "请输入要移除的 IP/CIDR"):" trust_cidr NULL
+    if [[ -z "$trust_cidr" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "IP/CIDR 不能为空") ${Font}"
+        return
+    fi
+    mf_remove_trust_ip "$selected_jail" "$trust_cidr"
+}
+
+# P0-C: Service and config check submenu.
+mf_service_and_config_check() {
+    while true; do
+        echo
+        echo -e "${Green} $(gettext "服务与配置检查"): ${Font}"
+        echo "1. $(gettext "启动") Fail2ban"
+        echo "2. $(gettext "停止") Fail2ban"
+        echo "3. $(gettext "重启") Fail2ban"
+        echo "4. $(gettext "配置测试") (fail2ban-client -t)"
+        echo "5. $(gettext "返回")"
+        local service_action
+        read_optimize "$(gettext "请输入"):" service_action 1
+        case $service_action in
+        1)
+            mf_start_enable_fail2ban
+            ;;
+        2)
+            mf_stop_disable_fail2ban
+            ;;
+        3)
+            mf_restart_fail2ban
+            ;;
+        4)
+            if fail2ban-client -t 2>&1; then
+                log_echo "${OK} ${GreenBG} $(gettext "配置测试通过") ${Font}"
+            else
+                log_echo "${Error} ${RedBG} $(gettext "配置测试失败") ${Font}"
+            fi
+            ;;
+        5)
+            break
+            ;;
         *)
             echo
             log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
@@ -878,4 +1156,63 @@ mf_check_for_updates() {
     else
         log_echo "${OK} ${Green} $(gettext "当前已经是最新版本"): $mf_SCRIPT_VERSION ${Font}"
     fi
+}
+
+# P0-C: CLI entry point for Fail2ban management.
+# Reuses the same implementation as the menu, no logic duplication.
+# Usage:
+#   mf_cli --list
+#   mf_cli --unban <jail> <ip>
+#   mf_cli --trust-add <jail> <ip-or-cidr>
+#   mf_cli --trust-del <jail> <ip-or-cidr>
+mf_cli() {
+    local cli_action="${1:-}"
+    shift || true
+
+    if ! command -v fail2ban-client &> /dev/null; then
+        log_echo "${Error} ${RedBG} Fail2ban $(gettext "未安装"), $(gettext "请先安装") Fail2ban ${Font}"
+        return 1
+    fi
+
+    case "$cli_action" in
+        --list)
+            mf_display_fail2ban_status
+            ;;
+        --unban)
+            local jail="${1:-}"
+            local ip="${2:-}"
+            if [[ -z "$jail" || -z "$ip" ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "用法: --fail2ban-unban <jail> <ip>") ${Font}"
+                return 1
+            fi
+            mf_quick_unban "$jail" "$ip"
+            ;;
+        --trust-add)
+            local jail="${1:-}"
+            local cidr="${2:-}"
+            if [[ -z "$jail" || -z "$cidr" ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "用法: --fail2ban-trust-add <jail> <ip-or-cidr>") ${Font}"
+                return 1
+            fi
+            mf_add_trust_ip "$jail" "$cidr"
+            ;;
+        --trust-del)
+            local jail="${1:-}"
+            local cidr="${2:-}"
+            if [[ -z "$jail" || -z "$cidr" ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "用法: --fail2ban-trust-del <jail> <ip-or-cidr>") ${Font}"
+                return 1
+            fi
+            mf_remove_trust_ip "$jail" "$cidr"
+            ;;
+        *)
+            log_echo "${Error} ${RedBG} $(gettext "未知命令"): ${cli_action} ${Font}"
+            log_echo "${Info} $(gettext "可用命令"):" ${Font}
+            log_echo "  --list               $(gettext "查看 Fail2ban 状态")"
+            log_echo "  --unban <jail> <ip>  $(gettext "快速解封 IP")"
+            log_echo "  --trust-add <jail> <ip-or-cidr>  $(gettext "添加可信 IP/CIDR")"
+            log_echo "  --trust-del <jail> <ip-or-cidr>  $(gettext "移除可信 IP/CIDR")"
+            return 1
+            ;;
+    esac
 }
