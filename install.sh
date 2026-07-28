@@ -3006,7 +3006,12 @@ nginx_install() {
     modify_nginx_origin_conf
 
     # Task E (Section 9): Apply layered permission model (replaces chown -fR nobody / chmod -fR 755).
-    apply_nginx_layered_permissions
+    # P0-A: Propagate permission failure so callers (nginx_update) can trigger rollback.
+    if ! apply_nginx_layered_permissions; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 分层权限应用失败, 可能影响服务运行") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
 
     # Task F: Post-install config validation.
     if ! "${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf" >/dev/null 2>&1; then
