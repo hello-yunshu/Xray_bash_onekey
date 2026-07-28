@@ -5,6 +5,19 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      api_ref:
+        description: 'API repo ref (branch/tag/sha)'
+        required: false
+        default: 'main'
+      nginx_ref:
+        description: 'Nginx repo ref (branch/tag/sha)'
+        required: false
+        default: 'main'
+      skill_ref:
+        description: 'Skill repo ref (branch/tag/sha)'
+        required: false
+        default: 'main'
 
 concurrency:
   group: test-install-${{ github.ref }}
@@ -21,21 +34,21 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: hello-yunshu/Xray_bash_onekey_api
-          ref: work/phase1-optimization
+          ref: ${{ inputs.api_ref || 'main' }}
           path: .phase1-contracts/api
 
       - name: Checkout Nginx contract branch
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: hello-yunshu/Xray_bash_onekey_Nginx
-          ref: work/phase1-optimization
+          ref: ${{ inputs.nginx_ref || 'main' }}
           path: .phase1-contracts/nginx
 
       - name: Checkout Skill contract branch
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: hello-yunshu/Xray_bash_onekey_skill
-          ref: work/phase1-optimization
+          ref: ${{ inputs.skill_ref || 'main' }}
           path: .phase1-contracts/skill
 
       - name: Run Phase 1 regression tests
