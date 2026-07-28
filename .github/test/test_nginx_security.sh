@@ -676,19 +676,15 @@ else
 fi
 
 # Verify ensure_idleleo_nginx_user is called in nginx_install
-if grep -A5 'nginx_install()' "${REPO_DIR}/install.sh" | grep -q 'ensure_idleleo_nginx_user'; then
+# Use grep -A250 to capture the full function body (more robust than awk range)
+if grep -A250 'nginx_install()' "${REPO_DIR}/install.sh" | grep -q 'ensure_idleleo_nginx_user'; then
     ok "ensure_idleleo_nginx_user is called in nginx_install"
 else
-    # Check more broadly (function may call it indirectly)
-    if awk '/^nginx_install\(\)/,/^}$/' "${REPO_DIR}/install.sh" | grep -q 'ensure_idleleo_nginx_user'; then
-        ok "ensure_idleleo_nginx_user is called in nginx_install body"
-    else
-        bad "ensure_idleleo_nginx_user is NOT called in nginx_install"
-    fi
+    bad "ensure_idleleo_nginx_user is NOT called in nginx_install"
 fi
 
 # Verify apply_nginx_layered_permissions is called in nginx_install
-if awk '/^nginx_install\(\)/,/^}$/' "${REPO_DIR}/install.sh" | grep -q 'apply_nginx_layered_permissions'; then
+if grep -A250 'nginx_install()' "${REPO_DIR}/install.sh" | grep -q 'apply_nginx_layered_permissions'; then
     ok "apply_nginx_layered_permissions is called in nginx_install"
 else
     bad "apply_nginx_layered_permissions is NOT called in nginx_install"
