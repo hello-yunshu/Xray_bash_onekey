@@ -2372,9 +2372,18 @@ apply_sensitive_file_permissions() {
 }
 
 harden_config_permissions() {
-    local _nginx_worker_group
-    _nginx_worker_group=$(get_nginx_worker_group)
     local failed=0
+    local _nginx_worker_group
+
+    # An existing Nginx tree can predate the dedicated worker account (for
+    # example, upgrades and Docker images shared by non-Nginx install modes).
+    # Create the account before resolving the group or applying the layered
+    # model; otherwise an unrelated XTLS/Reality-only install fails merely
+    # because Nginx happens to be present on disk.
+    if [[ -d "${nginx_dir}" ]] && ! ensure_idleleo_nginx_user; then
+        failed=1
+    fi
+    _nginx_worker_group=$(get_nginx_worker_group)
 
     apply_sensitive_file_permissions "${xray_install_config_file}" "root:root" || failed=1
     apply_sensitive_file_permissions "${xray_conf}" "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" || failed=1
@@ -3011,6 +3020,11 @@ reality_nginx_add_fq() {
 
 nginx_exist_check() {
     if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ -n "$(info_extraction nginx_build_version)" ]]; then
+        # Older custom Nginx installations may predate the dedicated worker
+        # account. Create it before changing config or provisioning TLS files.
+        if ! ensure_idleleo_nginx_user; then
+            return 1
+        fi
         if [[ -d "${nginx_conf_dir}" ]]; then
             rm -rf "${nginx_conf_dir}"/*.conf
             if [[ -f "${nginx_conf_dir}/nginx.default" ]]; then
@@ -3025,7 +3039,7 @@ nginx_exist_check() {
             sed -i "/if \(.*\) {$/,+2d" "${nginx_dir}"/conf/nginx.conf
             sed -i "/^include.*\*\.conf;$/d" "${nginx_dir}"/conf/nginx.conf
         fi
-        modify_nginx_origin_conf
+        modify_nginx_origin_conf || return 1
         nginx_build_version=$(info_extraction nginx_build_version)
         log_echo "${OK} ${GreenBG} Nginx $(gettext "已存在, 跳过编译安装过程") ${Font}"
     elif [[ -d "/etc/nginx" ]] && [[ -n "$(info_extraction nginx_version)" ]]; then
@@ -6564,7 +6578,7 @@ install_xray_ws_tls() {
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check 80
     port_exist_check "${port}"
-    nginx_exist_check
+    nginx_exist_check || return 1
     nginx_systemd
     nginx_ssl_conf_add
     ssl_judge_and_install || return 1
