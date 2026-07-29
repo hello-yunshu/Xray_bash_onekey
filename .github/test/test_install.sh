@@ -552,10 +552,10 @@ reality_upgrade_defaults_are_safe() {
 
 menu_box_layout_is_aligned() (
     local columns expected rendered plain line width
-    for columns in 50 60 72 100; do
+    for columns in 50 60 72 100 160; do
         export COLUMNS="${columns}"
         expected=$((columns - 4))
-        ((expected > 88)) && expected=88
+        ((expected > 60)) && expected=60
         ((expected < 52)) && expected=$((columns - 2))
         ((expected < 20)) && expected=20
 
