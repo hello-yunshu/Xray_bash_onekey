@@ -1498,6 +1498,9 @@ msgstr ""
 msgid "此模式主要用于流量中转或特殊部署，不建议普通用户使用"
 msgstr ""
 
+msgid "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
+msgstr ""
+
 msgid "用户管理"
 msgstr ""
 

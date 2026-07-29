@@ -9,7 +9,9 @@
 #     reality_add_nginx, reality_add_balance, shell_mode
 #   - reset_install_wizard_state clears profile state
 #   - profile does not pollute next selection
-#   - menu_choose_transport sets transport_mode and returns correct code
+#   - real hierarchical menu state machine routes all 8 profiles
+#   - real menu input covers every return level, invalid input, confirmations,
+#     narrow terminals, and non-TTY stdin
 #   - preset mode skips interactive prompts in transport_choose,
 #     xray_reality_add_more_choose, reality_nginx_add_fq, reality_balance_add_fq
 #   - _skip_reality_nginx_install does NOT call uninstall_nginx
@@ -388,6 +390,175 @@ reality_nginx_add_fq 2>/dev/null
 assert_eq "non-preset N uninstall_not_called" "0" "${UNINSTALL_NGINX_CALLED}"
 # Restore read mock
 unset -f read
+
+# ============================================================================
+# Real menu state-machine tests
+#
+# These tests use the production menu_install/menu_install_reality/
+# menu_install_transport/menu_choose_transport functions and production
+# menu_read/read_optimize input handling. Only installation side effects and
+# exec are mocked. Input is piped with a narrow COLUMNS value, so the same
+# tests cover non-TTY and narrow-terminal behavior.
+# ============================================================================
+
+run_real_menu_flow() {
+    local input="$1"
+    local harness
+    harness='
+            export _TEST_MODE=1
+            # shellcheck source=/dev/null
+            source "$1" >/dev/null 2>&1 || true
+            gettext() { printf "%s" "$1"; }
+            install_xray_reality() {
+                printf "ROUTE=reality PROFILE=%s TRANSPORT=%s\n" \
+                    "$install_profile" "$transport_mode"
+            }
+            install_xray_ws_tls() {
+                printf "ROUTE=tls PROFILE=%s TRANSPORT=%s\n" \
+                    "$install_profile" "$transport_mode"
+            }
+            install_xray_ws_only() {
+                printf "ROUTE=only PROFILE=%s TRANSPORT=%s\n" \
+                    "$install_profile" "$transport_mode"
+            }
+            install_xray_xtls_only() {
+                printf "ROUTE=xtls PROFILE=%s TRANSPORT=%s\n" \
+                    "$install_profile" "$transport_mode"
+            }
+            exec() { :; }
+            menu_install
+        '
+    if command -v timeout >/dev/null 2>&1; then
+        printf '%b' "${input}" |
+            COLUMNS=24 TERM=dumb timeout 5 bash -c "${harness}" \
+                _ "${REPO_DIR}/install.sh" 2>&1
+    elif command -v gtimeout >/dev/null 2>&1; then
+        printf '%b' "${input}" |
+            COLUMNS=24 TERM=dumb gtimeout 5 bash -c "${harness}" \
+                _ "${REPO_DIR}/install.sh" 2>&1
+    else
+        printf '%b' "${input}" |
+            COLUMNS=24 TERM=dumb bash -c "${harness}" \
+                _ "${REPO_DIR}/install.sh" 2>&1
+    fi
+}
+
+assert_output_contains() {
+    local name="$1" expected="$2" output="$3"
+    if [[ "${output}" == *"${expected}"* ]]; then
+        ok "${name}"
+    else
+        bad "${name} (missing: ${expected})"
+    fi
+}
+
+assert_output_not_contains() {
+    local name="$1" unexpected="$2" output="$3"
+    if [[ "${output}" != *"${unexpected}"* ]]; then
+        ok "${name}"
+    else
+        bad "${name} (unexpected: ${unexpected})"
+    fi
+}
+
+echo "--- real menu: Reality + Nginx ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n1\n0\n0\n')
+assert_output_contains "routes reality_nginx" \
+    "ROUTE=reality PROFILE=reality_nginx TRANSPORT=None" "${MENU_OUTPUT}"
+
+echo "--- real menu: standard Reality ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n2\n0\n0\n')
+assert_output_contains "routes reality_standard" \
+    "ROUTE=reality PROFILE=reality_standard TRANSPORT=None" "${MENU_OUTPUT}"
+
+echo "--- real menu: Reality + transport ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n3\n5\n0\n0\n')
+assert_output_contains "routes reality_transport" \
+    "ROUTE=reality PROFILE=reality_transport TRANSPORT=wsgRPCxhttp" "${MENU_OUTPUT}"
+
+echo "--- real menu: Reality + transport + Nginx ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n4\n4\n0\n0\n')
+assert_output_contains "routes reality_transport_nginx" \
+    "ROUTE=reality PROFILE=reality_transport_nginx TRANSPORT=wsxhttp" "${MENU_OUTPUT}"
+
+echo "--- real menu: Reality balance ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n5\n0\n0\n')
+assert_output_contains "routes reality_balance" \
+    "ROUTE=reality PROFILE=reality_balance TRANSPORT=None" "${MENU_OUTPUT}"
+
+echo "--- real menu: transport + Nginx + TLS ---"
+MENU_OUTPUT=$(run_real_menu_flow '2\n1\n3\n0\n0\n')
+assert_output_contains "routes transport_nginx_tls" \
+    "ROUTE=tls PROFILE=transport_nginx_tls TRANSPORT=onlyxhttp" "${MENU_OUTPUT}"
+
+echo "--- real menu: transport ONLY confirmation accepted ---"
+MENU_OUTPUT=$(run_real_menu_flow '2\n2\ny\n2\n0\n0\n')
+assert_output_contains "routes transport_only" \
+    "ROUTE=only PROFILE=transport_only TRANSPORT=onlygRPC" "${MENU_OUTPUT}"
+assert_output_contains "transport_only shows risk explanation" \
+    "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境" "${MENU_OUTPUT}"
+
+echo "--- real menu: XTLS confirmation accepted ---"
+MENU_OUTPUT=$(run_real_menu_flow '3\ny\n0\n')
+assert_output_contains "routes xtls_only" \
+    "ROUTE=xtls PROFILE=xtls_only TRANSPORT=None" "${MENU_OUTPUT}"
+
+echo "--- real menu: advanced confirmations rejected ---"
+MENU_OUTPUT=$(run_real_menu_flow '2\n2\nn\n0\n0\n')
+assert_output_not_contains "transport_only rejection does not install" \
+    "ROUTE=" "${MENU_OUTPUT}"
+MENU_OUTPUT=$(run_real_menu_flow '3\nn\n0\n')
+assert_output_not_contains "xtls rejection does not install" \
+    "ROUTE=" "${MENU_OUTPUT}"
+
+echo "--- real menu: every return level and invalid input ---"
+MENU_OUTPUT=$(run_real_menu_flow '0\n')
+assert_output_not_contains "main return does not install" "ROUTE=" "${MENU_OUTPUT}"
+MENU_OUTPUT=$(run_real_menu_flow '1\n0\n0\n')
+assert_output_not_contains "Reality return does not install" "ROUTE=" "${MENU_OUTPUT}"
+MENU_OUTPUT=$(run_real_menu_flow '2\n0\n0\n')
+assert_output_not_contains "transport return does not install" "ROUTE=" "${MENU_OUTPUT}"
+MENU_OUTPUT=$(run_real_menu_flow '1\n3\n0\n0\n0\n')
+assert_output_not_contains "transport chooser return does not install" \
+    "ROUTE=" "${MENU_OUTPUT}"
+MENU_OUTPUT=$(run_real_menu_flow '99\n0\n')
+assert_output_not_contains "invalid input does not install" "ROUTE=" "${MENU_OUTPUT}"
+
+echo "--- real menu: return then choose a different branch ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n0\n2\n1\n1\n0\n0\n')
+assert_output_contains "return does not pollute next branch" \
+    "ROUTE=tls PROFILE=transport_nginx_tls TRANSPORT=onlyws" "${MENU_OUTPUT}"
+assert_output_not_contains "returned Reality branch did not install" \
+    "ROUTE=reality" "${MENU_OUTPUT}"
+
+echo "--- menu translations are complete and non-fuzzy ---"
+for lang in en fa fr ko ru; do
+    po_file="${REPO_DIR}/i18n/po/${lang}.po"
+    for msgid in \
+        "选择传输协议" \
+        "Reality 部署方式" \
+        "无 Nginx、无 TLS" \
+        "此模式主要用于流量中转或特殊部署，不建议普通用户使用" \
+        "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
+    do
+        if awk -v expected="${msgid}" '
+            $0 == "#, fuzzy" { fuzzy = 1; next }
+            $0 == "msgid \"" expected "\"" {
+                if (fuzzy) exit 1
+                getline
+                if ($0 == "msgstr \"\"") exit 1
+                found = 1
+                exit 0
+            }
+            { fuzzy = 0 }
+            END { if (!found) exit 1 }
+        ' "${po_file}"; then
+            ok "${lang}: translated ${msgid}"
+        else
+            bad "${lang}: missing, empty, or fuzzy translation for ${msgid}"
+        fi
+    done
+done
 
 # ============================================================================
 # Summary

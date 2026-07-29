@@ -31,15 +31,20 @@ tested_build=$(jq -r '.nginx_build_tested_version' "${VERSIONS_FILE}")
 [[ "$(jq -r '.nginx_build' "${TESTED_FILE}")" == "${tested_build}" ]]
 tag="v${tested_build}"
 
-api_headers=()
-if [[ -n "${GH_TOKEN:-}" ]]; then
-    api_headers=(-H "Authorization: Bearer ${GH_TOKEN}")
-fi
+fetch_release_json() {
+    if [[ -n "${GH_TOKEN:-}" ]]; then
+        curl -fsSL --retry 2 --connect-timeout 15 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/tags/${tag}"
+    else
+        curl -fsSL --retry 2 --connect-timeout 15 \
+            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/tags/${tag}"
+    fi
+}
 
 # P0-6: Fail-closed — tested Release MUST exist. A missing release means the
 # tested_version cannot serve as a real rollback baseline, so CI must fail.
-if ! release_json=$(curl -fsSL --retry 2 --connect-timeout 15 "${api_headers[@]}" \
-    "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/tags/${tag}" 2>/dev/null); then
+if ! release_json=$(fetch_release_json 2>/dev/null); then
     echo "ERROR: Tested Nginx release ${tag} does not exist on GitHub (fail-closed)." >&2
     echo "ERROR: tested_version cannot serve as rollback baseline without a real Release." >&2
     exit 1

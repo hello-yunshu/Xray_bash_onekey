@@ -128,9 +128,8 @@ msgstr "기본 언어를 사용합니다"
 msgid "未找到"
 msgstr "찾을 수 없음"
 
-#, fuzzy
 msgid "language.conf 校验失败, 将使用默认语言"
-msgstr "기본 언어를 사용합니다"
+msgstr "language.conf 검증에 실패하여 기본 언어를 사용합니다"
 
 msgid "不支持的语言"
 msgstr "지원하지 않는 언어"
@@ -357,9 +356,8 @@ msgstr "수정"
 msgid "用户创建失败, 将回退到 nobody"
 msgstr ""
 
-#, fuzzy
 msgid "用户不存在, 跳过分层权限"
-msgstr "비어 있거나 존재하지 않으면 자체 진단을 건너뜁니다."
+msgstr "사용자가 없어 계층형 권한 설정을 건너뜁니다"
 
 msgid "Nginx 分层权限应用不完整"
 msgstr ""
@@ -547,9 +545,8 @@ msgstr "이미 존재합니다. 컴파일 설치 과정을 건너뜁니다"
 msgid "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装"
 msgstr "다른 패키지가 설치한 Nginx를 감지했습니다. 계속 설치하면 충돌이 발생할 수 있으니 처리 후 설치해 주십시오"
 
-#, fuzzy
 msgid "tar 安全检查: 文件不存在"
-msgstr "파일이 존재하지 않습니다"
+msgstr "tar 보안 검사: 파일이 없습니다"
 
 msgid "tar 安全检查: 目标目录未指定"
 msgstr ""
@@ -683,9 +680,8 @@ msgstr ""
 msgid "版本不匹配"
 msgstr ""
 
-#, fuzzy
 msgid "配置解析失败"
-msgstr "트래픽 통계 구성 파싱에 실패했습니다"
+msgstr "구성 분석에 실패했습니다"
 
 msgid "服务未运行"
 msgstr ""
@@ -693,9 +689,8 @@ msgstr ""
 msgid "端口未监听"
 msgstr ""
 
-#, fuzzy
 msgid "配置检测失败"
-msgstr "구성 검사"
+msgstr "구성 검사에 실패했습니다"
 
 msgid "分层权限验证失败"
 msgstr ""
@@ -1480,9 +1475,8 @@ msgstr "모든 서비스"
 msgid "网速测试脚本下载失败"
 msgstr "인터넷 속도 테스트 스크립트 다운로드에 실패했습니다"
 
-#, fuzzy
 msgid "选择传输协议"
-msgstr "전송 프로토콜을 선택해 주세요"
+msgstr "전송 프로토콜을 선택하세요"
 
 msgid "Reality 部署方式"
 msgstr "Reality 배포 방식"
@@ -1510,6 +1504,9 @@ msgstr "사용자 관리"
 
 msgid "用户"
 msgstr "사용자"
+
+msgid "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
+msgstr "ONLY 모드는 중계, 로드 밸런싱 백엔드 또는 기존 상위 프록시가 있는 환경용입니다"
 
 msgid "配置变更"
 msgstr "구성 변경"
@@ -1637,9 +1634,8 @@ msgstr "비어 있거나 존재하지 않으면 자체 진단을 건너뜁니다
 msgid "不存在或未激活"
 msgstr ""
 
-#, fuzzy
 msgid "jail 和 IP 不能为空"
-msgstr "파라미터는 비어 있을 수 없습니다"
+msgstr "Jail과 IP는 비워 둘 수 없습니다"
 
 msgid "jail 不在允许列表中"
 msgstr ""
@@ -1656,9 +1652,8 @@ msgstr ""
 msgid "已从"
 msgstr ""
 
-#, fuzzy
 msgid "解封"
-msgstr "압축 해제"
+msgstr "차단 해제"
 
 msgid "解封后仍在封禁列表中, 请检查"
 msgstr ""
@@ -1708,9 +1703,8 @@ msgstr ""
 msgid "原子替换失败, 保留原配置"
 msgstr ""
 
-#, fuzzy
 msgid "Fail2ban reload 失败, 恢复原配置"
-msgstr "재시작에 실패했습니다. 기존 설정으로 복구되었습니다"
+msgstr "Fail2ban 다시 불러오기에 실패하여 원래 구성을 복원했습니다"
 
 msgid "原配置自动恢复失败, 备份保留于"
 msgstr ""
@@ -1742,23 +1736,20 @@ msgstr ""
 msgid "活跃的 Jail 列表"
 msgstr ""
 
-#, fuzzy
 msgid "请选择要查看的 Jail"
-msgstr "관리할 모듈을 선택하세요"
+msgstr "조회할 Jail을 선택하세요"
 
 msgid "封禁列表"
 msgstr ""
 
-#, fuzzy
 msgid "请选择要解封的 Jail"
-msgstr "제거할 번호를 선택해 주세요"
+msgstr "차단 해제할 Jail을 선택하세요"
 
 msgid "请输入要解封的 IP 地址 (仅支持单个 IP, 不支持 CIDR)"
 msgstr ""
 
-#, fuzzy
 msgid "IP 地址不能为空"
-msgstr "파라미터는 비어 있을 수 없습니다"
+msgstr "IP 주소는 비워 둘 수 없습니다"
 
 msgid "请选择要添加可信 IP 的 Jail"
 msgstr ""
@@ -1766,13 +1757,11 @@ msgstr ""
 msgid "请输入要添加的 IP/CIDR (支持 IPv4/IPv6/CIDR)"
 msgstr ""
 
-#, fuzzy
 msgid "IP/CIDR 不能为空"
-msgstr "파라미터는 비어 있을 수 없습니다"
+msgstr "IP/CIDR은 비워 둘 수 없습니다"
 
-#, fuzzy
 msgid "请选择要移除可信 IP 的 Jail"
-msgstr "제거할 번호를 선택해 주세요"
+msgstr "신뢰 IP를 제거할 Jail을 선택하세요"
 
 msgid "请输入要移除的 IP/CIDR"
 msgstr ""
