@@ -2200,3 +2200,6 @@ msgstr ""
 
 msgid "已恢复"
 msgstr ""
+
+msgid "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
+msgstr ""

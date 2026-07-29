@@ -7830,6 +7830,14 @@ menu_install_transport() {
             2)
                 reset_install_wizard_state
                 install_profile="transport_only"
+                echo
+                log_echo "${Warning} ${YellowBG} $(gettext "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境") ${Font}"
+                log_echo "${GreenBG} $(gettext "是否继续") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+                read -r wsonly_fq
+                case ${wsonly_fq:-} in
+                    [yY][eE][sS] | [yY]) ;;
+                    *) continue ;;
+                esac
                 menu_choose_transport || continue
                 install_wizard_preset="on"
                 apply_install_profile
@@ -7859,6 +7867,12 @@ menu_install() {
             3)
                 echo
                 log_echo "${Warning} ${YellowBG} $(gettext "此模式主要用于流量中转或特殊部署，不建议普通用户使用") ${Font}"
+                log_echo "${GreenBG} $(gettext "是否继续") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+                read -r xtlsonly_fq
+                case ${xtlsonly_fq:-} in
+                    [yY][eE][sS] | [yY]) ;;
+                    *) continue ;;
+                esac
                 reset_install_wizard_state
                 install_profile="xtls_only"
                 install_wizard_preset="on"
