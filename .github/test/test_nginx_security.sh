@@ -38,6 +38,20 @@ bad() {
     FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
+run_as_user() {
+    local user="$1"
+    shift
+
+    if [[ "$(id -u)" == "0" ]] && command -v runuser >/dev/null 2>&1; then
+        runuser -u "${user}" -- "$@"
+    elif command -v sudo >/dev/null 2>&1; then
+        sudo -u "${user}" -- "$@"
+    else
+        echo "Neither runuser nor sudo is available to switch to ${user}" >&2
+        return 127
+    fi
+}
+
 echo "============================================"
 echo "  Nginx Security & Permission Tests"
 echo "  (Task E: Layered Permissions, Task F: Artifact Integrity)"
@@ -372,12 +386,12 @@ if [[ "$(id -u)" == "0" ]] && id -u "idleleo-nginx" >/dev/null 2>&1; then
     fi
 
     # Test 4: idleleo-nginx can read private key but cannot write
-    if sudo -u idleleo-nginx cat "${_MOCK_SSL_CHAINPATH}/xray.key" >/dev/null 2>&1; then
+    if run_as_user idleleo-nginx cat "${_MOCK_SSL_CHAINPATH}/xray.key" >/dev/null 2>&1; then
         ok "idleleo-nginx can read private key"
     else
         bad "idleleo-nginx cannot read private key (should be able to)"
     fi
-    if sudo -u idleleo-nginx sh -c 'echo "test" >> "'"${_MOCK_SSL_CHAINPATH}"'/xray.key"' 2>/dev/null; then
+    if run_as_user idleleo-nginx sh -c 'echo "test" >> "'"${_MOCK_SSL_CHAINPATH}"'/xray.key"' 2>/dev/null; then
         bad "idleleo-nginx can write to private key (should NOT be able to)"
         # Restore the key content
         echo 'mock key' > "${_MOCK_SSL_CHAINPATH}/xray.key"
@@ -389,7 +403,7 @@ if [[ "$(id -u)" == "0" ]] && id -u "idleleo-nginx" >/dev/null 2>&1; then
 
     # Test 5: Other unprivileged user cannot read private key
     if id -u nobody >/dev/null 2>&1; then
-        if sudo -u nobody cat "${_MOCK_SSL_CHAINPATH}/xray.key" >/dev/null 2>&1; then
+        if run_as_user nobody cat "${_MOCK_SSL_CHAINPATH}/xray.key" >/dev/null 2>&1; then
             bad "nobody can read private key (should NOT be able to)"
         else
             ok "nobody cannot read private key (correct)"
@@ -410,7 +424,7 @@ exit 0
 NGINX_MOCK
     chmod 755 "${_MOCK_NGINX_DIR}/sbin/nginx" 2>/dev/null || true
     chown root:root "${_MOCK_NGINX_DIR}/sbin/nginx" 2>/dev/null || true
-    if sudo -u idleleo-nginx "${_MOCK_NGINX_DIR}/sbin/nginx" -t >/dev/null 2>&1; then
+    if run_as_user idleleo-nginx "${_MOCK_NGINX_DIR}/sbin/nginx" -t >/dev/null 2>&1; then
         ok "nginx -t succeeds under layered permission model"
     else
         bad "nginx -t failed under layered permission model"
@@ -675,16 +689,20 @@ else
     bad "xray_privilege_escalation() does NOT call apply_nginx_layered_permissions"
 fi
 
+# Extract the exact function body once. Avoid grep -A pipelines: with pipefail,
+# a successful downstream grep -q can close early and turn the producer's
+# SIGPIPE into a false test failure.
+nginx_install_body=$(awk '/^nginx_install\(\)/,/^}$/' "${REPO_DIR}/install.sh")
+
 # Verify ensure_idleleo_nginx_user is called in nginx_install
-# Use grep -A250 to capture the full function body (more robust than awk range)
-if grep -A250 'nginx_install()' "${REPO_DIR}/install.sh" | grep -q 'ensure_idleleo_nginx_user'; then
+if [[ "${nginx_install_body}" == *"ensure_idleleo_nginx_user"* ]]; then
     ok "ensure_idleleo_nginx_user is called in nginx_install"
 else
     bad "ensure_idleleo_nginx_user is NOT called in nginx_install"
 fi
 
 # Verify apply_nginx_layered_permissions is called in nginx_install
-if grep -A250 'nginx_install()' "${REPO_DIR}/install.sh" | grep -q 'apply_nginx_layered_permissions'; then
+if [[ "${nginx_install_body}" == *"apply_nginx_layered_permissions"* ]]; then
     ok "apply_nginx_layered_permissions is called in nginx_install"
 else
     bad "apply_nginx_layered_permissions is NOT called in nginx_install"

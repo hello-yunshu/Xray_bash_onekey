@@ -87,5 +87,44 @@ else
     ok "production diagnostic redactor removes UUID, bearer token, and private-key blocks"
 fi
 
+printf '%s\n' '--- pre-existing Nginx worker bootstrap ---'
+nginx_dir="${TMP_ROOT}/existing-nginx"
+mkdir -p "${nginx_dir}"
+NGINX_USER_BOOTSTRAP_CALLS=0
+ensure_idleleo_nginx_user() {
+    NGINX_USER_BOOTSTRAP_CALLS=$((NGINX_USER_BOOTSTRAP_CALLS + 1))
+}
+get_nginx_worker_group() { printf '%s\n' 'idleleo-nginx'; }
+apply_nginx_layered_permissions() { return 0; }
+verify_nginx_layered_permissions() { return 0; }
+if harden_config_permissions && [[ ${NGINX_USER_BOOTSTRAP_CALLS} -eq 1 ]]; then
+    ok "existing Nginx tree bootstraps its dedicated worker before hardening"
+else
+    bad "existing Nginx tree was hardened without bootstrapping its worker"
+fi
+
+printf '%s\n' '--- pre-existing custom Nginx TLS bootstrap order ---'
+nginx_dir="${TMP_ROOT}/existing-custom-nginx"
+nginx_conf_dir="${TMP_ROOT}/existing-custom-conf"
+mkdir -p "${nginx_dir}/sbin" "${nginx_dir}/conf" "${nginx_conf_dir}"
+touch "${nginx_dir}/sbin/nginx"
+printf 'events {}\nhttp {}\n' > "${nginx_dir}/conf/nginx.conf"
+cp "${nginx_dir}/conf/nginx.conf" "${nginx_conf_dir}/nginx.default"
+NGINX_BOOTSTRAP_ORDER=""
+ensure_idleleo_nginx_user() {
+    NGINX_BOOTSTRAP_ORDER="${NGINX_BOOTSTRAP_ORDER}user "
+}
+modify_nginx_origin_conf() {
+    NGINX_BOOTSTRAP_ORDER="${NGINX_BOOTSTRAP_ORDER}config"
+}
+info_extraction() {
+    [[ "$1" == "nginx_build_version" ]] && printf '%s\n' '2026.07.15.6961'
+}
+if nginx_exist_check && [[ "${NGINX_BOOTSTRAP_ORDER}" == "user config" ]]; then
+    ok "existing custom Nginx creates its worker before TLS config preparation"
+else
+    bad "existing custom Nginx prepared TLS config before creating its worker"
+fi
+
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]
