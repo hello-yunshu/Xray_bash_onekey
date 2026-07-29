@@ -28,24 +28,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Checkout API contract branch
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: hello-yunshu/Xray_bash_onekey_api
           ref: ${{ inputs.api_ref || 'main' }}
           path: .phase1-contracts/api
 
       - name: Checkout Nginx contract branch
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: hello-yunshu/Xray_bash_onekey_Nginx
           ref: ${{ inputs.nginx_ref || 'main' }}
           path: .phase1-contracts/nginx
 
       - name: Checkout Skill contract branch
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: hello-yunshu/Xray_bash_onekey_skill
           ref: ${{ inputs.skill_ref || 'main' }}
@@ -103,7 +103,7 @@ jobs:
     name: Install (${{ matrix.mode }})
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Run redaction unit tests
         run: bash .github/test/test_redact.sh
