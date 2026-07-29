@@ -93,6 +93,13 @@ decoy_domain=""
 spiderx_path=""
 old_config_status="off"
 old_tls_mode="NULL"
+# Install wizard profile state. When install_wizard_preset="on", interactive
+# choose functions (transport_choose, xray_reality_add_more_choose,
+# reality_nginx_add_fq, reality_balance_add_fq) skip prompting and use the
+# values set by apply_install_profile. This decouples menu selection from
+# install-function-side prompting so the wizard never asks the same question twice.
+install_profile=""
+install_wizard_preset="off"
 random_num=$((RANDOM % 12 + 4))
 [[ -f "${xray_install_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_install_config_file}")
 
@@ -920,7 +927,102 @@ port_set() {
     fi
 }
 
+# Reset install wizard profile state before each wizard entry.
+# Must NOT clear old_config_status (preserves "retain old config" mode).
+reset_install_wizard_state() {
+    install_profile=""
+    install_wizard_preset="off"
+    reality_add_more="off"
+    reality_add_nginx="off"
+    reality_add_balance="off"
+    transport_mode="None"
+}
+
+# Apply install profile: sets tls_mode / reality_* / transport_mode / shell_mode
+# based on the profile selected by the hierarchical install wizard.
+#
+# For profiles that include an extra transport (reality_transport,
+# reality_transport_nginx, transport_nginx_tls, transport_only), transport_mode
+# is NOT overwritten here — it is set beforehand by menu_choose_transport, and
+# shell_mode is derived later by _transport_set_shell_mode.
+#
+# For profiles without extra transport (reality_nginx, reality_standard,
+# xtls_only), transport_mode is forced to "None" and shell_mode is set directly.
+apply_install_profile() {
+    case "${install_profile}" in
+        reality_nginx)
+            tls_mode="Reality"
+            reality_add_more="off"
+            reality_add_nginx="on"
+            reality_add_balance="off"
+            transport_mode="None"
+            shell_mode="Nginx+Reality"
+            ;;
+        reality_standard)
+            tls_mode="Reality"
+            reality_add_more="off"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            transport_mode="None"
+            shell_mode="Reality"
+            ;;
+        reality_transport)
+            tls_mode="Reality"
+            reality_add_more="on"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            # transport_mode set by menu_choose_transport; shell_mode derived later
+            ;;
+        reality_transport_nginx)
+            tls_mode="Reality"
+            reality_add_more="on"
+            reality_add_nginx="on"
+            reality_add_balance="off"
+            # transport_mode set by menu_choose_transport; shell_mode derived later
+            ;;
+        reality_balance)
+            tls_mode="Reality"
+            reality_add_balance="on"
+            # reality_balance_add_fq handles nginx/transport interaction
+            ;;
+        transport_nginx_tls)
+            tls_mode="TLS"
+            reality_add_more="off"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            # transport_mode set by menu_choose_transport; shell_mode derived later
+            ;;
+        transport_only)
+            tls_mode="None"
+            reality_add_more="off"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            # transport_mode set by menu_choose_transport; shell_mode derived later
+            ;;
+        xtls_only)
+            tls_mode="XTLS"
+            reality_add_more="off"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            transport_mode="None"
+            shell_mode="XTLS ONLY"
+            ;;
+        *)
+            log_echo "${Error} ${RedBG} $(gettext "未知的安装配置") ${Font}"
+            return 1
+            ;;
+    esac
+    return 0
+}
+
 transport_choose() {
+    # Install wizard preset: transport_mode already set by menu_choose_transport.
+    if [[ ${install_wizard_preset:-off} == "on" ]] &&
+       [[ -n ${transport_mode:-} ]] &&
+       [[ ${transport_mode} != "None" ]]; then
+        _transport_set_shell_mode
+        return 0
+    fi
     if [[ "on" != ${old_config_status} ]]; then
         echo
         log_echo "${GreenBG} $(gettext "请选择传输协议") ${Font}"
@@ -990,6 +1092,32 @@ _transport_set_shell_mode() {
 }
 
 xray_reality_add_more_choose() {
+    # Install wizard preset: reality_add_more and transport_mode already set
+    # by apply_install_profile + menu_choose_transport.
+    if [[ ${install_wizard_preset:-off} == "on" ]]; then
+        if [[ ${reality_add_more} == "on" ]]; then
+            # transport_mode already set; derive shell_mode and init ports/paths
+            _transport_set_shell_mode
+            ws_inbound_port_set
+            grpc_inbound_port_set
+            xhttp_inbound_port_set
+            ws_path_set
+            grpc_path_set
+            xhttp_path_set
+            is_ws_mode && port_exist_check "${xport}"
+            is_grpc_mode && port_exist_check "${gport}"
+            is_xhttp_mode && port_exist_check "${xhttpport}"
+        else
+            transport_mode="None"
+            ws_inbound_port_set
+            grpc_inbound_port_set
+            xhttp_inbound_port_set
+            ws_path_set
+            grpc_path_set
+            xhttp_path_set
+        fi
+        return 0
+    fi
     if [[ "on" != ${old_config_status} ]]; then
         echo
         log_echo "${GreenBG} $(gettext "是否添加用于负载均衡的 ws/gRPC 协议") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -2467,11 +2595,25 @@ xray_update() {
         xray_diagnose
         return 1
     fi
-    [[ ${auto_update} == "YES" && ${update_rolled_back} -eq 1 ]] && return 1
+    # P0-1: 服务恢复成功 ≠ 本次更新成功
+    # 无论手动还是自动模式，只要发生过回滚（update_rolled_back=1），
+    # 本次更新即为失败，必须返回非零。不得用 auto_update 决定失败操作的返回码。
+    if [[ ${update_rolled_back} -eq 1 ]]; then
+        return 1
+    fi
     return 0
 }
 
 reality_balance_add_fq() {
+    # Install wizard preset: reality_add_balance already set by apply_install_profile.
+    if [[ ${install_wizard_preset:-off} == "on" ]]; then
+        if [[ ${reality_add_balance} == "on" ]]; then
+            log_echo "${OK} ${GreenBG} $(gettext "已启用") ${Font}"
+        else
+            log_echo "${OK} ${GreenBG} $(gettext "已跳过") ${Font}"
+        fi
+        return 0
+    fi
     echo
     log_echo "${GreenBG} $(gettext "是否添加 Reality 负载均衡") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
     echo -e "${Warning} ${Green} $(gettext "使用此功能前，建议先阅读作者教程")! ${Font}"
@@ -2767,7 +2909,43 @@ reset_sni_guard_policy() {
 }
 
 
+# Apply Reality+Nginx installation steps (shared by preset and interactive paths).
+# Returns 0 on success, 1 on failure (propagated to caller).
+_apply_reality_nginx_install() {
+    validate_reality_reserved_ports || return 1
+    nginx_exist_check || return 1
+    nginx_systemd || return 1
+    sni_guard_policy_choose || return 1
+    nginx_reality_conf_add || return 1
+    nginx_reality_servers_add || return 1
+    nginx_reality_serverNames_add || return 1
+}
+
+# Skip Reality+Nginx installation. Does NOT uninstall existing Nginx.
+# P0 safety: choosing "no Nginx" must not auto-remove an existing Nginx
+# installation. Users who want to remove Nginx must do so explicitly.
+_skip_reality_nginx_install() {
+    if [[ -d "${nginx_dir}" ]]; then
+        echo
+        log_echo "${Warning} ${Green} $(gettext "检测到已安装") nginx ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "已跳过安装 nginx, 保留现有 nginx 不卸载") ${Font}"
+    else
+        log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
+    fi
+}
+
 reality_nginx_add_fq() {
+    # Install wizard preset: reality_add_nginx already set by apply_install_profile.
+    # Preset mode MUST NOT uninstall existing Nginx when reality_add_nginx=off.
+    if [[ ${install_wizard_preset:-off} == "on" ]]; then
+        if [[ ${reality_add_nginx} == "on" ]]; then
+            _apply_reality_nginx_install || return 1
+        else
+            _skip_reality_nginx_install
+        fi
+        return 0
+    fi
+
     echo
     log_echo "${Warning} ${Green} $(gettext "Reality 协议可能存在流量绕过风险") ${Font}"
     if [[ ${reality_add_balance} == "off" ]]; then
@@ -2776,25 +2954,12 @@ reality_nginx_add_fq() {
         case $reality_nginx_add_fq in
             [nN][oO] | [nN])
                 reality_add_nginx="off"
-                if [[ -d "${nginx_dir}" ]]; then
-                    echo
-                    log_echo "${Warning} ${Green} $(gettext "检测到已安装") nginx ${Font}"
-                    uninstall_nginx
-                else
-                    log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
-                fi
+                _skip_reality_nginx_install
             ;;
             *)
                 reality_add_nginx="on"
-                validate_reality_reserved_ports || return 1
-                nginx_exist_check || return 1
-                nginx_systemd || return 1
-                sni_guard_policy_choose || return 1
-                nginx_reality_conf_add || return 1
-                nginx_reality_servers_add || return 1
-                nginx_reality_serverNames_add || return 1
+                _apply_reality_nginx_install || return 1
             ;;
-
         esac
     else
         log_echo "${Warning} ${Green} $(gettext "检测到已开启 Reality 负载均衡") ${Font}"
@@ -2805,26 +2970,14 @@ reality_nginx_add_fq() {
         case $reality_nginx_add_fq in
             [yY][eE][sS] | [yY])
                 reality_add_nginx="on"
-                validate_reality_reserved_ports || return 1
-                nginx_exist_check || return 1
-                nginx_systemd || return 1
-                sni_guard_policy_choose || return 1
-                nginx_reality_conf_add || return 1
-                nginx_reality_servers_add || return 1
-                nginx_reality_serverNames_add || return 1
+                _apply_reality_nginx_install || return 1
             ;;
             *)
                 reality_add_nginx="off"
-                if [[ -d "${nginx_dir}" ]]; then
-                    echo
-                    log_echo "${Warning} ${Green} $(gettext "检测到已安装") nginx ${Font}"
-                    uninstall_nginx
-                else
-                    log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
-                fi
+                _skip_reality_nginx_install
             ;;
         esac
-    fi    
+    fi
 }
 
 nginx_exist_check() {
@@ -7564,24 +7717,155 @@ menu_action() {
     esac
 }
 
+# Fourth-level menu: choose transport protocol (ws/gRPC/xHTTP).
+# Sets transport_mode and returns 0 on success, 1 on "0. return".
+menu_choose_transport() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "选择传输协议")"
+        menu_item 1 "ws"
+        menu_item 2 "gRPC"
+        menu_item 3 "xHTTP"
+        menu_item 4 "ws+xHTTP"
+        menu_item 5 "ws+gRPC+xHTTP"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 5
+        case $menu_num in
+            0) return 1 ;;
+            1) transport_mode="onlyws"; return 0 ;;
+            2) transport_mode="onlygRPC"; return 0 ;;
+            3) transport_mode="onlyxhttp"; return 0 ;;
+            4) transport_mode="wsxhttp"; return 0 ;;
+            5) transport_mode="wsgRPCxhttp"; return 0 ;;
+        esac
+    done
+}
+
+# Third-level menu: Reality deployment methods.
+menu_install_reality() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "Reality 部署方式")"
+        menu_item 1 "Reality + Nginx $(gettext "前置保护")($(gettext "推荐"))"
+        menu_item 2 "$(gettext "标准") Reality"
+        menu_item 3 "Reality + ws/gRPC/xHTTP"
+        menu_item 4 "Reality + ws/gRPC/xHTTP + Nginx"
+        menu_item 5 "Reality $(gettext "负载均衡")($(gettext "高级"))"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 5
+        case $menu_num in
+            0) return ;;
+            1)
+                reset_install_wizard_state
+                install_profile="reality_nginx"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            2)
+                reset_install_wizard_state
+                install_profile="reality_standard"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            3)
+                reset_install_wizard_state
+                install_profile="reality_transport"
+                menu_choose_transport || continue
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            4)
+                reset_install_wizard_state
+                install_profile="reality_transport_nginx"
+                menu_choose_transport || continue
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            5)
+                reset_install_wizard_state
+                install_profile="reality_balance"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+        esac
+    done
+}
+
+# Third-level menu: ws/gRPC/xHTTP deployment methods.
+menu_install_transport() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "ws/gRPC/xHTTP $(gettext "部署方式")"
+        menu_item 1 "Nginx + TLS ($(gettext "推荐"))"
+        menu_item 2 "ONLY ($(gettext "无 Nginx、无 TLS")，$(gettext "高级"))"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 2
+        case $menu_num in
+            0) return ;;
+            1)
+                reset_install_wizard_state
+                install_profile="transport_nginx_tls"
+                menu_choose_transport || continue
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_ws_tls
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            2)
+                reset_install_wizard_state
+                install_profile="transport_only"
+                menu_choose_transport || continue
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_ws_only
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+        esac
+    done
+}
+
+# Second-level menu: install wizard main (protocol category selection).
 menu_install() {
     local menu_num
     while true; do
         menu_submenu_begin "$(gettext "安装向导")"
-        menu_item 1 "Reality + ws/gRPC/xHTTP + Nginx"
-        menu_item 2 "ws/gRPC/xHTTP + TLS"
-        menu_item 3 "ws/gRPC/xHTTP ONLY"
-        menu_item 4 "XTLS ONLY"
+        menu_item 1 "Reality"
+        menu_item 2 "ws/gRPC/xHTTP"
+        menu_item 3 "XTLS ONLY ($(gettext "高级"))"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
-        menu_read menu_num 4
+        menu_read menu_num 3
         case $menu_num in
             0) return ;;
-            1) menu_action 3 ;;
-            2) menu_action 4 ;;
-            3) menu_action 5 ;;
-            4) menu_action 6 ;;
+            1) menu_install_reality ;;
+            2) menu_install_transport ;;
+            3)
+                echo
+                log_echo "${Warning} ${YellowBG} $(gettext "此模式主要用于流量中转或特殊部署，不建议普通用户使用") ${Font}"
+                reset_install_wizard_state
+                install_profile="xtls_only"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_xtls_only
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
         esac
     done
 }

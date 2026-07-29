@@ -61,11 +61,28 @@ jobs:
           bash .github/test/test_nginx_tar_security.sh
           bash .github/test/test_nginx_update_rollback.sh
           bash .github/test/test_phase1_safety.sh
+          # P0-4: Xray update transaction tests (auto + manual mode coverage)
+          bash .github/test/test_xray_update_transaction.sh
+          # Install wizard profile tests (hierarchical menu profiles)
+          bash .github/test/test_install_menu_profiles.sh
           sudo bash .github/test/test_nginx_security.sh
           bash .github/test/test_cross_repo_contract.sh \
             .phase1-contracts/api \
             .phase1-contracts/nginx \
             .phase1-contracts/skill
+
+      - name: Run Skill contract tests
+        run: |
+          set -euo pipefail
+          bash .phase1-contracts/skill/tests/test_contract.sh
+          bash .phase1-contracts/skill/tests/test_contract_exec.sh
+
+      - name: Run Skill full-flow noninteractive tests
+        env:
+          MAIN_REPO_ROOT: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          bash .phase1-contracts/skill/tests/test_full_flow_noninteractive.sh
 
   test-install:
     needs: security-regression
