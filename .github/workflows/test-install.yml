@@ -72,6 +72,8 @@ jobs:
             .phase1-contracts/skill
 
       - name: Run Skill contract tests
+        env:
+          MAIN_REPO_ROOT: ${{ github.workspace }}
         run: |
           set -euo pipefail
           bash .phase1-contracts/skill/tests/test_contract.sh
