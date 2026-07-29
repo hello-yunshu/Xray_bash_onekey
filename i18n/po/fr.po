@@ -1481,6 +1481,21 @@ msgstr "Sélectionnez un protocole de transport"
 msgid "Reality 部署方式"
 msgstr "Méthode de déploiement Reality"
 
+msgid "Reality 负载均衡角色"
+msgstr "Rôle d'équilibrage de charge Reality"
+
+msgid "主服务器"
+msgstr "Serveur principal"
+
+msgid "安装 Nginx"
+msgstr "installer Nginx"
+
+msgid "二级服务器"
+msgstr "Serveur secondaire"
+
+msgid "仅提供 Reality 后端"
+msgstr "Backend Reality uniquement"
+
 msgid "前置保护"
 msgstr "Protection frontale"
 

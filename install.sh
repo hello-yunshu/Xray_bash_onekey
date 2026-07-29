@@ -112,6 +112,8 @@ read_config_status=1
 reality_add_more="off"
 reality_add_nginx="off"
 reality_add_balance="off"
+# Reality 负载均衡角色：primary=主服务器(安装 Nginx)，secondary=二级服务器(仅 Reality 后端)，空=未启用
+reality_balance_role=""
 # SNI Guard 默认值：Reality+Nginx 模式下默认启用，未知 SNI 不转发到 Xray
 reality_nginx_sni_guard="on"
 unknown_sni_policy="isolate"
@@ -964,6 +966,7 @@ reset_install_wizard_state() {
     reality_add_more="off"
     reality_add_nginx="off"
     reality_add_balance="off"
+    reality_balance_role=""
     transport_mode="None"
 }
 
@@ -1009,10 +1012,23 @@ apply_install_profile() {
             reality_add_balance="off"
             # transport_mode set by menu_choose_transport; shell_mode derived later
             ;;
-        reality_balance)
+        reality_balance_primary)
             tls_mode="Reality"
             reality_add_balance="on"
-            # reality_balance_add_fq handles nginx/transport interaction
+            reality_add_nginx="on"
+            reality_add_more="off"
+            transport_mode="None"
+            reality_balance_role="primary"
+            shell_mode="Nginx+Reality+Balance"
+            ;;
+        reality_balance_secondary)
+            tls_mode="Reality"
+            reality_add_balance="on"
+            reality_add_nginx="off"
+            reality_add_more="off"
+            transport_mode="None"
+            reality_balance_role="secondary"
+            shell_mode="Reality+Balance"
             ;;
         transport_nginx_tls)
             tls_mode="TLS"
@@ -5060,6 +5076,7 @@ install_config_reality() {
     "spiderx_path":"${spiderx_path}",
     "reality_add_nginx": "${reality_add_nginx}",
     "reality_add_balance": "${reality_add_balance}",
+    "reality_balance_role": "${reality_balance_role}",
     "reality_add_more": "${reality_add_more}",
     "reality_nginx_sni_guard": "${reality_nginx_sni_guard}",
     "unknown_sni_policy": "${unknown_sni_policy}",
@@ -6545,6 +6562,8 @@ judge_mode() {
             reality_add_more=$(info_extraction reality_add_more)
             reality_add_nginx=$(info_extraction reality_add_nginx)
             reality_add_balance=$(info_extraction reality_add_balance)
+            reality_balance_role=$(info_extraction reality_balance_role)
+            [[ -z ${reality_balance_role} || ${reality_balance_role} == "null" ]] && reality_balance_role=""
         fi
         _transport_set_shell_mode
         old_tls_mode=${tls_mode}
@@ -7858,8 +7877,37 @@ menu_install_reality() {
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
             5)
+                menu_install_reality_balance_role || continue
+                ;;
+        esac
+    done
+}
+
+# Fourth-level menu: Reality load-balancing role selection.
+# Primary installs Nginx front-end + upstream; secondary only provides Reality backend.
+menu_install_reality_balance_role() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "Reality 负载均衡角色")"
+        menu_item 1 "$(gettext "主服务器")($(gettext "安装 Nginx"))"
+        menu_item 2 "$(gettext "二级服务器")($(gettext "仅提供 Reality 后端"))"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 2
+        case $menu_num in
+            0) return 1 ;;
+            1)
                 reset_install_wizard_state
-                install_profile="reality_balance"
+                install_profile="reality_balance_primary"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            2)
+                reset_install_wizard_state
+                install_profile="reality_balance_secondary"
                 install_wizard_preset="on"
                 apply_install_profile
                 install_xray_reality

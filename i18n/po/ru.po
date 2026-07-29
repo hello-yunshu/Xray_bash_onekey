@@ -1481,6 +1481,21 @@ msgstr "Выберите транспортный протокол"
 msgid "Reality 部署方式"
 msgstr "Метод развёртывания Reality"
 
+msgid "Reality 负载均衡角色"
+msgstr "Роль балансировки нагрузки Reality"
+
+msgid "主服务器"
+msgstr "Основной сервер"
+
+msgid "安装 Nginx"
+msgstr "установить Nginx"
+
+msgid "二级服务器"
+msgstr "Вторичный сервер"
+
+msgid "仅提供 Reality 后端"
+msgstr "Только бэкенд Reality"
+
 msgid "前置保护"
 msgstr "Фронтальная защита"
 

@@ -1481,6 +1481,21 @@ msgstr "전송 프로토콜을 선택하세요"
 msgid "Reality 部署方式"
 msgstr "Reality 배포 방식"
 
+msgid "Reality 负载均衡角色"
+msgstr "Reality 부하 분산 역할"
+
+msgid "主服务器"
+msgstr "주 서버"
+
+msgid "安装 Nginx"
+msgstr "Nginx 설치"
+
+msgid "二级服务器"
+msgstr "보조 서버"
+
+msgid "仅提供 Reality 后端"
+msgstr "Reality 백엔드 전용"
+
 msgid "前置保护"
 msgstr "전면 보호"
 

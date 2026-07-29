@@ -1480,6 +1480,21 @@ msgstr "یک پروتکل انتقال را انتخاب کنید"
 msgid "Reality 部署方式"
 msgstr "روش استقرار Reality"
 
+msgid "Reality 负载均衡角色"
+msgstr "نقش تعادل بار Reality"
+
+msgid "主服务器"
+msgstr "سرور اصلی"
+
+msgid "安装 Nginx"
+msgstr "نصب Nginx"
+
+msgid "二级服务器"
+msgstr "سرور ثانویه"
+
+msgid "仅提供 Reality 后端"
+msgstr "فقط بک‌اند Reality"
+
 msgid "前置保护"
 msgstr "محافظت جلویی"
 
