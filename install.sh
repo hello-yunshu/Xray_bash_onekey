@@ -7395,7 +7395,7 @@ menu_clear() {
 }
 
 menu_prepare_width() {
-    local terminal_columns=""
+    local terminal_columns="" max_box_width=60
 
     if [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
         terminal_columns=$(tput cols 2>/dev/null || true)
@@ -7409,7 +7409,7 @@ menu_prepare_width() {
     [[ ${terminal_columns} =~ ^[0-9]+$ ]] || terminal_columns=80
 
     MENU_BOX_WIDTH=$((terminal_columns - 4))
-    ((MENU_BOX_WIDTH > 88)) && MENU_BOX_WIDTH=88
+    ((MENU_BOX_WIDTH > max_box_width)) && MENU_BOX_WIDTH=${max_box_width}
     if ((MENU_BOX_WIDTH < 52)); then
         MENU_BOX_WIDTH=$((terminal_columns - 2))
     fi
