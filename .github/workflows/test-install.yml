@@ -63,6 +63,8 @@ jobs:
           bash .github/test/test_phase1_safety.sh
           # P0-4: Xray update transaction tests (auto + manual mode coverage)
           bash .github/test/test_xray_update_transaction.sh
+          # Online version metadata must fall back cleanly without contaminating values.
+          bash .github/test/test_version_loading.sh
           # Install wizard profile tests (hierarchical menu profiles)
           bash .github/test/test_install_menu_profiles.sh
           sudo bash .github/test/test_nginx_security.sh
