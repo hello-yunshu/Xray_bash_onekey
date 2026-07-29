@@ -1481,6 +1481,21 @@ msgstr ""
 msgid "Reality 部署方式"
 msgstr ""
 
+msgid "Reality 负载均衡角色"
+msgstr ""
+
+msgid "主服务器"
+msgstr ""
+
+msgid "安装 Nginx"
+msgstr ""
+
+msgid "二级服务器"
+msgstr ""
+
+msgid "仅提供 Reality 后端"
+msgstr ""
+
 msgid "前置保护"
 msgstr ""
 
