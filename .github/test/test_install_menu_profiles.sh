@@ -2,19 +2,23 @@
 # Install wizard profile and hierarchical menu tests.
 #
 # Coverage:
-#   - 8 profiles: reality_nginx, reality_standard, reality_transport,
-#     reality_transport_nginx, reality_balance, transport_nginx_tls,
-#     transport_only, xtls_only
+#   - 9 profiles: reality_nginx, reality_standard, reality_transport,
+#     reality_transport_nginx, reality_balance_primary,
+#     reality_balance_secondary, transport_nginx_tls, transport_only,
+#     xtls_only
 #   - Each profile asserts: tls_mode, transport_mode, reality_add_more,
-#     reality_add_nginx, reality_add_balance, shell_mode
-#   - reset_install_wizard_state clears profile state
+#     reality_add_nginx, reality_add_balance, reality_balance_role, shell_mode
+#   - reset_install_wizard_state clears profile state (incl. reality_balance_role)
 #   - profile does not pollute next selection
-#   - real hierarchical menu state machine routes all 8 profiles
+#   - real hierarchical menu state machine routes all 9 profiles, including
+#     the fourth-level Reality balance role menu (primary/secondary/return)
 #   - real menu input covers every return level, invalid input, confirmations,
 #     narrow terminals, and non-TTY stdin
 #   - preset mode skips interactive prompts in transport_choose,
 #     xray_reality_add_more_choose, reality_nginx_add_fq, reality_balance_add_fq
 #   - _skip_reality_nginx_install does NOT call uninstall_nginx
+#   - balance primary triggers _apply_reality_nginx_install side effects;
+#     balance secondary does NOT call nginx_reality_* config functions
 #
 # Run: bash .github/test/test_install_menu_profiles.sh
 
@@ -61,13 +65,19 @@ install_xray_ws_only() { INSTALL_WS_ONLY_CALLS=$((INSTALL_WS_ONLY_CALLS + 1)); }
 install_xray_xtls_only() { INSTALL_XTLS_ONLY_CALLS=$((INSTALL_XTLS_ONLY_CALLS + 1)); }
 
 # Mock Nginx-related functions called by _apply_reality_nginx_install
+# Track call counts so balance primary/secondary side-effect tests can assert.
+NGINX_EXIST_CHECK_CALLS=0
+NGINX_SYSTEMD_CALLS=0
+NGINX_REALITY_CONF_ADD_CALLS=0
+NGINX_REALITY_SERVERS_ADD_CALLS=0
+NGINX_REALITY_SERVERNAMES_ADD_CALLS=0
 validate_reality_reserved_ports() { return 0; }
-nginx_exist_check() { return 0; }
-nginx_systemd() { return 0; }
+nginx_exist_check() { NGINX_EXIST_CHECK_CALLS=$((NGINX_EXIST_CHECK_CALLS + 1)); return 0; }
+nginx_systemd() { NGINX_SYSTEMD_CALLS=$((NGINX_SYSTEMD_CALLS + 1)); return 0; }
 sni_guard_policy_choose() { return 0; }
-nginx_reality_conf_add() { return 0; }
-nginx_reality_servers_add() { return 0; }
-nginx_reality_serverNames_add() { return 0; }
+nginx_reality_conf_add() { NGINX_REALITY_CONF_ADD_CALLS=$((NGINX_REALITY_CONF_ADD_CALLS + 1)); return 0; }
+nginx_reality_servers_add() { NGINX_REALITY_SERVERS_ADD_CALLS=$((NGINX_REALITY_SERVERS_ADD_CALLS + 1)); return 0; }
+nginx_reality_serverNames_add() { NGINX_REALITY_SERVERNAMES_ADD_CALLS=$((NGINX_REALITY_SERVERNAMES_ADD_CALLS + 1)); return 0; }
 
 # Mock port/path setting functions
 ws_inbound_port_set() { :; }
@@ -104,6 +114,11 @@ reset_for_profile_test() {
     shell_mode=""
     transport_mode=""
     UNINSTALL_NGINX_CALLED=0
+    NGINX_EXIST_CHECK_CALLS=0
+    NGINX_SYSTEMD_CALLS=0
+    NGINX_REALITY_CONF_ADD_CALLS=0
+    NGINX_REALITY_SERVERS_ADD_CALLS=0
+    NGINX_REALITY_SERVERNAMES_ADD_CALLS=0
 }
 
 # ============================================================================
@@ -154,12 +169,29 @@ assert_eq "reality_transport_nginx reality_add_more" "on" "${reality_add_more}"
 assert_eq "reality_transport_nginx reality_add_nginx" "on" "${reality_add_nginx}"
 assert_eq "reality_transport_nginx reality_add_balance" "off" "${reality_add_balance}"
 
-echo "--- Profile: reality_balance ---"
+echo "--- Profile: reality_balance_primary ---"
 reset_for_profile_test
-install_profile="reality_balance"
+install_profile="reality_balance_primary"
 apply_install_profile
-assert_eq "reality_balance tls_mode" "Reality" "${tls_mode}"
-assert_eq "reality_balance reality_add_balance" "on" "${reality_add_balance}"
+assert_eq "reality_balance_primary tls_mode" "Reality" "${tls_mode}"
+assert_eq "reality_balance_primary reality_add_balance" "on" "${reality_add_balance}"
+assert_eq "reality_balance_primary reality_add_nginx" "on" "${reality_add_nginx}"
+assert_eq "reality_balance_primary reality_add_more" "off" "${reality_add_more}"
+assert_eq "reality_balance_primary transport_mode" "None" "${transport_mode}"
+assert_eq "reality_balance_primary reality_balance_role" "primary" "${reality_balance_role}"
+assert_eq "reality_balance_primary shell_mode" "Nginx+Reality+Balance" "${shell_mode}"
+
+echo "--- Profile: reality_balance_secondary ---"
+reset_for_profile_test
+install_profile="reality_balance_secondary"
+apply_install_profile
+assert_eq "reality_balance_secondary tls_mode" "Reality" "${tls_mode}"
+assert_eq "reality_balance_secondary reality_add_balance" "on" "${reality_add_balance}"
+assert_eq "reality_balance_secondary reality_add_nginx" "off" "${reality_add_nginx}"
+assert_eq "reality_balance_secondary reality_add_more" "off" "${reality_add_more}"
+assert_eq "reality_balance_secondary transport_mode" "None" "${transport_mode}"
+assert_eq "reality_balance_secondary reality_balance_role" "secondary" "${reality_balance_role}"
+assert_eq "reality_balance_secondary shell_mode" "Reality+Balance" "${shell_mode}"
 
 echo "--- Profile: transport_nginx_tls ---"
 reset_for_profile_test
@@ -213,6 +245,7 @@ install_wizard_preset="on"
 reality_add_more="on"
 reality_add_nginx="on"
 reality_add_balance="on"
+reality_balance_role="primary"
 transport_mode="onlyws"
 reset_install_wizard_state
 assert_eq "reset install_profile" "" "${install_profile}"
@@ -220,6 +253,7 @@ assert_eq "reset install_wizard_preset" "off" "${install_wizard_preset}"
 assert_eq "reset reality_add_more" "off" "${reality_add_more}"
 assert_eq "reset reality_add_nginx" "off" "${reality_add_nginx}"
 assert_eq "reset reality_add_balance" "off" "${reality_add_balance}"
+assert_eq "reset reality_balance_role" "" "${reality_balance_role}"
 assert_eq "reset transport_mode" "None" "${transport_mode}"
 
 # ============================================================================
@@ -392,6 +426,87 @@ assert_eq "non-preset N uninstall_not_called" "0" "${UNINSTALL_NGINX_CALLED}"
 unset -f read
 
 # ============================================================================
+# Balance profile side-effect tests (mock counters)
+# Primary must trigger _apply_reality_nginx_install chain;
+# Secondary must NOT call nginx_reality_* config functions and must NOT uninstall.
+# ============================================================================
+
+echo "--- balance primary triggers nginx reality side effects ---"
+reset_for_profile_test
+install_profile="reality_balance_primary"
+apply_install_profile
+install_wizard_preset="on"
+reality_nginx_add_fq 2>/dev/null
+assert_eq "primary nginx_exist_check called once" "1" "${NGINX_EXIST_CHECK_CALLS}"
+assert_eq "primary nginx_systemd called once" "1" "${NGINX_SYSTEMD_CALLS}"
+assert_eq "primary nginx_reality_conf_add called once" "1" "${NGINX_REALITY_CONF_ADD_CALLS}"
+assert_eq "primary nginx_reality_servers_add called once" "1" "${NGINX_REALITY_SERVERS_ADD_CALLS}"
+assert_eq "primary nginx_reality_serverNames_add called once" "1" "${NGINX_REALITY_SERVERNAMES_ADD_CALLS}"
+assert_eq "primary uninstall_nginx not called" "0" "${UNINSTALL_NGINX_CALLED}"
+
+echo "--- balance secondary skips nginx reality config, no uninstall ---"
+reset_for_profile_test
+install_profile="reality_balance_secondary"
+apply_install_profile
+install_wizard_preset="on"
+UNINSTALL_NGINX_CALLED=0
+nginx_dir="/tmp"
+reality_nginx_add_fq 2>/dev/null
+assert_eq "secondary nginx_exist_check not called" "0" "${NGINX_EXIST_CHECK_CALLS}"
+assert_eq "secondary nginx_reality_conf_add not called" "0" "${NGINX_REALITY_CONF_ADD_CALLS}"
+assert_eq "secondary nginx_reality_servers_add not called" "0" "${NGINX_REALITY_SERVERS_ADD_CALLS}"
+assert_eq "secondary nginx_reality_serverNames_add not called" "0" "${NGINX_REALITY_SERVERNAMES_ADD_CALLS}"
+assert_eq "secondary uninstall_nginx not called" "0" "${UNINSTALL_NGINX_CALLED}"
+assert_eq "secondary reality_add_nginx stays off" "off" "${reality_add_nginx}"
+assert_eq "secondary reality_balance_role" "secondary" "${reality_balance_role}"
+
+# ============================================================================
+# Balance config file round-trip test
+# install_config_reality writes reality_balance_role; judge_mode reads it back.
+# ============================================================================
+
+echo "--- balance config file round-trip (primary) ---"
+reset_for_profile_test
+install_profile="reality_balance_primary"
+apply_install_profile
+# Stub dependencies used by install_config_reality / judge_mode
+xray_install_config_file="$(mktemp)"
+local_ip="127.0.0.1"
+ip_version="4"
+port=443
+custom_email="test@example.com"
+UUID5_char="idc123"
+UUID="uuid-test"
+target="www.example.com"
+serverNames="www.example.com"
+privateKey="priv"
+password="pub"
+shortIds="abc12345"
+artxport=""; artgport=""; artxhttpport=""; artpath=""; artserviceName=""; artxhttppath=""
+shell_version="v1"
+xray_version="1.0.0"
+nginx_build_version=""
+_info_cache_invalidate() { :; }
+update_json_config() { :; }  # nginx=on path skipped because nginx_build_version empty is fine
+install_config_reality 2>/dev/null
+assert_eq "config reality_add_balance written" "on" "$(jq -rc .reality_add_balance "${xray_install_config_file}")"
+assert_eq "config reality_add_nginx written" "on" "$(jq -rc .reality_add_nginx "${xray_install_config_file}")"
+assert_eq "config reality_balance_role written" "primary" "$(jq -rc .reality_balance_role "${xray_install_config_file}")"
+assert_eq "config shell_mode written" "Nginx+Reality+Balance" "$(jq -rc .shell_mode "${xray_install_config_file}")"
+# Round-trip: judge_mode reads config back into shell variables
+reality_balance_role=""
+reality_add_nginx="off"
+reality_add_balance="off"
+info_extraction_all="$(jq -rc . "${xray_install_config_file}")"
+info_extraction() { printf '%s' "${info_extraction_all}" | jq -rc --arg k "$1" '.[$k]'; }
+judge_mode
+assert_eq "roundtrip primary reality_balance_role" "primary" "${reality_balance_role}"
+assert_eq "roundtrip primary reality_add_nginx" "on" "${reality_add_nginx}"
+assert_eq "roundtrip primary reality_add_balance" "on" "${reality_add_balance}"
+rm -f "${xray_install_config_file}"
+unset -f info_extraction update_json_config _info_cache_invalidate
+
+# ============================================================================
 # Real menu state-machine tests
 #
 # These tests use the production menu_install/menu_install_reality/
@@ -481,10 +596,32 @@ MENU_OUTPUT=$(run_real_menu_flow '1\n4\n4\n0\n0\n')
 assert_output_contains "routes reality_transport_nginx" \
     "ROUTE=reality PROFILE=reality_transport_nginx TRANSPORT=wsxhttp" "${MENU_OUTPUT}"
 
-echo "--- real menu: Reality balance ---"
-MENU_OUTPUT=$(run_real_menu_flow '1\n5\n0\n0\n')
-assert_output_contains "routes reality_balance" \
-    "ROUTE=reality PROFILE=reality_balance TRANSPORT=None" "${MENU_OUTPUT}"
+echo "--- real menu: Reality balance primary ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n5\n1\n0\n0\n0\n')
+assert_output_contains "routes reality_balance_primary" \
+    "ROUTE=reality PROFILE=reality_balance_primary TRANSPORT=None" "${MENU_OUTPUT}"
+
+echo "--- real menu: Reality balance secondary ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n5\n2\n0\n0\n0\n')
+assert_output_contains "routes reality_balance_secondary" \
+    "ROUTE=reality PROFILE=reality_balance_secondary TRANSPORT=None" "${MENU_OUTPUT}"
+
+echo "--- real menu: Reality balance role return does not install ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n5\n0\n0\n0\n')
+assert_output_not_contains "balance role return does not install" \
+    "ROUTE=" "${MENU_OUTPUT}"
+
+echo "--- real menu: Reality balance role invalid then primary ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n5\n9\n1\n0\n0\n0\n')
+assert_output_contains "balance role invalid then primary" \
+    "ROUTE=reality PROFILE=reality_balance_primary TRANSPORT=None" "${MENU_OUTPUT}"
+
+echo "--- real menu: Reality balance role return then choose standard ---"
+MENU_OUTPUT=$(run_real_menu_flow '1\n5\n0\n2\n0\n0\n')
+assert_output_contains "balance role return then standard" \
+    "ROUTE=reality PROFILE=reality_standard TRANSPORT=None" "${MENU_OUTPUT}"
+assert_output_not_contains "balance role return did not install balance" \
+    "PROFILE=reality_balance" "${MENU_OUTPUT}"
 
 echo "--- real menu: transport + Nginx + TLS ---"
 MENU_OUTPUT=$(run_real_menu_flow '2\n1\n3\n0\n0\n')
@@ -539,7 +676,12 @@ for lang in en fa fr ko ru; do
         "Reality 部署方式" \
         "无 Nginx、无 TLS" \
         "此模式主要用于流量中转或特殊部署，不建议普通用户使用" \
-        "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
+        "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境" \
+        "Reality 负载均衡角色" \
+        "主服务器" \
+        "安装 Nginx" \
+        "二级服务器" \
+        "仅提供 Reality 后端"
     do
         if awk -v expected="${msgid}" '
             $0 == "#, fuzzy" { fuzzy = 1; next }
