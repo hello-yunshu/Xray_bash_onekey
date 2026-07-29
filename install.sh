@@ -76,11 +76,37 @@ main_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=""
 _get_versions_loaded=0
+
+fetch_versions_json() {
+    local url="$1"
+    local response
+
+    if ! response=$(curl -fsSL --connect-timeout 10 --max-time 30 \
+        --retry 3 --retry-delay 1 "${url}" 2>/dev/null); then
+        return 1
+    fi
+    if [[ -z "${response}" ]] || ! printf '%s' "${response}" | jq -e 'type == "object"' >/dev/null 2>&1; then
+        return 1
+    fi
+    printf '%s' "${response}"
+}
+
 load_versions() {
     if [[ ${_get_versions_loaded} -eq 0 ]]; then
-        get_versions_all=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json 2>/dev/null)
+        local versions_cdn_url="https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json"
+        local versions_origin_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/xray_shell_versions.json"
+        local response
+
+        if ! response=$(fetch_versions_json "${versions_cdn_url}"); then
+            response=$(fetch_versions_json "${versions_origin_url}") || {
+                get_versions_all=""
+                return 1
+            }
+        fi
+        get_versions_all="${response}"
         _get_versions_loaded=1
     fi
+    [[ -n "${get_versions_all}" ]]
 }
 read_config_status=1
 reality_add_more="off"
@@ -749,14 +775,17 @@ judge() {
 }
 
 check_version() {
-    load_versions
-    local result
-    result=$(echo "${get_versions_all}" | jq -rc ".$1" 2>/dev/null)
-    if [[ $? -ne 0 ]] || [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}"
+    if ! load_versions; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}" >&2
         return 1
     fi
-    echo "${result}"
+    local result
+    if ! result=$(printf '%s' "${get_versions_all}" | jq -rc --arg key "$1" '.[$key]' 2>/dev/null) ||
+        [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}" >&2
+        return 1
+    fi
+    printf '%s\n' "${result}"
 }
 
 # Task C: silent version reader for optional API fields (e.g. *_tested_version).
@@ -764,13 +793,13 @@ check_version() {
 # so read_version can probe for tested_version without spamming users on
 # older API payloads that don't yet carry the field.
 check_version_silent() {
-    load_versions
+    load_versions || return 1
     local result
-    result=$(echo "${get_versions_all}" | jq -rc ".$1" 2>/dev/null)
-    if [[ $? -ne 0 ]] || [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
+    if ! result=$(printf '%s' "${get_versions_all}" | jq -rc --arg key "$1" '.[$key]' 2>/dev/null) ||
+        [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
         return 1
     fi
-    echo "${result}"
+    printf '%s\n' "${result}"
 }
 
 pkg_install_judge() {
@@ -6801,15 +6830,37 @@ compat_migrate() {
 }
 
 read_version() {
-    shell_online_version="$(check_version shell_online_version)"
-    xray_online_version="$(check_version xray_online_version)"
-    nginx_build_version="$(check_version nginx_build_online_version)"
+    # Load once in the current shell. Calling check_version only through command
+    # substitutions would otherwise perform one network request per field because
+    # each substitution runs in a subshell and cannot preserve the cache state.
+    if ! load_versions; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}" >&2
+        return 1
+    fi
+
+    local new_shell_online_version
+    local new_xray_online_version
+    local new_nginx_build_version
+    local new_shell_tested_version
+    local new_xray_tested_version
+    local new_nginx_build_tested_version
+
+    new_shell_online_version="$(check_version shell_online_version)" || return 1
+    new_xray_online_version="$(check_version xray_online_version)" || return 1
+    new_nginx_build_version="$(check_version nginx_build_online_version)" || return 1
     # Task C (Section 7.6): read tested_version (known-good fallback baseline) from API.
     # These fields are optional in the API JSON; missing fields are treated as
     # "no Layer 2 fallback available" and silently become empty strings.
-    shell_tested_version="$(check_version_silent shell_tested_version || echo "")"
-    xray_tested_version="$(check_version_silent xray_tested_version || echo "")"
-    nginx_build_tested_version="$(check_version_silent nginx_build_tested_version || echo "")"
+    new_shell_tested_version="$(check_version_silent shell_tested_version || echo "")"
+    new_xray_tested_version="$(check_version_silent xray_tested_version || echo "")"
+    new_nginx_build_tested_version="$(check_version_silent nginx_build_tested_version || echo "")"
+
+    shell_online_version="${new_shell_online_version}"
+    xray_online_version="${new_xray_online_version}"
+    nginx_build_version="${new_nginx_build_version}"
+    shell_tested_version="${new_shell_tested_version}"
+    xray_tested_version="${new_xray_tested_version}"
+    nginx_build_tested_version="${new_nginx_build_tested_version}"
 }
 
 maintain() {
@@ -7195,11 +7246,10 @@ check_online_version_connect() {
         exit 0
     fi
 
-    xray_online_version_status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json")
-    if [[ ${xray_online_version_status} != "200" ]]; then
+    if ! load_versions; then
         log_echo "${Error} ${RedBG} $(gettext "无法检测所需依赖的在线版本, 请稍后再试")! ${Font}"
         sleep 0.5
-        exit 0
+        exit 1
     fi
 }
 
@@ -8179,7 +8229,7 @@ check_file_integrity
 compat_migrate
 check_online_version_connect
 init_language
-read_version
+read_version || exit 1
 judge_mode
 if [[ -f "${xray_install_config_file}" ]]; then
     if [[ ${tls_mode} == "Reality" ]]; then
