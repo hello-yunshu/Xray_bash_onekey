@@ -493,18 +493,107 @@ assert_eq "config reality_add_balance written" "on" "$(jq -rc .reality_add_balan
 assert_eq "config reality_add_nginx written" "on" "$(jq -rc .reality_add_nginx "${xray_install_config_file}")"
 assert_eq "config reality_balance_role written" "primary" "$(jq -rc .reality_balance_role "${xray_install_config_file}")"
 assert_eq "config shell_mode written" "Nginx+Reality+Balance" "$(jq -rc .shell_mode "${xray_install_config_file}")"
-# Round-trip: judge_mode reads config back into shell variables
-reality_balance_role=""
+# Round-trip: judge_mode reads config back into shell variables.
+# Reset ALL shell-mode-relevant variables first so the test cannot pass on
+# stale values left by apply_install_profile (previous false-positive root cause).
+shell_mode="$(gettext "未安装")"
+tls_mode="None"
+transport_mode="None"
+reality_add_more="off"
 reality_add_nginx="off"
 reality_add_balance="off"
+reality_balance_role=""
 info_extraction_all="$(jq -rc . "${xray_install_config_file}")"
 info_extraction() { printf '%s' "${info_extraction_all}" | jq -rc --arg k "$1" '.[$k]'; }
 judge_mode
+assert_eq "roundtrip primary shell_mode" "Nginx+Reality+Balance" "${shell_mode}"
 assert_eq "roundtrip primary reality_balance_role" "primary" "${reality_balance_role}"
 assert_eq "roundtrip primary reality_add_nginx" "on" "${reality_add_nginx}"
 assert_eq "roundtrip primary reality_add_balance" "on" "${reality_add_balance}"
 rm -f "${xray_install_config_file}"
 unset -f info_extraction update_json_config _info_cache_invalidate
+
+# ============================================================================
+# shell_mode config read-back tests (judge_mode round-trip)
+#
+# After script restart judge_mode must restore shell_mode for every
+# non-transport install profile (transport_mode="None" in the config) and for
+# the transport profiles. Each test writes a JSON config, resets ALL relevant
+# shell variables to the not-installed defaults, then calls judge_mode and
+# asserts the restored shell_mode.
+# ============================================================================
+
+# Helper: run judge_mode against a JSON config in the current shell.
+# Resets ALL shell-mode-relevant variables to the not-installed defaults first
+# so every case is a true round-trip (no stale values carried over from a
+# previous test). Restored values are exposed via READBACK_* globals so callers
+# can assert on shell_mode and any side-effect variable (e.g. reality_balance_role).
+run_judge_mode_from_config() {
+    local config_json="$1"
+    xray_install_config_file="$(mktemp)"
+    printf '%s' "${config_json}" > "${xray_install_config_file}"
+    info_extraction_all="${config_json}"
+    info_extraction() { printf '%s' "${info_extraction_all}" | jq -rc --arg k "$1" '.[$k]'; }
+    shell_mode="$(gettext "未安装")"
+    tls_mode="None"
+    transport_mode="None"
+    reality_add_more="off"
+    reality_add_nginx="off"
+    reality_add_balance="off"
+    reality_balance_role=""
+    judge_mode
+    READBACK_SHELL_MODE="${shell_mode}"
+    READBACK_BALANCE_ROLE="${reality_balance_role}"
+    READBACK_TLS_MODE="${tls_mode}"
+    READBACK_TRANSPORT_MODE="${transport_mode}"
+    rm -f "${xray_install_config_file}"
+    unset -f info_extraction
+}
+
+echo "--- readback: standard Reality ---"
+run_judge_mode_from_config '{"tls":"Reality","transport_mode":"None","reality_add_more":"off","reality_add_nginx":"off","reality_add_balance":"off"}'
+assert_eq "readback standard Reality shell_mode" "Reality" "${READBACK_SHELL_MODE}"
+
+echo "--- readback: Reality + Nginx ---"
+run_judge_mode_from_config '{"tls":"Reality","transport_mode":"None","reality_add_more":"off","reality_add_nginx":"on","reality_add_balance":"off"}'
+assert_eq "readback Reality+Nginx shell_mode" "Nginx+Reality" "${READBACK_SHELL_MODE}"
+
+echo "--- readback: Balance primary ---"
+run_judge_mode_from_config '{"tls":"Reality","transport_mode":"None","reality_add_more":"off","reality_add_nginx":"on","reality_add_balance":"on","reality_balance_role":"primary"}'
+assert_eq "readback Balance primary shell_mode" "Nginx+Reality+Balance" "${READBACK_SHELL_MODE}"
+assert_eq "readback Balance primary role" "primary" "${READBACK_BALANCE_ROLE}"
+
+echo "--- readback: Balance secondary ---"
+run_judge_mode_from_config '{"tls":"Reality","transport_mode":"None","reality_add_more":"off","reality_add_nginx":"off","reality_add_balance":"on","reality_balance_role":"secondary"}'
+assert_eq "readback Balance secondary shell_mode" "Reality+Balance" "${READBACK_SHELL_MODE}"
+assert_eq "readback Balance secondary role" "secondary" "${READBACK_BALANCE_ROLE}"
+
+echo "--- readback: XTLS ONLY ---"
+run_judge_mode_from_config '{"tls":"XTLS","transport_mode":"None"}'
+assert_eq "readback XTLS ONLY shell_mode" "XTLS ONLY" "${READBACK_SHELL_MODE}"
+
+echo "--- readback: not installed ---"
+run_judge_mode_from_config '{"tls":"None","transport_mode":"None"}'
+assert_eq "readback not-installed shell_mode" "未安装" "${READBACK_SHELL_MODE}"
+
+echo "--- readback: old config missing reality_balance_role (Balance primary) ---"
+run_judge_mode_from_config '{"tls":"Reality","transport_mode":"None","reality_add_more":"off","reality_add_nginx":"on","reality_add_balance":"on"}'
+assert_eq "readback old-config Balance primary shell_mode" "Nginx+Reality+Balance" "${READBACK_SHELL_MODE}"
+assert_eq "readback old-config reality_balance_role empty" "" "${READBACK_BALANCE_ROLE}"
+
+# Transport-mode regression: these must still derive correctly via the
+# transport_label path (transport_mode != "None").
+echo "--- readback regression: Nginx+ws+TLS ---"
+run_judge_mode_from_config '{"tls":"TLS","transport_mode":"onlyws"}'
+assert_eq "readback Nginx+ws+TLS shell_mode" "Nginx+ws+TLS" "${READBACK_SHELL_MODE}"
+
+echo "--- readback regression: Reality+xHTTP ---"
+run_judge_mode_from_config '{"tls":"Reality","transport_mode":"onlyxhttp","reality_add_more":"on","reality_add_nginx":"off","reality_add_balance":"off"}'
+assert_eq "readback Reality+xHTTP shell_mode" "Reality+xHTTP" "${READBACK_SHELL_MODE}"
+
+echo "--- readback regression: ws+gRPC+xHTTP ONLY ---"
+run_judge_mode_from_config '{"tls":"None","transport_mode":"wsgRPCxhttp"}'
+assert_eq "readback ws+gRPC+xHTTP ONLY shell_mode" "ws+gRPC+xHTTP ONLY" "${READBACK_SHELL_MODE}"
 
 # ============================================================================
 # Real menu state-machine tests

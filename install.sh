@@ -1101,6 +1101,40 @@ transport_choose() {
 
 _transport_set_shell_mode() {
     local transport_label=""
+
+    # Non-transport installs (standard Reality, Reality+Nginx, Reality balance
+    # primary/secondary, XTLS ONLY, and the not-installed state) persist
+    # transport_mode="None" in the config. On script restart judge_mode reads
+    # the config and calls this function; without this branch shell_mode would
+    # stay at the initial "未安装" placeholder. Derive shell_mode from tls_mode
+    # and the reality_* flags so the menu reflects the real installed mode.
+    if [[ -z ${transport_mode:-} ||
+          ${transport_mode} == "None" ||
+          ${transport_mode} == "null" ]]; then
+        case ${tls_mode} in
+        Reality)
+            if [[ ${reality_add_balance} == "on" ]]; then
+                if [[ ${reality_add_nginx} == "on" ]]; then
+                    shell_mode="Nginx+Reality+Balance"
+                else
+                    shell_mode="Reality+Balance"
+                fi
+            elif [[ ${reality_add_nginx} == "on" ]]; then
+                shell_mode="Nginx+Reality"
+            else
+                shell_mode="Reality"
+            fi
+            ;;
+        XTLS)
+            shell_mode="XTLS ONLY"
+            ;;
+        None)
+            shell_mode="$(gettext "未安装")"
+            ;;
+        esac
+        return 0
+    fi
+
     case ${transport_mode} in
     onlyws) transport_label="ws";;
     onlygRPC) transport_label="gRPC";;
