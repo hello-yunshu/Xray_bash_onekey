@@ -11,7 +11,12 @@ xtls_only | ws_grpc_xhttp | reality | reality_nginx | tls) ;;
 esac
 
 REPO_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+_TEST_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "${REPO_DIR}"
+
+# Source unified redaction helpers (Task H: prevent secret leakage in CI)
+# shellcheck source=redact.sh
+source "${_TEST_DIR}/redact.sh"
 
 echo "============================================"
 echo "  Testing installation mode: ${MODE}"
@@ -212,12 +217,12 @@ keys_set() {
     elif echo "${keys}" | grep -q "PublicKey: "; then
         password=$(echo "${keys}" | awk -F"PublicKey: " '{print $2}' | awk '{print $1}')
     fi
-    echo "  [CI] keys_set: privateKey=${privateKey}, password=${password}"
+    echo "  [CI] keys_set: privateKey=<redacted length=${#privateKey}>, password=<redacted length=${#password}>"
 }
 
 shortIds_set() {
     shortIds=$(openssl rand -hex 8)
-    echo "  [CI] shortIds_set: shortIds=${shortIds}"
+    echo "  [CI] shortIds_set: shortIds=<redacted length=${#shortIds}>"
 }
 
 xray_reality_add_more_choose() {
@@ -263,7 +268,13 @@ ssl_judge_and_install() {
         -keyout "${ssl_chainpath}/xray.key" \
         -out "${ssl_chainpath}/xray.crt" \
         -days 365 -subj "/CN=${domain}" 2>/dev/null
-    chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/* 2>/dev/null || true
+    # Task E (Section 9.3): root owns, worker group can read but NOT write.
+    # Use non-recursive chown consistent with apply_nginx_layered_permissions() in install.sh.
+    getent group idleleo-nginx >/dev/null 2>&1 || return 1
+    chown -f "root:idleleo-nginx" "${ssl_chainpath}" || return 1
+    chown -f "root:idleleo-nginx" "${ssl_chainpath}/xray.crt" "${ssl_chainpath}/xray.key" || return 1
+    chmod -f 750 "${ssl_chainpath}" || return 1
+    chmod -f 640 "${ssl_chainpath}/xray.crt" "${ssl_chainpath}/xray.key" || return 1
     echo "  [CI] ssl_judge_and_install: self-signed cert created for ${domain}"
 }
 
@@ -399,8 +410,8 @@ assert_qr_matches_config() {
 
 assert_ok "Install command exited successfully" test "${INSTALL_EXIT_CODE}" -eq 0
 assert_ok --diag "ls -la ${xray_bin_dir}/xray 2>/dev/null; echo; file ${xray_bin_dir}/xray 2>/dev/null" "Xray binary exists" test -f "${xray_bin_dir}/xray"
-assert_ok --diag "ls -la \"${xray_conf}\" 2>/dev/null; echo; jq . \"${xray_conf}\" 2>&1 | head -20" "Xray config exists" test -f "${xray_conf}"
-assert_ok --diag "ls -la \"${xray_install_config_file}\" 2>/dev/null; echo; jq . \"${xray_install_config_file}\" 2>&1 | head -20" "Install config exists" test -f "${xray_install_config_file}"
+assert_ok --diag "ls -la \"${xray_conf}\" 2>/dev/null; echo; redact_json_for_diagnostics \"${xray_conf}\" 2>&1 | head -20" "Xray config exists" test -f "${xray_conf}"
+assert_ok --diag "ls -la \"${xray_install_config_file}\" 2>/dev/null; echo; redact_json_for_diagnostics \"${xray_install_config_file}\" 2>&1 | head -20" "Install config exists" test -f "${xray_install_config_file}"
 assert_ok --diag "cat ${xray_systemd_file} 2>/dev/null" "Xray systemd service exists" test -f "${xray_systemd_file}"
 
 echo ""
@@ -415,7 +426,7 @@ fi
 
 echo ""
 echo "--- Service status checks ---"
-assert_ok --diag "systemctl status xray 2>&1 | head -15; echo; journalctl -u xray --no-pager -n 10 2>&1" "Xray service is active" systemctl is-active --quiet xray
+assert_ok --diag "systemctl status xray 2>&1 | redact_text_for_diagnostics | head -15; echo; journalctl -u xray --no-pager -n 10 2>&1 | redact_text_for_diagnostics" "Xray service is active" systemctl is-active --quiet xray
 
 echo ""
 echo "--- Listener checks ---"
@@ -447,16 +458,18 @@ ws_grpc_xhttp)
     assert_ok --diag "curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 http://127.0.0.1:$(qr_value xhttp_port)/$(qr_value xhttp_path) 2>&1; echo; ss -ltnH 2>/dev/null | head -10; echo; ps aux | grep -E '[x]ray' | head -5" "xHTTP path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value xhttp_port)/$(qr_value xhttp_path)"
     ;;
 tls)
-    assert_ok --diag "curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 --resolve '$(qr_value host):$(qr_value port):127.0.0.1' 'https://$(qr_value host):$(qr_value port)/$(qr_value path)' 2>&1; echo; ss -ltnH 2>/dev/null | head -10; echo; ps aux | grep -E '[n]ginx' | head -5; echo; tail -5 /usr/local/nginx/logs/error.log 2>/dev/null" "Nginx ws path returns an HTTPS status" https_probe_has_status "$(qr_value host)" "$(qr_value port)" "$(qr_value path)"
+    assert_ok --diag "curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 --resolve '$(qr_value host):$(qr_value port):127.0.0.1' 'https://$(qr_value host):$(qr_value port)/$(qr_value path)' 2>&1; echo; ss -ltnH 2>/dev/null | head -10; echo; ps aux | grep -E '[n]ginx' | head -5; echo; tail -5 /usr/local/nginx/logs/error.log 2>/dev/null | redact_text_for_diagnostics" "Nginx ws path returns an HTTPS status" https_probe_has_status "$(qr_value host)" "$(qr_value port)" "$(qr_value path)"
     ;;
 esac
 
 if [[ "${MODE}" == "tls" || "${MODE}" == "reality_nginx" ]]; then
     assert_ok --diag "ls -la ${nginx_dir}/sbin/nginx 2>/dev/null; echo; file ${nginx_dir}/sbin/nginx 2>/dev/null; echo; ldd ${nginx_dir}/sbin/nginx 2>/dev/null" "Nginx binary exists" test -f "${nginx_dir}/sbin/nginx"
-    assert_ok --diag "ls -la ${nginx_conf} 2>/dev/null; echo; cat ${nginx_conf} 2>/dev/null | head -30" "Nginx config exists" test -f "${nginx_conf}"
+    assert_ok --diag "ls -la ${nginx_conf} 2>/dev/null; echo; cat ${nginx_conf} 2>/dev/null | redact_text_for_diagnostics | head -30" "Nginx config exists" test -f "${nginx_conf}"
     assert_ok --diag "cat ${nginx_systemd_file} 2>/dev/null" "Nginx systemd service exists" test -f "${nginx_systemd_file}"
-    assert_ok --diag "systemctl status nginx 2>&1 | head -15; echo; journalctl -u nginx --no-pager -n 10 2>&1; echo; ps aux | grep -E '[n]ginx' | head -5" "Nginx service is active" systemctl is-active --quiet nginx
+    assert_ok --diag "systemctl status nginx 2>&1 | redact_text_for_diagnostics | head -15; echo; journalctl -u nginx --no-pager -n 10 2>&1 | redact_text_for_diagnostics; echo; ps aux | grep -E '[n]ginx' | head -5" "Nginx service is active" systemctl is-active --quiet nginx
     assert_ok --diag "${nginx_dir}/sbin/nginx -t -c ${nginx_dir}/conf/nginx.conf 2>&1" "Nginx config is valid" "${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf"
+    assert_ok --diag "find ${nginx_dir} ${nginx_conf_dir} ${ssl_chainpath} -maxdepth 2 -printf '%M %u:%g %p\\n' 2>/dev/null | head -80" \
+        "Nginx layered permissions pass the production verifier" verify_nginx_layered_permissions
 fi
 
 if [[ "${MODE}" == "tls" ]]; then
@@ -539,10 +552,10 @@ reality_upgrade_defaults_are_safe() {
 
 menu_box_layout_is_aligned() (
     local columns expected rendered plain line width
-    for columns in 50 60 72 100; do
+    for columns in 50 60 72 100 160; do
         export COLUMNS="${columns}"
         expected=$((columns - 4))
-        ((expected > 88)) && expected=88
+        ((expected > 60)) && expected=60
         ((expected < 52)) && expected=$((columns - 2))
         ((expected < 20)) && expected=20
 
@@ -612,15 +625,15 @@ echo "============================================"
 
 if [[ ${TEST_FAIL} -gt 0 ]]; then
     echo ""
-    echo "--- Debug: Xray service status ---"
-    systemctl status xray 2>&1 || true
+    echo "--- Debug: Xray service status (redacted) ---"
+    systemctl status xray 2>&1 | redact_text_for_diagnostics || true
     echo ""
-    echo "--- Debug: Xray error log (last 20 lines) ---"
-    tail -20 /var/log/xray/error.log 2>/dev/null || echo "(no error log)"
+    echo "--- Debug: Xray error log (last 20 lines, redacted) ---"
+    tail -20 /var/log/xray/error.log 2>/dev/null | redact_text_for_diagnostics || echo "(no error log)"
     if [[ "${MODE}" == "tls" || "${MODE}" == "reality_nginx" ]]; then
         echo ""
-        echo "--- Debug: Nginx service status ---"
-        systemctl status nginx 2>&1 || true
+        echo "--- Debug: Nginx service status (redacted) ---"
+        systemctl status nginx 2>&1 | redact_text_for_diagnostics || true
     fi
     exit 1
 fi

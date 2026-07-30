@@ -76,16 +76,44 @@ main_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=""
 _get_versions_loaded=0
+
+fetch_versions_json() {
+    local url="$1"
+    local response
+
+    if ! response=$(curl -fsSL --connect-timeout 10 --max-time 30 \
+        --retry 3 --retry-delay 1 "${url}" 2>/dev/null); then
+        return 1
+    fi
+    if [[ -z "${response}" ]] || ! printf '%s' "${response}" | jq -e 'type == "object"' >/dev/null 2>&1; then
+        return 1
+    fi
+    printf '%s' "${response}"
+}
+
 load_versions() {
     if [[ ${_get_versions_loaded} -eq 0 ]]; then
-        get_versions_all=$(curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json 2>/dev/null)
+        local versions_cdn_url="https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json"
+        local versions_origin_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/xray_shell_versions.json"
+        local response
+
+        if ! response=$(fetch_versions_json "${versions_cdn_url}"); then
+            response=$(fetch_versions_json "${versions_origin_url}") || {
+                get_versions_all=""
+                return 1
+            }
+        fi
+        get_versions_all="${response}"
         _get_versions_loaded=1
     fi
+    [[ -n "${get_versions_all}" ]]
 }
 read_config_status=1
 reality_add_more="off"
 reality_add_nginx="off"
 reality_add_balance="off"
+# Reality 负载均衡角色：primary=主服务器(安装 Nginx)，secondary=二级服务器(仅 Reality 后端)，空=未启用
+reality_balance_role=""
 # SNI Guard 默认值：Reality+Nginx 模式下默认启用，未知 SNI 不转发到 Xray
 reality_nginx_sni_guard="on"
 unknown_sni_policy="isolate"
@@ -93,6 +121,13 @@ decoy_domain=""
 spiderx_path=""
 old_config_status="off"
 old_tls_mode="NULL"
+# Install wizard profile state. When install_wizard_preset="on", interactive
+# choose functions (transport_choose, xray_reality_add_more_choose,
+# reality_nginx_add_fq, reality_balance_add_fq) skip prompting and use the
+# values set by apply_install_profile. This decouples menu selection from
+# install-function-side prompting so the wizard never asks the same question twice.
+install_profile=""
+install_wizard_preset="off"
 random_num=$((RANDOM % 12 + 4))
 [[ -f "${xray_install_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_install_config_file}")
 
@@ -168,6 +203,31 @@ log_echo_secure() {
     echo -e "$message"
 }
 
+# Redact secrets before diagnostic text reaches stdout or the persistent log.
+# Keep this helper in the production script: CI-only redaction cannot protect
+# interactive update/rollback diagnostics on real hosts.
+redact_diagnostic_text() {
+    sed -E \
+        -e 's#vless://[^[:space:]]+#<vless link redacted>#g' \
+        -e 's/((privateKey|publicKey|password|shortIds?|UUID|uuid|token)[":=[:space:]]+)[A-Za-z0-9._:@\/+-]+/\1<redacted>/gI' \
+        -e 's/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/<uuid redacted>/g' \
+        -e 's/(Authorization:[[:space:]]*)[^[:space:]]+([[:space:]]+[^[:space:]]+)?/\1<redacted>/gI' \
+        -e 's/ghp_[A-Za-z0-9]{20,}/<github token redacted>/g' \
+        -e 's/github_pat_[A-Za-z0-9_]{20,}/<github token redacted>/g' |
+        awk '
+            /-----BEGIN [^-]*PRIVATE KEY-----/ {
+                print "<private key block redacted>"
+                in_private_key = 1
+                next
+            }
+            /-----END [^-]*PRIVATE KEY-----/ {
+                in_private_key = 0
+                next
+            }
+            !in_private_key { print }
+        '
+}
+
 safe_rm() {
     local target="$1"
     if [[ -z "${target}" || "${target}" == "/" ]]; then
@@ -197,21 +257,36 @@ update_json_config() {
         return 1
     fi
 
-    local original_mode original_uid original_gid tmp_file
+    local original_mode original_uid original_gid tmp_file _old_umask
     original_mode=$(stat -c '%a' "${config_file}" 2>/dev/null) || return 1
     original_uid=$(stat -c '%u' "${config_file}" 2>/dev/null) || return 1
     original_gid=$(stat -c '%g' "${config_file}" 2>/dev/null) || return 1
-    tmp_file="${config_file}.tmp.$$"
+    # Use mktemp for unpredictable temp file name (same directory = same filesystem for atomic mv)
+    tmp_file=$(mktemp "${config_file}.tmp.XXXXXX" 2>/dev/null) || tmp_file="${config_file}.tmp.$$"
 
-    if ! jq "$@" "${config_file}" > "${tmp_file}"; then
+    # Restrictive umask before writing sensitive content (UUID/privateKey/shortIds etc.)
+    _old_umask=$(umask)
+    umask 077
+
+    if ! jq "$@" "${config_file}" > "${tmp_file}" 2>/dev/null; then
+        umask "${_old_umask}"
         rm -f "${tmp_file}"
         return 1
     fi
+    # Validate generated JSON before replacing original (fail closed on corruption)
+    if ! jq empty "${tmp_file}" >/dev/null 2>&1; then
+        umask "${_old_umask}"
+        rm -f "${tmp_file}"
+        log_echo "${Error} ${RedBG} update_json_config: $(gettext "生成的 JSON 无效，已保留原文件"): ${config_file} ${Font}"
+        return 1
+    fi
     if ! chmod "${original_mode}" "${tmp_file}" || ! chown "${original_uid}:${original_gid}" "${tmp_file}"; then
+        umask "${_old_umask}"
         rm -f "${tmp_file}"
         log_echo "${Warning} ${YellowBG} $(gettext "配置文件权限收紧失败"): ${config_file} ${Font}"
         return 1
     fi
+    umask "${_old_umask}"
     if ! mv "${tmp_file}" "${config_file}"; then
         rm -f "${tmp_file}"
         return 1
@@ -321,6 +396,72 @@ source '/etc/os-release'
 
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 
+# P1-C: Wait for apt/dpkg locks to be released instead of deleting them.
+# Waits up to $1 seconds (default 60) for the dpkg lock to become available.
+# Shows the process holding the lock if it remains held.
+# Returns 0 if the lock is available (or was acquired), 1 on timeout.
+# NEVER deletes lock files that are held by a running process — that corrupts
+# the package database.
+wait_for_apt_lock() {
+    local timeout="${1:-60}"
+    local elapsed=0
+    local lock_files=(
+        "/var/lib/dpkg/lock"
+        "/var/lib/dpkg/lock-frontend"
+        "/var/lib/apt/lists/lock"
+        "/var/cache/apt/archives/lock"
+    )
+    if [[ -n "${APT_LOCK_FILES:-}" ]]; then
+        read -r -a lock_files <<< "${APT_LOCK_FILES}"
+    fi
+
+    # apt/dpkg use POSIX/fcntl locks; flock(1) uses a different lock class and
+    # can incorrectly report those files as free. Inspect actual holders with
+    # fuser/lsof instead.
+    while [[ ${elapsed} -lt ${timeout} ]]; do
+        local locked=0
+        for lock_file in "${lock_files[@]}"; do
+            [[ ! -e "${lock_file}" ]] && continue
+            if command -v fuser >/dev/null 2>&1; then
+                if fuser "${lock_file}" >/dev/null 2>&1; then
+                    locked=1
+                    break
+                fi
+            elif command -v lsof >/dev/null 2>&1; then
+                if lsof "${lock_file}" >/dev/null 2>&1; then
+                    locked=1
+                    break
+                fi
+            else
+                log_echo "${Error} ${RedBG} $(gettext "无法检查 apt/dpkg 锁: 缺少 fuser 或 lsof") ${Font}"
+                return 1
+            fi
+        done
+
+        if [[ ${locked} -eq 0 ]]; then
+            return 0
+        fi
+
+        if [[ $((elapsed % 10)) -eq 0 && ${elapsed} -gt 0 ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "等待 apt/dpkg 锁释放") (${elapsed}/${timeout}s) ${Font}"
+        fi
+        sleep 1
+        elapsed=$((elapsed + 1))
+    done
+
+    # Timeout reached — show holders and fail.
+    log_echo "${Error} ${RedBG} $(gettext "等待 apt/dpkg 锁超时") ${Font}"
+    for lock_file in "${lock_files[@]}"; do
+        [[ ! -e "${lock_file}" ]] && continue
+        local holders
+        holders=$(fuser "${lock_file}" 2>&1 || lsof "${lock_file}" 2>/dev/null || true)
+        if [[ -n "${holders}" ]]; then
+            log_echo "${Error} ${lock_file}: ${holders} ${Font}"
+        fi
+    done
+    return 1
+}
+
 check_system() {
     if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]] && [[ ${VERSION_ID%%.*} -ge 10 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} ${VERSION} ${Font}"
@@ -329,16 +470,25 @@ check_system() {
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 12 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Debian ${VERSION_ID} ${VERSION} ${Font}"
         INS="apt"
-        [[ ! -f "${xray_install_config_file}" ]] && $INS update || true
+        if [[ ! -f "${xray_install_config_file}" ]]; then
+            wait_for_apt_lock 60 || exit 1
+            dpkg --configure -a || exit 1
+            $INS update || exit 1
+        fi
     elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 24 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
         INS="apt"
         if [[ ! -f "${xray_install_config_file}" ]]; then
-            rm /var/lib/dpkg/lock || true
-            dpkg --configure -a || true
-            rm /var/lib/apt/lists/lock || true
-            rm /var/cache/apt/archives/lock || true
-            $INS update || true
+            # P1-C: Wait for apt/dpkg locks instead of deleting them.
+            # Deleting locks that are held by a running process corrupts the
+            # package database and can leave the system in an unrecoverable state.
+            if ! wait_for_apt_lock 60; then
+                log_echo "${Error} ${RedBG} $(gettext "apt/dpkg 锁等待超时, 请稍后重试或手动检查占用进程") ${Font}"
+                exit 1
+            fi
+            # Configure any interrupted packages — safe now that we hold the lock.
+            dpkg --configure -a || exit 1
+            $INS update || exit 1
         fi
     else
         log_echo "${Error} ${RedBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} $(gettext "不在支持的系统列表内, 安装中断")! ${Font}"
@@ -418,6 +568,98 @@ update_language_file() {
     log_echo "${OK} ${Green} $(gettext "语言文件更新") $(gettext "完成") ${Font}"
 }
 
+# P1-D: Safely read language.conf without sourcing it as a shell script.
+# Only LANG= and LC_MESSAGES= assignments are parsed. The function rejects:
+#   - command substitution ($(...), `...`)
+#   - shell metacharacters (;, &&, ||, |, <, >, &)
+#   - unknown keys (anything other than LANG or LC_MESSAGES)
+#   - values that don't match the locale name pattern ([a-zA-Z0-9_.@-]+)
+# Returns 0 if the file was parsed (even partially), 1 on fatal error.
+safe_source_language_conf() {
+    local conf_file="$1"
+
+    if [[ -z "${conf_file}" || ! -f "${conf_file}" ]]; then
+        return 1
+    fi
+
+    # Read the file line by line. This avoids any shell interpretation.
+    local line key value
+    local parsed_lang=""
+    local parsed_lc_messages=""
+    local invalid=0
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        # Skip empty lines and comments.
+        line="${line#"${line%%[![:space:]]*}"}"  # trim leading whitespace
+        [[ -z "${line}" || "${line}" == \#* ]] && continue
+
+        # Reject lines that contain shell metacharacters or command substitution.
+        if [[ "${line}" == *'$('* || "${line}" == *'`'* || "${line}" == *';'* || \
+              "${line}" == *'&&'* || "${line}" == *'||'* || "${line}" == *'|'* || \
+              "${line}" == *'<'* || "${line}" == *'>'* || "${line}" == *'&'* ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "language.conf 包含可疑字符, 跳过该行"): ${line} ${Font}"
+            invalid=1
+            continue
+        fi
+
+        # Parse KEY=value without evaluating shell syntax. Bash's ERE engine
+        # does not portably support the back-reference previously used here.
+        if [[ "${line}" != *=* ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "language.conf 行格式无效, 跳过"): ${line} ${Font}"
+            invalid=1
+            continue
+        fi
+        key="${line%%=*}"
+        value="${line#*=}"
+        key="${key%"${key##*[![:space:]]}"}"
+        value="${value#"${value%%[![:space:]]*}"}"
+        value="${value%"${value##*[![:space:]]}"}"
+        case "${value}" in
+            \"*\")
+                value="${value#\"}"
+                value="${value%\"}"
+                ;;
+            \'*\')
+                value="${value#\'}"
+                value="${value%\'}"
+                ;;
+        esac
+        if [[ ! "${key}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "language.conf 键格式无效, 跳过"): ${key} ${Font}"
+            invalid=1
+            continue
+        fi
+
+        # Allowlist: only LANG and LC_MESSAGES are permitted.
+        case "${key}" in
+            LANG|LC_MESSAGES)
+                # Validate value: only locale characters (letters, digits, _ . @ -).
+                if [[ ! "${value}" =~ ^[A-Za-z0-9_.@-]+$ ]]; then
+                    log_echo "${Warning} ${YellowBG} $(gettext "language.conf 值包含非法字符, 跳过"): ${key}=${value} ${Font}"
+                    invalid=1
+                    continue
+                fi
+                if [[ "${key}" == "LANG" ]]; then
+                    parsed_lang="${value}"
+                else
+                    parsed_lc_messages="${value}"
+                fi
+                ;;
+            *)
+                log_echo "${Warning} ${YellowBG} $(gettext "language.conf 未知键, 跳过"): ${key} ${Font}"
+                invalid=1
+                continue
+                ;;
+        esac
+    done < "${conf_file}"
+
+    # Reject the complete file rather than partially applying a mixed
+    # valid/malicious payload.
+    [[ ${invalid} -eq 0 ]] || return 1
+    [[ -n "${parsed_lang}" ]] && export LANG="${parsed_lang}"
+    [[ -n "${parsed_lc_messages}" ]] && export LC_MESSAGES="${parsed_lc_messages}"
+    return 0
+}
+
 init_language() {
     if ! command -v gettext >/dev/null 2>&1; then
         log_echo "${Warning} ${YellowBG} $(gettext "正在安装") gettext... ${Font}"
@@ -459,7 +701,15 @@ init_language() {
     . "$gettext_sh"
 
     if [ -f "${idleleo_dir}/language.conf" ]; then
-        source "${idleleo_dir}/language.conf"
+        # P1-D: Safe-read language.conf instead of sourcing it directly.
+        # Only LANG= and LC_MESSAGES= assignments are allowed. Command
+        # substitution, extra shell statements, and unknown keys are rejected.
+        if ! safe_source_language_conf "${idleleo_dir}/language.conf"; then
+            log_echo "${Warning} ${YellowBG} $(gettext "language.conf 校验失败, 将使用默认语言") ${Font}"
+            unset LANG
+            unset LC_MESSAGES
+            return 0
+        fi
 
         if [[ "${LANG%.*}" != "zh_CN" ]]; then
             local lang_code
@@ -527,14 +777,31 @@ judge() {
 }
 
 check_version() {
-    load_versions
-    local result
-    result=$(echo "${get_versions_all}" | jq -rc ".$1" 2>/dev/null)
-    if [[ $? -ne 0 ]] || [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}"
+    if ! load_versions; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}" >&2
         return 1
     fi
-    echo "${result}"
+    local result
+    if ! result=$(printf '%s' "${get_versions_all}" | jq -rc --arg key "$1" '.[$key]' 2>/dev/null) ||
+        [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}" >&2
+        return 1
+    fi
+    printf '%s\n' "${result}"
+}
+
+# Task C: silent version reader for optional API fields (e.g. *_tested_version).
+# Returns empty string on missing/null fields without printing error messages,
+# so read_version can probe for tested_version without spamming users on
+# older API payloads that don't yet carry the field.
+check_version_silent() {
+    load_versions || return 1
+    local result
+    if ! result=$(printf '%s' "${get_versions_all}" | jq -rc --arg key "$1" '.[$key]' 2>/dev/null) ||
+        [[ -z "${result}" ]] || [[ "${result}" == "null" ]]; then
+        return 1
+    fi
+    printf '%s\n' "${result}"
 }
 
 pkg_install_judge() {
@@ -691,7 +958,116 @@ port_set() {
     fi
 }
 
+# Reset install wizard profile state before each wizard entry.
+# Must NOT clear old_config_status (preserves "retain old config" mode).
+reset_install_wizard_state() {
+    install_profile=""
+    install_wizard_preset="off"
+    reality_add_more="off"
+    reality_add_nginx="off"
+    reality_add_balance="off"
+    reality_balance_role=""
+    transport_mode="None"
+}
+
+# Apply install profile: sets tls_mode / reality_* / transport_mode / shell_mode
+# based on the profile selected by the hierarchical install wizard.
+#
+# For profiles that include an extra transport (reality_transport,
+# reality_transport_nginx, transport_nginx_tls, transport_only), transport_mode
+# is NOT overwritten here — it is set beforehand by menu_choose_transport, and
+# shell_mode is derived later by _transport_set_shell_mode.
+#
+# For profiles without extra transport (reality_nginx, reality_standard,
+# xtls_only), transport_mode is forced to "None" and shell_mode is set directly.
+apply_install_profile() {
+    case "${install_profile}" in
+        reality_nginx)
+            tls_mode="Reality"
+            reality_add_more="off"
+            reality_add_nginx="on"
+            reality_add_balance="off"
+            transport_mode="None"
+            shell_mode="Nginx+Reality"
+            ;;
+        reality_standard)
+            tls_mode="Reality"
+            reality_add_more="off"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            transport_mode="None"
+            shell_mode="Reality"
+            ;;
+        reality_transport)
+            tls_mode="Reality"
+            reality_add_more="on"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            # transport_mode set by menu_choose_transport; shell_mode derived later
+            ;;
+        reality_transport_nginx)
+            tls_mode="Reality"
+            reality_add_more="on"
+            reality_add_nginx="on"
+            reality_add_balance="off"
+            # transport_mode set by menu_choose_transport; shell_mode derived later
+            ;;
+        reality_balance_primary)
+            tls_mode="Reality"
+            reality_add_balance="on"
+            reality_add_nginx="on"
+            reality_add_more="off"
+            transport_mode="None"
+            reality_balance_role="primary"
+            shell_mode="Nginx+Reality+Balance"
+            ;;
+        reality_balance_secondary)
+            tls_mode="Reality"
+            reality_add_balance="on"
+            reality_add_nginx="off"
+            reality_add_more="off"
+            transport_mode="None"
+            reality_balance_role="secondary"
+            shell_mode="Reality+Balance"
+            ;;
+        transport_nginx_tls)
+            tls_mode="TLS"
+            reality_add_more="off"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            # transport_mode set by menu_choose_transport; shell_mode derived later
+            ;;
+        transport_only)
+            tls_mode="None"
+            reality_add_more="off"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            # transport_mode set by menu_choose_transport; shell_mode derived later
+            ;;
+        xtls_only)
+            tls_mode="XTLS"
+            reality_add_more="off"
+            reality_add_nginx="off"
+            reality_add_balance="off"
+            transport_mode="None"
+            shell_mode="XTLS ONLY"
+            ;;
+        *)
+            log_echo "${Error} ${RedBG} $(gettext "未知的安装配置") ${Font}"
+            return 1
+            ;;
+    esac
+    return 0
+}
+
 transport_choose() {
+    # Install wizard preset: transport_mode already set by menu_choose_transport.
+    if [[ ${install_wizard_preset:-off} == "on" ]] &&
+       [[ -n ${transport_mode:-} ]] &&
+       [[ ${transport_mode} != "None" ]]; then
+        _transport_set_shell_mode
+        return 0
+    fi
     if [[ "on" != ${old_config_status} ]]; then
         echo
         log_echo "${GreenBG} $(gettext "请选择传输协议") ${Font}"
@@ -725,6 +1101,40 @@ transport_choose() {
 
 _transport_set_shell_mode() {
     local transport_label=""
+
+    # Non-transport installs (standard Reality, Reality+Nginx, Reality balance
+    # primary/secondary, XTLS ONLY, and the not-installed state) persist
+    # transport_mode="None" in the config. On script restart judge_mode reads
+    # the config and calls this function; without this branch shell_mode would
+    # stay at the initial "未安装" placeholder. Derive shell_mode from tls_mode
+    # and the reality_* flags so the menu reflects the real installed mode.
+    if [[ -z ${transport_mode:-} ||
+          ${transport_mode} == "None" ||
+          ${transport_mode} == "null" ]]; then
+        case ${tls_mode} in
+        Reality)
+            if [[ ${reality_add_balance} == "on" ]]; then
+                if [[ ${reality_add_nginx} == "on" ]]; then
+                    shell_mode="Nginx+Reality+Balance"
+                else
+                    shell_mode="Reality+Balance"
+                fi
+            elif [[ ${reality_add_nginx} == "on" ]]; then
+                shell_mode="Nginx+Reality"
+            else
+                shell_mode="Reality"
+            fi
+            ;;
+        XTLS)
+            shell_mode="XTLS ONLY"
+            ;;
+        None)
+            shell_mode="$(gettext "未安装")"
+            ;;
+        esac
+        return 0
+    fi
+
     case ${transport_mode} in
     onlyws) transport_label="ws";;
     onlygRPC) transport_label="gRPC";;
@@ -761,6 +1171,32 @@ _transport_set_shell_mode() {
 }
 
 xray_reality_add_more_choose() {
+    # Install wizard preset: reality_add_more and transport_mode already set
+    # by apply_install_profile + menu_choose_transport.
+    if [[ ${install_wizard_preset:-off} == "on" ]]; then
+        if [[ ${reality_add_more} == "on" ]]; then
+            # transport_mode already set; derive shell_mode and init ports/paths
+            _transport_set_shell_mode
+            ws_inbound_port_set
+            grpc_inbound_port_set
+            xhttp_inbound_port_set
+            ws_path_set
+            grpc_path_set
+            xhttp_path_set
+            is_ws_mode && port_exist_check "${xport}"
+            is_grpc_mode && port_exist_check "${gport}"
+            is_xhttp_mode && port_exist_check "${xhttpport}"
+        else
+            transport_mode="None"
+            ws_inbound_port_set
+            grpc_inbound_port_set
+            xhttp_inbound_port_set
+            ws_path_set
+            grpc_path_set
+            xhttp_path_set
+        fi
+        return 0
+    fi
     if [[ "on" != ${old_config_status} ]]; then
         echo
         log_echo "${GreenBG} $(gettext "是否添加用于负载均衡的 ws/gRPC 协议") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -1569,12 +2005,20 @@ add_xhttp_inbound() {
 }
 
 modify_nginx_origin_conf() {
-    local nginx_group
-    nginx_group="$(id -gn nobody 2>/dev/null || echo nogroup)"
+    # Task E (Section 9): Use dedicated idleleo-nginx user for worker process,
+    # instead of shared `nobody`. The user/group is created by ensure_idleleo_nginx_user.
+    local nginx_worker_user="idleleo-nginx"
+    local nginx_worker_group="idleleo-nginx"
+    if ! id -u "${nginx_worker_user}" >/dev/null 2>&1; then
+        # Fallback to nobody only if user creation failed (defensive, should not happen
+        # because ensure_idleleo_nginx_user is called before this function).
+        nginx_worker_user="nobody"
+        nginx_worker_group="$(id -gn nobody 2>/dev/null || echo nogroup)"
+    fi
     if grep -qE '^[[:space:]]*#?[[:space:]]*user[[:space:]]+' "${nginx_dir}"/conf/nginx.conf; then
-        sed -i "/^[[:space:]]*#*[[:space:]]*user[[:space:]]/c\\user nobody ${nginx_group};" "${nginx_dir}"/conf/nginx.conf
+        sed -i "/^[[:space:]]*#*[[:space:]]*user[[:space:]]/c\\user ${nginx_worker_user} ${nginx_worker_group};" "${nginx_dir}"/conf/nginx.conf
     else
-        sed -i "1i user nobody ${nginx_group};" "${nginx_dir}"/conf/nginx.conf
+        sed -i "1i user ${nginx_worker_user} ${nginx_worker_group};" "${nginx_dir}"/conf/nginx.conf
     fi
     sed -i "s/worker_processes  1;/worker_processes  auto;/" "${nginx_dir}"/conf/nginx.conf
     sed -i "s/^\( *\)worker_connections  1024;.*/\1worker_connections  4096;/" "${nginx_dir}"/conf/nginx.conf
@@ -1583,12 +2027,216 @@ modify_nginx_origin_conf() {
     if [[ ${tls_mode} == "TLS" ]] || [[ ${tls_mode} == "Reality" && ${reality_add_nginx} == "on" ]]; then
         if [[ ${tls_mode} == "Reality" ]]; then
             printf '\ninclude %s;\n' "${nginx_conf}" >> "${nginx_dir}"/conf/nginx.conf
+            # Create empty placeholder so nginx -t passes during nginx_install.
+            # The actual stream{} block is written later by nginx_reality_conf_add.
+            [[ -f "${nginx_conf}" ]] || touch "${nginx_conf}"
         else
             sed -i "\$i include ${nginx_conf_dir}/*.conf;" "${nginx_dir}"/conf/nginx.conf
         fi
     fi
     sed -i "/http\( *\){/a \\\tserver_tokens off;" "${nginx_dir}"/conf/nginx.conf
     sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 403;\\n\\t\\t}" "${nginx_dir}"/conf/nginx.conf
+}
+
+# Task E (Section 9.2): Idempotently create a dedicated idleleo-nginx system user/group.
+# - system user (no home, no login shell)
+# - reuses existing user if already present
+# - does NOT use shared `nobody` identity
+
+# Task E helper: returns the nginx worker user (idleleo-nginx if exists, else nobody fallback).
+# Used for SSL cert ownership and other shared resources that nginx worker must read.
+get_nginx_worker_user() {
+    if id -u "idleleo-nginx" >/dev/null 2>&1; then
+        echo "idleleo-nginx"
+    else
+        echo "nobody"
+    fi
+}
+
+# Task E helper: returns the nginx worker group (idleleo-nginx if exists, else nobody's group).
+get_nginx_worker_group() {
+    if id -g "idleleo-nginx" >/dev/null 2>&1; then
+        echo "idleleo-nginx"
+    else
+        id -gn nobody 2>/dev/null || echo "nogroup"
+    fi
+}
+
+ensure_idleleo_nginx_user() {
+    local user_name="idleleo-nginx"
+    local group_name="idleleo-nginx"
+    # Create group first (some systems need group before user)
+    if ! getent group "${group_name}" >/dev/null 2>&1; then
+        groupadd --system "${group_name}" 2>/dev/null || \
+            addgroup --system "${group_name}" 2>/dev/null || true
+    fi
+    if ! id -u "${user_name}" >/dev/null 2>&1; then
+        # Create system user with no login shell and no home
+        useradd --system --gid "${group_name}" --shell /usr/sbin/nologin --no-create-home "${user_name}" 2>/dev/null || \
+            adduser --system --ingroup "${group_name}" --shell /usr/sbin/nologin --no-create-home "${user_name}" 2>/dev/null || true
+    fi
+    # Verify
+    if ! id -u "${user_name}" >/dev/null 2>&1; then
+        log_echo "${Warning} ${YellowBG} idleleo-nginx $(gettext "用户创建失败, 将回退到 nobody") ${Font}"
+        return 1
+    fi
+    return 0
+}
+
+# Task E (Section 9.3): Apply layered permission model to Nginx directory tree.
+# Layered model:
+#   - Binary and modules: root:root, 755 (only root can modify program)
+#   - Config dir/files:   root:idleleo-nginx, dir 750, files 640 (worker can read, not write)
+#   - HTML/static:        root:idleleo-nginx, dir 750, files 640 (worker read-only)
+#   - Logs/temp dirs:     idleleo-nginx:idleleo-nginx, 750 (worker writes here)
+#   - pid file: handled by systemd (root master creates it)
+apply_nginx_layered_permissions() {
+    local worker_user="idleleo-nginx"
+    local worker_group="idleleo-nginx"
+    local failed=0
+    if ! id -u "${worker_user}" >/dev/null 2>&1; then
+        log_echo "${Warning} ${YellowBG} idleleo-nginx $(gettext "用户不存在, 跳过分层权限") ${Font}"
+        return 1
+    fi
+
+    local nginx_root="${nginx_dir}"
+    [[ ! -d "${nginx_root}" ]] && return 0
+
+    # 0) Parent directory: root:root 755 (worker user must traverse to reach subdirs)
+    chown root:root "${nginx_root}" 2>/dev/null || failed=1
+    chmod 755 "${nginx_root}" 2>/dev/null || failed=1
+
+    # 1) Binary and modules: root:root 755 (only root can modify program)
+    if [[ -f "${nginx_root}/sbin/nginx" ]]; then
+        chown root:root "${nginx_root}/sbin/nginx" 2>/dev/null || failed=1
+        chmod 755 "${nginx_root}/sbin/nginx" 2>/dev/null || failed=1
+    fi
+    if [[ -d "${nginx_root}/modules" ]]; then
+        chown -R root:root "${nginx_root}/modules" 2>/dev/null || failed=1
+        find "${nginx_root}/modules" -type d -exec chmod 755 {} + 2>/dev/null || failed=1
+        find "${nginx_root}/modules" -type f -exec chmod 644 {} + 2>/dev/null || failed=1
+    fi
+
+    # 2) Built-in conf dir: root:idleleo-nginx dir 750, files 640
+    if [[ -d "${nginx_root}/conf" ]]; then
+        chown root:"${worker_group}" "${nginx_root}/conf" 2>/dev/null || failed=1
+        chmod 750 "${nginx_root}/conf" 2>/dev/null || failed=1
+        while IFS= read -r -d '' conf_file; do
+            chown root:"${worker_group}" "$conf_file" 2>/dev/null || failed=1
+            chmod 640 "$conf_file" 2>/dev/null || failed=1
+        done < <(find "${nginx_root}/conf" -type f -print0 2>/dev/null)
+    fi
+
+    # 3) Project conf dir (/etc/idleleo/conf/nginx/): root:idleleo-nginx dir 750, files 640
+    if [[ -d "${nginx_conf_dir}" ]]; then
+        chown root:"${worker_group}" "${nginx_conf_dir}" 2>/dev/null || failed=1
+        chmod 750 "${nginx_conf_dir}" 2>/dev/null || failed=1
+        while IFS= read -r -d '' conf_file; do
+            chown root:"${worker_group}" "$conf_file" 2>/dev/null || failed=1
+            chmod 640 "$conf_file" 2>/dev/null || failed=1
+        done < <(find "${nginx_conf_dir}" -type f -print0 2>/dev/null)
+    fi
+
+    # 4) HTML/static content: root:idleleo-nginx dir 750, files 640 (worker read-only)
+    if [[ -d "${nginx_root}/html" ]]; then
+        chown root:"${worker_group}" "${nginx_root}/html" 2>/dev/null || failed=1
+        chmod 750 "${nginx_root}/html" 2>/dev/null || failed=1
+        while IFS= read -r -d '' static_file; do
+            chown root:"${worker_group}" "$static_file" 2>/dev/null || failed=1
+            chmod 640 "$static_file" 2>/dev/null || failed=1
+        done < <(find "${nginx_root}/html" -type f -print0 2>/dev/null)
+        find "${nginx_root}/html" -type d -exec chmod 750 {} + 2>/dev/null || failed=1
+    fi
+
+    # 5) Logs/temp dirs: idleleo-nginx:idleleo-nginx 750 (worker must write here)
+    local writable_dir
+    for writable_dir in logs client_body_temp proxy_temp fastcgi_temp uwsgi_temp scgi_temp; do
+        if [[ -d "${nginx_root}/${writable_dir}" ]]; then
+            chown -R "${worker_user}:${worker_group}" "${nginx_root}/${writable_dir}" 2>/dev/null || failed=1
+            find "${nginx_root}/${writable_dir}" -type d -exec chmod 750 {} + 2>/dev/null || failed=1
+            find "${nginx_root}/${writable_dir}" -type f -exec chmod 640 {} + 2>/dev/null || failed=1
+        fi
+    done
+
+    # 6) SSL certificate directory (/etc/idleleo/cert/): root:idleleo-nginx dir 750, files 640
+    # Task E (Section 9.3): Certs and private keys must be readable by worker, not writable.
+    if [[ -d "${ssl_chainpath}" ]]; then
+        chown root:"${worker_group}" "${ssl_chainpath}" 2>/dev/null || failed=1
+        chmod 750 "${ssl_chainpath}" 2>/dev/null || failed=1
+        while IFS= read -r -d '' cert_file; do
+            chown root:"${worker_group}" "$cert_file" 2>/dev/null || failed=1
+            # Task E (Section 9.3): root owns, worker group can read but NOT write.
+            # Private key: 640 (root rw, idleleo-nginx r, others none)
+            # Public cert: 640 (root rw, idleleo-nginx r, others none)
+            chmod 640 "$cert_file" 2>/dev/null || failed=1
+        done < <(find "${ssl_chainpath}" -type f -print0 2>/dev/null)
+    fi
+
+    if [[ ${failed} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 分层权限应用不完整") ${Font}"
+        return 1
+    fi
+    return 0
+}
+
+verify_nginx_layered_permissions() {
+    local worker_user="idleleo-nginx"
+    local worker_group="idleleo-nginx"
+    local nginx_root="${nginx_dir}"
+    local path actual
+
+    id -u "${worker_user}" >/dev/null 2>&1 || return 1
+    [[ -d "${nginx_root}" ]] || return 1
+
+    if [[ -f "${nginx_root}/sbin/nginx" ]]; then
+        actual=$(stat -c '%U:%G %a' "${nginx_root}/sbin/nginx" 2>/dev/null) || return 1
+        [[ "${actual}" == "root:root 755" ]] || return 1
+    else
+        return 1
+    fi
+
+    for path in "${nginx_root}/conf" "${nginx_conf_dir}" "${nginx_root}/html" "${ssl_chainpath}"; do
+        [[ -d "${path}" ]] || continue
+        actual=$(stat -c '%U:%G %a' "${path}" 2>/dev/null) || return 1
+        [[ "${actual}" == "root:${worker_group} 750" ]] || return 1
+    done
+
+    while IFS= read -r -d '' path; do
+        actual=$(stat -c '%U:%G %a' "${path}" 2>/dev/null) || return 1
+        [[ "${actual}" == "root:${worker_group} 640" ]] || return 1
+    done < <(
+        {
+            [[ -d "${nginx_root}/conf" ]] && find "${nginx_root}/conf" -type f -print0 2>/dev/null
+            [[ -d "${nginx_conf_dir}" ]] && find "${nginx_conf_dir}" -type f -print0 2>/dev/null
+            [[ -d "${nginx_root}/html" ]] && find "${nginx_root}/html" -type f -print0 2>/dev/null
+            [[ -d "${ssl_chainpath}" ]] && find "${ssl_chainpath}" -type f -print0 2>/dev/null
+        }
+    )
+
+    for path in logs client_body_temp proxy_temp fastcgi_temp uwsgi_temp scgi_temp; do
+        [[ -d "${nginx_root}/${path}" ]] || continue
+        actual=$(stat -c '%U:%G %a' "${nginx_root}/${path}" 2>/dev/null) || return 1
+        [[ "${actual}" == "${worker_user}:${worker_group} 750" ]] || return 1
+    done
+
+    # Prove the worker can read but not write TLS private keys when one exists.
+    if [[ -f "${ssl_chainpath}/xray.key" ]]; then
+        if command -v runuser >/dev/null 2>&1; then
+            runuser -u "${worker_user}" -- test -r "${ssl_chainpath}/xray.key" || return 1
+            if runuser -u "${worker_user}" -- test -w "${ssl_chainpath}/xray.key"; then
+                return 1
+            fi
+        elif command -v su >/dev/null 2>&1; then
+            su -s /bin/sh "${worker_user}" -c "test -r '${ssl_chainpath}/xray.key'" || return 1
+            if su -s /bin/sh "${worker_user}" -c "test -w '${ssl_chainpath}/xray.key'"; then
+                return 1
+            fi
+        else
+            return 1
+        fi
+    fi
+
+    return 0
 }
 
 modify_nginx_port() {
@@ -1760,11 +2408,13 @@ spiderx_set() {
 
 # 收紧敏感配置文件权限：不影响 Xray(nobody) 读取 config.json 与证书
 # install_config/分享文件仅 root 可读；config.json 与私钥由 nobody 持有以兼容 Xray
+# Task E (Section 9.3): SSL certs/keys must be root-owned with worker group read (640).
 apply_sensitive_file_permissions() {
     local file="$1"
     local owner="$2"
+    local mode="${3:-600}"
     [[ -f "${file}" ]] || return 0
-    if ! chown "${owner}" "${file}" 2>/dev/null || ! chmod 600 "${file}" 2>/dev/null; then
+    if ! chown "${owner}" "${file}" 2>/dev/null || ! chmod "${mode}" "${file}" 2>/dev/null; then
         log_echo "${Warning} ${YellowBG} $(gettext "配置文件权限收紧失败"): ${file} ${Font}"
         return 1
     fi
@@ -1772,16 +2422,35 @@ apply_sensitive_file_permissions() {
 }
 
 harden_config_permissions() {
-    local _nobody_group
-    _nobody_group=$(id -gn nobody 2>/dev/null || echo nogroup)
+    local failed=0
+    local _nginx_worker_group
 
-    apply_sensitive_file_permissions "${xray_install_config_file}" "root:root" || true
-    apply_sensitive_file_permissions "${xray_conf}" "nobody:${_nobody_group}" || true
-    apply_sensitive_file_permissions "${ssl_chainpath}/xray.key" "nobody:${_nobody_group}" || true
-    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.key" "nobody:${_nobody_group}" || true
-    apply_sensitive_file_permissions "${xray_info_file}" "root:root" || true
-    apply_sensitive_file_permissions "${xray_info_file%.*}_clash.yaml" "root:root" || true
-    return 0
+    # An existing Nginx tree can predate the dedicated worker account (for
+    # example, upgrades and Docker images shared by non-Nginx install modes).
+    # Create the account before resolving the group or applying the layered
+    # model; otherwise an unrelated XTLS/Reality-only install fails merely
+    # because Nginx happens to be present on disk.
+    if [[ -d "${nginx_dir}" ]] && ! ensure_idleleo_nginx_user; then
+        failed=1
+    fi
+    _nginx_worker_group=$(get_nginx_worker_group)
+
+    apply_sensitive_file_permissions "${xray_install_config_file}" "root:root" || failed=1
+    apply_sensitive_file_permissions "${xray_conf}" "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" || failed=1
+    # Task E (Section 9.3): root owns certs/keys, worker group can read but NOT write.
+    # Private key: 640 (root rw, idleleo-nginx r, others none)
+    # Public cert: 640 (root rw, idleleo-nginx r, others none)
+    apply_sensitive_file_permissions "${ssl_chainpath}/xray.key" "root:${_nginx_worker_group}" 640 || failed=1
+    apply_sensitive_file_permissions "${ssl_chainpath}/xray.crt" "root:${_nginx_worker_group}" 640 || failed=1
+    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.key" "root:${_nginx_worker_group}" 640 || failed=1
+    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.crt" "root:${_nginx_worker_group}" 640 || failed=1
+    apply_sensitive_file_permissions "${xray_info_file}" "root:root" || failed=1
+    apply_sensitive_file_permissions "${xray_info_file%.*}_clash.yaml" "root:root" || failed=1
+    if [[ -d "${nginx_dir}" ]]; then
+        apply_nginx_layered_permissions || failed=1
+        verify_nginx_layered_permissions || failed=1
+    fi
+    return "${failed}"
 }
 
 modify_reality_listen_address () {
@@ -1814,7 +2483,14 @@ xray_privilege_escalation() {
         chown -fR "nobody:${_nobody_group}" /var/log/xray/
         chmod -f 755 /var/log/xray/
         find /var/log/xray/ -type f -exec chmod -f 644 {} \;
-        [[ -f "${ssl_chainpath}/xray.key" ]] && chown -fR "nobody:${_nobody_group}" "${ssl_chainpath}"/*
+        # Task E (Section 9.3): SSL cert files must be owned by root, not worker.
+        # xray_privilege_escalation() must NOT change cert ownership to worker user.
+        # Only apply_nginx_layered_permissions() and harden_config_permissions()
+        # are authoritative for cert permission model (root:idleleo-nginx 640).
+        if [[ -d "${nginx_dir}" ]]; then
+            apply_nginx_layered_permissions || return 1
+            verify_nginx_layered_permissions || return 1
+        fi
     fi
     log_echo "${OK} ${GreenBG} Xray $(gettext "修改") $(gettext "完成") ${Font}"
 }
@@ -1841,7 +2517,7 @@ xray_install() {
         log_echo "${OK} ${GreenBG} $(gettext "即将安装") Xray v${xray_online_version} ${Font}"
         xray_install_release install -f --version v${xray_online_version}
         judge "$(gettext "安装") Xray"
-        xray_privilege_escalation
+        xray_privilege_escalation || return 1
         set_xray_config_path
         systemctl daemon-reload
         xray_version=${xray_online_version}
@@ -1862,8 +2538,6 @@ xray_update() {
     # COMPAT: 旧版依赖 /usr/local/etc/xray 目录存放默认配置，新版不再使用，未来可删除
     [[ ! -d "${local_bin}/etc/xray" ]] && log_echo "${GreenBG} $(gettext "若更新无效, 建议直接卸载再安装")! ${Font}"
     log_echo "${Warning} ${GreenBG} $(gettext "部分新功能需要重新安装才可生效") ${Font}"
-    ## xray_online_version=$(check_version xray_online_pre_version)
-    ## if [[ $(info_extraction xray_version) != ${xray_online_version} ]] && [[ ${xray_version} != ${xray_online_version} ]]; then
     if [[ ${current_xray_version} != ${xray_online_version} ]]; then
         log_echo "${Info} ${GreenBG} Xray $(gettext "更新"): v${current_xray_version} → v${xray_online_version} ${Font}"
         if [[ ${auto_update} != "YES" ]]; then
@@ -1874,37 +2548,53 @@ xray_update() {
             case $xray_test_fq in
             [yY][eE][sS] | [yY])
                 log_echo "${OK} ${GreenBG} $(gettext "更新") Xray ! ${Font}"
+                # Task C (Section 7.2): backup current binary as Layer 1 rollback source
+                # P0-B: backup must succeed before proceeding — refuse to overwrite without backup
+                if ! backup_xray_binary; then
+                    log_echo "${Error} ${RedBG} $(gettext "本机备份失败, 拒绝继续更新")! ${Font}"
+                    return 1
+                fi
                 systemctl stop xray
-                if ! xray_install_release install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
-                    log_echo "${Error} ${RedBG} Xray $(gettext "启动") $(gettext "失败")! ${Font}"
+                # Task C (Section 7.4): install + comprehensive health check
+                # (binary exec / version match / config parse / service active / port listening)
+                if xray_install_release install -f --version "v${xray_online_version}" && health_check_xray_update "${xray_online_version}"; then
+                    xray_version=${xray_online_version}
+                    judge "Xray $(gettext "更新")" true
+                else
+                    log_echo "${Error} ${RedBG} Xray $(gettext "更新") $(gettext "失败")! ${Font}"
                     xray_diagnose
                     log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                     read -r rollback_fq
                     case $rollback_fq in
                     [nN][oO] | [nN])
                         log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
-                        return 0
+                        log_echo "${Error} ${RedBG} Xray $(gettext "更新失败且未回滚, 当前服务可能不可用, 请手动检查")! ${Font}"
+                        if ! systemctl is-active xray >/dev/null 2>&1; then
+                            log_echo "${Error} ${RedBG} $(gettext "高优先级错误: Xray 服务已停止")! ${Font}"
+                        fi
+                        return 1
                         ;;
                     *)
                         log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
-                        if [[ -z "${current_xray_version}" || "${current_xray_version}" == "null" ]]; then
-                            log_echo "${Error} ${RedBG} Xray $(gettext "版本未知"), $(gettext "回滚失败")! ${Font}"
-                            return 1
-                        fi
-                        xray_version=${current_xray_version}
-                        if xray_install_release install -f --version "v${xray_version}" && "${xray_bin_dir}/xray" -version &> /dev/null; then
+                        # Task C (Section 7.1): Layer 1 = local pre-update backup restore
+                        if restore_xray_binary_backup; then
                             log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
+                            xray_version=${current_xray_version}
                             update_rolled_back=1
                         else
-                            log_echo "${Error} ${RedBG} Xray $(gettext "回滚失败")! ${Font}"
-                            xray_diagnose
-                            return 1
+                            # Task C: Layer 2 = tested_version known-good fallback
+                            log_echo "${Info} ${YellowBG} $(gettext "Layer 1 失败, 尝试 Layer 2 tested_version 恢复") ${Font}"
+                            if fallback_xray_to_tested_version; then
+                                xray_version=${xray_tested_version}
+                                update_rolled_back=1
+                            else
+                                # Task C: Layer 3 = stop + diagnostics (already printed above)
+                                log_echo "${Error} ${RedBG} Xray $(gettext "回滚失败")! ${Font}"
+                                return 1
+                            fi
                         fi
                         ;;
                     esac
-                else
-                    xray_version=${xray_online_version}
-                    judge "Xray $(gettext "更新")" true
                 fi
                 ;;
             *)
@@ -1912,47 +2602,106 @@ xray_update() {
                 ;;
             esac
         else
+            # Task C: auto_update mode — non-interactive, automated layered rollback
+            # P0-B: backup must succeed before proceeding — refuse to overwrite without backup
+            if ! backup_xray_binary; then
+                echo "$(gettext "本机备份失败, 拒绝继续更新")!" >>"${log_file}"
+                return 1
+            fi
             systemctl stop xray
-            if ! xray_install_release install -f --version "v${xray_online_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
-                xray_diagnose
-                if [[ -z "${current_xray_version}" || "${current_xray_version}" == "null" ]]; then
-                    echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
-                    return 1
-                fi
-                xray_version=${current_xray_version}
-                if ! xray_install_release install -f --version "v${xray_version}" || ! "${xray_bin_dir}/xray" -version &> /dev/null; then
-                    echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
-                    xray_diagnose
-                    return 1
-                fi
-                update_rolled_back=1
-            else
+            if xray_install_release install -f --version "v${xray_online_version}" && health_check_xray_update "${xray_online_version}"; then
                 xray_version=${xray_online_version}
+            else
+                xray_diagnose
+                # Task C: Layer 1 = local backup restore
+                if restore_xray_binary_backup; then
+                    xray_version=${current_xray_version}
+                    update_rolled_back=1
+                elif fallback_xray_to_tested_version; then
+                    # Task C: Layer 2 = tested_version
+                    xray_version=${xray_tested_version}
+                    update_rolled_back=1
+                else
+                    # Task C: Layer 3 = stop + diagnostics (already printed above)
+                    echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
+                    return 1
+                fi
             fi
         fi
     else
         countdown "$(gettext "重装") Xray !"
+        # P0-B/P0-C: backup before reinstall too (reinstall may corrupt the binary)
+        # Backup must succeed — refuse to overwrite without backup
+        if ! backup_xray_binary; then
+            log_echo "${Error} ${RedBG} $(gettext "本机备份失败, 拒绝继续重装")! ${Font}"
+            return 1
+        fi
         systemctl stop xray
         xray_version=${xray_online_version}
-        xray_install_release install -f --version v${xray_online_version}
-        judge "Xray $(gettext "重装")"
+        # P0-C: same-version reinstall must have layered rollback
+        if xray_install_release install -f --version v${xray_online_version} && health_check_xray_update "${xray_online_version}"; then
+            judge "Xray $(gettext "重装")" true
+        else
+            log_echo "${Error} ${RedBG} Xray $(gettext "重装") $(gettext "失败")! ${Font}"
+            xray_diagnose
+            # P0-C Layer 1: local backup restore
+            if [[ ${auto_update} != "YES" ]]; then
+                log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+                read -r rollback_fq
+                case $rollback_fq in
+                [nN][oO] | [nN])
+                    log_echo "${Info} ${YellowBG} $(gettext "未执行回滚操作")! ${Font}"
+                    return 1
+                    ;;
+                esac
+            fi
+            log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
+            if restore_xray_binary_backup; then
+                log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
+                xray_version=${current_xray_version}
+                update_rolled_back=1
+            elif fallback_xray_to_tested_version; then
+                # P0-C Layer 2: tested_version fallback
+                xray_version=${xray_tested_version}
+                update_rolled_back=1
+            else
+                # P0-C Layer 3: stop + diagnostics (already printed above)
+                log_echo "${Error} ${RedBG} Xray $(gettext "回滚失败")! ${Font}"
+                return 1
+            fi
+        fi
     fi
-    xray_privilege_escalation
+    xray_privilege_escalation || return 1
     set_xray_config_path
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version' || return 1
     systemctl daemon-reload
     systemctl start xray
-    if ! ${xray_bin_dir}/xray -version &> /dev/null; then
+    # Task C: final health gate — must pass before declaring success
+    if ! health_check_xray_update "${xray_version}"; then
         [[ ${auto_update} == "YES" ]] && echo "Xray $(gettext "更新") $(gettext "失败")!" >>"${log_file}"
         [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} Xray $(gettext "更新") $(gettext "失败")! ${Font}"
         xray_diagnose
         return 1
     fi
-    [[ ${auto_update} == "YES" && ${update_rolled_back} -eq 1 ]] && return 1
+    # P0-1: 服务恢复成功 ≠ 本次更新成功
+    # 无论手动还是自动模式，只要发生过回滚（update_rolled_back=1），
+    # 本次更新即为失败，必须返回非零。不得用 auto_update 决定失败操作的返回码。
+    if [[ ${update_rolled_back} -eq 1 ]]; then
+        return 1
+    fi
     return 0
 }
 
 reality_balance_add_fq() {
+    # Install wizard preset: reality_add_balance already set by apply_install_profile.
+    if [[ ${install_wizard_preset:-off} == "on" ]]; then
+        if [[ ${reality_add_balance} == "on" ]]; then
+            log_echo "${OK} ${GreenBG} $(gettext "已启用") ${Font}"
+        else
+            log_echo "${OK} ${GreenBG} $(gettext "已跳过") ${Font}"
+        fi
+        return 0
+    fi
     echo
     log_echo "${GreenBG} $(gettext "是否添加 Reality 负载均衡") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
     echo -e "${Warning} ${Green} $(gettext "使用此功能前，建议先阅读作者教程")! ${Font}"
@@ -2152,9 +2901,11 @@ decoy_site_setup() {
         log_echo "${Error} ${RedBG} $(gettext "自签证书生成失败") ${Font}"
         return 1
     fi
-    chmod -f 600 "${ssl_chainpath}/decoy.key" 2>/dev/null
-    chmod -f 644 "${ssl_chainpath}/decoy.crt" 2>/dev/null
-    chown -f "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}/decoy.key" "${ssl_chainpath}/decoy.crt" 2>/dev/null
+    # Task E (Section 9.3): root owns certs/keys, worker group can read but NOT write.
+    # Private key: 640 (root rw, idleleo-nginx r, others none)
+    # Public cert: 640 (root rw, idleleo-nginx r, others none)
+    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.key" "root:$(get_nginx_worker_group)" 640 || true
+    apply_sensitive_file_permissions "${ssl_chainpath}/decoy.crt" "root:$(get_nginx_worker_group)" 640 || true
 
     # 生成不统一的极简站点页面（含域名与随机标识，避免统一指纹）
     local decoy_webroot="${idleleo_dir}/decoy"
@@ -2246,7 +2997,43 @@ reset_sni_guard_policy() {
 }
 
 
+# Apply Reality+Nginx installation steps (shared by preset and interactive paths).
+# Returns 0 on success, 1 on failure (propagated to caller).
+_apply_reality_nginx_install() {
+    validate_reality_reserved_ports || return 1
+    nginx_exist_check || return 1
+    nginx_systemd || return 1
+    sni_guard_policy_choose || return 1
+    nginx_reality_conf_add || return 1
+    nginx_reality_servers_add || return 1
+    nginx_reality_serverNames_add || return 1
+}
+
+# Skip Reality+Nginx installation. Does NOT uninstall existing Nginx.
+# P0 safety: choosing "no Nginx" must not auto-remove an existing Nginx
+# installation. Users who want to remove Nginx must do so explicitly.
+_skip_reality_nginx_install() {
+    if [[ -d "${nginx_dir}" ]]; then
+        echo
+        log_echo "${Warning} ${Green} $(gettext "检测到已安装") nginx ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "已跳过安装 nginx, 保留现有 nginx 不卸载") ${Font}"
+    else
+        log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
+    fi
+}
+
 reality_nginx_add_fq() {
+    # Install wizard preset: reality_add_nginx already set by apply_install_profile.
+    # Preset mode MUST NOT uninstall existing Nginx when reality_add_nginx=off.
+    if [[ ${install_wizard_preset:-off} == "on" ]]; then
+        if [[ ${reality_add_nginx} == "on" ]]; then
+            _apply_reality_nginx_install || return 1
+        else
+            _skip_reality_nginx_install
+        fi
+        return 0
+    fi
+
     echo
     log_echo "${Warning} ${Green} $(gettext "Reality 协议可能存在流量绕过风险") ${Font}"
     if [[ ${reality_add_balance} == "off" ]]; then
@@ -2255,25 +3042,12 @@ reality_nginx_add_fq() {
         case $reality_nginx_add_fq in
             [nN][oO] | [nN])
                 reality_add_nginx="off"
-                if [[ -d "${nginx_dir}" ]]; then
-                    echo
-                    log_echo "${Warning} ${Green} $(gettext "检测到已安装") nginx ${Font}"
-                    uninstall_nginx
-                else
-                    log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
-                fi
+                _skip_reality_nginx_install
             ;;
             *)
                 reality_add_nginx="on"
-                validate_reality_reserved_ports || return 1
-                nginx_exist_check || return 1
-                nginx_systemd || return 1
-                sni_guard_policy_choose || return 1
-                nginx_reality_conf_add || return 1
-                nginx_reality_servers_add || return 1
-                nginx_reality_serverNames_add || return 1
+                _apply_reality_nginx_install || return 1
             ;;
-
         esac
     else
         log_echo "${Warning} ${Green} $(gettext "检测到已开启 Reality 负载均衡") ${Font}"
@@ -2284,30 +3058,23 @@ reality_nginx_add_fq() {
         case $reality_nginx_add_fq in
             [yY][eE][sS] | [yY])
                 reality_add_nginx="on"
-                validate_reality_reserved_ports || return 1
-                nginx_exist_check || return 1
-                nginx_systemd || return 1
-                sni_guard_policy_choose || return 1
-                nginx_reality_conf_add || return 1
-                nginx_reality_servers_add || return 1
-                nginx_reality_serverNames_add || return 1
+                _apply_reality_nginx_install || return 1
             ;;
             *)
                 reality_add_nginx="off"
-                if [[ -d "${nginx_dir}" ]]; then
-                    echo
-                    log_echo "${Warning} ${Green} $(gettext "检测到已安装") nginx ${Font}"
-                    uninstall_nginx
-                else
-                    log_echo "${OK} ${GreenBG} $(gettext "已跳过安装") nginx ${Font}"
-                fi
+                _skip_reality_nginx_install
             ;;
         esac
-    fi    
+    fi
 }
 
 nginx_exist_check() {
     if [[ -f "${nginx_dir}/sbin/nginx" ]] && [[ -n "$(info_extraction nginx_build_version)" ]]; then
+        # Older custom Nginx installations may predate the dedicated worker
+        # account. Create it before changing config or provisioning TLS files.
+        if ! ensure_idleleo_nginx_user; then
+            return 1
+        fi
         if [[ -d "${nginx_conf_dir}" ]]; then
             rm -rf "${nginx_conf_dir}"/*.conf
             if [[ -f "${nginx_conf_dir}/nginx.default" ]]; then
@@ -2322,25 +3089,222 @@ nginx_exist_check() {
             sed -i "/if \(.*\) {$/,+2d" "${nginx_dir}"/conf/nginx.conf
             sed -i "/^include.*\*\.conf;$/d" "${nginx_dir}"/conf/nginx.conf
         fi
-        modify_nginx_origin_conf
+        modify_nginx_origin_conf || return 1
         nginx_build_version=$(info_extraction nginx_build_version)
         log_echo "${OK} ${GreenBG} Nginx $(gettext "已存在, 跳过编译安装过程") ${Font}"
     elif [[ -d "/etc/nginx" ]] && [[ -n "$(info_extraction nginx_version)" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装")! ${Font}"
         exit 1
     else
-        nginx_install
+        nginx_install || exit 1
     fi
 }
 
-nginx_install() {
-    local temp_dir=$(mktemp -d)
-    local current_dir=$(pwd)
+# P1-B: Strict tar safety check for Nginx release archives.
+# Validates every tar entry BEFORE extraction and refuses dangerous archives.
+# Returns 0 if the archive is safe, 1 otherwise.
+# Safety rules:
+#   1. All entries MUST live under the single top-level "nginx/" prefix.
+#   2. Reject absolute paths (leading /).
+#   3. Reject parent traversal (.. anywhere in the path).
+#   4. Reject symlinks/hardlinks whose target points outside "nginx/".
+#   5. Reject device files, FIFOs, sockets and other non-regular non-dir entries.
+#   6. Reject file names containing control characters or NUL bytes.
+#   7. Extraction uses --no-same-permissions --no-same-owner to drop tainted metadata.
+# Uses Python3 tarfile for robust, cross-platform parsing (avoids tar -tvf
+# output format differences between GNU tar and bsdtar).
+nginx_tar_safe_check() {
+    local tar_file="$1"
+    local target_dir="$2"
 
-    cd "$temp_dir" || exit
+    if [[ -z "${tar_file}" || ! -f "${tar_file}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "tar 安全检查: 文件不存在") ${Font}"
+        return 1
+    fi
+    if [[ -z "${target_dir}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "tar 安全检查: 目标目录未指定") ${Font}"
+        return 1
+    fi
+
+    # Use Python3 tarfile to inspect every entry. This avoids differences
+    # between GNU tar and bsdtar output formats and gives us structured access
+    # to entry type, link target, and path.
+    local py_result
+    py_result=$(python3 - "$tar_file" <<'PYEOF' 2>&1
+import sys
+import tarfile
+import os
+import re
+
+tar_path = sys.argv[1]
+bad = False
+reason = ""
+
+try:
+    tf = tarfile.open(tar_path, "r:gz")
+except Exception as e:
+    print("ERROR: cannot open tar: %s" % e)
+    sys.exit(1)
+
+def normalize(path):
+    """Collapse . and .. components, strip leading ./"""
+    parts = []
+    for p in path.split("/"):
+        if p == "" or p == ".":
+            continue
+        if p == "..":
+            if parts:
+                parts.pop()
+            continue
+        parts.append(p)
+    return "/".join(parts)
+
+CTRL_RE = re.compile(r'[\x00-\x1f\x7f]')
+
+for member in tf.getmembers():
+    name = member.name
+    # Reject control characters in the path.
+    if CTRL_RE.search(name):
+        bad = True
+        reason = "control char in path: %r" % name
+        break
+    # Reject absolute paths.
+    if name.startswith("/"):
+        bad = True
+        reason = "absolute path: %s" % name
+        break
+    # Reject parent traversal as a full path component.
+    if ".." in name.split("/"):
+        bad = True
+        reason = "parent traversal: %s" % name
+        break
+    # Require every entry to live under "nginx/" top-level prefix.
+    normalized = normalize(name)
+    if normalized != "nginx" and not normalized.startswith("nginx/"):
+        bad = True
+        reason = "non-nginx/ top-level entry: %s" % name
+        break
+
+    # Inspect entry type.
+    if member.issym() or member.islnk():
+        # Symlink or hardlink. Verify target stays inside nginx/.
+        target = member.linkname
+        if target.startswith("/"):
+            bad = True
+            reason = "link absolute target: %s -> %s" % (name, target)
+            break
+        if ".." in target.split("/"):
+            # For symlinks, resolve relative to the entry's directory.
+            # For hardlinks, the target is relative to archive root.
+            if member.issym():
+                entry_dir = os.path.dirname(name)
+                resolved = normalize(entry_dir + "/" + target)
+            else:
+                resolved = normalize(target)
+            if resolved != "nginx" and not resolved.startswith("nginx/"):
+                bad = True
+                reason = "link target escapes nginx/: %s -> %s" % (name, target)
+                break
+        else:
+            # No ".." — still verify target is inside nginx/.
+            if member.issym():
+                entry_dir = os.path.dirname(name)
+                resolved = normalize(entry_dir + "/" + target)
+            else:
+                resolved = normalize(target)
+            if resolved != "nginx" and not resolved.startswith("nginx/"):
+                bad = True
+                reason = "link target outside nginx/: %s -> %s" % (name, target)
+                break
+    elif member.isdev():
+        bad = True
+        reason = "device file: %s" % name
+        break
+    elif member.isfifo():
+        bad = True
+        reason = "FIFO: %s" % name
+        break
+    # Regular files and directories are allowed.
+
+tf.close()
+
+if bad:
+    print("REJECT: %s" % reason)
+    sys.exit(1)
+else:
+    print("OK")
+    sys.exit(0)
+PYEOF
+    )
+    local py_exit=$?
+
+    if [[ ${py_exit} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "tar 安全检查") ${py_result} ${Font}"
+        return 1
+    fi
+
+    # Extract into staging with safe tar options: drop original owner/perms.
+    if ! tar -xzf "${tar_file}" \
+        -C "${target_dir}" \
+        --no-same-permissions \
+        --no-same-owner \
+        --no-overwrite-dir \
+        2>/dev/null; then
+        # Fallback: some tar implementations (BusyBox) don't support all flags.
+        # Retry with --no-same-owner only, which is the most critical safety flag.
+        if ! tar -xzf "${tar_file}" -C "${target_dir}" --no-same-owner 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "tar 安全检查: 解压失败") ${Font}"
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+restore_nginx_preinstall_backup() {
+    local backup_dir="$1"
+    [[ -n "${backup_dir}" && -d "${backup_dir}" ]] || return 0
+    safe_rm "${nginx_dir}" || return 1
+    mv "${backup_dir}" "${nginx_dir}"
+}
+
+nginx_download_release_asset() {
+    local url="$1"
+    local output="$2"
+    curl -fL -# --connect-timeout 10 --retry 2 --retry-delay 1 -o "${output}" "${url}"
+}
+
+nginx_verify_release_sha256() {
+    local expected_sha="$1"
+    local filename="$2"
+    printf '%s  %s\n' "${expected_sha}" "${filename}" | sha256sum -c - >/dev/null 2>&1
+}
+
+nginx_validate_binary_file() {
+    local binary="$1"
+    local magic
+    magic=$(head -c 4 "${binary}" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')
+    [[ "${magic}" == "7f454c46" && -x "${binary}" ]]
+}
+
+nginx_run_config_test() {
+    "${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf"
+}
+
+nginx_install() {
+    # Task F (Section 10): Staging-based install with mandatory manifest and SHA256.
+    # Task E (Section 9): Uses dedicated idleleo-nginx user with layered permissions.
+    # P1-B: Uses nginx_tar_safe_check() for strict archive safety validation.
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    local current_dir
+    current_dir=$(pwd)
+
+    cd "$temp_dir" || return 1
 
     local nginx_arch
     local nginx_filename
+    local expected_nginx_filename
     case $(uname -m) in
         x86_64)
             nginx_arch="x86"
@@ -2353,75 +3317,207 @@ nginx_install() {
         *)
             log_echo "${Error} ${RedBG} $(gettext "不支持的系统架构"): $(uname -m) ${Font}"
             cd "$current_dir" && rm -rf "$temp_dir"
-            exit 1
+            return 1
             ;;
     esac
+    expected_nginx_filename="${nginx_filename}"
 
     log_echo "${OK} ${GreenBG} $(gettext "即将下载已编译的") Nginx v${nginx_build_version} (${nginx_arch}) ${Font}"
 
     local base_url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}"
     local manifest_file="${temp_dir}/release-manifest.json"
-    local nginx_sha256=""
 
-    if download_json_file "${base_url}/release-manifest.json" "${manifest_file}"; then
-        local manifest_filename
-        local manifest_sha256
-        manifest_filename=$(jq -r --arg arch "${nginx_arch}" '.assets[]? | select(.arch == $arch) | .filename // empty' "${manifest_file}" | head -n 1)
-        manifest_sha256=$(jq -r --arg arch "${nginx_arch}" '.assets[]? | select(.arch == $arch) | .sha256 // empty' "${manifest_file}" | head -n 1)
-        if [[ -n "${manifest_filename}" ]]; then
-            nginx_filename="${manifest_filename}"
-            nginx_sha256="${manifest_sha256}"
-        fi
+    # Task F: Manifest is mandatory (fail-closed). Missing/invalid manifest = abort.
+    if ! download_json_file "${base_url}/release-manifest.json" "${manifest_file}"; then
+        log_echo "${Error} ${RedBG} Nginx $(gettext "release-manifest.json 下载失败或无效, 拒绝安装") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
     fi
+
+    # Validate manifest structure: must have assets array with matching arch entry.
+    local manifest_filename
+    local manifest_sha256
+    local manifest_build_version
+    local manifest_tag
+    manifest_filename=$(jq -r --arg arch "${nginx_arch}" '.assets[]? | select(.arch == $arch) | .filename // empty' "${manifest_file}" | head -n 1)
+    manifest_sha256=$(jq -r --arg arch "${nginx_arch}" '.assets[]? | select(.arch == $arch) | .sha256 // empty' "${manifest_file}" | head -n 1)
+    manifest_build_version=$(jq -r '.versions.nginx_build // empty' "${manifest_file}")
+    manifest_tag=$(jq -r '.tag // empty' "${manifest_file}")
+    if [[ -z "${manifest_filename}" || "${manifest_filename}" == "null" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "manifest 中未找到架构"): ${nginx_arch} $(gettext "的产物记录, 拒绝安装") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+    if [[ -z "${manifest_sha256}" || "${manifest_sha256}" == "null" ]]; then
+        # Task F: SHA256 is mandatory when manifest exists. Fail-closed.
+        log_echo "${Error} ${RedBG} $(gettext "manifest 中未提供 SHA256, 拒绝未校验安装") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+    if [[ "${manifest_filename}" != "${expected_nginx_filename}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "manifest 产物文件名与架构契约不匹配, 拒绝安装") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+    if [[ ! "${manifest_sha256}" =~ ^[A-Fa-f0-9]{64}$ ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "manifest SHA256 格式无效, 拒绝安装") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+    if [[ "${manifest_build_version}" != "${nginx_build_version}" ||
+          "${manifest_tag}" != "v${nginx_build_version}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "manifest 版本或 tag 不匹配, 拒绝安装") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+    nginx_filename="${manifest_filename}"
+    local nginx_sha256="${manifest_sha256}"
 
     local url="${base_url}/${nginx_filename}"
 
-    if ! curl -fL -# --connect-timeout 10 --retry 2 --retry-delay 1 -o "$nginx_filename" "$url"; then
+    if ! nginx_download_release_asset "$url" "$nginx_filename"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "下载") $(gettext "失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
     log_echo "${OK} ${GreenBG} Nginx $(gettext "下载") $(gettext "完成") ${Font}"
 
-    if [[ -n "${nginx_sha256}" ]] && [[ "${nginx_sha256}" != "null" ]]; then
-        if ! echo "${nginx_sha256}  ${nginx_filename}" | sha256sum -c - >/dev/null 2>&1; then
-            log_echo "${Error} ${RedBG} Nginx SHA256 $(gettext "校验") $(gettext "失败") ${Font}"
+    # Task F: Mandatory SHA256 verification (fail-closed).
+    if ! nginx_verify_release_sha256 "${nginx_sha256}" "${nginx_filename}"; then
+        log_echo "${Error} ${RedBG} Nginx SHA256 $(gettext "校验") $(gettext "失败") $(gettext ", 拒绝安装") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} Nginx SHA256 $(gettext "校验") $(gettext "通过") ${Font}"
+
+    # P1-B: Strict tar safety check (replaces previous simple grep-based check).
+    # Validates every entry before extraction and extracts into a staging
+    # directory with --no-same-permissions --no-same-owner.
+    local staging_dir="${temp_dir}/staging"
+    mkdir -p "${staging_dir}"
+    if ! nginx_tar_safe_check "${nginx_filename}" "${staging_dir}"; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 压缩包安全检查失败, 拒绝安装") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "Nginx 压缩包安全检查通过") ${Font}"
+
+    # P1-B: Verify extracted structure (sbin/nginx must be a regular file).
+    if [[ ! -f "${staging_dir}/nginx/sbin/nginx" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "解压后未找到 sbin/nginx 或不是常规文件, 结构校验失败") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+
+    # P1-B: Verify sbin/nginx is a valid ELF binary.
+    # ELF magic: 0x7f 'E' 'L' 'F'. file(1) may be unavailable on minimal systems.
+    if ! nginx_validate_binary_file "${staging_dir}/nginx/sbin/nginx"; then
+        log_echo "${Error} ${RedBG} $(gettext "sbin/nginx 不是可执行 ELF 二进制, 拒绝安装") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+
+    # Move the validated staging tree into temp_dir root so subsequent code
+    # that expects "./nginx" continues to work.
+    if ! mv "${staging_dir}/nginx" "./nginx"; then
+        log_echo "${Error} ${RedBG} $(gettext "staging 目录移动失败") ${Font}"
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+
+    # Task F: Backup current nginx_dir before replacement (for rollback).
+    local nginx_backup_dir=""
+    if [[ -d "${nginx_dir}" ]]; then
+        nginx_backup_dir="${nginx_dir}.pre-install.$$"
+        if ! mv "${nginx_dir}" "${nginx_backup_dir}" 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Nginx 现有目录备份失败, 拒绝替换") ${Font}"
             cd "$current_dir" && rm -rf "$temp_dir"
-            exit 1
+            return 1
         fi
     fi
 
-    if ! tar -xzf "$nginx_filename" -C ./; then
-        log_echo "${Error} ${RedBG} Nginx $(gettext "解压") $(gettext "失败") ${Font}"
+    # Atomic swap: move staged nginx to final location.
+    if ! mv ./nginx "${nginx_dir}"; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 替换失败") ${Font}"
+        restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
         cd "$current_dir" && rm -rf "$temp_dir"
-        exit 1
+        return 1
     fi
 
-    [[ -d "${nginx_dir}" ]] && safe_rm "${nginx_dir}"
-    mv ./nginx "${nginx_dir}"
-
     [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p "${nginx_conf_dir}"
-    cp -fp "${nginx_dir}"/conf/nginx.conf "${nginx_conf_dir}"/nginx.default
+    if ! cp -fp "${nginx_dir}"/conf/nginx.conf "${nginx_conf_dir}"/nginx.default; then
+        restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+
+    # Task E (Section 9): Create dedicated idleleo-nginx user before modifying config.
+    if ! ensure_idleleo_nginx_user; then
+        restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
 
     # 修改基本配置
     #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
-    modify_nginx_origin_conf
+    if ! modify_nginx_origin_conf; then
+        restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+
+    # Task E (Section 9): Apply layered permission model (replaces chown -fR nobody / chmod -fR 755).
+    # P0-A: Propagate permission failure so callers (nginx_update) can trigger rollback.
+    if ! apply_nginx_layered_permissions; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 分层权限应用失败, 可能影响服务运行") ${Font}"
+        restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+    if ! verify_nginx_layered_permissions; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 分层权限验证失败") ${Font}"
+        restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+
+    # Task F: Post-install config validation.
+    if ! nginx_run_config_test >/dev/null 2>&1; then
+        local _nginx_t_output
+        _nginx_t_output=$(nginx_run_config_test 2>&1)
+        _nginx_t_output=$(printf '%s' "${_nginx_t_output}" | redact_diagnostic_text)
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 配置校验失败"): ${_nginx_t_output} ${Font}"
+        restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
+        cd "$current_dir" && rm -rf "$temp_dir"
+        return 1
+    fi
+
+    # Only discard an internal pre-install backup after replacement, permission
+    # verification, and nginx -t all succeed. nginx_update keeps its separate
+    # outer backup until service/port health also succeeds.
+    if [[ -n "${nginx_backup_dir}" && -d "${nginx_backup_dir}" ]]; then
+        safe_rm "${nginx_backup_dir}" || {
+            cd "$current_dir" && rm -rf "$temp_dir"
+            return 1
+        }
+    fi
 
     # 删除临时文件
     cd "$current_dir" && rm -rf "$temp_dir"
-    chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${nginx_dir}"
-    chmod -fR 755 "${nginx_dir}"
+    return 0
 }
 
 nginx_diagnose() {
     if [[ -x "${nginx_dir}/sbin/nginx" ]]; then
         local nginx_test_output
         nginx_test_output=$("${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf" 2>&1)
+        nginx_test_output=$(printf '%s' "${nginx_test_output}" | redact_diagnostic_text)
         log_echo "${Error} $(gettext "配置检测"): ${nginx_test_output} ${Font}"
     fi
     local nginx_journal_output
     nginx_journal_output=$(journalctl -u nginx --no-pager -n 10 2>/dev/null)
     if [[ -n "${nginx_journal_output}" ]]; then
+        nginx_journal_output=$(printf '%s' "${nginx_journal_output}" | redact_diagnostic_text)
         log_echo "${Error} $(gettext "服务日志"): ${Font}"
         echo "${nginx_journal_output}" | while IFS= read -r line; do log_echo "  ${line}"; done
     fi
@@ -2431,11 +3527,13 @@ xray_diagnose() {
     if [[ -x "${xray_bin_dir}/xray" ]]; then
         local xray_version_output
         xray_version_output=$("${xray_bin_dir}/xray" version 2>&1 | head -3)
+        xray_version_output=$(printf '%s' "${xray_version_output}" | redact_diagnostic_text)
         log_echo "${Error} $(gettext "版本检测"): ${xray_version_output} ${Font}"
     fi
     local xray_journal_output
     xray_journal_output=$(journalctl -u xray --no-pager -n 10 2>/dev/null)
     if [[ -n "${xray_journal_output}" ]]; then
+        xray_journal_output=$(printf '%s' "${xray_journal_output}" | redact_diagnostic_text)
         log_echo "${Error} $(gettext "服务日志"): ${Font}"
         echo "${xray_journal_output}" | while IFS= read -r line; do log_echo "  ${line}"; done
     fi
@@ -2443,6 +3541,7 @@ xray_diagnose() {
         local xray_error_output
         xray_error_output=$(tail -10 "${xray_error_log}" 2>/dev/null)
         if [[ -n "${xray_error_output}" ]]; then
+            xray_error_output=$(printf '%s' "${xray_error_output}" | redact_diagnostic_text)
             log_echo "${Error} $(gettext "错误日志"): ${Font}"
             echo "${xray_error_output}" | while IFS= read -r line; do log_echo "  ${line}"; done
         fi
@@ -2453,16 +3552,299 @@ restore_nginx_backup() {
     local backup_dir="$1"
 
     service_stop || return 1
-    safe_rm "${nginx_dir}"
+    safe_rm "${nginx_dir}" || return 1
     if ! mv "${backup_dir}" "${nginx_dir}"; then
         return 1
     fi
+    apply_nginx_layered_permissions || return 1
+    verify_nginx_layered_permissions || return 1
     service_start || return 1
     sleep 1
-    if ! systemctl -q is-active nginx; then
+    if ! health_check_nginx_update "${port:-}"; then
         nginx_diagnose
         return 1
     fi
+    return 0
+}
+
+# Task C (Section 7): layered rollback & health check helpers
+# Layering order on update failure:
+#   Layer 1: restore local pre-update backup (binary/script)
+#   Layer 2: install known-good tested_version from API
+#   Layer 3: stop service + print redacted diagnostics, no infinite retry
+# Each layer is attempted at most once.
+
+# Backup current Xray binary to ${idleleo_dir}/tmp/xray.prev with metadata.
+# Same directory as the binary's parent ensures same-filesystem mv; ${idleleo_dir}/tmp
+# is also created by compat_migrate, so it exists on every supported install.
+backup_xray_binary() {
+    local xray_binary="${xray_bin_dir}/xray"
+    local backup_dir="${idleleo_dir}/tmp"
+    [[ ! -f "${xray_binary}" ]] && return 1
+    mkdir -p "${backup_dir}"
+    # cp -p preserves owner/group/mode; the .prev file must not be world-readable
+    if ! cp -p "${xray_binary}" "${backup_dir}/xray.prev"; then
+        log_echo "${Warning} ${YellowBG} Xray $(gettext "二进制备份失败") ${Font}"
+        return 1
+    fi
+    chmod 600 "${backup_dir}/xray.prev" 2>/dev/null
+    {
+        printf 'backup_time=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+        printf 'backup_version=%s\n' "$(info_extraction xray_version 2>/dev/null)"
+        printf 'backup_sha256=%s\n' "$(sha256sum "${xray_binary}" 2>/dev/null | awk '{print $1}')"
+    } > "${backup_dir}/xray.prev.meta"
+    chmod 600 "${backup_dir}/xray.prev.meta" 2>/dev/null
+    return 0
+}
+
+# Restore Xray binary from local backup (Layer 1 rollback).
+# Verifies sha256 against recorded metadata before restoring.
+restore_xray_binary_backup() {
+    local backup_file="${idleleo_dir}/tmp/xray.prev"
+    local backup_meta="${idleleo_dir}/tmp/xray.prev.meta"
+    local target="${xray_bin_dir}/xray"
+
+    if [[ ! -f "${backup_file}" ]]; then
+        log_echo "${Warning} ${YellowBG} Xray $(gettext "本机备份不存在, 跳过 Layer 1 恢复") ${Font}"
+        return 1
+    fi
+    if [[ -f "${backup_meta}" ]]; then
+        local expected_sha actual_sha
+        expected_sha=$(grep '^backup_sha256=' "${backup_meta}" | cut -d= -f2-)
+        actual_sha=$(sha256sum "${backup_file}" 2>/dev/null | awk '{print $1}')
+        if [[ -n "${expected_sha}" && "${expected_sha}" != "${actual_sha}" ]]; then
+            log_echo "${Error} ${RedBG} Xray $(gettext "备份校验失败, 拒绝恢复") ${Font}"
+            return 1
+        fi
+    fi
+    systemctl stop xray >/dev/null 2>&1
+    if ! mv -f "${backup_file}" "${target}"; then
+        log_echo "${Error} ${RedBG} Xray $(gettext "二进制恢复失败") ${Font}"
+        return 1
+    fi
+    chmod 755 "${target}" 2>/dev/null
+    systemctl start xray >/dev/null 2>&1
+    sleep 1
+    if ! systemctl -q is-active xray; then
+        xray_diagnose
+        return 1
+    fi
+    return 0
+}
+
+# Layer 2 fallback: install Xray from API tested_version (known-good baseline).
+# Returns 0 on success, 1 if tested_version is missing or installation fails.
+fallback_xray_to_tested_version() {
+    local tested_ver
+    tested_ver=$(check_version_silent xray_tested_version)
+    if [[ -z "${tested_ver}" || "${tested_ver}" == "null" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "tested_version 不可用, 跳过 Layer 2 恢复") ${Font}"
+        return 1
+    fi
+    log_echo "${Info} ${GreenBG} $(gettext "尝试使用 tested_version 恢复"): v${tested_ver} ${Font}"
+    systemctl stop xray >/dev/null 2>&1
+    if ! xray_install_release install -f --version "v${tested_ver}"; then
+        log_echo "${Error} ${RedBG} Xray tested_version $(gettext "安装失败") ${Font}"
+        return 1
+    fi
+    if ! "${xray_bin_dir}/xray" -version &>/dev/null; then
+        log_echo "${Error} ${RedBG} Xray tested_version $(gettext "二进制不可执行") ${Font}"
+        return 1
+    fi
+    systemctl start xray >/dev/null 2>&1
+    sleep 1
+    if ! systemctl -q is-active xray; then
+        xray_diagnose
+        return 1
+    fi
+    update_json_config "${xray_install_config_file}" --arg xray_version "${tested_ver}" '.xray_version = $xray_version' >/dev/null 2>&1
+    log_echo "${OK} ${GreenBG} Xray $(gettext "已恢复到 tested_version"): v${tested_ver} ${Font}"
+    return 0
+}
+
+# Layer 2 fallback: install Nginx from API tested_version (known-good baseline).
+fallback_nginx_to_tested_version() {
+    local tested_ver
+    tested_ver=$(check_version_silent nginx_build_tested_version)
+    if [[ -z "${tested_ver}" || "${tested_ver}" == "null" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "tested_version 不可用, 跳过 Layer 2 恢复") ${Font}"
+        return 1
+    fi
+    log_echo "${Info} ${GreenBG} $(gettext "尝试使用 tested_version 恢复"): v${tested_ver} ${Font}"
+    systemctl stop nginx >/dev/null 2>&1
+    # Save and override global version used by nginx_install
+    local _saved_version="${nginx_build_version}"
+    nginx_build_version="${tested_ver}"
+    if ! nginx_install; then
+        nginx_build_version="${_saved_version}"
+        log_echo "${Error} ${RedBG} Nginx tested_version $(gettext "安装失败") ${Font}"
+        return 1
+    fi
+    systemctl start nginx >/dev/null 2>&1
+    sleep 1
+    if ! health_check_nginx_update "${port:-}"; then
+        nginx_build_version="${_saved_version}"
+        nginx_diagnose
+        return 1
+    fi
+    if ! update_json_config "${xray_install_config_file}" --arg nginx_build_version "${tested_ver}" \
+        '.nginx_build_version = $nginx_build_version' >/dev/null 2>&1; then
+        nginx_build_version="${_saved_version}"
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} Nginx $(gettext "已恢复到 tested_version"): v${tested_ver} ${Font}"
+    return 0
+}
+
+rollback_nginx_update() {
+    local backup_dir="$1"
+    local previous_version="$2"
+    nginx_rollback_layer=0
+
+    # Layer 1: the exact pre-update directory.
+    if restore_nginx_backup "${backup_dir}"; then
+        if update_json_config "${xray_install_config_file}" \
+            --arg nginx_build_version "${previous_version}" \
+            '.nginx_build_version = $nginx_build_version'; then
+            nginx_rollback_layer=1
+            return 0
+        fi
+        log_echo "${Error} ${RedBG} Nginx $(gettext "旧版本记录恢复失败, 继续 tested_version 恢复") ${Font}"
+    fi
+
+    # Layer 2: one known-good API fallback attempt. Keep any still-existing
+    # local backup until the fallback has passed its own health check.
+    log_echo "${Info} ${YellowBG} $(gettext "Layer 1 失败, 尝试 Layer 2 tested_version 恢复") ${Font}"
+    if fallback_nginx_to_tested_version; then
+        [[ -e "${backup_dir}" || -L "${backup_dir}" ]] && safe_rm "${backup_dir}"
+        nginx_rollback_layer=2
+        return 0
+    fi
+
+    # Layer 3: fail closed, keep remaining evidence/backups, stop and redact.
+    log_echo "${Error} ${RedBG} Nginx $(gettext "所有回滚层均失败")! ${Font}"
+    systemctl stop nginx >/dev/null 2>&1
+    nginx_diagnose
+    log_echo "${Error} ${RedBG} Nginx $(gettext "更新失败且所有回滚层均失败, 请手动检查") ${Font}"
+    return 1
+}
+
+recover_failed_nginx_update() {
+    local backup_dir="$1"
+    local previous_version="$2"
+    if rollback_nginx_update "${backup_dir}" "${previous_version}"; then
+        if [[ ${nginx_rollback_layer} -eq 1 ]]; then
+            log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
+        else
+            log_echo "${OK} ${GreenBG} Nginx $(gettext "已恢复到 tested_version")! ${Font}"
+        fi
+    fi
+    # The attempted update failed even when service recovery succeeded.
+    return 1
+}
+
+# Health check: Xray after update. Verifies binary, version, config, service, port.
+health_check_xray_update() {
+    local expected_version="$1"
+    local xray_binary="${xray_bin_dir}/xray"
+
+    [[ ! -x "${xray_binary}" ]] && { log_echo "${Error} ${RedBG} Xray $(gettext "二进制不可执行") ${Font}"; return 1; }
+    if ! "${xray_binary}" -version &>/dev/null; then
+        log_echo "${Error} ${RedBG} Xray $(gettext "二进制执行失败") ${Font}"
+        return 1
+    fi
+    if [[ -n "${expected_version}" ]]; then
+        local actual_version
+        actual_version=$("${xray_binary}" version 2>/dev/null | head -1 | awk '{print $2}')
+        # Xray prints "vX.Y.Z" or "X.Y.Z"; accept either form
+        if [[ "${actual_version}" != "v${expected_version}" && "${actual_version}" != "${expected_version}" ]]; then
+            log_echo "${Error} ${RedBG} Xray $(gettext "版本不匹配"): expected=${expected_version}, actual=${actual_version} ${Font}"
+            return 1
+        fi
+    fi
+    # Config syntax check (does not require running service)
+    if [[ -f "${xray_conf}" ]]; then
+        if ! "${xray_binary}" run -test -config "${xray_conf}" &>/dev/null; then
+            log_echo "${Error} ${RedBG} Xray $(gettext "配置解析失败") ${Font}"
+            return 1
+        fi
+    fi
+    if ! systemctl -q is-active xray; then
+        log_echo "${Error} ${RedBG} Xray $(gettext "服务未运行") ${Font}"
+        return 1
+    fi
+    # Port listening check (only when port is known from config)
+    local listen_port
+    listen_port=$(info_extraction port 2>/dev/null)
+    if [[ -n "${listen_port}" && "${listen_port}" != "null" ]]; then
+        if ! ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${listen_port}\$"; then
+            log_echo "${Warning} ${YellowBG} Xray $(gettext "端口未监听"): ${listen_port} ${Font}"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+# Health check: Nginx after update. Verifies nginx -t, service, port.
+health_check_nginx_update() {
+    local listen_port="$1"
+    local nginx_binary="${nginx_dir}/sbin/nginx"
+
+    [[ ! -x "${nginx_binary}" ]] && { log_echo "${Error} ${RedBG} Nginx $(gettext "二进制不可执行") ${Font}"; return 1; }
+    if ! "${nginx_binary}" -t -c "${nginx_dir}/conf/nginx.conf" &>/dev/null; then
+        log_echo "${Error} ${RedBG} Nginx $(gettext "配置检测失败") ${Font}"
+        nginx_diagnose
+        return 1
+    fi
+    if ! systemctl -q is-active nginx; then
+        log_echo "${Error} ${RedBG} Nginx $(gettext "服务未运行") ${Font}"
+        return 1
+    fi
+    if ! verify_nginx_layered_permissions; then
+        log_echo "${Error} ${RedBG} Nginx $(gettext "分层权限验证失败") ${Font}"
+        return 1
+    fi
+    if [[ -n "${listen_port}" && "${listen_port}" != "null" ]]; then
+        if ! ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${listen_port}\$"; then
+            log_echo "${Warning} ${YellowBG} Nginx $(gettext "端口未监听"): ${listen_port} ${Font}"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+activate_nginx_update() {
+    local listen_port="${1:-}"
+    apply_nginx_layered_permissions || return 1
+    verify_nginx_layered_permissions || return 1
+    service_start || return 1
+    sleep 1
+    health_check_nginx_update "${listen_port}"
+}
+
+# Health check: install.sh after update. Verifies bash -n and shell_version marker.
+health_check_shell_update() {
+    local script_file="$1"
+    local expected_version="$2"
+
+    [[ -z "${script_file}" ]] && script_file="${idleleo_dir}/install.sh"
+    if [[ ! -f "${script_file}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "脚本不存在"): ${script_file} ${Font}"
+        return 1
+    fi
+    if ! bash -n "${script_file}" 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "脚本语法检查失败") ${Font}"
+        return 1
+    fi
+    if [[ -n "${expected_version}" ]]; then
+        local actual_version
+        actual_version=$(grep -E '^shell_version=' "${script_file}" | head -1 | awk -F'=|"' '{print $3}')
+        if [[ "${actual_version}" != "${expected_version}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "脚本版本不匹配"): expected=${expected_version}, actual=${actual_version} ${Font}"
+            return 1
+        fi
+    fi
+    return 0
 }
 
 nginx_update() {
@@ -2542,10 +3924,13 @@ nginx_update() {
             if [[ -e "${backup_nginx_dir}" || -L "${backup_nginx_dir}" ]]; then
                 safe_rm "${backup_nginx_dir}" || return 1
             fi
-            cp -r "${nginx_dir}" "${backup_nginx_dir}"
-            judge "$(gettext "备份旧版") Nginx"
+            if ! cp -a "${nginx_dir}" "${backup_nginx_dir}"; then
+                log_echo "${Error} ${RedBG} $(gettext "备份旧版") Nginx $(gettext "失败") ${Font}"
+                return 1
+            fi
+            log_echo "${OK} ${GreenBG} $(gettext "备份旧版") Nginx $(gettext "完成") ${Font}"
             countdown "$(gettext "删除旧版") Nginx !"
-            safe_rm "${nginx_dir}"
+            safe_rm "${nginx_dir}" || return 1
             if [[ ${auto_update} != "YES" ]]; then
                 echo
                 log_echo "${GreenBG} $(gettext "是否保留原 Nginx 配置文件") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -2563,43 +3948,50 @@ nginx_update() {
                 log_echo "${OK} ${GreenBG} $(gettext "原配置文件已保留")! ${Font}"
                 ;;
             esac
-            nginx_install
-            if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
-                nginx_ssl_conf_add
-                nginx_conf_add
-                nginx_servers_conf_add
-            elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
-                nginx_reality_conf_add
-                nginx_reality_servers_add
-                nginx_reality_serverNames_add
-            fi
-            local nginx_start_failed=0
-            local service_start_failed=0
-            if ! service_start; then
-                service_start_failed=1
-                systemctl -q is-active nginx || nginx_start_failed=1
+            if ! nginx_install; then
+                # P0-A: nginx_install returns 1 on hard failure (not exit).
+                # Enter rollback path directly — same as startup failure.
+                local nginx_start_failed=1
+                local service_start_failed=1
             else
-                sleep 1
-                systemctl -q is-active nginx || nginx_start_failed=1
+                # nginx_install succeeded, proceed with config and startup
+                local nginx_start_failed=0
+                local service_start_failed=0
+                if [[ ${tls_mode} == "TLS" ]] && [[ ${save_originconf} != "Yes" ]]; then
+                    if ! (nginx_ssl_conf_add && nginx_conf_add && nginx_servers_conf_add); then
+                        nginx_start_failed=1
+                        service_start_failed=1
+                    fi
+                elif [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]] && [[ ${save_originconf} != "Yes" ]]; then
+                    if ! (nginx_reality_conf_add && nginx_reality_servers_add && nginx_reality_serverNames_add); then
+                        nginx_start_failed=1
+                        service_start_failed=1
+                    fi
+                fi
+                if [[ ${nginx_start_failed} -eq 0 ]] && ! activate_nginx_update "${port}"; then
+                    nginx_start_failed=1
+                    service_start_failed=1
+                fi
+            fi
+            if [[ ${nginx_start_failed} -eq 0 ]] && ! update_json_config "${xray_install_config_file}" \
+                --arg nginx_build_version "${nginx_build_version}" \
+                '.nginx_build_version = $nginx_build_version'; then
+                log_echo "${Error} ${RedBG} Nginx $(gettext "版本记录更新失败, 执行回滚") ${Font}"
+                nginx_start_failed=1
             fi
             if [[ ${nginx_start_failed} -eq 1 ]]; then
                 log_echo "${Error} ${RedBG} Nginx $(gettext "启动") $(gettext "失败")! ${Font}"
                 if [[ ${service_start_failed} -eq 0 ]]; then
                     nginx_diagnose
                 fi
+                # Task C (Section 7.1): Layered rollback — Layer 1 (local backup) → Layer 2 (tested_version) → Layer 3 (stop + diagnostics).
+                # Each layer is attempted at most once. No infinite retry, no recursive update.
                 if [[ ${auto_update} != "YES" ]]; then
                     echo
                     log_echo "${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                     read -r rollback_fq
                 else
-                    log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
-                    if restore_nginx_backup "${backup_nginx_dir}"; then
-                        log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
-                        update_json_config "${xray_install_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' || return 1
-                    else
-                        log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
-                    fi
-                    return 1
+                    rollback_fq="y"
                 fi
                 case $rollback_fq in
                 [nN][oO] | [nN])
@@ -2608,23 +4000,15 @@ nginx_update() {
                     ;;
                 *)
                     log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
-                    if restore_nginx_backup "${backup_nginx_dir}"; then
-                        log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Nginx $(gettext "版本")! ${Font}"
-                        update_json_config "${xray_install_config_file}" --arg nginx_build_version "${current_nginx_build_version}" '.nginx_build_version = $nginx_build_version' || return 1
-                        safe_rm "${backup_nginx_dir}"
-                        return 1
-                    else
-                        log_echo "${Error} ${RedBG} $(gettext "回滚失败")! ${Font}"
-                        return 1
-                    fi
+                    recover_failed_nginx_update "${backup_nginx_dir}" "${current_nginx_build_version}"
+                    return $?
                     ;;
                 esac
             elif [[ ${service_start_failed} -eq 1 ]]; then
                 return 1
             else
-                update_json_config "${xray_install_config_file}" --arg nginx_build_version "${nginx_build_version}" '.nginx_build_version = $nginx_build_version'
                 judge "Nginx $(gettext "更新")"
-                safe_rm "${backup_nginx_dir}"
+                safe_rm "${backup_nginx_dir}" || return 1
                 judge "$(gettext "删除") Nginx $(gettext "备份")"
             fi
         else
@@ -2870,12 +4254,15 @@ acme() {
     #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成") $(gettext "成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
-        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"; then
-            chmod -f 644 "${ssl_chainpath}"/xray.crt
-            chmod -f 600 "${ssl_chainpath}"/xray.key
-            chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
+        if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"; then
+            # Task E (Section 9.3): Reuse authoritative layered permission model.
+            apply_nginx_layered_permissions || return 1
+            verify_nginx_layered_permissions || return 1
             log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置") $(gettext "成功") ${Font}"
             systemctl stop nginx
+        else
+            log_echo "${Error} ${RedBG} SSL $(gettext "证书配置") $(gettext "失败") ${Font}"
+            return 1
         fi
     else
         log_echo "${Error} ${RedBG} SSL $(gettext "证书生成") $(gettext "失败") ${Font}"
@@ -3569,8 +4956,11 @@ cert_update_manuel() {
         if [[ -f "${amce_sh_file}" ]]; then
             "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
             host="$(info_extraction host)"
-            "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
+            "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"
             judge -r "$(gettext "证书更新")" || return 1
+            # Task E (Section 9.3): Reuse authoritative layered permission model after cert renewal.
+            apply_nginx_layered_permissions || return 1
+            verify_nginx_layered_permissions || return 1
             service_restart || return 1
         else
             log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
@@ -3588,6 +4978,16 @@ set_fail2ban() {
     source "${scripts_dir}/fail2ban_manager.sh"
     mf_check_for_updates
     mf_main_menu
+}
+
+# P0-C: CLI entry point for Fail2ban management.
+# Reuses the same mf_cli() implementation as the menu — no duplicated logic.
+set_fail2ban_cli() {
+    if ! ensure_sub_script "fail2ban_manager.sh" "${mf_remote_url}"; then
+        return 1
+    fi
+    source "${scripts_dir}/fail2ban_manager.sh"
+    mf_cli "$@"
 }
 
 set_traffic_blocker() {
@@ -3710,6 +5110,7 @@ install_config_reality() {
     "spiderx_path":"${spiderx_path}",
     "reality_add_nginx": "${reality_add_nginx}",
     "reality_add_balance": "${reality_add_balance}",
+    "reality_balance_role": "${reality_balance_role}",
     "reality_add_more": "${reality_add_more}",
     "reality_nginx_sni_guard": "${reality_nginx_sni_guard}",
     "unknown_sni_policy": "${unknown_sni_policy}",
@@ -4374,7 +5775,9 @@ ssl_judge_and_install() {
             acme
             ;;
         *)
-            chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
+            # Task E (Section 9.3): Reuse authoritative layered permission model.
+            apply_nginx_layered_permissions || return 1
+            verify_nginx_layered_permissions || return 1
             judge "$(gettext "证书应用")"
             ;;
         esac
@@ -4389,8 +5792,10 @@ ssl_judge_and_install() {
             acme
             ;;
         *)
-            "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chmod -f 644 ${ssl_chainpath}/xray.crt; chmod -f 600 ${ssl_chainpath}/xray.key; chown -fR nobody:\$(id -gn nobody 2>/dev/null || echo nogroup) ${ssl_chainpath}/*; systemctl restart nginx; systemctl restart xray"
-            chown -fR "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" "${ssl_chainpath}"/*
+            "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"
+            # Task E (Section 9.3): Reuse authoritative layered permission model.
+            apply_nginx_layered_permissions || return 1
+            verify_nginx_layered_permissions || return 1
             judge "$(gettext "证书应用")"
             ;;
         esac
@@ -5191,6 +6596,8 @@ judge_mode() {
             reality_add_more=$(info_extraction reality_add_more)
             reality_add_nginx=$(info_extraction reality_add_nginx)
             reality_add_balance=$(info_extraction reality_add_balance)
+            reality_balance_role=$(info_extraction reality_balance_role)
+            [[ -z ${reality_balance_role} || ${reality_balance_role} == "null" ]] && reality_balance_role=""
         fi
         _transport_set_shell_mode
         old_tls_mode=${tls_mode}
@@ -5220,18 +6627,18 @@ install_xray_ws_tls() {
     transport_qr
     install_config_tls_ws
     stop_service_all
-    xray_install
+    xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check 80
     port_exist_check "${port}"
-    nginx_exist_check
+    nginx_exist_check || return 1
     nginx_systemd
     nginx_ssl_conf_add
     ssl_judge_and_install || return 1
     nginx_conf_add
     nginx_servers_conf_add
     xray_conf_add
-    harden_config_permissions
+    harden_config_permissions || return 1
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
@@ -5254,7 +6661,7 @@ install_xray_reality() {
     create_directory
     old_config_exist_check
     ip_check
-    xray_install
+    xray_install || return 1
     port_set
     email_set
     UUID_set
@@ -5273,7 +6680,7 @@ install_xray_reality() {
     xray_conf_add
     install_config_reality
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    harden_config_permissions
+    harden_config_permissions || return 1
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
@@ -5303,11 +6710,11 @@ install_xray_xtls_only() {
     UUID_set
     install_config_xtls_only
     stop_service_all
-    xray_install
+    xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     port_exist_check "${port}"
     xray_conf_add
-    harden_config_permissions
+    harden_config_permissions || return 1
     basic_information
     enable_process_systemd || return 1
     auto_update || return 1
@@ -5339,13 +6746,13 @@ install_xray_ws_only() {
     transport_qr
     install_config_ws_only
     stop_service_all
-    xray_install
+    xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     is_ws_mode && port_exist_check "${xport}"
     is_grpc_mode && port_exist_check "${gport}"
     is_xhttp_mode && port_exist_check "${xhttpport}"
     xray_conf_add
-    harden_config_permissions
+    harden_config_permissions || return 1
     basic_information
     enable_process_systemd || return 1
     auto_update || return 1
@@ -5490,9 +6897,37 @@ compat_migrate() {
 }
 
 read_version() {
-    shell_online_version="$(check_version shell_online_version)"
-    xray_online_version="$(check_version xray_online_version)"
-    nginx_build_version="$(check_version nginx_build_online_version)"
+    # Load once in the current shell. Calling check_version only through command
+    # substitutions would otherwise perform one network request per field because
+    # each substitution runs in a subshell and cannot preserve the cache state.
+    if ! load_versions; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本检测失败, 请稍后再试")! ${Font}" >&2
+        return 1
+    fi
+
+    local new_shell_online_version
+    local new_xray_online_version
+    local new_nginx_build_version
+    local new_shell_tested_version
+    local new_xray_tested_version
+    local new_nginx_build_tested_version
+
+    new_shell_online_version="$(check_version shell_online_version)" || return 1
+    new_xray_online_version="$(check_version xray_online_version)" || return 1
+    new_nginx_build_version="$(check_version nginx_build_online_version)" || return 1
+    # Task C (Section 7.6): read tested_version (known-good fallback baseline) from API.
+    # These fields are optional in the API JSON; missing fields are treated as
+    # "no Layer 2 fallback available" and silently become empty strings.
+    new_shell_tested_version="$(check_version_silent shell_tested_version || echo "")"
+    new_xray_tested_version="$(check_version_silent xray_tested_version || echo "")"
+    new_nginx_build_tested_version="$(check_version_silent nginx_build_tested_version || echo "")"
+
+    shell_online_version="${new_shell_online_version}"
+    xray_online_version="${new_xray_online_version}"
+    nginx_build_version="${new_nginx_build_version}"
+    shell_tested_version="${new_shell_tested_version}"
+    xray_tested_version="${new_xray_tested_version}"
+    nginx_build_tested_version="${new_nginx_build_tested_version}"
 }
 
 maintain() {
@@ -5565,6 +7000,18 @@ list() {
         ;;
     '-f' | '--set-fail2ban')
         set_fail2ban
+        ;;
+    '--fail2ban-list')
+        set_fail2ban_cli --list
+        ;;
+    '--fail2ban-unban')
+        set_fail2ban_cli --unban "$2" "$3"
+        ;;
+    '--fail2ban-trust-add')
+        set_fail2ban_cli --trust-add "$2" "$3"
+        ;;
+    '--fail2ban-trust-del')
+        set_fail2ban_cli --trust-del "$2" "$3"
         ;;
     '-tb' | '--traffic-blocker')
         set_traffic_blocker
@@ -5646,6 +7093,10 @@ show_help() {
     echo "  -cu, --cert-update          $(gettext "更新证书有效期")"
     echo "  -cau, --cert-auto-update    $(gettext "设置证书自动更新")"
     echo "  -f, --set-fail2ban          $(gettext "设置 Fail2ban 防暴力破解")"
+    echo "      --fail2ban-list         $(gettext "查看 Fail2ban 状态")"
+    echo "      --fail2ban-unban <jail> <ip>                $(gettext "快速解封 IP")"
+    echo "      --fail2ban-trust-add <jail> <ip-or-cidr>   $(gettext "添加可信 IP/CIDR")"
+    echo "      --fail2ban-trust-del <jail> <ip-or-cidr>   $(gettext "移除可信 IP/CIDR")"
     echo "  -tb, --traffic-blocker      $(gettext "设置 Xray 流量阻断")"
     echo "  -h, --help                  $(gettext "显示帮助")"
     echo "  -l, --language              $(gettext "修改语言")"
@@ -5862,11 +7313,10 @@ check_online_version_connect() {
         exit 0
     fi
 
-    xray_online_version_status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json")
-    if [[ ${xray_online_version_status} != "200" ]]; then
+    if ! load_versions; then
         log_echo "${Error} ${RedBG} $(gettext "无法检测所需依赖的在线版本, 请稍后再试")! ${Font}"
         sleep 0.5
-        exit 0
+        exit 1
     fi
 }
 
@@ -6012,7 +7462,7 @@ menu_clear() {
 }
 
 menu_prepare_width() {
-    local terminal_columns=""
+    local terminal_columns="" max_box_width=60
 
     if [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
         terminal_columns=$(tput cols 2>/dev/null || true)
@@ -6026,7 +7476,7 @@ menu_prepare_width() {
     [[ ${terminal_columns} =~ ^[0-9]+$ ]] || terminal_columns=80
 
     MENU_BOX_WIDTH=$((terminal_columns - 4))
-    ((MENU_BOX_WIDTH > 88)) && MENU_BOX_WIDTH=88
+    ((MENU_BOX_WIDTH > max_box_width)) && MENU_BOX_WIDTH=${max_box_width}
     if ((MENU_BOX_WIDTH < 52)); then
         MENU_BOX_WIDTH=$((terminal_columns - 2))
     fi
@@ -6384,24 +7834,198 @@ menu_action() {
     esac
 }
 
+# Fourth-level menu: choose transport protocol (ws/gRPC/xHTTP).
+# Sets transport_mode and returns 0 on success, 1 on "0. return".
+menu_choose_transport() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "选择传输协议")"
+        menu_item 1 "ws"
+        menu_item 2 "gRPC"
+        menu_item 3 "xHTTP"
+        menu_item 4 "ws+xHTTP"
+        menu_item 5 "ws+gRPC+xHTTP"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 5
+        case $menu_num in
+            0) return 1 ;;
+            1) transport_mode="onlyws"; return 0 ;;
+            2) transport_mode="onlygRPC"; return 0 ;;
+            3) transport_mode="onlyxhttp"; return 0 ;;
+            4) transport_mode="wsxhttp"; return 0 ;;
+            5) transport_mode="wsgRPCxhttp"; return 0 ;;
+        esac
+    done
+}
+
+# Third-level menu: Reality deployment methods.
+menu_install_reality() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "Reality 部署方式")"
+        menu_item 1 "Reality + Nginx $(gettext "前置保护")($(gettext "推荐"))"
+        menu_item 2 "$(gettext "标准") Reality"
+        menu_item 3 "Reality + ws/gRPC/xHTTP"
+        menu_item 4 "Reality + ws/gRPC/xHTTP + Nginx"
+        menu_item 5 "Reality $(gettext "负载均衡")($(gettext "高级"))"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 5
+        case $menu_num in
+            0) return ;;
+            1)
+                reset_install_wizard_state
+                install_profile="reality_nginx"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            2)
+                reset_install_wizard_state
+                install_profile="reality_standard"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            3)
+                reset_install_wizard_state
+                install_profile="reality_transport"
+                menu_choose_transport || continue
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            4)
+                reset_install_wizard_state
+                install_profile="reality_transport_nginx"
+                menu_choose_transport || continue
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            5)
+                menu_install_reality_balance_role || continue
+                ;;
+        esac
+    done
+}
+
+# Fourth-level menu: Reality load-balancing role selection.
+# Primary installs Nginx front-end + upstream; secondary only provides Reality backend.
+menu_install_reality_balance_role() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "$(gettext "Reality 负载均衡角色")"
+        menu_item 1 "$(gettext "主服务器")($(gettext "安装 Nginx"))"
+        menu_item 2 "$(gettext "二级服务器")($(gettext "仅提供 Reality 后端"))"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 2
+        case $menu_num in
+            0) return 1 ;;
+            1)
+                reset_install_wizard_state
+                install_profile="reality_balance_primary"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            2)
+                reset_install_wizard_state
+                install_profile="reality_balance_secondary"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_reality
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+        esac
+    done
+}
+
+# Third-level menu: ws/gRPC/xHTTP deployment methods.
+menu_install_transport() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "ws/gRPC/xHTTP $(gettext "部署方式")"
+        menu_item 1 "Nginx + TLS ($(gettext "推荐"))"
+        menu_item 2 "ONLY ($(gettext "无 Nginx、无 TLS")，$(gettext "高级"))"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 2
+        case $menu_num in
+            0) return ;;
+            1)
+                reset_install_wizard_state
+                install_profile="transport_nginx_tls"
+                menu_choose_transport || continue
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_ws_tls
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+            2)
+                reset_install_wizard_state
+                install_profile="transport_only"
+                echo
+                log_echo "${Warning} ${YellowBG} $(gettext "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境") ${Font}"
+                log_echo "${GreenBG} $(gettext "是否继续") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+                read -r wsonly_fq
+                case ${wsonly_fq:-} in
+                    [yY][eE][sS] | [yY]) ;;
+                    *) continue ;;
+                esac
+                menu_choose_transport || continue
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_ws_only
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
+        esac
+    done
+}
+
+# Second-level menu: install wizard main (protocol category selection).
 menu_install() {
     local menu_num
     while true; do
         menu_submenu_begin "$(gettext "安装向导")"
-        menu_item 1 "Reality + ws/gRPC/xHTTP + Nginx"
-        menu_item 2 "ws/gRPC/xHTTP + TLS"
-        menu_item 3 "ws/gRPC/xHTTP ONLY"
-        menu_item 4 "XTLS ONLY"
+        menu_item 1 "Reality"
+        menu_item 2 "ws/gRPC/xHTTP"
+        menu_item 3 "XTLS ONLY ($(gettext "高级"))"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
-        menu_read menu_num 4
+        menu_read menu_num 3
         case $menu_num in
             0) return ;;
-            1) menu_action 3 ;;
-            2) menu_action 4 ;;
-            3) menu_action 5 ;;
-            4) menu_action 6 ;;
+            1) menu_install_reality ;;
+            2) menu_install_transport ;;
+            3)
+                echo
+                log_echo "${Warning} ${YellowBG} $(gettext "此模式主要用于流量中转或特殊部署，不建议普通用户使用") ${Font}"
+                log_echo "${GreenBG} $(gettext "是否继续") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+                read -r xtlsonly_fq
+                case ${xtlsonly_fq:-} in
+                    [yY][eE][sS] | [yY]) ;;
+                    *) continue ;;
+                esac
+                reset_install_wizard_state
+                install_profile="xtls_only"
+                install_wizard_preset="on"
+                apply_install_profile
+                install_xray_xtls_only
+                exec "${BASH:-bash}" "${idleleo}"
+                ;;
         esac
     done
 }
@@ -6701,13 +8325,13 @@ check_file_integrity
 compat_migrate
 check_online_version_connect
 init_language
-read_version
+read_version || exit 1
 judge_mode
 if [[ -f "${xray_install_config_file}" ]]; then
     if [[ ${tls_mode} == "Reality" ]]; then
         ensure_reality_sni_guard_defaults || log_echo "${Warning} ${YellowBG} Reality SNI Guard $(gettext "配置修改") $(gettext "失败") ${Font}"
     fi
-    harden_config_permissions
+    harden_config_permissions || exit 1
 fi
 idleleo_commend
 check_program

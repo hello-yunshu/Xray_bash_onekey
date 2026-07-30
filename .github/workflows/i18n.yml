@@ -56,10 +56,12 @@ jobs:
       
       - name: Extract strings from specified scripts
         run: |
-          echo "install.sh" > i18n/po/POTFILES.in
-          echo "scripts/fail2ban_manager.sh" >> i18n/po/POTFILES.in
-          echo "scripts/file_manager.sh" >> i18n/po/POTFILES.in
-          echo "scripts/traffic_blocker.sh" >> i18n/po/POTFILES.in
+          {
+            echo "install.sh"
+            echo "scripts/fail2ban_manager.sh"
+            echo "scripts/file_manager.sh"
+            echo "scripts/traffic_blocker.sh"
+          } > i18n/po/POTFILES.in
           
           if [ -f i18n/po/xray_install.pot ]; then
             cp i18n/po/xray_install.pot i18n/po/xray_install.pot.old
