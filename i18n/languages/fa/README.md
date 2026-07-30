@@ -1,44 +1,45 @@
-# اسکریپت نصب خودکار Xray — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray اسکریپت نصب با یک کلیک — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
-[简体中文](/README.md) | [English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | فارسی | [한국어](/i18n/languages/ko/README.md)
+چینی ساده شده |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
-> سپاس از اجازه توسعه آزاد و غیرتجاری توسط JetBrains
+> Thanks for non-commercial open source development authorization by JetBrains
 
-## ویژگی‌ها
+## ویژگی ها
 
-* دستور `idleleo` را وارد کنید تا اسکریپت را مدیریت کنید ([مشاهده پیشینهٔ داستان `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%DA%86%D9%87%D8%B1%D9%87-%D9%88%D8%A7%D9%82%D8%B9%DB%8C-%D9%BE%D8%B4%D8%AA-%D9%85%D9%87))
-* ترجمه دقیق چندزبانه با Qwen-MT-Plus AI
-* پشتیبانی از پروتکل Reality با Nginx به‌عنوان فرانت‌اند پیشنهادی (قابل نصب از طریق اسکریپت)
-* پشتیبانی از انتقال‌های WebSocket، gRPC و xHTTP، با امکان فعال‌سازی یک انتقال یا `ws+gRPC+xHTTP` به‌صورت هم‌زمان
-* حفاظت داخلی fail2ban (قابل نصب از طریق اسکریپت)
-* آمار ترافیک Xray، مسدودسازی ترافیک، به‌روزرسانی قوانین GeoIP/GeoSite و به‌روزرسانی زمان‌بندی‌شده به‌صورت داخلی
-* پشتیبانی از به‌روزرسانی خودکار اسکریپت، Xray، Nginx و گواهی‌ها، همراه با پشتیبان‌گیری و بازیابی کامل
-* استفاده از [پیشنهاد](https://github.com/XTLS/Xray-core/issues/91) لینک اشتراک‌گذاری [@DuckSoft](https://github.com/DuckSoft) (بتا)، سازگار با Qv2ray، V2rayN، V2rayNG
-* استفاده از پیشنهاد پروژه [XTLS](https://github.com/XTLS/Xray-core/issues/158)، پیروی از استاندارد [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)، پشتیبانی از نگاشت رشته‌های سفارشی به UUID VLESS
-* پشتیبانی از پروتکل gRPC: [استفاده از پروتکل gRPC](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
-* پشتیبانی از تعادل بار Reality / ws/gRPC/xHTTP:
-  - [استقرار تعادل بار Reality](https://hey.run/posts/bushu-reality-balance)
-  - [ساخت تعادل بار بک‌اند](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+* وارد کنید`idleleo`شما می توانید اسکریپت ها را مدیریت کنید ([查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)）
+* برای دستیابی به ترجمه دقیق به چندین زبان، از Qwen-MT-Plus AI استفاده کنید
+* از پروتکل Reality پشتیبانی می کند، توصیه می شود از پیشوند Nginx استفاده کنید (قابل نصب در اسکریپت)
+* از انتقال WebSocket، gRPC، xHTTP پشتیبانی می کند، می توانید انتقال تک یا`ws+gRPC+xHTTP`هر دو را فعال کنید
+* محافظت داخلی fail2ban (قابل نصب در اسکریپت)
+* آمار ترافیک Xray داخلی، مسدود کردن ترافیک، به‌روزرسانی قانون GeoIP/GeoSite و به‌روزرسانی منظم
+* پشتیبانی از اسکریپت ها، Xray، Nginx، به روز رسانی خودکار گواهی، و ارائه نسخه پشتیبان و بازیابی کامل
+* استفاده کنید[@DuckSoft](https://github.com/DuckSoft)لینک به اشتراک گذاری[提案](https://github.com/XTLS/Xray-core/issues/91)(beta)، سازگار با Qv2ray، V2rayN، V2rayNG
+* استفاده کنید[XTLS](https://github.com/XTLS/Xray-core/issues/158)پیشنهاد، پیگیری[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)استاندارد، از نگاشت رشته سفارشی به VLESS UUID پشتیبانی می کند
+* از پروتکل gRPC پشتیبانی می کند:[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* از تعادل بار Reality / ws/gRPC/xHTTP پشتیبانی می کند:
+  - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
+  - [搭建后端负载均衡](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+* حالت Reality + Nginx به طور پیش فرض فعال است. SNI Guard: SNI ناشناخته، SNI خالی و استثنا TLS وارد باطن Xray Reality نمی شود. استراتژی جداسازی (ssl_reject_handshake) به طور پیش فرض پذیرفته شده است. کاربران پیشرفته می‌توانند به سایت بازگشتی decoy خودساخته یا مستقیماً TCP رد شده تغییر دهند. این عملکرد برای کاهش تشخیص فعال و قرار گرفتن در معرض پیکربندی نادرست استفاده می شود و استتار کامل را دنبال نمی کند.
 
-## مطالعه بیشتر
+## در ادامه مطلب
 
-* راهنمای نصب Reality: [راه‌اندازی سرور Xray Reality](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* خطرات پروتکل Reality: [خطرات پروتکل Xray Reality](https://hey.run/posts/reality-xie-yi-de-feng-xian)
-* تسریع سرور با Reality: [تسریع سرور از طریق «آسیب‌پذیری» پروتکل Reality](https://hey.run/posts/use-reality)
+* Reality راهنمای نصب:[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality خطر پروتکل:[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Reality سرور تسریع شده:[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
 
-## گروه تلگرام
+## گروه Telegram
 
-* گروه بحث: [کلیک برای عضویت](https://t.me/+48VSqv7xIIFmZDZl)
+* گروه ارتباط:[点击加入](https://t.me/+48VSqv7xIIFmZDZl)
 
-## پیش‌نیازها
+## آماده سازی
 
-* یک سرور خارج از کشور با آدرس آی‌پی عمومی
-* برای پروتکل Reality: یک دامنه هدف مطابق با الزامات Xray آماده کنید
-* برای حالت TLS: یک دامنه آماده کنید و رکورد A اضافه کنید
-* [مستندات رسمی Xray](https://xtls.github.io) را بخوانید تا با Reality، TLS، WebSocket، gRPC و مفاهیم مرتبط Xray آشنا شوید
-* **اطمینان از نصب curl**: کاربران CentOS دستور `yum install -y curl` را اجرا کنند؛ کاربران Debian/Ubuntu دستور `apt install -y curl` را اجرا کنند
+* یک سرور خارج از کشور با شبکه عمومی IP
+* پروتکل Reality را نصب کنید: باید یک نام دامنه مورد نظر تهیه کنید که شرایط Xray را برآورده کند.
+* نسخه TLS را نصب کنید: نام دامنه را آماده کنید و رکورد A را اضافه کنید
+* خواندن[Xray 官方文档](https://xtls.github.io)مفاهیم مرتبط Reality، TLS، WebSocket، gRPC و Xray را درک کنید
+* ** مطمئن شوید که curl نصب شده است: CentOS اجرای کاربر`yum install -y curl`;Debian/Ubuntu اجرای کاربر`apt install -y curl`
 
 ## نصب سریع
 
@@ -46,38 +47,38 @@
 bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
-## حالت‌های نصب
+## حالت نصب
 
-| حالت | توضیح |
-|------|-------|
-| Reality + Nginx | حالت پیشنهادی، با انتقال‌های کمکی اختیاری ws/gRPC/xHTTP برای تعادل بار |
-| Nginx + TLS | پشتیبانی از ws/gRPC/xHTTP و صدور و تمدید خودکار گواهی‌های Let's Encrypt |
-| ws/gRPC/xHTTP ONLY | حالت ورودی مستقل بدون TLS، عمدتاً برای سناریوهای بک‌اند یا تعادل بار |
-| XTLS ONLY | فقط برای رله ترافیک و سناریوهای خاص |
-| Docker | ایمیج دارای Xray، Nginx و اسکریپت اصلی از پیش نصب‌شده |
+| مدل | نشان دادن |
+|------|------|
+| Reality + Nginx | حالت پیشنهادی، می‌توانید پروتکل ساده ws/gRPC/xHTTP را در صورت نیاز برای تعادل بار وصل کنید |
+| Nginx + TLS | ws/gRPC/xHTTP را پشتیبانی کنید، به طور خودکار برای گواهی Let's Encrypt درخواست و تمدید کنید |
+| ws/gRPC/xHTTP ONLY | حالت ورودی مستقل بدون TLS، عمدتاً در سناریوهای باطن یا تعادل بار استفاده می شود |
+| XTLS ONLY | فقط در سناریوهای خاص مانند انتقال ترافیک استفاده می شود |
+| Docker | Xray، Nginx و اسکریپت اصلی در تصویر از قبل نصب شده اند. |
 
-هنگام نصب حالت‌های مرتبط با ws/gRPC/xHTTP می‌توانید `ws`، `gRPC`، `xHTTP` یا `ws+gRPC+xHTTP` را انتخاب کنید. اسکریپت پورت‌ها، مسیرها، لینک‌های اشتراک‌گذاری و کدهای QR مربوط را تولید می‌کند. Clash در حال حاضر از xHTTP پشتیبانی نمی‌کند و اسکریپت این موضوع را در خروجی پیکربندی تولیدشده اعلام می‌کند.
+هنگام نصب حالت های مرتبط ws/gRPC/xHTTP اختیاری است`ws`、`gRPC`、`xHTTP`یا`ws+gRPC+xHTTP`. اسکریپت به ترتیب پورت، مسیر، لینک اشتراک گذاری و کد QR مربوطه را ایجاد می کند. Clash در حال حاضر xHTTP را پشتیبانی نمی کند، و اسکریپت در خروجی پیکربندی درخواست می کند.
 
 ## دستورات رایج
 
-| عمل | دستور |
-|-----|-------|
-| باز کردن منوی مدیریت | `idleleo` |
-| نمایش راهنما | `idleleo --help` |
-| نصب حالت Reality | `idleleo --install-reality` |
-| نصب حالت TLS | `idleleo --install-tls` |
+| عمل کنند | سفارش دهید |
+|------|------|
+| منوی مدیریت را باز کنید | `idleleo` |
+| مشاهده راهنما | `idleleo --help` |
+| حالت Reality را نصب کنید | `idleleo --install-reality` |
+| حالت TLS را نصب کنید | `idleleo --install-tls` |
 | نصب ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
-| نمایش اطلاعات نصب | `idleleo --show` |
-| به‌روزرسانی اسکریپت | `idleleo --update` |
-| به‌روزرسانی Xray | `idleleo --xray-update` |
-| به‌روزرسانی Nginx | `idleleo --nginx-update` |
-| پیکربندی Fail2ban | `idleleo --set-fail2ban` |
-| پیکربندی مسدودسازی ترافیک | `idleleo --traffic-blocker` |
-| مشاهده ترافیک لحظه‌ای پورت | `idleleo --port-traffic` |
+| مشاهده اطلاعات نصب | `idleleo --show` |
+| به روز رسانی اسکریپت | `idleleo --update` |
+| به روز رسانی Xray | `idleleo --xray-update` |
+| به روز رسانی Nginx | `idleleo --nginx-update` |
+| تنظیم Fail2ban | `idleleo --set-fail2ban` |
+| مسدود کردن ترافیک را تنظیم کنید | `idleleo --traffic-blocker` |
+| مشاهده ترافیک پورت بلادرنگ | `idleleo --port-traffic` |
 
-## استقرار Docker
+## Docker استقرار
 
-استقرار با Docker پشتیبانی می‌شود. ایمیج شامل Xray و Nginx پیش‌نصب‌شده است و تمام قابلیت‌های اسکریپت اصلی در کانتینر در دسترس هستند. برای جزئیات [راهنمای استقرار Docker](/i18n/languages/fa/DOCKER.md) را ببینید.
+از استقرار با استفاده از Docker پشتیبانی می کند، تصویر با Xray و Nginx از قبل نصب شده است، و تمام عملکردهای اسکریپت اصلی را می توان مستقیماً در ظرف استفاده کرد. جزئیات را ببینید[Docker 部署指南](/docker/DOCKER.md)。
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
@@ -86,71 +87,71 @@ docker compose up -d
 docker attach xray-onekey
 ```
 
-## استقرار AI Skill
+## AI Skill استقرار
 
-استقرار خودکار Xray از طریق ابزارهای هوش مصنوعی (مانند Trae) بدون تعامل دستی پشتیبانی می‌شود. برای جزئیات [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill) را ببینید.
+از استقرار خودکار Xray از طریق ابزارهای AI مانند Trae بدون تعامل دستی پشتیبانی می کند. جزئیات را ببینید[Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
 
-رویکرد سنتی نیاز به اتصال SSH به سرور، اجرای اسکریپت نصب و پاسخ دادن به سؤالات تعاملی دارد؛ رویکرد Skill فقط نیاز دارد که نیازهای خود را به هوش مصنوعی بگویید، و او به‌طور خودکار یک اسکریپت غیرتعاملی تولید کرده، آن را اجرا می‌کند و مستقیماً لینک VLESS را برمی‌گرداند.
+روش سنتی نیاز به SSH برای رفتن به سرور، اجرای اسکریپت نصب و پاسخ به سوالات تعاملی یکی یکی دارد. روش Skill فقط باید به AI نیازهای شما را بگوید، و AI به طور خودکار یک اسکریپت غیر تعاملی ایجاد کرده و اجرا می کند و مستقیماً پیوند VLESS را برمی گرداند.
 
-**حالت‌های پشتیبانی‌شده**: Reality / TLS / ws ONLY / XTLS ONLY
+**حالت های پشتیبانی شده**: Reality / TLS / ws ONLY / XTLS ONLY
 
-**نحوه استفاده**: در ابزار هوش مصنوعی که از Skill پشتیبانی می‌کند، فقط بگویید «به من کمک کنید Xray را روی سرورم نصب کنم»، و هوش مصنوعی به‌طور خودکار اطلاعات را جمع‌آوری کرده، اسکریپت را تولید کرده، استقرار را اجرا کرده و اطلاعات اتصال را برمی‌گرداند.
+**نحوه استفاده**: در ابزار AI که از Skill پشتیبانی می کند، مستقیماً بگویید "Help me build Xray on server" و AI به طور خودکار اطلاعات را جمع آوری می کند، اسکریپت ها را تولید می کند، استقرار را انجام می دهد و اطلاعات اتصال را برمی گرداند.
 
-## نکات مهم
+## موارد قابل توجه
 
-* اگر با تنظیمات آشنا نیستید، برای فیلدهای غیرضروری از مقادیر پیش‌فرض استفاده کنید (فقط Enter بزنید)
-* کاربران Cloudflare فقط پس از اتمام نصب CDN را فعال کنند
-* این اسکریپت به دانش پایه Linux و شبکه‌های کامپیوتری نیاز دارد
-* پشتیبانی از Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+؛ برخی قالب‌های CentOS ممکن است مشکل کامپایل داشته باشند — در صورت بروز مشکل، تغییر سیستم‌عامل توصیه می‌شود
-* توصیه می‌شود فقط یک پروکسی در هر سرور مستقر کنید و از پورت پیش‌فرض 443 استفاده کنید
-* نگاشت رشته‌های سفارشی به UUIDv5 نیازمند پشتیبانی سمت کلاینت است
-* از این اسکریپت در محیط تمیز استفاده کنید؛ مبتدیان از CentOS استفاده نکنند
-* این برنامه به Nginx وابسته است — کاربرانی که Nginx را از طریق [LNMP](https://lnmp.org) یا اسکریپت‌های مشابه نصب کرده‌اند، به تداخلات احتمالی توجه کنند
-* لینک‌های اشتراک‌گذاری xHTTP برای کلاینت‌هایی است که از xHTTP پشتیبانی می‌کنند؛ خروجی پیکربندی Clash از xHTTP صرف‌نظر می‌کند
-* قبل از تأیید عملکرد، از این اسکریپت در محیط تولیدی استفاده نکنید
-* نویسنده فقط پشتیبانی محدودی ارائه می‌دهد (چون خیلی باهوش نیست)
+* اگر معنای هر تنظیم را متوجه نمی‌شوید، لطفاً از مقدار پیش‌فرض به جز فیلدهای الزامی استفاده کنید (فقط Enter را فشار دهید)
+* Cloudflare کاربران لطفاً پس از اتمام نصب CDN را باز کنند.
+* این اسکریپت به دانش اولیه Linux و دانش شبکه کامپیوتری نیاز دارد
+* پشتیبانی از Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+، برخی از قالب های CentOS ممکن است مشکلات کامپایل داشته باشند، توصیه می شود در صورت مواجهه با مشکل، سیستم را تغییر دهید.
+* توصیه می شود که یک سرور تنها یک عامل را مستقر کرده و از پورت پیش فرض 443 استفاده کند
+* نگاشت رشته سفارشی به UUIDv5 نیاز به پشتیبانی مشتری دارد
+* استفاده از آن در محیط خالص توصیه می شود. تازه کارها نباید از CentOS استفاده کنند
+* این برنامه به Nginx بستگی دارد، گذشت[LNMP](https://lnmp.org)کاربرانی که اسکریپت Nginx را نصب کرده اند، لطفاً از تداخل احتمالی آگاه باشند.
+* پیوند مشترک xHTTP برای مشتریانی است که xHTTP را پشتیبانی می کنند. خروجی پیکربندی Clash از xHTTP رد می شود
+* از این اسکریپت در یک محیط تولیدی بدون بررسی اولیه در دسترس بودن استفاده نکنید
+* نویسنده فقط پشتیبانی محدودی ارائه می دهد (زیرا او خیلی احمق است)
 
-## تشکر
+## قدردانی
 
-* بر اساس [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)
-* اسکریپت تسریع TCP از [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
+* بر اساس[wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)توسعه دهد
+* TCP اسکریپت شتاب به نقل از[ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
-## پیکربندی گواهی‌نامه
+## پیکربندی گواهی
 
-**گواهی سفارشی**: فایل‌های crt و key را به `xray.crt` و `xray.key` تغییر نام دهید و در مسیر `/etc/idleleo/cert` قرار دهید (در صورت عدم وجود، دایرکتوری را ایجاد کنید). به مجوزها و مدت اعتبار گواهی توجه کنید — گواهی‌های سفارشی پس از انقضا باید به صورت دستی تمدید شوند.
+**گواهی سفارشی**: فایل های crt و key را به ترتیب نام گذاری کنید.`xray.crt`و`xray.key`، قرار دهید`/etc/idleleo/cert`دایرکتوری (اگر دایرکتوری وجود ندارد، ابتدا آن را ایجاد کنید). لطفا به مرجع گواهی و مدت اعتبار توجه کنید. پس از انقضای گواهی سفارشی، باید خودتان آن را تمدید کنید.
 
-**گواهی خودکار**: اسکریپت از تولید خودکار گواهی Let's Encrypt پشتیبانی می‌کند (اعتبار ۳ ماهه)، با پشتیبانی نظری از تمدید خودکار.
+**گواهی خودکار**: اسکریپت از تولید خودکار گواهی های Let's Encrypt (معتبر به مدت 3 ماه) پشتیبانی می کند و از نظر تئوری از تمدید خودکار پشتیبانی می کند.
 
-## مشاهده تنظیمات کلاینت
+## مشاهده پیکربندی مشتری
 
 ```bash
 cat /etc/idleleo/info/xray_info.inf
 ```
 
-## درباره Xray
+## Xray مقدمه
 
-* Xray یک ابزار پروکسی شبکه متن‌باز عالی است که از Windows، macOS، Android، iOS، Linux و سایر پلتفرم‌ها پشتیبانی می‌کند
-* این اسکریپت یک پیکربندی کامل یک‌کلیکی ارائه می‌دهد — پس از پایان موفقیت‌آمیز تمام فرآیندها، کلاینت خود را بر اساس نتایج خروجی تنظیم کنید
-* **به شدت توصیه می‌شود** فرآیند کار و اصول برنامه را به طور کامل درک کنید
+* Xray یک ابزار پروکسی شبکه منبع باز عالی است که از Windows، macOS، Android، iOS، Linux و دیگر پلتفرم های کامل پشتیبانی می کند.
+* این اسکریپت یک اسکریپت پیکربندی کامل با یک کلیک است. پس از اینکه تمام فرآیندها به طور معمول تکمیل شدند، می توان از مشتری با توجه به نتایج خروجی استفاده کرد.
+* **به شدت توصیه می شود** درک جامع از جریان کار و اصول برنامه
 
-## مدیریت سرویس
+## مدیریت خدمات
 
-| عمل | دستور |
-|-----|-------|
-| راه‌اندازی Xray | `systemctl start xray` |
+| عمل کنند | سفارش دهید |
+|------|------|
+| شروع Xray | `systemctl start xray` |
 | توقف Xray | `systemctl stop xray` |
-| راه‌اندازی Nginx | `systemctl start nginx` |
+| شروع Nginx | `systemctl start nginx` |
 | توقف Nginx | `systemctl stop nginx` |
 
-## دایرکتوری‌ها
+## کاتالوگ مرتبط
 
-| مورد | مسیر |
+| محتوا | مسیر |
 |------|------|
-| دایرکتوری اصلی | `/etc/idleleo` |
-| تنظیمات Xray | `/etc/idleleo/conf/xray/config.json` |
-| تنظیمات Nginx | `/etc/idleleo/conf/nginx/` |
+| دایرکتوری صفحه اصلی | `/etc/idleleo` |
+| پیکربندی Xray | `/etc/idleleo/conf/xray/config.json` |
+| پیکربندی Nginx | `/etc/idleleo/conf/nginx/` |
 | اطلاعات نصب | `/etc/idleleo/conf/install_config.json` |
-| فایل‌های گواهی | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
-| دایرکتوری‌های لاگ | `/etc/idleleo/logs/`, `/var/log/xray/` |
-| دایرکتوری Nginx | `/usr/local/nginx` |
-| دستور مدیریت | `/usr/bin/idleleo` |
+| فایل گواهی | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
+| دایرکتوری ورود به سیستم | `/etc/idleleo/logs/`、`/var/log/xray/` |
+| فهرست راهنمای نصب Nginx | `/usr/local/nginx` |
+| دستورات اداری | `/usr/bin/idleleo` |

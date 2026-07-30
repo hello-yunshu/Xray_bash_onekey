@@ -1,44 +1,45 @@
-# Script d'installation automatique Xray — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray Script d'installation en un clic — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
-[简体中文](/README.md) | [English](/i18n/languages/en/README.md) | Français | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
+Chinois simplifié |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
-> Merci à JetBrains pour l'autorisation de développement open source non commercial
+> Thanks for non-commercial open source development authorization by JetBrains
 
-## Fonctionnalités
+## Caractéristiques
 
-* Tapez `idleleo` pour gérer le script ([Voir l'histoire de `idleleo`](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/Le-Vrai-Visage-Derri%C3%A8re-la-Brume))
-* Traduction multilingue précise propulsée par Qwen-MT-Plus AI
-* Prend en charge le protocole Reality avec Nginx en frontal recommandé (installable via le script)
-* Prend en charge les transports WebSocket, gRPC et xHTTP, avec un transport unique ou `ws+gRPC+xHTTP` activés ensemble
-* Protection fail2ban intégrée (installable via le script)
-* Fonctionnalités intégrées au script : statistiques de trafic Xray, blocage du trafic, mises à jour GeoIP/GeoSite et mises à jour planifiées
-* Prend en charge les mises à jour automatiques du script, de Xray, de Nginx et des certificats, avec sauvegarde et restauration complètes
-* Adopte la [proposition](https://github.com/XTLS/Xray-core/issues/91) de lien de partage de [@DuckSoft](https://github.com/DuckSoft) (beta), compatible avec Qv2ray, V2rayN, V2rayNG
-* Adopte la proposition du projet [XTLS](https://github.com/XTLS/Xray-core/issues/158), conforme à la norme [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3), permettant le mappage de chaînes personnalisées vers un UUID VLESS
-* Prend en charge le protocole gRPC : [Utiliser le protocole gRPC](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
-* Prend en charge l'équilibrage de charge Reality / ws/gRPC/xHTTP :
-  - [Déployer un équilibreur de charge Reality](https://hey.run/posts/bushu-reality-balance)
-  - [Construire un équilibreur de charge backend](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+* entrer`idleleo`Vous pouvez gérer des scripts ([查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)）
+* Utilisez Qwen-MT-Plus AI pour obtenir une traduction précise dans plusieurs langues
+* Prend en charge le protocole Reality, il est recommandé d'utiliser le préfixe Nginx (peut être installé dans le script)
+* Prend en charge la transmission WebSocket, gRPC, xHTTP, vous pouvez choisir une transmission unique ou`ws+gRPC+xHTTP`Activer les deux
+* Protection fail2ban intégrée (installable dans le script)
+* Statistiques de trafic Xray intégrées, blocage du trafic, mise à jour des règles GeoIP/GeoSite et mise à jour régulière
+* Prend en charge les scripts, Xray, Nginx, les mises à jour automatiques des certificats et fournit une sauvegarde et une récupération complètes
+* utiliser[@DuckSoft](https://github.com/DuckSoft)le lien de partage[提案](https://github.com/XTLS/Xray-core/issues/91)(beta), compatible avec Qv2ray, V2rayN, V2rayNG
+* utiliser[XTLS](https://github.com/XTLS/Xray-core/issues/158)proposition, suivre[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)Standard, prend en charge le mappage de chaînes personnalisé vers VLESS UUID
+* Prend en charge le protocole gRPC :[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* Prend en charge l'équilibrage de charge Reality / ws/gRPC/xHTTP :
+  - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
+  - [搭建后端负载均衡](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+* Le mode Reality + Nginx est activé par défaut. SNI Guard : SNI inconnu, SNI vide et l'exception TLS n'entrera pas dans le backend Xray Reality. La stratégie d'isolement (ssl_reject_handshake) est adoptée par défaut. Les utilisateurs avancés peuvent passer au site de secours decoy créé par eux-mêmes ou directement à TCP refusé. Cette fonction est utilisée pour réduire l’exposition à la détection active et aux erreurs de configuration, et ne vise pas un camouflage parfait.
 
-## Pour aller plus loin
+## Lectures complémentaires
 
-* Guide d'installation Reality : [Configurer un serveur Xray Reality](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Risques du protocole Reality : [Risques du protocole Xray Reality](https://hey.run/posts/reality-xie-yi-de-feng-xian)
-* Accélérer le serveur avec Reality : [Accélérer le serveur via la « faille » du protocole Reality](https://hey.run/posts/use-reality)
+* RealityGuide d'installation :[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality Risque de protocole :[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Reality Serveur accéléré :[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
 
 ## Groupe Telegram
 
-* Groupe de discussion : [Cliquez pour rejoindre](https://t.me/+48VSqv7xIIFmZDZl)
+* Groupe de communication :[点击加入](https://t.me/+48VSqv7xIIFmZDZl)
 
-## Prérequis
+## Préparation
 
-* Un serveur à l'étranger avec une adresse IP publique
-* Pour le protocole Reality : préparez un domaine cible conforme aux exigences de Xray
-* Pour le mode TLS : préparez un domaine et ajoutez un enregistrement A
-* Lisez la [documentation officielle Xray](https://xtls.github.io) pour comprendre Reality, TLS, WebSocket, gRPC et les concepts liés à Xray
-* **Assurez-vous que curl est installé** : utilisateurs CentOS, exécutez `yum install -y curl` ; utilisateurs Debian/Ubuntu, exécutez `apt install -y curl`
+* Un serveur à l'étranger avec un réseau public IP
+* Installez le protocole Reality : vous devez préparer un nom de domaine cible qui répond aux exigences de Xray.
+* Installez la version TLS : préparez le nom de domaine et ajoutez l'enregistrement A
+* lire[Xray 官方文档](https://xtls.github.io), comprendre les concepts liés à Reality, TLS, WebSocket, gRPC et Xray
+* **Assurez-vous que curl est installé : exécution utilisateur CentOS`yum install -y curl`;Debian/Ubuntu Exécution utilisateur`apt install -y curl`
 
 ## Installation rapide
 
@@ -46,38 +47,38 @@
 bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
 ```
 
-## Modes d'installation
+## Mode d'installation
 
-| Mode | Description |
-|------|-------------|
-| Reality + Nginx | Mode recommandé, avec transports auxiliaires ws/gRPC/xHTTP optionnels pour l'équilibrage de charge |
-| Nginx + TLS | Prend en charge ws/gRPC/xHTTP et émet puis renouvelle automatiquement les certificats Let's Encrypt |
-| ws/gRPC/xHTTP ONLY | Mode entrant autonome sans TLS, surtout pour les scénarios de backend ou d'équilibrage de charge |
-| XTLS ONLY | Réservé au relais de trafic et à certains scénarios spécifiques |
-| Docker | Image avec Xray, Nginx et le script principal préinstallés |
+| modèle | illustrer |
+|------|------|
+| Reality + Nginx | Mode recommandé, vous pouvez associer un protocole simple ws/gRPC/xHTTP selon vos besoins pour l'équilibrage de charge. |
+| Nginx + TLS | Soutenir ws/gRPC/xHTTP, demander et renouveler automatiquement le certificat Let's Encrypt |
+| ws/gRPC/xHTTP ONLY | Mode entrant indépendant sans TLS, principalement utilisé dans les scénarios backend ou d'équilibrage de charge |
+| XTLS ONLY | Utilisé uniquement dans des scénarios spécifiques tels que le transfert de trafic |
+| Docker | Xray, Nginx et le script principal sont préinstallés dans l'image |
 
-Lors de l'installation des modes ws/gRPC/xHTTP, vous pouvez choisir `ws`, `gRPC`, `xHTTP` ou `ws+gRPC+xHTTP`. Le script génère les ports, chemins, liens de partage et QR codes correspondants. Clash ne prend actuellement pas en charge xHTTP ; le script le signale dans la sortie de configuration générée.
+Facultatif lors de l'installation des modes associés à ws/gRPC/xHTTP`ws`、`gRPC`、`xHTTP`ou`ws+gRPC+xHTTP`. Le script générera respectivement le port, le chemin, le lien de partage et le code QR correspondants ; Clash ne prend actuellement pas en charge xHTTP et le script vous demandera la sortie de configuration.
 
 ## Commandes courantes
 
-| Action | Commande |
-|--------|----------|
-| Ouvrir le menu de gestion | `idleleo` |
+| fonctionner | Commande |
+|------|------|
+| Ouvrez le menu d'administration | `idleleo` |
 | Afficher l'aide | `idleleo --help` |
 | Installer le mode Reality | `idleleo --install-reality` |
 | Installer le mode TLS | `idleleo --install-tls` |
 | Installer ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
 | Afficher les informations d'installation | `idleleo --show` |
-| Mettre à jour le script | `idleleo --update` |
+| script de mise à jour | `idleleo --update` |
 | Mettre à jour Xray | `idleleo --xray-update` |
 | Mettre à jour Nginx | `idleleo --nginx-update` |
-| Configurer Fail2ban | `idleleo --set-fail2ban` |
-| Configurer le blocage de trafic | `idleleo --traffic-blocker` |
-| Voir le trafic des ports en temps réel | `idleleo --port-traffic` |
+| Définir Fail2ban | `idleleo --set-fail2ban` |
+| Configurer le blocage du trafic | `idleleo --traffic-blocker` |
+| Visualisez le trafic portuaire en temps réel | `idleleo --port-traffic` |
 
-## Déploiement Docker
+## Docker Déploiement
 
-Le déploiement Docker est pris en charge. L'image intègre Xray et Nginx préinstallés, et toutes les fonctionnalités du script original sont disponibles dans le conteneur. Consultez le [Guide de déploiement Docker](/i18n/languages/fr/DOCKER.md) pour plus de détails.
+Prend en charge le déploiement à l'aide de Docker, l'image est préinstallée avec Xray et Nginx et toutes les fonctions du script d'origine peuvent être utilisées directement dans le conteneur. Voir les détails[Docker 部署指南](/docker/DOCKER.md)。
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
@@ -86,71 +87,71 @@ docker compose up -d
 docker attach xray-onekey
 ```
 
-## Déploiement AI Skill
+## AI Skill Déploiement
 
-Prend en charge le déploiement automatique de Xray via des outils IA (par ex. Trae) sans interaction manuelle. Consultez [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill) pour plus de détails.
+Prend en charge le déploiement automatique de Xray via les outils AI tels que Trae sans interaction manuelle. Voir les détails[Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
 
-L'approche traditionnelle nécessite de se connecter en SSH au serveur, d'exécuter le script d'installation et de répondre aux questions interactives une par une ; l'approche Skill vous suffit de dire à l'IA vos besoins, et elle génère automatiquement un script non interactif, l'exécute et renvoie directement le lien VLESS.
+La méthode traditionnelle nécessite que SSH accède au serveur, exécute le script d'installation et réponde aux questions interactives une par une ; la méthode Skill n'a besoin que d'indiquer à AI vos besoins, et AI générera automatiquement un script non interactif et l'exécutera, renvoyant directement le lien VLESS.
 
-**Modes pris en charge** : Reality / TLS / ws ONLY / XTLS ONLY
+**Modes pris en charge** : Reality / TLS / ws ONLY / XTLS ONLY
 
-**Utilisation** : Dans un outil IA prenant en charge les Skills, dites simplement « Aidez-moi à installer Xray sur mon serveur », et l'IA collectera automatiquement les informations, générera le script, exécutera le déploiement et renverra les informations de connexion.
+**Comment l'utiliser** : dites directement "Aidez-moi à créer Xray sur le serveur" dans l'outil AI qui prend en charge Skill, et AI collectera automatiquement des informations, générera des scripts, effectuera le déploiement et renverra les informations de connexion.
 
-## Remarques importantes
+## Choses à noter
 
-* Si vous n'êtes pas familier avec les paramètres, utilisez les valeurs par défaut pour les champs non obligatoires (appuyez simplement sur Entrée)
-* Les utilisateurs Cloudflare doivent activer le CDN uniquement après l'installation
-* Ce script nécessite des connaissances de base en Linux et en réseaux informatiques
-* Compatible Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+ ; certains modèles CentOS peuvent rencontrer des problèmes de compilation — envisagez de changer de système si nécessaire
-* Il est recommandé de ne déployer qu'un seul proxy par serveur et d'utiliser le port 443 par défaut
-* Le mappage de chaînes personnalisées vers UUIDv5 nécessite la prise en charge du client
-* Utilisez ce script dans un environnement propre ; les débutants doivent éviter CentOS
-* Ce programme dépend de Nginx — les utilisateurs ayant installé Nginx via [LNMP](https://lnmp.org) ou des scripts similaires doivent être attentifs aux conflits potentiels
-* Les liens de partage xHTTP sont destinés aux clients compatibles xHTTP ; la sortie de configuration Clash ignore xHTTP
-* N'utilisez pas ce script en production avant d'avoir vérifié son bon fonctionnement
-* L'auteur fournit un support limité (parce qu'il n'est pas très doué)
+* Si vous ne comprenez pas la signification de chaque paramètre, veuillez utiliser la valeur par défaut, à l'exception des champs obligatoires (appuyez simplement sur Entrée)
+* Cloudflare Les utilisateurs doivent ouvrir CDN une fois l'installation terminée.
+* Ce script nécessite une connaissance de base de Linux et une connaissance des réseaux informatiques.
+* Prend en charge Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+, certains modèles CentOS peuvent avoir des problèmes de compilation, il est recommandé de changer de système en cas de problèmes
+* Il est recommandé qu'un seul serveur ne déploie qu'un seul agent et utilise le port par défaut 443.
+* Le mappage de chaîne personnalisé vers UUIDv5 nécessite la prise en charge du client
+* Il est recommandé de l'utiliser dans un environnement pur ; les novices ne devraient pas utiliser CentOS
+* Ce programme dépend de Nginx, réussi[LNMP](https://lnmp.org)Les utilisateurs qui ont installé le script Nginx doivent être conscients des conflits potentiels.
+* Le lien partagé xHTTP est destiné aux clients qui prennent en charge xHTTP ; La sortie de configuration Clash ignorera xHTTP
+* N'utilisez pas ce script dans un environnement de production sans vérifier au préalable la disponibilité
+* L'auteur n'apporte qu'un soutien limité (car il est trop bête)
 
 ## Remerciements
 
-* Basé sur [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)
-* Script d'accélération TCP de [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
+* basé sur[wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)développer
+* TCP script d'accélération cité de[ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
-## Configuration des certificats
+## Configuration du certificat
 
-**Certificat personnalisé** : Renommez vos fichiers crt et key en `xray.crt` et `xray.key`, puis placez-les dans le répertoire `/etc/idleleo/cert` (créez-le s'il n'existe pas). Attention aux permissions et à la durée de validité — les certificats personnalisés doivent être renouvelés manuellement après expiration.
+**Certificat personnalisé** : nommez respectivement les fichiers crt et key.`xray.crt`et`xray.key`, mettre dedans`/etc/idleleo/cert`Répertoire (si le répertoire n'existe pas, créez-le d'abord). Veuillez faire attention à l'autorité de certification et à la période de validité. Une fois le certificat personnalisé expiré, vous devez le renouveler vous-même.
 
-**Certificat automatique** : Le script prend en charge la génération automatique de certificats Let's Encrypt (valides 3 mois), avec prise en charge théorique du renouvellement automatique.
+**Certificat automatique** : le script prend en charge la génération automatique de certificats Let's Encrypt (valable 3 mois) et prend théoriquement en charge le renouvellement automatique.
 
-## Afficher la configuration client
+## Afficher la configuration du client
 
 ```bash
 cat /etc/idleleo/info/xray_info.inf
 ```
 
-## À propos de Xray
+## Xray Introduction
 
-* Xray est un excellent outil proxy réseau open source prenant en charge Windows, macOS, Android, iOS, Linux et plus encore
-* Ce script offre une configuration complète en un clic — une fois tous les processus terminés, configurez simplement votre client à partir des résultats affichés
-* **Il est fortement recommandé** de bien comprendre le fonctionnement et les principes du programme
+* Xray est un excellent outil proxy réseau open source qui prend en charge Windows, macOS, Android, iOS, Linux et d'autres plates-formes complètes.
+* Ce script est un script de configuration complet en un clic. Une fois que tous les processus sont terminés normalement, le client peut être utilisé en fonction des résultats de sortie.
+* **FORTEMENT RECOMMANDÉ** Une compréhension complète du flux de travail et des principes du programme
 
 ## Gestion des services
 
-| Action | Commande |
-|--------|----------|
-| Démarrer Xray | `systemctl start xray` |
+| fonctionner | Commande |
+|------|------|
+| Début Xray | `systemctl start xray` |
 | Arrêter Xray | `systemctl stop xray` |
-| Démarrer Nginx | `systemctl start nginx` |
+| Début Nginx | `systemctl start nginx` |
 | Arrêter Nginx | `systemctl stop nginx` |
 
-## Répertoires
+## Catalogue associé
 
-| Élément | Chemin |
-|---------|--------|
-| Répertoire principal | `/etc/idleleo` |
+| contenu | chemin |
+|------|------|
+| Répertoire personnel | `/etc/idleleo` |
 | Configuration Xray | `/etc/idleleo/conf/xray/config.json` |
 | Configuration Nginx | `/etc/idleleo/conf/nginx/` |
-| Infos d'installation | `/etc/idleleo/conf/install_config.json` |
-| Fichiers de certificat | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
-| Répertoires de logs | `/etc/idleleo/logs/`, `/var/log/xray/` |
-| Répertoire Nginx | `/usr/local/nginx` |
-| Commande de gestion | `/usr/bin/idleleo` |
+| Informations d'installation | `/etc/idleleo/conf/install_config.json` |
+| fichier de certificat | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
+| Répertoire des journaux | `/etc/idleleo/logs/`、`/var/log/xray/` |
+| Répertoire d'installation Nginx | `/usr/local/nginx` |
+| Commandes administratives | `/usr/bin/idleleo` |
