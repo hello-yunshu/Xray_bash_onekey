@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 # Cross-repository Phase 1 contract verification. This test is read-only.
+#
+# Version semantics enforced here:
+#   - nginx_build_online_version: auto-synced by the API repo workflows; the
+#     release that the main repo install.sh downloads from. NOT required to
+#     equal /releases/latest at test time (auto-sync may lag by one cycle).
+#   - nginx_build_tested_version: human-promoted stable baseline. Only the
+#     manual promotion workflow may update it. MAY be older than, newer than,
+#     or equal to online. MUST NOT be forced to follow latest.
+#   - The two tested fields (xray_shell_versions.json.nginx_build_tested_version
+#     and tested_versions.json.nginx_build) MUST be atomically consistent.
 
 set -euo pipefail
 
@@ -28,92 +38,84 @@ do
 done
 
 tested_build=$(jq -r '.nginx_build_tested_version' "${VERSIONS_FILE}")
-[[ "$(jq -r '.nginx_build' "${TESTED_FILE}")" == "${tested_build}" ]]
-tag="v${tested_build}"
+online_build=$(jq -r '.nginx_build_online_version' "${VERSIONS_FILE}")
+tested_build_2=$(jq -r '.nginx_build' "${TESTED_FILE}")
+
+# Version format must be valid (same rule as validate-json.sh).
+for v in "${tested_build}" "${online_build}" "${tested_build_2}"; do
+    printf '%s' "${v}" | grep -qE '^[0-9]+(\.[0-9]+)+$' || {
+        echo "ERROR: invalid nginx build version format: ${v}" >&2
+        exit 1
+    }
+done
+
+# tested MUST be consistent between the two JSON files (atomic promotion).
+[[ "${tested_build}" == "${tested_build_2}" ]] || {
+    echo "ERROR: nginx_build_tested_version (${tested_build}) != tested_versions.json.nginx_build (${tested_build_2})" >&2
+    exit 1
+}
+
+# tested and online are independently maintained. They MAY differ or coincide;
+# neither is required to equal /releases/latest. Do NOT assert equality.
+tested_tag="v${tested_build}"
+online_tag="v${online_build}"
 
 fetch_release_json() {
+    local target_tag="$1"
     if [[ -n "${GH_TOKEN:-}" ]]; then
         curl -fsSL --retry 2 --connect-timeout 15 \
             -H "Authorization: Bearer ${GH_TOKEN}" \
-            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/tags/${tag}"
+            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/tags/${target_tag}"
     else
         curl -fsSL --retry 2 --connect-timeout 15 \
-            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/tags/${tag}"
+            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/tags/${target_tag}"
     fi
 }
 
-fetch_latest_release_json() {
-    if [[ -n "${GH_TOKEN:-}" ]]; then
-        curl -fsSL --retry 2 --connect-timeout 15 \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/latest"
-    else
-        curl -fsSL --retry 2 --connect-timeout 15 \
-            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/latest"
+require_published_release() {
+    local release_json="$1"
+    local label="$2"
+    local expected_tag="$3"
+    if [[ "$(printf '%s' "${release_json}" | jq -r '.tag_name // empty')" != "${expected_tag}" ]]; then
+        echo "ERROR: ${label} release tag does not match expected ${expected_tag}." >&2
+        exit 1
+    fi
+    if [[ "$(printf '%s' "${release_json}" | jq -r '.draft // false')" == "true" ]]; then
+        echo "ERROR: ${label} release ${expected_tag} is a draft — only published releases are allowed." >&2
+        exit 1
+    fi
+    if [[ "$(printf '%s' "${release_json}" | jq -r '.prerelease // false')" == "true" ]]; then
+        echo "ERROR: ${label} release ${expected_tag} is a prerelease — only stable releases are allowed." >&2
+        exit 1
     fi
 }
 
+require_core_assets() {
+    local release_json="$1"
+    local label="$2"
+    for asset in \
+        release-manifest.json SHA256SUMS \
+        xray-nginx-custom-x86.tar.gz xray-nginx-custom-arm.tar.gz
+    do
+        printf '%s' "${release_json}" |
+            jq -e --arg asset "${asset}" '.assets[]? | select(.name == $asset)' >/dev/null || {
+                echo "ERROR: ${label} release missing required asset: ${asset}" >&2
+                exit 1
+            }
+    done
+}
+
+# --- tested contract (full verification) -------------------------------------
 # P0-6: Fail-closed — tested Release MUST exist. A missing release means the
 # tested_version cannot serve as a real rollback baseline, so CI must fail.
-if ! release_json=$(fetch_release_json 2>/dev/null); then
-    echo "ERROR: Tested Nginx release ${tag} does not exist on GitHub (fail-closed)." >&2
+if ! release_json=$(fetch_release_json "${tested_tag}" 2>/dev/null); then
+    echo "ERROR: Tested Nginx release ${tested_tag} does not exist on GitHub (fail-closed)." >&2
     echo "ERROR: tested_version cannot serve as rollback baseline without a real Release." >&2
     exit 1
 fi
 
-if [[ "$(printf '%s' "${release_json}" | jq -r '.tag_name // empty')" != "${tag}" ]]; then
-    echo "ERROR: Release tag for ${tag} does not match expected tag." >&2
-    exit 1
-fi
-
-# The tested Release itself must not be a draft or prerelease. GitHub's
-# /releases/tags/<tag> endpoint returns the release regardless of
-# draft/prerelease status, so we enforce explicitly (fail-closed).
-if [[ "$(printf '%s' "${release_json}" | jq -r '.draft // false')" == "true" ]]; then
-    echo "ERROR: Tested Nginx release ${tag} is a draft — only published releases are allowed." >&2
-    exit 1
-fi
-if [[ "$(printf '%s' "${release_json}" | jq -r '.prerelease // false')" == "true" ]]; then
-    echo "ERROR: Tested Nginx release ${tag} is a prerelease — only stable releases are allowed." >&2
-    exit 1
-fi
-
-# The tested build MUST equal the current latest published Release. The user
-# explicitly required tested Nginx to be adjusted to the latest Release, so
-# any drift between latest and tested is a contract violation (fail-closed).
-if ! latest_release_json=$(fetch_latest_release_json 2>/dev/null); then
-    echo "ERROR: Could not fetch latest Nginx release from GitHub API (fail-closed)." >&2
-    exit 1
-fi
-latest_tag=$(printf '%s' "${latest_release_json}" | jq -r '.tag_name // empty')
-if [[ -z "${latest_tag}" ]]; then
-    echo "ERROR: Latest Nginx release has empty tag_name (fail-closed)." >&2
-    exit 1
-fi
-if [[ "${latest_tag}" != "${tag}" ]]; then
-    echo "ERROR: tested Nginx build (${tag}) != latest Release (${latest_tag})." >&2
-    echo "ERROR: tested_version must be adjusted to the current latest Release." >&2
-    exit 1
-fi
-# Belt-and-suspenders: /releases/latest never returns drafts or prereleases,
-# but assert explicitly so the contract is self-documenting.
-if [[ "$(printf '%s' "${latest_release_json}" | jq -r '.draft // false')" == "true" ]]; then
-    echo "ERROR: Latest Nginx release ${latest_tag} is a draft." >&2
-    exit 1
-fi
-if [[ "$(printf '%s' "${latest_release_json}" | jq -r '.prerelease // false')" == "true" ]]; then
-    echo "ERROR: Latest Nginx release ${latest_tag} is a prerelease." >&2
-    exit 1
-fi
-
-# Verify required assets exist in the release.
-for asset in \
-    release-manifest.json SHA256SUMS \
-    xray-nginx-custom-x86.tar.gz xray-nginx-custom-arm.tar.gz
-do
-    printf '%s' "${release_json}" |
-        jq -e --arg asset "${asset}" '.assets[]? | select(.name == $asset)' >/dev/null
-done
+require_published_release "${release_json}" "tested" "${tested_tag}"
+require_core_assets "${release_json}" "tested" "${tested_tag}"
 
 # P0-8: Download manifest and SHA256SUMS to temp files for byte-exact SHA
 # verification. Shell command substitution would strip trailing newlines and
@@ -132,7 +134,7 @@ curl -fsSL --retry 2 --connect-timeout 15 -o "$sha256sums_file" "$sha256sums_url
 
 # Verify manifest is valid JSON with correct tag, version, and x86/arm assets.
 jq empty "$manifest_file"
-jq -e --arg version "${tested_build}" --arg tag "${tag}" '
+jq -e --arg version "${tested_build}" --arg tag "${tested_tag}" '
     .tag == $tag and
     .versions.nginx_build == $version and
     ([.assets[] | select(.arch == "x86" and
@@ -182,7 +184,20 @@ fi
 rm -f "$manifest_file" "$sha256sums_file"
 trap - EXIT
 
-echo "Tested Nginx release ${tag} verified (manifest + SHA256SUMS + assets + SHA consistency)."
+echo "Tested Nginx release ${tested_tag} verified (manifest + SHA256SUMS + assets + SHA consistency)."
+
+# --- online contract (lighter verification) ----------------------------------
+# online is the release install.sh downloads from. It MUST exist as a published
+# release with the 4 core assets. It is NOT required to equal /releases/latest
+# (auto-sync may lag by one workflow cycle) and NOT required to equal tested.
+if ! online_release_json=$(fetch_release_json "${online_tag}" 2>/dev/null); then
+    echo "ERROR: Online Nginx release ${online_tag} does not exist on GitHub (fail-closed)." >&2
+    echo "ERROR: install.sh download target must be a real Release." >&2
+    exit 1
+fi
+require_published_release "${online_release_json}" "online" "${online_tag}"
+require_core_assets "${online_release_json}" "online" "${online_tag}"
+echo "Online Nginx release ${online_tag} verified (published release + core assets)."
 
 grep -Fq 'releases/download/v${nginx_build_version}' "${MAIN_REPO}/install.sh"
 
@@ -191,20 +206,26 @@ grep -Fq 'releases/download/v${nginx_build_version}' "${MAIN_REPO}/install.sh"
 source "${NGINX_REPO}/.github/scripts/release_cleanup.sh"
 protected=$(parse_protected_versions \
     "$(jq -c . "${VERSIONS_FILE}")" "$(jq -c . "${TESTED_FILE}")" "")
-fixture=$(jq -n --arg tested "${tag}" '[
+fixture=$(jq -n --arg tested "${tested_tag}" --arg online "${online_tag}" '[
     {id: 1, tag_name: "v2099.01.01.1", created_at: "2099-01-01T00:00:00Z"},
     {id: 2, tag_name: "v2098.01.01.1", created_at: "2098-01-01T00:00:00Z"},
     {id: 3, tag_name: "v2097.01.01.1", created_at: "2097-01-01T00:00:00Z"},
     {id: 4, tag_name: "v2096.01.01.1", created_at: "2096-01-01T00:00:00Z"},
     {id: 5, tag_name: "v2095.01.01.1", created_at: "2095-01-01T00:00:00Z"},
     {id: 6, tag_name: "v2094.01.01.1", created_at: "2094-01-01T00:00:00Z"},
-    {id: 7, tag_name: $tested, created_at: "2025-01-01T00:00:00Z"}
+    {id: 7, tag_name: $tested, created_at: "2025-01-01T00:00:00Z"},
+    {id: 8, tag_name: $online, created_at: "2025-06-01T00:00:00Z"}
   ]')
+# Keep the keep-count at 5 so both tested and online sit outside the plain
+# retention window when they differ from the newest fixtures above. This proves
+# cleanup protects them even when they are older than the latest releases.
 deletions=$(compute_releases_to_delete "${fixture}" "${protected}" 5)
-if printf '%s' "${deletions}" | jq -e --arg tag "${tag}" '.[] | select(.tag_name == $tag)' >/dev/null; then
-    echo "Cleanup contract would delete tested build ${tag}" >&2
-    exit 1
-fi
+for protected_tag in "${tested_tag}" "${online_tag}"; do
+    if printf '%s' "${deletions}" | jq -e --arg tag "${protected_tag}" '.[] | select(.tag_name == $tag)' >/dev/null; then
+        echo "Cleanup contract would delete protected build ${protected_tag}" >&2
+        exit 1
+    fi
+done
 
 grep -Fq 'custom_email="${EMAIL}"' "${SKILL_REPO}/assets/setup-reality.sh"
 grep -Fq 'custom_email="${EMAIL}"' "${SKILL_REPO}/assets/setup-tls.sh"
