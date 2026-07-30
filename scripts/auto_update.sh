@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-VERSION="1.1.5"
+VERSION="1.1.6"
 
 _script_args=("$@")
 
@@ -17,6 +17,58 @@ log_file="${log_dir}/auto_update.log"
 running_file="${log_dir}/auto_update.running"
 xray_install_config_file="${idleleo_dir}/conf/install_config.json"
 failed_update_marker="${log_dir}/update_failed.mark"
+
+# Safely update install_config.json preserving owner/group/mode.
+# Implements same semantics as install.sh:update_json_config but standalone
+# (auto_update.sh runs as cron and must not source install.sh which has side effects).
+# Args: jq_filter_and_args... (passed to jq as-is, e.g. --arg sv "1.0" '. += {"shell_version":$sv}')
+# Returns: 0 on success, 1 on failure. Original file is never touched on failure.
+safe_update_install_config() {
+    local config_file="${xray_install_config_file}"
+    [[ -f "${config_file}" ]] || return 1
+
+    local original_mode original_uid original_gid tmp_file _old_umask
+    original_mode=$(stat -c '%a' "${config_file}" 2>/dev/null) || return 1
+    original_uid=$(stat -c '%u' "${config_file}" 2>/dev/null) || return 1
+    original_gid=$(stat -c '%g' "${config_file}" 2>/dev/null) || return 1
+    # Same directory = same filesystem for atomic mv; mktemp avoids symlink attacks
+    tmp_file=$(mktemp "${config_file}.tmp.XXXXXX" 2>/dev/null) || tmp_file="${config_file}.tmp.$$"
+
+    _old_umask=$(umask)
+    umask 077
+
+    if ! jq "$@" "${config_file}" > "${tmp_file}" 2>/dev/null; then
+        umask "${_old_umask}"
+        rm -f "${tmp_file}"
+        echo "Failed to generate updated JSON for ${config_file##*/}" >>"${log_file}"
+        return 1
+    fi
+    # Validate generated JSON before replacing original (fail closed)
+    if ! jq empty "${tmp_file}" >/dev/null 2>&1; then
+        umask "${_old_umask}"
+        rm -f "${tmp_file}"
+        echo "Generated JSON invalid, kept original ${config_file##*/}" >>"${log_file}"
+        return 1
+    fi
+    # Restore original owner/group/mode (do not let auto-update widen sensitive file perms)
+    if ! chmod "${original_mode}" "${tmp_file}" 2>/dev/null || ! chown "${original_uid}:${original_gid}" "${tmp_file}" 2>/dev/null; then
+        umask "${_old_umask}"
+        rm -f "${tmp_file}"
+        echo "Failed to restore permissions on ${config_file##*/}" >>"${log_file}"
+        return 1
+    fi
+    umask "${_old_umask}"
+
+    if ! mv "${tmp_file}" "${config_file}"; then
+        rm -f "${tmp_file}"
+        echo "Failed to atomically replace ${config_file##*/}" >>"${log_file}"
+        return 1
+    fi
+
+    # Refresh in-memory cache so subsequent reads in this run see the new content
+    info_extraction_all=$(jq -rc . "${config_file}" 2>/dev/null)
+    return 0
+}
 
 check_update() {
     local temp_file
@@ -117,11 +169,9 @@ if [[ -f "${xray_install_config_file}" ]]; then
         bash "${idleleo_dir}/install.sh" -u auto_update
         [[ 0 -ne $? ]] && echo "Script update failed!" >>"${log_file}" && exit 1
         echo "Script updated successfully!" >>"${log_file}"
-        add_shell_version=$(jq -r --arg sv "${shell_online_version}" '. += {"shell_version": $sv}' "${xray_install_config_file}" 2>/dev/null)
-        if [[ -n "${add_shell_version}" ]]; then
-            tmp_config="${xray_install_config_file}.tmp.$$"
-            echo "${add_shell_version}" | jq . >"${tmp_config}" 2>/dev/null && mv "${tmp_config}" "${xray_install_config_file}" || rm -f "${tmp_config}"
-            info_extraction_all=$(jq -rc . "${xray_install_config_file}" 2>/dev/null)
+        # Persist shell_version preserving owner/group/mode (Task A: avoid permission regression)
+        if ! safe_update_install_config --arg sv "${shell_online_version}" '. += {"shell_version": $sv}'; then
+            echo "Failed to persist shell_version in config (original preserved)" >>"${log_file}"
         fi
     else
         echo "Script is up to date!" >>"${log_file}"
