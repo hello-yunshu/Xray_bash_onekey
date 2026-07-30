@@ -42,6 +42,17 @@ fetch_release_json() {
     fi
 }
 
+fetch_latest_release_json() {
+    if [[ -n "${GH_TOKEN:-}" ]]; then
+        curl -fsSL --retry 2 --connect-timeout 15 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/latest"
+    else
+        curl -fsSL --retry 2 --connect-timeout 15 \
+            "https://api.github.com/repos/hello-yunshu/Xray_bash_onekey_Nginx/releases/latest"
+    fi
+}
+
 # P0-6: Fail-closed — tested Release MUST exist. A missing release means the
 # tested_version cannot serve as a real rollback baseline, so CI must fail.
 if ! release_json=$(fetch_release_json 2>/dev/null); then
@@ -52,6 +63,46 @@ fi
 
 if [[ "$(printf '%s' "${release_json}" | jq -r '.tag_name // empty')" != "${tag}" ]]; then
     echo "ERROR: Release tag for ${tag} does not match expected tag." >&2
+    exit 1
+fi
+
+# The tested Release itself must not be a draft or prerelease. GitHub's
+# /releases/tags/<tag> endpoint returns the release regardless of
+# draft/prerelease status, so we enforce explicitly (fail-closed).
+if [[ "$(printf '%s' "${release_json}" | jq -r '.draft // false')" == "true" ]]; then
+    echo "ERROR: Tested Nginx release ${tag} is a draft — only published releases are allowed." >&2
+    exit 1
+fi
+if [[ "$(printf '%s' "${release_json}" | jq -r '.prerelease // false')" == "true" ]]; then
+    echo "ERROR: Tested Nginx release ${tag} is a prerelease — only stable releases are allowed." >&2
+    exit 1
+fi
+
+# The tested build MUST equal the current latest published Release. The user
+# explicitly required tested Nginx to be adjusted to the latest Release, so
+# any drift between latest and tested is a contract violation (fail-closed).
+if ! latest_release_json=$(fetch_latest_release_json 2>/dev/null); then
+    echo "ERROR: Could not fetch latest Nginx release from GitHub API (fail-closed)." >&2
+    exit 1
+fi
+latest_tag=$(printf '%s' "${latest_release_json}" | jq -r '.tag_name // empty')
+if [[ -z "${latest_tag}" ]]; then
+    echo "ERROR: Latest Nginx release has empty tag_name (fail-closed)." >&2
+    exit 1
+fi
+if [[ "${latest_tag}" != "${tag}" ]]; then
+    echo "ERROR: tested Nginx build (${tag}) != latest Release (${latest_tag})." >&2
+    echo "ERROR: tested_version must be adjusted to the current latest Release." >&2
+    exit 1
+fi
+# Belt-and-suspenders: /releases/latest never returns drafts or prereleases,
+# but assert explicitly so the contract is self-documenting.
+if [[ "$(printf '%s' "${latest_release_json}" | jq -r '.draft // false')" == "true" ]]; then
+    echo "ERROR: Latest Nginx release ${latest_tag} is a draft." >&2
+    exit 1
+fi
+if [[ "$(printf '%s' "${latest_release_json}" | jq -r '.prerelease // false')" == "true" ]]; then
+    echo "ERROR: Latest Nginx release ${latest_tag} is a prerelease." >&2
     exit 1
 fi
 
