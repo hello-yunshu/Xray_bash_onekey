@@ -868,32 +868,47 @@ dependency_install() {
 }
 
 read_optimize() {
-    local prompt="$1" var_name="$2" default_value="${3:-NULL}" min_value="${4:-}" max_value="${5:-}" error_msg="${6:-$(gettext "值为空或超出范围, 请重新输入")!}"
+    local prompt="$1"
+    local var_name="$2"
+    local default_value="${3:-NULL}"
+    local min_value="${4:-}"
+    local max_value="${5:-}"
+    local error_msg="${6:-$(gettext "值为空或超出范围, 请重新输入")!}"
     local user_input
 
     while true; do
-        read -rp "$prompt" user_input
+        if ! IFS= read -r -p "${prompt}" user_input; then
+            log_echo "${Error} ${RedBG} $(gettext "输入已结束, 操作取消") ${Font}"
+            return 1
+        fi
 
-        if [[ -z $user_input ]]; then
-            if [[ $default_value != "NULL" ]]; then
-                user_input=$default_value
-                break
+        if [[ -z "${user_input}" ]]; then
+            if [[ "${default_value}" != "NULL" ]]; then
+                user_input="${default_value}"
             else
                 log_echo "${Error} ${RedBG} $(gettext "值为空, 请重新输入")! ${Font}"
                 continue
             fi
         fi
 
-        if [[ -n $min_value ]] && [[ -n $max_value ]]; then
-            if (( user_input < min_value )) || (( user_input > max_value )); then
-                log_echo "${Error} ${RedBG} $error_msg ${Font}"
+        if [[ -n "${min_value}" || -n "${max_value}" ]]; then
+            if [[ ! "${user_input}" =~ ^[0-9]+$ ]]; then
+                log_echo "${Error} ${RedBG} ${error_msg} ${Font}"
+                continue
+            fi
+            if [[ -n "${min_value}" ]] && (( user_input < min_value )); then
+                log_echo "${Error} ${RedBG} ${error_msg} ${Font}"
+                continue
+            fi
+            if [[ -n "${max_value}" ]] && (( user_input > max_value )); then
+                log_echo "${Error} ${RedBG} ${error_msg} ${Font}"
                 continue
             fi
         fi
-        break
-    done
 
-    printf -v "$var_name" "%s" "$user_input"
+        printf -v "${var_name}" '%s' "${user_input}"
+        return 0
+    done
 }
 
 basic_optimization() {
@@ -943,6 +958,48 @@ validate_reality_reserved_ports() {
         log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${conflicting_port} ${Font}"
         return 1
     fi
+    return 0
+}
+
+validate_port_number() {
+    local port="$1"
+    [[ "${port}" =~ ^[0-9]+$ ]] && (( port >= 1 && port <= 65535 ))
+}
+
+validate_active_ports() {
+    local -a names=()
+    local -a values=()
+    local i j
+
+    if [[ -n "${port:-}" && "${port}" != "None" ]]; then
+        names+=("port")
+        values+=("${port}")
+    fi
+    if is_ws_mode && [[ -n "${xport:-}" && "${xport}" != "None" ]]; then
+        names+=("ws")
+        values+=("${xport}")
+    fi
+    if is_grpc_mode && [[ -n "${gport:-}" && "${gport}" != "None" ]]; then
+        names+=("gRPC")
+        values+=("${gport}")
+    fi
+    if is_xhttp_mode && [[ -n "${xhttpport:-}" && "${xhttpport}" != "None" ]]; then
+        names+=("xHTTP")
+        values+=("${xhttpport}")
+    fi
+
+    for i in "${!values[@]}"; do
+        validate_port_number "${values[$i]}" || return 1
+        if [[ "${tls_mode:-}" == "Reality" ]] && is_reality_reserved_port "${values[$i]}"; then
+            return 1
+        fi
+        for ((j = i + 1; j < ${#values[@]}; j++)); do
+            if [[ "${values[$i]}" == "${values[$j]}" ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "端口重复"): ${names[$i]}=${values[$i]}, ${names[$j]}=${values[$j]} ${Font}"
+                return 1
+            fi
+        done
+    done
     return 0
 }
 
@@ -1331,6 +1388,85 @@ xhttp_inbound_port_set() {
             esac
         fi
     fi
+}
+
+managed_ports_file="${idleleo_conf_dir}/managed_ports.json"
+
+# Managed-firewall compatibility layer.
+# The project historically only manages iptables directly; if firewalld or
+# nftables frontends are introduced later, route through these helpers so
+# rule idempotency and managed-port tracking remain single-sourced.
+firewall_rule_exists() {
+    local proto="$1"
+    local port="$2"
+    iptables -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1
+}
+
+firewall_add_managed_port() {
+    local proto="$1"
+    local port="$2"
+    firewall_rule_exists "${proto}" "${port}" ||
+        iptables -I INPUT -p "${proto}" --dport "${port}" -j ACCEPT
+}
+
+firewall_remove_managed_port() {
+    local proto="$1"
+    local port="$2"
+    while firewall_rule_exists "${proto}" "${port}"; do
+        iptables -D INPUT -p "${proto}" --dport "${port}" -j ACCEPT || return 1
+    done
+}
+
+atomic_write_managed_ports() {
+    local json="$1"
+    mkdir -p "$(dirname "${managed_ports_file}")"
+    local tmp_file="${managed_ports_file}.tmp.$$"
+    printf '%s' "${json}" > "${tmp_file}" || return 1
+    if ! jq empty "${tmp_file}" >/dev/null 2>&1; then
+        rm -f "${tmp_file}"
+        return 1
+    fi
+    mv "${tmp_file}" "${managed_ports_file}"
+}
+
+collect_new_managed_ports() {
+    local -a tcp=()
+    if [[ -n "${port:-}" && "${port}" != "None" ]]; then
+        tcp+=("${port}")
+    fi
+    if is_ws_mode && [[ -n "${xport:-}" && "${xport}" != "None" ]]; then
+        tcp+=("${xport}")
+    fi
+    if is_grpc_mode && [[ -n "${gport:-}" && "${gport}" != "None" ]]; then
+        tcp+=("${gport}")
+    fi
+    if is_xhttp_mode && [[ -n "${xhttpport:-}" && "${xhttpport}" != "None" ]]; then
+        tcp+=("${xhttpport}")
+    fi
+    new_ports_json=$(jq -nc --argjson tcp "$(printf '%s\n' "${tcp[@]}" | jq -R . | jq -s .)" \
+        --argjson udp '[]' '{tcp: $tcp, udp: $udp}')
+}
+
+reconcile_managed_firewall() {
+    local old_json="$1"
+    local new_json="$2"
+    local old_tcp new_tcp port proto
+    old_tcp=$(printf '%s' "${old_json}" | jq -r '.tcp[]? // empty')
+    new_tcp=$(printf '%s' "${new_json}" | jq -r '.tcp[]? // empty')
+
+    # Remove script-managed old ports that are no longer in the new set.
+    while IFS= read -r port; do
+        [[ -n "${port}" ]] || continue
+        printf '%s\n' "${new_tcp}" | grep -qxF "${port}" ||
+            firewall_remove_managed_port tcp "${port}" || true
+    done <<< "${old_tcp}"
+
+    # Add new managed ports (idempotent: firewall_add_managed_port checks first).
+    for port in ${new_tcp}; do
+        [[ -n "${port}" ]] || continue
+        firewall_add_managed_port tcp "${port}" || true
+    done
+    return 0
 }
 
 firewall_set() {
@@ -4224,17 +4360,32 @@ ip_check() {
     log_echo "$(gettext "公网IP/域名"): ${local_ip}"
 }
 
+port_listener_info() {
+    local port="$1"
+    lsof -nP -iTCP:"${port}" -sTCP:LISTEN 2>/dev/null ||
+        ss -ltnp "sport = :${port}" 2>/dev/null
+}
+
 port_exist_check() {
-    [[ -z "$1" ]] && return 0
-    if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
-        log_echo "${OK} ${GreenBG} $1 $(gettext "端口未被占用") ${Font}"
-    else
-        log_echo "${Error} ${RedBG} $(gettext "检测到") $1 $(gettext "端口被占用"), $(gettext "以下为") $1 $(gettext "端口占用信息") ${Font}"
-        lsof -i:"$1"
-        countdown "$(gettext "尝试终止占用的进程")!"
-        lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
-        log_echo "${OK} ${GreenBG} kill $(gettext "完成") ${Font}"
+    local port="${1:-}"
+
+    [[ -z "${port}" ]] && return 0
+
+    [[ "${port}" =~ ^[0-9]+$ ]] || {
+        log_echo "${Error} ${RedBG} $(gettext "端口格式无效"): ${port} ${Font}"
+        return 1
+    }
+
+    if ! port_listener_info "${port}" | grep -q .; then
+        log_echo "${OK} ${GreenBG} ${port} $(gettext "端口未被占用") ${Font}"
+        return 0
     fi
+
+    log_echo "${Error} ${RedBG} $(gettext "检测到端口被占用"): ${port} ${Font}"
+    port_listener_info "${port}"
+    log_echo "${Warning} ${YellowBG} $(gettext "脚本不会自动终止占用该端口的进程") ${Font}"
+    log_echo "${Warning} ${YellowBG} $(gettext "请更换端口或自行停止对应服务后重试") ${Font}"
+    return 1
 }
 
 acme() {
@@ -5909,7 +6060,9 @@ reset_UUID() {
 reset_port() {
     if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local _saved_old_config_status="${old_config_status}"
+        local old_ports_json new_ports_json
         old_config_status="off"
+        old_ports_json=$(cat "${managed_ports_file}" 2>/dev/null || echo '{"tcp":[],"udp":[]}')
         if [[ ${tls_mode} == "TLS" ]]; then
             port_set
             modify_nginx_port
@@ -6018,11 +6171,20 @@ reset_port() {
             modify_inbound_port
             log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         fi
-        firewall_set
+        collect_new_managed_ports
+        validate_active_ports || {
+            old_config_status="${_saved_old_config_status}"
+            return 1
+        }
         if ! service_restart; then
             old_config_status="${_saved_old_config_status}"
             return 1
         fi
+        reconcile_managed_firewall "${old_ports_json}" "${new_ports_json}" || {
+            old_config_status="${_saved_old_config_status}"
+            return 1
+        }
+        atomic_write_managed_ports "${new_ports_json}"
         reset_install_config
         old_config_status="${_saved_old_config_status}"
         return 0
@@ -6618,6 +6780,7 @@ install_xray_ws_tls() {
     ws_inbound_port_set
     grpc_inbound_port_set
     xhttp_inbound_port_set
+    validate_active_ports || return 1
     firewall_set
     ws_path_set
     grpc_path_set
@@ -6671,6 +6834,7 @@ install_xray_reality() {
     shortIds_set
     spiderx_set
     xray_reality_add_more_choose
+    validate_active_ports || return 1
     transport_qr
     firewall_set
     stop_service_all
@@ -6705,6 +6869,7 @@ install_xray_xtls_only() {
     shell_mode="XTLS ONLY"
     tls_mode="XTLS"
     port_set
+    validate_active_ports || return 1
     firewall_set
     email_set
     UUID_set
@@ -6737,6 +6902,7 @@ install_xray_ws_only() {
     ws_inbound_port_set
     grpc_inbound_port_set
     xhttp_inbound_port_set
+    validate_active_ports || return 1
     firewall_set
     ws_path_set
     grpc_path_set
@@ -6763,6 +6929,7 @@ install_xray_ws_only() {
 }
 
 update_sh() {
+    local downloaded_shell_version _backup_script
     ol_version=${shell_online_version}
     echo "${ol_version}" >"${shell_version_tmp}"
     [[ -z ${ol_version} ]] && log_echo "${Error} ${RedBG} $(gettext "检测最新版本失败")! ${Font}" && return 1
@@ -6791,14 +6958,40 @@ update_sh() {
         case $update_confirm in
         [yY][eE][sS] | [yY])
             [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
+            _backup_script=""
+            if [[ -f "${idleleo}" ]]; then
+                _backup_script="${idleleo}.bak.$$"
+                cp -a "${idleleo}" "${_backup_script}" || _backup_script=""
+            fi
             download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
             if [[ $? -ne 0 ]]; then
+                [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
+                ln -sf "${idleleo}" "${idleleo_commend_file}"
                 [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>"${log_file}"
                 [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
                 return 1
             fi
+            downloaded_shell_version=$(
+                grep -E '^shell_version=' "${idleleo_dir}/install.sh" |
+                head -n 1 |
+                awk -F'=|"' '{print $3}'
+            )
+            if [[ -z "${downloaded_shell_version}" ||
+                  "${downloaded_shell_version}" != "${newest_version}" ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "下载脚本版本校验失败") ${Font}"
+                [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
+                ln -sf "${idleleo}" "${idleleo_commend_file}"
+                rm -f "${_backup_script}"
+                return 1
+            fi
+            rm -f "${_backup_script}"
             ln -s "${idleleo}" "${idleleo_commend_file}"
-            [[ -f "${xray_install_config_file}" ]] && update_json_config "${xray_install_config_file}" --arg shell_version "${shell_version}" '.shell_version = $shell_version'
+            if [[ -f "${xray_install_config_file}" ]]; then
+                update_json_config "${xray_install_config_file}" \
+                    --arg shell_version "${downloaded_shell_version}" \
+                    '.shell_version = $shell_version' || return 1
+            fi
+            shell_version="${downloaded_shell_version}"
             clear
             log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
@@ -8319,20 +8512,63 @@ menu() {
     done
 }
 
+is_offline_safe_command() {
+    case "${1:-}" in
+        -h|--help|--purge|--uninstall|-s|--show|\
+        --service-start|--service-stop|--service-restart|\
+        --access-log|--error-log|--backup)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+dispatch_offline_safe_command() {
+    case "${1:-}" in
+        -h|--help) show_help ;;
+        --purge|--uninstall) uninstall_all ;;
+        -s|--show)
+            judge_mode
+            basic_information
+            install_link_image
+            show_information
+            ;;
+        --service-start) service_start ;;
+        --service-stop) service_stop ;;
+        --service-restart) service_restart ;;
+        --access-log) show_access_log ;;
+        --error-log) show_error_log ;;
+        --backup) backup_directories ;;
+        *) return 1 ;;
+    esac
+}
+
+harden_config_permissions_if_needed() {
+    [[ -f "${xray_install_config_file}" ]] || return 0
+    if [[ ${tls_mode} == "Reality" ]]; then
+        ensure_reality_sni_guard_defaults || log_echo "${Warning} ${YellowBG} Reality SNI Guard $(gettext "配置修改") $(gettext "失败") ${Font}"
+    fi
+    harden_config_permissions
+}
+
 [[ "${_TEST_MODE:-0}" == "1" ]] && return 0
 
 check_file_integrity
 compat_migrate
-check_online_version_connect
 init_language
-read_version || exit 1
 judge_mode
-if [[ -f "${xray_install_config_file}" ]]; then
-    if [[ ${tls_mode} == "Reality" ]]; then
-        ensure_reality_sni_guard_defaults || log_echo "${Warning} ${YellowBG} Reality SNI Guard $(gettext "配置修改") $(gettext "失败") ${Font}"
-    fi
-    harden_config_permissions || exit 1
+
+if is_offline_safe_command "${1:-}"; then
+    dispatch_offline_safe_command "$@"
+    exit $?
 fi
+
+check_online_version_connect
+read_version || exit 1
+
+harden_config_permissions_if_needed || exit 1
 idleleo_commend
 check_program
 if [[ ${tls_mode} == "Reality" ]]; then
