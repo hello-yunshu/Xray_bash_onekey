@@ -777,7 +777,17 @@ for lang in en fa fr ko ru; do
             $0 == "msgid \"" expected "\"" {
                 if (fuzzy) exit 1
                 getline
-                if ($0 == "msgstr \"\"") exit 1
+                if ($0 == "msgstr \"\"") {
+                    has_content = 0
+                    while (getline > 0) {
+                        if ($0 ~ /^"/) {
+                            if ($0 != "\"\"") has_content = 1
+                        } else {
+                            break
+                        }
+                    }
+                    if (!has_content) exit 1
+                }
                 found = 1
                 exit 0
             }
