@@ -446,6 +446,130 @@ else
     bad "managed_ports.json NOT restored: before=${managed_before} after=${managed_after}"
 fi
 
+# --- Test 15: Full TCP+UDP INPUT+OUTPUT reconciliation (443→8443) ---
+# Restore firewall helper functions that were unset by Tests 10, 11, 13.
+firewall_rule_exists() {
+    local proto="$1" port="$2"
+    iptables -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1
+}
+firewall_add_managed_port() {
+    local proto="$1" port="$2"
+    firewall_rule_exists "${proto}" "${port}" ||
+        iptables -I INPUT -p "${proto}" --dport "${port}" -j ACCEPT
+}
+firewall_remove_managed_port() {
+    local proto="$1" port="$2"
+    while firewall_rule_exists "${proto}" "${port}"; do
+        iptables -D INPUT -p "${proto}" --dport "${port}" -j ACCEPT || return 1
+    done
+}
+firewall_add_output_port() {
+    local proto="$1" port="$2"
+    iptables -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1 ||
+        iptables -I OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT
+}
+firewall_output_rule_exists() {
+    local proto="$1" port="$2"
+    iptables -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1
+}
+firewall_remove_output_port() {
+    local proto="$1" port="$2"
+    while firewall_output_rule_exists "${proto}" "${port}"; do
+        iptables -D OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT || return 1
+    done
+}
+echo "--- Full reconcile: TCP+UDP INPUT+OUTPUT 443→8443 ---"
+: > "${IPTABLES_RULES_FILE}"
+# Pre-populate old managed rules (INPUT + OUTPUT, TCP + UDP for 443)
+echo "INPUT:tcp:443"       >> "${IPTABLES_RULES_FILE}"
+echo "INPUT:udp:443"       >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:tcp:sport:443" >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:udp:sport:443" >> "${IPTABLES_RULES_FILE}"
+# User rule (should NOT be removed)
+echo "INPUT:tcp:22"        >> "${IPTABLES_RULES_FILE}"
+
+old_json='{"tcp":[443],"udp":[443]}'
+new_json='{"tcp":[8443],"udp":[8443]}'
+
+reconcile_managed_firewall "${old_json}" "${new_json}"
+
+# Old 443 INPUT TCP/UDP should be removed
+if grep -qxF "INPUT:tcp:443" "${IPTABLES_RULES_FILE}"; then
+    bad "INPUT TCP 443 should be removed"
+else
+    ok "INPUT TCP 443 removed"
+fi
+if grep -qxF "INPUT:udp:443" "${IPTABLES_RULES_FILE}"; then
+    bad "INPUT UDP 443 should be removed"
+else
+    ok "INPUT UDP 443 removed"
+fi
+# Old 443 OUTPUT TCP/UDP should be removed
+if grep -qxF "OUTPUT:tcp:sport:443" "${IPTABLES_RULES_FILE}"; then
+    bad "OUTPUT TCP sport 443 should be removed"
+else
+    ok "OUTPUT TCP sport 443 removed"
+fi
+if grep -qxF "OUTPUT:udp:sport:443" "${IPTABLES_RULES_FILE}"; then
+    bad "OUTPUT UDP sport 443 should be removed"
+else
+    ok "OUTPUT UDP sport 443 removed"
+fi
+# New 8443 INPUT TCP/UDP should be added
+if grep -qxF "INPUT:tcp:8443" "${IPTABLES_RULES_FILE}"; then
+    ok "INPUT TCP 8443 added"
+else
+    bad "INPUT TCP 8443 not added"
+fi
+if grep -qxF "INPUT:udp:8443" "${IPTABLES_RULES_FILE}"; then
+    ok "INPUT UDP 8443 added"
+else
+    bad "INPUT UDP 8443 not added"
+fi
+# New 8443 OUTPUT TCP/UDP should be added
+if grep -qxF "OUTPUT:tcp:sport:8443" "${IPTABLES_RULES_FILE}"; then
+    ok "OUTPUT TCP sport 8443 added"
+else
+    bad "OUTPUT TCP sport 8443 not added"
+fi
+if grep -qxF "OUTPUT:udp:sport:8443" "${IPTABLES_RULES_FILE}"; then
+    ok "OUTPUT UDP sport 8443 added"
+else
+    bad "OUTPUT UDP sport 8443 not added"
+fi
+# User rule tcp:22 must survive
+if grep -qxF "INPUT:tcp:22" "${IPTABLES_RULES_FILE}"; then
+    ok "User rule INPUT TCP 22 preserved"
+else
+    bad "User rule INPUT TCP 22 was removed"
+fi
+
+# --- Test 16: collect_new_managed_ports produces both TCP and UDP ---
+echo "--- collect_new_managed_ports produces TCP and UDP arrays ---"
+port="443"
+xport="10086"
+gport=""
+xhttpport=""
+transport_mode="onlyws"
+tls_mode="TLS"
+new_ports_json=""
+collect_new_managed_ports
+tcp_len=$(jq -r '.tcp | length' <<< "${new_ports_json}")
+udp_len=$(jq -r '.udp | length' <<< "${new_ports_json}")
+if [[ "${tcp_len}" == "2" && "${udp_len}" == "2" ]]; then
+    ok "collect_new_managed_ports: tcp=${tcp_len} udp=${udp_len} (both populated)"
+else
+    bad "collect_new_managed_ports: tcp=${tcp_len} udp=${udp_len} (expected 2/2)"
+fi
+# Verify both arrays contain the same ports
+tcp_ports=$(jq -r '.tcp | sort | join(",")' <<< "${new_ports_json}")
+udp_ports=$(jq -r '.udp | sort | join(",")' <<< "${new_ports_json}")
+if [[ "${tcp_ports}" == "${udp_ports}" ]]; then
+    ok "collect_new_managed_ports: tcp and udp contain same ports (${tcp_ports})"
+else
+    bad "collect_new_managed_ports: tcp=${tcp_ports} udp=${udp_ports} (mismatch)"
+fi
+
 echo ""
 echo "============================================================"
 echo "  Results: ${PASS} passed, ${FAIL} failed"

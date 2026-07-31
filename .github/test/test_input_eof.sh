@@ -197,6 +197,58 @@ else
     bad "read_optimize returned non-zero for free-form input"
 fi
 
+# --- Test 12: install_xray_ws_tls fails when domain_check returns 1 ---
+echo "--- install_xray_ws_tls: domain_check EOF → returns non-zero ---"
+PORT_SET_CALLED=0
+XRAY_INSTALL_CALLED=0
+FIREWALL_SET_CALLED=0
+port_set() { PORT_SET_CALLED=$((PORT_SET_CALLED + 1)); }
+xray_install() { XRAY_INSTALL_CALLED=$((XRAY_INSTALL_CALLED + 1)); return 0; }
+firewall_set() { FIREWALL_SET_CALLED=$((FIREWALL_SET_CALLED + 1)); }
+# Mock all other functions to no-ops
+is_root() { :; }; check_and_create_user_group() { :; }; check_system() { :; }
+dependency_install() { :; }; basic_optimization() { :; }; create_directory() { :; }
+old_config_exist_check() { :; }
+# Make domain_check fail (simulates EOF or validation failure)
+domain_check() { return 1; }
+install_xray_ws_tls 2>/dev/null
+ws_tls_rc=$?
+if [[ ${ws_tls_rc} -ne 0 ]]; then
+    ok "install_xray_ws_tls returns non-zero when domain_check fails (${ws_tls_rc})"
+else
+    bad "install_xray_ws_tls should return non-zero when domain_check fails"
+fi
+if [[ ${PORT_SET_CALLED} -eq 0 && ${XRAY_INSTALL_CALLED} -eq 0 && ${FIREWALL_SET_CALLED} -eq 0 ]]; then
+    ok "install_xray_ws_tls: port_set/xray_install/firewall_set NOT called"
+else
+    bad "install_xray_ws_tls: downstream called (port=${PORT_SET_CALLED}, xray=${XRAY_INSTALL_CALLED}, fw=${FIREWALL_SET_CALLED})"
+fi
+unset -f domain_check port_set xray_install firewall_set
+
+# --- Test 13: install_xray_reality fails when ip_check returns 1 ---
+echo "--- install_xray_reality: ip_check EOF → returns non-zero ---"
+PORT_SET_CALLED=0
+XRAY_INSTALL_CALLED=0
+FIREWALL_SET_CALLED=0
+port_set() { PORT_SET_CALLED=$((PORT_SET_CALLED + 1)); }
+xray_install() { XRAY_INSTALL_CALLED=$((XRAY_INSTALL_CALLED + 1)); return 0; }
+firewall_set() { FIREWALL_SET_CALLED=$((FIREWALL_SET_CALLED + 1)); }
+# Make ip_check fail (simulates EOF or validation failure)
+ip_check() { return 1; }
+install_xray_reality 2>/dev/null
+reality_rc=$?
+if [[ ${reality_rc} -ne 0 ]]; then
+    ok "install_xray_reality returns non-zero when ip_check fails (${reality_rc})"
+else
+    bad "install_xray_reality should return non-zero when ip_check fails"
+fi
+if [[ ${PORT_SET_CALLED} -eq 0 && ${XRAY_INSTALL_CALLED} -eq 0 && ${FIREWALL_SET_CALLED} -eq 0 ]]; then
+    ok "install_xray_reality: port_set/xray_install/firewall_set NOT called"
+else
+    bad "install_xray_reality: downstream called (port=${PORT_SET_CALLED}, xray=${XRAY_INSTALL_CALLED}, fw=${FIREWALL_SET_CALLED})"
+fi
+unset -f ip_check port_set xray_install firewall_set
+
 echo ""
 echo "============================================================"
 echo "  Results: ${PASS} passed, ${FAIL} failed"
