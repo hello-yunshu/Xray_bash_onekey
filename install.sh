@@ -30,6 +30,13 @@ RedBG="\033[41;30m"
 YellowBG="\033[43;30m"
 Font="\033[0m"
 
+# Minimal gettext fallback: returns the input string as-is when the real
+# gettext binary/function is not yet available (e.g. before init_language).
+# init_language sources the real gettext.sh which overrides this function.
+if ! command -v gettext >/dev/null 2>&1; then
+    gettext() { printf '%s' "$1"; }
+fi
+
 #notification information
 Info="${Green}[$(gettext "信息")]${Font}"
 OK="${Green}[OK]${Font}"
@@ -1484,11 +1491,14 @@ collect_new_managed_ports() {
 reconcile_managed_firewall() {
     local old_json="$1"
     local new_json="$2"
-    local old_tcp new_tcp port proto
+    local old_tcp new_tcp old_udp new_udp port
+
     old_tcp=$(printf '%s' "${old_json}" | jq -r '.tcp[]? // empty')
     new_tcp=$(printf '%s' "${new_json}" | jq -r '.tcp[]? // empty')
+    old_udp=$(printf '%s' "${old_json}" | jq -r '.udp[]? // empty')
+    new_udp=$(printf '%s' "${new_json}" | jq -r '.udp[]? // empty')
 
-    # Remove script-managed old ports that are no longer in the new set.
+    # Remove script-managed old TCP ports that are no longer in the new set.
     # Fail closed: if removal fails, abort so we don't leave stale rules.
     while IFS= read -r port; do
         [[ -n "${port}" ]] || continue
@@ -1496,11 +1506,24 @@ reconcile_managed_firewall() {
             firewall_remove_managed_port tcp "${port}" || return 1
     done <<< "${old_tcp}"
 
-    # Add new managed ports (idempotent: firewall_add_managed_port checks first).
+    # Remove script-managed old UDP ports that are no longer in the new set.
+    while IFS= read -r port; do
+        [[ -n "${port}" ]] || continue
+        printf '%s\n' "${new_udp}" | grep -qxF "${port}" ||
+            firewall_remove_managed_port udp "${port}" || return 1
+    done <<< "${old_udp}"
+
+    # Add new managed TCP ports (idempotent: firewall_add_managed_port checks first).
     # Fail closed: if add fails, abort so caller can rollback.
     for port in ${new_tcp}; do
         [[ -n "${port}" ]] || continue
         firewall_add_managed_port tcp "${port}" || return 1
+    done
+
+    # Add new managed UDP ports.
+    for port in ${new_udp}; do
+        [[ -n "${port}" ]] || continue
+        firewall_add_managed_port udp "${port}" || return 1
     done
     return 0
 }
@@ -2958,7 +2981,7 @@ sni_guard_policy_choose() {
     echo -e "${Green}3${Font}: $(gettext "直接拒绝异常 TLS 连接") ($(gettext "高级"))"
     echo -e "${Warning} $(gettext "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。") ${Font}"
     local sni_policy_choice
-    read_optimize "$(gettext "请输入选项") ($(gettext "默认值"):1):" "sni_policy_choice" 1 1 3 "$(gettext "请输入有效的数字")!"
+    read_optimize "$(gettext "请输入选项") ($(gettext "默认值"):1):" "sni_policy_choice" 1 1 3 "$(gettext "请输入有效的数字")!" || return 1
     # 切换策略前先清理旧的 isolate/decoy http 块配置（03-isolate.conf / 03-decoy.conf + include）
     decoy_conf_remove
     case ${sni_policy_choice} in
@@ -3051,7 +3074,7 @@ decoy_site_setup() {
     log_echo "${GreenBG} $(gettext "decoy 站点设置") ${Font}"
     log_echo "${Warning} $(gettext "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP") ${Font}"
     local decoy_input decoy_resolved local_ips
-    read_optimize "$(gettext "请输入 decoy 域名"): " "decoy_input" "NULL"
+    read_optimize "$(gettext "请输入 decoy 域名"): " "decoy_input" "NULL" || return 1
     if [[ ! "${decoy_input}" =~ ^[A-Za-z0-9.-]+$ || "${decoy_input}" != *.* ]]; then
         log_echo "${Error} ${RedBG} $(gettext "请输入 decoy 域名") ${Font}"
         return 1
@@ -4265,7 +4288,7 @@ domain_check() {
         if [[ "on" == ${old_config_status} ]] && [[ -n $(info_extraction host) ]] && [[ -n $(info_extraction ip_version) ]]; then
             echo
             log_echo "${GreenBG} $(gettext "检测到原域名配置存在, 是否跳过域名设置") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-            read -r old_host_fq
+            read -r old_host_fq || return 1
             case $old_host_fq in
             [nN][oO] | [nN]) ;;
             *)
@@ -4289,12 +4312,12 @@ domain_check() {
         fi
         echo
         log_echo "${GreenBG} $(gettext "确定域名信息") ${Font}"
-        read_optimize "$(gettext "请输入你的域名信息") (e.g. www.hey.run):" "domain" "NULL"
+        read_optimize "$(gettext "请输入你的域名信息") (e.g. www.hey.run):" "domain" "NULL" || return 1
         echo -e "\n${GreenBG} $(gettext "请选择公网IP(IPv4/IPv6)或手动输入域名") ${Font}"
         echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
         echo "2: IPv6"
         echo "3: $(gettext "域名")"
-        read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!"
+        read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!" || return 1
         log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
         if [[ ${ip_version_fq} == 1 ]]; then
             local_ip=$(get_public_ip "IPv4")
@@ -4307,7 +4330,7 @@ domain_check() {
         elif [[ ${ip_version_fq} == 3 ]]; then
             log_echo "${Warning} ${GreenBG} $(gettext "此选项用于服务器商仅提供域名访问服务器") ${Font}"
             log_echo "${Warning} ${GreenBG} $(gettext "请为服务器商提供的域名添加 CNAME 记录") ${Font}"
-            read_optimize "$(gettext "请输入"): " "local_ip" "NULL"
+            read_optimize "$(gettext "请输入"): " "local_ip" "NULL" || return 1
             ip_version=${local_ip}
         else
             local_ip=$(get_public_ip "IPv4")
@@ -4329,7 +4352,7 @@ domain_check() {
             echo "1: $(gettext "继续安装")"
             echo "2: $(gettext "重新输入")"
             log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
-            read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!"
+            read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
             case $install in
             1)
                 log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
@@ -4352,7 +4375,7 @@ ip_check() {
         if [[ ${auto_update} != "YES" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "检测到原IP配置存在, 是否跳过IP设置") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-            read -r old_host_fq
+            read -r old_host_fq || return 1
         else
             old_host_fq=1
         fi
@@ -4384,7 +4407,7 @@ ip_check() {
     echo "2: IPv6"
     echo "3: $(gettext "手动输入")"
     local ip_version_fq
-    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!"
+    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!" || return 1
     [[ -z ${ip_version_fq} ]] && ip_version=1
     log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
@@ -4394,7 +4417,7 @@ ip_check() {
         local_ip=$(get_public_ip "IPv6")
         ip_version="IPv6"
     elif [[ ${ip_version_fq} == 3 ]]; then
-        read_optimize "$(gettext "请输入"): " "local_ip" "NULL"
+        read_optimize "$(gettext "请输入"): " "local_ip" "NULL" || return 1
         ip_version=${local_ip}
     else
         local_ip=$(get_public_ip "IPv4")
@@ -4413,6 +4436,42 @@ port_listener_info() {
         ss -ltnp "sport = :${port}" 2>/dev/null
 }
 
+# Check whether a PID belongs to a project-managed service.
+# Returns 0 (project service) only when the executable path can be
+# positively identified as the project's xray or nginx. The systemd unit
+# name alone is NOT sufficient (a third-party nginx also has nginx.service).
+# If the PID cannot be positively confirmed, returns 1 (treat as third-party).
+is_project_service_pid() {
+    local pid="$1"
+    [[ -z "${pid}" || "${pid}" == "-" ]] && return 1
+
+    # Check 1: executable path via /proc/<pid>/exe — the primary check.
+    local exe_path
+    exe_path=$(readlink "/proc/${pid}/exe" 2>/dev/null || true)
+    if [[ -n "${exe_path}" ]]; then
+        case "${exe_path}" in
+            "${xray_bin_dir}/xray") return 0 ;;
+            "${nginx_dir}/sbin/nginx") return 0 ;;
+            *) return 1 ;;  # Non-project path → third-party
+        esac
+    fi
+
+    # Check 2: comm (process name) + cgroup fallback — only when exe path
+    # is unavailable (e.g. permission denied). Require BOTH a matching
+    # process name AND a matching systemd unit to avoid false positives.
+    local comm cgroup
+    comm=$(cat "/proc/${pid}/comm" 2>/dev/null || true)
+    cgroup=$(cat "/proc/${pid}/cgroup" 2>/dev/null || true)
+    if [[ "${comm}" == "xray" ]] && echo "${cgroup}" | grep -qE 'xray\.service|/xray\b'; then
+        return 0
+    fi
+    if [[ "${comm}" == "nginx" ]] && echo "${cgroup}" | grep -qE 'nginx\.service|/nginx\b'; then
+        return 0
+    fi
+
+    return 1
+}
+
 port_exist_check() {
     local port="${1:-}"
 
@@ -4428,16 +4487,41 @@ port_exist_check() {
         return 0
     fi
 
-    # Port is occupied. Allow if it is the project's own xray/nginx service
-    # (stop_service_all will handle stopping them before binding new sockets).
-    # Any third-party occupant must cause a hard failure — never terminate.
-    if port_listener_info "${port}" | grep -qiE 'xray|nginx'; then
+    # Port is occupied. Precisely identify whether the occupant is a
+    # project-managed service (xray.service / nginx.service with project
+    # binary path). A name-only match (e.g. third-party "nginx" from apt)
+    # is NOT sufficient and must be treated as third-party.
+    local listener_output pids pid all_project=1
+    listener_output=$(port_listener_info "${port}")
+
+    # Extract PIDs from ss/lsof output. Format varies:
+    #   ss:   users:(("xray",pid=1234,fd=5))
+    #   lsof: COMMAND PID USER FD TYPE SIZE/OFF NODE NAME
+    pids=$(echo "${listener_output}" | grep -oE 'pid=[0-9]+' | sed 's/pid=//')
+    if [[ -z "${pids}" ]]; then
+        # lsof format: second column is PID
+        pids=$(echo "${listener_output}" | awk 'NR>1{print $2}')
+    fi
+
+    if [[ -z "${pids}" ]]; then
+        # Cannot extract any PID — cannot positively confirm project service.
+        all_project=0
+    else
+        for pid in ${pids}; do
+            if ! is_project_service_pid "${pid}"; then
+                all_project=0
+                break
+            fi
+        done
+    fi
+
+    if [[ ${all_project} -eq 1 ]]; then
         log_echo "${OK} ${GreenBG} ${port} $(gettext "端口由本项目服务占用, 将在安装前停止") ${Font}"
         return 0
     fi
 
     log_echo "${Error} ${RedBG} $(gettext "检测到端口被占用"): ${port} ${Font}"
-    port_listener_info "${port}"
+    echo "${listener_output}"
     log_echo "${Warning} ${YellowBG} $(gettext "脚本不会自动终止占用该端口的进程") ${Font}"
     log_echo "${Warning} ${YellowBG} $(gettext "请更换端口或自行停止对应服务后重试") ${Font}"
     return 1
@@ -6044,7 +6128,7 @@ tls_type() {
                 echo -e "1: TLSv1.2 and TLSv1.3 ($(gettext "兼容模式"))"
                 echo -e "${Red}2${Font}: TLSv1.3 only ($(gettext "安全模式"))"
                 local choose_tls
-                read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")!"
+                read_optimize "$(gettext "请输入"): " "choose_tls" 2 1 2 "$(gettext "请输入有效的数字")!" || return 1
                 if [[ ${choose_tls} == 1 ]]; then
                     log_echo "${Error} ${RedBG} $(gettext "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)")! ${Font}"
                 else
@@ -6060,7 +6144,7 @@ tls_type() {
             echo -e "${Red}1${Font}: TLSv1.3 ($(gettext "默认"))"
             echo -e "2: TLSv1.2+ ($(gettext "兼容模式"))"
             local tls_version_choice
-            read_optimize "$(gettext "请输入"): " "tls_version_choice" 1 1 2 "$(gettext "请输入有效的数字")!"
+            read_optimize "$(gettext "请输入"): " "tls_version_choice" 1 1 2 "$(gettext "请输入有效的数字")!" || return 1
             if [[ ${tls_version_choice} == 2 ]]; then
                 sed -i "s/^\( *\)#TLSv1.2\( *\)1;\( *\)$/\1TLSv1.2\21;\3/" $nginx_conf
                 log_echo "${OK} ${GreenBG} $(gettext "已切换至") TLSv1.2+ ${Font}"
@@ -6200,12 +6284,14 @@ reset_port() {
         # ----- Phase 3: snapshot configs for rollback, then write -----
         _rollback_config_file=$(mktemp)
         _rollback_xray_conf=$(mktemp)
+        _rollback_managed_ports=$(mktemp)
         cp "${xray_install_config_file}" "${_rollback_config_file}" 2>/dev/null || true
         cp "${xray_conf}" "${_rollback_xray_conf}" 2>/dev/null || true
+        cp "${managed_ports_file}" "${_rollback_managed_ports}" 2>/dev/null || true
 
         if [[ ${tls_mode} == "TLS" ]]; then
-            modify_nginx_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
-            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port' || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+            modify_nginx_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
+            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port' || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
         elif [[ ${tls_mode} == "Reality" ]]; then
             local port_update_expr='.port = $port'
             if is_ws_mode; then
@@ -6221,10 +6307,10 @@ reset_port() {
                --argjson ws_port "${xport:-0}" \
                --argjson grpc_port "${gport:-0}" \
                --argjson xhttp_port "${xhttpport:-0}" \
-               "${port_update_expr}" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
-            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+               "${port_update_expr}" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
+            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
             if [[ ${reality_add_nginx} == "on" ]]; then
-                modify_nginx_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+                modify_nginx_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
             fi
         elif [[ ${tls_mode} == "None" ]]; then
             local none_port_update=""
@@ -6241,26 +6327,26 @@ reset_port() {
                 update_json_config "${xray_install_config_file}" --argjson ws_port "${xport:-0}" \
                    --argjson grpc_port "${gport:-0}" \
                    --argjson xhttp_port "${xhttpport:-0}" \
-                   "${none_port_update# | }" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+                   "${none_port_update# | }" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
             fi
-            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
         elif [[ ${tls_mode} == "XTLS" ]]; then
-            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port' || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
-            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port' || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
+            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
         fi
 
         # ----- Phase 4: apply runtime + firewall -----
         if ! service_restart; then
-            _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"
+            _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"
             return 1
         fi
         if ! reconcile_managed_firewall "${old_ports_json}" "${new_ports_json}"; then
-            _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"
+            _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"
             service_restart >/dev/null 2>&1 || true
             return 1
         fi
-        atomic_write_managed_ports "${new_ports_json}" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
-        rm -f "${_rollback_config_file}" "${_rollback_xray_conf}"
+        atomic_write_managed_ports "${new_ports_json}" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
+        rm -f "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"
         reset_install_config
         old_config_status="${_saved_old_config_status}"
         return 0
@@ -6279,13 +6365,27 @@ _reset_port_restore() {
     old_config_status="${_saved_old_config_status:-}"
 }
 
-# Helper: restore config files AND port variables on write/apply failure.
+# Helper: restore config files, firewall rules, managed_ports.json, AND port
+# variables on write/apply failure. This treats config + firewall as one
+# transaction: if any step fails, both are rolled back.
 _reset_port_rollback() {
     local rb_config="$1"
     local rb_xray="$2"
+    local rb_managed_ports="${3:-}"
+    # Restore config files
     [[ -f "${rb_config}" ]] && cp "${rb_config}" "${xray_install_config_file}" 2>/dev/null || true
     [[ -f "${rb_xray}" ]] && cp "${rb_xray}" "${xray_conf}" 2>/dev/null || true
-    rm -f "${rb_config}" "${rb_xray}"
+    # Restore managed_ports.json from snapshot
+    if [[ -n "${rb_managed_ports}" && -f "${rb_managed_ports}" ]]; then
+        cp "${rb_managed_ports}" "${managed_ports_file}" 2>/dev/null || true
+    fi
+    # Best-effort firewall rollback: reverse the reconciliation to undo any
+    # partial firewall changes. Best-effort means we log but don't fail if
+    # rollback itself encounters errors (the config is already restored).
+    if [[ -n "${new_ports_json:-}" && -n "${old_ports_json:-}" ]]; then
+        reconcile_managed_firewall "${new_ports_json}" "${old_ports_json}" 2>/dev/null || true
+    fi
+    rm -f "${rb_config}" "${rb_xray}" "${rb_managed_ports}"
     port="${_old_port:-}"
     xport="${_old_xport:-}"
     gport="${_old_gport:-}"
@@ -6932,13 +7032,11 @@ install_xray_reality() {
     create_directory
     old_config_exist_check
     ip_check
-    xray_install || return 1
     port_set || return 1
     email_set || return 1
     UUID_set || return 1
     target_set || return 1
     serverNames_set || return 1
-    keys_set || return 1
     shortIds_set || return 1
     spiderx_set || return 1
     xray_reality_add_more_choose || return 1
@@ -6953,6 +7051,8 @@ install_xray_reality() {
     if is_xhttp_mode; then
         port_exist_check "${xhttpport}" || return 1
     fi
+    xray_install || return 1
+    keys_set || return 1
     transport_qr
     firewall_set || return 1
     stop_service_all
@@ -7647,7 +7747,7 @@ set_language() {
     echo -e "${Green}6.${Font} 한국어"
 
     local lang_choice
-    read_optimize "$(gettext "请输入数字"): " "lang_choice" "NULL" 1 6 "$(gettext "请输入 1 到 6 之间的有效数字")"
+    read_optimize "$(gettext "请输入数字"): " "lang_choice" "NULL" 1 6 "$(gettext "请输入 1 到 6 之间的有效数字")" || return 1
 
     case $lang_choice in
         1)
@@ -7936,14 +8036,22 @@ menu_action() {
     3)
         shell_mode="Reality"
         tls_mode="Reality"
-        install_xray_reality
-        exec "${BASH:-bash}" "${idleleo}"
+        if install_xray_reality; then
+            exec "${BASH:-bash}" "${idleleo}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+            return 1
+        fi
         ;;
     4)
         shell_mode="Nginx+ws+TLS"
         tls_mode="TLS"
-        install_xray_ws_tls
-        exec "${BASH:-bash}" "${idleleo}"
+        if install_xray_ws_tls; then
+            exec "${BASH:-bash}" "${idleleo}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+            return 1
+        fi
         ;;
     5)
         echo
@@ -7953,11 +8061,15 @@ menu_action() {
         [yY][eE][sS] | [yY])
             shell_mode="ws ONLY"
             tls_mode="None"
-            install_xray_ws_only
+            if install_xray_ws_only; then
+                exec "${BASH:-bash}" "${idleleo}"
+            else
+                log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                return 1
+            fi
             ;;
         *) ;;
         esac
-        exec "${BASH:-bash}" "${idleleo}"
         ;;
     6)
         echo
@@ -7967,11 +8079,15 @@ menu_action() {
         [yY][eE][sS] | [yY])
             shell_mode="XTLS ONLY"
             tls_mode="XTLS"
-            install_xray_xtls_only
+            if install_xray_xtls_only; then
+                exec "${BASH:-bash}" "${idleleo}"
+            else
+                log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                return 1
+            fi
             ;;
         *) ;;
         esac
-        exec "${BASH:-bash}" "${idleleo}"
         ;;
     7)
         reset_UUID
@@ -8197,7 +8313,10 @@ menu_install_reality() {
                 install_profile="reality_nginx"
                 install_wizard_preset="on"
                 apply_install_profile
-                install_xray_reality
+                if ! install_xray_reality; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                    return 1
+                fi
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
             2)
@@ -8205,7 +8324,10 @@ menu_install_reality() {
                 install_profile="reality_standard"
                 install_wizard_preset="on"
                 apply_install_profile
-                install_xray_reality
+                if ! install_xray_reality; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                    return 1
+                fi
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
             3)
@@ -8214,7 +8336,10 @@ menu_install_reality() {
                 menu_choose_transport || continue
                 install_wizard_preset="on"
                 apply_install_profile
-                install_xray_reality
+                if ! install_xray_reality; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                    return 1
+                fi
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
             4)
@@ -8223,7 +8348,10 @@ menu_install_reality() {
                 menu_choose_transport || continue
                 install_wizard_preset="on"
                 apply_install_profile
-                install_xray_reality
+                if ! install_xray_reality; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                    return 1
+                fi
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
             5)
@@ -8252,7 +8380,10 @@ menu_install_reality_balance_role() {
                 install_profile="reality_balance_primary"
                 install_wizard_preset="on"
                 apply_install_profile
-                install_xray_reality
+                if ! install_xray_reality; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                    return 1
+                fi
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
             2)
@@ -8260,7 +8391,10 @@ menu_install_reality_balance_role() {
                 install_profile="reality_balance_secondary"
                 install_wizard_preset="on"
                 apply_install_profile
-                install_xray_reality
+                if ! install_xray_reality; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                    return 1
+                fi
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
         esac
@@ -8286,7 +8420,10 @@ menu_install_transport() {
                 menu_choose_transport || continue
                 install_wizard_preset="on"
                 apply_install_profile
-                install_xray_ws_tls
+                if ! install_xray_ws_tls; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                    return 1
+                fi
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
             2)
@@ -8303,7 +8440,10 @@ menu_install_transport() {
                 menu_choose_transport || continue
                 install_wizard_preset="on"
                 apply_install_profile
-                install_xray_ws_only
+                if ! install_xray_ws_only; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                    return 1
+                fi
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
         esac
@@ -8339,7 +8479,10 @@ menu_install() {
                 install_profile="xtls_only"
                 install_wizard_preset="on"
                 apply_install_profile
-                install_xray_xtls_only
+                if ! install_xray_xtls_only; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
+                    return 1
+                fi
                 exec "${BASH:-bash}" "${idleleo}"
                 ;;
         esac
@@ -8678,13 +8821,25 @@ harden_config_permissions_if_needed() {
 
 [[ "${_TEST_MODE:-0}" == "1" ]] && return 0
 
-# Initialize language first so offline commands get localized messages
-# without requiring any network access.
+# -h/--help MUST be dispatched before init_language, check_file_integrity,
+# version checks, network requests, and dependency installation. This ensures
+# `bash install.sh --help` works with zero network access, zero package
+# manager calls, and zero language file downloads — even when gettext is not
+# installed, GitHub is unreachable, or the script is not yet installed.
+case "${1:-}" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+esac
+
+# Initialize language first so remaining offline commands get localized
+# messages without requiring any network access.
 init_language
 
-# Offline-safe commands (--help, --uninstall, service control, logs, backup)
+# Offline-safe commands (--uninstall, service control, logs, backup)
 # MUST be dispatched before check_file_integrity, which may attempt network
-# downloads. This ensures `bash install.sh --help` works even when GitHub is
+# downloads. This ensures these commands work even when GitHub is
 # unreachable or the script is not yet installed locally.
 if is_offline_safe_command "${1:-}"; then
     dispatch_offline_safe_command "$@"
