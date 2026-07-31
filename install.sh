@@ -1444,6 +1444,22 @@ firewall_add_output_port() {
         iptables -I OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT
 }
 
+# Check whether an OUTPUT sport accept rule exists.
+firewall_output_rule_exists() {
+    local proto="$1"
+    local port="$2"
+    iptables -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1
+}
+
+# Idempotent helper: remove OUTPUT accept rule for a sport. Fails closed.
+firewall_remove_output_port() {
+    local proto="$1"
+    local port="$2"
+    while firewall_output_rule_exists "${proto}" "${port}"; do
+        iptables -D OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT || return 1
+    done
+}
+
 # Idempotent helper: add loopback accept rules. Fails closed.
 firewall_add_loopback_rules() {
     iptables -C INPUT -i lo -j ACCEPT >/dev/null 2>&1 ||
@@ -1472,20 +1488,27 @@ atomic_write_managed_ports() {
 
 collect_new_managed_ports() {
     local -a tcp=()
+    local -a udp=()
     if [[ -n "${port:-}" && "${port}" != "None" ]]; then
         tcp+=("${port}")
+        udp+=("${port}")
     fi
     if is_ws_mode && [[ -n "${xport:-}" && "${xport}" != "None" ]]; then
         tcp+=("${xport}")
+        udp+=("${xport}")
     fi
     if is_grpc_mode && [[ -n "${gport:-}" && "${gport}" != "None" ]]; then
         tcp+=("${gport}")
+        udp+=("${gport}")
     fi
     if is_xhttp_mode && [[ -n "${xhttpport:-}" && "${xhttpport}" != "None" ]]; then
         tcp+=("${xhttpport}")
+        udp+=("${xhttpport}")
     fi
-    new_ports_json=$(jq -nc --argjson tcp "$(printf '%s\n' "${tcp[@]}" | jq -R . | jq -s .)" \
-        --argjson udp '[]' '{tcp: $tcp, udp: $udp}')
+    new_ports_json=$(jq -nc \
+        --argjson tcp "$(printf '%s\n' "${tcp[@]:-}" | jq -R . | jq -s 'unique')" \
+        --argjson udp "$(printf '%s\n' "${udp[@]:-}" | jq -R . | jq -s 'unique')" \
+        '{tcp:$tcp, udp:$udp}')
 }
 
 reconcile_managed_firewall() {
@@ -1498,7 +1521,7 @@ reconcile_managed_firewall() {
     old_udp=$(printf '%s' "${old_json}" | jq -r '.udp[]? // empty')
     new_udp=$(printf '%s' "${new_json}" | jq -r '.udp[]? // empty')
 
-    # Remove script-managed old TCP ports that are no longer in the new set.
+    # Remove script-managed old TCP INPUT ports no longer in the new set.
     # Fail closed: if removal fails, abort so we don't leave stale rules.
     while IFS= read -r port; do
         [[ -n "${port}" ]] || continue
@@ -1506,24 +1529,50 @@ reconcile_managed_firewall() {
             firewall_remove_managed_port tcp "${port}" || return 1
     done <<< "${old_tcp}"
 
-    # Remove script-managed old UDP ports that are no longer in the new set.
+    # Remove script-managed old UDP INPUT ports no longer in the new set.
     while IFS= read -r port; do
         [[ -n "${port}" ]] || continue
         printf '%s\n' "${new_udp}" | grep -qxF "${port}" ||
             firewall_remove_managed_port udp "${port}" || return 1
     done <<< "${old_udp}"
 
-    # Add new managed TCP ports (idempotent: firewall_add_managed_port checks first).
+    # Remove script-managed old TCP OUTPUT sport rules no longer in the new set.
+    while IFS= read -r port; do
+        [[ -n "${port}" ]] || continue
+        printf '%s\n' "${new_tcp}" | grep -qxF "${port}" ||
+            firewall_remove_output_port tcp "${port}" || return 1
+    done <<< "${old_tcp}"
+
+    # Remove script-managed old UDP OUTPUT sport rules no longer in the new set.
+    while IFS= read -r port; do
+        [[ -n "${port}" ]] || continue
+        printf '%s\n' "${new_udp}" | grep -qxF "${port}" ||
+            firewall_remove_output_port udp "${port}" || return 1
+    done <<< "${old_udp}"
+
+    # Add new managed TCP INPUT ports (idempotent).
     # Fail closed: if add fails, abort so caller can rollback.
     for port in ${new_tcp}; do
         [[ -n "${port}" ]] || continue
         firewall_add_managed_port tcp "${port}" || return 1
     done
 
-    # Add new managed UDP ports.
+    # Add new managed UDP INPUT ports.
     for port in ${new_udp}; do
         [[ -n "${port}" ]] || continue
         firewall_add_managed_port udp "${port}" || return 1
+    done
+
+    # Add new managed TCP OUTPUT sport rules.
+    for port in ${new_tcp}; do
+        [[ -n "${port}" ]] || continue
+        firewall_add_output_port tcp "${port}" || return 1
+    done
+
+    # Add new managed UDP OUTPUT sport rules.
+    for port in ${new_udp}; do
+        [[ -n "${port}" ]] || continue
+        firewall_add_output_port udp "${port}" || return 1
     done
     return 0
 }
@@ -6973,7 +7022,7 @@ install_xray_ws_tls() {
     basic_optimization
     create_directory
     old_config_exist_check
-    domain_check
+    domain_check || return 1
     transport_choose || return 1
     port_set || return 1
     ws_inbound_port_set || return 1
@@ -7031,7 +7080,7 @@ install_xray_reality() {
     basic_optimization
     create_directory
     old_config_exist_check
-    ip_check
+    ip_check || return 1
     port_set || return 1
     email_set || return 1
     UUID_set || return 1
@@ -7082,7 +7131,7 @@ install_xray_xtls_only() {
     basic_optimization
     create_directory
     old_config_exist_check
-    ip_check
+    ip_check || return 1
     shell_mode="XTLS ONLY"
     tls_mode="XTLS"
     port_set || return 1
@@ -7114,7 +7163,7 @@ install_xray_ws_only() {
     basic_optimization
     create_directory
     old_config_exist_check
-    ip_check
+    ip_check || return 1
     transport_choose || return 1
     ws_inbound_port_set || return 1
     grpc_inbound_port_set || return 1
