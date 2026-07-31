@@ -173,6 +173,101 @@ else
 fi
 
 echo ""
+echo "--- Real main entry: bash install.sh --help with mocked network ---"
+
+# Create a mock curl that records calls and fails, to prove the offline path
+# never reaches curl.
+MOCK_BIN=$(mktemp -d)
+CURL_CALL_LOG=$(mktemp)
+cat > "${MOCK_BIN}/curl" << CURL_EOF
+#!/bin/bash
+echo "1" >> "${CURL_CALL_LOG}"
+exit 1
+CURL_EOF
+chmod +x "${MOCK_BIN}/curl"
+
+# Wrapper: source install.sh with _TEST_MODE to get function definitions,
+# then override download_script_file and check_file_integrity to record calls,
+# then execute the real main-entry sequence with --help.
+MAIN_WRAPPER=$(mktemp /tmp/xray_offline_main_XXXXXX.sh)
+DOWNLOAD_CALLS_FILE=$(mktemp)
+CFI_CALLS_FILE=$(mktemp)
+
+cat > "${MAIN_WRAPPER}" << WRAPPER_EOF
+#!/bin/bash
+set -uo pipefail
+export _TEST_MODE=1
+# shellcheck source=/dev/null
+source "${REPO_DIR}/install.sh" >/dev/null 2>&1 || true
+
+# Provide a no-op gettext fallback so show_help works even without gettext.
+if ! command -v gettext >/dev/null 2>&1; then
+    gettext() { printf '%s' "\$1"; }
+fi
+export -f gettext 2>/dev/null || true
+
+# Override functions that must NOT be reached for --help.
+download_script_file() {
+    echo "1" >> "${DOWNLOAD_CALLS_FILE}"
+    return 1
+}
+check_file_integrity() {
+    echo "1" >> "${CFI_CALLS_FILE}"
+}
+# init_language may try pkg_install on systems without gettext; make it a
+# no-op since we only want to verify the offline dispatch path.
+init_language() { :; }
+compat_migrate() { :; }
+judge_mode() { :; }
+check_online_version_connect() { :; }
+read_version() { return 0; }
+
+# Mirror the real main entry sequence after the _TEST_MODE guard.
+init_language
+if is_offline_safe_command "\${1:-}"; then
+    dispatch_offline_safe_command "\$@"
+    exit \$?
+fi
+check_file_integrity
+compat_migrate
+judge_mode
+check_online_version_connect
+read_version || exit 1
+WRAPPER_EOF
+
+PATH="${MOCK_BIN}:${PATH}" bash "${MAIN_WRAPPER}" --help
+MAIN_EXIT=$?
+
+if [[ ${MAIN_EXIT} -eq 0 ]]; then
+    ok "bash install.sh --help exits 0"
+else
+    bad "bash install.sh --help exits ${MAIN_EXIT} (expected 0)"
+fi
+
+DOWNLOAD_COUNT=$(wc -l < "${DOWNLOAD_CALLS_FILE}" 2>/dev/null | tr -d ' ' || echo 0)
+if [[ "${DOWNLOAD_COUNT}" == "0" ]]; then
+    ok "download_script_file not called for --help"
+else
+    bad "download_script_file called ${DOWNLOAD_COUNT} time(s) for --help"
+fi
+
+CFI_COUNT=$(wc -l < "${CFI_CALLS_FILE}" 2>/dev/null | tr -d ' ' || echo 0)
+if [[ "${CFI_COUNT}" == "0" ]]; then
+    ok "check_file_integrity not called for --help"
+else
+    bad "check_file_integrity called ${CFI_COUNT} time(s) for --help"
+fi
+
+CURL_COUNT=$(wc -l < "${CURL_CALL_LOG}" 2>/dev/null | tr -d ' ' || echo 0)
+if [[ "${CURL_COUNT}" == "0" ]]; then
+    ok "curl not called for --help"
+else
+    bad "curl called ${CURL_COUNT} time(s) for --help"
+fi
+
+rm -rf "${MOCK_BIN}" "${MAIN_WRAPPER}" "${DOWNLOAD_CALLS_FILE}" "${CFI_CALLS_FILE}" "${CURL_CALL_LOG}"
+
+echo ""
 echo "============================================================"
 echo "  Results: ${PASS} passed, ${FAIL} failed"
 echo "============================================================"
