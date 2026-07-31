@@ -6,7 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
+"issues\n"
 "POT-Creation-Date: 2026-07-31 13:23+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
@@ -162,10 +163,9 @@ msgstr "language.conf Unknown key, skipping"
 msgid "正在安装"
 msgstr "installing"
 
-#: install.sh:675 install.sh:833 install.sh:841 install.sh:2774
-#: install.sh:5992 install.sh:7548 install.sh:7549 install.sh:7550
-#: install.sh:7551 scripts/fail2ban_manager.sh:63
-#: scripts/fail2ban_manager.sh:91
+#: install.sh:675 install.sh:833 install.sh:841 install.sh:2774 install.sh:5992
+#: install.sh:7548 install.sh:7549 install.sh:7550 install.sh:7551
+#: scripts/fail2ban_manager.sh:63 scripts/fail2ban_manager.sh:91
 msgid "安装"
 msgstr "installation"
 
@@ -499,8 +499,8 @@ msgstr "download failed, please manually download and install the new version"
 msgid "版本过旧, 建议更新"
 msgstr "the version is too old; please update"
 
-#: install.sh:2004 scripts/fail2ban_manager.sh:1169
-#: scripts/file_manager.sh:335 scripts/traffic_blocker.sh:1216
+#: install.sh:2004 scripts/fail2ban_manager.sh:1169 scripts/file_manager.sh:335
+#: scripts/traffic_blocker.sh:1216
 msgid "是否下载并安装新版本"
 msgstr "do you want to download and install the new version"
 
@@ -661,8 +661,8 @@ msgstr "rollback operation not executed"
 #: install.sh:2826
 msgid "更新失败且未回滚, 当前服务可能不可用, 请手动检查"
 msgstr ""
-"Update failed and no rollback was performed; the service may be unavailable."
-" Please check manually."
+"Update failed and no rollback was performed; the service may be unavailable. "
+"Please check manually."
 
 #: install.sh:2828
 msgid "高优先级错误: Xray 服务已停止"
@@ -732,8 +732,7 @@ msgstr "recommend"
 
 #: install.sh:3029
 msgid "使用指向本机 IP 的自建 HTTPS 站点作为回落"
-msgstr ""
-"Use a self-hosted HTTPS site pointing to this machine's IP as fallback"
+msgstr "Use a self-hosted HTTPS site pointing to this machine's IP as fallback"
 
 #: install.sh:3029 install.sh:3030 install.sh:8353 install.sh:8459
 #: install.sh:8509
@@ -745,7 +744,9 @@ msgid "直接拒绝异常 TLS 连接"
 msgstr "Directly reject abnormal TLS connections"
 
 #: install.sh:3031
-msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
+msgid ""
+"第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了"
+"解含义, 请使用默认隔离策略。"
 msgstr ""
 "Option 2 requires you to have your own domain, and its A/AAAA record must "
 "point to this machine's public IP. If unsure, use the default isolation "
@@ -774,8 +775,8 @@ msgstr "decoy site setup"
 #: install.sh:3124
 msgid "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP"
 msgstr ""
-"Please enter your own domain; its A/AAAA record must point to this machine's"
-" public IP"
+"Please enter your own domain; its A/AAAA record must point to this machine's "
+"public IP"
 
 #: install.sh:3126 install.sh:3128
 msgid "请输入 decoy 域名"
@@ -1154,8 +1155,8 @@ msgstr "already updated to the latest version"
 #: install.sh:4286
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"set up a background scheduled automatic update program (including: "
-"script/xray/nginx)"
+"set up a background scheduled automatic update program (including: script/"
+"xray/nginx)"
 
 #: install.sh:4287
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -1304,7 +1305,6 @@ msgid "手动输入"
 msgstr "manual input"
 
 #: install.sh:4530
-#| msgid "IP 地址格式无效"
 msgid "端口格式无效"
 msgstr "invalid port format"
 
@@ -1319,7 +1319,6 @@ msgstr ""
 "installation."
 
 #: install.sh:4572
-#| msgid "端口被占用"
 msgid "检测到端口被占用"
 msgstr "port is in use."
 
@@ -1613,8 +1612,8 @@ msgstr "Currently, xHTTP supports only the stream-one and stream-up modes."
 #: install.sh:5997
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
 msgstr ""
-"xHTTP requires the mihomo (Meta) kernel; the original Clash does not support"
-" it."
+"xHTTP requires the mihomo (Meta) kernel; the original Clash does not support "
+"it."
 
 #: install.sh:6000 install.sh:8627
 msgid "配置信息"
@@ -1663,14 +1662,13 @@ msgstr ""
 
 #: install.sh:6088
 msgid "如需使用自定义证书, 请按如下步骤:"
-msgstr ""
-"if you need to use a custom certificate, please follow the steps below"
+msgstr "if you need to use a custom certificate, please follow the steps below"
 
 #: install.sh:6089
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr ""
-"1. rename the certificate files: private key (xray.key), certificate "
-"(xray.crt)"
+"1. rename the certificate files: private key (xray.key), certificate (xray."
+"crt)"
 
 #: install.sh:6090
 msgid "2. 将重命名后的证书文件放入"
@@ -1707,8 +1705,7 @@ msgstr "certificate application"
 #: install.sh:6124
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr ""
-"the certificate issuance residual file already exists, do you want to keep "
-"it"
+"the certificate issuance residual file already exists, do you want to keep it"
 
 #: install.sh:6166 install.sh:8546
 msgid "添加"
@@ -1764,8 +1761,7 @@ msgstr "this mode does not support viewing users"
 
 #: install.sh:6490
 msgid "即将显示用户, 一次仅能显示一个"
-msgstr ""
-"users will be displayed soon, only one user can be displayed at a time"
+msgstr "users will be displayed soon, only one user can be displayed at a time"
 
 #: install.sh:6499 install.sh:6509
 msgid "请选择显示用户使用的协议"
@@ -1957,8 +1953,8 @@ msgstr ""
 "the script version has changed significantly. if the service cannot run "
 "properly, please uninstall and reinstall it"
 
-#: install.sh:7278 scripts/fail2ban_manager.sh:1188
-#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1235
+#: install.sh:7278 scripts/fail2ban_manager.sh:1188 scripts/file_manager.sh:354
+#: scripts/traffic_blocker.sh:1235
 msgid "当前已经是最新版本"
 msgstr "it is already the latest version"
 
@@ -1973,14 +1969,14 @@ msgstr "this option is temporarily unavailable"
 #: install.sh:7418 install.sh:8107
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
-"this mode is recommended for load balancing; it is generally not recommended"
-" for use. do you want to install"
+"this mode is recommended for load balancing; it is generally not recommended "
+"for use. do you want to install"
 
 #: install.sh:7431 install.sh:8125
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
-"this mode is only intended for traffic forwarding and is not recommended for"
-" other use cases. do you want to install it"
+"this mode is only intended for traffic forwarding and is not recommended for "
+"other use cases. do you want to install it"
 
 #: install.sh:7552 install.sh:7553 install.sh:7554 install.sh:7569
 #: install.sh:7573 install.sh:7577 install.sh:8143 install.sh:8148
@@ -2084,8 +2080,8 @@ msgstr "error message"
 #: install.sh:7603
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr ""
-"the script version has changed significantly, and there may be compatibility"
-" issues. do you want to continue using it"
+"the script version has changed significantly, and there may be compatibility "
+"issues. do you want to continue using it"
 
 #: install.sh:7628
 msgid "检测失败"
@@ -2131,8 +2127,8 @@ msgstr "script is under maintenance. please try again later"
 #: install.sh:7782
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
-"the required online version of the dependency cannot be detected. please try"
-" again later"
+"the required online version of the dependency cannot be detected. please try "
+"again later"
 
 #: install.sh:7799
 msgid "请输入数字"
@@ -2275,8 +2271,8 @@ msgstr "installation wizard"
 #: install.sh:8520
 msgid "此模式主要用于流量中转或特殊部署，不建议普通用户使用"
 msgstr ""
-"This mode is mainly for traffic relay or special deployment, not recommended"
-" for general users"
+"This mode is mainly for traffic relay or special deployment, not recommended "
+"for general users"
 
 #: install.sh:8544 install.sh:8607
 msgid "用户管理"
@@ -2558,13 +2554,11 @@ msgstr "failed to remove from the trusted list"
 #: scripts/fail2ban_manager.sh:668
 msgid "配置验证失败, 保留原配置"
 msgstr ""
-"configuration validation failed; the original configuration will be "
-"retained."
+"configuration validation failed; the original configuration will be retained."
 
 #: scripts/fail2ban_manager.sh:689
 msgid "原子替换失败, 保留原配置"
-msgstr ""
-"atom replacement failed; the original configuration has been retained."
+msgstr "atom replacement failed; the original configuration has been retained."
 
 #: scripts/fail2ban_manager.sh:695
 msgid "Fail2ban reload 失败, 恢复原配置"
