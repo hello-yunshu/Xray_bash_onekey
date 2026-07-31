@@ -4482,7 +4482,7 @@ ip_check() {
 port_listener_info() {
     local port="$1"
     lsof -nP -iTCP:"${port}" -sTCP:LISTEN 2>/dev/null ||
-        ss -ltnp "sport = :${port}" 2>/dev/null
+        ss -H -ltnp "sport = :${port}" 2>/dev/null
 }
 
 # Check whether a PID belongs to a project-managed service.
