@@ -151,6 +151,107 @@ else
     ok "port_exist_check body is free of kill/pkill/fuser -k"
 fi
 
+# Test 9: Third-party nginx (process named "nginx" but NOT from project path)
+echo "--- Third-party nginx on port 443 → fail, no kill/stop ---"
+KILL_CALLED=0; PKILL_CALLED=0; FUSER_KILL_CALLED=0; SYSTEMCTL_STOP_CALLED=0
+# Override port_listener_info to simulate a third-party nginx process
+port_listener_info() {
+    local port="$1"
+    if [[ "${port}" == "443" ]]; then
+        printf 'COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME\n'
+        printf 'nginx    7777 root   6u   IPv4  12347      0t0  TCP *:https (LISTEN)\n'
+        return 0
+    fi
+    return 1
+}
+# Mock readlink/cat so is_project_service_pid sees a non-project path
+readlink() { echo "/usr/sbin/nginx"; }  # NOT /usr/local/nginx/sbin/nginx
+cat() {
+    case "$1" in
+        /proc/7777/comm) echo "nginx";;
+        /proc/7777/cgroup) echo "0::/system.slice/nginx.service";;
+        *) return 1 ;;
+    esac
+}
+if port_exist_check "443"; then
+    bad "port_exist_check 443 should fail for third-party nginx"
+else
+    ok "port_exist_check 443 fails for third-party nginx"
+fi
+if [[ ${KILL_CALLED} -eq 0 && ${SYSTEMCTL_STOP_CALLED} -eq 0 ]]; then
+    ok "third-party nginx NOT killed or stopped"
+else
+    bad "third-party nginx was killed/stopped (kill=${KILL_CALLED}, stop=${SYSTEMCTL_STOP_CALLED})"
+fi
+# Restore mocks
+unset -f readlink cat
+port_listener_info() {
+    local port="$1"
+    if [[ "${port}" == "443" ]]; then
+        printf 'COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME\n'
+        printf 'paneld   9999 root   10u  IPv4  12345      0t0  TCP *:https (LISTEN)\n'
+        return 0
+    elif [[ "${port}" == "8443" ]]; then
+        printf 'COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME\n'
+        printf 'sshd     8888 root   5u   IPv4  12346      0t0  TCP *:8443 (LISTEN)\n'
+        return 0
+    fi
+    return 1
+}
+
+# Test 10: Project nginx (process from /usr/local/nginx/sbin/nginx) → allowed
+echo "--- Project nginx on port 443 → allowed ---"
+port_listener_info() {
+    local port="$1"
+    if [[ "${port}" == "443" ]]; then
+        printf 'COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME\n'
+        printf 'nginx    5555 root   6u   IPv4  12348      0t0  TCP *:https (LISTEN)\n'
+        return 0
+    fi
+    return 1
+}
+readlink() {
+    [[ "$1" == "/proc/5555/exe" ]] && echo "/usr/local/nginx/sbin/nginx" || return 1
+}
+if port_exist_check "443"; then
+    ok "port_exist_check 443 allows project nginx"
+else
+    bad "port_exist_check 443 should allow project nginx"
+fi
+unset -f readlink
+
+# Test 11: Reality install does NOT call xray_install when port is occupied
+echo "--- Reality port conflict → xray_install NOT called ---"
+XRAY_INSTALL_CALLED=0
+xray_install() { XRAY_INSTALL_CALLED=$((XRAY_INSTALL_CALLED + 1)); return 0; }
+# Mock all other functions to no-ops
+is_root() { :; }; check_and_create_user_group() { :; }; check_system() { :; }
+dependency_install() { :; }; basic_optimization() { :; }; create_directory() { :; }
+old_config_exist_check() { :; }; ip_check() { :; }
+port_set() { port="443"; }; email_set() { :; }; UUID_set() { :; }
+target_set() { :; }; serverNames_set() { :; }; shortIds_set() { :; }
+spiderx_set() { :; }; xray_reality_add_more_choose() { :; }
+validate_active_ports() { :; }
+# Port 443 occupied by third-party
+port_listener_info() {
+    [[ "$1" == "443" ]] && printf 'nginx 7777 root 6u IPv4 12347 0t0 TCP *:https (LISTEN)\n' && return 0
+    return 1
+}
+readlink() { echo "/usr/sbin/nginx"; }
+install_xray_reality 2>/dev/null
+rc=$?
+if [[ ${XRAY_INSTALL_CALLED} -eq 0 ]]; then
+    ok "xray_install NOT called when port is occupied"
+else
+    bad "xray_install was called ${XRAY_INSTALL_CALLED} time(s) despite port conflict"
+fi
+if [[ ${rc} -ne 0 ]]; then
+    ok "install_xray_reality returns non-zero on port conflict (${rc})"
+else
+    bad "install_xray_reality should return non-zero on port conflict"
+fi
+unset -f readlink xray_install
+
 echo ""
 echo "============================================================"
 echo "  Results: ${PASS} passed, ${FAIL} failed"

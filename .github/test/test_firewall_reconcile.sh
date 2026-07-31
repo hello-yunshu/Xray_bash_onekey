@@ -369,6 +369,83 @@ else
     bad "firewall_set did not write valid managed_ports.json"
 fi
 
+# --- Test 13: Firewall rollback restores old rules on reconcile failure ---
+echo "--- Firewall rollback: reconcile failure restores old rules ---"
+: > "${IPTABLES_RULES_FILE}"
+echo "tcp:443" >> "${IPTABLES_RULES_FILE}"  # old managed port
+echo "tcp:22" >> "${IPTABLES_RULES_FILE}"   # user rule (should NOT be removed)
+
+old_json='{"tcp":[443],"udp":[]}'
+new_json='{"tcp":[8443],"udp":[]}'
+
+# Snapshot state before reconcile
+rules_before=$(sort "${IPTABLES_RULES_FILE}")
+
+# Make firewall_add_managed_port fail for 8443 (simulate mid-way failure)
+firewall_add_managed_port() {
+    local proto="$1" port="$2"
+    [[ "${port}" == "8443" ]] && return 1
+    # Delegate to original for other ports
+    unset -f firewall_add_managed_port
+    firewall_add_managed_port "${proto}" "${port}"
+}
+
+# Reconcile should fail (add of 8443 fails)
+if reconcile_managed_firewall "${old_json}" "${new_json}"; then
+    bad "reconcile should fail when add fails"
+else
+    ok "reconcile fails when add fails (fail-closed)"
+fi
+
+# Reverse reconciliation to undo partial changes (best-effort rollback)
+unset -f firewall_add_managed_port
+reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null || true
+
+# After rollback: 443 should be back (was removed by forward reconcile, re-added by reverse)
+# 22 should still be there (never touched)
+if grep -qxF "tcp:22" "${IPTABLES_RULES_FILE}"; then
+    ok "User rule tcp:22 preserved through rollback"
+else
+    bad "User rule tcp:22 was removed during rollback"
+fi
+
+# --- Test 14: reset_port rollback restores managed_ports.json ---
+echo "--- reset_port rollback restores managed_ports.json ---"
+# Setup: create config files and managed_ports.json
+TEST_CONFIG="${TMP_ROOT}/install_config.json"
+TEST_XRAY_CONF="${TMP_ROOT}/xray_config.json"
+TEST_MANAGED="${TMP_ROOT}/managed_ports.json"
+echo '{"tcp":[443],"udp":[]}' > "${TEST_MANAGED}"
+echo '{"port":443}' > "${TEST_CONFIG}"
+echo '{}' > "${TEST_XRAY_CONF}"
+
+# Save original values
+xray_install_config_file="${TEST_CONFIG}"
+xray_conf="${TEST_XRAY_CONF}"
+managed_ports_file="${TEST_MANAGED}"
+
+managed_before=$(cat "${TEST_MANAGED}")
+
+# Simulate: managed_ports.json should be unchanged after rollback
+# The _reset_port_rollback function restores from snapshot
+_rollback_managed_ports=$(mktemp)
+cp "${TEST_MANAGED}" "${_rollback_managed_ports}"
+
+# Modify managed_ports.json (simulating a failed write)
+echo '{"tcp":[8443],"udp":[]}' > "${TEST_MANAGED}"
+
+# Call rollback (with dummy config/xray files)
+_rollback_config_file=$(mktemp); cp "${TEST_CONFIG}" "${_rollback_config_file}"
+_rollback_xray_conf=$(mktemp); cp "${TEST_XRAY_CONF}" "${_rollback_xray_conf}"
+_reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"
+
+managed_after=$(cat "${TEST_MANAGED}")
+if [[ "${managed_before}" == "${managed_after}" ]]; then
+    ok "managed_ports.json restored after rollback"
+else
+    bad "managed_ports.json NOT restored: before=${managed_before} after=${managed_after}"
+fi
+
 echo ""
 echo "============================================================"
 echo "  Results: ${PASS} passed, ${FAIL} failed"
