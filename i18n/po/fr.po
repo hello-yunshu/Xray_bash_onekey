@@ -6,7 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
+"issues\n"
 "POT-Creation-Date: 2026-07-31 13:23+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
@@ -111,8 +112,7 @@ msgstr ""
 
 #: install.sh:536
 msgid "无法获取远程语言文件信息"
-msgstr ""
-"impossible d'obtenir les informations sur le fichier de langue distant"
+msgstr "impossible d'obtenir les informations sur le fichier de langue distant"
 
 #: install.sh:554
 msgid "正在更新语言文件"
@@ -168,10 +168,9 @@ msgstr "language.conf Clé inconnue, ignorée"
 msgid "正在安装"
 msgstr "en cours d'installation"
 
-#: install.sh:675 install.sh:833 install.sh:841 install.sh:2774
-#: install.sh:5992 install.sh:7548 install.sh:7549 install.sh:7550
-#: install.sh:7551 scripts/fail2ban_manager.sh:63
-#: scripts/fail2ban_manager.sh:91
+#: install.sh:675 install.sh:833 install.sh:841 install.sh:2774 install.sh:5992
+#: install.sh:7548 install.sh:7549 install.sh:7550 install.sh:7551
+#: scripts/fail2ban_manager.sh:63 scripts/fail2ban_manager.sh:91
 msgid "安装"
 msgstr "installation"
 
@@ -197,8 +196,7 @@ msgstr "non trouvé"
 #: install.sh:715
 msgid "language.conf 校验失败, 将使用默认语言"
 msgstr ""
-"échec de la validation de language.conf ; utilisation de la langue par "
-"défaut"
+"échec de la validation de language.conf ; utilisation de la langue par défaut"
 
 #: install.sh:730
 msgid "不支持的语言"
@@ -211,8 +209,7 @@ msgstr "découvrir la mise à jour du fichier de langue"
 #: install.sh:788 install.sh:794 install.sh:7369
 msgid "在线版本检测失败, 请稍后再试"
 msgstr ""
-"la vérification de la version en ligne a échoué, veuillez réessayer plus "
-"tard"
+"la vérification de la version en ligne a échoué, veuillez réessayer plus tard"
 
 #: install.sh:835 install.sh:843 install.sh:2780 install.sh:5946
 #: install.sh:7649
@@ -515,8 +512,8 @@ msgstr ""
 msgid "版本过旧, 建议更新"
 msgstr "la version est trop ancienne, il est recommandé de la mettre à jour"
 
-#: install.sh:2004 scripts/fail2ban_manager.sh:1169
-#: scripts/file_manager.sh:335 scripts/traffic_blocker.sh:1216
+#: install.sh:2004 scripts/fail2ban_manager.sh:1169 scripts/file_manager.sh:335
+#: scripts/traffic_blocker.sh:1216
 msgid "是否下载并安装新版本"
 msgstr "télécharger et installer la nouvelle version"
 
@@ -768,7 +765,9 @@ msgid "直接拒绝异常 TLS 连接"
 msgstr "refuser directement la connexion anormale TLS"
 
 #: install.sh:3031
-msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
+msgid ""
+"第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了"
+"解含义, 请使用默认隔离策略。"
 msgstr ""
 "La deuxième étape exige que vous possédiez déjà votre propre nom de domaine "
 "et que l’enregistrement A/AAAA de ce nom de domaine pointe vers votre "
@@ -825,8 +824,8 @@ msgstr "non lié à l’adresse ip publique locale IP"
 msgid "请先将域名 A/AAAA 记录指向本机, 或使用默认隔离策略"
 msgstr ""
 "Veuillez d’abord configurer le enregistrement du nom de domaine A/AAAA pour "
-"qu’il pointe vers cet hôte, ou bien utiliser la politique de confinement par"
-" défaut."
+"qu’il pointe vers cet hôte, ou bien utiliser la politique de confinement par "
+"défaut."
 
 #: install.sh:3147
 msgid "域名校验通过"
@@ -883,8 +882,8 @@ msgstr "Requis pour servir de serveur maître d'équilibrage de charge Reality"
 #: install.sh:3310
 msgid "作为 Reality 负载均衡二级服务器时无需安装"
 msgstr ""
-"Aucune installation requise lorsque vous faites office de serveur secondaire"
-" d'équilibrage de charge Reality"
+"Aucune installation requise lorsque vous faites office de serveur secondaire "
+"d'équilibrage de charge Reality"
 
 #: install.sh:3349
 msgid "已存在, 跳过编译安装过程"
@@ -989,8 +988,7 @@ msgstr ""
 #: install.sh:3670
 msgid "sbin/nginx 不是可执行 ELF 二进制, 拒绝安装"
 msgstr ""
-"sbin/nginx n’est pas un fichier binaire ELF exécutable ; installation "
-"refusée"
+"sbin/nginx n’est pas un fichier binaire ELF exécutable ; installation refusée"
 
 #: install.sh:3678
 msgid "staging 目录移动失败"
@@ -1165,8 +1163,8 @@ msgstr "le fichier de configuration d'origine a été conservé"
 #: install.sh:4234
 msgid "版本记录更新失败, 执行回滚"
 msgstr ""
-"échec de la mise à jour de l’enregistrement de version ; exécution du retour"
-" en arrière."
+"échec de la mise à jour de l’enregistrement de version ; exécution du retour "
+"en arrière."
 
 #: install.sh:4238 install.sh:5200 install.sh:5207 install.sh:5978
 #: install.sh:8223 install.sh:8650 scripts/fail2ban_manager.sh:907
@@ -1189,8 +1187,8 @@ msgstr "déjà à la dernière version"
 #: install.sh:4286
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"configurer un programme de mise à jour automatique en arrière-plan (incluant"
-" : script/xray/nginx)"
+"configurer un programme de mise à jour automatique en arrière-plan "
+"(incluant : script/xray/nginx)"
 
 #: install.sh:4287
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -1238,8 +1236,8 @@ msgstr "installer le script de génération de certificat SSL"
 #: install.sh:4339
 msgid "检测到原域名配置存在, 是否跳过域名设置"
 msgstr ""
-"la configuration du domaine d'origine a été détectée. voulez-vous ignorer la"
-" configuration du domaine"
+"la configuration du domaine d'origine a été détectée. voulez-vous ignorer la "
+"configuration du domaine"
 
 #: install.sh:4354 install.sh:4390 install.sh:4443 install.sh:4476
 msgid "无法获取公网IP地址"
@@ -1282,8 +1280,8 @@ msgstr ""
 #: install.sh:4381
 msgid "请为服务器商提供的域名添加 CNAME 记录"
 msgstr ""
-"Veuillez ajouter l'enregistrement CNAME pour le nom de domaine fourni par le"
-" fournisseur de serveur."
+"Veuillez ajouter l'enregistrement CNAME pour le nom de domaine fourni par le "
+"fournisseur de serveur."
 
 #: install.sh:4393
 msgid "域名 DNS 解析 IP"
@@ -1324,8 +1322,8 @@ msgstr "arrêter l'installation"
 #: install.sh:4426
 msgid "检测到原IP配置存在, 是否跳过IP设置"
 msgstr ""
-"configuration IP originale détectée, souhaitez-vous ignorer la configuration"
-" IP"
+"configuration IP originale détectée, souhaitez-vous ignorer la configuration "
+"IP"
 
 #: install.sh:4447
 msgid "已跳过IP设置"
@@ -1344,7 +1342,6 @@ msgid "手动输入"
 msgstr "saisie manuelle"
 
 #: install.sh:4530
-#| msgid "IP 地址格式无效"
 msgid "端口格式无效"
 msgstr "le format du port est invalide"
 
@@ -1359,7 +1356,6 @@ msgstr ""
 "l’installation."
 
 #: install.sh:4572
-#| msgid "端口被占用"
 msgid "检测到端口被占用"
 msgstr "le port est détecté comme étant occupé"
 
@@ -1371,13 +1367,12 @@ msgstr ""
 #: install.sh:4575
 msgid "请更换端口或自行停止对应服务后重试"
 msgstr ""
-"Veuillez changer de port ou arrêter vous-même le service correspondant, puis"
-" réessayer."
+"Veuillez changer de port ou arrêter vous-même le service correspondant, puis "
+"réessayer."
 
 #: install.sh:4584
 msgid "证书测试签发成功, 开始正式签发"
-msgstr ""
-"test de certificat émis avec succès, début de la délivrance officielle"
+msgstr "test de certificat émis avec succès, début de la délivrance officielle"
 
 #: install.sh:4587
 msgid "证书测试签发失败"
@@ -1660,8 +1655,7 @@ msgstr ""
 #: install.sh:5996
 msgid "当前 xHTTP 仅支持 stream-one 和 stream-up 模式"
 msgstr ""
-"Actuellement, xHTTP ne prend en charge que les modes stream-one et stream-"
-"up."
+"Actuellement, xHTTP ne prend en charge que les modes stream-one et stream-up."
 
 #: install.sh:5997
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
@@ -2022,8 +2016,8 @@ msgstr ""
 "la version du script a beaucoup changé. si le service ne fonctionne pas "
 "correctement, veuillez le désinstaller puis le réinstaller"
 
-#: install.sh:7278 scripts/fail2ban_manager.sh:1188
-#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1235
+#: install.sh:7278 scripts/fail2ban_manager.sh:1188 scripts/file_manager.sh:354
+#: scripts/traffic_blocker.sh:1235
 msgid "当前已经是最新版本"
 msgstr "c'est déjà la version la plus récente"
 
@@ -2333,8 +2327,8 @@ msgstr "Sans Nginx, sans TLS"
 #: install.sh:8482
 msgid "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
 msgstr ""
-"Le mode ONLY est destiné aux relais, aux backends d’équilibrage de charge ou"
-" aux environnements disposant déjà d’un proxy en amont"
+"Le mode ONLY est destiné aux relais, aux backends d’équilibrage de charge ou "
+"aux environnements disposant déjà d’un proxy en amont"
 
 #: install.sh:8506 install.sh:8804
 msgid "安装向导"
@@ -2521,8 +2515,7 @@ msgstr "désactivé"
 #: scripts/fail2ban_manager.sh:289
 msgid "regex 自检未通过, 请检查日志格式"
 msgstr ""
-"regex L’auto‑vérification a échoué, veuillez vérifier le format des "
-"journaux."
+"regex L’auto‑vérification a échoué, veuillez vérifier le format des journaux."
 
 #: scripts/fail2ban_manager.sh:291
 msgid "regex 自检通过"
@@ -2568,8 +2561,8 @@ msgstr "Débannir"
 #: scripts/fail2ban_manager.sh:450
 msgid "解封后仍在封禁列表中, 请检查"
 msgstr ""
-"Après le déblocage, l’utilisateur figure toujours sur la liste des blocages "
-"; veuillez vérifier."
+"Après le déblocage, l’utilisateur figure toujours sur la liste des "
+"blocages ; veuillez vérifier."
 
 #: scripts/fail2ban_manager.sh:454
 msgid "解封失败"
@@ -3283,8 +3276,8 @@ msgstr "le fichier de configuration Xray n’existe pas"
 #: scripts/traffic_blocker.sh:997
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
-"la configuration Xray ne contient pas de règle d’interception des connexions"
-" sortantes ; les règles de blocage ne peuvent donc pas être appliquées "
+"la configuration Xray ne contient pas de règle d’interception des connexions "
+"sortantes ; les règles de blocage ne peuvent donc pas être appliquées "
 "[blocked]"
 
 #: scripts/traffic_blocker.sh:1002
@@ -3300,8 +3293,8 @@ msgstr "configuration actuelle des règles de blocage"
 #: scripts/traffic_blocker.sh:1029
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
-"l’application des règles entraînera la reconstruction de la configuration du"
-" routage, et les règles de routage personnalisées seront remplacées"
+"l’application des règles entraînera la reconstruction de la configuration du "
+"routage, et les règles de routage personnalisées seront remplacées"
 
 #: scripts/traffic_blocker.sh:1033
 msgid "GeoData 下载失败, 无法应用规则"
@@ -3342,8 +3335,7 @@ msgstr "épandage de protocole"
 #: scripts/traffic_blocker.sh:1135
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr ""
-"cette opération réinitialisera toutes les règles de blocage en état "
-"désactivé"
+"cette opération réinitialisera toutes les règles de blocage en état désactivé"
 
 #: scripts/traffic_blocker.sh:1136
 msgid "确认重置"
