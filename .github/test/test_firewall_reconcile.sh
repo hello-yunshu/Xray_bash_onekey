@@ -242,6 +242,133 @@ else
     bad "Expected 2 ports for onlyws, got ${collected_count}"
 fi
 
+# --- Test 10: reconcile_managed_firewall fails closed on remove failure ---
+echo "--- reconcile fails closed when firewall_remove_managed_port fails ---"
+: > "${IPTABLES_RULES_FILE}"
+echo "tcp:443" >> "${IPTABLES_RULES_FILE}"
+# Override firewall_remove_managed_port to always fail
+firewall_remove_managed_port() { return 1; }
+old_json='{"tcp":[443],"udp":[]}'
+new_json='{"tcp":[8443],"udp":[]}'
+if reconcile_managed_firewall "${old_json}" "${new_json}"; then
+    bad "reconcile should fail when firewall_remove_managed_port fails"
+else
+    ok "reconcile fails closed when firewall_remove_managed_port fails"
+fi
+# Restore original
+unset -f firewall_remove_managed_port
+
+# --- Test 11: reconcile_managed_firewall fails closed on add failure ---
+echo "--- reconcile fails closed when firewall_add_managed_port fails ---"
+: > "${IPTABLES_RULES_FILE}"
+# Override firewall_add_managed_port to always fail
+firewall_add_managed_port() { return 1; }
+old_json='{"tcp":[],"udp":[]}'
+new_json='{"tcp":[8443],"udp":[]}'
+if reconcile_managed_firewall "${old_json}" "${new_json}"; then
+    bad "reconcile should fail when firewall_add_managed_port fails"
+else
+    ok "reconcile fails closed when firewall_add_managed_port fails"
+fi
+# Restore original
+unset -f firewall_add_managed_port
+
+# --- Test 12: firewall_set writes managed_ports.json and is idempotent ---
+echo "--- firewall_set writes managed_ports.json and is idempotent ---"
+: > "${IPTABLES_RULES_FILE}"
+# Extend mock to handle -A, OUTPUT, --sport, -i/-o, --dport range
+iptables() {
+    IPTABLES_CALLS=$((IPTABLES_CALLS + 1))
+    local op="$1"
+    local chain="$2"
+    shift 2
+    local proto="" port="" sport="" iface="" range=""
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -p) proto="$2"; shift 2 ;;
+            --dport)
+                port="$2"
+                if [[ "${port}" == *:* ]]; then range="${port}"; port=""; fi
+                shift 2 ;;
+            --sport) sport="$2"; shift 2 ;;
+            -i|-o) iface="$2"; shift 2 ;;
+            -j) shift 2 ;;
+            *) shift ;;
+        esac
+    done
+
+    local rule_key
+    if [[ -n "${iface}" ]]; then
+        rule_key="${chain}:${iface}"
+    elif [[ -n "${range}" ]]; then
+        rule_key="${chain}:${proto}:${range}"
+    elif [[ -n "${sport}" ]]; then
+        rule_key="${chain}:${proto}:sport:${sport}"
+    else
+        rule_key="${chain}:${proto}:${port}"
+    fi
+
+    case "${op}" in
+        -C)
+            grep -qxF "${rule_key}" "${IPTABLES_RULES_FILE}" 2>/dev/null
+            return $?
+            ;;
+        -A|-I)
+            if grep -qxF "${rule_key}" "${IPTABLES_RULES_FILE}" 2>/dev/null; then
+                return 0
+            fi
+            echo "${rule_key}" >> "${IPTABLES_RULES_FILE}"
+            return 0
+            ;;
+        -D)
+            if grep -qxF "${rule_key}" "${IPTABLES_RULES_FILE}" 2>/dev/null; then
+                local tmp
+                tmp=$(grep -vxF "${rule_key}" "${IPTABLES_RULES_FILE}" || true)
+                printf '%s\n' "${tmp}" > "${IPTABLES_RULES_FILE}"
+                return 0
+            fi
+            return 1
+            ;;
+    esac
+}
+
+# Set up variables for firewall_set
+ID="ubuntu"
+tls_mode="XTLS"
+port="443"
+xport=""
+gport=""
+xhttpport=""
+transport_mode="None"
+pkg_install() { return 0; }
+service() { return 0; }
+netfilter-persistent() { return 0; }
+iptables-save() { return 0; }
+
+# Simulate user saying Yes to firewall
+firewall_set_fq="y"
+
+# Run firewall_set twice — second run must not duplicate rules
+firewall_set <<< "y" >/dev/null 2>&1
+rules_after_first=$(wc -l < "${IPTABLES_RULES_FILE}" | tr -d ' ')
+
+firewall_set <<< "y" >/dev/null 2>&1
+rules_after_second=$(wc -l < "${IPTABLES_RULES_FILE}" | tr -d ' ')
+
+if [[ "${rules_after_first}" == "${rules_after_second}" ]]; then
+    ok "firewall_set idempotent: ${rules_after_first} rules both runs"
+else
+    bad "firewall_set not idempotent: ${rules_after_first} -> ${rules_after_second} rules"
+fi
+
+# Verify managed_ports.json was written
+if [[ -f "${managed_ports_file}" ]] && jq empty "${managed_ports_file}" >/dev/null 2>&1; then
+    ok "firewall_set wrote valid managed_ports.json"
+else
+    bad "firewall_set did not write valid managed_ports.json"
+fi
+
 echo ""
 echo "============================================================"
 echo "  Results: ${PASS} passed, ${FAIL} failed"

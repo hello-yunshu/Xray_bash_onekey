@@ -1007,10 +1007,10 @@ port_set() {
     if [[ "on" != ${old_config_status} ]]; then
         echo
         log_echo "${GreenBG} $(gettext "确定端口") ${Font}"
-        read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+        read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
         while [[ ${tls_mode} == "Reality" ]] && is_reality_reserved_port "${port}"; do
             echo -e "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
-            read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+            read_optimize "$(gettext "请输入端口") ($(gettext "默认值"):443):" "port" 443 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
         done
     fi
 }
@@ -1134,7 +1134,7 @@ transport_choose() {
         echo "4: ws+xHTTP"
         echo "5: ws+gRPC+xHTTP"
         local choose_network
-        read_optimize "$(gettext "请输入"): " "choose_network" 1 1 5 "$(gettext "请输入有效的数字")!"
+        read_optimize "$(gettext "请输入"): " "choose_network" 1 1 5 "$(gettext "请输入有效的数字")!" || return 1
         case ${choose_network} in
         2)
             transport_mode="onlygRPC"
@@ -1234,23 +1234,29 @@ xray_reality_add_more_choose() {
         if [[ ${reality_add_more} == "on" ]]; then
             # transport_mode already set; derive shell_mode and init ports/paths
             _transport_set_shell_mode
-            ws_inbound_port_set
-            grpc_inbound_port_set
-            xhttp_inbound_port_set
-            ws_path_set
-            grpc_path_set
-            xhttp_path_set
-            is_ws_mode && port_exist_check "${xport}"
-            is_grpc_mode && port_exist_check "${gport}"
-            is_xhttp_mode && port_exist_check "${xhttpport}"
+            ws_inbound_port_set || return 1
+            grpc_inbound_port_set || return 1
+            xhttp_inbound_port_set || return 1
+            ws_path_set || return 1
+            grpc_path_set || return 1
+            xhttp_path_set || return 1
+            if is_ws_mode; then
+                port_exist_check "${xport}" || return 1
+            fi
+            if is_grpc_mode; then
+                port_exist_check "${gport}" || return 1
+            fi
+            if is_xhttp_mode; then
+                port_exist_check "${xhttpport}" || return 1
+            fi
         else
             transport_mode="None"
-            ws_inbound_port_set
-            grpc_inbound_port_set
-            xhttp_inbound_port_set
-            ws_path_set
-            grpc_path_set
-            xhttp_path_set
+            ws_inbound_port_set || return 1
+            grpc_inbound_port_set || return 1
+            xhttp_inbound_port_set || return 1
+            ws_path_set || return 1
+            grpc_path_set || return 1
+            xhttp_path_set || return 1
         fi
         return 0
     fi
@@ -1262,16 +1268,22 @@ xray_reality_add_more_choose() {
         case $reality_add_more_fq in
         [yY][eE][sS] | [yY])
             reality_add_more="on"
-            transport_choose
-            ws_inbound_port_set
-            grpc_inbound_port_set
-            xhttp_inbound_port_set
-            ws_path_set
-            grpc_path_set
-            xhttp_path_set
-            is_ws_mode && port_exist_check "${xport}"
-            is_grpc_mode && port_exist_check "${gport}"
-            is_xhttp_mode && port_exist_check "${xhttpport}"
+            transport_choose || return 1
+            ws_inbound_port_set || return 1
+            grpc_inbound_port_set || return 1
+            xhttp_inbound_port_set || return 1
+            ws_path_set || return 1
+            grpc_path_set || return 1
+            xhttp_path_set || return 1
+            if is_ws_mode; then
+                port_exist_check "${xport}" || return 1
+            fi
+            if is_grpc_mode; then
+                port_exist_check "${gport}" || return 1
+            fi
+            if is_xhttp_mode; then
+                port_exist_check "${xhttpport}" || return 1
+            fi
             ;;
         *)
             reality_add_more="off"
@@ -1324,10 +1336,10 @@ ws_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
                 while [[ ${tls_mode} == "Reality" ]] && is_reality_reserved_port "${xport}"; do
                     log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
-                    read_optimize "$(gettext "请输入") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                    read_optimize "$(gettext "请输入") ws inbound_port ($(gettext "请勿与其他端口相同")!): " "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
                 done
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 ;;
@@ -1348,10 +1360,10 @@ grpc_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
                 while [[ ${tls_mode} == "Reality" ]] && is_reality_reserved_port "${gport}"; do
                     log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
-                    read_optimize "$(gettext "请输入") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                    read_optimize "$(gettext "请输入") gRPC inbound_port ($(gettext "请勿与其他端口相同")!): " "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
                 done
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 ;;
@@ -1373,10 +1385,10 @@ xhttp_inbound_port_set() {
             read -r inbound_port_modify_fq
             case $inbound_port_modify_fq in
             [yY][eE][sS] | [yY])
-                read_optimize "$(gettext "请输入") xHTTP inbound_port ($(gettext "请勿与其他端口相同")!): " "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                read_optimize "$(gettext "请输入") xHTTP inbound_port ($(gettext "请勿与其他端口相同")!): " "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
                 while [[ ${tls_mode} == "Reality" ]] && is_reality_reserved_port "${xhttpport}"; do
                     log_echo "${Error} ${RedBG} $(gettext "端口不允许使用, 请重新输入")! ${Font}"
-                    read_optimize "$(gettext "请输入") xHTTP inbound_port ($(gettext "请勿与其他端口相同")!): " "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
+                    read_optimize "$(gettext "请输入") xHTTP inbound_port ($(gettext "请勿与其他端口相同")!): " "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
                 done
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
                 ;;
@@ -1417,6 +1429,28 @@ firewall_remove_managed_port() {
     done
 }
 
+# Idempotent helper: add OUTPUT accept rule for a sport. Fails closed.
+firewall_add_output_port() {
+    local proto="$1"
+    local port="$2"
+    iptables -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1 ||
+        iptables -I OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT
+}
+
+# Idempotent helper: add loopback accept rules. Fails closed.
+firewall_add_loopback_rules() {
+    iptables -C INPUT -i lo -j ACCEPT >/dev/null 2>&1 ||
+        iptables -A INPUT -i lo -j ACCEPT
+    iptables -C OUTPUT -o lo -j ACCEPT >/dev/null 2>&1 ||
+        iptables -A OUTPUT -o lo -j ACCEPT
+}
+
+# Idempotent helper: add UDP high-port range accept for INPUT. Fails closed.
+firewall_add_udp_high_port_range() {
+    iptables -C INPUT -p udp --dport 1024:65535 -j ACCEPT >/dev/null 2>&1 ||
+        iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+}
+
 atomic_write_managed_ports() {
     local json="$1"
     mkdir -p "$(dirname "${managed_ports_file}")"
@@ -1455,16 +1489,18 @@ reconcile_managed_firewall() {
     new_tcp=$(printf '%s' "${new_json}" | jq -r '.tcp[]? // empty')
 
     # Remove script-managed old ports that are no longer in the new set.
+    # Fail closed: if removal fails, abort so we don't leave stale rules.
     while IFS= read -r port; do
         [[ -n "${port}" ]] || continue
         printf '%s\n' "${new_tcp}" | grep -qxF "${port}" ||
-            firewall_remove_managed_port tcp "${port}" || true
+            firewall_remove_managed_port tcp "${port}" || return 1
     done <<< "${old_tcp}"
 
     # Add new managed ports (idempotent: firewall_add_managed_port checks first).
+    # Fail closed: if add fails, abort so caller can rollback.
     for port in ${new_tcp}; do
         [[ -n "${port}" ]] || continue
-        firewall_add_managed_port tcp "${port}" || true
+        firewall_add_managed_port tcp "${port}" || return 1
     done
     return 0
 }
@@ -1480,52 +1516,58 @@ firewall_set() {
         else
             pkg_install "iptables-persistent"
         fi
-        iptables -A INPUT -i lo -j ACCEPT
-        iptables -A OUTPUT -o lo -j ACCEPT
+
+        # Loopback rules (idempotent). Fail closed on any error.
+        firewall_add_loopback_rules || return 1
+
+        # DNS (port 53) — always required for resolution.
+        firewall_add_managed_port tcp 53 || return 1
+        firewall_add_managed_port udp 53 || return 1
+        firewall_add_output_port tcp 53 || return 1
+        firewall_add_output_port udp 53 || return 1
+
+        # TLS mode additionally needs port 80 (ACME / HTTP redirect).
         if [[ ${tls_mode} == "TLS" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,80,${port} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,80,${port} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,80,${port} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,80,${port} -j ACCEPT
-            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-        elif [[ ${tls_mode} == "XTLS" || ${tls_mode} == "Reality" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,${port} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,${port} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,${port} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,${port} -j ACCEPT
-            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+            firewall_add_managed_port tcp 80 || return 1
+            firewall_add_managed_port udp 80 || return 1
+            firewall_add_output_port tcp 80 || return 1
+            firewall_add_output_port udp 80 || return 1
         fi
-        if [[ ${transport_mode} == "onlyws" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,${xport} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,${xport} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,${xport} -j ACCEPT
-            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-        elif [[ ${transport_mode} == "onlygRPC" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,${gport} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,${gport} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,${gport} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,${gport} -j ACCEPT
-            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-        elif [[ ${transport_mode} == "onlyxhttp" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,${xhttpport} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,${xhttpport} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xhttpport} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,${xhttpport} -j ACCEPT
-            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-        elif [[ ${transport_mode} == "wsxhttp" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,${xport},${xhttpport} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,${xport},${xhttpport} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport},${xhttpport} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,${xport},${xhttpport} -j ACCEPT
-            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
-        elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
-            iptables -I INPUT -p tcp -m multiport --dport 53,${xport},${gport},${xhttpport} -j ACCEPT
-            iptables -I INPUT -p udp -m multiport --dport 53,${xport},${gport},${xhttpport} -j ACCEPT
-            iptables -I OUTPUT -p tcp -m multiport --sport 53,${xport},${gport},${xhttpport} -j ACCEPT
-            iptables -I OUTPUT -p udp -m multiport --sport 53,${xport},${gport},${xhttpport} -j ACCEPT
-            iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+
+        # Main service port (TLS / XTLS / Reality).
+        if [[ ${tls_mode} == "TLS" || ${tls_mode} == "XTLS" || ${tls_mode} == "Reality" ]]; then
+            if [[ -n "${port:-}" && "${port:-}" != "None" ]]; then
+                firewall_add_managed_port tcp "${port}" || return 1
+                firewall_add_managed_port udp "${port}" || return 1
+                firewall_add_output_port tcp "${port}" || return 1
+                firewall_add_output_port udp "${port}" || return 1
+            fi
         fi
+
+        # Transport-mode inbound ports (idempotent per port).
+        if is_ws_mode && [[ -n "${xport:-}" && "${xport:-}" != "None" ]]; then
+            firewall_add_managed_port tcp "${xport}" || return 1
+            firewall_add_managed_port udp "${xport}" || return 1
+            firewall_add_output_port tcp "${xport}" || return 1
+            firewall_add_output_port udp "${xport}" || return 1
+        fi
+        if is_grpc_mode && [[ -n "${gport:-}" && "${gport:-}" != "None" ]]; then
+            firewall_add_managed_port tcp "${gport}" || return 1
+            firewall_add_managed_port udp "${gport}" || return 1
+            firewall_add_output_port tcp "${gport}" || return 1
+            firewall_add_output_port udp "${gport}" || return 1
+        fi
+        if is_xhttp_mode && [[ -n "${xhttpport:-}" && "${xhttpport:-}" != "None" ]]; then
+            firewall_add_managed_port tcp "${xhttpport}" || return 1
+            firewall_add_managed_port udp "${xhttpport}" || return 1
+            firewall_add_output_port tcp "${xhttpport}" || return 1
+            firewall_add_output_port udp "${xhttpport}" || return 1
+        fi
+
+        # UDP high-port range for FullCone (idempotent).
+        firewall_add_udp_high_port_range || return 1
+
+        # Persist rules. Failures here are non-fatal (rules are already active).
         if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
             service iptables save 2>/dev/null || iptables-save > /etc/sysconfig/iptables 2>/dev/null || true
             service iptables restart 2>/dev/null || true
@@ -1534,6 +1576,11 @@ firewall_set() {
             netfilter-persistent save 2>/dev/null || iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
             log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
         fi
+
+        # Record managed ports so reconcile_managed_firewall can keep them in sync.
+        collect_new_managed_ports
+        atomic_write_managed_ports "${new_ports_json}" || return 1
+
         log_echo "${OK} ${GreenBG} $(gettext "开放防火墙相关端口") ${Font}"
         log_echo "${Warning} ${GreenBG} $(gettext "若修改配置, 请注意关闭防火墙相关端口") ${Font}"
         log_echo "${OK} ${GreenBG} $(gettext "配置") Xray FullCone ${Font}"
@@ -1553,7 +1600,7 @@ ws_path_set() {
                 read -r path_modify_fq
                 case $path_modify_fq in
                 [yY][eE][sS] | [yY])
-                    read_optimize "$(gettext "请输入") ws $(gettext "伪装路径") ($(gettext "不需要")"/":)" "path" "NULL"
+                    read_optimize "$(gettext "请输入") ws $(gettext "伪装路径") ($(gettext "不需要")"/":)" "path" "NULL" || return 1
                     path="${path#/}"
                     log_echo "${Green} ws $(gettext "伪装路径"): ${path} ${Font}"
                     ;;
@@ -1591,7 +1638,7 @@ grpc_path_set() {
                 read -r path_modify_fq
                 case $path_modify_fq in
                 [yY][eE][sS] | [yY])
-                    read_optimize "$(gettext "请输入") gRPC $(gettext "伪装路径") ($(gettext "不需要")"/":)" "serviceName" "NULL"
+                    read_optimize "$(gettext "请输入") gRPC $(gettext "伪装路径") ($(gettext "不需要")"/":)" "serviceName" "NULL" || return 1
                     serviceName="${serviceName#/}"
                     log_echo "${Green} gRPC $(gettext "伪装路径"): ${serviceName} ${Font}"
                     ;;
@@ -1629,7 +1676,7 @@ xhttp_path_set() {
                 read -r path_modify_fq
                 case $path_modify_fq in
                 [yY][eE][sS] | [yY])
-                    read_optimize "$(gettext "请输入") xHTTP $(gettext "伪装路径") ($(gettext "不需要")"/":)" "xhttppath" "NULL"
+                    read_optimize "$(gettext "请输入") xHTTP $(gettext "伪装路径") ($(gettext "不需要")"/":)" "xhttppath" "NULL" || return 1
                     xhttppath="${xhttppath#/}"
                     log_echo "${Green} xHTTP $(gettext "伪装路径"): ${xhttppath} ${Font}"
                     ;;
@@ -1665,7 +1712,7 @@ email_set() {
         read -r custom_email_fq
         case $custom_email_fq in
         [yY][eE][sS] | [yY])
-            read_optimize "$(gettext "请输入正确的 email") (e.g. me@hey.run): " "custom_email" "NULL"
+            read_optimize "$(gettext "请输入正确的 email") (e.g. me@hey.run): " "custom_email" "NULL" || return 1
             ;;
         *)
             custom_email="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})@hey.run"
@@ -1682,7 +1729,7 @@ UUID_set() {
         read -r need_UUID5
         case $need_UUID5 in
         [yY][eE][sS] | [yY])
-            read_optimize "$(gettext "请输入自定义字符串") ($(gettext "最多30字符")):" "UUID5_char" "NULL"
+            read_optimize "$(gettext "请输入自定义字符串") ($(gettext "最多30字符")):" "UUID5_char" "NULL" || return 1
             UUID="$(UUIDv5_tranc ${UUID5_char})"
             log_echo "${Green} $(gettext "自定义字符串"): ${UUID5_char} ${Font}"
             log_echo_secure "${Green} UUIDv5: ${UUID} ${Font}"
@@ -1724,7 +1771,7 @@ target_set() {
             echo
             log_echo "${GreenBG} $(gettext "请输入一个域名") (e.g. bing.com)${Font}"
             log_echo "${Green}$(gettext "域名必须支持 TLSv1.3、X25519、H2, 且不能跳转")${Font}"
-            read_optimize "$(gettext "确认域名符合要求后请输入"): " "domain" "NULL"
+            read_optimize "$(gettext "确认域名符合要求后请输入"): " "domain" "NULL" || return 1
             log_echo "${Green}$(gettext "正在检测域名请等待")...${Font}"
 
             output=$(nmap --script ssl-enum-ciphers -p 443 "${domain}")
@@ -1786,7 +1833,7 @@ serverNames_set() {
         read -r custom_serverNames_fq
         case $custom_serverNames_fq in
         [yY][eE][sS] | [yY])
-            read_optimize "$(gettext "请输入单个域名"): " "serverNames" "NULL"
+            read_optimize "$(gettext "请输入单个域名"): " "serverNames" "NULL" || return 1
             ;;
         *)
             serverNames=$target
@@ -1805,7 +1852,7 @@ keys_set() {
         read -r custom_keys_fq
         case $custom_keys_fq in
         [yY][eE][sS] | [yY])
-            read_optimize "$(gettext "请输入") privateKey:" "privateKey" "NULL"
+            read_optimize "$(gettext "请输入") privateKey:" "privateKey" "NULL" || return 1
             local keys
             keys=$(${xray_bin_dir}/xray x25519 -i "${privateKey}")
             password=$(parse_reality_public_key "${keys}")
@@ -1849,10 +1896,10 @@ shortIds_set() {
         read -r custom_shortids_fq
         case $custom_shortids_fq in
         [yY][eE][sS] | [yY])
-            read_optimize "$(gettext "请输入单个 shortId"): " "shortIds" "NULL"
+            read_optimize "$(gettext "请输入单个 shortId"): " "shortIds" "NULL" || return 1
             while [[ ! "${shortIds}" =~ ^[0-9a-fA-F]{16}$ ]]; do
                 log_echo "${Error} ${RedBG} shortIds $(gettext "值为空或超出范围, 请重新输入")! ${Font}"
-                read_optimize "$(gettext "请输入单个 shortId"): " "shortIds" "NULL"
+                read_optimize "$(gettext "请输入单个 shortId"): " "shortIds" "NULL" || return 1
             done
             ;;
         *)
@@ -4381,6 +4428,14 @@ port_exist_check() {
         return 0
     fi
 
+    # Port is occupied. Allow if it is the project's own xray/nginx service
+    # (stop_service_all will handle stopping them before binding new sockets).
+    # Any third-party occupant must cause a hard failure — never terminate.
+    if port_listener_info "${port}" | grep -qiE 'xray|nginx'; then
+        log_echo "${OK} ${GreenBG} ${port} $(gettext "端口由本项目服务占用, 将在安装前停止") ${Font}"
+        return 0
+    fi
+
     log_echo "${Error} ${RedBG} $(gettext "检测到端口被占用"): ${port} ${Font}"
     port_listener_info "${port}"
     log_echo "${Warning} ${YellowBG} $(gettext "脚本不会自动终止占用该端口的进程") ${Font}"
@@ -6061,45 +6116,97 @@ reset_port() {
     if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local _saved_old_config_status="${old_config_status}"
         local old_ports_json new_ports_json
+        # Snapshot current port values so we can restore them on any failure.
+        local _old_port="${port:-}"
+        local _old_xport="${xport:-}"
+        local _old_gport="${gport:-}"
+        local _old_xhttpport="${xhttpport:-}"
+        local _rollback_config_file=""
+        local _rollback_xray_conf=""
         old_config_status="off"
         old_ports_json=$(cat "${managed_ports_file}" 2>/dev/null || echo '{"tcp":[],"udp":[]}')
+
+        # ----- Phase 1: collect input only (no config writes) -----
         if [[ ${tls_mode} == "TLS" ]]; then
-            port_set
-            modify_nginx_port
-            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port'
-            log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
+            port_set || { _reset_port_restore; return 1; }
         elif [[ ${tls_mode} == "Reality" ]]; then
-            port_set
+            port_set || { _reset_port_restore; return 1; }
             if [[ ${transport_mode} == "onlyws" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${xport}"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
             elif [[ ${transport_mode} == "onlygRPC" ]]; then
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${gport}"
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
             elif [[ ${transport_mode} == "onlyxhttp" ]]; then
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${xhttpport}"
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
             elif [[ ${transport_mode} == "wsxhttp" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${xport}"
-                port_exist_check "${xhttpport}"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
             elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${xport}"
-                port_exist_check "${gport}"
-                port_exist_check "${xhttpport}"
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
                 log_echo "${Green} ws inbound_port: ${xport} ${Font}"
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
             fi
+        elif [[ ${tls_mode} == "None" ]]; then
+            if [[ ${transport_mode} == "onlyws" ]]; then
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+            elif [[ ${transport_mode} == "onlygRPC" ]]; then
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
+            elif [[ ${transport_mode} == "onlyxhttp" ]]; then
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
+            elif [[ ${transport_mode} == "wsxhttp" ]]; then
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+                log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
+            elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
+                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || { _reset_port_restore; return 1; }
+                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
+                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
+                log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
+            fi
+        elif [[ ${tls_mode} == "XTLS" ]]; then
+            port_set || { _reset_port_restore; return 1; }
+            log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
+        fi
+
+        # ----- Phase 2: validate (no config writes yet) -----
+        collect_new_managed_ports
+        validate_active_ports || { _reset_port_restore; return 1; }
+        if [[ -n "${port:-}" && "${port}" != "None" ]]; then
+            port_exist_check "${port}" || { _reset_port_restore; return 1; }
+        fi
+        if is_ws_mode && [[ -n "${xport:-}" && "${xport}" != "None" ]]; then
+            port_exist_check "${xport}" || { _reset_port_restore; return 1; }
+        fi
+        if is_grpc_mode && [[ -n "${gport:-}" && "${gport}" != "None" ]]; then
+            port_exist_check "${gport}" || { _reset_port_restore; return 1; }
+        fi
+        if is_xhttp_mode && [[ -n "${xhttpport:-}" && "${xhttpport}" != "None" ]]; then
+            port_exist_check "${xhttpport}" || { _reset_port_restore; return 1; }
+        fi
+
+        # ----- Phase 3: snapshot configs for rollback, then write -----
+        _rollback_config_file=$(mktemp)
+        _rollback_xray_conf=$(mktemp)
+        cp "${xray_install_config_file}" "${_rollback_config_file}" 2>/dev/null || true
+        cp "${xray_conf}" "${_rollback_xray_conf}" 2>/dev/null || true
+
+        if [[ ${tls_mode} == "TLS" ]]; then
+            modify_nginx_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port' || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+        elif [[ ${tls_mode} == "Reality" ]]; then
             local port_update_expr='.port = $port'
             if is_ws_mode; then
                 port_update_expr="${port_update_expr} | .ws_port = \$ws_port"
@@ -6114,40 +6221,12 @@ reset_port() {
                --argjson ws_port "${xport:-0}" \
                --argjson grpc_port "${gport:-0}" \
                --argjson xhttp_port "${xhttpport:-0}" \
-               "${port_update_expr}"
-            modify_inbound_port
-            [[ ${reality_add_nginx} == "on" ]] && modify_nginx_port
-        elif [[ ${tls_mode} == "None" ]]; then
-            if [[ ${transport_mode} == "onlyws" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${xport}"
-                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-            elif [[ ${transport_mode} == "onlygRPC" ]]; then
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${gport}"
-                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-            elif [[ ${transport_mode} == "onlyxhttp" ]]; then
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${xhttpport}"
-                log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
-            elif [[ ${transport_mode} == "wsxhttp" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${xport}"
-                port_exist_check "${xhttpport}"
-                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-                log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
-            elif [[ ${transport_mode} == "wsgRPCxhttp" ]]; then
-                read_optimize "$(gettext "请输入") ws inbound_port:" "xport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") gRPC inbound_port:" "gport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                read_optimize "$(gettext "请输入") xHTTP inbound_port:" "xhttpport" "NULL" 1 65535 "$(gettext "请输入 1-65535 之间的值")!"
-                port_exist_check "${xport}"
-                port_exist_check "${gport}"
-                port_exist_check "${xhttpport}"
-                log_echo "${Green} ws inbound_port: ${xport} ${Font}"
-                log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
-                log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
+               "${port_update_expr}" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+            if [[ ${reality_add_nginx} == "on" ]]; then
+                modify_nginx_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
             fi
+        elif [[ ${tls_mode} == "None" ]]; then
             local none_port_update=""
             if is_ws_mode; then
                 none_port_update="${none_port_update} | .ws_port = \$ws_port"
@@ -6162,29 +6241,26 @@ reset_port() {
                 update_json_config "${xray_install_config_file}" --argjson ws_port "${xport:-0}" \
                    --argjson grpc_port "${gport:-0}" \
                    --argjson xhttp_port "${xhttpport:-0}" \
-                   "${none_port_update# | }"
+                   "${none_port_update# | }" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
             fi
-            modify_inbound_port
+            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
         elif [[ ${tls_mode} == "XTLS" ]]; then
-            port_set
-            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port'
-            modify_inbound_port
-            log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
+            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port' || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
         fi
-        collect_new_managed_ports
-        validate_active_ports || {
-            old_config_status="${_saved_old_config_status}"
-            return 1
-        }
+
+        # ----- Phase 4: apply runtime + firewall -----
         if ! service_restart; then
-            old_config_status="${_saved_old_config_status}"
+            _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"
             return 1
         fi
-        reconcile_managed_firewall "${old_ports_json}" "${new_ports_json}" || {
-            old_config_status="${_saved_old_config_status}"
+        if ! reconcile_managed_firewall "${old_ports_json}" "${new_ports_json}"; then
+            _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"
+            service_restart >/dev/null 2>&1 || true
             return 1
-        }
-        atomic_write_managed_ports "${new_ports_json}"
+        fi
+        atomic_write_managed_ports "${new_ports_json}" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}"; return 1; }
+        rm -f "${_rollback_config_file}" "${_rollback_xray_conf}"
         reset_install_config
         old_config_status="${_saved_old_config_status}"
         return 0
@@ -6192,6 +6268,29 @@ reset_port() {
         log_echo "${Warning} ${YellowBG} $(gettext "请先安装") Xray ! ${Font}"
         return 1
     fi
+}
+
+# Helper: restore port variables on validation failure (no config was written).
+_reset_port_restore() {
+    port="${_old_port:-}"
+    xport="${_old_xport:-}"
+    gport="${_old_gport:-}"
+    xhttpport="${_old_xhttpport:-}"
+    old_config_status="${_saved_old_config_status:-}"
+}
+
+# Helper: restore config files AND port variables on write/apply failure.
+_reset_port_rollback() {
+    local rb_config="$1"
+    local rb_xray="$2"
+    [[ -f "${rb_config}" ]] && cp "${rb_config}" "${xray_install_config_file}" 2>/dev/null || true
+    [[ -f "${rb_xray}" ]] && cp "${rb_xray}" "${xray_conf}" 2>/dev/null || true
+    rm -f "${rb_config}" "${rb_xray}"
+    port="${_old_port:-}"
+    xport="${_old_xport:-}"
+    gport="${_old_gport:-}"
+    xhttpport="${_old_xhttpport:-}"
+    old_config_status="${_saved_old_config_status:-}"
 }
 
 reset_target() {
@@ -6775,25 +6874,34 @@ install_xray_ws_tls() {
     create_directory
     old_config_exist_check
     domain_check
-    transport_choose
-    port_set
-    ws_inbound_port_set
-    grpc_inbound_port_set
-    xhttp_inbound_port_set
+    transport_choose || return 1
+    port_set || return 1
+    ws_inbound_port_set || return 1
+    grpc_inbound_port_set || return 1
+    xhttp_inbound_port_set || return 1
     validate_active_ports || return 1
-    firewall_set
-    ws_path_set
-    grpc_path_set
-    xhttp_path_set
-    email_set
-    UUID_set
+    port_exist_check 80 || return 1
+    port_exist_check "${port}" || return 1
+    if is_ws_mode; then
+        port_exist_check "${xport}" || return 1
+    fi
+    if is_grpc_mode; then
+        port_exist_check "${gport}" || return 1
+    fi
+    if is_xhttp_mode; then
+        port_exist_check "${xhttpport}" || return 1
+    fi
+    firewall_set || return 1
+    ws_path_set || return 1
+    grpc_path_set || return 1
+    xhttp_path_set || return 1
+    email_set || return 1
+    UUID_set || return 1
     transport_qr
     install_config_tls_ws
     stop_service_all
     xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    port_exist_check 80
-    port_exist_check "${port}"
     nginx_exist_check || return 1
     nginx_systemd
     nginx_ssl_conf_add
@@ -6825,20 +6933,29 @@ install_xray_reality() {
     old_config_exist_check
     ip_check
     xray_install || return 1
-    port_set
-    email_set
-    UUID_set
-    target_set
-    serverNames_set
+    port_set || return 1
+    email_set || return 1
+    UUID_set || return 1
+    target_set || return 1
+    serverNames_set || return 1
     keys_set || return 1
-    shortIds_set
-    spiderx_set
-    xray_reality_add_more_choose
+    shortIds_set || return 1
+    spiderx_set || return 1
+    xray_reality_add_more_choose || return 1
     validate_active_ports || return 1
+    port_exist_check "${port}" || return 1
+    if is_ws_mode; then
+        port_exist_check "${xport}" || return 1
+    fi
+    if is_grpc_mode; then
+        port_exist_check "${gport}" || return 1
+    fi
+    if is_xhttp_mode; then
+        port_exist_check "${xhttpport}" || return 1
+    fi
     transport_qr
-    firewall_set
+    firewall_set || return 1
     stop_service_all
-    port_exist_check "${port}"
     reality_balance_add_fq
     reality_nginx_add_fq || return 1
     xray_conf_add
@@ -6868,16 +6985,16 @@ install_xray_xtls_only() {
     ip_check
     shell_mode="XTLS ONLY"
     tls_mode="XTLS"
-    port_set
+    port_set || return 1
     validate_active_ports || return 1
-    firewall_set
-    email_set
-    UUID_set
+    port_exist_check "${port}" || return 1
+    firewall_set || return 1
+    email_set || return 1
+    UUID_set || return 1
     install_config_xtls_only
     stop_service_all
     xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    port_exist_check "${port}"
     xray_conf_add
     harden_config_permissions || return 1
     basic_information
@@ -6898,25 +7015,31 @@ install_xray_ws_only() {
     create_directory
     old_config_exist_check
     ip_check
-    transport_choose
-    ws_inbound_port_set
-    grpc_inbound_port_set
-    xhttp_inbound_port_set
+    transport_choose || return 1
+    ws_inbound_port_set || return 1
+    grpc_inbound_port_set || return 1
+    xhttp_inbound_port_set || return 1
     validate_active_ports || return 1
-    firewall_set
-    ws_path_set
-    grpc_path_set
-    xhttp_path_set
-    email_set
-    UUID_set
+    if is_ws_mode; then
+        port_exist_check "${xport}" || return 1
+    fi
+    if is_grpc_mode; then
+        port_exist_check "${gport}" || return 1
+    fi
+    if is_xhttp_mode; then
+        port_exist_check "${xhttpport}" || return 1
+    fi
+    firewall_set || return 1
+    ws_path_set || return 1
+    grpc_path_set || return 1
+    xhttp_path_set || return 1
+    email_set || return 1
+    UUID_set || return 1
     transport_qr
     install_config_ws_only
     stop_service_all
     xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    is_ws_mode && port_exist_check "${xport}"
-    is_grpc_mode && port_exist_check "${gport}"
-    is_xhttp_mode && port_exist_check "${xhttpport}"
     xray_conf_add
     harden_config_permissions || return 1
     basic_information
@@ -8555,16 +8678,22 @@ harden_config_permissions_if_needed() {
 
 [[ "${_TEST_MODE:-0}" == "1" ]] && return 0
 
-check_file_integrity
-compat_migrate
+# Initialize language first so offline commands get localized messages
+# without requiring any network access.
 init_language
-judge_mode
 
+# Offline-safe commands (--help, --uninstall, service control, logs, backup)
+# MUST be dispatched before check_file_integrity, which may attempt network
+# downloads. This ensures `bash install.sh --help` works even when GitHub is
+# unreachable or the script is not yet installed locally.
 if is_offline_safe_command "${1:-}"; then
     dispatch_offline_safe_command "$@"
     exit $?
 fi
 
+check_file_integrity
+compat_migrate
+judge_mode
 check_online_version_connect
 read_version || exit 1
 

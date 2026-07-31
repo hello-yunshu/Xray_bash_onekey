@@ -73,6 +73,16 @@ jobs:
             .phase1-contracts/nginx \
             .phase1-contracts/skill
 
+      - name: Run user-safety regression tests
+        run: |
+          set -euo pipefail
+          bash .github/test/test_port_safety.sh
+          bash .github/test/test_offline_commands.sh
+          bash .github/test/test_input_eof.sh
+          bash .github/test/test_port_validation.sh
+          bash .github/test/test_firewall_reconcile.sh
+          bash .github/test/test_shell_update_metadata.sh
+
       - name: Run Skill contract tests
         env:
           MAIN_REPO_ROOT: ${{ github.workspace }}
