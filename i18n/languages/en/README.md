@@ -16,6 +16,7 @@ Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 * Built-in Xray traffic statistics, traffic blocking, GeoIP/GeoSite rule update and regular update
 * Supports script, Xray, Nginx and certificate updates, with backup and failure rollback for critical updates
 * Automatically backs up the current running configuration before reinstallation or mode switching, and restores the original configuration on failure
+* Reconfiguration provides three safe paths: keep-config redeploy, standard template rebuild, and mode switching
 * use[@DuckSoft](https://github.com/DuckSoft)'s sharing link[提案](https://github.com/XTLS/Xray-core/issues/91)(beta), compatible with Qv2ray, V2rayN, V2rayNG
 * use[XTLS](https://github.com/XTLS/Xray-core/issues/158)proposal, follow[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)Standard, supports custom string mapping to VLESS UUID
 * Supports gRPC protocol:[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
@@ -60,6 +61,18 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_oneke
 | Docker | Xray, Nginx and the main script are pre-installed in the image |
 
 Optional when installing ws/gRPC/xHTTP related modes`ws`、`gRPC`、`xHTTP`or`ws+gRPC+xHTTP`. The script will generate the corresponding port, path, sharing link and QR code respectively; Clash currently does not support xHTTP, and the script will prompt in the configuration output.
+
+## Reconfiguration
+
+When running the installer again on an already installed environment, the script automatically backs up the current running configuration and offers three reconfiguration paths:
+
+| Path | Description | Limitations |
+|------|------|------|
+| Keep-config redeploy | Preserves custom routing/outbounds/DNS and multi-user configuration, only modifying user-selected fields (port, path, UUID, Reality parameters, etc.) | Transport structure changes (e.g., ws → gRPC) are not supported; use standard template rebuild to change transport combinations |
+| Standard template rebuild | Generates a standard template configuration using currently reusable parameters; custom routing/outbounds/DNS may be removed | Does not enforce user count parity |
+| Mode switching | Switches to a different protocol mode (e.g., Reality → TLS), reusing only the primary user UUID/email by default | Other users are not migrated automatically; a clear prompt is shown before switching |
+
+Any failure during reconfiguration (config write, service start, health check, etc.) automatically rolls back to the backed-up original configuration. Backup directories use unique timestamps, allowing multiple consecutive reconfigurations without conflict.
 
 ## Common commands
 

@@ -146,6 +146,9 @@ old_config_loaded="off"
 # single-user configs too (保留配置重新安装 path), instead of rebuilding
 # from the standard template.
 reinstall_keep_config="off"
+# P0-1: Single state variable distinguishing the four reconfigure operations.
+# Values: none | keep_config | standard_rebuild | mode_switch | clean_install
+reinstall_operation="none"
 # P0-3: per-field edit flags. Set to "yes" by reinstall_edit_menu when the
 # user explicitly chooses to modify that field during a keep-config reinstall.
 # Param functions check these to decide whether to re-prompt even when
@@ -156,6 +159,9 @@ change_transport="no"
 change_inner_ports="no"
 change_reality="no"
 change_nginx_sni="no"
+change_ws_path="no"
+change_grpc_path="no"
+change_xhttp_path="no"
 # P0-4: when "yes", email_set and UUID_set skip prompting and reuse the
 # values already loaded from the old config during a mode switch.
 mode_switch_reuse="off"
@@ -4659,10 +4665,20 @@ acme() {
 xray_conf_add() {
     # Source of truth for multi-user is the actual Xray config, not
     # install_config.json — install_config_* may have already overwritten
-    # the metadata before this function runs (e.g. install_xray_ws_tls calls
-    # install_config_tls_ws before xray_conf_add).
+    # the metadata before this function runs.
     local _multi_user_detected
     _multi_user_detected=$(detect_multi_user_from_xray_conf)
+
+    # P0-7: mode_switch must always rebuild from template — never preserve
+    # the old mode's Xray JSON, even if multi-user is detected.
+    if [[ "${reinstall_operation}" == "mode_switch" ]]; then
+        _multi_user_detected="no"
+        # Remove old multi-user metadata so it doesn't interfere.
+        if [[ -f "${xray_install_config_file}" ]]; then
+            update_json_config "${xray_install_config_file}" 'del(.multi_user)' 2>/dev/null || true
+        fi
+    fi
+
     if [[ "${_multi_user_detected}" == "yes" ]]; then
         # Ensure metadata reflects reality so subsequent reads are consistent.
         if [[ -f "${xray_install_config_file}" ]]; then
@@ -4672,10 +4688,47 @@ xray_conf_add() {
                 update_json_config "${xray_install_config_file}" --arg mu "yes" '.multi_user = $mu' 2>/dev/null || true
         fi
     fi
-    # P0-2: 保留配置重新安装 — preserve the existing Xray JSON (custom
-    # routing/outbounds/DNS are kept) instead of rebuilding from the standard
-    # template. Applies to single-user configs too. Falls back to template
-    # rebuild when there is no existing config file to preserve.
+
+    # P0-1: keep-config path — preserve the existing Xray JSON and apply
+    # only the user-selected changes. This protects custom routing/outbounds/
+    # DNS and multi-user configs. Falls back to template rebuild when there
+    # is no existing config file.
+    if [[ "${reinstall_keep_config}" == "on" && -f "${xray_conf}" && "${_multi_user_detected}" != "yes" ]]; then
+        # P0-1: Apply selected changes to the existing config in-place.
+        # Only modify fields the user explicitly chose to change.
+        if [[ "${change_port}" == "yes" ]]; then
+            modify_inbound_port
+        fi
+        if [[ "${change_inner_ports}" == "yes" ]]; then
+            if is_ws_mode; then
+                modify_inbound_port  # ws inbound port
+            fi
+        fi
+        if [[ "${change_ws_path}" == "yes" ]] && is_ws_mode; then
+            modify_path
+        fi
+        if [[ "${change_grpc_path}" == "yes" ]] && is_grpc_mode; then
+            # gRPC serviceName is updated via modify_path for gRPC
+            :
+        fi
+        if [[ "${change_xhttp_path}" == "yes" ]] && is_xhttp_mode; then
+            :
+        fi
+        if [[ "${change_user}" == "yes" ]]; then
+            modify_UUID
+            modify_email_address
+        fi
+        if [[ "${change_reality}" == "yes" ]] && [[ ${tls_mode} == "Reality" ]]; then
+            modify_target_serverNames
+            modify_privateKey_shortIds
+        fi
+        # P0-8: Transport structure changes are NOT supported in keep-config.
+        # change_transport is intentionally not handled here — the edit menu
+        # redirects transport changes to standard template rebuild.
+        return 0
+    fi
+
+    # Template rebuild path (fresh install, standard_rebuild, or mode_switch)
     if [[ "${_multi_user_detected}" != "yes" ]] && \
        [[ "${reinstall_keep_config}" != "on" || ! -f "${xray_conf}" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
@@ -4780,7 +4833,18 @@ old_config_exist_check() {
     # user explicitly chooses 保留配置重新安装 / mode switch. Ensures a
     # previous reinstall does not leak into a subsequent fresh install.
     reinstall_keep_config="off"
+    reinstall_operation="none"
     mode_switch_reuse="off"
+    # P0-10: Reset all change_* flags to prevent leakage from prior reinstall.
+    change_port="no"
+    change_user="no"
+    change_transport="no"
+    change_inner_ports="no"
+    change_reality="no"
+    change_nginx_sni="no"
+    change_ws_path="no"
+    change_grpc_path="no"
+    change_xhttp_path="no"
     if [[ -f "${xray_install_config_file}" ]]; then
         # Snapshot the running config before any reinstall or mode switch
         # so a failed deploy can be rolled back (P1-6). Skip in test mode
@@ -4808,6 +4872,7 @@ old_config_exist_check() {
                 old_config_status="on"
                 old_config_loaded="on"
                 reinstall_keep_config="on"
+                reinstall_operation="keep_config"
                 old_config_input
                 # P0-3: let the user pick which params to modify; unselected
                 # fields keep their old values during the reinstall.
@@ -4826,6 +4891,7 @@ old_config_exist_check() {
                     rm -rf "${xray_install_config_file}"
                     old_config_status="off"
                     reinstall_keep_config="off"
+                    reinstall_operation="standard_rebuild"
                     log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件, 将使用标准模板重建") ${Font}"
                     ;;
                 *)
@@ -4871,6 +4937,7 @@ old_config_exist_check() {
                 UUID5_char=$(info_extraction idc 2>/dev/null)
                 UUID=$(info_extraction id 2>/dev/null)
                 mode_switch_reuse="yes"
+                reinstall_operation="mode_switch"
                 rm -rf "${xray_install_config_file}"
                 old_config_status="off"
                 reinstall_keep_config="off"
@@ -5014,26 +5081,26 @@ reinstall_edit_menu() {
     log_echo "${GreenBG} $(gettext "可选择需要修改的项目 (未选择的保持原值)") ${Font}"
     log_echo "  ${Green}1)${Font} $(gettext "修改主端口")"
     log_echo "  ${Green}2)${Font} $(gettext "修改用户或 UUID")"
-    log_echo "  ${Green}3)${Font} $(gettext "修改传输组合")"
-    log_echo "  ${Green}4)${Font} $(gettext "修改内部端口")"
-    log_echo "  ${Green}5)${Font} $(gettext "修改传输路径")"
-    log_echo "  ${Green}6)${Font} $(gettext "修改 Reality 参数")"
-    log_echo "  ${Green}7)${Font} $(gettext "修改 Nginx/SNI 设置")"
-    log_echo "  ${Green}8)${Font} $(gettext "不再修改, 开始重新部署")"
+    log_echo "  ${Green}3)${Font} $(gettext "修改内部端口")"
+    log_echo "  ${Green}4)${Font} $(gettext "修改传输路径")"
+    log_echo "  ${Green}5)${Font} $(gettext "修改 Reality 参数")"
+    log_echo "  ${Green}6)${Font} $(gettext "修改 Nginx/SNI 设置")"
+    log_echo "  ${Green}7)${Font} $(gettext "不再修改, 开始重新部署")"
+    echo
+    log_echo "${Warning} ${YellowBG} $(gettext "传输组合变更请使用标准模板重建") ${Font}"
     echo
     local _edit_choice
     while true; do
-        log_echo "${GreenBG} $(gettext "请选择") [1-8]: ${Font}"
+        log_echo "${GreenBG} $(gettext "请选择") [1-7]: ${Font}"
         read -r _edit_choice
         case $_edit_choice in
         1) change_port="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改主端口") ${Font}" ;;
         2) change_user="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改用户或 UUID") ${Font}" ;;
-        3) change_transport="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改传输组合") ${Font}" ;;
-        4) change_inner_ports="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改内部端口") ${Font}" ;;
-        5) change_ws_path="yes"; change_grpc_path="yes"; change_xhttp_path="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改传输路径") ${Font}" ;;
-        6) change_reality="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改 Reality 参数") ${Font}" ;;
-        7) change_nginx_sni="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改 Nginx/SNI 设置") ${Font}" ;;
-        8) break ;;
+        3) change_inner_ports="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改内部端口") ${Font}" ;;
+        4) change_ws_path="yes"; change_grpc_path="yes"; change_xhttp_path="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改传输路径") ${Font}" ;;
+        5) change_reality="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改 Reality 参数") ${Font}" ;;
+        6) change_nginx_sni="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改 Nginx/SNI 设置") ${Font}" ;;
+        7) break ;;
         *) log_echo "${Error} ${RedBG} $(gettext "值为空或超出范围, 请重新输入") ${Font}" ;;
         esac
     done
@@ -5636,6 +5703,16 @@ count_reality_clients_in_xray_conf() {
     jq -r '[.inbounds[] | select(.protocol == "vless") | .settings.clients | length] | add // 0' "${xray_conf}" 2>/dev/null || echo 0
 }
 
+# Extract the deduplicated UUID set from all VLESS inbounds in the actual
+# Xray config. Returns a sorted, newline-separated list of UUIDs. Used for
+# stable user-identity comparison across reconfigures (P0-11).
+extract_uuid_set_from_xray_conf() {
+    if [[ ! -f "${xray_conf}" ]]; then
+        return
+    fi
+    jq -r '[.inbounds[] | select(.protocol == "vless") | .settings.clients[]?.id // empty] | unique | sort | .[]' "${xray_conf}" 2>/dev/null
+}
+
 # Merge new install_config fields onto the existing file, preserving
 # multi_user, reality_clients, and any other top-level extension fields
 # the script does not manage (custom routing metadata, third-party tool
@@ -5735,7 +5812,10 @@ install_config_tls_ws() {
     "nginx_build_version": "${nginx_build_version:-}"
 }
 EOF
-    _install_config_merge_write "${_new_fields}"
+    if ! _install_config_merge_write "${_new_fields}"; then
+        rm -f "${_new_fields}"
+        return 1
+    fi
     rm -f "${_new_fields}"
 }
 
@@ -5784,7 +5864,10 @@ EOF
             '. + {"nginx_build_version": $nginx_build_version}' "${_new_fields}" > "${_new_fields}.tmp" 2>/dev/null \
             && mv "${_new_fields}.tmp" "${_new_fields}"
     fi
-    _install_config_merge_write "${_new_fields}"
+    if ! _install_config_merge_write "${_new_fields}"; then
+        rm -f "${_new_fields}"
+        return 1
+    fi
     rm -f "${_new_fields}"
 }
 
@@ -5808,7 +5891,10 @@ install_config_xtls_only() {
     "xray_version": "${xray_version:-}"
 }
 EOF
-    _install_config_merge_write "${_new_fields}"
+    if ! _install_config_merge_write "${_new_fields}"; then
+        rm -f "${_new_fields}"
+        return 1
+    fi
     rm -f "${_new_fields}"
 }
 
@@ -5836,7 +5922,10 @@ install_config_ws_only() {
     "xray_version": "${xray_version:-}"
 }
 EOF
-    _install_config_merge_write "${_new_fields}"
+    if ! _install_config_merge_write "${_new_fields}"; then
+        rm -f "${_new_fields}"
+        return 1
+    fi
     rm -f "${_new_fields}"
 }
 
@@ -7336,6 +7425,12 @@ judge_mode() {
 }
 
 install_xray_ws_tls() {
+    # P0-5: Auto-restore on early failure. If this function returns non-zero
+    # before reaching reinstall_finalize, the RETURN trap restores the backup.
+    local _tx_backup="${_reinstall_backup_dir:-}"
+    if [[ -n "${_tx_backup}" ]]; then
+        trap 'reinstall_backup_restore "${_tx_backup}" 2>/dev/null; _reinstall_backup_dir=""' RETURN
+    fi
     is_root
     check_and_create_user_group
     check_system
@@ -7368,33 +7463,43 @@ install_xray_ws_tls() {
     email_set || return 1
     UUID_set || return 1
     transport_qr
-    install_config_tls_ws
+    install_config_tls_ws || return 1
     stop_service_all
     xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     nginx_exist_check || return 1
-    nginx_systemd
-    nginx_ssl_conf_add
+    nginx_systemd || return 1
+    nginx_ssl_conf_add || return 1
     ssl_judge_and_install || return 1
-    nginx_conf_add
-    nginx_servers_conf_add
-    xray_conf_add
+    nginx_conf_add || return 1
+    nginx_servers_conf_add || return 1
+    xray_conf_add || return 1
     harden_config_permissions || return 1
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
-    basic_information
     enable_process_systemd || return 1
     acme_cron_update
     auto_update || return 1
     service_restart || return 1
     setup_auto_clean_logs || return 1
+    # P0-11: Clear trap before finalize — finalize handles its own restore.
+    trap - RETURN
+    if ! reinstall_finalize; then
+        return 1
+    fi
+    # P0-11: Success info only after final safety gate passes.
+    basic_information
     vless_link_image_choice
     show_information
-    reinstall_finalize
 }
 
 install_xray_reality() {
+    # P0-5: Auto-restore on early failure.
+    local _tx_backup="${_reinstall_backup_dir:-}"
+    if [[ -n "${_tx_backup}" ]]; then
+        trap 'reinstall_backup_restore "${_tx_backup}" 2>/dev/null; _reinstall_backup_dir=""' RETURN
+    fi
     is_root
     check_and_create_user_group
     check_system
@@ -7429,24 +7534,32 @@ install_xray_reality() {
     stop_service_all
     reality_balance_add_fq
     reality_nginx_add_fq || return 1
-    xray_conf_add
-    install_config_reality
+    xray_conf_add || return 1
+    install_config_reality || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     harden_config_permissions || return 1
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
-    basic_information
     enable_process_systemd || return 1
     auto_update || return 1
     service_restart || return 1
     setup_auto_clean_logs || return 1
+    trap - RETURN
+    if ! reinstall_finalize; then
+        return 1
+    fi
+    basic_information
     vless_link_image_choice
     show_information
-    reinstall_finalize
 }
 
 install_xray_xtls_only() {
+    # P0-5: Auto-restore on early failure.
+    local _tx_backup="${_reinstall_backup_dir:-}"
+    if [[ -n "${_tx_backup}" ]]; then
+        trap 'reinstall_backup_restore "${_tx_backup}" 2>/dev/null; _reinstall_backup_dir=""' RETURN
+    fi
     is_root
     check_and_create_user_group
     check_system
@@ -7463,23 +7576,31 @@ install_xray_xtls_only() {
     firewall_set || return 1
     email_set || return 1
     UUID_set || return 1
-    install_config_xtls_only
+    install_config_xtls_only || return 1
     stop_service_all
     xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    xray_conf_add
+    xray_conf_add || return 1
     harden_config_permissions || return 1
-    basic_information
     enable_process_systemd || return 1
     auto_update || return 1
     service_restart || return 1
     setup_auto_clean_logs || return 1
+    trap - RETURN
+    if ! reinstall_finalize; then
+        return 1
+    fi
+    basic_information
     vless_link_image_choice
     show_information
-    reinstall_finalize
 }
 
 install_xray_ws_only() {
+    # P0-5: Auto-restore on early failure.
+    local _tx_backup="${_reinstall_backup_dir:-}"
+    if [[ -n "${_tx_backup}" ]]; then
+        trap 'reinstall_backup_restore "${_tx_backup}" 2>/dev/null; _reinstall_backup_dir=""' RETURN
+    fi
     is_root
     check_and_create_user_group
     check_system
@@ -7509,20 +7630,23 @@ install_xray_ws_only() {
     email_set || return 1
     UUID_set || return 1
     transport_qr
-    install_config_ws_only
+    install_config_ws_only || return 1
     stop_service_all
     xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    xray_conf_add
+    xray_conf_add || return 1
     harden_config_permissions || return 1
-    basic_information
     enable_process_systemd || return 1
     auto_update || return 1
     service_restart || return 1
     setup_auto_clean_logs || return 1
+    trap - RETURN
+    if ! reinstall_finalize; then
+        return 1
+    fi
+    basic_information
     vless_link_image_choice
     show_information
-    reinstall_finalize
 }
 
 update_sh() {
@@ -8258,59 +8382,200 @@ _reinstall_backup_dir=""
 # or mode switch. Echoes the backup directory path on stdout.
 # Returns 1 if the backup could not be created.
 reinstall_backup_create() {
-    local timestamp backup_dir
-    timestamp=$(date +"%Y%m%d-%H%M%S")
-    backup_dir="${idleleo_dir}/backup/reinstall-${timestamp}"
-    mkdir -p "${backup_dir}" || return 1
+    local backup_dir
+    # Use mktemp -d for a unique directory (prevents same-second collisions).
+    backup_dir=$(mktemp -d "${idleleo_dir}/backup/reinstall-$(date +%Y%m%d-%H%M%S)-XXXXXX" 2>/dev/null)
+    if [[ -z "${backup_dir}" || ! -d "${backup_dir}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "备份目录创建失败, 中止重配置") ${Font}"
+        return 1
+    fi
 
-    # Snapshot the files the script manages. Use cp -a to preserve
-    # permissions and ownership. Missing files are skipped silently.
-    cp -a "${xray_install_config_file}" "${backup_dir}/install_config.json" 2>/dev/null || true
-    [[ -d "${xray_conf_dir}" ]] && cp -a "${xray_conf_dir}" "${backup_dir}/xray" 2>/dev/null || true
-    [[ -d "${nginx_conf_dir}" ]] && cp -a "${nginx_conf_dir}" "${backup_dir}/nginx" 2>/dev/null || true
-    [[ -d "${ssl_chainpath}" ]] && cp -a "${ssl_chainpath}" "${backup_dir}/cert" 2>/dev/null || true
-    [[ -f "${managed_ports_file}" ]] && cp -a "${managed_ports_file}" "${backup_dir}/managed_ports.json" 2>/dev/null || true
-    [[ -f "${xray_systemd_file}" ]] && cp -a "${xray_systemd_file}" "${backup_dir}/xray.service" 2>/dev/null || true
-    [[ -f "${nginx_systemd_file}" ]] && cp -a "${nginx_systemd_file}" "${backup_dir}/nginx.service" 2>/dev/null || true
+    local _cp_err=0
 
-    # Record pre-reinstall user counts so we can verify preservation.
+    # Critical files — fail closed if they exist but cannot be copied.
+    if [[ -f "${xray_install_config_file}" ]]; then
+        cp -a "${xray_install_config_file}" "${backup_dir}/install_config.json" 2>/dev/null || _cp_err=1
+    fi
+    if [[ -d "${xray_conf_dir}" ]]; then
+        cp -a "${xray_conf_dir}" "${backup_dir}/xray" 2>/dev/null || _cp_err=1
+    fi
+    if [[ -d "${nginx_conf_dir}" ]]; then
+        cp -a "${nginx_conf_dir}" "${backup_dir}/nginx" 2>/dev/null || _cp_err=1
+    fi
+    # Main nginx.conf (outside the project conf dir).
+    local _nginx_main_conf="/usr/local/nginx/conf/nginx.conf"
+    if [[ -f "${_nginx_main_conf}" ]]; then
+        cp -a "${_nginx_main_conf}" "${backup_dir}/nginx.conf" 2>/dev/null || _cp_err=1
+    fi
+    if [[ -d "${ssl_chainpath}" ]]; then
+        cp -a "${ssl_chainpath}" "${backup_dir}/cert" 2>/dev/null || _cp_err=1
+    fi
+    if [[ -f "${managed_ports_file}" ]]; then
+        cp -a "${managed_ports_file}" "${backup_dir}/managed_ports.json" 2>/dev/null || _cp_err=1
+    fi
+    if [[ -f "${xray_systemd_file}" ]]; then
+        cp -a "${xray_systemd_file}" "${backup_dir}/xray.service" 2>/dev/null || _cp_err=1
+    fi
+    if [[ -f "${nginx_systemd_file}" ]]; then
+        cp -a "${nginx_systemd_file}" "${backup_dir}/nginx.service" 2>/dev/null || _cp_err=1
+    fi
+    # Share info files.
+    local _xray_info="${idleleo_dir}/xray_info.inf"
+    if [[ -f "${_xray_info}" ]]; then
+        cp -a "${_xray_info}" "${backup_dir}/xray_info.inf" 2>/dev/null || _cp_err=1
+    fi
+
+    if [[ ${_cp_err} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "关键文件备份失败, 中止重配置") ${Font}"
+        rm -rf "${backup_dir}"
+        return 1
+    fi
+
+    # Record pre-reinstall state. Use old_tls_mode (source mode) not tls_mode
+    # (target mode) so mode-switch backups record the correct source.
+    local _source_mode="${old_tls_mode:-${tls_mode:-}}"
+    local _xray_active="no" _nginx_active="no" _xray_enabled="no" _nginx_enabled="no"
+    systemctl is-active --quiet xray 2>/dev/null && _xray_active="yes"
+    systemctl is-active --quiet nginx 2>/dev/null && _nginx_active="yes"
+    systemctl is-enabled --quiet xray 2>/dev/null && _xray_enabled="yes"
+    systemctl is-enabled --quiet nginx 2>/dev/null && _nginx_enabled="yes"
+
+    # Snapshot actual managed firewall rules.
+    local _fw_snapshot=""
+    if command -v iptables >/dev/null 2>&1; then
+        _fw_snapshot=$(iptables -S 2>/dev/null | grep -i idleleo || true)
+    fi
+
+    # Record file existence manifest. Use a brace group redirected to file
+    # (NOT var=$(...)>file, which writes an empty file — the command
+    # substitution captures stdout into the var, leaving the redirection
+    # target empty).
     {
         echo "{"
+        echo "  \"files\": {"
+        echo "    \"install_config.json\": $([[ -f \"${xray_install_config_file}\" ]] && echo true || echo false),"
+        echo "    \"xray_conf_dir\": $([[ -d \"${xray_conf_dir}\" ]] && echo true || echo false),"
+        echo "    \"nginx_conf_dir\": $([[ -d \"${nginx_conf_dir}\" ]] && echo true || echo false),"
+        echo "    \"nginx_main_conf\": $([[ -f \"${_nginx_main_conf}\" ]] && echo true || echo false),"
+        echo "    \"cert_dir\": $([[ -d \"${ssl_chainpath}\" ]] && echo true || echo false),"
+        echo "    \"managed_ports.json\": $([[ -f \"${managed_ports_file}\" ]] && echo true || echo false),"
+        echo "    \"xray.service\": $([[ -f \"${xray_systemd_file}\" ]] && echo true || echo false),"
+        echo "    \"nginx.service\": $([[ -f \"${nginx_systemd_file}\" ]] && echo true || echo false),"
+        echo "    \"xray_info.inf\": $([[ -f \"${_xray_info}\" ]] && echo true || echo false)"
+        echo "  },"
+        echo "  \"source_tls_mode\": \"${_source_mode}\","
+        echo "  \"source_transport_mode\": \"${transport_mode:-}\","
         echo "  \"multi_user\": \"$(detect_multi_user_from_xray_conf)\","
         echo "  \"reality_clients\": $(count_reality_clients_in_xray_conf),"
-        echo "  \"tls_mode\": \"${tls_mode:-}\","
-        echo "  \"transport_mode\": \"${transport_mode:-}\""
+        echo "  \"uuid_set\": $(extract_uuid_set_from_xray_conf | jq -R . | jq -s .),"
+        echo "  \"xray_active\": \"${_xray_active}\","
+        echo "  \"nginx_active\": \"${_nginx_active}\","
+        echo "  \"xray_enabled\": \"${_xray_enabled}\","
+        echo "  \"nginx_enabled\": \"${_nginx_enabled}\","
+        echo "  \"fw_snapshot\": $(jq -Rn --arg v "${_fw_snapshot}" '$v' 2>/dev/null || echo '""')"
         echo "}"
     } > "${backup_dir}/pre_reinstall_state.json"
+
+    # Generate SHA256 manifest for integrity verification.
+    find "${backup_dir}" -type f ! -name "sha256sums.txt" -exec sha256sum {} \; 2>/dev/null > "${backup_dir}/sha256sums.txt"
 
     echo "${backup_dir}"
 }
 
 # Restore a previously created reinstall backup.
 # Args: <backup_dir>
-# Returns 1 on any critical restore failure.
+# Returns 1 on any critical restore failure. Does NOT output "已恢复" on failure.
 reinstall_backup_restore() {
     local backup_dir="$1"
     [[ -z "${backup_dir}" || ! -d "${backup_dir}" ]] && return 1
 
     log_echo "${Warning} ${YellowBG} $(gettext "部署失败, 正在恢复原配置") ${Font}"
 
-    # Stop new services before restoring to avoid races.
+    local _restore_err=0
+
+    # Stop all services to avoid races during restoration.
     service_stop 2>/dev/null || true
 
-    [[ -f "${backup_dir}/install_config.json" ]] && cp -a "${backup_dir}/install_config.json" "${xray_install_config_file}" 2>/dev/null || true
-    [[ -d "${backup_dir}/xray" ]] && rm -rf "${xray_conf_dir}" && cp -a "${backup_dir}/xray" "${xray_conf_dir}" 2>/dev/null || true
-    [[ -d "${backup_dir}/nginx" ]] && rm -rf "${nginx_conf_dir}" && cp -a "${backup_dir}/nginx" "${nginx_conf_dir}" 2>/dev/null || true
-    [[ -d "${backup_dir}/cert" ]] && rm -rf "${ssl_chainpath}" && cp -a "${backup_dir}/cert" "${ssl_chainpath}" 2>/dev/null || true
-    [[ -f "${backup_dir}/managed_ports.json" ]] && cp -a "${backup_dir}/managed_ports.json" "${managed_ports_file}" 2>/dev/null || true
-    [[ -f "${backup_dir}/xray.service" ]] && cp -a "${backup_dir}/xray.service" "${xray_systemd_file}" 2>/dev/null || true
-    [[ -f "${backup_dir}/nginx.service" ]] && cp -a "${backup_dir}/nginx.service" "${nginx_systemd_file}" 2>/dev/null || true
+    # Restore critical files — propagate failures instead of swallowing them.
+    if [[ -f "${backup_dir}/install_config.json" ]]; then
+        cp -a "${backup_dir}/install_config.json" "${xray_install_config_file}" 2>/dev/null || _restore_err=1
+    fi
+    if [[ -d "${backup_dir}/xray" ]]; then
+        rm -rf "${xray_conf_dir}" 2>/dev/null
+        cp -a "${backup_dir}/xray" "${xray_conf_dir}" 2>/dev/null || _restore_err=1
+    fi
+    if [[ -d "${backup_dir}/nginx" ]]; then
+        rm -rf "${nginx_conf_dir}" 2>/dev/null
+        cp -a "${backup_dir}/nginx" "${nginx_conf_dir}" 2>/dev/null || _restore_err=1
+    fi
+    # Restore main nginx.conf if it was backed up.
+    local _nginx_main_conf="/usr/local/nginx/conf/nginx.conf"
+    if [[ -f "${backup_dir}/nginx.conf" ]]; then
+        cp -a "${backup_dir}/nginx.conf" "${_nginx_main_conf}" 2>/dev/null || _restore_err=1
+    fi
+    if [[ -d "${backup_dir}/cert" ]]; then
+        rm -rf "${ssl_chainpath}" 2>/dev/null
+        cp -a "${backup_dir}/cert" "${ssl_chainpath}" 2>/dev/null || _restore_err=1
+    fi
+    if [[ -f "${backup_dir}/managed_ports.json" ]]; then
+        cp -a "${backup_dir}/managed_ports.json" "${managed_ports_file}" 2>/dev/null || _restore_err=1
+    fi
+    if [[ -f "${backup_dir}/xray.service" ]]; then
+        cp -a "${backup_dir}/xray.service" "${xray_systemd_file}" 2>/dev/null || _restore_err=1
+    fi
+    if [[ -f "${backup_dir}/nginx.service" ]]; then
+        cp -a "${backup_dir}/nginx.service" "${nginx_systemd_file}" 2>/dev/null || _restore_err=1
+    fi
+    # Restore share info.
+    local _xray_info="${idleleo_dir}/xray_info.inf"
+    if [[ -f "${backup_dir}/xray_info.inf" ]]; then
+        cp -a "${backup_dir}/xray_info.inf" "${_xray_info}" 2>/dev/null || _restore_err=1
+    fi
 
-    systemctl daemon-reload 2>/dev/null || true
+    systemctl daemon-reload 2>/dev/null || _restore_err=1
+
+    # Reload config state from restored file.
     info_extraction_all=$(jq -rc . "${xray_install_config_file}" 2>/dev/null || echo "{}")
     declare -F _info_cache_invalidate >/dev/null && _info_cache_invalidate 2>/dev/null || true
 
-    service_start 2>/dev/null || true
+    # Restore source mode variables from backup state.
+    if [[ -f "${backup_dir}/pre_reinstall_state.json" ]]; then
+        local _src_mode
+        _src_mode=$(jq -r '.source_tls_mode // empty' "${backup_dir}/pre_reinstall_state.json" 2>/dev/null)
+        [[ -n "${_src_mode}" ]] && old_tls_mode="${_src_mode}"
+    fi
+
+    # Restart services.
+    service_start 2>/dev/null || _restore_err=1
+
+    if [[ ${_restore_err} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "恢复未完全成功, 请手动检查") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "备份目录保留在"): ${backup_dir} ${Font}"
+        return 1
+    fi
+
+    # Verify restoration: check services are running if they were before.
+    local _pre_state="${backup_dir}/pre_reinstall_state.json"
+    if [[ -f "${_pre_state}" ]]; then
+        local _pre_xray_active _pre_nginx_active
+        _pre_xray_active=$(jq -r '.xray_active // "no"' "${_pre_state}" 2>/dev/null)
+        _pre_nginx_active=$(jq -r '.nginx_active // "no"' "${_pre_state}" 2>/dev/null)
+        if [[ "${_pre_xray_active}" == "yes" ]] && ! systemctl is-active --quiet xray 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后未运行") ${Font}"
+            _restore_err=1
+        fi
+        if [[ "${_pre_nginx_active}" == "yes" ]] && ! systemctl is-active --quiet nginx 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后未运行") ${Font}"
+            _restore_err=1
+        fi
+    fi
+
+    if [[ ${_restore_err} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "恢复后验证失败, 请手动检查") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "备份目录保留在"): ${backup_dir} ${Font}"
+        return 1
+    fi
+
     log_echo "${OK} ${GreenBG} $(gettext "已恢复原配置") ${Font}"
     return 0
 }
@@ -8340,25 +8605,29 @@ reinstall_validate_deploy() {
     return 0
 }
 
-# Verify user counts were preserved across a reinstall.
+# Verify user identity set was preserved across a keep-config reinstall.
 # Args: <backup_dir>
-# Returns 1 if multi-user state or Reality client count changed.
+# Returns 1 if UUID set changed. Skipped for mode_switch and standard_rebuild
+# since those operations legitimately change the user set.
 reinstall_verify_preservation() {
     local backup_dir="$1"
     [[ -z "${backup_dir}" || ! -f "${backup_dir}/pre_reinstall_state.json" ]] && return 0
 
-    local pre_multi pre_clients post_multi post_clients
-    pre_multi=$(jq -r '.multi_user // "no"' "${backup_dir}/pre_reinstall_state.json" 2>/dev/null || echo "no")
-    pre_clients=$(jq -r '.reality_clients // 0' "${backup_dir}/pre_reinstall_state.json" 2>/dev/null || echo 0)
-    post_multi=$(detect_multi_user_from_xray_conf)
-    post_clients=$(count_reality_clients_in_xray_conf)
+    # Skip preservation check for mode_switch and standard_rebuild — these
+    # operations legitimately change the user set (P0-7).
+    case "${reinstall_operation}" in
+        mode_switch|standard_rebuild|clean_install)
+            return 0
+            ;;
+    esac
 
-    if [[ "${pre_multi}" != "${post_multi}" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "多用户状态发生变化, 将恢复原配置"): ${pre_multi} → ${post_multi} ${Font}"
-        return 1
-    fi
-    if [[ "${pre_clients}" != "${post_clients}" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "Reality 客户端数量发生变化, 将恢复原配置"): ${pre_clients} → ${post_clients} ${Font}"
+    # For keep_config: verify UUID set is unchanged (P0-11).
+    local pre_uuids post_uuids
+    pre_uuids=$(jq -r '.uuid_set[]?' "${backup_dir}/pre_reinstall_state.json" 2>/dev/null | sort)
+    post_uuids=$(extract_uuid_set_from_xray_conf | sort)
+
+    if [[ "${pre_uuids}" != "${post_uuids}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "用户 UUID 集合发生变化, 将恢复原配置") ${Font}"
         return 1
     fi
     return 0
@@ -9241,7 +9510,7 @@ menu_backup_and_uninstall() {
 
 menu_main_header() {
     menu_clear
-    menu_title "Xray · idleleo ${Red}[${shell_version}]${Font} ${shell_emoji}"
+    menu_title "$(gettext "Xray 管理脚本") ${Red}[${shell_version}]${Font} ${shell_emoji}"
     local mode_field="$(gettext "当前模式"): ${shell_mode}"
     local language_field="$(gettext "当前语言"): ${LANG%.*}"
     local shell_version_field="$(gettext "脚本"): ${shell_need_update}"
@@ -9260,7 +9529,7 @@ menu_main_header() {
     log "${shell_version_field}  ·  ${xray_version_field}  ·  ${nginx_version_field}"
     log "${xray_status_field}  ·  ${nginx_status_field}  ·  ${connect_status_field}"
     echo
-    menu_title "$(gettext "主菜单")  ·  idleleo"
+    menu_title "$(gettext "Xray 管理菜单")"
     menu_blank
 }
 
