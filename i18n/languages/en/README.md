@@ -1,4 +1,4 @@
-# Xray One-click installation script — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray Management Script — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
 Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
@@ -8,13 +8,14 @@ Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 
 ## Features
 
-* enter`idleleo`You can manage scripts ([查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)）
+* Enter `idleleo` to open the Xray management menu for installation, services, and security settings
 * Use Qwen-MT-Plus AI to achieve accurate translation in multiple languages
 * Supports Reality protocol, it is recommended to use Nginx prefix (can be installed in the script)
 * Supports WebSocket, gRPC, xHTTP transmission, you can choose single transmission or`ws+gRPC+xHTTP`Enable both
 * Built-in fail2ban protection (installable within script)
 * Built-in Xray traffic statistics, traffic blocking, GeoIP/GeoSite rule update and regular update
-* Supports scripts, Xray, Nginx, automatic certificate updates, and provides complete backup and recovery
+* Supports script, Xray, Nginx and certificate updates, with backup and failure rollback for critical updates
+* Automatically backs up the current running configuration before reinstallation or mode switching, and restores the original configuration on failure
 * use[@DuckSoft](https://github.com/DuckSoft)'s sharing link[提案](https://github.com/XTLS/Xray-core/issues/91)(beta), compatible with Qv2ray, V2rayN, V2rayNG
 * use[XTLS](https://github.com/XTLS/Xray-core/issues/158)proposal, follow[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)Standard, supports custom string mapping to VLESS UUID
 * Supports gRPC protocol:[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
@@ -25,6 +26,7 @@ Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 
 ## Further reading
 
+* `idleleo` naming background story:[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
 * Reality Installation Guide:[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
 * Reality Protocol Risk:[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
 * Reality Accelerated server:[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
@@ -109,7 +111,7 @@ The traditional method requires SSH to go to the server, run the installation sc
 * This program depends on Nginx, passed[LNMP](https://lnmp.org)Users who have installed the script Nginx please be aware of potential conflicts.
 * xHTTP shared link is for clients that support xHTTP; Clash configuration output will skip xHTTP
 * Do not use this script in a production environment without first verifying availability
-* The author only provides limited support (because he's too stupid)
+* Author: yunshu, limited support only
 
 ## Acknowledgments
 
