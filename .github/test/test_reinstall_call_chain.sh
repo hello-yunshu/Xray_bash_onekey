@@ -73,10 +73,18 @@ systemctl() {
 service_stop() { :; }
 service_start() { :; }
 
-# --- read mock: no-op so variables keep their pre-set values ---
+# --- read mock: only intercept the multi-user save_originxray_fq read ---
 # (The multi-user branch does `read -r save_originxray_fq`; we pre-set the
-# variable and let the mock preserve it.)
-read() { :; }
+# variable and let the mock preserve it. All other read calls — especially
+# the SHA256 verification `while IFS= read -r` loop in reinstall_backup_restore
+# — must use the real builtin so stdin is consumed and EOF is reached.)
+read() {
+    if [[ "${2:-}" == "save_originxray_fq" ]]; then
+        :  # no-op, preserve pre-set value
+    else
+        command read "$@"
+    fi
+}
 
 # --- stat mock: translate Linux `stat -c` to macOS `stat -f` ---
 # update_json_config uses `stat -c '%a'/%u/%g` which is Linux-only.
