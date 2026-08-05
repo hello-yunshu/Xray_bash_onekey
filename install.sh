@@ -969,13 +969,18 @@ basic_optimization() {
 }
 
 create_directory() {
+    # Fail-closed: any mkdir that cannot create a target terminates the
+    # function so the caller can abort the deploy before further steps run.
+    # Each existing directory short-circuits to 0 (no mkdir, no error).
     if [[ ${tls_mode} != "None" ]] && [[ ${tls_mode} != "XTLS" ]]; then
-        [[ ! -d "${nginx_conf_dir}" ]] && mkdir -p "${nginx_conf_dir}"
+        [[ -d "${nginx_conf_dir}" ]] || mkdir -p "${nginx_conf_dir}" || return 1
     fi
-    [[ ! -d "${ssl_chainpath}" ]] && mkdir -p "${ssl_chainpath}"
-    [[ ! -d "${xray_conf_dir}" ]] && mkdir -p "${xray_conf_dir}"
-    [[ ! -d "${idleleo_dir}/info" ]] && mkdir -p "${idleleo_dir}"/info
-    [[ ! -d "${idleleo_conf_dir}" ]] && mkdir -p "${idleleo_conf_dir}"
+    [[ -d "${ssl_chainpath}" ]] || mkdir -p "${ssl_chainpath}" || return 1
+    [[ -d "${xray_conf_dir}" ]] || mkdir -p "${xray_conf_dir}" || return 1
+    [[ -d "${idleleo_dir}/info" ]] || mkdir -p "${idleleo_dir}"/info || return 1
+    [[ -d "${idleleo_conf_dir}" ]] || mkdir -p "${idleleo_conf_dir}" || return 1
+
+    return 0
 }
 
 is_reality_reserved_port() {
@@ -7469,8 +7474,8 @@ install_xray_ws_tls() {
         # literal path even after the local variable is destroyed on return.
         trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
-    basic_optimization
-    create_directory
+    basic_optimization || return 1
+    create_directory || return 1
     domain_check || return 1
     transport_choose || return 1
     port_set || return 1
@@ -7548,8 +7553,8 @@ install_xray_reality() {
         # literal path even after the local variable is destroyed on return.
         trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
-    basic_optimization
-    create_directory
+    basic_optimization || return 1
+    create_directory || return 1
     ip_check || return 1
     port_set || return 1
     email_set || return 1
@@ -7616,8 +7621,8 @@ install_xray_xtls_only() {
         # literal path even after the local variable is destroyed on return.
         trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
-    basic_optimization
-    create_directory
+    basic_optimization || return 1
+    create_directory || return 1
     ip_check || return 1
     shell_mode="XTLS ONLY"
     tls_mode="XTLS"
@@ -7665,8 +7670,8 @@ install_xray_ws_only() {
         # literal path even after the local variable is destroyed on return.
         trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
-    basic_optimization
-    create_directory
+    basic_optimization || return 1
+    create_directory || return 1
     ip_check || return 1
     transport_choose || return 1
     ws_inbound_port_set || return 1
@@ -8559,13 +8564,17 @@ reinstall_backup_create() {
     fi
 
     # Snapshot ACME/cron state for TLS mode. Detection AND the saved task line
-    # must match ONLY the project-managed script path. The line backup is
-    # fail-closed: a failed or empty write invalidates the whole backup, so an
-    # "acme_cron=yes" manifest can never point at a missing/empty cron file.
+    # must match ONLY the project-managed script path. Whether the project cron
+    # exists is decided solely by the user crontab containing the exact project
+    # script path — never by the presence of $HOME/.acme.sh/acme.sh (which may
+    # be missing or relocated while the project cron still exists). The line
+    # backup is fail-closed: a failed or empty write invalidates the whole
+    # backup, so an "acme_cron=yes" manifest can never point at a missing/empty
+    # cron file.
     local _acme_cron="no"
     local _acme_marker
     _acme_marker=$(acme_cron_match_pattern)
-    if [[ ${_source_mode} == "TLS" ]] && [[ -f "$HOME/.acme.sh/acme.sh" ]]; then
+    if [[ ${_source_mode} == "TLS" ]]; then
         if crontab -l 2>/dev/null | grep -Fq -- "${_acme_marker}"; then
             _acme_cron="yes"
             _meta_err=0
@@ -8593,6 +8602,8 @@ reinstall_backup_create() {
         echo "    \"nginx_conf_dir\": $( [[ -d "${nginx_conf_dir}" ]] && echo true || echo false),"
         echo "    \"nginx_main_conf\": $( [[ -f "${_nginx_main_conf}" ]] && echo true || echo false),"
         echo "    \"cert_dir\": $( [[ -d "${ssl_chainpath}" ]] && echo true || echo false),"
+        echo "    \"info_dir\": $( [[ -d "${idleleo_dir}/info" ]] && echo true || echo false),"
+        echo "    \"conf_dir\": $( [[ -d "${idleleo_conf_dir}" ]] && echo true || echo false),"
         echo "    \"managed_ports.json\": $( [[ -f "${managed_ports_file}" ]] && echo true || echo false),"
         echo "    \"xray.service\": $( [[ -f "${xray_systemd_file}" ]] && echo true || echo false),"
         echo "    \"nginx.service\": $( [[ -f "${nginx_systemd_file}" ]] && echo true || echo false),"
@@ -8721,6 +8732,16 @@ reinstall_backup_restore() {
         cp -a "${backup_dir}/cert" "${ssl_chainpath}" 2>/dev/null || _restore_err=1
     else
         rm -rf "${ssl_chainpath}" 2>/dev/null || [[ ! -e "${ssl_chainpath}" ]] || _restore_err=1
+    fi
+    # Project-owned directory tree created by create_directory that is not
+    # separately backed up: idleleo_conf_dir (parent of xray/nginx conf dirs)
+    # and idleleo_dir/info (share-info files). Restore the true source state:
+    # a dir that did not exist before the failed deploy must be removed.
+    if [[ "$(_manifest_existed conf_dir)" != "true" ]]; then
+        rm -rf "${idleleo_conf_dir}" 2>/dev/null || [[ ! -e "${idleleo_conf_dir}" ]] || _restore_err=1
+    fi
+    if [[ "$(_manifest_existed info_dir)" != "true" ]]; then
+        rm -rf "${idleleo_dir}/info" 2>/dev/null || [[ ! -e "${idleleo_dir}/info" ]] || _restore_err=1
     fi
 
     # Firewall transaction rollback: reverse the exact rules this deploy

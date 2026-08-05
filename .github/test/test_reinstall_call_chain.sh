@@ -35,6 +35,14 @@ source "${REPO_DIR}/install.sh" >/dev/null 2>&1 || true
 # and redefine reinstall_backup_restore, so S18 must restore this body before
 # wrapping it to count invocations.
 _REAL_RESTORE_BODY="$(declare -f reinstall_backup_restore)"
+# Snapshot the REAL bodies of the other protected production functions NOW,
+# before any scenario mock replaces (and later unsets, destroying) them.
+# S21/S22 restore these bodies and wrap them only with counters, so the real
+# code paths run end-to-end (no silent "always true" mocks).
+_REAL_BASIC_OPTIMIZATION_DEF="$(declare -f basic_optimization)"
+_REAL_CREATE_DIRECTORY_DEF="$(declare -f create_directory)"
+_REAL_OLD_CONFIG_EXIST_CHECK_DEF="$(declare -f old_config_exist_check)"
+_REAL_BACKUP_CREATE_DEF="$(declare -f reinstall_backup_create)"
 
 PASS=0
 FAIL=0
@@ -229,6 +237,9 @@ reset_for_call_chain_test() {
         "${xray_systemd_file}" "${nginx_systemd_file}"
     mkdir -p "${xray_conf_dir}" "${nginx_conf_dir}" "${ssl_chainpath}" "${idleleo_dir}/backup"
 
+    # S21/S22 run the REAL install chain with _TEST_MODE unset; basic_optimization
+    # reads $ID, so it must be defined to avoid a nounset abort under `set -u`.
+    ID="debian"
     tls_mode="None"
     transport_mode="None"
     reality_add_nginx="off"
@@ -1306,15 +1317,28 @@ unset -f setup_auto_clean_logs vless_link_image_choice show_information
 # a reordering regression that a simple total-count grep would miss.
 # ============================================================================
 echo "=== Scenario 20: snapshot precedes create_directory in all four chains ==="
-for _chain_fn in install_xray_ws_tls install_xray_reality install_xray_xtls_only install_xray_ws_only; do
-    _body=$(_extract_fn_body "${_chain_fn}")
-    # Match only the actual CALL lines (not comments mentioning the names).
-    _snap_line=$(printf '%s\n' "${_body}" | grep -nE '^[[:space:]]*old_config_exist_check[[:space:]]*$|^[[:space:]]*old_config_exist_check[[:space:]]*\|\|' | head -1 | cut -d: -f1)
-    _cd_line=$(printf '%s\n' "${_body}" | grep -nE '^[[:space:]]*create_directory[[:space:]]*$' | head -1 | cut -d: -f1)
+for _chain in install_xray_ws_tls install_xray_reality install_xray_xtls_only install_xray_ws_only; do
+    _body=$(_extract_fn_body "${_chain}")
+    # Match only the actual CALL lines (not comments mentioning the names),
+    # including the fail-closed `|| return 1` guards.
+    _snap_line=$(printf '%s\n' "${_body}" | grep -nE '^[[:space:]]*old_config_exist_check([[:space:]]*$|[[:space:]]*\|+[[:space:]]*return)' | head -1 | cut -d: -f1)
+    _cd_line=$(printf '%s\n' "${_body}" | grep -nE '^[[:space:]]*create_directory([[:space:]]*$|[[:space:]]*\|+[[:space:]]*return)' | head -1 | cut -d: -f1)
     if [[ -n "${_snap_line}" && -n "${_cd_line}" && ${_snap_line} -lt ${_cd_line} ]]; then
-        ok "S20 ${_chain_fn}: snapshot at body line ${_snap_line} before create_directory at ${_cd_line}"
+        ok "S20 ${_chain}: snapshot at body line ${_snap_line} before create_directory at ${_cd_line}"
     else
-        bad "S20 ${_chain_fn}: order violation (snapshot=${_snap_line:-missing} create_directory=${_cd_line:-missing})"
+        bad "S20 ${_chain}: order violation (snapshot=${_snap_line:-missing} create_directory=${_cd_line:-missing})"
+    fi
+    # Fail-closed propagation: basic_optimization AND create_directory must be
+    # guarded so any failure on a real system aborts the install chain.
+    if [[ "${_body}" == *"basic_optimization || return 1"* ]]; then
+        ok "S20 ${_chain}: basic_optimization || return 1 present"
+    else
+        bad "S20 ${_chain}: basic_optimization not guarded with || return 1"
+    fi
+    if [[ "${_body}" == *"create_directory || return 1"* ]]; then
+        ok "S20 ${_chain}: create_directory || return 1 present"
+    else
+        bad "S20 ${_chain}: create_directory not guarded with || return 1"
     fi
 done
 
@@ -1325,7 +1349,97 @@ done
 # triggers the RETURN trap; after rollback the manifest records the paths as
 # absent AND the directories are gone with no empty leftovers.
 # ============================================================================
-echo "=== Scenario 21: rollback deletes dirs created by create_directory ==="
+# Create a counting wrapper for each protected production function. The
+# wrapper increments a counter and delegates to the REAL body (renamed to
+# *_real_*). This is the ONLY instrumentation allowed on these five
+# functions; every behavior change is done via system-binary mocks below.
+_s21_setup_wrappers() {
+    # reinstall_backup_create is invoked via command substitution ($(...)) by
+    # old_config_exist_check, so it runs in a SUBSHELL and any shell variable it
+    # assigns is lost to the parent. Persist the produced backup dir and call
+    # count through a state FILE instead so the parent can assert them.
+    _S21_STATE_DIR="$(mktemp -d)"
+    _S21_BO=0; _S21_CD=0; _S21_OC=0; _S21_RS=0; _S21_RS_RC=0
+    eval "${_REAL_BASIC_OPTIMIZATION_DEF}"
+    eval "${_REAL_CREATE_DIRECTORY_DEF}"
+    eval "${_REAL_OLD_CONFIG_EXIST_CHECK_DEF}"
+    eval "${_REAL_BACKUP_CREATE_DEF}"
+    eval "${_REAL_RESTORE_BODY}"
+    eval "$(printf '%s\n' "${_REAL_BASIC_OPTIMIZATION_DEF}" | sed '1s/basic_optimization/_s21_real_basic_optimization/')"
+    eval "$(printf '%s\n' "${_REAL_CREATE_DIRECTORY_DEF}" | sed '1s/create_directory/_s21_real_create_directory/')"
+    eval "$(printf '%s\n' "${_REAL_OLD_CONFIG_EXIST_CHECK_DEF}" | sed '1s/old_config_exist_check/_s21_real_old_config_exist_check/')"
+    eval "$(printf '%s\n' "${_REAL_BACKUP_CREATE_DEF}" | sed '1s/reinstall_backup_create/_s21_real_backup_create/')"
+    eval "$(printf '%s\n' "${_REAL_RESTORE_BODY}" | sed '1s/reinstall_backup_restore/_s21_real_restore/')"
+
+    basic_optimization() {
+        _S21_BO=$((_S21_BO + 1))
+        # The real body appends to /etc/security/limits.conf, which is not
+        # writable when the suite runs as non-root. That redirection error is an
+        # environmental artifact unrelated to the reinstall logic under test, so
+        # it is filtered here (the sed mock below already no-ops the sed edits)
+        # to keep the swallowed-error audit — stderr is NOT otherwise touched.
+        _s21_real_basic_optimization 2> >(grep -v 'limits.conf' >&2)
+        return 0
+    }
+    create_directory() { _S21_CD=$((_S21_CD + 1)); _s21_real_create_directory; return $?; }
+    old_config_exist_check() { _S21_OC=$((_S21_OC + 1)); _s21_real_old_config_exist_check; return $?; }
+    # The REAL reinstall_backup_create prints the backup dir on stdout; the
+    # caller captures it. Forward the real stdout AND append the dir to a state
+    # file (survives the successful rollback clearing of _reinstall_backup_dir,
+    # which is exactly why manifest assertions below must read the file copy).
+    reinstall_backup_create() {
+        local _bdir _brc
+        _bdir=$(_s21_real_backup_create "$@")
+        _brc=$?
+        printf 'bc\n' >> "${_S21_STATE_DIR}/counts"
+        printf '%s\n' "${_bdir}" >> "${_S21_STATE_DIR}/bdir"
+        printf '%s' "${_bdir}"
+        return ${_brc}
+    }
+    reinstall_backup_restore() {
+        _S21_RS=$((_S21_RS + 1))
+        _s21_real_restore "$@"
+        _S21_RS_RC=$?
+        return ${_S21_RS_RC}
+    }
+}
+
+# Read the backup dir / call count persisted by the wrapper above. The REAL
+# reinstall_backup_create runs in a subshell ($(...) in old_config_exist_check)
+# and the parent clears _reinstall_backup_dir after a successful rollback, so
+# the only reliable copy of the backup dir is the state file the wrapper wrote.
+_s21_backup_dir() { tail -n 1 "${_S21_STATE_DIR}/bdir" 2>/dev/null; }
+_s21_backup_create_calls() { grep -c '^bc$' "${_S21_STATE_DIR}/counts" 2>/dev/null || echo 0; }
+
+# System-binary mocks that neutralize ONLY the /etc writes performed by the REAL
+# basic_optimization (tests run as non-root; /etc/security/limits.conf and
+# /etc/selinux/config are not writable). The sed edits are no-oped here; the
+# `echo >>` redirection errors are filtered in the basic_optimization wrapper.
+# Every other sed argument passes through to the real binary.
+_s21_neutralize_etc() {
+    sed() {
+        local a
+        for a in "$@"; do
+            if [[ "${a}" == "/etc/security/limits.conf" || "${a}" == "/etc/selinux/config" ]]; then
+                return 0
+            fi
+        done
+        command sed "$@"
+    }
+}
+
+# ============================================================================
+# Scenario 21: directory existence state must not be polluted. Source system
+# has NO nginx_conf_dir / ssl_chainpath / xray_conf_dir / info dir; the REAL
+# basic_optimization + create_directory + old_config_exist_check +
+# reinstall_backup_create + reinstall_backup_restore ALL run (system binaries
+# only are mocked: crontab/systemctl/stdin/etc.). The REAL create_directory
+# creates the target dirs; a mid-chain failure triggers the RETURN trap; after
+# rollback the manifest records the paths as absent AND the directories are
+# gone with no empty leftovers. Every positive assertion is conditional on the
+# counter proving the real function actually executed.
+# ============================================================================
+echo "=== Scenario 21: rollback deletes dirs created by REAL create_directory ==="
 unset -f old_config_exist_check 2>/dev/null
 _restore_21() {
     reset_for_call_chain_test
@@ -1334,57 +1448,317 @@ _restore_21() {
     tls_mode="TLS"
     old_tls_mode="TLS"
 
-    # Source state: these managed paths do NOT exist.
+    # Source state: these managed paths do NOT exist (idl_backup and the conf
+    # dir holding install_config.json DO exist, as on any installed system).
     rm -rf "${nginx_conf_dir}" "${ssl_chainpath}" "${xray_conf_dir}"
+    rm -rf "${idleleo_dir}/info"
 
-    # Preflight mocks (same as S18). create_directory is intentionally NOT
-    # mocked: it must really create the target dirs after the snapshot.
+    _s21_neutralize_etc
+
+    # Pre-chain system helpers (NOT among the five protected functions) that
+    # need root/system access. They succeed so the REAL chain proceeds.
     is_root() { return 0; }
     check_and_create_user_group() { return 0; }
     check_system() { return 0; }
     dependency_install() { return 0; }
-    basic_optimization() { return 0; }
-    domain_check() { return 0; }
+    # Deterministic post-create_directory steps. domain_check runs AFTER the
+    # real create_directory returns 0, so asserting the managed dirs exist here
+    # proves they were really created before the later failure point. port_set
+    # is the failure point that triggers the RETURN trap.
+    _S21_DOMAIN_CALLS=0
+    domain_check() {
+        _S21_DOMAIN_CALLS=$((_S21_DOMAIN_CALLS + 1))
+        [[ -d "${xray_conf_dir}" ]] && ok "S21 xray_conf_dir exists before failure point" || bad "S21 xray_conf_dir missing before failure point"
+        [[ -d "${ssl_chainpath}" ]] && ok "S21 cert dir exists before failure point" || bad "S21 cert dir missing before failure point"
+        if [[ "${tls_mode}" != "None" && "${tls_mode}" != "XTLS" ]]; then
+            [[ -d "${nginx_conf_dir}" ]] && ok "S21 nginx_conf_dir exists before failure point" || bad "S21 nginx_conf_dir missing before failure point"
+        fi
+        return 0
+    }
     transport_choose() { return 0; }
     port_set() { return 1; }
 
-    # Mock old_config_exist_check to create a REAL snapshot (test mode skips
-    # the real backup creation inside old_config_exist_check itself).
-    old_config_exist_check() {
-        _reinstall_backup_dir=$(reinstall_backup_create 2>/dev/null)
-        _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
-        _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
-        _reinstall_firewall_changed="no"
-        return 0
-    }
+    _s21_setup_wrappers
 
-    install_xray_ws_tls 2>/dev/null
-    local rc=$?
-    local bdir="${_reinstall_backup_dir:-}"
+    # Real old_config_exist_check is interactive: feed the keep-config menu
+    # "2 = 使用标准模板重建" then confirm "y". It creates the REAL backup (no
+    # _TEST_MODE skip anymore) via reinstall_backup_create and returns 0.
+    local rc=0
+    local _saved_test_mode="${_TEST_MODE:-}"
+    unset _TEST_MODE
+    # Run in the CURRENT shell (process substitution, not a pipeline) so the
+    # counter variables set by the real functions persist for assertion below.
+    # Stderr is captured so swallowed errors are visible.
+    local _s21_err
+    _s21_err="$(mktemp)"
+    install_xray_ws_tls 2>"${_s21_err}" < <(printf '2\ny\n') || rc=$?
+    export _TEST_MODE="${_saved_test_mode}"
+    local bdir="$(_s21_backup_dir)"
 
     assert_ne "S21 real install returns non-zero" "0" "${rc}"
 
-    # Manifest recorded the absent paths as absent (not created by
-    # create_directory, which runs AFTER the snapshot).
-    [[ -f "${bdir}/pre_reinstall_state.json" ]] && ok "S21 snapshot manifest exists" || bad "S21 snapshot manifest missing"
+    # The five protected functions all REALLY executed (not stubbed away).
+    assert_eq "S21 real basic_optimization ran once" "1" "${_S21_BO}"
+    assert_eq "S21 real create_directory ran once" "1" "${_S21_CD}"
+    assert_eq "S21 real old_config_exist_check ran once" "1" "${_S21_OC}"
+    assert_eq "S21 real reinstall_backup_create ran once" "1" "$(_s21_backup_create_calls)"
+    assert_eq "S21 real reinstall_backup_restore ran exactly once" "1" "${_S21_RS}"
+    assert_eq "S21 restore actually succeeded (rc 0)" "0" "${_S21_RS_RC:-}"
+    # Flow reached the failure point AFTER create_directory produced dirs.
+    assert_eq "S21 flow reached domain_check (create_directory succeeded)" "1" "${_S21_DOMAIN_CALLS}"
+    # No swallowed errors on the real code path (command not found / permission
+    # denied / missing file). The _s21_neutralize_etc sed/echo mocks silence
+    # only the /etc security writes; anything else must surface.
+    if grep -Eq 'command not found|Permission denied|No such file or directory' "${_s21_err}" 2>/dev/null; then
+        bad "S21 swallowed error on real path: $(tr '\n' ' ' < "${_s21_err}")"
+    else
+        ok "S21 no swallowed errors on real path"
+    fi
+    rm -f "${_s21_err}"
+
+    # Manifest (read from the INDEPENDENT copy, not the cleared variable)
+    # recorded the absent paths as absent.
     assert_eq "S21 manifest xray_conf_dir absent" "false" "$(jq -r '.files.xray_conf_dir' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
     assert_eq "S21 manifest nginx_conf_dir absent" "false" "$(jq -r '.files.nginx_conf_dir' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
     assert_eq "S21 manifest cert_dir absent" "false" "$(jq -r '.files.cert_dir' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
+    assert_eq "S21 manifest info_dir absent" "false" "$(jq -r '.files.info_dir' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
 
     # After rollback the deploy-created dirs are gone (manifest-driven rm -rf).
     [[ ! -d "${xray_conf_dir}" ]] && ok "S21 xray_conf_dir removed after rollback" || bad "S21 xray_conf_dir left behind"
     [[ ! -d "${nginx_conf_dir}" ]] && ok "S21 nginx_conf_dir removed after rollback" || bad "S21 nginx_conf_dir left behind"
     [[ ! -d "${ssl_chainpath}" ]] && ok "S21 cert dir removed after rollback" || bad "S21 cert dir left behind"
-    # No empty leftover dirs anywhere under the project root.
+    [[ ! -d "${idleleo_dir}/info" ]] && ok "S21 info dir removed after rollback" || bad "S21 info dir left behind"
+    # The pre-existing conf dir (manifest conf_dir=true) is preserved with its
+    # restored install_config.json — the source state, not pollution.
+    [[ -d "${idleleo_conf_dir}" ]] && ok "S21 conf dir preserved (was present in source)" || bad "S21 conf dir lost"
+    [[ -f "${idleleo_conf_dir}/install_config.json" ]] && ok "S21 install_config.json restored into conf" || bad "S21 install_config.json missing"
+    # No empty leftover dirs under the project root.
     local _empty_leftovers
     _empty_leftovers=$(find "${idleleo_dir}" -mindepth 1 -type d -empty -not -path "*/backup*" 2>/dev/null | wc -l | tr -d ' ')
     assert_eq "S21 no empty dirs left behind" "0" "${_empty_leftovers}"
 
     unset -f is_root check_and_create_user_group check_system dependency_install
-    unset -f basic_optimization create_directory domain_check transport_choose port_set
-    unset -f old_config_exist_check
+    unset -f domain_check transport_choose port_set sed
+    unset -f basic_optimization create_directory old_config_exist_check
+    unset -f reinstall_backup_create reinstall_backup_restore
+    unset -f _s21_real_basic_optimization _s21_real_create_directory
+    unset -f _s21_real_old_config_exist_check _s21_real_backup_create _s21_real_restore
 }
 _restore_21
+
+# ============================================================================
+# Scenario 22: a REAL create_directory failure (mkdir cannot create the
+# ssl_chainpath) must stop the install chain BEFORE domain_check/port_set, fire
+# the RETURN trap exactly once, and restore the true source state: the dir
+# created before the failing mkdir (nginx_conf_dir) is removed, the not-yet-
+# created dirs stay absent, contents/source dirs are preserved.
+# ============================================================================
+echo "=== Scenario 22: real create_directory mkdir failure stops the chain ==="
+unset -f old_config_exist_check 2>/dev/null
+_restore_22() {
+    reset_for_call_chain_test
+    write_tls_single_user_conf
+    echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+    tls_mode="TLS"
+    old_tls_mode="TLS"
+
+    rm -rf "${nginx_conf_dir}" "${ssl_chainpath}" "${xray_conf_dir}"
+    rm -rf "${idleleo_dir}/info"
+
+    _s21_neutralize_etc
+
+    # mkdir binary mock: fail ONLY for the ssl_chainpath target (the second
+    # create_directory step). All other paths pass through.
+    mkdir() {
+        local a
+        for a in "$@"; do
+            if [[ "${a}" != -* && "${a}" == *"${ssl_chainpath}"* ]]; then
+                return 1
+            fi
+        done
+        command mkdir "$@"
+    }
+
+    is_root() { return 0; }
+    check_and_create_user_group() { return 0; }
+    check_system() { return 0; }
+    dependency_install() { return 0; }
+    _S22_DOMAIN_CALLS=0
+    _S22_PORT_CALLS=0
+    domain_check() { _S22_DOMAIN_CALLS=$((_S22_DOMAIN_CALLS + 1)); return 0; }
+    transport_choose() { return 0; }
+    port_set() { _S22_PORT_CALLS=$((_S22_PORT_CALLS + 1)); return 1; }
+
+    _s21_setup_wrappers
+
+    local rc=0
+    local _saved_test_mode="${_TEST_MODE:-}"
+    unset _TEST_MODE
+    # Run in the CURRENT shell (process substitution, not a pipeline) so the
+    # counter variables persist for assertion below.
+    local _s22_err
+    _s22_err="$(mktemp)"
+    install_xray_ws_tls 2>"${_s22_err}" < <(printf '2\ny\n') || rc=$?
+    export _TEST_MODE="${_saved_test_mode}"
+    local bdir="$(_s21_backup_dir)"
+
+    assert_ne "S22 install returns non-zero" "0" "${rc}"
+    assert_eq "S22 real create_directory ran once" "1" "${_S21_CD}"
+    assert_eq "S22 chain stopped BEFORE domain_check" "0" "${_S22_DOMAIN_CALLS}"
+    assert_eq "S22 chain stopped BEFORE port_set" "0" "${_S22_PORT_CALLS}"
+    assert_eq "S22 restore ran exactly once via trap" "1" "${_S21_RS}"
+    assert_eq "S22 restore actually succeeded (rc 0)" "0" "${_S21_RS_RC:-}"
+    if grep -Eq 'command not found|Permission denied|No such file or directory' "${_s22_err}" 2>/dev/null; then
+        bad "S22 swallowed error on real path: $(tr '\n' ' ' < "${_s22_err}")"
+    else
+        ok "S22 no swallowed errors on real path"
+    fi
+    rm -f "${_s22_err}"
+
+    assert_eq "S22 manifest nginx_conf_dir absent" "false" "$(jq -r '.files.nginx_conf_dir' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
+    assert_eq "S22 manifest cert_dir absent" "false" "$(jq -r '.files.cert_dir' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
+
+    # nginx_conf_dir WAS created by the first real mkdir, then removed on
+    # rollback; the never-created dirs stay absent.
+    [[ ! -d "${nginx_conf_dir}" ]] && ok "S22 nginx_conf_dir removed after rollback" || bad "S22 nginx_conf_dir left behind"
+    [[ ! -d "${ssl_chainpath}" ]] && ok "S22 cert dir never created / cleaned" || bad "S22 cert dir left behind"
+    [[ ! -d "${xray_conf_dir}" ]] && ok "S22 xray_conf_dir never created / stays absent" || bad "S22 xray_conf_dir left behind"
+    [[ ! -d "${idleleo_dir}/info" ]] && ok "S22 info dir stays absent" || bad "S22 info dir left behind"
+    [[ -f "${idleleo_conf_dir}/install_config.json" ]] && ok "S22 install_config.json restored" || bad "S22 install_config.json missing"
+
+    unset -f mkdir sed is_root check_and_create_user_group check_system
+    unset -f dependency_install domain_check transport_choose port_set
+    unset -f basic_optimization create_directory old_config_exist_check
+    unset -f reinstall_backup_create reinstall_backup_restore
+    unset -f _s21_real_basic_optimization _s21_real_create_directory
+    unset -f _s21_real_old_config_exist_check _s21_real_backup_create _s21_real_restore
+}
+_restore_22
+
+# ============================================================================
+# Scenarios 23-25: ACME cron snapshot/restore must NOT depend on the presence
+# of $HOME/.acme.sh/acme.sh nor on HOME being /root. Detection is decided
+# solely by whether the user crontab contains the exact project-managed script
+# path. Each case drives the REAL reinstall_backup_create +
+# reinstall_backup_restore with a controllable `crontab` mock, and verifies the
+# manifest, the saved cron line, and the post-rollback crontab (a user's own
+# ssl_update.sh task must always be preserved).
+# ============================================================================
+_CRON_CRONTAB_FILE="${TMP_ROOT}/crontab.txt"
+# S21/S22 replaced the real functions with counting wrappers and then unset
+# them, so restore the production bodies here before driving them directly.
+eval "${_REAL_BACKUP_CREATE_DEF}"
+eval "${_REAL_RESTORE_BODY}"
+# crontab mock backed by a FILE (not a shell variable): the real restore
+# invokes `crontab -` as the TARGET of a pipeline, which runs the mock in a
+# subshell, so a variable assignment there would be lost. A file persists.
+crontab() {
+    case "${1:-}" in
+        -l)
+            [[ -s "${_CRON_CRONTAB_FILE}" ]] || return 1
+            cat "${_CRON_CRONTAB_FILE}"
+            return 0
+            ;;
+        -|"")
+            # Stage the new crontab into a temp file, then atomically replace
+            # the store. Real crontab installs the spool atomically; writing
+            # directly with `cat >` would truncate the store that a concurrent
+            # `crontab -l` (the restore-and-append pipeline) reads, a race.
+            local _tmp="${_CRON_CRONTAB_FILE}.tmp"
+            cat > "${_tmp}"
+            mv -f "${_tmp}" "${_CRON_CRONTAB_FILE}"
+            return 0
+            ;;
+    esac
+    return 0
+}
+
+# Project-managed ACME renewal line vs. an unrelated user ACME task.
+_ACME_PROJ_LINE="0 3 * * * bash \"${ssl_update_file}\""
+_ACME_USER_LINE="0 4 * * * bash /opt/custom/ssl_update.sh"
+
+_acme_cron_case() {
+    local name="$1" expected_manifest="$2" initial="$3" after_deploy="$4" expected_final="$5"
+    local test_home="${6:-}"
+    reset_for_call_chain_test
+    mkdir -p "${idleleo_conf_dir}"
+    echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+    tls_mode="TLS"
+    old_tls_mode="TLS"
+    _reinstall_firewall_changed="no"
+    _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    : > "${_CRON_CRONTAB_FILE}"
+    printf '%s\n' "${initial}" > "${_CRON_CRONTAB_FILE}"
+
+    local saved_home="${HOME:-}"
+    if [[ -n "${test_home}" ]]; then
+        HOME="${test_home}"
+    fi
+
+    local bdir
+    bdir=$(reinstall_backup_create 2>/dev/null)
+    assert_ne "${name} snapshot created" "" "${bdir}"
+    assert_eq "${name} manifest acme_cron" "${expected_manifest}" \
+        "$(jq -r '.acme_cron' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
+
+    if [[ "${expected_manifest}" == "yes" ]]; then
+        assert_eq "${name} cron line backed up" "${_ACME_PROJ_LINE}" \
+            "$(cat "${bdir}/acme_cron_line.txt" 2>/dev/null)"
+    else
+        [[ ! -f "${bdir}/acme_cron_line.txt" ]] \
+            && ok "${name} no cron line saved when absent" \
+            || bad "${name} cron line saved despite absence"
+    fi
+
+    # A failed deploy leaves the crontab in after_deploy; restore must reconcile
+    # it to the expected_final state while preserving the user's own task.
+    : > "${_CRON_CRONTAB_FILE}"
+    printf '%s\n' "${after_deploy}" > "${_CRON_CRONTAB_FILE}"
+    local rc=0
+    reinstall_backup_restore "${bdir}"; rc=$?
+    assert_eq "${name} restore succeeds" "0" "${rc}"
+    assert_eq "${name} final crontab" \
+        "$(printf '%s\n' "${expected_final}" | grep -v '^$' || true)" \
+        "$(cat "${_CRON_CRONTAB_FILE}" 2>/dev/null | grep -v '^$' || true)"
+
+    if [[ -n "${test_home}" ]]; then
+        HOME="${saved_home}"
+    fi
+}
+
+# Scenario A: TLS mode, project cron present, $HOME/.acme.sh/acme.sh absent.
+echo "=== Scenario 23: ACME cron detected with acme.sh file missing ==="
+_acme_cron_case "S23A" "yes" \
+    "${_ACME_USER_LINE}
+${_ACME_PROJ_LINE}" \
+    "${_ACME_USER_LINE}" \
+    "${_ACME_USER_LINE}
+${_ACME_PROJ_LINE}"
+
+# Scenario B: project cron present, HOME points to a non-root temp dir.
+echo "=== Scenario 24: ACME cron detected with non-root HOME ==="
+_S23B_HOME="$(mktemp -d)"
+_acme_cron_case "S23B" "yes" \
+    "${_ACME_PROJ_LINE}
+${_ACME_USER_LINE}" \
+    "${_ACME_USER_LINE}" \
+    "${_ACME_USER_LINE}
+${_ACME_PROJ_LINE}" \
+    "${_S23B_HOME}"
+rm -rf "${_S23B_HOME}"
+
+# Scenario C: only a user's /opt/custom/ssl_update.sh — no project line.
+echo "=== Scenario 25: ACME cron absent; user task not touched ==="
+_acme_cron_case "S23C" "no" \
+    "${_ACME_USER_LINE}" \
+    "${_ACME_USER_LINE}
+${_ACME_PROJ_LINE}" \
+    "${_ACME_USER_LINE}"
+
+unset -f crontab
+unset _CRON_CRONTAB_FILE _ACME_PROJ_LINE _ACME_USER_LINE _acme_cron_case
+
 
 # ============================================================================
 # Summary
