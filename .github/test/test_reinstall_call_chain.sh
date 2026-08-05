@@ -779,6 +779,133 @@ else
 fi
 
 # ============================================================================
+# Scenario 14: SHA256 strict fail-closed (normal, tampered, missing, corrupt)
+# ============================================================================
+echo "=== Scenario 14: SHA256 strict verification ==="
+
+# 14a: valid backup restores OK
+reset_for_call_chain_test
+write_tls_single_user_conf
+tls_mode="TLS"
+BACKUP_DIR=$(reinstall_backup_create)
+[[ -f "${BACKUP_DIR}/sha256sums.txt" ]] && ok "S14a sha256sums.txt exists" || bad "S14a sha256sums.txt missing"
+
+# 14b: tampered file → restore refused
+echo "TAMPER" >> "${BACKUP_DIR}/xray/config.json"
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+assert_ne "S14b tampered file rejected" "0" "${RESTORE_RC}"
+
+# 14c: missing file → restore refused
+reset_for_call_chain_test
+write_tls_single_user_conf
+tls_mode="TLS"
+BACKUP_DIR=$(reinstall_backup_create)
+rm -f "${BACKUP_DIR}/xray/config.json"
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+assert_ne "S14c missing file rejected" "0" "${RESTORE_RC}"
+
+# 14d: corrupt manifest line → restore refused
+reset_for_call_chain_test
+write_tls_single_user_conf
+tls_mode="TLS"
+BACKUP_DIR=$(reinstall_backup_create)
+echo "garbage line no hash" >> "${BACKUP_DIR}/sha256sums.txt"
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+assert_ne "S14d corrupt manifest rejected" "0" "${RESTORE_RC}"
+
+# 14e: missing manifest → restore refused
+reset_for_call_chain_test
+write_tls_single_user_conf
+tls_mode="TLS"
+BACKUP_DIR=$(reinstall_backup_create)
+rm -f "${BACKUP_DIR}/sha256sums.txt"
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+assert_ne "S14e missing manifest rejected" "0" "${RESTORE_RC}"
+
+# ============================================================================
+# Scenario 15: Auto-rollback via RETURN trap restores exactly once
+# ============================================================================
+echo "=== Scenario 15: RETURN trap restores exactly once ==="
+reset_for_call_chain_test
+write_tls_single_user_conf
+tls_mode="TLS"
+reinstall_operation="keep_config"
+
+PRE_CONF=$(jq -Sc . "${xray_conf}")
+BACKUP_DIR=$(reinstall_backup_create)
+_reinstall_backup_dir="${BACKUP_DIR}"
+
+# Save real restore under a different name, then override to count calls.
+eval "$(declare -f reinstall_backup_restore | sed 's/reinstall_backup_restore/_real_reinstall_backup_restore/')"
+_RESTORE_COUNT=0
+reinstall_backup_restore() {
+    _RESTORE_COUNT=$((_RESTORE_COUNT + 1))
+    _real_reinstall_backup_restore "$1" 2>/dev/null
+}
+
+# Simulate a mid-deploy failure: the rollback wrapper should restore once.
+reinstall_rollback_on_return 1 "${BACKUP_DIR}"
+RC=$?
+assert_eq "S15 rollback returns original rc" "1" "${RC}"
+assert_eq "S15 restore called exactly once" "1" "${_RESTORE_COUNT}"
+assert_eq "S15 backup dir cleared after restore" "" "${_reinstall_backup_dir}"
+
+# Verify config was actually restored.
+POST_CONF=$(jq -Sc . "${xray_conf}")
+assert_eq "S15 config restored" "${PRE_CONF}" "${POST_CONF}"
+
+# Restore real function
+unset -f reinstall_backup_restore
+unset -f _real_reinstall_backup_restore
+
+# ============================================================================
+# Scenario 16: Restore failure retains backup dir and returns non-zero
+# ============================================================================
+echo "=== Scenario 16: Restore failure retains backup dir ==="
+reset_for_call_chain_test
+write_tls_single_user_conf
+tls_mode="TLS"
+reinstall_operation="keep_config"
+
+PRE_CONF=$(jq -Sc . "${xray_conf}")
+BACKUP_DIR=$(reinstall_backup_create)
+_reinstall_backup_dir="${BACKUP_DIR}"
+
+# Sabotage SHA256 so restore fails (rejects before any changes).
+echo "TAMPER" >> "${BACKUP_DIR}/xray/config.json"
+
+RESTORE_RC=0
+reinstall_rollback_on_return 1 "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+# When restore fails, rollback returns 2 (independent non-zero)
+assert_ne "S16 rollback non-zero on restore failure" "0" "${RESTORE_RC}"
+# Backup dir should still exist (not cleared on restore failure)
+[[ -d "${BACKUP_DIR}" ]] && ok "S16 backup dir retained on restore failure" || bad "S16 backup dir lost"
+
+# ============================================================================
+# Scenario 17: old_config_exist_check failure stops install chain
+# ============================================================================
+echo "=== Scenario 17: old_config_exist_check failure stops install ==="
+# old_config_exist_check returns 1 when backup fails.
+# Verify the 4 install functions use '|| return 1' after old_config_exist_check.
+INSTALL_SH="${REPO_DIR}/install.sh"
+_oldcheck_count=$(grep -c 'old_config_exist_check || return 1' "${INSTALL_SH}")
+assert_eq "S17 four install chains use || return 1" "4" "${_oldcheck_count}"
+
+# Also verify no bare 'old_config_exist_check' lines remain (without || return 1).
+# Exclude the function definition and comment lines.
+_bare_count=$(grep -n 'old_config_exist_check' "${INSTALL_SH}" | \
+    grep -v 'old_config_exist_check()' | \
+    grep -v '#' | \
+    grep -v '|| return 1' | \
+    grep -v 'is_mocked' | \
+    wc -l | tr -d ' ')
+assert_eq "S17 no bare old_config_exist_check calls" "0" "${_bare_count}"
+
+# ============================================================================
 # Summary
 # ============================================================================
 echo ""

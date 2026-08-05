@@ -1686,8 +1686,19 @@ firewall_set() {
             log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
         fi
 
-        # Record managed ports so reconcile_managed_firewall can keep them in sync.
+        # Record managed ports and reconcile with the previous set so the
+        # firewall participates in the reinstall transaction (old→new).
+        # Reconcile BEFORE writing the new managed_ports.json so a failure
+        # leaves the old file intact.
         collect_new_managed_ports
+        local _old_ports_json='{"tcp":[],"udp":[]}'
+        if [[ -f "${managed_ports_file}" ]]; then
+            _old_ports_json=$(cat "${managed_ports_file}" 2>/dev/null || echo '{"tcp":[],"udp":[]}')
+        fi
+        if ! reconcile_managed_firewall "${_old_ports_json}" "${new_ports_json}"; then
+            log_echo "${Error} ${RedBG} $(gettext "防火墙规则更新失败") ${Font}"
+            return 1
+        fi
         atomic_write_managed_ports "${new_ports_json}" || return 1
 
         log_echo "${OK} ${GreenBG} $(gettext "开放防火墙相关端口") ${Font}"
@@ -5081,23 +5092,22 @@ reinstall_edit_menu() {
     log_echo "  ${Green}2)${Font} $(gettext "修改内部端口")"
     log_echo "  ${Green}3)${Font} $(gettext "修改传输路径")"
     log_echo "  ${Green}4)${Font} $(gettext "修改 Reality 参数")"
-    log_echo "  ${Green}5)${Font} $(gettext "修改 Nginx/SNI 设置")"
-    log_echo "  ${Green}6)${Font} $(gettext "不再修改, 开始重新部署")"
+    log_echo "  ${Green}5)${Font} $(gettext "不再修改, 开始重新部署")"
     echo
     log_echo "${Warning} ${YellowBG} $(gettext "UUID 和多用户信息请使用现有用户管理或 UUID 变更功能") ${Font}"
     log_echo "${Warning} ${YellowBG} $(gettext "传输组合变更请使用标准模板重建") ${Font}"
+    log_echo "${Warning} ${YellowBG} $(gettext "Nginx/SNI 修改请使用标准模板重建") ${Font}"
     echo
     local _edit_choice
     while true; do
-        log_echo "${GreenBG} $(gettext "请选择") [1-6]: ${Font}"
+        log_echo "${GreenBG} $(gettext "请选择") [1-5]: ${Font}"
         read -r _edit_choice
         case $_edit_choice in
         1) change_port="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改主端口") ${Font}" ;;
         2) change_inner_ports="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改内部端口") ${Font}" ;;
         3) change_ws_path="yes"; change_grpc_path="yes"; change_xhttp_path="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改传输路径") ${Font}" ;;
         4) change_reality="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改 Reality 参数") ${Font}" ;;
-        5) change_nginx_sni="yes"; log_echo "${OK} ${GreenBG} $(gettext "已选择修改 Nginx/SNI 设置") ${Font}" ;;
-        6) break ;;
+        5) break ;;
         *) log_echo "${Error} ${RedBG} $(gettext "值为空或超出范围, 请重新输入") ${Font}" ;;
         esac
     done
@@ -7428,12 +7438,12 @@ install_xray_ws_tls() {
     dependency_install
     basic_optimization
     create_directory
-    old_config_exist_check
+    old_config_exist_check || return 1
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
-        trap 'reinstall_backup_restore "${_tx_backup}" 2>/dev/null; _reinstall_backup_dir=""' RETURN
+        trap 'reinstall_rollback_on_return "$?" "${_tx_backup}"' RETURN
     fi
     domain_check || return 1
     transport_choose || return 1
@@ -7498,12 +7508,12 @@ install_xray_reality() {
     dependency_install
     basic_optimization
     create_directory
-    old_config_exist_check
+    old_config_exist_check || return 1
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
-        trap 'reinstall_backup_restore "${_tx_backup}" 2>/dev/null; _reinstall_backup_dir=""' RETURN
+        trap 'reinstall_rollback_on_return "$?" "${_tx_backup}"' RETURN
     fi
     ip_check || return 1
     port_set || return 1
@@ -7559,12 +7569,12 @@ install_xray_xtls_only() {
     dependency_install
     basic_optimization
     create_directory
-    old_config_exist_check
+    old_config_exist_check || return 1
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
-        trap 'reinstall_backup_restore "${_tx_backup}" 2>/dev/null; _reinstall_backup_dir=""' RETURN
+        trap 'reinstall_rollback_on_return "$?" "${_tx_backup}"' RETURN
     fi
     ip_check || return 1
     shell_mode="XTLS ONLY"
@@ -7601,12 +7611,12 @@ install_xray_ws_only() {
     dependency_install
     basic_optimization
     create_directory
-    old_config_exist_check
+    old_config_exist_check || return 1
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
-        trap 'reinstall_backup_restore "${_tx_backup}" 2>/dev/null; _reinstall_backup_dir=""' RETURN
+        trap 'reinstall_rollback_on_return "$?" "${_tx_backup}"' RETURN
     fi
     ip_check || return 1
     transport_choose || return 1
@@ -8378,6 +8388,29 @@ function restore_directories() {
 # old_config_exist_check is mocked out).
 _reinstall_backup_dir=""
 
+# RETURN-trap wrapper: restores the backup exactly once on deploy failure.
+# Args: <exit_code> <backup_dir>
+# - rc == 0 (success): clear backup dir reference, no restore.
+# - rc != 0 (failure): restore once; on restore failure return 2 and retain
+#   backup dir so the operator can inspect it. Clears the trap first to
+#   avoid recursion.
+reinstall_rollback_on_return() {
+    local rc="$1"
+    local backup_dir="$2"
+    trap - RETURN
+    if [[ "${rc}" -ne 0 && -n "${backup_dir}" ]]; then
+        if ! reinstall_backup_restore "${backup_dir}"; then
+            log_echo "${Error} ${RedBG} $(gettext "部署失败且自动恢复未完成") ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "备份目录保留在"): ${backup_dir} ${Font}"
+            return 2
+        fi
+        _reinstall_backup_dir=""
+    else
+        _reinstall_backup_dir=""
+    fi
+    return "${rc}"
+}
+
 # Create a timestamped backup of the running config before reinstall
 # or mode switch. Echoes the backup directory path on stdout.
 # Returns 1 if the backup could not be created.
@@ -8458,7 +8491,11 @@ reinstall_backup_create() {
     # Snapshot ACME/cron state for TLS mode.
     local _acme_cron="no"
     if [[ ${_source_mode} == "TLS" ]] && [[ -f "$HOME/.acme.sh/acme.sh" ]]; then
-        crontab -l 2>/dev/null | grep -q "ssl_update.sh" && _acme_cron="yes"
+        if crontab -l 2>/dev/null | grep -q "ssl_update.sh"; then
+            _acme_cron="yes"
+            # Save the actual crontab line so it can be restored verbatim.
+            crontab -l 2>/dev/null | grep "ssl_update.sh" > "${backup_dir}/acme_cron_line.txt" 2>/dev/null || true
+        fi
     fi
 
     # Record file existence manifest. Use a brace group redirected to file
@@ -8494,7 +8531,9 @@ reinstall_backup_create() {
     } > "${backup_dir}/pre_reinstall_state.json"
 
     # Generate SHA256 manifest for integrity verification.
-    find "${backup_dir}" -type f ! -name "sha256sums.txt" -exec sha256sum {} \; 2>/dev/null > "${backup_dir}/sha256sums.txt"
+    # Use relative paths so verification does not depend on the original
+    # absolute backup_dir path (which may differ if the snapshot is moved).
+    ( cd "${backup_dir}" && find . -type f ! -name "sha256sums.txt" -exec sha256sum {} \; 2>/dev/null ) > "${backup_dir}/sha256sums.txt"
 
     echo "${backup_dir}"
 }
@@ -8510,22 +8549,16 @@ reinstall_backup_restore() {
 
     local _restore_err=0
 
-    # Verify backup integrity via SHA256 before restoring (fail-closed).
-    if [[ -f "${backup_dir}/sha256sums.txt" ]]; then
-        local _sumfile="${backup_dir}/sha256sums.txt"
-        local _sumline _exp _act _fname
-        while IFS= read -r _sumline; do
-            [[ -z "${_sumline}" ]] && continue
-            _exp=$(awk '{print $1}' <<<"${_sumline}")
-            _fname=$(awk '{print $2}' <<<"${_sumline}")
-            [[ -z "${_exp}" || -z "${_fname}" ]] && continue
-            [[ ! -f "${_fname}" ]] && continue
-            _act=$(sha256sum "${_fname}" 2>/dev/null | awk '{print $1}')
-            if [[ -n "${_act}" && "${_exp}" != "${_act}" ]]; then
-                log_echo "${Error} ${RedBG} $(gettext "备份校验失败, 拒绝恢复"): ${_fname} ${Font}"
-                return 1
-            fi
-        done < "${_sumfile}"
+    # Verify backup integrity via SHA256 before restoring (strict fail-closed).
+    # Refuses to restore on: missing manifest, missing file, hash mismatch,
+    # sha256sum failure, or unparseable manifest line (--strict).
+    if [[ ! -f "${backup_dir}/sha256sums.txt" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "备份完整性清单缺失, 拒绝恢复") ${Font}"
+        return 1
+    fi
+    if ! ( cd "${backup_dir}" && sha256sum --strict -c sha256sums.txt >/dev/null 2>&1 ); then
+        log_echo "${Error} ${RedBG} $(gettext "备份完整性校验失败, 拒绝恢复") ${Font}"
+        return 1
     fi
 
     # Stop all services to avoid races during restoration.
@@ -8552,7 +8585,20 @@ reinstall_backup_restore() {
         rm -rf "${ssl_chainpath}" 2>/dev/null
         cp -a "${backup_dir}/cert" "${ssl_chainpath}" 2>/dev/null || _restore_err=1
     fi
+    # Firewall transaction rollback: reconcile current (post-deploy) managed
+    # ports back to the backed-up (pre-deploy) set BEFORE restoring the file.
+    # Reuses the same reconcile_managed_firewall as the forward path.
     if [[ -f "${backup_dir}/managed_ports.json" ]]; then
+        local _cur_ports_json='{"tcp":[],"udp":[]}'
+        if [[ -f "${managed_ports_file}" ]]; then
+            _cur_ports_json=$(cat "${managed_ports_file}" 2>/dev/null || echo '{"tcp":[],"udp":[]}')
+        fi
+        local _old_ports_json
+        _old_ports_json=$(cat "${backup_dir}/managed_ports.json" 2>/dev/null || echo '{"tcp":[],"udp":[]}')
+        if ! reconcile_managed_firewall "${_cur_ports_json}" "${_old_ports_json}" 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "防火墙规则回滚失败") ${Font}"
+            _restore_err=1
+        fi
         cp -a "${backup_dir}/managed_ports.json" "${managed_ports_file}" 2>/dev/null || _restore_err=1
     fi
     if [[ -f "${backup_dir}/xray.service" ]]; then
@@ -8597,27 +8643,27 @@ reinstall_backup_restore() {
         _pre_xray_enabled=$(jq -r '.xray_enabled // "no"' "${_pre_state}" 2>/dev/null)
         _pre_nginx_enabled=$(jq -r '.nginx_enabled // "no"' "${_pre_state}" 2>/dev/null)
     fi
-    # Enabled state.
+    # Enabled state — propagate failures instead of swallowing with || true.
     if [[ "${_pre_xray_enabled}" == "yes" ]]; then
         systemctl enable xray 2>/dev/null || _restore_err=1
     else
-        systemctl disable xray 2>/dev/null || true
+        systemctl disable xray 2>/dev/null || _restore_err=1
     fi
     if [[ "${_pre_nginx_enabled}" == "yes" ]]; then
         systemctl enable nginx 2>/dev/null || _restore_err=1
     else
-        systemctl disable nginx 2>/dev/null || true
+        systemctl disable nginx 2>/dev/null || _restore_err=1
     fi
     # Active state.
     if [[ "${_pre_xray_active}" == "yes" ]]; then
         systemctl start xray 2>/dev/null || _restore_err=1
     else
-        systemctl stop xray 2>/dev/null || true
+        systemctl stop xray 2>/dev/null || _restore_err=1
     fi
     if [[ "${_pre_nginx_active}" == "yes" ]]; then
         systemctl start nginx 2>/dev/null || _restore_err=1
     else
-        systemctl stop nginx 2>/dev/null || true
+        systemctl stop nginx 2>/dev/null || _restore_err=1
     fi
 
     if [[ ${_restore_err} -ne 0 ]]; then
@@ -8626,14 +8672,67 @@ reinstall_backup_restore() {
         return 1
     fi
 
-    # Verify restoration: check services match the pre-reinstall active state.
+    # Bidirectional verification: active AND enabled states must match snapshot.
     if [[ "${_pre_xray_active}" == "yes" ]] && ! systemctl is-active --quiet xray 2>/dev/null; then
         log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后未运行") ${Font}"
+        _restore_err=1
+    fi
+    if [[ "${_pre_xray_active}" == "no" ]] && systemctl is-active --quiet xray 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后仍在运行") ${Font}"
         _restore_err=1
     fi
     if [[ "${_pre_nginx_active}" == "yes" ]] && ! systemctl is-active --quiet nginx 2>/dev/null; then
         log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后未运行") ${Font}"
         _restore_err=1
+    fi
+    if [[ "${_pre_nginx_active}" == "no" ]] && systemctl is-active --quiet nginx 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后仍在运行") ${Font}"
+        _restore_err=1
+    fi
+    if [[ "${_pre_xray_enabled}" == "yes" ]] && ! systemctl is-enabled --quiet xray 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后未启用") ${Font}"
+        _restore_err=1
+    fi
+    if [[ "${_pre_xray_enabled}" == "no" ]] && systemctl is-enabled --quiet xray 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后仍启用") ${Font}"
+        _restore_err=1
+    fi
+    if [[ "${_pre_nginx_enabled}" == "yes" ]] && ! systemctl is-enabled --quiet nginx 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后未启用") ${Font}"
+        _restore_err=1
+    fi
+    if [[ "${_pre_nginx_enabled}" == "no" ]] && systemctl is-enabled --quiet nginx 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后仍启用") ${Font}"
+        _restore_err=1
+    fi
+
+    # Restore ACME/cron state if it was recorded as active before reinstall.
+    local _pre_acme_cron="no"
+    if [[ -f "${_pre_state}" ]]; then
+        _pre_acme_cron=$(jq -r '.acme_cron // "no"' "${_pre_state}" 2>/dev/null)
+    fi
+    if [[ "${_pre_acme_cron}" == "yes" ]]; then
+        local _crontab_file
+        if [[ "${ID:-}" == "centos" ]]; then
+            _crontab_file="/var/spool/cron/root"
+        else
+            _crontab_file="/var/spool/cron/crontabs/root"
+        fi
+        if ! crontab -l 2>/dev/null | grep -q "ssl_update.sh"; then
+            if [[ -f "${backup_dir}/acme_cron_line.txt" ]]; then
+                local _saved_line
+                _saved_line=$(cat "${backup_dir}/acme_cron_line.txt" 2>/dev/null)
+                if [[ -n "${_saved_line}" && -f "${_crontab_file}" ]]; then
+                    printf '%s\n' "${_saved_line}" >> "${_crontab_file}" 2>/dev/null || _restore_err=1
+                else
+                    log_echo "${Warning} ${YellowBG} $(gettext "ACME 定时任务未能恢复, 请手动检查") ${Font}"
+                    _restore_err=1
+                fi
+            else
+                log_echo "${Warning} ${YellowBG} $(gettext "ACME 定时任务未能恢复, 请手动检查") ${Font}"
+                _restore_err=1
+            fi
+        fi
     fi
 
     if [[ ${_restore_err} -ne 0 ]]; then
