@@ -55,6 +55,9 @@ jobs:
       - name: Run Phase 1 regression tests
         env:
           GH_TOKEN: ${{ github.token }}
+          # P0-1: the call-chain test resolves the Skill repo from this env var
+          # (falls back to the adjacent repo dir only outside CI).
+          SKILL_REPO: ${{ github.workspace }}/.phase1-contracts/skill
         run: |
           set -euo pipefail
           bash .github/test/test_redact.sh
