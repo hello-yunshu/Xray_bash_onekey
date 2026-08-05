@@ -53,23 +53,55 @@ sleep() { :; }
 countdown() { :; }
 _info_cache_invalidate() { :; }
 
-# --- systemctl mock ---
+# --- systemctl mock: unit-file aware so a missing unit behaves like real
+# systemd (is-active/is-enabled return non-zero, and enable/disable/start/stop
+# fail). Mocks that "always succeed" would mask the P0-2 unit-restore bug.
 SYSTEMCTL_IS_ACTIVE_RESULT=0
 SYSTEMCTL_DAEMON_RELOAD_FAIL=0
+SYSTEMCTL_ENABLE_NGINX_CALLS=0
+SYSTEMCTL_DISABLE_NGINX_CALLS=0
+SYSTEMCTL_START_NGINX_CALLS=0
+SYSTEMCTL_STOP_NGINX_CALLS=0
 systemctl() {
+    local svc=""
     case "${1:-}" in
-        is-active)
-            if [[ "${3:-}" == "xray" || "${3:-}" == "nginx" ]]; then
+        is-active|is-enabled)
+            svc="${3:-}"
+            if [[ "${svc}" == "xray" || "${svc}" == "nginx" ]]; then
+                if [[ "${svc}" == "xray" && ! -f "${xray_systemd_file}" ]]; then
+                    return 3
+                fi
+                if [[ "${svc}" == "nginx" && ! -f "${nginx_systemd_file}" ]]; then
+                    return 3
+                fi
                 return "${SYSTEMCTL_IS_ACTIVE_RESULT}"
             fi
             return 1
             ;;
-        is-enabled) return "${SYSTEMCTL_IS_ACTIVE_RESULT}" ;;
         daemon-reload)
             [[ ${SYSTEMCTL_DAEMON_RELOAD_FAIL} -eq 1 ]] && return 1
             return 0
             ;;
-        start|stop) return 0 ;;
+        enable|disable|start|stop)
+            svc="${2:-}"
+            if [[ "${svc}" == "nginx" ]]; then
+                case "${1:-}" in
+                    enable)  SYSTEMCTL_ENABLE_NGINX_CALLS=$((SYSTEMCTL_ENABLE_NGINX_CALLS + 1));;
+                    disable) SYSTEMCTL_DISABLE_NGINX_CALLS=$((SYSTEMCTL_DISABLE_NGINX_CALLS + 1));;
+                    start)   SYSTEMCTL_START_NGINX_CALLS=$((SYSTEMCTL_START_NGINX_CALLS + 1));;
+                    stop)    SYSTEMCTL_STOP_NGINX_CALLS=$((SYSTEMCTL_STOP_NGINX_CALLS + 1));;
+                esac
+            elif [[ "${svc}" != "xray" ]]; then
+                return 0
+            fi
+            if [[ "${svc}" == "xray" && ! -f "${xray_systemd_file}" ]]; then
+                return 1
+            fi
+            if [[ "${svc}" == "nginx" && ! -f "${nginx_systemd_file}" ]]; then
+                return 1
+            fi
+            return 0
+            ;;
         *) return 0 ;;
     esac
 }
@@ -180,7 +212,8 @@ XRAY_EOF
 # --- reset before each scenario ---
 reset_for_call_chain_test() {
     rm -rf "${xray_conf_dir}" "${nginx_conf_dir}" "${ssl_chainpath}" "${idleleo_dir}/backup"
-    rm -f "${xray_install_config_file}" "${managed_ports_file}"
+    rm -f "${xray_install_config_file}" "${managed_ports_file}" \
+        "${xray_systemd_file}" "${nginx_systemd_file}"
     mkdir -p "${xray_conf_dir}" "${nginx_conf_dir}" "${ssl_chainpath}" "${idleleo_dir}/backup"
 
     tls_mode="None"
@@ -226,6 +259,10 @@ reset_for_call_chain_test() {
 
     SYSTEMCTL_IS_ACTIVE_RESULT=0
     SYSTEMCTL_DAEMON_RELOAD_FAIL=0
+    SYSTEMCTL_ENABLE_NGINX_CALLS=0
+    SYSTEMCTL_DISABLE_NGINX_CALLS=0
+    SYSTEMCTL_START_NGINX_CALLS=0
+    SYSTEMCTL_STOP_NGINX_CALLS=0
 
     _make_fake_xray_binary
 }
@@ -757,7 +794,17 @@ rm -rf "${BACKUP_DIR}"
 # Scenario 13: Skill existing-install protection
 # ============================================================================
 echo "=== Scenario 13: Skill existing-install protection ==="
-SKILL_REPO="${REPO_DIR}/../Xray_bash_onekey_skill"
+# P0-1: prefer the CI-provided SKILL_REPO env var (GitHub Actions checkouts
+# the Skill repo to ${GITHUB_WORKSPACE}/.phase1-contracts/skill); fall back to
+# the adjacent repo dir for local runs. A missing Skill repo must fail the test.
+_SKILL_ENV="${SKILL_REPO:-}"
+_SKILL_RESOLVED="${_SKILL_ENV:-${REPO_DIR}/../Xray_bash_onekey_skill}"
+if [[ -n "${_SKILL_ENV}" ]]; then
+    assert_eq "S13 env SKILL_REPO used verbatim" "${_SKILL_ENV}" "${_SKILL_RESOLVED}"
+else
+    assert_eq "S13 env unset → local fallback used" "${REPO_DIR}/../Xray_bash_onekey_skill" "${_SKILL_RESOLVED}"
+fi
+SKILL_REPO="${_SKILL_RESOLVED}"
 
 if [[ -d "${SKILL_REPO}/assets" ]]; then
     # Test setup-reality.sh and setup-tls.sh reject existing installations.
@@ -1029,6 +1076,215 @@ _restore_18b
 unset -f is_root check_and_create_user_group check_system dependency_install
 unset -f basic_optimization create_directory old_config_exist_check
 unset -f domain_check transport_choose port_set
+
+# ============================================================================
+# Scenario 19: reinstall_finalize return-code propagation (P0-5)
+# Drives the REAL install_xray_ws_tls chain up to the final safety gate:
+#   - finalize rc 0 → install function returns 0
+#   - finalize rc 1 → install function returns 1 (restore succeeded)
+#   - finalize rc 2 → install function returns 2 (restore failed, backup kept)
+# The RETURN trap is cleared before finalize, so restore must run exactly once
+# and must never be triggered a second time by the install function's return.
+# ============================================================================
+echo "=== Scenario 19: finalize rc propagation through real install chain ==="
+
+# Mocks for every pre-finalize step of install_xray_ws_tls (all succeed).
+is_root() { return 0; }
+check_and_create_user_group() { return 0; }
+check_system() { return 0; }
+dependency_install() { return 0; }
+basic_optimization() { return 0; }
+create_directory() { return 0; }
+old_config_exist_check() {
+    _reinstall_backup_dir=$(reinstall_backup_create 2>/dev/null)
+    _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_changed="no"
+    return 0
+}
+domain_check() { return 0; }
+transport_choose() { return 0; }
+port_set() { return 0; }
+ws_inbound_port_set() { return 0; }
+grpc_inbound_port_set() { return 0; }
+xhttp_inbound_port_set() { return 0; }
+validate_active_ports() { return 0; }
+port_exist_check() { return 0; }
+firewall_set() { return 0; }
+ws_path_set() { return 0; }
+grpc_path_set() { return 0; }
+xhttp_path_set() { return 0; }
+email_set() { return 0; }
+UUID_set() { return 0; }
+transport_qr() { return 0; }
+install_config_tls_ws() { return 0; }
+stop_service_all() { return 0; }
+xray_install() { return 0; }
+update_json_config() { return 0; }
+nginx_exist_check() { return 0; }
+nginx_systemd() { return 0; }
+nginx_ssl_conf_add() { return 0; }
+ssl_judge_and_install() { return 0; }
+nginx_conf_add() { return 0; }
+nginx_servers_conf_add() { return 0; }
+xray_conf_add() { return 0; }
+harden_config_permissions() { return 0; }
+enable_process_systemd() { return 0; }
+acme_cron_update() { return 0; }
+auto_update() { return 0; }
+service_restart() { return 0; }
+setup_auto_clean_logs() { return 0; }
+# Final info functions: must succeed so a clean install returns 0.
+basic_information() { return 0; }
+vless_link_image_choice() { return 0; }
+show_information() { return 0; }
+# install_xray_ws_tls expands several port/xray variables for downstream
+# calls even though the dialog steps are mocked; provide them so `set -u`
+# does not abort the real chain mid-run.
+port="443"; xport=""; gport=""; xhttpport=""; xray_version="1.0.0"
+
+# --- 19a: finalize returns 0 → install returns 0, restore never called ---
+_restore_19a() {
+    reset_for_call_chain_test
+    write_tls_single_user_conf
+    echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+    tls_mode="TLS"
+    # Xray unit exists on the source system (deployed earlier).
+    printf '[Unit]\nDescription=xray\n' > "${xray_systemd_file}"
+
+    eval "${_REAL_RESTORE_BODY}"
+    eval "$(declare -f reinstall_backup_restore | sed 's/reinstall_backup_restore/_s19_real_restore/')"
+    _S19_RESTORE_COUNT=0
+    reinstall_backup_restore() {
+        _S19_RESTORE_COUNT=$((_S19_RESTORE_COUNT + 1))
+        _s19_real_restore "$1" 2>/dev/null
+    }
+
+    install_xray_ws_tls 2>/dev/null
+    local rc=$?
+    assert_eq "S19a finalize rc=0 propagates as 0" "0" "${rc}"
+    assert_eq "S19a restore never called on success" "0" "${_S19_RESTORE_COUNT}"
+
+    unset -f reinstall_backup_restore _s19_real_restore
+}
+_restore_19a
+
+# --- 19b: validate fails, restore succeeds → finalize 1 → install returns 1 ---
+_restore_19b() {
+    reset_for_call_chain_test
+    write_tls_single_user_conf
+    echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+    tls_mode="TLS"
+    printf '[Unit]\nDescription=xray\n' > "${xray_systemd_file}"
+
+    # Sabotage the xray binary so reinstall_validate_deploy fails.
+    cat > "${xray_bin_dir}/xray" <<'XRAY_FAIL'
+#!/usr/bin/env bash
+exit 1
+XRAY_FAIL
+    chmod +x "${xray_bin_dir}/xray"
+
+    eval "${_REAL_RESTORE_BODY}"
+    eval "$(declare -f reinstall_backup_restore | sed 's/reinstall_backup_restore/_s19_real_restore/')"
+    _S19_RESTORE_COUNT=0
+    reinstall_backup_restore() {
+        _S19_RESTORE_COUNT=$((_S19_RESTORE_COUNT + 1))
+        _s19_real_restore "$1" 2>/dev/null
+    }
+
+    install_xray_ws_tls 2>/dev/null
+    local rc=$?
+    assert_eq "S19b finalize rc=1 propagates as 1" "1" "${rc}"
+    assert_eq "S19b restore called exactly once" "1" "${_S19_RESTORE_COUNT}"
+    assert_eq "S19b backup dir cleared after restore" "" "${_reinstall_backup_dir}"
+
+    unset -f reinstall_backup_restore _s19_real_restore
+}
+_restore_19b
+
+# --- 19c: validate fails AND restore fails → finalize 2 → install returns 2 ---
+_restore_19c() {
+    reset_for_call_chain_test
+    write_tls_single_user_conf
+    echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+    tls_mode="TLS"
+    printf '[Unit]\nDescription=xray\n' > "${xray_systemd_file}"
+    cat > "${xray_bin_dir}/xray" <<'XRAY_FAIL'
+#!/usr/bin/env bash
+exit 1
+XRAY_FAIL
+    chmod +x "${xray_bin_dir}/xray"
+
+    # Create the backup first, then tamper it so restore is refused.
+    local _bdir
+    _bdir=$(reinstall_backup_create 2>/dev/null)
+    echo "TAMPER" >> "${_bdir}/xray/config.json"
+    old_config_exist_check() {
+        _reinstall_backup_dir="${_bdir}"
+        _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+        _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+        _reinstall_firewall_changed="no"
+        return 0
+    }
+
+    eval "${_REAL_RESTORE_BODY}"
+    eval "$(declare -f reinstall_backup_restore | sed 's/reinstall_backup_restore/_s19_real_restore/')"
+    _S19_RESTORE_COUNT=0
+    reinstall_backup_restore() {
+        _S19_RESTORE_COUNT=$((_S19_RESTORE_COUNT + 1))
+        _s19_real_restore "$1" 2>/dev/null
+    }
+
+    install_xray_ws_tls 2>/dev/null
+    local rc=$?
+    assert_eq "S19c finalize rc=2 propagates as 2" "2" "${rc}"
+    assert_eq "S19c restore called exactly once (trap not re-fired)" "1" "${_S19_RESTORE_COUNT}"
+    assert_ne "S19c backup dir retained on restore failure" "" "${_reinstall_backup_dir}"
+    [[ -d "${_reinstall_backup_dir}" ]] && ok "S19c backup dir still exists" || bad "S19c backup dir lost"
+
+    unset -f reinstall_backup_restore _s19_real_restore
+    old_config_exist_check() {
+        _reinstall_backup_dir=$(reinstall_backup_create 2>/dev/null)
+        _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+        _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+        _reinstall_firewall_changed="no"
+        return 0
+    }
+}
+_restore_19c
+
+# --- 19d: structural assertion — the other three install chains also
+# propagate reinstall_finalize's exact return code ---
+_extract_fn_body() {
+    awk -v fn="$1" '
+        $0 ~ "^" fn "\\(" { found=1; next }
+        found && /^}/ { exit }
+        found { print }
+    ' "${REPO_DIR}/install.sh"
+}
+for _chain_fn in install_xray_reality install_xray_xtls_only install_xray_ws_only; do
+    _body=$(_extract_fn_body "${_chain_fn}")
+    if [[ "${_body}" == *"reinstall_finalize"* &&
+          "${_body}" == *"finalize_rc"* &&
+          "${_body}" == *'return "${finalize_rc}"'* ]]; then
+        ok "S19d ${_chain_fn} propagates finalize rc"
+    else
+        bad "S19d ${_chain_fn} does not propagate finalize rc"
+    fi
+done
+
+# Clean up all mocks used by this scenario.
+unset -f is_root check_and_create_user_group check_system dependency_install
+unset -f basic_optimization create_directory old_config_exist_check
+unset -f domain_check transport_choose port_set ws_inbound_port_set
+unset -f grpc_inbound_port_set xhttp_inbound_port_set validate_active_ports
+unset -f port_exist_check firewall_set ws_path_set grpc_path_set xhttp_path_set
+unset -f email_set UUID_set transport_qr install_config_tls_ws stop_service_all
+unset -f xray_install update_json_config nginx_exist_check nginx_systemd
+unset -f nginx_ssl_conf_add ssl_judge_and_install nginx_conf_add
+unset -f nginx_servers_conf_add xray_conf_add harden_config_permissions
+unset -f enable_process_systemd acme_cron_update auto_update service_restart
+unset -f setup_auto_clean_logs vless_link_image_choice show_information
 
 # ============================================================================
 # Summary

@@ -53,25 +53,65 @@ countdown() { :; }
 # Avoid bash 3.2 associative-array quirks: invalidate is a no-op; tests use jq directly.
 _info_cache_invalidate() { :; }
 
-# --- systemctl mock: track is-active calls for xray / nginx ---
+# --- systemctl mock: unit-file aware so a missing unit behaves like real
+# systemd (is-active/is-enabled return non-zero, and enable/disable/start/stop
+# fail). Mocks that "always succeed" would mask the P0-2 unit-restore bug.
 SYSTEMCTL_CALLS=0
 SYSTEMCTL_IS_ACTIVE_XRAY_CALLS=0
 SYSTEMCTL_IS_ACTIVE_NGINX_CALLS=0
 SYSTEMCTL_IS_ACTIVE_RESULT=0
+SYSTEMCTL_ENABLE_NGINX_CALLS=0
+SYSTEMCTL_DISABLE_NGINX_CALLS=0
+SYSTEMCTL_START_NGINX_CALLS=0
+SYSTEMCTL_STOP_NGINX_CALLS=0
+# Simulate systemd still tracking a unit after its file was deleted
+# (loaded/active/enabled linger): when a unit file is absent but the matching
+# STUCK flag is set, is-active/is-enabled report success like a stale systemd.
+SYSTEMCTL_STUCK_XRAY=0
+SYSTEMCTL_STUCK_NGINX=0
 systemctl() {
+    local svc=""
     case "${1:-}" in
-        is-active)
+        is-active|is-enabled)
             SYSTEMCTL_CALLS=$((SYSTEMCTL_CALLS + 1))
-            if [[ "${3:-}" == "xray" ]]; then
-                SYSTEMCTL_IS_ACTIVE_XRAY_CALLS=$((SYSTEMCTL_IS_ACTIVE_XRAY_CALLS + 1))
-                return "${SYSTEMCTL_IS_ACTIVE_RESULT}"
-            elif [[ "${3:-}" == "nginx" ]]; then
-                SYSTEMCTL_IS_ACTIVE_NGINX_CALLS=$((SYSTEMCTL_IS_ACTIVE_NGINX_CALLS + 1))
+            svc="${3:-}"
+            if [[ "${svc}" == "xray" || "${svc}" == "nginx" ]]; then
+                if [[ "${svc}" == "xray" && ! -f "${xray_systemd_file}" ]]; then
+                    [[ ${SYSTEMCTL_STUCK_XRAY} -eq 1 ]] || return 3
+                fi
+                if [[ "${svc}" == "nginx" && ! -f "${nginx_systemd_file}" ]]; then
+                    [[ ${SYSTEMCTL_STUCK_NGINX} -eq 1 ]] || return 3
+                fi
+                if [[ "${svc}" == "xray" ]]; then
+                    SYSTEMCTL_IS_ACTIVE_XRAY_CALLS=$((SYSTEMCTL_IS_ACTIVE_XRAY_CALLS + 1))
+                else
+                    SYSTEMCTL_IS_ACTIVE_NGINX_CALLS=$((SYSTEMCTL_IS_ACTIVE_NGINX_CALLS + 1))
+                fi
                 return "${SYSTEMCTL_IS_ACTIVE_RESULT}"
             fi
             return 1
             ;;
-        daemon-reload|start|stop) return 0 ;;
+        daemon-reload) return 0 ;;
+        enable|disable|start|stop)
+            svc="${2:-}"
+            if [[ "${svc}" == "nginx" ]]; then
+                case "${1:-}" in
+                    enable)  SYSTEMCTL_ENABLE_NGINX_CALLS=$((SYSTEMCTL_ENABLE_NGINX_CALLS + 1));;
+                    disable) SYSTEMCTL_DISABLE_NGINX_CALLS=$((SYSTEMCTL_DISABLE_NGINX_CALLS + 1));;
+                    start)   SYSTEMCTL_START_NGINX_CALLS=$((SYSTEMCTL_START_NGINX_CALLS + 1));;
+                    stop)    SYSTEMCTL_STOP_NGINX_CALLS=$((SYSTEMCTL_STOP_NGINX_CALLS + 1));;
+                esac
+            elif [[ "${svc}" != "xray" ]]; then
+                return 0
+            fi
+            if [[ "${svc}" == "xray" && ! -f "${xray_systemd_file}" ]]; then
+                return 1
+            fi
+            if [[ "${svc}" == "nginx" && ! -f "${nginx_systemd_file}" ]]; then
+                return 1
+            fi
+            return 0
+            ;;
         *) return 0 ;;
     esac
 }
@@ -83,6 +123,15 @@ assert_eq() {
         ok "${name} (got: ${actual})"
     else
         bad "${name} (expected: ${expected}, got: ${actual})"
+    fi
+}
+
+assert_ne() {
+    local name="$1" not_expected="$2" actual="$3"
+    if [[ "${not_expected}" != "${actual}" ]]; then
+        ok "${name} (got: ${actual})"
+    else
+        bad "${name} (unexpected: ${not_expected})"
     fi
 }
 
@@ -125,10 +174,38 @@ _make_fake_xray_binary
 # nginx_dir points to a non-existent path so nginx -t / is-active checks are skipped.
 nginx_dir="${TMP_ROOT}/nonexistent_nginx"
 
+# --- crontab mock: stateful via CRONTAB_FILE, with write-failure injection.
+# Uses the standard `crontab -l` / `crontab -` interface (never spool files),
+# mirroring what install.sh must use for ACME cron restore.
+CRONTAB_FILE="${TMP_ROOT}/crontab_state.txt"
+: > "${CRONTAB_FILE}"
+CRONTAB_WRITE_FAIL=0
+crontab() {
+    case "${1:-}" in
+        -l) cat "${CRONTAB_FILE}" 2>/dev/null; return 0 ;;
+        -)
+            [[ ${CRONTAB_WRITE_FAIL} -eq 1 ]] && return 1
+            # Buffer stdin first: a real `crontab -` only commits at EOF, but a
+            # naive `cat > file` truncates immediately, racing with a concurrent
+            # `crontab -l` on the other side of a pipe.
+            local _cr_buf
+            _cr_buf=$(cat)
+            if [[ -n "${_cr_buf}" ]]; then
+                printf '%s\n' "${_cr_buf}" > "${CRONTAB_FILE}"
+            else
+                : > "${CRONTAB_FILE}"
+            fi
+            return 0
+            ;;
+        *) return 0 ;;
+    esac
+}
+
 # --- reset before each scenario ---
 reset_for_reinstall_test() {
     rm -rf "${xray_conf_dir}" "${nginx_conf_dir}" "${ssl_chainpath}" "${idleleo_dir}/backup"
-    rm -f "${xray_install_config_file}" "${managed_ports_file}"
+    rm -f "${xray_install_config_file}" "${managed_ports_file}" \
+        "${xray_systemd_file}" "${nginx_systemd_file}"
     mkdir -p "${xray_conf_dir}" "${nginx_conf_dir}" "${ssl_chainpath}" "${idleleo_dir}/backup"
 
     tls_mode="None"
@@ -143,6 +220,12 @@ reset_for_reinstall_test() {
     SYSTEMCTL_IS_ACTIVE_XRAY_CALLS=0
     SYSTEMCTL_IS_ACTIVE_NGINX_CALLS=0
     SYSTEMCTL_IS_ACTIVE_RESULT=0
+    SYSTEMCTL_ENABLE_NGINX_CALLS=0
+    SYSTEMCTL_DISABLE_NGINX_CALLS=0
+    SYSTEMCTL_START_NGINX_CALLS=0
+    SYSTEMCTL_STOP_NGINX_CALLS=0
+    SYSTEMCTL_STUCK_XRAY=0
+    SYSTEMCTL_STUCK_NGINX=0
 
     _make_fake_xray_binary
 }
@@ -472,6 +555,9 @@ echo "--- Scenario 7: Consecutive reinstall twice ---"
 reset_for_reinstall_test
 write_reality_multi_user_conf
 tls_mode="Reality"
+# The Xray unit exists on the source system (deployed earlier), so
+# reinstall_validate_deploy sees xray as active via the mock.
+printf '[Unit]\nDescription=xray\n' > "${xray_systemd_file}"
 
 # First reinstall backup.
 BACKUP1=$(reinstall_backup_create)
@@ -554,6 +640,58 @@ assert_not_contains "Mode switch no privateKey leak" "priv-key-SECRET" "${RESTOR
 assert_not_contains "Mode switch no UUID leak" "uuid-reality" "${RESTORE_OUTPUT}"
 
 # ============================================================================
+# Scenario 9: unit restore per manifest (P0-2)
+# Source system: xray.service exists, nginx.service does NOT. A failed deploy
+# creates a NEW nginx.service (and starts it). Rollback must delete the nginx
+# unit file, must stop the just-created unit exactly once as cleanup, and must
+# NEVER enable/disable/start it to re-adopt a unit the source system never had
+# (those would wrongly re-create it or fail for a missing unit).
+echo "--- Scenario 9: unit restore (xray existed, nginx absent) ---"
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+# Source system: xray.service exists, nginx.service does NOT.
+printf '[Unit]\nDescription=xray\n' > "${xray_systemd_file}"
+rm -f "${nginx_systemd_file}"
+
+BACKUP_DIR=$(reinstall_backup_create 2>/dev/null)
+assert_eq "S9 backup: xray.service existed" "true" "$(jq -r '.files["xray.service"]' "${BACKUP_DIR}/pre_reinstall_state.json")"
+assert_eq "S9 backup: nginx.service absent" "false" "$(jq -r '.files["nginx.service"]' "${BACKUP_DIR}/pre_reinstall_state.json")"
+
+# Failed deploy creates a NEW nginx unit (and would try to start it).
+printf '[Unit]\nDescription=nginx\n' > "${nginx_systemd_file}"
+
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+assert_eq "S9 restore returns 0" "0" "${RESTORE_RC}"
+[[ -f "${xray_systemd_file}" ]] && ok "S9 xray unit restored" || bad "S9 xray unit missing"
+[[ ! -f "${nginx_systemd_file}" ]] && ok "S9 nginx unit deleted" || bad "S9 nginx unit left behind"
+assert_eq "S9 no 'disable nginx' call" "0" "${SYSTEMCTL_DISABLE_NGINX_CALLS}"
+assert_eq "S9 deploy-created nginx stopped exactly once (cleanup)" "1" "${SYSTEMCTL_STOP_NGINX_CALLS}"
+assert_eq "S9 no 'start nginx' call" "0" "${SYSTEMCTL_START_NGINX_CALLS}"
+assert_eq "S9 no 'enable nginx' call" "0" "${SYSTEMCTL_ENABLE_NGINX_CALLS}"
+
+# --- S9b: systemd still tracking the deleted unit → restore must FAIL ---
+echo "--- Scenario 9b: stuck nginx unit (systemd linger) → restore fails ---"
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+printf '[Unit]\nDescription=xray\n' > "${xray_systemd_file}"
+BACKUP_DIR=$(reinstall_backup_create 2>/dev/null)
+
+# Failed deploy creates the nginx unit; restore will delete the file, but
+# systemd (mock) still reports nginx as active/enabled afterwards.
+printf '[Unit]\nDescription=nginx\n' > "${nginx_systemd_file}"
+SYSTEMCTL_STUCK_NGINX=1
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+SYSTEMCTL_STUCK_NGINX=0
+assert_ne "S9b restore fails when systemd lingers on deleted unit" "0" "${RESTORE_RC}"
+[[ ! -f "${nginx_systemd_file}" ]] && ok "S9b nginx unit file deleted" || bad "S9b nginx unit file left behind"
+[[ -d "${BACKUP_DIR}" ]] && ok "S9b backup retained on failure" || bad "S9b backup dir lost"
+rm -rf "${BACKUP_DIR}"
+
+# ============================================================================
 # Additional: reinstall_verify_preservation detects count change
 # ============================================================================
 echo "--- Additional: reinstall_verify_preservation detects count change ---"
@@ -589,6 +727,8 @@ echo "--- Additional: reinstall_validate_deploy service state ---"
 reset_for_reinstall_test
 write_tls_single_user_conf
 tls_mode="TLS"
+# Unit file must exist so the mock reports the configured active state.
+printf '[Unit]\nDescription=xray\n' > "${xray_systemd_file}"
 
 # validate_deploy should succeed: xray binary passes, systemctl says active.
 if reinstall_validate_deploy 2>/dev/null; then
@@ -641,6 +781,296 @@ RESTORED_CERT=$(cat "${ssl_chainpath}/xray.crt")
 RESTORED_KEY=$(cat "${ssl_chainpath}/xray.key")
 assert_eq "Cert fingerprint preserved" "${CERT_CONTENT}" "${RESTORED_CERT}"
 assert_eq "Key fingerprint preserved" "${KEY_CONTENT}" "${RESTORED_KEY}"
+
+# ============================================================================
+# Scenario 10: backup metadata fail-closed (P0-6)
+# Any failure while writing/validating the state manifest or checksum list
+# must delete the incomplete backup, return 1 and echo nothing.
+# ============================================================================
+echo "--- Scenario 10: backup metadata fail-closed ---"
+
+# --- 10a: manifest write failure (target path blocked) ---
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+_FC_DIR="${idleleo_dir}/backup/reinstall-fixed"
+mkdir -p "${_FC_DIR}/pre_reinstall_state.json"
+mktemp() {
+    mkdir -p "${_FC_DIR}"
+    echo "${_FC_DIR}"
+}
+_FC_OUT=""
+_FC_RC=0
+_FC_OUT=$(reinstall_backup_create 2>/dev/null) || _FC_RC=$?
+unset -f mktemp
+assert_ne "S10a manifest write fail: backup_create non-zero" "0" "${_FC_RC}"
+assert_eq "S10a manifest write fail: no backup dir echoed" "" "${_FC_OUT}"
+[[ ! -e "${_FC_DIR}" ]] && ok "S10a manifest write fail: incomplete backup deleted" || bad "S10a manifest write fail: backup dir retained"
+
+# --- 10b: manifest JSON validation failure (corrupt) ---
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+jq() {
+    if [[ "${1:-}" == "empty" ]]; then
+        return 1
+    fi
+    command jq "$@"
+}
+_FC_OUT=""
+_FC_RC=0
+_FC_OUT=$(reinstall_backup_create 2>/dev/null) || _FC_RC=$?
+unset -f jq
+assert_ne "S10b corrupt manifest: backup_create non-zero" "0" "${_FC_RC}"
+assert_eq "S10b corrupt manifest: no backup dir echoed" "" "${_FC_OUT}"
+_FC_LEFTOVER=$(find "${idleleo_dir}/backup" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+assert_eq "S10b corrupt manifest: incomplete backup deleted" "0" "${_FC_LEFTOVER}"
+
+# --- 10c: checksum generation failure ---
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+find() { return 1; }
+_FC_OUT=""
+_FC_RC=0
+_FC_OUT=$(reinstall_backup_create 2>/dev/null) || _FC_RC=$?
+unset -f find
+assert_ne "S10c checksum gen fail: backup_create non-zero" "0" "${_FC_RC}"
+assert_eq "S10c checksum gen fail: no backup dir echoed" "" "${_FC_OUT}"
+_FC_LEFTOVER=$(find "${idleleo_dir}/backup" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+assert_eq "S10c checksum gen fail: incomplete backup deleted" "0" "${_FC_LEFTOVER}"
+
+# --- 10d: empty checksum list ---
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+find() { return 0; }
+_FC_OUT=""
+_FC_RC=0
+_FC_OUT=$(reinstall_backup_create 2>/dev/null) || _FC_RC=$?
+unset -f find
+assert_ne "S10d empty checksums: backup_create non-zero" "0" "${_FC_RC}"
+assert_eq "S10d empty checksums: no backup dir echoed" "" "${_FC_OUT}"
+_FC_LEFTOVER=$(find "${idleleo_dir}/backup" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+assert_eq "S10d empty checksums: incomplete backup deleted" "0" "${_FC_LEFTOVER}"
+
+# ============================================================================
+# Scenario 11: ACME cron bidirectional restore (P0-4)
+# yes → restore the script-managed task (no duplicates); no → remove a task
+# the failed deploy added. User crontab lines are always preserved, and the
+# standard `crontab -l` / `crontab -` interface is used (never spool files).
+# ============================================================================
+echo "--- Scenario 11: ACME cron bidirectional restore ---"
+FAKE_HOME="${TMP_ROOT}/fakehome"
+mkdir -p "${FAKE_HOME}/.acme.sh"
+touch "${FAKE_HOME}/.acme.sh/acme.sh"
+
+# --- 11a: was yes → deploy deleted the line → restored, no duplicates ---
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+old_tls_mode="TLS"
+printf '%s\n' "0 3 * * * bash /usr/local/bin/ssl_update.sh" "30 4 * * * user-other-job" > "${CRONTAB_FILE}"
+
+BACKUP_DIR=$(
+    HOME="${FAKE_HOME}"
+    reinstall_backup_create 2>/dev/null
+)
+assert_eq "S11a backup acme_cron=yes" "yes" "$(jq -r '.acme_cron' "${BACKUP_DIR}/pre_reinstall_state.json")"
+[[ -f "${BACKUP_DIR}/acme_cron_line.txt" ]] && ok "S11a cron line backed up" || bad "S11a cron line not backed up"
+
+# Failed deploy removed the ssl_update.sh line (user job stays).
+printf '%s\n' "30 4 * * * user-other-job" > "${CRONTAB_FILE}"
+
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+assert_eq "S11a restore returns 0" "0" "${RESTORE_RC}"
+assert_eq "S11a ssl_update.sh count" "1" "$(grep -c "ssl_update.sh" "${CRONTAB_FILE}" 2>/dev/null || true)"
+grep -q "user-other-job" "${CRONTAB_FILE}" && ok "S11a user cron preserved" || bad "S11a user cron lost"
+
+# Restore again → must NOT duplicate.
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null
+assert_eq "S11a no duplicate on re-restore" "1" "$(grep -c "ssl_update.sh" "${CRONTAB_FILE}" 2>/dev/null || true)"
+rm -rf "${BACKUP_DIR}"
+
+# --- 11b: was no → deploy added the line → removed, user jobs preserved ---
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+old_tls_mode="TLS"
+printf '%s\n' "30 4 * * * user-other-job" > "${CRONTAB_FILE}"
+
+BACKUP_DIR=$(
+    HOME="${FAKE_HOME}"
+    reinstall_backup_create 2>/dev/null
+)
+assert_eq "S11b backup acme_cron=no" "no" "$(jq -r '.acme_cron' "${BACKUP_DIR}/pre_reinstall_state.json")"
+
+# Failed deploy ADDED the script-managed task.
+printf '%s\n' "0 3 * * * bash /usr/local/bin/ssl_update.sh" "30 4 * * * user-other-job" > "${CRONTAB_FILE}"
+
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+assert_eq "S11b restore returns 0" "0" "${RESTORE_RC}"
+if grep -q "ssl_update.sh" "${CRONTAB_FILE}"; then
+    bad "S11b ssl_update.sh still present after restore"
+else
+    ok "S11b ssl_update.sh removed"
+fi
+grep -q "user-other-job" "${CRONTAB_FILE}" && ok "S11b user cron preserved" || bad "S11b user cron lost"
+rm -rf "${BACKUP_DIR}"
+
+# --- 11c: was no, deploy added ONLY the managed line (last-line removal) ---
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+old_tls_mode="TLS"
+: > "${CRONTAB_FILE}"
+
+BACKUP_DIR=$(
+    HOME="${FAKE_HOME}"
+    reinstall_backup_create 2>/dev/null
+)
+printf '%s\n' "0 3 * * * bash /usr/local/bin/ssl_update.sh" > "${CRONTAB_FILE}"
+
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+assert_eq "S11c last-line removal returns 0" "0" "${RESTORE_RC}"
+[[ ! -s "${CRONTAB_FILE}" ]] && ok "S11c crontab emptied after removal" || bad "S11c crontab not emptied"
+rm -rf "${BACKUP_DIR}"
+
+# --- 11d: `crontab -` write failure → restore returns non-zero ---
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+old_tls_mode="TLS"
+printf '%s\n' "0 3 * * * bash /usr/local/bin/ssl_update.sh" > "${CRONTAB_FILE}"
+
+BACKUP_DIR=$(
+    HOME="${FAKE_HOME}"
+    reinstall_backup_create 2>/dev/null
+)
+assert_eq "S11d backup acme_cron=yes" "yes" "$(jq -r '.acme_cron' "${BACKUP_DIR}/pre_reinstall_state.json")"
+: > "${CRONTAB_FILE}"
+
+CRONTAB_WRITE_FAIL=1
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+CRONTAB_WRITE_FAIL=0
+assert_ne "S11d restore non-zero when crontab write fails" "0" "${RESTORE_RC}"
+[[ -d "${BACKUP_DIR}" ]] && ok "S11d backup retained on failure" || bad "S11d backup dir lost"
+rm -rf "${BACKUP_DIR}"
+
+# ============================================================================
+# Scenario 12: firewall reverse-failure propagation (P0-3)
+# Forward adds the first rule, fails on the second; the immediate new→old
+# reverse ALSO fails → state must stay "pending", the transaction returns
+# non-zero, and the global restore retries the reverse. When the retry fails
+# too, restore returns non-zero and keeps the backup dir.
+# ============================================================================
+echo "--- Scenario 12: firewall reverse failure → pending → global retry ---"
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+
+IPTABLES_RULES_FILE="${TMP_ROOT}/iptables_rules.txt"
+: > "${IPTABLES_RULES_FILE}"
+iptables() {
+    local op="$1"
+    local chain="$2"
+    shift 2
+    local proto="" port="" sport="" iface="" range=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -p) proto="$2"; shift 2 ;;
+            --dport)
+                port="$2"
+                if [[ "${port}" == *:* ]]; then range="${port}"; port=""; fi
+                shift 2 ;;
+            --sport) sport="$2"; shift 2 ;;
+            -i|-o) iface="$2"; shift 2 ;;
+            -j) shift 2 ;;
+            *) shift ;;
+        esac
+    done
+    local rule_key
+    if [[ -n "${iface}" ]]; then
+        rule_key="${chain}:${iface}"
+    elif [[ -n "${range}" ]]; then
+        rule_key="${chain}:${proto}:${range}"
+    elif [[ -n "${sport}" ]]; then
+        rule_key="${chain}:${proto}:sport:${sport}"
+    else
+        rule_key="${chain}:${proto}:${port}"
+    fi
+    case "${op}" in
+        -C)
+            grep -qxF "${rule_key}" "${IPTABLES_RULES_FILE}" 2>/dev/null
+            return $?
+            ;;
+        -A|-I)
+            if grep -qxF "${rule_key}" "${IPTABLES_RULES_FILE}" 2>/dev/null; then
+                return 0
+            fi
+            echo "${rule_key}" >> "${IPTABLES_RULES_FILE}"
+            return 0
+            ;;
+        -D)
+            if grep -qxF "${rule_key}" "${IPTABLES_RULES_FILE}" 2>/dev/null; then
+                local tmp
+                tmp=$(grep -vxF "${rule_key}" "${IPTABLES_RULES_FILE}" || true)
+                printf '%s\n' "${tmp}" > "${IPTABLES_RULES_FILE}"
+                return 0
+            fi
+            return 1
+            ;;
+    esac
+    return 0
+}
+
+# Old managed state: 443 INPUT+OUTPUT tcp+udp.
+for _r in "INPUT:tcp:443" "INPUT:udp:443" "OUTPUT:tcp:sport:443" "OUTPUT:udp:sport:443"; do
+    echo "${_r}" >> "${IPTABLES_RULES_FILE}"
+done
+echo '{"tcp":[443],"udp":[443]}' > "${managed_ports_file}"
+
+BACKUP_DIR=$(reinstall_backup_create 2>/dev/null)
+
+# Failure injection: forward adds 8443 OK then fails on 8444; the immediate
+# new→old reverse starts by removing 8443, which is ALSO blocked, so the
+# reverse cannot complete and the state must stay "pending".
+eval "$(declare -f firewall_add_managed_port | sed 's/^firewall_add_managed_port/_s12_orig_fw_add/')"
+eval "$(declare -f firewall_remove_managed_port | sed 's/^firewall_remove_managed_port/_s12_orig_fw_remove/')"
+firewall_add_managed_port() {
+    local proto="$1" port="$2"
+    if [[ "${port}" == "8444" ]]; then
+        return 1
+    fi
+    _s12_orig_fw_add "${proto}" "${port}"
+}
+firewall_remove_managed_port() {
+    local proto="$1" port="$2"
+    if [[ "${port}" == "8443" ]]; then
+        return 1
+    fi
+    _s12_orig_fw_remove "${proto}" "${port}"
+}
+
+TX_RC=0
+apply_managed_firewall_transaction \
+    '{"tcp":[443],"udp":[443]}' '{"tcp":[8443,8444],"udp":[8443,8444]}' 2>/dev/null || TX_RC=$?
+assert_ne "S12 transaction returns non-zero" "0" "${TX_RC}"
+assert_eq "S12 state stays pending (not no)" "pending" "${_reinstall_firewall_changed}"
+grep -qxF "INPUT:tcp:8443" "${IPTABLES_RULES_FILE}" && ok "S12 forward-added 8443 left (reverse failed)" || bad "S12 8443 missing"
+
+# Global restore retries the reverse; still fails → non-zero + backup kept.
+RESTORE_RC=0
+reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
+assert_ne "S12 restore non-zero when reverse retry fails" "0" "${RESTORE_RC}"
+[[ -d "${BACKUP_DIR}" ]] && ok "S12 backup retained" || bad "S12 backup dir lost"
+unset -f firewall_add_managed_port _s12_orig_fw_add firewall_remove_managed_port _s12_orig_fw_remove
+rm -rf "${BACKUP_DIR}"
 
 # ============================================================================
 # Additional: detect_multi_user edge cases
