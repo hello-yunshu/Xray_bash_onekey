@@ -1619,20 +1619,39 @@ reconcile_managed_firewall() {
 #     no half-applied rules remain.
 #   - On success persists the new set to managed_ports.json. If the write
 #     fails, reverses new→old so no stale rules remain.
-#   - Sets _reinstall_firewall_changed="yes" only after a successful reconcile,
-#     so rollback knows the firewall actually changed.
-# Returns 0 on success, 1 on failure (rules already rolled back).
+#   - Tracks the transaction state in _reinstall_firewall_changed so the global
+#     rollback knows exactly what must still be reversed:
+#       no      — not modified, or already fully reversed
+#       pending — forward changes started but reverse not confirmed; the global
+#                 rollback MUST retry the reverse
+#       yes     — forward change succeeded; the global rollback must reverse it
+#   - A failed forward change or state-file write always tries new→old
+#     immediately. The reverse error is NEVER swallowed with `|| true` — on
+#     reverse failure the state stays "pending" so reinstall_backup_restore
+#     retries instead of silently leaving half-applied rules.
+# Returns 0 on success, 1 on failure.
 apply_managed_firewall_transaction() {
     local old_json="$1" new_json="$2"
+    _reinstall_firewall_old_ports="${old_json}"
+    _reinstall_firewall_new_ports="${new_json}"
+    _reinstall_firewall_changed="pending"
     if ! reconcile_managed_firewall "${old_json}" "${new_json}"; then
-        reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null || true
+        if reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null; then
+            _reinstall_firewall_changed="no"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "防火墙规则前向修改失败且反向恢复未完成, 全局回滚时将再次尝试") ${Font}"
+        fi
         return 1
     fi
     _reinstall_firewall_changed="yes"
-    atomic_write_managed_ports "${new_json}" || {
-        reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null || true
+    if ! atomic_write_managed_ports "${new_json}"; then
+        if reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null; then
+            _reinstall_firewall_changed="no"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "防火墙状态写入失败且反向恢复未完成, 全局回滚时将再次尝试") ${Font}"
+        fi
         return 1
-    }
+    fi
     return 0
 }
 
@@ -7495,8 +7514,13 @@ install_xray_ws_tls() {
     setup_auto_clean_logs || return 1
     # Clear trap before finalize — finalize handles its own restore.
     trap - RETURN
-    if ! reinstall_finalize; then
-        return 1
+    # Propagate reinstall_finalize's exact return code to the caller:
+    #   1 = deploy failed but restore succeeded
+    #   2 = deploy failed and restore failed (backup retained)
+    reinstall_finalize
+    local finalize_rc=$?
+    if [[ ${finalize_rc} -ne 0 ]]; then
+        return "${finalize_rc}"
     fi
     # Success info only after final safety gate passes.
     basic_information
@@ -7559,8 +7583,11 @@ install_xray_reality() {
     service_restart || return 1
     setup_auto_clean_logs || return 1
     trap - RETURN
-    if ! reinstall_finalize; then
-        return 1
+    # Propagate reinstall_finalize's exact return code (1 restore-ok / 2 restore-failed).
+    reinstall_finalize
+    local finalize_rc=$?
+    if [[ ${finalize_rc} -ne 0 ]]; then
+        return "${finalize_rc}"
     fi
     basic_information
     vless_link_image_choice
@@ -7603,8 +7630,11 @@ install_xray_xtls_only() {
     service_restart || return 1
     setup_auto_clean_logs || return 1
     trap - RETURN
-    if ! reinstall_finalize; then
-        return 1
+    # Propagate reinstall_finalize's exact return code (1 restore-ok / 2 restore-failed).
+    reinstall_finalize
+    local finalize_rc=$?
+    if [[ ${finalize_rc} -ne 0 ]]; then
+        return "${finalize_rc}"
     fi
     basic_information
     vless_link_image_choice
@@ -7660,8 +7690,11 @@ install_xray_ws_only() {
     service_restart || return 1
     setup_auto_clean_logs || return 1
     trap - RETURN
-    if ! reinstall_finalize; then
-        return 1
+    # Propagate reinstall_finalize's exact return code (1 restore-ok / 2 restore-failed).
+    reinstall_finalize
+    local finalize_rc=$?
+    if [[ ${finalize_rc} -ne 0 ]]; then
+        return "${finalize_rc}"
     fi
     basic_information
     vless_link_image_choice
@@ -8554,7 +8587,23 @@ reinstall_backup_create() {
     # Generate SHA256 manifest for integrity verification.
     # Use relative paths so verification does not depend on the original
     # absolute backup_dir path (which may differ if the snapshot is moved).
-    ( cd "${backup_dir}" && find . -type f ! -name "sha256sums.txt" -exec sha256sum {} \; 2>/dev/null ) > "${backup_dir}/sha256sums.txt"
+    #
+    # Fail-closed metadata validation: a backup whose state manifest is
+    # missing/corrupt, or whose checksum list is missing/empty/incomplete, is
+    # useless for restore. Any such failure deletes this incomplete backup and
+    # returns 1 so the upper layer stops reconfiguration before any change.
+    local _meta_err=0
+    if ! jq empty "${backup_dir}/pre_reinstall_state.json" >/dev/null 2>&1; then
+        _meta_err=1
+    fi
+    ( cd "${backup_dir}" && find . -type f ! -name "sha256sums.txt" -exec sha256sum {} \; 2>/dev/null ) > "${backup_dir}/sha256sums.txt" || _meta_err=1
+    [[ -s "${backup_dir}/sha256sums.txt" ]] || _meta_err=1
+    grep -q "pre_reinstall_state.json" "${backup_dir}/sha256sums.txt" 2>/dev/null || _meta_err=1
+    if [[ ${_meta_err} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "备份元数据校验失败, 中止重配置") ${Font}"
+        rm -rf "${backup_dir}"
+        return 1
+    fi
 
     echo "${backup_dir}"
 }
@@ -8646,15 +8695,19 @@ reinstall_backup_restore() {
         rm -rf "${ssl_chainpath}" 2>/dev/null || [[ ! -e "${ssl_chainpath}" ]] || _restore_err=1
     fi
 
-    # Firewall transaction rollback: use the transaction-saved new/old sets so
-    # we can reverse the exact rules this deploy changed, even if
-    # managed_ports.json was not yet written with the new set.
-    if [[ "${_reinstall_firewall_changed:-}" == "yes" ]]; then
+    # Firewall transaction rollback: reverse the exact rules this deploy
+    # changed, even if managed_ports.json was not yet written with the new set.
+    # Both "yes" (forward succeeded) and "pending" (forward started but the
+    # immediate reverse was not confirmed) must be reversed here; "no" means
+    # nothing was modified or it was already fully reversed.
+    if [[ "${_reinstall_firewall_changed:-}" == "yes" || "${_reinstall_firewall_changed:-}" == "pending" ]]; then
         if ! reconcile_managed_firewall \
             "${_reinstall_firewall_new_ports}" \
             "${_reinstall_firewall_old_ports}"; then
             log_echo "${Error} ${RedBG} $(gettext "防火墙规则回滚失败") ${Font}"
             _restore_err=1
+        else
+            _reinstall_firewall_changed="no"
         fi
     fi
     # Restore or delete managed_ports.json per the manifest.
@@ -8664,12 +8717,20 @@ reinstall_backup_restore() {
         rm -f "${managed_ports_file}" 2>/dev/null || [[ ! -e "${managed_ports_file}" ]] || _restore_err=1
     fi
 
-    if [[ "$(_manifest_existed xray.service)" == "true" ]]; then
+    # Restore/delete per-unit systemd files per the manifest. A unit that did
+    # NOT exist on the source system must be removed (the failed deploy created
+    # it), and must never be enable/disable/start/stop'd afterwards — systemd
+    # fails those commands for a missing unit, which would wrongly turn a
+    # correct restore into a reported failure.
+    local _xray_unit_existed _nginx_unit_existed
+    _xray_unit_existed=$(_manifest_existed xray.service)
+    _nginx_unit_existed=$(_manifest_existed nginx.service)
+    if [[ "${_xray_unit_existed}" == "true" ]]; then
         cp -a "${backup_dir}/xray.service" "${xray_systemd_file}" 2>/dev/null || _restore_err=1
     else
         rm -f "${xray_systemd_file}" 2>/dev/null || [[ ! -e "${xray_systemd_file}" ]] || _restore_err=1
     fi
-    if [[ "$(_manifest_existed nginx.service)" == "true" ]]; then
+    if [[ "${_nginx_unit_existed}" == "true" ]]; then
         cp -a "${backup_dir}/nginx.service" "${nginx_systemd_file}" 2>/dev/null || _restore_err=1
     else
         rm -f "${nginx_systemd_file}" 2>/dev/null || [[ ! -e "${nginx_systemd_file}" ]] || _restore_err=1
@@ -8704,7 +8765,9 @@ reinstall_backup_restore() {
     fi
 
     # Restore service active/enabled state per the pre-reinstall snapshot.
-    # Do NOT blindly start everything — only start what was running before.
+    # Units that did NOT exist on the source system are NEVER
+    # enable/disable/start/stop'd — systemd fails those commands for a missing
+    # unit, which would wrongly turn a correct restore into a reported failure.
     local _pre_xray_active="no" _pre_nginx_active="no"
     local _pre_xray_enabled="no" _pre_nginx_enabled="no"
     if [[ -f "${_pre_state}" ]]; then
@@ -8714,26 +8777,29 @@ reinstall_backup_restore() {
         _pre_nginx_enabled=$(jq -r '.nginx_enabled // "no"' "${_pre_state}" 2>/dev/null)
     fi
     # Enabled state — propagate failures instead of swallowing with || true.
-    if [[ "${_pre_xray_enabled}" == "yes" ]]; then
-        systemctl enable xray 2>/dev/null || _restore_err=1
-    else
-        systemctl disable xray 2>/dev/null || _restore_err=1
+    if [[ "${_xray_unit_existed}" == "true" ]]; then
+        if [[ "${_pre_xray_enabled}" == "yes" ]]; then
+            systemctl enable xray 2>/dev/null || _restore_err=1
+        else
+            systemctl disable xray 2>/dev/null || _restore_err=1
+        fi
+        if [[ "${_pre_xray_active}" == "yes" ]]; then
+            systemctl start xray 2>/dev/null || _restore_err=1
+        else
+            systemctl stop xray 2>/dev/null || _restore_err=1
+        fi
     fi
-    if [[ "${_pre_nginx_enabled}" == "yes" ]]; then
-        systemctl enable nginx 2>/dev/null || _restore_err=1
-    else
-        systemctl disable nginx 2>/dev/null || _restore_err=1
-    fi
-    # Active state.
-    if [[ "${_pre_xray_active}" == "yes" ]]; then
-        systemctl start xray 2>/dev/null || _restore_err=1
-    else
-        systemctl stop xray 2>/dev/null || _restore_err=1
-    fi
-    if [[ "${_pre_nginx_active}" == "yes" ]]; then
-        systemctl start nginx 2>/dev/null || _restore_err=1
-    else
-        systemctl stop nginx 2>/dev/null || _restore_err=1
+    if [[ "${_nginx_unit_existed}" == "true" ]]; then
+        if [[ "${_pre_nginx_enabled}" == "yes" ]]; then
+            systemctl enable nginx 2>/dev/null || _restore_err=1
+        else
+            systemctl disable nginx 2>/dev/null || _restore_err=1
+        fi
+        if [[ "${_pre_nginx_active}" == "yes" ]]; then
+            systemctl start nginx 2>/dev/null || _restore_err=1
+        else
+            systemctl stop nginx 2>/dev/null || _restore_err=1
+        fi
     fi
 
     if [[ ${_restore_err} -ne 0 ]]; then
@@ -8742,38 +8808,63 @@ reinstall_backup_restore() {
         return 1
     fi
 
-    # Bidirectional verification: active AND enabled states must match snapshot.
-    if [[ "${_pre_xray_active}" == "yes" ]] && ! systemctl is-active --quiet xray 2>/dev/null; then
-        log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后未运行") ${Font}"
-        _restore_err=1
+    # Bidirectional verification: active AND enabled states must match the
+    # snapshot for units that existed before. Units that did NOT exist before
+    # must be gone from systemd entirely — if systemd still sees them as
+    # loaded/active/enabled, the restore must fail and report it clearly.
+    if [[ "${_xray_unit_existed}" == "true" ]]; then
+        if [[ "${_pre_xray_active}" == "yes" ]] && ! systemctl is-active --quiet xray 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后未运行") ${Font}"
+            _restore_err=1
+        fi
+        if [[ "${_pre_xray_active}" == "no" ]] && systemctl is-active --quiet xray 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后仍在运行") ${Font}"
+            _restore_err=1
+        fi
+        if [[ "${_pre_xray_enabled}" == "yes" ]] && ! systemctl is-enabled --quiet xray 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后未启用") ${Font}"
+            _restore_err=1
+        fi
+        if [[ "${_pre_xray_enabled}" == "no" ]] && systemctl is-enabled --quiet xray 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后仍启用") ${Font}"
+            _restore_err=1
+        fi
+    else
+        if systemctl is-active --quiet xray 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit") ${Font}"
+            _restore_err=1
+        fi
+        if systemctl is-enabled --quiet xray 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后仍为 enabled, 但原系统无此 unit") ${Font}"
+            _restore_err=1
+        fi
     fi
-    if [[ "${_pre_xray_active}" == "no" ]] && systemctl is-active --quiet xray 2>/dev/null; then
-        log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后仍在运行") ${Font}"
-        _restore_err=1
-    fi
-    if [[ "${_pre_nginx_active}" == "yes" ]] && ! systemctl is-active --quiet nginx 2>/dev/null; then
-        log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后未运行") ${Font}"
-        _restore_err=1
-    fi
-    if [[ "${_pre_nginx_active}" == "no" ]] && systemctl is-active --quiet nginx 2>/dev/null; then
-        log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后仍在运行") ${Font}"
-        _restore_err=1
-    fi
-    if [[ "${_pre_xray_enabled}" == "yes" ]] && ! systemctl is-enabled --quiet xray 2>/dev/null; then
-        log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后未启用") ${Font}"
-        _restore_err=1
-    fi
-    if [[ "${_pre_xray_enabled}" == "no" ]] && systemctl is-enabled --quiet xray 2>/dev/null; then
-        log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复后仍启用") ${Font}"
-        _restore_err=1
-    fi
-    if [[ "${_pre_nginx_enabled}" == "yes" ]] && ! systemctl is-enabled --quiet nginx 2>/dev/null; then
-        log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后未启用") ${Font}"
-        _restore_err=1
-    fi
-    if [[ "${_pre_nginx_enabled}" == "no" ]] && systemctl is-enabled --quiet nginx 2>/dev/null; then
-        log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后仍启用") ${Font}"
-        _restore_err=1
+    if [[ "${_nginx_unit_existed}" == "true" ]]; then
+        if [[ "${_pre_nginx_active}" == "yes" ]] && ! systemctl is-active --quiet nginx 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后未运行") ${Font}"
+            _restore_err=1
+        fi
+        if [[ "${_pre_nginx_active}" == "no" ]] && systemctl is-active --quiet nginx 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后仍在运行") ${Font}"
+            _restore_err=1
+        fi
+        if [[ "${_pre_nginx_enabled}" == "yes" ]] && ! systemctl is-enabled --quiet nginx 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后未启用") ${Font}"
+            _restore_err=1
+        fi
+        if [[ "${_pre_nginx_enabled}" == "no" ]] && systemctl is-enabled --quiet nginx 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后仍启用") ${Font}"
+            _restore_err=1
+        fi
+    else
+        if systemctl is-active --quiet nginx 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit") ${Font}"
+            _restore_err=1
+        fi
+        if systemctl is-enabled --quiet nginx 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "Nginx 服务恢复后仍为 enabled, 但原系统无此 unit") ${Font}"
+            _restore_err=1
+        fi
     fi
 
     # Restore ACME/cron state if it was recorded as active before reinstall.
@@ -8798,6 +8889,29 @@ reinstall_backup_restore() {
                 fi
             else
                 log_echo "${Warning} ${YellowBG} $(gettext "ACME 定时任务未能恢复, 请手动检查") ${Font}"
+                _restore_err=1
+            fi
+        fi
+    elif [[ "${_pre_acme_cron}" == "no" ]]; then
+        # The source system had NO script-managed ssl_update.sh cron. A failed
+        # deploy may have added one — remove only ssl_update.sh lines managed
+        # by this script while preserving every other user crontab line, using
+        # the standard `crontab -l` / filter / `crontab -` interface (never the
+        # spool files). A failed write or a leftover line fails the restore.
+        local _cron_before="" _cron_filtered=""
+        _cron_before=$(crontab -l 2>/dev/null || true)
+        if printf '%s\n' "${_cron_before}" | grep -q "ssl_update.sh"; then
+            # grep -v exits 1 when it drops the LAST line (crontab becomes
+            # empty) — that is a successful removal, not a failure.
+            _cron_filtered=$(printf '%s\n' "${_cron_before}" | grep -v "ssl_update.sh" || true)
+            if [[ -n "${_cron_filtered}" ]]; then
+                printf '%s\n' "${_cron_filtered}" | crontab - 2>/dev/null || _restore_err=1
+            else
+                # Nothing left: install an empty crontab.
+                : | crontab - 2>/dev/null || _restore_err=1
+            fi
+            if printf '%s\n' "$(crontab -l 2>/dev/null)" | grep -q "ssl_update.sh"; then
+                log_echo "${Warning} ${YellowBG} $(gettext "ACME 定时任务删除后仍存在, 请手动检查") ${Font}"
                 _restore_err=1
             fi
         fi
