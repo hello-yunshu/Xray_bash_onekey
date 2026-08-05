@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# P0-A regression tests for the real nginx_install transaction and rollback helpers.
+# Regression tests for the real nginx_install transaction and rollback helpers.
 
 set -uo pipefail
 

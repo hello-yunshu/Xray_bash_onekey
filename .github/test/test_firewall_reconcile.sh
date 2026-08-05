@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Section 5: Firewall reconciliation minimal fix.
+# Firewall reconciliation minimal fix.
 #
 # Coverage:
 #   - firewall_rule_exists / firewall_add_managed_port / firewall_remove_managed_port

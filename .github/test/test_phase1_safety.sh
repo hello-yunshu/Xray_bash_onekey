@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# P1-C/P1-D and production diagnostic-redaction regression tests.
+# Phase 1 safety regression tests: safe language.conf parsing, apt/dpkg lock
+# waiting (never deleting held locks), production diagnostic redaction, and
+# Nginx worker bootstrap ordering.
 
 set -uo pipefail
 

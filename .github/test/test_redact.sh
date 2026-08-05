@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test suite for redaction helpers (Task H / Section 14.2 item 13).
+# Test suite for redaction helpers.
 # Verifies that fake UUID/privateKey/shortIds/password/share-link/token
 # do NOT appear in redacted JSON or text output.
 #

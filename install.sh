@@ -138,18 +138,18 @@ decoy_domain=""
 spiderx_path=""
 old_config_status="off"
 old_tls_mode="NULL"
-# P0-2/P0-3: distinguishes "read old config" from "locked, cannot modify".
+# Distinguishes "read old config" from "locked, cannot modify".
 # old_config_loaded="on" means we read the old config into memory;
 # it does NOT by itself prevent parameter editing.
 old_config_loaded="off"
-# P0-2: when "on", xray_conf_add preserves the existing Xray JSON for
+# When "on", xray_conf_add preserves the existing Xray JSON for
 # single-user configs too (保留配置重新安装 path), instead of rebuilding
 # from the standard template.
 reinstall_keep_config="off"
-# P0-1: Single state variable distinguishing the four reconfigure operations.
+# Single state variable distinguishing the four reconfigure operations.
 # Values: none | keep_config | standard_rebuild | mode_switch | clean_install
 reinstall_operation="none"
-# P0-3: per-field edit flags. Set to "yes" by reinstall_edit_menu when the
+# Per-field edit flags. Set to "yes" by reinstall_edit_menu when the
 # user explicitly chooses to modify that field during a keep-config reinstall.
 # Param functions check these to decide whether to re-prompt even when
 # old_config_status="on".
@@ -162,7 +162,7 @@ change_nginx_sni="no"
 change_ws_path="no"
 change_grpc_path="no"
 change_xhttp_path="no"
-# P0-4: when "yes", email_set and UUID_set skip prompting and reuse the
+# When "yes", email_set and UUID_set skip prompting and reuse the
 # values already loaded from the old config during a mode switch.
 mode_switch_reuse="off"
 # Install wizard profile state. When install_wizard_preset="on", interactive
@@ -440,7 +440,7 @@ source '/etc/os-release'
 
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 
-# P1-C: Wait for apt/dpkg locks to be released instead of deleting them.
+# Wait for apt/dpkg locks to be released instead of deleting them.
 # Waits up to $1 seconds (default 60) for the dpkg lock to become available.
 # Shows the process holding the lock if it remains held.
 # Returns 0 if the lock is available (or was acquired), 1 on timeout.
@@ -523,7 +523,7 @@ check_system() {
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
         INS="apt"
         if [[ ! -f "${xray_install_config_file}" ]]; then
-            # P1-C: Wait for apt/dpkg locks instead of deleting them.
+            # Wait for apt/dpkg locks instead of deleting them.
             # Deleting locks that are held by a running process corrupts the
             # package database and can leave the system in an unrecoverable state.
             if ! wait_for_apt_lock 60; then
@@ -612,7 +612,7 @@ update_language_file() {
     log_echo "${OK} ${Green} $(gettext "语言文件更新") $(gettext "完成") ${Font}"
 }
 
-# P1-D: Safely read language.conf without sourcing it as a shell script.
+# Safely read language.conf without sourcing it as a shell script.
 # Only LANG= and LC_MESSAGES= assignments are parsed. The function rejects:
 #   - command substitution ($(...), `...`)
 #   - shell metacharacters (;, &&, ||, |, <, >, &)
@@ -745,7 +745,7 @@ init_language() {
     . "$gettext_sh"
 
     if [ -f "${idleleo_dir}/language.conf" ]; then
-        # P1-D: Safe-read language.conf instead of sourcing it directly.
+        # Safe-read language.conf instead of sourcing it directly.
         # Only LANG= and LC_MESSAGES= assignments are allowed. Command
         # substitution, extra shell statements, and unknown keys are rejected.
         if ! safe_source_language_conf "${idleleo_dir}/language.conf"; then
@@ -834,7 +834,7 @@ check_version() {
     printf '%s\n' "${result}"
 }
 
-# Task C: silent version reader for optional API fields (e.g. *_tested_version).
+# Silent version reader for optional API fields (e.g. *_tested_version).
 # Returns empty string on missing/null fields without printing error messages,
 # so read_version can probe for tested_version without spamming users on
 # older API payloads that don't yet carry the field.
@@ -1839,7 +1839,7 @@ xhttp_path_set() {
 }
 
 email_set() {
-    # P0-4: reuse old UUID/email during mode switch without re-prompting.
+    # Reuse old UUID/email during mode switch without re-prompting.
     if [[ ${mode_switch_reuse} == "yes" && -n "${custom_email:-}" ]]; then
         log_echo "${Green} Xray $(gettext "用户名") (email): ${custom_email} ${Font}"
         return 0
@@ -1861,7 +1861,7 @@ email_set() {
 }
 
 UUID_set() {
-    # P0-4: reuse old UUID during mode switch without re-prompting.
+    # Reuse old UUID during mode switch without re-prompting.
     if [[ ${mode_switch_reuse} == "yes" && -n "${UUID:-}" ]]; then
         log_echo "${Green} UUID: ${UUID} ${Font}"
         return 0
@@ -2331,7 +2331,7 @@ add_xhttp_inbound() {
 }
 
 modify_nginx_origin_conf() {
-    # Task E (Section 9): Use dedicated idleleo-nginx user for worker process,
+    # Use dedicated idleleo-nginx user for worker process,
     # instead of shared `nobody`. The user/group is created by ensure_idleleo_nginx_user.
     local nginx_worker_user="idleleo-nginx"
     local nginx_worker_group="idleleo-nginx"
@@ -2364,12 +2364,12 @@ modify_nginx_origin_conf() {
     sed -i "/error_page.*504/i \\\t\\tif (\$host = '${local_ip}') {\\n\\t\\t\\treturn 403;\\n\\t\\t}" "${nginx_dir}"/conf/nginx.conf
 }
 
-# Task E (Section 9.2): Idempotently create a dedicated idleleo-nginx system user/group.
+# Idempotently create a dedicated idleleo-nginx system user/group.
 # - system user (no home, no login shell)
 # - reuses existing user if already present
 # - does NOT use shared `nobody` identity
 
-# Task E helper: returns the nginx worker user (idleleo-nginx if exists, else nobody fallback).
+# Returns the nginx worker user (idleleo-nginx if exists, else nobody fallback).
 # Used for SSL cert ownership and other shared resources that nginx worker must read.
 get_nginx_worker_user() {
     if id -u "idleleo-nginx" >/dev/null 2>&1; then
@@ -2379,7 +2379,7 @@ get_nginx_worker_user() {
     fi
 }
 
-# Task E helper: returns the nginx worker group (idleleo-nginx if exists, else nobody's group).
+# Returns the nginx worker group (idleleo-nginx if exists, else nobody's group).
 get_nginx_worker_group() {
     if id -g "idleleo-nginx" >/dev/null 2>&1; then
         echo "idleleo-nginx"
@@ -2409,7 +2409,7 @@ ensure_idleleo_nginx_user() {
     return 0
 }
 
-# Task E (Section 9.3): Apply layered permission model to Nginx directory tree.
+# Apply layered permission model to Nginx directory tree.
 # Layered model:
 #   - Binary and modules: root:root, 755 (only root can modify program)
 #   - Config dir/files:   root:idleleo-nginx, dir 750, files 640 (worker can read, not write)
@@ -2485,13 +2485,13 @@ apply_nginx_layered_permissions() {
     done
 
     # 6) SSL certificate directory (/etc/idleleo/cert/): root:idleleo-nginx dir 750, files 640
-    # Task E (Section 9.3): Certs and private keys must be readable by worker, not writable.
+    # Certs and private keys must be readable by worker, not writable.
     if [[ -d "${ssl_chainpath}" ]]; then
         chown root:"${worker_group}" "${ssl_chainpath}" 2>/dev/null || failed=1
         chmod 750 "${ssl_chainpath}" 2>/dev/null || failed=1
         while IFS= read -r -d '' cert_file; do
             chown root:"${worker_group}" "$cert_file" 2>/dev/null || failed=1
-            # Task E (Section 9.3): root owns, worker group can read but NOT write.
+            # Root owns, worker group can read but NOT write.
             # Private key: 640 (root rw, idleleo-nginx r, others none)
             # Public cert: 640 (root rw, idleleo-nginx r, others none)
             chmod 640 "$cert_file" 2>/dev/null || failed=1
@@ -2734,7 +2734,7 @@ spiderx_set() {
 
 # 收紧敏感配置文件权限：不影响 Xray(nobody) 读取 config.json 与证书
 # install_config/分享文件仅 root 可读；config.json 与私钥由 nobody 持有以兼容 Xray
-# Task E (Section 9.3): SSL certs/keys must be root-owned with worker group read (640).
+# SSL certs/keys must be root-owned with worker group read (640).
 apply_sensitive_file_permissions() {
     local file="$1"
     local owner="$2"
@@ -2763,7 +2763,7 @@ harden_config_permissions() {
 
     apply_sensitive_file_permissions "${xray_install_config_file}" "root:root" || failed=1
     apply_sensitive_file_permissions "${xray_conf}" "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" || failed=1
-    # Task E (Section 9.3): root owns certs/keys, worker group can read but NOT write.
+    # Root owns certs/keys, worker group can read but NOT write.
     # Private key: 640 (root rw, idleleo-nginx r, others none)
     # Public cert: 640 (root rw, idleleo-nginx r, others none)
     apply_sensitive_file_permissions "${ssl_chainpath}/xray.key" "root:${_nginx_worker_group}" 640 || failed=1
@@ -2809,7 +2809,7 @@ xray_privilege_escalation() {
         chown -fR "nobody:${_nobody_group}" /var/log/xray/
         chmod -f 755 /var/log/xray/
         find /var/log/xray/ -type f -exec chmod -f 644 {} \;
-        # Task E (Section 9.3): SSL cert files must be owned by root, not worker.
+        # SSL cert files must be owned by root, not worker.
         # xray_privilege_escalation() must NOT change cert ownership to worker user.
         # Only apply_nginx_layered_permissions() and harden_config_permissions()
         # are authoritative for cert permission model (root:idleleo-nginx 640).
@@ -2874,14 +2874,14 @@ xray_update() {
             case $xray_test_fq in
             [yY][eE][sS] | [yY])
                 log_echo "${OK} ${GreenBG} $(gettext "更新") Xray ! ${Font}"
-                # Task C (Section 7.2): backup current binary as Layer 1 rollback source
-                # P0-B: backup must succeed before proceeding — refuse to overwrite without backup
+                # Backup current binary as Layer 1 rollback source
+                # Backup must succeed before proceeding — refuse to overwrite without backup
                 if ! backup_xray_binary; then
                     log_echo "${Error} ${RedBG} $(gettext "本机备份失败, 拒绝继续更新")! ${Font}"
                     return 1
                 fi
                 systemctl stop xray
-                # Task C (Section 7.4): install + comprehensive health check
+                # Install + comprehensive health check
                 # (binary exec / version match / config parse / service active / port listening)
                 if xray_install_release install -f --version "v${xray_online_version}" && health_check_xray_update "${xray_online_version}"; then
                     xray_version=${xray_online_version}
@@ -2902,19 +2902,19 @@ xray_update() {
                         ;;
                     *)
                         log_echo "${OK} ${GreenBG} $(gettext "正在回滚")... ${Font}"
-                        # Task C (Section 7.1): Layer 1 = local pre-update backup restore
+                        # Layer 1 = local pre-update backup restore
                         if restore_xray_binary_backup; then
                             log_echo "${OK} ${GreenBG} $(gettext "已成功回滚到之前的") Xray $(gettext "版本")! ${Font}"
                             xray_version=${current_xray_version}
                             update_rolled_back=1
                         else
-                            # Task C: Layer 2 = tested_version known-good fallback
+                            # Layer 2 = tested_version known-good fallback
                             log_echo "${Info} ${YellowBG} $(gettext "Layer 1 失败, 尝试 Layer 2 tested_version 恢复") ${Font}"
                             if fallback_xray_to_tested_version; then
                                 xray_version=${xray_tested_version}
                                 update_rolled_back=1
                             else
-                                # Task C: Layer 3 = stop + diagnostics (already printed above)
+                                # Layer 3 = stop + diagnostics (already printed above)
                                 log_echo "${Error} ${RedBG} Xray $(gettext "回滚失败")! ${Font}"
                                 return 1
                             fi
@@ -2928,8 +2928,8 @@ xray_update() {
                 ;;
             esac
         else
-            # Task C: auto_update mode — non-interactive, automated layered rollback
-            # P0-B: backup must succeed before proceeding — refuse to overwrite without backup
+            # Auto-update mode — non-interactive, automated layered rollback
+            # Backup must succeed before proceeding — refuse to overwrite without backup
             if ! backup_xray_binary; then
                 echo "$(gettext "本机备份失败, 拒绝继续更新")!" >>"${log_file}"
                 return 1
@@ -2939,16 +2939,16 @@ xray_update() {
                 xray_version=${xray_online_version}
             else
                 xray_diagnose
-                # Task C: Layer 1 = local backup restore
+                # Layer 1 = local backup restore
                 if restore_xray_binary_backup; then
                     xray_version=${current_xray_version}
                     update_rolled_back=1
                 elif fallback_xray_to_tested_version; then
-                    # Task C: Layer 2 = tested_version
+                    # Layer 2 = tested_version
                     xray_version=${xray_tested_version}
                     update_rolled_back=1
                 else
-                    # Task C: Layer 3 = stop + diagnostics (already printed above)
+                    # Layer 3 = stop + diagnostics (already printed above)
                     echo "Xray $(gettext "回滚失败")!" >>"${log_file}"
                     return 1
                 fi
@@ -2956,7 +2956,7 @@ xray_update() {
         fi
     else
         countdown "$(gettext "重装") Xray !"
-        # P0-B/P0-C: backup before reinstall too (reinstall may corrupt the binary)
+        # Backup before reinstall too (reinstall may corrupt the binary)
         # Backup must succeed — refuse to overwrite without backup
         if ! backup_xray_binary; then
             log_echo "${Error} ${RedBG} $(gettext "本机备份失败, 拒绝继续重装")! ${Font}"
@@ -2964,13 +2964,13 @@ xray_update() {
         fi
         systemctl stop xray
         xray_version=${xray_online_version}
-        # P0-C: same-version reinstall must have layered rollback
+        # Same-version reinstall must have layered rollback
         if xray_install_release install -f --version v${xray_online_version} && health_check_xray_update "${xray_online_version}"; then
             judge "Xray $(gettext "重装")" true
         else
             log_echo "${Error} ${RedBG} Xray $(gettext "重装") $(gettext "失败")! ${Font}"
             xray_diagnose
-            # P0-C Layer 1: local backup restore
+            # Layer 1: local backup restore
             if [[ ${auto_update} != "YES" ]]; then
                 log_echo "${Warning} ${GreenBG} $(gettext "是否回滚到之前的版本") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
                 read -r rollback_fq
@@ -2987,11 +2987,11 @@ xray_update() {
                 xray_version=${current_xray_version}
                 update_rolled_back=1
             elif fallback_xray_to_tested_version; then
-                # P0-C Layer 2: tested_version fallback
+                # Layer 2: tested_version fallback
                 xray_version=${xray_tested_version}
                 update_rolled_back=1
             else
-                # P0-C Layer 3: stop + diagnostics (already printed above)
+                # Layer 3: stop + diagnostics (already printed above)
                 log_echo "${Error} ${RedBG} Xray $(gettext "回滚失败")! ${Font}"
                 return 1
             fi
@@ -3002,14 +3002,14 @@ xray_update() {
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version' || return 1
     systemctl daemon-reload
     systemctl start xray
-    # Task C: final health gate — must pass before declaring success
+    # Final health gate — must pass before declaring success
     if ! health_check_xray_update "${xray_version}"; then
         [[ ${auto_update} == "YES" ]] && echo "Xray $(gettext "更新") $(gettext "失败")!" >>"${log_file}"
         [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} Xray $(gettext "更新") $(gettext "失败")! ${Font}"
         xray_diagnose
         return 1
     fi
-    # P0-1: 服务恢复成功 ≠ 本次更新成功
+    # 服务恢复成功 ≠ 本次更新成功
     # 无论手动还是自动模式，只要发生过回滚（update_rolled_back=1），
     # 本次更新即为失败，必须返回非零。不得用 auto_update 决定失败操作的返回码。
     if [[ ${update_rolled_back} -eq 1 ]]; then
@@ -3227,7 +3227,7 @@ decoy_site_setup() {
         log_echo "${Error} ${RedBG} $(gettext "自签证书生成失败") ${Font}"
         return 1
     fi
-    # Task E (Section 9.3): root owns certs/keys, worker group can read but NOT write.
+    # Root owns certs/keys, worker group can read but NOT write.
     # Private key: 640 (root rw, idleleo-nginx r, others none)
     # Public cert: 640 (root rw, idleleo-nginx r, others none)
     apply_sensitive_file_permissions "${ssl_chainpath}/decoy.key" "root:$(get_nginx_worker_group)" 640 || true
@@ -3431,7 +3431,7 @@ nginx_exist_check() {
     fi
 }
 
-# P1-B: Strict tar safety check for Nginx release archives.
+# Strict tar safety check for Nginx release archives.
 # Validates every tar entry BEFORE extraction and refuses dangerous archives.
 # Returns 0 if the archive is safe, 1 otherwise.
 # Safety rules:
@@ -3623,9 +3623,9 @@ nginx_run_config_test() {
 }
 
 nginx_install() {
-    # Task F (Section 10): Staging-based install with mandatory manifest and SHA256.
-    # Task E (Section 9): Uses dedicated idleleo-nginx user with layered permissions.
-    # P1-B: Uses nginx_tar_safe_check() for strict archive safety validation.
+    # Staging-based install with mandatory manifest and SHA256.
+    # Uses dedicated idleleo-nginx user with layered permissions.
+    # Uses nginx_tar_safe_check() for strict archive safety validation.
     local temp_dir
     temp_dir=$(mktemp -d)
     local current_dir
@@ -3658,7 +3658,7 @@ nginx_install() {
     local base_url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}"
     local manifest_file="${temp_dir}/release-manifest.json"
 
-    # Task F: Manifest is mandatory (fail-closed). Missing/invalid manifest = abort.
+    # Manifest is mandatory (fail-closed). Missing/invalid manifest = abort.
     if ! download_json_file "${base_url}/release-manifest.json" "${manifest_file}"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "release-manifest.json 下载失败或无效, 拒绝安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
@@ -3680,7 +3680,7 @@ nginx_install() {
         return 1
     fi
     if [[ -z "${manifest_sha256}" || "${manifest_sha256}" == "null" ]]; then
-        # Task F: SHA256 is mandatory when manifest exists. Fail-closed.
+        # SHA256 is mandatory when manifest exists. Fail-closed.
         log_echo "${Error} ${RedBG} $(gettext "manifest 中未提供 SHA256, 拒绝未校验安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
         return 1
@@ -3713,7 +3713,7 @@ nginx_install() {
     fi
     log_echo "${OK} ${GreenBG} Nginx $(gettext "下载") $(gettext "完成") ${Font}"
 
-    # Task F: Mandatory SHA256 verification (fail-closed).
+    # Mandatory SHA256 verification (fail-closed).
     if ! nginx_verify_release_sha256 "${nginx_sha256}" "${nginx_filename}"; then
         log_echo "${Error} ${RedBG} Nginx SHA256 $(gettext "校验") $(gettext "失败") $(gettext ", 拒绝安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
@@ -3721,7 +3721,7 @@ nginx_install() {
     fi
     log_echo "${OK} ${GreenBG} Nginx SHA256 $(gettext "校验") $(gettext "通过") ${Font}"
 
-    # P1-B: Strict tar safety check (replaces previous simple grep-based check).
+    # Strict tar safety check (replaces previous simple grep-based check).
     # Validates every entry before extraction and extracts into a staging
     # directory with --no-same-permissions --no-same-owner.
     local staging_dir="${temp_dir}/staging"
@@ -3733,14 +3733,14 @@ nginx_install() {
     fi
     log_echo "${OK} ${GreenBG} $(gettext "Nginx 压缩包安全检查通过") ${Font}"
 
-    # P1-B: Verify extracted structure (sbin/nginx must be a regular file).
+    # Verify extracted structure (sbin/nginx must be a regular file).
     if [[ ! -f "${staging_dir}/nginx/sbin/nginx" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "解压后未找到 sbin/nginx 或不是常规文件, 结构校验失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
         return 1
     fi
 
-    # P1-B: Verify sbin/nginx is a valid ELF binary.
+    # Verify sbin/nginx is a valid ELF binary.
     # ELF magic: 0x7f 'E' 'L' 'F'. file(1) may be unavailable on minimal systems.
     if ! nginx_validate_binary_file "${staging_dir}/nginx/sbin/nginx"; then
         log_echo "${Error} ${RedBG} $(gettext "sbin/nginx 不是可执行 ELF 二进制, 拒绝安装") ${Font}"
@@ -3756,7 +3756,7 @@ nginx_install() {
         return 1
     fi
 
-    # Task F: Backup current nginx_dir before replacement (for rollback).
+    # Backup current nginx_dir before replacement (for rollback).
     local nginx_backup_dir=""
     if [[ -d "${nginx_dir}" ]]; then
         nginx_backup_dir="${nginx_dir}.pre-install.$$"
@@ -3782,7 +3782,7 @@ nginx_install() {
         return 1
     fi
 
-    # Task E (Section 9): Create dedicated idleleo-nginx user before modifying config.
+    # Create dedicated idleleo-nginx user before modifying config.
     if ! ensure_idleleo_nginx_user; then
         restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
         cd "$current_dir" && rm -rf "$temp_dir"
@@ -3797,8 +3797,8 @@ nginx_install() {
         return 1
     fi
 
-    # Task E (Section 9): Apply layered permission model (replaces chown -fR nobody / chmod -fR 755).
-    # P0-A: Propagate permission failure so callers (nginx_update) can trigger rollback.
+    # Apply layered permission model (replaces chown -fR nobody / chmod -fR 755).
+    # Propagate permission failure so callers (nginx_update) can trigger rollback.
     if ! apply_nginx_layered_permissions; then
         log_echo "${Error} ${RedBG} $(gettext "Nginx 分层权限应用失败, 可能影响服务运行") ${Font}"
         restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
@@ -3812,7 +3812,7 @@ nginx_install() {
         return 1
     fi
 
-    # Task F: Post-install config validation.
+    # Post-install config validation.
     if ! nginx_run_config_test >/dev/null 2>&1; then
         local _nginx_t_output
         _nginx_t_output=$(nginx_run_config_test 2>&1)
@@ -3898,7 +3898,7 @@ restore_nginx_backup() {
     return 0
 }
 
-# Task C (Section 7): layered rollback & health check helpers
+# Layered rollback & health check helpers
 # Layering order on update failure:
 #   Layer 1: restore local pre-update backup (binary/script)
 #   Layer 2: install known-good tested_version from API
@@ -4280,7 +4280,7 @@ nginx_update() {
                 ;;
             esac
             if ! nginx_install; then
-                # P0-A: nginx_install returns 1 on hard failure (not exit).
+                # nginx_install returns 1 on hard failure (not exit).
                 # Enter rollback path directly — same as startup failure.
                 local nginx_start_failed=1
                 local service_start_failed=1
@@ -4315,7 +4315,7 @@ nginx_update() {
                 if [[ ${service_start_failed} -eq 0 ]]; then
                     nginx_diagnose
                 fi
-                # Task C (Section 7.1): Layered rollback — Layer 1 (local backup) → Layer 2 (tested_version) → Layer 3 (stop + diagnostics).
+                # Layered rollback — Layer 1 (local backup) → Layer 2 (tested_version) → Layer 3 (stop + diagnostics).
                 # Each layer is attempted at most once. No infinite retry, no recursive update.
                 if [[ ${auto_update} != "YES" ]]; then
                     echo
@@ -4670,7 +4670,7 @@ acme() {
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成") $(gettext "成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
         if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"; then
-            # Task E (Section 9.3): Reuse authoritative layered permission model.
+            # Reuse authoritative layered permission model.
             apply_nginx_layered_permissions || return 1
             verify_nginx_layered_permissions || return 1
             log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置") $(gettext "成功") ${Font}"
@@ -4853,7 +4853,7 @@ old_config_exist_check() {
     reinstall_keep_config="off"
     reinstall_operation="none"
     mode_switch_reuse="off"
-    # P0-10: Reset all change_* flags to prevent leakage from prior reinstall.
+    # Reset all change_* flags to prevent leakage from prior reinstall.
     change_port="no"
     change_user="no"
     change_transport="no"
@@ -4872,7 +4872,7 @@ old_config_exist_check() {
     _reinstall_firewall_changed="no"
     if [[ -f "${xray_install_config_file}" ]]; then
         # Snapshot the running config before any reinstall or mode switch
-        # so a failed deploy can be rolled back (P1-6). Skip in test mode
+        # So a failed deploy can be rolled back. Skip in test mode
         # where systemctl/xray binaries may not exist.
         if [[ -z "${_TEST_MODE:-}" ]]; then
             if ! _reinstall_backup_dir=$(reinstall_backup_create 2>/dev/null); then
@@ -4882,7 +4882,7 @@ old_config_exist_check() {
             fi
         fi
         if [[ ${old_tls_mode} == ${tls_mode} ]]; then
-            # P0-2: split into two explicit paths — keep-config reinstall
+            # Split into two explicit paths — keep-config reinstall
             # vs. standard-template rebuild — instead of a single Y/N that
             # conflates "read old config" with "lock all parameters".
             echo
@@ -4903,7 +4903,7 @@ old_config_exist_check() {
                 reinstall_keep_config="on"
                 reinstall_operation="keep_config"
                 old_config_input
-                # P0-3: let the user pick which params to modify; unselected
+                # Let the user pick which params to modify; unselected
                 # fields keep their old values during the reinstall.
                 reinstall_edit_menu
                 ;;
@@ -4935,7 +4935,7 @@ old_config_exist_check() {
                 ;;
             esac
         else
-            # P0-4: dedicated mode-switch entry. Show what can be reused,
+            # Dedicated mode-switch entry. Show what can be reused,
             # what cannot, and what is backed up. Only proceed after
             # explicit confirmation. The backup was already created at the
             # top of this function, so reinstall_finalize will restore on
@@ -5047,7 +5047,7 @@ old_config_input() {
         port=$(info_extraction port)
     fi
     if [[ 0 -eq ${read_config_status} ]]; then
-        # P1-7: the old prompt said "已保留配置文件" while setting
+        # The old prompt said "已保留配置文件" while setting
         # old_config_status="off", which meant the install flow would
         # re-prompt and overwrite. Provide clear, behavior-matching options.
         echo
@@ -5080,7 +5080,7 @@ old_config_input() {
     fi
 }
 
-# P0-3: Reinstall parameter edit menu.
+# Reinstall parameter edit menu.
 # Called after old_config_input reads the old config. Lets the user pick
 # which fields to modify; unselected fields keep their old values.
 # Sets the per-field change_* flags that param functions check.
@@ -5601,7 +5601,7 @@ cert_update_manuel() {
             host="$(info_extraction host)"
             "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"
             judge -r "$(gettext "证书更新")" || return 1
-            # Task E (Section 9.3): Reuse authoritative layered permission model after cert renewal.
+            # Reuse authoritative layered permission model after cert renewal.
             apply_nginx_layered_permissions || return 1
             verify_nginx_layered_permissions || return 1
             service_restart || return 1
@@ -5623,7 +5623,7 @@ set_fail2ban() {
     mf_main_menu
 }
 
-# P0-C: CLI entry point for Fail2ban management.
+# CLI entry point for Fail2ban management.
 # Reuses the same mf_cli() implementation as the menu — no duplicated logic.
 set_fail2ban_cli() {
     if ! ensure_sub_script "fail2ban_manager.sh" "${mf_remote_url}"; then
@@ -5732,7 +5732,7 @@ count_reality_clients_in_xray_conf() {
 
 # Extract the deduplicated UUID set from all VLESS inbounds in the actual
 # Xray config. Returns a sorted, newline-separated list of UUIDs. Used for
-# stable user-identity comparison across reconfigures (P0-11).
+# Stable user-identity comparison across reconfigures.
 extract_uuid_set_from_xray_conf() {
     if [[ ! -f "${xray_conf}" ]]; then
         return
@@ -6551,7 +6551,7 @@ ssl_judge_and_install() {
             acme
             ;;
         *)
-            # Task E (Section 9.3): Reuse authoritative layered permission model.
+            # Reuse authoritative layered permission model.
             apply_nginx_layered_permissions || return 1
             verify_nginx_layered_permissions || return 1
             judge "$(gettext "证书应用")"
@@ -6569,7 +6569,7 @@ ssl_judge_and_install() {
             ;;
         *)
             "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"
-            # Task E (Section 9.3): Reuse authoritative layered permission model.
+            # Reuse authoritative layered permission model.
             apply_nginx_layered_permissions || return 1
             verify_nginx_layered_permissions || return 1
             judge "$(gettext "证书应用")"
@@ -7881,7 +7881,7 @@ read_version() {
     new_shell_online_version="$(check_version shell_online_version)" || return 1
     new_xray_online_version="$(check_version xray_online_version)" || return 1
     new_nginx_build_version="$(check_version nginx_build_online_version)" || return 1
-    # Task C (Section 7.6): read tested_version (known-good fallback baseline) from API.
+    # Read tested_version (known-good fallback baseline) from API.
     # These fields are optional in the API JSON; missing fields are treated as
     # "no Layer 2 fallback available" and silently become empty strings.
     new_shell_tested_version="$(check_version_silent shell_tested_version || echo "")"
@@ -8420,7 +8420,7 @@ function restore_directories() {
 }
 
 # ============================================================
-# Reinstall backup / restore (P1-6)
+# Reinstall backup / restore
 # Simple, reliable directory snapshot taken before any reinstall
 # or mode switch. On deploy failure the snapshot is restored.
 # ============================================================
@@ -8966,14 +8966,14 @@ reinstall_verify_preservation() {
     [[ -z "${backup_dir}" || ! -f "${backup_dir}/pre_reinstall_state.json" ]] && return 0
 
     # Skip preservation check for mode_switch and standard_rebuild — these
-    # operations legitimately change the user set (P0-7).
+    # Operations legitimately change the user set.
     case "${reinstall_operation}" in
         mode_switch|standard_rebuild|clean_install)
             return 0
             ;;
     esac
 
-    # For keep_config: verify UUID set is unchanged (P0-11).
+    # For keep_config: verify UUID set is unchanged.
     local pre_uuids post_uuids
     pre_uuids=$(jq -r '.uuid_set[]?' "${backup_dir}/pre_reinstall_state.json" 2>/dev/null | sort)
     post_uuids=$(extract_uuid_set_from_xray_conf | sort)

@@ -55,7 +55,7 @@ _info_cache_invalidate() { :; }
 
 # --- systemctl mock: unit-file aware so a missing unit behaves like real
 # systemd (is-active/is-enabled return non-zero, and enable/disable/start/stop
-# fail). Mocks that "always succeed" would mask the P0-2 unit-restore bug.
+# fail). Mocks that "always succeed" would mask the unit-restore bug.
 SYSTEMCTL_IS_ACTIVE_RESULT=0
 SYSTEMCTL_DAEMON_RELOAD_FAIL=0
 SYSTEMCTL_ENABLE_NGINX_CALLS=0
@@ -361,7 +361,7 @@ EOF
 }
 
 # ============================================================================
-# Scenario 1: TLS keep-config, only change main port / inner port
+# TLS keep-config, only change main port / inner port
 # ============================================================================
 echo "=== Scenario 1: TLS keep-config — change port ==="
 reset_for_call_chain_test
@@ -394,7 +394,7 @@ assert_eq "S1 custom routing preserved" "direct" "$(jq -r '.routing.rules[0].out
 assert_eq "S1 custom DNS preserved" "1.1.1.1" "$(jq -r '.dns.servers[0]' "${xray_conf}")"
 
 # ============================================================================
-# Scenario 2: Reality keep-config, only change target/serverNames
+# Reality keep-config, only change target/serverNames
 # ============================================================================
 echo "=== Scenario 2: Reality keep-config — change target/serverNames ==="
 reset_for_call_chain_test
@@ -427,7 +427,7 @@ assert_eq "S2 custom routing preserved" "direct" "$(jq -r '.routing.rules[0].out
 assert_eq "S2 custom DNS preserved" "8.8.8.8" "$(jq -r '.dns.servers[0]' "${xray_conf}")"
 
 # ============================================================================
-# Scenario 3: keep-config with no changes selected
+# Keep-config with no changes selected
 # ============================================================================
 echo "=== Scenario 3: keep-config — no changes ==="
 reset_for_call_chain_test
@@ -448,7 +448,7 @@ assert_eq "S3 config semantically equivalent" "${PRE_CONF}" "${POST_CONF}"
 assert_eq "S3 UUID set unchanged" "${PRE_UUIDS}" "${POST_UUIDS}"
 
 # ============================================================================
-# Scenario 4: Multi-user Reality keep-config (all users preserved)
+# Multi-user Reality keep-config (all users preserved)
 # ============================================================================
 echo "=== Scenario 4: Multi-user Reality keep-config ==="
 reset_for_call_chain_test
@@ -482,7 +482,7 @@ assert_eq "S4 user3 email" "user3@example.com" "$(jq -r '.inbounds[0].settings.c
 assert_eq "S4 shortIds count" "2" "$(jq -r '.inbounds[0].streamSettings.realitySettings.shortIds | length' "${xray_conf}")"
 
 # ============================================================================
-# Scenario 5: Multi-user Reality → TLS mode switch
+# Multi-user Reality → TLS mode switch
 # ============================================================================
 echo "=== Scenario 5: Multi-user Reality → TLS mode switch ==="
 reset_for_call_chain_test
@@ -510,7 +510,7 @@ assert_eq "S5 backup records source mode" "Reality" "${BACKUP_SRC_MODE}"
 rm -rf "${_reinstall_backup_dir}"
 
 # ============================================================================
-# Scenario 6: Transport combination change (keep-config rejects)
+# Transport combination change (keep-config rejects)
 # ============================================================================
 echo "=== Scenario 6: Transport change rejected in keep-config ==="
 reset_for_call_chain_test
@@ -524,7 +524,7 @@ PRE_CONF=$(jq -Sc . "${xray_conf}")
 
 xray_conf_add
 
-# The keep-config path does NOT handle change_transport (P0-8).
+# The keep-config path does NOT handle change_transport.
 # Verify config was not corrupted by a half-applied transport change.
 POST_CONF=$(jq -Sc . "${xray_conf}")
 assert_eq "S6 config not corrupted by transport change" "${PRE_CONF}" "${POST_CONF}"
@@ -534,7 +534,7 @@ assert_eq "S6 config not corrupted by transport change" "${PRE_CONF}" "${POST_CO
 # (This is a structural assertion — the menu text is checked via gettext mock.)
 
 # ============================================================================
-# Scenario 7: Mid-failure rollback
+# Mid-failure rollback
 # ============================================================================
 echo "=== Scenario 7: Mid-failure rollback ==="
 reset_for_call_chain_test
@@ -569,7 +569,7 @@ assert_eq "S7 config restored after failure" "${PRE_CONF}" "${POST_CONF}"
 # _reinstall_backup_dir cleared after finalize.
 assert_eq "S7 backup dir cleared" "" "${_reinstall_backup_dir}"
 
-# --- Scenario 7b: service restart failure ---
+# --- service restart failure ---
 echo "--- Scenario 7b: service restart failure ---"
 reset_for_call_chain_test
 write_tls_single_user_conf
@@ -593,7 +593,7 @@ POST_CONF=$(jq -Sc . "${xray_conf}")
 assert_eq "S7b config restored" "${PRE_CONF}" "${POST_CONF}"
 
 # ============================================================================
-# Scenario 8: Backup failure (critical file copy fails → stops before changes)
+# Backup failure (critical file copy fails → stops before changes)
 # ============================================================================
 echo "=== Scenario 8: Backup failure stops before changes ==="
 reset_for_call_chain_test
@@ -634,7 +634,7 @@ POST_CONF=$(jq -Sc . "${xray_conf}")
 assert_eq "S8 original config untouched" "${PRE_CONF}" "${POST_CONF}"
 
 # ============================================================================
-# Scenario 9: Restore failure (non-zero, no success message, backup retained)
+# Restore failure (non-zero, no success message, backup retained)
 # ============================================================================
 echo "=== Scenario 9: Restore failure ==="
 reset_for_call_chain_test
@@ -671,7 +671,7 @@ log_echo() { :; }
 SYSTEMCTL_DAEMON_RELOAD_FAIL=0
 
 # ============================================================================
-# Scenario 10: Missing/stale install metadata
+# Missing/stale install metadata
 # ============================================================================
 echo "=== Scenario 10: Missing install metadata fields ==="
 reset_for_call_chain_test
@@ -704,7 +704,7 @@ assert_eq "S10 backup has UUID from actual config" "uuid-reality-single" "${BACK
 rm -rf "${BACKUP_DIR}"
 
 # ============================================================================
-# Scenario 11: Consecutive reconfigures (distinct backup dirs)
+# Consecutive reconfigures (distinct backup dirs)
 # ============================================================================
 echo "=== Scenario 11: Consecutive reconfigures ==="
 reset_for_call_chain_test
@@ -731,7 +731,7 @@ assert_eq "S11 backup1 reality_clients" "1" "$(jq -r '.reality_clients' "${BACKU
 assert_eq "S11 backup2 reality_clients" "1" "$(jq -r '.reality_clients' "${BACKUP2}/pre_reinstall_state.json")"
 
 # ============================================================================
-# Scenario 12: Nginx user config preservation
+# Nginx user config preservation
 # ============================================================================
 echo "=== Scenario 12: Nginx user config preservation ==="
 reset_for_call_chain_test
@@ -791,10 +791,10 @@ assert_contains "S12 user upstream preserved" "my_app" "$(cat "${nginx_conf_dir}
 rm -rf "${BACKUP_DIR}"
 
 # ============================================================================
-# Scenario 13: Skill existing-install protection
+# Skill existing-install protection
 # ============================================================================
 echo "=== Scenario 13: Skill existing-install protection ==="
-# P0-1: prefer the CI-provided SKILL_REPO env var (GitHub Actions checkouts
+# Prefer the CI-provided SKILL_REPO env var (GitHub Actions checkouts
 # the Skill repo to ${GITHUB_WORKSPACE}/.phase1-contracts/skill); fall back to
 # the adjacent repo dir for local runs. A missing Skill repo must fail the test.
 _SKILL_ENV="${SKILL_REPO:-}"
@@ -847,7 +847,7 @@ else
 fi
 
 # ============================================================================
-# Scenario 14: SHA256 strict fail-closed (normal, tampered, missing, corrupt)
+# SHA256 strict fail-closed (normal, tampered, missing, corrupt)
 # ============================================================================
 echo "=== Scenario 14: SHA256 strict verification ==="
 
@@ -895,7 +895,7 @@ reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
 assert_ne "S14e missing manifest rejected" "0" "${RESTORE_RC}"
 
 # ============================================================================
-# Scenario 15: Auto-rollback via RETURN trap restores exactly once
+# Auto-rollback via RETURN trap restores exactly once
 # ============================================================================
 echo "=== Scenario 15: RETURN trap restores exactly once ==="
 reset_for_call_chain_test
@@ -931,7 +931,7 @@ unset -f reinstall_backup_restore
 unset -f _real_reinstall_backup_restore
 
 # ============================================================================
-# Scenario 16: Restore failure retains backup dir and returns non-zero
+# Restore failure retains backup dir and returns non-zero
 # ============================================================================
 echo "=== Scenario 16: Restore failure retains backup dir ==="
 reset_for_call_chain_test
@@ -954,7 +954,7 @@ assert_ne "S16 rollback non-zero on restore failure" "0" "${RESTORE_RC}"
 [[ -d "${BACKUP_DIR}" ]] && ok "S16 backup dir retained on restore failure" || bad "S16 backup dir lost"
 
 # ============================================================================
-# Scenario 17: old_config_exist_check failure stops install chain
+# old_config_exist_check failure stops install chain
 # ============================================================================
 echo "=== Scenario 17: old_config_exist_check failure stops install ==="
 # old_config_exist_check returns 1 when backup fails.
@@ -974,7 +974,7 @@ _bare_count=$(grep -n 'old_config_exist_check' "${INSTALL_SH}" | \
 assert_eq "S17 no bare old_config_exist_check calls" "0" "${_bare_count}"
 
 # ============================================================================
-# Scenario 18: Real install chain RETURN trap test
+# Real install chain RETURN trap test
 # ============================================================================
 # Unlike Scenario 15 (which calls reinstall_rollback_on_return directly and
 # only proves the wrapper), this drives a REAL install_xray_* function through
@@ -1078,7 +1078,7 @@ unset -f basic_optimization create_directory old_config_exist_check
 unset -f domain_check transport_choose port_set
 
 # ============================================================================
-# Scenario 19: reinstall_finalize return-code propagation (P0-5)
+# reinstall_finalize return-code propagation
 # Drives the REAL install_xray_ws_tls chain up to the final safety gate:
 #   - finalize rc 0 → install function returns 0
 #   - finalize rc 1 → install function returns 1 (restore succeeded)
