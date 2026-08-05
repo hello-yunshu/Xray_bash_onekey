@@ -856,50 +856,65 @@ _FC_LEFTOVER=$(find "${idleleo_dir}/backup" -mindepth 1 -maxdepth 1 -type d 2>/d
 assert_eq "S10d empty checksums: incomplete backup deleted" "0" "${_FC_LEFTOVER}"
 
 # ============================================================================
-# ACME cron bidirectional restore
-# yes → restore the script-managed task (no duplicates); no → remove a task
-# the failed deploy added. User crontab lines are always preserved, and the
-# standard `crontab -l` / `crontab -` interface is used (never spool files).
+# ACME cron detection/backup/restore
+# All cron handling must match ONLY the project-managed script path
+# (/etc/idleleo/scripts/ssl_update.sh ≡ ${scripts_dir}/ssl_update.sh). A
+# user's own ssl_update.sh (e.g. /opt/custom/ssl_update.sh) and unrelated
+# crontab lines must not be detected, must be preserved and never removed,
+# and must never be duplicated.
 # ============================================================================
-echo "--- Scenario 11: ACME cron bidirectional restore ---"
+echo "--- Scenario 11: ACME cron exact-path detection / backup / restore ---"
 FAKE_HOME="${TMP_ROOT}/fakehome"
 mkdir -p "${FAKE_HOME}/.acme.sh"
 touch "${FAKE_HOME}/.acme.sh/acme.sh"
 
-# --- 11a: was yes → deploy deleted the line → restored, no duplicates ---
+# --- 11a: was yes → deploy deleted the project line → restored exactly once,
+# while the user's own ssl_update.sh and an unrelated task are preserved. ---
 reset_for_reinstall_test
 write_tls_single_user_conf
 tls_mode="TLS"
 old_tls_mode="TLS"
-printf '%s\n' "0 3 * * * bash /usr/local/bin/ssl_update.sh" "30 4 * * * user-other-job" > "${CRONTAB_FILE}"
+printf '%s\n' \
+    "0 3 * * * bash /etc/idleleo/scripts/ssl_update.sh" \
+    "5 4 * * * bash /opt/custom/ssl_update.sh" \
+    "10 5 * * * echo keep-me" > "${CRONTAB_FILE}"
 
 BACKUP_DIR=$(
     HOME="${FAKE_HOME}"
     reinstall_backup_create 2>/dev/null
 )
 assert_eq "S11a backup acme_cron=yes" "yes" "$(jq -r '.acme_cron' "${BACKUP_DIR}/pre_reinstall_state.json")"
-[[ -f "${BACKUP_DIR}/acme_cron_line.txt" ]] && ok "S11a cron line backed up" || bad "S11a cron line not backed up"
+assert_eq "S11a backed-up cron line is the project path" "1" \
+    "$(grep -c "/etc/idleleo/scripts/ssl_update.sh" "${BACKUP_DIR}/acme_cron_line.txt" 2>/dev/null || true)"
 
-# Failed deploy removed the ssl_update.sh line (user job stays).
-printf '%s\n' "30 4 * * * user-other-job" > "${CRONTAB_FILE}"
+# Failed deploy removed the project line; a different ssl_update.sh stays.
+printf '%s\n' \
+    "5 4 * * * bash /opt/custom/ssl_update.sh" \
+    "10 5 * * * echo keep-me" > "${CRONTAB_FILE}"
 
 RESTORE_RC=0
 reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
 assert_eq "S11a restore returns 0" "0" "${RESTORE_RC}"
-assert_eq "S11a ssl_update.sh count" "1" "$(grep -c "ssl_update.sh" "${CRONTAB_FILE}" 2>/dev/null || true)"
-grep -q "user-other-job" "${CRONTAB_FILE}" && ok "S11a user cron preserved" || bad "S11a user cron lost"
+assert_eq "S11a project cron count" "1" \
+    "$(grep -c "/etc/idleleo/scripts/ssl_update.sh" "${CRONTAB_FILE}" 2>/dev/null || true)"
+grep -q "bash /opt/custom/ssl_update.sh" "${CRONTAB_FILE}" && ok "S11a other ssl_update.sh preserved" || bad "S11a other ssl_update.sh lost"
+grep -q "echo keep-me" "${CRONTAB_FILE}" && ok "S11a unrelated cron preserved" || bad "S11a unrelated cron lost"
 
-# Restore again → must NOT duplicate.
+# Restore again → must NOT duplicate the project line.
 reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null
-assert_eq "S11a no duplicate on re-restore" "1" "$(grep -c "ssl_update.sh" "${CRONTAB_FILE}" 2>/dev/null || true)"
+assert_eq "S11a no duplicate on re-restore" "1" \
+    "$(grep -c "/etc/idleleo/scripts/ssl_update.sh" "${CRONTAB_FILE}" 2>/dev/null || true)"
 rm -rf "${BACKUP_DIR}"
 
-# --- 11b: was no → deploy added the line → removed, user jobs preserved ---
+# --- 11b: was no → deploy added the project line → removed, while the user's
+# own ssl_update.sh and unrelated task are preserved. ---
 reset_for_reinstall_test
 write_tls_single_user_conf
 tls_mode="TLS"
 old_tls_mode="TLS"
-printf '%s\n' "30 4 * * * user-other-job" > "${CRONTAB_FILE}"
+printf '%s\n' \
+    "5 4 * * * bash /opt/custom/ssl_update.sh" \
+    "10 5 * * * echo keep-me" > "${CRONTAB_FILE}"
 
 BACKUP_DIR=$(
     HOME="${FAKE_HOME}"
@@ -907,21 +922,25 @@ BACKUP_DIR=$(
 )
 assert_eq "S11b backup acme_cron=no" "no" "$(jq -r '.acme_cron' "${BACKUP_DIR}/pre_reinstall_state.json")"
 
-# Failed deploy ADDED the script-managed task.
-printf '%s\n' "0 3 * * * bash /usr/local/bin/ssl_update.sh" "30 4 * * * user-other-job" > "${CRONTAB_FILE}"
+# Failed deploy ADDED the project-managed task.
+printf '%s\n' \
+    "0 3 * * * bash /etc/idleleo/scripts/ssl_update.sh" \
+    "5 4 * * * bash /opt/custom/ssl_update.sh" \
+    "10 5 * * * echo keep-me" > "${CRONTAB_FILE}"
 
 RESTORE_RC=0
 reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
 assert_eq "S11b restore returns 0" "0" "${RESTORE_RC}"
-if grep -q "ssl_update.sh" "${CRONTAB_FILE}"; then
-    bad "S11b ssl_update.sh still present after restore"
+if grep -Fq "/etc/idleleo/scripts/ssl_update.sh" "${CRONTAB_FILE}"; then
+    bad "S11b project cron still present after restore"
 else
-    ok "S11b ssl_update.sh removed"
+    ok "S11b project cron removed"
 fi
-grep -q "user-other-job" "${CRONTAB_FILE}" && ok "S11b user cron preserved" || bad "S11b user cron lost"
+grep -q "bash /opt/custom/ssl_update.sh" "${CRONTAB_FILE}" && ok "S11b other ssl_update.sh preserved" || bad "S11b other ssl_update.sh lost"
+grep -q "echo keep-me" "${CRONTAB_FILE}" && ok "S11b unrelated cron preserved" || bad "S11b unrelated cron lost"
 rm -rf "${BACKUP_DIR}"
 
-# --- 11c: was no, deploy added ONLY the managed line (last-line removal) ---
+# --- 11c: was no, deploy added ONLY the project line (last-line removal) ---
 reset_for_reinstall_test
 write_tls_single_user_conf
 tls_mode="TLS"
@@ -932,7 +951,7 @@ BACKUP_DIR=$(
     HOME="${FAKE_HOME}"
     reinstall_backup_create 2>/dev/null
 )
-printf '%s\n' "0 3 * * * bash /usr/local/bin/ssl_update.sh" > "${CRONTAB_FILE}"
+printf '%s\n' "0 3 * * * bash /etc/idleleo/scripts/ssl_update.sh" > "${CRONTAB_FILE}"
 
 RESTORE_RC=0
 reinstall_backup_restore "${BACKUP_DIR}" 2>/dev/null || RESTORE_RC=$?
@@ -940,12 +959,12 @@ assert_eq "S11c last-line removal returns 0" "0" "${RESTORE_RC}"
 [[ ! -s "${CRONTAB_FILE}" ]] && ok "S11c crontab emptied after removal" || bad "S11c crontab not emptied"
 rm -rf "${BACKUP_DIR}"
 
-# --- 11d: `crontab -` write failure → restore returns non-zero ---
+# --- 11d: `crontab -` write failure during restore → non-zero, backup kept ---
 reset_for_reinstall_test
 write_tls_single_user_conf
 tls_mode="TLS"
 old_tls_mode="TLS"
-printf '%s\n' "0 3 * * * bash /usr/local/bin/ssl_update.sh" > "${CRONTAB_FILE}"
+printf '%s\n' "0 3 * * * bash /etc/idleleo/scripts/ssl_update.sh" > "${CRONTAB_FILE}"
 
 BACKUP_DIR=$(
     HOME="${FAKE_HOME}"
@@ -961,6 +980,68 @@ CRONTAB_WRITE_FAIL=0
 assert_ne "S11d restore non-zero when crontab write fails" "0" "${RESTORE_RC}"
 [[ -d "${BACKUP_DIR}" ]] && ok "S11d backup retained on failure" || bad "S11d backup dir lost"
 rm -rf "${BACKUP_DIR}"
+
+# --- 11e: ACME cron line backup write failure → backup fail-closed ---
+# The task was detected (acme_cron=yes) but the line cannot be saved to
+# acme_cron_line.txt. Backup must fail, delete the incomplete dir, echo
+# nothing and leave the original config untouched (reconfiguration never
+# starts).
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+old_tls_mode="TLS"
+echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+printf '%s\n' "0 3 * * * bash /etc/idleleo/scripts/ssl_update.sh" > "${CRONTAB_FILE}"
+PRE_CONF=$(cat "${xray_conf}")
+
+_CRON_FC_DIR="${idleleo_dir}/backup/reinstall-cron-fc"
+mkdir -p "${_CRON_FC_DIR}/acme_cron_line.txt"
+mktemp() { echo "${_CRON_FC_DIR}"; }
+_FC_OUT=""
+_FC_RC=0
+_FC_OUT=$(HOME="${FAKE_HOME}" reinstall_backup_create 2>/dev/null) || _FC_RC=$?
+unset -f mktemp
+assert_ne "S11e cron write failure: backup_create non-zero" "0" "${_FC_RC}"
+assert_eq "S11e cron write failure: no backup dir echoed" "" "${_FC_OUT}"
+[[ ! -e "${_CRON_FC_DIR}" ]] && ok "S11e cron write failure: incomplete backup deleted" || bad "S11e cron write failure: incomplete backup retained"
+assert_eq "S11e original config untouched" "${PRE_CONF}" "$(cat "${xray_conf}")"
+
+# --- 11f: acme_cron would be "yes" but saved line is missing/empty → fail ---
+# Detection reports yes, but the save step produces no non-empty file. The
+# whole backup must be rejected so no usable snapshot path is produced.
+reset_for_reinstall_test
+write_tls_single_user_conf
+tls_mode="TLS"
+old_tls_mode="TLS"
+echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+PRE_CONF=$(cat "${xray_conf}")
+
+# NOTE: a counter variable CANNOT distinguish detection from save — both run
+# in pipeline subshells (crontab -l | grep ...) whose increments are lost.
+# Use a marker FILE instead: the first `crontab -l` (detection) consumes it
+# and emits the line; every later call (save) emits nothing.
+_CRON_LINE_MARKER="${TMP_ROOT}/cron_line_once"
+: > "${_CRON_LINE_MARKER}"
+crontab() {
+    if [[ "${1:-}" == "-l" ]]; then
+        if [[ -f "${_CRON_LINE_MARKER}" ]]; then
+            rm -f "${_CRON_LINE_MARKER}"
+            printf '%s\n' "0 3 * * * bash /etc/idleleo/scripts/ssl_update.sh"
+        fi
+        return 0
+    fi
+    return 0
+}
+_FC_OUT=""
+_FC_RC=0
+_FC_OUT=$(HOME="${FAKE_HOME}" reinstall_backup_create 2>/dev/null) || _FC_RC=$?
+unset -f crontab
+[[ ! -e "${_CRON_LINE_MARKER}" ]] && ok "S11f cron detection consulted" || bad "S11f cron detection not reached"
+assert_ne "S11f empty cron line: backup non-zero" "0" "${_FC_RC}"
+assert_eq "S11f empty cron line: no backup dir echoed" "" "${_FC_OUT}"
+_FC_LEFTOVER=$(find "${idleleo_dir}/backup" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+assert_eq "S11f empty cron line: incomplete backup deleted" "0" "${_FC_LEFTOVER}"
+assert_eq "S11f original config untouched" "${PRE_CONF}" "$(cat "${xray_conf}")"
 
 # ============================================================================
 # Firewall reverse-failure propagation
