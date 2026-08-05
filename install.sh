@@ -5533,7 +5533,7 @@ acme_cron_update() {
         else
             crontab_file="/var/spool/cron/crontabs/root"
         fi
-        if [[ -f "${ssl_update_file}" ]] && [[ $(crontab -l | grep -c "ssl_update.sh") == "1" ]]; then
+        if [[ -f "${ssl_update_file}" ]] && [[ $(crontab -l | grep -Fc -- "${ssl_update_file}") == "1" ]]; then
             echo
             log_echo "${Warning} ${GreenBG} $(gettext "新版本已自动设置证书自动更新") ${Font}"
             log_echo "${Warning} ${GreenBG} $(gettext "老版本请及时删除 废弃的 改版证书自动更新")! ${Font}"
@@ -5543,7 +5543,7 @@ acme_cron_update() {
             case $remove_acme_cron_update_fq in
             [nN][oO] | [nN]) ;;
             *)
-                sed -i "/ssl_update.sh/d" "${crontab_file}"
+                sed -i "\|${ssl_update_file}|d" "${crontab_file}"
                 rm -rf "${ssl_update_file}"
                 judge -r "$(gettext "删除改版证书自动更新")"
                 ;;
@@ -7333,7 +7333,7 @@ uninstall_all() {
     if [[ -f "${crontab_file}" ]]; then
         sed -i "/auto_update.sh/d" "${crontab_file}"
         sed -i "/geo_update.sh/d" "${crontab_file}"
-        sed -i "/ssl_update.sh/d" "${crontab_file}"
+        sed -i "\|${ssl_update_file}|d" "${crontab_file}"
     fi
     [[ -f "/etc/logrotate.d/xray_log_cleanup" ]] && rm -f "/etc/logrotate.d/xray_log_cleanup"
     [[ -L "/usr/local/etc/xray/config.json" ]] && rm -f "/usr/local/etc/xray/config.json"
@@ -8470,6 +8470,14 @@ reinstall_rollback_on_return() {
     return "${rc}"
 }
 
+# Canonical cron marker for the project-managed ACME cert-renewal task.
+# Detection, backup, restore, dedup and deletion must ALL match this exact
+# script path (fixed-string grep) so a user's own ssl_update.sh or another
+# project's ACME job is never detected, backed up, restored or deleted.
+acme_cron_match_pattern() {
+    printf '%s' "${ssl_update_file}"
+}
+
 # Create a timestamped backup of the running config before reinstall
 # or mode switch. Echoes the backup directory path on stdout.
 # Returns 1 if the backup could not be created.
@@ -8489,6 +8497,9 @@ reinstall_backup_create() {
     fi
 
     local _cp_err=0
+    # Fail-closed metadata error flag. Set anywhere below (cron line backup,
+    # manifest validation, checksum generation) to abort the whole backup.
+    local _meta_err=0
 
     # Critical files — fail closed if they exist but cannot be copied.
     if [[ -f "${xray_install_config_file}" ]]; then
@@ -8547,13 +8558,21 @@ reinstall_backup_create() {
         _fw_snapshot=$(iptables -S 2>/dev/null | grep -i idleleo || true)
     fi
 
-    # Snapshot ACME/cron state for TLS mode.
+    # Snapshot ACME/cron state for TLS mode. Detection AND the saved task line
+    # must match ONLY the project-managed script path. The line backup is
+    # fail-closed: a failed or empty write invalidates the whole backup, so an
+    # "acme_cron=yes" manifest can never point at a missing/empty cron file.
     local _acme_cron="no"
+    local _acme_marker
+    _acme_marker=$(acme_cron_match_pattern)
     if [[ ${_source_mode} == "TLS" ]] && [[ -f "$HOME/.acme.sh/acme.sh" ]]; then
-        if crontab -l 2>/dev/null | grep -q "ssl_update.sh"; then
+        if crontab -l 2>/dev/null | grep -Fq -- "${_acme_marker}"; then
             _acme_cron="yes"
-            # Save the actual crontab line so it can be restored verbatim.
-            crontab -l 2>/dev/null | grep "ssl_update.sh" > "${backup_dir}/acme_cron_line.txt" 2>/dev/null || true
+            _meta_err=0
+            if ! crontab -l 2>/dev/null | grep -F -- "${_acme_marker}" > "${backup_dir}/acme_cron_line.txt" 2>/dev/null; then
+                _meta_err=1
+            fi
+            [[ -s "${backup_dir}/acme_cron_line.txt" ]] || _meta_err=1
         fi
     fi
 
@@ -8602,7 +8621,6 @@ reinstall_backup_create() {
     # missing/corrupt, or whose checksum list is missing/empty/incomplete, is
     # useless for restore. Any such failure deletes this incomplete backup and
     # returns 1 so the upper layer stops reconfiguration before any change.
-    local _meta_err=0
     if ! jq empty "${backup_dir}/pre_reinstall_state.json" >/dev/null 2>&1; then
         _meta_err=1
     fi
@@ -8878,22 +8896,26 @@ reinstall_backup_restore() {
     fi
 
     # Restore ACME/cron state if it was recorded as active before reinstall.
+    # All detection, dedup and verification below matches the project's exact
+    # managed script path so user-owned ssl_update.sh tasks are never touched.
     local _pre_acme_cron="no"
+    local _acme_marker
+    _acme_marker=$(acme_cron_match_pattern)
     if [[ -f "${_pre_state}" ]]; then
         _pre_acme_cron=$(jq -r '.acme_cron // "no"' "${_pre_state}" 2>/dev/null)
     fi
     if [[ "${_pre_acme_cron}" == "yes" ]]; then
         # Restore via the standard crontab interface (works on Debian, CentOS,
         # Rocky, AlmaLinux alike — no spool path assumptions). Only append if
-        # the ssl_update.sh line is missing, to avoid duplicates.
-        if ! crontab -l 2>/dev/null | grep -q "ssl_update.sh"; then
-            if [[ -f "${backup_dir}/acme_cron_line.txt" ]]; then
+        # the managed ssl_update.sh line is missing, to avoid duplicates.
+        if ! crontab -l 2>/dev/null | grep -Fq -- "${_acme_marker}"; then
+            if [[ -s "${backup_dir}/acme_cron_line.txt" ]]; then
                 {
                     crontab -l 2>/dev/null || true
                     cat "${backup_dir}/acme_cron_line.txt" 2>/dev/null
                 } | crontab - || _restore_err=1
                 # Verify the restore actually took effect.
-                if ! crontab -l 2>/dev/null | grep -q "ssl_update.sh"; then
+                if ! crontab -l 2>/dev/null | grep -Fq -- "${_acme_marker}"; then
                     log_echo "${Warning} ${YellowBG} $(gettext "ACME 定时任务未能恢复, 请手动检查") ${Font}"
                     _restore_err=1
                 fi
@@ -8904,23 +8926,23 @@ reinstall_backup_restore() {
         fi
     elif [[ "${_pre_acme_cron}" == "no" ]]; then
         # The source system had NO script-managed ssl_update.sh cron. A failed
-        # deploy may have added one — remove only ssl_update.sh lines managed
-        # by this script while preserving every other user crontab line, using
+        # deploy may have added one — remove only the line matching the exact
+        # project path while preserving every other user crontab line, using
         # the standard `crontab -l` / filter / `crontab -` interface (never the
         # spool files). A failed write or a leftover line fails the restore.
         local _cron_before="" _cron_filtered=""
         _cron_before=$(crontab -l 2>/dev/null || true)
-        if printf '%s\n' "${_cron_before}" | grep -q "ssl_update.sh"; then
+        if printf '%s\n' "${_cron_before}" | grep -Fq -- "${_acme_marker}"; then
             # grep -v exits 1 when it drops the LAST line (crontab becomes
             # empty) — that is a successful removal, not a failure.
-            _cron_filtered=$(printf '%s\n' "${_cron_before}" | grep -v "ssl_update.sh" || true)
+            _cron_filtered=$(printf '%s\n' "${_cron_before}" | grep -Fv -- "${_acme_marker}" || true)
             if [[ -n "${_cron_filtered}" ]]; then
                 printf '%s\n' "${_cron_filtered}" | crontab - 2>/dev/null || _restore_err=1
             else
                 # Nothing left: install an empty crontab.
                 : | crontab - 2>/dev/null || _restore_err=1
             fi
-            if printf '%s\n' "$(crontab -l 2>/dev/null)" | grep -q "ssl_update.sh"; then
+            if printf '%s\n' "$(crontab -l 2>/dev/null)" | grep -Fq -- "${_acme_marker}"; then
                 log_echo "${Warning} ${YellowBG} $(gettext "ACME 定时任务删除后仍存在, 请手动检查") ${Font}"
                 _restore_err=1
             fi
@@ -9188,27 +9210,37 @@ menu_action() {
         nginx_update
         exec "${BASH:-bash}" "${idleleo}"
         ;;
-    3)
+     3)
         shell_mode="Reality"
         tls_mode="Reality"
-        if install_xray_reality; then
+        install_xray_reality
+        local install_rc=$?
+        if [[ ${install_rc} -eq 0 ]]; then
             exec "${BASH:-bash}" "${idleleo}"
-        else
-            log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-            return 1
         fi
+        if [[ ${install_rc} -eq 2 ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+        fi
+        return "${install_rc}"
         ;;
-    4)
+     4)
         shell_mode="Nginx+ws+TLS"
         tls_mode="TLS"
-        if install_xray_ws_tls; then
+        install_xray_ws_tls
+        local install_rc=$?
+        if [[ ${install_rc} -eq 0 ]]; then
             exec "${BASH:-bash}" "${idleleo}"
-        else
-            log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-            return 1
         fi
+        if [[ ${install_rc} -eq 2 ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+        fi
+        return "${install_rc}"
         ;;
-    5)
+     5)
         echo
         log_echo "${Warning} ${YellowBG} $(gettext "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
         read -r wsonly_fq
@@ -9216,17 +9248,22 @@ menu_action() {
         [yY][eE][sS] | [yY])
             shell_mode="ws ONLY"
             tls_mode="None"
-            if install_xray_ws_only; then
+            install_xray_ws_only
+            local install_rc=$?
+            if [[ ${install_rc} -eq 0 ]]; then
                 exec "${BASH:-bash}" "${idleleo}"
-            else
-                log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                return 1
             fi
+            if [[ ${install_rc} -eq 2 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+            else
+                log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+            fi
+            return "${install_rc}"
             ;;
         *) ;;
         esac
         ;;
-    6)
+     6)
         echo
         log_echo "${Warning} ${YellowBG} $(gettext "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
         read -r xtlsonly_fq
@@ -9234,12 +9271,17 @@ menu_action() {
         [yY][eE][sS] | [yY])
             shell_mode="XTLS ONLY"
             tls_mode="XTLS"
-            if install_xray_xtls_only; then
+            install_xray_xtls_only
+            local install_rc=$?
+            if [[ ${install_rc} -eq 0 ]]; then
                 exec "${BASH:-bash}" "${idleleo}"
-            else
-                log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                return 1
             fi
+            if [[ ${install_rc} -eq 2 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+            else
+                log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+            fi
+            return "${install_rc}"
             ;;
         *) ;;
         esac
@@ -9468,22 +9510,34 @@ menu_install_reality() {
                 install_profile="reality_nginx"
                 install_wizard_preset="on"
                 apply_install_profile
-                if ! install_xray_reality; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                    return 1
+                install_xray_reality
+                local install_rc=$?
+                if [[ ${install_rc} -eq 0 ]]; then
+                    exec "${BASH:-bash}" "${idleleo}"
                 fi
-                exec "${BASH:-bash}" "${idleleo}"
+                if [[ ${install_rc} -eq 2 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+                else
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+                fi
+                return "${install_rc}"
                 ;;
             2)
                 reset_install_wizard_state
                 install_profile="reality_standard"
                 install_wizard_preset="on"
                 apply_install_profile
-                if ! install_xray_reality; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                    return 1
+                install_xray_reality
+                local install_rc=$?
+                if [[ ${install_rc} -eq 0 ]]; then
+                    exec "${BASH:-bash}" "${idleleo}"
                 fi
-                exec "${BASH:-bash}" "${idleleo}"
+                if [[ ${install_rc} -eq 2 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+                else
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+                fi
+                return "${install_rc}"
                 ;;
             3)
                 reset_install_wizard_state
@@ -9491,11 +9545,17 @@ menu_install_reality() {
                 menu_choose_transport || continue
                 install_wizard_preset="on"
                 apply_install_profile
-                if ! install_xray_reality; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                    return 1
+                install_xray_reality
+                local install_rc=$?
+                if [[ ${install_rc} -eq 0 ]]; then
+                    exec "${BASH:-bash}" "${idleleo}"
                 fi
-                exec "${BASH:-bash}" "${idleleo}"
+                if [[ ${install_rc} -eq 2 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+                else
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+                fi
+                return "${install_rc}"
                 ;;
             4)
                 reset_install_wizard_state
@@ -9503,11 +9563,17 @@ menu_install_reality() {
                 menu_choose_transport || continue
                 install_wizard_preset="on"
                 apply_install_profile
-                if ! install_xray_reality; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                    return 1
+                install_xray_reality
+                local install_rc=$?
+                if [[ ${install_rc} -eq 0 ]]; then
+                    exec "${BASH:-bash}" "${idleleo}"
                 fi
-                exec "${BASH:-bash}" "${idleleo}"
+                if [[ ${install_rc} -eq 2 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+                else
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+                fi
+                return "${install_rc}"
                 ;;
             5)
                 menu_install_reality_balance_role || continue
@@ -9535,22 +9601,34 @@ menu_install_reality_balance_role() {
                 install_profile="reality_balance_primary"
                 install_wizard_preset="on"
                 apply_install_profile
-                if ! install_xray_reality; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                    return 1
+                install_xray_reality
+                local install_rc=$?
+                if [[ ${install_rc} -eq 0 ]]; then
+                    exec "${BASH:-bash}" "${idleleo}"
                 fi
-                exec "${BASH:-bash}" "${idleleo}"
+                if [[ ${install_rc} -eq 2 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+                else
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+                fi
+                return "${install_rc}"
                 ;;
             2)
                 reset_install_wizard_state
                 install_profile="reality_balance_secondary"
                 install_wizard_preset="on"
                 apply_install_profile
-                if ! install_xray_reality; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                    return 1
+                install_xray_reality
+                local install_rc=$?
+                if [[ ${install_rc} -eq 0 ]]; then
+                    exec "${BASH:-bash}" "${idleleo}"
                 fi
-                exec "${BASH:-bash}" "${idleleo}"
+                if [[ ${install_rc} -eq 2 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+                else
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+                fi
+                return "${install_rc}"
                 ;;
         esac
     done
@@ -9575,11 +9653,17 @@ menu_install_transport() {
                 menu_choose_transport || continue
                 install_wizard_preset="on"
                 apply_install_profile
-                if ! install_xray_ws_tls; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                    return 1
+                install_xray_ws_tls
+                local install_rc=$?
+                if [[ ${install_rc} -eq 0 ]]; then
+                    exec "${BASH:-bash}" "${idleleo}"
                 fi
-                exec "${BASH:-bash}" "${idleleo}"
+                if [[ ${install_rc} -eq 2 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+                else
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+                fi
+                return "${install_rc}"
                 ;;
             2)
                 reset_install_wizard_state
@@ -9595,11 +9679,17 @@ menu_install_transport() {
                 menu_choose_transport || continue
                 install_wizard_preset="on"
                 apply_install_profile
-                if ! install_xray_ws_only; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                    return 1
+                install_xray_ws_only
+                local install_rc=$?
+                if [[ ${install_rc} -eq 0 ]]; then
+                    exec "${BASH:-bash}" "${idleleo}"
                 fi
-                exec "${BASH:-bash}" "${idleleo}"
+                if [[ ${install_rc} -eq 2 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+                else
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+                fi
+                return "${install_rc}"
                 ;;
         esac
     done
@@ -9634,11 +9724,17 @@ menu_install() {
                 install_profile="xtls_only"
                 install_wizard_preset="on"
                 apply_install_profile
-                if ! install_xray_xtls_only; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败") ${Font}"
-                    return 1
+                install_xray_xtls_only
+                local install_rc=$?
+                if [[ ${install_rc} -eq 0 ]]; then
+                    exec "${BASH:-bash}" "${idleleo}"
                 fi
-                exec "${BASH:-bash}" "${idleleo}"
+                if [[ ${install_rc} -eq 2 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
+                else
+                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
+                fi
+                return "${install_rc}"
                 ;;
         esac
     done
