@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
   workflow_dispatch:
     inputs:
       api_ref:
@@ -69,6 +70,8 @@ jobs:
           bash .github/test/test_install_menu_profiles.sh
           # Reinstall config preservation tests (8 scenarios: backup/restore/merge)
           bash .github/test/test_reinstall_preservation.sh
+          # Reinstall call-chain RETURN trap tests (real install chain coverage)
+          bash .github/test/test_reinstall_call_chain.sh
           sudo bash .github/test/test_nginx_security.sh
           bash .github/test/test_cross_repo_contract.sh \
             .phase1-contracts/api \
