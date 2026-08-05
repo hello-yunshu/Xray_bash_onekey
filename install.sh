@@ -7456,8 +7456,10 @@ install_xray_ws_tls() {
     check_and_create_user_group
     check_system
     dependency_install
-    basic_optimization
-    create_directory
+    # Snapshot the source configuration BEFORE create_directory modifies any
+    # managed path. Creating nginx_conf_dir/ssl_chainpath/xray_conf_dir/
+    # idleleo info + conf dirs first would pollute the manifest recorded file
+    # existence and break rollback to the true source state.
     old_config_exist_check || return 1
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
@@ -7467,6 +7469,8 @@ install_xray_ws_tls() {
         # literal path even after the local variable is destroyed on return.
         trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
+    basic_optimization
+    create_directory
     domain_check || return 1
     transport_choose || return 1
     port_set || return 1
@@ -7533,8 +7537,8 @@ install_xray_reality() {
     check_and_create_user_group
     check_system
     dependency_install
-    basic_optimization
-    create_directory
+    # Snapshot the source configuration BEFORE create_directory modifies any
+    # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
@@ -7544,6 +7548,8 @@ install_xray_reality() {
         # literal path even after the local variable is destroyed on return.
         trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
+    basic_optimization
+    create_directory
     ip_check || return 1
     port_set || return 1
     email_set || return 1
@@ -7599,17 +7605,19 @@ install_xray_xtls_only() {
     check_and_create_user_group
     check_system
     dependency_install
-    basic_optimization
-    create_directory
+    # Snapshot the source configuration BEFORE create_directory modifies any
+    # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
-    # is already populated. Any non-zero return below triggers a single restore.
+    # is already populated. Any non-zero return triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
         trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
+    basic_optimization
+    create_directory
     ip_check || return 1
     shell_mode="XTLS ONLY"
     tls_mode="XTLS"
@@ -7646,17 +7654,19 @@ install_xray_ws_only() {
     check_and_create_user_group
     check_system
     dependency_install
-    basic_optimization
-    create_directory
+    # Snapshot the source configuration BEFORE create_directory modifies any
+    # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
-    # is already populated. Any non-zero return below triggers a single restore.
+    # is already populated. Any non-zero return triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
         trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
+    basic_optimization
+    create_directory
     ip_check || return 1
     transport_choose || return 1
     ws_inbound_port_set || return 1

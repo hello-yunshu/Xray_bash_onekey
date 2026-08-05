@@ -1287,6 +1287,93 @@ unset -f enable_process_systemd acme_cron_update auto_update service_restart
 unset -f setup_auto_clean_logs vless_link_image_choice show_information
 
 # ============================================================================
+# Scenario 20: structural — snapshot (old_config_exist_check) must appear
+# BEFORE create_directory in every real install chain. Extracting each
+# function body and comparing the first occurrence line of each call catches
+# a reordering regression that a simple total-count grep would miss.
+# ============================================================================
+echo "=== Scenario 20: snapshot precedes create_directory in all four chains ==="
+for _chain_fn in install_xray_ws_tls install_xray_reality install_xray_xtls_only install_xray_ws_only; do
+    _body=$(_extract_fn_body "${_chain_fn}")
+    # Match only the actual CALL lines (not comments mentioning the names).
+    _snap_line=$(printf '%s\n' "${_body}" | grep -nE '^[[:space:]]*old_config_exist_check[[:space:]]*$|^[[:space:]]*old_config_exist_check[[:space:]]*\|\|' | head -1 | cut -d: -f1)
+    _cd_line=$(printf '%s\n' "${_body}" | grep -nE '^[[:space:]]*create_directory[[:space:]]*$' | head -1 | cut -d: -f1)
+    if [[ -n "${_snap_line}" && -n "${_cd_line}" && ${_snap_line} -lt ${_cd_line} ]]; then
+        ok "S20 ${_chain_fn}: snapshot at body line ${_snap_line} before create_directory at ${_cd_line}"
+    else
+        bad "S20 ${_chain_fn}: order violation (snapshot=${_snap_line:-missing} create_directory=${_cd_line:-missing})"
+    fi
+done
+
+# ============================================================================
+# Scenario 21: directory existence state must not be polluted. Source system
+# has NO nginx_conf_dir / ssl_chainpath / xray_conf_dir; the REAL
+# create_directory runs (not a no-op) and creates them; a mid-chain failure
+# triggers the RETURN trap; after rollback the manifest records the paths as
+# absent AND the directories are gone with no empty leftovers.
+# ============================================================================
+echo "=== Scenario 21: rollback deletes dirs created by create_directory ==="
+unset -f old_config_exist_check 2>/dev/null
+_restore_21() {
+    reset_for_call_chain_test
+    write_tls_single_user_conf
+    echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+    tls_mode="TLS"
+    old_tls_mode="TLS"
+
+    # Source state: these managed paths do NOT exist.
+    rm -rf "${nginx_conf_dir}" "${ssl_chainpath}" "${xray_conf_dir}"
+
+    # Preflight mocks (same as S18). create_directory is intentionally NOT
+    # mocked: it must really create the target dirs after the snapshot.
+    is_root() { return 0; }
+    check_and_create_user_group() { return 0; }
+    check_system() { return 0; }
+    dependency_install() { return 0; }
+    basic_optimization() { return 0; }
+    domain_check() { return 0; }
+    transport_choose() { return 0; }
+    port_set() { return 1; }
+
+    # Mock old_config_exist_check to create a REAL snapshot (test mode skips
+    # the real backup creation inside old_config_exist_check itself).
+    old_config_exist_check() {
+        _reinstall_backup_dir=$(reinstall_backup_create 2>/dev/null)
+        _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+        _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+        _reinstall_firewall_changed="no"
+        return 0
+    }
+
+    install_xray_ws_tls 2>/dev/null
+    local rc=$?
+    local bdir="${_reinstall_backup_dir:-}"
+
+    assert_ne "S21 real install returns non-zero" "0" "${rc}"
+
+    # Manifest recorded the absent paths as absent (not created by
+    # create_directory, which runs AFTER the snapshot).
+    [[ -f "${bdir}/pre_reinstall_state.json" ]] && ok "S21 snapshot manifest exists" || bad "S21 snapshot manifest missing"
+    assert_eq "S21 manifest xray_conf_dir absent" "false" "$(jq -r '.files.xray_conf_dir' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
+    assert_eq "S21 manifest nginx_conf_dir absent" "false" "$(jq -r '.files.nginx_conf_dir' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
+    assert_eq "S21 manifest cert_dir absent" "false" "$(jq -r '.files.cert_dir' "${bdir}/pre_reinstall_state.json" 2>/dev/null)"
+
+    # After rollback the deploy-created dirs are gone (manifest-driven rm -rf).
+    [[ ! -d "${xray_conf_dir}" ]] && ok "S21 xray_conf_dir removed after rollback" || bad "S21 xray_conf_dir left behind"
+    [[ ! -d "${nginx_conf_dir}" ]] && ok "S21 nginx_conf_dir removed after rollback" || bad "S21 nginx_conf_dir left behind"
+    [[ ! -d "${ssl_chainpath}" ]] && ok "S21 cert dir removed after rollback" || bad "S21 cert dir left behind"
+    # No empty leftover dirs anywhere under the project root.
+    local _empty_leftovers
+    _empty_leftovers=$(find "${idleleo_dir}" -mindepth 1 -type d -empty -not -path "*/backup*" 2>/dev/null | wc -l | tr -d ' ')
+    assert_eq "S21 no empty dirs left behind" "0" "${_empty_leftovers}"
+
+    unset -f is_root check_and_create_user_group check_system dependency_install
+    unset -f basic_optimization create_directory domain_check transport_choose port_set
+    unset -f old_config_exist_check
+}
+_restore_21
+
+# ============================================================================
 # Summary
 # ============================================================================
 echo ""
