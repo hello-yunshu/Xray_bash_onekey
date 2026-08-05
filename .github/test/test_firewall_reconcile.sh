@@ -570,6 +570,255 @@ else
     bad "collect_new_managed_ports: tcp=${tcp_ports} udp=${udp_ports} (mismatch)"
 fi
 
+# ============================================================================
+# Firewall transaction tests (apply_managed_firewall_transaction)
+# ============================================================================
+# Re-establish the base firewall helpers (earlier tests unset/redefined them).
+_tx_restore_helpers() {
+    firewall_rule_exists() {
+        local proto="$1" port="$2"
+        iptables -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1
+    }
+    firewall_add_managed_port() {
+        local proto="$1" port="$2"
+        firewall_rule_exists "${proto}" "${port}" ||
+            iptables -I INPUT -p "${proto}" --dport "${port}" -j ACCEPT
+    }
+    firewall_remove_managed_port() {
+        local proto="$1" port="$2"
+        while firewall_rule_exists "${proto}" "${port}"; do
+            iptables -D INPUT -p "${proto}" --dport "${port}" -j ACCEPT || return 1
+        done
+    }
+    firewall_add_output_port() {
+        local proto="$1" port="$2"
+        iptables -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1 ||
+            iptables -I OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT
+    }
+    firewall_output_rule_exists() {
+        local proto="$1" port="$2"
+        iptables -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1
+    }
+    firewall_remove_output_port() {
+        local proto="$1" port="$2"
+        while firewall_output_rule_exists "${proto}" "${port}"; do
+            iptables -D OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT || return 1
+        done
+    }
+}
+
+# --- Test 17: apply_managed_firewall_transaction success (443 -> 8443) ---
+echo "--- T17: apply_managed_firewall_transaction success (443->8443) ---"
+: > "${IPTABLES_RULES_FILE}"
+echo "INPUT:tcp:443"        >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:tcp:sport:443" >> "${IPTABLES_RULES_FILE}"
+echo '{"tcp":[443],"udp":[]}' > "${managed_ports_file}"
+_tx_restore_helpers
+_reinstall_firewall_old_ports='{"tcp":[443],"udp":[]}'
+_reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_changed="no"
+
+if apply_managed_firewall_transaction \
+        '{"tcp":[443],"udp":[]}' '{"tcp":[8443],"udp":[]}'; then
+    ok "T17 transaction succeeded"
+else
+    bad "T17 transaction should succeed"
+fi
+if grep -qxF "INPUT:tcp:443" "${IPTABLES_RULES_FILE}"; then
+    bad "T17 old INPUT 443 should be removed"
+else
+    ok "T17 old INPUT 443 removed"
+fi
+if grep -qxF "OUTPUT:tcp:sport:443" "${IPTABLES_RULES_FILE}"; then
+    bad "T17 old OUTPUT 443 should be removed"
+else
+    ok "T17 old OUTPUT 443 removed"
+fi
+if grep -qxF "INPUT:tcp:8443" "${IPTABLES_RULES_FILE}"; then
+    ok "T17 new INPUT 8443 added"
+else
+    bad "T17 new INPUT 8443 not added"
+fi
+if grep -qxF "OUTPUT:tcp:sport:8443" "${IPTABLES_RULES_FILE}"; then
+    ok "T17 new OUTPUT 8443 added"
+else
+    bad "T17 new OUTPUT 8443 not added"
+fi
+if [[ -f "${managed_ports_file}" ]] && grep -q "8443" "${managed_ports_file}"; then
+    ok "T17 managed_ports.json written with 8443"
+else
+    bad "T17 managed_ports.json missing 8443"
+fi
+if [[ "${_reinstall_firewall_changed}" == "yes" ]]; then
+    ok "T17 firewall marked changed"
+else
+    bad "T17 firewall not marked changed"
+fi
+
+# --- Test 18: transaction rollback on partial new-rule add failure ---
+echo "--- T18: rollback when a new UDP rule add fails mid-way ---"
+: > "${IPTABLES_RULES_FILE}"
+echo "INPUT:tcp:443"        >> "${IPTABLES_RULES_FILE}"
+echo "INPUT:udp:443"        >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:tcp:sport:443" >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:udp:sport:443" >> "${IPTABLES_RULES_FILE}"
+echo '{"tcp":[443],"udp":[443]}' > "${managed_ports_file}"
+_tx_restore_helpers
+# Make udp 8443 add fail so the forward reconcile fails midway.
+eval "$(declare -f firewall_add_managed_port | sed 's/^firewall_add_managed_port/_orig_firewall_add_managed_port/')"
+firewall_add_managed_port() {
+    local proto="$1" port="$2"
+    if [[ "${proto}" == "udp" && "${port}" == "8443" ]]; then
+        return 1
+    fi
+    _orig_firewall_add_managed_port "${proto}" "${port}"
+}
+_reinstall_firewall_old_ports='{"tcp":[443],"udp":[443]}'
+_reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_changed="no"
+
+if apply_managed_firewall_transaction \
+        '{"tcp":[443],"udp":[443]}' '{"tcp":[8443],"udp":[8443]}'; then
+    bad "T18 transaction should fail on add failure"
+else
+    ok "T18 transaction failed (fail-closed)"
+fi
+# Already-added new rules removed.
+if grep -qxF "INPUT:tcp:8443" "${IPTABLES_RULES_FILE}"; then
+    bad "T18 new INPUT 8443 should be removed by rollback"
+else
+    ok "T18 new INPUT 8443 removed by rollback"
+fi
+# Already-removed old rules restored (INPUT+OUTPUT, tcp+udp).
+if grep -qxF "INPUT:tcp:443" "${IPTABLES_RULES_FILE}" && \
+   grep -qxF "INPUT:udp:443" "${IPTABLES_RULES_FILE}" && \
+   grep -qxF "OUTPUT:tcp:sport:443" "${IPTABLES_RULES_FILE}" && \
+   grep -qxF "OUTPUT:udp:sport:443" "${IPTABLES_RULES_FILE}"; then
+    ok "T18 old rules restored"
+else
+    bad "T18 old rules not fully restored"
+fi
+# managed_ports.json keeps the old value.
+if [[ -f "${managed_ports_file}" ]] && grep -q '"tcp":\[443\]' "${managed_ports_file}"; then
+    ok "T18 managed_ports.json keeps old value"
+else
+    bad "T18 managed_ports.json changed"
+fi
+unset -f firewall_add_managed_port _orig_firewall_add_managed_port
+
+# --- Test 19: transaction rollback on managed_ports.json write failure ---
+echo "--- T19: rollback when writing managed_ports.json fails ---"
+: > "${IPTABLES_RULES_FILE}"
+echo "INPUT:tcp:443"        >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:tcp:sport:443" >> "${IPTABLES_RULES_FILE}"
+echo '{"tcp":[443],"udp":[]}' > "${managed_ports_file}"
+_tx_restore_helpers
+eval "$(declare -f atomic_write_managed_ports | sed 's/^atomic_write_managed_ports/_orig_atomic_write/')"
+atomic_write_managed_ports() { return 1; }
+_reinstall_firewall_old_ports='{"tcp":[443],"udp":[]}'
+_reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_changed="no"
+
+if apply_managed_firewall_transaction \
+        '{"tcp":[443],"udp":[]}' '{"tcp":[8443],"udp":[]}'; then
+    bad "T19 transaction should fail on write failure"
+else
+    ok "T19 transaction failed on write failure"
+fi
+# Reverse new->old applied: old restored, new not残留.
+if grep -qxF "INPUT:tcp:443" "${IPTABLES_RULES_FILE}"; then
+    ok "T19 old INPUT 443 restored"
+else
+    bad "T19 old INPUT 443 not restored"
+fi
+if grep -qxF "INPUT:tcp:8443" "${IPTABLES_RULES_FILE}"; then
+    bad "T19 new INPUT 8443 should not残留"
+else
+    ok "T19 new INPUT 8443 removed"
+fi
+unset -f atomic_write_managed_ports
+eval "$(declare -f _orig_atomic_write | sed 's/^_orig_atomic_write/atomic_write_managed_ports/')"
+unset -f _orig_atomic_write
+
+# --- Test 20: rollback when no managed_ports.json existed before ---
+echo "--- T20: rollback with no prior managed_ports.json ---"
+: > "${IPTABLES_RULES_FILE}"
+rm -f "${managed_ports_file}"
+_tx_restore_helpers
+# Two new ports; fail on the second so the first gets added then rolled back.
+eval "$(declare -f firewall_add_managed_port | sed 's/^firewall_add_managed_port/_orig_firewall_add_managed_port/')"
+firewall_add_managed_port() {
+    local proto="$1" port="$2"
+    if [[ "${proto}" == "tcp" && "${port}" == "8444" ]]; then
+        return 1
+    fi
+    _orig_firewall_add_managed_port "${proto}" "${port}"
+}
+_reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_changed="no"
+
+if apply_managed_firewall_transaction \
+        '{"tcp":[],"udp":[]}' '{"tcp":[8443,8444],"udp":[]}'; then
+    bad "T20 transaction should fail (rollback not skipped)"
+else
+    ok "T20 transaction failed (rollback not skipped)"
+fi
+if grep -qxF "INPUT:tcp:8443" "${IPTABLES_RULES_FILE}"; then
+    bad "T20 new INPUT 8443 should be removed"
+else
+    ok "T20 new INPUT 8443 removed"
+fi
+if grep -qxF "INPUT:tcp:8444" "${IPTABLES_RULES_FILE}"; then
+    bad "T20 INPUT 8444 should not exist"
+else
+    ok "T20 INPUT 8444 absent"
+fi
+if [[ -e "${managed_ports_file}" ]]; then
+    bad "T20 managed_ports.json should not be created"
+else
+    ok "T20 no managed_ports.json created"
+fi
+unset -f firewall_add_managed_port _orig_firewall_add_managed_port
+
+# --- Test 21: TLS -> Reality removes the unneeded managed port 80 rule ---
+echo "--- T21: TLS->Reality removes unneeded port 80 managed rule ---"
+: > "${IPTABLES_RULES_FILE}"
+echo "INPUT:tcp:443"        >> "${IPTABLES_RULES_FILE}"
+echo "INPUT:udp:443"        >> "${IPTABLES_RULES_FILE}"
+echo "INPUT:tcp:80"         >> "${IPTABLES_RULES_FILE}"
+echo "INPUT:udp:80"         >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:tcp:sport:443" >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:udp:sport:443" >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:tcp:sport:80"  >> "${IPTABLES_RULES_FILE}"
+echo "OUTPUT:udp:sport:80"  >> "${IPTABLES_RULES_FILE}"
+echo '{"tcp":[443,80],"udp":[443,80]}' > "${managed_ports_file}"
+_tx_restore_helpers
+_reinstall_firewall_old_ports='{"tcp":[443,80],"udp":[443,80]}'
+_reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_changed="no"
+
+if apply_managed_firewall_transaction \
+        '{"tcp":[443,80],"udp":[443,80]}' '{"tcp":[443],"udp":[443]}'; then
+    ok "T21 transaction succeeded"
+else
+    bad "T21 transaction should succeed"
+fi
+# Stale port 80 rules残留 check (INPUT/OUTPUT, tcp/udp).
+if grep -qxF "INPUT:tcp:80" "${IPTABLES_RULES_FILE}" || \
+   grep -qxF "INPUT:udp:80" "${IPTABLES_RULES_FILE}" || \
+   grep -qxF "OUTPUT:tcp:sport:80" "${IPTABLES_RULES_FILE}" || \
+   grep -qxF "OUTPUT:udp:sport:80" "${IPTABLES_RULES_FILE}"; then
+    bad "T21 stale port 80 rules residues"
+else
+    ok "T21 port 80 rules removed"
+fi
+if grep -qxF "INPUT:tcp:443" "${IPTABLES_RULES_FILE}"; then
+    ok "T21 port 443 kept"
+else
+    bad "T21 port 443 should be kept"
+fi
+
 echo ""
 echo "============================================================"
 echo "  Results: ${PASS} passed, ${FAIL} failed"

@@ -1614,6 +1614,28 @@ reconcile_managed_firewall() {
     return 0
 }
 
+# Apply a managed-firewall port-set change transactionally (old → new).
+#   - Reconciles rules old→new; on any partial failure reverses new→old so
+#     no half-applied rules remain.
+#   - On success persists the new set to managed_ports.json. If the write
+#     fails, reverses new→old so no stale rules remain.
+#   - Sets _reinstall_firewall_changed="yes" only after a successful reconcile,
+#     so rollback knows the firewall actually changed.
+# Returns 0 on success, 1 on failure (rules already rolled back).
+apply_managed_firewall_transaction() {
+    local old_json="$1" new_json="$2"
+    if ! reconcile_managed_firewall "${old_json}" "${new_json}"; then
+        reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null || true
+        return 1
+    fi
+    _reinstall_firewall_changed="yes"
+    atomic_write_managed_ports "${new_json}" || {
+        reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null || true
+        return 1
+    }
+    return 0
+}
+
 firewall_set() {
     echo
     log_echo "${GreenBG} $(gettext "是否需要设置防火墙") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
@@ -1626,55 +1648,42 @@ firewall_set() {
             pkg_install "iptables-persistent"
         fi
 
-        # Loopback rules (idempotent). Fail closed on any error.
+        # Always-on infrastructure rules (idempotent, never auto-removed):
+        # loopback, DNS (53), and the FullCone UDP high-port range. These are
+        # required in every mode and are tracked as separate always-on state.
         firewall_add_loopback_rules || return 1
-
-        # DNS (port 53) — always required for resolution.
         firewall_add_managed_port tcp 53 || return 1
         firewall_add_managed_port udp 53 || return 1
         firewall_add_output_port tcp 53 || return 1
         firewall_add_output_port udp 53 || return 1
-
-        # TLS mode additionally needs port 80 (ACME / HTTP redirect).
-        if [[ ${tls_mode} == "TLS" ]]; then
-            firewall_add_managed_port tcp 80 || return 1
-            firewall_add_managed_port udp 80 || return 1
-            firewall_add_output_port tcp 80 || return 1
-            firewall_add_output_port udp 80 || return 1
-        fi
-
-        # Main service port (TLS / XTLS / Reality).
-        if [[ ${tls_mode} == "TLS" || ${tls_mode} == "XTLS" || ${tls_mode} == "Reality" ]]; then
-            if [[ -n "${port:-}" && "${port:-}" != "None" ]]; then
-                firewall_add_managed_port tcp "${port}" || return 1
-                firewall_add_managed_port udp "${port}" || return 1
-                firewall_add_output_port tcp "${port}" || return 1
-                firewall_add_output_port udp "${port}" || return 1
-            fi
-        fi
-
-        # Transport-mode inbound ports (idempotent per port).
-        if is_ws_mode && [[ -n "${xport:-}" && "${xport:-}" != "None" ]]; then
-            firewall_add_managed_port tcp "${xport}" || return 1
-            firewall_add_managed_port udp "${xport}" || return 1
-            firewall_add_output_port tcp "${xport}" || return 1
-            firewall_add_output_port udp "${xport}" || return 1
-        fi
-        if is_grpc_mode && [[ -n "${gport:-}" && "${gport:-}" != "None" ]]; then
-            firewall_add_managed_port tcp "${gport}" || return 1
-            firewall_add_managed_port udp "${gport}" || return 1
-            firewall_add_output_port tcp "${gport}" || return 1
-            firewall_add_output_port udp "${gport}" || return 1
-        fi
-        if is_xhttp_mode && [[ -n "${xhttpport:-}" && "${xhttpport:-}" != "None" ]]; then
-            firewall_add_managed_port tcp "${xhttpport}" || return 1
-            firewall_add_managed_port udp "${xhttpport}" || return 1
-            firewall_add_output_port tcp "${xhttpport}" || return 1
-            firewall_add_output_port udp "${xhttpport}" || return 1
-        fi
-
-        # UDP high-port range for FullCone (idempotent).
         firewall_add_udp_high_port_range || return 1
+
+        # Capture the pre-deploy managed set once (loaded at reconfig start).
+        # Fall back to reading managed_ports.json for a standalone firewall_set.
+        if [[ -z "${_reinstall_firewall_old_ports:-}" || \
+              "${_reinstall_firewall_old_ports:-}" == '{"tcp":[],"udp":[]}' ]]; then
+            _reinstall_firewall_old_ports=$(cat "${managed_ports_file}" 2>/dev/null ||
+                echo '{"tcp":[],"udp":[]}')
+        fi
+
+        # Build the full new managed set: main + transport ports, plus port 80
+        # when TLS mode (ACME / HTTP redirect). Including 80 in the managed set
+        # lets a TLS → Reality switch remove the now-unneeded 80 rule.
+        collect_new_managed_ports
+        if [[ ${tls_mode} == "TLS" ]]; then
+            new_ports_json=$(printf '%s' "${new_ports_json}" |
+                jq '.tcp = ((.tcp + [80]) | unique) | .udp = ((.udp + [80]) | unique)')
+        fi
+        _reinstall_firewall_new_ports="${new_ports_json}"
+
+        # Apply the managed rules as a transaction (old → new). Any partial
+        # failure or managed_ports.json write failure reverses the rules.
+        apply_managed_firewall_transaction \
+            "${_reinstall_firewall_old_ports}" \
+            "${_reinstall_firewall_new_ports}" || {
+                log_echo "${Error} ${RedBG} $(gettext "防火墙规则更新失败") ${Font}"
+                return 1
+            }
 
         # Persist rules. Failures here are non-fatal (rules are already active).
         if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
@@ -1685,21 +1694,6 @@ firewall_set() {
             netfilter-persistent save 2>/dev/null || iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
             log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
         fi
-
-        # Record managed ports and reconcile with the previous set so the
-        # firewall participates in the reinstall transaction (old→new).
-        # Reconcile BEFORE writing the new managed_ports.json so a failure
-        # leaves the old file intact.
-        collect_new_managed_ports
-        local _old_ports_json='{"tcp":[],"udp":[]}'
-        if [[ -f "${managed_ports_file}" ]]; then
-            _old_ports_json=$(cat "${managed_ports_file}" 2>/dev/null || echo '{"tcp":[],"udp":[]}')
-        fi
-        if ! reconcile_managed_firewall "${_old_ports_json}" "${new_ports_json}"; then
-            log_echo "${Error} ${RedBG} $(gettext "防火墙规则更新失败") ${Font}"
-            return 1
-        fi
-        atomic_write_managed_ports "${new_ports_json}" || return 1
 
         log_echo "${OK} ${GreenBG} $(gettext "开放防火墙相关端口") ${Font}"
         log_echo "${Warning} ${GreenBG} $(gettext "若修改配置, 请注意关闭防火墙相关端口") ${Font}"
@@ -4850,6 +4844,13 @@ old_config_exist_check() {
     change_ws_path="no"
     change_grpc_path="no"
     change_xhttp_path="no"
+    # Capture the pre-deploy managed port set for the firewall transaction.
+    # managed_ports.json still holds the old value at this point (before any
+    # deploy changes), so it is the correct source for rollback.
+    _reinstall_firewall_old_ports=$(cat "${managed_ports_file}" 2>/dev/null ||
+        echo '{"tcp":[],"udp":[]}')
+    _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_changed="no"
     if [[ -f "${xray_install_config_file}" ]]; then
         # Snapshot the running config before any reinstall or mode switch
         # so a failed deploy can be rolled back (P1-6). Skip in test mode
@@ -7443,7 +7444,9 @@ install_xray_ws_tls() {
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
-        trap 'reinstall_rollback_on_return "$?" "${_tx_backup}"' RETURN
+        # Capture _tx_backup value NOW (double quotes) so the trap fires with a
+        # literal path even after the local variable is destroyed on return.
+        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
     domain_check || return 1
     transport_choose || return 1
@@ -7513,7 +7516,9 @@ install_xray_reality() {
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
-        trap 'reinstall_rollback_on_return "$?" "${_tx_backup}"' RETURN
+        # Capture _tx_backup value NOW (double quotes) so the trap fires with a
+        # literal path even after the local variable is destroyed on return.
+        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
     ip_check || return 1
     port_set || return 1
@@ -7574,7 +7579,9 @@ install_xray_xtls_only() {
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
-        trap 'reinstall_rollback_on_return "$?" "${_tx_backup}"' RETURN
+        # Capture _tx_backup value NOW (double quotes) so the trap fires with a
+        # literal path even after the local variable is destroyed on return.
+        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
     ip_check || return 1
     shell_mode="XTLS ONLY"
@@ -7616,7 +7623,9 @@ install_xray_ws_only() {
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
-        trap 'reinstall_rollback_on_return "$?" "${_tx_backup}"' RETURN
+        # Capture _tx_backup value NOW (double quotes) so the trap fires with a
+        # literal path even after the local variable is destroyed on return.
+        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
     fi
     ip_check || return 1
     transport_choose || return 1
@@ -8387,6 +8396,13 @@ function restore_directories() {
 # Empty when there is nothing to restore (fresh install, or test mode where
 # old_config_exist_check is mocked out).
 _reinstall_backup_dir=""
+# Firewall transaction state (see apply_managed_firewall_transaction). Captured
+# at reconfig start (old) and after parameters are determined (new), so a
+# partial firewall change can be reversed even if managed_ports.json was not
+# yet written with the new set.
+_reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_changed="no"
 
 # RETURN-trap wrapper: restores the backup exactly once on deploy failure.
 # Args: <exit_code> <backup_dir>
@@ -8504,17 +8520,22 @@ reinstall_backup_create() {
     # target empty).
     {
         echo "{"
+        # NOTE: the $(...) command substitutions must NOT escape the inner
+        # quotes (\"...\"). GNU bash 3.2 treats `\"` inside a command
+        # substitution as a literal backslash+quote, so the path becomes
+        # `\"/path\"` and the -f/-d test always fails. Use plain quotes so the
+        # manifest records file existence correctly on all bash versions.
         echo "  \"files\": {"
-        echo "    \"install_config.json\": $([[ -f \"${xray_install_config_file}\" ]] && echo true || echo false),"
-        echo "    \"xray_conf_dir\": $([[ -d \"${xray_conf_dir}\" ]] && echo true || echo false),"
-        echo "    \"nginx_conf_dir\": $([[ -d \"${nginx_conf_dir}\" ]] && echo true || echo false),"
-        echo "    \"nginx_main_conf\": $([[ -f \"${_nginx_main_conf}\" ]] && echo true || echo false),"
-        echo "    \"cert_dir\": $([[ -d \"${ssl_chainpath}\" ]] && echo true || echo false),"
-        echo "    \"managed_ports.json\": $([[ -f \"${managed_ports_file}\" ]] && echo true || echo false),"
-        echo "    \"xray.service\": $([[ -f \"${xray_systemd_file}\" ]] && echo true || echo false),"
-        echo "    \"nginx.service\": $([[ -f \"${nginx_systemd_file}\" ]] && echo true || echo false),"
-        echo "    \"xray_info.inf\": $([[ -f \"${xray_info_file}\" ]] && echo true || echo false),"
-        echo "    \"xray_info_clash.yaml\": $([[ -f \"${_clash_yaml}\" ]] && echo true || echo false)"
+        echo "    \"install_config.json\": $( [[ -f "${xray_install_config_file}" ]] && echo true || echo false),"
+        echo "    \"xray_conf_dir\": $( [[ -d "${xray_conf_dir}" ]] && echo true || echo false),"
+        echo "    \"nginx_conf_dir\": $( [[ -d "${nginx_conf_dir}" ]] && echo true || echo false),"
+        echo "    \"nginx_main_conf\": $( [[ -f "${_nginx_main_conf}" ]] && echo true || echo false),"
+        echo "    \"cert_dir\": $( [[ -d "${ssl_chainpath}" ]] && echo true || echo false),"
+        echo "    \"managed_ports.json\": $( [[ -f "${managed_ports_file}" ]] && echo true || echo false),"
+        echo "    \"xray.service\": $( [[ -f "${xray_systemd_file}" ]] && echo true || echo false),"
+        echo "    \"nginx.service\": $( [[ -f "${nginx_systemd_file}" ]] && echo true || echo false),"
+        echo "    \"xray_info.inf\": $( [[ -f "${xray_info_file}" ]] && echo true || echo false),"
+        echo "    \"xray_info_clash.yaml\": $( [[ -f "${_clash_yaml}" ]] && echo true || echo false)"
         echo "  },"
         echo "  \"source_tls_mode\": \"${_source_mode}\","
         echo "  \"source_transport_mode\": \"${transport_mode:-}\","
@@ -8564,55 +8585,105 @@ reinstall_backup_restore() {
     # Stop all services to avoid races during restoration.
     service_stop 2>/dev/null || true
 
-    # Restore critical files — propagate failures instead of swallowing them.
-    if [[ -f "${backup_dir}/install_config.json" ]]; then
+    # Read the pre-reinstall manifest once. It records which managed paths
+    # existed before the deploy, so restore can delete anything the failed
+    # deploy created that was not there before (P2 manifest-driven cleanup).
+    local _pre_state="${backup_dir}/pre_reinstall_state.json"
+
+    # Whether a managed path existed before the reinstall.
+    # Returns "true"/"false". Defaults to "true" (restore, not delete) so an
+    # unknown path is never wrongly deleted.
+    # NOTE: must NOT use `// true` on the value — jq treats an explicit `false`
+    # as falsy, so `false // true` yields `true` and a file recorded as absent
+    # would be wrongly restored. Only an ABSENT field/-missing manifest should
+    # default to "true".
+    _manifest_existed() {
+        local key="$1"
+        if [[ -f "${_pre_state}" ]]; then
+            jq -r --arg k "${key}" \
+                'if (has("files") and (.files[$k] == false)) then "false" else "true" end' \
+                "${_pre_state}" 2>/dev/null || echo true
+        else
+            echo true
+        fi
+    }
+
+    # Restore critical files according to the manifest: paths that existed
+    # before are restored from backup; paths that did NOT exist before (created
+    # by the failed deploy) are removed. Only script-managed paths are touched.
+    if [[ "$(_manifest_existed install_config.json)" == "true" ]]; then
         cp -a "${backup_dir}/install_config.json" "${xray_install_config_file}" 2>/dev/null || _restore_err=1
+    else
+        # Deleting a path that did not exist before must NOT fail the restore
+        # when it (or its parent dir) does not exist — e.g. the failed deploy
+        # never created it, or the parent was also removed. Only a real error
+        # that leaves the path present should count as a failure.
+        rm -f "${xray_install_config_file}" 2>/dev/null || [[ ! -e "${xray_install_config_file}" ]] || _restore_err=1
     fi
-    if [[ -d "${backup_dir}/xray" ]]; then
+    if [[ "$(_manifest_existed xray_conf_dir)" == "true" ]]; then
         rm -rf "${xray_conf_dir}" 2>/dev/null
         cp -a "${backup_dir}/xray" "${xray_conf_dir}" 2>/dev/null || _restore_err=1
+    else
+        rm -rf "${xray_conf_dir}" 2>/dev/null || [[ ! -e "${xray_conf_dir}" ]] || _restore_err=1
     fi
-    if [[ -d "${backup_dir}/nginx" ]]; then
+    if [[ "$(_manifest_existed nginx_conf_dir)" == "true" ]]; then
         rm -rf "${nginx_conf_dir}" 2>/dev/null
         cp -a "${backup_dir}/nginx" "${nginx_conf_dir}" 2>/dev/null || _restore_err=1
+    else
+        rm -rf "${nginx_conf_dir}" 2>/dev/null || [[ ! -e "${nginx_conf_dir}" ]] || _restore_err=1
     fi
-    # Restore main nginx.conf if it was backed up.
+    # Restore/delete main nginx.conf (outside the project conf dir).
     local _nginx_main_conf="/usr/local/nginx/conf/nginx.conf"
-    if [[ -f "${backup_dir}/nginx.conf" ]]; then
+    if [[ "$(_manifest_existed nginx_main_conf)" == "true" ]]; then
         cp -a "${backup_dir}/nginx.conf" "${_nginx_main_conf}" 2>/dev/null || _restore_err=1
+    else
+        rm -f "${_nginx_main_conf}" 2>/dev/null || [[ ! -e "${_nginx_main_conf}" ]] || _restore_err=1
     fi
-    if [[ -d "${backup_dir}/cert" ]]; then
+    if [[ "$(_manifest_existed cert_dir)" == "true" ]]; then
         rm -rf "${ssl_chainpath}" 2>/dev/null
         cp -a "${backup_dir}/cert" "${ssl_chainpath}" 2>/dev/null || _restore_err=1
+    else
+        rm -rf "${ssl_chainpath}" 2>/dev/null || [[ ! -e "${ssl_chainpath}" ]] || _restore_err=1
     fi
-    # Firewall transaction rollback: reconcile current (post-deploy) managed
-    # ports back to the backed-up (pre-deploy) set BEFORE restoring the file.
-    # Reuses the same reconcile_managed_firewall as the forward path.
-    if [[ -f "${backup_dir}/managed_ports.json" ]]; then
-        local _cur_ports_json='{"tcp":[],"udp":[]}'
-        if [[ -f "${managed_ports_file}" ]]; then
-            _cur_ports_json=$(cat "${managed_ports_file}" 2>/dev/null || echo '{"tcp":[],"udp":[]}')
-        fi
-        local _old_ports_json
-        _old_ports_json=$(cat "${backup_dir}/managed_ports.json" 2>/dev/null || echo '{"tcp":[],"udp":[]}')
-        if ! reconcile_managed_firewall "${_cur_ports_json}" "${_old_ports_json}" 2>/dev/null; then
+
+    # Firewall transaction rollback: use the transaction-saved new/old sets so
+    # we can reverse the exact rules this deploy changed, even if
+    # managed_ports.json was not yet written with the new set.
+    if [[ "${_reinstall_firewall_changed:-}" == "yes" ]]; then
+        if ! reconcile_managed_firewall \
+            "${_reinstall_firewall_new_ports}" \
+            "${_reinstall_firewall_old_ports}"; then
             log_echo "${Error} ${RedBG} $(gettext "防火墙规则回滚失败") ${Font}"
             _restore_err=1
         fi
+    fi
+    # Restore or delete managed_ports.json per the manifest.
+    if [[ "$(_manifest_existed managed_ports.json)" == "true" ]]; then
         cp -a "${backup_dir}/managed_ports.json" "${managed_ports_file}" 2>/dev/null || _restore_err=1
+    else
+        rm -f "${managed_ports_file}" 2>/dev/null || [[ ! -e "${managed_ports_file}" ]] || _restore_err=1
     fi
-    if [[ -f "${backup_dir}/xray.service" ]]; then
+
+    if [[ "$(_manifest_existed xray.service)" == "true" ]]; then
         cp -a "${backup_dir}/xray.service" "${xray_systemd_file}" 2>/dev/null || _restore_err=1
+    else
+        rm -f "${xray_systemd_file}" 2>/dev/null || [[ ! -e "${xray_systemd_file}" ]] || _restore_err=1
     fi
-    if [[ -f "${backup_dir}/nginx.service" ]]; then
+    if [[ "$(_manifest_existed nginx.service)" == "true" ]]; then
         cp -a "${backup_dir}/nginx.service" "${nginx_systemd_file}" 2>/dev/null || _restore_err=1
+    else
+        rm -f "${nginx_systemd_file}" 2>/dev/null || [[ ! -e "${nginx_systemd_file}" ]] || _restore_err=1
     fi
-    # Restore share info — use canonical xray_info_file path and Clash YAML.
-    if [[ -f "${backup_dir}/xray_info.inf" ]]; then
+    # Restore/delete share info — use canonical xray_info_file path and Clash YAML.
+    if [[ "$(_manifest_existed xray_info.inf)" == "true" ]]; then
         cp -a "${backup_dir}/xray_info.inf" "${xray_info_file}" 2>/dev/null || _restore_err=1
+    else
+        rm -f "${xray_info_file}" 2>/dev/null || [[ ! -e "${xray_info_file}" ]] || _restore_err=1
     fi
-    if [[ -f "${backup_dir}/xray_info_clash.yaml" ]]; then
+    if [[ "$(_manifest_existed xray_info_clash.yaml)" == "true" ]]; then
         cp -a "${backup_dir}/xray_info_clash.yaml" "${xray_info_file%.*}_clash.yaml" 2>/dev/null || _restore_err=1
+    else
+        rm -f "${xray_info_file%.*}_clash.yaml" 2>/dev/null || [[ ! -e "${xray_info_file%.*}_clash.yaml" ]] || _restore_err=1
     fi
 
     systemctl daemon-reload 2>/dev/null || _restore_err=1
@@ -8623,7 +8694,6 @@ reinstall_backup_restore() {
 
     # Restore source mode variables from backup state so service_start/stop
     # below uses the SOURCE mode (not the failed target mode).
-    local _pre_state="${backup_dir}/pre_reinstall_state.json"
     if [[ -f "${_pre_state}" ]]; then
         local _src_mode
         _src_mode=$(jq -r '.source_tls_mode // empty' "${_pre_state}" 2>/dev/null)
@@ -8712,19 +8782,17 @@ reinstall_backup_restore() {
         _pre_acme_cron=$(jq -r '.acme_cron // "no"' "${_pre_state}" 2>/dev/null)
     fi
     if [[ "${_pre_acme_cron}" == "yes" ]]; then
-        local _crontab_file
-        if [[ "${ID:-}" == "centos" ]]; then
-            _crontab_file="/var/spool/cron/root"
-        else
-            _crontab_file="/var/spool/cron/crontabs/root"
-        fi
+        # Restore via the standard crontab interface (works on Debian, CentOS,
+        # Rocky, AlmaLinux alike — no spool path assumptions). Only append if
+        # the ssl_update.sh line is missing, to avoid duplicates.
         if ! crontab -l 2>/dev/null | grep -q "ssl_update.sh"; then
             if [[ -f "${backup_dir}/acme_cron_line.txt" ]]; then
-                local _saved_line
-                _saved_line=$(cat "${backup_dir}/acme_cron_line.txt" 2>/dev/null)
-                if [[ -n "${_saved_line}" && -f "${_crontab_file}" ]]; then
-                    printf '%s\n' "${_saved_line}" >> "${_crontab_file}" 2>/dev/null || _restore_err=1
-                else
+                {
+                    crontab -l 2>/dev/null || true
+                    cat "${backup_dir}/acme_cron_line.txt" 2>/dev/null
+                } | crontab - || _restore_err=1
+                # Verify the restore actually took effect.
+                if ! crontab -l 2>/dev/null | grep -q "ssl_update.sh"; then
                     log_echo "${Warning} ${YellowBG} $(gettext "ACME 定时任务未能恢复, 请手动检查") ${Font}"
                     _restore_err=1
                 fi
@@ -8740,6 +8808,11 @@ reinstall_backup_restore() {
         log_echo "${Warning} ${YellowBG} $(gettext "备份目录保留在"): ${backup_dir} ${Font}"
         return 1
     fi
+
+    # Rollback succeeded — reset the firewall transaction for the next attempt.
+    _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_changed="no"
 
     log_echo "${OK} ${GreenBG} $(gettext "已恢复原配置") ${Font}"
     return 0
@@ -8806,12 +8879,20 @@ reinstall_verify_preservation() {
 reinstall_finalize() {
     [[ -z "${_reinstall_backup_dir}" ]] && return 0
     if ! reinstall_validate_deploy; then
-        reinstall_backup_restore "${_reinstall_backup_dir}"
+        if ! reinstall_backup_restore "${_reinstall_backup_dir}"; then
+            log_echo "${Error} ${RedBG} $(gettext "最终验证失败且自动恢复未完成") ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "备份目录保留在"): ${_reinstall_backup_dir} ${Font}"
+            return 2
+        fi
         _reinstall_backup_dir=""
         return 1
     fi
     if ! reinstall_verify_preservation "${_reinstall_backup_dir}"; then
-        reinstall_backup_restore "${_reinstall_backup_dir}"
+        if ! reinstall_backup_restore "${_reinstall_backup_dir}"; then
+            log_echo "${Error} ${RedBG} $(gettext "最终验证失败且自动恢复未完成") ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "备份目录保留在"): ${_reinstall_backup_dir} ${Font}"
+            return 2
+        fi
         _reinstall_backup_dir=""
         return 1
     fi

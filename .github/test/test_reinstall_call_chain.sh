@@ -31,6 +31,11 @@ export _TEST_MODE=1
 # shellcheck source=/dev/null
 source "${REPO_DIR}/install.sh" >/dev/null 2>&1 || true
 
+# Snapshot the real restore function body NOW. Later scenarios (S15/S16) unset
+# and redefine reinstall_backup_restore, so S18 must restore this body before
+# wrapping it to count invocations.
+_REAL_RESTORE_BODY="$(declare -f reinstall_backup_restore)"
+
 PASS=0
 FAIL=0
 
@@ -85,6 +90,19 @@ read() {
         command read "$@"
     fi
 }
+
+# --- sha256sum shim: macOS lacks GNU sha256sum; use shasum -a 256. ---
+# The real restore verifies with `sha256sum --strict -c`. On macOS, shasum
+# does not support --strict, so strip it and delegate to shasum -a 256, which
+# uses the same "<hash>  <file>" checksum format (so -c is compatible).
+if ! command -v sha256sum >/dev/null 2>&1; then
+    sha256sum() {
+        if [[ "${1:-}" == "--strict" ]]; then
+            shift
+        fi
+        command shasum -a 256 "$@"
+    }
+fi
 
 # --- stat mock: translate Linux `stat -c` to macOS `stat -f` ---
 # update_json_config uses `stat -c '%a'/%u/%g` which is Linux-only.
@@ -171,6 +189,9 @@ reset_for_call_chain_test() {
     reality_add_more="off"
     reality_add_balance="off"
     _reinstall_backup_dir=""
+    _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_changed="no"
     reinstall_operation="none"
     reinstall_keep_config="off"
     old_tls_mode=""
@@ -904,6 +925,110 @@ _bare_count=$(grep -n 'old_config_exist_check' "${INSTALL_SH}" | \
     grep -v 'is_mocked' | \
     wc -l | tr -d ' ')
 assert_eq "S17 no bare old_config_exist_check calls" "0" "${_bare_count}"
+
+# ============================================================================
+# Scenario 18: Real install chain RETURN trap test
+# ============================================================================
+# Unlike Scenario 15 (which calls reinstall_rollback_on_return directly and
+# only proves the wrapper), this drives a REAL install_xray_* function through
+# its real control flow: old_config_exist_check creates a valid backup, the
+# RETURN trap is registered by the function itself, and a mocked mid-chain
+# function fails so the trap fires automatically.
+echo "=== Scenario 18: Real install chain RETURN trap ==="
+
+# Mock preflight functions that need root/system access (they precede the
+# backup check and must succeed so we reach the trap registration).
+is_root() { return 0; }
+check_and_create_user_group() { return 0; }
+check_system() { return 0; }
+dependency_install() { return 0; }
+basic_optimization() { return 0; }
+create_directory() { return 0; }
+
+# Mock old_config_exist_check to create a REAL backup and return 0 so the
+# RETURN trap inside install_xray_ws_tls gets registered with a valid dir.
+old_config_exist_check() {
+    _reinstall_backup_dir=$(reinstall_backup_create 2>/dev/null)
+    _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_changed="no"
+    return 0
+}
+
+# Mock the functions between old_config_exist_check and port_set so they
+# succeed, then make port_set fail — the first real failure after trap setup.
+domain_check() { return 0; }
+transport_choose() { return 0; }
+port_set() { return 1; }
+
+# --- 18a: successful restore via the real trap ---
+_restore_18a() {
+    reset_for_call_chain_test
+    write_tls_single_user_conf
+    echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+    tls_mode="TLS"
+    PRE_CONF=$(jq -Sc . "${xray_conf}")
+
+    # Restore the real restore body (S15/S16 unset it), then wrap it to count
+    # invocations.
+    eval "${_REAL_RESTORE_BODY}"
+    eval "$(declare -f reinstall_backup_restore | sed 's/reinstall_backup_restore/_s18_real_restore/')"
+    _S18_RESTORE_COUNT=0
+    reinstall_backup_restore() {
+        _S18_RESTORE_COUNT=$((_S18_RESTORE_COUNT + 1))
+        _s18_real_restore "$1" 2>/dev/null
+    }
+
+    install_xray_ws_tls 2>/dev/null
+    local rc=$?
+
+    assert_ne "S18a real install returns non-zero" "0" "${rc}"
+    assert_eq "S18a restore called exactly once via trap" "1" "${_S18_RESTORE_COUNT}"
+    # Original config restored.
+    local post_conf
+    post_conf=$(jq -Sc . "${xray_conf}")
+    assert_eq "S18a config restored via trap" "${PRE_CONF}" "${post_conf}"
+    # Backup dir cleared after successful auto-restore.
+    assert_eq "S18a backup dir cleared" "" "${_reinstall_backup_dir}"
+
+    unset -f reinstall_backup_restore _s18_real_restore
+}
+_restore_18a
+
+# --- 18b: restore failure keeps the backup dir and returns non-zero ---
+_restore_18b() {
+    reset_for_call_chain_test
+    write_tls_single_user_conf
+    echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+    tls_mode="TLS"
+
+    # Tamper the backup so SHA256 verification refuses to restore.
+    local _bdir
+    _bdir=$(reinstall_backup_create 2>/dev/null)
+    echo "TAMPER" >> "${_bdir}/xray/config.json"
+
+    # Re-point old_config_exist_check to the tampered backup.
+    old_config_exist_check() {
+        _reinstall_backup_dir="${_bdir}"
+        _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+        _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+        _reinstall_firewall_changed="no"
+        return 0
+    }
+
+    install_xray_ws_tls 2>/dev/null
+    local rc=$?
+    assert_ne "S18b real install returns non-zero" "0" "${rc}"
+    # Backup dir retained because restore was refused.
+    assert_ne "S18b backup dir retained on restore failure" "" "${_reinstall_backup_dir}"
+    [[ -d "${_reinstall_backup_dir}" ]] && ok "S18b backup dir still exists" || bad "S18b backup dir lost"
+}
+_restore_18b
+
+# Clean up all mocks used by this scenario.
+unset -f is_root check_and_create_user_group check_system dependency_install
+unset -f basic_optimization create_directory old_config_exist_check
+unset -f domain_check transport_choose port_set
 
 # ============================================================================
 # Summary
