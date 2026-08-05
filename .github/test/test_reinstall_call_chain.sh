@@ -137,9 +137,22 @@ if ! command -v sha256sum >/dev/null 2>&1; then
 fi
 
 # --- stat mock: translate Linux `stat -c` to macOS `stat -f` ---
-# update_json_config uses `stat -c '%a'/%u/%g` which is Linux-only.
-# On macOS, `stat -f '%Lp'/%u/%g` is the equivalent.
+# update_json_config uses `stat -c '%a'/%u/%g` which is GNU/Linux-only.
+# On macOS, `stat -f '%Lp'/%u/%g` is the equivalent. On GNU stat (Linux CI)
+# the -c calls MUST pass through untouched: GNU `stat -f` means "filesystem
+# status" and returns multi-line garbage, which would break chmod/chown
+# in update_json_config. Probe once before defining the mock so the probe
+# uses the real stat.
+if command stat -c '%a' /dev/null >/dev/null 2>&1; then
+    _STAT_IS_GNU=1
+else
+    _STAT_IS_GNU=0
+fi
 stat() {
+    if [[ "${_STAT_IS_GNU}" == "1" ]]; then
+        command stat "$@"
+        return
+    fi
     if [[ "${1:-}" == "-c" ]]; then
         local fmt="$2"
         shift 2
