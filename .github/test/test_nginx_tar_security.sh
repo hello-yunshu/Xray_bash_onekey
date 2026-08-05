@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# P1-B: Strict tar safety check tests for nginx_tar_safe_check().
+# Strict tar safety check tests for nginx_tar_safe_check().
 #
 # Verifies that the production function refuses:
 #   - absolute paths

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Section 2: Offline-safe command parsing before remote version access.
+# Offline-safe command parsing before remote version access.
 #
 # Coverage:
 #   - is_offline_safe_command returns 0 for -h, --help, --purge, --uninstall,

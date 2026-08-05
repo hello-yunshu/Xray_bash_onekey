@@ -55,7 +55,7 @@ jobs:
       - name: Run Phase 1 regression tests
         env:
           GH_TOKEN: ${{ github.token }}
-          # P0-1: the call-chain test resolves the Skill repo from this env var
+          # The call-chain test resolves the Skill repo from this env var
           # (falls back to the adjacent repo dir only outside CI).
           SKILL_REPO: ${{ github.workspace }}/.phase1-contracts/skill
         run: |
@@ -65,7 +65,7 @@ jobs:
           bash .github/test/test_nginx_tar_security.sh
           bash .github/test/test_nginx_update_rollback.sh
           bash .github/test/test_phase1_safety.sh
-          # P0-4: Xray update transaction tests (auto + manual mode coverage)
+          # Xray update transaction tests (auto + manual mode coverage)
           bash .github/test/test_xray_update_transaction.sh
           # Online version metadata must fall back cleanly without contaminating values.
           bash .github/test/test_version_loading.sh
@@ -135,7 +135,7 @@ jobs:
       - name: Collect debug info on failure (redacted)
         if: failure()
         run: |
-          # Source unified redaction helpers (Task H: no secrets in CI output)
+          # Source unified redaction helpers (no secrets in CI output)
           source .github/test/redact.sh
           echo "=== Install config (summary, no secrets) ==="
           sudo bash -c 'source .github/test/redact.sh; safe_print_config_summary "$1"' \

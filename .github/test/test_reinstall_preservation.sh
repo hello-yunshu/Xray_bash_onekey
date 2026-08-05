@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Reinstall config preservation tests.
 #
-# Coverage (8 scenarios per the development prompt):
+# Coverage:
 #   1. TLS single-user same-mode reinstall
 #   2. TLS multi-user same-mode reinstall
 #   3. Reality single-user same-mode reinstall
@@ -55,7 +55,7 @@ _info_cache_invalidate() { :; }
 
 # --- systemctl mock: unit-file aware so a missing unit behaves like real
 # systemd (is-active/is-enabled return non-zero, and enable/disable/start/stop
-# fail). Mocks that "always succeed" would mask the P0-2 unit-restore bug.
+# fail). Mocks that "always succeed" would mask the unit-restore bug.
 SYSTEMCTL_CALLS=0
 SYSTEMCTL_IS_ACTIVE_XRAY_CALLS=0
 SYSTEMCTL_IS_ACTIVE_NGINX_CALLS=0
@@ -341,7 +341,7 @@ EOF
 }
 
 # ============================================================================
-# Scenario 1: TLS single-user same-mode reinstall
+# TLS single-user same-mode reinstall
 # ============================================================================
 echo "--- Scenario 1: TLS single-user same-mode reinstall ---"
 reset_for_reinstall_test
@@ -380,7 +380,7 @@ CAPTURED=$(reinstall_backup_create 2>/dev/null)
 assert_not_contains "TLS single no UUID leak" "uuid-tls-single-SECRET" "${CAPTURED}"
 
 # ============================================================================
-# Scenario 2: TLS multi-user same-mode reinstall
+# TLS multi-user same-mode reinstall
 # ============================================================================
 echo "--- Scenario 2: TLS multi-user same-mode reinstall ---"
 reset_for_reinstall_test
@@ -410,7 +410,7 @@ BACKUP_DIR=$(reinstall_backup_create)
 assert_eq "TLS multi backup multi_user" "yes" "$(jq -r '.multi_user' "${BACKUP_DIR}/pre_reinstall_state.json")"
 
 # ============================================================================
-# Scenario 3: Reality single-user same-mode reinstall
+# Reality single-user same-mode reinstall
 # ============================================================================
 echo "--- Scenario 3: Reality single-user same-mode reinstall ---"
 reset_for_reinstall_test
@@ -441,7 +441,7 @@ BACKUP_DIR=$(reinstall_backup_create)
 assert_eq "Reality single backup reality_clients" "1" "$(jq -r '.reality_clients' "${BACKUP_DIR}/pre_reinstall_state.json")"
 
 # ============================================================================
-# Scenario 4: Reality multi-user same-mode reinstall
+# Reality multi-user same-mode reinstall
 # ============================================================================
 echo "--- Scenario 4: Reality multi-user same-mode reinstall ---"
 reset_for_reinstall_test
@@ -473,7 +473,7 @@ assert_eq "Reality multi email1 preserved" "user1@example.com" "${EMAIL1}"
 assert_eq "Reality multi email3 preserved" "user3@example.com" "${EMAIL3}"
 
 # ============================================================================
-# Scenario 5: Custom routing/outbound preservation
+# Custom routing/outbound preservation
 # ============================================================================
 echo "--- Scenario 5: Custom routing/outbound preservation ---"
 reset_for_reinstall_test
@@ -496,7 +496,7 @@ assert_eq "Third party marker preserved" "tool-Y" "$(jq -rc '.third_party_marker
 assert_eq "Custom DNS preserved" "1.2.3.4" "$(jq -rc '.custom_dns.servers[0]' "${xray_install_config_file}")"
 
 # ============================================================================
-# Scenario 6: Custom Nginx file preservation
+# Custom Nginx file preservation
 # ============================================================================
 echo "--- Scenario 6: Custom Nginx file preservation ---"
 reset_for_reinstall_test
@@ -549,7 +549,7 @@ fi
 assert_eq "user-site.conf content unchanged" "custom user site config" "$(cat "${nginx_conf_dir}/user-site.conf")"
 
 # ============================================================================
-# Scenario 7: Consecutive reinstall twice
+# Consecutive reinstall twice
 # ============================================================================
 echo "--- Scenario 7: Consecutive reinstall twice ---"
 reset_for_reinstall_test
@@ -590,7 +590,7 @@ else
 fi
 
 # ============================================================================
-# Scenario 8: Mode switch failure recovery
+# Mode switch failure recovery
 # ============================================================================
 echo "--- Scenario 8: Mode switch failure recovery ---"
 reset_for_reinstall_test
@@ -640,7 +640,7 @@ assert_not_contains "Mode switch no privateKey leak" "priv-key-SECRET" "${RESTOR
 assert_not_contains "Mode switch no UUID leak" "uuid-reality" "${RESTORE_OUTPUT}"
 
 # ============================================================================
-# Scenario 9: unit restore per manifest (P0-2)
+# Unit restore per manifest
 # Source system: xray.service exists, nginx.service does NOT. A failed deploy
 # creates a NEW nginx.service (and starts it). Rollback must delete the nginx
 # unit file, must stop the just-created unit exactly once as cleanup, and must
@@ -671,7 +671,7 @@ assert_eq "S9 deploy-created nginx stopped exactly once (cleanup)" "1" "${SYSTEM
 assert_eq "S9 no 'start nginx' call" "0" "${SYSTEMCTL_START_NGINX_CALLS}"
 assert_eq "S9 no 'enable nginx' call" "0" "${SYSTEMCTL_ENABLE_NGINX_CALLS}"
 
-# --- S9b: systemd still tracking the deleted unit → restore must FAIL ---
+# --- systemd still tracking the deleted unit → restore must FAIL ---
 echo "--- Scenario 9b: stuck nginx unit (systemd linger) → restore fails ---"
 reset_for_reinstall_test
 write_tls_single_user_conf
@@ -783,7 +783,7 @@ assert_eq "Cert fingerprint preserved" "${CERT_CONTENT}" "${RESTORED_CERT}"
 assert_eq "Key fingerprint preserved" "${KEY_CONTENT}" "${RESTORED_KEY}"
 
 # ============================================================================
-# Scenario 10: backup metadata fail-closed (P0-6)
+# Backup metadata fail-closed
 # Any failure while writing/validating the state manifest or checksum list
 # must delete the incomplete backup, return 1 and echo nothing.
 # ============================================================================
@@ -856,7 +856,7 @@ _FC_LEFTOVER=$(find "${idleleo_dir}/backup" -mindepth 1 -maxdepth 1 -type d 2>/d
 assert_eq "S10d empty checksums: incomplete backup deleted" "0" "${_FC_LEFTOVER}"
 
 # ============================================================================
-# Scenario 11: ACME cron bidirectional restore (P0-4)
+# ACME cron bidirectional restore
 # yes → restore the script-managed task (no duplicates); no → remove a task
 # the failed deploy added. User crontab lines are always preserved, and the
 # standard `crontab -l` / `crontab -` interface is used (never spool files).
@@ -963,7 +963,7 @@ assert_ne "S11d restore non-zero when crontab write fails" "0" "${RESTORE_RC}"
 rm -rf "${BACKUP_DIR}"
 
 # ============================================================================
-# Scenario 12: firewall reverse-failure propagation (P0-3)
+# Firewall reverse-failure propagation
 # Forward adds the first rule, fails on the second; the immediate new→old
 # reverse ALSO fails → state must stay "pending", the transaction returns
 # non-zero, and the global restore retries the reverse. When the retry fails

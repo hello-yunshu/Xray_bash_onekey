@@ -135,7 +135,7 @@ mf_configure_fail2ban() {
         cp -fp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
     fi
 
-    # Task G: Enable incremental banning globally.
+    # Enable incremental banning globally.
     # This makes repeat offenders get progressively longer bans without
     # relaxing the base bantime/maxretry/findtime of any jail.
     # Fail2ban >= 0.10 supports bantime.increment.
@@ -313,13 +313,13 @@ mf_is_module_enabled() {
     [[ "$enabled_status" == "true" ]]
 }
 
-# Task G: Enable incremental banning with safe defaults.
+# Enable incremental banning with safe defaults.
 # Written to jail.d/zzz-idleleo-incremental.local so it loads last
 # and applies to all jails. Fail2ban < 0.10 silently ignores these keys.
 mf_ensure_incremental_ban() {
     local inc_file="${FAIL2BAN_JAIL_D:-/etc/fail2ban/jail.d}/zzz-idleleo-incremental.local"
     cat > "$inc_file" << 'EOF'
-# Idleleo incremental ban policy (Task G)
+# Idleleo incremental ban policy
 # Repeat offenders get progressively longer bans.
 # Base bantime/maxretry/findtime per jail are NOT relaxed.
 [DEFAULT]
@@ -331,7 +331,7 @@ bantime.overalljails = false
 EOF
 }
 
-# Task G: Validate an IP address (IPv4 or IPv6).
+# Validate an IP address (IPv4 or IPv6).
 # Uses Python ipaddress module for strict validation when available.
 # Returns 0 if valid, 1 otherwise.
 # Rejects: ::::, 999.1.1.1, empty strings, malformed addresses.
@@ -352,7 +352,7 @@ except ValueError:
 " "$ip" 2>/dev/null
 }
 
-# Task G: Validate a CIDR (IP/prefix).
+# Validate a CIDR (IP/prefix).
 # Uses Python ipaddress module for strict validation when available.
 # Returns 0 if valid, 1 otherwise.
 # IPv4 prefix must be 0-32, IPv6 prefix must be 0-128.
@@ -382,7 +382,7 @@ except ValueError:
 " "$cidr" 2>/dev/null
 }
 
-# Task G: Get list of active jails from fail2ban-client.
+# Get list of active jails from fail2ban-client.
 mf_get_active_jails() {
     fail2ban-client status 2>/dev/null \
         | grep "Jail list:" \
@@ -398,7 +398,7 @@ mf_jail_is_active() {
     mf_get_active_jails | grep -Fqx -- "${jail}"
 }
 
-# Task G: View banned IPs for a specific jail.
+# View banned IPs for a specific jail.
 mf_view_banned_ips() {
     local jail="$1"
     [[ -z "$jail" ]] && return 1
@@ -409,7 +409,7 @@ mf_view_banned_ips() {
     fi
 }
 
-# Task G: Quick unban an IP from a jail.
+# Quick unban an IP from a jail.
 # Uses fail2ban-client set <jail> unbanip <ip> (real command, not shell injection).
 mf_quick_unban() {
     local jail="$1"
@@ -456,7 +456,7 @@ mf_quick_unban() {
     fi
 }
 
-# Task G: Add a trusted IP/CIDR to a jail's ignoreip.
+# Add a trusted IP/CIDR to a jail's ignoreip.
 # Uses fail2ban-client set <jail> addignoreip <ip-or-cidr>.
 # Also persists to the jail's .local config file.
 mf_add_trust_ip() {
@@ -487,7 +487,7 @@ mf_add_trust_ip() {
         if mf_persist_ignoreip "$jail" "$cidr" add; then
             log_echo "${OK} ${GreenBG} ${cidr} $(gettext "持久化成功") ${Font}"
         else
-            # P0-C: Runtime modification succeeded but persistence failed.
+            # Runtime modification succeeded but persistence failed.
             # Must explicitly tell user, not show as fully successful.
             log_echo "${Warning} ${YellowBG} $(gettext "运行态修改成功, 但持久化失败") ${Font}"
             log_echo "${Warning} ${YellowBG} $(gettext "重启 Fail2ban 后该可信 IP 可能丢失, 请手动检查配置文件") ${Font}"
@@ -499,7 +499,7 @@ mf_add_trust_ip() {
     fi
 }
 
-# Task G: Remove a trusted IP/CIDR from a jail's ignoreip.
+# Remove a trusted IP/CIDR from a jail's ignoreip.
 # Uses fail2ban-client set <jail> delignoreip <ip-or-cidr>.
 # Also removes from the jail's .local config file.
 mf_remove_trust_ip() {
@@ -530,7 +530,7 @@ mf_remove_trust_ip() {
         if mf_persist_ignoreip "$jail" "$cidr" del; then
             log_echo "${OK} ${GreenBG} ${cidr} $(gettext "持久化移除成功") ${Font}"
         else
-            # P0-C: Runtime modification succeeded but persistence failed.
+            # Runtime modification succeeded but persistence failed.
             # Must explicitly tell user, not show as fully successful.
             log_echo "${Warning} ${YellowBG} $(gettext "运行态修改成功, 但持久化失败") ${Font}"
             log_echo "${Warning} ${YellowBG} $(gettext "重启 Fail2ban 后该可信 IP 可能仍在, 请手动检查配置文件") ${Font}"
@@ -542,11 +542,11 @@ mf_remove_trust_ip() {
     fi
 }
 
-# Task G: Persist ignoreip changes to the jail's .local config file.
+# Persist ignoreip changes to the jail's .local config file.
 # This ensures trusted IPs survive a fail2ban restart.
 # Args: jail, cidr, action (add|del)
 # Returns 0 on success, 1 on failure (original file preserved).
-# P0-C: Uses temp file, atomic replace, config validation, and preserves owner/group/mode.
+# Uses temp file, atomic replace, config validation, and preserves owner/group/mode.
 mf_validate_candidate_config() {
     local candidate_file="$1"
     local config_file="$2"
@@ -761,7 +761,7 @@ mf_manage_fail2ban() {
     done
 }
 
-# P0-C: Menu helper for viewing banned IPs.
+# Menu helper for viewing banned IPs.
 # Lists active jails, lets user select one, then shows its banned IP list.
 mf_menu_view_banned_ips() {
     local active_jails
@@ -793,7 +793,7 @@ mf_menu_view_banned_ips() {
     mf_view_banned_ips "$selected_jail"
 }
 
-# P0-C: Menu helper for quick unbanning an IP.
+# Menu helper for quick unbanning an IP.
 # Lists active jails, lets user select one, then prompts for IP to unban.
 mf_menu_quick_unban() {
     local active_jails
@@ -829,7 +829,7 @@ mf_menu_quick_unban() {
     mf_quick_unban "$selected_jail" "$unban_ip"
 }
 
-# P0-C: Menu helper for adding a trusted IP/CIDR.
+# Menu helper for adding a trusted IP/CIDR.
 mf_menu_add_trust_ip() {
     local active_jails
     active_jails=$(mf_get_active_jails)
@@ -864,7 +864,7 @@ mf_menu_add_trust_ip() {
     mf_add_trust_ip "$selected_jail" "$trust_cidr"
 }
 
-# P0-C: Menu helper for removing a trusted IP/CIDR.
+# Menu helper for removing a trusted IP/CIDR.
 mf_menu_remove_trust_ip() {
     local active_jails
     active_jails=$(mf_get_active_jails)
@@ -899,7 +899,7 @@ mf_menu_remove_trust_ip() {
     mf_remove_trust_ip "$selected_jail" "$trust_cidr"
 }
 
-# P0-C: Service and config check submenu.
+# Service and config check submenu.
 mf_service_and_config_check() {
     while true; do
         echo
@@ -1189,7 +1189,7 @@ mf_check_for_updates() {
     fi
 }
 
-# P0-C: CLI entry point for Fail2ban management.
+# CLI entry point for Fail2ban management.
 # Reuses the same implementation as the menu, no logic duplication.
 # Usage:
 #   mf_cli --list
