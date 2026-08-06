@@ -757,6 +757,122 @@ assert_output_contains "return does not pollute next branch" \
 assert_output_not_contains "returned Reality branch did not install" \
     "ROUTE=reality" "${MENU_OUTPUT}"
 
+# ============================================================================
+# Menu return-code propagation (P0-4)
+#
+# Every install entry must preserve the real install rc: 0 → success branch
+# (exec), 1 → "安装失败, 原配置已恢复", 2 → "安装失败且自动恢复失败, 备份已保留".
+# rc 2 must reach the caller — never flattened to 1. The harness runs the
+# REAL menu functions with piped menu input; only install/exec/gettext/log_echo
+# are mocked.
+# ============================================================================
+echo "--- menu rc propagation: direct menu_action entries ---"
+
+run_menu_rc_flow() {
+    local entry="$1" install_rc="$2" exec_mode="$3" input="$4"
+    local harness
+    harness='
+            export _TEST_MODE=1
+            # shellcheck source=/dev/null
+            source "$1" >/dev/null 2>&1 || true
+            gettext() { printf "%s" "$1"; }
+            log_echo() { printf "MSG=%s\n" "$*"; }
+            install_xray_reality() { printf "INSTALLED=reality\n"; return "${INSTALL_RC}"; }
+            install_xray_ws_tls() { printf "INSTALLED=ws_tls\n"; return "${INSTALL_RC}"; }
+            install_xray_ws_only() { printf "INSTALLED=ws_only\n"; return "${INSTALL_RC}"; }
+            install_xray_xtls_only() { printf "INSTALLED=xtls_only\n"; return "${INSTALL_RC}"; }
+            exec() {
+                printf "EXEC_REACHED\n"
+                if [[ "${EXEC_MODE}" == "exit" ]]; then exit 0; fi
+            }
+            INSTALL_RC='"${install_rc}"'
+            EXEC_MODE='"${exec_mode}"'
+            '"${entry}"'
+            printf "RETURN=%s\n" "$?"
+        '
+    if command -v timeout >/dev/null 2>&1; then
+        printf '%b' "${input}" |
+            COLUMNS=24 TERM=dumb timeout 5 bash -c "${harness}" \
+                _ "${REPO_DIR}/install.sh" 2>&1
+    elif command -v gtimeout >/dev/null 2>&1; then
+        printf '%b' "${input}" |
+            COLUMNS=24 TERM=dumb gtimeout 5 bash -c "${harness}" \
+                _ "${REPO_DIR}/install.sh" 2>&1
+    else
+        printf '%b' "${input}" |
+            COLUMNS=24 TERM=dumb bash -c "${harness}" \
+                _ "${REPO_DIR}/install.sh" 2>&1
+    fi
+}
+
+for _rc in 0 1 2; do
+    for _entry in 3 4; do
+        _name="menu_action ${_entry} rc=${_rc}"
+        if [[ ${_rc} -eq 0 ]]; then
+            _out=$(run_menu_rc_flow "menu_action ${_entry}" 0 exit '')
+            assert_output_contains "${_name}: success branch reached" "EXEC_REACHED" "${_out}"
+            assert_output_not_contains "${_name}: no failure message" "安装失败" "${_out}"
+        else
+            _out=$(run_menu_rc_flow "menu_action ${_entry}" ${_rc} return '')
+            assert_output_contains "${_name}: returns ${_rc}" "RETURN=${_rc}" "${_out}"
+            assert_output_not_contains "${_name}: no exec on failure" "EXEC_REACHED" "${_out}"
+            if [[ ${_rc} -eq 2 ]]; then
+                assert_output_contains "${_name}: backup retained message" \
+                    "自动恢复失败, 备份已保留" "${_out}"
+            else
+                assert_output_contains "${_name}: restored message" \
+                    "安装失败, 原配置已恢复" "${_out}"
+            fi
+        fi
+    done
+    for _entry in 5 6; do
+        _name="menu_action ${_entry} rc=${_rc}"
+        if [[ ${_rc} -eq 0 ]]; then
+            _out=$(run_menu_rc_flow "menu_action ${_entry}" 0 exit 'y\n')
+            assert_output_contains "${_name}: success branch reached" "EXEC_REACHED" "${_out}"
+            assert_output_not_contains "${_name}: no failure message" "安装失败" "${_out}"
+        else
+            _out=$(run_menu_rc_flow "menu_action ${_entry}" ${_rc} return 'y\n')
+            assert_output_contains "${_name}: returns ${_rc}" "RETURN=${_rc}" "${_out}"
+            assert_output_not_contains "${_name}: no exec on failure" "EXEC_REACHED" "${_out}"
+            if [[ ${_rc} -eq 2 ]]; then
+                assert_output_contains "${_name}: backup retained message" \
+                    "自动恢复失败, 备份已保留" "${_out}"
+            else
+                assert_output_contains "${_name}: restored message" \
+                    "安装失败, 原配置已恢复" "${_out}"
+            fi
+        fi
+    done
+done
+
+echo "--- menu rc propagation: wizard entries ---"
+# Reality standard (menu_install_reality case 2), balance primary (case 1),
+# TLS transport (menu_install_transport case 1), ws ONLY (case 2), XTLS
+# (menu_install case 3). Each must propagate rc 1/2 to the caller.
+_out=$(run_menu_rc_flow "menu_install_reality" 1 return '2\n')
+assert_output_contains "wizard reality standard rc=1: returns 1" "RETURN=1" "${_out}"
+assert_output_contains "wizard reality standard rc=1: restored message" "原配置已恢复" "${_out}"
+_out=$(run_menu_rc_flow "menu_install_reality" 2 return '2\n')
+assert_output_contains "wizard reality standard rc=2: returns 2" "RETURN=2" "${_out}"
+assert_output_contains "wizard reality standard rc=2: backup retained" "自动恢复失败, 备份已保留" "${_out}"
+
+_out=$(run_menu_rc_flow "menu_install_reality_balance_role" 2 return '1\n')
+assert_output_contains "wizard balance primary rc=2: returns 2" "RETURN=2" "${_out}"
+assert_output_contains "wizard balance primary rc=2: backup retained" "自动恢复失败, 备份已保留" "${_out}"
+
+_out=$(run_menu_rc_flow "menu_install_transport" 2 return '1\n3\n')
+assert_output_contains "wizard TLS transport rc=2: returns 2" "RETURN=2" "${_out}"
+assert_output_contains "wizard TLS transport rc=2: backup retained" "自动恢复失败, 备份已保留" "${_out}"
+
+_out=$(run_menu_rc_flow "menu_install_transport" 2 return '2\ny\n2\n')
+assert_output_contains "wizard ws ONLY rc=2: returns 2" "RETURN=2" "${_out}"
+assert_output_contains "wizard ws ONLY rc=2: backup retained" "自动恢复失败, 备份已保留" "${_out}"
+
+_out=$(run_menu_rc_flow "menu_install" 2 return '3\ny\n')
+assert_output_contains "wizard xtls_only rc=2: returns 2" "RETURN=2" "${_out}"
+assert_output_contains "wizard xtls_only rc=2: backup retained" "自动恢复失败, 备份已保留" "${_out}"
+
 echo "--- menu translations are complete and non-fuzzy ---"
 for lang in en fa fr ko ru; do
     po_file="${REPO_DIR}/i18n/po/${lang}.po"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Section 3: read_optimize EOF and non-numeric input handling.
+# read_optimize EOF and non-numeric input handling.
 #
 # Coverage:
 #   - EOF (closed stdin) returns non-zero immediately

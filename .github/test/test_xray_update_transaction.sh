@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# P0-B/P0-C/P0-3: Xray update backup gate and same-version reinstall layered rollback tests.
+# Xray update backup gate and same-version reinstall layered rollback tests.
 #
 # Coverage (automatic mode):
 #   - backup failure refuses to stop service / overwrite binary

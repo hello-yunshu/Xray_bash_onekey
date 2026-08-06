@@ -1,4 +1,4 @@
-# Xray 一键安装脚本 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray 管理脚本 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
 简体中文 | [English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
@@ -8,13 +8,15 @@
 
 ## 功能特性
 
-* 输入 `idleleo` 即可管理脚本（[查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)）
+* 输入 `idleleo` 打开 Xray 管理菜单，管理安装、服务、安全设置等
 * 采用 Qwen-MT-Plus AI 实现多语言精准翻译
 * 支持 Reality 协议，建议搭配 Nginx 前置（脚本内可安装）
 * 支持 WebSocket、gRPC、xHTTP 传输，可选择单一传输或 `ws+gRPC+xHTTP` 同时启用
 * 内置 fail2ban 防护（脚本内可安装）
 * 内置 Xray 流量统计、流量阻断、GeoIP/GeoSite 规则更新及定时更新
-* 支持脚本、Xray、Nginx、证书自动更新，并提供完整备份与恢复
+* 支持脚本、Xray、Nginx 和证书更新，并为关键更新提供备份与失败回滚
+* 重新安装和模式切换前会自动备份当前运行配置，失败时恢复原配置
+* 重配置提供三条安全路径：保留配置重新部署、标准模板重建、模式切换
 * 采用 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91)（beta），兼容 Qv2ray、V2rayN、V2rayNG
 * 采用 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，支持自定义字符串映射至 VLESS UUID
 * 支持 gRPC 协议：[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
@@ -25,6 +27,7 @@
 
 ## 延伸阅读
 
+* `idleleo` 命名背景故事：[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
 * Reality 安装指南：[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
 * Reality 协议风险：[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
 * Reality 加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
@@ -58,6 +61,18 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_oneke
 | Docker | 镜像内预装 Xray、Nginx 与主脚本 |
 
 安装 ws/gRPC/xHTTP 相关模式时，可选择 `ws`、`gRPC`、`xHTTP` 或 `ws+gRPC+xHTTP`。脚本会分别生成对应端口、路径、分享链接和二维码；Clash 目前不支持 xHTTP，脚本会在配置输出中提示。
+
+## 重配置说明
+
+已安装的环境再次运行安装时，脚本会自动备份当前运行配置，并提供三条重配置路径：
+
+| 路径 | 说明 | 限制 |
+|------|------|------|
+| 保留配置重新部署 | 保留自定义 routing/outbounds/DNS 和多用户配置，仅修改用户选择的字段（端口、路径、UUID、Reality 参数等） | 不支持传输结构变更（如 ws → gRPC），需改传输组合请使用标准模板重建 |
+| 标准模板重建 | 使用当前可复用参数生成标准模板配置，自定义 routing/outbounds/DNS 可能被移除 | 不强制要求用户数量不变 |
+| 模式切换 | 切换到不同协议模式（如 Reality → TLS），默认只复用主用户 UUID/email | 其他用户不自动迁移，切换前会明确提示 |
+
+重配置过程中任何步骤失败（配置写入、服务启动、健康检查等）都会自动回滚到备份的原配置。备份目录使用唯一时间戳，支持连续多次重配置互不冲突。
 
 ## 常用命令
 
@@ -109,7 +124,7 @@ docker attach xray-onekey
 * 本程序依赖 Nginx，已通过 [LNMP](https://lnmp.org) 等脚本安装过 Nginx 的用户请注意潜在冲突
 * xHTTP 分享链接适用于支持 xHTTP 的客户端；Clash 配置输出会跳过 xHTTP
 * 请勿在未验证可用性前将本脚本用于生产环境
-* 作者仅提供有限支持（因为太笨了）
+* 作者：云舒，仅提供有限支持
 
 ## 鸣谢
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Unified redaction helpers for CI diagnostics and logs.
-# Task H: prevent UUID/privateKey/password/shortIds/share-links from leaking
+# Prevent UUID/privateKey/password/shortIds/share-links from leaking
 # into CI output, artifacts, and diagnostic bundles.
 #
 # Usage:
