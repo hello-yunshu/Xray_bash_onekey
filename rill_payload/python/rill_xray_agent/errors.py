@@ -1,0 +1,7 @@
+class RillError(Exception): code="rillError"
+class ContractError(RillError): code="contractViolation"
+class DecisionIdentityConflict(ContractError): code="decisionIdentityConflict"
+class UnsafePathError(RillError): code="unsafePath"
+class AuditError(RillError): code="auditError"
+class BackupError(RillError): code="backupError"
+class TransactionError(RillError): code="transactionError"

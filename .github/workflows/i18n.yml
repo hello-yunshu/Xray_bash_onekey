@@ -6,6 +6,7 @@ on:
       - 'install.sh'
       - 'scripts/fail2ban_manager.sh'
       - 'scripts/file_manager.sh'
+      - 'scripts/rill_xray_agent_manager.sh'
       - 'scripts/traffic_blocker.sh'
       - 'i18n/tools/translate.py'
       - 'i18n/tools/translation_terms.py'
@@ -60,6 +61,7 @@ jobs:
             echo "install.sh"
             echo "scripts/fail2ban_manager.sh"
             echo "scripts/file_manager.sh"
+            echo "scripts/rill_xray_agent_manager.sh"
             echo "scripts/traffic_blocker.sh"
           } > i18n/po/POTFILES.in
           

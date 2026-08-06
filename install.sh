@@ -342,6 +342,60 @@ update_json_config() {
     return 0
 }
 
+# BEGIN RILL XRAY AGENT INTEGRATION
+RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1
+rill_xray_agent_manager=/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh
+if [[ -f "$rill_xray_agent_manager" ]]; then
+    source "$rill_xray_agent_manager"
+else
+    rxa_refresh_summary(){ RILL_XRAY_AGENT_HEADER_STATE='Agent: not installed'; RILL_XRAY_AGENT_HEADER_RUNTIME='Runtime: OFF'; RILL_XRAY_AGENT_HEADER_ROUTE='Route: OFF'; }
+    rxa_menu(){ echo 'Rill Xray Agent is not installed. Run the included bootstrap script.'; menu_pause; }
+    rxa_dispatch(){ case "${1:-}" in status) printf '%s\n' '{"installed":false,"routeAssistEnabled":false,"boundedAutoAllowed":false}' ;; install) bash "${scripts_dir}/rill_xray_agent_bootstrap.sh" ;; *) return 66 ;; esac; }
+fi
+# Lifecycle coordination used by the host install/update/uninstall paths.
+# Every hook is non-fatal: it never changes the host transaction return code.
+rxa_reconfigure_enter() {
+    local cfg mode
+    cfg=${RILL_XRAY_AGENT_CONFIG:-/etc/rill-xray-agent/config.json}
+    command -v rxa_get >/dev/null 2>&1 || return 0
+    [[ -f "$cfg" ]] || return 0
+    mode=$(rxa_get mode 2>/dev/null || printf 'observe-only')
+    printf '%s' "$mode" >"${cfg}.prior-mode" 2>/dev/null || true
+    rxa_apply_mode observe-only >/dev/null 2>&1 || true
+}
+rxa_reconfigure_leave() {
+    local rc=${1:-1} cfg mode
+    cfg=${RILL_XRAY_AGENT_CONFIG:-/etc/rill-xray-agent/config.json}
+    mode=$(cat "${cfg}.prior-mode" 2>/dev/null || printf 'observe-only')
+    rm -f "${cfg}.prior-mode"
+    if [[ "$rc" == 0 ]] && rxa_host_healthy; then
+        rxa_apply_mode "$mode" >/dev/null 2>&1 || true
+        RILL_XRAY_AGENT_OUTPUT=/var/lib/rill-xray-agent-xray/status/xray-observation.json \
+            bash /etc/rill-xray-agent/scripts/rill_xray_agent_observe.py >/dev/null 2>&1 || true
+    fi
+    return 0
+}
+rxa_host_healthy() {
+    command -v systemctl >/dev/null 2>&1 || return 0
+    systemctl is-active --quiet xray 2>/dev/null && return 0
+    systemctl is-active --quiet nginx 2>/dev/null && return 0
+    return 1
+}
+rxa_uninstall_enter() {
+    command -v rxa_apply_mode >/dev/null 2>&1 || return 0
+    [[ -f /etc/rill-xray-agent/config.json ]] || return 0
+    rxa_apply_mode observe-only >/dev/null 2>&1 || true
+}
+rxa_uninstall_finish() {
+    local rc=${1:-1}
+    if [[ "$rc" != 0 ]]; then
+        echo 'Rill Xray Agent: host uninstall failed; agent diagnostics retained' >&2
+        return 0
+    fi
+    bash /etc/rill-xray-agent/scripts/rill_xray_agent_uninstall.sh --purge || true
+}
+# END RILL XRAY AGENT INTEGRATION
+
 download_file() {
     local url="$1"
     local dest_file="$2"
@@ -2868,6 +2922,8 @@ xray_install() {
 xray_update() {
     local current_xray_version
     local update_rolled_back=0
+    rxa_reconfigure_enter
+    trap 'rxa_reconfigure_leave $?' RETURN
     current_xray_version=$(info_extraction xray_version)
     [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
     # COMPAT: 旧版依赖 /usr/local/etc/xray 目录存放默认配置，新版不再使用，未来可删除
@@ -7331,6 +7387,7 @@ uninstall_nginx() {
 }
 
 uninstall_all() {
+    rxa_uninstall_enter
     stop_service_all
     acme_cron_cleanup
     local crontab_file
@@ -7384,6 +7441,7 @@ uninstall_all() {
         systemctl daemon-reload
         log_echo "${OK} ${GreenBG} $(gettext "已删除所有文件") ${Font}"
         log_echo "${GreenBG} $(gettext "ヾ(￣▽￣) 拜拜~") ${Font}"
+        rxa_uninstall_finish 0
         exit 0
         ;;
     *)
@@ -7395,6 +7453,7 @@ uninstall_all() {
         log_echo "${OK} ${GreenBG} $(gettext "已保留脚本文件 (包含 SSL 证书等)") ${Font}"
         ;;
     esac
+    rxa_uninstall_finish 0
 }
 
 delete_tls_key_and_crt() {
@@ -7470,13 +7529,16 @@ install_xray_ws_tls() {
     # idleleo info + conf dirs first would pollute the manifest recorded file
     # existence and break rollback to the true source state.
     old_config_exist_check || return 1
+    rxa_reconfigure_enter
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
-        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
+        trap "rxa_rc=\$?; reinstall_rollback_on_return \"\$rxa_rc\" \"${_tx_backup}\"; rxa_reconfigure_leave \"\$rxa_rc\"" RETURN
+    else
+        trap 'rxa_reconfigure_leave $?' RETURN
     fi
     basic_optimization || return 1
     create_directory || return 1
@@ -7535,6 +7597,7 @@ install_xray_ws_tls() {
     if [[ ${finalize_rc} -ne 0 ]]; then
         return "${finalize_rc}"
     fi
+    rxa_reconfigure_leave 0
     # Success info only after final safety gate passes.
     basic_information
     vless_link_image_choice
@@ -7549,13 +7612,16 @@ install_xray_reality() {
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
+    rxa_reconfigure_enter
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
-        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
+        trap "rxa_rc=\$?; reinstall_rollback_on_return \"\$rxa_rc\" \"${_tx_backup}\"; rxa_reconfigure_leave \"\$rxa_rc\"" RETURN
+    else
+        trap 'rxa_reconfigure_leave $?' RETURN
     fi
     basic_optimization || return 1
     create_directory || return 1
@@ -7604,6 +7670,7 @@ install_xray_reality() {
     if [[ ${finalize_rc} -ne 0 ]]; then
         return "${finalize_rc}"
     fi
+    rxa_reconfigure_leave 0
     basic_information
     vless_link_image_choice
     show_information
@@ -7617,13 +7684,16 @@ install_xray_xtls_only() {
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
+    rxa_reconfigure_enter
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
-        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
+        trap "rxa_rc=\$?; reinstall_rollback_on_return \"\$rxa_rc\" \"${_tx_backup}\"; rxa_reconfigure_leave \"\$rxa_rc\"" RETURN
+    else
+        trap 'rxa_reconfigure_leave $?' RETURN
     fi
     basic_optimization || return 1
     create_directory || return 1
@@ -7653,6 +7723,7 @@ install_xray_xtls_only() {
     if [[ ${finalize_rc} -ne 0 ]]; then
         return "${finalize_rc}"
     fi
+    rxa_reconfigure_leave 0
     basic_information
     vless_link_image_choice
     show_information
@@ -7666,13 +7737,16 @@ install_xray_ws_only() {
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
+    rxa_reconfigure_enter
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
-        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
+        trap "rxa_rc=\$?; reinstall_rollback_on_return \"\$rxa_rc\" \"${_tx_backup}\"; rxa_reconfigure_leave \"\$rxa_rc\"" RETURN
+    else
+        trap 'rxa_reconfigure_leave $?' RETURN
     fi
     basic_optimization || return 1
     create_directory || return 1
@@ -7715,6 +7789,7 @@ install_xray_ws_only() {
     if [[ ${finalize_rc} -ne 0 ]]; then
         return "${finalize_rc}"
     fi
+    rxa_reconfigure_leave 0
     basic_information
     vless_link_image_choice
     show_information
@@ -7761,6 +7836,16 @@ update_sh() {
                 ln -sf "${idleleo}" "${idleleo_commend_file}"
                 [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>"${log_file}"
                 [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
+                return 1
+            fi
+            # Rill Xray Agent: never replace a running script with one that
+            # dropped the integration schema; restore the backup and abort.
+            if grep -q '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=' "${idleleo}" 2>/dev/null && \
+               ! grep -q '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=' "${idleleo_dir}/install.sh" 2>/dev/null; then
+                log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新") ${Font}"
+                [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
+                ln -sf "${idleleo}" "${idleleo_commend_file}"
+                rm -f "${_backup_script}"
                 return 1
             fi
             downloaded_shell_version=$(
@@ -10015,6 +10100,9 @@ menu_main_header() {
     menu_fields "${shell_version_field}" "${xray_version_field}" "${nginx_version_field}"
     menu_divider "$(gettext "运行状态")"
     menu_fields "${xray_status_field}" "${nginx_status_field}" "${connect_status_field}"
+    rxa_refresh_summary
+    menu_divider "Rill Xray Agent"
+    menu_fields "${RILL_XRAY_AGENT_HEADER_STATE}" "${RILL_XRAY_AGENT_HEADER_RUNTIME}" "${RILL_XRAY_AGENT_HEADER_ROUTE}"
     menu_footer
     log "${mode_field}  ·  ${language_field}"
     log "${shell_version_field}  ·  ${xray_version_field}  ·  ${nginx_version_field}"
@@ -10036,10 +10124,11 @@ menu() {
         menu_item 6 "$(gettext "其他选项")"
         menu_item 7 "$(gettext "备份恢复")"
         menu_item 8 "$(gettext "修改语言") / Language"
+        menu_item 9 "Rill Xray Agent"
         menu_blank
         menu_item 0 "$(gettext "退出")"
         menu_footer
-        menu_read menu_num 8
+        menu_read menu_num 9
         case $menu_num in
             0) exit 0 ;;
             1) menu_install ;;
@@ -10050,6 +10139,7 @@ menu() {
             6) menu_tools ;;
             7) menu_backup_and_uninstall ;;
             8) menu_action 99 ;;
+            9) rxa_menu ;;
         esac
     done
 }
@@ -10058,7 +10148,8 @@ is_offline_safe_command() {
     case "${1:-}" in
         -h|--help|--purge|--uninstall|-s|--show|\
         --service-start|--service-stop|--service-restart|\
-        --access-log|--error-log|--backup)
+        --access-log|--error-log|--backup|\
+        --rill-agent|--rill-agent-status|--rill-agent-safe-disable|--rill-agent-verify|--rill-agent-uninstall)
             return 0
             ;;
         *)
@@ -10083,6 +10174,11 @@ dispatch_offline_safe_command() {
         --access-log) show_access_log ;;
         --error-log) show_error_log ;;
         --backup) backup_directories ;;
+        --rill-agent) rxa_menu ;;
+        --rill-agent-status) rxa_dispatch status ;;
+        --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;
+        --rill-agent-verify) rxa_dispatch verify ;;
+        --rill-agent-uninstall) rxa_dispatch uninstall ;;
         *) return 1 ;;
     esac
 }
