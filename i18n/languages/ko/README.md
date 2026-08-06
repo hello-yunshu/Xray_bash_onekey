@@ -1,4 +1,4 @@
-# Xray 원클릭 설치 스크립트 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray 관리 스크립트 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
 중국어 간체 |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
@@ -8,13 +8,15 @@
 
 ## 특징
 
-* 입력하다`idleleo`스크립트를 관리할 수 있습니다([查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)）
+* 입력하다`idleleo`Xray 관리 메뉴를 열어 설치, 서비스, 보안 설정 등을 관리하세요.
 * 여러 언어로 정확한 번역을 얻으려면 Qwen-MT-Plus AI을(를) 사용하세요.
 * Reality 프로토콜을 지원합니다. Nginx 접두사 사용을 권장합니다(스크립트에 설치 가능).
 * WebSocket, gRPC, xHTTP 전송을 지원하며 단일 전송 또는`ws+gRPC+xHTTP`둘 다 활성화
 * 내장된 fail2ban 보호(스크립트 내에 설치 가능)
 * 내장된 Xray 트래픽 통계, 트래픽 차단, GeoIP/GeoSite 규칙 업데이트 및 정기 업데이트
-* 스크립트, Xray, Nginx, 자동 인증서 업데이트를 지원하고 완벽한 백업 및 복구를 제공합니다.
+* 스크립트, Xray, Nginx 및 인증서 업데이트를 지원하고 중요 업데이트에 대한 백업 및 오류 롤백을 제공합니다.
+* 현재 실행 중인 구성은 재설치 및 모드 전환 전에 자동으로 백업되며, 장애 발생 시 원래 구성이 복원됩니다.
+* 재구성은 구성 보존 재배포, 표준 템플릿 재구성 및 모드 전환이라는 세 가지 안전한 경로를 제공합니다.
 * 사용[@DuckSoft](https://github.com/DuckSoft)님의 공유 링크[提案](https://github.com/XTLS/Xray-core/issues/91)(beta), Qv2ray, V2rayN, V2rayNG과 호환 가능
 * 사용[XTLS](https://github.com/XTLS/Xray-core/issues/158)제안, 따르다[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)표준, VLESS UUID에 대한 사용자 정의 문자열 매핑 지원
 * gRPC 프로토콜을 지원합니다:[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
@@ -25,6 +27,7 @@
 
 ## 추가 읽기
 
+* `idleleo`뒷이야기 명명:[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
 * Reality 설치 안내서:[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
 * Reality 프로토콜 위험:[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
 * Reality 가속 서버:[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
@@ -58,6 +61,18 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_oneke
 | Docker | Xray, Nginx 및 기본 스크립트가 이미지에 사전 설치되어 있습니다. |
 
 ws/gRPC/xHTTP 관련 모드 설치 시 선택 사항`ws`、`gRPC`、`xHTTP`또는`ws+gRPC+xHTTP`. 스크립트는 각각 해당 포트, 경로, 공유 링크 및 QR 코드를 생성합니다. Clash은 현재 xHTTP을 지원하지 않으며 스크립트는 구성 출력에 메시지를 표시합니다.
+
+## 재구성 지침
+
+설치된 환경이 다시 설치되면 스크립트는 현재 실행 중인 구성을 자동으로 백업하고 세 가지 재구성 경로를 제공합니다.
+
+| 길 | 설명하다 | 한계 |
+|------|------|------|
+| 구성 재배포 유지 | 사용자 정의 routing/outbounds/DNS 및 다중 사용자 구성을 유지하고 사용자가 선택한 필드(포트, 경로, UUID, Reality 매개변수 등)만 수정합니다. | 전송 구조 변경(예: ws → gRPC)은 지원되지 않습니다. 전송 조합을 변경해야 하는 경우 표준 템플릿을 사용하여 다시 구성하십시오. |
+| 표준 템플릿 재구성 | 현재 재사용 가능한 매개변수를 사용하여 표준 템플릿 구성을 생성합니다. 사용자 정의 routing/outbounds/DNS이(가) 제거될 수 있습니다. | 사용자 수를 변경하지 않아도 됩니다. |
+| 모드 스위치 | 다른 프로토콜 모드로 전환합니다(예: Reality → TLS). 기본적으로 기본 사용자 UUID/email만 재사용됩니다. | 다른 사용자는 자동으로 마이그레이션되지 않으며 전환하기 전에 명확한 메시지가 표시됩니다. |
+
+재구성 프로세스의 특정 단계(구성 작성, 서비스 시작, 상태 확인 등)가 실패하면 자동으로 원래 백업 구성으로 롤백됩니다. 백업 디렉터리는 고유한 타임스탬프를 사용하여 서로 충돌하지 않고 여러 번의 연속 재구성을 지원합니다.
 
 ## 일반적인 명령
 
@@ -109,7 +124,7 @@ docker attach xray-onekey
 * 이 프로그램은 Nginx에 따라 달라지며 통과되었습니다.[LNMP](https://lnmp.org)Nginx 스크립트를 설치한 사용자는 잠재적인 충돌에 유의하시기 바랍니다.
 * xHTTP 공유 링크는 xHTTP을 지원하는 클라이언트를 위한 것입니다. Clash 구성 출력은 xHTTP을 건너뜁니다.
 * 먼저 가용성을 확인하지 않고 프로덕션 환경에서 이 스크립트를 사용하지 마세요.
-* 작성자는 제한된 지원만 제공합니다(너무 멍청해서).
+* 작성자: Yun Shu, 제한된 지원만 제공
 
 ## 감사의 말
 
