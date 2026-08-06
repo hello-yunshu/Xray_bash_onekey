@@ -1,7 +1,7 @@
 [Unit]
 Description=Watch Xray configuration for Rill Xray Agent
 [Path]
-PathChanged=/etc/rill-xray-agent/host/conf/xray/config.json
+PathChanged=/etc/idleleo/conf/xray/config.json
 Unit=rill-xray-agent-xray-observe.service
 [Install]
 WantedBy=multi-user.target
