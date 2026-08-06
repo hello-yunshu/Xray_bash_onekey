@@ -9,7 +9,7 @@ units=(rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-a
 if [[ -z "$DESTDIR" ]]; then
     systemctl disable --now "${units[@]}" >/dev/null 2>&1 || true
 fi
-for unit in "${units[@]}"; do rm -f "$(root /etc/systemd/system/$unit)"; done
+for unit in "${units[@]}"; do rm -f "$(root "/etc/systemd/system/$unit")"; done
 rm -rf "$(root /opt/rill-xray-agent)" "$(root /run/rill-xray-agent)"
 if ((purge)); then
     rm -rf \
