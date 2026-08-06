@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Section 7: Script update writes correct downloaded version.
+# Script update writes correct downloaded version.
 #
 # Coverage:
 #   - update_sh writes the downloaded version (not old version) to config
@@ -150,17 +150,8 @@ if [[ ; then echo broken'
 UPDATE_JSON_CONFIG_CALLS=0
 UPDATED_SHELL_VERSION=""
 
-# update_sh should fail because downloaded version != newest (or syntax check)
-# Actually: the version string IS 3.0.1, but we need to check if bash -n is run
-# The current update_sh does grep for version, not bash -n. But it checks version match.
-# Let's verify the script is NOT overwritten when version doesn't match.
-# For syntax error test: the version IS 3.0.1 so it passes version check.
-# The prompt says "先 bash -n". Let's check if update_sh does bash -n.
-# Looking at the implementation, update_sh does NOT do bash -n explicitly,
-# but it does version check. Let's test version mismatch instead.
-
-# Actually, re-reading the prompt Section 7: "先 bash -n；版本不匹配不能覆盖现有脚本"
-# The implementation does version check. Let's test version mismatch.
+# update_sh matches the version string, not bash -n; a version mismatch must
+# NOT overwrite the existing script.
 
 # --- Test 3: Download with wrong version (still old 3.0.0) must fail ---
 echo "--- Download version still 3.0.0 (no update) must fail ---"

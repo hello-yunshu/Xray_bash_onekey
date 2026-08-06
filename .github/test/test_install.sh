@@ -14,7 +14,7 @@ REPO_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 _TEST_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "${REPO_DIR}"
 
-# Source unified redaction helpers (Task H: prevent secret leakage in CI)
+# Source unified redaction helpers (prevents secret leakage in CI)
 # shellcheck source=redact.sh
 source "${_TEST_DIR}/redact.sh"
 
@@ -268,7 +268,7 @@ ssl_judge_and_install() {
         -keyout "${ssl_chainpath}/xray.key" \
         -out "${ssl_chainpath}/xray.crt" \
         -days 365 -subj "/CN=${domain}" 2>/dev/null
-    # Task E (Section 9.3): root owns, worker group can read but NOT write.
+    # Root owns, worker group can read but NOT write.
     # Use non-recursive chown consistent with apply_nginx_layered_permissions() in install.sh.
     getent group idleleo-nginx >/dev/null 2>&1 || return 1
     chown -f "root:idleleo-nginx" "${ssl_chainpath}" || return 1

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Section 1: Port safety — refuse occupied ports without killing processes.
+# Port safety — refuse occupied ports without killing processes.
 #
 # Coverage:
 #   - port_exist_check returns non-zero when port is occupied by a non-project process

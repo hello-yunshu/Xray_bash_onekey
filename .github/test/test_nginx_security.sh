@@ -1,5 +1,5 @@
 #!/bin/bash
-# Task E + Task F regression tests: Nginx layered permissions and artifact security.
+# Nginx layered permissions and artifact security regression tests.
 # Tests:
 #   - ensure_idleleo_nginx_user idempotency
 #   - get_nginx_worker_user / get_nginx_worker_group helpers
@@ -15,7 +15,7 @@ REPO_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 _TEST_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "${REPO_DIR}"
 
-# Source redaction helpers (Task H)
+# Source redaction helpers
 # shellcheck source=redact.sh
 source "${_TEST_DIR}/redact.sh"
 
@@ -63,7 +63,7 @@ export _TEST_MODE=1
 source ./install.sh
 
 # ============================================================
-# Section 1: Helper functions
+# Helper functions
 # ============================================================
 echo ""
 echo "--- Section 1: Helper functions ---"
@@ -108,7 +108,7 @@ else
 fi
 
 # ============================================================
-# Section 2: ensure_idleleo_nginx_user idempotency
+# ensure_idleleo_nginx_user idempotency
 # ============================================================
 echo ""
 echo "--- Section 2: ensure_idleleo_nginx_user ---"
@@ -147,7 +147,7 @@ else
 fi
 
 # ============================================================
-# Section 3: apply_nginx_layered_permissions
+# apply_nginx_layered_permissions
 # ============================================================
 echo ""
 echo "--- Section 3: apply_nginx_layered_permissions ---"
@@ -270,7 +270,7 @@ if [[ "$(id -u)" == "0" ]] && id -u "idleleo-nginx" >/dev/null 2>&1; then
     fi
 
     # Verify private key is 640 (root rw, idleleo-nginx r, others none)
-    # Task E (Section 9.3): root owns, worker group can read but NOT write.
+    # Root owns, worker group can read but NOT write.
     _key_mode=$(stat -c '%a' "${_MOCK_SSL_CHAINPATH}/xray.key" 2>/dev/null || echo "")
     if [[ "${_key_mode}" == "640" ]]; then
         ok "Private key mode is 640"
@@ -308,7 +308,7 @@ if [[ "$(id -u)" == "0" ]] && id -u "idleleo-nginx" >/dev/null 2>&1; then
     fi
 
     # ========================================================
-    # P0-B: Permission call chain regression tests
+    # Permission call chain regression tests
     # ========================================================
     echo ""
     echo "  --- P0-B: Permission call chain regression ---"
@@ -442,7 +442,7 @@ ssl_chainpath="${_ORIG_SSL_CHAINPATH}"
 rm -rf "${_MOCK_NGINX_DIR}" "${_MOCK_NGINX_CONF_DIR}" "${_MOCK_SSL_CHAINPATH}"
 
 # ============================================================
-# Section 4: Path traversal protection logic
+# Path traversal protection logic
 # ============================================================
 echo ""
 echo "--- Section 4: Path traversal protection ---"
@@ -514,7 +514,7 @@ fi
 rm -rf "${_SAFE_TAR}" "${_DANGER_TAR}" "${_TRAVERSAL_TAR}"
 
 # ============================================================
-# Section 5: Manifest validation logic
+# Manifest validation logic
 # ============================================================
 echo ""
 echo "--- Section 5: Manifest validation ---"
@@ -641,7 +641,7 @@ fi
 rm -rf "${_MANIFEST_TEST}"
 
 # ============================================================
-# Section 6: No dangerous chown -fR nobody on nginx_dir
+# No dangerous chown -fR nobody on nginx_dir
 # ============================================================
 echo ""
 echo "--- Section 6: No dangerous chown -fR nobody on nginx_dir ---"
@@ -660,7 +660,7 @@ else
     ok "install.sh does not contain chmod -fR 755 on \${nginx_dir}"
 fi
 
-# P0-B: Verify install.sh does not contain recursive chown -fR of ssl_chainpath to worker user
+# Verify install.sh does not contain recursive chown -fR of ssl_chainpath to worker user
 if grep -q 'chown.*-fR.*$(get_nginx_worker_user).*ssl_chainpath' "${REPO_DIR}/install.sh" 2>/dev/null || \
    grep -q 'chown.*-fR.*${_nginx_worker_user}.*ssl_chainpath' "${REPO_DIR}/install.sh" 2>/dev/null; then
     bad "install.sh still contains recursive chown -fR of ssl_chainpath to worker user"
@@ -668,21 +668,21 @@ else
     ok "install.sh does not contain recursive chown -fR of ssl_chainpath to worker user"
 fi
 
-# P0-B: Verify scripts/ssl_update.sh does not contain recursive chown -fR of ssl_chainpath
+# Verify scripts/ssl_update.sh does not contain recursive chown -fR of ssl_chainpath
 if grep -q 'chown.*-fR.*ssl_chainpath' "${REPO_DIR}/scripts/ssl_update.sh" 2>/dev/null; then
     bad "scripts/ssl_update.sh still contains recursive chown -fR of ssl_chainpath"
 else
     ok "scripts/ssl_update.sh does not contain recursive chown -fR of ssl_chainpath"
 fi
 
-# P0-B: Verify xray_privilege_escalation() does NOT chown cert files to worker user
+# Verify xray_privilege_escalation() does NOT chown cert files to worker user
 if awk '/^xray_privilege_escalation\(\)/,/^}$/' "${REPO_DIR}/install.sh" | grep -q 'chown.*ssl_chainpath.*worker'; then
     bad "xray_privilege_escalation() still chowns cert files to worker user"
 else
     ok "xray_privilege_escalation() does NOT chown cert files to worker user"
 fi
 
-# P0-B: Verify xray_privilege_escalation() calls apply_nginx_layered_permissions
+# Verify xray_privilege_escalation() calls apply_nginx_layered_permissions
 if awk '/^xray_privilege_escalation\(\)/,/^}$/' "${REPO_DIR}/install.sh" | grep -q 'apply_nginx_layered_permissions'; then
     ok "xray_privilege_escalation() calls apply_nginx_layered_permissions (restores correct model)"
 else

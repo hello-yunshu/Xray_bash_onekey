@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Section 4: Unified port validation.
+# Unified port validation.
 #
 # Coverage:
 #   - validate_port_number accepts 1-65535, rejects 0, 65536, non-numeric
