@@ -8,15 +8,15 @@ Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 
 ## Features
 
-* Enter `idleleo` to open the Xray management menu for installation, services, and security settings
+* enter`idleleo`Open the Xray management menu to manage installation, services, security settings, etc.
 * Use Qwen-MT-Plus AI to achieve accurate translation in multiple languages
 * Supports Reality protocol, it is recommended to use Nginx prefix (can be installed in the script)
 * Supports WebSocket, gRPC, xHTTP transmission, you can choose single transmission or`ws+gRPC+xHTTP`Enable both
 * Built-in fail2ban protection (installable within script)
 * Built-in Xray traffic statistics, traffic blocking, GeoIP/GeoSite rule update and regular update
-* Supports script, Xray, Nginx and certificate updates, with backup and failure rollback for critical updates
-* Automatically backs up the current running configuration before reinstallation or mode switching, and restores the original configuration on failure
-* Reconfiguration provides three safe paths: keep-config redeploy, standard template rebuild, and mode switching
+* Supports scripts, Xray, Nginx and certificate updates, and provides backup and failure rollback for critical updates
+* The current running configuration will be automatically backed up before reinstallation and mode switching, and the original configuration will be restored in case of failure.
+* Reconfiguration provides three safe paths: configuration-preserving redeployment, standard template reconstruction, and mode switching.
 * use[@DuckSoft](https://github.com/DuckSoft)'s sharing link[提案](https://github.com/XTLS/Xray-core/issues/91)(beta), compatible with Qv2ray, V2rayN, V2rayNG
 * use[XTLS](https://github.com/XTLS/Xray-core/issues/158)proposal, follow[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)Standard, supports custom string mapping to VLESS UUID
 * Supports gRPC protocol:[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
@@ -27,7 +27,7 @@ Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 
 ## Further reading
 
-* `idleleo` naming background story:[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
+* `idleleo`Naming backstory:[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
 * Reality Installation Guide:[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
 * Reality Protocol Risk:[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
 * Reality Accelerated server:[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
@@ -62,17 +62,17 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_oneke
 
 Optional when installing ws/gRPC/xHTTP related modes`ws`、`gRPC`、`xHTTP`or`ws+gRPC+xHTTP`. The script will generate the corresponding port, path, sharing link and QR code respectively; Clash currently does not support xHTTP, and the script will prompt in the configuration output.
 
-## Reconfiguration
+## Reconfiguration instructions
 
-When running the installer again on an already installed environment, the script automatically backs up the current running configuration and offers three reconfiguration paths:
+When the installed environment is installed again, the script will automatically back up the current running configuration and provide three reconfiguration paths:
 
-| Path | Description | Limitations |
+| path | illustrate | limit |
 |------|------|------|
-| Keep-config redeploy | Preserves custom routing/outbounds/DNS and multi-user configuration, only modifying user-selected fields (port, path, UUID, Reality parameters, etc.) | Transport structure changes (e.g., ws → gRPC) are not supported; use standard template rebuild to change transport combinations |
-| Standard template rebuild | Generates a standard template configuration using currently reusable parameters; custom routing/outbounds/DNS may be removed | Does not enforce user count parity |
-| Mode switching | Switches to a different protocol mode (e.g., Reality → TLS), reusing only the primary user UUID/email by default | Other users are not migrated automatically; a clear prompt is shown before switching |
+| Preserve configuration redeployment | Keep custom routing/outbounds/DNS and multi-user configurations, modify only user-selected fields (ports, paths, UUID, Reality parameters, etc.) | Transmission structure changes (such as ws → gRPC) are not supported. If you need to change the transmission combination, please use the standard template to rebuild it. |
+| Standard template reconstruction | Generate standard template configuration using current reusable parameters, custom routing/outbounds/DNS may be removed | It is not mandatory that the number of users remains unchanged |
+| Mode switch | Switch to a different protocol mode (such as Reality → TLS). By default, only the main user UUID/email is reused. | Other users will not be automatically migrated and will be clearly prompted before switching. |
 
-Any failure during reconfiguration (config write, service start, health check, etc.) automatically rolls back to the backed-up original configuration. Backup directories use unique timestamps, allowing multiple consecutive reconfigurations without conflict.
+If any step in the reconfiguration process fails (configuration writing, service startup, health check, etc.), it will automatically roll back to the original backup configuration. The backup directory uses a unique timestamp to support multiple consecutive reconfigurations without conflicting with each other.
 
 ## Common commands
 
@@ -124,7 +124,7 @@ The traditional method requires SSH to go to the server, run the installation sc
 * This program depends on Nginx, passed[LNMP](https://lnmp.org)Users who have installed the script Nginx please be aware of potential conflicts.
 * xHTTP shared link is for clients that support xHTTP; Clash configuration output will skip xHTTP
 * Do not use this script in a production environment without first verifying availability
-* Author: yunshu, limited support only
+* Author: Yun Shu, providing limited support only
 
 ## Acknowledgments
 

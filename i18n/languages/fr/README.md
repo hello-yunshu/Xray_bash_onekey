@@ -1,4 +1,4 @@
-# Xray Script d'installation en un clic — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray Script de gestion — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
 Chinois simplifié |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
@@ -8,13 +8,15 @@ Chinois simplifié |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 
 ## Caractéristiques
 
-* entrer`idleleo`Vous pouvez gérer des scripts ([查看 `idleleo` 背景故事](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%BE%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)）
+* entrer`idleleo`Ouvrez le menu de gestion Xray pour gérer l'installation, les services, les paramètres de sécurité, etc.
 * Utilisez Qwen-MT-Plus AI pour obtenir une traduction précise dans plusieurs langues
 * Prend en charge le protocole Reality, il est recommandé d'utiliser le préfixe Nginx (peut être installé dans le script)
 * Prend en charge la transmission WebSocket, gRPC, xHTTP, vous pouvez choisir une transmission unique ou`ws+gRPC+xHTTP`Activer les deux
 * Protection fail2ban intégrée (installable dans le script)
 * Statistiques de trafic Xray intégrées, blocage du trafic, mise à jour des règles GeoIP/GeoSite et mise à jour régulière
-* Prend en charge les scripts, Xray, Nginx, les mises à jour automatiques des certificats et fournit une sauvegarde et une récupération complètes
+* Prend en charge les scripts, Xray, Nginx et les mises à jour de certificats, et fournit une sauvegarde et une restauration en cas d'échec pour les mises à jour critiques.
+* La configuration en cours d'exécution sera automatiquement sauvegardée avant la réinstallation et le changement de mode, et la configuration d'origine sera restaurée en cas de panne.
+* La reconfiguration offre trois voies sûres : le redéploiement en préservant la configuration, la reconstruction du modèle standard et le changement de mode.
 * utiliser[@DuckSoft](https://github.com/DuckSoft)le lien de partage[提案](https://github.com/XTLS/Xray-core/issues/91)(beta), compatible avec Qv2ray, V2rayN, V2rayNG
 * utiliser[XTLS](https://github.com/XTLS/Xray-core/issues/158)proposition, suivre[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)Standard, prend en charge le mappage de chaînes personnalisé vers VLESS UUID
 * Prend en charge le protocole gRPC :[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
@@ -25,6 +27,7 @@ Chinois simplifié |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 
 ## Lectures complémentaires
 
+* `idleleo`Histoire de dénomination :[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
 * RealityGuide d'installation :[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
 * Reality Risque de protocole :[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
 * Reality Serveur accéléré :[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
@@ -58,6 +61,18 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_oneke
 | Docker | Xray, Nginx et le script principal sont préinstallés dans l'image |
 
 Facultatif lors de l'installation des modes associés à ws/gRPC/xHTTP`ws`、`gRPC`、`xHTTP`ou`ws+gRPC+xHTTP`. Le script générera respectivement le port, le chemin, le lien de partage et le code QR correspondants ; Clash ne prend actuellement pas en charge xHTTP et le script vous demandera la sortie de configuration.
+
+## Instructions de reconfiguration
+
+Lorsque l'environnement installé est à nouveau installé, le script sauvegarde automatiquement la configuration en cours d'exécution et fournit trois chemins de reconfiguration :
+
+| chemin | illustrer | limite |
+|------|------|------|
+| Préserver le redéploiement de la configuration | Conservez les configurations routing/outbounds/DNS et multi-utilisateurs personnalisées, modifiez uniquement les champs sélectionnés par l'utilisateur (ports, chemins, paramètres UUID, Reality, etc.) | Les modifications de la structure de transmission (telles que ws → gRPC) ne sont pas prises en charge. Si vous devez modifier la combinaison de transmission, veuillez utiliser le modèle standard pour la reconstruire. |
+| Reconstruction de modèle standard | Générez une configuration de modèle standard à l'aide des paramètres réutilisables actuels, le routing/outbounds/DNS personnalisé peut être supprimé | Il n'est pas obligatoire que le nombre d'utilisateurs reste inchangé |
+| Changement de mode | Passez à un autre mode de protocole (tel que Reality → TLS). Par défaut, seul l'utilisateur principal UUID/email est réutilisé. | Les autres utilisateurs ne seront pas automatiquement migrés et seront clairement invités avant de changer. |
+
+Si une étape du processus de reconfiguration échoue (écriture de la configuration, démarrage du service, vérification de l'état, etc.), elle reviendra automatiquement à la configuration de sauvegarde d'origine. Le répertoire de sauvegarde utilise un horodatage unique pour prendre en charge plusieurs reconfigurations consécutives sans entrer en conflit les unes avec les autres.
 
 ## Commandes courantes
 
@@ -109,7 +124,7 @@ La méthode traditionnelle nécessite que SSH accède au serveur, exécute le sc
 * Ce programme dépend de Nginx, réussi[LNMP](https://lnmp.org)Les utilisateurs qui ont installé le script Nginx doivent être conscients des conflits potentiels.
 * Le lien partagé xHTTP est destiné aux clients qui prennent en charge xHTTP ; La sortie de configuration Clash ignorera xHTTP
 * N'utilisez pas ce script dans un environnement de production sans vérifier au préalable la disponibilité
-* L'auteur n'apporte qu'un soutien limité (car il est trop bête)
+* Auteur : Yun Shu, fournissant uniquement une assistance limitée
 
 ## Remerciements
 
