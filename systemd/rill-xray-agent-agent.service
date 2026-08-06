@@ -1,0 +1,20 @@
+[Unit]
+Description=Rill Xray Agent Agent
+Requires=rill-xray-agent-runtime.service
+After=rill-xray-agent-runtime.service
+[Service]
+Type=simple
+User=rill-xray-agent
+Group=rill-xray-agent
+ExecStart=/opt/rill-xray-agent/bin/rill-xray-agent-agent
+Restart=on-failure
+RuntimeDirectory=rill-xray-agent
+ReadWritePaths=/run/rill-xray-agent
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+UMask=0027
+KillMode=control-group
+[Install]
+WantedBy=multi-user.target

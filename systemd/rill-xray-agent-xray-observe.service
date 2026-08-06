@@ -1,0 +1,12 @@
+[Unit]
+Description=Rill Xray Agent Xray observation
+After=xray.service nginx.service
+[Service]
+Type=oneshot
+User=root
+Environment=RILL_XRAY_HOST_ROOT=/etc/rill-xray-agent/host
+ExecStart=/usr/bin/python3 /etc/rill-xray-agent/scripts/rill_xray_agent_observe.py
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/rill-xray-agent-xray

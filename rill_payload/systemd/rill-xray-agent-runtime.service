@@ -1,0 +1,21 @@
+[Unit]
+Description=Rill Xray Agent Runtime
+After=local-fs.target
+[Service]
+Type=simple
+User=rill-xray-agent
+Group=rill-xray-agent
+ExecStart=/opt/rill-xray-agent/bin/rill-xray-agent-runtime
+Restart=on-failure
+RuntimeDirectory=rill-xray-agent
+StateDirectory=rill-xray-agent-runtime
+ReadWritePaths=/var/lib/rill-xray-agent-runtime /run/rill-xray-agent
+ReadOnlyPaths=/var/lib/rill-xray-agent-root
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+UMask=0027
+KillMode=control-group
+[Install]
+WantedBy=multi-user.target
