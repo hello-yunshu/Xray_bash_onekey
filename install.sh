@@ -956,16 +956,20 @@ read_optimize() {
 }
 
 basic_optimization() {
-    sed -i '/^\*\ *soft\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
-    sed -i '/^\*\ *hard\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf
-    echo '* soft nofile 65536' >>/etc/security/limits.conf
-    echo '* hard nofile 65536' >>/etc/security/limits.conf
+    # Fail-closed: every system write must propagate failure so a caller's
+    # `basic_optimization || return 1` aborts the install chain instead of
+    # continuing after a half-applied limits tuning.
+    sed -i '/^\*\ *soft\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf || return 1
+    sed -i '/^\*\ *hard\ *nofile\ *[[:digit:]]*/d' /etc/security/limits.conf || return 1
+    printf '%s\n' '* soft nofile 65536' >>/etc/security/limits.conf || return 1
+    printf '%s\n' '* hard nofile 65536' >>/etc/security/limits.conf || return 1
 
     if [[ "${ID}" == "centos" ]]; then
-        sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
-        setenforce 0
+        sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config || return 1
+        setenforce 0 || return 1
     fi
 
+    return 0
 }
 
 create_directory() {

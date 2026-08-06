@@ -1359,7 +1359,7 @@ _s21_setup_wrappers() {
     # assigns is lost to the parent. Persist the produced backup dir and call
     # count through a state FILE instead so the parent can assert them.
     _S21_STATE_DIR="$(mktemp -d)"
-    _S21_BO=0; _S21_CD=0; _S21_OC=0; _S21_RS=0; _S21_RS_RC=0
+    _S21_BO=0; _S21_CD=0; _S21_OC=0; _S21_RS=0; _S21_RS_RC=0; _S21_BO_RC=0; _S21_SED_FAIL=0
     eval "${_REAL_BASIC_OPTIMIZATION_DEF}"
     eval "${_REAL_CREATE_DIRECTORY_DEF}"
     eval "${_REAL_OLD_CONFIG_EXIST_CHECK_DEF}"
@@ -1375,11 +1375,21 @@ _s21_setup_wrappers() {
         _S21_BO=$((_S21_BO + 1))
         # The real body appends to /etc/security/limits.conf, which is not
         # writable when the suite runs as non-root. That redirection error is an
-        # environmental artifact unrelated to the reinstall logic under test, so
-        # it is filtered here (the sed mock below already no-ops the sed edits)
-        # to keep the swallowed-error audit — stderr is NOT otherwise touched.
-        _s21_real_basic_optimization 2> >(grep -v 'limits.conf' >&2)
-        return 0
+        # environmental artifact (the sed mock already no-ops the /etc edits),
+        # so it is downgraded to success ONLY when no sed failure was injected
+        # (_S21_SED_FAIL == 0) and the failure itself references limits.conf.
+        # Any genuine failure — including an injected sed failure (S26) — keeps
+        # its real exit code and propagates through `basic_optimization || return 1`.
+        local _bo_err _bo_rc=0
+        _bo_err="$(mktemp)"
+        _s21_real_basic_optimization 2>"${_bo_err}" || _bo_rc=$?
+        grep -v 'limits.conf' "${_bo_err}" >&2 || true
+        _S21_BO_RC=${_bo_rc}
+        if [[ ${_bo_rc} -ne 0 ]] && [[ ${_S21_SED_FAIL:-0} -eq 0 ]] && grep -q 'limits\.conf' "${_bo_err}"; then
+            _bo_rc=0
+        fi
+        rm -f "${_bo_err}"
+        return ${_bo_rc}
     }
     create_directory() { _S21_CD=$((_S21_CD + 1)); _s21_real_create_directory; return $?; }
     old_config_exist_check() { _S21_OC=$((_S21_OC + 1)); _s21_real_old_config_exist_check; return $?; }
@@ -1634,6 +1644,99 @@ _restore_22() {
     unset -f _s21_real_old_config_exist_check _s21_real_backup_create _s21_real_restore
 }
 _restore_22
+
+# ============================================================================
+# Scenario 26: a REAL basic_optimization failure (sed cannot edit
+# /etc/security/limits.conf) must stop the install chain BEFORE
+# create_directory / domain_check / port_set, fire the RETURN trap exactly
+# once, and leave the source state intact. This is the fail-closed
+# propagation proof that the S20 structural grep cannot provide: the real
+# function's non-zero exit code must survive the counting wrapper (no forced
+# `return 0`) and abort the chain via `basic_optimization || return 1`.
+# ============================================================================
+echo "=== Scenario 26: real basic_optimization failure stops the chain ==="
+unset -f old_config_exist_check 2>/dev/null
+_restore_26() {
+    reset_for_call_chain_test
+    write_tls_single_user_conf
+    echo '{"tls":"TLS","id":"uuid-orig"}' > "${xray_install_config_file}"
+    tls_mode="TLS"
+    old_tls_mode="TLS"
+
+    rm -rf "${nginx_conf_dir}" "${ssl_chainpath}" "${xray_conf_dir}"
+    rm -rf "${idleleo_dir}/info"
+
+    # sed mock: FAIL for limits.conf edits (the first basic_optimization step),
+    # pass everything else through to the real binary. The failure is counted
+    # in _S21_SED_FAIL so the basic_optimization wrapper can tell an injected
+    # failure apart from the environmental non-root limits.conf append error.
+    _S21_SED_FAIL=0
+    sed() {
+        local a
+        for a in "$@"; do
+            if [[ "${a}" == "/etc/security/limits.conf" ]]; then
+                _S21_SED_FAIL=$((_S21_SED_FAIL + 1))
+                return 1
+            fi
+        done
+        command sed "$@"
+    }
+
+    is_root() { return 0; }
+    check_and_create_user_group() { return 0; }
+    check_system() { return 0; }
+    dependency_install() { return 0; }
+    _S26_DOMAIN_CALLS=0
+    _S26_PORT_CALLS=0
+    domain_check() { _S26_DOMAIN_CALLS=$((_S26_DOMAIN_CALLS + 1)); return 0; }
+    transport_choose() { return 0; }
+    port_set() { _S26_PORT_CALLS=$((_S26_PORT_CALLS + 1)); return 1; }
+
+    _s21_setup_wrappers
+
+    local rc=0
+    local _saved_test_mode="${_TEST_MODE:-}"
+    unset _TEST_MODE
+    # Run in the CURRENT shell (process substitution, not a pipeline) so the
+    # counter variables set by the real functions persist for assertion below.
+    local _s26_err
+    _s26_err="$(mktemp)"
+    install_xray_ws_tls 2>"${_s26_err}" < <(printf '2\ny\n') || rc=$?
+    export _TEST_MODE="${_saved_test_mode}"
+    local bdir="$(_s21_backup_dir)"
+
+    assert_ne "S26 install returns non-zero" "0" "${rc}"
+    assert_eq "S26 real basic_optimization ran once" "1" "${_S21_BO}"
+    assert_ne "S26 basic_optimization returned non-zero (not swallowed)" "0" "${_S21_BO_RC}"
+    assert_eq "S26 injected sed failure hit once" "1" "${_S21_SED_FAIL}"
+    # The chain must abort AT basic_optimization: no later step may run.
+    assert_eq "S26 chain stopped BEFORE create_directory" "0" "${_S21_CD}"
+    assert_eq "S26 chain stopped BEFORE domain_check" "0" "${_S26_DOMAIN_CALLS}"
+    assert_eq "S26 chain stopped BEFORE port_set" "0" "${_S26_PORT_CALLS}"
+    assert_eq "S26 restore ran exactly once via trap" "1" "${_S21_RS}"
+    assert_eq "S26 restore actually succeeded (rc 0)" "0" "${_S21_RS_RC:-}"
+    if grep -Eq 'command not found|Permission denied|No such file or directory' "${_s26_err}" 2>/dev/null; then
+        bad "S26 swallowed error on real path: $(tr '\n' ' ' < "${_s26_err}")"
+    else
+        ok "S26 no swallowed errors on real path"
+    fi
+    rm -f "${_s26_err}"
+
+    # Source state untouched: no managed dir was created, config preserved.
+    [[ ! -d "${xray_conf_dir}" ]] && ok "S26 xray_conf_dir never created" || bad "S26 xray_conf_dir created"
+    [[ ! -d "${nginx_conf_dir}" ]] && ok "S26 nginx_conf_dir never created" || bad "S26 nginx_conf_dir created"
+    [[ ! -d "${ssl_chainpath}" ]] && ok "S26 cert dir never created" || bad "S26 cert dir created"
+    [[ ! -d "${idleleo_dir}/info" ]] && ok "S26 info dir never created" || bad "S26 info dir created"
+    [[ -f "${idleleo_conf_dir}/install_config.json" ]] && ok "S26 install_config.json preserved" || bad "S26 install_config.json missing"
+
+    unset -f sed is_root check_and_create_user_group check_system
+    unset -f dependency_install domain_check transport_choose port_set
+    unset -f basic_optimization create_directory old_config_exist_check
+    unset -f reinstall_backup_create reinstall_backup_restore
+    unset -f _s21_real_basic_optimization _s21_real_create_directory
+    unset -f _s21_real_old_config_exist_check _s21_real_backup_create _s21_real_restore
+}
+_restore_26
 
 # ============================================================================
 # Scenarios 23-25: ACME cron snapshot/restore must NOT depend on the presence
