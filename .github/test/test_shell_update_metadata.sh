@@ -97,8 +97,17 @@ ln -sf "${idleleo}" "${idleleo_commend_file}"
 # Create config with old version
 jq -n --arg sv "3.0.0" '{shell_version: $sv}' > "${xray_install_config_file}"
 
-# Download content with new version
-DOWNLOAD_CONTENT='shell_version="3.0.1"'
+# Download content with new version. A valid update on an integration-patched
+# script must itself carry the integration anchors (rxa_candidate_guard).
+DOWNLOAD_CONTENT='#!/usr/bin/env bash
+RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1
+shell_version="3.0.1"
+rxa_reconfigure_enter() { return 0; }
+rxa_uninstall_finish() { return 0; }
+rxa_host_healthy() { return 0; }
+menu_item() { return 0; }
+menu_item 9 "Rill Xray Agent"
+case "${1:-}" in --rill-agent-status) rxa_dispatch status ;; esac'
 UPDATE_JSON_CONFIG_CALLS=0
 UPDATED_SHELL_VERSION=""
 
