@@ -12,6 +12,7 @@ grep -q '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=' install.sh
 grep -Fq 'install.sh.rxa-candidate.$$' install.sh
 grep -Fq 'rxa_candidate_guard "${_candidate}"' install.sh
 grep -Fq 'mv -f "${_candidate}" "${idleleo}"' install.sh
+grep -q 'rxa_candidate_guard()' install.sh
 grep -q 'rxa_candidate_guard()' scripts/rill_xray_agent_manager.sh
 # P0-6: mode switch is a four-party transaction with verification and rollback.
 grep -q 'rxa_observe_fresh' scripts/rill_xray_agent_manager.sh
