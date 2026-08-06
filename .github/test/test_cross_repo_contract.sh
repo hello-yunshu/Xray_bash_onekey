@@ -106,7 +106,7 @@ require_core_assets() {
 }
 
 # --- tested contract (full verification) -------------------------------------
-# P0-6: Fail-closed — tested Release MUST exist. A missing release means the
+# Fail-closed — tested Release MUST exist. A missing release means the
 # tested_version cannot serve as a real rollback baseline, so CI must fail.
 if ! release_json=$(fetch_release_json "${tested_tag}" 2>/dev/null); then
     echo "ERROR: Tested Nginx release ${tested_tag} does not exist on GitHub (fail-closed)." >&2
@@ -117,7 +117,7 @@ fi
 require_published_release "${release_json}" "tested" "${tested_tag}"
 require_core_assets "${release_json}" "tested" "${tested_tag}"
 
-# P0-8: Download manifest and SHA256SUMS to temp files for byte-exact SHA
+# Download manifest and SHA256SUMS to temp files for byte-exact SHA
 # verification. Shell command substitution would strip trailing newlines and
 # produce incorrect digests; file-based SHA matches the real Release asset bytes.
 manifest_url=$(printf '%s' "${release_json}" | jq -r \
@@ -145,7 +145,7 @@ jq -e --arg version "${tested_build}" --arg tag "${tested_tag}" '
       (.sha256 | test("^[0-9a-fA-F]{64}$")))] | length == 1)
   ' "$manifest_file" >/dev/null
 
-# P0-8: Verify SHA256SUMS has exactly one entry for each required file.
+# Verify SHA256SUMS has exactly one entry for each required file.
 for req_file in xray-nginx-custom-x86.tar.gz xray-nginx-custom-arm.tar.gz release-manifest.json; do
     sum_count=$(awk -v f="$req_file" '$NF == f {c++} END {print c+0}' "$sha256sums_file")
     if [[ "$sum_count" -ne 1 ]]; then
@@ -154,7 +154,7 @@ for req_file in xray-nginx-custom-x86.tar.gz xray-nginx-custom-arm.tar.gz releas
     fi
 done
 
-# P0-8: Verify manifest x86/arm SHAs match SHA256SUMS exactly.
+# Verify manifest x86/arm SHAs match SHA256SUMS exactly.
 for arch in x86 arm; do
     manifest_filename=$(jq -r --arg arch "$arch" '.assets[] | select(.arch == $arch) | .filename' "$manifest_file")
     manifest_sha=$(jq -r --arg arch "$arch" '.assets[] | select(.arch == $arch) | .sha256' "$manifest_file")
@@ -165,7 +165,7 @@ for arch in x86 arm; do
     fi
 done
 
-# P0-8: Verify manifest file's actual byte-exact SHA matches SHA256SUMS record.
+# Verify manifest file's actual byte-exact SHA matches SHA256SUMS record.
 # This is the key check that catches trailing-newline mismatches.
 manifest_recorded_sha=$(awk -v f="release-manifest.json" '$NF == f {print $1; exit}' "$sha256sums_file")
 if command -v shasum >/dev/null 2>&1; then

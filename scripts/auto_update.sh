@@ -169,7 +169,7 @@ if [[ -f "${xray_install_config_file}" ]]; then
         bash "${idleleo_dir}/install.sh" -u auto_update
         [[ 0 -ne $? ]] && echo "Script update failed!" >>"${log_file}" && exit 1
         echo "Script updated successfully!" >>"${log_file}"
-        # Persist shell_version preserving owner/group/mode (Task A: avoid permission regression)
+        # Persist shell_version preserving owner/group/mode (avoids permission regression)
         if ! safe_update_install_config --arg sv "${shell_online_version}" '. += {"shell_version": $sv}'; then
             echo "Failed to persist shell_version in config (original preserved)" >>"${log_file}"
         fi

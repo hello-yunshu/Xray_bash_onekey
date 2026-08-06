@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# P0-C: Fail2ban management functionality tests.
+# Fail2ban management functionality tests.
 # Tests menu/CLI entry points, IP/CIDR validation, unban,
 # trusted IP add/remove, persistence (atomic + validation),
 # and SNI/TLS jail policy strictness.
@@ -33,7 +33,7 @@ echo "  (P0-C: unban, trusted IP, persistence, CLI)"
 echo "============================================"
 
 # ============================================================
-# Section 0: Setup mock environment
+# Setup mock environment
 # ============================================================
 
 # Create a temporary directory for mock binaries and config
@@ -106,7 +106,7 @@ export reality_add_nginx="on"
 export nginx_dir="${_MOCK_BASE}/nginx"
 export scripts_dir="${_MOCK_BASE}/scripts"
 export idleleo_dir="${_MOCK_BASE}/idleleo"
-# P0-C: Use mock jail.d path so persistence tests can write without root
+# Use mock jail.d path so persistence tests can write without root
 export FAIL2BAN_JAIL_D="${_MOCK_JAIL_D}"
 export Error="Error"
 export RedBG="RedBG"
@@ -121,7 +121,7 @@ export OK="OK"
 mkdir -p "${nginx_dir}/logs" "${scripts_dir}" "${idleleo_dir}"
 
 # ============================================================
-# Section 0.1: Create mock fail2ban-client
+# Create mock fail2ban-client
 # ============================================================
 
 # The mock fail2ban-client supports:
@@ -268,7 +268,7 @@ chmod +x "${_MOCK_BIN}/fail2ban-client"
 source "${REPO_DIR}/scripts/fail2ban_manager.sh"
 
 # ============================================================
-# Section 1: mf_validate_ip tests
+# mf_validate_ip tests
 # ============================================================
 echo ""
 echo "--- Section 1: IP validation ---"
@@ -301,7 +301,7 @@ for ip in "" "999.1.1.1" "1.2.3.4.5" "::::" "256.0.0.1" "abc" "1.2.3" "1.2.3.4/2
 done
 
 # ============================================================
-# Section 2: mf_validate_cidr tests
+# mf_validate_cidr tests
 # ============================================================
 echo ""
 echo "--- Section 2: CIDR validation ---"
@@ -343,7 +343,7 @@ for cidr in "1.2.3.4/100" "1.2.3.4/-1" "1.2.3.4/33" "::::/64" "999.1.1.1/24" "1.
 done
 
 # ============================================================
-# Section 3: mf_get_active_jails tests
+# mf_get_active_jails tests
 # ============================================================
 echo ""
 echo "--- Section 3: Active jail parsing ---"
@@ -375,7 +375,7 @@ else
 fi
 
 # ============================================================
-# Section 4: mf_quick_unban tests
+# mf_quick_unban tests
 # ============================================================
 echo ""
 echo "--- Section 4: Quick unban ---"
@@ -457,7 +457,7 @@ else
 fi
 
 # ============================================================
-# Section 5: Shell injection prevention tests
+# Shell injection prevention tests
 # ============================================================
 echo ""
 echo "--- Section 5: Shell injection prevention ---"
@@ -519,7 +519,7 @@ for attempt in "${_cidr_injections[@]}"; do
 done
 
 # ============================================================
-# Section 6: mf_add_trust_ip / mf_remove_trust_ip tests
+# mf_add_trust_ip / mf_remove_trust_ip tests
 # ============================================================
 echo ""
 echo "--- Section 6: Trusted IP add/remove ---"
@@ -586,7 +586,7 @@ else
 fi
 
 # ============================================================
-# Section 7: mf_persist_ignoreip tests
+# mf_persist_ignoreip tests
 # ============================================================
 echo ""
 echo "--- Section 7: Persistence (atomic + validation) ---"
@@ -685,7 +685,7 @@ fi
 unset _MOCK_FAIL_RELOAD
 
 # ============================================================
-# Section 8: mf_cli (CLI entry point) tests
+# mf_cli (CLI entry point) tests
 # ============================================================
 echo ""
 echo "--- Section 8: CLI entry point ---"
@@ -759,7 +759,7 @@ else
 fi
 
 # ============================================================
-# Section 9: SNI/TLS jail policy strictness tests
+# SNI/TLS jail policy strictness tests
 # ============================================================
 echo ""
 echo "--- Section 9: SNI/TLS jail policy strictness ---"
@@ -826,7 +826,7 @@ else
 fi
 
 # ============================================================
-# Section 10: Incremental ban policy tests
+# Incremental ban policy tests
 # ============================================================
 echo ""
 echo "--- Section 10: Incremental ban policy ---"
@@ -880,7 +880,7 @@ else
 fi
 
 # ============================================================
-# Section 11: Persistence failure does not show as fully successful
+# Persistence failure does not show as fully successful
 # ============================================================
 echo ""
 echo "--- Section 11: Persistence failure handling ---"
@@ -924,7 +924,7 @@ fi
 unset _MOCK_FAIL_CONFIG
 
 # ============================================================
-# Section 12: mf_manage_fail2ban menu structure verification
+# mf_manage_fail2ban menu structure verification
 # ============================================================
 echo ""
 echo "--- Section 12: Menu structure verification ---"
@@ -951,7 +951,7 @@ for _option_text in "管理模块" "查看已封禁" "快速解封" "添加可�
 done
 
 # ============================================================
-# Section 13: CLI entry point in install.sh verification
+# CLI entry point in install.sh verification
 # ============================================================
 echo ""
 echo "--- Section 13: CLI entry point in install.sh ---"

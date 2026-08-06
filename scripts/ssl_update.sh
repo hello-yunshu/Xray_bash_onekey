@@ -65,7 +65,7 @@ if ! getent group "${cert_group}" >/dev/null 2>&1; then
     exit 1
 fi
 cert_user="root"
-# Task E (Section 9.3): root owns certs/keys, worker group can read but NOT write.
+# Root owns certs/keys, worker group can read but NOT write.
 # Use non-recursive chown to avoid affecting other files in the directory.
 # Apply layered permission model consistent with apply_nginx_layered_permissions()
 # in install.sh: cert dir root:idleleo-nginx 750, cert/privkey root:idleleo-nginx 640.
