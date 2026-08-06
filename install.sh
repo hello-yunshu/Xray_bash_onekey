@@ -7830,37 +7830,39 @@ update_sh() {
                 _backup_script="${idleleo}.bak.$$"
                 cp -a "${idleleo}" "${_backup_script}" || _backup_script=""
             fi
-            download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
-            if [[ $? -ne 0 ]]; then
+            _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
+            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
+                rm -f "${_candidate}"
                 [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
                 ln -sf "${idleleo}" "${idleleo_commend_file}"
                 [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>"${log_file}"
                 [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
                 return 1
             fi
-            # Rill Xray Agent: never replace a running script with one that
-            # dropped the integration schema; restore the backup and abort.
-            if grep -q '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=' "${idleleo}" 2>/dev/null && \
-               ! grep -q '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=' "${idleleo_dir}/install.sh" 2>/dev/null; then
-                log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新") ${Font}"
+            # Rill Xray Agent: validate the candidate before it can replace
+            # the running script; on any failure keep the old version.
+            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
+                rm -f "${_candidate}"
                 [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
                 ln -sf "${idleleo}" "${idleleo_commend_file}"
-                rm -f "${_backup_script}"
+                log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新") ${Font}"
                 return 1
             fi
             downloaded_shell_version=$(
-                grep -E '^shell_version=' "${idleleo_dir}/install.sh" |
+                grep -E '^shell_version=' "${_candidate}" |
                 head -n 1 |
                 awk -F'=|"' '{print $3}'
             )
             if [[ -z "${downloaded_shell_version}" ||
                   "${downloaded_shell_version}" != "${newest_version}" ]]; then
+                rm -f "${_candidate}"
                 log_echo "${Error} ${RedBG} $(gettext "下载脚本版本校验失败") ${Font}"
                 [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
                 ln -sf "${idleleo}" "${idleleo_commend_file}"
                 rm -f "${_backup_script}"
                 return 1
             fi
+            mv -f "${_candidate}" "${idleleo}"
             rm -f "${_backup_script}"
             ln -s "${idleleo}" "${idleleo_commend_file}"
             if [[ -f "${xray_install_config_file}" ]]; then
@@ -8195,7 +8197,18 @@ idleleo_commend() {
         oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
-            download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
+            _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
+            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
+                rm -f "${_candidate}"
+                return 1
+            fi
+            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
+                rm -f "${_candidate}"
+                echo "Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新")" >&2
+                return 1
+            fi
+            mv -f "${_candidate}" "${idleleo}"
+
             judge "$(gettext "下载最新脚本")"
             clear
             exec "${BASH:-bash}" "${idleleo}"
@@ -8209,7 +8222,18 @@ idleleo_commend() {
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
-                    download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
+                    _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
+            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
+                rm -f "${_candidate}"
+                return 1
+            fi
+            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
+                rm -f "${_candidate}"
+                echo "Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新")" >&2
+                return 1
+            fi
+            mv -f "${_candidate}" "${idleleo}"
+
                     judge "$(gettext "下载最新脚本")"
                     clear
                     log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
@@ -8220,7 +8244,18 @@ idleleo_commend() {
                     ;;
                 esac
             else
-                download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
+                _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
+            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
+                rm -f "${_candidate}"
+                return 1
+            fi
+            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
+                rm -f "${_candidate}"
+                echo "Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新")" >&2
+                return 1
+            fi
+            mv -f "${_candidate}" "${idleleo}"
+
                 echo
                 judge "$(gettext "下载最新脚本")"
                 clear

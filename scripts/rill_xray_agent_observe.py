@@ -7,7 +7,7 @@ import tempfile
 import time
 from pathlib import Path
 
-ROOT = Path(os.environ.get("RILL_XRAY_HOST_ROOT", "/etc/rill-xray-agent/host"))
+ROOT = Path(os.environ.get("RILL_XRAY_HOST_ROOT", "/etc/idleleo"))
 OUT = Path(os.environ.get("RILL_XRAY_AGENT_OUTPUT", "/var/lib/rill-xray-agent-xray/status/xray-observation.json"))
 
 
