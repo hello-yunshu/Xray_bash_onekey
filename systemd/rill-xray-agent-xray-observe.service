@@ -4,7 +4,7 @@ After=xray.service nginx.service
 [Service]
 Type=oneshot
 User=root
-Environment=RILL_XRAY_HOST_ROOT=/etc/rill-xray-agent/host
+Environment=RILL_XRAY_HOST_ROOT=/etc/idleleo
 ExecStart=/usr/bin/python3 /etc/rill-xray-agent/scripts/rill_xray_agent_observe.py
 NoNewPrivileges=true
 PrivateTmp=true

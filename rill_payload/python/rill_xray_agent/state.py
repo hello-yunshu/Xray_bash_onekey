@@ -17,12 +17,19 @@ class RuntimeState:
  def transact(self,fn):
   with FileLock(self.lock):
    s=self.load();c={**s,'pending':dict(s['pending']),'completed':dict(s['completed']),'closed':dict(s['closed'])};r=fn(c);self.save(c);return r
+ def _identity_hash(self,ident):return digest(ident)
+ def _tombstone(self,ident,payload_sha,closed_at):
+  return {'decisionIdHash':digest(ident['decisionId']),'identityHash':self._identity_hash(ident),'payloadHash':payload_sha,'closedAtEpochSeconds':closed_at}
  def register(self,capability,decision_id,generation,created):
   ident={'capability':capability,'decisionId':decision_id,'modelGeneration':generation,'createdAtEpochSeconds':created}
   def tx(s):
-   e=s['pending'].get(decision_id) or s['completed'].get(decision_id) or s['closed'].get(decision_id)
+   e=s['pending'].get(decision_id) or s['completed'].get(decision_id)
    if e:
     if e.get('identity')==ident:return {'status':'idempotent'}
+    raise DecisionIdentityConflict('decision ID different identity')
+   c=s['closed'].get(decision_id)
+   if c:
+    if c['identityHash']==self._identity_hash(ident):return {'status':'idempotent'}
     raise DecisionIdentityConflict('decision ID different identity')
    s['pending'][decision_id]={'identity':ident,'rootResult':None,'registeredAtEpochSeconds':int(time.time())};return {'status':'registered'}
   return self.transact(tx)
@@ -42,12 +49,20 @@ class RuntimeState:
    if c:
     if c['payloadSha256']==psha:return {'status':'idempotent','accepted':True}
     raise ContractError('conflicting completed feedback')
+   t=s['closed'].get(did)
+   if t:
+    if t['payloadHash']==psha:return {'status':'idempotent','accepted':True}
+    raise ContractError('conflicting closed feedback')
    p=s['pending'].get(did)
    if not p:raise ContractError('feedback unknown')
    i=p['identity']
    if payload.get('capability')!=i['capability'] or payload.get('modelGeneration')!=i['modelGeneration']:raise DecisionIdentityConflict('feedback identity conflict')
    if i['capability']=='route' and not p.get('rootResult'):raise ContractError('feedback before root result')
-   s['completed'][did]={'identity':i,'payload':payload,'payloadSha256':psha,'acceptedAtEpochSeconds':int(time.time())};del s['pending'][did]
-   while len(s['completed'])>self.max_completed:del s['completed'][sorted(s['completed'])[0]]
+   from .payload_policy import sanitize_payload
+   payload_meta=sanitize_payload(payload)
+   s['completed'][did]={'identity':i,'payloadMeta':payload_meta,'payloadSha256':psha,'acceptedAtEpochSeconds':int(time.time())};del s['pending'][did]
+   while len(s['completed'])>self.max_completed:
+    evicted=sorted(s['completed'])[0];e=s['completed'].pop(evicted)
+    s['closed'][evicted]=self._tombstone(e['identity'],e['payloadSha256'],e['acceptedAtEpochSeconds'])
    return {'status':'accepted','accepted':True}
   return self.transact(tx)
