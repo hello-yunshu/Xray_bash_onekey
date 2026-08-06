@@ -1,0 +1,8 @@
+name: Rill Xray Agent
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: bash .github/test/test_rill_xray_agent.sh
