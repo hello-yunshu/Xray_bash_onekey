@@ -34,6 +34,11 @@ class AccessControl:
         uid = creds[1] if creds else None
         return uid is not None and uid in self.allowed_uids
 
+    def write_permitted(self, uid):
+        if self.allowed_uids is None:
+            return True
+        return uid is not None and uid in self.allowed_uids
+
     def describe(self):
         return {'mode': 'allowlist' if self.allowed_uids is not None else 'open',
                 'allowedUids': sorted(self.allowed_uids) if self.allowed_uids is not None else None}
