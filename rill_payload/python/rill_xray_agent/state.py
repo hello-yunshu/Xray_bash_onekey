@@ -46,6 +46,21 @@ class ClosedLedger:
     def count(self):
         return len(list(self.root.glob('*.json')))
 
+    def entries(self):
+        out = {}
+        for p in sorted(self.root.glob('*.json')):
+            try:
+                data = read_json(p)
+            except Exception:
+                continue
+            if data.get('schemaVersion') != 1:
+                continue
+            out[data.get('decisionIdHash')] = {
+                'payloadHash': data.get('payloadHash'),
+                'closedAtEpochSeconds': data.get('closedAtEpochSeconds'),
+            }
+        return out
+
     def _corrupt(self, p):
         return p.is_symlink() or not p.is_file()
 
@@ -88,19 +103,38 @@ class ClosedLedger:
 
 
 class RuntimeState:
- def __init__(self,path,max_completed=4096,ledger_dir=None,max_ledger_entries=0):self.path=Path(path);self.lock=self.path.with_suffix('.lock');self.max_completed=max_completed;self.ledger=ClosedLedger(ledger_dir or (self.path.parent/'closed-ledger'),max_entries=max_ledger_entries)
- def empty(self):return {'schemaVersion':3,'mode':'observe-only','routeAssistEnabled':False,'pending':{},'completed':{},'closed':{},'restartCount':0}
+ def __init__(self,path,max_completed=4096,ledger_dir=None,max_ledger_entries=0,max_ledger_bytes=None,replay_protection_seconds=21600):
+  self.path=Path(path);self.lock=self.path.with_suffix('.lock');self.max_completed=max_completed
+  self.ledger=ClosedLedger(ledger_dir or (self.path.parent/'closed-ledger'),max_entries=max_ledger_entries,max_bytes=max_ledger_bytes,replay_protection_seconds=replay_protection_seconds)
+ def empty(self):return {'schemaVersion':3,'mode':'observe-only','routeAssistEnabled':False,'pending':{},'completed':{},'restartCount':0}
  def load(self):
   if not self.path.exists():return self.empty()
   v=read_json(self.path)
   if v.get('schemaVersion') not in {1,2,3}:raise ContractError('unsupported state')
   if v['schemaVersion']!=3:
    m=self.empty();m.update({k:x for k,x in v.items() if k in m});v=m;self.save(v)
+  self._migrate_legacy_closed(v)
   return v
+ def _migrate_legacy_closed(self,v):
+  """One-shot migration: the pre-ledger versions mirrored tombstones in the
+  in-memory 'closed' dict. That mirror is deprecated; the external ledger is
+  the single source of truth. Move any not-yet-externalized entries to the
+  ledger and drop the in-memory mirror."""
+  legacy=v.get('closed')
+  if not legacy:return
+  for did,tomb in list(legacy.items()):
+   if not tomb:continue
+   try:
+    if self.ledger.get(did) is None:
+     self.ledger.put(did,tomb.get('identityHash'),tomb.get('payloadHash'),tomb.get('closedAtEpochSeconds',int(time.time())))
+   except Exception:
+    pass
+  v.pop('closed',None)
+  self.save(v)
  def save(self,v):atomic_write_json(self.path,v)
  def transact(self,fn):
   with FileLock(self.lock):
-   s=self.load();c={**s,'pending':dict(s['pending']),'completed':dict(s['completed']),'closed':dict(s['closed'])};r=fn(c);self.save(c);return r
+   s=self.load();c=dict(s);c['pending']=dict(s.get('pending') or {});c['completed']=dict(s.get('completed') or {});r=fn(c);self.save(c);return r
  def _tombstone(self,ident,payload_sha,closed_at):
   return {'decisionIdHash':digest(ident['decisionId']),'identityHash':digest(ident),'payloadHash':payload_sha,'closedAtEpochSeconds':closed_at}
  def ledger_tombstone(self,ident,payload_sha,closed_at):return self._tombstone(ident,payload_sha,closed_at)
@@ -150,6 +184,5 @@ class RuntimeState:
    while len(s['completed'])>self.max_completed:
     evicted=sorted(s['completed'])[0];e=s['completed'].pop(evicted)
     self.ledger.put(evicted,digest(e['identity']),e['payloadSha256'],e['acceptedAtEpochSeconds'])
-    s['closed'][evicted]=self._tombstone(e['identity'],e['payloadSha256'],e['acceptedAtEpochSeconds'])
    return {'status':'accepted','accepted':True}
   return self.transact(tx)
