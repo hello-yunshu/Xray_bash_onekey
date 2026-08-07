@@ -4,4 +4,5 @@ from pathlib import Path
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'python'))
 from rill_xray_agent.agent_service import AgentService
-p=argparse.ArgumentParser();p.add_argument('--socket',type=Path,default=Path('/run/rill-xray-agent/agent.sock'));p.add_argument('--runtime-socket',type=Path,default=Path('/run/rill-xray-agent/runtime.sock'));a=p.parse_args();AgentService(a.runtime_socket).serve(a.socket)
+from rill_xray_agent.peer_auth import production_allowed_uids
+p=argparse.ArgumentParser();p.add_argument('--socket',type=Path,default=Path('/run/rill-xray-agent/agent.sock'));p.add_argument('--runtime-socket',type=Path,default=Path('/run/rill-xray-agent/runtime.sock'));a=p.parse_args();AgentService(a.runtime_socket,allowed_uids=production_allowed_uids()).serve(a.socket)

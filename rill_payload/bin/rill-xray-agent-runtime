@@ -3,5 +3,6 @@ import argparse
 from pathlib import Path
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'python'))
+from rill_xray_agent.peer_auth import production_allowed_uids
 from rill_xray_agent.runtime_service import RuntimeService
-p=argparse.ArgumentParser();p.add_argument('--socket',type=Path,default=Path('/run/rill-xray-agent/runtime.sock'));p.add_argument('--state-root',type=Path,default=Path('/var/lib/rill-xray-agent-runtime'));p.add_argument('--transaction-root',type=Path,default=Path('/var/lib/rill-xray-agent-root/transactions'));a=p.parse_args();RuntimeService(a.state_root,a.transaction_root).serve(a.socket)
+p=argparse.ArgumentParser();p.add_argument('--socket',type=Path,default=Path('/run/rill-xray-agent/runtime.sock'));p.add_argument('--state-root',type=Path,default=Path('/var/lib/rill-xray-agent-runtime'));p.add_argument('--transaction-root',type=Path,default=Path('/var/lib/rill-xray-agent-root/transactions'));p.add_argument('--max-completed',type=int,default=4096);p.add_argument('--ledger-max-entries',type=int,default=65536);p.add_argument('--ledger-max-bytes',type=int,default=67108864);p.add_argument('--replay-protection-seconds',type=int,default=21600);a=p.parse_args();RuntimeService(a.state_root,a.transaction_root,allowed_uids=production_allowed_uids(),max_completed=a.max_completed,ledger_max_entries=a.ledger_max_entries,ledger_max_bytes=a.ledger_max_bytes,replay_protection_seconds=a.replay_protection_seconds).serve(a.socket)
