@@ -1,3 +1,5 @@
+import os
+import pwd
 import socket
 import struct
 import sys
@@ -25,20 +27,54 @@ def peer_credentials(sock):
 
 
 class AccessControl:
-    def __init__(self, allowed_uids=None):
-        self.allowed_uids = set(allowed_uids) if allowed_uids else None
+    """Fail-closed UID allowlist.
+
+    An empty set is a VALID empty allowlist (deny everyone): it is never
+    treated as "open". The only way to open access is to explicitly construct
+    with open_allow=True, which tests and throwaway setups must do on purpose.
+    """
+
+    def __init__(self, allowed_uids=None, open_allow=False):
+        if open_allow:
+            self.allowed_uids = None
+        else:
+            self.allowed_uids = set(allowed_uids) if allowed_uids is not None else set()
 
     def authorize(self, creds):
-        if self.allowed_uids is None:
-            return True
-        uid = creds[1] if creds else None
-        return uid is not None and uid in self.allowed_uids
+        return self._uid_allowed(creds)
 
     def write_permitted(self, uid):
         if self.allowed_uids is None:
             return True
         return uid is not None and uid in self.allowed_uids
 
+    def _uid_allowed(self, creds):
+        if self.allowed_uids is None:
+            return True
+        uid = creds[1] if creds else None
+        return uid is not None and uid in self.allowed_uids
+
     def describe(self):
-        return {'mode': 'allowlist' if self.allowed_uids is not None else 'open',
-                'allowedUids': sorted(self.allowed_uids) if self.allowed_uids is not None else None}
+        return {'mode': 'open' if self.allowed_uids is None else 'allowlist',
+                'allowedUids': sorted(self.allowed_uids) if self.allowed_uids is not None else []}
+
+
+def production_allowed_uids(service_user='rill-xray-agent', extra_operators=()):
+    """Explicit production allowlist UIDs.
+
+    Never hardcodes a magic numeric uid: built at runtime from root (0),
+    the current process owner, and the rill-xray-agent service account.
+    Always includes root so a privileged operator can recover.
+    """
+    uids = {0, os.getuid()}
+    try:
+        uids.add(pwd.getpwnam(service_user).pw_uid)
+    except KeyError:
+        if not extra_operators:
+            uids.add(os.getuid())
+    for name in extra_operators:
+        try:
+            uids.add(pwd.getpwnam(name).pw_uid)
+        except KeyError:
+            pass
+    return sorted(uids)

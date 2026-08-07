@@ -180,6 +180,54 @@ class RootTransaction:
                 out.append(name)
         return out
 
+    def scan_recovery_state(self):
+        """READ-ONLY scan of the root transaction area for the unprivileged
+        Runtime production path.
+
+        Unlike recover_all() this never mutates anything: no generation write,
+        no delivery/result/receipt rewrite, no managed-file restore, no state
+        file touch and no re-materialization of historical transactions. It
+        exists so the Runtime (whose systemd contract keeps the root
+        transaction area read-only) can classify each transaction as safe or
+        requiring a privileged host-owned recovery.
+
+        Returns a list of per-work-dir reports:
+          {workDir, state, commitBundle, result, receipt, safe, recoveryRequired}
+        """
+        out = []
+        if not self.root.exists():
+            return out
+        for w in sorted(self.root.iterdir()):
+            if not w.is_dir() or w.is_symlink():
+                continue
+            report = {'workDir': w.name}
+            state = None
+            try:
+                state = read_json(w / 'state.json').get('state')
+            except Exception:
+                state = None
+            report['state'] = state
+            bundle_ok = (w / 'commit-bundle.json').is_file()
+            report['commitBundle'] = bundle_ok
+            report['result'] = (w / 'result.json').is_file()
+            report['receipt'] = (w / 'receipt.json').is_file()
+            report['unsafe'] = False
+            if state == 'rollbackUnverified':
+                # rollbackUnverified is NEVER a safe terminal state.
+                report['safe'] = False
+                report['unsafe'] = True
+            elif state in TERMINAL_STATES and bundle_ok and report['result'] and report['receipt']:
+                report['safe'] = True
+            elif state is None:
+                # A work dir without a readable state is incomplete/corrupt.
+                report['safe'] = False
+                report['unsafe'] = True
+            else:
+                report['safe'] = False
+            report['recoveryRequired'] = not report['safe']
+            out.append(report)
+        return out
+
     def _recover_one(self, w):
         # 1. Bundle already durable: materialize whatever is missing (result,
         #    receipt, delivery, generation, terminal state). Safe for both

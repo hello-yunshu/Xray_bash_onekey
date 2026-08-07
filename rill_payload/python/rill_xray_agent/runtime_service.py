@@ -45,31 +45,40 @@ class BoundedQueue:
             self.active -= 1
         self._sem.release()
 
-    def queued(self):
+    def available(self):
         return max(0, self.capacity - self.active)
 
     def metrics(self):
         return {'capacity': self.capacity, 'activeConnections': self.active,
-                'rejectedConnections': self.rejected, 'queuedConnections': self.queued()}
+                'rejectedConnections': self.rejected, 'availableSlots': self.available()}
 
 
 class RuntimeService:
     def __init__(self, state_root, txn_root, peer_creds=True, allowed_uids=None,
                  max_concurrency=32, max_completed=4096, ledger_max_entries=0,
+                 ledger_max_bytes=None, replay_protection_seconds=21600,
                  default_uid=None):
         self.state_root = Path(state_root)
         self.state_root.mkdir(parents=True, exist_ok=True)
         self.txn_root = Path(txn_root)
         self.state = RuntimeState(self.state_root / 'runtime-state.json', max_completed=max_completed,
                                   ledger_dir=self.state_root / 'closed-ledger',
-                                  max_ledger_entries=ledger_max_entries)
+                                  max_ledger_entries=ledger_max_entries,
+                                  max_ledger_bytes=ledger_max_bytes,
+                                  replay_protection_seconds=replay_protection_seconds)
         self.audit = AuditLog(self.state_root / 'audit')
         self.ops = OperationLog(self.state_root / 'operations', audit=self.audit)
         self.ops_report = self.ops.recover()
         self.txn = RootTransaction(self.txn_root, self.state_root / 'delivery',
                                    self.state_root / 'generation')
-        self.txn_report = self.txn.recover_all()
-        self.recovery = {'unresolved': [], 'recovered': self.txn_report, 'cancelled': []}
+        # READ-ONLY: the production Runtime runs with ReadOnlyPaths on the
+        # root transaction area and must NEVER materialize, rewrite history
+        # or restore root-owned managed files. Privileged recovery is a
+        # host-owned helper responsibility; the Runtime only scans.
+        self.txn_scan = self.txn.scan_recovery_state()
+        self.recovery_required = any(r['recoveryRequired'] for r in self.txn_scan)
+        self.recovery = {'unresolved': [r['workDir'] for r in self.txn_scan if r['recoveryRequired']],
+                         'scanned': self.txn_scan, 'privilegedRecoveryRequired': self.recovery_required}
         self.delivery_file = self.state_root / 'delivery' / 'route-delivery.json'
         # Fail-closed ACL: explicit allowlist; open access only when the
         # caller explicitly opts in (tests) with allow_open=True semantics.
@@ -125,9 +134,11 @@ class RuntimeService:
             elif m == 'metrics':
                 s = self.state.load()
                 r = {'pending': len(s['pending']), 'completed': len(s['completed']),
-                     'closed': len(s['closed']), 'closedLedger': self.state.ledger.count(),
+                     'closed': self.state.ledger.count(), 'closedLedger': self.state.ledger.count(),
                      'activeOperations': self.ops.pending_count(), 'acl': self.acl.describe(),
-                     'queue': self.queue.metrics()}
+                     'queue': self.queue.metrics(),
+                     'recoveryRequired': self.recovery_required,
+                     'rootTransactionsUnresolved': len(self.recovery['unresolved'])}
             elif m == 'mode':
                 mode = b.get('mode')
                 if mode not in {'normal', 'observe-only', 'safe-disabled'}:
@@ -254,8 +265,7 @@ class RuntimeService:
                 'payloadSha256': v.get('payloadSha256'),
                 'acceptedAtEpochSeconds': v.get('acceptedAtEpochSeconds'),
             }
-        closed = {k: {'payloadHash': v.get('payloadHash'), 'closedAtEpochSeconds': v.get('closedAtEpochSeconds')}
-                  for k, v in s['closed'].items()}
+        closed = self.state.ledger.entries()
         return {
             'mode': s['mode'],
             'routeAssistEnabled': s['routeAssistEnabled'],
@@ -273,18 +283,24 @@ class RuntimeService:
 
     def health_status(self):
         try:
-            return health(self.state_root, self.txn_root, self.audit, self.ops, self.delivery_file)
+            h = health(self.state_root, self.txn_root, self.audit, self.ops, self.delivery_file)
         except Exception:
-            return {'status': 'recovery-required', 'reasons': ['health_unavailable']}
+            h = {'status': 'recovery-required', 'reasons': ['health_unavailable'],
+                 'canObserve': True, 'canRecommend': False, 'canApply': False,
+                 'rootTransactions': {}}
+        if self.recovery_required and h.get('status') != 'recovery-required':
+            h = {**h, 'status': 'recovery-required',
+                 'reasons': (h.get('reasons') or []) + ['privileged_host_recovery_required'],
+                 'canRecommend': False, 'canApply': False}
+        elif h.get('status') == 'recovery-required':
+            h = {**h, 'canRecommend': False, 'canApply': False}
+        return h
 
     def client(self, c):
         c.settimeout(5)
         creds = peer_credentials(c)
         rid = 'unknown'
         try:
-            if not self.queue.acquire():
-                self._reject(c, rid, 'serverBusy', 'concurrency limit reached')
-                return
             try:
                 d = b''
                 while b'\n' not in d and len(d) <= MAX_FRAME_BYTES:
@@ -306,7 +322,7 @@ class RuntimeService:
             finally:
                 self.queue.release()
         except Exception as x:
-            self._log_access(creds, rid, False)
+            self._log_access(creds, None, False)
             try:
                 c.sendall(canonical_bytes({'schemaVersion': 3, 'requestId': rid, 'ok': False,
                                            'error': {'code': 'transportError', 'message': str(x)[:256]}}) + b'\n')
@@ -341,7 +357,14 @@ class RuntimeService:
                     c, _ = s.accept()
                 except socket.timeout:
                     continue
-                self.pool.submit(self.client, c)
+                if not self.queue.acquire():
+                    self._reject(c, 'unknown', 'serverBusy', 'concurrency limit reached')
+                    continue
+                try:
+                    self.pool.submit(self.client, c)
+                except Exception:
+                    self.queue.release()
+                    c.close()
         finally:
             s.close()
             self.pool.shutdown(wait=True, cancel_futures=True)
