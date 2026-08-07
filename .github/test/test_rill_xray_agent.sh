@@ -22,4 +22,18 @@ grep -Fq 'rxa_runtime mode "$old"' scripts/rill_xray_agent_manager.sh
 grep -Fq 'RILL_XRAY_HOST_ROOT", "/etc/idleleo' scripts/rill_xray_agent_observe.py
 grep -Fq 'PathChanged=/etc/idleleo/conf/xray/config.json' systemd/rill-xray-agent-xray-observe.path
 grep -Fq 'Environment=RILL_XRAY_HOST_ROOT=/etc/idleleo' systemd/rill-xray-agent-xray-observe.service
+# P0-x: two-phase uninstall contract (prepare -> commit/abort).
+grep -q 'rxa_uninstall_prepare()' scripts/rill_xray_agent_uninstall.sh
+grep -q 'rxa_uninstall_remove_rill()' scripts/rill_xray_agent_uninstall.sh
+grep -q 'rxa_uninstall_verify_host()' scripts/rill_xray_agent_uninstall.sh
+grep -q 'rxa_uninstall_mark()' scripts/rill_xray_agent_uninstall.sh
+grep -q 'rxa_uninstall_commit()' scripts/rill_xray_agent_uninstall.sh
+grep -q 'rxa_uninstall_abort()' scripts/rill_xray_agent_uninstall.sh
+grep -Fq -- '--purge' scripts/rill_xray_agent_uninstall.sh
+grep -Fq 'rxa_uninstall_finish "$rxa_uninstall_rc"' install.sh
+grep -Fq 'rxa_uninstall_prepare' install.sh
+grep -Fq 'uninstall_xray || rxa_uninstall_rc=1' install.sh
+grep -Fq 'uninstall_nginx --force || rxa_uninstall_rc=1' install.sh
+grep -Fq 'exit "$?"' install.sh
+bash .github/test/test_rill_xray_agent_uninstall.sh
 echo 'Rill Xray Agent host integration checks passed'

@@ -38,5 +38,18 @@ systemctl daemon-reload
 systemctl enable --now rill-xray-agent-runtime.service
 source /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh
 rxa_apply_mode "$(rxa_get mode)"
-bash /etc/rill-xray-agent/scripts/rill_xray_agent_verify.sh
-echo 'Rill Xray Agent installed; Route Assist remains OFF'
+# Fresh-install runtime verification: all state parties must be truly enabled,
+# not merely config-matching. Any drift fails the install.
+if ! rxa_mode_state_matches_target "$(rxa_get mode)"; then
+    echo 'Rill Xray Agent: install verified state does not match target mode' >&2
+    exit 1
+fi
+for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+    systemctl is-enabled --quiet "$unit" || { echo "unit not enabled: $unit" >&2; exit 1; }
+    systemctl is-active --quiet "$unit" || { echo "unit not active: $unit" >&2; exit 1; }
+done
+if [[ "$(rxa_get routeAssistEnabled)" != false ]] || [[ "$(rxa_get boundedAutoAllowed)" != false ]]; then
+    echo 'ERR Rill install: unsafe defaults overridden' >&2
+    exit 1
+fi
+echo 'Rill Xray Agent installed; mode=observe-only; Route Assist remains OFF'

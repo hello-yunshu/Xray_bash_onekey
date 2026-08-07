@@ -79,10 +79,11 @@ except Exception:
     [[ "$got" == "$expected" ]]
 }
 
-rxa_observe_fresh() {
-    local observer=${RILL_XRAY_AGENT_OBSERVER:-$RILL_XRAY_AGENT_HOME/scripts/rill_xray_agent_observe.py}
+rxa_observe_valid() {
+    # Read-side freshness/structure check of the persisted observation.
+    # Never mutates state: used by the target-state matcher to decide whether
+    # a same-mode call is a true no-op.
     local status=${RILL_XRAY_AGENT_STATUS:-/var/lib/rill-xray-agent-xray/status/xray-observation.json}
-    python3 "$observer" >/dev/null 2>&1 || return 1
     python3 - "$status" <<'PY' || return 1
 import json,sys,time
 try:
@@ -90,9 +91,40 @@ try:
 except Exception:
     sys.exit(1)
 now=time.time()
-assert data.get('capturedAtEpochSeconds',0) >= now - 3600, 'observation.stale'
-assert 'xrayConfig' in data and 'services' in data
+assert data.get('capturedAtEpochSeconds',0) >= now - 3700, 'observation.stale'
+assert 'xrayConfig' in data and 'services' in data, 'observation.invalid-structure'
 PY
+}
+
+rxa_observe_fresh() {
+    # Refresh the persisted observation from the live observer and validate it.
+    local observer=${RILL_XRAY_AGENT_OBSERVER:-$RILL_XRAY_AGENT_HOME/scripts/rill_xray_agent_observe.py}
+    python3 "$observer" >/dev/null 2>&1 || return 1
+    rxa_observe_valid
+}
+
+rxa_mode_state_matches_target() {
+    # Full target-state validation: config string, Runtime WAL mode and (when
+    # systemd is present) unit states and observation freshness must ALL agree
+    # with the requested mode. Same-mode is only a no-op when every party
+    # matches; otherwise the caller must run the repair transaction.
+    local mode=${1:-} unit want_units=0
+    case "$mode" in normal|observe-only) want_units=1 ;; safe-disabled) want_units=0 ;; *) return 64 ;; esac
+    [[ "$(rxa_get mode)" == "$mode" ]] || return 1
+    rxa_verify_runtime_mode "$mode" || return 1
+    if [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
+        if ((want_units)); then
+            for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+                rxa_systemctl is-active --quiet "$unit" || return 1
+            done
+            rxa_observe_valid || return 1
+        else
+            for unit in rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+                rxa_systemctl is-active --quiet "$unit" && return 1
+            done
+        fi
+    fi
+    return 0
 }
 
 rxa_apply_mode() {
@@ -100,12 +132,19 @@ rxa_apply_mode() {
     # systemd units and the xray observation snapshot must all agree on the
     # new mode before the config is committed; any failure rolls everything
     # back to the previous mode.
+    #
+    # Same-mode is NOT an implicit success: the full target state must already
+    # match (config, Runtime mode, unit states, observation freshness). If the
+    # config string equals the target but a unit or observation drifted, the
+    # repair transaction below converges the system back to the target state.
     local mode=${1:-} old rc=0 unit want_units=0
     case "$mode" in normal|observe-only) want_units=1 ;; safe-disabled) want_units=0 ;; *) return 64 ;; esac
     rxa_config_init
     old=$(rxa_get mode)
     [[ -z "${old}" ]] && old=observe-only
-    [[ "${old}" == "${mode}" ]] && return 0
+    if rxa_mode_state_matches_target "$mode"; then
+        return 0
+    fi
 
     # Phase 1: config + Runtime committed through the Runtime WAL.
     rxa_runtime mode "$mode" >/dev/null || return 1
@@ -114,12 +153,15 @@ rxa_apply_mode() {
         return 1
     fi
 
-    # Phase 2: systemd unit states for the target mode.
+    # Phase 2: systemd unit states for the target mode. The runtime unit is
+    # part of the enabled set so a fresh observe-only install really starts
+    # the whole stack, not just the Runtime.
     if ((want_units)); then
+        rxa_systemctl enable --now rill-xray-agent-runtime.service >/dev/null 2>&1 || rc=1
         rxa_systemctl enable --now rill-xray-agent-agent.service >/dev/null 2>&1 || rc=1
         rxa_systemctl enable --now rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer >/dev/null 2>&1 || rc=1
         if [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
-            for unit in rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+            for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
                 rxa_systemctl is-active --quiet "$unit" || rc=1
             done
         fi
