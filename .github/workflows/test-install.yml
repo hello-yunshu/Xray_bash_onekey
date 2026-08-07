@@ -82,6 +82,12 @@ jobs:
             .phase1-contracts/skill
           # Rill Xray Agent host integration checks (mandatory workflow)
           bash .github/test/test_rill_xray_agent.sh
+          # Rill two-phase uninstall failure propagation (P0-2)
+          bash .github/test/test_install_uninstall_transaction.sh
+          # Production Nginx health default path (P0-3)
+          bash .github/test/test_nginx_health_production_defaults.sh
+          # Candidate semantic self-check (P1-4)
+          bash .github/test/test_candidate_self_check.sh
 
       - name: Run user-safety regression tests
         run: |

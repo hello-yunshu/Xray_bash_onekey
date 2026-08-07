@@ -55,16 +55,117 @@ rxa_candidate_guard() {
     # Validates a freshly downloaded install.sh candidate before it is ever
     # allowed to replace the running script. Returns 0 only when every
     # integration anchor and the shell syntax check succeed.
-    local candidate=${1:-}
+    local candidate=${1:-} block rtmp rc
     [[ -f "${candidate}" ]] || return 1
     bash -n "${candidate}" 2>/dev/null || return 1
-    grep -q '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=' "${candidate}" || return 1
-    grep -q 'menu_item 9 "Rill Xray Agent"' "${candidate}" || return 1
-    grep -q -- '--rill-agent-status' "${candidate}" || return 1
-    grep -q 'rxa_reconfigure_enter()' "${candidate}" || return 1
-    grep -q 'rxa_uninstall_finish()' "${candidate}" || return 1
-    grep -q 'rxa_host_healthy()' "${candidate}" || return 1
-    return 0
+    grep -qx '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1$' "${candidate}" || return 1
+    grep -qE '^[[:space:]]*9\)[[:space:]]*rxa_menu' "${candidate}" || return 1
+    grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch' "${candidate}" || return 1
+    block=$(sed -n '/^# [B]EGIN RILL XRAY AGENT INTEGRATION$/,/^# [E]ND RILL XRAY AGENT INTEGRATION$/p' "${candidate}")
+    [[ -n "${block}" ]] || return 1
+    rtmp=$(mktemp -d) || return 1
+    if RILL_XRAY_AGENT_PROBE_BLOCK="${block}" RILL_XRAY_AGENT_PROBE_ROOT="${rtmp}" \
+        bash -c '
+set -u
+rt=${RILL_XRAY_AGENT_PROBE_ROOT}
+mkdir -p "${rt}/bin" "${rt}/cfgs" "${rt}/xraybin" "${rt}/nginxbin" "${rt}/logs" "${rt}/state" "${rt}/etc-rill/scripts"
+# Fake host tooling: the probe must never touch the real system.
+cat > "${rt}/bin/systemctl" <<EOF
+#!/usr/bin/env bash
+exit 0
+EOF
+cat > "${rt}/bin/xray" <<EOF
+#!/usr/bin/env bash
+[ "\${1}" = "run" ] && [ "\${2}" = "-test" ] && exit 0
+exit 0
+EOF
+cat > "${rt}/bin/nginx" <<EOF
+#!/usr/bin/env bash
+[ "\${1}" = "-t" ] && exit 0
+exit 0
+EOF
+cat > "${rt}/bin/ss" <<JEOF
+#!/usr/bin/env bash
+printf "LISTEN 0 4096 0.0.0.0:60000 0.0.0.0:* inet sshd\n"
+printf "LISTEN 0 4096 0.0.0.0:61000 0.0.0.0:* inet sshd\n"
+printf "LISTEN 0 4096 0.0.0.0:61001 0.0.0.0:* inet sshd\n"
+printf "LISTEN 0 4096 0.0.0.0:61002 0.0.0.0:* inet sshd\n"
+JEOF
+cat > "${rt}/bin/jq" <<JQEOF
+#!/usr/bin/env python3
+import json,sys
+args=list(sys.argv[1:])
+arg={}
+while "--arg" in args:
+    i=args.index("--arg"); arg[args[i+1]]=args[i+2]; args=args[:i]+args[i+3:]
+args=[a for a in args if not a.startswith("-") and a!="--"]
+flt=args[0]
+if len(args)>1:
+    d=json.load(open(args[1]))
+else:
+    d=json.load(sys.stdin)
+if flt==".":
+    print(json.dumps(d,separators=(",",":"))); sys.exit(0)
+name=flt.split(".")[-1].split("//")[0].strip().strip(chr(34))
+if name.startswith("[$"): name=arg.get(name[2:-1],"")
+if isinstance(d,dict) and name in d: print(d[name])
+JQEOF
+chmod +x "${rt}"/bin/*
+export PATH="${rt}/bin:${PATH}"
+printf "%s\n" "{\"tls\":\"TLS\",\"port\":60000,\"reality_add_nginx\":\"off\",\"ws_port\":61000,\"grpc_port\":61001,\"xhttp_port\":61002}" > "${rt}/cfgs/install_config.json"
+printf "%s\n" "not json" > "${rt}/cfgs/broken.json"
+cp "${rt}/bin/xray" "${rt}/xraybin/xray"
+cp "${rt}/bin/nginx" "${rt}/nginxbin/nginx"
+printf "%s\n" "{}" > "${rt}/cfgs/xray.json"
+printf "%s\n" "{}" > "${rt}/cfgs/nginx.conf"
+export RILL_XRAY_AGENT_INSTALL_CONFIG="${rt}/cfgs/install_config.json"
+export RILL_XRAY_AGENT_XRAY_BIN="${rt}/xraybin/xray"
+export RILL_XRAY_AGENT_XRAY_CONF="${rt}/cfgs/xray.json"
+export RILL_XRAY_AGENT_NGINX_BIN="${rt}/nginxbin/nginx"
+export RILL_XRAY_AGENT_NGINX_CONF="${rt}/cfgs/nginx.conf"
+export RILL_XRAY_AGENT_LOG_DIR="${rt}/logs"
+export RILL_XRAY_AGENT_CONFIG="${rt}/cfgs/config.json"
+export RILL_XRAY_AGENT_HOME="${rt}/etc-rill"
+export RILL_XRAY_AGENT_STATE="${rt}/state"
+export RILL_XRAY_AGENT_MANAGER="${rt}/etc-rill/scripts/rill_xray_agent_manager.sh"
+export RILL_XRAY_AGENT_STATUS="${rt}/status/xray-observation.json"
+export _TEST_MODE=1
+menu_pause(){ return 0; }
+eval "${RILL_XRAY_AGENT_PROBE_BLOCK}" || exit 1
+# 1) real function definitions, not comment strings.
+for f in rxa_candidate_guard rxa_uninstall_prepare rxa_uninstall_commit \
+         rxa_uninstall_abort rxa_uninstall_finish rxa_reconfigure_enter \
+         rxa_reconfigure_leave rxa_host_healthy rxa_dispatch rxa_menu; do
+    declare -F "$f" >/dev/null 2>&1 || exit 2
+done
+# 2) healthy host must be real, not the old any-active shortcut.
+rxa_host_healthy || exit 3
+# 3) unparseable config must be refused.
+RILL_XRAY_AGENT_INSTALL_CONFIG="${rt}/cfgs/broken.json" rxa_host_healthy && exit 4
+# 4) missing xray binary must be refused.
+RILL_XRAY_AGENT_XRAY_BIN="${rt}/nonexistent" rxa_host_healthy && exit 4
+# 5) offline-safe dispatch must really run and emit the observe JSON.
+out=$(rxa_dispatch status) || exit 5
+case "$out" in *installed*) ;; *) exit 6 ;; esac
+# 6) reconfigure hooks are non-fatal with no agent state.
+rxa_reconfigure_enter || exit 7
+rxa_reconfigure_leave 0 || exit 7
+# 7) uninstall contract: prepare no-op without Rill; commit fails safe when
+#    the purge script is absent; abort keeps the host rc and finish routes 1.
+rxa_uninstall_prepare || exit 8
+rxa_uninstall_commit && exit 9
+rxa_uninstall_finish 1
+[ $? -eq 1 ] || exit 10
+# 8) menu case 9 target must be a real function.
+rxa_menu >/dev/null 2>&1 || exit 11
+exit 0
+'; then
+        rc=0
+    else
+        rc=$?
+    fi
+    rm -rf "${rtmp}"
+    return "${rc}"
 }
 
 rxa_verify_runtime_mode() {
@@ -239,14 +340,35 @@ rxa_refresh_summary() {
     RILL_XRAY_AGENT_HEADER_ROUTE="Route: $(rxa_get routeStage) · Assist OFF"
 }
 
-rxa_verify() {
+rxa_verify_live_contract() {
+    # Single, mode-aware live verification contract shared by the manager menu
+    # (Verify), the CLI (--rill-agent-verify), rill_xray_agent_verify.sh and CI.
+    # Safe-disabled is verified per its own mode contract (Runtime stays down,
+    # dependent units inactive), NOT by forcing every unit active.
+    #
+    # Verifies: committed config defaults (routeAssist=false, boundedAuto=false),
+    # Runtime WAL mode == config mode, Runtime + Agent sockets present, and full
+    # target-state convergence for the configured mode (config string, Runtime
+    # mode, systemd unit states, observation freshness).
     rxa_config_init
-    [[ "$(rxa_get routeAssistEnabled)" == false ]]
-    [[ "$(rxa_get boundedAutoAllowed)" == false ]]
-    local mode runtime_mode
+    [[ "$(rxa_get routeAssistEnabled)" == false ]] || return 1
+    [[ "$(rxa_get boundedAutoAllowed)" == false ]] || return 1
+    local mode
     mode=$(rxa_get mode)
-    runtime_mode=$(rxa_runtime config 2>/dev/null | python3 -c 'import json,sys;d=json.load(sys.stdin);print((d.get("result") or d).get("mode",""))') || return 1
-    [[ "$mode" == "$runtime_mode" ]]
+    [[ -n "$mode" ]] || return 1
+    rxa_mode_state_matches_target "$mode" || return 1
+    # Sockets must be present and owned sanely for live systems.
+    if [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
+        local sock
+        for sock in /run/rill-xray-agent/runtime.sock /run/rill-xray-agent/agent.sock; do
+            [[ -S "$sock" ]] || return 1
+        done
+    fi
+    return 0
+}
+
+rxa_verify() {
+    rxa_verify_live_contract
 }
 
 rxa_menu() {
