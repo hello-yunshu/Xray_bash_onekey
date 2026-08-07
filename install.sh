@@ -395,18 +395,53 @@ rxa_host_healthy() {
     systemctl is-active --quiet nginx 2>/dev/null && return 0
     return 1
 }
-rxa_uninstall_enter() {
+rxa_uninstall_prepare() {
+    # Two-phase uninstall, phase 1: freeze agent in observe-only, refresh the
+    # observation and write a durable uninstall intent. Never deletes Rill
+    # state; the host phase decides commit vs abort.
     command -v rxa_apply_mode >/dev/null 2>&1 || return 0
     [[ -f /etc/rill-xray-agent/config.json ]] || return 0
-    rxa_apply_mode observe-only >/dev/null 2>&1 || true
+    rxa_apply_mode observe-only >/dev/null 2>&1 || return 1
+    RILL_XRAY_AGENT_OUTPUT=/var/lib/rill-xray-agent-xray/status/xray-observation.json \
+        bash /etc/rill-xray-agent/scripts/rill_xray_agent_observe.py >/dev/null 2>&1 || true
+    install -d -m 0750 /var/lib/rill-xray-agent-runtime
+    printf '{"schemaVersion":1,"intent":"uninstall","phase":"prepared","atEpochSeconds":%s}\n' "$(date +%s)" \
+        > /var/lib/rill-xray-agent-runtime/uninstall.intent.json 2>/dev/null || true
+    return 0
+}
+rxa_uninstall_commit() {
+    # Two-phase uninstall, phase 2: only after the host uninstall fully
+    # succeeded. Writes the completion intent then executes the Rill purge.
+    # Purge failure returns non-zero and is never swallowed with `|| true`.
+    local pf=0
+    printf '{"schemaVersion":1,"intent":"uninstall","phase":"committed","atEpochSeconds":%s}\n' "$(date +%s)" \
+        >> /var/lib/rill-xray-agent-runtime/uninstall.intent.json 2>/dev/null || true
+    bash /etc/rill-xray-agent/scripts/rill_xray_agent_uninstall.sh --purge || pf=$?
+    if [[ "$pf" != 0 ]]; then
+        echo 'Rill Xray Agent: purge failed (uninstall not completed)' >&2
+        return 1
+    fi
+    return 0
+}
+rxa_uninstall_abort() {
+    # Host uninstall failed: keep Runtime, audit, config and observation;
+    # record the aborted intent and return the host's real non-zero code.
+    install -d -m 0750 /var/lib/rill-xray-agent-runtime 2>/dev/null || true
+    printf '{"schemaVersion":1,"intent":"uninstall","phase":"aborted","atEpochSeconds":%s}\n' "$(date +%s)" \
+        >> /var/lib/rill-xray-agent-runtime/uninstall.intent.json 2>/dev/null || true
+    echo 'Rill Xray Agent: host uninstall failed; agent diagnostics retained' >&2
+    return 1
 }
 rxa_uninstall_finish() {
+    # Called by uninstall_all() with the accumulated host phase rc. 0 routes
+    # to commit (purge), anything else aborts and keeps all diagnostics.
     local rc=${1:-1}
-    if [[ "$rc" != 0 ]]; then
-        echo 'Rill Xray Agent: host uninstall failed; agent diagnostics retained' >&2
-        return 0
+    if [[ "$rc" == 0 ]]; then
+        rxa_uninstall_commit
+    else
+        rxa_uninstall_abort
+        return 1
     fi
-    bash /etc/rill-xray-agent/scripts/rill_xray_agent_uninstall.sh --purge || true
 }
 # END RILL XRAY AGENT INTEGRATION
 
@@ -7401,9 +7436,10 @@ uninstall_nginx() {
 }
 
 uninstall_all() {
-    rxa_uninstall_enter
-    stop_service_all
-    acme_cron_cleanup
+    rxa_uninstall_prepare
+    local rxa_uninstall_rc=0
+    stop_service_all || rxa_uninstall_rc=1
+    acme_cron_cleanup || rxa_uninstall_rc=1
     local crontab_file
     if [[ "${ID}" == "centos" ]]; then
         crontab_file="/var/spool/cron/root"
@@ -7418,9 +7454,13 @@ uninstall_all() {
     [[ -f "/etc/logrotate.d/xray_log_cleanup" ]] && rm -f "/etc/logrotate.d/xray_log_cleanup"
     [[ -L "/usr/local/etc/xray/config.json" ]] && rm -f "/usr/local/etc/xray/config.json"
     [[ -L "/usr/local/share/xray" ]] && rm -f "/usr/local/share/xray"
-    [[ -f "${xray_bin_dir}/xray" ]] && uninstall_xray
+    if [[ -f "${xray_bin_dir}/xray" ]]; then
+        uninstall_xray || rxa_uninstall_rc=1
+    fi
     echo
-    [[ -d "${nginx_dir}" ]] && uninstall_nginx --force
+    if [[ -d "${nginx_dir}" ]]; then
+        uninstall_nginx --force || rxa_uninstall_rc=1
+    fi
     echo
     local keep_config=true
     if [[ -f "${xray_install_config_file}" ]]; then
@@ -7452,22 +7492,22 @@ uninstall_all() {
             safe_rm "${idleleo_commend_file}"
             safe_rm "${idleleo_dir}"
         fi
-        systemctl daemon-reload
+        systemctl daemon-reload || rxa_uninstall_rc=1
         log_echo "${OK} ${GreenBG} $(gettext "已删除所有文件") ${Font}"
         log_echo "${GreenBG} $(gettext "ヾ(￣▽￣) 拜拜~") ${Font}"
-        rxa_uninstall_finish 0
-        exit 0
+        rxa_uninstall_finish "$rxa_uninstall_rc"
+        exit "$?"
         ;;
     *)
         if [[ "${keep_config}" == "false" && -f "${xray_install_config_file}" ]]; then
             rm -rf "${xray_install_config_file}"
             log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
         fi
-        systemctl daemon-reload
+        systemctl daemon-reload || rxa_uninstall_rc=1
         log_echo "${OK} ${GreenBG} $(gettext "已保留脚本文件 (包含 SSL 证书等)") ${Font}"
         ;;
     esac
-    rxa_uninstall_finish 0
+    rxa_uninstall_finish "$rxa_uninstall_rc"
 }
 
 delete_tls_key_and_crt() {
