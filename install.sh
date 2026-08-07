@@ -378,6 +378,11 @@ rxa_reconfigure_enter() {
     rxa_apply_mode observe-only >/dev/null 2>&1 || true
 }
 rxa_reconfigure_leave() {
+    # Reconfigure transaction end. Only a clean host transaction (rc==0) that
+    # passes the FULL mode-aware host health check may restore the prior mode.
+    # On any health failure the agent stays observe-only, diagnostics are
+    # refreshed, and the failure is recorded (the host tx return code itself
+    # is untouched: this hook stays non-fatal for the enclosing function).
     local rc=${1:-1} cfg mode
     cfg=${RILL_XRAY_AGENT_CONFIG:-/etc/rill-xray-agent/config.json}
     mode=$(cat "${cfg}.prior-mode" 2>/dev/null || printf 'observe-only')
@@ -386,14 +391,65 @@ rxa_reconfigure_leave() {
         rxa_apply_mode "$mode" >/dev/null 2>&1 || true
         RILL_XRAY_AGENT_OUTPUT=/var/lib/rill-xray-agent-xray/status/xray-observation.json \
             bash /etc/rill-xray-agent/scripts/rill_xray_agent_observe.py >/dev/null 2>&1 || true
+        return 0
+    fi
+    if [[ "$rc" == 0 ]]; then
+        echo 'Rill Xray Agent: host health check failed; staying observe-only' >&2
+        RILL_XRAY_AGENT_OUTPUT=/var/lib/rill-xray-agent-xray/status/xray-observation.json \
+            bash /etc/rill-xray-agent/scripts/rill_xray_agent_observe.py >/dev/null 2>&1 || true
+        return 1
     fi
     return 0
 }
 rxa_host_healthy() {
-    command -v systemctl >/dev/null 2>&1 || return 0
-    systemctl is-active --quiet xray 2>/dev/null && return 0
-    systemctl is-active --quiet nginx 2>/dev/null && return 0
-    return 1
+    # Mode-aware host health check. The required components are derived only
+    # from install_config.json and the active install mode. Returns 0 only
+    # when every required component is verifiably healthy. Untestable states
+    # (systemctl/binary/config missing, config unparseable) are NEVER
+    # "healthy": they return 1. Modes that do not require Nginx must not
+    # require it here.
+    local cfg="${RILL_XRAY_AGENT_INSTALL_CONFIG:-${xray_install_config_file:-}}"
+    local xray_bin="${RILL_XRAY_AGENT_XRAY_BIN:-${xray_bin_dir:-}/xray}"
+    local xray_cfg="${RILL_XRAY_AGENT_XRAY_CONF:-${xray_conf:-}}"
+    local nginx_bin="${RILL_XRAY_AGENT_NGINX_BIN:-${nginx_dir:-}/sbin/nginx}"
+    local nginx_cfg="${RILL_XRAY_AGENT_NGINX_CONF:-${nginx_conf_dir:-}/nginx.conf}"
+    local logs="${RILL_XRAY_AGENT_LOG_DIR:-/etc/idleleo/logs}"
+    local json tls reality nginx_required=0 mark port
+    command -v systemctl >/dev/null 2>&1 || return 1
+    [[ -n "$cfg" && -f "$cfg" ]] || return 1
+    json=$(jq -c . "$cfg" 2>/dev/null) || return 1
+    tls=$(printf '%s' "$json" | jq -r '.tls // empty' 2>/dev/null)
+    reality=$(printf '%s' "$json" | jq -r '.reality_add_nginx // empty' 2>/dev/null)
+    [[ "$tls" == "TLS" || "$reality" == "on" ]] && nginx_required=1
+    [[ -x "$xray_bin" ]] || return 1
+    [[ -f "$xray_cfg" ]] || return 1
+    "$xray_bin" run -test -config "$xray_cfg" >/dev/null 2>&1 || return 1
+    systemctl -q is-active xray 2>/dev/null || return 1
+    port=$(printf '%s' "$json" | jq -r '.port // empty' 2>/dev/null)
+    if [[ -n "$port" && "$port" != "null" ]]; then
+        if ! ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${port}\$"; then
+            echo "Rill Xray Agent: Xray port ${port} not listening" >&2
+            return 1
+        fi
+    fi
+    for mark in update_failed.mark restore_failed.mark rollback_unverified.mark; do
+        [[ -f "${logs}/${mark}" ]] && return 1
+    done
+    if (( nginx_required )); then
+        [[ -x "$nginx_bin" ]] || return 1
+        "$nginx_bin" -t -c "$nginx_cfg" >/dev/null 2>&1 || return 1
+        systemctl -q is-active nginx 2>/dev/null || return 1
+        for port in ws_port grpc_port xhttp_port; do
+            port=$(printf '%s' "$json" | jq -r --arg k "$port" '.[$k] // empty' 2>/dev/null)
+            if [[ -n "$port" && "$port" != "null" ]]; then
+                if ! ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${port}\$"; then
+                    echo "Rill Xray Agent: Nginx port ${port} not listening" >&2
+                    return 1
+                fi
+            fi
+        done
+    fi
+    return 0
 }
 rxa_uninstall_prepare() {
     # Two-phase uninstall, phase 1: freeze agent in observe-only, refresh the
