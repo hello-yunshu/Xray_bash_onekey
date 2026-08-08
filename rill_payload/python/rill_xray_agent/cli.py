@@ -16,7 +16,11 @@ def call(socket_path:Path,method:str,body:dict|None=None)->dict:
 
 def main(argv=None)->int:
     parser=argparse.ArgumentParser(prog='rill-xray-agent')
-    parser.add_argument('--socket',type=Path,default=Path('/run/rill-xray-agent/agent.sock'))
+    # The Runtime socket is the operator-facing contract endpoint: it stays up
+    # in every mode (observe-only/safe-disabled keep it active so live
+    # verification can prove the runtime state), whereas agent.sock is only
+    # present while the Agent service runs. --socket can still override.
+    parser.add_argument('--socket',type=Path,default=Path('/run/rill-xray-agent/runtime.sock'))
     parser.add_argument('--json',action='store_true')
     sub=parser.add_subparsers(dest='command',required=True)
     for name in ('status','health','metrics','config','snapshot'):sub.add_parser(name)
