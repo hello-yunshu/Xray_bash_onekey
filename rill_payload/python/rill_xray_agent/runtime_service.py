@@ -67,7 +67,7 @@ class RuntimeService:
                                   max_ledger_bytes=ledger_max_bytes,
                                   replay_protection_seconds=replay_protection_seconds)
         self.audit = AuditLog(self.state_root / 'audit')
-        self.ops = OperationLog(self.state_root / 'operations', audit=self.audit)
+        self.ops = OperationLog(self.state_root / 'operations', audit=self.audit, ledger=self.state.ledger)
         self.ops_report = self.ops.recover()
         self.txn = RootTransaction(self.txn_root, self.state_root / 'delivery',
                                    self.state_root / 'generation')
@@ -148,7 +148,9 @@ class RuntimeService:
 
                 def tx(s):
                     s['mode'] = mode
-                    s['routeAssistEnabled'] = False if mode != 'normal' else s['routeAssistEnabled']
+                    # Route Assist is a hard invariant: OFF in every mode,
+                    # including normal. Never resurrect a legacy true here.
+                    s['routeAssistEnabled'] = False
                     return {'mode': mode}, s
                 r = self._op('mode', tx, 'runtime.mode.changed', {'mode': mode}, actor_id=str(peer_uid))
             elif m == 'config':
@@ -192,9 +194,12 @@ class RuntimeService:
                     return {'status': 'committed'}, s
                 r = self._op('rootResult', tx, 'decision.root_result', {'decisionId': did})
             elif m == 'feedback':
-                def on_evict(evicted, entry):
-                    self.state.ledger.put(evicted, digest(entry['identity']), entry['payloadSha256'],
-                                          entry['acceptedAtEpochSeconds'])
+                # P0-2: the state callback must NOT write the external ledger.
+                # Eviction decides which tombstones to externalize and returns
+                # them as pendingLedgerMutations; the Operation WAL applies them
+                # after the intent and state are durable (runtime_state.feedback
+                # is used only by the standalone state API, not this path).
+                ledger_mutations = []
 
                 def tx(s):
                     psha = digest(b)
@@ -226,8 +231,14 @@ class RuntimeService:
                     while len(s['completed']) > self.state.max_completed:
                         evicted = sorted(s['completed'])[0]
                         e = s['completed'].pop(evicted)
-                        on_evict(evicted, e)
-                    return {'status': 'accepted', 'accepted': True}, s
+                        ledger_mutations.append({
+                            'type': 'putClosedDecision',
+                            'decisionIdHash': digest(evicted),
+                            'identityHash': digest(e['identity']),
+                            'payloadHash': e['payloadSha256'],
+                            'closedAtEpochSeconds': int(e['acceptedAtEpochSeconds']),
+                        })
+                    return {'status': 'accepted', 'accepted': True, 'pendingLedgerMutations': ledger_mutations}, s
                 r = self._op('feedback', tx, 'decision.feedback', {'decisionId': b.get('decisionId')})
             elif m == 'inspect':
                 s = self.state.load()
@@ -357,6 +368,11 @@ class RuntimeService:
                     c, _ = s.accept()
                 except socket.timeout:
                     continue
+                if self._stop.is_set():
+                    # Shutdown raced with an accepted connection: close it
+                    # rather than stranding it in a cancelled future.
+                    c.close()
+                    break
                 if not self.queue.acquire():
                     self._reject(c, 'unknown', 'serverBusy', 'concurrency limit reached')
                     continue
@@ -367,7 +383,12 @@ class RuntimeService:
                     c.close()
         finally:
             s.close()
-            self.pool.shutdown(wait=True, cancel_futures=True)
+            # Drain every submitted client so no accepted connection is dropped
+            # open. client() always closes its socket, so there is no leak; a
+            # peer that connects but never sends is bounded by the socket
+            # timeout. Never cancel_futures here: a cancelled client future
+            # would strand its connection open (Unix socket ResourceWarning).
+            self.pool.shutdown(wait=True)
             path.unlink(missing_ok=True)
             self._socket_path = None
 

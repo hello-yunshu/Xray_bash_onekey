@@ -108,6 +108,11 @@ class AgentService:
                     c, _ = s.accept()
                 except socket.timeout:
                     continue
+                if self._stop.is_set():
+                    # Shutdown raced with an accepted connection: close it
+                    # rather than stranding it in a cancelled future.
+                    c.close()
+                    break
                 if not self.queue.acquire():
                     try:
                         c.sendall(canonical_bytes({'schemaVersion': 3, 'requestId': 'unknown', 'ok': False,
@@ -124,6 +129,9 @@ class AgentService:
                     c.close()
         finally:
             s.close()
-            self.pool.shutdown(wait=True, cancel_futures=True)
+            # Drain every submitted client so no accepted connection is dropped
+            # open. client() always closes its socket; never cancel_futures here
+            # or a cancelled client future would strand its connection open.
+            self.pool.shutdown(wait=True)
             path.unlink(missing_ok=True)
             self._socket_path = None

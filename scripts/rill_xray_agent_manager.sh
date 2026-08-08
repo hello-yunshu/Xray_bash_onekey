@@ -29,7 +29,11 @@ rxa_config_init() {
 rxa_get() {
     python3 - "$RILL_XRAY_AGENT_CONFIG" "$1" <<'PY'
 import json,sys
-print(json.load(open(sys.argv[1])).get(sys.argv[2],''))
+value=json.load(open(sys.argv[1])).get(sys.argv[2],'')
+if isinstance(value,bool):
+    print('true' if value else 'false')
+else:
+    print(value)
 PY
 }
 
@@ -48,6 +52,8 @@ PY
 }
 
 rxa_runtime() {
+    # One Runtime config query path. The CLI defaults to the RUNTIME socket
+    # (which stays up in every mode); --socket is available for overrides.
     "$RILL_XRAY_AGENT_CLI" --json "$@"
 }
 
@@ -169,15 +175,19 @@ exit 0
 }
 
 rxa_verify_runtime_mode() {
-    local expected=${1:-} got
-    got=$(rxa_runtime config 2>/dev/null | python3 -c 'import json,sys
+    # Fail-closed Runtime contract: WAL mode must equal the expected mode and
+    # the Runtime must answer routeAssistEnabled=false and boundedAutoAllowed=
+    # false in EVERY mode; a missing answer or a dead Runtime fails the check.
+    local expected=${1:-} payload got expected_ra expected_ba
+    payload=$(rxa_runtime config 2>/dev/null) || return 1
+    read -r got expected_ra expected_ba <<<"$(printf '%s' "$payload" | python3 -c 'import json,sys
 try:
     d=json.load(sys.stdin)
     d=d.get("result") or d
-    print(d.get("mode",""))
+    print(d.get("mode","?"),d.get("routeAssistEnabled","?"),d.get("boundedAutoAllowed","?"))
 except Exception:
-    pass') || true
-    [[ "$got" == "$expected" ]]
+    print("? ? ?")')"
+    [[ "$got" == "$expected" && "$expected_ra" == "False" && "$expected_ba" == "False" ]]
 }
 
 rxa_observe_valid() {

@@ -557,6 +557,17 @@ rxa_host_healthy() {
     local nginx_cfg="${RILL_XRAY_AGENT_NGINX_CONF:-${nginx_main_conf:-/usr/local/nginx/conf/nginx.conf}}"
     local logs="${RILL_XRAY_AGENT_LOG_DIR:-/etc/idleleo/logs}"
     local json tls reality nginx_required=0 mark port
+    local fake_active fake_listen
+    # Test-only health shim (used only by CI sandbox tests, never set by
+    # production callers): when FAKE_ACTIVE/FAKE_LISTEN are non-empty the
+    # unit-activity and port-listening probes read from those env vars
+    # instead of the live system. Real systems keep the full checks.
+    fake_active=${FAKE_ACTIVE:-}
+    fake_listen=${FAKE_LISTEN:-}
+    _rxa_active() { [[ -z "$fake_active" ]] && { systemctl -q is-active "$1" 2>/dev/null; return; }
+                    case " $fake_active " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+    _rxa_listening() { [[ -z "$fake_listen" ]] && { ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${1}\$"; return; }
+                    case " $fake_listen " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
     command -v systemctl >/dev/null 2>&1 || return 1
     [[ -n "$cfg" && -f "$cfg" ]] || return 1
     json=$(jq -c . "$cfg" 2>/dev/null) || return 1
@@ -566,10 +577,10 @@ rxa_host_healthy() {
     [[ -x "$xray_bin" ]] || return 1
     [[ -f "$xray_cfg" ]] || return 1
     "$xray_bin" run -test -config "$xray_cfg" >/dev/null 2>&1 || return 1
-    systemctl -q is-active xray 2>/dev/null || return 1
+    _rxa_active xray || return 1
     port=$(printf '%s' "$json" | jq -r '.port // empty' 2>/dev/null)
     if [[ -n "$port" && "$port" != "null" ]]; then
-        if ! ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${port}\$"; then
+        if ! _rxa_listening "$port"; then
             echo "Rill Xray Agent: Xray port ${port} not listening" >&2
             return 1
         fi
@@ -580,11 +591,11 @@ rxa_host_healthy() {
     if (( nginx_required )); then
         [[ -x "$nginx_bin" ]] || return 1
         "$nginx_bin" -t -c "$nginx_cfg" >/dev/null 2>&1 || return 1
-        systemctl -q is-active nginx 2>/dev/null || return 1
+        _rxa_active nginx || return 1
         for port in ws_port grpc_port xhttp_port; do
             port=$(printf '%s' "$json" | jq -r --arg k "$port" '.[$k] // empty' 2>/dev/null)
             if [[ -n "$port" && "$port" != "null" ]]; then
-                if ! ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${port}\$"; then
+                if ! _rxa_listening "$port"; then
                     echo "Rill Xray Agent: Nginx port ${port} not listening" >&2
                     return 1
                 fi
