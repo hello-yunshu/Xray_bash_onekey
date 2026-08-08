@@ -350,16 +350,36 @@ rxa_refresh_summary() {
     RILL_XRAY_AGENT_HEADER_ROUTE="Route: $(rxa_get routeStage) · Assist OFF"
 }
 
+rxa_socket_connectable() {
+    # REAL connect() probe: a stale socket inode whose listener is gone must
+    # fail closed - inode presence alone is never a pass.
+    local sock=${1:-}
+    python3 - "$sock" <<'PY' || return 1
+import socket, sys
+try:
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.settimeout(2)
+    s.connect(sys.argv[1])
+    s.close()
+except Exception:
+    sys.exit(1)
+PY
+}
+
 rxa_verify_live_contract() {
     # Single, mode-aware live verification contract shared by the manager menu
-    # (Verify), the CLI (--rill-agent-verify), rill_xray_agent_verify.sh and CI.
-    # Safe-disabled is verified per its own mode contract (Runtime stays down,
-    # dependent units inactive), NOT by forcing every unit active.
+    # (Verify), rill_xray_agent_verify.sh, the CLI (--rill-agent-verify) and CI.
+    # Safe-disabled is verified per its own mode contract, NOT by forcing every
+    # unit active.
     #
     # Verifies: committed config defaults (routeAssist=false, boundedAuto=false),
-    # Runtime WAL mode == config mode, Runtime + Agent sockets present, and full
-    # target-state convergence for the configured mode (config string, Runtime
-    # mode, systemd unit states, observation freshness).
+    # Runtime WAL mode == target config mode, per-mode systemd unit states +
+    # observation freshness, and PER-MODE socket rules:
+    #   normal / observe-only: runtime.sock exists and CONNECTS; agent.sock
+    #                          exists and CONNECTS
+    #   safe-disabled:         runtime.sock exists and CONNECTS; agent.sock must
+    #                          be MISSING or must REFUSE connection (a stale
+    #                          inode that still accepts is a FAIL)
     rxa_config_init
     [[ "$(rxa_get routeAssistEnabled)" == false ]] || return 1
     [[ "$(rxa_get boundedAutoAllowed)" == false ]] || return 1
@@ -367,12 +387,22 @@ rxa_verify_live_contract() {
     mode=$(rxa_get mode)
     [[ -n "$mode" ]] || return 1
     rxa_mode_state_matches_target "$mode" || return 1
-    # Sockets must be present and owned sanely for live systems.
-    if [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
-        local sock
-        for sock in /run/rill-xray-agent/runtime.sock /run/rill-xray-agent/agent.sock; do
-            [[ -S "$sock" ]] || return 1
-        done
+    # Socket rules apply on a real system (real path) and in sandbox tests
+    # (RILL_XRAY_AGENT_SOCKET_DIR points at a throwaway directory).
+    if [[ -n "${RILL_XRAY_AGENT_SOCKET_DIR:-}" || ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
+        local sock_dir=${RILL_XRAY_AGENT_SOCKET_DIR:-/run/rill-xray-agent}
+        rxa_socket_connectable "$sock_dir/runtime.sock" || return 1
+        case "$mode" in
+            normal|observe-only)
+                rxa_socket_connectable "$sock_dir/agent.sock" || return 1
+                ;;
+            safe-disabled)
+                if [[ -S "$sock_dir/agent.sock" ]]; then
+                    rxa_socket_connectable "$sock_dir/agent.sock" && return 1
+                fi
+                ;;
+            *) return 64 ;;
+        esac
     fi
     return 0
 }

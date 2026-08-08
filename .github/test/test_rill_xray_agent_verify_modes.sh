@@ -175,5 +175,188 @@ else
 fi
 export RILL_XRAY_AGENT_CLI="${CLI_SAVED}"
 
+# 7. Socket rules (sandbox socket dir; NO_SYSTEMD stays 1 so only the socket
+#    layer of the contract is exercised against REAL Unix sockets):
+#    - runtime.sock must exist and CONNECT in every mode,
+#    - normal / observe-only require agent.sock to exist and CONNECT,
+#    - safe-disabled: agent.sock must be absent or REFUSE connection; a stale
+#      inode that still ACCEPTS connections is a FAIL, an inode whose listener
+#      is gone (CONNECT refused) is the expected stale-socket outcome.
+SOCK_DIR="${TMP_ROOT}/sock"
+mkdir -p "${SOCK_DIR}"
+export RILL_XRAY_AGENT_SOCKET_DIR="${SOCK_DIR}"
+
+sock_probe() {
+    # 0 = connectable listener, else = refused/missing.
+    python3 - "${SOCK_DIR}" "$1" <<'PY'
+import socket, os, sys
+path = os.path.join(sys.argv[1], sys.argv[2] + ".sock")
+if not os.path.exists(path):
+    sys.exit(3)
+s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+s.settimeout(2)
+try:
+    s.connect(path)
+    s.close()
+except Exception:
+    sys.exit(4)
+PY
+}
+
+socket_server() {
+    # Bind+listen <name>.sock under SOCK_DIR; keep alive; record PID.
+    python3 - "${SOCK_DIR}" "$1" <<'PY' &
+import socket, sys, os
+import time
+base, name = sys.argv[1], sys.argv[2]
+path = os.path.join(base, name + ".sock")
+try:
+    os.unlink(path)
+except FileNotFoundError:
+    pass
+s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+s.bind(path)
+s.listen(8)
+with open(os.path.join(base, name + ".pid"), "w") as fh:
+    fh.write(str(os.getpid()))
+while True:
+    try:
+        conn, _ = s.accept()
+        conn.close()
+    except Exception:
+        pass
+PY
+}
+
+socket_stale() {
+    # Create the socket inode with NO living listener (CONNECT must refuse).
+    python3 - "${SOCK_DIR}" "$1" <<'PY'
+import socket, os, sys
+path = os.path.join(sys.argv[1], sys.argv[2] + ".sock")
+try:
+    os.unlink(path)
+except FileNotFoundError:
+    pass
+s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+s.bind(path)
+s.close()
+PY
+}
+
+socket_stop() {
+    local pid_file="${SOCK_DIR}/$1.pid"
+    [[ -f "${pid_file}" ]] && kill -9 "$(cat "${pid_file}")" 2>/dev/null
+    rm -f "${pid_file}"
+}
+
+socket_wait_connected() {
+    local name=$1 i=0
+    while (( i < 50 )); do
+        if sock_probe "$name"; then return 0; fi
+        sleep 0.1
+        i=$((i + 1))
+    done
+    return 1
+}
+
+socket_wait_refused() {
+    local name=$1 i=0 rc
+    while (( i < 50 )); do
+        sock_probe "$name"
+        rc=$?
+        if (( rc != 0 )); then return 0; fi
+        sleep 0.1
+        i=$((i + 1))
+    done
+    return 1
+}
+
+# 7a. observe-only with both listeners live -> contract passes.
+export RILL_XRAY_AGENT_SOCKET_DIR="${SOCK_DIR}"
+socket_server runtime
+socket_server agent
+socket_wait_connected runtime || bad "runtime listener did not come up"
+socket_wait_connected agent || bad "agent listener did not come up"
+fresh
+if rxa_apply_mode observe-only >/dev/null 2>&1; then
+    ok "apply observe-only (socket sandbox)"
+else
+    bad "apply observe-only (socket sandbox)"
+fi
+if rxa_verify_live_contract; then
+    ok "verify passes in observe-only with both sockets connectable"
+else
+    bad "verify fails in observe-only with both sockets connectable"
+fi
+
+# 7b. safe-disabled: runtime.sock must STAY connectable; a stale agent socket
+#     inode whose listener is dead must be treated as PASS (CONNECT refused).
+if rxa_apply_mode safe-disabled >/dev/null 2>&1; then
+    ok "apply safe-disabled (socket sandbox)"
+else
+    bad "apply safe-disabled (socket sandbox)"
+fi
+socket_stop agent
+socket_wait_refused agent || bad "agent listener did not die"
+if rxa_verify_live_contract; then
+    ok "verify passes in safe-disabled (runtime connected, stale agent.sock refused)"
+else
+    bad "verify fails in safe-disabled with stale agent socket"
+fi
+
+# 7c. safe-disabled with a LIVE agent listener -> MUST FAIL.
+socket_server agent
+socket_wait_connected agent || bad "agent listener did not come up"
+if rxa_verify_live_contract; then
+    bad "verify must fail in safe-disabled when agent.sock still accepts"
+else
+    ok "verify fails in safe-disabled with live agent.sock"
+fi
+
+# 7d. stale agent inode WITHOUT any listener is still PASS in safe-disabled.
+socket_stop agent
+socket_wait_refused agent || bad "agent listener did not die"
+socket_stale agent
+if rxa_verify_live_contract; then
+    ok "verify passes in safe-disabled with fully stale agent.sock"
+else
+    bad "verify fails in safe-disabled with stale agent.sock"
+fi
+
+# 7e. normal requires both sockets connectable; missing agent.sock fails.
+if rxa_apply_mode normal >/dev/null 2>&1; then
+    ok "apply normal (socket sandbox)"
+else
+    bad "apply normal (socket sandbox)"
+fi
+rm -f "${SOCK_DIR}/agent.sock" "${SOCK_DIR}/agent.pid"
+if rxa_verify_live_contract; then
+    bad "verify must fail in normal when agent.sock is absent"
+else
+    ok "verify fails in normal with agent.sock absent"
+fi
+socket_server agent
+socket_wait_connected agent || bad "agent listener did not come up"
+if rxa_verify_live_contract; then
+    ok "verify passes in normal with both sockets connectable"
+else
+    bad "verify fails in normal with both sockets connectable"
+fi
+
+# 7f. missing/unconnectable runtime.sock fails in EVERY mode.
+socket_stop agent
+socket_stop runtime
+rm -f "${SOCK_DIR}/runtime.sock"
+if rxa_verify_live_contract; then
+    bad "verify must fail when runtime.sock is absent"
+else
+    ok "verify fails when runtime.sock absent"
+fi
+
+for _pid in "${SOCK_DIR}"/.pid "${SOCK_DIR}"/*.pid; do
+    [[ -f "${_pid}" ]] && kill -9 "$(cat "${_pid}")" 2>/dev/null
+done
+rm -rf "${SOCK_DIR}"
+
 printf '\n%d passed, %d failed\n' "${PASS}" "${FAIL}"
 [[ "${FAIL}" == 0 ]]

@@ -30,18 +30,12 @@ PY
 # Real-system (DESTDIR empty) verification must prove running state, not just
 # file presence. It runs the SAME mode-aware live contract as the manager menu
 # (Verify) and the CLI (--rill-agent-verify): committed config defaults,
-# Runtime WAL mode, systemd unit states, sockets and observation freshness.
+# Runtime WAL mode, per-mode systemd unit states, socket connectability and
+# observation freshness. Live-state decisions belong to the shared contract;
+# this script itself only keeps the static package checks.
 runtime_check() {
     command -v systemctl >/dev/null 2>&1 || { echo 'systemctl missing; cannot verify live state' >&2; exit 1; }
     source "$root/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh"
-
-    # Static unit enablement is checked first (the shared contract checks
-    # activity per-mode); every integration unit must at least be enabled.
-    local unit
-    for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service \
-                rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
-        systemctl is-enabled --quiet "$unit" 2>/dev/null || { echo "unit not enabled: $unit" >&2; exit 1; }
-    done
 
     rxa_verify_live_contract || { echo 'Rill Xray Agent live system verification failed' >&2; exit 1; }
 
