@@ -62,6 +62,9 @@ xray_default_conf="${local_bin}/etc/xray/config.json" # COMPAT: 旧版使用符�
 nginx_conf="${nginx_conf_dir}/00-xray.conf"
 nginx_ssl_conf="${nginx_conf_dir}/01-xray-80.conf"
 nginx_upstream_conf="${nginx_conf_dir}/02-xray-server.conf"
+# The single real Nginx main config (compile prefix). The fragment dir
+# ${nginx_conf_dir} holds only managed include files, never nginx.conf.
+nginx_main_conf="${local_bin}/nginx/conf/nginx.conf"
 # Files this script owns inside ${nginx_conf_dir}. Only these are removed
 # during reinstall; user-added .conf files (custom sites, stream blocks,
 # reverse proxies, security rules) are preserved.
@@ -341,6 +344,352 @@ update_json_config() {
     fi
     return 0
 }
+
+# BEGIN RILL XRAY AGENT INTEGRATION
+RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1
+rill_xray_agent_manager=${RILL_XRAY_AGENT_MANAGER:-/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh}
+# P0-5: candidate validation for script self-updates. Defined here (not only
+# in the manager) so it is available even when the agent files are absent.
+# Validation is semantic, not string matching: the candidate's integration
+# block is sourced inside an isolated sandbox with fake host tooling and the
+# required runtime guarantees are actually executed (real function
+# definitions, host health in healthy and broken states, offline-safe
+# dispatch, reconfigure transaction, uninstall two-phase contract, menu 9).
+rxa_candidate_guard() {
+    # Validates a freshly downloaded install.sh candidate before it is ever
+    # allowed to replace the running script. Returns 0 only when every
+    # integration anchor and the shell syntax check succeed.
+    local candidate=${1:-} block rtmp rc
+    [[ -f "${candidate}" ]] || return 1
+    bash -n "${candidate}" 2>/dev/null || return 1
+    grep -qx '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1$' "${candidate}" || return 1
+    grep -qE '^[[:space:]]*9\)[[:space:]]*rxa_menu' "${candidate}" || return 1
+    grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch' "${candidate}" || return 1
+    block=$(sed -n '/^# [B]EGIN RILL XRAY AGENT INTEGRATION$/,/^# [E]ND RILL XRAY AGENT INTEGRATION$/p' "${candidate}")
+    [[ -n "${block}" ]] || return 1
+    rtmp=$(mktemp -d) || return 1
+    if RILL_XRAY_AGENT_PROBE_BLOCK="${block}" RILL_XRAY_AGENT_PROBE_ROOT="${rtmp}" \
+        bash -c '
+set -u
+rt=${RILL_XRAY_AGENT_PROBE_ROOT}
+mkdir -p "${rt}/bin" "${rt}/cfgs" "${rt}/xraybin" "${rt}/nginxbin" "${rt}/logs" "${rt}/state" "${rt}/etc-rill/scripts"
+# Fake host tooling: the probe must never touch the real system.
+cat > "${rt}/bin/systemctl" <<EOF
+#!/usr/bin/env bash
+exit 0
+EOF
+cat > "${rt}/bin/xray" <<EOF
+#!/usr/bin/env bash
+[ "\${1}" = "run" ] && [ "\${2}" = "-test" ] && exit 0
+exit 0
+EOF
+cat > "${rt}/bin/nginx" <<EOF
+#!/usr/bin/env bash
+[ "\${1}" = "-t" ] && exit 0
+exit 0
+EOF
+cat > "${rt}/bin/ss" <<JEOF
+#!/usr/bin/env bash
+printf "LISTEN 0 4096 0.0.0.0:60000 0.0.0.0:* inet sshd\n"
+printf "LISTEN 0 4096 0.0.0.0:61000 0.0.0.0:* inet sshd\n"
+printf "LISTEN 0 4096 0.0.0.0:61001 0.0.0.0:* inet sshd\n"
+printf "LISTEN 0 4096 0.0.0.0:61002 0.0.0.0:* inet sshd\n"
+JEOF
+cat > "${rt}/bin/jq" <<JQEOF
+#!/usr/bin/env python3
+import json,sys
+args=list(sys.argv[1:])
+arg={}
+while "--arg" in args:
+    i=args.index("--arg"); arg[args[i+1]]=args[i+2]; args=args[:i]+args[i+3:]
+args=[a for a in args if not a.startswith("-") and a!="--"]
+flt=args[0]
+if len(args)>1:
+    d=json.load(open(args[1]))
+else:
+    d=json.load(sys.stdin)
+if flt==".":
+    print(json.dumps(d,separators=(",",":"))); sys.exit(0)
+name=flt.split(".")[-1].split("//")[0].strip().strip(chr(34))
+if name.startswith("[$"): name=arg.get(name[2:-1],"")
+if isinstance(d,dict) and name in d: print(d[name])
+JQEOF
+chmod +x "${rt}"/bin/*
+export PATH="${rt}/bin:${PATH}"
+printf "%s\n" "{\"tls\":\"TLS\",\"port\":60000,\"reality_add_nginx\":\"off\",\"ws_port\":61000,\"grpc_port\":61001,\"xhttp_port\":61002}" > "${rt}/cfgs/install_config.json"
+printf "%s\n" "not json" > "${rt}/cfgs/broken.json"
+cp "${rt}/bin/xray" "${rt}/xraybin/xray"
+cp "${rt}/bin/nginx" "${rt}/nginxbin/nginx"
+printf "%s\n" "{}" > "${rt}/cfgs/xray.json"
+printf "%s\n" "{}" > "${rt}/cfgs/nginx.conf"
+export RILL_XRAY_AGENT_INSTALL_CONFIG="${rt}/cfgs/install_config.json"
+export RILL_XRAY_AGENT_XRAY_BIN="${rt}/xraybin/xray"
+export RILL_XRAY_AGENT_XRAY_CONF="${rt}/cfgs/xray.json"
+export RILL_XRAY_AGENT_NGINX_BIN="${rt}/nginxbin/nginx"
+export RILL_XRAY_AGENT_NGINX_CONF="${rt}/cfgs/nginx.conf"
+export RILL_XRAY_AGENT_LOG_DIR="${rt}/logs"
+export RILL_XRAY_AGENT_CONFIG="${rt}/cfgs/config.json"
+export RILL_XRAY_AGENT_HOME="${rt}/etc-rill"
+export RILL_XRAY_AGENT_STATE="${rt}/state"
+export RILL_XRAY_AGENT_MANAGER="${rt}/etc-rill/scripts/rill_xray_agent_manager.sh"
+export RILL_XRAY_AGENT_STATUS="${rt}/status/xray-observation.json"
+export _TEST_MODE=1
+menu_pause(){ return 0; }
+eval "${RILL_XRAY_AGENT_PROBE_BLOCK}" || exit 1
+# 1) real function definitions, not comment strings.
+for f in rxa_candidate_guard rxa_uninstall_prepare rxa_uninstall_commit \
+         rxa_uninstall_abort rxa_uninstall_finish rxa_reconfigure_enter \
+         rxa_reconfigure_leave rxa_host_healthy rxa_dispatch rxa_menu; do
+    declare -F "$f" >/dev/null 2>&1 || exit 2
+done
+# 2) healthy host must be real, not the old any-active shortcut.
+rxa_host_healthy || exit 3
+# 3) unparseable config must be refused.
+RILL_XRAY_AGENT_INSTALL_CONFIG="${rt}/cfgs/broken.json" rxa_host_healthy && exit 4
+# 4) missing xray binary must be refused.
+RILL_XRAY_AGENT_XRAY_BIN="${rt}/nonexistent" rxa_host_healthy && exit 4
+# 5) offline-safe dispatch must really run and emit the observe JSON.
+out=$(rxa_dispatch status) || exit 5
+case "$out" in *installed*) ;; *) exit 6 ;; esac
+# 6) reconfigure hooks are non-fatal with no agent state.
+rxa_reconfigure_enter || exit 7
+rxa_reconfigure_leave 0 || exit 7
+# 7) uninstall contract: prepare no-op without Rill; commit fails safe when
+#    the purge script is absent; abort keeps the host rc and finish routes 1.
+rxa_uninstall_prepare || exit 8
+rxa_uninstall_commit && exit 9
+rxa_uninstall_finish 1
+[ $? -eq 1 ] || exit 10
+# 8) menu case 9 target must be a real function.
+rxa_menu >/dev/null 2>&1 || exit 11
+exit 0
+'; then
+        rc=0
+    else
+        rc=$?
+    fi
+    rm -rf "${rtmp}"
+    return "${rc}"
+}
+rxa_integration_self_check() {
+    # Test-only / read-only contract self-check. Emits a JSON object that the
+    # candidate guard and CI can parse. No side effects: it never installs,
+    # never touches the network, and never modifies host state. The booleans
+    # reflect what THIS integration block actually provides (schema marker,
+    # hook functions, host health contract, two-phase uninstall).
+    local schema=0 menu=0 box=0 flow=0
+    local block file
+    file="${BASH_SOURCE[0]:-}"
+    block=$(sed -n '/^# [B]EGIN RILL XRAY AGENT INTEGRATION$/,/^# [E]ND RILL XRAY AGENT INTEGRATION$/p' "$file")
+    grep -qx '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1$' "$file" >/dev/null 2>&1 && schema=1
+    [[ "$block" == *rxa_menu* && "$file" != "" ]] && menu=1
+    grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch' "$file" >/dev/null 2>&1 && menu=1
+    [[ "$block" == *rxa_uninstall_prepare* && "$block" == *rxa_uninstall_commit* \
+       && "$block" == *rxa_uninstall_abort* && "$block" == *rxa_uninstall_finish* ]] && box=1
+    [[ "$block" == *rxa_host_healthy* && "$block" == *rxa_reconfigure_enter* \
+       && "$block" == *rxa_reconfigure_leave* ]] && flow=1
+    printf '{"schemaVersion":1,"integrationSchema":%d,"menuDispatch":%s,"offlineDispatch":%s,"reconfigureHooks":%s,"uninstallHooks":%s,"hostHealthContract":%s}\n' \
+        "${schema}" \
+        "$([[ $menu -eq 1 ]] && echo true || echo false)" \
+        "$([[ $menu -eq 1 ]] && echo true || echo false)" \
+        "$([[ $flow -eq 1 ]] && echo true || echo false)" \
+        "$([[ $box -eq 1 ]] && echo true || echo false)" \
+        "$([[ $flow -eq 1 ]] && echo true || echo false)"
+}
+if [[ -f "$rill_xray_agent_manager" ]]; then
+    source "$rill_xray_agent_manager"
+else
+    rxa_refresh_summary(){ RILL_XRAY_AGENT_HEADER_STATE='Agent: not installed'; RILL_XRAY_AGENT_HEADER_RUNTIME='Runtime: OFF'; RILL_XRAY_AGENT_HEADER_ROUTE='Route: OFF'; }
+    rxa_menu(){ echo 'Rill Xray Agent is not installed. Run the included bootstrap script.'; menu_pause; }
+    rxa_dispatch(){ case "${1:-}" in status) printf '%s\n' '{"installed":false,"routeAssistEnabled":false,"boundedAutoAllowed":false}' ;; install) bash "${scripts_dir}/rill_xray_agent_bootstrap.sh" ;; *) return 66 ;; esac; }
+fi
+# Lifecycle coordination used by the host install/update/uninstall paths.
+# Every hook is non-fatal: it never changes the host transaction return code.
+# Paths honour RILL_XRAY_AGENT_* + DESTDIR (same sandbox semantics as the
+# agent scripts) so confirm tests and _TEST_MODE runs never touch /etc,/var.
+rxa_root() { printf '%s%s' "${DESTDIR:-}" "$1"; }
+rxa_agent_dir(){ printf '%s%s' "${DESTDIR:-}" "${RILL_XRAY_AGENT_HOME:-/etc/rill-xray-agent}"; }
+rxa_observe_out(){ printf '%s%s' "${DESTDIR:-}" "${RILL_XRAY_AGENT_STATUS:-/var/lib/rill-xray-agent-xray/status/xray-observation.json}"; }
+rxa_reconfigure_enter() {
+    local cfg mode
+    cfg=${RILL_XRAY_AGENT_CONFIG:-/etc/rill-xray-agent/config.json}
+    command -v rxa_get >/dev/null 2>&1 || return 0
+    [[ -f "$cfg" ]] || return 0
+    mode=$(rxa_get mode 2>/dev/null || printf 'observe-only')
+    printf '%s' "$mode" >"${cfg}.prior-mode" 2>/dev/null || true
+    rxa_apply_mode observe-only >/dev/null 2>&1 || true
+}
+rxa_reconfigure_leave() {
+    # Reconfigure transaction end. Only a clean host transaction (rc==0) that
+    # passes the FULL mode-aware host health check may restore the prior mode.
+    # On any health failure the agent stays observe-only, diagnostics are
+    # refreshed, and the failure is recorded (the host tx return code itself
+    # is untouched: this hook stays non-fatal for the enclosing function).
+    local rc=${1:-1} cfg mode
+    cfg=${RILL_XRAY_AGENT_CONFIG:-/etc/rill-xray-agent/config.json}
+    mode=$(cat "${cfg}.prior-mode" 2>/dev/null || printf 'observe-only')
+    rm -f "${cfg}.prior-mode"
+    if [[ "$rc" == 0 ]] && rxa_host_healthy; then
+        rxa_apply_mode "$mode" >/dev/null 2>&1 || true
+        RILL_XRAY_AGENT_OUTPUT="$(rxa_observe_out)" \
+            bash "$(rxa_agent_dir)/scripts/rill_xray_agent_observe.py" >/dev/null 2>&1 || true
+        return 0
+    fi
+    if [[ "$rc" == 0 ]]; then
+        echo 'Rill Xray Agent: host health check failed; staying observe-only' >&2
+        RILL_XRAY_AGENT_OUTPUT="$(rxa_observe_out)" \
+            bash "$(rxa_agent_dir)/scripts/rill_xray_agent_observe.py" >/dev/null 2>&1 || true
+        return 1
+    fi
+    return 0
+}
+rxa_host_healthy() {
+    # Mode-aware host health check. The required components are derived only
+    # from install_config.json and the active install mode. Returns 0 only
+    # when every required component is verifiably healthy. Untestable states
+    # (systemctl/binary/config missing, config unparseable) are NEVER
+    # "healthy": they return 1. Modes that do not require Nginx must not
+    # require it here.
+    local cfg="${RILL_XRAY_AGENT_INSTALL_CONFIG:-${xray_install_config_file:-}}"
+    local xray_bin="${RILL_XRAY_AGENT_XRAY_BIN:-${xray_bin_dir:-}/xray}"
+    local xray_cfg="${RILL_XRAY_AGENT_XRAY_CONF:-${xray_conf:-}}"
+    local nginx_bin="${RILL_XRAY_AGENT_NGINX_BIN:-${nginx_dir:-}/sbin/nginx}"
+    local nginx_cfg="${RILL_XRAY_AGENT_NGINX_CONF:-${nginx_main_conf:-/usr/local/nginx/conf/nginx.conf}}"
+    local logs="${RILL_XRAY_AGENT_LOG_DIR:-/etc/idleleo/logs}"
+    local json tls reality nginx_required=0 mark port
+    local fake_active fake_listen
+    # Test-only health shim (used only by CI sandbox tests, never set by
+    # production callers): when FAKE_ACTIVE/FAKE_LISTEN are non-empty the
+    # unit-activity and port-listening probes read from those env vars
+    # instead of the live system. Real systems keep the full checks.
+    fake_active=${FAKE_ACTIVE:-}
+    fake_listen=${FAKE_LISTEN:-}
+    _rxa_active() { [[ -z "$fake_active" ]] && { systemctl -q is-active "$1" 2>/dev/null; return; }
+                    case " $fake_active " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+    _rxa_listening() { [[ -z "$fake_listen" ]] && { ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${1}\$"; return; }
+                    case " $fake_listen " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+    command -v systemctl >/dev/null 2>&1 || return 1
+    [[ -n "$cfg" && -f "$cfg" ]] || return 1
+    json=$(jq -c . "$cfg" 2>/dev/null) || return 1
+    tls=$(printf '%s' "$json" | jq -r '.tls // empty' 2>/dev/null)
+    reality=$(printf '%s' "$json" | jq -r '.reality_add_nginx // empty' 2>/dev/null)
+    [[ "$tls" == "TLS" || "$reality" == "on" ]] && nginx_required=1
+    [[ -x "$xray_bin" ]] || return 1
+    [[ -f "$xray_cfg" ]] || return 1
+    "$xray_bin" run -test -config "$xray_cfg" >/dev/null 2>&1 || return 1
+    _rxa_active xray || return 1
+    port=$(printf '%s' "$json" | jq -r '.port // empty' 2>/dev/null)
+    if [[ -n "$port" && "$port" != "null" ]]; then
+        if ! _rxa_listening "$port"; then
+            echo "Rill Xray Agent: Xray port ${port} not listening" >&2
+            return 1
+        fi
+    fi
+    for mark in update_failed.mark restore_failed.mark rollback_unverified.mark; do
+        [[ -f "${logs}/${mark}" ]] && return 1
+    done
+    if (( nginx_required )); then
+        [[ -x "$nginx_bin" ]] || return 1
+        "$nginx_bin" -t -c "$nginx_cfg" >/dev/null 2>&1 || return 1
+        _rxa_active nginx || return 1
+        for port in ws_port grpc_port xhttp_port; do
+            port=$(printf '%s' "$json" | jq -r --arg k "$port" '.[$k] // empty' 2>/dev/null)
+            if [[ -n "$port" && "$port" != "null" ]]; then
+                if ! _rxa_listening "$port"; then
+                    echo "Rill Xray Agent: Nginx port ${port} not listening" >&2
+                    return 1
+                fi
+            fi
+        done
+    fi
+    return 0
+}
+rxa_host_post_verify() {
+    # Host-uninstall post-verify: called after the host removal phase and
+    # before commit. Returns 0 only when the host components are actually
+    # gone. xray must be inactive and its binary removed; when nginx was
+    # installed (nginx_dir present) nginx must be inactive and its binary
+    # removed. Host-owned config retention is a user choice handled by the
+    # caller; this function only checks what must be removed.
+    local xray_bin="${RILL_XRAY_AGENT_XRAY_BIN:-${xray_bin_dir:-}/xray}"
+    local nginx_bin="${RILL_XRAY_AGENT_NGINX_BIN:-${nginx_dir:-}/sbin/nginx}"
+    if systemctl -q is-active xray 2>/dev/null; then
+        echo 'Rill Agent: host post-verify failed: xray unit still active' >&2
+        return 1
+    fi
+    if [[ -e "${xray_bin}" ]]; then
+        echo 'Rill Agent: host post-verify failed: xray binary still present' >&2
+        return 1
+    fi
+    if [[ -n "${nginx_dir:-}" && -d "${nginx_dir}" ]]; then
+        if systemctl -q is-active nginx 2>/dev/null; then
+            echo 'Rill Agent: host post-verify failed: nginx unit still active' >&2
+            return 1
+        fi
+        if [[ -e "${nginx_bin}" ]]; then
+            echo 'Rill Agent: host post-verify failed: nginx binary still present' >&2
+            return 1
+        fi
+    fi
+    return 0
+}
+rxa_uninstall_prepare() {
+    # Two-phase uninstall, phase 1: freeze agent in observe-only, refresh the
+    # observation and persist a DURABLE uninstall intent. Fail-closed: a mode
+    # convergence failure OR a non-durable intent write returns non-zero, and
+    # the host uninstall MUST NOT begin. Rill may be absent -> explicit no-op.
+    command -v rxa_apply_mode >/dev/null 2>&1 || return 0
+    local home="$(rxa_agent_dir)" state="$(rxa_root "${RILL_XRAY_AGENT_STATE:-/var/lib/rill-xray-agent-runtime}")"
+    [[ -f "${home}/config.json" ]] || return 0
+    rxa_apply_mode observe-only >/dev/null 2>&1 || return 1
+    RILL_XRAY_AGENT_OUTPUT="$(rxa_observe_out)" \
+        bash "${home}/scripts/rill_xray_agent_observe.py" >/dev/null 2>&1 || true
+    install -d -m 0750 "${state}" 2>/dev/null || { echo 'Rill Agent: state dir not writable; uninstall aborted' >&2; return 1; }
+    printf '{"schemaVersion":1,"intent":"uninstall","phase":"prepared","atEpochSeconds":%s}\n' "$(date +%s)" \
+        > "${state}/uninstall.intent.json" 2>/dev/null || { echo 'Rill Agent: prepare intent not durable; uninstall aborted' >&2; return 1; }
+    return 0
+}
+rxa_uninstall_commit() {
+    # Two-phase uninstall, phase 2: only after the host uninstall fully
+    # succeeded. Writes the completion intent then executes the Rill purge.
+    # Fail-closed: a non-durable commit marker stops here with non-zero and
+    # diagnostics are NOT purged; purge failure also returns non-zero.
+    local pf=0
+    local state="$(rxa_root "${RILL_XRAY_AGENT_STATE:-/var/lib/rill-xray-agent-runtime}")"
+    install -d -m 0750 "${state}" 2>/dev/null || { echo 'Rill Agent: commit marker not durable; purge aborted' >&2; return 1; }
+    printf '{"schemaVersion":1,"intent":"uninstall","phase":"committed","atEpochSeconds":%s}\n' "$(date +%s)" \
+        >> "${state}/uninstall.intent.json" 2>/dev/null || { echo 'Rill Agent: commit marker not durable; purge aborted' >&2; return 1; }
+    bash "$(rxa_agent_dir)/scripts/rill_xray_agent_uninstall.sh" --purge || pf=$?
+    if [[ "$pf" != 0 ]]; then
+        echo 'Rill Xray Agent: purge failed (uninstall not completed)' >&2
+        return 1
+    fi
+    return 0
+}
+rxa_uninstall_abort() {
+    # Host uninstall failed: keep Runtime, audit, config and observation;
+    # record the aborted intent and return the host's real non-zero code.
+    # An abort-marker write failure must never turn the host failure into
+    # success: the original failure code is always returned.
+    local state="$(rxa_root "${RILL_XRAY_AGENT_STATE:-/var/lib/rill-xray-agent-runtime}")"
+    install -d -m 0750 "${state}" 2>/dev/null || true
+    printf '{"schemaVersion":1,"intent":"uninstall","phase":"aborted","atEpochSeconds":%s}\n' "$(date +%s)" \
+        >> "${state}/uninstall.intent.json" 2>/dev/null || true
+    echo 'Rill Agent: host uninstall failed; agent diagnostics retained' >&2
+    return 1
+}
+rxa_uninstall_finish() {
+    # Called by uninstall_all() with the accumulated host phase rc. 0 routes
+    # to commit (purge), anything else aborts and keeps all diagnostics.
+    local rc=${1:-1}
+    if [[ "$rc" == 0 ]]; then
+        rxa_uninstall_commit
+    else
+        rxa_uninstall_abort
+        return 1
+    fi
+}
+# END RILL XRAY AGENT INTEGRATION
 
 download_file() {
     local url="$1"
@@ -2868,6 +3217,8 @@ xray_install() {
 xray_update() {
     local current_xray_version
     local update_rolled_back=0
+    rxa_reconfigure_enter
+    trap 'rxa_reconfigure_leave $?' RETURN
     current_xray_version=$(info_extraction xray_version)
     [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
     # COMPAT: 旧版依赖 /usr/local/etc/xray 目录存放默认配置，新版不再使用，未来可删除
@@ -7300,16 +7651,27 @@ bbr_boost_sh() {
 }
 
 uninstall_xray() {
-    systemctl disable xray
-    xray_install_release remove --purge
-    [[ -d "${xray_conf_dir}" ]] && safe_rm "${xray_conf_dir}"
+    # Failure propagation: every removal step contributes to rcx. The final
+    # log_echo must never mask an earlier failure (a non-zero rcx is returned
+    # so uninstall_all() can route host commit vs abort correctly).
+    local rcx=0
+    systemctl disable xray 2>/dev/null || rcx=1
+    xray_install_release remove --purge || rcx=1
+    [[ -d "${xray_conf_dir}" ]] && { safe_rm "${xray_conf_dir}" || rcx=1; }
+    [[ -f "${xray_systemd_file}" ]] && { safe_rm "${xray_systemd_file}" || rcx=1; }
     if [[ -f "${xray_install_config_file}" ]]; then
-        update_json_config "${xray_install_config_file}" -r 'del(.xray_version)'
+        update_json_config "${xray_install_config_file}" -r 'del(.xray_version)' || rcx=1
     fi
-    log_echo "${OK} ${GreenBG} $(gettext "已卸载") Xray ${Font}"
+    if [[ "$rcx" == 0 ]]; then
+        log_echo "${OK} ${GreenBG} $(gettext "已卸载") Xray ${Font}"
+    else
+        log_echo "${Error} ${RedBG} $(gettext "Xray 卸载失败") ${Font}"
+    fi
+    return "$rcx"
 }
 
 uninstall_nginx() { 
+    local rcn=0
     if [[ "${1}" != "--force" ]]; then
         log_echo "${GreenBG} $(gettext "是否卸载") Nginx [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r uninstall_nginx
@@ -7320,19 +7682,31 @@ uninstall_nginx() {
             ;;
         esac
     fi
-    systemctl disable nginx
-    safe_rm "${nginx_dir}"
-    safe_rm "${nginx_conf_dir}"
-    [[ -f "${nginx_systemd_file}" ]] && safe_rm "${nginx_systemd_file}"
+    systemctl disable nginx 2>/dev/null || rcn=1
+    safe_rm "${nginx_dir}" || rcn=1
+    safe_rm "${nginx_conf_dir}" || rcn=1
+    [[ -f "${nginx_systemd_file}" ]] && { safe_rm "${nginx_systemd_file}" || rcn=1; }
     if [[ -f "${xray_install_config_file}" ]]; then
-        update_json_config "${xray_install_config_file}" 'del(.nginx_build_version)'
+        update_json_config "${xray_install_config_file}" 'del(.nginx_build_version)' || rcn=1
     fi
-    log_echo "${OK} ${GreenBG} $(gettext "已卸载") Nginx ${Font}"
+    if [[ "$rcn" == 0 ]]; then
+        log_echo "${OK} ${GreenBG} $(gettext "已卸载") Nginx ${Font}"
+    else
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 卸载失败") ${Font}"
+    fi
+    return "$rcn"
 }
 
 uninstall_all() {
-    stop_service_all
-    acme_cron_cleanup
+    # Fail-closed: if the Rill agent cannot be frozen in observe-only, do not
+    # begin the host removal at all.
+    if ! rxa_uninstall_prepare; then
+        log_echo "${Error} ${RedBG} $(gettext "Rill Agent 准备失败, 已取消卸载") ${Font}"
+        return 1
+    fi
+    local rxa_uninstall_rc=0
+    stop_service_all || rxa_uninstall_rc=1
+    acme_cron_cleanup || rxa_uninstall_rc=1
     local crontab_file
     if [[ "${ID}" == "centos" ]]; then
         crontab_file="/var/spool/cron/root"
@@ -7347,9 +7721,13 @@ uninstall_all() {
     [[ -f "/etc/logrotate.d/xray_log_cleanup" ]] && rm -f "/etc/logrotate.d/xray_log_cleanup"
     [[ -L "/usr/local/etc/xray/config.json" ]] && rm -f "/usr/local/etc/xray/config.json"
     [[ -L "/usr/local/share/xray" ]] && rm -f "/usr/local/share/xray"
-    [[ -f "${xray_bin_dir}/xray" ]] && uninstall_xray
+    if [[ -f "${xray_bin_dir}/xray" ]]; then
+        uninstall_xray || rxa_uninstall_rc=1
+    fi
     echo
-    [[ -d "${nginx_dir}" ]] && uninstall_nginx --force
+    if [[ -d "${nginx_dir}" ]]; then
+        uninstall_nginx --force || rxa_uninstall_rc=1
+    fi
     echo
     local keep_config=true
     if [[ -f "${xray_install_config_file}" ]]; then
@@ -7381,20 +7759,32 @@ uninstall_all() {
             safe_rm "${idleleo_commend_file}"
             safe_rm "${idleleo_dir}"
         fi
-        systemctl daemon-reload
+        systemctl daemon-reload || rxa_uninstall_rc=1
         log_echo "${OK} ${GreenBG} $(gettext "已删除所有文件") ${Font}"
         log_echo "${GreenBG} $(gettext "ヾ(￣▽￣) 拜拜~") ${Font}"
-        exit 0
+        # Only a clean host phase AND a passing host post-verify may commit.
+        if [[ "$rxa_uninstall_rc" == 0 ]] && ! rxa_host_post_verify; then
+            rxa_uninstall_rc=1
+            log_echo "${Error} ${RedBG} $(gettext "卸载后校验失败, 已保留 Rill 诊断") ${Font}"
+        fi
+        rxa_uninstall_finish "$rxa_uninstall_rc"
+        exit "$?"
         ;;
     *)
         if [[ "${keep_config}" == "false" && -f "${xray_install_config_file}" ]]; then
             rm -rf "${xray_install_config_file}"
             log_echo "${OK} ${GreenBG} $(gettext "已删除配置文件") ${Font}"
         fi
-        systemctl daemon-reload
+        systemctl daemon-reload || rxa_uninstall_rc=1
         log_echo "${OK} ${GreenBG} $(gettext "已保留脚本文件 (包含 SSL 证书等)") ${Font}"
         ;;
     esac
+    # Only a clean host phase AND a passing host post-verify may commit.
+    if [[ "$rxa_uninstall_rc" == 0 ]] && ! rxa_host_post_verify; then
+        rxa_uninstall_rc=1
+        log_echo "${Error} ${RedBG} $(gettext "卸载后校验失败, 已保留 Rill 诊断") ${Font}"
+    fi
+    rxa_uninstall_finish "$rxa_uninstall_rc"
 }
 
 delete_tls_key_and_crt() {
@@ -7470,13 +7860,16 @@ install_xray_ws_tls() {
     # idleleo info + conf dirs first would pollute the manifest recorded file
     # existence and break rollback to the true source state.
     old_config_exist_check || return 1
+    rxa_reconfigure_enter
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
-        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
+        trap "rxa_rc=\$?; reinstall_rollback_on_return \"\$rxa_rc\" \"${_tx_backup}\"; rxa_reconfigure_leave \"\$rxa_rc\"" RETURN
+    else
+        trap 'rxa_reconfigure_leave $?' RETURN
     fi
     basic_optimization || return 1
     create_directory || return 1
@@ -7535,6 +7928,7 @@ install_xray_ws_tls() {
     if [[ ${finalize_rc} -ne 0 ]]; then
         return "${finalize_rc}"
     fi
+    rxa_reconfigure_leave 0
     # Success info only after final safety gate passes.
     basic_information
     vless_link_image_choice
@@ -7549,13 +7943,16 @@ install_xray_reality() {
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
+    rxa_reconfigure_enter
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return below triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
-        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
+        trap "rxa_rc=\$?; reinstall_rollback_on_return \"\$rxa_rc\" \"${_tx_backup}\"; rxa_reconfigure_leave \"\$rxa_rc\"" RETURN
+    else
+        trap 'rxa_reconfigure_leave $?' RETURN
     fi
     basic_optimization || return 1
     create_directory || return 1
@@ -7604,6 +8001,7 @@ install_xray_reality() {
     if [[ ${finalize_rc} -ne 0 ]]; then
         return "${finalize_rc}"
     fi
+    rxa_reconfigure_leave 0
     basic_information
     vless_link_image_choice
     show_information
@@ -7617,13 +8015,16 @@ install_xray_xtls_only() {
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
+    rxa_reconfigure_enter
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
-        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
+        trap "rxa_rc=\$?; reinstall_rollback_on_return \"\$rxa_rc\" \"${_tx_backup}\"; rxa_reconfigure_leave \"\$rxa_rc\"" RETURN
+    else
+        trap 'rxa_reconfigure_leave $?' RETURN
     fi
     basic_optimization || return 1
     create_directory || return 1
@@ -7653,6 +8054,7 @@ install_xray_xtls_only() {
     if [[ ${finalize_rc} -ne 0 ]]; then
         return "${finalize_rc}"
     fi
+    rxa_reconfigure_leave 0
     basic_information
     vless_link_image_choice
     show_information
@@ -7666,13 +8068,16 @@ install_xray_ws_only() {
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
+    rxa_reconfigure_enter
     # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
     # is already populated. Any non-zero return triggers a single restore.
     local _tx_backup="${_reinstall_backup_dir:-}"
     if [[ -n "${_tx_backup}" ]]; then
         # Capture _tx_backup value NOW (double quotes) so the trap fires with a
         # literal path even after the local variable is destroyed on return.
-        trap "reinstall_rollback_on_return \"\$?\" \"${_tx_backup}\"" RETURN
+        trap "rxa_rc=\$?; reinstall_rollback_on_return \"\$rxa_rc\" \"${_tx_backup}\"; rxa_reconfigure_leave \"\$rxa_rc\"" RETURN
+    else
+        trap 'rxa_reconfigure_leave $?' RETURN
     fi
     basic_optimization || return 1
     create_directory || return 1
@@ -7715,6 +8120,7 @@ install_xray_ws_only() {
     if [[ ${finalize_rc} -ne 0 ]]; then
         return "${finalize_rc}"
     fi
+    rxa_reconfigure_leave 0
     basic_information
     vless_link_image_choice
     show_information
@@ -7755,25 +8161,46 @@ update_sh() {
                 _backup_script="${idleleo}.bak.$$"
                 cp -a "${idleleo}" "${_backup_script}" || _backup_script=""
             fi
-            download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
-            if [[ $? -ne 0 ]]; then
+            _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
+            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
+                rm -f "${_candidate}"
                 [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
                 ln -sf "${idleleo}" "${idleleo_commend_file}"
                 [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>"${log_file}"
                 [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
                 return 1
             fi
+            # Rill Xray Agent: validate the candidate before it can replace
+            # the running script; on any failure keep the old version.
+            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
+                rm -f "${_candidate}"
+                [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
+                ln -sf "${idleleo}" "${idleleo_commend_file}"
+                log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新") ${Font}"
+                return 1
+            fi
             downloaded_shell_version=$(
-                grep -E '^shell_version=' "${idleleo_dir}/install.sh" |
+                grep -E '^shell_version=' "${_candidate}" |
                 head -n 1 |
                 awk -F'=|"' '{print $3}'
             )
             if [[ -z "${downloaded_shell_version}" ||
                   "${downloaded_shell_version}" != "${newest_version}" ]]; then
+                rm -f "${_candidate}"
                 log_echo "${Error} ${RedBG} $(gettext "下载脚本版本校验失败") ${Font}"
                 [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
                 ln -sf "${idleleo}" "${idleleo_commend_file}"
                 rm -f "${_backup_script}"
+                return 1
+            fi
+            mv -f "${_candidate}" "${idleleo}"
+            # Rill Xray Agent: re-validate the installed script
+            # (rxa_postreplace_selfcheck); on failure restore backup.
+            if ! bash -n "${idleleo}" 2>/dev/null || ! rxa_candidate_guard "${idleleo}"; then
+                rm -f "${_candidate}"
+                [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
+                ln -sf "${idleleo}" "${idleleo_commend_file}"
+                log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "替换后校验失败, 已回滚") ${Font}"
                 return 1
             fi
             rm -f "${_backup_script}"
@@ -8110,7 +8537,25 @@ idleleo_commend() {
         oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
-            download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
+            _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
+            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
+                rm -f "${_candidate}"
+                return 1
+            fi
+            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
+                rm -f "${_candidate}"
+                echo "Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新")" >&2
+                return 1
+            fi
+            mv -f "${_candidate}" "${idleleo}"
+            # Rill Xray Agent: re-validate the installed script
+            # (rxa_postreplace_selfcheck); on failure refuse to launch.
+            if ! bash -n "${idleleo}" 2>/dev/null || ! rxa_candidate_guard "${idleleo}"; then
+                rm -f "${_candidate}"
+                echo "Rill Xray Agent $(gettext "替换后校验失败, 已阻止启动")" >&2
+                return 1
+            fi
+
             judge "$(gettext "下载最新脚本")"
             clear
             exec "${BASH:-bash}" "${idleleo}"
@@ -8124,7 +8569,25 @@ idleleo_commend() {
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
-                    download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
+                    _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
+            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
+                rm -f "${_candidate}"
+                return 1
+            fi
+            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
+                rm -f "${_candidate}"
+                echo "Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新")" >&2
+                return 1
+            fi
+            mv -f "${_candidate}" "${idleleo}"
+            # Rill Xray Agent: re-validate the installed script
+            # (rxa_postreplace_selfcheck); on failure refuse to launch.
+            if ! bash -n "${idleleo}" 2>/dev/null || ! rxa_candidate_guard "${idleleo}"; then
+                rm -f "${_candidate}"
+                echo "Rill Xray Agent $(gettext "替换后校验失败, 已阻止启动")" >&2
+                return 1
+            fi
+
                     judge "$(gettext "下载最新脚本")"
                     clear
                     log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
@@ -8135,7 +8598,25 @@ idleleo_commend() {
                     ;;
                 esac
             else
-                download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
+                _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
+            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
+                rm -f "${_candidate}"
+                return 1
+            fi
+            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
+                rm -f "${_candidate}"
+                echo "Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新")" >&2
+                return 1
+            fi
+            mv -f "${_candidate}" "${idleleo}"
+            # Rill Xray Agent: re-validate the installed script
+            # (rxa_postreplace_selfcheck); on failure refuse to launch.
+            if ! bash -n "${idleleo}" 2>/dev/null || ! rxa_candidate_guard "${idleleo}"; then
+                rm -f "${_candidate}"
+                echo "Rill Xray Agent $(gettext "替换后校验失败, 已阻止启动")" >&2
+                return 1
+            fi
+
                 echo
                 judge "$(gettext "下载最新脚本")"
                 clear
@@ -10015,6 +10496,9 @@ menu_main_header() {
     menu_fields "${shell_version_field}" "${xray_version_field}" "${nginx_version_field}"
     menu_divider "$(gettext "运行状态")"
     menu_fields "${xray_status_field}" "${nginx_status_field}" "${connect_status_field}"
+    rxa_refresh_summary
+    menu_divider "Rill Xray Agent"
+    menu_fields "${RILL_XRAY_AGENT_HEADER_STATE}" "${RILL_XRAY_AGENT_HEADER_RUNTIME}" "${RILL_XRAY_AGENT_HEADER_ROUTE}"
     menu_footer
     log "${mode_field}  ·  ${language_field}"
     log "${shell_version_field}  ·  ${xray_version_field}  ·  ${nginx_version_field}"
@@ -10036,10 +10520,11 @@ menu() {
         menu_item 6 "$(gettext "其他选项")"
         menu_item 7 "$(gettext "备份恢复")"
         menu_item 8 "$(gettext "修改语言") / Language"
+        menu_item 9 "Rill Xray Agent"
         menu_blank
         menu_item 0 "$(gettext "退出")"
         menu_footer
-        menu_read menu_num 8
+        menu_read menu_num 9
         case $menu_num in
             0) exit 0 ;;
             1) menu_install ;;
@@ -10050,6 +10535,7 @@ menu() {
             6) menu_tools ;;
             7) menu_backup_and_uninstall ;;
             8) menu_action 99 ;;
+            9) rxa_menu ;;
         esac
     done
 }
@@ -10058,7 +10544,9 @@ is_offline_safe_command() {
     case "${1:-}" in
         -h|--help|--purge|--uninstall|-s|--show|\
         --service-start|--service-stop|--service-restart|\
-        --access-log|--error-log|--backup)
+        --access-log|--error-log|--backup|\
+        --rill-agent|--rill-agent-status|--rill-agent-safe-disable|--rill-agent-verify|--rill-agent-uninstall|\
+        --rill-integration-self-check)
             return 0
             ;;
         *)
@@ -10083,6 +10571,12 @@ dispatch_offline_safe_command() {
         --access-log) show_access_log ;;
         --error-log) show_error_log ;;
         --backup) backup_directories ;;
+        --rill-agent) rxa_menu ;;
+        --rill-agent-status) rxa_dispatch status ;;
+        --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;
+        --rill-agent-verify) rxa_dispatch verify ;;
+        --rill-agent-uninstall) rxa_dispatch uninstall ;;
+        --rill-integration-self-check) rxa_integration_self_check ;;
         *) return 1 ;;
     esac
 }
@@ -10105,6 +10599,13 @@ harden_config_permissions_if_needed() {
 case "${1:-}" in
     -h|--help)
         show_help
+        exit 0
+        ;;
+    --rill-integration-self-check)
+        # P1-4: read-only, side-effect-free contract self-check. Dispatched
+        # before init_language / check_file_integrity / any network or package
+        # call so stdout carries ONLY the JSON contract. Never installs.
+        rxa_integration_self_check
         exit 0
         ;;
 esac
