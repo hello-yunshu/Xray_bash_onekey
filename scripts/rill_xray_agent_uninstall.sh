@@ -19,12 +19,70 @@ RILL_XRAY_AGENT_MANAGER=${RILL_XRAY_AGENT_MANAGER:-/etc/rill-xray-agent/scripts/
 RILL_XRAY_AGENT_UNITS=(rill-xray-agent-runtime.service rill-xray-agent-agent.service \
     rill-xray-agent-xray-observe.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer)
 
+rxa_fake_systemctl() {
+    # Test-only systemctl shim (only active when FAKE_SYSTEMCTL_LOG is set):
+    # every invocation is logged so the CI contract test can assert the
+    # systemctl calls; failure injection respects FAKE_DISABLE_FAIL /
+    # FAKE_ACTIVE_UNITS. Production runs never set these variables.
+    local op=$1
+    shift
+    printf '%s %s\n' "$op" "$*" >>"$FAKE_SYSTEMCTL_LOG"
+    case "$op" in
+    disable)
+        [[ ${FAKE_DISABLE_FAIL:-0} == 1 ]] && return 1
+        ;;
+    is-active)
+        for unit in "$@"; do
+            case " ${FAKE_ACTIVE_UNITS:-} " in
+            *" $unit "*) return 0 ;;
+            esac
+        done
+        return 1
+        ;;
+    esac
+    return 0
+}
+
+rxa_write_intent_atomic() {
+    # Durable intent write: mkdir -> temp file -> fsync file -> atomic rename
+    # -> fsync directory. Returns non-zero on ANY failure; a prepare intent
+    # that is not durable must never be treated as success (fail-closed).
+    local dir=${1:-} content=${2:-} dest=${3:-}
+    install -d -m 0750 "$(root "$dir")" 2>/dev/null || return 1
+    python3 - "$(root "$dir")" "$content" "$(root "$dest")" <<'PY' || return 1
+import os,sys,tempfile
+d,content,dest=sys.argv[1:]
+fd,tmp=tempfile.mkstemp(prefix='.intent.',dir=d)
+try:
+    with os.fdopen(fd,'w') as f:
+        f.write(content+'\n')
+        f.flush()
+        os.fsync(f.fileno())
+    os.chmod(tmp,0o640)
+    os.replace(tmp,dest)
+    dfd=os.open(d,os.O_DIRECTORY)
+    try:
+        os.fsync(dfd)
+    finally:
+        os.close(dfd)
+except Exception:
+    try:
+        os.unlink(tmp)
+    except OSError:
+        pass
+    sys.exit(1)
+PY
+}
+
 rxa_uninstall_prepare() {
     # Two-phase uninstall, phase 1: freeze the agent in observe-only, refresh
     # the last observation, persist a durable uninstall intent and snapshot
     # the runtime state. NOTHING is deleted here: Runtime, audit, config and
     # the observation all stay in place so a failed host uninstall can abort
     # and keep diagnostics.
+    #
+    # Prepare only succeeds when BOTH the mode freeze AND the durable intent
+    # write succeed; a non-durable intent aborts before any host removal.
     local rc=0
     if [[ -f "$RILL_XRAY_AGENT_MANAGER" ]]; then
         # shellcheck disable=SC1090
@@ -35,9 +93,10 @@ rxa_uninstall_prepare() {
         RILL_XRAY_AGENT_OUTPUT="$(root "$RILL_XRAY_AGENT_STATUS")" \
             python3 "$RILL_XRAY_AGENT_HOME/scripts/rill_xray_agent_observe.py" >/dev/null 2>&1 || rc=1
     fi
-    install -d -m 0750 "$(root "$RILL_XRAY_AGENT_STATE")"
-    printf '{"schemaVersion":1,"intent":"uninstall","phase":"prepared","atEpochSeconds":%s}\n' \
-        "$(date +%s)" > "$(root "$RILL_XRAY_AGENT_STATE/uninstall.intent.json")" 2>/dev/null || rc=1
+    rxa_write_intent_atomic \
+        "$RILL_XRAY_AGENT_STATE" \
+        "{\"schemaVersion\":1,\"intent\":\"uninstall\",\"phase\":\"prepared\",\"atEpochSeconds\":$(date +%s)}" \
+        "$RILL_XRAY_AGENT_STATE/uninstall.intent.json" || rc=1
     return "$rc"
 }
 
@@ -45,7 +104,13 @@ rxa_uninstall_remove_rill() {
     # Removes Rill units, binaries and runtime dirs. Every critical step
     # contributes to the accumulated return code; nothing is swallowed.
     local rc=0
-    systemctl disable --now "${RILL_XRAY_AGENT_UNITS[@]}" >/dev/null 2>&1 || rc=1
+    if [[ -n ${FAKE_SYSTEMCTL_LOG:-} ]]; then
+        rxa_fake_systemctl disable "${RILL_XRAY_AGENT_UNITS[@]}" >>"$FAKE_SYSTEMCTL_LOG" || rc=1
+        rxa_fake_systemctl daemon-reload >>"$FAKE_SYSTEMCTL_LOG" 2>/dev/null || true
+    else
+        systemctl disable --now "${RILL_XRAY_AGENT_UNITS[@]}" >/dev/null 2>&1 || rc=1
+        [[ -n "$DESTDIR" ]] || systemctl daemon-reload >/dev/null 2>&1 || rc=1
+    fi
     for unit in "${RILL_XRAY_AGENT_UNITS[@]}"; do
         rm -f "$(root "/etc/systemd/system/$unit")" || rc=1
     done
@@ -57,7 +122,6 @@ rxa_uninstall_remove_rill() {
           "$(root /var/lib/rill-xray-agent-root)" \
           "$(root /var/lib/rill-xray-agent-xray)" || rc=1
     fi
-    [[ -n "$DESTDIR" ]] || systemctl daemon-reload >/dev/null 2>&1 || rc=1
     return "$rc"
 }
 
@@ -66,7 +130,14 @@ rxa_uninstall_verify_host() {
     # binary may still exist. Any leftover forces the abort path.
     local unit binary failed=0
     for unit in "${RILL_XRAY_AGENT_UNITS[@]}"; do
-        if systemctl is-active --quiet "$unit" 2>/dev/null; then
+        if [[ -n ${FAKE_SYSTEMCTL_LOG:-} ]]; then
+            rxa_fake_systemctl is-active "$unit" >>"$FAKE_SYSTEMCTL_LOG"
+            active=$?
+        else
+            systemctl is-active --quiet "$unit" 2>/dev/null
+            active=$?
+        fi
+        if [[ $active -eq 0 ]]; then
             echo "Rill Xray Agent: unit still active: $unit" >&2
             failed=1
         fi
@@ -82,10 +153,33 @@ rxa_uninstall_verify_host() {
 
 rxa_uninstall_mark() {
     # Append a durable phase marker to the uninstall intent ledger. Marker
-    # writes are best-effort; they never hide a real removal failure.
-    install -d -m 0750 "$(root "$RILL_XRAY_AGENT_STATE")" 2>/dev/null || true
-    printf '{"schemaVersion":1,"intent":"uninstall","phase":"%s","atEpochSeconds":%s}\n' \
-        "${1:-}" "$(date +%s)" >> "$(root "$RILL_XRAY_AGENT_STATE/uninstall.intent.json")" 2>/dev/null || true
+    # writes are best-effort (fsync'd append); they never hide a real removal
+    # failure and never fail the uninstall on their own.
+    install -d -m 0750 "$(root "$RILL_XRAY_AGENT_STATE")" 2>/dev/null || return 0
+    python3 - "$1" "$(root "$RILL_XRAY_AGENT_STATE/uninstall.intent.json")" "$(root "$RILL_XRAY_AGENT_STATE")" <<'PY' 2>/dev/null || true
+import os,sys,tempfile,time
+phase,dest,d=sys.argv[1:]
+fd,tmp=tempfile.mkstemp(prefix='.mark.',dir=d)
+try:
+    with os.fdopen(fd,'w') as out:
+        try:
+            with open(dest,'rb') as existing:
+                out.write(existing.read().decode('utf-8','replace'))
+        except OSError:
+            pass
+        out.write('{"schemaVersion":1,"intent":"uninstall","phase":"%s","atEpochSeconds":%d}\n'
+                  % (phase, int(time.time())))
+        out.flush()
+        os.fsync(out.fileno())
+    os.chmod(tmp,0o640)
+    os.replace(tmp,dest)
+except Exception:
+    try:
+        os.unlink(tmp)
+    except OSError:
+        pass
+    sys.exit(1)
+PY
 }
 
 rxa_uninstall_commit() {
