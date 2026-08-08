@@ -8,7 +8,10 @@ User=rill-xray-agent
 Group=rill-xray-agent
 ExecStart=/opt/rill-xray-agent/bin/rill-xray-agent-agent
 Restart=on-failure
-RuntimeDirectory=rill-xray-agent
+# /run/rill-xray-agent is created and owned by the Runtime unit
+# (RuntimeDirectory=rill-xray-agent). The Agent must not declare a second
+# RuntimeDirectory of the same name: it consumes the Runtime-created
+# directory through its Requires/After dependency.
 ReadWritePaths=/run/rill-xray-agent
 ProtectSystem=strict
 ProtectHome=true

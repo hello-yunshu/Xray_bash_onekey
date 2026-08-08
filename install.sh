@@ -635,27 +635,30 @@ rxa_host_post_verify() {
 }
 rxa_uninstall_prepare() {
     # Two-phase uninstall, phase 1: freeze agent in observe-only, refresh the
-    # observation and write a durable uninstall intent. Never deletes Rill
-    # state; the host phase decides commit vs abort.
+    # observation and persist a DURABLE uninstall intent. Fail-closed: a mode
+    # convergence failure OR a non-durable intent write returns non-zero, and
+    # the host uninstall MUST NOT begin. Rill may be absent -> explicit no-op.
     command -v rxa_apply_mode >/dev/null 2>&1 || return 0
     local home="$(rxa_agent_dir)" state="$(rxa_root "${RILL_XRAY_AGENT_STATE:-/var/lib/rill-xray-agent-runtime}")"
     [[ -f "${home}/config.json" ]] || return 0
     rxa_apply_mode observe-only >/dev/null 2>&1 || return 1
     RILL_XRAY_AGENT_OUTPUT="$(rxa_observe_out)" \
         bash "${home}/scripts/rill_xray_agent_observe.py" >/dev/null 2>&1 || true
-    install -d -m 0750 "${state}"
+    install -d -m 0750 "${state}" 2>/dev/null || { echo 'Rill Agent: state dir not writable; uninstall aborted' >&2; return 1; }
     printf '{"schemaVersion":1,"intent":"uninstall","phase":"prepared","atEpochSeconds":%s}\n' "$(date +%s)" \
-        > "${state}/uninstall.intent.json" 2>/dev/null || true
+        > "${state}/uninstall.intent.json" 2>/dev/null || { echo 'Rill Agent: prepare intent not durable; uninstall aborted' >&2; return 1; }
     return 0
 }
 rxa_uninstall_commit() {
     # Two-phase uninstall, phase 2: only after the host uninstall fully
     # succeeded. Writes the completion intent then executes the Rill purge.
-    # Purge failure returns non-zero and is never swallowed with `|| true`.
+    # Fail-closed: a non-durable commit marker stops here with non-zero and
+    # diagnostics are NOT purged; purge failure also returns non-zero.
     local pf=0
     local state="$(rxa_root "${RILL_XRAY_AGENT_STATE:-/var/lib/rill-xray-agent-runtime}")"
+    install -d -m 0750 "${state}" 2>/dev/null || { echo 'Rill Agent: commit marker not durable; purge aborted' >&2; return 1; }
     printf '{"schemaVersion":1,"intent":"uninstall","phase":"committed","atEpochSeconds":%s}\n' "$(date +%s)" \
-        >> "${state}/uninstall.intent.json" 2>/dev/null || true
+        >> "${state}/uninstall.intent.json" 2>/dev/null || { echo 'Rill Agent: commit marker not durable; purge aborted' >&2; return 1; }
     bash "$(rxa_agent_dir)/scripts/rill_xray_agent_uninstall.sh" --purge || pf=$?
     if [[ "$pf" != 0 ]]; then
         echo 'Rill Xray Agent: purge failed (uninstall not completed)' >&2
@@ -666,6 +669,8 @@ rxa_uninstall_commit() {
 rxa_uninstall_abort() {
     # Host uninstall failed: keep Runtime, audit, config and observation;
     # record the aborted intent and return the host's real non-zero code.
+    # An abort-marker write failure must never turn the host failure into
+    # success: the original failure code is always returned.
     local state="$(rxa_root "${RILL_XRAY_AGENT_STATE:-/var/lib/rill-xray-agent-runtime}")"
     install -d -m 0750 "${state}" 2>/dev/null || true
     printf '{"schemaVersion":1,"intent":"uninstall","phase":"aborted","atEpochSeconds":%s}\n' "$(date +%s)" \

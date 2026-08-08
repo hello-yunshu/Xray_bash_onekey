@@ -2,7 +2,7 @@ import hashlib, json, os, time, uuid
 from pathlib import Path
 from .audit import AuditLog
 from .canonical import atomic_write_json, canonical_bytes, digest, file_sha256, fsync_dir, read_json
-from .errors import OperationError
+from .errors import OperationError, RecoveryRequiredError
 from .locking import FileLock
 
 FAULT_INTENT = 'RILL_OP_FAIL_AFTER_OPERATION_INTENT'
@@ -91,6 +91,18 @@ class OperationLog:
     def execute(self, kind, state_path, state_fn, event_type, event_details=None,
                 actor_type='system', actor_id='runtime', now=None):
         with FileLock(self.lock):
+            # P0-2 global mutation fence: while ANY unfinished operation intent
+            # exists (or the WAL otherwise demands recovery) every state
+            # mutation fails closed with recoveryRequired. This check lives in
+            # the single WAL entry point and shares the SAME FileLock region as
+            # the operation, so a concurrent check cannot race the recovery
+            # that would disable the fence. Read-only surfaces (health,
+            # metrics, config, inspect, snapshot) never enter execute().
+            pending = self.intents()
+            if pending:
+                raise RecoveryRequiredError(
+                    f'unfinished operation(s) pending: {sorted(p.name for p in pending)[:3]}; '
+                    'state mutation fenced until recovery completes')
             op_id = uuid.uuid4().hex
             state_path = Path(state_path)
             pre_sha = self._state_sha(state_path)
