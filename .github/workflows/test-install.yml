@@ -82,6 +82,8 @@ jobs:
             .phase1-contracts/skill
           # Rill Xray Agent host integration checks (mandatory workflow)
           bash .github/test/test_rill_xray_agent.sh
+          # Rill mode lifecycle verify (normal/observe-only/safe-disabled sockets)
+          bash .github/test/test_rill_xray_agent_verify_modes.sh
           # Rill two-phase uninstall failure propagation (P0-2)
           bash .github/test/test_install_uninstall_transaction.sh
           # Production Nginx health default path (P0-3)
