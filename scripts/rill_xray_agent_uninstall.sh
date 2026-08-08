@@ -152,11 +152,12 @@ rxa_uninstall_verify_host() {
 }
 
 rxa_uninstall_mark() {
-    # Append a durable phase marker to the uninstall intent ledger. Marker
-    # writes are best-effort (fsync'd append); they never hide a real removal
-    # failure and never fail the uninstall on their own.
-    install -d -m 0750 "$(root "$RILL_XRAY_AGENT_STATE")" 2>/dev/null || return 0
-    python3 - "$1" "$(root "$RILL_XRAY_AGENT_STATE/uninstall.intent.json")" "$(root "$RILL_XRAY_AGENT_STATE")" <<'PY' 2>/dev/null || true
+    # Append a durable phase marker to the uninstall intent ledger. Fail-closed:
+    # ANY marker-write failure returns non-zero so a non-durable committed
+    # marker can never be followed by a purge, and a non-durable aborted marker
+    # can never turn a host failure into success.
+    install -d -m 0750 "$(root "$RILL_XRAY_AGENT_STATE")" 2>/dev/null || return 1
+    python3 - "$1" "$(root "$RILL_XRAY_AGENT_STATE/uninstall.intent.json")" "$(root "$RILL_XRAY_AGENT_STATE")" <<'PY' || return 1
 import os,sys,tempfile,time
 phase,dest,d=sys.argv[1:]
 fd,tmp=tempfile.mkstemp(prefix='.mark.',dir=d)
@@ -184,16 +185,19 @@ PY
 
 rxa_uninstall_commit() {
     # Two-phase uninstall, phase 2 (host uninstall fully succeeded): append
-    # the completion marker, then remove Rill. A failure here returns non-zero
-    # and is never masked with `|| true`.
-    rxa_uninstall_mark committed
+    # the completion marker, then remove Rill. The committed marker MUST be
+    # durable before any removal begins: a marker-write failure stops here
+    # with non-zero and no purge (diagnostics retained).
+    rxa_uninstall_mark committed || return 1
     rxa_uninstall_remove_rill 1
 }
 
 rxa_uninstall_abort() {
     # Host uninstall failed: keep Runtime, audit, config and observation;
     # record the aborted intent and return the host's real non-zero code.
-    rxa_uninstall_mark aborted
+    # An abort-marker write failure must not turn the host failure into
+    # success: the original failure code is always returned.
+    rxa_uninstall_mark aborted 2>/dev/null || true
     echo 'Rill Xray Agent: host uninstall failed; agent diagnostics retained' >&2
     return 1
 }
@@ -220,6 +224,9 @@ if ! rxa_uninstall_verify_host; then
     rxa_uninstall_abort
     exit 1
 fi
-rxa_uninstall_mark committed
+if ! rxa_uninstall_mark committed; then
+    echo 'Rill Xray Agent: committed marker not durable; uninstall reported failed' >&2
+    exit 1
+fi
 echo 'Rill Xray Agent removed; Xray configuration was not modified'
 exit 0
