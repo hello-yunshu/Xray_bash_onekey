@@ -36,6 +36,9 @@ grep -Fq 'uninstall_xray || rxa_uninstall_rc=1' install.sh
 grep -Fq 'uninstall_nginx --force || rxa_uninstall_rc=1' install.sh
 grep -Fq 'exit "$?"' install.sh
 bash .github/test/test_rill_xray_agent_uninstall.sh
+# P1-1: real-implementation durable intent writer tests (prepared/commit/
+# abort persistence failure + ordering; never mocks the durable writer).
+bash .github/test/test_rill_uninstall_durability.sh
 # P0-6: mode-aware host health check (only required components are checked).
 bash .github/test/test_rill_xray_agent_healthy.sh
 echo 'Rill Xray Agent host integration checks passed'

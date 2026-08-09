@@ -174,6 +174,11 @@ try:
         os.fsync(out.fileno())
     os.chmod(tmp,0o640)
     os.replace(tmp,dest)
+    dfd=os.open(d,os.O_DIRECTORY)
+    try:
+        os.fsync(dfd)
+    finally:
+        os.close(dfd)
 except Exception:
     try:
         os.unlink(tmp)
