@@ -1,4 +1,5 @@
 install.sh
 scripts/fail2ban_manager.sh
 scripts/file_manager.sh
+scripts/rill_xray_agent_manager.sh
 scripts/traffic_blocker.sh
