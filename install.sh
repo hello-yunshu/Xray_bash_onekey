@@ -10586,6 +10586,7 @@ is_offline_safe_command() {
         --service-start|--service-stop|--service-restart|\
         --access-log|--error-log|--backup|\
         --rill-agent|--rill-agent-status|--rill-agent-safe-disable|--rill-agent-verify|--rill-agent-uninstall|\
+        --rill-agent-diagnose|--rill-agent-timeline|\
         --rill-integration-self-check)
             return 0
             ;;
@@ -10615,6 +10616,8 @@ dispatch_offline_safe_command() {
         --rill-agent-status) rxa_dispatch status ;;
         --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;
         --rill-agent-verify) rxa_dispatch verify ;;
+        --rill-agent-diagnose) rxa_dispatch diagnose ;;
+        --rill-agent-timeline) rxa_dispatch timeline ;;
         --rill-agent-uninstall) rxa_dispatch uninstall ;;
         --rill-integration-self-check) rxa_integration_self_check ;;
         *) return 1 ;;
