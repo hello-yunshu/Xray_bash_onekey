@@ -1,0 +1,8 @@
+[Unit]
+Description=Periodic Rill Xray Agent observation
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=rill-xray-agent-xray-observe.service
+[Install]
+WantedBy=timers.target
