@@ -1,0 +1,23 @@
+{
+  "boundedAutoAllowed": false,
+  "candidate": "0.1.0",
+  "localLearningEnabled": false,
+  "localOnly": true,
+  "maximumConcurrentConnections": 32,
+  "maximumRequestBytes": 1048576,
+  "mode": "observe-only",
+  "nativeRuntimeSupported": false,
+  "routeAssistEnabled": false,
+  "routeStage": "observe",
+  "schemaVersion": 1,
+  "sentinelEnabled": true,
+  "supportedRuntime": "portable-python",
+  "uploadEnabled": false,
+  "userLevelStatistics": false,
+  "xrayIntegration": {
+    "enabled": false,
+    "observeOnly": true,
+    "reviewedCommit": "e3ba5d7474498fbb556b0cae741a629ebb3bf1cd",
+    "upstreamRepository": "hello-yunshu/Xray_bash_onekey"
+  }
+}

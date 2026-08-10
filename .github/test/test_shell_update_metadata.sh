@@ -69,11 +69,14 @@ update_json_config() {
 # Track download_script_file
 download_script_file() {
     # download_script_file URL OUTPUT_PATH
-    # The content to write is controlled by DOWNLOAD_CONTENT global
+    # The content to write is controlled by DOWNLOAD_CONTENT global.
+    # Write byte-safe: the candidate integration block contains printf
+    # format sequences (%s/%d), so `printf '%s\n'` must NOT be used here
+    # (it would interpret them and corrupt the downloaded script).
     local url="$1"
     local out="$2"
     if [[ -n "${DOWNLOAD_CONTENT:-}" ]]; then
-        printf '%s\n' "${DOWNLOAD_CONTENT}" > "${out}"
+        cat > "${out}" <<< "${DOWNLOAD_CONTENT}"
         return 0
     fi
     return 1
@@ -97,8 +100,20 @@ ln -sf "${idleleo}" "${idleleo_commend_file}"
 # Create config with old version
 jq -n --arg sv "3.0.0" '{shell_version: $sv}' > "${xray_install_config_file}"
 
-# Download content with new version
-DOWNLOAD_CONTENT='shell_version="3.0.1"'
+# Download content with new version. A valid update on an integration-patched
+# script must itself carry the real integration block; the candidate guard is
+# semantic (bash -n + schema marker + menu/dispatch anchors + a read-only probe
+# that sources the block against fake host tooling), so the fixture must embed
+# the authoritative block verbatim, not a hand-written stub.
+INTEGRATION_BLOCK=$(awk '/^# [B]EGIN RILL XRAY AGENT INTEGRATION$/,/^# [E]ND RILL XRAY AGENT INTEGRATION$/' "${REPO_DIR}/install.sh")
+# Build the fixture candidate byte-safe. The authoritative integration block
+# is embedded verbatim. It must NOT go through an unquoted heredoc: the block
+# itself contains `EOF` heredoc delimiters (inside rxa_candidate_guard) that
+# would terminate an outer `<<EOF`, and `$`/backtick/`%` sequences that an
+# unquoted heredoc or `printf '%s'` would reinterpret. ANSI-C quoted literals +
+# a plain variable expansion preserve the block exactly while still injecting
+# it and the trailing menu/dispatch anchors.
+DOWNLOAD_CONTENT=$'#!/usr/bin/env bash\nRILL_XRAY_AGENT_INTEGRATION_SCHEMA=1\nshell_version="3.0.1"\n'"${INTEGRATION_BLOCK}"$'\nmenu_item() { return 0; }\nmenu_item 9 "Rill Xray Agent"\ncase 9 in\n    9) rxa_menu ;;\nesac\ncase "${1:-}" in\n    --rill-agent-status) rxa_dispatch status ;;\nesac\n'
 UPDATE_JSON_CONFIG_CALLS=0
 UPDATED_SHELL_VERSION=""
 

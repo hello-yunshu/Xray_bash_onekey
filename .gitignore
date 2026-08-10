@@ -1,3 +1,5 @@
 .trae/
 i18n/po/cache_*.json
 .DS_Store
+__pycache__/
+*.pyc
