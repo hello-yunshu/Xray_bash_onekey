@@ -1,6 +1,6 @@
 {
   "boundedAutoAllowed": false,
-  "candidate": "0.1.0-rc.1",
+  "candidate": "0.1.0",
   "localLearningEnabled": false,
   "localOnly": true,
   "maximumConcurrentConnections": 32,
@@ -8,7 +8,9 @@
   "mode": "observe-only",
   "nativeRuntimeSupported": false,
   "routeAssistEnabled": false,
+  "routeStage": "observe",
   "schemaVersion": 1,
+  "sentinelEnabled": true,
   "supportedRuntime": "portable-python",
   "uploadEnabled": false,
   "userLevelStatistics": false,
