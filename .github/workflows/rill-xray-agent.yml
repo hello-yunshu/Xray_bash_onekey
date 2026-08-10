@@ -3,7 +3,7 @@ on: [push, pull_request, workflow_dispatch]
 env:
   # Pin the Rill commit whose CANONICAL_MANIFEST.json this payload must match.
   # Bump when the Rill canonical source of truth changes.
-  RILL_CANONICAL_COMMIT: 8fadd208ae08de3dcd0d724daf3d90a39dfdd861
+  RILL_CANONICAL_COMMIT: 48c0a071292a656a6d60cc33ea5837dde8116261
 jobs:
   integration:
     runs-on: ubuntu-latest

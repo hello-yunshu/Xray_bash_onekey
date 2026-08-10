@@ -411,6 +411,13 @@ rxa_verify() {
     rxa_verify_live_contract
 }
 
+rxa_diagnose() {
+    # Advisory-only Doctor diagnosis. Emits the deterministic diagnosis result
+    # so the operator can see facts vs inference and suggested next steps.
+    # Never executes host commands; canApply is always false.
+    rxa_runtime diagnose
+}
+
 rxa_menu() {
     local choice
     scripts_dir=${scripts_dir:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)}
@@ -422,11 +429,12 @@ rxa_menu() {
         menu_item 4 "Mode: observe-only"
         menu_item 5 "Safe disable"
         menu_item 6 "Verify"
-        menu_item 7 "Uninstall"
+        menu_item 7 "Diagnose"
+        menu_item 8 "Uninstall"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
-        menu_read choice 7
+        menu_read choice 8
         case $choice in
             0) return ;;
             1) rxa_status_json; menu_pause ;;
@@ -435,7 +443,8 @@ rxa_menu() {
             4) rxa_apply_mode observe-only; menu_pause ;;
             5) rxa_apply_mode safe-disabled; menu_pause ;;
             6) rxa_verify; menu_pause ;;
-            7) bash "${scripts_dir}/rill_xray_agent_uninstall.sh"; return ;;
+            7) rxa_diagnose; menu_pause ;;
+            8) bash "${scripts_dir}/rill_xray_agent_uninstall.sh"; return ;;
         esac
     done
 }
@@ -447,6 +456,8 @@ rxa_dispatch() {
         mode) rxa_apply_mode "${2:-}" ;;
         safe-disable) rxa_apply_mode safe-disabled ;;
         verify) rxa_verify ;;
+        diagnose) rxa_diagnose ;;
+        timeline) rxa_runtime timeline ;;
         uninstall) bash "${scripts_dir}/rill_xray_agent_uninstall.sh" ;;
         *) return 64 ;;
     esac
