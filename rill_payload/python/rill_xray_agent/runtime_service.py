@@ -2,7 +2,10 @@ import json, os, socket, time, uuid, threading, sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from .audit import AuditLog
-from .canonical import atomic_write_json, canonical_bytes, digest
+from .canonical import atomic_write_json, canonical_bytes, digest, read_json
+from .doctor import Doctor
+from .errors import EventJournalError
+from .event_journal import EventJournal
 from .health import health
 from .operation import OperationLog
 from .payload_policy import sanitize_payload, sanitize_root_result, RootResultViolation
@@ -10,9 +13,11 @@ from .peer_auth import AccessControl, peer_credentials
 from .state import RuntimeState
 from .root_txn import RootTransaction
 
-ALLOWED = {'health', 'metrics', 'mode', 'config', 'register', 'rootResult', 'feedback', 'inspect', 'snapshot'}
+ALLOWED = {'health', 'metrics', 'mode', 'config', 'register', 'rootResult', 'feedback', 'inspect', 'snapshot', 'timeline', 'diagnose'}
 ACCESS_LOG_BYTES = 8 * 1024 * 1024
 MAX_FRAME_BYTES = 1048576
+DEFAULT_OBSERVATION_PATH = '/var/lib/rill-xray-agent-xray/status/xray-observation.json'
+DEFAULT_TIMELINE_DIR = '/var/lib/rill-xray-agent-xray/history'
 
 
 class BoundedQueue:
@@ -57,7 +62,7 @@ class RuntimeService:
     def __init__(self, state_root, txn_root, peer_creds=True, allowed_uids=None,
                  max_concurrency=32, max_completed=4096, ledger_max_entries=0,
                  ledger_max_bytes=None, replay_protection_seconds=21600,
-                 default_uid=None):
+                 default_uid=None, observation_path=None, timeline_dir=None):
         self.state_root = Path(state_root)
         self.state_root.mkdir(parents=True, exist_ok=True)
         self.txn_root = Path(txn_root)
@@ -69,6 +74,11 @@ class RuntimeService:
         self.audit = AuditLog(self.state_root / 'audit')
         self.ops = OperationLog(self.state_root / 'operations', audit=self.audit, ledger=self.state.ledger)
         self.ops_report = self.ops.recover()
+        # Safe observation timeline is host-owned and READ-ONLY to the Runtime.
+        # The Runtime never appends to the journal; it only reads recent events.
+        self.observation_path = Path(observation_path or DEFAULT_OBSERVATION_PATH)
+        self.timeline_dir = Path(timeline_dir or DEFAULT_TIMELINE_DIR)
+        self.events = EventJournal(self.timeline_dir, read_only=True)
         self.txn = RootTransaction(self.txn_root, self.state_root / 'delivery',
                                    self.state_root / 'generation')
         # READ-ONLY: the production Runtime runs with ReadOnlyPaths on the
@@ -245,6 +255,29 @@ class RuntimeService:
                 did = b.get('decisionId')
                 r = {'pending': s['pending'].get(did), 'completed': s['completed'].get(did),
                      'closed': self.state.ledger.get(did)}
+            elif m == 'timeline':
+                limit = int(b.get('limit') or 50)
+                limit = max(1, min(limit, 200))
+                try:
+                    events = self.events.read(limit=limit)
+                except EventJournalError:
+                    r = {'available': False, 'events': []}
+                else:
+                    r = {'available': self.timeline_dir.is_dir(), 'events': [self._project_event(e) for e in events]}
+            elif m == 'diagnose':
+                # Advisory-only: requires a privileged/operator peer, but never
+                # executes anything. Route Assist / bounded auto stay OFF.
+                if not self.acl.write_permitted(peer_uid):
+                    raise ValueError('diagnose requires privileged peer')
+                obs = self._read_observation()
+                recent = []
+                try:
+                    recent = self.events.read(limit=50)
+                except EventJournalError:
+                    recent = []
+                result = Doctor(observation=obs, events=recent,
+                                health=self.health_status()).diagnose()
+                r = result
             elif m == 'snapshot':
                 s = self.state.load()
                 r = self._snapshot(s)
@@ -291,6 +324,24 @@ class RuntimeService:
             'closed': closed,
             'health': self.health_status(),
         }
+
+    def _project_event(self, e):
+        """Project an event to safe scalar fields only (never raw bodies)."""
+        return {
+            'sequence': e.get('sequence'),
+            'eventId': e.get('eventId'),
+            'eventType': e.get('eventType'),
+            'component': e.get('component'),
+            'capturedAtEpochSeconds': e.get('capturedAtEpochSeconds'),
+            'facts': e.get('facts') or {},
+        }
+
+    def _read_observation(self):
+        """Read the latest safe observation (read-only). Missing/symlink -> None."""
+        try:
+            return read_json(self.observation_path)
+        except (ValueError, OSError):
+            return None
 
     def health_status(self):
         try:

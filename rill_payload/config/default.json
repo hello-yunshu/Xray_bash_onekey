@@ -1,6 +1,6 @@
 {
   "boundedAutoAllowed": false,
-  "candidate": "0.1.0",
+  "candidate": "0.2.0-alpha.1",
   "localLearningEnabled": false,
   "localOnly": true,
   "maximumConcurrentConnections": 32,
@@ -12,6 +12,14 @@
   "schemaVersion": 1,
   "sentinelEnabled": true,
   "supportedRuntime": "portable-python",
+  "timeline": {
+    "enabled": true,
+    "historyPath": "/var/lib/rill-xray-agent-xray/history",
+    "maxEvents": 200,
+    "observationPath": "/var/lib/rill-xray-agent-xray/status/xray-observation.json",
+    "segmentBytes": 524288,
+    "totalBytes": 4194304
+  },
   "uploadEnabled": false,
   "userLevelStatistics": false,
   "xrayIntegration": {
