@@ -31,7 +31,8 @@ if _CANONICAL_PY and _CANONICAL_PY not in sys.path:
 try:
     from rill_xray_agent.event_journal import EventJournal
     from rill_xray_agent.observer_transition import (CHECKPOINT_NAME,
-                                                     commit_transition)
+                                                     commit_transition,
+                                                     recover_pending_transition)
 except ImportError as exc:  # pragma: no cover - fail closed, never drift
     raise SystemExit(f"rill_xray_agent canonical modules unavailable: {exc}")
 
@@ -111,12 +112,21 @@ data = {
 # Canonical journal: one implementation, crash-safe, single-writer, bounded.
 journal = EventJournal(HISTORY, segment_bytes=SEGMENT_BYTES, total_bytes=TOTAL_BYTES)
 journal.recover()
-previous = None
-if OUT.is_file() and not OUT.is_symlink():
-    try:
-        previous = json.loads(OUT.read_text())
-    except Exception:
-        previous = None
+# CRITICAL recovery ordering: FIRST complete any pending transition from its
+# durable checkpoint (using the safe projection saved there, never the live
+# state), THEN use the live state for a new transition. This keeps the chain
+# correct when the host changed while the observer was down (pending O0->O1
+# with live moved to O2 -> recover O0->O1, then record O1->O2).
+recovered = recover_pending_transition(journal, OUT, OUT.parent / CHECKPOINT_NAME)
+if recovered is not None:
+    previous = recovered
+else:
+    previous = None
+    if OUT.is_file() and not OUT.is_symlink():
+        try:
+            previous = json.loads(OUT.read_text())
+        except Exception:
+            previous = None
 # Crash-safe exactly-once transition commit (canonical module): appends the
 # derived events, then atomically replaces the observation. A crash between
 # the two is recovered idempotently on restart (no lost, no duplicate event).
