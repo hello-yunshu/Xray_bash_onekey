@@ -237,13 +237,19 @@ class RuntimeService:
                         raise UnknownDecisionError('feedback unknown decision')
                     # Resolve the canonical identity from the registered decision
                     # whenever possible (pending/completed carry the full
-                    # identity). A closed (evicted) decision retains only hashes,
-                    # so the client-supplied capability/generation are used to
-                    # recompute the payload hash for replay detection.
+                    # identity). A closed (evicted) decision validates its
+                    # replay against the tombstone identity metadata: the
+                    # eviction persisted the safe capability/modelGeneration,
+                    # so the same feedback produces the same payload hash and
+                    # stays idempotent. Legacy tombstones without that metadata
+                    # fall back to the client-supplied values as before.
                     if p:
                         ident = p['identity']
                     elif c:
                         ident = c['identity']
+                    elif t:
+                        ident = {'capability': t.get('capability') or b.get('capability'),
+                                 'modelGeneration': t.get('modelGeneration', b.get('modelGeneration'))}
                     else:
                         ident = {'capability': b.get('capability'),
                                  'modelGeneration': b.get('modelGeneration')}
@@ -285,6 +291,11 @@ class RuntimeService:
                             'identityHash': digest(e['identity']),
                             'payloadHash': e['payloadSha256'],
                             'closedAtEpochSeconds': int(e['acceptedAtEpochSeconds']),
+                            # P1-3: persist safe feedback identity metadata so
+                            # exact feedback replay stays idempotent even after
+                            # the decision is evicted to the closed ledger.
+                            'capability': e['identity'].get('capability'),
+                            'modelGeneration': e['identity'].get('modelGeneration'),
                         })
                     return {'status': 'accepted', 'accepted': True, 'pendingLedgerMutations': ledger_mutations}, s
                 r = self._op('feedback', tx, 'decision.feedback', {'decisionId': b.get('decisionId')})
