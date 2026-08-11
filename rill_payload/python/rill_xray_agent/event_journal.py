@@ -242,6 +242,40 @@ class EventJournal:
                 events.append(event)
                 max_sequence = max(max_sequence, sequence)
 
+        # Sequence continuity: the surviving committed events must form a
+        # continuous suffix. Legal ring rollover evicts the OLDEST prefix, so
+        # the first surviving sequence may exceed 1; but a gap INSIDE the
+        # surviving set (e.g. seq 1,2,4) means a committed event was lost and
+        # must never be reported as valid history. Events are collected in
+        # append order (segment, then line), so they are already sequence
+        # ordered; sort defensively and require every pair to be consecutive.
+        if events:
+            ordered = sorted(events, key=lambda e: e.get('sequence', 0))
+            for a, b in zip(ordered, ordered[1:]):
+                if b.get('sequence', 0) != a.get('sequence', 0) + 1:
+                    raise EventJournalError(
+                        'sequence continuity gap: missing event sequence '
+                        f'{a.get("sequence") + 1} between '
+                        f'{a.get("sequence")} and {b.get("sequence")}')
+
+        # Segment continuity: the surviving data segments must likewise form a
+        # continuous suffix. Symlinks are already rejected above, so the data
+        # segments are exactly the verified ones. Legal rollover deletes only
+        # the OLDEST closed segments, so the remaining segment numbers are
+        # always consecutive; a hole in the middle means a whole segment was
+        # lost and history is corrupt (fail closed - never report as valid).
+        def _data_segment_numbers():
+            return sorted(self._segment_number(p)
+                          for p in self._segments() if not p.is_symlink())
+        data_nums = _data_segment_numbers()
+        if data_nums:
+            for i in range(1, len(data_nums)):
+                if data_nums[i] != data_nums[i - 1] + 1:
+                    raise EventJournalError(
+                        'segment continuity gap: missing segment '
+                        f'events-{data_nums[i - 1] + 1:06d}.jsonl between '
+                        f'{data_nums[i - 1]} and {data_nums[i]}')
+
         next_sequence = max_sequence + 1
         next_segment = newest_segment + 1
         meta_reconciled = False
@@ -382,3 +416,18 @@ class EventJournal:
             seq = e.get('sequence', 0)
         return {'events': len(events), 'segments': len(self._segments()),
                 'totalBytes': self._total_size()}
+
+    def has_transition(self, transition_id):
+        """Return True when an event carrying this transition identity is
+        already committed in the surviving journal.
+
+        Used by the observer's crash-resume idempotent commit: only the events
+        of a transition that is still *in flight* (observation not yet
+        replaced) are deduped this way, so a genuinely repeated transition
+        later is never suppressed. The relevant events are always the newest
+        in the ring, so a bounded journal cannot have evicted them yet.
+        """
+        if not isinstance(transition_id, str) or not transition_id:
+            return False
+        events = self._recover(recover_tail=False)['events']
+        return any(e.get('transitionId') == transition_id for e in events)

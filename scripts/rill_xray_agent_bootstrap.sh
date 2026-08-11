@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-EXPECTED_SHA256=00c0ee1b770e3bfd3316b5d1c3a7143b1dccf159755fa2dd26594c0b92dc13e3
+EXPECTED_SHA256=c11987eeac41af8dfa9ecc2f6acf6b3d0ef9120cb5bd0cb5d45fdf1f67e7e36e
 RAW_BASE=${RILL_XRAY_AGENT_RAW_BASE:-https://raw.githubusercontent.com/hello-yunshu/rill-xray-agent/main/integrations/xray_bash_onekey}
 TMP=$(mktemp -d /tmp/rill-xray-agent.XXXXXX)
 trap 'rm -rf "$TMP"' EXIT
