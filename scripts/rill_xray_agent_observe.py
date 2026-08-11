@@ -30,6 +30,7 @@ if _CANONICAL_PY and _CANONICAL_PY not in sys.path:
     sys.path.insert(0, _CANONICAL_PY)
 try:
     from rill_xray_agent.event_journal import EventJournal
+    from rill_xray_agent.locking import ObserverLock
     from rill_xray_agent.observer_transition import (CHECKPOINT_NAME,
                                                      commit_transition,
                                                      recover_pending_transition)
@@ -41,6 +42,13 @@ OUT = Path(os.environ.get("RILL_XRAY_AGENT_OUTPUT", "/var/lib/rill-xray-agent-xr
 HISTORY = Path(os.environ.get("RILL_XRAY_AGENT_HISTORY", "/var/lib/rill-xray-agent-xray/history"))
 SEGMENT_BYTES = 512 * 1024
 TOTAL_BYTES = 4 * 1024 * 1024
+# Cross-process mutex over the WHOLE observer transaction (see ObserverLock).
+# The systemd timer/path observer and a direct manager/install call share this
+# lock so their (recover -> derive -> journal append -> observation replace ->
+# checkpoint clear) critical sections can never interleave. root-owned, never
+# follows a symlink, blocking with a bounded timeout.
+OBSERVER_LOCK = Path(os.environ.get(
+    "RILL_XRAY_AGENT_LOCK", "/var/lib/rill-xray-agent-xray/.observer.lock"))
 
 
 def sha(path: Path) -> str:
@@ -52,18 +60,36 @@ def sha(path: Path) -> str:
 
 
 def summary(path: Path) -> dict:
-    if not path.exists():
-        return {"present": False}
+    """Safe summary of a config path, FAIL-CLOSED on any unsafe member.
+
+    A single walk of the tree (minimising the TOCTOU window) treats any nested
+    file symlink, nested directory symlink, dangling symlink, symlink escaping
+    the tree, or non-regular special file as unsafe and reports
+    `{"present": true, "safe": false}`. Symlink targets are NEVER followed,
+    saved or read. An unreadable member also fails closed.
+    """
     if path.is_symlink():
         return {"present": True, "safe": False}
+    if not path.exists():
+        return {"present": False}
     if path.is_file():
         return {"present": True, "safe": True, "sha256": sha(path), "size": path.stat().st_size}
+    if not path.is_dir():
+        # A non-regular top-level member (fifo/socket/device/...) fails closed.
+        return {"present": True, "safe": False}
     digest = hashlib.sha256()
     count = 0
-    for item in sorted(path.rglob("*")):
-        if item.is_file() and not item.is_symlink():
-            digest.update(item.relative_to(path).as_posix().encode() + b"\0" + bytes.fromhex(sha(item)))
-            count += 1
+    try:
+        for item in sorted(path.rglob("*")):
+            if item.is_symlink():
+                return {"present": True, "safe": False}
+            if item.is_file():
+                digest.update(item.relative_to(path).as_posix().encode() + b"\0" + bytes.fromhex(sha(item)))
+                count += 1
+            elif not item.is_dir():
+                return {"present": True, "safe": False}  # special file
+    except (OSError, PermissionError):
+        return {"present": True, "safe": False}
     return {"present": True, "safe": True, "treeSha256": digest.hexdigest(), "files": count}
 
 
@@ -110,25 +136,31 @@ data = {
 }
 
 # Canonical journal: one implementation, crash-safe, single-writer, bounded.
-journal = EventJournal(HISTORY, segment_bytes=SEGMENT_BYTES, total_bytes=TOTAL_BYTES)
-journal.recover()
-# CRITICAL recovery ordering: FIRST complete any pending transition from its
-# durable checkpoint (using the safe projection saved there, never the live
-# state), THEN use the live state for a new transition. This keeps the chain
-# correct when the host changed while the observer was down (pending O0->O1
-# with live moved to O2 -> recover O0->O1, then record O1->O2).
-recovered = recover_pending_transition(journal, OUT, OUT.parent / CHECKPOINT_NAME)
-if recovered is not None:
-    previous = recovered
-else:
-    previous = None
-    if OUT.is_file() and not OUT.is_symlink():
-        try:
-            previous = json.loads(OUT.read_text())
-        except Exception:
-            previous = None
-# Crash-safe exactly-once transition commit (canonical module): appends the
-# derived events, then atomically replaces the observation. A crash between
-# the two is recovered idempotently on restart (no lost, no duplicate event).
-commit_transition(journal, OUT, OUT.parent / CHECKPOINT_NAME, previous, data)
+# The whole transaction runs under the cross-process observer mutex so a
+# concurrent timer/path observer or direct manager call can never interleave
+# the exactly-once commit (recover -> derive -> append -> observation replace
+# -> checkpoint clear). The lock is acquired BEFORE journal recovery and
+# released only after commit_transition returns.
+with ObserverLock(OBSERVER_LOCK):
+    journal = EventJournal(HISTORY, segment_bytes=SEGMENT_BYTES, total_bytes=TOTAL_BYTES)
+    journal.recover()
+    # CRITICAL recovery ordering: FIRST complete any pending transition from its
+    # durable checkpoint (using the safe projection saved there, never the live
+    # state), THEN use the live state for a new transition. This keeps the chain
+    # correct when the host changed while the observer was down (pending O0->O1
+    # with live moved to O2 -> recover O0->O1, then record O1->O2).
+    recovered = recover_pending_transition(journal, OUT, OUT.parent / CHECKPOINT_NAME)
+    if recovered is not None:
+        previous = recovered
+    else:
+        previous = None
+        if OUT.is_file() and not OUT.is_symlink():
+            try:
+                previous = json.loads(OUT.read_text())
+            except Exception:
+                previous = None
+    # Crash-safe exactly-once transition commit (canonical module): appends the
+    # derived events, then atomically replaces the observation. A crash between
+    # the two is recovered idempotently on restart (no lost, no duplicate event).
+    commit_transition(journal, OUT, OUT.parent / CHECKPOINT_NAME, previous, data)
 print(json.dumps(data, sort_keys=True))

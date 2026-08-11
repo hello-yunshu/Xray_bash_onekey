@@ -57,14 +57,48 @@ rxa_runtime() {
     "$RILL_XRAY_AGENT_CLI" --json "$@"
 }
 
+# P1-2: integration capability floor. Compatibility is decided by a SCHEMA
+# FLOOR (>=, never a strict equality) PLUS a REQUIRED-CAPABILITY floor. A
+# candidate is compatible only when its numeric schema is at or above the
+# floor AND every required capability is really present as a live off-line
+# dispatch branch.
+RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR=${RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR:-2}
+RILL_XRAY_AGENT_REQUIRED_CAPABILITIES=${RILL_XRAY_AGENT_REQUIRED_CAPABILITIES:-"status verify mode safe-disable uninstall-v2 diagnose timeline"}
+
+# P1-2: returns 0 only when the candidate REALLY provides ${cap} as a live
+# off-line dispatch branch (a real case line routing to a real rxa_dispatch
+# action). A comment line, a bare string, or a missing dispatch fails closed.
+rxa_capability_present() {
+    local candidate=${1:-} cap=${2:-}
+    case "${cap}" in
+        status)       grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch status' "${candidate}" ;;
+        verify)       grep -qE '^[[:space:]]*--rill-agent-verify\)[[:space:]]*rxa_dispatch verify' "${candidate}" ;;
+        mode)         grep -qE '^[[:space:]]*--rill-agent-safe-disable\)[[:space:]]*rxa_dispatch mode safe-disabled' "${candidate}" ;;
+        safe-disable) grep -qE '^[[:space:]]*--rill-agent-safe-disable\)[[:space:]]*rxa_dispatch mode safe-disabled' "${candidate}" ;;
+        uninstall-v2) grep -qE '^[[:space:]]*--rill-agent-uninstall\)[[:space:]]*rxa_dispatch uninstall' "${candidate}" ;;
+        diagnose)     grep -qE '^[[:space:]]*--rill-agent-diagnose\)[[:space:]]*rxa_dispatch diagnose' "${candidate}" ;;
+        timeline)     grep -qE '^[[:space:]]*--rill-agent-timeline\)[[:space:]]*rxa_dispatch timeline' "${candidate}" ;;
+        *) return 1 ;;
+    esac
+}
+
 rxa_candidate_guard() {
     # Validates a freshly downloaded install.sh candidate before it is ever
     # allowed to replace the running script. Returns 0 only when every
     # integration anchor and the shell syntax check succeed.
-    local candidate=${1:-} block rtmp rc
+    # P1-2: schema floor (>=, never strict equality) + capability floor.
+    # A candidate is compatible when its numeric schema is at or above the
+    # floor AND every required capability is really dispatched. A higher
+    # schema that still provides all capabilities keeps passing.
+    local candidate=${1:-} block rtmp rc cand_schema cap
     [[ -f "${candidate}" ]] || return 1
     bash -n "${candidate}" 2>/dev/null || return 1
-    grep -qx '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1$' "${candidate}" || return 1
+    cand_schema=$(sed -n 's/^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=\([0-9][0-9]*\)$/\1/p' "${candidate}" | head -n1)
+    [[ "${cand_schema}" =~ ^[0-9]+$ ]] || return 1
+    (( cand_schema >= RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR )) || return 1
+    for cap in ${RILL_XRAY_AGENT_REQUIRED_CAPABILITIES}; do
+        rxa_capability_present "${candidate}" "${cap}" || return 1
+    done
     grep -qE '^[[:space:]]*9\)[[:space:]]*rxa_menu' "${candidate}" || return 1
     grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch' "${candidate}" || return 1
     block=$(sed -n '/^# [B]EGIN RILL XRAY AGENT INTEGRATION$/,/^# [E]ND RILL XRAY AGENT INTEGRATION$/p' "${candidate}")

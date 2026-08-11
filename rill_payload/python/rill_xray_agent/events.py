@@ -21,7 +21,7 @@ EVENT_TYPES = {
     'nginx_validation_failed', 'nginx_validation_recovered',
     'xray_service_down', 'xray_service_up',
     'nginx_service_down', 'nginx_service_up',
-    'unsafe_path_detected',
+    'unsafe_path_detected', 'unsafe_path_recovered',
 }
 
 COMPONENTS = ('xray', 'nginx', 'install')
@@ -118,9 +118,18 @@ def derive_events(previous, current, now=None):
             else:
                 events.append(_event(f'{component}_service_down', component))
 
-    # unsafe path
-    if _unsafe_path(current):
-        events.append(_event('unsafe_path_detected', 'agent', {'unsafe': True}))
+    # unsafe path: record only a MEANINGFUL state transition, never a
+    # repeated same-state event. A persistent unsafe condition must not
+    # re-append `unsafe_path_detected` on every observation (which would fill
+    # the bounded journal); the timeline records safe -> unsafe and the
+    # recovery unsafe -> safe.
+    prev_unsafe = _unsafe_path(previous)
+    curr_unsafe = _unsafe_path(current)
+    if prev_unsafe != curr_unsafe:
+        if curr_unsafe:
+            events.append(_event('unsafe_path_detected', 'agent', {'unsafe': True}))
+        else:
+            events.append(_event('unsafe_path_recovered', 'agent', {'unsafe': False}))
 
     return events
 
