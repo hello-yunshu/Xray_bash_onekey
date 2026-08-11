@@ -41,7 +41,8 @@ bash .github/test/test_rill_xray_agent_uninstall.sh
 bash .github/test/test_rill_uninstall_durability.sh
 # R6 delivery: current bootstrap consumes current bundled asset (SHA-match,
 # extraction, root members, staged installer + config invariants). The
-# installer requires EUID 0, so escalate like test_nginx_security.sh.
+# installer requires EUID 0, so escalate like test_nginx_security.sh. The OI
+# regression never replaces this mandatory delivery proof.
 sudo bash .github/test/test_rill_bootstrap_delivery.sh
 # P0-6: mode-aware host health check (only required components are checked).
 bash .github/test/test_rill_xray_agent_healthy.sh

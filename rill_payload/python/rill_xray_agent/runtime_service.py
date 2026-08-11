@@ -2,17 +2,25 @@ import json, os, socket, time, uuid, threading, sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from .audit import AuditLog
-from .canonical import atomic_write_json, canonical_bytes, digest
+from .canonical import atomic_write_json, canonical_bytes, digest, read_json
+from .doctor import Doctor
+from .errors import EventJournalError
+from .event_journal import EventJournal
 from .health import health
 from .operation import OperationLog
-from .payload_policy import sanitize_payload, sanitize_root_result, RootResultViolation
+from .payload_policy import sanitize_doctor_feedback, sanitize_payload, sanitize_root_result, RootResultViolation
 from .peer_auth import AccessControl, peer_credentials
 from .state import RuntimeState
 from .root_txn import RootTransaction
+from .errors import UnknownDecisionError
+from .doctor import Doctor
 
-ALLOWED = {'health', 'metrics', 'mode', 'config', 'register', 'rootResult', 'feedback', 'inspect', 'snapshot'}
+ALLOWED = {'health', 'metrics', 'mode', 'config', 'register', 'rootResult', 'feedback', 'inspect', 'snapshot', 'timeline', 'diagnose'}
 ACCESS_LOG_BYTES = 8 * 1024 * 1024
 MAX_FRAME_BYTES = 1048576
+DEFAULT_OBSERVATION_PATH = '/var/lib/rill-xray-agent-xray/status/xray-observation.json'
+DEFAULT_TIMELINE_DIR = '/var/lib/rill-xray-agent-xray/history'
+MAX_DIAGNOSE_TIMELINE_EVENTS = 200
 
 
 class BoundedQueue:
@@ -57,7 +65,7 @@ class RuntimeService:
     def __init__(self, state_root, txn_root, peer_creds=True, allowed_uids=None,
                  max_concurrency=32, max_completed=4096, ledger_max_entries=0,
                  ledger_max_bytes=None, replay_protection_seconds=21600,
-                 default_uid=None):
+                 default_uid=None, observation_path=None, timeline_dir=None):
         self.state_root = Path(state_root)
         self.state_root.mkdir(parents=True, exist_ok=True)
         self.txn_root = Path(txn_root)
@@ -69,6 +77,11 @@ class RuntimeService:
         self.audit = AuditLog(self.state_root / 'audit')
         self.ops = OperationLog(self.state_root / 'operations', audit=self.audit, ledger=self.state.ledger)
         self.ops_report = self.ops.recover()
+        # Safe observation timeline is host-owned and READ-ONLY to the Runtime.
+        # The Runtime never appends to the journal; it only reads recent events.
+        self.observation_path = Path(observation_path or DEFAULT_OBSERVATION_PATH)
+        self.timeline_dir = Path(timeline_dir or DEFAULT_TIMELINE_DIR)
+        self.events = EventJournal(self.timeline_dir, read_only=True)
         self.txn = RootTransaction(self.txn_root, self.state_root / 'delivery',
                                    self.state_root / 'generation')
         # READ-ONLY: the production Runtime runs with ReadOnlyPaths on the
@@ -122,6 +135,34 @@ class RuntimeService:
             return state_fn(loaded)
         return self.ops.execute(kind, self.state.path, wrapped, event_type, event_details, actor_type, actor_id)
 
+    def _register_decision(self, decision_id, capability, generation, created,
+                           actor_id='runtime'):
+        """Unified, idempotent decision registration used by both the public
+        `register` method and the diagnose flow. Registration is Runtime
+        internal state mutation (never host mutation) and always passes
+        through OperationLog -> AuditLog -> RuntimeState -> ClosedLedger."""
+        def tx(s):
+            ident = {'capability': capability, 'decisionId': decision_id,
+                     'modelGeneration': int(generation),
+                     'createdAtEpochSeconds': int(created)}
+            existing = (s['pending'].get(decision_id) or s['completed'].get(decision_id))
+            if existing:
+                if existing.get('identity') == ident:
+                    return {'status': 'idempotent'}, s
+                raise ValueError('decision ID different identity')
+            tomb = self.state.ledger.get(decision_id)
+            if tomb:
+                if tomb.get('corrupt'):
+                    raise ValueError('closed ledger corrupt')
+                if tomb['identityHash'] == digest(ident):
+                    return {'status': 'idempotent'}, s
+                raise ValueError('decision ID different identity')
+            s['pending'][decision_id] = {'identity': ident, 'rootResult': None,
+                                         'registeredAtEpochSeconds': int(time.time())}
+            return {'status': 'registered'}, s
+        return self._op('register', tx, 'decision.registered',
+                        {'decisionId': decision_id}, actor_id=actor_id)
+
     def handle(self, e, peer_uid=None):
         rid = e.get('requestId') or str(uuid.uuid4())
         m = e.get('method')
@@ -158,26 +199,9 @@ class RuntimeService:
                 r = {'mode': s['mode'], 'routeAssistEnabled': s['routeAssistEnabled'], 'boundedAutoAllowed': False}
             elif m == 'register':
                 did = b['decisionId']
-
-                def tx(s):
-                    ident = {'capability': b['capability'], 'decisionId': did,
-                             'modelGeneration': int(b['modelGeneration']), 'createdAtEpochSeconds': int(b['createdAtEpochSeconds'])}
-                    existing = (s['pending'].get(did) or s['completed'].get(did))
-                    if existing:
-                        if existing.get('identity') == ident:
-                            return {'status': 'idempotent'}, s
-                        raise ValueError('decision ID different identity')
-                    tomb = self.state.ledger.get(did)
-                    if tomb:
-                        if tomb.get('corrupt'):
-                            raise ValueError('closed ledger corrupt')
-                        if tomb['identityHash'] == digest(ident):
-                            return {'status': 'idempotent'}, s
-                        raise ValueError('decision ID different identity')
-                    s['pending'][did] = {'identity': ident, 'rootResult': None,
-                                         'registeredAtEpochSeconds': int(time.time())}
-                    return {'status': 'registered'}, s
-                r = self._op('register', tx, 'decision.registered', {'decisionId': did})
+                r = self._register_decision(
+                    did, b['capability'], int(b['modelGeneration']),
+                    int(b['createdAtEpochSeconds']), actor_id=str(peer_uid))
             elif m == 'rootResult':
                 did = b['decisionId']
                 projection = sanitize_root_result(b['result'])
@@ -202,28 +226,58 @@ class RuntimeService:
                 ledger_mutations = []
 
                 def tx(s):
-                    psha = digest(b)
+                    p = s['pending'].get(b['decisionId'])
                     c = s['completed'].get(b['decisionId'])
+                    t = self.state.ledger.get(b['decisionId'])
+                    # 10.2: feedback for a decision that was NEVER registered is
+                    # rejected (fake/malicious). But a registered decision that
+                    # was already completed or evicted to the closed ledger must
+                    # still be replayed idempotently / conflict-detected.
+                    if not (p or c or t):
+                        raise UnknownDecisionError('feedback unknown decision')
+                    # Resolve the canonical identity from the registered decision
+                    # whenever possible (pending/completed carry the full
+                    # identity). A closed (evicted) decision validates its
+                    # replay against the tombstone identity metadata: the
+                    # eviction persisted the safe capability/modelGeneration,
+                    # so the same feedback produces the same payload hash and
+                    # stays idempotent. Legacy tombstones without that metadata
+                    # fall back to the client-supplied values as before.
+                    if p:
+                        ident = p['identity']
+                    elif c:
+                        ident = c['identity']
+                    elif t:
+                        ident = {'capability': t.get('capability') or b.get('capability'),
+                                 'modelGeneration': t.get('modelGeneration', b.get('modelGeneration'))}
+                    else:
+                        ident = {'capability': b.get('capability'),
+                                 'modelGeneration': b.get('modelGeneration')}
+                    # The canonical identity lives with the registered decision:
+                    # the client never re-constructs capability/generation.
+                    # psha must also stay stable across client variants.
+                    canonical = dict(b)
+                    canonical['capability'] = ident['capability']
+                    canonical['modelGeneration'] = int(ident['modelGeneration'] or 0)
+                    psha = digest(canonical)
                     if c:
                         if c['payloadSha256'] == psha:
                             return {'status': 'idempotent', 'accepted': True}, s
                         raise ValueError('conflicting completed feedback')
-                    t = self.state.ledger.get(b['decisionId'])
                     if t:
                         if t.get('corrupt'):
                             raise ValueError('closed ledger corrupt')
                         if t['payloadHash'] == psha:
                             return {'status': 'idempotent', 'accepted': True}, s
                         raise ValueError('conflicting closed feedback')
-                    p = s['pending'].get(b['decisionId'])
-                    if not p:
-                        raise ValueError('feedback unknown')
-                    ident = p['identity']
-                    if b.get('capability') != ident['capability'] or b.get('modelGeneration') != ident['modelGeneration']:
-                        raise ValueError('feedback identity conflict')
                     if ident['capability'] == 'route' and not p.get('rootResult'):
                         raise ValueError('feedback before root result')
-                    payload_meta = sanitize_payload(b)
+                    # Doctor feedback keeps its structured fields; generic
+                    # payloads are still allowlist-projected.
+                    if ident['capability'] == 'doctor':
+                        payload_meta = sanitize_doctor_feedback(canonical)
+                    else:
+                        payload_meta = sanitize_payload(canonical)
                     s['completed'][b['decisionId']] = {'identity': ident, 'payloadMeta': payload_meta,
                                                        'payloadSha256': psha,
                                                        'acceptedAtEpochSeconds': int(time.time())}
@@ -237,6 +291,11 @@ class RuntimeService:
                             'identityHash': digest(e['identity']),
                             'payloadHash': e['payloadSha256'],
                             'closedAtEpochSeconds': int(e['acceptedAtEpochSeconds']),
+                            # P1-3: persist safe feedback identity metadata so
+                            # exact feedback replay stays idempotent even after
+                            # the decision is evicted to the closed ledger.
+                            'capability': e['identity'].get('capability'),
+                            'modelGeneration': e['identity'].get('modelGeneration'),
                         })
                     return {'status': 'accepted', 'accepted': True, 'pendingLedgerMutations': ledger_mutations}, s
                 r = self._op('feedback', tx, 'decision.feedback', {'decisionId': b.get('decisionId')})
@@ -245,6 +304,51 @@ class RuntimeService:
                 did = b.get('decisionId')
                 r = {'pending': s['pending'].get(did), 'completed': s['completed'].get(did),
                      'closed': self.state.ledger.get(did)}
+            elif m == 'timeline':
+                limit = int(b.get('limit') or 50)
+                limit = max(1, min(limit, 200))
+                if not self.timeline_dir.is_dir():
+                    r = {'available': False, 'integrity': 'missing', 'events': []}
+                else:
+                    try:
+                        events = self.events.read(limit=limit)
+                    except EventJournalError:
+                        # Never report corruption as an empty history: the
+                        # operator must be able to distinguish 'no events'
+                        # from 'history unreadable'.
+                        r = {'available': False, 'integrity': 'corrupt', 'events': []}
+                    else:
+                        r = {'available': True, 'integrity': 'valid',
+                             'events': [self._project_event(e) for e in events]}
+            elif m == 'diagnose':
+                # Advisory-only: requires a privileged/operator peer, but never
+                # executes anything. Route Assist / bounded auto stay OFF.
+                if not self.acl.write_permitted(peer_uid):
+                    raise ValueError('diagnose requires privileged peer')
+                obs = self._read_observation()
+                recent = []
+                timeline_status = 'missing'
+                if self.timeline_dir.is_dir():
+                    try:
+                        recent = self.events.read(limit=MAX_DIAGNOSE_TIMELINE_EVENTS)
+                    except EventJournalError:
+                        timeline_status = 'corrupt'
+                    else:
+                        timeline_status = 'available'
+                result = Doctor(observation=obs, events=recent,
+                                health=self.health_status(),
+                                timeline_status=timeline_status,
+                                now=int(time.time())).diagnose()
+                # Decision lifecycle: register the advisory doctor decision
+                # (Runtime-internal mutation only) BEFORE returning. identity
+                # is derived from evidence, so repeated diagnoses with the same
+                # evidence are idempotent.
+                evidence_epoch = (result.get('evidence') or {}).get(
+                    'observationCapturedAtEpochSeconds') or 0
+                self._register_decision(
+                    result['diagnosisId'], 'doctor', result['engineGeneration'],
+                    evidence_epoch, actor_id=str(peer_uid))
+                r = result
             elif m == 'snapshot':
                 s = self.state.load()
                 r = self._snapshot(s)
@@ -291,6 +395,24 @@ class RuntimeService:
             'closed': closed,
             'health': self.health_status(),
         }
+
+    def _project_event(self, e):
+        """Project an event to safe scalar fields only (never raw bodies)."""
+        return {
+            'sequence': e.get('sequence'),
+            'eventId': e.get('eventId'),
+            'eventType': e.get('eventType'),
+            'component': e.get('component'),
+            'capturedAtEpochSeconds': e.get('capturedAtEpochSeconds'),
+            'facts': e.get('facts') or {},
+        }
+
+    def _read_observation(self):
+        """Read the latest safe observation (read-only). Missing/symlink -> None."""
+        try:
+            return read_json(self.observation_path)
+        except (ValueError, OSError):
+            return None
 
     def health_status(self):
         try:

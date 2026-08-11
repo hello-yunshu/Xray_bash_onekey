@@ -52,8 +52,13 @@ class OperationLog:
             if not decision_id_hash or not identity_hash or not payload_hash:
                 raise OperationError('incomplete putClosedDecision mutation')
             # put_hashed is idempotent for an identical tombstone and fails
-            # closed on conflict / corruption.
-            self.ledger.put_hashed(decision_id_hash, identity_hash, payload_hash, closed_at)
+            # closed on conflict / corruption. The safe feedback identity
+            # metadata (capability/modelGeneration) passes through so an
+            # evicted Doctor decision keeps its replay identity.
+            self.ledger.put_hashed(decision_id_hash, identity_hash, payload_hash,
+                                   closed_at,
+                                   capability=m.get('capability'),
+                                   model_generation=m.get('modelGeneration'))
             return
         raise OperationError(f'unknown ledger mutation type: {m.get("type")!r}')
 

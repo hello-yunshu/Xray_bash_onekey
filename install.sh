@@ -346,7 +346,15 @@ update_json_config() {
 }
 
 # BEGIN RILL XRAY AGENT INTEGRATION
-RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1
+# P1-2: integration capability floor. Compatibility is decided by a SCHEMA
+# FLOOR (>=, never a strict equality: a higher schema that still provides
+# every required capability must keep passing) PLUS a REQUIRED-CAPABILITY
+# floor. A candidate is compatible only when its schema is at or above the
+# floor AND it really provides each required capability as a real off-line
+# dispatch branch (not a comment, not a bare string).
+RILL_XRAY_AGENT_INTEGRATION_SCHEMA=2
+RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR=2
+RILL_XRAY_AGENT_REQUIRED_CAPABILITIES="status verify mode safe-disable uninstall-v2 diagnose timeline"
 rill_xray_agent_manager=${RILL_XRAY_AGENT_MANAGER:-/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh}
 # P0-5: candidate validation for script self-updates. Defined here (not only
 # in the manager) so it is available even when the agent files are absent.
@@ -355,14 +363,44 @@ rill_xray_agent_manager=${RILL_XRAY_AGENT_MANAGER:-/etc/rill-xray-agent/scripts/
 # required runtime guarantees are actually executed (real function
 # definitions, host health in healthy and broken states, offline-safe
 # dispatch, reconfigure transaction, uninstall two-phase contract, menu 9).
+# P1-2: capability floor. Returns 0 only when the candidate REALLY provides
+# the given capability as a live off-line dispatch branch (a real case line
+# that routes to a real rxa_dispatch action). A comment line, a bare string,
+# or a missing dispatch fails closed. This is the semantic capability check
+# that complements (not replaces) the numeric schema floor.
+rxa_capability_present() {
+    local candidate=${1:-} cap=${2:-}
+    case "${cap}" in
+        status)       grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch status' "${candidate}" ;;
+        verify)       grep -qE '^[[:space:]]*--rill-agent-verify\)[[:space:]]*rxa_dispatch verify' "${candidate}" ;;
+        mode)         grep -qE '^[[:space:]]*--rill-agent-safe-disable\)[[:space:]]*rxa_dispatch mode safe-disabled' "${candidate}" ;;
+        safe-disable) grep -qE '^[[:space:]]*--rill-agent-safe-disable\)[[:space:]]*rxa_dispatch mode safe-disabled' "${candidate}" ;;
+        uninstall-v2) grep -qE '^[[:space:]]*--rill-agent-uninstall\)[[:space:]]*rxa_dispatch uninstall' "${candidate}" ;;
+        diagnose)     grep -qE '^[[:space:]]*--rill-agent-diagnose\)[[:space:]]*rxa_dispatch diagnose' "${candidate}" ;;
+        timeline)     grep -qE '^[[:space:]]*--rill-agent-timeline\)[[:space:]]*rxa_dispatch timeline' "${candidate}" ;;
+        *) return 1 ;;
+    esac
+}
 rxa_candidate_guard() {
     # Validates a freshly downloaded install.sh candidate before it is ever
     # allowed to replace the running script. Returns 0 only when every
     # integration anchor and the shell syntax check succeed.
-    local candidate=${1:-} block rtmp rc
+    local candidate=${1:-} block rtmp rc cand_schema cap
     [[ -f "${candidate}" ]] || return 1
     bash -n "${candidate}" 2>/dev/null || return 1
-    grep -qx '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1$' "${candidate}" || return 1
+    # P1-2: schema floor (>=, never strict equality). A missing/non-numeric
+    # schema marker, or one below RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR,
+    # fails closed.
+    cand_schema=$(sed -n 's/^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=\([0-9][0-9]*\)$/\1/p' "${candidate}" | head -n1)
+    [[ "${cand_schema}" =~ ^[0-9]+$ ]] || return 1
+    (( cand_schema >= RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR )) || return 1
+    # P1-2: capability floor. Every required capability must be present as a
+    # real off-line dispatch branch -- a comment or a bare string is not
+    # enough. Version is irrelevant: a higher schema keeps passing as long as
+    # all required capabilities are really there.
+    for cap in ${RILL_XRAY_AGENT_REQUIRED_CAPABILITIES}; do
+        rxa_capability_present "${candidate}" "${cap}" || return 1
+    done
     grep -qE '^[[:space:]]*9\)[[:space:]]*rxa_menu' "${candidate}" || return 1
     grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch' "${candidate}" || return 1
     block=$(sed -n '/^# [B]EGIN RILL XRAY AGENT INTEGRATION$/,/^# [E]ND RILL XRAY AGENT INTEGRATION$/p' "${candidate}")
@@ -476,20 +514,30 @@ rxa_integration_self_check() {
     # candidate guard and CI can parse. No side effects: it never installs,
     # never touches the network, and never modifies host state. The booleans
     # reflect what THIS integration block actually provides (schema marker,
-    # hook functions, host health contract, two-phase uninstall).
-    local schema=0 menu=0 box=0 flow=0
-    local block file
+    # hook functions, host health contract, two-phase uninstall). P1-2:
+    # additionally reports the numeric schema and the capability floor so
+    # callers can decide compatibility as schema >= floor AND every required
+    # capability is really present.
+    local menu=0 box=0 flow=0 cap_missing=0 cap
+    local block file schema floor
     file="${BASH_SOURCE[0]:-}"
     block=$(sed -n '/^# [B]EGIN RILL XRAY AGENT INTEGRATION$/,/^# [E]ND RILL XRAY AGENT INTEGRATION$/p' "$file")
-    grep -qx '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1$' "$file" >/dev/null 2>&1 && schema=1
+    schema=$(sed -n 's/^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=\([0-9][0-9]*\)$/\1/p' "$file" | head -n1)
+    floor=${RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR:-${schema:-0}}
+    [[ "${schema}" =~ ^[0-9]+$ ]] || schema=0
     [[ "$block" == *rxa_menu* && "$file" != "" ]] && menu=1
     grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch' "$file" >/dev/null 2>&1 && menu=1
     [[ "$block" == *rxa_uninstall_prepare* && "$block" == *rxa_uninstall_commit* \
        && "$block" == *rxa_uninstall_abort* && "$block" == *rxa_uninstall_finish* ]] && box=1
     [[ "$block" == *rxa_host_healthy* && "$block" == *rxa_reconfigure_enter* \
        && "$block" == *rxa_reconfigure_leave* ]] && flow=1
-    printf '{"schemaVersion":1,"integrationSchema":%d,"menuDispatch":%s,"offlineDispatch":%s,"reconfigureHooks":%s,"uninstallHooks":%s,"hostHealthContract":%s}\n' \
+    for cap in ${RILL_XRAY_AGENT_REQUIRED_CAPABILITIES:-}; do
+        rxa_capability_present "$file" "$cap" || cap_missing=$((cap_missing + 1))
+    done
+    printf '{"schemaVersion":1,"integrationSchema":%d,"integrationSchemaFloor":%d,"capabilitiesMissing":%d,"menuDispatch":%s,"offlineDispatch":%s,"reconfigureHooks":%s,"uninstallHooks":%s,"hostHealthContract":%s}\n' \
         "${schema}" \
+        "${floor}" \
+        "${cap_missing}" \
         "$([[ $menu -eq 1 ]] && echo true || echo false)" \
         "$([[ $menu -eq 1 ]] && echo true || echo false)" \
         "$([[ $flow -eq 1 ]] && echo true || echo false)" \
@@ -10586,6 +10634,7 @@ is_offline_safe_command() {
         --service-start|--service-stop|--service-restart|\
         --access-log|--error-log|--backup|\
         --rill-agent|--rill-agent-status|--rill-agent-safe-disable|--rill-agent-verify|--rill-agent-uninstall|\
+        --rill-agent-diagnose|--rill-agent-timeline|\
         --rill-integration-self-check)
             return 0
             ;;
@@ -10615,6 +10664,8 @@ dispatch_offline_safe_command() {
         --rill-agent-status) rxa_dispatch status ;;
         --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;
         --rill-agent-verify) rxa_dispatch verify ;;
+        --rill-agent-diagnose) rxa_dispatch diagnose ;;
+        --rill-agent-timeline) rxa_dispatch timeline ;;
         --rill-agent-uninstall) rxa_dispatch uninstall ;;
         --rill-integration-self-check) rxa_integration_self_check ;;
         *) return 1 ;;
