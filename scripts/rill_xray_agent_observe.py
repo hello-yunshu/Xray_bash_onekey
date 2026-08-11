@@ -22,7 +22,6 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 
@@ -31,7 +30,8 @@ if _CANONICAL_PY and _CANONICAL_PY not in sys.path:
     sys.path.insert(0, _CANONICAL_PY)
 try:
     from rill_xray_agent.event_journal import EventJournal
-    from rill_xray_agent.events import derive_events
+    from rill_xray_agent.observer_transition import (CHECKPOINT_NAME,
+                                                     commit_transition)
 except ImportError as exc:  # pragma: no cover - fail closed, never drift
     raise SystemExit(f"rill_xray_agent canonical modules unavailable: {exc}")
 
@@ -117,16 +117,8 @@ if OUT.is_file() and not OUT.is_symlink():
         previous = json.loads(OUT.read_text())
     except Exception:
         previous = None
-for event in derive_events(previous, data):
-    journal.append_event(event)
-
-OUT.parent.mkdir(parents=True, exist_ok=True)
-fd, temp = tempfile.mkstemp(prefix=".observation.", dir=OUT.parent)
-with os.fdopen(fd, "w") as stream:
-    json.dump(data, stream, sort_keys=True, separators=(",", ":"))
-    stream.write("\n")
-    stream.flush()
-    os.fsync(stream.fileno())
-os.chmod(temp, 0o640)
-os.replace(temp, OUT)
+# Crash-safe exactly-once transition commit (canonical module): appends the
+# derived events, then atomically replaces the observation. A crash between
+# the two is recovered idempotently on restart (no lost, no duplicate event).
+commit_transition(journal, OUT, OUT.parent / CHECKPOINT_NAME, previous, data)
 print(json.dumps(data, sort_keys=True))
