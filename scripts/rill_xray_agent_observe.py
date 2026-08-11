@@ -1,11 +1,39 @@
 #!/usr/bin/env python3
+"""Rill Xray Agent - root observer (host-owned, safe metadata only).
+
+Produces the safe observation document and appends *meaningful* state-change
+events to the bounded timeline. This script NEVER mutates the host: it only
+reads the installed Xray/Nginx state and writes safe metadata.
+
+Canonical implementation contract:
+- event derivation: rill_xray_agent.events.derive_events (ONE implementation)
+- event journal:    rill_xray_agent.event_journal.EventJournal (ONE impl)
+
+The installed canonical package lives at /opt/rill-xray-agent/python;
+tests and sandboxes may point RILL_XRAY_AGENT_PYTHON elsewhere. If the
+canonical modules cannot be imported the observer FAILS CLOSED rather than
+falling back to a second, drifting implementation.
+
+Never recorded: raw config bodies, UUID/credentials, private keys,
+certificate private material, addresses, command stdout/stderr, free text.
+"""
 import hashlib
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
+
+_CANONICAL_PY = os.environ.get("RILL_XRAY_AGENT_PYTHON", "/opt/rill-xray-agent/python")
+if _CANONICAL_PY and _CANONICAL_PY not in sys.path:
+    sys.path.insert(0, _CANONICAL_PY)
+try:
+    from rill_xray_agent.event_journal import EventJournal
+    from rill_xray_agent.events import derive_events
+except ImportError as exc:  # pragma: no cover - fail closed, never drift
+    raise SystemExit(f"rill_xray_agent canonical modules unavailable: {exc}")
 
 ROOT = Path(os.environ.get("RILL_XRAY_HOST_ROOT", "/etc/idleleo"))
 OUT = Path(os.environ.get("RILL_XRAY_AGENT_OUTPUT", "/var/lib/rill-xray-agent-xray/status/xray-observation.json"))
@@ -60,142 +88,6 @@ def run(command: list[str]) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
-# Bounded safe event journal (self-contained so the observer needs no package
-# dependency). Mirrors the runtime design philosophy: segment + total size
-# bounds, atomic fsync'd appends, symlink rejection, safe ring-buffer rollover.
-# ---------------------------------------------------------------------------
-def _segments():
-    return sorted(p for p in HISTORY.glob("events-*.jsonl") if not p.is_symlink())
-
-
-def _total_size():
-    return sum(p.stat().st_size for p in _segments() if p.exists())
-
-
-def _meta():
-    path = HISTORY / "meta.json"
-    if not path.is_file() or path.is_symlink():
-        return {"nextSequence": 1, "nextSegment": 1}
-    try:
-        data = json.loads(path.read_text())
-    except Exception:
-        return {"nextSequence": 1, "nextSegment": 1}
-    return {"nextSequence": int(data.get("nextSequence", 1)),
-            "nextSegment": int(data.get("nextSegment", 1))}
-
-
-def _write_meta(meta):
-    path = HISTORY / "meta.json"
-    if path.is_symlink():
-        raise ValueError("symlink journal meta")
-    fd, tmp = tempfile.mkstemp(prefix=".meta.", dir=HISTORY)
-    with os.fdopen(fd, "w") as stream:
-        json.dump({"schemaVersion": 1, "nextSequence": meta["nextSequence"],
-                   "nextSegment": meta["nextSegment"]}, stream, sort_keys=True,
-                  separators=(",", ":"))
-        stream.write("\n")
-        stream.flush()
-        os.fsync(stream.fileno())
-    os.chmod(tmp, 0o640)
-    os.replace(tmp, path)
-
-
-def _make_room(line_len: int):
-    if line_len > SEGMENT_BYTES:
-        raise ValueError("event larger than segment bound")
-    while _total_size() + line_len > TOTAL_BYTES:
-        segs = _segments()
-        if not segs:
-            return
-        segs[0].unlink()
-
-
-def append_event(event: dict):
-    HISTORY.mkdir(parents=True, exist_ok=True)
-    meta = _meta()
-    meta["nextSequence"] += 1
-    event = dict(event)
-    event["sequence"] = meta["nextSequence"]
-    event.setdefault("capturedAtEpochSeconds", int(time.time()))
-    ident = hashlib.sha256(json.dumps(event, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    event["eventId"] = event.get("eventId") or ident
-    line = json.dumps(event, sort_keys=True, separators=(",", ":")).encode() + b"\n"
-    _make_room(len(line))
-    seg_num = meta["nextSegment"]
-    seg = HISTORY / ("events-%06d.jsonl" % seg_num)
-    if seg.exists() and seg.stat().st_size + len(line) > SEGMENT_BYTES:
-        seg_num += 1
-        seg = HISTORY / ("events-%06d.jsonl" % seg_num)
-    if seg.is_symlink():
-        raise ValueError("symlink journal segment")
-    with seg.open("ab") as stream:
-        stream.write(line)
-        stream.flush()
-        os.fsync(stream.fileno())
-    meta["nextSegment"] = seg_num
-    _write_meta(meta)
-
-
-def config_digest(obs, component):
-    key = {"xray": "xrayConfig", "nginx": "nginxConfig", "install": "installConfig"}[component]
-    entry = (obs or {}).get(key) or {}
-    if not entry.get("present"):
-        return ""
-    if entry.get("safe") is False:
-        return "unsafe"
-    return entry.get("sha256") or entry.get("treeSha256") or ""
-
-
-def validation_ok(obs, component):
-    value = (obs or {}).get("xrayValidation" if component == "xray" else "nginxValidation")
-    return bool((value or {}).get("ok")) if isinstance(value, dict) else None
-
-
-def service_ok(obs, component):
-    services = (obs or {}).get("services") or {}
-    value = services.get(component)
-    return bool(value.get("ok")) if isinstance(value, dict) else None
-
-
-def unsafe_path(obs):
-    for component in ("xray", "nginx", "install"):
-        key = {"xray": "xrayConfig", "nginx": "nginxConfig", "install": "installConfig"}[component]
-        entry = (obs or {}).get(key) or {}
-        if entry.get("present") and entry.get("safe") is False:
-            return True
-    return False
-
-
-def derive_events(previous, current):
-    if previous is None:
-        return [{"schemaVersion": 1, "eventType": "baseline_observed",
-                 "component": "agent", "facts": {"firstObservation": True}}]
-    events = []
-    for component in ("xray", "nginx", "install"):
-        if config_digest(previous, component) != config_digest(current, component):
-            events.append({"schemaVersion": 1,
-                           "eventType": "%s_config_changed" % component,
-                           "component": component, "facts": {}})
-    for component in ("xray", "nginx"):
-        prev_ok = validation_ok(previous, component)
-        curr_ok = validation_ok(current, component)
-        if prev_ok is not None and curr_ok is not None and prev_ok != curr_ok:
-            events.append({"schemaVersion": 1,
-                           "eventType": "%s_validation_%s" % (component, "recovered" if curr_ok else "failed"),
-                           "component": component, "facts": {}})
-        prev_ok = service_ok(previous, component)
-        curr_ok = service_ok(current, component)
-        if prev_ok is not None and curr_ok is not None and prev_ok != curr_ok:
-            events.append({"schemaVersion": 1,
-                           "eventType": "%s_service_%s" % (component, "up" if curr_ok else "down"),
-                           "component": component, "facts": {}})
-    if unsafe_path(current):
-        events.append({"schemaVersion": 1, "eventType": "unsafe_path_detected",
-                       "component": "agent", "facts": {"unsafe": True}})
-    return events
-
-
 xray_config = ROOT / "conf/xray/config.json"
 nginx_config = ROOT / "conf/nginx"
 install_config = ROOT / "conf/install_config.json"
@@ -216,7 +108,9 @@ data = {
     },
 }
 
-# persist meaningful state-change events to the bounded timeline
+# Canonical journal: one implementation, crash-safe, single-writer, bounded.
+journal = EventJournal(HISTORY, segment_bytes=SEGMENT_BYTES, total_bytes=TOTAL_BYTES)
+journal.recover()
 previous = None
 if OUT.is_file() and not OUT.is_symlink():
     try:
@@ -224,7 +118,7 @@ if OUT.is_file() and not OUT.is_symlink():
     except Exception:
         previous = None
 for event in derive_events(previous, data):
-    append_event(event)
+    journal.append_event(event)
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 fd, temp = tempfile.mkstemp(prefix=".observation.", dir=OUT.parent)
