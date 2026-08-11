@@ -50,6 +50,9 @@ def _print_diagnose(result: dict) -> None:
     print('Status:', result.get('status'))
     print('Severity:', result.get('severity'))
     print('Confidence:', result.get('confidenceBand'))
+    evidence = result.get('evidence') or {}
+    print('Evidence: observation', evidence.get('observationStatus'),
+          '/ timeline', evidence.get('timelineStatus'))
     print()
     print('Facts:')
     for fact in result.get('facts') or []:
@@ -63,6 +66,12 @@ def _print_diagnose(result: dict) -> None:
     for rec in result.get('recommendations') or []:
         print('-', rec.get('code'), f"(priority={rec.get('priority')})")
     if not result.get('recommendations'):
+        print('- none')
+    print()
+    print('Limitations:')
+    for limitation in result.get('limitations') or []:
+        print('-', limitation)
+    if not result.get('limitations'):
         print('- none')
     print()
     print('Automatic execution:')
@@ -103,16 +112,14 @@ def main(argv=None) -> int:
 
     try:
         if args.command == 'feedback':
-            now = int(time.time())
-            # Doctor feedback follows the existing decision lifecycle: register
-            # (idempotent) then commit structured feedback. Route rootResult is
-            # not required for advisory doctor decisions.
-            _confirm(call(args.socket, 'register', {
-                'decisionId': args.decision_id, 'capability': 'doctor',
-                'modelGeneration': 1, 'createdAtEpochSeconds': now}))
+            # The decision was already registered by the diagnose flow (or the
+            # operator knows its diagnosisId); the CLI NEVER fabricates a
+            # registration. Canonical decision identity (capability, model
+            # generation, created-at) is resolved by the Runtime from the
+            # registered decision - the CLI only submits the structured
+            # feedback fields.
             response = call(args.socket, 'feedback', {
-                'decisionId': args.decision_id, 'capability': 'doctor',
-                'modelGeneration': 1, 'createdAtEpochSeconds': now,
+                'decisionId': args.decision_id,
                 'outcome': args.outcome, 'helpful': args.helpful,
                 'diagnosisCorrect': args.diagnosis_correct})
             _confirm(response)

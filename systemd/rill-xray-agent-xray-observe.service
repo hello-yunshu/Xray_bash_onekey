@@ -4,6 +4,8 @@ After=xray.service nginx.service
 [Service]
 Type=oneshot
 User=root
+Group=rill-xray-agent
+UMask=0027
 Environment=RILL_XRAY_HOST_ROOT=/etc/idleleo
 ExecStart=/usr/bin/python3 /etc/rill-xray-agent/scripts/rill_xray_agent_observe.py
 NoNewPrivileges=true
