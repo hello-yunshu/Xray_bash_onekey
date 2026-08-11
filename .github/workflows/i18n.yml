@@ -1,5 +1,16 @@
 name: Update Translations
 
+# P1-4: translation changes must NEVER be pushed straight to main. Instead
+# they are staged on a dedicated branch and surfaced as a normal PR, so the
+# resulting production main HEAD always goes through the regular CI gates.
+#
+# Security hardening:
+#   - all actions are pinned to immutable SHAs (no floating @main refs)
+#   - workflow-level default permission is contents: read only
+#   - contents: write + pull-requests: write are granted ONLY to the job that
+#     actually pushes the translation branch and opens/updates the PR
+#   - AI_API_KEY is exposed only to the Auto translate step
+
 on:
   push:
     paths:
@@ -14,28 +25,37 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-translations
   cancel-in-progress: true
 
 jobs:
   update-translations:
     runs-on: ubuntu-latest
-    
+    # Only this job needs write scopes: it stages the translation branch and
+    # opens/updates the PR. Everything else runs with read-only permissions.
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      has_changes: ${{ steps.detect.outputs.has_changes }}
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: true
-      
+
       - name: Restore translation cache
         id: cache-translations
-        uses: actions/cache/restore@main
+        uses: actions/cache/restore@1bd1e32a3b92759ce0baaad187b524d9d933182f # v4
         with:
           path: i18n/po/cache_*.json
           key: ${{ runner.os }}-translations-${{ hashFiles('i18n/po/*.po') }}
           restore-keys: |
             ${{ runner.os }}-translations-
-      
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -43,7 +63,7 @@ jobs:
           pip3 install polib deep-translator langdetect openai
 
       - name: Cache Python dependencies
-        uses: actions/cache@main
+        uses: actions/cache@1bd1e32a3b92759ce0baaad187b524d9d933182f # v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-polib-deep-translator-langdetect-openai
@@ -54,7 +74,7 @@ jobs:
         run: |
           mkdir -p i18n/po
           mkdir -p i18n/languages/{en,fa,ru,zh_CN,ko,fr}/LC_MESSAGES
-      
+
       - name: Extract strings from specified scripts
         run: |
           {
@@ -64,11 +84,11 @@ jobs:
             echo "scripts/rill_xray_agent_manager.sh"
             echo "scripts/traffic_blocker.sh"
           } > i18n/po/POTFILES.in
-          
+
           if [ -f i18n/po/xray_install.pot ]; then
             cp i18n/po/xray_install.pot i18n/po/xray_install.pot.old
           fi
-          
+
           xgettext \
             --files-from=i18n/po/POTFILES.in \
             --from-code=UTF-8 \
@@ -79,7 +99,7 @@ jobs:
             --msgid-bugs-address=https://github.com/hello-yunshu/Xray_bash_onekey/issues \
             --copyright-holder="yunshu" \
             --output=i18n/po/xray_install.pot
-          
+
           if [ -f i18n/po/xray_install.pot.old ]; then
             if diff <(grep -v '^"POT-Creation-Date:' i18n/po/xray_install.pot) \
                      <(grep -v '^"POT-Creation-Date:' i18n/po/xray_install.pot.old) > /dev/null 2>&1; then
@@ -90,7 +110,7 @@ jobs:
               echo "String changes detected. Using new .pot file."
             fi
           fi
-      
+
       - name: Update/Create PO files
         run: |
           for lang in zh_CN en fa ru ko fr; do
@@ -100,12 +120,14 @@ jobs:
               msginit --no-translator --locale=$lang --input=i18n/po/xray_install.pot --output=i18n/po/$lang.po
             fi
           done
-      
+
       - name: Auto translate
+        # P1-4: AI_API_KEY is scoped to exactly this step and never reaches
+        # the PR / fork execution paths.
         run: python3 i18n/tools/translate.py
         env:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
-      
+
       - name: Compile MO files if necessary
         run: |
           needs_compile=false
@@ -121,11 +143,11 @@ jobs:
           if [ "$needs_compile" = false ]; then
             echo "No translations were updated. Skipping MO file compilation."
           fi
-      
+
       - name: Run i18nspector checks on PO files
         run: |
           i18nspector check i18n/po/
-      
+
       - name: Run i18nspector checks on MO files if compiled
         run: |
           for lang in en fa ru ko fr; do
@@ -133,31 +155,52 @@ jobs:
               i18nspector check-binary i18n/languages/${lang}/LC_MESSAGES/xray_install.mo
             fi
           done
-      
+
       - name: Save translation cache
         if: always() && steps.cache-translations.outputs.cache-hit != 'true' && hashFiles('i18n/po/cache_*.json') != ''
-        uses: actions/cache/save@main
+        uses: actions/cache/save@1bd1e32a3b92759ce0baaad187b524d9d933182f # v4
         with:
           path: i18n/po/cache_*.json
           key: ${{ runner.os }}-translations-${{ hashFiles('i18n/po/*.po') }}
-      
-      - name: Pull changes
-        run: |
-          git pull origin main
-      
-      - name: Commit changes if necessary
+
+      - name: Detect translation changes
+        id: detect
         run: |
           for lang in en fa ru ko fr; do
             if [ -f "i18n/po/${lang}.po.no-update" ]; then
               rm "i18n/po/${lang}.po.no-update"
             fi
           done
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
           git add i18n/po/*.po i18n/po/*.pot i18n/po/POTFILES.in i18n/languages/
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No translation changes."
           else
-            git commit -m "Update translations for all languages [$(date +%Y-%m-%d)]"
-            git push
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Translation changes detected."
+          fi
+
+      - name: Commit and push translation branch
+        if: steps.detect.outputs.has_changes == 'true'
+        # P1-4: never push to main. Stage the changes on a dedicated branch;
+        # the branch push triggers the normal CI gates before any merge.
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Update translations for all languages [$(date +%Y-%m-%d)]"
+          git branch -f i18n/auto-translations HEAD
+          git push -f origin i18n/auto-translations
+
+      - name: Create or update translation PR
+        if: steps.detect.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_EXISTS=$(gh pr list --head i18n/auto-translations --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$PR_EXISTS" ]; then
+            gh pr edit "$PR_EXISTS" --base main || true
+          else
+            gh pr create --base main --head i18n/auto-translations \
+              --title "Update translations" \
+              --body "Auto-generated translation update from the i18n workflow. This PR runs the normal CI gates before merge so production main is never produced without qualification." || true
           fi
