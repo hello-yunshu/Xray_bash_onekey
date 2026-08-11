@@ -10,9 +10,11 @@
 set -euo pipefail
 
 # --- static wiring checks (no root / no systemd needed) --------------------
-# Observer uses the canonical EventJournal + derive_events (ONE implementation).
+# Observer uses the canonical EventJournal + crash-idempotent transition
+# commit (ONE implementation). The transition commit lives in
+# observer_transition (which internally uses canonical derive_events).
 grep -Fq 'from rill_xray_agent.event_journal import EventJournal' scripts/rill_xray_agent_observe.py
-grep -Fq 'from rill_xray_agent.events import derive_events' scripts/rill_xray_agent_observe.py
+grep -Fq 'from rill_xray_agent.observer_transition import' scripts/rill_xray_agent_observe.py
 # Observer FAILS CLOSED when canonical modules are unavailable (never drifts).
 grep -Fq 'canonical modules unavailable' scripts/rill_xray_agent_observe.py
 # Runtime systemd unit grants read-only access to the xray observation tree;
