@@ -17,14 +17,20 @@ class ClosedLedger:
 
     Tombstones are stored one-per-file under <root>/ as sha256(decisionId).json.
     A tombstone NEVER stores the plaintext decision id, only its hash plus the
-    identity/payload hashes and the close timestamp. The ledger has an explicit
-    capacity (entries or bytes) and fails closed when full; it never silently
-    drops a tombstone. Corrupted files are treated as unsafe on query.
+    identity/payload hashes, the close timestamp and - since the P1-3 fix - the
+    safe, non-sensitive feedback identity metadata (capability,
+    modelGeneration) needed to rebuild the canonical feedback projection for
+    exact replay after eviction. Raw config, secrets and free text are never
+    stored. The ledger has an explicit capacity (entries or bytes) and fails
+    closed when full; it never silently drops a tombstone. Corrupted files are
+    treated as unsafe on query.
 
     put()/put_hashed() are idempotent for an identical tombstone (same
     decisionIdHash + identityHash + payloadHash) regardless of the replay
     window, and fail closed on conflict (same decision, differing
-    identity/payload) or on an unsafe existing entry.
+    identity/payload/metadata) or on an unsafe existing entry. Tombstones
+    written without the optional feedback metadata (legacy) stay valid: the
+    hash comparison remains the authoritative identity check.
     """
 
     def __init__(self, root, max_entries=None, max_bytes=None,
@@ -82,7 +88,8 @@ class ClosedLedger:
     def get(self, did):
         return self.get_hash(digest(did))
 
-    def put_hashed(self, decision_id_hash, identity_hash, payload_sha, closed_at):
+    def put_hashed(self, decision_id_hash, identity_hash, payload_sha, closed_at,
+                   capability=None, model_generation=None):
         if os.environ.get('RILL_LEDGER_IO_ERROR') == '1':
             raise LedgerFullError('fault injected: RILL_LEDGER_IO_ERROR')
         with FileLock(self.lock):
@@ -97,6 +104,18 @@ class ClosedLedger:
                     if (existing.get('decisionIdHash') == decision_id_hash
                             and existing.get('identityHash') == identity_hash
                             and existing.get('payloadHash') == payload_sha):
+                        # Idempotent success, unaffected by replay window. When
+                        # the existing tombstone already carries the feedback
+                        # identity metadata, a *differing* capability or
+                        # modelGeneration is a conflict, never a silent accept.
+                        if (existing.get('capability') is not None
+                                and existing.get('capability') != capability):
+                            raise LedgerFullError(
+                                'tombstone conflict: feedback capability differs')
+                        if (existing.get('modelGeneration') is not None
+                                and existing.get('modelGeneration') != model_generation):
+                            raise LedgerFullError(
+                                'tombstone conflict: feedback modelGeneration differs')
                         return True  # idempotent success, unaffected by replay window
                     raise LedgerFullError(
                         'tombstone conflict: same decision, differing identity/payload')
@@ -106,13 +125,21 @@ class ClosedLedger:
                 raise LedgerFullError('closed ledger at max entries')
             if self.max_bytes and (self._bytes() + 256) > self.max_bytes:
                 raise LedgerFullError('closed ledger at max bytes')
-            atomic_write_json(existing_path, {
+            tombstone = {
                 'schemaVersion': 1,
                 'decisionIdHash': decision_id_hash,
                 'identityHash': identity_hash,
                 'payloadHash': payload_sha,
                 'closedAtEpochSeconds': int(closed_at),
-            })
+            }
+            # P1-3: persist the safe, non-sensitive feedback identity metadata
+            # so an evicted Doctor decision can rebuild the canonical feedback
+            # projection on exact replay. Never raw config, secrets or text.
+            if capability is not None:
+                tombstone['capability'] = capability
+            if model_generation is not None:
+                tombstone['modelGeneration'] = int(model_generation)
+            atomic_write_json(existing_path, tombstone)
             return True
 
     def put(self, did, identity_hash, payload_sha, closed_at):
