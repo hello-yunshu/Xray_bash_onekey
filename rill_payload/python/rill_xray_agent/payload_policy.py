@@ -12,9 +12,47 @@ ROOT_RESULT_ALLOWLIST = {
     'routeAssistAllowed', 'autoReapplyAllowed', 'observed', 'matched',
 }
 
+# Structured Doctor feedback: enum/boolean/scalar only. Free-text comments are
+# intentionally rejected so users cannot accidentally persist secrets, URLs or
+# raw configuration through feedback.
+DOCTOR_FEEDBACK_OUTCOMES = {'resolved', 'not-resolved', 'not-applicable'}
+DOCTOR_FEEDBACK_BOOLS = {'helpful', 'diagnosisCorrect'}
+
 
 class RootResultViolation(ValueError):
     pass
+
+
+def sanitize_doctor_feedback(payload):
+    """Validate structured Doctor feedback before persistent storage.
+
+    Accepts only the decision identity fields plus scalar feedback fields:
+    outcome (enum), helpful (bool), diagnosisCorrect (bool). Free-text, nested
+    payloads and any secret/config material are rejected, never stored.
+    """
+    if not isinstance(payload, dict):
+        raise ValueError('doctor feedback must be an object')
+    out = {}
+    for key, value in payload.items():
+        if key in XRAY_CONFIG_SIGNATURES:
+            raise ValueError('xray configuration body prohibited')
+        if key in DOCTOR_FEEDBACK_BOOLS:
+            if not isinstance(value, bool):
+                raise ValueError(f'doctor feedback {key} must be a boolean')
+            out[key] = value
+            continue
+        if key == 'outcome':
+            if value not in DOCTOR_FEEDBACK_OUTCOMES:
+                raise ValueError('doctor feedback outcome invalid')
+            out[key] = value
+            continue
+        if key in ALLOWED_PAYLOAD_KEYS:
+            if isinstance(value, str) and str(value).lower().startswith('vless://'):
+                raise ValueError('v2 transport material prohibited')
+            out[key] = value
+            continue
+        raise ValueError(f'unexpected doctor feedback field: {key}')
+    return out
 
 
 def sanitize_payload(payload):

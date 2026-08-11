@@ -82,6 +82,9 @@ jobs:
             .phase1-contracts/skill
           # Rill Xray Agent host integration checks (mandatory workflow)
           bash .github/test/test_rill_xray_agent.sh
+          # Rill 0.2 Operational Intelligence regression (spec 19.1/19.2):
+          # canonical payload wiring, decision lifecycle, idempotency, read-only journal.
+          bash .github/test/test_rill_xray_agent_operational_intelligence.sh
           # Rill mode lifecycle verify (normal/observe-only/safe-disabled sockets)
           bash .github/test/test_rill_xray_agent_verify_modes.sh
           # Rill two-phase uninstall failure propagation (P0-2)
