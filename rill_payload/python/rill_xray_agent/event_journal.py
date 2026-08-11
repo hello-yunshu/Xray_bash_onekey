@@ -22,9 +22,20 @@ An event is *committed* only when all of the following are durable:
 
 The meta.json bookkeeping file is *not* the source of truth. Verified segments
 are authoritative: on every writer recovery the journal scans every segment,
-truncates any torn (newline-incomplete) tail, validates every complete line
-(fail-closed), recovers the maximum sequence and reconciles meta. A reader
-(Runtime) treats a torn tail as an uncommitted event and simply skips it.
+validates every complete line (fail-closed), recovers the maximum sequence and
+reconciles meta.
+
+Torn (newline-incomplete) tails are handled differently depending on which
+segment they appear in:
+
+- newest (active) segment: a torn tail is the only position a crash torn write
+  can occur. The writer recovery truncates it to the last complete record and
+  continues; a reader (Runtime) treats it as an uncommitted event and simply
+  skips it.
+- closed historical segments: a partial tail is historical evidence
+  corruption/truncation, never a legal crash tail. Both writer and reader fail
+  closed (EventJournalError); the journal never silently truncates or skips
+  committed history.
 """
 import json
 import os
@@ -62,7 +73,10 @@ class EventJournal:
 
         scan verified segments
         -> reject symlink segments
-        -> truncate torn tail (write mode) / skip it (read-only)
+        -> historical segment with torn tail: FAIL CLOSED (evidence
+           corruption; only the newest active segment may carry a crash
+           torn write)
+        -> truncate newest torn tail (write mode) / skip it (read-only)
         -> validate every complete line (JSON, eventId, sequence)
         -> recover max sequence + newest segment
         -> compare meta
@@ -158,9 +172,11 @@ class EventJournal:
 
         Raises EventJournalError when a *complete* line is corrupt (invalid
         JSON, eventId mismatch, duplicate/non-integer sequence), when a
-        symlinked segment or meta is present, or when meta is ahead of the
-        durable segments (committed events would be re-issued with duplicate
-        identity - fail closed instead of reusing sequences).
+        symlinked segment or meta is present, when a CLOSED historical segment
+        carries a torn (newline-incomplete) tail (evidence corruption - only
+        the newest active segment may hold a crash torn write), or when meta
+        is ahead of the durable segments (committed events would be re-issued
+        with duplicate identity - fail closed instead of reusing sequences).
         """
         raw_meta = self._read_meta()
         events = []
@@ -169,16 +185,27 @@ class EventJournal:
         truncated = False
         events_seen = {}  # sequence -> (segment, line) for duplicate detection
 
-        for seg in self._segments():
+        segments = self._segments()
+        for seg in segments:
             if seg.is_symlink():
                 raise EventJournalError('symlink segment rejected')
+            newest_segment = max(newest_segment, self._segment_number(seg))
+
+        for seg in segments:
             num = self._segment_number(seg)
-            newest_segment = max(newest_segment, num)
             raw = seg.read_bytes()
             if not raw:
                 continue
             complete, tail = self._split_tail(raw)
             if tail is not None:
+                if num != newest_segment:
+                    # Closed historical segments must never be treated as a
+                    # crash torn write: truncating (or silently skipping) here
+                    # would discard committed history evidence and hide
+                    # corruption. Fail closed for writers AND readers.
+                    raise EventJournalError(
+                        f'corrupt historical segment {seg.name}: '
+                        'torn tail in closed segment')
                 if self.read_only or not recover_tail:
                     # Reader: the uncommitted tail is skipped, never repaired.
                     # Iterate only the verified complete lines, never the tail.
@@ -250,8 +277,9 @@ class EventJournal:
     def _split_tail(raw: bytes):
         """Split segment bytes into (complete-lines-bytes, partial-tail-or-None).
 
-        A torn write is only possible at the very end of the newest segment;
-        that is exactly the position this split inspects.
+        A torn write is only legal at the very end of the newest active
+        segment; the caller enforces that a partial tail inside a closed
+        historical segment fails closed.
         """
         if raw.endswith(b'\n'):
             return raw, None
@@ -292,7 +320,13 @@ class EventJournal:
             line = canonical_bytes(event) + b'\n'
             if len(line) > self.segment_bytes:
                 raise EventJournalError('event larger than segment bound')
-            seg_num = state['nextSegment']
+            # Segment aggregation: append to the ACTIVE (newest existing)
+            # segment while it has room; rotate exactly once at the size
+            # boundary. `nextSegment` is the next segment number to CREATE
+            # (newest + 1), so the active segment is nextSegment - 1.
+            seg_num = state['nextSegment'] - 1
+            if seg_num < 1:
+                seg_num = 1  # fresh journal: start at events-000001.jsonl
             seg = self.root / f'events-{seg_num:06d}.jsonl'
             if seg.exists() and seg.stat().st_size + len(line) > self.segment_bytes:
                 seg_num += 1
@@ -316,7 +350,7 @@ class EventJournal:
                 fsync_dir(self.root)
             # 3) update advisory meta last.
             self._write_meta({'nextSequence': state['nextSequence'] + 1,
-                              'nextSegment': seg_num})
+                              'nextSegment': seg_num + 1})
             return event
 
     # -- read -------------------------------------------------------------
@@ -324,8 +358,10 @@ class EventJournal:
         """Return events in deterministic append order (oldest first).
 
         `limit` caps how many are returned (most recent `limit` when reading
-        backwards). A trailing uncommitted line (torn tail) is skipped, never
-        reported as history. Any other corrupt line (complete invalid JSON,
+        backwards). A trailing uncommitted line (torn tail) on the NEWEST
+        active segment is skipped, never reported as history. A torn tail on
+        any closed historical segment raises EventJournalError (evidence
+        corruption), and any other corrupt line (complete invalid JSON,
         eventId mismatch, duplicate sequence) raises EventJournalError so the
         caller can treat history as insufficient evidence.
         """
