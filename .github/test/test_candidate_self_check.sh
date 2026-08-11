@@ -42,15 +42,19 @@ else
 fi
 
 # Verify the expected contract keys are all present and structurally sane.
+# P1-2: compatibility is a capability floor, not a strict version equality:
+#   integrationSchema >= integrationSchemaFloor  AND  capabilitiesMissing == 0
 if python3 - "$out" <<'PY'
 import json,sys
 d=json.loads(sys.argv[1])
-keys={"schemaVersion","integrationSchema","menuDispatch","offlineDispatch",
-      "reconfigureHooks","uninstallHooks","hostHealthContract"}
+keys={"schemaVersion","integrationSchema","integrationSchemaFloor","capabilitiesMissing",
+      "menuDispatch","offlineDispatch","reconfigureHooks","uninstallHooks","hostHealthContract"}
 missing=keys-set(d)
 assert not missing, f"missing keys: {sorted(missing)}"
 assert d["schemaVersion"]==1
-assert d["integrationSchema"]==1
+assert isinstance(d["integrationSchema"], int) and d["integrationSchema"]>=0
+assert isinstance(d["integrationSchemaFloor"], int) and d["integrationSchemaFloor"]>=0
+assert isinstance(d["capabilitiesMissing"], int) and d["capabilitiesMissing"]>=0
 for k in ("menuDispatch","offlineDispatch","reconfigureHooks","uninstallHooks","hostHealthContract"):
     assert isinstance(d[k], bool), f"{k} not bool"
 PY
@@ -61,21 +65,23 @@ else
 fi
 
 # The real install.sh integration block must honestly report true for every
-# contract dimension (this is the production candidate that must pass).
+# contract dimension and be compatible under the capability floor (this is the
+# production candidate that must pass): schema is at/above the floor AND no
+# required capability is missing.
 if python3 - "$out" <<'PY'
 import json,sys
 d=json.loads(sys.argv[1])
-for k in ("schemaVersion","integrationSchema","menuDispatch","offlineDispatch",
-          "reconfigureHooks","uninstallHooks","hostHealthContract"):
-    if k in ("schemaVersion","integrationSchema"):
-        assert d[k]==1, f"{k} != 1"
-    else:
-        assert d[k] is True, f"{k} is not True (semantic contract missing)"
+assert d["schemaVersion"]==1, "schemaVersion != 1"
+assert d["integrationSchema"]>=d["integrationSchemaFloor"], \
+    f"integrationSchema {d['integrationSchema']} < floor {d['integrationSchemaFloor']}"
+assert d["capabilitiesMissing"]==0, f"{d['capabilitiesMissing']} required capability(s) missing"
+for k in ("menuDispatch","offlineDispatch","reconfigureHooks","uninstallHooks","hostHealthContract"):
+    assert d[k] is True, f"{k} is not True (semantic contract missing)"
 PY
 then
-    ok "all semantic contract booleans are true for the real install.sh"
+    ok "all semantic contract booleans are true and capability floor satisfied for the real install.sh"
 else
-    bad "some semantic contract boolean is false for the real install.sh"
+    bad "some semantic contract boolean is false or capability floor NOT satisfied for the real install.sh"
 fi
 
 # --rill-agent-status must also still dispatch (regression: the self-check flag

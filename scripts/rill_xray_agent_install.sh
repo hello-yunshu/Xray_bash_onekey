@@ -11,6 +11,7 @@ install -d -m 0750 \
   "$(root /var/lib/rill-xray-agent-runtime)" \
   "$(root /var/lib/rill-xray-agent-root/transactions)" \
   "$(root /var/lib/rill-xray-agent-xray/status)" \
+  "$(root /var/lib/rill-xray-agent-xray/history)" \
   "$(root /run/rill-xray-agent)" \
   "$(root /opt/rill-xray-agent)" \
   "$(root /etc/systemd/system)"
@@ -34,6 +35,18 @@ id rill-xray-agent >/dev/null 2>&1 || useradd --system --gid rill-xray-agent --h
 chown -R rill-xray-agent:rill-xray-agent /var/lib/rill-xray-agent-runtime /run/rill-xray-agent
 chown -R root:rill-xray-agent /var/lib/rill-xray-agent-root
 chmod 0750 /var/lib/rill-xray-agent-root /var/lib/rill-xray-agent-root/transactions
+# DAC contract: the observation tree is root-writable / rill-xray-agent
+# readable-and-traversable / NOT writable by the Runtime user. The setgid
+# directory bit keeps every newly created member file in group
+# rill-xray-agent; the root observer (User=root Group=rill-xray-agent
+# UMask=0027) then writes 0640 root:rill-xray-agent, which the unprivileged
+# Runtime can read but never modify.
+for d in /var/lib/rill-xray-agent-xray \
+         /var/lib/rill-xray-agent-xray/status \
+         /var/lib/rill-xray-agent-xray/history; do
+    chown root:rill-xray-agent "$d"
+    chmod 2750 "$d"
+done
 systemctl daemon-reload
 systemctl enable --now rill-xray-agent-runtime.service
 source /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh

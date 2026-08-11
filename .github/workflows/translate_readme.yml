@@ -1,5 +1,11 @@
 name: Translate README
 
+# P1-4: same hardening as the Update Translations workflow. README
+# translation changes are staged on a PR, never pushed straight to main.
+# All actions are pinned to immutable SHAs; permissions are minimal
+# (contents: write + pull-requests: write only on the job that pushes the
+# branch and opens/updates the PR).
+
 on:
   push:
     paths:
@@ -10,24 +16,31 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-readme
   cancel-in-progress: true
 
 jobs:
   translate-readme:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      has_changes: ${{ steps.detect.outputs.has_changes }}
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: true
-      
+
       - name: Set up Python
-        uses: actions/setup-python@main
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5
         with:
           python-version: '3.x'
-      
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -36,15 +49,15 @@ jobs:
           pip install deep-translator markdown beautifulsoup4
 
       - name: Cache Python dependencies
-        uses: actions/cache@main
+        uses: actions/cache@1bd1e32a3b92759ce0baaad187b524d9d933182f # v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/translate_readme.py') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      
+
       - name: Restore translation cache
-        uses: actions/cache@main
+        uses: actions/cache@1bd1e32a3b92759ce0baaad187b524d9d933182f # v4
         with:
           path: translation_cache_readme.json
           key: ${{ runner.os }}-readme-translations-${{ hashFiles('README.md') }}
@@ -53,19 +66,39 @@ jobs:
 
       - name: Translate README
         run: python3 i18n/tools/translate_readme.py README.md i18n/languages/
-      
-      - name: Pull changes
-        run: |
-          git pull origin main
 
-      - name: Commit changes
+      - name: Detect translation changes
+        id: detect
+        run: |
+          git add i18n/languages/
+          if git diff --cached --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to commit."
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Translation changes detected."
+          fi
+
+      - name: Commit and push translation branch
+        if: steps.detect.outputs.has_changes == 'true'
+        # P1-4: never push to main; stage on a dedicated branch for normal CI.
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add i18n/languages/
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
+          git commit -m "Update translations for README [$(date +%Y-%m-%d)]"
+          git branch -f i18n/auto-translations HEAD
+          git push -f origin i18n/auto-translations
+
+      - name: Create or update translation PR
+        if: steps.detect.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_EXISTS=$(gh pr list --head i18n/auto-translations --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$PR_EXISTS" ]; then
+            gh pr edit "$PR_EXISTS" --base main || true
           else
-            git commit -m "Update translations for README [$(date +%Y-%m-%d)]"
-            git push
+            gh pr create --base main --head i18n/auto-translations \
+              --title "Update translations" \
+              --body "Auto-generated README translation update. This PR runs the normal CI gates before merge so production main is never produced without qualification." || true
           fi
