@@ -49,7 +49,7 @@ jobs:
           pip install deep-translator markdown beautifulsoup4
 
       - name: Cache Python dependencies
-        uses: actions/cache@1bd1e32a3b92759ce0baaad187b524d9d933182f # v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/translate_readme.py') }}
@@ -57,7 +57,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Restore translation cache
-        uses: actions/cache@1bd1e32a3b92759ce0baaad187b524d9d933182f # v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
           path: translation_cache_readme.json
           key: ${{ runner.os }}-readme-translations-${{ hashFiles('README.md') }}
