@@ -101,7 +101,8 @@ def main(argv=None) -> int:
 
     method = {'status': 'health', 'health': 'health', 'metrics': 'metrics',
               'config': 'config', 'snapshot': 'snapshot', 'mode': 'mode',
-              'inspect': 'inspect', 'timeline': 'timeline', 'diagnose': 'diagnose'}[args.command]
+              'inspect': 'inspect', 'timeline': 'timeline', 'diagnose': 'diagnose',
+              'feedback': 'feedback'}[args.command]
     body = {}
     if args.command == 'mode':
         body = {'mode': args.value}
