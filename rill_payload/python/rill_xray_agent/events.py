@@ -128,3 +128,46 @@ def derive_events(previous, current, now=None):
 def event_identity(event):
     """Deterministic identity of an event (used for dedup / audit)."""
     return digest({k: event.get(k) for k in ('schemaVersion', 'eventType', 'component', 'facts')})
+
+
+def observation_state_fingerprint(obs):
+    """Stable safe digest of the semantic state that drives event derivation.
+
+    Only the project-internal config digests and presence/safety/service/
+    validation booleans are mixed in. Volatile timing fields (capturedAt,
+    outputSha256, sizes, file counts) are deliberately excluded so the same
+    underlying state yields the same fingerprint across runs - this is what
+    makes a observer transition identity stable across crash/restart.
+    """
+    if obs is None:
+        return ''
+    return digest({
+        'xray': config_digest(obs, 'xray'),
+        'nginx': config_digest(obs, 'nginx'),
+        'install': config_digest(obs, 'install'),
+        'xrayValidation': _validation(obs, 'xray'),
+        'nginxValidation': _validation(obs, 'nginx'),
+        'xrayService': _service(obs, 'xray'),
+        'nginxService': _service(obs, 'nginx'),
+    })
+
+
+def transition_event_id(previous_state_digest, current_state_digest, event):
+    """Deterministic identity of ONE event within an observer transition.
+
+    Derived from the stable previous/current state fingerprints plus the
+    event's semantic identity (eventType, component, facts). Deliberately
+    excludes sequence, capturedAtEpochSeconds and journal append time so the
+    same real transition replays to the same id across crash/restart.
+
+    This is a *semantic identity*, intentionally separate from the journal
+    record's eventId/sequence: it must never be used as a global forever-dedup
+    key (a genuinely repeated transition later must still be recorded).
+    """
+    return digest({
+        'previousStateDigest': previous_state_digest,
+        'currentStateDigest': current_state_digest,
+        'eventType': event.get('eventType'),
+        'component': event.get('component'),
+        'facts': event.get('facts'),
+    })
