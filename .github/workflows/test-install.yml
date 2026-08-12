@@ -24,12 +24,17 @@ concurrency:
   group: test-install-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   security-regression:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Checkout API contract branch
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -37,6 +42,7 @@ jobs:
           repository: hello-yunshu/Xray_bash_onekey_api
           ref: ${{ inputs.api_ref || 'main' }}
           path: .phase1-contracts/api
+          persist-credentials: false
 
       - name: Checkout Nginx contract branch
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -44,6 +50,7 @@ jobs:
           repository: hello-yunshu/Xray_bash_onekey_Nginx
           ref: ${{ inputs.nginx_ref || 'main' }}
           path: .phase1-contracts/nginx
+          persist-credentials: false
 
       - name: Checkout Skill contract branch
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -51,6 +58,7 @@ jobs:
           repository: hello-yunshu/Xray_bash_onekey_skill
           ref: ${{ inputs.skill_ref || 'main' }}
           path: .phase1-contracts/skill
+          persist-credentials: false
 
       - name: Run Phase 1 regression tests
         env:
@@ -137,6 +145,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Run redaction unit tests
         run: bash .github/test/test_redact.sh
@@ -176,3 +186,22 @@ jobs:
           echo ""
           echo "=== Install log (redacted) ==="
           sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics /dev/stdin || echo "(not found)"
+
+  release-gate:
+    needs:
+      - security-regression
+      - test-install
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - run: |
+          echo "release-gate: all qualification jobs evaluated"
+          echo "security-regression: ${{ needs.security-regression.result }}"
+          echo "test-install matrix: ${{ needs.test-install.result }}"
+          for job in ${{ join(needs.*.result, ' ') }}; do
+            if [ "$job" != "success" ] && [ "$job" != "skipped" ]; then
+              echo "release-gate FAIL: job result $job" >&2
+              exit 1
+            fi
+          done
+          echo "release-gate PASS"
