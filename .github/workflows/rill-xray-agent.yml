@@ -1,5 +1,7 @@
 name: Rill Xray Agent
 on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
 env:
   # Pin the Rill commit whose CANONICAL_MANIFEST.json this payload must match.
   # Bump when the Rill canonical source of truth changes.
@@ -9,12 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - name: Fetch Rill canonical manifest
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: hello-yunshu/rill-xray-agent
           ref: ${{ env.RILL_CANONICAL_COMMIT }}
           path: rill-canonical
+          persist-credentials: false
       - name: Verify payload against canonical manifest
         run: |
           python3 rill-canonical/integrations/xray_bash_onekey/tools/verify_xray_payload.py \
