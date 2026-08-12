@@ -1,6 +1,6 @@
 {
   "boundedAutoAllowed": false,
-  "candidate": "0.2.0-alpha.1",
+  "candidate": "0.9.0",
   "localLearningEnabled": false,
   "localOnly": true,
   "maximumConcurrentConnections": 32,
