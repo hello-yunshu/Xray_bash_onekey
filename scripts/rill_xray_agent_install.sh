@@ -49,6 +49,17 @@ for d in /var/lib/rill-xray-agent-xray \
 done
 systemctl daemon-reload
 systemctl enable --now rill-xray-agent-runtime.service
+# Upgrade path: enable --now never restarts an already-running unit, so a
+# re-install over an existing installation would keep the OLD daemon (old
+# payload) alive while the files on disk are already the new ones. Force a
+# restart of every active Rill unit so the installed payload is the code
+# that actually runs. Inactive units are left untouched (safe-disabled).
+for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service \
+            rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+    if systemctl is-active --quiet "$unit"; then
+        systemctl restart "$unit"
+    fi
+done
 source /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh
 rxa_apply_mode "$(rxa_get mode)"
 # Fresh-install runtime verification: all state parties must be truly enabled,
