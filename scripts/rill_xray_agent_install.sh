@@ -21,6 +21,12 @@ for file in rill_xray_agent_manager.sh rill_xray_agent_observe.py rill_xray_agen
 done
 cp -a "$SOURCE/../rill_payload/." "$(root /opt/rill-xray-agent/)"
 find "$(root /opt/rill-xray-agent/bin)" -type f -exec chmod 0755 {} +
+# On upgrade the payload is copied with cp -a, which preserves the source
+# mtime. A __pycache__ left by the previous install is then newer than the
+# freshly copied source, so Python would keep running the OLD bytecode and the
+# new payload would never actually take effect. Purge it so the deployed
+# source is always recompiled from the installed version.
+find "$(root /opt/rill-xray-agent)" -depth -type d -name __pycache__ -exec rm -rf {} +
 for unit in "$SOURCE"/../systemd/*; do
     install -m 0644 "$unit" "$(root "/etc/systemd/system/$(basename "$unit")")"
 done
