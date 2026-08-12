@@ -15,7 +15,7 @@ def create_backup(out,sources,meta=None,now=0):
     d=p.read_bytes()
     if safe_content(p,d):
      rel=f'data/{label}/{p.relative_to(root).as_posix()}';entries.append({'path':rel,'sha256':hashlib.sha256(d).hexdigest(),'size':len(d),'mode':stat.S_IMODE(p.stat().st_mode)});payload.append((rel,d,stat.S_IMODE(p.stat().st_mode)))
- m={'schemaVersion':2,'kind':'state','createdAtEpochSeconds':now,'candidateVersion':'0.2.0-alpha.1','platform':platform.system().lower(),'entries':entries,**(meta or {})};epoch=(2026,8,4,0,0,0)
+ m={'schemaVersion':2,'kind':'state','createdAtEpochSeconds':now,'candidateVersion':'0.9.0','platform':platform.system().lower(),'entries':entries,**(meta or {})};epoch=(2026,8,4,0,0,0)
  with zipfile.ZipFile(out,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
   i=zipfile.ZipInfo('MANIFEST.json',epoch);i.external_attr=0o100600<<16;z.writestr(i,canonical_bytes(m)+b'\n')
   for rel,d,mode in payload:i=zipfile.ZipInfo(rel,epoch);i.external_attr=((0o100000|mode)<<16);z.writestr(i,d)
