@@ -205,7 +205,7 @@ jobs:
               --title "Update translations" \
               --body "Auto-generated translation update from the i18n workflow. This PR runs the normal CI gates before merge so production main is never produced without qualification."
           fi
-          VERIFIED=$(gh pr list --head i18n/auto-translations --json number,url --jq '.[0].number + " " + .[0].url')
+          VERIFIED=$(gh pr list --head i18n/auto-translations --json number,url --jq '.[0] | "\(.number) \(.url)"')
           if [ -z "$VERIFIED" ]; then
             echo "FAIL: translation changes staged on i18n/auto-translations but no PR exists" >&2
             exit 1
