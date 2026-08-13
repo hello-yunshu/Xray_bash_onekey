@@ -101,6 +101,10 @@ jobs:
           bash .github/test/test_nginx_health_production_defaults.sh
           # Candidate semantic self-check (P1-4)
           bash .github/test/test_candidate_self_check.sh
+          # Cross-repository release automation must remain deterministic and
+          # must never overwrite manually promoted tested-version metadata.
+          python3 .github/test/test_release_automation.py
+          bash -n scripts/merge_checked_pr.sh
 
       - name: Run user-safety regression tests
         run: |
