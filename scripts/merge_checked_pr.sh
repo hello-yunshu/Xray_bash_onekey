@@ -22,7 +22,7 @@ for ((attempt = 1; attempt <= attempts; attempt++)); do
     failed=$(jq '[.statusCheckRollup[] | select(
         .status == "COMPLETED" and
         (.conclusion != "SUCCESS" and .conclusion != "NEUTRAL" and .conclusion != "SKIPPED")
-    ] | length' <<<"${payload}")
+    )] | length' <<<"${payload}")
     mergeable=$(jq -r '.mergeable' <<<"${payload}")
 
     if ((failed > 0)); then
