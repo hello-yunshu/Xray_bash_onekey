@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+
+import importlib.util
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+SPEC = importlib.util.spec_from_file_location(
+    "release_automation", ROOT / "scripts/release_automation.py"
+)
+assert SPEC and SPEC.loader
+MODULE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
+
+
+class ReleaseAutomationTests(unittest.TestCase):
+    def test_package_sums_are_sorted_and_exclude_generated_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "z.txt").write_text("z")
+            (root / "a.txt").write_text("a")
+            (root / ".git").mkdir()
+            (root / ".git/config").write_text("secret")
+            (root / "__pycache__").mkdir()
+            (root / "__pycache__/x.pyc").write_bytes(b"cache")
+            MODULE.write_package_sums(root)
+            lines = (root / "PACKAGE_SHA256SUMS").read_text().splitlines()
+            self.assertEqual([line.split("  ", 1)[1] for line in lines], ["a.txt", "z.txt"])
+
+    def test_update_api_changes_online_fields_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            xray = root / "xray"
+            api = root / "api"
+            xray.mkdir()
+            api.mkdir()
+            (xray / "install.sh").write_text('shell_version="3.2.0"\n')
+            original = {
+                "update_date": "old",
+                "shell_online_version": "3.1.0",
+                "shell_tested_version": "2.8.3",
+                "shell_upgrade_details": "old details",
+                "xray_online_version": "26.3.27",
+            }
+            (api / "xray_shell_versions.json").write_text(json.dumps(original))
+            changed = MODULE.update_api(xray, api, "new details", "2026-08-14 02:00")
+            result = json.loads((api / "xray_shell_versions.json").read_text())
+            self.assertTrue(changed)
+            self.assertEqual(result["shell_online_version"], "3.2.0")
+            self.assertEqual(result["shell_tested_version"], "2.8.3")
+            self.assertEqual(result["xray_online_version"], "26.3.27")
+
+    def test_update_api_is_idempotent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            xray = root / "xray"
+            api = root / "api"
+            xray.mkdir()
+            api.mkdir()
+            (xray / "install.sh").write_text('shell_version="3.2.0"\n')
+            manifest = {"shell_online_version": "3.2.0"}
+            target = api / "xray_shell_versions.json"
+            target.write_text(json.dumps(manifest))
+            self.assertFalse(MODULE.update_api(xray, api, "unused", None))
+            self.assertEqual(json.loads(target.read_text()), manifest)
+
+    def test_update_api_refuses_downgrade(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            xray = root / "xray"
+            api = root / "api"
+            xray.mkdir()
+            api.mkdir()
+            (xray / "install.sh").write_text('shell_version="3.1.0"\n')
+            (api / "xray_shell_versions.json").write_text(
+                json.dumps({"shell_online_version": "3.2.0"})
+            )
+            with self.assertRaises(SystemExit):
+                MODULE.update_api(xray, api, "details", None)
+
+
+if __name__ == "__main__":
+    unittest.main()
