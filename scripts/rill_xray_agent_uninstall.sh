@@ -4,7 +4,7 @@ set -euo pipefail
 # production paths) so CI runners without root can exercise the full flow
 # against a DESTDIR sandbox.
 if [[ ${RILL_XRAY_AGENT_ALLOW_NONROOT:-0} != 1 ]] && [[ ${EUID:-$(id -u)} -ne 0 ]]; then
-    echo 'root required' >&2
+    echo '需要 root 权限' >&2
     exit 77
 fi
 DESTDIR=${DESTDIR:-}
@@ -138,13 +138,13 @@ rxa_uninstall_verify_host() {
             active=$?
         fi
         if [[ $active -eq 0 ]]; then
-            echo "Rill Xray Agent: unit still active: $unit" >&2
+            echo "Rill 后台服务仍在运行: $unit" >&2
             failed=1
         fi
     done
     for binary in /opt/rill-xray-agent/bin/rill-xray-agent /opt/rill-xray-agent/bin/rill-xray-agent-observe; do
         if [[ -e "$(root "$binary")" ]]; then
-            echo "Rill Xray Agent: binary still present: $binary" >&2
+            echo "Rill 程序文件仍然存在: $binary" >&2
             failed=1
         fi
     done
@@ -203,7 +203,7 @@ rxa_uninstall_abort() {
     # An abort-marker write failure must not turn the host failure into
     # success: the original failure code is always returned.
     rxa_uninstall_mark aborted 2>/dev/null || true
-    echo 'Rill Xray Agent: host uninstall failed; agent diagnostics retained' >&2
+    echo 'Xray 主程序卸载失败；已保留 Rill AI 判断记录与诊断数据' >&2
     return 1
 }
 
@@ -230,8 +230,8 @@ if ! rxa_uninstall_verify_host; then
     exit 1
 fi
 if ! rxa_uninstall_mark committed; then
-    echo 'Rill Xray Agent: committed marker not durable; uninstall reported failed' >&2
+    echo 'Rill 卸载完成标记未能可靠写入；本次卸载按失败处理' >&2
     exit 1
 fi
-echo 'Rill Xray Agent removed; Xray configuration was not modified'
+echo 'Rill Xray AI 运维助手已卸载；Xray 配置未被修改'
 exit 0

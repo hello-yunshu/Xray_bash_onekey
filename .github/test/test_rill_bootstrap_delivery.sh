@@ -56,7 +56,7 @@ if ! OUT=$(run_bootstrap_root 2>&1); then
 else
     ok "bootstrap execution exit 0"
 fi
-echo "${OUT}" | grep -q "staged Rill Xray Agent installed" \
+echo "${OUT}" | grep -q "Rill Xray AI 运维助手已暂存安装到" \
     && ok "installer staged install completed" \
     || bad "installer staged install marker missing"
 unset RILL_XRAY_AGENT_BUNDLE_FILE DESTDIR
