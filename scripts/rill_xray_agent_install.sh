@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-[[ ${EUID:-$(id -u)} -eq 0 ]] || { echo 'root required' >&2; exit 77; }
+[[ ${EUID:-$(id -u)} -eq 0 ]] || { echo '需要 root 权限' >&2; exit 77; }
 SOURCE=$(cd -- "$(dirname -- "$0")" && pwd)
 DESTDIR=${DESTDIR:-}
 root() { printf '%s%s' "$DESTDIR" "$1"; }
@@ -33,7 +33,7 @@ done
 [[ -f "$(root /etc/rill-xray-agent/config.json)" ]] || install -m 0640 "$SOURCE/../rill_payload/config/default.json" "$(root /etc/rill-xray-agent/config.json)"
 
 if [[ -n "$DESTDIR" ]]; then
-    echo "staged Rill Xray Agent installed under $DESTDIR"
+    echo "Rill Xray AI 运维助手已暂存安装到 $DESTDIR"
     exit 0
 fi
 getent group rill-xray-agent >/dev/null || groupadd --system rill-xray-agent
@@ -71,15 +71,15 @@ rxa_apply_mode "$(rxa_get mode)"
 # Fresh-install runtime verification: all state parties must be truly enabled,
 # not merely config-matching. Any drift fails the install.
 if ! rxa_mode_state_matches_target "$(rxa_get mode)"; then
-    echo 'Rill Xray Agent: install verified state does not match target mode' >&2
+    echo 'Rill Xray AI 运维助手安装校验失败：实际状态与目标工作模式不一致' >&2
     exit 1
 fi
 for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
-    systemctl is-enabled --quiet "$unit" || { echo "unit not enabled: $unit" >&2; exit 1; }
-    systemctl is-active --quiet "$unit" || { echo "unit not active: $unit" >&2; exit 1; }
+    systemctl is-enabled --quiet "$unit" || { echo "服务未启用: $unit" >&2; exit 1; }
+    systemctl is-active --quiet "$unit" || { echo "服务未运行: $unit" >&2; exit 1; }
 done
 if [[ "$(rxa_get routeAssistEnabled)" != false ]] || [[ "$(rxa_get boundedAutoAllowed)" != false ]]; then
-    echo 'ERR Rill install: unsafe defaults overridden' >&2
+    echo 'Rill 安装失败：安全默认值被异常覆盖' >&2
     exit 1
 fi
-echo 'Rill Xray Agent installed; mode=observe-only; Route Assist remains OFF'
+echo 'Rill Xray AI 运维助手安装完成；AI 观察模式已启用；路由辅助保持关闭'
