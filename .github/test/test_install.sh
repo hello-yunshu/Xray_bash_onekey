@@ -581,10 +581,47 @@ menu_box_layout_is_aligned() (
     done
 )
 
+menu_header_spacing_matches_density() (
+    local columns rendered plain row_pattern
+    for columns in 50 60 72 100; do
+        export COLUMNS="${columns}"
+        rendered="$(
+            menu_prepare_width
+            menu_spaced_fields \
+                "$(gettext "当前模式"): Nginx+ws+xHTTP+TLS" \
+                "$(gettext "当前语言"): C.UTF-8"
+        )"
+        plain=$(printf '%s\n' "${rendered}" | sed $'s/\033\\[[0-9;]*m//g')
+        row_pattern=$(printf '%s\n' "${plain}" | awk '
+            /^│[[:space:]]*│$/ { printf "B"; next }
+            /^│/ { printf "D" }
+        ')
+        [[ ${row_pattern} =~ ^BD+B$ ]] || return 1
+
+        rendered="$(
+            menu_prepare_width
+            menu_fields \
+                "$(gettext "脚本"): [$(gettext "最新版")]" \
+                "Xray: [$(gettext "最新版")]" \
+                "Nginx: [$(gettext "最新版")]" \
+                "$(gettext "AI 判断: 未安装")" \
+                "$(gettext "服务: 未运行")" \
+                "$(gettext "路由辅助: 关闭")"
+        )"
+        plain=$(printf '%s\n' "${rendered}" | sed $'s/\033\\[[0-9;]*m//g')
+        row_pattern=$(printf '%s\n' "${plain}" | awk '
+            /^│[[:space:]]*│$/ { printf "B"; next }
+            /^│/ { printf "D" }
+        ')
+        [[ ${row_pattern} =~ ^D+$ ]] || return 1
+    done
+)
+
 assert_ok "Install config is private" test "$(stat -c '%a' "${xray_install_config_file}")" = "600"
 assert_ok "Xray config is private" test "$(stat -c '%a' "${xray_conf}")" = "600"
 assert_ok "JSON updates preserve private mode" json_update_preserves_private_mode
 assert_ok "Menu box layout stays aligned" menu_box_layout_is_aligned
+assert_ok "Only the first header row keeps vertical breathing room" menu_header_spacing_matches_density
 if [[ "${MODE}" == "reality" || "${MODE}" == "reality_nginx" ]]; then
     assert_ok "Reality upgrade defaults preserve existing config" reality_upgrade_defaults_are_safe
 fi
