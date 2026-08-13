@@ -91,6 +91,7 @@ jobs:
 
       - name: Create or update translation PR
         if: steps.detect.outputs.has_changes == 'true'
+        id: pr
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -98,10 +99,12 @@ jobs:
           PR_EXISTS=$(gh pr list --head i18n/auto-translations --json number --jq '.[0].number' 2>/dev/null || true)
           if [ -n "$PR_EXISTS" ]; then
             gh pr edit "$PR_EXISTS" --base main
+            PR_NUMBER=$PR_EXISTS
           else
-            gh pr create --base main --head i18n/auto-translations \
+            pr_url=$(gh pr create --base main --head i18n/auto-translations \
               --title "Update translations" \
-              --body "Auto-generated README translation update. This PR runs the normal CI gates before merge so production main is never produced without qualification."
+              --body "Auto-generated README translation update. This PR runs the normal CI gates before merge so production main is never produced without qualification.")
+            PR_NUMBER=${pr_url##*/}
           fi
           VERIFIED=$(gh pr list --head i18n/auto-translations --json number,url --jq '.[0] | "\(.number) \(.url)"')
           if [ -z "$VERIFIED" ]; then
@@ -109,3 +112,11 @@ jobs:
             exit 1
           fi
           echo "translation PR confirmed: $VERIFIED"
+          echo "number=${PR_NUMBER}" >>"${GITHUB_OUTPUT}"
+
+      - name: Merge translation PR after checks pass
+        if: steps.detect.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_CHECK_ATTEMPTS: 180
+        run: scripts/merge_checked_pr.sh "${GITHUB_REPOSITORY}" "${{ steps.pr.outputs.number }}"
