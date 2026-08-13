@@ -1,0 +1,96 @@
+name: Publish Shell Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      details:
+        description: Optional release summary; a deterministic default is used when empty
+        required: false
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - install.sh
+
+concurrency:
+  group: publish-shell-version
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+    steps:
+      - name: Require cross-repository token
+        run: |
+          set -euo pipefail
+          [[ -n "${GH_TOKEN:-}" ]] || {
+            echo "Configure RELEASE_AUTOMATION_TOKEN with Contents, Pull requests, and workflow-file write access to all three release repositories." >&2
+            exit 1
+          }
+
+      - name: Checkout released Xray main
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: main
+          path: xray
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout version API main
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_api
+          ref: main
+          path: api
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+          persist-credentials: false
+
+      - name: Prepare and validate version API update
+        id: update
+        env:
+          INPUT_DETAILS: ${{ inputs.details }}
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' xray/install.sh)
+          details=${INPUT_DETAILS:-}
+          [[ -n "${details}" ]] || details="release: publish shell ${version}"
+          python3 xray/scripts/release_automation.py update-api \
+            --xray xray --api api --details "${details}"
+          if git -C api diff --quiet; then
+            echo "changed=false" >>"${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          echo "changed=true" >>"${GITHUB_OUTPUT}"
+          (cd api && bash validate-json.sh)
+          (cd api && bash .github/test/test_promote_validation.sh)
+          (cd api && bash .github/test/test_auto_update_preserves_tested.sh)
+          git -C api diff --check
+
+      - name: Publish and merge version API PR
+        if: steps.update.outputs.changed == 'true'
+        env:
+          API_REPO: hello-yunshu/Xray_bash_onekey_api
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' xray/install.sh)
+          branch="automation/shell-${version}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git -C api config user.name github-actions[bot]
+          git -C api config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git -C api switch -c "${branch}"
+          git -C api add xray_shell_versions.json
+          git -C api commit -m "chore(release): publish shell ${version}"
+          git -C api push "https://x-access-token:${GH_TOKEN}@github.com/${API_REPO}.git" "HEAD:${branch}"
+          pr_url=$(gh pr create --repo "${API_REPO}" --base main --head "${branch}" \
+            --title "chore(release): publish shell ${version}" \
+            --body "Automated after ${GITHUB_REPOSITORY}@${GITHUB_SHA} reached main. Updates only online shell metadata; tested-version fields remain manual.")
+          pr=${pr_url##*/}
+          xray/scripts/merge_checked_pr.sh "${API_REPO}" "${pr}"
+          curl -fsS "https://purge.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json" >/dev/null || true
