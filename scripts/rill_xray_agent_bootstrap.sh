@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-EXPECTED_SHA256=14371ba7d078e849f5dd3648624da05c8e9e23c599edaf834af73463d8dfb9ac
+EXPECTED_SHA256=c7f2839f75b7af2ab7436019b1534f07c625e2b356359af15366e79dc841f365
 RAW_BASE=${RILL_XRAY_AGENT_RAW_BASE:-https://raw.githubusercontent.com/hello-yunshu/rill-xray-agent/main/integrations/xray_bash_onekey}
 TMP=$(mktemp -d /tmp/rill-xray-agent.XXXXXX)
 trap 'rm -rf "$TMP"' EXIT
@@ -10,7 +10,7 @@ if [[ ! -f "$BUNDLE" ]]; then
       "$RAW_BASE/assets/rill-xray-agent-xray-bundle.tar.gz" -o "$BUNDLE"
 fi
 actual=$(sha256sum "$BUNDLE" | awk '{print $1}')
-[[ "$actual" == "$EXPECTED_SHA256" ]] || { echo 'bundle SHA-256 mismatch' >&2; exit 65; }
+[[ "$actual" == "$EXPECTED_SHA256" ]] || { echo 'Rill 安装包 SHA-256 校验不匹配' >&2; exit 65; }
 mkdir "$TMP/tree"
 tar -xzf "$BUNDLE" -C "$TMP/tree" --no-same-owner --no-same-permissions
 for path in "$TMP/tree"/*; do

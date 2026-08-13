@@ -43,7 +43,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.1.0"
+shell_version="3.2.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -473,6 +473,12 @@ export RILL_XRAY_AGENT_MANAGER="${rt}/etc-rill/scripts/rill_xray_agent_manager.s
 export RILL_XRAY_AGENT_STATUS="${rt}/status/xray-observation.json"
 export _TEST_MODE=1
 menu_pause(){ return 0; }
+menu_submenu_begin(){ return 0; }
+menu_row(){ return 0; }
+menu_blank(){ return 0; }
+menu_item(){ return 0; }
+menu_footer(){ return 0; }
+menu_read(){ printf -v "$1" '%s' 0; }
 eval "${RILL_XRAY_AGENT_PROBE_BLOCK}" || exit 1
 # 1) real function definitions, not comment strings.
 for f in rxa_candidate_guard rxa_uninstall_prepare rxa_uninstall_commit \
@@ -547,9 +553,95 @@ rxa_integration_self_check() {
 if [[ -f "$rill_xray_agent_manager" ]]; then
     source "$rill_xray_agent_manager"
 else
-    rxa_refresh_summary(){ RILL_XRAY_AGENT_HEADER_STATE='Agent: not installed'; RILL_XRAY_AGENT_HEADER_RUNTIME='Runtime: OFF'; RILL_XRAY_AGENT_HEADER_ROUTE='Route: OFF'; }
-    rxa_menu(){ echo 'Rill Xray Agent is not installed. Run the included bootstrap script.'; menu_pause; }
-    rxa_dispatch(){ case "${1:-}" in status) printf '%s\n' '{"installed":false,"routeAssistEnabled":false,"boundedAutoAllowed":false}' ;; install) bash "${scripts_dir}/rill_xray_agent_bootstrap.sh" ;; *) return 66 ;; esac; }
+    rxa_install_testing_confirm(){
+        local answer
+        printf '\n%s\n' "$(gettext "提示：Rill AI 判断引擎目前仍处于测试阶段。")"
+        printf '%s\n' "$(gettext "可能存在兼容性、判断准确性或稳定性问题，不能保证完全无故障。")"
+        printf '%s\n' "$(gettext "安装后默认仅启用 AI 观察模式，路由辅助保持关闭。")"
+        if [[ ${RILL_XRAY_AGENT_ACCEPT_TEST_RISK:-0} == 1 ]]; then
+            return 0
+        fi
+        printf '%s' "$(gettext "确认了解测试风险并继续安装吗？ [y/N]: ")"
+        IFS= read -r answer || answer=""
+        case ${answer} in
+            y|Y|yes|YES|Yes|是) return 0 ;;
+            *)
+                printf '%s\n' "$(gettext "已取消安装。")"
+                return 1
+                ;;
+        esac
+    }
+    rxa_install_bootstrap(){
+        local bootstrap source_dir tmp rc=0
+        source_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+        for bootstrap in \
+            "${scripts_dir}/rill_xray_agent_bootstrap.sh" \
+            "${source_dir}/scripts/rill_xray_agent_bootstrap.sh"; do
+            if [[ -f ${bootstrap} ]]; then
+                if [[ -f ${source_dir}/assets/rill-xray-agent-xray-bundle.tar.gz ]]; then
+                    RILL_XRAY_AGENT_BUNDLE_FILE="${source_dir}/assets/rill-xray-agent-xray-bundle.tar.gz" \
+                        bash "${bootstrap}"
+                else
+                    bash "${bootstrap}"
+                fi
+                return $?
+            fi
+        done
+        tmp=$(mktemp /tmp/rill-xray-agent-bootstrap.XXXXXX) || return 1
+        if declare -F download_script_file >/dev/null 2>&1; then
+            download_script_file \
+                "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/rill_xray_agent_bootstrap.sh" \
+                "${tmp}" || rc=$?
+        else
+            curl -fsSL --connect-timeout 10 --max-time 120 --retry 2 \
+                "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/rill_xray_agent_bootstrap.sh" \
+                -o "${tmp}" || rc=$?
+        fi
+        if [[ ${rc} -eq 0 ]]; then
+            bash "${tmp}" || rc=$?
+        fi
+        rm -f "${tmp}"
+        return "${rc}"
+    }
+    rxa_install_with_notice(){
+        rxa_install_testing_confirm || return 1
+        rxa_install_bootstrap
+    }
+    rxa_refresh_summary(){
+        RILL_XRAY_AGENT_HEADER_STATE="$(gettext "AI 判断: 未安装")"
+        RILL_XRAY_AGENT_HEADER_MODE="$(gettext "工作模式: 不可用")"
+        RILL_XRAY_AGENT_HEADER_RUNTIME="$(gettext "服务: 未运行")"
+        RILL_XRAY_AGENT_HEADER_ROUTE="$(gettext "路由辅助: 关闭")"
+    }
+    rxa_menu(){
+        local choice
+        while true; do
+            menu_submenu_begin "$(gettext "Rill Xray AI 运维助手")"
+            menu_row "$(gettext "AI 判断引擎尚未安装")"
+            menu_blank
+            menu_item 1 "$(gettext "安装 AI 判断引擎")"
+            menu_blank
+            menu_item 0 "$(gettext "返回")"
+            menu_footer
+            menu_read choice 1
+            case ${choice} in
+                0) return ;;
+                1)
+                    if rxa_dispatch install; then
+                        if [[ -f ${rill_xray_agent_manager} ]]; then
+                            # shellcheck source=/dev/null
+                            source "${rill_xray_agent_manager}"
+                        fi
+                        menu_pause
+                        return
+                    fi
+                    echo "$(gettext "Rill AI 判断引擎安装失败，请检查上方错误信息。")" >&2
+                    menu_pause
+                    ;;
+            esac
+        done
+    }
+    rxa_dispatch(){ case "${1:-}" in status) printf '%s\n' '{"installed":false,"routeAssistEnabled":false,"boundedAutoAllowed":false}' ;; install) rxa_install_with_notice ;; *) return 66 ;; esac; }
 fi
 # Lifecycle coordination used by the host install/update/uninstall paths.
 # Every hook is non-fatal: it never changes the host transaction return code.
@@ -584,7 +676,7 @@ rxa_reconfigure_leave() {
         return 0
     fi
     if [[ "$rc" == 0 ]]; then
-        echo 'Rill Xray Agent: host health check failed; staying observe-only' >&2
+        echo 'Rill 检测到 Xray 运行状态异常，已保持 AI 观察模式' >&2
         RILL_XRAY_AGENT_OUTPUT="$(rxa_observe_out)" \
             bash "$(rxa_agent_dir)/scripts/rill_xray_agent_observe.py" >/dev/null 2>&1 || true
         return 1
@@ -629,7 +721,7 @@ rxa_host_healthy() {
     port=$(printf '%s' "$json" | jq -r '.port // empty' 2>/dev/null)
     if [[ -n "$port" && "$port" != "null" ]]; then
         if ! _rxa_listening "$port"; then
-            echo "Rill Xray Agent: Xray port ${port} not listening" >&2
+            echo "Rill 检测到 Xray 端口 ${port} 未监听" >&2
             return 1
         fi
     fi
@@ -644,7 +736,7 @@ rxa_host_healthy() {
             port=$(printf '%s' "$json" | jq -r --arg k "$port" '.[$k] // empty' 2>/dev/null)
             if [[ -n "$port" && "$port" != "null" ]]; then
                 if ! _rxa_listening "$port"; then
-                    echo "Rill Xray Agent: Nginx port ${port} not listening" >&2
+                    echo "Rill 检测到 Nginx 端口 ${port} 未监听" >&2
                     return 1
                 fi
             fi
@@ -662,20 +754,20 @@ rxa_host_post_verify() {
     local xray_bin="${RILL_XRAY_AGENT_XRAY_BIN:-${xray_bin_dir:-}/xray}"
     local nginx_bin="${RILL_XRAY_AGENT_NGINX_BIN:-${nginx_dir:-}/sbin/nginx}"
     if systemctl -q is-active xray 2>/dev/null; then
-        echo 'Rill Agent: host post-verify failed: xray unit still active' >&2
+        echo 'Rill 卸载后校验失败：Xray 服务仍在运行' >&2
         return 1
     fi
     if [[ -e "${xray_bin}" ]]; then
-        echo 'Rill Agent: host post-verify failed: xray binary still present' >&2
+        echo 'Rill 卸载后校验失败：Xray 程序文件仍然存在' >&2
         return 1
     fi
     if [[ -n "${nginx_dir:-}" && -d "${nginx_dir}" ]]; then
         if systemctl -q is-active nginx 2>/dev/null; then
-            echo 'Rill Agent: host post-verify failed: nginx unit still active' >&2
+            echo 'Rill 卸载后校验失败：Nginx 服务仍在运行' >&2
             return 1
         fi
         if [[ -e "${nginx_bin}" ]]; then
-            echo 'Rill Agent: host post-verify failed: nginx binary still present' >&2
+            echo 'Rill 卸载后校验失败：Nginx 程序文件仍然存在' >&2
             return 1
         fi
     fi
@@ -693,7 +785,7 @@ rxa_uninstall_prepare() {
     RILL_XRAY_AGENT_OUTPUT="$(rxa_observe_out)" \
         bash "${home}/scripts/rill_xray_agent_observe.py" >/dev/null 2>&1 || true
     rxa_write_uninstall_intent_atomic prepared replace \
-        || { echo 'Rill Agent: prepare intent not durable; uninstall aborted' >&2; return 1; }
+        || { echo 'Rill 无法可靠记录卸载准备状态，已中止卸载' >&2; return 1; }
     return 0
 }
 rxa_uninstall_commit() {
@@ -702,11 +794,11 @@ rxa_uninstall_commit() {
     # a marker-write failure stops here with non-zero and diagnostics are
     # NOT purged; purge failure also returns non-zero.
     rxa_write_uninstall_intent_atomic committed append \
-        || { echo 'Rill Agent: committed marker not durable; purge aborted' >&2; return 1; }
+        || { echo 'Rill 无法可靠记录卸载完成状态，已中止清理' >&2; return 1; }
     local pf=0
     bash "$(rxa_agent_dir)/scripts/rill_xray_agent_uninstall.sh" --purge || pf=$?
     if [[ "$pf" != 0 ]]; then
-        echo 'Rill Xray Agent: purge failed (uninstall not completed)' >&2
+        echo 'Rill 清理失败，卸载尚未完成' >&2
         return 1
     fi
     return 0
@@ -762,8 +854,8 @@ rxa_uninstall_abort() {
     # must NEVER turn a host failure into success: the original failure code
     # is always returned.
     rxa_write_uninstall_intent_atomic aborted append 2>/dev/null || echo \
-        'Rill Agent: abort marker persistence failed' >&2
-    echo 'Rill Agent: host uninstall failed; agent diagnostics retained' >&2
+        'Rill 无法可靠记录卸载中止状态' >&2
+    echo 'Xray 主程序卸载失败；已保留 Rill AI 判断记录与诊断数据' >&2
     return 1
 }
 rxa_uninstall_finish() {
@@ -8604,6 +8696,7 @@ show_help() {
     echo "  -p, --port-reset            $(gettext "变更") port"
     echo "  -pt, --port-traffic         $(gettext "查看") port $(gettext "实时流量")"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
+    echo "      --rill-agent-install    $(gettext "安装或修复 Rill AI 判断引擎")"
     echo "  -s, --show                  $(gettext "显示安装信息")"
     echo "  -t, --target-reset          $(gettext "变更") target"
     echo "  -tcp, --tcp                 $(gettext "配置") TCP $(gettext "加速")"
@@ -9738,10 +9831,14 @@ menu_row() {
     printf '%b │%b\n' "${GreenW}" "${Font}"
 }
 
-menu_fields() {
+_menu_fields_render() {
+    local add_vertical_padding="$1"
+    shift
     local field current="" candidate candidate_width max_width
     menu_ensure_width
     max_width=$((MENU_BOX_WIDTH - 4))
+
+    [[ ${add_vertical_padding} == "1" ]] && menu_blank
 
     for field in "$@"; do
         if [[ -z ${current} ]]; then
@@ -9757,7 +9854,18 @@ menu_fields() {
             current="${field}"
         fi
     done
-    [[ -n ${current} ]] && menu_row "${current}"
+    if [[ -n ${current} ]]; then
+        menu_row "${current}"
+        [[ ${add_vertical_padding} == "1" ]] && menu_blank
+    fi
+}
+
+menu_fields() {
+    _menu_fields_render 0 "$@"
+}
+
+menu_spaced_fields() {
+    _menu_fields_render 1 "$@"
 }
 
 menu_blank() {
@@ -10579,14 +10687,17 @@ menu_main_header() {
     local xray_status_field="Xray: ${xray_status}"
     local nginx_status_field="Nginx: ${nginx_status}"
     local connect_status_field="$(gettext "连通性"): ${xray_local_connect_status}"
-    menu_fields "${mode_field}" "${language_field}"
+    menu_spaced_fields "${mode_field}" "${language_field}"
     menu_divider "$(gettext "版本检测")"
     menu_fields "${shell_version_field}" "${xray_version_field}" "${nginx_version_field}"
     menu_divider "$(gettext "运行状态")"
     menu_fields "${xray_status_field}" "${nginx_status_field}" "${connect_status_field}"
     rxa_refresh_summary
-    menu_divider "Rill Xray Agent"
-    menu_fields "${RILL_XRAY_AGENT_HEADER_STATE}" "${RILL_XRAY_AGENT_HEADER_RUNTIME}" "${RILL_XRAY_AGENT_HEADER_ROUTE}"
+    menu_divider "$(gettext "Rill Xray AI 运维助手")"
+    menu_fields \
+        "${RILL_XRAY_AGENT_HEADER_STATE}" \
+        "${RILL_XRAY_AGENT_HEADER_RUNTIME}" \
+        "${RILL_XRAY_AGENT_HEADER_ROUTE}"
     menu_footer
     log "${mode_field}  ·  ${language_field}"
     log "${shell_version_field}  ·  ${xray_version_field}  ·  ${nginx_version_field}"
@@ -10608,7 +10719,7 @@ menu() {
         menu_item 6 "$(gettext "其他选项")"
         menu_item 7 "$(gettext "备份恢复")"
         menu_item 8 "$(gettext "修改语言") / Language"
-        menu_item 9 "Rill Xray Agent"
+        menu_item 9 "$(gettext "Rill Xray AI 运维助手")"
         menu_blank
         menu_item 0 "$(gettext "退出")"
         menu_footer
@@ -10633,7 +10744,7 @@ is_offline_safe_command() {
         -h|--help|--purge|--uninstall|-s|--show|\
         --service-start|--service-stop|--service-restart|\
         --access-log|--error-log|--backup|\
-        --rill-agent|--rill-agent-status|--rill-agent-safe-disable|--rill-agent-verify|--rill-agent-uninstall|\
+        --rill-agent|--rill-agent-install|--rill-agent-status|--rill-agent-safe-disable|--rill-agent-verify|--rill-agent-uninstall|\
         --rill-agent-diagnose|--rill-agent-timeline|\
         --rill-integration-self-check)
             return 0
@@ -10661,6 +10772,7 @@ dispatch_offline_safe_command() {
         --error-log) show_error_log ;;
         --backup) backup_directories ;;
         --rill-agent) rxa_menu ;;
+        --rill-agent-install) rxa_dispatch install ;;
         --rill-agent-status) rxa_dispatch status ;;
         --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;
         --rill-agent-verify) rxa_dispatch verify ;;
