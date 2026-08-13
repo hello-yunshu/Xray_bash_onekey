@@ -5,10 +5,12 @@ RILL_XRAY_AGENT_HOME=${RILL_XRAY_AGENT_HOME:-/etc/rill-xray-agent}
 RILL_XRAY_AGENT_CONFIG=${RILL_XRAY_AGENT_CONFIG:-${RILL_XRAY_AGENT_HOME}/config.json}
 RILL_XRAY_AGENT_STATUS=${RILL_XRAY_AGENT_STATUS:-/var/lib/rill-xray-agent-xray/status/xray-observation.json}
 RILL_XRAY_AGENT_CLI=${RILL_XRAY_AGENT_CLI:-/opt/rill-xray-agent/bin/rill-xray-agent}
-RILL_XRAY_AGENT_HEADER_STATE='Agent: not installed'
-RILL_XRAY_AGENT_HEADER_RUNTIME='Runtime: OFF'
-RILL_XRAY_AGENT_HEADER_ROUTE='Route: OFF'
-export RILL_XRAY_AGENT_HEADER_STATE RILL_XRAY_AGENT_HEADER_RUNTIME RILL_XRAY_AGENT_HEADER_ROUTE
+RILL_XRAY_AGENT_HEADER_STATE='AI 判断: 未安装'
+RILL_XRAY_AGENT_HEADER_MODE='工作模式: 不可用'
+RILL_XRAY_AGENT_HEADER_RUNTIME='服务: 未运行'
+RILL_XRAY_AGENT_HEADER_ROUTE='路由辅助: 关闭'
+export RILL_XRAY_AGENT_HEADER_STATE RILL_XRAY_AGENT_HEADER_MODE
+export RILL_XRAY_AGENT_HEADER_RUNTIME RILL_XRAY_AGENT_HEADER_ROUTE
 
 rxa_systemctl() {
     [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} == 1 ]] && return 0
@@ -375,13 +377,67 @@ print(json.dumps({
 PY
 }
 
+rxa_mode_label() {
+    case "${1:-}" in
+        normal) gettext "智能判断" ;;
+        observe-only) gettext "仅观察" ;;
+        safe-disabled) gettext "安全停用" ;;
+        *) printf '%s' "${1:-}" ;;
+    esac
+}
+
+rxa_ai_judgment_label() {
+    case "${1:-}" in
+        normal) gettext "已开启" ;;
+        observe-only) gettext "仅观察" ;;
+        safe-disabled) gettext "已停用" ;;
+        *) gettext "不可用" ;;
+    esac
+}
+
+rxa_install_testing_confirm() {
+    local answer
+    printf '\n%s\n' "$(gettext "提示：Rill AI 判断引擎目前仍处于测试阶段。")"
+    printf '%s\n' "$(gettext "可能存在兼容性、判断准确性或稳定性问题，不能保证完全无故障。")"
+    printf '%s\n' "$(gettext "安装后默认仅启用 AI 观察模式，路由辅助保持关闭。")"
+    if [[ ${RILL_XRAY_AGENT_ACCEPT_TEST_RISK:-0} == 1 ]]; then
+        return 0
+    fi
+    printf '%s' "$(gettext "确认了解测试风险并继续安装吗？ [y/N]: ")"
+    IFS= read -r answer || answer=""
+    case ${answer} in
+        y|Y|yes|YES|Yes|是) return 0 ;;
+        *)
+            printf '%s\n' "$(gettext "已取消安装。")"
+            return 1
+            ;;
+    esac
+}
+
+rxa_install_with_notice() {
+    rxa_install_testing_confirm || return 1
+    bash "${scripts_dir}/rill_xray_agent_install.sh"
+}
+
 rxa_refresh_summary() {
     local status mode
-    status=$(rxa_status_json 2>/dev/null) || return 0
+    if ! status=$(rxa_status_json 2>/dev/null); then
+        RILL_XRAY_AGENT_HEADER_STATE="$(gettext "AI 判断: 未安装")"
+        RILL_XRAY_AGENT_HEADER_MODE="$(gettext "工作模式: 不可用")"
+        RILL_XRAY_AGENT_HEADER_RUNTIME="$(gettext "服务: 未运行")"
+        RILL_XRAY_AGENT_HEADER_ROUTE="$(gettext "路由辅助: 关闭")"
+        return 0
+    fi
     mode=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["mode"])' <<<"$status")
-    RILL_XRAY_AGENT_HEADER_STATE="Agent: $mode"
-    RILL_XRAY_AGENT_HEADER_RUNTIME="Runtime: $(rxa_systemctl is-active --quiet rill-xray-agent-runtime.service && echo ON || echo OFF)"
-    RILL_XRAY_AGENT_HEADER_ROUTE="Route: $(rxa_get routeStage) · Assist OFF"
+    RILL_XRAY_AGENT_HEADER_MODE="$(gettext "工作模式"): $(rxa_mode_label "$mode")"
+    if rxa_systemctl is-active --quiet rill-xray-agent-runtime.service; then
+        RILL_XRAY_AGENT_HEADER_STATE="$(gettext "AI 判断"): $(rxa_ai_judgment_label "$mode")"
+        RILL_XRAY_AGENT_HEADER_RUNTIME="$(gettext "服务: 运行中")"
+    else
+        RILL_XRAY_AGENT_HEADER_STATE="$(gettext "AI 判断: 不可用")"
+        RILL_XRAY_AGENT_HEADER_RUNTIME="$(gettext "服务: 未运行")"
+    fi
+    RILL_XRAY_AGENT_HEADER_ROUTE="$(gettext "路由辅助: 关闭")"
 }
 
 rxa_socket_connectable() {
@@ -452,32 +508,122 @@ rxa_diagnose() {
     rxa_runtime diagnose
 }
 
+rxa_status_display() {
+    rxa_refresh_summary
+    printf '%s\n' "${RILL_XRAY_AGENT_HEADER_STATE}"
+    printf '%s\n' "${RILL_XRAY_AGENT_HEADER_MODE}"
+    printf '%s\n' "${RILL_XRAY_AGENT_HEADER_RUNTIME}"
+    printf '%s\n' "${RILL_XRAY_AGENT_HEADER_ROUTE}"
+}
+
+rxa_apply_mode_display() {
+    local mode="$1" label
+    label=$(rxa_mode_label "$mode")
+    if rxa_apply_mode "$mode"; then
+        printf '%s: %s\n' "$(gettext "工作模式已切换")" "$label"
+    else
+        printf '%s: %s\n' "$(gettext "工作模式切换失败")" "$label" >&2
+        return 1
+    fi
+}
+
+rxa_verify_display() {
+    if rxa_verify; then
+        printf '%s\n' "$(gettext "AI 判断引擎校验通过")"
+    else
+        printf '%s\n' "$(gettext "AI 判断引擎校验失败，请检查后台服务和观测数据")" >&2
+        return 1
+    fi
+}
+
+rxa_diagnosis_summary() {
+    case "${1:-}" in
+        HEALTHY) gettext "Xray 相关服务运行正常，未发现近期故障" ;;
+        CONFIG_CHANGED_HEALTHY) gettext "近期配置发生过变化，但当前服务与配置校验均正常" ;;
+        RECOVERY_REQUIRED) gettext "Rill 内部恢复尚未完成，暂时无法进行可靠判断" ;;
+        MISSING_OBSERVATION) gettext "尚无可用的观测数据，暂时无法判断" ;;
+        INVALID_OBSERVATION_TIME) gettext "观测时间无效，当前证据不可用" ;;
+        STALE_OBSERVATION) gettext "观测数据已过期，需要先刷新观测" ;;
+        UNSAFE_PATH) gettext "检测到不安全的配置路径，需要人工检查" ;;
+        BOTH_SERVICES_DOWN) gettext "Xray 与 Nginx 均未运行" ;;
+        XRAY_VALIDATION_FAILED*) gettext "Xray 配置校验失败" ;;
+        NGINX_VALIDATION_FAILED*) gettext "Nginx 配置校验失败" ;;
+        XRAY_SERVICE_DOWN*) gettext "Xray 服务未运行" ;;
+        NGINX_SERVICE_DOWN*) gettext "Nginx 服务未运行" ;;
+        INSUFFICIENT_EVIDENCE) gettext "现有证据不足，暂时无法判断" ;;
+        *) gettext "已生成判断结果，请结合诊断代码继续检查" ;;
+    esac
+}
+
+rxa_confidence_label() {
+    case "${1:-}" in
+        high) gettext "高" ;;
+        medium) gettext "中" ;;
+        low) gettext "低" ;;
+        insufficient-evidence) gettext "证据不足" ;;
+        *) gettext "未知" ;;
+    esac
+}
+
+rxa_diagnose_display() {
+    local payload fields code confidence can_apply
+    if ! payload=$(rxa_diagnose); then
+        printf '%s\n' "$(gettext "AI 故障诊断失败，后台服务没有返回有效结果")" >&2
+        return 1
+    fi
+    fields=$(printf '%s' "$payload" | python3 -c '
+import json,sys
+try:
+    data=json.load(sys.stdin)
+    result=data.get("result") or data
+    print(result.get("diagnosisCode", "UNKNOWN"))
+    print(result.get("confidenceBand", "unknown"))
+    print("true" if result.get("canApply") is True else "false")
+except Exception:
+    raise SystemExit(1)
+' 2>/dev/null) || {
+        printf '%s\n' "$(gettext "AI 故障诊断失败，返回内容无法解析")" >&2
+        return 1
+    }
+    code=$(sed -n '1p' <<<"$fields")
+    confidence=$(sed -n '2p' <<<"$fields")
+    can_apply=$(sed -n '3p' <<<"$fields")
+    printf '%s: %s\n' "$(gettext "AI 判断")" "$(rxa_diagnosis_summary "$code")"
+    printf '%s: %s\n' "$(gettext "判断置信度")" "$(rxa_confidence_label "$confidence")"
+    printf '%s: %s\n' "$(gettext "诊断代码")" "$code"
+    if [[ "$can_apply" == true ]]; then
+        printf '%s\n' "$(gettext "此结果允许自动处理")"
+    else
+        printf '%s\n' "$(gettext "此结果仅提供判断建议，不会自动修改系统")"
+    fi
+}
+
 rxa_menu() {
     local choice
     scripts_dir=${scripts_dir:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)}
     while true; do
-        menu_submenu_begin "Rill Xray Agent"
-        menu_item 1 "Status"
-        menu_item 2 "Install or repair"
-        menu_item 3 "Mode: normal"
-        menu_item 4 "Mode: observe-only"
-        menu_item 5 "Safe disable"
-        menu_item 6 "Verify"
-        menu_item 7 "Diagnose"
-        menu_item 8 "Uninstall"
+        menu_submenu_begin "$(gettext "Rill Xray AI 运维助手")"
+        menu_item 1 "$(gettext "查看 AI 判断状态")"
+        menu_item 2 "$(gettext "安装或修复 AI 判断引擎")"
+        menu_item 3 "$(gettext "开启 AI 智能判断")"
+        menu_item 4 "$(gettext "切换到 AI 观察模式")"
+        menu_item 5 "$(gettext "安全停用 AI 判断")"
+        menu_item 6 "$(gettext "校验 AI 判断引擎")"
+        menu_item 7 "$(gettext "运行 AI 故障诊断")"
+        menu_item 8 "$(gettext "卸载 Rill AI 引擎")"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
         menu_read choice 8
         case $choice in
             0) return ;;
-            1) rxa_status_json; menu_pause ;;
-            2) bash "${scripts_dir}/rill_xray_agent_install.sh"; menu_pause ;;
-            3) rxa_apply_mode normal; menu_pause ;;
-            4) rxa_apply_mode observe-only; menu_pause ;;
-            5) rxa_apply_mode safe-disabled; menu_pause ;;
-            6) rxa_verify; menu_pause ;;
-            7) rxa_diagnose; menu_pause ;;
+            1) rxa_status_display; menu_pause ;;
+            2) rxa_install_with_notice; menu_pause ;;
+            3) rxa_apply_mode_display normal; menu_pause ;;
+            4) rxa_apply_mode_display observe-only; menu_pause ;;
+            5) rxa_apply_mode_display safe-disabled; menu_pause ;;
+            6) rxa_verify_display; menu_pause ;;
+            7) rxa_diagnose_display; menu_pause ;;
             8) bash "${scripts_dir}/rill_xray_agent_uninstall.sh"; return ;;
         esac
     done
@@ -486,7 +632,7 @@ rxa_menu() {
 rxa_dispatch() {
     case "${1:-status}" in
         status) rxa_status_json ;;
-        install) bash "${scripts_dir}/rill_xray_agent_install.sh" ;;
+        install) rxa_install_with_notice ;;
         mode) rxa_apply_mode "${2:-}" ;;
         safe-disable) rxa_apply_mode safe-disabled ;;
         verify) rxa_verify ;;

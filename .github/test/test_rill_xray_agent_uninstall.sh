@@ -114,7 +114,7 @@ else
     ok "verify-host failure exits non-zero"
 fi
 [[ "$(intent)" == '"phase":"aborted"' ]] && ok "intent ends aborted" || bad "intent ends $(intent)"
-grep -q 'diagnostics retained' "${TMP_ROOT}/stderr.txt" && ok "abort message on stderr" || bad "abort message missing"
+grep -q '已保留 Rill AI 判断记录与诊断数据' "${TMP_ROOT}/stderr.txt" && ok "abort message on stderr" || bad "abort message missing"
 
 # --- 3: removal failure aborts ---
 rm -f "${STATE_DIR}/uninstall.intent.json"
