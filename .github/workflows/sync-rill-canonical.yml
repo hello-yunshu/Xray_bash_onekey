@@ -1,0 +1,160 @@
+name: Sync Rill Canonical
+
+on:
+  workflow_run:
+    workflows:
+      - Test Install
+    types:
+      - completed
+
+concurrency:
+  group: sync-rill-canonical-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.head_branch != 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+      PYTHONDONTWRITEBYTECODE: "1"
+      SOURCE_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Checkout trusted automation from main
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: main
+          path: automation
+          persist-credentials: false
+
+      - name: Checkout Xray source branch
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          path: xray
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+
+      - name: Checkout Rill canonical main
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/rill-xray-agent
+          ref: main
+          path: rill
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Detect canonical script drift
+        id: drift
+        run: |
+          set -euo pipefail
+          changed=false
+          for name in \
+            rill_xray_agent_bootstrap.sh \
+            rill_xray_agent_install.sh \
+            rill_xray_agent_manager.sh \
+            rill_xray_agent_uninstall.sh \
+            rill_xray_agent_verify.sh; do
+            if ! cmp -s "xray/scripts/${name}" \
+              "rill/integrations/xray_bash_onekey/repository_files/scripts/${name}"; then
+              changed=true
+            fi
+          done
+          echo "changed=${changed}" >>"${GITHUB_OUTPUT}"
+
+      - name: Require cross-repository token
+        if: steps.drift.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          [[ -n "${GH_TOKEN:-}" ]] || {
+            echo "Configure RELEASE_AUTOMATION_TOKEN with Contents, Pull requests, and workflow-file write access to Xray_bash_onekey, rill-xray-agent, and Xray_bash_onekey_api." >&2
+            exit 1
+          }
+          [[ -n "${SOURCE_BRANCH}" && "${SOURCE_BRANCH}" != "main" ]]
+          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+
+      - name: Install canonical gate dependencies
+        if: steps.drift.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          python3 -m pip install jsonschema
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Build and verify canonical payload
+        if: steps.drift.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          python3 automation/scripts/release_automation.py sync-rill --xray xray --rill rill
+          (cd rill && python3 scripts/run_all_checks.py)
+          shellcheck --exclude=SC1091 rill/integrations/xray_bash_onekey/repository_files/scripts/*.sh
+          (cd rill && python3 scripts/verify_public_history_hygiene.py)
+          git -C rill diff --check
+
+      - name: Publish and merge canonical PR when needed
+        if: steps.drift.outputs.changed == 'true'
+        id: canonical
+        env:
+          RILL_REPO: hello-yunshu/rill-xray-agent
+        run: |
+          set -euo pipefail
+          git -C rill config user.name github-actions[bot]
+          git -C rill config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          canonical_sha=$(git -C rill rev-parse HEAD)
+          if ! git -C rill diff --quiet; then
+            branch="automation/xray-rill-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+            git -C rill switch -c "${branch}"
+            git -C rill add --all
+            git -C rill commit -m "chore(xray): sync canonical integration"
+            git -C rill push "https://x-access-token:${GH_TOKEN}@github.com/${RILL_REPO}.git" "HEAD:${branch}"
+            pr_url=$(gh pr create --repo "${RILL_REPO}" --base main --head "${branch}" \
+              --title "chore(xray): sync canonical integration" \
+              --body "Automated deterministic synchronization from ${GITHUB_REPOSITORY}@${SOURCE_SHA}. Includes canonical source gates, manifest verification, package checksums, ShellCheck, and public-history hygiene.")
+            pr=${pr_url##*/}
+            automation/scripts/merge_checked_pr.sh "${RILL_REPO}" "${pr}" 2
+            canonical_sha=$(gh pr view "${pr}" --repo "${RILL_REPO}" \
+              --json mergeCommit --jq .mergeCommit.oid)
+          fi
+          [[ "${canonical_sha}" =~ ^[0-9a-f]{40}$ ]]
+          echo "sha=${canonical_sha}" >>"${GITHUB_OUTPUT}"
+
+      - name: Apply canonical output to Xray branch
+        if: steps.drift.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          python3 automation/scripts/release_automation.py apply-rill \
+            --xray xray --rill rill --commit "${{ steps.canonical.outputs.sha }}"
+          git -C xray diff --check
+
+      - name: Push canonical output back to the source branch
+        if: steps.drift.outputs.changed == 'true'
+        env:
+          XRAY_REPO: hello-yunshu/Xray_bash_onekey
+        run: |
+          set -euo pipefail
+          if git -C xray diff --quiet; then
+            echo "Xray branch already matches canonical payload."
+            exit 0
+          fi
+          git -C xray config user.name github-actions[bot]
+          git -C xray config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git -C xray add \
+            .github/workflows/rill-xray-agent.yml \
+            assets/rill-xray-agent-xray-bundle.tar.gz \
+            scripts/rill_xray_agent_bootstrap.sh \
+            scripts/rill_xray_agent_install.sh \
+            scripts/rill_xray_agent_manager.sh \
+            scripts/rill_xray_agent_uninstall.sh \
+            scripts/rill_xray_agent_verify.sh
+          git -C xray commit -m "chore(rill): apply canonical payload"
+          git -C xray push "https://x-access-token:${GH_TOKEN}@github.com/${XRAY_REPO}.git" \
+            "HEAD:${SOURCE_BRANCH}"
