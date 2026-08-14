@@ -141,6 +141,109 @@ firewall_add_managed_port tcp 443
 if [[ -s "${IPTABLES_V6_RULES}" ]]; then bad "IPv4-only mode must not write ip6tables"; else ok "IPv4-only mode leaves ip6tables untouched"; fi
 if grep -qxF "tcp:443" "${IPTABLES_V4_RULES}"; then ok "IPv4-only mode still manages iptables"; else bad "IPv4-only mode should manage iptables"; fi
 
+# --- network_mode-driven family policy (production; no _MANAGED_FW_IPV6 override) ---
+echo "--- network_mode-driven family policy (production) ---"
+unset _MANAGED_FW_IPV6
+
+# ipv4: only iptables touched
+network_mode="ipv4"
+: > "${IPTABLES_V4_RULES}"; : > "${IPTABLES_V6_RULES}"
+firewall_add_managed_port tcp 443
+if grep -qxF "tcp:443" "${IPTABLES_V4_RULES}"; then ok "ipv4 mode manages iptables"; else bad "ipv4 mode should manage iptables"; fi
+if [[ -s "${IPTABLES_V6_RULES}" ]]; then bad "ipv4 mode must not touch ip6tables"; else ok "ipv4 mode leaves ip6tables untouched"; fi
+
+# ipv6: only ip6tables touched
+network_mode="ipv6"
+: > "${IPTABLES_V4_RULES}"; : > "${IPTABLES_V6_RULES}"
+firewall_add_managed_port tcp 443
+if grep -qxF "tcp:443" "${IPTABLES_V6_RULES}"; then ok "ipv6 mode manages ip6tables"; else bad "ipv6 mode should manage ip6tables"; fi
+if [[ -s "${IPTABLES_V4_RULES}" ]]; then bad "ipv6 mode must not touch iptables"; else ok "ipv6 mode leaves iptables untouched"; fi
+
+# dual: both touched
+network_mode="dual"
+: > "${IPTABLES_V4_RULES}"; : > "${IPTABLES_V6_RULES}"
+firewall_add_managed_port tcp 443
+if grep -qxF "tcp:443" "${IPTABLES_V4_RULES}" && grep -qxF "tcp:443" "${IPTABLES_V6_RULES}"; then
+    ok "dual mode manages both families"
+else
+    bad "dual mode should manage both families"
+fi
+
+# dual + no ip6tables -> fail closed (no silent single-family downgrade)
+network_mode="dual"
+unset -f ip6tables
+if managed_fw_require_families; then bad "dual with missing ip6tables must fail closed"; else ok "dual + no ip6tables fails closed"; fi
+ip6tables() { _nf "${IPTABLES_V6_RULES}" "$@"; }
+
+# ipv6 + no ip6tables -> fail
+network_mode="ipv6"
+unset -f ip6tables
+if managed_fw_require_families; then bad "ipv6 with missing ip6tables must fail"; else ok "ipv6 + no ip6tables fails"; fi
+ip6tables() { _nf "${IPTABLES_V6_RULES}" "$@"; }
+
+# ipv4 + no ip6tables -> fine (only iptables required)
+network_mode="ipv4"
+unset -f ip6tables
+if managed_fw_require_families; then ok "ipv4 + no ip6tables is fine"; else bad "ipv4 should not require ip6tables"; fi
+ip6tables() { _nf "${IPTABLES_V6_RULES}" "$@"; }
+
+# manual: conservative, iptables only
+network_mode="manual"
+: > "${IPTABLES_V4_RULES}"; : > "${IPTABLES_V6_RULES}"
+firewall_add_managed_port tcp 443
+if grep -qxF "tcp:443" "${IPTABLES_V4_RULES}" && [[ ! -s "${IPTABLES_V6_RULES}" ]]; then
+    ok "manual mode manages iptables only (conservative)"
+else
+    bad "manual mode should manage iptables only"
+fi
+
+# rollback is family-consistent per network_mode
+echo "--- family-consistent rollback by network_mode ---"
+network_mode="dual"
+: > "${IPTABLES_V4_RULES}"; : > "${IPTABLES_V6_RULES}"
+reconcile_managed_firewall '{"tcp":[],"udp":[]}' '{"tcp":["8443"],"udp":["8443"]}'
+if grep -qxF "tcp:8443" "${IPTABLES_V4_RULES}" && grep -qxF "tcp:8443" "${IPTABLES_V6_RULES}"; then
+    ok "dual reconcile adds on both families"
+else
+    bad "dual reconcile missing a family"
+fi
+reconcile_managed_firewall '{"tcp":["8443"],"udp":["8443"]}' '{"tcp":[],"udp":[]}'
+if grep -qxF "tcp:8443" "${IPTABLES_V4_RULES}" || grep -qxF "tcp:8443" "${IPTABLES_V6_RULES}"; then
+    bad "dual rollback left stale rule"
+else
+    ok "dual rollback removes from both families"
+fi
+
+network_mode="ipv6"
+: > "${IPTABLES_V4_RULES}"; : > "${IPTABLES_V6_RULES}"
+reconcile_managed_firewall '{"tcp":[],"udp":[]}' '{"tcp":["8443"],"udp":["8443"]}'
+if grep -qxF "tcp:8443" "${IPTABLES_V6_RULES}" && [[ ! -s "${IPTABLES_V4_RULES}" ]]; then
+    ok "ipv6 reconcile only touches v6"
+else
+    bad "ipv6 reconcile touched v4 firewall"
+fi
+reconcile_managed_firewall '{"tcp":["8443"],"udp":["8443"]}' '{"tcp":[],"udp":[]}'
+if grep -qxF "tcp:8443" "${IPTABLES_V6_RULES}"; then
+    bad "ipv6 rollback left stale v6 rule"
+else
+    ok "ipv6 rollback removes v6 rule"
+fi
+
+network_mode="ipv4"
+: > "${IPTABLES_V4_RULES}"; : > "${IPTABLES_V6_RULES}"
+reconcile_managed_firewall '{"tcp":[],"udp":[]}' '{"tcp":["8443"],"udp":["8443"]}'
+if grep -qxF "tcp:8443" "${IPTABLES_V4_RULES}" && [[ ! -s "${IPTABLES_V6_RULES}" ]]; then
+    ok "ipv4 reconcile only touches v4"
+else
+    bad "ipv4 reconcile touched v6 firewall"
+fi
+reconcile_managed_firewall '{"tcp":["8443"],"udp":["8443"]}' '{"tcp":[],"udp":[]}'
+if grep -qxF "tcp:8443" "${IPTABLES_V4_RULES}"; then
+    bad "ipv4 rollback left stale v4 rule"
+else
+    ok "ipv4 rollback removes v4 rule"
+fi
+
 echo
 if [[ ${FAIL} -eq 0 ]]; then
     printf 'ALL IPv6 firewall tests PASSED (%d)\n' "${PASS}"

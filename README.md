@@ -41,7 +41,7 @@
 
 * 一台境外服务器，具备公网 IP
 * 安装 Reality 协议：需准备符合 Xray 要求的目标域名
-* 安装 TLS 版本：需准备域名并添加 A 记录（双栈环境请同时添加 AAAA 记录）
+* 安装 TLS 版本：需准备域名，并根据服务器可用网络正确配置 A 和/或 AAAA 记录；双栈环境建议同时配置正确的 A 与 AAAA。脚本支持自动检测 IPv4/IPv6 网络能力，双栈可用时可同时生成对应客户端入口
 * 阅读 [Xray 官方文档](https://xtls.github.io)，了解 Reality、TLS、WebSocket、gRPC 及 Xray 相关概念
 * **确保已安装 curl**：CentOS 用户执行 `yum install -y curl`；Debian/Ubuntu 用户执行 `apt install -y curl`
 
