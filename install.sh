@@ -43,7 +43,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.0"
+shell_version="3.2.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -10736,10 +10736,21 @@ menu_main_header() {
     menu_fields "${xray_status_field}" "${nginx_status_field}" "${connect_status_field}"
     rxa_refresh_summary
     menu_divider "$(gettext "Rill Xray AI 运维助手")"
-    menu_fields \
-        "${RILL_XRAY_AGENT_HEADER_STATE}" \
-        "${RILL_XRAY_AGENT_HEADER_RUNTIME}" \
-        "${RILL_XRAY_AGENT_HEADER_ROUTE}"
+    menu_row "$(gettext "AI 实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议")"
+    menu_row "$(rxa_health_label)"
+    menu_blank
+    # 仅运行中的状态着绿色；关闭、未运行不加颜色。
+    if [[ "${RILL_XRAY_AGENT_HEADER_RUNTIME}" == *"$(gettext "运行中")"* ]]; then
+        menu_fields \
+            "${Green}${RILL_XRAY_AGENT_HEADER_STATE}${Font}" \
+            "${Green}${RILL_XRAY_AGENT_HEADER_RUNTIME}${Font}" \
+            "${RILL_XRAY_AGENT_HEADER_ROUTE}"
+    else
+        menu_fields \
+            "${RILL_XRAY_AGENT_HEADER_STATE}" \
+            "${RILL_XRAY_AGENT_HEADER_RUNTIME}" \
+            "${RILL_XRAY_AGENT_HEADER_ROUTE}"
+    fi
     menu_footer
     log "${mode_field}  ·  ${language_field}"
     log "${shell_version_field}  ·  ${xray_version_field}  ·  ${nginx_version_field}"
