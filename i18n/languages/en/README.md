@@ -91,30 +91,30 @@ If any step in the reconfiguration process fails (configuration writing, service
 | Set up traffic blocking | `idleleo --traffic-blocker` |
 | View real-time port traffic | `idleleo --port-traffic` |
 
-## Rill Xray AI Operation Assistant
+## Rill Xray AI Operation and maintenance assistant
 
-A built-in local AI operation assistant that monitors Xray/Nginx health in real time, automatically diagnoses faults, and provides handling recommendations — no external API required. Enter `9` in the main menu or run `idleleo --rill-agent` to access it.
+The built-in local AI operation and maintenance assistant monitors the health status of Xray/Nginx in real time, automatically diagnoses faults and gives treatment suggestions, without the need for external API. Main menu input`9`or execute`idleleo --rill-agent`Enter.
 
-**Core capabilities**
+**Core Competencies**
 
-* Monitoring: real-time observation of Xray/Nginx service and configuration status
-* Diagnosis: identify the root cause of a fault with a confidence level (high / medium / low / insufficient evidence)
-* Assessment: automatically determine the fault type and provide handling recommendations; the description clearly states whether automatic handling is allowed or it is only a suggestion
-* Modes: intelligent assessment / observation only / safe disable; the system is not modified until automatic handling is enabled
+* Monitoring: Real-time observation of Xray/Nginx service and configuration status
+* Diagnosis: Locate the root cause of the fault, with confidence recommendations (high/medium/low/insufficient evidence)
+* Judgment: Automatically determine the fault type and give processing suggestions. The instructions clearly indicate that automatic processing is allowed or only suggestions are provided.
+* Mode: Intelligent judgment / observation only / safe deactivation, the system will not be changed until automatic modification is turned on
 
-**Common commands**
+**Commonly used commands**
 
-| Action | Command |
+| operate | Order |
 |------|------|
-| Open the AI operation assistant menu | `idleleo --rill-agent` |
-| Install or repair the AI assessment engine | `idleleo --rill-agent-install` |
-| View AI assessment status | `idleleo --rill-agent-status` |
-| Run AI fault diagnosis | `idleleo --rill-agent-diagnose` |
-| Verify the AI assessment engine | `idleleo --rill-agent-verify` |
-| Safely disable AI assessment | `idleleo --rill-agent-safe-disable` |
-| Uninstall the Rill AI engine | `idleleo --rill-agent-uninstall` |
+| Open the AI operation and maintenance assistant menu | `idleleo --rill-agent` |
+| Install or repair the AI judgment engine | `idleleo --rill-agent-install` |
+| Check the AI judgment status | `idleleo --rill-agent-status` |
+| Run AI troubleshooting | `idleleo --rill-agent-diagnose` |
+| Verification AI judgment engine | `idleleo --rill-agent-verify` |
+| Security deactivation AI judgment | `idleleo --rill-agent-safe-disable` |
+| Uninstall Rill AI engine | `idleleo --rill-agent-uninstall` |
 
-The AI assessment engine is still in the testing stage. It is recommended to use it primarily for diagnostic guidance; it does not modify the system automatically by default.
+AI The judgment engine is still in the testing stage. It is recommended to focus on diagnostic suggestions. The system will not be automatically modified by default.
 
 ## Docker Deployment
 
