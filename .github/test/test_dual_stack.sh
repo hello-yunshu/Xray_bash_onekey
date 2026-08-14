@@ -79,7 +79,7 @@ format_xhttp_path() { printf '%s' "${1:-}"; }
 printf '%s\n' '--- IPv6 / IPv4 literal detection ---'
 if is_ipv6_literal "2001:db8::10"; then ok "bare IPv6 literal is detected"; else bad "bare IPv6 literal not detected"; fi
 if is_ipv6_literal "[2001:db8::10]"; then ok "bracketed IPv6 literal is detected"; else bad "bracketed IPv6 literal not detected"; fi
-if is_ipv6_literal "2001:db8:0:1"; then ok "IPv6 with leading zeros is detected"; else bad "IPv6 with leading zeros not detected"; fi
+if is_ipv6_literal "2001:0db8:0:0::1"; then ok "IPv6 with leading zeros is detected"; else bad "IPv6 with leading zeros not detected"; fi
 if ! is_ipv6_literal "203.0.113.10"; then ok "IPv4 is not an IPv6 literal"; else bad "IPv4 treated as IPv6 literal"; fi
 if ! is_ipv6_literal ""; then ok "empty string is not an IPv6 literal"; else bad "empty string treated as IPv6 literal"; fi
 if is_ipv4_literal "203.0.113.10"; then ok "IPv4 literal is detected"; else bad "IPv4 literal not detected"; fi
