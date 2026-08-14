@@ -68,7 +68,7 @@ When the installed environment is installed again, the script will automatically
 
 | path | illustrate | limit |
 |------|------|------|
-| Preserve configuration redeployment | Keep custom routing/outbounds/DNS and multi-user configurations, modify only user-selected fields (ports, paths, UUID, Reality parameters, etc.) | Transmission structure changes (such as ws → gRPC) are not supported. If you need to change the transmission combination, please use the standard template to rebuild it. |
+| Preserve configuration redeployment | Keep custom routing/outbounds/DNS and multi-user configuration, modify only user-selected fields (ports, paths, UUID, Reality parameters, etc.) | Transmission structure changes (such as ws → gRPC) are not supported. If you need to change the transmission combination, please use the standard template to rebuild it. |
 | Standard template reconstruction | Generate standard template configuration using current reusable parameters, custom routing/outbounds/DNS may be removed | It is not mandatory that the number of users remains unchanged |
 | Mode switch | Switch to a different protocol mode (such as Reality → TLS). By default, only the main user UUID/email is reused. | Other users will not be automatically migrated and will be clearly prompted before switching. |
 
@@ -90,6 +90,31 @@ If any step in the reconfiguration process fails (configuration writing, service
 | Set Fail2ban | `idleleo --set-fail2ban` |
 | Set up traffic blocking | `idleleo --traffic-blocker` |
 | View real-time port traffic | `idleleo --port-traffic` |
+
+## Rill Xray AI Operation Assistant
+
+A built-in local AI operation assistant that monitors Xray/Nginx health in real time, automatically diagnoses faults, and provides handling recommendations — no external API required. Enter `9` in the main menu or run `idleleo --rill-agent` to access it.
+
+**Core capabilities**
+
+* Monitoring: real-time observation of Xray/Nginx service and configuration status
+* Diagnosis: identify the root cause of a fault with a confidence level (high / medium / low / insufficient evidence)
+* Assessment: automatically determine the fault type and provide handling recommendations; the description clearly states whether automatic handling is allowed or it is only a suggestion
+* Modes: intelligent assessment / observation only / safe disable; the system is not modified until automatic handling is enabled
+
+**Common commands**
+
+| Action | Command |
+|------|------|
+| Open the AI operation assistant menu | `idleleo --rill-agent` |
+| Install or repair the AI assessment engine | `idleleo --rill-agent-install` |
+| View AI assessment status | `idleleo --rill-agent-status` |
+| Run AI fault diagnosis | `idleleo --rill-agent-diagnose` |
+| Verify the AI assessment engine | `idleleo --rill-agent-verify` |
+| Safely disable AI assessment | `idleleo --rill-agent-safe-disable` |
+| Uninstall the Rill AI engine | `idleleo --rill-agent-uninstall` |
+
+The AI assessment engine is still in the testing stage. It is recommended to use it primarily for diagnostic guidance; it does not modify the system automatically by default.
 
 ## Docker Deployment
 

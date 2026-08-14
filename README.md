@@ -91,6 +91,31 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_oneke
 | 设置流量阻断 | `idleleo --traffic-blocker` |
 | 查看端口实时流量 | `idleleo --port-traffic` |
 
+## Rill Xray AI 运维助手
+
+内置本地 AI 运维助手，实时监控 Xray/Nginx 健康状态，自动诊断故障并给出处理建议，无需外部 API。主菜单输入 `9` 或执行 `idleleo --rill-agent` 进入。
+
+**核心能力**
+
+* 监控：实时观测 Xray/Nginx 服务与配置状态
+* 诊断：定位故障根因，附置信度建议（高 / 中 / 低 / 证据不足）
+* 判断：自动判断故障类型并给出处理建议，说明中明确标注允许自动处理或仅提供建议
+* 模式：智能判断 / 仅观察 / 安全停用，未开启自动修改前不会更改系统
+
+**常用命令**
+
+| 操作 | 命令 |
+|------|------|
+| 打开 AI 运维助手菜单 | `idleleo --rill-agent` |
+| 安装或修复 AI 判断引擎 | `idleleo --rill-agent-install` |
+| 查看 AI 判断状态 | `idleleo --rill-agent-status` |
+| 运行 AI 故障诊断 | `idleleo --rill-agent-diagnose` |
+| 校验 AI 判断引擎 | `idleleo --rill-agent-verify` |
+| 安全停用 AI 判断 | `idleleo --rill-agent-safe-disable` |
+| 卸载 Rill AI 引擎 | `idleleo --rill-agent-uninstall` |
+
+AI 判断引擎目前仍处于测试阶段，建议以诊断建议为主，默认不会自动修改系统。
+
 ## Docker 部署
 
 支持使用 Docker 部署，镜像预装 Xray 和 Nginx，容器内可直接使用原脚本所有功能。详见 [Docker 部署指南](/docker/DOCKER.md)。
