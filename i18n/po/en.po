@@ -6,9 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
-"issues\n"
-"POT-Creation-Date: 2026-08-14 10:07+0000\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
+"POT-Creation-Date: 2026-08-14 11:11+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -117,8 +116,8 @@ msgstr "service: not running"
 msgid "路由辅助: 关闭"
 msgstr "route assistance: off"
 
-#: install.sh:636 install.sh:10738 install.sh:10764
-#: scripts/rill_xray_agent_manager.sh:605
+#: install.sh:636 install.sh:10738 install.sh:10775
+#: scripts/rill_xray_agent_manager.sh:723
 msgid "Rill Xray AI 运维助手"
 msgstr "Rill Xray AI O&M Assistant"
 
@@ -139,7 +138,9 @@ msgstr "install the AI judgment engine"
 #: scripts/fail2ban_manager.sh:816 scripts/fail2ban_manager.sh:851
 #: scripts/fail2ban_manager.sh:886 scripts/fail2ban_manager.sh:911
 #: scripts/fail2ban_manager.sh:1009 scripts/fail2ban_manager.sh:1049
-#: scripts/rill_xray_agent_manager.sh:615 scripts/traffic_blocker.sh:268
+#: scripts/rill_xray_agent_manager.sh:686
+#: scripts/rill_xray_agent_manager.sh:707
+#: scripts/rill_xray_agent_manager.sh:737 scripts/traffic_blocker.sh:268
 #: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:700
 #: scripts/traffic_blocker.sh:807 scripts/traffic_blocker.sh:823
 msgid "返回"
@@ -255,7 +256,7 @@ msgstr "installation"
 #: install.sh:3574 install.sh:4276 install.sh:4284 install.sh:4825
 #: install.sh:4880 install.sh:4971 install.sh:5245 install.sh:5249
 #: install.sh:6577 install.sh:6581 install.sh:6586 install.sh:9109
-#: install.sh:9141 install.sh:10115 install.sh:10124 install.sh:10832
+#: install.sh:9141 install.sh:10115 install.sh:10124 install.sh:10843
 #: scripts/file_manager.sh:366 scripts/traffic_blocker.sh:514
 #: scripts/traffic_blocker.sh:980
 msgid "失败"
@@ -409,13 +410,14 @@ msgstr "please do not use the same port as others"
 msgid "防火墙规则前向修改失败且反向恢复未完成, 全局回滚时将再次尝试"
 msgstr ""
 "Forward modification of the firewall rule failed, and the rollback has not "
-"yet been completed; a second attempt will be made during the global rollback."
+"yet been completed; a second attempt will be made during the global "
+"rollback."
 
 #: install.sh:2215
 msgid "防火墙状态写入失败且反向恢复未完成, 全局回滚时将再次尝试"
 msgstr ""
-"Firewall state write failed and reverse recovery has not completed; a second "
-"attempt will be made during the global rollback."
+"Firewall state write failed and reverse recovery has not completed; a second"
+" attempt will be made during the global rollback."
 
 #: install.sh:2224 scripts/file_manager.sh:185
 msgid "是否需要设置防火墙"
@@ -571,7 +573,7 @@ msgstr "please enter a single domain name"
 #: install.sh:2575 install.sh:3259 install.sh:3266 install.sh:3348
 #: install.sh:5725 install.sh:5828 install.sh:5950 install.sh:5958
 #: install.sh:5967 install.sh:6005 install.sh:6577 install.sh:6581
-#: install.sh:6586 install.sh:10832
+#: install.sh:6586 install.sh:10843
 msgid "配置修改"
 msgstr "configuration modification"
 
@@ -596,8 +598,8 @@ msgstr "download failed, please manually download and install the new version"
 msgid "版本过旧, 建议更新"
 msgstr "the version is too old; please update"
 
-#: install.sh:2639 scripts/fail2ban_manager.sh:1169 scripts/file_manager.sh:335
-#: scripts/traffic_blocker.sh:1216
+#: install.sh:2639 scripts/fail2ban_manager.sh:1169
+#: scripts/file_manager.sh:335 scripts/traffic_blocker.sh:1216
 msgid "是否下载并安装新版本"
 msgstr "do you want to download and install the new version"
 
@@ -745,8 +747,8 @@ msgstr "rollback operation not executed"
 #: install.sh:3463
 msgid "更新失败且未回滚, 当前服务可能不可用, 请手动检查"
 msgstr ""
-"Update failed and no rollback was performed; the service may be unavailable. "
-"Please check manually."
+"Update failed and no rollback was performed; the service may be unavailable."
+" Please check manually."
 
 #: install.sh:3465
 msgid "高优先级错误: Xray 服务已停止"
@@ -816,7 +818,8 @@ msgstr "recommend"
 
 #: install.sh:3666
 msgid "使用指向本机 IP 的自建 HTTPS 站点作为回落"
-msgstr "Use a self-hosted HTTPS site pointing to this machine's IP as fallback"
+msgstr ""
+"Use a self-hosted HTTPS site pointing to this machine's IP as fallback"
 
 #: install.sh:3666 install.sh:3667 install.sh:10245 install.sh:10387
 #: install.sh:10449
@@ -828,9 +831,7 @@ msgid "直接拒绝异常 TLS 连接"
 msgstr "Directly reject abnormal TLS connections"
 
 #: install.sh:3668
-msgid ""
-"第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了"
-"解含义, 请使用默认隔离策略。"
+msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
 msgstr ""
 "Option 2 requires you to have your own domain, and its A/AAAA record must "
 "point to this machine's public IP. If unsure, use the default isolation "
@@ -859,8 +860,8 @@ msgstr "decoy site setup"
 #: install.sh:3761
 msgid "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP"
 msgstr ""
-"Please enter your own domain; its A/AAAA record must point to this machine's "
-"public IP"
+"Please enter your own domain; its A/AAAA record must point to this machine's"
+" public IP"
 
 #: install.sh:3763 install.sh:3765
 msgid "请输入 decoy 域名"
@@ -1067,7 +1068,7 @@ msgstr ""
 msgid "Nginx 分层权限验证失败"
 msgstr "Nginx hierarchical permission verification failed"
 
-#: install.sh:4386 scripts/rill_xray_agent_manager.sh:550
+#: install.sh:4386 scripts/rill_xray_agent_manager.sh:589
 msgid "Nginx 配置校验失败"
 msgstr "Nginx configuration validation failed"
 
@@ -1236,8 +1237,8 @@ msgstr "already updated to the latest version"
 #: install.sh:4928
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"set up a background scheduled automatic update program (including: script/"
-"xray/nginx)"
+"set up a background scheduled automatic update program (including: "
+"script/xray/nginx)"
 
 #: install.sh:4929
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -1566,8 +1567,8 @@ msgstr "Continue switching mode"
 #: install.sh:5539
 msgid "已删除旧配置文件, 将使用目标模式标准模板生成新配置"
 msgstr ""
-"Old config file deleted, will generate new config using target mode standard "
-"template"
+"Old config file deleted, will generate new config using target mode standard"
+" template"
 
 #: install.sh:5620
 msgid "检测到配置文件不完整"
@@ -1637,8 +1638,8 @@ msgstr "No more modifications, start redeployment"
 #: install.sh:5683
 msgid "UUID 和多用户信息请使用现有用户管理或 UUID 变更功能"
 msgstr ""
-"For UUID and multi-user information, please use the existing user management "
-"or the UUID modification feature."
+"For UUID and multi-user information, please use the existing user management"
+" or the UUID modification feature."
 
 #: install.sh:5684
 msgid "传输组合变更请使用标准模板重建"
@@ -1862,8 +1863,8 @@ msgstr "Currently, xHTTP supports only the stream-one and stream-up modes."
 #: install.sh:7000
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
 msgstr ""
-"xHTTP requires the mihomo (Meta) kernel; the original Clash does not support "
-"it."
+"xHTTP requires the mihomo (Meta) kernel; the original Clash does not support"
+" it."
 
 #: install.sh:7003 install.sh:10573
 msgid "配置信息"
@@ -1908,13 +1909,14 @@ msgstr ""
 
 #: install.sh:7091
 msgid "如需使用自定义证书, 请按如下步骤:"
-msgstr "if you need to use a custom certificate, please follow the steps below"
+msgstr ""
+"if you need to use a custom certificate, please follow the steps below"
 
 #: install.sh:7092
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr ""
-"1. rename the certificate files: private key (xray.key), certificate (xray."
-"crt)"
+"1. rename the certificate files: private key (xray.key), certificate "
+"(xray.crt)"
 
 #: install.sh:7093
 msgid "2. 将重命名后的证书文件放入"
@@ -1947,7 +1949,8 @@ msgstr "certificate application"
 #: install.sh:7127
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr ""
-"the certificate issuance residual file already exists, do you want to keep it"
+"the certificate issuance residual file already exists, do you want to keep "
+"it"
 
 #: install.sh:7169 install.sh:10492
 msgid "添加"
@@ -2003,7 +2006,8 @@ msgstr "this mode does not support viewing users"
 
 #: install.sh:7493
 msgid "即将显示用户, 一次仅能显示一个"
-msgstr "users will be displayed soon, only one user can be displayed at a time"
+msgstr ""
+"users will be displayed soon, only one user can be displayed at a time"
 
 #: install.sh:7502 install.sh:7512
 msgid "请选择显示用户使用的协议"
@@ -2233,8 +2237,8 @@ msgstr ""
 "the script version has changed significantly. if the service cannot run "
 "properly, please uninstall and reinstall it"
 
-#: install.sh:8498 scripts/fail2ban_manager.sh:1188 scripts/file_manager.sh:354
-#: scripts/traffic_blocker.sh:1235
+#: install.sh:8498 scripts/fail2ban_manager.sh:1188
+#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1235
 msgid "当前已经是最新版本"
 msgstr "it is already the latest version"
 
@@ -2249,14 +2253,14 @@ msgstr "this option is temporarily unavailable"
 #: install.sh:8638 install.sh:9989
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
-"this mode is recommended for load balancing; it is generally not recommended "
-"for use. do you want to install"
+"this mode is recommended for load balancing; it is generally not recommended"
+" for use. do you want to install"
 
 #: install.sh:8651 install.sh:10012
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
-"this mode is only intended for traffic forwarding and is not recommended for "
-"other use cases. do you want to install it"
+"this mode is only intended for traffic forwarding and is not recommended for"
+" other use cases. do you want to install it"
 
 #: install.sh:8772 install.sh:8773 install.sh:8774 install.sh:8789
 #: install.sh:8794 install.sh:8798 install.sh:10035 install.sh:10040
@@ -2316,7 +2320,7 @@ msgstr "configure Xray traffic blocking"
 msgid "显示帮助"
 msgstr "show help"
 
-#: install.sh:8787 install.sh:10763
+#: install.sh:8787 install.sh:10774
 msgid "修改语言"
 msgstr "change language"
 
@@ -2364,8 +2368,8 @@ msgstr "error message"
 #: install.sh:8825
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr ""
-"the script version has changed significantly, and there may be compatibility "
-"issues. do you want to continue using it"
+"the script version has changed significantly, and there may be compatibility"
+" issues. do you want to continue using it"
 
 #: install.sh:8852
 msgid "检测失败"
@@ -2383,7 +2387,8 @@ msgstr "latest version"
 msgid "版本未知"
 msgstr "version unknown"
 
-#: install.sh:8893 install.sh:8900
+#: install.sh:8893 install.sh:8900 install.sh:10743
+#: scripts/rill_xray_agent_manager.sh:517
 msgid "运行中"
 msgstr "running"
 
@@ -2411,8 +2416,8 @@ msgstr "script is under maintenance. please try again later"
 #: install.sh:9006
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
-"the required online version of the dependency cannot be detected. please try "
-"again later"
+"the required online version of the dependency cannot be detected. please try"
+" again later"
 
 #: install.sh:9023
 msgid "请输入数字"
@@ -2597,11 +2602,11 @@ msgstr "Xray configuration test failed"
 msgid "Nginx 配置测试失败"
 msgstr "Nginx configuration test failed"
 
-#: install.sh:9709 scripts/rill_xray_agent_manager.sh:551
+#: install.sh:9709 scripts/rill_xray_agent_manager.sh:590
 msgid "Xray 服务未运行"
 msgstr "Xray service is not running"
 
-#: install.sh:9714 scripts/rill_xray_agent_manager.sh:552
+#: install.sh:9714 scripts/rill_xray_agent_manager.sh:591
 msgid "Nginx 服务未运行"
 msgstr "Nginx service is not running"
 
@@ -2708,15 +2713,15 @@ msgstr ""
 "ONLY mode is intended for relays, load-balancing backends, or environments "
 "with an existing upstream proxy"
 
-#: install.sh:10446 install.sh:10756
+#: install.sh:10446 install.sh:10767
 msgid "安装向导"
 msgstr "installation wizard"
 
 #: install.sh:10460
 msgid "此模式主要用于流量中转或特殊部署，不建议普通用户使用"
 msgstr ""
-"This mode is mainly for traffic relay or special deployment, not recommended "
-"for general users"
+"This mode is mainly for traffic relay or special deployment, not recommended"
+" for general users"
 
 #: install.sh:10490 install.sh:10553
 msgid "用户管理"
@@ -2726,11 +2731,11 @@ msgstr "user management"
 msgid "用户"
 msgstr "user"
 
-#: install.sh:10510 install.sh:10552 install.sh:10554 install.sh:10757
+#: install.sh:10510 install.sh:10552 install.sh:10554 install.sh:10768
 msgid "配置变更"
 msgstr "configuration change"
 
-#: install.sh:10572 install.sh:10758
+#: install.sh:10572 install.sh:10769
 msgid "查看信息"
 msgstr "view information"
 
@@ -2762,7 +2767,7 @@ msgstr "certificate validity period"
 msgid "证书自动更新"
 msgstr "certificate auto update"
 
-#: install.sh:10654 install.sh:10760
+#: install.sh:10654 install.sh:10771
 msgid "更新向导"
 msgstr "update wizard"
 
@@ -2774,7 +2779,7 @@ msgstr "script"
 msgid "自动更新"
 msgstr "automatic update"
 
-#: install.sh:10676 install.sh:10761
+#: install.sh:10676 install.sh:10772
 msgid "其他选项"
 msgstr "other options"
 
@@ -2798,7 +2803,7 @@ msgstr "log file"
 msgid "服务器网速"
 msgstr "server network speed"
 
-#: install.sh:10702 install.sh:10762
+#: install.sh:10702 install.sh:10773
 msgid "备份恢复"
 msgstr "backup and restore"
 
@@ -2835,11 +2840,17 @@ msgstr "connectivity"
 msgid "运行状态"
 msgstr "running status"
 
-#: install.sh:10748
+#: install.sh:10739
+msgid "AI 实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议"
+msgstr ""
+"AI Real-time health monitoring, automatic fault diagnosis, and "
+"recommendations for resolution."
+
+#: install.sh:10759
 msgid "Xray 管理菜单"
 msgstr "Xray management menu"
 
-#: install.sh:10766 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
+#: install.sh:10777 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
 #: scripts/traffic_blocker.sh:587
 msgid "退出"
 msgstr "exit"
@@ -3002,11 +3013,13 @@ msgstr "failed to remove from the trusted list"
 #: scripts/fail2ban_manager.sh:668
 msgid "配置验证失败, 保留原配置"
 msgstr ""
-"configuration validation failed; the original configuration will be retained."
+"configuration validation failed; the original configuration will be "
+"retained."
 
 #: scripts/fail2ban_manager.sh:689
 msgid "原子替换失败, 保留原配置"
-msgstr "atom replacement failed; the original configuration has been retained."
+msgstr ""
+"atom replacement failed; the original configuration has been retained."
 
 #: scripts/fail2ban_manager.sh:695
 msgid "Fail2ban reload 失败, 恢复原配置"
@@ -3407,7 +3420,7 @@ msgid "工作模式"
 msgstr "work mode"
 
 #: scripts/rill_xray_agent_manager.sh:434
-#: scripts/rill_xray_agent_manager.sh:591
+#: scripts/rill_xray_agent_manager.sh:659
 msgid "AI 判断"
 msgstr "AI judgment"
 
@@ -3419,160 +3432,272 @@ msgstr "service: running"
 msgid "AI 判断: 不可用"
 msgstr "AI judgment: not available"
 
-#: scripts/rill_xray_agent_manager.sh:523
+#: scripts/rill_xray_agent_manager.sh:534
+msgid ""
+"开启 AI 智能判断后，系统将持续观测 Xray/Nginx 状态，自动诊断故障并给出处理建议。说明：自动修改功能暂不开放，当前不会自动更改系统。"
+msgstr ""
+"After enabling AI intelligent diagnostics, the system will continuously "
+"monitor the status of Xray/Nginx, automatically diagnose faults, and provide"
+" recommended remediation steps. Note: The automatic modification feature is "
+"currently unavailable and will not automatically make changes to the system."
+
+#: scripts/rill_xray_agent_manager.sh:537
+msgid "切换到 AI 观察模式后，AI 仅观测和判断，不会自动修改系统，结果仅供参考。"
+msgstr ""
+"After switching to AI observation mode, AI will only monitor and make "
+"judgments without automatically modifying the system; the results are for "
+"reference only."
+
+#: scripts/rill_xray_agent_manager.sh:540
+msgid "安全停用后，AI 判断功能暂停，引擎保留，可随时重新开启。"
+msgstr ""
+"After safe deactivation, the AI judgment function is suspended, while the "
+"engine remains active and can be reactivated at any time."
+
+#: scripts/rill_xray_agent_manager.sh:548
+msgid "确认切换吗？ [y/N]: "
+msgstr "confirm the switch? [y/N]:"
+
+#: scripts/rill_xray_agent_manager.sh:553
+msgid "已取消。"
+msgstr "canceled."
+
+#: scripts/rill_xray_agent_manager.sh:562
 msgid "工作模式已切换"
 msgstr "work mode has been switched."
 
-#: scripts/rill_xray_agent_manager.sh:525
+#: scripts/rill_xray_agent_manager.sh:564
 msgid "工作模式切换失败"
 msgstr "failed to switch work mode."
 
-#: scripts/rill_xray_agent_manager.sh:532
+#: scripts/rill_xray_agent_manager.sh:571
 msgid "AI 判断引擎校验通过"
 msgstr "AI the decision engine validation has passed."
 
-#: scripts/rill_xray_agent_manager.sh:534
+#: scripts/rill_xray_agent_manager.sh:573
 msgid "AI 判断引擎校验失败，请检查后台服务和观测数据"
 msgstr ""
 "AI The decision engine validation failed. Please check the backend service "
 "and the observed data."
 
-#: scripts/rill_xray_agent_manager.sh:541
+#: scripts/rill_xray_agent_manager.sh:580
 msgid "Xray 相关服务运行正常，未发现近期故障"
 msgstr ""
-"Xray The relevant services are operating normally, and no recent faults have "
-"been detected."
+"Xray The relevant services are operating normally, and no recent faults have"
+" been detected."
 
-#: scripts/rill_xray_agent_manager.sh:542
+#: scripts/rill_xray_agent_manager.sh:581
 msgid "近期配置发生过变化，但当前服务与配置校验均正常"
 msgstr ""
 "The configuration has been recently changed, but both the current service "
 "and the configuration validation are functioning properly."
 
-#: scripts/rill_xray_agent_manager.sh:543
+#: scripts/rill_xray_agent_manager.sh:582
 msgid "Rill 内部恢复尚未完成，暂时无法进行可靠判断"
 msgstr ""
 "Internal recovery has not yet been completed, and a reliable assessment "
 "cannot be made at this time."
 
-#: scripts/rill_xray_agent_manager.sh:544
+#: scripts/rill_xray_agent_manager.sh:583
 msgid "尚无可用的观测数据，暂时无法判断"
 msgstr ""
 "No observational data are currently available, and it is therefore "
 "impossible to make a determination at this time."
 
-#: scripts/rill_xray_agent_manager.sh:545
+#: scripts/rill_xray_agent_manager.sh:584
 msgid "观测时间无效，当前证据不可用"
 msgstr "observation time is invalid; current evidence is unavailable."
 
-#: scripts/rill_xray_agent_manager.sh:546
+#: scripts/rill_xray_agent_manager.sh:585
 msgid "观测数据已过期，需要先刷新观测"
 msgstr "The observation data has expired and must be refreshed first."
 
-#: scripts/rill_xray_agent_manager.sh:547
+#: scripts/rill_xray_agent_manager.sh:586
 msgid "检测到不安全的配置路径，需要人工检查"
 msgstr ""
 "An insecure configuration path has been detected and requires manual review."
 
-#: scripts/rill_xray_agent_manager.sh:548
+#: scripts/rill_xray_agent_manager.sh:587
 msgid "Xray 与 Nginx 均未运行"
 msgstr "Xray and Nginx are both not running."
 
-#: scripts/rill_xray_agent_manager.sh:549
+#: scripts/rill_xray_agent_manager.sh:588
 msgid "Xray 配置校验失败"
 msgstr "Xray configuration validation failed"
 
-#: scripts/rill_xray_agent_manager.sh:553
+#: scripts/rill_xray_agent_manager.sh:592
 msgid "现有证据不足，暂时无法判断"
 msgstr ""
 "the available evidence is insufficient, and a determination cannot be made "
 "at this time."
 
-#: scripts/rill_xray_agent_manager.sh:554
+#: scripts/rill_xray_agent_manager.sh:593
 msgid "已生成判断结果，请结合诊断代码继续检查"
 msgstr ""
 "The judgment result has been generated; please continue the inspection in "
 "conjunction with the diagnostic codes."
 
-#: scripts/rill_xray_agent_manager.sh:560
+#: scripts/rill_xray_agent_manager.sh:603
+#: scripts/rill_xray_agent_manager.sh:612
+msgid "检测：不可用"
+msgstr "detection: unavailable"
+
+#: scripts/rill_xray_agent_manager.sh:618
+#: scripts/rill_xray_agent_manager.sh:621
+#| msgid "配置检测"
+msgid "检测"
+msgstr "detection"
+
+#: scripts/rill_xray_agent_manager.sh:628
 msgid "高"
 msgstr "high"
 
-#: scripts/rill_xray_agent_manager.sh:561
+#: scripts/rill_xray_agent_manager.sh:629
 msgid "中"
 msgstr "middle"
 
-#: scripts/rill_xray_agent_manager.sh:562
+#: scripts/rill_xray_agent_manager.sh:630
 msgid "低"
 msgstr "low"
 
-#: scripts/rill_xray_agent_manager.sh:563
+#: scripts/rill_xray_agent_manager.sh:631
 msgid "证据不足"
 msgstr "insufficient evidence"
 
-#: scripts/rill_xray_agent_manager.sh:564 scripts/traffic_blocker.sh:471
+#: scripts/rill_xray_agent_manager.sh:632 scripts/traffic_blocker.sh:471
 #: scripts/traffic_blocker.sh:626 scripts/traffic_blocker.sh:628
 #: scripts/traffic_blocker.sh:638 scripts/traffic_blocker.sh:640
 #: scripts/traffic_blocker.sh:749
 msgid "未知"
 msgstr "unknown"
 
-#: scripts/rill_xray_agent_manager.sh:571
+#: scripts/rill_xray_agent_manager.sh:639
 msgid "AI 故障诊断失败，后台服务没有返回有效结果"
 msgstr ""
-"AI Fault diagnosis failed; the backend service did not return a valid result."
+"AI Fault diagnosis failed; the backend service did not return a valid "
+"result."
 
-#: scripts/rill_xray_agent_manager.sh:585
+#: scripts/rill_xray_agent_manager.sh:653
 msgid "AI 故障诊断失败，返回内容无法解析"
 msgstr "AI Fault diagnosis failed; the returned content cannot be parsed."
 
-#: scripts/rill_xray_agent_manager.sh:592
+#: scripts/rill_xray_agent_manager.sh:660
 msgid "判断置信度"
 msgstr "confidence level judgment"
 
-#: scripts/rill_xray_agent_manager.sh:593
+#: scripts/rill_xray_agent_manager.sh:661
 msgid "诊断代码"
 msgstr "diagnosis code"
 
-#: scripts/rill_xray_agent_manager.sh:595
+#: scripts/rill_xray_agent_manager.sh:663
 msgid "此结果允许自动处理"
 msgstr "this result allows for automated processing."
 
-#: scripts/rill_xray_agent_manager.sh:597
+#: scripts/rill_xray_agent_manager.sh:665
 msgid "此结果仅提供判断建议，不会自动修改系统"
 msgstr ""
 "This result provides only a recommendation for judgment and will not "
 "automatically modify the system."
 
-#: scripts/rill_xray_agent_manager.sh:606
-msgid "查看 AI 判断状态"
-msgstr "view the AI judgment status"
+#: scripts/rill_xray_agent_manager.sh:670
+#| msgid "工作模式"
+msgid "三种工作模式说明："
+msgstr "explanation of the three operating modes:"
 
-#: scripts/rill_xray_agent_manager.sh:607
-msgid "安装或修复 AI 判断引擎"
-msgstr "install or repair the AI decision engine"
+#: scripts/rill_xray_agent_manager.sh:671
+msgid "智能判断：AI 实时诊断故障并给出处理建议。自动修改功能暂不开放，当前不会自动更改系统。"
+msgstr ""
+"Intelligent diagnostics: AI performs real-time fault detection and provides "
+"troubleshooting recommendations. The automatic modification feature is "
+"currently unavailable and will not automatically make changes to the system."
 
-#: scripts/rill_xray_agent_manager.sh:608
+#: scripts/rill_xray_agent_manager.sh:672
+msgid "观察模式：AI 仅观察和判断，不会自动修改系统，结果仅供参考。"
+msgstr ""
+"Observation Mode: AI Only observes and makes judgments; it does not "
+"automatically modify the system, and the results are for reference only."
+
+#: scripts/rill_xray_agent_manager.sh:673
+msgid "安全停用：暂停 AI 判断功能，引擎保留，可随时重新开启。"
+msgstr ""
+"Safe Deactivation: The AI judgment function is suspended, while the engine "
+"remains active and can be reactivated at any time."
+
+#: scripts/rill_xray_agent_manager.sh:679
+#| msgid "Rill Xray AI 运维助手"
+msgid "Rill Xray AI 运维助手 / 切换工作模式"
+msgstr "Rill Xray AI O&M Assistant / Switch Work Mode"
+
+#: scripts/rill_xray_agent_manager.sh:680
 msgid "开启 AI 智能判断"
 msgstr "enable AI intelligent judgment"
 
-#: scripts/rill_xray_agent_manager.sh:609
+#: scripts/rill_xray_agent_manager.sh:681
 msgid "切换到 AI 观察模式"
 msgstr "switch to AI observation mode"
 
-#: scripts/rill_xray_agent_manager.sh:610
+#: scripts/rill_xray_agent_manager.sh:682
 msgid "安全停用 AI 判断"
 msgstr "safe deactivation AI judgment"
 
-#: scripts/rill_xray_agent_manager.sh:611
+#: scripts/rill_xray_agent_manager.sh:684
+#| msgid "工作模式"
+msgid "查看工作模式说明"
+msgstr "view the work mode instructions"
+
+#: scripts/rill_xray_agent_manager.sh:703
+#| msgid "Rill Xray AI 运维助手"
+msgid "Rill Xray AI 运维助手 / 校验与诊断"
+msgstr "Rill Xray AI O&M Assistant / Verification and Diagnostics"
+
+#: scripts/rill_xray_agent_manager.sh:704
 msgid "校验 AI 判断引擎"
 msgstr "validation of the AI decision engine"
 
-#: scripts/rill_xray_agent_manager.sh:612
+#: scripts/rill_xray_agent_manager.sh:705
 msgid "运行 AI 故障诊断"
 msgstr "running AI fault diagnosis"
 
-#: scripts/rill_xray_agent_manager.sh:613
+#: scripts/rill_xray_agent_manager.sh:724
+msgid "本地 AI 运维助手：实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议。"
+msgstr ""
+"Local AI Operations Assistant: Monitors the health of Xray/Nginx in real "
+"time, automatically diagnoses faults, and provides remediation "
+"recommendations."
+
+#: scripts/rill_xray_agent_manager.sh:725
+msgid "• 监控：实时观测服务与配置状态"
+msgstr ""
+"• Monitoring: Real-time observation of service and configuration status"
+
+#: scripts/rill_xray_agent_manager.sh:726
+msgid "• 诊断：定位故障原因，附置信度建议"
+msgstr ""
+"• Diagnosis: Identifies the root cause of the fault and provides confidence-"
+"level recommendations."
+
+#: scripts/rill_xray_agent_manager.sh:727
+msgid "• 模式：智能判断 / 仅观察 / 安全停用"
+msgstr "• Mode: Intelligent Decision-Making / Observation Only / Safe Disable"
+
+#: scripts/rill_xray_agent_manager.sh:730
+msgid "查看 AI 判断状态"
+msgstr "view the AI judgment status"
+
+#: scripts/rill_xray_agent_manager.sh:731
+#| msgid "工作模式"
+msgid "切换工作模式"
+msgstr "switch work mode"
+
+#: scripts/rill_xray_agent_manager.sh:732
+msgid "校验与诊断"
+msgstr "verification and diagnosis"
+
+#: scripts/rill_xray_agent_manager.sh:734
+msgid "安装或修复 AI 判断引擎"
+msgstr "install or repair the AI decision engine"
+
+#: scripts/rill_xray_agent_manager.sh:735
 msgid "卸载 Rill AI 引擎"
 msgstr "uninstall the Rill AI engine"
 
