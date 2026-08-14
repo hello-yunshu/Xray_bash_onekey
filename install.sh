@@ -43,7 +43,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.1"
+shell_version="3.2.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -165,6 +165,15 @@ change_nginx_sni="no"
 change_ws_path="no"
 change_grpc_path="no"
 change_xhttp_path="no"
+# ---- IPv4 / IPv6 双栈模型 ----
+# network_mode: auto|ipv4|ipv6|dual|manual
+# ipv4_address / ipv6_address: 探测/保存的公网地址（双栈模式下同时存在）
+# resolved_ipv4s / resolved_ipv6s: 域名 A/AAAA 解析结果集合（\n 分隔）
+network_mode=""
+ipv4_address=""
+ipv6_address=""
+resolved_ipv4s=""
+resolved_ipv6s=""
 # When "yes", email_set and UUID_set skip prompting and reuse the
 # values already loaded from the old config during a mode switch.
 mode_switch_reuse="off"
@@ -974,6 +983,106 @@ get_public_ip() {
     else
         curl -4 -fsSL --max-time 10 ip.me 2>/dev/null || curl -4 -fsSL --max-time 10 ip.im 2>/dev/null
     fi
+}
+
+# ---- IPv4 / IPv6 双栈支持：网络能力检测与 URI 编码辅助 ----
+
+# 判断是否为 IPv6 literal（兼容裸地址与 [ ] 包裹形式）
+is_ipv6_literal() {
+    local candidate="$1"
+    [[ -z "${candidate}" ]] && return 1
+    candidate="${candidate#[}"
+    candidate="${candidate%\]}"
+    [[ "${candidate}" =~ ^[0-9a-fA-F:]+$ ]] && [[ "${candidate}" == *:* ]]
+}
+
+# 判断是否为 IPv4 literal
+is_ipv4_literal() {
+    local candidate="$1"
+    [[ -z "${candidate}" ]] && return 1
+    [[ "${candidate}" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]
+}
+
+# 将 client authority 中的 host 规范化：
+#   - IPv6 literal -> 强制 [IPv6]（已带括号不重复加）
+#   - IPv4 / 域名  -> 原样返回
+format_uri_authority_host() {
+    local input="$1"
+    if is_ipv6_literal "${input}"; then
+        local bare="${input#[}"
+        bare="${bare%\]}"
+        echo "[${bare}]"
+    else
+        echo "${input}"
+    fi
+}
+
+# YAML 标量安全引用：IPv6 literal 因含冒号，统一加单引号避免解析歧义；
+# 其余值原样返回（域名/IPv4 无需引用）。
+yaml_quote_scalar() {
+    local value="$1"
+    if is_ipv6_literal "${value}"; then
+        echo "'${value}'"
+    else
+        echo "${value}"
+    fi
+}
+
+# 探测本机公网 IPv4/IPv6 出口能力，回填全局 network_mode / ipv4_address / ipv6_address。
+# 注意：仅当出口探测成功才算某 family 可用，不依赖网卡上是否有地址。
+detect_public_network_capabilities() {
+    ipv4_address=$(get_public_ip "IPv4")
+    ipv6_address=$(get_public_ip "IPv6")
+    if [[ -n "${ipv4_address}" && -n "${ipv6_address}" ]]; then
+        network_mode="dual"
+    elif [[ -n "${ipv4_address}" ]]; then
+        network_mode="ipv4"
+    elif [[ -n "${ipv6_address}" ]]; then
+        network_mode="ipv6"
+    else
+        network_mode="none"
+    fi
+}
+
+# 将 resolve_domain_ips 输出按 family 分类，回填 resolved_ipv4s / resolved_ipv6s（\n 分隔）
+classify_resolved_ips() {
+    local input="$1" ip
+    resolved_ipv4s=""
+    resolved_ipv6s=""
+    while IFS= read -r ip; do
+        [[ -z "${ip}" ]] && continue
+        if is_ipv6_literal "${ip}"; then
+            resolved_ipv6s="${resolved_ipv6s}${ip}\n"
+        elif is_ipv4_literal "${ip}"; then
+            resolved_ipv4s="${resolved_ipv4s}${ip}\n"
+        fi
+    done <<<"${input}"
+}
+
+# 从老字段推断 network_mode（向后兼容，不在读取时强制重写 JSON）
+infer_network_mode_from_config() {
+    local ipv="$1"
+    case "${ipv}" in
+        IPv4) echo "ipv4" ;;
+        IPv6) echo "ipv6" ;;
+        *) echo "manual" ;;
+    esac
+}
+
+# 从配置读取网络能力状态，回填全局变量。优先使用新字段，缺失时由老字段推断。
+load_network_capabilities_from_config() {
+    local nm ipv4 ipv6 ipv
+    nm=$(info_extraction network_mode)
+    ipv4=$(info_extraction ipv4_address)
+    ipv6=$(info_extraction ipv6_address)
+    ipv=$(info_extraction ip_version)
+    if [[ -n "${nm}" ]]; then
+        network_mode="${nm}"
+    else
+        network_mode=$(infer_network_mode_from_config "${ipv}")
+    fi
+    ipv4_address="${ipv4:-}"
+    ipv6_address="${ipv6:-}"
 }
 
 generate_random_port() {
@@ -3653,6 +3762,65 @@ ip_lists_overlap() {
     return 1
 }
 
+# A/AAAA 集合资格检查：探测本机公网 v4/v6 与域名 A/AAAA，按 family 独立校验。
+# 复用 resolve_domain_ips（单一 DNS 语义源），不依赖 ping 取单个地址。
+# 回填全局 network_mode / ipv4_address / ipv6_address / resolved_ipv4s / resolved_ipv6s。
+# 返回码：
+#   0 = 校验通过（ipv4 / ipv6 / dual，network_mode 已设置）
+#   2 = 存在错误 A 或 AAAA 记录的高风险（已识别，需调用方显式确认）
+#   1 = 校验失败（无匹配 family，network_mode=none）
+validate_domain_network_records() {
+    local domain="$1"
+    local resolved has_server_v4 has_server_v6 has_a has_aaaa a_ok aaaa_ok
+    local bad_aaaa bad_a
+
+    # 1) 服务器侧公网能力探测（出口探测成功才算可用）
+    ipv4_address=$(get_public_ip "IPv4")
+    ipv6_address=$(get_public_ip "IPv6")
+    has_server_v4=0; [[ -n "${ipv4_address}" ]] && has_server_v4=1
+    has_server_v6=0; [[ -n "${ipv6_address}" ]] && has_server_v6=1
+
+    # 2) 解析域名 A/AAAA（复用统一 DNS helper）
+    resolved=$(resolve_domain_ips "${domain}")
+    classify_resolved_ips "${resolved}"
+    has_a=0;   [[ -n "${resolved_ipv4s}" ]] && has_a=1
+    has_aaaa=0;[[ -n "${resolved_ipv6s}" ]] && has_aaaa=1
+
+    # 3) 按 family 独立校验
+    a_ok=0
+    if [[ ${has_server_v4} -eq 1 && ${has_a} -eq 1 ]]; then
+        ip_lists_overlap "$(printf '%b' "${resolved_ipv4s}")" "${ipv4_address}" && a_ok=1
+    fi
+    aaaa_ok=0
+    if [[ ${has_server_v6} -eq 1 && ${has_aaaa} -eq 1 ]]; then
+        ip_lists_overlap "$(printf '%b' "${resolved_ipv6s}")" "${ipv6_address}" && aaaa_ok=1
+    fi
+
+    # 4) 判定 network_mode，并识别错误 A/AAAA（高风险）
+    bad_a=0;   bad_aaaa=0
+    if [[ ${a_ok} -eq 1 && ${aaaa_ok} -eq 1 ]]; then
+        network_mode="dual"
+    elif [[ ${a_ok} -eq 1 ]]; then
+        network_mode="ipv4"
+        [[ ${has_aaaa} -eq 1 ]] && bad_aaaa=1
+    elif [[ ${aaaa_ok} -eq 1 ]]; then
+        network_mode="ipv6"
+        [[ ${has_a} -eq 1 ]] && bad_a=1
+    else
+        network_mode="none"
+    fi
+
+    # 5) 结构化输出（供日志/诊断）
+    log_echo "IPv4: server=$( [[ ${has_server_v4} -eq 1 ]] && echo ok || echo no ), A=$( [[ ${has_a} -eq 1 ]] && echo yes || echo no )$( [[ ${a_ok} -eq 1 ]] && echo ", match" )"
+    log_echo "IPv6: server=$( [[ ${has_server_v6} -eq 1 ]] && echo ok || echo no ), AAAA=$( [[ ${has_aaaa} -eq 1 ]] && echo yes || echo no )$( [[ ${aaaa_ok} -eq 1 ]] && echo ", match" )"
+
+    if [[ ${bad_aaaa} -eq 1 || ${bad_a} -eq 1 ]]; then
+        return 2
+    fi
+    [[ "${network_mode}" != "none" ]] && return 0
+    return 1
+}
+
 # SNI Guard 策略选择：仅新安装时交互，默认 isolate
 sni_guard_policy_choose() {
     local force_choose="${1:-}"
@@ -4985,6 +5153,7 @@ domain_check() {
             *)
                 domain=$(info_extraction host)
                 ip_version=$(info_extraction ip_version)
+                load_network_capabilities_from_config
                 if [[ ${ip_version} == "IPv4" ]]; then
                     local_ip=$(get_public_ip "IPv4")
                 elif [[ ${ip_version} == "IPv6" ]]; then
@@ -5004,59 +5173,118 @@ domain_check() {
         echo
         log_echo "${GreenBG} $(gettext "确定域名信息") ${Font}"
         read_optimize "$(gettext "请输入你的域名信息") (e.g. www.hey.run):" "domain" "NULL" || return 1
-        echo -e "\n${GreenBG} $(gettext "请选择公网IP(IPv4/IPv6)或手动输入域名") ${Font}"
-        echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
-        echo "2: IPv6"
-        echo "3: $(gettext "域名")"
-        read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!" || return 1
+        echo -e "\n${GreenBG} $(gettext "请选择网络与域名校验方式") ${Font}"
+        echo -e "${Green}1${Font}: $(gettext "自动检测") (IPv4/IPv6) ($(gettext "推荐"))"
+        echo -e "${Red}2${Font}: IPv4 ($(gettext "默认"))"
+        echo "3: IPv6"
+        echo "4: $(gettext "手动输入域名") (服务器商仅提供域名)"
+        read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 4 "$(gettext "请输入有效的数字")!" || return 1
         log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
         if [[ ${ip_version_fq} == 1 ]]; then
-            local_ip=$(get_public_ip "IPv4")
-            domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
-            ip_version="IPv4"
+            # 自动检测：A/AAAA 集合资格检查
+            validate_domain_network_records "${domain}"
+            local vdn_rc=$?
+            if [[ ${vdn_rc} -eq 0 ]]; then
+                case "${network_mode}" in
+                    ipv6) ip_version="IPv6" ;;
+                    *) ip_version="IPv4" ;;
+                esac
+                local_ip="${ipv4_address:-${ipv6_address:-}}"
+                log_echo "${OK} ${GreenBG} $(gettext "域名 DNS 解析记录与公网 IP 匹配") ${Font}"
+                break
+            elif [[ ${vdn_rc} -eq 2 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "检测到错误的 A/AAAA 记录, 可能导致部分客户端连接失败") ${Font}"
+                log_echo "${Warning} ${YellowBG} $(gettext "请修正或删除错误的 DNS 记录后再继续, 请选择"): ${Font}"
+                echo "1: $(gettext "仍然继续安装") (高风险)"
+                echo "2: $(gettext "重新输入")"
+                log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1)
+                    case "${network_mode}" in
+                        ipv6) ip_version="IPv6" ;;
+                        *) ip_version="IPv4" ;;
+                    esac
+                    local_ip="${ipv4_address:-${ipv6_address:-}}"
+                    log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
+                    break
+                    ;;
+                2) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            else
+                log_echo "${Error} ${RedBG} $(gettext "无法通过域名 A/AAAA 记录校验公网 IP"), $(gettext "请选择"): ${Font}"
+                echo "1: $(gettext "重新输入")"
+                log_echo "${Red}2${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 2 1 2 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            fi
         elif [[ ${ip_version_fq} == 2 ]]; then
-            local_ip=$(get_public_ip "IPv6")
-            domain_ip=$(ping -6 "${domain}" -c 1 | sed '2{s/[^(]*(//;s/).*//;q}' | tail -n +2)
-            ip_version="IPv6"
+            local_ip=$(get_public_ip "IPv4")
+            ip_version="IPv4"
+            network_mode="ipv4"
+            ipv4_address="${local_ip}"
+            ipv6_address=""
+            domain_ip=$(resolve_domain_ips "${domain}" | grep -E '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' | head -n 1)
         elif [[ ${ip_version_fq} == 3 ]]; then
+            local_ip=$(get_public_ip "IPv6")
+            ip_version="IPv6"
+            network_mode="ipv6"
+            ipv6_address="${local_ip}"
+            ipv4_address=""
+            domain_ip=$(resolve_domain_ips "${domain}" | grep -iE '^[0-9a-f:]+$' | grep -vE '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' | head -n 1)
+        elif [[ ${ip_version_fq} == 4 ]]; then
             log_echo "${Warning} ${GreenBG} $(gettext "此选项用于服务器商仅提供域名访问服务器") ${Font}"
             log_echo "${Warning} ${GreenBG} $(gettext "请为服务器商提供的域名添加 CNAME 记录") ${Font}"
             read_optimize "$(gettext "请输入"): " "local_ip" "NULL" || return 1
             ip_version=${local_ip}
+            network_mode="manual"
+            ipv4_address=""
+            ipv6_address=""
         else
             local_ip=$(get_public_ip "IPv4")
-            domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
             ip_version="IPv4"
+            network_mode="ipv4"
+            ipv4_address="${local_ip}"
+            ipv6_address=""
+            domain_ip=$(resolve_domain_ips "${domain}" | grep -E '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' | head -n 1)
         fi
-        if [[ -z ${local_ip} ]]; then
+        if [[ ${ip_version_fq} != 1 && ${ip_version_fq} != 4 ]] && [[ -z ${local_ip} ]]; then
             log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
             return 1
         fi
-        log_echo "$(gettext "域名 DNS 解析 IP"): ${domain_ip}"
-        log_echo "$(gettext "公网IP/域名"): ${local_ip}"
-        if [[ ${ip_version_fq} != 3 ]] && [[ ${local_ip} == ${domain_ip} ]]; then
-            log_echo "${OK} ${GreenBG} $(gettext "域名 DNS 解析 IP 与公网 IP 匹配") ${Font}"
-            break
-        else
-            log_echo "${Warning} ${YellowBG} $(gettext "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray") ${Font}"
-            log_echo "${Error} ${RedBG} $(gettext "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"): ${Font}"
-            echo "1: $(gettext "继续安装")"
-            echo "2: $(gettext "重新输入")"
-            log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
-            read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
-            case $install in
-            1)
-                log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
+        if [[ ${ip_version_fq} != 1 && ${ip_version_fq} != 4 ]]; then
+            log_echo "$(gettext "域名 DNS 解析 IP"): ${domain_ip}"
+            log_echo "$(gettext "公网IP/域名"): ${local_ip}"
+            if [[ ${local_ip} == ${domain_ip} ]]; then
+                log_echo "${OK} ${GreenBG} $(gettext "域名 DNS 解析 IP 与公网 IP 匹配") ${Font}"
                 break
-                ;;
-            2)
-                continue
-                ;;
-            *)
-                log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"
-                exit 2
-                ;;
-            esac
+            else
+                log_echo "${Warning} ${YellowBG} $(gettext "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray") ${Font}"
+                log_echo "${Error} ${RedBG} $(gettext "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"): ${Font}"
+                echo "1: $(gettext "继续安装")"
+                echo "2: $(gettext "重新输入")"
+                log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1)
+                    log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
+                    break
+                    ;;
+                2)
+                    continue
+                    ;;
+                *)
+                    log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"
+                    exit 2
+                    ;;
+                esac
+            fi
+        else
+            break
         fi
     done
 }
@@ -5074,6 +5302,7 @@ ip_check() {
         [nN][oO] | [nN]) ;;
         *)
             ip_version=$(info_extraction ip_version)
+            load_network_capabilities_from_config
             if [[ ${ip_version} == "IPv4" ]]; then
                 local_ip=$(get_public_ip "IPv4")
             elif [[ ${ip_version} == "IPv6" ]]; then
@@ -5094,25 +5323,56 @@ ip_check() {
     echo
     log_echo "${GreenBG} $(gettext "确定公网IP信息") ${Font}"
     log_echo "${GreenBG} $(gettext "请选择公网IP为IPv4或IPv6") ${Font}"
-    echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
-    echo "2: IPv6"
-    echo "3: $(gettext "手动输入")"
+    echo -e "${Green}1${Font}: $(gettext "自动检测") (IPv4/IPv6) ($(gettext "推荐"))"
+    echo -e "${Red}2${Font}: IPv4 ($(gettext "默认"))"
+    echo "3: IPv6"
+    echo "4: $(gettext "手动输入")"
     local ip_version_fq
-    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!" || return 1
-    [[ -z ${ip_version_fq} ]] && ip_version=1
+    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 4 "$(gettext "请输入有效的数字")!" || return 1
+    [[ -z ${ip_version_fq} ]] && ip_version_fq=2
     log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
+        detect_public_network_capabilities
+        if [[ "${network_mode}" == "dual" ]]; then
+            ip_version="IPv4"
+            local_ip="${ipv4_address}"
+            log_echo "${OK} ${GreenBG} $(gettext "已检测到 IPv4 和 IPv6 均可用, 将启用双栈") ${Font}"
+        elif [[ "${network_mode}" == "ipv4" ]]; then
+            ip_version="IPv4"
+            local_ip="${ipv4_address}"
+            log_echo "${OK} ${GreenBG} $(gettext "当前仅 IPv4 可用") ${Font}"
+        elif [[ "${network_mode}" == "ipv6" ]]; then
+            ip_version="IPv6"
+            local_ip="${ipv6_address}"
+            log_echo "${OK} ${GreenBG} $(gettext "当前仅 IPv6 可用") ${Font}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
+            return 1
+        fi
+    elif [[ ${ip_version_fq} == 2 ]]; then
         local_ip=$(get_public_ip "IPv4")
         ip_version="IPv4"
-    elif [[ ${ip_version_fq} == 2 ]]; then
+        network_mode="ipv4"
+        ipv4_address="${local_ip}"
+        ipv6_address=""
+    elif [[ ${ip_version_fq} == 3 ]]; then
         local_ip=$(get_public_ip "IPv6")
         ip_version="IPv6"
-    elif [[ ${ip_version_fq} == 3 ]]; then
+        network_mode="ipv6"
+        ipv6_address="${local_ip}"
+        ipv4_address=""
+    elif [[ ${ip_version_fq} == 4 ]]; then
         read_optimize "$(gettext "请输入"): " "local_ip" "NULL" || return 1
         ip_version=${local_ip}
+        network_mode="manual"
+        ipv4_address=""
+        ipv6_address=""
     else
         local_ip=$(get_public_ip "IPv4")
         ip_version="IPv4"
+        network_mode="ipv4"
+        ipv4_address="${local_ip}"
+        ipv6_address=""
     fi
     if [[ -z ${local_ip} ]]; then
         log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
@@ -6388,6 +6648,9 @@ install_config_tls_ws() {
     "transport_mode": "${transport_mode}",
     "host": "${domain}",
     "ip_version": "${ip_version}",
+    "network_mode": "${network_mode:-$(infer_network_mode_from_config "${ip_version}")}",
+    "ipv4_address": "${ipv4_address:-}",
+    "ipv6_address": "${ipv6_address:-}",
     "port": ${port},
     "ws_port": "${artxport}",
     "grpc_port": "${artgport}",
@@ -6421,6 +6684,9 @@ install_config_reality() {
     "transport_mode": "${transport_mode}",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
+    "network_mode": "${network_mode:-$(infer_network_mode_from_config "${ip_version}")}",
+    "ipv4_address": "${ipv4_address:-}",
+    "ipv6_address": "${ipv6_address:-}",
     "port": ${port},
     "email": "${custom_email}",
     "idc": "${UUID5_char}",
@@ -6473,6 +6739,9 @@ install_config_xtls_only() {
     "transport_mode": "None",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
+    "network_mode": "${network_mode:-$(infer_network_mode_from_config "${ip_version}")}",
+    "ipv4_address": "${ipv4_address:-}",
+    "ipv6_address": "${ipv6_address:-}",
     "port": ${port},
     "tls": "XTLS",
     "email": "${custom_email}",
@@ -6500,6 +6769,9 @@ install_config_ws_only() {
     "transport_mode": "${transport_mode}",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
+    "network_mode": "${network_mode:-$(infer_network_mode_from_config "${ip_version}")}",
+    "ipv4_address": "${ipv4_address:-}",
+    "ipv6_address": "${ipv6_address:-}",
     "ws_port": "${artxport}",
     "grpc_port": "${artgport}",
     "xhttp_port": "${artxhttpport}",
@@ -6607,9 +6879,20 @@ reality_client_meta() {
 generate_vless_link() {
     local user_id="$1"
     local mode="$2"
-    local host port quoted_host result
+    local override_host="${3:-}"
+    local host port quoted_host authority_host result
+    local raw_host
 
-    quoted_host=$(vless_urlquote "$(info_extraction host)")
+    # 拆开 authority host 格式与 query/fragment 编码：
+    # authority 中 IPv6 literal 必须使用 [IPv6]，不 percent-encode 冒号；
+    # query/fragment 仍按各自语义 URL encode。
+    if [[ -n "${override_host}" ]]; then
+        raw_host="${override_host}"
+    else
+        raw_host=$(info_extraction host)
+    fi
+    authority_host=$(format_uri_authority_host "${raw_host}")
+    quoted_host=$(vless_urlquote "${raw_host}")
 
     case "$mode" in
         ws_tls)
@@ -6617,42 +6900,42 @@ generate_vless_link() {
             local path
             path=$(info_ws_path)
             path=$(vless_urlquote "${path}")
-            result="vless://${user_id}@${quoted_host}:${port}?path=%2f${path}%3Fed%3D2048&security=tls&encryption=none&host=${quoted_host}&type=ws&fp=chrome#${quoted_host}+ws%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?path=%2f${path}%3Fed%3D2048&security=tls&encryption=none&host=${quoted_host}&type=ws&fp=chrome#${quoted_host}+ws%E5%8D%8F%E8%AE%AE"
             ;;
         grpc_tls)
             port=$(info_extraction port)
             local service_name
             service_name=$(info_grpc_serviceName)
             service_name=$(vless_urlquote "${service_name}")
-            result="vless://${user_id}@${quoted_host}:${port}?serviceName=${service_name}&security=tls&encryption=none&host=${quoted_host}&type=grpc&fp=chrome#${quoted_host}+gRPC%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?serviceName=${service_name}&security=tls&encryption=none&host=${quoted_host}&type=grpc&fp=chrome#${quoted_host}+gRPC%E5%8D%8F%E8%AE%AE"
             ;;
         xhttp_tls)
             port=$(info_extraction port)
             local xhttp_path
             xhttp_path=$(info_xhttp_path)
             xhttp_path=$(vless_urlquote "$(format_xhttp_path "${xhttp_path}")")
-            result="vless://${user_id}@${quoted_host}:${port}?path=${xhttp_path}&mode=auto&security=tls&encryption=none&host=${quoted_host}&type=xhttp&fp=chrome#${quoted_host}+xHTTP%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?path=${xhttp_path}&mode=auto&security=tls&encryption=none&host=${quoted_host}&type=xhttp&fp=chrome#${quoted_host}+xHTTP%E5%8D%8F%E8%AE%AE"
             ;;
         ws)
             port=$(info_extraction ws_port)
             local path
             path=$(info_ws_path)
             path=$(vless_urlquote "${path}")
-            result="vless://${user_id}@${quoted_host}:${port}?path=%2f${path}%3Fed%3D2048&encryption=none&type=ws#${quoted_host}+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?path=%2f${path}%3Fed%3D2048&encryption=none&type=ws#${quoted_host}+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
             ;;
         grpc)
             port=$(info_extraction grpc_port)
             local service_name
             service_name=$(info_grpc_serviceName)
             service_name=$(vless_urlquote "${service_name}")
-            result="vless://${user_id}@${quoted_host}:${port}?serviceName=${service_name}&encryption=none&type=grpc#${quoted_host}+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?serviceName=${service_name}&encryption=none&type=grpc#${quoted_host}+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
             ;;
         xhttp)
             port=$(info_extraction xhttp_port)
             local xhttp_path
             xhttp_path=$(info_xhttp_path)
             xhttp_path=$(vless_urlquote "$(format_xhttp_path "${xhttp_path}")")
-            result="vless://${user_id}@${quoted_host}:${port}?path=${xhttp_path}&mode=auto&security=none&encryption=none&host=${quoted_host}&type=xhttp#${quoted_host}+%E5%8D%95%E7%8B%ADxHTTP%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?path=${xhttp_path}&mode=auto&security=none&encryption=none&host=${quoted_host}&type=xhttp#${quoted_host}+%E5%8D%95%E7%8B%ADxHTTP%E5%8D%8F%E8%AE%AE"
             ;;
         reality)
             port=$(info_extraction port)
@@ -6670,11 +6953,11 @@ generate_vless_link() {
             else
                 spx_param=""
             fi
-            result="vless://${user_id}@${quoted_host}:${port}?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=${pbk}&sni=${sni}&target=${target}&sid=${sid}${spx_param}#${quoted_host}+Reality%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=${pbk}&sni=${sni}&target=${target}&sid=${sid}${spx_param}#${quoted_host}+Reality%E5%8D%8F%E8%AE%AE"
             ;;
         xtls)
             port=$(info_extraction port)
-            result="vless://${user_id}@${quoted_host}:${port}?security=none&encryption=none&headerType=none&type=raw#${quoted_host}+XTLS%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?security=none&encryption=none&headerType=none&type=raw#${quoted_host}+XTLS%E5%8D%8F%E8%AE%AE"
             ;;
         *)
             return 1
@@ -6698,9 +6981,18 @@ generate_clash_config() {
     local tls=${11}
     local transport_label=${12:-$type}
     local spx=${13:-}
+    local override_host=${14:-}
 
     local clash_name
-    clash_name="VLESS-$(info_extraction host)-${transport_label}"
+    local clash_host
+    if [[ -n "${override_host}" ]]; then
+        clash_host="${override_host}"
+    else
+        clash_host=$(info_extraction host)
+    fi
+    clash_name="VLESS-${clash_host}-${transport_label}"
+    local clash_server
+    clash_server=$(yaml_quote_scalar "${clash_host}")
     local clash_config=""
     local flow_line=""
     [[ -n "${flow}" ]] && flow_line="
@@ -6709,7 +7001,7 @@ generate_clash_config() {
     if [[ ${type} == "ws" ]]; then
         clash_config="  - name: ${clash_name}
     type: vless
-    server: $(info_extraction host)
+    server: ${clash_server}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
@@ -6718,13 +7010,13 @@ generate_clash_config() {
     ws-opts:
       path: ${path}
       headers:
-        Host: $(info_extraction host)
+        Host: ${clash_host}
     skip-cert-verify: false"
 
     elif [[ ${type} == "grpc" ]]; then
         clash_config="  - name: ${clash_name}
     type: vless
-    server: $(info_extraction host)
+    server: ${clash_server}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
@@ -6737,7 +7029,7 @@ generate_clash_config() {
     elif [[ ${type} == "tcp" ]]; then
         clash_config="  - name: ${clash_name}
     type: vless
-    server: $(info_extraction host)
+    server: ${clash_server}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
@@ -6748,7 +7040,7 @@ generate_clash_config() {
     elif [[ ${type} == "xhttp" ]]; then
         clash_config="  - name: ${clash_name}
     type: vless
-    server: $(info_extraction host)
+    server: ${clash_server}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
@@ -6787,12 +7079,21 @@ install_link_image() {
     local main_id
     main_id=$(info_extraction id)
 
+    # 直接-IP 模式（Reality/None/XTLS）双栈：为 IPv6 单独生成客户端入口。
+    # host 字段保留 canonical（默认 IPv4），不改变老代码语义。
+    local dual_direct_ip=0
+    if [[ ${tls_mode} == "Reality" || ${tls_mode} == "None" || ${tls_mode} == "XTLS" ]] \
+        && [[ "${network_mode}" == "dual" ]] && [[ -n "${ipv6_address}" ]]; then
+        dual_direct_ip=1
+    fi
+
     if [[ ${tls_mode} == "TLS" ]]; then
         is_ws_mode && vless_ws_link=$(generate_vless_link "$main_id" "ws_tls")
         is_grpc_mode && vless_grpc_link=$(generate_vless_link "$main_id" "grpc_tls")
         is_xhttp_mode && vless_xhttp_link=$(generate_vless_link "$main_id" "xhttp_tls")
     elif [[ ${tls_mode} == "Reality" ]]; then
         vless_link=$(generate_vless_link "$main_id" "reality")
+        [[ ${dual_direct_ip} -eq 1 ]] && vless_link_v6=$(generate_vless_link "$main_id" "reality" "${ipv6_address}")
         if [[ ${reality_add_more} == "on" ]]; then
             is_ws_mode && vless_ws_link=$(generate_vless_link "$main_id" "ws")
             is_grpc_mode && vless_grpc_link=$(generate_vless_link "$main_id" "grpc")
@@ -6804,6 +7105,7 @@ install_link_image() {
         is_xhttp_mode && vless_xhttp_link=$(generate_vless_link "$main_id" "xhttp")
     elif [[ ${tls_mode} == "XTLS" ]]; then
         vless_link=$(generate_vless_link "$main_id" "xtls")
+        [[ ${dual_direct_ip} -eq 1 ]] && vless_link_v6=$(generate_vless_link "$main_id" "xtls" "${ipv6_address}")
     fi
 
     clash_config_content="proxies:"
@@ -6824,7 +7126,11 @@ $(generate_clash_config "xhttp" "$(info_extraction port)" "$(format_xhttp_path "
     elif [[ ${tls_mode} == "Reality" ]]; then
         clash_config_content="${clash_config_content}
 $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rprx-vision" "$(info_reality_public_key)" "$(info_extraction serverNames)" "$(info_extraction target)" "$(info_extraction shortIds)" "true" "tcp" "$(info_extraction spiderx_path)")"
-
+        # 双栈直接-IP：额外输出 IPv6 Reality 入口（server 指向 IPv6 literal）
+        if [[ ${dual_direct_ip} -eq 1 ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rprx-vision" "$(info_reality_public_key)" "$(info_extraction serverNames)" "$(info_extraction target)" "$(info_extraction shortIds)" "true" "tcp-v6" "$(info_extraction spiderx_path)" "${ipv6_address}")"
+        fi
         if [[ ${reality_add_more} == "on" ]]; then
             if is_ws_mode; then
                 clash_config_content="${clash_config_content}
@@ -6855,6 +7161,10 @@ $(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(format_xhttp_
     elif [[ ${tls_mode} == "XTLS" ]]; then
         clash_config_content="${clash_config_content}
 $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" "" "" "false")"
+        if [[ ${dual_direct_ip} -eq 1 ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" "" "" "false" "tcp-v6" "" "${ipv6_address}")"
+        fi
     fi
     
     {
@@ -6865,6 +7175,12 @@ $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" ""
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_link}" | qrencode -o - -t utf8
             echo
+            if [[ ${dual_direct_ip} -eq 1 && -n "${vless_link_v6}" ]]; then
+                log_echo_secure "${Red} IPv6 URL $(gettext "分享链接"):${Font} ${vless_link_v6}"
+                log_echo "${Red} $(gettext "二维码"): ${Font}"
+                echo -n "${vless_link_v6}" | qrencode -o - -t utf8
+                echo
+            fi
         fi
         if is_ws_mode && [[ -n "${vless_ws_link}" ]]; then
             log_echo_secure "${Red} ws URL $(gettext "分享链接"):${Font} ${vless_ws_link}"

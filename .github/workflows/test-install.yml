@@ -115,6 +115,10 @@ jobs:
           bash .github/test/test_port_validation.sh
           bash .github/test/test_firewall_reconcile.sh
           bash .github/test/test_shell_update_metadata.sh
+          # IPv4/IPv6 dual-stack support regression tests (literal detection,
+          # URI authority bracket, network capability, A/AAAA qualification,
+          # bad-record gating, old-config compat, dual direct-IP links)
+          bash .github/test/test_dual_stack.sh
 
       - name: Run Skill contract tests
         env:

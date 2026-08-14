@@ -12,6 +12,7 @@
 * 采用 Qwen-MT-Plus AI 实现多语言精准翻译
 * 支持 Reality 协议，建议搭配 Nginx 前置（脚本内可安装）
 * 支持 WebSocket、gRPC、xHTTP 传输，可选择单一传输或 `ws+gRPC+xHTTP` 同时启用
+* 支持 IPv4 / IPv6 双栈：安装时可自动检测公网出口能力，按域名 A/AAAA 记录独立校验并生成对应分享链接与 Clash 配置
 * 内置 fail2ban 防护（脚本内可安装）
 * 内置 Xray 流量统计、流量阻断、GeoIP/GeoSite 规则更新及定时更新
 * 支持脚本、Xray、Nginx 和证书更新，并为关键更新提供备份与失败回滚
@@ -40,7 +41,7 @@
 
 * 一台境外服务器，具备公网 IP
 * 安装 Reality 协议：需准备符合 Xray 要求的目标域名
-* 安装 TLS 版本：需准备域名并添加 A 记录
+* 安装 TLS 版本：需准备域名并添加 A 记录（双栈环境请同时添加 AAAA 记录）
 * 阅读 [Xray 官方文档](https://xtls.github.io)，了解 Reality、TLS、WebSocket、gRPC 及 Xray 相关概念
 * **确保已安装 curl**：CentOS 用户执行 `yum install -y curl`；Debian/Ubuntu 用户执行 `apt install -y curl`
 
