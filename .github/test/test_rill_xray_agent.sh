@@ -11,10 +11,65 @@ grep -q -- '--rill-agent-status' install.sh
 grep -q '^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=' install.sh
 # P0-5: updates download to a candidate, validate, then atomically replace.
 grep -Fq 'install.sh.rxa-candidate.$$' install.sh
-grep -Fq 'rxa_candidate_guard "${_candidate}"' install.sh
-grep -Fq 'mv -f "${_candidate}" "${idleleo}"' install.sh
+grep -Fq 'rxa_download_main_candidate "${_candidate}"' install.sh
+grep -Fq 'rxa_replace_main_candidate "${_candidate}" "${idleleo}"' install.sh
+grep -Fq 'rxa_candidate_guard "${candidate}"' install.sh
 grep -q 'rxa_candidate_guard()' install.sh
 grep -q 'rxa_candidate_guard()' scripts/rill_xray_agent_manager.sh
+
+# An older installed manager probes the new integration block with only
+# menu_pause() available.  Exercise that exact manager -> candidate path: the
+# new fallback menu must not loop on missing UI helpers, and expected negative
+# uninstall probes must not leak alarming messages to the user's terminal.
+# Keep the timeout so a regression fails quickly instead of hanging CI.
+if ! python3 - "${PWD}/scripts/rill_xray_agent_manager.sh" "${PWD}/install.sh" <<'PY'
+import os
+import subprocess
+import sys
+import tempfile
+
+manager, candidate = sys.argv[1:]
+candidate_text = open(candidate, encoding="utf-8").read()
+# Guards before the capability-floor release used these exact static anchors.
+# Keep them inert but recognizable so a direct upgrade from those releases is
+# not falsely rejected before the semantic probe can even run.
+if "\nRILL_XRAY_AGENT_INTEGRATION_SCHEMA=1\n" not in "\n" + candidate_text:
+    raise SystemExit("legacy schema-1 candidate anchor missing")
+if 'menu_item 9 "Rill Xray Agent"' not in candidate_text:
+    raise SystemExit("legacy menu candidate anchor missing")
+with tempfile.TemporaryDirectory() as root:
+    env = os.environ.copy()
+    env.update({
+        "RILL_XRAY_AGENT_HOME": os.path.join(root, "etc-rill"),
+        "RILL_XRAY_AGENT_MANAGER": os.path.join(root, "etc-rill", "scripts", "manager.sh"),
+        "RILL_XRAY_AGENT_STATE": os.path.join(root, "state"),
+        "RILL_XRAY_AGENT_CONFIG": os.path.join(root, "config.json"),
+        "_TEST_MODE": "1",
+    })
+    completed = subprocess.run(
+        ["bash", "-c", 'source "$1"; rxa_candidate_guard "$2"', "_", manager, candidate],
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        timeout=5,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise SystemExit(
+            f"legacy candidate probe failed rc={completed.returncode}: {completed.stderr}"
+        )
+    if completed.stdout or completed.stderr:
+        raise SystemExit(
+            "legacy candidate probe leaked output: "
+            + completed.stdout
+            + completed.stderr
+        )
+PY
+then
+    echo 'legacy Rill candidate-guard compatibility failed' >&2
+    exit 1
+fi
 
 # User-facing Rill copy describes product concepts instead of mechanically
 # translating implementation class names. Protocol values remain unchanged.
@@ -113,7 +168,11 @@ bash .github/test/test_rill_uninstall_durability.sh
 # extraction, root members, staged installer + config invariants). The
 # installer requires EUID 0, so escalate like test_nginx_security.sh. The OI
 # regression never replaces this mandatory delivery proof.
-sudo bash .github/test/test_rill_bootstrap_delivery.sh
+if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
+    bash .github/test/test_rill_bootstrap_delivery.sh
+else
+    sudo bash .github/test/test_rill_bootstrap_delivery.sh
+fi
 # P0-6: mode-aware host health check (only required components are checked).
 bash .github/test/test_rill_xray_agent_healthy.sh
 echo 'Rill Xray Agent host integration checks passed'
