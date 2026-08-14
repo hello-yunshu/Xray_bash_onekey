@@ -91,6 +91,31 @@ Si une étape du processus de reconfiguration échoue (écriture de la configura
 | Configurer le blocage du trafic | `idleleo --traffic-blocker` |
 | Visualisez le trafic portuaire en temps réel | `idleleo --port-traffic` |
 
+## Rill Xray AI — assistant d'exploitation
+
+Assistant d'exploitation local intégré qui surveille en temps réel l'état de Xray/Nginx, diagnostique automatiquement les pannes et fournit des recommandations — sans API externe. Entrez `9` dans le menu principal ou exécutez `idleleo --rill-agent` pour y accéder.
+
+**Fonctionnalités principales**
+
+* Surveillance : observabilité en temps réel de l'état des services et de la configuration Xray/Nginx
+* Diagnostic : identification de la cause racine avec un niveau de confiance (élevé / moyen / faible / preuves insuffisantes)
+* Évaluation : détermination automatique du type de panne et recommandation ; le descriptif précise clairement si une correction automatique est autorisée ou s'il s'agit d'un simple conseil
+* Modes : évaluation intelligente / observation seule / désactivation sécurisée ; le système n'est pas modifié tant que la correction automatique n'est pas activée
+
+**Commandes courantes**
+
+| Action | Commande |
+|------|------|
+| Ouvrir le menu de l'assistant | `idleleo --rill-agent` |
+| Installer ou réparer le moteur d'évaluation | `idleleo --rill-agent-install` |
+| Voir l'état de l'évaluation | `idleleo --rill-agent-status` |
+| Lancer un diagnostic de panne | `idleleo --rill-agent-diagnose` |
+| Vérifier le moteur d'évaluation | `idleleo --rill-agent-verify` |
+| Désactiver en toute sécurité l'évaluation | `idleleo --rill-agent-safe-disable` |
+| Désinstaller le moteur Rill AI | `idleleo --rill-agent-uninstall` |
+
+Le moteur d'évaluation est encore au stade expérimental ; il est recommandé de l'utiliser comme source de recommandations diagnostiques. Par défaut, il ne modifie pas le système automatiquement.
+
 ## Docker Déploiement
 
 Prend en charge le déploiement à l'aide de Docker, l'image est préinstallée avec Xray et Nginx et toutes les fonctions du script d'origine peuvent être utilisées directement dans le conteneur. Voir les détails[Docker 部署指南](/docker/DOCKER.md)。
