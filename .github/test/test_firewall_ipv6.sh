@@ -73,6 +73,20 @@ _nf() {
 iptables()  { _nf "${IPTABLES_V4_RULES}" "$@"; }
 ip6tables() { _nf "${IPTABLES_V6_RULES}" "$@"; }
 
+# Deterministic tool-availability control. The production command_available()
+# probes the host PATH via `command -v`; on a CI runner with a real
+# /usr/sbin/ip6tables, `unset -f ip6tables` is NOT enough to simulate a missing
+# tool (the system binary would still be found). Mock the probe instead so a
+# host-installed ip6tables can never leak into these test cases.
+MOCK_MISSING_TOOLS=""   # space-separated tool names treated as unavailable
+command_available() {
+    local name="$1" _t
+    for _t in ${MOCK_MISSING_TOOLS}; do
+        [[ "${_t}" == "${name}" ]] && return 1
+    done
+    command -v "${name}" >/dev/null 2>&1
+}
+
 managed_ports_file="${TMP_ROOT}/managed_ports.json"
 
 echo "============================================================"
@@ -171,21 +185,21 @@ fi
 
 # dual + no ip6tables -> fail closed (no silent single-family downgrade)
 network_mode="dual"
-unset -f ip6tables
+MOCK_MISSING_TOOLS="ip6tables"
 if managed_fw_require_families; then bad "dual with missing ip6tables must fail closed"; else ok "dual + no ip6tables fails closed"; fi
-ip6tables() { _nf "${IPTABLES_V6_RULES}" "$@"; }
+MOCK_MISSING_TOOLS=""
 
 # ipv6 + no ip6tables -> fail
 network_mode="ipv6"
-unset -f ip6tables
+MOCK_MISSING_TOOLS="ip6tables"
 if managed_fw_require_families; then bad "ipv6 with missing ip6tables must fail"; else ok "ipv6 + no ip6tables fails"; fi
-ip6tables() { _nf "${IPTABLES_V6_RULES}" "$@"; }
+MOCK_MISSING_TOOLS=""
 
 # ipv4 + no ip6tables -> fine (only iptables required)
 network_mode="ipv4"
-unset -f ip6tables
+MOCK_MISSING_TOOLS="ip6tables"
 if managed_fw_require_families; then ok "ipv4 + no ip6tables is fine"; else bad "ipv4 should not require ip6tables"; fi
-ip6tables() { _nf "${IPTABLES_V6_RULES}" "$@"; }
+MOCK_MISSING_TOOLS=""
 
 # manual: conservative, iptables only
 network_mode="manual"

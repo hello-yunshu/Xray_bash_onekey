@@ -2161,12 +2161,107 @@ managed_ports_file="${idleleo_conf_dir}/managed_ports.json"
 #   auto/empty -> fall back to tool availability for legacy compatibility
 # _MANAGED_FW_IPV6 remains a TEST-ONLY override; production behavior must NOT
 # depend on it.
+# Command availability probe (thin wrapper). Tests override this to simulate
+# a missing tool deterministically: a host that really has /usr/sbin/ip6tables
+# must never leak into "tool missing" test cases.
+command_available() {
+    command -v "$1" >/dev/null 2>&1
+}
+
 managed_fw_ipv6_enabled() {
     case "${_MANAGED_FW_IPV6:-auto}" in
         1|on|yes) return 0 ;;
         0|off|no) return 1 ;;
-        *) command -v ip6tables >/dev/null 2>&1 ;;
+        *) command_available ip6tables ;;
     esac
+}
+
+# Resolve a network_mode value to the netfilter binaries that must be managed.
+# A pure function of its argument (no global reads), so callers can compute the
+# family set for an OLD mode independently of the CURRENT mode.
+#   ipv4   -> iptables
+#   ipv6   -> ip6tables
+#   dual   -> iptables + ip6tables
+#   manual -> iptables (conservative, never expand the managed set)
+#   auto/empty -> iptables, plus ip6tables only if the tool exists (legacy)
+managed_fw_families_for_mode() {
+    local mode="${1:-auto}"
+    case "${mode}" in
+        ipv6) printf '%s\n' "ip6tables" ;;
+        dual)
+            printf '%s\n' "iptables"
+            printf '%s\n' "ip6tables"
+            ;;
+        ipv4|manual) printf '%s\n' "iptables" ;;
+        *)  # auto / 未设置：按工具可用性保守处理，保持旧行为
+            printf '%s\n' "iptables"
+            command_available ip6tables && printf '%s\n' "ip6tables"
+            ;;
+    esac
+}
+
+# Resolve the netfilter binaries a SAVED config was last managed with (space
+# separated). Reads the new network_mode field first; falls back to the legacy
+# ip_version field. Pure function of the config file — used to seed the firewall
+# transaction's OLD family set BEFORE a mode switch deletes the old config,
+# because after that the old network_mode is unrecoverable and a dual -> ipv4
+# switch would otherwise leave stale IPv6 managed rules.
+managed_fw_families_from_config() {
+    local cfg="$1" nm ipv
+    nm=$(jq -r '.network_mode // empty' "${cfg}" 2>/dev/null)
+    if [[ -z "${nm}" ]]; then
+        ipv=$(jq -r '.ip_version // empty' "${cfg}" 2>/dev/null)
+        nm=$(infer_network_mode_from_config "${ipv}")
+    fi
+    managed_fw_families_for_mode "${nm}" | tr '\n' ' '
+}
+
+# Families that must be persisted for a firewall transaction: the UNION of the
+# families the transaction touched (old ∪ new). A dual -> ipv4 switch cleans
+# IPv6 managed rules at runtime, so the cleaned rules.v6 must also be saved or
+# the stale rule returns on reboot; dual -> ipv6 is symmetric for rules.v4.
+firewall_persist_families() {
+    # Arguments are space-separated family lists (e.g. "iptables ip6tables");
+    # normalize to a set and emit in canonical order (iptables before
+    # ip6tables, matching managed_fw_families) so persistence order is stable.
+    printf '%s\n%s\n' "${1:-}" "${2:-}" | tr ' ' '\n' | grep -v '^$' | sort -u \
+        | awk '{ print ($0 == "iptables" ? "0 " : "1 ") $0 }' \
+        | sort | cut -d' ' -f2- | tr '\n' ' '
+}
+
+# Persist the current netfilter state for every family in the given set (the
+# transaction's family UNION, old ∪ new). A family that only existed on the OLD
+# side was still cleaned at runtime, so it must be saved too or its stale rule
+# returns on reboot. Best-effort (runtime rules are already active) but never
+# silent: a failed save logs a warning naming the failing family instead of
+# printing an unconditional success.
+#
+# Persistence target paths are overridable via env vars so hermetic tests never
+# redirect a mock save binary into a real host path.
+firewall_persist_rules() {
+    local persist_families="${1:-}"
+    local _fw_bin
+    local sysconf_dir="${FW_SYSCONF_DIR:-/etc/sysconfig}"
+    local rules_v4="${FW_RULES_V4:-/etc/iptables/rules.v4}"
+    local rules_v6="${FW_RULES_V6:-/etc/iptables/rules.v6}"
+    for _fw_bin in ${persist_families}; do
+        if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
+            if ! service "${_fw_bin}" save 2>/dev/null && ! "${_fw_bin}-save" > "${sysconf_dir}/${_fw_bin}" 2>/dev/null; then
+                log_echo "${Warning} ${YellowBG} $(gettext "防火墙") ${_fw_bin} $(gettext "规则持久化失败") ${Font}"
+            fi
+            service "${_fw_bin}" restart 2>/dev/null || true
+        else
+            if [[ "${_fw_bin}" == "ip6tables" ]]; then
+                if ! ip6tables-save > "${rules_v6}" 2>/dev/null; then
+                    log_echo "${Warning} ${YellowBG} $(gettext "防火墙") ip6tables $(gettext "规则持久化失败") ${Font}"
+                fi
+            else
+                if ! iptables-save > "${rules_v4}" 2>/dev/null; then
+                    log_echo "${Warning} ${YellowBG} $(gettext "防火墙") iptables $(gettext "规则持久化失败") ${Font}"
+                fi
+            fi
+        fi
+    done
 }
 
 # Effective netfilter binaries to manage, family-aware from network_mode.
@@ -2180,18 +2275,7 @@ managed_fw_families() {
         esac
         return 0
     fi
-    case "${network_mode:-auto}" in
-        ipv6) printf '%s\n' "ip6tables" ;;
-        dual)
-            printf '%s\n' "iptables"
-            printf '%s\n' "ip6tables"
-            ;;
-        ipv4|manual) printf '%s\n' "iptables" ;;
-        *)  # auto / 未设置：按工具可用性保守处理，保持旧行为
-            printf '%s\n' "iptables"
-            command -v ip6tables >/dev/null 2>&1 && printf '%s\n' "ip6tables"
-            ;;
-    esac
+    managed_fw_families_for_mode "${network_mode:-auto}"
 }
 
 # netfilter binaries to manage (thin wrapper; see managed_fw_families).
@@ -2205,7 +2289,7 @@ _managed_fw_bins() {
 managed_fw_require_families() {
     local bin
     for bin in $(managed_fw_families); do
-        command -v "${bin}" >/dev/null 2>&1 || return 1
+        command_available "${bin}" || return 1
     done
     return 0
 }
@@ -2213,18 +2297,25 @@ managed_fw_require_families() {
 firewall_rule_exists() {
     local proto="$1"
     local port="$2"
+    local bins="${3:-}"
     local bin rc=0
-    for bin in $(_managed_fw_bins); do
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
         "${bin}" -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1 || rc=1
     done
     return ${rc}
 }
 
+# The optional 3rd argument is an explicit netfilter-bin list (space separated).
+# When empty the effective family policy (current network_mode) decides which
+# families to touch.
 firewall_add_managed_port() {
     local proto="$1"
     local port="$2"
+    local bins="${3:-}"
     local bin
-    for bin in $(_managed_fw_bins); do
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
         if ! "${bin}" -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1; then
             "${bin}" -I INPUT -p "${proto}" --dport "${port}" -j ACCEPT || return 1
         fi
@@ -2234,8 +2325,10 @@ firewall_add_managed_port() {
 firewall_remove_managed_port() {
     local proto="$1"
     local port="$2"
+    local bins="${3:-}"
     local bin
-    for bin in $(_managed_fw_bins); do
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
         while "${bin}" -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1; do
             "${bin}" -D INPUT -p "${proto}" --dport "${port}" -j ACCEPT || return 1
         done
@@ -2246,8 +2339,10 @@ firewall_remove_managed_port() {
 firewall_add_output_port() {
     local proto="$1"
     local port="$2"
+    local bins="${3:-}"
     local bin
-    for bin in $(_managed_fw_bins); do
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
         if ! "${bin}" -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1; then
             "${bin}" -I OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT || return 1
         fi
@@ -2258,8 +2353,10 @@ firewall_add_output_port() {
 firewall_output_rule_exists() {
     local proto="$1"
     local port="$2"
+    local bins="${3:-}"
     local bin rc=0
-    for bin in $(_managed_fw_bins); do
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
         "${bin}" -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1 || rc=1
     done
     return ${rc}
@@ -2269,8 +2366,10 @@ firewall_output_rule_exists() {
 firewall_remove_output_port() {
     local proto="$1"
     local port="$2"
+    local bins="${3:-}"
     local bin
-    for bin in $(_managed_fw_bins); do
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
         while "${bin}" -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1; do
             "${bin}" -D OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT || return 1
         done
@@ -2337,65 +2436,90 @@ collect_new_managed_ports() {
 reconcile_managed_firewall() {
     local old_json="$1"
     local new_json="$2"
-    local old_tcp new_tcp old_udp new_udp port
+    local old_bins="${3:-}" new_bins="${4:-}"
+    local old_tcp new_tcp old_udp new_udp port bin
+    [[ -n "${old_bins}" ]] || old_bins=$(_managed_fw_bins)
+    [[ -n "${new_bins}" ]] || new_bins=$(_managed_fw_bins)
 
     old_tcp=$(printf '%s' "${old_json}" | jq -r '.tcp[]? // empty')
     new_tcp=$(printf '%s' "${new_json}" | jq -r '.tcp[]? // empty')
     old_udp=$(printf '%s' "${old_json}" | jq -r '.udp[]? // empty')
     new_udp=$(printf '%s' "${new_json}" | jq -r '.udp[]? // empty')
 
-    # Remove script-managed old TCP INPUT ports no longer in the new set.
-    # Fail closed: if removal fails, abort so we don't leave stale rules.
-    while IFS= read -r port; do
-        [[ -n "${port}" ]] || continue
-        printf '%s\n' "${new_tcp}" | grep -qxF "${port}" ||
-            firewall_remove_managed_port tcp "${port}" || return 1
-    done <<< "${old_tcp}"
-
-    # Remove script-managed old UDP INPUT ports no longer in the new set.
-    while IFS= read -r port; do
-        [[ -n "${port}" ]] || continue
-        printf '%s\n' "${new_udp}" | grep -qxF "${port}" ||
-            firewall_remove_managed_port udp "${port}" || return 1
-    done <<< "${old_udp}"
-
-    # Remove script-managed old TCP OUTPUT sport rules no longer in the new set.
-    while IFS= read -r port; do
-        [[ -n "${port}" ]] || continue
-        printf '%s\n' "${new_tcp}" | grep -qxF "${port}" ||
-            firewall_remove_output_port tcp "${port}" || return 1
-    done <<< "${old_tcp}"
-
-    # Remove script-managed old UDP OUTPUT sport rules no longer in the new set.
-    while IFS= read -r port; do
-        [[ -n "${port}" ]] || continue
-        printf '%s\n' "${new_udp}" | grep -qxF "${port}" ||
-            firewall_remove_output_port udp "${port}" || return 1
-    done <<< "${old_udp}"
-
-    # Add new managed TCP INPUT ports (idempotent).
-    # Fail closed: if add fails, abort so caller can rollback.
-    for port in ${new_tcp}; do
-        [[ -n "${port}" ]] || continue
-        firewall_add_managed_port tcp "${port}" || return 1
+    # State is family x protocol x port. Reconcile by set difference:
+    #   to_remove = old_state - new_state
+    #   to_add    = new_state - old_state
+    # Families dropped (in old, not in new): remove EVERY old managed port on
+    # that family — a same-port family transition (dual -> ipv4) must still
+    # clean the old family's rules.
+    for bin in ${old_bins}; do
+        if ! printf '%s\n' ${new_bins} | grep -qxF "${bin}"; then
+            while IFS= read -r port; do
+                [[ -n "${port}" ]] || continue
+                firewall_remove_managed_port tcp "${port}" "${bin}" || return 1
+                firewall_remove_output_port tcp "${port}" "${bin}" || return 1
+            done <<< "${old_tcp}"
+            while IFS= read -r port; do
+                [[ -n "${port}" ]] || continue
+                firewall_remove_managed_port udp "${port}" "${bin}" || return 1
+                firewall_remove_output_port udp "${port}" "${bin}" || return 1
+            done <<< "${old_udp}"
+        fi
     done
 
-    # Add new managed UDP INPUT ports.
-    for port in ${new_udp}; do
-        [[ -n "${port}" ]] || continue
-        firewall_add_managed_port udp "${port}" || return 1
+    # Families gained (in new, not in old): add EVERY new managed port — a
+    # same-port family transition (ipv4 -> dual) must still open the new family.
+    for bin in ${new_bins}; do
+        if ! printf '%s\n' ${old_bins} | grep -qxF "${bin}"; then
+            for port in ${new_tcp}; do
+                [[ -n "${port}" ]] || continue
+                firewall_add_managed_port tcp "${port}" "${bin}" || return 1
+                firewall_add_output_port tcp "${port}" "${bin}" || return 1
+            done
+            for port in ${new_udp}; do
+                [[ -n "${port}" ]] || continue
+                firewall_add_managed_port udp "${port}" "${bin}" || return 1
+                firewall_add_output_port udp "${port}" "${bin}" || return 1
+            done
+        fi
     done
 
-    # Add new managed TCP OUTPUT sport rules.
-    for port in ${new_tcp}; do
-        [[ -n "${port}" ]] || continue
-        firewall_add_output_port tcp "${port}" || return 1
-    done
-
-    # Add new managed UDP OUTPUT sport rules.
-    for port in ${new_udp}; do
-        [[ -n "${port}" ]] || continue
-        firewall_add_output_port udp "${port}" || return 1
+    # Families present in BOTH old and new: apply the port diff. Fail closed:
+    # if a removal fails, abort so the caller can roll back.
+    for bin in ${old_bins}; do
+        printf '%s\n' ${new_bins} | grep -qxF "${bin}" || continue
+        # Remove old managed TCP INPUT/OUTPUT ports no longer in the new set.
+        while IFS= read -r port; do
+            [[ -n "${port}" ]] || continue
+            printf '%s\n' "${new_tcp}" | grep -qxF "${port}" || {
+                firewall_remove_managed_port tcp "${port}" "${bin}" || return 1
+                firewall_remove_output_port tcp "${port}" "${bin}" || return 1
+            }
+        done <<< "${old_tcp}"
+        # Remove old managed UDP INPUT/OUTPUT ports no longer in the new set.
+        while IFS= read -r port; do
+            [[ -n "${port}" ]] || continue
+            printf '%s\n' "${new_udp}" | grep -qxF "${port}" || {
+                firewall_remove_managed_port udp "${port}" "${bin}" || return 1
+                firewall_remove_output_port udp "${port}" "${bin}" || return 1
+            }
+        done <<< "${old_udp}"
+        # Add new managed TCP INPUT/OUTPUT ports. Always call the idempotent
+        # helper (it checks -C before -I): never skip based on membership in
+        # old_tcp, because the family may start empty or a prior step may have
+        # removed the rule — a same-port transition (443 -> 443) must still
+        # ensure the rule exists on every common family.
+        for port in ${new_tcp}; do
+            [[ -n "${port}" ]] || continue
+            firewall_add_managed_port tcp "${port}" "${bin}" || return 1
+            firewall_add_output_port tcp "${port}" "${bin}" || return 1
+        done
+        # Add new managed UDP INPUT/OUTPUT ports.
+        for port in ${new_udp}; do
+            [[ -n "${port}" ]] || continue
+            firewall_add_managed_port udp "${port}" "${bin}" || return 1
+            firewall_add_output_port udp "${port}" "${bin}" || return 1
+        done
     done
     return 0
 }
@@ -2418,11 +2542,16 @@ reconcile_managed_firewall() {
 # Returns 0 on success, 1 on failure.
 apply_managed_firewall_transaction() {
     local old_json="$1" new_json="$2"
+    local old_bins="${3:-}" new_bins="${4:-}"
+    [[ -n "${old_bins}" ]] || old_bins=$(_managed_fw_bins)
+    [[ -n "${new_bins}" ]] || new_bins=$(_managed_fw_bins)
     _reinstall_firewall_old_ports="${old_json}"
     _reinstall_firewall_new_ports="${new_json}"
+    _reinstall_firewall_old_families="${old_bins}"
+    _reinstall_firewall_new_families="${new_bins}"
     _reinstall_firewall_changed="pending"
-    if ! reconcile_managed_firewall "${old_json}" "${new_json}"; then
-        if reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null; then
+    if ! reconcile_managed_firewall "${old_json}" "${new_json}" "${old_bins}" "${new_bins}"; then
+        if reconcile_managed_firewall "${new_json}" "${old_json}" "${new_bins}" "${old_bins}" 2>/dev/null; then
             _reinstall_firewall_changed="no"
         else
             log_echo "${Error} ${RedBG} $(gettext "防火墙规则前向修改失败且反向恢复未完成, 全局回滚时将再次尝试") ${Font}"
@@ -2431,7 +2560,7 @@ apply_managed_firewall_transaction() {
     fi
     _reinstall_firewall_changed="yes"
     if ! atomic_write_managed_ports "${new_json}"; then
-        if reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null; then
+        if reconcile_managed_firewall "${new_json}" "${old_json}" "${new_bins}" "${old_bins}" 2>/dev/null; then
             _reinstall_firewall_changed="no"
         else
             log_echo "${Error} ${RedBG} $(gettext "防火墙状态写入失败且反向恢复未完成, 全局回滚时将再次尝试") ${Font}"
@@ -2482,7 +2611,12 @@ firewall_set() {
             _reinstall_firewall_old_ports=$(cat "${managed_ports_file}" 2>/dev/null ||
                 echo '{"tcp":[],"udp":[]}')
         fi
-
+        # Pre-deploy family set: captured from the OLD config at reinstall start
+        # (old_config_exist_check). For a standalone firewall_set with no prior
+        # managed state the old set stays empty — nothing to clean on this
+        # transaction. Never recompute from the CURRENT network_mode here: by
+        # this point it already points at the target mode of a reinstall.
+        _reinstall_firewall_old_families="${_reinstall_firewall_old_families:-}"
         # Build the full new managed set: main + transport ports, plus port 80
         # when TLS mode (ACME / HTTP redirect). Including 80 in the managed set
         # lets a TLS → Reality switch remove the now-unneeded 80 rule.
@@ -2492,33 +2626,33 @@ firewall_set() {
                 jq '.tcp = ((.tcp + [80]) | unique) | .udp = ((.udp + [80]) | unique)')
         fi
         _reinstall_firewall_new_ports="${new_ports_json}"
+        # New family set = effective policy at apply time (network_mode already
+        # reflects the target mode).
+        _reinstall_firewall_new_families=$(_managed_fw_bins)
 
         # Apply the managed rules as a transaction (old → new). Any partial
         # failure or managed_ports.json write failure reverses the rules.
         apply_managed_firewall_transaction \
             "${_reinstall_firewall_old_ports}" \
-            "${_reinstall_firewall_new_ports}" || {
+            "${_reinstall_firewall_new_ports}" \
+            "${_reinstall_firewall_old_families:-}" \
+            "${_reinstall_firewall_new_families}" || {
                 log_echo "${Error} ${RedBG} $(gettext "防火墙规则更新失败") ${Font}"
                 return 1
             }
 
-        # Persist rules per family, driven ONLY by the effective family policy
-        # (network_mode). An ipv4-only host must not write rules.v6 merely
-        # because ip6tables exists, and an ipv6-only host must not touch the
-        # IPv4 firewall. Failures here are non-fatal (rules are already active).
-        local _fw_bin
-        for _fw_bin in $(managed_fw_families); do
-            if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
-                service "${_fw_bin}" save 2>/dev/null || "${_fw_bin}-save" > "/etc/sysconfig/${_fw_bin}" 2>/dev/null || true
-                service "${_fw_bin}" restart 2>/dev/null || true
-            else
-                if [[ "${_fw_bin}" == "ip6tables" ]]; then
-                    ip6tables-save > /etc/iptables/rules.v6 2>/dev/null || true
-                else
-                    iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
-                fi
-            fi
-        done
+        # Persist rules per family. Persist the UNION of the families this
+        # transaction touched (old ∪ new), not just the new families: a
+        # dual -> ipv4 transition cleans IPv6 managed rules at runtime, so the
+        # cleaned rules.v6 must also be saved or the stale rule returns on
+        # reboot. Save failures are non-fatal (rules are already active) but
+        # MUST surface a warning naming the failing family — never a silent
+        # unconditional success.
+        local _persist_families
+        _persist_families=$(firewall_persist_families \
+            "${_reinstall_firewall_old_families:-}" \
+            "${_reinstall_firewall_new_families:-}")
+        firewall_persist_rules "${_persist_families}"
         log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
 
         log_echo "${OK} ${GreenBG} $(gettext "开放防火墙相关端口") ${Font}"
@@ -5941,6 +6075,15 @@ old_config_exist_check() {
     # deploy changes), so it is the correct source for rollback.
     _reinstall_firewall_old_ports=$(cat "${managed_ports_file}" 2>/dev/null ||
         echo '{"tcp":[],"udp":[]}')
+    # Capture the family set the OLD config was last managed with. This MUST
+    # happen before the mode-switch branch below deletes the old config: after
+    # that the old network_mode is unrecoverable, and a dual -> ipv4 switch
+    # would otherwise fall back to the CURRENT mode (already the target) and
+    # leave stale IPv6 managed rules behind.
+    _reinstall_firewall_old_families=""
+    if [[ -f "${xray_install_config_file}" ]]; then
+        _reinstall_firewall_old_families=$(managed_fw_families_from_config "${xray_install_config_file}")
+    fi
     _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
     _reinstall_firewall_changed="no"
     if [[ -f "${xray_install_config_file}" ]]; then
@@ -9806,6 +9949,8 @@ _reinstall_backup_dir=""
 # yet written with the new set.
 _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
 _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_old_families=""
+_reinstall_firewall_new_families=""
 _reinstall_firewall_changed="no"
 
 # RETURN-trap wrapper: restores the backup exactly once on deploy failure.
@@ -10104,11 +10249,16 @@ reinstall_backup_restore() {
     # changed, even if managed_ports.json was not yet written with the new set.
     # Both "yes" (forward succeeded) and "pending" (forward started but the
     # immediate reverse was not confirmed) must be reversed here; "no" means
-    # nothing was modified or it was already fully reversed.
+    # nothing was modified or it was already fully reversed. Family-aware: the
+    # reverse runs old-side rules on the transaction's recorded OLD families,
+    # not the CURRENT network_mode — a failed dual -> ipv4 switch must restore
+    # the IPv6 rules that were cleaned during forward.
     if [[ "${_reinstall_firewall_changed:-}" == "yes" || "${_reinstall_firewall_changed:-}" == "pending" ]]; then
         if ! reconcile_managed_firewall \
             "${_reinstall_firewall_new_ports}" \
-            "${_reinstall_firewall_old_ports}"; then
+            "${_reinstall_firewall_old_ports}" \
+            "${_reinstall_firewall_new_families:-}" \
+            "${_reinstall_firewall_old_families:-}"; then
             log_echo "${Error} ${RedBG} $(gettext "防火墙规则回滚失败") ${Font}"
             _restore_err=1
         else
@@ -10335,6 +10485,8 @@ reinstall_backup_restore() {
     # Rollback succeeded — reset the firewall transaction for the next attempt.
     _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
     _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_old_families=""
+    _reinstall_firewall_new_families=""
     _reinstall_firewall_changed="no"
 
     log_echo "${OK} ${GreenBG} $(gettext "已恢复原配置") ${Font}"
@@ -10420,6 +10572,14 @@ reinstall_finalize() {
         return 1
     fi
     _reinstall_backup_dir=""
+    # Transaction completed — clear firewall transaction state so a later
+    # standalone firewall_set or a subsequent reinstall cannot be polluted by
+    # the previous transaction's recorded families/ports.
+    _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_old_families=""
+    _reinstall_firewall_new_families=""
+    _reinstall_firewall_changed="no"
     return 0
 }
 
