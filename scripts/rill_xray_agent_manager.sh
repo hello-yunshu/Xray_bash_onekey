@@ -509,16 +509,55 @@ rxa_diagnose() {
 }
 
 rxa_status_display() {
+    local state_field runtime_field
     rxa_refresh_summary
-    printf '%s\n' "${RILL_XRAY_AGENT_HEADER_STATE}"
+    state_field="${RILL_XRAY_AGENT_HEADER_STATE}"
+    runtime_field="${RILL_XRAY_AGENT_HEADER_RUNTIME}"
+    # 仅运行中的状态着绿色；关闭、未运行不加颜色（与主菜单一致）。
+    if [[ -n "${Green:-}" && "${runtime_field}" == *"$(gettext "运行中")"* ]]; then
+        state_field="${Green:-}${state_field}${Font:-}"
+        runtime_field="${Green:-}${runtime_field}${Font:-}"
+    fi
+    printf '%s\n' "${state_field}"
     printf '%s\n' "${RILL_XRAY_AGENT_HEADER_MODE}"
-    printf '%s\n' "${RILL_XRAY_AGENT_HEADER_RUNTIME}"
+    printf '%s\n' "${runtime_field}"
     printf '%s\n' "${RILL_XRAY_AGENT_HEADER_ROUTE}"
+}
+
+rxa_mode_change_confirm() {
+    # Explains what each work-mode switch actually changes, then asks for
+    # confirmation before any unit/config mutation. RILL_XRAY_AGENT_ACCEPT_MODE_SWITCH=1
+    # skips the prompt for non-interactive consumers.
+    local mode="${1:-}" msg
+    case "$mode" in
+        normal)
+            msg="$(gettext "开启 AI 智能判断后，系统将持续观测 Xray/Nginx 状态，自动诊断故障并给出处理建议。说明：自动修改功能暂不开放，当前不会自动更改系统。")"
+            ;;
+        observe-only)
+            msg="$(gettext "切换到 AI 观察模式后，AI 仅观测和判断，不会自动修改系统，结果仅供参考。")"
+            ;;
+        safe-disabled)
+            msg="$(gettext "安全停用后，AI 判断功能暂停，引擎保留，可随时重新开启。")"
+            ;;
+        *) return 64 ;;
+    esac
+    printf '\n%s\n' "${msg}"
+    if [[ ${RILL_XRAY_AGENT_ACCEPT_MODE_SWITCH:-0} == 1 ]]; then
+        return 0
+    fi
+    printf '%s' "$(gettext "确认切换吗？ [y/N]: ")"
+    local answer
+    IFS= read -r answer || answer=""
+    case ${answer} in
+        y|Y|yes|YES|Yes|是) return 0 ;;
+        *) printf '%s\n' "$(gettext "已取消。")"; return 1 ;;
+    esac
 }
 
 rxa_apply_mode_display() {
     local mode="$1" label
     label=$(rxa_mode_label "$mode")
+    rxa_mode_change_confirm "$mode" || return 1
     if rxa_apply_mode "$mode"; then
         printf '%s: %s\n' "$(gettext "工作模式已切换")" "$label"
     else
@@ -552,6 +591,35 @@ rxa_diagnosis_summary() {
         NGINX_SERVICE_DOWN*) gettext "Nginx 服务未运行" ;;
         INSUFFICIENT_EVIDENCE) gettext "现有证据不足，暂时无法判断" ;;
         *) gettext "已生成判断结果，请结合诊断代码继续检查" ;;
+    esac
+}
+
+rxa_health_label() {
+    # Compact per-refresh health label for the main-menu banner. Runs the real
+    # diagnosis; on failure or missing evidence it degrades to "不可用" instead
+    # of fabricating a health state. Healthy states render green.
+    local payload code summary
+    if ! payload=$(rxa_diagnose 2>/dev/null); then
+        printf '%s\n' "$(gettext "检测：不可用")"
+        return 0
+    fi
+    code=$(printf '%s' "$payload" | python3 -c '
+import json,sys
+data=json.load(sys.stdin)
+result=data.get("result") or data
+print(result.get("diagnosisCode","UNKNOWN"))
+' 2>/dev/null) || {
+        printf '%s\n' "$(gettext "检测：不可用")"
+        return 0
+    }
+    summary=$(rxa_diagnosis_summary "$code")
+    case "$code" in
+        HEALTHY|CONFIG_CHANGED_HEALTHY)
+            printf '%s%s%s\n' "${Green:-}" "$(gettext "检测")：${summary}" "${Font:-}"
+            ;;
+        *)
+            printf '%s\n' "$(gettext "检测")：${summary}"
+            ;;
     esac
 }
 
@@ -598,33 +666,85 @@ except Exception:
     fi
 }
 
+rxa_mode_help() {
+    printf '%s\n' "$(gettext "三种工作模式说明：")"
+    printf '  %s\n' "$(gettext "智能判断：AI 实时诊断故障并给出处理建议。自动修改功能暂不开放，当前不会自动更改系统。")"
+    printf '  %s\n' "$(gettext "观察模式：AI 仅观察和判断，不会自动修改系统，结果仅供参考。")"
+    printf '  %s\n' "$(gettext "安全停用：暂停 AI 判断功能，引擎保留，可随时重新开启。")"
+}
+
+rxa_mode_menu() {
+    local choice
+    while true; do
+        menu_submenu_begin "$(gettext "Rill Xray AI 运维助手 / 切换工作模式")"
+        menu_item 1 "$(gettext "开启 AI 智能判断")"
+        menu_item 2 "$(gettext "切换到 AI 观察模式")"
+        menu_item 3 "$(gettext "安全停用 AI 判断")"
+        menu_blank
+        menu_item 4 "$(gettext "查看工作模式说明")"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read choice 4
+        echo
+        case $choice in
+            0) return ;;
+            1) rxa_apply_mode_display normal; menu_pause ;;
+            2) rxa_apply_mode_display observe-only; menu_pause ;;
+            3) rxa_apply_mode_display safe-disabled; menu_pause ;;
+            4) rxa_mode_help; menu_pause ;;
+        esac
+    done
+}
+
+rxa_verify_diag_menu() {
+    local choice
+    while true; do
+        menu_submenu_begin "$(gettext "Rill Xray AI 运维助手 / 校验与诊断")"
+        menu_item 1 "$(gettext "校验 AI 判断引擎")"
+        menu_item 2 "$(gettext "运行 AI 故障诊断")"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read choice 2
+        echo
+        case $choice in
+            0) return ;;
+            1) rxa_verify_display; menu_pause ;;
+            2) rxa_diagnose_display; menu_pause ;;
+        esac
+    done
+}
+
 rxa_menu() {
     local choice
     scripts_dir=${scripts_dir:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)}
     while true; do
         menu_submenu_begin "$(gettext "Rill Xray AI 运维助手")"
+        menu_row "$(gettext "本地 AI 运维助手：实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议。")"
+        menu_row "$(gettext "• 监控：实时观测服务与配置状态")"
+        menu_row "$(gettext "• 诊断：定位故障原因，附置信度建议")"
+        menu_row "$(gettext "• 模式：智能判断 / 仅观察 / 安全停用")"
+        menu_row "$(rxa_health_label)"
+        menu_blank
         menu_item 1 "$(gettext "查看 AI 判断状态")"
-        menu_item 2 "$(gettext "安装或修复 AI 判断引擎")"
-        menu_item 3 "$(gettext "开启 AI 智能判断")"
-        menu_item 4 "$(gettext "切换到 AI 观察模式")"
-        menu_item 5 "$(gettext "安全停用 AI 判断")"
-        menu_item 6 "$(gettext "校验 AI 判断引擎")"
-        menu_item 7 "$(gettext "运行 AI 故障诊断")"
-        menu_item 8 "$(gettext "卸载 Rill AI 引擎")"
+        menu_item 2 "$(gettext "切换工作模式")"
+        menu_item 3 "$(gettext "校验与诊断")"
+        menu_blank
+        menu_item 4 "$(gettext "安装或修复 AI 判断引擎")"
+        menu_item 5 "$(gettext "卸载 Rill AI 引擎")"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
-        menu_read choice 8
+        menu_read choice 5
+        echo
         case $choice in
             0) return ;;
             1) rxa_status_display; menu_pause ;;
-            2) rxa_install_with_notice; menu_pause ;;
-            3) rxa_apply_mode_display normal; menu_pause ;;
-            4) rxa_apply_mode_display observe-only; menu_pause ;;
-            5) rxa_apply_mode_display safe-disabled; menu_pause ;;
-            6) rxa_verify_display; menu_pause ;;
-            7) rxa_diagnose_display; menu_pause ;;
-            8) bash "${scripts_dir}/rill_xray_agent_uninstall.sh"; return ;;
+            2) rxa_mode_menu ;;
+            3) rxa_verify_diag_menu ;;
+            4) rxa_install_with_notice; menu_pause ;;
+            5) bash "${scripts_dir}/rill_xray_agent_uninstall.sh"; return ;;
         esac
     done
 }
