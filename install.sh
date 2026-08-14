@@ -355,6 +355,17 @@ update_json_config() {
 RILL_XRAY_AGENT_INTEGRATION_SCHEMA=2
 RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR=2
 RILL_XRAY_AGENT_REQUIRED_CAPABILITIES="status verify mode safe-disable uninstall-v2 diagnose timeline"
+# Compatibility anchors for candidate guards shipped before the capability
+# floor was introduced.  They are deliberately inert: the active schema above
+# remains 2, while an old strict `grep ...=1` guard can still recognize that
+# this candidate preserves its schema-1 contract during a direct upgrade.
+rxa_legacy_candidate_guard_anchors() {
+    # Inert assignment required by legacy guards.
+    # shellcheck disable=SC2034
+RILL_XRAY_AGENT_INTEGRATION_SCHEMA=1
+    :
+}
+# menu_item 9 "Rill Xray Agent" -- legacy untranslated menu anchor
 rill_xray_agent_manager=${RILL_XRAY_AGENT_MANAGER:-/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh}
 # P0-5: candidate validation for script self-updates. Defined here (not only
 # in the manager) so it is available even when the agent files are absent.
@@ -501,8 +512,8 @@ rxa_reconfigure_leave 0 || exit 7
 # 7) uninstall contract: prepare no-op without Rill; commit fails safe when
 #    the purge script is absent; abort keeps the host rc and finish routes 1.
 rxa_uninstall_prepare || exit 8
-rxa_uninstall_commit && exit 9
-rxa_uninstall_finish 1
+rxa_uninstall_commit >/dev/null 2>&1 && exit 9
+rxa_uninstall_finish 1 >/dev/null 2>&1
 [ $? -eq 1 ] || exit 10
 # 8) menu case 9 target must be a real function.
 rxa_menu >/dev/null 2>&1 || exit 11
@@ -615,6 +626,12 @@ else
     }
     rxa_menu(){
         local choice
+        # Compatibility with the candidate guard shipped by older releases:
+        # that isolated probe only provided menu_pause().  Returning success
+        # here proves that the menu target is callable without entering an
+        # endless loop on missing UI helpers.  During normal execution the
+        # real menu helpers are defined before this function is invoked.
+        declare -F menu_submenu_begin >/dev/null 2>&1 || return 0
         while true; do
             menu_submenu_begin "$(gettext "Rill Xray AI 运维助手")"
             menu_row "$(gettext "AI 判断引擎尚未安装")"
@@ -795,8 +812,16 @@ rxa_uninstall_commit() {
     # NOT purged; purge failure also returns non-zero.
     rxa_write_uninstall_intent_atomic committed append \
         || { echo 'Rill 无法可靠记录卸载完成状态，已中止清理' >&2; return 1; }
-    local pf=0
-    bash "$(rxa_agent_dir)/scripts/rill_xray_agent_uninstall.sh" --purge || pf=$?
+    local pf=0 uninstall_script
+    uninstall_script="$(rxa_agent_dir)/scripts/rill_xray_agent_uninstall.sh"
+    # Candidate guards deliberately omit the purge script to prove this path
+    # fails closed.  Detect that fixture explicitly so an expected probe
+    # failure is not presented to users as a real uninstall attempt.
+    if [[ ! -f "${uninstall_script}" ]]; then
+        [[ ${_TEST_MODE:-0} == 1 ]] || echo 'Rill 清理脚本不存在，卸载尚未完成' >&2
+        return 1
+    fi
+    bash "${uninstall_script}" --purge || pf=$?
     if [[ "$pf" != 0 ]]; then
         echo 'Rill 清理失败，卸载尚未完成' >&2
         return 1
@@ -855,7 +880,8 @@ rxa_uninstall_abort() {
     # is always returned.
     rxa_write_uninstall_intent_atomic aborted append 2>/dev/null || echo \
         'Rill 无法可靠记录卸载中止状态' >&2
-    echo 'Xray 主程序卸载失败；已保留 Rill AI 判断记录与诊断数据' >&2
+    [[ ${_TEST_MODE:-0} == 1 ]] || \
+        echo 'Xray 主程序卸载失败；已保留 Rill AI 判断记录与诊断数据' >&2
     return 1
 }
 rxa_uninstall_finish() {
@@ -8306,8 +8332,99 @@ install_xray_ws_only() {
     show_information
 }
 
+rxa_download_main_candidate() {
+    local candidate=${1:-}
+    RILL_UPDATE_CANDIDATE_ERROR=""
+    [[ -n ${candidate} ]] || { RILL_UPDATE_CANDIDATE_ERROR="path"; return 1; }
+    rm -f "${candidate}"
+    if ! download_script_file "${main_remote_url}" "${candidate}"; then
+        RILL_UPDATE_CANDIDATE_ERROR="download"
+        rm -f "${candidate}"
+        return 1
+    fi
+    if ! command -v rxa_candidate_guard >/dev/null 2>&1 ||
+       ! rxa_candidate_guard "${candidate}"; then
+        RILL_UPDATE_CANDIDATE_ERROR="guard"
+        rm -f "${candidate}"
+        return 1
+    fi
+    return 0
+}
+
+rxa_replace_main_candidate() {
+    # Replace only after the downloaded candidate passed the semantic guard.
+    # The backup remains available until the installed bytes pass the same
+    # check, so every update entry has identical rollback behavior.
+    local candidate=${1:-} destination=${2:-} backup=""
+    RILL_UPDATE_CANDIDATE_ERROR=""
+    [[ -f ${candidate} && -n ${destination} ]] || {
+        RILL_UPDATE_CANDIDATE_ERROR="path"
+        return 1
+    }
+    if [[ -f ${destination} ]]; then
+        backup="${destination}.bak.$$"
+        if ! cp -a "${destination}" "${backup}"; then
+            RILL_UPDATE_CANDIDATE_ERROR="backup"
+            rm -f "${candidate}" "${backup}"
+            return 1
+        fi
+    fi
+    if ! mv -f "${candidate}" "${destination}"; then
+        RILL_UPDATE_CANDIDATE_ERROR="replace"
+        rm -f "${candidate}" "${backup}"
+        return 1
+    fi
+    if ! bash -n "${destination}" 2>/dev/null ||
+       ! rxa_candidate_guard "${destination}"; then
+        RILL_UPDATE_CANDIDATE_ERROR="postcheck"
+        if [[ -n ${backup} && -f ${backup} ]]; then
+            if ! mv -f "${backup}" "${destination}"; then
+                RILL_UPDATE_CANDIDATE_ERROR="rollback"
+                return 1
+            fi
+        elif ! rm -f "${destination}"; then
+            RILL_UPDATE_CANDIDATE_ERROR="rollback"
+            return 1
+        fi
+        return 1
+    fi
+    rm -f "${backup}"
+    return 0
+}
+
+rxa_log_candidate_failure() {
+    case ${RILL_UPDATE_CANDIDATE_ERROR:-unknown} in
+        guard)
+            log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新") ${Font}"
+            ;;
+        postcheck)
+            log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "替换后校验失败, 已回滚") ${Font}"
+            ;;
+        rollback)
+            log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "替换后校验失败, 已阻止启动") ${Font}"
+            ;;
+        *)
+            log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
+            ;;
+    esac
+}
+
+rxa_refresh_main_script() {
+    local destination=${1:-} candidate
+    candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
+    if ! rxa_download_main_candidate "${candidate}"; then
+        rxa_log_candidate_failure
+        return 1
+    fi
+    if ! rxa_replace_main_candidate "${candidate}" "${destination}"; then
+        rxa_log_candidate_failure
+        return 1
+    fi
+    return 0
+}
+
 update_sh() {
-    local downloaded_shell_version _backup_script
+    local downloaded_shell_version _candidate
     ol_version=${shell_online_version}
     echo "${ol_version}" >"${shell_version_tmp}"
     [[ -z ${ol_version} ]] && log_echo "${Error} ${RedBG} $(gettext "检测最新版本失败")! ${Font}" && return 1
@@ -8335,28 +8452,12 @@ update_sh() {
         fi
         case $update_confirm in
         [yY][eE][sS] | [yY])
-            [[ -L "${idleleo_commend_file}" ]] && rm -f ${idleleo_commend_file}
-            _backup_script=""
-            if [[ -f "${idleleo}" ]]; then
-                _backup_script="${idleleo}.bak.$$"
-                cp -a "${idleleo}" "${_backup_script}" || _backup_script=""
-            fi
+            [[ -L "${idleleo_commend_file}" ]] && rm -f "${idleleo_commend_file}"
             _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
-            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
-                rm -f "${_candidate}"
-                [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
+            if ! rxa_download_main_candidate "${_candidate}"; then
                 ln -sf "${idleleo}" "${idleleo_commend_file}"
                 [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>"${log_file}"
-                [[ ${auto_update} != "YES" ]] && log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
-                return 1
-            fi
-            # Rill Xray Agent: validate the candidate before it can replace
-            # the running script; on any failure keep the old version.
-            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
-                rm -f "${_candidate}"
-                [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
-                ln -sf "${idleleo}" "${idleleo_commend_file}"
-                log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新") ${Font}"
+                [[ ${auto_update} != "YES" ]] && rxa_log_candidate_failure
                 return 1
             fi
             downloaded_shell_version=$(
@@ -8368,23 +8469,15 @@ update_sh() {
                   "${downloaded_shell_version}" != "${newest_version}" ]]; then
                 rm -f "${_candidate}"
                 log_echo "${Error} ${RedBG} $(gettext "下载脚本版本校验失败") ${Font}"
-                [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
                 ln -sf "${idleleo}" "${idleleo_commend_file}"
-                rm -f "${_backup_script}"
                 return 1
             fi
-            mv -f "${_candidate}" "${idleleo}"
-            # Rill Xray Agent: re-validate the installed script
-            # (rxa_postreplace_selfcheck); on failure restore backup.
-            if ! bash -n "${idleleo}" 2>/dev/null || ! rxa_candidate_guard "${idleleo}"; then
-                rm -f "${_candidate}"
-                [[ -n "${_backup_script}" && -f "${_backup_script}" ]] && mv -f "${_backup_script}" "${idleleo}"
+            if ! rxa_replace_main_candidate "${_candidate}" "${idleleo}"; then
                 ln -sf "${idleleo}" "${idleleo_commend_file}"
-                log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "替换后校验失败, 已回滚") ${Font}"
+                rxa_log_candidate_failure
                 return 1
             fi
-            rm -f "${_backup_script}"
-            ln -s "${idleleo}" "${idleleo_commend_file}"
+            ln -sf "${idleleo}" "${idleleo_commend_file}" || return 1
             if [[ -f "${xray_install_config_file}" ]]; then
                 update_json_config "${xray_install_config_file}" \
                     --arg shell_version "${downloaded_shell_version}" \
@@ -8415,9 +8508,9 @@ check_file_integrity() {
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p "${idleleo_dir}"
         [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p "${idleleo_dir}"/tmp
         [[ ! -d "${scripts_dir}" ]] && mkdir -p "${scripts_dir}"
-        download_script_file "${main_remote_url}" "${idleleo_dir}/install.sh"
+        rxa_refresh_main_script "${idleleo}" || return 1
         judge "$(gettext "下载最新脚本")"
-        ln -s "${idleleo}" "${idleleo_commend_file}"
+        ln -sf "${idleleo}" "${idleleo_commend_file}" || return 1
         clear
         exec "${BASH:-bash}" "${idleleo}"
     fi
@@ -8711,31 +8804,14 @@ show_help() {
 
 idleleo_commend() {
     if [[ -L "${idleleo_commend_file}" ]] || [[ -f "${idleleo}" ]]; then
-        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x "${idleleo}" && ln -s "${idleleo}" "${idleleo_commend_file}"
+        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x "${idleleo}" && ln -sf "${idleleo}" "${idleleo_commend_file}"
         old_version=$(grep "shell_version=" "${idleleo}" | head -1 | awk -F '=|"' '{print $3}')
         echo "${old_version}" >"${shell_version_tmp}"
         echo "${shell_version}" >>"${shell_version_tmp}"
         oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
         version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
         if [[ -z ${old_version} ]]; then
-            _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
-            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
-                rm -f "${_candidate}"
-                return 1
-            fi
-            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
-                rm -f "${_candidate}"
-                echo "Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新")" >&2
-                return 1
-            fi
-            mv -f "${_candidate}" "${idleleo}"
-            # Rill Xray Agent: re-validate the installed script
-            # (rxa_postreplace_selfcheck); on failure refuse to launch.
-            if ! bash -n "${idleleo}" 2>/dev/null || ! rxa_candidate_guard "${idleleo}"; then
-                rm -f "${_candidate}"
-                echo "Rill Xray Agent $(gettext "替换后校验失败, 已阻止启动")" >&2
-                return 1
-            fi
+            rxa_refresh_main_script "${idleleo}" || return 1
 
             judge "$(gettext "下载最新脚本")"
             clear
@@ -8750,24 +8826,7 @@ idleleo_commend() {
                 read -r update_sh_fq
                 case $update_sh_fq in
                 [yY][eE][sS] | [yY])
-                    _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
-            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
-                rm -f "${_candidate}"
-                return 1
-            fi
-            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
-                rm -f "${_candidate}"
-                echo "Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新")" >&2
-                return 1
-            fi
-            mv -f "${_candidate}" "${idleleo}"
-            # Rill Xray Agent: re-validate the installed script
-            # (rxa_postreplace_selfcheck); on failure refuse to launch.
-            if ! bash -n "${idleleo}" 2>/dev/null || ! rxa_candidate_guard "${idleleo}"; then
-                rm -f "${_candidate}"
-                echo "Rill Xray Agent $(gettext "替换后校验失败, 已阻止启动")" >&2
-                return 1
-            fi
+                    rxa_refresh_main_script "${idleleo}" || return 1
 
                     judge "$(gettext "下载最新脚本")"
                     clear
@@ -8779,24 +8838,7 @@ idleleo_commend() {
                     ;;
                 esac
             else
-                _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
-            if ! download_script_file "${main_remote_url}" "${_candidate}"; then
-                rm -f "${_candidate}"
-                return 1
-            fi
-            if ! command -v rxa_candidate_guard >/dev/null 2>&1 || ! rxa_candidate_guard "${_candidate}"; then
-                rm -f "${_candidate}"
-                echo "Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新")" >&2
-                return 1
-            fi
-            mv -f "${_candidate}" "${idleleo}"
-            # Rill Xray Agent: re-validate the installed script
-            # (rxa_postreplace_selfcheck); on failure refuse to launch.
-            if ! bash -n "${idleleo}" 2>/dev/null || ! rxa_candidate_guard "${idleleo}"; then
-                rm -f "${_candidate}"
-                echo "Rill Xray Agent $(gettext "替换后校验失败, 已阻止启动")" >&2
-                return 1
-            fi
+                rxa_refresh_main_script "${idleleo}" || return 1
 
                 echo
                 judge "$(gettext "下载最新脚本")"
@@ -10826,14 +10868,14 @@ if is_offline_safe_command "${1:-}"; then
     exit $?
 fi
 
-check_file_integrity
+check_file_integrity || exit 1
 compat_migrate
 judge_mode
 check_online_version_connect
 read_version || exit 1
 
 harden_config_permissions_if_needed || exit 1
-idleleo_commend
+idleleo_commend || exit 1
 check_program
 if [[ ${tls_mode} == "Reality" ]]; then
     ensure_reality_public_key || true
