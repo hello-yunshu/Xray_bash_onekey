@@ -6,9 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
-"issues\n"
-"POT-Creation-Date: 2026-08-14 10:07+0000\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
+"POT-Creation-Date: 2026-08-14 11:11+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -85,8 +84,8 @@ msgstr ""
 #: install.sh:571 scripts/rill_xray_agent_manager.sh:402
 msgid "安装后默认仅启用 AI 观察模式，路由辅助保持关闭。"
 msgstr ""
-"پس از نصب، به‌طور پیش‌فرض تنها حالت مشاهده AI فعال است و کمک روترینگ غیرفعال "
-"می‌ماند."
+"پس از نصب، به‌طور پیش‌فرض تنها حالت مشاهده AI فعال است و کمک روترینگ غیرفعال"
+" می‌ماند."
 
 #: install.sh:575 scripts/rill_xray_agent_manager.sh:406
 msgid "确认了解测试风险并继续安装吗？ [y/N]: "
@@ -114,8 +113,8 @@ msgstr "خدمات: اجرا نمی‌شود"
 msgid "路由辅助: 关闭"
 msgstr "کمک رانندگی: خاموش"
 
-#: install.sh:636 install.sh:10738 install.sh:10764
-#: scripts/rill_xray_agent_manager.sh:605
+#: install.sh:636 install.sh:10738 install.sh:10775
+#: scripts/rill_xray_agent_manager.sh:723
 msgid "Rill Xray AI 运维助手"
 msgstr "Rill Xray AI کمک‌کنندهٔ عملیات و نگهداری"
 
@@ -136,7 +135,9 @@ msgstr "نصب موتور استدلال AI"
 #: scripts/fail2ban_manager.sh:816 scripts/fail2ban_manager.sh:851
 #: scripts/fail2ban_manager.sh:886 scripts/fail2ban_manager.sh:911
 #: scripts/fail2ban_manager.sh:1009 scripts/fail2ban_manager.sh:1049
-#: scripts/rill_xray_agent_manager.sh:615 scripts/traffic_blocker.sh:268
+#: scripts/rill_xray_agent_manager.sh:686
+#: scripts/rill_xray_agent_manager.sh:707
+#: scripts/rill_xray_agent_manager.sh:737 scripts/traffic_blocker.sh:268
 #: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:700
 #: scripts/traffic_blocker.sh:807 scripts/traffic_blocker.sh:823
 msgid "返回"
@@ -145,8 +146,8 @@ msgstr "بازگشت"
 #: install.sh:655
 msgid "Rill AI 判断引擎安装失败，请检查上方错误信息。"
 msgstr ""
-"Rill AI نصب موتور تشخیص با شکست همراه بود، لطفاً اطلاعات خطا را در بالا بررسی "
-"کنید."
+"Rill AI نصب موتور تشخیص با شکست همراه بود، لطفاً اطلاعات خطا را در بالا "
+"بررسی کنید."
 
 #: install.sh:1035
 msgid "无法检查 apt/dpkg 锁: 缺少 fuser 或 lsof"
@@ -167,8 +168,8 @@ msgstr "سیستم فعلی عبارت است از"
 #: install.sh:1085
 msgid "apt/dpkg 锁等待超时, 请稍后重试或手动检查占用进程"
 msgstr ""
-"apt/dpkg زمان انتظار قفل گذشته است، لطفاً بعداً دوباره تلاش کنید یا پروسه‌های "
-"درگیر را به صورت دستی بررسی کنید"
+"apt/dpkg زمان انتظار قفل گذشته است، لطفاً بعداً دوباره تلاش کنید یا "
+"پروسه‌های درگیر را به صورت دستی بررسی کنید"
 
 #: install.sh:1093
 msgid "不在支持的系统列表内, 安装中断"
@@ -252,7 +253,7 @@ msgstr "نصب"
 #: install.sh:3574 install.sh:4276 install.sh:4284 install.sh:4825
 #: install.sh:4880 install.sh:4971 install.sh:5245 install.sh:5249
 #: install.sh:6577 install.sh:6581 install.sh:6586 install.sh:9109
-#: install.sh:9141 install.sh:10115 install.sh:10124 install.sh:10832
+#: install.sh:9141 install.sh:10115 install.sh:10124 install.sh:10843
 #: scripts/file_manager.sh:366 scripts/traffic_blocker.sh:514
 #: scripts/traffic_blocker.sh:980
 msgid "失败"
@@ -443,7 +444,8 @@ msgstr "پورت‌های مرتبط با فایروال را باز کنید"
 
 #: install.sh:2282
 msgid "若修改配置, 请注意关闭防火墙相关端口"
-msgstr "اگر تنظیمات را تغییر می‌دهید، لطفاً پورت‌های مربوط به فایروال را ببندید"
+msgstr ""
+"اگر تنظیمات را تغییر می‌دهید، لطفاً پورت‌های مربوط به فایروال را ببندید"
 
 #: install.sh:2283 install.sh:8773 install.sh:8795 install.sh:8796
 #: install.sh:10534 install.sh:10555 install.sh:10658
@@ -567,7 +569,7 @@ msgstr "یک نام دامنه وارد کنید"
 #: install.sh:2575 install.sh:3259 install.sh:3266 install.sh:3348
 #: install.sh:5725 install.sh:5828 install.sh:5950 install.sh:5958
 #: install.sh:5967 install.sh:6005 install.sh:6577 install.sh:6581
-#: install.sh:6586 install.sh:10832
+#: install.sh:6586 install.sh:10843
 msgid "配置修改"
 msgstr "تغییر تنظیمات"
 
@@ -592,8 +594,8 @@ msgstr "دانلود ناموفق بود، لطفاً نسخه جدید را ب�
 msgid "版本过旧, 建议更新"
 msgstr "نسخه بسیار قدیمی است، توصیه می‌شود به روز شود"
 
-#: install.sh:2639 scripts/fail2ban_manager.sh:1169 scripts/file_manager.sh:335
-#: scripts/traffic_blocker.sh:1216
+#: install.sh:2639 scripts/fail2ban_manager.sh:1169
+#: scripts/file_manager.sh:335 scripts/traffic_blocker.sh:1216
 msgid "是否下载并安装新版本"
 msgstr "آیا نسخه جدید را دانلود و نصب می‌کنید؟"
 
@@ -699,8 +701,8 @@ msgstr "در حال نصب است"
 #: install.sh:3431
 msgid "若更新无效, 建议直接卸载再安装"
 msgstr ""
-"اگر به‌روزرسانی نتیجه‌ای نداشت، پیشنهاد می‌شود مستقیماً از بین ببرید و دوباره "
-"نصب کنید"
+"اگر به‌روزرسانی نتیجه‌ای نداشت، پیشنهاد می‌شود مستقیماً از بین ببرید و "
+"دوباره نصب کنید"
 
 #: install.sh:3432
 msgid "部分新功能需要重新安装才可生效"
@@ -741,8 +743,8 @@ msgstr "عملکرد برگشت انجام نشده است"
 #: install.sh:3463
 msgid "更新失败且未回滚, 当前服务可能不可用, 请手动检查"
 msgstr ""
-"به‌روزرسانی با thất ناموفق بوده و عقب‌نشینی نکرده است، خدمات فعلی ممکن است در "
-"دسترس نباشد، لطفاً به صورت دستی بررسی کنید"
+"به‌روزرسانی با thất ناموفق بوده و عقب‌نشینی نکرده است، خدمات فعلی ممکن است "
+"در دسترس نباشد، لطفاً به صورت دستی بررسی کنید"
 
 #: install.sh:3465
 msgid "高优先级错误: Xray 服务已停止"
@@ -825,12 +827,10 @@ msgid "直接拒绝异常 TLS 连接"
 msgstr "پذیرفتن مستقیم اتصالات نامتعارف TLS"
 
 #: install.sh:3668
-msgid ""
-"第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了"
-"解含义, 请使用默认隔离策略。"
+msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
 msgstr ""
-"گزینه ۲ نیازمند این است که شما دامنه خود را داشته باشید و رکورد A/AAAA آن به "
-"IP عمومی سرور خودتان اشاره کند. اگر معنای آن را نمی‌دانید، از روش جدا سازی "
+"گزینه ۲ نیازمند این است که شما دامنه خود را داشته باشید و رکورد A/AAAA آن به"
+" IP عمومی سرور خودتان اشاره کند. اگر معنای آن را نمی‌دانید، از روش جدا سازی "
 "پیش فرض استفاده کنید."
 
 #: install.sh:3670 install.sh:9931
@@ -866,8 +866,8 @@ msgstr "نام دامنه decoy را وارد کنید"
 #: install.sh:3774
 msgid "无法解析该域名的 A/AAAA 记录, 请检查 DNS 是否已生效"
 msgstr ""
-"رکورد A/AAAA برای این نام دامنه قابل تحلیل نیست، لطفاً بررسی کنید که آیا DNS "
-"فعال شده است"
+"رکورد A/AAAA برای این نام دامنه قابل تحلیل نیست، لطفاً بررسی کنید که آیا DNS"
+" فعال شده است"
 
 #: install.sh:3778
 msgid "该域名 A/AAAA 记录"
@@ -898,8 +898,8 @@ msgstr "پیکربندی سایت decoy به پایان رسیده است"
 #: install.sh:3827
 msgid "当前使用自签证书, 浏览器访问会有证书提示。高级用户可自行替换"
 msgstr ""
-"در حال حاضر از گواهینامه خود-صادرشده استفاده می‌شود و برای دسترسی از مرورگر، "
-"پیام گواهینامه نمایش داده می‌شود. کاربران پیشرفته می‌توانند به‌صورت مستقل "
+"در حال حاضر از گواهینامه خود-صادرشده استفاده می‌شود و برای دسترسی از مرورگر،"
+" پیام گواهینامه نمایش داده می‌شود. کاربران پیشرفته می‌توانند به‌صورت مستقل "
 "جایگزینی انجام دهند."
 
 #: install.sh:3827
@@ -1058,7 +1058,7 @@ msgstr ""
 msgid "Nginx 分层权限验证失败"
 msgstr "Nginx اعتبارسنجی دسترسی سطح‌بندی شده ناموفق بود"
 
-#: install.sh:4386 scripts/rill_xray_agent_manager.sh:550
+#: install.sh:4386 scripts/rill_xray_agent_manager.sh:589
 msgid "Nginx 配置校验失败"
 msgstr "Nginx اعتبارسنجی تنظیمات ناموفق بود"
 
@@ -1117,7 +1117,8 @@ msgstr "به tested_version بازگردانده شد"
 #: install.sh:4609
 msgid "旧版本记录恢复失败, 继续 tested_version 恢复"
 msgstr ""
-"بازیابی نسخه‌های قدیمی با شکست مواجه شد، بازیابی را ادامه دهید tested_version"
+"بازیابی نسخه‌های قدیمی با شکست مواجه شد، بازیابی را ادامه دهید "
+"tested_version"
 
 #: install.sh:4622
 msgid "所有回滚层均失败"
@@ -1126,8 +1127,8 @@ msgstr "تمام لایه‌های برگشتی شکست خوردند"
 #: install.sh:4625
 msgid "更新失败且所有回滚层均失败, 请手动检查"
 msgstr ""
-"به‌روزرسانی موفق نبوده و تمام لایه‌های برگشتی هم شکست خورده‌اند، لطفاً به صورت "
-"دستی بررسی کنید"
+"به‌روزرسانی موفق نبوده و تمام لایه‌های برگشتی هم شکست خورده‌اند، لطفاً به "
+"صورت دستی بررسی کنید"
 
 #: install.sh:4650
 msgid "二进制执行失败"
@@ -1225,7 +1226,8 @@ msgstr "برای نسخه جدیدترین آماده شده است"
 
 #: install.sh:4928
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
-msgstr "تنظیم برنامه‌های خودکار به‌روزرسانی پس‌زمینه (شامل: اسکریپت/xray/nginx)"
+msgstr ""
+"تنظیم برنامه‌های خودکار به‌روزرسانی پس‌زمینه (شامل: اسکریپت/xray/nginx)"
 
 #: install.sh:4929
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -1272,7 +1274,8 @@ msgstr "نصب اسکریپت تولید گواهینامه SSL"
 
 #: install.sh:4981
 msgid "检测到原域名配置存在, 是否跳过域名设置"
-msgstr "تنظیمات دامنه اصلی قبلی شناسایی شده است، آیا تنظیمات دامنه را رد کنید؟"
+msgstr ""
+"تنظیمات دامنه اصلی قبلی شناسایی شده است، آیا تنظیمات دامنه را رد کنید؟"
 
 #: install.sh:4996 install.sh:5032 install.sh:5085 install.sh:5118
 msgid "无法获取公网IP地址"
@@ -1314,7 +1317,8 @@ msgstr ""
 #: install.sh:5023
 msgid "请为服务器商提供的域名添加 CNAME 记录"
 msgstr ""
-"لطفاً رکورد CNAME را برای نام دامنه ارائه شده توسط ارائه دهنده سرور اضافه کنید"
+"لطفاً رکورد CNAME را برای نام دامنه ارائه شده توسط ارائه دهنده سرور اضافه "
+"کنید"
 
 #: install.sh:5035
 msgid "域名 DNS 解析 IP"
@@ -1331,12 +1335,13 @@ msgstr "نام دامنه DNS با IP تحلیل می‌شود و با اینت�
 #: install.sh:5041
 msgid "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray"
 msgstr ""
-"لطفاً مطمئن شوید که رکورد A/AAAA درست به نام دامنه اضافه شده است، در غیر این "
-"صورت Xray قابلیت استفاده صحیح نخواهد داشت"
+"لطفاً مطمئن شوید که رکورد A/AAAA درست به نام دامنه اضافه شده است، در غیر این"
+" صورت Xray قابلیت استفاده صحیح نخواهد داشت"
 
 #: install.sh:5042
 msgid "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"
-msgstr "نام دامنه DNS وضوح IP با شبکه عمومی IP مطابقت ندارد، لطفاً انتخاب کنید"
+msgstr ""
+"نام دامنه DNS وضوح IP با شبکه عمومی IP مطابقت ندارد، لطفاً انتخاب کنید"
 
 #: install.sh:5043 install.sh:5049
 msgid "继续安装"
@@ -1388,7 +1393,8 @@ msgstr "شماره پورت مشغول شناسایی شد"
 
 #: install.sh:5216
 msgid "脚本不会自动终止占用该端口的进程"
-msgstr "اسکریپت به طور خودکار فرآیندی که از آن پورت استفاده می‌کند متوقف نمی‌کند"
+msgstr ""
+"اسکریپت به طور خودکار فرآیندی که از آن پورت استفاده می‌کند متوقف نمی‌کند"
 
 #: install.sh:5217
 msgid "请更换端口或自行停止对应服务后重试"
@@ -1569,8 +1575,8 @@ msgstr "با استفاده از تنظیمات خوانده‌شده، ادام
 #: install.sh:5639
 msgid "已删除不完整配置文件, 将使用标准模板重建"
 msgstr ""
-"پرونده تنظیمات ناقص حذف شد و با استفاده از قالب استاندارد دوباره ساخته خواهد "
-"شد"
+"پرونده تنظیمات ناقص حذف شد و با استفاده از قالب استاندارد دوباره ساخته خواهد"
+" شد"
 
 #: install.sh:5655
 msgid "当前配置摘要"
@@ -1596,8 +1602,8 @@ msgstr "مسیر"
 #: install.sh:5676
 msgid "可选择需要修改的项目 (未选择的保持原值)"
 msgstr ""
-"می‌توانید پروژه‌های مورد نظر را انتخاب کنید (پروژه‌های انتخاب نشده، مقادیر قبلی "
-"خود را حفظ می‌کنند)"
+"می‌توانید پروژه‌های مورد نظر را انتخاب کنید (پروژه‌های انتخاب نشده، مقادیر "
+"قبلی خود را حفظ می‌کنند)"
 
 #: install.sh:5677
 msgid "修改主端口"
@@ -1699,8 +1705,8 @@ msgstr ""
 #: install.sh:6105
 msgid "老版本请及时删除 废弃的 改版证书自动更新"
 msgstr ""
-"نسخه قدیمی را به موقع حذف کنید، گواهینامه‌های منسوخ شده به صورت خودکار به روز "
-"می‌شوند"
+"نسخه قدیمی را به موقع حذف کنید، گواهینامه‌های منسوخ شده به صورت خودکار به "
+"روز می‌شوند"
 
 #: install.sh:6106
 msgid "已设置改版证书自动更新"
@@ -1709,8 +1715,8 @@ msgstr "به‌روزرسانی خودکار گواهینامه‌های باز�
 #: install.sh:6107
 msgid "是否需要删除改版证书自动更新 (请删除)"
 msgstr ""
-"آیا نیاز است که به‌روزرسانی خودکار گواهینامه بازطراحی شده حذف شود (لطفاً حذف "
-"کنید)"
+"آیا نیاز است که به‌روزرسانی خودکار گواهینامه بازطراحی شده حذف شود (لطفاً حذف"
+" کنید)"
 
 #: install.sh:6114
 msgid "删除改版证书自动更新"
@@ -1822,7 +1828,8 @@ msgstr "لینک اشتراک‌گذاری را تولید کنید"
 #: install.sh:6973
 msgid "无法获取网卡, 将监控所有网卡"
 msgstr ""
-"نمی‌توان کارت شبکه را دریافت کرد، تمام کارتهای شبکه تحت نظارت قرار خواهد گرفت"
+"نمی‌توان کارت شبکه را دریافت کرد، تمام کارتهای شبکه تحت نظارت قرار خواهد "
+"گرفت"
 
 #: install.sh:6975
 msgid "监控网卡"
@@ -1839,12 +1846,13 @@ msgstr "برای خروج از iftop، دکمه q را فشار دهید"
 #: install.sh:6997
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr ""
-"در حال حاضر، استاندارد لینک اشتراک به عنوان مرحله آزمایشی است و لطفاً خودتان "
-"تصمیم بگیرید که آیا مناسب است یا نه"
+"در حال حاضر، استاندارد لینک اشتراک به عنوان مرحله آزمایشی است و لطفاً خودتان"
+" تصمیم بگیرید که آیا مناسب است یا نه"
 
 #: install.sh:6999
 msgid "当前 xHTTP 仅支持 stream-one 和 stream-up 模式"
-msgstr "در حال حاضر xHTTP تنها از روش‌های stream-one و stream-up پشتیبانی می‌کند"
+msgstr ""
+"در حال حاضر xHTTP تنها از روش‌های stream-one و stream-up پشتیبانی می‌کند"
 
 #: install.sh:7000
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
@@ -2016,7 +2024,8 @@ msgstr "آیا نمایش کاربر ادامه یابد"
 #: install.sh:7583
 msgid "即将添加用户, 一次仅能添加一个"
 msgstr ""
-"کاربران به زودی اضافه می‌شوند، اما فقط یک کاربر در هر بار قابل اضافه کردن است"
+"کاربران به زودی اضافه می‌شوند، اما فقط یک کاربر در هر بار قابل اضافه کردن "
+"است"
 
 #: install.sh:7593 install.sh:7603
 msgid "请选择添加用户使用的协议"
@@ -2218,8 +2227,8 @@ msgstr ""
 "نسخه‌ی اسکریپت تغییرات قابل توجهی داشته است، لطفاً در صورت عدم عملکرد صحیح "
 "خدمات، آن را حذف کرده و دوباره نصب کنید"
 
-#: install.sh:8498 scripts/fail2ban_manager.sh:1188 scripts/file_manager.sh:354
-#: scripts/traffic_blocker.sh:1235
+#: install.sh:8498 scripts/fail2ban_manager.sh:1188
+#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1235
 msgid "当前已经是最新版本"
 msgstr "در حال حاضر، این آخرین نسخه است"
 
@@ -2240,8 +2249,8 @@ msgstr ""
 #: install.sh:8651 install.sh:10012
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
-"این روش فقط برای انتقال ترافیک استفاده می‌شود و در سایر موارد توصیه نمی‌شود. "
-"آیا می‌خواهید نصب کنید؟"
+"این روش فقط برای انتقال ترافیک استفاده می‌شود و در سایر موارد توصیه نمی‌شود."
+" آیا می‌خواهید نصب کنید؟"
 
 #: install.sh:8772 install.sh:8773 install.sh:8774 install.sh:8789
 #: install.sh:8794 install.sh:8798 install.sh:10035 install.sh:10040
@@ -2301,7 +2310,7 @@ msgstr "تنظیم مسدود کردن ترافیک Xray"
 msgid "显示帮助"
 msgstr "نمایش کمک"
 
-#: install.sh:8787 install.sh:10763
+#: install.sh:8787 install.sh:10774
 msgid "修改语言"
 msgstr "زبان را ویرایش کنید"
 
@@ -2368,7 +2377,8 @@ msgstr "نسخه جدیدترین"
 msgid "版本未知"
 msgstr "نسخه ناشناخته"
 
-#: install.sh:8893 install.sh:8900
+#: install.sh:8893 install.sh:8900 install.sh:10743
+#: scripts/rill_xray_agent_manager.sh:517
 msgid "运行中"
 msgstr "در حال اجرا"
 
@@ -2396,8 +2406,8 @@ msgstr "اسکریپت در حال نگهداری است.. لطفاً بعداً
 #: install.sh:9006
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
-"نمی‌توان نسخه آنلاین وابستگی مورد نیاز را تشخیص داد، لطفاً بعداً دوباره تلاش "
-"کنید"
+"نمی‌توان نسخه آنلاین وابستگی مورد نیاز را تشخیص داد، لطفاً بعداً دوباره تلاش"
+" کنید"
 
 #: install.sh:9023
 msgid "请输入数字"
@@ -2422,8 +2432,8 @@ msgstr "پیام خطا"
 #: install.sh:9105
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
 msgstr ""
-"ممکن است کامل بودن پشتیبان‌گیری تحت تأثیر قرار گرفته باشد، لطفاً اطلاعات خطا "
-"را بررسی کنید"
+"ممکن است کامل بودن پشتیبان‌گیری تحت تأثیر قرار گرفته باشد، لطفاً اطلاعات خطا"
+" را بررسی کنید"
 
 #: install.sh:9116
 msgid "请确保备份文件在目录"
@@ -2521,8 +2531,8 @@ msgstr "پس از بازگشت خدمات، Xray همچنان فعال است"
 #: install.sh:9591
 msgid "Xray 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
-"خدمت Xray پس از بازیابی همچنان توسط systemd به عنوان active بارگذاری می‌شود، "
-"اما سیستم اصلی این unit را ندارد"
+"خدمت Xray پس از بازیابی همچنان توسط systemd به عنوان active بارگذاری می‌شود،"
+" اما سیستم اصلی این unit را ندارد"
 
 #: install.sh:9595
 msgid "Xray 服务恢复后仍为 enabled, 但原系统无此 unit"
@@ -2548,13 +2558,14 @@ msgstr "Nginx پس از بازگشت خدمات همچنان فعال است"
 #: install.sh:9618
 msgid "Nginx 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
-"خدمت Nginx پس از بازیابی همچنان توسط systemd به عنوان active بارگذاری می‌شود، "
-"اما سیستم اصلی این unit را ندارد"
+"خدمت Nginx پس از بازیابی همچنان توسط systemd به عنوان active بارگذاری "
+"می‌شود، اما سیستم اصلی این unit را ندارد"
 
 #: install.sh:9622
 msgid "Nginx 服务恢复后仍为 enabled, 但原系统无此 unit"
 msgstr ""
-"پس از بازگشت خدمات Nginx همچنان enabled است، اما سیستم اصلی این unit را ندارد"
+"پس از بازگشت خدمات Nginx همچنان enabled است، اما سیستم اصلی این unit را "
+"ندارد"
 
 #: install.sh:9648 install.sh:9652
 msgid "ACME 定时任务未能恢复, 请手动检查"
@@ -2563,8 +2574,8 @@ msgstr "ACME وظیفه زمان‌بندی شده بازیابی نشد، لط�
 #: install.sh:9675
 msgid "ACME 定时任务删除后仍存在, 请手动检查"
 msgstr ""
-"ACME پس از حذف، وظیفه زمان‌بندی شده همچنان وجود دارد، لطفاً به صورت دستی بررسی "
-"کنید"
+"ACME پس از حذف، وظیفه زمان‌بندی شده همچنان وجود دارد، لطفاً به صورت دستی "
+"بررسی کنید"
 
 #: install.sh:9682
 msgid "恢复后验证失败, 请手动检查"
@@ -2582,11 +2593,11 @@ msgstr "Xray آزمایش تنظیمات ناموفق بود"
 msgid "Nginx 配置测试失败"
 msgstr "Nginx آزمایش تنظیمات ناموفق بود"
 
-#: install.sh:9709 scripts/rill_xray_agent_manager.sh:551
+#: install.sh:9709 scripts/rill_xray_agent_manager.sh:590
 msgid "Xray 服务未运行"
 msgstr "خدمت Xray در حال اجرا نیست"
 
-#: install.sh:9714 scripts/rill_xray_agent_manager.sh:552
+#: install.sh:9714 scripts/rill_xray_agent_manager.sh:591
 msgid "Nginx 服务未运行"
 msgstr "خدمت Nginx در حال اجرا نیست"
 
@@ -2622,8 +2633,8 @@ msgstr "آغاز به روزرسانی"
 #: install.sh:10477
 msgid "安装失败且自动恢复失败, 备份已保留, 请手动检查"
 msgstr ""
-"نصب شکست خورده و بازیابی اتوماتیک ناموفق بوده است، پشتیبان‌گیری حفظ شده است، "
-"لطفاً به صورت دستی بررسی کنید"
+"نصب شکست خورده و بازیابی اتوماتیک ناموفق بوده است، پشتیبان‌گیری حفظ شده است،"
+" لطفاً به صورت دستی بررسی کنید"
 
 #: install.sh:9968 install.sh:9983 install.sh:10003 install.sh:10026
 #: install.sh:10265 install.sh:10282 install.sh:10300 install.sh:10318
@@ -2688,10 +2699,10 @@ msgstr "بدون Nginx، بدون TLS"
 #: install.sh:10416
 msgid "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
 msgstr ""
-"حالت ONLY برای رله‌ها، بک‌اندهای متعادل‌سازی بار یا محیط‌هایی با پراکسی بالادستی "
-"موجود در نظر گرفته شده است"
+"حالت ONLY برای رله‌ها، بک‌اندهای متعادل‌سازی بار یا محیط‌هایی با پراکسی "
+"بالادستی موجود در نظر گرفته شده است"
 
-#: install.sh:10446 install.sh:10756
+#: install.sh:10446 install.sh:10767
 msgid "安装向导"
 msgstr "راهنمای نصب"
 
@@ -2709,11 +2720,11 @@ msgstr "مدیریت کاربران"
 msgid "用户"
 msgstr "کاربر"
 
-#: install.sh:10510 install.sh:10552 install.sh:10554 install.sh:10757
+#: install.sh:10510 install.sh:10552 install.sh:10554 install.sh:10768
 msgid "配置变更"
 msgstr "تغییر تنظیمات"
 
-#: install.sh:10572 install.sh:10758
+#: install.sh:10572 install.sh:10769
 msgid "查看信息"
 msgstr "اطلاعات را ببینید"
 
@@ -2745,7 +2756,7 @@ msgstr "مدت اعتبار گواهینامه"
 msgid "证书自动更新"
 msgstr "به‌روزرسانی خودکار گواهینامه"
 
-#: install.sh:10654 install.sh:10760
+#: install.sh:10654 install.sh:10771
 msgid "更新向导"
 msgstr "راهنمای به‌روزرسانی"
 
@@ -2757,7 +2768,7 @@ msgstr "اسکریپت"
 msgid "自动更新"
 msgstr "به‌روزرسانی خودکار"
 
-#: install.sh:10676 install.sh:10761
+#: install.sh:10676 install.sh:10772
 msgid "其他选项"
 msgstr "گزینه‌های دیگر"
 
@@ -2781,7 +2792,7 @@ msgstr "فایل روزنامه"
 msgid "服务器网速"
 msgstr "سرعت اینترنت سرور"
 
-#: install.sh:10702 install.sh:10762
+#: install.sh:10702 install.sh:10773
 msgid "备份恢复"
 msgstr "بازیابی پشتیبان"
 
@@ -2818,11 +2829,17 @@ msgstr "اتصال"
 msgid "运行状态"
 msgstr "حالت اجرا"
 
-#: install.sh:10748
+#: install.sh:10739
+msgid "AI 实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议"
+msgstr ""
+"AI نظارت واقع‌زمانه بر سلامت، تشخیص خودکار خطاهای موجود و ارائه پیشنهادات "
+"رفع مشکل"
+
+#: install.sh:10759
 msgid "Xray 管理菜单"
 msgstr "منوی مدیریت Xray"
 
-#: install.sh:10766 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
+#: install.sh:10777 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
 #: scripts/traffic_blocker.sh:587
 msgid "退出"
 msgstr "خروج"
@@ -3047,8 +3064,8 @@ msgstr "Jail موردنظر برای رفع مسدودیت را انتخاب ک�
 #: scripts/fail2ban_manager.sh:824
 msgid "请输入要解封的 IP 地址 (仅支持单个 IP, 不支持 CIDR)"
 msgstr ""
-"آدرس IP را برای رفع بلوک‌بندی وارد کنید (فقط یک IP پشتیبانی می‌شود، اما CIDR "
-"پشتیبانی نمی‌شود)"
+"آدرس IP را برای رفع بلوک‌بندی وارد کنید (فقط یک IP پشتیبانی می‌شود، اما CIDR"
+" پشتیبانی نمی‌شود)"
 
 #: scripts/fail2ban_manager.sh:826
 msgid "IP 地址不能为空"
@@ -3387,7 +3404,7 @@ msgid "工作模式"
 msgstr "حالت کاری"
 
 #: scripts/rill_xray_agent_manager.sh:434
-#: scripts/rill_xray_agent_manager.sh:591
+#: scripts/rill_xray_agent_manager.sh:659
 msgid "AI 判断"
 msgstr "AI قضاوت"
 
@@ -3399,154 +3416,261 @@ msgstr "خدمات: در حال اجرا"
 msgid "AI 判断: 不可用"
 msgstr "AI قضاوت: ممکن نیست"
 
-#: scripts/rill_xray_agent_manager.sh:523
+#: scripts/rill_xray_agent_manager.sh:534
+msgid ""
+"开启 AI 智能判断后，系统将持续观测 Xray/Nginx 状态，自动诊断故障并给出处理建议。说明：自动修改功能暂不开放，当前不会自动更改系统。"
+msgstr ""
+"پس از فعال کردن تشخیص هوشمند AI، سیستم به مشاهدهٔ مداوم وضعیت Xray/Nginx "
+"ادامه داده و خرابی‌ها را بطور خودکار تشخیص می‌دهد و پیشنهادات عملیاتی ارائه "
+"می‌کند. توضیح: ویژگی تغییرات خودکار هنوز فعال نیست و در حال حاضر سیستم به "
+"صورت خودکار تغییر نخواهد کرد."
+
+#: scripts/rill_xray_agent_manager.sh:537
+msgid "切换到 AI 观察模式后，AI 仅观测和判断，不会自动修改系统，结果仅供参考。"
+msgstr ""
+"پس از عوض کردن به حالت مشاهده AI، AI تنها مشاهده و قضاوت می‌کند و سیستم را "
+"به صورت خودکار تغییر نمی‌دهد؛ نتایج فقط برای اطلاع هستند."
+
+#: scripts/rill_xray_agent_manager.sh:540
+msgid "安全停用后，AI 判断功能暂停，引擎保留，可随时重新开启。"
+msgstr ""
+"پس از خاموش‌سازی ایمن، عملکرد تشخیص AI متوقف می‌شود، اما موتور حفظ می‌شود و "
+"می‌توان هر زمان دوباره آن را فعال کرد."
+
+#: scripts/rill_xray_agent_manager.sh:548
+msgid "确认切换吗？ [y/N]: "
+msgstr "مطمئنید که می‌خواهید تغییر کنید؟ [y/N]:"
+
+#: scripts/rill_xray_agent_manager.sh:553
+msgid "已取消。"
+msgstr "لغو شده است."
+
+#: scripts/rill_xray_agent_manager.sh:562
 msgid "工作模式已切换"
 msgstr "حالت کاری تغییر کرده است"
 
-#: scripts/rill_xray_agent_manager.sh:525
+#: scripts/rill_xray_agent_manager.sh:564
 msgid "工作模式切换失败"
 msgstr "عدم تغییر موفقیت‌آمیز حالت کاری"
 
-#: scripts/rill_xray_agent_manager.sh:532
+#: scripts/rill_xray_agent_manager.sh:571
 msgid "AI 判断引擎校验通过"
 msgstr "AI موتور ارزیابی قابل قبول تشخیص داده شد"
 
-#: scripts/rill_xray_agent_manager.sh:534
+#: scripts/rill_xray_agent_manager.sh:573
 msgid "AI 判断引擎校验失败，请检查后台服务和观测数据"
 msgstr ""
-"خطای اعتبارسنجی موتور استنتاج AI، لطفاً خدمات پشتیبان و داده‌های مشاهده شده را "
-"بررسی کنید"
+"خطای اعتبارسنجی موتور استنتاج AI، لطفاً خدمات پشتیبان و داده‌های مشاهده شده "
+"را بررسی کنید"
 
-#: scripts/rill_xray_agent_manager.sh:541
+#: scripts/rill_xray_agent_manager.sh:580
 msgid "Xray 相关服务运行正常，未发现近期故障"
 msgstr ""
 "خدمات مرتبط با Xray به‌طور عادی اجرا می‌شوند و هیچ گونه خرابی اخیری مشاهده "
 "نشده است"
 
-#: scripts/rill_xray_agent_manager.sh:542
+#: scripts/rill_xray_agent_manager.sh:581
 msgid "近期配置发生过变化，但当前服务与配置校验均正常"
 msgstr ""
 "اطلاعات تنظیم‌پذیری اخیراً تغییر کرده است، اما خدمات فعلی و بررسی‌های "
 "تنظیم‌پذیری همگی در حالت عادی هستند"
 
-#: scripts/rill_xray_agent_manager.sh:543
+#: scripts/rill_xray_agent_manager.sh:582
 msgid "Rill 内部恢复尚未完成，暂时无法进行可靠判断"
 msgstr ""
 "بازیابی داخلی Rill هنوز به پایان نرسیده و در حال حاضر امکان انجام یک قضاوت "
 "قابل اعتماد وجود ندارد"
 
-#: scripts/rill_xray_agent_manager.sh:544
+#: scripts/rill_xray_agent_manager.sh:583
 msgid "尚无可用的观测数据，暂时无法判断"
 msgstr ""
 "هیچ داده‌ای برای مشاهده وجود ندارد، بنابراین در حال حاضر قضاوت غیرممکن است"
 
-#: scripts/rill_xray_agent_manager.sh:545
+#: scripts/rill_xray_agent_manager.sh:584
 msgid "观测时间无效，当前证据不可用"
 msgstr "زمان مشاهده معتبر نیست، شواهد فعلی موجود نیست"
 
-#: scripts/rill_xray_agent_manager.sh:546
+#: scripts/rill_xray_agent_manager.sh:585
 msgid "观测数据已过期，需要先刷新观测"
 msgstr "داده‌های نظارتی منقضی شده است و باید ابتدا نظارت را روزآمد کنید"
 
-#: scripts/rill_xray_agent_manager.sh:547
+#: scripts/rill_xray_agent_manager.sh:586
 msgid "检测到不安全的配置路径，需要人工检查"
 msgstr "مسیر تنظیمات ناامن شناسایی شده است و نیاز به بررسی دستی دارد"
 
-#: scripts/rill_xray_agent_manager.sh:548
+#: scripts/rill_xray_agent_manager.sh:587
 msgid "Xray 与 Nginx 均未运行"
 msgstr "Xray و Nginx هر دو اجرا نشده‌اند"
 
-#: scripts/rill_xray_agent_manager.sh:549
+#: scripts/rill_xray_agent_manager.sh:588
 msgid "Xray 配置校验失败"
 msgstr "Xray اعتبارسنجی تنظیمات ناموفق بود"
 
-#: scripts/rill_xray_agent_manager.sh:553
+#: scripts/rill_xray_agent_manager.sh:592
 msgid "现有证据不足，暂时无法判断"
 msgstr "شواهد موجود کافی نیست و در حال حاضر قابل ارزیابی نیست"
 
-#: scripts/rill_xray_agent_manager.sh:554
+#: scripts/rill_xray_agent_manager.sh:593
 msgid "已生成判断结果，请结合诊断代码继续检查"
 msgstr ""
-"نتیجه‌ی قضاوت تولید شده است، لطفاً بررسی را با در نظر گرفتن کد تشخیص ادامه دهید"
+"نتیجه‌ی قضاوت تولید شده است، لطفاً بررسی را با در نظر گرفتن کد تشخیص ادامه "
+"دهید"
 
-#: scripts/rill_xray_agent_manager.sh:560
+#: scripts/rill_xray_agent_manager.sh:603
+#: scripts/rill_xray_agent_manager.sh:612
+msgid "检测：不可用"
+msgstr "شناسایی: در دسترس نیست"
+
+#: scripts/rill_xray_agent_manager.sh:618
+#: scripts/rill_xray_agent_manager.sh:621
+#| msgid "配置检测"
+msgid "检测"
+msgstr "شناسایی"
+
+#: scripts/rill_xray_agent_manager.sh:628
 msgid "高"
 msgstr "بالا"
 
-#: scripts/rill_xray_agent_manager.sh:561
+#: scripts/rill_xray_agent_manager.sh:629
 msgid "中"
 msgstr "مرکزی"
 
-#: scripts/rill_xray_agent_manager.sh:562
+#: scripts/rill_xray_agent_manager.sh:630
 msgid "低"
 msgstr "پایین"
 
-#: scripts/rill_xray_agent_manager.sh:563
+#: scripts/rill_xray_agent_manager.sh:631
 msgid "证据不足"
 msgstr "میزان کافی شواهد وجود ندارد"
 
-#: scripts/rill_xray_agent_manager.sh:564 scripts/traffic_blocker.sh:471
+#: scripts/rill_xray_agent_manager.sh:632 scripts/traffic_blocker.sh:471
 #: scripts/traffic_blocker.sh:626 scripts/traffic_blocker.sh:628
 #: scripts/traffic_blocker.sh:638 scripts/traffic_blocker.sh:640
 #: scripts/traffic_blocker.sh:749
 msgid "未知"
 msgstr "نامشخص"
 
-#: scripts/rill_xray_agent_manager.sh:571
+#: scripts/rill_xray_agent_manager.sh:639
 msgid "AI 故障诊断失败，后台服务没有返回有效结果"
 msgstr "AI شناسایی خطا ناموفق بود، خدمات پس زمینه نتیجه‌ای معتبر ارائه ندادند"
 
-#: scripts/rill_xray_agent_manager.sh:585
+#: scripts/rill_xray_agent_manager.sh:653
 msgid "AI 故障诊断失败，返回内容无法解析"
 msgstr "AI تشخیص خطا ناموفق بوده و محتوای بازگشتی قابل تحلیل نیست"
 
-#: scripts/rill_xray_agent_manager.sh:592
+#: scripts/rill_xray_agent_manager.sh:660
 msgid "判断置信度"
 msgstr "اطمینان در تصمیم گیری"
 
-#: scripts/rill_xray_agent_manager.sh:593
+#: scripts/rill_xray_agent_manager.sh:661
 msgid "诊断代码"
 msgstr "کد تشخیصی"
 
-#: scripts/rill_xray_agent_manager.sh:595
+#: scripts/rill_xray_agent_manager.sh:663
 msgid "此结果允许自动处理"
 msgstr "این نتیجه اجازه می‌دهد تا پردازش خودکار انجام شود"
 
-#: scripts/rill_xray_agent_manager.sh:597
+#: scripts/rill_xray_agent_manager.sh:665
 msgid "此结果仅提供判断建议，不会自动修改系统"
 msgstr ""
 "این نتیجه فقط پیشنهاد قضاوت ارائه می‌دهد و سیستم را به صورت خودکار تغییر "
 "نمی‌دهد"
 
-#: scripts/rill_xray_agent_manager.sh:606
-msgid "查看 AI 判断状态"
-msgstr "وضعیت احکام AI را ببینید"
+#: scripts/rill_xray_agent_manager.sh:670
+#| msgid "工作模式"
+msgid "三种工作模式说明："
+msgstr "توضیح سه حالت کاری:"
 
-#: scripts/rill_xray_agent_manager.sh:607
-msgid "安装或修复 AI 判断引擎"
-msgstr "نصب یا اصلاح موتور تشخیص AI"
+#: scripts/rill_xray_agent_manager.sh:671
+msgid "智能判断：AI 实时诊断故障并给出处理建议。自动修改功能暂不开放，当前不会自动更改系统。"
+msgstr ""
+"تشخیص هوشمند: AI به‌صورت زنده اختلالات را تشخیص می‌دهد و پیشنهادات برای رفع "
+"آنها ارائه می‌کند. قابلیت تغییر خودکار فعلاً فعال نیست و در حال حاضر سیستم "
+"به‌طور خودکار تغییر نخواهد کرد."
 
-#: scripts/rill_xray_agent_manager.sh:608
+#: scripts/rill_xray_agent_manager.sh:672
+msgid "观察模式：AI 仅观察和判断，不会自动修改系统，结果仅供参考。"
+msgstr ""
+"حالت مشاهده: AI تنها مشاهده و ارزیابی می‌کند، بدون اینکه به طور خودکار سیستم"
+" را تغییر دهد؛ نتایج فقط برای اطلاع هستند."
+
+#: scripts/rill_xray_agent_manager.sh:673
+msgid "安全停用：暂停 AI 判断功能，引擎保留，可随时重新开启。"
+msgstr ""
+"غیرفعال‌سازی ایمن: عملکرد تشخیص AI متوقف می‌شود، اما موتور حفظ می‌شود و "
+"می‌توان هر زمان دوباره فعالش کرد."
+
+#: scripts/rill_xray_agent_manager.sh:679
+#| msgid "Rill Xray AI 运维助手"
+msgid "Rill Xray AI 运维助手 / 切换工作模式"
+msgstr "Rill Xray AI کمک‌کنندهٔ عملیات و نگهداری / تعویض حالت کاری"
+
+#: scripts/rill_xray_agent_manager.sh:680
 msgid "开启 AI 智能判断"
 msgstr "شناخت هوشمندانه AI را فعال کنید"
 
-#: scripts/rill_xray_agent_manager.sh:609
+#: scripts/rill_xray_agent_manager.sh:681
 msgid "切换到 AI 观察模式"
 msgstr "به حالت مشاهده AI بروید"
 
-#: scripts/rill_xray_agent_manager.sh:610
+#: scripts/rill_xray_agent_manager.sh:682
 msgid "安全停用 AI 判断"
 msgstr "ارزیابی خاموش‌سازی امن AI"
 
-#: scripts/rill_xray_agent_manager.sh:611
+#: scripts/rill_xray_agent_manager.sh:684
+#| msgid "工作模式"
+msgid "查看工作模式说明"
+msgstr "دستورالعمل نحوه کار را ببینید"
+
+#: scripts/rill_xray_agent_manager.sh:703
+#| msgid "Rill Xray AI 运维助手"
+msgid "Rill Xray AI 运维助手 / 校验与诊断"
+msgstr "Rill Xray AI کمک‌رسانی به عملیات و نگهداری / بررسی و تشخیص"
+
+#: scripts/rill_xray_agent_manager.sh:704
 msgid "校验 AI 判断引擎"
 msgstr "موتور تشخیص صحت AI"
 
-#: scripts/rill_xray_agent_manager.sh:612
+#: scripts/rill_xray_agent_manager.sh:705
 msgid "运行 AI 故障诊断"
 msgstr "اجرای تست تشخیص خطاهای AI"
 
-#: scripts/rill_xray_agent_manager.sh:613
+#: scripts/rill_xray_agent_manager.sh:724
+msgid "本地 AI 运维助手：实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议。"
+msgstr ""
+"کمک‌کار عملیات و نگهداری محلی AI : نظارت زنده بر سلامت Xray/Nginx ، تشخیص "
+"خودکار خطاهای فنی و ارائه پیشنهادات رفع آنها."
+
+#: scripts/rill_xray_agent_manager.sh:725
+msgid "• 监控：实时观测服务与配置状态"
+msgstr "• نظارت: مشاهده وضعیت خدمات و تنظیمات در زمان واقعی"
+
+#: scripts/rill_xray_agent_manager.sh:726
+msgid "• 诊断：定位故障原因，附置信度建议"
+msgstr "• تشخیص: تعیین علت خرابی با پیشنهاد میزان اطمینان"
+
+#: scripts/rill_xray_agent_manager.sh:727
+msgid "• 模式：智能判断 / 仅观察 / 安全停用"
+msgstr "• حالت: تشخیص هوشمند / فقط مشاهده / غیرفعال کردن ایمن"
+
+#: scripts/rill_xray_agent_manager.sh:730
+msgid "查看 AI 判断状态"
+msgstr "وضعیت احکام AI را ببینید"
+
+#: scripts/rill_xray_agent_manager.sh:731
+#| msgid "工作模式"
+msgid "切换工作模式"
+msgstr "گذر به حالت کاری"
+
+#: scripts/rill_xray_agent_manager.sh:732
+msgid "校验与诊断"
+msgstr "چک و تشخیص"
+
+#: scripts/rill_xray_agent_manager.sh:734
+msgid "安装或修复 AI 判断引擎"
+msgstr "نصب یا اصلاح موتور تشخیص AI"
+
+#: scripts/rill_xray_agent_manager.sh:735
 msgid "卸载 Rill AI 引擎"
 msgstr "حذف موتور Rill AI"
 
@@ -3815,8 +3939,8 @@ msgstr "تنظیمات فعلی قوانین مسدودسازی"
 #: scripts/traffic_blocker.sh:1029
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
-"با استفاده از قوانین، پیکربندی مسیردهی بازسازی می‌شود و قوانین مسیردهی سفارشی "
-"نادیده گرفته خواهند شد"
+"با استفاده از قوانین، پیکربندی مسیردهی بازسازی می‌شود و قوانین مسیردهی "
+"سفارشی نادیده گرفته خواهند شد"
 
 #: scripts/traffic_blocker.sh:1033
 msgid "GeoData 下载失败, 无法应用规则"
