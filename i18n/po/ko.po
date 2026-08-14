@@ -6,9 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
-"issues\n"
-"POT-Creation-Date: 2026-08-14 10:07+0000\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
+"POT-Creation-Date: 2026-08-14 11:11+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -78,15 +77,11 @@ msgstr "안내: Rill AI 판단 엔진은 현재 여전히 시험 단계에 있�
 
 #: install.sh:570 scripts/rill_xray_agent_manager.sh:401
 msgid "可能存在兼容性、判断准确性或稳定性问题，不能保证完全无故障。"
-msgstr ""
-"호환성, 판단 정확도 또는 안정성 문제의 가능성이 있으며, 완전한 무결성을 보장"
-"할 수 없습니다."
+msgstr "호환성, 판단 정확도 또는 안정성 문제의 가능성이 있으며, 완전한 무결성을 보장할 수 없습니다."
 
 #: install.sh:571 scripts/rill_xray_agent_manager.sh:402
 msgid "安装后默认仅启用 AI 观察模式，路由辅助保持关闭。"
-msgstr ""
-"설치 후 기본적으로 AI 관찰 모드만 활성화되며, 라우팅 보조 기능은 비활성화된 "
-"상태로 유지됩니다."
+msgstr "설치 후 기본적으로 AI 관찰 모드만 활성화되며, 라우팅 보조 기능은 비활성화된 상태로 유지됩니다."
 
 #: install.sh:575 scripts/rill_xray_agent_manager.sh:406
 msgid "确认了解测试风险并继续安装吗？ [y/N]: "
@@ -114,8 +109,8 @@ msgstr "서비스: 실행 중지됨"
 msgid "路由辅助: 关闭"
 msgstr "라우팅 보조: 비활성화"
 
-#: install.sh:636 install.sh:10738 install.sh:10764
-#: scripts/rill_xray_agent_manager.sh:605
+#: install.sh:636 install.sh:10738 install.sh:10775
+#: scripts/rill_xray_agent_manager.sh:723
 msgid "Rill Xray AI 运维助手"
 msgstr "Rill Xray AI O&M 도우미"
 
@@ -136,7 +131,9 @@ msgstr "AI 판단 엔진 설치"
 #: scripts/fail2ban_manager.sh:816 scripts/fail2ban_manager.sh:851
 #: scripts/fail2ban_manager.sh:886 scripts/fail2ban_manager.sh:911
 #: scripts/fail2ban_manager.sh:1009 scripts/fail2ban_manager.sh:1049
-#: scripts/rill_xray_agent_manager.sh:615 scripts/traffic_blocker.sh:268
+#: scripts/rill_xray_agent_manager.sh:686
+#: scripts/rill_xray_agent_manager.sh:707
+#: scripts/rill_xray_agent_manager.sh:737 scripts/traffic_blocker.sh:268
 #: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:700
 #: scripts/traffic_blocker.sh:807 scripts/traffic_blocker.sh:823
 msgid "返回"
@@ -144,8 +141,7 @@ msgstr "돌아가기"
 
 #: install.sh:655
 msgid "Rill AI 判断引擎安装失败，请检查上方错误信息。"
-msgstr ""
-"Rill AI 판단 엔진 설치에 실패했습니다. 상단의 오류 메시지를 확인해 주십시오."
+msgstr "Rill AI 판단 엔진 설치에 실패했습니다. 상단의 오류 메시지를 확인해 주십시오."
 
 #: install.sh:1035
 msgid "无法检查 apt/dpkg 锁: 缺少 fuser 或 lsof"
@@ -165,9 +161,7 @@ msgstr "현재 시스템은"
 
 #: install.sh:1085
 msgid "apt/dpkg 锁等待超时, 请稍后重试或手动检查占用进程"
-msgstr ""
-"apt/dpkg 잠금 대기 시간 초과, 잠시 후 다시 시도하거나 점유 프로세스를 수동으"
-"로 확인해 주십시오."
+msgstr "apt/dpkg 잠금 대기 시간 초과, 잠시 후 다시 시도하거나 점유 프로세스를 수동으로 확인해 주십시오."
 
 #: install.sh:1093
 msgid "不在支持的系统列表内, 安装中断"
@@ -179,9 +173,7 @@ msgstr "현재 사용자는 root 사용자입니다. 설치를 시작합니다"
 
 #: install.sh:1102
 msgid "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本"
-msgstr ""
-"현재 사용자는 root 사용자가 아닙니다. root 사용자로 전환한 후 스크립트를 다"
-"시 실행해 주세요"
+msgstr "현재 사용자는 root 사용자가 아닙니다. root 사용자로 전환한 후 스크립트를 다시 실행해 주세요"
 
 #: install.sh:1128
 msgid "无法获取远程语言文件信息"
@@ -217,8 +209,7 @@ msgstr "완성"
 
 #: install.sh:1198
 msgid "language.conf 包含可疑字符, 跳过该行"
-msgstr ""
-"language.conf에 의심스러운 문자가 포함되어 있으므로 해당 행을 건너뜁니다."
+msgstr "language.conf에 의심스러운 문자가 포함되어 있으므로 해당 행을 건너뜁니다."
 
 #: install.sh:1206
 msgid "language.conf 行格式无效, 跳过"
@@ -252,7 +243,7 @@ msgstr "설치"
 #: install.sh:3574 install.sh:4276 install.sh:4284 install.sh:4825
 #: install.sh:4880 install.sh:4971 install.sh:5245 install.sh:5249
 #: install.sh:6577 install.sh:6581 install.sh:6586 install.sh:9109
-#: install.sh:9141 install.sh:10115 install.sh:10124 install.sh:10832
+#: install.sh:9141 install.sh:10115 install.sh:10124 install.sh:10843
 #: scripts/file_manager.sh:366 scripts/traffic_blocker.sh:514
 #: scripts/traffic_blocker.sh:980
 msgid "失败"
@@ -404,15 +395,11 @@ msgstr "다른 포트와 동일하지 마십시오"
 
 #: install.sh:2206
 msgid "防火墙规则前向修改失败且反向恢复未完成, 全局回滚时将再次尝试"
-msgstr ""
-"방화벽 규칙의 전방 수정에 실패하고 역방향 복구가 완료되지 않았으므로, 전역 롤"
-"백 시 다시 시도됩니다."
+msgstr "방화벽 규칙의 전방 수정에 실패하고 역방향 복구가 완료되지 않았으므로, 전역 롤백 시 다시 시도됩니다."
 
 #: install.sh:2215
 msgid "防火墙状态写入失败且反向恢复未完成, 全局回滚时将再次尝试"
-msgstr ""
-"방화벽 상태 기록에 실패했으며 역방향 복구가 완료되지 않았습니다. 전역 롤백 "
-"시 다시 시도됩니다."
+msgstr "방화벽 상태 기록에 실패했으며 역방향 복구가 완료되지 않았습니다. 전역 롤백 시 다시 시도됩니다."
 
 #: install.sh:2224 scripts/file_manager.sh:185
 msgid "是否需要设置防火墙"
@@ -507,8 +494,7 @@ msgstr "도메인 이름을 입력하세요"
 
 #: install.sh:2480
 msgid "域名必须支持 TLSv1.3、X25519、H2, 且不能跳转"
-msgstr ""
-"도메인 이름은 TLSv1.3, X25519, H2을 지원해야 하며 리디렉션될 수 없습니다."
+msgstr "도메인 이름은 TLSv1.3, X25519, H2을 지원해야 하며 리디렉션될 수 없습니다."
 
 #: install.sh:2481
 msgid "确认域名符合要求后请输入"
@@ -565,7 +551,7 @@ msgstr "단일 도메인을 입력해 주세요"
 #: install.sh:2575 install.sh:3259 install.sh:3266 install.sh:3348
 #: install.sh:5725 install.sh:5828 install.sh:5950 install.sh:5958
 #: install.sh:5967 install.sh:6005 install.sh:6577 install.sh:6581
-#: install.sh:6586 install.sh:10832
+#: install.sh:6586 install.sh:10843
 msgid "配置修改"
 msgstr "구성 수정"
 
@@ -590,8 +576,8 @@ msgstr "다운로드에 실패했습니다. 수동으로 새 버전을 다운로
 msgid "版本过旧, 建议更新"
 msgstr "버전이 너무 오래되었습니다. 업데이트를 권장합니다"
 
-#: install.sh:2639 scripts/fail2ban_manager.sh:1169 scripts/file_manager.sh:335
-#: scripts/traffic_blocker.sh:1216
+#: install.sh:2639 scripts/fail2ban_manager.sh:1169
+#: scripts/file_manager.sh:335 scripts/traffic_blocker.sh:1216
 msgid "是否下载并安装新版本"
 msgstr "새 버전을 다운로드하고 설치하시겠습니까"
 
@@ -696,8 +682,7 @@ msgstr "곧 설치됩니다"
 
 #: install.sh:3431
 msgid "若更新无效, 建议直接卸载再安装"
-msgstr ""
-"업데이트가 적용되지 않는 경우, 직접 삭제 후 다시 설치하는 것을 권장합니다"
+msgstr "업데이트가 적용되지 않는 경우, 직접 삭제 후 다시 설치하는 것을 권장합니다"
 
 #: install.sh:3432
 msgid "部分新功能需要重新安装才可生效"
@@ -737,9 +722,7 @@ msgstr "롤백 작업이 실행되지 않았습니다"
 
 #: install.sh:3463
 msgid "更新失败且未回滚, 当前服务可能不可用, 请手动检查"
-msgstr ""
-"업데이트에 실패했으며 롤백되지 않았습니다. 현재 서비스가 이용할 수 없을 수 있"
-"으니, 수동으로 확인해 주십시오."
+msgstr "업데이트에 실패했으며 롤백되지 않았습니다. 현재 서비스가 이용할 수 없을 수 있으니, 수동으로 확인해 주십시오."
 
 #: install.sh:3465
 msgid "高优先级错误: Xray 服务已停止"
@@ -819,13 +802,10 @@ msgid "直接拒绝异常 TLS 连接"
 msgstr "이상 TLS 연결을 직접 거부합니다"
 
 #: install.sh:3668
-msgid ""
-"第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了"
-"解含义, 请使用默认隔离策略。"
+msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
 msgstr ""
-"2항에서는 이미 귀하의 도메인이 있어야 하며, 해당 도메인의 A/AAAA 레코드가 본 "
-"기기의 공인 IP을 가리키고 있어야 합니다. 의미를 잘 모르는 경우, 기본 격리 정"
-"책을 사용해 주시기 바랍니다."
+"2항에서는 이미 귀하의 도메인이 있어야 하며, 해당 도메인의 A/AAAA 레코드가 본 기기의 공인 IP을 가리키고 있어야 합니다. 의미를"
+" 잘 모르는 경우, 기본 격리 정책을 사용해 주시기 바랍니다."
 
 #: install.sh:3670 install.sh:9931
 msgid "请输入选项"
@@ -849,9 +829,7 @@ msgstr "decoy 사이트 설정"
 
 #: install.sh:3761
 msgid "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP"
-msgstr ""
-"자신의 도메인 이름을 입력해 주세요. 해당 도메인의 A/AAAA 레코드는 반드시 본 "
-"서버의 공인 IP을 가리켜야 합니다."
+msgstr "자신의 도메인 이름을 입력해 주세요. 해당 도메인의 A/AAAA 레코드는 반드시 본 서버의 공인 IP을 가리켜야 합니다."
 
 #: install.sh:3763 install.sh:3765
 msgid "请输入 decoy 域名"
@@ -859,9 +837,7 @@ msgstr "decoy 도메인을 입력해 주세요"
 
 #: install.sh:3774
 msgid "无法解析该域名的 A/AAAA 记录, 请检查 DNS 是否已生效"
-msgstr ""
-"해당 도메인의 A/AAAA 레코드를 확인할 수 없습니다. DNS이 정상적으로 적용되었는"
-"지 확인해 주십시오."
+msgstr "해당 도메인의 A/AAAA 레코드를 확인할 수 없습니다. DNS이 정상적으로 적용되었는지 확인해 주십시오."
 
 #: install.sh:3778
 msgid "该域名 A/AAAA 记录"
@@ -873,9 +849,7 @@ msgstr "본 기기의 공인 ip 주소를 가리키지 않음 IP"
 
 #: install.sh:3779
 msgid "请先将域名 A/AAAA 记录指向本机, 或使用默认隔离策略"
-msgstr ""
-"먼저 도메인 이름 A/AAAA 레코드를 본 기기로 가리키거나 기본 격리 정책을 사용"
-"해 주십시오."
+msgstr "먼저 도메인 이름 A/AAAA 레코드를 본 기기로 가리키거나 기본 격리 정책을 사용해 주십시오."
 
 #: install.sh:3784
 msgid "域名校验通过"
@@ -892,8 +866,7 @@ msgstr "decoy 사이트 구성 완료"
 #: install.sh:3827
 msgid "当前使用自签证书, 浏览器访问会有证书提示。高级用户可自行替换"
 msgstr ""
-"현재 자체 서명 인증서를 사용하고 있어 브라우저 접속 시 인증서 경고가 표시됩니"
-"다. 고급 사용자는 직접 교체하실 수 있습니다."
+"현재 자체 서명 인증서를 사용하고 있어 브라우저 접속 시 인증서 경고가 표시됩니다. 고급 사용자는 직접 교체하실 수 있습니다."
 
 #: install.sh:3827
 msgid "与"
@@ -937,9 +910,7 @@ msgstr "이미 존재합니다. 컴파일 설치 과정을 건너뜁니다"
 
 #: install.sh:3993
 msgid "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装"
-msgstr ""
-"다른 패키지가 설치한 Nginx를 감지했습니다. 계속 설치하면 충돌이 발생할 수 있"
-"으니 처리 후 설치해 주십시오"
+msgstr "다른 패키지가 설치한 Nginx를 감지했습니다. 계속 설치하면 충돌이 발생할 수 있으니 처리 후 설치해 주십시오"
 
 #: install.sh:4018
 msgid "tar 安全检查: 文件不存在"
@@ -967,8 +938,7 @@ msgstr "곧 컴파일된 것을 다운로드할 예정입니다"
 
 #: install.sh:4229
 msgid "release-manifest.json 下载失败或无效, 拒绝安装"
-msgstr ""
-"release-manifest.json 다운로드에 실패했거나 유효하지 않아 설치를 거부합니다."
+msgstr "release-manifest.json 다운로드에 실패했거나 유효하지 않아 설치를 거부합니다."
 
 #: install.sh:4244
 msgid "manifest 中未找到架构"
@@ -980,13 +950,11 @@ msgstr "산출물 기록, 설치 거부"
 
 #: install.sh:4250
 msgid "manifest 中未提供 SHA256, 拒绝未校验安装"
-msgstr ""
-"manifest에서 SHA256이 제공되지 않았으므로, 검증되지 않은 설치를 거부합니다."
+msgstr "manifest에서 SHA256이 제공되지 않았으므로, 검증되지 않은 설치를 거부합니다."
 
 #: install.sh:4255
 msgid "manifest 产物文件名与架构契约不匹配, 拒绝安装"
-msgstr ""
-"manifest 제품 파일 이름이 아키텍처 계약과 일치하지 않아 설치가 거부됩니다."
+msgstr "manifest 제품 파일 이름이 아키텍처 계약과 일치하지 않아 설치가 거부됩니다."
 
 #: install.sh:4260
 msgid "manifest SHA256 格式无效, 拒绝安装"
@@ -1023,9 +991,7 @@ msgstr "Nginx 압축 파일 보안 검사 통과"
 
 #: install.sh:4304
 msgid "解压后未找到 sbin/nginx 或不是常规文件, 结构校验失败"
-msgstr ""
-"압축을 해제한 후 sbin/nginx 파일을 찾을 수 없거나 일반 파일이 아니므로 구조 "
-"검증에 실패했습니다."
+msgstr "압축을 해제한 후 sbin/nginx 파일을 찾을 수 없거나 일반 파일이 아니므로 구조 검증에 실패했습니다."
 
 #: install.sh:4312
 msgid "sbin/nginx 不是可执行 ELF 二进制, 拒绝安装"
@@ -1045,14 +1011,13 @@ msgstr "Nginx 대체 실패"
 
 #: install.sh:4369
 msgid "Nginx 分层权限应用失败, 可能影响服务运行"
-msgstr ""
-"Nginx 계층형 권한 적용에 실패하여 서비스 운영에 영향을 미칠 수 있습니다"
+msgstr "Nginx 계층형 권한 적용에 실패하여 서비스 운영에 영향을 미칠 수 있습니다"
 
 #: install.sh:4375
 msgid "Nginx 分层权限验证失败"
 msgstr "Nginx 계층형 권한 검증에 실패했습니다"
 
-#: install.sh:4386 scripts/rill_xray_agent_manager.sh:550
+#: install.sh:4386 scripts/rill_xray_agent_manager.sh:589
 msgid "Nginx 配置校验失败"
 msgstr "Nginx 구성 검증 실패"
 
@@ -1110,9 +1075,7 @@ msgstr "tested_version로 복구되었습니다"
 
 #: install.sh:4609
 msgid "旧版本记录恢复失败, 继续 tested_version 恢复"
-msgstr ""
-"이전 버전 기록 복구에 실패했습니다. 계속해서 tested_version 복구를 진행합니"
-"다."
+msgstr "이전 버전 기록 복구에 실패했습니다. 계속해서 tested_version 복구를 진행합니다."
 
 #: install.sh:4622
 msgid "所有回滚层均失败"
@@ -1120,9 +1083,7 @@ msgstr "모든 롤백 레이어가 실패했습니다"
 
 #: install.sh:4625
 msgid "更新失败且所有回滚层均失败, 请手动检查"
-msgstr ""
-"업데이트에 실패했으며 모든 롤백 레이어도 실패했습니다. 수동으로 확인해 주십시"
-"오."
+msgstr "업데이트에 실패했으며 모든 롤백 레이어도 실패했습니다. 수동으로 확인해 주십시오."
 
 #: install.sh:4650
 msgid "二进制执行失败"
@@ -1265,8 +1226,7 @@ msgstr "SSL 인증서 생성 스크립트 설치"
 
 #: install.sh:4981
 msgid "检测到原域名配置存在, 是否跳过域名设置"
-msgstr ""
-"기존 도메인 구성이 존재하는 것을 감지했습니다. 도메인 설정을 건너뛸까요"
+msgstr "기존 도메인 구성이 존재하는 것을 감지했습니다. 도메인 설정을 건너뛸까요"
 
 #: install.sh:4996 install.sh:5032 install.sh:5085 install.sh:5118
 msgid "无法获取公网IP地址"
@@ -1299,9 +1259,7 @@ msgstr "공인 IP 정보를 가져오는 중입니다. 잠시 기다려 주십�
 
 #: install.sh:5022
 msgid "此选项用于服务器商仅提供域名访问服务器"
-msgstr ""
-"이 옵션은 서버 제공업체가 도메인만으로 서버에 접근할 수 있도록 하는 경우에 사"
-"용됩니다"
+msgstr "이 옵션은 서버 제공업체가 도메인만으로 서버에 접근할 수 있도록 하는 경우에 사용됩니다"
 
 #: install.sh:5023
 msgid "请为服务器商提供的域名添加 CNAME 记录"
@@ -1321,15 +1279,11 @@ msgstr "도메인 DNS의 DNS 조회 결과 IP이 퍼블릭 네트워크 IP와 �
 
 #: install.sh:5041
 msgid "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray"
-msgstr ""
-"도메인에 올바른 A/AAAA 레코드가 추가되었는지 확인해 주세요. 그렇지 않으면 "
-"Xray를 정상적으로 사용할 수 없습니다"
+msgstr "도메인에 올바른 A/AAAA 레코드가 추가되었는지 확인해 주세요. 그렇지 않으면 Xray를 정상적으로 사용할 수 없습니다"
 
 #: install.sh:5042
 msgid "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"
-msgstr ""
-"도메인 이름 DNS 확인 IP이 공용 네트워크 IP과(와) 일치하지 않습니다. 선택하세"
-"요."
+msgstr "도메인 이름 DNS 확인 IP이 공용 네트워크 IP과(와) 일치하지 않습니다. 선택하세요."
 
 #: install.sh:5043 install.sh:5049
 msgid "继续安装"
@@ -1381,8 +1335,7 @@ msgstr "포트가 사용 중인 것으로 감지되었습니다."
 
 #: install.sh:5216
 msgid "脚本不会自动终止占用该端口的进程"
-msgstr ""
-"스크립트는 해당 포트를 점유하고 있는 프로세스를 자동으로 종료하지 않습니다."
+msgstr "스크립트는 해당 포트를 점유하고 있는 프로세스를 자동으로 종료하지 않습니다."
 
 #: install.sh:5217
 msgid "请更换端口或自行停止对应服务后重试"
@@ -1465,8 +1418,7 @@ msgstr "설정을 유지한 채로 재설치를 선택했습니다."
 
 #: install.sh:5480
 msgid "自定义 routing、outbounds、DNS 和其他非标准字段可能被移除"
-msgstr ""
-"사용자 정의 routing、outbounds、DNS 및 기타 비표준 필드는 제거될 수 있습니다."
+msgstr "사용자 정의 routing、outbounds、DNS 및 기타 비표준 필드는 제거될 수 있습니다."
 
 #: install.sh:5481
 msgid "原配置已备份"
@@ -1487,8 +1439,7 @@ msgstr "취소되었습니다, 메뉴로 돌아가기"
 
 #: install.sh:5510
 msgid "检测到当前安装模式与配置文件的安装模式不一致"
-msgstr ""
-"현재 설치 모드가 구성 파일의 설치 모드와 일치하지 않는 것으로 감지되었습니다"
+msgstr "현재 설치 모드가 구성 파일의 설치 모드와 일치하지 않는 것으로 감지되었습니다"
 
 #: install.sh:5511 install.sh:10724
 msgid "当前模式"
@@ -1536,9 +1487,7 @@ msgstr "모드 전환을 계속하시겠습니까?"
 
 #: install.sh:5539
 msgid "已删除旧配置文件, 将使用目标模式标准模板生成新配置"
-msgstr ""
-"기존 구성 파일을 삭제했습니다. 대상 모드의 표준 템플릿을 사용하여 새 구성 파"
-"일을 생성합니다."
+msgstr "기존 구성 파일을 삭제했습니다. 대상 모드의 표준 템플릿을 사용하여 새 구성 파일을 생성합니다."
 
 #: install.sh:5620
 msgid "检测到配置文件不完整"
@@ -1558,8 +1507,7 @@ msgstr "이미 읽은 구성 설정을 사용하여 계속 시도합니다."
 
 #: install.sh:5639
 msgid "已删除不完整配置文件, 将使用标准模板重建"
-msgstr ""
-"불완전한 구성 파일을 삭제했으며, 표준 템플릿을 사용하여 다시 생성합니다."
+msgstr "불완전한 구성 파일을 삭제했으며, 표준 템플릿을 사용하여 다시 생성합니다."
 
 #: install.sh:5655
 msgid "当前配置摘要"
@@ -1584,8 +1532,7 @@ msgstr "경로"
 
 #: install.sh:5676
 msgid "可选择需要修改的项目 (未选择的保持原值)"
-msgstr ""
-"수정할 항목을 선택할 수 있습니다(선택하지 않은 항목은 기존 값을 유지합니다)"
+msgstr "수정할 항목을 선택할 수 있습니다(선택하지 않은 항목은 기존 값을 유지합니다)"
 
 #: install.sh:5677
 msgid "修改主端口"
@@ -1609,9 +1556,7 @@ msgstr "더 이상 수정하지 않고, 재배포를 시작합니다."
 
 #: install.sh:5683
 msgid "UUID 和多用户信息请使用现有用户管理或 UUID 变更功能"
-msgstr ""
-"UUID 및 다중 사용자 정보는 기존 사용자 관리 또는 UUID 변경 기능을 이용해 주시"
-"기 바랍니다."
+msgstr "UUID 및 다중 사용자 정보는 기존 사용자 관리 또는 UUID 변경 기능을 이용해 주시기 바랍니다."
 
 #: install.sh:5684
 msgid "传输组合变更请使用标准模板重建"
@@ -1718,9 +1663,7 @@ msgstr "인증서를 즉시 업데이트할까요"
 
 #: install.sh:6156 install.sh:6175
 msgid "证书签发工具不存在, 请确认是否证书为脚本签发"
-msgstr ""
-"인증서 발급 도구가 존재하지 않습니다. 스크립트로 인증서를 발급했는지 확인해 "
-"주십시오"
+msgstr "인증서 발급 도구가 존재하지 않습니다. 스크립트로 인증서를 발급했는지 확인해 주십시오"
 
 #: install.sh:6169
 msgid "证书更新"
@@ -1801,8 +1744,7 @@ msgstr "공유 링크 생성"
 
 #: install.sh:6973
 msgid "无法获取网卡, 将监控所有网卡"
-msgstr ""
-"네트워크 카드를 가져올 수 없습니다. 모든 네트워크 카드를 모니터링합니다"
+msgstr "네트워크 카드를 가져올 수 없습니다. 모든 네트워크 카드를 모니터링합니다"
 
 #: install.sh:6975
 msgid "监控网卡"
@@ -1818,8 +1760,7 @@ msgstr "q 키를 눌러 iftop을 종료하세요"
 
 #: install.sh:6997
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
-msgstr ""
-"현재 공유 링크 규칙은 실험 단계이므로, 직접 적용 가능한지 판단해 주십시오"
+msgstr "현재 공유 링크 규칙은 실험 단계이므로, 직접 적용 가능한지 판단해 주십시오"
 
 #: install.sh:6999
 msgid "当前 xHTTP 仅支持 stream-one 和 stream-up 模式"
@@ -1827,9 +1768,7 @@ msgstr "현재 xHTTP은 stream-one 및 stream-up 모드만 지원합니다."
 
 #: install.sh:7000
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
-msgstr ""
-"xHTTP은 mihomo (Meta) 커널을 필요로 하며, 원본 Clash는 이를 지원하지 않습니"
-"다."
+msgstr "xHTTP은 mihomo (Meta) 커널을 필요로 하며, 원본 Clash는 이를 지원하지 않습니다."
 
 #: install.sh:7003 install.sh:10573
 msgid "配置信息"
@@ -1877,8 +1816,7 @@ msgstr "사용자 정의 인증서를 사용하려면 다음 단계를 따르십
 
 #: install.sh:7092
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
-msgstr ""
-"1. 인증서 파일의 이름을 변경합니다: 개인 키(xray.key), 인증서(xray.crt)"
+msgstr "1. 인증서 파일의 이름을 변경합니다: 개인 키(xray.key), 인증서(xray.crt)"
 
 #: install.sh:7093
 msgid "2. 将重命名后的证书文件放入"
@@ -1934,8 +1872,7 @@ msgstr "안전 모드"
 
 #: install.sh:7185
 msgid "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)"
-msgstr ""
-"h3은(는) TLSv1.3만 지원하므로 여기서는 TLSv1.3(안전 모드)만 지원됩니다."
+msgstr "h3은(는) TLSv1.3만 지원하므로 여기서는 TLSv1.3(안전 모드)만 지원됩니다."
 
 #: install.sh:7188 install.sh:7202 install.sh:7205
 msgid "已切换至"
@@ -1975,9 +1912,7 @@ msgstr "표시할 사용자 번호를 선택하세요"
 
 #: install.sh:7535
 msgid "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户"
-msgstr ""
-"메인 메뉴에서 [Xray 구성 정보 보기]를 직접 선택하여 메인 사용자를 표시하십시"
-"오"
+msgstr "메인 메뉴에서 [Xray 구성 정보 보기]를 직접 선택하여 메인 사용자를 표시하십시오"
 
 #: install.sh:7542 install.sh:7725 install.sh:7728 install.sh:7731
 msgid "选择错误"
@@ -2169,9 +2104,7 @@ msgstr "업데이트 내용"
 
 #: install.sh:8442
 msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
-msgstr ""
-"새로운 버전이 존재하지만, 버전 간의 차이가 크므로 호환되지 않을 가능성이 있습"
-"니다. 업데이트하시겠습니까"
+msgstr "새로운 버전이 존재하지만, 버전 간의 차이가 크므로 호환되지 않을 가능성이 있습니다. 업데이트하시겠습니까"
 
 #: install.sh:8445
 msgid "存在新版本, 是否更新"
@@ -2187,12 +2120,10 @@ msgstr "스크립트 버전 다운로드 검증에 실패했습니다."
 
 #: install.sh:8489 install.sh:8833
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
-msgstr ""
-"스크립트 버전이 크게 변경되었으니, 서비스가 정상적으로 작동하지 않을 경우 삭"
-"제 후 다시 설치해 주십시오"
+msgstr "스크립트 버전이 크게 변경되었으니, 서비스가 정상적으로 작동하지 않을 경우 삭제 후 다시 설치해 주십시오"
 
-#: install.sh:8498 scripts/fail2ban_manager.sh:1188 scripts/file_manager.sh:354
-#: scripts/traffic_blocker.sh:1235
+#: install.sh:8498 scripts/fail2ban_manager.sh:1188
+#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1235
 msgid "当前已经是最新版本"
 msgstr "현재 이미 최신 버전입니다"
 
@@ -2206,15 +2137,11 @@ msgstr "해당 옵션은 일시적으로 사용할 수 없습니다"
 
 #: install.sh:8638 install.sh:9989
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
-msgstr ""
-"이 모드는 로드 밸런싱에 권장되며, 일반적으로 사용하지 않는 것이 좋습니다. 설"
-"치하시겠습니까"
+msgstr "이 모드는 로드 밸런싱에 권장되며, 일반적으로 사용하지 않는 것이 좋습니다. 설치하시겠습니까"
 
 #: install.sh:8651 install.sh:10012
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
-msgstr ""
-"이 모드는 트래픽 중계에만 사용되며, 다른 상황에서는 사용하지 않는 것이 좋습니"
-"다. 설치하시겠습니까"
+msgstr "이 모드는 트래픽 중계에만 사용되며, 다른 상황에서는 사용하지 않는 것이 좋습니다. 설치하시겠습니까"
 
 #: install.sh:8772 install.sh:8773 install.sh:8774 install.sh:8789
 #: install.sh:8794 install.sh:8798 install.sh:10035 install.sh:10040
@@ -2274,7 +2201,7 @@ msgstr "Xray 트래픽 차단 설정"
 msgid "显示帮助"
 msgstr "도움 표시"
 
-#: install.sh:8787 install.sh:10763
+#: install.sh:8787 install.sh:10774
 msgid "修改语言"
 msgstr "언어 수정"
 
@@ -2321,9 +2248,7 @@ msgstr "오류 정보"
 
 #: install.sh:8825
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
-msgstr ""
-"스크립트 버전이 크게 변경되어 호환되지 않을 가능성이 있습니다. 계속 사용하시"
-"겠습니까"
+msgstr "스크립트 버전이 크게 변경되어 호환되지 않을 가능성이 있습니다. 계속 사용하시겠습니까"
 
 #: install.sh:8852
 msgid "检测失败"
@@ -2341,7 +2266,8 @@ msgstr "최신 버전"
 msgid "版本未知"
 msgstr "버전 알 수 없음"
 
-#: install.sh:8893 install.sh:8900
+#: install.sh:8893 install.sh:8900 install.sh:10743
+#: scripts/rill_xray_agent_manager.sh:517
 msgid "运行中"
 msgstr "실행 중"
 
@@ -2368,9 +2294,7 @@ msgstr "스크립트를 유지 보수 중입니다. 잠시 후 다시 시도해 
 
 #: install.sh:9006
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
-msgstr ""
-"필요한 종속 항목의 온라인 버전을 검출할 수 없습니다. 잠시 후 다시 시도해 주십"
-"시오"
+msgstr "필요한 종속 항목의 온라인 버전을 검출할 수 없습니다. 잠시 후 다시 시도해 주십시오"
 
 #: install.sh:9023
 msgid "请输入数字"
@@ -2394,8 +2318,7 @@ msgstr "오류 정보"
 
 #: install.sh:9105
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
-msgstr ""
-"백업의 완전성이 영향을 받을 수 있으니, 위의 오류 메시지를 확인해 주십시오"
+msgstr "백업의 완전성이 영향을 받을 수 있으니, 위의 오류 메시지를 확인해 주십시오"
 
 #: install.sh:9116
 msgid "请确保备份文件在目录"
@@ -2493,14 +2416,11 @@ msgstr "Xray 서비스 복구 후에도 계속 활성화됨"
 #: install.sh:9591
 msgid "Xray 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
-"Xray 서비스가 복구된 후에도 systemd에 의해 active로 로드되고 있으나, 원래 시"
-"스템에는 해당 unit이 존재하지 않습니다."
+"Xray 서비스가 복구된 후에도 systemd에 의해 active로 로드되고 있으나, 원래 시스템에는 해당 unit이 존재하지 않습니다."
 
 #: install.sh:9595
 msgid "Xray 服务恢复后仍为 enabled, 但原系统无此 unit"
-msgstr ""
-"Xray 서비스가 복구된 후에도 enabled 상태로 유지되지만, 기존 시스템에는 해당 "
-"unit가 존재하지 않습니다."
+msgstr "Xray 서비스가 복구된 후에도 enabled 상태로 유지되지만, 기존 시스템에는 해당 unit가 존재하지 않습니다."
 
 #: install.sh:9601
 msgid "Nginx 服务恢复后未运行"
@@ -2521,14 +2441,12 @@ msgstr "Nginx 서비스 복구 후에도 계속 활성화됨"
 #: install.sh:9618
 msgid "Nginx 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
-"Nginx 서비스가 복구된 후에도 systemd에 의해 active로 로드되고 있으나, 원래 시"
-"스템에는 해당 unit이 존재하지 않습니다."
+"Nginx 서비스가 복구된 후에도 systemd에 의해 active로 로드되고 있으나, 원래 시스템에는 해당 unit이 존재하지 "
+"않습니다."
 
 #: install.sh:9622
 msgid "Nginx 服务恢复后仍为 enabled, 但原系统无此 unit"
-msgstr ""
-"Nginx 서비스가 복구된 후에도 enabled 상태로 유지되지만, 기존 시스템에는 해당 "
-"unit가 존재하지 않습니다."
+msgstr "Nginx 서비스가 복구된 후에도 enabled 상태로 유지되지만, 기존 시스템에는 해당 unit가 존재하지 않습니다."
 
 #: install.sh:9648 install.sh:9652
 msgid "ACME 定时任务未能恢复, 请手动检查"
@@ -2536,8 +2454,7 @@ msgstr "ACME 정시 작업이 복구되지 않았습니다. 수동으로 확인�
 
 #: install.sh:9675
 msgid "ACME 定时任务删除后仍存在, 请手动检查"
-msgstr ""
-"ACME 정시 작업을 삭제한 후에도 여전히 존재합니다. 수동으로 확인해 주십시오."
+msgstr "ACME 정시 작업을 삭제한 후에도 여전히 존재합니다. 수동으로 확인해 주십시오."
 
 #: install.sh:9682
 msgid "恢复后验证失败, 请手动检查"
@@ -2555,11 +2472,11 @@ msgstr "Xray 구성 테스트 실패"
 msgid "Nginx 配置测试失败"
 msgstr "Nginx 구성 테스트 실패"
 
-#: install.sh:9709 scripts/rill_xray_agent_manager.sh:551
+#: install.sh:9709 scripts/rill_xray_agent_manager.sh:590
 msgid "Xray 服务未运行"
 msgstr "Xray 서비스가 실행되지 않습니다"
 
-#: install.sh:9714 scripts/rill_xray_agent_manager.sh:552
+#: install.sh:9714 scripts/rill_xray_agent_manager.sh:591
 msgid "Nginx 服务未运行"
 msgstr "Nginx 서비스가 실행되지 않습니다"
 
@@ -2581,8 +2498,7 @@ msgstr "추천하지 않음"
 
 #: install.sh:9952
 msgid "频繁更新 Nginx, 请确认 Nginx 有更新的必要"
-msgstr ""
-"Nginx를 자주 업데이트하십시오. Nginx에 업데이트가 필요한지 확인해 주세요"
+msgstr "Nginx를 자주 업데이트하십시오. Nginx에 업데이트가 필요한지 확인해 주세요"
 
 #: install.sh:9953
 msgid "开始更新"
@@ -2593,9 +2509,7 @@ msgstr "업데이트를 시작합니다"
 #: install.sh:10354 install.sh:10371 install.sh:10406 install.sh:10432
 #: install.sh:10477
 msgid "安装失败且自动恢复失败, 备份已保留, 请手动检查"
-msgstr ""
-"설치에 실패하고 자동 복구도 실패했습니다. 백업이 유지되어 있으니 수동으로 확"
-"인해 주십시오."
+msgstr "설치에 실패하고 자동 복구도 실패했습니다. 백업이 유지되어 있으니 수동으로 확인해 주십시오."
 
 #: install.sh:9968 install.sh:9983 install.sh:10003 install.sh:10026
 #: install.sh:10265 install.sh:10282 install.sh:10300 install.sh:10318
@@ -2659,19 +2573,15 @@ msgstr "Nginx 없음, TLS 없음"
 
 #: install.sh:10416
 msgid "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
-msgstr ""
-"ONLY 모드는 중계, 로드 밸런싱 백엔드 또는 기존 상위 프록시가 있는 환경용입니"
-"다"
+msgstr "ONLY 모드는 중계, 로드 밸런싱 백엔드 또는 기존 상위 프록시가 있는 환경용입니다"
 
-#: install.sh:10446 install.sh:10756
+#: install.sh:10446 install.sh:10767
 msgid "安装向导"
 msgstr "설치 마법사"
 
 #: install.sh:10460
 msgid "此模式主要用于流量中转或特殊部署，不建议普通用户使用"
-msgstr ""
-"이 모드는 주로 트래픽 중계 또는 특수 배포용이며 일반 사용자에게 권장되지 않습"
-"니다"
+msgstr "이 모드는 주로 트래픽 중계 또는 특수 배포용이며 일반 사용자에게 권장되지 않습니다"
 
 #: install.sh:10490 install.sh:10553
 msgid "用户管理"
@@ -2681,11 +2591,11 @@ msgstr "사용자 관리"
 msgid "用户"
 msgstr "사용자"
 
-#: install.sh:10510 install.sh:10552 install.sh:10554 install.sh:10757
+#: install.sh:10510 install.sh:10552 install.sh:10554 install.sh:10768
 msgid "配置变更"
 msgstr "구성 변경"
 
-#: install.sh:10572 install.sh:10758
+#: install.sh:10572 install.sh:10769
 msgid "查看信息"
 msgstr "정보 보기"
 
@@ -2717,7 +2627,7 @@ msgstr "인증서 유효기간"
 msgid "证书自动更新"
 msgstr "인증서 자동 갱신"
 
-#: install.sh:10654 install.sh:10760
+#: install.sh:10654 install.sh:10771
 msgid "更新向导"
 msgstr "업데이트 마법사"
 
@@ -2729,7 +2639,7 @@ msgstr "스크립트"
 msgid "自动更新"
 msgstr "자동 업데이트"
 
-#: install.sh:10676 install.sh:10761
+#: install.sh:10676 install.sh:10772
 msgid "其他选项"
 msgstr "기타 옵션"
 
@@ -2753,7 +2663,7 @@ msgstr "로그 파일"
 msgid "服务器网速"
 msgstr "서버 속도"
 
-#: install.sh:10702 install.sh:10762
+#: install.sh:10702 install.sh:10773
 msgid "备份恢复"
 msgstr "백업 복구"
 
@@ -2790,11 +2700,15 @@ msgstr "연결성"
 msgid "运行状态"
 msgstr "운영 상태"
 
-#: install.sh:10748
+#: install.sh:10739
+msgid "AI 实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议"
+msgstr "AI 실시간 모니터링 Xray/Nginx 상태를 점검하고, 고장을 자동으로 진단하여 처리 권고사항을 제공합니다"
+
+#: install.sh:10759
 msgid "Xray 管理菜单"
 msgstr "Xray 관리 메뉴"
 
-#: install.sh:10766 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
+#: install.sh:10777 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
 #: scripts/traffic_blocker.sh:587
 msgid "退出"
 msgstr "퇴출"
@@ -2896,9 +2810,7 @@ msgstr "차단 해제"
 
 #: scripts/fail2ban_manager.sh:450
 msgid "解封后仍在封禁列表中, 请检查"
-msgstr ""
-"봉쇄 해제 후에도 여전히 봉쇄 목록에 포함되어 있습니다. 확인해 주시기 바랍니"
-"다."
+msgstr "봉쇄 해제 후에도 여전히 봉쇄 목록에 포함되어 있습니다. 확인해 주시기 바랍니다."
 
 #: scripts/fail2ban_manager.sh:454
 msgid "解封失败"
@@ -2930,9 +2842,7 @@ msgstr "운영 상태에서 수정에 성공했으나, 영구 저장에 실패�
 
 #: scripts/fail2ban_manager.sh:493
 msgid "重启 Fail2ban 后该可信 IP 可能丢失, 请手动检查配置文件"
-msgstr ""
-"Fail2ban을 재시작하면 해당 신뢰할 수 있는 IP이 손실될 수 있으니, 구성 파일을 "
-"수동으로 확인해 주십시오."
+msgstr "Fail2ban을 재시작하면 해당 신뢰할 수 있는 IP이 손실될 수 있으니, 구성 파일을 수동으로 확인해 주십시오."
 
 #: scripts/fail2ban_manager.sh:497
 msgid "添加可信名单失败"
@@ -2949,8 +2859,7 @@ msgstr "영구 삭제에 성공했습니다"
 #: scripts/fail2ban_manager.sh:536
 msgid "重启 Fail2ban 后该可信 IP 可能仍在, 请手动检查配置文件"
 msgstr ""
-"Fail2ban을 재시작한 후에도 해당 신뢰할 수 있는 IP이 여전히 존재할 수 있으니, "
-"설정 파일을 수동으로 확인해 주십시오."
+"Fail2ban을 재시작한 후에도 해당 신뢰할 수 있는 IP이 여전히 존재할 수 있으니, 설정 파일을 수동으로 확인해 주십시오."
 
 #: scripts/fail2ban_manager.sh:540
 msgid "移除可信名单失败"
@@ -3020,8 +2929,7 @@ msgstr "차단 해제할 Jail을 선택하세요"
 
 #: scripts/fail2ban_manager.sh:824
 msgid "请输入要解封的 IP 地址 (仅支持单个 IP, 不支持 CIDR)"
-msgstr ""
-"해제할 IP 주소를 입력하세요(단일 IP만 지원되며, CIDR는 지원되지 않습니다)"
+msgstr "해제할 IP 주소를 입력하세요(단일 IP만 지원되며, CIDR는 지원되지 않습니다)"
 
 #: scripts/fail2ban_manager.sh:826
 msgid "IP 地址不能为空"
@@ -3360,7 +3268,7 @@ msgid "工作模式"
 msgstr "작업 모드"
 
 #: scripts/rill_xray_agent_manager.sh:434
-#: scripts/rill_xray_agent_manager.sh:591
+#: scripts/rill_xray_agent_manager.sh:659
 msgid "AI 判断"
 msgstr "AI 판단"
 
@@ -3372,154 +3280,237 @@ msgstr "서비스: 실행 중"
 msgid "AI 判断: 不可用"
 msgstr "AI 판단: 사용 불가"
 
-#: scripts/rill_xray_agent_manager.sh:523
+#: scripts/rill_xray_agent_manager.sh:534
+msgid ""
+"开启 AI 智能判断后，系统将持续观测 Xray/Nginx 状态，自动诊断故障并给出处理建议。说明：自动修改功能暂不开放，当前不会自动更改系统。"
+msgstr ""
+"AI 지능 판단을 활성화하면, 시스템은 Xray/Nginx 상태를 지속적으로 모니터링하여 고장을 자동으로 진단하고 처리 권장 사항을 "
+"제시합니다. 참고: 자동 수정 기능은 현재 미개방 상태로, 당분간 시스템이 자동으로 변경되지 않습니다."
+
+#: scripts/rill_xray_agent_manager.sh:537
+msgid "切换到 AI 观察模式后，AI 仅观测和判断，不会自动修改系统，结果仅供参考。"
+msgstr "AI 관찰 모드로 전환한 후, AI은 관찰과 판단만 수행하며 시스템을 자동으로 수정하지 않으므로, 결과는 참고용입니다."
+
+#: scripts/rill_xray_agent_manager.sh:540
+msgid "安全停用后，AI 判断功能暂停，引擎保留，可随时重新开启。"
+msgstr "안전하게 비활성화된 후, AI 판단 기능은 일시 정지되고 엔진은 유지되며 언제든지 다시 활성화할 수 있습니다."
+
+#: scripts/rill_xray_agent_manager.sh:548
+msgid "确认切换吗？ [y/N]: "
+msgstr "전환을 확인하시겠습니까? [y/N]:"
+
+#: scripts/rill_xray_agent_manager.sh:553
+msgid "已取消。"
+msgstr "취소되었습니다."
+
+#: scripts/rill_xray_agent_manager.sh:562
 msgid "工作模式已切换"
 msgstr "작업 모드가 전환되었습니다"
 
-#: scripts/rill_xray_agent_manager.sh:525
+#: scripts/rill_xray_agent_manager.sh:564
 msgid "工作模式切换失败"
 msgstr "작업 모드 전환에 실패했습니다"
 
-#: scripts/rill_xray_agent_manager.sh:532
+#: scripts/rill_xray_agent_manager.sh:571
 msgid "AI 判断引擎校验通过"
 msgstr "AI 판단 엔진 검증 통과"
 
-#: scripts/rill_xray_agent_manager.sh:534
+#: scripts/rill_xray_agent_manager.sh:573
 msgid "AI 判断引擎校验失败，请检查后台服务和观测数据"
-msgstr ""
-"AI 판단 엔진 검증에 실패했습니다. 백엔드 서비스와 관측 데이터를 확인해 주시"
-"기 바랍니다."
+msgstr "AI 판단 엔진 검증에 실패했습니다. 백엔드 서비스와 관측 데이터를 확인해 주시기 바랍니다."
 
-#: scripts/rill_xray_agent_manager.sh:541
+#: scripts/rill_xray_agent_manager.sh:580
 msgid "Xray 相关服务运行正常，未发现近期故障"
-msgstr ""
-"Xray 관련 서비스는 정상적으로 운영되고 있으며, 최근 장애는 발견되지 않았습니"
-"다."
+msgstr "Xray 관련 서비스는 정상적으로 운영되고 있으며, 최근 장애는 발견되지 않았습니다."
 
-#: scripts/rill_xray_agent_manager.sh:542
+#: scripts/rill_xray_agent_manager.sh:581
 msgid "近期配置发生过变化，但当前服务与配置校验均正常"
 msgstr "최근 구성에 변경이 있었으나, 현재 서비스와 구성 검증 모두 정상입니다."
 
-#: scripts/rill_xray_agent_manager.sh:543
+#: scripts/rill_xray_agent_manager.sh:582
 msgid "Rill 内部恢复尚未完成，暂时无法进行可靠判断"
-msgstr ""
-"Rill 내부 복구가 아직 완료되지 않아 당분간 신뢰할 수 있는 판단을 내릴 수 없습"
-"니다."
+msgstr "Rill 내부 복구가 아직 완료되지 않아 당분간 신뢰할 수 있는 판단을 내릴 수 없습니다."
 
-#: scripts/rill_xray_agent_manager.sh:544
+#: scripts/rill_xray_agent_manager.sh:583
 msgid "尚无可用的观测数据，暂时无法判断"
 msgstr "아직 이용 가능한 관측 자료가 없어, 당분간 판단이 불가능합니다."
 
-#: scripts/rill_xray_agent_manager.sh:545
+#: scripts/rill_xray_agent_manager.sh:584
 msgid "观测时间无效，当前证据不可用"
 msgstr "관측 시간이 유효하지 않으며, 현재 증거를 이용할 수 없습니다."
 
-#: scripts/rill_xray_agent_manager.sh:546
+#: scripts/rill_xray_agent_manager.sh:585
 msgid "观测数据已过期，需要先刷新观测"
 msgstr "관측 데이터가 만료되었습니다. 먼저 관측을 새로 고쳐야 합니다."
 
-#: scripts/rill_xray_agent_manager.sh:547
+#: scripts/rill_xray_agent_manager.sh:586
 msgid "检测到不安全的配置路径，需要人工检查"
 msgstr "안전하지 않은 구성 경로가 감지되었습니다. 수동 점검이 필요합니다."
 
-#: scripts/rill_xray_agent_manager.sh:548
+#: scripts/rill_xray_agent_manager.sh:587
 msgid "Xray 与 Nginx 均未运行"
 msgstr "Xray 및 Nginx 모두 실행되지 않았습니다"
 
-#: scripts/rill_xray_agent_manager.sh:549
+#: scripts/rill_xray_agent_manager.sh:588
 msgid "Xray 配置校验失败"
 msgstr "Xray 구성 검증에 실패했습니다"
 
-#: scripts/rill_xray_agent_manager.sh:553
+#: scripts/rill_xray_agent_manager.sh:592
 msgid "现有证据不足，暂时无法判断"
 msgstr "현재 증거가 불충분하여 당분간 판단할 수 없습니다."
 
-#: scripts/rill_xray_agent_manager.sh:554
+#: scripts/rill_xray_agent_manager.sh:593
 msgid "已生成判断结果，请结合诊断代码继续检查"
-msgstr ""
-"판단 결과가 생성되었습니다. 진단 코드를 참고하여 추가로 점검해 주시기 바랍니"
-"다."
+msgstr "판단 결과가 생성되었습니다. 진단 코드를 참고하여 추가로 점검해 주시기 바랍니다."
 
-#: scripts/rill_xray_agent_manager.sh:560
+#: scripts/rill_xray_agent_manager.sh:603
+#: scripts/rill_xray_agent_manager.sh:612
+msgid "检测：不可用"
+msgstr "검사: 이용 불가"
+
+#: scripts/rill_xray_agent_manager.sh:618
+#: scripts/rill_xray_agent_manager.sh:621
+#| msgid "配置检测"
+msgid "检测"
+msgstr "검사"
+
+#: scripts/rill_xray_agent_manager.sh:628
 msgid "高"
 msgstr "높음"
 
-#: scripts/rill_xray_agent_manager.sh:561
+#: scripts/rill_xray_agent_manager.sh:629
 msgid "中"
 msgstr "중"
 
-#: scripts/rill_xray_agent_manager.sh:562
+#: scripts/rill_xray_agent_manager.sh:630
 msgid "低"
 msgstr "낮은"
 
-#: scripts/rill_xray_agent_manager.sh:563
+#: scripts/rill_xray_agent_manager.sh:631
 msgid "证据不足"
 msgstr "증거가 부족하다"
 
-#: scripts/rill_xray_agent_manager.sh:564 scripts/traffic_blocker.sh:471
+#: scripts/rill_xray_agent_manager.sh:632 scripts/traffic_blocker.sh:471
 #: scripts/traffic_blocker.sh:626 scripts/traffic_blocker.sh:628
 #: scripts/traffic_blocker.sh:638 scripts/traffic_blocker.sh:640
 #: scripts/traffic_blocker.sh:749
 msgid "未知"
 msgstr "미지"
 
-#: scripts/rill_xray_agent_manager.sh:571
+#: scripts/rill_xray_agent_manager.sh:639
 msgid "AI 故障诊断失败，后台服务没有返回有效结果"
-msgstr ""
-"AI 장애 진단에 실패했습니다. 백업 서비스에서 유효한 결과를 반환하지 않았습니"
-"다."
+msgstr "AI 장애 진단에 실패했습니다. 백업 서비스에서 유효한 결과를 반환하지 않았습니다."
 
-#: scripts/rill_xray_agent_manager.sh:585
+#: scripts/rill_xray_agent_manager.sh:653
 msgid "AI 故障诊断失败，返回内容无法解析"
 msgstr "AI 장애 진단에 실패하여 반환된 내용을 파싱할 수 없습니다."
 
-#: scripts/rill_xray_agent_manager.sh:592
+#: scripts/rill_xray_agent_manager.sh:660
 msgid "判断置信度"
 msgstr "판단 신뢰도"
 
-#: scripts/rill_xray_agent_manager.sh:593
+#: scripts/rill_xray_agent_manager.sh:661
 msgid "诊断代码"
 msgstr "진단 코드"
 
-#: scripts/rill_xray_agent_manager.sh:595
+#: scripts/rill_xray_agent_manager.sh:663
 msgid "此结果允许自动处理"
 msgstr "이 결과는 자동 처리를 허용합니다."
 
-#: scripts/rill_xray_agent_manager.sh:597
+#: scripts/rill_xray_agent_manager.sh:665
 msgid "此结果仅提供判断建议，不会自动修改系统"
+msgstr "이 결과는 판단에 대한 권고사항을 제공할 뿐, 시스템을 자동으로 수정하지 않습니다."
+
+#: scripts/rill_xray_agent_manager.sh:670
+#| msgid "工作模式"
+msgid "三种工作模式说明："
+msgstr "세 가지 작업 모드 설명:"
+
+#: scripts/rill_xray_agent_manager.sh:671
+msgid "智能判断：AI 实时诊断故障并给出处理建议。自动修改功能暂不开放，当前不会自动更改系统。"
 msgstr ""
-"이 결과는 판단에 대한 권고사항을 제공할 뿐, 시스템을 자동으로 수정하지 않습니"
-"다."
+"지능형 판단: AI이 실시간으로 고장을 진단하고 처리 방안을 제시합니다. 자동 수정 기능은 현재 이용할 수 없으며, 시스템은 자동으로 "
+"변경되지 않습니다."
 
-#: scripts/rill_xray_agent_manager.sh:606
-msgid "查看 AI 判断状态"
-msgstr "AI 판단 상태를 확인합니다"
+#: scripts/rill_xray_agent_manager.sh:672
+msgid "观察模式：AI 仅观察和判断，不会自动修改系统，结果仅供参考。"
+msgstr "관찰 모드: AI 관찰과 판단만 이루어지며, 시스템은 자동으로 수정되지 않습니다. 결과는 참고용입니다."
 
-#: scripts/rill_xray_agent_manager.sh:607
-msgid "安装或修复 AI 判断引擎"
-msgstr "AI 판단 엔진을 설치하거나 복구합니다"
+#: scripts/rill_xray_agent_manager.sh:673
+msgid "安全停用：暂停 AI 判断功能，引擎保留，可随时重新开启。"
+msgstr "안전 비활성화: AI 판단 기능을 일시 정지하며 엔진은 유지되므로 언제든지 다시 활성화할 수 있습니다."
 
-#: scripts/rill_xray_agent_manager.sh:608
+#: scripts/rill_xray_agent_manager.sh:679
+#| msgid "Rill Xray AI 运维助手"
+msgid "Rill Xray AI 运维助手 / 切换工作模式"
+msgstr "Rill Xray AI O&M 도우미 / 작업 모드 전환"
+
+#: scripts/rill_xray_agent_manager.sh:680
 msgid "开启 AI 智能判断"
 msgstr "AI 스마트 판단 활성화"
 
-#: scripts/rill_xray_agent_manager.sh:609
+#: scripts/rill_xray_agent_manager.sh:681
 msgid "切换到 AI 观察模式"
 msgstr "AI 관찰 모드로 전환합니다"
 
-#: scripts/rill_xray_agent_manager.sh:610
+#: scripts/rill_xray_agent_manager.sh:682
 msgid "安全停用 AI 判断"
 msgstr "안전한 AI 비활성화 판단"
 
-#: scripts/rill_xray_agent_manager.sh:611
+#: scripts/rill_xray_agent_manager.sh:684
+#| msgid "工作模式"
+msgid "查看工作模式说明"
+msgstr "작업 모드 설명 보기"
+
+#: scripts/rill_xray_agent_manager.sh:703
+#| msgid "Rill Xray AI 运维助手"
+msgid "Rill Xray AI 运维助手 / 校验与诊断"
+msgstr "Rill Xray AI O&M 도우미 / 검증 및 진단"
+
+#: scripts/rill_xray_agent_manager.sh:704
 msgid "校验 AI 判断引擎"
 msgstr "AI 검증 판단 엔진"
 
-#: scripts/rill_xray_agent_manager.sh:612
+#: scripts/rill_xray_agent_manager.sh:705
 msgid "运行 AI 故障诊断"
 msgstr "AI 고장 진단 실행"
 
-#: scripts/rill_xray_agent_manager.sh:613
+#: scripts/rill_xray_agent_manager.sh:724
+msgid "本地 AI 运维助手：实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议。"
+msgstr ""
+"로컬 AI O&M 어시스턴트: Xray/Nginx 의 상태를 실시간으로 모니터링하고, 장애를 자동으로 진단한 후 처리 권고 사항을 "
+"제시합니다."
+
+#: scripts/rill_xray_agent_manager.sh:725
+msgid "• 监控：实时观测服务与配置状态"
+msgstr "• 모니터링: 서비스 및 구성 상태를 실시간으로 모니터링합니다"
+
+#: scripts/rill_xray_agent_manager.sh:726
+msgid "• 诊断：定位故障原因，附置信度建议"
+msgstr "• 진단: 고장 원인을 파악하고 신뢰도 기반의 권고사항을 제시합니다"
+
+#: scripts/rill_xray_agent_manager.sh:727
+msgid "• 模式：智能判断 / 仅观察 / 安全停用"
+msgstr "• 모드: 지능 판단 / 관찰 전용 / 안전 비활성화"
+
+#: scripts/rill_xray_agent_manager.sh:730
+msgid "查看 AI 判断状态"
+msgstr "AI 판단 상태를 확인합니다"
+
+#: scripts/rill_xray_agent_manager.sh:731
+#| msgid "工作模式"
+msgid "切换工作模式"
+msgstr "작업 모드 전환"
+
+#: scripts/rill_xray_agent_manager.sh:732
+msgid "校验与诊断"
+msgstr "검사 및 진단"
+
+#: scripts/rill_xray_agent_manager.sh:734
+msgid "安装或修复 AI 判断引擎"
+msgstr "AI 판단 엔진을 설치하거나 복구합니다"
+
+#: scripts/rill_xray_agent_manager.sh:735
 msgid "卸载 Rill AI 引擎"
 msgstr "Rill AI 엔진을 제거합니다"
 
@@ -3769,15 +3760,11 @@ msgstr "x레이 구성 파일이 존재하지 않습니다 [Xray]"
 
 #: scripts/traffic_blocker.sh:997
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
-msgstr ""
-"x레이 구성에 차단된 아웃바운드가 없어 차단 규칙을 적용할 수 없습니다 [Xray / "
-"blocked]"
+msgstr "x레이 구성에 차단된 아웃바운드가 없어 차단 규칙을 적용할 수 없습니다 [Xray / blocked]"
 
 #: scripts/traffic_blocker.sh:1002
 msgid "Xray 配置中缺少 direct 出站, 无法应用阻断规则"
-msgstr ""
-"x레이 구성에 직접 아웃바운드가 누락되어 차단 규칙을 적용할 수 없습니다 "
-"[Xray / direct]"
+msgstr "x레이 구성에 직접 아웃바운드가 누락되어 차단 규칙을 적용할 수 없습니다 [Xray / direct]"
 
 #: scripts/traffic_blocker.sh:1017
 msgid "当前阻断规则配置"
@@ -3785,9 +3772,7 @@ msgstr "현재 차단 규칙 구성"
 
 #: scripts/traffic_blocker.sh:1029
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
-msgstr ""
-"규칙 적용 시 라우팅 구성이 재구성되며, 사용자 정의 라우팅 규칙은 덮어쓰기됩니"
-"다"
+msgstr "규칙 적용 시 라우팅 구성이 재구성되며, 사용자 정의 라우팅 규칙은 덮어쓰기됩니다"
 
 #: scripts/traffic_blocker.sh:1033
 msgid "GeoData 下载失败, 无法应用规则"
