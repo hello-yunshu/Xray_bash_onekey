@@ -265,6 +265,30 @@ else
     bad "update_sh should succeed (return 0) when already latest"
 fi
 
+# --- Test 6: Post-replacement semantic failure restores the old script ---
+echo "--- Post-replacement validation failure restores previous script ---"
+printf '%s\n' '#!/usr/bin/env bash' 'echo original-after-rollback' > "${idleleo}"
+candidate="${idleleo_dir}/postcheck-candidate.sh"
+printf '%s\n' '#!/usr/bin/env bash' 'echo invalid-for-semantic-guard' > "${candidate}"
+rxa_candidate_guard() { return 1; }
+if rxa_replace_main_candidate "${candidate}" "${idleleo}"; then
+    bad "post-replacement guard failure must return non-zero"
+else
+    [[ ${RILL_UPDATE_CANDIDATE_ERROR} == postcheck ]] \
+        && ok "post-replacement failure is classified as postcheck" \
+        || bad "post-replacement failure classification is ${RILL_UPDATE_CANDIDATE_ERROR}"
+fi
+if grep -Fq 'original-after-rollback' "${idleleo}"; then
+    ok "Previous script restored after post-replacement failure"
+else
+    bad "Previous script was not restored after post-replacement failure"
+fi
+if compgen -G "${idleleo}.bak.*" >/dev/null; then
+    bad "Rollback left a stale backup file"
+else
+    ok "Rollback leaves no stale backup file"
+fi
+
 echo ""
 echo "============================================================"
 echo "  Results: ${PASS} passed, ${FAIL} failed"
