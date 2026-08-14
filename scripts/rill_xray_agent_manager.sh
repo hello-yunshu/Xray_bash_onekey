@@ -515,8 +515,8 @@ rxa_status_display() {
     runtime_field="${RILL_XRAY_AGENT_HEADER_RUNTIME}"
     # 仅运行中的状态着绿色；关闭、未运行不加颜色（与主菜单一致）。
     if [[ -n "${Green:-}" && "${runtime_field}" == *"$(gettext "运行中")"* ]]; then
-        state_field="${Green}${state_field}${Font}"
-        runtime_field="${Green}${runtime_field}${Font}"
+        state_field="${Green:-}${state_field}${Font:-}"
+        runtime_field="${Green:-}${runtime_field}${Font:-}"
     fi
     printf '%s\n' "${state_field}"
     printf '%s\n' "${RILL_XRAY_AGENT_HEADER_MODE}"
