@@ -9,7 +9,7 @@
 ## 특징
 
 * 입력하다`idleleo`Xray 관리 메뉴를 열어 설치, 서비스, 보안 설정 등을 관리하세요.
-* 여러 언어로 정확한 번역을 얻으려면 Qwen-MT-Plus AI을(를) 사용하세요.
+* 여러 언어로 정확한 번역을 얻으려면 Qwen-MT-Plus AI을 사용하세요.
 * Reality 프로토콜을 지원합니다. Nginx 접두사 사용을 권장합니다(스크립트에 설치 가능).
 * WebSocket, gRPC, xHTTP 전송을 지원하며 단일 전송 또는`ws+gRPC+xHTTP`둘 다 활성화
 * 내장된 fail2ban 보호(스크립트 내에 설치 가능)
@@ -60,7 +60,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_oneke
 | XTLS ONLY | 트래픽 전송과 같은 특정 시나리오에서만 사용됩니다. |
 | Docker | Xray, Nginx 및 기본 스크립트가 이미지에 사전 설치되어 있습니다. |
 
-ws/gRPC/xHTTP 관련 모드 설치 시 선택 사항`ws`、`gRPC`、`xHTTP`또는`ws+gRPC+xHTTP`. 스크립트는 각각 해당 포트, 경로, 공유 링크 및 QR 코드를 생성합니다. Clash은 현재 xHTTP을 지원하지 않으며 스크립트는 구성 출력에 메시지를 표시합니다.
+ws/gRPC/xHTTP 관련 모드 설치 시 선택 사항`ws`、`gRPC`、`xHTTP`또는`ws+gRPC+xHTTP`. 스크립트는 각각 해당 포트, 경로, 공유 링크 및 QR 코드를 생성합니다. Clash은(는) 현재 xHTTP을 지원하지 않으며 스크립트는 구성 출력에 메시지를 표시합니다.
 
 ## 재구성 지침
 
@@ -91,30 +91,30 @@ ws/gRPC/xHTTP 관련 모드 설치 시 선택 사항`ws`、`gRPC`、`xHTTP`또�
 | 트래픽 차단 설정 | `idleleo --traffic-blocker` |
 | 실시간 포트 트래픽 보기 | `idleleo --port-traffic` |
 
-## Rill Xray AI — 운영 보조 도우미
+## Rill Xray AI 운영 및 유지 관리 보조원
 
-내장된 로컬 AI 운영 보조 도우미로, Xray/Nginx 상태를 실시간으로 모니터링하고 장애를 자동 진단하며 처리 권장 사항을 제공합니다. 외부 API가 필요 없습니다. 메인 메뉴에서 `9`를 입력하거나 `idleleo --rill-agent`를 실행하여 진입합니다.
+내장된 로컬 AI 작동 및 유지 관리 도우미는 Xray/Nginx의 상태를 실시간으로 모니터링하고, 자동으로 결함을 진단하고, 외부 API 없이도 치료 제안을 제공합니다. 메인 메뉴 입력`9`또는 실행`idleleo --rill-agent`입력하다.
 
-**핵심 기능**
+**핵심 역량**
 
-* 모니터링: Xray/Nginx 서비스 및 구성 상태를 실시간으로 관찰
-* 진단: 장애 원인을 찾아 신뢰도 등급(높음 / 중간 / 낮음 / 증거 부족)을 함께 제시
-* 판단: 장애 유형을 자동으로 판단하고 처리 권장 사항을 제공하며, 자동 처리가 허용되는지 아니면 권장 사항일 뿐인지 설명에 명확히 표시
-* 모드: 지능형 판단 / 관찰 전용 / 안전 비활성화. 자동 수정을 켜기 전까지 시스템을 변경하지 않습니다
+* 모니터링: Xray/Nginx 서비스 및 구성 상태를 실시간 관찰
+* 진단: 신뢰도 권장 사항(높음/중간/낮음/증거 불충분)을 통해 결함의 근본 원인을 찾습니다.
+* 판단: 오류 유형을 자동으로 결정하고 처리 제안을 제공합니다. 지침에는 자동 처리가 허용되거나 제안만 제공된다는 내용이 명확하게 표시되어 있습니다.
+* 모드: 지능형 판단/관찰 전용/안전 비활성화, 자동 수정이 켜질 때까지 시스템은 변경되지 않습니다.
 
-**자주 쓰는 명령**
+**자주 사용하는 명령어**
 
-| 작업 | 명령 |
+| 작동하다 | 주문하다 |
 |------|------|
-| AI 운영 보조 메뉴 열기 | `idleleo --rill-agent` |
-| AI 판단 엔진 설치 또는 복구 | `idleleo --rill-agent-install` |
-| AI 판단 상태 확인 | `idleleo --rill-agent-status` |
-| AI 장애 진단 실행 | `idleleo --rill-agent-diagnose` |
-| AI 판단 엔진 검증 | `idleleo --rill-agent-verify` |
-| AI 판단 안전 비활성화 | `idleleo --rill-agent-safe-disable` |
+| AI 운영 및 유지 관리 보조 메뉴 열기 | `idleleo --rill-agent` |
+| AI 판단 엔진 설치 또는 수리 | `idleleo --rill-agent-install` |
+| AI 판정 상태를 확인하세요 | `idleleo --rill-agent-status` |
+| AI 문제 해결 실행 | `idleleo --rill-agent-diagnose` |
+| 검증 AI 판단 엔진 | `idleleo --rill-agent-verify` |
+| 보안 비활성화 AI 판단 | `idleleo --rill-agent-safe-disable` |
 | Rill AI 엔진 제거 | `idleleo --rill-agent-uninstall` |
 
-AI 판단 엔진은 현재 테스트 단계에 있습니다. 진단 권장 사항 위주로 사용하는 것이 좋으며, 기본적으로 시스템을 자동으로 변경하지 않습니다.
+AI 판단 엔진은 아직 테스트 단계입니다. 진단 제안에 중점을 두는 것이 좋습니다. 시스템은 기본적으로 자동으로 수정되지 않습니다.
 
 ## Docker 배포
 
@@ -135,7 +135,7 @@ docker attach xray-onekey
 
 **지원되는 모드**: Reality / TLS / ws ONLY / XTLS ONLY
 
-**사용 방법**: Skill을 지원하는 AI 도구에서 "서버에 Xray 구축을 도와주세요"라고 직접 말하면 AI이 자동으로 정보를 수집하고, 스크립트를 생성하고, 배포를 수행하고, 연결 정보를 반환합니다.
+**使用方式**：在支持 Skill 的 AI 工具中直接说"帮我在服务器上搭建 Xray"，AI 会自动收集信息、生成脚本、执行部署并返回连接信息。
 
 ## 주의할 점
 
