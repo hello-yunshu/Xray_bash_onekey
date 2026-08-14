@@ -123,7 +123,14 @@ jobs:
           bash .github/test/test_firewall_reconcile.sh
           # IPv6-aware managed firewall (dual-stack mirroring + rollback)
           bash .github/test/test_firewall_ipv6.sh
+          # Firewall cross-network-family transitions (dual->ipv4 cleanup,
+          # ipv4/ipv6->dual, port+family change, family-aware rollback and
+          # persistence, missing-ip6tables fail-closed). All mocked.
+          bash .github/test/test_firewall_family_transition.sh
           bash .github/test/test_shell_update_metadata.sh
+          # Fresh-process dual-stack runtime hydration (restart keeps IPv4/IPv6
+          # Reality/XTLS/None share links) — mandatory, not optional
+          bash .github/test/test_dual_stack_runtime.sh
           # IPv4/IPv6 dual-stack support regression tests (literal detection,
           # URI authority bracket, network capability, A/AAAA qualification,
           # bad-record gating, old-config compat, dual direct-IP links)
