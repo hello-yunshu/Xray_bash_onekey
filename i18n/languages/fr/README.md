@@ -68,7 +68,7 @@ Lorsque l'environnement installé est à nouveau installé, le script sauvegarde
 
 | chemin | illustrer | limite |
 |------|------|------|
-| Préserver le redéploiement de la configuration | Conservez les configurations routing/outbounds/DNS et multi-utilisateurs personnalisées, modifiez uniquement les champs sélectionnés par l'utilisateur (ports, chemins, paramètres UUID, Reality, etc.) | Les modifications de la structure de transmission (telles que ws → gRPC) ne sont pas prises en charge. Si vous devez modifier la combinaison de transmission, veuillez utiliser le modèle standard pour la reconstruire. |
+| Préserver le redéploiement de la configuration | Conservez la configuration routing/outbounds/DNS personnalisée et multi-utilisateurs, modifiez uniquement les champs sélectionnés par l'utilisateur (ports, chemins, paramètres UUID, Reality, etc.) | Les modifications de la structure de transmission (telles que ws → gRPC) ne sont pas prises en charge. Si vous devez modifier la combinaison de transmission, veuillez utiliser le modèle standard pour la reconstruire. |
 | Reconstruction de modèle standard | Générez une configuration de modèle standard à l'aide des paramètres réutilisables actuels, le routing/outbounds/DNS personnalisé peut être supprimé | Il n'est pas obligatoire que le nombre d'utilisateurs reste inchangé |
 | Changement de mode | Passez à un autre mode de protocole (tel que Reality → TLS). Par défaut, seul l'utilisateur principal UUID/email est réutilisé. | Les autres utilisateurs ne seront pas automatiquement migrés et seront clairement invités avant de changer. |
 
@@ -91,30 +91,30 @@ Si une étape du processus de reconfiguration échoue (écriture de la configura
 | Configurer le blocage du trafic | `idleleo --traffic-blocker` |
 | Visualisez le trafic portuaire en temps réel | `idleleo --port-traffic` |
 
-## Rill Xray AI — assistant d'exploitation
+## Rill Xray AI Assistant d'exploitation et de maintenance
 
-Assistant d'exploitation local intégré qui surveille en temps réel l'état de Xray/Nginx, diagnostique automatiquement les pannes et fournit des recommandations — sans API externe. Entrez `9` dans le menu principal ou exécutez `idleleo --rill-agent` pour y accéder.
+L'assistant d'exploitation et de maintenance local AI intégré surveille l'état de santé de Xray/Nginx en temps réel, diagnostique automatiquement les défauts et donne des suggestions de traitement, sans avoir besoin d'un API externe. Entrée du menu principal`9`ou exécuter`idleleo --rill-agent`Entrer.
 
-**Fonctionnalités principales**
+**Compétences de base**
 
-* Surveillance : observabilité en temps réel de l'état des services et de la configuration Xray/Nginx
-* Diagnostic : identification de la cause racine avec un niveau de confiance (élevé / moyen / faible / preuves insuffisantes)
-* Évaluation : détermination automatique du type de panne et recommandation ; le descriptif précise clairement si une correction automatique est autorisée ou s'il s'agit d'un simple conseil
-* Modes : évaluation intelligente / observation seule / désactivation sécurisée ; le système n'est pas modifié tant que la correction automatique n'est pas activée
+* Surveillance : observation en temps réel de l'état du service et de la configuration Xray/Nginx
+* Diagnostic : localisez la cause profonde du défaut, avec des recommandations de confiance (preuves élevées/moyennes/faibles/insuffisantes)
+* Jugement : Déterminez automatiquement le type de défaut et donnez des suggestions de traitement. Les instructions indiquent clairement que le traitement automatique est autorisé ou que seules des suggestions sont fournies.
+* Mode : jugement intelligent/observation uniquement/désactivation sécurisée, le système ne sera pas modifié tant que la modification automatique n'est pas activée.
 
-**Commandes courantes**
+**Commandes fréquemment utilisées**
 
-| Action | Commande |
+| fonctionner | Commande |
 |------|------|
-| Ouvrir le menu de l'assistant | `idleleo --rill-agent` |
-| Installer ou réparer le moteur d'évaluation | `idleleo --rill-agent-install` |
-| Voir l'état de l'évaluation | `idleleo --rill-agent-status` |
-| Lancer un diagnostic de panne | `idleleo --rill-agent-diagnose` |
-| Vérifier le moteur d'évaluation | `idleleo --rill-agent-verify` |
-| Désactiver en toute sécurité l'évaluation | `idleleo --rill-agent-safe-disable` |
+| Ouvrir le menu de l'assistant d'exploitation et de maintenance AI | `idleleo --rill-agent` |
+| Installer ou réparer le moteur de jugement AI | `idleleo --rill-agent-install` |
+| Vérifiez l'état du jugement AI | `idleleo --rill-agent-status` |
+| Exécutez le dépannage AI | `idleleo --rill-agent-diagnose` |
+| Moteur de jugement AI de vérification | `idleleo --rill-agent-verify` |
+| Désactivation de la sécurité Jugement AI | `idleleo --rill-agent-safe-disable` |
 | Désinstaller le moteur Rill AI | `idleleo --rill-agent-uninstall` |
 
-Le moteur d'évaluation est encore au stade expérimental ; il est recommandé de l'utiliser comme source de recommandations diagnostiques. Par défaut, il ne modifie pas le système automatiquement.
+AI Le moteur de jugement est encore en phase de test. Il est recommandé de se concentrer sur les suggestions de diagnostic. Le système ne sera pas automatiquement modifié par défaut.
 
 ## Docker Déploiement
 
