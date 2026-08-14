@@ -84,10 +84,15 @@ localized_output="$({
     rxa_status_display
     menu_submenu_begin() { printf 'TITLE:%s\n' "$1"; }
     menu_item() { printf 'ITEM:%s\n' "$2"; }
+    menu_row() { :; }
     menu_blank() { :; }
     menu_footer() { :; }
     menu_read() { printf -v "$1" '%s' 0; }
     rxa_menu
+    # Secondary menus are rendered on their own screens; render them too so
+    # the label assertions below cover every reachable option.
+    rxa_mode_menu
+    rxa_verify_diag_menu
 } 2>&1)"
 grep -Fq 'AI 判断: 仅观察' <<<"${localized_output}"
 grep -Fq '工作模式: 仅观察' <<<"${localized_output}"
