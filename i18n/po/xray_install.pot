@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-08-14 10:07+0000\n"
+"POT-Creation-Date: 2026-08-14 11:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,8 +110,8 @@ msgstr ""
 msgid "路由辅助: 关闭"
 msgstr ""
 
-#: install.sh:636 install.sh:10738 install.sh:10764
-#: scripts/rill_xray_agent_manager.sh:605
+#: install.sh:636 install.sh:10738 install.sh:10775
+#: scripts/rill_xray_agent_manager.sh:723
 msgid "Rill Xray AI 运维助手"
 msgstr ""
 
@@ -132,7 +132,9 @@ msgstr ""
 #: scripts/fail2ban_manager.sh:816 scripts/fail2ban_manager.sh:851
 #: scripts/fail2ban_manager.sh:886 scripts/fail2ban_manager.sh:911
 #: scripts/fail2ban_manager.sh:1009 scripts/fail2ban_manager.sh:1049
-#: scripts/rill_xray_agent_manager.sh:615 scripts/traffic_blocker.sh:268
+#: scripts/rill_xray_agent_manager.sh:686
+#: scripts/rill_xray_agent_manager.sh:707
+#: scripts/rill_xray_agent_manager.sh:737 scripts/traffic_blocker.sh:268
 #: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:700
 #: scripts/traffic_blocker.sh:807 scripts/traffic_blocker.sh:823
 msgid "返回"
@@ -242,7 +244,7 @@ msgstr ""
 #: install.sh:3574 install.sh:4276 install.sh:4284 install.sh:4825
 #: install.sh:4880 install.sh:4971 install.sh:5245 install.sh:5249
 #: install.sh:6577 install.sh:6581 install.sh:6586 install.sh:9109
-#: install.sh:9141 install.sh:10115 install.sh:10124 install.sh:10832
+#: install.sh:9141 install.sh:10115 install.sh:10124 install.sh:10843
 #: scripts/file_manager.sh:366 scripts/traffic_blocker.sh:514
 #: scripts/traffic_blocker.sh:980
 msgid "失败"
@@ -550,7 +552,7 @@ msgstr ""
 #: install.sh:2575 install.sh:3259 install.sh:3266 install.sh:3348
 #: install.sh:5725 install.sh:5828 install.sh:5950 install.sh:5958
 #: install.sh:5967 install.sh:6005 install.sh:6577 install.sh:6581
-#: install.sh:6586 install.sh:10832
+#: install.sh:6586 install.sh:10843
 msgid "配置修改"
 msgstr ""
 
@@ -1015,7 +1017,7 @@ msgstr ""
 msgid "Nginx 分层权限验证失败"
 msgstr ""
 
-#: install.sh:4386 scripts/rill_xray_agent_manager.sh:550
+#: install.sh:4386 scripts/rill_xray_agent_manager.sh:589
 msgid "Nginx 配置校验失败"
 msgstr ""
 
@@ -2199,7 +2201,7 @@ msgstr ""
 msgid "显示帮助"
 msgstr ""
 
-#: install.sh:8787 install.sh:10763
+#: install.sh:8787 install.sh:10774
 msgid "修改语言"
 msgstr ""
 
@@ -2264,7 +2266,8 @@ msgstr ""
 msgid "版本未知"
 msgstr ""
 
-#: install.sh:8893 install.sh:8900
+#: install.sh:8893 install.sh:8900 install.sh:10743
+#: scripts/rill_xray_agent_manager.sh:517
 msgid "运行中"
 msgstr ""
 
@@ -2466,11 +2469,11 @@ msgstr ""
 msgid "Nginx 配置测试失败"
 msgstr ""
 
-#: install.sh:9709 scripts/rill_xray_agent_manager.sh:551
+#: install.sh:9709 scripts/rill_xray_agent_manager.sh:590
 msgid "Xray 服务未运行"
 msgstr ""
 
-#: install.sh:9714 scripts/rill_xray_agent_manager.sh:552
+#: install.sh:9714 scripts/rill_xray_agent_manager.sh:591
 msgid "Nginx 服务未运行"
 msgstr ""
 
@@ -2569,7 +2572,7 @@ msgstr ""
 msgid "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
 msgstr ""
 
-#: install.sh:10446 install.sh:10756
+#: install.sh:10446 install.sh:10767
 msgid "安装向导"
 msgstr ""
 
@@ -2585,11 +2588,11 @@ msgstr ""
 msgid "用户"
 msgstr ""
 
-#: install.sh:10510 install.sh:10552 install.sh:10554 install.sh:10757
+#: install.sh:10510 install.sh:10552 install.sh:10554 install.sh:10768
 msgid "配置变更"
 msgstr ""
 
-#: install.sh:10572 install.sh:10758
+#: install.sh:10572 install.sh:10769
 msgid "查看信息"
 msgstr ""
 
@@ -2621,7 +2624,7 @@ msgstr ""
 msgid "证书自动更新"
 msgstr ""
 
-#: install.sh:10654 install.sh:10760
+#: install.sh:10654 install.sh:10771
 msgid "更新向导"
 msgstr ""
 
@@ -2633,7 +2636,7 @@ msgstr ""
 msgid "自动更新"
 msgstr ""
 
-#: install.sh:10676 install.sh:10761
+#: install.sh:10676 install.sh:10772
 msgid "其他选项"
 msgstr ""
 
@@ -2657,7 +2660,7 @@ msgstr ""
 msgid "服务器网速"
 msgstr ""
 
-#: install.sh:10702 install.sh:10762
+#: install.sh:10702 install.sh:10773
 msgid "备份恢复"
 msgstr ""
 
@@ -2694,11 +2697,15 @@ msgstr ""
 msgid "运行状态"
 msgstr ""
 
-#: install.sh:10748
+#: install.sh:10739
+msgid "AI 实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议"
+msgstr ""
+
+#: install.sh:10759
 msgid "Xray 管理菜单"
 msgstr ""
 
-#: install.sh:10766 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
+#: install.sh:10777 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
 #: scripts/traffic_blocker.sh:587
 msgid "退出"
 msgstr ""
@@ -3257,7 +3264,7 @@ msgid "工作模式"
 msgstr ""
 
 #: scripts/rill_xray_agent_manager.sh:434
-#: scripts/rill_xray_agent_manager.sh:591
+#: scripts/rill_xray_agent_manager.sh:659
 msgid "AI 判断"
 msgstr ""
 
@@ -3269,142 +3276,229 @@ msgstr ""
 msgid "AI 判断: 不可用"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:523
-msgid "工作模式已切换"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:525
-msgid "工作模式切换失败"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:532
-msgid "AI 判断引擎校验通过"
-msgstr ""
-
 #: scripts/rill_xray_agent_manager.sh:534
-msgid "AI 判断引擎校验失败，请检查后台服务和观测数据"
+msgid ""
+"开启 AI 智能判断后，系统将持续观测 Xray/Nginx 状态，自动诊断故障并给出处理建"
+"议。说明：自动修改功能暂不开放，当前不会自动更改系统。"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:541
-msgid "Xray 相关服务运行正常，未发现近期故障"
+#: scripts/rill_xray_agent_manager.sh:537
+msgid "切换到 AI 观察模式后，AI 仅观测和判断，不会自动修改系统，结果仅供参考。"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:542
-msgid "近期配置发生过变化，但当前服务与配置校验均正常"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:543
-msgid "Rill 内部恢复尚未完成，暂时无法进行可靠判断"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:544
-msgid "尚无可用的观测数据，暂时无法判断"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:545
-msgid "观测时间无效，当前证据不可用"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:546
-msgid "观测数据已过期，需要先刷新观测"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:547
-msgid "检测到不安全的配置路径，需要人工检查"
+#: scripts/rill_xray_agent_manager.sh:540
+msgid "安全停用后，AI 判断功能暂停，引擎保留，可随时重新开启。"
 msgstr ""
 
 #: scripts/rill_xray_agent_manager.sh:548
-msgid "Xray 与 Nginx 均未运行"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:549
-msgid "Xray 配置校验失败"
+msgid "确认切换吗？ [y/N]: "
 msgstr ""
 
 #: scripts/rill_xray_agent_manager.sh:553
-msgid "现有证据不足，暂时无法判断"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:554
-msgid "已生成判断结果，请结合诊断代码继续检查"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:560
-msgid "高"
-msgstr ""
-
-#: scripts/rill_xray_agent_manager.sh:561
-msgid "中"
+msgid "已取消。"
 msgstr ""
 
 #: scripts/rill_xray_agent_manager.sh:562
+msgid "工作模式已切换"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:564
+msgid "工作模式切换失败"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:571
+msgid "AI 判断引擎校验通过"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:573
+msgid "AI 判断引擎校验失败，请检查后台服务和观测数据"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:580
+msgid "Xray 相关服务运行正常，未发现近期故障"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:581
+msgid "近期配置发生过变化，但当前服务与配置校验均正常"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:582
+msgid "Rill 内部恢复尚未完成，暂时无法进行可靠判断"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:583
+msgid "尚无可用的观测数据，暂时无法判断"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:584
+msgid "观测时间无效，当前证据不可用"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:585
+msgid "观测数据已过期，需要先刷新观测"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:586
+msgid "检测到不安全的配置路径，需要人工检查"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:587
+msgid "Xray 与 Nginx 均未运行"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:588
+msgid "Xray 配置校验失败"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:592
+msgid "现有证据不足，暂时无法判断"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:593
+msgid "已生成判断结果，请结合诊断代码继续检查"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:603
+#: scripts/rill_xray_agent_manager.sh:612
+msgid "检测：不可用"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:618
+#: scripts/rill_xray_agent_manager.sh:621
+msgid "检测"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:628
+msgid "高"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:629
+msgid "中"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:630
 msgid "低"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:563
+#: scripts/rill_xray_agent_manager.sh:631
 msgid "证据不足"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:564 scripts/traffic_blocker.sh:471
+#: scripts/rill_xray_agent_manager.sh:632 scripts/traffic_blocker.sh:471
 #: scripts/traffic_blocker.sh:626 scripts/traffic_blocker.sh:628
 #: scripts/traffic_blocker.sh:638 scripts/traffic_blocker.sh:640
 #: scripts/traffic_blocker.sh:749
 msgid "未知"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:571
+#: scripts/rill_xray_agent_manager.sh:639
 msgid "AI 故障诊断失败，后台服务没有返回有效结果"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:585
+#: scripts/rill_xray_agent_manager.sh:653
 msgid "AI 故障诊断失败，返回内容无法解析"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:592
+#: scripts/rill_xray_agent_manager.sh:660
 msgid "判断置信度"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:593
+#: scripts/rill_xray_agent_manager.sh:661
 msgid "诊断代码"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:595
+#: scripts/rill_xray_agent_manager.sh:663
 msgid "此结果允许自动处理"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:597
+#: scripts/rill_xray_agent_manager.sh:665
 msgid "此结果仅提供判断建议，不会自动修改系统"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:606
-msgid "查看 AI 判断状态"
+#: scripts/rill_xray_agent_manager.sh:670
+msgid "三种工作模式说明："
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:607
-msgid "安装或修复 AI 判断引擎"
+#: scripts/rill_xray_agent_manager.sh:671
+msgid ""
+"智能判断：AI 实时诊断故障并给出处理建议。自动修改功能暂不开放，当前不会自动更"
+"改系统。"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:608
+#: scripts/rill_xray_agent_manager.sh:672
+msgid "观察模式：AI 仅观察和判断，不会自动修改系统，结果仅供参考。"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:673
+msgid "安全停用：暂停 AI 判断功能，引擎保留，可随时重新开启。"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:679
+msgid "Rill Xray AI 运维助手 / 切换工作模式"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:680
 msgid "开启 AI 智能判断"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:609
+#: scripts/rill_xray_agent_manager.sh:681
 msgid "切换到 AI 观察模式"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:610
+#: scripts/rill_xray_agent_manager.sh:682
 msgid "安全停用 AI 判断"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:611
+#: scripts/rill_xray_agent_manager.sh:684
+msgid "查看工作模式说明"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:703
+msgid "Rill Xray AI 运维助手 / 校验与诊断"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:704
 msgid "校验 AI 判断引擎"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:612
+#: scripts/rill_xray_agent_manager.sh:705
 msgid "运行 AI 故障诊断"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:613
+#: scripts/rill_xray_agent_manager.sh:724
+msgid ""
+"本地 AI 运维助手：实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议。"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:725
+msgid "• 监控：实时观测服务与配置状态"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:726
+msgid "• 诊断：定位故障原因，附置信度建议"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:727
+msgid "• 模式：智能判断 / 仅观察 / 安全停用"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:730
+msgid "查看 AI 判断状态"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:731
+msgid "切换工作模式"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:732
+msgid "校验与诊断"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:734
+msgid "安装或修复 AI 判断引擎"
+msgstr ""
+
+#: scripts/rill_xray_agent_manager.sh:735
 msgid "卸载 Rill AI 引擎"
 msgstr ""
 
