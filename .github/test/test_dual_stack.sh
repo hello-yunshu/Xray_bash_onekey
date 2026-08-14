@@ -251,6 +251,66 @@ validate_domain_network_records "nomatch.example.com"
 rc=$?
 if [[ ${rc} -eq 1 && "${network_mode}" == "none" ]]; then ok "no matching family fails closed (rc=1)"; else bad "no-match did not fail rc=${rc} mode=${network_mode}"; fi
 
+# --- explicit IPv4 / IPv6 policy qualification (permanent regression) ---
+# These directly exercise the explicit-family entry points so a future change
+# cannot silently let "user picked IPv4" bypass a bad AAAA (or vice versa).
+printf '%s\n' '--- validate_domain_network_records: explicit ipv4 policy ---'
+MOCK_PUBLIC_IPV4="203.0.113.10"; MOCK_PUBLIC_IPV6="2001:db8::10"
+
+# A correct, AAAA absent -> rc=0, mode=ipv4
+MOCK_DNS="203.0.113.10"
+validate_domain_network_records "explicit-v4.example.com" ipv4
+rc=$?
+if [[ ${rc} -eq 0 && "${network_mode}" == "ipv4" ]]; then ok "explicit ipv4: A correct + no AAAA -> rc=0"; else bad "explicit ipv4 no-AAAA rc=${rc} mode=${network_mode}"; fi
+
+# A correct, AAAA bad -> rc=2 (bad AAAA still caught under explicit ipv4)
+MOCK_DNS="203.0.113.10
+2001:db8::99"
+validate_domain_network_records "explicit-v4-bad-aaaa.example.com" ipv4
+rc=$?
+if [[ ${rc} -eq 2 ]]; then ok "explicit ipv4: bad AAAA still flagged rc=2"; else bad "explicit ipv4 bad AAAA rc=${rc}"; fi
+
+# multi-A, one matches -> pass (rc=0)
+MOCK_DNS="203.0.113.55
+203.0.113.10"
+validate_domain_network_records "explicit-v4-multi-a.example.com" ipv4
+rc=$?
+if [[ ${rc} -eq 0 ]]; then ok "explicit ipv4: multi-A one match -> rc=0"; else bad "explicit ipv4 multi-A rc=${rc}"; fi
+
+# A no match -> rc=1
+MOCK_DNS="192.0.2.99"
+validate_domain_network_records "explicit-v4-nomatch.example.com" ipv4
+rc=$?
+if [[ ${rc} -eq 1 ]]; then ok "explicit ipv4: A no match -> rc=1"; else bad "explicit ipv4 nomatch rc=${rc}"; fi
+
+printf '%s\n' '--- validate_domain_network_records: explicit ipv6 policy ---'
+
+# AAAA correct, A absent -> rc=0, mode=ipv6
+MOCK_DNS="2001:db8::10"
+validate_domain_network_records "explicit-v6.example.com" ipv6
+rc=$?
+if [[ ${rc} -eq 0 && "${network_mode}" == "ipv6" ]]; then ok "explicit ipv6: AAAA correct + no A -> rc=0"; else bad "explicit ipv6 no-A rc=${rc} mode=${network_mode}"; fi
+
+# AAAA correct, A bad -> rc=2 (bad A still caught under explicit ipv6)
+MOCK_DNS="2001:db8::10
+192.0.2.99"
+validate_domain_network_records "explicit-v6-bad-a.example.com" ipv6
+rc=$?
+if [[ ${rc} -eq 2 ]]; then ok "explicit ipv6: bad A still flagged rc=2"; else bad "explicit ipv6 bad A rc=${rc}"; fi
+
+# multi-AAAA, one matches -> pass (rc=0)
+MOCK_DNS="2001:db8::55
+2001:db8::10"
+validate_domain_network_records "explicit-v6-multi-aaaa.example.com" ipv6
+rc=$?
+if [[ ${rc} -eq 0 ]]; then ok "explicit ipv6: multi-AAAA one match -> rc=0"; else bad "explicit ipv6 multi-AAAA rc=${rc}"; fi
+
+# AAAA no match -> rc=1
+MOCK_DNS="2001:db8::99"
+validate_domain_network_records "explicit-v6-nomatch.example.com" ipv6
+rc=$?
+if [[ ${rc} -eq 1 ]]; then ok "explicit ipv6: AAAA no match -> rc=1"; else bad "explicit ipv6 nomatch rc=${rc}"; fi
+
 # --- generate_vless_link: IPv6 authority formatting ---
 printf '%s\n' '--- generate_vless_link: IPv6 authority bracket ---'
 MOCK_HOST="203.0.113.10"
@@ -309,6 +369,95 @@ if [[ "${out}" != *"vless://test-user@[2001:db8::10]:"* ]]; then
     ok "ipv4-only does NOT emit an IPv6 direct-IP link"
 else
     bad "ipv4-only incorrectly emitted an IPv6 link"
+fi
+
+# --- direct-IP dual-stack links across transports (install_link_image) ---
+# Each scenario asserts the IPv6 authority is @[IPv6] and the IPv4 canonical
+# entry still exists, not merely that some "IPv6" text appears.
+printf '%s\n' '--- direct-IP dual-stack links: XTLS / None ws, grpc, xhttp ---'
+
+network_mode="dual"; ipv6_address="2001:db8::10"; tls_mode="XTLS"; reality_add_more="off"
+rm -f "${xray_info_file}"
+out=$(install_link_image 2>/dev/null; cat "${xray_info_file}" 2>/dev/null)
+if [[ "${out}" == *"vless://test-user@203.0.113.10:443?security=none"* && "${out}" == *"vless://test-user@[2001:db8::10]:443?security=none"* ]]; then
+    ok "dual XTLS emits IPv4 + IPv6 direct-IP links"
+else
+    bad "dual XTLS missing a direct-IP link; out=${out}"
+fi
+
+# None ws
+is_ws_mode() { return 0; }
+is_grpc_mode() { return 1; }
+is_xhttp_mode() { return 1; }
+network_mode="dual"; ipv6_address="2001:db8::10"; tls_mode="None"
+rm -f "${xray_info_file}"
+out=$(install_link_image 2>/dev/null; cat "${xray_info_file}" 2>/dev/null)
+if [[ "${out}" == *"vless://test-user@203.0.113.10:8888?path"* && "${out}" == *"vless://test-user@[2001:db8::10]:8888?path"* ]]; then
+    ok "dual None ws emits IPv4 + IPv6 direct-IP links"
+else
+    bad "dual None ws missing a direct-IP link; out=${out}"
+fi
+
+# None grpc
+is_ws_mode() { return 1; }
+is_grpc_mode() { return 0; }
+is_xhttp_mode() { return 1; }
+rm -f "${xray_info_file}"
+out=$(install_link_image 2>/dev/null; cat "${xray_info_file}" 2>/dev/null)
+if [[ "${out}" == *"vless://test-user@203.0.113.10:8888?serviceName"* && "${out}" == *"vless://test-user@[2001:db8::10]:8888?serviceName"* ]]; then
+    ok "dual None grpc emits IPv4 + IPv6 direct-IP links"
+else
+    bad "dual None grpc missing a direct-IP link; out=${out}"
+fi
+
+# None xhttp
+is_ws_mode() { return 1; }
+is_grpc_mode() { return 1; }
+is_xhttp_mode() { return 0; }
+rm -f "${xray_info_file}"
+out=$(install_link_image 2>/dev/null; cat "${xray_info_file}" 2>/dev/null)
+if [[ "${out}" == *"vless://test-user@203.0.113.10:8888?path"* && "${out}" == *"vless://test-user@[2001:db8::10]:8888?path"* && "${out}" == *"type=xhttp"* ]]; then
+    ok "dual None xhttp emits IPv4 + IPv6 direct-IP links"
+else
+    bad "dual None xhttp missing a direct-IP link; out=${out}"
+fi
+
+printf '%s\n' '--- direct-IP dual-stack links: Reality additional transports ---'
+
+# Reality + additional ws/grpc/xhttp: every transport gets a v6 direct-IP entry
+is_ws_mode() { return 0; }
+is_grpc_mode() { return 0; }
+is_xhttp_mode() { return 0; }
+network_mode="dual"; ipv6_address="2001:db8::10"; tls_mode="Reality"; reality_add_more="on"
+rm -f "${xray_info_file}"
+out=$(install_link_image 2>/dev/null; cat "${xray_info_file}" 2>/dev/null)
+if [[ "${out}" == *"vless://test-user@203.0.113.10:443?security=reality"* && "${out}" == *"vless://test-user@[2001:db8::10]:443?security=reality"* ]]; then
+    ok "Reality extra main emits IPv4 + IPv6 direct-IP links"
+else
+    bad "Reality extra main missing a direct-IP link; out=${out}"
+fi
+if [[ "${out}" == *"vless://test-user@[2001:db8::10]:8888?path"*"type=ws"* && "${out}" == *"vless://test-user@[2001:db8::10]:8888?serviceName"*"type=grpc"* && "${out}" == *"vless://test-user@[2001:db8::10]:8888?path"*"type=xhttp"* ]]; then
+    ok "Reality extra ws/grpc/xhttp all emit IPv6 direct-IP links"
+else
+    bad "Reality extra transports missing an IPv6 link; out=${out}"
+fi
+
+# --- multi-user: every user keeps dual direct-IP entries ---
+printf '%s\n' '--- multi-user direct-IP dual-stack links ---'
+user2="22222222-2222-3222-8222-222222222222"
+u2_v4=$(generate_vless_link "${user2}" "reality")
+u2_v6=$(generate_vless_link "${user2}" "reality" "2001:db8::10")
+if [[ "${u2_v4}" == *"@203.0.113.10:"* && "${u2_v6}" == *"${user2}@"* && "${u2_v6}" == *"@[2001:db8::10]:"* ]]; then
+    ok "multi-user Reality link keeps IPv4 + IPv6 direct-IP entries"
+else
+    bad "multi-user Reality dual link broken; v6=${u2_v6}"
+fi
+u2_v4=$(generate_vless_link "${user2}" "xtls")
+u2_v6=$(generate_vless_link "${user2}" "xtls" "2001:db8::10")
+if [[ "${u2_v4}" == *"@203.0.113.10:"* && "${u2_v6}" == *"@[2001:db8::10]:"* ]]; then
+    ok "multi-user XTLS link keeps IPv4 + IPv6 direct-IP entries"
+else
+    bad "multi-user XTLS dual link broken; v6=${u2_v6}"
 fi
 
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"

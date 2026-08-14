@@ -1101,6 +1101,17 @@ load_network_capabilities_from_config() {
     ipv6_address="${ipv6:-}"
 }
 
+# 在“读取现有安装状态”语义下恢复双栈 runtime globals。
+# fresh process（脚本退出后重新执行 --show / 菜单 / 查看用户等）必须以安装配置为
+# 依据恢复 network_mode/ipv4_address/ipv6_address，否则 install_link_image 等
+# 依赖双栈状态的入口会因 globals 为空而丢失 IPv6 分享链接。
+# 仅在 globals 尚未加载时 hydrate，绝不覆盖安装向导/模式切换中正在编辑的内存值。
+ensure_network_runtime_state() {
+    [[ -f "${xray_install_config_file}" ]] || return 0
+    [[ -n "${network_mode:-}" ]] && return 0
+    load_network_capabilities_from_config
+}
+
 generate_random_port() {
     local min="$1"
     local max="$2"
@@ -2141,10 +2152,15 @@ managed_ports_file="${idleleo_conf_dir}/managed_ports.json"
 # The project historically only manages iptables directly; if firewalld or
 # nftables frontends are introduced later, route through these helpers so
 # rule idempotency and managed-port tracking remain single-sourced.
-# IPv6 netfilter management: dual-stack (or IPv6-capable) hosts must open the
-# same managed ports on IPv6 so inbound IPv6 clients reach the service. IPv6
-# rules are managed automatically when ip6tables is available; IPv4-only hosts
-# are unaffected. Tests pin _MANAGED_FW_IPV6=1/0 for deterministic coverage.
+#
+# Family policy is driven by network_mode (the single source of truth):
+#   ipv4   -> manage iptables only
+#   ipv6   -> manage ip6tables only (never touch IPv4 firewall)
+#   dual   -> manage iptables + ip6tables
+#   manual -> conservative: iptables only, never expand the managed set
+#   auto/empty -> fall back to tool availability for legacy compatibility
+# _MANAGED_FW_IPV6 remains a TEST-ONLY override; production behavior must NOT
+# depend on it.
 managed_fw_ipv6_enabled() {
     case "${_MANAGED_FW_IPV6:-auto}" in
         1|on|yes) return 0 ;;
@@ -2153,11 +2169,45 @@ managed_fw_ipv6_enabled() {
     esac
 }
 
-# netfilter binaries to manage, newest-family-aware. ip6tables is included only
-# when IPv6 management is enabled so IPv4-only hosts are unaffected.
+# Effective netfilter binaries to manage, family-aware from network_mode.
+# If _MANAGED_FW_IPV6 is explicitly set it takes precedence (test override);
+# otherwise network_mode decides which families are managed.
+managed_fw_families() {
+    if [[ -n "${_MANAGED_FW_IPV6:-}" ]]; then
+        printf '%s\n' "iptables"
+        case "${_MANAGED_FW_IPV6}" in
+            1|on|yes) printf '%s\n' "ip6tables" ;;
+        esac
+        return 0
+    fi
+    case "${network_mode:-auto}" in
+        ipv6) printf '%s\n' "ip6tables" ;;
+        dual)
+            printf '%s\n' "iptables"
+            printf '%s\n' "ip6tables"
+            ;;
+        ipv4|manual) printf '%s\n' "iptables" ;;
+        *)  # auto / 未设置：按工具可用性保守处理，保持旧行为
+            printf '%s\n' "iptables"
+            command -v ip6tables >/dev/null 2>&1 && printf '%s\n' "ip6tables"
+            ;;
+    esac
+}
+
+# netfilter binaries to manage (thin wrapper; see managed_fw_families).
 _managed_fw_bins() {
-    printf '%s\n' "iptables"
-    managed_fw_ipv6_enabled && printf '%s\n' "ip6tables"
+    managed_fw_families
+}
+
+# Fail closed: every netfilter tool required by the effective family policy
+# must exist. dual/ipv6 with a missing ip6tables must NOT silently degrade to
+# single-stack firewall management.
+managed_fw_require_families() {
+    local bin
+    for bin in $(managed_fw_families); do
+        command -v "${bin}" >/dev/null 2>&1 || return 1
+    done
+    return 0
 }
 
 firewall_rule_exists() {
@@ -2403,6 +2453,18 @@ firewall_set() {
             pkg_install "iptables-persistent"
         fi
 
+        # Restore dual-stack runtime state on a fresh process so the family
+        # policy reflects the installed network_mode instead of tool presence.
+        ensure_network_runtime_state
+
+        # Fail closed: if the effective family policy needs a netfilter tool
+        # that is not installed, abort instead of silently downgrading to a
+        # single-stack firewall while still claiming dual-stack readiness.
+        if ! managed_fw_require_families; then
+            log_echo "${Error} ${RedBG} $(gettext "当前网络模式所需的防火墙工具缺失 (iptables/ip6tables), 防火墙配置已中止") ${Font}"
+            return 1
+        fi
+
         # Always-on infrastructure rules (idempotent, never auto-removed):
         # loopback, DNS (53), and the FullCone UDP high-port range. These are
         # required in every mode and are tracked as separate always-on state.
@@ -2440,23 +2502,24 @@ firewall_set() {
                 return 1
             }
 
-        # Persist rules. IPv6 rules are saved alongside IPv4 when IPv6 netfilter
-        # is managed. Failures here are non-fatal (rules are already active).
-        if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
-            service iptables save 2>/dev/null || iptables-save > /etc/sysconfig/iptables 2>/dev/null || true
-            service iptables restart 2>/dev/null || true
-            if managed_fw_ipv6_enabled; then
-                service ip6tables save 2>/dev/null || ip6tables-save > /etc/sysconfig/ip6tables 2>/dev/null || true
-                service ip6tables restart 2>/dev/null || true
+        # Persist rules per family, driven ONLY by the effective family policy
+        # (network_mode). An ipv4-only host must not write rules.v6 merely
+        # because ip6tables exists, and an ipv6-only host must not touch the
+        # IPv4 firewall. Failures here are non-fatal (rules are already active).
+        local _fw_bin
+        for _fw_bin in $(managed_fw_families); do
+            if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
+                service "${_fw_bin}" save 2>/dev/null || "${_fw_bin}-save" > "/etc/sysconfig/${_fw_bin}" 2>/dev/null || true
+                service "${_fw_bin}" restart 2>/dev/null || true
+            else
+                if [[ "${_fw_bin}" == "ip6tables" ]]; then
+                    ip6tables-save > /etc/iptables/rules.v6 2>/dev/null || true
+                else
+                    iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
+                fi
             fi
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
-        else
-            netfilter-persistent save 2>/dev/null || iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
-            if managed_fw_ipv6_enabled; then
-                ip6tables-save > /etc/iptables/rules.v6 2>/dev/null || true
-            fi
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
-        fi
+        done
+        log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
 
         log_echo "${OK} ${GreenBG} $(gettext "开放防火墙相关端口") ${Font}"
         log_echo "${Warning} ${GreenBG} $(gettext "若修改配置, 请注意关闭防火墙相关端口") ${Font}"
@@ -5308,7 +5371,7 @@ domain_check() {
         echo -e "${Green}1${Font}: $(gettext "自动检测") (IPv4/IPv6) ($(gettext "推荐"))"
         echo -e "${Red}2${Font}: IPv4 ($(gettext "默认"))"
         echo "3: IPv6"
-        echo "4: $(gettext "手动输入域名") (服务器商仅提供域名)"
+        echo "4: $(gettext "手动输入域名") ($(gettext "服务器商仅提供域名"))"
         read_optimize "$(gettext "请输入"): " "ip_version_fq" 2 1 4 "$(gettext "请输入有效的数字")!" || return 1
         log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
         if [[ ${ip_version_fq} == 1 ]]; then
@@ -5326,7 +5389,7 @@ domain_check() {
             elif [[ ${vdn_rc} -eq 2 ]]; then
                 log_echo "${Error} ${RedBG} $(gettext "检测到错误的 A/AAAA 记录, 可能导致部分客户端连接失败") ${Font}"
                 log_echo "${Warning} ${YellowBG} $(gettext "请修正或删除错误的 DNS 记录后再继续, 请选择"): ${Font}"
-                echo "1: $(gettext "仍然继续安装") (高风险)"
+                echo "1: $(gettext "仍然继续安装") ($(gettext "高风险"))"
                 echo "2: $(gettext "重新输入")"
                 log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
                 read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
@@ -7257,11 +7320,18 @@ generate_clash_config() {
 }
 
 install_link_image() {
+    # Defensive hydration: a fresh process reaching this entry without
+    # judge_mode() must still restore dual-stack state for IPv6 links.
+    ensure_network_runtime_state
     if [[ ${tls_mode} == "Reality" ]]; then
         ensure_reality_public_key || return 1
     fi
     local main_id
     main_id=$(info_extraction id)
+    # Each transport's link variable is set only when that transport is enabled;
+    # pre-initialize so ${...} checks stay safe under `set -u` for disabled modes.
+    local vless_link="" vless_link_v6="" vless_ws_link="" vless_grpc_link="" vless_xhttp_link=""
+    local vless_ws_link_v6="" vless_grpc_link_v6="" vless_xhttp_link_v6=""
 
     # 直接-IP 模式（Reality/None/XTLS）双栈：为 IPv6 单独生成客户端入口。
     # host 字段保留 canonical（默认 IPv4），不改变老代码语义。
@@ -8026,6 +8096,8 @@ reset_target() {
 }
 
 show_user() {
+    # Defensive hydration so multi-user views still emit IPv6 links on a fresh process.
+    ensure_network_runtime_state
     if [[ ${tls_mode} == "None" ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持查看用户")! ${Font}"
         return
@@ -8147,6 +8219,8 @@ show_user() {
 
 add_user() {
     local choose_user_prot reality_user_more
+    # Defensive hydration so user-facing links keep dual-stack state on fresh processes.
+    ensure_network_runtime_state
     if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local add_user_continue
         while true; do
@@ -8611,6 +8685,9 @@ countdown() {
 }
 
 judge_mode() {
+    # Restore dual-stack runtime state on a fresh process so --show / menus
+    # still emit IPv6 links after the script exits and re-runs.
+    ensure_network_runtime_state
     if [[ -f "${xray_install_config_file}" ]]; then
         transport_mode=$(info_extraction transport_mode)
         [[ -z ${transport_mode} || ${transport_mode} == "null" ]] && transport_mode="None"
