@@ -114,11 +114,17 @@ jobs:
           bash .github/test/test_input_eof.sh
           bash .github/test/test_port_validation.sh
           bash .github/test/test_firewall_reconcile.sh
+          # IPv6-aware managed firewall (dual-stack mirroring + rollback)
+          bash .github/test/test_firewall_ipv6.sh
           bash .github/test/test_shell_update_metadata.sh
           # IPv4/IPv6 dual-stack support regression tests (literal detection,
           # URI authority bracket, network capability, A/AAAA qualification,
           # bad-record gating, old-config compat, dual direct-IP links)
           bash .github/test/test_dual_stack.sh
+          # DNS multi-record aggregation + dedup over the IPv4-resolver A/AAAA path
+          bash .github/test/test_dns_multi_record.sh
+          # Clash YAML parser-level validation for dual-stack direct-IP output
+          bash .github/test/test_clash_yaml.sh
 
       - name: Run Skill contract tests
         env:
