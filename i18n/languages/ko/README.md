@@ -91,6 +91,31 @@ ws/gRPC/xHTTP 관련 모드 설치 시 선택 사항`ws`、`gRPC`、`xHTTP`또�
 | 트래픽 차단 설정 | `idleleo --traffic-blocker` |
 | 실시간 포트 트래픽 보기 | `idleleo --port-traffic` |
 
+## Rill Xray AI — 운영 보조 도우미
+
+내장된 로컬 AI 운영 보조 도우미로, Xray/Nginx 상태를 실시간으로 모니터링하고 장애를 자동 진단하며 처리 권장 사항을 제공합니다. 외부 API가 필요 없습니다. 메인 메뉴에서 `9`를 입력하거나 `idleleo --rill-agent`를 실행하여 진입합니다.
+
+**핵심 기능**
+
+* 모니터링: Xray/Nginx 서비스 및 구성 상태를 실시간으로 관찰
+* 진단: 장애 원인을 찾아 신뢰도 등급(높음 / 중간 / 낮음 / 증거 부족)을 함께 제시
+* 판단: 장애 유형을 자동으로 판단하고 처리 권장 사항을 제공하며, 자동 처리가 허용되는지 아니면 권장 사항일 뿐인지 설명에 명확히 표시
+* 모드: 지능형 판단 / 관찰 전용 / 안전 비활성화. 자동 수정을 켜기 전까지 시스템을 변경하지 않습니다
+
+**자주 쓰는 명령**
+
+| 작업 | 명령 |
+|------|------|
+| AI 운영 보조 메뉴 열기 | `idleleo --rill-agent` |
+| AI 판단 엔진 설치 또는 복구 | `idleleo --rill-agent-install` |
+| AI 판단 상태 확인 | `idleleo --rill-agent-status` |
+| AI 장애 진단 실행 | `idleleo --rill-agent-diagnose` |
+| AI 판단 엔진 검증 | `idleleo --rill-agent-verify` |
+| AI 판단 안전 비활성화 | `idleleo --rill-agent-safe-disable` |
+| Rill AI 엔진 제거 | `idleleo --rill-agent-uninstall` |
+
+AI 판단 엔진은 현재 테스트 단계에 있습니다. 진단 권장 사항 위주로 사용하는 것이 좋으며, 기본적으로 시스템을 자동으로 변경하지 않습니다.
+
 ## Docker 배포
 
 Docker을 사용한 배포를 지원하고, 이미지에는 Xray 및 Nginx이 사전 설치되어 있으며 원본 스크립트의 모든 기능을 컨테이너에서 직접 사용할 수 있습니다. 세부정보 보기[Docker 部署指南](/docker/DOCKER.md)。
