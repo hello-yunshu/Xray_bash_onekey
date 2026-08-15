@@ -97,7 +97,14 @@ _nf() {
             if grep -qxF "${key}" "${rules_file}" 2>/dev/null; then
                 local tmp
                 tmp=$(grep -vxF "${key}" "${rules_file}" || true)
-                printf '%s\n' "${tmp}" > "${rules_file}"
+                if [[ -n "${tmp}" ]]; then
+                    printf '%s\n' "${tmp}" > "${rules_file}"
+                else
+                    # All rules removed: truncate to a genuinely EMPTY file so
+                    # v4_empty/v6_empty size assertions are correct. Writing a
+                    # lone trailing newline would make the file 1-byte non-empty.
+                    : > "${rules_file}"
+                fi
             else
                 return 1
             fi ;;
@@ -135,6 +142,17 @@ v6_has()  { grep -qxF "$1" "${IPTABLES_V6_RULES}" 2>/dev/null; }
 v4_empty() { [[ ! -s "${IPTABLES_V4_RULES}" ]]; }
 v6_empty() { [[ ! -s "${IPTABLES_V6_RULES}" ]]; }
 
+# Seed OLD runtime managed rules directly into the mock netfilter state so a
+# transition case genuinely starts from the OLD family/port state instead of an
+# empty ruleset. Without this, a dropped-family cleanup failure would go
+# undetected because the dropped family was already empty from reset_rules.
+seed_state() {
+    local fam="$1"; shift
+    local f
+    [[ "${fam}" == "v4" ]] && f="${IPTABLES_V4_RULES}" || f="${IPTABLES_V6_RULES}"
+    for k in "$@"; do printf '%s\n' "${k}" >> "${f}"; done
+}
+
 J='{"tcp":["443"],"udp":[]}'
 J8='{"tcp":["8443"],"udp":[]}'
 B4="iptables"
@@ -147,36 +165,53 @@ echo "============================================================"
 
 # --- [1] ipv4 443 -> dual 443 --------------------------------------------
 reset_rules
+seed_state v4 "tcp:443"
+if v4_has "tcp:443" && v6_empty; then ok "[1] seeded old ipv4 443"; else bad "[1] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J}" "${B4}" "${B46}"
 if v4_has "tcp:443" && v6_has "tcp:443"; then ok "[1] ipv4 443 -> dual 443 opens IPv6"; else bad "[1] ipv4->dual did not add IPv6 443"; fi
 
 # --- [2] dual 443 -> ipv4 443 (same port MUST still clean IPv6) -----------
 reset_rules
+seed_state v4 "tcp:443"
+seed_state v6 "tcp:443"
+if v4_has "tcp:443" && v6_has "tcp:443"; then ok "[2] seeded old dual 443"; else bad "[2] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J}" "${B46}" "${B4}"
 if v4_has "tcp:443" && v6_empty; then ok "[2] dual 443 -> ipv4 443 cleans stale IPv6"; else bad "[2] dual->ipv4 left stale IPv6 rule"; fi
 
 # --- [3] ipv6 443 -> dual 443 ---------------------------------------------
 reset_rules
+seed_state v6 "tcp:443"
+if v6_has "tcp:443" && v4_empty; then ok "[3] seeded old ipv6 443"; else bad "[3] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J}" "${B6}" "${B46}"
 if v6_has "tcp:443" && v4_has "tcp:443"; then ok "[3] ipv6 443 -> dual 443 opens IPv4"; else bad "[3] ipv6->dual did not add IPv4 443"; fi
 
 # --- [4] dual 443 -> ipv6 443 (same port MUST still clean IPv4) -----------
 reset_rules
+seed_state v4 "tcp:443"
+seed_state v6 "tcp:443"
+if v4_has "tcp:443" && v6_has "tcp:443"; then ok "[4] seeded old dual 443"; else bad "[4] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J}" "${B46}" "${B6}"
 if v6_has "tcp:443" && v4_empty; then ok "[4] dual 443 -> ipv6 443 cleans stale IPv4"; else bad "[4] dual->ipv6 left stale IPv4 rule"; fi
 
 # --- [5] ipv4 443 -> ipv6 443 ---------------------------------------------
 reset_rules
+seed_state v4 "tcp:443"
+if v4_has "tcp:443" && v6_empty; then ok "[5] seeded old ipv4 443"; else bad "[5] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J}" "${B4}" "${B6}"
 if v6_has "tcp:443" && v4_empty; then ok "[5] ipv4 443 -> ipv6 443 migrates family"; else bad "[5] ipv4->ipv6 did not migrate rules"; fi
 
 # --- [6] ipv6 443 -> ipv4 443 ---------------------------------------------
 reset_rules
+seed_state v6 "tcp:443"
+if v6_has "tcp:443" && v4_empty; then ok "[6] seeded old ipv6 443"; else bad "[6] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J}" "${B6}" "${B4}"
 if v4_has "tcp:443" && v6_empty; then ok "[6] ipv6 443 -> ipv4 443 migrates family"; else bad "[6] ipv6->ipv4 did not migrate rules"; fi
 
 # --- [7] dual 443 -> ipv4 8443 (port + family change) ---------------------
 reset_rules
+seed_state v4 "tcp:443"
+seed_state v6 "tcp:443"
+if v4_has "tcp:443" && v6_has "tcp:443"; then ok "[7] seeded old dual 443"; else bad "[7] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J8}" "${B46}" "${B4}"
 if v4_has "tcp:8443" && ! v4_has "tcp:443" && v6_empty; then
     ok "[7] dual 443 -> ipv4 8443 removes 443, adds 8443, cleans IPv6"
@@ -186,6 +221,8 @@ fi
 
 # --- [8] ipv4 443 -> dual 8443 --------------------------------------------
 reset_rules
+seed_state v4 "tcp:443"
+if v4_has "tcp:443" && v6_empty; then ok "[8] seeded old ipv4 443"; else bad "[8] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J8}" "${B4}" "${B46}"
 if v4_has "tcp:8443" && ! v4_has "tcp:443" && v6_has "tcp:8443"; then
     ok "[8] ipv4 443 -> dual 8443 adds on both families"
@@ -195,6 +232,9 @@ fi
 
 # --- [9] dual 443 -> ipv6 8443 --------------------------------------------
 reset_rules
+seed_state v4 "tcp:443"
+seed_state v6 "tcp:443"
+if v4_has "tcp:443" && v6_has "tcp:443"; then ok "[9] seeded old dual 443"; else bad "[9] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J8}" "${B46}" "${B6}"
 if v6_has "tcp:8443" && ! v6_has "tcp:443" && v4_empty; then
     ok "[9] dual 443 -> ipv6 8443 cleans IPv4, migrates to v6"
@@ -204,6 +244,8 @@ fi
 
 # --- [10] ipv6 443 -> dual 8443 -------------------------------------------
 reset_rules
+seed_state v6 "tcp:443"
+if v6_has "tcp:443" && v4_empty; then ok "[10] seeded old ipv6 443"; else bad "[10] seed failed"; fi
 reconcile_managed_firewall "${J}" "${J8}" "${B6}" "${B46}"
 if v6_has "tcp:8443" && ! v6_has "tcp:443" && v4_has "tcp:8443"; then
     ok "[10] ipv6 443 -> dual 8443 adds on both families"
@@ -215,6 +257,13 @@ fi
 echo "--- UDP family reconcile ---"
 JU='{"tcp":["443"],"udp":["443"]}'
 reset_rules
+seed_state v4 "tcp:443" "udp:443"
+seed_state v6 "tcp:443" "udp:443"
+if v4_has "tcp:443" && v4_has "udp:443" && v6_has "tcp:443" && v6_has "udp:443"; then
+    ok "seeded old dual(tcp+udp 443)"
+else
+    bad "dual UDP seed failed"
+fi
 reconcile_managed_firewall "${JU}" "${JU}" "${B46}" "${B4}"
 if v4_has "tcp:443" && v4_has "udp:443" && v6_empty; then
     ok "dual(tcp+udp 443) -> ipv4 cleans both v6 protocols"
@@ -223,8 +272,14 @@ else
 fi
 JU8='{"tcp":["8443"],"udp":["8443"]}'
 reset_rules
+seed_state v4 "tcp:443" "udp:443"
+if v4_has "tcp:443" && v4_has "udp:443" && v6_empty; then
+    ok "seeded old ipv4(tcp+udp 443)"
+else
+    bad "ipv4 UDP seed failed"
+fi
 reconcile_managed_firewall "${JU}" "${JU8}" "${B4}" "${B46}"
-if v4_has "tcp:8443" && v4_has "udp:8443" && ! v4_has "tcp:443" && v6_has "tcp:8443" && v6_has "udp:8443"; then
+if v4_has "tcp:8443" && v4_has "udp:8443" && ! v4_has "tcp:443" && ! v4_has "udp:443" && v6_has "tcp:8443" && v6_has "udp:8443"; then
     ok "ipv4(tcp+udp 443) -> dual(tcp+udp 8443) adds both protocols on both families"
 else
     bad "ipv4->dual UDP+TCP transition diverged"
