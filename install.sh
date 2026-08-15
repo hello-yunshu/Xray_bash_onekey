@@ -2600,8 +2600,16 @@ baseline_sync() {
             fi
             if [[ "${bin}" == "iptables" ]]; then
                 v4_added="${v4_added} ${key}"
+                # Record this rule in the transaction pending journal IMMEDIATELY
+                # (not at the final ownership commit). If a later add fails and
+                # the compensation remove and corrective ownership save also fail,
+                # the global rollback (reinstall_backup_restore) still knows this
+                # exact rule was created by THIS transaction and can delete it,
+                # without ever guessing at a user's own rule.
+                _reinstall_baseline_pending_added_v4="${_reinstall_baseline_pending_added_v4} ${key}"
             else
                 v6_added="${v6_added} ${key}"
+                _reinstall_baseline_pending_added_v6="${_reinstall_baseline_pending_added_v6} ${key}"
             fi
         done
     done
@@ -2683,6 +2691,11 @@ baseline_sync() {
             || log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
         return 1
     fi
+    # Ownership committed successfully — the pending journal is now redundant
+    # (rollback can rely on managed_baseline.list). Clear it so a later
+    # unrelated restore never acts on stale rules.
+    _reinstall_baseline_pending_added_v4=""
+    _reinstall_baseline_pending_added_v6=""
     return 0
 }
 
@@ -6391,6 +6404,8 @@ old_config_exist_check() {
     _reinstall_baseline_old_families=""
     _reinstall_baseline_new_families=""
     _reinstall_baseline_changed="no"
+    _reinstall_baseline_pending_added_v4=""
+    _reinstall_baseline_pending_added_v6=""
     if [[ -f "${xray_install_config_file}" ]]; then
         # Snapshot the running config before any reinstall or mode switch
         # So a failed deploy can be rolled back. Skip in test mode
@@ -10267,6 +10282,16 @@ _reinstall_firewall_changed="no"
 _reinstall_baseline_old_families=""
 _reinstall_baseline_new_families=""
 _reinstall_baseline_changed="no"
+# Baseline-rule pending journal: the EXACT rules this transaction created.
+# Updated immediately after each successful baseline_rule add (NOT deferred to
+# the final ownership commit), so even if a corrective ownership save also
+# fails, the global rollback still knows precisely which rules THIS transaction
+# added and can delete them without ever touching a user's own rule. Cleared
+# once ownership is committed (baseline_sync success) or once rollback +
+# persistence succeed; retained on any rollback failure so the orphaned rules
+# stay recoverable.
+_reinstall_baseline_pending_added_v4=""
+_reinstall_baseline_pending_added_v6=""
 
 # RETURN-trap wrapper: restores the backup exactly once on deploy failure.
 # Args: <exit_code> <backup_dir>
@@ -10596,9 +10621,44 @@ reinstall_backup_restore() {
     # and re-ensures the baseline on the source families. Same yes/pending
     # contract as the managed-port rollback above.
     if [[ "${_reinstall_baseline_changed:-}" == "yes" || "${_reinstall_baseline_changed:-}" == "pending" ]]; then
-        if ! baseline_sync "${_reinstall_baseline_old_families:-}"; then
+        # FIRST: precisely reverse THIS transaction's added rules from the
+        # pending journal. These rules were created by the failed deploy and may
+        # NOT be recorded in managed_baseline.list — the transaction's own
+        # corrective ownership save may itself have failed (compensation-remove
+        # failure + ownership-write failure), so relying on ownership alone
+        # could silently orphan them. Only rules explicitly recorded as
+        # added-by-this-transaction are removed; a user's own rule is never
+        # touched. check-then-remove so a rule already cleaned by a successful
+        # compensation is not misreported as a rollback failure.
+        local _pend_fail=0 _pbin _pkey _pkeys
+        for _pbin in iptables ip6tables; do
+            if [[ "${_pbin}" == "iptables" ]]; then
+                _pkeys="${_reinstall_baseline_pending_added_v4:-}"
+            else
+                _pkeys="${_reinstall_baseline_pending_added_v6:-}"
+            fi
+            for _pkey in ${_pkeys}; do
+                if baseline_rule "${_pbin}" "${_pkey}" check; then
+                    baseline_rule "${_pbin}" "${_pkey}" remove >/dev/null 2>&1 || _pend_fail=1
+                fi
+            done
+        done
+        if [[ ${_pend_fail} -ne 0 ]]; then
+            # A journal rule could not be removed: the orphan persists and the
+            # rollback cannot reach a consistent state. FAIL and retain the
+            # journal (do NOT run baseline_sync, which would clear it on
+            # success); the backup dir is kept for diagnosis/retry.
             log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚失败") ${Font}"
             _restore_err=1
+        else
+            # Journal fully reversed — reconcile toward the OLD family set:
+            # re-ensure the baseline on the source families and clean any
+            # dropped-family ownership. User rules are untouched. On failure the
+            # journal is retained (end-of-function cleanup only runs on success).
+            if ! baseline_sync "${_reinstall_baseline_old_families:-}"; then
+                log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚失败") ${Font}"
+                _restore_err=1
+            fi
         fi
     fi
     # Persist the restored runtime firewall state for the families this
@@ -10843,6 +10903,11 @@ reinstall_backup_restore() {
     _reinstall_baseline_old_families=""
     _reinstall_baseline_new_families=""
     _reinstall_baseline_changed="no"
+    # Rollback + persistence both succeeded — the pending journal is fully
+    # consumed; clear it. (On any earlier failure we return before here, so a
+    # failed rollback retains the journal for diagnosis/retry.)
+    _reinstall_baseline_pending_added_v4=""
+    _reinstall_baseline_pending_added_v6=""
 
     log_echo "${OK} ${GreenBG} $(gettext "已恢复原配置") ${Font}"
     return 0

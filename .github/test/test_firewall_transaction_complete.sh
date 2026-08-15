@@ -847,6 +847,171 @@ eval "${ORIG_BASELINE_SAVE2}"
 
 echo
 echo "============================================================"
+echo " 10. REAL double-failure: add -> comp-del -> ownership-save all fail"
+echo "============================================================"
+
+# Problem 2 regression: a baseline transaction where EVERY compensating write
+# fails leaves an orphaned project rule in runtime that managed_baseline.list
+# does NOT record (the corrective ownership save was injected to fail too). The
+# pending journal must let the REAL reinstall_backup_restore delete that exact
+# rule (never a user rule) and persist the restored state.
+
+# Persistence mocks that snapshot the live mock runtime so we can assert the
+# persisted files hold the RESTORED (post-rollback) state, not the failed one.
+ORIG_SAVE_V4=$(declare -f iptables-save)
+ORIG_SAVE_V6=$(declare -f ip6tables-save)
+iptables-save()  { SAVE_V4_CALLS=$((SAVE_V4_CALLS + 1)); cat "${IPTABLES_V4_RULES}"; }
+ip6tables-save() { SAVE_V6_CALLS=$((SAVE_V6_CALLS + 1)); cat "${IPTABLES_V6_RULES}"; }
+
+echo " 10.1 old ipv4 -> target dual: orphan removed by journal-driven rollback"
+_setup_restore_fixture
+RESTORE_BACKUP=$(reinstall_backup_create 2>/dev/null)
+reset_rules
+rm -f "${managed_baseline_file}"
+# User rules on BOTH families must survive the whole transaction.
+seed_state v4 "user:22"
+seed_state v6 "user:22"
+baseline_sync "${B4}" >/dev/null 2>&1   # establish OLD ipv4 baseline + ownership
+# --- simulate a FAILED FORWARD: dual gain where every compensating write fails
+_reinstall_baseline_old_families="${B4}"
+_reinstall_baseline_new_families="${B46}"
+_reinstall_baseline_changed="yes"
+_reinstall_baseline_pending_added_v4=""
+_reinstall_baseline_pending_added_v6=""
+_reinstall_firewall_old_ports="${J4}"
+_reinstall_firewall_new_ports="${J8}"
+_reinstall_firewall_old_families="${B4}"
+_reinstall_firewall_new_families="${B46}"
+_reinstall_firewall_changed="no"
+MOCK_FAIL_ADD="ip6tables:udp:1024:65535"   # 2. later IPv6 baseline add fails
+MOCK_FAIL_DEL="ip6tables::INPUT"           # 3. compensation delete of first added rule fails
+ORIG_SAVE3=$(declare -f baseline_owned_save)
+baseline_owned_save() { return 1; }        # 4. corrective ownership save fails
+: > "${LOG_CAPTURE}"
+RC_SYNC=0
+baseline_sync "${B46}" >/dev/null 2>&1 || RC_SYNC=$?
+eval "${ORIG_SAVE3}"
+MOCK_FAIL_ADD=""
+MOCK_FAIL_DEL=""
+if [[ ${RC_SYNC} -ne 0 ]]; then
+    ok "10.1a: forward baseline_sync failed"
+else
+    bad "10.1a: forward should have failed"
+fi
+if v6_has ":INPUT"; then
+    ok "10.1b: orphan candidate left in runtime"
+else
+    bad "10.1b: no orphan to test; v6=$(cat "${IPTABLES_V6_RULES}")"
+fi
+if [[ "${_reinstall_baseline_pending_added_v6}" == *"lo-in"* ]]; then
+    ok "10.1c: journal records the orphan (lo-in -> :INPUT)"
+else
+    bad "10.1c: journal missing orphan [${_reinstall_baseline_pending_added_v6}]"
+fi
+# --- 5. baseline_sync returned failure; 6. trigger REAL restore ---
+SAVE_V4_CALLS=0; SAVE_V6_CALLS=0
+RESTORE_RC=0
+: > "${LOG_CAPTURE}"
+reinstall_backup_restore "${RESTORE_BACKUP}" >/dev/null 2>&1 || RESTORE_RC=$?
+if [[ ${RESTORE_RC} -eq 0 ]]; then
+    ok "10.1d: restore returned 0"
+else
+    bad "10.1d: restore rc=${RESTORE_RC}; log=$(cat "${LOG_CAPTURE}")"
+fi
+if ! v6_has ":INPUT"; then
+    ok "10.1e: orphan candidate removed by rollback"
+else
+    bad "10.1e: orphan still present v6=$(cat "${IPTABLES_V6_RULES}")"
+fi
+if v4_has ":INPUT" && v4_has ":OUTPUT" && v4_has "tcp:53" && v4_has "udp:53" && v4_has "udp:1024:65535"; then
+    ok "10.1f: old ipv4 baseline restored"
+else
+    bad "10.1f: v4 baseline wrong: $(cat "${IPTABLES_V4_RULES}")"
+fi
+if v4_has "user:22" && v6_has "user:22"; then
+    ok "10.1g: user rules preserved (v4+v6)"
+else
+    bad "10.1g: user rule lost v4=$(cat "${IPTABLES_V4_RULES}") v6=$(cat "${IPTABLES_V6_RULES}")"
+fi
+# ownership == runtime: v4 owned & present, v6 owned nothing & no baseline residue.
+if [[ -n "$(baseline_owned_keys iptables)" ]] && [[ -z "$(baseline_owned_keys ip6tables)" ]] \
+    && ! v6_has ":INPUT" && ! v6_has ":OUTPUT" && ! v6_has "tcp:53" && ! v6_has "udp:53"; then
+    ok "10.1h: managed_baseline.list consistent with runtime"
+else
+    bad "10.1h: ownership/runtime mismatch v4owned=[$(baseline_owned_keys iptables)] v6owned=[$(baseline_owned_keys ip6tables)]"
+fi
+if [[ "${SAVE_V4_CALLS}" -ge 1 && "${SAVE_V6_CALLS}" -ge 1 ]]; then
+    ok "10.1i: persistence ran (v4=${SAVE_V4_CALLS} v6=${SAVE_V6_CALLS})"
+else
+    bad "10.1i: persistence skipped (v4=${SAVE_V4_CALLS} v6=${SAVE_V6_CALLS})"
+fi
+if [[ ! -s "${FW_RULES_V6}" ]] || ! grep -q ":INPUT" "${FW_RULES_V6}"; then
+    ok "10.1j: persisted v6 holds restored state (no orphan)"
+else
+    bad "10.1j: persisted v6 has orphan: $(cat "${FW_RULES_V6}")"
+fi
+if [[ -z "${_reinstall_baseline_pending_added_v6}" && -z "${_reinstall_baseline_pending_added_v4}" ]]; then
+    ok "10.1k: journal cleared after success"
+else
+    bad "10.1k: journal not cleared v4=[${_reinstall_baseline_pending_added_v4}] v6=[${_reinstall_baseline_pending_added_v6}]"
+fi
+
+echo " 10.2 rollback itself fails -> restore fails loudly, journal + backup retained"
+_setup_restore_fixture
+RESTORE_BACKUP=$(reinstall_backup_create 2>/dev/null)
+reset_rules
+rm -f "${managed_baseline_file}"
+seed_state v4 "user:22"
+seed_state v6 "user:22"
+# Craft a state where the journal owns an orphan that cannot be removed.
+# The journal records BASELINE keys (lo-in -> netfilter :INPUT).
+seed_state v6 ":INPUT"   # project-created orphan still in runtime (netfilter key)
+_reinstall_baseline_pending_added_v6="lo-in"
+_reinstall_baseline_old_families="${B4}"
+_reinstall_baseline_new_families="${B46}"
+_reinstall_baseline_changed="yes"
+_reinstall_firewall_old_ports="${J4}"
+_reinstall_firewall_new_ports="${J8}"
+_reinstall_firewall_old_families="${B4}"
+_reinstall_firewall_new_families="${B46}"
+_reinstall_firewall_changed="no"
+MOCK_FAIL_DEL="ip6tables::INPUT"   # this journal entry (lo-in) cannot be removed
+: > "${LOG_CAPTURE}"
+RESTORE_RC=0
+reinstall_backup_restore "${RESTORE_BACKUP}" >/dev/null 2>&1 || RESTORE_RC=$?
+MOCK_FAIL_DEL=""
+if [[ ${RESTORE_RC} -ne 0 ]]; then
+    ok "10.2a: restore failed (rc!=0)"
+else
+    bad "10.2a: restore falsely succeeded"
+fi
+if ! grep -q "已恢复原配置" "${LOG_CAPTURE}"; then
+    ok "10.2b: no false success message"
+else
+    bad "10.2b: printed success despite rollback failure"
+fi
+if [[ "${_reinstall_baseline_pending_added_v6}" == *"lo-in"* ]]; then
+    ok "10.2c: journal retained on rollback failure"
+else
+    bad "10.2c: journal lost [${_reinstall_baseline_pending_added_v6}]"
+fi
+if [[ -d "${RESTORE_BACKUP}" ]]; then
+    ok "10.2d: backup retained"
+else
+    bad "10.2d: backup gone"
+fi
+if v6_has ":INPUT"; then
+    ok "10.2e: orphan confirmed present (could not be removed)"
+else
+    bad "10.2e: orphan vanished unexpectedly"
+fi
+
+# restore the normal persistence mocks for any later suite reuse
+eval "${ORIG_SAVE_V4}"
+eval "${ORIG_SAVE_V6}"
+
+echo
+echo "============================================================"
 echo "  Summary"
 echo "============================================================"
 if [[ ${FAIL} -eq 0 ]]; then
