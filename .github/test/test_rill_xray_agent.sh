@@ -17,6 +17,43 @@ grep -Fq 'rxa_candidate_guard "${candidate}"' install.sh
 grep -q 'rxa_candidate_guard()' install.sh
 grep -q 'rxa_candidate_guard()' scripts/rill_xray_agent_manager.sh
 
+# R6: Route Assist / Bounded Auto are fully implemented but LOCKED in the
+# production release. The apply chain (spool + root executor + release
+# manifest) is wired yet gated: install provisions the spool, enables the
+# apply path and locks the manifest; uninstall removes them; verify checks
+# them; the manifest holds supported=true / released=false.
+grep -Fq 'rill-xray-agent-apply.path' scripts/rill_xray_agent_install.sh
+grep -Fq 'systemctl enable --now rill-xray-agent-apply.path' scripts/rill_xray_agent_install.sh
+grep -Fq '/var/spool/rill-xray-agent-apply' scripts/rill_xray_agent_install.sh
+grep -Fq 'chown root:rill-xray-agent /var/spool/rill-xray-agent-apply' scripts/rill_xray_agent_install.sh
+grep -Fq 'chmod 2770 /var/spool/rill-xray-agent-apply' scripts/rill_xray_agent_install.sh
+grep -Fq 'release-capabilities.json' scripts/rill_xray_agent_install.sh
+grep -Fq 'chmod 0640' scripts/rill_xray_agent_install.sh
+grep -Fq '/var/spool/rill-xray-agent-apply' scripts/rill_xray_agent_uninstall.sh
+grep -Fq 'rill-xray-agent-apply.service' scripts/rill_xray_agent_uninstall.sh
+grep -Fq 'rill-xray-agent-apply.path' scripts/rill_xray_agent_uninstall.sh
+grep -Fq 'rill-xray-agent-apply' scripts/rill_xray_agent_verify.sh
+grep -Fq 'release-capabilities.json' scripts/rill_xray_agent_verify.sh
+# The unprivileged Runtime may stage an ApplyRequest into the spool; the root
+# oneshot re-reads the CURRENT manifest and never trusts the request.
+grep -Fq '/var/spool/rill-xray-agent-apply' systemd/rill-xray-agent-runtime.service
+grep -Fq '/var/spool/rill-xray-agent-apply' systemd/rill-xray-agent-apply.service
+grep -Fq 'PathChanged=/var/spool/rill-xray-agent-apply/apply.json' systemd/rill-xray-agent-apply.path
+grep -Fq 'User=root' systemd/rill-xray-agent-apply.service
+# Production release manifest: SUPPORTED but NOT released (locked).
+grep -Fq '"supported": true' rill_payload/share/release-capabilities.json
+grep -Fq '"released": false' rill_payload/share/release-capabilities.json
+grep -Fq 'routeAssist' rill_payload/share/release-capabilities.json
+grep -Fq 'boundedAuto' rill_payload/share/release-capabilities.json
+# The payload carries the full locked route-assist implementation.
+for mod in release_capabilities route_executor route_planner route_policy \
+           route_topology route_history auto_policy; do
+    test -f "rill_payload/python/rill_xray_agent/${mod}.py" || {
+        echo "missing payload module: ${mod}.py" >&2
+        exit 1
+    }
+done
+
 # An older installed manager probes the new integration block with only
 # menu_pause() available.  Exercise that exact manager -> candidate path: the
 # new fallback menu must not loop on missing UI helpers, and expected negative

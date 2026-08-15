@@ -14,7 +14,8 @@ install -d -m 0750 \
   "$(root /var/lib/rill-xray-agent-xray/history)" \
   "$(root /run/rill-xray-agent)" \
   "$(root /opt/rill-xray-agent)" \
-  "$(root /etc/systemd/system)"
+  "$(root /etc/systemd/system)" \
+  "$(root /var/spool/rill-xray-agent-apply)"
 
 for file in rill_xray_agent_manager.sh rill_xray_agent_observe.py rill_xray_agent_install.sh rill_xray_agent_verify.sh rill_xray_agent_uninstall.sh rill_xray_agent_bootstrap.sh; do
     [[ -f "$SOURCE/$file" ]] && install -m 0755 "$SOURCE/$file" "$(root /etc/rill-xray-agent/scripts/$file)"
@@ -53,15 +54,27 @@ for d in /var/lib/rill-xray-agent-xray \
     chown root:rill-xray-agent "$d"
     chmod 2750 "$d"
 done
+# Apply chain (Route Assist / Bounded Auto), wired but LOCKED: the
+# unprivileged Runtime may stage an ApplyRequest into the setgid spool; the
+# root oneshot executor re-reads the CURRENT release manifest and never
+# trusts the staged request. The manifest is locked (supported=true /
+# released=false), so no route mutation is applied until a future release
+# gate flips the manifest.
+chown root:rill-xray-agent /var/spool/rill-xray-agent-apply
+chmod 2770 /var/spool/rill-xray-agent-apply
+chown root:rill-xray-agent /opt/rill-xray-agent/share/release-capabilities.json
+chmod 0640 /opt/rill-xray-agent/share/release-capabilities.json
 systemctl daemon-reload
 systemctl enable --now rill-xray-agent-runtime.service
+systemctl enable --now rill-xray-agent-apply.path
 # Upgrade path: enable --now never restarts an already-running unit, so a
 # re-install over an existing installation would keep the OLD daemon (old
 # payload) alive while the files on disk are already the new ones. Force a
 # restart of every active Rill unit so the installed payload is the code
 # that actually runs. Inactive units are left untouched (safe-disabled).
 for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service \
-            rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+            rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer \
+            rill-xray-agent-apply.path; do
     if systemctl is-active --quiet "$unit"; then
         systemctl restart "$unit"
     fi
@@ -74,7 +87,7 @@ if ! rxa_mode_state_matches_target "$(rxa_get mode)"; then
     echo 'Rill Xray AI 运维助手安装校验失败：实际状态与目标工作模式不一致' >&2
     exit 1
 fi
-for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer rill-xray-agent-apply.path; do
     systemctl is-enabled --quiet "$unit" || { echo "服务未启用: $unit" >&2; exit 1; }
     systemctl is-active --quiet "$unit" || { echo "服务未运行: $unit" >&2; exit 1; }
 done

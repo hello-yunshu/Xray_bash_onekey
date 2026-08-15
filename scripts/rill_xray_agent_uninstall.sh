@@ -17,7 +17,8 @@ RILL_XRAY_AGENT_XRAY=${RILL_XRAY_AGENT_XRAY:-/var/lib/rill-xray-agent-xray}
 RILL_XRAY_AGENT_STATUS=${RILL_XRAY_AGENT_STATUS:-/var/lib/rill-xray-agent-xray/status/xray-observation.json}
 RILL_XRAY_AGENT_MANAGER=${RILL_XRAY_AGENT_MANAGER:-/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh}
 RILL_XRAY_AGENT_UNITS=(rill-xray-agent-runtime.service rill-xray-agent-agent.service \
-    rill-xray-agent-xray-observe.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer)
+    rill-xray-agent-xray-observe.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer \
+    rill-xray-agent-apply.service rill-xray-agent-apply.path)
 
 rxa_fake_systemctl() {
     # Test-only systemctl shim (only active when FAKE_SYSTEMCTL_LOG is set):
@@ -114,7 +115,8 @@ rxa_uninstall_remove_rill() {
     for unit in "${RILL_XRAY_AGENT_UNITS[@]}"; do
         rm -f "$(root "/etc/systemd/system/$unit")" || rc=1
     done
-    rm -rf "$(root /opt/rill-xray-agent)" "$(root /run/rill-xray-agent)" || rc=1
+    rm -rf "$(root /opt/rill-xray-agent)" "$(root /run/rill-xray-agent)" \
+           "$(root /var/spool/rill-xray-agent-apply)" || rc=1
     if [[ ${1:-0} == 1 ]]; then
         rm -rf \
           "$(root /etc/rill-xray-agent)" \

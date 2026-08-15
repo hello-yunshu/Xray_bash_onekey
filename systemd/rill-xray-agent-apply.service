@@ -1,0 +1,18 @@
+[Unit]
+Description=Rill Xray Agent constrained route mutation executor (root oneshot)
+After=local-fs.target
+ConditionPathExists=/var/spool/rill-xray-agent-apply/apply.json
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0027
+ExecStart=/opt/rill-xray-agent/bin/rill-xray-agent-apply
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/spool/rill-xray-agent-apply /var/lib/rill-xray-agent-runtime/delivery /var/lib/rill-xray-agent-root/transactions /etc/rill-xray-agent/host
+ReadOnlyPaths=/opt/rill-xray-agent /var/lib/rill-xray-agent-xray
+ProtectHome=true
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+[Unit]
+Description=Watch Rill Xray Agent apply spool for route mutations
+[Path]
+PathChanged=/var/spool/rill-xray-agent-apply/apply.json
+Unit=rill-xray-agent-apply.service
+[Install]
+WantedBy=multi-user.target
