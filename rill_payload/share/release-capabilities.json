@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "features": {
+    "routeAssist": {
+      "supported": true,
+      "released": false
+    },
+    "boundedAuto": {
+      "supported": true,
+      "released": false
+    }
+  }
+}

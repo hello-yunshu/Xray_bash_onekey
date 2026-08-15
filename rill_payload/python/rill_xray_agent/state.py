@@ -160,23 +160,67 @@ class RuntimeState:
             replay_protection_seconds=replay_protection_seconds)
 
     def empty(self):
-        return {'schemaVersion': 3, 'mode': 'observe-only', 'routeAssistEnabled': False,
+        """Schema v4: mode and routeStage are distinct. routeStage is the user
+        preference (observe | assist | auto); routeAssistEnabled /
+        boundedAutoAllowed are DERIVED, release-gated effective flags that are
+        never trusted from disk and always read as false in the locked release.
+
+        autoConfirmedAtEpochSeconds records the explicit human confirmation of
+        auto intent at the time auto was configured. When a future release
+        flips boundedAuto.released to true, an auto preference is only ever
+        effective if this confirmation is present - a stale auto preference
+        saved long ago can never silently re-enable auto.
+        """
+        return {'schemaVersion': 4, 'mode': 'observe-only', 'routeStage': 'observe',
+                'routeAssistEnabled': False, 'boundedAutoAllowed': False,
+                'autoConfirmedAtEpochSeconds': None,
                 'pending': {}, 'completed': {}, 'restartCount': 0}
 
     def load(self):
         if not self.path.exists():
             return self.empty()
         v = read_json(self.path)
-        if v.get('schemaVersion') not in {1, 2, 3}:
+        if v.get('schemaVersion') not in {1, 2, 3, 4}:
             raise ContractError('unsupported state')
-        if v['schemaVersion'] != 3:
+        dirty = False
+        if v['schemaVersion'] != 4:
+            # Safe schema migration to v4. A legacy routeAssistEnabled=true
+            # must NEVER become an effective capability: routeStage is
+            # normalized to observe and the derived flags are reset. Effective
+            # enablement is decided only by the release manifest + RoutePolicy
+            # at evaluation time, never by a persisted boolean.
             m = self.empty()
             m.update({k: x for k, x in v.items() if k in m})
+            # Preserve the pre-ledger 'closed' mirror so the fail-closed
+            # externalization (see _migrate_legacy_closed) still runs. It is
+            # intentionally NOT part of the v4 shape; it is consumed and
+            # removed right after the schema migration below.
+            if isinstance(v.get('closed'), dict) and v['closed']:
+                m['closed'] = v['closed']
+            m['routeStage'] = 'observe'
+            m['routeAssistEnabled'] = False
+            m['boundedAutoAllowed'] = False
             v = m
-            self.save(v)
-        # Route Assist is a hard invariant: it must never survive load.
-        if v.get('routeAssistEnabled'):
+            dirty = True
+        if v.get('routeStage') not in ('observe', 'assist', 'auto'):
+            v['routeStage'] = 'observe'
+            dirty = True
+        if 'autoConfirmedAtEpochSeconds' not in v:
+            v['autoConfirmedAtEpochSeconds'] = None
+            dirty = True
+        if v.get('autoConfirmedAtEpochSeconds') is not None and not isinstance(
+                v.get('autoConfirmedAtEpochSeconds'), int):
+            v['autoConfirmedAtEpochSeconds'] = None
+            dirty = True
+        # Derived, release-gated fields are never trusted from disk: any
+        # persisted true (old hard invariant or a hand-edit) is normalized
+        # away on load, so a restart/upgrade can never accidentally enable a
+        # locked feature.
+        if v.get('routeAssistEnabled') or v.get('boundedAutoAllowed'):
             v['routeAssistEnabled'] = False
+            v['boundedAutoAllowed'] = False
+            dirty = True
+        if dirty:
             self.save(v)
         self._migrate_legacy_closed(v)
         return v

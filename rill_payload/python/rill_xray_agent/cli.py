@@ -7,7 +7,10 @@ from .canonical import canonical_bytes
 # envelope. Security permissions are unchanged - this only labels intent.
 SENTINEL_METHODS = {'status', 'health', 'metrics', 'config', 'snapshot', 'timeline'}
 DOCTOR_METHODS = {'diagnose'}
-ROUTE_METHODS = {'mode'}
+ROUTE_METHODS = {'mode', 'routeStatus', 'routeStage', 'routePlan', 'routeInspect',
+                 'routeApprove', 'routeReject', 'routeHistory', 'autoStatus',
+                 'autoConfirm'}
+ROUTE_STAGES = ['observe', 'assist', 'auto']
 
 
 def _capability(method: str) -> str:
@@ -15,6 +18,8 @@ def _capability(method: str) -> str:
         return 'sentinel'
     if method in DOCTOR_METHODS:
         return 'doctor'
+    if method in ROUTE_METHODS:
+        return 'route'
     return 'route'
 
 
@@ -83,7 +88,8 @@ def main(argv=None) -> int:
     parser.add_argument('--socket', type=Path, default=Path('/run/rill-xray-agent/runtime.sock'))
     parser.add_argument('--json', action='store_true')
     sub = parser.add_subparsers(dest='command', required=True)
-    for name in ('status', 'health', 'metrics', 'config', 'snapshot', 'diagnose'):
+    for name in ('status', 'health', 'metrics', 'config', 'snapshot', 'diagnose',
+                 'route-status', 'route-history', 'auto-status'):
         sub.add_parser(name)
     mode = sub.add_parser('mode')
     mode.add_argument('value', choices=['normal', 'observe-only', 'safe-disabled'])
@@ -91,6 +97,17 @@ def main(argv=None) -> int:
     inspect.add_argument('decision_id')
     timeline = sub.add_parser('timeline')
     timeline.add_argument('--limit', type=int, default=50)
+    route_stage = sub.add_parser('route-stage')
+    route_stage.add_argument('value', choices=ROUTE_STAGES)
+    route_plan = sub.add_parser('route-plan')
+    route_plan.add_argument('--operations', type=json.loads, default=None)
+    route_approve = sub.add_parser('route-approve')
+    route_approve.add_argument('recommendation_id')
+    route_approve.add_argument('--operations', type=json.loads, default=None)
+    route_reject = sub.add_parser('route-reject')
+    route_reject.add_argument('recommendation_id')
+    route_reject.add_argument('--reason', default='operator-rejected')
+    auto_confirm = sub.add_parser('auto-confirm')
     feedback = sub.add_parser('feedback')
     feedback.add_argument('decision_id')
     feedback.add_argument('--outcome', choices=FEEDBACK_OUTCOMES, required=True)
@@ -102,10 +119,26 @@ def main(argv=None) -> int:
     method = {'status': 'health', 'health': 'health', 'metrics': 'metrics',
               'config': 'config', 'snapshot': 'snapshot', 'mode': 'mode',
               'inspect': 'inspect', 'timeline': 'timeline', 'diagnose': 'diagnose',
-              'feedback': 'feedback'}[args.command]
+              'feedback': 'feedback', 'route-status': 'routeStatus',
+              'route-stage': 'routeStage', 'route-plan': 'routePlan',
+              'route-approve': 'routeApprove', 'route-reject': 'routeReject',
+              'route-history': 'routeHistory', 'auto-status': 'autoStatus',
+              'auto-confirm': 'autoConfirm'}[args.command]
     body = {}
     if args.command == 'mode':
         body = {'mode': args.value}
+    elif args.command == 'route-stage':
+        body = {'stage': args.value}
+    elif args.command == 'route-plan':
+        body = {'operations': args.operations or []}
+    elif args.command == 'route-approve':
+        body = {'recommendationId': args.recommendation_id,
+                'operations': args.operations or []}
+    elif args.command == 'route-reject':
+        body = {'recommendationId': args.recommendation_id,
+                'reasonCode': args.reason}
+    elif args.command == 'route-history':
+        body = {'limit': 50}
     elif args.command == 'inspect':
         body = {'decisionId': args.decision_id}
     elif args.command == 'timeline':
