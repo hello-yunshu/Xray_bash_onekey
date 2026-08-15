@@ -2414,14 +2414,9 @@ firewall_add_udp_high_port_range() {
 }
 
 # --- always-on baseline rule ownership (family-aware, transactional) ---------
-# The always-on infrastructure rules (loopback, DNS 53 tcp/udp in+out, UDP
-# high-port range) are family-aware: they belong on exactly the families the
-# current network_mode manages. The project tracks WHICH specific baseline
-# rules it CREATED on each family (not families alone) so:
-#   - a dropped family (dual -> ipv4) can be cleaned of OUR rules, and
-#   - a failed family gain (ipv4 -> dual midway failure) can be rolled back,
-# without EVER deleting a user's own pre-existing rule. See the dual-stack
-# firewall rectification (Section C).
+# Track the exact baseline rules WE created per family so a dropped family can
+# be cleaned of OUR rules and a failed family gain rolled back, without ever
+# deleting a user's own pre-existing rule.
 BASELINE_RULE_KEYS="lo-in lo-out dns-tcp-in dns-udp-in dns-tcp-out dns-udp-out udp-hi-in"
 
 # Apply one canonical baseline rule on one family. op: check|add|remove.
@@ -2531,27 +2526,40 @@ baseline_owned_save_verified() {
     baseline_owned_save "iptables:${out4%,}" "ip6tables:${out6%,}"
 }
 
+# Hand the pending journal over to durable ownership: a rule leaves it once
+# gone from runtime or owned; a present, unowned rule stays as orphan candidate.
+baseline_pending_prune() {
+    local fam owned k cand kept_v4="" kept_v6=""
+    for fam in iptables ip6tables; do
+        if [[ "${fam}" == "iptables" ]]; then
+            cand="${_reinstall_baseline_pending_added_v4:-}"
+        else
+            cand="${_reinstall_baseline_pending_added_v6:-}"
+        fi
+        [[ -z "${cand}" ]] && continue
+        owned="$(baseline_owned_keys "${fam}")"
+        for k in ${cand}; do
+            if baseline_rule "${fam}" "${k}" check && \
+               ! printf '%s\n' ${owned} | grep -qxF "${k}"; then
+                if [[ "${fam}" == "iptables" ]]; then
+                    kept_v4="${kept_v4} ${k}"
+                else
+                    kept_v6="${kept_v6} ${k}"
+                fi
+            fi
+        done
+    done
+    _reinstall_baseline_pending_added_v4="${kept_v4# }"
+    _reinstall_baseline_pending_added_v6="${kept_v6# }"
+}
+
 # Reconcile baseline ownership toward a target family set (space separated).
-# Idempotent / family-aware / transactional. The netfilter runtime rules and
-# the managed_baseline.list ownership file are ONE transaction:
-#   1. ensure every baseline rule exists on each target family — rules that are
-#      already present (user's own, or already ours) are NOT claimed, only
-#      rules WE add this call are recorded as owned;
-#   2. on ANY add failure, remove every rule added by THIS call. A failed
-#      compensation remove is NOT swallowed: the leftover rule stays recorded
-#      as owned (never orphaned) and the sync fails;
-#   3. remove OUR baseline rules on previously-owned families no longer in the
-#      target set — user rules are never touched. A key whose removal cannot
-#      be confirmed keeps its ownership entry and FAILS the sync: ownership is
-#      never forgotten for a rule that is still in runtime;
-#   4. only after the target runtime state is fully established is the new
-#      ownership committed. If the commit fails, runtime is compensated back
-#      to the entry state (added rules removed, dropped rules re-added) so the
-#      untouched old ownership file never silently diverges from runtime; if
-#      that compensation also fails, a VERIFIED ownership is committed
-#      best-effort so present project rules are not orphaned.
-# Returns 0 if the target state was established and committed, non-zero on any
-# add / remove / commit failure (state is left consistent and retry-safe).
+# The netfilter runtime and managed_baseline.list are ONE transaction: ensure
+# every baseline rule exists per target family (only rules WE add are owned),
+# clean OUR baseline on dropped families, and commit ownership only after the
+# target runtime is fully established. A failed add rolls back every rule added
+# this call; a failed compensation/commit keeps leftovers owned (never
+# orphaned) via a verified ownership commit and fails the sync retry-safely.
 baseline_sync() {
     local target="$1"
     local target_list old_list
@@ -2561,9 +2569,7 @@ baseline_sync() {
     v4_owned="$(baseline_owned_keys iptables)"
     v6_owned="$(baseline_owned_keys ip6tables)"
     v4_added=""; v6_added=""
-    # Dropped-family bookkeeping: keys whose removal was CONFIRMED (needed to
-    # compensate runtime if the ownership commit fails) and keys whose removal
-    # FAILED (still in runtime, so they must stay owned).
+    # Dropped-family keys: confirmed-removed (for commit-compensation) vs failed (stay owned).
     local v4_dropped_ok="" v6_dropped_ok="" v4_dropped_fail="" v6_dropped_fail=""
     local bin key
     local _b _k _keys _rkeys _comp_fail
@@ -2574,38 +2580,31 @@ baseline_sync() {
                 continue
             fi
             if ! baseline_rule "${bin}" "${key}" add; then
-                # add failed — compensate EVERY rule added by THIS call across
-                # every family (not just the failing one), so a multi-family
-                # gain (ipv4 -> dual) that fails midway on IPv6 leaves no
-                # half-applied IPv4 baseline behind.
+                # add failed — compensate EVERY rule added by this call across
+                # all families so a midway family gain leaves no half-applied rules.
                 _comp_fail=0
                 for _b in iptables ip6tables; do
                     if [[ "${_b}" == "iptables" ]]; then _keys="${v4_added}"; else _keys="${v6_added}"; fi
                     for _k in ${_keys}; do
-                        # A failed compensation is NOT ignorable: the leftover
-                        # rule is still ours in runtime, so it must stay
-                        # recorded as owned or a later cleanup could never
-                        # find it again.
+                        # A failed compensation keeps the leftover ours: it must stay owned.
                         baseline_rule "${_b}" "${_k}" remove 2>/dev/null || _comp_fail=1
                     done
                 done
                 if [[ ${_comp_fail} -ne 0 ]]; then
                     log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚未完成, 部分规则仍保留并已记录") ${Font}"
-                    # Corrective commit: own exactly the rules that are still
-                    # present so the leftovers are never orphaned.
-                    baseline_owned_save_verified "${v4_owned} ${v4_added}" "${v6_owned} ${v6_added}" \
-                        || log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+                    # Corrective commit: own rules still present, then prune the journal.
+                    if baseline_owned_save_verified "${v4_owned} ${v4_added}" "${v6_owned} ${v6_added}"; then
+                        baseline_pending_prune
+                    else
+                        log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+                    fi
                 fi
                 return 1
             fi
             if [[ "${bin}" == "iptables" ]]; then
                 v4_added="${v4_added} ${key}"
-                # Record this rule in the transaction pending journal IMMEDIATELY
-                # (not at the final ownership commit). If a later add fails and
-                # the compensation remove and corrective ownership save also fail,
-                # the global rollback (reinstall_backup_restore) still knows this
-                # exact rule was created by THIS transaction and can delete it,
-                # without ever guessing at a user's own rule.
+                # Journal immediately (not at commit): rollback must know exactly
+                # which rules THIS transaction added, never a user's own.
                 _reinstall_baseline_pending_added_v4="${_reinstall_baseline_pending_added_v4} ${key}"
             else
                 v6_added="${v6_added} ${key}"
@@ -2614,16 +2613,16 @@ baseline_sync() {
         done
     done
 
-    # Dropped-family cleanup: remove OUR baseline on families no longer in the
-    # target set. Only project-owned keys are touched — a user's own rule is
-    # never removed. A removal that cannot be confirmed keeps the ownership
-    # entry and fails the sync (the rule is still in runtime).
+    # Dropped-family cleanup: remove OUR baseline only; a rule still in runtime
+    # whose removal fails keeps ownership and fails the sync.
     for bin in ${old_list}; do
         if ! printf '%s\n' ${target_list} | grep -qxF "${bin}"; then
             local owned_keys
             owned_keys=$(baseline_owned_keys "${bin}")
             for key in ${owned_keys}; do
-                if baseline_rule "${bin}" "${key}" remove 2>/dev/null; then
+                # Absent == desired state; only a present rule failing removal fails.
+                if ! baseline_rule "${bin}" "${key}" check || \
+                   baseline_rule "${bin}" "${key}" remove 2>/dev/null; then
                     if [[ "${bin}" == "iptables" ]]; then
                         v4_dropped_ok="${v4_dropped_ok} ${key}"
                     else
@@ -2640,9 +2639,7 @@ baseline_sync() {
         fi
     done
 
-    # Commit ownership = kept old keys + newly added keys, per target family.
-    # A family being dropped keeps ownership ONLY of the keys whose removal
-    # could not be confirmed (they are still in runtime).
+    # Ownership = kept old + newly added per family; a dropped family keeps only failed removals.
     local v4_all v6_all v4_final v6_final
     v4_all="$(printf '%s %s\n' "${v4_owned}" "${v4_added}" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//')"
     v6_all="$(printf '%s %s\n' "${v6_owned}" "${v6_added}" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//')"
@@ -2655,14 +2652,15 @@ baseline_sync() {
     fi
     if [[ -n "${v4_dropped_fail}" || -n "${v6_dropped_fail}" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则清理未完成, 未能删除的规则仍保持记录") ${Font}"
-        baseline_owned_save "iptables:${v4_final}" "ip6tables:${v6_final}" \
-            || log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+        if baseline_owned_save "iptables:${v4_final}" "ip6tables:${v6_final}"; then
+            baseline_pending_prune
+        else
+            log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+        fi
         return 1
     fi
     if ! baseline_owned_save "iptables:${v4_final}" "ip6tables:${v6_final}"; then
-        # Ownership commit failed. The ownership file is atomic (tmp+rename)
-        # so it still holds the OLD state — compensate runtime back to the
-        # entry state: remove what this call added, re-add what it dropped.
+        # Atomic file still holds OLD state — compensate runtime to entry state.
         local _comp2_fail=0
         for _b in iptables ip6tables; do
             if [[ "${_b}" == "iptables" ]]; then
@@ -2678,22 +2676,21 @@ baseline_sync() {
             done
         done
         if [[ ${_comp2_fail} -eq 0 ]]; then
-            # runtime == entry state; the untouched ownership file still
-            # describes it. A rerun is safe.
+            # runtime == entry state; untouched ownership file is consistent; rerun safe.
             log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
             return 1
         fi
-        # Compensation incomplete: commit a VERIFIED ownership (own a key iff
-        # its rule is present) so present project rules are never orphaned.
+        # Compensation incomplete: verified ownership (own iff present) prevents orphan.
         log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚未完成, 部分规则仍保留并已记录") ${Font}"
-        baseline_owned_save_verified "${v4_owned} ${v4_added} ${v4_dropped_ok}" \
-                                     "${v6_owned} ${v6_added} ${v6_dropped_ok}" \
-            || log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+        if baseline_owned_save_verified "${v4_owned} ${v4_added} ${v4_dropped_ok}" \
+                                        "${v6_owned} ${v6_added} ${v6_dropped_ok}"; then
+            baseline_pending_prune
+        else
+            log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+        fi
         return 1
     fi
-    # Ownership committed successfully — the pending journal is now redundant
-    # (rollback can rely on managed_baseline.list). Clear it so a later
-    # unrelated restore never acts on stale rules.
+    # Ownership committed — pending journal redundant; clear it.
     _reinstall_baseline_pending_added_v4=""
     _reinstall_baseline_pending_added_v6=""
     return 0
@@ -2749,12 +2746,8 @@ reconcile_managed_firewall() {
     old_udp=$(printf '%s' "${old_json}" | jq -r '.udp[]? // empty')
     new_udp=$(printf '%s' "${new_json}" | jq -r '.udp[]? // empty')
 
-    # State is family x protocol x port. Reconcile by set difference:
-    #   to_remove = old_state - new_state
-    #   to_add    = new_state - old_state
-    # Families dropped (in old, not in new): remove EVERY old managed port on
-    # that family — a same-port family transition (dual -> ipv4) must still
-    # clean the old family's rules.
+    # Reconcile by set difference (old - new = remove, new - old = add). A
+    # dropped family removes every old managed port even on a same-port switch.
     for bin in ${old_bins}; do
         if ! printf '%s\n' ${new_bins} | grep -qxF "${bin}"; then
             while IFS= read -r port; do
@@ -2897,25 +2890,13 @@ firewall_set() {
             return 1
         fi
 
-        # Always-on infrastructure rules (loopback, DNS 53, UDP high-port range)
-        # applied transactionally and family-aware. baseline_sync:
-        #   - ensures every baseline rule exists on the target families, claiming
-        #     only the rules IT adds so a dropped family can be cleaned later and
-        #     a failed family gain can be rolled back WITHOUT deleting any rule
-        #     the user already had;
-        #   - cleans our baseline on families no longer in the target set;
-        #   - on a partial add failure removes everything it added this call.
-        # The old/new family sets are recorded so a later deploy failure can
-        # reverse the baseline back to the source state (reinstall_backup_restore).
+        # Apply the always-on baseline transactionally (family-aware). Old/new
+        # family sets are recorded so a later deploy failure can reverse it.
         _reinstall_baseline_old_families="$(baseline_owned_families)"
         _reinstall_baseline_new_families="$(_managed_fw_bins)"
         _reinstall_baseline_changed="pending"
         if ! baseline_sync "${_reinstall_baseline_new_families}"; then
-            # Keep the transaction "pending" (NOT "no"): a failed baseline_sync
-            # may leave project-owned rules recorded in runtime, so the global
-            # rollback must still retry the reverse instead of treating the
-            # baseline as untouched. Same contract as the managed-port
-            # transaction above.
+            # Keep "pending" (NOT "no") so global rollback still retries the reverse.
             log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则配置失败") ${Font}"
             return 1
         fi
@@ -2928,11 +2909,8 @@ firewall_set() {
             _reinstall_firewall_old_ports=$(cat "${managed_ports_file}" 2>/dev/null ||
                 echo '{"tcp":[],"udp":[]}')
         fi
-        # Pre-deploy family set: captured from the OLD config at reinstall start
-        # (old_config_exist_check). For a standalone firewall_set with no prior
-        # managed state the old set stays empty — nothing to clean on this
-        # transaction. Never recompute from the CURRENT network_mode here: by
-        # this point it already points at the target mode of a reinstall.
+        # Pre-deploy family set from reinstall start; never recompute from the
+        # current network_mode (already the target of a reinstall).
         _reinstall_firewall_old_families="${_reinstall_firewall_old_families:-}"
         # Build the full new managed set: main + transport ports, plus port 80
         # when TLS mode (ACME / HTTP redirect). Including 80 in the managed set
@@ -2958,13 +2936,8 @@ firewall_set() {
                 return 1
             }
 
-        # Persist rules per family. Persist the UNION of the families this
-        # transaction touched (old ∪ new), not just the new families: a
-        # dual -> ipv4 transition cleans IPv6 managed rules at runtime, so the
-        # cleaned rules.v6 must also be saved or the stale rule returns on
-        # reboot. Save failures are non-fatal (rules are already active) but
-        # MUST surface a warning naming the failing family — never a silent
-        # unconditional success.
+        # Persist old ∪ new families: a cleaned dropped-family rule must not
+        # return on reboot. Non-fatal but never a silent unconditional success.
         local _persist_families
         _persist_families=$(firewall_persist_families \
             "${_reinstall_firewall_old_families:-}" \
@@ -10254,51 +10227,35 @@ function restore_directories() {
 }
 
 # ============================================================
-# Reinstall backup / restore
-# Simple, reliable directory snapshot taken before any reinstall
-# or mode switch. On deploy failure the snapshot is restored.
+# Reinstall backup / restore — directory snapshot taken before
+# reinstall/mode-switch, restored on deploy failure.
 # ============================================================
 
-# Path to the backup directory created for the current reinstall attempt.
-# Empty when there is nothing to restore (fresh install, or test mode where
-# old_config_exist_check is mocked out).
+# Backup directory for the current reinstall attempt. Empty when nothing to restore.
 _reinstall_backup_dir=""
-# Firewall transaction state (see apply_managed_firewall_transaction). Captured
-# at reconfig start (old) and after parameters are determined (new), so a
-# partial firewall change can be reversed even if managed_ports.json was not
-# yet written with the new set.
+# Firewall transaction state captured at reconfig start (old) and after
+# parameters are determined (new), so a partial change can be reversed.
 _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
 _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
 _reinstall_firewall_old_families=""
 _reinstall_firewall_new_families=""
 _reinstall_firewall_changed="no"
-# Baseline-rule transaction state (see baseline_sync). The always-on baseline
-# rules (loopback / DNS 53 / UDP high-port) are family-aware and transactional:
-# the OLD family set is captured from the ownership state before the deploy and
-# the NEW set is the target family policy, so a failed family gain can be rolled
-# back (removing only our newly-added rules) and a successful transition's
-# dropped family is cleaned. Same no/pending/yes contract as the managed-port
-# transaction above.
+# Baseline-rule transaction state: OLD family set from ownership before deploy,
+# NEW set is the target family policy. Same no/pending/yes contract as above.
 _reinstall_baseline_old_families=""
 _reinstall_baseline_new_families=""
 _reinstall_baseline_changed="no"
-# Baseline-rule pending journal: the EXACT rules this transaction created.
-# Updated immediately after each successful baseline_rule add (NOT deferred to
-# the final ownership commit), so even if a corrective ownership save also
-# fails, the global rollback still knows precisely which rules THIS transaction
-# added and can delete them without ever touching a user's own rule. Cleared
-# once ownership is committed (baseline_sync success) or once rollback +
-# persistence succeed; retained on any rollback failure so the orphaned rules
+# Baseline-rule pending journal: the exact rules THIS transaction created.
+# Updated immediately after each successful baseline_rule add, so even if the
+# corrective ownership save also fails the global rollback still knows which
+# rules to delete. Cleared once ownership is committed (baseline_sync success)
+# or after restore + persistence succeed; retained on any failure so orphans
 # stay recoverable.
 _reinstall_baseline_pending_added_v4=""
 _reinstall_baseline_pending_added_v6=""
 
-# RETURN-trap wrapper: restores the backup exactly once on deploy failure.
-# Args: <exit_code> <backup_dir>
-# - rc == 0 (success): clear backup dir reference, no restore.
-# - rc != 0 (failure): restore once; on restore failure return 2 and retain
-#   backup dir so the operator can inspect it. Clears the trap first to
-#   avoid recursion.
+# RETURN-trap wrapper: restores the backup once on deploy failure; on restore
+# failure returns 2 and retains the backup dir for operator inspection.
 reinstall_rollback_on_return() {
     local rc="$1"
     local backup_dir="$2"
@@ -10585,21 +10542,13 @@ reinstall_backup_restore() {
         rm -rf "${idleleo_dir}/info" 2>/dev/null || [[ ! -e "${idleleo_dir}/info" ]] || _restore_err=1
     fi
 
-    # Firewall transaction rollback: reverse the exact rules this deploy
-    # changed, even if managed_ports.json was not yet written with the new set.
-    # Both "yes" (forward succeeded) and "pending" (forward started but the
-    # immediate reverse was not confirmed) must be reversed here; "no" means
-    # nothing was modified or it was already fully reversed. Family-aware: the
-    # reverse runs old-side rules on the transaction's recorded OLD families,
-    # not the CURRENT network_mode — a failed dual -> ipv4 switch must restore
-    # the IPv6 rules that were cleaned during forward.
+    # Firewall transaction rollback: reverse rules changed by this deploy
+    # ("yes"/"pending"; "no" = untouched). Family-aware: reverse on the recorded
+    # OLD families, not current network_mode, so a failed dual -> ipv4 switch
+    # restores the cleaned IPv6 rules.
     #
-    # The persistence requirement is captured BEFORE the rollbacks run. The
-    # flags are deliberately NOT reset by a successful rollback: if they were,
-    # the persist check below would see "no" and skip persistence, and a
-    # reboot would reload the FAILED deploy's firewall from the stale
-    # rules.v4/rules.v6. Flags are only cleared after persistence succeeded
-    # (end-of-function cleanup), so any later failure stays retriable.
+    # Persistence requirement is captured BEFORE rollback; flags are NOT reset
+    # by a successful rollback or a reboot would reload the failed deploy.
     local _restore_persist_required=0
     if [[ "${_reinstall_firewall_changed:-}" == "yes" || "${_reinstall_firewall_changed:-}" == "pending" || \
           "${_reinstall_baseline_changed:-}" == "yes" || "${_reinstall_baseline_changed:-}" == "pending" ]]; then
@@ -10615,21 +10564,12 @@ reinstall_backup_restore() {
             _restore_err=1
         fi
     fi
-    # Baseline-rule transaction rollback: reverse the family baseline change.
-    # baseline_sync(target=old families) removes the baseline rules the failed
-    # deploy added on a gained family (leaving the user's own rules untouched)
-    # and re-ensures the baseline on the source families. Same yes/pending
-    # contract as the managed-port rollback above.
+    # Baseline rollback: baseline_sync(old families) removes gained-family rules
+    # and re-ensures the source baseline. Same yes/pending contract.
     if [[ "${_reinstall_baseline_changed:-}" == "yes" || "${_reinstall_baseline_changed:-}" == "pending" ]]; then
-        # FIRST: precisely reverse THIS transaction's added rules from the
-        # pending journal. These rules were created by the failed deploy and may
-        # NOT be recorded in managed_baseline.list — the transaction's own
-        # corrective ownership save may itself have failed (compensation-remove
-        # failure + ownership-write failure), so relying on ownership alone
-        # could silently orphan them. Only rules explicitly recorded as
-        # added-by-this-transaction are removed; a user's own rule is never
-        # touched. check-then-remove so a rule already cleaned by a successful
-        # compensation is not misreported as a rollback failure.
+        # FIRST reverse this transaction's journal: rules may not be in
+        # managed_baseline.list (corrective save may have failed). check-then-
+        # remove so an already-cleaned rule is not a false rollback failure.
         local _pend_fail=0 _pbin _pkey _pkeys
         for _pbin in iptables ip6tables; do
             if [[ "${_pbin}" == "iptables" ]]; then
@@ -10644,29 +10584,22 @@ reinstall_backup_restore() {
             done
         done
         if [[ ${_pend_fail} -ne 0 ]]; then
-            # A journal rule could not be removed: the orphan persists and the
-            # rollback cannot reach a consistent state. FAIL and retain the
-            # journal (do NOT run baseline_sync, which would clear it on
-            # success); the backup dir is kept for diagnosis/retry.
+            # Orphan persists; FAIL and retain journal + backup (do NOT run
+            # baseline_sync, which would clear it on success).
             log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚失败") ${Font}"
             _restore_err=1
         else
-            # Journal fully reversed — reconcile toward the OLD family set:
-            # re-ensure the baseline on the source families and clean any
-            # dropped-family ownership. User rules are untouched. On failure the
-            # journal is retained (end-of-function cleanup only runs on success).
+            # Journal reversed — reconcile to old family set; on failure the
+            # journal is retained (cleanup only runs on success).
             if ! baseline_sync "${_reinstall_baseline_old_families:-}"; then
                 log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚失败") ${Font}"
                 _restore_err=1
             fi
         fi
     fi
-    # Persist the restored runtime firewall state for the families this
-    # transaction touched (old ∪ new). A runtime-correct restore is NOT a
-    # complete restore: if rules.v4/rules.v6 (or the RHEL sysconfig dumps) still
-    # hold the failed target on disk, a reboot would reload the failed firewall.
-    # A persistence failure here is therefore a CRITICAL restore failure — it
-    # must keep the backup dir and fail the restore, never print "已恢复原配置".
+    # Persist restored state for old ∪ new families: stale rules.v4/v6 would
+    # reload the failed firewall on reboot, so failure is CRITICAL (never
+    # print 已恢复原配置).
     if [[ ${_restore_persist_required} -eq 1 ]]; then
         local _restore_persist_families
         _restore_persist_families=$(firewall_persist_families \
