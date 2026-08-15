@@ -19,6 +19,10 @@ export _TEST_MODE=1
 # shellcheck source=/dev/null
 source "${REPO_DIR}/install.sh" >/dev/null 2>&1 || true
 
+# This test exercises IPv4-only behavior; pin IPv6 management off so it is
+# deterministic regardless of whether ip6tables exists on the runner.
+_MANAGED_FW_IPV6=0
+
 PASS=0
 FAIL=0
 TMP_ROOT=$(mktemp -d)
@@ -341,6 +345,9 @@ xport=""
 gport=""
 xhttpport=""
 transport_mode="None"
+# Baseline ownership state must be isolated to a temp path so baseline_sync
+# (now part of firewall_set) never touches a real host path.
+managed_baseline_file="${TMP_ROOT}/managed_baseline.list"
 pkg_install() { return 0; }
 service() { return 0; }
 netfilter-persistent() { return 0; }

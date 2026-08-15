@@ -43,7 +43,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.1"
+shell_version="3.2.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -165,6 +165,15 @@ change_nginx_sni="no"
 change_ws_path="no"
 change_grpc_path="no"
 change_xhttp_path="no"
+# ---- IPv4 / IPv6 双栈模型 ----
+# network_mode: auto|ipv4|ipv6|dual|manual
+# ipv4_address / ipv6_address: 探测/保存的公网地址（双栈模式下同时存在）
+# resolved_ipv4s / resolved_ipv6s: 域名 A/AAAA 解析结果集合（\n 分隔）
+network_mode=""
+ipv4_address=""
+ipv6_address=""
+resolved_ipv4s=""
+resolved_ipv6s=""
 # When "yes", email_set and UUID_set skip prompting and reuse the
 # values already loaded from the old config during a mode switch.
 mode_switch_reuse="off"
@@ -974,6 +983,133 @@ get_public_ip() {
     else
         curl -4 -fsSL --max-time 10 ip.me 2>/dev/null || curl -4 -fsSL --max-time 10 ip.im 2>/dev/null
     fi
+}
+
+# ---- IPv4 / IPv6 双栈支持：网络能力检测与 URI 编码辅助 ----
+
+# 返回 IPv4/IPv6 literal 的规范化（canonical）形式，非法输入返回空并 exit 1。
+# 使用 Python stdlib ipaddress 做严格校验与压缩：
+#   - IPv4 校验每个 octet 0-255（拒绝 999.999.999.999）
+#   - IPv6 校验为合法地址（拒绝 1:2 / :::: / 2001:db8:0:1）
+#   - 压缩形式：2001:db8::1 与 2001:0db8:0:0:0:0:0:1 归一化为同一字符串
+# 兼容裸地址与 [ ] 包裹形式。python3 为脚本已声明的基础依赖。
+normalize_ip_literal() {
+    local input="$1"
+    [[ -z "${input}" ]] && return 1
+    python3 -c 'import ipaddress, sys
+try:
+    print(ipaddress.ip_address(sys.argv[1].strip().strip("[]")).compressed)
+except Exception:
+    sys.exit(1)' "${input}" 2>/dev/null
+}
+
+# 判断是否为 IPv6 literal（兼容裸地址与 [ ] 包裹形式），严格校验。
+is_ipv6_literal() {
+    local candidate="$1"
+    [[ -z "${candidate}" ]] && return 1
+    [[ "${candidate}" == *:* ]] || return 1
+    normalize_ip_literal "${candidate}" >/dev/null 2>&1
+}
+
+# 判断是否为 IPv4 literal，严格校验每个 octet 0-255。
+is_ipv4_literal() {
+    local candidate="$1"
+    [[ -z "${candidate}" ]] && return 1
+    [[ "${candidate}" == *.* && "${candidate}" != *:* ]] || return 1
+    normalize_ip_literal "${candidate}" >/dev/null 2>&1
+}
+
+# 将 client authority 中的 host 规范化：
+#   - IPv6 literal -> 强制 [IPv6]（已带括号不重复加）
+#   - IPv4 / 域名  -> 原样返回
+format_uri_authority_host() {
+    local input="$1"
+    if is_ipv6_literal "${input}"; then
+        local bare="${input#[}"
+        bare="${bare%\]}"
+        echo "[${bare}]"
+    else
+        echo "${input}"
+    fi
+}
+
+# YAML 标量安全引用：IPv6 literal 因含冒号，统一加单引号避免解析歧义；
+# 其余值原样返回（域名/IPv4 无需引用）。
+yaml_quote_scalar() {
+    local value="$1"
+    if is_ipv6_literal "${value}"; then
+        echo "'${value}'"
+    else
+        echo "${value}"
+    fi
+}
+
+# 探测本机公网 IPv4/IPv6 出口能力，回填全局 network_mode / ipv4_address / ipv6_address。
+# 注意：仅当出口探测成功才算某 family 可用，不依赖网卡上是否有地址。
+detect_public_network_capabilities() {
+    ipv4_address=$(get_public_ip "IPv4")
+    ipv6_address=$(get_public_ip "IPv6")
+    if [[ -n "${ipv4_address}" && -n "${ipv6_address}" ]]; then
+        network_mode="dual"
+    elif [[ -n "${ipv4_address}" ]]; then
+        network_mode="ipv4"
+    elif [[ -n "${ipv6_address}" ]]; then
+        network_mode="ipv6"
+    else
+        network_mode="none"
+    fi
+}
+
+# 将 resolve_domain_ips 输出按 family 分类，回填 resolved_ipv4s / resolved_ipv6s（\n 分隔）
+classify_resolved_ips() {
+    local input="$1" ip
+    resolved_ipv4s=""
+    resolved_ipv6s=""
+    while IFS= read -r ip; do
+        [[ -z "${ip}" ]] && continue
+        if is_ipv6_literal "${ip}"; then
+            resolved_ipv6s="${resolved_ipv6s}${ip}\n"
+        elif is_ipv4_literal "${ip}"; then
+            resolved_ipv4s="${resolved_ipv4s}${ip}\n"
+        fi
+    done <<<"${input}"
+}
+
+# 从老字段推断 network_mode（向后兼容，不在读取时强制重写 JSON）
+infer_network_mode_from_config() {
+    local ipv="$1"
+    case "${ipv}" in
+        IPv4) echo "ipv4" ;;
+        IPv6) echo "ipv6" ;;
+        *) echo "manual" ;;
+    esac
+}
+
+# 从配置读取网络能力状态，回填全局变量。优先使用新字段，缺失时由老字段推断。
+load_network_capabilities_from_config() {
+    local nm ipv4 ipv6 ipv
+    nm=$(info_extraction network_mode)
+    ipv4=$(info_extraction ipv4_address)
+    ipv6=$(info_extraction ipv6_address)
+    ipv=$(info_extraction ip_version)
+    if [[ -n "${nm}" ]]; then
+        network_mode="${nm}"
+    else
+        network_mode=$(infer_network_mode_from_config "${ipv}")
+    fi
+    ipv4_address="${ipv4:-}"
+    ipv6_address="${ipv6:-}"
+}
+
+# 在“读取现有安装状态”语义下恢复双栈 runtime globals。
+# fresh process（脚本退出后重新执行 --show / 菜单 / 查看用户等）必须以安装配置为
+# 依据恢复 network_mode/ipv4_address/ipv6_address，否则 install_link_image 等
+# 依赖双栈状态的入口会因 globals 为空而丢失 IPv6 分享链接。
+# 仅在 globals 尚未加载时 hydrate，绝不覆盖安装向导/模式切换中正在编辑的内存值。
+ensure_network_runtime_state() {
+    [[ -f "${xray_install_config_file}" ]] || return 0
+    [[ -n "${network_mode:-}" ]] && return 0
+    load_network_capabilities_from_config
 }
 
 generate_random_port() {
@@ -2011,29 +2147,208 @@ xhttp_inbound_port_set() {
 }
 
 managed_ports_file="${idleleo_conf_dir}/managed_ports.json"
+# Per-family ownership of the always-on baseline rules (loopback / DNS 53 /
+# UDP high-port range). Records WHICH baseline rules the project created on
+# each family so a dropped family can be cleaned and a failed family gain can
+# be rolled back WITHOUT ever deleting a user's own pre-existing rule.
+managed_baseline_file="${idleleo_conf_dir}/managed_baseline.list"
 
 # Managed-firewall compatibility layer.
 # The project historically only manages iptables directly; if firewalld or
 # nftables frontends are introduced later, route through these helpers so
 # rule idempotency and managed-port tracking remain single-sourced.
+#
+# Family policy is driven by network_mode (the single source of truth):
+#   ipv4   -> manage iptables only
+#   ipv6   -> manage ip6tables only (never touch IPv4 firewall)
+#   dual   -> manage iptables + ip6tables
+#   manual -> conservative: iptables only, never expand the managed set
+#   auto/empty -> fall back to tool availability for legacy compatibility
+# _MANAGED_FW_IPV6 remains a TEST-ONLY override; production behavior must NOT
+# depend on it.
+# Command availability probe (thin wrapper). Tests override this to simulate
+# a missing tool deterministically: a host that really has /usr/sbin/ip6tables
+# must never leak into "tool missing" test cases.
+command_available() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+managed_fw_ipv6_enabled() {
+    case "${_MANAGED_FW_IPV6:-auto}" in
+        1|on|yes) return 0 ;;
+        0|off|no) return 1 ;;
+        *) command_available ip6tables ;;
+    esac
+}
+
+# Resolve a network_mode value to the netfilter binaries that must be managed.
+# A pure function of its argument (no global reads), so callers can compute the
+# family set for an OLD mode independently of the CURRENT mode.
+#   ipv4   -> iptables
+#   ipv6   -> ip6tables
+#   dual   -> iptables + ip6tables
+#   manual -> iptables (conservative, never expand the managed set)
+#   auto/empty -> iptables, plus ip6tables only if the tool exists (legacy)
+managed_fw_families_for_mode() {
+    local mode="${1:-auto}"
+    case "${mode}" in
+        ipv6) printf '%s\n' "ip6tables" ;;
+        dual)
+            printf '%s\n' "iptables"
+            printf '%s\n' "ip6tables"
+            ;;
+        ipv4|manual) printf '%s\n' "iptables" ;;
+        *)  # auto / 未设置：按工具可用性保守处理，保持旧行为
+            printf '%s\n' "iptables"
+            command_available ip6tables && printf '%s\n' "ip6tables"
+            ;;
+    esac
+}
+
+# Resolve the netfilter binaries a SAVED config was last managed with (space
+# separated). Reads the new network_mode field first; falls back to the legacy
+# ip_version field. Pure function of the config file — used to seed the firewall
+# transaction's OLD family set BEFORE a mode switch deletes the old config,
+# because after that the old network_mode is unrecoverable and a dual -> ipv4
+# switch would otherwise leave stale IPv6 managed rules.
+managed_fw_families_from_config() {
+    local cfg="$1" nm ipv
+    nm=$(jq -r '.network_mode // empty' "${cfg}" 2>/dev/null)
+    if [[ -z "${nm}" ]]; then
+        ipv=$(jq -r '.ip_version // empty' "${cfg}" 2>/dev/null)
+        nm=$(infer_network_mode_from_config "${ipv}")
+    fi
+    managed_fw_families_for_mode "${nm}" | tr '\n' ' '
+}
+
+# Families that must be persisted for a firewall transaction: the UNION of the
+# families the transaction touched (old ∪ new). A dual -> ipv4 switch cleans
+# IPv6 managed rules at runtime, so the cleaned rules.v6 must also be saved or
+# the stale rule returns on reboot; dual -> ipv6 is symmetric for rules.v4.
+firewall_persist_families() {
+    # Arguments are space-separated family lists (e.g. "iptables ip6tables");
+    # normalize to a set and emit in canonical order (iptables before
+    # ip6tables, matching managed_fw_families) so persistence order is stable.
+    printf '%s\n%s\n' "${1:-}" "${2:-}" | tr ' ' '\n' | grep -v '^$' | sort -u \
+        | awk '{ print ($0 == "iptables" ? "0 " : "1 ") $0 }' \
+        | sort | cut -d' ' -f2- | tr '\n' ' '
+}
+
+# Persist the current netfilter state for every family in the given set (the
+# transaction's family UNION, old ∪ new). A family that only existed on the OLD
+# side was still cleaned at runtime, so it must be saved too or its stale rule
+# returns on reboot. Best-effort (runtime rules are already active) but never
+# silent: a failed save logs a warning naming the failing family instead of
+# printing an unconditional success.
+#
+# Persistence target paths are overridable via env vars so hermetic tests never
+# redirect a mock save binary into a real host path.
+#
+# Returns an AGGREGATE status: 0 iff every family save succeeded, non-zero if
+# ANY family save failed. Each failing family still logs a warning naming it.
+# The aggregate return lets a rollback distinguish "fully restored and
+# persisted" from "runtime restored but reboot would still be wrong", so a
+# persistence failure during restore is treated as a critical failure instead
+# of being swallowed as a best-effort warning.
+firewall_persist_rules() {
+    local persist_families="${1:-}"
+    local _fw_bin
+    local _persist_rc=0
+    local sysconf_dir="${FW_SYSCONF_DIR:-/etc/sysconfig}"
+    local rules_v4="${FW_RULES_V4:-/etc/iptables/rules.v4}"
+    local rules_v6="${FW_RULES_V6:-/etc/iptables/rules.v6}"
+    for _fw_bin in ${persist_families}; do
+        if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
+            if ! service "${_fw_bin}" save 2>/dev/null && ! "${_fw_bin}-save" > "${sysconf_dir}/${_fw_bin}" 2>/dev/null; then
+                log_echo "${Warning} ${YellowBG} $(gettext "防火墙") ${_fw_bin} $(gettext "规则持久化失败") ${Font}"
+                _persist_rc=1
+            fi
+            service "${_fw_bin}" restart 2>/dev/null || true
+        else
+            if [[ "${_fw_bin}" == "ip6tables" ]]; then
+                if ! ip6tables-save > "${rules_v6}" 2>/dev/null; then
+                    log_echo "${Warning} ${YellowBG} $(gettext "防火墙") ip6tables $(gettext "规则持久化失败") ${Font}"
+                    _persist_rc=1
+                fi
+            else
+                if ! iptables-save > "${rules_v4}" 2>/dev/null; then
+                    log_echo "${Warning} ${YellowBG} $(gettext "防火墙") iptables $(gettext "规则持久化失败") ${Font}"
+                    _persist_rc=1
+                fi
+            fi
+        fi
+    done
+    return ${_persist_rc}
+}
+
+# Effective netfilter binaries to manage, family-aware from network_mode.
+# If _MANAGED_FW_IPV6 is explicitly set it takes precedence (test override);
+# otherwise network_mode decides which families are managed.
+managed_fw_families() {
+    if [[ -n "${_MANAGED_FW_IPV6:-}" ]]; then
+        printf '%s\n' "iptables"
+        case "${_MANAGED_FW_IPV6}" in
+            1|on|yes) printf '%s\n' "ip6tables" ;;
+        esac
+        return 0
+    fi
+    managed_fw_families_for_mode "${network_mode:-auto}"
+}
+
+# netfilter binaries to manage (thin wrapper; see managed_fw_families).
+_managed_fw_bins() {
+    managed_fw_families
+}
+
+# Fail closed: every netfilter tool required by the effective family policy
+# must exist. dual/ipv6 with a missing ip6tables must NOT silently degrade to
+# single-stack firewall management.
+managed_fw_require_families() {
+    local bin
+    for bin in $(managed_fw_families); do
+        command_available "${bin}" || return 1
+    done
+    return 0
+}
+
 firewall_rule_exists() {
     local proto="$1"
     local port="$2"
-    iptables -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1
+    local bins="${3:-}"
+    local bin rc=0
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
+        "${bin}" -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1 || rc=1
+    done
+    return ${rc}
 }
 
+# The optional 3rd argument is an explicit netfilter-bin list (space separated).
+# When empty the effective family policy (current network_mode) decides which
+# families to touch.
 firewall_add_managed_port() {
     local proto="$1"
     local port="$2"
-    firewall_rule_exists "${proto}" "${port}" ||
-        iptables -I INPUT -p "${proto}" --dport "${port}" -j ACCEPT
+    local bins="${3:-}"
+    local bin
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
+        if ! "${bin}" -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1; then
+            "${bin}" -I INPUT -p "${proto}" --dport "${port}" -j ACCEPT || return 1
+        fi
+    done
 }
 
 firewall_remove_managed_port() {
     local proto="$1"
     local port="$2"
-    while firewall_rule_exists "${proto}" "${port}"; do
-        iptables -D INPUT -p "${proto}" --dport "${port}" -j ACCEPT || return 1
+    local bins="${3:-}"
+    local bin
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
+        while "${bin}" -C INPUT -p "${proto}" --dport "${port}" -j ACCEPT >/dev/null 2>&1; do
+            "${bin}" -D INPUT -p "${proto}" --dport "${port}" -j ACCEPT || return 1
+        done
     done
 }
 
@@ -2041,38 +2356,344 @@ firewall_remove_managed_port() {
 firewall_add_output_port() {
     local proto="$1"
     local port="$2"
-    iptables -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1 ||
-        iptables -I OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT
+    local bins="${3:-}"
+    local bin
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
+        if ! "${bin}" -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1; then
+            "${bin}" -I OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT || return 1
+        fi
+    done
 }
 
 # Check whether an OUTPUT sport accept rule exists.
 firewall_output_rule_exists() {
     local proto="$1"
     local port="$2"
-    iptables -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1
+    local bins="${3:-}"
+    local bin rc=0
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
+        "${bin}" -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1 || rc=1
+    done
+    return ${rc}
 }
 
 # Idempotent helper: remove OUTPUT accept rule for a sport. Fails closed.
 firewall_remove_output_port() {
     local proto="$1"
     local port="$2"
-    while firewall_output_rule_exists "${proto}" "${port}"; do
-        iptables -D OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT || return 1
+    local bins="${3:-}"
+    local bin
+    [[ -n "${bins}" ]] || bins=$(_managed_fw_bins)
+    for bin in ${bins}; do
+        while "${bin}" -C OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT >/dev/null 2>&1; do
+            "${bin}" -D OUTPUT -p "${proto}" --sport "${port}" -j ACCEPT || return 1
+        done
     done
 }
 
 # Idempotent helper: add loopback accept rules. Fails closed.
 firewall_add_loopback_rules() {
-    iptables -C INPUT -i lo -j ACCEPT >/dev/null 2>&1 ||
-        iptables -A INPUT -i lo -j ACCEPT
-    iptables -C OUTPUT -o lo -j ACCEPT >/dev/null 2>&1 ||
-        iptables -A OUTPUT -o lo -j ACCEPT
+    local bin
+    for bin in $(_managed_fw_bins); do
+        "${bin}" -C INPUT -i lo -j ACCEPT >/dev/null 2>&1 ||
+            "${bin}" -A INPUT -i lo -j ACCEPT || return 1
+        "${bin}" -C OUTPUT -o lo -j ACCEPT >/dev/null 2>&1 ||
+            "${bin}" -A OUTPUT -o lo -j ACCEPT || return 1
+    done
 }
 
 # Idempotent helper: add UDP high-port range accept for INPUT. Fails closed.
 firewall_add_udp_high_port_range() {
-    iptables -C INPUT -p udp --dport 1024:65535 -j ACCEPT >/dev/null 2>&1 ||
-        iptables -I INPUT -p udp --dport 1024:65535 -j ACCEPT
+    local bin
+    for bin in $(_managed_fw_bins); do
+        "${bin}" -C INPUT -p udp --dport 1024:65535 -j ACCEPT >/dev/null 2>&1 ||
+            "${bin}" -I INPUT -p udp --dport 1024:65535 -j ACCEPT || return 1
+    done
+}
+
+# --- always-on baseline rule ownership (family-aware, transactional) ---------
+# Track the exact baseline rules WE created per family so a dropped family can
+# be cleaned of OUR rules and a failed family gain rolled back, without ever
+# deleting a user's own pre-existing rule.
+BASELINE_RULE_KEYS="lo-in lo-out dns-tcp-in dns-udp-in dns-tcp-out dns-udp-out udp-hi-in"
+
+# Apply one canonical baseline rule on one family. op: check|add|remove.
+# check returns 0 if the rule exists; add/remove apply the netfilter change.
+baseline_rule() {
+    local bin="$1" key="$2" op="$3"
+    case "${key}" in
+        lo-in)
+            case "${op}" in
+                check)  "${bin}" -C INPUT  -i lo -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -A INPUT  -i lo -j ACCEPT ;;
+                remove) "${bin}" -D INPUT  -i lo -j ACCEPT ;;
+            esac ;;
+        lo-out)
+            case "${op}" in
+                check)  "${bin}" -C OUTPUT -o lo -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -A OUTPUT -o lo -j ACCEPT ;;
+                remove) "${bin}" -D OUTPUT -o lo -j ACCEPT ;;
+            esac ;;
+        dns-tcp-in)
+            case "${op}" in
+                check)  "${bin}" -C INPUT  -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I INPUT  -p tcp --dport 53 -j ACCEPT ;;
+                remove) "${bin}" -D INPUT  -p tcp --dport 53 -j ACCEPT ;;
+            esac ;;
+        dns-udp-in)
+            case "${op}" in
+                check)  "${bin}" -C INPUT  -p udp --dport 53 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I INPUT  -p udp --dport 53 -j ACCEPT ;;
+                remove) "${bin}" -D INPUT  -p udp --dport 53 -j ACCEPT ;;
+            esac ;;
+        dns-tcp-out)
+            case "${op}" in
+                check)  "${bin}" -C OUTPUT -p tcp --sport 53 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I OUTPUT -p tcp --sport 53 -j ACCEPT ;;
+                remove) "${bin}" -D OUTPUT -p tcp --sport 53 -j ACCEPT ;;
+            esac ;;
+        dns-udp-out)
+            case "${op}" in
+                check)  "${bin}" -C OUTPUT -p udp --sport 53 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I OUTPUT -p udp --sport 53 -j ACCEPT ;;
+                remove) "${bin}" -D OUTPUT -p udp --sport 53 -j ACCEPT ;;
+            esac ;;
+        udp-hi-in)
+            case "${op}" in
+                check)  "${bin}" -C INPUT  -p udp --dport 1024:65535 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I INPUT  -p udp --dport 1024:65535 -j ACCEPT ;;
+                remove) "${bin}" -D INPUT  -p udp --dport 1024:65535 -j ACCEPT ;;
+            esac ;;
+        *) return 2 ;;
+    esac
+}
+
+# Baseline rule keys the project owns on a family (from the state file).
+baseline_owned_keys() {
+    local fam="$1"
+    # Guard: on a fresh install (or empty/absent state file) there is nothing
+    # owned. Never let awk read stdin (empty path) — that would hang.
+    [[ -n "${managed_baseline_file}" && -f "${managed_baseline_file}" ]] || return 0
+    awk -v f="${fam}" '$1==f {print $2}' "${managed_baseline_file}" 2>/dev/null
+}
+
+# Families that currently have at least one project-owned baseline rule.
+baseline_owned_families() {
+    [[ -n "${managed_baseline_file}" && -f "${managed_baseline_file}" ]] || return 0
+    awk '{print $1}' "${managed_baseline_file}" 2>/dev/null | sort -u
+}
+
+# Persist baseline ownership. Args are "<family>:<key,key,...>" entries; a
+# family with no keys is written as an empty set. Atomic via tmp+rename.
+baseline_owned_save() {
+    local file="${managed_baseline_file}.tmp.$$"
+    : > "${file}"
+    local entry fam keys k
+    for entry in "$@"; do
+        fam="${entry%%:*}"; keys="${entry#*:}"
+        if [[ "${fam}" == "${entry}" ]]; then continue; fi  # no colon -> skip
+        # Empty key set (family persists with nothing owned) must not attempt
+        # to expand an empty array under `set -u`, nor write a bare line.
+        [[ -z "${keys}" ]] && continue
+        local karr
+        IFS=',' read -ra karr <<< "${keys}"
+        for k in "${karr[@]}"; do
+            [[ -z "${k}" ]] && continue
+            printf '%s %s\n' "${fam}" "${k}" >> "${file}"
+        done
+    done
+    mkdir -p "$(dirname "${managed_baseline_file}")" || return 1
+    sort -u "${file}" -o "${file}"
+    mv "${file}" "${managed_baseline_file}"
+}
+
+# Corrective ownership commit used when a baseline_sync compensation could not
+# fully restore the entry state: own a key iff its rule is actually present in
+# runtime. A leftover project-added rule is therefore never orphaned, and an
+# absent rule is never claimed (claiming it would make later removals fail
+# forever). Args: v4 / v6 candidate key lists (space separated).
+baseline_owned_save_verified() {
+    local v4_cand="$1" v6_cand="$2"
+    local k out4="" out6=""
+    for k in ${v4_cand}; do
+        if baseline_rule iptables "${k}" check; then out4="${out4}${k},"; fi
+    done
+    for k in ${v6_cand}; do
+        if baseline_rule ip6tables "${k}" check; then out6="${out6}${k},"; fi
+    done
+    baseline_owned_save "iptables:${out4%,}" "ip6tables:${out6%,}"
+}
+
+# Hand the pending journal over to durable ownership: a rule leaves it once
+# gone from runtime or owned; a present, unowned rule stays as orphan candidate.
+baseline_pending_prune() {
+    local fam owned k cand kept_v4="" kept_v6=""
+    for fam in iptables ip6tables; do
+        if [[ "${fam}" == "iptables" ]]; then
+            cand="${_reinstall_baseline_pending_added_v4:-}"
+        else
+            cand="${_reinstall_baseline_pending_added_v6:-}"
+        fi
+        [[ -z "${cand}" ]] && continue
+        owned="$(baseline_owned_keys "${fam}")"
+        for k in ${cand}; do
+            if baseline_rule "${fam}" "${k}" check && \
+               ! printf '%s\n' ${owned} | grep -qxF "${k}"; then
+                if [[ "${fam}" == "iptables" ]]; then
+                    kept_v4="${kept_v4} ${k}"
+                else
+                    kept_v6="${kept_v6} ${k}"
+                fi
+            fi
+        done
+    done
+    _reinstall_baseline_pending_added_v4="${kept_v4# }"
+    _reinstall_baseline_pending_added_v6="${kept_v6# }"
+}
+
+# Reconcile baseline ownership toward a target family set (space separated).
+# The netfilter runtime and managed_baseline.list are ONE transaction: ensure
+# every baseline rule exists per target family (only rules WE add are owned),
+# clean OUR baseline on dropped families, and commit ownership only after the
+# target runtime is fully established. A failed add rolls back every rule added
+# this call; a failed compensation/commit keeps leftovers owned (never
+# orphaned) via a verified ownership commit and fails the sync retry-safely.
+baseline_sync() {
+    local target="$1"
+    local target_list old_list
+    target_list=$(printf '%s\n' ${target} | grep -v '^$' | sort -u)
+    old_list=$(baseline_owned_families)
+    local v4_owned v6_owned v4_added v6_added
+    v4_owned="$(baseline_owned_keys iptables)"
+    v6_owned="$(baseline_owned_keys ip6tables)"
+    v4_added=""; v6_added=""
+    # Dropped-family keys: confirmed-removed (for commit-compensation) vs failed (stay owned).
+    local v4_dropped_ok="" v6_dropped_ok="" v4_dropped_fail="" v6_dropped_fail=""
+    local bin key
+    local _b _k _keys _rkeys _comp_fail
+
+    for bin in ${target_list}; do
+        for key in ${BASELINE_RULE_KEYS}; do
+            if baseline_rule "${bin}" "${key}" check; then
+                continue
+            fi
+            if ! baseline_rule "${bin}" "${key}" add; then
+                # add failed — compensate EVERY rule added by this call across
+                # all families so a midway family gain leaves no half-applied rules.
+                _comp_fail=0
+                for _b in iptables ip6tables; do
+                    if [[ "${_b}" == "iptables" ]]; then _keys="${v4_added}"; else _keys="${v6_added}"; fi
+                    for _k in ${_keys}; do
+                        # A failed compensation keeps the leftover ours: it must stay owned.
+                        baseline_rule "${_b}" "${_k}" remove 2>/dev/null || _comp_fail=1
+                    done
+                done
+                if [[ ${_comp_fail} -ne 0 ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚未完成, 部分规则仍保留并已记录") ${Font}"
+                    # Corrective commit: own rules still present, then prune the journal.
+                    if baseline_owned_save_verified "${v4_owned} ${v4_added}" "${v6_owned} ${v6_added}"; then
+                        baseline_pending_prune
+                    else
+                        log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+                    fi
+                fi
+                return 1
+            fi
+            if [[ "${bin}" == "iptables" ]]; then
+                v4_added="${v4_added} ${key}"
+                # Journal immediately (not at commit): rollback must know exactly
+                # which rules THIS transaction added, never a user's own.
+                _reinstall_baseline_pending_added_v4="${_reinstall_baseline_pending_added_v4} ${key}"
+            else
+                v6_added="${v6_added} ${key}"
+                _reinstall_baseline_pending_added_v6="${_reinstall_baseline_pending_added_v6} ${key}"
+            fi
+        done
+    done
+
+    # Dropped-family cleanup: remove OUR baseline only; a rule still in runtime
+    # whose removal fails keeps ownership and fails the sync.
+    for bin in ${old_list}; do
+        if ! printf '%s\n' ${target_list} | grep -qxF "${bin}"; then
+            local owned_keys
+            owned_keys=$(baseline_owned_keys "${bin}")
+            for key in ${owned_keys}; do
+                # Absent == desired state; only a present rule failing removal fails.
+                if ! baseline_rule "${bin}" "${key}" check || \
+                   baseline_rule "${bin}" "${key}" remove 2>/dev/null; then
+                    if [[ "${bin}" == "iptables" ]]; then
+                        v4_dropped_ok="${v4_dropped_ok} ${key}"
+                    else
+                        v6_dropped_ok="${v6_dropped_ok} ${key}"
+                    fi
+                else
+                    if [[ "${bin}" == "iptables" ]]; then
+                        v4_dropped_fail="${v4_dropped_fail} ${key}"
+                    else
+                        v6_dropped_fail="${v6_dropped_fail} ${key}"
+                    fi
+                fi
+            done
+        fi
+    done
+
+    # Ownership = kept old + newly added per family; a dropped family keeps only failed removals.
+    local v4_all v6_all v4_final v6_final
+    v4_all="$(printf '%s %s\n' "${v4_owned}" "${v4_added}" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//')"
+    v6_all="$(printf '%s %s\n' "${v6_owned}" "${v6_added}" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//')"
+    v4_final="${v4_all}"; v6_final="${v6_all}"
+    if ! printf '%s\n' ${target_list} | grep -qxF iptables; then
+        v4_final="$(printf '%s\n' ${v4_dropped_fail} | grep -v '^$' | tr '\n' ',' | sed 's/,$//')"
+    fi
+    if ! printf '%s\n' ${target_list} | grep -qxF ip6tables; then
+        v6_final="$(printf '%s\n' ${v6_dropped_fail} | grep -v '^$' | tr '\n' ',' | sed 's/,$//')"
+    fi
+    if [[ -n "${v4_dropped_fail}" || -n "${v6_dropped_fail}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则清理未完成, 未能删除的规则仍保持记录") ${Font}"
+        if baseline_owned_save "iptables:${v4_final}" "ip6tables:${v6_final}"; then
+            baseline_pending_prune
+        else
+            log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+        fi
+        return 1
+    fi
+    if ! baseline_owned_save "iptables:${v4_final}" "ip6tables:${v6_final}"; then
+        # Atomic file still holds OLD state — compensate runtime to entry state.
+        local _comp2_fail=0
+        for _b in iptables ip6tables; do
+            if [[ "${_b}" == "iptables" ]]; then
+                _keys="${v4_added}"; _rkeys="${v4_dropped_ok}"
+            else
+                _keys="${v6_added}"; _rkeys="${v6_dropped_ok}"
+            fi
+            for _k in ${_keys}; do
+                baseline_rule "${_b}" "${_k}" remove 2>/dev/null || _comp2_fail=1
+            done
+            for _k in ${_rkeys}; do
+                baseline_rule "${_b}" "${_k}" add 2>/dev/null || _comp2_fail=1
+            done
+        done
+        if [[ ${_comp2_fail} -eq 0 ]]; then
+            # runtime == entry state; untouched ownership file is consistent; rerun safe.
+            log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+            return 1
+        fi
+        # Compensation incomplete: verified ownership (own iff present) prevents orphan.
+        log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚未完成, 部分规则仍保留并已记录") ${Font}"
+        if baseline_owned_save_verified "${v4_owned} ${v4_added} ${v4_dropped_ok}" \
+                                        "${v6_owned} ${v6_added} ${v6_dropped_ok}"; then
+            baseline_pending_prune
+        else
+            log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则状态写入失败") ${Font}"
+        fi
+        return 1
+    fi
+    # Ownership committed — pending journal redundant; clear it.
+    _reinstall_baseline_pending_added_v4=""
+    _reinstall_baseline_pending_added_v6=""
+    return 0
 }
 
 atomic_write_managed_ports() {
@@ -2115,65 +2736,86 @@ collect_new_managed_ports() {
 reconcile_managed_firewall() {
     local old_json="$1"
     local new_json="$2"
-    local old_tcp new_tcp old_udp new_udp port
+    local old_bins="${3:-}" new_bins="${4:-}"
+    local old_tcp new_tcp old_udp new_udp port bin
+    [[ -n "${old_bins}" ]] || old_bins=$(_managed_fw_bins)
+    [[ -n "${new_bins}" ]] || new_bins=$(_managed_fw_bins)
 
     old_tcp=$(printf '%s' "${old_json}" | jq -r '.tcp[]? // empty')
     new_tcp=$(printf '%s' "${new_json}" | jq -r '.tcp[]? // empty')
     old_udp=$(printf '%s' "${old_json}" | jq -r '.udp[]? // empty')
     new_udp=$(printf '%s' "${new_json}" | jq -r '.udp[]? // empty')
 
-    # Remove script-managed old TCP INPUT ports no longer in the new set.
-    # Fail closed: if removal fails, abort so we don't leave stale rules.
-    while IFS= read -r port; do
-        [[ -n "${port}" ]] || continue
-        printf '%s\n' "${new_tcp}" | grep -qxF "${port}" ||
-            firewall_remove_managed_port tcp "${port}" || return 1
-    done <<< "${old_tcp}"
-
-    # Remove script-managed old UDP INPUT ports no longer in the new set.
-    while IFS= read -r port; do
-        [[ -n "${port}" ]] || continue
-        printf '%s\n' "${new_udp}" | grep -qxF "${port}" ||
-            firewall_remove_managed_port udp "${port}" || return 1
-    done <<< "${old_udp}"
-
-    # Remove script-managed old TCP OUTPUT sport rules no longer in the new set.
-    while IFS= read -r port; do
-        [[ -n "${port}" ]] || continue
-        printf '%s\n' "${new_tcp}" | grep -qxF "${port}" ||
-            firewall_remove_output_port tcp "${port}" || return 1
-    done <<< "${old_tcp}"
-
-    # Remove script-managed old UDP OUTPUT sport rules no longer in the new set.
-    while IFS= read -r port; do
-        [[ -n "${port}" ]] || continue
-        printf '%s\n' "${new_udp}" | grep -qxF "${port}" ||
-            firewall_remove_output_port udp "${port}" || return 1
-    done <<< "${old_udp}"
-
-    # Add new managed TCP INPUT ports (idempotent).
-    # Fail closed: if add fails, abort so caller can rollback.
-    for port in ${new_tcp}; do
-        [[ -n "${port}" ]] || continue
-        firewall_add_managed_port tcp "${port}" || return 1
+    # Reconcile by set difference (old - new = remove, new - old = add). A
+    # dropped family removes every old managed port even on a same-port switch.
+    for bin in ${old_bins}; do
+        if ! printf '%s\n' ${new_bins} | grep -qxF "${bin}"; then
+            while IFS= read -r port; do
+                [[ -n "${port}" ]] || continue
+                firewall_remove_managed_port tcp "${port}" "${bin}" || return 1
+                firewall_remove_output_port tcp "${port}" "${bin}" || return 1
+            done <<< "${old_tcp}"
+            while IFS= read -r port; do
+                [[ -n "${port}" ]] || continue
+                firewall_remove_managed_port udp "${port}" "${bin}" || return 1
+                firewall_remove_output_port udp "${port}" "${bin}" || return 1
+            done <<< "${old_udp}"
+        fi
     done
 
-    # Add new managed UDP INPUT ports.
-    for port in ${new_udp}; do
-        [[ -n "${port}" ]] || continue
-        firewall_add_managed_port udp "${port}" || return 1
+    # Families gained (in new, not in old): add EVERY new managed port — a
+    # same-port family transition (ipv4 -> dual) must still open the new family.
+    for bin in ${new_bins}; do
+        if ! printf '%s\n' ${old_bins} | grep -qxF "${bin}"; then
+            for port in ${new_tcp}; do
+                [[ -n "${port}" ]] || continue
+                firewall_add_managed_port tcp "${port}" "${bin}" || return 1
+                firewall_add_output_port tcp "${port}" "${bin}" || return 1
+            done
+            for port in ${new_udp}; do
+                [[ -n "${port}" ]] || continue
+                firewall_add_managed_port udp "${port}" "${bin}" || return 1
+                firewall_add_output_port udp "${port}" "${bin}" || return 1
+            done
+        fi
     done
 
-    # Add new managed TCP OUTPUT sport rules.
-    for port in ${new_tcp}; do
-        [[ -n "${port}" ]] || continue
-        firewall_add_output_port tcp "${port}" || return 1
-    done
-
-    # Add new managed UDP OUTPUT sport rules.
-    for port in ${new_udp}; do
-        [[ -n "${port}" ]] || continue
-        firewall_add_output_port udp "${port}" || return 1
+    # Families present in BOTH old and new: apply the port diff. Fail closed:
+    # if a removal fails, abort so the caller can roll back.
+    for bin in ${old_bins}; do
+        printf '%s\n' ${new_bins} | grep -qxF "${bin}" || continue
+        # Remove old managed TCP INPUT/OUTPUT ports no longer in the new set.
+        while IFS= read -r port; do
+            [[ -n "${port}" ]] || continue
+            printf '%s\n' "${new_tcp}" | grep -qxF "${port}" || {
+                firewall_remove_managed_port tcp "${port}" "${bin}" || return 1
+                firewall_remove_output_port tcp "${port}" "${bin}" || return 1
+            }
+        done <<< "${old_tcp}"
+        # Remove old managed UDP INPUT/OUTPUT ports no longer in the new set.
+        while IFS= read -r port; do
+            [[ -n "${port}" ]] || continue
+            printf '%s\n' "${new_udp}" | grep -qxF "${port}" || {
+                firewall_remove_managed_port udp "${port}" "${bin}" || return 1
+                firewall_remove_output_port udp "${port}" "${bin}" || return 1
+            }
+        done <<< "${old_udp}"
+        # Add new managed TCP INPUT/OUTPUT ports. Always call the idempotent
+        # helper (it checks -C before -I): never skip based on membership in
+        # old_tcp, because the family may start empty or a prior step may have
+        # removed the rule — a same-port transition (443 -> 443) must still
+        # ensure the rule exists on every common family.
+        for port in ${new_tcp}; do
+            [[ -n "${port}" ]] || continue
+            firewall_add_managed_port tcp "${port}" "${bin}" || return 1
+            firewall_add_output_port tcp "${port}" "${bin}" || return 1
+        done
+        # Add new managed UDP INPUT/OUTPUT ports.
+        for port in ${new_udp}; do
+            [[ -n "${port}" ]] || continue
+            firewall_add_managed_port udp "${port}" "${bin}" || return 1
+            firewall_add_output_port udp "${port}" "${bin}" || return 1
+        done
     done
     return 0
 }
@@ -2196,11 +2838,16 @@ reconcile_managed_firewall() {
 # Returns 0 on success, 1 on failure.
 apply_managed_firewall_transaction() {
     local old_json="$1" new_json="$2"
+    local old_bins="${3:-}" new_bins="${4:-}"
+    [[ -n "${old_bins}" ]] || old_bins=$(_managed_fw_bins)
+    [[ -n "${new_bins}" ]] || new_bins=$(_managed_fw_bins)
     _reinstall_firewall_old_ports="${old_json}"
     _reinstall_firewall_new_ports="${new_json}"
+    _reinstall_firewall_old_families="${old_bins}"
+    _reinstall_firewall_new_families="${new_bins}"
     _reinstall_firewall_changed="pending"
-    if ! reconcile_managed_firewall "${old_json}" "${new_json}"; then
-        if reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null; then
+    if ! reconcile_managed_firewall "${old_json}" "${new_json}" "${old_bins}" "${new_bins}"; then
+        if reconcile_managed_firewall "${new_json}" "${old_json}" "${new_bins}" "${old_bins}" 2>/dev/null; then
             _reinstall_firewall_changed="no"
         else
             log_echo "${Error} ${RedBG} $(gettext "防火墙规则前向修改失败且反向恢复未完成, 全局回滚时将再次尝试") ${Font}"
@@ -2209,7 +2856,7 @@ apply_managed_firewall_transaction() {
     fi
     _reinstall_firewall_changed="yes"
     if ! atomic_write_managed_ports "${new_json}"; then
-        if reconcile_managed_firewall "${new_json}" "${old_json}" 2>/dev/null; then
+        if reconcile_managed_firewall "${new_json}" "${old_json}" "${new_bins}" "${old_bins}" 2>/dev/null; then
             _reinstall_firewall_changed="no"
         else
             log_echo "${Error} ${RedBG} $(gettext "防火墙状态写入失败且反向恢复未完成, 全局回滚时将再次尝试") ${Font}"
@@ -2231,15 +2878,29 @@ firewall_set() {
             pkg_install "iptables-persistent"
         fi
 
-        # Always-on infrastructure rules (idempotent, never auto-removed):
-        # loopback, DNS (53), and the FullCone UDP high-port range. These are
-        # required in every mode and are tracked as separate always-on state.
-        firewall_add_loopback_rules || return 1
-        firewall_add_managed_port tcp 53 || return 1
-        firewall_add_managed_port udp 53 || return 1
-        firewall_add_output_port tcp 53 || return 1
-        firewall_add_output_port udp 53 || return 1
-        firewall_add_udp_high_port_range || return 1
+        # Restore dual-stack runtime state on a fresh process so the family
+        # policy reflects the installed network_mode instead of tool presence.
+        ensure_network_runtime_state
+
+        # Fail closed: if the effective family policy needs a netfilter tool
+        # that is not installed, abort instead of silently downgrading to a
+        # single-stack firewall while still claiming dual-stack readiness.
+        if ! managed_fw_require_families; then
+            log_echo "${Error} ${RedBG} $(gettext "当前网络模式所需的防火墙工具缺失 (iptables/ip6tables), 防火墙配置已中止") ${Font}"
+            return 1
+        fi
+
+        # Apply the always-on baseline transactionally (family-aware). Old/new
+        # family sets are recorded so a later deploy failure can reverse it.
+        _reinstall_baseline_old_families="$(baseline_owned_families)"
+        _reinstall_baseline_new_families="$(_managed_fw_bins)"
+        _reinstall_baseline_changed="pending"
+        if ! baseline_sync "${_reinstall_baseline_new_families}"; then
+            # Keep "pending" (NOT "no") so global rollback still retries the reverse.
+            log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则配置失败") ${Font}"
+            return 1
+        fi
+        _reinstall_baseline_changed="yes"
 
         # Capture the pre-deploy managed set once (loaded at reconfig start).
         # Fall back to reading managed_ports.json for a standalone firewall_set.
@@ -2248,7 +2909,9 @@ firewall_set() {
             _reinstall_firewall_old_ports=$(cat "${managed_ports_file}" 2>/dev/null ||
                 echo '{"tcp":[],"udp":[]}')
         fi
-
+        # Pre-deploy family set from reinstall start; never recompute from the
+        # current network_mode (already the target of a reinstall).
+        _reinstall_firewall_old_families="${_reinstall_firewall_old_families:-}"
         # Build the full new managed set: main + transport ports, plus port 80
         # when TLS mode (ACME / HTTP redirect). Including 80 in the managed set
         # lets a TLS → Reality switch remove the now-unneeded 80 rule.
@@ -2258,25 +2921,29 @@ firewall_set() {
                 jq '.tcp = ((.tcp + [80]) | unique) | .udp = ((.udp + [80]) | unique)')
         fi
         _reinstall_firewall_new_ports="${new_ports_json}"
+        # New family set = effective policy at apply time (network_mode already
+        # reflects the target mode).
+        _reinstall_firewall_new_families=$(_managed_fw_bins)
 
         # Apply the managed rules as a transaction (old → new). Any partial
         # failure or managed_ports.json write failure reverses the rules.
         apply_managed_firewall_transaction \
             "${_reinstall_firewall_old_ports}" \
-            "${_reinstall_firewall_new_ports}" || {
+            "${_reinstall_firewall_new_ports}" \
+            "${_reinstall_firewall_old_families:-}" \
+            "${_reinstall_firewall_new_families}" || {
                 log_echo "${Error} ${RedBG} $(gettext "防火墙规则更新失败") ${Font}"
                 return 1
             }
 
-        # Persist rules. Failures here are non-fatal (rules are already active).
-        if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
-            service iptables save 2>/dev/null || iptables-save > /etc/sysconfig/iptables 2>/dev/null || true
-            service iptables restart 2>/dev/null || true
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
-        else
-            netfilter-persistent save 2>/dev/null || iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
-            log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
-        fi
+        # Persist old ∪ new families: a cleaned dropped-family rule must not
+        # return on reboot. Non-fatal but never a silent unconditional success.
+        local _persist_families
+        _persist_families=$(firewall_persist_families \
+            "${_reinstall_firewall_old_families:-}" \
+            "${_reinstall_firewall_new_families:-}")
+        firewall_persist_rules "${_persist_families}"
+        log_echo "${OK} ${GreenBG} $(gettext "防火墙") $(gettext "重启") ${Font}"
 
         log_echo "${OK} ${GreenBG} $(gettext "开放防火墙相关端口") ${Font}"
         log_echo "${Warning} ${GreenBG} $(gettext "若修改配置, 请注意关闭防火墙相关端口") ${Font}"
@@ -3613,12 +4280,30 @@ reality_balance_add_fq() {
 }
 
 
-# 通过公网 DNS 解析域名的 A/AAAA 记录，逐行返回 IP 或空字符串
+# 通过公网 DNS 解析域名的 A/AAAA 记录，逐行返回 IP 或空字符串。
+# 关键设计：DNS 记录类型与 DNS transport 解耦。AAAA 记录同样通过 IPv4
+# 可达的 resolver 查询，因此 IPv4-only 服务器无需 IPv6 网络也能发现并校验
+# 域名上是否存在 AAAA（进而识别错误/陈旧 AAAA）。dig 依次尝试主备 IPv4
+# resolver，全部失败后再回退系统 resolver；其他 DNS 工具分支本就通过 IPv4
+# name server 同时查询 A 与 AAAA，无需改动。
 resolve_domain_ips() {
     local domain="$1" result
     if command -v dig >/dev/null 2>&1; then
-        result=$({ dig +short +time=3 +tries=1 A "${domain}" @8.8.8.8 2>/dev/null; \
-                   dig +short +time=3 +tries=1 AAAA "${domain}" @2001:4860:4860::8888 2>/dev/null; } |
+        local rtype res out
+        result=""
+        for rtype in A AAAA; do
+            out=""
+            for res in @8.8.8.8 @1.1.1.1; do
+                out=$(dig +short +time=3 +tries=1 "${rtype}" "${domain}" "${res}" 2>/dev/null)
+                [[ -n "${out}" ]] && break
+            done
+            # 主备公网 resolver 均失败时才回退系统 resolver（不区分记录类型）
+            if [[ -z "${out}" ]]; then
+                out=$(dig +short +time=3 +tries=1 "${rtype}" "${domain}" 2>/dev/null)
+            fi
+            result="${result}${out}"$'\n'
+        done
+        result=$(printf '%s' "${result}" |
             grep -E '^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[0-9a-fA-F:]+$' | awk '!seen[$0]++')
     elif command -v nslookup >/dev/null 2>&1; then
         result=$({ nslookup -type=A "${domain}" 8.8.8.8 2>/dev/null; nslookup -type=AAAA "${domain}" 8.8.8.8 2>/dev/null; } |
@@ -3634,12 +4319,17 @@ resolve_domain_ips() {
     echo "${result}"
 }
 
+# 判断 needle 是否出现在 ip 集合中，按规范化（canonical）形式比较，避免
+# 2001:db8::1 与 2001:0db8:0:0:0:0:0:1 这类字符串不同但地址相同的误判。
 ip_in_list() {
     local needle="$1"
-    local candidate
+    local n candidate c
+    n=$(normalize_ip_literal "${needle}")
     while IFS= read -r candidate; do
-        [[ -n "${candidate}" && "${candidate}" == "${needle}" ]] && return 0
-    done
+        [[ -n "${candidate}" ]] || continue
+        c=$(normalize_ip_literal "${candidate}")
+        [[ -n "${c}" && "${c}" == "${n}" ]] && return 0
+    done <<<"${2:-}"
     return 1
 }
 
@@ -3648,8 +4338,99 @@ ip_lists_overlap() {
     local remote_ips="$2"
     local remote_ip
     while IFS= read -r remote_ip; do
-        ip_in_list "${remote_ip}" <<<"${local_ips}" && return 0
+        ip_in_list "${remote_ip}" "${local_ips}" && return 0
     done <<<"${remote_ips}"
+    return 1
+}
+
+# A/AAAA 集合资格检查：探测本机公网 v4/v6 与域名 A/AAAA，按 family 独立校验。
+# 复用 resolve_domain_ips（单一 DNS 语义源），不依赖 ping 取单个地址。
+# 策略参数 policy（第 2 参数）：
+#   auto（默认）、ipv4、ipv6。显式 IPv4/IPv6 选择同样执行完整 qualification，
+#   绝不因用户显式选择某 family 而绕过另一 family 的记录检查。
+# 回填全局 network_mode / ipv4_address / ipv6_address / resolved_ipv4s / resolved_ipv6s。
+# 返回码：
+#   0 = 校验通过（ipv4 / ipv6 / dual，network_mode 已设置）
+#   2 = 存在错误 A 或 AAAA 记录的高风险（已识别，需调用方显式确认）
+#   1 = 校验失败（无匹配 family，network_mode=none）
+validate_domain_network_records() {
+    local domain="$1"
+    local policy="${2:-auto}"
+    local resolved has_server_v4 has_server_v6 has_a has_aaaa a_ok aaaa_ok
+    local bad_aaaa bad_a
+
+    # 1) 服务器侧公网能力探测（出口探测成功才算可用）
+    ipv4_address=$(get_public_ip "IPv4")
+    ipv6_address=$(get_public_ip "IPv6")
+    has_server_v4=0; [[ -n "${ipv4_address}" ]] && has_server_v4=1
+    has_server_v6=0; [[ -n "${ipv6_address}" ]] && has_server_v6=1
+
+    # 2) 解析域名 A/AAAA（复用统一 DNS helper）
+    resolved=$(resolve_domain_ips "${domain}")
+    classify_resolved_ips "${resolved}"
+    has_a=0;   [[ -n "${resolved_ipv4s}" ]] && has_a=1
+    has_aaaa=0;[[ -n "${resolved_ipv6s}" ]] && has_aaaa=1
+
+    # 3) 按 family 独立校验：集合内“至少一个”匹配本机公网地址即视为该 family 可用。
+    #    同一 family 的其余记录（负载均衡等场景）不判坏，仅作 warning。
+    a_ok=0
+    if [[ ${has_server_v4} -eq 1 && ${has_a} -eq 1 ]]; then
+        ip_lists_overlap "$(printf '%b' "${resolved_ipv4s}")" "${ipv4_address}" && a_ok=1
+    fi
+    aaaa_ok=0
+    if [[ ${has_server_v6} -eq 1 && ${has_aaaa} -eq 1 ]]; then
+        ip_lists_overlap "$(printf '%b' "${resolved_ipv6s}")" "${ipv6_address}" && aaaa_ok=1
+    fi
+
+    # 4) 依据策略判定 network_mode，并识别错误 A/AAAA（高风险）。
+    bad_a=0;   bad_aaaa=0
+    case "${policy}" in
+        ipv4)
+            # 显式 IPv4：用户明确选定 IPv4 即 exposure policy，不因另一族 DNS 也正确
+            # 而自动提升为 dual。但 AAAA 若存在且不匹配本机有效 v6 仍判高风险
+            # (bad_aaaa)，安全校验不能因显式 family 被绕过。
+            if [[ ${a_ok} -eq 1 ]]; then
+                network_mode="ipv4"
+                [[ ${has_aaaa} -eq 1 && ${aaaa_ok} -eq 0 ]] && bad_aaaa=1
+            else
+                network_mode="none"
+            fi
+            ;;
+        ipv6)
+            # 显式 IPv6：对称语义，network_mode 固定为 ipv6；A 若存在且不匹配本机
+            # 有效 v4 仍判高风险 (bad_a)。
+            if [[ ${aaaa_ok} -eq 1 ]]; then
+                network_mode="ipv6"
+                [[ ${has_a} -eq 1 && ${a_ok} -eq 0 ]] && bad_a=1
+            else
+                network_mode="none"
+            fi
+            ;;
+        *)
+            # auto：A 匹配 + AAAA 匹配 -> dual；仅 A -> ipv4；仅 AAAA -> ipv6；
+            # 另一 family 存在记录但未匹配 -> 高风险。
+            if [[ ${a_ok} -eq 1 && ${aaaa_ok} -eq 1 ]]; then
+                network_mode="dual"
+            elif [[ ${a_ok} -eq 1 ]]; then
+                network_mode="ipv4"
+                [[ ${has_aaaa} -eq 1 ]] && bad_aaaa=1
+            elif [[ ${aaaa_ok} -eq 1 ]]; then
+                network_mode="ipv6"
+                [[ ${has_a} -eq 1 ]] && bad_a=1
+            else
+                network_mode="none"
+            fi
+            ;;
+    esac
+
+    # 5) 结构化输出（供日志/诊断）
+    log_echo "IPv4: server=$( [[ ${has_server_v4} -eq 1 ]] && echo ok || echo no ), A=$( [[ ${has_a} -eq 1 ]] && echo yes || echo no )$( [[ ${a_ok} -eq 1 ]] && echo ", match" )"
+    log_echo "IPv6: server=$( [[ ${has_server_v6} -eq 1 ]] && echo ok || echo no ), AAAA=$( [[ ${has_aaaa} -eq 1 ]] && echo yes || echo no )$( [[ ${aaaa_ok} -eq 1 ]] && echo ", match" )"
+
+    if [[ ${bad_aaaa} -eq 1 || ${bad_a} -eq 1 ]]; then
+        return 2
+    fi
+    [[ "${network_mode}" != "none" ]] && return 0
     return 1
 }
 
@@ -4985,6 +5766,7 @@ domain_check() {
             *)
                 domain=$(info_extraction host)
                 ip_version=$(info_extraction ip_version)
+                load_network_capabilities_from_config
                 if [[ ${ip_version} == "IPv4" ]]; then
                     local_ip=$(get_public_ip "IPv4")
                 elif [[ ${ip_version} == "IPv6" ]]; then
@@ -5004,59 +5786,171 @@ domain_check() {
         echo
         log_echo "${GreenBG} $(gettext "确定域名信息") ${Font}"
         read_optimize "$(gettext "请输入你的域名信息") (e.g. www.hey.run):" "domain" "NULL" || return 1
-        echo -e "\n${GreenBG} $(gettext "请选择公网IP(IPv4/IPv6)或手动输入域名") ${Font}"
-        echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
-        echo "2: IPv6"
-        echo "3: $(gettext "域名")"
-        read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!" || return 1
+        echo -e "\n${GreenBG} $(gettext "请选择网络与域名校验方式") ${Font}"
+        echo -e "${Green}1${Font}: $(gettext "自动检测") (IPv4/IPv6) ($(gettext "推荐"))"
+        echo -e "${Red}2${Font}: IPv4 ($(gettext "默认"))"
+        echo "3: IPv6"
+        echo "4: $(gettext "手动输入域名") ($(gettext "服务器商仅提供域名"))"
+        read_optimize "$(gettext "请输入"): " "ip_version_fq" 2 1 4 "$(gettext "请输入有效的数字")!" || return 1
         log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
         if [[ ${ip_version_fq} == 1 ]]; then
-            local_ip=$(get_public_ip "IPv4")
-            domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
-            ip_version="IPv4"
+            # 自动检测：A/AAAA 集合资格检查
+            validate_domain_network_records "${domain}"
+            local vdn_rc=$?
+            if [[ ${vdn_rc} -eq 0 ]]; then
+                case "${network_mode}" in
+                    ipv6) ip_version="IPv6" ;;
+                    *) ip_version="IPv4" ;;
+                esac
+                local_ip="${ipv4_address:-${ipv6_address:-}}"
+                log_echo "${OK} ${GreenBG} $(gettext "域名 DNS 解析记录与公网 IP 匹配") ${Font}"
+                break
+            elif [[ ${vdn_rc} -eq 2 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "检测到错误的 A/AAAA 记录, 可能导致部分客户端连接失败") ${Font}"
+                log_echo "${Warning} ${YellowBG} $(gettext "请修正或删除错误的 DNS 记录后再继续, 请选择"): ${Font}"
+                echo "1: $(gettext "仍然继续安装") ($(gettext "高风险"))"
+                echo "2: $(gettext "重新输入")"
+                log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1)
+                    case "${network_mode}" in
+                        ipv6) ip_version="IPv6" ;;
+                        *) ip_version="IPv4" ;;
+                    esac
+                    local_ip="${ipv4_address:-${ipv6_address:-}}"
+                    log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
+                    break
+                    ;;
+                2) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            else
+                log_echo "${Error} ${RedBG} $(gettext "无法通过域名 A/AAAA 记录校验公网 IP"), $(gettext "请选择"): ${Font}"
+                echo "1: $(gettext "重新输入")"
+                log_echo "${Red}2${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 2 1 2 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            fi
         elif [[ ${ip_version_fq} == 2 ]]; then
-            local_ip=$(get_public_ip "IPv6")
-            domain_ip=$(ping -6 "${domain}" -c 1 | sed '2{s/[^(]*(//;s/).*//;q}' | tail -n +2)
-            ip_version="IPv6"
+            # 显式 IPv4：执行完整 A/AAAA qualification（含对错误 AAAA 的高风险提示）
+            validate_domain_network_records "${domain}" "ipv4"
+            local vdn_rc=$?
+            if [[ ${vdn_rc} -eq 0 ]]; then
+                ip_version="IPv4"
+                local_ip="${ipv4_address}"
+                log_echo "${OK} ${GreenBG} $(gettext "域名 DNS 解析记录与公网 IP 匹配") ${Font}"
+                break
+            elif [[ ${vdn_rc} -eq 2 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "检测到错误的 A/AAAA 记录, 可能导致部分客户端连接失败") ${Font}"
+                log_echo "${Warning} ${YellowBG} $(gettext "请修正或删除错误的 DNS 记录后再继续, 请选择"): ${Font}"
+                echo "1: $(gettext "仍然继续安装") ($(gettext "高风险"))"
+                echo "2: $(gettext "重新输入")"
+                log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1)
+                    ip_version="IPv4"
+                    local_ip="${ipv4_address}"
+                    log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
+                    break
+                    ;;
+                2) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            else
+                log_echo "${Error} ${RedBG} $(gettext "无法通过域名 A/AAAA 记录校验公网 IP"), $(gettext "请选择"): ${Font}"
+                echo "1: $(gettext "重新输入")"
+                log_echo "${Red}2${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 2 1 2 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            fi
         elif [[ ${ip_version_fq} == 3 ]]; then
+            # 显式 IPv6：执行完整 A/AAAA qualification（含对错误 A 的高风险提示）
+            validate_domain_network_records "${domain}" "ipv6"
+            local vdn_rc=$?
+            if [[ ${vdn_rc} -eq 0 ]]; then
+                ip_version="IPv6"
+                local_ip="${ipv6_address}"
+                log_echo "${OK} ${GreenBG} $(gettext "域名 DNS 解析记录与公网 IP 匹配") ${Font}"
+                break
+            elif [[ ${vdn_rc} -eq 2 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "检测到错误的 A/AAAA 记录, 可能导致部分客户端连接失败") ${Font}"
+                log_echo "${Warning} ${YellowBG} $(gettext "请修正或删除错误的 DNS 记录后再继续, 请选择"): ${Font}"
+                echo "1: $(gettext "仍然继续安装") ($(gettext "高风险"))"
+                echo "2: $(gettext "重新输入")"
+                log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1)
+                    ip_version="IPv6"
+                    local_ip="${ipv6_address}"
+                    log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
+                    break
+                    ;;
+                2) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            else
+                log_echo "${Error} ${RedBG} $(gettext "无法通过域名 A/AAAA 记录校验公网 IP"), $(gettext "请选择"): ${Font}"
+                echo "1: $(gettext "重新输入")"
+                log_echo "${Red}2${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 2 1 2 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            fi
+        elif [[ ${ip_version_fq} == 4 ]]; then
             log_echo "${Warning} ${GreenBG} $(gettext "此选项用于服务器商仅提供域名访问服务器") ${Font}"
             log_echo "${Warning} ${GreenBG} $(gettext "请为服务器商提供的域名添加 CNAME 记录") ${Font}"
             read_optimize "$(gettext "请输入"): " "local_ip" "NULL" || return 1
             ip_version=${local_ip}
-        else
-            local_ip=$(get_public_ip "IPv4")
-            domain_ip=$(ping -4 "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
-            ip_version="IPv4"
-        fi
-        if [[ -z ${local_ip} ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
-            return 1
-        fi
-        log_echo "$(gettext "域名 DNS 解析 IP"): ${domain_ip}"
-        log_echo "$(gettext "公网IP/域名"): ${local_ip}"
-        if [[ ${ip_version_fq} != 3 ]] && [[ ${local_ip} == ${domain_ip} ]]; then
-            log_echo "${OK} ${GreenBG} $(gettext "域名 DNS 解析 IP 与公网 IP 匹配") ${Font}"
+            network_mode="manual"
+            ipv4_address=""
+            ipv6_address=""
             break
         else
-            log_echo "${Warning} ${YellowBG} $(gettext "请确保域名添加了正确的 A/AAAA 记录, 否则将无法正常使用 Xray") ${Font}"
-            log_echo "${Error} ${RedBG} $(gettext "域名 DNS 解析 IP 与公网 IP 不匹配, 请选择"): ${Font}"
-            echo "1: $(gettext "继续安装")"
-            echo "2: $(gettext "重新输入")"
-            log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
-            read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
-            case $install in
-            1)
-                log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
+            # 默认（IPv4）：执行完整 A/AAAA qualification（含对错误 AAAA 的高风险提示）
+            validate_domain_network_records "${domain}" "ipv4"
+            local vdn_rc=$?
+            if [[ ${vdn_rc} -eq 0 ]]; then
+                ip_version="IPv4"
+                local_ip="${ipv4_address}"
+                log_echo "${OK} ${GreenBG} $(gettext "域名 DNS 解析记录与公网 IP 匹配") ${Font}"
                 break
-                ;;
-            2)
-                continue
-                ;;
-            *)
-                log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"
-                exit 2
-                ;;
-            esac
+            elif [[ ${vdn_rc} -eq 2 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "检测到错误的 A/AAAA 记录, 可能导致部分客户端连接失败") ${Font}"
+                echo "1: $(gettext "仍然继续安装") ($(gettext "高风险"))"
+                echo "2: $(gettext "重新输入")"
+                log_echo "${Red}3${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 3 1 3 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1)
+                    ip_version="IPv4"
+                    local_ip="${ipv4_address}"
+                    log_echo "${OK} ${GreenBG} $(gettext "继续安装") ${Font}"
+                    break
+                    ;;
+                2) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            else
+                log_echo "${Error} ${RedBG} $(gettext "无法通过域名 A/AAAA 记录校验公网 IP"), $(gettext "请选择"): ${Font}"
+                echo "1: $(gettext "重新输入")"
+                log_echo "${Red}2${Font}: $(gettext "终止安装") ($(gettext "默认"))"
+                read_optimize "$(gettext "请输入"): " "install" 2 1 2 "$(gettext "请输入有效的数字")!" || return 1
+                case $install in
+                1) continue ;;
+                *) log_echo "${Error} ${RedBG} $(gettext "安装终止") ${Font}"; exit 2 ;;
+                esac
+            fi
         fi
     done
 }
@@ -5074,6 +5968,7 @@ ip_check() {
         [nN][oO] | [nN]) ;;
         *)
             ip_version=$(info_extraction ip_version)
+            load_network_capabilities_from_config
             if [[ ${ip_version} == "IPv4" ]]; then
                 local_ip=$(get_public_ip "IPv4")
             elif [[ ${ip_version} == "IPv6" ]]; then
@@ -5094,25 +5989,56 @@ ip_check() {
     echo
     log_echo "${GreenBG} $(gettext "确定公网IP信息") ${Font}"
     log_echo "${GreenBG} $(gettext "请选择公网IP为IPv4或IPv6") ${Font}"
-    echo -e "${Red}1${Font}: IPv4 ($(gettext "默认"))"
-    echo "2: IPv6"
-    echo "3: $(gettext "手动输入")"
+    echo -e "${Green}1${Font}: $(gettext "自动检测") (IPv4/IPv6) ($(gettext "推荐"))"
+    echo -e "${Red}2${Font}: IPv4 ($(gettext "默认"))"
+    echo "3: IPv6"
+    echo "4: $(gettext "手动输入")"
     local ip_version_fq
-    read_optimize "$(gettext "请输入"): " "ip_version_fq" 1 1 3 "$(gettext "请输入有效的数字")!" || return 1
-    [[ -z ${ip_version_fq} ]] && ip_version=1
+    read_optimize "$(gettext "请输入"): " "ip_version_fq" 2 1 4 "$(gettext "请输入有效的数字")!" || return 1
+    [[ -z ${ip_version_fq} ]] && ip_version_fq=2
     log_echo "${OK} ${GreenBG} $(gettext "正在获取公网IP信息, 请耐心等待") ${Font}"
     if [[ ${ip_version_fq} == 1 ]]; then
+        detect_public_network_capabilities
+        if [[ "${network_mode}" == "dual" ]]; then
+            ip_version="IPv4"
+            local_ip="${ipv4_address}"
+            log_echo "${OK} ${GreenBG} $(gettext "已检测到 IPv4 和 IPv6 均可用, 将启用双栈") ${Font}"
+        elif [[ "${network_mode}" == "ipv4" ]]; then
+            ip_version="IPv4"
+            local_ip="${ipv4_address}"
+            log_echo "${OK} ${GreenBG} $(gettext "当前仅 IPv4 可用") ${Font}"
+        elif [[ "${network_mode}" == "ipv6" ]]; then
+            ip_version="IPv6"
+            local_ip="${ipv6_address}"
+            log_echo "${OK} ${GreenBG} $(gettext "当前仅 IPv6 可用") ${Font}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
+            return 1
+        fi
+    elif [[ ${ip_version_fq} == 2 ]]; then
         local_ip=$(get_public_ip "IPv4")
         ip_version="IPv4"
-    elif [[ ${ip_version_fq} == 2 ]]; then
+        network_mode="ipv4"
+        ipv4_address="${local_ip}"
+        ipv6_address=""
+    elif [[ ${ip_version_fq} == 3 ]]; then
         local_ip=$(get_public_ip "IPv6")
         ip_version="IPv6"
-    elif [[ ${ip_version_fq} == 3 ]]; then
+        network_mode="ipv6"
+        ipv6_address="${local_ip}"
+        ipv4_address=""
+    elif [[ ${ip_version_fq} == 4 ]]; then
         read_optimize "$(gettext "请输入"): " "local_ip" "NULL" || return 1
         ip_version=${local_ip}
+        network_mode="manual"
+        ipv4_address=""
+        ipv6_address=""
     else
         local_ip=$(get_public_ip "IPv4")
         ip_version="IPv4"
+        network_mode="ipv4"
+        ipv4_address="${local_ip}"
+        ipv6_address=""
     fi
     if [[ -z ${local_ip} ]]; then
         log_echo "${Error} ${RedBG} $(gettext "无法获取公网IP地址"), $(gettext "安装终止")! ${Font}"
@@ -5434,8 +6360,25 @@ old_config_exist_check() {
     # deploy changes), so it is the correct source for rollback.
     _reinstall_firewall_old_ports=$(cat "${managed_ports_file}" 2>/dev/null ||
         echo '{"tcp":[],"udp":[]}')
+    # Capture the family set the OLD config was last managed with. This MUST
+    # happen before the mode-switch branch below deletes the old config: after
+    # that the old network_mode is unrecoverable, and a dual -> ipv4 switch
+    # would otherwise fall back to the CURRENT mode (already the target) and
+    # leave stale IPv6 managed rules behind.
+    _reinstall_firewall_old_families=""
+    if [[ -f "${xray_install_config_file}" ]]; then
+        _reinstall_firewall_old_families=$(managed_fw_families_from_config "${xray_install_config_file}")
+    fi
     _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
     _reinstall_firewall_changed="no"
+    # Reset baseline-rule transaction state for this reinstall; the OLD family
+    # set is captured from the ownership state when firewall_set applies the
+    # baseline (baseline_sync), so a failed family gain can be reversed here.
+    _reinstall_baseline_old_families=""
+    _reinstall_baseline_new_families=""
+    _reinstall_baseline_changed="no"
+    _reinstall_baseline_pending_added_v4=""
+    _reinstall_baseline_pending_added_v6=""
     if [[ -f "${xray_install_config_file}" ]]; then
         # Snapshot the running config before any reinstall or mode switch
         # So a failed deploy can be rolled back. Skip in test mode
@@ -6388,6 +7331,9 @@ install_config_tls_ws() {
     "transport_mode": "${transport_mode}",
     "host": "${domain}",
     "ip_version": "${ip_version}",
+    "network_mode": "${network_mode:-$(infer_network_mode_from_config "${ip_version}")}",
+    "ipv4_address": "${ipv4_address:-}",
+    "ipv6_address": "${ipv6_address:-}",
     "port": ${port},
     "ws_port": "${artxport}",
     "grpc_port": "${artgport}",
@@ -6421,6 +7367,9 @@ install_config_reality() {
     "transport_mode": "${transport_mode}",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
+    "network_mode": "${network_mode:-$(infer_network_mode_from_config "${ip_version}")}",
+    "ipv4_address": "${ipv4_address:-}",
+    "ipv6_address": "${ipv6_address:-}",
     "port": ${port},
     "email": "${custom_email}",
     "idc": "${UUID5_char}",
@@ -6473,6 +7422,9 @@ install_config_xtls_only() {
     "transport_mode": "None",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
+    "network_mode": "${network_mode:-$(infer_network_mode_from_config "${ip_version}")}",
+    "ipv4_address": "${ipv4_address:-}",
+    "ipv6_address": "${ipv6_address:-}",
     "port": ${port},
     "tls": "XTLS",
     "email": "${custom_email}",
@@ -6500,6 +7452,9 @@ install_config_ws_only() {
     "transport_mode": "${transport_mode}",
     "host": "${local_ip}",
     "ip_version": "${ip_version}",
+    "network_mode": "${network_mode:-$(infer_network_mode_from_config "${ip_version}")}",
+    "ipv4_address": "${ipv4_address:-}",
+    "ipv6_address": "${ipv6_address:-}",
     "ws_port": "${artxport}",
     "grpc_port": "${artgport}",
     "xhttp_port": "${artxhttpport}",
@@ -6607,9 +7562,20 @@ reality_client_meta() {
 generate_vless_link() {
     local user_id="$1"
     local mode="$2"
-    local host port quoted_host result
+    local override_host="${3:-}"
+    local host port quoted_host authority_host result
+    local raw_host
 
-    quoted_host=$(vless_urlquote "$(info_extraction host)")
+    # 拆开 authority host 格式与 query/fragment 编码：
+    # authority 中 IPv6 literal 必须使用 [IPv6]，不 percent-encode 冒号；
+    # query/fragment 仍按各自语义 URL encode。
+    if [[ -n "${override_host}" ]]; then
+        raw_host="${override_host}"
+    else
+        raw_host=$(info_extraction host)
+    fi
+    authority_host=$(format_uri_authority_host "${raw_host}")
+    quoted_host=$(vless_urlquote "${raw_host}")
 
     case "$mode" in
         ws_tls)
@@ -6617,42 +7583,42 @@ generate_vless_link() {
             local path
             path=$(info_ws_path)
             path=$(vless_urlquote "${path}")
-            result="vless://${user_id}@${quoted_host}:${port}?path=%2f${path}%3Fed%3D2048&security=tls&encryption=none&host=${quoted_host}&type=ws&fp=chrome#${quoted_host}+ws%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?path=%2f${path}%3Fed%3D2048&security=tls&encryption=none&host=${quoted_host}&type=ws&fp=chrome#${quoted_host}+ws%E5%8D%8F%E8%AE%AE"
             ;;
         grpc_tls)
             port=$(info_extraction port)
             local service_name
             service_name=$(info_grpc_serviceName)
             service_name=$(vless_urlquote "${service_name}")
-            result="vless://${user_id}@${quoted_host}:${port}?serviceName=${service_name}&security=tls&encryption=none&host=${quoted_host}&type=grpc&fp=chrome#${quoted_host}+gRPC%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?serviceName=${service_name}&security=tls&encryption=none&host=${quoted_host}&type=grpc&fp=chrome#${quoted_host}+gRPC%E5%8D%8F%E8%AE%AE"
             ;;
         xhttp_tls)
             port=$(info_extraction port)
             local xhttp_path
             xhttp_path=$(info_xhttp_path)
             xhttp_path=$(vless_urlquote "$(format_xhttp_path "${xhttp_path}")")
-            result="vless://${user_id}@${quoted_host}:${port}?path=${xhttp_path}&mode=auto&security=tls&encryption=none&host=${quoted_host}&type=xhttp&fp=chrome#${quoted_host}+xHTTP%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?path=${xhttp_path}&mode=auto&security=tls&encryption=none&host=${quoted_host}&type=xhttp&fp=chrome#${quoted_host}+xHTTP%E5%8D%8F%E8%AE%AE"
             ;;
         ws)
             port=$(info_extraction ws_port)
             local path
             path=$(info_ws_path)
             path=$(vless_urlquote "${path}")
-            result="vless://${user_id}@${quoted_host}:${port}?path=%2f${path}%3Fed%3D2048&encryption=none&type=ws#${quoted_host}+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?path=%2f${path}%3Fed%3D2048&encryption=none&type=ws#${quoted_host}+%E5%8D%95%E7%8B%ADws%E5%8D%8F%E8%AE%AE"
             ;;
         grpc)
             port=$(info_extraction grpc_port)
             local service_name
             service_name=$(info_grpc_serviceName)
             service_name=$(vless_urlquote "${service_name}")
-            result="vless://${user_id}@${quoted_host}:${port}?serviceName=${service_name}&encryption=none&type=grpc#${quoted_host}+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?serviceName=${service_name}&encryption=none&type=grpc#${quoted_host}+%E5%8D%95%E7%8B%ADgrpc%E5%8D%8F%E8%AE%AE"
             ;;
         xhttp)
             port=$(info_extraction xhttp_port)
             local xhttp_path
             xhttp_path=$(info_xhttp_path)
             xhttp_path=$(vless_urlquote "$(format_xhttp_path "${xhttp_path}")")
-            result="vless://${user_id}@${quoted_host}:${port}?path=${xhttp_path}&mode=auto&security=none&encryption=none&host=${quoted_host}&type=xhttp#${quoted_host}+%E5%8D%95%E7%8B%ADxHTTP%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?path=${xhttp_path}&mode=auto&security=none&encryption=none&host=${quoted_host}&type=xhttp#${quoted_host}+%E5%8D%95%E7%8B%ADxHTTP%E5%8D%8F%E8%AE%AE"
             ;;
         reality)
             port=$(info_extraction port)
@@ -6670,11 +7636,11 @@ generate_vless_link() {
             else
                 spx_param=""
             fi
-            result="vless://${user_id}@${quoted_host}:${port}?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=${pbk}&sni=${sni}&target=${target}&sid=${sid}${spx_param}#${quoted_host}+Reality%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=${pbk}&sni=${sni}&target=${target}&sid=${sid}${spx_param}#${quoted_host}+Reality%E5%8D%8F%E8%AE%AE"
             ;;
         xtls)
             port=$(info_extraction port)
-            result="vless://${user_id}@${quoted_host}:${port}?security=none&encryption=none&headerType=none&type=raw#${quoted_host}+XTLS%E5%8D%8F%E8%AE%AE"
+            result="vless://${user_id}@${authority_host}:${port}?security=none&encryption=none&headerType=none&type=raw#${quoted_host}+XTLS%E5%8D%8F%E8%AE%AE"
             ;;
         *)
             return 1
@@ -6698,9 +7664,18 @@ generate_clash_config() {
     local tls=${11}
     local transport_label=${12:-$type}
     local spx=${13:-}
+    local override_host=${14:-}
 
     local clash_name
-    clash_name="VLESS-$(info_extraction host)-${transport_label}"
+    local clash_host
+    if [[ -n "${override_host}" ]]; then
+        clash_host="${override_host}"
+    else
+        clash_host=$(info_extraction host)
+    fi
+    clash_name="VLESS-${clash_host}-${transport_label}"
+    local clash_server
+    clash_server=$(yaml_quote_scalar "${clash_host}")
     local clash_config=""
     local flow_line=""
     [[ -n "${flow}" ]] && flow_line="
@@ -6709,7 +7684,7 @@ generate_clash_config() {
     if [[ ${type} == "ws" ]]; then
         clash_config="  - name: ${clash_name}
     type: vless
-    server: $(info_extraction host)
+    server: ${clash_server}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
@@ -6718,13 +7693,13 @@ generate_clash_config() {
     ws-opts:
       path: ${path}
       headers:
-        Host: $(info_extraction host)
+        Host: ${clash_host}
     skip-cert-verify: false"
 
     elif [[ ${type} == "grpc" ]]; then
         clash_config="  - name: ${clash_name}
     type: vless
-    server: $(info_extraction host)
+    server: ${clash_server}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
@@ -6737,7 +7712,7 @@ generate_clash_config() {
     elif [[ ${type} == "tcp" ]]; then
         clash_config="  - name: ${clash_name}
     type: vless
-    server: $(info_extraction host)
+    server: ${clash_server}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
@@ -6748,7 +7723,7 @@ generate_clash_config() {
     elif [[ ${type} == "xhttp" ]]; then
         clash_config="  - name: ${clash_name}
     type: vless
-    server: $(info_extraction host)
+    server: ${clash_server}
     port: ${port}
     uuid: $(info_extraction id)
     client-fingerprint: chrome
@@ -6781,11 +7756,26 @@ generate_clash_config() {
 }
 
 install_link_image() {
+    # Defensive hydration: a fresh process reaching this entry without
+    # judge_mode() must still restore dual-stack state for IPv6 links.
+    ensure_network_runtime_state
     if [[ ${tls_mode} == "Reality" ]]; then
         ensure_reality_public_key || return 1
     fi
     local main_id
     main_id=$(info_extraction id)
+    # Each transport's link variable is set only when that transport is enabled;
+    # pre-initialize so ${...} checks stay safe under `set -u` for disabled modes.
+    local vless_link="" vless_link_v6="" vless_ws_link="" vless_grpc_link="" vless_xhttp_link=""
+    local vless_ws_link_v6="" vless_grpc_link_v6="" vless_xhttp_link_v6=""
+
+    # 直接-IP 模式（Reality/None/XTLS）双栈：为 IPv6 单独生成客户端入口。
+    # host 字段保留 canonical（默认 IPv4），不改变老代码语义。
+    local dual_direct_ip=0
+    if [[ ${tls_mode} == "Reality" || ${tls_mode} == "None" || ${tls_mode} == "XTLS" ]] \
+        && [[ "${network_mode}" == "dual" ]] && [[ -n "${ipv6_address}" ]]; then
+        dual_direct_ip=1
+    fi
 
     if [[ ${tls_mode} == "TLS" ]]; then
         is_ws_mode && vless_ws_link=$(generate_vless_link "$main_id" "ws_tls")
@@ -6793,17 +7783,31 @@ install_link_image() {
         is_xhttp_mode && vless_xhttp_link=$(generate_vless_link "$main_id" "xhttp_tls")
     elif [[ ${tls_mode} == "Reality" ]]; then
         vless_link=$(generate_vless_link "$main_id" "reality")
+        [[ ${dual_direct_ip} -eq 1 ]] && vless_link_v6=$(generate_vless_link "$main_id" "reality" "${ipv6_address}")
         if [[ ${reality_add_more} == "on" ]]; then
             is_ws_mode && vless_ws_link=$(generate_vless_link "$main_id" "ws")
             is_grpc_mode && vless_grpc_link=$(generate_vless_link "$main_id" "grpc")
             is_xhttp_mode && vless_xhttp_link=$(generate_vless_link "$main_id" "xhttp")
+            # 双栈：Reality 附加 transport 同样输出 IPv6 直连入口
+            if [[ ${dual_direct_ip} -eq 1 ]]; then
+                [[ -n "${vless_ws_link}" ]] && vless_ws_link_v6=$(generate_vless_link "$main_id" "ws" "${ipv6_address}")
+                [[ -n "${vless_grpc_link}" ]] && vless_grpc_link_v6=$(generate_vless_link "$main_id" "grpc" "${ipv6_address}")
+                [[ -n "${vless_xhttp_link}" ]] && vless_xhttp_link_v6=$(generate_vless_link "$main_id" "xhttp" "${ipv6_address}")
+            fi
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         is_ws_mode && vless_ws_link=$(generate_vless_link "$main_id" "ws")
         is_grpc_mode && vless_grpc_link=$(generate_vless_link "$main_id" "grpc")
         is_xhttp_mode && vless_xhttp_link=$(generate_vless_link "$main_id" "xhttp")
+        # 双栈：None transport 同样输出 IPv6 直连入口
+        if [[ ${dual_direct_ip} -eq 1 ]]; then
+            [[ -n "${vless_ws_link}" ]] && vless_ws_link_v6=$(generate_vless_link "$main_id" "ws" "${ipv6_address}")
+            [[ -n "${vless_grpc_link}" ]] && vless_grpc_link_v6=$(generate_vless_link "$main_id" "grpc" "${ipv6_address}")
+            [[ -n "${vless_xhttp_link}" ]] && vless_xhttp_link_v6=$(generate_vless_link "$main_id" "xhttp" "${ipv6_address}")
+        fi
     elif [[ ${tls_mode} == "XTLS" ]]; then
         vless_link=$(generate_vless_link "$main_id" "xtls")
+        [[ ${dual_direct_ip} -eq 1 ]] && vless_link_v6=$(generate_vless_link "$main_id" "xtls" "${ipv6_address}")
     fi
 
     clash_config_content="proxies:"
@@ -6824,37 +7828,69 @@ $(generate_clash_config "xhttp" "$(info_extraction port)" "$(format_xhttp_path "
     elif [[ ${tls_mode} == "Reality" ]]; then
         clash_config_content="${clash_config_content}
 $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rprx-vision" "$(info_reality_public_key)" "$(info_extraction serverNames)" "$(info_extraction target)" "$(info_extraction shortIds)" "true" "tcp" "$(info_extraction spiderx_path)")"
-
+        # 双栈直接-IP：额外输出 IPv6 Reality 入口（server 指向 IPv6 literal）
+        if [[ ${dual_direct_ip} -eq 1 ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "reality" "xtls-rprx-vision" "$(info_reality_public_key)" "$(info_extraction serverNames)" "$(info_extraction target)" "$(info_extraction shortIds)" "true" "tcp-v6" "$(info_extraction spiderx_path)" "${ipv6_address}")"
+        fi
         if [[ ${reality_add_more} == "on" ]]; then
             if is_ws_mode; then
                 clash_config_content="${clash_config_content}
 $(generate_clash_config "ws" "$(info_extraction ws_port)" "/$(info_ws_path)" "" "none" "" "" "" "" "" "false")"
+                if [[ ${dual_direct_ip} -eq 1 ]]; then
+                    clash_config_content="${clash_config_content}
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "/$(info_ws_path)" "" "none" "" "" "" "" "" "false" "ws-v6" "" "${ipv6_address}")"
+                fi
             fi
             if is_grpc_mode; then
                 clash_config_content="${clash_config_content}
 $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_grpc_serviceName)" "none" "" "" "" "" "" "false")"
+                if [[ ${dual_direct_ip} -eq 1 ]]; then
+                    clash_config_content="${clash_config_content}
+$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_grpc_serviceName)" "none" "" "" "" "" "" "false" "grpc-v6" "" "${ipv6_address}")"
+                fi
             fi
             if is_xhttp_mode; then
                 clash_config_content="${clash_config_content}
 $(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(format_xhttp_path "$(info_xhttp_path)")" "" "none" "" "" "" "" "" "false")"
+                if [[ ${dual_direct_ip} -eq 1 ]]; then
+                    clash_config_content="${clash_config_content}
+$(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(format_xhttp_path "$(info_xhttp_path)")" "" "none" "" "" "" "" "" "false" "xhttp-v6" "" "${ipv6_address}")"
+                fi
             fi
         fi
     elif [[ ${tls_mode} == "None" ]]; then
         if is_ws_mode; then
             clash_config_content="${clash_config_content}
 $(generate_clash_config "ws" "$(info_extraction ws_port)" "/$(info_ws_path)" "" "none" "" "" "" "" "" "false")"
+            if [[ ${dual_direct_ip} -eq 1 ]]; then
+                clash_config_content="${clash_config_content}
+$(generate_clash_config "ws" "$(info_extraction ws_port)" "/$(info_ws_path)" "" "none" "" "" "" "" "" "false" "ws-v6" "" "${ipv6_address}")"
+            fi
         fi
         if is_grpc_mode; then
             clash_config_content="${clash_config_content}
 $(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_grpc_serviceName)" "none" "" "" "" "" "" "false")"
+            if [[ ${dual_direct_ip} -eq 1 ]]; then
+                clash_config_content="${clash_config_content}
+$(generate_clash_config "grpc" "$(info_extraction grpc_port)" "" "$(info_grpc_serviceName)" "none" "" "" "" "" "" "false" "grpc-v6" "" "${ipv6_address}")"
+            fi
         fi
         if is_xhttp_mode; then
             clash_config_content="${clash_config_content}
 $(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(format_xhttp_path "$(info_xhttp_path)")" "" "none" "" "" "" "" "" "false")"
+            if [[ ${dual_direct_ip} -eq 1 ]]; then
+                clash_config_content="${clash_config_content}
+$(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(format_xhttp_path "$(info_xhttp_path)")" "" "none" "" "" "" "" "" "false" "xhttp-v6" "" "${ipv6_address}")"
+            fi
         fi
     elif [[ ${tls_mode} == "XTLS" ]]; then
         clash_config_content="${clash_config_content}
 $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" "" "" "false")"
+        if [[ ${dual_direct_ip} -eq 1 ]]; then
+            clash_config_content="${clash_config_content}
+$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" "" "" "false" "tcp-v6" "" "${ipv6_address}")"
+        fi
     fi
     
     {
@@ -6865,24 +7901,48 @@ $(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" ""
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_link}" | qrencode -o - -t utf8
             echo
+            if [[ ${dual_direct_ip} -eq 1 && -n "${vless_link_v6}" ]]; then
+                log_echo_secure "${Red} IPv6 URL $(gettext "分享链接"):${Font} ${vless_link_v6}"
+                log_echo "${Red} $(gettext "二维码"): ${Font}"
+                echo -n "${vless_link_v6}" | qrencode -o - -t utf8
+                echo
+            fi
         fi
         if is_ws_mode && [[ -n "${vless_ws_link}" ]]; then
             log_echo_secure "${Red} ws URL $(gettext "分享链接"):${Font} ${vless_ws_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_ws_link}" | qrencode -o - -t utf8
             echo
+            if [[ ${dual_direct_ip} -eq 1 && -n "${vless_ws_link_v6}" ]]; then
+                log_echo_secure "${Red} IPv6 ws URL $(gettext "分享链接"):${Font} ${vless_ws_link_v6}"
+                log_echo "${Red} $(gettext "二维码"): ${Font}"
+                echo -n "${vless_ws_link_v6}" | qrencode -o - -t utf8
+                echo
+            fi
         fi
         if is_grpc_mode && [[ -n "${vless_grpc_link}" ]]; then
             log_echo_secure "${Red} gRPC URL $(gettext "分享链接"):${Font} ${vless_grpc_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_grpc_link}" | qrencode -o - -t utf8
             echo
+            if [[ ${dual_direct_ip} -eq 1 && -n "${vless_grpc_link_v6}" ]]; then
+                log_echo_secure "${Red} IPv6 gRPC URL $(gettext "分享链接"):${Font} ${vless_grpc_link_v6}"
+                log_echo "${Red} $(gettext "二维码"): ${Font}"
+                echo -n "${vless_grpc_link_v6}" | qrencode -o - -t utf8
+                echo
+            fi
         fi
         if is_xhttp_mode && [[ -n "${vless_xhttp_link}" ]]; then
             log_echo_secure "${Red} xHTTP URL $(gettext "分享链接"):${Font} ${vless_xhttp_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_xhttp_link}" | qrencode -o - -t utf8
             echo
+            if [[ ${dual_direct_ip} -eq 1 && -n "${vless_xhttp_link_v6}" ]]; then
+                log_echo_secure "${Red} IPv6 xHTTP URL $(gettext "分享链接"):${Font} ${vless_xhttp_link_v6}"
+                log_echo "${Red} $(gettext "二维码"): ${Font}"
+                echo -n "${vless_xhttp_link_v6}" | qrencode -o - -t utf8
+                echo
+            fi
         fi
         
         # 输出Clash配置
@@ -7472,6 +8532,8 @@ reset_target() {
 }
 
 show_user() {
+    # Defensive hydration so multi-user views still emit IPv6 links on a fresh process.
+    ensure_network_runtime_state
     if [[ ${tls_mode} == "None" ]]; then
         log_echo "${Warning} ${YellowBG} $(gettext "此模式不支持查看用户")! ${Font}"
         return
@@ -7485,10 +8547,13 @@ show_user() {
     fi
 
     local choose_user_prot show_user_index user_email user_id user_vless_link show_user_continue
+    local user_vless_link_v6 dual_direct_ip
 
     while true; do
         user_email=""
         user_id=""
+        user_vless_link=""
+        user_vless_link_v6=""
         echo
         log_echo "${GreenBG} $(gettext "即将显示用户, 一次仅能显示一个") ${Font}"
         if [[ ${tls_mode} == "TLS" ]]; then
@@ -7545,6 +8610,12 @@ show_user() {
         if [[ -n ${user_email} ]] && [[ -n ${user_id} ]]; then
             log_echo "${Green} $(gettext "用户名"): ${user_email} ${Font}"
             log_echo_secure "${Green} UUID: ${user_id} ${Font}"
+            # 直接-IP 模式（Reality/XTLS）双栈：为多用户单独输出 IPv6 直连入口
+            dual_direct_ip=0
+            if [[ ${tls_mode} == "Reality" || ${tls_mode} == "XTLS" ]] \
+                && [[ "${network_mode}" == "dual" ]] && [[ -n "${ipv6_address}" ]]; then
+                dual_direct_ip=1
+            fi
             if [[ ${tls_mode} == "TLS" ]]; then
                 if [[ ${choose_user_tag} == "VLESS-ws-in" ]]; then
                     user_vless_link=$(generate_vless_link "$user_id" "ws_tls")
@@ -7555,11 +8626,19 @@ show_user() {
                 fi
             elif [[ ${tls_mode} == "Reality" ]]; then
                 user_vless_link=$(generate_vless_link "$user_id" "reality")
+                [[ ${dual_direct_ip} -eq 1 ]] && user_vless_link_v6=$(generate_vless_link "$user_id" "reality" "${ipv6_address}")
             elif [[ ${tls_mode} == "XTLS" ]]; then
                 user_vless_link=$(generate_vless_link "$user_id" "xtls")
+                [[ ${dual_direct_ip} -eq 1 ]] && user_vless_link_v6=$(generate_vless_link "$user_id" "xtls" "${ipv6_address}")
             fi
             log_echo_secure "${Red} URL $(gettext "分享链接"):${Font} ${user_vless_link}"
             echo -n "${user_vless_link}" | qrencode -o - -t utf8
+            echo
+            if [[ ${dual_direct_ip} -eq 1 && -n "${user_vless_link_v6}" ]]; then
+                log_echo_secure "${Red} IPv6 URL $(gettext "分享链接"):${Font} ${user_vless_link_v6}"
+                echo -n "${user_vless_link_v6}" | qrencode -o - -t utf8
+                echo
+            fi
         fi
         echo
         log_echo "${GreenBG} $(gettext "是否继续显示用户") [Y/${Red}N${Font}${GreenBG}]?  ${Font}"
@@ -7576,6 +8655,8 @@ show_user() {
 
 add_user() {
     local choose_user_prot reality_user_more
+    # Defensive hydration so user-facing links keep dual-stack state on fresh processes.
+    ensure_network_runtime_state
     if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]]; then
         local add_user_continue
         while true; do
@@ -8040,6 +9121,9 @@ countdown() {
 }
 
 judge_mode() {
+    # Restore dual-stack runtime state on a fresh process so --show / menus
+    # still emit IPv6 links after the script exits and re-runs.
+    ensure_network_runtime_state
     if [[ -f "${xray_install_config_file}" ]]; then
         transport_mode=$(info_extraction transport_mode)
         [[ -z ${transport_mode} || ${transport_mode} == "null" ]] && transport_mode="None"
@@ -9143,29 +10227,35 @@ function restore_directories() {
 }
 
 # ============================================================
-# Reinstall backup / restore
-# Simple, reliable directory snapshot taken before any reinstall
-# or mode switch. On deploy failure the snapshot is restored.
+# Reinstall backup / restore — directory snapshot taken before
+# reinstall/mode-switch, restored on deploy failure.
 # ============================================================
 
-# Path to the backup directory created for the current reinstall attempt.
-# Empty when there is nothing to restore (fresh install, or test mode where
-# old_config_exist_check is mocked out).
+# Backup directory for the current reinstall attempt. Empty when nothing to restore.
 _reinstall_backup_dir=""
-# Firewall transaction state (see apply_managed_firewall_transaction). Captured
-# at reconfig start (old) and after parameters are determined (new), so a
-# partial firewall change can be reversed even if managed_ports.json was not
-# yet written with the new set.
+# Firewall transaction state captured at reconfig start (old) and after
+# parameters are determined (new), so a partial change can be reversed.
 _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
 _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+_reinstall_firewall_old_families=""
+_reinstall_firewall_new_families=""
 _reinstall_firewall_changed="no"
+# Baseline-rule transaction state: OLD family set from ownership before deploy,
+# NEW set is the target family policy. Same no/pending/yes contract as above.
+_reinstall_baseline_old_families=""
+_reinstall_baseline_new_families=""
+_reinstall_baseline_changed="no"
+# Baseline-rule pending journal: the exact rules THIS transaction created.
+# Updated immediately after each successful baseline_rule add, so even if the
+# corrective ownership save also fails the global rollback still knows which
+# rules to delete. Cleared once ownership is committed (baseline_sync success)
+# or after restore + persistence succeed; retained on any failure so orphans
+# stay recoverable.
+_reinstall_baseline_pending_added_v4=""
+_reinstall_baseline_pending_added_v6=""
 
-# RETURN-trap wrapper: restores the backup exactly once on deploy failure.
-# Args: <exit_code> <backup_dir>
-# - rc == 0 (success): clear backup dir reference, no restore.
-# - rc != 0 (failure): restore once; on restore failure return 2 and retain
-#   backup dir so the operator can inspect it. Clears the trap first to
-#   avoid recursion.
+# RETURN-trap wrapper: restores the backup once on deploy failure; on restore
+# failure returns 2 and retains the backup dir for operator inspection.
 reinstall_rollback_on_return() {
     local rc="$1"
     local backup_dir="$2"
@@ -9452,19 +10542,72 @@ reinstall_backup_restore() {
         rm -rf "${idleleo_dir}/info" 2>/dev/null || [[ ! -e "${idleleo_dir}/info" ]] || _restore_err=1
     fi
 
-    # Firewall transaction rollback: reverse the exact rules this deploy
-    # changed, even if managed_ports.json was not yet written with the new set.
-    # Both "yes" (forward succeeded) and "pending" (forward started but the
-    # immediate reverse was not confirmed) must be reversed here; "no" means
-    # nothing was modified or it was already fully reversed.
+    # Firewall transaction rollback: reverse rules changed by this deploy
+    # ("yes"/"pending"; "no" = untouched). Family-aware: reverse on the recorded
+    # OLD families, not current network_mode, so a failed dual -> ipv4 switch
+    # restores the cleaned IPv6 rules.
+    #
+    # Persistence requirement is captured BEFORE rollback; flags are NOT reset
+    # by a successful rollback or a reboot would reload the failed deploy.
+    local _restore_persist_required=0
+    if [[ "${_reinstall_firewall_changed:-}" == "yes" || "${_reinstall_firewall_changed:-}" == "pending" || \
+          "${_reinstall_baseline_changed:-}" == "yes" || "${_reinstall_baseline_changed:-}" == "pending" ]]; then
+        _restore_persist_required=1
+    fi
     if [[ "${_reinstall_firewall_changed:-}" == "yes" || "${_reinstall_firewall_changed:-}" == "pending" ]]; then
         if ! reconcile_managed_firewall \
             "${_reinstall_firewall_new_ports}" \
-            "${_reinstall_firewall_old_ports}"; then
+            "${_reinstall_firewall_old_ports}" \
+            "${_reinstall_firewall_new_families:-}" \
+            "${_reinstall_firewall_old_families:-}"; then
             log_echo "${Error} ${RedBG} $(gettext "防火墙规则回滚失败") ${Font}"
             _restore_err=1
+        fi
+    fi
+    # Baseline rollback: baseline_sync(old families) removes gained-family rules
+    # and re-ensures the source baseline. Same yes/pending contract.
+    if [[ "${_reinstall_baseline_changed:-}" == "yes" || "${_reinstall_baseline_changed:-}" == "pending" ]]; then
+        # FIRST reverse this transaction's journal: rules may not be in
+        # managed_baseline.list (corrective save may have failed). check-then-
+        # remove so an already-cleaned rule is not a false rollback failure.
+        local _pend_fail=0 _pbin _pkey _pkeys
+        for _pbin in iptables ip6tables; do
+            if [[ "${_pbin}" == "iptables" ]]; then
+                _pkeys="${_reinstall_baseline_pending_added_v4:-}"
+            else
+                _pkeys="${_reinstall_baseline_pending_added_v6:-}"
+            fi
+            for _pkey in ${_pkeys}; do
+                if baseline_rule "${_pbin}" "${_pkey}" check; then
+                    baseline_rule "${_pbin}" "${_pkey}" remove >/dev/null 2>&1 || _pend_fail=1
+                fi
+            done
+        done
+        if [[ ${_pend_fail} -ne 0 ]]; then
+            # Orphan persists; FAIL and retain journal + backup (do NOT run
+            # baseline_sync, which would clear it on success).
+            log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚失败") ${Font}"
+            _restore_err=1
         else
-            _reinstall_firewall_changed="no"
+            # Journal reversed — reconcile to old family set; on failure the
+            # journal is retained (cleanup only runs on success).
+            if ! baseline_sync "${_reinstall_baseline_old_families:-}"; then
+                log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚失败") ${Font}"
+                _restore_err=1
+            fi
+        fi
+    fi
+    # Persist restored state for old ∪ new families: stale rules.v4/v6 would
+    # reload the failed firewall on reboot, so failure is CRITICAL (never
+    # print 已恢复原配置).
+    if [[ ${_restore_persist_required} -eq 1 ]]; then
+        local _restore_persist_families
+        _restore_persist_families=$(firewall_persist_families \
+            "${_reinstall_firewall_new_families:-}" \
+            "${_reinstall_firewall_old_families:-}")
+        if ! firewall_persist_rules "${_restore_persist_families}"; then
+            log_echo "${Error} ${RedBG} $(gettext "防火墙持久化恢复未完成, 重启后可能回到失败状态") ${Font}"
+            _restore_err=1
         fi
     fi
     # Restore or delete managed_ports.json per the manifest.
@@ -9687,7 +10830,17 @@ reinstall_backup_restore() {
     # Rollback succeeded — reset the firewall transaction for the next attempt.
     _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
     _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_old_families=""
+    _reinstall_firewall_new_families=""
     _reinstall_firewall_changed="no"
+    _reinstall_baseline_old_families=""
+    _reinstall_baseline_new_families=""
+    _reinstall_baseline_changed="no"
+    # Rollback + persistence both succeeded — the pending journal is fully
+    # consumed; clear it. (On any earlier failure we return before here, so a
+    # failed rollback retains the journal for diagnosis/retry.)
+    _reinstall_baseline_pending_added_v4=""
+    _reinstall_baseline_pending_added_v6=""
 
     log_echo "${OK} ${GreenBG} $(gettext "已恢复原配置") ${Font}"
     return 0
@@ -9772,6 +10925,17 @@ reinstall_finalize() {
         return 1
     fi
     _reinstall_backup_dir=""
+    # Transaction completed — clear firewall transaction state so a later
+    # standalone firewall_set or a subsequent reinstall cannot be polluted by
+    # the previous transaction's recorded families/ports.
+    _reinstall_firewall_old_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
+    _reinstall_firewall_old_families=""
+    _reinstall_firewall_new_families=""
+    _reinstall_firewall_changed="no"
+    _reinstall_baseline_old_families=""
+    _reinstall_baseline_new_families=""
+    _reinstall_baseline_changed="no"
     return 0
 }
 

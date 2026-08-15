@@ -106,6 +106,13 @@ jobs:
           python3 .github/test/test_release_automation.py
           bash -n scripts/merge_checked_pr.sh
 
+      - name: Install PyYAML for Clash parser test
+        run: |
+          # The Clash parser test must genuinely execute in CI (spec 5.1).
+          # Prefer pip; fall back to apt if pip is unavailable.
+          python3 -m pip install --quiet --user pyyaml \
+            || { sudo apt-get update -qq && sudo apt-get install -y -qq python3-yaml; }
+
       - name: Run user-safety regression tests
         run: |
           set -euo pipefail
@@ -114,7 +121,32 @@ jobs:
           bash .github/test/test_input_eof.sh
           bash .github/test/test_port_validation.sh
           bash .github/test/test_firewall_reconcile.sh
+          # IPv6-aware managed firewall (dual-stack mirroring + rollback)
+          bash .github/test/test_firewall_ipv6.sh
+          # Firewall cross-network-family transitions (dual->ipv4 cleanup,
+          # ipv4/ipv6->dual, port+family change, family-aware rollback and
+          # persistence, missing-ip6tables fail-closed). All mocked.
+          bash .github/test/test_firewall_family_transition.sh
+          # End-to-end firewall transaction tests: successful mode switch
+          # (baseline + managed ports + persistence), failed deploy rollback
+          # persistence (reboot-safe), partial baseline rollback, and user
+          # custom-rule protection. All mocked.
+          bash .github/test/test_firewall_transaction_complete.sh
           bash .github/test/test_shell_update_metadata.sh
+          # Fresh-process dual-stack runtime hydration (restart keeps IPv4/IPv6
+          # Reality/XTLS/None share links) — mandatory, not optional
+          bash .github/test/test_dual_stack_runtime.sh
+          # IPv4/IPv6 dual-stack support regression tests (literal detection,
+          # URI authority bracket, network capability, A/AAAA qualification,
+          # bad-record gating, old-config compat, dual direct-IP links)
+          bash .github/test/test_dual_stack.sh
+          # DNS multi-record aggregation + dedup over the IPv4-resolver A/AAAA path
+          bash .github/test/test_dns_multi_record.sh
+          # Clash YAML parser-level validation for dual-stack direct-IP output
+          bash .github/test/test_clash_yaml.sh
+          # Optional real IPv6 socket smoke test (SKIPs cleanly when the runner
+          # has no IPv6 socket capability; never counted as PASS)
+          bash .github/test/test_ipv6_smoke.sh
 
       - name: Run Skill contract tests
         env:
