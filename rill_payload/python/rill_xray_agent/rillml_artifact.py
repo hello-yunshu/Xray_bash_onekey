@@ -215,25 +215,45 @@ def parse_release_index(text, *, trusted_key_id=None, public_key_hex=None,
     return payload
 
 
+_ARTIFACT_COMMON_FIELDS = ('kind', 'id', 'version', 'url', 'sha256')
+
+
 def _validate_artifact_shape(artifact):
     if not isinstance(artifact, dict):
         raise RillMLValidationError('artifact entry must be an object')
-    for key in ('kind', 'id', 'version', 'targetOs', 'targetArch', 'url', 'sha256'):
+    kind = artifact.get('kind')
+    if kind not in ('runtime', 'model', 'handler'):
+        raise RillMLValidationError(f'unknown artifact kind {artifact.get("kind")!r}')
+    # Common fields every artifact kind must carry.
+    for key in _ARTIFACT_COMMON_FIELDS:
         value = artifact.get(key)
         if not isinstance(value, str) or not value:
             raise RillMLValidationError(f'artifact missing/invalid field {key!r}')
-    if artifact['kind'] not in ('runtime', 'model', 'handler'):
-        raise RillMLValidationError(f'unknown artifact kind {artifact["kind"]!r}')
     if not SHA256_RE.match(artifact['sha256']):
         raise RillMLValidationError('artifact sha256 must be 64 lowercase hex chars')
     if artifact['version'].count('.') < 2:
         raise RillMLValidationError(f'invalid artifact version {artifact["version"]!r}')
-    if artifact.get('runtimeApiVersion') is not None and not isinstance(
-            artifact['runtimeApiVersion'], int):
+    if not isinstance(artifact.get('runtimeApiVersion'), int):
         raise RillMLValidationError('artifact runtimeApiVersion must be an integer')
     if not isinstance(artifact.get('size'), int) or artifact['size'] < 0:
         raise RillMLValidationError('artifact size must be a non-negative integer')
     _validate_https_url(artifact['url'])
+    # Kind-specific fields: only runtime artifacts are platform-bound; model /
+    # handler entries in the real stable index carry no targetOs/targetArch.
+    if kind == 'runtime':
+        for key in ('targetOs', 'targetArch'):
+            value = artifact.get(key)
+            if not isinstance(value, str) or not value:
+                raise RillMLValidationError(
+                    f'runtime artifact missing/invalid field {key!r}')
+    elif kind == 'handler':
+        if not isinstance(artifact.get('handlerApiVersion'), int):
+            raise RillMLValidationError(
+                'handler artifact handlerApiVersion must be an integer')
+        if not isinstance(artifact.get('minRuntimeVersion'), str) or not artifact[
+                'minRuntimeVersion']:
+            raise RillMLValidationError(
+                'handler artifact missing/invalid minRuntimeVersion')
 
 
 def runtime_artifact_id(libc):
