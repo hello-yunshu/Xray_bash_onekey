@@ -345,6 +345,9 @@ xport=""
 gport=""
 xhttpport=""
 transport_mode="None"
+# Baseline ownership state must be isolated to a temp path so baseline_sync
+# (now part of firewall_set) never touches a real host path.
+managed_baseline_file="${TMP_ROOT}/managed_baseline.list"
 pkg_install() { return 0; }
 service() { return 0; }
 netfilter-persistent() { return 0; }

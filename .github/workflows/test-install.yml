@@ -127,6 +127,11 @@ jobs:
           # ipv4/ipv6->dual, port+family change, family-aware rollback and
           # persistence, missing-ip6tables fail-closed). All mocked.
           bash .github/test/test_firewall_family_transition.sh
+          # End-to-end firewall transaction tests: successful mode switch
+          # (baseline + managed ports + persistence), failed deploy rollback
+          # persistence (reboot-safe), partial baseline rollback, and user
+          # custom-rule protection. All mocked.
+          bash .github/test/test_firewall_transaction_complete.sh
           bash .github/test/test_shell_update_metadata.sh
           # Fresh-process dual-stack runtime hydration (restart keeps IPv4/IPv6
           # Reality/XTLS/None share links) — mandatory, not optional

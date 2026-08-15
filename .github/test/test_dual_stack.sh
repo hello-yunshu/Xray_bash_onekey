@@ -283,6 +283,20 @@ validate_domain_network_records "explicit-v4-nomatch.example.com" ipv4
 rc=$?
 if [[ ${rc} -eq 1 ]]; then ok "explicit ipv4: A no match -> rc=1"; else bad "explicit ipv4 nomatch rc=${rc}"; fi
 
+# CRITICAL (Block A): A AND AAAA BOTH correct under explicit ipv4 -> rc=0,
+# network_mode MUST stay ipv4, NOT be auto-promoted to dual. This locks the
+# requirement that an explicit IPv4 exposure policy is not silently upgraded
+# just because the other family's DNS also happens to be correct.
+MOCK_DNS="203.0.113.10
+2001:db8::10"
+validate_domain_network_records "explicit-v4-both.example.com" ipv4
+rc=$?
+if [[ ${rc} -eq 0 && "${network_mode}" == "ipv4" ]]; then
+    ok "explicit ipv4: A+AAAA both correct stays ipv4 (not dual)"
+else
+    bad "explicit ipv4 both-correct rc=${rc} mode=${network_mode} (expected ipv4)"
+fi
+
 printf '%s\n' '--- validate_domain_network_records: explicit ipv6 policy ---'
 
 # AAAA correct, A absent -> rc=0, mode=ipv6
@@ -310,6 +324,18 @@ MOCK_DNS="2001:db8::99"
 validate_domain_network_records "explicit-v6-nomatch.example.com" ipv6
 rc=$?
 if [[ ${rc} -eq 1 ]]; then ok "explicit ipv6: AAAA no match -> rc=1"; else bad "explicit ipv6 nomatch rc=${rc}"; fi
+
+# CRITICAL (Block A): A AND AAAA BOTH correct under explicit ipv6 -> rc=0,
+# network_mode MUST stay ipv6, NOT be auto-promoted to dual.
+MOCK_DNS="203.0.113.10
+2001:db8::10"
+validate_domain_network_records "explicit-v6-both.example.com" ipv6
+rc=$?
+if [[ ${rc} -eq 0 && "${network_mode}" == "ipv6" ]]; then
+    ok "explicit ipv6: A+AAAA both correct stays ipv6 (not dual)"
+else
+    bad "explicit ipv6 both-correct rc=${rc} mode=${network_mode} (expected ipv6)"
+fi
 
 # --- generate_vless_link: IPv6 authority formatting ---
 printf '%s\n' '--- generate_vless_link: IPv6 authority bracket ---'

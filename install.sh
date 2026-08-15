@@ -2147,6 +2147,11 @@ xhttp_inbound_port_set() {
 }
 
 managed_ports_file="${idleleo_conf_dir}/managed_ports.json"
+# Per-family ownership of the always-on baseline rules (loopback / DNS 53 /
+# UDP high-port range). Records WHICH baseline rules the project created on
+# each family so a dropped family can be cleaned and a failed family gain can
+# be rolled back WITHOUT ever deleting a user's own pre-existing rule.
+managed_baseline_file="${idleleo_conf_dir}/managed_baseline.list"
 
 # Managed-firewall compatibility layer.
 # The project historically only manages iptables directly; if firewalld or
@@ -2238,9 +2243,17 @@ firewall_persist_families() {
 #
 # Persistence target paths are overridable via env vars so hermetic tests never
 # redirect a mock save binary into a real host path.
+#
+# Returns an AGGREGATE status: 0 iff every family save succeeded, non-zero if
+# ANY family save failed. Each failing family still logs a warning naming it.
+# The aggregate return lets a rollback distinguish "fully restored and
+# persisted" from "runtime restored but reboot would still be wrong", so a
+# persistence failure during restore is treated as a critical failure instead
+# of being swallowed as a best-effort warning.
 firewall_persist_rules() {
     local persist_families="${1:-}"
     local _fw_bin
+    local _persist_rc=0
     local sysconf_dir="${FW_SYSCONF_DIR:-/etc/sysconfig}"
     local rules_v4="${FW_RULES_V4:-/etc/iptables/rules.v4}"
     local rules_v6="${FW_RULES_V6:-/etc/iptables/rules.v6}"
@@ -2248,20 +2261,24 @@ firewall_persist_rules() {
         if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
             if ! service "${_fw_bin}" save 2>/dev/null && ! "${_fw_bin}-save" > "${sysconf_dir}/${_fw_bin}" 2>/dev/null; then
                 log_echo "${Warning} ${YellowBG} $(gettext "防火墙") ${_fw_bin} $(gettext "规则持久化失败") ${Font}"
+                _persist_rc=1
             fi
             service "${_fw_bin}" restart 2>/dev/null || true
         else
             if [[ "${_fw_bin}" == "ip6tables" ]]; then
                 if ! ip6tables-save > "${rules_v6}" 2>/dev/null; then
                     log_echo "${Warning} ${YellowBG} $(gettext "防火墙") ip6tables $(gettext "规则持久化失败") ${Font}"
+                    _persist_rc=1
                 fi
             else
                 if ! iptables-save > "${rules_v4}" 2>/dev/null; then
                     log_echo "${Warning} ${YellowBG} $(gettext "防火墙") iptables $(gettext "规则持久化失败") ${Font}"
+                    _persist_rc=1
                 fi
             fi
         fi
     done
+    return ${_persist_rc}
 }
 
 # Effective netfilter binaries to manage, family-aware from network_mode.
@@ -2394,6 +2411,180 @@ firewall_add_udp_high_port_range() {
         "${bin}" -C INPUT -p udp --dport 1024:65535 -j ACCEPT >/dev/null 2>&1 ||
             "${bin}" -I INPUT -p udp --dport 1024:65535 -j ACCEPT || return 1
     done
+}
+
+# --- always-on baseline rule ownership (family-aware, transactional) ---------
+# The always-on infrastructure rules (loopback, DNS 53 tcp/udp in+out, UDP
+# high-port range) are family-aware: they belong on exactly the families the
+# current network_mode manages. The project tracks WHICH specific baseline
+# rules it CREATED on each family (not families alone) so:
+#   - a dropped family (dual -> ipv4) can be cleaned of OUR rules, and
+#   - a failed family gain (ipv4 -> dual midway failure) can be rolled back,
+# without EVER deleting a user's own pre-existing rule. See the dual-stack
+# firewall rectification (Section C).
+BASELINE_RULE_KEYS="lo-in lo-out dns-tcp-in dns-udp-in dns-tcp-out dns-udp-out udp-hi-in"
+
+# Apply one canonical baseline rule on one family. op: check|add|remove.
+# check returns 0 if the rule exists; add/remove apply the netfilter change.
+baseline_rule() {
+    local bin="$1" key="$2" op="$3"
+    case "${key}" in
+        lo-in)
+            case "${op}" in
+                check)  "${bin}" -C INPUT  -i lo -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -A INPUT  -i lo -j ACCEPT ;;
+                remove) "${bin}" -D INPUT  -i lo -j ACCEPT ;;
+            esac ;;
+        lo-out)
+            case "${op}" in
+                check)  "${bin}" -C OUTPUT -o lo -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -A OUTPUT -o lo -j ACCEPT ;;
+                remove) "${bin}" -D OUTPUT -o lo -j ACCEPT ;;
+            esac ;;
+        dns-tcp-in)
+            case "${op}" in
+                check)  "${bin}" -C INPUT  -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I INPUT  -p tcp --dport 53 -j ACCEPT ;;
+                remove) "${bin}" -D INPUT  -p tcp --dport 53 -j ACCEPT ;;
+            esac ;;
+        dns-udp-in)
+            case "${op}" in
+                check)  "${bin}" -C INPUT  -p udp --dport 53 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I INPUT  -p udp --dport 53 -j ACCEPT ;;
+                remove) "${bin}" -D INPUT  -p udp --dport 53 -j ACCEPT ;;
+            esac ;;
+        dns-tcp-out)
+            case "${op}" in
+                check)  "${bin}" -C OUTPUT -p tcp --sport 53 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I OUTPUT -p tcp --sport 53 -j ACCEPT ;;
+                remove) "${bin}" -D OUTPUT -p tcp --sport 53 -j ACCEPT ;;
+            esac ;;
+        dns-udp-out)
+            case "${op}" in
+                check)  "${bin}" -C OUTPUT -p udp --sport 53 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I OUTPUT -p udp --sport 53 -j ACCEPT ;;
+                remove) "${bin}" -D OUTPUT -p udp --sport 53 -j ACCEPT ;;
+            esac ;;
+        udp-hi-in)
+            case "${op}" in
+                check)  "${bin}" -C INPUT  -p udp --dport 1024:65535 -j ACCEPT >/dev/null 2>&1 ;;
+                add)    "${bin}" -I INPUT  -p udp --dport 1024:65535 -j ACCEPT ;;
+                remove) "${bin}" -D INPUT  -p udp --dport 1024:65535 -j ACCEPT ;;
+            esac ;;
+        *) return 2 ;;
+    esac
+}
+
+# Baseline rule keys the project owns on a family (from the state file).
+baseline_owned_keys() {
+    local fam="$1"
+    # Guard: on a fresh install (or empty/absent state file) there is nothing
+    # owned. Never let awk read stdin (empty path) — that would hang.
+    [[ -n "${managed_baseline_file}" && -f "${managed_baseline_file}" ]] || return 0
+    awk -v f="${fam}" '$1==f {print $2}' "${managed_baseline_file}" 2>/dev/null
+}
+
+# Families that currently have at least one project-owned baseline rule.
+baseline_owned_families() {
+    [[ -n "${managed_baseline_file}" && -f "${managed_baseline_file}" ]] || return 0
+    awk '{print $1}' "${managed_baseline_file}" 2>/dev/null | sort -u
+}
+
+# Persist baseline ownership. Args are "<family>:<key,key,...>" entries; a
+# family with no keys is written as an empty set. Atomic via tmp+rename.
+baseline_owned_save() {
+    local file="${managed_baseline_file}.tmp.$$"
+    : > "${file}"
+    local entry fam keys k
+    for entry in "$@"; do
+        fam="${entry%%:*}"; keys="${entry#*:}"
+        if [[ "${fam}" == "${entry}" ]]; then continue; fi  # no colon -> skip
+        # Empty key set (family persists with nothing owned) must not attempt
+        # to expand an empty array under `set -u`, nor write a bare line.
+        [[ -z "${keys}" ]] && continue
+        local karr
+        IFS=',' read -ra karr <<< "${keys}"
+        for k in "${karr[@]}"; do
+            [[ -z "${k}" ]] && continue
+            printf '%s %s\n' "${fam}" "${k}" >> "${file}"
+        done
+    done
+    mkdir -p "$(dirname "${managed_baseline_file}")" || return 1
+    sort -u "${file}" -o "${file}"
+    mv "${file}" "${managed_baseline_file}"
+}
+
+# Reconcile baseline ownership toward a target family set (space separated).
+# Idempotent / family-aware / transactional:
+#   1. ensure every baseline rule exists on each target family — rules that are
+#      already present (user's own, or already ours) are NOT claimed, only
+#      rules WE add this call are recorded as owned;
+#   2. on ANY add failure, remove only the rules added by THIS call on that
+#      family and return non-zero WITHOUT persisting state (a failed family
+#      gain leaves nothing behind, a rerun is safe);
+#   3. remove OUR baseline rules on previously-owned families no longer in the
+#      target set (dropped family cleanup — user rules are never touched);
+#   4. persist the updated ownership.
+# Returns 0 if every target family was ensured, non-zero on add failure.
+baseline_sync() {
+    local target="$1"
+    local target_list old_list
+    target_list=$(printf '%s\n' ${target} | grep -v '^$' | sort -u)
+    old_list=$(baseline_owned_families)
+    local v4_owned v6_owned v4_added v6_added
+    v4_owned="$(baseline_owned_keys iptables)"
+    v6_owned="$(baseline_owned_keys ip6tables)"
+    v4_added=""; v6_added=""
+    local bin key
+
+    for bin in ${target_list}; do
+        for key in ${BASELINE_RULE_KEYS}; do
+            if baseline_rule "${bin}" "${key}" check; then
+                continue
+            fi
+            if ! baseline_rule "${bin}" "${key}" add; then
+                # add failed — roll back EVERY rule added by THIS call across
+                # every family (not just the failing one), so a multi-family
+                # gain (ipv4 -> dual) that fails midway on IPv6 leaves no
+                # half-applied IPv4 baseline behind. State is not persisted on
+                # failure, so a rerun is safe.
+                local _b _k
+                for _b in iptables ip6tables; do
+                    if [[ "${_b}" == "iptables" ]]; then
+                        for _k in ${v4_added}; do baseline_rule "${_b}" "${_k}" remove 2>/dev/null || true; done
+                    else
+                        for _k in ${v6_added}; do baseline_rule "${_b}" "${_k}" remove 2>/dev/null || true; done
+                    fi
+                done
+                return 1
+            fi
+            if [[ "${bin}" == "iptables" ]]; then
+                v4_added="${v4_added} ${key}"
+            else
+                v6_added="${v6_added} ${key}"
+            fi
+        done
+    done
+
+    # Dropped-family cleanup: remove OUR baseline on families no longer target.
+    for bin in ${old_list}; do
+        if ! printf '%s\n' ${target_list} | grep -qxF "${bin}"; then
+            local owned_keys
+            owned_keys=$(baseline_owned_keys "${bin}")
+            for key in ${owned_keys}; do
+                baseline_rule "${bin}" "${key}" remove 2>/dev/null || true
+            done
+        fi
+    done
+
+    # Persist ownership = kept old keys + newly added keys, per target family.
+    local v4_all v6_all
+    v4_all="$(printf '%s %s\n' "${v4_owned}" "${v4_added}" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//')"
+    v6_all="$(printf '%s %s\n' "${v6_owned}" "${v6_added}" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//')"
+    if ! printf '%s\n' ${target_list} | grep -qxF iptables; then v4_all=""; fi
+    if ! printf '%s\n' ${target_list} | grep -qxF ip6tables; then v6_all=""; fi
+    baseline_owned_save "iptables:${v4_all}" "ip6tables:${v6_all}" || return 1
+    return 0
 }
 
 atomic_write_managed_ports() {
@@ -2594,15 +2785,25 @@ firewall_set() {
             return 1
         fi
 
-        # Always-on infrastructure rules (idempotent, never auto-removed):
-        # loopback, DNS (53), and the FullCone UDP high-port range. These are
-        # required in every mode and are tracked as separate always-on state.
-        firewall_add_loopback_rules || return 1
-        firewall_add_managed_port tcp 53 || return 1
-        firewall_add_managed_port udp 53 || return 1
-        firewall_add_output_port tcp 53 || return 1
-        firewall_add_output_port udp 53 || return 1
-        firewall_add_udp_high_port_range || return 1
+        # Always-on infrastructure rules (loopback, DNS 53, UDP high-port range)
+        # applied transactionally and family-aware. baseline_sync:
+        #   - ensures every baseline rule exists on the target families, claiming
+        #     only the rules IT adds so a dropped family can be cleaned later and
+        #     a failed family gain can be rolled back WITHOUT deleting any rule
+        #     the user already had;
+        #   - cleans our baseline on families no longer in the target set;
+        #   - on a partial add failure removes everything it added this call.
+        # The old/new family sets are recorded so a later deploy failure can
+        # reverse the baseline back to the source state (reinstall_backup_restore).
+        _reinstall_baseline_old_families="$(baseline_owned_families)"
+        _reinstall_baseline_new_families="$(_managed_fw_bins)"
+        _reinstall_baseline_changed="pending"
+        if ! baseline_sync "${_reinstall_baseline_new_families}"; then
+            _reinstall_baseline_changed="no"
+            log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则配置失败") ${Font}"
+            return 1
+        fi
+        _reinstall_baseline_changed="yes"
 
         # Capture the pre-deploy managed set once (loaded at reconfig start).
         # Fall back to reading managed_ports.json for a standalone firewall_set.
@@ -4096,27 +4297,22 @@ validate_domain_network_records() {
     bad_a=0;   bad_aaaa=0
     case "${policy}" in
         ipv4)
-            # 显式 IPv4：必须 A 匹配本机 v4；若存在 AAAA 且不匹配本机有效 v6 -> 高风险
+            # 显式 IPv4：用户明确选定 IPv4 即 exposure policy，不因另一族 DNS 也正确
+            # 而自动提升为 dual。但 AAAA 若存在且不匹配本机有效 v6 仍判高风险
+            # (bad_aaaa)，安全校验不能因显式 family 被绕过。
             if [[ ${a_ok} -eq 1 ]]; then
-                if [[ ${aaaa_ok} -eq 1 ]]; then
-                    network_mode="dual"
-                else
-                    network_mode="ipv4"
-                    [[ ${has_aaaa} -eq 1 ]] && bad_aaaa=1
-                fi
+                network_mode="ipv4"
+                [[ ${has_aaaa} -eq 1 && ${aaaa_ok} -eq 0 ]] && bad_aaaa=1
             else
                 network_mode="none"
             fi
             ;;
         ipv6)
-            # 显式 IPv6：必须 AAAA 匹配本机 v6；若存在 A 且不匹配本机有效 v4 -> 高风险
+            # 显式 IPv6：对称语义，network_mode 固定为 ipv6；A 若存在且不匹配本机
+            # 有效 v4 仍判高风险 (bad_a)。
             if [[ ${aaaa_ok} -eq 1 ]]; then
-                if [[ ${a_ok} -eq 1 ]]; then
-                    network_mode="dual"
-                else
-                    network_mode="ipv6"
-                    [[ ${has_a} -eq 1 ]] && bad_a=1
-                fi
+                network_mode="ipv6"
+                [[ ${has_a} -eq 1 && ${a_ok} -eq 0 ]] && bad_a=1
             else
                 network_mode="none"
             fi
@@ -6086,6 +6282,12 @@ old_config_exist_check() {
     fi
     _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
     _reinstall_firewall_changed="no"
+    # Reset baseline-rule transaction state for this reinstall; the OLD family
+    # set is captured from the ownership state when firewall_set applies the
+    # baseline (baseline_sync), so a failed family gain can be reversed here.
+    _reinstall_baseline_old_families=""
+    _reinstall_baseline_new_families=""
+    _reinstall_baseline_changed="no"
     if [[ -f "${xray_install_config_file}" ]]; then
         # Snapshot the running config before any reinstall or mode switch
         # So a failed deploy can be rolled back. Skip in test mode
@@ -9952,6 +10154,16 @@ _reinstall_firewall_new_ports='{"tcp":[],"udp":[]}'
 _reinstall_firewall_old_families=""
 _reinstall_firewall_new_families=""
 _reinstall_firewall_changed="no"
+# Baseline-rule transaction state (see baseline_sync). The always-on baseline
+# rules (loopback / DNS 53 / UDP high-port) are family-aware and transactional:
+# the OLD family set is captured from the ownership state before the deploy and
+# the NEW set is the target family policy, so a failed family gain can be rolled
+# back (removing only our newly-added rules) and a successful transition's
+# dropped family is cleaned. Same no/pending/yes contract as the managed-port
+# transaction above.
+_reinstall_baseline_old_families=""
+_reinstall_baseline_new_families=""
+_reinstall_baseline_changed="no"
 
 # RETURN-trap wrapper: restores the backup exactly once on deploy failure.
 # Args: <exit_code> <backup_dir>
@@ -10265,6 +10477,36 @@ reinstall_backup_restore() {
             _reinstall_firewall_changed="no"
         fi
     fi
+    # Baseline-rule transaction rollback: reverse the family baseline change.
+    # baseline_sync(target=old families) removes the baseline rules the failed
+    # deploy added on a gained family (leaving the user's own rules untouched)
+    # and re-ensures the baseline on the source families. Same yes/pending
+    # contract as the managed-port rollback above.
+    if [[ "${_reinstall_baseline_changed:-}" == "yes" || "${_reinstall_baseline_changed:-}" == "pending" ]]; then
+        if ! baseline_sync "${_reinstall_baseline_old_families:-}"; then
+            log_echo "${Error} ${RedBG} $(gettext "基础防火墙规则回滚失败") ${Font}"
+            _restore_err=1
+        else
+            _reinstall_baseline_changed="no"
+        fi
+    fi
+    # Persist the restored runtime firewall state for the families this
+    # transaction touched (old ∪ new). A runtime-correct restore is NOT a
+    # complete restore: if rules.v4/rules.v6 (or the RHEL sysconfig dumps) still
+    # hold the failed target on disk, a reboot would reload the failed firewall.
+    # A persistence failure here is therefore a CRITICAL restore failure — it
+    # must keep the backup dir and fail the restore, never print "已恢复原配置".
+    if [[ "${_reinstall_firewall_changed:-}" == "yes" || "${_reinstall_firewall_changed:-}" == "pending" || \
+          "${_reinstall_baseline_changed:-}" == "yes" || "${_reinstall_baseline_changed:-}" == "pending" ]]; then
+        local _restore_persist_families
+        _restore_persist_families=$(firewall_persist_families \
+            "${_reinstall_firewall_new_families:-}" \
+            "${_reinstall_firewall_old_families:-}")
+        if ! firewall_persist_rules "${_restore_persist_families}"; then
+            log_echo "${Error} ${RedBG} $(gettext "防火墙持久化恢复未完成, 重启后可能回到失败状态") ${Font}"
+            _restore_err=1
+        fi
+    fi
     # Restore or delete managed_ports.json per the manifest.
     if [[ "$(_manifest_existed managed_ports.json)" == "true" ]]; then
         cp -a "${backup_dir}/managed_ports.json" "${managed_ports_file}" 2>/dev/null || _restore_err=1
@@ -10488,6 +10730,9 @@ reinstall_backup_restore() {
     _reinstall_firewall_old_families=""
     _reinstall_firewall_new_families=""
     _reinstall_firewall_changed="no"
+    _reinstall_baseline_old_families=""
+    _reinstall_baseline_new_families=""
+    _reinstall_baseline_changed="no"
 
     log_echo "${OK} ${GreenBG} $(gettext "已恢复原配置") ${Font}"
     return 0
@@ -10580,6 +10825,9 @@ reinstall_finalize() {
     _reinstall_firewall_old_families=""
     _reinstall_firewall_new_families=""
     _reinstall_firewall_changed="no"
+    _reinstall_baseline_old_families=""
+    _reinstall_baseline_new_families=""
+    _reinstall_baseline_changed="no"
     return 0
 }
 
