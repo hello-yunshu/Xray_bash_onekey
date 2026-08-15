@@ -9,7 +9,7 @@
   "nativeRuntimeSupported": false,
   "routeAssistEnabled": false,
   "routeStage": "observe",
-  "schemaVersion": 1,
+  "schemaVersion": 4,
   "sentinelEnabled": true,
   "supportedRuntime": "portable-python",
   "timeline": {
