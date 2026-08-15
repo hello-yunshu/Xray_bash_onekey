@@ -1006,6 +1006,145 @@ else
     bad "10.2e: orphan vanished unexpectedly"
 fi
 
+echo " 10.3 corrective ownership SUCCESS + real restore (journal handoff)"
+# High-issue regression: the corrective ownership commit SUCCEEDS (rule durably
+# owned) while the journal still records it -> the same rule would be owned and
+# journaled at once, and restore would delete it twice (second delete is a false
+# dropped-family failure). The prune must hand the rule over to ownership, so a
+# REAL reinstall_backup_restore succeeds with no double-delete.
+_setup_restore_fixture
+RESTORE_BACKUP=$(reinstall_backup_create 2>/dev/null)
+reset_rules
+rm -f "${managed_baseline_file}"
+# User rules on BOTH families must survive the whole transaction.
+seed_state v4 "user:22"
+seed_state v6 "user:22"
+baseline_sync "${B4}" >/dev/null 2>&1   # establish OLD ipv4 baseline + ownership
+_reinstall_baseline_old_families="${B4}"
+_reinstall_baseline_new_families="${B46}"
+_reinstall_baseline_changed="yes"
+_reinstall_baseline_pending_added_v4=""
+_reinstall_baseline_pending_added_v6=""
+_reinstall_firewall_old_ports="${J4}"
+_reinstall_firewall_new_ports="${J8}"
+_reinstall_firewall_old_families="${B4}"
+_reinstall_firewall_new_families="${B46}"
+_reinstall_firewall_changed="no"
+MOCK_FAIL_ADD="ip6tables:udp:1024:65535"   # 3. later IPv6 baseline add fails
+MOCK_FAIL_DEL="ip6tables::INPUT"           # 4. compensation delete of first rule fails
+: > "${LOG_CAPTURE}"
+RC_SYNC=0
+baseline_sync "${B46}" >/dev/null 2>&1 || RC_SYNC=$?
+MOCK_FAIL_ADD=""
+MOCK_FAIL_DEL=""
+# 5. corrective ownership commit SUCCEEDED (not injected to fail)
+if [[ ${RC_SYNC} -ne 0 ]]; then
+    ok "10.3a: forward baseline_sync failed (as designed)"
+else
+    bad "10.3a: forward should have failed"
+fi
+if grep -q "ip6tables lo-in" "${managed_baseline_file}" 2>/dev/null; then
+    ok "10.3b: leftover v6 rule durably owned (corrective commit succeeded)"
+else
+    bad "10.3b: corrective ownership missing: $(cat "${managed_baseline_file}" 2>/dev/null)"
+fi
+if [[ "${_reinstall_baseline_pending_added_v6}" != *"lo-in"* ]]; then
+    ok "10.3c: journal pruned once rule durably owned (single responsibility)"
+else
+    bad "10.3c: journal still double-owns lo-in [${_reinstall_baseline_pending_added_v6}]"
+fi
+# 7. trigger REAL restore
+: > "${FW_RULES_V4}"; : > "${FW_RULES_V6}"
+SAVE_V4_CALLS=0; SAVE_V6_CALLS=0
+: > "${LOG_CAPTURE}"
+RESTORE_RC=0
+reinstall_backup_restore "${RESTORE_BACKUP}" >/dev/null 2>&1 || RESTORE_RC=$?
+if [[ ${RESTORE_RC} -eq 0 ]]; then
+    ok "10.3d: restore returned 0 (no second-delete false failure)"
+else
+    bad "10.3d: restore rc=${RESTORE_RC}; log=$(cat "${LOG_CAPTURE}")"
+fi
+if ! v6_has ":INPUT"; then
+    ok "10.3e: failed deploy IPv6 baseline cleared"
+else
+    bad "10.3e: v6 residue: $(cat "${IPTABLES_V6_RULES}")"
+fi
+if v4_has ":INPUT" && v4_has ":OUTPUT" && v4_has "tcp:53" && v4_has "udp:53" && v4_has "udp:1024:65535"; then
+    ok "10.3f: old ipv4 baseline restored"
+else
+    bad "10.3f: v4 baseline wrong: $(cat "${IPTABLES_V4_RULES}")"
+fi
+if [[ -n "$(baseline_owned_keys iptables)" ]] && [[ -z "$(baseline_owned_keys ip6tables)" ]]; then
+    ok "10.3g: managed_baseline.list == old state (ipv4 only)"
+else
+    bad "10.3g: ownership mismatch: $(cat "${managed_baseline_file}" 2>/dev/null)"
+fi
+if [[ -z "${_reinstall_baseline_pending_added_v4}" && -z "${_reinstall_baseline_pending_added_v6}" ]]; then
+    ok "10.3h: pending journal cleared"
+else
+    bad "10.3h: journal not cleared v4=[${_reinstall_baseline_pending_added_v4}] v6=[${_reinstall_baseline_pending_added_v6}]"
+fi
+if v4_has "user:22" && v6_has "user:22"; then
+    ok "10.3i: user rules preserved (v4+v6)"
+else
+    bad "10.3i: user rule lost v4=$(cat "${IPTABLES_V4_RULES}") v6=$(cat "${IPTABLES_V6_RULES}")"
+fi
+if [[ "${SAVE_V4_CALLS}" -ge 1 && "${SAVE_V6_CALLS}" -ge 1 ]]; then
+    ok "10.3j: persistence ran (v4=${SAVE_V4_CALLS} v6=${SAVE_V6_CALLS})"
+else
+    bad "10.3j: persistence skipped (v4=${SAVE_V4_CALLS} v6=${SAVE_V6_CALLS})"
+fi
+# rules.v4 / rules.v6 must hold the RESTORED state, not the failed one.
+if grep -q ":INPUT" "${FW_RULES_V4}" 2>/dev/null && ! grep -q ":INPUT" "${FW_RULES_V6}" 2>/dev/null; then
+    ok "10.3k: persisted v4=restored state, v6 has no orphan"
+else
+    bad "10.3k: persisted state wrong v4=$(cat "${FW_RULES_V4}" 2>/dev/null) v6=$(cat "${FW_RULES_V6}" 2>/dev/null)"
+fi
+
+echo " 10.4 stale ownership: absent project rule cleaned idempotently"
+# managed_baseline.list records a project key whose runtime rule is already
+# gone (external deletion). Dropped-family cleanup must treat absent-as-success
+# instead of failing on a -D of a missing rule.
+reset_rules
+rm -f "${managed_baseline_file}"
+baseline_sync "${B46}" >/dev/null 2>&1   # dual baseline + ownership
+seed_state v4 "user:22"
+seed_state v6 "user:22"
+# Simulate external removal of a project-owned rule from runtime.
+grep -vxF ":INPUT" "${IPTABLES_V6_RULES}" > "${IPTABLES_V6_RULES}.tmp" && mv "${IPTABLES_V6_RULES}.tmp" "${IPTABLES_V6_RULES}"
+if grep -q "ip6tables lo-in" "${managed_baseline_file}" 2>/dev/null; then
+    ok "10.4a: stale ownership present (precondition)"
+else
+    bad "10.4a: precondition failed: $(cat "${managed_baseline_file}" 2>/dev/null)"
+fi
+if ! v6_has ":INPUT"; then
+    ok "10.4b: runtime rule absent (precondition)"
+else
+    bad "10.4b: precondition failed: v6 still has :INPUT"
+fi
+RC_SYNC=0
+baseline_sync "${B4}" >/dev/null 2>&1 || RC_SYNC=$?
+if [[ ${RC_SYNC} -eq 0 ]]; then
+    ok "10.4c: sync succeeded despite stale ownership (absent == success)"
+else
+    bad "10.4c: sync falsely failed on already-absent rule"
+fi
+if [[ -z "$(baseline_owned_keys ip6tables)" ]]; then
+    ok "10.4d: stale ownership cleared"
+else
+    bad "10.4d: stale ownership kept: $(cat "${managed_baseline_file}" 2>/dev/null)"
+fi
+if v4_has "user:22" && v6_has "user:22"; then
+    ok "10.4e: user rules preserved"
+else
+    bad "10.4e: user rule lost v4=$(cat "${IPTABLES_V4_RULES}") v6=$(cat "${IPTABLES_V6_RULES}")"
+fi
+if ! v6_has ":OUTPUT" && ! v6_has "tcp:53" && ! v6_has "udp:53" && ! v6_has "udp:1024:65535"; then
+    ok "10.4f: dropped family clean of project baseline"
+else
+    bad "10.4f: v6 residue: $(cat "${IPTABLES_V6_RULES}")"
+fi
+
 # restore the normal persistence mocks for any later suite reuse
 eval "${ORIG_SAVE_V4}"
 eval "${ORIG_SAVE_V6}"
