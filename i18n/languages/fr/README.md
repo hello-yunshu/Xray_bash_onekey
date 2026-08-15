@@ -12,6 +12,7 @@ Chinois simplifié |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 * Utilisez Qwen-MT-Plus AI pour obtenir une traduction précise dans plusieurs langues
 * Prend en charge le protocole Reality, il est recommandé d'utiliser le préfixe Nginx (peut être installé dans le script)
 * Prend en charge la transmission WebSocket, gRPC, xHTTP, vous pouvez choisir une transmission unique ou`ws+gRPC+xHTTP`Activer les deux
+* Prend en charge la double pile IPv4 / IPv6 : peut détecter automatiquement les capacités d'exportation du réseau public lors de l'installation, enregistrer une vérification indépendante basée sur le nom de domaine A/AAAA et générer les liens de partage correspondants et les configurations Clash
 * Protection fail2ban intégrée (installable dans le script)
 * Statistiques de trafic Xray intégrées, blocage du trafic, mise à jour des règles GeoIP/GeoSite et mise à jour régulière
 * Prend en charge les scripts, Xray, Nginx et les mises à jour de certificats, et fournit une sauvegarde et une restauration en cas d'échec pour les mises à jour critiques.
@@ -40,7 +41,7 @@ Chinois simplifié |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 
 * Un serveur à l'étranger avec un réseau public IP
 * Installez le protocole Reality : vous devez préparer un nom de domaine cible qui répond aux exigences de Xray.
-* Installez la version TLS : préparez le nom de domaine et ajoutez l'enregistrement A
+* Installer la version TLS : Vous devez préparer le nom de domaine et configurer correctement les enregistrements A et/ou AAAA en fonction du réseau disponible du serveur ; pour les environnements à double pile, il est recommandé de configurer les bons A et AAAA en même temps. Le script prend en charge la détection automatique des capacités réseau IPv4/IPv6. Lorsque la double pile est disponible, l'entrée client correspondante peut être générée en même temps.
 * lire[Xray 官方文档](https://xtls.github.io), comprendre les concepts liés à Reality, TLS, WebSocket, gRPC et Xray
 * **Assurez-vous que curl est installé : exécution utilisateur CentOS`yum install -y curl`;Debian/Ubuntu Exécution utilisateur`apt install -y curl`
 

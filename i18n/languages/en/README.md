@@ -12,6 +12,7 @@ Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 * Use Qwen-MT-Plus AI to achieve accurate translation in multiple languages
 * Supports Reality protocol, it is recommended to use Nginx prefix (can be installed in the script)
 * Supports WebSocket, gRPC, xHTTP transmission, you can choose single transmission or`ws+gRPC+xHTTP`Enable both
+* Supports IPv4 / IPv6 dual stack: can automatically detect public network export capabilities during installation, record independent verification based on domain name A/AAAA and generate corresponding sharing links and Clash configurations
 * Built-in fail2ban protection (installable within script)
 * Built-in Xray traffic statistics, traffic blocking, GeoIP/GeoSite rule update and regular update
 * Supports scripts, Xray, Nginx and certificate updates, and provides backup and failure rollback for critical updates
@@ -40,7 +41,7 @@ Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 
 * An overseas server with public network IP
 * Install Reality protocol: You need to prepare a target domain name that meets the requirements of Xray
-* Install TLS version: prepare domain name and add A record
+* Install TLS version: You need to prepare the domain name and correctly configure A and/or AAAA records according to the available network of the server; for dual-stack environments, it is recommended to configure the correct A and AAAA at the same time. The script supports automatic detection of IPv4/IPv6 network capabilities. When dual stack is available, the corresponding client entry can be generated at the same time.
 * read[Xray 官方文档](https://xtls.github.io), understand Reality, TLS, WebSocket, gRPC and Xray related concepts
 * **Make sure curl is installed: CentOS user execution`yum install -y curl`;Debian/Ubuntu User execution`apt install -y curl`
 
