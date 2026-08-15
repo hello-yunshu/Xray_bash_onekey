@@ -64,7 +64,14 @@ _nf() {
             if grep -qxF "${key}" "${rules_file}" 2>/dev/null; then
                 local tmp
                 tmp=$(grep -vxF "${key}" "${rules_file}" || true)
-                printf '%s\n' "${tmp}" > "${rules_file}"
+                if [[ -n "${tmp}" ]]; then
+                    printf '%s\n' "${tmp}" > "${rules_file}"
+                else
+                    # All rules removed: truncate to a genuinely EMPTY file so
+                    # empty-state assertions are correct (a lone trailing
+                    # newline would make the file 1-byte non-empty).
+                    : > "${rules_file}"
+                fi
             else
                 return 1
             fi ;;
