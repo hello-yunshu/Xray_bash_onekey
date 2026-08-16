@@ -1,4 +1,4 @@
-import os, pwd, re, shutil, time
+import grp, os, re, shutil, time
 from pathlib import Path
 from .canonical import atomic_write_bytes, atomic_write_json, digest, file_sha256, read_json
 from .errors import TransactionError
@@ -22,6 +22,32 @@ DEFAULT_GENERATION_PATH = Path('/var/lib/rill-xray-agent-root/generation')
 # the setgid bit on the root dir, so mkstemp+replace inherits the group even
 # without the explicit chown; the chown here makes it robust in sandboxes).
 RILL_GROUP = 'rill-xray-agent'
+
+# The unprivileged Runtime scans the root-owned transaction area read-only
+# (health / scan_recovery_state) to classify each transaction as safe or
+# recovery-required. The classification artifacts must therefore be group-
+# readable (0640 root:rill-xray-agent) and the work dir group-traversable
+# (0750 root:rill-xray-agent), while staying root-owned. The request body and
+# managed backup stay 0600 root-only: the Runtime never reads those.
+_TXN_WORKDIR_MODE = 0o750
+_TXN_ARTIFACT_MODE = 0o640
+
+
+def _ensure_runtime_readable(path, mode):
+    """Best-effort chmod (and chown to group rill-xray-agent when root) so the
+    unprivileged Runtime can read/traverse the root-owned artifact. Non-root
+    callers (test sandboxes) cannot chown; chmod is still applied."""
+    path = Path(path)
+    try:
+        os.chmod(path, mode)
+    except OSError:
+        pass
+    if os.geteuid() == 0:
+        try:
+            gid = grp.getgrnam(RILL_GROUP).gr_gid
+            os.chown(path, 0, gid)
+        except (KeyError, OSError):
+            pass
 
 
 def fault(point: str):
@@ -68,7 +94,7 @@ class RootTransaction:
         atomic_write_bytes(self.generation_file, (str(value) + '\n').encode(), 0o640)
         if os.geteuid() == 0:
             try:
-                gid = pwd.getgrnam(RILL_GROUP).gr_gid
+                gid = grp.getgrnam(RILL_GROUP).gr_gid
                 os.chown(self.generation_file, 0, gid)
             except (KeyError, OSError):
                 pass
@@ -84,7 +110,9 @@ class RootTransaction:
         return digest(did)
 
     def state(self, w, s, x=None):
-        atomic_write_json(w / 'state.json', {'schemaVersion': 1, 'state': s, **(x or {})})
+        p = w / 'state.json'
+        atomic_write_json(p, {'schemaVersion': 1, 'state': s, **(x or {})})
+        _ensure_runtime_readable(p, _TXN_ARTIFACT_MODE)
 
     def _build_bundle(self, w, did, request, old, terminal, outcome):
         body = {'schemaVersion': 2, 'decisionId': did, 'outcome': outcome,
@@ -106,11 +134,15 @@ class RootTransaction:
         recovery can be tested at every step."""
         self._write_generation(b['nextConfigurationGeneration'])
         atomic_write_json(w / 'result.json', b['result'])
+        _ensure_runtime_readable(w / 'result.json', _TXN_ARTIFACT_MODE)
         fault('RESULT')
         atomic_write_json(w / 'receipt.json', b['receipt'])
+        _ensure_runtime_readable(w / 'receipt.json', _TXN_ARTIFACT_MODE)
         fault('RECEIPT')
         self.delivery.mkdir(parents=True, exist_ok=True)
-        atomic_write_json(self.delivery / 'route-delivery.json', b['delivery'], 0o640)
+        delivery_p = self.delivery / 'route-delivery.json'
+        atomic_write_json(delivery_p, b['delivery'], 0o640)
+        _ensure_runtime_readable(delivery_p, _TXN_ARTIFACT_MODE)
         fault('DELIVERY')
 
     def apply(self, request, managed, apply_fn, verify_fn,
@@ -122,6 +154,7 @@ class RootTransaction:
             if (w / 'commit-bundle.json').exists():
                 return self.materialize(w)
             w.mkdir(parents=True, exist_ok=True)
+            _ensure_runtime_readable(w, _TXN_WORKDIR_MODE)
             old = self.generation()
             if old != request['configurationGeneration']:
                 raise TransactionError('generation mismatch')
@@ -167,6 +200,7 @@ class RootTransaction:
                                       restart_fn=restart, rollback_hook=rollback_hook)
             bundle = self._build_bundle(w, did, request, old, 'committed', 'success')
             atomic_write_json(w / 'commit-bundle.json', bundle)
+            _ensure_runtime_readable(w / 'commit-bundle.json', _TXN_ARTIFACT_MODE)
             if os.environ.get('RILL_FAIL_AFTER_COMMIT_BUNDLE') == '1':
                 raise TransactionError('fault injected after commit bundle')
             return self.materialize(w)
@@ -207,6 +241,7 @@ class RootTransaction:
             did = read_json(w / 'request.json')['recommendationId']
             bundle = self._build_bundle(w, did, read_json(w / 'request.json'), old, 'rolledBack', 'rolledBack')
             atomic_write_json(w / 'commit-bundle.json', bundle)
+            _ensure_runtime_readable(w / 'commit-bundle.json', _TXN_ARTIFACT_MODE)
             fault('ROLLBACK_BUNDLE')
             # 5. materialize result/receipt/delivery
             self._materialize_artifacts(w, bundle)
@@ -344,5 +379,6 @@ class RootTransaction:
             raise TransactionError('restore verification failed')
         bundle = self._build_bundle(w, did, read_json(w / 'request.json'), old, 'rolledBack', 'rolledBack')
         atomic_write_json(w / 'commit-bundle.json', bundle)
+        _ensure_runtime_readable(w / 'commit-bundle.json', _TXN_ARTIFACT_MODE)
         self._materialize_artifacts(w, bundle)
         self.state(w, 'rolledBack', {'commitSha256': bundle['commitSha256']})

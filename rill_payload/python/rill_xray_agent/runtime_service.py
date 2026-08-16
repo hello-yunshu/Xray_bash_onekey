@@ -610,7 +610,7 @@ class RuntimeService:
             return {'present': False, 'fresh': False, 'integrityValid': False}
         captured = obs.get('capturedAtEpochSeconds')
         fresh = (isinstance(captured, int)
-                 and 0 < (int(time.time()) - captured) <= OBSERVATION_FRESHNESS_SECONDS)
+                 and 0 <= (int(time.time()) - captured) <= OBSERVATION_FRESHNESS_SECONDS)
         return {'present': True, 'fresh': fresh, 'integrityValid': True}
 
     def _timeline_status(self):
@@ -734,10 +734,12 @@ class RuntimeService:
     def _read_root_policy(self):
         """Read the root-owned execution-policy projection (READ-ONLY).
 
-        Returns the policy dict, or None on any anomaly (fail closed): a
-        missing / corrupt / unsafe projection means the Runtime cannot bind a
-        valid execution epoch, so no ApplyRequest may be produced. read_json
-        rejects symlinks and non-regular files.
+        Returns the full projection dict (top level carries schemaVersion and
+        policySnapshotDigest; the inner 'policy' object carries the live
+        executionEpoch / mode / routeStage), or None on any anomaly (fail
+        closed): a missing / corrupt / unsafe projection means the Runtime
+        cannot bind a valid execution epoch, so no ApplyRequest may be
+        produced. read_json rejects symlinks and non-regular files.
         """
         try:
             data = read_json(self.root_policy_projection_path)
@@ -748,7 +750,7 @@ class RuntimeService:
         policy = data.get('policy')
         if not isinstance(policy, dict):
             return None
-        return policy
+        return data
 
     def _concrete_route_eval(self, plan, apply_type='manual', operations=None):
         """Concrete RoutePlan policy evaluation (§P0-1).
@@ -770,7 +772,7 @@ class RuntimeService:
         root_policy = self._read_root_policy()
         execution_epoch = None
         if isinstance(root_policy, dict):
-            ep = root_policy.get('executionEpoch')
+            ep = root_policy.get('policy', {}).get('executionEpoch')
             if isinstance(ep, int) and not isinstance(ep, bool) and ep >= 0:
                 execution_epoch = ep
         # §P0-4: config hash / generation / rules all come from the root-owned
@@ -859,7 +861,7 @@ class RuntimeService:
         if root_policy is None:
             return self._record_approval(
                 rid, now, plan, applied=False, blocked=['root_policy_unavailable'])
-        execution_epoch = root_policy.get('executionEpoch')
+        execution_epoch = root_policy.get('policy', {}).get('executionEpoch')
         if not isinstance(execution_epoch, int) or isinstance(execution_epoch, bool) \
                 or execution_epoch < 0:
             return self._record_approval(
@@ -979,7 +981,7 @@ class RuntimeService:
         if root_policy is None:
             return self._record_approval(
                 rid, now, plan, applied=False, blocked=['root_policy_unavailable'])
-        execution_epoch = root_policy.get('executionEpoch')
+        execution_epoch = root_policy.get('policy', {}).get('executionEpoch')
         if not isinstance(execution_epoch, int) or isinstance(execution_epoch, bool) \
                 or execution_epoch < 0:
             return self._record_approval(
