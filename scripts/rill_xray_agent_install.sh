@@ -43,6 +43,14 @@ chown -R rill-xray-agent:rill-xray-agent /var/lib/rill-xray-agent-runtime /run/r
 chown -R root:rill-xray-agent /var/lib/rill-xray-agent-root
 chmod 2750 /var/lib/rill-xray-agent-root
 chmod 0750 /var/lib/rill-xray-agent-root/transactions
+# Root-owned generation (§P0-7): a fresh install starts at generation 0. The
+# file is 0640 root:rill-xray-agent so the unprivileged Runtime can read
+# committed generations; only the root oneshot executor writes it.
+if [[ ! -f "$(root /var/lib/rill-xray-agent-root/generation)" ]]; then
+    printf '0\n' > "$(root /var/lib/rill-xray-agent-root/generation)"
+    chown root:rill-xray-agent "$(root /var/lib/rill-xray-agent-root/generation)"
+    chmod 0640 "$(root /var/lib/rill-xray-agent-root/generation)"
+fi
 # DAC contract: the observation tree is root-writable / rill-xray-agent
 # readable-and-traversable / NOT writable by the Runtime user. The setgid
 # directory bit keeps every newly created member file in group
