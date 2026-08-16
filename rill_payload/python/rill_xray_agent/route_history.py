@@ -27,10 +27,10 @@ _ALLOWED_FIELDS = {
     'operationCount', 'operationKinds', 'operationsDigest',
     'effectiveStage', 'wouldApply', 'wouldReject', 'applied',
     'blockedBy', 'rejectReasonCode', 'mode', 'releaseReleased',
-    'requestSha256',
+    'requestSha256', 'schemaVersion',
 }
 _BOOL_FIELDS = {'wouldApply', 'wouldReject', 'applied', 'releaseReleased'}
-_INT_FIELDS = {'createdAtEpochSeconds', 'expiresAtEpochSeconds', 'configurationGeneration', 'operationCount'}
+_INT_FIELDS = {'createdAtEpochSeconds', 'expiresAtEpochSeconds', 'configurationGeneration', 'operationCount', 'schemaVersion'}
 _LIST_FIELDS = {'operationKinds', 'blockedBy'}
 _EVENT_TYPES = {'plan', 'approve', 'reject', 'auto-status'}
 _FORBIDDEN_TOKENS = ('vless://', 'vmess://', 'trojan://', 'ssh://',

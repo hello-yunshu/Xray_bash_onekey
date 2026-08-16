@@ -9874,6 +9874,11 @@ show_help() {
     echo "  -pt, --port-traffic         $(gettext "查看") port $(gettext "实时流量")"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
     echo "      --rill-agent-install    $(gettext "安装或修复 Rill AI 判断引擎")"
+    echo "      --rill-agent-status     $(gettext "查看") Rill AI $(gettext "判断引擎状态")"
+    echo "      --rill-agent-route-stage $(gettext "切换路由辅助阶段") observe/assist/auto"
+    echo "      --rill-agent-auto-status $(gettext "查看自动修改状态")"
+    echo "      --rill-agent-auto-confirm $(gettext "确认自动修改授权")"
+    echo "      --rill-agent-auto-revoke $(gettext "撤销自动修改授权")"
     echo "  -s, --show                  $(gettext "显示安装信息")"
     echo "  -t, --target-reset          $(gettext "变更") target"
     echo "  -tcp, --tcp                 $(gettext "配置") TCP $(gettext "加速")"
@@ -11962,7 +11967,8 @@ is_offline_safe_command() {
         --service-start|--service-stop|--service-restart|\
         --access-log|--error-log|--backup|\
         --rill-agent|--rill-agent-install|--rill-agent-status|--rill-agent-safe-disable|--rill-agent-verify|--rill-agent-uninstall|\
-        --rill-agent-diagnose|--rill-agent-timeline|\
+        --rill-agent-diagnose|--rill-agent-timeline|--rill-agent-route-stage|--rill-agent-auto-status|\
+        --rill-agent-auto-confirm|--rill-agent-auto-revoke|--rill-agent-fuse-ack|\
         --rill-integration-self-check)
             return 0
             ;;
@@ -11995,6 +12001,16 @@ dispatch_offline_safe_command() {
         --rill-agent-verify) rxa_dispatch verify ;;
         --rill-agent-diagnose) rxa_dispatch diagnose ;;
         --rill-agent-timeline) rxa_dispatch timeline ;;
+        # P0-8: authority-relevant transitions dispatch to the manager, which
+        # routes them through the ROOT execution policy helper (routeStage
+        # three-party transaction; auto confirm/revoke and fuse ack bump
+        # executionEpoch; autoStatus reports configured/rootAuthoritative/
+        # shadow/effective).
+        --rill-agent-route-stage) rxa_dispatch routeStage "${2:-}"; shift ;;
+        --rill-agent-auto-status) rxa_dispatch autoStatus ;;
+        --rill-agent-auto-confirm) rxa_dispatch autoConfirm ;;
+        --rill-agent-auto-revoke) rxa_dispatch autoRevoke ;;
+        --rill-agent-fuse-ack) rxa_dispatch fuseAck ;;
         --rill-agent-uninstall) rxa_dispatch uninstall ;;
         --rill-integration-self-check) rxa_integration_self_check ;;
         *) return 1 ;;
