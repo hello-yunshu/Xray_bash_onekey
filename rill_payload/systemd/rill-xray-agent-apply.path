@@ -1,7 +1,12 @@
 [Unit]
 Description=Watch Rill Xray Agent apply spool for route mutations
 [Path]
+# P0-11: PathChanged fires when the Runtime writes a new apply.json.
+# PathExists fires at boot when apply.claim exists (reboot recovery).
+# Either trigger starts the executor, which recovers any existing claim
+# first, then processes a new request.
 PathChanged=/var/spool/rill-xray-agent-apply/apply.json
+PathExists=/var/spool/rill-xray-agent-apply/apply.claim
 Unit=rill-xray-agent-apply.service
 [Install]
 WantedBy=multi-user.target

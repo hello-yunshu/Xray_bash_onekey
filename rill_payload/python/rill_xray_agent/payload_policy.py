@@ -154,6 +154,9 @@ def sanitize_route_plan_meta(plan):
         if token and token.lower() in lowered:
             raise ValueError('forbidden material in route plan')
     return {
+        # schemaVersion is kept so a re-read plan (routeApprove) can be
+        # re-validated as a concrete RoutePlan by evaluate_plan_policy (§P0-1).
+        'schemaVersion': plan['schemaVersion'],
         'recommendationId': plan['recommendationId'],
         'planSha256': plan['planSha256'],
         'sourceConfigSha256': plan['sourceConfigSha256'],

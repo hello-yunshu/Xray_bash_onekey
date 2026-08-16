@@ -189,6 +189,17 @@ grep -Fq 'rxa_runtime mode "$old"' scripts/rill_xray_agent_manager.sh
 grep -Fq 'RILL_XRAY_HOST_ROOT", "/etc/idleleo' scripts/rill_xray_agent_observe.py
 grep -Fq 'PathChanged=/etc/idleleo/conf/xray/config.json' systemd/rill-xray-agent-xray-observe.path
 grep -Fq 'Environment=RILL_XRAY_HOST_ROOT=/etc/idleleo' systemd/rill-xray-agent-xray-observe.service
+# P0-4: root observer emits the safe route-topology projection; the Runtime
+# only consumes the projection (READ-ONLY), never the raw Xray config.
+grep -Fq 'ROUTE_TOPOLOGY' scripts/rill_xray_agent_observe.py
+grep -Fq 'route-topology.json' scripts/rill_xray_agent_observe.py
+grep -Fq 'RouteTopologyProjection' scripts/rill_xray_agent_observe.py
+grep -Fq 'topology_path' rill_payload/python/rill_xray_agent/runtime_service.py
+grep -Fq 'DEFAULT_TOPOLOGY_PATH' rill_payload/python/rill_xray_agent/runtime_service.py
+grep -Fq 'ReadOnlyPaths=' systemd/rill-xray-agent-runtime.service
+grep -Fq '/var/lib/rill-xray-agent-xray' systemd/rill-xray-agent-runtime.service
+grep -Fq 'topologyPath' rill_payload/config/default.json
+grep -Fq 'route-topology.json' rill_payload/config/default.json
 # P0-x: two-phase uninstall contract (prepare -> commit/abort).
 grep -q 'rxa_uninstall_prepare()' scripts/rill_xray_agent_uninstall.sh
 grep -q 'rxa_uninstall_remove_rill()' scripts/rill_xray_agent_uninstall.sh
