@@ -173,7 +173,7 @@ rxa_apply_route_stage() {
         return 1
     fi
     # 3) Runtime preference (shadow only, never authority).
-    rxa_runtime routeStage "$stage" >/dev/null 2>&1 || true
+    rxa_runtime route-stage "$stage" >/dev/null 2>&1 || true
     return 0
 }
 
@@ -572,7 +572,7 @@ except Exception:
     print("? ? ? ?")')"
     fi
     shadow_confirmed=false; shadow_stage=unknown
-    if shadow_json=$(rxa_runtime autoStatus 2>/dev/null); then
+    if shadow_json=$(rxa_runtime auto-status 2>/dev/null); then
         read -r shadow_confirmed shadow_stage <<<"$(printf '%s' "${shadow_json}" | python3 -c 'import json,sys
 try:
     d=json.load(sys.stdin); d=d.get("result") or d

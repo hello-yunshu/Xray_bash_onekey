@@ -55,6 +55,13 @@ def main() -> int:
         managed_config_path=a.managed_config,
         allowed_producer_uids=_runtime_producer_uids(),
     )
+    # P0-9: live Xray convergence. After a managed-config mutation the running
+    # Xray service must be restarted and verified active BEFORE the terminal
+    # commit; the same restart also runs on rollback/recovery so the restored
+    # config is the one actually executing. Wire the executor's systemctl
+    # restart into the transaction now (cannot be passed at construction, the
+    # executor instance is not yet available).
+    executor.txn.restart_fn = executor.restart_xray
     result = executor.apply()
     sys.stdout.write(json.dumps(result, sort_keys=True, ensure_ascii=False) + '\n')
     return 0
