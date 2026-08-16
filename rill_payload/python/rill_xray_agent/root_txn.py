@@ -1,4 +1,4 @@
-import os, re, shutil, time
+import os, pwd, re, shutil, time
 from pathlib import Path
 from .canonical import atomic_write_bytes, atomic_write_json, digest, file_sha256, read_json
 from .errors import TransactionError
@@ -15,6 +15,13 @@ UNVERIFIED_STATE = 'rollbackUnverified'
 # it (ReadOnlyPaths=/var/lib/rill-xray-agent-root); only the root oneshot
 # (rill-xray-agent-apply) writes it via RootTransaction.
 DEFAULT_GENERATION_PATH = Path('/var/lib/rill-xray-agent-root/generation')
+
+# The unprivileged Runtime (User=rill-xray-agent) must be able to READ the
+# root-owned generation to observe committed generations. The generation file
+# is therefore written 0640 with group rill-xray-agent (install.sh also sets
+# the setgid bit on the root dir, so mkstemp+replace inherits the group even
+# without the explicit chown; the chown here makes it robust in sandboxes).
+RILL_GROUP = 'rill-xray-agent'
 
 
 def fault(point: str):
@@ -52,6 +59,20 @@ class RootTransaction:
         except FileNotFoundError:
             return 0
 
+    def _write_generation(self, value):
+        """Persist the root-owned generation (§P0-7) as 0640 root:rill-xray-agent
+        so the unprivileged Runtime can read committed generations. The root dir
+        carries the setgid bit at install time (mkstemp+replace inherits the
+        group); the explicit chown keeps the DAC correct even where the dir
+        lacks setgid (test sandboxes). Non-root callers (tests) skip the chown."""
+        atomic_write_bytes(self.generation_file, (str(value) + '\n').encode(), 0o640)
+        if os.geteuid() == 0:
+            try:
+                gid = pwd.getgrnam(RILL_GROUP).gr_gid
+                os.chown(self.generation_file, 0, gid)
+            except (KeyError, OSError):
+                pass
+
     @staticmethod
     def validated_id(did):
         if not isinstance(did, str) or not RECOMMENDATION_ID_RE.match(did):
@@ -83,7 +104,7 @@ class RootTransaction:
         """Write generation, result, receipt and delivery from a validated
         bundle. Each durable artifact boundary is a fault point so crash
         recovery can be tested at every step."""
-        atomic_write_bytes(self.generation_file, (str(b['nextConfigurationGeneration']) + '\n').encode(), 0o640)
+        self._write_generation(b['nextConfigurationGeneration'])
         atomic_write_json(w / 'result.json', b['result'])
         fault('RESULT')
         atomic_write_json(w / 'receipt.json', b['receipt'])
@@ -174,7 +195,7 @@ class RootTransaction:
             if restart_fn is not None and not restart_fn():
                 raise TransactionError('restored restart failed')
             # 2. restore generation
-            atomic_write_bytes(self.generation_file, (str(old) + '\n').encode(), 0o640)
+            self._write_generation(old)
             fault('GENERATION_RESTORE')
             # 3. verify the restore actually converged
             if existed and (not backup.is_file() or file_sha256(managed) != file_sha256(backup)):
@@ -318,7 +339,7 @@ class RootTransaction:
         # P0-9: live convergence back to the restored config after recovery.
         if self.restart_fn is not None and not self.restart_fn():
             raise TransactionError('restored restart failed during recovery')
-        atomic_write_bytes(self.generation_file, (str(old) + '\n').encode(), 0o640)
+        self._write_generation(old)
         if existed and (not backup.is_file() or file_sha256(managed) != file_sha256(backup)):
             raise TransactionError('restore verification failed')
         bundle = self._build_bundle(w, did, read_json(w / 'request.json'), old, 'rolledBack', 'rolledBack')

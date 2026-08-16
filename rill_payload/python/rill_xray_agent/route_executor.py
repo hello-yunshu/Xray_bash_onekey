@@ -691,22 +691,22 @@ class RouteExecutor:
             # The committed file must equal the compiled bytes exactly.
             return file_sha256(self.managed_config_path) == committed_sha
 
+        is_auto = request.get('applyType') == 'auto'
         try:
-            result = self.txn.apply(request, self.managed_config_path, apply_fn, verify_fn)
+            # P0-10: the auto ledger record is part of the transaction, not an
+            # afterthought. commit_hook/rollback_hook run INSIDE RootTransaction
+            # and are durable BEFORE the terminal commit, so a crash can never
+            # leave "host changed but no durable ledger record" (or vice versa).
+            result = self.txn.apply(
+                request, self.managed_config_path, apply_fn, verify_fn,
+                commit_hook=(lambda: self.root_policy.record_apply(rid)) if is_auto else None,
+                rollback_hook=(lambda: self.root_policy.record_rollback()) if is_auto else None,
+            )
         except TransactionError as exc:
             # Generation mismatch / conflict / verify-fail rollback already
             # handled inside RootTransaction; surface the structured outcome.
             return self._error_result(request, claim_path, exc)
         status = result['status']
-        # Root-side auto ledger (§16): record actual auto mutations and
-        # rollbacks into the ROOT-owned ledger so cooldown / rate / fuse are
-        # recomputed root-side. Only real auto executions (never manual, and
-        # never a blocked/stale request) reach here.
-        if request.get('applyType') == 'auto':
-            if status == 'committed':
-                self.root_policy.record_apply(rid)
-            elif status in ('rolledBack', 'rollbackUnverified'):
-                self.root_policy.record_rollback()
         # Refresh the safe root-policy projection so the unprivileged
         # Runtime/UI immediately sees the updated epoch / confirmation / fuse.
         self._refresh_projection()

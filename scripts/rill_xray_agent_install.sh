@@ -41,7 +41,8 @@ getent group rill-xray-agent >/dev/null || groupadd --system rill-xray-agent
 id rill-xray-agent >/dev/null 2>&1 || useradd --system --gid rill-xray-agent --home-dir /var/lib/rill-xray-agent-runtime --shell /usr/sbin/nologin rill-xray-agent
 chown -R rill-xray-agent:rill-xray-agent /var/lib/rill-xray-agent-runtime /run/rill-xray-agent
 chown -R root:rill-xray-agent /var/lib/rill-xray-agent-root
-chmod 0750 /var/lib/rill-xray-agent-root /var/lib/rill-xray-agent-root/transactions
+chmod 2750 /var/lib/rill-xray-agent-root
+chmod 0750 /var/lib/rill-xray-agent-root/transactions
 # DAC contract: the observation tree is root-writable / rill-xray-agent
 # readable-and-traversable / NOT writable by the Runtime user. The setgid
 # directory bit keeps every newly created member file in group
