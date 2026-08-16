@@ -53,6 +53,54 @@ esac
 CLIEOF
 chmod +x "${CLI}"
 
+# P0-8: rxa_apply_mode drives the ROOT execution policy (single authority)
+# first. Provide a fake root-policy helper in the sandbox that tracks mode and
+# routeStage, and fails closed when RXA_ROOT_POLICY_FAIL=1 (missing / corrupt
+# helper probe).
+ROOT_POLICY="${TMP_ROOT}/rill-xray-agent-root-policy"
+ROOT_POLICY_STATE="${TMP_ROOT}/root-policy.state"
+ROOT_POLICY_STAGE_STATE="${TMP_ROOT}/root-policy-stage.state"
+printf 'observe-only' > "${ROOT_POLICY_STATE}"
+printf 'observe' > "${ROOT_POLICY_STAGE_STATE}"
+cat > "${ROOT_POLICY}" <<'RPEOF'
+#!/usr/bin/env bash
+# mimic: rill-xray-agent-root-policy <command> ...
+STATE="${RXA_ROOT_POLICY_STATE}"
+STAGE="${RXA_ROOT_POLICY_STAGE_STATE}"
+cmd="$1"; shift
+case "$cmd" in
+    status)
+        mode=$(cat "${STATE}" 2>/dev/null || printf 'observe-only')
+        stage=$(cat "${STAGE}" 2>/dev/null || printf 'observe')
+        printf '{"schemaVersion":1,"ok":true,"command":"status","policy":{"mode":"%s","routeStage":"%s","autoConfirmed":false,"executionEpoch":0}}\n' "$mode" "$stage"
+        ;;
+    mode)
+        [[ "${RXA_ROOT_POLICY_FAIL:-0}" == 1 ]] && exit 1
+        printf '%s' "${1:-}" > "${STATE}"
+        printf '{"schemaVersion":1,"ok":true,"command":"mode"}\n'
+        ;;
+    safe-disable)
+        [[ "${RXA_ROOT_POLICY_FAIL:-0}" == 1 ]] && exit 1
+        printf '%s' 'safe-disabled' > "${STATE}"
+        printf '{"schemaVersion":1,"ok":true,"command":"safe-disable"}\n'
+        ;;
+    route-stage)
+        [[ "${RXA_ROOT_POLICY_FAIL:-0}" == 1 ]] && exit 1
+        printf '%s' "${1:-}" > "${STAGE}"
+        printf '{"schemaVersion":1,"ok":true,"command":"route-stage"}\n'
+        ;;
+    confirm-auto|revoke-auto|acknowledge-fuse)
+        [[ "${RXA_ROOT_POLICY_FAIL:-0}" == 1 ]] && exit 1
+        printf '{"schemaVersion":1,"ok":true,"command":"%s"}\n' "$cmd"
+        ;;
+    *) exit 66 ;;
+esac
+RPEOF
+chmod +x "${ROOT_POLICY}"
+
+export RILL_XRAY_AGENT_ROOT_POLICY_HELPER="${ROOT_POLICY}"
+export RXA_ROOT_POLICY_STATE="${ROOT_POLICY_STATE}"
+export RXA_ROOT_POLICY_STAGE_STATE="${ROOT_POLICY_STAGE_STATE}"
 export RILL_XRAY_AGENT_HOME="${HOME_DIR}"
 export RILL_XRAY_AGENT_CONFIG="${CONFIG}"
 export RILL_XRAY_AGENT_CLI="${CLI}"
