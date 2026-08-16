@@ -8,6 +8,12 @@ reached through the release-gated executor path.
 The fuse is persistent: once it opens after N consecutive rollbacks it stays
 open across restarts until an explicit human acknowledgment resets it. Restart
 must never silently re-enable auto.
+
+Corruption / unreadability / invalid schema / symlink / bad ownership or
+permissions NEVER reset the policy to a fresh default (that would widen the
+auto window). Instead the policy is marked integrity=invalid, auto is blocked,
+and every state-mutating call raises AutoPolicyIntegrityError until a human
+repairs the file.
 """
 from __future__ import annotations
 
@@ -23,9 +29,31 @@ DEFAULT_POLICY = {
     'consecutiveRollbackFuseLimit': 2,
 }
 
-_AUTO_POLICY_KEYS = ('lastAutoAtEpochSeconds', 'lastByRecommendation',
-                     'mutationTimes', 'consecutiveRollbacks', 'fuseOpen',
-                     'fuseOpenedAtEpochSeconds', 'fuseAcknowledged')
+# key -> required persisted type. A file violating this is corrupt.
+_STATE_SCHEMA = {
+    'lastAutoAtEpochSeconds': int,
+    'lastByRecommendation': dict,
+    'mutationTimes': list,
+    'consecutiveRollbacks': int,
+    'fuseOpen': bool,
+    'fuseAcknowledged': bool,
+}
+
+
+def _fresh_default_state():
+    """A pristine default state. Deep-built so nested containers are never
+    shared between policy instances (a shared mutation list would leak state
+    across restarts/instances)."""
+    return {'lastAutoAtEpochSeconds': 0, 'lastByRecommendation': {},
+            'mutationTimes': [], 'consecutiveRollbacks': 0, 'fuseOpen': False,
+            'fuseOpenedAtEpochSeconds': None, 'fuseAcknowledged': False}
+
+
+class AutoPolicyIntegrityError(RuntimeError):
+    """Raised on any attempt to mutate a corrupt auto policy.
+
+    Auto must stay blocked until a human repairs the policy file.
+    """
 
 
 class AutoPolicy:
@@ -33,38 +61,67 @@ class AutoPolicy:
         self.path = Path(path)
         self.config = {**DEFAULT_POLICY, **(config or {})}
         self._now = now
+        self._integrity_valid = True
+        self._corrupt_reason = None
         self._state = self._load()
 
     def _clock(self):
         return int(self._now if self._now is not None else time.time())
 
+    def _corrupt(self, reason):
+        """Fail closed: keep a pristine default state (never a widened window),
+        mark integrity invalid and remember why for human repair."""
+        self._integrity_valid = False
+        self._corrupt_reason = reason
+        return _fresh_default_state()
+
     def _load(self):
-        default = {'lastAutoAtEpochSeconds': 0, 'lastByRecommendation': {},
-                   'mutationTimes': [], 'consecutiveRollbacks': 0,
-                   'fuseOpen': False, 'fuseOpenedAtEpochSeconds': None,
-                   'fuseAcknowledged': False}
+        path = self.path
+        # Security boundary: never trust a symlink or non-regular file. This
+        # must be checked BEFORE exists(): a dangling symlink fails exists() but
+        # is still a symlink and must never be treated as a fresh install (§15).
+        if path.is_symlink():
+            return self._corrupt('policy path must be a regular file, not a symlink or special file')
+        # A missing file is a fresh install: pristine default, valid.
+        if not path.exists():
+            return _fresh_default_state()
+        if not path.is_file():
+            return self._corrupt('policy path must be a regular file, not a symlink or special file')
         try:
-            data = read_json(self.path)
-        except (ValueError, OSError):
-            return default
+            st = path.stat()
+        except OSError as exc:
+            return self._corrupt('policy file unreadable: %s' % exc)
+        # Group/world-writable policy widens the auto attack surface.
+        if st.st_mode & 0o022:
+            return self._corrupt('policy file must not be group/world writable')
+        try:
+            data = read_json(path)
+        except (ValueError, OSError) as exc:
+            return self._corrupt('policy file unparseable: %s' % exc)
         if not isinstance(data, dict):
-            return default
-        for key in _AUTO_POLICY_KEYS:
-            if key not in data:
-                data[key] = default[key]
-        # Fail closed on malformed persisted values: a corrupt policy file must
-        # never widen the auto window.
-        if not isinstance(data.get('mutationTimes'), list):
-            data['mutationTimes'] = []
-        if not isinstance(data.get('lastByRecommendation'), dict):
-            data['lastByRecommendation'] = {}
-        for key in ('lastAutoAtEpochSeconds', 'consecutiveRollbacks'):
-            if not isinstance(data.get(key), int):
-                data[key] = 0
-        for key in ('fuseOpen', 'fuseAcknowledged'):
-            if not isinstance(data.get(key), bool):
-                data[key] = False
+            return self._corrupt('policy file root must be a JSON object')
+        missing = [k for k in _STATE_SCHEMA if k not in data]
+        if missing:
+            return self._corrupt('policy file missing required keys: ' + ','.join(missing))
+        for key, typ in _STATE_SCHEMA.items():
+            if not isinstance(data[key], typ):
+                return self._corrupt("policy key %r has wrong type %s (expected %s)"
+                                     % (key, type(data[key]).__name__, typ.__name__))
+        if data['fuseOpenedAtEpochSeconds'] is not None and not isinstance(data['fuseOpenedAtEpochSeconds'], int):
+            return self._corrupt("policy key 'fuseOpenedAtEpochSeconds' must be an int or null")
+        if not all(isinstance(t, int) for t in data['mutationTimes']):
+            return self._corrupt('policy mutationTimes must contain only integers')
+        if not all(isinstance(k, str) for k in data['lastByRecommendation']):
+            return self._corrupt('policy lastByRecommendation keys must be strings')
         return data
+
+    @property
+    def integrity_valid(self):
+        return self._integrity_valid
+
+    @property
+    def corrupt_reason(self):
+        return self._corrupt_reason
 
     def snapshot(self):
         """Read-only status for display / shadow (no secrets)."""
@@ -77,6 +134,9 @@ class AutoPolicy:
             0 if last_auto == 0 else max(
                 0, int(self.config['globalCooldownSeconds']) - (now - last_auto)))
         return {
+            'integrity': 'valid' if self._integrity_valid else 'invalid',
+            'corruptReason': self._corrupt_reason,
+            'canAutoApply': self._integrity_valid,
             'fuseOpen': bool(s['fuseOpen']),
             'fuseAcknowledged': bool(s['fuseAcknowledged']),
             'fuseOpenedAtEpochSeconds': s['fuseOpenedAtEpochSeconds'],
@@ -92,8 +152,11 @@ class AutoPolicy:
         """Shadow/actual auto-eligibility decision. Returns (allowed, blocked_by).
 
         This is the single place auto cooldown/rate/fuse is decided. It never
-        mutates state, so it is safe to call in shadow mode.
+        mutates state, so it is safe to call in shadow mode. A corrupt policy
+        is always blocked and never widened.
         """
+        if not self._integrity_valid:
+            return (False, ['policy_corrupt'])
         s = self._state
         now = self._clock()
         blocked = []
@@ -112,9 +175,15 @@ class AutoPolicy:
             blocked.append('fusible_closed')
         return (not blocked, blocked)
 
+    def _require_valid(self):
+        if not self._integrity_valid:
+            raise AutoPolicyIntegrityError(
+                self._corrupt_reason or 'auto policy corrupt; human repair required')
+
     def record_apply(self, recommendation_id):
         """Record an actual (gate-open) auto apply. Only call after a real
         mutation succeeded; never call from shadow evaluation."""
+        self._require_valid()
         now = self._clock()
         s = self._state
         s['lastAutoAtEpochSeconds'] = now
@@ -131,6 +200,7 @@ class AutoPolicy:
         """Record an actual (gate-open) auto rollback. Opens the fuse at the
         configured consecutive limit; the fuse then requires explicit human
         acknowledgment and survives restarts."""
+        self._require_valid()
         now = self._clock()
         s = self._state
         s['consecutiveRollbacks'] = int(s['consecutiveRollbacks']) + 1
@@ -143,6 +213,7 @@ class AutoPolicy:
     def acknowledge_fuse(self, acknowledged=True):
         """Explicit human acknowledgment required to re-arm auto after a fuse.
         Restart never clears this on its own."""
+        self._require_valid()
         s = self._state
         if acknowledged and s['fuseOpen']:
             s['fuseAcknowledged'] = True

@@ -17,6 +17,7 @@
     "historyPath": "/var/lib/rill-xray-agent-xray/history",
     "maxEvents": 200,
     "observationPath": "/var/lib/rill-xray-agent-xray/status/xray-observation.json",
+    "topologyPath": "/var/lib/rill-xray-agent-xray/status/route-topology.json",
     "segmentBytes": 524288,
     "totalBytes": 4194304
   },
