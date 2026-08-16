@@ -5,7 +5,7 @@ permissions:
 env:
   # Pin the Rill commit whose CANONICAL_MANIFEST.json this payload must match.
   # Bump when the Rill canonical source of truth changes.
-  RILL_CANONICAL_COMMIT: fc6da67cd9f3543525898046c76165c94dd1c031
+  RILL_CANONICAL_COMMIT: c85af33f4e5a4d26265b47a35c3817da163f2457
 jobs:
   integration:
     runs-on: ubuntu-latest
