@@ -73,6 +73,10 @@ jobs:
           bash .github/test/test_nginx_tar_security.sh
           bash .github/test/test_nginx_update_rollback.sh
           bash .github/test/test_phase1_safety.sh
+          # Bootstrap dependency / error-propagation regression (13.2-13.4, 13.10):
+          # pkg_install multi-package failure propagation, offline/online language
+          # init ordering, lazy config load, candidate-guard stage diagnostics.
+          bash .github/test/test_bootstrap_dependencies.sh
           # Xray update transaction tests (auto + manual mode coverage)
           bash .github/test/test_xray_update_transaction.sh
           # Online version metadata must fall back cleanly without contaminating values.
@@ -223,10 +227,46 @@ jobs:
           echo "=== Install log (redacted) ==="
           sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics /dev/stdin || echo "(not found)"
 
+  minimal-bootstrap:
+    needs: security-regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        # The confirmed Bootstrap dependency closure must be proven on truly
+        # minimal images that start with python3/jq/bc often absent, not on an
+        # ubuntu-latest runner that already carries most tooling. CentOS
+        # Stream 10 additionally proves the RPM-family manager selection (dnf
+        # over the yum alias) and that package query/install/refresh all route
+        # through the selected manager, never a hard-coded alias.
+        image:
+          - debian:12-slim
+          - debian:13-slim
+          - ubuntu:24.04
+          - quay.io/centos/centos:stream10
+
+    name: Minimal Bootstrap (${{ matrix.image }})
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Run minimal bootstrap test in container
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$PWD":/repo:ro \
+            -e REPO_DIR=/repo \
+            "${{ matrix.image }}" \
+            bash /repo/.github/test/test_minimal_bootstrap.sh
+
   release-gate:
     needs:
       - security-regression
       - test-install
+      - minimal-bootstrap
     runs-on: ubuntu-latest
     if: always()
     steps:
