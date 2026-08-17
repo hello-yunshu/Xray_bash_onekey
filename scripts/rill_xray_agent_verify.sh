@@ -8,13 +8,20 @@ static_check() {
         /opt/rill-xray-agent/bin/rill-xray-agent
         /opt/rill-xray-agent/bin/rill-xray-agent-runtime
         /opt/rill-xray-agent/bin/rill-xray-agent-agent
+        /opt/rill-xray-agent/bin/rill-xray-agent-auto-evaluate
         /etc/systemd/system/rill-xray-agent-runtime.service
         /etc/systemd/system/rill-xray-agent-agent.service
+        /etc/systemd/system/rill-xray-agent-apply.path
+        /etc/systemd/system/rill-xray-agent-apply.service
+        /etc/systemd/system/rill-xray-agent-auto-evaluate.path
+        /etc/systemd/system/rill-xray-agent-auto-evaluate.service
+        /opt/rill-xray-agent/share/release-capabilities.json
     )
     local file
     for file in "${required[@]}"; do
         [[ -f "$root$file" ]] || { echo "缺少必要文件: $file" >&2; exit 1; }
     done
+    [[ -d "$root/var/spool/rill-xray-agent-apply" ]] || { echo "缺少应用链暂存目录: /var/spool/rill-xray-agent-apply" >&2; exit 1; }
     bash -n "$root/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh"
     python3 -m py_compile "$root/opt/rill-xray-agent/python/rill_xray_agent/runtime_service.py"
     python3 - "$root/etc/rill-xray-agent/config.json" <<'PY'
@@ -23,6 +30,14 @@ data=json.load(open(sys.argv[1]))
 assert data['routeAssistEnabled'] is False
 assert data['boundedAutoAllowed'] is False
 assert data['mode'] in {'normal','observe-only','safe-disabled'}
+PY
+    python3 - "$root/opt/rill-xray-agent/share/release-capabilities.json" <<'PY'
+import json,sys
+data=json.load(open(sys.argv[1]))
+assert data.get('schemaVersion') == 1
+for f in ('routeAssist','boundedAuto'):
+    assert data['features'][f]['supported'] is True
+    assert data['features'][f]['released'] is False
 PY
     echo 'Rill Xray AI 运维助手静态安装校验通过'
 }

@@ -274,7 +274,7 @@ rxa_candidate_guard() { return 1; }
 if rxa_replace_main_candidate "${candidate}" "${idleleo}"; then
     bad "post-replacement guard failure must return non-zero"
 else
-    [[ ${RILL_UPDATE_CANDIDATE_ERROR} == postcheck ]] \
+    [[ ${RILL_UPDATE_CANDIDATE_ERROR} == postcheck:* ]] \
         && ok "post-replacement failure is classified as postcheck" \
         || bad "post-replacement failure classification is ${RILL_UPDATE_CANDIDATE_ERROR}"
 fi

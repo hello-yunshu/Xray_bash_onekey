@@ -1,0 +1,13 @@
+[Unit]
+Description=Watch Rill Xray Agent route-topology projection for bounded auto evaluation
+[Path]
+# P0-3: PathChanged fires when the root observer atomically replaces the safe
+# route-topology projection. The unprivileged auto-evaluate oneshot wakes the
+# Runtime's autoProduce evaluator, which fails closed on all gating (cooldown,
+# rate, fuse, release gate, missing/corrupt topology) and never mutates the
+# host itself. The oneshot is single-flight + debounced via flock, so a burst
+# of topology replacements cannot spin up a busy loop.
+PathChanged=/var/lib/rill-xray-agent-xray/status/route-topology.json
+Unit=rill-xray-agent-auto-evaluate.service
+[Install]
+WantedBy=multi-user.target
