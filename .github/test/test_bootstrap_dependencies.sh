@@ -35,7 +35,9 @@ log_echo() { :; }
 sleep() { :; }
 
 # Override the real info_extraction to avoid touching the host install config
-# during these tests.
+# during these tests. Save the real production function first so the 13.4
+# public-entry test can restore it (T3 pattern: never unset -f a sourced fn).
+_info_extraction_saved=$(declare -f info_extraction)
 info_extraction() { printf '%s' "${info_extraction_all:-}"; }
 
 echo "============================================================"
@@ -233,6 +235,25 @@ fi
 # Restore the production has_jq_binary function.
 eval "${_has_jq_binary_saved}"
 unset _has_jq_binary_saved
+
+# Public entry (P0-1 fix): a malformed config read through the real
+# info_extraction() must return failure, not be treated as an empty read.
+if has_jq_binary; then
+    xray_install_config_file="${BROKEN_CFG}"
+    _info_extraction_loaded=0
+    _info_cache_loaded=0
+    info_extraction_all=""
+    read_config_status=""
+    eval "${_info_extraction_saved}" # restore the real production public entry
+    if info_extraction "port"; then
+        bad "info_extraction should fail on malformed config (public entry)"
+    else
+        ok "info_extraction returns non-zero on malformed config (public entry)"
+    fi
+    [[ "${read_config_status:-}" == "0" ]] && ok "malformed config sets read_config_status=0 via public entry" ||
+        bad "malformed config left read_config_status='${read_config_status}' via public entry"
+    info_extraction() { printf '%s' "${info_extraction_all:-}"; } # restore mock
+fi
 
 echo "============================================================"
 echo "  13.5: P1-9 pkg_install call-site failure propagation"

@@ -221,13 +221,14 @@ _lazy_load_info_extraction() {
     if [[ ${_info_extraction_loaded} -eq 1 ]]; then
         return 0
     fi
-    _info_extraction_loaded=1
     if [[ ! -f "${xray_install_config_file}" ]]; then
         info_extraction_all=""
+        _info_extraction_loaded=1
         return 0
     fi
     if ! has_jq_binary; then
         # config present + jq missing: explicit dependency/config-read error.
+        # Stay UNLOADED so a later read can succeed once jq exists.
         info_extraction_all=""
         read_config_status=0
         return 1
@@ -235,6 +236,7 @@ _lazy_load_info_extraction() {
     local _parsed
     if ! _parsed=$(jq -rc . "${xray_install_config_file}" 2>/dev/null); then
         # config present + malformed JSON: fail closed, preserve the file.
+        # Stay UNLOADED so a repaired config can be re-read.
         info_extraction_all=""
         read_config_status=0
         log_echo "${Error} ${RedBG} CONFIG_PARSE_ERROR path=${xray_install_config_file} action=preserved ${Font}" 2>/dev/null || true
@@ -242,6 +244,7 @@ _lazy_load_info_extraction() {
     fi
     info_extraction_all="${_parsed}"
     read_config_status=1
+    _info_extraction_loaded=1
     return 0
 }
 
@@ -1383,9 +1386,12 @@ init_package_manager() {
 # GitHub curl / mkdir /etc/idleleo. Must be idempotent and safe to re-run.
 validate_supported_system() {
     if is_rpm_family; then
-        # RPM family (centos/rocky/almalinux): accepted at any version; the
-        # installer selects the right package manager and metadata refresh.
-        return 0
+        # RPM family (centos/rocky/almalinux): accepted at major version >= 10,
+        # matching check_system()'s actual support condition.
+        local major="${VERSION_ID%%.*}"
+        if [[ "${major}" =~ ^[0-9]+$ ]] && [[ "${major}" -ge 10 ]]; then
+            return 0
+        fi
     fi
     local major
     case "${ID:-}" in
@@ -8252,7 +8258,7 @@ info_extraction() {
     # depending on compat_migrate(). A corrupt/missing-jq config fails closed
     # (read_config_status=0) instead of silently returning empty.
     if [[ ${_info_cache_loaded} -eq 0 ]]; then
-        _info_cache_load
+        _info_cache_load || return 1
     fi
     if [[ -n "${_info_cache[$1]+x}" ]]; then
         echo "${_info_cache[$1]}"
