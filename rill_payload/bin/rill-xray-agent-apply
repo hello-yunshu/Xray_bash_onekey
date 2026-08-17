@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Root-owned, constrained route-mutation executor entrypoint.
+
+Invoked by the rill-xray-agent-apply.service oneshot (User=root). It drains a
+single ApplyRequest from the fixed spool directory, re-validates every input
+against the CURRENT release manifest, digest/generation/hash bindings and the
+managed Xray config, then runs the mutation through RootTransaction
+(backup/apply/verify/commit/rollback/recovery). The Runtime never reaches the
+host directly: it only stages an ApplyRequest into the spool.
+"""
+import argparse
+import json
+import pwd
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'python'))
+
+from rill_xray_agent.release_capabilities import ReleaseCapabilities
+from rill_xray_agent.route_executor import RouteExecutor
+
+
+def _runtime_producer_uids():
+    """The spool request is produced by the unprivileged Runtime service
+    (User=rill-xray-agent), not by root. Authorize that fixed system user in
+    addition to root (the executor's own secure default) so the future
+    gate-open apply path accepts the legitimate producer while still
+    rejecting any other owner."""
+    uids = {0}
+    try:
+        uids.add(pwd.getpwnam('rill-xray-agent').pw_uid)
+    except KeyError:
+        pass
+    return sorted(uids)
+
+
+def main() -> int:
+    p = argparse.ArgumentParser()
+    p.add_argument('--state-root', type=Path, default=Path('/var/lib/rill-xray-agent-runtime'))
+    p.add_argument('--transaction-root', type=Path,
+                   default=Path('/var/lib/rill-xray-agent-root/transactions'))
+    p.add_argument('--spool-dir', type=Path, default=Path('/var/spool/rill-xray-agent-apply'))
+    p.add_argument('--release-capabilities', type=Path, default=None)
+    p.add_argument('--managed-config', type=Path, default=None)
+    a = p.parse_args()
+
+    release = None
+    if a.release_capabilities is not None:
+        release = ReleaseCapabilities(a.release_capabilities)
+    executor = RouteExecutor(
+        state_root=a.state_root,
+        txn_root=a.transaction_root,
+        spool_dir=a.spool_dir,
+        release_capabilities=release,
+        managed_config_path=a.managed_config,
+        allowed_producer_uids=_runtime_producer_uids(),
+    )
+    # P0-9: live Xray convergence. After a managed-config mutation the running
+    # Xray service must be restarted and verified active BEFORE the terminal
+    # commit; the same restart also runs on rollback/recovery so the restored
+    # config is the one actually executing. Wire the executor's systemctl
+    # restart into the transaction now (cannot be passed at construction, the
+    # executor instance is not yet available).
+    executor.txn.restart_fn = executor.restart_xray
+    result = executor.apply()
+    sys.stdout.write(json.dumps(result, sort_keys=True, ensure_ascii=False) + '\n')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

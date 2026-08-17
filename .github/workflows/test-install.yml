@@ -73,6 +73,10 @@ jobs:
           bash .github/test/test_nginx_tar_security.sh
           bash .github/test/test_nginx_update_rollback.sh
           bash .github/test/test_phase1_safety.sh
+          # Bootstrap dependency / error-propagation regression (13.2-13.4, 13.10):
+          # pkg_install multi-package failure propagation, offline/online language
+          # init ordering, lazy config load, candidate-guard stage diagnostics.
+          bash .github/test/test_bootstrap_dependencies.sh
           # Xray update transaction tests (auto + manual mode coverage)
           bash .github/test/test_xray_update_transaction.sh
           # Online version metadata must fall back cleanly without contaminating values.
@@ -164,7 +168,10 @@ jobs:
           bash .phase1-contracts/skill/tests/test_full_flow_noninteractive.sh
 
   test-install:
-    needs: security-regression
+    # T5: qualification jobs are parallel and independent. Never gate the
+    # install-mode matrix on security-regression: a red unit job must not
+    # silently skip the real install qualification (and then "pass" release-gate
+    # via skipped). Each mode runs regardless of the other jobs' outcome.
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -223,10 +230,53 @@ jobs:
           echo "=== Install log (redacted) ==="
           sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics /dev/stdin || echo "(not found)"
 
+  minimal-bootstrap:
+    # T5: independent of security-regression so a red unit job cannot skip the
+    # minimal Docker qualification (Debian 12/13, Ubuntu 24.04, CentOS Stream
+    # 10). Each matrix entry is a required release-gate input.
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        # The confirmed Bootstrap dependency closure must be proven on truly
+        # minimal images that start with python3/jq/bc often absent, not on an
+        # ubuntu-latest runner that already carries most tooling. CentOS
+        # Stream 10 additionally proves the RPM-family manager selection (dnf
+        # over the yum alias) and that package query/install/refresh all route
+        # through the selected manager, never a hard-coded alias.
+        image:
+          - debian:12-slim
+          - debian:13-slim
+          - ubuntu:24.04
+          - quay.io/centos/centos:stream10
+
+    name: Minimal Bootstrap (${{ matrix.image }})
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Run minimal bootstrap test in container
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$PWD":/repo:ro \
+            -e REPO_DIR=/repo \
+            "${{ matrix.image }}" \
+            bash /repo/.github/test/test_minimal_bootstrap.sh
+
   release-gate:
+    # T5: single, independent gate. `if: always()` ensures every qualification
+    # job's result is evaluated even when some of them fail; the step below
+    # then fails the gate unless EVERY required job is `success`. `skipped` is
+    # NOT accepted (a red unit job must not let skipped Docker/install
+    # qualification pass as success).
     needs:
       - security-regression
       - test-install
+      - minimal-bootstrap
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -234,9 +284,10 @@ jobs:
           echo "release-gate: all qualification jobs evaluated"
           echo "security-regression: ${{ needs.security-regression.result }}"
           echo "test-install matrix: ${{ needs.test-install.result }}"
+          echo "minimal-bootstrap matrix: ${{ needs.minimal-bootstrap.result }}"
           for job in ${{ join(needs.*.result, ' ') }}; do
-            if [ "$job" != "success" ] && [ "$job" != "skipped" ]; then
-              echo "release-gate FAIL: job result $job" >&2
+            if [ "$job" != "success" ]; then
+              echo "release-gate FAIL: required job result '$job' (only success qualifies)" >&2
               exit 1
             fi
           done

@@ -1,4 +1,4 @@
-import os, re, shutil, time
+import grp, os, re, shutil, time
 from pathlib import Path
 from .canonical import atomic_write_bytes, atomic_write_json, digest, file_sha256, read_json
 from .errors import TransactionError
@@ -9,6 +9,46 @@ TERMINAL_STATES = {'committed', 'rolledBack', 'rollbackUnverified'}
 RECOVERABLE_STATES = {'prepared', 'applying', 'applied', 'verified', 'commit-intent', 'rollback-intent'}
 UNVERIFIED_STATE = 'rollbackUnverified'
 
+# Root-owned generation file (§P0-7). Generation participates in root-side
+# stale-plan authorization, so its final authority must be a root-only path,
+# never the unprivileged Runtime state root. The Runtime service only READS
+# it (ReadOnlyPaths=/var/lib/rill-xray-agent-root); only the root oneshot
+# (rill-xray-agent-apply) writes it via RootTransaction.
+DEFAULT_GENERATION_PATH = Path('/var/lib/rill-xray-agent-root/generation')
+
+# The unprivileged Runtime (User=rill-xray-agent) must be able to READ the
+# root-owned generation to observe committed generations. The generation file
+# is therefore written 0640 with group rill-xray-agent (install.sh also sets
+# the setgid bit on the root dir, so mkstemp+replace inherits the group even
+# without the explicit chown; the chown here makes it robust in sandboxes).
+RILL_GROUP = 'rill-xray-agent'
+
+# The unprivileged Runtime scans the root-owned transaction area read-only
+# (health / scan_recovery_state) to classify each transaction as safe or
+# recovery-required. The classification artifacts must therefore be group-
+# readable (0640 root:rill-xray-agent) and the work dir group-traversable
+# (0750 root:rill-xray-agent), while staying root-owned. The request body and
+# managed backup stay 0600 root-only: the Runtime never reads those.
+_TXN_WORKDIR_MODE = 0o750
+_TXN_ARTIFACT_MODE = 0o640
+
+
+def _ensure_runtime_readable(path, mode):
+    """Best-effort chmod (and chown to group rill-xray-agent when root) so the
+    unprivileged Runtime can read/traverse the root-owned artifact. Non-root
+    callers (test sandboxes) cannot chown; chmod is still applied."""
+    path = Path(path)
+    try:
+        os.chmod(path, mode)
+    except OSError:
+        pass
+    if os.geteuid() == 0:
+        try:
+            gid = grp.getgrnam(RILL_GROUP).gr_gid
+            os.chown(path, 0, gid)
+        except (KeyError, OSError):
+            pass
+
 
 def fault(point: str):
     """Controllable crash injection at real persistence boundaries.
@@ -16,26 +56,67 @@ def fault(point: str):
     Each env var is checked exactly where the corresponding durable write
     happens, so fault tests exercise the production crash path instead of
     hand-rolled state files. Points:
-      PREPARED APPLYING MANAGED_MUTATION APPLIED VERIFIED COMMIT_INTENT
-      ROLLBACK_INTENT MANAGED_RESTORE GENERATION_RESTORE ROLLBACK_BUNDLE
-      RESULT RECEIPT DELIVERY TERMINAL
+      PREPARED PRE_VERIFY APPLYING MANAGED_MUTATION APPLIED VERIFIED
+      COMMIT_INTENT ROLLBACK_INTENT MANAGED_RESTORE GENERATION_RESTORE
+      ROLLBACK_BUNDLE RESULT RECEIPT DELIVERY TERMINAL
     """
     if os.environ.get(f'RILL_FAULT_{point}') == '1':
         raise TransactionError(f'fault injected at {point}')
 
 
+def auto_outcome_id_for(request):
+    """§P0-5: stable, deterministic auto outcome id — single source of truth.
+
+    A given auto request ALWAYS maps to the same outcome id, so recovery /
+    ledger reconciliation replaying the same request is idempotent
+    (exactly-once ledger). Bound to requestSha256 + recommendationId +
+    configurationGeneration; None for non-auto requests. The request body is
+    already digest-anchored (requestSha256), so this id can never be forged
+    by a party that cannot produce the request.
+    """
+    if not isinstance(request, dict) or request.get('applyType') != 'auto':
+        return None
+    return digest({
+        'recommendationId': request.get('recommendationId'),
+        'configurationGeneration': request.get('configurationGeneration'),
+        'requestSha256': request.get('requestSha256'),
+    })
+
+
 class RootTransaction:
-    def __init__(self, root, delivery, generation_file):
+    def __init__(self, root, delivery, generation_file, restart_fn=None):
         self.root = Path(root)
         self.delivery = Path(delivery)
         self.generation_file = Path(generation_file)
         self.lock = self.root / '.single-flight.lock'
+        # Optional host-sync callback (P0-9): after a managed-file mutation the
+        # live Xray service must be restarted and verified active. Production
+        # wiring (bin/rill-xray-agent-apply) provides a systemctl-based
+        # implementation; tests may leave it None (pure file-level txn). It is
+        # also invoked on rollback/recovery so the restored config is the one
+        # actually running. Returning False means the live convergence failed
+        # and the transaction must roll back.
+        self.restart_fn = restart_fn
 
     def generation(self):
         try:
             return int(self.generation_file.read_text().strip())
         except FileNotFoundError:
             return 0
+
+    def _write_generation(self, value):
+        """Persist the root-owned generation (§P0-7) as 0640 root:rill-xray-agent
+        so the unprivileged Runtime can read committed generations. The root dir
+        carries the setgid bit at install time (mkstemp+replace inherits the
+        group); the explicit chown keeps the DAC correct even where the dir
+        lacks setgid (test sandboxes). Non-root callers (tests) skip the chown."""
+        atomic_write_bytes(self.generation_file, (str(value) + '\n').encode(), 0o640)
+        if os.geteuid() == 0:
+            try:
+                gid = grp.getgrnam(RILL_GROUP).gr_gid
+                os.chown(self.generation_file, 0, gid)
+            except (KeyError, OSError):
+                pass
 
     @staticmethod
     def validated_id(did):
@@ -48,16 +129,27 @@ class RootTransaction:
         return digest(did)
 
     def state(self, w, s, x=None):
-        atomic_write_json(w / 'state.json', {'schemaVersion': 1, 'state': s, **(x or {})})
+        p = w / 'state.json'
+        atomic_write_json(p, {'schemaVersion': 1, 'state': s, **(x or {})})
+        _ensure_runtime_readable(p, _TXN_ARTIFACT_MODE)
 
     def _build_bundle(self, w, did, request, old, terminal, outcome):
+        # §P0-5: autoOutcomeId — stable unique identifier for this auto outcome
+        # that guarantees exactly-once ledger reconciliation during crash
+        # recovery. Derived from the request so it's deterministic and
+        # idempotent (single source of truth: auto_outcome_id_for).
+        auto_outcome_id = auto_outcome_id_for(request)
         body = {'schemaVersion': 2, 'decisionId': did, 'outcome': outcome,
                 'observedAtEpochSeconds': int(time.time()), 'configurationGeneration': old,
-                'nextConfigurationGeneration': old + 1 if terminal == 'committed' else old}
+                'nextConfigurationGeneration': old + 1 if terminal == 'committed' else old,
+                'autoOutcomeId': auto_outcome_id,
+                'applyType': request.get('applyType')}
         result = {**body, 'resultSha256': digest(body)}
         receipt = {'schemaVersion': 1, 'decisionId': did, 'resultSha256': result['resultSha256'],
                    'transactionSha256': digest({'request': request, 'result': result}),
-                   'createdAtEpochSeconds': int(time.time())}
+                   'createdAtEpochSeconds': int(time.time()),
+                   'autoOutcomeId': auto_outcome_id,
+                   'applyType': request.get('applyType')}
         base = {'schemaVersion': 1, 'terminalState': terminal,
                 'nextConfigurationGeneration': result['nextConfigurationGeneration'],
                 'result': result, 'receipt': receipt,
@@ -68,22 +160,30 @@ class RootTransaction:
         """Write generation, result, receipt and delivery from a validated
         bundle. Each durable artifact boundary is a fault point so crash
         recovery can be tested at every step."""
-        atomic_write_bytes(self.generation_file, (str(b['nextConfigurationGeneration']) + '\n').encode(), 0o640)
+        self._write_generation(b['nextConfigurationGeneration'])
         atomic_write_json(w / 'result.json', b['result'])
+        _ensure_runtime_readable(w / 'result.json', _TXN_ARTIFACT_MODE)
         fault('RESULT')
         atomic_write_json(w / 'receipt.json', b['receipt'])
+        _ensure_runtime_readable(w / 'receipt.json', _TXN_ARTIFACT_MODE)
         fault('RECEIPT')
         self.delivery.mkdir(parents=True, exist_ok=True)
-        atomic_write_json(self.delivery / 'route-delivery.json', b['delivery'], 0o640)
+        delivery_p = self.delivery / 'route-delivery.json'
+        atomic_write_json(delivery_p, b['delivery'], 0o640)
+        _ensure_runtime_readable(delivery_p, _TXN_ARTIFACT_MODE)
         fault('DELIVERY')
 
-    def apply(self, request, managed, apply_fn, verify_fn):
+    def apply(self, request, managed, apply_fn, verify_fn,
+              restart_fn=None, commit_hook=None, rollback_hook=None,
+              pre_verify_fn=None, candidate_bytes=None):
         did = self.validated_id(request['recommendationId'])
         w = self.root / self.work_dir_name(did)
+        restart = restart_fn if restart_fn is not None else self.restart_fn
         with FileLock(self.lock):
             if (w / 'commit-bundle.json').exists():
                 return self.materialize(w)
             w.mkdir(parents=True, exist_ok=True)
+            _ensure_runtime_readable(w, _TXN_WORKDIR_MODE)
             old = self.generation()
             if old != request['configurationGeneration']:
                 raise TransactionError('generation mismatch')
@@ -99,32 +199,80 @@ class RootTransaction:
             atomic_write_json(w / 'request.json', request)
             self.state(w, 'prepared')
             fault('PREPARED')
+            # §P0-6: candidate pre-validation BEFORE any live mutation. The
+            # compiled candidate is persisted into the root txn work dir
+            # (atomic + fsync'd via atomic_write_bytes) and validated by
+            # pre_verify_fn — the official `xray run -test -config
+            # candidate.json`. A failed pre-test aborts with ZERO host
+            # mutation / ZERO restart / ZERO generation / ZERO ledger: the
+            # work dir (only a copy of the untouched live config and the
+            # request) is removed and the request is rejected. The live
+            # config is never overwritten with an unverified candidate and
+            # Xray is never restarted. This runs OUTSIDE the rollback-capable
+            # try/except below so a pre-test failure can never trigger a
+            # rollback (nothing was mutated to roll back).
+            if candidate_bytes is not None:
+                atomic_write_bytes(w / 'candidate.json', candidate_bytes, 0o600)
+            if pre_verify_fn is not None:
+                ok = False
+                try:
+                    ok = bool(pre_verify_fn(w / 'candidate.json'))
+                except Exception:
+                    ok = False
+                if not ok:
+                    shutil.rmtree(w, ignore_errors=True)
+                    raise TransactionError('candidate pre-validation failed')
+            # Crash point after candidate validation: the candidate.json is
+            # durable in the work dir and the transaction is still 'prepared',
+            # so recovery rolls the (untouched) host back to the pre-apply
+            # bytes — a zero-mutation recovery.
+            fault('PRE_VERIFY')
             try:
                 self.state(w, 'applying')
                 fault('APPLYING')
                 apply_fn()
                 fault('MANAGED_MUTATION')
+                # P0-9 Phase B: live convergence. The new config is on disk;
+                # restart Xray and require it active BEFORE the terminal
+                # commit. A failed restart rolls back.
+                if restart is not None and not restart():
+                    raise TransactionError('live restart failed')
                 self.state(w, 'applied')
                 fault('APPLIED')
+                # P0-9 Phase C: post-restart verification (config sha match +
+                # validation) before commit.
                 if not verify_fn():
                     raise TransactionError('verify failed')
                 self.state(w, 'verified')
                 fault('VERIFIED')
                 self.state(w, 'commit-intent')
                 fault('COMMIT_INTENT')
+                # P0-10: the auto ledger record must be durable BEFORE the
+                # terminal commit. If it fails, the host is rolled back so no
+                # "host changed but no durable ledger record" terminal exists.
+                if commit_hook is not None:
+                    commit_hook()
             except Exception as exc:
-                return self._rollback(w, managed, backup, existed, old, exc)
+                return self._rollback(w, managed, backup, existed, old, exc,
+                                      restart_fn=restart, rollback_hook=rollback_hook)
             bundle = self._build_bundle(w, did, request, old, 'committed', 'success')
             atomic_write_json(w / 'commit-bundle.json', bundle)
+            _ensure_runtime_readable(w / 'commit-bundle.json', _TXN_ARTIFACT_MODE)
             if os.environ.get('RILL_FAIL_AFTER_COMMIT_BUNDLE') == '1':
                 raise TransactionError('fault injected after commit bundle')
             return self.materialize(w)
 
-    def _rollback(self, w, managed, backup, existed, old, exc):
+    def _rollback(self, w, managed, backup, existed, old, exc,
+                  restart_fn=None, rollback_hook=None):
         """Ordered rollback transaction. The rollback commit bundle and all
         durable artifacts (result/receipt/delivery) are written BEFORE the
         terminal rolledBack state, so a crash in the middle is recoverable and
-        rolledBack-without-bundle can never look ready."""
+        rolledBack-without-bundle can never look ready.
+
+        P0-9 Phase E: after the managed config is restored the live Xray
+        service is restarted (restart_fn) so the restored config is the one
+        actually running; a failed restored-restart marks rollbackUnverified.
+        """
         self.state(w, 'rollback-intent')
         fault('ROLLBACK_INTENT')
         try:
@@ -134,16 +282,23 @@ class RootTransaction:
             elif managed.exists():
                 managed.unlink()
             fault('MANAGED_RESTORE')
+            # 1b. live convergence back to the restored config (P0-9 Phase E).
+            if restart_fn is not None and not restart_fn():
+                raise TransactionError('restored restart failed')
             # 2. restore generation
-            atomic_write_bytes(self.generation_file, (str(old) + '\n').encode(), 0o640)
+            self._write_generation(old)
             fault('GENERATION_RESTORE')
             # 3. verify the restore actually converged
             if existed and (not backup.is_file() or file_sha256(managed) != file_sha256(backup)):
                 raise TransactionError('restore verification failed')
+            # 3b. P0-10: rollback ledger record before the rollback terminal.
+            if rollback_hook is not None:
+                rollback_hook()
             # 4. build and persist the rollback commit bundle
             did = read_json(w / 'request.json')['recommendationId']
             bundle = self._build_bundle(w, did, read_json(w / 'request.json'), old, 'rolledBack', 'rolledBack')
             atomic_write_json(w / 'commit-bundle.json', bundle)
+            _ensure_runtime_readable(w / 'commit-bundle.json', _TXN_ARTIFACT_MODE)
             fault('ROLLBACK_BUNDLE')
             # 5. materialize result/receipt/delivery
             self._materialize_artifacts(w, bundle)
@@ -273,10 +428,14 @@ class RootTransaction:
             atomic_write_bytes(managed, backup.read_bytes(), 0o640)
         elif not existed and managed.exists():
             managed.unlink()
-        atomic_write_bytes(self.generation_file, (str(old) + '\n').encode(), 0o640)
+        # P0-9: live convergence back to the restored config after recovery.
+        if self.restart_fn is not None and not self.restart_fn():
+            raise TransactionError('restored restart failed during recovery')
+        self._write_generation(old)
         if existed and (not backup.is_file() or file_sha256(managed) != file_sha256(backup)):
             raise TransactionError('restore verification failed')
         bundle = self._build_bundle(w, did, read_json(w / 'request.json'), old, 'rolledBack', 'rolledBack')
         atomic_write_json(w / 'commit-bundle.json', bundle)
+        _ensure_runtime_readable(w / 'commit-bundle.json', _TXN_ARTIFACT_MODE)
         self._materialize_artifacts(w, bundle)
         self.state(w, 'rolledBack', {'commitSha256': bundle['commitSha256']})
