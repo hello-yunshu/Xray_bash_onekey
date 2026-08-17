@@ -50,13 +50,16 @@ printf '%s\n' '--- apt/dpkg lock waiting ---'
 lock_file="${TMP_ROOT}/dpkg.lock"
 touch "${lock_file}"
 APT_LOCK_FILES="${lock_file}"
-FUSER_CALLS=0
-fuser() {
-    FUSER_CALLS=$((FUSER_CALLS + 1))
-    [[ ${FUSER_CALLS} -le 2 ]]
+PROC_HELD_CALLS=0
+# Mock the pure-shell /proc holder scan (replaces the old fuser/lsof contract):
+# report held for the first two checks, then released, so wait_for_apt_lock
+# observes the release and returns 0.
+_proc_fd_path_held() {
+    PROC_HELD_CALLS=$((PROC_HELD_CALLS + 1))
+    [[ ${PROC_HELD_CALLS} -le 2 ]]
 }
 sleep() { :; }
-if wait_for_apt_lock 5 && [[ ${FUSER_CALLS} -ge 3 ]]; then
+if wait_for_apt_lock 5 && [[ ${PROC_HELD_CALLS} -ge 3 ]]; then
     ok "apt lock wait succeeds only after the holder releases it"
 else
     bad "apt lock wait did not observe holder release"
@@ -64,7 +67,7 @@ fi
 [[ -e "${lock_file}" ]] && ok "apt lock file is never deleted" ||
     bad "apt lock file was deleted"
 
-fuser() { return 0; }
+_proc_fd_path_held() { return 0; }
 if wait_for_apt_lock 2; then
     bad "apt lock timeout returned success"
 else

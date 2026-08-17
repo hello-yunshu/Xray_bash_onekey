@@ -214,16 +214,21 @@ download_script_file() {
 check_file_integrity() {
     echo "1" >> "${CFI_CALLS_FILE}"
 }
-# init_language may try pkg_install on systems without gettext; make it a
-# no-op since we only want to verify the offline dispatch path.
-init_language() { :; }
+# The REAL init_package_manager + init_language offline are exercised below
+# (NOT mocked) to prove an offline-safe command performs zero package installs,
+# zero network and zero /etc mutation even before the gettext/curl tooling it
+# would otherwise need is ensured. Functions that must NOT be reached for an
+# offline command are still overridden so a regression obviously trips them.
 compat_migrate() { :; }
 judge_mode() { :; }
 check_online_version_connect() { :; }
 read_version() { return 0; }
 
 # Mirror the real main entry sequence after the _TEST_MODE guard.
-init_language
+# init_package_manager defines INS purely; init_language offline is local-only
+# (no package install, no network) so messages exist for the dispatch below.
+init_package_manager
+init_language offline
 if is_offline_safe_command "\${1:-}"; then
     dispatch_offline_safe_command "\$@"
     exit \$?
