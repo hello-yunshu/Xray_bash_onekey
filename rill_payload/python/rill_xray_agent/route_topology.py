@@ -25,7 +25,7 @@ import json
 import time
 
 from .canonical import digest
-from .route_contract import MANAGED_PREFIX
+from .route_contract import MANAGED_PREFIX, managed_rule_id_valid
 
 _SELECTOR_KEYS = ('domain', 'ip', 'network', 'port', 'protocol', 'source',
                   'inboundTag', 'user', 'email')
@@ -189,7 +189,13 @@ class RouteTopologyProjection:
         entry that could carry secret / credential / unsafe material is
         dropped so the projection never leaks user config or invents a
         selector. Secret-bearing selector fields (user/email/source) are
-        never carried by the intent."""
+        never carried by the intent.
+
+        P0-1: each entry carries the root-owned STABLE ``managedRuleId``
+        (immutable, secret-free, position/generation-independent). The legacy
+        ``tag`` field is preserved for migration and live-rule matching; the
+        analyzer derives the deterministic managed tag from managedRuleId when
+        present, else falls back to the legacy tag identity."""
         rules = self._intent.get('managedRules')
         if not isinstance(rules, list):
             return []
@@ -197,11 +203,14 @@ class RouteTopologyProjection:
         for entry in rules:
             if not isinstance(entry, dict):
                 continue
+            managed_id = entry.get('managedRuleId')
+            if not managed_rule_id_valid(managed_id):
+                managed_id = None
             tag = entry.get('tag')
             sel_type = entry.get('selectorType')
             value = entry.get('selectorValue')
             outbound = entry.get('outboundTag')
-            if not isinstance(tag, str) or not tag:
+            if managed_id is None and (not isinstance(tag, str) or not tag):
                 continue
             if sel_type not in ('domain', 'ip', 'port', 'network', 'protocol'):
                 continue
@@ -214,12 +223,16 @@ class RouteTopologyProjection:
                 safe_value = value
             else:
                 continue
-            out.append({
-                'tag': tag,
+            entry_out = {
                 'selectorType': sel_type,
                 'selectorValue': safe_value,
                 'outboundTag': outbound,
-            })
+            }
+            if managed_id is not None:
+                entry_out['managedRuleId'] = managed_id
+            if isinstance(tag, str) and tag:
+                entry_out['tag'] = tag
+            out.append(entry_out)
         return out
 
     def unreachable_rules(self):

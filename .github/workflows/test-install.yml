@@ -168,7 +168,10 @@ jobs:
           bash .phase1-contracts/skill/tests/test_full_flow_noninteractive.sh
 
   test-install:
-    needs: security-regression
+    # T5: qualification jobs are parallel and independent. Never gate the
+    # install-mode matrix on security-regression: a red unit job must not
+    # silently skip the real install qualification (and then "pass" release-gate
+    # via skipped). Each mode runs regardless of the other jobs' outcome.
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -228,7 +231,9 @@ jobs:
           sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics /dev/stdin || echo "(not found)"
 
   minimal-bootstrap:
-    needs: security-regression
+    # T5: independent of security-regression so a red unit job cannot skip the
+    # minimal Docker qualification (Debian 12/13, Ubuntu 24.04, CentOS Stream
+    # 10). Each matrix entry is a required release-gate input.
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
@@ -263,6 +268,11 @@ jobs:
             bash /repo/.github/test/test_minimal_bootstrap.sh
 
   release-gate:
+    # T5: single, independent gate. `if: always()` ensures every qualification
+    # job's result is evaluated even when some of them fail; the step below
+    # then fails the gate unless EVERY required job is `success`. `skipped` is
+    # NOT accepted (a red unit job must not let skipped Docker/install
+    # qualification pass as success).
     needs:
       - security-regression
       - test-install
@@ -274,9 +284,10 @@ jobs:
           echo "release-gate: all qualification jobs evaluated"
           echo "security-regression: ${{ needs.security-regression.result }}"
           echo "test-install matrix: ${{ needs.test-install.result }}"
+          echo "minimal-bootstrap matrix: ${{ needs.minimal-bootstrap.result }}"
           for job in ${{ join(needs.*.result, ' ') }}; do
-            if [ "$job" != "success" ] && [ "$job" != "skipped" ]; then
-              echo "release-gate FAIL: job result $job" >&2
+            if [ "$job" != "success" ]; then
+              echo "release-gate FAIL: required job result '$job' (only success qualifies)" >&2
               exit 1
             fi
           done

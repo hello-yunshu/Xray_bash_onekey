@@ -18,7 +18,8 @@ RILL_XRAY_AGENT_STATUS=${RILL_XRAY_AGENT_STATUS:-/var/lib/rill-xray-agent-xray/s
 RILL_XRAY_AGENT_MANAGER=${RILL_XRAY_AGENT_MANAGER:-/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh}
 RILL_XRAY_AGENT_UNITS=(rill-xray-agent-runtime.service rill-xray-agent-agent.service \
     rill-xray-agent-xray-observe.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer \
-    rill-xray-agent-apply.service rill-xray-agent-apply.path)
+    rill-xray-agent-apply.service rill-xray-agent-apply.path \
+    rill-xray-agent-auto-evaluate.service rill-xray-agent-auto-evaluate.path)
 
 rxa_fake_systemctl() {
     # Test-only systemctl shim (only active when FAKE_SYSTEMCTL_LOG is set):

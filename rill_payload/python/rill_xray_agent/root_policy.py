@@ -267,19 +267,21 @@ class RootExecutionPolicy:
         self._persist_policy()
 
     # ---- auto ledger (delegated to the tested AutoPolicy core) ---------
-    def record_apply(self, recommendation_id):
+    def record_apply(self, recommendation_id, auto_outcome_id=None):
         """Record an actual (gate-open) auto apply. Only call after a real
-        mutation committed."""
+        mutation committed. P0-5: idempotent per autoOutcomeId — recovery
+        replay of an already-recorded outcome never double-counts."""
         self._require_valid()
-        self.auto.record_apply(recommendation_id)
+        self.auto.record_apply(recommendation_id, auto_outcome_id=auto_outcome_id)
 
-    def record_rollback(self):
+    def record_rollback(self, auto_outcome_id=None):
         """Record an actual (gate-open) auto rollback. A fuse transition (the
         consecutive limit is reached) bumps the epoch so queued auto requests
-        become stale."""
+        become stale. P0-5: idempotent per autoOutcomeId — a replay no-op
+        never bumps the epoch and never inflates the fuse."""
         self._require_valid()
         before = self.auto.snapshot()
-        self.auto.record_rollback()
+        self.auto.record_rollback(auto_outcome_id=auto_outcome_id)
         after = self.auto.snapshot()
         if after['fuseOpen'] and not before['fuseOpen']:
             self.bump_execution_epoch('fuse-transition')

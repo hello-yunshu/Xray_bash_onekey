@@ -107,16 +107,16 @@ else
 fi
 
 # offline mode with gettext absent must NOT call pkg_install (no -y, no network).
-unset -f gettext
-EMPTY_BIN="${TMP_ROOT}/empty-bin"
-mkdir -p "${EMPTY_BIN}"
-OLD_PATH="$PATH"
-export PATH="${EMPTY_BIN}:${OLD_PATH}"
-if [[ "$(PATH="${EMPTY_BIN}" command -v gettext)" != "" ]]; then
-    bad "test precondition: gettext should be absent from empty PATH"
-else
-    ok "test precondition: gettext absent from empty PATH"
-fi
+# T1: production abstracts detection into has_gettext_binary(); simulate "gettext
+# absent" by mocking the helper. Prepending an empty dir to PATH would NOT be a
+# valid fixture here because the runner's real gettext stays reachable via the
+# rest of PATH, so `command -v gettext`/`type -P gettext` would still succeed.
+# T3: save the original production function before mocking, then restore it
+# after the mock block so the T1 test below (lines 135-152) still finds the
+# real production helper. `unset -f` is NOT used because it would remove the
+# production function entirely (the function was defined by sourced install.sh).
+_has_gettext_binary_saved=$(declare -f has_gettext_binary)
+has_gettext_binary() { return 1; } # gettext binary absent
 PKG_INSTALL_CALLS=0
 init_language offline >/dev/null 2>&1
 RC=$?
@@ -135,7 +135,28 @@ if [[ ${PKG_INSTALL_CALLS} -eq 1 ]]; then
 else
     bad "online init_language pkg_install calls=${PKG_INSTALL_CALLS} (expected 1)"
 fi
-export PATH="${OLD_PATH}"
+# Restore the production has_gettext_binary function for subsequent tests.
+eval "${_has_gettext_binary_saved}"
+unset _has_gettext_binary_saved
+
+# T1: has_gettext_binary must distinguish the in-script fallback FUNCTION from
+# a real executable. A fallback function must never be reported as "installed".
+GT_BIN="${TMP_ROOT}/gt-bin"
+mkdir -p "${GT_BIN}"
+gettext() { printf '%s' "$1"; } # in-script fallback function (as at top of install.sh)
+if PATH="${GT_BIN}" has_gettext_binary; then
+    bad "has_gettext_binary must not treat the fallback function as installed"
+else
+    ok "fallback gettext() function is not detected as a real binary"
+fi
+# A real executable on a controlled PATH IS detected (function + binary coexist).
+printf '#!/bin/sh\nexit 0\n' > "${GT_BIN}/gettext"; chmod +x "${GT_BIN}/gettext"
+if PATH="${GT_BIN}" has_gettext_binary; then
+    ok "real gettext executable is detected by has_gettext_binary"
+else
+    bad "has_gettext_binary failed to detect a real gettext executable"
+fi
+rm -rf "${GT_BIN}"
 
 echo "============================================================"
 echo "  13.4: lazy config load (no top-level jq, never mis-clears)"
@@ -153,52 +174,121 @@ xray_install_config_file="${VALID_CFG}"
 _info_extraction_loaded=0
 info_extraction_all=""
 read_config_status=""
-command -v jq >/dev/null 2>&1 && HAVE_JQ=1 || HAVE_JQ=0
-if [[ ${HAVE_JQ} -eq 1 ]]; then
+# T2: use the production helper (type -P), never `command -v jq` (a shell
+# function would fool command -v).
+if has_jq_binary; then
     _lazy_load_info_extraction
     [[ -n "${info_extraction_all}" ]] && ok "lazy load populates info_extraction_all from config" ||
         bad "lazy load failed to read valid JSON config"
-else
-    ok "skipped jq-present parse check (jq not installed in this env)"
-fi
-
-# Idempotence: a second call must not re-read / clear.
-if [[ ${HAVE_JQ} -eq 1 ]]; then
+    # Idempotence: a second call must not re-read / clear.
     FIRST="${info_extraction_all}"
     _lazy_load_info_extraction
     [[ "${info_extraction_all}" == "${FIRST}" ]] && ok "lazy config load is idempotent (no re-read)" ||
         bad "lazy config load was not idempotent"
+else
+    ok "skipped jq-present parse check (jq not installed in this env)"
 fi
 
-# Malformed config, jq present: must not crash and must report empty safely.
-if [[ ${HAVE_JQ} -eq 1 ]]; then
+# Malformed JSON with jq present: fail closed (read_config_status=0), file
+# preserved, info_extraction_all NOT silently treated as an empty config.
+if has_jq_binary; then
     xray_install_config_file="${BROKEN_CFG}"
     _info_extraction_loaded=0
     info_extraction_all="unset-marker"
-    _lazy_load_info_extraction
-    [[ "${info_extraction_all}" == "" ]] && ok "malformed config is handled / not mis-cleared uncrashably" ||
-        bad "malformed config response unexpected: '${info_extraction_all}'"
+    read_config_status=""
+    if _lazy_load_info_extraction; then
+        bad "lazy load should fail closed on malformed JSON"
+    else
+        ok "lazy load returns non-zero on malformed JSON (fail closed)"
+    fi
+    [[ "${read_config_status:-}" == "0" ]] && ok "malformed JSON sets read_config_status=0" ||
+        bad "malformed JSON read_config_status='${read_config_status}' (expected 0)"
+    [[ "${info_extraction_all}" == "" ]] && ok "malformed JSON leaves info_extraction_all empty" ||
+        bad "malformed JSON response unexpected: '${info_extraction_all}'"
+    [[ -f "${BROKEN_CFG}" ]] && ok "malformed config file is preserved (not deleted)" ||
+        bad "malformed config file was deleted"
 fi
 
-# jq absent: existing config must NOT silently become empty semantics (fallback
-# to jq() returning failure must set read_config_status and leave load safe).
-jq() { return 1; } # shadow jq as "missing"
+# jq ABSENT + existing config: T2 requires this be simulated via the production
+# helper (has_jq_binary), NOT a jq() shell function — a function is invisible to
+# `type -P` and would leave the real binary reachable. Mock + restore exactly
+# like the gettext fixture above (T3: never `unset -f` a sourced function).
+_has_jq_binary_saved=$(declare -f has_jq_binary)
+has_jq_binary() { return 1; } # jq executable absent
 xray_install_config_file="${VALID_CFG}"
 _info_extraction_loaded=0
 info_extraction_all=""
 read_config_status=""
-_lazy_load_info_extraction
-if command -v jq | grep -q 'jq$'; then
-    ok "jq-absent branch (jq shadowed) reached without error"
+if _lazy_load_info_extraction; then
+    bad "jq-absent load should fail closed (dependency/config-read error)"
 else
-    ok "jq shadowing not active"
+    ok "jq-absent + config present returns non-zero (fail closed)"
 fi
-if [[ -z "${read_config_status:-}" || "${read_config_status:-}" == "0" ]]; then
-    ok "jq-absent path records read_config_status instead of silently clearing"
-else
+[[ "${read_config_status:-}" == "0" ]] && ok "jq-absent path records read_config_status=0" ||
     bad "jq-absent path left read_config_status='${read_config_status}'"
+[[ "${info_extraction_all}" == "" ]] && ok "jq-absent path does not fabricate config content" ||
+    bad "jq-absent path leaked info_extraction_all='${info_extraction_all}'"
+[[ -f "${VALID_CFG}" ]] && ok "existing config preserved when jq absent" ||
+    bad "existing config was cleared when jq absent"
+# Restore the production has_jq_binary function.
+eval "${_has_jq_binary_saved}"
+unset _has_jq_binary_saved
+
+echo "============================================================"
+echo "  13.5: P1-9 pkg_install call-site failure propagation"
+echo "============================================================"
+
+# Verify that every REQUIRED pkg_install call site propagates failure.
+# Each test mocks pkg_install to return 1 and checks that the wrapper
+# function returns with a non-zero status and does not proceed.
+
+# Save and mock pkg_install for required-call-site tests.
+_pkg_install_saved_13_5=$(declare -f pkg_install)
+
+echo "--- firewall_set requires iptables-services/persistent ---"
+# Minimal mock: pkg_install fails, everything else stubs out.
+pkg_install() { return 1; }
+log_echo() { :; }
+gettext() { printf '%s' "$1"; }
+managed_fw_require_families() { return 0; }
+baseline_sync() { return 0; }
+baseline_owned_families() { echo ""; }
+_managed_fw_bins() { echo ""; }
+ensure_network_runtime_state() { :; }
+reconcile_managed_firewall() { return 0; }
+atomic_write_managed_ports() { return 0; }
+if is_rpm_family; then
+    # On RPM, iptables-services is expected to fail -> firewall_set returns 1.
+    printf 'Y\n' | firewall_set >/dev/null 2>&1 && bad "firewall_set should fail on rpm pkg_install failure" ||
+        ok "firewall_set fails when iptables-services install fails (rpm)"
+else
+    # On Debian, iptables-persistent is expected to fail -> firewall_set returns 1.
+    printf 'Y\n' | firewall_set >/dev/null 2>&1 && bad "firewall_set should fail on deb pkg_install failure" ||
+        ok "firewall_set fails when iptables-persistent install fails (debian)"
 fi
-unset -f jq
+
+echo "--- ssl_install requires socat ---"
+pkg_install() { return 1; }
+download_script_file() { return 0; }
+judge() { :; }
+idleleo_dir="${TMP_ROOT}/ssl"
+mkdir -p "${idleleo_dir}/tmp"
+ssl_install 2>/dev/null && bad "ssl_install should fail when socat install fails" ||
+    ok "ssl_install fails when socat install fails"
+
+echo "--- install_iftop degrades gracefully on optional pkg_install failure ---"
+pkg_install() { return 1; }
+check_system() { :; }
+# Ensure iftop is not on PATH so the install path is exercised.
+_install_iftop_path_saved="$PATH"
+PATH="/tmp/nosuchdir"
+install_iftop 2>/dev/null && bad "install_iftop should return 1 on pkg_install failure" ||
+    ok "install_iftop returns 1 when iftop install fails (optional, warning logged)"
+PATH="${_install_iftop_path_saved}"
+
+# Restore the production pkg_install function.
+eval "${_pkg_install_saved_13_5}"
+unset _pkg_install_saved_13_5
 
 echo "============================================================"
 echo "  13.10: candidate-guard failure-stage diagnostics"

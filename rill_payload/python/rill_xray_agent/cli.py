@@ -9,7 +9,7 @@ SENTINEL_METHODS = {'status', 'health', 'metrics', 'config', 'snapshot', 'timeli
 DOCTOR_METHODS = {'diagnose'}
 ROUTE_METHODS = {'mode', 'routeStatus', 'routeStage', 'routePlan', 'routeInspect',
                  'routeApprove', 'routeReject', 'routeHistory', 'autoStatus',
-                 'autoConfirm'}
+                 'autoConfirm', 'autoProduce'}
 ROUTE_STAGES = ['observe', 'assist', 'auto']
 
 
@@ -108,6 +108,7 @@ def main(argv=None) -> int:
     route_reject.add_argument('recommendation_id')
     route_reject.add_argument('--reason', default='operator-rejected')
     auto_confirm = sub.add_parser('auto-confirm')
+    auto_produce = sub.add_parser('auto-produce')
     feedback = sub.add_parser('feedback')
     feedback.add_argument('decision_id')
     feedback.add_argument('--outcome', choices=FEEDBACK_OUTCOMES, required=True)
@@ -123,7 +124,7 @@ def main(argv=None) -> int:
               'route-stage': 'routeStage', 'route-plan': 'routePlan',
               'route-approve': 'routeApprove', 'route-reject': 'routeReject',
               'route-history': 'routeHistory', 'auto-status': 'autoStatus',
-              'auto-confirm': 'autoConfirm'}[args.command]
+              'auto-confirm': 'autoConfirm', 'auto-produce': 'autoProduce'}[args.command]
     body = {}
     if args.command == 'mode':
         body = {'mode': args.value}

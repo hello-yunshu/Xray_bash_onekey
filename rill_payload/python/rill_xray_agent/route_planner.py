@@ -35,7 +35,9 @@ class RoutePlanner:
         # to an embedded 'routing' dict only when a caller passes the raw
         # config-shaped object (never raw text).
         self._routing = routing if isinstance(routing, dict) else (
-            topology.get('routing') if isinstance(topology.get('routing'), dict) else {})
+            topology.get('routing') if isinstance(topology.get('routing'), dict)
+            else ({'rules': topology.get('rules')} if isinstance(topology.get('rules'), list)
+                  else {}))
         config = config or {}
         self.ttl_seconds = int(config.get('ttlSeconds', 300))
         self.configuration_generation = topology.get('configurationGeneration', 0)
@@ -123,20 +125,32 @@ class RoutePlanner:
                 continue
             kind = entry.get('kind')
             params = {}
+            managed_id = entry.get('managedRuleId')
             if kind == 'missing':
                 # Restore a missing Rill-owned managed rule by APPENDING it at
                 # the end of the rule list (never before user rules): the
                 # append position is LOW risk and cannot shadow earlier rules.
+                # P0-1: the op carries the root-owned STABLE managedRuleId so
+                # the executor derives the deterministic Xray tag from it
+                # (identity between intent and live rule can never drift).
                 params = {'position': len(self._rules()),
                           'selectorType': entry.get('selectorType'),
                           'selectorValue': entry.get('selectorValue'),
                           'outboundTag': entry.get('outboundTag')}
+                if managed_id:
+                    params['managedRuleId'] = managed_id
                 op = 'routingRule.insert'
             elif kind == 'drifted':
+                # P0-1: replace binds BOTH ruleIndex and managedRuleId so the
+                # root executor can verify the live rule at ruleIndex actually
+                # carries the requested stable identity (TOCTOU / index-drift
+                # protection).
                 params = {'ruleIndex': entry.get('ruleIndex'),
                           'selectorType': entry.get('selectorType'),
                           'selectorValue': entry.get('selectorValue'),
                           'outboundTag': entry.get('outboundTag')}
+                if managed_id:
+                    params['managedRuleId'] = managed_id
                 op = 'routingRule.replaceManaged'
             else:
                 continue
