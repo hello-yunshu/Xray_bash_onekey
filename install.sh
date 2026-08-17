@@ -12431,4 +12431,7 @@ if [[ ${tls_mode} == "Reality" ]]; then
     ensure_reality_public_key || true
 fi
 check_xray_local_connect
-list "$@"
+case "${1:-}" in
+    --rill-agent-install) rxa_dispatch install ;;
+    *) list "$@" ;;
+esac
