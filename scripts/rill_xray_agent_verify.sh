@@ -8,10 +8,13 @@ static_check() {
         /opt/rill-xray-agent/bin/rill-xray-agent
         /opt/rill-xray-agent/bin/rill-xray-agent-runtime
         /opt/rill-xray-agent/bin/rill-xray-agent-agent
+        /opt/rill-xray-agent/bin/rill-xray-agent-auto-evaluate
         /etc/systemd/system/rill-xray-agent-runtime.service
         /etc/systemd/system/rill-xray-agent-agent.service
         /etc/systemd/system/rill-xray-agent-apply.path
         /etc/systemd/system/rill-xray-agent-apply.service
+        /etc/systemd/system/rill-xray-agent-auto-evaluate.path
+        /etc/systemd/system/rill-xray-agent-auto-evaluate.service
         /opt/rill-xray-agent/share/release-capabilities.json
     )
     local file

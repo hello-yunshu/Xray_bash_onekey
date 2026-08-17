@@ -27,7 +27,7 @@ import time
 import uuid
 
 from .canonical import canonical_bytes, digest
-from .route_contract import AUTO_MAX_RISK
+from .route_contract import AUTO_MAX_RISK, managed_id_digest, managed_rule_id_valid
 from .route_topology import selector_value_digest
 
 # Recommendation types the deterministic analyzer can emit. These are the only
@@ -183,21 +183,29 @@ class RouteAnalyzer:
 
         Returns [] when there is no intent, no managed rules in the intent, or
         every intent rule is already present and semantically identical. Each
-        returned entry carries the RILL-OWNED target state (tag, selectorType,
-        selectorValue, outboundTag) so the planner can synthesize a typed op
-        WITHOUT inventing a selector and WITHOUT reading the raw Xray config.
+        returned entry carries the RILL-OWNED target state (managedRuleId,
+        tag, selectorType, selectorValue, outboundTag) so the planner can
+        synthesize a typed op WITHOUT inventing a selector and WITHOUT reading
+        the raw Xray config.
 
         Semantic equality is computed from the SAME per-field selector digest
         the projection uses: an intent selector value must produce the same
         digest as the live rule's recorded selector digest. Outbound tag is
         compared as the safe role string.
+
+        P0-1 identity: intent entries carry the root-owned STABLE
+        ``managedRuleId``. The expected live-rule tag is deterministically
+        derived from it (managed_tag), and the projection's ``managedId``
+        (digest of that tag) is recomputed for matching. Legacy intent entries
+        that still carry only ``tag`` keep the old digest({'managedTag': tag})
+        matcher for migration compatibility.
         """
         intent_rules = self.intent.get('managedRules')
         if not isinstance(intent_rules, list) or not intent_rules:
             return []
-        # Live managed rules by secret-free identity digest (digest of the
-        # Rill-owned tag). The projection never persists the raw tag; the
-        # intent's own tag is the authority and the digest is the matcher.
+        # Live managed rules by secret-free identity digest. The projection
+        # never persists the raw tag; the intent's managedRuleId (or legacy
+        # tag) is the authority and the derived digest is the matcher.
         live_by_id = {}
         for r in self.rules:
             if r.get('isManaged') and r.get('managedId'):
@@ -207,24 +215,34 @@ class RouteAnalyzer:
             if not isinstance(entry, dict):
                 continue
             tag = entry.get('tag')
-            if not isinstance(tag, str) or not tag:
-                continue
+            managed_id = entry.get('managedRuleId')
             selector_type = entry.get('selectorType')
             selector_value = entry.get('selectorValue')
             outbound = entry.get('outboundTag')
             if selector_type not in ('domain', 'ip', 'port', 'network',
                                      'protocol', 'source'):
                 continue
-            managed_id = digest({'managedTag': tag})
-            live = live_by_id.get(managed_id)
+            if isinstance(managed_id, str) and managed_rule_id_valid(managed_id):
+                live_id = managed_id_digest(managed_id)
+            elif isinstance(tag, str) and tag:
+                # Legacy intent identity: tag-based matcher (migration).
+                live_id = digest({'managedTag': tag})
+            else:
+                continue
+            live = live_by_id.get(live_id)
             if not live:
                 # Missing managed rule: restore by inserting Rill's intent.
-                entries.append({
-                    'kind': 'missing', 'tag': tag,
+                entry_out = {
+                    'kind': 'missing',
                     'selectorType': selector_type,
                     'selectorValue': selector_value,
                     'outboundTag': outbound,
-                })
+                }
+                if isinstance(managed_id, str) and managed_rule_id_valid(managed_id):
+                    entry_out['managedRuleId'] = managed_id
+                if isinstance(tag, str) and tag:
+                    entry_out['tag'] = tag
+                entries.append(entry_out)
                 continue
             rule = live[0]
             expected_digest = selector_value_digest(selector_type, selector_value)
@@ -234,12 +252,17 @@ class RouteAnalyzer:
             if expected_digest != live_digest or outbound_drift:
                 # Drifted managed rule: replace its selector/outbound with the
                 # Rill-owned intent target.
-                entries.append({
-                    'kind': 'drifted', 'tag': tag, 'ruleIndex': rule.get('ruleIndex'),
+                entry_out = {
+                    'kind': 'drifted', 'ruleIndex': rule.get('ruleIndex'),
                     'selectorType': selector_type,
                     'selectorValue': selector_value,
                     'outboundTag': outbound,
-                })
+                }
+                if isinstance(managed_id, str) and managed_rule_id_valid(managed_id):
+                    entry_out['managedRuleId'] = managed_id
+                if isinstance(tag, str) and tag:
+                    entry_out['tag'] = tag
+                entries.append(entry_out)
         return entries
 
     def _shadowing_analysis(self):
