@@ -401,12 +401,12 @@ rxa_mode_state_matches_target() {
     rxa_verify_runtime_mode "$mode" || return 1
     if [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
         if ((want_units)); then
-            for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+            for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer rill-xray-agent-auto-evaluate.path; do
                 rxa_systemctl is-active --quiet "$unit" || return 1
             done
             rxa_observe_valid || return 1
         else
-            for unit in rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+            for unit in rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer rill-xray-agent-auto-evaluate.path; do
                 rxa_systemctl is-active --quiet "$unit" && return 1
             done
         fi
@@ -466,8 +466,9 @@ rxa_apply_mode() {
         rxa_systemctl enable --now rill-xray-agent-runtime.service >/dev/null 2>&1 || rc=1
         rxa_systemctl enable --now rill-xray-agent-agent.service >/dev/null 2>&1 || rc=1
         rxa_systemctl enable --now rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer >/dev/null 2>&1 || rc=1
+        rxa_systemctl enable --now rill-xray-agent-auto-evaluate.path >/dev/null 2>&1 || rc=1
         if [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
-            for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer; do
+            for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer rill-xray-agent-auto-evaluate.path; do
                 rxa_systemctl is-active --quiet "$unit" || rc=1
             done
         fi
@@ -475,9 +476,10 @@ rxa_apply_mode() {
         rxa_systemctl disable --now \
           rill-xray-agent-agent.service \
           rill-xray-agent-xray-observe.path \
-          rill-xray-agent-xray-observe.timer >/dev/null 2>&1 || rc=1
+          rill-xray-agent-xray-observe.timer \
+          rill-xray-agent-auto-evaluate.path >/dev/null 2>&1 || rc=1
         if [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
-            for unit in rill-xray-agent-agent.service rill-xray-agent-xray-observe.path; do
+            for unit in rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-auto-evaluate.path; do
                 rxa_systemctl is-active --quiet "$unit" && rc=1
             done
         fi
@@ -489,6 +491,7 @@ rxa_apply_mode() {
     elif [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
         rxa_systemctl is-active --quiet rill-xray-agent-xray-observe.path && rc=1
         rxa_systemctl is-active --quiet rill-xray-agent-agent.service && rc=1
+        rxa_systemctl is-active --quiet rill-xray-agent-auto-evaluate.path && rc=1
     fi
 
     # Phase 4: commit the persisted config only after every party verified.
@@ -507,10 +510,12 @@ rxa_apply_mode() {
             rxa_systemctl disable --now \
               rill-xray-agent-agent.service \
               rill-xray-agent-xray-observe.path \
-              rill-xray-agent-xray-observe.timer >/dev/null 2>&1 || true
+              rill-xray-agent-xray-observe.timer \
+              rill-xray-agent-auto-evaluate.path >/dev/null 2>&1 || true
         else
             rxa_systemctl enable --now rill-xray-agent-agent.service >/dev/null 2>&1 || true
             rxa_systemctl enable --now rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer >/dev/null 2>&1 || true
+            rxa_systemctl enable --now rill-xray-agent-auto-evaluate.path >/dev/null 2>&1 || true
         fi
         rxa_set mode "$old" >/dev/null 2>&1 || true
         return 1

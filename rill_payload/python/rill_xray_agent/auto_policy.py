@@ -37,6 +37,9 @@ _STATE_SCHEMA = {
     'consecutiveRollbacks': int,
     'fuseOpen': bool,
     'fuseAcknowledged': bool,
+    # 'processedOutcomes' is NOT in the required schema: it is P0-5's
+    # optional exactly-once set, backfilled to {} on load so a pre-P0-5
+    # ledger stays valid (upgrade must preserve fuse/cooldown history).
 }
 
 
@@ -46,7 +49,8 @@ def _fresh_default_state():
     across restarts/instances)."""
     return {'lastAutoAtEpochSeconds': 0, 'lastByRecommendation': {},
             'mutationTimes': [], 'consecutiveRollbacks': 0, 'fuseOpen': False,
-            'fuseOpenedAtEpochSeconds': None, 'fuseAcknowledged': False}
+            'fuseOpenedAtEpochSeconds': None, 'fuseAcknowledged': False,
+            'processedOutcomes': {}}
 
 
 class AutoPolicyIntegrityError(RuntimeError):
@@ -113,6 +117,22 @@ class AutoPolicy:
             return self._corrupt('policy mutationTimes must contain only integers')
         if not all(isinstance(k, str) for k in data['lastByRecommendation']):
             return self._corrupt('policy lastByRecommendation keys must be strings')
+        # P0-5: optional exactly-once outcome set. A pre-P0-5 ledger is
+        # backfilled to {} (valid); a present-but-malformed value is corrupt.
+        # Shape: {kind: {autoOutcomeId: epochSeconds}} where kind is
+        # 'applied' or 'rolledBack' — the same outcome id may legitimately
+        # appear in BOTH (an apply recorded, then a crash-forced rollback).
+        processed = data.get('processedOutcomes')
+        if processed is None:
+            processed = {'applied': {}, 'rolledBack': {}}
+        if not isinstance(processed, dict) \
+                or not all(
+                    isinstance(k, str) and isinstance(v, dict)
+                    and all(isinstance(i, str) and isinstance(t, int) and not isinstance(t, bool)
+                            for i, t in v.items())
+                    for k, v in processed.items()):
+            return self._corrupt('policy processedOutcomes must be a dict of kind -> {outcomeId: epoch}')
+        data['processedOutcomes'] = processed
         return data
 
     @property
@@ -180,10 +200,22 @@ class AutoPolicy:
             raise AutoPolicyIntegrityError(
                 self._corrupt_reason or 'auto policy corrupt; human repair required')
 
-    def record_apply(self, recommendation_id):
+    def record_apply(self, recommendation_id, auto_outcome_id=None):
         """Record an actual (gate-open) auto apply. Only call after a real
-        mutation succeeded; never call from shadow evaluation."""
+        mutation succeeded; never call from shadow evaluation.
+
+        P0-5: when auto_outcome_id is given (auto applies), the record is
+        exactly-once — replaying the same outcome id (e.g. during crash
+        recovery reconciliation) is a no-op, so a single auto transaction is
+        never double-counted in the mutation window / cooldown. The apply and
+        rollback dedup sets are independent, so a crash-forced rollback of an
+        already-recorded apply still records the rollback (the fuse is never
+        weakened).
+        """
         self._require_valid()
+        processed = self._state['processedOutcomes'].setdefault('applied', {})
+        if auto_outcome_id is not None and auto_outcome_id in processed:
+            return
         now = self._clock()
         s = self._state
         s['lastAutoAtEpochSeconds'] = now
@@ -194,13 +226,24 @@ class AutoPolicy:
         # clears an already-open fuse.
         if not s['fuseOpen']:
             s['consecutiveRollbacks'] = 0
+        if auto_outcome_id is not None:
+            processed[auto_outcome_id] = now
         self._persist()
 
-    def record_rollback(self):
+    def record_rollback(self, auto_outcome_id=None):
         """Record an actual (gate-open) auto rollback. Opens the fuse at the
         configured consecutive limit; the fuse then requires explicit human
-        acknowledgment and survives restarts."""
+        acknowledgment and survives restarts.
+
+        P0-5: when auto_outcome_id is given, the record is exactly-once —
+        replaying the same rollback outcome id during crash recovery is a
+        no-op, so a crash rollback is never double-counted and never inflates
+        the fuse.
+        """
         self._require_valid()
+        processed = self._state['processedOutcomes'].setdefault('rolledBack', {})
+        if auto_outcome_id is not None and auto_outcome_id in processed:
+            return
         now = self._clock()
         s = self._state
         s['consecutiveRollbacks'] = int(s['consecutiveRollbacks']) + 1
@@ -208,6 +251,8 @@ class AutoPolicy:
             s['fuseOpen'] = True
             s['fuseOpenedAtEpochSeconds'] = now
             s['fuseAcknowledged'] = False
+        if auto_outcome_id is not None:
+            processed[auto_outcome_id] = now
         self._persist()
 
     def acknowledge_fuse(self, acknowledged=True):

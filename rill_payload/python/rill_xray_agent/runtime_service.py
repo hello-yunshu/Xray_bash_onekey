@@ -634,9 +634,20 @@ class RuntimeService:
         s = s or self.state.load()
         obs = self._observation_status()
         tl = self._timeline_status()
+        # §P0-2: the capability display prefers the ROOT-owned execution-policy
+        # projection (the SAME source the concrete execution path uses); it
+        # falls back to Runtime-local state only for legacy / early-boot
+        # display. This surface is never an execution authority.
+        gates = self._root_policy_gates(need_auto=False)
+        if gates is not None:
+            mode = gates['mode']
+            configured_stage = gates['routeStage']
+        else:
+            mode = s['mode']
+            configured_stage = s.get('routeStage', 'observe')
         policy = RoutePolicy(
-            mode=s['mode'],
-            configured_stage=s.get('routeStage', 'observe'),
+            mode=mode,
+            configured_stage=configured_stage,
             release_capabilities=self.release,
             health=self.health_status(),
             recovery_required=self.recovery_required,
@@ -652,7 +663,7 @@ class RuntimeService:
                             'released': self.release.is_released('routeAssist')},
             'boundedAuto': {'supported': self.release.is_supported('boundedAuto'),
                             'released': self.release.is_released('boundedAuto')},
-            'configuredStage': s.get('routeStage', 'observe'),
+            'configuredStage': configured_stage,
             'effectiveStage': d['effectiveStage'],
             'canPlan': d['canPlan'],
             'canManualApprove': d['canManualApprove'],
@@ -661,7 +672,7 @@ class RuntimeService:
             'shadowEnabled': True,
             'shadowWouldApply': d['shadowWouldApply'],
             'blockedBy': d['blockedBy'],
-            'mode': s['mode'],
+            'mode': mode,
         }
 
     def _effective_route(self, status=None):
@@ -752,8 +763,64 @@ class RuntimeService:
             return None
         return data
 
+    def _root_policy_gates(self, need_auto=False):
+        """§P0-2: Extract execution gates from the root-owned projection.
+
+        Returns a dict with 'mode', 'routeStage', 'executionEpoch' (and when
+        need_auto=True also 'autoConfirmed', 'fusibleOpen', 'rateLimitOk',
+        'cooldownOk', plus the raw auto-ledger scalars for display), or None
+        when the projection is unavailable / corrupt (fail closed). The
+        Runtime MUST use this as the single authority for all execution
+        decisions; RuntimeState and Runtime-local AutoPolicy are never the
+        final authority.
+        """
+        data = self._read_root_policy()
+        if data is None:
+            return None
+        policy = data.get('policy')
+        if not isinstance(policy, dict):
+            return None
+        mode = policy.get('mode')
+        route_stage = policy.get('routeStage')
+        if mode not in ('normal', 'observe-only', 'safe-disabled'):
+            return None
+        if route_stage not in ('observe', 'assist', 'auto', 'disabled'):
+            return None
+        epoch = policy.get('executionEpoch')
+        if not isinstance(epoch, int) or isinstance(epoch, bool) or epoch < 0:
+            return None
+        result = {'mode': mode, 'routeStage': route_stage, 'executionEpoch': epoch}
+        if need_auto:
+            try:
+                auto_confirmed = bool(policy.get('autoConfirmed', False))
+                fuse_open = bool(policy.get('fuseOpen', False))
+                fuse_ack = bool(policy.get('fuseAcknowledged', False))
+                max_per_hour = int(policy.get('maxAutoMutationsPerHour') or 0)
+                mutations_last_hour = int(policy.get('autoMutationsLastHour') or 0)
+                cooldown = int(policy.get('globalCooldownRemainingSeconds') or 0)
+                consec_rollbacks = int(policy.get('consecutiveRollbacks') or 0)
+                fuse_limit = int(policy.get('consecutiveRollbackFuseLimit') or 0)
+                last_auto = int(policy.get('lastAutoAtEpochSeconds') or 0)
+            except (TypeError, ValueError):
+                return None
+            # Mirrors the root auto ledger: the cap is authoritative and a
+            # missing / zero cap fails closed (never widens the window).
+            result['autoConfirmed'] = auto_confirmed
+            result['fusibleOpen'] = not fuse_open
+            result['fuseOpen'] = fuse_open
+            result['fuseAcknowledged'] = fuse_ack
+            result['rateLimitOk'] = mutations_last_hour < max_per_hour
+            result['cooldownOk'] = cooldown <= 0
+            result['autoMutationsLastHour'] = mutations_last_hour
+            result['maxAutoMutationsPerHour'] = max_per_hour
+            result['globalCooldownRemainingSeconds'] = cooldown
+            result['consecutiveRollbacks'] = consec_rollbacks
+            result['consecutiveRollbackFuseLimit'] = fuse_limit
+            result['lastAutoAtEpochSeconds'] = last_auto
+        return result
+
     def _concrete_route_eval(self, plan, apply_type='manual', operations=None):
-        """Concrete RoutePlan policy evaluation (§P0-1).
+        """Concrete RoutePlan policy evaluation (§P0-1/§P0-2).
 
         _route_status() / RoutePolicy.evaluate() are CAPABILITY-level: without
         a concrete plan they must report canManualApply/canAutoApply=False
@@ -761,20 +828,28 @@ class RuntimeService:
         it derives the plan-specific gates (valid / not-expired / generation
         match / config-hash match / execution-epoch match) from the actual
         plan body and the CURRENT root-authoritative state, so a real plan is
-        never deadlocked by its own absence. The root executor still
-        re-validates every condition against the live root policy and the live
-        managed config (§16/§19); a pass here only means "submittable", never
-        final permission.
+        never deadlocked by its own absence. §P0-2: every execution gate is
+        sourced EXCLUSIVELY from the root execution-policy projection; a
+        missing / corrupt / unsafe projection fails closed with
+        root_policy_unavailable. The root executor still re-validates every
+        condition against the live root policy and the live managed config
+        (§16/§19); a pass here only means "submittable", never final
+        permission.
         """
-        s = self.state.load()
         obs = self._observation_status()
         tl = self._timeline_status()
-        root_policy = self._read_root_policy()
-        execution_epoch = None
-        if isinstance(root_policy, dict):
-            ep = root_policy.get('policy', {}).get('executionEpoch')
-            if isinstance(ep, int) and not isinstance(ep, bool) and ep >= 0:
-                execution_epoch = ep
+        # §P0-2: ALL execution gates (mode, routeStage, executionEpoch,
+        # autoConfirmed, fuse, rate, cooldown) come EXCLUSIVELY from the ROOT
+        # execution-policy projection. RuntimeState and Runtime-local
+        # AutoPolicy are never the execution authority; a missing / corrupt /
+        # unsafe projection fails closed with root_policy_unavailable.
+        gates = self._root_policy_gates(need_auto=True)
+        if gates is None:
+            return {
+                'canPlan': False, 'canManualApprove': False, 'canManualApply': False,
+                'canAutoApply': False, 'shadowWouldApply': False,
+                'effectiveStage': 'observe', 'blockedBy': ['root_policy_unavailable'],
+            }
         # §P0-4: config hash / generation / rules all come from the root-owned
         # route-topology projection (READ-ONLY), never from the raw config.
         proj = self._read_topology()
@@ -787,12 +862,6 @@ class RuntimeService:
                                   or proj.get('wholeConfigSafeDigest') or '')
             current_generation = int(proj.get('configurationGeneration') or 0)
             rules = proj.get('rules') or []
-        # Auto-policy facts from the SAME cooldown/rate/fuse core the root
-        # ledger uses, evaluated against the CURRENT policy state.
-        snap = self.auto_policy.snapshot()
-        fusible_open = not snap['fuseOpen']
-        rate_limit_ok = snap['autoMutationsLastHour'] < snap['maxAutoMutationsPerHour']
-        cooldown_ok = snap['globalCooldownRemainingSeconds'] <= 0
         # §19: auto risk/op-allowlist are recomputed from the SAFE projected
         # rules (mirrors the root executor, which recomputes from the live raw
         # rules); never trusted from a request-declared label.
@@ -801,8 +870,8 @@ class RuntimeService:
         auto_allowlisted_op = bool(ops) and all(
             isinstance(o, dict) and o.get('op') in AUTO_ROUTE_OPS for o in ops)
         return evaluate_plan_policy(
-            plan, apply_type=apply_type, mode=s['mode'],
-            configured_stage=s.get('routeStage', 'observe'),
+            plan, apply_type=apply_type, mode=gates['mode'],
+            configured_stage=gates['routeStage'],
             release_capabilities=self.release, health=self.health_status(),
             recovery_required=self.recovery_required,
             observation_fresh=obs['fresh'],
@@ -810,13 +879,13 @@ class RuntimeService:
             timeline_integrity_valid=tl['integrityValid'],
             current_generation=current_generation,
             current_config_sha256=current_config_sha,
-            current_execution_epoch=execution_epoch,
-            auto_confirmed=isinstance(s.get('autoConfirmedAtEpochSeconds'), int),
+            current_execution_epoch=gates['executionEpoch'],
+            auto_confirmed=gates['autoConfirmed'],
             risk_auto_eligible=risk_auto_eligible,
             auto_allowlisted_op=auto_allowlisted_op,
-            fusible_open=fusible_open,
-            rate_limit_ok=rate_limit_ok,
-            cooldown_ok=cooldown_ok,
+            fusible_open=gates['fusibleOpen'],
+            rate_limit_ok=gates['rateLimitOk'],
+            cooldown_ok=gates['cooldownOk'],
         )
 
     def _route_approve(self, rid, operations, plan, status, peer_uid):
@@ -1011,11 +1080,33 @@ class RuntimeService:
                 'releaseGateOpen': release_gate_open}
 
     def _auto_status(self):
-        """Bounded Auto status: release-gated reachability + policy snapshot."""
+        """Bounded Auto status: release-gated reachability + policy snapshot.
+
+        §P0-2: the authoritative auto gating state (autoConfirmed, fuse, rate,
+        cooldown) is displayed from the ROOT execution-policy projection.
+        Runtime-local AutoPolicy / RuntimeState auto preference are only a
+        legacy fallback for early-boot / historical display and never the
+        execution authority.
+        """
         status = self._route_status()
-        s = self.state.load()
-        auto_confirmed = isinstance(s.get('autoConfirmedAtEpochSeconds'), int)
-        policy_snapshot = self.auto_policy.snapshot()
+        gates = self._root_policy_gates(need_auto=True)
+        if gates is not None:
+            auto_confirmed = gates['autoConfirmed']
+            policy_snapshot = {
+                'integrity': 'valid',
+                'corruptReason': None,
+                'fuseOpen': gates['fuseOpen'],
+                'fuseAcknowledged': gates['fuseAcknowledged'],
+                'consecutiveRollbacks': gates['consecutiveRollbacks'],
+                'consecutiveRollbackFuseLimit': gates['consecutiveRollbackFuseLimit'],
+                'autoMutationsLastHour': gates['autoMutationsLastHour'],
+                'maxAutoMutationsPerHour': gates['maxAutoMutationsPerHour'],
+                'globalCooldownRemainingSeconds': gates['globalCooldownRemainingSeconds'],
+            }
+        else:
+            s = self.state.load()
+            auto_confirmed = isinstance(s.get('autoConfirmedAtEpochSeconds'), int)
+            policy_snapshot = self.auto_policy.snapshot()
         # Determine whether auto is reachable (release gate + configuration).
         ba = status['boundedAuto']
         auto_reachable = (ba['released']

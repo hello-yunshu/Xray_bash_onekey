@@ -59,6 +59,11 @@ done
 echo "  bootstrap-surroundings: ${PRESENCE}"
 
 echo "--- init_package_manager is pure and selects a real manager ---"
+# T3: save the production function before mocking so the later real-prereq
+# install still runs the production pkg_install (never `unset -f` a sourced
+# function: unsetting removes the function entirely, it does NOT restore the
+# original from before the mock).
+_pkg_install_saved=$(declare -f pkg_install)
 PKG_CALLS=0
 pkg_install() { PKG_CALLS=$((PKG_CALLS + 1)); return 0; }
 PRE_PKG=${PKG_CALLS}
@@ -83,7 +88,9 @@ else
     [[ "${INS}" == "apt" ]] && ok "non-rpm family INS=apt" ||
         bad "non-rpm family INS=${INS} (expected apt)"
 fi
-unset -f pkg_install
+# Restore the production pkg_install function.
+eval "${_pkg_install_saved}"
+unset _pkg_install_saved
 
 echo "--- pkg_install_judge routes to the correct family, not dpkg on RPM ---"
 # The judge itself must use the family manager, so a mock manager is installed

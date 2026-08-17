@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""P0-3: unprivileged production Auto Trigger for Bounded Auto.
+
+Invoked by the rill-xray-agent-auto-evaluate.service oneshot (User=
+rill-xray-agent) when the rill-xray-agent-auto-evaluate.path unit observes the
+ROOT observer atomically replacing the safe route-topology projection. It only
+asks the Runtime to evaluate the CURRENT projection (autoProduce); it never
+reads the raw Xray config, never writes the host config and never mutates
+anything directly.
+
+Single-flight + debounce: a non-blocking flock on a shared lock file makes an
+in-flight evaluation skip a concurrent trigger (exit 0, never queued), so a
+burst of topology replacements cannot spin up a busy loop. Every bounded /
+fail-closed decision (cooldown, rate limit, fuse, release gate, missing /
+corrupt topology, no-op recommendation) is made inside the Runtime's
+autoProduce path; a pass here only means "wake up the evaluator".
+"""
+import fcntl
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'python'))
+
+LOCK = '/run/rill-xray-agent/auto-evaluate.lock'
+
+
+def main() -> int:
+    lock_dir = os.path.dirname(LOCK)
+    try:
+        os.makedirs(lock_dir, exist_ok=True)
+    except OSError:
+        # The runtime dir is normally pre-created (RuntimeDirectory); a
+        # missing dir means there is nothing to evaluate yet.
+        return 0
+    with open(LOCK, 'w') as lock:
+        try:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            # another evaluation is already in flight: debounced skip
+            return 0
+        from rill_xray_agent.cli import main as cli_main
+        # Ask the Runtime to evaluate the CURRENT topology and produce an
+        # ApplyRequest only if eligible. The Runtime fails closed otherwise.
+        return cli_main(['auto-produce'])
+
+
+if __name__ == '__main__':
+    sys.exit(main())

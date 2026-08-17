@@ -14,7 +14,10 @@ Scope rules (security-sensitive):
 """
 from __future__ import annotations
 
+import hashlib
 import re
+
+from .canonical import digest
 
 # ---- operation enums -----------------------------------------------------
 ALLOWED_OPS = frozenset({
@@ -33,10 +36,16 @@ MANUAL_ROUTE_OPS = frozenset(ALLOWED_OPS)
 AUTO_ROUTE_OPS = frozenset({'routingRule.insert', 'routingRule.replaceManaged'})
 
 # ---- operation parameter keys -------------------------------------------
+# managedRuleId (P0-1) is the root-owned STABLE identity for a managed rule:
+# immutable, secret-free, independent of position / config generation / capture
+# timestamp / selector values. insert requires it (the executor derives the
+# deterministic Xray tag from it), replace binds it so the executor can verify
+# the live rule at ruleIndex actually carries the requested identity (TOCTOU /
+# index-drift protection).
 OP_PARAM_KEYS = {
-    'routingRule.insert': {'position', 'selectorType', 'selectorValue', 'outboundTag'},
+    'routingRule.insert': {'managedRuleId', 'position', 'selectorType', 'selectorValue', 'outboundTag'},
     'routingRule.removeManaged': {'ruleIndex'},
-    'routingRule.replaceManaged': {'ruleIndex', 'selectorType', 'selectorValue', 'outboundTag'},
+    'routingRule.replaceManaged': {'managedRuleId', 'ruleIndex', 'selectorType', 'selectorValue', 'outboundTag'},
     'routingRule.moveManaged': {'fromIndex', 'toIndex'},
 }
 INDEX_KEYS = frozenset({'position', 'ruleIndex', 'fromIndex', 'toIndex'})
@@ -71,6 +80,39 @@ AUTO_MAX_RISK = 'low'
 
 # Managed-rule tag prefix: ownership marker for rules Rill may mutate/remove.
 MANAGED_PREFIX = 'rill-managed-'
+
+
+def managed_rule_id_valid(value):
+    """managedRuleId is a root-owned stable identifier: secret-free, ASCII,
+    bounded, immutable. Anything else is rejected so it can never smuggle a
+    path / shell / secret material into a derived tag."""
+    return bool(isinstance(value, str) and ID_RE.match(value))
+
+
+def managed_tag(managed_rule_id):
+    """Deterministic Xray tag for a root-owned managedRuleId (P0-1).
+
+    The tag depends ONLY on the stable managedRuleId, never on position /
+    selector values / config generation / capture timestamp, so the identity
+    between root-owned intent and the live rule can never drift. The intent
+    (authority) declares managedRuleId; the executor derives this exact tag;
+    the observer sees the tag on the live rule; the analyzer recomputes the
+    same digest to match them.
+    """
+    if not managed_rule_id_valid(managed_rule_id):
+        raise ValueError('invalid managedRuleId')
+    return MANAGED_PREFIX + hashlib.sha256(
+        managed_rule_id.encode('utf-8')).hexdigest()[:12]
+
+
+def managed_id_digest(managed_rule_id):
+    """Secret-free identity digest used by the topology projection and the
+    analyzer to match an intent rule to its live rule. The live rule's tag
+    is the deterministic managed_tag(managedRuleId); this digest is computed
+    from that tag exactly as the projection does (canonical {'managedTag': ..}
+    digest), so intent and live match without ever persisting the raw tag in
+    clear."""
+    return digest({'managedTag': managed_tag(managed_rule_id)})
 
 
 def risk_rank(risk):
@@ -132,6 +174,9 @@ def op_risk(op, rules):
     This is the single classification used by the planner AND re-evaluated
     root-side by the executor (§19): auto eligibility is never trusted from a
     request-declared label, it is recomputed here from the live rules.
+
+    P0-8: Auto V1 insert LOW risk ONLY for strict append-only (position == len(rules)).
+    Any insertion before the last rule is medium risk (requires human audit).
     """
     if not isinstance(op, dict):
         return 'high'
@@ -140,9 +185,11 @@ def op_risk(op, rules):
     if opname == 'routingRule.insert':
         position = params.get('position')
         count = len(rules) if isinstance(rules, list) else 0
-        if isinstance(position, int) and position >= (count - 1):
-            return 'low'
-        return 'medium'
+        # Auto V1: only strict append (position == len(rules)) is LOW risk.
+        # Any insertion at an earlier position is MEDIUM risk (requires manual).
+        if isinstance(position, int) and 0 <= position <= count:
+            return 'low' if position == count else 'medium'
+        return 'high'
     if opname == 'routingRule.removeManaged':
         return 'low'
     if opname == 'routingRule.replaceManaged':
@@ -155,6 +202,15 @@ def op_risk(op, rules):
             return 'low'
         return 'medium'
     if opname == 'routingRule.moveManaged':
+        from_index = params.get('fromIndex')
+        to_index = params.get('toIndex')
+        count = len(rules) if isinstance(rules, list) else 0
+        # Moving to an out-of-bounds index is high risk (rejected by auto).
+        # Both from/to must be within the current rule count.
+        if not (isinstance(from_index, int) and 0 <= from_index < count):
+            return 'high'
+        if not (isinstance(to_index, int) and 0 <= to_index <= count):
+            return 'high'
         return 'low'
     return 'high'
 

@@ -56,12 +56,31 @@ def fault(point: str):
     Each env var is checked exactly where the corresponding durable write
     happens, so fault tests exercise the production crash path instead of
     hand-rolled state files. Points:
-      PREPARED APPLYING MANAGED_MUTATION APPLIED VERIFIED COMMIT_INTENT
-      ROLLBACK_INTENT MANAGED_RESTORE GENERATION_RESTORE ROLLBACK_BUNDLE
-      RESULT RECEIPT DELIVERY TERMINAL
+      PREPARED PRE_VERIFY APPLYING MANAGED_MUTATION APPLIED VERIFIED
+      COMMIT_INTENT ROLLBACK_INTENT MANAGED_RESTORE GENERATION_RESTORE
+      ROLLBACK_BUNDLE RESULT RECEIPT DELIVERY TERMINAL
     """
     if os.environ.get(f'RILL_FAULT_{point}') == '1':
         raise TransactionError(f'fault injected at {point}')
+
+
+def auto_outcome_id_for(request):
+    """§P0-5: stable, deterministic auto outcome id — single source of truth.
+
+    A given auto request ALWAYS maps to the same outcome id, so recovery /
+    ledger reconciliation replaying the same request is idempotent
+    (exactly-once ledger). Bound to requestSha256 + recommendationId +
+    configurationGeneration; None for non-auto requests. The request body is
+    already digest-anchored (requestSha256), so this id can never be forged
+    by a party that cannot produce the request.
+    """
+    if not isinstance(request, dict) or request.get('applyType') != 'auto':
+        return None
+    return digest({
+        'recommendationId': request.get('recommendationId'),
+        'configurationGeneration': request.get('configurationGeneration'),
+        'requestSha256': request.get('requestSha256'),
+    })
 
 
 class RootTransaction:
@@ -115,13 +134,22 @@ class RootTransaction:
         _ensure_runtime_readable(p, _TXN_ARTIFACT_MODE)
 
     def _build_bundle(self, w, did, request, old, terminal, outcome):
+        # §P0-5: autoOutcomeId — stable unique identifier for this auto outcome
+        # that guarantees exactly-once ledger reconciliation during crash
+        # recovery. Derived from the request so it's deterministic and
+        # idempotent (single source of truth: auto_outcome_id_for).
+        auto_outcome_id = auto_outcome_id_for(request)
         body = {'schemaVersion': 2, 'decisionId': did, 'outcome': outcome,
                 'observedAtEpochSeconds': int(time.time()), 'configurationGeneration': old,
-                'nextConfigurationGeneration': old + 1 if terminal == 'committed' else old}
+                'nextConfigurationGeneration': old + 1 if terminal == 'committed' else old,
+                'autoOutcomeId': auto_outcome_id,
+                'applyType': request.get('applyType')}
         result = {**body, 'resultSha256': digest(body)}
         receipt = {'schemaVersion': 1, 'decisionId': did, 'resultSha256': result['resultSha256'],
                    'transactionSha256': digest({'request': request, 'result': result}),
-                   'createdAtEpochSeconds': int(time.time())}
+                   'createdAtEpochSeconds': int(time.time()),
+                   'autoOutcomeId': auto_outcome_id,
+                   'applyType': request.get('applyType')}
         base = {'schemaVersion': 1, 'terminalState': terminal,
                 'nextConfigurationGeneration': result['nextConfigurationGeneration'],
                 'result': result, 'receipt': receipt,
@@ -146,7 +174,8 @@ class RootTransaction:
         fault('DELIVERY')
 
     def apply(self, request, managed, apply_fn, verify_fn,
-              restart_fn=None, commit_hook=None, rollback_hook=None):
+              restart_fn=None, commit_hook=None, rollback_hook=None,
+              pre_verify_fn=None, candidate_bytes=None):
         did = self.validated_id(request['recommendationId'])
         w = self.root / self.work_dir_name(did)
         restart = restart_fn if restart_fn is not None else self.restart_fn
@@ -170,6 +199,34 @@ class RootTransaction:
             atomic_write_json(w / 'request.json', request)
             self.state(w, 'prepared')
             fault('PREPARED')
+            # §P0-6: candidate pre-validation BEFORE any live mutation. The
+            # compiled candidate is persisted into the root txn work dir
+            # (atomic + fsync'd via atomic_write_bytes) and validated by
+            # pre_verify_fn — the official `xray run -test -config
+            # candidate.json`. A failed pre-test aborts with ZERO host
+            # mutation / ZERO restart / ZERO generation / ZERO ledger: the
+            # work dir (only a copy of the untouched live config and the
+            # request) is removed and the request is rejected. The live
+            # config is never overwritten with an unverified candidate and
+            # Xray is never restarted. This runs OUTSIDE the rollback-capable
+            # try/except below so a pre-test failure can never trigger a
+            # rollback (nothing was mutated to roll back).
+            if candidate_bytes is not None:
+                atomic_write_bytes(w / 'candidate.json', candidate_bytes, 0o600)
+            if pre_verify_fn is not None:
+                ok = False
+                try:
+                    ok = bool(pre_verify_fn(w / 'candidate.json'))
+                except Exception:
+                    ok = False
+                if not ok:
+                    shutil.rmtree(w, ignore_errors=True)
+                    raise TransactionError('candidate pre-validation failed')
+            # Crash point after candidate validation: the candidate.json is
+            # durable in the work dir and the transaction is still 'prepared',
+            # so recovery rolls the (untouched) host back to the pre-apply
+            # bytes — a zero-mutation recovery.
+            fault('PRE_VERIFY')
             try:
                 self.state(w, 'applying')
                 fault('APPLYING')
