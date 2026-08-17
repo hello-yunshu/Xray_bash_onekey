@@ -33,9 +33,28 @@ Font="\033[0m"
 # Minimal gettext fallback: returns the input string as-is when the real
 # gettext binary/function is not yet available (e.g. before init_language).
 # init_language sources the real gettext.sh which overrides this function.
-if ! command -v gettext >/dev/null 2>&1; then
+# P1-3: the fallback shell function must NEVER be mistaken for a real gettext
+# executable. All install-time detection MUST use has_gettext_binary() (type -P),
+# which only searches PATH for an actual executable and ignores functions.
+if ! type -P gettext >/dev/null 2>&1; then
     gettext() { printf '%s' "$1"; }
 fi
+
+# P1-3: true only when a real gettext executable exists on PATH. `type -P`
+# (not `command -v`) is used so the in-script gettext() fallback function above
+# is never reported as "installed". The real gettext.sh sourced by init_language
+# overrides the fallback function; both may coexist, but the binary check is
+# authoritative for deciding whether gettext still needs installing.
+has_gettext_binary() {
+    type -P gettext >/dev/null 2>&1
+}
+
+# T2/P0: true only when a real jq executable exists on PATH. `type -P` (not
+# `command -v`) so a test/shell jq() function is never reported as installed;
+# only an actual executable can parse JSON.
+has_jq_binary() {
+    type -P jq >/dev/null 2>&1
+}
 
 #notification information
 Info="${Green}[$(gettext "信息")]${Font}"
@@ -185,7 +204,55 @@ mode_switch_reuse="off"
 install_profile=""
 install_wizard_preset="off"
 random_num=$((RANDOM % 12 + 4))
-[[ -f "${xray_install_config_file}" ]] && info_extraction_all=$(jq -rc . "${xray_install_config_file}")
+# P0 (config lazy-load): the top-level phase must NOT call jq before Bootstrap
+# has guaranteed it. Configuration is parsed lazily via _lazy_load_info_extraction()
+# once we are inside a phase where jq is guaranteed to exist (online repair can add
+# it; offline commands dispatch before it and must not trigger a package install).
+_info_extraction_loaded=0
+# P1-4: fail-closed classification of the existing install config. Distinguishes:
+#   config missing            -> normal no-config (read_config_status stays 1)
+#   config present + jq gone  -> dependency/config-read error (status=0)
+#   config present + malformed-> configuration corruption (status=0)
+#   config present + valid    -> normal (status=1)
+# The original file is ALWAYS preserved; a corrupt config is never cleared or
+# downgraded to "fresh install" semantics. Returns non-zero ONLY when a config
+# exists but could not be read, so callers can fail closed at the read boundary.
+_lazy_load_info_extraction() {
+    if [[ ${_info_extraction_loaded} -eq 1 ]]; then
+        return 0
+    fi
+    if [[ ! -f "${xray_install_config_file}" ]]; then
+        info_extraction_all=""
+        _info_extraction_loaded=1
+        return 0
+    fi
+    if ! has_jq_binary; then
+        # config present + jq missing: explicit dependency/config-read error.
+        # Stay UNLOADED so a later read can succeed once jq exists.
+        info_extraction_all=""
+        read_config_status=0
+        return 1
+    fi
+    local _parsed
+    if ! _parsed=$(jq -rc . "${xray_install_config_file}" 2>/dev/null); then
+        # config present + malformed JSON: fail closed, preserve the file.
+        # Stay UNLOADED so a repaired config can be re-read.
+        info_extraction_all=""
+        read_config_status=0
+        log_echo "${Error} ${RedBG} CONFIG_PARSE_ERROR path=${xray_install_config_file} action=preserved ${Font}" 2>/dev/null || true
+        return 1
+    fi
+    info_extraction_all="${_parsed}"
+    read_config_status=1
+    _info_extraction_loaded=1
+    return 0
+}
+
+# P0-1: lazy-load entry for the read-only path (also used by unit tests that
+# must not depend on jq being present at source time). Idempotent.
+lazy_load_config_for_read() {
+    _lazy_load_info_extraction
+}
 
 is_ws_mode() {
     [[ ${transport_mode} == *ws* ]]
@@ -199,15 +266,34 @@ is_xhttp_mode() {
     [[ ${transport_mode} == *xhttp* ]]
 }
 
-[[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}"
-[[ ! -f "${log_dir}/install.log" ]] && touch "${log_dir}"/install.log
+# P0 (lazy log): do NOT create /etc/idleleo or touch the log at top level.
+# --help / self-check run with _PURE_READONLY=1 so they have zero filesystem
+# side effects. File logging initializes lazily on first real (mutation) use.
 LOG_FILE="${log_dir}/install.log"
 log_file="${LOG_FILE}"
 LOG_MAX_SIZE=$((3 * 1024 * 1024))
 MAX_ARCHIVES=5
 _log_check_counter=0
+_LOG_INITIALIZED=0
+_PURE_READONLY=1
+_log_init() {
+    [[ ${_LOG_INITIALIZED} -eq 1 ]] && return 0
+    _LOG_INITIALIZED=1
+    [[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}" 2>/dev/null
+    [[ -d "${log_dir}" && ! -f "${LOG_FILE}" ]] && : > "${LOG_FILE}" 2>/dev/null
+}
+# Called exactly once the pure/read-only dispatch phase has passed.
+enable_file_logging() {
+    _PURE_READONLY=0
+    _log_init
+}
 
 log() {
+    if [[ ${_PURE_READONLY} -eq 1 ]]; then
+        # suppress all file side effects during pure read-only dispatch
+        return 0
+    fi
+    _log_init
     _log_check_counter=$((_log_check_counter + 1))
     if [[ $((_log_check_counter % 100)) -eq 1 ]]; then
         if [ $(stat -c%s "$LOG_FILE" 2>/dev/null) -gt $LOG_MAX_SIZE ]; then
@@ -406,26 +492,59 @@ rxa_candidate_guard() {
     # allowed to replace the running script. Returns 0 only when every
     # integration anchor and the shell syntax check succeed.
     local candidate=${1:-} block rtmp rc cand_schema cap
-    [[ -f "${candidate}" ]] || return 1
-    bash -n "${candidate}" 2>/dev/null || return 1
+    # Diagnostics (P1): every failure records a named stage in
+    # RILL_CANDIDATE_GUARD_STAGE so callers can report exactly which phase of
+    # the guard rejected the candidate instead of a generic "guard" error.
+    RILL_CANDIDATE_GUARD_STAGE=""
+    RILL_CANDIDATE_GUARD_RC=""
+    RILL_CANDIDATE_GUARD_SHA256=""
+    RILL_CANDIDATE_GUARD_VERSION=""
+    if [[ ! -f "${candidate}" ]]; then
+        RILL_CANDIDATE_GUARD_STAGE="path"
+        return 1
+    fi
+    RILL_CANDIDATE_GUARD_SHA256=$(sha256sum "${candidate}" 2>/dev/null | awk '{print $1}')
+    RILL_CANDIDATE_GUARD_VERSION=$(sed -n 's/^shell_version=\(['"'"'"0-9.]*\).*/\1/p' "${candidate}" | head -n1)
+    if ! bash -n "${candidate}" 2>/dev/null; then
+        RILL_CANDIDATE_GUARD_STAGE="syntax"
+        return 1
+    fi
     # P1-2: schema floor (>=, never strict equality). A missing/non-numeric
     # schema marker, or one below RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR,
     # fails closed.
     cand_schema=$(sed -n 's/^RILL_XRAY_AGENT_INTEGRATION_SCHEMA=\([0-9][0-9]*\)$/\1/p' "${candidate}" | head -n1)
-    [[ "${cand_schema}" =~ ^[0-9]+$ ]] || return 1
-    (( cand_schema >= RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR )) || return 1
+    if ! [[ "${cand_schema}" =~ ^[0-9]+$ ]]; then
+        RILL_CANDIDATE_GUARD_STAGE="schema"
+        return 1
+    fi
+    if ! (( cand_schema >= RILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR )); then
+        RILL_CANDIDATE_GUARD_STAGE="schema"
+        return 1
+    fi
     # P1-2: capability floor. Every required capability must be present as a
     # real off-line dispatch branch -- a comment or a bare string is not
     # enough. Version is irrelevant: a higher schema keeps passing as long as
     # all required capabilities are really there.
     for cap in ${RILL_XRAY_AGENT_REQUIRED_CAPABILITIES}; do
-        rxa_capability_present "${candidate}" "${cap}" || return 1
+        if ! rxa_capability_present "${candidate}" "${cap}"; then
+            RILL_CANDIDATE_GUARD_STAGE="capability"
+            return 1
+        fi
     done
-    grep -qE '^[[:space:]]*9\)[[:space:]]*rxa_menu' "${candidate}" || return 1
-    grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch' "${candidate}" || return 1
+    if ! grep -qE '^[[:space:]]*9\)[[:space:]]*rxa_menu' "${candidate}"; then
+        RILL_CANDIDATE_GUARD_STAGE="menu-anchor"
+        return 1
+    fi
+    if ! grep -qE '^[[:space:]]*--rill-agent-status\)[[:space:]]*rxa_dispatch' "${candidate}"; then
+        RILL_CANDIDATE_GUARD_STAGE="offline-dispatch-anchor"
+        return 1
+    fi
     block=$(sed -n '/^# [B]EGIN RILL XRAY AGENT INTEGRATION$/,/^# [E]ND RILL XRAY AGENT INTEGRATION$/p' "${candidate}")
-    [[ -n "${block}" ]] || return 1
-    rtmp=$(mktemp -d) || return 1
+    if [[ -z "${block}" ]]; then
+        RILL_CANDIDATE_GUARD_STAGE="semantic-probe"
+        return 1
+    fi
+    rtmp=$(mktemp -d) || { RILL_CANDIDATE_GUARD_STAGE="probe-setup"; return 1; }
     if RILL_XRAY_AGENT_PROBE_BLOCK="${block}" RILL_XRAY_AGENT_PROBE_ROOT="${rtmp}" \
         bash -c '
 set -u
@@ -453,25 +572,12 @@ printf "LISTEN 0 4096 0.0.0.0:61000 0.0.0.0:* inet sshd\n"
 printf "LISTEN 0 4096 0.0.0.0:61001 0.0.0.0:* inet sshd\n"
 printf "LISTEN 0 4096 0.0.0.0:61002 0.0.0.0:* inet sshd\n"
 JEOF
-cat > "${rt}/bin/jq" <<JQEOF
-#!/usr/bin/env python3
-import json,sys
-args=list(sys.argv[1:])
-arg={}
-while "--arg" in args:
-    i=args.index("--arg"); arg[args[i+1]]=args[i+2]; args=args[:i]+args[i+3:]
-args=[a for a in args if not a.startswith("-") and a!="--"]
-flt=args[0]
-if len(args)>1:
-    d=json.load(open(args[1]))
-else:
-    d=json.load(sys.stdin)
-if flt==".":
-    print(json.dumps(d,separators=(",",":"))); sys.exit(0)
-name=flt.split(".")[-1].split("//")[0].strip().strip(chr(34))
-if name.startswith("[$"): name=arg.get(name[2:-1],"")
-if isinstance(d,dict) and name in d: print(d[name])
-JQEOF
+# jq is NOT shadowed here -- it is a declared Bootstrap prerequisite installed
+# before rxa_candidate_guard ever runs (init_package_manager -> pkg_install
+# "bc,jq" on the fresh install path). The probe therefore uses the real jq on
+# the throwaway files under "${rt}", which keeps python3 OUT of the candidate
+# the guard dependency closure. This is fail-closed: if real jq is missing the
+# probe jq calls fail and the guard rejects the candidate.
 chmod +x "${rt}"/bin/*
 export PATH="${rt}/bin:${PATH}"
 printf "%s\n" "{\"tls\":\"TLS\",\"port\":60000,\"reality_add_nginx\":\"off\",\"ws_port\":61000,\"grpc_port\":61001,\"xhttp_port\":61002}" > "${rt}/cfgs/install_config.json"
@@ -498,7 +604,7 @@ menu_row(){ return 0; }
 menu_blank(){ return 0; }
 menu_item(){ return 0; }
 menu_footer(){ return 0; }
-menu_read(){ printf -v "$1" '%s' 0; }
+menu_read(){ printf -v "$1" %s 0; }
 eval "${RILL_XRAY_AGENT_PROBE_BLOCK}" || exit 1
 # 1) real function definitions, not comment strings.
 for f in rxa_candidate_guard rxa_uninstall_prepare rxa_uninstall_commit \
@@ -529,8 +635,22 @@ rxa_menu >/dev/null 2>&1 || exit 11
 exit 0
 '; then
         rc=0
+        RILL_CANDIDATE_GUARD_RC="0"
     else
         rc=$?
+        RILL_CANDIDATE_GUARD_RC="${rc}"
+        # Map the probe's distinct exit code to a named stage so a failure is
+        # diagnosable, without weakening fail-closed behavior.
+        case "${rc}" in
+            1) RILL_CANDIDATE_GUARD_STAGE="semantic-probe" ;;
+            2) RILL_CANDIDATE_GUARD_STAGE="capability" ;;
+            3|4) RILL_CANDIDATE_GUARD_STAGE="host-health" ;;
+            5|6) RILL_CANDIDATE_GUARD_STAGE="offline-dispatch" ;;
+            7) RILL_CANDIDATE_GUARD_STAGE="reconfigure" ;;
+            8|9|10) RILL_CANDIDATE_GUARD_STAGE="uninstall" ;;
+            11) RILL_CANDIDATE_GUARD_STAGE="menu-anchor" ;;
+            *) RILL_CANDIDATE_GUARD_STAGE="semantic-probe" ;;
+        esac
     fi
     rm -rf "${rtmp}"
     return "${rc}"
@@ -1137,6 +1257,36 @@ VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 # Returns 0 if the lock is available (or was acquired), 1 on timeout.
 # NEVER deletes lock files that are held by a running process — that corrupts
 # the package database.
+# True if any process still has a given path open (POSIX/fcntl lock holder).
+# Pure-shell scan of /proc so the apt/dpkg lock wait needs NO pre-bootstrap
+# dependency (fuser/lsof no longer required before the Bootstrap contract).
+_proc_fd_path_held() {
+    local f="$1" fd target
+    for fd in /proc/[0-9]*/fd/*; do
+        [[ -e "${fd}" ]] || continue
+        target=$(readlink "${fd}" 2>/dev/null) || continue
+        [[ "${target}" == "${f}" ]] && return 0
+    done
+    return 1
+}
+# Best-effort holder listing for diagnostics. Prefers fuser/lsof when present,
+# otherwise falls back to the pure /proc scan. Never installs anything.
+_lock_holder_labels() {
+    local f="$1" p
+    if command -v fuser >/dev/null 2>&1; then
+        fuser "${f}" 2>&1 || true
+    elif command -v lsof >/dev/null 2>&1; then
+        lsof "${f}" 2>/dev/null || true
+    else
+        for p in /proc/[0-9]*; do
+            [[ -d "${p}" ]] || continue
+            if readlink "${p}/fd/"* 2>/dev/null | grep -qx "${f}"; then
+                printf '%s ' "${p##*/}"
+            fi
+        done
+    fi
+}
+
 wait_for_apt_lock() {
     local timeout="${1:-60}"
     local elapsed=0
@@ -1151,25 +1301,15 @@ wait_for_apt_lock() {
     fi
 
     # apt/dpkg use POSIX/fcntl locks; flock(1) uses a different lock class and
-    # can incorrectly report those files as free. Inspect actual holders with
-    # fuser/lsof instead.
+    # can incorrectly report those files as free. Inspect actual holders via a
+    # pure-shell /proc scan so no pre-bootstrap tool (fuser/lsof) is required.
     while [[ ${elapsed} -lt ${timeout} ]]; do
         local locked=0
         for lock_file in "${lock_files[@]}"; do
             [[ ! -e "${lock_file}" ]] && continue
-            if command -v fuser >/dev/null 2>&1; then
-                if fuser "${lock_file}" >/dev/null 2>&1; then
-                    locked=1
-                    break
-                fi
-            elif command -v lsof >/dev/null 2>&1; then
-                if lsof "${lock_file}" >/dev/null 2>&1; then
-                    locked=1
-                    break
-                fi
-            else
-                log_echo "${Error} ${RedBG} $(gettext "无法检查 apt/dpkg 锁: 缺少 fuser 或 lsof") ${Font}"
-                return 1
+            if _proc_fd_path_held "${lock_file}"; then
+                locked=1
+                break
             fi
         done
 
@@ -1189,7 +1329,7 @@ wait_for_apt_lock() {
     for lock_file in "${lock_files[@]}"; do
         [[ ! -e "${lock_file}" ]] && continue
         local holders
-        holders=$(fuser "${lock_file}" 2>&1 || lsof "${lock_file}" 2>/dev/null || true)
+        holders=$(_lock_holder_labels "${lock_file}")
         if [[ -n "${holders}" ]]; then
             log_echo "${Error} ${lock_file}: ${holders} ${Font}"
         fi
@@ -1197,11 +1337,92 @@ wait_for_apt_lock() {
     return 1
 }
 
+# RPM-family abstraction. Debian-family pkg logic must never see an RPM family.
+is_rpm_family() {
+    case "${ID:-}" in
+        centos|rocky|almalinux) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# P1-8: single source of truth for the root user's crontab file. RPM family
+# uses /var/spool/cron/root; Debian family uses /var/spool/cron/crontabs/root.
+# Never hard-code this path anywhere else.
+root_crontab_path() {
+    if is_rpm_family; then
+        printf '%s' "/var/spool/cron/root"
+    else
+        printf '%s' "/var/spool/cron/crontabs/root"
+    fi
+}
+
+# Select the RPM package manager by what is actually present rather than a
+# hard-coded alias (yum on modern RHEL-family releases is only a dnf shim, and
+# the prompt's own Bootstrap audit forbids assuming an alias exists). Pure and
+# read-only: never installs and never touches the network. Falls back to yum so
+# older CentOS/Rocky/AlmaLinux keep working.
+rpm_package_manager() {
+    if command -v dnf >/dev/null 2>&1; then
+        printf '%s' 'dnf'
+    else
+        printf '%s' 'yum'
+    fi
+}
+
+init_package_manager() {
+    # Pure/read-only: only selects INS from os-release. Never installs, never
+    # touches the network. Deferred system validation happens in check_system.
+    if is_rpm_family; then
+        INS="$(rpm_package_manager)"
+    else
+        INS="apt"
+    fi
+}
+
+# P1-7: pure supported-OS validation. Reads /etc/os-release ONLY (already
+# sourced at top level); never installs a package, never touches the network,
+# never writes /etc. Returns non-zero for unsupported distros so
+# ONLINE_ROOT_MUTATION stops BEFORE apt update / dnf makecache / pkg install /
+# GitHub curl / mkdir /etc/idleleo. Must be idempotent and safe to re-run.
+validate_supported_system() {
+    if is_rpm_family; then
+        # RPM family (centos/rocky/almalinux): accepted at major version >= 10,
+        # matching check_system()'s actual support condition.
+        local major="${VERSION_ID%%.*}"
+        if [[ "${major}" =~ ^[0-9]+$ ]] && [[ "${major}" -ge 10 ]]; then
+            return 0
+        fi
+    fi
+    local major
+    case "${ID:-}" in
+        debian)
+            major="${VERSION_ID%%.*}"
+            if [[ "${major}" =~ ^[0-9]+$ ]] && [[ "${major}" -ge 12 ]]; then
+                return 0
+            fi
+            ;;
+        ubuntu)
+            major="${VERSION_ID%%.*}"
+            if [[ "${major}" =~ ^[0-9]+$ ]] && [[ "${major}" -ge 24 ]]; then
+                return 0
+            fi
+            ;;
+    esac
+    log_echo "${Error} ${RedBG} unsupported_system: ${ID:-unknown} ${VERSION_ID:-unknown} ${Font}"
+    return 1
+}
+
 check_system() {
-    if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]] && [[ ${VERSION_ID%%.*} -ge 10 ]]; then
+    if is_rpm_family && [[ ${VERSION_ID%%.*} -ge 10 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} ${VERSION} ${Font}"
-        INS="yum"
-        [[ ! -f "${xray_install_config_file}" ]] && $INS update || true
+        INS="$(rpm_package_manager)"
+        # P0: mandatory package metadata refresh must not swallow failure.
+        if [[ ! -f "${xray_install_config_file}" ]]; then
+            $INS update || {
+                log_echo "${Error} ${RedBG} $(gettext "软件源更新失败") ${Font}"
+                exit 1
+            }
+        fi
     elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 12 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Debian ${VERSION_ID} ${VERSION} ${Font}"
         INS="apt"
@@ -1396,11 +1617,35 @@ safe_source_language_conf() {
 }
 
 init_language() {
-    if ! command -v gettext >/dev/null 2>&1; then
-        log_echo "${Warning} ${YellowBG} $(gettext "正在安装") gettext... ${Font}"
-        pkg_install "gettext"
-        if [ $? -ne 0 ]; then
-            log_echo "${Error} ${RedBG} gettext $(gettext "安装") $(gettext "失败"), $(gettext "将使用默认语言") ${Font}"
+    # mode:
+    #   online  - full behavior: may install gettext, may refresh translations
+    #             (network) and may create ${idleleo_dir}/languages. Used only
+    #             after INS is initialized and on an allowed-online mutation
+    #             path, so gettext is never installed before the package
+    #             manager is known (P0 bootstrap ordering fix).
+    #   offline - local-only: sources gettext.sh if already present, reads the
+    #             local language.conf, uses an existing .mo when available, and
+    #             otherwise falls back to the default (Chinese) language.
+    #             NEVER installs packages, NEVER touches the network, and never
+    #             creates the /etc idleleo languages directory. Used before the
+    #             offline-safe command dispatch so those commands stay truly
+    #             offline-safe.
+    local mode="${1:-online}"
+    local allow_online=0
+    [[ "${mode}" == "online" ]] && allow_online=1
+    # P1-3: detect a real gettext executable (type -P), NOT command -v, so the
+    # in-script gettext() fallback function is never mistaken for an install.
+    if ! has_gettext_binary; then
+        if [[ ${allow_online} -eq 1 ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "正在安装") gettext... ${Font}"
+            if ! pkg_install "gettext"; then
+                log_echo "${Error} ${RedBG} gettext $(gettext "安装") $(gettext "失败"), $(gettext "将使用默认语言") ${Font}"
+                unset LANG
+                unset LC_MESSAGES
+                return 1
+            fi
+        else
+            # offline + missing gettext: no install, fall back to default language
             unset LANG
             unset LC_MESSAGES
             return 1
@@ -1430,7 +1675,11 @@ init_language() {
         return 1
     fi
 
-    [ -d "${idleleo_dir}/languages" ] || mkdir "${idleleo_dir}/languages"
+    # Only online mode may create the languages directory (a /etc idleleo
+    # mutation that must not happen during offline dispatch).
+    if [[ ${allow_online} -eq 1 ]]; then
+        [ -d "${idleleo_dir}/languages" ] || mkdir "${idleleo_dir}/languages"
+    fi
     export TEXTDOMAIN="xray_install"
     export TEXTDOMAINDIR="${idleleo_dir}/languages"
     . "$gettext_sh"
@@ -1463,18 +1712,26 @@ init_language() {
             esac
 
             local lang_file="${TEXTDOMAINDIR}/${lang_code}/LC_MESSAGES/${TEXTDOMAIN}.mo"
-            if [ ! -f "$lang_file" ]; then
-                if ! update_language_file "$lang_code"; then
-                    log_echo "${Warning} ${YellowBG} $(gettext "语言文件更新失败"), $(gettext "将使用默认语言") ${Font}"
-                    unset LANG
-                    unset LC_MESSAGES
-                    return 0
+            if [[ ${allow_online} -eq 1 ]]; then
+                if [ ! -f "$lang_file" ]; then
+                    if ! update_language_file "$lang_code"; then
+                        log_echo "${Warning} ${YellowBG} $(gettext "语言文件更新失败"), $(gettext "将使用默认语言") ${Font}"
+                        unset LANG
+                        unset LC_MESSAGES
+                        return 0
+                    fi
+                elif check_language_update "$lang_code"; then
+                    log_echo "${Info} ${Green} $(gettext "发现语言文件更新") ${Font}"
+                    if update_language_file "$lang_code"; then
+                        . "$gettext_sh"
+                    fi
                 fi
-            elif check_language_update "$lang_code"; then
-                log_echo "${Info} ${Green} $(gettext "发现语言文件更新") ${Font}"
-                if update_language_file "$lang_code"; then
-                    . "$gettext_sh"
-                fi
+            elif [ ! -f "$lang_file" ]; then
+                # offline: no local translation available -> default language,
+                # never try to download. Keeps offline commands network-free.
+                unset LANG
+                unset LC_MESSAGES
+                return 0
             fi
         fi
     # else
@@ -1540,63 +1797,68 @@ check_version_silent() {
 }
 
 pkg_install_judge() {
-    if [[ "${ID}" == "centos" ]]; then
-        yum list installed | grep -iw "^$1"
+    if is_rpm_family; then
+        # Query with the same manager INS selected, never a hard-coded alias.
+        "${INS}" list installed | grep -iw "^$1"
     else
         dpkg --get-selections | grep -iw "^$1" | grep -ivw "deinstall"
     fi
 }
 
+# Multi-package install with strict error propagation. A real package-manager
+# failure on ANY required package records the failing name, prints no overall
+# [OK], and returns 1 so the caller can abort. Return value is never masked by
+# variable assignment / [[ ]] / echo / judge.
 pkg_install() {
-    install_array=(${1//,/ })
-    install_status=1
-    if [[ ${#install_array[@]} -gt 1 ]]; then
-        for install_var in "${install_array[@]}"; do
-            if [[ -z $(pkg_install_judge "${install_var}") ]]; then
-                ${INS} -y install "${install_var}"
-                install_status=0
+    local p
+    local install_array=(${1//,/ })
+    local failed=0
+    local need_install=0
+    for p in "${install_array[@]}"; do
+        if [[ -z $(pkg_install_judge "${p}") ]]; then
+            need_install=1
+            if ! ${INS} -y install "${p}"; then
+                log_echo "${Error} ${RedBG} $(gettext "软件包安装失败"): ${p} ${Font}"
+                failed=1
             fi
-        done
-        if [[ ${install_status} == 0 ]]; then
-            judge "$(gettext "安装") ${1//,/ }"
-        else
+        fi
+    done
+    if [[ ${failed} -eq 0 ]]; then
+        if [[ ${need_install} -eq 0 ]]; then
             log_echo "${OK} ${GreenBG} $(gettext "已安装") ${1//,/ } ${Font}"
             sleep 0.5
-        fi
-    else
-        if [[ -z $(pkg_install_judge "$1") ]]; then
-            ${INS} -y install $1
-            judge "$(gettext "安装") $1"
         else
-            log_echo "${OK} ${GreenBG} $(gettext "已安装") $1 ${Font}"
-            sleep 0.5
+            judge "$(gettext "安装") ${1//,/ }"
         fi
+        return 0
     fi
+    return 1
 }
 
 dependency_install() {
-    pkg_install "bc,curl,dbus,git,jq,lsof,python3,qrencode"
-    if [[ "${ID}" == "centos" ]]; then
-        pkg_install "crontabs"
+    pkg_install "bc,curl,dbus,git,jq,lsof,python3,qrencode" || return 1
+    if is_rpm_family; then
+        pkg_install "crontabs" || return 1
     else
-        pkg_install "cron"
+        pkg_install "cron" || return 1
     fi
     if [[ ! -f "/var/spool/cron/root" ]] && [[ ! -f "/var/spool/cron/crontabs/root" ]]; then
-        if [[ "${ID}" == "centos" ]]; then
-            touch /var/spool/cron/root && chmod 600 /var/spool/cron/root
+        local crontab_file
+        crontab_file="$(root_crontab_path)"
+        touch "${crontab_file}" && chmod 600 "${crontab_file}"
+        if is_rpm_family; then
             systemctl start crond && systemctl enable crond >/dev/null 2>&1
             judge "crontab $(gettext "自启动配置")"
         else
-            touch /var/spool/cron/crontabs/root && chmod 600 /var/spool/cron/crontabs/root
             systemctl start cron && systemctl enable cron >/dev/null 2>&1
             judge "crontab $(gettext "自启动配置")"
         fi
     fi
     if [[ ${tls_mode} != "None" ]] && [[ ${tls_mode} != "XTLS" ]]; then
-        if [[ "${ID}" == "centos" ]]; then
-            pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel,perl-IPC-Cmd"
+        if is_rpm_family; then
+            pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel,perl-IPC-Cmd" || return 1
         else
-            pkg_install "iputils-ping,libpcre3,libpcre3-dev,zlib1g-dev"
+            pkg_install "iputils-ping,libpcre3,libpcre3-dev,zlib1g-dev" || return 1
         fi
         judge "Nginx $(gettext "链接库安装")"
     fi
@@ -1655,7 +1917,7 @@ basic_optimization() {
     printf '%s\n' '* soft nofile 65536' >>/etc/security/limits.conf || return 1
     printf '%s\n' '* hard nofile 65536' >>/etc/security/limits.conf || return 1
 
-    if [[ "${ID}" == "centos" ]]; then
+    if is_rpm_family; then
         sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config || return 1
         setenforce 0 || return 1
     fi
@@ -2258,7 +2520,7 @@ firewall_persist_rules() {
     local rules_v4="${FW_RULES_V4:-/etc/iptables/rules.v4}"
     local rules_v6="${FW_RULES_V6:-/etc/iptables/rules.v6}"
     for _fw_bin in ${persist_families}; do
-        if [[ "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "almalinux" ]]; then
+        if is_rpm_family; then
             if ! service "${_fw_bin}" save 2>/dev/null && ! "${_fw_bin}-save" > "${sysconf_dir}/${_fw_bin}" 2>/dev/null; then
                 log_echo "${Warning} ${YellowBG} $(gettext "防火墙") ${_fw_bin} $(gettext "规则持久化失败") ${Font}"
                 _persist_rc=1
@@ -2872,10 +3134,13 @@ firewall_set() {
     read -r firewall_set_fq
     case $firewall_set_fq in
     [yY][eE][sS] | [yY])
-        if [[ "${ID}" == "centos" ]]; then
-            pkg_install "iptables-services"
+        # P1-9: persistent-firewall packages are REQUIRED once the user opts in.
+        # Install failure must abort the firewall transaction (caller rollback
+        # path), never silently continue without persistence.
+        if is_rpm_family; then
+            pkg_install "iptables-services" || return 1
         else
-            pkg_install "iptables-persistent"
+            pkg_install "iptables-persistent" || return 1
         fi
 
         # Restore dual-stack runtime state on a fresh process so the family
@@ -3139,7 +3404,8 @@ target_set() {
         local domain
         local output
         local curl_output
-        pkg_install "nmap"
+        # P1-9: nmap is required for the current domain-TLS detection action.
+        pkg_install "nmap" || return 1
 
         while true; do
             echo
@@ -3277,7 +3543,8 @@ shortIds_set() {
             done
             ;;
         *)
-            pkg_install "openssl"
+            # P1-9: openssl is required to generate a real short id.
+            pkg_install "openssl" || return 1
             shortIds=$(generate_reality_short_id)
             ;;
         esac
@@ -4565,7 +4832,8 @@ decoy_site_setup() {
     log_echo "${OK} ${GreenBG} $(gettext "域名校验通过") ${Font}"
 
     # 生成自签证书（高级用户可自行替换为 acme.sh 签发的正式证书）
-    pkg_install "openssl"
+    # P1-9: openssl is required for the self-signed cert generation below.
+    pkg_install "openssl" || return 1
     mkdir -p "${ssl_chainpath}"
     if ! openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
         -keyout "${ssl_chainpath}/decoy.key" \
@@ -5699,11 +5967,8 @@ nginx_update() {
 }
 
 auto_update() {
-    if [[ "${ID}" == "centos" ]]; then
-        crontab_file="/var/spool/cron/root"
-    else
-        crontab_file="/var/spool/cron/crontabs/root"
-    fi
+    local crontab_file
+    crontab_file="$(root_crontab_path)"
     if [[ ! -f "${auto_update_file}" ]] || [[ $(crontab -l | grep -c "auto_update.sh") -lt 1 ]]; then
         echo
         log_echo "${GreenBG} $(gettext "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)") ${Font}"
@@ -5735,7 +6000,8 @@ auto_update() {
 }
 
 ssl_install() {
-    pkg_install "socat"
+    # P1-9: socat is required for the acme.sh SSL workflow below.
+    pkg_install "socat" || return 1
     judge -r "$(gettext "安装 SSL 证书生成脚本依赖")" || return 1
     local acme_install_file="${idleleo_dir}/tmp/acme-install.sh"
     if ! download_script_file "https://get.acme.sh" "$acme_install_file" sh; then
@@ -7037,11 +7303,7 @@ service_stop() {
 acme_cron_update() {
     if [[ ${tls_mode} == "TLS" ]]; then
         local crontab_file
-        if [[ "${ID}" == "centos" ]]; then
-            crontab_file="/var/spool/cron/root"
-        else
-            crontab_file="/var/spool/cron/crontabs/root"
-        fi
+        crontab_file="$(root_crontab_path)"
         if [[ -f "${ssl_update_file}" ]] && [[ $(crontab -l | grep -Fc -- "${ssl_update_file}") == "1" ]]; then
             echo
             log_echo "${Warning} ${GreenBG} $(gettext "新版本已自动设置证书自动更新") ${Font}"
@@ -7972,9 +8234,16 @@ _info_cache_loaded=0
 _info_cache_invalidate() {
     declare -gA _info_cache=()
     _info_cache_loaded=0
+    # P0-1: also reset the lazy-load latch so the next read re-parses the
+    # config file instead of reusing a stale info_extraction_all.
+    _info_extraction_loaded=0
 }
 
 _info_cache_load() {
+    # P0-1: lazy-load first so info_extraction_all reflects the real config
+    # before any cache is built. _lazy_load_info_extraction is idempotent and
+    # fails closed (non-zero) only when a config exists but cannot be read.
+    _lazy_load_info_extraction || return 1
     if [[ ${_info_cache_loaded} -eq 0 ]] && [[ -n "${info_extraction_all:-}" ]]; then
         while IFS=$'\t' read -r key value; do
             _info_cache["$key"]="$value"
@@ -7984,8 +8253,12 @@ _info_cache_load() {
 }
 
 info_extraction() {
+    # P0-1: the public read entry point ALWAYS routes through the lazy loader,
+    # so existing configs are readable on a normal (re)install without
+    # depending on compat_migrate(). A corrupt/missing-jq config fails closed
+    # (read_config_status=0) instead of silently returning empty.
     if [[ ${_info_cache_loaded} -eq 0 ]]; then
-        _info_cache_load
+        _info_cache_load || return 1
     fi
     if [[ -n "${_info_cache[$1]+x}" ]]; then
         echo "${_info_cache[$1]}"
@@ -8004,7 +8277,12 @@ install_iftop() {
     if ! command -v iftop &>/dev/null; then
         log_echo "${Info} ${Green} $(gettext "正在安装") iftop... ${Font}"
         check_system
-        pkg_install "iftop"
+        # P1-9: iftop is an OPTIONAL feature dependency. On install failure the
+        # feature degrades to unavailable (with a warning), not a hard fail.
+        if ! pkg_install "iftop"; then
+            log_echo "${Warning} ${YellowBG} $(gettext "iftop 安装失败, 流量监控功能不可用") ${Font}"
+            return 1
+        fi
     else
         log_echo "${OK} ${GreenBG} $(gettext "已安装") iftop ${Font}"
     fi
@@ -8995,11 +9273,7 @@ uninstall_all() {
     stop_service_all || rxa_uninstall_rc=1
     acme_cron_cleanup || rxa_uninstall_rc=1
     local crontab_file
-    if [[ "${ID}" == "centos" ]]; then
-        crontab_file="/var/spool/cron/root"
-    else
-        crontab_file="/var/spool/cron/crontabs/root"
-    fi
+    crontab_file="$(root_crontab_path)"
     if [[ -f "${crontab_file}" ]]; then
         sed -i "/auto_update.sh/d" "${crontab_file}"
         sed -i "/geo_update.sh/d" "${crontab_file}"
@@ -9144,7 +9418,7 @@ install_xray_ws_tls() {
     is_root
     check_and_create_user_group
     check_system
-    dependency_install
+    dependency_install || return 1
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path. Creating nginx_conf_dir/ssl_chainpath/xray_conf_dir/
     # idleleo info + conf dirs first would pollute the manifest recorded file
@@ -9229,7 +9503,7 @@ install_xray_reality() {
     is_root
     check_and_create_user_group
     check_system
-    dependency_install
+    dependency_install || return 1
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
@@ -9301,7 +9575,7 @@ install_xray_xtls_only() {
     is_root
     check_and_create_user_group
     check_system
-    dependency_install
+    dependency_install || return 1
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
@@ -9354,7 +9628,7 @@ install_xray_ws_only() {
     is_root
     check_and_create_user_group
     check_system
-    dependency_install
+    dependency_install || return 1
     # Snapshot the source configuration BEFORE create_directory modifies any
     # managed path (see install_xray_ws_tls).
     old_config_exist_check || return 1
@@ -9428,7 +9702,7 @@ rxa_download_main_candidate() {
     fi
     if ! command -v rxa_candidate_guard >/dev/null 2>&1 ||
        ! rxa_candidate_guard "${candidate}"; then
-        RILL_UPDATE_CANDIDATE_ERROR="guard"
+        RILL_UPDATE_CANDIDATE_ERROR="guard:${RILL_CANDIDATE_GUARD_STAGE:-unknown}:${RILL_CANDIDATE_GUARD_RC:-?}"
         rm -f "${candidate}"
         return 1
     fi
@@ -9460,7 +9734,7 @@ rxa_replace_main_candidate() {
     fi
     if ! bash -n "${destination}" 2>/dev/null ||
        ! rxa_candidate_guard "${destination}"; then
-        RILL_UPDATE_CANDIDATE_ERROR="postcheck"
+        RILL_UPDATE_CANDIDATE_ERROR="postcheck:${RILL_CANDIDATE_GUARD_STAGE:-unknown}:${RILL_CANDIDATE_GUARD_RC:-?}"
         if [[ -n ${backup} && -f ${backup} ]]; then
             if ! mv -f "${backup}" "${destination}"; then
                 RILL_UPDATE_CANDIDATE_ERROR="rollback"
@@ -9477,7 +9751,14 @@ rxa_replace_main_candidate() {
 }
 
 rxa_log_candidate_failure() {
-    case ${RILL_UPDATE_CANDIDATE_ERROR:-unknown} in
+    local err="${RILL_UPDATE_CANDIDATE_ERROR:-unknown}"
+    local kind="${err%%:*}" rest="" stage="" prc=""
+    if [[ "${err}" == *:* ]]; then
+        rest="${err#*:}"
+        stage="${rest%%:*}"
+        prc="${rest#*:}"
+    fi
+    case ${kind} in
         guard)
             log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新") ${Font}"
             ;;
@@ -9491,6 +9772,12 @@ rxa_log_candidate_failure() {
             log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
             ;;
     esac
+    # Diagnostics (P1): report the guard stage and probe rc so a real Bootstrap
+    # failure is locatable. No candidate content, secrets, UUIDs, tokens or
+    # link data are ever included here.
+    if [[ ${kind} == "guard" || ${kind} == "postcheck" ]]; then
+        log_echo "${Info} ${YellowBG} Rill $(gettext "校验详情"): $(gettext "阶段")=${stage:-unknown} rc=${prc:-?} candidate-version=${RILL_CANDIDATE_GUARD_VERSION:-?} $(gettext "当前版本")=${shell_version:-?} $(gettext "来源")=${main_remote_url} ${Font}"
+    fi
 }
 
 rxa_refresh_main_script() {
@@ -9588,7 +9875,13 @@ update_sh() {
 check_file_integrity() {
     if [[ ! -L "${idleleo_commend_file}" ]] && [[ ! -f "${idleleo}" ]]; then
         check_system
-        pkg_install "bc,jq"
+        # P0-2: bootstrap required dependency (bc/jq) failure must hard-stop
+        # BEFORE the candidate guard / download path — never masked or folded
+        # into a later "guard" failure. Error text names the failing dependency.
+        if ! pkg_install "bc,jq"; then
+            log_echo "${Error} ${RedBG} bootstrap_dependency_failed: bc,jq ${Font}"
+            return 1
+        fi
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p "${idleleo_dir}"
         [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p "${idleleo_dir}"/tmp
         [[ ! -d "${scripts_dir}" ]] && mkdir -p "${scripts_dir}"
@@ -9650,11 +9943,7 @@ compat_migrate() {
         fi
     done
     local _crontab_file
-    if [[ "${ID}" == "centos" ]]; then
-        _crontab_file="/var/spool/cron/root"
-    else
-        _crontab_file="/var/spool/cron/crontabs/root"
-    fi
+    _crontab_file="$(root_crontab_path)"
     if [[ -f "${_crontab_file}" ]]; then
         sed -i "s|${idleleo_dir}/auto_update\.sh|${scripts_dir}/auto_update.sh|g" "${_crontab_file}"
         sed -i "s|${idleleo_dir}/geo_update\.sh|${scripts_dir}/geo_update.sh|g" "${_crontab_file}"
@@ -9874,6 +10163,11 @@ show_help() {
     echo "  -pt, --port-traffic         $(gettext "查看") port $(gettext "实时流量")"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
     echo "      --rill-agent-install    $(gettext "安装或修复 Rill AI 判断引擎")"
+    echo "      --rill-agent-status     $(gettext "查看") Rill AI $(gettext "判断引擎状态")"
+    echo "      --rill-agent-route-stage $(gettext "切换路由辅助阶段") observe/assist/auto"
+    echo "      --rill-agent-auto-status $(gettext "查看自动修改状态")"
+    echo "      --rill-agent-auto-confirm $(gettext "确认自动修改授权")"
+    echo "      --rill-agent-auto-revoke $(gettext "撤销自动修改授权")"
     echo "  -s, --show                  $(gettext "显示安装信息")"
     echo "  -t, --target-reset          $(gettext "变更") target"
     echo "  -tcp, --tcp                 $(gettext "配置") TCP $(gettext "加速")"
@@ -10149,6 +10443,8 @@ set_language() {
         case $ID in
             debian|ubuntu)
                 if ! dpkg -s locales-all >/dev/null 2>&1; then
+                    # P1-9: locales-all is an OPTIONAL locale enhancement; the
+                    # locale-gen step below already tolerates failure.
                     pkg_install "locales-all"
                 fi
 
@@ -10156,9 +10452,11 @@ set_language() {
                      locale-gen "$LANG" 2>/dev/null || true # 忽略可能的错误
                 fi
                 ;;
-            centos)
+            centos|rocky|almalinux)
                 local ins_lang_code="${LANG%%_*}"
                 if ! rpm -q "glibc-langpack-$ins_lang_code" >/dev/null 2>&1; then
+                    # P1-9: glibc-langpack is an OPTIONAL locale enhancement;
+                    # localedef below already tolerates failure.
                     pkg_install "glibc-langpack-$ins_lang_code"
                 fi
                 # 尝试生成 locale (非必需，但可能有帮助)
@@ -11956,14 +12254,20 @@ menu() {
     done
 }
 
-is_offline_safe_command() {
+# P1-5: command classification into three disjoint classes. The old single
+# is_offline_safe_command() predicate conflated zero-network, no-package-install,
+# read-only and rootless semantics. These helpers make the boundary explicit:
+#   PURE_READONLY         -> zero package calls, zero network, zero /etc write,
+#                            zero log-file create; runs WITHOUT root.
+#   OFFLINE_ROOT_MUTATION -> root-required, local-only: no network, no package
+#                            install, but may mutate host state; logging enabled.
+#   ONLINE_ROOT_MUTATION  -> everything else (fresh install/update/repair); may
+#                            network and install packages.
+is_pure_readonly_command() {
     case "${1:-}" in
-        -h|--help|--purge|--uninstall|-s|--show|\
-        --service-start|--service-stop|--service-restart|\
-        --access-log|--error-log|--backup|\
-        --rill-agent|--rill-agent-install|--rill-agent-status|--rill-agent-safe-disable|--rill-agent-verify|--rill-agent-uninstall|\
-        --rill-agent-diagnose|--rill-agent-timeline|\
-        --rill-integration-self-check)
+        -h|--help|-s|--show|--access-log|--error-log|\
+        --rill-agent-status|--rill-agent-diagnose|--rill-agent-timeline|\
+        --rill-agent-auto-status|--rill-integration-self-check)
             return 0
             ;;
         *)
@@ -11972,33 +12276,80 @@ is_offline_safe_command() {
     esac
 }
 
-dispatch_offline_safe_command() {
+is_offline_root_mutation_command() {
+    case "${1:-}" in
+        --purge|--uninstall|--service-start|--service-stop|--service-restart|\
+        --backup|--rill-agent|--rill-agent-safe-disable|--rill-agent-verify|\
+        --rill-agent-route-stage|--rill-agent-auto-confirm|--rill-agent-auto-revoke|\
+        --rill-agent-fuse-ack|--rill-agent-uninstall)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# Backward-compatible combined predicate (pure readonly OR offline root
+# mutation) kept for existing unit tests and read-only dispatchers.
+is_offline_safe_command() {
+    if is_pure_readonly_command "${1:-}" || is_offline_root_mutation_command "${1:-}"; then
+        return 0
+    fi
+    return 1
+}
+
+dispatch_pure_readonly_command() {
     case "${1:-}" in
         -h|--help) show_help ;;
-        --purge|--uninstall) uninstall_all ;;
         -s|--show)
             judge_mode
             basic_information
             install_link_image
             show_information
             ;;
-        --service-start) service_start ;;
-        --service-stop) service_stop ;;
-        --service-restart) service_restart ;;
         --access-log) show_access_log ;;
         --error-log) show_error_log ;;
-        --backup) backup_directories ;;
-        --rill-agent) rxa_menu ;;
-        --rill-agent-install) rxa_dispatch install ;;
         --rill-agent-status) rxa_dispatch status ;;
-        --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;
-        --rill-agent-verify) rxa_dispatch verify ;;
         --rill-agent-diagnose) rxa_dispatch diagnose ;;
         --rill-agent-timeline) rxa_dispatch timeline ;;
-        --rill-agent-uninstall) rxa_dispatch uninstall ;;
+        --rill-agent-auto-status) rxa_dispatch autoStatus ;;
         --rill-integration-self-check) rxa_integration_self_check ;;
         *) return 1 ;;
     esac
+}
+
+dispatch_offline_root_mutation_command() {
+    case "${1:-}" in
+        --purge|--uninstall) uninstall_all ;;
+        --service-start) service_start ;;
+        --service-stop) service_stop ;;
+        --service-restart) service_restart ;;
+        --backup) backup_directories ;;
+        --rill-agent) rxa_menu ;;
+        --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;
+        --rill-agent-verify) rxa_dispatch verify ;;
+        # P0-8: authority-relevant transitions dispatch to the manager, which
+        # routes them through the ROOT execution policy helper (routeStage
+        # three-party transaction; auto confirm/revoke and fuse ack bump
+        # executionEpoch; autoStatus reports configured/rootAuthoritative/
+        # shadow/effective).
+        --rill-agent-route-stage) rxa_dispatch routeStage "${2:-}"; shift ;;
+        --rill-agent-auto-confirm) rxa_dispatch autoConfirm ;;
+        --rill-agent-auto-revoke) rxa_dispatch autoRevoke ;;
+        --rill-agent-fuse-ack) rxa_dispatch fuseAck ;;
+        --rill-agent-uninstall) rxa_dispatch uninstall ;;
+        *) return 1 ;;
+    esac
+}
+
+# Backward-compatible combined dispatch used by existing unit tests.
+dispatch_offline_safe_command() {
+    if is_pure_readonly_command "${1:-}"; then
+        dispatch_pure_readonly_command "$@"
+        return $?
+    fi
+    dispatch_offline_root_mutation_command "$@"
 }
 
 harden_config_permissions_if_needed() {
@@ -12011,11 +12362,12 @@ harden_config_permissions_if_needed() {
 
 [[ "${_TEST_MODE:-0}" == "1" ]] && return 0
 
-# -h/--help MUST be dispatched before init_language, check_file_integrity,
-# version checks, network requests, and dependency installation. This ensures
-# `bash install.sh --help` works with zero network access, zero package
-# manager calls, and zero language file downloads — even when gettext is not
-# installed, GitHub is unreachable, or the script is not yet installed.
+# Phase 0: pure early dispatch. -h/--help MUST be dispatched before
+# init_language, check_file_integrity, version checks, network requests, and
+# dependency installation. This ensures `bash install.sh --help` works with
+# zero network access, zero package manager calls, zero log-file creation, and
+# zero language file downloads — even when gettext is not installed, GitHub is
+# unreachable, or the script is not yet installed.
 case "${1:-}" in
     -h|--help)
         show_help
@@ -12030,18 +12382,47 @@ case "${1:-}" in
         ;;
 esac
 
-# Initialize language first so remaining offline commands get localized
-# messages without requiring any network access.
-init_language
+# Phase 1: pure system detection + package-manager selection. Both are
+# read-only: init_package_manager selects INS from os-release only (never
+# installs, never networks); init_language offline is local-only.
+init_package_manager
+init_language offline
 
-# Offline-safe commands (--uninstall, service control, logs, backup)
-# MUST be dispatched before check_file_integrity, which may attempt network
-# downloads. This ensures these commands work even when GitHub is
-# unreachable or the script is not yet installed locally.
-if is_offline_safe_command "${1:-}"; then
-    dispatch_offline_safe_command "$@"
+# Phase 2A: PURE_READONLY — dispatched before the root gate. Zero package
+# calls, zero network, zero /etc write, zero log-file create. These commands
+# must work as a non-root user with no tooling installed.
+if is_pure_readonly_command "${1:-}"; then
+    dispatch_pure_readonly_command "$@"
     exit $?
 fi
+
+# Root gate: every mutation command (offline or online) requires root BEFORE
+# its first system write, package call, network call, or /etc mutation, so a
+# non-root user is rejected up front instead of discovering mid-install.
+is_root
+
+# Phase 2B: OFFLINE_ROOT_MUTATION — root-confirmed, local-only (no network, no
+# package install). These MUST be dispatched before check_file_integrity, which
+# may attempt network downloads, so they work even when GitHub is unreachable.
+# Logging is enabled here: mutation commands persist their outcome.
+if is_offline_root_mutation_command "${1:-}"; then
+    enable_file_logging
+    dispatch_offline_root_mutation_command "$@"
+    exit $?
+fi
+
+# Phase 2C: ONLINE_ROOT_MUTATION — fresh install / update / repair /
+# --rill-agent-install (P1-6: the Rill installer is NOT guaranteed
+# zero-network; it prefers a local payload but falls back to downloading the
+# bootstrap). Validate the OS BEFORE any apt update / dnf makecache / pkg
+# install / GitHub curl / mkdir /etc/idleleo, then enable logging, then go
+# through the full bootstrap + candidate-guard + config-load path.
+validate_supported_system || exit 1
+enable_file_logging
+
+# Online language enhancement may now install gettext and refresh translations:
+# INS is already defined by init_package_manager above and root is confirmed.
+init_language online
 
 check_file_integrity || exit 1
 compat_migrate
@@ -12056,4 +12437,7 @@ if [[ ${tls_mode} == "Reality" ]]; then
     ensure_reality_public_key || true
 fi
 check_xray_local_connect
-list "$@"
+case "${1:-}" in
+    --rill-agent-install) rxa_dispatch install ;;
+    *) list "$@" ;;
+esac

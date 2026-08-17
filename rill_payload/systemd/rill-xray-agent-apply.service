@@ -1,0 +1,28 @@
+[Unit]
+Description=Rill Xray Agent constrained route mutation executor (root oneshot)
+# P0-11: no ConditionPathExists — the path unit triggers on both
+# apply.json (PathChanged) and apply.claim (PathExists at boot), and
+# the executor itself recovers any existing claim before processing a
+# new request. A ConditionPathExists would block claim-only recovery.
+After=local-fs.target
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0027
+ExecStart=/opt/rill-xray-agent/bin/rill-xray-agent-apply
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+# P0-6: sandbox is precise to the paths the root oneshot needs.
+#   /var/spool/rill-xray-agent-apply          — spool: read claim, write done
+#   /var/lib/rill-xray-agent-runtime/delivery — delivery output to Runtime
+#   /var/lib/rill-xray-agent-root             — root-owned policy+ledger+generation+txns
+#   /var/lib/rill-xray-agent-xray/status      — safe policy projection (root writes, Runtime reads)
+# The managed Xray config directory is the single host contract (P0-5) and is
+# host-specific; the host deployment adds it (see integrations/xray_bash_onekey).
+ReadWritePaths=/var/spool/rill-xray-agent-apply /var/lib/rill-xray-agent-runtime/delivery /var/lib/rill-xray-agent-root /var/lib/rill-xray-agent-xray/status
+ReadOnlyPaths=/opt/rill-xray-agent
+ProtectHome=true
+[Install]
+WantedBy=multi-user.target

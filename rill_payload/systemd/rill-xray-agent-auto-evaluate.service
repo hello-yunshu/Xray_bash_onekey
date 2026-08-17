@@ -1,0 +1,24 @@
+[Unit]
+Description=Rill Xray Agent bounded auto evaluation (unprivileged oneshot)
+# P0-3: an unprivileged trigger, not a root daemon. It only asks the Runtime to
+# evaluate the CURRENT root-provided topology projection (autoProduce); every
+# mutation decision is made by the Runtime from the root policy projection and
+# executed by the root apply oneshot. Non-root by design.
+After=local-fs.target
+[Service]
+Type=oneshot
+User=rill-xray-agent
+Group=rill-xray-agent
+UMask=0027
+ExecStart=/opt/rill-xray-agent/bin/rill-xray-agent-auto-evaluate
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+# /run/rill-xray-agent is created and owned by the Runtime unit
+# (RuntimeDirectory=rill-xray-agent); the auto-evaluate oneshot writes its
+# single-flight lock file there and connects to the runtime.sock.
+ReadWritePaths=/run/rill-xray-agent
+ReadOnlyPaths=/opt/rill-xray-agent /var/lib/rill-xray-agent-xray
+ProtectHome=true
+[Install]
+WantedBy=multi-user.target

@@ -1,4 +1,7 @@
+import json
+
 from .audit import redact
+from .canonical import digest
 
 ALLOWED_PAYLOAD_KEYS = {'decisionId', 'capability', 'modelGeneration', 'createdAtEpochSeconds'}
 XRAY_CONFIG_SIGNATURES = {'inbounds', 'outbounds', 'routing', 'policy', 'dns', 'stats', 'reverse'}
@@ -17,6 +20,14 @@ ROOT_RESULT_ALLOWLIST = {
 # raw configuration through feedback.
 DOCTOR_FEEDBACK_OUTCOMES = {'resolved', 'not-resolved', 'not-applicable'}
 DOCTOR_FEEDBACK_BOOLS = {'helpful', 'diagnosisCorrect'}
+
+# Route artifacts (RoutePlan / RouteTopology) are never persisted verbatim:
+# selector values (domains/IPs/...) can carry user privacy and config secrets.
+# Only typed operation names, counts and digests are stored in history.
+ROUTE_OP_ALLOWLIST = {
+    'routingRule.insert', 'routingRule.removeManaged',
+    'routingRule.replaceManaged', 'routingRule.moveManaged',
+}
 
 
 class RootResultViolation(ValueError):
@@ -112,3 +123,49 @@ def sanitize_root_result(result):
             continue
         raise RootResultViolation(f'non-scalar value for {key}')
     return out
+
+
+def sanitize_route_plan_meta(plan):
+    """Safe, secret-free metadata projection of a RoutePlan for history.
+
+    Only non-sensitive identifiers, digests, counts and typed operation names
+    are retained. Raw selector values (domains/IPs), outbound tags and any
+    free-text are never persisted: they may carry user privacy or config
+    secrets. The operations are collapsed to a digest plus their typed names.
+    """
+    if not isinstance(plan, dict):
+        raise ValueError('route plan must be an object')
+    if plan.get('schemaVersion') != 1:
+        raise ValueError('route plan schemaVersion != 1')
+    for key in ('recommendationId', 'planSha256', 'sourceConfigSha256'):
+        if not isinstance(plan.get(key), str) or not plan.get(key):
+            raise ValueError(f'route plan missing {key}')
+    operations = plan.get('operations')
+    if not isinstance(operations, list):
+        raise ValueError('route plan operations must be a list')
+    kinds = []
+    for op in operations:
+        if (not isinstance(op, dict) or op.get('op') not in ROUTE_OP_ALLOWLIST
+                or op.get('managedScope') is not True):
+            raise ValueError('unsafe route operation in plan')
+        kinds.append(op['op'])
+    lowered = json.dumps(plan, sort_keys=True).lower()
+    for token in FORBIDDEN_SUBSTRINGS:
+        if token and token.lower() in lowered:
+            raise ValueError('forbidden material in route plan')
+    return {
+        # schemaVersion is kept so a re-read plan (routeApprove) can be
+        # re-validated as a concrete RoutePlan by evaluate_plan_policy (§P0-1).
+        'schemaVersion': plan['schemaVersion'],
+        'recommendationId': plan['recommendationId'],
+        'planSha256': plan['planSha256'],
+        'sourceConfigSha256': plan['sourceConfigSha256'],
+        'configurationGeneration': plan.get('configurationGeneration'),
+        'risk': plan.get('risk'),
+        'reasonCode': plan.get('reasonCode'),
+        'createdAtEpochSeconds': plan.get('createdAtEpochSeconds'),
+        'expiresAtEpochSeconds': plan.get('expiresAtEpochSeconds'),
+        'operationCount': len(operations),
+        'operationKinds': sorted(set(kinds)),
+        'operationsDigest': digest({'operations': operations}),
+    }
