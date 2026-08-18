@@ -7,8 +7,9 @@ from .runtime_service import BoundedQueue, MAX_FRAME_BYTES
 
 ALLOWED = {'health', 'metrics', 'mode', 'config', 'register', 'rootResult', 'feedback', 'inspect', 'snapshot',
            'routeStatus', 'routeStage', 'routePlan', 'routeApprove', 'routeReject', 'routeHistory',
-           'autoStatus', 'autoConfirm'}
-READ_ONLY = {'health', 'metrics', 'config', 'inspect', 'snapshot', 'routeStatus', 'routeHistory', 'autoStatus'}
+           'autoStatus', 'autoConfirm', 'rillmlStatus'}
+READ_ONLY = {'health', 'metrics', 'config', 'inspect', 'snapshot', 'routeStatus', 'routeHistory', 'autoStatus',
+             'rillmlStatus'}
 OPERATOR = {'register', 'rootResult', 'feedback', 'routeStage', 'routePlan', 'routeApprove', 'routeReject',
             'autoConfirm'}
 ROOT_ONLY = {'mode'}

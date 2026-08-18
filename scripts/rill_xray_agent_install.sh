@@ -105,4 +105,20 @@ if [[ "$(rxa_get routeAssistEnabled)" != false ]] || [[ "$(rxa_get boundedAutoAl
     echo 'Rill 安装失败：安全默认值被异常覆盖' >&2
     exit 1
 fi
+# Best-effort RillML prebuilt runtime install (§30/§61): the prebuilt native
+# runtime is an enhancement, never a single point of failure for the core
+# service. We resolve the signed stable index and activate a matching prebuilt;
+# ANY failure (network down, index/signature/checksum/probe error, unsupported
+# platform) leaves RillML Native unavailable and the agent on the Portable
+# Python fallback. A RillML failure never changes the install exit code, and
+# the core install result above is already final.
+if [[ -x "$RILL_XRAY_AGENT_CLI" ]]; then
+    if rxa_rillml install --probe lightweight >/dev/null 2>&1; then
+        echo 'RillML 预编译运行时安装完成；RillML Native 已启用'
+    else
+        echo 'RillML 预编译运行时暂不可用；保持 Portable Python 回退'
+    fi
+else
+    echo 'RillML 预编译运行时跳过（CLI 不可用）'
+fi
 echo 'Rill Xray AI 运维助手安装完成；AI 观察模式已启用；路由辅助保持关闭'
