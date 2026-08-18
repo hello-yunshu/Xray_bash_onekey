@@ -24,7 +24,7 @@ export RILL_XRAY_AGENT_HEADER_AUTO
 # subcommand; the Runtime only reflects the verified installed tree through
 # the read-only rillmlStatus IPC surface (never downloads / mutates).
 RILL_XRAY_AGENT_RILLML_ROOT=${RILL_XRAY_AGENT_RILLML_ROOT:-/var/lib/rill-xray-agent-rillml}
-RILL_XRAY_AGENT_HEADER_RILLML='RillML 运行时: 未安装'
+RILL_XRAY_AGENT_HEADER_RILLML='RillML: 未安装'
 export RILL_XRAY_AGENT_RILLML_ROOT RILL_XRAY_AGENT_HEADER_RILLML
 
 rxa_systemctl() {
@@ -108,25 +108,25 @@ rxa_rillml_status_display() {
     # tree (current / rollback / platform). Read-only; requires root.
     local out
     out=$(rxa_rillml status 2>/dev/null) || {
-        printf '%s\n' "$(gettext "RillML 运行时状态读取失败（需要 root 权限）")"
+        printf '%s\n' "$(gettext "RillML 状态读取失败（需要 root 权限）")"
         return 1
     }
-    printf '%s' "${out}" | python3 - <<'PY'
+    python3 - "${out}" <<'PY'
 import json,sys
 try:
-    d=json.load(sys.stdin); d=d.get('result') or d
+    d=json.loads(sys.argv[1]); d=d.get('result') or d
 except Exception:
-    print('RillML 运行时状态读取失败'); sys.exit(0)
+    print('RillML 状态读取失败'); sys.exit(0)
 cur=d.get('current') or {}
 rb=d.get('rollback') or {}
 plat=d.get('platform') or {}
 if d.get('supported'):
-    print('RillML 运行时: %s' % ('已启用' if d.get('available') else '未安装'))
+    print('RillML: %s' % ('已启用' if d.get('available') else '未安装'))
     print('  目标平台: %s/%s/%s' % (plat.get('os','?'),plat.get('arch','?'),plat.get('libc','?')))
     print('  已激活版本: %s' % (cur.get('version') or '-'))
     print('  回滚可用: %s' % (rb.get('version') or '-'))
 else:
-    print('RillML 运行时: 不支持 (%s)' % (d.get('unavailableReason') or '?'))
+    print('RillML: 不支持 (%s)' % (d.get('unavailableReason') or '?'))
 PY
 }
 
@@ -139,7 +139,7 @@ rxa_rillml_install() {
         y|Y|yes|YES|Yes|是) ;;
         *) printf '%s\n' "$(gettext "已取消。")"; return 0 ;;
     esac
-    out=$(rxa_rillml install --probe lightweight 2>&1) || { printf '%s\n' "${out}"; printf '%s\n' "$(gettext "RillML 运行时安装失败。")"; return 1; }
+    out=$(rxa_rillml install --probe lightweight 2>&1) || { printf '%s\n' "${out}"; printf '%s\n' "$(gettext "RillML 安装失败。")"; return 1; }
     printf '%s\n' "${out}"
 }
 
@@ -152,7 +152,7 @@ rxa_rillml_upgrade() {
         y|Y|yes|YES|Yes|是) ;;
         *) printf '%s\n' "$(gettext "已取消。")"; return 0 ;;
     esac
-    out=$(rxa_rillml upgrade --probe lightweight 2>&1) || { printf '%s\n' "${out}"; printf '%s\n' "$(gettext "RillML 运行时升级失败。")"; return 1; }
+    out=$(rxa_rillml upgrade --probe lightweight 2>&1) || { printf '%s\n' "${out}"; printf '%s\n' "$(gettext "RillML 升级失败。")"; return 1; }
     printf '%s\n' "${out}"
 }
 
@@ -165,20 +165,20 @@ rxa_rillml_reinstall() {
         y|Y|yes|YES|Yes|是) ;;
         *) printf '%s\n' "$(gettext "已取消。")"; return 0 ;;
     esac
-    out=$(rxa_rillml reinstall --probe lightweight 2>&1) || { printf '%s\n' "${out}"; printf '%s\n' "$(gettext "RillML 运行时重新安装失败。")"; return 1; }
+    out=$(rxa_rillml reinstall --probe lightweight 2>&1) || { printf '%s\n' "${out}"; printf '%s\n' "$(gettext "RillML 重新安装失败。")"; return 1; }
     printf '%s\n' "${out}"
 }
 
 rxa_rillml_rollback() {
     local answer out
-    printf '%s\n' "$(gettext "将回滚到上一个已验证的 RillML 运行时（无可用时失败）。")"
+    printf '%s\n' "$(gettext "将回滚到上一个已验证的 RillML 版本（无可用时失败）。")"
     printf '%s' "$(gettext "确认回滚吗？ [y/N]: ")"
     IFS= read -r answer || answer=""
     case ${answer} in
         y|Y|yes|YES|Yes|是) ;;
         *) printf '%s\n' "$(gettext "已取消。")"; return 0 ;;
     esac
-    out=$(rxa_rillml rollback 2>&1) || { printf '%s\n' "${out}"; printf '%s\n' "$(gettext "RillML 运行时回滚失败。")"; return 1; }
+    out=$(rxa_rillml rollback 2>&1) || { printf '%s\n' "${out}"; printf '%s\n' "$(gettext "RillML 回滚失败。")"; return 1; }
     printf '%s\n' "${out}"
 }
 
@@ -774,7 +774,7 @@ rxa_refresh_summary() {
         RILL_XRAY_AGENT_HEADER_MODE="$(gettext "工作模式: 不可用")"
         RILL_XRAY_AGENT_HEADER_RUNTIME="$(gettext "服务: 未运行")"
         RILL_XRAY_AGENT_HEADER_ROUTE="$(gettext "路由辅助: 关闭")"
-        RILL_XRAY_AGENT_HEADER_RILLML="$(gettext "RillML 运行时: 不可用")"
+        RILL_XRAY_AGENT_HEADER_RILLML="$(gettext "RillML: 不可用")"
         return 0
     fi
     mode=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["mode"])' <<<"$status")
@@ -796,9 +796,9 @@ try:
     print(d.get("nativeRuntime",{}).get("status","?"))
 except Exception:
     print("?")')
-        RILL_XRAY_AGENT_HEADER_RILLML="$(gettext "RillML 运行时"): $(rxa_rillml_state_label "$rillml_state")"
+        RILL_XRAY_AGENT_HEADER_RILLML="$(gettext "RillML"): $(rxa_rillml_state_label "$rillml_state")"
     else
-        RILL_XRAY_AGENT_HEADER_RILLML="$(gettext "RillML 运行时: 不可用")"
+        RILL_XRAY_AGENT_HEADER_RILLML="$(gettext "RillML: 不可用")"
     fi
 }
 
@@ -1082,14 +1082,14 @@ rxa_verify_diag_menu() {
 rxa_rillml_menu() {
     local choice
     while true; do
-        menu_submenu_begin "$(gettext "Rill Xray AI 运维助手 / RillML 运行时管理")"
+        menu_submenu_begin "$(gettext "Rill Xray AI 运维助手 / RillML 管理")"
         menu_row "$(gettext "RillML 预编译运行时：安装 / 升级 / 重装 / 回滚（root 操作，失败不阻塞主引擎）。")"
         menu_blank
-        menu_item 1 "$(gettext "查看 RillML 运行时状态")"
-        menu_item 2 "$(gettext "安装 RillML 运行时")"
-        menu_item 3 "$(gettext "升级 RillML 运行时")"
-        menu_item 4 "$(gettext "重新安装 RillML 运行时")"
-        menu_item 5 "$(gettext "回滚 RillML 运行时")"
+        menu_item 1 "$(gettext "查看 RillML 状态")"
+        menu_item 2 "$(gettext "安装 RillML")"
+        menu_item 3 "$(gettext "升级 RillML")"
+        menu_item 4 "$(gettext "重新安装 RillML")"
+        menu_item 5 "$(gettext "回滚 RillML")"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
@@ -1124,7 +1124,7 @@ rxa_menu() {
         menu_item 4 "$(gettext "安装或修复 AI 判断引擎")"
         menu_item 5 "$(gettext "卸载 Rill AI 引擎")"
         menu_blank
-        menu_item 6 "$(gettext "RillML 运行时管理")"
+        menu_item 6 "$(gettext "RillML 管理")"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
