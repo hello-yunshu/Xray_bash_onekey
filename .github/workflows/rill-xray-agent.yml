@@ -5,7 +5,7 @@ permissions:
 env:
   # Pin the Rill commit whose CANONICAL_MANIFEST.json this payload must match.
   # Bump when the Rill canonical source of truth changes.
-  RILL_CANONICAL_COMMIT: 246ececc1f40bec62fc67f47716b6375070495cd
+  RILL_CANONICAL_COMMIT: 0a754dd017cf5391e3f7259a46b91bd3d021d3d1
 jobs:
   integration:
     runs-on: ubuntu-latest
@@ -25,4 +25,6 @@ jobs:
           python3 rill-canonical/integrations/xray_bash_onekey/tools/verify_xray_payload.py \
             "$GITHUB_WORKSPACE" \
             rill-canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json
+      - name: RillML no-downstream-build gate (Xray must never compile RillML, §44)
+        run: python3 rill-canonical/scripts/verify_no_build_gate.py --root "$GITHUB_WORKSPACE"
       - run: bash .github/test/test_rill_xray_agent.sh
