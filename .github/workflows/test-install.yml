@@ -202,6 +202,13 @@ jobs:
         timeout-minutes: 15
         run: sudo bash .github/test/test_install.sh ${{ matrix.mode }}
 
+      - name: RillML prebuilt runtime gate (${{ matrix.mode }})
+        # Batch D: every Xray operational mode must deliver the canonical
+        # payload and land the verified RillML prebuilt native runtime from
+        # the signed stable index (best-effort install, strict IPC proof).
+        timeout-minutes: 15
+        run: sudo bash .github/test/test_rill_xray_agent_rillml.sh
+
       - name: Collect debug info on failure (redacted)
         if: failure()
         run: |

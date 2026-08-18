@@ -21,6 +21,7 @@ available and fully testable without enabling it.
 """
 from __future__ import annotations
 
+import grp
 import hashlib
 import json
 import os
@@ -51,12 +52,25 @@ DEFAULT_PUBLIC_KEY_HEX = (
     '29fd1fc2f22bd7e405aec167ff0a0d8de'
     '791f011c415075d4c5f9f64fd93fc2e'
 )
-INDEX_SCHEMA_VERSION = 2
+# Release-index schema v3 is the current signed contract (adds ``targetLibc``).
+# The consumer pins to the exact set it has audited; a future v4 is reviewed
+# before being added, never auto-accepted (the index is a security boundary).
+# No installed v2 cache exists in production, so only v3 is accepted.
+SUPPORTED_INDEX_SCHEMAS = frozenset({3})
 SUPPORTED_API_VERSION = 2
 RUNTIME_ID_GNU = 'rill-runtime'
 RUNTIME_ID_MUSL = 'rill-runtime-musl'
 MODEL_ARTIFACT_ID = 'rillml.example.default'
 HANDLER_ARTIFACT_ID = 'rillml.echo.handler'
+
+# The unprivileged Runtime (User=rill-xray-agent) only ever READS the managed
+# tree to reflect the verified runtime over IPC (§P0-16). Root keeps write
+# ownership; group members get read/traverse via the shared service group,
+# matching the root_txn pattern (0640 state + 0750/2750 dirs + binary).
+RILL_GROUP = 'rill-xray-agent'
+_RILLML_ROOT_MODE = 0o2750
+_RILLML_BIN_MODE = 0o750
+_RILLML_STATE_MODE = 0o640
 
 # --- bounds / security ---
 MAX_INDEX_BYTES = 512 * 1024
@@ -67,10 +81,18 @@ LOCALHOST_HOSTS = frozenset({'localhost', '127.0.0.1', '::1', '0.0.0.0'})
 SHA256_RE = re.compile(r'^[a-f0-9]{64}$')
 ID_RE = re.compile(r'^[A-Za-z0-9._-]{1,128}$')
 
-# Normalize the common aliases so selection never depends on a runner's naming.
+# Host normalization maps *local* naming onto the upstream target names used by
+# the signed stable index. It is NOT an upstream support-matrix declaration: a
+# target is only usable when the signed index actually contains a matching
+# artifact (fail-closed discovery per spec §7).
 _ARCH_NORMALIZE = {
     'x86_64': 'x86_64', 'amd64': 'x86_64', 'x64': 'x86_64',
     'aarch64': 'aarch64', 'arm64': 'aarch64',
+    'riscv64': 'riscv64', 'riscv64gc': 'riscv64',
+    'armv7': 'armv7', 'armv7l': 'armv7', 'armhf': 'armv7',
+    's390x': 's390x',
+    'powerpc64le': 'powerpc64le', 'ppc64le': 'powerpc64le',
+    'loongarch64': 'loongarch64', 'loong64': 'loongarch64',
 }
 _OS_MAP = {'linux': 'linux', 'darwin': 'macos', 'win32': 'windows'}
 _MUSL_LOADERS = (
@@ -196,10 +218,10 @@ def parse_release_index(text, *, trusted_key_id=None, public_key_hex=None,
     pub_hex = public_key_hex or DEFAULT_PUBLIC_KEY_HEX
     if not rillml_ed25519.verify_hex(pub_hex, canonical_index_bytes(payload), signature):
         raise RillMLValidationError('release index Ed25519 signature verification failed')
-    if payload.get('schemaVersion') != INDEX_SCHEMA_VERSION:
+    if payload.get('schemaVersion') not in SUPPORTED_INDEX_SCHEMAS:
         raise RillMLValidationError(
             f'release index schemaVersion {payload.get("schemaVersion")!r} '
-            f'!= expected {INDEX_SCHEMA_VERSION}')
+            f'not in supported schemas {sorted(SUPPORTED_INDEX_SCHEMAS)}')
     if payload.get('publisherKeyId') != key_id:
         raise RillMLValidationError(
             f'release index publisherKeyId {payload.get("publisherKeyId")!r} '
@@ -222,7 +244,7 @@ def _validate_artifact_shape(artifact):
     if not isinstance(artifact, dict):
         raise RillMLValidationError('artifact entry must be an object')
     kind = artifact.get('kind')
-    if kind not in ('runtime', 'model', 'handler'):
+    if kind not in ('runtime', 'model', 'handler', 'pm-adapter'):
         raise RillMLValidationError(f'unknown artifact kind {artifact.get("kind")!r}')
     # Common fields every artifact kind must carry.
     for key in _ARTIFACT_COMMON_FIELDS:
@@ -238,14 +260,24 @@ def _validate_artifact_shape(artifact):
     if not isinstance(artifact.get('size'), int) or artifact['size'] < 0:
         raise RillMLValidationError('artifact size must be a non-negative integer')
     _validate_https_url(artifact['url'])
-    # Kind-specific fields: only runtime artifacts are platform-bound; model /
-    # handler entries in the real stable index carry no targetOs/targetArch.
-    if kind == 'runtime':
+    # Kind-specific fields: runtime and pm-adapter entries are platform-bound
+    # (targetOs/targetArch; Linux additionally carries targetLibc in schema v3).
+    # Model / handler entries in the real stable index carry no target fields.
+    if kind in ('runtime', 'pm-adapter'):
         for key in ('targetOs', 'targetArch'):
             value = artifact.get(key)
             if not isinstance(value, str) or not value:
                 raise RillMLValidationError(
-                    f'runtime artifact missing/invalid field {key!r}')
+                    f'{kind} artifact missing/invalid field {key!r}')
+        if artifact.get('targetOs') == 'linux':
+            libc = artifact.get('targetLibc')
+            if libc not in ('gnu', 'musl'):
+                raise RillMLValidationError(
+                    f'linux {kind} artifact missing/invalid targetLibc (gnu|musl)')
+        if kind == 'pm-adapter':
+            if not isinstance(artifact.get('pmAdapterProtocolVersion'), int):
+                raise RillMLValidationError(
+                    'pm-adapter artifact pmAdapterProtocolVersion must be an integer')
     elif kind == 'handler':
         if not isinstance(artifact.get('handlerApiVersion'), int):
             raise RillMLValidationError(
@@ -259,6 +291,17 @@ def _validate_artifact_shape(artifact):
 def runtime_artifact_id(libc):
     """Map a detected libc/ABI to the stable artifact id used by the index."""
     return RUNTIME_ID_MUSL if libc == 'musl' else RUNTIME_ID_GNU
+
+
+def _semver_key(version):
+    """Parse ``X.Y.Z[-prerelease]`` into a comparable key (never string compares)."""
+    core, separator, prerelease = str(version).partition('-')
+    parts = core.split('.')
+    if len(parts) != 3 or not all(part.isdigit() for part in parts):
+        raise RillMLValidationError(f'unsupported semantic version: {version!r}')
+    # Releases sort after any prerelease of the same core; prerelease text is a
+    # final tiebreaker only (stable releases carry no prerelease suffix).
+    return (tuple(int(part) for part in parts), 1 if not separator else 0, prerelease)
 
 
 def select_runtime_artifact(payload, *, target_os, target_arch, libc,
@@ -282,6 +325,12 @@ def select_runtime_artifact(payload, *, target_os, target_arch, libc,
             continue
         if artifact.get('targetArch') != target_arch:
             reasons.append(f'arch={artifact.get("targetArch")}')
+            continue
+        # Schema v3 explicit libc/ABI field must exact-match the detected host
+        # libc on Linux. This is independent of the artifact ``id`` so a
+        # malformed index can never cross-select gnu vs musl builds.
+        if artifact.get('targetOs') == 'linux' and artifact.get('targetLibc') != libc:
+            reasons.append(f'libc={artifact.get("targetLibc")}')
             continue
         if artifact.get('id') != wanted_id:
             reasons.append(f'libc/ABI={artifact.get("id")}')
@@ -535,6 +584,42 @@ class RillMLRuntimeManager:
     def _current_binary(self):
         return self.current_dir / 'rill-runtime'
 
+    def _ensure_runtime_group_readable(self):
+        """Best-effort group-read access so the unprivileged Runtime (§P0-16)
+        can reflect the verified runtime over IPC.
+
+        Root keeps write ownership; group members (``rill-xray-agent``) get
+        read/traverse on the tree. Directories get setgid so files created by
+        later root lifecycle ops inherit the group. Non-root callers (test
+        sandboxes) cannot chown; chmod is still applied.
+        """
+        if not self.root.exists():
+            return
+        targets = (
+            (self.root, _RILLML_ROOT_MODE),
+            (self.current_dir, _RILLML_ROOT_MODE),
+            (self.rollback_dir, _RILLML_ROOT_MODE),
+            (self.staging_dir, _RILLML_ROOT_MODE),
+            (self.state_path, _RILLML_STATE_MODE),
+            (self.current_dir / 'rill-runtime', _RILLML_BIN_MODE),
+            (self.rollback_dir / 'rill-runtime', _RILLML_BIN_MODE),
+        )
+        for path, mode in targets:
+            try:
+                os.chmod(path, mode)
+            except OSError:
+                pass
+        if os.geteuid() == 0:
+            try:
+                gid = grp.getgrnam(RILL_GROUP).gr_gid
+            except KeyError:
+                return
+            for path, _mode in targets:
+                try:
+                    os.chown(path, 0, gid)
+                except OSError:
+                    pass
+
     def status(self):
         """Local state + platform identity. Never touches the network."""
         try:
@@ -599,18 +684,28 @@ class RillMLRuntimeManager:
             'artifact': artifact,
         }
 
-    def install(self, *, probe='lightweight', timeout=60.0, attempts=4):
+    def install(self, *, probe='lightweight', timeout=60.0, attempts=4,
+                allow_downgrade=False):
         """Stage, verify, probe and atomically activate the current runtime.
 
         ``probe='handshake'`` additionally fetches the matching model + handler
         packs from the same signed index and performs a full v2 IPC handshake +
         health check before activation. On any failure the previous-good
-        ``current`` (if any) is preserved untouched.
+        ``current`` (if any) is preserved untouched. By default the stable
+        index may never downgrade an installed verified runtime; only an
+        explicit ``allow_downgrade=True`` (operator action) overrides that.
         """
         platform_ = detect_platform()
         resolved = self.resolve(timeout=timeout, attempts=attempts)
         artifact = resolved['artifact']
         payload = resolved.get('payload')
+        current_version = self._read_state().get('version')
+        if current_version and not allow_downgrade:
+            if _semver_key(artifact['version']) < _semver_key(current_version):
+                raise RillMLUnsupported(
+                    f'stable index runtime {artifact["version"]} < installed '
+                    f'{current_version}; refusing downgrade (explicit '
+                    f'allow_downgrade=True required)')
         staged = download_artifact(artifact, self.staging_dir,
                                    timeout=timeout, attempts=attempts)
         model_path = handler_path = None
@@ -660,12 +755,21 @@ class RillMLRuntimeManager:
         state.update({
             'version': artifact['version'],
             'artifactId': artifact.get('id'),
+            'targetOs': artifact.get('targetOs'),
+            'targetArch': artifact.get('targetArch'),
+            'targetLibc': artifact.get('targetLibc'),
+            'runtimeApiVersion': artifact.get('runtimeApiVersion'),
+            'source': 'rill-ml-stable-index',
             'activatedAtEpochSeconds': int(time.time()),
             'probe': probe_result,
             'rollbackVersion': state.get('version'),
             'rollbackArtifactId': state.get('artifactId'),
         })
         self._write_state(state)
+        # The unprivileged Runtime (§P0-16) must be able to reflect the newly
+        # activated runtime over the read-only IPC surface. Activation owns the
+        # tree, so re-assert the group-readable modes here (same as rollback).
+        self._ensure_runtime_group_readable()
 
     def rollback(self):
         """Restore the previous-good runtime into ``current`` (if present)."""
@@ -685,4 +789,70 @@ class RillMLRuntimeManager:
             'rollbackArtifactId': None,
         })
         self._write_state(state)
+        self._ensure_runtime_group_readable()
         return {'rolledBack': True, 'status': self.status()}
+
+    def upgrade(self, *, probe='lightweight', timeout=60.0, attempts=4,
+                allow_downgrade=False):
+        """Refresh against the stable index and install a newer compatible
+        runtime. If the resolved stable runtime equals or predates the verified
+        installed one the current runtime is kept (no downgrade, no churn)."""
+        artifact = self.resolve(timeout=timeout, attempts=attempts)['artifact']
+        current_version = self._read_state().get('version')
+        if current_version:
+            if _semver_key(artifact['version']) < _semver_key(current_version):
+                if not allow_downgrade:
+                    raise RillMLUnsupported(
+                        f'stable index runtime {artifact["version"]} < installed '
+                        f'{current_version}; refusing downgrade')
+                return self.install(probe=probe, timeout=timeout, attempts=attempts,
+                                    allow_downgrade=True)
+            if _semver_key(artifact['version']) == _semver_key(current_version):
+                return {'upgraded': False, 'reason': 'already-current',
+                        'status': self.status()}
+        return self.install(probe=probe, timeout=timeout, attempts=attempts,
+                            allow_downgrade=allow_downgrade)
+
+    def reinstall(self, *, probe='lightweight', timeout=60.0, attempts=4):
+        """Reuse a verified current runtime when one is present; otherwise run a
+        fresh verified install. Never recompiles and never wipes previous-good."""
+        if self.status().get('available'):
+            return {'reused': True, 'status': self.status()}
+        return self.install(probe=probe, timeout=timeout, attempts=attempts)
+
+    def native_status(self):
+        """Spec §34 status surface: ``nativeRuntime`` + ``fallback``.
+
+        Read-only and offline (never touches the network): reflects the verified
+        installed runtime and host platform identity.
+        """
+        status = self.status()
+        state = self._read_state()
+        platform_ = status.get('platform') or {}
+        current = status.get('current')
+        if status.get('supported') and status.get('available') and current:
+            native = {
+                'status': 'active',
+                'version': current.get('version'),
+                'targetOs': state.get('targetOs') or platform_.get('os'),
+                'targetArch': state.get('targetArch') or platform_.get('arch'),
+                'targetLibc': state.get('targetLibc') or platform_.get('libc'),
+                'runtimeApiVersion': state.get('runtimeApiVersion')
+                or self.api_version,
+                'source': 'rill-ml-stable-index',
+                'verified': True,
+            }
+        else:
+            native = {
+                'status': 'unavailable',
+                'version': None,
+                'targetOs': platform_.get('os'),
+                'targetArch': platform_.get('arch'),
+                'targetLibc': platform_.get('libc'),
+                'runtimeApiVersion': self.api_version,
+                'source': 'rill-ml-stable-index',
+                'verified': False,
+                'unavailableReason': status.get('unavailableReason'),
+            }
+        return {'schemaVersion': 1, 'nativeRuntime': native,
+                'fallback': 'portable-python'}
