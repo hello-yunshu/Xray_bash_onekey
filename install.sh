@@ -3463,6 +3463,51 @@ target_set() {
     fi
 }
 
+# Minimal single-hostname validator for Reality serverNames input.
+# Accepts normal hostnames (www.lovelive-anime.jp, bing.com, cdn.example.com)
+# and rejects empty, whitespace, multi-domain, schemes and shell/nginx
+# metacharacters (/, ;, {, }, #, &, |, $, backtick) that would break the
+# generated Nginx map fragment. Returns 0 if valid, 1 otherwise.
+_serverNames_hostname_re='^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*$'
+_validate_serverNames_hostname() {
+    [[ -n "${1}" ]] || return 1
+    [[ "${1}" =~ ${_serverNames_hostname_re} ]] && return 0
+    return 1
+}
+
+# Validate the content of a *.serverNames fragment file (Nginx map include).
+# Valid content is zero or more lines, each a single "<hostname> reality;"
+# mapping. Any malformed non-blank line (wrong map parameter count, unexpected
+# characters) marks the fragment as corrupt. Returns 0 if valid, 1 otherwise.
+_validate_serverNames_fragment() {
+    local _f="$1"
+    local _bad
+    _bad=$(grep -vE '^[[:space:]]*$' "${_f}" 2>/dev/null |
+        grep -vE '^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*[[:space:]]+[A-Za-z0-9_-]+;$' 2>/dev/null)
+    [[ -z "${_bad}" ]]
+}
+
+# Self-heal cleanup for stale/corrupt Reality *.serverNames fragments.
+# A previous failed install may leave a bad fragment that upstream Nginx
+# config includes (00-xray.conf: include *.serverNames), which breaks `nginx -t`
+# and permanently blocks a reinstall. Only touches *.serverNames files managed
+# for Reality; valid user fragments are preserved. The fragment owned by the
+# current ${serverNames} is left for nginx_reality_serverNames_add(), which
+# regenerates it.
+_cleanup_stale_serverNames_fragments() {
+    local _frag
+    [[ -d "${nginx_conf_dir}" ]] || return 0
+    for _frag in "${nginx_conf_dir}"/*.serverNames; do
+        [[ -f "${_frag}" ]] || continue
+        [[ "$(basename "${_frag}")" == "${serverNames}.serverNames" ]] && continue
+        if ! _validate_serverNames_fragment "${_frag}"; then
+            log_echo "${Warning} ${YellowBG} $(gettext "自愈: 移除损坏的旧 serverNames 配置") ${_frag} ${Font}"
+            rm -f "${_frag}"
+        fi
+    done
+    return 0
+}
+
 serverNames_set() {
     if [[ ${target_reset} == 1 ]] || [[ "on" != ${old_config_status} ]] || [[ ${change_reality} == "yes" ]]; then
         local custom_serverNames_fq
@@ -3474,6 +3519,10 @@ serverNames_set() {
         case $custom_serverNames_fq in
         [yY][eE][sS] | [yY])
             read_optimize "$(gettext "请输入单个域名"): " "serverNames" "NULL" || return 1
+            while ! _validate_serverNames_hostname "${serverNames}"; do
+                log_echo "${Error} ${RedBG} $(gettext "serverNames 仅支持单个合法域名, 请重新输入")! ${Font}"
+                read_optimize "$(gettext "请输入单个域名"): " "serverNames" "NULL" || return 1
+            done
             ;;
         *)
             serverNames=$target
@@ -3508,7 +3557,9 @@ keys_set() {
             log_echo "${Error} ${RedBG} Reality publicKey $(gettext "配置修改") $(gettext "失败") ${Font}"
             return 1
         fi
-        log_echo_secure "${Green} privateKey: ${privateKey} ${Font}"
+        # Never print the full Reality privateKey to the terminal; only a
+        # confirmation is shown. The value is still persisted in config below.
+        log_echo_secure "${Green} privateKey: $(gettext "已生成并保存（不显示）") ${Font}"
         log_echo_secure "${Green} publicKey (Password): ${password} ${Font}"
         echo
     fi
@@ -4942,6 +4993,10 @@ reset_sni_guard_policy() {
 # Returns 0 on success, 1 on failure (propagated to caller).
 _apply_reality_nginx_install() {
     validate_reality_reserved_ports || return 1
+    # Self-heal: remove stale/corrupt *.serverNames fragments before Nginx
+    # config is finalized, so a previous failed install cannot block nginx -t
+    # and permanently stall a reinstall.
+    _cleanup_stale_serverNames_fragments || return 1
     nginx_exist_check || return 1
     nginx_systemd || return 1
     sni_guard_policy_choose || return 1
@@ -7169,6 +7224,9 @@ EOF
 }
 
 nginx_reality_serverNames_add () {
+    # Self-heal sidecar: drop stale/corrupt *.serverNames fragments so the
+    # automatically included fragment directory stays valid for nginx -t.
+    _cleanup_stale_serverNames_fragments || return 1
     touch "${nginx_conf_dir}"/${serverNames}.serverNames
     cat >"${nginx_conf_dir}"/${serverNames}.serverNames <<EOF
 ${serverNames} reality;
@@ -8385,7 +8443,7 @@ basic_information() {
                 log_echo "${Red} $(gettext "流控") (flow):${Font} xtls-rprx-vision "
                 log_echo "${Red} target:${Font} $(info_extraction target) "
                 log_echo "${Red} serverNames:${Font} $(info_extraction serverNames) "
-                log_echo_secure "${Red} privateKey:${Font} $(info_extraction privateKey) "
+                log_echo_secure "${Red} privateKey:${Font} $(gettext "已生成并保存（不显示）") "
                 log_echo_secure "${Red} publicKey (Password):${Font} $(info_reality_public_key) "
                 log_echo_secure "${Red} shortIds:${Font} $(info_extraction shortIds) "
                 if [[ -n "$(info_extraction spiderx_path)" ]]; then
