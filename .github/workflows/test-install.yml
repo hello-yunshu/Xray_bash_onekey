@@ -103,6 +103,10 @@ jobs:
           bash .github/test/test_install_uninstall_transaction.sh
           # Production Nginx health default path (P0-3)
           bash .github/test/test_nginx_health_production_defaults.sh
+          # Reality+Nginx user-feedback regressions: serverNames single-hostname
+          # validation, stale/corrupt *.serverNames self-heal on reinstall,
+          # and Reality privateKey not printed to terminal.
+          bash .github/test/test_reality_nginx_feedback.sh
           # Candidate semantic self-check (P1-4)
           bash .github/test/test_candidate_self_check.sh
           # Cross-repository release automation must remain deterministic and
