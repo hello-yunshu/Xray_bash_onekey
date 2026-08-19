@@ -94,7 +94,7 @@ ws/gRPC/xHTTP 관련 모드 설치 시 선택 사항`ws`、`gRPC`、`xHTTP`또�
 
 ## RillML Xray AI 운영 및 유지 관리 보조원
 
-RillML (Rill)은 Xray에 로컬 적응형 지능형 운영 및 유지 관리 기능을 제공합니다.
+RillML(약어로 Rill)은 Xray에 대한 로컬 적응형 지능형 작동 및 유지 관리 기능을 제공합니다.
 
 내장된 로컬 AI 작동 및 유지 관리 도우미는 Xray/Nginx의 상태를 실시간으로 모니터링하고, 자동으로 결함을 진단하고, 외부 API 없이도 치료 제안을 제공합니다. 메인 메뉴 입력`9`또는 실행`idleleo --rill-agent`입력하다.
 
@@ -138,7 +138,7 @@ docker attach xray-onekey
 
 **지원되는 모드**: Reality / TLS / ws ONLY / XTLS ONLY
 
-**使用方式**：在支持 Skill 的 AI 工具中直接说"帮我在服务器上搭建 Xray"，AI 会自动收集信息、生成脚本、执行部署并返回连接信息。
+**사용 방법**: Skill을 지원하는 AI 도구에서 "서버에 Xray 구축을 도와주세요"라고 직접 말하면 AI이 자동으로 정보를 수집하고, 스크립트를 생성하고, 배포를 수행하고, 연결 정보를 반환합니다.
 
 ## 주의할 점
 
