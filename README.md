@@ -92,7 +92,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_oneke
 | 设置流量阻断 | `idleleo --traffic-blocker` |
 | 查看端口实时流量 | `idleleo --port-traffic` |
 
-## Rill Xray AI 运维助手
+## RillML Xray AI 运维助手
+
+RillML（简称 Rill）为 Xray 提供本地自适应智能运维能力。
 
 内置本地 AI 运维助手，实时监控 Xray/Nginx 健康状态，自动诊断故障并给出处理建议，无需外部 API。主菜单输入 `9` 或执行 `idleleo --rill-agent` 进入。
 
