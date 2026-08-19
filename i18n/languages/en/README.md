@@ -92,7 +92,9 @@ If any step in the reconfiguration process fails (configuration writing, service
 | Set up traffic blocking | `idleleo --traffic-blocker` |
 | View real-time port traffic | `idleleo --port-traffic` |
 
-## Rill Xray AI Operation and maintenance assistant
+## RillML Xray AI Operation and maintenance assistant
+
+RillML (Rill) provides Xray with local adaptive intelligent operations and maintenance capabilities.
 
 The built-in local AI operation and maintenance assistant monitors the health status of Xray/Nginx in real time, automatically diagnoses faults and gives treatment suggestions, without the need for external API. Main menu input`9`or execute`idleleo --rill-agent`Enter.
 
