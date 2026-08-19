@@ -92,7 +92,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_oneke
 | مسدود کردن ترافیک را تنظیم کنید | `idleleo --traffic-blocker` |
 | مشاهده ترافیک پورت بلادرنگ | `idleleo --port-traffic` |
 
-## Rill Xray AI دستیار عملیات و نگهداری
+## RillML Xray AI دستیار عملیات و نگهداری
+
+RillML (Rill) قابلیت‌های عملیات و نگهداری هوشمند تطبیقی محلی را برای Xray فراهم می‌کند.
 
 دستیار محلی داخلی AI عملکرد و تعمیر و نگهداری وضعیت سلامت Xray/Nginx را در زمان واقعی نظارت می کند، به طور خودکار عیب ها را تشخیص می دهد و پیشنهادات درمانی را بدون نیاز به API خارجی ارائه می دهد. ورودی منوی اصلی`9`یا اجرا کنند`idleleo --rill-agent`وارد کنید.
 
