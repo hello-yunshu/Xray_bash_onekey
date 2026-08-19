@@ -92,7 +92,9 @@ ws/gRPC/xHTTP 관련 모드 설치 시 선택 사항`ws`、`gRPC`、`xHTTP`또�
 | 트래픽 차단 설정 | `idleleo --traffic-blocker` |
 | 실시간 포트 트래픽 보기 | `idleleo --port-traffic` |
 
-## Rill Xray AI 운영 및 유지 관리 보조원
+## RillML Xray AI 운영 및 유지 관리 보조원
+
+RillML (Rill)은 Xray에 로컬 적응형 지능형 운영 및 유지 관리 기능을 제공합니다.
 
 내장된 로컬 AI 작동 및 유지 관리 도우미는 Xray/Nginx의 상태를 실시간으로 모니터링하고, 자동으로 결함을 진단하고, 외부 API 없이도 치료 제안을 제공합니다. 메인 메뉴 입력`9`또는 실행`idleleo --rill-agent`입력하다.
 

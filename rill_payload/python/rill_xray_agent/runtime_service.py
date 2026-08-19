@@ -22,11 +22,12 @@ from .route_contract import AUTO_ROUTE_OPS, overall_risk
 from .route_executor import request_digest
 from .auto_policy import AutoPolicy
 from .root_policy import DEFAULT_PROJECTION_PATH
+from .rillml_artifact import RillMLRuntimeManager
 from .root_txn import DEFAULT_GENERATION_PATH
 from .errors import UnknownDecisionError
 from .doctor import Doctor
 
-ALLOWED = {'health', 'metrics', 'mode', 'config', 'register', 'rootResult', 'feedback', 'inspect', 'snapshot', 'timeline', 'diagnose', 'routeStatus', 'routeStage', 'routePlan', 'routeApprove', 'routeReject', 'routeHistory', 'autoStatus', 'autoConfirm', 'autoProduce'}
+ALLOWED = {'health', 'metrics', 'mode', 'config', 'register', 'rootResult', 'feedback', 'inspect', 'snapshot', 'timeline', 'diagnose', 'routeStatus', 'routeStage', 'routePlan', 'routeApprove', 'routeReject', 'routeHistory', 'autoStatus', 'autoConfirm', 'autoProduce', 'rillmlStatus'}
 ACCESS_LOG_BYTES = 8 * 1024 * 1024
 MAX_FRAME_BYTES = 1048576
 DEFAULT_OBSERVATION_PATH = '/var/lib/rill-xray-agent-xray/status/xray-observation.json'
@@ -36,6 +37,9 @@ DEFAULT_TIMELINE_DIR = '/var/lib/rill-xray-agent-xray/history'
 # observation / timeline / root-policy projection); it never reads the raw
 # Xray config on the host or the raw host mirror.
 DEFAULT_TOPOLOGY_PATH = '/var/lib/rill-xray-agent-xray/status/route-topology.json'
+# RillML prebuilt native-runtime root. ROOT-owned (staging/current/rollback);
+# the unprivileged Runtime only reflects the verified installed tree.
+DEFAULT_RILLML_ROOT = '/var/lib/rill-xray-agent-rillml'
 MAX_DIAGNOSE_TIMELINE_EVENTS = 200
 OBSERVATION_FRESHNESS_SECONDS = 300
 
@@ -86,7 +90,7 @@ class RuntimeService:
                  release_capabilities=None, auto_policy_path=None,
                  route_history_path=None, apply_spool_dir=None,
                  root_policy_projection_path=None, generation_file=None,
-                 topology_path=None):
+                 topology_path=None, rillml_root=None):
         self.state_root = Path(state_root)
         self.state_root.mkdir(parents=True, exist_ok=True)
         self.txn_root = Path(txn_root)
@@ -107,6 +111,10 @@ class RuntimeService:
         # All topology/risk/ownership facts come from THIS projection; the
         # Runtime never opens the raw Xray config.
         self.topology_path = Path(topology_path or DEFAULT_TOPOLOGY_PATH)
+        # RillML prebuilt native-runtime root (staging/current/rollback).
+        # ROOT-owned and READ-ONLY to the Runtime: it only reflects the
+        # verified installed tree, never downloads / activates / mutates it.
+        self.rillml_root = Path(rillml_root or DEFAULT_RILLML_ROOT)
         self.events = EventJournal(self.timeline_dir, read_only=True)
         self.txn = RootTransaction(self.txn_root, self.state_root / 'delivery',
                                    generation_file or DEFAULT_GENERATION_PATH)
@@ -556,6 +564,13 @@ class RuntimeService:
                 if not self.acl.write_permitted(peer_uid):
                     raise ValueError('autoProduce requires privileged peer')
                 r = self._auto_produce(peer_uid)
+            elif m == 'rillmlStatus':
+                # Read-only RillML native-runtime status (§34/§P0-16). The
+                # Runtime never downloads, activates or mutates the RillML
+                # tree; it only reflects the verified installed runtime (or a
+                # fail-closed unavailable when the tree is absent / unreadable
+                # / the platform has no supported prebuilt artifact).
+                r = self._rillml_status()
             else:
                 r = self.state.load()
             return {'schemaVersion': 3, 'requestId': rid, 'ok': True, 'result': r}
@@ -1139,6 +1154,36 @@ class RuntimeService:
             'globalCooldownRemainingSeconds': policy_snapshot['globalCooldownRemainingSeconds'],
         }
 
+    def _rillml_status(self):
+        """Read-only RillML native-runtime status surface (§34/§P0-16).
+
+        The Runtime NEVER downloads, activates or mutates the RillML tree; it
+        only reflects the verified installed runtime. Fails closed to an
+        ``unavailable`` surface whenever the tree is absent / unreadable or
+        the platform has no supported prebuilt artifact.
+        """
+        try:
+            manager = RillMLRuntimeManager(self.rillml_root)
+            return manager.native_status()
+        except Exception as exc:
+            # Fail closed: a corrupt/unreadable tree must never masquerade as
+            # an active native runtime.
+            return {
+                'schemaVersion': 1,
+                'nativeRuntime': {
+                    'status': 'unavailable',
+                    'version': None,
+                    'targetOs': None,
+                    'targetArch': None,
+                    'targetLibc': None,
+                    'runtimeApiVersion': 2,
+                    'source': 'rill-ml-stable-index',
+                    'verified': False,
+                    'unavailableReason': f'RillML tree unreadable: {exc}',
+                },
+                'fallback': 'portable-python',
+            }
+
     def _project_event(self, e):
         """Project an event to safe scalar fields only (never raw bodies)."""
         return {
@@ -1260,4 +1305,4 @@ class RuntimeService:
 
 def time_now():
     import time
-    return int(time.time())
+    return int(time.time())# touch-test

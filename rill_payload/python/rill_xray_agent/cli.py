@@ -41,6 +41,47 @@ def call(socket_path: Path, method: str, body: dict | None = None) -> dict:
     return json.loads(data.split(b'\n', 1)[0])
 
 
+def _rillml_dispatch(args) -> dict:
+    """Root-only RillML lifecycle operations.
+
+    Directly operates the ROOT-owned RillML tree (staging/current/rollback)
+    via the single authoritative ``RillMLRuntimeManager``; it never goes
+    through the Runtime IPC (the unprivileged Runtime is read-only for
+    RillML, §P0-16). Requires euid 0; a non-root caller fails closed.
+    """
+    import os
+
+    if os.name != 'posix' or os.geteuid() != 0:
+        return {'schemaVersion': 3, 'requestId': 'local', 'ok': False,
+                'error': {'code': 'rootRequired',
+                          'message': 'rillml lifecycle operations require root'}}
+    from .rillml_artifact import RillMLRuntimeManager
+    manager = RillMLRuntimeManager(args.rillml_root)
+    try:
+        cmd = args.rillml_command
+        if cmd == 'status':
+            result = manager.status()
+        elif cmd == 'resolve':
+            result = manager.resolve()
+        elif cmd == 'install':
+            result = manager.install(probe=args.probe,
+                                     allow_downgrade=args.allow_downgrade)
+        elif cmd == 'upgrade':
+            result = manager.upgrade(probe=args.probe,
+                                     allow_downgrade=args.allow_downgrade)
+        elif cmd == 'reinstall':
+            result = manager.reinstall(probe=args.probe)
+        elif cmd == 'rollback':
+            result = manager.rollback()
+        else:
+            raise ValueError(f'unsupported rillml command: {cmd}')
+    except Exception as exc:
+        return {'schemaVersion': 3, 'requestId': 'local', 'ok': False,
+                'error': {'code': getattr(exc, 'code', None) or 'rillmlError',
+                          'message': str(exc)[:512]}}
+    return {'schemaVersion': 3, 'requestId': 'local', 'ok': True, 'result': result}
+
+
 FEEDBACK_OUTCOMES = ['resolved', 'not-resolved', 'not-applicable']
 
 
@@ -87,9 +128,10 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog='rill-xray-agent')
     parser.add_argument('--socket', type=Path, default=Path('/run/rill-xray-agent/runtime.sock'))
     parser.add_argument('--json', action='store_true')
+    parser.add_argument('--rillml-root', type=Path, default=Path('/var/lib/rill-xray-agent-rillml'))
     sub = parser.add_subparsers(dest='command', required=True)
     for name in ('status', 'health', 'metrics', 'config', 'snapshot', 'diagnose',
-                 'route-status', 'route-history', 'auto-status'):
+                 'route-status', 'route-history', 'auto-status', 'rillml-status'):
         sub.add_parser(name)
     mode = sub.add_parser('mode')
     mode.add_argument('value', choices=['normal', 'observe-only', 'safe-disabled'])
@@ -115,16 +157,29 @@ def main(argv=None) -> int:
     feedback.add_argument('--helpful', type=lambda v: v.lower() in ('1', 'true', 'yes'), required=True)
     feedback.add_argument('--diagnosis-correct', dest='diagnosis_correct',
                           type=lambda v: v.lower() in ('1', 'true', 'yes'), required=True)
+    rillml = sub.add_parser('rillml')
+    rillml_sub = rillml.add_subparsers(dest='rillml_command', required=True)
+    rillml_sub.add_parser('status')
+    rillml_sub.add_parser('resolve')
+    for name in ('install', 'upgrade', 'reinstall'):
+        rillml_lifecycle = rillml_sub.add_parser(name)
+        rillml_lifecycle.add_argument('--probe', choices=('lightweight', 'handshake'),
+                                      default='lightweight')
+        rillml_lifecycle.add_argument('--allow-downgrade', action='store_true')
+    rillml_sub.add_parser('rollback')
     args = parser.parse_args(argv)
 
-    method = {'status': 'health', 'health': 'health', 'metrics': 'metrics',
-              'config': 'config', 'snapshot': 'snapshot', 'mode': 'mode',
-              'inspect': 'inspect', 'timeline': 'timeline', 'diagnose': 'diagnose',
-              'feedback': 'feedback', 'route-status': 'routeStatus',
-              'route-stage': 'routeStage', 'route-plan': 'routePlan',
-              'route-approve': 'routeApprove', 'route-reject': 'routeReject',
-              'route-history': 'routeHistory', 'auto-status': 'autoStatus',
-              'auto-confirm': 'autoConfirm', 'auto-produce': 'autoProduce'}[args.command]
+    method = None
+    if args.command != 'rillml':
+        method = {'status': 'health', 'health': 'health', 'metrics': 'metrics',
+                  'config': 'config', 'snapshot': 'snapshot', 'mode': 'mode',
+                  'inspect': 'inspect', 'timeline': 'timeline', 'diagnose': 'diagnose',
+                  'feedback': 'feedback', 'route-status': 'routeStatus',
+                  'route-stage': 'routeStage', 'route-plan': 'routePlan',
+                  'route-approve': 'routeApprove', 'route-reject': 'routeReject',
+                  'route-history': 'routeHistory', 'auto-status': 'autoStatus',
+                  'auto-confirm': 'autoConfirm', 'auto-produce': 'autoProduce',
+                  'rillml-status': 'rillmlStatus'}[args.command]
     body = {}
     if args.command == 'mode':
         body = {'mode': args.value}
@@ -161,7 +216,12 @@ def main(argv=None) -> int:
             print(json.dumps(response if args.json else response.get('result'),
                              ensure_ascii=False, sort_keys=True, indent=2))
             return 0
-        response = call(args.socket, method, body)
+        if args.command == 'rillml':
+            # Root-only lifecycle: directly operates the RillML tree, never
+            # the Runtime IPC (Runtime is read-only for RillML, §P0-16).
+            response = _rillml_dispatch(args)
+        else:
+            response = call(args.socket, method, body)
     except Exception as exc:
         response = {'schemaVersion': 3, 'requestId': 'local', 'ok': False,
                     'error': {'code': 'runtimeUnavailable', 'message': str(exc)[:256]}}
