@@ -75,11 +75,13 @@ _RILLML_STATE_MODE = 0o640
 # --- bounds / security ---
 MAX_INDEX_BYTES = 512 * 1024
 MAX_ARTIFACT_BYTES = 128 * 1024 * 1024
+MAX_SAFE_INTEGER = 2**53 - 1
 MAX_IPC_LINE_BYTES = 1024 * 1024
 FORBIDDEN_URL_SCHEMES = frozenset({'file', 'data', 'javascript', 'ftp', 'blob'})
 LOCALHOST_HOSTS = frozenset({'localhost', '127.0.0.1', '::1', '0.0.0.0'})
 SHA256_RE = re.compile(r'^[a-f0-9]{64}$')
 ID_RE = re.compile(r'^[A-Za-z0-9._-]{1,128}$')
+STABLE_SEMVER_RE = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$')
 
 # Host normalization maps *local* naming onto the upstream target names used by
 # the signed stable index. It is NOT an upstream support-matrix declaration: a
@@ -253,12 +255,14 @@ def _validate_artifact_shape(artifact):
             raise RillMLValidationError(f'artifact missing/invalid field {key!r}')
     if not SHA256_RE.match(artifact['sha256']):
         raise RillMLValidationError('artifact sha256 must be 64 lowercase hex chars')
-    if artifact['version'].count('.') < 2:
-        raise RillMLValidationError(f'invalid artifact version {artifact["version"]!r}')
-    if not isinstance(artifact.get('runtimeApiVersion'), int):
-        raise RillMLValidationError('artifact runtimeApiVersion must be an integer')
-    if not isinstance(artifact.get('size'), int) or artifact['size'] < 0:
-        raise RillMLValidationError('artifact size must be a non-negative integer')
+    if not STABLE_SEMVER_RE.fullmatch(artifact['version']):
+        raise RillMLValidationError(
+            f'artifact version must be stable X.Y.Z: {artifact["version"]!r}')
+    if (isinstance(artifact.get('size'), bool)
+            or not isinstance(artifact.get('size'), int)
+            or not 0 <= artifact['size'] <= MAX_SAFE_INTEGER):
+        raise RillMLValidationError(
+            'artifact size must be a non-negative safe integer')
     _validate_https_url(artifact['url'])
     # Kind-specific fields: runtime and pm-adapter entries are platform-bound
     # (targetOs/targetArch; Linux additionally carries targetLibc in schema v3).
@@ -278,7 +282,18 @@ def _validate_artifact_shape(artifact):
             if not isinstance(artifact.get('pmAdapterProtocolVersion'), int):
                 raise RillMLValidationError(
                     'pm-adapter artifact pmAdapterProtocolVersion must be an integer')
+        else:
+            if not isinstance(artifact.get('runtimeApiVersion'), int):
+                raise RillMLValidationError(
+                    'runtime artifact runtimeApiVersion must be an integer')
+    elif kind == 'model':
+        if not isinstance(artifact.get('runtimeApiVersion'), int):
+            raise RillMLValidationError(
+                'model artifact runtimeApiVersion must be an integer')
     elif kind == 'handler':
+        if not isinstance(artifact.get('runtimeApiVersion'), int):
+            raise RillMLValidationError(
+                'handler artifact runtimeApiVersion must be an integer')
         if not isinstance(artifact.get('handlerApiVersion'), int):
             raise RillMLValidationError(
                 'handler artifact handlerApiVersion must be an integer')
@@ -294,14 +309,11 @@ def runtime_artifact_id(libc):
 
 
 def _semver_key(version):
-    """Parse ``X.Y.Z[-prerelease]`` into a comparable key (never string compares)."""
-    core, separator, prerelease = str(version).partition('-')
-    parts = core.split('.')
-    if len(parts) != 3 or not all(part.isdigit() for part in parts):
-        raise RillMLValidationError(f'unsupported semantic version: {version!r}')
-    # Releases sort after any prerelease of the same core; prerelease text is a
-    # final tiebreaker only (stable releases carry no prerelease suffix).
-    return (tuple(int(part) for part in parts), 1 if not separator else 0, prerelease)
+    """Parse the stable consumer version form (X.Y.Z) into a comparable key."""
+    if not STABLE_SEMVER_RE.fullmatch(str(version)):
+        raise RillMLValidationError(
+            f'unsupported stable semantic version: {version!r}')
+    return tuple(int(part) for part in str(version).split('.'))
 
 
 def select_runtime_artifact(payload, *, target_os, target_arch, libc,
@@ -456,7 +468,9 @@ def _ipc_call(process, request, *, timeout):
         raise RillMLProbeError(f'runtime returned invalid JSON: {exc}') from exc
 
 
-def probe_runtime(runtime_path, *, expected_version=None, model_path=None,
+def probe_runtime(runtime_path, *, expected_version=None,
+                  expected_model_version=None, expected_handler_version=None,
+                  model_path=None,
                   handler_path=None, trusted_key_id=None, public_key_hex=None,
                   timeout=30.0):
     """Startup / compatibility probe for a staged rill-runtime binary.
@@ -505,11 +519,11 @@ def probe_runtime(runtime_path, *, expected_version=None, model_path=None,
                     expected_version is None
                     or handshake.get('runtimeVersion') == expected_version),
                 'modelPackVersion': (
-                    expected_version is None
-                    or handshake.get('modelPackVersion') == expected_version),
+                    expected_model_version is None
+                    or handshake.get('modelPackVersion') == expected_model_version),
                 'handlerVersion': (
-                    expected_version is None
-                    or handshake.get('handlerVersion') == expected_version),
+                    expected_handler_version is None
+                    or handshake.get('handlerVersion') == expected_handler_version),
                 'capabilities': isinstance(capabilities, list) and bool(capabilities),
             }
             if not all(checks.values()):
@@ -708,6 +722,7 @@ class RillMLRuntimeManager:
                     f'allow_downgrade=True required)')
         staged = download_artifact(artifact, self.staging_dir,
                                    timeout=timeout, attempts=attempts)
+        model = handler = None
         model_path = handler_path = None
         if probe == 'handshake':
             if payload is None:
@@ -717,17 +732,17 @@ class RillMLRuntimeManager:
                     text.decode('utf-8'), trusted_key_id=self.trusted_key_id,
                     public_key_hex=self.public_key_hex, channel=self.channel)
             model = select_named_artifact(
-                payload, kind='model', artifact_id=MODEL_ARTIFACT_ID,
-                version=artifact['version'])
+                payload, kind='model', artifact_id=MODEL_ARTIFACT_ID)
             handler = select_named_artifact(
-                payload, kind='handler', artifact_id=HANDLER_ARTIFACT_ID,
-                version=artifact['version'])
+                payload, kind='handler', artifact_id=HANDLER_ARTIFACT_ID)
             model_path = download_artifact(model, self.staging_dir,
                                            timeout=timeout, attempts=attempts)
             handler_path = download_artifact(handler, self.staging_dir,
                                              timeout=timeout, attempts=attempts)
         probe_result = probe_runtime(
             staged, expected_version=artifact['version'],
+            expected_model_version=(model or {}).get('version'),
+            expected_handler_version=(handler or {}).get('version'),
             model_path=model_path, handler_path=handler_path,
             trusted_key_id=self.trusted_key_id,
             public_key_hex=self.public_key_hex)

@@ -17,6 +17,58 @@ SPEC.loader.exec_module(MODULE)
 
 
 class ReleaseAutomationTests(unittest.TestCase):
+    def _canonical_fixture(self, root: Path) -> tuple[Path, Path]:
+        rill = root / "rill"
+        xray = root / "xray"
+        integration = rill / "integrations/xray_bash_onekey"
+        files = {
+            "rill_payload/python/rill_xray_agent/new.py": b"new",
+            "scripts/rill_xray_agent_new.sh": b"#!/bin/sh\n",
+            "systemd/rill-xray-agent-new.service": b"[Unit]\n",
+            "assets/rill-xray-agent-xray-bundle.tar.gz": b"bundle",
+        }
+        manifest_files = {}
+        for rel, blob in files.items():
+            source = integration / "repository_files" / rel
+            source.parent.mkdir(parents=True, exist_ok=True)
+            source.write_bytes(blob)
+            manifest_files[f"repository_files/{rel}"] = MODULE.hashlib.sha256(blob).hexdigest()
+        manifest = {"schemaVersion": 1, "bundleSha256": MODULE.hashlib.sha256(b"bundle").hexdigest(),
+                    "files": manifest_files}
+        integration.mkdir(parents=True, exist_ok=True)
+        (integration / "CANONICAL_MANIFEST.json").write_text(json.dumps(manifest))
+        for rel, blob in {
+                "rill_payload/python/rill_xray_agent/old.py": b"old",
+                "scripts/rill_xray_agent_stale.sh": b"old",
+                "scripts/host-owned.sh": b"keep",
+        }.items():
+            target = xray / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(blob)
+        return xray, rill
+
+    def test_canonical_resolver_covers_all_manifest_owned_roots_and_stale_scope(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            xray, rill = self._canonical_fixture(Path(tmp))
+            owned = MODULE.canonical_owned_files(rill)
+            self.assertEqual(
+                {target.as_posix() for _source, target in owned},
+                {
+                    "rill_payload/python/rill_xray_agent/new.py",
+                    "scripts/rill_xray_agent_new.sh",
+                    "systemd/rill-xray-agent-new.service",
+                    "assets/rill-xray-agent-xray-bundle.tar.gz",
+                },
+            )
+            changed, stale = MODULE.canonical_drift(xray, rill)
+            self.assertEqual({path.as_posix() for path in changed},
+                             {path.as_posix() for _source, path in owned})
+            self.assertEqual(
+                {path.as_posix() for path in stale},
+                {"rill_payload/python/rill_xray_agent/old.py",
+                 "scripts/rill_xray_agent_stale.sh"},
+            )
+
     def test_package_sums_are_sorted_and_exclude_generated_paths(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
