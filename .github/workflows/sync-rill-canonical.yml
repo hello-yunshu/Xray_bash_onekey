@@ -57,19 +57,8 @@ jobs:
         id: drift
         run: |
           set -euo pipefail
-          changed=false
-          for name in \
-            rill_xray_agent_bootstrap.sh \
-            rill_xray_agent_install.sh \
-            rill_xray_agent_manager.sh \
-            rill_xray_agent_uninstall.sh \
-            rill_xray_agent_verify.sh; do
-            if ! cmp -s "xray/scripts/${name}" \
-              "rill/integrations/xray_bash_onekey/repository_files/scripts/${name}"; then
-              changed=true
-            fi
-          done
-          echo "changed=${changed}" >>"${GITHUB_OUTPUT}"
+          python3 automation/scripts/release_automation.py check-rill-drift \
+            --xray xray --rill rill --github-output "${GITHUB_OUTPUT}"
 
       - name: Require cross-repository token
         if: steps.drift.outputs.changed == 'true'
@@ -147,14 +136,8 @@ jobs:
           fi
           git -C xray config user.name github-actions[bot]
           git -C xray config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git -C xray add \
-            .github/workflows/rill-xray-agent.yml \
-            assets/rill-xray-agent-xray-bundle.tar.gz \
-            scripts/rill_xray_agent_bootstrap.sh \
-            scripts/rill_xray_agent_install.sh \
-            scripts/rill_xray_agent_manager.sh \
-            scripts/rill_xray_agent_uninstall.sh \
-            scripts/rill_xray_agent_verify.sh
+          python3 automation/scripts/release_automation.py stage-rill \
+            --xray xray --rill rill
           git -C xray commit -m "chore(rill): apply canonical payload"
           git -C xray push "https://x-access-token:${GH_TOKEN}@github.com/${XRAY_REPO}.git" \
             "HEAD:${SOURCE_BRANCH}"
