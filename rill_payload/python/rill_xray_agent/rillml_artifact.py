@@ -316,6 +316,20 @@ def _semver_key(version):
     return tuple(int(part) for part in str(version).split('.'))
 
 
+def load_expected_release_version(provenance_path=None):
+    """Read the current audited upstream release from local provenance."""
+    path = (Path(provenance_path) if provenance_path is not None else
+            Path(__file__).resolve().parents[2] / 'PROVENANCE' / 'upstream.json')
+    try:
+        document = json.loads(path.read_text(encoding='utf-8'))
+        version = document['rillMl']['version']
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise RillMLValidationError(
+            f'failed to read audited RillML release provenance: {path}') from exc
+    _semver_key(version)
+    return version
+
+
 def select_runtime_artifact(payload, *, target_os, target_arch, libc,
                             api_version=SUPPORTED_API_VERSION, channel='stable'):
     """Deterministically select the single matching prebuilt runtime artifact.
@@ -372,6 +386,28 @@ def select_named_artifact(payload, *, kind, artifact_id, version=None):
             f'expected exactly one {kind} artifact id={artifact_id!r}; found '
             f'{len(matches)}')
     return matches[0]
+
+
+def select_compatible_model_and_handler(payload, runtime_artifact):
+    """Select the named model/handler compatible with one runtime payload."""
+    runtime_api = runtime_artifact.get('runtimeApiVersion')
+    runtime_version = runtime_artifact.get('version')
+    model = select_named_artifact(
+        payload, kind='model', artifact_id=MODEL_ARTIFACT_ID)
+    if model.get('runtimeApiVersion') != runtime_api:
+        raise RillMLValidationError(
+            'model runtimeApiVersion is incompatible with selected runtime')
+    handler = select_named_artifact(
+        payload, kind='handler', artifact_id=HANDLER_ARTIFACT_ID)
+    if handler.get('runtimeApiVersion') != runtime_api:
+        raise RillMLValidationError(
+            'handler runtimeApiVersion is incompatible with selected runtime')
+    if handler.get('handlerApiVersion') != 1:
+        raise RillMLValidationError('handler handlerApiVersion must be 1')
+    if _semver_key(handler['minRuntimeVersion']) > _semver_key(runtime_version):
+        raise RillMLValidationError(
+            'handler minRuntimeVersion exceeds selected runtime version')
+    return model, handler
 
 
 def sha256_file(path):
@@ -572,7 +608,8 @@ class RillMLRuntimeManager:
     """
 
     def __init__(self, root, *, index_url=None, public_key_hex=None,
-                 trusted_key_id=None, channel='stable', api_version=SUPPORTED_API_VERSION):
+                 trusted_key_id=None, channel='stable', api_version=SUPPORTED_API_VERSION,
+                 expected_release_version=None):
         self.root = Path(root)
         self.index_url = index_url or os.environ.get(
             'RILLML_INDEX_URL', STABLE_INDEX_URL)
@@ -580,6 +617,9 @@ class RillMLRuntimeManager:
         self.trusted_key_id = trusted_key_id or DEFAULT_PUBLISHER_KEY_ID
         self.channel = channel
         self.api_version = api_version
+        self.expected_release_version = expected_release_version
+        if self.expected_release_version is not None:
+            _semver_key(self.expected_release_version)
         self.staging_dir = self.root / 'staging'
         self.current_dir = self.root / 'current'
         self.rollback_dir = self.root / 'rollback'
@@ -689,6 +729,11 @@ class RillMLRuntimeManager:
             payload, target_os=platform_['os'], target_arch=platform_['arch'],
             libc=platform_['libc'], api_version=self.api_version,
             channel=self.channel)
+        expected = self.expected_release_version
+        if expected is not None and artifact['version'] != expected:
+            raise RillMLValidationError(
+                f'selected stable release {artifact["version"]} != '
+                f'audited expected release {expected}')
         return {
             'platform': platform_,
             'indexUrl': self.index_url,
@@ -696,6 +741,9 @@ class RillMLRuntimeManager:
             'publisherKeyId': payload.get('publisherKeyId'),
             'version': artifact['version'],
             'artifact': artifact,
+            'payload': payload,
+            'expectedReleaseVersion': expected,
+            'selectedReleaseVersion': artifact['version'],
         }
 
     def install(self, *, probe='lightweight', timeout=60.0, attempts=4,
@@ -709,10 +757,9 @@ class RillMLRuntimeManager:
         index may never downgrade an installed verified runtime; only an
         explicit ``allow_downgrade=True`` (operator action) overrides that.
         """
-        platform_ = detect_platform()
         resolved = self.resolve(timeout=timeout, attempts=attempts)
         artifact = resolved['artifact']
-        payload = resolved.get('payload')
+        payload = resolved['payload']
         current_version = self._read_state().get('version')
         if current_version and not allow_downgrade:
             if _semver_key(artifact['version']) < _semver_key(current_version):
@@ -725,16 +772,8 @@ class RillMLRuntimeManager:
         model = handler = None
         model_path = handler_path = None
         if probe == 'handshake':
-            if payload is None:
-                text = fetch_release_index(self.index_url, timeout=timeout,
-                                           attempts=attempts)
-                payload = parse_release_index(
-                    text.decode('utf-8'), trusted_key_id=self.trusted_key_id,
-                    public_key_hex=self.public_key_hex, channel=self.channel)
-            model = select_named_artifact(
-                payload, kind='model', artifact_id=MODEL_ARTIFACT_ID)
-            handler = select_named_artifact(
-                payload, kind='handler', artifact_id=HANDLER_ARTIFACT_ID)
+            model, handler = select_compatible_model_and_handler(
+                payload, artifact)
             model_path = download_artifact(model, self.staging_dir,
                                            timeout=timeout, attempts=attempts)
             handler_path = download_artifact(handler, self.staging_dir,
