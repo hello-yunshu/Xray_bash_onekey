@@ -101,20 +101,35 @@ def canonical_owned_files(rill_repo: Path) -> list[tuple[Path, Path]]:
 
 def _canonical_stale_candidates(xray: Path) -> list[Path]:
     """Return only reserved canonical roots/prefixes eligible for stale removal."""
-    candidates: list[Path] = []
+    candidates: set[Path] = set()
     payload = xray / "rill_payload"
     if payload.is_dir():
-        candidates.extend(p for p in payload.rglob("*") if p.is_file())
+        candidates.update(p for p in payload.rglob("*") if p.is_file())
     scripts = xray / "scripts"
     if scripts.is_dir():
-        candidates.extend(p for p in scripts.glob("rill_xray_agent_*") if p.is_file())
+        candidates.update(p for p in scripts.glob("rill_xray_agent_*") if p.is_file())
     systemd = xray / "systemd"
     if systemd.is_dir():
-        candidates.extend(p for p in systemd.glob("rill-xray-agent-*") if p.is_file())
+        candidates.update(p for p in systemd.glob("rill-xray-agent-*") if p.is_file())
     bundle = xray / "assets" / BUNDLE
     if bundle.is_file():
-        candidates.append(bundle)
-    return candidates
+        candidates.add(bundle)
+
+    # apply-rill removes stale files before stage-rill runs. Recover tracked
+    # paths from the same narrow canonical scope so those deletions remain
+    # explicit git-add targets without staging host-owned files.
+    tracked = subprocess.run(
+        ("git", "ls-files", "--", "rill_payload", "scripts", "systemd",
+         f"assets/{BUNDLE}"), cwd=xray, capture_output=True, text=True,
+        check=False)
+    if tracked.returncode == 0:
+        for rel in tracked.stdout.splitlines():
+            if (rel.startswith("rill_payload/")
+                    or rel.startswith("scripts/rill_xray_agent_")
+                    or rel.startswith("systemd/rill-xray-agent-")
+                    or rel == f"assets/{BUNDLE}"):
+                candidates.add(xray / rel)
+    return sorted(candidates)
 
 
 def canonical_drift(xray: Path, rill: Path) -> tuple[list[Path], list[Path]]:
@@ -143,9 +158,11 @@ def check_rill_drift(xray: Path, rill: Path, github_output: Path) -> None:
 
 
 def stage_rill(xray: Path, rill: Path) -> None:
+    _changed, stale = canonical_drift(xray, rill)
     paths = [target.as_posix() for _source, target in canonical_owned_files(rill)]
+    paths.extend(path.as_posix() for path in stale)
     paths.append(".github/workflows/rill-xray-agent.yml")
-    run("git", "add", "--", *paths, cwd=xray)
+    run("git", "add", "--", *sorted(set(paths)), cwd=xray)
 
 
 def sync_rill(xray: Path, rill: Path) -> None:

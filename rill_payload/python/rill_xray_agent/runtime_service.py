@@ -22,7 +22,7 @@ from .route_contract import AUTO_ROUTE_OPS, overall_risk
 from .route_executor import request_digest
 from .auto_policy import AutoPolicy
 from .root_policy import DEFAULT_PROJECTION_PATH
-from .rillml_artifact import RillMLRuntimeManager
+from .rillml_artifact import RillMLRuntimeManager, load_expected_release_version
 from .root_txn import DEFAULT_GENERATION_PATH
 from .errors import UnknownDecisionError
 from .doctor import Doctor
@@ -1163,7 +1163,10 @@ class RuntimeService:
         the platform has no supported prebuilt artifact.
         """
         try:
-            manager = RillMLRuntimeManager(self.rillml_root)
+            manager = RillMLRuntimeManager(
+                self.rillml_root,
+                expected_release_version=load_expected_release_version(),
+            )
             return manager.native_status()
         except Exception as exc:
             # Fail closed: a corrupt/unreadable tree must never masquerade as

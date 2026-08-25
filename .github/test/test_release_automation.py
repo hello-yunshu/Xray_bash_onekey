@@ -5,6 +5,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -81,6 +82,29 @@ class ReleaseAutomationTests(unittest.TestCase):
             MODULE.write_package_sums(root)
             lines = (root / "PACKAGE_SHA256SUMS").read_text().splitlines()
             self.assertEqual([line.split("  ", 1)[1] for line in lines], ["a.txt", "z.txt"])
+
+    def test_apply_then_stage_includes_stale_canonical_deletions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            xray, rill = self._canonical_fixture(root)
+            workflow = xray / ".github/workflows/rill-xray-agent.yml"
+            workflow.parent.mkdir(parents=True, exist_ok=True)
+            workflow.write_text("  RILL_CANONICAL_COMMIT: " + "0" * 40 + "\n")
+            MODULE.run("git", "init", cwd=xray)
+            MODULE.run("git", "config", "user.email", "test@example.com", cwd=xray)
+            MODULE.run("git", "config", "user.name", "test", cwd=xray)
+            MODULE.run("git", "add", ".", cwd=xray)
+            MODULE.run("git", "commit", "-m", "fixture", cwd=xray)
+
+            with mock.patch.object(MODULE, "run") as run_mock:
+                MODULE.apply_rill(xray, rill, "a" * 40)
+                run_mock.assert_called_once()
+            MODULE.stage_rill(xray, rill)
+            staged = set(MODULE.subprocess.check_output(
+                ["git", "diff", "--cached", "--name-status"],
+                cwd=xray, text=True).splitlines())
+            self.assertIn("D\trill_payload/python/rill_xray_agent/old.py", staged)
+            self.assertIn("D\tscripts/rill_xray_agent_stale.sh", staged)
 
     def test_update_api_changes_online_fields_only(self):
         with tempfile.TemporaryDirectory() as tmp:
