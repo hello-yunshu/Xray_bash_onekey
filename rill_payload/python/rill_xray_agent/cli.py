@@ -55,8 +55,11 @@ def _rillml_dispatch(args) -> dict:
         return {'schemaVersion': 3, 'requestId': 'local', 'ok': False,
                 'error': {'code': 'rootRequired',
                           'message': 'rillml lifecycle operations require root'}}
-    from .rillml_artifact import RillMLRuntimeManager
-    manager = RillMLRuntimeManager(args.rillml_root)
+    from .rillml_artifact import RillMLRuntimeManager, load_expected_release_version
+    manager = RillMLRuntimeManager(
+        args.rillml_root,
+        expected_release_version=load_expected_release_version(),
+    )
     try:
         cmd = args.rillml_command
         if cmd == 'status':

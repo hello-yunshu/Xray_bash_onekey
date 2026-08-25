@@ -7,7 +7,7 @@
 #   - the installer reports RillML handling (native enabled or clean fallback),
 #   - the root-owned managed tree holds a verified native binary
 #     (/var/lib/rill-xray-agent-rillml/current),
-#   - the root CLI status is supported + available + version 1.2.x,
+#   - the root CLI status is supported + available + exact Rill 1.5.1 version,
 #   - the unprivileged read-only IPC surface reflects active + verified
 #     (P0-16), and the binary is group-readable for the runtime user.
 #
@@ -23,6 +23,7 @@ BOOTSTRAP="${REPO_DIR}/scripts/rill_xray_agent_bootstrap.sh"
 ASSET="${REPO_DIR}/assets/rill-xray-agent-xray-bundle.tar.gz"
 MANAGER="/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh"
 RILLML_ROOT=/var/lib/rill-xray-agent-rillml
+EXPECTED_RILL_VERSION=${RILLML_EXPECTED_VERSION:-1.5.1}
 
 PASS=0
 FAIL=0
@@ -76,7 +77,7 @@ else
     bad "RillML native binary not owned root:rill-xray-agent"
 fi
 
-# --- root CLI status (schema v3, 1.2.x) ---
+# --- root CLI status (schema v3, exact release version) ---
 # The CLI prints the bare `result` dict on success; accept the wrapped form too.
 rillml_status_json() { rxa_rillml status 2>/dev/null; }
 if rillml_status_json | python3 -c 'import json,sys
@@ -87,12 +88,12 @@ assert r.get("current") and r.get("current",{}).get("version"), r' >/dev/null 2>
 else
     bad "rillml status not supported/available"
 fi
-if rillml_status_json | python3 -c 'import json,sys
+if rillml_status_json | EXPECTED_RILL_VERSION="$EXPECTED_RILL_VERSION" python3 -c 'import json,os,sys
 d=json.load(sys.stdin); r=d.get("result") or d
-assert r["current"]["version"].startswith("1.2"), r' >/dev/null 2>&1; then
-    ok "rillml status version is 1.2.x"
+assert r["current"]["version"] == os.environ["EXPECTED_RILL_VERSION"], r' >/dev/null 2>&1; then
+    ok "rillml status version is ${EXPECTED_RILL_VERSION}"
 else
-    bad "rillml status version != 1.2.x"
+    bad "rillml status version != ${EXPECTED_RILL_VERSION}"
 fi
 
 # --- read-only IPC surface (active + verified, P0-16) ---
