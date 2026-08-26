@@ -1,16 +1,17 @@
 {
   "rillMl": {
     "repository": "hello-yunshu/rill-ml",
-    "reviewedCommit": "cba9b3d2fb2c6a71cb9d4a02b18852171ad05a1b",
-    "version": "1.5.1"
+    "reviewedCommit": "621ed42bf6a4ea29b19f45a5dfa75f50f68173a9",
+    "version": "1.5.3"
   },
   "schemaVersion": 1,
   "xray": {
-    "releaseRule": "Any upstream drift requires re-review.",
+    "releaseRule": "The reviewed host-owned install.sh surface is anchored by reviewedCommit and reviewedInstallScriptBlob; canonical Agent payload drift is governed by CANONICAL_MANIFEST.json.",
     "repository": "hello-yunshu/Xray_bash_onekey",
     "reviewedAt": "2026-08-06T17:14:00+08:00",
-    "reviewedCommit": "e3ba5d7474498fbb556b0cae741a629ebb3bf1cd",
-    "reviewedInstallScriptBlob": "4304f6419f38ce34800a68777e3f6e8645344338",
+    "reviewedCommit": "78d671a8ab5c74e36c1eff606b5ee8d8377b53c5",
+    "reviewedInstallScriptBlob": "863c9eed2a35b2341f5725019deff612d7bf66e2",
+    "reviewedInstallScriptPath": "install.sh",
     "schemaVersion": 1
   }
 }
