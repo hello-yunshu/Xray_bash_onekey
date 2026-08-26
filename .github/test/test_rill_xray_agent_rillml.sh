@@ -7,7 +7,7 @@
 #   - the installer reports RillML handling (native enabled or clean fallback),
 #   - the root-owned managed tree holds a verified native binary
 #     (/var/lib/rill-xray-agent-rillml/current),
-#   - the root CLI status is supported + available + exact Rill 1.5.1 version,
+#   - the root CLI status is supported + available + exact Rill 1.5.3 version,
 #   - the unprivileged read-only IPC surface reflects active + verified
 #     (P0-16), and the binary is group-readable for the runtime user.
 #
@@ -23,7 +23,7 @@ BOOTSTRAP="${REPO_DIR}/scripts/rill_xray_agent_bootstrap.sh"
 ASSET="${REPO_DIR}/assets/rill-xray-agent-xray-bundle.tar.gz"
 MANAGER="/etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh"
 RILLML_ROOT=/var/lib/rill-xray-agent-rillml
-EXPECTED_RILL_VERSION=${RILLML_EXPECTED_VERSION:-1.5.1}
+EXPECTED_RILL_VERSION=${RILLML_EXPECTED_VERSION:-1.5.3}
 
 PASS=0
 FAIL=0
