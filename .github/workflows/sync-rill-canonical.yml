@@ -22,7 +22,7 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - name: Checkout Xray main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: main
           path: xray
@@ -30,7 +30,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout Agent main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: hello-yunshu/rill-xray-agent
           ref: main
