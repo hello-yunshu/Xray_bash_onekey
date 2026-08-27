@@ -6,12 +6,14 @@
   },
   "schemaVersion": 1,
   "xray": {
-    "releaseRule": "The reviewed host-owned install.sh surface is anchored by reviewedCommit and reviewedInstallScriptBlob; canonical Agent payload drift is governed by CANONICAL_MANIFEST.json.",
+    "releaseRule": "The reviewed host-owned install.sh surface is identified by the independently verified Host Contract digest; full commit and blob values remain audit metadata only.",
     "repository": "hello-yunshu/Xray_bash_onekey",
-    "reviewedAt": "2026-08-27T06:51:50+08:00",
-    "reviewedCommit": "71482b82a0219dfe61776e2dffc76718397d7bb5",
+    "reviewedAt": "2026-08-27T23:21:26+08:00",
+    "reviewedCommit": "ccfa0971a81a147f9249c11e13f71aadee6272aa",
     "reviewedInstallScriptBlob": "863c9eed2a35b2341f5725019deff612d7bf66e2",
     "reviewedInstallScriptPath": "install.sh",
+    "hostContractSchema": 1,
+    "hostContractDigest": "6772c36a61f565d37b088e79d60b2493bba48f52425716a0bc965d9cad770ec1",
     "schemaVersion": 1
   }
 }

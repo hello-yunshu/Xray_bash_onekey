@@ -3,11 +3,7 @@ on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 env:
-  # Pin the Rill commit whose CANONICAL_MANIFEST.json this payload must match.
-  # The digest coordinate is added by the first digest-based sync after the
-  # Agent main has published canonicalDigest.
-  RILL_CANONICAL_COMMIT: d3d3433c28d00dc152e1ec2f227f2536c2e08a23
-  RILL_CANONICAL_DIGEST: 1fbf2179eccf352ea90b8e917882d35e5e6d128745a2e95ba9dc5b030f77485f
+  RILL_CANONICAL_PIN_FILE: repository_files/rill_integration/RILL_CANONICAL_PIN.json
 jobs:
   integration:
     runs-on: ubuntu-latest
@@ -15,13 +11,49 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Resolve Rill canonical pin
+        id: canonical-pin
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >>"$GITHUB_OUTPUT"
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          pin_path = Path(os.environ["RILL_CANONICAL_PIN_FILE"])
+          pin = json.loads(pin_path.read_text(encoding="utf-8"))
+          commit = pin.get("canonicalCommit")
+          digest = pin.get("canonicalDigest")
+          if pin.get("schemaVersion") != 1:
+              raise SystemExit(f"unsupported canonical pin schema: {pin_path}")
+          if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+              raise SystemExit(f"invalid canonical commit in {pin_path}")
+          if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+              raise SystemExit(f"invalid canonical digest in {pin_path}")
+          print(f"commit={commit}")
+          print(f"digest={digest}")
+          PY
       - name: Fetch Rill canonical manifest
         uses: actions/checkout@v4
         with:
           repository: hello-yunshu/rill-xray-agent
-          ref: ${{ env.RILL_CANONICAL_COMMIT }}
+          ref: ${{ steps.canonical-pin.outputs.commit }}
           path: rill-canonical
           persist-credentials: false
+      - name: Verify canonical digest pin
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          pin = json.loads(Path(os.environ["RILL_CANONICAL_PIN_FILE"]).read_text(encoding="utf-8"))
+          manifest = json.loads(Path("rill-canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json").read_text(encoding="utf-8"))
+          if pin["canonicalDigest"] != manifest.get("canonicalDigest"):
+              raise SystemExit("canonical digest pin does not match fetched Agent manifest")
+          PY
       - name: Verify payload against canonical manifest
         run: |
           python3 rill-canonical/integrations/xray_bash_onekey/tools/verify_xray_payload.py \

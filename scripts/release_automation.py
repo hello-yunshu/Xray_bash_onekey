@@ -22,6 +22,7 @@ RILL_SCRIPTS = (
     "rill_xray_agent_verify.sh",
 )
 BUNDLE = "rill-xray-agent-xray-bundle.tar.gz"
+PIN_FILE = "repository_files/rill_integration/RILL_CANONICAL_PIN.json"
 CANONICAL_DERIVED_PATHS = frozenset({
     # Rill's bundle carries provenance for install auditability.  Excluding
     # the derived bundle hash keeps audit metadata out of runtime identity.
@@ -108,11 +109,21 @@ def canonical_identity(rill_repo: Path) -> str:
 
 
 def pinned_canonical_digest(xray: Path) -> str | None:
+    pin = xray / PIN_FILE
+    if pin.is_file():
+        try:
+            value = json.loads(pin.read_text()).get("canonicalDigest")
+        except (OSError, json.JSONDecodeError, AttributeError):
+            raise SystemExit(f"invalid canonical pin: {pin}")
+        if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
+            raise SystemExit(f"invalid canonical digest in pin: {pin}")
+        return value
+
+    # Transition fallback for the pre-pin-file main revision. Once the
+    # migration PR lands, automated sync never writes workflow files.
     text = (xray / ".github/workflows/rill-xray-agent.yml").read_text()
     match = PIN_DIGEST_RE.search(text)
-    if not match:
-        return None
-    return match.group(0).split(":", 1)[1].strip()
+    return match.group(0).split(":", 1)[1].strip() if match else None
 
 
 def canonical_owned_files(rill_repo: Path) -> list[tuple[Path, Path]]:
@@ -204,7 +215,7 @@ def stage_rill(xray: Path, rill: Path) -> None:
     _changed, stale = canonical_drift(xray, rill)
     paths = [target.as_posix() for _source, target in canonical_owned_files(rill)]
     paths.extend(path.as_posix() for path in stale)
-    paths.append(".github/workflows/rill-xray-agent.yml")
+    paths.append(PIN_FILE)
     run("git", "add", "--", *sorted(set(paths)), cwd=xray)
 
 
@@ -236,18 +247,13 @@ def apply_rill(xray: Path, rill: Path, commit: str, digest: str | None = None) -
     digest = digest or canonical_identity(rill)
     if not re.fullmatch(r"[0-9a-f]{64}", digest):
         raise SystemExit("canonical digest must be a full 64-character SHA-256")
-    workflow = xray / ".github/workflows/rill-xray-agent.yml"
-    text = workflow.read_text()
-    updated, count = PIN_RE.subn(f"  RILL_CANONICAL_COMMIT: {commit}", text, count=1)
-    if count != 1:
-        raise SystemExit(f"RILL_CANONICAL_COMMIT anchor missing or ambiguous: {workflow}")
-    updated, count = PIN_DIGEST_RE.subn(f"  RILL_CANONICAL_DIGEST: {digest}", updated, count=1)
-    if count != 1:
-        marker = f"  RILL_CANONICAL_COMMIT: {commit}\n"
-        if marker not in updated:
-            raise SystemExit(f"RILL_CANONICAL_DIGEST anchor missing or ambiguous: {workflow}")
-        updated = updated.replace(marker, marker + f"  RILL_CANONICAL_DIGEST: {digest}\n", 1)
-    workflow.write_text(updated)
+    pin = xray / PIN_FILE
+    pin.parent.mkdir(parents=True, exist_ok=True)
+    pin.write_text(json.dumps({
+        "canonicalCommit": commit,
+        "canonicalDigest": digest,
+        "schemaVersion": 1,
+    }, indent=2, sort_keys=True) + "\n")
 
     run(
         sys.executable,
