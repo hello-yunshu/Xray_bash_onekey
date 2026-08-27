@@ -1,3 +1,5 @@
+# Canonical adapter observations remain summaries; host commands use the
+# fixed environment below so diagnostics never depend on caller state.
 import hashlib,os,subprocess,time
 from pathlib import Path
 from .canonical import atomic_write_json,file_sha256
