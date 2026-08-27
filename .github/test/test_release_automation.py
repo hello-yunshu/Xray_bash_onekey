@@ -35,7 +35,7 @@ class ReleaseAutomationTests(unittest.TestCase):
             source.write_bytes(blob)
             manifest_files[f"repository_files/{rel}"] = MODULE.hashlib.sha256(blob).hexdigest()
         manifest = {"schemaVersion": 1, "bundleSha256": MODULE.hashlib.sha256(b"bundle").hexdigest(),
-                    "files": manifest_files}
+                    "canonicalDigest": "a" * 64, "files": manifest_files}
         integration.mkdir(parents=True, exist_ok=True)
         (integration / "CANONICAL_MANIFEST.json").write_text(json.dumps(manifest))
         for rel, blob in {
@@ -89,7 +89,10 @@ class ReleaseAutomationTests(unittest.TestCase):
             xray, rill = self._canonical_fixture(root)
             workflow = xray / ".github/workflows/rill-xray-agent.yml"
             workflow.parent.mkdir(parents=True, exist_ok=True)
-            workflow.write_text("  RILL_CANONICAL_COMMIT: " + "0" * 40 + "\n")
+            workflow.write_text(
+                "  RILL_CANONICAL_COMMIT: " + "0" * 40 + "\n"
+                "  RILL_CANONICAL_DIGEST: " + "0" * 64 + "\n"
+            )
             MODULE.run("git", "init", cwd=xray)
             MODULE.run("git", "config", "user.email", "test@example.com", cwd=xray)
             MODULE.run("git", "config", "user.name", "test", cwd=xray)

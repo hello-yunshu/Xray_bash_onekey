@@ -4,17 +4,19 @@ permissions:
   contents: read
 env:
   # Pin the Rill commit whose CANONICAL_MANIFEST.json this payload must match.
-  # Bump when the Rill canonical source of truth changes.
-  RILL_CANONICAL_COMMIT: fc917029077db934a979194dfa14d3916d0d361f
+  # The digest coordinate is added by the first digest-based sync after the
+  # Agent main has published canonicalDigest.
+  RILL_CANONICAL_COMMIT: d3d3433c28d00dc152e1ec2f227f2536c2e08a23
+  RILL_CANONICAL_DIGEST: 1fbf2179eccf352ea90b8e917882d35e5e6d128745a2e95ba9dc5b030f77485f
 jobs:
   integration:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Fetch Rill canonical manifest
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v4
         with:
           repository: hello-yunshu/rill-xray-agent
           ref: ${{ env.RILL_CANONICAL_COMMIT }}
