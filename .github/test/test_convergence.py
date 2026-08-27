@@ -23,12 +23,13 @@ class ConvergenceTests(unittest.TestCase):
     def fixture(self, root: Path, digest: str, commit: str = "a" * 40) -> tuple[Path, Path, Path]:
         xray = root / "xray"
         rill = root / "rill"
-        xray_workflow = xray / ".github/workflows/rill-xray-agent.yml"
-        xray_workflow.parent.mkdir(parents=True)
-        xray_workflow.write_text(
-            f"  RILL_CANONICAL_COMMIT: {commit}\n"
-            f"  RILL_CANONICAL_DIGEST: {digest}\n"
-        )
+        pin = xray / MODULE.PIN_FILE
+        pin.parent.mkdir(parents=True)
+        pin.write_text(json.dumps({
+            "canonicalCommit": commit,
+            "canonicalDigest": digest,
+            "schemaVersion": 1,
+        }))
         manifest = rill / "integrations/xray_bash_onekey/CANONICAL_MANIFEST.json"
         manifest.parent.mkdir(parents=True)
         manifest.write_text(json.dumps({
@@ -59,11 +60,11 @@ class ConvergenceTests(unittest.TestCase):
                 "files": {},
             }))
             self.assertIn("changed=true", self.drift(xray, rill, output))
-            xray_workflow = xray / ".github/workflows/rill-xray-agent.yml"
-            xray_workflow.write_text(
-                "  RILL_CANONICAL_COMMIT: " + "c" * 40 + "\n"
-                "  RILL_CANONICAL_DIGEST: " + "2" * 64 + "\n"
-            )
+            (xray / MODULE.PIN_FILE).write_text(json.dumps({
+                "canonicalCommit": "c" * 40,
+                "canonicalDigest": "2" * 64,
+                "schemaVersion": 1,
+            }))
             output.unlink()
             self.assertIn("changed=false", self.drift(xray, rill, output))
 
@@ -83,10 +84,11 @@ class ConvergenceTests(unittest.TestCase):
                 "files": {},
             }))
             self.assertIn("changed=true", self.drift(xray, rill, output))
-            (xray / ".github/workflows/rill-xray-agent.yml").write_text(
-                "  RILL_CANONICAL_COMMIT: " + "d" * 40 + "\n"
-                "  RILL_CANONICAL_DIGEST: " + "5" * 64 + "\n"
-            )
+            (xray / MODULE.PIN_FILE).write_text(json.dumps({
+                "canonicalCommit": "d" * 40,
+                "canonicalDigest": "5" * 64,
+                "schemaVersion": 1,
+            }))
             output.unlink()
             self.assertIn("changed=false", self.drift(xray, rill, output))
 

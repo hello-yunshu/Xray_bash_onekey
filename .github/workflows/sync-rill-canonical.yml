@@ -80,7 +80,7 @@ jobs:
             --digest "${{ steps.drift.outputs.current_canonical_digest }}"
           python3 xray/scripts/release_automation.py stage-rill --xray xray --rill rill
           git -C xray diff --check
-          allowed='^((rill_payload/)|(scripts/rill_xray_agent_)|(systemd/rill-xray-agent-)|(assets/rill-xray-agent-xray-bundle\.tar\.gz)|\.github/workflows/rill-xray-agent\.yml)'
+          allowed='^((rill_payload/)|(scripts/rill_xray_agent_)|(systemd/rill-xray-agent-)|(assets/rill-xray-agent-xray-bundle\.tar\.gz)|repository_files/rill_integration/RILL_CANONICAL_PIN\.json)'
           unexpected=$(git -C xray diff --cached --name-only | while IFS= read -r path; do [[ "$path" =~ $allowed ]] || echo "$path"; done)
           [[ -z "$unexpected" ]] || { echo "unexpected files in automated Xray sync:" >&2; echo "$unexpected" >&2; exit 1; }
 
