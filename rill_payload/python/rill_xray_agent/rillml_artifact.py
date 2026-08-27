@@ -39,9 +39,12 @@ from .canonical import atomic_write_bytes, canonical_bytes, read_json
 from . import rillml_ed25519
 
 # --- upstream release contract (may be overridden for tests / mirror) ---
+# The production integration is frozen to the audited RillML release.  Do not
+# follow the mutable promotion pointer here: changing it can silently move a
+# consumer to a different runtime than the version recorded in provenance.
 STABLE_INDEX_URL = (
     'https://github.com/hello-yunshu/rill-ml/releases/download/'
-    'local-ai-stable/stable-index.json'
+    'v1.5.3/stable-index.json'
 )
 CANDIDATE_INDEX_URL = (
     'https://github.com/hello-yunshu/rill-ml/releases/download/'

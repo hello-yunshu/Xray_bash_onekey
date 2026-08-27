@@ -112,6 +112,7 @@ jobs:
           # Cross-repository release automation must remain deterministic and
           # must never overwrite manually promoted tested-version metadata.
           python3 .github/test/test_release_automation.py
+          python3 .github/test/test_convergence.py
           bash -n scripts/merge_checked_pr.sh
 
       - name: Install PyYAML for Clash parser test

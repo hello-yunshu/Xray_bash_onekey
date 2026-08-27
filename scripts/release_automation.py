@@ -24,6 +24,7 @@ RILL_SCRIPTS = (
 BUNDLE = "rill-xray-agent-xray-bundle.tar.gz"
 VERSION_RE = re.compile(r'^shell_version="([0-9]+\.[0-9]+\.[0-9]+)"$', re.MULTILINE)
 PIN_RE = re.compile(r"^  RILL_CANONICAL_COMMIT: [0-9a-f]{40}$", re.MULTILINE)
+PIN_DIGEST_RE = re.compile(r"^  RILL_CANONICAL_DIGEST: [0-9a-f]{64}$", re.MULTILINE)
 CANONICAL_ROOTS = {
     "rill_payload": "rill_payload",
     "scripts": "scripts",
@@ -71,9 +72,41 @@ def _canonical_manifest(rill_repo: Path) -> dict:
         manifest = json.loads(path.read_text())
     except (OSError, json.JSONDecodeError) as exc:
         raise SystemExit(f"invalid canonical manifest: {path}: {exc}") from exc
-    if manifest.get("schemaVersion") != 1 or not isinstance(manifest.get("files"), dict):
+    if (manifest.get("schemaVersion") != 1
+            or not isinstance(manifest.get("files"), dict)):
         raise SystemExit(f"unsupported canonical manifest: {path}")
     return manifest
+
+
+def computed_canonical_identity(manifest: dict) -> str:
+    prefixes = ("source/PROVENANCE/", "repository_files/rill_payload/PROVENANCE/")
+    identity = {
+        key: value for key, value in manifest["files"].items()
+        if not any(key.startswith(prefix) for prefix in prefixes)
+    }
+    payload = json.dumps(
+        {"schemaVersion": 1, "files": dict(sorted(identity.items()))},
+        ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def canonical_identity(rill_repo: Path) -> str:
+    manifest = _canonical_manifest(rill_repo)
+    digest = manifest.get("canonicalDigest")
+    if digest is None:
+        return computed_canonical_identity(manifest)
+    if not re.fullmatch(r"[0-9a-f]{64}", str(digest)):
+        raise SystemExit("invalid canonical digest")
+    return digest
+
+
+def pinned_canonical_digest(xray: Path) -> str | None:
+    text = (xray / ".github/workflows/rill-xray-agent.yml").read_text()
+    match = PIN_DIGEST_RE.search(text)
+    if not match:
+        return None
+    return match.group(0).split(":", 1)[1].strip()
 
 
 def canonical_owned_files(rill_repo: Path) -> list[tuple[Path, Path]]:
@@ -148,13 +181,17 @@ def canonical_drift(xray: Path, rill: Path) -> tuple[list[Path], list[Path]]:
 
 
 def check_rill_drift(xray: Path, rill: Path, github_output: Path) -> None:
-    changed, stale = canonical_drift(xray, rill)
-    all_changed = sorted(set(changed + stale))
-    for path in all_changed:
-        print(f"changed: {path}")
+    current = canonical_identity(rill)
+    pinned = pinned_canonical_digest(xray)
+    changed = pinned is None or current != pinned
+    print(f"pinned canonical digest: {pinned or '<missing>'}")
+    print(f"current canonical digest: {current}")
+    print("DRIFT" if changed else "NO_CHANGE")
     github_output.parent.mkdir(parents=True, exist_ok=True)
     with github_output.open("a") as handle:
-        handle.write(f"changed={'true' if all_changed else 'false'}\n")
+        handle.write(f"changed={'true' if changed else 'false'}\n")
+        handle.write(f"current_canonical_digest={current}\n")
+        handle.write(f"pinned_canonical_digest={pinned or 'missing'}\n")
 
 
 def stage_rill(xray: Path, rill: Path) -> None:
@@ -178,7 +215,7 @@ def sync_rill(xray: Path, rill: Path) -> None:
     run(sys.executable, "scripts/verify_package_sums.py", cwd=rill)
 
 
-def apply_rill(xray: Path, rill: Path, commit: str) -> None:
+def apply_rill(xray: Path, rill: Path, commit: str, digest: str | None = None) -> None:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise SystemExit("canonical commit must be a full 40-character SHA")
     integration = rill / "integrations/xray_bash_onekey"
@@ -190,11 +227,20 @@ def apply_rill(xray: Path, rill: Path, commit: str) -> None:
     for source, target in owned:
         copy_file(source, xray / target)
 
+    digest = digest or canonical_identity(rill)
+    if not re.fullmatch(r"[0-9a-f]{64}", digest):
+        raise SystemExit("canonical digest must be a full 64-character SHA-256")
     workflow = xray / ".github/workflows/rill-xray-agent.yml"
     text = workflow.read_text()
     updated, count = PIN_RE.subn(f"  RILL_CANONICAL_COMMIT: {commit}", text, count=1)
     if count != 1:
         raise SystemExit(f"RILL_CANONICAL_COMMIT anchor missing or ambiguous: {workflow}")
+    updated, count = PIN_DIGEST_RE.subn(f"  RILL_CANONICAL_DIGEST: {digest}", updated, count=1)
+    if count != 1:
+        marker = f"  RILL_CANONICAL_COMMIT: {commit}\n"
+        if marker not in updated:
+            raise SystemExit(f"RILL_CANONICAL_DIGEST anchor missing or ambiguous: {workflow}")
+        updated = updated.replace(marker, marker + f"  RILL_CANONICAL_DIGEST: {digest}\n", 1)
     workflow.write_text(updated)
 
     run(
@@ -256,6 +302,7 @@ def main() -> None:
     apply.add_argument("--xray", type=Path, required=True)
     apply.add_argument("--rill", type=Path, required=True)
     apply.add_argument("--commit", required=True)
+    apply.add_argument("--digest")
 
     drift = sub.add_parser("check-rill-drift")
     drift.add_argument("--xray", type=Path, required=True)
@@ -276,7 +323,7 @@ def main() -> None:
     if args.command == "sync-rill":
         sync_rill(args.xray.resolve(), args.rill.resolve())
     elif args.command == "apply-rill":
-        apply_rill(args.xray.resolve(), args.rill.resolve(), args.commit)
+        apply_rill(args.xray.resolve(), args.rill.resolve(), args.commit, args.digest)
     elif args.command == "check-rill-drift":
         check_rill_drift(args.xray.resolve(), args.rill.resolve(),
                          args.github_output.resolve())

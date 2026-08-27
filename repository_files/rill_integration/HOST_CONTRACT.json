@@ -1,0 +1,10 @@
+{
+  "contract": "xray-rill-host-surface",
+  "digest": "6772c36a61f565d37b088e79d60b2493bba48f52425716a0bc965d9cad770ec1",
+  "hostOwnedFiles": {
+    "install.sh#RILL_XRAY_AGENT_INTEGRATION": "06f9b62c77459d2919a5fcb0932b35c2289c7119ea5e782aee230b52c3131654"
+  },
+  "repository": "hello-yunshu/Xray_bash_onekey",
+  "schemaVersion": 1,
+  "semanticVersion": 1
+}
