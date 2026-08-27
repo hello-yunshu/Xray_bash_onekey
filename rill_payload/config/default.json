@@ -26,7 +26,8 @@
   "xrayIntegration": {
     "enabled": false,
     "observeOnly": true,
-    "reviewedCommit": "71482b82a0219dfe61776e2dffc76718397d7bb5",
+    "hostContractSchema": 1,
+    "hostContractDigest": "6772c36a61f565d37b088e79d60b2493bba48f52425716a0bc965d9cad770ec1",
     "upstreamRepository": "hello-yunshu/Xray_bash_onekey"
   }
 }
