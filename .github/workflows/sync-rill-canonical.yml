@@ -22,7 +22,7 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - name: Checkout Xray main
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: main
           path: xray
@@ -30,7 +30,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout Agent main
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: hello-yunshu/rill-xray-agent
           ref: main
@@ -83,6 +83,19 @@ jobs:
           allowed='^((rill_payload/)|(scripts/rill_xray_agent_)|(systemd/rill-xray-agent-)|(assets/rill-xray-agent-xray-bundle\.tar\.gz)|repository_files/rill_integration/RILL_CANONICAL_PIN\.json)'
           unexpected=$(git -C xray diff --cached --name-only | while IFS= read -r path; do [[ "$path" =~ $allowed ]] || echo "$path"; done)
           [[ -z "$unexpected" ]] || { echo "unexpected files in automated Xray sync:" >&2; echo "$unexpected" >&2; exit 1; }
+
+      - name: Run pre-merge Xray canonical qualification
+        if: steps.drift.outputs.changed == 'true'
+        working-directory: xray
+        run: |
+          set -euo pipefail
+          # This is the merge-attempt prerequisite.  It runs against the
+          # already-applied canonical worktree, so a green base-main check
+          # cannot mask a bad generated payload in the automation branch.
+          bash .github/test/test_rill_xray_agent.sh
+          python3 .github/test/test_convergence.py
+          sudo bash .github/test/test_install.sh reality
+          sudo bash .github/test/test_rill_xray_agent_rillml.sh
 
       - name: Create or update Xray canonical PR
         if: steps.drift.outputs.changed == 'true'
