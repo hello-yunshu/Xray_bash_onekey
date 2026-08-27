@@ -6,7 +6,8 @@ env:
   # Pin the Rill commit whose CANONICAL_MANIFEST.json this payload must match.
   # The digest coordinate is added by the first digest-based sync after the
   # Agent main has published canonicalDigest.
-  RILL_CANONICAL_COMMIT: fc917029077db934a979194dfa14d3916d0d361f
+  RILL_CANONICAL_COMMIT: d3d3433c28d00dc152e1ec2f227f2536c2e08a23
+  RILL_CANONICAL_DIGEST: 1fbf2179eccf352ea90b8e917882d35e5e6d128745a2e95ba9dc5b030f77485f
 jobs:
   integration:
     runs-on: ubuntu-latest
