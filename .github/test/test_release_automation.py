@@ -18,6 +18,21 @@ SPEC.loader.exec_module(MODULE)
 
 
 class ReleaseAutomationTests(unittest.TestCase):
+    def test_legacy_identity_excludes_provenance_bearing_bundle(self):
+        manifest = {
+            "files": {
+                "repository_files/rill_payload/python/rill_xray_agent/new.py": "a" * 64,
+                "source/PROVENANCE/upstream.json": "b" * 64,
+                "repository_files/rill_payload/PROVENANCE/upstream.json": "c" * 64,
+                "repository_files/assets/rill-xray-agent-xray-bundle.tar.gz": "d" * 64,
+            }
+        }
+        before = MODULE.computed_canonical_identity(manifest)
+        manifest["files"]["source/PROVENANCE/upstream.json"] = "e" * 64
+        manifest["files"]["repository_files/rill_payload/PROVENANCE/upstream.json"] = "f" * 64
+        manifest["files"]["repository_files/assets/rill-xray-agent-xray-bundle.tar.gz"] = "0" * 64
+        self.assertEqual(before, MODULE.computed_canonical_identity(manifest))
+
     def _canonical_fixture(self, root: Path) -> tuple[Path, Path]:
         rill = root / "rill"
         xray = root / "xray"

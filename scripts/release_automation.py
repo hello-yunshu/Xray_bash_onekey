@@ -22,6 +22,11 @@ RILL_SCRIPTS = (
     "rill_xray_agent_verify.sh",
 )
 BUNDLE = "rill-xray-agent-xray-bundle.tar.gz"
+CANONICAL_DERIVED_PATHS = frozenset({
+    # Rill's bundle carries provenance for install auditability.  Excluding
+    # the derived bundle hash keeps audit metadata out of runtime identity.
+    "repository_files/assets/rill-xray-agent-xray-bundle.tar.gz",
+})
 VERSION_RE = re.compile(r'^shell_version="([0-9]+\.[0-9]+\.[0-9]+)"$', re.MULTILINE)
 PIN_RE = re.compile(r"^  RILL_CANONICAL_COMMIT: [0-9a-f]{40}$", re.MULTILINE)
 PIN_DIGEST_RE = re.compile(r"^  RILL_CANONICAL_DIGEST: [0-9a-f]{64}$", re.MULTILINE)
@@ -83,6 +88,7 @@ def computed_canonical_identity(manifest: dict) -> str:
     identity = {
         key: value for key, value in manifest["files"].items()
         if not any(key.startswith(prefix) for prefix in prefixes)
+        and key not in CANONICAL_DERIVED_PATHS
     }
     payload = json.dumps(
         {"schemaVersion": 1, "files": dict(sorted(identity.items()))},
