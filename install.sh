@@ -1858,7 +1858,10 @@ dependency_install() {
         if is_rpm_family; then
             pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel,perl-IPC-Cmd" || return 1
         else
-            pkg_install "iputils-ping,libpcre3,libpcre3-dev,zlib1g-dev" || return 1
+            # The bundled Nginx release is prebuilt with PCRE2 and zlib
+            # statically linked. Do not require the removed libpcre3-dev
+            # package (or any other development package) on Ubuntu 26.04+.
+            pkg_install "iputils-ping" || return 1
         fi
         judge "Nginx $(gettext "链接库安装")"
     fi
