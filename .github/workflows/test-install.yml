@@ -261,6 +261,7 @@ jobs:
           - debian:12-slim
           - debian:13-slim
           - ubuntu:24.04
+          - ubuntu:26.04
           - quay.io/centos/centos:stream10
 
     name: Minimal Bootstrap (${{ matrix.image }})

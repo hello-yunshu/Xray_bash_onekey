@@ -259,6 +259,59 @@ echo "============================================================"
 echo "  13.5: P1-9 pkg_install call-site failure propagation"
 echo "============================================================"
 
+echo "============================================================"
+echo "  13.6: Ubuntu 26.04 Nginx dependency compatibility"
+echo "============================================================"
+
+# Ubuntu 26.04 (Resolute) no longer publishes the legacy PCRE3 packages.
+# The bundled Nginx is prebuilt, so its TLS path must not ask apt for any PCRE
+# or zlib development package. Exercise the real dependency_install call path
+# with a package-install recorder rather than relying on source-text matching.
+_pkg_install_saved_13_6=$(declare -f pkg_install)
+_judge_saved_13_6=$(declare -f judge)
+_systemctl_saved_13_6=$(declare -f systemctl 2>/dev/null)
+_root_crontab_path_saved_13_6=$(declare -f root_crontab_path)
+
+DEPENDENCY_INSTALL_CALLS=()
+pkg_install() {
+    DEPENDENCY_INSTALL_CALLS+=("$1")
+    return 0
+}
+judge() { return 0; }
+systemctl() { return 0; }
+root_crontab_path() { printf '%s\n' "${TMP_ROOT}/root-crontab"; }
+ID="ubuntu"
+VERSION_ID="26.04"
+tls_mode="TLS"
+if dependency_install; then
+    ok "Ubuntu 26.04 TLS dependency installation completes"
+else
+    bad "Ubuntu 26.04 TLS dependency installation failed"
+fi
+if [[ " ${DEPENDENCY_INSTALL_CALLS[*]} " == *" iputils-ping "* ]]; then
+    ok "Ubuntu 26.04 TLS path keeps the required ping dependency"
+else
+    bad "Ubuntu 26.04 TLS path did not request iputils-ping: ${DEPENDENCY_INSTALL_CALLS[*]}"
+fi
+if [[ " ${DEPENDENCY_INSTALL_CALLS[*]} " != *"libpcre3"* &&
+      " ${DEPENDENCY_INSTALL_CALLS[*]} " != *"libpcre3-dev"* &&
+      " ${DEPENDENCY_INSTALL_CALLS[*]} " != *"zlib1g-dev"* ]]; then
+    ok "Ubuntu 26.04 TLS path has no obsolete PCRE3/zlib development dependency"
+else
+    bad "Ubuntu 26.04 TLS path requested obsolete dependency: ${DEPENDENCY_INSTALL_CALLS[*]}"
+fi
+
+# Restore sourced production functions before the remaining call-site tests.
+eval "${_pkg_install_saved_13_6}"
+eval "${_judge_saved_13_6}"
+if [[ -n "${_systemctl_saved_13_6}" ]]; then
+    eval "${_systemctl_saved_13_6}"
+else
+    unset -f systemctl 2>/dev/null
+fi
+eval "${_root_crontab_path_saved_13_6}"
+unset _pkg_install_saved_13_6 _judge_saved_13_6 _systemctl_saved_13_6 _root_crontab_path_saved_13_6
+
 # Verify that every REQUIRED pkg_install call site propagates failure.
 # Each test mocks pkg_install to return 1 and checks that the wrapper
 # function returns with a non-zero status and does not proceed.
