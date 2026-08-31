@@ -2,7 +2,7 @@
 # Minimal-bootstrap container test.
 #
 # Runs INSIDE a fresh minimal Docker container (Debian 12/13 slim, Ubuntu
-# 24.04 minimal, CentOS Stream 10) that starts with almost no tooling, to prove
+# 24.04/26.04 minimal, CentOS Stream 10) that starts with almost no tooling, to prove
 # the confirmed Bootstrap dependency closure genuinely works:
 #   13.1 fresh bootstrap: python3/jq/bc/gettext may be absent, yet the
 #        check_file_integrity prereq (bc,jq) is satisfiable via the real
