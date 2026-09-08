@@ -29,6 +29,7 @@ gettext() { printf '%s' "$1"; }
 # Keep this unit test independent of any host Rill/systemd installation.
 rxa_rill_installed() { return 1; }
 rxa_dispatch() { return 0; }
+rxa_candidate_guard() { return 0; }
 
 # --- Setup temp file system ---
 idleleo_dir="${TMP_ROOT}/idleleo"
@@ -99,6 +100,37 @@ else
 fi
 [[ ! -e "${missing_sha_candidate}" ]] || bad "missing-SHA candidate was left on disk"
 
+echo "--- Release SHA contract rejects malformed and mismatched SHA ---"
+shell_online_version="3.2.3"
+DOWNLOAD_CONTENT='#!/usr/bin/env bash
+shell_version="3.2.3"'
+shell_release_sha256="not-a-sha"
+malformed_sha_candidate="${TMP_ROOT}/malformed-sha-candidate"
+if rxa_download_main_candidate "${malformed_sha_candidate}"; then
+    bad "3.2.3+ candidate with malformed shell_release_sha256 was accepted"
+else
+    ok "3.2.3+ candidate with malformed shell_release_sha256 is rejected"
+fi
+[[ ! -e "${malformed_sha_candidate}" ]] || bad "malformed-SHA candidate was left on disk"
+
+shell_release_sha256="0000000000000000000000000000000000000000000000000000000000000000"
+mismatch_sha_candidate="${TMP_ROOT}/mismatch-sha-candidate"
+if rxa_download_main_candidate "${mismatch_sha_candidate}"; then
+    bad "3.2.3+ candidate with mismatched shell_release_sha256 was accepted"
+else
+    ok "3.2.3+ candidate with mismatched shell_release_sha256 is rejected"
+fi
+[[ ! -e "${mismatch_sha_candidate}" ]] || bad "mismatched-SHA candidate was left on disk"
+
+shell_release_sha256="$(printf '%s\n' "${DOWNLOAD_CONTENT}" | sha256sum | awk '{print $1}')"
+correct_sha_candidate="${TMP_ROOT}/correct-sha-candidate"
+if rxa_download_main_candidate "${correct_sha_candidate}"; then
+    ok "3.2.3+ candidate with correct shell_release_sha256 is accepted"
+else
+    bad "3.2.3+ candidate with correct shell_release_sha256 was rejected"
+fi
+[[ -f "${correct_sha_candidate}" ]] || bad "correct-SHA candidate was not retained"
+
 echo "============================================================"
 echo "  Section 7: Shell Update Metadata"
 echo "============================================================"
@@ -108,6 +140,7 @@ echo "--- Old 3.0.0, download 3.0.1: config must write 3.0.1 ---"
 # Setup: current script version is 3.0.0, online version is 3.0.1
 shell_version="3.0.0"
 shell_online_version="3.0.1"
+shell_release_sha256=""
 auto_update="YES"
 
 # Create current install.sh with old version

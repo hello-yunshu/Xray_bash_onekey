@@ -1533,7 +1533,7 @@ check_and_create_user_group() {
 check_language_update() {
     local lang_code="$1"
     local local_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/xray_install.mo"
-    local version_file_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/i18n/languages/${lang_code}/LC_MESSAGES/version"
+    local version_file_url="${shell_release_raw_base}/i18n/languages/${lang_code}/LC_MESSAGES/version"
 
     [[ ! -f "${local_file}" ]] && return 0
 
@@ -1555,7 +1555,7 @@ update_language_file() {
     local lang_code="$1"
     local mo_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/xray_install.mo"
     local version_file="${idleleo_dir}/languages/${lang_code}/LC_MESSAGES/version"
-    local github_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/i18n/languages"
+    local github_url="${shell_release_raw_base}/i18n/languages"
 
     mkdir -p "${idleleo_dir}/languages/${lang_code}/LC_MESSAGES"
 
@@ -6613,7 +6613,7 @@ xray_conf_add() {
     if [[ "${_multi_user_detected}" != "yes" ]] && \
        [[ "${reinstall_keep_config}" != "on" || ! -f "${xray_conf}" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
-            judge "$(gettext "下载 Xray TLS 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/vless_tls.json" "${xray_conf}"
+            judge "$(gettext "下载 Xray TLS 配置")" download_json_file "${shell_release_raw_base}/config/vless_tls.json" "${xray_conf}"
             if [[ ${transport_mode} == "onlygRPC" ]]; then
                 update_json_config "${xray_conf}" 'del(.inbounds[] | select(.tag == "VLESS-ws-in")) | .routing.rules[0].inboundTag = []'
                 add_grpc_inbound "127.0.0.1" "${gport}" "${serviceName}"
@@ -6630,12 +6630,12 @@ xray_conf_add() {
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "Reality" ]]; then
-            judge "$(gettext "下载 Xray Reality 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/vless_reality.json" "${xray_conf}"
+            judge "$(gettext "下载 Xray Reality 配置")" download_json_file "${shell_release_raw_base}/config/vless_reality.json" "${xray_conf}"
             modify_target_serverNames
             modify_privateKey_shortIds
             xray_reality_add_more
         elif [[ ${tls_mode} == "None" ]]; then
-            judge "$(gettext "下载 Xray 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/vless_tls.json" "${xray_conf}"
+            judge "$(gettext "下载 Xray 配置")" download_json_file "${shell_release_raw_base}/config/vless_tls.json" "${xray_conf}"
             if [[ ${transport_mode} == "onlygRPC" ]]; then
                 update_json_config "${xray_conf}" 'del(.inbounds[] | select(.tag == "VLESS-ws-in")) | .routing.rules[0].inboundTag = []'
                 add_grpc_inbound "0.0.0.0" "${gport}" "${serviceName}"
@@ -6652,7 +6652,7 @@ xray_conf_add() {
             modify_path
             modify_inbound_port
         elif [[ ${tls_mode} == "XTLS" ]]; then
-            judge "$(gettext "下载 Xray XTLS 配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/vless_xtls.json" "${xray_conf}"
+            judge "$(gettext "下载 Xray XTLS 配置")" download_json_file "${shell_release_raw_base}/config/vless_xtls.json" "${xray_conf}"
             modify_listen_address
             modify_inbound_port
         fi
@@ -9280,7 +9280,7 @@ xray_status_add() {
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
                 service_stop || return 1
-                if ! judge -r "$(gettext "下载流量统计配置")" download_json_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/config/status_config.json" "${xray_status_conf}"; then
+                if ! judge -r "$(gettext "下载流量统计配置")" download_json_file "${shell_release_raw_base}/config/status_config.json" "${xray_status_conf}"; then
                     service_start
                     return 1
                 fi
@@ -9884,6 +9884,20 @@ rxa_rill_installed() {
     [[ -x "$(rxa_root /opt/rill-xray-agent/bin/rill-xray-agent)" ]]
 }
 
+rxa_reload_manager() {
+    local manager="$(rxa_agent_dir)/scripts/rill_xray_agent_manager.sh"
+    [[ -r "${manager}" ]] || return 1
+    # shellcheck disable=SC1090
+    source "${manager}"
+}
+
+rxa_auto_confirmation_is_revoked() {
+    local policy
+    declare -F rxa_root_policy >/dev/null 2>&1 || return 1
+    policy=$(rxa_root_policy status 2>/dev/null) || return 1
+    jq -e '.policy.autoConfirmed == false' <<<"${policy}" >/dev/null 2>&1
+}
+
 rxa_sync_release_helpers() {
     local version=$1 dir file url any=0
     dir=$(mktemp -d "${TMPDIR:-/tmp}/xray-helper-candidates.XXXXXX") || return 1
@@ -9934,10 +9948,15 @@ rxa_reconcile_release() {
             return 1
         fi
         rm -rf "$bundle_tmp"
+        if ! rxa_reload_manager; then
+            rxa_stage_done 5 "恢复 AI 工作状态" "✗ 失败"
+            return 1
+        fi
         rxa_stage_done 4 "更新 Rill 核心组件" "完成"
         rxa_stage_begin 5 "恢复 AI 工作状态"
         mode=$(rxa_get mode 2>/dev/null || true)
-        if [[ -z "$mode" ]] || ! rxa_mode_state_matches_target "$mode"; then
+        if [[ -z "$mode" ]] || ! rxa_mode_state_matches_target "$mode" ||
+            ! rxa_auto_confirmation_is_revoked; then
             rxa_stage_done 5 "恢复 AI 工作状态" "✗ 失败"
             return 1
         fi
@@ -9956,6 +9975,18 @@ rxa_reconcile_release() {
     printf '%s\n' "$version" >"${managed_file}.tmp.$$" || return 1
     mv -f "${managed_file}.tmp.$$" "$managed_file" || return 1
     return 0
+}
+
+rxa_reconcile_release_if_needed() {
+    local managed_file="${idleleo_dir}/release-managed.version"
+    [[ -f "${managed_file}" ]] &&
+        [[ "$(cat "${managed_file}" 2>/dev/null)" == "${shell_version}" ]] && return 0
+    # This is deliberately called only from the normal mutable startup path.
+    # Pure read-only dispatch exits before reaching it.
+    if rxa_rill_installed; then
+        rxa_sync_release_helpers "${shell_version}" || return 1
+    fi
+    rxa_reconcile_release "${shell_version}"
 }
 
 rxa_download_main_candidate() {
@@ -10689,7 +10720,7 @@ check_xray_local_connect() {
 }
 
 check_online_version_connect() {
-    maintain_file_status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/maintain")
+    maintain_file_status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${shell_release_raw_base}/maintain")
 
     if [[ ${maintain_file_status} == "200" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "脚本维护中.. 请稍后再试")! ${Font}"
@@ -12749,6 +12780,10 @@ read_version || exit 1
 
 harden_config_permissions_if_needed || exit 1
 idleleo_commend || exit 1
+rxa_reconcile_release_if_needed || {
+    log_echo "${Error} ${RedBG} Release reconciliation failed; marker was not committed. It will retry on the next mutable startup. ${Font}" >&2
+    exit 1
+}
 check_program
 if [[ ${tls_mode} == "Reality" ]]; then
     ensure_reality_public_key || true

@@ -142,6 +142,7 @@ jobs:
           # custom-rule protection. All mocked.
           bash .github/test/test_firewall_transaction_complete.sh
           bash .github/test/test_shell_update_metadata.sh
+          bash .github/test/test_release_reconciliation.sh
           # Fresh-process dual-stack runtime hydration (restart keeps IPv4/IPv6
           # Reality/XTLS/None share links) — mandatory, not optional
           bash .github/test/test_dual_stack_runtime.sh

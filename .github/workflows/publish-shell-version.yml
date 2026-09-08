@@ -42,9 +42,10 @@ jobs:
           bundle=assets/rill-xray-agent-xray-bundle.tar.gz
           [[ -s "$bundle" ]] || { echo 'Rill bundle missing'; exit 1; }
           tmp=$(mktemp -d)
-          sha256sum install.sh "$bundle" > "$tmp/SHA256SUMS"
+          (cd "$(dirname install.sh)" && sha256sum "$(basename install.sh)") > "$tmp/SHA256SUMS"
+          (cd "$(dirname "$bundle")" && sha256sum "$(basename "$bundle")") >> "$tmp/SHA256SUMS"
           install_sha=$(awk '$2 == "install.sh" {print $1}' "$tmp/SHA256SUMS")
-          bundle_sha=$(awk '$2 == "assets/rill-xray-agent-xray-bundle.tar.gz" {print $1}' "$tmp/SHA256SUMS")
+          bundle_sha=$(awk '$2 == "rill-xray-agent-xray-bundle.tar.gz" {print $1}' "$tmp/SHA256SUMS")
           {
             echo "version=$version"
             echo "install_sha=$install_sha"

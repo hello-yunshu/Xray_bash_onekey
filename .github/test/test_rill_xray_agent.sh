@@ -6,6 +6,19 @@ if grep -RIl --exclude-dir=.git 'raw.githubusercontent.com/hello-yunshu/Xray_bas
     exit 1
 fi
 grep -Fq 'github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh' README.md
+for readme in README.md i18n/languages/*/README.md; do
+    grep -Fq 'github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh' "$readme" || {
+        echo "production README does not use latest Release installer: $readme" >&2
+        exit 1
+    }
+done
+if rg -n 'raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/' install.sh scripts; then
+    echo 'production runtime still downloads Xray-owned content from mutable main' >&2
+    exit 1
+fi
+grep -Fq 'rxa_reconcile_release_if_needed' install.sh
+grep -Fq 'rxa_auto_confirmation_is_revoked' install.sh
+grep -Fq 'rxa_reload_manager' install.sh
 bash -n scripts/rill_xray_agent_manager.sh
 bash -n scripts/rill_xray_agent_install.sh
 bash -n scripts/rill_xray_agent_uninstall.sh
