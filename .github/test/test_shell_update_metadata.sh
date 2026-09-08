@@ -26,11 +26,15 @@ ok()  { PASS=$((PASS + 1)); printf '  PASS: %s\n' "$1"; }
 bad() { FAIL=$((FAIL + 1)); printf '  FAIL: %s\n' "$1"; }
 log_echo() { :; }
 gettext() { printf '%s' "$1"; }
+# Keep this unit test independent of any host Rill/systemd installation.
+rxa_rill_installed() { return 1; }
+rxa_dispatch() { return 0; }
 
 # --- Setup temp file system ---
 idleleo_dir="${TMP_ROOT}/idleleo"
 idleleo_conf_dir="${idleleo_dir}/conf"
-mkdir -p "${idleleo_dir}" "${idleleo_conf_dir}"
+scripts_dir="${idleleo_dir}/scripts"
+mkdir -p "${idleleo_dir}" "${idleleo_conf_dir}" "${scripts_dir}"
 
 idleleo="${idleleo_dir}/install.sh"
 idleleo_commend_file="${idleleo_dir}/idleleo.sh"

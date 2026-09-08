@@ -175,6 +175,22 @@ class ReleaseAutomationTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 MODULE.update_api(xray, api, "details", None)
 
+    def test_update_api_pairs_immutable_release_sha(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            xray = root / "xray"
+            api = root / "api"
+            xray.mkdir()
+            api.mkdir()
+            (xray / "install.sh").write_text('shell_version="3.2.3"\n')
+            target = api / "xray_shell_versions.json"
+            target.write_text(json.dumps({"shell_online_version": "3.2.2"}))
+            digest = "a" * 64
+            self.assertTrue(MODULE.update_api(xray, api, "Release", None, digest))
+            result = json.loads(target.read_text())
+            self.assertEqual(result["shell_online_version"], "3.2.3")
+            self.assertEqual(result["shell_release_sha256"], digest)
+
 
 if __name__ == "__main__":
     unittest.main()

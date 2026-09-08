@@ -1,9 +1,43 @@
 #!/usr/bin/env bash
 set -euo pipefail
-[[ ${EUID:-$(id -u)} -eq 0 ]] || { echo '需要 root 权限' >&2; exit 77; }
 SOURCE=$(cd -- "$(dirname -- "$0")" && pwd)
 DESTDIR=${DESTDIR:-}
 root() { printf '%s%s' "$DESTDIR" "$1"; }
+[[ ${EUID:-$(id -u)} -eq 0 || -n "$DESTDIR" ]] || { echo '需要 root 权限' >&2; exit 77; }
+
+UPGRADE=0
+case "${1:-}" in
+    --upgrade) UPGRADE=1 ;;
+    '') ;;
+    *) echo "用法: $0 [--upgrade]" >&2; exit 64 ;;
+esac
+
+# An upgrade is only valid for a real deployment. Residual config/state is
+# deliberately insufficient: standalone uninstall may retain those paths.
+if ((UPGRADE)); then
+    if [[ ! -x "$(root /opt/rill-xray-agent/bin/rill-xray-agent)" &&
+          ! -f "$(root /etc/systemd/system/rill-xray-agent-runtime.service)" ]]; then
+        echo '拒绝升级：未检测到已安装的 Rill 执行组件' >&2
+        exit 65
+    fi
+fi
+
+SAVED_MODE=""
+if ((UPGRADE)); then
+    current_manager="$(root /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh)"
+    if [[ ! -r "$current_manager" ]]; then
+        echo '拒绝升级：当前 Rill manager 不存在' >&2
+        exit 65
+    fi
+    # shellcheck disable=SC1090
+    source "$current_manager"
+    SAVED_MODE=$(rxa_get mode 2>/dev/null || true)
+    case "$SAVED_MODE" in normal|observe-only|safe-disabled) ;; *)
+        echo "拒绝升级：当前工作模式无效: ${SAVED_MODE:-<empty>}" >&2
+        exit 65
+        ;;
+    esac
+fi
 
 install -d -m 0750 \
   "$(root /etc/rill-xray-agent)" \
@@ -16,6 +50,15 @@ install -d -m 0750 \
   "$(root /opt/rill-xray-agent)" \
   "$(root /etc/systemd/system)" \
   "$(root /var/spool/rill-xray-agent-apply)"
+
+if ((UPGRADE)); then
+    # Only remove directories explicitly owned by the canonical payload. User
+    # config, runtime state, audit/timeline data and transaction state live
+    # outside this list and must survive an upgrade.
+    for owned in PROVENANCE bin config python share systemd; do
+        rm -rf -- "$(root "/opt/rill-xray-agent/${owned}")"
+    done
+fi
 
 for file in rill_xray_agent_manager.sh rill_xray_agent_observe.py rill_xray_agent_install.sh rill_xray_agent_verify.sh rill_xray_agent_uninstall.sh rill_xray_agent_bootstrap.sh; do
     [[ -f "$SOURCE/$file" ]] && install -m 0755 "$SOURCE/$file" "$(root /etc/rill-xray-agent/scripts/$file)"
@@ -74,33 +117,41 @@ chmod 2770 /var/spool/rill-xray-agent-apply
 chown root:rill-xray-agent /opt/rill-xray-agent/share/release-capabilities.json
 chmod 0640 /opt/rill-xray-agent/share/release-capabilities.json
 systemctl daemon-reload
-systemctl enable --now rill-xray-agent-runtime.service
-systemctl enable --now rill-xray-agent-apply.path
-systemctl enable --now rill-xray-agent-auto-evaluate.path
-# Upgrade path: enable --now never restarts an already-running unit, so a
-# re-install over an existing installation would keep the OLD daemon (old
-# payload) alive while the files on disk are already the new ones. Force a
-# restart of every active Rill unit so the installed payload is the code
-# that actually runs. Inactive units are left untouched (safe-disabled).
-for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service \
-            rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer \
-            rill-xray-agent-apply.path rill-xray-agent-auto-evaluate.path; do
-    if systemctl is-active --quiet "$unit"; then
-        systemctl restart "$unit"
-    fi
-done
-source /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh
-rxa_apply_mode "$(rxa_get mode)"
-# Fresh-install runtime verification: all state parties must be truly enabled,
-# not merely config-matching. Any drift fails the install.
+if ((UPGRADE)); then
+    # Restart only units that were already active. The new manager below owns
+    # the final mode transition; this prevents safe-disabled from being
+    # silently re-enabled by an upgrade.
+    for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service \
+                rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer \
+                rill-xray-agent-apply.path rill-xray-agent-auto-evaluate.path; do
+        if systemctl is-active --quiet "$unit"; then
+            systemctl restart "$unit"
+        fi
+    done
+else
+    systemctl enable --now rill-xray-agent-runtime.service
+    systemctl enable --now rill-xray-agent-apply.path
+    systemctl enable --now rill-xray-agent-auto-evaluate.path
+fi
+# shellcheck disable=SC1090
+source "$(root /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh)"
+if ((UPGRADE)); then
+    rxa_apply_mode "$SAVED_MODE"
+else
+    rxa_apply_mode "$(rxa_get mode)"
+fi
+# Mode-aware verification is authoritative for both paths. A fresh install
+# additionally requires its complete active unit set below.
 if ! rxa_mode_state_matches_target "$(rxa_get mode)"; then
     echo 'Rill Xray AI 运维助手安装校验失败：实际状态与目标工作模式不一致' >&2
     exit 1
 fi
-for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer rill-xray-agent-apply.path rill-xray-agent-auto-evaluate.path; do
-    systemctl is-enabled --quiet "$unit" || { echo "服务未启用: $unit" >&2; exit 1; }
-    systemctl is-active --quiet "$unit" || { echo "服务未运行: $unit" >&2; exit 1; }
-done
+if (( ! UPGRADE )); then
+    for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer rill-xray-agent-apply.path rill-xray-agent-auto-evaluate.path; do
+        systemctl is-enabled --quiet "$unit" || { echo "服务未启用: $unit" >&2; exit 1; }
+        systemctl is-active --quiet "$unit" || { echo "服务未运行: $unit" >&2; exit 1; }
+    done
+fi
 if [[ "$(rxa_get routeAssistEnabled)" != false ]] || [[ "$(rxa_get boundedAutoAllowed)" != false ]]; then
     echo 'Rill 安装失败：安全默认值被异常覆盖' >&2
     exit 1
@@ -112,7 +163,7 @@ fi
 # platform) leaves RillML Native unavailable and the agent on the Portable
 # Python fallback. A RillML failure never changes the install exit code, and
 # the core install result above is already final.
-if [[ -x "$RILL_XRAY_AGENT_CLI" ]]; then
+if (( ! UPGRADE )) && [[ -x "$RILL_XRAY_AGENT_CLI" ]]; then
     if rxa_rillml install --probe lightweight >/dev/null 2>&1; then
         echo 'RillML 预编译运行时安装完成；RillML Native 已启用'
     else
@@ -121,4 +172,8 @@ if [[ -x "$RILL_XRAY_AGENT_CLI" ]]; then
 else
     echo 'RillML 预编译运行时跳过（CLI 不可用）'
 fi
-echo 'Rill Xray AI 运维助手安装完成；AI 观察模式已启用；路由辅助保持关闭'
+if ((UPGRADE)); then
+    echo "Rill Xray AI 运维助手升级完成；工作模式保持 ${SAVED_MODE}；RillML 未变更"
+else
+    echo 'Rill Xray AI 运维助手安装完成；AI 观察模式已启用；路由辅助保持关闭'
+fi
