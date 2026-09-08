@@ -15,8 +15,7 @@ esac
 # An upgrade is only valid for a real deployment. Residual config/state is
 # deliberately insufficient: standalone uninstall may retain those paths.
 if ((UPGRADE)); then
-    if [[ ! -x "$(root /opt/rill-xray-agent/bin/rill-xray-agent)" &&
-          ! -f "$(root /etc/systemd/system/rill-xray-agent-runtime.service)" ]]; then
+    if [[ ! -x "$(root /opt/rill-xray-agent/bin/rill-xray-agent)" ]]; then
         echo '拒绝升级：未检测到已安装的 Rill 执行组件' >&2
         exit 65
     fi
@@ -24,19 +23,32 @@ fi
 
 SAVED_MODE=""
 if ((UPGRADE)); then
-    current_manager="$(root /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh)"
-    if [[ ! -r "$current_manager" ]]; then
-        echo '拒绝升级：当前 Rill manager 不存在' >&2
+    # Read the operator preference from the durable config before replacing
+    # any payload. The old manager is not a compatibility boundary: it may be
+    # missing, too old, or otherwise broken while the config remains valid.
+    config_file="$(root /etc/rill-xray-agent/config.json)"
+    if [[ ! -r "$config_file" ]]; then
+        echo '拒绝升级：Rill config.json 不存在或不可读' >&2
         exit 65
     fi
-    # shellcheck disable=SC1090
-    source "$current_manager"
-    SAVED_MODE=$(rxa_get mode 2>/dev/null || true)
-    case "$SAVED_MODE" in normal|observe-only|safe-disabled) ;; *)
-        echo "拒绝升级：当前工作模式无效: ${SAVED_MODE:-<empty>}" >&2
+    if ! SAVED_MODE=$(python3 - "$config_file" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding='utf-8') as stream:
+        mode = json.load(stream).get('mode')
+except (OSError, ValueError, TypeError, AttributeError):
+    raise SystemExit(1)
+
+if mode not in {'normal', 'observe-only', 'safe-disabled'}:
+    raise SystemExit(1)
+print(mode)
+PY
+    ); then
+        echo '拒绝升级：config.json 无效或工作模式非法' >&2
         exit 65
-        ;;
-    esac
+    fi
 fi
 
 install -d -m 0750 \
@@ -136,13 +148,61 @@ fi
 # shellcheck disable=SC1090
 source "$(root /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh)"
 if ((UPGRADE)); then
-    rxa_apply_mode "$SAVED_MODE"
+    # An upgrade is a security boundary. Always revoke the root-authoritative
+    # temporary auto-execution authorization, even when the saved mode already
+    # matches and rxa_apply_mode would otherwise return early.
+    if ! rxa_apply_auto_revoke; then
+        echo 'Rill 升级失败：无法撤销 root 自动执行授权' >&2
+        exit 1
+    fi
+    # A PID1 restart returns before the new Runtime has finished binding its
+    # socket. Wait for the real listener before entering the mode transaction;
+    # otherwise the first Runtime WAL request can fail transiently on slower
+    # Ubuntu hosts and the rollback path can keep the host in a false mismatch.
+    socket_ready=0
+    for _ in $(seq 1 30); do
+        if rxa_socket_connectable /run/rill-xray-agent/runtime.sock; then
+            socket_ready=1
+            break
+        fi
+        sleep 0.5
+    done
+    if (( ! socket_ready )); then
+        echo 'Rill 升级失败：Runtime socket 未就绪' >&2
+        exit 1
+    fi
+    # systemd restart is asynchronous on PID1 hosts. Give the new Runtime and
+    # observer a bounded settling window before declaring the preserved mode
+    # unrecoverable; each retry still runs the full four-party transaction and
+    # therefore cannot turn a persistent mismatch into a success.
+    restored=0
+    for _ in 1 2 3 4 5; do
+        if rxa_apply_mode "$SAVED_MODE"; then
+            restored=1
+            break
+        fi
+        sleep 1
+    done
+    if (( ! restored )); then
+        echo "Rill 升级失败：无法恢复工作模式 ${SAVED_MODE}" >&2
+        exit 1
+    fi
 else
     rxa_apply_mode "$(rxa_get mode)"
 fi
 # Mode-aware verification is authoritative for both paths. A fresh install
-# additionally requires its complete active unit set below.
-if ! rxa_mode_state_matches_target "$(rxa_get mode)"; then
+# additionally requires its complete active unit set below. PID1 may still be
+# settling a path/timer transition immediately after the mode transaction, so
+# use the same bounded convergence window as the upgrade restore.
+verified=0
+for _ in $(seq 1 10); do
+    if rxa_mode_state_matches_target "$(rxa_get mode)"; then
+        verified=1
+        break
+    fi
+    sleep 0.5
+done
+if (( ! verified )); then
     echo 'Rill Xray AI 运维助手安装校验失败：实际状态与目标工作模式不一致' >&2
     exit 1
 fi

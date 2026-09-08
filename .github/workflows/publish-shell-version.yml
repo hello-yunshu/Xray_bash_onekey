@@ -42,11 +42,17 @@ jobs:
           bundle=assets/rill-xray-agent-xray-bundle.tar.gz
           [[ -s "$bundle" ]] || { echo 'Rill bundle missing'; exit 1; }
           tmp=$(mktemp -d)
-          sha256sum install.sh "$bundle" > "$tmp/SHA256SUMS"
+          (cd "$(dirname install.sh)" && sha256sum "$(basename install.sh)") > "$tmp/SHA256SUMS"
+          (cd "$(dirname "$bundle")" && sha256sum "$(basename "$bundle")") >> "$tmp/SHA256SUMS"
           install_sha=$(awk '$2 == "install.sh" {print $1}' "$tmp/SHA256SUMS")
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "install_sha=$install_sha" >> "$GITHUB_OUTPUT"
-          echo "sums=$tmp/SHA256SUMS" >> "$GITHUB_OUTPUT"
+          bundle_sha=$(awk '$2 == "rill-xray-agent-xray-bundle.tar.gz" {print $1}' "$tmp/SHA256SUMS")
+          {
+            echo "version=$version"
+            echo "install_sha=$install_sha"
+            echo "bundle_sha=$bundle_sha"
+            echo "candidate_commit=$(git rev-parse HEAD)"
+            echo "sums=$tmp/SHA256SUMS"
+          } >> "$GITHUB_OUTPUT"
           details=${INPUT_DETAILS:-release: publish Xray shell ${version}}
           printf '%s' "$details" > "$tmp/details"
 
@@ -54,6 +60,8 @@ jobs:
         env:
           VERSION: ${{ steps.candidate.outputs.version }}
           INSTALL_SHA: ${{ steps.candidate.outputs.install_sha }}
+          BUNDLE_SHA: ${{ steps.candidate.outputs.bundle_sha }}
+          CANDIDATE_COMMIT: ${{ steps.candidate.outputs.candidate_commit }}
           SUMS: ${{ steps.candidate.outputs.sums }}
         run: |
           set -euo pipefail
@@ -67,6 +75,20 @@ jobs:
             gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern install.sh --pattern rill-xray-agent-xray-bundle.tar.gz --pattern SHA256SUMS --dir "$tmp/download"
             (cd "$tmp/download" && sha256sum -c SHA256SUMS)
             [[ $(sha256sum "$tmp/download/install.sh" | awk '{print $1}') == "$INSTALL_SHA" ]] || exit 1
+            [[ $(sha256sum "$tmp/download/rill-xray-agent-xray-bundle.tar.gz" | awk '{print $1}') == "$BUNDLE_SHA" ]] || {
+              echo "existing Release $tag has a different Rill bundle; bump shell_version" >&2
+              exit 1
+            }
+            tag_ref=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.type + " " + .object.sha')
+            tag_type=${tag_ref%% *}
+            tag_sha=${tag_ref#* }
+            if [[ "$tag_type" == tag ]]; then
+              tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha" --jq '.object.sha')
+            fi
+            [[ "$tag_sha" == "$CANDIDATE_COMMIT" ]] || {
+              echo "existing Release $tag points at $tag_sha, expected immutable candidate $CANDIDATE_COMMIT" >&2
+              exit 1
+            }
           else
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target main \
               --title "Xray ${VERSION}" --notes "${VERSION} Release" \

@@ -29,6 +29,7 @@ gettext() { printf '%s' "$1"; }
 # Keep this unit test independent of any host Rill/systemd installation.
 rxa_rill_installed() { return 1; }
 rxa_dispatch() { return 0; }
+rxa_candidate_guard() { return 0; }
 
 # --- Setup temp file system ---
 idleleo_dir="${TMP_ROOT}/idleleo"
@@ -86,6 +87,50 @@ download_script_file() {
     return 1
 }
 
+echo "--- Release SHA contract rejects 3.2.3+ candidates without SHA ---"
+shell_online_version="3.2.3"
+shell_release_sha256=""
+DOWNLOAD_CONTENT='#!/usr/bin/env bash
+shell_version="3.2.3"'
+missing_sha_candidate="${TMP_ROOT}/missing-sha-candidate"
+if rxa_download_main_candidate "${missing_sha_candidate}"; then
+    bad "3.2.3+ candidate without shell_release_sha256 was accepted"
+else
+    ok "3.2.3+ candidate without shell_release_sha256 is rejected"
+fi
+[[ ! -e "${missing_sha_candidate}" ]] || bad "missing-SHA candidate was left on disk"
+
+echo "--- Release SHA contract rejects malformed and mismatched SHA ---"
+shell_online_version="3.2.3"
+DOWNLOAD_CONTENT='#!/usr/bin/env bash
+shell_version="3.2.3"'
+shell_release_sha256="not-a-sha"
+malformed_sha_candidate="${TMP_ROOT}/malformed-sha-candidate"
+if rxa_download_main_candidate "${malformed_sha_candidate}"; then
+    bad "3.2.3+ candidate with malformed shell_release_sha256 was accepted"
+else
+    ok "3.2.3+ candidate with malformed shell_release_sha256 is rejected"
+fi
+[[ ! -e "${malformed_sha_candidate}" ]] || bad "malformed-SHA candidate was left on disk"
+
+shell_release_sha256="0000000000000000000000000000000000000000000000000000000000000000"
+mismatch_sha_candidate="${TMP_ROOT}/mismatch-sha-candidate"
+if rxa_download_main_candidate "${mismatch_sha_candidate}"; then
+    bad "3.2.3+ candidate with mismatched shell_release_sha256 was accepted"
+else
+    ok "3.2.3+ candidate with mismatched shell_release_sha256 is rejected"
+fi
+[[ ! -e "${mismatch_sha_candidate}" ]] || bad "mismatched-SHA candidate was left on disk"
+
+shell_release_sha256="$(printf '%s\n' "${DOWNLOAD_CONTENT}" | sha256sum | awk '{print $1}')"
+correct_sha_candidate="${TMP_ROOT}/correct-sha-candidate"
+if rxa_download_main_candidate "${correct_sha_candidate}"; then
+    ok "3.2.3+ candidate with correct shell_release_sha256 is accepted"
+else
+    bad "3.2.3+ candidate with correct shell_release_sha256 was rejected"
+fi
+[[ -f "${correct_sha_candidate}" ]] || bad "correct-SHA candidate was not retained"
+
 echo "============================================================"
 echo "  Section 7: Shell Update Metadata"
 echo "============================================================"
@@ -95,6 +140,7 @@ echo "--- Old 3.0.0, download 3.0.1: config must write 3.0.1 ---"
 # Setup: current script version is 3.0.0, online version is 3.0.1
 shell_version="3.0.0"
 shell_online_version="3.0.1"
+shell_release_sha256=""
 auto_update="YES"
 
 # Create current install.sh with old version
@@ -269,7 +315,43 @@ else
     bad "update_sh should succeed (return 0) when already latest"
 fi
 
-# --- Test 6: Post-replacement semantic failure restores the old script ---
+# --- Test 6: Non-TTY update UI keeps the six-stage contract ---
+echo "--- Non-TTY update UI has one title and no terminal warning ---"
+rm -f "${idleleo_dir}/release-managed.version"
+shell_version="3.0.1"
+shell_online_version="3.0.1"
+auto_update="YES"
+log_echo() { printf '%s\n' "$*"; }
+_rxa_update_title_shown=0
+TERM=""
+ui_output=$(update_sh 2>&1)
+ui_rc=$?
+if [[ ${ui_rc} -eq 0 ]]; then
+    ok "Non-TTY update/reconciliation succeeds"
+else
+    bad "Non-TTY update/reconciliation returned ${ui_rc}"
+fi
+title_count=$(printf '%s\n' "${ui_output}" | grep -Fo '正在更新 Xray 管理脚本，请勿关闭终端……' | wc -l | tr -d ' ')
+[[ ${title_count} -eq 1 ]] && ok "Update title appears exactly once" ||
+    bad "Update title appears ${title_count} time(s)"
+for stage in 1 2 3 4 5 6; do
+    grep -Eq "^\[${stage}/6\]" <<<"${ui_output}" &&
+        ok "Non-TTY output includes stage ${stage}/6" ||
+        bad "Non-TTY output is missing stage ${stage}/6"
+done
+if grep -Eq '^\[[345]/6\].*— 跳过$' <<<"${ui_output}"; then
+    ok "Rill-absent stages 3/4/5 are skipped"
+else
+    bad "Rill-absent stages 3/4/5 were not all skipped"
+fi
+! grep -Fq 'TERM environment variable not set' <<<"${ui_output}" &&
+    ok "Non-TTY output has no TERM warning" ||
+    bad "Non-TTY output contains TERM warning"
+[[ "${ui_output}" != *$'\033['* ]] && ok "Non-TTY output has no ANSI cursor escape" ||
+    bad "Non-TTY output contains ANSI cursor escape"
+log_echo() { :; }
+
+# --- Test 7: Post-replacement semantic failure restores the old script ---
 echo "--- Post-replacement validation failure restores previous script ---"
 printf '%s\n' '#!/usr/bin/env bash' 'echo original-after-rollback' > "${idleleo}"
 candidate="${idleleo_dir}/postcheck-candidate.sh"
