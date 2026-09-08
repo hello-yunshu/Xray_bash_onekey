@@ -62,7 +62,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.2"
+shell_version="3.2.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -107,14 +107,74 @@ amce_sh_file="/root/.acme.sh/acme.sh"
 auto_update_file="${scripts_dir}/auto_update.sh"
 ssl_update_file="${scripts_dir}/ssl_update.sh"
 geo_update_file="${scripts_dir}/geo_update.sh"
-mf_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/fail2ban_manager.sh"
-tb_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/traffic_blocker.sh"
-fm_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/file_manager.sh"
-au_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/auto_update.sh"
-main_remote_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh"
+shell_release_sha256=""
+xray_release_ref="v${shell_version}"
+shell_release_raw_base="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/${xray_release_ref}"
+shell_release_download_base="https://github.com/hello-yunshu/Xray_bash_onekey/releases/download/${xray_release_ref}"
+mf_remote_url="${shell_release_raw_base}/scripts/fail2ban_manager.sh"
+tb_remote_url="${shell_release_raw_base}/scripts/traffic_blocker.sh"
+fm_remote_url="${shell_release_raw_base}/scripts/file_manager.sh"
+au_remote_url="${shell_release_raw_base}/scripts/auto_update.sh"
+ssl_remote_url="${shell_release_raw_base}/scripts/ssl_update.sh"
+geo_remote_url="${shell_release_raw_base}/scripts/geo_update.sh"
+main_remote_url="${shell_release_download_base}/install.sh"
+update_lock_file="/run/lock/idleleo-update.lock"
+release_managed_file="${idleleo_dir}/release-managed.version"
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=""
 _get_versions_loaded=0
+
+shell_release_asset_url() {
+    printf 'https://github.com/hello-yunshu/Xray_bash_onekey/releases/download/v%s/%s' "$1" "$2"
+}
+
+shell_release_raw_url() {
+    printf 'https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/v%s/%s' "$1" "$2"
+}
+
+set_shell_release_urls() {
+    local version=${1:-${shell_version}}
+    xray_release_ref="v${version}"
+    shell_release_raw_base="$(shell_release_raw_url "${version}" '')"
+    shell_release_raw_base=${shell_release_raw_base%/}
+    shell_release_download_base="$(shell_release_asset_url "${version}" '')"
+    shell_release_download_base=${shell_release_download_base%/}
+    mf_remote_url="${shell_release_raw_base}/scripts/fail2ban_manager.sh"
+    tb_remote_url="${shell_release_raw_base}/scripts/traffic_blocker.sh"
+    fm_remote_url="${shell_release_raw_base}/scripts/file_manager.sh"
+    au_remote_url="${shell_release_raw_base}/scripts/auto_update.sh"
+    ssl_remote_url="${shell_release_raw_base}/scripts/ssl_update.sh"
+    geo_remote_url="${shell_release_raw_base}/scripts/geo_update.sh"
+    main_remote_url="${shell_release_download_base}/install.sh"
+}
+
+with_update_lock() {
+    local lock_path="${update_lock_file}"
+    if [[ ${IDLELEO_UPDATE_LOCK_HELD:-0} == 1 ]]; then
+        "$@"
+        return $?
+    fi
+    if ! mkdir -p "$(dirname "${lock_path}")" 2>/dev/null; then
+        lock_path="${idleleo_dir}/update.lock"
+        mkdir -p "$(dirname "${lock_path}")" 2>/dev/null || return 1
+    fi
+    if ! command -v flock >/dev/null 2>&1; then
+        # macOS developer/test hosts do not ship util-linux flock. Production
+        # Linux uses the shared flock path below; keep local tests runnable.
+        IDLELEO_UPDATE_LOCK_HELD=1 "$@"
+        return $?
+    fi
+    exec 9>"${lock_path}" || return 1
+    if ! flock -n 9; then
+        log_echo "${Warning} ${YellowBG} $(gettext "已有更新任务正在运行") ${Font}" 2>/dev/null || true
+        return 1
+    fi
+    IDLELEO_UPDATE_LOCK_HELD=1 "$@"
+    local rc=$?
+    flock -u 9 2>/dev/null || true
+    exec 9>&-
+    return "$rc"
+}
 
 fetch_versions_json() {
     local url="$1"
@@ -692,6 +752,12 @@ rxa_integration_self_check() {
 }
 if [[ -f "$rill_xray_agent_manager" ]]; then
     source "$rill_xray_agent_manager"
+    # Older installed managers may not have the newer UI-only health helper.
+    # Define a compatibility function in the host script so the old manager's
+    # existing menu can still render without `command not found`.
+    if ! declare -F rxa_health_label >/dev/null 2>&1; then
+        rxa_health_label() { printf '%s\n' "$(gettext "检测：Rill 组件版本较旧，请更新")"; }
+    fi
 else
     rxa_install_testing_confirm(){
         local answer
@@ -720,28 +786,15 @@ else
             if [[ -f ${bootstrap} ]]; then
                 if [[ -f ${source_dir}/assets/rill-xray-agent-xray-bundle.tar.gz ]]; then
                     RILL_XRAY_AGENT_BUNDLE_FILE="${source_dir}/assets/rill-xray-agent-xray-bundle.tar.gz" \
+                    RILL_XRAY_AGENT_BUNDLE_SHA256="$(sha256sum "${source_dir}/assets/rill-xray-agent-xray-bundle.tar.gz" | awk '{print $1}')" \
                         bash "${bootstrap}"
                 else
-                    bash "${bootstrap}"
+                    rxa_release_bundle_install "${shell_version}"
                 fi
                 return $?
             fi
         done
-        tmp=$(mktemp /tmp/rill-xray-agent-bootstrap.XXXXXX) || return 1
-        if declare -F download_script_file >/dev/null 2>&1; then
-            download_script_file \
-                "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/rill_xray_agent_bootstrap.sh" \
-                "${tmp}" || rc=$?
-        else
-            curl -fsSL --connect-timeout 10 --max-time 120 --retry 2 \
-                "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/rill_xray_agent_bootstrap.sh" \
-                -o "${tmp}" || rc=$?
-        fi
-        if [[ ${rc} -eq 0 ]]; then
-            bash "${tmp}" || rc=$?
-        fi
-        rm -f "${tmp}"
-        return "${rc}"
+        rxa_release_bundle_install "${shell_version}"
     }
     rxa_install_with_notice(){
         rxa_install_testing_confirm || return 1
@@ -9737,15 +9790,159 @@ install_xray_ws_only() {
     show_information
 }
 
+rxa_stage_begin() {
+    local n=$1 text=$2
+    if [[ -t 1 ]]; then
+        printf '[%s/6] %s                 ⠹ 处理中…\n' "$n" "$text"
+    else
+        printf '[%s/6] %s ... 处理中\n' "$n" "$text"
+    fi
+}
+
+rxa_stage_done() {
+    local n=$1 text=$2 result=${3:-完成}
+    printf '[%s/6] %s ... %s\n' "$n" "$text" "$result"
+}
+
+rxa_release_checksum() {
+    local version=$1 asset=$2 sums
+    sums=$(mktemp "${TMPDIR:-/tmp}/xray-sums.XXXXXX") || return 1
+    if ! curl -fsSL --connect-timeout 10 --max-time 30 --retry 2 \
+        "$(shell_release_asset_url "${version}" SHA256SUMS)" -o "$sums"; then
+        rm -f "$sums"
+        return 1
+    fi
+    awk -v asset="$asset" '{name=$2; sub(/^\*/, "", name); if (name == asset) {print $1; exit}}' "$sums"
+    rm -f "$sums"
+}
+
+rxa_download_release_asset() {
+    local version=$1 asset=$2 dest=$3 expected=${4:-} actual release_sum
+    release_sum=$(rxa_release_checksum "$version" "$asset") || return 1
+    [[ "$release_sum" =~ ^[0-9a-f]{64}$ ]] || return 1
+    [[ -z "$expected" || "$expected" == "$release_sum" ]] || return 1
+    mkdir -p "$(dirname "$dest")" || return 1
+    if ! curl -fsSL --connect-timeout 10 --max-time 120 --retry 2 \
+        "$(shell_release_asset_url "${version}" "${asset}")" -o "${dest}.tmp.$$"; then
+        rm -f "${dest}.tmp.$$"
+        return 1
+    fi
+    actual=$(sha256sum "${dest}.tmp.$$" | awk '{print $1}')
+    if [[ "$actual" != "$release_sum" ]]; then
+        rm -f "${dest}.tmp.$$"
+        return 1
+    fi
+    mv -f "${dest}.tmp.$$" "$dest"
+    chmod +x "$dest" 2>/dev/null || true
+}
+
+rxa_release_bundle_install() {
+    local version=$1 mode=${2:-} tmp tree bundle expected bootstrap
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/xray-rill-release.XXXXXX") || return 1
+    bundle="${tmp}/rill-xray-agent-xray-bundle.tar.gz"
+    expected=$(rxa_release_checksum "$version" "rill-xray-agent-xray-bundle.tar.gz") || { rm -rf "$tmp"; return 1; }
+    [[ "$expected" =~ ^[0-9a-f]{64}$ ]] || { rm -rf "$tmp"; return 1; }
+    if ! rxa_download_release_asset "$version" "rill-xray-agent-xray-bundle.tar.gz" "$bundle" "$expected"; then
+        rm -rf "$tmp"
+        return 1
+    fi
+    tree="${tmp}/tree"
+    mkdir -p "$tree"
+    tar -xzf "$bundle" -C "$tree" --no-same-owner --no-same-permissions || { rm -rf "$tmp"; return 1; }
+    bootstrap="${tree}/scripts/rill_xray_agent_bootstrap.sh"
+    [[ -x "$bootstrap" || -f "$bootstrap" ]] || { rm -rf "$tmp"; return 1; }
+    RILL_XRAY_AGENT_BUNDLE_FILE="$bundle" \
+    RILL_XRAY_AGENT_BUNDLE_SHA256="$expected" \
+        bash "$bootstrap" $mode
+    local rc=$?
+    rm -rf "$tmp"
+    return "$rc"
+}
+
+rxa_rill_installed() {
+    [[ -x "$(rxa_root /opt/rill-xray-agent/bin/rill-xray-agent)" ||
+       -f "$(rxa_root /etc/systemd/system/rill-xray-agent-runtime.service)" ]]
+}
+
+rxa_sync_release_helpers() {
+    local version=$1 dir file url any=0
+    dir=$(mktemp -d "${TMPDIR:-/tmp}/xray-helper-candidates.XXXXXX") || return 1
+    for file in fail2ban_manager.sh traffic_blocker.sh file_manager.sh auto_update.sh ssl_update.sh geo_update.sh; do
+        [[ -f "${scripts_dir}/${file}" ]] || continue
+        any=1
+        url=$(shell_release_raw_url "$version" "scripts/${file}")
+        if ! download_script_file "$url" "${dir}/${file}"; then
+            rm -rf "$dir"
+            return 1
+        fi
+    done
+    if ((any)); then
+        for file in fail2ban_manager.sh traffic_blocker.sh file_manager.sh auto_update.sh ssl_update.sh geo_update.sh; do
+            [[ -f "${dir}/${file}" ]] && mv -f "${dir}/${file}" "${scripts_dir}/${file}"
+        done
+    fi
+    rm -rf "$dir"
+    return 0
+}
+
+rxa_reconcile_release() {
+    local version=$1 installed=0 managed_file="${idleleo_dir}/release-managed.version"
+    rxa_stage_begin 2 "检测 Rill Xray AI 运维助手"
+    if rxa_rill_installed; then
+        installed=1
+        rxa_stage_done 2 "检测 Rill Xray AI 运维助手" "已安装"
+    else
+        rxa_stage_done 2 "检测 Rill Xray AI 运维助手" "— 未安装"
+    fi
+    rxa_stage_begin 3 "下载并校验 Rill 更新包"
+    if ((installed)); then
+        if ! rxa_release_checksum "$version" "rill-xray-agent-xray-bundle.tar.gz" >/dev/null; then
+            rxa_stage_done 3 "下载并校验 Rill 更新包" "✗ 失败"
+            return 1
+        fi
+        rxa_stage_done 3 "下载并校验 Rill 更新包" "完成"
+        rxa_stage_begin 4 "更新 Rill 核心组件"
+        if ! rxa_release_bundle_install "$version" --upgrade; then
+            rxa_stage_done 4 "更新 Rill 核心组件" "✗ 失败"
+            return 1
+        fi
+        rxa_stage_done 4 "更新 Rill 核心组件" "完成"
+        rxa_stage_begin 5 "恢复 AI 工作状态"
+        rxa_stage_done 5 "恢复 AI 工作状态" "完成"
+    else
+        rxa_stage_done 3 "下载并校验 Rill 更新包" "— 跳过"
+        rxa_stage_done 4 "更新 Rill 核心组件" "— 跳过"
+        rxa_stage_done 5 "恢复 AI 工作状态" "— 跳过"
+    fi
+    rxa_stage_begin 6 "运行升级后健康检查"
+    if ((installed)) && declare -F rxa_dispatch >/dev/null 2>&1; then
+        rxa_dispatch verify >/dev/null 2>&1 || { rxa_stage_done 6 "运行升级后健康检查" "✗ 失败"; return 1; }
+    fi
+    rxa_stage_done 6 "运行升级后健康检查" "✓"
+    mkdir -p "$(dirname "$managed_file")" || return 1
+    printf '%s\n' "$version" >"${managed_file}.tmp.$$" || return 1
+    mv -f "${managed_file}.tmp.$$" "$managed_file" || return 1
+    return 0
+}
+
 rxa_download_main_candidate() {
     local candidate=${1:-}
     RILL_UPDATE_CANDIDATE_ERROR=""
     [[ -n ${candidate} ]] || { RILL_UPDATE_CANDIDATE_ERROR="path"; return 1; }
     rm -f "${candidate}"
-    if ! download_script_file "${main_remote_url}" "${candidate}"; then
+    if ! download_script_file "$(shell_release_asset_url "${shell_online_version}" install.sh)" "${candidate}"; then
         RILL_UPDATE_CANDIDATE_ERROR="download"
         rm -f "${candidate}"
         return 1
+    fi
+    if [[ -n "${shell_release_sha256:-}" ]]; then
+        local candidate_sha
+        candidate_sha=$(sha256sum "${candidate}" | awk '{print $1}')
+        if [[ "${candidate_sha}" != "${shell_release_sha256}" ]]; then
+            RILL_UPDATE_CANDIDATE_ERROR="sha256"
+            rm -f "${candidate}"
+            return 1
+        fi
     fi
     if ! command -v rxa_candidate_guard >/dev/null 2>&1 ||
        ! rxa_candidate_guard "${candidate}"; then
@@ -9841,8 +10038,9 @@ rxa_refresh_main_script() {
     return 0
 }
 
-update_sh() {
+_update_sh_impl() {
     local downloaded_shell_version _candidate
+    set_shell_release_urls "${shell_online_version}"
     ol_version=${shell_online_version}
     echo "${ol_version}" >"${shell_version_tmp}"
     [[ -z ${ol_version} ]] && log_echo "${Error} ${RedBG} $(gettext "检测最新版本失败")! ${Font}" && return 1
@@ -9851,6 +10049,7 @@ update_sh() {
     oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
     version_difference=$(echo "(${newest_version:0:3}-${oldest_version:0:3})>0" | bc)
     if [[ ${shell_version} != ${newest_version} ]]; then
+        rxa_stage_begin 1 "下载并校验新版主脚本"
         if [[ ${auto_update} != "YES" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "新版本")(${newest_version}) $(gettext "更新内容"): ${Font}"
@@ -9896,12 +10095,22 @@ update_sh() {
                 return 1
             fi
             ln -sf "${idleleo}" "${idleleo_commend_file}" || return 1
+            rxa_stage_done 1 "下载并校验新版主脚本" "✓"
             if [[ -f "${xray_install_config_file}" ]]; then
                 update_json_config "${xray_install_config_file}" \
                     --arg shell_version "${downloaded_shell_version}" \
                     '.shell_version = $shell_version' || return 1
             fi
             shell_version="${downloaded_shell_version}"
+            set_shell_release_urls "${shell_version}"
+            if ! rxa_sync_release_helpers "${shell_version}"; then
+                log_echo "${Error} ${RedBG} Shell helper 同版本同步失败；主脚本已更新，下次将重试 ${Font}"
+                return 1
+            fi
+            if ! rxa_reconcile_release "${shell_version}"; then
+                log_echo "${Error} ${RedBG} 主脚本已更新，但 Rill 同步失败；下次运行将自动重试 Rill 同步 ${Font}"
+                return 1
+            fi
             clear
             log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
@@ -9912,11 +10121,20 @@ update_sh() {
             ;;
         esac
     else
+        rxa_stage_done 1 "下载并校验新版主脚本" "✓ 已是 v${shell_version}"
+        if [[ ! -f "${idleleo_dir}/release-managed.version" || "$(cat "${idleleo_dir}/release-managed.version" 2>/dev/null)" != "${shell_version}" ]]; then
+            rxa_sync_release_helpers "${shell_version}" || return 1
+            rxa_reconcile_release "${shell_version}" || return 1
+        fi
         clear
         log_echo "${OK} ${GreenBG} $(gettext "当前已经是最新版本") ${Font}"
     fi
     return 0
 
+}
+
+update_sh() {
+    with_update_lock _update_sh_impl "$@"
 }
 
 check_file_integrity() {
@@ -10011,6 +10229,7 @@ read_version() {
     fi
 
     local new_shell_online_version
+    local new_shell_release_sha256
     local new_xray_online_version
     local new_nginx_build_version
     local new_shell_tested_version
@@ -10018,6 +10237,11 @@ read_version() {
     local new_nginx_build_tested_version
 
     new_shell_online_version="$(check_version shell_online_version)" || return 1
+    new_shell_release_sha256="$(check_version_silent shell_release_sha256 || echo "")"
+    if [[ -n "${new_shell_release_sha256}" && ! "${new_shell_release_sha256}" =~ ^[0-9a-f]{64}$ ]]; then
+        log_echo "${Error} ${RedBG} shell_release_sha256 格式无效，已拒绝更新 ${Font}" >&2
+        return 1
+    fi
     new_xray_online_version="$(check_version xray_online_version)" || return 1
     new_nginx_build_version="$(check_version nginx_build_online_version)" || return 1
     # Read tested_version (known-good fallback baseline) from API.
@@ -10028,6 +10252,8 @@ read_version() {
     new_nginx_build_tested_version="$(check_version_silent nginx_build_tested_version || echo "")"
 
     shell_online_version="${new_shell_online_version}"
+    shell_release_sha256="${new_shell_release_sha256}"
+    set_shell_release_urls "${shell_online_version}"
     xray_online_version="${new_xray_online_version}"
     nginx_build_version="${new_nginx_build_version}"
     shell_tested_version="${new_shell_tested_version}"

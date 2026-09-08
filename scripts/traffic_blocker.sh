@@ -653,7 +653,11 @@ tb_geo_auto_update() {
         case $geo_auto_fq in
         [yY][eE][sS] | [yY])
             if [[ ! -f "${geo_update_file}" ]]; then
-                download_script_file "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/scripts/geo_update.sh" "${geo_update_file}"
+                geo_script_remote="${geo_remote_url:-}"
+                if [[ -z "${geo_script_remote}" && -n "${shell_version:-}" ]]; then
+                    geo_script_remote="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/v${shell_version}/scripts/geo_update.sh"
+                fi
+                download_script_file "${geo_script_remote}" "${geo_update_file}"
                 judge -r "$(gettext "下载 GeoData 自动更新脚本")" || return 1
             fi
             if [[ -f "${geo_update_file}" ]]; then

@@ -16,41 +16,11 @@ running_file_max_age_minutes=60
 geo_dir="${idleleo_dir}/share/xray"
 geo_remote="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
 geo_version_file="${xray_conf_dir}/geo_version.json"
-geo_script_remote="https://github.com/hello-yunshu/Xray_bash_onekey/raw/refs/heads/main/scripts/geo_update.sh"
+geo_script_remote=""
 
 check_self_update() {
-    local temp_file
-    temp_file=$(mktemp /tmp/idleleo_geo_update.XXXXXX) || return 1
-    if ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "$temp_file" "$geo_script_remote"; then
-        echo "Failed to download remote script" >>"${log_file}"
-        rm -f "$temp_file"
-        return 1
-    fi
-
-    local remote_ver
-    remote_ver=$(grep "^VERSION=" "$temp_file" | cut -d'"' -f2)
-    if [ -z "$remote_ver" ]; then
-        echo "Unable to get remote version number" >>"${log_file}"
-        rm -f "$temp_file"
-        return 1
-    fi
-
-    if [ "$VERSION" != "$remote_ver" ]; then
-        echo "New version found: $remote_ver" >>"${log_file}"
-        if bash -n "$temp_file" 2>/dev/null; then
-            cp "$temp_file" "$0"
-            chmod +x "$0"
-            rm -f "$temp_file"
-            rm -rf "${running_file}"
-            exec "$0" "${_script_args[@]}"
-        else
-            echo "Downloaded script failed syntax check, skipping update" >>"${log_file}"
-            rm -f "$temp_file"
-            return 1
-        fi
-    fi
-
-    rm -f "$temp_file"
+    # This helper is replaced with the exact Xray Release. It does not
+    # self-update from a mutable branch.
     return 0
 }
 
