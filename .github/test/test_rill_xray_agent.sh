@@ -12,9 +12,39 @@ for readme in README.md i18n/languages/*/README.md; do
         exit 1
     }
 done
-if rg -n 'raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/' install.sh scripts; then
-    echo 'production runtime still downloads Xray-owned content from mutable main' >&2
+# Production dependency scan: no optional scanner may turn a real Gate into a
+# false green. grep is part of the runner baseline; only exit 1 means no match.
+mutable_main_pattern='raw\.githubusercontent\.com/hello-yunshu/Xray_bash_onekey/main/|github\.com/hello-yunshu/Xray_bash_onekey/raw/main/|github\.com/hello-yunshu/Xray_bash_onekey/releases/latest/download|rill-xray-agent/main'
+if scan_output=$(grep -REn "${mutable_main_pattern}" install.sh scripts repository_files/rill_integration 2>&1); then
+    echo "production runtime still depends on mutable content:${scan_output}" >&2
     exit 1
+else
+    scan_rc=$?
+    if [[ ${scan_rc} -ne 1 ]]; then
+        echo "mutable-main production scan failed (grep rc=${scan_rc}); refusing a false green" >&2
+        exit 1
+    fi
+fi
+scan_fixture_dir=$(mktemp -d)
+trap 'rm -rf "${scan_fixture_dir}"' EXIT
+printf '%s\n' 'https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh' > "${scan_fixture_dir}/fixture"
+if grep -REn "${mutable_main_pattern}" "${scan_fixture_dir}/fixture" >/dev/null 2>&1; then
+    echo 'PASS: mutable-main scanner detects a fixture match'
+else
+    echo 'mutable-main scanner failed to detect a fixture match' >&2
+    exit 1
+fi
+if grep -REn "${mutable_main_pattern}" "${scan_fixture_dir}/missing" >/dev/null 2>&1; then
+    echo 'mutable-main scanner unexpectedly accepted a missing scan target' >&2
+    exit 1
+else
+    scan_rc=$?
+    if [[ ${scan_rc} -eq 2 ]]; then
+        echo 'PASS: mutable-main scanner errors fail closed'
+    else
+        echo "mutable-main scanner error test returned unexpected rc=${scan_rc}" >&2
+        exit 1
+    fi
 fi
 grep -Fq 'rxa_reconcile_release_if_needed' install.sh
 grep -Fq 'rxa_auto_confirmation_is_revoked' install.sh

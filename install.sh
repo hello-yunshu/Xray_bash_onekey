@@ -9810,6 +9810,19 @@ rxa_stage_done() {
     printf '[%s/6] %s ... %s\n' "$n" "$text" "$result"
 }
 
+_rxa_update_title_shown=0
+rxa_update_title() {
+    [[ ${_rxa_update_title_shown:-0} -eq 1 ]] && return 0
+    _rxa_update_title_shown=1
+    log_echo "${Info} ${Green} $(gettext "正在更新 Xray 管理脚本，请勿关闭终端……") ${Font}"
+}
+
+rxa_clear_screen() {
+    if [[ -t 1 && -n ${TERM:-} && ${TERM} != "dumb" ]]; then
+        clear
+    fi
+}
+
 rxa_release_checksum() {
     local version=$1 asset=$2 sums
     sums=$(mktemp "${TMPDIR:-/tmp}/xray-sums.XXXXXX") || return 1
@@ -9912,7 +9925,10 @@ rxa_sync_release_helpers() {
     done
     if ((any)); then
         for file in fail2ban_manager.sh traffic_blocker.sh file_manager.sh auto_update.sh ssl_update.sh geo_update.sh; do
-            [[ -f "${dir}/${file}" ]] && mv -f "${dir}/${file}" "${scripts_dir}/${file}"
+            if [[ -f "${dir}/${file}" ]] && ! mv -f "${dir}/${file}" "${scripts_dir}/${file}"; then
+                rm -rf "$dir"
+                return 1
+            fi
         done
     fi
     rm -rf "$dir"
@@ -9922,6 +9938,7 @@ rxa_sync_release_helpers() {
 rxa_reconcile_release() {
     local version=$1 installed=0 managed_file="${idleleo_dir}/release-managed.version"
     local bundle_tmp bundle expected mode
+    rxa_update_title
     rxa_stage_begin 2 "检测 Rill Xray AI 运维助手"
     if rxa_rill_installed; then
         installed=1
@@ -9948,12 +9965,12 @@ rxa_reconcile_release() {
             return 1
         fi
         rm -rf "$bundle_tmp"
+        rxa_stage_done 4 "更新 Rill 核心组件" "完成"
+        rxa_stage_begin 5 "恢复 AI 工作状态"
         if ! rxa_reload_manager; then
             rxa_stage_done 5 "恢复 AI 工作状态" "✗ 失败"
             return 1
         fi
-        rxa_stage_done 4 "更新 Rill 核心组件" "完成"
-        rxa_stage_begin 5 "恢复 AI 工作状态"
         mode=$(rxa_get mode 2>/dev/null || true)
         if [[ -z "$mode" ]] || ! rxa_mode_state_matches_target "$mode" ||
             ! rxa_auto_confirmation_is_revoked; then
@@ -9983,9 +10000,9 @@ rxa_reconcile_release_if_needed() {
         [[ "$(cat "${managed_file}" 2>/dev/null)" == "${shell_version}" ]] && return 0
     # This is deliberately called only from the normal mutable startup path.
     # Pure read-only dispatch exits before reaching it.
-    if rxa_rill_installed; then
-        rxa_sync_release_helpers "${shell_version}" || return 1
-    fi
+    # Shell-owned helpers are managed by the Xray Release independently of
+    # whether Rill is installed. Rill detection remains inside the Rill stage.
+    rxa_sync_release_helpers "${shell_version}" || return 1
     rxa_reconcile_release "${shell_version}"
 }
 
@@ -10110,6 +10127,7 @@ rxa_refresh_main_script() {
 
 _update_sh_impl() {
     local downloaded_shell_version _candidate
+    _rxa_update_title_shown=0
     set_shell_release_urls "${shell_online_version}"
     ol_version=${shell_online_version}
     echo "${ol_version}" >"${shell_version_tmp}"
@@ -10119,6 +10137,7 @@ _update_sh_impl() {
     oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
     version_difference=$(echo "(${newest_version:0:3}-${oldest_version:0:3})>0" | bc)
     if [[ ${shell_version} != ${newest_version} ]]; then
+        rxa_update_title
         rxa_stage_begin 1 "下载并校验新版主脚本"
         if [[ ${auto_update} != "YES" ]]; then
             echo
@@ -10181,7 +10200,7 @@ _update_sh_impl() {
                 log_echo "${Error} ${RedBG} 主脚本已更新，但 Rill 同步失败；下次运行将自动重试 Rill 同步 ${Font}"
                 return 1
             fi
-            clear
+            rxa_clear_screen
             log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
             return 0
@@ -10191,12 +10210,16 @@ _update_sh_impl() {
             ;;
         esac
     else
+        if [[ ! -f "${idleleo_dir}/release-managed.version" ||
+              "$(cat "${idleleo_dir}/release-managed.version" 2>/dev/null)" != "${shell_version}" ]]; then
+            rxa_update_title
+        fi
         rxa_stage_done 1 "下载并校验新版主脚本" "✓ 已是 v${shell_version}"
         if [[ ! -f "${idleleo_dir}/release-managed.version" || "$(cat "${idleleo_dir}/release-managed.version" 2>/dev/null)" != "${shell_version}" ]]; then
             rxa_sync_release_helpers "${shell_version}" || return 1
             rxa_reconcile_release "${shell_version}" || return 1
         fi
-        clear
+        rxa_clear_screen
         log_echo "${OK} ${GreenBG} $(gettext "当前已经是最新版本") ${Font}"
     fi
     return 0
