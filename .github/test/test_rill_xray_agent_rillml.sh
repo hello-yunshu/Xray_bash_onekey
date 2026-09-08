@@ -36,16 +36,16 @@ bad() { FAIL=$((FAIL + 1)); printf '  FAIL: %s\n' "$1"; }
 echo "=== RillML prebuilt runtime gate (Batch D) ==="
 
 # --- canonical delivery identity ---
-EXPECTED=$(grep -o '^EXPECTED_SHA256=[0-9a-f]\{64\}' "${BOOTSTRAP}" | cut -d= -f2)
 ACTUAL=$(sha256sum "${ASSET}" | awk '{print $1}')
-if [[ -n "${EXPECTED}" && "${EXPECTED}" == "${ACTUAL}" ]]; then
-    ok "bootstrap EXPECTED_SHA256 == bundle sha256"
+if grep -q 'RILL_XRAY_AGENT_BUNDLE_SHA256' "${BOOTSTRAP}" \
+    && ! grep -q 'rill-xray-agent/main' "${BOOTSTRAP}"; then
+    ok "bootstrap uses explicit immutable bundle SHA-256"
 else
-    bad "bootstrap EXPECTED_SHA256 (${EXPECTED:-missing}) != bundle (${ACTUAL})"
+    bad "bootstrap does not use explicit immutable bundle contract"
 fi
 
 # --- deliver the Rill payload + best-effort RillML (real install) ---
-if ! OUT=$(env RILL_XRAY_AGENT_BUNDLE_FILE="${ASSET}" bash "${BOOTSTRAP}" 2>&1); then
+if ! OUT=$(env RILL_XRAY_AGENT_BUNDLE_FILE="${ASSET}" RILL_XRAY_AGENT_BUNDLE_SHA256="${ACTUAL}" bash "${BOOTSTRAP}" 2>&1); then
     bad "rill payload bootstrap+install exit 0"
     printf '%s\n' "${OUT}" | tail -20
 else
