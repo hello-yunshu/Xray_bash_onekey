@@ -15,8 +15,7 @@ esac
 # An upgrade is only valid for a real deployment. Residual config/state is
 # deliberately insufficient: standalone uninstall may retain those paths.
 if ((UPGRADE)); then
-    if [[ ! -x "$(root /opt/rill-xray-agent/bin/rill-xray-agent)" &&
-          ! -f "$(root /etc/systemd/system/rill-xray-agent-runtime.service)" ]]; then
+    if [[ ! -x "$(root /opt/rill-xray-agent/bin/rill-xray-agent)" ]]; then
         echo '拒绝升级：未检测到已安装的 Rill 执行组件' >&2
         exit 65
     fi
@@ -24,19 +23,32 @@ fi
 
 SAVED_MODE=""
 if ((UPGRADE)); then
-    current_manager="$(root /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh)"
-    if [[ ! -r "$current_manager" ]]; then
-        echo '拒绝升级：当前 Rill manager 不存在' >&2
+    # Read the operator preference from the durable config before replacing
+    # any payload. The old manager is not a compatibility boundary: it may be
+    # missing, too old, or otherwise broken while the config remains valid.
+    config_file="$(root /etc/rill-xray-agent/config.json)"
+    if [[ ! -r "$config_file" ]]; then
+        echo '拒绝升级：Rill config.json 不存在或不可读' >&2
         exit 65
     fi
-    # shellcheck disable=SC1090
-    source "$current_manager"
-    SAVED_MODE=$(rxa_get mode 2>/dev/null || true)
-    case "$SAVED_MODE" in normal|observe-only|safe-disabled) ;; *)
-        echo "拒绝升级：当前工作模式无效: ${SAVED_MODE:-<empty>}" >&2
+    if ! SAVED_MODE=$(python3 - "$config_file" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding='utf-8') as stream:
+        mode = json.load(stream).get('mode')
+except (OSError, ValueError, TypeError, AttributeError):
+    raise SystemExit(1)
+
+if mode not in {'normal', 'observe-only', 'safe-disabled'}:
+    raise SystemExit(1)
+print(mode)
+PY
+    ); then
+        echo '拒绝升级：config.json 无效或工作模式非法' >&2
         exit 65
-        ;;
-    esac
+    fi
 fi
 
 install -d -m 0750 \
@@ -136,7 +148,17 @@ fi
 # shellcheck disable=SC1090
 source "$(root /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh)"
 if ((UPGRADE)); then
-    rxa_apply_mode "$SAVED_MODE"
+    # An upgrade is a security boundary. Always revoke the root-authoritative
+    # temporary auto-execution authorization, even when the saved mode already
+    # matches and rxa_apply_mode would otherwise return early.
+    if ! rxa_apply_auto_revoke; then
+        echo 'Rill 升级失败：无法撤销 root 自动执行授权' >&2
+        exit 1
+    fi
+    if ! rxa_apply_mode "$SAVED_MODE"; then
+        echo "Rill 升级失败：无法恢复工作模式 ${SAVED_MODE}" >&2
+        exit 1
+    fi
 else
     rxa_apply_mode "$(rxa_get mode)"
 fi

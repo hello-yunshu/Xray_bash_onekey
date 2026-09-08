@@ -103,5 +103,23 @@ else
     bad "failed reads partially overwrote prior versions"
 fi
 
+printf '%s\n' '--- Release SHA contract is mandatory from 3.2.3 ---'
+versions_json='{
+  "shell_online_version": "3.2.3",
+  "xray_online_version": "26.3.27",
+  "nginx_build_online_version": "2026.06.17.6717",
+  "shell_tested_version": "3.2.2",
+  "xray_tested_version": "26.3.27",
+  "nginx_build_tested_version": "2026.06.17.6717"
+}'
+curl() { printf '%s' "${versions_json}"; }
+get_versions_all=""
+_get_versions_loaded=0
+if read_version >/dev/null 2>&1; then
+    bad "3.2.3 metadata without shell_release_sha256 was accepted"
+else
+    ok "3.2.3 metadata without shell_release_sha256 is rejected"
+fi
+
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]

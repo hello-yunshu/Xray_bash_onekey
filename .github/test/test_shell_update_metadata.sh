@@ -86,6 +86,19 @@ download_script_file() {
     return 1
 }
 
+echo "--- Release SHA contract rejects 3.2.3+ candidates without SHA ---"
+shell_online_version="3.2.3"
+shell_release_sha256=""
+DOWNLOAD_CONTENT='#!/usr/bin/env bash
+shell_version="3.2.3"'
+missing_sha_candidate="${TMP_ROOT}/missing-sha-candidate"
+if rxa_download_main_candidate "${missing_sha_candidate}"; then
+    bad "3.2.3+ candidate without shell_release_sha256 was accepted"
+else
+    ok "3.2.3+ candidate without shell_release_sha256 is rejected"
+fi
+[[ ! -e "${missing_sha_candidate}" ]] || bad "missing-SHA candidate was left on disk"
+
 echo "============================================================"
 echo "  Section 7: Shell Update Metadata"
 echo "============================================================"

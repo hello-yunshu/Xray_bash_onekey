@@ -48,7 +48,7 @@
 ## 빠른 설치
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
+bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh)
 ```
 
 ## 설치 모드

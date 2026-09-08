@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
+bash -n install.sh
+if grep -RIl --exclude-dir=.git 'raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh' README.md i18n/languages/*/README.md 2>/dev/null | grep -q .; then
+    echo 'production README still points at mutable main/install.sh' >&2
+    exit 1
+fi
+grep -Fq 'github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh' README.md
 bash -n scripts/rill_xray_agent_manager.sh
 bash -n scripts/rill_xray_agent_install.sh
 bash -n scripts/rill_xray_agent_uninstall.sh

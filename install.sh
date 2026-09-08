@@ -62,7 +62,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.3"
+shell_version="3.2.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -146,6 +146,12 @@ set_shell_release_urls() {
     ssl_remote_url="${shell_release_raw_base}/scripts/ssl_update.sh"
     geo_remote_url="${shell_release_raw_base}/scripts/geo_update.sh"
     main_remote_url="${shell_release_download_base}/install.sh"
+}
+
+release_sha_contract_required() {
+    local version=${1:-}
+    [[ "${version}" =~ ^3\.[0-9]+\.[0-9]+$ ]] || return 1
+    [[ "$(printf '%s\n%s\n' '3.2.3' "${version}" | sort -V | head -n1)" == '3.2.3' ]]
 }
 
 with_update_lock() {
@@ -9837,16 +9843,29 @@ rxa_download_release_asset() {
 }
 
 rxa_release_bundle_install() {
-    local version=$1 mode=${2:-} tmp tree bundle expected bootstrap
-    tmp=$(mktemp -d "${TMPDIR:-/tmp}/xray-rill-release.XXXXXX") || return 1
-    bundle="${tmp}/rill-xray-agent-xray-bundle.tar.gz"
-    expected=$(rxa_release_checksum "$version" "rill-xray-agent-xray-bundle.tar.gz") || { rm -rf "$tmp"; return 1; }
-    [[ "$expected" =~ ^[0-9a-f]{64}$ ]] || { rm -rf "$tmp"; return 1; }
-    if ! rxa_download_release_asset "$version" "rill-xray-agent-xray-bundle.tar.gz" "$bundle" "$expected"; then
-        rm -rf "$tmp"
-        return 1
+    local version=$1 mode=${2:-} supplied_bundle=${3:-} supplied_expected=${4:-}
+    local tmp tree bundle expected bootstrap cleanup=1
+    if [[ -n "$supplied_bundle" ]]; then
+        bundle="$supplied_bundle"
+        expected="$supplied_expected"
+        cleanup=0
+    else
+        tmp=$(mktemp -d "${TMPDIR:-/tmp}/xray-rill-release.XXXXXX") || return 1
+        bundle="${tmp}/rill-xray-agent-xray-bundle.tar.gz"
+        tree="${tmp}/tree"
+        expected=$(rxa_release_checksum "$version" "rill-xray-agent-xray-bundle.tar.gz") || { rm -rf "$tmp"; return 1; }
+        [[ "$expected" =~ ^[0-9a-f]{64}$ ]] || { rm -rf "$tmp"; return 1; }
+        if ! rxa_download_release_asset "$version" "rill-xray-agent-xray-bundle.tar.gz" "$bundle" "$expected"; then
+            rm -rf "$tmp"
+            return 1
+        fi
     fi
-    tree="${tmp}/tree"
+    [[ -f "$bundle" && "$expected" =~ ^[0-9a-f]{64}$ ]] || { ((cleanup)) && rm -rf "$tmp"; return 1; }
+    [[ "$(sha256sum "$bundle" | awk '{print $1}')" == "$expected" ]] || { ((cleanup)) && rm -rf "$tmp"; return 1; }
+    if (( ! cleanup )); then
+        tmp=$(mktemp -d "${TMPDIR:-/tmp}/xray-rill-release.XXXXXX") || return 1
+        tree="${tmp}/tree"
+    fi
     mkdir -p "$tree"
     tar -xzf "$bundle" -C "$tree" --no-same-owner --no-same-permissions || { rm -rf "$tmp"; return 1; }
     bootstrap="${tree}/scripts/rill_xray_agent_bootstrap.sh"
@@ -9860,8 +9879,9 @@ rxa_release_bundle_install() {
 }
 
 rxa_rill_installed() {
-    [[ -x "$(rxa_root /opt/rill-xray-agent/bin/rill-xray-agent)" ||
-       -f "$(rxa_root /etc/systemd/system/rill-xray-agent-runtime.service)" ]]
+    # The executable payload is the durable installed-component marker. A
+    # leftover config/state tree (or a leftover unit file) is not enough.
+    [[ -x "$(rxa_root /opt/rill-xray-agent/bin/rill-xray-agent)" ]]
 }
 
 rxa_sync_release_helpers() {
@@ -9887,6 +9907,7 @@ rxa_sync_release_helpers() {
 
 rxa_reconcile_release() {
     local version=$1 installed=0 managed_file="${idleleo_dir}/release-managed.version"
+    local bundle_tmp bundle expected mode
     rxa_stage_begin 2 "检测 Rill Xray AI 运维助手"
     if rxa_rill_installed; then
         installed=1
@@ -9896,19 +9917,31 @@ rxa_reconcile_release() {
     fi
     rxa_stage_begin 3 "下载并校验 Rill 更新包"
     if ((installed)); then
-        if ! rxa_release_checksum "$version" "rill-xray-agent-xray-bundle.tar.gz" >/dev/null; then
+        bundle_tmp=$(mktemp -d "${TMPDIR:-/tmp}/xray-rill-release.XXXXXX") || return 1
+        bundle="${bundle_tmp}/rill-xray-agent-xray-bundle.tar.gz"
+        expected=$(rxa_release_checksum "$version" "rill-xray-agent-xray-bundle.tar.gz")
+        if [[ ! "$expected" =~ ^[0-9a-f]{64}$ ]] ||
+            ! rxa_download_release_asset "$version" "rill-xray-agent-xray-bundle.tar.gz" "$bundle" "$expected"; then
+            rm -rf "$bundle_tmp"
             rxa_stage_done 3 "下载并校验 Rill 更新包" "✗ 失败"
             return 1
         fi
         rxa_stage_done 3 "下载并校验 Rill 更新包" "完成"
         rxa_stage_begin 4 "更新 Rill 核心组件"
-        if ! rxa_release_bundle_install "$version" --upgrade; then
+        if ! rxa_release_bundle_install "$version" --upgrade "$bundle" "$expected"; then
+            rm -rf "$bundle_tmp"
             rxa_stage_done 4 "更新 Rill 核心组件" "✗ 失败"
             return 1
         fi
+        rm -rf "$bundle_tmp"
         rxa_stage_done 4 "更新 Rill 核心组件" "完成"
         rxa_stage_begin 5 "恢复 AI 工作状态"
-        rxa_stage_done 5 "恢复 AI 工作状态" "完成"
+        mode=$(rxa_get mode 2>/dev/null || true)
+        if [[ -z "$mode" ]] || ! rxa_mode_state_matches_target "$mode"; then
+            rxa_stage_done 5 "恢复 AI 工作状态" "✗ 失败"
+            return 1
+        fi
+        rxa_stage_done 5 "恢复 AI 工作状态" "已确认 ${mode}"
     else
         rxa_stage_done 3 "下载并校验 Rill 更新包" "— 跳过"
         rxa_stage_done 4 "更新 Rill 核心组件" "— 跳过"
@@ -9932,6 +9965,12 @@ rxa_download_main_candidate() {
     rm -f "${candidate}"
     if ! download_script_file "$(shell_release_asset_url "${shell_online_version}" install.sh)" "${candidate}"; then
         RILL_UPDATE_CANDIDATE_ERROR="download"
+        rm -f "${candidate}"
+        return 1
+    fi
+    if release_sha_contract_required "${shell_online_version}" &&
+        [[ ! "${shell_release_sha256:-}" =~ ^[0-9a-f]{64}$ ]]; then
+        RILL_UPDATE_CANDIDATE_ERROR="sha256-missing"
         rm -f "${candidate}"
         return 1
     fi
@@ -10238,6 +10277,11 @@ read_version() {
 
     new_shell_online_version="$(check_version shell_online_version)" || return 1
     new_shell_release_sha256="$(check_version_silent shell_release_sha256 || echo "")"
+    if release_sha_contract_required "${new_shell_online_version}" &&
+        [[ ! "${new_shell_release_sha256}" =~ ^[0-9a-f]{64}$ ]]; then
+        log_echo "${Error} ${RedBG} 3.2.3+ Release 缺少有效 shell_release_sha256，已拒绝更新 ${Font}" >&2
+        return 1
+    fi
     if [[ -n "${new_shell_release_sha256}" && ! "${new_shell_release_sha256}" =~ ^[0-9a-f]{64}$ ]]; then
         log_echo "${Error} ${RedBG} shell_release_sha256 格式无效，已拒绝更新 ${Font}" >&2
         return 1
