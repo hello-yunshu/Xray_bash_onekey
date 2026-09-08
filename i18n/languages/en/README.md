@@ -71,7 +71,7 @@ When the installed environment is installed again, the script will automatically
 |------|------|------|
 | Preserve configuration redeployment | Keep custom routing/outbounds/DNS and multi-user configuration, modify only user-selected fields (ports, paths, UUID, Reality parameters, etc.) | Transmission structure changes (such as ws → gRPC) are not supported. If you need to change the transmission combination, please use the standard template to rebuild it. |
 | Standard template reconstruction | Generate standard template configuration using current reusable parameters, custom routing/outbounds/DNS may be removed | It is not mandatory that the number of users remains unchanged |
-| Mode switch | Switch to a different protocol mode (such as Reality → TLS). By default, only the main user UUID/email is reused. | Other users will not be automatically migrated and will be clearly prompted before switching. |
+| Mode switching | Switch to a different protocol mode (such as Reality → TLS). By default, only the main user UUID/email is reused. | Other users will not be automatically migrated and will be clearly prompted before switching. |
 
 If any step in the reconfiguration process fails (configuration writing, service startup, health check, etc.), it will automatically roll back to the original backup configuration. The backup directory uses a unique timestamp to support multiple consecutive reconfigurations without conflicting with each other.
 
@@ -94,7 +94,7 @@ If any step in the reconfiguration process fails (configuration writing, service
 
 ## RillML Xray AI Operation and maintenance assistant
 
-RillML (Rill) provides Xray with local adaptive intelligent operations and maintenance capabilities.
+RillML (abbreviated as Rill) provides local adaptive intelligent operation and maintenance capabilities for Xray.
 
 The built-in local AI operation and maintenance assistant monitors the health status of Xray/Nginx in real time, automatically diagnoses faults and gives treatment suggestions, without the need for external API. Main menu input`9`or execute`idleleo --rill-agent`Enter.
 
@@ -138,7 +138,7 @@ The traditional method requires SSH to go to the server, run the installation sc
 
 **Supported modes**: Reality / TLS / ws ONLY / XTLS ONLY
 
-**How ​​to use**: Directly say "Help me build Xray on the server" in the AI tool that supports Skill, and AI will automatically collect information, generate scripts, perform deployment and return connection information.
+**How ​​to use**: Just say "Help me build Xray on the server" in the AI tool that supports Skill, and AI will automatically collect information, generate scripts, perform deployment and return connection information.
 
 ## Things to note
 
@@ -183,18 +183,18 @@ cat /etc/idleleo/info/xray_info.inf
 |------|------|
 | Start Xray | `systemctl start xray` |
 | Stop Xray | `systemctl stop xray` |
-| Start Nginx | `systemctl start nginx` |
+| 启动 Nginx | `systemctl start nginx` |
 | Stop Nginx | `systemctl stop nginx` |
 
 ## Related catalog
 
-| content | path |
+| 内容 | path |
 |------|------|
-| Home directory | `/etc/idleleo` |
-| Xray configuration | `/etc/idleleo/conf/xray/config.json` |
-| Nginx configuration | `/etc/idleleo/conf/nginx/` |
-| Installation information | `/etc/idleleo/conf/install_config.json` |
-| certificate file | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
-| Log directory | `/etc/idleleo/logs/`、`/var/log/xray/` |
-| Nginx installation directory | `/usr/local/nginx` |
+| 主目录 | `/etc/idleleo` |
+| Xray 配置 | `/etc/idleleo/conf/xray/config.json` |
+| Nginx 配置 | `/etc/idleleo/conf/nginx/` |
+| 安装信息 | `/etc/idleleo/conf/install_config.json` |
+| 证书文件 | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
+| 日志目录 | `/etc/idleleo/logs/`、`/var/log/xray/` |
+| Nginx 安装目录 | `/usr/local/nginx` |
 | Administrative commands | `/usr/bin/idleleo` |
