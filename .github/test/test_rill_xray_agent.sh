@@ -1,5 +1,54 @@
 #!/usr/bin/env bash
 set -euo pipefail
+bash -n install.sh
+if grep -RIl --exclude-dir=.git 'raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh' README.md i18n/languages/*/README.md 2>/dev/null | grep -q .; then
+    echo 'production README still points at mutable main/install.sh' >&2
+    exit 1
+fi
+grep -Fq 'github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh' README.md
+for readme in README.md i18n/languages/*/README.md; do
+    grep -Fq 'github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh' "$readme" || {
+        echo "production README does not use latest Release installer: $readme" >&2
+        exit 1
+    }
+done
+# Production dependency scan: no optional scanner may turn a real Gate into a
+# false green. grep is part of the runner baseline; only exit 1 means no match.
+mutable_main_pattern='raw\.githubusercontent\.com/hello-yunshu/Xray_bash_onekey/main/|github\.com/hello-yunshu/Xray_bash_onekey/raw/main/|github\.com/hello-yunshu/Xray_bash_onekey/releases/latest/download|rill-xray-agent/main'
+if scan_output=$(grep -REn "${mutable_main_pattern}" install.sh scripts repository_files/rill_integration 2>&1); then
+    echo "production runtime still depends on mutable content:${scan_output}" >&2
+    exit 1
+else
+    scan_rc=$?
+    if [[ ${scan_rc} -ne 1 ]]; then
+        echo "mutable-main production scan failed (grep rc=${scan_rc}); refusing a false green" >&2
+        exit 1
+    fi
+fi
+scan_fixture_dir=$(mktemp -d)
+trap 'rm -rf "${scan_fixture_dir}"' EXIT
+printf '%s\n' 'https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh' > "${scan_fixture_dir}/fixture"
+if grep -REn "${mutable_main_pattern}" "${scan_fixture_dir}/fixture" >/dev/null 2>&1; then
+    echo 'PASS: mutable-main scanner detects a fixture match'
+else
+    echo 'mutable-main scanner failed to detect a fixture match' >&2
+    exit 1
+fi
+if grep -REn "${mutable_main_pattern}" "${scan_fixture_dir}/missing" >/dev/null 2>&1; then
+    echo 'mutable-main scanner unexpectedly accepted a missing scan target' >&2
+    exit 1
+else
+    scan_rc=$?
+    if [[ ${scan_rc} -eq 2 ]]; then
+        echo 'PASS: mutable-main scanner errors fail closed'
+    else
+        echo "mutable-main scanner error test returned unexpected rc=${scan_rc}" >&2
+        exit 1
+    fi
+fi
+grep -Fq 'rxa_reconcile_release_if_needed' install.sh
+grep -Fq 'rxa_auto_confirmation_is_revoked' install.sh
+grep -Fq 'rxa_reload_manager' install.sh
 bash -n scripts/rill_xray_agent_manager.sh
 bash -n scripts/rill_xray_agent_install.sh
 bash -n scripts/rill_xray_agent_uninstall.sh
