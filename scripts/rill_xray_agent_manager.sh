@@ -603,6 +603,12 @@ rxa_apply_mode() {
     # Phase 3: observation must reflect the target mode.
     if ((want_units)); then
         rxa_observe_fresh || rc=1
+        # The observer atomically replaces route-topology.json. On PID1 hosts
+        # that replacement can fire the auto-evaluate path while this
+        # transaction is still converging; re-arm the path after the event so
+        # the committed mode owns a stable trigger instead of a transiently
+        # inactive unit.
+        rxa_systemctl enable --now rill-xray-agent-auto-evaluate.path >/dev/null 2>&1 || rc=1
     elif [[ ${RILL_XRAY_AGENT_NO_SYSTEMD:-0} != 1 ]]; then
         rxa_systemctl is-active --quiet rill-xray-agent-xray-observe.path && rc=1
         rxa_systemctl is-active --quiet rill-xray-agent-agent.service && rc=1
