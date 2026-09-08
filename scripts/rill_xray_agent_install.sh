@@ -155,7 +155,19 @@ if ((UPGRADE)); then
         echo 'Rill 升级失败：无法撤销 root 自动执行授权' >&2
         exit 1
     fi
-    if ! rxa_apply_mode "$SAVED_MODE"; then
+    # systemd restart is asynchronous on PID1 hosts. Give the new Runtime and
+    # observer a bounded settling window before declaring the preserved mode
+    # unrecoverable; each retry still runs the full four-party transaction and
+    # therefore cannot turn a persistent mismatch into a success.
+    restored=0
+    for _ in 1 2 3 4 5; do
+        if rxa_apply_mode "$SAVED_MODE"; then
+            restored=1
+            break
+        fi
+        sleep 1
+    done
+    if (( ! restored )); then
         echo "Rill 升级失败：无法恢复工作模式 ${SAVED_MODE}" >&2
         exit 1
     fi
