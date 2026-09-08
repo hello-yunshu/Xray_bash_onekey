@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
-"POT-Creation-Date: 2026-08-31 04:55+0000\n"
+"POT-Creation-Date: 2026-09-08 05:41+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -29,112 +29,120 @@ msgstr "ошибка"
 msgid "警告"
 msgstr "предупреждение"
 
-#: install.sh:66 install.sh:2198 install.sh:6010 install.sh:7456
-#: install.sh:10289 install.sh:10306 install.sh:10309 install.sh:10310
-#: install.sh:10417 scripts/fail2ban_manager.sh:163
+#: install.sh:66 install.sh:2251 install.sh:6063 install.sh:7509
+#: install.sh:10515 install.sh:10532 install.sh:10535 install.sh:10536
+#: install.sh:10643 scripts/fail2ban_manager.sh:163
 #: scripts/fail2ban_manager.sh:716 scripts/fail2ban_manager.sh:1124
 #: scripts/fail2ban_manager.sh:1204 scripts/rill_xray_agent_manager.sh:101
 #: scripts/traffic_blocker.sh:631 scripts/traffic_blocker.sh:643
 msgid "未安装"
 msgstr "не установлен"
 
-#: install.sh:313
+#: install.sh:169
+msgid "已有更新任务正在运行"
+msgstr "уже выполняется обновление"
+
+#: install.sh:373
 msgid "日志文件归档失败"
 msgstr "не удалось архивировать файл журнала"
 
-#: install.sh:318
+#: install.sh:378
 msgid "日志文件清空失败"
 msgstr "не удалось очистить файл журнала"
 
-#: install.sh:322
+#: install.sh:382
 msgid "日志文件已轮转并归档为"
 msgstr "файл журнала был переключен и архивирован как"
 
-#: install.sh:376
+#: install.sh:436
 msgid "拒绝删除空路径或根目录"
 msgstr "отказаться от удаления пустого пути или корневого каталога"
 
-#: install.sh:394 install.sh:7572
+#: install.sh:454 install.sh:7625
 msgid "参数不能为空"
 msgstr "параметр не может быть пустым"
 
-#: install.sh:398 install.sh:9188 install.sh:9192
+#: install.sh:458 install.sh:9241 install.sh:9245
 msgid "文件不存在"
 msgstr "файл не существует"
 
-#: install.sh:422 install.sh:7576 install.sh:7596 install.sh:7606
-#: install.sh:7614
+#: install.sh:482 install.sh:7629 install.sh:7649 install.sh:7659
+#: install.sh:7667
 msgid "生成的 JSON 无效，已保留原文件"
 msgstr "Сгенерированный JSON недействителен; исходный файл сохранён."
 
-#: install.sh:428 install.sh:4286 install.sh:7620
+#: install.sh:488 install.sh:4339 install.sh:7673
 msgid "配置文件权限收紧失败"
 msgstr "не удалось ужесточить права доступа к конфигурационному файлу"
 
-#: install.sh:698 scripts/rill_xray_agent_manager.sh:748
+#: install.sh:759
+msgid "检测：Rill 组件版本较旧，请更新"
+msgstr "Проверка: версия компонента Rill устарела, выполните обновление."
+
+#: install.sh:764 scripts/rill_xray_agent_manager.sh:748
 msgid "提示：Rill AI 判断引擎目前仍处于测试阶段。"
 msgstr ""
 "Примечание: движок логического вывода Rill AI в настоящее время находится на"
 " стадии тестирования."
 
-#: install.sh:699 scripts/rill_xray_agent_manager.sh:749
+#: install.sh:765 scripts/rill_xray_agent_manager.sh:749
 msgid "可能存在兼容性、判断准确性或稳定性问题，不能保证完全无故障。"
 msgstr ""
 "Возможно наличие проблем совместимости, точности оценки или стабильности; "
 "полное отсутствие сбоев не гарантируется."
 
-#: install.sh:700 scripts/rill_xray_agent_manager.sh:750
+#: install.sh:766 scripts/rill_xray_agent_manager.sh:750
 msgid "安装后默认仅启用 AI 观察模式，路由辅助保持关闭。"
 msgstr ""
 "После установки по умолчанию активирован только режим наблюдения AI; "
 "вспомогательная функция маршрутизации остаётся отключённой."
 
-#: install.sh:704 scripts/rill_xray_agent_manager.sh:754
+#: install.sh:770 scripts/rill_xray_agent_manager.sh:754
 msgid "确认了解测试风险并继续安装吗？ [y/N]: "
 msgstr ""
 "Подтверждаете, что понимаете риски тестирования, и хотите продолжить "
 "установку? [y/N]:"
 
-#: install.sh:709 scripts/rill_xray_agent_manager.sh:759
+#: install.sh:775 scripts/rill_xray_agent_manager.sh:759
 msgid "已取消安装。"
 msgstr "установка отменена."
 
-#: install.sh:751 scripts/rill_xray_agent_manager.sh:773
+#: install.sh:804 scripts/rill_xray_agent_manager.sh:773
 msgid "AI 判断: 未安装"
 msgstr "AI проверка: не установлено"
 
-#: install.sh:752 scripts/rill_xray_agent_manager.sh:774
+#: install.sh:805 scripts/rill_xray_agent_manager.sh:774
 msgid "工作模式: 不可用"
 msgstr "режим работы: недоступно"
 
-#: install.sh:753 scripts/rill_xray_agent_manager.sh:775
+#: install.sh:806 scripts/rill_xray_agent_manager.sh:775
 #: scripts/rill_xray_agent_manager.sh:787
 msgid "服务: 未运行"
 msgstr "служба: не запущена"
 
-#: install.sh:754 scripts/rill_xray_agent_manager.sh:776
+#: install.sh:807 scripts/rill_xray_agent_manager.sh:776
 #: scripts/rill_xray_agent_manager.sh:789
 msgid "路由辅助: 关闭"
 msgstr "помощь в маршрутизации: выключено"
 
-#: install.sh:765 install.sh:12247 install.sh:12284
+#: install.sh:818 install.sh:12473 install.sh:12510
 #: scripts/rill_xray_agent_manager.sh:1113
 msgid "Rill Xray AI 运维助手"
 msgstr "Rill Xray AI Ассистент по эксплуатации и обслуживанию"
 
-#: install.sh:766
+#: install.sh:819
 msgid "AI 判断引擎尚未安装"
 msgstr "AI движок принятия решений ещё не установлен"
 
-#: install.sh:768
+#: install.sh:821
 msgid "安装 AI 判断引擎"
 msgstr "установка движка проверки AI"
 
-#: install.sh:770 install.sh:3656 install.sh:6713 install.sh:6878
-#: install.sh:11731 install.sh:11756 install.sh:11847 install.sh:11898
-#: install.sh:11960 install.sh:12004 install.sh:12026 install.sh:12047
-#: install.sh:12066 install.sh:12087 install.sh:12109 install.sh:12130
-#: install.sh:12149 install.sh:12169 install.sh:12193 install.sh:12217
+#: install.sh:823 install.sh:3709 install.sh:6766 install.sh:6931
+#: install.sh:11957 install.sh:11982 install.sh:12073 install.sh:12124
+#: install.sh:12186 install.sh:12230 install.sh:12252 install.sh:12273
+#: install.sh:12292 install.sh:12313 install.sh:12335 install.sh:12356
+#: install.sh:12375 install.sh:12395 install.sh:12419 install.sh:12443
 #: scripts/fail2ban_manager.sh:730 scripts/fail2ban_manager.sh:784
 #: scripts/fail2ban_manager.sh:816 scripts/fail2ban_manager.sh:851
 #: scripts/fail2ban_manager.sh:886 scripts/fail2ban_manager.sh:911
@@ -143,2918 +151,2918 @@ msgstr "установка движка проверки AI"
 #: scripts/rill_xray_agent_manager.sh:1070
 #: scripts/rill_xray_agent_manager.sh:1094
 #: scripts/rill_xray_agent_manager.sh:1129 scripts/traffic_blocker.sh:268
-#: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:700
-#: scripts/traffic_blocker.sh:807 scripts/traffic_blocker.sh:823
+#: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:704
+#: scripts/traffic_blocker.sh:811 scripts/traffic_blocker.sh:827
 msgid "返回"
 msgstr "вернуться"
 
-#: install.sh:784
+#: install.sh:837
 msgid "Rill AI 判断引擎安装失败，请检查上方错误信息。"
 msgstr ""
 "Rill AI Не удалось установить движок проверки, пожалуйста, проверьте "
 "приведённое выше сообщение об ошибке."
 
-#: install.sh:1321
+#: install.sh:1374
 msgid "等待 apt/dpkg 锁释放"
 msgstr "Ожидание освобождения блокировки apt/dpkg"
 
-#: install.sh:1328
+#: install.sh:1381
 msgid "等待 apt/dpkg 锁超时"
 msgstr "Превышено время ожидания блокировки apt/dpkg"
 
-#: install.sh:1417 install.sh:1427 install.sh:1435 install.sh:1450
+#: install.sh:1470 install.sh:1480 install.sh:1488 install.sh:1503
 msgid "当前系统为"
 msgstr "текущая система —"
 
-#: install.sh:1422
+#: install.sh:1475
 msgid "软件源更新失败"
 msgstr "ошибка обновления репозитория программного обеспечения"
 
-#: install.sh:1442
+#: install.sh:1495
 msgid "apt/dpkg 锁等待超时, 请稍后重试或手动检查占用进程"
 msgstr ""
 "apt/dpkg Превышено время ожидания блокировки, попробуйте позже или вручную "
 "проверьте процесс, удерживающий блокировку."
 
-#: install.sh:1450
+#: install.sh:1503
 msgid "不在支持的系统列表内, 安装中断"
 msgstr "не входит в список поддерживаемых систем, установка прервана"
 
-#: install.sh:1457
+#: install.sh:1510
 msgid "当前用户是 root 用户, 开始安装"
 msgstr "текущий пользователь — root, начать установку"
 
-#: install.sh:1459
+#: install.sh:1512
 msgid "当前用户不是 root 用户, 请切换到 root 用户后重新运行脚本"
 msgstr ""
 "текущий пользователь не является пользователем root. переключитесь на "
 "пользователя root и запустите скрипт снова"
 
-#: install.sh:1485
+#: install.sh:1538
 msgid "无法获取远程语言文件信息"
 msgstr "не удалось получить информацию о языковых файлах удаленного сервера"
 
-#: install.sh:1503
+#: install.sh:1556
 msgid "正在更新语言文件"
 msgstr "обновляется файл языка"
 
-#: install.sh:1506 install.sh:1718
+#: install.sh:1559 install.sh:1771
 msgid "语言文件更新失败"
 msgstr "сбой обновления языкового файла"
 
-#: install.sh:1511
+#: install.sh:1564
 msgid "语言文件无效"
 msgstr "файл языка недействителен"
 
-#: install.sh:1517
+#: install.sh:1570
 msgid "版本文件更新失败"
 msgstr "сбой обновления файла версии"
 
-#: install.sh:1524
+#: install.sh:1577
 msgid "语言文件更新"
 msgstr "обновление языкового файла"
 
-#: install.sh:1524 install.sh:1758 install.sh:3793 install.sh:4203
-#: install.sh:4363 install.sh:5375 install.sh:5923 install.sh:6061
-#: install.sh:8380 install.sh:9906 scripts/file_manager.sh:199
+#: install.sh:1577 install.sh:1811 install.sh:3846 install.sh:4256
+#: install.sh:4416 install.sh:5428 install.sh:5976 install.sh:6114
+#: install.sh:8433 install.sh:10115 scripts/file_manager.sh:199
 #: scripts/file_manager.sh:203 scripts/file_manager.sh:207
 #: scripts/traffic_blocker.sh:511
 msgid "完成"
 msgstr "завершить"
 
-#: install.sh:1555
+#: install.sh:1608
 msgid "language.conf 包含可疑字符, 跳过该行"
 msgstr "language.conf содержит подозрительные символы, строка пропущена"
 
-#: install.sh:1563
+#: install.sh:1616
 msgid "language.conf 行格式无效, 跳过"
 msgstr "Формат строки language.conf недопустим, пропускается"
 
-#: install.sh:1583
+#: install.sh:1636
 msgid "language.conf 键格式无效, 跳过"
 msgstr "language.conf Недопустимый формат ключа, пропуск"
 
-#: install.sh:1593
+#: install.sh:1646
 msgid "language.conf 值包含非法字符, 跳过"
 msgstr "Значение language.conf содержит недопустимые символы, пропускаем."
 
-#: install.sh:1604
+#: install.sh:1657
 msgid "language.conf 未知键, 跳过"
 msgstr "language.conf Неизвестный ключ, пропуск"
 
-#: install.sh:1640 install.sh:8325
+#: install.sh:1693 install.sh:8378
 msgid "正在安装"
 msgstr "устанавливается"
 
-#: install.sh:1642 install.sh:1831 install.sh:4387 install.sh:8380
-#: install.sh:10188 install.sh:10189 install.sh:10190 install.sh:10191
+#: install.sh:1695 install.sh:1884 install.sh:4440 install.sh:8433
+#: install.sh:10414 install.sh:10415 install.sh:10416 install.sh:10417
 #: scripts/fail2ban_manager.sh:63 scripts/fail2ban_manager.sh:91
 msgid "安装"
 msgstr "установка"
 
-#: install.sh:1642 install.sh:1761 install.sh:3551 install.sh:3790
-#: install.sh:4197 install.sh:4434 install.sh:4515 install.sh:4551
-#: install.sh:4552 install.sh:5371 install.sh:5379 install.sh:5920
-#: install.sh:5975 install.sh:6064 install.sh:6483 install.sh:6487
-#: install.sh:7841 install.sh:7845 install.sh:7850 install.sh:10538
-#: install.sh:10570 install.sh:11624 install.sh:11633 install.sh:12405
+#: install.sh:1695 install.sh:1814 install.sh:3604 install.sh:3843
+#: install.sh:4250 install.sh:4487 install.sh:4568 install.sh:4604
+#: install.sh:4605 install.sh:5424 install.sh:5432 install.sh:5973
+#: install.sh:6028 install.sh:6117 install.sh:6536 install.sh:6540
+#: install.sh:7894 install.sh:7898 install.sh:7903 install.sh:10764
+#: install.sh:10796 install.sh:11850 install.sh:11859 install.sh:12631
 #: scripts/file_manager.sh:366 scripts/traffic_blocker.sh:514
-#: scripts/traffic_blocker.sh:980
+#: scripts/traffic_blocker.sh:984
 msgid "失败"
 msgstr "неудача"
 
-#: install.sh:1642 install.sh:1672 install.sh:1707 install.sh:1718
+#: install.sh:1695 install.sh:1725 install.sh:1760 install.sh:1771
 msgid "将使用默认语言"
 msgstr "будет использован язык по умолчанию"
 
-#: install.sh:1672 scripts/file_manager.sh:90
+#: install.sh:1725 scripts/file_manager.sh:90
 msgid "未找到"
 msgstr "не найдено"
 
-#: install.sh:1692
+#: install.sh:1745
 msgid "language.conf 校验失败, 将使用默认语言"
 msgstr ""
 "проверка language.conf не пройдена; будет использован язык по умолчанию"
 
-#: install.sh:1707
+#: install.sh:1760
 msgid "不支持的语言"
 msgstr "язык, который не поддерживается"
 
-#: install.sh:1724
+#: install.sh:1777
 msgid "发现语言文件更新"
 msgstr "обнаружено обновление языкового файла"
 
-#: install.sh:1773 install.sh:1779 install.sh:10009
+#: install.sh:1826 install.sh:1832 install.sh:10227
 msgid "在线版本检测失败, 请稍后再试"
 msgstr "не удалось проверить онлайн-версию, попробуйте позже"
 
-#: install.sh:1821
+#: install.sh:1874
 msgid "软件包安装失败"
 msgstr "ошибка установки пакета программного обеспечения"
 
-#: install.sh:1828 install.sh:4393 install.sh:8334 install.sh:10298
+#: install.sh:1881 install.sh:4446 install.sh:8387 install.sh:10524
 msgid "已安装"
 msgstr "установлено"
 
-#: install.sh:1851 install.sh:1854
+#: install.sh:1904 install.sh:1907
 msgid "自启动配置"
 msgstr "конфигурация автозапуска"
 
-#: install.sh:1866
+#: install.sh:1919
 msgid "链接库安装"
 msgstr "установка библиотеки ссылок"
 
-#: install.sh:1876 install.sh:3585 install.sh:6952
+#: install.sh:1929 install.sh:3638 install.sh:7005
 msgid "值为空或超出范围, 请重新输入"
 msgstr ""
 "значение пустое или выходит за пределы допустимого диапазона, введите снова"
 
-#: install.sh:1881
+#: install.sh:1934
 msgid "输入已结束, 操作取消"
 msgstr "ввод завершён, операция отменена"
 
-#: install.sh:1889
+#: install.sh:1942
 msgid "值为空, 请重新输入"
 msgstr "значение пустое, введите заново"
 
-#: install.sh:1967 install.sh:2021 install.sh:2350 install.sh:2374
-#: install.sh:2399 install.sh:7103 install.sh:7113 install.sh:7124
-#: install.sh:7131
+#: install.sh:2020 install.sh:2074 install.sh:2403 install.sh:2427
+#: install.sh:2452 install.sh:7156 install.sh:7166 install.sh:7177
+#: install.sh:7184
 msgid "端口不允许使用, 请重新输入"
 msgstr "порт недоступен, введите снова"
 
-#: install.sh:2007
+#: install.sh:2060
 msgid "端口重复"
 msgstr "повторение порта"
 
-#: install.sh:2018
+#: install.sh:2071
 msgid "确定端口"
 msgstr "определить порт"
 
-#: install.sh:2019 install.sh:2022 scripts/file_manager.sh:173
+#: install.sh:2072 install.sh:2075 scripts/file_manager.sh:173
 #: scripts/file_manager.sh:175
 msgid "请输入端口"
 msgstr "пожалуйста, введите порт"
 
-#: install.sh:2019 install.sh:2022 install.sh:4762 scripts/file_manager.sh:173
+#: install.sh:2072 install.sh:2075 install.sh:4815 scripts/file_manager.sh:173
 #: scripts/file_manager.sh:178
 msgid "默认值"
 msgstr "значение по умолчанию"
 
-#: install.sh:2019 install.sh:2022 install.sh:2348 install.sh:2351
-#: install.sh:2372 install.sh:2375 install.sh:2397 install.sh:2400
-#: install.sh:8656 install.sh:8659 install.sh:8662 install.sh:8665
-#: install.sh:8666 install.sh:8670 install.sh:8671 install.sh:8672
-#: install.sh:8679 install.sh:8682 install.sh:8685 install.sh:8688
-#: install.sh:8689 install.sh:8693 install.sh:8694 install.sh:8695
+#: install.sh:2072 install.sh:2075 install.sh:2401 install.sh:2404
+#: install.sh:2425 install.sh:2428 install.sh:2450 install.sh:2453
+#: install.sh:8709 install.sh:8712 install.sh:8715 install.sh:8718
+#: install.sh:8719 install.sh:8723 install.sh:8724 install.sh:8725
+#: install.sh:8732 install.sh:8735 install.sh:8738 install.sh:8741
+#: install.sh:8742 install.sh:8746 install.sh:8747 install.sh:8748
 msgid "请输入 1-65535 之间的值"
 msgstr "введите значение в диапазоне от 1 до 65535"
 
-#: install.sh:2122
+#: install.sh:2175
 msgid "未知的安装配置"
 msgstr "Неизвестный профиль установки"
 
-#: install.sh:2139
+#: install.sh:2192
 msgid "请选择传输协议"
 msgstr "пожалуйста, выберите протокол передачи данных"
 
-#: install.sh:2140 install.sh:6103 install.sh:6125 install.sh:6143
-#: install.sh:6164 install.sh:6179 install.sh:6200 install.sh:6215
-#: install.sh:6244 install.sh:6259 install.sh:6305 install.sh:8581
-#: install.sh:8893 install.sh:8903 install.sh:9000 install.sh:9010
-#: install.sh:9095 install.sh:9105 scripts/fail2ban_manager.sh:956
+#: install.sh:2193 install.sh:6156 install.sh:6178 install.sh:6196
+#: install.sh:6217 install.sh:6232 install.sh:6253 install.sh:6268
+#: install.sh:6297 install.sh:6312 install.sh:6358 install.sh:8634
+#: install.sh:8946 install.sh:8956 install.sh:9053 install.sh:9063
+#: install.sh:9148 install.sh:9158 scripts/fail2ban_manager.sh:956
 #: scripts/fail2ban_manager.sh:957
 msgid "默认"
 msgstr "по умолчанию"
 
-#: install.sh:2146 install.sh:2348 install.sh:2351 install.sh:2372
-#: install.sh:2375 install.sh:2397 install.sh:2400 install.sh:3235
-#: install.sh:3273 install.sh:3311 install.sh:3538 install.sh:3658
-#: install.sh:6106 install.sh:6126 install.sh:6144 install.sh:6165
-#: install.sh:6180 install.sh:6201 install.sh:6216 install.sh:6225
-#: install.sh:6245 install.sh:6260 install.sh:6309 install.sh:6343
-#: install.sh:8568 install.sh:8584 install.sh:8656 install.sh:8659
-#: install.sh:8662 install.sh:8665 install.sh:8666 install.sh:8670
-#: install.sh:8671 install.sh:8672 install.sh:8679 install.sh:8682
-#: install.sh:8685 install.sh:8688 install.sh:8689 install.sh:8693
-#: install.sh:8694 install.sh:8695 install.sh:8895 install.sh:8906
-#: install.sh:8923 install.sh:9002 install.sh:9013 install.sh:9097
-#: install.sh:9108 install.sh:9129 scripts/fail2ban_manager.sh:732
+#: install.sh:2199 install.sh:2401 install.sh:2404 install.sh:2425
+#: install.sh:2428 install.sh:2450 install.sh:2453 install.sh:3288
+#: install.sh:3326 install.sh:3364 install.sh:3591 install.sh:3711
+#: install.sh:6159 install.sh:6179 install.sh:6197 install.sh:6218
+#: install.sh:6233 install.sh:6254 install.sh:6269 install.sh:6278
+#: install.sh:6298 install.sh:6313 install.sh:6362 install.sh:6396
+#: install.sh:8621 install.sh:8637 install.sh:8709 install.sh:8712
+#: install.sh:8715 install.sh:8718 install.sh:8719 install.sh:8723
+#: install.sh:8724 install.sh:8725 install.sh:8732 install.sh:8735
+#: install.sh:8738 install.sh:8741 install.sh:8742 install.sh:8746
+#: install.sh:8747 install.sh:8748 install.sh:8948 install.sh:8959
+#: install.sh:8976 install.sh:9055 install.sh:9066 install.sh:9150
+#: install.sh:9161 install.sh:9182 scripts/fail2ban_manager.sh:732
 #: scripts/fail2ban_manager.sh:913 scripts/fail2ban_manager.sh:954
 #: scripts/file_manager.sh:143
 msgid "请输入"
 msgstr "пожалуйста, введите"
 
-#: install.sh:2146 install.sh:3658 install.sh:4762 install.sh:6106
-#: install.sh:6126 install.sh:6144 install.sh:6165 install.sh:6180
-#: install.sh:6201 install.sh:6216 install.sh:6245 install.sh:6260
-#: install.sh:6309 install.sh:8568 install.sh:8584 install.sh:8895
-#: install.sh:8906 install.sh:9002 install.sh:9013 install.sh:9097
-#: install.sh:9108 install.sh:11440
+#: install.sh:2199 install.sh:3711 install.sh:4815 install.sh:6159
+#: install.sh:6179 install.sh:6197 install.sh:6218 install.sh:6233
+#: install.sh:6254 install.sh:6269 install.sh:6298 install.sh:6313
+#: install.sh:6362 install.sh:8621 install.sh:8637 install.sh:8948
+#: install.sh:8959 install.sh:9055 install.sh:9066 install.sh:9150
+#: install.sh:9161 install.sh:11666
 msgid "请输入有效的数字"
 msgstr "пожалуйста, введите действительное число"
 
-#: install.sh:2274
+#: install.sh:2327
 msgid "是否添加用于负载均衡的 ws/gRPC 协议"
 msgstr "Добавлять ли протокол ws/gRPC для балансировки нагрузки"
 
-#: install.sh:2275 install.sh:4578
+#: install.sh:2328 install.sh:4631
 msgid "如不清楚具体用途, 请勿选择"
 msgstr "если неясно конкретное назначение, пожалуйста, не выбирайте"
 
-#: install.sh:2306
+#: install.sh:2359
 msgid "已跳过添加简单 ws/gRPC/xHTTP 协议"
 msgstr "добавление простых протоколов ws/gRPC/xHTTP пропущено"
 
-#: install.sh:2344 install.sh:2368 install.sh:2393 install.sh:3231
-#: install.sh:3248 install.sh:3269 install.sh:3286 install.sh:3307
-#: install.sh:3324 install.sh:3348 install.sh:3509 install.sh:3534
-#: install.sh:3579
+#: install.sh:2397 install.sh:2421 install.sh:2446 install.sh:3284
+#: install.sh:3301 install.sh:3322 install.sh:3339 install.sh:3360
+#: install.sh:3377 install.sh:3401 install.sh:3562 install.sh:3587
+#: install.sh:3632
 msgid "是否需要自定义"
 msgstr "требуется ли настройка"
 
-#: install.sh:2348 install.sh:2351 install.sh:2372 install.sh:2375
-#: install.sh:2397 install.sh:2400
+#: install.sh:2401 install.sh:2404 install.sh:2425 install.sh:2428
+#: install.sh:2450 install.sh:2453
 msgid "请勿与其他端口相同"
 msgstr "не используйте тот же порт, что и другие"
 
-#: install.sh:2528 install.sh:2535 install.sh:2540 install.sh:3214
+#: install.sh:2581 install.sh:2588 install.sh:2593 install.sh:3267
 #: scripts/file_manager.sh:199 scripts/file_manager.sh:203
 #: scripts/file_manager.sh:207
 msgid "防火墙"
 msgstr "брандмауэр"
 
-#: install.sh:2528 install.sh:2535 install.sh:2540
+#: install.sh:2581 install.sh:2588 install.sh:2593
 msgid "规则持久化失败"
 msgstr "ошибка сохранения правил"
 
-#: install.sh:2859 install.sh:2949
+#: install.sh:2912 install.sh:3002
 msgid "基础防火墙规则回滚未完成, 部分规则仍保留并已记录"
 msgstr ""
 "Откат базовых правил межсетевого экрана не завершён; часть правил "
 "по‑прежнему активна и зафиксирована в журнале."
 
-#: install.sh:2864 install.sh:2923 install.sh:2945 install.sh:2954
+#: install.sh:2917 install.sh:2976 install.sh:2998 install.sh:3007
 msgid "基础防火墙规则状态写入失败"
 msgstr "сбой при записи состояния базовых правил межсетевого экрана"
 
-#: install.sh:2919
+#: install.sh:2972
 msgid "基础防火墙规则清理未完成, 未能删除的规则仍保持记录"
 msgstr ""
 "Очистка базовых правил межсетевого экрана не завершена; правила, которые не "
 "удалось удалить, по‑прежнему сохраняются в журнале."
 
-#: install.sh:3118
+#: install.sh:3171
 msgid "防火墙规则前向修改失败且反向恢复未完成, 全局回滚时将再次尝试"
 msgstr ""
 "Изменение правил межсетевого экрана в прямом направлении не удалось, а "
 "восстановление в обратном направлении не завершено; при выполнении "
 "глобального отката будет предпринята повторная попытка."
 
-#: install.sh:3127
+#: install.sh:3180
 msgid "防火墙状态写入失败且反向恢复未完成, 全局回滚时将再次尝试"
 msgstr ""
 "Сбой записи состояния межсетевого экрана и незавершённое обратное "
 "восстановление — при выполнении глобального отката будет предпринята "
 "повторная попытка."
 
-#: install.sh:3136 scripts/file_manager.sh:185
+#: install.sh:3189 scripts/file_manager.sh:185
 msgid "是否需要设置防火墙"
 msgstr "нужно ли устанавливать брандмауэр"
 
-#: install.sh:3157
+#: install.sh:3210
 msgid "当前网络模式所需的防火墙工具缺失 (iptables/ip6tables), 防火墙配置已中止"
 msgstr ""
 "Не найден необходимый для текущего сетевого режима инструмент межсетевого "
 "экрана (iptables/ip6tables), настройка межсетевого экрана прервана."
 
-#: install.sh:3168
+#: install.sh:3221
 msgid "基础防火墙规则配置失败"
 msgstr "сбой настройки базовых правил межсетевого экрана"
 
-#: install.sh:3203
+#: install.sh:3256
 msgid "防火墙规则更新失败"
 msgstr "ошибка обновления правил брандмауэра"
 
-#: install.sh:3214 install.sh:7309 install.sh:7316 install.sh:8598
-#: install.sh:8601 install.sh:12104 scripts/fail2ban_manager.sh:909
+#: install.sh:3267 install.sh:7362 install.sh:7369 install.sh:8651
+#: install.sh:8654 install.sh:12330 scripts/fail2ban_manager.sh:909
 #: scripts/fail2ban_manager.sh:1116 scripts/file_manager.sh:203
 #: scripts/file_manager.sh:207 scripts/file_manager.sh:254
 #: scripts/file_manager.sh:363 scripts/file_manager.sh:366
-#: scripts/traffic_blocker.sh:739 scripts/traffic_blocker.sh:760
+#: scripts/traffic_blocker.sh:743 scripts/traffic_blocker.sh:764
 msgid "重启"
 msgstr "перезапуск"
 
-#: install.sh:3216
+#: install.sh:3269
 msgid "开放防火墙相关端口"
 msgstr "открыть соответствующие порты брандмауэра"
 
-#: install.sh:3217
+#: install.sh:3270
 msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr ""
 "если изменяете настройки, обратите внимание на закрытие соответствующих "
 "портов брандмауэра"
 
-#: install.sh:3218 install.sh:10193 install.sh:10220 install.sh:10221
-#: install.sh:12043 install.sh:12064 install.sh:12167
+#: install.sh:3271 install.sh:10419 install.sh:10446 install.sh:10447
+#: install.sh:12269 install.sh:12290 install.sh:12393
 #: scripts/fail2ban_manager.sh:88 scripts/fail2ban_manager.sh:93
 #: scripts/fail2ban_manager.sh:250
 msgid "配置"
 msgstr "конфигурация"
 
-#: install.sh:3221 scripts/file_manager.sh:211
+#: install.sh:3274 scripts/file_manager.sh:211
 msgid "跳过防火墙设置"
 msgstr "пропустить настройку брандмауэра"
 
-#: install.sh:3231 install.sh:3235 install.sh:3237 install.sh:3241
-#: install.sh:3248 install.sh:3269 install.sh:3273 install.sh:3275
-#: install.sh:3279 install.sh:3286 install.sh:3307 install.sh:3311
-#: install.sh:3313 install.sh:3317 install.sh:3324 install.sh:4197
-#: install.sh:4203
+#: install.sh:3284 install.sh:3288 install.sh:3290 install.sh:3294
+#: install.sh:3301 install.sh:3322 install.sh:3326 install.sh:3328
+#: install.sh:3332 install.sh:3339 install.sh:3360 install.sh:3364
+#: install.sh:3366 install.sh:3370 install.sh:3377 install.sh:4250
+#: install.sh:4256
 msgid "伪装路径"
 msgstr "путь маскировки"
 
-#: install.sh:3235 install.sh:3273 install.sh:3311
+#: install.sh:3288 install.sh:3326 install.sh:3364
 msgid "不需要"
 msgstr "не нужно"
 
-#: install.sh:3343 install.sh:3348 install.sh:3358 install.sh:8936
+#: install.sh:3396 install.sh:3401 install.sh:3411 install.sh:8989
 msgid "用户名"
 msgstr "имя пользователя"
 
-#: install.sh:3352
+#: install.sh:3405
 msgid "请输入正确的 email"
 msgstr "пожалуйста, введите правильный адрес электронной почты [email]"
 
-#: install.sh:3370
+#: install.sh:3423
 msgid "是否需要自定义字符串映射"
 msgstr "требуется ли пользовательское сопоставление строк"
 
-#: install.sh:3374
+#: install.sh:3427
 msgid "请输入自定义字符串"
 msgstr "пожалуйста, введите пользовательскую строку"
 
-#: install.sh:3374
+#: install.sh:3427
 msgid "最多30字符"
 msgstr "максимум 30 символов"
 
-#: install.sh:3376
+#: install.sh:3429
 msgid "自定义字符串"
 msgstr "пользовательская строка"
 
-#: install.sh:3383 install.sh:8414 install.sh:10223 install.sh:11544
-#: install.sh:12020
+#: install.sh:3436 install.sh:8467 install.sh:10449 install.sh:11770
+#: install.sh:12246
 msgid "映射字符串"
 msgstr "сопоставление строки"
 
-#: install.sh:3394
+#: install.sh:3447
 msgid "检测到 target 域名已配置, 是否保留"
 msgstr "обнаружено, что домен target уже настроен. сохранить"
 
-#: install.sh:3415
+#: install.sh:3468
 msgid "请输入一个域名"
 msgstr "пожалуйста, введите доменное имя"
 
-#: install.sh:3416
+#: install.sh:3469
 msgid "域名必须支持 TLSv1.3、X25519、H2, 且不能跳转"
 msgstr ""
 "Доменное имя должно поддерживать TLSv1.3, X25519, H2 и не может быть "
 "перенаправлено."
 
-#: install.sh:3417
+#: install.sh:3470
 msgid "确认域名符合要求后请输入"
 msgstr "после подтверждения соответствия доменного имени требованиям, введите"
 
-#: install.sh:3418
+#: install.sh:3471
 msgid "正在检测域名请等待"
 msgstr "проверка домена, пожалуйста, подождите"
 
-#: install.sh:3425 install.sh:3430 install.sh:3435
+#: install.sh:3478 install.sh:3483 install.sh:3488
 msgid "该域名不支持"
 msgstr "данный домен не поддерживается"
 
-#: install.sh:3440
+#: install.sh:3493
 msgid "该域名发生了跳转"
 msgstr "это доменное имя перенаправляется"
 
-#: install.sh:3447
+#: install.sh:3500
 msgid "该域名可能不满足所有要求"
 msgstr "данный домен может не соответствовать всем требованиям"
 
-#: install.sh:3448
+#: install.sh:3501
 msgid "是否仍要设置此域名"
 msgstr "нужно ли все еще настраивать это доменное имя"
 
-#: install.sh:3460 install.sh:3465
+#: install.sh:3513 install.sh:3518
 msgid "域名"
 msgstr "доменное имя"
 
-#: install.sh:3460
+#: install.sh:3513
 msgid "满足所有要求"
 msgstr "удовлетворить все требования"
 
-#: install.sh:3498
+#: install.sh:3551
 msgid "自愈: 移除损坏的旧 serverNames 配置"
 msgstr ""
 "Самовосстановление: удаление повреждённой старой конфигурации serverNames"
 
-#: install.sh:3509
+#: install.sh:3562
 msgid "域名的"
 msgstr "домена"
 
-#: install.sh:3510
+#: install.sh:3563
 msgid "默认为"
 msgstr "по умолчанию"
 
-#: install.sh:3510
+#: install.sh:3563
 msgid "域名本身"
 msgstr "само доменное имя"
 
-#: install.sh:3511 install.sh:3647 install.sh:3691
+#: install.sh:3564 install.sh:3700 install.sh:3744
 msgid "如不清楚具体用途, 请勿继续"
 msgstr "если неясно конкретное назначение, не продолжайте"
 
-#: install.sh:3515 install.sh:3518
+#: install.sh:3568 install.sh:3571
 msgid "请输入单个域名"
 msgstr "введите один доменное имя"
 
-#: install.sh:3517
+#: install.sh:3570
 msgid "serverNames 仅支持单个合法域名, 请重新输入"
 msgstr ""
 "serverNames Поддерживается только один допустимый домен. Пожалуйста, введите"
 " снова."
 
-#: install.sh:3551 install.sh:4237 install.sh:4244 install.sh:4326
-#: install.sh:6980 install.sh:7083 install.sh:7205 install.sh:7213
-#: install.sh:7223 install.sh:7261 install.sh:7841 install.sh:7845
-#: install.sh:7850 install.sh:12405
+#: install.sh:3604 install.sh:4290 install.sh:4297 install.sh:4379
+#: install.sh:7033 install.sh:7136 install.sh:7258 install.sh:7266
+#: install.sh:7276 install.sh:7314 install.sh:7894 install.sh:7898
+#: install.sh:7903 install.sh:12631
 msgid "配置修改"
 msgstr "изменение конфигурации"
 
-#: install.sh:3555 install.sh:8435
+#: install.sh:3608 install.sh:8488
 msgid "已生成并保存（不显示）"
 msgstr "сгенерировано и сохранено (не отображается)"
 
-#: install.sh:3583 install.sh:3586
+#: install.sh:3636 install.sh:3639
 msgid "请输入单个 shortId"
 msgstr "введите один shortId"
 
-#: install.sh:3607
+#: install.sh:3660
 msgid "本地文件"
 msgstr "локальный файл"
 
-#: install.sh:3607
+#: install.sh:3660
 msgid "不存在, 正在下载"
 msgstr "не существует, загрузка…"
 
-#: install.sh:3609 install.sh:3623 scripts/fail2ban_manager.sh:1180
-#: scripts/file_manager.sh:346 scripts/traffic_blocker.sh:1227
+#: install.sh:3662 install.sh:3676 scripts/fail2ban_manager.sh:1180
+#: scripts/file_manager.sh:346 scripts/traffic_blocker.sh:1231
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr ""
 "скачивание не удалось, пожалуйста, скачайте и установите новую версию "
 "вручную"
 
-#: install.sh:3616
+#: install.sh:3669
 msgid "版本过旧, 建议更新"
 msgstr "версия устарела, рекомендуется обновить"
 
-#: install.sh:3617 scripts/fail2ban_manager.sh:1169
-#: scripts/file_manager.sh:335 scripts/traffic_blocker.sh:1216
+#: install.sh:3670 scripts/fail2ban_manager.sh:1169
+#: scripts/file_manager.sh:335 scripts/traffic_blocker.sh:1220
 msgid "是否下载并安装新版本"
 msgstr "скачать и установить новую версию"
 
-#: install.sh:3628
+#: install.sh:3681
 msgid "版本过旧, 可能存在兼容性问题"
 msgstr "версия устарела, возможны проблемы совместимости"
 
-#: install.sh:3635 scripts/fail2ban_manager.sh:10 scripts/file_manager.sh:10
+#: install.sh:3688 scripts/fail2ban_manager.sh:10 scripts/file_manager.sh:10
 #: scripts/traffic_blocker.sh:9
 msgid "需要主脚本版本"
 msgstr "требуется основная версия скрипта"
 
-#: install.sh:3635 install.sh:9826 scripts/fail2ban_manager.sh:10
+#: install.sh:3688 install.sh:10023 scripts/fail2ban_manager.sh:10
 #: scripts/fail2ban_manager.sh:1166 scripts/file_manager.sh:10
 #: scripts/file_manager.sh:332 scripts/traffic_blocker.sh:9
-#: scripts/traffic_blocker.sh:749 scripts/traffic_blocker.sh:1213
+#: scripts/traffic_blocker.sh:753 scripts/traffic_blocker.sh:1217
 msgid "当前版本"
 msgstr "текущая версия"
 
-#: install.sh:3635 scripts/fail2ban_manager.sh:10 scripts/file_manager.sh:10
+#: install.sh:3688 scripts/fail2ban_manager.sh:10 scripts/file_manager.sh:10
 #: scripts/traffic_blocker.sh:9
 msgid "请先更新主脚本"
 msgstr "пожалуйста, сначала обновите основной скрипт"
 
-#: install.sh:3646 install.sh:3690
+#: install.sh:3699 install.sh:3743
 msgid "是否变更"
 msgstr "изменить ли"
 
-#: install.sh:3646 install.sh:11754 install.sh:12044
+#: install.sh:3699 install.sh:11980 install.sh:12270
 msgid "负载均衡"
 msgstr "балансировка нагрузки"
 
-#: install.sh:3652
+#: install.sh:3705
 msgid "请选择协议为 ws 或 gRPC 或 xHTTP"
 msgstr "пожалуйста, выберите протокол: ws, gRPC или xHTTP"
 
-#: install.sh:3667 install.sh:10478 scripts/fail2ban_manager.sh:78
+#: install.sh:3720 install.sh:10704 scripts/fail2ban_manager.sh:78
 #: scripts/fail2ban_manager.sh:758 scripts/fail2ban_manager.sh:787
 #: scripts/fail2ban_manager.sh:819 scripts/fail2ban_manager.sh:854
 #: scripts/fail2ban_manager.sh:889 scripts/fail2ban_manager.sh:936
 #: scripts/fail2ban_manager.sh:1053 scripts/file_manager.sh:320
 #: scripts/traffic_blocker.sh:279 scripts/traffic_blocker.sh:315
-#: scripts/traffic_blocker.sh:598 scripts/traffic_blocker.sh:711
-#: scripts/traffic_blocker.sh:827
+#: scripts/traffic_blocker.sh:598 scripts/traffic_blocker.sh:715
+#: scripts/traffic_blocker.sh:831
 msgid "无效的选择, 请重试"
 msgstr "недопустимый выбор, попробуйте еще раз"
 
-#: install.sh:3679 install.sh:3705 install.sh:4968 install.sh:7374
-#: install.sh:7411 install.sh:7431 install.sh:8593
+#: install.sh:3732 install.sh:3758 install.sh:5021 install.sh:7427
+#: install.sh:7464 install.sh:7484 install.sh:8646
 msgid "当前模式不支持此操作"
 msgstr "текущий режим не поддерживает эту операцию"
 
-#: install.sh:3692
+#: install.sh:3745
 msgid "配置用途可以参考文章"
 msgstr "конфигурацию использования можно найти в статье"
 
-#: install.sh:3717 install.sh:3728 install.sh:3732 install.sh:3736
-#: install.sh:3790 install.sh:3793 install.sh:4113 install.sh:4119
-#: install.sh:4197 install.sh:4203 install.sh:4229 install.sh:4363
-#: install.sh:10221
+#: install.sh:3770 install.sh:3781 install.sh:3785 install.sh:3789
+#: install.sh:3843 install.sh:3846 install.sh:4166 install.sh:4172
+#: install.sh:4250 install.sh:4256 install.sh:4282 install.sh:4416
+#: install.sh:10447
 msgid "修改"
 msgstr "изменить"
 
-#: install.sh:3948
+#: install.sh:4001
 msgid "用户创建失败, 将回退到 nobody"
 msgstr "Создание пользователя не удалось, будет выполнен откат к nobody"
 
-#: install.sh:3966
+#: install.sh:4019
 msgid "用户不存在, 跳过分层权限"
 msgstr "пользователь не существует; настройка многоуровневых прав пропущена"
 
-#: install.sh:4044
+#: install.sh:4097
 msgid "Nginx 分层权限应用不完整"
 msgstr "Nginx Неполное применение разнесённых прав доступа"
 
-#: install.sh:4121 install.sh:6919 install.sh:6923 install.sh:6927
-#: install.sh:8392 install.sh:8395 install.sh:8398 install.sh:8401
-#: install.sh:8405 install.sh:8408 install.sh:8411 install.sh:8443
-#: install.sh:8447 install.sh:8451 install.sh:8702
+#: install.sh:4174 install.sh:6972 install.sh:6976 install.sh:6980
+#: install.sh:8445 install.sh:8448 install.sh:8451 install.sh:8454
+#: install.sh:8458 install.sh:8461 install.sh:8464 install.sh:8496
+#: install.sh:8500 install.sh:8504 install.sh:8755
 msgid "端口"
 msgstr "порт"
 
-#: install.sh:4201
+#: install.sh:4254
 msgid "不支持"
 msgstr "не поддерживается"
 
-#: install.sh:4212 install.sh:4225
+#: install.sh:4265 install.sh:4278
 msgid "请先删除多余的用户"
 msgstr "пожалуйста, сначала удалите лишних пользователей"
 
-#: install.sh:4216
+#: install.sh:4269
 msgid "用户名修改"
 msgstr "изменение имени пользователя"
 
-#: install.sh:4349
+#: install.sh:4402
 msgid "检测到 Xray 的权限控制, 启动修改程序"
 msgstr "обнаружено управление доступом Xray, запуск программы модификации"
 
-#: install.sh:4385
+#: install.sh:4438
 msgid "即将安装"
 msgstr "Скоро будет установлено"
 
-#: install.sh:4409
+#: install.sh:4462
 msgid "若更新无效, 建议直接卸载再安装"
 msgstr ""
 "если обновление неэффективно, рекомендуется полностью удалить приложение, а "
 "затем установить заново"
 
-#: install.sh:4410
+#: install.sh:4463
 msgid "部分新功能需要重新安装才可生效"
 msgstr ""
 "некоторые новые функции вступают в силу только после повторной установки"
 
-#: install.sh:4412 install.sh:4420 install.sh:4432 install.sh:4434
-#: install.sh:4551 install.sh:4552 install.sh:5848 install.sh:6002
-#: install.sh:9906 install.sh:10208 install.sh:10226 install.sh:12164
-#: install.sh:12165 install.sh:12166 scripts/traffic_blocker.sh:697
-#: scripts/traffic_blocker.sh:698 scripts/traffic_blocker.sh:980
+#: install.sh:4465 install.sh:4473 install.sh:4485 install.sh:4487
+#: install.sh:4604 install.sh:4605 install.sh:5901 install.sh:6055
+#: install.sh:10115 install.sh:10434 install.sh:10452 install.sh:12390
+#: install.sh:12391 install.sh:12392 scripts/traffic_blocker.sh:701
+#: scripts/traffic_blocker.sh:702 scripts/traffic_blocker.sh:984
 msgid "更新"
 msgstr "обновление"
 
-#: install.sh:4414
+#: install.sh:4467
 msgid "检测到存在最新版"
 msgstr "обнаружена новейшая версия"
 
-#: install.sh:4415
+#: install.sh:4468
 msgid "脚本可能未兼容此版本"
 msgstr "скрипт может быть несовместим с этой версией"
 
-#: install.sh:4416
+#: install.sh:4469
 msgid "是否更新"
 msgstr "обновить ли"
 
-#: install.sh:4424 install.sh:4478
+#: install.sh:4477 install.sh:4531
 msgid "本机备份失败, 拒绝继续更新"
 msgstr ""
 "ошибка резервного копирования на этом устройстве, запрет на продолжение "
 "обновления."
 
-#: install.sh:4436 install.sh:4519 install.sh:5983
+#: install.sh:4489 install.sh:4572 install.sh:6036
 msgid "是否回滚到之前的版本"
 msgstr "вернуться ли к предыдущей версии"
 
-#: install.sh:4440 install.sh:4523 install.sh:5990
+#: install.sh:4493 install.sh:4576 install.sh:6043
 msgid "未执行回滚操作"
 msgstr "операция отката не выполнена"
 
-#: install.sh:4441
+#: install.sh:4494
 msgid "更新失败且未回滚, 当前服务可能不可用, 请手动检查"
 msgstr ""
 "Обновление завершилось неудачно, откат не выполнен; текущий сервис может "
 "быть недоступен. Пожалуйста, проверьте вручную."
 
-#: install.sh:4443
+#: install.sh:4496
 msgid "高优先级错误: Xray 服务已停止"
 msgstr "Ошибка высокого приоритета: служба Xray остановлена"
 
-#: install.sh:4448 install.sh:4528 install.sh:5994
+#: install.sh:4501 install.sh:4581 install.sh:6047
 msgid "正在回滚"
 msgstr "возвращается к исходному состоянию"
 
-#: install.sh:4451 install.sh:4530 install.sh:5729
+#: install.sh:4504 install.sh:4583 install.sh:5782
 msgid "已成功回滚到之前的"
 msgstr "успешно отменено до предыдущего"
 
-#: install.sh:4451 install.sh:4530 install.sh:5729 install.sh:11559
-#: install.sh:12023
+#: install.sh:4504 install.sh:4583 install.sh:5782 install.sh:11785
+#: install.sh:12249
 msgid "版本"
 msgstr "версия"
 
-#: install.sh:4456 install.sh:5709
+#: install.sh:4509 install.sh:5762
 msgid "Layer 1 失败, 尝试 Layer 2 tested_version 恢复"
 msgstr "Layer 1 Сбой, попытка Layer 2 tested_version восстановления"
 
-#: install.sh:4462 install.sh:4496 install.sh:4539
+#: install.sh:4515 install.sh:4549 install.sh:4592
 msgid "回滚失败"
 msgstr "откат не удался"
 
-#: install.sh:4502 install.sh:4513 install.sh:4515
+#: install.sh:4555 install.sh:4566 install.sh:4568
 msgid "重装"
 msgstr "переустановить"
 
-#: install.sh:4506
+#: install.sh:4559
 msgid "本机备份失败, 拒绝继续重装"
 msgstr ""
 "ошибка резервного копирования на этом устройстве, отказ от продолжения "
 "переустановки."
 
-#: install.sh:4569 install.sh:4583 scripts/fail2ban_manager.sh:179
+#: install.sh:4622 install.sh:4636 scripts/fail2ban_manager.sh:179
 #: scripts/fail2ban_manager.sh:189 scripts/fail2ban_manager.sh:214
 #: scripts/fail2ban_manager.sh:240 scripts/fail2ban_manager.sh:1000
 #: scripts/rill_xray_agent_manager.sh:100 scripts/traffic_blocker.sh:528
-#: scripts/traffic_blocker.sh:778
+#: scripts/traffic_blocker.sh:782
 msgid "已启用"
 msgstr "уже включено"
 
-#: install.sh:4571 install.sh:4587
+#: install.sh:4624 install.sh:4640
 msgid "已跳过"
 msgstr "пропущено"
 
-#: install.sh:4576
+#: install.sh:4629
 msgid "是否添加 Reality 负载均衡"
 msgstr "добавить ли балансировку нагрузки Reality"
 
-#: install.sh:4577
+#: install.sh:4630
 msgid "使用此功能前，建议先阅读作者教程"
 msgstr ""
 "перед использованием этой функции рекомендуется сначала ознакомиться с "
 "учебным материалом автора"
 
-#: install.sh:4756
+#: install.sh:4809
 msgid "异常 SNI 处理方式"
 msgstr "способ обработки исключения SNI"
 
-#: install.sh:4757
+#: install.sh:4810
 msgid "隔离异常流量, 不转发到 Xray"
 msgstr "Отсекать аномический трафик, не перенаправлять в Xray"
 
-#: install.sh:4757 install.sh:5027 install.sh:6102 install.sh:6304
-#: install.sh:11750 install.sh:11895
+#: install.sh:4810 install.sh:5080 install.sh:6155 install.sh:6357
+#: install.sh:11976 install.sh:12121
 msgid "推荐"
 msgstr "рекомендовать"
 
-#: install.sh:4758
+#: install.sh:4811
 msgid "使用指向本机 IP 的自建 HTTPS 站点作为回落"
 msgstr ""
 "Использовать собственный сайт HTTPS, указывающий на локальный IP, в качестве"
 " резервного варианта."
 
-#: install.sh:4758 install.sh:4759 install.sh:11754 install.sh:11896
-#: install.sh:11958
+#: install.sh:4811 install.sh:4812 install.sh:11980 install.sh:12122
+#: install.sh:12184
 msgid "高级"
 msgstr "высший"
 
-#: install.sh:4759
+#: install.sh:4812
 msgid "直接拒绝异常 TLS 连接"
 msgstr "напрямую отклонить подключение с ошибкой TLS"
 
-#: install.sh:4760
+#: install.sh:4813
 msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
 msgstr ""
 "Пункт 2 требует, чтобы у вас уже был собственный домен, а запись A/AAAA "
 "этого домена указывала на ваш публичный IP‑адрес. Если вы не понимаете, что "
 "это означает, используйте политику изоляции по умолчанию."
 
-#: install.sh:4762 install.sh:11440
+#: install.sh:4815 install.sh:11666
 msgid "请输入选项"
 msgstr "пожалуйста, введите вариант"
 
-#: install.sh:4770 install.sh:7108
+#: install.sh:4823 install.sh:7161
 msgid "decoy 站点设置失败, 回退到默认隔离策略"
 msgstr ""
 "decoy Сбой настройки сайта, возвращено к политике изоляции по умолчанию"
 
-#: install.sh:4776
+#: install.sh:4829
 msgid "已选择直接拒绝异常 TLS 连接"
 msgstr "Установлено прямое отклонение подключений с ошибкой TLS"
 
-#: install.sh:4780
+#: install.sh:4833
 msgid "已选择隔离异常流量"
 msgstr "выбрано изолирование аномального трафика"
 
-#: install.sh:4852
+#: install.sh:4905
 msgid "decoy 站点设置"
 msgstr "decoy настройки сайта"
 
-#: install.sh:4853
+#: install.sh:4906
 msgid "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP"
 msgstr ""
 "Введите свой доменное имя; запись A/AAAA для этого домена должна указывать "
 "на ваш публичный IP адрес."
 
-#: install.sh:4855 install.sh:4857
+#: install.sh:4908 install.sh:4910
 msgid "请输入 decoy 域名"
 msgstr "пожалуйста, введите доменное имя decoy"
 
-#: install.sh:4866
+#: install.sh:4919
 msgid "无法解析该域名的 A/AAAA 记录, 请检查 DNS 是否已生效"
 msgstr ""
 "Не удалось разрешить запись A/AAAA для данного доменного имени. Проверьте, "
 "вступил ли в силу DNS."
 
-#: install.sh:4870
+#: install.sh:4923
 msgid "该域名 A/AAAA 记录"
 msgstr "запись этого доменного имени A/AAAA"
 
-#: install.sh:4870
+#: install.sh:4923
 msgid "未指向本机公网 IP"
 msgstr "не указывает на публичный ip-адрес этого узла IP"
 
-#: install.sh:4871
+#: install.sh:4924
 msgid "请先将域名 A/AAAA 记录指向本机, 或使用默认隔离策略"
 msgstr ""
 "Сначала настройте запись доменного имени A/AAAA так, чтобы она указывала на "
 "локальный хост, или воспользуйтесь политикой изоляции по умолчанию."
 
-#: install.sh:4876
+#: install.sh:4929
 msgid "域名校验通过"
 msgstr "проверка доменного имени прошла успешно"
 
-#: install.sh:4886
+#: install.sh:4939
 msgid "自签证书生成失败"
 msgstr "ошибка генерации самоподписанного сертификата"
 
-#: install.sh:4919
+#: install.sh:4972
 msgid "decoy 站点配置完成"
 msgstr "decoy конфигурация сайта завершена"
 
-#: install.sh:4920
+#: install.sh:4973
 msgid "当前使用自签证书, 浏览器访问会有证书提示。高级用户可自行替换"
 msgstr ""
 "В настоящее время используется самоподписанный сертификат; при доступе через"
 " браузер будет выводиться уведомление о сертификате. Продвинутые "
 "пользователи могут заменить его самостоятельно."
 
-#: install.sh:4920
+#: install.sh:4973
 msgid "与"
 msgstr "с"
 
-#: install.sh:5005
+#: install.sh:5058
 msgid "检测到已安装"
 msgstr "обнаружено установленное"
 
-#: install.sh:5006
+#: install.sh:5059
 msgid "已跳过安装 nginx, 保留现有 nginx 不卸载"
 msgstr "Установка nginx пропущена, существующий nginx сохранён"
 
-#: install.sh:5008
+#: install.sh:5061
 msgid "已跳过安装"
 msgstr "установка пропущена"
 
-#: install.sh:5025
+#: install.sh:5078
 msgid "Reality 协议可能存在流量绕过风险"
 msgstr "Протокол Reality может иметь риск обхода трафика"
 
-#: install.sh:5027 install.sh:5043
+#: install.sh:5080 install.sh:5096
 msgid "是否额外安装 nginx 前置保护"
 msgstr "устанавливать ли дополнительный защитный прокси nginx"
 
-#: install.sh:5040
+#: install.sh:5093
 msgid "检测到已开启 Reality 负载均衡"
 msgstr "обнаружено, что включен балансировщик нагрузки Reality"
 
-#: install.sh:5041
+#: install.sh:5094
 msgid "作为 Reality 负载均衡主服务器时必须安装"
 msgstr ""
 "Требуется при работе в качестве главного сервера балансировки нагрузки "
 "Reality."
 
-#: install.sh:5042
+#: install.sh:5095
 msgid "作为 Reality 负载均衡二级服务器时无需安装"
 msgstr ""
 "Установка не требуется при использовании в качестве вторичного сервера "
 "балансировки нагрузки Reality."
 
-#: install.sh:5086
+#: install.sh:5139
 msgid "已存在, 跳过编译安装过程"
 msgstr "существует, пропустить процесс компиляции и установки"
 
-#: install.sh:5088
+#: install.sh:5141
 msgid "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装"
 msgstr ""
 "обнаружен Nginx, установленный другим пакетом. продолжение установки "
 "приведёт к конфликту. пожалуйста, устраните проблему перед установкой"
 
-#: install.sh:5113
+#: install.sh:5166
 msgid "tar 安全检查: 文件不存在"
 msgstr "проверка безопасности tar: файл не существует"
 
-#: install.sh:5117
+#: install.sh:5170
 msgid "tar 安全检查: 目标目录未指定"
 msgstr "tar Проверка безопасности: целевая директория не указана"
 
-#: install.sh:5234
+#: install.sh:5287
 msgid "tar 安全检查"
 msgstr "tar проверка безопасности"
 
-#: install.sh:5248
+#: install.sh:5301
 msgid "tar 安全检查: 解压失败"
 msgstr "tar проверка безопасности: сбой при распаковке"
 
-#: install.sh:5310
+#: install.sh:5363
 msgid "不支持的系统架构"
 msgstr "неподдерживаемая архитектура системы"
 
-#: install.sh:5317
+#: install.sh:5370
 msgid "即将下载已编译的"
 msgstr "готовится к загрузке скомпилированный"
 
-#: install.sh:5324
+#: install.sh:5377
 msgid "release-manifest.json 下载失败或无效, 拒绝安装"
 msgstr ""
 "release-manifest.json Скачивание завершилось неудачно или файл "
 "недействителен, установка отклонена"
 
-#: install.sh:5339
+#: install.sh:5392
 msgid "manifest 中未找到架构"
 msgstr "Схема не найдена в manifest"
 
-#: install.sh:5339
+#: install.sh:5392
 msgid "的产物记录, 拒绝安装"
 msgstr "запись продукта, отказ от установки"
 
-#: install.sh:5345
+#: install.sh:5398
 msgid "manifest 中未提供 SHA256, 拒绝未校验安装"
 msgstr ""
 "manifest не предоставил SHA256; установка отклонена, проверка не выполнена."
 
-#: install.sh:5350
+#: install.sh:5403
 msgid "manifest 产物文件名与架构契约不匹配, 拒绝安装"
 msgstr ""
 "manifest Имя файла продукта не соответствует архитектурному соглашению, "
 "установка отклонена"
 
-#: install.sh:5355
+#: install.sh:5408
 msgid "manifest SHA256 格式无效, 拒绝安装"
 msgstr "manifest SHA256 Формат недопустим, установка отклонена"
 
-#: install.sh:5361
+#: install.sh:5414
 msgid "manifest 版本或 tag 不匹配, 拒绝安装"
 msgstr "Версия manifest или tag не совпадает, установка отклонена"
 
-#: install.sh:5371 install.sh:5375 scripts/traffic_blocker.sh:511
+#: install.sh:5424 install.sh:5428 scripts/traffic_blocker.sh:511
 #: scripts/traffic_blocker.sh:514
 msgid "下载"
 msgstr "скачать"
 
-#: install.sh:5379 install.sh:5383
+#: install.sh:5432 install.sh:5436
 msgid "校验"
 msgstr "проверка"
 
-#: install.sh:5379
+#: install.sh:5432
 msgid ", 拒绝安装"
 msgstr ", отказаться от установки"
 
-#: install.sh:5383
+#: install.sh:5436
 msgid "通过"
 msgstr "через"
 
-#: install.sh:5391
+#: install.sh:5444
 msgid "Nginx 压缩包安全检查失败, 拒绝安装"
 msgstr "Nginx Проверка безопасности архива не пройдена, установка запрещена"
 
-#: install.sh:5395
+#: install.sh:5448
 msgid "Nginx 压缩包安全检查通过"
 msgstr "Nginx Проверка безопасности архива пройдена"
 
-#: install.sh:5399
+#: install.sh:5452
 msgid "解压后未找到 sbin/nginx 或不是常规文件, 结构校验失败"
 msgstr ""
 "После распаковки не найден файл sbin/nginx или он не является обычным "
 "файлом, проверка структуры завершилась неудачей."
 
-#: install.sh:5407
+#: install.sh:5460
 msgid "sbin/nginx 不是可执行 ELF 二进制, 拒绝安装"
 msgstr ""
 "sbin/nginx не является исполняемым двоичным файлом ELF; установка отклонена"
 
-#: install.sh:5415
+#: install.sh:5468
 msgid "staging 目录移动失败"
 msgstr "staging сбой перемещения каталога"
 
-#: install.sh:5425
+#: install.sh:5478
 msgid "Nginx 现有目录备份失败, 拒绝替换"
 msgstr ""
 "Nginx Резервное копирование существующей директории выполнено с ошибкой, "
 "замена запрещена"
 
-#: install.sh:5433
+#: install.sh:5486
 msgid "Nginx 替换失败"
 msgstr "Nginx ошибка замены"
 
-#: install.sh:5464
+#: install.sh:5517
 msgid "Nginx 分层权限应用失败, 可能影响服务运行"
 msgstr ""
 "Nginx Сбой применения разграниченных прав; возможно влияние на работу "
 "сервисов"
 
-#: install.sh:5470
+#: install.sh:5523
 msgid "Nginx 分层权限验证失败"
 msgstr "Nginx сбой проверки разграниченных прав доступа"
 
-#: install.sh:5481 scripts/rill_xray_agent_manager.sh:952
+#: install.sh:5534 scripts/rill_xray_agent_manager.sh:952
 msgid "Nginx 配置校验失败"
 msgstr "Nginx сбой проверки конфигурации"
 
-#: install.sh:5507
+#: install.sh:5560
 msgid "配置检测"
 msgstr "Проверка конфигурации"
 
-#: install.sh:5513 install.sh:5529
+#: install.sh:5566 install.sh:5582
 msgid "服务日志"
 msgstr "Журнал обслуживания"
 
-#: install.sh:5523 install.sh:12242
+#: install.sh:5576 install.sh:12468
 msgid "版本检测"
 msgstr "проверка версии"
 
-#: install.sh:5537
+#: install.sh:5590
 msgid "错误日志"
 msgstr "журнал ошибок"
 
-#: install.sh:5579
+#: install.sh:5632
 msgid "二进制备份失败"
 msgstr "ошибка бинарного резервного копирования"
 
-#: install.sh:5600
+#: install.sh:5653
 msgid "本机备份不存在, 跳过 Layer 1 恢复"
 msgstr ""
 "Резервная копия на этом устройстве отсутствует, пропуск Layer 1 "
 "восстановления"
 
-#: install.sh:5608
+#: install.sh:5661
 msgid "备份校验失败, 拒绝恢复"
 msgstr "сбой проверки резервной копии, восстановление отклонено"
 
-#: install.sh:5614
+#: install.sh:5667
 msgid "二进制恢复失败"
 msgstr "сбой восстановления из двоичного файла"
 
-#: install.sh:5633 install.sh:5662
+#: install.sh:5686 install.sh:5715
 msgid "tested_version 不可用, 跳过 Layer 2 恢复"
 msgstr "tested_version недоступно, пропускается Layer 2 восстановление"
 
-#: install.sh:5636 install.sh:5665
+#: install.sh:5689 install.sh:5718
 msgid "尝试使用 tested_version 恢复"
 msgstr "Попробуйте восстановить с помощью tested_version"
 
-#: install.sh:5639 install.sh:5672
+#: install.sh:5692 install.sh:5725
 msgid "安装失败"
 msgstr "сбой установки"
 
-#: install.sh:5643 install.sh:5743 install.sh:5785
+#: install.sh:5696 install.sh:5796 install.sh:5838
 msgid "二进制不可执行"
 msgstr "двоичный файл не является исполняемым"
 
-#: install.sh:5653 install.sh:5687 install.sh:5731
+#: install.sh:5706 install.sh:5740 install.sh:5784
 msgid "已恢复到 tested_version"
 msgstr "Восстановлено до tested_version"
 
-#: install.sh:5704
+#: install.sh:5757
 msgid "旧版本记录恢复失败, 继续 tested_version 恢复"
 msgstr ""
 "Восстановление записей старой версии завершилось неудачно, продолжить "
 "восстановление tested_version"
 
-#: install.sh:5717
+#: install.sh:5770
 msgid "所有回滚层均失败"
 msgstr "все уровни отката выполнены с ошибкой"
 
-#: install.sh:5720
+#: install.sh:5773
 msgid "更新失败且所有回滚层均失败, 请手动检查"
 msgstr ""
 "Обновление не удалось, и все уровни отката также не выполнились. Пожалуйста,"
 " проверьте вручную."
 
-#: install.sh:5745
+#: install.sh:5798
 msgid "二进制执行失败"
 msgstr "сбой выполнения двоичного файла"
 
-#: install.sh:5753
+#: install.sh:5806
 msgid "版本不匹配"
 msgstr "несоответствие версий"
 
-#: install.sh:5760
+#: install.sh:5813
 msgid "配置解析失败"
 msgstr "не удалось разобрать конфигурацию"
 
-#: install.sh:5765 install.sh:5792
+#: install.sh:5818 install.sh:5845
 msgid "服务未运行"
 msgstr "служба не работает"
 
-#: install.sh:5773 install.sh:5801
+#: install.sh:5826 install.sh:5854
 msgid "端口未监听"
 msgstr "порт не прослушивается"
 
-#: install.sh:5787
+#: install.sh:5840
 msgid "配置检测失败"
 msgstr "проверка конфигурации не пройдена"
 
-#: install.sh:5796
+#: install.sh:5849
 msgid "分层权限验证失败"
 msgstr "сбой проверки прав доступа на основе уровней"
 
-#: install.sh:5824
+#: install.sh:5877
 msgid "脚本不存在"
 msgstr "скрипт не существует"
 
-#: install.sh:5828
+#: install.sh:5881
 msgid "脚本语法检查失败"
 msgstr "ошибка проверки синтаксиса скрипта"
 
-#: install.sh:5835
+#: install.sh:5888
 msgid "脚本版本不匹配"
 msgstr "версии скрипта не совпадают"
 
-#: install.sh:5888 install.sh:5889 install.sh:5896 install.sh:5897
+#: install.sh:5941 install.sh:5942 install.sh:5949 install.sh:5950
 msgid "配置不完整, 退出更新"
 msgstr "конфигурация неполная, выйти из обновления"
 
-#: install.sh:5901 install.sh:5902 install.sh:5905 install.sh:5906
+#: install.sh:5954 install.sh:5955 install.sh:5958 install.sh:5959
 msgid "当前安装模式不需要"
 msgstr "текущий режим установки не требуется"
 
-#: install.sh:5910 install.sh:5911
+#: install.sh:5963 install.sh:5964
 msgid "配置不存在, 退出更新"
 msgstr "конфигурация не существует, выходим из обновления"
 
-#: install.sh:5920 install.sh:5923
+#: install.sh:5973 install.sh:5976
 msgid "备份旧版"
 msgstr "резервная копия старой версии"
 
-#: install.sh:5924
+#: install.sh:5977
 msgid "删除旧版"
 msgstr "удалить старую версию"
 
-#: install.sh:5928
+#: install.sh:5981
 msgid "是否保留原 Nginx 配置文件"
 msgstr "сохранить ли исходный файл конфигурации Nginx"
 
-#: install.sh:5936 install.sh:6611
+#: install.sh:5989 install.sh:6664
 msgid "原配置文件已删除"
 msgstr "исходный файл конфигурации удален"
 
-#: install.sh:5940
+#: install.sh:5993
 msgid "原配置文件已保留"
 msgstr "исходный конфигурационный файл сохранен"
 
-#: install.sh:5971
+#: install.sh:6024
 msgid "版本记录更新失败, 执行回滚"
 msgstr "сбой обновления журнала версий, выполнено откатывание"
 
-#: install.sh:5975 install.sh:7326 install.sh:7333 install.sh:8366
-#: install.sh:11624 install.sh:12105 scripts/fail2ban_manager.sh:907
+#: install.sh:6028 install.sh:7379 install.sh:7386 install.sh:8419
+#: install.sh:11850 install.sh:12331 scripts/fail2ban_manager.sh:907
 #: scripts/fail2ban_manager.sh:1085
 msgid "启动"
 msgstr "запуск"
 
-#: install.sh:6004 install.sh:12002
+#: install.sh:6057 install.sh:12228
 msgid "删除"
 msgstr "удалить"
 
-#: install.sh:6004 install.sh:10538 install.sh:10540 install.sh:12212
+#: install.sh:6057 install.sh:10764 install.sh:10766 install.sh:12438
 msgid "备份"
 msgstr "резервная копия"
 
-#: install.sh:6007
+#: install.sh:6060
 msgid "已为最新版"
 msgstr "уже для последней версии"
 
-#: install.sh:6020
+#: install.sh:6073
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
 "настройка фоновой автоматической программы обновления (включая: "
 "скрипт/xray/nginx)"
 
-#: install.sh:6021
+#: install.sh:6074
 msgid "可能自动更新后有兼容问题, 谨慎启用"
 msgstr ""
 "после автоматического обновления могут возникнуть проблемы с совместимостью,"
 " поэтому включайте с осторожностью"
 
-#: install.sh:6022 scripts/fail2ban_manager.sh:206
+#: install.sh:6075 scripts/fail2ban_manager.sh:206
 #: scripts/fail2ban_manager.sh:232 scripts/traffic_blocker.sh:651
 msgid "是否启用"
 msgstr "включить или нет"
 
-#: install.sh:6027
+#: install.sh:6080
 msgid "下载自动更新脚本"
 msgstr "скачать скрипт автоматического обновления"
 
-#: install.sh:6029 install.sh:10195 scripts/traffic_blocker.sh:699
+#: install.sh:6082 install.sh:10421 scripts/traffic_blocker.sh:703
 msgid "设置自动更新"
 msgstr "настроить автоматическое обновление"
 
-#: install.sh:6034
+#: install.sh:6087
 msgid "已设置自动更新"
 msgstr "автоматическое обновление установлено"
 
-#: install.sh:6035 scripts/traffic_blocker.sh:676
+#: install.sh:6088 scripts/traffic_blocker.sh:680
 msgid "是否关闭"
 msgstr "закрыть ли"
 
-#: install.sh:6041
+#: install.sh:6094
 msgid "删除自动更新"
 msgstr "удалить автоматическое обновление"
 
-#: install.sh:6051
+#: install.sh:6104
 msgid "安装 SSL 证书生成脚本依赖"
 msgstr "установить зависимости для скрипта генерации SSL-сертификата [SSL]"
 
-#: install.sh:6054
+#: install.sh:6107
 msgid "下载 SSL 证书生成脚本失败"
 msgstr "не удалось скачать скрипт генерации SSL‑сертификата"
 
-#: install.sh:6061 install.sh:6064
+#: install.sh:6114 install.sh:6117
 msgid "安装 SSL 证书生成脚本"
 msgstr "установить скрипт для создания SSL-сертификата [SSL]"
 
-#: install.sh:6074
+#: install.sh:6127
 msgid "检测到原域名配置存在, 是否跳过域名设置"
 msgstr ""
 "обнаружено существующее конфигурирование исходного домена, пропустить ли "
 "настройку домена"
 
-#: install.sh:6090 install.sh:6292 install.sh:6327 install.sh:6356
+#: install.sh:6143 install.sh:6345 install.sh:6380 install.sh:6409
 msgid "无法获取公网IP地址"
 msgstr "невозможно получить публичный IP-адрес [IP]"
 
-#: install.sh:6090 install.sh:6138 install.sh:6147 install.sh:6174
-#: install.sh:6183 install.sh:6210 install.sh:6219 install.sh:6254
-#: install.sh:6263 install.sh:6292 install.sh:6327 install.sh:6356
+#: install.sh:6143 install.sh:6191 install.sh:6200 install.sh:6227
+#: install.sh:6236 install.sh:6263 install.sh:6272 install.sh:6307
+#: install.sh:6316 install.sh:6345 install.sh:6380 install.sh:6409
 msgid "安装终止"
 msgstr "установка завершена"
 
-#: install.sh:6093
+#: install.sh:6146
 msgid "已跳过域名设置"
 msgstr "настройка домена пропущена"
 
-#: install.sh:6099
+#: install.sh:6152
 msgid "确定域名信息"
 msgstr "подтвердить информацию о домене"
 
-#: install.sh:6100
+#: install.sh:6153
 msgid "请输入你的域名信息"
 msgstr "пожалуйста, введите информацию о вашем домене"
 
-#: install.sh:6101
+#: install.sh:6154
 msgid "请选择网络与域名校验方式"
 msgstr "пожалуйста, выберите метод проверки сети и домена"
 
-#: install.sh:6102 install.sh:6304
+#: install.sh:6155 install.sh:6357
 msgid "自动检测"
 msgstr "автоматическое обнаружение"
 
-#: install.sh:6105
+#: install.sh:6158
 msgid "手动输入域名"
 msgstr "вручную ввести доменное имя"
 
-#: install.sh:6105
+#: install.sh:6158
 msgid "服务器商仅提供域名"
 msgstr "хостинг-провайдер предоставляет только доменное имя."
 
-#: install.sh:6107 install.sh:6311
+#: install.sh:6160 install.sh:6364
 msgid "正在获取公网IP信息, 请耐心等待"
 msgstr ""
 "получение информации о публичном IP-адресе, пожалуйста, подождите [IP]"
 
-#: install.sh:6118 install.sh:6157 install.sh:6193 install.sh:6238
+#: install.sh:6171 install.sh:6210 install.sh:6246 install.sh:6291
 msgid "域名 DNS 解析记录与公网 IP 匹配"
 msgstr "Запись разрешения доменного имени DNS совпадает с публичным IP"
 
-#: install.sh:6121 install.sh:6160 install.sh:6196 install.sh:6241
+#: install.sh:6174 install.sh:6213 install.sh:6249 install.sh:6294
 msgid "检测到错误的 A/AAAA 记录, 可能导致部分客户端连接失败"
 msgstr ""
 "Обнаружен некорректный запись A/AAAA, что может привести к сбою подключения "
 "некоторых клиентов."
 
-#: install.sh:6122 install.sh:6161 install.sh:6197
+#: install.sh:6175 install.sh:6214 install.sh:6250
 msgid "请修正或删除错误的 DNS 记录后再继续, 请选择"
 msgstr ""
 "Пожалуйста, исправьте или удалите ошибочную запись DNS и продолжите; "
 "выберите"
 
-#: install.sh:6123 install.sh:6162 install.sh:6198 install.sh:6242
+#: install.sh:6176 install.sh:6215 install.sh:6251 install.sh:6295
 msgid "仍然继续安装"
 msgstr "продолжение установки"
 
-#: install.sh:6123 install.sh:6162 install.sh:6198 install.sh:6242
+#: install.sh:6176 install.sh:6215 install.sh:6251 install.sh:6295
 msgid "高风险"
 msgstr "высокий риск"
 
-#: install.sh:6124 install.sh:6142 install.sh:6163 install.sh:6178
-#: install.sh:6199 install.sh:6214 install.sh:6243 install.sh:6258
+#: install.sh:6177 install.sh:6195 install.sh:6216 install.sh:6231
+#: install.sh:6252 install.sh:6267 install.sh:6296 install.sh:6311
 msgid "重新输入"
 msgstr "повторно ввести"
 
-#: install.sh:6125 install.sh:6143 install.sh:6164 install.sh:6179
-#: install.sh:6200 install.sh:6215 install.sh:6244 install.sh:6259
+#: install.sh:6178 install.sh:6196 install.sh:6217 install.sh:6232
+#: install.sh:6253 install.sh:6268 install.sh:6297 install.sh:6312
 msgid "终止安装"
 msgstr "прервать установку"
 
-#: install.sh:6134 install.sh:6170 install.sh:6206 install.sh:6250
+#: install.sh:6187 install.sh:6223 install.sh:6259 install.sh:6303
 msgid "继续安装"
 msgstr "продолжить установку"
 
-#: install.sh:6141 install.sh:6177 install.sh:6213 install.sh:6257
+#: install.sh:6194 install.sh:6230 install.sh:6266 install.sh:6310
 msgid "无法通过域名 A/AAAA 记录校验公网 IP"
 msgstr ""
 "Не удалось выполнить проверку записи по доменному имени A/AAAA для "
 "общедоступного IP"
 
-#: install.sh:6141 install.sh:6177 install.sh:6213 install.sh:6257
-#: install.sh:6715 install.sh:6880 install.sh:6944
+#: install.sh:6194 install.sh:6230 install.sh:6266 install.sh:6310
+#: install.sh:6768 install.sh:6933 install.sh:6997
 #: scripts/fail2ban_manager.sh:722
 msgid "请选择"
 msgstr "пожалуйста, выберите"
 
-#: install.sh:6223
+#: install.sh:6276
 msgid "此选项用于服务器商仅提供域名访问服务器"
 msgstr ""
 "этот вариант используется, когда серверный провайдер предоставляет доступ к "
 "серверу только по доменному имени"
 
-#: install.sh:6224
+#: install.sh:6277
 msgid "请为服务器商提供的域名添加 CNAME 记录"
 msgstr ""
 "Добавьте запись CNAME для доменного имени, предоставленного провайдером "
 "сервера."
 
-#: install.sh:6274
+#: install.sh:6327
 msgid "检测到原IP配置存在, 是否跳过IP设置"
 msgstr ""
 "обнаружено существующее исходное ip-конфигурация, пропустить настройку IP"
 
-#: install.sh:6296
+#: install.sh:6349
 msgid "已跳过IP设置"
 msgstr "настройка IP пропущена"
 
-#: install.sh:6302
+#: install.sh:6355
 msgid "确定公网IP信息"
 msgstr "определить информацию о публичном IP-адресе [IP]"
 
-#: install.sh:6303
+#: install.sh:6356
 msgid "请选择公网IP为IPv4或IPv6"
 msgstr "выберите публичный IP-адрес в формате IPv4 или IPv6 [IP]"
 
-#: install.sh:6307
+#: install.sh:6360
 msgid "手动输入"
 msgstr "ручной ввод"
 
-#: install.sh:6317
+#: install.sh:6370
 msgid "已检测到 IPv4 和 IPv6 均可用, 将启用双栈"
 msgstr "Обнаружено, что IPv4 и IPv6 оба доступны; будет включён двойной стек."
 
-#: install.sh:6321
+#: install.sh:6374
 msgid "当前仅 IPv4 可用"
 msgstr "в настоящее время доступен только IPv4"
 
-#: install.sh:6325
+#: install.sh:6378
 msgid "当前仅 IPv6 可用"
 msgstr "в настоящее время доступен только IPv6"
 
-#: install.sh:6359
+#: install.sh:6412
 msgid "公网IP/域名"
 msgstr "общедоступный IP/доменное имя"
 
-#: install.sh:6410
+#: install.sh:6463
 msgid "端口格式无效"
 msgstr "недопустимый формат порта"
 
-#: install.sh:6415
+#: install.sh:6468
 msgid "端口未被占用"
 msgstr "порт не занят"
 
-#: install.sh:6448
+#: install.sh:6501
 msgid "端口由本项目服务占用, 将在安装前停止"
 msgstr ""
 "Порт занят службой данного проекта; перед установкой он будет остановлен."
 
-#: install.sh:6452
+#: install.sh:6505
 msgid "检测到端口被占用"
 msgstr "обнаружено, что порт занят"
 
-#: install.sh:6454
+#: install.sh:6507
 msgid "脚本不会自动终止占用该端口的进程"
 msgstr ""
 "Скрипт не будет автоматически завершать процессы, занимающие указанный порт."
 
-#: install.sh:6455
+#: install.sh:6508
 msgid "请更换端口或自行停止对应服务后重试"
 msgstr ""
 "Пожалуйста, смените порт или самостоятельно остановите соответствующий "
 "сервис и повторите попытку."
 
-#: install.sh:6464
+#: install.sh:6517
 msgid "证书测试签发成功, 开始正式签发"
 msgstr "сертификат успешно протестирован, начинается официальная выдача"
 
-#: install.sh:6467
+#: install.sh:6520
 msgid "证书测试签发失败"
 msgstr "сертификат не удалось выпустить для тестирования"
 
-#: install.sh:6474 install.sh:6487
+#: install.sh:6527 install.sh:6540
 msgid "证书生成"
 msgstr "генерация сертификата"
 
-#: install.sh:6474 install.sh:6480 install.sh:10540 install.sh:10564
+#: install.sh:6527 install.sh:6533 install.sh:10766 install.sh:10790
 #: scripts/fail2ban_manager.sh:1108 scripts/file_manager.sh:254
 #: scripts/file_manager.sh:363
 msgid "成功"
 msgstr "успех"
 
-#: install.sh:6480 install.sh:6483
+#: install.sh:6533 install.sh:6536
 msgid "证书配置"
 msgstr "настройка сертификатов"
 
-#: install.sh:6557
+#: install.sh:6610
 msgid "下载 Xray TLS 配置"
 msgstr "скачать конфигурацию Xray TLS"
 
-#: install.sh:6574
+#: install.sh:6627
 msgid "下载 Xray Reality 配置"
 msgstr "скачать конфигурацию Xray Reality"
 
-#: install.sh:6579
+#: install.sh:6632
 msgid "下载 Xray 配置"
 msgstr "скачать конфигурацию Xray"
 
-#: install.sh:6596
+#: install.sh:6649
 msgid "下载 Xray XTLS 配置"
 msgstr "скачать конфигурацию Xray XTLS"
 
-#: install.sh:6604
+#: install.sh:6657
 msgid "检测到 Xray 配置过多用户"
 msgstr "обнаружено, что в конфигурации Xray слишком много пользователей"
 
-#: install.sh:6605
+#: install.sh:6658
 msgid "是否保留原 Xray 配置文件"
 msgstr "сохранить ли исходный файл конфигурации Xray"
 
-#: install.sh:6633
+#: install.sh:6686
 msgid "添加简单 ws/gRPC/xHTTP 协议"
 msgstr "добавить простые протоколы ws/gRPC/xHTTP"
 
-#: install.sh:6700
+#: install.sh:6753
 msgid "无法完成安全备份, 已取消重新配置"
 msgstr ""
 "Не удалось выполнить безопасное резервное копирование, перенастройка "
 "отменена."
 
-#: install.sh:6710
+#: install.sh:6763
 msgid "检测到已有安装配置"
 msgstr "обнаружена существующая установленная конфигурация"
 
-#: install.sh:6711
+#: install.sh:6764
 msgid "保留配置重新安装"
 msgstr "переустановка с сохранением настроек"
 
-#: install.sh:6712
+#: install.sh:6765
 msgid "使用标准模板重建"
 msgstr "восстановление с использованием стандартного шаблона"
 
-#: install.sh:6721
+#: install.sh:6774
 msgid "已选择保留配置重新安装"
 msgstr "выбрана переустановка с сохранением настроек"
 
-#: install.sh:6735
+#: install.sh:6788
 msgid "自定义 routing、outbounds、DNS 和其他非标准字段可能被移除"
 msgstr ""
 "Пользовательские переменные routing, outbounds, DNS и другие нестандартные "
 "поля могут быть удалены."
 
-#: install.sh:6736
+#: install.sh:6789
 msgid "原配置已备份"
 msgstr "исходная конфигурация уже сохранена в резервной копии"
 
-#: install.sh:6737 install.sh:8480 install.sh:9219 install.sh:11926
-#: install.sh:11970
+#: install.sh:6790 install.sh:8533 install.sh:9272 install.sh:12152
+#: install.sh:12196
 msgid "是否继续"
 msgstr "продолжить ли"
 
-#: install.sh:6745
+#: install.sh:6798
 msgid "已删除配置文件, 将使用标准模板重建"
 msgstr ""
 "Файл конфигурации был удалён, будет создан заново на основе стандартного "
 "шаблона."
 
-#: install.sh:6748 install.sh:6754 install.sh:6797 install.sh:6897
+#: install.sh:6801 install.sh:6807 install.sh:6850 install.sh:6950
 msgid "已取消, 返回菜单"
 msgstr "отменено, вернуться в меню"
 
-#: install.sh:6765
+#: install.sh:6818
 msgid "检测到当前安装模式与配置文件的安装模式不一致"
 msgstr ""
 "обнаружено несоответствие текущего режима установки с режимом установки в "
 "конфигурационном файле"
 
-#: install.sh:6766 install.sh:12233
+#: install.sh:6819 install.sh:12459
 msgid "当前模式"
 msgstr "текущий режим"
 
-#: install.sh:6767
+#: install.sh:6820
 msgid "目标模式"
 msgstr "целевой режим"
 
-#: install.sh:6769
+#: install.sh:6822
 msgid "可以复用"
 msgstr "может быть повторно использовано"
 
-#: install.sh:6771
+#: install.sh:6824
 msgid "用户名 (email)"
 msgstr "имя пользователя (email)"
 
-#: install.sh:6773
+#: install.sh:6826
 msgid "不能直接复用"
 msgstr "нельзя напрямую повторно использовать"
 
-#: install.sh:6774
+#: install.sh:6827
 msgid "模式相关参数 (target/privateKey/shortIds/路径等)"
 msgstr ""
 "Параметры, связанные с режимом (__путь target/privateKey/shortIds/ и т. п.)"
 
-#: install.sh:6776
+#: install.sh:6829
 msgid "将保留"
 msgstr "будет сохранено"
 
-#: install.sh:6777
+#: install.sh:6830
 msgid "原 Xray 配置备份"
 msgstr "оригинальная резервная копия конфигурации Xray"
 
-#: install.sh:6778
+#: install.sh:6831
 msgid "原 Nginx 配置备份"
 msgstr "оригинальная резервная копия конфигурации Nginx"
 
-#: install.sh:6779
+#: install.sh:6832
 msgid "原证书"
 msgstr "оригинальное свидетельство"
 
-#: install.sh:6781
+#: install.sh:6834
 msgid "是否继续切换模式"
 msgstr "продолжить ли переключение режима?"
 
-#: install.sh:6794
+#: install.sh:6847
 msgid "已删除旧配置文件, 将使用目标模式标准模板生成新配置"
 msgstr ""
 "Старый конфигурационный файл удалён; новый конфигурационный файл будет "
 "сгенерирован на основе стандартного шаблона целевого режима."
 
-#: install.sh:6875
+#: install.sh:6928
 msgid "检测到配置文件不完整"
 msgstr "обнаружено, что конфигурационный файл неполон"
 
-#: install.sh:6876
+#: install.sh:6929
 msgid "尝试从实际 Xray 配置补全安装信息"
 msgstr ""
 "Попытка дополнить информацию об установке на основе фактической конфигурации"
 " Xray"
 
-#: install.sh:6877
+#: install.sh:6930
 msgid "备份旧配置后使用标准模板重建"
 msgstr ""
 "после резервного копирования старой конфигурации выполните её восстановление"
 " на основе стандартного шаблона."
 
-#: install.sh:6888
+#: install.sh:6941
 msgid "将尝试使用已读取的配置继续"
 msgstr ""
 "будет предпринята попытка продолжить работу с уже прочитанной конфигурацией."
 
-#: install.sh:6894
+#: install.sh:6947
 msgid "已删除不完整配置文件, 将使用标准模板重建"
 msgstr ""
 "Неполный файл конфигурации был удалён; будет создан новый на основе "
 "стандартного шаблона."
 
-#: install.sh:6910
+#: install.sh:6963
 msgid "当前配置摘要"
 msgstr "краткое изложение текущей конфигурации"
 
-#: install.sh:6911
+#: install.sh:6964
 msgid "安装模式"
 msgstr "режим установки"
 
-#: install.sh:6912
+#: install.sh:6965
 msgid "传输组合"
 msgstr "комбинация передачи"
 
-#: install.sh:6913
+#: install.sh:6966
 msgid "主端口"
 msgstr "основной порт"
 
-#: install.sh:6920 install.sh:6928 install.sh:8422 install.sh:8428
-#: install.sh:8444 install.sh:8452
+#: install.sh:6973 install.sh:6981 install.sh:8475 install.sh:8481
+#: install.sh:8497 install.sh:8505
 msgid "路径"
 msgstr "путь"
 
-#: install.sh:6931
+#: install.sh:6984
 msgid "可选择需要修改的项目 (未选择的保持原值)"
 msgstr ""
 "Можно выбрать параметры, которые требуется изменить (не выбранные останутся "
 "без изменений)"
 
-#: install.sh:6932
+#: install.sh:6985
 msgid "修改主端口"
 msgstr "изменить основной порт"
 
-#: install.sh:6933
+#: install.sh:6986
 msgid "修改内部端口"
 msgstr "изменить внутренний порт"
 
-#: install.sh:6934
+#: install.sh:6987
 msgid "修改传输路径"
 msgstr "изменить маршрут передачи"
 
-#: install.sh:6935
+#: install.sh:6988
 msgid "修改 Reality 参数"
 msgstr "изменить параметр Reality"
 
-#: install.sh:6936
+#: install.sh:6989
 msgid "不再修改, 开始重新部署"
 msgstr "больше не внося изменения, приступаю к повторному развертыванию."
 
-#: install.sh:6938
+#: install.sh:6991
 msgid "UUID 和多用户信息请使用现有用户管理或 UUID 变更功能"
 msgstr ""
 "UUID и сведения о множественных пользователях следует обновлять с помощью "
 "существующего инструмента управления пользователями или функции изменения "
 "UUID."
 
-#: install.sh:6939
+#: install.sh:6992
 msgid "传输组合变更请使用标准模板重建"
 msgstr ""
 "Для внесения изменений в транспортную комбинацию следует воспользоваться "
 "стандартным шаблоном."
 
-#: install.sh:6940
+#: install.sh:6993
 msgid "Nginx/SNI 修改请使用标准模板重建"
 msgstr ""
 "Nginx/SNI Для внесения изменений воспользуйтесь стандартным шаблоном для "
 "повторного создания"
 
-#: install.sh:6947
+#: install.sh:7000
 msgid "已选择修改主端口"
 msgstr "выбрано изменение основного порта"
 
-#: install.sh:6948
+#: install.sh:7001
 msgid "已选择修改内部端口"
 msgstr "выбрано изменение внутреннего порта"
 
-#: install.sh:6949
+#: install.sh:7002
 msgid "已选择修改传输路径"
 msgstr "выбрано изменение пути передачи"
 
-#: install.sh:6950
+#: install.sh:7003
 msgid "已选择修改 Reality 参数"
 msgstr "Выбрано изменение параметра Reality"
 
-#: install.sh:7229
+#: install.sh:7282
 msgid "配置删除"
 msgstr "удаление конфигурации"
 
-#: install.sh:7268
+#: install.sh:7321
 msgid "设置 Nginx 开机自启"
 msgstr "настройка автозапуска Nginx при включении компьютера"
 
-#: install.sh:7272 scripts/fail2ban_manager.sh:61
+#: install.sh:7325 scripts/fail2ban_manager.sh:61
 #: scripts/traffic_blocker.sh:577
 msgid "设置"
 msgstr "настройка"
 
-#: install.sh:7272 install.sh:7283
+#: install.sh:7325 install.sh:7336
 msgid "开机自启"
 msgstr "автозапуск при включении"
 
-#: install.sh:7279
+#: install.sh:7332
 msgid "关闭 Nginx 开机自启"
 msgstr "отключить автозапуск Nginx при включении"
 
-#: install.sh:7283
+#: install.sh:7336
 msgid "关闭"
 msgstr "закрыть"
 
-#: install.sh:7292
+#: install.sh:7345
 msgid "已清理残留的证书自动更新定时任务"
 msgstr ""
 "остаточные задачи планирования автоматического обновления сертификатов "
 "очищены"
 
-#: install.sh:7294 install.sh:7343 install.sh:7347 install.sh:7401
-#: install.sh:11633 install.sh:12106 scripts/fail2ban_manager.sh:908
+#: install.sh:7347 install.sh:7396 install.sh:7400 install.sh:7454
+#: install.sh:11859 install.sh:12332 scripts/fail2ban_manager.sh:908
 #: scripts/fail2ban_manager.sh:1108
 msgid "停止"
 msgstr "остановить"
 
-#: install.sh:7300
+#: install.sh:7353
 msgid "已清理证书自动更新定时任务"
 msgstr "задача планирования автоматического обновления сертификатов очищена"
 
-#: install.sh:7356 install.sh:7371
+#: install.sh:7409 install.sh:7424
 msgid "新版本已自动设置证书自动更新"
 msgstr ""
 "новая версия автоматически настроена для автоматического обновления "
 "сертификатов"
 
-#: install.sh:7357
+#: install.sh:7410
 msgid "老版本请及时删除 废弃的 改版证书自动更新"
 msgstr ""
 "старые версии следует своевременно удалить. устаревшие сертификаты "
 "автоматически обновляются при изменении версии"
 
-#: install.sh:7358
+#: install.sh:7411
 msgid "已设置改版证书自动更新"
 msgstr "автоматическое обновление сертификата изменений уже настроено"
 
-#: install.sh:7359
+#: install.sh:7412
 msgid "是否需要删除改版证书自动更新 (请删除)"
 msgstr ""
 "нужно ли удалить автоматическое обновление сертификата измененной версии "
 "(пожалуйста, удалите)"
 
-#: install.sh:7366
+#: install.sh:7419
 msgid "删除改版证书自动更新"
 msgstr "удалить обновление сертификата автоматически"
 
-#: install.sh:7388
+#: install.sh:7441
 msgid "已过期"
 msgstr "истекло"
 
-#: install.sh:7390
+#: install.sh:7443
 msgid "证书生成日期"
 msgstr "дата создания сертификата"
 
-#: install.sh:7391
+#: install.sh:7444
 msgid "证书生成天数"
 msgstr "количество дней для генерации сертификата"
 
-#: install.sh:7392
+#: install.sh:7445
 msgid "证书剩余天数"
 msgstr "оставшиеся дни сертификата"
 
-#: install.sh:7396
+#: install.sh:7449
 msgid "是否立即更新证书"
 msgstr "обновить сертификат немедленно"
 
-#: install.sh:7408 install.sh:7427
+#: install.sh:7461 install.sh:7480
 msgid "证书签发工具不存在, 请确认是否证书为脚本签发"
 msgstr ""
 "инструмент для выдачи сертификатов не существует, пожалуйста, убедитесь, был"
 " ли сертификат выдан с помощью скрипта"
 
-#: install.sh:7421
+#: install.sh:7474
 msgid "证书更新"
 msgstr "обновление сертификата"
 
-#: install.sh:7456 install.sh:8340 install.sh:8351 install.sh:8631
-#: install.sh:8791 install.sh:8854 install.sh:8867 install.sh:9079
-#: install.sh:9183 install.sh:9246 scripts/fail2ban_manager.sh:163
+#: install.sh:7509 install.sh:8393 install.sh:8404 install.sh:8684
+#: install.sh:8844 install.sh:8907 install.sh:8920 install.sh:9132
+#: install.sh:9236 install.sh:9299 scripts/fail2ban_manager.sh:163
 #: scripts/fail2ban_manager.sh:716 scripts/fail2ban_manager.sh:1124
 #: scripts/fail2ban_manager.sh:1204
 msgid "请先安装"
 msgstr "пожалуйста, сначала установите"
 
-#: install.sh:7471
+#: install.sh:7524
 msgid "是否需要设置自动清理日志"
 msgstr "нужно ли настроить автоматическую очистку журнала"
 
-#: install.sh:7475
+#: install.sh:7528
 msgid "已跳过设置自动清理日志"
 msgstr "настройка автоматической очистки журналов пропущена"
 
-#: install.sh:7478
+#: install.sh:7531
 msgid "将在 每周三 04:00 自动清空日志"
 msgstr "журнал будет автоматически очищаться каждую среду в 04:00"
 
-#: install.sh:7483
+#: install.sh:7536
 msgid "已设置自动清理日志任务"
 msgstr "автоматическая задача очистки журнала уже настроена"
 
-#: install.sh:7484
+#: install.sh:7537
 msgid "是否需要删除现有自动清理日志任务"
 msgstr "нужно ли удалить существующую задачу автоматической очистки журнала"
 
-#: install.sh:7489
+#: install.sh:7542
 msgid "删除自动清理日志任务"
 msgstr "удалить задачу автоматической очистки журнала"
 
-#: install.sh:7492
+#: install.sh:7545
 msgid "保留现有自动清理日志任务"
 msgstr "сохранить существующую задачу автоматической очистки журнала"
 
-#: install.sh:7509
+#: install.sh:7562
 msgid "设置自动清理日志"
 msgstr "настроить автоматическую очистку журнала"
 
-#: install.sh:7516
+#: install.sh:7569
 msgid "检测到日志文件大小如下:"
 msgstr "обнаружено, что размер файла журнала следующий"
 
-#: install.sh:7518
+#: install.sh:7571
 msgid "即将清除"
 msgstr "скоро очистить"
 
-#: install.sh:7520
+#: install.sh:7573
 msgid "日志清理"
 msgstr "очистка журнала"
 
-#: install.sh:8207
+#: install.sh:8260
 msgid "链接分享"
 msgstr "поделиться ссылкой"
 
-#: install.sh:8209 install.sh:8214 install.sh:8221 install.sh:8226
-#: install.sh:8233 install.sh:8238 install.sh:8245 install.sh:8250
-#: install.sh:8959 install.sh:8963
+#: install.sh:8262 install.sh:8267 install.sh:8274 install.sh:8279
+#: install.sh:8286 install.sh:8291 install.sh:8298 install.sh:8303
+#: install.sh:9012 install.sh:9016
 msgid "分享链接"
 msgstr "поделиться ссылкой"
 
-#: install.sh:8210 install.sh:8215 install.sh:8222 install.sh:8227
-#: install.sh:8234 install.sh:8239 install.sh:8246 install.sh:8251
+#: install.sh:8263 install.sh:8268 install.sh:8275 install.sh:8280
+#: install.sh:8287 install.sh:8292 install.sh:8299 install.sh:8304
 msgid "二维码"
 msgstr "qr-код"
 
-#: install.sh:8258 install.sh:8259
+#: install.sh:8311 install.sh:8312
 msgid "配置分享"
 msgstr "настройка и обмен"
 
-#: install.sh:8274
+#: install.sh:8327
 msgid "生成分享链接"
 msgstr "создать ссылку для обмена"
 
-#: install.sh:8330
+#: install.sh:8383
 msgid "iftop 安装失败, 流量监控功能不可用"
 msgstr "iftop Сбой установки, функция мониторинга трафика недоступна"
 
-#: install.sh:8358
+#: install.sh:8411
 msgid "无法获取网卡, 将监控所有网卡"
 msgstr ""
 "не удалось получить сетевую карту, будет вестись мониторинг всех сетевых "
 "карт"
 
-#: install.sh:8360
+#: install.sh:8413
 msgid "监控网卡"
 msgstr "мониторинг сетевой карты"
 
-#: install.sh:8363
+#: install.sh:8416
 msgid "监控端口"
 msgstr "мониторинговый порт"
 
-#: install.sh:8365
+#: install.sh:8418
 msgid "按 q 键退出 iftop"
 msgstr "нажмите клавишу q, чтобы выйти из iftop"
 
-#: install.sh:8382
+#: install.sh:8435
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr ""
 "в настоящее время формат ссылки для совместного использования находится на "
 "экспериментальной стадии, пожалуйста, самостоятельно определите, применим ли"
 " он"
 
-#: install.sh:8384
+#: install.sh:8437
 msgid "当前 xHTTP 仅支持 stream-one 和 stream-up 模式"
 msgstr ""
 "В настоящее время xHTTP поддерживает только режимы stream-one и stream-up."
 
-#: install.sh:8385
+#: install.sh:8438
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
 msgstr ""
 "xHTTP требует ядра версии mihomo (Meta), оригинальная версия Clash не "
 "поддерживается"
 
-#: install.sh:8388 install.sh:12082
+#: install.sh:8441 install.sh:12308
 msgid "配置信息"
 msgstr "информация о настройках"
 
-#: install.sh:8389
+#: install.sh:8442
 msgid "主机"
 msgstr "хост"
 
-#: install.sh:8415
+#: install.sh:8468
 msgid "用户id"
 msgstr "идентификатор пользователя [id]"
 
-#: install.sh:8417
+#: install.sh:8470
 msgid "加密"
 msgstr "шифрование"
 
-#: install.sh:8418
+#: install.sh:8471
 msgid "传输协议"
 msgstr "протокол передачи"
 
-#: install.sh:8419
+#: install.sh:8472
 msgid "底层传输安全"
 msgstr "безопасность нижнего уровня передачи"
 
-#: install.sh:8422 install.sh:8428 install.sh:8444 install.sh:8452
+#: install.sh:8475 install.sh:8481 install.sh:8497 install.sh:8505
 msgid "不要落下"
 msgstr "не отставать"
 
-#: install.sh:8425 install.sh:8448
+#: install.sh:8478 install.sh:8501
 msgid "不需要加"
 msgstr "не нужно добавлять"
 
-#: install.sh:8432
+#: install.sh:8485
 msgid "流控"
 msgstr "контроль потока"
 
-#: install.sh:8475
+#: install.sh:8528
 msgid "即将申请证书, 支持使用自定义证书"
 msgstr ""
 "планируется подача заявки на сертификат, поддерживается использование "
 "пользовательского сертификата"
 
-#: install.sh:8476
+#: install.sh:8529
 msgid "如需使用自定义证书, 请按如下步骤:"
 msgstr ""
 "если требуется использовать пользовательский сертификат, выполните следующие"
 " шаги"
 
-#: install.sh:8477
+#: install.sh:8530
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr ""
 "1. переименуйте файлы сертификатов: приватный ключ (xray.key), сертификат "
 "(xray.crt)"
 
-#: install.sh:8478
+#: install.sh:8531
 msgid "2. 将重命名后的证书文件放入"
 msgstr "2. разместите переименованный файл сертификата в"
 
-#: install.sh:8478
+#: install.sh:8531
 msgid "目录后再运行脚本"
 msgstr "запустить скрипт после каталога"
 
-#: install.sh:8479
+#: install.sh:8532
 msgid "3. 重新运行脚本"
 msgstr "3. запустить скрипт заново"
 
-#: install.sh:8491
+#: install.sh:8544
 msgid "所有证书文件均已存在, 是否保留"
 msgstr "все файлы сертификатов уже существуют, сохранить"
 
-#: install.sh:8493
+#: install.sh:8546
 msgid "证书文件已存在, 是否保留"
 msgstr "файл сертификата уже существует, сохранить"
 
-#: install.sh:8500 install.sh:8517 scripts/file_manager.sh:279
+#: install.sh:8553 install.sh:8570 scripts/file_manager.sh:279
 msgid "已删除"
 msgstr "удалено"
 
-#: install.sh:8508 install.sh:8526
+#: install.sh:8561 install.sh:8579
 msgid "证书应用"
 msgstr "применение сертификата"
 
-#: install.sh:8512
+#: install.sh:8565
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr "оставшиеся файлы выдачи сертификата уже существуют, сохранить"
 
-#: install.sh:8554 install.sh:12001
+#: install.sh:8607 install.sh:12227
 msgid "添加"
 msgstr "добавить"
 
-#: install.sh:8563
+#: install.sh:8616
 msgid "请选择支持的 TLS 版本"
 msgstr "выберите поддерживаемую версию TLS"
 
-#: install.sh:8564
+#: install.sh:8617
 msgid "建议选择 TLSv1.3 only (安全模式)"
 msgstr "рекомендуется выбрать только TLSv1.3 (безопасный режим) [only]"
 
-#: install.sh:8565 install.sh:8582
+#: install.sh:8618 install.sh:8635
 msgid "兼容模式"
 msgstr "режим совместимости"
 
-#: install.sh:8566
+#: install.sh:8619
 msgid "安全模式"
 msgstr "безопасный режим"
 
-#: install.sh:8570
+#: install.sh:8623
 msgid "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)"
 msgstr ""
 "Поскольку h3 поддерживает только TLSv1.3, здесь поддерживается только "
 "TLSv1.3 (безопасный режим)."
 
-#: install.sh:8573 install.sh:8587 install.sh:8590
+#: install.sh:8626 install.sh:8640 install.sh:8643
 msgid "已切换至"
 msgstr "уже переключено на"
 
-#: install.sh:8579
+#: install.sh:8632
 msgid "请选择 TLS 版本"
 msgstr "выберите версию TLS"
 
-#: install.sh:8580
+#: install.sh:8633
 msgid "建议选择 TLSv1.3 (安全模式)"
 msgstr "рекомендуется выбрать TLSv1.3 (безопасный режим)"
 
-#: install.sh:8604
+#: install.sh:8657
 msgid "Nginx 配置文件不存在或当前模式不支持"
 msgstr ""
 "Nginx Файл конфигурации не существует или текущий режим не поддерживается."
 
-#: install.sh:8851
+#: install.sh:8904
 msgid "此模式不支持修改"
 msgstr "этот режим не поддерживает изменение"
 
-#: install.sh:8863
+#: install.sh:8916
 msgid "此模式不支持查看用户"
 msgstr "в данном режиме просмотр пользователей не поддерживается"
 
-#: install.sh:8883
+#: install.sh:8936
 msgid "即将显示用户, 一次仅能显示一个"
 msgstr ""
 "пользователь будет показан в ближайшее время, одновременно может быть "
 "показан только один пользователь"
 
-#: install.sh:8892 install.sh:8902
+#: install.sh:8945 install.sh:8955
 msgid "请选择显示用户使用的协议"
 msgstr "выберите протокол, используемый пользователем для отображения"
 
-#: install.sh:8921
+#: install.sh:8974
 msgid "请选择要显示的用户编号"
 msgstr "выберите номер пользователя, который хотите отобразить"
 
-#: install.sh:8925
+#: install.sh:8978
 msgid "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户"
 msgstr ""
 "пожалуйста, выберите напрямую в главном меню [просмотр информации о "
 "конфигурации Xray], чтобы отобразить основного пользователя"
 
-#: install.sh:8932 install.sh:9131 install.sh:9134 install.sh:9137
+#: install.sh:8985 install.sh:9184 install.sh:9187 install.sh:9190
 msgid "选择错误"
 msgstr "выбор неверный"
 
-#: install.sh:8969
+#: install.sh:9022
 msgid "是否继续显示用户"
 msgstr "продолжать ли показывать пользователя"
 
-#: install.sh:8989
+#: install.sh:9042
 msgid "即将添加用户, 一次仅能添加一个"
 msgstr ""
 "пользователь будет добавлен в ближайшее время, можно добавить только одного "
 "за раз"
 
-#: install.sh:8999 install.sh:9009
+#: install.sh:9052 install.sh:9062
 msgid "请选择添加用户使用的协议"
 msgstr "выберите протокол, используемый для добавления пользователя"
 
-#: install.sh:9038
+#: install.sh:9091
 msgid "该用户名已存在, 请使用不同的用户名"
 msgstr ""
 "это имя пользователя уже существует, пожалуйста, используйте другое имя"
 
-#: install.sh:9051
+#: install.sh:9104
 msgid "添加用户"
 msgstr "добавить пользователя"
 
-#: install.sh:9061
+#: install.sh:9114
 msgid "已为当前客户端生成独立 shortId。"
 msgstr "Для текущего клиента уже создано отдельное shortId."
 
-#: install.sh:9067
+#: install.sh:9120
 msgid "是否继续添加用户"
 msgstr "продолжить добавление пользователя"
 
-#: install.sh:9094 install.sh:9104
+#: install.sh:9147 install.sh:9157
 msgid "请选择删除用户使用的协议"
 msgstr "пожалуйста, выберите протокол, используемый для удаления пользователя"
 
-#: install.sh:9126
+#: install.sh:9179
 msgid "即将删除用户, 一次仅能删除一个"
 msgstr "пользователь будет удален, можно удалить только одного за раз"
 
-#: install.sh:9127
+#: install.sh:9180
 msgid "请选择要删除的用户编号"
 msgstr "выберите номер пользователя, которого хотите удалить"
 
-#: install.sh:9141
+#: install.sh:9194
 msgid "主用户无法删除"
 msgstr "основной пользователь не может быть удален"
 
-#: install.sh:9154
+#: install.sh:9207
 msgid "删除用户"
 msgstr "удалить пользователя"
 
-#: install.sh:9171
+#: install.sh:9224
 msgid "是否继续删除用户"
 msgstr "продолжить удаление пользователя"
 
-#: install.sh:9199
+#: install.sh:9252
 msgid "已配置 Xray 流量统计"
 msgstr "статистика трафика Xray уже настроена"
 
-#: install.sh:9200
+#: install.sh:9253
 msgid "是否需要关闭此功能"
 msgstr "нужно ли отключить эту функцию"
 
-#: install.sh:9206
+#: install.sh:9259
 msgid "关闭 Xray 流量统计"
 msgstr "закрыть статистику трафика Xray"
 
-#: install.sh:9217
+#: install.sh:9270
 msgid "流量统计需要使用"
 msgstr "для статистики трафика необходимо использовать"
 
-#: install.sh:9218
+#: install.sh:9271
 msgid "可能会影响 Xray 性能"
 msgstr "может повлиять на производительность рентгеновского аппарата [Xray]"
 
-#: install.sh:9224
+#: install.sh:9277
 msgid "下载流量统计配置"
 msgstr "скачать настройки статистики трафика"
 
-#: install.sh:9230
+#: install.sh:9283
 msgid "流量统计配置解析失败"
 msgstr "сбой при парсинге конфигурации статистики трафика"
 
-#: install.sh:9236
+#: install.sh:9289
 msgid "设置 Xray 流量统计"
 msgstr "настройка статистики трафика Xray"
 
-#: install.sh:9258
+#: install.sh:9311
 msgid "加速脚本下载失败"
 msgstr "сбой при скачивании скрипта ускорения"
 
-#: install.sh:9278 install.sh:9305
+#: install.sh:9331 install.sh:9358
 msgid "已卸载"
 msgstr "удалено"
 
-#: install.sh:9280
+#: install.sh:9333
 msgid "Xray 卸载失败"
 msgstr "Xray сбой при удалении"
 
-#: install.sh:9288
+#: install.sh:9341
 msgid "是否卸载"
 msgstr "удалить ли"
 
-#: install.sh:9292
+#: install.sh:9345
 msgid "已取消卸载"
 msgstr "установка отменена"
 
-#: install.sh:9307
+#: install.sh:9360
 msgid "Nginx 卸载失败"
 msgstr "Nginx сбой при удалении"
 
-#: install.sh:9316
+#: install.sh:9369
 msgid "Rill Agent 准备失败, 已取消卸载"
 msgstr "Rill Agent Подготовка завершилась неудачно, деинсталляция отменена"
 
-#: install.sh:9342
+#: install.sh:9395
 msgid "是否保留配置文件"
 msgstr "сохранить файл конфигурации"
 
-#: install.sh:9346
+#: install.sh:9399
 msgid "已保留配置文件"
 msgstr "конфигурационный файл сохранен"
 
-#: install.sh:9350
+#: install.sh:9403
 msgid "将删除配置文件"
 msgstr "файл конфигурации будет удалён"
 
-#: install.sh:9354
+#: install.sh:9407
 msgid "是否删除所有脚本文件"
 msgstr "удалить все файлы скриптов"
 
-#: install.sh:9371
+#: install.sh:9424
 msgid "已删除所有文件"
 msgstr "все файлы удалены"
 
-#: install.sh:9372
+#: install.sh:9425
 msgid "ヾ(￣▽￣) 拜拜~"
 msgstr "(￣▽￣) привет"
 
-#: install.sh:9376 install.sh:9393
+#: install.sh:9429 install.sh:9446
 msgid "卸载后校验失败, 已保留 Rill 诊断"
 msgstr ""
 "Проверка после удаления завершилась неудачно, диагностика Rill сохранена."
 
-#: install.sh:9384
+#: install.sh:9437
 msgid "已删除配置文件"
 msgstr "файл конфигурации удален"
 
-#: install.sh:9387
+#: install.sh:9440
 msgid "已保留脚本文件 (包含 SSL 证书等)"
 msgstr "скрипт-файл сохранён (включая SSL-сертификат и т.д.) [SSL]"
 
-#: install.sh:9401
+#: install.sh:9454
 msgid "已清空证书遗留文件"
 msgstr "файлы, оставшиеся от сертификата, уже удалены"
 
-#: install.sh:9431
+#: install.sh:9484
 msgid "秒后"
 msgstr "секунду спустя"
 
-#: install.sh:9810
+#: install.sh:10007
 msgid "集成校验失败, 已阻止脚本更新"
 msgstr "Сбой интеграционной проверки, обновление скрипта заблокировано."
 
-#: install.sh:9813
+#: install.sh:10010
 msgid "替换后校验失败, 已回滚"
 msgstr ""
 "после замены проверка завершилась неудачно, выполнена откатная операция."
 
-#: install.sh:9816
+#: install.sh:10013
 msgid "替换后校验失败, 已阻止启动"
 msgstr "проверка после замены завершилась неудачей, запуск заблокирован."
 
-#: install.sh:9819 install.sh:9877
+#: install.sh:10016 install.sh:10076
 msgid "脚本更新失败"
 msgstr "ошибка обновления скрипта"
 
-#: install.sh:9826
+#: install.sh:10023
 msgid "校验详情"
 msgstr "сведения о проверке"
 
-#: install.sh:9826
+#: install.sh:10023
 msgid "阶段"
 msgstr "этап"
 
-#: install.sh:9826
+#: install.sh:10023
 msgid "来源"
 msgstr "источник"
 
-#: install.sh:9848 install.sh:9867
+#: install.sh:10046 install.sh:10066
 msgid "检测最新版本失败"
 msgstr "не удалось проверить последнюю версию"
 
-#: install.sh:9856 install.sh:10246
+#: install.sh:10055 install.sh:10472
 msgid "新版本"
 msgstr "новая версия"
 
-#: install.sh:9856 install.sh:10246
+#: install.sh:10055 install.sh:10472
 msgid "更新内容"
 msgstr "содержание обновления"
 
-#: install.sh:9860
+#: install.sh:10059
 msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
 msgstr ""
 "доступна новая версия, но изменения в ней значительные, возможны "
 "несовместимости. обновить"
 
-#: install.sh:9863
+#: install.sh:10062
 msgid "存在新版本, 是否更新"
 msgstr "доступна новая версия, обновить"
 
-#: install.sh:9868
+#: install.sh:10067
 msgid "脚本版本差别过大, 跳过更新"
 msgstr "разница версий скрипта слишком велика, пропустите обновление."
 
-#: install.sh:9889
+#: install.sh:10088
 msgid "下载脚本版本校验失败"
 msgstr "ошибка проверки версии скачанного скрипта"
 
-#: install.sh:9907 install.sh:10258
+#: install.sh:10116 install.sh:10484
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
 msgstr ""
 "версия скрипта сильно изменилась, если служба не работает нормально, "
 "пожалуйста, удалите её и установите заново"
 
-#: install.sh:9916 scripts/fail2ban_manager.sh:1188
-#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1235
+#: install.sh:10130 scripts/fail2ban_manager.sh:1188
+#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1239
 msgid "当前已经是最新版本"
 msgstr "в настоящее время уже установлена последняя версия"
 
-#: install.sh:9936 install.sh:10241 install.sh:10256 install.sh:10269
+#: install.sh:10154 install.sh:10467 install.sh:10482 install.sh:10495
 msgid "下载最新脚本"
 msgstr "скачать последний скрипт"
 
-#: install.sh:10039
+#: install.sh:10265
 msgid "该选项暂时无法使用"
 msgstr "этот вариант временно недоступен"
 
-#: install.sh:10058 install.sh:11498
+#: install.sh:10284 install.sh:11724
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
 "этот режим рекомендуется для балансировки нагрузки, обычно не рекомендуется "
 "к использованию, установить"
 
-#: install.sh:10071 install.sh:11521
+#: install.sh:10297 install.sh:11747
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr ""
 "этот режим предназначен только для переадресации трафика; не рекомендуется "
 "использовать его в других случаях. установить"
 
-#: install.sh:10192 install.sh:10193 install.sh:10194 install.sh:10209
-#: install.sh:10219 install.sh:10223 install.sh:11544 install.sh:11549
-#: install.sh:11554 install.sh:11559 install.sh:11572 install.sh:12020
-#: install.sh:12021 install.sh:12022 install.sh:12023 install.sh:12024
+#: install.sh:10418 install.sh:10419 install.sh:10420 install.sh:10435
+#: install.sh:10445 install.sh:10449 install.sh:11770 install.sh:11775
+#: install.sh:11780 install.sh:11785 install.sh:11798 install.sh:12246
+#: install.sh:12247 install.sh:12248 install.sh:12249 install.sh:12250
 msgid "变更"
 msgstr "изменение"
 
-#: install.sh:10192
+#: install.sh:10418
 msgid "负载均衡配置"
 msgstr "конфигурация балансировки нагрузки"
 
-#: install.sh:10196
+#: install.sh:10422
 msgid "清除日志文件"
 msgstr "очистить файлы журнала"
 
-#: install.sh:10197
+#: install.sh:10423
 msgid "查看证书状态"
 msgstr "просмотреть статус сертификата"
 
-#: install.sh:10198
+#: install.sh:10424
 msgid "更新证书有效期"
 msgstr "обновить срок действия сертификата"
 
-#: install.sh:10199
+#: install.sh:10425
 msgid "设置证书自动更新"
 msgstr "настроить автоматическое обновление сертификата"
 
-#: install.sh:10200
+#: install.sh:10426
 msgid "设置 Fail2ban 防暴力破解"
 msgstr "настройка Fail2ban для защиты от brute-force атак"
 
-#: install.sh:10201 scripts/fail2ban_manager.sh:1242
+#: install.sh:10427 scripts/fail2ban_manager.sh:1242
 msgid "查看 Fail2ban 状态"
 msgstr "просмотреть статус Fail2ban"
 
-#: install.sh:10202 scripts/fail2ban_manager.sh:725
+#: install.sh:10428 scripts/fail2ban_manager.sh:725
 #: scripts/fail2ban_manager.sh:1243
 msgid "快速解封 IP"
 msgstr "быстрое разблокирование IP"
 
-#: install.sh:10203 scripts/fail2ban_manager.sh:726
+#: install.sh:10429 scripts/fail2ban_manager.sh:726
 #: scripts/fail2ban_manager.sh:1244
 msgid "添加可信 IP/CIDR"
 msgstr "добавить доверенный IP/CIDR"
 
-#: install.sh:10204 scripts/fail2ban_manager.sh:727
+#: install.sh:10430 scripts/fail2ban_manager.sh:727
 #: scripts/fail2ban_manager.sh:1245
 msgid "移除可信 IP/CIDR"
 msgstr "удалить доверенный IP/CIDR"
 
-#: install.sh:10205
+#: install.sh:10431
 msgid "设置 Xray 流量阻断"
 msgstr "настройка блокировки трафика в Xray"
 
-#: install.sh:10206
+#: install.sh:10432
 msgid "显示帮助"
 msgstr "показать справку"
 
-#: install.sh:10207 install.sh:12283
+#: install.sh:10433 install.sh:12509
 msgid "修改语言"
 msgstr "изменить язык"
 
-#: install.sh:10210 install.sh:10213 install.sh:12000 install.sh:12107
+#: install.sh:10436 install.sh:10439 install.sh:12226 install.sh:12333
 #: scripts/fail2ban_manager.sh:66
 msgid "查看"
 msgstr "просмотреть"
 
-#: install.sh:10210 install.sh:12085
+#: install.sh:10436 install.sh:12311
 msgid "实时流量"
 msgstr "поток в реальном времени"
 
-#: install.sh:10211
+#: install.sh:10437
 msgid "脚本卸载"
 msgstr "удаление скрипта"
 
-#: install.sh:10212
+#: install.sh:10438
 msgid "安装或修复 Rill AI 判断引擎"
 msgstr "Установка или восстановление движка логического вывода Rill AI"
 
-#: install.sh:10213
+#: install.sh:10439
 msgid "判断引擎状态"
 msgstr "определение состояния движка"
 
-#: install.sh:10214
+#: install.sh:10440
 msgid "切换路由辅助阶段"
 msgstr "фаза вспомогательного переключения маршрутов"
 
-#: install.sh:10215
+#: install.sh:10441
 msgid "查看自动修改状态"
 msgstr "просмотреть статус автоматических изменений"
 
-#: install.sh:10216
+#: install.sh:10442
 msgid "确认自动修改授权"
 msgstr "подтвердить автоматическое изменение авторизации"
 
-#: install.sh:10217
+#: install.sh:10443
 msgid "撤销自动修改授权"
 msgstr "отозвать авторизацию на автоматические изменения"
 
-#: install.sh:10218
+#: install.sh:10444
 msgid "显示安装信息"
 msgstr "отобразить информацию об установке"
 
-#: install.sh:10220 install.sh:12186
+#: install.sh:10446 install.sh:12412
 msgid "加速"
 msgstr "ускорение"
 
-#: install.sh:10222
+#: install.sh:10448
 msgid "更新脚本"
 msgstr "обновить скрипт"
 
-#: install.sh:10224 install.sh:10225
+#: install.sh:10450 install.sh:10451
 msgid "显示"
 msgstr "показать"
 
-#: install.sh:10224
+#: install.sh:10450
 msgid "访问信息"
 msgstr "информация о посещении"
 
-#: install.sh:10225
+#: install.sh:10451
 msgid "错误信息"
 msgstr "сообщение об ошибке"
 
-#: install.sh:10250
+#: install.sh:10476
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr ""
 "версия скрипта сильно изменилась, возможно, существуют несовместимости. "
 "продолжить использование"
 
-#: install.sh:10277
+#: install.sh:10503
 msgid "检测失败"
 msgstr "ошибка проверки"
 
-#: install.sh:10281 install.sh:10291 install.sh:10300
+#: install.sh:10507 install.sh:10517 install.sh:10526
 msgid "有新版"
 msgstr "есть новая версия"
 
-#: install.sh:10284 install.sh:10293 install.sh:10303
+#: install.sh:10510 install.sh:10519 install.sh:10529
 msgid "最新版"
 msgstr "последняя версия"
 
-#: install.sh:10298
+#: install.sh:10524
 msgid "版本未知"
 msgstr "версия неизвестна"
 
-#: install.sh:10318 install.sh:10325 install.sh:12252
+#: install.sh:10544 install.sh:10551 install.sh:12478
 #: scripts/rill_xray_agent_manager.sh:879
 msgid "运行中"
 msgstr "в процессе выполнения"
 
-#: install.sh:10320
+#: install.sh:10546
 msgid "无需测试"
 msgstr "не требуется тестирование"
 
-#: install.sh:10322 install.sh:10327
+#: install.sh:10548 install.sh:10553
 msgid "未运行"
 msgstr "не запущено"
 
-#: install.sh:10393 install.sh:10395
+#: install.sh:10619 install.sh:10621
 msgid "无法连通"
 msgstr "невозможно подключиться"
 
-#: install.sh:10399 install.sh:10401 install.sh:10403 install.sh:10405
-#: install.sh:10407 install.sh:10410 install.sh:10412 install.sh:10414
+#: install.sh:10625 install.sh:10627 install.sh:10629 install.sh:10631
+#: install.sh:10633 install.sh:10636 install.sh:10638 install.sh:10640
 msgid "本地正常"
 msgstr "локально нормально"
 
-#: install.sh:10425
+#: install.sh:10651
 msgid "脚本维护中.. 请稍后再试"
 msgstr "скрипт находится на обслуживании. пожалуйста, попробуйте позже"
 
-#: install.sh:10431
+#: install.sh:10657
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
 "невозможно обнаружить онлайн-версию необходимой зависимости, попробуйте "
 "позже"
 
-#: install.sh:10448
+#: install.sh:10674
 msgid "请输入数字"
 msgstr "пожалуйста, введите цифры"
 
-#: install.sh:10448
+#: install.sh:10674
 msgid "请输入 1 到 6 之间的有效数字"
 msgstr "пожалуйста, введите действительное число от 1 до 6"
 
-#: install.sh:10523
+#: install.sh:10749
 msgid "请输入备份名称"
 msgstr "введите имя резервной копии"
 
-#: install.sh:10523
+#: install.sh:10749
 msgid "不需要后缀"
 msgstr "не требуется суффикс"
 
-#: install.sh:10532
+#: install.sh:10758
 msgid "报错信息"
 msgstr "сообщение об ошибке"
 
-#: install.sh:10534
+#: install.sh:10760
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
 msgstr ""
 "целостность резервной копии может быть нарушена, пожалуйста, проверьте "
 "приведённые выше сообщения об ошибках"
 
-#: install.sh:10545
+#: install.sh:10771
 msgid "请确保备份文件在目录"
 msgstr "пожалуйста, убедитесь, что файлы резервных копий находятся в каталоге"
 
-#: install.sh:10549
+#: install.sh:10775
 msgid "没有找到备份文件"
 msgstr "резервная файл не найдена"
 
-#: install.sh:10554
+#: install.sh:10780
 msgid "发现多个备份文件"
 msgstr "обнаружено несколько файлов резервных копий"
 
-#: install.sh:10554
+#: install.sh:10780
 msgid "将使用最新的文件进行恢复"
 msgstr "будет использован последний файл для восстановления"
 
-#: install.sh:10558
+#: install.sh:10784
 msgid "找到最新备份文件"
 msgstr "найти последний файл резервной копии"
 
-#: install.sh:10560
+#: install.sh:10786
 msgid "恢复备份"
 msgstr "восстановить резервную копию"
 
-#: install.sh:10564 install.sh:10570 install.sh:12213
+#: install.sh:10790 install.sh:10796 install.sh:12439
 msgid "恢复"
 msgstr "восстановление"
 
-#: install.sh:10565 install.sh:10567
+#: install.sh:10791 install.sh:10793
 msgid "记得安装"
 msgstr "помните установить"
 
-#: install.sh:10610
+#: install.sh:10836
 msgid "部署失败且自动恢复未完成"
 msgstr ""
 "развертывание завершилось неудачей, а автоматическое восстановление не "
 "завершено."
 
-#: install.sh:10611 install.sh:11052 install.sh:11171 install.sh:11257
-#: install.sh:11266
+#: install.sh:10837 install.sh:11278 install.sh:11397 install.sh:11483
+#: install.sh:11492
 msgid "备份目录保留在"
 msgstr "каталог резервного копирования сохранён в"
 
-#: install.sh:10637
+#: install.sh:10863
 msgid "备份父目录创建失败, 中止重配置"
 msgstr ""
 "Не удалось создать резервную копию родительского каталога, прерывание "
 "повторной настройки"
 
-#: install.sh:10643
+#: install.sh:10869
 msgid "备份目录创建失败, 中止重配置"
 msgstr ""
 "Не удалось создать каталог резервного копирования, прервать повторную "
 "настройку."
 
-#: install.sh:10689
+#: install.sh:10915
 msgid "关键文件备份失败, 中止重配置"
 msgstr "Сбой резервного копирования ключевых файлов, прерывание перенастройки"
 
-#: install.sh:10785
+#: install.sh:11011
 msgid "备份元数据校验失败, 中止重配置"
 msgstr ""
 "Сбой проверки метаданных резервной копии, прерывание повторной настройки"
 
-#: install.sh:10800
+#: install.sh:11026
 msgid "部署失败, 正在恢复原配置"
 msgstr ""
 "развертывание завершилось неудачно, выполняется восстановление исходной "
 "конфигурации."
 
-#: install.sh:10808
+#: install.sh:11034
 msgid "备份完整性清单缺失, 拒绝恢复"
 msgstr ""
 "Отсутствует список целостности резервной копии, восстановление отказано."
 
-#: install.sh:10812
+#: install.sh:11038
 msgid "备份完整性校验失败, 拒绝恢复"
 msgstr "Сбой проверки целостности резервной копии, восстановление отказано"
 
-#: install.sh:10908
+#: install.sh:11134
 msgid "防火墙规则回滚失败"
 msgstr "откат правил межсетевого экрана не выполнен"
 
-#: install.sh:10934 install.sh:10940
+#: install.sh:11160 install.sh:11166
 msgid "基础防火墙规则回滚失败"
 msgstr "откат базовых правил брандмауэра не выполнен"
 
-#: install.sh:10954
+#: install.sh:11180
 msgid "防火墙持久化恢复未完成, 重启后可能回到失败状态"
 msgstr ""
 "Постоянное восстановление брандмауэра не завершено; после перезагрузки он "
 "может вернуться в сбойное состояние."
 
-#: install.sh:11051
+#: install.sh:11277
 msgid "恢复未完全成功, 请手动检查"
 msgstr "восстановление завершено не полностью, проверьте вручную."
 
-#: install.sh:11062
+#: install.sh:11288
 msgid "Xray 服务恢复后未运行"
 msgstr "служба Xray после восстановления не запущена"
 
-#: install.sh:11066
+#: install.sh:11292
 msgid "Xray 服务恢复后仍在运行"
 msgstr "служба Xray продолжает работать даже после восстановления"
 
-#: install.sh:11070
+#: install.sh:11296
 msgid "Xray 服务恢复后未启用"
 msgstr "служба Xray не была активирована после восстановления"
 
-#: install.sh:11074
+#: install.sh:11300
 msgid "Xray 服务恢复后仍启用"
 msgstr "Xray остаться включённым после восстановления службы"
 
-#: install.sh:11079
+#: install.sh:11305
 msgid "Xray 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
 "После восстановления службы она по‑прежнему загружается в systemd как "
 "active, однако в исходной системе такого unit не существует."
 
-#: install.sh:11083
+#: install.sh:11309
 msgid "Xray 服务恢复后仍为 enabled, 但原系统无此 unit"
 msgstr ""
 "Служба Xray после восстановления по‑прежнему имеет статус enabled, однако в "
 "исходной системе такого unit не существует."
 
-#: install.sh:11089
+#: install.sh:11315
 msgid "Nginx 服务恢复后未运行"
 msgstr "служба Nginx после восстановления не запущена"
 
-#: install.sh:11093
+#: install.sh:11319
 msgid "Nginx 服务恢复后仍在运行"
 msgstr "Служба Nginx продолжает работать даже после восстановления"
 
-#: install.sh:11097
+#: install.sh:11323
 msgid "Nginx 服务恢复后未启用"
 msgstr "служба Nginx не была активирована после восстановления"
 
-#: install.sh:11101
+#: install.sh:11327
 msgid "Nginx 服务恢复后仍启用"
 msgstr "Nginx остаться включённым после восстановления службы"
 
-#: install.sh:11106
+#: install.sh:11332
 msgid "Nginx 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
 "После восстановления службы она по‑прежнему загружается в systemd как "
 "active, однако в исходной системе такого unit не существует."
 
-#: install.sh:11110
+#: install.sh:11336
 msgid "Nginx 服务恢复后仍为 enabled, 但原系统无此 unit"
 msgstr ""
 "Служба Nginx после восстановления по‑прежнему имеет статус enabled, однако в"
 " исходной системе такого unit не существует."
 
-#: install.sh:11136 install.sh:11140
+#: install.sh:11362 install.sh:11366
 msgid "ACME 定时任务未能恢复, 请手动检查"
 msgstr "ACME Планируемое задание не удалось восстановить, проверьте вручную."
 
-#: install.sh:11163
+#: install.sh:11389
 msgid "ACME 定时任务删除后仍存在, 请手动检查"
 msgstr ""
 "ACME Планируемое задание по‑прежнему существует даже после удаления; "
 "проверьте вручную."
 
-#: install.sh:11170
+#: install.sh:11396
 msgid "恢复后验证失败, 请手动检查"
 msgstr "проверка после восстановления не прошла, выполните проверку вручную."
 
-#: install.sh:11190
+#: install.sh:11416
 msgid "已恢复原配置"
 msgstr "восстановлена исходная конфигурация"
 
-#: install.sh:11197
+#: install.sh:11423
 msgid "Xray 配置测试失败"
 msgstr "Xray тест конфигурации не прошёл"
 
-#: install.sh:11202
+#: install.sh:11428
 msgid "Nginx 配置测试失败"
 msgstr "Nginx тест конфигурации не прошёл"
 
-#: install.sh:11207 scripts/rill_xray_agent_manager.sh:953
+#: install.sh:11433 scripts/rill_xray_agent_manager.sh:953
 msgid "Xray 服务未运行"
 msgstr "служба Xray не запущена"
 
-#: install.sh:11212 scripts/rill_xray_agent_manager.sh:954
+#: install.sh:11438 scripts/rill_xray_agent_manager.sh:954
 msgid "Nginx 服务未运行"
 msgstr "служба Nginx не запущена"
 
-#: install.sh:11241
+#: install.sh:11467
 msgid "用户 UUID 集合发生变化, 将恢复原配置"
 msgstr ""
 "Коллекция пользователя UUID изменилась, будет восстановлена исходная "
 "конфигурация."
 
-#: install.sh:11256 install.sh:11265
+#: install.sh:11482 install.sh:11491
 msgid "最终验证失败且自动恢复未完成"
 msgstr ""
 "в итоге проверка завершилась неудачей, а автоматическое восстановление не "
 "было выполнено."
 
-#: install.sh:11434
+#: install.sh:11660
 msgid "回到菜单"
 msgstr "вернуться к меню"
 
-#: install.sh:11461
+#: install.sh:11687
 msgid "不建议"
 msgstr "не рекомендуется"
 
-#: install.sh:11461
+#: install.sh:11687
 msgid "频繁更新 Nginx, 请确认 Nginx 有更新的必要"
 msgstr ""
 "часто обновляйте Nginx; убедитесь, что обновление Nginx действительно "
 "необходимо"
 
-#: install.sh:11462
+#: install.sh:11688
 msgid "开始更新"
 msgstr "начать обновление"
 
-#: install.sh:11475 install.sh:11490 install.sh:11510 install.sh:11533
-#: install.sh:11772 install.sh:11789 install.sh:11807 install.sh:11825
-#: install.sh:11863 install.sh:11880 install.sh:11915 install.sh:11941
-#: install.sh:11986
+#: install.sh:11701 install.sh:11716 install.sh:11736 install.sh:11759
+#: install.sh:11998 install.sh:12015 install.sh:12033 install.sh:12051
+#: install.sh:12089 install.sh:12106 install.sh:12141 install.sh:12167
+#: install.sh:12212
 msgid "安装失败且自动恢复失败, 备份已保留, 请手动检查"
 msgstr ""
 "Сбой установки и сбой автоматического восстановления; резервная копия "
 "сохранена, проверьте вручную."
 
-#: install.sh:11477 install.sh:11492 install.sh:11512 install.sh:11535
-#: install.sh:11774 install.sh:11791 install.sh:11809 install.sh:11827
-#: install.sh:11865 install.sh:11882 install.sh:11917 install.sh:11943
-#: install.sh:11988
+#: install.sh:11703 install.sh:11718 install.sh:11738 install.sh:11761
+#: install.sh:12000 install.sh:12017 install.sh:12035 install.sh:12053
+#: install.sh:12091 install.sh:12108 install.sh:12143 install.sh:12169
+#: install.sh:12214
 msgid "安装失败, 原配置已恢复"
 msgstr "сбой установки, прежняя конфигурация восстановлена."
 
-#: install.sh:11624 install.sh:11633 install.sh:12104 install.sh:12105
-#: install.sh:12106 install.sh:12107
+#: install.sh:11850 install.sh:11859 install.sh:12330 install.sh:12331
+#: install.sh:12332 install.sh:12333
 msgid "所有服务"
 msgstr "все услуги"
 
-#: install.sh:11687
+#: install.sh:11913
 msgid "网速测试脚本下载失败"
 msgstr "скрипт для тестирования скорости интернета не удалось скачать"
 
-#: install.sh:11724
+#: install.sh:11950
 msgid "选择传输协议"
 msgstr "Выберите транспортный протокол"
 
-#: install.sh:11749
+#: install.sh:11975
 msgid "Reality 部署方式"
 msgstr "Метод развёртывания Reality"
 
-#: install.sh:11750
+#: install.sh:11976
 msgid "前置保护"
 msgstr "Фронтальная защита"
 
-#: install.sh:11751
+#: install.sh:11977
 msgid "标准"
 msgstr "Стандартный"
 
-#: install.sh:11843
+#: install.sh:12069
 msgid "Reality 负载均衡角色"
 msgstr "Роль балансировки нагрузки Reality"
 
-#: install.sh:11844
+#: install.sh:12070
 msgid "主服务器"
 msgstr "Основной сервер"
 
-#: install.sh:11844
+#: install.sh:12070
 msgid "安装 Nginx"
 msgstr "установить Nginx"
 
-#: install.sh:11845
+#: install.sh:12071
 msgid "二级服务器"
 msgstr "Вторичный сервер"
 
-#: install.sh:11845
+#: install.sh:12071
 msgid "仅提供 Reality 后端"
 msgstr "Только бэкенд Reality"
 
-#: install.sh:11894
+#: install.sh:12120
 msgid "部署方式"
 msgstr "Метод развёртывания"
 
-#: install.sh:11896
+#: install.sh:12122
 msgid "无 Nginx、无 TLS"
 msgstr "Без Nginx, без TLS"
 
-#: install.sh:11925
+#: install.sh:12151
 msgid "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
 msgstr ""
 "Режим ONLY предназначен для ретрансляции, серверов балансировки нагрузки или"
 " сред с существующим вышестоящим прокси"
 
-#: install.sh:11955 install.sh:12276
+#: install.sh:12181 install.sh:12502
 msgid "安装向导"
 msgstr "мастер установки"
 
-#: install.sh:11969
+#: install.sh:12195
 msgid "此模式主要用于流量中转或特殊部署，不建议普通用户使用"
 msgstr ""
 "Этот режим в основном для ретрансляции трафика или специального "
 "развёртывания, не рекомендуется обычным пользователям"
 
-#: install.sh:11999 install.sh:12062
+#: install.sh:12225 install.sh:12288
 msgid "用户管理"
 msgstr "управление пользователями"
 
-#: install.sh:12000 install.sh:12001 install.sh:12002
+#: install.sh:12226 install.sh:12227 install.sh:12228
 msgid "用户"
 msgstr "пользователь"
 
-#: install.sh:12019 install.sh:12061 install.sh:12063 install.sh:12277
+#: install.sh:12245 install.sh:12287 install.sh:12289 install.sh:12503
 msgid "配置变更"
 msgstr "изменение конфигурации"
 
-#: install.sh:12081 install.sh:12278
+#: install.sh:12307 install.sh:12504
 msgid "查看信息"
 msgstr "просмотр информации"
 
-#: install.sh:12083
+#: install.sh:12309
 msgid "实时访问日志"
 msgstr "журнал доступа в реальном времени"
 
-#: install.sh:12084
+#: install.sh:12310
 msgid "实时错误日志"
 msgstr "журнал ошибок в реальном времени"
 
-#: install.sh:12103 install.sh:12146
+#: install.sh:12329 install.sh:12372
 msgid "服务相关"
 msgstr "сервисный связанный"
 
-#: install.sh:12125 install.sh:12147
+#: install.sh:12351 install.sh:12373
 msgid "证书相关"
 msgstr "сертификаты, связанные"
 
-#: install.sh:12126
+#: install.sh:12352
 msgid "证书状态"
 msgstr "статус сертификата"
 
-#: install.sh:12127
+#: install.sh:12353
 msgid "证书有效期"
 msgstr "срок действия сертификата"
 
-#: install.sh:12128
+#: install.sh:12354
 msgid "证书自动更新"
 msgstr "автоматическое обновление сертификата"
 
-#: install.sh:12163 install.sh:12280
+#: install.sh:12389 install.sh:12506
 msgid "更新向导"
 msgstr "мастер обновления"
 
-#: install.sh:12164 install.sh:12215 install.sh:12235
+#: install.sh:12390 install.sh:12441 install.sh:12461
 msgid "脚本"
 msgstr "сценарий"
 
-#: install.sh:12167
+#: install.sh:12393
 msgid "自动更新"
 msgstr "автоматическое обновление"
 
-#: install.sh:12185 install.sh:12281
+#: install.sh:12411 install.sh:12507
 msgid "其他选项"
 msgstr "другие варианты"
 
-#: install.sh:12188
+#: install.sh:12414
 msgid "流量统计"
 msgstr "статистика трафика"
 
-#: install.sh:12189 scripts/traffic_blocker.sh:577
+#: install.sh:12415 scripts/traffic_blocker.sh:577
 msgid "流量阻断"
 msgstr "блокировка трафика"
 
-#: install.sh:12190
+#: install.sh:12416
 msgid "清除"
 msgstr "очистить"
 
-#: install.sh:12190
+#: install.sh:12416
 msgid "日志文件"
 msgstr "журнал файлов"
 
-#: install.sh:12191
+#: install.sh:12417
 msgid "服务器网速"
 msgstr "скорость интернета на сервере"
 
-#: install.sh:12211 install.sh:12282
+#: install.sh:12437 install.sh:12508
 msgid "备份恢复"
 msgstr "резервное восстановление"
 
-#: install.sh:12212 install.sh:12213
+#: install.sh:12438 install.sh:12439
 msgid "全部文件"
 msgstr "все файлы"
 
-#: install.sh:12214
+#: install.sh:12440
 msgid "清空"
 msgstr "очистить"
 
-#: install.sh:12214
+#: install.sh:12440
 msgid "证书文件"
 msgstr "файл сертификата"
 
-#: install.sh:12215 scripts/fail2ban_manager.sh:65
+#: install.sh:12441 scripts/fail2ban_manager.sh:65
 #: scripts/fail2ban_manager.sh:1093
 msgid "卸载"
 msgstr "удалить"
 
-#: install.sh:12232
+#: install.sh:12458
 msgid "Xray 管理脚本"
 msgstr "Xray скрипт управления"
 
-#: install.sh:12234
+#: install.sh:12460
 msgid "当前语言"
 msgstr "текущий язык"
 
-#: install.sh:12240
+#: install.sh:12466
 msgid "连通性"
 msgstr "связность"
 
-#: install.sh:12244
+#: install.sh:12470
 msgid "运行状态"
 msgstr "рабочее состояние"
 
-#: install.sh:12248
+#: install.sh:12474
 msgid "AI 实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议"
 msgstr ""
 "AI Мониторинг в режиме реального времени Xray/Nginx состояния, "
 "автоматическая диагностика неисправностей и предоставление рекомендаций по "
 "их устранению"
 
-#: install.sh:12268
+#: install.sh:12494
 msgid "Xray 管理菜单"
 msgstr "Xray меню управления"
 
-#: install.sh:12286 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
+#: install.sh:12512 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
 #: scripts/traffic_blocker.sh:587
 msgid "退出"
 msgstr "выйти"
@@ -3073,13 +3081,13 @@ msgid "管理"
 msgstr "управление"
 
 #: scripts/fail2ban_manager.sh:66 scripts/fail2ban_manager.sh:999
-#: scripts/traffic_blocker.sh:527 scripts/traffic_blocker.sh:777
+#: scripts/traffic_blocker.sh:527 scripts/traffic_blocker.sh:781
 msgid "状态"
 msgstr "состояние"
 
 #: scripts/fail2ban_manager.sh:69 scripts/file_manager.sh:310
 #: scripts/traffic_blocker.sh:308 scripts/traffic_blocker.sh:589
-#: scripts/traffic_blocker.sh:702
+#: scripts/traffic_blocker.sh:706
 msgid "请选择一个选项"
 msgstr "выберите один из вариантов"
 
@@ -3099,13 +3107,13 @@ msgstr "пропустить включение"
 #: scripts/fail2ban_manager.sh:189 scripts/fail2ban_manager.sh:206
 #: scripts/fail2ban_manager.sh:211 scripts/fail2ban_manager.sh:214
 #: scripts/fail2ban_manager.sh:232 scripts/fail2ban_manager.sh:237
-#: scripts/fail2ban_manager.sh:240 scripts/traffic_blocker.sh:850
+#: scripts/fail2ban_manager.sh:240 scripts/traffic_blocker.sh:854
 msgid "规则"
 msgstr "правило"
 
 #: scripts/fail2ban_manager.sh:211 scripts/fail2ban_manager.sh:237
 #: scripts/fail2ban_manager.sh:1001 scripts/traffic_blocker.sh:529
-#: scripts/traffic_blocker.sh:779
+#: scripts/traffic_blocker.sh:783
 msgid "已禁用"
 msgstr "отключено"
 
@@ -3383,7 +3391,7 @@ msgid "模块名称"
 msgstr "название модуля"
 
 #: scripts/fail2ban_manager.sh:1032 scripts/file_manager.sh:112
-#: scripts/traffic_blocker.sh:815
+#: scripts/traffic_blocker.sh:819
 msgid "序号"
 msgstr "порядковый номер"
 
@@ -3391,15 +3399,15 @@ msgstr "порядковый номер"
 msgid "请选择要管理的模块"
 msgstr "пожалуйста, выберите модуль для управления"
 
-#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:842
+#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:846
 msgid "启用"
 msgstr "включить"
 
-#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:842
+#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:846
 msgid "禁用"
 msgstr "отключить"
 
-#: scripts/fail2ban_manager.sh:1066 scripts/traffic_blocker.sh:850
+#: scripts/fail2ban_manager.sh:1066 scripts/traffic_blocker.sh:854
 msgid "是否"
 msgstr "является ли"
 
@@ -3408,7 +3416,7 @@ msgid "模块"
 msgstr "модуль"
 
 #: scripts/fail2ban_manager.sh:1076 scripts/traffic_blocker.sh:215
-#: scripts/traffic_blocker.sh:857 scripts/traffic_blocker.sh:1140
+#: scripts/traffic_blocker.sh:861 scripts/traffic_blocker.sh:1144
 msgid "操作已取消"
 msgstr "операция отменена"
 
@@ -3431,32 +3439,32 @@ msgid "未启用或配置异常"
 msgstr "не активировано или возникла ошибка конфигурации"
 
 #: scripts/fail2ban_manager.sh:1166 scripts/file_manager.sh:332
-#: scripts/traffic_blocker.sh:1213
+#: scripts/traffic_blocker.sh:1217
 msgid "新版本可用"
 msgstr "доступна новая версия"
 
 #: scripts/fail2ban_manager.sh:1167 scripts/file_manager.sh:333
-#: scripts/traffic_blocker.sh:1214
+#: scripts/traffic_blocker.sh:1218
 msgid "请访问"
 msgstr "пожалуйста, посетите"
 
 #: scripts/fail2ban_manager.sh:1167 scripts/file_manager.sh:333
-#: scripts/traffic_blocker.sh:1214
+#: scripts/traffic_blocker.sh:1218
 msgid "查看更新说明"
 msgstr "просмотреть описание обновлений"
 
 #: scripts/fail2ban_manager.sh:1173 scripts/file_manager.sh:339
-#: scripts/traffic_blocker.sh:1220
+#: scripts/traffic_blocker.sh:1224
 msgid "正在下载新版本"
 msgstr "загружается новая версия"
 
 #: scripts/fail2ban_manager.sh:1175 scripts/file_manager.sh:341
-#: scripts/traffic_blocker.sh:1222
+#: scripts/traffic_blocker.sh:1226
 msgid "下载完成, 正在重新加载..."
 msgstr "загрузка завершена, выполняется перезагрузка"
 
 #: scripts/fail2ban_manager.sh:1184 scripts/file_manager.sh:350
-#: scripts/traffic_blocker.sh:1231
+#: scripts/traffic_blocker.sh:1235
 msgid "跳过更新"
 msgstr "пропустить обновление"
 
@@ -3614,7 +3622,6 @@ msgstr ""
 "и index)."
 
 #: scripts/rill_xray_agent_manager.sh:136
-#| msgid "确认切换吗？ [y/N]: "
 msgid "确认安装吗？ [y/N]: "
 msgstr "подтвердить установку? [y/N]:"
 
@@ -3627,7 +3634,6 @@ msgid "已取消。"
 msgstr "отменено."
 
 #: scripts/rill_xray_agent_manager.sh:142
-#| msgid "安装失败"
 msgid "RillML 安装失败。"
 msgstr "RillML сбой установки."
 
@@ -3638,7 +3644,6 @@ msgstr ""
 "выполнения RillML (понижение версии строго запрещено)."
 
 #: scripts/rill_xray_agent_manager.sh:149
-#| msgid "确认切换吗？ [y/N]: "
 msgid "确认升级吗？ [y/N]: "
 msgstr "подтвердить обновление? [y/N]:"
 
@@ -3653,12 +3658,10 @@ msgstr ""
 "текущей версии RillML."
 
 #: scripts/rill_xray_agent_manager.sh:162
-#| msgid "确认切换吗？ [y/N]: "
 msgid "确认重新安装吗？ [y/N]: "
 msgstr "Подтвердить переустановку? [y/N]:"
 
 #: scripts/rill_xray_agent_manager.sh:168
-#| msgid "安装失败"
 msgid "RillML 重新安装失败。"
 msgstr "RillML сбой повторной установки."
 
@@ -3669,12 +3672,10 @@ msgstr ""
 "случае отсутствия таковой — ошибка)."
 
 #: scripts/rill_xray_agent_manager.sh:175
-#| msgid "确认切换吗？ [y/N]: "
 msgid "确认回滚吗？ [y/N]: "
 msgstr "подтвердить откат? [y/N]:"
 
 #: scripts/rill_xray_agent_manager.sh:181
-#| msgid "回滚失败"
 msgid "RillML 回滚失败。"
 msgstr "RillML откат не выполнен."
 
@@ -3854,7 +3855,7 @@ msgstr "доказательств недостаточно"
 #: scripts/rill_xray_agent_manager.sh:995 scripts/traffic_blocker.sh:471
 #: scripts/traffic_blocker.sh:626 scripts/traffic_blocker.sh:628
 #: scripts/traffic_blocker.sh:638 scripts/traffic_blocker.sh:640
-#: scripts/traffic_blocker.sh:749
+#: scripts/traffic_blocker.sh:753
 msgid "未知"
 msgstr "неизвестно"
 
@@ -3950,7 +3951,6 @@ msgid "运行 AI 故障诊断"
 msgstr "выполнение диагностики неисправностей AI"
 
 #: scripts/rill_xray_agent_manager.sh:1085
-#| msgid "Rill Xray AI 运维助手"
 msgid "Rill Xray AI 运维助手 / RillML 管理"
 msgstr ""
 "Rill Xray AI Помощник по эксплуатации и обслуживанию / RillML управление"
@@ -4152,11 +4152,11 @@ msgstr "удалить страну/регион"
 msgid "不存在"
 msgstr "не существует"
 
-#: scripts/traffic_blocker.sh:507 scripts/traffic_blocker.sh:952
+#: scripts/traffic_blocker.sh:507 scripts/traffic_blocker.sh:956
 msgid "正在下载"
 msgstr "идёт загрузка"
 
-#: scripts/traffic_blocker.sh:526 scripts/traffic_blocker.sh:776
+#: scripts/traffic_blocker.sh:526 scripts/traffic_blocker.sh:780
 msgid "规则名称"
 msgstr "название правила"
 
@@ -4168,7 +4168,7 @@ msgstr "просмотреть статус правил блокировки"
 msgid "管理阻断规则"
 msgstr "правило блокировки управления"
 
-#: scripts/traffic_blocker.sh:585 scripts/traffic_blocker.sh:692
+#: scripts/traffic_blocker.sh:585 scripts/traffic_blocker.sh:696
 msgid "更新 GeoData"
 msgstr "обновить геоданные [GeoData]"
 
@@ -4202,153 +4202,153 @@ msgstr ""
 "настроить автоматическое обновление геоданных по расписанию (по "
 "понедельникам в 3 часа ночи) [GeoData]"
 
-#: scripts/traffic_blocker.sh:657
+#: scripts/traffic_blocker.sh:661
 msgid "下载 GeoData 自动更新脚本"
 msgstr "скачать скрипт автоматического обновления геоданных [GeoData]"
 
-#: scripts/traffic_blocker.sh:668
+#: scripts/traffic_blocker.sh:672
 msgid "设置 GeoData 自动更新"
 msgstr "настроить автоматическое обновление геоданных [GeoData]"
 
-#: scripts/traffic_blocker.sh:674
+#: scripts/traffic_blocker.sh:678
 msgid "已设置 GeoData 自动更新"
 msgstr "автоматическое обновление геоданных уже настроено [GeoData]"
 
-#: scripts/traffic_blocker.sh:675
+#: scripts/traffic_blocker.sh:679
 msgid "当前计划"
 msgstr "текущий план"
 
-#: scripts/traffic_blocker.sh:682
+#: scripts/traffic_blocker.sh:686
 msgid "删除 GeoData 自动更新"
 msgstr "удалить автоматическое обновление геоданных [GeoData]"
 
-#: scripts/traffic_blocker.sh:696
+#: scripts/traffic_blocker.sh:700
 msgid "更新全部 GeoData"
 msgstr "обновить все геоданные [GeoData]"
 
-#: scripts/traffic_blocker.sh:719
+#: scripts/traffic_blocker.sh:723
 msgid "正在更新全部 GeoData"
 msgstr "выполняется обновление всех геоданных [GeoData]"
 
-#: scripts/traffic_blocker.sh:732
+#: scripts/traffic_blocker.sh:736
 msgid "部分文件更新失败"
 msgstr "некоторые файлы не удалось обновить"
 
-#: scripts/traffic_blocker.sh:734
+#: scripts/traffic_blocker.sh:738
 msgid "全部 GeoData 已更新"
 msgstr "все геоданные обновлены [GeoData]"
 
-#: scripts/traffic_blocker.sh:751
+#: scripts/traffic_blocker.sh:755
 msgid "文件不存在, 将下载最新版本"
 msgstr "файл не найден, будет загружена последняя версия"
 
-#: scripts/traffic_blocker.sh:756
+#: scripts/traffic_blocker.sh:760
 msgid "已更新至"
 msgstr "обновлено до"
 
-#: scripts/traffic_blocker.sh:768
+#: scripts/traffic_blocker.sh:772
 msgid "管理流量阻断规则"
 msgstr "управление правилами блокировки трафика"
 
-#: scripts/traffic_blocker.sh:827
+#: scripts/traffic_blocker.sh:831
 msgid "请选择要管理的规则"
 msgstr "пожалуйста, выберите правило для управления"
 
-#: scripts/traffic_blocker.sh:908
+#: scripts/traffic_blocker.sh:912
 msgid "备份 Xray 配置失败"
 msgstr "не удалось создать резервную копию конфигурации Xray"
 
-#: scripts/traffic_blocker.sh:921
+#: scripts/traffic_blocker.sh:925
 msgid "重启失败, 已恢复原配置"
 msgstr "перезагрузка не удалась, восстановлены исходные настройки"
 
-#: scripts/traffic_blocker.sh:951
+#: scripts/traffic_blocker.sh:955
 msgid "缺少 GeoData 文件"
 msgstr "отсутствует файл GeoData"
 
-#: scripts/traffic_blocker.sh:974
+#: scripts/traffic_blocker.sh:978
 msgid "以下 GeoData 文件有更新可用"
 msgstr "доступны обновления для следующих файлов GeoData"
 
-#: scripts/traffic_blocker.sh:975
+#: scripts/traffic_blocker.sh:979
 msgid "是否立即更新"
 msgstr "обновить сейчас"
 
-#: scripts/traffic_blocker.sh:992
+#: scripts/traffic_blocker.sh:996
 msgid "Xray 配置文件不存在"
 msgstr "файл конфигурации Xray отсутствует"
 
-#: scripts/traffic_blocker.sh:997
+#: scripts/traffic_blocker.sh:1001
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
 "в конфигурации Xray отсутствует настройка блокировки исходящего трафика, "
 "поэтому правила блокировки не могут быть применены [blocked]"
 
-#: scripts/traffic_blocker.sh:1002
+#: scripts/traffic_blocker.sh:1006
 msgid "Xray 配置中缺少 direct 出站, 无法应用阻断规则"
 msgstr ""
 "в конфигурации Xray отсутствует прямой исходящий трафик, поэтому правила "
 "блокировки не могут быть применены [direct]"
 
-#: scripts/traffic_blocker.sh:1017
+#: scripts/traffic_blocker.sh:1021
 msgid "当前阻断规则配置"
 msgstr "текущая конфигурация правил блокировки"
 
-#: scripts/traffic_blocker.sh:1029
+#: scripts/traffic_blocker.sh:1033
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
 "применение правил приведёт к перестройке конфигурации маршрутизации; "
 "пользовательские правила маршрутизации будут заменены"
 
-#: scripts/traffic_blocker.sh:1033
+#: scripts/traffic_blocker.sh:1037
 msgid "GeoData 下载失败, 无法应用规则"
 msgstr "сбой загрузки геоданных, применение правил невозможно [GeoData]"
 
-#: scripts/traffic_blocker.sh:1052 scripts/traffic_blocker.sh:1159
+#: scripts/traffic_blocker.sh:1056 scripts/traffic_blocker.sh:1163
 msgid "无法从 Xray 配置中提取入站标签"
 msgstr "не удалось извлечь входящую метку из конфигурации Xray"
 
-#: scripts/traffic_blocker.sh:1111 scripts/traffic_blocker.sh:1185
+#: scripts/traffic_blocker.sh:1115 scripts/traffic_blocker.sh:1189
 msgid "修改 Xray 配置失败"
 msgstr "не удалось изменить конфигурацию Xray"
 
-#: scripts/traffic_blocker.sh:1123
+#: scripts/traffic_blocker.sh:1127
 msgid "流量阻断规则"
 msgstr "правила блокировки трафика"
 
-#: scripts/traffic_blocker.sh:1123 scripts/traffic_blocker.sh:1126
-#: scripts/traffic_blocker.sh:1129
+#: scripts/traffic_blocker.sh:1127 scripts/traffic_blocker.sh:1130
+#: scripts/traffic_blocker.sh:1133
 msgid "已应用"
 msgstr "уже применено"
 
-#: scripts/traffic_blocker.sh:1124 scripts/traffic_blocker.sh:1197
+#: scripts/traffic_blocker.sh:1128 scripts/traffic_blocker.sh:1201
 msgid "已重启"
 msgstr "перезагрузка выполнена"
 
-#: scripts/traffic_blocker.sh:1126 scripts/traffic_blocker.sh:1199
+#: scripts/traffic_blocker.sh:1130 scripts/traffic_blocker.sh:1203
 msgid "域名解析策略"
 msgstr "стратегия разрешения доменных имён"
 
-#: scripts/traffic_blocker.sh:1129 scripts/traffic_blocker.sh:1202
+#: scripts/traffic_blocker.sh:1133 scripts/traffic_blocker.sh:1206
 msgid "协议嗅探"
 msgstr "слежение за протоколами"
 
-#: scripts/traffic_blocker.sh:1135
+#: scripts/traffic_blocker.sh:1139
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr "это действие сбросит все правила блокировки до отключённого состояния"
 
-#: scripts/traffic_blocker.sh:1136
+#: scripts/traffic_blocker.sh:1140
 msgid "确认重置"
 msgstr "подтвердить сброс"
 
-#: scripts/traffic_blocker.sh:1195
+#: scripts/traffic_blocker.sh:1199
 msgid "所有阻断规则"
 msgstr "все правила блокировки"
 
-#: scripts/traffic_blocker.sh:1195
+#: scripts/traffic_blocker.sh:1199
 msgid "已重置"
 msgstr "уже сброшено"
 
-#: scripts/traffic_blocker.sh:1199 scripts/traffic_blocker.sh:1202
+#: scripts/traffic_blocker.sh:1203 scripts/traffic_blocker.sh:1206
 msgid "已恢复"
 msgstr "восстановлено"
