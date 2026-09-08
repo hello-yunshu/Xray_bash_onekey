@@ -133,6 +133,7 @@ else
     systemctl enable --now rill-xray-agent-apply.path
     systemctl enable --now rill-xray-agent-auto-evaluate.path
 fi
+# shellcheck disable=SC1090
 source "$(root /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh)"
 if ((UPGRADE)); then
     rxa_apply_mode "$SAVED_MODE"
