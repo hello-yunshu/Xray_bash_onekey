@@ -1,127 +1,127 @@
-# Xray 관리 스크립트 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray 管理脚本 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
-중국어 간체 |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
+简体中文 | [English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
 > Thanks for non-commercial open source development authorization by JetBrains
 
-## 특징
+## 功能特性
 
-* 입력하다`idleleo`Xray 관리 메뉴를 열어 설치, 서비스, 보안 설정 등을 관리하세요.
-* 여러 언어로 정확한 번역을 얻으려면 Qwen-MT-Plus AI을 사용하세요.
-* Reality 프로토콜을 지원합니다. Nginx 접두사 사용을 권장합니다(스크립트에 설치 가능).
-* WebSocket, gRPC, xHTTP 전송을 지원하며 단일 전송 또는`ws+gRPC+xHTTP`둘 다 활성화
-* IPv4 / IPv6 듀얼 스택 지원: 설치 중 공용 네트워크 내보내기 기능을 자동으로 감지하고 도메인 이름 A/AAAA을 기반으로 독립적인 확인을 기록하며 해당 공유 링크 및 Clash 구성을 생성할 수 있습니다.
+* 输入 `idleleo` 打开 Xray 管理菜单，管理安装、服务、安全设置等
+* 采用 Qwen-MT-Plus AI 实现多语言精准翻译
+* 支持 Reality 协议，建议搭配 Nginx 前置（脚本内可安装）
+* 支持 WebSocket、gRPC、xHTTP 传输，可选择单一传输或 `ws+gRPC+xHTTP` 同时启用
+* 支持 IPv4 / IPv6 双栈：安装时可自动检测公网出口能力，按域名 A/AAAA 记录独立校验并生成对应分享链接与 Clash 配置
 * 내장된 fail2ban 보호(스크립트 내에 설치 가능)
-* 내장된 Xray 트래픽 통계, 트래픽 차단, GeoIP/GeoSite 규칙 업데이트 및 정기 업데이트
-* 스크립트, Xray, Nginx 및 인증서 업데이트를 지원하고 중요 업데이트에 대한 백업 및 오류 롤백을 제공합니다.
-* 현재 실행 중인 구성은 재설치 및 모드 전환 전에 자동으로 백업되며, 장애 발생 시 원래 구성이 복원됩니다.
-* 재구성은 구성 보존 재배포, 표준 템플릿 재구성 및 모드 전환이라는 세 가지 안전한 경로를 제공합니다.
-* 사용[@DuckSoft](https://github.com/DuckSoft)님의 공유 링크[提案](https://github.com/XTLS/Xray-core/issues/91)(beta), Qv2ray, V2rayN, V2rayNG과 호환 가능
-* 사용[XTLS](https://github.com/XTLS/Xray-core/issues/158)제안, 따르다[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)표준, VLESS UUID에 대한 사용자 정의 문자열 매핑 지원
-* gRPC 프로토콜을 지원합니다:[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
-* Reality / ws/gRPC/xHTTP 로드 밸런싱을 지원합니다.
+* 内置 Xray 流量统计、流量阻断、GeoIP/GeoSite 规则更新及定时更新
+* 支持脚本、Xray、Nginx 和证书更新，并为关键更新提供备份与失败回滚
+* 重新安装和模式切换前会自动备份当前运行配置，失败时恢复原配置
+* 重配置提供三条安全路径：保留配置重新部署、标准模板重建、模式切换
+* 采用 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91)（beta），兼容 Qv2ray、V2rayN、V2rayNG
+* 采用 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，支持自定义字符串映射至 VLESS UUID
+* 支持 gRPC 协议：[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* 支持 Reality / ws/gRPC/xHTTP 负载均衡：
   - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
   - [搭建后端负载均衡](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
-* Reality + Nginx 모드는 기본적으로 활성화되어 있습니다. SNI Guard: 알 수 없는 SNI, 비어 있는 SNI 및 예외 TLS은 Xray Reality 백엔드를 입력하지 않습니다. 기본적으로 격리 전략(ssl_reject_handshake)이 채택됩니다. 고급 사용자는 자체 구축된 decoy 사이트 대체 또는 직접 TCP 거부로 전환할 수 있습니다. 이 기능은 능동감지 및 오설정 노출을 줄이기 위해 사용되며, 완벽한 위장을 추구하지는 않습니다.
+* Reality + Nginx 模式默认启用 SNI Guard：未知 SNI、空 SNI 与异常 TLS 不会进入 Xray Reality 后端，默认采用隔离策略（ssl_reject_handshake），高级用户可切换为自建 decoy 站点回落或直接 TCP 拒绝。该功能用于减少主动探测与误配置暴露，不追求完美伪装
 
-## 추가 읽기
+## 延伸阅读
 
-* `idleleo`뒷이야기 명명:[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
-* Reality 설치 안내서:[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Reality 프로토콜 위험:[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
-* Reality 가속 서버:[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
+* `idleleo` 命名背景故事：[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
+* Reality 安装指南：[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality 协议风险：[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Reality 加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
 
-## Telegram 그룹
+## Telegram 群组
 
-* 커뮤니케이션 그룹:[点击加入](https://t.me/+48VSqv7xIIFmZDZl)
+* 交流群：[点击加入](https://t.me/+48VSqv7xIIFmZDZl)
 
-## 준비
+## 准备工作
 
-* 공용 네트워크가 있는 해외 서버 IP
-* Reality 프로토콜 설치: Xray의 요구 사항을 충족하는 대상 도메인 이름을 준비해야 합니다.
-* TLS 버전 설치: 서버의 사용 가능한 네트워크에 따라 도메인 이름을 준비하고 A 및/또는 AAAA 레코드를 올바르게 구성해야 합니다. 이중 스택 환경의 경우 올바른 A 및 AAAA을 동시에 구성하는 것이 좋습니다. 이 스크립트는 IPv4/IPv6 네트워크 기능의 자동 감지를 지원합니다. 듀얼 스택을 사용할 수 있는 경우 해당 클라이언트 항목이 동시에 생성될 수 있습니다.
-* 읽다[Xray 官方文档](https://xtls.github.io), Reality, TLS, WebSocket, gRPC 및 Xray 관련 개념을 이해합니다.
-* **curl이 설치되어 있는지 확인: CentOS 사용자 실행`yum install -y curl`;Debian/Ubuntu 사용자 실행`apt install -y curl`
+* 一台境外服务器，具备公网 IP
+* 安装 Reality 协议：需准备符合 Xray 要求的目标域名
+* 安装 TLS 版本：需准备域名，并根据服务器可用网络正确配置 A 和/或 AAAA 记录；双栈环境建议同时配置正确的 A 与 AAAA。脚本支持自动检测 IPv4/IPv6 网络能力，双栈可用时可同时生成对应客户端入口
+* 阅读 [Xray 官方文档](https://xtls.github.io)，了解 Reality、TLS、WebSocket、gRPC 及 Xray 相关概念
+* **确保已安装 curl**：CentOS 用户执行 `yum install -y curl`；Debian/Ubuntu 用户执行 `apt install -y curl`
 
-## 빠른 설치
+## 快速安装
 
 ```bash
 bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh)
 ```
 
-## 설치 모드
+## 安装模式
 
-| 모델 | 설명하다 |
+| 模式 | 说明 |
 |------|------|
-| Reality + Nginx | 권장 모드, 로드 밸런싱에 필요에 따라 ws/gRPC/xHTTP 간단한 프로토콜을 연결할 수 있습니다. |
-| Nginx + TLS | ws/gRPC/xHTTP 지원, Let's Encrypt 인증서 자동 신청 및 갱신 |
-| ws/gRPC/xHTTP ONLY | TLS이 없는 독립 인바운드 모드(주로 백엔드 또는 로드 밸런싱 시나리오에 사용됨) |
-| XTLS ONLY | 트래픽 전송과 같은 특정 시나리오에서만 사용됩니다. |
-| Docker | Xray, Nginx 및 기본 스크립트가 이미지에 사전 설치되어 있습니다. |
+| Reality + Nginx | 推荐模式，可按需附加 ws/gRPC/xHTTP 简单协议用于负载均衡 |
+| Nginx + TLS | 支持 ws/gRPC/xHTTP，自动申请并续期 Let's Encrypt 证书 |
+| ws/gRPC/xHTTP ONLY | 无 TLS 的独立入站模式，主要用于后端或负载均衡场景 |
+| XTLS ONLY | 仅用于流量中转等特定场景 |
+| Docker | 镜像内预装 Xray、Nginx 与主脚本 |
 
-ws/gRPC/xHTTP 관련 모드 설치 시 선택 사항`ws`、`gRPC`、`xHTTP`또는`ws+gRPC+xHTTP`. 스크립트는 각각 해당 포트, 경로, 공유 링크 및 QR 코드를 생성합니다. Clash은(는) 현재 xHTTP을 지원하지 않으며 스크립트는 구성 출력에 메시지를 표시합니다.
+安装 ws/gRPC/xHTTP 相关模式时，可选择 `ws`、`gRPC`、`xHTTP` 或 `ws+gRPC+xHTTP`。脚本会分别生成对应端口、路径、分享链接和二维码；Clash 目前不支持 xHTTP，脚本会在配置输出中提示。
 
-## 재구성 지침
+## 重配置说明
 
-설치된 환경이 다시 설치되면 스크립트는 현재 실행 중인 구성을 자동으로 백업하고 세 가지 재구성 경로를 제공합니다.
+已安装的环境再次运行安装时，脚本会自动备份当前运行配置，并提供三条重配置路径：
 
-| 길 | 설명하다 | 한계 |
+| 路径 | 说明 | 限制 |
 |------|------|------|
-| 구성 재배포 유지 | 사용자 정의 routing/outbounds/DNS 및 다중 사용자 구성을 유지하고 사용자가 선택한 필드(포트, 경로, UUID, Reality 매개변수 등)만 수정합니다. | 전송 구조 변경(예: ws → gRPC)은 지원되지 않습니다. 전송 조합을 변경해야 하는 경우 표준 템플릿을 사용하여 다시 구성하십시오. |
-| 표준 템플릿 재구성 | 현재 재사용 가능한 매개변수를 사용하여 표준 템플릿 구성을 생성합니다. 사용자 정의 routing/outbounds/DNS이(가) 제거될 수 있습니다. | 사용자 수를 변경하지 않아도 됩니다. |
-| 모드 스위치 | 다른 프로토콜 모드로 전환합니다(예: Reality → TLS). 기본적으로 기본 사용자 UUID/email만 재사용됩니다. | 다른 사용자는 자동으로 마이그레이션되지 않으며 전환하기 전에 명확한 메시지가 표시됩니다. |
+| 保留配置重新部署 | 保留自定义 routing/outbounds/DNS 和多用户配置，仅修改用户选择的字段（端口、路径、UUID、Reality 参数等） | 不支持传输结构变更（如 ws → gRPC），需改传输组合请使用标准模板重建 |
+| 标准模板重建 | 使用当前可复用参数生成标准模板配置，自定义 routing/outbounds/DNS 可能被移除 | 不强制要求用户数量不变 |
+| 模式切换 | 切换到不同协议模式（如 Reality → TLS），默认只复用主用户 UUID/email | 其他用户不自动迁移，切换前会明确提示 |
 
-재구성 프로세스의 특정 단계(구성 작성, 서비스 시작, 상태 확인 등)가 실패하면 자동으로 원래 백업 구성으로 롤백됩니다. 백업 디렉터리는 고유한 타임스탬프를 사용하여 서로 충돌하지 않고 여러 번의 연속 재구성을 지원합니다.
+重配置过程中任何步骤失败（配置写入、服务启动、健康检查等）都会自动回滚到备份的原配置。备份目录使用唯一时间戳，支持连续多次重配置互不冲突。
 
-## 일반적인 명령
+## 常用命令
 
-| 작동하다 | 주문하다 |
+| 操作 | 命令 |
 |------|------|
-| 관리자 메뉴 열기 | `idleleo` |
-| 도움말 보기 | `idleleo --help` |
-| Reality 모드 설치 | `idleleo --install-reality` |
-| TLS 모드 설치 | `idleleo --install-tls` |
-| ws/gRPC/xHTTP ONLY 설치 | `idleleo --install-none` |
-| 설치정보 보기 | `idleleo --show` |
-| 업데이트 스크립트 | `idleleo --update` |
-| Xray 업데이트 | `idleleo --xray-update` |
-| Nginx 업데이트 | `idleleo --nginx-update` |
-| Fail2ban 설정 | `idleleo --set-fail2ban` |
-| 트래픽 차단 설정 | `idleleo --traffic-blocker` |
-| 실시간 포트 트래픽 보기 | `idleleo --port-traffic` |
+| 打开管理菜单 | `idleleo` |
+| 查看帮助 | `idleleo --help` |
+| 安装 Reality 模式 | `idleleo --install-reality` |
+| 安装 TLS 模式 | `idleleo --install-tls` |
+| 安装 ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
+| 查看安装信息 | `idleleo --show` |
+| 更新脚本 | `idleleo --update` |
+| 更新 Xray | `idleleo --xray-update` |
+| 更新 Nginx | `idleleo --nginx-update` |
+| 设置 Fail2ban | `idleleo --set-fail2ban` |
+| 设置流量阻断 | `idleleo --traffic-blocker` |
+| 查看端口实时流量 | `idleleo --port-traffic` |
 
-## RillML Xray AI 운영 및 유지 관리 보조원
+## RillML Xray AI 运维助手
 
-RillML (Rill)은 Xray에 로컬 적응형 지능형 운영 및 유지 관리 기능을 제공합니다.
+RillML（简称 Rill）为 Xray 提供本地自适应智能运维能力。
 
-내장된 로컬 AI 작동 및 유지 관리 도우미는 Xray/Nginx의 상태를 실시간으로 모니터링하고, 자동으로 결함을 진단하고, 외부 API 없이도 치료 제안을 제공합니다. 메인 메뉴 입력`9`또는 실행`idleleo --rill-agent`입력하다.
+内置本地 AI 运维助手，实时监控 Xray/Nginx 健康状态，自动诊断故障并给出处理建议，无需外部 API。主菜单输入 `9` 或执行 `idleleo --rill-agent` 进入。
 
-**핵심 역량**
+**核心能力**
 
-* 모니터링: Xray/Nginx 서비스 및 구성 상태를 실시간 관찰
-* 진단: 신뢰도 권장 사항(높음/중간/낮음/증거 불충분)을 통해 결함의 근본 원인을 찾습니다.
-* 판단: 오류 유형을 자동으로 결정하고 처리 제안을 제공합니다. 지침에는 자동 처리가 허용되거나 제안만 제공된다는 내용이 명확하게 표시되어 있습니다.
-* 모드: 지능형 판단/관찰 전용/안전 비활성화, 자동 수정이 켜질 때까지 시스템은 변경되지 않습니다.
+* 监控：实时观测 Xray/Nginx 服务与配置状态
+* 诊断：定位故障根因，附置信度建议（高 / 中 / 低 / 证据不足）
+* 判断：自动判断故障类型并给出处理建议，说明中明确标注允许自动处理或仅提供建议
+* 模式：智能判断 / 仅观察 / 安全停用，未开启自动修改前不会更改系统
 
-**자주 사용하는 명령어**
+**常用命令**
 
-| 작동하다 | 주문하다 |
+| 操作 | 命令 |
 |------|------|
-| AI 운영 및 유지 관리 보조 메뉴 열기 | `idleleo --rill-agent` |
-| AI 판단 엔진 설치 또는 수리 | `idleleo --rill-agent-install` |
-| AI 판정 상태를 확인하세요 | `idleleo --rill-agent-status` |
-| AI 문제 해결 실행 | `idleleo --rill-agent-diagnose` |
-| 검증 AI 판단 엔진 | `idleleo --rill-agent-verify` |
-| 보안 비활성화 AI 판단 | `idleleo --rill-agent-safe-disable` |
-| Rill AI 엔진 제거 | `idleleo --rill-agent-uninstall` |
+| 打开 AI 运维助手菜单 | `idleleo --rill-agent` |
+| 安装或修复 AI 判断引擎 | `idleleo --rill-agent-install` |
+| 查看 AI 判断状态 | `idleleo --rill-agent-status` |
+| 运行 AI 故障诊断 | `idleleo --rill-agent-diagnose` |
+| 校验 AI 判断引擎 | `idleleo --rill-agent-verify` |
+| 安全停用 AI 判断 | `idleleo --rill-agent-safe-disable` |
+| 卸载 Rill AI 引擎 | `idleleo --rill-agent-uninstall` |
 
-AI 판단 엔진은 아직 테스트 단계입니다. 진단 제안에 중점을 두는 것이 좋습니다. 시스템은 기본적으로 자동으로 수정되지 않습니다.
+AI 判断引擎目前仍处于测试阶段，建议以诊断建议为主，默认不会自动修改系统。
 
-## Docker 배포
+## Docker 部署
 
-Docker을 사용한 배포를 지원하고, 이미지에는 Xray 및 Nginx이 사전 설치되어 있으며 원본 스크립트의 모든 기능을 컨테이너에서 직접 사용할 수 있습니다. 세부정보 보기[Docker 部署指南](/docker/DOCKER.md)。
+支持使用 Docker 部署，镜像预装 Xray 和 Nginx，容器内可直接使用原脚本所有功能。详见 [Docker 部署指南](/docker/DOCKER.md)。
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
@@ -130,33 +130,33 @@ docker compose up -d
 docker attach xray-onekey
 ```
 
-## AI Skill 배포
+## AI Skill 部署
 
-수동 상호 작용 없이 Trae과 같은 AI 도구를 통해 Xray의 자동 배포를 지원합니다. 세부정보 보기[Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
+支持通过 AI 工具（如 Trae）自动部署 Xray，无需手动交互。详见 [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
 
-기존 방법에서는 SSH이(가) 서버로 이동하여 설치 스크립트를 실행하고 대화형 질문에 하나씩 대답해야 합니다. Skill 메소드는 AI에 필요한 사항만 알려주면 되며 AI은 자동으로 비대화형 스크립트를 생성하고 실행하여 VLESS 링크를 직접 반환합니다.
+传统方式需要 SSH 到服务器、运行安装脚本、逐个回答交互式问题；Skill 方式只需告诉 AI 你的需求，AI 会自动生成非交互式脚本并执行，直接返回 VLESS 链接。
 
 **지원되는 모드**: Reality / TLS / ws ONLY / XTLS ONLY
 
 **使用方式**：在支持 Skill 的 AI 工具中直接说"帮我在服务器上搭建 Xray"，AI 会自动收集信息、生成脚本、执行部署并返回连接信息。
 
-## 주의할 점
+## 注意事项
 
-* 각 설정의 의미를 이해하지 못하는 경우, 필수 항목을 제외하고는 기본값을 그대로 사용하시기 바랍니다. (Enter만 누르시면 됩니다.)
-* Cloudflare 사용자는 설치가 완료된 후 CDN을(를) 열어주세요.
-* 이 스크립트를 사용하려면 Linux에 대한 기본 지식과 컴퓨터 네트워크 지식이 필요합니다.
-* Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+를 지원하며 일부 CentOS 템플릿에는 컴파일 문제가 있을 수 있으므로 문제가 발생하면 시스템을 변경하는 것이 좋습니다.
-* 단일 서버는 단일 에이전트만 배포하고 기본 포트 443을 사용하는 것이 좋습니다.
-* UUIDv5에 대한 사용자 정의 문자열 매핑에는 클라이언트 지원이 필요합니다.
+* 不了解各项设置含义时，除必填项外请使用默认值（全程回车即可）
+* Cloudflare 用户请在安装完成后再开启 CDN
+* 本脚本需要 Linux 基础知识及计算机网络常识
+* 支持 Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+，部分 CentOS 模板可能存在编译问题，建议遇到问题时更换系统
+* 建议单服务器仅部署单个代理，使用默认 443 端口
+* 自定义字符串映射至 UUIDv5 需要客户端支持
 * 순수한 환경에서 사용하는 것을 권장합니다. 초보자는 CentOS을 사용하면 안 됩니다.
-* 이 프로그램은 Nginx에 따라 달라지며 통과되었습니다.[LNMP](https://lnmp.org)Nginx 스크립트를 설치한 사용자는 잠재적인 충돌에 유의하시기 바랍니다.
-* xHTTP 공유 링크는 xHTTP을 지원하는 클라이언트를 위한 것입니다. Clash 구성 출력은 xHTTP을 건너뜁니다.
-* 먼저 가용성을 확인하지 않고 프로덕션 환경에서 이 스크립트를 사용하지 마세요.
-* 작성자: Yun Shu, 제한된 지원만 제공
+* 本程序依赖 Nginx，已通过 [LNMP](https://lnmp.org)Nginx 스크립트를 설치한 사용자는 잠재적인 충돌에 유의하시기 바랍니다.
+* xHTTP 分享链接适用于支持 xHTTP 的客户端；Clash 配置输出会跳过 xHTTP
+* 请勿在未验证可用性前将本脚本用于生产环境
+* 作者：云舒，仅提供有限支持
 
 ## 감사의 말
 
-* 기반으로[wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)개발하다
+* 기반으로[wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey) 开发
 * TCP에서 인용된 가속 스크립트[ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
 ## 인증서 구성
