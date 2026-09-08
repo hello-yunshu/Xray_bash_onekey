@@ -28,29 +28,24 @@ trap 'rm -rf "${TMP_ROOT}"' EXIT
 [[ -f "${BOOTSTRAP}" ]]  || { echo "missing ${BOOTSTRAP}"; exit 99; }
 [[ -f "${ASSET}" ]]      || { echo "missing ${ASSET}";   exit 99; }
 
-EXPECTED=$(grep -o '^EXPECTED_SHA256=[0-9a-f]\{64\}' "${BOOTSTRAP}" | cut -d= -f2)
 ACTUAL=$(sha256sum "${ASSET}" | awk '{print $1}')
-
-if [[ -n "${EXPECTED}" && "${EXPECTED}" == "${ACTUAL}" ]]; then
-    ok "bootstrap EXPECTED_SHA256 == asset sha256 (${ACTUAL})"
-elif [[ -z "${EXPECTED}" ]]; then
-    bad "bootstrap EXPECTED_SHA256 anchor missing"
+if grep -q 'RILL_XRAY_AGENT_BUNDLE_FILE' "${BOOTSTRAP}" \
+    && grep -q 'RILL_XRAY_AGENT_BUNDLE_URL' "${BOOTSTRAP}" \
+    && grep -q 'RILL_XRAY_AGENT_BUNDLE_SHA256' "${BOOTSTRAP}" \
+    && ! grep -q 'rill-xray-agent/main' "${BOOTSTRAP}"; then
+    ok "bootstrap requires explicit bundle file/URL plus SHA-256 (${ACTUAL})"
 else
-    bad "bootstrap EXPECTED_SHA256 (${EXPECTED}) != asset (${ACTUAL})"
+    bad "bootstrap does not enforce explicit immutable bundle contract"
 fi
 
 export RILL_XRAY_AGENT_BUNDLE_FILE="${ASSET}"
 export DESTDIR="${TMP_ROOT}/stage"
 
 run_bootstrap_root() {
-    if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
-        env RILL_XRAY_AGENT_BUNDLE_FILE="${ASSET}" DESTDIR="${TMP_ROOT}/stage" bash "${BOOTSTRAP}"
-    else
-        sudo -n env RILL_XRAY_AGENT_BUNDLE_FILE="${ASSET}" DESTDIR="${TMP_ROOT}/stage" bash "${BOOTSTRAP}"
-    fi
+    env RILL_XRAY_AGENT_BUNDLE_FILE="${ASSET}" DESTDIR="${TMP_ROOT}/stage" bash "${BOOTSTRAP}"
 }
 
-if ! OUT=$(run_bootstrap_root 2>&1); then
+if ! OUT=$(RILL_XRAY_AGENT_BUNDLE_SHA256="${ACTUAL}" run_bootstrap_root 2>&1); then
     bad "bootstrap execution failed"
     echo "${OUT}"
 else

@@ -15,6 +15,7 @@ xray_conf="${xray_conf_dir}/config.json"
 log_dir="${idleleo_dir}/logs"
 log_file="${log_dir}/auto_update.log"
 running_file="${log_dir}/auto_update.running"
+update_lock_file="/run/lock/idleleo-update.lock"
 xray_install_config_file="${idleleo_dir}/conf/install_config.json"
 failed_update_marker="${log_dir}/update_failed.mark"
 
@@ -71,37 +72,8 @@ safe_update_install_config() {
 }
 
 check_update() {
-    local temp_file
-    temp_file=$(mktemp /tmp/idleleo_auto_update.XXXXXX) || return 1
-    if ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "$temp_file" "https://github.com/hello-yunshu/Xray_bash_onekey/raw/refs/heads/main/scripts/auto_update.sh"; then
-        echo "Failed to download remote script" >>"${log_file}"
-        rm -f "$temp_file"
-        return 1
-    fi
-
-    remote_version=$(grep "^VERSION=" "$temp_file" | cut -d'"' -f2)
-    if [ -z "$remote_version" ]; then
-        echo "Unable to get remote version number" >>"${log_file}"
-        rm -f "$temp_file"
-        return 1
-    fi
-
-    if [ "$VERSION" != "$remote_version" ]; then
-        echo "New version found: $remote_version" >>"${log_file}"
-        if bash -n "$temp_file" 2>/dev/null; then
-            cp "$temp_file" "$0"
-            chmod +x "$0"
-            rm -f "$temp_file"
-            rm -f "${running_file}"
-            exec "$0" "${_script_args[@]}"
-        else
-            echo "Downloaded script failed syntax check, skipping update" >>"${log_file}"
-            rm -f "$temp_file"
-            return 1
-        fi
-    fi
-
-    rm -f "$temp_file"
+    # auto_update.sh is a Release-owned helper. It is replaced together with
+    # install.sh and must never fetch or execute mutable main/scripts content.
     return 0
 }
 
@@ -112,11 +84,18 @@ fi
 # COMPAT_END
 
 [[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}"
+mkdir -p "$(dirname "${update_lock_file}")" 2>/dev/null || true
+exec 9>"${update_lock_file}" 2>/dev/null || exec 9>"${log_dir}/update.lock"
+if ! flock -n 9; then
+    echo "Another update process already holds the shared update lock." >>"${log_file}"
+    exit 1
+fi
+export IDLELEO_UPDATE_LOCK_HELD=1
 if ! mkdir "${running_file}" 2>/dev/null; then
     echo "Previous auto update process is still running! Checked at: $(date '+%Y-%m-%d %H:%M') Manual troubleshooting recommended!" >>"${log_file}"
     exit 1
 fi
-trap 'rm -rf "${running_file}"' EXIT
+trap 'rm -rf "${running_file}"; flock -u 9 2>/dev/null || true; exec 9>&-' EXIT
 [[ -f "${log_file}" ]] && rm -f "${log_file}"
 
 echo "Update time: $(date '+%Y-%m-%d %H:%M')" >"${log_file}"
@@ -165,8 +144,9 @@ if ! nginx_online_version="$(check_online_version nginx_build_online_version)"; 
 fi
 
 if [[ -f "${xray_install_config_file}" ]]; then
-    if [[ $(info_extraction shell_version) == null ]] || [[ $(info_extraction shell_version) != "${shell_online_version}" ]]; then
-        bash "${idleleo_dir}/install.sh" -u auto_update
+    if [[ $(info_extraction shell_version) == null ]] || [[ $(info_extraction shell_version) != "${shell_online_version}" ]] ||
+       [[ ! -f "${idleleo_dir}/release-managed.version" ]] || [[ $(cat "${idleleo_dir}/release-managed.version" 2>/dev/null) != "${shell_online_version}" ]]; then
+        IDLELEO_UPDATE_LOCK_HELD=1 bash "${idleleo_dir}/install.sh" -u auto_update
         [[ 0 -ne $? ]] && echo "Script update failed!" >>"${log_file}" && exit 1
         echo "Script updated successfully!" >>"${log_file}"
         # Persist shell_version preserving owner/group/mode (avoids permission regression)

@@ -277,7 +277,8 @@ def shell_version(xray: Path) -> str:
     return matches[0]
 
 
-def update_api(xray: Path, api: Path, details: str, update_date: str | None) -> bool:
+def update_api(xray: Path, api: Path, details: str, update_date: str | None,
+               shell_release_sha256: str | None = None) -> bool:
     version = shell_version(xray)
     manifest_path = api / "xray_shell_versions.json"
     manifest = json.loads(manifest_path.read_text())
@@ -286,17 +287,26 @@ def update_api(xray: Path, api: Path, details: str, update_date: str | None) -> 
         raise SystemExit("shell_online_version is missing from the API manifest")
     if version_tuple(version) < version_tuple(current):
         raise SystemExit(f"refusing shell version downgrade: {current} -> {version}")
-    if version == current:
+    if shell_release_sha256 is not None and not re.fullmatch(r"[0-9a-f]{64}", shell_release_sha256):
+        raise SystemExit("shell release SHA-256 must be 64 lowercase hex characters")
+    existing_sha = manifest.get("shell_release_sha256")
+    if version == current and shell_release_sha256 is not None and existing_sha == shell_release_sha256:
+        print(f"version API already publishes shell {version} with matching Release SHA")
+        return False
+    if version == current and shell_release_sha256 is None:
         print(f"version API already publishes shell {version}")
         return False
 
-    if not details.strip():
+    if version != current and not details.strip():
         raise SystemExit("release details must not be empty")
     if update_date is None:
         update_date = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
     manifest["update_date"] = update_date
     manifest["shell_online_version"] = version
-    manifest["shell_upgrade_details"] = details.strip()
+    if details.strip():
+        manifest["shell_upgrade_details"] = details.strip()
+    if shell_release_sha256 is not None:
+        manifest["shell_release_sha256"] = shell_release_sha256
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
     print(f"prepared version API update: {current} -> {version}")
     return True
@@ -330,6 +340,7 @@ def main() -> None:
     api.add_argument("--api", type=Path, required=True)
     api.add_argument("--details", required=True)
     api.add_argument("--date")
+    api.add_argument("--shell-release-sha256")
 
     args = parser.parse_args()
     if args.command == "sync-rill":
@@ -342,7 +353,8 @@ def main() -> None:
     elif args.command == "stage-rill":
         stage_rill(args.xray.resolve(), args.rill.resolve())
     else:
-        changed = update_api(args.xray.resolve(), args.api.resolve(), args.details, args.date)
+        changed = update_api(args.xray.resolve(), args.api.resolve(), args.details, args.date,
+                             args.shell_release_sha256)
         print(f"changed={'true' if changed else 'false'}")
 
 
