@@ -155,6 +155,22 @@ if ((UPGRADE)); then
         echo 'Rill 升级失败：无法撤销 root 自动执行授权' >&2
         exit 1
     fi
+    # A PID1 restart returns before the new Runtime has finished binding its
+    # socket. Wait for the real listener before entering the mode transaction;
+    # otherwise the first Runtime WAL request can fail transiently on slower
+    # Ubuntu hosts and the rollback path can keep the host in a false mismatch.
+    socket_ready=0
+    for _ in $(seq 1 30); do
+        if rxa_socket_connectable /run/rill-xray-agent/runtime.sock; then
+            socket_ready=1
+            break
+        fi
+        sleep 0.5
+    done
+    if (( ! socket_ready )); then
+        echo 'Rill 升级失败：Runtime socket 未就绪' >&2
+        exit 1
+    fi
     # systemd restart is asynchronous on PID1 hosts. Give the new Runtime and
     # observer a bounded settling window before declaring the preserved mode
     # unrecoverable; each retry still runs the full four-party transaction and
