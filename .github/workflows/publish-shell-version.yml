@@ -1,96 +1,119 @@
-name: Publish Shell Version
+name: Release Xray
 
 on:
   workflow_dispatch:
     inputs:
       details:
-        description: Optional release summary; a deterministic default is used when empty
+        description: Release summary
         required: false
         type: string
-  push:
-    branches:
-      - main
-    paths:
-      - install.sh
 
 concurrency:
-  group: publish-shell-version
+  group: release-xray
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
     steps:
-      - name: Require cross-repository token
-        run: |
-          set -euo pipefail
-          [[ -n "${GH_TOKEN:-}" ]] || {
-            echo "Configure RELEASE_AUTOMATION_TOKEN with Contents, Pull requests, and workflow-file write access to all three release repositories." >&2
-            exit 1
-          }
-
-      - name: Checkout released Xray main
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Checkout Xray main
+        uses: actions/checkout@v5
         with:
           ref: main
-          path: xray
           fetch-depth: 0
-          persist-credentials: false
+
+      - name: Validate release candidate
+        id: candidate
+        env:
+          INPUT_DETAILS: ${{ inputs.details }}
+        run: |
+          set -euo pipefail
+          bash -n install.sh
+          bash -n scripts/*.sh
+          python3 .github/test/test_release_automation.py
+          version=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' install.sh)
+          [[ -n "$version" ]] || { echo 'shell_version missing'; exit 1; }
+          bundle=assets/rill-xray-agent-xray-bundle.tar.gz
+          [[ -s "$bundle" ]] || { echo 'Rill bundle missing'; exit 1; }
+          tmp=$(mktemp -d)
+          sha256sum install.sh "$bundle" > "$tmp/SHA256SUMS"
+          install_sha=$(awk '$2 == "install.sh" {print $1}' "$tmp/SHA256SUMS")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "install_sha=$install_sha" >> "$GITHUB_OUTPUT"
+          echo "sums=$tmp/SHA256SUMS" >> "$GITHUB_OUTPUT"
+          details=${INPUT_DETAILS:-release: publish Xray shell ${version}}
+          printf '%s' "$details" > "$tmp/details"
+
+      - name: Create or verify immutable Release
+        env:
+          VERSION: ${{ steps.candidate.outputs.version }}
+          INSTALL_SHA: ${{ steps.candidate.outputs.install_sha }}
+          SUMS: ${{ steps.candidate.outputs.sums }}
+        run: |
+          set -euo pipefail
+          tag="v${VERSION}"
+          tmp=$(dirname "$SUMS")
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            meta=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease)
+            [[ $(jq -r .tagName <<<"$meta") == "$tag" ]] || exit 1
+            [[ $(jq -r .isDraft <<<"$meta") == false ]] || exit 1
+            [[ $(jq -r .isPrerelease <<<"$meta") == false ]] || exit 1
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern install.sh --pattern rill-xray-agent-xray-bundle.tar.gz --pattern SHA256SUMS --dir "$tmp/download"
+            (cd "$tmp/download" && sha256sum -c SHA256SUMS)
+            [[ $(sha256sum "$tmp/download/install.sh" | awk '{print $1}') == "$INSTALL_SHA" ]] || exit 1
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target main \
+              --title "Xray ${VERSION}" --notes "${VERSION} Release" \
+              install.sh assets/rill-xray-agent-xray-bundle.tar.gz "$SUMS"
+          fi
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease,assets
 
       - name: Checkout version API main
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v5
         with:
           repository: hello-yunshu/Xray_bash_onekey_api
           ref: main
           path: api
           fetch-depth: 0
           token: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
-          persist-credentials: false
 
-      - name: Prepare and validate version API update
-        id: update
+      - name: Prepare paired API metadata
         env:
+          VERSION: ${{ steps.candidate.outputs.version }}
+          INSTALL_SHA: ${{ steps.candidate.outputs.install_sha }}
           INPUT_DETAILS: ${{ inputs.details }}
         run: |
           set -euo pipefail
-          version=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' xray/install.sh)
-          details=${INPUT_DETAILS:-}
-          [[ -n "${details}" ]] || details="release: publish shell ${version}"
-          python3 xray/scripts/release_automation.py update-api \
-            --xray xray --api api --details "${details}"
-          if git -C api diff --quiet; then
-            echo "changed=false" >>"${GITHUB_OUTPUT}"
-            exit 0
-          fi
-          echo "changed=true" >>"${GITHUB_OUTPUT}"
+          details=${INPUT_DETAILS:-release: publish Xray shell ${VERSION}}
+          python3 scripts/release_automation.py update-api \
+            --xray . --api api --details "$details" --shell-release-sha256 "$INSTALL_SHA"
           (cd api && bash validate-json.sh)
-          (cd api && bash .github/test/test_promote_validation.sh)
-          (cd api && bash .github/test/test_auto_update_preserves_tested.sh)
-          git -C api diff --check
 
-      - name: Publish and merge version API PR
-        if: steps.update.outputs.changed == 'true'
+      - name: Publish and merge API metadata
         env:
-          API_REPO: hello-yunshu/Xray_bash_onekey_api
+          VERSION: ${{ steps.candidate.outputs.version }}
+          X_ACCESS_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
         run: |
           set -euo pipefail
-          version=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' xray/install.sh)
-          branch="automation/shell-${version}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          if git -C api diff --quiet; then
+            echo 'API already contains the paired shell Release metadata'
+            exit 0
+          fi
+          branch="automation/shell-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git -C api config user.name github-actions[bot]
           git -C api config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git -C api switch -c "${branch}"
+          git -C api switch -c "$branch"
           git -C api add xray_shell_versions.json
-          git -C api commit -m "chore(release): publish shell ${version}"
-          git -C api push "https://x-access-token:${GH_TOKEN}@github.com/${API_REPO}.git" "HEAD:${branch}"
-          pr_url=$(gh pr create --repo "${API_REPO}" --base main --head "${branch}" \
-            --title "chore(release): publish shell ${version}" \
-            --body "Automated after ${GITHUB_REPOSITORY}@${GITHUB_SHA} reached main. Updates only online shell metadata; tested-version fields remain manual.")
-          pr=${pr_url##*/}
-          xray/scripts/merge_checked_pr.sh "${API_REPO}" "${pr}"
+          git -C api commit -m "chore(release): publish shell ${VERSION} Release metadata"
+          git -C api push "https://x-access-token:${X_ACCESS_TOKEN}@github.com/hello-yunshu/Xray_bash_onekey_api.git" "HEAD:${branch}"
+          pr=$(gh pr create --repo hello-yunshu/Xray_bash_onekey_api --base main --head "$branch" \
+            --title "chore(release): publish shell ${VERSION}" \
+            --body "Paired with Xray Release v${VERSION}; install.sh SHA256 is recorded in the manifest.")
+          scripts/merge_checked_pr.sh hello-yunshu/Xray_bash_onekey_api "${pr##*/}"
           curl -fsS "https://purge.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json" >/dev/null || true
