@@ -48,7 +48,7 @@ Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 ## Quick installation
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/main/install.sh)
+bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh)
 ```
 
 ## Installation mode

@@ -18,6 +18,18 @@ SPEC.loader.exec_module(MODULE)
 
 
 class ReleaseAutomationTests(unittest.TestCase):
+    def test_release_workflow_keeps_existing_release_immutable(self):
+        workflow = (ROOT / ".github/workflows/publish-shell-version.yml").read_text()
+        for fragment in (
+            'gh release download "$tag"',
+            '(cd "$tmp/download" && sha256sum -c SHA256SUMS)',
+            'sha256sum "$tmp/download/install.sh"',
+            'sha256sum "$tmp/download/rill-xray-agent-xray-bundle.tar.gz"',
+            'different Rill bundle; bump shell_version',
+            'tag_sha" == "$CANDIDATE_COMMIT"',
+        ):
+            self.assertIn(fragment, workflow)
+
     def test_legacy_identity_excludes_provenance_bearing_bundle(self):
         manifest = {
             "files": {
