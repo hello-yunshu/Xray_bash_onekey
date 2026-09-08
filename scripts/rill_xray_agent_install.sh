@@ -191,8 +191,18 @@ else
     rxa_apply_mode "$(rxa_get mode)"
 fi
 # Mode-aware verification is authoritative for both paths. A fresh install
-# additionally requires its complete active unit set below.
-if ! rxa_mode_state_matches_target "$(rxa_get mode)"; then
+# additionally requires its complete active unit set below. PID1 may still be
+# settling a path/timer transition immediately after the mode transaction, so
+# use the same bounded convergence window as the upgrade restore.
+verified=0
+for _ in $(seq 1 10); do
+    if rxa_mode_state_matches_target "$(rxa_get mode)"; then
+        verified=1
+        break
+    fi
+    sleep 0.5
+done
+if (( ! verified )); then
     echo 'Rill Xray AI 运维助手安装校验失败：实际状态与目标工作模式不一致' >&2
     exit 1
 fi
