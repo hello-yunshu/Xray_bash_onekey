@@ -29,6 +29,12 @@ class ReleaseAutomationTests(unittest.TestCase):
             'tag_sha" == "$CANDIDATE_COMMIT"',
         ):
             self.assertIn(fragment, workflow)
+        self.assertIn('          fi\n          tag_ref=$(gh api', workflow)
+        self.assertLess(
+            workflow.index('gh release create "$tag"'),
+            workflow.rindex('tag_ref=$(gh api'),
+            "the exact tag-commit assertion must run after the create path",
+        )
 
     def test_legacy_identity_excludes_provenance_bearing_bundle(self):
         manifest = {
