@@ -2,7 +2,6 @@
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
-#stty erase ^?
 
 if [[ "${_TEST_MODE:-0}" != "1" ]]; then
     cd "$(
@@ -14,8 +13,7 @@ fi
 #=================================================================
 #	System Request: Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+
 #	Author:	yunyunshu
-#	Dscription: Xray Onekey Management
-#	Version: 3.0
+#	Description: Xray Onekey Management
 #	Official document: hey.run
 #=================================================================
 
@@ -77,7 +75,7 @@ xray_conf_dir="${idleleo_conf_dir}/xray"
 nginx_conf_dir="${idleleo_conf_dir}/nginx"
 xray_conf="${xray_conf_dir}/config.json"
 xray_status_conf="${xray_conf_dir}/status_config.json"
-xray_default_conf="${local_bin}/etc/xray/config.json" # COMPAT: 旧版使用符号链接指向此路径，仅用于清理旧链接和 sed 匹配，未来可删除
+xray_default_conf="${local_bin}/etc/xray/config.json" # Retained as Xray's default config symlink.
 nginx_conf="${nginx_conf_dir}/00-xray.conf"
 nginx_ssl_conf="${nginx_conf_dir}/01-xray-80.conf"
 nginx_upstream_conf="${nginx_conf_dir}/02-xray-server.conf"
@@ -5585,7 +5583,6 @@ nginx_install() {
     fi
 
     # 修改基本配置
-    #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
     if ! modify_nginx_origin_conf; then
         restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
         cd "$current_dir" && rm -rf "$temp_dir"
@@ -5701,8 +5698,7 @@ restore_nginx_backup() {
 # Each layer is attempted at most once.
 
 # Backup current Xray binary to ${idleleo_dir}/tmp/xray.prev with metadata.
-# Same directory as the binary's parent ensures same-filesystem mv; ${idleleo_dir}/tmp
-# is also created by compat_migrate, so it exists on every supported install.
+# The backup stays on the same filesystem as the managed state.
 backup_xray_binary() {
     local xray_binary="${xray_bin_dir}/xray"
     local backup_dir="${idleleo_dir}/tmp"
@@ -6594,7 +6590,6 @@ acme() {
     systemctl restart nginx
     #暂时解决ca问题
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force --test; then
-    #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force --test; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书测试签发成功, 开始正式签发") ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
     else
@@ -6604,7 +6599,6 @@ acme() {
     fi
 
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force; then
-    #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成") $(gettext "成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
         if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"; then
@@ -10376,7 +10370,7 @@ compat_migrate() {
     local _marker_file="${idleleo_dir}/.compat_migrate_v1"
     [[ -f "${_marker_file}" ]] && return 0
 
-    # COMPAT: vless_qr.json → install_config.json，v2.15 后删除
+    # Legacy migration: vless_qr.json → install_config.json.
     local _old_install_config="${idleleo_dir}/info/vless_qr.json"
     if [[ -f "${_old_install_config}" && ! -f "${xray_install_config_file}" ]]; then
         mkdir -p "${idleleo_conf_dir}"
@@ -10384,7 +10378,7 @@ compat_migrate() {
         info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     fi
     # COMPAT_END
-    # COMPAT: info/install_config.json → conf/install_config.json，v2.15 后删除
+    # Legacy migration: info/install_config.json → conf/install_config.json.
     local _old_install_config_path="${idleleo_dir}/info/install_config.json"
     if [[ -f "${_old_install_config_path}" && ! -f "${xray_install_config_file}" ]]; then
         mkdir -p "${idleleo_conf_dir}"
@@ -10392,7 +10386,7 @@ compat_migrate() {
         info_extraction_all=$(jq -rc . "${xray_install_config_file}")
     fi
     # COMPAT_END
-    # COMPAT: 删除低于仓库版本的旧子脚本(自更新下载路径错误)，v2.15 后删除
+    # Remove obsolete managed helper versions and root-level leftovers.
     local _subscripts="file_manager.sh:fm_SCRIPT_VERSION:1.5.8 traffic_blocker.sh:tb_SCRIPT_VERSION:1.5.12 fail2ban_manager.sh:mf_SCRIPT_VERSION:1.5.7"
     local _entry _script_name _ver_var _required_ver _loc _local_ver _oldest_ver
     for _entry in $_subscripts; do
@@ -10410,7 +10404,7 @@ compat_migrate() {
         fi
     done
     # COMPAT_END
-    # COMPAT: 清理非交互式子脚本根目录残留 + crontab 路径修正，v2.15 后删除
+    # Move legacy helper paths and rewrite managed cron entries.
     mkdir -p "${scripts_dir}"
     for _script_name in auto_update.sh ssl_update.sh geo_update.sh tcp.sh; do
         if [[ -f "${idleleo_dir}/${_script_name}" ]]; then
@@ -10768,12 +10762,10 @@ idleleo_commend() {
                     nginx_need_update="${Green}[$(gettext "最新版")]${Font}"
                 fi
                 if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f "${xray_bin_dir}/xray" ]]; then
-                    ##xray_online_version=$(check_version xray_online_pre_version)
                     if [[ -z "$(info_extraction xray_version)" ]]; then
                         xray_need_update="${Green}[$(gettext "已安装")] ($(gettext "版本未知"))${Font}"
                     elif [[ ${xray_online_version} != $(info_extraction xray_version) ]]; then
                         xray_need_update="${Green}[$(gettext "有新版")!]${Font}"
-                        ### xray_need_update="${Red}[$(gettext "请务必更新")]!${Font}"
                     else
                         xray_need_update="${Green}[$(gettext "最新版")]${Font}"
                     fi
