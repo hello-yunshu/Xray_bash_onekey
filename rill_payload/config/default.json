@@ -17,17 +17,17 @@
     "historyPath": "/var/lib/rill-xray-agent-xray/history",
     "maxEvents": 200,
     "observationPath": "/var/lib/rill-xray-agent-xray/status/xray-observation.json",
-    "topologyPath": "/var/lib/rill-xray-agent-xray/status/route-topology.json",
     "segmentBytes": 524288,
+    "topologyPath": "/var/lib/rill-xray-agent-xray/status/route-topology.json",
     "totalBytes": 4194304
   },
   "uploadEnabled": false,
   "userLevelStatistics": false,
   "xrayIntegration": {
     "enabled": false,
-    "observeOnly": true,
+    "hostContractDigest": "90e3be5ef69592a6cfe60f4e615f2aa47c34e2768043bc658ae39ce752f2c324",
     "hostContractSchema": 1,
-    "hostContractDigest": "6772c36a61f565d37b088e79d60b2493bba48f52425716a0bc965d9cad770ec1",
+    "observeOnly": true,
     "upstreamRepository": "hello-yunshu/Xray_bash_onekey"
   }
 }
