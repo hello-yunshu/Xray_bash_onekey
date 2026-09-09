@@ -62,7 +62,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.5"
+shell_version="3.2.6"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -6123,7 +6123,7 @@ auto_update() {
         [yY][eE][sS] | [yY])
             download_script_file "${au_remote_url}" "${auto_update_file}"
             judge -r "$(gettext "下载自动更新脚本")" || return 1
-            echo "0 1 15 * * bash \"${auto_update_file}\"" >>"${crontab_file}"
+            echo "0 1 * * * bash \"${auto_update_file}\"" >>"${crontab_file}"
             judge -r "$(gettext "设置自动更新")"
             ;;
         *) ;;
