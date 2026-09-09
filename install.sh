@@ -62,7 +62,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.7"
+shell_version="3.2.8"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -108,6 +108,7 @@ auto_update_file="${scripts_dir}/auto_update.sh"
 ssl_update_file="${scripts_dir}/ssl_update.sh"
 geo_update_file="${scripts_dir}/geo_update.sh"
 shell_release_sha256=""
+shell_online_version=""
 xray_installer_ref=""
 xray_installer_sha256=""
 xray_installer_verified_at=""
@@ -128,10 +129,18 @@ get_versions_all=""
 _get_versions_loaded=0
 
 shell_release_asset_url() {
+    if [[ "${XRAY_QUALIFICATION_MODE:-0}" == "1" && -n "${SHELL_RELEASE_BASE_OVERRIDE:-}" ]]; then
+        printf '%s/releases/download/v%s/%s' "${SHELL_RELEASE_BASE_OVERRIDE%/}" "$1" "$2"
+        return 0
+    fi
     printf 'https://github.com/hello-yunshu/Xray_bash_onekey/releases/download/v%s/%s' "$1" "$2"
 }
 
 shell_release_raw_url() {
+    if [[ "${XRAY_QUALIFICATION_MODE:-0}" == "1" && -n "${SHELL_RELEASE_BASE_OVERRIDE:-}" ]]; then
+        printf '%s/raw/v%s/%s' "${SHELL_RELEASE_BASE_OVERRIDE%/}" "$1" "$2"
+        return 0
+    fi
     printf 'https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/v%s/%s' "$1" "$2"
 }
 
@@ -235,6 +244,33 @@ load_versions() {
         _get_versions_loaded=1
     fi
     [[ -n "${get_versions_all}" ]]
+}
+
+# Load the minimum Release metadata required before the first managed Shell download.
+load_shell_release_metadata() {
+    local version release_sha
+    if ! load_versions; then
+        log_echo "${Error} ${RedBG} Shell Release metadata unavailable; fresh bootstrap stopped ${Font}" >&2
+        return 1
+    fi
+    version=$(printf '%s' "${get_versions_all}" | jq -r '.shell_online_version // empty' 2>/dev/null)
+    release_sha=$(printf '%s' "${get_versions_all}" | jq -r '.shell_release_sha256 // empty' 2>/dev/null)
+    if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        log_echo "${Error} ${RedBG} Shell Release metadata version is missing or invalid; fresh bootstrap stopped ${Font}" >&2
+        return 1
+    fi
+    if release_sha_contract_required "${version}" &&
+        [[ ! "${release_sha}" =~ ^[0-9a-f]{64}$ ]]; then
+        log_echo "${Error} ${RedBG} Shell Release metadata checksum is missing or invalid; fresh bootstrap stopped ${Font}" >&2
+        return 1
+    fi
+    if [[ -n "${release_sha}" && ! "${release_sha}" =~ ^[0-9a-f]{64}$ ]]; then
+        log_echo "${Error} ${RedBG} Shell Release metadata checksum format is invalid; fresh bootstrap stopped ${Font}" >&2
+        return 1
+    fi
+    shell_online_version="${version}"
+    shell_release_sha256="${release_sha}"
+    set_shell_release_urls "${shell_online_version}"
 }
 read_config_status=1
 reality_add_more="off"
@@ -10073,15 +10109,20 @@ rxa_download_main_candidate() {
     local candidate=${1:-}
     RILL_UPDATE_CANDIDATE_ERROR=""
     [[ -n ${candidate} ]] || { RILL_UPDATE_CANDIDATE_ERROR="path"; return 1; }
-    rm -f "${candidate}"
-    if ! download_script_file "$(shell_release_asset_url "${shell_online_version}" install.sh)" "${candidate}"; then
-        RILL_UPDATE_CANDIDATE_ERROR="download"
+    if [[ ! "${shell_online_version:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        RILL_UPDATE_CANDIDATE_ERROR="metadata-version"
         rm -f "${candidate}"
         return 1
     fi
     if release_sha_contract_required "${shell_online_version}" &&
         [[ ! "${shell_release_sha256:-}" =~ ^[0-9a-f]{64}$ ]]; then
-        RILL_UPDATE_CANDIDATE_ERROR="sha256-missing"
+        RILL_UPDATE_CANDIDATE_ERROR="metadata-sha"
+        rm -f "${candidate}"
+        return 1
+    fi
+    rm -f "${candidate}"
+    if ! download_script_file "$(shell_release_asset_url "${shell_online_version}" install.sh)" "${candidate}"; then
+        RILL_UPDATE_CANDIDATE_ERROR="download"
         rm -f "${candidate}"
         return 1
     fi
@@ -10177,6 +10218,9 @@ rxa_log_candidate_failure() {
             log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
             ;;
     esac
+    if [[ "${kind}" == "metadata-version" || "${kind}" == "metadata-sha" ]]; then
+        log_echo "${Error} ${RedBG} Shell Release metadata unavailable or invalid; candidate download refused ${Font}"
+    fi
     # Diagnostics (P1): report the guard stage and probe rc so a real Bootstrap
     # failure is locatable. No candidate content, secrets, UUIDs, tokens or
     # link data are ever included here.
@@ -10315,6 +10359,8 @@ check_file_integrity() {
             log_echo "${Error} ${RedBG} bootstrap_dependency_failed: bc,jq ${Font}"
             return 1
         fi
+        # Metadata must be loaded before constructing the immutable candidate URL.
+        load_shell_release_metadata || return 1
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p "${idleleo_dir}"
         [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p "${idleleo_dir}"/tmp
         [[ ! -d "${scripts_dir}" ]] && mkdir -p "${scripts_dir}"
@@ -10322,7 +10368,7 @@ check_file_integrity() {
         judge "$(gettext "下载最新脚本")"
         ln -sf "${idleleo}" "${idleleo_commend_file}" || return 1
         clear
-        exec "${BASH:-bash}" "${idleleo}"
+        exec "${BASH:-bash}" "${idleleo}" "$@"
     fi
 }
 
@@ -12900,7 +12946,7 @@ enable_file_logging
 # INS is already defined by init_package_manager above and root is confirmed.
 init_language online
 
-check_file_integrity || exit 1
+check_file_integrity "$@" || exit 1
 compat_migrate
 judge_mode
 check_online_version_connect

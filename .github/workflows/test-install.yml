@@ -64,6 +64,10 @@ jobs:
           # pkg_install multi-package failure propagation, offline/online language
           # init ordering, lazy config load, candidate-guard stage diagnostics.
           bash .github/test/test_bootstrap_dependencies.sh
+          # Issue #102: metadata must be loaded before the first immutable
+          # candidate URL is constructed; this is separate from the full
+          # zero-state user journey below.
+          bash .github/test/test_shell_bootstrap_ordering.sh
           # Xray update transaction tests (auto + manual mode coverage)
           bash .github/test/test_xray_update_transaction.sh
           bash .github/test/test_xray_installer_metadata.sh
@@ -289,6 +293,44 @@ jobs:
             "${{ matrix.image }}" \
             bash /repo/.github/test/test_minimal_bootstrap.sh
 
+  true-fresh-install:
+    # Core availability gate for Issue #102. This is deliberately separate
+    # from the five-mode matrix: the matrix proves protocol/config breadth,
+    # while this job proves the first user command through Xray health.
+    # GitHub-hosted runner catalog currently exposes Ubuntu 24.04; the
+    # minimal-bootstrap matrix separately covers Debian 13 and Ubuntu 26.04
+    # image dependency closure.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    name: True Fresh Install (Ubuntu 24.04)
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Checkout API metadata contract
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_api
+          ref: ${{ inputs.api_ref || 'main' }}
+          path: .phase1-contracts/api
+          persist-credentials: false
+
+      - name: Run true fresh install through Xray health
+        env:
+          API_REPO_DIR: ${{ github.workspace }}/.phase1-contracts/api
+          E2E_ARTIFACT_DIR: ${{ runner.temp }}/xray-true-fresh-artifacts
+        run: sudo -E bash .github/test/test_true_fresh_install.sh
+
+      - name: Upload redacted true-fresh diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xray-true-fresh-diagnostics
+          path: ${{ runner.temp }}/xray-true-fresh-artifacts
+          if-no-files-found: ignore
+
   release-gate:
     # T5: single, independent gate. `if: always()` ensures every qualification
     # job's result is evaluated even when some of them fail; the step below
@@ -299,6 +341,7 @@ jobs:
       - security-regression
       - test-install
       - minimal-bootstrap
+      - true-fresh-install
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -307,6 +350,7 @@ jobs:
           echo "security-regression: ${{ needs.security-regression.result }}"
           echo "test-install matrix: ${{ needs.test-install.result }}"
           echo "minimal-bootstrap matrix: ${{ needs.minimal-bootstrap.result }}"
+          echo "true-fresh-install: ${{ needs.true-fresh-install.result }}"
           for job in ${{ join(needs.*.result, ' ') }}; do
             if [ "$job" != "success" ]; then
               echo "release-gate FAIL: required job result '$job' (only success qualifies)" >&2
