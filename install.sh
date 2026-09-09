@@ -108,6 +108,9 @@ auto_update_file="${scripts_dir}/auto_update.sh"
 ssl_update_file="${scripts_dir}/ssl_update.sh"
 geo_update_file="${scripts_dir}/geo_update.sh"
 shell_release_sha256=""
+xray_installer_ref=""
+xray_installer_sha256=""
+xray_installer_verified_at=""
 xray_release_ref="v${shell_version}"
 shell_release_raw_base="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/${xray_release_ref}"
 shell_release_download_base="https://github.com/hello-yunshu/Xray_bash_onekey/releases/download/${xray_release_ref}"
@@ -152,6 +155,17 @@ release_sha_contract_required() {
     local version=${1:-}
     [[ "${version}" =~ ^3\.[0-9]+\.[0-9]+$ ]] || return 1
     [[ "$(printf '%s\n%s\n' '3.2.3' "${version}" | sort -V | head -n1)" == '3.2.3' ]]
+}
+
+verified_installer_metadata_valid() {
+    [[ "${xray_installer_ref:-}" =~ ^[0-9a-f]{40}$ ]] || return 1
+    [[ "${xray_installer_sha256:-}" =~ ^[0-9a-f]{64}$ ]] || return 1
+}
+
+xray_installer_url() {
+    local ref=${1:-${xray_installer_ref:-}}
+    [[ "${ref}" =~ ^[0-9a-f]{40}$ ]] || return 1
+    printf 'https://raw.githubusercontent.com/XTLS/Xray-install/%s/install-release.sh' "${ref}"
 }
 
 with_update_lock() {
@@ -202,7 +216,16 @@ load_versions() {
         local versions_origin_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/xray_shell_versions.json"
         local response
 
-        if ! response=$(fetch_versions_json "${versions_cdn_url}"); then
+        # CI qualification may inject the exact API checkout under test. This
+        # keeps the production path remote-only while allowing cross-repo PR
+        # validation before the API branch is merged to main.
+        if [[ -n "${XRAY_VERSIONS_FILE:-}" && -f "${XRAY_VERSIONS_FILE}" ]]; then
+            response=$(cat "${XRAY_VERSIONS_FILE}")
+            printf '%s' "${response}" | jq -e 'type == "object"' >/dev/null 2>&1 || {
+                get_versions_all=""
+                return 1
+            }
+        elif ! response=$(fetch_versions_json "${versions_cdn_url}"); then
             response=$(fetch_versions_json "${versions_origin_url}") || {
                 get_versions_all=""
                 return 1
@@ -1143,10 +1166,26 @@ download_json_file() {
 
 xray_install_release() {
     local installer="${idleleo_dir}/tmp/xray-install-release.sh"
-    local installer_url="https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh"
+    local installer_url installer_sha actual
     local ret
 
+    if ! verified_installer_metadata_valid; then
+        log_echo "${Error} ${RedBG} Xray-install verified metadata is missing or invalid; refusing mutable fallback ${Font}" >&2
+        return 1
+    fi
+    installer_url=$(xray_installer_url) || return 1
+    installer_sha=${xray_installer_sha256}
     if ! download_script_file "$installer_url" "$installer"; then
+        return 1
+    fi
+    actual=$(sha256sum "${installer}" 2>/dev/null | awk '{print $1}')
+    if [[ "${actual}" != "${installer_sha}" ]]; then
+        rm -f "${installer}"
+        log_echo "${Error} ${RedBG} Xray-install SHA256 mismatch; refusing candidate ${Font}" >&2
+        return 1
+    fi
+    if ! bash -n "${installer}" 2>/dev/null; then
+        rm -f "${installer}"
         return 1
     fi
     bash "$installer" "$@"
@@ -9897,6 +9936,30 @@ rxa_rill_installed() {
     [[ -x "$(rxa_root /opt/rill-xray-agent/bin/rill-xray-agent)" ]]
 }
 
+core_candidate_guard() {
+    local candidate=${1:-} candidate_shell_version
+    CORE_CANDIDATE_GUARD_STAGE=""
+    [[ -f "${candidate}" ]] || { CORE_CANDIDATE_GUARD_STAGE=path; return 1; }
+    bash -n "${candidate}" 2>/dev/null || { CORE_CANDIDATE_GUARD_STAGE=syntax; return 1; }
+    candidate_shell_version=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' "${candidate}" | head -n1)
+    [[ "${candidate_shell_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { CORE_CANDIDATE_GUARD_STAGE=shell-version; return 1; }
+    grep -q '^xray_install_release()' "${candidate}" || { CORE_CANDIDATE_GUARD_STAGE=installer-anchor; return 1; }
+    grep -q '^read_version()' "${candidate}" || { CORE_CANDIDATE_GUARD_STAGE=version-anchor; return 1; }
+    grep -q '^xray_update()' "${candidate}" || { CORE_CANDIDATE_GUARD_STAGE=update-anchor; return 1; }
+    return 0
+}
+
+candidate_guard() {
+    local candidate=${1:-}
+    core_candidate_guard "${candidate}" || return 1
+    # Rill is a plug-in: its stronger compatibility guard remains active only
+    # when the component is actually installed on the host.
+    if rxa_rill_installed; then
+        rxa_candidate_guard "${candidate}" || return 1
+    fi
+    return 0
+}
+
 rxa_reload_manager() {
     local manager="$(rxa_agent_dir)/scripts/rill_xray_agent_manager.sh"
     [[ -r "${manager}" ]] || return 1
@@ -10031,9 +10094,13 @@ rxa_download_main_candidate() {
             return 1
         fi
     fi
-    if ! command -v rxa_candidate_guard >/dev/null 2>&1 ||
-       ! rxa_candidate_guard "${candidate}"; then
-        RILL_UPDATE_CANDIDATE_ERROR="guard:${RILL_CANDIDATE_GUARD_STAGE:-unknown}:${RILL_CANDIDATE_GUARD_RC:-?}"
+    if ! command -v candidate_guard >/dev/null 2>&1 ||
+       ! candidate_guard "${candidate}"; then
+        if [[ -n "${CORE_CANDIDATE_GUARD_STAGE:-}" ]]; then
+            RILL_UPDATE_CANDIDATE_ERROR="core-guard:${CORE_CANDIDATE_GUARD_STAGE}:1"
+        else
+            RILL_UPDATE_CANDIDATE_ERROR="guard:${RILL_CANDIDATE_GUARD_STAGE:-unknown}:${RILL_CANDIDATE_GUARD_RC:-?}"
+        fi
         rm -f "${candidate}"
         return 1
     fi
@@ -10064,8 +10131,12 @@ rxa_replace_main_candidate() {
         return 1
     fi
     if ! bash -n "${destination}" 2>/dev/null ||
-       ! rxa_candidate_guard "${destination}"; then
-        RILL_UPDATE_CANDIDATE_ERROR="postcheck:${RILL_CANDIDATE_GUARD_STAGE:-unknown}:${RILL_CANDIDATE_GUARD_RC:-?}"
+       ! candidate_guard "${destination}"; then
+        if [[ -n "${CORE_CANDIDATE_GUARD_STAGE:-}" ]]; then
+            RILL_UPDATE_CANDIDATE_ERROR="core-postcheck:${CORE_CANDIDATE_GUARD_STAGE}:1"
+        else
+            RILL_UPDATE_CANDIDATE_ERROR="postcheck:${RILL_CANDIDATE_GUARD_STAGE:-unknown}:${RILL_CANDIDATE_GUARD_RC:-?}"
+        fi
         if [[ -n ${backup} && -f ${backup} ]]; then
             if ! mv -f "${backup}" "${destination}"; then
                 RILL_UPDATE_CANDIDATE_ERROR="rollback"
@@ -10090,6 +10161,9 @@ rxa_log_candidate_failure() {
         prc="${rest#*:}"
     fi
     case ${kind} in
+        core-guard|core-postcheck)
+            log_echo "${Error} ${RedBG} Xray Core $(gettext "候选校验失败, 已阻止脚本更新") ${Font}"
+            ;;
         guard)
             log_echo "${Error} ${RedBG} Rill Xray Agent $(gettext "集成校验失败, 已阻止脚本更新") ${Font}"
             ;;
@@ -10106,7 +10180,8 @@ rxa_log_candidate_failure() {
     # Diagnostics (P1): report the guard stage and probe rc so a real Bootstrap
     # failure is locatable. No candidate content, secrets, UUIDs, tokens or
     # link data are ever included here.
-    if [[ ${kind} == "guard" || ${kind} == "postcheck" ]]; then
+    if [[ ${kind} == "core-guard" || ${kind} == "core-postcheck" ||
+          ${kind} == "guard" || ${kind} == "postcheck" ]]; then
         log_echo "${Info} ${YellowBG} Rill $(gettext "校验详情"): $(gettext "阶段")=${stage:-unknown} rc=${prc:-?} candidate-version=${RILL_CANDIDATE_GUARD_VERSION:-?} $(gettext "当前版本")=${shell_version:-?} $(gettext "来源")=${main_remote_url} ${Font}"
     fi
 }
@@ -10324,6 +10399,9 @@ read_version() {
     local new_shell_online_version
     local new_shell_release_sha256
     local new_xray_online_version
+    local new_xray_installer_ref
+    local new_xray_installer_sha256
+    local new_xray_installer_verified_at
     local new_nginx_build_version
     local new_shell_tested_version
     local new_xray_tested_version
@@ -10341,6 +10419,20 @@ read_version() {
         return 1
     fi
     new_xray_online_version="$(check_version xray_online_version)" || return 1
+    new_xray_installer_ref="$(check_version_silent xray_installer_ref || echo "")"
+    new_xray_installer_sha256="$(check_version_silent xray_installer_sha256 || echo "")"
+    new_xray_installer_verified_at="$(check_version_silent xray_installer_verified_at || echo "")"
+    # Candidate qualification may run against an API branch that has not yet
+    # landed on API main. Apply its immutable installer inputs before the
+    # fail-closed validation; ordinary production reads still require the API
+    # metadata to be present and valid.
+    [[ -z "${XRAY_CANDIDATE_INSTALLER_REF:-}" ]] || new_xray_installer_ref="${XRAY_CANDIDATE_INSTALLER_REF}"
+    [[ -z "${XRAY_CANDIDATE_INSTALLER_SHA256:-}" ]] || new_xray_installer_sha256="${XRAY_CANDIDATE_INSTALLER_SHA256}"
+    if [[ ! "${new_xray_installer_ref}" =~ ^[0-9a-f]{40}$ ]] ||
+        [[ ! "${new_xray_installer_sha256}" =~ ^[0-9a-f]{64}$ ]]; then
+        log_echo "${Error} ${RedBG} Xray-install verified metadata 无效，已拒绝安装或更新 ${Font}" >&2
+        return 1
+    fi
     new_nginx_build_version="$(check_version nginx_build_online_version)" || return 1
     # Read tested_version (known-good fallback baseline) from API.
     # These fields are optional in the API JSON; missing fields are treated as
@@ -10353,6 +10445,19 @@ read_version() {
     shell_release_sha256="${new_shell_release_sha256}"
     set_shell_release_urls "${shell_online_version}"
     xray_online_version="${new_xray_online_version}"
+    xray_installer_ref="${new_xray_installer_ref}"
+    xray_installer_sha256="${new_xray_installer_sha256}"
+    xray_installer_verified_at="${new_xray_installer_verified_at}"
+    # Qualification-only overrides never change API metadata or ordinary user
+    # state. They only replace the candidate inputs consumed by the existing
+    # production install/update path in CI.
+    [[ -z "${XRAY_CANDIDATE_VERSION:-}" ]] || xray_online_version="${XRAY_CANDIDATE_VERSION}"
+    [[ -z "${XRAY_CANDIDATE_INSTALLER_REF:-}" ]] || xray_installer_ref="${XRAY_CANDIDATE_INSTALLER_REF}"
+    [[ -z "${XRAY_CANDIDATE_INSTALLER_SHA256:-}" ]] || xray_installer_sha256="${XRAY_CANDIDATE_INSTALLER_SHA256}"
+    verified_installer_metadata_valid || {
+        log_echo "${Error} ${RedBG} Candidate Xray-install metadata 无效，已拒绝 ${Font}" >&2
+        return 1
+    }
     nginx_build_version="${new_nginx_build_version}"
     shell_tested_version="${new_shell_tested_version}"
     xray_tested_version="${new_xray_tested_version}"

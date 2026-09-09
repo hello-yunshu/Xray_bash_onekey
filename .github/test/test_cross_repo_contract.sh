@@ -28,6 +28,7 @@ done
 for field in \
     nginx_build_online_version nginx_build_tested_version \
     xray_online_version xray_tested_version \
+    xray_installer_ref xray_installer_sha256 \
     shell_online_version shell_tested_version
 do
     value=$(jq -r --arg field "${field}" '.[$field] // empty' "${VERSIONS_FILE}")
@@ -36,6 +37,11 @@ do
         exit 1
     }
 done
+
+installer_ref=$(jq -r '.xray_installer_ref' "${VERSIONS_FILE}")
+installer_sha=$(jq -r '.xray_installer_sha256' "${VERSIONS_FILE}")
+[[ "${installer_ref}" =~ ^[0-9a-f]{40}$ ]] || { echo "ERROR: invalid xray_installer_ref" >&2; exit 1; }
+[[ "${installer_sha}" =~ ^[0-9a-f]{64}$ ]] || { echo "ERROR: invalid xray_installer_sha256" >&2; exit 1; }
 
 tested_build=$(jq -r '.nginx_build_tested_version' "${VERSIONS_FILE}")
 online_build=$(jq -r '.nginx_build_online_version' "${VERSIONS_FILE}")
@@ -200,6 +206,9 @@ require_core_assets "${online_release_json}" "online" "${online_tag}"
 echo "Online Nginx release ${online_tag} verified (published release + core assets)."
 
 grep -Fq 'releases/download/v${nginx_build_version}' "${MAIN_REPO}/install.sh"
+! grep -Fq 'XTLS/Xray-install/main/install-release.sh' "${MAIN_REPO}/install.sh" "${MAIN_REPO}/docker/Dockerfile"
+grep -Fq 'xray_installer_ref' "${MAIN_REPO}/install.sh"
+grep -Fq 'sha256sum' "${MAIN_REPO}/install.sh"
 
 # Prove the branch cleanup decision excludes the current known-good build.
 # shellcheck source=/dev/null
