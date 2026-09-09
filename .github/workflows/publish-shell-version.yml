@@ -79,21 +79,21 @@ jobs:
               echo "existing Release $tag has a different Rill bundle; bump shell_version" >&2
               exit 1
             }
-            tag_ref=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.type + " " + .object.sha')
-            tag_type=${tag_ref%% *}
-            tag_sha=${tag_ref#* }
-            if [[ "$tag_type" == tag ]]; then
-              tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha" --jq '.object.sha')
-            fi
-            [[ "$tag_sha" == "$CANDIDATE_COMMIT" ]] || {
-              echo "existing Release $tag points at $tag_sha, expected immutable candidate $CANDIDATE_COMMIT" >&2
-              exit 1
-            }
           else
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$CANDIDATE_COMMIT" \
               --title "Xray ${VERSION}" --notes "${VERSION} Release" \
               install.sh assets/rill-xray-agent-xray-bundle.tar.gz "$SUMS"
           fi
+          tag_ref=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.type + " " + .object.sha')
+          tag_type=${tag_ref%% *}
+          tag_sha=${tag_ref#* }
+          if [[ "$tag_type" == tag ]]; then
+            tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha" --jq '.object.sha')
+          fi
+          [[ "$tag_sha" == "$CANDIDATE_COMMIT" ]] || {
+            echo "Release $tag points at $tag_sha, expected immutable candidate $CANDIDATE_COMMIT" >&2
+            exit 1
+          }
           gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease,assets
 
       - name: Checkout version API main
