@@ -21,6 +21,8 @@ gettext() { printf '%s' "$1"; }
 versions_json='{
   "shell_online_version": "2026.7.29",
   "xray_online_version": "26.3.27",
+  "xray_installer_ref": "e741a4f56d368afbb9e5be3361b40c4552d3710d",
+  "xray_installer_sha256": "7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555",
   "nginx_build_online_version": "2026.06.17.6717",
   "shell_tested_version": "2026.7.28",
   "xray_tested_version": "26.3.27",
@@ -73,6 +75,18 @@ else
     bad "cached version data triggered additional network requests"
 fi
 
+printf '%s\n' '--- qualification-only Xray candidate override ---'
+get_versions_all=""
+_get_versions_loaded=0
+XRAY_CANDIDATE_VERSION="26.10.1"
+export XRAY_CANDIDATE_VERSION
+if read_version && [[ "${xray_online_version}" == "26.10.1" ]]; then
+    ok "candidate override changes only the qualification input"
+else
+    bad "candidate override was not consumed by the production path"
+fi
+unset XRAY_CANDIDATE_VERSION
+
 printf '%s\n' '--- fail-closed output separation ---'
 curl() { return 22; }
 get_versions_all=""
@@ -107,6 +121,8 @@ printf '%s\n' '--- Release SHA contract is mandatory from 3.2.3 ---'
 versions_json='{
   "shell_online_version": "3.2.3",
   "xray_online_version": "26.3.27",
+  "xray_installer_ref": "e741a4f56d368afbb9e5be3361b40c4552d3710d",
+  "xray_installer_sha256": "7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555",
   "nginx_build_online_version": "2026.06.17.6717",
   "shell_tested_version": "3.2.2",
   "xray_tested_version": "26.3.27",

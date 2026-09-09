@@ -91,7 +91,10 @@ echo "--- Release SHA contract rejects 3.2.3+ candidates without SHA ---"
 shell_online_version="3.2.3"
 shell_release_sha256=""
 DOWNLOAD_CONTENT='#!/usr/bin/env bash
-shell_version="3.2.3"'
+shell_version="3.2.3"
+xray_install_release() { :; }
+read_version() { :; }
+xray_update() { :; }'
 missing_sha_candidate="${TMP_ROOT}/missing-sha-candidate"
 if rxa_download_main_candidate "${missing_sha_candidate}"; then
     bad "3.2.3+ candidate without shell_release_sha256 was accepted"
@@ -103,7 +106,10 @@ fi
 echo "--- Release SHA contract rejects malformed and mismatched SHA ---"
 shell_online_version="3.2.3"
 DOWNLOAD_CONTENT='#!/usr/bin/env bash
-shell_version="3.2.3"'
+shell_version="3.2.3"
+xray_install_release() { :; }
+read_version() { :; }
+xray_update() { :; }'
 shell_release_sha256="not-a-sha"
 malformed_sha_candidate="${TMP_ROOT}/malformed-sha-candidate"
 if rxa_download_main_candidate "${malformed_sha_candidate}"; then
@@ -163,7 +169,7 @@ INTEGRATION_BLOCK=$(awk '/^# [B]EGIN RILL XRAY AGENT INTEGRATION$/,/^# [E]ND RIL
 # unquoted heredoc or `printf '%s'` would reinterpret. ANSI-C quoted literals +
 # a plain variable expansion preserve the block exactly while still injecting
 # it and the trailing menu/dispatch anchors.
-DOWNLOAD_CONTENT=$'#!/usr/bin/env bash\nRILL_XRAY_AGENT_INTEGRATION_SCHEMA=2\nRILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR=2\nRILL_XRAY_AGENT_REQUIRED_CAPABILITIES="status verify mode safe-disable uninstall-v2 diagnose timeline"\nshell_version="3.0.1"\n'"${INTEGRATION_BLOCK}"$'\nmenu_item() { return 0; }\nmenu_item 9 "Rill Xray Agent"\ncase 9 in\n    9) rxa_menu ;;\nesac\ncase "${1:-}" in\n    --rill-agent-status) rxa_dispatch status ;;\n    --rill-agent-verify) rxa_dispatch verify ;;\n    --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;\n    --rill-agent-uninstall) rxa_dispatch uninstall ;;\n    --rill-agent-diagnose) rxa_dispatch diagnose ;;\n    --rill-agent-timeline) rxa_dispatch timeline ;;\nesac\n'
+DOWNLOAD_CONTENT=$'#!/usr/bin/env bash\nshell_version="3.0.1"\nxray_install_release() { :; }\nread_version() { :; }\nxray_update() { :; }\nRILL_XRAY_AGENT_INTEGRATION_SCHEMA=2\nRILL_XRAY_AGENT_INTEGRATION_SCHEMA_FLOOR=2\nRILL_XRAY_AGENT_REQUIRED_CAPABILITIES="status verify mode safe-disable uninstall-v2 diagnose timeline"\n'"${INTEGRATION_BLOCK}"$'\nmenu_item() { return 0; }\nmenu_item 9 "Rill Xray Agent"\ncase 9 in\n    9) rxa_menu ;;\nesac\ncase "${1:-}" in\n    --rill-agent-status) rxa_dispatch status ;;\n    --rill-agent-verify) rxa_dispatch verify ;;\n    --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;\n    --rill-agent-uninstall) rxa_dispatch uninstall ;;\n    --rill-agent-diagnose) rxa_dispatch diagnose ;;\n    --rill-agent-timeline) rxa_dispatch timeline ;;\nesac\n'
 UPDATE_JSON_CONFIG_CALLS=0
 UPDATED_SHELL_VERSION=""
 
@@ -360,7 +366,7 @@ rxa_candidate_guard() { return 1; }
 if rxa_replace_main_candidate "${candidate}" "${idleleo}"; then
     bad "post-replacement guard failure must return non-zero"
 else
-    [[ ${RILL_UPDATE_CANDIDATE_ERROR} == postcheck:* ]] \
+        [[ ${RILL_UPDATE_CANDIDATE_ERROR} == core-postcheck:* ]] \
         && ok "post-replacement failure is classified as postcheck" \
         || bad "post-replacement failure classification is ${RILL_UPDATE_CANDIDATE_ERROR}"
 fi

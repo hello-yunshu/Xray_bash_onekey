@@ -52,20 +52,7 @@ jobs:
           path: .phase1-contracts/nginx
           persist-credentials: false
 
-      - name: Checkout Skill contract branch
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_skill
-          ref: ${{ inputs.skill_ref || 'main' }}
-          path: .phase1-contracts/skill
-          persist-credentials: false
-
       - name: Run Phase 1 regression tests
-        env:
-          GH_TOKEN: ${{ github.token }}
-          # The call-chain test resolves the Skill repo from this env var
-          # (falls back to the adjacent repo dir only outside CI).
-          SKILL_REPO: ${{ github.workspace }}/.phase1-contracts/skill
         run: |
           set -euo pipefail
           bash .github/test/test_redact.sh
@@ -79,6 +66,7 @@ jobs:
           bash .github/test/test_bootstrap_dependencies.sh
           # Xray update transaction tests (auto + manual mode coverage)
           bash .github/test/test_xray_update_transaction.sh
+          bash .github/test/test_xray_installer_metadata.sh
           # Online version metadata must fall back cleanly without contaminating values.
           bash .github/test/test_version_loading.sh
           # Install wizard profile tests (hierarchical menu profiles)
@@ -88,27 +76,12 @@ jobs:
           # Reinstall call-chain RETURN trap tests (real install chain coverage)
           bash .github/test/test_reinstall_call_chain.sh
           sudo bash .github/test/test_nginx_security.sh
-          bash .github/test/test_cross_repo_contract.sh \
-            .phase1-contracts/api \
-            .phase1-contracts/nginx \
-            .phase1-contracts/skill
-          # Rill Xray Agent host integration checks (mandatory workflow)
-          bash .github/test/test_rill_xray_agent.sh
-          # Rill 0.2 Operational Intelligence regression (spec 19.1/19.2):
-          # canonical payload wiring, decision lifecycle, idempotency, read-only journal.
-          bash .github/test/test_rill_xray_agent_operational_intelligence.sh
-          # Rill mode lifecycle verify (normal/observe-only/safe-disabled sockets)
-          bash .github/test/test_rill_xray_agent_verify_modes.sh
-          # Rill two-phase uninstall failure propagation (P0-2)
-          bash .github/test/test_install_uninstall_transaction.sh
           # Production Nginx health default path (P0-3)
           bash .github/test/test_nginx_health_production_defaults.sh
           # Reality+Nginx user-feedback regressions: serverNames single-hostname
           # validation, stale/corrupt *.serverNames self-heal on reinstall,
           # and Reality privateKey not printed to terminal.
           bash .github/test/test_reality_nginx_feedback.sh
-          # Candidate semantic self-check (P1-4)
-          bash .github/test/test_candidate_self_check.sh
           # Cross-repository release automation must remain deterministic and
           # must never overwrite manually promoted tested-version metadata.
           python3 .github/test/test_release_automation.py
@@ -158,19 +131,49 @@ jobs:
           # has no IPv6 socket capability; never counted as PASS)
           bash .github/test/test_ipv6_smoke.sh
 
-      - name: Run Skill contract tests
+  rill-qualification:
+    # Rill, RillML, and Skill remain strict qualification surfaces, but are
+    # deliberately outside the Core release-gate dependency chain.
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_api
+          ref: ${{ inputs.api_ref || 'main' }}
+          path: .phase1-contracts/api
+          persist-credentials: false
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_Nginx
+          ref: ${{ inputs.nginx_ref || 'main' }}
+          path: .phase1-contracts/nginx
+          persist-credentials: false
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_skill
+          ref: ${{ inputs.skill_ref || 'main' }}
+          path: .phase1-contracts/skill
+          persist-credentials: false
+      - name: Run Rill qualification
         env:
+          GH_TOKEN: ${{ github.token }}
           MAIN_REPO_ROOT: ${{ github.workspace }}
+          SKILL_REPO: ${{ github.workspace }}/.phase1-contracts/skill
         run: |
           set -euo pipefail
+          bash .github/test/test_cross_repo_contract.sh .phase1-contracts/api .phase1-contracts/nginx .phase1-contracts/skill
+          bash .github/test/test_rill_xray_agent.sh
+          bash .github/test/test_rill_xray_agent_operational_intelligence.sh
+          bash .github/test/test_rill_xray_agent_verify_modes.sh
+          bash .github/test/test_install_uninstall_transaction.sh
+          bash .github/test/test_candidate_self_check.sh
+          sudo bash .github/test/test_rill_xray_agent_rillml.sh
           bash .phase1-contracts/skill/tests/test_contract.sh
           bash .phase1-contracts/skill/tests/test_contract_exec.sh
-
-      - name: Run Skill full-flow noninteractive tests
-        env:
-          MAIN_REPO_ROOT: ${{ github.workspace }}
-        run: |
-          set -euo pipefail
           bash .phase1-contracts/skill/tests/test_full_flow_noninteractive.sh
 
   test-install:
@@ -197,19 +200,22 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Checkout API contract branch
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_api
+          ref: ${{ inputs.api_ref || 'main' }}
+          path: .phase1-contracts/api
+          persist-credentials: false
+
       - name: Run redaction unit tests
         run: bash .github/test/test_redact.sh
 
       - name: Run install test (${{ matrix.mode }})
         timeout-minutes: 15
-        run: sudo bash .github/test/test_install.sh ${{ matrix.mode }}
-
-      - name: RillML prebuilt runtime gate (${{ matrix.mode }})
-        # Batch D: every Xray operational mode must deliver the canonical
-        # payload and land the verified RillML prebuilt native runtime from
-        # the signed stable index (best-effort install, strict IPC proof).
-        timeout-minutes: 15
-        run: sudo bash .github/test/test_rill_xray_agent_rillml.sh
+        env:
+          XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
+        run: sudo -E bash .github/test/test_install.sh ${{ matrix.mode }}
 
       - name: Collect debug info on failure (redacted)
         if: failure()
