@@ -216,7 +216,16 @@ load_versions() {
         local versions_origin_url="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/xray_shell_versions.json"
         local response
 
-        if ! response=$(fetch_versions_json "${versions_cdn_url}"); then
+        # CI qualification may inject the exact API checkout under test. This
+        # keeps the production path remote-only while allowing cross-repo PR
+        # validation before the API branch is merged to main.
+        if [[ -n "${XRAY_VERSIONS_FILE:-}" && -f "${XRAY_VERSIONS_FILE}" ]]; then
+            response=$(cat "${XRAY_VERSIONS_FILE}")
+            printf '%s' "${response}" | jq -e 'type == "object"' >/dev/null 2>&1 || {
+                get_versions_all=""
+                return 1
+            }
+        elif ! response=$(fetch_versions_json "${versions_cdn_url}"); then
             response=$(fetch_versions_json "${versions_origin_url}") || {
                 get_versions_all=""
                 return 1
@@ -10413,6 +10422,12 @@ read_version() {
     new_xray_installer_ref="$(check_version_silent xray_installer_ref || echo "")"
     new_xray_installer_sha256="$(check_version_silent xray_installer_sha256 || echo "")"
     new_xray_installer_verified_at="$(check_version_silent xray_installer_verified_at || echo "")"
+    # Candidate qualification may run against an API branch that has not yet
+    # landed on API main. Apply its immutable installer inputs before the
+    # fail-closed validation; ordinary production reads still require the API
+    # metadata to be present and valid.
+    [[ -z "${XRAY_CANDIDATE_INSTALLER_REF:-}" ]] || new_xray_installer_ref="${XRAY_CANDIDATE_INSTALLER_REF}"
+    [[ -z "${XRAY_CANDIDATE_INSTALLER_SHA256:-}" ]] || new_xray_installer_sha256="${XRAY_CANDIDATE_INSTALLER_SHA256}"
     if [[ ! "${new_xray_installer_ref}" =~ ^[0-9a-f]{40}$ ]] ||
         [[ ! "${new_xray_installer_sha256}" =~ ^[0-9a-f]{64}$ ]]; then
         log_echo "${Error} ${RedBG} Xray-install verified metadata 无效，已拒绝安装或更新 ${Font}" >&2
