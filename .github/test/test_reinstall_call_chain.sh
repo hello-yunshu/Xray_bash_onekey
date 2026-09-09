@@ -830,7 +830,12 @@ else
 fi
 SKILL_REPO="${_SKILL_RESOLVED}"
 
-if [[ -d "${SKILL_REPO}/assets" ]]; then
+# Skill is an independent qualification surface. Core-only CI deliberately
+# does not checkout it; only an explicit Skill checkout (or a local sibling)
+# should activate this scenario.
+if [[ -z "${_SKILL_ENV}" && ! -d "${SKILL_REPO}" ]]; then
+    printf '  SKIPPED: S13 Skill existing-install protection (Skill repo not in Core job)\n'
+elif [[ -d "${SKILL_REPO}/assets" ]]; then
     # Test setup-reality.sh and setup-tls.sh reject existing installations.
     for tmpl in setup-reality.sh setup-tls.sh; do
         TMPL_PATH="${SKILL_REPO}/assets/${tmpl}"

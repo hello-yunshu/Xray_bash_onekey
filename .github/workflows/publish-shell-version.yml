@@ -90,7 +90,7 @@ jobs:
               exit 1
             }
           else
-            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target main \
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$CANDIDATE_COMMIT" \
               --title "Xray ${VERSION}" --notes "${VERSION} Release" \
               install.sh assets/rill-xray-agent-xray-bundle.tar.gz "$SUMS"
           fi
