@@ -8428,10 +8428,8 @@ _info_cache_load() {
 }
 
 info_extraction() {
-    # P0-1: the public read entry point ALWAYS routes through the lazy loader,
-    # so existing configs are readable on a normal (re)install without
-    # depending on compat_migrate(). A corrupt/missing-jq config fails closed
-    # (read_config_status=0) instead of silently returning empty.
+    # P0-1: the public read entry point ALWAYS routes through the lazy loader.
+    # A corrupt/missing-jq config fails closed instead of silently returning empty.
     if [[ ${_info_cache_loaded} -eq 0 ]]; then
         _info_cache_load || return 1
     fi
@@ -10364,67 +10362,6 @@ check_file_integrity() {
         clear
         exec "${BASH:-bash}" "${idleleo}" "$@"
     fi
-}
-
-compat_migrate() {
-    local _marker_file="${idleleo_dir}/.compat_migrate_v1"
-    [[ -f "${_marker_file}" ]] && return 0
-
-    # Legacy migration: vless_qr.json → install_config.json.
-    local _old_install_config="${idleleo_dir}/info/vless_qr.json"
-    if [[ -f "${_old_install_config}" && ! -f "${xray_install_config_file}" ]]; then
-        mkdir -p "${idleleo_conf_dir}"
-        mv "${_old_install_config}" "${xray_install_config_file}"
-        info_extraction_all=$(jq -rc . "${xray_install_config_file}")
-    fi
-    # COMPAT_END
-    # Legacy migration: info/install_config.json → conf/install_config.json.
-    local _old_install_config_path="${idleleo_dir}/info/install_config.json"
-    if [[ -f "${_old_install_config_path}" && ! -f "${xray_install_config_file}" ]]; then
-        mkdir -p "${idleleo_conf_dir}"
-        mv "${_old_install_config_path}" "${xray_install_config_file}"
-        info_extraction_all=$(jq -rc . "${xray_install_config_file}")
-    fi
-    # COMPAT_END
-    # Remove obsolete managed helper versions and root-level leftovers.
-    local _subscripts="file_manager.sh:fm_SCRIPT_VERSION:1.5.8 traffic_blocker.sh:tb_SCRIPT_VERSION:1.5.12 fail2ban_manager.sh:mf_SCRIPT_VERSION:1.5.7"
-    local _entry _script_name _ver_var _required_ver _loc _local_ver _oldest_ver
-    for _entry in $_subscripts; do
-        IFS=':' read -r _script_name _ver_var _required_ver <<< "$_entry"
-        [[ -f "${idleleo_dir}/${_script_name}" ]] && rm -f "${idleleo_dir}/${_script_name}"
-        _loc="${scripts_dir}/${_script_name}"
-        if [[ -f "$_loc" ]]; then
-            _local_ver=$(grep "^${_ver_var}=" "$_loc" | head -1 | sed 's/.*="//; s/"//')
-            if [[ -z "$_local_ver" ]]; then
-                rm -f "$_loc"
-            else
-                _oldest_ver=$(printf '%s\n%s\n' "$_required_ver" "$_local_ver" | sort -V | head -1)
-                [[ "$_oldest_ver" != "$_required_ver" ]] && rm -f "$_loc"
-            fi
-        fi
-    done
-    # COMPAT_END
-    # Move legacy helper paths and rewrite managed cron entries.
-    mkdir -p "${scripts_dir}"
-    for _script_name in auto_update.sh ssl_update.sh geo_update.sh tcp.sh; do
-        if [[ -f "${idleleo_dir}/${_script_name}" ]]; then
-            if [[ -f "${scripts_dir}/${_script_name}" ]]; then
-                rm -f "${idleleo_dir}/${_script_name}"
-            else
-                mv -f "${idleleo_dir}/${_script_name}" "${scripts_dir}/${_script_name}"
-            fi
-        fi
-    done
-    local _crontab_file
-    _crontab_file="$(root_crontab_path)"
-    if [[ -f "${_crontab_file}" ]]; then
-        sed -i "s|${idleleo_dir}/auto_update\.sh|${scripts_dir}/auto_update.sh|g" "${_crontab_file}"
-        sed -i "s|${idleleo_dir}/geo_update\.sh|${scripts_dir}/geo_update.sh|g" "${_crontab_file}"
-        sed -i "s|${idleleo_dir}/ssl_update\.sh|${scripts_dir}/ssl_update.sh|g" "${_crontab_file}"
-    fi
-    # COMPAT_END
-
-    touch "${_marker_file}"
 }
 
 read_version() {
@@ -12939,7 +12876,6 @@ enable_file_logging
 init_language online
 
 check_file_integrity "$@" || exit 1
-compat_migrate
 judge_mode
 check_online_version_connect
 read_version || exit 1
