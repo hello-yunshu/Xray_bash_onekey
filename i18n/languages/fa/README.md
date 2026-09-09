@@ -8,120 +8,120 @@
 
 ## ویژگی ها
 
-* وارد کنید`idleleo`منوی مدیریت Xray را برای مدیریت نصب، خدمات، تنظیمات امنیتی و غیره باز کنید.
+* وارد کنید`idleleo` 打开 Xray 管理菜单，管理安装、服务、安全设置等
 * برای دستیابی به ترجمه دقیق به چندین زبان، از Qwen-MT-Plus AI استفاده کنید
 * از پروتکل Reality پشتیبانی می کند، توصیه می شود از پیشوند Nginx استفاده کنید (قابل نصب در اسکریپت)
 * از انتقال WebSocket، gRPC، xHTTP پشتیبانی می کند، می توانید انتقال تک یا`ws+gRPC+xHTTP`هر دو را فعال کنید
-* پشته دوتایی IPv4 / IPv6 را پشتیبانی می کند: می تواند به طور خودکار قابلیت های صادرات شبکه عمومی را در حین نصب تشخیص دهد، تأیید مستقل را بر اساس نام دامنه A/AAAA ثبت کند و پیوندهای اشتراک گذاری مربوطه و تنظیمات Clash را ایجاد کند.
+* پشته دوتایی IPv4 / IPv6 را پشتیبانی می کند: می تواند به طور خودکار قابلیت های صادرات شبکه عمومی را در حین نصب شناسایی کند، تأیید مستقل را بر اساس نام دامنه A/AAAA ثبت کند و پیوندهای اشتراک گذاری مربوطه و تنظیمات Clash را ایجاد کند.
 * محافظت داخلی fail2ban (قابل نصب در اسکریپت)
 * آمار ترافیک Xray داخلی، مسدود کردن ترافیک، به‌روزرسانی قانون GeoIP/GeoSite و به‌روزرسانی منظم
 * از اسکریپت‌ها، Xray، Nginx و به‌روزرسانی‌های گواهی پشتیبانی می‌کند و برای به‌روزرسانی‌های حیاتی، پشتیبان‌گیری و بازگشت خرابی را فراهم می‌کند.
-* قبل از نصب مجدد و تغییر حالت، پیکربندی فعلی به طور خودکار پشتیبان گیری می شود و در صورت خرابی، پیکربندی اولیه بازیابی می شود.
+* از پیکربندی فعلی در حال اجرا قبل از نصب مجدد و تغییر حالت به طور خودکار پشتیبان گیری می شود و در صورت خرابی پیکربندی اولیه بازیابی می شود.
 * پیکربندی مجدد سه مسیر امن را فراهم می کند: استقرار مجدد با حفظ پیکربندی، بازسازی الگوی استاندارد و تغییر حالت.
-* استفاده کنید[@DuckSoft](https://github.com/DuckSoft)لینک به اشتراک گذاری[提案](https://github.com/XTLS/Xray-core/issues/91)(beta)، سازگار با Qv2ray، V2rayN، V2rayNG
-* استفاده کنید[XTLS](https://github.com/XTLS/Xray-core/issues/158)پیشنهاد، پیگیری[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)استاندارد، از نگاشت رشته سفارشی به VLESS UUID پشتیبانی می کند
-* از پروتکل gRPC پشتیبانی می کند:[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
-* از تعادل بار Reality / ws/gRPC/xHTTP پشتیبانی می کند:
+* استفاده کنید[@DuckSoft](https://github.com/DuckSoft)لینک به اشتراک گذاری[提案](https://github.com/XTLS/Xray-core/issues/91)（beta），兼容 Qv2ray、V2rayN、V2rayNG
+* استفاده کنید[XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，支持自定义字符串映射至 VLESS UUID
+* 支持 gRPC 协议：[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* 支持 Reality / ws/gRPC/xHTTP 负载均衡：
   - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
   - [搭建后端负载均衡](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
-* حالت Reality + Nginx به طور پیش فرض فعال است. SNI Guard: SNI ناشناخته، SNI خالی و استثنا TLS وارد باطن Xray Reality نمی شود. استراتژی جداسازی (ssl_reject_handshake) به طور پیش فرض پذیرفته شده است. کاربران پیشرفته می‌توانند به سایت بازگشتی decoy خودساخته یا مستقیماً TCP رد شده تغییر دهند. این عملکرد برای کاهش تشخیص فعال و قرار گرفتن در معرض پیکربندی نادرست استفاده می شود و استتار کامل را دنبال نمی کند.
+* Reality + Nginx 模式默认启用 SNI Guard：未知 SNI、空 SNI 与异常 TLS 不会进入 Xray Reality 后端，默认采用隔离策略（ssl_reject_handshake），高级用户可切换为自建 decoy 站点回落或直接 TCP 拒绝。该功能用于减少主动探测与误配置暴露，不追求完美伪装
 
-## در ادامه مطلب
+## 延伸阅读
 
-* `idleleo`نام گذاری پیشینه:[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
-* Reality راهنمای نصب:[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Reality خطر پروتکل:[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
-* Reality سرور تسریع شده:[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
+* `idleleo` 命名背景故事：[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
+* Reality 安装指南：[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality 协议风险：[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Reality 加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
 
-## گروه Telegram
+## Telegram 群组
 
-* گروه ارتباط:[点击加入](https://t.me/+48VSqv7xIIFmZDZl)
+* 交流群：[点击加入](https://t.me/+48VSqv7xIIFmZDZl)
 
-## آماده سازی
+## 准备工作
 
-* یک سرور خارج از کشور با شبکه عمومی IP
-* پروتکل Reality را نصب کنید: باید یک نام دامنه مورد نظر تهیه کنید که شرایط Xray را برآورده کند.
-* نسخه TLS را نصب کنید: باید نام دامنه را آماده کنید و رکوردهای A و/یا AAAA را با توجه به شبکه موجود سرور به درستی پیکربندی کنید. برای محیط های دو پشته، توصیه می شود که A و AAAA صحیح را همزمان پیکربندی کنید. این اسکریپت از شناسایی خودکار قابلیت های شبکه IPv4/IPv6 پشتیبانی می کند. هنگامی که پشته دوگانه در دسترس است، ورودی مشتری مربوطه می تواند در همان زمان ایجاد شود.
-* خواندن[Xray 官方文档](https://xtls.github.io)مفاهیم مرتبط Reality، TLS، WebSocket، gRPC و Xray را درک کنید
-* **مطمئن شوید که curl نصب شده باشد: CentOS اجرای کاربر`yum install -y curl`;Debian/Ubuntu اجرای کاربر`apt install -y curl`
+* 一台境外服务器，具备公网 IP
+* 安装 Reality 协议：需准备符合 Xray 要求的目标域名
+* 安装 TLS 版本：需准备域名，并根据服务器可用网络正确配置 A 和/或 AAAA 记录；双栈环境建议同时配置正确的 A 与 AAAA。脚本支持自动检测 IPv4/IPv6 网络能力，双栈可用时可同时生成对应客户端入口
+* 阅读 [Xray 官方文档](https://xtls.github.io)，了解 Reality、TLS、WebSocket、gRPC 及 Xray 相关概念
+* **确保已安装 curl**：CentOS 用户执行 `yum install -y curl`；Debian/Ubuntu 用户执行 `apt install -y curl`
 
-## نصب سریع
+## 快速安装
 
 ```bash
 bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh)
 ```
 
-## حالت نصب
+## 安装模式
 
-| مدل | نشان دادن |
+| 模式 | 说明 |
 |------|------|
-| Reality + Nginx | حالت پیشنهادی، می‌توانید پروتکل ساده ws/gRPC/xHTTP را در صورت نیاز برای تعادل بار وصل کنید |
-| Nginx + TLS | ws/gRPC/xHTTP را پشتیبانی کنید، به طور خودکار برای گواهی Let's Encrypt درخواست و تمدید کنید |
-| ws/gRPC/xHTTP ONLY | حالت ورودی مستقل بدون TLS، عمدتاً در سناریوهای باطن یا تعادل بار استفاده می شود |
-| XTLS ONLY | فقط در سناریوهای خاص مانند انتقال ترافیک استفاده می شود |
-| Docker | Xray، Nginx و اسکریپت اصلی در تصویر از قبل نصب شده اند. |
+| Reality + Nginx | 推荐模式，可按需附加 ws/gRPC/xHTTP 简单协议用于负载均衡 |
+| Nginx + TLS | 支持 ws/gRPC/xHTTP，自动申请并续期 Let's Encrypt 证书 |
+| ws/gRPC/xHTTP ONLY | 无 TLS 的独立入站模式，主要用于后端或负载均衡场景 |
+| XTLS ONLY | 仅用于流量中转等特定场景 |
+| Docker | 镜像内预装 Xray、Nginx 与主脚本 |
 
-هنگام نصب حالت های مرتبط ws/gRPC/xHTTP اختیاری است`ws`、`gRPC`、`xHTTP`یا`ws+gRPC+xHTTP`. اسکریپت به ترتیب پورت، مسیر، لینک اشتراک گذاری و کد QR مربوطه را ایجاد می کند. Clash در حال حاضر xHTTP را پشتیبانی نمی کند، و اسکریپت در خروجی پیکربندی درخواست می کند.
+安装 ws/gRPC/xHTTP 相关模式时，可选择 `ws`、`gRPC`、`xHTTP` 或 `ws+gRPC+xHTTP`. اسکریپت به ترتیب پورت، مسیر، لینک اشتراک گذاری و کد QR مربوطه را تولید می کند. Clash در حال حاضر xHTTP را پشتیبانی نمی کند، و اسکریپت در خروجی پیکربندی درخواست می کند.
 
-## دستورالعمل های پیکربندی مجدد
+## 重配置说明
 
-هنگامی که محیط نصب شده دوباره نصب شد، اسکریپت به طور خودکار از پیکربندی در حال اجرا فعلی نسخه پشتیبان تهیه می کند و سه مسیر پیکربندی مجدد را ارائه می دهد:
+已安装的环境再次运行安装时，脚本会自动备份当前运行配置，并提供三条重配置路径：
 
-| مسیر | نشان دادن | محدود کردن |
+| 路径 | 说明 | 限制 |
 |------|------|------|
-| حفظ استقرار مجدد پیکربندی | تنظیمات routing/outbounds/DNS و چند کاربره سفارشی را حفظ کنید، فقط فیلدهای انتخابی کاربر (پورت ها، مسیرها، پارامترهای UUID، Reality و غیره) را تغییر دهید. | تغییرات ساختار انتقال (مانند ws → gRPC) پشتیبانی نمی شود. اگر نیاز به تغییر ترکیب انتقال دارید، لطفاً از الگوی استاندارد برای بازسازی آن استفاده کنید. |
-| بازسازی قالب استاندارد | ایجاد پیکربندی الگوی استاندارد با استفاده از پارامترهای قابل استفاده مجدد فعلی، routing/outbounds/DNS سفارشی ممکن است حذف شود | اجباری نیست که تعداد کاربران بدون تغییر باقی بماند |
-| سوئیچ حالت | به حالت پروتکل دیگری بروید (مانند Reality → TLS). به طور پیش فرض، فقط کاربر اصلی UUID/email دوباره استفاده می شود. | سایر کاربران به طور خودکار منتقل نمی شوند و قبل از تغییر به وضوح از آنها خواسته می شود. |
+| 保留配置重新部署 | 保留自定义 routing/outbounds/DNS 和多用户配置，仅修改用户选择的字段（端口、路径、UUID、Reality 参数等） | 不支持传输结构变更（如 ws → gRPC），需改传输组合请使用标准模板重建 |
+| 标准模板重建 | 使用当前可复用参数生成标准模板配置，自定义 routing/outbounds/DNS 可能被移除 | 不强制要求用户数量不变 |
+| 模式切换 | 切换到不同协议模式（如 Reality → TLS），默认只复用主用户 UUID/email | 其他用户不自动迁移，切换前会明确提示 |
 
-اگر هر مرحله از فرآیند پیکربندی مجدد با شکست مواجه شود (نوشتن پیکربندی، راه اندازی سرویس، بررسی سلامت، و غیره)، به طور خودکار به پیکربندی پشتیبان اصلی برمی گردد. دایرکتوری پشتیبان از یک مهر زمانی منحصر به فرد برای پشتیبانی از چندین پیکربندی مجدد متوالی بدون تضاد با یکدیگر استفاده می کند.
+重配置过程中任何步骤失败（配置写入、服务启动、健康检查等）都会自动回滚到备份的原配置。备份目录使用唯一时间戳，支持连续多次重配置互不冲突。
 
-## دستورات رایج
+## 常用命令
 
-| عمل کنند | سفارش دهید |
+| 操作 | 命令 |
 |------|------|
-| منوی مدیریت را باز کنید | `idleleo` |
-| مشاهده راهنما | `idleleo --help` |
-| حالت Reality را نصب کنید | `idleleo --install-reality` |
-| حالت TLS را نصب کنید | `idleleo --install-tls` |
-| نصب ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
-| مشاهده اطلاعات نصب | `idleleo --show` |
-| به روز رسانی اسکریپت | `idleleo --update` |
-| به روز رسانی Xray | `idleleo --xray-update` |
-| به روز رسانی Nginx | `idleleo --nginx-update` |
-| تنظیم Fail2ban | `idleleo --set-fail2ban` |
-| مسدود کردن ترافیک را تنظیم کنید | `idleleo --traffic-blocker` |
-| مشاهده ترافیک پورت بلادرنگ | `idleleo --port-traffic` |
+| 打开管理菜单 | `idleleo` |
+| 查看帮助 | `idleleo --help` |
+| 安装 Reality 模式 | `idleleo --install-reality` |
+| 安装 TLS 模式 | `idleleo --install-tls` |
+| 安装 ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
+| 查看安装信息 | `idleleo --show` |
+| 更新脚本 | `idleleo --update` |
+| 更新 Xray | `idleleo --xray-update` |
+| 更新 Nginx | `idleleo --nginx-update` |
+| 设置 Fail2ban | `idleleo --set-fail2ban` |
+| 设置流量阻断 | `idleleo --traffic-blocker` |
+| 查看端口实时流量 | `idleleo --port-traffic` |
 
-## RillML Xray AI دستیار عملیات و نگهداری
+## RillML Xray AI 运维助手
 
-RillML (Rill) قابلیت‌های عملیات و نگهداری هوشمند تطبیقی محلی را برای Xray فراهم می‌کند.
+RillML（简称 Rill）为 Xray 提供本地自适应智能运维能力。
 
-دستیار محلی داخلی AI عملکرد و تعمیر و نگهداری وضعیت سلامت Xray/Nginx را در زمان واقعی نظارت می کند، به طور خودکار عیب ها را تشخیص می دهد و پیشنهادات درمانی را بدون نیاز به API خارجی ارائه می دهد. ورودی منوی اصلی`9`یا اجرا کنند`idleleo --rill-agent`وارد کنید.
+内置本地 AI 运维助手，实时监控 Xray/Nginx 健康状态，自动诊断故障并给出处理建议，无需外部 API。主菜单输入 `9` 或执行 `idleleo --rill-agent` 进入。
 
-**شایستگی های اصلی**
+**核心能力**
 
-* نظارت: مشاهده بی‌درنگ سرویس Xray/Nginx و وضعیت پیکربندی
-* تشخیص: علت اصلی عیب را با توصیه‌های اطمینان پیدا کنید (شواهد زیاد/متوسط/کم/ناکافی)
-* قضاوت: به طور خودکار نوع خطا را تعیین کنید و پیشنهادات پردازش را ارائه دهید. دستورالعمل ها به وضوح نشان می دهد که پردازش خودکار مجاز است یا فقط پیشنهادات ارائه می شود.
-* حالت: قضاوت هوشمند / فقط مشاهده / غیرفعال کردن ایمن، تا زمانی که اصلاح خودکار روشن نشود، سیستم تغییر نخواهد کرد.
+* 监控：实时观测 Xray/Nginx 服务与配置状态
+* 诊断：定位故障根因，附置信度建议（高 / 中 / 低 / 证据不足）
+* 判断：自动判断故障类型并给出处理建议，说明中明确标注允许自动处理或仅提供建议
+* 模式：智能判断 / 仅观察 / 安全停用，未开启自动修改前不会更改系统
 
-**دستورات پرکاربرد**
+**常用命令**
 
-| عمل کنند | سفارش دهید |
+| 操作 | 命令 |
 |------|------|
-| منوی دستیار عملیات و نگهداری AI را باز کنید | `idleleo --rill-agent` |
-| موتور قضاوت AI را نصب یا تعمیر کنید | `idleleo --rill-agent-install` |
-| وضعیت قضاوت AI را بررسی کنید | `idleleo --rill-agent-status` |
-| عیب یابی AI را اجرا کنید | `idleleo --rill-agent-diagnose` |
-| موتور قضاوت AI تأیید | `idleleo --rill-agent-verify` |
-| قضاوت غیرفعال سازی امنیتی AI | `idleleo --rill-agent-safe-disable` |
-| موتور Rill AI را حذف نصب کنید | `idleleo --rill-agent-uninstall` |
+| 打开 AI 运维助手菜单 | `idleleo --rill-agent` |
+| 安装或修复 AI 判断引擎 | `idleleo --rill-agent-install` |
+| 查看 AI 判断状态 | `idleleo --rill-agent-status` |
+| 运行 AI 故障诊断 | `idleleo --rill-agent-diagnose` |
+| 校验 AI 判断引擎 | `idleleo --rill-agent-verify` |
+| 安全停用 AI 判断 | `idleleo --rill-agent-safe-disable` |
+| 卸载 Rill AI 引擎 | `idleleo --rill-agent-uninstall` |
 
-AI موتور قضاوت هنوز در مرحله آزمایش است. توصیه می شود روی پیشنهادات تشخیصی تمرکز کنید. سیستم به طور پیش فرض به طور خودکار تغییر نخواهد کرد.
+AI 判断引擎目前仍处于测试阶段，建议以诊断建议为主，默认不会自动修改系统。
 
-## Docker استقرار
+## Docker 部署
 
-از استقرار با استفاده از Docker پشتیبانی می کند، تصویر با Xray و Nginx از قبل نصب شده است، و تمام عملکردهای اسکریپت اصلی را می توان مستقیماً در ظرف استفاده کرد. جزئیات را ببینید[Docker 部署指南](/docker/DOCKER.md)。
+支持使用 Docker 部署，镜像预装 Xray 和 Nginx，容器内可直接使用原脚本所有功能。详见 [Docker 部署指南](/docker/DOCKER.md)。
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
@@ -130,71 +130,71 @@ docker compose up -d
 docker attach xray-onekey
 ```
 
-## AI Skill استقرار
+## AI Skill 部署
 
-از استقرار خودکار Xray از طریق ابزارهای AI مانند Trae بدون تعامل دستی پشتیبانی می کند. جزئیات را ببینید[Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
+支持通过 AI 工具（如 Trae）自动部署 Xray，无需手动交互。详见 [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
 
-روش سنتی نیاز به SSH برای رفتن به سرور، اجرای اسکریپت نصب و پاسخ به سوالات تعاملی یکی یکی دارد. روش Skill فقط باید به AI نیازهای شما را بگوید، و AI به طور خودکار یک اسکریپت غیر تعاملی ایجاد کرده و اجرا می کند و مستقیماً پیوند VLESS را برمی گرداند.
+传统方式需要 SSH 到服务器、运行安装脚本、逐个回答交互式问题；Skill 方式只需告诉 AI 你的需求，AI 会自动生成非交互式脚本并执行，直接返回 VLESS 链接。
 
-**حالت های پشتیبانی شده**: Reality / TLS / ws ONLY / XTLS ONLY
+**支持模式**：Reality / TLS / ws ONLY / XTLS ONLY
 
-**نحوه استفاده**: در ابزار AI که از Skill پشتیبانی می کند، مستقیماً بگویید "Help me build Xray on server" و AI به طور خودکار اطلاعات را جمع آوری می کند، اسکریپت ها را تولید می کند، استقرار را انجام می دهد و اطلاعات اتصال را برمی گرداند.
+**使用方式**：在支持 Skill 的 AI 工具中直接说"帮我在服务器上搭建 Xray"，AI 会自动收集信息、生成脚本、执行部署并返回连接信息。
 
-## موارد قابل توجه
+## 注意事项
 
-* اگر معنای هر تنظیم را متوجه نمی‌شوید، لطفاً از مقدار پیش‌فرض به جز فیلدهای الزامی استفاده کنید (فقط Enter را فشار دهید)
-* Cloudflare کاربران لطفاً پس از اتمام نصب CDN را باز کنند.
-* این اسکریپت به دانش اولیه Linux و دانش شبکه کامپیوتری نیاز دارد
-* پشتیبانی از Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+، برخی از قالب های CentOS ممکن است مشکلات کامپایل داشته باشند، توصیه می شود در صورت مواجهه با مشکل، سیستم را تغییر دهید.
-* توصیه می شود که یک سرور تنها یک عامل را مستقر کرده و از پورت پیش فرض 443 استفاده کند
-* نگاشت رشته سفارشی به UUIDv5 نیاز به پشتیبانی مشتری دارد
-* استفاده از آن در محیط خالص توصیه می شود. تازه کارها نباید از CentOS استفاده کنند
-* این برنامه به Nginx بستگی دارد، گذشت[LNMP](https://lnmp.org)کاربرانی که اسکریپت Nginx را نصب کرده اند، لطفاً از تداخل احتمالی آگاه باشند.
-* پیوند مشترک xHTTP برای مشتریانی است که xHTTP را پشتیبانی می کنند. خروجی پیکربندی Clash از xHTTP رد می شود
-* از این اسکریپت در یک محیط تولیدی بدون بررسی اولیه در دسترس بودن استفاده نکنید
-* نویسنده: یون شو، تنها پشتیبانی محدودی ارائه می کند
+* 不了解各项设置含义时，除必填项外请使用默认值（全程回车即可）
+* Cloudflare 用户请在安装完成后再开启 CDN
+* 本脚本需要 Linux 基础知识及计算机网络常识
+* 支持 Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+，部分 CentOS 模板可能存在编译问题，建议遇到问题时更换系统
+* 建议单服务器仅部署单个代理，使用默认 443 端口
+* 自定义字符串映射至 UUIDv5 需要客户端支持
+* 推荐在纯净环境下使用；新手请勿使用 CentOS
+* 本程序依赖 Nginx，已通过 [LNMP](https://lnmp.org) 等脚本安装过 Nginx 的用户请注意潜在冲突
+* xHTTP 分享链接适用于支持 xHTTP 的客户端；Clash 配置输出会跳过 xHTTP
+* 请勿在未验证可用性前将本脚本用于生产环境
+* 作者：云舒，仅提供有限支持
 
-## قدردانی
+## 鸣谢
 
-* بر اساس[wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)توسعه دهد
-* TCP اسکریپت شتاب به نقل از[ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
+* 基于 [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey) 开发
+* TCP 加速脚本引用自 [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
-## پیکربندی گواهی
+## 证书配置
 
-**گواهی سفارشی**: فایل های crt و key را به ترتیب نام گذاری کنید.`xray.crt`و`xray.key`، قرار دهید`/etc/idleleo/cert`دایرکتوری (اگر دایرکتوری وجود ندارد، ابتدا آن را ایجاد کنید). لطفا به مرجع گواهی و مدت اعتبار توجه کنید. پس از انقضای گواهی سفارشی، باید خودتان آن را تمدید کنید.
+**自定义证书**：将 crt 和 key 文件分别命名为 `xray.crt` 和 `xray.key`，放入 `/etc/idleleo/cert` 目录（目录不存在则先创建）。请注意证书权限及有效期，自定义证书过期后需自行续签。
 
-**گواهی خودکار**: اسکریپت از تولید خودکار گواهی های Let's Encrypt (معتبر به مدت 3 ماه) پشتیبانی می کند و از نظر تئوری از تمدید خودکار پشتیبانی می کند.
+**自动证书**：脚本支持自动生成 Let's Encrypt 证书（有效期 3 个月），理论上支持自动续签。
 
-## مشاهده پیکربندی مشتری
+## 查看客户端配置
 
 ```bash
 cat /etc/idleleo/info/xray_info.inf
 ```
 
-## Xray مقدمه
+## Xray 简介
 
-* Xray یک ابزار پروکسی شبکه منبع باز عالی است که از Windows، macOS، Android، iOS، Linux و دیگر پلتفرم های کامل پشتیبانی می کند.
-* این اسکریپت یک اسکریپت پیکربندی کامل با یک کلیک است. پس از اینکه تمام فرآیندها به طور معمول تکمیل شدند، می توان از مشتری با توجه به نتایج خروجی استفاده کرد.
-* **به شدت توصیه می شود** درک جامع از جریان کار و اصول برنامه
+* Xray 是一款优秀的开源网络代理工具，支持 Windows、macOS、Android、iOS、Linux 等全平台
+* 本脚本为一键完整配置脚本，所有流程正常完成后，按输出结果设置客户端即可使用
+* **强烈建议**全面了解程序的工作流程及原理
 
-## مدیریت خدمات
+## 服务管理
 
-| عمل کنند | سفارش دهید |
+| 操作 | سفارش دهید |
 |------|------|
-| شروع Xray | `systemctl start xray` |
-| توقف Xray | `systemctl stop xray` |
-| شروع Nginx | `systemctl start nginx` |
-| توقف Nginx | `systemctl stop nginx` |
+| 启动 Xray | `systemctl start xray` |
+| 停止 Xray | `systemctl stop xray` |
+| 启动 Nginx | `systemctl start nginx` |
+| 停止 Nginx | `systemctl stop nginx` |
 
-## کاتالوگ مرتبط
+## 相关目录
 
 | محتوا | مسیر |
 |------|------|
 | دایرکتوری صفحه اصلی | `/etc/idleleo` |
-| پیکربندی Xray | `/etc/idleleo/conf/xray/config.json` |
-| پیکربندی Nginx | `/etc/idleleo/conf/nginx/` |
-| اطلاعات نصب | `/etc/idleleo/conf/install_config.json` |
-| فایل گواهی | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
-| دایرکتوری ورود به سیستم | `/etc/idleleo/logs/`、`/var/log/xray/` |
-| فهرست راهنمای نصب Nginx | `/usr/local/nginx` |
-| دستورات اداری | `/usr/bin/idleleo` |
+| Xray 配置 | `/etc/idleleo/conf/xray/config.json` |
+| Nginx 配置 | `/etc/idleleo/conf/nginx/` |
+| 安装信息 | `/etc/idleleo/conf/install_config.json` |
+| 证书文件 | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
+| 日志目录 | `/etc/idleleo/logs/`、`/var/log/xray/` |
+| Nginx 安装目录 | `/usr/local/nginx` |
+| 管理命令 | `/usr/bin/idleleo` |
