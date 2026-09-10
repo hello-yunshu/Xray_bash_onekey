@@ -323,8 +323,16 @@ jobs:
           E2E_ARTIFACT_DIR: ${{ runner.temp }}/xray-true-fresh-artifacts
         run: sudo -E bash .github/test/test_true_fresh_install.sh
 
-      - name: Upload redacted true-fresh diagnostics
+      - name: Scan true-fresh diagnostics for secrets
+        id: artifact-scan
         if: always()
+        run: |
+          set -euo pipefail
+          source .github/test/redact.sh
+          scan_diagnostics_artifact_for_secrets "${{ runner.temp }}/xray-true-fresh-artifacts"
+
+      - name: Upload redacted true-fresh diagnostics
+        if: always() && steps.artifact-scan.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: xray-true-fresh-diagnostics

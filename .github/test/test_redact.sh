@@ -172,6 +172,28 @@ assert_not_contains "Summary: host value redacted" "${SUMMARY}" "${FAKE_HOST}"
 rm -f "${TMP_CONFIG}"
 
 echo ""
+echo "--- Test: diagnostics artifact secret scan ---"
+TMP_ARTIFACT_DIR=$(mktemp -d)
+printf '%s\n' "${TEXT_INPUT}" >"${TMP_ARTIFACT_DIR}/raw.log"
+if scan_diagnostics_artifact_for_secrets "${TMP_ARTIFACT_DIR}"; then
+    echo "  FAIL: raw diagnostics artifact must be rejected"
+    FAIL=$((FAIL + 1))
+else
+    echo "  PASS: raw diagnostics artifact rejected"
+    PASS=$((PASS + 1))
+fi
+printf '%s' "${REDACTED_TEXT}" >"${TMP_ARTIFACT_DIR}/redacted.log"
+rm -f "${TMP_ARTIFACT_DIR}/raw.log"
+if scan_diagnostics_artifact_for_secrets "${TMP_ARTIFACT_DIR}"; then
+    echo "  PASS: redacted diagnostics artifact accepted"
+    PASS=$((PASS + 1))
+else
+    echo "  FAIL: redacted diagnostics artifact must be accepted"
+    FAIL=$((FAIL + 1))
+fi
+rm -rf "${TMP_ARTIFACT_DIR}"
+
+echo ""
 echo "--- Test: empty/invalid input handling ---"
 # Empty JSON should not crash
 EMPTY_RESULT=$(echo '{}' | redact_json_for_diagnostics 2>/dev/null) && {
