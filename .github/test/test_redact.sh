@@ -47,6 +47,7 @@ FAKE_DOMAIN="fake.domain.example.com"
 FAKE_EMAIL="fake@example.com"
 FAKE_TOKEN="ghp_FAKEtoken00000000000000000000000000aa"
 FAKE_SHARE_LINK="vless://${FAKE_UUID}@${FAKE_HOST}:443?path=%2Fciws&type=ws&security=reality&pbk=${FAKE_PUBLIC_KEY}&spx=%2F&sid=${FAKE_SHORT_IDS}#${FAKE_HOST}"
+GENERIC_UUID="79a6a501-9c51-510a-88ec-50a2343db441"
 
 echo "============================================"
 echo "  Testing redaction helpers"
@@ -110,6 +111,7 @@ echo ""
 echo "--- Test: redact_text_for_diagnostics ---"
 TEXT_INPUT=$(cat <<EOF
 [INFO] Starting xray with UUID: ${FAKE_UUID}
+[INFO] Generated user id ${GENERIC_UUID}
 [DEBUG] privateKey=${FAKE_PRIVATE_KEY} publicKey=${FAKE_PUBLIC_KEY}
 [DEBUG] password=${FAKE_PASSWORD} shortIds=${FAKE_SHORT_IDS}
 [INFO] Connecting to host=${FAKE_HOST} domain=${FAKE_DOMAIN}
@@ -122,6 +124,7 @@ EOF
 REDACTED_TEXT=$(printf '%s' "${TEXT_INPUT}" | redact_text_for_diagnostics)
 
 assert_not_contains "Text: UUID redacted" "${REDACTED_TEXT}" "${FAKE_UUID}"
+assert_not_contains "Text: bare UUID redacted" "${REDACTED_TEXT}" "${GENERIC_UUID}"
 assert_not_contains "Text: privateKey redacted" "${REDACTED_TEXT}" "${FAKE_PRIVATE_KEY}"
 assert_not_contains "Text: publicKey redacted" "${REDACTED_TEXT}" "${FAKE_PUBLIC_KEY}"
 assert_not_contains "Text: password redacted" "${REDACTED_TEXT}" "${FAKE_PASSWORD}"
