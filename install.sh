@@ -2,7 +2,6 @@
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
-#stty erase ^?
 
 if [[ "${_TEST_MODE:-0}" != "1" ]]; then
     cd "$(
@@ -14,8 +13,7 @@ fi
 #=================================================================
 #	System Request: Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+
 #	Author:	yunyunshu
-#	Dscription: Xray Onekey Management
-#	Version: 3.0
+#	Description: Xray Onekey Management
 #	Official document: hey.run
 #=================================================================
 
@@ -62,7 +60,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.7"
+shell_version="3.2.8"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -77,7 +75,7 @@ xray_conf_dir="${idleleo_conf_dir}/xray"
 nginx_conf_dir="${idleleo_conf_dir}/nginx"
 xray_conf="${xray_conf_dir}/config.json"
 xray_status_conf="${xray_conf_dir}/status_config.json"
-xray_default_conf="${local_bin}/etc/xray/config.json" # COMPAT: 旧版使用符号链接指向此路径，仅用于清理旧链接和 sed 匹配，未来可删除
+xray_default_conf="${local_bin}/etc/xray/config.json" # Retained as Xray's default config symlink.
 nginx_conf="${nginx_conf_dir}/00-xray.conf"
 nginx_ssl_conf="${nginx_conf_dir}/01-xray-80.conf"
 nginx_upstream_conf="${nginx_conf_dir}/02-xray-server.conf"
@@ -108,6 +106,7 @@ auto_update_file="${scripts_dir}/auto_update.sh"
 ssl_update_file="${scripts_dir}/ssl_update.sh"
 geo_update_file="${scripts_dir}/geo_update.sh"
 shell_release_sha256=""
+shell_online_version=""
 xray_installer_ref=""
 xray_installer_sha256=""
 xray_installer_verified_at=""
@@ -128,10 +127,18 @@ get_versions_all=""
 _get_versions_loaded=0
 
 shell_release_asset_url() {
+    if [[ "${XRAY_QUALIFICATION_MODE:-0}" == "1" && -n "${SHELL_RELEASE_BASE_OVERRIDE:-}" ]]; then
+        printf '%s/releases/download/v%s/%s' "${SHELL_RELEASE_BASE_OVERRIDE%/}" "$1" "$2"
+        return 0
+    fi
     printf 'https://github.com/hello-yunshu/Xray_bash_onekey/releases/download/v%s/%s' "$1" "$2"
 }
 
 shell_release_raw_url() {
+    if [[ "${XRAY_QUALIFICATION_MODE:-0}" == "1" && -n "${SHELL_RELEASE_BASE_OVERRIDE:-}" ]]; then
+        printf '%s/raw/v%s/%s' "${SHELL_RELEASE_BASE_OVERRIDE%/}" "$1" "$2"
+        return 0
+    fi
     printf 'https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/v%s/%s' "$1" "$2"
 }
 
@@ -235,6 +242,33 @@ load_versions() {
         _get_versions_loaded=1
     fi
     [[ -n "${get_versions_all}" ]]
+}
+
+# Load the minimum Release metadata required before the first managed Shell download.
+load_shell_release_metadata() {
+    local version release_sha
+    if ! load_versions; then
+        log_echo "${Error} ${RedBG} Shell Release metadata unavailable; fresh bootstrap stopped ${Font}" >&2
+        return 1
+    fi
+    version=$(printf '%s' "${get_versions_all}" | jq -r '.shell_online_version // empty' 2>/dev/null)
+    release_sha=$(printf '%s' "${get_versions_all}" | jq -r '.shell_release_sha256 // empty' 2>/dev/null)
+    if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        log_echo "${Error} ${RedBG} Shell Release metadata version is missing or invalid; fresh bootstrap stopped ${Font}" >&2
+        return 1
+    fi
+    if release_sha_contract_required "${version}" &&
+        [[ ! "${release_sha}" =~ ^[0-9a-f]{64}$ ]]; then
+        log_echo "${Error} ${RedBG} Shell Release metadata checksum is missing or invalid; fresh bootstrap stopped ${Font}" >&2
+        return 1
+    fi
+    if [[ -n "${release_sha}" && ! "${release_sha}" =~ ^[0-9a-f]{64}$ ]]; then
+        log_echo "${Error} ${RedBG} Shell Release metadata checksum format is invalid; fresh bootstrap stopped ${Font}" >&2
+        return 1
+    fi
+    shell_online_version="${version}"
+    shell_release_sha256="${release_sha}"
+    set_shell_release_urls "${shell_online_version}"
 }
 read_config_status=1
 reality_add_more="off"
@@ -5549,7 +5583,6 @@ nginx_install() {
     fi
 
     # 修改基本配置
-    #sed -i 's/#user  nobody;/user  root;/' ${nginx_dir}/conf/nginx.conf
     if ! modify_nginx_origin_conf; then
         restore_nginx_preinstall_backup "${nginx_backup_dir}" || true
         cd "$current_dir" && rm -rf "$temp_dir"
@@ -5665,8 +5698,7 @@ restore_nginx_backup() {
 # Each layer is attempted at most once.
 
 # Backup current Xray binary to ${idleleo_dir}/tmp/xray.prev with metadata.
-# Same directory as the binary's parent ensures same-filesystem mv; ${idleleo_dir}/tmp
-# is also created by compat_migrate, so it exists on every supported install.
+# The backup stays on the same filesystem as the managed state.
 backup_xray_binary() {
     local xray_binary="${xray_bin_dir}/xray"
     local backup_dir="${idleleo_dir}/tmp"
@@ -6558,7 +6590,6 @@ acme() {
     systemctl restart nginx
     #暂时解决ca问题
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force --test; then
-    #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force --test; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书测试签发成功, 开始正式签发") ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
     else
@@ -6568,7 +6599,6 @@ acme() {
     fi
 
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force; then
-    #if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --keylength ec-256 --force; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书生成") $(gettext "成功") ${Font}"
         mkdir -p "${ssl_chainpath}"
         if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --force --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"; then
@@ -8398,10 +8428,8 @@ _info_cache_load() {
 }
 
 info_extraction() {
-    # P0-1: the public read entry point ALWAYS routes through the lazy loader,
-    # so existing configs are readable on a normal (re)install without
-    # depending on compat_migrate(). A corrupt/missing-jq config fails closed
-    # (read_config_status=0) instead of silently returning empty.
+    # P0-1: the public read entry point ALWAYS routes through the lazy loader.
+    # A corrupt/missing-jq config fails closed instead of silently returning empty.
     if [[ ${_info_cache_loaded} -eq 0 ]]; then
         _info_cache_load || return 1
     fi
@@ -10073,15 +10101,20 @@ rxa_download_main_candidate() {
     local candidate=${1:-}
     RILL_UPDATE_CANDIDATE_ERROR=""
     [[ -n ${candidate} ]] || { RILL_UPDATE_CANDIDATE_ERROR="path"; return 1; }
-    rm -f "${candidate}"
-    if ! download_script_file "$(shell_release_asset_url "${shell_online_version}" install.sh)" "${candidate}"; then
-        RILL_UPDATE_CANDIDATE_ERROR="download"
+    if [[ ! "${shell_online_version:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        RILL_UPDATE_CANDIDATE_ERROR="metadata-version"
         rm -f "${candidate}"
         return 1
     fi
     if release_sha_contract_required "${shell_online_version}" &&
         [[ ! "${shell_release_sha256:-}" =~ ^[0-9a-f]{64}$ ]]; then
-        RILL_UPDATE_CANDIDATE_ERROR="sha256-missing"
+        RILL_UPDATE_CANDIDATE_ERROR="metadata-sha"
+        rm -f "${candidate}"
+        return 1
+    fi
+    rm -f "${candidate}"
+    if ! download_script_file "$(shell_release_asset_url "${shell_online_version}" install.sh)" "${candidate}"; then
+        RILL_UPDATE_CANDIDATE_ERROR="download"
         rm -f "${candidate}"
         return 1
     fi
@@ -10177,6 +10210,9 @@ rxa_log_candidate_failure() {
             log_echo "${Error} ${RedBG} $(gettext "脚本更新失败")! ${Font}"
             ;;
     esac
+    if [[ "${kind}" == "metadata-version" || "${kind}" == "metadata-sha" ]]; then
+        log_echo "${Error} ${RedBG} Shell Release metadata unavailable or invalid; candidate download refused ${Font}"
+    fi
     # Diagnostics (P1): report the guard stage and probe rc so a real Bootstrap
     # failure is locatable. No candidate content, secrets, UUIDs, tokens or
     # link data are ever included here.
@@ -10315,6 +10351,8 @@ check_file_integrity() {
             log_echo "${Error} ${RedBG} bootstrap_dependency_failed: bc,jq ${Font}"
             return 1
         fi
+        # Metadata must be loaded before constructing the immutable candidate URL.
+        load_shell_release_metadata || return 1
         [[ ! -d "${idleleo_dir}" ]] && mkdir -p "${idleleo_dir}"
         [[ ! -d "${idleleo_dir}/tmp" ]] && mkdir -p "${idleleo_dir}"/tmp
         [[ ! -d "${scripts_dir}" ]] && mkdir -p "${scripts_dir}"
@@ -10322,69 +10360,8 @@ check_file_integrity() {
         judge "$(gettext "下载最新脚本")"
         ln -sf "${idleleo}" "${idleleo_commend_file}" || return 1
         clear
-        exec "${BASH:-bash}" "${idleleo}"
+        exec "${BASH:-bash}" "${idleleo}" "$@"
     fi
-}
-
-compat_migrate() {
-    local _marker_file="${idleleo_dir}/.compat_migrate_v1"
-    [[ -f "${_marker_file}" ]] && return 0
-
-    # COMPAT: vless_qr.json → install_config.json，v2.15 后删除
-    local _old_install_config="${idleleo_dir}/info/vless_qr.json"
-    if [[ -f "${_old_install_config}" && ! -f "${xray_install_config_file}" ]]; then
-        mkdir -p "${idleleo_conf_dir}"
-        mv "${_old_install_config}" "${xray_install_config_file}"
-        info_extraction_all=$(jq -rc . "${xray_install_config_file}")
-    fi
-    # COMPAT_END
-    # COMPAT: info/install_config.json → conf/install_config.json，v2.15 后删除
-    local _old_install_config_path="${idleleo_dir}/info/install_config.json"
-    if [[ -f "${_old_install_config_path}" && ! -f "${xray_install_config_file}" ]]; then
-        mkdir -p "${idleleo_conf_dir}"
-        mv "${_old_install_config_path}" "${xray_install_config_file}"
-        info_extraction_all=$(jq -rc . "${xray_install_config_file}")
-    fi
-    # COMPAT_END
-    # COMPAT: 删除低于仓库版本的旧子脚本(自更新下载路径错误)，v2.15 后删除
-    local _subscripts="file_manager.sh:fm_SCRIPT_VERSION:1.5.8 traffic_blocker.sh:tb_SCRIPT_VERSION:1.5.12 fail2ban_manager.sh:mf_SCRIPT_VERSION:1.5.7"
-    local _entry _script_name _ver_var _required_ver _loc _local_ver _oldest_ver
-    for _entry in $_subscripts; do
-        IFS=':' read -r _script_name _ver_var _required_ver <<< "$_entry"
-        [[ -f "${idleleo_dir}/${_script_name}" ]] && rm -f "${idleleo_dir}/${_script_name}"
-        _loc="${scripts_dir}/${_script_name}"
-        if [[ -f "$_loc" ]]; then
-            _local_ver=$(grep "^${_ver_var}=" "$_loc" | head -1 | sed 's/.*="//; s/"//')
-            if [[ -z "$_local_ver" ]]; then
-                rm -f "$_loc"
-            else
-                _oldest_ver=$(printf '%s\n%s\n' "$_required_ver" "$_local_ver" | sort -V | head -1)
-                [[ "$_oldest_ver" != "$_required_ver" ]] && rm -f "$_loc"
-            fi
-        fi
-    done
-    # COMPAT_END
-    # COMPAT: 清理非交互式子脚本根目录残留 + crontab 路径修正，v2.15 后删除
-    mkdir -p "${scripts_dir}"
-    for _script_name in auto_update.sh ssl_update.sh geo_update.sh tcp.sh; do
-        if [[ -f "${idleleo_dir}/${_script_name}" ]]; then
-            if [[ -f "${scripts_dir}/${_script_name}" ]]; then
-                rm -f "${idleleo_dir}/${_script_name}"
-            else
-                mv -f "${idleleo_dir}/${_script_name}" "${scripts_dir}/${_script_name}"
-            fi
-        fi
-    done
-    local _crontab_file
-    _crontab_file="$(root_crontab_path)"
-    if [[ -f "${_crontab_file}" ]]; then
-        sed -i "s|${idleleo_dir}/auto_update\.sh|${scripts_dir}/auto_update.sh|g" "${_crontab_file}"
-        sed -i "s|${idleleo_dir}/geo_update\.sh|${scripts_dir}/geo_update.sh|g" "${_crontab_file}"
-        sed -i "s|${idleleo_dir}/ssl_update\.sh|${scripts_dir}/ssl_update.sh|g" "${_crontab_file}"
-    fi
-    # COMPAT_END
-
-    touch "${_marker_file}"
 }
 
 read_version() {
@@ -10722,12 +10699,10 @@ idleleo_commend() {
                     nginx_need_update="${Green}[$(gettext "最新版")]${Font}"
                 fi
                 if [[ -f "${xray_install_config_file}" ]] && [[ -f "${xray_conf}" ]] && [[ -f "${xray_bin_dir}/xray" ]]; then
-                    ##xray_online_version=$(check_version xray_online_pre_version)
                     if [[ -z "$(info_extraction xray_version)" ]]; then
                         xray_need_update="${Green}[$(gettext "已安装")] ($(gettext "版本未知"))${Font}"
                     elif [[ ${xray_online_version} != $(info_extraction xray_version) ]]; then
                         xray_need_update="${Green}[$(gettext "有新版")!]${Font}"
-                        ### xray_need_update="${Red}[$(gettext "请务必更新")]!${Font}"
                     else
                         xray_need_update="${Green}[$(gettext "最新版")]${Font}"
                     fi
@@ -12900,8 +12875,7 @@ enable_file_logging
 # INS is already defined by init_package_manager above and root is confirmed.
 init_language online
 
-check_file_integrity || exit 1
-compat_migrate
+check_file_integrity "$@" || exit 1
 judge_mode
 check_online_version_connect
 read_version || exit 1

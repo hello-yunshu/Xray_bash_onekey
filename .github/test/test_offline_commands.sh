@@ -219,7 +219,6 @@ check_file_integrity() {
 # zero network and zero /etc mutation even before the gettext/curl tooling it
 # would otherwise need is ensured. Functions that must NOT be reached for an
 # offline command are still overridden so a regression obviously trips them.
-compat_migrate() { :; }
 judge_mode() { :; }
 check_online_version_connect() { :; }
 read_version() { return 0; }
@@ -234,7 +233,6 @@ if is_offline_safe_command "\${1:-}"; then
     exit \$?
 fi
 check_file_integrity
-compat_migrate
 judge_mode
 check_online_version_connect
 read_version || exit 1
