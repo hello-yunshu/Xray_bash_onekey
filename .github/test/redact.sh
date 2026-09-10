@@ -52,6 +52,7 @@ redact_text_for_diagnostics() {
     fi
     printf '%s' "$input" \
         | sed -E 's/vless:\/\/[A-Za-z0-9:@._-]+@[A-Za-z0-9.:]+[^ ]*/<vless link redacted>/g' \
+        | sed -E 's/[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[1-5][0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}/<uuid redacted>/g' \
         | sed -E 's/(privateKey[":= ]+)[A-Za-z0-9_-]+/\1<redacted>/gI' \
         | sed -E 's/(publicKey[":= ]+)[A-Za-z0-9_-]+/\1<redacted>/gI' \
         | sed -E 's/(password[":= ]+)[A-Za-z0-9_-]+/\1<redacted>/gI' \

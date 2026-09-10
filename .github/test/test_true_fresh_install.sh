@@ -13,11 +13,12 @@ SERVER_LOG="${ARTIFACT_DIR}/release-server.log"
 INSTALL_LOG="${ARTIFACT_DIR}/true-fresh-install.log"
 RAW_SERVER_LOG="$(mktemp)"
 RAW_INSTALL_LOG="$(mktemp)"
+ENTRY="$(mktemp)"
 server_pid=""
 cleanup() {
     [[ -n "${server_pid}" ]] && kill "${server_pid}" 2>/dev/null || true
     [[ -n "${server_pid}" ]] && wait "${server_pid}" 2>/dev/null || true
-    rm -f "${RAW_SERVER_LOG}" "${RAW_INSTALL_LOG}"
+    rm -f "${RAW_SERVER_LOG}" "${RAW_INSTALL_LOG}" "${ENTRY}"
     rm -rf "${FIXTURE_ROOT}"
 }
 trap cleanup EXIT
@@ -67,7 +68,6 @@ curl -fsS "http://127.0.0.1:${SERVER_PORT}/releases/download/v${VERSION}/install
 }
 ok "exact-version Release fixture is reachable"
 
-ENTRY="${ARTIFACT_DIR}/entry-install.sh"
 cp "${REPO_DIR}/install.sh" "${ENTRY}"
 chmod 755 "${ENTRY}"
 echo "--- execute the production top-level entry ---"
