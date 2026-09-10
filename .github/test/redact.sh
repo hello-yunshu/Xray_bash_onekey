@@ -67,6 +67,30 @@ redact_text_for_diagnostics() {
         2>/dev/null || printf '%s\n' "*** text redaction failed, content suppressed for safety ***"
 }
 
+# Fail closed when a diagnostics directory contains a secret-like raw value.
+# Redacted field names are allowed; this scans for values that should have been
+# replaced, rather than introducing a broad DLP or repository-wide scanner.
+scan_diagnostics_artifact_for_secrets() {
+    local directory="${1:-}"
+    local matches rc
+    [[ -n "${directory}" && -d "${directory}" ]] || return 2
+
+    if matches=$(grep -RInE --binary-files=without-match \
+        'vless://|[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[1-5][0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}|(privateKey|publicKey|password|shortIds?|token|Authorization)[":=[:space:]]+[A-Za-z0-9+/_.=-]{12,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}' \
+        "${directory}" 2>&1); then
+        printf '%s\n' "${matches}" >&2
+        return 1
+    else
+        rc=$?
+        if [[ ${rc} -eq 1 ]]; then
+            return 0
+        fi
+        printf '%s\n' "diagnostics secret scan failed (grep rc=${rc})" >&2
+        printf '%s\n' "${matches}" >&2
+        return 2
+    fi
+}
+
 # Print a safe one-line summary of a config file (no sensitive values).
 # Shows only mode, versions, and field-presence booleans.
 safe_print_config_summary() {

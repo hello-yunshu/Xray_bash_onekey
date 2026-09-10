@@ -11,10 +11,13 @@ FIXTURE_ROOT="$(mktemp -d)"
 mkdir -p "${ARTIFACT_DIR}"
 SERVER_LOG="${ARTIFACT_DIR}/release-server.log"
 INSTALL_LOG="${ARTIFACT_DIR}/true-fresh-install.log"
+RAW_SERVER_LOG="$(mktemp)"
+RAW_INSTALL_LOG="$(mktemp)"
 server_pid=""
 cleanup() {
     [[ -n "${server_pid}" ]] && kill "${server_pid}" 2>/dev/null || true
     [[ -n "${server_pid}" ]] && wait "${server_pid}" 2>/dev/null || true
+    rm -f "${RAW_SERVER_LOG}" "${RAW_INSTALL_LOG}"
     rm -rf "${FIXTURE_ROOT}"
 }
 trap cleanup EXIT
@@ -53,7 +56,7 @@ jq --arg version "${VERSION}" --arg sha "${EXPECTED_SHA}" \
 
 SERVER_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')
 python3 -m http.server "${SERVER_PORT}" --bind 127.0.0.1 --directory "${FIXTURE_ROOT}" \
-    >"${SERVER_LOG}.raw" 2>&1 &
+    >"${RAW_SERVER_LOG}" 2>&1 &
 server_pid=$!
 for _ in $(seq 1 30); do
     curl -fsS "http://127.0.0.1:${SERVER_PORT}/releases/download/v${VERSION}/install.sh" -o /dev/null && break
@@ -73,9 +76,16 @@ printf '%s\n' 2 14431 n n www.microsoft.com n n n n n n n n n | \
     sudo -E env XRAY_QUALIFICATION_MODE=1 \
         SHELL_RELEASE_BASE_OVERRIDE="http://127.0.0.1:${SERVER_PORT}" \
         XRAY_VERSIONS_FILE="${QUAL_API}" \
-        bash "${ENTRY}" --install-reality >"${INSTALL_LOG}" 2>&1
+        bash "${ENTRY}" --install-reality >"${RAW_INSTALL_LOG}" 2>&1
 install_rc=$?
 set -e
+if redact_text_for_diagnostics <"${RAW_INSTALL_LOG}" >"${INSTALL_LOG}" 2>/dev/null; then
+    :
+else
+    bad "true-fresh install log redaction failed"
+    : >"${INSTALL_LOG}"
+fi
+rm -f "${RAW_INSTALL_LOG}"
 [[ ${install_rc} -eq 0 ]] && ok "top-level fresh install completed" || bad "top-level fresh install failed (rc=${install_rc})"
 
 [[ -f /etc/idleleo/install.sh ]] && ok "managed Shell was created" || bad "managed Shell missing"
@@ -93,8 +103,8 @@ if [[ -f /etc/idleleo/install.sh ]]; then
     [[ "${ACTUAL_SHA}" == "${EXPECTED_SHA}" ]] && ok "managed Shell SHA matches Release metadata" ||
         bad "managed Shell SHA mismatch"
 fi
-if grep -q "/releases/download/v${VERSION}/install.sh" "${SERVER_LOG}.raw" &&
-   ! grep -qE '/releases/download/v(/|//)install\.sh' "${SERVER_LOG}.raw"; then
+if grep -q "/releases/download/v${VERSION}/install.sh" "${RAW_SERVER_LOG}" &&
+   ! grep -qE '/releases/download/v(/|//)install\.sh' "${RAW_SERVER_LOG}"; then
     ok "candidate request used an exact Release URL"
 else
     bad "candidate request was not an exact Release URL"
@@ -118,8 +128,15 @@ if [[ -f /etc/idleleo/conf/xray/config.json ]]; then
     fi
 fi
 
+if redact_text_for_diagnostics <"${RAW_SERVER_LOG}" >"${SERVER_LOG}" 2>/dev/null; then
+    :
+else
+    bad "Release server log redaction failed"
+    : >"${SERVER_LOG}"
+fi
+rm -f "${RAW_SERVER_LOG}"
+
 if [[ ${FAIL} -ne 0 ]]; then
-    redact_text_for_diagnostics <"${SERVER_LOG}.raw" >"${SERVER_LOG}" 2>/dev/null || true
     sudo systemctl status xray --no-pager 2>&1 | redact_text_for_diagnostics >"${ARTIFACT_DIR}/systemctl-xray.txt" || true
     sudo journalctl -u xray --no-pager -n 80 2>&1 | redact_text_for_diagnostics >"${ARTIFACT_DIR}/journal-xray.txt" || true
     sudo tail -120 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics >"${ARTIFACT_DIR}/install-log.txt" || true
