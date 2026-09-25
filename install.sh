@@ -60,7 +60,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.8"
+shell_version="3.2.9"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -9924,7 +9924,11 @@ rxa_download_release_asset() {
 
 rxa_release_bundle_install() {
     local version=$1 mode=${2:-} supplied_bundle=${3:-} supplied_expected=${4:-}
-    local tmp tree bundle expected bootstrap cleanup=1
+    local tmp tree bundle expected bootstrap installer cleanup=1
+    local -a installer_args=()
+    if [[ -n "$mode" ]]; then
+        installer_args+=("$mode")
+    fi
     if [[ -n "$supplied_bundle" ]]; then
         bundle="$supplied_bundle"
         expected="$supplied_expected"
@@ -9949,10 +9953,28 @@ rxa_release_bundle_install() {
     mkdir -p "$tree"
     tar -xzf "$bundle" -C "$tree" --no-same-owner --no-same-permissions || { rm -rf "$tmp"; return 1; }
     bootstrap="${tree}/scripts/rill_xray_agent_bootstrap.sh"
-    [[ -x "$bootstrap" || -f "$bootstrap" ]] || { rm -rf "$tmp"; return 1; }
-    RILL_XRAY_AGENT_BUNDLE_FILE="$bundle" \
-    RILL_XRAY_AGENT_BUNDLE_SHA256="$expected" \
-        bash "$bootstrap" $mode
+    installer="${tree}/scripts/rill_xray_agent_install.sh"
+    local member
+    for member in "$tree"/*; do
+        case "$(basename "$member")" in
+            scripts|systemd|rill_payload) ;;
+            *) rm -rf "$tmp"; return 1 ;;
+        esac
+    done
+    if [[ -f "$bootstrap" ]]; then
+        RILL_XRAY_AGENT_BUNDLE_FILE="$bundle" \
+        RILL_XRAY_AGENT_BUNDLE_SHA256="$expected" \
+            bash "$bootstrap" "${installer_args[@]}"
+    elif [[ -f "$installer" ]] && bash -n "$installer"; then
+        # Compatibility with older immutable bundles that predate the wrapper.
+        # The outer path has already checked the Release SHA-256 and extracted
+        # the archive safely; the bundled installer still enforces its own
+        # root/installed-component and upgrade-mode checks.
+        bash "$installer" "${installer_args[@]}"
+    else
+        rm -rf "$tmp"
+        return 1
+    fi
     local rc=$?
     rm -rf "$tmp"
     return "$rc"
@@ -12649,7 +12671,7 @@ menu_main_header() {
     menu_fields "${xray_status_field}" "${nginx_status_field}" "${connect_status_field}"
     rxa_refresh_summary
     menu_divider "$(gettext "Rill Xray AI 运维助手")"
-    menu_row "$(gettext "AI 实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议")"
+    menu_blank
     menu_row "$(rxa_health_label)"
     menu_blank
     # 仅运行中的状态着绿色；关闭、未运行不加颜色。
