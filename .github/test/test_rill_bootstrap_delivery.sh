@@ -91,5 +91,42 @@ else
     bad "default config invariants"
 fi
 
+# Exercise the exact immutable-Release path that failed in production. The
+# current bundle intentionally carries the real installer but not Xray's
+# bootstrap wrapper, so reconciliation must safely use the compatibility path
+# and preserve upgrade mode/config.
+if tar -tzf "${ASSET}" | grep -qx 'scripts/rill_xray_agent_bootstrap.sh'; then
+    bad "fixture unexpectedly contains the bootstrap wrapper; fallback is not exercised"
+else
+    ok "Release bundle has no bootstrap wrapper (legacy layout reproduced)"
+fi
+export _TEST_MODE=1
+# shellcheck source=/dev/null
+source "${REPO_DIR}/install.sh" >/dev/null 2>&1 || true
+TEST_VERSION=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' "${REPO_DIR}/install.sh")
+printf '%s\n' 'stale canonical code' > "${STAGE}/opt/rill-xray-agent/bin/stale-from-old-release"
+jq '.mode = "safe-disabled"' "${STAGE}/etc/rill-xray-agent/config.json" > "${TMP_ROOT}/config.json"
+mv "${TMP_ROOT}/config.json" "${STAGE}/etc/rill-xray-agent/config.json"
+if DESTDIR="${STAGE}" rxa_release_bundle_install "${TEST_VERSION}" --upgrade "${ASSET}" "${ACTUAL}" >/dev/null 2>&1; then
+    ok "Release reconciliation upgrades through the installer fallback"
+else
+    bad "Release reconciliation fallback upgrade failed"
+fi
+[[ ! -e "${STAGE}/opt/rill-xray-agent/bin/stale-from-old-release" ]] \
+    && ok "fallback upgrade replaces stale canonical payload" \
+    || bad "fallback upgrade left stale canonical payload"
+if [[ "$(jq -r '.mode' "${STAGE}/etc/rill-xray-agent/config.json")" == safe-disabled ]]; then
+    ok "fallback upgrade preserves safe-disabled mode"
+else
+    bad "fallback upgrade changed safe-disabled mode"
+fi
+
+# The compatibility branch must retain the outer checksum boundary.
+if DESTDIR="${TMP_ROOT}/bad-sha" rxa_release_bundle_install "${TEST_VERSION}" --upgrade "${ASSET}" "${ACTUAL%?}0" >/dev/null 2>&1; then
+    bad "fallback accepted a bundle with the wrong expected SHA-256"
+else
+    ok "fallback rejects a bundle with the wrong expected SHA-256"
+fi
+
 printf '\n%d passed, %d failed\n' "${PASS}" "${FAIL}"
 [[ "${FAIL}" == 0 ]]
