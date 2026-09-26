@@ -815,12 +815,6 @@ rxa_integration_self_check() {
 }
 if [[ -f "$rill_xray_agent_manager" ]]; then
     source "$rill_xray_agent_manager"
-    # Older installed managers may not have the newer UI-only health helper.
-    # Define a compatibility function in the host script so the old manager's
-    # existing menu can still render without `command not found`.
-    if ! declare -F rxa_health_label >/dev/null 2>&1; then
-        rxa_health_label() { printf '%s\n' "$(gettext "检测：Rill 组件版本较旧，请更新")"; }
-    fi
 else
     rxa_install_testing_confirm(){
         local answer
@@ -905,6 +899,14 @@ else
     }
     rxa_dispatch(){ case "${1:-}" in status) printf '%s\n' '{"installed":false,"routeAssistEnabled":false,"boundedAutoAllowed":false}' ;; install) rxa_install_with_notice ;; *) return 66 ;; esac; }
 fi
+# COMPAT: Rill is optional, and older managers may omit this UI-only helper.
+# Keep the base menu renderable without an installed/current manager; remove
+# once the no-manager menu no longer calls it and all supported managers
+# provide it.
+if ! declare -F rxa_health_label >/dev/null 2>&1; then
+    rxa_health_label() { printf '%s\n' "$(gettext "检测：Rill 组件版本较旧，请更新")"; }
+fi
+# COMPAT_END
 # Lifecycle coordination used by the host install/update/uninstall paths.
 # Every hook is non-fatal: it never changes the host transaction return code.
 # Paths honour RILL_XRAY_AGENT_* + DESTDIR (same sandbox semantics as the
@@ -7133,8 +7135,9 @@ server {
     ssl_session_timeout 1d;
     ssl_session_tickets off;
     ssl_early_data on;
-    ssl_stapling on;
-    ssl_stapling_verify on;
+    # OCSP stapling stays disabled by default; enable only with a valid issuer chain.
+    # ssl_stapling on;
+    # ssl_stapling_verify on;
     ssl_prefer_server_ciphers on;
     add_header Strict-Transport-Security "max-age=31536000";
 
