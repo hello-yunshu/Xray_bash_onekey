@@ -7133,8 +7133,9 @@ server {
     ssl_session_timeout 1d;
     ssl_session_tickets off;
     ssl_early_data on;
-    ssl_stapling on;
-    ssl_stapling_verify on;
+    # OCSP stapling stays disabled by default; enable only with a valid issuer chain.
+    # ssl_stapling on;
+    # ssl_stapling_verify on;
     ssl_prefer_server_ciphers on;
     add_header Strict-Transport-Security "max-age=31536000";
 
