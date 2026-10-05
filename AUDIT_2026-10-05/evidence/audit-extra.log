@@ -1,0 +1,35 @@
+CFI-06 parsed tls=ws network=example.com servername= host=
+CFI-06 eligibility rc=1
+
+CFI-04 release validation rc= 0 qualification evidence valid: C:\Users\hello\Documents\Codex\2026-10-05\new-chat\work\noneligible.json
+XRA-06 move failure function rc=0
+
+[
+  {
+    "repo": "luci-app-cloudflare-ip",
+    "counts": {
+      "bash_syntax": 186,
+      "json": 8,
+      "python_ast": 2
+    },
+    "failures": []
+  },
+  {
+    "repo": "rill-ml",
+    "counts": {
+      "json": 100,
+      "python_ast": 48,
+      "bash_syntax": 20
+    },
+    "failures": []
+  },
+  {
+    "repo": "Xray_bash_onekey",
+    "counts": {
+      "bash_syntax": 64,
+      "python_ast": 43,
+      "json": 9
+    },
+    "failures": []
+  }
+]

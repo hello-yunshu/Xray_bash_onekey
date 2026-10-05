@@ -1,0 +1,29 @@
+[
+  {
+    "repo": "luci-app-cloudflare-ip",
+    "counts": {
+      "bash_syntax": 186,
+      "json": 8,
+      "python_ast": 2
+    },
+    "failures": []
+  },
+  {
+    "repo": "rill-ml",
+    "counts": {
+      "json": 100,
+      "python_ast": 48,
+      "bash_syntax": 20
+    },
+    "failures": []
+  },
+  {
+    "repo": "Xray_bash_onekey",
+    "counts": {
+      "bash_syntax": 64,
+      "python_ast": 43,
+      "json": 9
+    },
+    "failures": []
+  }
+]
