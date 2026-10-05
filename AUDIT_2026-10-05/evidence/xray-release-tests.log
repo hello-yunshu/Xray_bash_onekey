@@ -1,0 +1,30 @@
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in C:/Users/hello/AppData/Local/Temp/tmpqbyc1pd5/xray/.git/
+[master (root-commit) c22a870] fixture
+ 4 files changed, 5 insertions(+)
+ create mode 100644 .github/workflows/rill-xray-agent.yml
+ create mode 100644 rill_payload/python/rill_xray_agent/old.py
+ create mode 100644 scripts/host-owned.sh
+ create mode 100644 scripts/rill_xray_agent_stale.sh
+warning: in the working copy of 'scripts/rill_xray_agent_new.sh', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'systemd/rill-xray-agent-new.service', LF will be replaced by CRLF the next time Git touches it
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 1.362s
+
+OK
+prepared version API update: 3.1.0 -> 3.2.0
+version API already publishes shell 3.2.0
+prepared version API update: 3.2.2 -> 3.2.3
