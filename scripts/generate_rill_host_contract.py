@@ -21,6 +21,9 @@ END = b"# END RILL XRAY AGENT INTEGRATION"
 
 
 def host_surface(blob: bytes) -> bytes:
+    # Git may materialize this tracked shell file with CRLF on Windows hosts.
+    # Keep generated identities stable across checkout platforms.
+    blob = blob.replace(b"\r\n", b"\n")
     start = blob.find(BEGIN)
     if start < 0:
         raise SystemExit("Rill host integration begin marker missing")

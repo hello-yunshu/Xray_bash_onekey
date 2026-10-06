@@ -1,4 +1,7 @@
+import errno
 import os
+import secrets
+import stat
 from pathlib import Path,PurePosixPath
 from .errors import UnsafePathError
 def safe_relative(name):
@@ -20,8 +23,37 @@ def write_beneath(root,rel,data,mode=0o600):
    try:os.mkdir(part,0o700,dir_fd=fd)
    except FileExistsError:pass
    nxt=os.open(part,os.O_RDONLY|getattr(os,'O_DIRECTORY',0)|getattr(os,'O_NOFOLLOW',0),dir_fd=fd);os.close(fd);fd=nxt
-  name=p.parts[-1];tmp=f'.{name}.tmp.{os.getpid()}';out=os.open(tmp,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0),mode,dir_fd=fd)
-  try:os.write(out,data);os.fsync(out)
-  finally:os.close(out)
-  os.replace(tmp,name,src_dir_fd=fd,dst_dir_fd=fd);os.fsync(fd)
+  name=p.parts[-1];token=secrets.token_hex(12);tmp=f'.{name}.tmp.{token}';backup=f'.{name}.old.{token}';out=None;published=False;had_old=False;owns_tmp=False
+  try:
+   out=os.open(tmp,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0),mode,dir_fd=fd)
+   owns_tmp=True
+   view=memoryview(data);offset=0
+   while offset<len(view):
+    try:n=os.write(out,view[offset:])
+    except InterruptedError:continue
+    if n<=0:raise OSError(errno.EIO,'write made no progress')
+    offset+=n
+   os.fchmod(out,mode & 0o777)
+   os.fsync(out);os.close(out);out=None
+   try:
+    existing=os.stat(name,dir_fd=fd,follow_symlinks=False)
+    if not stat.S_ISREG(existing.st_mode):raise UnsafePathError(f'unsafe target: {name}')
+    os.link(name,backup,src_dir_fd=fd,dst_dir_fd=fd,follow_symlinks=False);had_old=True
+   except FileNotFoundError:pass
+   os.replace(tmp,name,src_dir_fd=fd,dst_dir_fd=fd);published=True;os.fsync(fd)
+   if had_old:
+    try:os.unlink(backup,dir_fd=fd)
+    except FileNotFoundError:pass
+  except Exception:
+   if published:
+    if had_old:os.replace(backup,name,src_dir_fd=fd,dst_dir_fd=fd)
+    else:
+     try:os.unlink(name,dir_fd=fd)
+     except FileNotFoundError:pass
+   raise
+  finally:
+   if out is not None:os.close(out)
+   for leftover in ((tmp,) if owns_tmp else ()) + ((backup,) if had_old else ()):
+    try:os.unlink(leftover,dir_fd=fd)
+    except FileNotFoundError:pass
  finally:os.close(fd)

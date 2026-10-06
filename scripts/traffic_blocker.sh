@@ -339,19 +339,6 @@ tb_get_geo_local_version() {
     echo "${version}"
 }
 
-tb_set_geo_local_version() {
-    local file_name="$1"
-    local version="$2"
-    local gv_file="${xray_conf_dir}/geo_version.json"
-    local gv_tmp="${gv_file}.tmp.$$"
-    if [[ -f "${gv_file}" ]]; then
-        jq --arg name "$file_name" --arg v "$version" '.geo_versions[$name] = $v' "${gv_file}" >"${gv_tmp}" 2>/dev/null && mv "${gv_tmp}" "${gv_file}" || { rm -f "${gv_tmp}"; return 1; }
-    else
-        mkdir -p "$(dirname "${gv_file}")"
-        jq -n --arg name "$file_name" --arg v "$version" '{"geo_versions":{($name):$v}}' >"${gv_tmp}" 2>/dev/null && mv "${gv_tmp}" "${gv_file}" || { rm -f "${gv_tmp}"; return 1; }
-    fi
-}
-
 tb_get_previous_domain_strategy() {
     if [[ ! -f "${tb_config_file}" ]]; then
         echo ""
@@ -497,23 +484,12 @@ tb_is_geo_outdated() {
 
 tb_download_geo_file() {
     local file_name="$1"
-    local remote_version="${2:-}"
-    mkdir -p "${tb_geo_dir}"
-
-    if [[ -z "$remote_version" ]]; then
-        remote_version=$(tb_get_geo_remote_version)
-    fi
-    local download_url="${tb_geo_remote}/${file_name}"
-    log_echo "${Info} ${Green} $(gettext "正在下载"): ${file_name} ... ${Font}"
-
-    if download_file "$download_url" "${tb_geo_dir}/${file_name}"; then
-        tb_set_geo_local_version "$file_name" "${remote_version}"
-        log_echo "${OK} ${GreenBG} $(gettext "下载") $(gettext "完成"): ${file_name} (${remote_version}) ${Font}"
-        return 0
-    else
-        log_echo "${Error} ${RedBG} $(gettext "下载") $(gettext "失败"): ${file_name} ${Font}"
-        return 1
-    fi
+    local updater="${scripts_dir:-${idleleo_dir}/scripts}/geo_update.sh"
+    [[ -n "${file_name}" && -f "${updater}" ]] || return 1
+    # Automatic and interactive updates share one checksum-verified transaction
+    # and the same update lock. The updater intentionally installs both files
+    # from one immutable release, even when only one file was requested.
+    bash "${updater}"
 }
 
 tb_display_status() {
@@ -721,49 +697,24 @@ tb_geo_menu() {
 tb_update_all_geo() {
     echo
     log_echo "${Info} ${Green} $(gettext "正在更新全部 GeoData")... ${Font}"
-
-    local remote_version=$(tb_get_geo_remote_version)
-    local has_error=false
-
-    if ! tb_download_geo_file "geoip.dat" "$remote_version"; then
-        has_error=true
-    fi
-    if ! tb_download_geo_file "geosite.dat" "$remote_version"; then
-        has_error=true
-    fi
-
-    if [[ "$has_error" == "true" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "部分文件更新失败") ${Font}"
-    else
-        log_echo "${OK} ${GreenBG} $(gettext "全部 GeoData 已更新") ${Font}"
-    fi
-
-    if [[ -f "${xray_conf}" ]]; then
-        systemctl restart xray
-        judge -r "Xray $(gettext "重启")" || return 1
-    fi
+    tb_download_geo_file geoip.dat || {
+        log_echo "${Error} ${RedBG} $(gettext "GeoData 更新失败，已尝试恢复旧版本") ${Font}"
+        return 1
+    }
+    log_echo "${OK} ${GreenBG} $(gettext "全部 GeoData 已更新") ${Font}"
 }
 
 tb_update_geo_file() {
     local file_name="$1"
 
     echo
-    if [[ -f "${tb_geo_dir}/${file_name}" ]]; then
-        local local_version=$(tb_get_geo_local_version "$file_name")
-        log_echo "${Info} ${Green} $(gettext "当前版本"): ${local_version:-$(gettext "未知")} ${Font}"
-    else
-        log_echo "${Warning} ${YellowBG} $(gettext "文件不存在, 将下载最新版本") ${Font}"
-    fi
-
-    if tb_download_geo_file "$file_name"; then
-        local new_version=$(tb_get_geo_local_version "$file_name")
-        log_echo "${OK} ${GreenBG} ${file_name} $(gettext "已更新至"): ${new_version} ${Font}"
-
-        if [[ -f "${xray_conf}" ]]; then
-            systemctl restart xray
-            judge -r "Xray $(gettext "重启")" || return 1
-        fi
-    fi
+    tb_download_geo_file "${file_name}" || {
+        log_echo "${Error} ${RedBG} ${file_name} $(gettext "更新失败，已尝试恢复旧版本") ${Font}"
+        return 1
+    }
+    local new_version
+    new_version=$(tb_get_geo_local_version "${file_name}")
+    log_echo "${OK} ${GreenBG} ${file_name} $(gettext "已更新至"): ${new_version} ${Font}"
 }
 
 tb_manage_rules() {

@@ -63,6 +63,87 @@ install -d -m 0750 \
   "$(root /etc/systemd/system)" \
   "$(root /var/spool/rill-xray-agent-apply)"
 
+exec 9>"$(root /run/rill-xray-agent/install.lock)"
+flock -n 9 || { echo 'Rill 安装/升级事务正在运行' >&2; exit 75; }
+TXN_ROOT="$(root /var/lib/rill-xray-agent-root/transactions)"
+TXN_DIR=$(mktemp -d "$TXN_ROOT/.upgrade-XXXXXX")
+trap 'rm -rf -- "$TXN_DIR"' EXIT
+STAGE_DIR="$TXN_DIR/candidate"
+BACKUP_DIR="$TXN_DIR/backup"
+mkdir -p "$STAGE_DIR/opt/rill-xray-agent" "$STAGE_DIR/etc/rill-xray-agent/scripts" "$STAGE_DIR/etc/systemd/system" "$STAGE_DIR/var/spool/rill-xray-agent-apply"
+cp -a "$SOURCE/../rill_payload/." "$STAGE_DIR/opt/rill-xray-agent/"
+for file in rill_xray_agent_manager.sh rill_xray_agent_observe.py rill_xray_agent_install.sh rill_xray_agent_verify.sh rill_xray_agent_uninstall.sh rill_xray_agent_bootstrap.sh; do
+    [[ -f "$SOURCE/$file" ]] && install -m 0755 "$SOURCE/$file" "$STAGE_DIR/etc/rill-xray-agent/scripts/$file"
+done
+for unit in "$SOURCE"/../systemd/*; do
+    [[ -f "$unit" ]] && install -m 0644 "$unit" "$STAGE_DIR/etc/systemd/system/$(basename "$unit")"
+done
+[[ -f "$STAGE_DIR/etc/rill-xray-agent/config.json" ]] || install -m 0640 "$STAGE_DIR/opt/rill-xray-agent/config/default.json" "$STAGE_DIR/etc/rill-xray-agent/config.json"
+python3 - "$STAGE_DIR" <<'PY'
+import ast, pathlib, stat, subprocess, sys
+root=pathlib.Path(sys.argv[1])
+for p in root.rglob('*'):
+ s=p.lstat()
+ if stat.S_ISLNK(s.st_mode) or not (stat.S_ISDIR(s.st_mode) or stat.S_ISREG(s.st_mode)):
+  raise SystemExit(f'unsupported payload file type: {p}')
+for p in root.rglob('*.sh'):
+ b=p.read_bytes().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+ p.write_bytes(b)
+ subprocess.run(['bash','-n',str(p)],check=True)
+for p in (root/'opt/rill-xray-agent').rglob('*.py'):
+ ast.parse(p.read_text(encoding='utf-8'),filename=str(p))
+PY
+DESTDIR="$STAGE_DIR" bash "$STAGE_DIR/etc/rill-xray-agent/scripts/rill_xray_agent_verify.sh"
+MANAGED_PATHS=(/opt/rill-xray-agent/PROVENANCE /opt/rill-xray-agent/bin /opt/rill-xray-agent/config /opt/rill-xray-agent/python /opt/rill-xray-agent/share /opt/rill-xray-agent/systemd /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh /etc/rill-xray-agent/scripts/rill_xray_agent_observe.py /etc/rill-xray-agent/scripts/rill_xray_agent_install.sh /etc/rill-xray-agent/scripts/rill_xray_agent_verify.sh /etc/rill-xray-agent/scripts/rill_xray_agent_uninstall.sh /etc/rill-xray-agent/scripts/rill_xray_agent_bootstrap.sh)
+for unit in "$SOURCE"/../systemd/*; do [[ -f "$unit" ]] && MANAGED_PATHS+=("/etc/systemd/system/$(basename "$unit")"); done
+
+restore_upgrade() {
+    local path saved unit enabled active mode="$SAVED_MODE"
+    [[ -n "$mode" || ! -r "$TXN_DIR/saved-mode" ]] || mode=$(< "$TXN_DIR/saved-mode")
+    for path in "${MANAGED_PATHS[@]}"; do
+        saved="$BACKUP_DIR$path"; rm -rf -- "$(root "$path")"
+        if [[ -e "$saved" || -L "$saved" ]]; then install -d -m 0750 "$(dirname "$(root "$path")")"; cp -a -- "$saved" "$(root "$path")"; fi
+    done
+    [[ -z "$DESTDIR" ]] || return 0
+    systemctl daemon-reload || return 1
+    while read -r unit enabled active; do
+        [[ -n "$unit" ]] || continue
+        if [[ "$enabled" == enabled ]]; then systemctl enable "$unit" || return 1; elif [[ "$enabled" == disabled ]]; then systemctl disable "$unit" || return 1; fi
+        if [[ "$active" == active ]]; then systemctl restart "$unit" || return 1; else systemctl stop "$unit" || return 1; fi
+    done < "$BACKUP_DIR/unit-state"
+    source "$(root /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh)"
+    rxa_apply_auto_revoke || return 1
+    rxa_apply_mode "$mode" || return 1
+}
+
+for previous in "$TXN_ROOT"/.upgrade-*; do
+    [[ -d "$previous" && "$previous" != "$TXN_DIR" ]] || continue
+    if [[ -f "$previous/committed" ]]; then rm -rf -- "$previous"
+    elif [[ -f "$previous/prepared" ]]; then TXN_DIR="$previous"; BACKUP_DIR="$previous/backup"; restore_upgrade || { echo "升级恢复失败，材料保留于 $previous" >&2; exit 1; }; rm -rf -- "$previous"; fi
+done
+if ((UPGRADE)); then
+    mkdir -p "$BACKUP_DIR"
+    for path in "${MANAGED_PATHS[@]}"; do
+        live="$(root "$path")"; [[ ! -L "$live" ]] || { echo "拒绝升级符号链接: $path" >&2; exit 65; }
+        if [[ -e "$live" ]]; then mkdir -p "$BACKUP_DIR$(dirname "$path")"; cp -a -- "$live" "$BACKUP_DIR$path"; fi
+    done
+    if [[ -z "$DESTDIR" ]]; then
+        printf '%s\n' "$SAVED_MODE" > "$TXN_DIR/saved-mode"; : > "$BACKUP_DIR/unit-state"
+        for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer rill-xray-agent-apply.path rill-xray-agent-auto-evaluate.path; do
+            enabled=disabled; active=inactive; systemctl is-enabled --quiet "$unit" && enabled=enabled || true; systemctl is-active --quiet "$unit" && active=active || true
+            printf '%s %s %s\n' "$unit" "$enabled" "$active" >> "$BACKUP_DIR/unit-state"
+        done
+    fi
+    sync; : > "$TXN_DIR/prepared"; COMMITTED=0
+    rollback_on_error() {
+        local rc=$?; trap - ERR EXIT INT TERM
+        if ((rc == 0 && COMMITTED)); then rm -rf -- "$TXN_DIR"; return 0; fi
+        if restore_upgrade; then rm -rf -- "$TXN_DIR"; else echo "恢复失败，恢复材料保留于 $TXN_DIR" >&2; fi
+        exit "$rc"
+    }
+    trap rollback_on_error ERR EXIT INT TERM
+fi
+
 if ((UPGRADE)); then
     # Only remove directories explicitly owned by the canonical payload. User
     # config, runtime state, audit/timeline data and transaction state live
@@ -73,9 +154,9 @@ if ((UPGRADE)); then
 fi
 
 for file in rill_xray_agent_manager.sh rill_xray_agent_observe.py rill_xray_agent_install.sh rill_xray_agent_verify.sh rill_xray_agent_uninstall.sh rill_xray_agent_bootstrap.sh; do
-    [[ -f "$SOURCE/$file" ]] && install -m 0755 "$SOURCE/$file" "$(root /etc/rill-xray-agent/scripts/$file)"
+    [[ -f "$STAGE_DIR/etc/rill-xray-agent/scripts/$file" ]] && install -m 0755 "$STAGE_DIR/etc/rill-xray-agent/scripts/$file" "$(root /etc/rill-xray-agent/scripts/$file)"
 done
-cp -a "$SOURCE/../rill_payload/." "$(root /opt/rill-xray-agent/)"
+cp -a "$STAGE_DIR/opt/rill-xray-agent/." "$(root /opt/rill-xray-agent/)"
 find "$(root /opt/rill-xray-agent/bin)" -type f -exec chmod 0755 {} +
 # On upgrade the payload is copied with cp -a, which preserves the source
 # mtime. A __pycache__ left by the previous install is then newer than the
@@ -84,11 +165,18 @@ find "$(root /opt/rill-xray-agent/bin)" -type f -exec chmod 0755 {} +
 # source is always recompiled from the installed version.
 find "$(root /opt/rill-xray-agent)" -depth -type d -name __pycache__ -exec rm -rf {} +
 for unit in "$SOURCE"/../systemd/*; do
-    install -m 0644 "$unit" "$(root "/etc/systemd/system/$(basename "$unit")")"
+    install -m 0644 "$STAGE_DIR/etc/systemd/system/$(basename "$unit")" "$(root "/etc/systemd/system/$(basename "$unit")")"
 done
 [[ -f "$(root /etc/rill-xray-agent/config.json)" ]] || install -m 0640 "$SOURCE/../rill_payload/config/default.json" "$(root /etc/rill-xray-agent/config.json)"
 
 if [[ -n "$DESTDIR" ]]; then
+    if ((UPGRADE)); then
+        sync
+        : > "$TXN_DIR/committed"
+        COMMITTED=1
+        trap - ERR EXIT INT TERM
+        rm -rf -- "$TXN_DIR"
+    fi
     echo "Rill Xray AI 运维助手已暂存安装到 $DESTDIR"
     exit 0
 fi
@@ -215,6 +303,13 @@ fi
 if [[ "$(rxa_get routeAssistEnabled)" != false ]] || [[ "$(rxa_get boundedAutoAllowed)" != false ]]; then
     echo 'Rill 安装失败：安全默认值被异常覆盖' >&2
     exit 1
+fi
+if ((UPGRADE)); then
+    sync
+    : > "$TXN_DIR/committed"
+    COMMITTED=1
+    trap - ERR EXIT INT TERM
+    rm -rf -- "$TXN_DIR"
 fi
 # Best-effort RillML prebuilt runtime install (§30/§61): the prebuilt native
 # runtime is an enhancement, never a single point of failure for the core
