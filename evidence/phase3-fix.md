@@ -3,9 +3,9 @@
 日期：2026-10-06
 分支：`fix/audit-xray-safety`
 基线：`48513752f86e30d5890a261bf1013e0a746c6b7a`
-Rill canonical 来源：`16112bb146c048dd8c3c3b3ce9a60001ae233af1`
-canonical digest：`13cc1b48e231950ae598f5038303321e2ae59c0147e7a1da218c6765654de0a2`
-bundle SHA-256：`2521a6ac90221ea96dea65e0138595bf42cc7bdddf444695a9f03f42336fb18c`
+Rill canonical 来源：`48b0a4711b9bce6544e5696e535ba06a3de8c154`
+canonical digest：`dc9dc8e13967b1e2688c4d5f4b2d7b0a290436f0ea04dbec7983b62117055358`
+bundle SHA-256：`85c8265a9182871d33a3fd0d9d7c3c81723c0a13cd9bd89f56a65236f6b0e9a2`
 
 ## XRA-06 — GeoData 事务更新
 
@@ -23,7 +23,7 @@ bundle SHA-256：`2521a6ac90221ea96dea65e0138595bf42cc7bdddf444695a9f03f42336fb1
 
 回归：`.github/test/test_release_automation.py` 10 项通过，覆盖 reusable exact-SHA 资格、最小权限、写入顺序及候选/资格 job 不持有发布凭证。`.github/test/test_convergence.py` 4 项通过。GitHub Actions `actionlint` 对发布与资格工作流通过。
 
-准入状态：已按用户要求给三份保留的审计执行文档加入精确例外：`AUDIT_2026-10-05/00-启动修改.md`、`AUDIT_2026-10-05/01-Rill源头运行与升级安全.md`、`AUDIT_2026-10-05/02-Rill源头备份与隐私.md`。例外绑定仓库相对路径和 LF 规范化 SHA-256；改名、改内容或新增 prompt-like 文档仍由 hygiene gate 拦截。回归验证了三份原件获准，改名及追加内容均不获准。另修复 `scripts/run_python_tests.py` 未将仓库根目录加入 `PYTHONPATH` 的启动缺陷。现有 Rill 历史 hygiene、47 个 Python 测试模块、包校验和与 canonical manifest 检查均已通过。本地资格检查完整通过，但 GitHub hosted qualification workflow 尚未触发，因此仍没有真实 hosted run 记录。
+准入状态：已按用户要求给三份保留的审计执行文档加入精确例外：`AUDIT_2026-10-05/00-启动修改.md`、`AUDIT_2026-10-05/01-Rill源头运行与升级安全.md`、`AUDIT_2026-10-05/02-Rill源头备份与隐私.md`。例外绑定仓库相对路径和 LF 规范化 SHA-256；改名、改内容或新增 prompt-like 文档仍由 hygiene gate 拦截。回归验证了三份原件获准，改名及追加内容均不获准。另修复测试入口未包含仓库根目录，以及 Windows/Linux 换行差异导致包校验、canonical manifest 和 bundle 漂移的问题。公共历史 hygiene、49 个 Python 测试模块、327 项包校验和、124 项 canonical manifest 在 WSL ext4/Linux checkout 均通过；最新的 Xray verifier 换行回归另行通过。GitHub hosted qualification workflow 尚未触发，因此仍没有真实 hosted run 记录。
 
 ## 交叉验证与测试环境
 
@@ -41,7 +41,7 @@ bundle SHA-256：`2521a6ac90221ea96dea65e0138595bf42cc7bdddf444695a9f03f42336fb1
 
 未执行/未通过：
 
-- Rill WSL ext4、nobody 用户隔离资格运行通过：公共历史 hygiene gate、47 个 Python 测试模块、package sums 和 canonical manifest 检查通过。工作树包校验和检查另在原 Rill 工作树直接通过（325 项）。
+- Rill WSL ext4、nobody 用户隔离资格运行通过：公共历史 hygiene gate、49 个 Python 测试模块、327 项 package sums 和 124 项 canonical manifest 检查通过。换行规范化与 Xray payload verifier 的 5 项定向回归也通过。
 - 完整的 hosted Release qualification 尚未执行；必须由 GitHub Actions 在精确候选 SHA 上运行后，才可认定发布资格完成。
 - 真实 systemd/PID1、DAC 和发行版 hosted 安装矩阵未执行；需要 GitHub hosted qualification workflow。
 - 未创建 Release、推送 API 版本或合并 PR。
