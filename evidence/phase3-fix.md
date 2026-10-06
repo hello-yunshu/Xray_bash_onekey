@@ -3,9 +3,9 @@
 日期：2026-10-06
 分支：`fix/audit-xray-safety`
 基线：`48513752f86e30d5890a261bf1013e0a746c6b7a`
-Rill canonical 来源：`1d2b81b1e33bfc633f21b8ff4e3c2702659624e2`
-canonical digest：`44677c4f2989d15e0d9025b2d2fbbdcbfd10881d456d798fc03b796e17b8851a`
-bundle SHA-256：`484ab7a4e196d7cc649634e4d3ec96c6fa5cac48dd6a28c11023bbb2b4b133fd`
+Rill canonical 来源：`0d7d90ae8dbb23c9bdbabd7bb9b96b7126090740`
+canonical digest：`13cc1b48e231950ae598f5038303321e2ae59c0147e7a1da218c6765654de0a2`
+bundle SHA-256：`75672e5fa1785356f7b24f240be8c336b124b7d08626f9cefe5e758786d59d62`
 
 ## XRA-06 — GeoData 事务更新
 
@@ -34,11 +34,13 @@ bundle SHA-256：`484ab7a4e196d7cc649634e4d3ec96c6fa5cac48dd6a28c11023bbb2b4b133
 - `python3 .github/test/test_release_automation.py`：10/10
 - `python3 .github/test/test_convergence.py`：4/4
 - `python3 scripts/verify_rill_host_contract.py --repo . --contract repository_files/rill_integration/HOST_CONTRACT.json`：通过。首次发现工作树中旧 host contract 摘要与 install.sh block 不符；以仓库自带 generator 更新合同后验证一致，digest `2508a96e79ce53b2354f345e2dded74774a7a2f1242af5a0628a703f09c0d8e4`。
+- 使用 Rill `scripts/sync_xray_host_contract.py --xray ../Xray_bash_onekey --xray-sha 67aa108` 同步来源 provenance、配置与 bundle；来源锚点记录该 Xray commit 中的 install.sh Git blob。新增 `tests/test_host_contract_line_endings.py`，LF/CRLF 表面等价回归通过。
 - canonical `verify_xray_payload.py`：65 个文件和 bundle 匹配；source manifest `--check` 与 no-build gate 通过。
 - 在 WSL ext4 临时副本执行安装/卸载事务、Rill 集成和运行模式、Xray 更新回滚、Nginx 更新回滚测试：分别通过 17、19、22、22、51、28 项；运行目录为临时副本，清理仅作用于测试临时数据。
 
 未执行/未通过：
 
+- `python3 scripts/run_python_tests.py` 在 WSL ext4、nobody 用户的临时副本中执行：44 个 Python 测试模块通过；`test_public_repository_hygiene` 的 6 项中 5 项通过，`test_no_prompt_files_anywhere` 因上列 3 个文件失败。直接在 root 下的 ACL 测试会把 root 当作 operator，故不作为有效结果；以 nobody 重跑后通过。
 - 完整 Rill public hygiene/canonical qualification 未通过，原因如上；不能据此启动生产 Release。
 - 真实 systemd/PID1、DAC 和发行版 hosted 安装矩阵未执行；需要 GitHub hosted qualification workflow。
 - 未创建 Release、推送 API 版本或合并 PR。
