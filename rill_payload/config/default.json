@@ -25,7 +25,7 @@
   "userLevelStatistics": false,
   "xrayIntegration": {
     "enabled": false,
-    "hostContractDigest": "90e3be5ef69592a6cfe60f4e615f2aa47c34e2768043bc658ae39ce752f2c324",
+    "hostContractDigest": "2508a96e79ce53b2354f345e2dded74774a7a2f1242af5a0628a703f09c0d8e4",
     "hostContractSchema": 1,
     "observeOnly": true,
     "upstreamRepository": "hello-yunshu/Xray_bash_onekey"
