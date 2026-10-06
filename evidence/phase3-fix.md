@@ -41,7 +41,7 @@ bundle SHA-256：`2521a6ac90221ea96dea65e0138595bf42cc7bdddf444695a9f03f42336fb1
 
 未执行/未通过：
 
-- `python3 scripts/run_python_tests.py` 在 WSL ext4、nobody 用户的临时副本中执行：44 个 Python 测试模块通过；`test_public_repository_hygiene` 的 6 项中 5 项通过，`test_no_prompt_files_anywhere` 因上列 3 个文件失败。直接在 root 下的 ACL 测试会把 root 当作 operator，故不作为有效结果；以 nobody 重跑后通过。
+- `python3 scripts/run_python_tests.py` 在 WSL ext4、nobody 用户的临时副本中执行：在 hygiene 模块前 45 个 Python 测试模块通过；`test_public_repository_hygiene` 的 6 项中 5 项通过，`test_no_prompt_files_anywhere` 因上列 3 个文件失败。新增的 host-contract 同步模块另以 `python3 -m unittest tests.test_sync_xray_host_contract tests.test_host_contract_line_endings -v` 独立验证，3 项通过。直接在 root 下的 ACL 测试会把 root 当作 operator，故不作为有效结果；以 nobody 重跑后通过。
 - 完整 Rill public hygiene/canonical qualification 未通过，原因如上；不能据此启动生产 Release。
 - 真实 systemd/PID1、DAC 和发行版 hosted 安装矩阵未执行；需要 GitHub hosted qualification workflow。
 - 未创建 Release、推送 API 版本或合并 PR。
