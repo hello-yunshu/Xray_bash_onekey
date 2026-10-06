@@ -3,9 +3,9 @@
 日期：2026-10-06
 分支：`fix/audit-xray-safety`
 基线：`48513752f86e30d5890a261bf1013e0a746c6b7a`
-Rill canonical 来源：`0d7d90ae8dbb23c9bdbabd7bb9b96b7126090740`
+Rill canonical 来源：`7dc5fcc032fb1a6f75de53779e18ae6e2ff21cf3`
 canonical digest：`13cc1b48e231950ae598f5038303321e2ae59c0147e7a1da218c6765654de0a2`
-bundle SHA-256：`75672e5fa1785356f7b24f240be8c336b124b7d08626f9cefe5e758786d59d62`
+bundle SHA-256：`2521a6ac90221ea96dea65e0138595bf42cc7bdddf444695a9f03f42336fb18c`
 
 ## XRA-06 — GeoData 事务更新
 
@@ -34,7 +34,8 @@ bundle SHA-256：`75672e5fa1785356f7b24f240be8c336b124b7d08626f9cefe5e758786d59d
 - `python3 .github/test/test_release_automation.py`：10/10
 - `python3 .github/test/test_convergence.py`：4/4
 - `python3 scripts/verify_rill_host_contract.py --repo . --contract repository_files/rill_integration/HOST_CONTRACT.json`：通过。首次发现工作树中旧 host contract 摘要与 install.sh block 不符；以仓库自带 generator 更新合同后验证一致，digest `2508a96e79ce53b2354f345e2dded74774a7a2f1242af5a0628a703f09c0d8e4`。
-- 使用 Rill `scripts/sync_xray_host_contract.py --xray ../Xray_bash_onekey --xray-sha 67aa108` 同步来源 provenance、配置与 bundle；来源锚点记录该 Xray commit 中的 install.sh Git blob。新增 `tests/test_host_contract_line_endings.py`，LF/CRLF 表面等价回归通过。
+- 使用 Rill `scripts/sync_xray_host_contract.py --xray ../Xray_bash_onekey --xray-sha 67aa108a35aad211a20dfb396f1a1f59c6d8cd20` 同步来源 provenance、配置与 bundle；来源锚点记录该 Xray commit 中的 install.sh Git blob。新增 `tests/test_host_contract_line_endings.py`，LF/CRLF 表面等价回归通过。
+- 新增同步器完整 40 位 commit 校验与回归；`scripts/verify_xray_upstream_anchor.py` 从已推送 Xray commit 验证了 install.sh blob 和 host contract。短 SHA 首次写入被发现后已修正为完整 commit `67aa108a35aad211a20dfb396f1a1f59c6d8cd20`。
 - canonical `verify_xray_payload.py`：65 个文件和 bundle 匹配；source manifest `--check` 与 no-build gate 通过。
 - 在 WSL ext4 临时副本执行安装/卸载事务、Rill 集成和运行模式、Xray 更新回滚、Nginx 更新回滚测试：分别通过 17、19、22、22、51、28 项；运行目录为临时副本，清理仅作用于测试临时数据。
 
