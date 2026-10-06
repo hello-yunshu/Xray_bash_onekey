@@ -1,144 +1,204 @@
 #!/usr/bin/env bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
-export PATH
+set -Eeuo pipefail
 
-VERSION="1.0.5"
-
-_script_args=("$@")
-
-idleleo_dir="/etc/idleleo"
+VERSION="1.0.6"
+idleleo_dir="${XRAY_GEO_ROOT:-/etc/idleleo}"
 xray_conf_dir="${idleleo_dir}/conf/xray"
-xray_conf="${xray_conf_dir}/config.json"
+xray_conf="${XRAY_GEO_CONFIG:-${xray_conf_dir}/config.json}"
 log_dir="${idleleo_dir}/logs"
 log_file="${log_dir}/geo_update.log"
-running_file="${log_dir}/geo_update.running"
-running_file_max_age_minutes=60
 geo_dir="${idleleo_dir}/share/xray"
-geo_remote="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
 geo_version_file="${xray_conf_dir}/geo_version.json"
-geo_script_remote=""
+lock_file="${XRAY_UPDATE_LOCK_FILE:-/run/lock/idleleo-update.lock}"
+release_latest="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest"
+release_base="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download"
+xray_binary="${XRAY_BINARY:-$(command -v xray || true)}"
+deadline=$((SECONDS + 600))
+stage_dir=""
+keep_stage=false
+log() { printf '%s\n' "$*" >>"${log_file}"; }
+cleanup() { [[ "${keep_stage}" == true || -z "${stage_dir}" || ! -d "${stage_dir}" ]] || rm -rf -- "${stage_dir}"; }
+trap cleanup EXIT
 
-check_self_update() {
-    # This helper is replaced with the exact Xray Release. It does not
-    # self-update from a mutable branch.
-    return 0
+run_bounded() {
+    local limit="$1" remaining
+    shift
+    remaining=$((deadline - SECONDS))
+    ((remaining > 0)) || return 124
+    ((limit < remaining)) && remaining="$limit"
+    timeout "${remaining}" "$@"
 }
 
-[[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}"
-[[ ! -d "${geo_dir}" ]] && mkdir -p "${geo_dir}"
-
-check_self_update
-
-if [[ -d "${running_file}" ]] && [[ -n $(find "${running_file}" -maxdepth 0 -mmin +"${running_file_max_age_minutes}" 2>/dev/null) ]]; then
-    echo "Removing stale geo update lock: ${running_file}" >>"${log_file}"
-    rm -rf "${running_file}"
+mkdir -p "${log_dir}" "${geo_dir}" "$(dirname "${lock_file}")"
+if [[ "${IDLELEO_UPDATE_LOCK_HELD:-0}" != 1 ]]; then
+    exec 9>"${lock_file}"
+    if ! flock -n 9; then
+        log "Another Xray update is holding ${lock_file}"
+        exit 1
+    fi
 fi
-
-if ! mkdir "${running_file}" 2>/dev/null; then
-    echo "Previous geo update process is still running! Checked at: $(date '+%Y-%m-%d %H:%M')" >>"${log_file}"
-    exit 1
-fi
-printf '%s\n' "$$" >"${running_file}/pid"
-
-echo "GeoData update time: $(date '+%Y-%m-%d %H:%M')" >>"${log_file}"
-
-trap 'rm -rf "${running_file}"' EXIT
 
 get_remote_version() {
-    curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o /dev/null -w '%{url_effective}' "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest" 2>/dev/null | sed 's|.*/tag/||' | sed 's/^v//'
+    local effective
+    effective=$(run_bounded 30 curl -fsSL --connect-timeout 10 --max-time 25 --retry 1 -o /dev/null \
+        -w '%{url_effective}' "${release_latest}" 2>/dev/null) || return 1
+    effective=${effective%%\?*}
+    [[ "${effective}" == */releases/tag/* ]] || return 1
+    effective=${effective##*/releases/tag/}
+    [[ "${effective}" =~ ^[A-Za-z0-9._-]{1,128}$ ]] || return 1
+    printf '%s' "${effective}"
 }
 
-get_local_version() {
-    local file_name="$1"
-    if [[ -f "${geo_version_file}" ]]; then
-        jq -r --arg name "$file_name" '.geo_versions[$name] // ""' "${geo_version_file}" 2>/dev/null
-    fi
+download() {
+    local url="$1" output="$2"
+    run_bounded 120 curl -fsSL --connect-timeout 15 --max-time 90 --max-filesize 104857600 \
+        --retry 1 --retry-delay 1 -o "${output}" "${url}"
 }
 
-set_local_version() {
-    local file_name="$1"
-    local version="$2"
-    local tmp_file="${geo_version_file}.tmp.$$"
-    if [[ -f "${geo_version_file}" ]]; then
-        jq --arg name "$file_name" --arg v "$version" '.geo_versions[$name] = $v' "${geo_version_file}" >"${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${geo_version_file}" || rm -f "${tmp_file}"
+verify_checksum_file() {
+    local file="$1" checksum="$2" expected listed
+    [[ -s "${file}" && -s "${checksum}" ]] || return 1
+    read -r expected listed <"${checksum}" || return 1
+    expected=${expected,,}
+    listed=${listed#\*}
+    [[ "${expected}" =~ ^[0-9a-f]{64}$ ]] || return 1
+    [[ "${listed}" == "${file##*/}" ]] || return 1
+    [[ "$(sha256sum "${file}" | awk '{print tolower($1)}')" == "${expected}" ]]
+}
+
+prepare_metadata() {
+    local version="$1" output="$2"
+    if [[ -e "${geo_version_file}" ]]; then
+        [[ -f "${geo_version_file}" && ! -L "${geo_version_file}" ]] || return 1
+        jq -e '.geo_versions | objects' "${geo_version_file}" >/dev/null 2>&1 || return 1
+        jq --arg ip "geoip.dat" --arg site "geosite.dat" --arg v "${version}" \
+            '.geo_versions[$ip] = $v | .geo_versions[$site] = $v' \
+            "${geo_version_file}" >"${output}" || return 1
     else
-        mkdir -p "$(dirname "${geo_version_file}")"
-        jq -n --arg name "$file_name" --arg v "$version" '{"geo_versions":{($name):$v}}' >"${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${geo_version_file}" || rm -f "${tmp_file}"
+        jq -n --arg ip "geoip.dat" --arg site "geosite.dat" --arg v "${version}" \
+            '{geo_versions:{($ip):$v,($site):$v}}' >"${output}" || return 1
     fi
+    [[ -s "${output}" ]] || return 1
+    jq -e '.geo_versions["geoip.dat"] and .geo_versions["geosite.dat"]' \
+        "${output}" >/dev/null 2>&1
 }
 
-download_geo_file() {
-    local file_name="$1"
-    local url="${geo_remote}/${file_name}"
-    local tmp_file="${geo_dir}/${file_name}.tmp.$$"
-
-    if ! curl -fsSL --connect-timeout 30 --retry 2 --retry-delay 3 -o "${tmp_file}" "${url}"; then
-        rm -f "${tmp_file}"
-        echo "Failed to download ${file_name}" >>"${log_file}"
-        return 1
-    fi
-
-    if [[ ! -s "${tmp_file}" ]]; then
-        rm -f "${tmp_file}"
-        echo "Downloaded ${file_name} is empty" >>"${log_file}"
-        return 1
-    fi
-
-    mv "${tmp_file}" "${geo_dir}/${file_name}"
-    return 0
+restore_previous() {
+    local name src dst temp
+    for name in geoip.dat geosite.dat geo_version.json; do
+        if [[ -f "${stage_dir}/previous/${name}.present" ]]; then
+            src="${stage_dir}/previous/${name}"
+            if [[ "${name}" == geo_version.json ]]; then dst="${geo_version_file}"; else dst="${geo_dir}/${name}"; fi
+            temp="${dst}.restore.$$"
+            cp -p -- "${src}" "${temp}" && mv -f -- "${temp}" "${dst}" || return 1
+        else
+            if [[ "${name}" == geo_version.json ]]; then dst="${geo_version_file}"; else dst="${geo_dir}/${name}"; fi
+            rm -f -- "${dst}" || return 1
+        fi
+    done
 }
 
-remote_version=$(get_remote_version)
+restore_service() {
+    local was_active="$1"
+    [[ "${was_active}" == true ]] || return 0
+    run_bounded 60 systemctl restart xray || return 1
+    run_bounded 15 systemctl is-active --quiet xray
+}
 
-if [[ -z "$remote_version" ]]; then
-    echo "Failed to get remote version" >>"${log_file}"
-    exit 1
-fi
+remote_version=$(get_remote_version) || { log 'Failed to resolve immutable GeoData release tag'; exit 1; }
+log "Pinned GeoData release tag: ${remote_version}"
 
-echo "Remote version: ${remote_version}" >>"${log_file}"
-
-has_update=false
-has_error=false
-
-for file_name in "geoip.dat" "geosite.dat"; do
-    cur_version=$(get_local_version "$file_name")
-
-    if [[ "$cur_version" == "$remote_version" ]] && [[ -f "${geo_dir}/${file_name}" ]]; then
-        echo "${file_name} is up to date (${cur_version})" >>"${log_file}"
-        continue
+[[ -x "${xray_binary}" ]] || { log 'Xray executable is unavailable; refusing to install unparsed GeoData'; exit 1; }
+[[ -f "${xray_conf}" && ! -L "${xray_conf}" ]] || { log 'Xray config is unavailable; refusing to install unparsed GeoData'; exit 1; }
+stage_dir=$(mktemp -d "${geo_dir}/.geo-update.XXXXXX")
+mkdir -m 0700 "${stage_dir}/previous"
+for file_name in geoip.dat geosite.dat; do
+    if ! download "${release_base}/${remote_version}/${file_name}" "${stage_dir}/${file_name}"; then
+        log "Failed to download ${file_name} for release ${remote_version}"
+        exit 1
     fi
-
-    has_update=true
-    echo "Updating ${file_name} (${cur_version:-none} -> ${remote_version})..." >>"${log_file}"
-
-    if download_geo_file "$file_name"; then
-        set_local_version "$file_name" "$remote_version"
-        echo "${file_name} updated successfully to ${remote_version}" >>"${log_file}"
-    else
-        has_error=true
+    if ! download "${release_base}/${remote_version}/${file_name}.sha256sum" "${stage_dir}/${file_name}.sha256sum"; then
+        log "Failed to download checksum for ${file_name}"
+        exit 1
+    fi
+    if ! verify_checksum_file "${stage_dir}/${file_name}" "${stage_dir}/${file_name}.sha256sum"; then
+        log "GeoData checksum verification failed for ${file_name}"
+        exit 1
     fi
 done
 
-if [[ "$has_update" == "false" ]]; then
-    echo "All GeoData files are up to date" >>"${log_file}"
+current_ip_version=$(jq -r --arg name geoip.dat '.geo_versions[$name] // ""' "${geo_version_file}" 2>/dev/null || true)
+current_site_version=$(jq -r --arg name geosite.dat '.geo_versions[$name] // ""' "${geo_version_file}" 2>/dev/null || true)
+if [[ "${current_ip_version}" == "${remote_version}" && "${current_site_version}" == "${remote_version}" ]] \
+   && verify_checksum_file "${geo_dir}/geoip.dat" "${stage_dir}/geoip.dat.sha256sum" \
+   && verify_checksum_file "${geo_dir}/geosite.dat" "${stage_dir}/geosite.dat.sha256sum"; then
+    log "All GeoData files are current and match release ${remote_version} checksums"
+    exit 0
 fi
 
-if [[ "$has_error" == "true" ]]; then
-    echo "Some files failed to update" >>"${log_file}"
+# The upstream .sha256sum assets are fetched over HTTPS from the same immutable
+# GitHub release. They are not signed; the integrity guarantee is the HTTPS
+# trust boundary plus exact tag binding, not an independent publisher signature.
+outbound_tag=$(jq -r '.outbounds[0].tag // empty' "${xray_conf}" 2>/dev/null) || {
+    log 'Failed to read the first configured Xray outbound tag'
+    exit 1
+}
+[[ -n "${outbound_tag}" ]] || { log 'Xray config has no tagged outbound for GeoData validation'; exit 1; }
+if ! jq --arg tag "${outbound_tag}" \
+    '.routing //= {} | .routing.rules //= [] | .routing.rules += [{"type":"field","ip":["geoip:private"],"domain":["geosite:cn"],"outboundTag":$tag}]' \
+    "${xray_conf}" >"${stage_dir}/validation-config.json"; then
+    log 'Failed to stage Xray validation config'
+    exit 1
+fi
+if ! XRAY_LOCATION_ASSET="${stage_dir}" run_bounded 60 "${xray_binary}" run -test -config "${stage_dir}/validation-config.json" >/dev/null 2>&1; then
+    log 'Xray rejected staged GeoData with the installed configuration'
     exit 1
 fi
 
-if [[ "$has_update" == "true" ]] && [[ -f "${xray_conf}" ]]; then
-    if systemctl is-active --quiet xray 2>/dev/null; then
-        systemctl restart xray
-        if systemctl is-active --quiet xray 2>/dev/null; then
-            echo "Xray restarted successfully" >>"${log_file}"
+for name in geoip.dat geosite.dat; do
+    if [[ -e "${geo_dir}/${name}" ]]; then
+        [[ -f "${geo_dir}/${name}" && ! -L "${geo_dir}/${name}" ]] || { log "Unsafe existing asset: ${name}"; exit 1; }
+        cp -p -- "${geo_dir}/${name}" "${stage_dir}/previous/${name}"
+        : >"${stage_dir}/previous/${name}.present"
+    fi
+done
+if [[ -e "${geo_version_file}" ]]; then
+    [[ -f "${geo_version_file}" && ! -L "${geo_version_file}" ]] || { log 'Unsafe GeoData version metadata'; exit 1; }
+    cp -p -- "${geo_version_file}" "${stage_dir}/previous/geo_version.json"
+    : >"${stage_dir}/previous/geo_version.json.present"
+fi
+if ! prepare_metadata "${remote_version}" "${stage_dir}/geo_version.json"; then
+    log 'Failed to stage valid GeoData version metadata'
+    exit 1
+fi
+chmod 0644 "${stage_dir}/geo_version.json"
+
+was_active=false
+if run_bounded 15 systemctl is-active --quiet xray 2>/dev/null; then was_active=true; fi
+commit_started=false
+rollback_and_fail() {
+    local reason="$1"
+    log "GeoData update failed: ${reason}; restoring previous generation"
+    if [[ "${commit_started}" == true ]]; then
+        if restore_previous && restore_service "${was_active}"; then
+            log 'Previous GeoData generation restored and service state verified'
         else
-            echo "Xray restart failed" >>"${log_file}"
-            exit 1
+            keep_stage=true
+            log 'RECOVERY REQUIRED: previous GeoData restoration or service verification failed'
+            log "Recovery materials retained at ${stage_dir}"
         fi
     fi
-fi
+    exit 1
+}
 
-echo "GeoData auto update completed" >>"${log_file}"
+commit_started=true
+mv -f -- "${stage_dir}/geoip.dat" "${geo_dir}/geoip.dat" || rollback_and_fail 'geoip.dat rename failed'
+mv -f -- "${stage_dir}/geosite.dat" "${geo_dir}/geosite.dat" || rollback_and_fail 'geosite.dat rename failed'
+mv -f -- "${stage_dir}/geo_version.json" "${geo_version_file}" || rollback_and_fail 'version metadata rename failed'
+if [[ "${was_active}" == true ]]; then
+    if ! run_bounded 60 systemctl restart xray || ! run_bounded 15 systemctl is-active --quiet xray; then
+        rollback_and_fail 'Xray restart or health check failed'
+    fi
+fi
+log "GeoData update completed successfully for ${remote_version}"
 exit 0

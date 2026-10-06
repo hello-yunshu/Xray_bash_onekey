@@ -13,91 +13,232 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
+  candidate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.subject.outputs.version }}
+      install_sha: ${{ steps.subject.outputs.install_sha }}
+      bundle_sha: ${{ steps.subject.outputs.bundle_sha }}
+      candidate_commit: ${{ steps.subject.outputs.candidate_commit }}
+      canonical_commit: ${{ steps.subject.outputs.canonical_commit }}
+      canonical_digest: ${{ steps.subject.outputs.canonical_digest }}
+      canonical_bundle_sha: ${{ steps.subject.outputs.canonical_bundle_sha }}
     steps:
-      - name: Checkout Xray main
-        uses: actions/checkout@v5
+      - name: Checkout exact dispatch candidate
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          ref: main
+          ref: ${{ github.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Validate release candidate
-        id: candidate
+      - name: Read canonical pin
+        id: pin
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib
+          pin=json.loads(pathlib.Path('repository_files/rill_integration/RILL_CANONICAL_PIN.json').read_text())
+          print(f"canonical_commit={pin['canonicalCommit']}")
+          print(f"canonical_digest={pin['canonicalDigest']}")
+          PY
+
+      - name: Checkout pinned canonical source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/rill-xray-agent
+          ref: ${{ steps.pin.outputs.canonical_commit }}
+          path: .canonical
+          persist-credentials: false
+
+      - name: Validate immutable candidate and host bytes
+        id: subject
         env:
+          EXPECTED_CANONICAL_COMMIT: ${{ steps.pin.outputs.canonical_commit }}
+          EXPECTED_CANONICAL_DIGEST: ${{ steps.pin.outputs.canonical_digest }}
           INPUT_DETAILS: ${{ inputs.details }}
         run: |
           set -euo pipefail
           bash -n install.sh
           bash -n scripts/*.sh
           python3 .github/test/test_release_automation.py
+          python3 .github/test/test_convergence.py
+          python3 .github/test/test_geo_update_transaction.py
           version=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' install.sh)
           [[ -n "$version" ]] || { echo 'shell_version missing'; exit 1; }
+          candidate_commit=$(git rev-parse HEAD)
+          [[ "$candidate_commit" == "$GITHUB_SHA" ]] || { echo 'candidate SHA drift'; exit 1; }
+          python3 .canonical/integrations/xray_bash_onekey/tools/verify_xray_payload.py \
+            . .canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json \
+            --expected-canonical-digest "$EXPECTED_CANONICAL_DIGEST"
           bundle=assets/rill-xray-agent-xray-bundle.tar.gz
           [[ -s "$bundle" ]] || { echo 'Rill bundle missing'; exit 1; }
-          tmp=$(mktemp -d)
-          (cd "$(dirname install.sh)" && sha256sum "$(basename install.sh)") > "$tmp/SHA256SUMS"
-          (cd "$(dirname "$bundle")" && sha256sum "$(basename "$bundle")") >> "$tmp/SHA256SUMS"
-          install_sha=$(awk '$2 == "install.sh" {print $1}' "$tmp/SHA256SUMS")
-          bundle_sha=$(awk '$2 == "rill-xray-agent-xray-bundle.tar.gz" {print $1}' "$tmp/SHA256SUMS")
+          python3 - "$EXPECTED_CANONICAL_COMMIT" "$EXPECTED_CANONICAL_DIGEST" <<'PY'
+          import hashlib, json, pathlib, subprocess, sys
+          commit, digest = sys.argv[1:]
+          pin=json.loads(pathlib.Path('repository_files/rill_integration/RILL_CANONICAL_PIN.json').read_text())
+          manifest=json.loads(pathlib.Path('.canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json').read_text())
+          bundle=hashlib.sha256(pathlib.Path('assets/rill-xray-agent-xray-bundle.tar.gz').read_bytes()).hexdigest()
+          assert pin['canonicalCommit']==commit and pin['canonicalDigest']==digest
+          assert subprocess.check_output(['git','-C','.canonical','rev-parse','HEAD'],text=True).strip()==commit
+          assert manifest['canonicalDigest']==digest and manifest['bundleSha256']==bundle
+          print(f"canonical_bundle_sha={bundle}")
+          PY
+          install_sha=$(sha256sum install.sh | awk '{print $1}')
+          bundle_sha=$(sha256sum "$bundle" | awk '{print $1}')
+          canonical_bundle_sha=$(python3 -c "import json; print(json.load(open('.canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json'))['bundleSha256'])")
+          [[ "$bundle_sha" == "$canonical_bundle_sha" ]]
           {
             echo "version=$version"
             echo "install_sha=$install_sha"
             echo "bundle_sha=$bundle_sha"
-            echo "candidate_commit=$(git rev-parse HEAD)"
-            echo "sums=$tmp/SHA256SUMS"
+            echo "candidate_commit=$candidate_commit"
+            echo "canonical_commit=$EXPECTED_CANONICAL_COMMIT"
+            echo "canonical_digest=$EXPECTED_CANONICAL_DIGEST"
+            echo "canonical_bundle_sha=$canonical_bundle_sha"
           } >> "$GITHUB_OUTPUT"
-          details=${INPUT_DETAILS:-release: publish Xray shell ${version}}
+
+  qualify:
+    needs: candidate
+    uses: ./.github/workflows/test-install.yml
+    with:
+      candidate_commit: ${{ needs.candidate.outputs.candidate_commit }}
+      canonical_commit: ${{ needs.candidate.outputs.canonical_commit }}
+      canonical_digest: ${{ needs.candidate.outputs.canonical_digest }}
+      canonical_bundle_sha256: ${{ needs.candidate.outputs.canonical_bundle_sha }}
+    permissions:
+      contents: read
+
+  release:
+    needs:
+      - candidate
+      - qualify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+    steps:
+      - name: Checkout the qualified candidate
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ needs.candidate.outputs.candidate_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Assert completed qualification outputs
+        env:
+          CANDIDATE_COMMIT: ${{ needs.candidate.outputs.candidate_commit }}
+          QUALIFIED_COMMIT: ${{ needs.qualify.outputs.candidate_commit }}
+          CANONICAL_COMMIT: ${{ needs.candidate.outputs.canonical_commit }}
+          QUALIFIED_CANONICAL_COMMIT: ${{ needs.qualify.outputs.canonical_commit }}
+          CANONICAL_DIGEST: ${{ needs.candidate.outputs.canonical_digest }}
+          QUALIFIED_CANONICAL_DIGEST: ${{ needs.qualify.outputs.canonical_digest }}
+          BUNDLE_SHA: ${{ needs.candidate.outputs.bundle_sha }}
+          QUALIFIED_CANONICAL_BUNDLE_SHA: ${{ needs.qualify.outputs.canonical_bundle_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATE_COMMIT" == "$QUALIFIED_COMMIT" ]]
+          [[ "$CANONICAL_COMMIT" == "$QUALIFIED_CANONICAL_COMMIT" ]]
+          [[ "$CANONICAL_DIGEST" == "$QUALIFIED_CANONICAL_DIGEST" ]]
+          [[ "$BUNDLE_SHA" == "$QUALIFIED_CANONICAL_BUNDLE_SHA" ]]
+
+      - name: Prepare immutable release evidence
+        id: evidence
+        env:
+          VERSION: ${{ needs.candidate.outputs.version }}
+          INSTALL_SHA: ${{ needs.candidate.outputs.install_sha }}
+          BUNDLE_SHA: ${{ needs.candidate.outputs.bundle_sha }}
+          CANDIDATE_COMMIT: ${{ needs.candidate.outputs.candidate_commit }}
+          CANONICAL_COMMIT: ${{ needs.candidate.outputs.canonical_commit }}
+          CANONICAL_DIGEST: ${{ needs.candidate.outputs.canonical_digest }}
+          INPUT_DETAILS: ${{ inputs.details }}
+        run: |
+          set -euo pipefail
+          tmp="$RUNNER_TEMP/xray-release-${GITHUB_RUN_ID}"
+          mkdir -p "$tmp"
+          cp install.sh assets/rill-xray-agent-xray-bundle.tar.gz "$tmp/"
+          (cd "$tmp" && sha256sum install.sh rill-xray-agent-xray-bundle.tar.gz > SHA256SUMS)
+          python3 - "$tmp/release-manifest.json" <<'PY'
+          import json, os, sys
+          doc={
+            "schemaVersion":1,
+            "version":os.environ["VERSION"],
+            "candidateCommit":os.environ["CANDIDATE_COMMIT"],
+            "installSha256":os.environ["INSTALL_SHA"],
+            "bundleSha256":os.environ["BUNDLE_SHA"],
+            "canonicalCommit":os.environ["CANONICAL_COMMIT"],
+            "canonicalDigest":os.environ["CANONICAL_DIGEST"],
+            "qualificationRunId":os.environ["GITHUB_RUN_ID"],
+            "qualificationWorkflow":".github/workflows/test-install.yml",
+          }
+          with open(sys.argv[1],"w") as f: json.dump(doc,f,indent=2,sort_keys=True); f.write("\n")
+          PY
+          details=${INPUT_DETAILS:-release: publish Xray shell ${VERSION}}
           printf '%s' "$details" > "$tmp/details"
+          echo "directory=$tmp" >> "$GITHUB_OUTPUT"
 
       - name: Create or verify immutable Release
         env:
-          VERSION: ${{ steps.candidate.outputs.version }}
-          INSTALL_SHA: ${{ steps.candidate.outputs.install_sha }}
-          BUNDLE_SHA: ${{ steps.candidate.outputs.bundle_sha }}
-          CANDIDATE_COMMIT: ${{ steps.candidate.outputs.candidate_commit }}
-          SUMS: ${{ steps.candidate.outputs.sums }}
+          VERSION: ${{ needs.candidate.outputs.version }}
+          INSTALL_SHA: ${{ needs.candidate.outputs.install_sha }}
+          BUNDLE_SHA: ${{ needs.candidate.outputs.bundle_sha }}
+          CANDIDATE_COMMIT: ${{ needs.candidate.outputs.candidate_commit }}
+          CANONICAL_COMMIT: ${{ needs.candidate.outputs.canonical_commit }}
+          CANONICAL_DIGEST: ${{ needs.candidate.outputs.canonical_digest }}
+          SUMS_DIR: ${{ steps.evidence.outputs.directory }}
         run: |
           set -euo pipefail
           tag="v${VERSION}"
-          tmp=$(dirname "$SUMS")
+          expected_manifest="$SUMS_DIR/release-manifest.json"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             meta=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease)
-            [[ $(jq -r .tagName <<<"$meta") == "$tag" ]] || exit 1
-            [[ $(jq -r .isDraft <<<"$meta") == false ]] || exit 1
-            [[ $(jq -r .isPrerelease <<<"$meta") == false ]] || exit 1
-            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern install.sh --pattern rill-xray-agent-xray-bundle.tar.gz --pattern SHA256SUMS --dir "$tmp/download"
-            (cd "$tmp/download" && sha256sum -c SHA256SUMS)
-            [[ $(sha256sum "$tmp/download/install.sh" | awk '{print $1}') == "$INSTALL_SHA" ]] || exit 1
-            [[ $(sha256sum "$tmp/download/rill-xray-agent-xray-bundle.tar.gz" | awk '{print $1}') == "$BUNDLE_SHA" ]] || {
-              echo "existing Release $tag has a different Rill bundle; bump shell_version" >&2
-              exit 1
-            }
+            [[ $(jq -r .tagName <<<"$meta") == "$tag" ]]
+            [[ $(jq -r .isDraft <<<"$meta") == false ]]
+            [[ $(jq -r .isPrerelease <<<"$meta") == false ]]
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" \
+              --pattern install.sh --pattern rill-xray-agent-xray-bundle.tar.gz \
+              --pattern SHA256SUMS --pattern release-manifest.json --dir "$SUMS_DIR/download"
+            (cd "$SUMS_DIR/download" && sha256sum -c SHA256SUMS)
+            [[ $(sha256sum "$SUMS_DIR/download/install.sh" | awk '{print $1}') == "$INSTALL_SHA" ]]
+            [[ $(sha256sum "$SUMS_DIR/download/rill-xray-agent-xray-bundle.tar.gz" | awk '{print $1}') == "$BUNDLE_SHA" ]]
+            existing="$SUMS_DIR/download/release-manifest.json"
+            for pair in \
+              "version:$VERSION" "candidateCommit:$CANDIDATE_COMMIT" \
+              "installSha256:$INSTALL_SHA" "bundleSha256:$BUNDLE_SHA" \
+              "canonicalCommit:$CANONICAL_COMMIT" "canonicalDigest:$CANONICAL_DIGEST"; do
+              key=${pair%%:*}; value=${pair#*:}
+              [[ $(jq -r --arg key "$key" '.[$key]' "$existing") == "$value" ]]
+            done
+            prior_run=$(jq -r '.qualificationRunId' "$existing")
+            [[ "$prior_run" =~ ^[0-9]+$ ]]
+            prior=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior_run")
+            [[ $(jq -r .head_sha <<<"$prior") == "$CANDIDATE_COMMIT" ]]
+            [[ $(jq -r .path <<<"$prior") == ".github/workflows/publish-shell-version.yml" ]]
+            jobs=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior_run/jobs")
+            [[ $(jq '[.jobs[] | select(.name | endswith("release-candidate-gate")) | select(.conclusion == "success")] | length' <<<"$jobs") == 1 ]]
           else
+            (cd "$SUMS_DIR" && sha256sum -c SHA256SUMS)
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$CANDIDATE_COMMIT" \
               --title "Xray ${VERSION}" --notes "${VERSION} Release" \
-              install.sh assets/rill-xray-agent-xray-bundle.tar.gz "$SUMS"
+              "$SUMS_DIR/install.sh" "$SUMS_DIR/rill-xray-agent-xray-bundle.tar.gz" \
+              "$SUMS_DIR/SHA256SUMS" "$expected_manifest"
           fi
           tag_ref=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.type + " " + .object.sha')
-          tag_type=${tag_ref%% *}
-          tag_sha=${tag_ref#* }
-          if [[ "$tag_type" == tag ]]; then
-            tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha" --jq '.object.sha')
-          fi
+          tag_type=${tag_ref%% *}; tag_sha=${tag_ref#* }
+          if [[ "$tag_type" == tag ]]; then tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha" --jq '.object.sha'); fi
           [[ "$tag_sha" == "$CANDIDATE_COMMIT" ]] || {
             echo "Release $tag points at $tag_sha, expected immutable candidate $CANDIDATE_COMMIT" >&2
             exit 1
           }
-          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease,assets
 
       - name: Checkout version API main
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: hello-yunshu/Xray_bash_onekey_api
           ref: main
@@ -107,19 +248,19 @@ jobs:
 
       - name: Prepare paired API metadata
         env:
-          VERSION: ${{ steps.candidate.outputs.version }}
-          INSTALL_SHA: ${{ steps.candidate.outputs.install_sha }}
+          VERSION: ${{ needs.candidate.outputs.version }}
+          INSTALL_SHA: ${{ needs.candidate.outputs.install_sha }}
           INPUT_DETAILS: ${{ inputs.details }}
         run: |
           set -euo pipefail
-          details=${INPUT_DETAILS:-release: publish Xray shell ${VERSION}}
+          details=${INPUT_DETAILS:-release: publish shell ${VERSION}}
           python3 scripts/release_automation.py update-api \
             --xray . --api api --details "$details" --shell-release-sha256 "$INSTALL_SHA"
           (cd api && bash validate-json.sh)
 
-      - name: Publish and merge API metadata
+      - name: Publish API promotion after the immutable Release
         env:
-          VERSION: ${{ steps.candidate.outputs.version }}
+          VERSION: ${{ needs.candidate.outputs.version }}
           X_ACCESS_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
         run: |
           set -euo pipefail
@@ -136,6 +277,6 @@ jobs:
           git -C api push "https://x-access-token:${X_ACCESS_TOKEN}@github.com/hello-yunshu/Xray_bash_onekey_api.git" "HEAD:${branch}"
           pr=$(gh pr create --repo hello-yunshu/Xray_bash_onekey_api --base main --head "$branch" \
             --title "chore(release): publish shell ${VERSION}" \
-            --body "Paired with Xray Release v${VERSION}; install.sh SHA256 is recorded in the manifest.")
+            --body "Paired with Xray Release v${VERSION}; manifest records candidate SHA, canonical digest, asset hashes, and qualification run.")
           scripts/merge_checked_pr.sh hello-yunshu/Xray_bash_onekey_api "${pr##*/}"
           curl -fsS "https://purge.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json" >/dev/null || true
