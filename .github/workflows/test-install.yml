@@ -451,7 +451,9 @@ jobs:
           assert pin['canonicalCommit']==commit and pin['canonicalDigest']==digest
           assert manifest['canonicalDigest']==digest and manifest['bundleSha256']==bundle==actual
           PY
-          echo "candidate_commit=$actual_candidate" >> "$GITHUB_OUTPUT"
-          echo "canonical_commit=$EXPECTED_CANONICAL_COMMIT" >> "$GITHUB_OUTPUT"
-          echo "canonical_digest=$EXPECTED_CANONICAL_DIGEST" >> "$GITHUB_OUTPUT"
-          echo "canonical_bundle_sha256=$EXPECTED_BUNDLE_SHA256" >> "$GITHUB_OUTPUT"
+          {
+            echo "candidate_commit=$actual_candidate"
+            echo "canonical_commit=$EXPECTED_CANONICAL_COMMIT"
+            echo "canonical_digest=$EXPECTED_CANONICAL_DIGEST"
+            echo "canonical_bundle_sha256=$EXPECTED_BUNDLE_SHA256"
+          } >> "$GITHUB_OUTPUT"
