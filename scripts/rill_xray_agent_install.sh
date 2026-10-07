@@ -276,7 +276,27 @@ if ((UPGRADE)); then
         exit 1
     fi
 else
-    rxa_apply_mode "$(rxa_get mode)"
+    # systemctl enable --now returns after starting the unit, but the Runtime
+    # may still be initializing its Unix socket. The mode transaction talks to
+    # the live Runtime before enabling the remaining units, so wait for a real
+    # connect() rather than racing service startup.
+    socket_ready=0
+    for _ in $(seq 1 30); do
+        if rxa_socket_connectable /run/rill-xray-agent/runtime.sock; then
+            socket_ready=1
+            break
+        fi
+        sleep 0.5
+    done
+    if (( ! socket_ready )); then
+        echo 'Rill 安装失败：Runtime socket 未就绪' >&2
+        exit 1
+    fi
+    target_mode=$(rxa_get mode)
+    if ! rxa_apply_mode "$target_mode"; then
+        echo "Rill 安装失败：无法应用工作模式 ${target_mode}" >&2
+        exit 1
+    fi
 fi
 # Mode-aware verification is authoritative for both paths. A fresh install
 # additionally requires its complete active unit set below. PID1 may still be
