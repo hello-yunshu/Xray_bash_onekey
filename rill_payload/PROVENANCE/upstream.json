@@ -6,13 +6,13 @@
   },
   "schemaVersion": 1,
   "xray": {
-    "hostContractDigest": "90e3be5ef69592a6cfe60f4e615f2aa47c34e2768043bc658ae39ce752f2c324",
+    "hostContractDigest": "2508a96e79ce53b2354f345e2dded74774a7a2f1242af5a0628a703f09c0d8e4",
     "hostContractSchema": 1,
     "releaseRule": "The reviewed host-owned install.sh surface is identified by the independently verified Host Contract digest; full commit and blob values remain audit metadata only.",
     "repository": "hello-yunshu/Xray_bash_onekey",
-    "reviewedAt": "2026-09-09T13:07:58+00:00",
-    "reviewedCommit": "e1b2e902eb339b2e2298c580f985b8f0d56e7f55",
-    "reviewedInstallScriptBlob": "6d66c720c961953e393516fb88fdb2eb2d5c5827",
+    "reviewedAt": "2026-10-06T07:04:57+00:00",
+    "reviewedCommit": "67aa108a35aad211a20dfb396f1a1f59c6d8cd20",
+    "reviewedInstallScriptBlob": "ae4500e5c877a2cb10e27af94c991440be51626c",
     "reviewedInstallScriptPath": "install.sh",
     "schemaVersion": 1
   }
