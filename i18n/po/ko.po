@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
-"POT-Creation-Date: 2026-10-08 02:11+0000\n"
+"POT-Creation-Date: 2026-10-08 15:58+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -30,8 +30,8 @@ msgid "警告"
 msgstr "경고"
 
 #: install.sh:64 install.sh:2332 install.sh:6142 install.sh:7587
-#: install.sh:10720 install.sh:10735 install.sh:10738 install.sh:10739
-#: install.sh:10846 scripts/fail2ban_manager.sh:163
+#: install.sh:10769 install.sh:10784 install.sh:10787 install.sh:10788
+#: install.sh:10895 scripts/fail2ban_manager.sh:163
 #: scripts/fail2ban_manager.sh:716 scripts/fail2ban_manager.sh:1124
 #: scripts/fail2ban_manager.sh:1204 scripts/rill_xray_agent_manager.sh:101
 #: scripts/traffic_blocker.sh:607 scripts/traffic_blocker.sh:619
@@ -58,20 +58,20 @@ msgstr "로그 파일이 회전되어 다음과 같이 보관되었습니다"
 msgid "拒绝删除空路径或根目录"
 msgstr "빈 경로 또는 루트 디렉터리를 삭제하는 것을 거부합니다"
 
-#: install.sh:517 install.sh:7703
+#: install.sh:517 install.sh:7752
 msgid "参数不能为空"
 msgstr "파라미터는 비어 있을 수 없습니다"
 
-#: install.sh:521 install.sh:9317 install.sh:9321
+#: install.sh:521 install.sh:9366 install.sh:9370
 msgid "文件不存在"
 msgstr "파일이 존재하지 않습니다"
 
-#: install.sh:545 install.sh:7707 install.sh:7727 install.sh:7737
-#: install.sh:7745
+#: install.sh:545 install.sh:7756 install.sh:7776 install.sh:7786
+#: install.sh:7794
 msgid "生成的 JSON 无效，已保留原文件"
 msgstr "생성된 JSON이 유효하지 않아 원본 파일을 보존했습니다."
 
-#: install.sh:551 install.sh:4420 install.sh:7751
+#: install.sh:551 install.sh:4420 install.sh:7800
 msgid "配置文件权限收紧失败"
 msgstr "구성 파일 권한 강화에 실패했습니다"
 
@@ -113,7 +113,7 @@ msgstr "서비스: 실행 중지됨"
 msgid "路由辅助: 关闭"
 msgstr "라우팅 보조: 비활성화"
 
-#: install.sh:875 install.sh:12676 install.sh:12713
+#: install.sh:875 install.sh:12725 install.sh:12762
 #: scripts/rill_xray_agent_manager.sh:1119
 msgid "Rill Xray AI 运维助手"
 msgstr "Rill Xray AI O&M 도우미"
@@ -127,10 +127,10 @@ msgid "安装 AI 判断引擎"
 msgstr "AI 판단 엔진 설치"
 
 #: install.sh:880 install.sh:3790 install.sh:6843 install.sh:7008
-#: install.sh:12160 install.sh:12185 install.sh:12276 install.sh:12327
-#: install.sh:12389 install.sh:12433 install.sh:12455 install.sh:12476
-#: install.sh:12495 install.sh:12516 install.sh:12538 install.sh:12559
-#: install.sh:12578 install.sh:12598 install.sh:12622 install.sh:12646
+#: install.sh:12209 install.sh:12234 install.sh:12325 install.sh:12376
+#: install.sh:12438 install.sh:12482 install.sh:12504 install.sh:12525
+#: install.sh:12544 install.sh:12565 install.sh:12587 install.sh:12608
+#: install.sh:12627 install.sh:12647 install.sh:12671 install.sh:12695
 #: scripts/fail2ban_manager.sh:730 scripts/fail2ban_manager.sh:784
 #: scripts/fail2ban_manager.sh:816 scripts/fail2ban_manager.sh:851
 #: scripts/fail2ban_manager.sh:886 scripts/fail2ban_manager.sh:911
@@ -210,7 +210,7 @@ msgstr "언어 파일 업데이트"
 
 #: install.sh:1658 install.sh:1892 install.sh:3927 install.sh:4337
 #: install.sh:4497 install.sh:5509 install.sh:6055 install.sh:6193
-#: install.sh:8509 install.sh:10340 scripts/file_manager.sh:199
+#: install.sh:8558 install.sh:10389 scripts/file_manager.sh:199
 #: scripts/file_manager.sh:203 scripts/file_manager.sh:207
 msgid "完成"
 msgstr "완성"
@@ -235,12 +235,12 @@ msgstr "language.conf 값에 잘못된 문자가 포함되어 있으므로 건�
 msgid "language.conf 未知键, 跳过"
 msgstr "language.conf 알 수 없는 키, 건너뜁니다"
 
-#: install.sh:1774 install.sh:8454
+#: install.sh:1774 install.sh:8503
 msgid "正在安装"
 msgstr "설치 중"
 
-#: install.sh:1776 install.sh:1965 install.sh:4521 install.sh:8509
-#: install.sh:10619 install.sh:10620 install.sh:10621 install.sh:10622
+#: install.sh:1776 install.sh:1965 install.sh:4521 install.sh:8558
+#: install.sh:10668 install.sh:10669 install.sh:10670 install.sh:10671
 #: scripts/fail2ban_manager.sh:63 scripts/fail2ban_manager.sh:91
 msgid "安装"
 msgstr "설치"
@@ -249,8 +249,8 @@ msgstr "설치"
 #: install.sh:4331 install.sh:4568 install.sh:4649 install.sh:4685
 #: install.sh:4686 install.sh:5505 install.sh:5513 install.sh:6052
 #: install.sh:6107 install.sh:6196 install.sh:6613 install.sh:6617
-#: install.sh:7972 install.sh:7976 install.sh:7981 install.sh:10967
-#: install.sh:10999 install.sh:12053 install.sh:12062 install.sh:12834
+#: install.sh:8021 install.sh:8025 install.sh:8030 install.sh:11016
+#: install.sh:11048 install.sh:12102 install.sh:12111 install.sh:12883
 #: scripts/file_manager.sh:366 scripts/traffic_blocker.sh:935
 msgid "失败"
 msgstr "실패"
@@ -275,7 +275,7 @@ msgstr "지원하지 않는 언어"
 msgid "发现语言文件更新"
 msgstr "언어 파일 업데이트를 발견했습니다"
 
-#: install.sh:1907 install.sh:1913 install.sh:10397
+#: install.sh:1907 install.sh:1913 install.sh:10446
 msgid "在线版本检测失败, 请稍后再试"
 msgstr "온라인 버전 검사에 실패했습니다. 잠시 후 다시 시도해 주세요"
 
@@ -283,7 +283,7 @@ msgstr "온라인 버전 검사에 실패했습니다. 잠시 후 다시 시도�
 msgid "软件包安装失败"
 msgstr "패키지 설치에 실패했습니다"
 
-#: install.sh:1962 install.sh:4527 install.sh:8463 install.sh:10728
+#: install.sh:1962 install.sh:4527 install.sh:8512 install.sh:10777
 msgid "已安装"
 msgstr "설치됨"
 
@@ -333,10 +333,10 @@ msgstr "기본값"
 
 #: install.sh:2153 install.sh:2156 install.sh:2482 install.sh:2485
 #: install.sh:2506 install.sh:2509 install.sh:2531 install.sh:2534
-#: install.sh:8785 install.sh:8788 install.sh:8791 install.sh:8794
-#: install.sh:8795 install.sh:8799 install.sh:8800 install.sh:8801
-#: install.sh:8808 install.sh:8811 install.sh:8814 install.sh:8817
-#: install.sh:8818 install.sh:8822 install.sh:8823 install.sh:8824
+#: install.sh:8834 install.sh:8837 install.sh:8840 install.sh:8843
+#: install.sh:8844 install.sh:8848 install.sh:8849 install.sh:8850
+#: install.sh:8857 install.sh:8860 install.sh:8863 install.sh:8866
+#: install.sh:8867 install.sh:8871 install.sh:8872 install.sh:8873
 msgid "请输入 1-65535 之间的值"
 msgstr "1~65535 사이의 값을 입력해 주세요"
 
@@ -350,9 +350,9 @@ msgstr "전송 프로토콜을 선택해 주세요"
 
 #: install.sh:2274 install.sh:6235 install.sh:6257 install.sh:6275
 #: install.sh:6296 install.sh:6311 install.sh:6332 install.sh:6347
-#: install.sh:6376 install.sh:6391 install.sh:6437 install.sh:8710
-#: install.sh:9022 install.sh:9032 install.sh:9129 install.sh:9139
-#: install.sh:9224 install.sh:9234 scripts/fail2ban_manager.sh:956
+#: install.sh:6376 install.sh:6391 install.sh:6437 install.sh:8759
+#: install.sh:9071 install.sh:9081 install.sh:9178 install.sh:9188
+#: install.sh:9273 install.sh:9283 scripts/fail2ban_manager.sh:956
 #: scripts/fail2ban_manager.sh:957
 msgid "默认"
 msgstr "기본"
@@ -363,13 +363,13 @@ msgstr "기본"
 #: install.sh:6238 install.sh:6258 install.sh:6276 install.sh:6297
 #: install.sh:6312 install.sh:6333 install.sh:6348 install.sh:6357
 #: install.sh:6377 install.sh:6392 install.sh:6441 install.sh:6475
-#: install.sh:8697 install.sh:8713 install.sh:8785 install.sh:8788
-#: install.sh:8791 install.sh:8794 install.sh:8795 install.sh:8799
-#: install.sh:8800 install.sh:8801 install.sh:8808 install.sh:8811
-#: install.sh:8814 install.sh:8817 install.sh:8818 install.sh:8822
-#: install.sh:8823 install.sh:8824 install.sh:9024 install.sh:9035
-#: install.sh:9052 install.sh:9131 install.sh:9142 install.sh:9226
-#: install.sh:9237 install.sh:9258 scripts/fail2ban_manager.sh:732
+#: install.sh:8746 install.sh:8762 install.sh:8834 install.sh:8837
+#: install.sh:8840 install.sh:8843 install.sh:8844 install.sh:8848
+#: install.sh:8849 install.sh:8850 install.sh:8857 install.sh:8860
+#: install.sh:8863 install.sh:8866 install.sh:8867 install.sh:8871
+#: install.sh:8872 install.sh:8873 install.sh:9073 install.sh:9084
+#: install.sh:9101 install.sh:9180 install.sh:9191 install.sh:9275
+#: install.sh:9286 install.sh:9307 scripts/fail2ban_manager.sh:732
 #: scripts/fail2ban_manager.sh:913 scripts/fail2ban_manager.sh:954
 #: scripts/file_manager.sh:143
 msgid "请输入"
@@ -378,9 +378,9 @@ msgstr "입력하세요"
 #: install.sh:2280 install.sh:3792 install.sh:4896 install.sh:6238
 #: install.sh:6258 install.sh:6276 install.sh:6297 install.sh:6312
 #: install.sh:6333 install.sh:6348 install.sh:6377 install.sh:6392
-#: install.sh:6441 install.sh:8697 install.sh:8713 install.sh:9024
-#: install.sh:9035 install.sh:9131 install.sh:9142 install.sh:9226
-#: install.sh:9237 install.sh:11869
+#: install.sh:6441 install.sh:8746 install.sh:8762 install.sh:9073
+#: install.sh:9084 install.sh:9180 install.sh:9191 install.sh:9275
+#: install.sh:9286 install.sh:11918
 msgid "请输入有效的数字"
 msgstr "유효한 숫자를 입력하세요"
 
@@ -454,8 +454,8 @@ msgstr "기본 방화벽 규칙 구성에 실패했습니다"
 msgid "防火墙规则更新失败"
 msgstr "방화벽 규칙 업데이트에 실패했습니다"
 
-#: install.sh:3348 install.sh:7440 install.sh:7447 install.sh:8727
-#: install.sh:8730 install.sh:12533 scripts/fail2ban_manager.sh:909
+#: install.sh:3348 install.sh:7440 install.sh:7447 install.sh:8776
+#: install.sh:8779 install.sh:12582 scripts/fail2ban_manager.sh:909
 #: scripts/fail2ban_manager.sh:1116 scripts/file_manager.sh:203
 #: scripts/file_manager.sh:207 scripts/file_manager.sh:254
 #: scripts/file_manager.sh:363 scripts/file_manager.sh:366
@@ -470,8 +470,8 @@ msgstr "방화벽 관련 포트 개방"
 msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr "구성을 수정할 경우 방화벽 관련 포트를 닫는 것을 유의하십시오"
 
-#: install.sh:3352 install.sh:10624 install.sh:10651 install.sh:10652
-#: install.sh:12472 install.sh:12493 install.sh:12596
+#: install.sh:3352 install.sh:10673 install.sh:10700 install.sh:10701
+#: install.sh:12521 install.sh:12542 install.sh:12645
 #: scripts/fail2ban_manager.sh:88 scripts/fail2ban_manager.sh:93
 #: scripts/fail2ban_manager.sh:250
 msgid "配置"
@@ -493,7 +493,7 @@ msgstr "위장 경로"
 msgid "不需要"
 msgstr "필요하지 않다"
 
-#: install.sh:3477 install.sh:3482 install.sh:3492 install.sh:9065
+#: install.sh:3477 install.sh:3482 install.sh:3492 install.sh:9114
 msgid "用户名"
 msgstr "사용자 이름"
 
@@ -517,8 +517,8 @@ msgstr "최대 30자"
 msgid "自定义字符串"
 msgstr "사용자 정의 문자열"
 
-#: install.sh:3517 install.sh:8543 install.sh:10654 install.sh:11973
-#: install.sh:12449
+#: install.sh:3517 install.sh:8592 install.sh:10703 install.sh:12022
+#: install.sh:12498
 msgid "映射字符串"
 msgstr "문자열 매핑"
 
@@ -596,12 +596,12 @@ msgstr "serverNames는 유효한 도메인 이름 하나만 지원합니다. 다
 
 #: install.sh:3685 install.sh:4371 install.sh:4378 install.sh:4460
 #: install.sh:7110 install.sh:7214 install.sh:7336 install.sh:7344
-#: install.sh:7354 install.sh:7392 install.sh:7972 install.sh:7976
-#: install.sh:7981 install.sh:12834
+#: install.sh:7354 install.sh:7392 install.sh:8021 install.sh:8025
+#: install.sh:8030 install.sh:12883
 msgid "配置修改"
 msgstr "구성 수정"
 
-#: install.sh:3689 install.sh:8564
+#: install.sh:3689 install.sh:8613
 msgid "已生成并保存（不显示）"
 msgstr "생성되어 저장되었습니다(표시되지 않음)"
 
@@ -640,7 +640,7 @@ msgstr "버전이 너무 오래되어 호환성 문제가 있을 수 있습니�
 msgid "需要主脚本版本"
 msgstr "메인 스크립트 버전이 필요합니다"
 
-#: install.sh:3769 install.sh:10246 scripts/fail2ban_manager.sh:10
+#: install.sh:3769 install.sh:10295 scripts/fail2ban_manager.sh:10
 #: scripts/fail2ban_manager.sh:1166 scripts/file_manager.sh:10
 #: scripts/file_manager.sh:332 scripts/traffic_blocker.sh:9
 #: scripts/traffic_blocker.sh:1168
@@ -656,7 +656,7 @@ msgstr "먼저 메인 스크립트를 업데이트해 주세요"
 msgid "是否变更"
 msgstr "변경 여부"
 
-#: install.sh:3780 install.sh:12183 install.sh:12473
+#: install.sh:3780 install.sh:12232 install.sh:12522
 msgid "负载均衡"
 msgstr "로드 밸런싱"
 
@@ -664,7 +664,7 @@ msgstr "로드 밸런싱"
 msgid "请选择协议为 ws 或 gRPC 或 xHTTP"
 msgstr "프로토콜을 ws 또는 gRPC 또는 xHTTP로 선택해 주세요"
 
-#: install.sh:3801 install.sh:10907 scripts/fail2ban_manager.sh:78
+#: install.sh:3801 install.sh:10956 scripts/fail2ban_manager.sh:78
 #: scripts/fail2ban_manager.sh:758 scripts/fail2ban_manager.sh:787
 #: scripts/fail2ban_manager.sh:819 scripts/fail2ban_manager.sh:854
 #: scripts/fail2ban_manager.sh:889 scripts/fail2ban_manager.sh:936
@@ -676,7 +676,7 @@ msgid "无效的选择, 请重试"
 msgstr "유효하지 않은 선택입니다. 다시 시도해 주세요"
 
 #: install.sh:3813 install.sh:3839 install.sh:5102 install.sh:7505
-#: install.sh:7542 install.sh:7562 install.sh:8722
+#: install.sh:7542 install.sh:7562 install.sh:8771
 msgid "当前模式不支持此操作"
 msgstr "현재 모드는 이 작업을 지원하지 않습니다"
 
@@ -687,7 +687,7 @@ msgstr "사용 용도는 문서를 참고하십시오"
 #: install.sh:3851 install.sh:3862 install.sh:3866 install.sh:3870
 #: install.sh:3924 install.sh:3927 install.sh:4247 install.sh:4253
 #: install.sh:4331 install.sh:4337 install.sh:4363 install.sh:4497
-#: install.sh:10652
+#: install.sh:10701
 msgid "修改"
 msgstr "수정"
 
@@ -704,9 +704,9 @@ msgid "Nginx 分层权限应用不完整"
 msgstr "Nginx 계층형 권한 적용이 완전하지 않습니다"
 
 #: install.sh:4255 install.sh:7049 install.sh:7053 install.sh:7057
-#: install.sh:8521 install.sh:8524 install.sh:8527 install.sh:8530
-#: install.sh:8534 install.sh:8537 install.sh:8540 install.sh:8572
-#: install.sh:8576 install.sh:8580 install.sh:8831
+#: install.sh:8570 install.sh:8573 install.sh:8576 install.sh:8579
+#: install.sh:8583 install.sh:8586 install.sh:8589 install.sh:8621
+#: install.sh:8625 install.sh:8629 install.sh:8880
 msgid "端口"
 msgstr "포트"
 
@@ -740,8 +740,8 @@ msgstr "일부 새로운 기능은 다시 설치해야 적용됩니다"
 
 #: install.sh:4546 install.sh:4554 install.sh:4566 install.sh:4568
 #: install.sh:4685 install.sh:4686 install.sh:5980 install.sh:6134
-#: install.sh:10340 install.sh:10639 install.sh:10657 install.sh:12593
-#: install.sh:12594 install.sh:12595 scripts/traffic_blocker.sh:677
+#: install.sh:10389 install.sh:10688 install.sh:10706 install.sh:12642
+#: install.sh:12643 install.sh:12644 scripts/traffic_blocker.sh:677
 #: scripts/traffic_blocker.sh:678 scripts/traffic_blocker.sh:935
 msgid "更新"
 msgstr "업데이트"
@@ -786,8 +786,8 @@ msgstr "롤백 중입니다"
 msgid "已成功回滚到之前的"
 msgstr "이전 버전으로 성공적으로 롤백되었습니다"
 
-#: install.sh:4585 install.sh:4664 install.sh:5861 install.sh:11988
-#: install.sh:12452
+#: install.sh:4585 install.sh:4664 install.sh:5861 install.sh:12037
+#: install.sh:12501
 msgid "版本"
 msgstr "버전"
 
@@ -836,7 +836,7 @@ msgid "隔离异常流量, 不转发到 Xray"
 msgstr "이상 트래픽을 격리하고, Xray으로 전달하지 않습니다."
 
 #: install.sh:4891 install.sh:5161 install.sh:6234 install.sh:6436
-#: install.sh:12179 install.sh:12324
+#: install.sh:12228 install.sh:12373
 msgid "推荐"
 msgstr "추천"
 
@@ -844,8 +844,8 @@ msgstr "추천"
 msgid "使用指向本机 IP 的自建 HTTPS 站点作为回落"
 msgstr "로컬 IP 을 가리키는 자체 구축 HTTPS 사이트를 백업으로 사용합니다."
 
-#: install.sh:4892 install.sh:4893 install.sh:12183 install.sh:12325
-#: install.sh:12387
+#: install.sh:4892 install.sh:4893 install.sh:12232 install.sh:12374
+#: install.sh:12436
 msgid "高级"
 msgstr "고급"
 
@@ -859,7 +859,7 @@ msgstr ""
 "2항에서는 이미 귀하의 도메인이 있어야 하며, 해당 도메인의 A/AAAA 레코드가 본 기기의 공인 IP을 가리키고 있어야 합니다. 의미를"
 " 잘 모르는 경우, 기본 격리 정책을 사용해 주시기 바랍니다."
 
-#: install.sh:4896 install.sh:11869
+#: install.sh:4896 install.sh:11918
 msgid "请输入选项"
 msgstr "옵션을 입력하세요"
 
@@ -1080,7 +1080,7 @@ msgstr "구성 검사"
 msgid "服务日志"
 msgstr "서비스 로그"
 
-#: install.sh:5656 install.sh:12671
+#: install.sh:5656 install.sh:12720
 msgid "版本检测"
 msgstr "버전 검사"
 
@@ -1212,17 +1212,17 @@ msgstr "원래 구성 파일이 보존되었습니다"
 msgid "版本记录更新失败, 执行回滚"
 msgstr "버전 기록 업데이트에 실패하여 롤백을 수행합니다."
 
-#: install.sh:6107 install.sh:7457 install.sh:7464 install.sh:8495
-#: install.sh:12053 install.sh:12534 scripts/fail2ban_manager.sh:907
+#: install.sh:6107 install.sh:7457 install.sh:7464 install.sh:8544
+#: install.sh:12102 install.sh:12583 scripts/fail2ban_manager.sh:907
 #: scripts/fail2ban_manager.sh:1085
 msgid "启动"
 msgstr "시작"
 
-#: install.sh:6136 install.sh:12431
+#: install.sh:6136 install.sh:12480
 msgid "删除"
 msgstr "삭제"
 
-#: install.sh:6136 install.sh:10967 install.sh:10969 install.sh:12641
+#: install.sh:6136 install.sh:11016 install.sh:11018 install.sh:12690
 msgid "备份"
 msgstr "백업"
 
@@ -1247,7 +1247,7 @@ msgstr "활성화 여부"
 msgid "下载自动更新脚本"
 msgstr "자동 업데이트 스크립트 다운로드"
 
-#: install.sh:6161 install.sh:10626 scripts/traffic_blocker.sh:679
+#: install.sh:6161 install.sh:10675 scripts/traffic_blocker.sh:679
 msgid "设置自动更新"
 msgstr "자동 업데이트 설정"
 
@@ -1445,7 +1445,7 @@ msgstr "인증서 테스트 발급 실패"
 msgid "证书生成"
 msgstr "인증서 생성"
 
-#: install.sh:6604 install.sh:6610 install.sh:10969 install.sh:10993
+#: install.sh:6604 install.sh:6610 install.sh:11018 install.sh:11042
 #: scripts/fail2ban_manager.sh:1108 scripts/file_manager.sh:254
 #: scripts/file_manager.sh:363
 msgid "成功"
@@ -1511,8 +1511,8 @@ msgstr "사용자 정의 routing、outbounds、DNS 및 기타 비표준 필드�
 msgid "原配置已备份"
 msgstr "원래 구성이 백업되었습니다"
 
-#: install.sh:6867 install.sh:8609 install.sh:9348 install.sh:12355
-#: install.sh:12399
+#: install.sh:6867 install.sh:8658 install.sh:9397 install.sh:12404
+#: install.sh:12448
 msgid "是否继续"
 msgstr "계속할 것인지"
 
@@ -1528,7 +1528,7 @@ msgstr "취소되었습니다, 메뉴로 돌아가기"
 msgid "检测到当前安装模式与配置文件的安装模式不一致"
 msgstr "현재 설치 모드가 구성 파일의 설치 모드와 일치하지 않는 것으로 감지되었습니다"
 
-#: install.sh:6896 install.sh:12662
+#: install.sh:6896 install.sh:12711
 msgid "当前模式"
 msgstr "현재 모드"
 
@@ -1612,8 +1612,8 @@ msgstr "전송 조합"
 msgid "主端口"
 msgstr "주 포트"
 
-#: install.sh:7050 install.sh:7058 install.sh:8551 install.sh:8557
-#: install.sh:8573 install.sh:8581
+#: install.sh:7050 install.sh:7058 install.sh:8600 install.sh:8606
+#: install.sh:8622 install.sh:8630
 msgid "路径"
 msgstr "경로"
 
@@ -1699,7 +1699,7 @@ msgid "已清理残留的证书自动更新定时任务"
 msgstr "잔여 인증서 자동 업데이트 타이밍 작업을 정리했습니다"
 
 #: install.sh:7425 install.sh:7474 install.sh:7478 install.sh:7532
-#: install.sh:12062 install.sh:12535 scripts/fail2ban_manager.sh:908
+#: install.sh:12111 install.sh:12584 scripts/fail2ban_manager.sh:908
 #: scripts/fail2ban_manager.sh:1108
 msgid "停止"
 msgstr "정지"
@@ -1756,1096 +1756,1112 @@ msgstr "인증서 발급 도구가 존재하지 않습니다. 스크립트로 �
 msgid "证书更新"
 msgstr "증명서 업데이트"
 
-#: install.sh:7587 install.sh:8469 install.sh:8480 install.sh:8760
-#: install.sh:8920 install.sh:8983 install.sh:8996 install.sh:9208
-#: install.sh:9312 install.sh:9375 scripts/fail2ban_manager.sh:163
+#: install.sh:7587 install.sh:8518 install.sh:8529 install.sh:8809
+#: install.sh:8969 install.sh:9032 install.sh:9045 install.sh:9257
+#: install.sh:9361 install.sh:9424 scripts/fail2ban_manager.sh:163
 #: scripts/fail2ban_manager.sh:716 scripts/fail2ban_manager.sh:1124
 #: scripts/fail2ban_manager.sh:1204
 msgid "请先安装"
 msgstr "먼저 설치해 주세요"
 
-#: install.sh:7602
+#: install.sh:7603
 msgid "是否需要设置自动清理日志"
 msgstr "로그 자동 정리 설정이 필요합니까"
 
-#: install.sh:7606
+#: install.sh:7607
 msgid "已跳过设置自动清理日志"
 msgstr "로그 자동 정리를 설정하는 단계를 건너뛰었습니다"
 
-#: install.sh:7609
-msgid "将在 每周三 04:00 自动清空日志"
-msgstr "매주 수요일 04:00에 로그가 자동으로 비워집니다"
+#: install.sh:7610
+msgid "将每周轮转并压缩日志"
+msgstr "매주 로그를 순환 및 압축합니다."
 
-#: install.sh:7614
+#: install.sh:7617
 msgid "已设置自动清理日志任务"
 msgstr "로그 자동 정리 작업이 설정되었습니다"
 
-#: install.sh:7615
+#: install.sh:7618
 msgid "是否需要删除现有自动清理日志任务"
 msgstr "기존 자동 로그 정리 작업을 삭제할 필요가 있습니까"
 
-#: install.sh:7620
+#: install.sh:7623
 msgid "删除自动清理日志任务"
 msgstr "자동 정리 로그 작업 삭제"
 
-#: install.sh:7623
+#: install.sh:7626
 msgid "保留现有自动清理日志任务"
 msgstr "기존 자동 로그 정리 작업 유지"
 
-#: install.sh:7640
+#: install.sh:7665
+msgid "logrotate 配置检查失败"
+msgstr "logrotate 구성 검사 실패"
+
+#: install.sh:7673
 msgid "设置自动清理日志"
 msgstr "로그 자동 정리 설정"
 
-#: install.sh:7647
+#: install.sh:7685
 msgid "检测到日志文件大小如下:"
 msgstr "로그 파일 크기가 다음과 같이 감지되었습니다"
 
-#: install.sh:7649
+#: install.sh:7687
 msgid "即将清除"
 msgstr "곧 삭제됩니다"
 
-#: install.sh:7651
+#: install.sh:7693
+msgid "未能清理"
+msgstr "정리하지 못했습니다"
+
+#: install.sh:7693
+msgid "未知错误"
+msgstr "알 수 없는 오류"
+
+#: install.sh:7697
 msgid "日志清理"
 msgstr "로그 정리"
 
-#: install.sh:8338
+#: install.sh:7699
+msgid "日志清理完成，但部分文件未清理"
+msgstr "로그 정리가 완료되었지만 일부 파일은 정리되지 않았습니다."
+
+#: install.sh:8387
 msgid "链接分享"
 msgstr "링크 공유"
 
-#: install.sh:8340 install.sh:8345 install.sh:8352 install.sh:8357
-#: install.sh:8364 install.sh:8369 install.sh:8376 install.sh:8381
-#: install.sh:9088 install.sh:9092
+#: install.sh:8389 install.sh:8394 install.sh:8401 install.sh:8406
+#: install.sh:8413 install.sh:8418 install.sh:8425 install.sh:8430
+#: install.sh:9137 install.sh:9141
 msgid "分享链接"
 msgstr "링크 공유"
 
-#: install.sh:8341 install.sh:8346 install.sh:8353 install.sh:8358
-#: install.sh:8365 install.sh:8370 install.sh:8377 install.sh:8382
+#: install.sh:8390 install.sh:8395 install.sh:8402 install.sh:8407
+#: install.sh:8414 install.sh:8419 install.sh:8426 install.sh:8431
 msgid "二维码"
 msgstr "qr 코드"
 
-#: install.sh:8389 install.sh:8390
+#: install.sh:8438 install.sh:8439
 msgid "配置分享"
 msgstr "구성 공유"
 
-#: install.sh:8405
+#: install.sh:8454
 msgid "生成分享链接"
 msgstr "공유 링크 생성"
 
-#: install.sh:8459
+#: install.sh:8508
 msgid "iftop 安装失败, 流量监控功能不可用"
 msgstr "iftop 설치에 실패하여 트래픽 모니터링 기능을 사용할 수 없습니다."
 
-#: install.sh:8487
+#: install.sh:8536
 msgid "无法获取网卡, 将监控所有网卡"
 msgstr "네트워크 카드를 가져올 수 없습니다. 모든 네트워크 카드를 모니터링합니다"
 
-#: install.sh:8489
+#: install.sh:8538
 msgid "监控网卡"
 msgstr "네트워크 카드 모니터링"
 
-#: install.sh:8492
+#: install.sh:8541
 msgid "监控端口"
 msgstr "모니터링 포트"
 
-#: install.sh:8494
+#: install.sh:8543
 msgid "按 q 键退出 iftop"
 msgstr "q 키를 눌러 iftop을 종료하세요"
 
-#: install.sh:8511
+#: install.sh:8560
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr "현재 공유 링크 규칙은 실험 단계이므로, 직접 적용 가능한지 판단해 주십시오"
 
-#: install.sh:8513
+#: install.sh:8562
 msgid "当前 xHTTP 仅支持 stream-one 和 stream-up 模式"
 msgstr "현재 xHTTP은 stream-one 및 stream-up 모드만 지원합니다."
 
-#: install.sh:8514
+#: install.sh:8563
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
 msgstr "xHTTP은 mihomo (Meta) 커널을 필요로 하며, 원본 Clash는 이를 지원하지 않습니다."
 
-#: install.sh:8517 install.sh:12511
+#: install.sh:8566 install.sh:12560
 msgid "配置信息"
 msgstr "설정 정보"
 
-#: install.sh:8518
+#: install.sh:8567
 msgid "主机"
 msgstr "호스트"
 
-#: install.sh:8544
+#: install.sh:8593
 msgid "用户id"
 msgstr "사용자 id"
 
-#: install.sh:8546
+#: install.sh:8595
 msgid "加密"
 msgstr "암호화"
 
-#: install.sh:8547
+#: install.sh:8596
 msgid "传输协议"
 msgstr "전송 프로토콜"
 
-#: install.sh:8548
+#: install.sh:8597
 msgid "底层传输安全"
 msgstr "기저 전송 보안"
 
-#: install.sh:8551 install.sh:8557 install.sh:8573 install.sh:8581
+#: install.sh:8600 install.sh:8606 install.sh:8622 install.sh:8630
 msgid "不要落下"
 msgstr "놓치지 마세요"
 
-#: install.sh:8554 install.sh:8577
+#: install.sh:8603 install.sh:8626
 msgid "不需要加"
 msgstr "추가할 필요가 없습니다"
 
-#: install.sh:8561
+#: install.sh:8610
 msgid "流控"
 msgstr "유량 제어"
 
-#: install.sh:8604
+#: install.sh:8653
 msgid "即将申请证书, 支持使用自定义证书"
 msgstr "인증서를 곧 신청할 예정이며, 사용자 정의 인증서를 지원합니다"
 
-#: install.sh:8605
+#: install.sh:8654
 msgid "如需使用自定义证书, 请按如下步骤:"
 msgstr "사용자 정의 인증서를 사용하려면 다음 단계를 따르십시오"
 
-#: install.sh:8606
+#: install.sh:8655
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr "1. 인증서 파일의 이름을 변경합니다: 개인 키(xray.key), 인증서(xray.crt)"
 
-#: install.sh:8607
+#: install.sh:8656
 msgid "2. 将重命名后的证书文件放入"
 msgstr "2. 이름이 변경된 인증서 파일을 넣으십시오"
 
-#: install.sh:8607
+#: install.sh:8656
 msgid "目录后再运行脚本"
 msgstr "목록 뒤에 스크립트를 실행합니다"
 
-#: install.sh:8608
+#: install.sh:8657
 msgid "3. 重新运行脚本"
 msgstr "3. 스크립트를 다시 실행합니다"
 
-#: install.sh:8620
+#: install.sh:8669
 msgid "所有证书文件均已存在, 是否保留"
 msgstr "모든 인증서 파일이 이미 존재합니다. 유지하시겠습니까"
 
-#: install.sh:8622
+#: install.sh:8671
 msgid "证书文件已存在, 是否保留"
 msgstr "인증서 파일이 이미 존재합니다. 유지하시겠습니까"
 
-#: install.sh:8629 install.sh:8646 scripts/file_manager.sh:279
+#: install.sh:8678 install.sh:8695 scripts/file_manager.sh:279
 msgid "已删除"
 msgstr "삭제됨"
 
-#: install.sh:8637 install.sh:8655
+#: install.sh:8686 install.sh:8704
 msgid "证书应用"
 msgstr "인증서 응용"
 
-#: install.sh:8641
+#: install.sh:8690
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr "인증서 발급 잔류 파일이 이미 존재합니다. 유지하시겠습니까"
 
-#: install.sh:8683 install.sh:12430
+#: install.sh:8732 install.sh:12479
 msgid "添加"
 msgstr "추가"
 
-#: install.sh:8692
+#: install.sh:8741
 msgid "请选择支持的 TLS 版本"
 msgstr "지원되는 TLS 버전을 선택하세요"
 
-#: install.sh:8693
+#: install.sh:8742
 msgid "建议选择 TLSv1.3 only (安全模式)"
 msgstr "TLSv1.3 전용(보안 모드)을 선택하는 것을 권장합니다 [only]"
 
-#: install.sh:8694 install.sh:8711
+#: install.sh:8743 install.sh:8760
 msgid "兼容模式"
 msgstr "호환 모드"
 
-#: install.sh:8695
+#: install.sh:8744
 msgid "安全模式"
 msgstr "안전 모드"
 
-#: install.sh:8699
+#: install.sh:8748
 msgid "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)"
 msgstr "h3은(는) TLSv1.3만 지원하므로 여기서는 TLSv1.3(안전 모드)만 지원됩니다."
 
-#: install.sh:8702 install.sh:8716 install.sh:8719
+#: install.sh:8751 install.sh:8765 install.sh:8768
 msgid "已切换至"
 msgstr "이미 전환됨"
 
-#: install.sh:8708
+#: install.sh:8757
 msgid "请选择 TLS 版本"
 msgstr "TLS 버전을 선택하세요"
 
-#: install.sh:8709
+#: install.sh:8758
 msgid "建议选择 TLSv1.3 (安全模式)"
 msgstr "TLSv1.3(보안 모드)를 선택하는 것을 권장합니다"
 
-#: install.sh:8733
+#: install.sh:8782
 msgid "Nginx 配置文件不存在或当前模式不支持"
 msgstr "Nginx 구성 파일이 존재하지 않거나 현재 모드가 지원되지 않습니다."
 
-#: install.sh:8980
+#: install.sh:9029
 msgid "此模式不支持修改"
 msgstr "이 모드는 수정을 지원하지 않습니다"
 
-#: install.sh:8992
+#: install.sh:9041
 msgid "此模式不支持查看用户"
 msgstr "이 모드에서는 사용자 조회가 지원되지 않습니다"
 
-#: install.sh:9012
+#: install.sh:9061
 msgid "即将显示用户, 一次仅能显示一个"
 msgstr "사용자가 곧 표시됩니다. 한 번에 하나만 표시할 수 있습니다"
 
-#: install.sh:9021 install.sh:9031
+#: install.sh:9070 install.sh:9080
 msgid "请选择显示用户使用的协议"
 msgstr "사용자가 사용한 프로토콜을 선택해 주세요"
 
-#: install.sh:9050
+#: install.sh:9099
 msgid "请选择要显示的用户编号"
 msgstr "표시할 사용자 번호를 선택하세요"
 
-#: install.sh:9054
+#: install.sh:9103
 msgid "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户"
 msgstr "메인 메뉴에서 [Xray 구성 정보 보기]를 직접 선택하여 메인 사용자를 표시하십시오"
 
-#: install.sh:9061 install.sh:9260 install.sh:9263 install.sh:9266
+#: install.sh:9110 install.sh:9309 install.sh:9312 install.sh:9315
 msgid "选择错误"
 msgstr "선택 오류"
 
-#: install.sh:9098
+#: install.sh:9147
 msgid "是否继续显示用户"
 msgstr "사용자를 계속 표시할지 여부"
 
-#: install.sh:9118
+#: install.sh:9167
 msgid "即将添加用户, 一次仅能添加一个"
 msgstr "사용자를 추가할 예정이며, 한 번에 하나씩만 추가할 수 있습니다"
 
-#: install.sh:9128 install.sh:9138
+#: install.sh:9177 install.sh:9187
 msgid "请选择添加用户使用的协议"
 msgstr "사용자 추가 시 사용할 프로토콜을 선택하세요"
 
-#: install.sh:9167
+#: install.sh:9216
 msgid "该用户名已存在, 请使用不同的用户名"
 msgstr "해당 사용자명은 이미 존재합니다. 다른 사용자명을 사용해 주세요"
 
-#: install.sh:9180
+#: install.sh:9229
 msgid "添加用户"
 msgstr "사용자 추가"
 
-#: install.sh:9190
+#: install.sh:9239
 msgid "已为当前客户端生成独立 shortId。"
 msgstr "현재 클라이언트에 대해 별도의 shortId이 생성되었습니다."
 
-#: install.sh:9196
+#: install.sh:9245
 msgid "是否继续添加用户"
 msgstr "사용자를 계속 추가하시겠습니까"
 
-#: install.sh:9223 install.sh:9233
+#: install.sh:9272 install.sh:9282
 msgid "请选择删除用户使用的协议"
 msgstr "사용자 삭제에 사용할 프로토콜을 선택하세요"
 
-#: install.sh:9255
+#: install.sh:9304
 msgid "即将删除用户, 一次仅能删除一个"
 msgstr "사용자를 삭제할 예정이며, 한 번에 하나만 삭제할 수 있습니다"
 
-#: install.sh:9256
+#: install.sh:9305
 msgid "请选择要删除的用户编号"
 msgstr "삭제할 사용자 번호를 선택해 주세요"
 
-#: install.sh:9270
+#: install.sh:9319
 msgid "主用户无法删除"
 msgstr "주 사용자는 삭제할 수 없습니다"
 
-#: install.sh:9283
+#: install.sh:9332
 msgid "删除用户"
 msgstr "사용자 삭제"
 
-#: install.sh:9300
+#: install.sh:9349
 msgid "是否继续删除用户"
 msgstr "사용자를 계속 삭제하시겠습니까"
 
-#: install.sh:9328
+#: install.sh:9377
 msgid "已配置 Xray 流量统计"
 msgstr "Xray 트래픽 통계가 이미 구성되었습니다"
 
-#: install.sh:9329
+#: install.sh:9378
 msgid "是否需要关闭此功能"
 msgstr "이 기능을 종료할 필요가 있습니까"
 
-#: install.sh:9335
+#: install.sh:9384
 msgid "关闭 Xray 流量统计"
 msgstr "Xray 트래픽 통계 끄기"
 
-#: install.sh:9346
+#: install.sh:9395
 msgid "流量统计需要使用"
 msgstr "트래픽 통계 사용 필요"
 
-#: install.sh:9347
+#: install.sh:9396
 msgid "可能会影响 Xray 性能"
 msgstr "x레이 성능에 영향을 줄 수 있습니다 [Xray]"
 
-#: install.sh:9353
+#: install.sh:9402
 msgid "下载流量统计配置"
 msgstr "다운로드 트래픽 통계 구성"
 
-#: install.sh:9359
+#: install.sh:9408
 msgid "流量统计配置解析失败"
 msgstr "트래픽 통계 구성 파싱에 실패했습니다"
 
-#: install.sh:9365
+#: install.sh:9414
 msgid "设置 Xray 流量统计"
 msgstr "Xray 트래픽 통계 설정"
 
-#: install.sh:9387
+#: install.sh:9436
 msgid "加速脚本下载失败"
 msgstr "스크립트 다운로드가 실패했습니다"
 
-#: install.sh:9407 install.sh:9434
+#: install.sh:9456 install.sh:9483
 msgid "已卸载"
 msgstr "제거됨"
 
-#: install.sh:9409
+#: install.sh:9458
 msgid "Xray 卸载失败"
 msgstr "Xray 제거 실패"
 
-#: install.sh:9417
+#: install.sh:9466
 msgid "是否卸载"
 msgstr "제거할까요"
 
-#: install.sh:9421
+#: install.sh:9470
 msgid "已取消卸载"
 msgstr "설치 제거가 취소되었습니다"
 
-#: install.sh:9436
+#: install.sh:9485
 msgid "Nginx 卸载失败"
 msgstr "Nginx 제거 실패"
 
-#: install.sh:9445
+#: install.sh:9494
 msgid "Rill Agent 准备失败, 已取消卸载"
 msgstr "Rill Agent 준비에 실패하여 제거가 취소되었습니다."
 
-#: install.sh:9471
+#: install.sh:9520
 msgid "是否保留配置文件"
 msgstr "구성 파일을 유지할까요"
 
-#: install.sh:9475
+#: install.sh:9524
 msgid "已保留配置文件"
 msgstr "구성 파일이 보존되었습니다"
 
-#: install.sh:9479
+#: install.sh:9528
 msgid "将删除配置文件"
 msgstr "구성 파일을 삭제합니다"
 
-#: install.sh:9483
+#: install.sh:9532
 msgid "是否删除所有脚本文件"
 msgstr "모든 스크립트 파일을 삭제하시겠습니까"
 
-#: install.sh:9500
+#: install.sh:9549
 msgid "已删除所有文件"
 msgstr "모든 파일을 삭제했습니다"
 
-#: install.sh:9501
+#: install.sh:9550
 msgid "ヾ(￣▽￣) 拜拜~"
 msgstr "(￣▽￣) 안녕~"
 
-#: install.sh:9505 install.sh:9522
+#: install.sh:9554 install.sh:9571
 msgid "卸载后校验失败, 已保留 Rill 诊断"
 msgstr "제거 후 검증에 실패하여 Rill 진단이 보존되었습니다."
 
-#: install.sh:9513
+#: install.sh:9562
 msgid "已删除配置文件"
 msgstr "구성 프로파일이 삭제되었습니다"
 
-#: install.sh:9516
+#: install.sh:9565
 msgid "已保留脚本文件 (包含 SSL 证书等)"
 msgstr "스크립트 파일(SSL 인증서 등 포함)이 보존되었습니다"
 
-#: install.sh:9530
+#: install.sh:9579
 msgid "已清空证书遗留文件"
 msgstr "인증서 잔여 파일을 이미 삭제했습니다"
 
-#: install.sh:9560
+#: install.sh:9609
 msgid "秒后"
 msgstr "초 후"
 
-#: install.sh:9887
+#: install.sh:9936
 msgid "正在更新 Xray 管理脚本，请勿关闭终端……"
 msgstr "Xray 관리 스크립트를 업데이트 중입니다. 터미널을 종료하지 마십시오…"
 
-#: install.sh:10223
+#: install.sh:10272
 msgid "候选校验失败, 已阻止脚本更新"
 msgstr "후보 검증에 실패하여 스크립트 업데이트가 차단되었습니다."
 
-#: install.sh:10226
+#: install.sh:10275
 msgid "集成校验失败, 已阻止脚本更新"
 msgstr "통합 검증에 실패하여 스크립트 업데이트가 차단되었습니다."
 
-#: install.sh:10229
+#: install.sh:10278
 msgid "替换后校验失败, 已回滚"
 msgstr "교체 후 검증에 실패하여 롤백되었습니다."
 
-#: install.sh:10232
+#: install.sh:10281
 msgid "替换后校验失败, 已阻止启动"
 msgstr "교체 후 검증에 실패하여 시작이 차단되었습니다."
 
-#: install.sh:10235 install.sh:10301
+#: install.sh:10284 install.sh:10350
 msgid "脚本更新失败"
 msgstr "스크립트 업데이트 실패"
 
-#: install.sh:10246
+#: install.sh:10295
 msgid "校验详情"
 msgstr "검증 세부 정보"
 
-#: install.sh:10246
+#: install.sh:10295
 msgid "阶段"
 msgstr "단계"
 
-#: install.sh:10246
+#: install.sh:10295
 msgid "来源"
 msgstr "출처"
 
-#: install.sh:10270 install.sh:10291
+#: install.sh:10319 install.sh:10340
 msgid "检测最新版本失败"
 msgstr "최신 버전 검사 실패"
 
-#: install.sh:10280 install.sh:10677
+#: install.sh:10329 install.sh:10726
 msgid "新版本"
 msgstr "새 버전"
 
-#: install.sh:10280 install.sh:10677
+#: install.sh:10329 install.sh:10726
 msgid "更新内容"
 msgstr "업데이트 내용"
 
-#: install.sh:10284
+#: install.sh:10333
 msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
 msgstr "새로운 버전이 존재하지만, 버전 간의 차이가 크므로 호환되지 않을 가능성이 있습니다. 업데이트하시겠습니까"
 
-#: install.sh:10287
+#: install.sh:10336
 msgid "存在新版本, 是否更新"
 msgstr "새 버전이 존재합니다. 업데이트하시겠습니까"
 
-#: install.sh:10292
+#: install.sh:10341
 msgid "脚本版本差别过大, 跳过更新"
 msgstr "스크립트 버전 차이가 너무 큽니다. 업데이트를 건너뛰세요."
 
-#: install.sh:10313
+#: install.sh:10362
 msgid "下载脚本版本校验失败"
 msgstr "스크립트 버전 다운로드 검증에 실패했습니다."
 
-#: install.sh:10341 install.sh:10689
+#: install.sh:10390 install.sh:10738
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
 msgstr "스크립트 버전이 크게 변경되었으니, 서비스가 정상적으로 작동하지 않을 경우 삭제 후 다시 설치해 주십시오"
 
-#: install.sh:10359 scripts/fail2ban_manager.sh:1188
+#: install.sh:10408 scripts/fail2ban_manager.sh:1188
 #: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1190
 msgid "当前已经是最新版本"
 msgstr "현재 이미 최신 버전입니다"
 
-#: install.sh:10385 install.sh:10672 install.sh:10687 install.sh:10700
+#: install.sh:10434 install.sh:10721 install.sh:10736 install.sh:10749
 msgid "下载最新脚本"
 msgstr "최신 스크립트 다운로드"
 
-#: install.sh:10470
+#: install.sh:10519
 msgid "该选项暂时无法使用"
 msgstr "해당 옵션은 일시적으로 사용할 수 없습니다"
 
-#: install.sh:10489 install.sh:11927
+#: install.sh:10538 install.sh:11976
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr "이 모드는 로드 밸런싱에 권장되며, 일반적으로 사용하지 않는 것이 좋습니다. 설치하시겠습니까"
 
-#: install.sh:10502 install.sh:11950
+#: install.sh:10551 install.sh:11999
 msgid "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装"
 msgstr "이 모드는 트래픽 중계에만 사용되며, 다른 상황에서는 사용하지 않는 것이 좋습니다. 설치하시겠습니까"
 
-#: install.sh:10623 install.sh:10624 install.sh:10625 install.sh:10640
-#: install.sh:10650 install.sh:10654 install.sh:11973 install.sh:11978
-#: install.sh:11983 install.sh:11988 install.sh:12001 install.sh:12449
-#: install.sh:12450 install.sh:12451 install.sh:12452 install.sh:12453
+#: install.sh:10672 install.sh:10673 install.sh:10674 install.sh:10689
+#: install.sh:10699 install.sh:10703 install.sh:12022 install.sh:12027
+#: install.sh:12032 install.sh:12037 install.sh:12050 install.sh:12498
+#: install.sh:12499 install.sh:12500 install.sh:12501 install.sh:12502
 msgid "变更"
 msgstr "변경"
 
-#: install.sh:10623
+#: install.sh:10672
 msgid "负载均衡配置"
 msgstr "로드 밸런싱 구성"
 
-#: install.sh:10627
+#: install.sh:10676
 msgid "清除日志文件"
 msgstr "로그 파일 삭제"
 
-#: install.sh:10628
+#: install.sh:10677
 msgid "查看证书状态"
 msgstr "인증서 상태 보기"
 
-#: install.sh:10629
+#: install.sh:10678
 msgid "更新证书有效期"
 msgstr "인증서 유효기간 갱신"
 
-#: install.sh:10630
+#: install.sh:10679
 msgid "设置证书自动更新"
 msgstr "인증서 자동 갱신 설정"
 
-#: install.sh:10631
+#: install.sh:10680
 msgid "设置 Fail2ban 防暴力破解"
 msgstr "Fail2ban 폭력적 해킹 공격 방지 설정"
 
-#: install.sh:10632 scripts/fail2ban_manager.sh:1242
+#: install.sh:10681 scripts/fail2ban_manager.sh:1242
 msgid "查看 Fail2ban 状态"
 msgstr "Fail2ban 상태 확인"
 
-#: install.sh:10633 scripts/fail2ban_manager.sh:725
+#: install.sh:10682 scripts/fail2ban_manager.sh:725
 #: scripts/fail2ban_manager.sh:1243
 msgid "快速解封 IP"
 msgstr "빠른 해제 IP"
 
-#: install.sh:10634 scripts/fail2ban_manager.sh:726
+#: install.sh:10683 scripts/fail2ban_manager.sh:726
 #: scripts/fail2ban_manager.sh:1244
 msgid "添加可信 IP/CIDR"
 msgstr "신뢰할 수 있는 IP/CIDR 추가"
 
-#: install.sh:10635 scripts/fail2ban_manager.sh:727
+#: install.sh:10684 scripts/fail2ban_manager.sh:727
 #: scripts/fail2ban_manager.sh:1245
 msgid "移除可信 IP/CIDR"
 msgstr "신뢰할 수 있는 IP/CIDR 제거"
 
-#: install.sh:10636
+#: install.sh:10685
 msgid "设置 Xray 流量阻断"
 msgstr "Xray 트래픽 차단 설정"
 
-#: install.sh:10637
+#: install.sh:10686
 msgid "显示帮助"
 msgstr "도움 표시"
 
-#: install.sh:10638 install.sh:12712
+#: install.sh:10687 install.sh:12761
 msgid "修改语言"
 msgstr "언어 수정"
 
-#: install.sh:10641 install.sh:10644 install.sh:12429 install.sh:12536
+#: install.sh:10690 install.sh:10693 install.sh:12478 install.sh:12585
 #: scripts/fail2ban_manager.sh:66
 msgid "查看"
 msgstr "보기"
 
-#: install.sh:10641 install.sh:12514
+#: install.sh:10690 install.sh:12563
 msgid "实时流量"
 msgstr "실시간 트래픽"
 
-#: install.sh:10642
+#: install.sh:10691
 msgid "脚本卸载"
 msgstr "스크립트 제거"
 
-#: install.sh:10643
+#: install.sh:10692
 msgid "安装或修复 Rill AI 判断引擎"
 msgstr "Rill AI 판단 엔진을 설치하거나 복구합니다"
 
-#: install.sh:10644
+#: install.sh:10693
 msgid "判断引擎状态"
 msgstr "엔진 상태 판단"
 
-#: install.sh:10645
+#: install.sh:10694
 msgid "切换路由辅助阶段"
 msgstr "라우팅 전환 보조 단계"
 
-#: install.sh:10646
+#: install.sh:10695
 msgid "查看自动修改状态"
 msgstr "자동 수정 상태 확인"
 
-#: install.sh:10647
+#: install.sh:10696
 msgid "确认自动修改授权"
 msgstr "자동 수정 권한을 확인합니다"
 
-#: install.sh:10648
+#: install.sh:10697
 msgid "撤销自动修改授权"
 msgstr "자동 수정 권한 취소"
 
-#: install.sh:10649
+#: install.sh:10698
 msgid "显示安装信息"
 msgstr "설치 정보 표시"
 
-#: install.sh:10651 install.sh:12615
+#: install.sh:10700 install.sh:12664
 msgid "加速"
 msgstr "가속"
 
-#: install.sh:10653
+#: install.sh:10702
 msgid "更新脚本"
 msgstr "스크립트 업데이트"
 
-#: install.sh:10655 install.sh:10656
+#: install.sh:10704 install.sh:10705
 msgid "显示"
 msgstr "표시"
 
-#: install.sh:10655
+#: install.sh:10704
 msgid "访问信息"
 msgstr "정보 방문"
 
-#: install.sh:10656
+#: install.sh:10705
 msgid "错误信息"
 msgstr "오류 정보"
 
-#: install.sh:10681
+#: install.sh:10730
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr "스크립트 버전이 크게 변경되어 호환되지 않을 가능성이 있습니다. 계속 사용하시겠습니까"
 
-#: install.sh:10708
+#: install.sh:10757
 msgid "检测失败"
 msgstr "검사 실패"
 
-#: install.sh:10712 install.sh:10722 install.sh:10730
+#: install.sh:10761 install.sh:10771 install.sh:10779
 msgid "有新版"
 msgstr "새 버전이 있습니다"
 
-#: install.sh:10715 install.sh:10724 install.sh:10732
+#: install.sh:10764 install.sh:10773 install.sh:10781
 msgid "最新版"
 msgstr "최신 버전"
 
-#: install.sh:10728
+#: install.sh:10777
 msgid "版本未知"
 msgstr "버전 알 수 없음"
 
-#: install.sh:10747 install.sh:10754 install.sh:12681
+#: install.sh:10796 install.sh:10803 install.sh:12730
 #: scripts/rill_xray_agent_manager.sh:885
 msgid "运行中"
 msgstr "실행 중"
 
-#: install.sh:10749
+#: install.sh:10798
 msgid "无需测试"
 msgstr "테스트할 필요 없음"
 
-#: install.sh:10751 install.sh:10756
+#: install.sh:10800 install.sh:10805
 msgid "未运行"
 msgstr "실행되지 않음"
 
-#: install.sh:10822 install.sh:10824
+#: install.sh:10871 install.sh:10873
 msgid "无法连通"
 msgstr "연결할 수 없음"
 
-#: install.sh:10828 install.sh:10830 install.sh:10832 install.sh:10834
-#: install.sh:10836 install.sh:10839 install.sh:10841 install.sh:10843
+#: install.sh:10877 install.sh:10879 install.sh:10881 install.sh:10883
+#: install.sh:10885 install.sh:10888 install.sh:10890 install.sh:10892
 msgid "本地正常"
 msgstr "현지 정상"
 
-#: install.sh:10854
+#: install.sh:10903
 msgid "脚本维护中.. 请稍后再试"
 msgstr "스크립트를 유지 보수 중입니다. 잠시 후 다시 시도해 주세요"
 
-#: install.sh:10860
+#: install.sh:10909
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr "필요한 종속 항목의 온라인 버전을 검출할 수 없습니다. 잠시 후 다시 시도해 주십시오"
 
-#: install.sh:10877
+#: install.sh:10926
 msgid "请输入数字"
 msgstr "숫자를 입력하세요"
 
-#: install.sh:10877
+#: install.sh:10926
 msgid "请输入 1 到 6 之间的有效数字"
 msgstr "1에서 6 사이의 유효한 숫자를 입력하세요"
 
-#: install.sh:10952
+#: install.sh:11001
 msgid "请输入备份名称"
 msgstr "백업 이름을 입력하세요"
 
-#: install.sh:10952
+#: install.sh:11001
 msgid "不需要后缀"
 msgstr "접미사가 필요하지 않다"
 
-#: install.sh:10961
+#: install.sh:11010
 msgid "报错信息"
 msgstr "오류 정보"
 
-#: install.sh:10963
+#: install.sh:11012
 msgid "备份完整性可能受到影响, 请检查上述错误信息"
 msgstr "백업의 완전성이 영향을 받을 수 있으니, 위의 오류 메시지를 확인해 주십시오"
 
-#: install.sh:10974
+#: install.sh:11023
 msgid "请确保备份文件在目录"
 msgstr "백업 파일이 디렉토리에 있는지 확인해 주십시오"
 
-#: install.sh:10978
+#: install.sh:11027
 msgid "没有找到备份文件"
 msgstr "백업 파일을 찾지 못했습니다"
 
-#: install.sh:10983
+#: install.sh:11032
 msgid "发现多个备份文件"
 msgstr "여러 개의 백업 파일을 발견했습니다"
 
-#: install.sh:10983
+#: install.sh:11032
 msgid "将使用最新的文件进行恢复"
 msgstr "최신 파일을 사용하여 복구합니다"
 
-#: install.sh:10987
+#: install.sh:11036
 msgid "找到最新备份文件"
 msgstr "최신 백업 파일 찾기"
 
-#: install.sh:10989
+#: install.sh:11038
 msgid "恢复备份"
 msgstr "백업 복구"
 
-#: install.sh:10993 install.sh:10999 install.sh:12642
+#: install.sh:11042 install.sh:11048 install.sh:12691
 msgid "恢复"
 msgstr "복구"
 
-#: install.sh:10994 install.sh:10996
+#: install.sh:11043 install.sh:11045
 msgid "记得安装"
 msgstr "설치 기억하기"
 
-#: install.sh:11039
+#: install.sh:11088
 msgid "部署失败且自动恢复未完成"
 msgstr "배포에 실패했으며 자동 복구가 완료되지 않았습니다."
 
-#: install.sh:11040 install.sh:11481 install.sh:11600 install.sh:11686
-#: install.sh:11695
+#: install.sh:11089 install.sh:11530 install.sh:11649 install.sh:11735
+#: install.sh:11744
 msgid "备份目录保留在"
 msgstr "백업 디렉터리는 유지됩니다"
 
-#: install.sh:11066
+#: install.sh:11115
 msgid "备份父目录创建失败, 中止重配置"
 msgstr "부모 디렉터리 백업 생성에 실패하여 재구성을 중단합니다."
 
-#: install.sh:11072
+#: install.sh:11121
 msgid "备份目录创建失败, 中止重配置"
 msgstr "백업 디렉터리 생성에 실패하여 재구성을 중단합니다."
 
-#: install.sh:11118
+#: install.sh:11167
 msgid "关键文件备份失败, 中止重配置"
 msgstr "핵심 파일 백업에 실패하여 재구성을 중단합니다."
 
-#: install.sh:11214
+#: install.sh:11263
 msgid "备份元数据校验失败, 中止重配置"
 msgstr "백업 메타데이터 검증에 실패하여 재구성을 중단합니다."
 
-#: install.sh:11229
+#: install.sh:11278
 msgid "部署失败, 正在恢复原配置"
 msgstr "배포에 실패하여 원래 설정으로 복구 중입니다."
 
-#: install.sh:11237
+#: install.sh:11286
 msgid "备份完整性清单缺失, 拒绝恢复"
 msgstr "백업 무결성 목록이 누락되어 복구를 거부합니다."
 
-#: install.sh:11241
+#: install.sh:11290
 msgid "备份完整性校验失败, 拒绝恢复"
 msgstr "백업 무결성 검사에 실패하여 복구를 거부합니다."
 
-#: install.sh:11337
+#: install.sh:11386
 msgid "防火墙规则回滚失败"
 msgstr "방화벽 규칙 롤백 실패"
 
-#: install.sh:11363 install.sh:11369
+#: install.sh:11412 install.sh:11418
 msgid "基础防火墙规则回滚失败"
 msgstr "기본 방화벽 규칙 롤백 실패"
 
-#: install.sh:11383
+#: install.sh:11432
 msgid "防火墙持久化恢复未完成, 重启后可能回到失败状态"
 msgstr "방화벽 상주 복구가 완료되지 않았으므로, 재부팅 후 실패 상태로 되돌아갈 수 있습니다."
 
-#: install.sh:11480
+#: install.sh:11529
 msgid "恢复未完全成功, 请手动检查"
 msgstr "복구가 완전히 성공하지 못했습니다. 수동으로 확인해 주십시오."
 
-#: install.sh:11491
+#: install.sh:11540
 msgid "Xray 服务恢复后未运行"
 msgstr "Xray 서비스가 복구된 후에도 실행되지 않았습니다"
 
-#: install.sh:11495
+#: install.sh:11544
 msgid "Xray 服务恢复后仍在运行"
 msgstr "Xray 서비스 복구 후에도 계속 실행 중입니다"
 
-#: install.sh:11499
+#: install.sh:11548
 msgid "Xray 服务恢复后未启用"
 msgstr "Xray 서비스 복구 후 비활성화 상태입니다"
 
-#: install.sh:11503
+#: install.sh:11552
 msgid "Xray 服务恢复后仍启用"
 msgstr "Xray 서비스 복구 후에도 계속 활성화됨"
 
-#: install.sh:11508
+#: install.sh:11557
 msgid "Xray 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
 "Xray 서비스가 복구된 후에도 systemd에 의해 active로 로드되고 있으나, 원래 시스템에는 해당 unit이 존재하지 않습니다."
 
-#: install.sh:11512
+#: install.sh:11561
 msgid "Xray 服务恢复后仍为 enabled, 但原系统无此 unit"
 msgstr "Xray 서비스가 복구된 후에도 enabled 상태로 유지되지만, 기존 시스템에는 해당 unit가 존재하지 않습니다."
 
-#: install.sh:11518
+#: install.sh:11567
 msgid "Nginx 服务恢复后未运行"
 msgstr "Nginx 서비스가 복구된 후에도 실행되지 않았습니다"
 
-#: install.sh:11522
+#: install.sh:11571
 msgid "Nginx 服务恢复后仍在运行"
 msgstr "Nginx 서비스 복구 후에도 계속 실행 중입니다"
 
-#: install.sh:11526
+#: install.sh:11575
 msgid "Nginx 服务恢复后未启用"
 msgstr "Nginx 서비스 복구 후 비활성화 상태입니다"
 
-#: install.sh:11530
+#: install.sh:11579
 msgid "Nginx 服务恢复后仍启用"
 msgstr "Nginx 서비스 복구 후에도 계속 활성화됨"
 
-#: install.sh:11535
+#: install.sh:11584
 msgid "Nginx 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
 "Nginx 서비스가 복구된 후에도 systemd에 의해 active로 로드되고 있으나, 원래 시스템에는 해당 unit이 존재하지 "
 "않습니다."
 
-#: install.sh:11539
+#: install.sh:11588
 msgid "Nginx 服务恢复后仍为 enabled, 但原系统无此 unit"
 msgstr "Nginx 서비스가 복구된 후에도 enabled 상태로 유지되지만, 기존 시스템에는 해당 unit가 존재하지 않습니다."
 
-#: install.sh:11565 install.sh:11569
+#: install.sh:11614 install.sh:11618
 msgid "ACME 定时任务未能恢复, 请手动检查"
 msgstr "ACME 정시 작업이 복구되지 않았습니다. 수동으로 확인해 주십시오."
 
-#: install.sh:11592
+#: install.sh:11641
 msgid "ACME 定时任务删除后仍存在, 请手动检查"
 msgstr "ACME 정시 작업을 삭제한 후에도 여전히 존재합니다. 수동으로 확인해 주십시오."
 
-#: install.sh:11599
+#: install.sh:11648
 msgid "恢复后验证失败, 请手动检查"
 msgstr "복구 후 검증에 실패했습니다. 수동으로 확인해 주십시오."
 
-#: install.sh:11619
+#: install.sh:11668
 msgid "已恢复原配置"
 msgstr "기존 설정으로 복원되었습니다"
 
-#: install.sh:11626
+#: install.sh:11675
 msgid "Xray 配置测试失败"
 msgstr "Xray 구성 테스트 실패"
 
-#: install.sh:11631
+#: install.sh:11680
 msgid "Nginx 配置测试失败"
 msgstr "Nginx 구성 테스트 실패"
 
-#: install.sh:11636 scripts/rill_xray_agent_manager.sh:959
+#: install.sh:11685 scripts/rill_xray_agent_manager.sh:959
 msgid "Xray 服务未运行"
 msgstr "Xray 서비스가 실행되지 않습니다"
 
-#: install.sh:11641 scripts/rill_xray_agent_manager.sh:960
+#: install.sh:11690 scripts/rill_xray_agent_manager.sh:960
 msgid "Nginx 服务未运行"
 msgstr "Nginx 서비스가 실행되지 않습니다"
 
-#: install.sh:11670
+#: install.sh:11719
 msgid "用户 UUID 集合发生变化, 将恢复原配置"
 msgstr "사용자 UUID 컬렉션이 변경되면 원래 설정으로 복원됩니다."
 
-#: install.sh:11685 install.sh:11694
+#: install.sh:11734 install.sh:11743
 msgid "最终验证失败且自动恢复未完成"
 msgstr "최종 검증에 실패했으며 자동 복구가 완료되지 않았습니다."
 
-#: install.sh:11863
+#: install.sh:11912
 msgid "回到菜单"
 msgstr "메뉴로 돌아가기"
 
-#: install.sh:11890
+#: install.sh:11939
 msgid "不建议"
 msgstr "추천하지 않음"
 
-#: install.sh:11890
+#: install.sh:11939
 msgid "频繁更新 Nginx, 请确认 Nginx 有更新的必要"
 msgstr "Nginx를 자주 업데이트하십시오. Nginx에 업데이트가 필요한지 확인해 주세요"
 
-#: install.sh:11891
+#: install.sh:11940
 msgid "开始更新"
 msgstr "업데이트를 시작합니다"
 
-#: install.sh:11904 install.sh:11919 install.sh:11939 install.sh:11962
-#: install.sh:12201 install.sh:12218 install.sh:12236 install.sh:12254
-#: install.sh:12292 install.sh:12309 install.sh:12344 install.sh:12370
-#: install.sh:12415
+#: install.sh:11953 install.sh:11968 install.sh:11988 install.sh:12011
+#: install.sh:12250 install.sh:12267 install.sh:12285 install.sh:12303
+#: install.sh:12341 install.sh:12358 install.sh:12393 install.sh:12419
+#: install.sh:12464
 msgid "安装失败且自动恢复失败, 备份已保留, 请手动检查"
 msgstr "설치에 실패하고 자동 복구도 실패했습니다. 백업이 유지되어 있으니 수동으로 확인해 주십시오."
 
-#: install.sh:11906 install.sh:11921 install.sh:11941 install.sh:11964
-#: install.sh:12203 install.sh:12220 install.sh:12238 install.sh:12256
-#: install.sh:12294 install.sh:12311 install.sh:12346 install.sh:12372
-#: install.sh:12417
+#: install.sh:11955 install.sh:11970 install.sh:11990 install.sh:12013
+#: install.sh:12252 install.sh:12269 install.sh:12287 install.sh:12305
+#: install.sh:12343 install.sh:12360 install.sh:12395 install.sh:12421
+#: install.sh:12466
 msgid "安装失败, 原配置已恢复"
 msgstr "설치에 실패하여 기존 구성이 복원되었습니다."
 
-#: install.sh:12053 install.sh:12062 install.sh:12533 install.sh:12534
-#: install.sh:12535 install.sh:12536
+#: install.sh:12102 install.sh:12111 install.sh:12582 install.sh:12583
+#: install.sh:12584 install.sh:12585
 msgid "所有服务"
 msgstr "모든 서비스"
 
-#: install.sh:12116
+#: install.sh:12165
 msgid "网速测试脚本下载失败"
 msgstr "인터넷 속도 테스트 스크립트 다운로드에 실패했습니다"
 
-#: install.sh:12153
+#: install.sh:12202
 msgid "选择传输协议"
 msgstr "전송 프로토콜을 선택하세요"
 
-#: install.sh:12178
+#: install.sh:12227
 msgid "Reality 部署方式"
 msgstr "Reality 배포 방식"
 
-#: install.sh:12179
+#: install.sh:12228
 msgid "前置保护"
 msgstr "전면 보호"
 
-#: install.sh:12180
+#: install.sh:12229
 msgid "标准"
 msgstr "표준"
 
-#: install.sh:12272
+#: install.sh:12321
 msgid "Reality 负载均衡角色"
 msgstr "Reality 부하 분산 역할"
 
-#: install.sh:12273
+#: install.sh:12322
 msgid "主服务器"
 msgstr "주 서버"
 
-#: install.sh:12273
+#: install.sh:12322
 msgid "安装 Nginx"
 msgstr "Nginx 설치"
 
-#: install.sh:12274
+#: install.sh:12323
 msgid "二级服务器"
 msgstr "보조 서버"
 
-#: install.sh:12274
+#: install.sh:12323
 msgid "仅提供 Reality 后端"
 msgstr "Reality 백엔드 전용"
 
-#: install.sh:12323
+#: install.sh:12372
 msgid "部署方式"
 msgstr "배포 방식"
 
-#: install.sh:12325
+#: install.sh:12374
 msgid "无 Nginx、无 TLS"
 msgstr "Nginx 없음, TLS 없음"
 
-#: install.sh:12354
+#: install.sh:12403
 msgid "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境"
 msgstr "ONLY 모드는 중계, 로드 밸런싱 백엔드 또는 기존 상위 프록시가 있는 환경용입니다"
 
-#: install.sh:12384 install.sh:12705
+#: install.sh:12433 install.sh:12754
 msgid "安装向导"
 msgstr "설치 마법사"
 
-#: install.sh:12398
+#: install.sh:12447
 msgid "此模式主要用于流量中转或特殊部署，不建议普通用户使用"
 msgstr "이 모드는 주로 트래픽 중계 또는 특수 배포용이며 일반 사용자에게 권장되지 않습니다"
 
-#: install.sh:12428 install.sh:12491
+#: install.sh:12477 install.sh:12540
 msgid "用户管理"
 msgstr "사용자 관리"
 
-#: install.sh:12429 install.sh:12430 install.sh:12431
+#: install.sh:12478 install.sh:12479 install.sh:12480
 msgid "用户"
 msgstr "사용자"
 
-#: install.sh:12448 install.sh:12490 install.sh:12492 install.sh:12706
+#: install.sh:12497 install.sh:12539 install.sh:12541 install.sh:12755
 msgid "配置变更"
 msgstr "구성 변경"
 
-#: install.sh:12510 install.sh:12707
+#: install.sh:12559 install.sh:12756
 msgid "查看信息"
 msgstr "정보 보기"
 
-#: install.sh:12512
+#: install.sh:12561
 msgid "实时访问日志"
 msgstr "실시간 접근 로그"
 
-#: install.sh:12513
+#: install.sh:12562
 msgid "实时错误日志"
 msgstr "실시간 오류 로그"
 
-#: install.sh:12532 install.sh:12575
+#: install.sh:12581 install.sh:12624
 msgid "服务相关"
 msgstr "서비스 관련"
 
-#: install.sh:12554 install.sh:12576
+#: install.sh:12603 install.sh:12625
 msgid "证书相关"
 msgstr "증명서 관련"
 
-#: install.sh:12555
+#: install.sh:12604
 msgid "证书状态"
 msgstr "인증서 상태"
 
-#: install.sh:12556
+#: install.sh:12605
 msgid "证书有效期"
 msgstr "인증서 유효기간"
 
-#: install.sh:12557
+#: install.sh:12606
 msgid "证书自动更新"
 msgstr "인증서 자동 갱신"
 
-#: install.sh:12592 install.sh:12709
+#: install.sh:12641 install.sh:12758
 msgid "更新向导"
 msgstr "업데이트 마법사"
 
-#: install.sh:12593 install.sh:12644 install.sh:12664
+#: install.sh:12642 install.sh:12693 install.sh:12713
 msgid "脚本"
 msgstr "스크립트"
 
-#: install.sh:12596
+#: install.sh:12645
 msgid "自动更新"
 msgstr "자동 업데이트"
 
-#: install.sh:12614 install.sh:12710
+#: install.sh:12663 install.sh:12759
 msgid "其他选项"
 msgstr "기타 옵션"
 
-#: install.sh:12617
+#: install.sh:12666
 msgid "流量统计"
 msgstr "트래픽 통계"
 
-#: install.sh:12618 scripts/traffic_blocker.sh:553
+#: install.sh:12667 scripts/traffic_blocker.sh:553
 msgid "流量阻断"
 msgstr "트래픽 차단"
 
-#: install.sh:12619
+#: install.sh:12668
 msgid "清除"
 msgstr "제거"
 
-#: install.sh:12619
+#: install.sh:12668
 msgid "日志文件"
 msgstr "로그 파일"
 
-#: install.sh:12620
+#: install.sh:12669
 msgid "服务器网速"
 msgstr "서버 속도"
 
-#: install.sh:12640 install.sh:12711
+#: install.sh:12689 install.sh:12760
 msgid "备份恢复"
 msgstr "백업 복구"
 
-#: install.sh:12641 install.sh:12642
+#: install.sh:12690 install.sh:12691
 msgid "全部文件"
 msgstr "전체 파일"
 
-#: install.sh:12643
+#: install.sh:12692
 msgid "清空"
 msgstr "비우다"
 
-#: install.sh:12643
+#: install.sh:12692
 msgid "证书文件"
 msgstr "인증서 파일"
 
-#: install.sh:12644 scripts/fail2ban_manager.sh:65
+#: install.sh:12693 scripts/fail2ban_manager.sh:65
 #: scripts/fail2ban_manager.sh:1093
 msgid "卸载"
 msgstr "제거"
 
-#: install.sh:12661
+#: install.sh:12710
 msgid "Xray 管理脚本"
 msgstr "Xray 관리 스크립트"
 
-#: install.sh:12663
+#: install.sh:12712
 msgid "当前语言"
 msgstr "현재 언어"
 
-#: install.sh:12669
+#: install.sh:12718
 msgid "连通性"
 msgstr "연결성"
 
-#: install.sh:12673
+#: install.sh:12722
 msgid "运行状态"
 msgstr "운영 상태"
 
-#: install.sh:12697
+#: install.sh:12746
 msgid "Xray 管理菜单"
 msgstr "Xray 관리 메뉴"
 
-#: install.sh:12715 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
+#: install.sh:12764 scripts/fail2ban_manager.sh:67 scripts/file_manager.sh:308
 #: scripts/traffic_blocker.sh:563
 msgid "退出"
 msgstr "퇴출"
