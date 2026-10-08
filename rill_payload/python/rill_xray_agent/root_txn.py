@@ -353,6 +353,11 @@ class RootTransaction:
         if not self.root.exists():
             return out
         for w in sorted(self.root.iterdir()):
+            # The installer keeps its own private .upgrade-* journals beside
+            # apply transactions. They are root-only and are not RootTransaction
+            # work dirs; the Runtime must skip them before touching child files.
+            if w.name.startswith('.upgrade-'):
+                continue
             if not w.is_dir() or w.is_symlink():
                 continue
             report = {'workDir': w.name}
