@@ -1,0 +1,8 @@
+XRA-01 requested timeout=.01, returned after 0.204 seconds
+XRA-02 response.read arguments: ()
+XRA-02 rejected only after complete read
+XRA-03 after failed activation: current exists= False , previous-good in rollback= True
+XRA-04 corrupted binary native_status= {"schemaVersion": 1, "nativeRuntime": {"status": "active", "version": "1.5.6", "targetOs": "linux", "targetArch": "x86_64", "targetLibc": "glibc", "runtimeApiVersion": 2, "source": "rill-ml-stable-index", "verified": true}, "fallback": "portable-python"}
+XRA-08 oversized manifest accepted= {'entries': []}
+XRA-09 secret after 2MiB classified safe= True
+XRA-07 write requested6 returned2; calls= [6, 'published']

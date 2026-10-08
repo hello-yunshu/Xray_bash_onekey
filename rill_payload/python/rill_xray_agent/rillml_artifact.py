@@ -22,13 +22,22 @@ available and fully testable without enabling it.
 from __future__ import annotations
 
 import grp
+import contextlib
+import fcntl
 import hashlib
 import json
 import os
+import selectors
 import platform
 import re
+import secrets
+import signal
+import shutil
 import subprocess
 import sys
+import stat
+import tempfile
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -37,6 +46,8 @@ from pathlib import Path
 
 from .canonical import atomic_write_bytes, canonical_bytes, read_json
 from . import rillml_ed25519
+from .safe_fs import reject_ancestor_symlinks
+from .errors import UnsafePathError
 
 # --- upstream release contract (may be overridden for tests / mirror) ---
 # The production integration is frozen to the audited RillML release.  Do not
@@ -83,6 +94,9 @@ MAX_IPC_LINE_BYTES = 1024 * 1024
 FORBIDDEN_URL_SCHEMES = frozenset({'file', 'data', 'javascript', 'ftp', 'blob'})
 LOCALHOST_HOSTS = frozenset({'localhost', '127.0.0.1', '::1', '0.0.0.0'})
 SHA256_RE = re.compile(r'^[a-f0-9]{64}$')
+_LOCKS_GUARD = threading.Lock()
+_LOCKS = {}
+_LOCK_LOCAL = threading.local()
 ID_RE = re.compile(r'^[A-Za-z0-9._-]{1,128}$')
 STABLE_SEMVER_RE = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$')
 
@@ -426,7 +440,10 @@ def verify_artifact_file(artifact, path):
     expected_size = artifact['size']
     expected_sha = artifact['sha256']
     path = Path(path)
-    actual_size = path.stat().st_size
+    st = path.lstat()
+    if not stat.S_ISREG(st.st_mode):
+        raise RillMLValidationError(f'{path.name}: artifact is not a regular file')
+    actual_size = st.st_size
     if actual_size != expected_size:
         raise RillMLValidationError(
             f'{path.name}: size mismatch (expected {expected_size}, got {actual_size})')
@@ -437,23 +454,78 @@ def verify_artifact_file(artifact, path):
     return actual_sha
 
 
-def _http_get(url, *, timeout, attempts, max_bytes):
+class _HTTPSOnlyRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        _validate_https_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _http_get(url, *, timeout, attempts, max_bytes, sink=None):
     _validate_https_url(url)
+    deadline = time.monotonic() + max(float(timeout), 0.0)
     for attempt in range(1, attempts + 1):
         try:
+            if sink is not None:
+                sink.seek(0)
+                sink.truncate(0)
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError('overall download deadline expired')
             request = urllib.request.Request(
                 url, headers={'User-Agent': 'rill-xray-agent/1.0'})
-            with urllib.request.urlopen(request, timeout=timeout) as response:
+            opener = urllib.request.build_opener(_HTTPSOnlyRedirectHandler)
+            with opener.open(request, timeout=min(timeout, remaining)) as response:
                 _validate_https_url(response.geturl())
-                data = response.read()
-                if len(data) > max_bytes:
-                    raise RillMLDownloadError(
-                        f'response too large ({len(data)} > {max_bytes} bytes)')
-                return data
+                length = response.headers.get('Content-Length')
+                if length is not None:
+                    try:
+                        if int(length) > max_bytes:
+                            raise RillMLDownloadError(
+                                f'response too large ({length} > {max_bytes} bytes)')
+                    except ValueError:
+                        pass
+                chunks = []
+                digest = hashlib.sha256()
+                total = 0
+                reader = getattr(response, 'read1', response.read)
+                while True:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError('overall download deadline expired')
+                    try:
+                        response.fp.raw._sock.settimeout(min(timeout, remaining))
+                    except (AttributeError, OSError):
+                        pass
+                    block = reader(min(64 * 1024, max_bytes + 1 - total))
+                    if not block:
+                        break
+                    total += len(block)
+                    digest.update(block)
+                    if sink is None:
+                        chunks.append(block)
+                    else:
+                        view = memoryview(block)
+                        offset = 0
+                        while offset < len(view):
+                            written = sink.write(view[offset:])
+                            if written is None or written <= 0:
+                                raise RillMLDownloadError('artifact staging write made no progress')
+                            offset += written
+                    if total > max_bytes:
+                        raise RillMLDownloadError(f'response too large (>{max_bytes} bytes)')
+                if sink is None:
+                    return b''.join(chunks)
+                return {'size': total, 'sha256': digest.hexdigest()}
         except (urllib.error.URLError, TimeoutError, RillMLDownloadError) as exc:
+            if isinstance(exc, RillMLDownloadError) and 'too large' in str(exc):
+                raise
+            if (isinstance(exc, urllib.error.HTTPError)
+                    and exc.code not in {408, 425, 429, 500, 502, 503, 504}):
+                raise RillMLDownloadError(
+                    f'non-retryable HTTP status {exc.code} for {url!r}') from exc
             if attempt == attempts:
                 raise RillMLDownloadError(f'fetch failed for {url!r}: {exc}') from exc
-            time.sleep(min(2 ** (attempt - 1), 8))
+            time.sleep(min(2 ** (attempt - 1), 8, max(0, deadline - time.monotonic())))
     raise RillMLDownloadError(f'fetch failed for {url!r}')
 
 
@@ -471,40 +543,178 @@ def download_artifact(artifact, dest_dir, *, timeout=60.0, attempts=4):
     _validate_https_url(url)
     dest = Path(dest_dir)
     dest.mkdir(parents=True, exist_ok=True)
+    reject_ancestor_symlinks(dest)
     name = urllib.parse.urlparse(url).path.rstrip('/').rsplit('/', 1)[-1]
     if not name or name in ('.', '..'):
         raise RillMLValidationError(f'artifact URL has no usable filename: {url!r}')
     target = dest / name
     if target.is_symlink():
         raise RillMLValidationError(f'staging path is a symlink: {target}')
-    data = _http_get(url, timeout=timeout, attempts=attempts,
-                     max_bytes=MAX_ARTIFACT_BYTES)
-    atomic_write_bytes(target, data, 0o750)
-    verify_artifact_file(artifact, target)
+    size = artifact.get('size')
+    if not isinstance(size, int) or isinstance(size, bool) or not 0 < size <= MAX_ARTIFACT_BYTES:
+        raise RillMLValidationError('artifact size outside accepted bounds')
+    fd, temp_name = tempfile.mkstemp(prefix=f'.{name}.download.', dir=dest)
+    temp = Path(temp_name)
+    try:
+        with os.fdopen(fd, 'wb') as output:
+            result = _http_get(url, timeout=timeout, attempts=attempts,
+                               max_bytes=min(MAX_ARTIFACT_BYTES, size), sink=output)
+            if isinstance(result, bytes):
+                output.write(result)
+                result = {'size': len(result), 'sha256': hashlib.sha256(result).hexdigest()}
+            output.flush()
+            os.fsync(output.fileno())
+        if result.get('size') != size or result.get('sha256') != artifact.get('sha256'):
+            raise RillMLValidationError(f'{name}: size or SHA-256 mismatch')
+        os.chmod(temp, 0o750)
+        os.replace(temp, target)
+        dir_fd = os.open(dest, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0))
+        try:
+            os.fsync(dir_fd)
+        finally:
+            os.close(dir_fd)
+        verify_artifact_file(artifact, target)
+    except Exception:
+        temp.unlink(missing_ok=True)
+        raise
     return target
 
 
-def _ipc_call(process, request, *, timeout):
-    """Send one NDJSON request, read one bounded response line."""
-    line = json.dumps(request, separators=(',', ':')) + '\n'
+def _ipc_call(process, request, *, timeout=None, deadline=None):
+    """Send one NDJSON request and read a bounded line by an absolute deadline."""
+    if deadline is None:
+        deadline = time.monotonic() + timeout
     if process.stdin is None or process.stdout is None:
         raise RillMLProbeError('runtime IPC streams unavailable')
-    process.stdin.write(line.encode('utf-8'))
-    process.stdin.flush()
-    raw = process.stdout.readline()
-    if not raw:
-        stderr = ''
-        if process.poll() is not None and process.stderr is not None:
-            stderr = process.stderr.read().decode('utf-8', errors='replace')[:512]
-        raise RillMLProbeError(
-            f'runtime closed stdout after {request.get("method")!r}; '
-            f'stderr={stderr!r}')
-    if len(raw) > MAX_IPC_LINE_BYTES:
-        raise RillMLProbeError('runtime response exceeds IPC line bound')
+    selector = selectors.DefaultSelector()
+    out_fd, in_fd = process.stdout.fileno(), process.stdin.fileno()
+    err_fd = process.stderr.fileno() if process.stderr is not None else None
+    os.set_blocking(out_fd, False)
+    os.set_blocking(in_fd, False)
+    if err_fd is not None:
+        os.set_blocking(err_fd, False)
+    pending = memoryview((json.dumps(request, separators=(',', ':')) + '\n').encode())
+    raw = bytearray(getattr(process, '_rillml_ipc_buffer', b''))
+    process._rillml_ipc_buffer = b''
+    stderr = bytearray()
+    selector.register(process.stdin, selectors.EVENT_WRITE, 'stdin')
+    selector.register(process.stdout, selectors.EVENT_READ, 'stdout')
+    if err_fd is not None:
+        selector.register(process.stderr, selectors.EVENT_READ, 'stderr')
     try:
-        return json.loads(raw.decode('utf-8'))
+        while True:
+            if len(raw) > MAX_IPC_LINE_BYTES:
+                raise RillMLProbeError('runtime response exceeds IPC line bound')
+            newline = raw.find(b'\n')
+            if newline >= 0:
+                response = bytes(raw[:newline + 1])
+                process._rillml_ipc_buffer = bytes(raw[newline + 1:])
+                break
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise RillMLProbeError('runtime IPC deadline expired')
+            for key, _ in selector.select(remaining):
+                if key.data == 'stdin':
+                    if not pending:
+                        selector.unregister(process.stdin)
+                        continue
+                    try:
+                        count = os.write(in_fd, pending[:65536])
+                        if count <= 0:
+                            raise RillMLProbeError('runtime IPC write made no progress')
+                        pending = pending[count:]
+                    except BlockingIOError:
+                        pass
+                    except BrokenPipeError as exc:
+                        raise RillMLProbeError('runtime closed IPC input') from exc
+                elif key.data == 'stdout':
+                    try:
+                        chunk = os.read(out_fd, min(65536, MAX_IPC_LINE_BYTES + 1 - len(raw)))
+                    except BlockingIOError:
+                        continue
+                    if not chunk:
+                        raise RillMLProbeError(
+                            f'runtime closed stdout after {request.get("method")!r}; '
+                            f'stderr={bytes(stderr[:512]).decode("utf-8", errors="replace")!r}')
+                    raw.extend(chunk)
+                else:
+                    try:
+                        chunk = os.read(err_fd, 4096)
+                    except BlockingIOError:
+                        continue
+                    if chunk and len(stderr) < 512:
+                        stderr.extend(chunk[:512 - len(stderr)])
+            if err_fd is not None:
+                try:
+                    while True:
+                        chunk = os.read(err_fd, 4096)
+                        if not chunk:
+                            break
+                        if len(stderr) < 512:
+                            stderr.extend(chunk[:512 - len(stderr)])
+                except BlockingIOError:
+                    pass
+    finally:
+        selector.close()
+    try:
+        result = json.loads(response.decode('utf-8'))
+        if not isinstance(result, dict):
+            raise RillMLProbeError('runtime IPC response must be a JSON object')
+        return result
+    except RillMLProbeError:
+        raise
     except ValueError as exc:
         raise RillMLProbeError(f'runtime returned invalid JSON: {exc}') from exc
+
+
+def _bounded_process_output(process, *, deadline, max_bytes=1024 * 1024):
+    selector = selectors.DefaultSelector()
+    output = {'stdout': bytearray(), 'stderr': bytearray()}
+    try:
+        for name in ('stdout', 'stderr'):
+            stream = getattr(process, name)
+            if stream is not None:
+                os.set_blocking(stream.fileno(), False)
+                selector.register(stream, selectors.EVENT_READ, name)
+        while selector.get_map():
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise RillMLProbeError('runtime --help deadline expired')
+            for key, _ in selector.select(remaining):
+                try:
+                    chunk = os.read(key.fd, min(65536, max_bytes + 1 - len(output[key.data])))
+                except BlockingIOError:
+                    continue
+                if not chunk:
+                    selector.unregister(key.fileobj)
+                    continue
+                output[key.data].extend(chunk)
+                if len(output[key.data]) > max_bytes:
+                    raise RillMLProbeError(f'runtime --help {key.data} exceeds output bound')
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise RillMLProbeError('runtime --help deadline expired')
+        process.wait(timeout=remaining)
+        return bytes(output['stdout']), bytes(output['stderr'])
+    except subprocess.TimeoutExpired as exc:
+        raise RillMLProbeError('runtime --help deadline expired') from exc
+    finally:
+        selector.close()
+
+
+def _kill_probe_process(process):
+    try:
+        if os.name == 'posix':
+            os.killpg(process.pid, signal.SIGKILL)
+        elif process.poll() is None:
+            process.kill()
+    except ProcessLookupError:
+        pass
+    if process.poll() is None:
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            pass
 
 
 def probe_runtime(runtime_path, *, expected_version=None,
@@ -534,10 +744,12 @@ def probe_runtime(runtime_path, *, expected_version=None,
                    '--handler-trust-key', f'{key_id}={pub_hex}']
     else:
         command = [str(runtime_path), '--help']
+    deadline = time.monotonic() + timeout
     try:
         process = subprocess.Popen(
             command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, bufsize=0)
+            stderr=subprocess.PIPE, bufsize=0,
+            start_new_session=(os.name == 'posix'))
     except OSError as exc:
         raise RillMLProbeError(f'failed to execute runtime: {exc}') from exc
     try:
@@ -548,7 +760,7 @@ def probe_runtime(runtime_path, *, expected_version=None,
                 'apiVersion': SUPPORTED_API_VERSION,
                 'clientName': 'rill-xray-agent',
                 'clientVersion': '1.0.0',
-            }, timeout=timeout)
+            }, deadline=deadline)
             capabilities = handshake.get('effectiveCapabilities')
             checks = {
                 'kind': handshake.get('kind') == 'handshake',
@@ -571,8 +783,11 @@ def probe_runtime(runtime_path, *, expected_version=None,
             health = _ipc_call(process, {
                 'method': 'health', 'requestId': 'rillml-probe-health',
                 'apiVersion': SUPPORTED_API_VERSION,
-            }, timeout=timeout)
-            if health.get('kind') != 'health' or health.get('healthy') is not True:
+            }, deadline=deadline)
+            if (health.get('kind') != 'health'
+                    or health.get('requestId') != 'rillml-probe-health'
+                    or health.get('apiVersion') != SUPPORTED_API_VERSION
+                    or health.get('healthy') is not True):
                 raise RillMLProbeError(
                     f'runtime health probe failed: {json.dumps(health, sort_keys=True)}')
             return {
@@ -584,16 +799,22 @@ def probe_runtime(runtime_path, *, expected_version=None,
                 'effectiveCapabilities': capabilities,
                 'checks': checks,
             }
-        out, err = process.communicate(timeout=timeout)
+        if process.stdin is not None:
+            process.stdin.close()
+        out, err = _bounded_process_output(process, deadline=deadline)
         if process.returncode != 0:
             raise RillMLProbeError(
                 f'runtime --help exited {process.returncode}: '
                 f'{err.decode("utf-8", errors="replace")[:256]!r}')
         return {'probe': 'lightweight', 'executes': True, 'exitCode': 0}
     finally:
-        if process.poll() is None:
-            process.kill()
-            process.wait(timeout=5)
+        _kill_probe_process(process)
+        for stream in (process.stdin, process.stdout, process.stderr):
+            if stream is not None:
+                try:
+                    stream.close()
+                except OSError:
+                    pass
 
 
 class RillMLRuntimeManager:
@@ -627,9 +848,60 @@ class RillMLRuntimeManager:
         self.current_dir = self.root / 'current'
         self.rollback_dir = self.root / 'rollback'
         self.state_path = self.root / 'state.json'
+        self.lock_path = self.root / '.lifecycle.lock'
+
+    @contextlib.contextmanager
+    def _lifecycle_lock(self, *, shared=False):
+        key = str(self.root.absolute())
+        with _LOCKS_GUARD:
+            thread_lock = _LOCKS.setdefault(key, threading.RLock())
+        thread_lock.acquire()
+        active = getattr(_LOCK_LOCAL, 'active', set())
+        nested = key in active
+        fd = None
+        try:
+            if shared and (not self.root.exists() or not self.lock_path.exists()):
+                yield
+                return
+            reject_ancestor_symlinks(self.root)
+            if not shared:
+                self.root.mkdir(parents=True, exist_ok=True)
+            if not nested:
+                fd = os.open(self.lock_path, os.O_RDONLY if shared else (os.O_CREAT | os.O_RDWR), 0o600)
+                fcntl.flock(fd, fcntl.LOCK_SH if shared else fcntl.LOCK_EX)
+                _LOCK_LOCAL.active = active | {key}
+            yield
+        finally:
+            if fd is not None:
+                fcntl.flock(fd, fcntl.LOCK_UN)
+                os.close(fd)
+                _LOCK_LOCAL.active = active
+            thread_lock.release()
+
+    def _verified_file(self, path, record):
+        if not isinstance(record, dict) or path.is_symlink() or self.root.is_symlink():
+            return False
+        try:
+            reject_ancestor_symlinks(path.parent)
+            st = path.lstat()
+            if (not stat.S_ISREG(st.st_mode) or not st.st_mode & 0o111
+                    or st.st_mode & 0o022 or st.st_size != record.get('size')):
+                return False
+            digest = record.get('sha256')
+            return isinstance(digest, str) and SHA256_RE.fullmatch(digest) and sha256_file(path) == digest
+        except (OSError, UnsafePathError):
+            return False
 
     def _read_state(self):
         try:
+            reject_ancestor_symlinks(self.root)
+            if self.state_path.is_symlink():
+                return {}
+            if self.state_path.exists():
+                st = self.state_path.lstat()
+                if (not stat.S_ISREG(st.st_mode) or st.st_mode & 0o022
+                        or (os.geteuid() == 0 and st.st_uid != 0)):
+                    return {}
             state = read_json(self.state_path)
             return state if isinstance(state, dict) else {}
         except Exception:
@@ -637,6 +909,85 @@ class RillMLRuntimeManager:
 
     def _write_state(self, state):
         atomic_write_bytes(self.state_path, canonical_bytes(state) + b'\n', 0o600)
+
+    def _fsync_dir(self, path):
+        fd = os.open(path, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0))
+        try: os.fsync(fd)
+        finally: os.close(fd)
+
+    def _restore_transaction(self, directory):
+        journal_path = directory / 'journal.json'
+        if journal_path.is_symlink() or not journal_path.is_file():
+            raise RillMLValidationError('unsafe lifecycle journal')
+        journal = read_json(journal_path)
+        if journal.get('status') == 'committed':
+            shutil.rmtree(directory)
+            return
+        for name, destination in (('current', self._current_binary()),
+                                  ('rollback', self.rollback_dir / 'rill-runtime')):
+            backup = directory / name
+            if journal.get(name):
+                if backup.is_symlink() or not backup.is_file():
+                    raise RillMLValidationError(f'unsafe transaction snapshot: {backup}')
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                temp = destination.with_name(f'.{destination.name}.restore.{secrets.token_hex(8)}')
+                shutil.copy2(backup, temp)
+                with temp.open('rb') as stream: os.fsync(stream.fileno())
+                os.replace(temp, destination)
+            else:
+                destination.unlink(missing_ok=True)
+        state_backup = directory / 'state'
+        if journal.get('state'):
+            if state_backup.is_symlink() or not state_backup.is_file():
+                raise RillMLValidationError('unsafe transaction state snapshot')
+            atomic_write_bytes(self.state_path, state_backup.read_bytes(), 0o600)
+        else:
+            self.state_path.unlink(missing_ok=True)
+        for path in (self.current_dir, self.rollback_dir, self.root):
+            if path.is_dir(): self._fsync_dir(path)
+        shutil.rmtree(directory)
+        self._fsync_dir(self.root)
+
+    def _recover_transactions(self):
+        for directory in sorted(self.root.glob('.txn-*')):
+            if directory.is_symlink() or not directory.is_dir():
+                raise RillMLValidationError('unsafe lifecycle transaction entry')
+            if not (directory / 'journal.json').exists():
+                shutil.rmtree(directory)
+                continue
+            try: self._restore_transaction(directory)
+            except Exception as exc:
+                raise RillMLValidationError(f'Runtime recovery required at {directory}: {exc}') from exc
+
+    @contextlib.contextmanager
+    def _state_transaction(self):
+        directory = Path(tempfile.mkdtemp(prefix='.txn-', dir=self.root))
+        snapshots = {'current': self._current_binary(),
+                     'rollback': self.rollback_dir / 'rill-runtime', 'state': self.state_path}
+        journal = {'status': 'prepared'}
+        try:
+            for name, source in snapshots.items():
+                if source.is_symlink(): raise RillMLValidationError(f'unsafe transaction source: {source}')
+                journal[name] = source.is_file()
+                if journal[name]:
+                    shutil.copy2(source, directory / name)
+                    with (directory / name).open('rb') as stream: os.fsync(stream.fileno())
+            atomic_write_bytes(directory / 'journal.json', canonical_bytes(journal) + b'\n', 0o600)
+            self._fsync_dir(directory); self._fsync_dir(self.root)
+            yield
+            for path in (self.current_dir, self.rollback_dir, self.root):
+                if path.is_dir(): self._fsync_dir(path)
+            journal['status'] = 'committed'
+            atomic_write_bytes(directory / 'journal.json', canonical_bytes(journal) + b'\n', 0o600)
+            self._fsync_dir(self.root)
+            shutil.rmtree(directory); self._fsync_dir(self.root)
+        except Exception:
+            try:
+                if (directory / 'journal.json').is_file(): self._restore_transaction(directory)
+                else: shutil.rmtree(directory, ignore_errors=True)
+            except Exception:
+                pass
+            raise
 
     def _current_binary(self):
         return self.current_dir / 'rill-runtime'
@@ -657,6 +1008,8 @@ class RillMLRuntimeManager:
             (self.current_dir, _RILLML_ROOT_MODE),
             (self.rollback_dir, _RILLML_ROOT_MODE),
             (self.staging_dir, _RILLML_ROOT_MODE),
+            # Runtime reads this lock to take a shared, read-only status lock.
+            (self.lock_path, _RILLML_STATE_MODE),
             (self.state_path, _RILLML_STATE_MODE),
             (self.current_dir / 'rill-runtime', _RILLML_BIN_MODE),
             (self.rollback_dir / 'rill-runtime', _RILLML_BIN_MODE),
@@ -690,30 +1043,30 @@ class RillMLRuntimeManager:
                 'unavailableReason': str(exc),
                 'current': None, 'rollback': None,
             }
-        state = self._read_state()
-        current_bin = self._current_binary()
-        current = None
-        if state.get('version') and current_bin.is_file():
-            current = {
-                'version': state.get('version'),
-                'artifactId': state.get('artifactId'),
-                'path': str(current_bin),
-                'activatedAtEpochSeconds': state.get('activatedAtEpochSeconds'),
-                'probe': state.get('probe'),
-            }
-        rollback_bin = self.rollback_dir / 'rill-runtime'
-        rollback = None
-        if state.get('rollbackVersion') and rollback_bin.is_file():
-            rollback = {
-                'version': state.get('rollbackVersion'),
-                'artifactId': state.get('rollbackArtifactId'),
-                'path': str(rollback_bin),
-            }
+        with self._lifecycle_lock(shared=True):
+            state = self._read_state()
+            pending = any(self.root.glob('.txn-*'))
+            current_bin = self._current_binary()
+            current = None
+            if (not pending and state.get('version')
+                    and self._verified_file(current_bin, state.get('currentRecord'))):
+                current = {'version': state.get('version'), 'artifactId': state.get('artifactId'),
+                           'path': str(current_bin),
+                           'activatedAtEpochSeconds': state.get('activatedAtEpochSeconds'),
+                           'probe': state.get('probe')}
+            rollback_bin = self.rollback_dir / 'rill-runtime'
+            rollback = None
+            if (not pending and state.get('rollbackVersion')
+                    and self._verified_file(rollback_bin, state.get('rollbackRecord'))):
+                rollback = {'version': state.get('rollbackVersion'),
+                            'artifactId': state.get('rollbackArtifactId'),
+                            'path': str(rollback_bin)}
         return {
             'schemaVersion': 1, 'supported': True, 'platform': platform_,
             'channel': self.channel, 'requiredApiVersion': self.api_version,
             'available': current is not None,
-            'unavailableReason': None,
+            'unavailableReason': ('recovery-required' if pending else
+                                  ('unverified-current' if state.get('version') and current is None else None)),
             'current': current, 'rollback': rollback,
         }
 
@@ -751,6 +1104,14 @@ class RillMLRuntimeManager:
 
     def install(self, *, probe='lightweight', timeout=60.0, attempts=4,
                 allow_downgrade=False):
+        with self._lifecycle_lock():
+            self._recover_transactions()
+            return self._install_locked(probe=probe, timeout=timeout,
+                                        attempts=attempts,
+                                        allow_downgrade=allow_downgrade)
+
+    def _install_locked(self, *, probe='lightweight', timeout=60.0, attempts=4,
+                allow_downgrade=False):
         """Stage, verify, probe and atomically activate the current runtime.
 
         ``probe='handshake'`` additionally fetches the matching model + handler
@@ -763,7 +1124,8 @@ class RillMLRuntimeManager:
         resolved = self.resolve(timeout=timeout, attempts=attempts)
         artifact = resolved['artifact']
         payload = resolved['payload']
-        current_version = self._read_state().get('version')
+        current_version = (self._read_state().get('version')
+                           if self.status().get('available') else None)
         if current_version and not allow_downgrade:
             if _semver_key(artifact['version']) < _semver_key(current_version):
                 raise RillMLUnsupported(
@@ -788,10 +1150,15 @@ class RillMLRuntimeManager:
             model_path=model_path, handler_path=handler_path,
             trusted_key_id=self.trusted_key_id,
             public_key_hex=self.public_key_hex)
-        self._activate(artifact, staged, probe_result)
+        self._activate(artifact, staged, probe_result, resolved=resolved)
         return {'activated': True, 'status': self.status(), 'probe': probe_result}
 
-    def _activate(self, artifact, staged, probe_result):
+    def _activate(self, artifact, staged, probe_result, *, resolved=None):
+        with self._state_transaction():
+            return self._activate_untransactional(artifact, staged, probe_result,
+                                                  resolved=resolved)
+
+    def _activate_untransactional(self, artifact, staged, probe_result, *, resolved=None):
         self.root.mkdir(parents=True, exist_ok=True)
         current_bin = self._current_binary()
         rollback_bin = self.rollback_dir / 'rill-runtime'
@@ -800,7 +1167,10 @@ class RillMLRuntimeManager:
             if path.is_symlink():
                 raise RillMLValidationError(f'managed path is a symlink: {path}')
         # Preserve the current binary as the rollback (previous-good).
-        if current_bin.is_file() and not current_bin.is_symlink():
+        prior_state = self._read_state()
+        prior_record = prior_state.get('currentRecord')
+        previous_good = self._verified_file(current_bin, prior_record)
+        if previous_good:
             self.rollback_dir.mkdir(parents=True, exist_ok=True)
             if rollback_bin.exists() or rollback_bin.is_symlink():
                 rollback_bin.unlink()
@@ -808,7 +1178,16 @@ class RillMLRuntimeManager:
         # Move the staged verified binary into place atomically.
         self.current_dir.mkdir(parents=True, exist_ok=True)
         os.replace(staged, current_bin)
-        state = self._read_state()
+        state = prior_state
+        current_record = {
+            'sha256': artifact['sha256'], 'size': artifact['size'],
+            'indexSha256': hashlib.sha256(canonical_bytes((resolved or {}).get('payload', {}))).hexdigest(),
+            'publisherKeyId': (resolved or {}).get('publisherKeyId'),
+            'version': artifact['version'],
+            'platform': (resolved or {}).get('platform'),
+            'runtimeApiVersion': artifact.get('runtimeApiVersion'),
+            'artifactId': artifact.get('id'), 'probe': probe_result,
+        }
         state.update({
             'version': artifact['version'],
             'artifactId': artifact.get('id'),
@@ -819,8 +1198,10 @@ class RillMLRuntimeManager:
             'source': 'rill-ml-stable-index',
             'activatedAtEpochSeconds': int(time.time()),
             'probe': probe_result,
-            'rollbackVersion': state.get('version'),
-            'rollbackArtifactId': state.get('artifactId'),
+            'rollbackVersion': (state.get('version') if previous_good else state.get('rollbackVersion')),
+            'rollbackArtifactId': (state.get('artifactId') if previous_good else state.get('rollbackArtifactId')),
+            'rollbackRecord': (prior_record if previous_good else state.get('rollbackRecord')),
+            'currentRecord': current_record,
         })
         self._write_state(state)
         # The unprivileged Runtime (§P0-16) must be able to reflect the newly
@@ -829,33 +1210,49 @@ class RillMLRuntimeManager:
         self._ensure_runtime_group_readable()
 
     def rollback(self):
+        with self._lifecycle_lock():
+            self._recover_transactions()
+            return self._rollback_locked()
+
+    def _rollback_locked(self):
         """Restore the previous-good runtime into ``current`` (if present)."""
         rollback_bin = self.rollback_dir / 'rill-runtime'
-        if not rollback_bin.is_file() or rollback_bin.is_symlink():
-            raise RillMLUnsupported('no previous-good runtime available to restore')
         state = self._read_state()
+        if not self._verified_file(rollback_bin, state.get('rollbackRecord')):
+            raise RillMLUnsupported('no previous-good runtime available to restore')
         current_bin = self._current_binary()
-        if current_bin.is_file() and not current_bin.is_symlink():
-            current_bin.unlink()
-        self.current_dir.mkdir(parents=True, exist_ok=True)
-        os.replace(rollback_bin, current_bin)
-        state.update({
-            'version': state.get('rollbackVersion'),
-            'artifactId': state.get('rollbackArtifactId'),
-            'rollbackVersion': None,
-            'rollbackArtifactId': None,
-        })
-        self._write_state(state)
-        self._ensure_runtime_group_readable()
+        with self._state_transaction():
+            if current_bin.is_file() and not current_bin.is_symlink(): current_bin.unlink()
+            self.current_dir.mkdir(parents=True, exist_ok=True)
+            os.replace(rollback_bin, current_bin)
+            state.update({
+                'rollbackVersion': state.get('version'),
+                'rollbackArtifactId': state.get('artifactId'),
+                'rollbackRecord': state.get('currentRecord'),
+                'version': state.get('rollbackVersion'),
+                'artifactId': state.get('rollbackArtifactId'),
+                'currentRecord': state.get('rollbackRecord'),
+            })
+            self._write_state(state)
+            self._ensure_runtime_group_readable()
         return {'rolledBack': True, 'status': self.status()}
 
     def upgrade(self, *, probe='lightweight', timeout=60.0, attempts=4,
+                allow_downgrade=False):
+        with self._lifecycle_lock():
+            self._recover_transactions()
+            return self._upgrade_locked(probe=probe, timeout=timeout,
+                                        attempts=attempts,
+                                        allow_downgrade=allow_downgrade)
+
+    def _upgrade_locked(self, *, probe='lightweight', timeout=60.0, attempts=4,
                 allow_downgrade=False):
         """Refresh against the stable index and install a newer compatible
         runtime. If the resolved stable runtime equals or predates the verified
         installed one the current runtime is kept (no downgrade, no churn)."""
         artifact = self.resolve(timeout=timeout, attempts=attempts)['artifact']
-        current_version = self._read_state().get('version')
+        current_version = (self._read_state().get('version')
+                           if self.status().get('available') else None)
         if current_version:
             if _semver_key(artifact['version']) < _semver_key(current_version):
                 if not allow_downgrade:
@@ -873,9 +1270,11 @@ class RillMLRuntimeManager:
     def reinstall(self, *, probe='lightweight', timeout=60.0, attempts=4):
         """Reuse a verified current runtime when one is present; otherwise run a
         fresh verified install. Never recompiles and never wipes previous-good."""
-        if self.status().get('available'):
-            return {'reused': True, 'status': self.status()}
-        return self.install(probe=probe, timeout=timeout, attempts=attempts)
+        with self._lifecycle_lock():
+            self._recover_transactions()
+            if self.status().get('available'):
+                return {'reused': True, 'status': self.status()}
+            return self._install_locked(probe=probe, timeout=timeout, attempts=attempts)
 
     def native_status(self):
         """Spec §34 status surface: ``nativeRuntime`` + ``fallback``.
@@ -883,8 +1282,9 @@ class RillMLRuntimeManager:
         Read-only and offline (never touches the network): reflects the verified
         installed runtime and host platform identity.
         """
-        status = self.status()
-        state = self._read_state()
+        with self._lifecycle_lock(shared=True):
+            status = self.status()
+            state = self._read_state()
         platform_ = status.get('platform') or {}
         current = status.get('current')
         if status.get('supported') and status.get('available') and current:
