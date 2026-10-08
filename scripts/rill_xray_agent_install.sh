@@ -111,6 +111,7 @@ restore_upgrade() {
         if [[ "$enabled" == enabled ]]; then systemctl enable "$unit" || return 1; elif [[ "$enabled" == disabled ]]; then systemctl disable "$unit" || return 1; fi
         if [[ "$active" == active ]]; then systemctl restart "$unit" || return 1; else systemctl stop "$unit" || return 1; fi
     done < "$BACKUP_DIR/unit-state"
+    # shellcheck disable=SC1090
     source "$(root /etc/rill-xray-agent/scripts/rill_xray_agent_manager.sh)"
     rxa_apply_auto_revoke || return 1
     rxa_apply_mode "$mode" || return 1
@@ -130,7 +131,9 @@ if ((UPGRADE)); then
     if [[ -z "$DESTDIR" ]]; then
         printf '%s\n' "$SAVED_MODE" > "$TXN_DIR/saved-mode"; : > "$BACKUP_DIR/unit-state"
         for unit in rill-xray-agent-runtime.service rill-xray-agent-agent.service rill-xray-agent-xray-observe.path rill-xray-agent-xray-observe.timer rill-xray-agent-apply.path rill-xray-agent-auto-evaluate.path; do
-            enabled=disabled; active=inactive; systemctl is-enabled --quiet "$unit" && enabled=enabled || true; systemctl is-active --quiet "$unit" && active=active || true
+            enabled=disabled; active=inactive
+            if systemctl is-enabled --quiet "$unit"; then enabled=enabled; fi
+            if systemctl is-active --quiet "$unit"; then active=active; fi
             printf '%s %s %s\n' "$unit" "$enabled" "$active" >> "$BACKUP_DIR/unit-state"
         done
     fi
@@ -217,6 +220,10 @@ chmod 2770 /var/spool/rill-xray-agent-apply
 chown root:rill-xray-agent /opt/rill-xray-agent/share/release-capabilities.json
 chmod 0640 /opt/rill-xray-agent/share/release-capabilities.json
 systemctl daemon-reload
+rxa_report_runtime_startup_failure() {
+    systemctl --no-pager --full status rill-xray-agent-runtime.service >&2 || true
+    journalctl --no-pager -u rill-xray-agent-runtime.service -n 80 >&2 || true
+}
 if ((UPGRADE)); then
     # Restart only units that were already active. The new manager below owns
     # the final mode transition; this prevents safe-disabled from being
@@ -257,6 +264,7 @@ if ((UPGRADE)); then
     done
     if (( ! socket_ready )); then
         echo 'Rill 升级失败：Runtime socket 未就绪' >&2
+        rxa_report_runtime_startup_failure
         exit 1
     fi
     # systemd restart is asynchronous on PID1 hosts. Give the new Runtime and
@@ -276,7 +284,40 @@ if ((UPGRADE)); then
         exit 1
     fi
 else
-    rxa_apply_mode "$(rxa_get mode)"
+    # Enabling the Runtime unit is asynchronous: systemctl can return before
+    # the process has bound its Unix socket. The fresh-install mode transaction
+    # immediately sends a Runtime WAL request, so wait for a real connect()
+    # before attempting it (the upgrade path has the same startup boundary).
+    socket_ready=0
+    for _ in $(seq 1 30); do
+        if rxa_socket_connectable /run/rill-xray-agent/runtime.sock; then
+            socket_ready=1
+            break
+        fi
+        sleep 0.5
+    done
+    if (( ! socket_ready )); then
+        echo 'Rill 安装失败：Runtime socket 未就绪' >&2
+        rxa_report_runtime_startup_failure
+        exit 1
+    fi
+
+    # A listening socket may become available just before initialization is
+    # complete. Retry the full transactional mode change for a short bounded
+    # window; each failed attempt rolls back its partial changes.
+    target_mode=$(rxa_get mode)
+    mode_applied=0
+    for _ in 1 2 3 4 5; do
+        if rxa_apply_mode "$target_mode"; then
+            mode_applied=1
+            break
+        fi
+        sleep 1
+    done
+    if (( ! mode_applied )); then
+        echo "Rill 安装失败：无法应用工作模式 ${target_mode}" >&2
+        exit 1
+    fi
 fi
 # Mode-aware verification is authoritative for both paths. A fresh install
 # additionally requires its complete active unit set below. PID1 may still be

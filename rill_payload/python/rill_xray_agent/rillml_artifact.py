@@ -1008,6 +1008,8 @@ class RillMLRuntimeManager:
             (self.current_dir, _RILLML_ROOT_MODE),
             (self.rollback_dir, _RILLML_ROOT_MODE),
             (self.staging_dir, _RILLML_ROOT_MODE),
+            # Runtime reads this lock to take a shared, read-only status lock.
+            (self.lock_path, _RILLML_STATE_MODE),
             (self.state_path, _RILLML_STATE_MODE),
             (self.current_dir / 'rill-runtime', _RILLML_BIN_MODE),
             (self.rollback_dir / 'rill-runtime', _RILLML_BIN_MODE),
