@@ -88,6 +88,7 @@ jobs:
           # pkg_install multi-package failure propagation, offline/online language
           # init ordering, lazy config load, candidate-guard stage diagnostics.
           bash .github/test/test_bootstrap_dependencies.sh
+          bash .github/test/test_log_rotation.sh
           # Issue #102: metadata must be loaded before the first immutable
           # candidate URL is constructed; this is separate from the full
           # zero-state user journey below.
