@@ -21,20 +21,39 @@ class ReleaseAutomationTests(unittest.TestCase):
     def test_release_workflow_keeps_existing_release_immutable(self):
         workflow = (ROOT / ".github/workflows/publish-shell-version.yml").read_text()
         for fragment in (
+            'uses: ./.github/workflows/test-install.yml',
+            'candidate_commit: ${{ needs.candidate.outputs.candidate_commit }}',
+            'canonical_digest: ${{ needs.candidate.outputs.canonical_digest }}',
             'gh release download "$tag"',
-            '(cd "$tmp/download" && sha256sum -c SHA256SUMS)',
-            'sha256sum "$tmp/download/install.sh"',
-            'sha256sum "$tmp/download/rill-xray-agent-xray-bundle.tar.gz"',
-            'different Rill bundle; bump shell_version',
+            '(cd "$SUMS_DIR/download" && sha256sum -c SHA256SUMS)',
+            'release-manifest.json',
+            'qualificationRunId',
+            'release-candidate-gate',
             'tag_sha" == "$CANDIDATE_COMMIT"',
         ):
             self.assertIn(fragment, workflow)
-        self.assertIn('          fi\n          tag_ref=$(gh api', workflow)
-        self.assertLess(
-            workflow.index('gh release create "$tag"'),
-            workflow.rindex('tag_ref=$(gh api'),
-            "the exact tag-commit assertion must run after the create path",
-        )
+        release_job = workflow[workflow.index('  release:\n'):]
+        self.assertIn('      - candidate\n      - qualify\n', release_job)
+        self.assertNotIn('if: always()', release_job)
+        self.assertIn('      contents: write\n      actions: read', release_job)
+        self.assertLess(release_job.index('Assert completed qualification outputs'),
+                        release_job.index('gh release create "$tag"'))
+        self.assertLess(release_job.index('gh release create "$tag"'),
+                        release_job.index('Publish API promotion after the immutable Release'))
+
+    def test_release_write_calls_are_confined_to_qualified_job(self):
+        workflow = (ROOT / ".github/workflows/publish-shell-version.yml").read_text()
+        jobs = workflow[workflow.index('jobs:\n'):]
+        candidate = jobs[jobs.index('  candidate:\n'):jobs.index('  qualify:\n')]
+        qualification = jobs[jobs.index('  qualify:\n'):jobs.index('  release:\n')]
+        release = jobs[jobs.index('  release:\n'):]
+        for text in (candidate, qualification):
+            self.assertNotIn('gh release create', text)
+            self.assertNotIn('gh api', text)
+            self.assertNotIn('RELEASE_AUTOMATION_TOKEN', text)
+        self.assertIn('needs:\n      - candidate\n      - qualify', release)
+        self.assertIn('permissions:\n      contents: write', release)
+        self.assertIn('gh release create "$tag"', release)
 
     def test_legacy_identity_excludes_provenance_bearing_bundle(self):
         manifest = {

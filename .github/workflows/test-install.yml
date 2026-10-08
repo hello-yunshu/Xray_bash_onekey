@@ -1,6 +1,29 @@
 name: Test Install
 
 on:
+  workflow_call:
+    inputs:
+      candidate_commit:
+        required: true
+        type: string
+      canonical_commit:
+        required: true
+        type: string
+      canonical_digest:
+        required: true
+        type: string
+      canonical_bundle_sha256:
+        required: true
+        type: string
+    outputs:
+      candidate_commit:
+        value: ${{ jobs.release-candidate-gate.outputs.candidate_commit }}
+      canonical_commit:
+        value: ${{ jobs.release-candidate-gate.outputs.canonical_commit }}
+      canonical_digest:
+        value: ${{ jobs.release-candidate-gate.outputs.canonical_digest }}
+      canonical_bundle_sha256:
+        value: ${{ jobs.release-candidate-gate.outputs.canonical_bundle_sha256 }}
   push:
     branches:
       - main
@@ -34,6 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
 
       - name: Checkout API contract branch
@@ -145,6 +169,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -204,6 +229,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
 
       - name: Checkout API contract branch
@@ -282,6 +308,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
 
       - name: Run minimal bootstrap test in container
@@ -307,6 +334,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
 
       - name: Checkout API metadata contract
@@ -366,3 +394,66 @@ jobs:
             fi
           done
           echo "release-gate PASS"
+
+  release-candidate-gate:
+    if: inputs.candidate_commit != ''
+    needs:
+      - security-regression
+      - rill-qualification
+      - test-install
+      - minimal-bootstrap
+      - true-fresh-install
+      - release-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    outputs:
+      candidate_commit: ${{ steps.subject.outputs.candidate_commit }}
+      canonical_commit: ${{ steps.subject.outputs.canonical_commit }}
+      canonical_digest: ${{ steps.subject.outputs.canonical_digest }}
+      canonical_bundle_sha256: ${{ steps.subject.outputs.canonical_bundle_sha256 }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.candidate_commit }}
+          persist-credentials: false
+
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/rill-xray-agent
+          ref: ${{ inputs.canonical_commit }}
+          path: .release-canonical
+          persist-credentials: false
+
+      - name: Verify exact release qualification subject
+        id: subject
+        env:
+          EXPECTED_CANDIDATE: ${{ inputs.candidate_commit }}
+          EXPECTED_CANONICAL_COMMIT: ${{ inputs.canonical_commit }}
+          EXPECTED_CANONICAL_DIGEST: ${{ inputs.canonical_digest }}
+          EXPECTED_BUNDLE_SHA256: ${{ inputs.canonical_bundle_sha256 }}
+        run: |
+          set -euo pipefail
+          actual_candidate=$(git rev-parse HEAD)
+          [[ "$actual_candidate" == "$EXPECTED_CANDIDATE" ]]
+          python3 .release-canonical/scripts/run_python_tests.py
+          python3 .release-canonical/scripts/build_canonical_manifest.py --check
+          python3 .release-canonical/scripts/verify_no_build_gate.py --root .release-canonical
+          python3 .release-canonical/integrations/xray_bash_onekey/tools/verify_xray_payload.py \
+            . .release-canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json \
+            --expected-canonical-digest "$EXPECTED_CANONICAL_DIGEST"
+          python3 - "$EXPECTED_CANONICAL_COMMIT" "$EXPECTED_CANONICAL_DIGEST" "$EXPECTED_BUNDLE_SHA256" <<'PY'
+          import hashlib, json, pathlib, subprocess, sys
+          commit, digest, bundle = sys.argv[1:]
+          pin=json.loads(pathlib.Path('repository_files/rill_integration/RILL_CANONICAL_PIN.json').read_text())
+          manifest=json.loads(pathlib.Path('.release-canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json').read_text())
+          actual=hashlib.sha256(pathlib.Path('assets/rill-xray-agent-xray-bundle.tar.gz').read_bytes()).hexdigest()
+          assert subprocess.check_output(['git','-C','.release-canonical','rev-parse','HEAD'],text=True).strip()==commit
+          assert pin['canonicalCommit']==commit and pin['canonicalDigest']==digest
+          assert manifest['canonicalDigest']==digest and manifest['bundleSha256']==bundle==actual
+          PY
+          {
+            echo "candidate_commit=$actual_candidate"
+            echo "canonical_commit=$EXPECTED_CANONICAL_COMMIT"
+            echo "canonical_digest=$EXPECTED_CANONICAL_DIGEST"
+            echo "canonical_bundle_sha256=$EXPECTED_BUNDLE_SHA256"
+          } >> "$GITHUB_OUTPUT"

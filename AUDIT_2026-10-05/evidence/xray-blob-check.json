@@ -1,0 +1,7 @@
+{
+  "checkedGitBlobFiles": 65,
+  "bundleSha256": "60b9306a7d0f68f42d6122c537b9ae3ab7cd633bcb896638ad89827217a2b3b4",
+  "canonicalDigest": "2c43d50701a32a3f7dda0449ce5d5adc68535d4dfa888c5f5ac612ad3e2b8bac",
+  "failures": [],
+  "note": "Git blob bytes bypass core.autocrlf=true checkout conversion; no tracked files rewritten."
+}

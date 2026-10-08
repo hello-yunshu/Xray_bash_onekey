@@ -23,6 +23,9 @@ EXPECTED_SURFACE = "install.sh#RILL_XRAY_AGENT_INTEGRATION"
 
 
 def host_surface(blob: bytes) -> bytes:
+    # Git may materialize this tracked shell file with CRLF on Windows hosts.
+    # Hash the same logical source bytes on every platform.
+    blob = blob.replace(b"\r\n", b"\n")
     start = blob.find(BEGIN)
     end_marker = END + b"\n"
     end = blob.find(end_marker, start)
