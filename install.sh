@@ -60,7 +60,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.9"
+shell_version="3.2.10"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -7596,7 +7596,8 @@ set_traffic_blocker() {
 }
 
 setup_auto_clean_logs() {
-    local logrotate_config
+    local logrotate_config="${LOGROTATE_CONFIG_PATH:-/etc/logrotate.d/xray_log_cleanup}"
+    local logrotate_dir tmp_config nginx_user nginx_group
     echo
 
     log_echo "${GreenBG} $(gettext "是否需要设置自动清理日志") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -7606,49 +7607,97 @@ setup_auto_clean_logs() {
         log_echo "${OK} ${Green} $(gettext "已跳过设置自动清理日志") ${Font}"
         ;;
     *)
-        log_echo "${OK} ${Green} $(gettext "将在 每周三 04:00 自动清空日志") ${Font}"
+        log_echo "${OK} ${Green} $(gettext "将每周轮转并压缩日志") ${Font}"
 
-        logrotate_config="/etc/logrotate.d/xray_log_cleanup"
+        pkg_install "logrotate" || return 1
+        systemctl enable --now logrotate.timer || return 1
 
-        if [[ -f "$logrotate_config" ]]; then
+        logrotate_dir="$(dirname "${logrotate_config}")"
+        if [[ -f "${logrotate_config}" ]]; then
             log_echo "${Warning} ${YellowBG} $(gettext "已设置自动清理日志任务") ${Font}"
             log_echo "${GreenBG} $(gettext "是否需要删除现有自动清理日志任务") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r delete_task
             case $delete_task in
             [yY][eE][sS] | [yY])
-                rm -f "$logrotate_config"
-                judge -r "$(gettext "删除自动清理日志任务")"
+                rm -f "${logrotate_config}" || return 1
+                judge -r "$(gettext "删除自动清理日志任务")" || return 1
                 ;;
             *)
                 log_echo "${OK} ${Green} $(gettext "保留现有自动清理日志任务") ${Font}"
-                return
+                return 0
                 ;;
             esac
         fi
 
-        echo "/var/log/xray/*.log ${nginx_dir}/logs/*.log {" > "$logrotate_config"
-        echo "    weekly" >> "$logrotate_config"
-        echo "    rotate 3" >> "$logrotate_config"
-        echo "    compress" >> "$logrotate_config"
-        echo "    missingok" >> "$logrotate_config"
-        echo "    notifempty" >> "$logrotate_config"
-        local _logrotate_group
-        _logrotate_group=$(id -gn nobody 2>/dev/null || echo "nogroup")
-        echo "    create 640 nobody ${_logrotate_group}" >> "$logrotate_config"
-        echo "}" >> "$logrotate_config"
-
+        nginx_user="$(get_nginx_worker_user)"
+        nginx_group="$(get_nginx_worker_group)"
+        tmp_config="$(mktemp "${logrotate_dir}/.xray_log_cleanup.XXXXXX")" || return 1
+        if ! cat >"${tmp_config}" <<EOF
+/var/log/xray/*.log {
+    weekly
+    rotate 3
+    compress
+    missingok
+    notifempty
+    copytruncate
+}
+${nginx_dir}/logs/*.log {
+    weekly
+    rotate 3
+    compress
+    missingok
+    notifempty
+    create 640 ${nginx_user} ${nginx_group}
+    sharedscripts
+    postrotate
+        if pgrep -x nginx >/dev/null 2>&1; then
+            ${nginx_dir}/sbin/nginx -s reopen -c ${nginx_dir}/conf/nginx.conf
+        fi
+    endscript
+}
+EOF
+        then
+            rm -f "${tmp_config}"
+            return 1
+        fi
+        chmod 644 "${tmp_config}" || { rm -f "${tmp_config}"; return 1; }
+        if ! logrotate --debug "${tmp_config}" >/dev/null 2>&1; then
+            log_echo "${Error} ${RedBG} $(gettext "logrotate 配置检查失败") ${Font}"
+            rm -f "${tmp_config}"
+            return 1
+        fi
+        if ! mv -f "${tmp_config}" "${logrotate_config}"; then
+            rm -f "${tmp_config}"
+            return 1
+        fi
         judge -r "$(gettext "设置自动清理日志")"
         ;;
     esac
 }
 
+truncate_log_file_for_cleanup() {
+    : >"$1"
+}
+
 clean_logs() {
+    local log_file error failed_count=0
     echo
     log_echo "${Green} $(gettext "检测到日志文件大小如下:") ${Font}"
     log_echo "${Green}$(du -sh /var/log/xray "${nginx_dir}"/logs 2>/dev/null)${Font}"
     countdown "$(gettext "即将清除")!"
-    for i in $(find /var/log/xray/ "${nginx_dir}"/logs -name "*.log" 2>/dev/null); do cat /dev/null >"$i" 2>/dev/null; done
-    judge -r "$(gettext "日志清理")" || return 1
+    while IFS= read -r -d '' log_file; do
+        if error=$(truncate_log_file_for_cleanup "${log_file}" 2>&1); then
+            continue
+        fi
+        failed_count=$((failed_count + 1))
+        log_echo "${Warning} ${YellowBG} $(gettext "未能清理"): ${log_file} (${error:-$(gettext "未知错误")}) ${Font}"
+    done < <(find /var/log/xray/ "${nginx_dir}"/logs -type f -name "*.log" -print0 2>/dev/null)
+
+    if [[ ${failed_count} -eq 0 ]]; then
+        judge -r "$(gettext "日志清理")" true || return 1
+    else
+        log_echo "${Warning} ${YellowBG} $(gettext "日志清理完成，但部分文件未清理") (${failed_count}) ${Font}"
+    fi
     setup_auto_clean_logs
 }
 
