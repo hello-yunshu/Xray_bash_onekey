@@ -58,12 +58,15 @@ SYSTEMCTL_STOP_COUNT=0
 XRAY_INSTALL_CALLS=0
 RESTORE_CALLS=0
 FALLBACK_CALLS=0
+ESCALATION_CALLS=0
+CALL_SEQ=""
 
 systemctl() {
     case "$1" in
         stop) SYSTEMCTL_STOP_COUNT=$((SYSTEMCTL_STOP_COUNT + 1)) ;;
         daemon-reload) ;;
         start) ;;
+        restart) ;;
         is-active) return 0 ;;
         -q) [[ "${2:-}" == "is-active" ]] && return 0 ;;
     esac
@@ -76,7 +79,11 @@ xray_install_release() {
 }
 
 HEALTH_CHECK_RESULT=0
-health_check_xray_update() { return ${HEALTH_CHECK_RESULT}; }
+health_check_xray_update() { CALL_SEQ+="health "; return ${HEALTH_CHECK_RESULT}; }
+
+# Account ownership must be re-applied after the installer possibly switched
+# the systemd unit user, and BEFORE the health gate starts/validates the svc.
+xray_privilege_escalation() { ESCALATION_CALLS=$((ESCALATION_CALLS + 1)); CALL_SEQ+="escalation "; return 0; }
 
 info_extraction() {
     case "$1" in
@@ -130,6 +137,8 @@ reset_state() {
     XRAY_INSTALL_CALLS=0
     RESTORE_CALLS=0
     FALLBACK_CALLS=0
+    ESCALATION_CALLS=0
+    CALL_SEQ=""
     BACKUP_RESULT=0
     XRAY_INSTALL_RESULT=0
     HEALTH_CHECK_RESULT=0
@@ -164,6 +173,8 @@ RC=$?
 [[ ${XRAY_INSTALL_CALLS} -ge 1 ]] && ok "online update called xray_install_release" || bad "online update did not call xray_install_release"
 [[ ${RESTORE_CALLS} -eq 0 ]] && ok "online update success did not call restore" || bad "online update success should not call restore"
 [[ ${FALLBACK_CALLS} -eq 0 ]] && ok "online update success did not call fallback" || bad "online update success should not call fallback"
+[[ ${ESCALATION_CALLS} -ge 1 ]] && ok "online update re-applied service account ownership" || bad "online update did not re-apply service account ownership"
+[[ "${CALL_SEQ}" == *"escalation health"* ]] && ok "ownership applied before the health gate" || bad "health gate ran before ownership fix (${CALL_SEQ})"
 
 printf '%s\n' '--- [auto] online update failure, local backup restore success -> non-zero ---'
 reset_state
