@@ -60,7 +60,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.10"
+shell_version="3.2.11"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -4408,8 +4408,8 @@ spiderx_set() {
     fi
 }
 
-# 收紧敏感配置文件权限：不影响 Xray(nobody) 读取 config.json 与证书
-# install_config/分享文件仅 root 可读；config.json 与私钥由 nobody 持有以兼容 Xray
+# 收紧敏感配置文件权限：不影响 Xray 读取 config.json 与证书
+# install_config/分享文件仅 root 可读；config.json 由实际服务账号持有
 # SSL certs/keys must be root-owned with worker group read (640).
 apply_sensitive_file_permissions() {
     local file="$1"
@@ -4423,9 +4423,35 @@ apply_sensitive_file_permissions() {
     return 0
 }
 
+# Xray-install 生成的 systemd 单元账号会随上游变化（旧版 User=nobody，
+# 新版 User=xray）。config.json 与 /var/log/xray 的所有权必须跟随实际单元账号，
+# 否则升级后 Xray 读不到旧账号持有的配置，报 status=23 permission denied。
+xray_service_user() {
+    local _user="" _file _value
+    for _file in "${xray_systemd_file}" "${xray_systemd_file}.d"/*.conf; do
+        [[ -f "${_file}" ]] || continue
+        _value=$(sed -n 's/^[[:space:]]*User[[:space:]]*=[[:space:]]*\([^[:space:]]*\).*/\1/p' "${_file}" | tail -n 1)
+        [[ -n "${_value}" ]] && _user="${_value}"
+    done
+    if [[ -z "${_user}" ]]; then
+        if id nobody >/dev/null 2>&1; then
+            _user="nobody"
+        else
+            _user="root"
+        fi
+    fi
+    printf '%s\n' "${_user}"
+}
+
+xray_service_group() {
+    local _user="$1"
+    id -gn "${_user}" 2>/dev/null || printf '%s\n' "${_user}"
+}
+
 harden_config_permissions() {
     local failed=0
     local _nginx_worker_group
+    local _xray_service_user _xray_service_group
 
     # An existing Nginx tree can predate the dedicated worker account (for
     # example, upgrades and Docker images shared by non-Nginx install modes).
@@ -4436,9 +4462,11 @@ harden_config_permissions() {
         failed=1
     fi
     _nginx_worker_group=$(get_nginx_worker_group)
+    _xray_service_user=$(xray_service_user)
+    _xray_service_group=$(xray_service_group "${_xray_service_user}")
 
     apply_sensitive_file_permissions "${xray_install_config_file}" "root:root" || failed=1
-    apply_sensitive_file_permissions "${xray_conf}" "nobody:$(id -gn nobody 2>/dev/null || echo nogroup)" || failed=1
+    apply_sensitive_file_permissions "${xray_conf}" "${_xray_service_user}:${_xray_service_group}" || failed=1
     # Root owns certs/keys, worker group can read but NOT write.
     # Private key: 640 (root rw, idleleo-nginx r, others none)
     # Public cert: 640 (root rw, idleleo-nginx r, others none)
@@ -4461,30 +4489,18 @@ modify_reality_listen_address () {
 }
 
 xray_privilege_escalation() {
-    local _systemd_files=("${xray_systemd_file}")
-    local _override_dir="${xray_systemd_file}.d"
-    if [[ -d "${_override_dir}" ]]; then
-        local _conf_file
-        for _conf_file in "${_override_dir}"/*.conf; do
-            [[ -f "$_conf_file" ]] && _systemd_files+=("$_conf_file")
-        done
-    fi
-    local _has_nobody_user=false
-    local _svc_file
-    for _svc_file in "${_systemd_files[@]}"; do
-        if grep -q "User=nobody" "$_svc_file"; then
-            _has_nobody_user=true
-            break
-        fi
-    done
-    if [[ "${_has_nobody_user}" == "true" ]]; then
-        local _nobody_group
-        _nobody_group=$(id -gn nobody 2>/dev/null || echo "nogroup")
+    local _xray_service_user _xray_service_group
+    _xray_service_user=$(xray_service_user)
+    _xray_service_group=$(xray_service_group "${_xray_service_user}")
+    if [[ "${_xray_service_user}" != "root" ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动修改程序") ${Font}"
         mkdir -p /var/log/xray/
-        chown -fR "nobody:${_nobody_group}" /var/log/xray/
+        chown -fR "${_xray_service_user}:${_xray_service_group}" /var/log/xray/
         chmod -f 755 /var/log/xray/
         find /var/log/xray/ -type f -exec chmod -f 644 {} \;
+        # 安装器切换服务账号后（nobody -> xray），已存在的配置必须同步归属，
+        # 否则升级或回滚后 Xray 仍会因 permission denied 启动失败。
+        apply_sensitive_file_permissions "${xray_conf}" "${_xray_service_user}:${_xray_service_group}" || return 1
         # SSL cert files must be owned by root, not worker.
         # xray_privilege_escalation() must NOT change cert ownership to worker user.
         # Only apply_nginx_layered_permissions() and harden_config_permissions()
@@ -4493,6 +4509,8 @@ xray_privilege_escalation() {
             apply_nginx_layered_permissions || return 1
             verify_nginx_layered_permissions || return 1
         fi
+    else
+        apply_sensitive_file_permissions "${xray_conf}" "root:root" || return 1
     fi
     log_echo "${OK} ${GreenBG} Xray $(gettext "修改") $(gettext "完成") ${Font}"
 }
@@ -4515,7 +4533,11 @@ set_xray_config_path() {
 }
 
 xray_install() {
-    if [[ $(xray version) == "" ]] || [[ ! -f "${xray_conf}" ]]; then
+    local current_xray_version
+    current_xray_version=$(xray version 2>/dev/null | head -1 | awk '{print $2}')
+    # 已有二进制也必须与清单钉定版本一致；否则外部装上的最新版会被直接沿用。
+    if [[ -z "${current_xray_version}" ]] || [[ ! -f "${xray_conf}" ]] ||
+        [[ -n "${xray_online_version}" && "${current_xray_version}" != "${xray_online_version}" ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "即将安装") Xray v${xray_online_version} ${Font}"
         xray_install_release install -f --version v${xray_online_version}
         judge "$(gettext "安装") Xray"
@@ -4525,11 +4547,17 @@ xray_install() {
         xray_version=${xray_online_version}
     else
         log_echo "${OK} ${GreenBG} $(gettext "已安装") Xray ${Font}"
-        xray_version=$(info_extraction xray_version)
-        if [[ -z "${xray_version}" ]]; then
-            xray_version=$(${xray_bin_dir}/xray version | head -1 | awk '{print $2}')
-        fi
+        xray_version="${current_xray_version}"
     fi
+}
+
+xray_install_pinned_and_check() {
+    local _version="$1"
+    xray_install_release install -f --version "v${_version}" || return 1
+    # 安装器可能切换 systemd 服务账号，先同步配置/日志归属，再重启跑健康检查。
+    xray_privilege_escalation || return 1
+    systemctl restart xray
+    health_check_xray_update "${_version}"
 }
 
 xray_update() {
@@ -4561,7 +4589,7 @@ xray_update() {
                 systemctl stop xray
                 # Install + comprehensive health check
                 # (binary exec / version match / config parse / service active / port listening)
-                if xray_install_release install -f --version "v${xray_online_version}" && health_check_xray_update "${xray_online_version}"; then
+                if xray_install_pinned_and_check "${xray_online_version}"; then
                     xray_version=${xray_online_version}
                     judge "Xray $(gettext "更新")" true
                 else
@@ -4613,7 +4641,7 @@ xray_update() {
                 return 1
             fi
             systemctl stop xray
-            if xray_install_release install -f --version "v${xray_online_version}" && health_check_xray_update "${xray_online_version}"; then
+            if xray_install_pinned_and_check "${xray_online_version}"; then
                 xray_version=${xray_online_version}
             else
                 xray_diagnose
@@ -4643,7 +4671,7 @@ xray_update() {
         systemctl stop xray
         xray_version=${xray_online_version}
         # Same-version reinstall must have layered rollback
-        if xray_install_release install -f --version v${xray_online_version} && health_check_xray_update "${xray_online_version}"; then
+        if xray_install_pinned_and_check "${xray_online_version}"; then
             judge "Xray $(gettext "重装")" true
         else
             log_echo "${Error} ${RedBG} Xray $(gettext "重装") $(gettext "失败")! ${Font}"
@@ -5775,6 +5803,7 @@ fallback_xray_to_tested_version() {
         log_echo "${Error} ${RedBG} Xray tested_version $(gettext "二进制不可执行") ${Font}"
         return 1
     fi
+    xray_privilege_escalation || return 1
     systemctl start xray >/dev/null 2>&1
     sleep 1
     if ! systemctl -q is-active xray; then
