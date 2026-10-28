@@ -96,6 +96,9 @@ jobs:
           # Xray update transaction tests (auto + manual mode coverage)
           bash .github/test/test_xray_update_transaction.sh
           bash .github/test/test_xray_installer_metadata.sh
+          # Xray config/log ownership must follow the systemd unit account
+          # (Xray-install switched User=nobody -> User=xray).
+          bash .github/test/test_xray_service_user_permissions.sh
           bash -n .github/test/test_installer_candidate_smoke.sh
           bash .github/test/test_vps_auto_update_schedule.sh
           # Online version metadata must fall back cleanly without contaminating values.
