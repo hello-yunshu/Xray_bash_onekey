@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import importlib.util
+import contextlib
+import io
 import json
 import tempfile
 import unittest
@@ -18,6 +20,40 @@ SPEC.loader.exec_module(MODULE)
 
 
 class ReleaseAutomationTests(unittest.TestCase):
+    def test_automatic_release_intent_uses_version_increase(self):
+        spec = importlib.util.spec_from_file_location(
+            "release_intent", ROOT / "scripts/check_shell_release_intent.py"
+        )
+        intent = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(intent)
+        self.assertGreater(intent.version('shell_version="3.2.10"\n'),
+                           intent.version('shell_version="3.2.9"\n'))
+        for invalid in ('', 'shell_version="3.2"',
+                        'shell_version="3.2.9"\nshell_version="3.2.10"'):
+            with self.assertRaises(ValueError):
+                intent.version(invalid)
+        workflow = (ROOT / ".github/workflows/publish-shell-version.yml").read_text()
+        self.assertIn('branches: [main]', workflow)
+        self.assertIn('paths: [install.sh]', workflow)
+        self.assertIn('needs: release-intent', workflow)
+        self.assertIn("needs.release-intent.outputs.publish == 'true'", workflow)
+        self.assertIn('workflow_dispatch:', workflow)
+
+        for previous, current, expected in (
+            ('3.2.9', '3.2.10', 'publish=true\n'),
+            ('3.2.10', '3.2.10', 'publish=false\n'),
+        ):
+            output = io.StringIO()
+            with mock.patch.object(intent.sys, 'argv', ['check', 'a' * 40]), \
+                 mock.patch.object(intent.subprocess, 'check_output', return_value=f'shell_version="{previous}"\n'), \
+                 mock.patch.object(intent.Path, 'read_text', return_value=f'shell_version="{current}"\n'), \
+                 contextlib.redirect_stdout(output):
+                intent.main()
+            self.assertEqual(output.getvalue(), expected)
+        with mock.patch.object(intent.sys, 'argv', ['check', '0' * 40]):
+            with self.assertRaises(SystemExit):
+                intent.main()
+
     def test_release_workflow_keeps_existing_release_immutable(self):
         workflow = (ROOT / ".github/workflows/publish-shell-version.yml").read_text()
         for fragment in (
