@@ -1,6 +1,9 @@
 name: Release Xray
 
 on:
+  push:
+    branches: [main]
+    paths: [install.sh]
   workflow_dispatch:
     inputs:
       details:
@@ -16,7 +19,32 @@ permissions:
   contents: read
 
 jobs:
+  release-intent:
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.check.outputs.publish }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Detect a shell version increase
+        id: check
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == workflow_dispatch ]]; then
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+          else
+            python3 scripts/check_shell_release_intent.py "$BEFORE_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
   candidate:
+    needs: release-intent
+    if: needs.release-intent.outputs.publish == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
