@@ -75,6 +75,8 @@ mkdir() { printf 'mkdir %s\n' "$*" >> "${FS_LOG}"; }
 chown() { printf 'chown %s\n' "$*" >> "${FS_LOG}"; }
 chmod() { :; }
 find()  { :; }
+# Directory access is exercised with real users by test_xray_runtime_permissions.sh.
+xray_config_directory_permissions() { :; }
 
 write_unit() {
     printf '[Service]\n%s\n' "$1" > "${UNIT_FILE}"
@@ -142,7 +144,7 @@ else
     bad "xray_privilege_escalation owns /var/log/xray by xray; got: $(tr '\n' ';' < "${FS_LOG}")"
 fi
 
-# ---- 4. root unit stays root, no log ownership churn -----------------
+# ---- 4. root unit repairs logs despite restricted capabilities ------
 write_unit "User=root"
 : > "${APPLY_LOG}"
 : > "${FS_LOG}"
@@ -152,10 +154,10 @@ if grep -qx "${xray_conf}|root:root|600" "${APPLY_LOG}"; then
 else
     bad "root unit keeps config.json owned by root; got: $(tr '\n' ';' < "${APPLY_LOG}")"
 fi
-if grep -q "chown -fR" "${FS_LOG}"; then
-    bad "root unit must not chown /var/log/xray; got: $(tr '\n' ';' < "${FS_LOG}")"
+if grep -q "chown -fR root:$(id -gn root) /var/log/xray/" "${FS_LOG}"; then
+    ok "root unit repairs log ownership even with restricted capabilities"
 else
-    ok "root unit does not chown /var/log/xray"
+    bad "root unit did not repair log ownership"
 fi
 
 echo "============================================================"
