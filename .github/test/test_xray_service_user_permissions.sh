@@ -144,7 +144,7 @@ else
     bad "xray_privilege_escalation owns /var/log/xray by xray; got: $(tr '\n' ';' < "${FS_LOG}")"
 fi
 
-# ---- 4. root unit stays root, no log ownership churn -----------------
+# ---- 4. root unit repairs logs despite restricted capabilities ------
 write_unit "User=root"
 : > "${APPLY_LOG}"
 : > "${FS_LOG}"
@@ -154,7 +154,7 @@ if grep -qx "${xray_conf}|root:root|600" "${APPLY_LOG}"; then
 else
     bad "root unit keeps config.json owned by root; got: $(tr '\n' ';' < "${APPLY_LOG}")"
 fi
-if grep -q "chown -fR root:root /var/log/xray/" "${FS_LOG}"; then
+if grep -q "chown -fR root:$(id -gn root) /var/log/xray/" "${FS_LOG}"; then
     ok "root unit repairs log ownership even with restricted capabilities"
 else
     bad "root unit did not repair log ownership"
