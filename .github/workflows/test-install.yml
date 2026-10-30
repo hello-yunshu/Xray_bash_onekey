@@ -97,6 +97,7 @@ jobs:
           bash .github/test/test_shell_bootstrap_ordering.sh
           # Xray update transaction tests (auto + manual mode coverage)
           bash .github/test/test_xray_update_transaction.sh
+          bash .github/test/test_xray_version_pipefail.sh
           bash .github/test/test_xray_installer_metadata.sh
           # Xray config/log ownership must follow the systemd unit account
           # (Xray-install switched User=nobody -> User=xray).
