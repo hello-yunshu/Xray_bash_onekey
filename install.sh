@@ -5934,7 +5934,9 @@ health_check_xray_update() {
     fi
     if [[ -n "${expected_version}" ]]; then
         local actual_version
-        actual_version=$("${xray_binary}" version 2>/dev/null | head -1 | awk '{print $2}')
+        # Read the entire stream: head can close the pipe early and cause the
+        # Xray process to receive SIGPIPE under callers using pipefail.
+        actual_version=$("${xray_binary}" version 2>/dev/null | awk 'NR == 1 {print $2}')
         # Xray prints "vX.Y.Z" or "X.Y.Z"; accept either form
         if [[ "${actual_version}" != "v${expected_version}" && "${actual_version}" != "${expected_version}" ]]; then
             log_echo "${Error} ${RedBG} Xray $(gettext "版本不匹配"): expected=${expected_version}, actual=${actual_version} ${Font}"
