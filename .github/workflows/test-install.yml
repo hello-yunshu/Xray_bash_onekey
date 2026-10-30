@@ -44,7 +44,9 @@ on:
         default: 'main'
 
 concurrency:
-  group: test-install-${{ github.ref }}
+  # A main push also starts Release Xray, which calls this workflow. Keep
+  # those runs separate so installation CI cannot cancel release qualification.
+  group: test-install-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -252,6 +254,15 @@ jobs:
         env:
           XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
         run: sudo -E bash .github/test/test_install.sh ${{ matrix.mode }}
+
+      - name: Verify real Xray access after fresh and legacy permission migration
+        run: sudo bash .github/test/test_xray_runtime_permissions.sh
+
+      - name: Upgrade legacy service accounts with the pinned official installer
+        timeout-minutes: 10
+        env:
+          XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
+        run: sudo -E bash .github/test/test_xray_legacy_service_upgrade.sh
 
       - name: Collect debug info on failure (redacted)
         if: failure()
