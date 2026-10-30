@@ -60,7 +60,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.10"
+shell_version="3.2.11"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -4448,6 +4448,24 @@ xray_service_group() {
     id -gn "${_user}" 2>/dev/null || printf '%s\n' "${_user}"
 }
 
+# A readable config is insufficient when an older install or a restrictive
+# umask left one of its parent directories inaccessible to the service user.
+xray_config_directory_permissions() {
+    local user group directory
+    user=$(xray_service_user)
+    group=$(xray_service_group "${user}")
+    for directory in "${idleleo_dir}" "${idleleo_conf_dir}"; do
+        [[ -d "${directory}" ]] || continue
+        # Traversal only: do not expose directory listings or private files.
+        chmod a+x "${directory}" || return 1
+    done
+    for directory in "${xray_conf_dir}" "${xray_default_conf%/*}"; do
+        [[ -d "${directory}" ]] || continue
+        chown "root:${group}" "${directory}" || return 1
+        chmod 750 "${directory}" || return 1
+    done
+}
+
 harden_config_permissions() {
     local failed=0
     local _nginx_worker_group
@@ -4465,6 +4483,10 @@ harden_config_permissions() {
     _xray_service_user=$(xray_service_user)
     _xray_service_group=$(xray_service_group "${_xray_service_user}")
 
+    xray_config_directory_permissions || failed=1
+    if [[ "${_xray_service_user}" != root && -d /var/log/xray ]]; then
+        chown -R "${_xray_service_user}:${_xray_service_group}" /var/log/xray || failed=1
+    fi
     apply_sensitive_file_permissions "${xray_install_config_file}" "root:root" || failed=1
     apply_sensitive_file_permissions "${xray_conf}" "${_xray_service_user}:${_xray_service_group}" || failed=1
     # Root owns certs/keys, worker group can read but NOT write.
@@ -4492,12 +4514,13 @@ xray_privilege_escalation() {
     local _xray_service_user _xray_service_group
     _xray_service_user=$(xray_service_user)
     _xray_service_group=$(xray_service_group "${_xray_service_user}")
+    xray_config_directory_permissions || return 1
     if [[ "${_xray_service_user}" != "root" ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动修改程序") ${Font}"
-        mkdir -p /var/log/xray/
-        chown -fR "${_xray_service_user}:${_xray_service_group}" /var/log/xray/
-        chmod -f 755 /var/log/xray/
-        find /var/log/xray/ -type f -exec chmod -f 644 {} \;
+        mkdir -p /var/log/xray/ || return 1
+        chown -fR "${_xray_service_user}:${_xray_service_group}" /var/log/xray/ || return 1
+        chmod -f 755 /var/log/xray/ || return 1
+        find /var/log/xray/ -type f -exec chmod -f 644 {} + || return 1
         # 安装器切换服务账号后（nobody -> xray），已存在的配置必须同步归属，
         # 否则升级或回滚后 Xray 仍会因 permission denied 启动失败。
         apply_sensitive_file_permissions "${xray_conf}" "${_xray_service_user}:${_xray_service_group}" || return 1
@@ -4554,9 +4577,10 @@ xray_install() {
 xray_install_pinned_and_check() {
     local _version="$1"
     xray_install_release install -f --version "v${_version}" || return 1
+    systemctl daemon-reload || return 1
     # 安装器可能切换 systemd 服务账号，先同步配置/日志归属，再重启跑健康检查。
     xray_privilege_escalation || return 1
-    systemctl restart xray
+    systemctl restart xray || return 1
     health_check_xray_update "${_version}"
 }
 

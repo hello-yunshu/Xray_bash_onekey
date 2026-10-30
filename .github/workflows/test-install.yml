@@ -253,6 +253,9 @@ jobs:
           XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
         run: sudo -E bash .github/test/test_install.sh ${{ matrix.mode }}
 
+      - name: Verify real Xray access after fresh and legacy permission migration
+        run: sudo bash .github/test/test_xray_runtime_permissions.sh
+
       - name: Collect debug info on failure (redacted)
         if: failure()
         run: |
