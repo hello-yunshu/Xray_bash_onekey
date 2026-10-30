@@ -44,7 +44,9 @@ on:
         default: 'main'
 
 concurrency:
-  group: test-install-${{ github.ref }}
+  # A main push also starts Release Xray, which calls this workflow. Keep
+  # those runs separate so installation CI cannot cancel release qualification.
+  group: test-install-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
