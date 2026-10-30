@@ -75,6 +75,8 @@ mkdir() { printf 'mkdir %s\n' "$*" >> "${FS_LOG}"; }
 chown() { printf 'chown %s\n' "$*" >> "${FS_LOG}"; }
 chmod() { :; }
 find()  { :; }
+# Directory access is exercised with real users by test_xray_runtime_permissions.sh.
+xray_config_directory_permissions() { :; }
 
 write_unit() {
     printf '[Service]\n%s\n' "$1" > "${UNIT_FILE}"
