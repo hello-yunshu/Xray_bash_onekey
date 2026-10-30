@@ -154,10 +154,10 @@ if grep -qx "${xray_conf}|root:root|600" "${APPLY_LOG}"; then
 else
     bad "root unit keeps config.json owned by root; got: $(tr '\n' ';' < "${APPLY_LOG}")"
 fi
-if grep -q "chown -fR" "${FS_LOG}"; then
-    bad "root unit must not chown /var/log/xray; got: $(tr '\n' ';' < "${FS_LOG}")"
+if grep -q "chown -fR root:root /var/log/xray/" "${FS_LOG}"; then
+    ok "root unit repairs log ownership even with restricted capabilities"
 else
-    ok "root unit does not chown /var/log/xray"
+    bad "root unit did not repair log ownership"
 fi
 
 echo "============================================================"

@@ -4484,7 +4484,7 @@ harden_config_permissions() {
     _xray_service_group=$(xray_service_group "${_xray_service_user}")
 
     xray_config_directory_permissions || failed=1
-    if [[ "${_xray_service_user}" != root && -d /var/log/xray ]]; then
+    if [[ -d /var/log/xray ]]; then
         chown -R "${_xray_service_user}:${_xray_service_group}" /var/log/xray || failed=1
     fi
     apply_sensitive_file_permissions "${xray_install_config_file}" "root:root" || failed=1
@@ -4515,12 +4515,14 @@ xray_privilege_escalation() {
     _xray_service_user=$(xray_service_user)
     _xray_service_group=$(xray_service_group "${_xray_service_user}")
     xray_config_directory_permissions || return 1
+    # Even User=root may lack CAP_DAC_OVERRIDE under the unit's capability
+    # bounding set, so it must own logs left at 600 by a previous account.
+    mkdir -p /var/log/xray/ || return 1
+    chown -fR "${_xray_service_user}:${_xray_service_group}" /var/log/xray/ || return 1
+    chmod -f 755 /var/log/xray/ || return 1
+    find /var/log/xray/ -type f -exec chmod -f 644 {} + || return 1
     if [[ "${_xray_service_user}" != "root" ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动修改程序") ${Font}"
-        mkdir -p /var/log/xray/ || return 1
-        chown -fR "${_xray_service_user}:${_xray_service_group}" /var/log/xray/ || return 1
-        chmod -f 755 /var/log/xray/ || return 1
-        find /var/log/xray/ -type f -exec chmod -f 644 {} + || return 1
         # 安装器切换服务账号后（nobody -> xray），已存在的配置必须同步归属，
         # 否则升级或回滚后 Xray 仍会因 permission denied 启动失败。
         apply_sensitive_file_permissions "${xray_conf}" "${_xray_service_user}:${_xray_service_group}" || return 1
