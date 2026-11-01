@@ -176,6 +176,51 @@ release_sha_contract_required() {
     [[ "$(printf '%s\n%s\n' '3.2.3' "${version}" | sort -V | head -n1)" == '3.2.3' ]]
 }
 
+# Dotted numeric versions (26.10.31, 2026.10.15.7679) only. Anything else is
+# "not comparable" rather than "equal", so a malformed metadata value can never
+# be turned into an update decision.
+version_is_numeric() {
+    [[ "${1:-}" =~ ^[0-9]+(\.[0-9]+)*$ ]]
+}
+
+# Prints 1 / 0 / -1 for newer / equal / older, and returns 2 when either side is
+# not a dotted numeric version. Components are compared numerically, so 26.9.30
+# is correctly older than 26.10.31 (a plain string compare says the opposite).
+# Missing components count as zero: 26.10.0 == 26.10.
+version_compare() {
+    local a="${1#v}" b="${2#v}"
+    local i n x y
+    local -a av bv
+    version_is_numeric "${a}" && version_is_numeric "${b}" || return 2
+    IFS='.' read -r -a av <<<"${a}"
+    IFS='.' read -r -a bv <<<"${b}"
+    n=${#av[@]}
+    [[ ${#bv[@]} -gt ${n} ]] && n=${#bv[@]}
+    for ((i = 0; i < n; i++)); do
+        x=$((10#${av[i]:-0}))
+        y=$((10#${bv[i]:-0}))
+        if [[ ${x} -gt ${y} ]]; then
+            printf '1\n'
+            return 0
+        fi
+        if [[ ${x} -lt ${y} ]]; then
+            printf -- '-1\n'
+            return 0
+        fi
+    done
+    printf '0\n'
+}
+
+# 0 when $1 is strictly newer than $2. Incomparable input is never "newer".
+version_gt() {
+    [[ "$(version_compare "$1" "$2")" == "1" ]]
+}
+
+# 0 when $1 is strictly older than $2. Incomparable input is never "older".
+version_lt() {
+    [[ "$(version_compare "$1" "$2")" == "-1" ]]
+}
+
 verified_installer_metadata_valid() {
     [[ "${xray_installer_ref:-}" =~ ^[0-9a-f]{40}$ ]] || return 1
     [[ "${xray_installer_sha256:-}" =~ ^[0-9a-f]{64}$ ]] || return 1
@@ -4972,6 +5017,12 @@ xray_install() {
     # 已有二进制也必须与清单钉定版本一致；否则外部装上的最新版会被直接沿用。
     if [[ -z "${current_xray_version}" ]] || [[ ! -f "${xray_conf}" ]] ||
         [[ -n "${xray_online_version}" && "${current_xray_version}" != "${xray_online_version}" ]]; then
+        # An install converges to the pinned version, so a locally newer binary
+        # is replaced too. Say so out loud: silently moving backwards is exactly
+        # what the update path refuses to do.
+        if version_gt "${current_xray_version}" "${xray_online_version}"; then
+            log_echo "${Warning} ${YellowBG} $(gettext "本机版本高于清单钉定版本, 将按清单重新安装") : v${current_xray_version} → v${xray_online_version} ${Font}"
+        fi
         log_echo "${OK} ${GreenBG} $(gettext "即将安装") Xray v${xray_online_version} ${Font}"
         xray_install_release install -f --version v${xray_online_version}
         judge "$(gettext "安装") Xray"
@@ -5002,6 +5053,17 @@ xray_update() {
     trap 'rxa_reconfigure_leave $?' RETURN
     current_xray_version=$(info_extraction xray_version)
     [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
+    # The metadata can regress: a reverted API release, a stale CDN copy, or a
+    # hand-edited version file. "Different" must never be read as "newer", so
+    # this refuses to move backwards. Same-version reinstall still works, and an
+    # empty/unknown installed version falls through to the normal path.
+    if version_gt "${current_xray_version}" "${xray_online_version}"; then
+        log_echo "${Warning} ${YellowBG} $(gettext "已安装版本高于在线清单, 不执行降级") ${Font}"
+        log_echo "${Info} $(gettext "已安装") : v${current_xray_version} ${Font}"
+        log_echo "${Info} $(gettext "在线清单") : v${xray_online_version} ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "如确需降级, 请手动指定版本或先卸载再安装") ${Font}"
+        return 0
+    fi
     # 核心更新会带来 REALITY 客户端版本策略变化；在重启前补齐 minClientVer，
     # 让本次重启同时生效（已显式设置的配置不受影响）。
     reality_min_client_ver_repair
