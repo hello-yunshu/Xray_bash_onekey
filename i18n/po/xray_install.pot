@@ -1467,10 +1467,6 @@ msgstr ""
 msgid "下载 Xray 配置"
 msgstr ""
 
-#: install.sh:6783
-msgid "下载 Xray XTLS 配置"
-msgstr ""
-
 #: install.sh:6791
 msgid "检测到 Xray 配置过多用户"
 msgstr ""

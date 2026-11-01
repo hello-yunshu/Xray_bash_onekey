@@ -58,7 +58,7 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 | Reality + Nginx | 推荐模式，可按需附加 ws/gRPC/xHTTP 简单协议用于负载均衡 |
 | Nginx + TLS | 支持 ws/gRPC/xHTTP，自动申请并续期 Let's Encrypt 证书 |
 | ws/gRPC/xHTTP ONLY | 无 TLS 的独立入站模式，主要用于后端或负载均衡场景 |
-| XTLS ONLY | 仅用于流量中转等特定场景 |
+| 中转节点 | 独立服务器角色，仅用 Nginx Stream 做单目标 TCP 转发，不安装 Xray |
 | Docker | Xray, Nginx et le script principal sont préinstallés dans l'image |
 
 安装 ws/gRPC/xHTTP 相关模式时，可选择 `ws`、`gRPC`、`xHTTP` 或 `ws+gRPC+xHTTP`。脚本会分别生成对应端口、路径、分享链接和二维码；Clash 目前不支持 xHTTP，脚本会在配置输出中提示。
@@ -136,7 +136,7 @@ Prend en charge le déploiement automatique de Xray via les outils AI tels que T
 
 La méthode traditionnelle nécessite que SSH accède au serveur, exécute le script d'installation et réponde aux questions interactives une par une ; la méthode Skill n'a besoin que d'indiquer à AI vos besoins, et AI générera automatiquement un script non interactif et l'exécutera, renvoyant directement le lien VLESS.
 
-**Modes pris en charge** : Reality / TLS / ws ONLY / XTLS ONLY
+**Modes pris en charge** : Reality / TLS / ws ONLY / nœud relais
 
 **Comment l'utiliser** : dites simplement "Aidez-moi à créer Xray sur le serveur" dans l'outil AI qui prend en charge Skill, et AI collectera automatiquement des informations, générera des scripts, effectuera le déploiement et renverra les informations de connexion.
 

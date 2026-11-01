@@ -3,9 +3,9 @@
 MODE="${1:-}"
 
 case "$MODE" in
-xtls_only | ws_grpc_xhttp | reality | reality_nginx | tls) ;;
+relay | ws_grpc_xhttp | reality | reality_nginx | tls) ;;
 *)
-    echo "Usage: $0 <xtls_only|ws_grpc_xhttp|reality|reality_nginx|tls>"
+    echo "Usage: $0 <relay|ws_grpc_xhttp|reality|reality_nginx|tls>"
     exit 1
     ;;
 esac
@@ -51,7 +51,7 @@ echo ""
 echo "--- Pre-flight checks: verifying install.sh functions ---"
 
 REQUIRED_INSTALL_FUNCS=(
-    install_xray_xtls_only
+    install_nginx_relay
     install_xray_ws_only
     install_xray_reality
     install_xray_ws_tls
@@ -82,6 +82,7 @@ MOCK_FUNCS=(
     reality_nginx_add_fq
     tls_type
     old_config_exist_check
+    relay_wizard
     vless_link_image_choice
     auto_update
     acme_cron_update
@@ -116,6 +117,12 @@ _CI_PORT=14431
 _CI_XPORT=14432
 _CI_GRPC_PORT=14433
 _CI_XHTTP_PORT=14434
+# Relay mode: Nginx Stream listens here and transparently forwards to a local
+# TCP backend, so the CI run proves a real byte-level pass-through instead of
+# only asserting that a config file exists.
+_CI_RELAY_LISTEN_PORT=14435
+_CI_RELAY_BACKEND_PORT=14436
+_CI_RELAY_BACKEND_PID=""
 
 judge() {
     local ret=$?
@@ -289,15 +296,75 @@ tls_type() {
     echo "  [CI] tls_type: set TLSv1.3 only"
 }
 
+# Relay wizard: answer the three relay questions without a TTY. The backend is a
+# local TCP listener so the post-install probe proves real forwarding.
+relay_wizard() {
+    relay_backend_host="127.0.0.1"
+    relay_backend_port="${_CI_RELAY_BACKEND_PORT}"
+    relay_listen_port="${_CI_RELAY_LISTEN_PORT}"
+    relay_listen_addr="0.0.0.0"
+    echo "  [CI] relay_wizard: ${relay_listen_addr}:${relay_listen_port} -> ${relay_backend_host}:${relay_backend_port}"
+}
+
+# Local TCP backend used by relay mode. Plain HTTP keeps the check dependency
+# free (no nc/socat required) and still exercises byte-level pass-through.
+start_relay_backend() {
+    local backend_root=/tmp/relay-ci-backend
+    mkdir -p "${backend_root}"
+    printf 'relay-ci-backend-ok\n' >"${backend_root}/index.html"
+    (
+        cd "${backend_root}" || exit 1
+        exec python3 -m http.server "${_CI_RELAY_BACKEND_PORT}" --bind 127.0.0.1
+    ) >/dev/null 2>&1 &
+    _CI_RELAY_BACKEND_PID=$!
+    wait_for_port "${_CI_RELAY_BACKEND_PORT}" 20 0.25
+}
+
+stop_relay_backend() {
+    [[ -n "${_CI_RELAY_BACKEND_PID}" ]] || return 0
+    kill "${_CI_RELAY_BACKEND_PID}" >/dev/null 2>&1 || true
+    wait "${_CI_RELAY_BACKEND_PID}" 2>/dev/null || true
+    _CI_RELAY_BACKEND_PID=""
+}
+
+port_is_listening() {
+    local listen_port="$1"
+    if command -v ss >/dev/null 2>&1; then
+        ss -ltnH | awk -v port=":${listen_port}" '$4 ~ port "$" { found=1 } END { exit !found }'
+    elif command -v netstat >/dev/null 2>&1; then
+        netstat -ltn | awk -v port=":${listen_port}" '$4 ~ port "$" { found=1 } END { exit !found }'
+    elif command -v nc >/dev/null 2>&1; then
+        nc -z -w 1 127.0.0.1 "${listen_port}" >/dev/null 2>&1
+    else
+        return 1
+    fi
+}
+
+wait_for_port() {
+    local listen_port="$1"
+    local attempts="${2:-20}"
+    local delay="${3:-0.25}"
+    local i
+    for ((i = 1; i <= attempts; i++)); do
+        if port_is_listening "${listen_port}"; then
+            return 0
+        fi
+        sleep "${delay}"
+    done
+    return 1
+}
+
 echo ""
 echo "--- Starting installation for mode: ${MODE} ---"
-
 INSTALL_EXIT_CODE=0
 case "$MODE" in
-xtls_only)
-    shell_mode="XTLS ONLY"
-    tls_mode="XTLS"
-    install_xray_xtls_only || INSTALL_EXIT_CODE=$?
+relay)
+    node_role="relay"
+    shell_mode="Relay"
+    tls_mode="None"
+    transport_mode="None"
+    start_relay_backend || echo "  [CI] WARN: relay TCP backend did not start"
+    install_nginx_relay || INSTALL_EXIT_CODE=$?
     ;;
 ws_grpc_xhttp)
     shell_mode="ws+gRPC+xHTTP ONLY"
@@ -346,33 +413,6 @@ assert_ok() {
     fi
 }
 
-port_is_listening() {
-    local listen_port="$1"
-    if command -v ss >/dev/null 2>&1; then
-        ss -ltnH | awk -v port=":${listen_port}" '$4 ~ port "$" { found=1 } END { exit !found }'
-    elif command -v netstat >/dev/null 2>&1; then
-        netstat -ltn | awk -v port=":${listen_port}" '$4 ~ port "$" { found=1 } END { exit !found }'
-    elif command -v nc >/dev/null 2>&1; then
-        nc -z -w 1 127.0.0.1 "${listen_port}" >/dev/null 2>&1
-    else
-        return 1
-    fi
-}
-
-wait_for_port() {
-    local listen_port="$1"
-    local attempts="${2:-20}"
-    local delay="${3:-0.25}"
-    local i
-    for ((i = 1; i <= attempts; i++)); do
-        if port_is_listening "${listen_port}"; then
-            return 0
-        fi
-        sleep "${delay}"
-    done
-    return 1
-}
-
 qr_value() {
     jq -r --arg field "$1" '.[$field]' "${xray_install_config_file}"
 }
@@ -400,6 +440,15 @@ https_probe_has_status() {
     [[ ${status} =~ ^[1-5][0-9][0-9]$ ]]
 }
 
+relay_probe_hits_backend() {
+    local entry_port body
+    entry_port=$(qr_value relay_listen_port)
+    [[ -n "${entry_port}" && "${entry_port}" != "null" ]] || return 1
+    body=$(curl -ksS --connect-timeout 3 --max-time 8 \
+        "http://127.0.0.1:${entry_port}/index.html" 2>/dev/null) || return 1
+    printf '%s' "${body}" | grep -q 'relay-ci-backend-ok'
+}
+
 assert_qr_matches_config() {
     local desc="$1"
     local qr_field="$2"
@@ -409,29 +458,46 @@ assert_qr_matches_config() {
 }
 
 assert_ok "Install command exited successfully" test "${INSTALL_EXIT_CODE}" -eq 0
-assert_ok --diag "ls -la ${xray_bin_dir}/xray 2>/dev/null; echo; file ${xray_bin_dir}/xray 2>/dev/null" "Xray binary exists" test -f "${xray_bin_dir}/xray"
-assert_ok --diag "ls -la \"${xray_conf}\" 2>/dev/null; echo; redact_json_for_diagnostics \"${xray_conf}\" 2>&1 | head -20" "Xray config exists" test -f "${xray_conf}"
 assert_ok --diag "ls -la \"${xray_install_config_file}\" 2>/dev/null; echo; redact_json_for_diagnostics \"${xray_install_config_file}\" 2>&1 | head -20" "Install config exists" test -f "${xray_install_config_file}"
-assert_ok --diag "cat ${xray_systemd_file} 2>/dev/null" "Xray systemd service exists" test -f "${xray_systemd_file}"
+
+if [[ "${MODE}" != "relay" ]]; then
+    assert_ok --diag "ls -la ${xray_bin_dir}/xray 2>/dev/null; echo; file ${xray_bin_dir}/xray 2>/dev/null" "Xray binary exists" test -f "${xray_bin_dir}/xray"
+    assert_ok --diag "ls -la \"${xray_conf}\" 2>/dev/null; echo; redact_json_for_diagnostics \"${xray_conf}\" 2>&1 | head -20" "Xray config exists" test -f "${xray_conf}"
+    assert_ok --diag "cat ${xray_systemd_file} 2>/dev/null" "Xray systemd service exists" test -f "${xray_systemd_file}"
+fi
 
 echo ""
 echo "--- Xray config validation ---"
-if ${xray_bin_dir}/xray run -test -config "${xray_conf}" 2>&1; then
-    echo "  ✅ PASS: Xray config is valid"
-    TEST_PASS=$((TEST_PASS + 1))
+if [[ "${MODE}" == "relay" ]]; then
+    echo "  ⏭️  SKIP: relay nodes never install Xray"
 else
-    echo "  ❌ FAIL: Xray config validation failed"
-    TEST_FAIL=$((TEST_FAIL + 1))
+    if ${xray_bin_dir}/xray run -test -config "${xray_conf}" 2>&1; then
+        echo "  ✅ PASS: Xray config is valid"
+        TEST_PASS=$((TEST_PASS + 1))
+    else
+        echo "  ❌ FAIL: Xray config validation failed"
+        TEST_FAIL=$((TEST_FAIL + 1))
+    fi
 fi
 
 echo ""
 echo "--- Service status checks ---"
-assert_ok --diag "systemctl status xray 2>&1 | redact_text_for_diagnostics | head -15; echo; journalctl -u xray --no-pager -n 10 2>&1 | redact_text_for_diagnostics" "Xray service is active" systemctl is-active --quiet xray
+if [[ "${MODE}" == "relay" ]]; then
+    assert_ok --diag "systemctl status nginx 2>&1 | redact_text_for_diagnostics | head -15; echo; journalctl -u nginx --no-pager -n 10 2>&1 | redact_text_for_diagnostics" "Nginx service is active" systemctl is-active --quiet nginx
+    assert_ok "Relay does not install the Xray systemd unit" test ! -f "${xray_systemd_file}"
+    assert_ok "Relay does not install an Xray binary" test ! -f "${xray_bin_dir}/xray"
+else
+    assert_ok --diag "systemctl status xray 2>&1 | redact_text_for_diagnostics | head -15; echo; journalctl -u xray --no-pager -n 10 2>&1 | redact_text_for_diagnostics" "Xray service is active" systemctl is-active --quiet xray
+fi
 
 echo ""
 echo "--- Listener checks ---"
 case "${MODE}" in
-xtls_only | reality)
+relay)
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status nginx 2>&1 | head -10; echo; cat ${relay_stream_conf} 2>/dev/null" "Relay entry port is listening" wait_for_port "$(qr_value relay_listen_port)"
+    assert_ok --diag "ss -ltnH 2>/dev/null | head -20" "Relay TCP backend is listening" wait_for_port "${_CI_RELAY_BACKEND_PORT}"
+    ;;
+reality)
     assert_ok --diag "ss -ltnH 2>/dev/null | head -20; echo; systemctl status xray 2>&1 | head -10" "Main Xray port is listening" wait_for_port "$(qr_value port)"
     ;;
 reality_nginx)
@@ -453,6 +519,12 @@ esac
 echo ""
 echo "--- Local HTTP probe checks ---"
 case "${MODE}" in
+relay)
+    # Real byte-level pass-through: HTTP through the relay entry must reach the
+    # local backend and return the backend body unchanged.
+    assert_ok --diag "curl -ksS -o /tmp/relay-probe.body -w '%{http_code}' --connect-timeout 3 --max-time 8 http://127.0.0.1:$(qr_value relay_listen_port)/index.html 2>&1; echo; cat /tmp/relay-probe.body 2>/dev/null; echo; ss -ltnH 2>/dev/null | head -10; echo; tail -5 ${nginx_dir}/logs/error.log 2>/dev/null" \
+        "Relay forwards TCP traffic to the backend" relay_probe_hits_backend
+    ;;
 ws_grpc_xhttp)
     assert_ok --diag "curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 http://127.0.0.1:$(qr_value ws_port)/$(qr_value path) 2>&1; echo; ss -ltnH 2>/dev/null | head -10; echo; ps aux | grep -E '[x]ray' | head -5" "ws path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value ws_port)/$(qr_value path)"
     assert_ok --diag "curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 http://127.0.0.1:$(qr_value xhttp_port)/$(qr_value xhttp_path) 2>&1; echo; ss -ltnH 2>/dev/null | head -10; echo; ps aux | grep -E '[x]ray' | head -5" "xHTTP path returns an HTTP status" http_probe_has_status "http://127.0.0.1:$(qr_value xhttp_port)/$(qr_value xhttp_path)"
@@ -462,7 +534,7 @@ tls)
     ;;
 esac
 
-if [[ "${MODE}" == "tls" || "${MODE}" == "reality_nginx" ]]; then
+if [[ "${MODE}" == "tls" || "${MODE}" == "reality_nginx" || "${MODE}" == "relay" ]]; then
     assert_ok --diag "ls -la ${nginx_dir}/sbin/nginx 2>/dev/null; echo; file ${nginx_dir}/sbin/nginx 2>/dev/null; echo; ldd ${nginx_dir}/sbin/nginx 2>/dev/null" "Nginx binary exists" test -f "${nginx_dir}/sbin/nginx"
     assert_ok --diag "ls -la ${nginx_conf} 2>/dev/null; echo; cat ${nginx_conf} 2>/dev/null | redact_text_for_diagnostics | head -30" "Nginx config exists" test -f "${nginx_conf}"
     assert_ok --diag "cat ${nginx_systemd_file} 2>/dev/null" "Nginx systemd service exists" test -f "${nginx_systemd_file}"
@@ -490,10 +562,28 @@ fi
 
 echo ""
 echo "--- QR/config consistency checks ---"
-assert_ok "QR UUID matches Xray clients" jq -e --arg id "$(qr_value id)" '[.inbounds[].settings.clients[]?.id] as $ids | ($ids | length > 0) and ($ids | all(. == $id))' "${xray_conf}"
+if [[ "${MODE}" == "relay" ]]; then
+    echo "  ⏭️  SKIP: relay nodes have no UUID/QR payload"
+else
+    assert_ok "QR UUID matches Xray clients" jq -e --arg id "$(qr_value id)" '[.inbounds[].settings.clients[]?.id] as $ids | ($ids | length > 0) and ($ids | all(. == $id))' "${xray_conf}"
+fi
 case "${MODE}" in
-xtls_only)
-    assert_qr_matches_config "XTLS port matches config" port "VLESS-XTLS-in" ".port"
+relay)
+    assert_ok "Relay role is recorded" test "$(qr_value role)" = "relay"
+    assert_ok "Relay install config has no UUID" test "$(qr_value id)" = "null"
+    assert_ok "Relay install config has no Xray version" test "$(qr_value xray_version)" = "null"
+    assert_ok "Relay target matches the generated stream config" \
+        grep -Fq "proxy_pass $(qr_value relay_backend_host):$(qr_value relay_backend_port);" "${relay_stream_conf}"
+    assert_ok "Relay listen port matches the generated stream config" \
+        grep -Fq "listen $(qr_value relay_listen_addr):$(qr_value relay_listen_port);" "${relay_stream_conf}"
+    assert_ok "Nginx main config includes the managed stream fragment" \
+        grep -qF "include ${relay_stream_conf};" "${nginx_main_conf}"
+    assert_ok "Managed stream fragment stays a top-level include" \
+        test "$(grep -cE '^[[:space:]]*stream[[:space:]]*\{' "${nginx_main_conf}")" = "0"
+    assert_ok "Relay uses plain TCP pass-through without PROXY protocol" \
+        test "$(grep -c 'proxy_protocol' "${relay_stream_conf}")" = "0"
+    assert_ok "Relay does not terminate TLS" \
+        test "$(grep -cE 'ssl_|reality' "${relay_stream_conf}")" = "0"
     ;;
 reality)
     assert_qr_matches_config "Reality port matches config" port "VLESS-Reality-in" ".port"
@@ -548,6 +638,26 @@ reality_upgrade_defaults_are_safe() {
     ensure_reality_sni_guard_defaults || return 1
     inode_after=$(stat -c '%i' "${xray_install_config_file}") || return 1
     [[ "${inode_before}" == "${inode_after}" ]]
+}
+
+relay_role_roundtrip() {
+    node_role="node"
+    shell_mode=""
+    tls_mode=""
+    transport_mode=""
+    relay_backend_host=""
+    relay_backend_port=""
+    relay_listen_port=""
+    relay_listen_addr=""
+    relay_enabled=""
+    port=""
+    relay_bootstrap_role || return 1
+    [[ "${node_role}" == "relay" ]] || return 1
+    [[ "${shell_mode}" == "$(gettext "中转节点")" ]] || return 1
+    [[ -n "${relay_backend_host}" && -n "${relay_backend_port}" ]] || return 1
+    [[ -n "${relay_listen_port}" ]] || return 1
+    [[ "${port}" == "${relay_listen_port}" ]] || return 1
+    is_relay_role
 }
 
 menu_box_layout_is_aligned() (
@@ -618,12 +728,22 @@ menu_header_spacing_matches_density() (
 )
 
 assert_ok "Install config is private" test "$(stat -c '%a' "${xray_install_config_file}")" = "600"
-assert_ok "Xray config is private" test "$(stat -c '%a' "${xray_conf}")" = "600"
+if [[ "${MODE}" != "relay" ]]; then
+    assert_ok "Xray config is private" test "$(stat -c '%a' "${xray_conf}")" = "600"
+fi
 assert_ok "JSON updates preserve private mode" json_update_preserves_private_mode
 assert_ok "Menu box layout stays aligned" menu_box_layout_is_aligned
 assert_ok "Only the first header row keeps vertical breathing room" menu_header_spacing_matches_density
 if [[ "${MODE}" == "reality" || "${MODE}" == "reality_nginx" ]]; then
     assert_ok "Reality upgrade defaults preserve existing config" reality_upgrade_defaults_are_safe
+fi
+
+if [[ "${MODE}" == "relay" ]]; then
+    assert_ok "Relay stream config is private to root and the worker group" \
+        test "$(stat -c '%a' "${relay_stream_conf}")" = "640"
+    # Role must survive a fresh-process config load, so `idleleo` re-entry never
+    # falls back to the Xray node code path on a relay host.
+    assert_ok "Relay role is re-detected from install_config.json" relay_role_roundtrip
 fi
 
 if [[ "${MODE}" == "reality_nginx" ]]; then
@@ -647,10 +767,17 @@ echo ""
 echo "--- Install config content check ---"
 if [[ -f "${xray_install_config_file}" ]]; then
     echo "  shell_mode: $(jq -r '.shell_mode' "${xray_install_config_file}")"
+    echo "  role: $(jq -r '.role // "node"' "${xray_install_config_file}")"
     echo "  tls_mode: $(jq -r '.tls' "${xray_install_config_file}")"
     echo "  transport_mode: $(jq -r '.transport_mode' "${xray_install_config_file}")"
     echo "  port: $(jq -r '.port' "${xray_install_config_file}")"
-    echo "  xray_version: $(jq -r '.xray_version' "${xray_install_config_file}")"
+    if [[ "${MODE}" == "relay" ]]; then
+        echo "  relay_target: $(jq -r '.relay_backend_host' "${xray_install_config_file}"):$(jq -r '.relay_backend_port' "${xray_install_config_file}")"
+        echo "  relay_listen: $(jq -r '.relay_listen_addr' "${xray_install_config_file}"):$(jq -r '.relay_listen_port' "${xray_install_config_file}")"
+        echo "  relay_enabled: $(jq -r '.relay_enabled' "${xray_install_config_file}")"
+    else
+        echo "  xray_version: $(jq -r '.xray_version' "${xray_install_config_file}")"
+    fi
 fi
 
 echo ""
@@ -661,19 +788,34 @@ echo "  Failed: ${TEST_FAIL}"
 echo "============================================"
 
 if [[ ${TEST_FAIL} -gt 0 ]]; then
-    echo ""
-    echo "--- Debug: Xray service status (redacted) ---"
-    systemctl status xray 2>&1 | redact_text_for_diagnostics || true
-    echo ""
-    echo "--- Debug: Xray error log (last 20 lines, redacted) ---"
-    tail -20 /var/log/xray/error.log 2>/dev/null | redact_text_for_diagnostics || echo "(no error log)"
+    if [[ "${MODE}" == "relay" ]]; then
+        echo ""
+        echo "--- Debug: Nginx service status (redacted) ---"
+        systemctl status nginx 2>&1 | redact_text_for_diagnostics || true
+        echo ""
+        echo "--- Debug: relay stream config ---"
+        cat "${relay_stream_conf}" 2>/dev/null || echo "(not found)"
+        echo ""
+        echo "--- Debug: Nginx error log (redacted) ---"
+        tail -20 "${nginx_dir}/logs/error.log" 2>/dev/null | redact_text_for_diagnostics || echo "(no error log)"
+    else
+        echo ""
+        echo "--- Debug: Xray service status (redacted) ---"
+        systemctl status xray 2>&1 | redact_text_for_diagnostics || true
+        echo ""
+        echo "--- Debug: Xray error log (last 20 lines, redacted) ---"
+        tail -20 /var/log/xray/error.log 2>/dev/null | redact_text_for_diagnostics || echo "(no error log)"
+    fi
     if [[ "${MODE}" == "tls" || "${MODE}" == "reality_nginx" ]]; then
         echo ""
         echo "--- Debug: Nginx service status (redacted) ---"
         systemctl status nginx 2>&1 | redact_text_for_diagnostics || true
     fi
+    stop_relay_backend
     exit 1
 fi
+
+stop_relay_backend
 
 echo ""
 echo "🎉 All tests passed for mode: ${MODE}"

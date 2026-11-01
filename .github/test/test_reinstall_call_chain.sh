@@ -987,10 +987,12 @@ assert_ne "S16 rollback non-zero on restore failure" "0" "${RESTORE_RC}"
 # ============================================================================
 echo "=== Scenario 17: old_config_exist_check failure stops install ==="
 # old_config_exist_check returns 1 when backup fails.
-# Verify the 4 install functions use '|| return 1' after old_config_exist_check.
+# Verify the 3 remaining Xray install functions use '|| return 1' after
+# old_config_exist_check (the XTLS ONLY chain was removed in stage 02; the
+# relay role guards itself with relay_preflight instead).
 INSTALL_SH="${REPO_DIR}/install.sh"
 _oldcheck_count=$(grep -c 'old_config_exist_check || return 1' "${INSTALL_SH}")
-assert_eq "S17 four install chains use || return 1" "4" "${_oldcheck_count}"
+assert_eq "S17 three install chains use || return 1" "3" "${_oldcheck_count}"
 
 # Also verify no bare 'old_config_exist_check' lines remain (without || return 1).
 # Exclude the function definition and comment lines.
@@ -1291,7 +1293,7 @@ _extract_fn_body() {
         found { print }
     ' "${REPO_DIR}/install.sh"
 }
-for _chain_fn in install_xray_reality install_xray_xtls_only install_xray_ws_only; do
+for _chain_fn in install_xray_reality install_xray_ws_only; do
     _body=$(_extract_fn_body "${_chain_fn}")
     if [[ "${_body}" == *"reinstall_finalize"* &&
           "${_body}" == *"finalize_rc"* &&
@@ -1320,9 +1322,11 @@ unset -f setup_auto_clean_logs vless_link_image_choice show_information
 # BEFORE create_directory in every real install chain. Extracting each
 # function body and comparing the first occurrence line of each call catches
 # a reordering regression that a simple total-count grep would miss.
+# The relay role is not part of this scenario: it installs no Xray, refuses a
+# mixed host through relay_preflight, and is covered by test_relay_node.sh.
 # ============================================================================
-echo "=== Scenario 20: snapshot precedes create_directory in all four chains ==="
-for _chain in install_xray_ws_tls install_xray_reality install_xray_xtls_only install_xray_ws_only; do
+echo "=== Scenario 20: snapshot precedes create_directory in all three chains ==="
+for _chain in install_xray_ws_tls install_xray_reality install_xray_ws_only; do
     _body=$(_extract_fn_body "${_chain}")
     # Match only the actual CALL lines (not comments mentioning the names),
     # including the fail-closed `|| return 1` guards.
@@ -1485,7 +1489,7 @@ _restore_21() {
         _S21_DOMAIN_CALLS=$((_S21_DOMAIN_CALLS + 1))
         [[ -d "${xray_conf_dir}" ]] && ok "S21 xray_conf_dir exists before failure point" || bad "S21 xray_conf_dir missing before failure point"
         [[ -d "${ssl_chainpath}" ]] && ok "S21 cert dir exists before failure point" || bad "S21 cert dir missing before failure point"
-        if [[ "${tls_mode}" != "None" && "${tls_mode}" != "XTLS" ]]; then
+        if [[ "${tls_mode}" != "None" ]]; then
             [[ -d "${nginx_conf_dir}" ]] && ok "S21 nginx_conf_dir exists before failure point" || bad "S21 nginx_conf_dir missing before failure point"
         fi
         return 0
