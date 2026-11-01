@@ -467,6 +467,28 @@ if [[ "${MODE}" != "relay" ]]; then
 fi
 
 echo ""
+echo "--- Native GeoData checks ---"
+if [[ "${MODE}" == "relay" ]]; then
+    assert_ok "Relay installs no GeoData asset directory" \
+        test ! -e "${idleleo_dir}/share/xray/geoip.dat"
+else
+    assert_ok --diag "jq -c '.geodata' \"${xray_conf}\" 2>/dev/null; echo; ls -la ${idleleo_dir}/share/xray 2>/dev/null" \
+        "Config carries the native geodata schedule" \
+        jq -e '.geodata.cron and (.geodata.assets | length == 2)' "${xray_conf}"
+    assert_ok "Both geodata assets are HTTPS" \
+        test "$(jq -r '[.geodata.assets[].url | startswith("https://")] | all' "${xray_conf}")" = "true"
+    # `install -m 644` from the official installer must be answered by the
+    # geodata permission step, otherwise the scheduled download cannot write.
+    assert_ok --diag "ls -la ${idleleo_dir}/share/xray; echo; grep -h '^User' ${xray_systemd_file}" \
+        "GeoData files are owned by the Xray service account" \
+        test "$(stat -c '%U' "${idleleo_dir}/share/xray/geoip.dat")" = "$(sed -n 's/^[[:space:]]*User[[:space:]]*=[[:space:]]*//p' "${xray_systemd_file}" | tail -1)"
+    assert_ok "GeoData files are group-writable for the service account" \
+        test "$(stat -c '%a' "${idleleo_dir}/share/xray/geoip.dat")" = "660"
+    assert_ok "The legacy external updater was not scheduled" \
+        bash -c "! crontab -l 2>/dev/null | grep -q geo_update.sh"
+fi
+
+echo ""
 echo "--- Xray config validation ---"
 if [[ "${MODE}" == "relay" ]]; then
     echo "  ⏭️  SKIP: relay nodes never install Xray"

@@ -4605,6 +4605,14 @@ xray_privilege_escalation() {
     else
         apply_sensitive_file_permissions "${xray_conf}" "root:root" || return 1
     fi
+    # The official installer re-installs geoip.dat/geosite.dat with `install -m
+    # 644`, which resets them to root:root on every update. Restore the service
+    # account's write access so the native schedule keeps working; configuration
+    # and key paths are deliberately untouched here.
+    if geodata_native_configured; then
+        geodata_apply_permissions || \
+            log_echo "${Warning} ${YellowBG} $(gettext "GeoData 文件权限恢复失败") ${Font}"
+    fi
     log_echo "${OK} ${GreenBG} Xray $(gettext "修改") $(gettext "完成") ${Font}"
 }
 
@@ -4623,6 +4631,294 @@ set_xray_config_path() {
     if [[ ! -L "${_default_geo_dir}" ]]; then
         ln -s "${idleleo_dir}/share/xray" "${_default_geo_dir}"
     fi
+}
+
+# ---- GeoData 原生下载与热更新 ------------------------------------------------
+# Xray 自带 geodata 模块：按 cron 下载 .dat 并热重载，不重启进程。普通节点改用
+# 这个原生路径，脚本不再为它安装自己的 cron + geo_update.sh（后者保留为手动
+# 救援工具）。纯中转节点只有 Nginx，不生成任何 GeoData 配置。
+geodata_dir="${idleleo_dir}/share/xray"
+# Weekly, matching the legacy cron so the update cadence does not change.
+geodata_cron="0 3 * * 1"
+# The data source is unchanged (Loyalsoldier), so routing rule sets keep the
+# exact same semantics as before. HTTPS is mandatory for native assets.
+geodata_source_base="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
+
+# Resolve a directory to its physical path without relying on `readlink -f`
+# (the local test host runs the macOS userland, production runs GNU coreutils).
+_geodata_realpath() {
+    local target="${1:-}"
+    [[ -n "${target}" && -e "${target}" ]] || return 1
+    ( cd -- "${target}" 2>/dev/null && pwd -P )
+}
+
+# The canonical managed geodata object. Emitted identically every run so that a
+# byte comparison can tell "our" block from a user-authored one.
+geodata_managed_json() {
+    jq -n --arg cron "${geodata_cron}" --arg base "${geodata_source_base}" \
+        '{cron: $cron, assets: [
+            {url: ($base + "/geoip.dat"), file: "geoip.dat"},
+            {url: ($base + "/geosite.dat"), file: "geosite.dat"}
+        ]}'
+}
+
+# absent | managed | custom | invalid
+geodata_state() {
+    local current
+    [[ -f "${xray_conf}" ]] || { printf '%s\n' absent; return 0; }
+    current=$(jq -c '.geodata // null' "${xray_conf}" 2>/dev/null) || {
+        printf '%s\n' invalid
+        return 0
+    }
+    if [[ "${current}" == "null" ]]; then
+        printf '%s\n' absent
+        return 0
+    fi
+    if [[ "$(printf '%s' "${current}" | jq -S -c . 2>/dev/null)" == \
+        "$(geodata_managed_json | jq -S -c . 2>/dev/null)" ]]; then
+        printf '%s\n' managed
+    else
+        printf '%s\n' custom
+    fi
+}
+
+# Xray resolves geoip.dat/geosite.dat from XRAY_LOCATION_ASSET, else "./" then
+# /usr/local/share/xray. This is the directory the running process really reads.
+geodata_asset_root() {
+    local file value
+    for file in "${xray_systemd_file}" "${xray_systemd_file}.d"/*.conf; do
+        [[ -f "${file}" ]] || continue
+        value=$(sed -n 's/.*XRAY_LOCATION_ASSET=\([^[:space:]"]*\).*/\1/p' "${file}" | tail -n 1)
+        [[ -n "${value}" ]] && { printf '%s\n' "${value}"; return 0; }
+    done
+    printf '%s\n' "${local_bin}/share/xray"
+}
+
+# systemd sandbox: a strict ProtectSystem without a matching ReadWritePaths
+# makes the native download impossible even when the mode bits look right.
+geodata_sandbox_allows_write() {
+    local file value protect="" writable="" token
+    for file in "${xray_systemd_file}" "${xray_systemd_file}.d"/*.conf; do
+        [[ -f "${file}" ]] || continue
+        value=$(sed -n 's/^[[:space:]]*ProtectSystem[[:space:]]*=[[:space:]]*\([^[:space:]]*\).*/\1/p' "${file}" | tail -n 1)
+        [[ -n "${value}" ]] && protect="${value}"
+        value=$(sed -n 's/^[[:space:]]*ReadWritePaths[[:space:]]*=[[:space:]]*//p' "${file}" | tail -n 1)
+        [[ -n "${value}" ]] && writable="${writable} ${value}"
+    done
+    case "${protect}" in
+        strict | full | yes | true) ;;
+        *) return 0 ;;
+    esac
+    for token in ${writable}; do
+        [[ "${token#-}" == "${geodata_dir}" ]] && return 0
+    done
+    return 1
+}
+
+geodata_files_ok() {
+    local name
+    for name in geoip.dat geosite.dat; do
+        [[ -f "${geodata_dir}/${name}" && ! -L "${geodata_dir}/${name}" ]] || return 1
+    done
+    return 0
+}
+
+# Both .dat files must exist as real regular files inside the directory the
+# running Xray actually reads. Native geodata refuses to invent them: Xray only
+# replaces files it can already resolve, and a missing asset means the routing
+# rules would silently change.
+geodata_prepare_layout() {
+    local name asset_root
+    mkdir -p "${geodata_dir}" 2>/dev/null || {
+        log_echo "${Warning} ${YellowBG} $(gettext "无法创建 GeoData 资源目录") ${Font}"
+        return 1
+    }
+    if ! geodata_files_ok; then
+        log_echo "${Warning} ${YellowBG} $(gettext "缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置") ${Font}"
+        return 1
+    fi
+    asset_root=$(geodata_asset_root)
+    if [[ ! -e "${asset_root}" ]] || \
+        [[ "$(_geodata_realpath "${asset_root}")" != "$(_geodata_realpath "${geodata_dir}")" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 资源目录与 Xray 实际读取路径不一致, 跳过原生配置"): ${asset_root} ${Font}"
+        return 1
+    fi
+    if ! geodata_sandbox_allows_write; then
+        log_echo "${Warning} ${YellowBG} $(gettext "systemd 沙箱禁止写入 GeoData 资源目录, 跳过原生配置") ${Font}"
+        return 1
+    fi
+    return 0
+}
+
+# Only the asset directory and the two .dat files are opened up. config.json,
+# private keys and certificates keep their existing owner/mode: the service
+# account gets write access to nothing but the data files it must replace.
+# The 0660/0770 pair is the state this script establishes. After the first
+# native download Xray writes the replacements itself (observed mode 0644,
+# still owned by the service account), so what must hold over time is the
+# ownership plus directory write access -- not the exact mode bits.
+geodata_apply_permissions() {
+    local user group name failed=0
+    [[ -d "${geodata_dir}" ]] || return 0
+    geodata_files_ok || return 0
+    user=$(xray_service_user)
+    group=$(xray_service_group "${user}")
+    if [[ "${user}" == "root" ]]; then
+        chmod 0755 "${geodata_dir}" || failed=1
+        for name in geoip.dat geosite.dat; do
+            chmod 0644 "${geodata_dir}/${name}" || failed=1
+        done
+        return "${failed}"
+    fi
+    # Group-writable directory: Xray downloads to a temporary file and renames
+    # it over the old one, so the directory itself must be writable as well.
+    chown "root:${group}" "${geodata_dir}" || failed=1
+    chmod 0770 "${geodata_dir}" || failed=1
+    for name in geoip.dat geosite.dat; do
+        chown "${user}:${group}" "${geodata_dir}/${name}" || failed=1
+        chmod 0660 "${geodata_dir}/${name}" || failed=1
+    done
+    return "${failed}"
+}
+
+# Mode bits alone do not prove DAC access (ACLs, read-only mounts). Probe as the
+# service account when the tooling exists; a failure is reported, not fatal.
+geodata_service_can_write() {
+    local user
+    user=$(xray_service_user)
+    [[ "${user}" == "root" ]] && return 0
+    if command -v runuser >/dev/null 2>&1; then
+        runuser -u "${user}" -- test -w "${geodata_dir}" 2>/dev/null || return 1
+        runuser -u "${user}" -- test -w "${geodata_dir}/geoip.dat" 2>/dev/null || return 1
+        return 0
+    fi
+    if command -v su >/dev/null 2>&1; then
+        su -s /bin/sh "${user}" -c "test -w '${geodata_dir}' && test -w '${geodata_dir}/geoip.dat'" 2>/dev/null || return 1
+        return 0
+    fi
+    return 0
+}
+
+geodata_config_test() {
+    local binary="${xray_bin_dir}/xray"
+    [[ -x "${binary}" ]] || return 1
+    XRAY_LOCATION_ASSET="${geodata_dir}" "${binary}" run -test -config "${xray_conf}" >/dev/null 2>&1
+}
+
+geodata_native_configured() {
+    [[ "$(geodata_state)" == "managed" ]]
+}
+
+# Low-memory hosts are the one documented caveat of the native path.
+geodata_low_memory_notice() {
+    local mem_kb
+    mem_kb=$(awk '/^MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null)
+    [[ -n "${mem_kb}" ]] || return 0
+    (( mem_kb < 1048576 )) || return 0
+    log_echo "${Warning} ${YellowBG} $(gettext "低内存设备 (小于 1 GiB): GeoData 定时更新会有短暂内存峰值, 请留意") ${Font}"
+}
+
+# Write the managed block into the live Xray config. A user-authored geodata
+# object is never overwritten; an unparsable config is left alone.
+geodata_apply_config() {
+    local state
+    state=$(geodata_state)
+    case "${state}" in
+        managed)
+            return 0
+            ;;
+        custom)
+            log_echo "${Info} ${Green} $(gettext "检测到自定义 geodata 配置, 保留原样") ${Font}"
+            return 0
+            ;;
+        invalid)
+            log_echo "${Warning} ${YellowBG} $(gettext "Xray 配置无法解析, 跳过 GeoData 原生配置") ${Font}"
+            return 1
+            ;;
+    esac
+    update_json_config "${xray_conf}" --argjson geodata "$(geodata_managed_json)" \
+        '.geodata = $geodata'
+}
+
+# Enable native GeoData refresh on a normal node. Never runs for role=relay.
+geodata_native_enable() {
+    local state backup
+    is_relay_role && return 0
+    [[ -x "${xray_bin_dir}/xray" ]] || return 0
+    [[ -f "${xray_conf}" ]] || return 0
+
+    geodata_low_memory_notice
+    geodata_prepare_layout || return 0
+
+    state=$(geodata_state)
+    if [[ "${state}" == "custom" || "${state}" == "invalid" ]]; then
+        geodata_apply_config
+        geodata_apply_permissions || return 1
+        return 0
+    fi
+    if [[ "${state}" == "managed" ]]; then
+        # Idempotent re-run (reinstall / reconfigure): keep the block, re-assert
+        # ownership because the official installer resets .dat to root:root 644.
+        geodata_apply_permissions || return 1
+        geodata_service_can_write || \
+            log_echo "${Warning} ${YellowBG} $(gettext "Xray 服务账号仍无法写入 GeoData 文件, 原生更新可能失败") ${Font}"
+        return 0
+    fi
+
+    # A config that is already invalid is not ours to fix: skip instead of
+    # breaking an otherwise working install.
+    if ! geodata_config_test; then
+        log_echo "${Warning} ${YellowBG} $(gettext "当前 Xray 配置未通过 xray run -test, 跳过 GeoData 原生配置") ${Font}"
+        return 0
+    fi
+
+    backup=$(mktemp "${xray_conf}.geodata.XXXXXX" 2>/dev/null) || return 1
+    cp -p "${xray_conf}" "${backup}" || { rm -f "${backup}"; return 1; }
+    if ! geodata_apply_config; then
+        rm -f "${backup}"
+        return 1
+    fi
+    # Fail closed: a config Xray rejects must never reach the service.
+    if ! geodata_config_test; then
+        cp -p "${backup}" "${xray_conf}" || true
+        rm -f "${backup}"
+        log_echo "${Error} ${RedBG} $(gettext "加入 geodata 后 Xray 配置测试失败, 已恢复原配置") ${Font}"
+        return 1
+    fi
+    rm -f "${backup}"
+    if ! geodata_apply_permissions; then
+        log_echo "${Error} ${RedBG} $(gettext "GeoData 文件权限设置失败") ${Font}"
+        return 1
+    fi
+    geodata_service_can_write || \
+        log_echo "${Warning} ${YellowBG} $(gettext "Xray 服务账号仍无法写入 GeoData 文件, 原生更新可能失败") ${Font}"
+    log_echo "${OK} ${GreenBG} $(gettext "已启用 Xray 原生 GeoData 定时更新"): ${geodata_cron} ${Font}"
+    return 0
+}
+
+# Only the cron entry this script itself created is removed: the line must point
+# at the managed geo_update.sh path. Hand-written schedules are left untouched.
+geodata_legacy_cron_lines() {
+    command -v crontab >/dev/null 2>&1 || return 1
+    crontab -l 2>/dev/null | awk -v script="${geo_update_file}" 'index($0, script) > 0'
+}
+
+# Runs after the service is confirmed healthy: with the native schedule live, a
+# second external updater would restart Xray on its own and double the work.
+geodata_legacy_cron_disable() {
+    local lines state
+    is_relay_role && return 0
+    command -v crontab >/dev/null 2>&1 || return 0
+    state=$(geodata_state)
+    [[ "${state}" == "managed" ]] || return 0
+    lines=$(geodata_legacy_cron_lines) || return 0
+    [[ -n "${lines}" ]] || return 0
+    if crontab -l 2>/dev/null | awk -v script="${geo_update_file}" 'index($0, script) == 0' | crontab -; then
+        log_echo "${OK} ${GreenBG} $(gettext "已移除脚本创建的 geo_update.sh 周期任务, 避免与原生更新重复执行") ${Font}"
+        return 0
+    fi
+    log_echo "${Warning} ${YellowBG} $(gettext "移除 geo_update.sh 周期任务失败, 请手动检查 crontab") ${Font}"
+    return 1
 }
 
 xray_install() {
@@ -10792,6 +11088,9 @@ install_xray_ws_tls() {
     nginx_servers_conf_add || return 1
     xray_conf_add || return 1
     harden_config_permissions || return 1
+    # Native GeoData refresh must be deployed before the service starts so the
+    # first scheduled download already finds a writable asset directory.
+    geodata_native_enable || return 1
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
@@ -10799,6 +11098,9 @@ install_xray_ws_tls() {
     acme_cron_update
     auto_update || return 1
     service_restart || return 1
+    # The native schedule only replaces the external updater once the service
+    # is confirmed healthy; a user-written cron entry is never touched.
+    geodata_legacy_cron_disable || true
     setup_auto_clean_logs || return 1
     # Clear trap before finalize — finalize handles its own restore.
     trap - RETURN
@@ -10869,12 +11171,18 @@ install_xray_reality() {
     install_config_reality || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     harden_config_permissions || return 1
+    # Native GeoData refresh must be deployed before the service starts so the
+    # first scheduled download already finds a writable asset directory.
+    geodata_native_enable || return 1
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
     enable_process_systemd || return 1
     auto_update || return 1
     service_restart || return 1
+    # The native schedule only replaces the external updater once the service
+    # is confirmed healthy; a user-written cron entry is never touched.
+    geodata_legacy_cron_disable || true
     setup_auto_clean_logs || return 1
     trap - RETURN
     # Propagate reinstall_finalize's exact return code (1 restore-ok / 2 restore-failed).
@@ -10940,9 +11248,15 @@ install_xray_ws_only() {
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     xray_conf_add || return 1
     harden_config_permissions || return 1
+    # Native GeoData refresh must be deployed before the service starts so the
+    # first scheduled download already finds a writable asset directory.
+    geodata_native_enable || return 1
     enable_process_systemd || return 1
     auto_update || return 1
     service_restart || return 1
+    # The native schedule only replaces the external updater once the service
+    # is confirmed healthy; a user-written cron entry is never touched.
+    geodata_legacy_cron_disable || true
     setup_auto_clean_logs || return 1
     trap - RETURN
     # Propagate reinstall_finalize's exact return code (1 restore-ok / 2 restore-failed).

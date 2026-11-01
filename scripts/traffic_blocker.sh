@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.6.2"
+tb_SCRIPT_VERSION="1.7.0"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -339,6 +339,53 @@ tb_get_geo_local_version() {
     echo "${version}"
 }
 
+tb_geo_updater_path() {
+    printf '%s\n' "${scripts_dir:-${idleleo_dir}/scripts}/geo_update.sh"
+}
+
+# The native path lives in the Xray config. Its presence means Xray itself owns
+# the schedule, so this script must not install a second automation.
+tb_geo_native_cron() {
+    [[ -f "${xray_conf}" ]] || return 1
+    local cron
+    cron=$(jq -r '.geodata.cron // empty' "${xray_conf}" 2>/dev/null) || return 1
+    [[ -n "${cron}" ]] || return 1
+    printf '%s\n' "${cron}"
+}
+
+# Every native asset must be an HTTPS URL naming a plain file; anything else is
+# a configuration this menu cannot reason about.
+tb_geo_native_assets_ok() {
+    [[ -f "${xray_conf}" ]] || return 1
+    jq -e '(.geodata.assets // []) as $a
+        | ($a | length) > 0
+        and ($a | all(.[]; (.url | type == "string") and (.url | startswith("https://")) and (.file | type == "string")))' \
+        "${xray_conf}" >/dev/null 2>&1
+}
+
+# Only the cron lines this project created are recognised: the command must
+# point at the managed geo_update.sh path.
+tb_geo_legacy_cron_lines() {
+    command -v crontab >/dev/null 2>&1 || return 1
+    local updater
+    updater=$(tb_geo_updater_path)
+    crontab -l 2>/dev/null | awk -v script="${updater}" 'index($0, script) > 0'
+}
+
+tb_geo_native_file_state() {
+    local file_path="$1" now newest
+    [[ -f "${file_path}" ]] || { printf '%s\n' missing; return 0; }
+    now=$(date +%s)
+    newest=$(tb_get_geo_file_date "${file_path}")
+    if (( now - newest <= 604800 )); then
+        printf '%s\n' recent
+    elif (( now - newest <= 2592000 )); then
+        printf '%s\n' pending
+    else
+        printf '%s\n' stale
+    fi
+}
+
 tb_get_previous_domain_strategy() {
     if [[ ! -f "${tb_config_file}" ]]; then
         echo ""
@@ -484,7 +531,8 @@ tb_is_geo_outdated() {
 
 tb_download_geo_file() {
     local file_name="$1"
-    local updater="${scripts_dir:-${idleleo_dir}/scripts}/geo_update.sh"
+    local updater
+    updater=$(tb_geo_updater_path)
     [[ -n "${file_name}" && -f "${updater}" ]] || return 1
     # Automatic and interactive updates share one checksum-verified transaction
     # and the same update lock. The updater intentionally installs both files
@@ -577,7 +625,55 @@ tb_main_menu() {
     done
 }
 
+tb_display_geo_native_summary() {
+    local cron="$1" name path state date_text needs_help=false
+
+    log_echo "${Green} $(gettext "GeoData 状态"): ${Font}${Green}$(gettext "由 Xray 原生 geodata 定时更新")${Font}"
+    log_echo "  $(gettext "更新计划"): ${cron} ($(gettext "本地时区, 不重启 Xray"))"
+
+    for name in geoip.dat geosite.dat; do
+        path="${tb_geo_dir}/${name}"
+        state=$(tb_geo_native_file_state "${path}")
+        date_text=$(tb_format_date "$(tb_get_geo_file_date "${path}")")
+        case "${state}" in
+            missing)
+                needs_help=true
+                log_echo "  ${name}: ${Red}$(gettext "未安装")${Font} (${path})"
+                ;;
+            recent)
+                log_echo "  ${name}: ${Green}$(gettext "已安装")${Font} ($(gettext "最后更新"): ${date_text})"
+                ;;
+            pending)
+                log_echo "  ${name}: ${Yellow}$(gettext "待执行")${Font} ($(gettext "最后更新"): ${date_text})"
+                ;;
+            *)
+                needs_help=true
+                log_echo "  ${name}: ${Red}$(gettext "异常")${Font} ($(gettext "最后更新"): ${date_text})"
+                ;;
+        esac
+    done
+
+    if ! tb_geo_native_assets_ok; then
+        needs_help=true
+        log_echo "  ${Red}$(gettext "配置异常: geodata.assets 缺少有效的 HTTPS 下载地址")${Font}"
+    fi
+
+    # Xray keeps the outcome of its own job internal and writes no success
+    # record this script could read. Report the configuration and the real file
+    # state instead of claiming a run succeeded.
+    log_echo "  ${Info}${Green} $(gettext "说明: 这里只反映配置与文件现状, 不代表某次定时任务已成功") ${Font}"
+    if [[ "${needs_help}" == "true" ]]; then
+        log_echo "  ${Info}${Yellow} $(gettext "可在此菜单手动更新, 或检查") ${tb_geo_dir} $(gettext "与 Xray 错误日志") ${Font}"
+    fi
+}
+
 tb_display_geo_summary() {
+    local native_cron
+    if native_cron=$(tb_geo_native_cron); then
+        tb_display_geo_native_summary "${native_cron}"
+        return 0
+    fi
+
     log_echo "${Green} $(gettext "GeoData 状态"): ${Font}"
 
     local now=$(date +%s)
@@ -621,9 +717,38 @@ tb_display_geo_summary() {
 }
 
 tb_geo_auto_update() {
+    local native_cron legacy_lines
+    if native_cron=$(tb_geo_native_cron); then
+        # Native scheduling owns the cadence. Installing the legacy cron here
+        # would restart Xray on its own and duplicate the work.
+        echo
+        log_echo "${OK} ${GreenBG} $(gettext "GeoData 由 Xray 原生 geodata 定时更新") (${native_cron}) ${Font}"
+        log_echo "${Info} ${Green} $(gettext "原生更新在进程内热重载, 不重启 Xray, 无需额外的定时任务") ${Font}"
+        legacy_lines=$(tb_geo_legacy_cron_lines)
+        if [[ -z "${legacy_lines}" ]]; then
+            log_echo "${OK} ${GreenBG} $(gettext "未发现重复的 geo_update.sh 周期任务") ${Font}"
+            return 0
+        fi
+        log_echo "${Warning} ${YellowBG} $(gettext "发现脚本安装的 geo_update.sh 周期任务, 与原生更新重复") ${Font}"
+        echo "${legacy_lines}"
+        log_echo "${GreenBG} $(gettext "是否移除该重复任务") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        read -r geo_dup_fq
+        case $geo_dup_fq in
+        [yY][eE][sS] | [yY])
+            local updater
+            updater=$(tb_geo_updater_path)
+            crontab -l 2>/dev/null | awk -v script="${updater}" 'index($0, script) == 0' | crontab - || return 1
+            judge -r "$(gettext "移除重复的 GeoData 定时任务")"
+            ;;
+        *) ;;
+        esac
+        return 0
+    fi
+
     if [[ $(crontab -l 2>/dev/null | grep -c "geo_update.sh") -lt 1 ]]; then
         echo
         log_echo "${GreenBG} $(gettext "设置 GeoData 定时自动更新 (每周一凌晨3点)") ${Font}"
+        log_echo "${Info} ${Green} $(gettext "重新安装或重配置为普通节点后, 将改用 Xray 原生定时更新, 该任务会被自动移除") ${Font}"
         log_echo "${GreenBG} $(gettext "是否启用") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
         read -r geo_auto_fq
         case $geo_auto_fq in
@@ -657,7 +782,9 @@ tb_geo_auto_update() {
         read -r geo_auto_close_fq
         case $geo_auto_close_fq in
         [yY][eE][sS] | [yY])
-            crontab -l 2>/dev/null | grep -v "geo_update.sh" | crontab -
+            local updater
+            updater=$(tb_geo_updater_path)
+            crontab -l 2>/dev/null | awk -v script="${updater}" 'index($0, script) == 0' | crontab - || return 1
             rm -rf "${geo_update_file}"
             judge -r "$(gettext "删除 GeoData 自动更新")"
             ;;
@@ -696,6 +823,9 @@ tb_geo_menu() {
 
 tb_update_all_geo() {
     echo
+    if tb_geo_native_cron >/dev/null 2>&1; then
+        log_echo "${Info} ${Green} $(gettext "原生定时更新已启用; 这里的手动更新会重启 Xray") ${Font}"
+    fi
     log_echo "${Info} ${Green} $(gettext "正在更新全部 GeoData")... ${Font}"
     tb_download_geo_file geoip.dat || {
         log_echo "${Error} ${RedBG} $(gettext "GeoData 更新失败，已尝试恢复旧版本") ${Font}"
