@@ -113,7 +113,7 @@
 
 ### 本阶段提交
 
-见本阶段独立提交（local commit，未推送、未合并、未发布）。
+`ac63aa7`（本地提交，位于分支 `feat/stage1-cert-recovery-security-baseline`；未推送、未合并、未发布）。
 
 ### 下一阶段准入
 
