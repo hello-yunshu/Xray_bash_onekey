@@ -112,6 +112,10 @@ jobs:
           # and the independent relay role only ever writes a managed Nginx
           # Stream fragment, with rollback and role persistence.
           bash .github/test/test_relay_node.sh
+          # Stage 03: normal nodes get Xray's native geodata schedule (no
+          # external cron, no restart), scoped asset permissions, and an
+          # honest status view instead of the legacy geo_version.json.
+          bash .github/test/test_geodata_native.sh
           bash -n .github/test/test_installer_candidate_smoke.sh
           bash .github/test/test_vps_auto_update_schedule.sh
           # Online version metadata must fall back cleanly without contaminating values.

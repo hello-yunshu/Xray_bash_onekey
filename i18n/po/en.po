@@ -4660,3 +4660,131 @@ msgstr "ONLY modes have no transport encryption; use them for relays, load-balan
 #: install.sh
 msgid "Nginx Stream TCP 转发"
 msgstr "Nginx Stream TCP forwarding"
+
+#: install.sh
+msgid "无法创建 GeoData 资源目录"
+msgstr "Cannot create the GeoData asset directory"
+
+#: install.sh
+msgid "缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置"
+msgstr "geoip.dat/geosite.dat are missing; skipping the native GeoData setup"
+
+#: install.sh
+msgid "GeoData 资源目录与 Xray 实际读取路径不一致, 跳过原生配置"
+msgstr "The GeoData directory does not match the path Xray actually reads; skipping the native setup"
+
+#: install.sh
+msgid "systemd 沙箱禁止写入 GeoData 资源目录, 跳过原生配置"
+msgstr "The systemd sandbox forbids writes to the GeoData directory; skipping the native setup"
+
+#: install.sh
+msgid "低内存设备 (小于 1 GiB): GeoData 定时更新会有短暂内存峰值, 请留意"
+msgstr "Low-memory host (under 1 GiB): scheduled GeoData updates cause a brief memory spike"
+
+#: install.sh
+msgid "检测到自定义 geodata 配置, 保留原样"
+msgstr "A custom geodata block was found and left untouched"
+
+#: install.sh
+msgid "Xray 配置无法解析, 跳过 GeoData 原生配置"
+msgstr "The Xray config cannot be parsed; skipping the native GeoData setup"
+
+#: install.sh
+msgid "Xray 服务账号仍无法写入 GeoData 文件, 原生更新可能失败"
+msgstr "The Xray service account still cannot write the GeoData files; scheduled updates may fail"
+
+#: install.sh
+msgid "当前 Xray 配置未通过 xray run -test, 跳过 GeoData 原生配置"
+msgstr "The current Xray config fails xray run -test; skipping the native GeoData setup"
+
+#: install.sh
+msgid "加入 geodata 后 Xray 配置测试失败, 已恢复原配置"
+msgstr "Xray rejected the config after adding geodata; the previous config was restored"
+
+#: install.sh
+msgid "GeoData 文件权限设置失败"
+msgstr "Failed to set the GeoData file permissions"
+
+#: install.sh
+msgid "GeoData 文件权限恢复失败"
+msgstr "Failed to restore the GeoData file permissions"
+
+#: install.sh
+msgid "已启用 Xray 原生 GeoData 定时更新"
+msgstr "Enabled Xray's native GeoData schedule"
+
+#: install.sh
+msgid "已移除脚本创建的 geo_update.sh 周期任务, 避免与原生更新重复执行"
+msgstr "Removed the geo_update.sh cron job created by this script to avoid duplicate updates"
+
+#: scripts/traffic_blocker.sh
+msgid "移除 geo_update.sh 周期任务失败, 请手动检查 crontab"
+msgstr "Failed to remove the geo_update.sh cron job; please check crontab manually"
+
+#: scripts/traffic_blocker.sh
+msgid "由 Xray 原生 geodata 定时更新"
+msgstr "refreshed by Xray's native geodata schedule"
+
+#: scripts/traffic_blocker.sh
+msgid "本地时区, 不重启 Xray"
+msgstr "local timezone, no restart"
+
+#: scripts/traffic_blocker.sh
+msgid "最后更新"
+msgstr "last updated"
+
+#: scripts/traffic_blocker.sh
+msgid "待执行"
+msgstr "pending"
+
+#: scripts/traffic_blocker.sh
+msgid "异常"
+msgstr "error"
+
+#: scripts/traffic_blocker.sh
+msgid "配置异常: geodata.assets 缺少有效的 HTTPS 下载地址"
+msgstr "Config error: geodata.assets has no valid HTTPS download URL"
+
+#: scripts/traffic_blocker.sh
+msgid "说明: 这里只反映配置与文件现状, 不代表某次定时任务已成功"
+msgstr "Note: this reflects the configuration and current files, not the outcome of a specific run"
+
+#: scripts/traffic_blocker.sh
+msgid "可在此菜单手动更新, 或检查"
+msgstr "Update manually from this menu, or check"
+
+#: scripts/traffic_blocker.sh
+msgid "与 Xray 错误日志"
+msgstr "and the Xray error log"
+
+#: scripts/traffic_blocker.sh
+msgid "GeoData 由 Xray 原生 geodata 定时更新"
+msgstr "GeoData is refreshed by Xray's native geodata schedule"
+
+#: scripts/traffic_blocker.sh
+msgid "原生更新在进程内热重载, 不重启 Xray, 无需额外的定时任务"
+msgstr "Native updates reload in-process without restarting Xray; no extra cron job is needed"
+
+#: scripts/traffic_blocker.sh
+msgid "未发现重复的 geo_update.sh 周期任务"
+msgstr "No duplicate geo_update.sh cron job found"
+
+#: scripts/traffic_blocker.sh
+msgid "发现脚本安装的 geo_update.sh 周期任务, 与原生更新重复"
+msgstr "Found a geo_update.sh cron job installed by this script, duplicating the native update"
+
+#: scripts/traffic_blocker.sh
+msgid "是否移除该重复任务"
+msgstr "Remove this duplicate job"
+
+#: scripts/traffic_blocker.sh
+msgid "移除重复的 GeoData 定时任务"
+msgstr "Remove the duplicate GeoData cron job"
+
+#: scripts/traffic_blocker.sh
+msgid "重新安装或重配置为普通节点后, 将改用 Xray 原生定时更新, 该任务会被自动移除"
+msgstr "After reinstalling or reconfiguring as a node, Xray's native schedule takes over and this job is removed"
+
+#: scripts/traffic_blocker.sh
+msgid "原生定时更新已启用; 这里的手动更新会重启 Xray"
+msgstr "Native scheduling is enabled; a manual update here restarts Xray"
