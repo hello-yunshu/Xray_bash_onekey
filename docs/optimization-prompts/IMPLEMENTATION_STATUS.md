@@ -236,14 +236,46 @@ stream {
 4. 反证：把 `stream {}` 写进 `http {}` 内，`nginx -t` 报
    `"stream" directive is not allowed here` —— 证明「必须顶层 include」的设计约束成立。
 
+**整机安装 / 生命周期实测（Docker，arm64 Debian 12 + `docker/fake-systemctl`）**
+
+在容器内以 root 跑完整 Linux 安装链路（真实 apt、真实 Nginx 发布包下载与 SHA256 校验、
+真实服务启停），不是函数级模拟：
+
+| 场景 | 命令 | 结果 |
+|---|---|---|
+| 中转节点完整安装 | `bash .github/test/test_install.sh relay` | **29 passed / 0 failed**（Nginx v2026.10.15.7679 下载→校验→安装→启动，入口端口监听，`curl` 经中转取到后端内容；无 Xray 二进制/服务/配置/UUID，`nginx -t` 通过，分层权限校验通过） |
+| 中转全生命周期 + 混装守卫 | `bash .github/test/test_relay_container.sh all` | **80 passed / 0 failed** |
+| Reality（Vision）回归 | `bash .github/test/test_install.sh reality` | **26 passed / 0 failed**（Xray v26.10.31 安装、Reality 配置生成、服务启动、端口监听，证明取消 XTLS ONLY 未伤及 Vision/Reality） |
+| 容器内函数级套件 | `test_relay_node / test_install_menu_profiles / test_offline_commands / test_redact` | 112 / 221 / 39 / 40，全部 0 failed |
+
+`test_relay_container.sh` 覆盖的端到端行为：
+
+- 真实向导输入：非法落地地址后重问、默认监听地址 `0.0.0.0`、向导只问落地地址/端口/本机监听端口，
+  函数体内不含 `UUID_set`/`email_set`/`domain_check`/`ssl_judge_and_install`/`keys_set` 等 Xray 参数
+- 角色持久化：清空内存变量后 `relay_bootstrap_role` 仍能从 `install_config.json` 恢复 `role=relay` 与目标/端口
+- 信息输出：`xray_info_file` 含落地目标、含「REALITY 公钥/SNI/ShortId 不变」与「TCP 可达 ≠ REALITY 握手」提示、不含 UUID、权限 600
+- 改落地目标：入口端口不变，流量从后端 A 切到后端 B，`proxy_pass` 与配置文件同步，`nginx -t` 通过
+- 改监听端口：新端口监听、旧端口关闭、流量继续可用
+- 停止 / 启动：入口端口随之关闭 / 恢复，转发内容不变
+- 非法输入拒绝：`127.0.0.1; rm -rf /`、`evil$(id).example.com`、`-bad.example.com`、`bad..example.com`、
+  空地址、端口 `0` / `70000` / `abc`、非法监听地址
+- 端口冲突：占用中的端口被拒，`relay_listen_port` 回滚，转发不受影响
+- **`nginx -t` 失败回滚**：向主配置注入非法指令后改目标，`relay_apply_change` 返回非 0，
+  `relay-stream.conf` 与备份逐字节一致，日志出现「已恢复原转发配置」，恢复主配置后转发仍正常
+- **Nginx 更新**：把记录的版本改成旧值触发真实下载；成功则检查 include/片段/`nginx -t`/转发，
+  下载中断则要求「已成功回滚到之前的 Nginx 版本」——两种结果都不允许丢中转配置
+- 卸载：片段删除、主配置 include 摘除、Nginx 卸载、入口端口关闭、`role` 从配置中清除、全程未装 Xray
+- 混装守卫：已有 Xray 配置 / 已有受管站点时 `relay_preflight` 拒绝且**不修改**原文件；
+  旧 `tls=XTLS` 配置下 `old_config_exist_check` 拒绝重装并提示「该模式已取消」「现有配置与服务不会被改动」
+
 ### 未执行 / 待实机验证
 
-- `sudo bash .github/test/test_install.sh relay`（需要 root + Linux + systemd + 真实下载 Nginx 发布包）：
-  已在 CI 矩阵中用 `relay` 取代 `xtls_only`，未运行前不得视为通过。
-- **真实落地站端到端联通待验证**：本阶段只证明了「本机 Nginx Stream 能把 TCP 字节转发到本地后端」，
-  没有、也无法在开发机验证「经中转节点连到真实落地 VPS 后 REALITY 握手成功」。
-- 真实 Linux 主机上：Nginx 更新（换二进制）后中转配置与 include 是否仍在、`recover_failed_nginx_update`
-  回滚是否保留旧转发、卸载中转后 `uninstall_nginx` 与主配置残留状态。
+- **真实落地站 REALITY 端到端联通仍待验证**：容器里只证明「本机 Nginx Stream 把 TCP 字节转发到本地
+  后端」，没有验证「经中转节点连到真实落地 VPS 后 REALITY 握手成功」。这一项必须在有真实落地机的
+  环境完成，不能由容器替代。
+- 真实公网主机上的防火墙落盘（`iptables-persistent`/`firewalld`）与 NAT 前置场景未在容器内覆盖
+  （容器无 `NET_ADMIN`，`relay_firewall_sync` 走空实现）。
+
 
 ### 风险与遗留
 
@@ -256,9 +288,10 @@ stream {
 
 ### 本阶段提交
 
-`eba8daf`（本地提交，位于分支 `feat/stage1-cert-recovery-security-baseline`；未推送、未合并、未发布）。
+`eba8daf`（功能）+ `84c3a63`（状态文档）+ 容器验证补强提交（`test_relay_container.sh`、CI guard job、
+本文档更新）。均位于分支 `feat/stage1-cert-recovery-security-baseline`；未推送、未合并、未发布。
 
 ### 下一阶段准入
 
-阶段 02 代码与本地自动化验证已完成，可进入阶段 03；进入前建议先在真实 Linux 上跑一次
-`test_install.sh relay` 与一次「中转 → 真实落地 REALITY 客户端连测」，把上面两条待验证项补齐。
+阶段 02 代码、本地自动化验证与容器整机实测已完成，可进入阶段 03；进入前唯一剩下的硬性待验证项是
+**「中转节点 → 真实落地 VPS → REALITY 客户端」的端到端连测**，需要在有真实落地主机的环境完成。

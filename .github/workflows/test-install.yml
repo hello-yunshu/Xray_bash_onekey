@@ -311,6 +311,41 @@ jobs:
           echo "=== Install log (redacted) ==="
           sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics /dev/stdin || echo "(not found)"
 
+  relay-guards:
+    # The relay role must never coexist with a node install, and a legacy
+    # XTLS ONLY host must never be silently reinstalled. Both guards are cheap
+    # (no Nginx download) and run separately from the install matrix so a guard
+    # regression is not buried in a 15-minute install log.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    name: Relay mixing and legacy-mode guards
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.candidate_commit || github.sha }}
+          persist-credentials: false
+
+      - name: Checkout API contract branch
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_api
+          ref: ${{ inputs.api_ref || 'main' }}
+          path: .phase1-contracts/api
+          persist-credentials: false
+
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq jq curl qrencode iproute2 netcat-openbsd openssl socat
+
+      - name: Verify relay mixing and legacy-mode guards
+        timeout-minutes: 8
+        env:
+          XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
+        run: sudo -E bash .github/test/test_relay_container.sh guard
+
   minimal-bootstrap:
     # T5: independent of security-regression so a red unit job cannot skip the
     # minimal Docker qualification (Debian 12/13, Ubuntu 24.04, CentOS Stream
