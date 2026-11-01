@@ -604,16 +604,115 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 | 01 证书恢复与安全基线 | `ac63aa7`、`d7c4e50` | `scripts/ssl_update.sh`、`install.sh`（日志权限、无 TLS 后端默认回环） |
 | 02 取消 XTLS ONLY 与中转节点 | `eba8daf`、`84c3a63`、`4fa2a53` | `install.sh`、`config/*`、`test_relay_container.sh`、CI |
 | 03 GeoData 原生热更新 | `a2f512d`、`77ad84a` | `install.sh`、`scripts/traffic_blocker.sh`、`test_geodata_native.sh`、i18n |
-| 04 自动更新与总收口 | `acd4568`、文档提交 | `scripts/auto_update.sh`、`install.sh`、`config/vless_reality.json`、两个新测试、i18n |
+| 04 自动更新与总收口 | `acd4568`、`c0c37ac` | `scripts/auto_update.sh`、`install.sh`、`config/vless_reality.json`、两个新测试、i18n |
+| 04 补充·版本降级保护 | `fd48c42`、文档提交 | `install.sh`（`version_compare`）、`scripts/auto_update.sh` 1.2.1、`test_version_downgrade_guard.sh` |
 
 **仍未验证的实机项**：真实 VPS 上的证书续签失败恢复、中转→真实落地端到端、低内存峰值、
 `ProtectSystem` 与原生热更新组合、Reality/TLS 外网完整数据面。
 
 **发布阻塞项（合并/发布前必须解决）**：
-1. `xray_update` 缺版本序比较，元数据回退会导致自动降级。
+1. ~~`xray_update` 缺版本序比较，元数据回退会导致自动降级。~~ **已解决**（见「阶段 04 补充」，
+   `version_compare` 数字序比较 + 更新前守卫，`auto_update.sh` 同步）。
 2. 候选资格流水线红灯（legacy 3.2.9 基线安装失败），且安装矩阵仍含 `xtls_only`。
+   根因已定位（上游 installer 改用硬编码 `User=xray`），修法与取舍见「阶段 04 补充」第 4 节，
+   **待仓库所有者确认后再动 API 仓库**。
 
 ### 12. 下一阶段准入
 
 阶段 04 代码与定向验证完成，但**整体不可宣称"可发布"**：上述两个阻塞项须由并行版本修复任务处理并重跑资格验证。
 本阶段结束，等待用户决定是否合并 / 发布。
+
+---
+
+## 阶段 04 补充｜版本降级保护（阻塞项 1 已解决）
+
+**状态：已修复并通过定向验证；阻塞项 2 已定位到根因，但修复跨仓库且有策略取舍，未擅自改动。**
+
+### 1. 问题
+
+`xray_update` 与 `scripts/auto_update.sh` 都用 `[[ a != b ]]` 判断"要不要更新"。版本**不同**被当成
+"有更新"，于是下列任一情况都会把一台能用的主机降级：
+
+- API `xray_shell_versions.json` 回退到更旧版本（发布回滚、人工改错）；
+- jsDelivr/GitHub Raw 返回过期副本（阶段 04 引入的双源回退放大了这个可能）；
+- 用户手工改了元数据。
+
+字符串比较还有第二种错法：`26.10.4` 与 `26.10.31` 按字典序是"前者更大"，实际是更旧。所以不能只加
+一个方向判断，必须换成按数字分段的比较。
+
+### 2. 改动
+
+`install.sh`（新增 `version_is_numeric` / `version_compare` / `version_gt` / `version_lt`）：
+
+- 按 `.` 分段逐段数字比较（`10#` 前缀，`026` 不会被当成八进制），缺段补 0（`26.10 == 26.10.0`），
+  忽略 `v` 前缀。不引入 `sort -V` 外部依赖。
+- 任一侧不是"点分数字版本"时返回 `2`（不可比），`version_gt`/`version_lt` 对不可比输入都返回假——
+  畸形元数据既不会触发更新，也不会被误判成降级。
+- `xray_update` 在任何备份/停服/安装动作之前先判断：本机版本高于清单版本 → 打印两边的版本、
+  提示"如确需降级请手动指定版本或先卸载"，直接 `return 0`（不写 `update_failed`、不动服务）。
+  真正的新版本与同版本重装（`!=` 分支后的 countdown 重装）都保持原行为。
+- `xray_install` 仍按清单钉定版本收敛（这是安装语义），但本机版本更高时会显式告警
+  "本机版本高于清单钉定版本, 将按清单重新安装"，不再静默降级。
+
+`scripts/auto_update.sh`（1.2.0 → 1.2.1）：
+
+- 新增同样的比较函数（脚本独立运行，不能 source `install.sh`）。
+- Xray 与 Nginx 两处更新判定都改为：相同 → 已是最新；目标更旧 → 跳过并记录
+  `Installed ... is newer than the metadata target ...; refusing to downgrade`；
+  目标更新 → 走原更新路径。
+- 跳过的降级**不写失败记录**（否则下次元数据恢复正常时会被"同版本已失败"再挡一次）。
+
+### 3. 验证
+
+| 验证 | 命令 | 结果 |
+| --- | --- | --- |
+| 新增 `test_version_downgrade_guard.sh` | `bash .github/test/test_version_downgrade_guard.sh` | **29 passed, 0 failed** |
+| `test_auto_update_failure_records.sh`（新增 H 段） | 同上 | **36 passed, 0 failed**（原 28 + 8） |
+| 普通节点整机（容器） | `test_install.sh reality` | **32 / 32** |
+| 中转节点整机（容器） | `test_install.sh relay` | **30 / 30** |
+| 版本/更新相关定向回归 | `test_version_loading`、`test_reality_min_client_ver`、`test_xray_installer_metadata`、`test_shell_update_metadata`、`test_install_menu_profiles`、`test_reinstall_call_chain`、`test_relay_node`、`test_offline_commands`、`test_vps_auto_update_schedule`、`test_geodata_native` | 全部通过 |
+
+`test_version_downgrade_guard.sh` 覆盖：数字序（`26.10.4 < 26.10.31`）、缺段补零、`v` 前缀、前导零、
+四段版本、畸形输入返回 `2` 且两个方向都为假、`xray_update` 拒绝降级时**没有**触发备份
+（`backup_xray_binary` 未被调用）、拒绝信息包含两侧版本、目标更新时备份仍然发生、
+以及"守卫必须先于首次安装/备份调用"的顺序断言。
+
+### 4. 阻塞项 2（候选资格流水线）——根因已定位，未修改
+
+**根因**：上游 `XTLS/Xray-install` 在 `04e6f3b`（2026-10-31）把服务身份从"读现有 unit 的 `User=`"
+改成硬编码 `User=xray`，并把 `/var/log/xray` 建成 `xray:xray 0700`
+（旧版 `e741a4f` 用 `User=$INSTALL_USER`，且日志归 `INSTALL_USER_UID`）。
+本仓库 3.2.11+ 通过 `xray_service_user` 读 unit 的 `User=` 再 `chown`，因此**能**适配；
+但基线 `3.2.9` 把配置 `chown nobody:nogroup`，unit 却是 `User=xray` → 服务读不到 `config.json`，
+于是出现资格日志里的 `permission denied` + `Xray service inactive`。
+
+对着失败运行逐项核对后的结论：
+
+- `3.2.9` 的 `fresh/direct/reinstall/fallback/restart-recovery` 全部因此失败
+  （`failure-recovery` 在下载校验阶段就终止、`shell-first` 先升级 Shell，所以这两项通过）；
+- `3.2.10/3.2.11` 只有 `restart-recovery` 失败，与上述无关，尚未单独归因。
+
+**为什么没有直接改**：
+
+1. API 仓库的 `qualify-legacy-upgrade.yml` 其实已经把这组组合当"已知不兼容"处理，但只在
+   `pull_request` + caller 为 `Qualify legacy shell upgrades (evidence only)` 时生效，生产
+   `workflow_dispatch` 走严格路径。把生产路径也改成"预期失败"等于**降低发布门禁**，
+   属于策略决定（后果：3.2.9 机器上直接 `-x` 更新会坏，只有先 `-u` 升级 Shell 才安全）。
+2. 真要让证据链接受"已知不兼容、无二进制证据"，还要同步改
+   `collect_qualification_evidence.py`（`MODES` 硬编码、要求每个 baseline×scenario 都有
+   `xray-binary.json`）与 `verify_qualification_run.py` 及其测试——这是发布证据校验链路，
+   不适合在没有 CI 迭代的情况下顺手改。
+3. `full-install` 矩阵里的 `xtls_only` 现在还能跑（`shell_commit` 指向 3.2.11），
+   但**发布 3.2.12 后会必然失败**：该 profile 已删除，同时新增 `relay`。
+   矩阵、`MODES` 常量、证据测试必须一起改（`xtls_only` → `relay`），
+   且只能与 3.2.12 的 `shell_online_version` 同时上线，否则当前资格验证会因 `relay` 不存在而红。
+
+**建议的收口顺序**（需仓库所有者确认）：
+
+1. 先按原计划发布 3.2.12（本仓库已具备适配 `User=xray` 的能力），在同一批改动里把 API 的
+   `xtls_only` 换成 `relay`（矩阵 + `MODES` + 测试）。
+2. 3.2.9 直更不兼容这件事，二选一：
+   - **接受**：把生产路径也按"已知不兼容"分类（必须仍以 `permission denied` 为判据，
+     并在发布说明里写明"3.2.9 请先升级 Shell"），同时给证据链加"无二进制证据"的表达；
+   - **不接受**：保持门禁红灯，改为给元数据加"旧 Shell 专用 installer 引脚"
+     （旧 Shell 永远读旧 installer），这是一次真正的发布协议变更。
