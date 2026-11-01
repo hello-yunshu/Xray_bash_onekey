@@ -718,11 +718,13 @@ assert_output_contains "routes transport_nginx_tls" \
     "ROUTE=tls PROFILE=transport_nginx_tls TRANSPORT=onlyxhttp" "${MENU_OUTPUT}"
 
 echo "--- real menu: transport ONLY confirmation accepted ---"
-MENU_OUTPUT=$(run_real_menu_flow '2\n2\ny\n2\n0\n0\n')
+MENU_OUTPUT=$(run_real_menu_flow '2\n2\ny\n2\nn\n0\n0\n')
 assert_output_contains "routes transport_only" \
     "ROUTE=only PROFILE=transport_only TRANSPORT=onlygRPC" "${MENU_OUTPUT}"
 assert_output_contains "transport_only shows risk explanation" \
-    "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境" "${MENU_OUTPUT}"
+    "ONLY 模式没有传输层加密" "${MENU_OUTPUT}"
+assert_output_contains "transport_only defaults to loopback listen address" \
+    "默认仅监听 127.0.0.1" "${MENU_OUTPUT}"
 
 echo "--- real menu: XTLS confirmation accepted ---"
 MENU_OUTPUT=$(run_real_menu_flow '3\ny\n0\n')
