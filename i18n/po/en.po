@@ -4788,3 +4788,15 @@ msgstr "After reinstalling or reconfiguring as a node, Xray's native schedule ta
 #: scripts/traffic_blocker.sh
 msgid "原生定时更新已启用; 这里的手动更新会重启 Xray"
 msgstr "Native scheduling is enabled; a manual update here restarts Xray"
+
+#: install.sh
+msgid "写入 REALITY minClientVer 失败, 已恢复原配置"
+msgstr "Failed to write the REALITY minClientVer, the previous config was restored"
+
+#: install.sh
+msgid "加入 minClientVer 后配置测试失败, 已恢复原配置"
+msgstr "The config failed Xray's test after adding minClientVer, the previous config was restored"
+
+#: install.sh
+msgid "已为 REALITY 入站补上 minClientVer"
+msgstr "Added minClientVer to the REALITY inbound"
