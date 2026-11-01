@@ -108,6 +108,10 @@ jobs:
           bash .github/test/test_ssl_update_recovery.sh
           bash .github/test/test_cert_update_recovery.sh
           bash .github/test/test_ws_only_listen_address.sh
+          # Stage 02: the XTLS ONLY profile is gone (Vision/Reality untouched)
+          # and the independent relay role only ever writes a managed Nginx
+          # Stream fragment, with rollback and role persistence.
+          bash .github/test/test_relay_node.sh
           bash -n .github/test/test_installer_candidate_smoke.sh
           bash .github/test/test_vps_auto_update_schedule.sh
           # Online version metadata must fall back cleanly without contaminating values.
@@ -231,7 +235,9 @@ jobs:
       fail-fast: false
       matrix:
         mode:
-          - xtls_only
+          # relay replaces the removed XTLS ONLY profile: an independent Nginx
+          # Stream TCP relay that never installs Xray.
+          - relay
           - ws_grpc_xhttp
           - reality
           - reality_nginx
@@ -263,9 +269,11 @@ jobs:
         run: sudo -E bash .github/test/test_install.sh ${{ matrix.mode }}
 
       - name: Verify real Xray access after fresh and legacy permission migration
+        if: matrix.mode != 'relay'
         run: sudo bash .github/test/test_xray_runtime_permissions.sh
 
       - name: Upgrade legacy service accounts with the pinned official installer
+        if: matrix.mode != 'relay'
         timeout-minutes: 10
         env:
           XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
