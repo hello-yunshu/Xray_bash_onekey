@@ -4800,3 +4800,19 @@ msgstr "The config failed Xray's test after adding minClientVer, the previous co
 #: install.sh
 msgid "已为 REALITY 入站补上 minClientVer"
 msgstr "Added minClientVer to the REALITY inbound"
+
+#: install.sh
+msgid "已安装版本高于在线清单, 不执行降级"
+msgstr "The installed version is newer than the online manifest; skipping the downgrade"
+
+#: install.sh
+msgid "在线清单"
+msgstr "Online manifest"
+
+#: install.sh
+msgid "如确需降级, 请手动指定版本或先卸载再安装"
+msgstr "If a downgrade is really required, install a specific version manually or uninstall first"
+
+#: install.sh
+msgid "本机版本高于清单钉定版本, 将按清单重新安装"
+msgstr "The local version is newer than the pinned manifest version; reinstalling the pinned version"

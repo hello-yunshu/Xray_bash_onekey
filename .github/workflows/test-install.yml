@@ -125,6 +125,9 @@ jobs:
           # older clients; the installer/template now write it explicitly and
           # repair existing configs without touching a user-chosen value.
           bash .github/test/test_reality_min_client_ver.sh
+          # Stage 04: "different" is not "newer". A regressed metadata target
+          # must never reinstall an older Xray/Nginx over a working host.
+          bash .github/test/test_version_downgrade_guard.sh
           bash -n .github/test/test_installer_candidate_smoke.sh
           bash .github/test/test_vps_auto_update_schedule.sh
           # Online version metadata must fall back cleanly without contaminating values.

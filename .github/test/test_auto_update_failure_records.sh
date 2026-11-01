@@ -230,5 +230,65 @@ else
     ok "relay records no Xray failure"
 fi
 
+# ---------------------------------------------------------------------------
+suite "H. an older metadata target never downgrades the host"
+new_root
+cat >"${root}/conf/install_config.json" <<'EOF'
+{"shell_version":"3.2.11","xray_version":"26.10.31","nginx_build_version":"2026.10.15.7679"}
+EOF
+export CDN_JSON='{"shell_online_version":"3.2.11","xray_online_version":"26.9.30","nginx_build_online_version":"2026.10.15.7679"}'
+export RAW_JSON="${CDN_JSON}" FAIL_CDN=0 FAIL_RAW=0
+run_update
+rc=$?
+if [[ ${rc} -eq 0 ]]; then ok "a regressed target exits cleanly"; else bad "a regressed target failed the run (rc=${rc})"; fi
+if grep -Fq -- "-x auto_update" "${INSTALL_LOG}"; then
+    bad "26.10.31 was replaced by the older 26.9.30"
+else
+    ok "26.9.30 is not installed over 26.10.31"
+fi
+if log_has "newer than the metadata target 26.9.30; refusing to downgrade"; then
+    ok "the refusal states both versions"
+else
+    bad "the downgrade refusal is not logged"
+fi
+if [[ -f "${root}/logs/update_failed.json" ]] && jq -e '.xray' "${root}/logs/update_failed.json" >/dev/null 2>&1; then
+    bad "a refused downgrade was recorded as an update failure"
+else
+    ok "a refused downgrade is not recorded as a failure"
+fi
+
+# 26.10.4 -> 26.10.31 is an upgrade; a string comparison would call it a
+# downgrade because "4" sorts after "3".
+new_root
+cat >"${root}/conf/install_config.json" <<'EOF'
+{"shell_version":"3.2.11","xray_version":"26.10.4","nginx_build_version":"2026.10.15.7679"}
+EOF
+export CDN_JSON="${versions_json}" RAW_JSON="${versions_json}"
+run_update
+if grep -Fq -- "-x auto_update" "${INSTALL_LOG}"; then
+    ok "26.10.4 -> 26.10.31 is treated as an upgrade"
+else
+    bad "a numerically newer target was skipped as a downgrade"
+fi
+if log_has "refusing to downgrade"; then bad "26.10.4 -> 26.10.31 was misread as a downgrade"; else ok "no false downgrade for 26.10.4"; fi
+
+# The same guard covers Nginx builds (2026.01.01.1 -> 2026.10.15.7679 is newer).
+new_root
+cat >"${root}/conf/install_config.json" <<'EOF'
+{"shell_version":"3.2.11","xray_version":"26.10.31","nginx_build_version":"2026.11.01.9000"}
+EOF
+export CDN_JSON="${versions_json}" RAW_JSON="${versions_json}"
+run_update
+if grep -Fq -- "-n auto_update" "${INSTALL_LOG}"; then
+    bad "an older Nginx build replaced a newer one"
+else
+    ok "an older Nginx target is refused"
+fi
+if log_has "newer than the metadata target 2026.10.15.7679; refusing to downgrade"; then
+    ok "the Nginx refusal is logged"
+else
+    bad "the Nginx downgrade refusal is not logged"
+fi
+
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]

@@ -8,7 +8,7 @@ else
 fi
 export PATH
 
-VERSION="1.2.0"
+VERSION="1.2.1"
 
 _script_args=("$@")
 
@@ -190,6 +190,42 @@ component_should_attempt() {
     return 0
 }
 
+# ---- Version ordering -----------------------------------------------------
+
+version_is_numeric() {
+    [[ "${1:-}" =~ ^[0-9]+(\.[0-9]+)*$ ]]
+}
+
+# 1 / 0 / -1 for newer / equal / older; 2 when either side is not a dotted
+# numeric version. Components compare numerically, so 26.9.30 < 26.10.31.
+version_compare() {
+    local a="${1#v}" b="${2#v}"
+    local i n x y
+    local -a av bv
+    version_is_numeric "${a}" && version_is_numeric "${b}" || return 2
+    IFS='.' read -r -a av <<<"${a}"
+    IFS='.' read -r -a bv <<<"${b}"
+    n=${#av[@]}
+    [[ ${#bv[@]} -gt ${n} ]] && n=${#bv[@]}
+    for ((i = 0; i < n; i++)); do
+        x=$((10#${av[i]:-0}))
+        y=$((10#${bv[i]:-0}))
+        if [[ ${x} -gt ${y} ]]; then
+            printf '1\n'
+            return 0
+        fi
+        if [[ ${x} -lt ${y} ]]; then
+            printf -- '-1\n'
+            return 0
+        fi
+    done
+    printf '0\n'
+}
+
+version_gt() {
+    [[ "$(version_compare "$1" "$2")" == "1" ]]
+}
+
 # ---- Version metadata -----------------------------------------------------
 
 fetch_versions() {
@@ -348,14 +384,17 @@ else
 fi
 
 # ---- Nginx ---------------------------------------------------------------
+installed_nginx_version="$(info_extraction nginx_build_version)"
 if [[ -z "${nginx_online_version}" ]]; then
     log "Nginx target version unknown, skipping the Nginx update."
 elif [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
     log "Nginx not installed, skipping the Nginx update."
-elif [[ $(info_extraction nginx_build_version) == null ]]; then
+elif [[ "${installed_nginx_version}" == null ]]; then
     log "Nginx build version unknown in install_config.json, skipping the Nginx update."
-elif [[ "${nginx_online_version}" == "$(info_extraction nginx_build_version)" ]]; then
+elif [[ "${nginx_online_version}" == "${installed_nginx_version}" ]]; then
     log "Nginx is up to date!"
+elif version_gt "${installed_nginx_version}" "${nginx_online_version}"; then
+    log "Installed Nginx build ${installed_nginx_version} is newer than the metadata target ${nginx_online_version}; refusing to downgrade."
 elif ! component_should_attempt "nginx" "${nginx_online_version}"; then
     log "Nginx ${nginx_online_version} stays blocked until the metadata moves to another version."
 else
@@ -371,6 +410,7 @@ else
 fi
 
 # ---- Xray ---------------------------------------------------------------
+installed_xray_version="$(info_extraction xray_version)"
 if [[ ${is_relay} -eq 1 ]]; then
     # Relay-only role: Nginx forwards TCP; Xray is not part of this server.
     log "Relay node: Xray is not installed by design, skipping the Xray update."
@@ -378,10 +418,14 @@ elif [[ -z "${xray_online_version}" ]]; then
     log "Xray target version unknown, skipping the Xray update."
 elif [[ ! -f "${xray_conf}" ]] || [[ ! -f "${xray_bin}" ]]; then
     log "Xray not installed, skipping the Xray update."
-elif [[ $(info_extraction xray_version) == null ]]; then
+elif [[ "${installed_xray_version}" == null ]]; then
     log "Xray version unknown, cannot auto update"
-elif [[ "${xray_online_version}" == "$(info_extraction xray_version)" ]]; then
+elif [[ "${xray_online_version}" == "${installed_xray_version}" ]]; then
     log "Xray is up to date!"
+elif version_gt "${installed_xray_version}" "${xray_online_version}"; then
+    # Metadata can regress (reverted release, stale CDN copy). Moving a working
+    # host backwards is never an automatic action; a human decides that.
+    log "Installed Xray ${installed_xray_version} is newer than the metadata target ${xray_online_version}; refusing to downgrade."
 elif ! component_should_attempt "xray" "${xray_online_version}"; then
     log "Xray ${xray_online_version} stays blocked until the metadata moves to another version."
 else

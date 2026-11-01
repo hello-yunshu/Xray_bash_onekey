@@ -4202,3 +4202,19 @@ msgstr ""
 #: install.sh
 msgid "已为 REALITY 入站补上 minClientVer"
 msgstr ""
+
+#: install.sh
+msgid "已安装版本高于在线清单, 不执行降级"
+msgstr ""
+
+#: install.sh
+msgid "在线清单"
+msgstr ""
+
+#: install.sh
+msgid "如确需降级, 请手动指定版本或先卸载再安装"
+msgstr ""
+
+#: install.sh
+msgid "本机版本高于清单钉定版本, 将按清单重新安装"
+msgstr ""
