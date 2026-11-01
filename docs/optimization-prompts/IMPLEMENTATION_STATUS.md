@@ -295,3 +295,164 @@ stream {
 
 阶段 02 代码、本地自动化验证与容器整机实测已完成，可进入阶段 03；进入前唯一剩下的硬性待验证项是
 **「中转节点 → 真实落地 VPS → REALITY 客户端」的端到端连测**，需要在有真实落地主机的环境完成。
+
+---
+
+## 阶段 03｜GeoData 原生热更新
+
+**状态：代码完成，本地单测 + 容器整机（真实 Xray 二进制、真实 cron、真实下载）已验证；实机（真实 VPS）验证待补**
+
+基线提交：`4fa2a53`（阶段 02 收尾）
+工作分支：`feat/stage1-cert-recovery-security-baseline`
+
+### 1. 用 Xray 原生 geodata 取代外部定时任务
+
+改动文件：`install.sh`（`geodata_*` 一组函数，插入 `xray_install()` 之前）
+
+- 普通节点不再依赖 `geo_update.sh` + crontab：安装/重装/换模式后，向 `config.json` 写入
+
+  ```json
+  "geodata": {
+    "cron": "0 3 * * 1",
+    "assets": [
+      {"url": "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat",   "file": "geoip.dat"},
+      {"url": "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat", "file": "geosite.dat"}
+    ]
+  }
+  ```
+
+  由 Xray 进程内按 cron 下载并**热重载**，不重启服务、不中断连接。
+- 更新节奏与数据源刻意与旧方案保持一致（每周一 03:00、Loyalsoldier `latest/download`），
+  因此**路由语义不变**；`.dat` 只是换了搬运者。
+- 原生 `assets` 强制 HTTPS（`geodata_managed_json` 是唯一定义处），不引入可被降级为明文的地址。
+- **幂等**：`geodata_state` 返回 `absent|managed|custom|invalid`。`custom`（用户自己写的 geodata 对象）
+  只提示「保留原样」、绝不覆盖；`managed` 重跑只重新断言权限。
+- **资产目录必须真实可读**：`geodata_prepare_layout` 要求 `geoip.dat`/`geosite.dat` 是资源目录下的
+  普通文件（非符号链接），且 `XRAY_LOCATION_ASSET` 解析出的路径与 `/etc/idleleo/share/xray` 一致。
+  任何一条不满足就跳过原生配置并给出提示——原生下载只会替换「本来就解析得到」的文件，
+  缺文件时不写入 `geodata`，避免路由规则静默变化。
+
+### 2. 写入事务与失败回滚
+
+- 写前先判定「现有配置是否本来就有效」：`xray run -test` 不通过时**跳过**而不是修复，
+  不把一个能用的安装改坏。
+- 写入流程：`mktemp` 备份 → `update_json_config`（原子写，复用阶段 01 的既有实现）→
+  `xray run -test -config` 复测 → 失败则 `cp -p` 备份**逐字节还原**并返回非零 → 成功才落地权限。
+- 权限设置失败同样返回非零（原生更新会静默失效，不能当成功）。
+- 安装链钩子（三处，均为 `standard_rebuild` / 全新安装 / 模式切换）：
+
+  ```bash
+  harden_config_permissions || return 1
+  geodata_native_enable || return 1      # 写配置 + 测配置 + 落权限
+  ...
+  service_restart || return 1
+  geodata_legacy_cron_disable || true    # 服务健康后才移除重复任务
+  setup_auto_clean_logs || return 1
+  ```
+
+  顺序刻意如此：先让原生计划生效、服务确认健康，再动 crontab；移除失败只告警（`|| true`），
+  不影响安装结果。
+
+### 3. 服务账号写权限与 systemd 沙箱
+
+- 只打开资源目录与两个 `.dat`：目录 `root:<svc-group>` `0770`，文件 `<svc-user>:<svc-group>` `0660`；
+  `config.json`、私钥、证书的属主与 mode 一律不动（服务账号除了它必须替换的数据文件外没有新权限）。
+- `root` 作为服务账号时退化为 `0755`/`0644`。
+- **mode 位不等于有写权限**：`geodata_service_can_write` 在 `runuser`/`su` 可用时以服务账号实际探测
+  `test -w`，失败只告警不致命（ACL、只读挂载都能让 0660 失效）。
+- **沙箱**：`ProtectSystem=strict` 而没有对应 `ReadWritePaths` 时，原生下载必然失败。
+  `geodata_sandbox_allows_write` 读取 unit 及其 `.d/*.conf` drop-in（按 systemd 语义后写覆盖先写、
+  `ReadWritePaths` 累加），缺少可写路径则跳过原生配置并提示，不写一个注定失败的 `geodata`。
+- 权限注释记录了实测结论：**长期成立的是「属主 + 目录可写」，不是精确 mode**——
+  首次原生下载后 Xray 自己写回文件，实测变为 `0644`（属主仍是服务账号）。
+
+### 4. 纯中转角色为 no-op
+
+- `geodata_native_enable` / `geodata_legacy_cron_disable` 首行 `is_relay_role && return 0`。
+- 中转节点不装 Xray、不生成 asset 目录、不写 `geodata`，安装后 `config.json` 不存在也无副作用。
+- 阶段 02 的 relay 断言补了一条：relay 安装后**不存在** asset 目录。
+
+### 5. traffic_blocker 菜单区分原生/旧模式
+
+改动文件：`scripts/traffic_blocker.sh`（`1.6.2 → 1.7.0`）
+
+- 新增只读探针：`tb_geo_native_cron`（读 `.geodata.cron`）、`tb_geo_native_assets_ok`（要求 `https://`
+  且 `file` 为字符串）、`tb_geo_legacy_cron_lines`（只匹配指向本项目 `geo_update.sh` 的行）、
+  `tb_geo_native_file_state`（`missing/recent/pending/stale`，7 天 / 30 天阈值）。
+- `tb_display_geo_summary` 分流：原生已启用 → 显示真实 cron、两个文件的真实 mtime 状态；
+  **不读 `geo_version.json`**（原生路径不写它，读了就是在编造历史）。
+- 诚实性：明确打印「这里只反映配置与文件现状, 不代表某次定时任务已成功」——
+  Xray 不落成功记录，菜单不能声称「上次更新成功」。
+- `tb_geo_auto_update`：原生已启用时**拒绝安装第二套自动化**（否则外部 cron 会自己重启 Xray，
+  且与原生任务重复），只报告并允许移除重复的 `geo_update.sh` 条目；移除按路径精确匹配，
+  用户自建条目不动。旧模式保留原逻辑，并提示「重装为普通节点后会被自动移除」。
+- 手动下载沿用 `geo_update.sh`（保留为救援工具），并提示手动更新会重启 Xray（与原生热更新不同）。
+
+### 6. 国际化
+
+- 新增 32 条 msgid 写入 `i18n/po/en.po` 与 `i18n/po/xray_install.pot`，`msgfmt --check` 通过，
+  重建 `i18n/languages/en/LC_MESSAGES/xray_install.mo`。其余语种仍由 `Update Translations` workflow 生成。
+
+### 本阶段验证（已执行）
+
+环境：macOS 开发机（bash 3.2 / jq / msgfmt / shellcheck）+ 本地 Docker（`xray-relay-test:base`，
+Debian 12 / arm64，`docker/fake-systemctl`），**未接触任何生产服务器**。
+
+| 验证 | 命令 | 结果 |
+| --- | --- | --- |
+| 原生 geodata 单测（新增） | `bash .github/test/test_geodata_native.sh` | **93 passed, 0 failed, 1 skipped** |
+| 普通节点整机安装（容器） | `docker run ... test_install.sh reality` | **31 / 31**（含新增 5 条 Native GeoData 断言） |
+| 中转节点整机安装（容器） | `docker run ... test_install.sh relay` | **30 / 30** |
+| 真实 Xray 热更新（容器，真实二进制 + 真实下载 + 1 分钟 cron） | `docker logs geo-live` | **15 / 15** |
+| 本地可执行回归（30 个脚本） | `/tmp/run_all2.sh` | 与基线一致，无新增失败 |
+| 语法 / 翻译 | `bash -n`、`msgfmt --check` | 通过 |
+
+`test_geodata_native.sh` 覆盖：配置生成与幂等、自定义 `geodata` 不被覆盖、无法解析的配置被跳过、
+`xray run -test` 前校验与写后复测、**逐字节回滚**（桩故意让第二次 `run -test` 失败）、
+relay no-op、cron 去重且保留用户自建行、安装链顺序（`sed -n '/service_restart/,+5p'` 断言）、
+权限 mode 与 `runuser` DAC 探测。
+
+真实热更新的证据（`geo-live` 容器）：
+
+```
+app/geodata: downloading geodata asset from https://.../geosite.dat to /usr/local/share/xray/geosite.dat
+common/geodata: reloading GeoIP data for 2 IP matcher(s) → reloaded
+common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
+-rw-r--r-- 1 nobody nogroup 16549678 geoip.dat     # 下载后由 Xray 自己写回，mode 0644
+```
+
+同一容器内还有「热更新后路由规则仍生效」「无残留临时文件」「确实读到了新文件」三项断言，均通过。
+
+### 未执行 / 待实机验证
+
+- **真实低内存设备的峰值内存**未测：`geodata_low_memory_notice` 只在 `MemTotal < 1 GiB` 时提示，
+  但「下载 + 重载」的实际瞬时内存占用需要在 512 MB / 1 GB 的机器上观测。
+- **长期 cron 行为**只在容器内用 1 分钟周期验证过一次；跨周（DST、时区、失败重试、GitHub 限流）
+  的长期表现需要在真实机器上跑一段时间。
+- 真实公网主机的防火墙/NAT 未在本阶段范围内（阶段 02 遗留），本阶段未新增防火墙改动。
+- 未在真实 VPS 上执行完整 `install.sh` 安装（本阶段所有整机验证都在容器内完成）。
+
+### 风险与遗留
+
+1. **失败不可见**：原生路径不写更新结果，Xray 只在日志里留痕；菜单只能报告文件 mtime，
+   无法回答「上次更新成功了吗」。要靠 `journalctl -u <unit>` 查 `app/geodata` 日志。
+2. **低内存峰值**：下载 + 解析 `.dat` 的瞬时内存高于旧脚本（旧脚本是外部进程），
+   小内存机器仍需观察。
+3. **数据源单点**：仍为 GitHub `latest/download`，被限流或不可达时原生下载静默失败（下个周期重试）。
+4. **`geodata` 是配置级设置**：用户若手工改 `config.json` 的 `geodata`（例如换 CDN），
+   本脚本识别为 `custom` 并永不覆盖——这是刻意的，但也意味着脚本不再为它兜底。
+5. **`geo_update.sh` 保留双路径**：作为手动救援工具共存；若用户手动把它的 cron 加回来，
+   会与原生任务重复（菜单会检测并提示移除，但不主动删除用户自建条目）。
+6. 沙箱判定依赖文本解析 unit/drop-in；若用户用 `systemd-analyze` 之外的方式（如容器内直接改挂载）
+   放宽限制，判定可能与实际不一致——此时只跳过原生配置，不产生错误配置。
+
+### 本阶段提交
+
+`a2f512d`（功能 + 测试 + i18n）+ 状态文档提交。均位于分支
+`feat/stage1-cert-recovery-security-baseline`；未推送、未合并、未发布。
+
+### 下一阶段准入
+
+阶段 03 代码与本地/容器验证完成，**可以进入阶段 04**；进入前的硬性待验证项是
+「真实 VPS 上的原生热更新 + `ProtectSystem` 沙箱组合」，以及低内存设备的内存峰值观测。
+两项都不阻塞阶段 04 的代码工作，但应在合并前补测。
