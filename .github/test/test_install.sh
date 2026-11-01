@@ -536,7 +536,13 @@ esac
 
 if [[ "${MODE}" == "tls" || "${MODE}" == "reality_nginx" || "${MODE}" == "relay" ]]; then
     assert_ok --diag "ls -la ${nginx_dir}/sbin/nginx 2>/dev/null; echo; file ${nginx_dir}/sbin/nginx 2>/dev/null; echo; ldd ${nginx_dir}/sbin/nginx 2>/dev/null" "Nginx binary exists" test -f "${nginx_dir}/sbin/nginx"
-    assert_ok --diag "ls -la ${nginx_conf} 2>/dev/null; echo; cat ${nginx_conf} 2>/dev/null | redact_text_for_diagnostics | head -30" "Nginx config exists" test -f "${nginx_conf}"
+    if [[ "${MODE}" == "relay" ]]; then
+        # A relay node owns the managed stream fragment only; it never gets a
+        # server-block site config, so assert on the file it is supposed to own.
+        assert_ok --diag "ls -la ${relay_stream_conf} 2>/dev/null; echo; cat ${relay_stream_conf} 2>/dev/null | redact_text_for_diagnostics | head -30" "Relay stream config exists" test -f "${relay_stream_conf}"
+    else
+        assert_ok --diag "ls -la ${nginx_conf} 2>/dev/null; echo; cat ${nginx_conf} 2>/dev/null | redact_text_for_diagnostics | head -30" "Nginx config exists" test -f "${nginx_conf}"
+    fi
     assert_ok --diag "cat ${nginx_systemd_file} 2>/dev/null" "Nginx systemd service exists" test -f "${nginx_systemd_file}"
     assert_ok --diag "systemctl status nginx 2>&1 | redact_text_for_diagnostics | head -15; echo; journalctl -u nginx --no-pager -n 10 2>&1 | redact_text_for_diagnostics; echo; ps aux | grep -E '[n]ginx' | head -5" "Nginx service is active" systemctl is-active --quiet nginx
     assert_ok --diag "${nginx_dir}/sbin/nginx -t -c ${nginx_dir}/conf/nginx.conf 2>&1" "Nginx config is valid" "${nginx_dir}/sbin/nginx" -t -c "${nginx_dir}/conf/nginx.conf"
