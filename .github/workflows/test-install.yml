@@ -102,6 +102,12 @@ jobs:
           # Xray config/log ownership must follow the systemd unit account
           # (Xray-install switched User=nobody -> User=xray).
           bash .github/test/test_xray_service_user_permissions.sh
+          # Stage 01: certificate renewal must never leave a running Nginx down,
+          # Xray logs must not be world-readable, and new ws/gRPC/xHTTP ONLY
+          # backends must not bind 0.0.0.0 by default.
+          bash .github/test/test_ssl_update_recovery.sh
+          bash .github/test/test_cert_update_recovery.sh
+          bash .github/test/test_ws_only_listen_address.sh
           bash -n .github/test/test_installer_candidate_smoke.sh
           bash .github/test/test_vps_auto_update_schedule.sh
           # Online version metadata must fall back cleanly without contaminating values.

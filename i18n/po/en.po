@@ -4288,3 +4288,91 @@ msgstr "reset"
 #: scripts/traffic_blocker.sh:1154 scripts/traffic_blocker.sh:1157
 msgid "已恢复"
 msgstr "restored"
+
+#: install.sh
+msgid "监听地址无效, 已回退到 127.0.0.1"
+msgstr "Invalid listen address, falling back to 127.0.0.1"
+
+#: install.sh
+msgid "无传输层加密的后端入站监听地址"
+msgstr "Plaintext backend inbound listen address"
+
+#: install.sh
+msgid "此模式没有传输层加密 (VLESS 载荷自身仍有加密), 只应用于可信后端链路"
+msgstr "This mode has no transport encryption (the VLESS payload itself is still encrypted); use it only on a trusted backend link"
+
+#: install.sh
+msgid "当前仅监听本机, 外部客户端需经可信代理接入, 或改用 TLS/Reality 模式"
+msgstr "It currently listens on this host only; external clients must connect through a trusted proxy, or use TLS/Reality mode"
+
+#: install.sh
+msgid "监听地址"
+msgstr "Listen address"
+
+#: install.sh
+msgid "此模式没有传输层加密, 仅应用于可信后端链路"
+msgstr "This mode has no transport encryption; use it only on a trusted backend link"
+
+#: install.sh
+msgid "默认仅监听"
+msgstr "Listens on"
+
+#: install.sh
+msgid "是否需要指定其他监听地址"
+msgstr "Do you want to specify another listen address"
+
+#: install.sh
+msgid "请输入监听地址"
+msgstr "Enter the listen address"
+
+#: install.sh
+msgid "例如"
+msgstr "for example"
+
+#: install.sh
+msgid "监听地址无效, 请重新输入"
+msgstr "Invalid listen address, please try again"
+
+#: install.sh
+msgid "无法读取域名, 已取消证书更新"
+msgstr "Cannot read the domain; certificate update cancelled"
+
+#: install.sh
+msgid "证书目录不可用, 已取消证书更新"
+msgstr "Certificate directory is not usable; certificate update cancelled"
+
+#: install.sh
+msgid "证书所需的服务组不存在, 已取消证书更新"
+msgstr "The service group required by the certificate is missing; certificate update cancelled"
+
+#: install.sh
+msgid "无法停止 Xray, 已取消证书更新"
+msgstr "Cannot stop Xray; certificate update cancelled"
+
+#: install.sh
+msgid "续签失败"
+msgstr "renewal failed"
+
+#: install.sh
+msgid "证书安装失败"
+msgstr "certificate installation failed"
+
+#: install.sh
+msgid "已恢复 Xray 原有运行状态"
+msgstr "Xray running state restored"
+
+#: install.sh
+msgid "Xray 服务恢复失败, 请手动检查"
+msgstr "Failed to restore the Xray service; please check manually"
+
+#: install.sh
+msgid "无 Nginx、无传输层加密"
+msgstr "no Nginx, no transport encryption"
+
+#: install.sh
+msgid "仅限可信后端"
+msgstr "trusted backends only"
+
+#: install.sh
+msgid "默认仅监听 127.0.0.1"
+msgstr "listens on 127.0.0.1 by default"

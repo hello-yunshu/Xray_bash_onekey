@@ -326,6 +326,10 @@ mode_switch_reuse="off"
 # install-function-side prompting so the wizard never asks the same question twice.
 install_profile=""
 install_wizard_preset="off"
+# Listen address used by NEW ws/gRPC/xHTTP ONLY deployments. Defaults to
+# loopback (no transport encryption); an operator may explicitly pick another
+# trusted address in the wizard or via WS_BACKEND_LISTEN_ADDR.
+ws_backend_listen_addr="${WS_BACKEND_LISTEN_ADDR:-127.0.0.1}"
 random_num=$((RANDOM % 12 + 4))
 # P0 (config lazy-load): the top-level phase must NOT call jq before Bootstrap
 # has guaranteed it. Configuration is parsed lazily via _lazy_load_info_extraction()
@@ -3845,6 +3849,43 @@ UUIDv5_tranc() {
     python3 -c "import uuid,sys;UUID_NAMESPACE=uuid.UUID('00000000-0000-0000-0000-000000000000');print(uuid.uuid5(UUID_NAMESPACE,sys.argv[1]))" "$1"
 }
 
+# ws/gRPC/xHTTP ONLY installs VLESS without any transport encryption, so they
+# are meant for a trusted backend link. New deployments listen on loopback
+# unless the operator explicitly selects another (internal) address; existing
+# installs keep the listen address already written in config.json.
+ws_backend_listen_default() {
+    printf '127.0.0.1'
+}
+
+is_valid_listen_address() {
+    local addr="$1" octet
+    [[ -n "${addr}" ]] || return 1
+    if [[ "${addr}" == *:* ]]; then
+        # IPv6 literal: colon-separated hex groups, at most one "::".
+        [[ "${addr}" =~ ^[0-9A-Fa-f:]+$ ]] || return 1
+        [[ "${addr}" != *":::"* ]] || return 1
+        [[ "${addr}" == *:*:* ]] || return 1
+        [[ "${addr#*::}" != *"::"* ]] || return 1
+        return 0
+    fi
+    [[ "${addr}" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]] || return 1
+    for octet in "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}"; do
+        (( 10#${octet} <= 255 )) || return 1
+    done
+    return 0
+}
+
+resolve_ws_backend_listen_addr() {
+    local addr="${ws_backend_listen_addr:-}"
+    [[ -n "${addr}" ]] || addr="$(ws_backend_listen_default)"
+    if ! is_valid_listen_address "${addr}"; then
+        # Must not go to stdout: callers capture this function's output.
+        printf '%s\n' "$(gettext "监听地址无效, 已回退到 127.0.0.1")" >&2
+        addr="$(ws_backend_listen_default)"
+    fi
+    printf '%s' "${addr}"
+}
+
 modify_listen_address() {
     if [[ ${tls_mode} == "XTLS" ]]; then
         update_json_config "${xray_conf}" '(.inbounds[] | select(.tag == "VLESS-XTLS-in")).listen = "0.0.0.0"'
@@ -3855,6 +3896,9 @@ modify_listen_address() {
     local listen_addr="0.0.0.0"
     if [[ ${tls_mode} == "TLS" ]]; then
         listen_addr="127.0.0.1"
+    elif [[ ${tls_mode} == "None" ]]; then
+        listen_addr="$(resolve_ws_backend_listen_addr)"
+        log_echo "${Warning} ${YellowBG} $(gettext "无传输层加密的后端入站监听地址"): ${listen_addr} ${Font}"
     fi
 
     if is_ws_mode; then
@@ -4519,8 +4563,13 @@ xray_privilege_escalation() {
     # bounding set, so it must own logs left at 600 by a previous account.
     mkdir -p /var/log/xray/ || return 1
     chown -fR "${_xray_service_user}:${_xray_service_group}" /var/log/xray/ || return 1
-    chmod -f 755 /var/log/xray/ || return 1
-    find /var/log/xray/ -type f -exec chmod -f 644 {} + || return 1
+    # Access logs carry every client address/SNI: keep the directory and the
+    # log files readable by the service account and its group only (750/640)
+    # instead of the previous world-readable 755/644. logrotate uses
+    # copytruncate and runs as root, and this script's diagnostics run as root,
+    # so no other local account needs access.
+    chmod -f 750 /var/log/xray/ || return 1
+    find /var/log/xray/ -type f -exec chmod -f 640 {} + || return 1
     if [[ "${_xray_service_user}" != "root" ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动修改程序") ${Font}"
         # 安装器切换服务账号后（nobody -> xray），已存在的配置必须同步归属，
@@ -7585,9 +7634,9 @@ check_cert_status() {
                 read -r cert_update_manuel_fq
                 case $cert_update_manuel_fq in
                 [yY][eE][sS] | [yY])
-                    systemctl stop xray
-                    judge -r "Xray $(gettext "停止")" || return 1
-                    cert_update_manuel
+                    # Service state handling lives inside cert_update_manuel so
+                    # a failed renewal can always restore what it stopped.
+                    cert_update_manuel || return 1
                     ;;
                 *) ;;
                 esac
@@ -7601,23 +7650,75 @@ check_cert_status() {
 }
 
 cert_update_manuel() {
-    if [[ ${tls_mode} == "TLS" ]]; then
-        if [[ -f "${amce_sh_file}" ]]; then
-            "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
-            host="$(info_extraction host)"
-            "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"
-            judge -r "$(gettext "证书更新")" || return 1
-            # Reuse authoritative layered permission model after cert renewal.
-            apply_nginx_layered_permissions || return 1
-            verify_nginx_layered_permissions || return 1
-            service_restart || return 1
-        else
-            log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
+    if [[ ${tls_mode} != "TLS" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
+        return 1
+    fi
+
+    # Every precondition is checked before a service is stopped, so a missing
+    # prerequisite can never leave Xray down.
+    if [[ ! -f "${amce_sh_file}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
+        return 1
+    fi
+
+    local _cert_host _cert_group _xray_was_active="no" _rc=0
+    _cert_host="$(info_extraction host)"
+    if [[ -z "${_cert_host}" || "${_cert_host}" == "null" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "无法读取域名, 已取消证书更新")! ${Font}"
+        return 1
+    fi
+    if [[ ! -d "${ssl_chainpath}" ]] && ! mkdir -p "${ssl_chainpath}" 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "证书目录不可用, 已取消证书更新")! ${Font}"
+        return 1
+    fi
+    _cert_group="$(get_nginx_worker_group)"
+    if [[ -z "${_cert_group}" ]] ||
+        { command -v getent >/dev/null 2>&1 && ! getent group "${_cert_group}" >/dev/null 2>&1; }; then
+        log_echo "${Error} ${RedBG} $(gettext "证书所需的服务组不存在, 已取消证书更新")! ${Font}"
+        return 1
+    fi
+
+    if systemctl is-active --quiet xray 2>/dev/null; then
+        _xray_was_active="yes"
+        if ! systemctl stop xray >/dev/null 2>&1; then
+            log_echo "${Error} ${RedBG} $(gettext "无法停止 Xray, 已取消证书更新")! ${Font}"
             return 1
         fi
-    else
-        log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
     fi
+
+    local _reloadcmd="chown -f root:${_cert_group} ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key"
+    # --reloadcmd is persisted in the acme.sh renewal config. It must not
+    # restart services: this function and ssl_update.sh already restart them
+    # once, and a restart inside the hook would double-restart every renewal.
+    if ! "${amce_sh_file}" --cron --home "$(dirname "${amce_sh_file}")"; then
+        log_echo "${Error} ${RedBG} acme.sh $(gettext "续签失败")! ${Font}"
+        _rc=1
+    elif ! "${amce_sh_file}" --installcert -d "${_cert_host}" \
+        --fullchainpath "${ssl_chainpath}/xray.crt" \
+        --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "${_reloadcmd}"; then
+        log_echo "${Error} ${RedBG} $(gettext "证书安装失败")! ${Font}"
+        _rc=1
+    elif ! apply_nginx_layered_permissions; then
+        _rc=1
+    elif ! verify_nginx_layered_permissions; then
+        _rc=1
+    elif ! service_restart; then
+        _rc=1
+    fi
+
+    if [[ ${_rc} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "证书更新") $(gettext "失败")! ${Font}"
+        if [[ "${_xray_was_active}" == "yes" ]] && ! systemctl is-active --quiet xray 2>/dev/null; then
+            if systemctl start xray >/dev/null 2>&1; then
+                log_echo "${OK} ${GreenBG} $(gettext "已恢复 Xray 原有运行状态") ${Font}"
+            else
+                log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复失败, 请手动检查")! ${Font}"
+            fi
+        fi
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "证书更新") $(gettext "完成") ${Font}"
 }
 
 set_fail2ban() {
@@ -8652,6 +8753,18 @@ basic_information() {
         log_echo "${Red} $(gettext "加密") (encryption):${Font} None "
         log_echo "${Red} $(gettext "传输协议") (network):${Font} $(info_extraction net) "
         log_echo "${Red} $(gettext "底层传输安全") (tls):${Font} $(info_extraction tls) "
+        if [[ ${tls_mode} == "None" ]]; then
+            local _none_listen
+            _none_listen=$(none_mode_listen_address)
+            [[ -n "${_none_listen}" ]] &&
+                log_echo "${Red} $(gettext "监听地址") (listen):${Font} ${_none_listen} "
+            log_echo "${Warning} ${YellowBG} $(gettext "此模式没有传输层加密 (VLESS 载荷自身仍有加密), 只应用于可信后端链路") ${Font}"
+            case "${_none_listen}" in
+            127.0.0.1 | ::1 | "")
+                log_echo "${Warning} ${YellowBG} $(gettext "当前仅监听本机, 外部客户端需经可信代理接入, 或改用 TLS/Reality 模式") ${Font}"
+                ;;
+            esac
+        fi
         if [[ ${tls_mode} != "Reality" && ${tls_mode} != "XTLS" ]]; then
             if is_ws_mode; then
                 log_echo "${Red} $(gettext "路径") (path $(gettext "不要落下")/):${Font} /$(info_ws_path) "
@@ -9949,6 +10062,8 @@ install_xray_ws_only() {
     email_set || return 1
     UUID_set || return 1
     transport_qr
+    # No transport encryption here: never fall back to the 0.0.0.0 wildcard.
+    ws_backend_listen_addr="$(resolve_ws_backend_listen_addr)"
     install_config_ws_only || return 1
     stop_service_all
     xray_install || return 1
@@ -10724,7 +10839,7 @@ show_help() {
     echo "OPTION:"
     echo "  -1, --install-tls           $(gettext "安装") Xray (Nginx+ws/gRPC/xHTTP+TLS)"
     echo "  -2, --install-reality       $(gettext "安装") Xray (Nginx+Reality+ws/gRPC/xHTTP)"
-    echo "  -3, --install-none          $(gettext "安装") Xray (ws/gRPC/xHTTP ONLY)"
+    echo "  -3, --install-none          $(gettext "安装") Xray (ws/gRPC/xHTTP ONLY, $(gettext "默认仅监听 127.0.0.1"))"
     echo "  -4, --install-xtls          $(gettext "安装") Xray (XTLS ONLY)"
     echo "  -5, --add-upstream          $(gettext "变更") Nginx $(gettext "负载均衡配置")"
     echo "  -6, --add-servernames       $(gettext "变更") Nginx serverNames $(gettext "配置")"
@@ -10893,6 +11008,23 @@ xray_inbound_port() {
 
     [[ -f "${xray_conf}" ]] || return 1
     jq -r --arg tag "${inbound_tag}" 'first(.inbounds[]? | select(.tag == $tag) | .port) // empty' "${xray_conf}" 2>/dev/null
+}
+
+xray_inbound_listen() {
+    local inbound_tag="$1"
+
+    [[ -f "${xray_conf}" ]] || return 1
+    jq -r --arg tag "${inbound_tag}" 'first(.inbounds[]? | select(.tag == $tag) | .listen) // empty' "${xray_conf}" 2>/dev/null
+}
+
+# First listen address of the ws/gRPC/xHTTP inbounds (None/"ONLY" mode).
+none_mode_listen_address() {
+    local _tag _addr=""
+    for _tag in VLESS-ws-in VLESS-gRPC-in VLESS-xhttp-in; do
+        _addr=$(xray_inbound_listen "${_tag}")
+        [[ -n "${_addr}" ]] && break
+    done
+    printf '%s' "${_addr}"
 }
 
 check_transport_tcp_ports() {
@@ -12422,13 +12554,38 @@ menu_install_reality_balance_role() {
     done
 }
 
+# ws/gRPC/xHTTP ONLY has no transport encryption: default to loopback and let
+# the operator explicitly opt into another (trusted, e.g. internal) address.
+ws_listen_address_choose() {
+    local _listen_custom_fq
+    ws_backend_listen_addr="$(ws_backend_listen_default)"
+    echo
+    log_echo "${Warning} ${YellowBG} $(gettext "此模式没有传输层加密, 仅应用于可信后端链路") ${Font}"
+    log_echo "${GreenBG} $(gettext "默认仅监听") $(ws_backend_listen_default), $(gettext "是否需要指定其他监听地址") [y/${Red}N${Font}${GreenBG}]? ${Font}"
+    read -r _listen_custom_fq
+    case ${_listen_custom_fq:-} in
+    [yY][eE][sS] | [yY])
+        while true; do
+            read_optimize "$(gettext "请输入监听地址") ($(gettext "例如") 10.0.0.2): " "ws_backend_listen_addr" "NULL" || return 1
+            if is_valid_listen_address "${ws_backend_listen_addr}"; then
+                break
+            fi
+            log_echo "${Error} ${RedBG} $(gettext "监听地址无效, 请重新输入")! ${Font}"
+        done
+        ;;
+    *) ;;
+    esac
+    log_echo "${Green} $(gettext "监听地址") (listen): ${ws_backend_listen_addr} ${Font}"
+    return 0
+}
+
 # Third-level menu: ws/gRPC/xHTTP deployment methods.
 menu_install_transport() {
     local menu_num
     while true; do
         menu_submenu_begin "ws/gRPC/xHTTP $(gettext "部署方式")"
         menu_item 1 "Nginx + TLS ($(gettext "推荐"))"
-        menu_item 2 "ONLY ($(gettext "无 Nginx、无 TLS")，$(gettext "高级"))"
+        menu_item 2 "ONLY ($(gettext "无 Nginx、无传输层加密")，$(gettext "仅限可信后端")，$(gettext "高级"))"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
@@ -12457,7 +12614,7 @@ menu_install_transport() {
                 reset_install_wizard_state
                 install_profile="transport_only"
                 echo
-                log_echo "${Warning} ${YellowBG} $(gettext "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境") ${Font}"
+                log_echo "${Warning} ${YellowBG} $(gettext "ONLY 模式没有传输层加密, 主要用于中转、负载均衡后端或已有上层代理的环境") ${Font}"
                 log_echo "${GreenBG} $(gettext "是否继续") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
                 read -r wsonly_fq
                 case ${wsonly_fq:-} in
@@ -12465,6 +12622,7 @@ menu_install_transport() {
                     *) continue ;;
                 esac
                 menu_choose_transport || continue
+                ws_listen_address_choose || continue
                 install_wizard_preset="on"
                 apply_install_profile
                 install_xray_ws_only
