@@ -456,3 +456,164 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 阶段 03 代码与本地/容器验证完成，**可以进入阶段 04**；进入前的硬性待验证项是
 「真实 VPS 上的原生热更新 + `ProtectSystem` 沙箱组合」，以及低内存设备的内存峰值观测。
 两项都不阻塞阶段 04 的代码工作，但应在合并前补测。
+
+---
+
+## 阶段 04｜自动更新可靠性、协议兼容与总收口
+
+**状态：代码完成并通过定向验证；存在 2 项发布阻塞（见「并行版本修复核验」），不宣称整体可发布。**
+
+基线提交：`77ad84a`（阶段 03 收尾）
+工作分支：`feat/stage1-cert-recovery-security-baseline`
+
+### 1. 自动更新失败记录（`scripts/auto_update.sh` 1.1.6 → 1.2.0）
+
+原实现用 `update_failed.mark.xray` / `.nginx` 两个**空标记文件**表达"上次失败"：
+一旦生成就永久阻挡该组件的所有未来版本，只能人工 `rm`。改为结构化记录：
+
+```json
+{"xray":  {"version": "26.10.31", "failed_at": "2026-11-02T01:00:00Z"},
+ "nginx": {"version": "2026.10.15.7679", "failed_at": "..."}}
+```
+
+- **重试判定看版本，不看"是否曾失败"**（`component_should_attempt`）：
+  记录的失败目标版本与本次目标相同 → 跳过并打印失败时间；目标版本变化 → 重新尝试。
+  这也顺带修掉了"新版出来后仍被旧标记挡住"的长期问题。
+- **旧标记不再阻断**：`legacy_marker_migrate` 在启动时删除 `.xray` / `.nginx`（旧标记不含版本，
+  无法参与判定），并在日志里写明"旧标记曾阻挡所有后续版本，现已不再参考"。
+- **日志自解释**：每次跳过都打印组件、失败版本、失败时间、手动重试命令
+  （`jq 'del(.xray)' /etc/idleleo/logs/update_failed.json`）以及"元数据出现新版本会自动重试"。
+- 成功即清除对应记录；记录文件 `0640`，写入走 `mktemp` + `mv` 原子替换，损坏的旧文件被整体重建。
+- 共享锁（`/run/lock/idleleo-update.lock`）、`running` 目录锁、备份与回滚全部保持原样；
+  另补 `flock` 缺失时的降级日志（仅影响无 util-linux 的开发机，生产行为不变）。
+
+### 2. 版本元数据源回退
+
+- 顺序：jsDelivr → GitHub Raw，各自都必须"单对象 JSON + 本次要用的字段齐全且形如版本号"才被接受；
+  缺字段/非 JSON/网络失败的源被整体拒绝并尝试下一个（`fetch_versions` + `versions_fields_ok`）。
+- **不再半信半疑地用脏数据**：原实现拿到任意非空字符串就当版本；现在 `nginx_build_online_version: "latest"`
+  这类值会被拒（有测试）。
+- 只做"取版本号"，不绕过任何既有校验：脚本更新仍走 `install.sh -u`（Release 版本/`shell_release_sha256`）、
+  Nginx 走 `-n`（manifest/SHA256SUMS）、Xray 走 `-x`（installer ref/sha256），三者都在原处校验。
+- 两个源都不可用时 **exit 0 跳过**（cron 不刷失败），日志写明原因。
+
+### 3. 纯中转节点只更新主脚本与 Nginx
+
+- 读 `install_config.json` 的 `role`；`relay` 时：
+  - 元数据只要求 `shell_online_version` / `nginx_build_online_version`，缺 `xray_online_version` 不算失败；
+  - 永不调用 `install.sh -x`，日志写"Relay node: Xray is not installed by design"；
+  - 不会写出 Xray 的失败记录（有测试断言）。
+- 顺带把"Nginx 未安装 / 版本未知"两种情况分开报告，避免中转（无 Xray）与 ws ONLY（无 Nginx）
+  互相误导。
+
+### 4. REALITY 客户端版本下限（2026-03 后唯一必须适配的上游变更）
+
+**证据**：Xray 26.7.11 起，`realitySettings.minClientVer` 未显式设置时按 `26.3.27` 处理，
+仍在报旧版本号的客户端（Mihomo/Clash 固定上报 1.8.2）直接握手失败。上游 issue
+[XTLS/Xray-core#6482](https://github.com/XTLS/Xray-core/issues/6482) 的结论就是显式写 `minClientVer`。
+本脚本钉定 `26.10.31`，而模板里没有该字段 → **所有 Reality 新装机都会复现**。
+
+- `config/vless_reality.json` 模板加 `"minClientVer": "1.0.0"`。
+- 新增 `reality_min_client_ver_repair()`（`install.sh`）：只给**缺失**该字段的 reality 入站补值，
+  用户自己设的值永不覆盖；写前备份、写后 `xray run -test`，失败逐字节还原；relay 与无 reality 入站的配置不动。
+- 调用点两处：`install_xray_reality()`（新装 / 重装 / Reality+Nginx 都经过）与 `xray_update()`（核心更新、
+  重启前，因此本次重启即生效）。这也覆盖了"已经升到 26.10.31 但配置没字段"的存量机器。
+
+**2026-03 之后上游变化对照（本阶段结论）**
+
+| 变更 | 判断 | 依据 / 处理 |
+| --- | --- | --- |
+| REALITY `minClientVer` 默认值 26.3.27（26.7.11+） | **必须适配（已做）** | 上游 issue #6482；不写字段则旧客户端全部握手失败 |
+| `allowInsecure` 2026-06-01 强制下线 | 不适用 | 脚本与服务端配置从未使用该字段；服务端只用真实证书 / REALITY |
+| XHTTP 客户端 `maxConnections` 默认 6 → 3（26.7.28） | 可选 | 只影响客户端默认值；服务端 `xhttpSettings` 仅 `path`/`mode: auto` |
+| 26.10.31 默认关闭 MPTCP（安全修复） | 无需处理 | 二进制行为，配置无对应开关；钉定版本已包含 |
+| MASQUE / XDRIVE 等新传输 | 暂不做 | 会引入新协议菜单，超出"最小兼容收口"范围 |
+| Vision CloseNotify / FinalMask 等行为修正 | 无需处理 | 无配置面影响，配置测试与真实握手均通过 |
+
+### 5. CLI / 帮助 / i18n / README / 卸载 / 状态显示核对
+
+- `--help` 已含 `--install-relay`；无 `XTLS ONLY` 残留入口（阶段 02 已清）。
+- `basic_information` / `check_program` 有 relay 分支（显示 Nginx 状态、Xray "不适用"），阶段 02 已落地。
+- `uninstall_all` 有 relay 分支，并清理 `auto_update.sh` / `geo_update.sh` / `ssl_update.sh` 三类 cron。
+- README 无 `geo_update.sh` 定时任务的过时描述；中转节点在支持模式表里。
+- i18n：本阶段新增 3 条 msgid 写入 `.pot` / `en.po`，`msgfmt --check` 通过并重建 en `.mo`。
+- 未发现需要在本阶段修复的 CLI/状态显示不一致。
+
+### 6. 并行版本修复核验（只核验，未改动）
+
+任务要求核对三项，结论如下（**第一项未满足，记为发布阻塞**）：
+
+| 项 | 结论 | 证据 |
+| --- | --- | --- |
+| a. 不能因"版本不相等"自动降级到更旧版本 | **未满足** | `install.sh` 只有 `!=` 比较（`4974`、`5011` 行），没有版本序比较；元数据回退到更旧版本时会照样"更新"（实为降级）。本阶段未修改（属并行任务职责） |
+| b. 恢复旧测试版不得误报"安全更新成功" | 已满足 | `xray_update` 用 `update_rolled_back` 记状态，5159 行 `return 1`，注释明确"服务恢复成功 ≠ 本次更新成功" |
+| c. API/installer 候选、资格验证、晋级链路可靠 | **部分满足，存在阻塞** | 候选资格工作流 2026-11-01 13:38 的 `Qualify candidate API release` 运行失败：`Legacy upgrade (3.2.9, fresh)` 在**基线安装**阶段就失败（`permission denied` / `Xray service inactive`），候选未被评估；另有 `qualify-release.yml` 仍把 `xtls_only` 列入安装矩阵（阶段 02 已从 `test_install.sh` 移除该模式），下一次 shell 发布资格验证会在该 job 失败 |
+
+其它观察（不是本阶段可改的）：线上 `xray_online_version=26.10.31` 而 `xray_tested_version=25.12.8`，
+`shell_tested_version=2.8.3`，资格基线明显落后于线上版本；`xray_online_version` 已被钉定为
+含 MPTCP 安全修复的版本。
+
+### 7. 本阶段验证（已执行）
+
+| 验证 | 命令 | 结果 |
+| --- | --- | --- |
+| 自动更新定向测试（新增） | `bash .github/test/test_auto_update_failure_records.sh` | **28 passed, 0 failed** |
+| REALITY minClientVer 测试（新增） | `bash .github/test/test_reality_min_client_ver.sh` | **12 passed, 0 failed** |
+| 普通 Reality 整机（容器） | `test_install.sh reality` | **32 / 32**（新增 minClientVer 断言） |
+| Reality+Nginx 整机（容器） | `test_install.sh reality_nginx` | **51 / 51**（新增 minClientVer 断言） |
+| ws/gRPC/xHTTP 整机（容器） | `test_install.sh ws_grpc_xhttp` | **33 / 33** |
+| TLS 整机（容器） | `test_install.sh tls` | **31 / 31** |
+| 中转整机（容器） | `test_install.sh relay` | **30 / 30** |
+| 受影响单测 | `test_version_loading` / `test_vps_auto_update_schedule` / `test_install_menu_profiles` / `test_reinstall_call_chain` / `test_geodata_native` / `test_relay_node` / `test_reality_nginx_feedback` / `test_ws_only_listen_address` / `test_shell_update_metadata` / `test_offline_commands` | 全部通过 |
+| 本地可执行回归（全部脚本） | `/tmp/run_all3.sh` | 失败项与基线 `4fa2a53` 完全一致（`test_fail2ban`、`test_log_rotation`、`test_installer_candidate_smoke`、`test_relay_container`、`rill_*`、`test_xray_update_transaction`、`test_xray_version_pipefail` 均为 macOS/需 root/需参数的环境限制，已在基线 worktree 逐项复现） |
+| 语法/格式 | `bash -n`、`msgfmt --check`、`jq -e config/vless_reality.json` | 通过 |
+
+**Reality 真实握手（容器内，真实 26.10.31 客户端 + 服务端）**：
+客户端 `proxy/vless/outbound: tunneling request to tcp:127.0.0.1:18080 via 127.0.0.1:14431`，
+服务端 `accepted tcp:127.0.0.1:18080 [VLESS-Reality-in -> direct]` → REALITY 认证通过、VLESS 请求被接受。
+错误 shortId 的对照连接被拒绝。**但完整 HTTP 载荷回程在容器内超时（多次重试）**，
+因此只把"REALITY 握手 + VLESS 请求接受"记为已验证，"端到端数据面"记为待实机验证。
+
+### 8. 未执行 / 待实机验证
+
+- **Reality/TLS 的完整外网握手**：容器内只验证到握手与请求接受，载荷回程超时未定位；
+  TLS 模式需要真实域名 + 证书，未在容器内做。
+- **中转 → 真实落地 VPS 的完整协议连接**（阶段 02 遗留）：仍未做。
+- **GeoData 真实热更**：阶段 03 已用真实二进制 + 真实下载 + 短 cron 验证（15/15），本阶段未重跑。
+- **真实低内存设备的峰值内存**（阶段 03 遗留）。
+- 真实 VPS 上的 `ProtectSystem` + 原生热更新组合（阶段 03 遗留）。
+
+### 9. 风险与遗留
+
+1. `xray_update` 的降级判定缺失（阻塞 a）会把"元数据回退"变成自动降级，需并行任务补齐后再发布。
+2. 资格验证流水线当前红灯（阻塞 c），且其安装矩阵仍包含已删除的 `xtls_only`。
+3. 失败记录按"目标版本"抑制：若同一版本被上游重发修复，需要按日志提示手动清一次记录。
+4. `minClientVer="1.0.0"` 是兼容优先的取舍：放宽了 REALITY 的客户端版本门槛（上游默认在收紧）；
+   需要更严格时可自行改成更高版本，脚本不会覆盖用户设置。
+5. 自动更新只在"目标版本变化"时重试，同一版本的瞬时网络故障不会被当天重试（由下一个版本或手动重试覆盖）。
+
+### 10. 本阶段提交
+
+`acd4568`（自动更新失败记录 + 元数据回退 + REALITY minClientVer + 两个新测试 + i18n）+ 状态文档提交。
+均位于分支 `feat/stage1-cert-recovery-security-baseline`；未推送、未合并、未发布。
+
+### 11. 阶段 01—04 汇总
+
+| 阶段 | 提交 | 范围 |
+| --- | --- | --- |
+| 01 证书恢复与安全基线 | `ac63aa7`、`d7c4e50` | `scripts/ssl_update.sh`、`install.sh`（日志权限、无 TLS 后端默认回环） |
+| 02 取消 XTLS ONLY 与中转节点 | `eba8daf`、`84c3a63`、`4fa2a53` | `install.sh`、`config/*`、`test_relay_container.sh`、CI |
+| 03 GeoData 原生热更新 | `a2f512d`、`77ad84a` | `install.sh`、`scripts/traffic_blocker.sh`、`test_geodata_native.sh`、i18n |
+| 04 自动更新与总收口 | `acd4568`、文档提交 | `scripts/auto_update.sh`、`install.sh`、`config/vless_reality.json`、两个新测试、i18n |
+
+**仍未验证的实机项**：真实 VPS 上的证书续签失败恢复、中转→真实落地端到端、低内存峰值、
+`ProtectSystem` 与原生热更新组合、Reality/TLS 外网完整数据面。
+
+**发布阻塞项（合并/发布前必须解决）**：
+1. `xray_update` 缺版本序比较，元数据回退会导致自动降级。
+2. 候选资格流水线红灯（legacy 3.2.9 基线安装失败），且安装矩阵仍含 `xtls_only`。
+
+### 12. 下一阶段准入
+
+阶段 04 代码与定向验证完成，但**整体不可宣称"可发布"**：上述两个阻塞项须由并行版本修复任务处理并重跑资格验证。
+本阶段结束，等待用户决定是否合并 / 发布。
