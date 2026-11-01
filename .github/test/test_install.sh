@@ -489,6 +489,21 @@ else
 fi
 
 echo ""
+echo "--- REALITY client-version compatibility ---"
+case "${MODE}" in
+reality | reality_nginx)
+    # Xray 26.7.11 defaults an unset minClientVer to 26.3.27, which rejects
+    # clients that still report an older build (upstream XTLS/Xray-core#6482).
+    assert_ok --diag "jq -c '[.inbounds[] | select(.streamSettings.security == \"reality\") | .streamSettings.realitySettings]' \"${xray_conf}\" 2>/dev/null" \
+        "REALITY inbound sets an explicit minClientVer" \
+        test "$(jq -r '[.inbounds[] | select(.streamSettings.security == "reality") | .streamSettings.realitySettings.minClientVer] | unique | join(",")' "${xray_conf}")" = "1.0.0"
+    ;;
+*)
+    echo "  ⏭️  SKIP: no REALITY inbound in this mode"
+    ;;
+esac
+
+echo ""
 echo "--- Xray config validation ---"
 if [[ "${MODE}" == "relay" ]]; then
     echo "  ⏭️  SKIP: relay nodes never install Xray"

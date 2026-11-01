@@ -4190,3 +4190,15 @@ msgstr ""
 #: scripts/traffic_blocker.sh
 msgid "原生定时更新已启用; 这里的手动更新会重启 Xray"
 msgstr ""
+
+#: install.sh
+msgid "写入 REALITY minClientVer 失败, 已恢复原配置"
+msgstr ""
+
+#: install.sh
+msgid "加入 minClientVer 后配置测试失败, 已恢复原配置"
+msgstr ""
+
+#: install.sh
+msgid "已为 REALITY 入站补上 minClientVer"
+msgstr ""
