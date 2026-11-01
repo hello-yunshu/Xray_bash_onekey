@@ -4441,6 +4441,51 @@ modify_privateKey_shortIds() {
   judge "privateKey shortIds $(gettext "配置修改")"
 }
 
+# ---- REALITY 客户端版本下限 -------------------------------------------------
+# Xray 26.7.11 起，realitySettings.minClientVer 未显式设置时按 26.3.27 处理，
+# 于是仍在报旧版本号的客户端（Mihomo/Clash 硬编码 1.8.2，部分旧版 v2rayN /
+# Shadowrocket）会直接握手失败。上游 issue: XTLS/Xray-core#6482，处置办法是
+# 显式写 minClientVer。这里只补齐缺失的字段，用户自己设过的值一律不动。
+reality_min_client_ver="1.0.0"
+
+reality_min_client_ver_repair() {
+    local missing backup
+    [[ -f "${xray_conf}" ]] || return 0
+    is_relay_role && return 0
+    # 只统计 reality 入站里缺这个字段的数量；配置不可解析时什么都不做。
+    missing=$(jq -r '[.inbounds[]? | select(.streamSettings.security == "reality")
+        | select((.streamSettings.realitySettings.minClientVer // "") == "")] | length' \
+        "${xray_conf}" 2>/dev/null) || return 0
+    [[ "${missing}" =~ ^[0-9]+$ ]] || return 0
+    (( missing > 0 )) || return 0
+
+    backup=$(mktemp "${xray_conf}.reality.XXXXXX" 2>/dev/null) || return 0
+    cp -p "${xray_conf}" "${backup}" || { rm -f "${backup}"; return 0; }
+
+    if ! update_json_config "${xray_conf}" --arg v "${reality_min_client_ver}" '
+        .inbounds |= map(
+            if (.streamSettings.security == "reality")
+               and ((.streamSettings.realitySettings.minClientVer // "") == "")
+            then .streamSettings.realitySettings.minClientVer = $v
+            else . end)'; then
+        cp -p "${backup}" "${xray_conf}" 2>/dev/null || true
+        rm -f "${backup}"
+        log_echo "${Warning} ${YellowBG} $(gettext "写入 REALITY minClientVer 失败, 已恢复原配置") ${Font}"
+        return 0
+    fi
+    # 配置必须仍能被 Xray 接受；不接受就逐字节还原，绝不留下坏配置。
+    if [[ -x "${xray_bin_dir}/xray" ]] &&
+        ! XRAY_LOCATION_ASSET="${geodata_dir}" "${xray_bin_dir}/xray" run -test -config "${xray_conf}" >/dev/null 2>&1; then
+        cp -p "${backup}" "${xray_conf}" 2>/dev/null || true
+        rm -f "${backup}"
+        log_echo "${Warning} ${YellowBG} $(gettext "加入 minClientVer 后配置测试失败, 已恢复原配置") ${Font}"
+        return 0
+    fi
+    rm -f "${backup}"
+    log_echo "${OK} ${GreenBG} $(gettext "已为 REALITY 入站补上 minClientVer"): ${reality_min_client_ver} ${Font}"
+    return 0
+}
+
 # 生成 16 位 hex shortId，openssl 优先，/dev/urandom 兜底
 generate_reality_short_id() {
     if command -v openssl >/dev/null 2>&1; then
@@ -4957,6 +5002,9 @@ xray_update() {
     trap 'rxa_reconfigure_leave $?' RETURN
     current_xray_version=$(info_extraction xray_version)
     [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
+    # 核心更新会带来 REALITY 客户端版本策略变化；在重启前补齐 minClientVer，
+    # 让本次重启同时生效（已显式设置的配置不受影响）。
+    reality_min_client_ver_repair
     # COMPAT: 旧版依赖 /usr/local/etc/xray 目录存放默认配置，新版不再使用，未来可删除
     [[ ! -d "${local_bin}/etc/xray" ]] && log_echo "${GreenBG} $(gettext "若更新无效, 建议直接卸载再安装")! ${Font}"
     log_echo "${Warning} ${GreenBG} $(gettext "部分新功能需要重新安装才可生效") ${Font}"
@@ -11168,6 +11216,9 @@ install_xray_reality() {
     reality_balance_add_fq
     reality_nginx_add_fq || return 1
     xray_conf_add || return 1
+    # 26.7.11 起 REALITY 未显式 minClientVer 会按 26.3.27 要求客户端版本,
+    # 旧客户端因此握手失败；配置一生成就补齐，避免装完即不可用。
+    reality_min_client_ver_repair
     install_config_reality || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     harden_config_permissions || return 1

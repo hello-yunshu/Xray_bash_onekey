@@ -27,6 +27,7 @@
                 "realitySettings": {
                     "target": "example.com:443", 
                     "serverNames": ["example.com"],
+                    "minClientVer": "1.0.0",
                     "privateKey": "privateKey",
                     "shortIds": ["shortIds"]
                 }
