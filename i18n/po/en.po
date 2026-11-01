@@ -1553,10 +1553,6 @@ msgstr "download Xray Reality configuration"
 msgid "下载 Xray 配置"
 msgstr "download Xray configuration"
 
-#: install.sh:6783
-msgid "下载 Xray XTLS 配置"
-msgstr "download Xray XTLS configuration"
-
 #: install.sh:6791
 msgid "检测到 Xray 配置过多用户"
 msgstr "detected that Xray is configured with too many users"
@@ -4376,3 +4372,291 @@ msgstr "trusted backends only"
 #: install.sh
 msgid "默认仅监听 127.0.0.1"
 msgstr "listens on 127.0.0.1 by default"
+
+#: install.sh
+msgid "旧版 XTLS 模式 (已取消)"
+msgstr "legacy XTLS mode (removed)"
+
+#: install.sh
+msgid "当前服务器为中转节点, 不支持与普通节点混装"
+msgstr "This server is a relay node; mixing it with an ordinary node is not supported"
+
+#: install.sh
+msgid "请先删除中转节点, 再安装普通节点"
+msgstr "Delete the relay node first, then install an ordinary node"
+
+#: install.sh
+msgid "检测到旧版 XTLS 模式, 该模式已取消, 不支持重装或模式切换"
+msgstr "A legacy XTLS mode install was found. That mode has been removed; reinstalling or switching to it is not supported"
+
+#: install.sh
+msgid "现有配置与服务不会被改动; 如需继续使用请卸载后重新部署"
+msgstr "Existing files and services are left untouched; uninstall and redeploy to continue"
+
+#: install.sh
+msgid "中转节点"
+msgstr "Relay node"
+
+#: install.sh
+msgid "落地服务器地址无效"
+msgstr "Invalid landing server address"
+
+#: install.sh
+msgid "端口无效, 必须是 1-65535"
+msgstr "Invalid port, must be 1-65535"
+
+#: install.sh
+msgid "监听地址无效"
+msgstr "Invalid listen address"
+
+#: install.sh
+msgid "写入中转配置失败"
+msgstr "Failed to write the relay configuration"
+
+#: install.sh
+msgid "Nginx 主配置中已存在自定义 stream 块, 请手动处理后重试"
+msgstr "The Nginx main config already contains a custom stream block; handle it manually and retry"
+
+#: install.sh
+msgid "已恢复上一次的转发配置"
+msgstr "Restored the previous forwarding configuration"
+
+#: install.sh
+msgid "恢复转发配置后 Nginx 校验仍失败, 请查看 Nginx 错误日志"
+msgstr "Nginx still fails validation after restoring; check the Nginx error log"
+
+#: install.sh
+msgid "Nginx 配置校验失败, 已恢复原转发配置"
+msgstr "Nginx configuration check failed; the previous forwarding config was restored"
+
+#: install.sh
+msgid "检测到已有普通节点安装, 中转节点需要独立服务器"
+msgstr "An ordinary node is already installed; a relay node needs a dedicated server"
+
+#: install.sh
+msgid "请先卸载原节点或改用普通节点安装, 本脚本不会覆盖现有配置"
+msgstr "Uninstall it first or use the ordinary node installer; existing config is never overwritten"
+
+#: install.sh
+msgid "检测到脚本管理的 Nginx 站点配置"
+msgstr "Managed Nginx site configuration detected"
+
+#: install.sh
+msgid "中转节点不能与普通节点或受管站点混装, 请先手动处理"
+msgstr "A relay cannot share the server with an ordinary node or managed site; handle it manually first"
+
+#: install.sh
+msgid "检测到 Xray 配置文件"
+msgstr "Xray configuration file detected"
+
+#: install.sh
+msgid "中转节点不安装 Xray, 请先手动处理现有 Xray 配置"
+msgstr "A relay node does not install Xray; handle the existing Xray config manually first"
+
+#: install.sh
+msgid "中转节点安装向导"
+msgstr "Relay node setup"
+
+#: install.sh
+msgid "中转节点只做 TCP 透明转发, 不安装 Xray, 不终止 TLS/REALITY"
+msgstr "A relay only forwards TCP transparently: no Xray, no TLS/REALITY termination"
+
+#: install.sh
+msgid "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 保持不变"
+msgstr "Clients only change the server address and port; the landing node REALITY public key/SNI/ShortId stay the same"
+
+#: install.sh
+msgid "落地服务器地址 (IP 或域名)"
+msgstr "Landing server address (IP or domain)"
+
+#: install.sh
+msgid "落地服务器地址无效, 请重新输入"
+msgstr "Invalid landing server address, please try again"
+
+#: install.sh
+msgid "落地服务器端口"
+msgstr "Landing server port"
+
+#: install.sh
+msgid "本机监听端口"
+msgstr "Local listen port"
+
+#: install.sh
+msgid "默认监听所有地址"
+msgstr "listens on all addresses by default"
+
+#: install.sh
+msgid "监听地址 (IPv4/IPv6)"
+msgstr "Listen address (IPv4/IPv6)"
+
+#: install.sh
+msgid "转发已生效, 但配置记录写入失败, 请重新运行安装向导"
+msgstr "Forwarding is active but the config record could not be written; rerun the setup"
+
+#: install.sh
+msgid "防火墙端口同步失败, 请手动放行新端口"
+msgstr "Failed to sync the firewall port; open the new port manually"
+
+#: install.sh
+msgid "当前没有可修改的中转配置"
+msgstr "No relay configuration to modify"
+
+#: install.sh
+msgid "修改落地目标"
+msgstr "Change landing target"
+
+#: install.sh
+msgid "落地服务器地址无效, 已取消"
+msgstr "Invalid landing server address; cancelled"
+
+#: install.sh
+msgid "落地目标已更新"
+msgstr "Landing target updated"
+
+#: install.sh
+msgid "修改监听端口"
+msgstr "Change listen port"
+
+#: install.sh
+msgid "监听端口已更新"
+msgstr "Listen port updated"
+
+#: install.sh
+msgid "当前没有可测试的中转配置"
+msgstr "No relay configuration to test"
+
+#: install.sh
+msgid "测试到落地节点的 TCP 连通性"
+msgstr "Testing TCP reachability to the landing node"
+
+#: install.sh
+msgid "TCP 连接成功 (仅代表端口可达, 不代表 REALITY/TLS 握手成功)"
+msgstr "TCP connected (port reachability only, not proof of a REALITY/TLS handshake)"
+
+#: install.sh
+msgid "无法连接落地节点端口, 请检查地址/端口/防火墙"
+msgstr "Cannot reach the landing port; check the address, port and firewall"
+
+#: install.sh
+msgid "中转节点配置信息"
+msgstr "Relay node configuration"
+
+#: install.sh
+msgid "本机中转入口"
+msgstr "Relay entry point"
+
+#: install.sh
+msgid "落地服务器"
+msgstr "Landing server"
+
+#: install.sh
+msgid "转发方式"
+msgstr "Forwarding"
+
+#: install.sh
+msgid "透传"
+msgstr "pass-through"
+
+#: install.sh
+msgid "启用状态"
+msgstr "State"
+
+#: install.sh
+msgid "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 等参数保持不变"
+msgstr "Clients only change the server address and port; REALITY public key/SNI/ShortId on the landing node stay unchanged"
+
+#: install.sh
+msgid "TCP 端口可达不代表 REALITY/TLS 握手成功, 请以客户端实际连接为准"
+msgstr "A reachable TCP port does not prove a REALITY/TLS handshake; verify with a real client"
+
+#: install.sh
+msgid "本机不安装 Xray, 不终止 TLS, 也不保存落地节点的私钥"
+msgstr "No Xray, no TLS termination and no landing-node private key on this server"
+
+#: install.sh
+msgid "Nginx 错误日志不存在"
+msgstr "Nginx error log not found"
+
+#: install.sh
+msgid "将删除中转配置并卸载 Nginx, 是否继续"
+msgstr "This deletes the relay configuration and uninstalls Nginx. Continue"
+
+#: install.sh
+msgid "已取消"
+msgstr "Cancelled"
+
+#: install.sh
+msgid "删除中转配置后 Nginx 仍无法通过校验, 请手动检查"
+msgstr "Nginx still fails validation after removing the relay config; check it manually"
+
+#: install.sh
+msgid "已保留脚本文件"
+msgstr "Script files kept"
+
+#: install.sh
+msgid "中转节点已删除"
+msgstr "Relay node removed"
+
+#: install.sh
+msgid "中转节点管理"
+msgstr "Relay node"
+
+#: install.sh
+msgid "转发信息"
+msgstr "Forwarding"
+
+#: install.sh
+msgid "入口"
+msgstr "entry"
+
+#: install.sh
+msgid "落地"
+msgstr "landing"
+
+#: install.sh
+msgid "中转节点菜单"
+msgstr "Relay node menu"
+
+#: install.sh
+msgid "测试后端连通"
+msgstr "Test backend reachability"
+
+#: install.sh
+msgid "删除中转"
+msgstr "Remove relay"
+
+#: install.sh
+msgid "中转节点需要一台独立服务器, 只做单目标 TCP 转发"
+msgstr "A relay node needs a dedicated server and forwards a single TCP target"
+
+#: install.sh
+msgid "不安装 Xray, 不终止 TLS/REALITY, 也不需要落地节点的 SSH 凭据"
+msgstr "No Xray, no TLS/REALITY termination, and no SSH credentials for the landing node"
+
+#: install.sh
+msgid "中转节点安装失败"
+msgstr "Relay node installation failed"
+
+#: install.sh
+msgid "安装中转节点"
+msgstr "install a relay node"
+
+#: install.sh
+msgid "转发"
+msgstr "forwarding"
+
+#: install.sh
+msgid "不安装"
+msgstr "without"
+
+#: install.sh
+msgid "不适用"
+msgstr "N/A"
+
+#: install.sh
+msgid "ONLY 模式没有传输层加密, 主要用于中转、负载均衡后端或已有上层代理的环境"
+msgstr "ONLY modes have no transport encryption; use them for relays, load-balancer backends or hosts behind an existing proxy"
+
+#: install.sh
+msgid "Nginx Stream TCP 转发"
+msgstr "Nginx Stream TCP forwarding"

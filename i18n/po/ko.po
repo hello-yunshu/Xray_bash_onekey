@@ -1524,10 +1524,6 @@ msgstr "Xray Reality 구성 다운로드"
 msgid "下载 Xray 配置"
 msgstr "Xray 구성 다운로드"
 
-#: install.sh:6783
-msgid "下载 Xray XTLS 配置"
-msgstr "Xray XTLS 구성 다운로드"
-
 #: install.sh:6791
 msgid "检测到 Xray 配置过多用户"
 msgstr "Xray가 너무 많은 사용자를 구성한 것을 감지했습니다"

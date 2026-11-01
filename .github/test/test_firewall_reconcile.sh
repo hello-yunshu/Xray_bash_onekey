@@ -339,7 +339,7 @@ iptables() {
 
 # Set up variables for firewall_set
 ID="ubuntu"
-tls_mode="XTLS"
+tls_mode="None"
 port="443"
 xport=""
 gport=""

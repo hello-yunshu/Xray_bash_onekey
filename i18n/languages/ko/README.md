@@ -58,7 +58,7 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 | Reality + Nginx | 推荐模式，可按需附加 ws/gRPC/xHTTP 简单协议用于负载均衡 |
 | Nginx + TLS | 支持 ws/gRPC/xHTTP，自动申请并续期 Let's Encrypt 证书 |
 | ws/gRPC/xHTTP ONLY | 无 TLS 的独立入站模式，主要用于后端或负载均衡场景 |
-| XTLS ONLY | 仅用于流量中转等特定场景 |
+| 中转节点 | 独立服务器角色，仅用 Nginx Stream 做单目标 TCP 转发，不安装 Xray |
 | Docker | 镜像内预装 Xray、Nginx 与主脚本 |
 
 安装 ws/gRPC/xHTTP 相关模式时，可选择 `ws`、`gRPC`、`xHTTP` 或 `ws+gRPC+xHTTP`。脚本会分别生成对应端口、路径、分享链接和二维码；Clash 目前不支持 xHTTP，脚本会在配置输出中提示。
@@ -136,7 +136,7 @@ docker attach xray-onekey
 
 传统方式需要 SSH 到服务器、运行安装脚本、逐个回答交互式问题；Skill 方式只需告诉 AI 你的需求，AI 会自动生成非交互式脚本并执行，直接返回 VLESS 链接。
 
-**지원되는 모드**: Reality / TLS / ws ONLY / XTLS ONLY
+**지원되는 모드**: Reality / TLS / ws ONLY / 중계 노드
 
 **使用方式**：在支持 Skill 的 AI 工具中直接说"帮我在服务器上搭建 Xray"，AI 会自动收集信息、生成脚本、执行部署并返回连接信息。
 

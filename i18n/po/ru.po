@@ -1574,10 +1574,6 @@ msgstr "скачать конфигурацию Xray Reality"
 msgid "下载 Xray 配置"
 msgstr "скачать конфигурацию Xray"
 
-#: install.sh:6783
-msgid "下载 Xray XTLS 配置"
-msgstr "скачать конфигурацию Xray XTLS"
-
 #: install.sh:6791
 msgid "检测到 Xray 配置过多用户"
 msgstr "обнаружено, что в конфигурации Xray слишком много пользователей"
