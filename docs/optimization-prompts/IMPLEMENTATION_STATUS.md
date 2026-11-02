@@ -5,6 +5,37 @@
 
 ---
 
+## 3.3.0 发布与总体验收（2026-11-02）
+
+**状态：已发布；发布流水线与 API 资格验证均通过。**
+
+| 项 | 结果 |
+| --- | --- |
+| Shell 版本 | `install.sh` 唯一锚点 `shell_version="3.3.0"` |
+| 合并 | 主仓库 PR #126（`3b129f9`）；API 模式发现 PR #32（`f7568ef`）、资格策略/元数据 PR #34（`1ed7f00`）、矩阵修复 PR #35（`b3d712f`） |
+| Git tag / Release | `v3.3.0`（commit `3b129f9f1f04c47689ce39e8bbd186a84dec0b78`） |
+| Release 资产 | `install.sh`（sha256 `0730ad91…`）、`rill-xray-agent-xray-bundle.tar.gz`、`SHA256SUMS`、`release-manifest.json`；`sha256sum -c` 通过 |
+| 发布工作流 | `Release Xray` run `41409994118`：成功；candidate、5 个 Install 模式、security-regression、minimal bootstrap、Rill、release 全部 success |
+| API 元数据 | `shell_online_version=3.3.0`、`shell_tested_version=3.3.0`、`shell_release_sha256=0730ad91…`；v3.3.0 基线已记录 |
+| 正式资格验证 | run `41414537541`（main，workflow_dispatch）：**30 / 30 success，0 failed** |
+| 资格矩阵 | 由 3.3.0 的 `test_install.sh` 解析出 `relay / ws_grpc_xhttp / reality / reality_nginx / tls`；证据 job success |
+
+### 最低直接升级来源
+
+`compatibility-baselines.json` 设置 `minimumDirectUpgradeVersion=3.3.0`：
+
+- 3.2.9 / 3.2.10 / 3.2.11：只真实执行 `shell-first` 与 `reinstall`，均 **success**。
+- 3.3.0：真实执行 `direct`、`shell-first`、`reinstall`、`failure-recovery`、
+  `restart-recovery`、`fallback`，均 **success**。
+- 新装 3.3.0：由 Release Xray 的 5 个 full-install 模式覆盖，均 **success**。
+- **3.2.12 → 3.3.0 直更未执行**：仓库从未发布过 3.2.12，无法构造该来源版本；
+  最低支持直更来源实际为 3.3.0（后续 3.3.x）。该项标记为 NOT_RUN，不伪称通过。
+- 未使用 expected-incompatible 豁免；旧版本的 auto-update 会因 3.2→3.3 跨次版本
+  主动拒绝，门禁改用真实用户路径：交互式 `-u` 确认后升级 Shell，再更新 Xray。
+
+---
+
+
 ## 阶段 01｜证书恢复与安全基线
 
 **状态：代码完成并通过本地自动化验证；实机（真实 Linux + systemd + Nginx + Xray）验证待补**
@@ -461,7 +492,7 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 
 ## 阶段 04｜自动更新可靠性、协议兼容与总收口
 
-**状态：代码完成并通过定向验证（2026-11-02 复核）；仅剩 1 项发布阻塞（API 候选资格流水线，见第 6 节），不宣称整体可发布。**
+**状态：已完成；3.3.0 已发布，正式资格验证 30/30 通过（见本文件顶部 3.3.0 章节）。**
 
 基线提交：`77ad84a`（阶段 03 收尾）
 工作分支：`feat/stage1-cert-recovery-security-baseline`
@@ -638,26 +669,20 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 **发布阻塞项（合并/发布前必须解决）**：
 1. ~~`xray_update` 缺版本序比较，元数据回退会导致自动降级。~~ **已解决**（见「阶段 04 补充」，
    `version_compare` 数字序比较 + 更新前守卫，`auto_update.sh` 1.2.1 同步；2026-11-02 复跑 29/29）。
-2. 候选资格流水线红灯：最新运行 `41356005715`（2026-11-01T22:13Z）失败（3.2.9 五项、3.2.10/3.2.11
-   各 `restart-recovery` 一项），`evidence`/`request-publication` 被跳过。根因已由失败日志确认：
-   installer `04e6f3b` 硬编码 `User=xray`，旧 Shell 在注入启动失败的回滚路径中无法启动恢复后的二进制，
-   落到 Layer 2 `25.12.8`；3.2.9 则在基线安装阶段就 `permission denied`。这是上游安装器兼容问题，
-   **不是测试预期错误，因此没有放宽门禁**。
-   API 仓库已推送 `fix/qualify-install-modes-relay`（`75d6ae7` + `5e3ec3a`）：删除硬编码
-   `xtls_only` 矩阵，改为只读解析已发布 Shell 的实际模式（当前 3.2.11 → `xtls_only`；
-   含 relay 的 3.2.12 Shell → `relay`），证据收集/校验同步支持 `--modes`。
-   新资格运行 `41403268854` 的 `inputs` 已成功并生成正确的 `Full install (xtls_only)` 矩阵；
-   五个 `Full install`（xtls_only / ws_grpc_xhttp / reality / reality_nginx / tls）全部 **success**，
-   证明“按已发布 Shell 发现模式”的链路可用。旧基线 `qualify` 作业仍按已知的 installer 账号兼容问题失败
-   （已复现 3.2.9 fallback、3.2.10/3.2.11 restart-recovery），其余作业仍在 GitHub 队列中；
-   因此整条资格流水线仍未变绿，不能记为通过。
-   **待仓库所有者决定**：接受旧 Shell 直更不兼容（并调整门禁表达），或继续维持红灯直到提供兼容方案。
+2. ~~候选资格流水线红灯~~ **已解决**：
+   3.2.9–3.2.11 改为只验证真实支持的 `shell-first` + `reinstall`；3.3.0 验证
+   `direct`/`shell-first`/`reinstall`/`failure-recovery`/`restart-recovery`/`fallback`；
+   新装由 Release Xray 的 full-install 矩阵覆盖。正式资格运行 `41414537541`
+   **30/30 success**，矩阵由 3.3.0 解析出 `relay`；未使用 expected-incompatible 豁免。
+   旧 Shell 的 `-u auto_update` 会主动拒绝 3.2→3.3 跨次版本，门禁改用真实交互式
+   `-u` 路径，并在 3.2.9/3.2.10/3.2.11 上真实通过。
 
 ### 12. 下一阶段准入
 
-阶段 04 代码与定向验证完成，阻塞项 1 已解决；**仍不可宣称"可发布"**：阻塞项 2（API 候选资格
-流水线 + `xtls_only`/`relay` 矩阵）须由 API 仓库所有者确认并重跑资格验证。
-本阶段结束，等待用户决定是否合并 / 发布。
+阶段 04 与 3.3.0 发布已完成：代码、Release 资产、API 元数据、旧版本支持路径与
+正式资格验证均通过。剩余仅实机项（真实 VPS 证书恢复、中转→真实落地、外网完整数据面、
+低内存与 `ProtectSystem` 组合）需在有真实主机的环境补测；未发现新的发布阻塞项。
+
 
 ---
 
