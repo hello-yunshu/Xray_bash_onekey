@@ -64,6 +64,9 @@ printf '%s\n' "$*" >>"${INSTALL_LOG}"
 if [[ "$*" == "-x"* && -n "${FAIL_XRAY:-}" ]]; then
     exit "${FAIL_XRAY}"
 fi
+if [[ "$*" == "-n"* && -n "${FAIL_NGINX:-}" ]]; then
+    exit "${FAIL_NGINX}"
+fi
 exit 0
 EOF
     chmod +x "${root}/install.sh"
@@ -146,6 +149,12 @@ export CDN_JSON="${versions_json}" RAW_JSON="${versions_json}"
 run_update
 if grep -Fq -- "-x auto_update" "${INSTALL_LOG}"; then ok "a new Xray target is retried"; else bad "a new target was blocked by an older failure"; fi
 if log_has "Recorded xray failure was for v26.10.30"; then ok "the retry explains itself"; else bad "the retry is not logged"; fi
+if [[ ! -f "${root}/logs/update_failed.json" ]] ||
+    ! jq -e '.xray' "${root}/logs/update_failed.json" >/dev/null 2>&1; then
+    ok "a successful retry clears the stale failure record"
+else
+    bad "the stale failure record survived a successful retry"
+fi
 
 # ---------------------------------------------------------------------------
 suite "D. failure is recorded for the failed target and cleared on success"
@@ -159,6 +168,11 @@ if [[ -n "$(jq -r '.xray.failed_at // empty' "${root}/logs/update_failed.json" 2
 else
     bad "the record has no timestamp"
 fi
+if log_has "Manual retry: jq 'del(.xray)'"; then
+    ok "the failure log explains how to retry immediately"
+else
+    bad "the failure log has no manual retry instructions"
+fi
 : >"${INSTALL_LOG}"
 run_update
 if grep -Fq -- "-x auto_update" "${INSTALL_LOG}"; then bad "second run retried the recorded target"; else ok "second run respects the record"; fi
@@ -170,6 +184,64 @@ if [[ ! -s "${root}/logs/update_failed.json" ]] || [[ "$(jq -r '.xray // empty' 
     ok "a successful update clears the record"
 else
     bad "a successful update left a stale record"
+fi
+
+# ---------------------------------------------------------------------------
+suite "D2. a failed Nginx target is recorded, skipped, then cleared on retry"
+new_root
+unset FAIL_XRAY
+export CDN_JSON="${versions_json}" RAW_JSON="${versions_json}" FAIL_NGINX=1
+run_update
+recorded=$(jq -r '.nginx.version // empty' "${root}/logs/update_failed.json" 2>/dev/null)
+if [[ "${recorded}" == "2026.10.15.7679" ]]; then
+    ok "a failed Nginx update records its target version"
+else
+    bad "Nginx failure not recorded (got '${recorded}')"
+fi
+if [[ -n "$(jq -r '.nginx.failed_at // empty' "${root}/logs/update_failed.json" 2>/dev/null)" ]]; then
+    ok "the Nginx record carries a timestamp"
+else
+    bad "the Nginx record has no timestamp"
+fi
+if log_has "Manual retry: jq 'del(.nginx)'"; then
+    ok "the Nginx failure log explains how to retry immediately"
+else
+    bad "the Nginx failure log has no manual retry instructions"
+fi
+if jq -e '.xray' "${root}/logs/update_failed.json" >/dev/null 2>&1; then
+    bad "a successful Xray update left a phantom failure record"
+else
+    ok "the successful Xray component is not marked failed"
+fi
+: >"${INSTALL_LOG}"
+run_update
+if grep -Fq -- "-n auto_update" "${INSTALL_LOG}"; then
+    bad "the same failed Nginx target was retried"
+else
+    ok "the recorded Nginx target is skipped"
+fi
+if grep -Fq -- "-x auto_update" "${INSTALL_LOG}"; then
+    ok "the Nginx failure does not block the Xray update"
+else
+    bad "the Nginx failure blocked the Xray update"
+fi
+# A different failed target means the metadata moved on; success must clear it.
+cat >"${root}/logs/update_failed.json" <<'EOF'
+{"nginx":{"version":"2026.01.01.1","failed_at":"2026-11-01T10:00:00Z"}}
+EOF
+unset FAIL_NGINX
+: >"${INSTALL_LOG}"
+run_update
+if grep -Fq -- "-n auto_update" "${INSTALL_LOG}"; then
+    ok "a different Nginx target is retried"
+else
+    bad "an older recorded Nginx target blocked the retry"
+fi
+if [[ ! -f "${root}/logs/update_failed.json" ]] ||
+    ! jq -e '.nginx' "${root}/logs/update_failed.json" >/dev/null 2>&1; then
+    ok "a successful Nginx retry clears the stale record"
+else
+    bad "the stale Nginx record survived a successful retry"
 fi
 
 # ---------------------------------------------------------------------------
