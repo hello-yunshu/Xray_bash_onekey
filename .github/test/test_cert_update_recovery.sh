@@ -55,6 +55,10 @@ systemctl() {
 }
 
 get_nginx_worker_group() { printf 'idleleo-nginx'; }
+# The production pre-check probes the system group when getent exists. CI
+# runners have getent and no idleleo-nginx group, so stub the probe; the
+# macOS development host has no getent and skips it.
+getent() { [[ "$1" == "group" && "$2" == "idleleo-nginx" ]]; }
 info_extraction() { printf 'example.com'; }
 apply_nginx_layered_permissions() { [[ "${FAIL_PERMS:-no}" != "yes" ]]; }
 verify_nginx_layered_permissions() { return 0; }
