@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-# 3.3.1 H2: real `--purge` must remove the Xray host surface without requiring
-# offline installer metadata. Run after a real (mode) installation.
+# 3.3.1 H2: real `--purge` must remove the Xray/Nginx host surface without
+# requiring offline installer metadata. Run after a real (mode) installation.
+#
+# PURGE_DROP_BINARY=1 additionally simulates an interrupted/partial uninstall:
+# the role binary is deleted before purge (node keeps the main unit, drops
+# xray@; relay also loses its Nginx dir/unit). The managed unit/config surface
+# must still be removed. This is the case where the old `if [[ -f binary ]]`
+# guard left units and /usr/local/etc/xray behind while returning 0.
 set -uo pipefail
 
 LOG=$(mktemp)
@@ -14,10 +20,44 @@ active() { systemctl is-active --quiet "$1" 2>/dev/null; }
 
 [[ -f /etc/idleleo/install.sh ]] || { echo 'FATAL: managed install missing'; exit 1; }
 role=$(jq -r '.role // "node"' /etc/idleleo/conf/install_config.json 2>/dev/null || echo node)
-echo "=== purge role=${role} ==="
+
+# Real install-success surface: basic_information runs after installation and
+# must not persist the UUIDv5 mapping string to install.log.
+if [[ -f /etc/idleleo/logs/install.log ]]; then
+    if grep -Eq '映射字符串[^:：=]*[:：=][[:space:]]*[A-Za-z0-9]' /etc/idleleo/logs/install.log; then
+        bad "install.log contains UUIDv5 mapping-string material"
+    else
+        ok "install.log contains no UUIDv5 mapping-string material"
+    fi
+fi
+drop_binary=${PURGE_DROP_BINARY:-0}
+echo "=== purge role=${role} drop_binary=${drop_binary} ==="
+
+if [[ "${drop_binary}" == "1" ]]; then
+    if [[ "${role}" == "relay" ]]; then
+        rm -rf /usr/local/nginx
+        rm -f /etc/systemd/system/nginx.service
+    else
+        # The reported state: the Xray binary is gone (e.g. an interrupted
+        # upgrade) but the main unit and managed config still exist. Keep the
+        # main unit so purge must disable/stop it, remove both unit files, and
+        # run daemon-reload. Drop xray@ to also cover a partially missing unit.
+        rm -f /usr/local/bin/xray
+        rm -f /etc/systemd/system/xray@.service
+    fi
+    echo "=== simulated interrupted uninstall: role surface not present ==="
+fi
+
+# Keep-config=no + delete-scripts=yes: the strongest purge, so a leftover
+# /etc/idleleo is unambiguous.
+if [[ "${role}" == "relay" ]]; then
+    purge_input=$'y\nn\ny\n'
+else
+    purge_input=$'n\ny\n'
+fi
 
 set +e
-printf 'y\ny\ny\ny\n' | bash /etc/idleleo/install.sh --purge >"${LOG}" 2>&1
+printf '%s' "${purge_input}" | bash /etc/idleleo/install.sh --purge >"${LOG}" 2>&1
 rc=$?
 set -e
 [[ ${rc} -eq 0 ]] && ok "purge exits 0" || bad "purge exits ${rc}"
@@ -31,6 +71,7 @@ if [[ "${role}" == "relay" ]]; then
     exists /usr/local/nginx && bad "relay nginx binary remains" || ok "relay nginx binary removed"
     exists /etc/systemd/system/nginx.service && bad "relay nginx unit remains" || ok "relay nginx unit removed"
     active nginx && bad "relay nginx still active" || ok "relay nginx inactive"
+    exists /etc/idleleo/conf/nginx && bad "managed relay config dir remains" || ok "managed relay config dir removed"
 else
     exists /usr/local/bin/xray && bad "Xray binary remains" || ok "Xray binary removed"
     exists /usr/local/etc/xray && bad "/usr/local/etc/xray remains" || ok "/usr/local/etc/xray removed"
@@ -39,6 +80,15 @@ else
     exists /etc/systemd/system/xray@.service && bad "Xray@ unit remains" || ok "Xray@ unit removed"
     active xray && bad "Xray still active" || ok "Xray inactive"
 fi
+
+# The terminal-only tail after removing /etc/idleleo must not make tee print a
+# false error (the old log_echo attempted to append to the deleted install.log).
+if grep -Fq 'tee: ' "${LOG}"; then
+    bad "purge produced a tee error after removing the log directory"
+else
+    ok "purge produced no tee error"
+fi
+exists /etc/idleleo && bad "/etc/idleleo remains after a full purge" || ok "/etc/idleleo removed"
 
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]

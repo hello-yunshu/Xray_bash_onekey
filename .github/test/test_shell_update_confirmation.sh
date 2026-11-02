@@ -14,6 +14,26 @@ bad() { FAIL=$((FAIL + 1)); printf '  FAIL: %s\n' "$1"; }
 
 run_updater() {
     local case_name="$1"
+    local base_version="3.3.0" target_version="3.3.1"
+    local want_yes="off" want_allow_major="off"
+    case "${case_name}" in
+        noninteractive|tty-n|tty-y) ;;
+        yes) want_yes="YES" ;;
+        cross-yes)
+            base_version="3.3.1"; target_version="3.4.0"; want_yes="YES"
+            ;;
+        cross-allow-only)
+            base_version="3.3.1"; target_version="3.4.0"; want_allow_major="YES"
+            ;;
+        cross-allow)
+            base_version="3.3.1"; target_version="3.4.0"
+            want_yes="YES"; want_allow_major="YES"
+            ;;
+        *)
+            printf 'unknown case: %s\n' "${case_name}" >&2
+            return 2
+            ;;
+    esac
     local tmp
     tmp=$(mktemp -d)
     export _TEST_MODE=1
@@ -31,16 +51,16 @@ run_updater() {
     log_dir="${idleleo_dir}/logs"
     log_file="${log_dir}/install.log"
     mkdir -p "${idleleo_dir}/tmp" "${idleleo_conf_dir}" "${scripts_dir}" "${log_dir}"
-    printf 'shell_version="3.3.0"\nold\n' >"${idleleo}"
+    printf 'shell_version="%s"\nold\n' "${base_version}" >"${idleleo}"
     ln -sf "${idleleo}" "${idleleo_commend_file}"
-    jq -n '{shell_version:"3.3.0"}' >"${xray_install_config_file}"
+    jq -n --arg v "${base_version}" '{shell_version:$v}' >"${xray_install_config_file}"
 
-    shell_version="3.3.0"
-    shell_online_version="3.3.1"
+    shell_version="${base_version}"
+    shell_online_version="${target_version}"
     shell_release_sha256=""
     auto_update=""
-    update_assume_yes="off"
-    [[ "${case_name}" == "yes" ]] && update_assume_yes="YES"
+    update_assume_yes="${want_yes}"
+    update_allow_major="${want_allow_major}"
 
     check_version() { printf 'test-details\n'; }
     rxa_update_title() { :; }
@@ -55,7 +75,7 @@ run_updater() {
         local candidate="$1"
         {
             printf '#!/usr/bin/env bash\n'
-            printf 'shell_version="3.3.1"\n'
+            printf 'shell_version="%s"\n' "${target_version}"
             printf 'xray_install_release() { :; }\n'
             printf 'read_version() { :; }\n'
             printf 'xray_update() { :; }\n'
@@ -104,10 +124,26 @@ else
     bad "script(1) unavailable; TTY cases not executed"
 fi
 
-echo "--- --yes without TTY ---"
+echo "--- --yes without TTY (same minor) ---"
 out=$(bash "$0" __run yes </dev/null 2>&1); rc=$?
 if [[ ${rc} -eq 0 ]]; then ok "--yes returns 0"; else bad "--yes returned ${rc}"; fi
 if grep -Fq "SHELL=3.3.1" <<<"${out}"; then ok "--yes updates to 3.3.1"; else bad "--yes did not update: ${out}"; fi
+
+echo "--- --yes without TTY (cross minor) ---"
+out=$(bash "$0" __run cross-yes </dev/null 2>&1); rc=$?
+if [[ ${rc} -ne 0 ]]; then ok "cross-minor --yes returns non-zero"; else bad "cross-minor --yes returned 0"; fi
+if grep -Fq "SHELL=3.3.1" <<<"${out}"; then ok "cross-minor --yes leaves version unchanged"; else bad "cross-minor --yes changed version: ${out}"; fi
+if grep -Fq -- "--allow-major" <<<"${out}"; then ok "cross-minor --yes explains --allow-major"; else bad "cross-minor --yes has no --allow-major guidance"; fi
+
+echo "--- --allow-major without --yes (cross minor, no TTY) ---"
+out=$(bash "$0" __run cross-allow-only </dev/null 2>&1); rc=$?
+if [[ ${rc} -ne 0 ]]; then ok "cross-minor --allow-major alone still needs --yes"; else bad "cross-minor --allow-major alone auto-confirmed"; fi
+if grep -Fq "SHELL=3.3.1" <<<"${out}"; then ok "cross-minor --allow-major alone leaves version unchanged"; else bad "cross-minor --allow-major alone changed version: ${out}"; fi
+
+echo "--- --yes --allow-major without TTY (cross minor) ---"
+out=$(bash "$0" __run cross-allow </dev/null 2>&1); rc=$?
+if [[ ${rc} -eq 0 ]]; then ok "cross-minor --yes --allow-major returns 0"; else bad "cross-minor --yes --allow-major returned ${rc}"; fi
+if grep -Fq "SHELL=3.4.0" <<<"${out}"; then ok "cross-minor --yes --allow-major updates to 3.4.0"; else bad "cross-minor --yes --allow-major did not update: ${out}"; fi
 
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]

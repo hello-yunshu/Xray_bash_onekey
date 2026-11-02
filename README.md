@@ -111,11 +111,14 @@ bash /etc/idleleo/install.sh --xray-update     # 再更新 Xray
 自动化环境必须显式确认：
 
 ```bash
-bash /etc/idleleo/install.sh --update --yes
+bash /etc/idleleo/install.sh --update --yes                  # 同一 minor
+bash /etc/idleleo/install.sh --update --yes --allow-major    # 跨 minor
 ```
 
-`--yes` 只替代交互确认，不会绕过跨 minor 兼容策略。升级前建议先执行
-`idleleo --backup`；3.3.1 起备份文件权限为 0600。
+`--yes` 只自动确认同一 minor 的更新；跨 minor 还需显式加 `--allow-major`。
+`--allow-major` 只解除跨 minor 限制，本身不替代 Y/N 确认（非交互场景仍需
+同时给 `--yes`）。升级前建议先执行 `idleleo --backup`；3.3.1 起备份文件权限
+为 0600。
 
 ### 3.3.0 → 3.3.1
 

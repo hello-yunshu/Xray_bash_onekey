@@ -495,6 +495,14 @@ jobs:
           XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
         run: sudo -E bash .github/test/test_install.sh ${{ matrix.mode }}
 
+      # A missing binary/unit is exactly the interrupted-uninstall state. Purge
+      # must still remove units and managed config, return 0, and stay quiet.
+      - name: Verify purge after a simulated interrupted uninstall
+        timeout-minutes: 10
+        env:
+          PURGE_DROP_BINARY: "1"
+        run: sudo -E bash .github/test/test_uninstall_clean.sh
+
   release-gate:
     # T5: single, independent gate. `if: always()` ensures every qualification
     # job's result is evaluated even when some of them fail; the step below

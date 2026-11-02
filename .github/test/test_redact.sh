@@ -46,6 +46,7 @@ FAKE_HOST="fake.host.example.com"
 FAKE_DOMAIN="fake.domain.example.com"
 FAKE_EMAIL="fake@example.com"
 FAKE_TOKEN="ghp_FAKEtoken00000000000000000000000000aa"
+FAKE_IDC="fakeidc9x8y7z6w5v4u3"
 FAKE_SHARE_LINK="vless://${FAKE_UUID}@${FAKE_HOST}:443?path=%2Fciws&type=ws&security=reality&pbk=${FAKE_PUBLIC_KEY}&spx=%2F&sid=${FAKE_SHORT_IDS}#${FAKE_HOST}"
 GENERIC_UUID="79a6a501-9c51-510a-88ec-50a2343db441"
 
@@ -117,6 +118,8 @@ TEXT_INPUT=$(cat <<EOF
 [INFO] Connecting to host=${FAKE_HOST} domain=${FAKE_DOMAIN}
 [INFO] Share link: ${FAKE_SHARE_LINK}
 [INFO] Token: ${FAKE_TOKEN}
+[INFO] UUIDv5 映射字符串: ${FAKE_IDC}
+[DEBUG] idc=${FAKE_IDC}
 [INFO] User email=${FAKE_EMAIL} connected
 EOF
 )
@@ -133,6 +136,8 @@ assert_not_contains "Text: host redacted" "${REDACTED_TEXT}" "${FAKE_HOST}"
 assert_not_contains "Text: domain redacted" "${REDACTED_TEXT}" "${FAKE_DOMAIN}"
 assert_not_contains "Text: share link redacted" "${REDACTED_TEXT}" "${FAKE_SHARE_LINK}"
 assert_not_contains "Text: token redacted" "${REDACTED_TEXT}" "${FAKE_TOKEN}"
+assert_not_contains "Text: UUIDv5 mapping string redacted" "${REDACTED_TEXT}" "${FAKE_IDC}"
+assert_not_contains "Text: idc value redacted" "${REDACTED_TEXT}" "${FAKE_IDC}"
 assert_not_contains "Text: email redacted" "${REDACTED_TEXT}" "${FAKE_EMAIL}"
 
 # Non-sensitive context must still be visible
