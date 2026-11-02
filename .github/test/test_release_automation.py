@@ -264,6 +264,98 @@ class ReleaseAutomationTests(unittest.TestCase):
             self.assertEqual(result["shell_online_version"], "3.2.3")
             self.assertEqual(result["shell_release_sha256"], digest)
 
+    def test_update_api_creates_compatibility_baseline(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            xray = root / "xray"
+            api = root / "api"
+            xray.mkdir()
+            api.mkdir()
+            (xray / "install.sh").write_text('shell_version="3.3.1"\n')
+            (api / "xray_shell_versions.json").write_text(
+                json.dumps({"shell_online_version": "3.3.0", "shell_tested_version": "3.3.0"})
+            )
+            initial = {
+                "xrayVersion": "26.3.27",
+                "installerRef": "e" * 40,
+                "installerSha256": "f" * 64,
+            }
+            baseline = {
+                "schemaVersion": 1,
+                "repository": "hello-yunshu/Xray_bash_onekey",
+                "minimumDirectUpgradeVersion": "3.3.0",
+                "baselines": [{
+                    "version": "3.3.0", "tag": "v3.3.0", "commit": "a" * 40,
+                    "installSha256": "b" * 64,
+                    "scenarios": ["direct", "shell-first", "reinstall"],
+                    "initial": initial,
+                }],
+                "trustedInitials": [initial],
+            }
+            (api / "compatibility-baselines.json").write_text(json.dumps(baseline))
+            scenarios = ("direct", "shell-first", "reinstall",
+                         "failure-recovery", "restart-recovery", "fallback")
+            changed = MODULE.update_api(
+                xray, api, "Release 3.3.1", None, "c" * 64,
+                "d" * 40, scenarios,
+            )
+            self.assertTrue(changed)
+            result = json.loads((api / "compatibility-baselines.json").read_text())
+            entry = next(item for item in result["baselines"] if item["version"] == "3.3.1")
+            self.assertEqual(entry["tag"], "v3.3.1")
+            self.assertEqual(entry["commit"], "d" * 40)
+            self.assertEqual(entry["installSha256"], "c" * 64)
+            self.assertEqual(entry["scenarios"], list(scenarios))
+            self.assertEqual(entry["initial"], initial)
+
+    def test_update_api_refreshes_baseline_for_same_version_new_installer(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            xray = root / "xray"
+            api = root / "api"
+            xray.mkdir()
+            api.mkdir()
+            (xray / "install.sh").write_text('shell_version="3.3.1"\n')
+            (api / "xray_shell_versions.json").write_text(
+                json.dumps({"shell_online_version": "3.3.1", "shell_release_sha256": "a" * 64})
+            )
+            entry = {
+                "version": "3.3.1", "tag": "v3.3.1", "commit": "b" * 40,
+                "installSha256": "a" * 64, "scenarios": ["direct"],
+                "initial": {"xrayVersion": "26.3.27",
+                            "installerRef": "e" * 40, "installerSha256": "f" * 64},
+            }
+            baseline = {
+                "schemaVersion": 1,
+                "repository": "hello-yunshu/Xray_bash_onekey",
+                "minimumDirectUpgradeVersion": "3.3.0",
+                "baselines": [entry],
+                "trustedInitials": [entry["initial"]],
+            }
+            (api / "compatibility-baselines.json").write_text(json.dumps(baseline))
+            scenarios = ("direct", "shell-first", "reinstall",
+                         "failure-recovery", "restart-recovery", "fallback")
+            changed = MODULE.update_api(
+                xray, api, "same version replacement", "2026-11-03 02:00",
+                "c" * 64, "d" * 40, scenarios,
+            )
+            self.assertTrue(changed)
+            result = json.loads((api / "compatibility-baselines.json").read_text())
+            refreshed = result["baselines"][0]
+            self.assertEqual(refreshed["commit"], "d" * 40)
+            self.assertEqual(refreshed["installSha256"], "c" * 64)
+            self.assertEqual(refreshed["scenarios"], list(scenarios))
+            self.assertEqual(json.loads((api / "xray_shell_versions.json").read_text())
+                             ["shell_release_sha256"], "c" * 64)
+
+    def test_release_workflow_purges_on_idempotent_rerun_and_updates_baseline(self):
+        workflow = (ROOT / ".github/workflows/publish-shell-version.yml").read_text()
+        self.assertIn('--shell-commit "$CANDIDATE_COMMIT"', workflow)
+        self.assertIn('--baseline-scenarios', workflow)
+        self.assertIn('compatibility-baselines.json', workflow)
+        self.assertIn('for attempt in 1 2 3 4 5', workflow)
+        self.assertIn('CDN/raw did not converge', workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
