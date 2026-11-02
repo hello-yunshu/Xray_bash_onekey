@@ -51,7 +51,8 @@ export IDLELEO_TEST_MODE=1
 export IDLELEO_TEST_PATH="${STUB_BIN}:${PATH}"
 export IDLELEO_UPDATE_LOCK_FILE="${TMP_ROOT}/run/update.lock"
 
-versions_json='{"shell_online_version":"3.2.11","xray_online_version":"26.10.31","nginx_build_online_version":"2026.10.15.7679"}'
+versions_json='{"shell_online_version":"3.2.11","xray_online_version":"26.10.31","xray_installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","xray_installer_sha256":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","nginx_build_online_version":"2026.10.15.7679"}'
+versions_json_new_installer='{"shell_online_version":"3.2.11","xray_online_version":"26.10.31","xray_installer_ref":"e42df6a772e60dd7b058f852262c4dbeb0bc231d","xray_installer_sha256":"954666bb028ba8561b2218372b7db76ba051f8252b2db9195321e672263aab94","nginx_build_online_version":"2026.10.15.7679"}'
 
 # Fresh, isolated installation root for one scenario.
 new_root() {
@@ -60,6 +61,7 @@ new_root() {
     cp "${REPO_DIR}/scripts/auto_update.sh" "${root}/scripts/auto_update.sh"
     cat >"${root}/install.sh" <<'EOF'
 #!/usr/bin/env bash
+shell_version="3.2.11"
 printf '%s\n' "$*" >>"${INSTALL_LOG}"
 if [[ "$*" == "-x"* && -n "${FAIL_XRAY:-}" ]]; then
     exit "${FAIL_XRAY}"
@@ -122,7 +124,7 @@ if log_has "Removed legacy xray failure marker"; then ok "migration is logged"; 
 suite "B. the same failed target version is not retried"
 new_root
 cat >"${root}/logs/update_failed.json" <<'EOF'
-{"xray":{"version":"26.10.31","failed_at":"2026-11-01T10:00:00Z"}}
+{"xray":{"version":"26.10.31","installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","installer_sha":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","failed_at":"2026-11-01T10:00:00Z"}}
 EOF
 export CDN_JSON="${versions_json}" RAW_JSON="${versions_json}"
 run_update
@@ -143,7 +145,7 @@ fi
 suite "C. a new target version retries"
 new_root
 cat >"${root}/logs/update_failed.json" <<'EOF'
-{"xray":{"version":"26.10.30","failed_at":"2026-11-01T10:00:00Z"}}
+{"xray":{"version":"26.10.30","installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","installer_sha":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","failed_at":"2026-11-01T10:00:00Z"}}
 EOF
 export CDN_JSON="${versions_json}" RAW_JSON="${versions_json}"
 run_update
@@ -154,6 +156,44 @@ if [[ ! -f "${root}/logs/update_failed.json" ]] ||
     ok "a successful retry clears the stale failure record"
 else
     bad "the stale failure record survived a successful retry"
+fi
+
+# ---------------------------------------------------------------------------
+suite "C2. same Xray version but a new installer retries"
+new_root
+cat >"${root}/logs/update_failed.json" <<'EOF'
+{"xray":{"version":"26.10.31","installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","installer_sha":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","failed_at":"2026-11-01T10:00:00Z"}}
+EOF
+export CDN_JSON="${versions_json_new_installer}" RAW_JSON="${versions_json_new_installer}"
+run_update
+if grep -Fq -- "-x auto_update" "${INSTALL_LOG}"; then
+    ok "same Xray target with a new installer is retried"
+else
+    bad "same Xray target with a new installer was still suppressed"
+fi
+if log_has "Recorded xray failure used installer e741"; then
+    ok "installer change is explained in the log"
+else
+    bad "installer change retry is not logged"
+fi
+
+# ---------------------------------------------------------------------------
+suite "C3. a legacy version-only record gets one retry"
+new_root
+cat >"${root}/logs/update_failed.json" <<'EOF'
+{"xray":{"version":"26.10.31","failed_at":"2026-11-01T10:00:00Z"}}
+EOF
+export CDN_JSON="${versions_json}" RAW_JSON="${versions_json}"
+run_update
+if grep -Fq -- "-x auto_update" "${INSTALL_LOG}"; then
+    ok "legacy version-only record is retried once"
+else
+    bad "legacy version-only record still blocked"
+fi
+if log_has "legacy failure record without installer identity"; then
+    ok "legacy migration is logged"
+else
+    bad "legacy migration is not logged"
 fi
 
 # ---------------------------------------------------------------------------
@@ -343,6 +383,62 @@ else
     bad "a numerically newer target was skipped as a downgrade"
 fi
 if log_has "refusing to downgrade"; then bad "26.10.4 -> 26.10.31 was misread as a downgrade"; else ok "no false downgrade for 26.10.4"; fi
+
+# ---------------------------------------------------------------------------
+suite "I. a lower Shell metadata target never writes a lower config version"
+new_root
+sed -i 's/^shell_version="3.2.11"/shell_version="3.3.0"/' "${root}/install.sh"
+jq '.shell_version="3.3.0"' "${root}/conf/install_config.json" >"${root}/conf/install_config.json.tmp" &&
+    mv "${root}/conf/install_config.json.tmp" "${root}/conf/install_config.json"
+printf '3.3.0' >"${root}/release-managed.version"
+export CDN_JSON='{"shell_online_version":"3.2.12","xray_online_version":"26.10.31","xray_installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","xray_installer_sha256":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","nginx_build_online_version":"2026.10.15.7679"}'
+export RAW_JSON="${CDN_JSON}"
+: >"${INSTALL_LOG}"
+run_update
+if grep -Fq -- "-u auto_update" "${INSTALL_LOG}"; then
+    bad "lower Shell metadata still invoked install.sh -u"
+else
+    ok "lower Shell metadata did not invoke install.sh -u"
+fi
+config_version=$(jq -r '.shell_version' "${root}/conf/install_config.json")
+if [[ "${config_version}" == "3.3.0" ]]; then
+    ok "lower Shell metadata did not overwrite config.shell_version"
+else
+    bad "config.shell_version was written as ${config_version}"
+fi
+if log_has "refusing shell downgrade"; then
+    ok "lower Shell metadata refusal is logged"
+else
+    bad "lower Shell metadata refusal is not logged"
+fi
+if log_has "Script updated successfully!"; then
+    bad "lower Shell metadata falsely reported an update"
+else
+    ok "lower Shell metadata did not report an update"
+fi
+
+# ---------------------------------------------------------------------------
+suite "J. stale config.shell_version is repaired from the installed script"
+new_root
+sed -i 's/^shell_version="3.2.11"/shell_version="3.3.0"/' "${root}/install.sh"
+jq '.shell_version="3.2.12"' "${root}/conf/install_config.json" >"${root}/conf/install_config.json.tmp" &&
+    mv "${root}/conf/install_config.json.tmp" "${root}/conf/install_config.json"
+printf '3.3.0' >"${root}/release-managed.version"
+export CDN_JSON='{"shell_online_version":"3.3.0","xray_online_version":"26.10.31","xray_installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","xray_installer_sha256":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","nginx_build_online_version":"2026.10.15.7679"}'
+export RAW_JSON="${CDN_JSON}"
+: >"${INSTALL_LOG}"
+run_update
+config_version=$(jq -r '.shell_version' "${root}/conf/install_config.json")
+if [[ "${config_version}" == "3.3.0" ]]; then
+    ok "stale config.shell_version repaired to installed version"
+else
+    bad "stale config.shell_version is ${config_version}"
+fi
+if log_has "Repaired install_config.shell_version"; then
+    ok "config repair is logged"
+else
+    bad "config repair is not logged"
+fi
 
 # The same guard covers Nginx builds (2026.01.01.1 -> 2026.10.15.7679 is newer).
 new_root
