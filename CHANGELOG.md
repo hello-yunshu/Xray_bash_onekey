@@ -45,3 +45,6 @@
   中转 30/30；Linux（Debian 12）`test_xray_version_pipefail` 通过。
 - 真实 VPS 上的证书续签恢复、中转→真实落地端到端、Reality/TLS 外网完整数据面、
   低内存峰值与 `ProtectSystem` 组合仍需实机验证。
+- 发布：tag `v3.3.0`，`Release Xray` run `41409994118` 成功；正式 API 资格验证
+  run `41414537541` 30/30 通过（矩阵包含 `relay`）。3.2.12 从未发布，
+  因此「3.2.12 → 3.3.0 直更」无法构造，标记为 NOT_RUN。
