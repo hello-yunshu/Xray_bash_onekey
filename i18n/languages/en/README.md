@@ -122,11 +122,11 @@ bash /etc/idleleo/install.sh --update
 3.3.1 fixes offline purge residue, backup/log permissions, missing-Xray repair,
 failure-record installer identity, and Shell metadata rollback protection.
 
-### XTLS ONLY
+### Legacy XTLS
 
-XTLS ONLY was removed in 3.3.0. Existing XTLS services keep running, but the
-script refuses reinstall or mode switching; back up, uninstall, and redeploy a
-supported mode if you need management.
+The legacy XTLS mode was removed in 3.3.0. Existing XTLS services keep running,
+but the script refuses reinstall or mode switching; back up, uninstall, and
+redeploy a supported mode if you need management.
 
 ## RillML Xray AI Operation and maintenance assistant
 

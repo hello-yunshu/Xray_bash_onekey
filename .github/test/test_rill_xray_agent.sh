@@ -257,7 +257,7 @@ grep -q 'rxa_uninstall_mark()' scripts/rill_xray_agent_uninstall.sh
 grep -q 'rxa_uninstall_commit()' scripts/rill_xray_agent_uninstall.sh
 grep -q 'rxa_uninstall_abort()' scripts/rill_xray_agent_uninstall.sh
 grep -Fq -- '--purge' scripts/rill_xray_agent_uninstall.sh
-grep -Fq 'rxa_uninstall_finish "$rxa_uninstall_rc"' install.sh
+grep -Fq 'rxa_uninstall_finish_if_present "$rxa_uninstall_rc"' install.sh
 grep -Fq 'rxa_uninstall_prepare' install.sh
 grep -Fq 'uninstall_xray || rxa_uninstall_rc=1' install.sh
 grep -Fq 'uninstall_nginx --force || rxa_uninstall_rc=1' install.sh

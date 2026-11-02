@@ -129,9 +129,9 @@ bash /etc/idleleo/install.sh --update
 Shell 元数据回退防护。升级不会改动现有 Xray 配置；REALITY `minClientVer` 补齐仍按
 3.3.0 的规则执行。
 
-### XTLS ONLY
+### 旧版 XTLS 模式
 
-3.3.0 起 XTLS ONLY 模式已移除。已有 XTLS 服务升级后仍可运行，但不能通过脚本重装或
+3.3.0 起旧版 XTLS 模式已移除。已有 XTLS 服务升级后仍可运行，但不能通过脚本重装或
 切换模式；需要继续管理时请先备份并卸载，再重新部署 Reality/TLS/中转模式。
 
 ### 自动更新
