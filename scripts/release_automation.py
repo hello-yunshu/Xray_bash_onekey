@@ -277,8 +277,116 @@ def shell_version(xray: Path) -> str:
     return matches[0]
 
 
+ALL_BASELINE_SCENARIOS = (
+    "direct",
+    "shell-first",
+    "reinstall",
+    "failure-recovery",
+    "restart-recovery",
+    "fallback",
+)
+LEGACY_BASELINE_SCENARIOS = ("shell-first", "reinstall")
+KNOWN_BASELINE_SCENARIOS = frozenset(ALL_BASELINE_SCENARIOS)
+
+
+def _default_baseline_scenarios(version: str) -> tuple[str, ...]:
+    # 3.3.0 is the minimum direct-upgrade source. Older baselines only
+    # qualify the two legacy-compatible paths.
+    return ALL_BASELINE_SCENARIOS if version_tuple(version) >= (3, 3, 0) else LEGACY_BASELINE_SCENARIOS
+
+
+def _parse_baseline_scenarios(value: str | None, version: str) -> tuple[str, ...]:
+    if value is None or not value.strip():
+        return _default_baseline_scenarios(version)
+    scenarios = tuple(part.strip() for part in value.split(",") if part.strip())
+    if not scenarios:
+        raise SystemExit("baseline scenarios must not be empty")
+    unknown = sorted(set(scenarios) - KNOWN_BASELINE_SCENARIOS)
+    if unknown:
+        raise SystemExit(f"unknown baseline scenarios: {', '.join(unknown)}")
+    if len(set(scenarios)) != len(scenarios):
+        raise SystemExit("baseline scenarios must be unique")
+    return scenarios
+
+
+def _update_compatibility_baseline(api: Path, version: str, commit: str | None,
+                                   install_sha: str | None,
+                                   scenarios: tuple[str, ...]) -> bool:
+    """Keep the API baseline list in lockstep with the published Release.
+
+    The release workflow used to update only xray_shell_versions.json. The API
+    promotion tests require a baseline entry for the online Shell version, so
+    the first same-version release necessarily failed. This function adds or
+    refreshes the baseline entry when the API repository provides the file.
+    Unit tests with a minimal API fixture do not have the file and remain
+    unaffected.
+    """
+    path = api / "compatibility-baselines.json"
+    if not path.is_file() or not commit:
+        return False
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise SystemExit("baseline commit must be 40 lowercase hex characters")
+    if install_sha is not None and not re.fullmatch(r"[0-9a-f]{64}", install_sha):
+        raise SystemExit("baseline install SHA-256 must be 64 lowercase hex characters")
+    doc = json.loads(path.read_text())
+    baselines = doc.get("baselines")
+    if not isinstance(baselines, list):
+        raise SystemExit("compatibility-baselines.json has no baselines list")
+    if install_sha is None:
+        raise SystemExit("an installer SHA-256 is required to update the baseline")
+
+    entry = next((item for item in baselines if item.get("version") == version), None)
+    initial = entry.get("initial") if entry else None
+    if not initial:
+        previous = [
+            item for item in baselines
+            if isinstance(item.get("version"), str)
+            and version_tuple(item["version"]) < version_tuple(version)
+        ]
+        if previous:
+            previous.sort(key=lambda item: version_tuple(item["version"]))
+            initial = previous[-1].get("initial")
+        if not initial:
+            trusted = doc.get("trustedInitials")
+            initial = trusted[0] if isinstance(trusted, list) and trusted else None
+    if not isinstance(initial, dict):
+        raise SystemExit("no usable baseline initial state is available")
+
+    changed = False
+    if entry is None:
+        entry = {
+            "version": version,
+            "tag": f"v{version}",
+            "commit": commit,
+            "installSha256": install_sha,
+            "scenarios": list(scenarios),
+            "initial": initial,
+        }
+        baselines.append(entry)
+        changed = True
+    else:
+        desired = {
+            "tag": f"v{version}",
+            "commit": commit,
+            "installSha256": install_sha,
+            "scenarios": list(scenarios),
+        }
+        for key, value in desired.items():
+            if entry.get(key) != value:
+                entry[key] = value
+                changed = True
+        if not isinstance(entry.get("initial"), dict):
+            entry["initial"] = initial
+            changed = True
+
+    if changed:
+        path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n")
+    return changed
+
+
 def update_api(xray: Path, api: Path, details: str, update_date: str | None,
-               shell_release_sha256: str | None = None) -> bool:
+               shell_release_sha256: str | None = None, shell_commit: str | None = None,
+               baseline_scenarios: tuple[str, ...] | None = None) -> bool:
     version = shell_version(xray)
     manifest_path = api / "xray_shell_versions.json"
     manifest = json.loads(manifest_path.read_text())
@@ -289,27 +397,34 @@ def update_api(xray: Path, api: Path, details: str, update_date: str | None,
         raise SystemExit(f"refusing shell version downgrade: {current} -> {version}")
     if shell_release_sha256 is not None and not re.fullmatch(r"[0-9a-f]{64}", shell_release_sha256):
         raise SystemExit("shell release SHA-256 must be 64 lowercase hex characters")
-    existing_sha = manifest.get("shell_release_sha256")
-    if version == current and shell_release_sha256 is not None and existing_sha == shell_release_sha256:
-        print(f"version API already publishes shell {version} with matching Release SHA")
-        return False
-    if version == current and shell_release_sha256 is None:
-        print(f"version API already publishes shell {version}")
-        return False
-
     if version != current and not details.strip():
         raise SystemExit("release details must not be empty")
-    if update_date is None:
-        update_date = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
-    manifest["update_date"] = update_date
-    manifest["shell_online_version"] = version
-    if details.strip():
-        manifest["shell_upgrade_details"] = details.strip()
-    if shell_release_sha256 is not None:
-        manifest["shell_release_sha256"] = shell_release_sha256
-    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
-    print(f"prepared version API update: {current} -> {version}")
-    return True
+
+    changed = False
+    existing_sha = manifest.get("shell_release_sha256")
+    if version != current or (shell_release_sha256 is not None and existing_sha != shell_release_sha256):
+        if update_date is None:
+            update_date = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
+        manifest["update_date"] = update_date
+        manifest["shell_online_version"] = version
+        if details.strip():
+            manifest["shell_upgrade_details"] = details.strip()
+        if shell_release_sha256 is not None:
+            manifest["shell_release_sha256"] = shell_release_sha256
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+        changed = True
+
+    scenarios = baseline_scenarios if baseline_scenarios is not None else _default_baseline_scenarios(version)
+    baseline_changed = _update_compatibility_baseline(
+        api, version, shell_commit, shell_release_sha256, scenarios
+    )
+    changed = changed or baseline_changed
+
+    if changed:
+        print(f"prepared version API update: {current} -> {version}")
+    else:
+        print(f"version API already publishes shell {version} with matching metadata")
+    return changed
 
 
 def main() -> None:
@@ -341,6 +456,8 @@ def main() -> None:
     api.add_argument("--details", required=True)
     api.add_argument("--date")
     api.add_argument("--shell-release-sha256")
+    api.add_argument("--shell-commit")
+    api.add_argument("--baseline-scenarios")
 
     args = parser.parse_args()
     if args.command == "sync-rill":
@@ -353,8 +470,9 @@ def main() -> None:
     elif args.command == "stage-rill":
         stage_rill(args.xray.resolve(), args.rill.resolve())
     else:
+        scenarios = _parse_baseline_scenarios(args.baseline_scenarios, shell_version(args.xray.resolve()))
         changed = update_api(args.xray.resolve(), args.api.resolve(), args.details, args.date,
-                             args.shell_release_sha256)
+                             args.shell_release_sha256, args.shell_commit, scenarios)
         print(f"changed={'true' if changed else 'false'}")
 
 

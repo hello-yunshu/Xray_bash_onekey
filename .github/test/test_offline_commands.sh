@@ -268,6 +268,18 @@ else
     bad "curl called ${CURL_COUNT} time(s) for --help"
 fi
 
+echo "--- non-root -s/--show clear root requirement ---"
+INSTALL_SH="${REPO_DIR}/install.sh"
+if [[ "$(id -u)" -ne 0 ]]; then
+    out=$(bash "${INSTALL_SH}" -s 2>&1); rc=$?
+    if [[ ${rc} -ne 0 ]]; then ok "non-root -s exits non-zero"; else bad "non-root -s returned 0"; fi
+    if grep -Fq "需要 root 权限" <<<"${out}"; then ok "non-root -s names the root requirement"; else bad "non-root -s has no root guidance"; fi
+    out=$(bash "${INSTALL_SH}" --show 2>&1); rc=$?
+    if [[ ${rc} -ne 0 ]]; then ok "non-root --show exits non-zero"; else bad "non-root --show returned 0"; fi
+else
+    echo "  SKIP: non-root -s check requires a non-root runner"
+fi
+
 rm -rf "${MOCK_BIN}" "${MAIN_WRAPPER}" "${DOWNLOAD_CALLS_FILE}" "${CFI_CALLS_FILE}" "${CURL_CALL_LOG}"
 
 echo ""
