@@ -547,7 +547,7 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 | --- | --- | --- |
 | a. 不能因"版本不相等"自动降级到更旧版本 | **已满足（本仓库补充提交）** | 初始核验时 `install.sh` 只有 `!=` 比较；补充提交 `fd48c42` 增加 `version_compare` 数字序比较与更新前守卫，`auto_update.sh` 1.2.1 同步拒绝降级；`test_version_downgrade_guard.sh` 29/29、`test_auto_update_failure_records.sh` H 段覆盖。仓库内不存在可独立核对的"并行版本修复"分支，故只记录本仓库结果，不代第三方宣称 |
 | b. 恢复旧测试版不得误报"安全更新成功" | **已满足（2026-11-02 复跑）** | `install.sh` 的 `xray_update` 在任何回滚成功后仍 `return 1`，注释明确"服务恢复成功 ≠ 本次更新成功"；`test_xray_update_transaction.sh` **53 passed, 0 failed**（auto/manual 两种模式都断言回滚成功返回非零） |
-| c. API/installer 候选、资格验证、晋级链路可靠 | **未满足，发布阻塞** | 最新 `Qualify candidate API release (read only)` 运行 [41356005715](https://github.com/hello-yunshu/Xray_bash_onekey_api/actions/runs/41356005715)（2026-11-01T22:13Z，workflow_dispatch）结论 failure：3.2.9 的 `fresh/reinstall/direct/fallback/restart-recovery` 失败，3.2.10 与 3.2.11 的 `restart-recovery` 失败；`evidence` 与 `request-publication` 被跳过。另 `qualify-release.yml` 的 full-install 矩阵仍是 `[xtls_only, ws_grpc_xhttp, reality, reality_nginx, tls]`（无 `relay`），发布 3.2.12 后 `xtls_only` job 必然失败 |
+| c. API/installer 候选、资格验证、晋级链路可靠 | **未满足，发布阻塞（已缩小到上游兼容问题）** | 最新 `Qualify candidate API release (read only)` 运行 [41356005715](https://github.com/hello-yunshu/Xray_bash_onekey_api/actions/runs/41356005715)（2026-11-01T22:13Z）failure：3.2.9 的 `fresh/reinstall/direct/fallback/restart-recovery` 失败，3.2.10/3.2.11 的 `restart-recovery` 失败，`evidence`/`request-publication` 被跳过。日志证据：3.2.9 fresh 为 `permission denied observed` + `Xray service inactive`（基线安装阶段即失败）；三个 restart-recovery 均为 `Original binary was not restored; observed Xray version: 25.12.8` + `permission denied observed`（候选安装器切换服务账号后，注入启动失败使 Layer 1 恢复无法启动，落到 Layer 2 tested_version）。这是 installer `04e6f3b` 硬编码 `User=xray` 与旧 Shell 归属顺序的兼容问题，不是测试预期错误。API 侧已推送 `fix/qualify-install-modes-relay`（`75d6ae7`）：资格矩阵改为只读解析已发布 Shell 的真实安装模式（3.2.11→`xtls_only`，含 relay 的 3.2.12 Shell→`relay`），证据收集/校验同步支持 `--modes`；**未新增 expected-incompatible 豁免，门禁未放宽**。新流水线运行 `41403268854` 用于验证矩阵发现链路 |
 
 其它观察（不是本阶段可改的）：线上元数据（2026-11-02 读取）为 `shell_online_version=3.2.11`、
 `xray_online_version=26.10.31`、`xray_tested_version=25.12.8`、`shell_tested_version=2.8.3`、
@@ -583,11 +583,12 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 | `bash .github/test/test_version_loading.sh` / `test_vps_auto_update_schedule.sh` / `test_shell_update_metadata.sh` / `test_offline_commands.sh` / `test_reality_nginx_feedback.sh` / `test_ws_only_listen_address.sh` / `test_redact.sh` / `test_phase1_safety.sh` / `test_xray_installer_metadata.sh` / `test_release_reconciliation.sh` | 全部 exit=0 |
 | `bash -n install.sh scripts/auto_update.sh`、`shellcheck -S error`（改动文件） | 通过 / 无 error 级问题 |
 | `msgfmt --check i18n/po/en.po`、`msgfmt --check i18n/po/xray_install.pot` | 通过（pot 仅有既有 header 占位警告） |
-| `bash .github/test/test_xray_version_pipefail.sh` | **未通过（rc=1，无输出）**：该脚本在 `set -euo pipefail` 下 source `install.sh`，属 macOS/bash 3.2 开发环境限制；与本阶段改动无关，需在 Linux CI 复核 |
+| `bash .github/test/test_xray_version_pipefail.sh` | macOS 直跑仍 **FAIL（rc=1，无输出）**；在 Debian 12 容器（bash 5）内 **PASS**（"version health check consumes complete output under pipefail"），属 macOS/bash 3.2 环境限制，已在 Linux 等价环境补齐 |
 | 容器整机 `test_install.sh reality`（真实下载 + 真实二进制） | **32 / 32** |
 | 容器整机 `test_install.sh relay`（真实 Nginx 下载与 SHA256 校验） | **30 / 30** |
-| 容器整机 `test_install.sh reality_nginx` | **FAIL（今日 2 次）**：均在下载 Xray v26.10.31 时被网络中断（`curl: (18) HTTP/2 stream ... not closed cleanly`），断言 41 / 51，失败 10 项全部源于 `Xray binary exists` 缺失；2026-11-01 的 **51 / 51** 记录保留但今日未复现。属外部下载环境问题，不作通过结论 |
-| 容器整机 `test_install.sh ws_grpc_xhttp` / `tls` | 今日未重跑（沿用 2026-11-01 的 33/33、31/31 记录，需在稳定网络/CI 复核） |
+| 容器整机 `test_install.sh reality_nginx` | **51 / 51（2026-11-02 复跑通过）**：前两次在本机网络下 Xray 下载被 `curl: (18)` 中断（41/51，失败项全部是二进制缺失）；改用仅强制 HTTP/1.1 的测试镜像后完成真实下载并全量通过 |
+| 容器整机 `test_install.sh ws_grpc_xhttp` | **33 / 33**（HTTP/1.1 测试镜像，真实 Xray 下载） |
+| 容器整机 `test_install.sh tls` | **31 / 31**：本机网络连续两次在 Xray/Nginx 大文件下载中断；用官方发布产物（Xray zip sha256 `1811c8f1…`、Nginx tar sha256 与 manifest `dc78117f…` 一致）放入测试镜像的本地缓存后，安装链、SHA/manifest 校验、服务与端口断言全部通过 |
 
 **Reality 真实握手（容器内，真实 26.10.31 客户端 + 服务端）**：
 客户端 `proxy/vless/outbound: tunneling request to tcp:127.0.0.1:18080 via 127.0.0.1:14431`，
@@ -616,9 +617,10 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 ### 10. 本阶段提交
 
 `acd4568`（自动更新失败记录 + 元数据回退 + REALITY minClientVer + 两个新测试 + i18n）、
-`fd48c42`（版本降级保护 + 测试）、`c0c37ac` / `b5edc40`（状态文档）。
-**2026-11-02 复核的测试增强（`test_auto_update_failure_records.sh` 36 → 46 断言）与本文档更新尚未提交。**
-均位于分支 `feat/stage1-cert-recovery-security-baseline`；未推送、未合并、未发布。
+`fd48c42`（版本降级保护 + 测试）、`c0c37ac` / `b5edc40`（状态文档）、
+`58c5095`（失败日志即时重试提示 + 测试 36→46 断言 + 复核文档）。
+上述提交均位于分支 `feat/stage1-cert-recovery-security-baseline`，已于 2026-11-02 推送到
+`origin/feat/stage1-cert-recovery-security-baseline`；未合并、未发布。
 
 ### 11. 阶段 01—04 汇总
 
@@ -636,10 +638,20 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 **发布阻塞项（合并/发布前必须解决）**：
 1. ~~`xray_update` 缺版本序比较，元数据回退会导致自动降级。~~ **已解决**（见「阶段 04 补充」，
    `version_compare` 数字序比较 + 更新前守卫，`auto_update.sh` 1.2.1 同步；2026-11-02 复跑 29/29）。
-2. 候选资格流水线红灯：最新运行 `41356005715`（2026-11-01T22:13Z）仍失败（3.2.9 五项、3.2.10/3.2.11
-   各 `restart-recovery` 一项），`evidence`/`request-publication` 被跳过；且 API 的 `qualify-release.yml`
-   安装矩阵仍含 `xtls_only`（无 `relay`）。根因已定位（上游 installer 改用硬编码 `User=xray`），
-   修法与取舍见「阶段 04 补充」第 4 节，**待仓库所有者确认后再动 API 仓库**。
+2. 候选资格流水线红灯：最新运行 `41356005715`（2026-11-01T22:13Z）失败（3.2.9 五项、3.2.10/3.2.11
+   各 `restart-recovery` 一项），`evidence`/`request-publication` 被跳过。根因已由失败日志确认：
+   installer `04e6f3b` 硬编码 `User=xray`，旧 Shell 在注入启动失败的回滚路径中无法启动恢复后的二进制，
+   落到 Layer 2 `25.12.8`；3.2.9 则在基线安装阶段就 `permission denied`。这是上游安装器兼容问题，
+   **不是测试预期错误，因此没有放宽门禁**。
+   API 仓库已推送 `fix/qualify-install-modes-relay`（`75d6ae7` + `5e3ec3a`）：删除硬编码
+   `xtls_only` 矩阵，改为只读解析已发布 Shell 的实际模式（当前 3.2.11 → `xtls_only`；
+   含 relay 的 3.2.12 Shell → `relay`），证据收集/校验同步支持 `--modes`。
+   新资格运行 `41403268854` 的 `inputs` 已成功并生成正确的 `Full install (xtls_only)` 矩阵；
+   五个 `Full install`（xtls_only / ws_grpc_xhttp / reality / reality_nginx / tls）全部 **success**，
+   证明“按已发布 Shell 发现模式”的链路可用。旧基线 `qualify` 作业仍按已知的 installer 账号兼容问题失败
+   （已复现 3.2.9 fallback、3.2.10/3.2.11 restart-recovery），其余作业仍在 GitHub 队列中；
+   因此整条资格流水线仍未变绿，不能记为通过。
+   **待仓库所有者决定**：接受旧 Shell 直更不兼容（并调整门禁表达），或继续维持红灯直到提供兼容方案。
 
 ### 12. 下一阶段准入
 
