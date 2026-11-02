@@ -1179,10 +1179,6 @@ rxa_uninstall_commit() {
     # succeeded. The committed marker MUST be durable BEFORE the Rill purge:
     # a marker-write failure stops here with non-zero and diagnostics are
     # NOT purged; purge failure also returns non-zero.
-    # Rill may be absent (the common node install). prepare is a no-op in that
-    # case; commit must be a no-op too, otherwise a successful host purge is
-    # reported as a Rill failure and leaves the user with a false error.
-    command -v rxa_apply_mode >/dev/null 2>&1 || return 0
     rxa_write_uninstall_intent_atomic committed append \
         || { echo 'Rill 无法可靠记录卸载完成状态，已中止清理' >&2; return 1; }
     local pf=0 uninstall_script
@@ -10233,7 +10229,7 @@ uninstall_all() {
             rxa_uninstall_rc=1
             log_echo "${Error} ${RedBG} $(gettext "卸载后校验失败, 已保留 Rill 诊断") ${Font}"
         fi
-        rxa_uninstall_finish "$rxa_uninstall_rc"
+        rxa_uninstall_finish_if_present "$rxa_uninstall_rc"
         exit "$?"
         ;;
     *)
@@ -10250,7 +10246,21 @@ uninstall_all() {
         rxa_uninstall_rc=1
         log_echo "${Error} ${RedBG} $(gettext "卸载后校验失败, 已保留 Rill 诊断") ${Font}"
     fi
-    rxa_uninstall_finish "$rxa_uninstall_rc"
+    rxa_uninstall_finish_if_present "$rxa_uninstall_rc"
+}
+
+# uninstall_all must not treat "Rill is not installed" as a Rill failure.
+# rxa_uninstall_prepare() is already a no-op in that case; route finish through
+# this wrapper so a clean node purge returns the host rc. The candidate probe
+# still calls rxa_uninstall_commit() directly and requires its fail-closed
+# behavior when the purge script is missing.
+rxa_uninstall_finish_if_present() {
+    local rc="$1"
+    if command -v rxa_apply_mode >/dev/null 2>&1; then
+        rxa_uninstall_finish "${rc}"
+    else
+        return "${rc}"
+    fi
 }
 
 delete_tls_key_and_crt() {

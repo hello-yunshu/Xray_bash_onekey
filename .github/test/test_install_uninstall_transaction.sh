@@ -93,6 +93,8 @@ safety_check() { :; }
 check_file_integrity() { :; }
 
 # --- Rill two-phase contract hooks (mock commit/abort to record routing) ---
+# The production wrapper only calls finish when the agent is present.
+rxa_apply_mode() { :; }
 rxa_uninstall_commit() { printf '0\n' > "${FINISH_FILE}"; return 0; }
 rxa_uninstall_abort()  { printf '1\n' > "${FINISH_FILE}"; return 1; }
 rxa_uninstall_finish() {
