@@ -60,10 +60,18 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.2.11"
+shell_version="3.3.0"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
+# "node" (ordinary Xray node) or "relay" (Nginx Stream TCP forwarder).
+node_role="node"
+relay_backend_host=""
+relay_backend_port=""
+relay_listen_port=""
+relay_listen_addr=""
+relay_enabled=""
+legacy_xtls_only="off"
 local_bin="/usr/local"
 idleleo_dir="/etc/idleleo"
 idleleo="${idleleo_dir}/install.sh"
@@ -79,6 +87,10 @@ xray_default_conf="${local_bin}/etc/xray/config.json" # Retained as Xray's defau
 nginx_conf="${nginx_conf_dir}/00-xray.conf"
 nginx_ssl_conf="${nginx_conf_dir}/01-xray-80.conf"
 nginx_upstream_conf="${nginx_conf_dir}/02-xray-server.conf"
+# Managed Nginx Stream fragment for the "relay" role (single TCP target).
+# Deliberately NOT in managed_nginx_files: relay and node roles never coexist,
+# and a node reinstall must refuse rather than silently delete this file.
+relay_stream_conf="${nginx_conf_dir}/relay-stream.conf"
 # The single real Nginx main config (compile prefix). The fragment dir
 # ${nginx_conf_dir} holds only managed include files, never nginx.conf.
 nginx_main_conf="${local_bin}/nginx/conf/nginx.conf"
@@ -162,6 +174,51 @@ release_sha_contract_required() {
     local version=${1:-}
     [[ "${version}" =~ ^3\.[0-9]+\.[0-9]+$ ]] || return 1
     [[ "$(printf '%s\n%s\n' '3.2.3' "${version}" | sort -V | head -n1)" == '3.2.3' ]]
+}
+
+# Dotted numeric versions (26.10.31, 2026.10.15.7679) only. Anything else is
+# "not comparable" rather than "equal", so a malformed metadata value can never
+# be turned into an update decision.
+version_is_numeric() {
+    [[ "${1:-}" =~ ^[0-9]+(\.[0-9]+)*$ ]]
+}
+
+# Prints 1 / 0 / -1 for newer / equal / older, and returns 2 when either side is
+# not a dotted numeric version. Components are compared numerically, so 26.9.30
+# is correctly older than 26.10.31 (a plain string compare says the opposite).
+# Missing components count as zero: 26.10.0 == 26.10.
+version_compare() {
+    local a="${1#v}" b="${2#v}"
+    local i n x y
+    local -a av bv
+    version_is_numeric "${a}" && version_is_numeric "${b}" || return 2
+    IFS='.' read -r -a av <<<"${a}"
+    IFS='.' read -r -a bv <<<"${b}"
+    n=${#av[@]}
+    [[ ${#bv[@]} -gt ${n} ]] && n=${#bv[@]}
+    for ((i = 0; i < n; i++)); do
+        x=$((10#${av[i]:-0}))
+        y=$((10#${bv[i]:-0}))
+        if [[ ${x} -gt ${y} ]]; then
+            printf '1\n'
+            return 0
+        fi
+        if [[ ${x} -lt ${y} ]]; then
+            printf -- '-1\n'
+            return 0
+        fi
+    done
+    printf '0\n'
+}
+
+# 0 when $1 is strictly newer than $2. Incomparable input is never "newer".
+version_gt() {
+    [[ "$(version_compare "$1" "$2")" == "1" ]]
+}
+
+# 0 when $1 is strictly older than $2. Incomparable input is never "older".
+version_lt() {
+    [[ "$(version_compare "$1" "$2")" == "-1" ]]
 }
 
 verified_installer_metadata_valid() {
@@ -326,6 +383,10 @@ mode_switch_reuse="off"
 # install-function-side prompting so the wizard never asks the same question twice.
 install_profile=""
 install_wizard_preset="off"
+# Listen address used by NEW ws/gRPC/xHTTP ONLY deployments. Defaults to
+# loopback (no transport encryption); an operator may explicitly pick another
+# trusted address in the wizard or via WS_BACKEND_LISTEN_ADDR.
+ws_backend_listen_addr="${WS_BACKEND_LISTEN_ADDR:-127.0.0.1}"
 random_num=$((RANDOM % 12 + 4))
 # P0 (config lazy-load): the top-level phase must NOT call jq before Bootstrap
 # has guaranteed it. Configuration is parsed lazily via _lazy_load_info_extraction()
@@ -387,6 +448,20 @@ is_grpc_mode() {
 
 is_xhttp_mode() {
     [[ ${transport_mode} == *xhttp* ]]
+}
+
+# Node role. Existing installs have no "role" field in install_config.json and
+# are treated as ordinary Xray nodes ("node"). "relay" is a standalone
+# Nginx-Stream TCP forwarder: no Xray binary, config, UUID or certificate.
+is_relay_role() {
+    [[ ${node_role:-node} == "relay" ]]
+}
+
+# True when a legacy "XTLS ONLY" installation is still present. That mode was
+# removed: the script keeps the running files untouched but refuses to
+# reinstall or manage it.
+is_legacy_xtls_mode() {
+    [[ ${legacy_xtls_only:-off} == "on" ]]
 }
 
 # P0 (lazy log): do NOT create /etc/idleleo or touch the log at top level.
@@ -1988,7 +2063,7 @@ dependency_install() {
             judge "crontab $(gettext "自启动配置")"
         fi
     fi
-    if [[ ${tls_mode} != "None" ]] && [[ ${tls_mode} != "XTLS" ]]; then
+    if [[ ${tls_mode} != "None" ]] || is_relay_role; then
         if is_rpm_family; then
             pkg_install "epel-release,iputils,pcre,pcre-devel,zlib-devel,perl-IPC-Cmd" || return 1
         else
@@ -2066,7 +2141,7 @@ create_directory() {
     # Fail-closed: any mkdir that cannot create a target terminates the
     # function so the caller can abort the deploy before further steps run.
     # Each existing directory short-circuits to 0 (no mkdir, no error).
-    if [[ ${tls_mode} != "None" ]] && [[ ${tls_mode} != "XTLS" ]]; then
+    if [[ ${tls_mode} != "None" ]]; then
         [[ -d "${nginx_conf_dir}" ]] || mkdir -p "${nginx_conf_dir}" || return 1
     fi
     [[ -d "${ssl_chainpath}" ]] || mkdir -p "${ssl_chainpath}" || return 1
@@ -2178,8 +2253,8 @@ reset_install_wizard_state() {
 # is NOT overwritten here — it is set beforehand by menu_choose_transport, and
 # shell_mode is derived later by _transport_set_shell_mode.
 #
-# For profiles without extra transport (reality_nginx, reality_standard,
-# xtls_only), transport_mode is forced to "None" and shell_mode is set directly.
+# For profiles without extra transport (reality_nginx, reality_standard),
+# transport_mode is forced to "None" and shell_mode is set directly.
 apply_install_profile() {
     case "${install_profile}" in
         reality_nginx)
@@ -2244,14 +2319,6 @@ apply_install_profile() {
             reality_add_balance="off"
             # transport_mode set by menu_choose_transport; shell_mode derived later
             ;;
-        xtls_only)
-            tls_mode="XTLS"
-            reality_add_more="off"
-            reality_add_nginx="off"
-            reality_add_balance="off"
-            transport_mode="None"
-            shell_mode="XTLS ONLY"
-            ;;
         *)
             log_echo "${Error} ${RedBG} $(gettext "未知的安装配置") ${Font}"
             return 1
@@ -2303,7 +2370,7 @@ _transport_set_shell_mode() {
     local transport_label=""
 
     # Non-transport installs (standard Reality, Reality+Nginx, Reality balance
-    # primary/secondary, XTLS ONLY, and the not-installed state) persist
+    # primary/secondary, and the not-installed state) persist
     # transport_mode="None" in the config. On script restart judge_mode reads
     # the config and calls this function; without this branch shell_mode would
     # stay at the initial "未安装" placeholder. Derive shell_mode from tls_mode
@@ -2326,7 +2393,10 @@ _transport_set_shell_mode() {
             fi
             ;;
         XTLS)
-            shell_mode="XTLS ONLY"
+            # Legacy installs of the removed "XTLS ONLY" mode. The mode is no
+            # longer supported: label it clearly instead of pretending it is
+            # configurable, and never touch the running files.
+            shell_mode="$(gettext "旧版 XTLS 模式 (已取消)")"
             ;;
         None)
             shell_mode="$(gettext "未安装")"
@@ -2363,9 +2433,6 @@ _transport_set_shell_mode() {
         ;;
     None)
         shell_mode="${transport_label} ONLY"
-        ;;
-    XTLS)
-        shell_mode="XTLS ONLY"
         ;;
     esac
 }
@@ -3110,6 +3177,16 @@ atomic_write_managed_ports() {
 collect_new_managed_ports() {
     local -a tcp=()
     local -a udp=()
+    if is_relay_role; then
+        # A relay forwards a single TCP stream; never open UDP for it.
+        if [[ -n "${relay_listen_port:-}" ]]; then
+            tcp+=("${relay_listen_port}")
+        fi
+        new_ports_json=$(jq -nc \
+            --argjson tcp "$(printf '%s\n' "${tcp[@]:-}" | jq -R . | jq -s 'unique')" \
+            '{tcp:$tcp, udp:[]}')
+        return 0
+    fi
     if [[ -n "${port:-}" && "${port}" != "None" ]]; then
         tcp+=("${port}")
         udp+=("${port}")
@@ -3845,16 +3922,50 @@ UUIDv5_tranc() {
     python3 -c "import uuid,sys;UUID_NAMESPACE=uuid.UUID('00000000-0000-0000-0000-000000000000');print(uuid.uuid5(UUID_NAMESPACE,sys.argv[1]))" "$1"
 }
 
-modify_listen_address() {
-    if [[ ${tls_mode} == "XTLS" ]]; then
-        update_json_config "${xray_conf}" '(.inbounds[] | select(.tag == "VLESS-XTLS-in")).listen = "0.0.0.0"'
-        judge "Xray listen address $(gettext "修改")"
-        return
-    fi
+# ws/gRPC/xHTTP ONLY installs VLESS without any transport encryption, so they
+# are meant for a trusted backend link. New deployments listen on loopback
+# unless the operator explicitly selects another (internal) address; existing
+# installs keep the listen address already written in config.json.
+ws_backend_listen_default() {
+    printf '127.0.0.1'
+}
 
+is_valid_listen_address() {
+    local addr="$1" octet
+    [[ -n "${addr}" ]] || return 1
+    if [[ "${addr}" == *:* ]]; then
+        # IPv6 literal: colon-separated hex groups, at most one "::".
+        [[ "${addr}" =~ ^[0-9A-Fa-f:]+$ ]] || return 1
+        [[ "${addr}" != *":::"* ]] || return 1
+        [[ "${addr}" == *:*:* ]] || return 1
+        [[ "${addr#*::}" != *"::"* ]] || return 1
+        return 0
+    fi
+    [[ "${addr}" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]] || return 1
+    for octet in "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}"; do
+        (( 10#${octet} <= 255 )) || return 1
+    done
+    return 0
+}
+
+resolve_ws_backend_listen_addr() {
+    local addr="${ws_backend_listen_addr:-}"
+    [[ -n "${addr}" ]] || addr="$(ws_backend_listen_default)"
+    if ! is_valid_listen_address "${addr}"; then
+        # Must not go to stdout: callers capture this function's output.
+        printf '%s\n' "$(gettext "监听地址无效, 已回退到 127.0.0.1")" >&2
+        addr="$(ws_backend_listen_default)"
+    fi
+    printf '%s' "${addr}"
+}
+
+modify_listen_address() {
     local listen_addr="0.0.0.0"
     if [[ ${tls_mode} == "TLS" ]]; then
         listen_addr="127.0.0.1"
+    elif [[ ${tls_mode} == "None" ]]; then
+        listen_addr="$(resolve_ws_backend_listen_addr)"
+        log_echo "${Warning} ${YellowBG} $(gettext "无传输层加密的后端入站监听地址"): ${listen_addr} ${Font}"
     fi
 
     if is_ws_mode; then
@@ -3903,9 +4014,6 @@ modify_inbound_port() {
                    '(.inbounds[] | select(.tag == "VLESS-xhttp-in")).port = $xhttpport' || _port_failed=1
             fi
         fi
-    elif [[ ${tls_mode} == "XTLS" ]]; then
-        update_json_config "${xray_conf}" --argjson port "${port:-0}" \
-           '(.inbounds[] | select(.tag == "VLESS-XTLS-in")).port = $port' || _port_failed=1
     else
         if is_ws_mode; then
             update_json_config "${xray_conf}" --argjson xport "${xport:-0}" \
@@ -4378,6 +4486,51 @@ modify_privateKey_shortIds() {
   judge "privateKey shortIds $(gettext "配置修改")"
 }
 
+# ---- REALITY 客户端版本下限 -------------------------------------------------
+# Xray 26.7.11 起，realitySettings.minClientVer 未显式设置时按 26.3.27 处理，
+# 于是仍在报旧版本号的客户端（Mihomo/Clash 硬编码 1.8.2，部分旧版 v2rayN /
+# Shadowrocket）会直接握手失败。上游 issue: XTLS/Xray-core#6482，处置办法是
+# 显式写 minClientVer。这里只补齐缺失的字段，用户自己设过的值一律不动。
+reality_min_client_ver="1.0.0"
+
+reality_min_client_ver_repair() {
+    local missing backup
+    [[ -f "${xray_conf}" ]] || return 0
+    is_relay_role && return 0
+    # 只统计 reality 入站里缺这个字段的数量；配置不可解析时什么都不做。
+    missing=$(jq -r '[.inbounds[]? | select(.streamSettings.security == "reality")
+        | select((.streamSettings.realitySettings.minClientVer // "") == "")] | length' \
+        "${xray_conf}" 2>/dev/null) || return 0
+    [[ "${missing}" =~ ^[0-9]+$ ]] || return 0
+    (( missing > 0 )) || return 0
+
+    backup=$(mktemp "${xray_conf}.reality.XXXXXX" 2>/dev/null) || return 0
+    cp -p "${xray_conf}" "${backup}" || { rm -f "${backup}"; return 0; }
+
+    if ! update_json_config "${xray_conf}" --arg v "${reality_min_client_ver}" '
+        .inbounds |= map(
+            if (.streamSettings.security == "reality")
+               and ((.streamSettings.realitySettings.minClientVer // "") == "")
+            then .streamSettings.realitySettings.minClientVer = $v
+            else . end)'; then
+        cp -p "${backup}" "${xray_conf}" 2>/dev/null || true
+        rm -f "${backup}"
+        log_echo "${Warning} ${YellowBG} $(gettext "写入 REALITY minClientVer 失败, 已恢复原配置") ${Font}"
+        return 0
+    fi
+    # 配置必须仍能被 Xray 接受；不接受就逐字节还原，绝不留下坏配置。
+    if [[ -x "${xray_bin_dir}/xray" ]] &&
+        ! XRAY_LOCATION_ASSET="${geodata_dir}" "${xray_bin_dir}/xray" run -test -config "${xray_conf}" >/dev/null 2>&1; then
+        cp -p "${backup}" "${xray_conf}" 2>/dev/null || true
+        rm -f "${backup}"
+        log_echo "${Warning} ${YellowBG} $(gettext "加入 minClientVer 后配置测试失败, 已恢复原配置") ${Font}"
+        return 0
+    fi
+    rm -f "${backup}"
+    log_echo "${OK} ${GreenBG} $(gettext "已为 REALITY 入站补上 minClientVer"): ${reality_min_client_ver} ${Font}"
+    return 0
+}
+
 # 生成 16 位 hex shortId，openssl 优先，/dev/urandom 兜底
 generate_reality_short_id() {
     if command -v openssl >/dev/null 2>&1; then
@@ -4474,7 +4627,7 @@ harden_config_permissions() {
     # An existing Nginx tree can predate the dedicated worker account (for
     # example, upgrades and Docker images shared by non-Nginx install modes).
     # Create the account before resolving the group or applying the layered
-    # model; otherwise an unrelated XTLS/Reality-only install fails merely
+    # model; otherwise an unrelated Reality-only install fails merely
     # because Nginx happens to be present on disk.
     if [[ -d "${nginx_dir}" ]] && ! ensure_idleleo_nginx_user; then
         failed=1
@@ -4519,8 +4672,13 @@ xray_privilege_escalation() {
     # bounding set, so it must own logs left at 600 by a previous account.
     mkdir -p /var/log/xray/ || return 1
     chown -fR "${_xray_service_user}:${_xray_service_group}" /var/log/xray/ || return 1
-    chmod -f 755 /var/log/xray/ || return 1
-    find /var/log/xray/ -type f -exec chmod -f 644 {} + || return 1
+    # Access logs carry every client address/SNI: keep the directory and the
+    # log files readable by the service account and its group only (750/640)
+    # instead of the previous world-readable 755/644. logrotate uses
+    # copytruncate and runs as root, and this script's diagnostics run as root,
+    # so no other local account needs access.
+    chmod -f 750 /var/log/xray/ || return 1
+    find /var/log/xray/ -type f -exec chmod -f 640 {} + || return 1
     if [[ "${_xray_service_user}" != "root" ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "检测到 Xray 的权限控制, 启动修改程序") ${Font}"
         # 安装器切换服务账号后（nobody -> xray），已存在的配置必须同步归属，
@@ -4536,6 +4694,14 @@ xray_privilege_escalation() {
         fi
     else
         apply_sensitive_file_permissions "${xray_conf}" "root:root" || return 1
+    fi
+    # The official installer re-installs geoip.dat/geosite.dat with `install -m
+    # 644`, which resets them to root:root on every update. Restore the service
+    # account's write access so the native schedule keeps working; configuration
+    # and key paths are deliberately untouched here.
+    if geodata_native_configured; then
+        geodata_apply_permissions || \
+            log_echo "${Warning} ${YellowBG} $(gettext "GeoData 文件权限恢复失败") ${Font}"
     fi
     log_echo "${OK} ${GreenBG} Xray $(gettext "修改") $(gettext "完成") ${Font}"
 }
@@ -4557,12 +4723,306 @@ set_xray_config_path() {
     fi
 }
 
+# ---- GeoData 原生下载与热更新 ------------------------------------------------
+# Xray 自带 geodata 模块：按 cron 下载 .dat 并热重载，不重启进程。普通节点改用
+# 这个原生路径，脚本不再为它安装自己的 cron + geo_update.sh（后者保留为手动
+# 救援工具）。纯中转节点只有 Nginx，不生成任何 GeoData 配置。
+geodata_dir="${idleleo_dir}/share/xray"
+# Weekly, matching the legacy cron so the update cadence does not change.
+geodata_cron="0 3 * * 1"
+# The data source is unchanged (Loyalsoldier), so routing rule sets keep the
+# exact same semantics as before. HTTPS is mandatory for native assets.
+geodata_source_base="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
+
+# Resolve a directory to its physical path without relying on `readlink -f`
+# (the local test host runs the macOS userland, production runs GNU coreutils).
+_geodata_realpath() {
+    local target="${1:-}"
+    [[ -n "${target}" && -e "${target}" ]] || return 1
+    ( cd -- "${target}" 2>/dev/null && pwd -P )
+}
+
+# The canonical managed geodata object. Emitted identically every run so that a
+# byte comparison can tell "our" block from a user-authored one.
+geodata_managed_json() {
+    jq -n --arg cron "${geodata_cron}" --arg base "${geodata_source_base}" \
+        '{cron: $cron, assets: [
+            {url: ($base + "/geoip.dat"), file: "geoip.dat"},
+            {url: ($base + "/geosite.dat"), file: "geosite.dat"}
+        ]}'
+}
+
+# absent | managed | custom | invalid
+geodata_state() {
+    local current
+    [[ -f "${xray_conf}" ]] || { printf '%s\n' absent; return 0; }
+    current=$(jq -c '.geodata // null' "${xray_conf}" 2>/dev/null) || {
+        printf '%s\n' invalid
+        return 0
+    }
+    if [[ "${current}" == "null" ]]; then
+        printf '%s\n' absent
+        return 0
+    fi
+    if [[ "$(printf '%s' "${current}" | jq -S -c . 2>/dev/null)" == \
+        "$(geodata_managed_json | jq -S -c . 2>/dev/null)" ]]; then
+        printf '%s\n' managed
+    else
+        printf '%s\n' custom
+    fi
+}
+
+# Xray resolves geoip.dat/geosite.dat from XRAY_LOCATION_ASSET, else "./" then
+# /usr/local/share/xray. This is the directory the running process really reads.
+geodata_asset_root() {
+    local file value
+    for file in "${xray_systemd_file}" "${xray_systemd_file}.d"/*.conf; do
+        [[ -f "${file}" ]] || continue
+        value=$(sed -n 's/.*XRAY_LOCATION_ASSET=\([^[:space:]"]*\).*/\1/p' "${file}" | tail -n 1)
+        [[ -n "${value}" ]] && { printf '%s\n' "${value}"; return 0; }
+    done
+    printf '%s\n' "${local_bin}/share/xray"
+}
+
+# systemd sandbox: a strict ProtectSystem without a matching ReadWritePaths
+# makes the native download impossible even when the mode bits look right.
+geodata_sandbox_allows_write() {
+    local file value protect="" writable="" token
+    for file in "${xray_systemd_file}" "${xray_systemd_file}.d"/*.conf; do
+        [[ -f "${file}" ]] || continue
+        value=$(sed -n 's/^[[:space:]]*ProtectSystem[[:space:]]*=[[:space:]]*\([^[:space:]]*\).*/\1/p' "${file}" | tail -n 1)
+        [[ -n "${value}" ]] && protect="${value}"
+        value=$(sed -n 's/^[[:space:]]*ReadWritePaths[[:space:]]*=[[:space:]]*//p' "${file}" | tail -n 1)
+        [[ -n "${value}" ]] && writable="${writable} ${value}"
+    done
+    case "${protect}" in
+        strict | full | yes | true) ;;
+        *) return 0 ;;
+    esac
+    for token in ${writable}; do
+        [[ "${token#-}" == "${geodata_dir}" ]] && return 0
+    done
+    return 1
+}
+
+geodata_files_ok() {
+    local name
+    for name in geoip.dat geosite.dat; do
+        [[ -f "${geodata_dir}/${name}" && ! -L "${geodata_dir}/${name}" ]] || return 1
+    done
+    return 0
+}
+
+# Both .dat files must exist as real regular files inside the directory the
+# running Xray actually reads. Native geodata refuses to invent them: Xray only
+# replaces files it can already resolve, and a missing asset means the routing
+# rules would silently change.
+geodata_prepare_layout() {
+    local name asset_root
+    mkdir -p "${geodata_dir}" 2>/dev/null || {
+        log_echo "${Warning} ${YellowBG} $(gettext "无法创建 GeoData 资源目录") ${Font}"
+        return 1
+    }
+    if ! geodata_files_ok; then
+        log_echo "${Warning} ${YellowBG} $(gettext "缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置") ${Font}"
+        return 1
+    fi
+    asset_root=$(geodata_asset_root)
+    if [[ ! -e "${asset_root}" ]] || \
+        [[ "$(_geodata_realpath "${asset_root}")" != "$(_geodata_realpath "${geodata_dir}")" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 资源目录与 Xray 实际读取路径不一致, 跳过原生配置"): ${asset_root} ${Font}"
+        return 1
+    fi
+    if ! geodata_sandbox_allows_write; then
+        log_echo "${Warning} ${YellowBG} $(gettext "systemd 沙箱禁止写入 GeoData 资源目录, 跳过原生配置") ${Font}"
+        return 1
+    fi
+    return 0
+}
+
+# Only the asset directory and the two .dat files are opened up. config.json,
+# private keys and certificates keep their existing owner/mode: the service
+# account gets write access to nothing but the data files it must replace.
+# The 0660/0770 pair is the state this script establishes. After the first
+# native download Xray writes the replacements itself (observed mode 0644,
+# still owned by the service account), so what must hold over time is the
+# ownership plus directory write access -- not the exact mode bits.
+geodata_apply_permissions() {
+    local user group name failed=0
+    [[ -d "${geodata_dir}" ]] || return 0
+    geodata_files_ok || return 0
+    user=$(xray_service_user)
+    group=$(xray_service_group "${user}")
+    if [[ "${user}" == "root" ]]; then
+        chmod 0755 "${geodata_dir}" || failed=1
+        for name in geoip.dat geosite.dat; do
+            chmod 0644 "${geodata_dir}/${name}" || failed=1
+        done
+        return "${failed}"
+    fi
+    # Group-writable directory: Xray downloads to a temporary file and renames
+    # it over the old one, so the directory itself must be writable as well.
+    chown "root:${group}" "${geodata_dir}" || failed=1
+    chmod 0770 "${geodata_dir}" || failed=1
+    for name in geoip.dat geosite.dat; do
+        chown "${user}:${group}" "${geodata_dir}/${name}" || failed=1
+        chmod 0660 "${geodata_dir}/${name}" || failed=1
+    done
+    return "${failed}"
+}
+
+# Mode bits alone do not prove DAC access (ACLs, read-only mounts). Probe as the
+# service account when the tooling exists; a failure is reported, not fatal.
+geodata_service_can_write() {
+    local user
+    user=$(xray_service_user)
+    [[ "${user}" == "root" ]] && return 0
+    if command -v runuser >/dev/null 2>&1; then
+        runuser -u "${user}" -- test -w "${geodata_dir}" 2>/dev/null || return 1
+        runuser -u "${user}" -- test -w "${geodata_dir}/geoip.dat" 2>/dev/null || return 1
+        return 0
+    fi
+    if command -v su >/dev/null 2>&1; then
+        su -s /bin/sh "${user}" -c "test -w '${geodata_dir}' && test -w '${geodata_dir}/geoip.dat'" 2>/dev/null || return 1
+        return 0
+    fi
+    return 0
+}
+
+geodata_config_test() {
+    local binary="${xray_bin_dir}/xray"
+    [[ -x "${binary}" ]] || return 1
+    XRAY_LOCATION_ASSET="${geodata_dir}" "${binary}" run -test -config "${xray_conf}" >/dev/null 2>&1
+}
+
+geodata_native_configured() {
+    [[ "$(geodata_state)" == "managed" ]]
+}
+
+# Low-memory hosts are the one documented caveat of the native path.
+geodata_low_memory_notice() {
+    local mem_kb
+    mem_kb=$(awk '/^MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null)
+    [[ -n "${mem_kb}" ]] || return 0
+    (( mem_kb < 1048576 )) || return 0
+    log_echo "${Warning} ${YellowBG} $(gettext "低内存设备 (小于 1 GiB): GeoData 定时更新会有短暂内存峰值, 请留意") ${Font}"
+}
+
+# Write the managed block into the live Xray config. A user-authored geodata
+# object is never overwritten; an unparsable config is left alone.
+geodata_apply_config() {
+    local state
+    state=$(geodata_state)
+    case "${state}" in
+        managed)
+            return 0
+            ;;
+        custom)
+            log_echo "${Info} ${Green} $(gettext "检测到自定义 geodata 配置, 保留原样") ${Font}"
+            return 0
+            ;;
+        invalid)
+            log_echo "${Warning} ${YellowBG} $(gettext "Xray 配置无法解析, 跳过 GeoData 原生配置") ${Font}"
+            return 1
+            ;;
+    esac
+    update_json_config "${xray_conf}" --argjson geodata "$(geodata_managed_json)" \
+        '.geodata = $geodata'
+}
+
+# Enable native GeoData refresh on a normal node. Never runs for role=relay.
+geodata_native_enable() {
+    local state backup
+    is_relay_role && return 0
+    [[ -x "${xray_bin_dir}/xray" ]] || return 0
+    [[ -f "${xray_conf}" ]] || return 0
+
+    geodata_low_memory_notice
+    geodata_prepare_layout || return 0
+
+    state=$(geodata_state)
+    if [[ "${state}" == "custom" || "${state}" == "invalid" ]]; then
+        geodata_apply_config
+        geodata_apply_permissions || return 1
+        return 0
+    fi
+    if [[ "${state}" == "managed" ]]; then
+        # Idempotent re-run (reinstall / reconfigure): keep the block, re-assert
+        # ownership because the official installer resets .dat to root:root 644.
+        geodata_apply_permissions || return 1
+        geodata_service_can_write || \
+            log_echo "${Warning} ${YellowBG} $(gettext "Xray 服务账号仍无法写入 GeoData 文件, 原生更新可能失败") ${Font}"
+        return 0
+    fi
+
+    # A config that is already invalid is not ours to fix: skip instead of
+    # breaking an otherwise working install.
+    if ! geodata_config_test; then
+        log_echo "${Warning} ${YellowBG} $(gettext "当前 Xray 配置未通过 xray run -test, 跳过 GeoData 原生配置") ${Font}"
+        return 0
+    fi
+
+    backup=$(mktemp "${xray_conf}.geodata.XXXXXX" 2>/dev/null) || return 1
+    cp -p "${xray_conf}" "${backup}" || { rm -f "${backup}"; return 1; }
+    if ! geodata_apply_config; then
+        rm -f "${backup}"
+        return 1
+    fi
+    # Fail closed: a config Xray rejects must never reach the service.
+    if ! geodata_config_test; then
+        cp -p "${backup}" "${xray_conf}" || true
+        rm -f "${backup}"
+        log_echo "${Error} ${RedBG} $(gettext "加入 geodata 后 Xray 配置测试失败, 已恢复原配置") ${Font}"
+        return 1
+    fi
+    rm -f "${backup}"
+    if ! geodata_apply_permissions; then
+        log_echo "${Error} ${RedBG} $(gettext "GeoData 文件权限设置失败") ${Font}"
+        return 1
+    fi
+    geodata_service_can_write || \
+        log_echo "${Warning} ${YellowBG} $(gettext "Xray 服务账号仍无法写入 GeoData 文件, 原生更新可能失败") ${Font}"
+    log_echo "${OK} ${GreenBG} $(gettext "已启用 Xray 原生 GeoData 定时更新"): ${geodata_cron} ${Font}"
+    return 0
+}
+
+# Only the cron entry this script itself created is removed: the line must point
+# at the managed geo_update.sh path. Hand-written schedules are left untouched.
+geodata_legacy_cron_lines() {
+    command -v crontab >/dev/null 2>&1 || return 1
+    crontab -l 2>/dev/null | awk -v script="${geo_update_file}" 'index($0, script) > 0'
+}
+
+# Runs after the service is confirmed healthy: with the native schedule live, a
+# second external updater would restart Xray on its own and double the work.
+geodata_legacy_cron_disable() {
+    local lines state
+    is_relay_role && return 0
+    command -v crontab >/dev/null 2>&1 || return 0
+    state=$(geodata_state)
+    [[ "${state}" == "managed" ]] || return 0
+    lines=$(geodata_legacy_cron_lines) || return 0
+    [[ -n "${lines}" ]] || return 0
+    if crontab -l 2>/dev/null | awk -v script="${geo_update_file}" 'index($0, script) == 0' | crontab -; then
+        log_echo "${OK} ${GreenBG} $(gettext "已移除脚本创建的 geo_update.sh 周期任务, 避免与原生更新重复执行") ${Font}"
+        return 0
+    fi
+    log_echo "${Warning} ${YellowBG} $(gettext "移除 geo_update.sh 周期任务失败, 请手动检查 crontab") ${Font}"
+    return 1
+}
+
 xray_install() {
     local current_xray_version
     current_xray_version=$(xray version 2>/dev/null | head -1 | awk '{print $2}')
     # 已有二进制也必须与清单钉定版本一致；否则外部装上的最新版会被直接沿用。
     if [[ -z "${current_xray_version}" ]] || [[ ! -f "${xray_conf}" ]] ||
         [[ -n "${xray_online_version}" && "${current_xray_version}" != "${xray_online_version}" ]]; then
+        # An install converges to the pinned version, so a locally newer binary
+        # is replaced too. Say so out loud: silently moving backwards is exactly
+        # what the update path refuses to do.
+        if version_gt "${current_xray_version}" "${xray_online_version}"; then
+            log_echo "${Warning} ${YellowBG} $(gettext "本机版本高于清单钉定版本, 将按清单重新安装") : v${current_xray_version} → v${xray_online_version} ${Font}"
+        fi
         log_echo "${OK} ${GreenBG} $(gettext "即将安装") Xray v${xray_online_version} ${Font}"
         xray_install_release install -f --version v${xray_online_version}
         judge "$(gettext "安装") Xray"
@@ -4593,6 +5053,20 @@ xray_update() {
     trap 'rxa_reconfigure_leave $?' RETURN
     current_xray_version=$(info_extraction xray_version)
     [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
+    # The metadata can regress: a reverted API release, a stale CDN copy, or a
+    # hand-edited version file. "Different" must never be read as "newer", so
+    # this refuses to move backwards. Same-version reinstall still works, and an
+    # empty/unknown installed version falls through to the normal path.
+    if version_gt "${current_xray_version}" "${xray_online_version}"; then
+        log_echo "${Warning} ${YellowBG} $(gettext "已安装版本高于在线清单, 不执行降级") ${Font}"
+        log_echo "${Info} $(gettext "已安装") : v${current_xray_version} ${Font}"
+        log_echo "${Info} $(gettext "在线清单") : v${xray_online_version} ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "如确需降级, 请手动指定版本或先卸载再安装") ${Font}"
+        return 0
+    fi
+    # 核心更新会带来 REALITY 客户端版本策略变化；在重启前补齐 minClientVer，
+    # 让本次重启同时生效（已显式设置的配置不受影响）。
+    reality_min_client_ver_repair
     # COMPAT: 旧版依赖 /usr/local/etc/xray 目录存放默认配置，新版不再使用，未来可删除
     [[ ! -d "${local_bin}/etc/xray" ]] && log_echo "${GreenBG} $(gettext "若更新无效, 建议直接卸载再安装")! ${Font}"
     log_echo "${Warning} ${GreenBG} $(gettext "部分新功能需要重新安装才可生效") ${Font}"
@@ -6030,6 +6504,10 @@ health_check_shell_update() {
 
 nginx_update() {
     [[ -f "/etc/idleleo/logs/update_failed.mark" ]] && rm -rf "/etc/idleleo/logs/update_failed.mark"
+    if is_relay_role; then
+        nginx_update_relay
+        return $?
+    fi
     local save_originconf=""
     if [[ -f "${nginx_dir}/sbin/nginx" ]]; then
         current_nginx_build_version=$(info_extraction nginx_build_version)
@@ -6087,10 +6565,6 @@ nginx_update() {
                         return 1
                     fi
                 elif [[ ${tls_mode} == "None" ]]; then
-                    [[ ${auto_update} == "YES" ]] && echo "$(gettext "当前安装模式不需要") Nginx !" >>"${log_file}" && return 1
-                    log_echo "${Error} ${RedBG} $(gettext "当前安装模式不需要") Nginx ! ${Font}"
-                    return 1
-                elif [[ ${tls_mode} == "XTLS" ]]; then
                     [[ ${auto_update} == "YES" ]] && echo "$(gettext "当前安装模式不需要") Nginx !" >>"${log_file}" && return 1
                     log_echo "${Error} ${RedBG} $(gettext "当前安装模式不需要") Nginx ! ${Font}"
                     return 1
@@ -6779,10 +7253,6 @@ xray_conf_add() {
             modify_listen_address
             modify_path
             modify_inbound_port
-        elif [[ ${tls_mode} == "XTLS" ]]; then
-            judge "$(gettext "下载 Xray XTLS 配置")" download_json_file "${shell_release_raw_base}/config/vless_xtls.json" "${xray_conf}"
-            modify_listen_address
-            modify_inbound_port
         fi
         modify_email_address
         modify_UUID
@@ -6838,6 +7308,19 @@ xray_reality_add_more() {
 }
 
 old_config_exist_check() {
+    # Role guards: a relay owns the whole server, and the removed "XTLS ONLY"
+    # mode is not migrated. Neither may be silently overwritten by a node
+    # install; the operator has to act first.
+    if [[ -f "${xray_install_config_file}" ]] && is_relay_role; then
+        log_echo "${Error} ${RedBG} $(gettext "当前服务器为中转节点, 不支持与普通节点混装") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "请先删除中转节点, 再安装普通节点") ${Font}"
+        return 1
+    fi
+    if is_legacy_xtls_mode; then
+        log_echo "${Error} ${RedBG} $(gettext "检测到旧版 XTLS 模式, 该模式已取消, 不支持重装或模式切换") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "现有配置与服务不会被改动; 如需继续使用请卸载后重新部署") ${Font}"
+        return 1
+    fi
     # Reset reinstall flags — only set to "on" inside this function when the
     # user explicitly chooses 保留配置重新安装 / mode switch. Ensures a
     # previous reinstall does not leak into a subsequent fresh install.
@@ -7051,8 +7534,6 @@ old_config_input() {
             xhttpport=$(info_extraction xhttp_port)
             xhttppath=$(info_extraction xhttp_path)
         fi
-    elif [[ ${tls_mode} == "XTLS" ]]; then
-        port=$(info_extraction port)
     fi
     if [[ 0 -eq ${read_config_status} ]]; then
         # The old prompt said "已保留配置文件" while setting
@@ -7450,6 +7931,12 @@ EOF
 }
 
 enable_process_systemd() {
+    if is_relay_role; then
+        [[ -f "${nginx_systemd_file}" ]] || return 1
+        systemctl enable nginx
+        judge -r "$(gettext "设置 Nginx 开机自启")" || return 1
+        return 0
+    fi
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
         if [[ -f "${nginx_systemd_file}" ]]; then
             systemctl enable nginx
@@ -7461,6 +7948,12 @@ enable_process_systemd() {
 }
 
 disable_process_systemd() {
+    if is_relay_role; then
+        [[ -f "${nginx_systemd_file}" ]] || return 0
+        systemctl stop nginx && systemctl disable nginx
+        judge -r "$(gettext "关闭 Nginx 开机自启")" || return 1
+        return 0
+    fi
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
         if [[ -f "${nginx_systemd_file}" ]]; then
             systemctl stop nginx && systemctl disable nginx
@@ -7472,6 +7965,11 @@ disable_process_systemd() {
 }
 
 stop_service_all() {
+    if is_relay_role; then
+        [[ -f "${nginx_systemd_file}" ]] && { systemctl stop nginx 2>/dev/null; systemctl disable nginx 2>/dev/null; }
+        log_echo "${OK} ${GreenBG} $(gettext "停止") ${Font}"
+        return 0
+    fi
     [[ -f "${nginx_systemd_file}" ]] && { systemctl stop nginx 2>/dev/null; systemctl disable nginx 2>/dev/null; }
     systemctl stop xray 2>/dev/null
     systemctl disable xray 2>/dev/null
@@ -7491,6 +7989,15 @@ acme_cron_cleanup() {
 
 service_restart() {
     systemctl daemon-reload
+    if is_relay_role; then
+        [[ -f "${nginx_systemd_file}" ]] || return 1
+        systemctl restart nginx
+        if ! judge -r "Nginx $(gettext "重启")"; then
+            nginx_diagnose
+            return 1
+        fi
+        return 0
+    fi
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
         if [[ -f "${nginx_systemd_file}" ]]; then
             systemctl restart nginx
@@ -7508,6 +8015,15 @@ service_restart() {
 }
 
 service_start() {
+    if is_relay_role; then
+        [[ -f "${nginx_systemd_file}" ]] || return 1
+        systemctl start nginx
+        if ! judge -r "Nginx $(gettext "启动")"; then
+            nginx_diagnose
+            return 1
+        fi
+        return 0
+    fi
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
         if [[ -f "${nginx_systemd_file}" ]]; then
             systemctl start nginx
@@ -7525,6 +8041,12 @@ service_start() {
 }
 
 service_stop() {
+    if is_relay_role; then
+        [[ -f "${nginx_systemd_file}" ]] || return 1
+        systemctl stop nginx
+        judge -r "Nginx $(gettext "停止")" || return 1
+        return 0
+    fi
     if [[ ${tls_mode} == "TLS" ]] || [[ ${reality_add_nginx} == "on" ]]; then
         if [[ -f "${nginx_systemd_file}" ]]; then
             systemctl stop nginx
@@ -7585,9 +8107,9 @@ check_cert_status() {
                 read -r cert_update_manuel_fq
                 case $cert_update_manuel_fq in
                 [yY][eE][sS] | [yY])
-                    systemctl stop xray
-                    judge -r "Xray $(gettext "停止")" || return 1
-                    cert_update_manuel
+                    # Service state handling lives inside cert_update_manuel so
+                    # a failed renewal can always restore what it stopped.
+                    cert_update_manuel || return 1
                     ;;
                 *) ;;
                 esac
@@ -7601,23 +8123,75 @@ check_cert_status() {
 }
 
 cert_update_manuel() {
-    if [[ ${tls_mode} == "TLS" ]]; then
-        if [[ -f "${amce_sh_file}" ]]; then
-            "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
-            host="$(info_extraction host)"
-            "$HOME"/.acme.sh/acme.sh --installcert -d "${host}" --fullchainpath "${ssl_chainpath}/xray.crt" --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "chown -f root:idleleo-nginx ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"
-            judge -r "$(gettext "证书更新")" || return 1
-            # Reuse authoritative layered permission model after cert renewal.
-            apply_nginx_layered_permissions || return 1
-            verify_nginx_layered_permissions || return 1
-            service_restart || return 1
-        else
-            log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
+    if [[ ${tls_mode} != "TLS" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
+        return 1
+    fi
+
+    # Every precondition is checked before a service is stopped, so a missing
+    # prerequisite can never leave Xray down.
+    if [[ ! -f "${amce_sh_file}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
+        return 1
+    fi
+
+    local _cert_host _cert_group _xray_was_active="no" _rc=0
+    _cert_host="$(info_extraction host)"
+    if [[ -z "${_cert_host}" || "${_cert_host}" == "null" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "无法读取域名, 已取消证书更新")! ${Font}"
+        return 1
+    fi
+    if [[ ! -d "${ssl_chainpath}" ]] && ! mkdir -p "${ssl_chainpath}" 2>/dev/null; then
+        log_echo "${Error} ${RedBG} $(gettext "证书目录不可用, 已取消证书更新")! ${Font}"
+        return 1
+    fi
+    _cert_group="$(get_nginx_worker_group)"
+    if [[ -z "${_cert_group}" ]] ||
+        { command -v getent >/dev/null 2>&1 && ! getent group "${_cert_group}" >/dev/null 2>&1; }; then
+        log_echo "${Error} ${RedBG} $(gettext "证书所需的服务组不存在, 已取消证书更新")! ${Font}"
+        return 1
+    fi
+
+    if systemctl is-active --quiet xray 2>/dev/null; then
+        _xray_was_active="yes"
+        if ! systemctl stop xray >/dev/null 2>&1; then
+            log_echo "${Error} ${RedBG} $(gettext "无法停止 Xray, 已取消证书更新")! ${Font}"
             return 1
         fi
-    else
-        log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
     fi
+
+    local _reloadcmd="chown -f root:${_cert_group} ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key"
+    # --reloadcmd is persisted in the acme.sh renewal config. It must not
+    # restart services: this function and ssl_update.sh already restart them
+    # once, and a restart inside the hook would double-restart every renewal.
+    if ! "${amce_sh_file}" --cron --home "$(dirname "${amce_sh_file}")"; then
+        log_echo "${Error} ${RedBG} acme.sh $(gettext "续签失败")! ${Font}"
+        _rc=1
+    elif ! "${amce_sh_file}" --installcert -d "${_cert_host}" \
+        --fullchainpath "${ssl_chainpath}/xray.crt" \
+        --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "${_reloadcmd}"; then
+        log_echo "${Error} ${RedBG} $(gettext "证书安装失败")! ${Font}"
+        _rc=1
+    elif ! apply_nginx_layered_permissions; then
+        _rc=1
+    elif ! verify_nginx_layered_permissions; then
+        _rc=1
+    elif ! service_restart; then
+        _rc=1
+    fi
+
+    if [[ ${_rc} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "证书更新") $(gettext "失败")! ${Font}"
+        if [[ "${_xray_was_active}" == "yes" ]] && ! systemctl is-active --quiet xray 2>/dev/null; then
+            if systemctl start xray >/dev/null 2>&1; then
+                log_echo "${OK} ${GreenBG} $(gettext "已恢复 Xray 原有运行状态") ${Font}"
+            else
+                log_echo "${Error} ${RedBG} $(gettext "Xray 服务恢复失败, 请手动检查")! ${Font}"
+            fi
+        fi
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "证书更新") $(gettext "完成") ${Font}"
 }
 
 set_fail2ban() {
@@ -7959,36 +8533,6 @@ EOF
     rm -f "${_new_fields}"
 }
 
-install_config_xtls_only() {
-    local _new_fields
-    _new_fields=$(mktemp)
-    cat >"${_new_fields}" <<-EOF
-{
-    "shell_mode": "${shell_mode}",
-    "transport_mode": "None",
-    "host": "${local_ip}",
-    "ip_version": "${ip_version}",
-    "network_mode": "${network_mode:-$(infer_network_mode_from_config "${ip_version}")}",
-    "ipv4_address": "${ipv4_address:-}",
-    "ipv6_address": "${ipv6_address:-}",
-    "port": ${port},
-    "tls": "XTLS",
-    "email": "${custom_email}",
-    "idc": "${UUID5_char}",
-    "id": "${UUID}",
-    "net": "raw",
-    "security": "none",
-    "shell_version": "${shell_version}",
-    "xray_version": "${xray_version:-}"
-}
-EOF
-    if ! _install_config_merge_write "${_new_fields}"; then
-        rm -f "${_new_fields}"
-        return 1
-    fi
-    rm -f "${_new_fields}"
-}
-
 install_config_ws_only() {
     local _new_fields
     _new_fields=$(mktemp)
@@ -8184,10 +8728,6 @@ generate_vless_link() {
             fi
             result="vless://${user_id}@${authority_host}:${port}?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=${pbk}&sni=${sni}&target=${target}&sid=${sid}${spx_param}#${quoted_host}+Reality%E5%8D%8F%E8%AE%AE"
             ;;
-        xtls)
-            port=$(info_extraction port)
-            result="vless://${user_id}@${authority_host}:${port}?security=none&encryption=none&headerType=none&type=raw#${quoted_host}+XTLS%E5%8D%8F%E8%AE%AE"
-            ;;
         *)
             return 1
             ;;
@@ -8302,6 +8842,10 @@ generate_clash_config() {
 }
 
 install_link_image() {
+    if is_relay_role; then
+        # A relay has no VLESS inbound, so no share link or QR code exists.
+        return 0
+    fi
     # Defensive hydration: a fresh process reaching this entry without
     # judge_mode() must still restore dual-stack state for IPv6 links.
     ensure_network_runtime_state
@@ -8315,10 +8859,10 @@ install_link_image() {
     local vless_link="" vless_link_v6="" vless_ws_link="" vless_grpc_link="" vless_xhttp_link=""
     local vless_ws_link_v6="" vless_grpc_link_v6="" vless_xhttp_link_v6=""
 
-    # 直接-IP 模式（Reality/None/XTLS）双栈：为 IPv6 单独生成客户端入口。
+    # 直接-IP 模式（Reality/None）双栈：为 IPv6 单独生成客户端入口。
     # host 字段保留 canonical（默认 IPv4），不改变老代码语义。
     local dual_direct_ip=0
-    if [[ ${tls_mode} == "Reality" || ${tls_mode} == "None" || ${tls_mode} == "XTLS" ]] \
+    if [[ ${tls_mode} == "Reality" || ${tls_mode} == "None" ]] \
         && [[ "${network_mode}" == "dual" ]] && [[ -n "${ipv6_address}" ]]; then
         dual_direct_ip=1
     fi
@@ -8351,9 +8895,6 @@ install_link_image() {
             [[ -n "${vless_grpc_link}" ]] && vless_grpc_link_v6=$(generate_vless_link "$main_id" "grpc" "${ipv6_address}")
             [[ -n "${vless_xhttp_link}" ]] && vless_xhttp_link_v6=$(generate_vless_link "$main_id" "xhttp" "${ipv6_address}")
         fi
-    elif [[ ${tls_mode} == "XTLS" ]]; then
-        vless_link=$(generate_vless_link "$main_id" "xtls")
-        [[ ${dual_direct_ip} -eq 1 ]] && vless_link_v6=$(generate_vless_link "$main_id" "xtls" "${ipv6_address}")
     fi
 
     clash_config_content="proxies:"
@@ -8430,19 +8971,12 @@ $(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(format_xhttp_
 $(generate_clash_config "xhttp" "$(info_extraction xhttp_port)" "$(format_xhttp_path "$(info_xhttp_path)")" "" "none" "" "" "" "" "" "false" "xhttp-v6" "" "${ipv6_address}")"
             fi
         fi
-    elif [[ ${tls_mode} == "XTLS" ]]; then
-        clash_config_content="${clash_config_content}
-$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" "" "" "false")"
-        if [[ ${dual_direct_ip} -eq 1 ]]; then
-            clash_config_content="${clash_config_content}
-$(generate_clash_config "tcp" "$(info_extraction port)" "" "" "none" "" "" "" "" "" "false" "tcp-v6" "" "${ipv6_address}")"
-        fi
     fi
     
     {
         echo
         log_echo "${Red} —————————————— Xray $(gettext "链接分享") —————————————— ${Font}"
-        if [[ ${tls_mode} == "Reality" ]] || [[ ${tls_mode} == "XTLS" ]]; then
+        if [[ ${tls_mode} == "Reality" ]]; then
             log_echo_secure "${Red} URL $(gettext "分享链接"):${Font} ${vless_link}"
             log_echo "${Red} $(gettext "二维码"): ${Font}"
             echo -n "${vless_link}" | qrencode -o - -t utf8
@@ -8609,6 +9143,10 @@ monitor_traffic_with_iftop() {
 }
 
 basic_information() {
+    if is_relay_role; then
+        relay_basic_information
+        return 0
+    fi
     ensure_reality_public_key || true
     {
         echo
@@ -8652,7 +9190,19 @@ basic_information() {
         log_echo "${Red} $(gettext "加密") (encryption):${Font} None "
         log_echo "${Red} $(gettext "传输协议") (network):${Font} $(info_extraction net) "
         log_echo "${Red} $(gettext "底层传输安全") (tls):${Font} $(info_extraction tls) "
-        if [[ ${tls_mode} != "Reality" && ${tls_mode} != "XTLS" ]]; then
+        if [[ ${tls_mode} == "None" ]]; then
+            local _none_listen
+            _none_listen=$(none_mode_listen_address)
+            [[ -n "${_none_listen}" ]] &&
+                log_echo "${Red} $(gettext "监听地址") (listen):${Font} ${_none_listen} "
+            log_echo "${Warning} ${YellowBG} $(gettext "此模式没有传输层加密 (VLESS 载荷自身仍有加密), 只应用于可信后端链路") ${Font}"
+            case "${_none_listen}" in
+            127.0.0.1 | ::1 | "")
+                log_echo "${Warning} ${YellowBG} $(gettext "当前仅监听本机, 外部客户端需经可信代理接入, 或改用 TLS/Reality 模式") ${Font}"
+                ;;
+            esac
+        fi
+        if [[ ${tls_mode} != "Reality" ]]; then
             if is_ws_mode; then
                 log_echo "${Red} $(gettext "路径") (path $(gettext "不要落下")/):${Font} /$(info_ws_path) "
             fi
@@ -8932,9 +9482,6 @@ reset_port() {
                 log_echo "${Green} gRPC inbound_port: ${gport} ${Font}"
                 log_echo "${Green} xHTTP inbound_port: ${xhttpport} ${Font}"
             fi
-        elif [[ ${tls_mode} == "XTLS" ]]; then
-            port_set || { _reset_port_restore; return 1; }
-            log_echo "${Green} $(gettext "端口"): ${port} ${Font}"
         fi
 
         # ----- Phase 2: validate (no config writes yet) -----
@@ -9001,9 +9548,6 @@ reset_port() {
                    --argjson xhttp_port "${xhttpport:-0}" \
                    "${none_port_update# | }" || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
             fi
-            modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
-        elif [[ ${tls_mode} == "XTLS" ]]; then
-            update_json_config "${xray_install_config_file}" --argjson port "${port:-0}" '.port = $port' || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
             modify_inbound_port || { _reset_port_rollback "${_rollback_config_file}" "${_rollback_xray_conf}" "${_rollback_managed_ports}"; return 1; }
         fi
 
@@ -9149,8 +9693,6 @@ show_user() {
             fi
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_tag="VLESS-Reality-in"
-        elif [[ ${tls_mode} == "XTLS" ]]; then
-            choose_user_tag="VLESS-XTLS-in"
         fi
         echo
         log_echo "${GreenBG} $(gettext "请选择要显示的用户编号"): ${Font}"
@@ -9170,9 +9712,9 @@ show_user() {
         if [[ -n ${user_email} ]] && [[ -n ${user_id} ]]; then
             log_echo "${Green} $(gettext "用户名"): ${user_email} ${Font}"
             log_echo_secure "${Green} UUID: ${user_id} ${Font}"
-            # 直接-IP 模式（Reality/XTLS）双栈：为多用户单独输出 IPv6 直连入口
+            # 直接-IP 模式（Reality）双栈：为多用户单独输出 IPv6 直连入口
             dual_direct_ip=0
-            if [[ ${tls_mode} == "Reality" || ${tls_mode} == "XTLS" ]] \
+            if [[ ${tls_mode} == "Reality" ]] \
                 && [[ "${network_mode}" == "dual" ]] && [[ -n "${ipv6_address}" ]]; then
                 dual_direct_ip=1
             fi
@@ -9187,9 +9729,6 @@ show_user() {
             elif [[ ${tls_mode} == "Reality" ]]; then
                 user_vless_link=$(generate_vless_link "$user_id" "reality")
                 [[ ${dual_direct_ip} -eq 1 ]] && user_vless_link_v6=$(generate_vless_link "$user_id" "reality" "${ipv6_address}")
-            elif [[ ${tls_mode} == "XTLS" ]]; then
-                user_vless_link=$(generate_vless_link "$user_id" "xtls")
-                [[ ${dual_direct_ip} -eq 1 ]] && user_vless_link_v6=$(generate_vless_link "$user_id" "xtls" "${ipv6_address}")
             fi
             log_echo_secure "${Red} URL $(gettext "分享链接"):${Font} ${user_vless_link}"
             echo -n "${user_vless_link}" | qrencode -o - -t utf8
@@ -9260,9 +9799,6 @@ add_user() {
                 reality_user_more='{"flow":"xtls-rprx-vision"}'
                 new_reality_short_id=$(generate_reality_short_id)
                 new_reality_spiderx=$(generate_spiderx)
-            elif [[ ${tls_mode} == "XTLS" ]]; then
-                choose_user_tag="VLESS-XTLS-in"
-                reality_user_more='{}'
             fi
             email_set
             local existing_emails
@@ -9351,8 +9887,6 @@ remove_user() {
             fi
         elif [[ ${tls_mode} == "Reality" ]]; then
             choose_user_tag="VLESS-Reality-in"
-        elif [[ ${tls_mode} == "XTLS" ]]; then
-            choose_user_tag="VLESS-XTLS-in"
         fi
         local del_user_index
         local remove_user_continue
@@ -9545,6 +10079,11 @@ uninstall_nginx() {
 }
 
 uninstall_all() {
+    relay_bootstrap_role || true
+    if is_relay_role; then
+        relay_uninstall
+        return $?
+    fi
     # Fail-closed: if the Rill agent cannot be frozen in observe-only, do not
     # begin the host removal at all.
     if ! rxa_uninstall_prepare; then
@@ -9681,9 +10220,25 @@ judge_mode() {
     # still emit IPv6 links after the script exits and re-runs.
     ensure_network_runtime_state
     if [[ -f "${xray_install_config_file}" ]]; then
+        node_role=$(info_extraction role)
+        [[ -z ${node_role} || ${node_role} == "null" ]] && node_role="node"
+        if is_relay_role; then
+            _relay_state_load
+            shell_mode="$(gettext "中转节点")"
+            tls_mode="None"
+            transport_mode="None"
+            old_tls_mode=${tls_mode}
+            return 0
+        fi
         transport_mode=$(info_extraction transport_mode)
         [[ -z ${transport_mode} || ${transport_mode} == "null" ]] && transport_mode="None"
         tls_mode=$(info_extraction tls)
+        if [[ ${tls_mode} == "XTLS" ]]; then
+            # The "XTLS ONLY" mode is gone. Do not migrate or rewrite anything:
+            # only mark it so reinstall is refused and the UI stops pretending
+            # the mode is still configurable.
+            legacy_xtls_only="on"
+        fi
         if [[ ${tls_mode} == "Reality" ]]; then
             reality_add_more=$(info_extraction reality_add_more)
             reality_add_nginx=$(info_extraction reality_add_nginx)
@@ -9694,6 +10249,893 @@ judge_mode() {
         _transport_set_shell_mode
         old_tls_mode=${tls_mode}
     fi
+}
+
+#=================================================================
+# 中转节点 (relay role)
+#
+# A relay is a standalone server that forwards ONE local TCP port to a landing
+# node with Nginx Stream. It installs no Xray binary, keeps no UUID/private
+# key/certificate, terminates no TLS, and never asks for backend credentials.
+# Clients keep the landing node's Reality parameters (public key, SNI, ShortId)
+# and only change the server address and port.
+#
+# Everything below is scoped to role=relay. Ordinary nodes keep the historical
+# code paths: an install_config.json without "role" is a normal node.
+#=================================================================
+
+# Read role-specific fields back from install_config.json into globals.
+_relay_state_load() {
+    local _v
+    _v=$(info_extraction relay_backend_host); [[ ${_v} == "null" ]] && _v=""
+    relay_backend_host="${_v}"
+    _v=$(info_extraction relay_backend_port); [[ ${_v} == "null" ]] && _v=""
+    relay_backend_port="${_v}"
+    _v=$(info_extraction relay_listen_port); [[ ${_v} == "null" ]] && _v=""
+    relay_listen_port="${_v}"
+    _v=$(info_extraction relay_listen_addr); [[ ${_v} == "null" ]] && _v=""
+    relay_listen_addr="${_v}"
+    _v=$(info_extraction relay_enabled); [[ ${_v} == "null" ]] && _v=""
+    relay_enabled="${_v}"
+    [[ -n "${relay_listen_addr}" ]] || relay_listen_addr="0.0.0.0"
+    # `port` is the role-neutral listening port used by shared health checks.
+    [[ -n "${relay_listen_port}" ]] && port="${relay_listen_port}"
+}
+
+# Set the role globals straight from install_config.json. Used by dispatch
+# paths that run without judge_mode() (offline root mutations such as
+# --service-restart / --purge), so they never fall back to the Xray code path
+# on a relay host.
+relay_bootstrap_role() {
+    [[ -f "${xray_install_config_file}" ]] || return 1
+    [[ "$(info_extraction role 2>/dev/null)" == "relay" ]] || return 1
+    node_role="relay"
+    tls_mode="None"
+    transport_mode="None"
+    shell_mode="$(gettext "中转节点")"
+    _relay_state_load
+    return 0
+}
+
+# Backend host: IPv4/IPv6 literal or DNS name. Rejects anything that could be
+# spliced into the generated Nginx config (spaces, ; { } quotes, newlines).
+relay_is_valid_host() {
+    local host="${1:-}"
+    [[ -n "${host}" && ${#host} -le 253 ]] || return 1
+    is_ipv6_literal "${host}" && return 0
+    is_ipv4_literal "${host}" && return 0
+    # A bare number is neither an IP nor a legal hostname (numeric TLDs are
+    # invalid), and `proxy_pass 443:443` would be ambiguous. Refuse it.
+    [[ "${host}" =~ ^[0-9]+$ ]] && return 1
+    [[ "${host}" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] || return 1
+    [[ "${host}" != *".."* ]] || return 1
+    [[ "${host}" != *".-"* && "${host}" != *"-."* ]] || return 1
+    return 0
+}
+
+relay_validate_inputs() {
+    local _p
+    if ! relay_is_valid_host "${relay_backend_host}"; then
+        log_echo "${Error} ${RedBG} $(gettext "落地服务器地址无效") ${Font}"
+        return 1
+    fi
+    for _p in "${relay_backend_port}" "${relay_listen_port}"; do
+        if [[ ! "${_p}" =~ ^[0-9]+$ ]] || (( _p < 1 || _p > 65535 )); then
+            log_echo "${Error} ${RedBG} $(gettext "端口无效, 必须是 1-65535") ${Font}"
+            return 1
+        fi
+    done
+    if ! is_valid_listen_address "${relay_listen_addr}"; then
+        log_echo "${Error} ${RedBG} $(gettext "监听地址无效") ${Font}"
+        return 1
+    fi
+    return 0
+}
+
+# Emit the managed stream{} block on stdout. Pure: no filesystem access, so it
+# can be asserted directly in tests.
+relay_render_stream_conf() {
+    local listen_addr="$1"
+    local listen_port="$2"
+    local backend_host="$3"
+    local backend_port="$4"
+    local listen_line backend_target
+
+    if [[ "${listen_addr}" == *:* ]]; then
+        listen_line="listen [${listen_addr}]:${listen_port};"
+    else
+        listen_line="listen ${listen_addr}:${listen_port};"
+    fi
+    if [[ "${backend_host}" == *:* ]]; then
+        backend_target="[${backend_host}]:${backend_port}"
+    else
+        backend_target="${backend_host}:${backend_port}"
+    fi
+
+    cat <<EOF
+# Managed by Xray_bash_onekey (relay node). Do not edit by hand.
+# Rewritten by the installer and the updater; change it from the script menu.
+stream {
+    server {
+        ${listen_line}
+        proxy_pass ${backend_target};
+        proxy_connect_timeout 10s;
+        proxy_timeout 720m;
+        proxy_socket_keepalive on;
+    }
+}
+EOF
+}
+
+relay_stream_conf_install() {
+    local content_file="$1"
+
+    [[ -f "${content_file}" ]] || return 1
+    mkdir -p "${nginx_conf_dir}" || return 1
+    if ! cp -f "${content_file}" "${relay_stream_conf}"; then
+        log_echo "${Error} ${RedBG} $(gettext "写入中转配置失败") ${Font}"
+        return 1
+    fi
+    chmod 640 "${relay_stream_conf}" 2>/dev/null || true
+    chown "root:$(get_nginx_worker_group)" "${relay_stream_conf}" 2>/dev/null || true
+    return 0
+}
+
+# Strip our managed include + marker from the main config. Uses awk instead of
+# GNU-only `sed` alternate delimiters so the same code path also behaves on the
+# BSD userland used by developer hosts (production always rewrites in place, so
+# the file keeps its owner and mode).
+nginx_relay_main_conf_strip() {
+    local include_line="include ${relay_stream_conf};"
+    local marker="# Xray_bash_onekey relay node (managed)"
+    local tmp
+
+    [[ -f "${nginx_main_conf}" ]] || return 0
+    tmp=$(mktemp) || return 1
+    if ! awk -v inc="${include_line}" -v marker="${marker}" '
+        {
+            line = $0
+            sub(/^[ \t]+/, "", line)
+            if (line == inc || line == marker) { next }
+            print
+        }
+    ' "${nginx_main_conf}" >"${tmp}"; then
+        rm -f "${tmp}"
+        return 1
+    fi
+    cat "${tmp}" >"${nginx_main_conf}" || {
+        rm -f "${tmp}"
+        return 1
+    }
+    rm -f "${tmp}"
+    return 0
+}
+
+# Add the top-level include that makes Nginx read the managed stream fragment.
+# Only one stream{} context may come from us; a user-owned top-level stream
+# block in nginx.conf is refused instead of being silently duplicated.
+nginx_relay_main_conf_prepare() {
+    local include_line="include ${relay_stream_conf};"
+
+    [[ -f "${nginx_main_conf}" ]] || return 1
+    if grep -qE '^[[:space:]]*stream[[:space:]]*\{' "${nginx_main_conf}"; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 主配置中已存在自定义 stream 块, 请手动处理后重试") ${Font}"
+        return 1
+    fi
+    nginx_relay_main_conf_strip || return 1
+    printf '\n# Xray_bash_onekey relay node (managed)\n%s\n' "${include_line}" >>"${nginx_main_conf}" || return 1
+    grep -qF "${include_line}" "${nginx_main_conf}" || return 1
+    return 0
+}
+
+nginx_relay_main_conf_remove() {
+    nginx_relay_main_conf_strip || return 1
+    return 0
+}
+
+# Restore the previous forwarding state after a failed apply.
+_relay_apply_rollback() {
+    local existed="$1"
+    local backup="$2"
+    local prev_active="$3"
+
+    if [[ "${existed}" == "yes" && -f "${backup}" ]]; then
+        cp -fp "${backup}" "${relay_stream_conf}" 2>/dev/null || true
+        nginx_relay_main_conf_prepare >/dev/null 2>&1 || true
+    else
+        rm -f "${relay_stream_conf}"
+        nginx_relay_main_conf_remove
+    fi
+    rm -f "${backup}"
+
+    if nginx_run_config_test >/dev/null 2>&1; then
+        if [[ "${prev_active}" == "yes" ]]; then
+            systemctl reload nginx >/dev/null 2>&1 || systemctl restart nginx >/dev/null 2>&1
+        else
+            systemctl stop nginx >/dev/null 2>&1
+        fi
+        log_echo "${Warning} ${YellowBG} $(gettext "已恢复上一次的转发配置") ${Font}"
+    else
+        log_echo "${Error} ${RedBG} $(gettext "恢复转发配置后 Nginx 校验仍失败, 请查看 Nginx 错误日志") ${Font}"
+    fi
+}
+
+# Write a new forwarding config as a transaction: remember the previous file and
+# service state, validate with `nginx -t`, only then reload/start, and roll back
+# to the previous forwarding when validation or startup fails.
+nginx_relay_apply_config() {
+    local content_file="$1"
+    local backup=""
+    local existed="no"
+    local prev_active="no"
+
+    [[ -f "${content_file}" ]] || return 1
+    if [[ -f "${relay_stream_conf}" ]]; then
+        existed="yes"
+        backup=$(mktemp) || return 1
+        if ! cp -fp "${relay_stream_conf}" "${backup}"; then
+            rm -f "${backup}"
+            return 1
+        fi
+    fi
+    systemctl is-active --quiet nginx 2>/dev/null && prev_active="yes"
+
+    if ! relay_stream_conf_install "${content_file}" ||
+        ! nginx_relay_main_conf_prepare ||
+        ! nginx_run_config_test >/dev/null 2>&1; then
+        log_echo "${Error} ${RedBG} $(gettext "Nginx 配置校验失败, 已恢复原转发配置") ${Font}"
+        _relay_apply_rollback "${existed}" "${backup}" "${prev_active}"
+        return 1
+    fi
+
+    if [[ "${prev_active}" == "yes" ]]; then
+        if ! judge -r "Nginx $(gettext "重启")" systemctl reload nginx; then
+            nginx_diagnose
+            _relay_apply_rollback "${existed}" "${backup}" "${prev_active}"
+            return 1
+        fi
+    elif ! judge -r "Nginx $(gettext "启动")" systemctl start nginx; then
+        nginx_diagnose
+        _relay_apply_rollback "${existed}" "${backup}" "${prev_active}"
+        return 1
+    fi
+    rm -f "${backup}"
+    return 0
+}
+
+relay_create_directory() {
+    [[ -d "${nginx_conf_dir}" ]] || mkdir -p "${nginx_conf_dir}" || return 1
+    [[ -d "${idleleo_conf_dir}" ]] || mkdir -p "${idleleo_conf_dir}" || return 1
+    [[ -d "${idleleo_dir}/info" ]] || mkdir -p "${idleleo_dir}/info" || return 1
+    return 0
+}
+
+# A relay owns the whole server. Never overwrite an existing managed node or a
+# managed Nginx site: refuse and let the operator decide.
+relay_preflight() {
+    local _f
+    if [[ -f "${xray_install_config_file}" ]]; then
+        local _role
+        _role=$(info_extraction role)
+        if [[ "${_role}" == "relay" ]]; then
+            # Reinstalling/reconfiguring the relay itself is allowed.
+            _relay_state_load
+            return 0
+        fi
+        if [[ -f "${xray_conf}" ]] || [[ -f "${nginx_conf}" ]] ||
+            [[ -f "${nginx_ssl_conf}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "检测到已有普通节点安装, 中转节点需要独立服务器") ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "请先卸载原节点或改用普通节点安装, 本脚本不会覆盖现有配置") ${Font}"
+            return 1
+        fi
+    fi
+    for _f in "${nginx_conf}" "${nginx_ssl_conf}" "${nginx_upstream_conf}" \
+        "${nginx_conf_dir}/03-isolate.conf" "${nginx_conf_dir}/03-decoy.conf"; do
+        if [[ -f "${_f}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "检测到脚本管理的 Nginx 站点配置"): ${_f} ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "中转节点不能与普通节点或受管站点混装, 请先手动处理") ${Font}"
+            return 1
+        fi
+    done
+    if [[ -f "${xray_conf}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "检测到 Xray 配置文件"): ${xray_conf} ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "中转节点不安装 Xray, 请先手动处理现有 Xray 配置") ${Font}"
+        return 1
+    fi
+    return 0
+}
+
+relay_wizard() {
+    local _default_host="${relay_backend_host:-NULL}"
+    local _default_bport="${relay_backend_port:-443}"
+    local _default_lport="${relay_listen_port:-443}"
+    local _advanced
+
+    echo
+    log_echo "${GreenBG} $(gettext "中转节点安装向导") ${Font}"
+    log_echo "${Warning} ${YellowBG} $(gettext "中转节点只做 TCP 透明转发, 不安装 Xray, 不终止 TLS/REALITY") ${Font}"
+    log_echo "${Warning} ${YellowBG} $(gettext "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 保持不变") ${Font}"
+    echo
+    while true; do
+        read_optimize "$(gettext "落地服务器地址 (IP 或域名)"): " "relay_backend_host" "${_default_host}" || return 1
+        relay_is_valid_host "${relay_backend_host}" && break
+        log_echo "${Error} ${RedBG} $(gettext "落地服务器地址无效, 请重新输入") ${Font}"
+    done
+    read_optimize "$(gettext "落地服务器端口") (default: 443): " "relay_backend_port" "${_default_bport}" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
+    read_optimize "$(gettext "本机监听端口") (default: 443): " "relay_listen_port" "${_default_lport}" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
+
+    [[ -n "${relay_listen_addr}" ]] || relay_listen_addr="0.0.0.0"
+    echo
+    log_echo "${GreenBG} $(gettext "监听地址"): ${relay_listen_addr} ($(gettext "默认监听所有地址")) ${Font}"
+    log_echo "${GreenBG} $(gettext "是否需要指定其他监听地址") [y/${Red}N${Font}${GreenBG}]? ${Font}"
+    read -r _advanced
+    case ${_advanced:-} in
+    [yY][eE][sS] | [yY])
+        while true; do
+            read_optimize "$(gettext "监听地址 (IPv4/IPv6)"): " "relay_listen_addr" "${relay_listen_addr}" || return 1
+            is_valid_listen_address "${relay_listen_addr}" && break
+            log_echo "${Error} ${RedBG} $(gettext "监听地址无效, 请重新输入") ${Font}"
+        done
+        ;;
+    *) ;;
+    esac
+    return 0
+}
+
+relay_config_write() {
+    local _new_fields
+    _new_fields=$(mktemp) || return 1
+    if ! jq -nc \
+        --arg host "${local_ip:-}" \
+        --arg ip_version "${ip_version:-}" \
+        --arg network_mode "${network_mode:-ipv4}" \
+        --arg ipv4 "${ipv4_address:-}" \
+        --arg ipv6 "${ipv6_address:-}" \
+        --arg backend_host "${relay_backend_host}" \
+        --argjson backend_port "${relay_backend_port}" \
+        --argjson listen_port "${relay_listen_port}" \
+        --arg listen_addr "${relay_listen_addr}" \
+        --arg shell_version "${shell_version}" \
+        --arg nginx_version "${nginx_build_version:-}" \
+        '{role:"relay", shell_mode:"Relay", transport_mode:"None", tls:"None",
+          host:$host, ip_version:$ip_version, network_mode:$network_mode,
+          ipv4_address:$ipv4, ipv6_address:$ipv6,
+          relay_backend_host:$backend_host, relay_backend_port:$backend_port,
+          relay_listen_port:$listen_port, relay_listen_addr:$listen_addr,
+          relay_enabled:"on", shell_version:$shell_version,
+          nginx_build_version:$nginx_version}' >"${_new_fields}"; then
+        rm -f "${_new_fields}"
+        return 1
+    fi
+    if ! _install_config_merge_write "${_new_fields}"; then
+        rm -f "${_new_fields}"
+        return 1
+    fi
+    rm -f "${_new_fields}"
+    node_role="relay"
+    return 0
+}
+
+# Render + validate + apply the current relay_* globals, then persist them.
+relay_apply_change() {
+    local _tmp
+
+    relay_validate_inputs || return 1
+    _tmp=$(mktemp) || return 1
+    relay_render_stream_conf "${relay_listen_addr}" "${relay_listen_port}" \
+        "${relay_backend_host}" "${relay_backend_port}" >"${_tmp}"
+    if ! nginx_relay_apply_config "${_tmp}"; then
+        rm -f "${_tmp}"
+        return 1
+    fi
+    rm -f "${_tmp}"
+    if ! relay_config_write; then
+        log_echo "${Warning} ${YellowBG} $(gettext "转发已生效, 但配置记录写入失败, 请重新运行安装向导") ${Font}"
+        return 1
+    fi
+    return 0
+}
+
+# Best-effort firewall follow-up after the listening port changes. Only runs when
+# the operator opted into firewall management at install time.
+relay_firewall_sync() {
+    local _old
+    command -v iptables >/dev/null 2>&1 || return 0
+    [[ -f "${managed_ports_file}" ]] || return 0
+    _old=$(cat "${managed_ports_file}" 2>/dev/null) || return 0
+    [[ -n "${_old}" ]] || return 0
+    collect_new_managed_ports
+    if ! apply_managed_firewall_transaction "${_old}" "${new_ports_json}" \
+        "$(_managed_fw_bins)" "$(_managed_fw_bins)"; then
+        log_echo "${Warning} ${YellowBG} $(gettext "防火墙端口同步失败, 请手动放行新端口") ${Font}"
+        return 1
+    fi
+    firewall_persist_rules "$(_managed_fw_bins)" || true
+    return 0
+}
+
+relay_modify_target() {
+    local _old_host _old_port
+
+    _relay_state_load
+    if [[ -z "${relay_backend_host}" || -z "${relay_backend_port}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "当前没有可修改的中转配置") ${Font}"
+        return 1
+    fi
+    _old_host="${relay_backend_host}"
+    _old_port="${relay_backend_port}"
+
+    echo
+    log_echo "${GreenBG} $(gettext "修改落地目标") ${Font}"
+    read_optimize "$(gettext "落地服务器地址 (IP 或域名)"): " "relay_backend_host" "${relay_backend_host}" || return 1
+    if ! relay_is_valid_host "${relay_backend_host}"; then
+        log_echo "${Error} ${RedBG} $(gettext "落地服务器地址无效, 已取消") ${Font}"
+        relay_backend_host="${_old_host}"
+        return 1
+    fi
+    read_optimize "$(gettext "落地服务器端口"): " "relay_backend_port" "${relay_backend_port}" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
+
+    if ! relay_apply_change; then
+        relay_backend_host="${_old_host}"
+        relay_backend_port="${_old_port}"
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "落地目标已更新") ${Font}"
+    return 0
+}
+
+relay_modify_listen_port() {
+    local _old_port
+
+    _relay_state_load
+    if [[ -z "${relay_listen_port}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "当前没有可修改的中转配置") ${Font}"
+        return 1
+    fi
+    _old_port="${relay_listen_port}"
+
+    echo
+    log_echo "${GreenBG} $(gettext "修改监听端口") ${Font}"
+    read_optimize "$(gettext "本机监听端口"): " "relay_listen_port" "${relay_listen_port}" 1 65535 "$(gettext "请输入 1-65535 之间的值")!" || return 1
+    if [[ "${relay_listen_port}" != "${_old_port}" ]] &&
+        ! port_exist_check "${relay_listen_port}"; then
+        relay_listen_port="${_old_port}"
+        return 1
+    fi
+    if ! relay_apply_change; then
+        relay_listen_port="${_old_port}"
+        return 1
+    fi
+    port="${relay_listen_port}"
+    relay_firewall_sync || true
+    log_echo "${OK} ${GreenBG} $(gettext "监听端口已更新") ${Font}"
+    return 0
+}
+
+relay_test_backend() {
+    _relay_state_load
+    if [[ -z "${relay_backend_host}" || -z "${relay_backend_port}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "当前没有可测试的中转配置") ${Font}"
+        return 1
+    fi
+    log_echo "$(gettext "测试到落地节点的 TCP 连通性"): ${relay_backend_host}:${relay_backend_port} "
+    if timeout 5 bash -c ':</dev/tcp/$1/$2' _ "${relay_backend_host}" "${relay_backend_port}" >/dev/null 2>&1; then
+        log_echo "${OK} ${GreenBG} $(gettext "TCP 连接成功 (仅代表端口可达, 不代表 REALITY/TLS 握手成功)") ${Font}"
+        return 0
+    fi
+    log_echo "${Error} ${RedBG} $(gettext "无法连接落地节点端口, 请检查地址/端口/防火墙") ${Font}"
+    return 1
+}
+
+relay_entry_display() {
+    local _host="${local_ip:-$(info_extraction host)}"
+
+    if [[ "${relay_listen_addr}" == "0.0.0.0" || -z "${relay_listen_addr}" ]]; then
+        printf '%s:%s' "${_host}" "${relay_listen_port}"
+    elif [[ "${relay_listen_addr}" == *:* ]]; then
+        printf '[%s]:%s' "${relay_listen_addr}" "${relay_listen_port}"
+    else
+        printf '%s:%s' "${relay_listen_addr}" "${relay_listen_port}"
+    fi
+}
+
+relay_basic_information() {
+    _relay_state_load
+    {
+        echo
+        log_echo "${OK} ${GreenBG} $(gettext "中转节点") $(gettext "安装") $(gettext "完成") ${Font}"
+        echo
+        log_echo "${Red} —————————————— $(gettext "中转节点配置信息") —————————————— ${Font}"
+        log_echo "${Red} $(gettext "本机中转入口"):${Font} $(relay_entry_display) "
+        log_echo "${Red} $(gettext "落地服务器"):${Font} ${relay_backend_host}:${relay_backend_port} "
+        log_echo "${Red} $(gettext "转发方式"):${Font} Nginx Stream TCP $(gettext "透传") "
+        log_echo "${Red} $(gettext "监听地址"):${Font} ${relay_listen_addr} "
+        log_echo "${Red} $(gettext "启用状态"):${Font} ${relay_enabled:-on} "
+        if command -v "${nginx_dir}/sbin/nginx" >/dev/null 2>&1; then
+            log_echo "${Red} Nginx:${Font} $(info_extraction nginx_build_version) "
+        fi
+        echo
+        log_echo "${Warning} ${YellowBG} $(gettext "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 等参数保持不变") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "TCP 端口可达不代表 REALITY/TLS 握手成功, 请以客户端实际连接为准") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "本机不安装 Xray, 不终止 TLS, 也不保存落地节点的私钥") ${Font}"
+    } >"${xray_info_file}"
+    chmod -f 600 "${xray_info_file}" 2>/dev/null
+}
+
+relay_show_information() {
+    relay_basic_information
+    show_information
+}
+
+relay_status_refresh() {
+    local _probe_addr
+
+    if pgrep -x nginx >/dev/null 2>&1; then
+        nginx_status="${Green}$(gettext "运行中")..${Font}"
+    else
+        nginx_status="${Red}$(gettext "未运行")${Font}"
+    fi
+    _probe_addr="${relay_listen_addr}"
+    case "${_probe_addr}" in
+    0.0.0.0 | "") _probe_addr="127.0.0.1" ;;
+    ::) _probe_addr="::1" ;;
+    esac
+    if [[ -n "${relay_listen_port}" ]] &&
+        timeout 3 bash -c ':</dev/tcp/$1/$2' _ "${_probe_addr}" "${relay_listen_port}" >/dev/null 2>&1; then
+        relay_local_connect_status="${Green}$(gettext "本地正常")${Font}"
+    else
+        relay_local_connect_status="${Red}$(gettext "无法连通")${Font}"
+    fi
+}
+
+show_nginx_error_log() {
+    local _log="${nginx_dir}/logs/error.log"
+
+    if [[ ! -f "${_log}" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "Nginx 错误日志不存在") ${Font}"
+        return 1
+    fi
+    tail -n 40 "${_log}"
+}
+
+install_nginx_relay() {
+    local _tmp_conf
+
+    is_root
+    check_system
+    dependency_install || return 1
+    relay_preflight || return 1
+    rxa_reconfigure_enter
+    trap 'rxa_reconfigure_leave $?' RETURN
+    basic_optimization || return 1
+    relay_create_directory || return 1
+    ip_check || return 1
+    relay_wizard || return 1
+    relay_validate_inputs || return 1
+    port_exist_check "${relay_listen_port}" || return 1
+    # Persist the role/target BEFORE touching Nginx: a host that aborted midway
+    # must still be identifiable as a relay, never mistaken for a node.
+    relay_config_write || return 1
+    nginx_exist_check || return 1
+    nginx_systemd || return 1
+    # Record the concrete Nginx build only once the binary is actually in place.
+    update_json_config "${xray_install_config_file}" \
+        --arg nginx_build_version "${nginx_build_version:-}" \
+        '.nginx_build_version = $nginx_build_version' || return 1
+
+    _tmp_conf=$(mktemp) || return 1
+    relay_render_stream_conf "${relay_listen_addr}" "${relay_listen_port}" \
+        "${relay_backend_host}" "${relay_backend_port}" >"${_tmp_conf}"
+    if ! nginx_relay_apply_config "${_tmp_conf}"; then
+        rm -f "${_tmp_conf}"
+        return 1
+    fi
+    rm -f "${_tmp_conf}"
+
+    firewall_set || return 1
+    enable_process_systemd || return 1
+    auto_update || return 1
+    trap - RETURN
+    relay_basic_information
+    show_information
+}
+
+relay_uninstall() {
+    local _confirm _keep_config _remove_scripts
+
+    echo
+    log_echo "${Warning} ${YellowBG} $(gettext "将删除中转配置并卸载 Nginx, 是否继续") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
+    read -r _confirm
+    case ${_confirm:-} in
+    [yY][eE][sS] | [yY]) ;;
+    *)
+        log_echo "${OK} ${GreenBG} $(gettext "已取消") ${Font}"
+        return 1
+        ;;
+    esac
+
+    systemctl stop nginx 2>/dev/null
+    systemctl disable nginx 2>/dev/null
+    nginx_relay_main_conf_remove
+    rm -f "${relay_stream_conf}"
+    if [[ -x "${nginx_dir}/sbin/nginx" ]] && ! nginx_run_config_test >/dev/null 2>&1; then
+        log_echo "${Warning} ${YellowBG} $(gettext "删除中转配置后 Nginx 仍无法通过校验, 请手动检查") ${Font}"
+    fi
+    uninstall_nginx --force || return 1
+
+    log_echo "${GreenBG} $(gettext "是否保留配置文件") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    read -r _keep_config
+    case ${_keep_config:-} in
+    [yY][eE][sS] | [yY])
+        if [[ -f "${xray_install_config_file}" ]]; then
+            update_json_config "${xray_install_config_file}" \
+                'del(.role, .relay_backend_host, .relay_backend_port, .relay_listen_port, .relay_listen_addr, .relay_enabled, .nginx_build_version)' || return 1
+        fi
+        ;;
+    *)
+        rm -f "${xray_install_config_file}"
+        ;;
+    esac
+
+    log_echo "${GreenBG} $(gettext "是否删除所有脚本文件") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    read -r _remove_scripts
+    case ${_remove_scripts:-} in
+    [yY][eE][sS] | [yY])
+        safe_rm "${idleleo_commend_file}"
+        safe_rm "${idleleo_dir}"
+        log_echo "${OK} ${GreenBG} $(gettext "已删除所有文件") ${Font}"
+        ;;
+    *)
+        log_echo "${OK} ${GreenBG} $(gettext "已保留脚本文件") ${Font}"
+        ;;
+    esac
+    systemctl daemon-reload 2>/dev/null || true
+    node_role="node"
+    log_echo "${OK} ${GreenBG} $(gettext "中转节点已删除") ${Font}"
+    return 0
+}
+
+# Relay-scoped menu helpers. A relay never shows Xray/Rill entries: they would
+# either fail or mislead, because no Xray binary, config or UUID exists.
+menu_relay_service() {
+    local menu_num
+
+    while true; do
+        menu_submenu_begin "$(gettext "服务相关")"
+        menu_item 1 "$(gettext "重启") Nginx"
+        menu_item 2 "$(gettext "启动") Nginx"
+        menu_item 3 "$(gettext "停止") Nginx"
+        menu_item 4 "$(gettext "查看") Nginx $(gettext "状态")"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 4
+        case $menu_num in
+        0) return ;;
+        1)
+            service_restart
+            menu_pause
+            ;;
+        2)
+            service_start
+            menu_pause
+            ;;
+        3)
+            service_stop
+            menu_pause
+            ;;
+        4)
+            systemctl status nginx --no-pager
+            menu_pause
+            ;;
+        esac
+    done
+}
+
+menu_relay_update() {
+    local menu_num
+
+    while true; do
+        menu_submenu_begin "$(gettext "更新向导")"
+        menu_item 1 "$(gettext "更新") $(gettext "脚本")"
+        menu_item 2 "$(gettext "更新") Nginx"
+        menu_item 3 "$(gettext "配置") $(gettext "自动更新")"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 3
+        case $menu_num in
+        0) return ;;
+        1) menu_action 0 ;;
+        2)
+            echo
+            log_echo "${Red}[$(gettext "不建议")]${Font} $(gettext "频繁更新 Nginx, 请确认 Nginx 有更新的必要")!"
+            countdown "$(gettext "开始更新")!"
+            nginx_update
+            menu_pause
+            ;;
+        3)
+            auto_update
+            menu_pause
+            ;;
+        esac
+    done
+}
+
+menu_relay_main() {
+    local menu_num
+
+    while true; do
+        _relay_state_load
+        relay_status_refresh
+        menu_clear
+        menu_title "$(gettext "中转节点管理") ${Red}[${shell_version}]${Font}"
+        menu_spaced_fields \
+            "$(gettext "当前模式"): $(gettext "中转节点")" \
+            "$(gettext "当前语言"): ${LANG%.*}"
+        menu_divider "$(gettext "转发信息")"
+        menu_fields \
+            "$(gettext "入口"): $(relay_entry_display)" \
+            "$(gettext "落地"): ${relay_backend_host}:${relay_backend_port}"
+        menu_divider "$(gettext "运行状态")"
+        menu_fields "Nginx: ${nginx_status}" "$(gettext "连通性"): ${relay_local_connect_status}"
+        menu_footer
+        echo
+        menu_title "$(gettext "中转节点菜单")"
+        menu_blank
+        menu_item 1 "$(gettext "查看信息")"
+        menu_item 2 "$(gettext "修改落地目标")"
+        menu_item 3 "$(gettext "修改监听端口")"
+        menu_item 4 "$(gettext "服务相关")"
+        menu_item 5 "$(gettext "更新向导")"
+        menu_item 6 "$(gettext "测试后端连通")"
+        menu_item 7 "Nginx $(gettext "错误日志")"
+        menu_item 8 "$(gettext "修改语言") / Language"
+        menu_item 9 "$(gettext "删除中转")"
+        menu_blank
+        menu_item 0 "$(gettext "退出")"
+        menu_footer
+        menu_read menu_num 9
+        case $menu_num in
+        0) exit 0 ;;
+        1)
+            clear
+            relay_show_information
+            menu_pause
+            ;;
+        2)
+            relay_modify_target
+            menu_pause
+            ;;
+        3)
+            relay_modify_listen_port
+            menu_pause
+            ;;
+        4) menu_relay_service ;;
+        5) menu_relay_update ;;
+        6)
+            relay_test_backend
+            menu_pause
+            ;;
+        7)
+            clear
+            show_nginx_error_log
+            menu_pause
+            ;;
+        8) menu_action 99 ;;
+        9)
+            if relay_uninstall; then
+                exec "${BASH:-bash}" "${idleleo}"
+            fi
+            ;;
+        esac
+    done
+}
+
+# Third-level menu entry: standalone relay node.
+menu_install_relay() {
+    echo
+    log_echo "${Warning} ${YellowBG} $(gettext "中转节点需要一台独立服务器, 只做单目标 TCP 转发") ${Font}"
+    log_echo "${Warning} ${YellowBG} $(gettext "不安装 Xray, 不终止 TLS/REALITY, 也不需要落地节点的 SSH 凭据") ${Font}"
+    log_echo "${GreenBG} $(gettext "是否继续") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+    read -r relay_fq
+    case ${relay_fq:-} in
+    [yY][eE][sS] | [yY]) ;;
+    *) return 0 ;;
+    esac
+    node_role="relay"
+    tls_mode="None"
+    transport_mode="None"
+    install_nginx_relay
+    local install_rc=$?
+    if [[ ${install_rc} -eq 0 ]]; then
+        exec "${BASH:-bash}" "${idleleo}"
+    fi
+    log_echo "${Error} ${RedBG} $(gettext "中转节点安装失败") ${Font}"
+    return "${install_rc}"
+}
+
+# Relay branch of the Nginx update path: keep the managed stream config across
+# the binary replacement and roll back to the previous build on failure.
+nginx_update_relay() {
+    local current_nginx_build_version backup_nginx_dir
+    local nginx_start_failed=0
+
+    if [[ ! -f "${nginx_dir}/sbin/nginx" ]]; then
+        log_echo "${Error} ${RedBG} Nginx $(gettext "未安装") ${Font}"
+        return 1
+    fi
+    current_nginx_build_version=$(info_extraction nginx_build_version)
+    if [[ "${nginx_build_version}" == "${current_nginx_build_version}" ]]; then
+        log_echo "${OK} ${GreenBG} Nginx $(gettext "已为最新版") ${Font}"
+        return 0
+    fi
+    _relay_state_load
+    relay_validate_inputs || return 1
+
+    log_echo "${Info} ${GreenBG} Nginx $(gettext "更新"): v${current_nginx_build_version} → v${nginx_build_version} ${Font}"
+    systemctl stop nginx 2>/dev/null
+    backup_nginx_dir="${nginx_dir}_backup_${current_nginx_build_version}"
+    if [[ -e "${backup_nginx_dir}" || -L "${backup_nginx_dir}" ]]; then
+        safe_rm "${backup_nginx_dir}" || return 1
+    fi
+    if ! cp -a "${nginx_dir}" "${backup_nginx_dir}"; then
+        log_echo "${Error} ${RedBG} $(gettext "备份旧版") Nginx $(gettext "失败") ${Font}"
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "备份旧版") Nginx $(gettext "完成") ${Font}"
+    safe_rm "${nginx_dir}" || return 1
+
+    if ! nginx_install; then
+        recover_failed_nginx_update "${backup_nginx_dir}" "${current_nginx_build_version}"
+        return $?
+    fi
+    nginx_systemd || nginx_start_failed=1
+    if [[ ${nginx_start_failed} -eq 0 ]] &&
+        ! relay_stream_conf_write_current; then
+        nginx_start_failed=1
+    fi
+    if [[ ${nginx_start_failed} -eq 0 ]] && ! nginx_relay_main_conf_prepare; then
+        nginx_start_failed=1
+    fi
+    if [[ ${nginx_start_failed} -eq 0 ]] && ! nginx_run_config_test >/dev/null 2>&1; then
+        nginx_start_failed=1
+    fi
+    if [[ ${nginx_start_failed} -eq 0 ]] &&
+        ! activate_nginx_update "${relay_listen_port}"; then
+        nginx_start_failed=1
+    fi
+    if [[ ${nginx_start_failed} -eq 0 ]] &&
+        ! update_json_config "${xray_install_config_file}" \
+            --arg nginx_build_version "${nginx_build_version}" \
+            '.nginx_build_version = $nginx_build_version'; then
+        log_echo "${Error} ${RedBG} Nginx $(gettext "版本记录更新失败, 执行回滚") ${Font}"
+        nginx_start_failed=1
+    fi
+    if [[ ${nginx_start_failed} -eq 1 ]]; then
+        log_echo "${Error} ${RedBG} Nginx $(gettext "启动") $(gettext "失败")! ${Font}"
+        nginx_diagnose
+        recover_failed_nginx_update "${backup_nginx_dir}" "${current_nginx_build_version}"
+        return $?
+    fi
+    safe_rm "${backup_nginx_dir}" || return 1
+    judge "Nginx $(gettext "更新")"
+    return 0
+}
+
+# Rewrite the managed stream fragment from stored state (used after an update
+# replaced the Nginx tree).
+relay_stream_conf_write_current() {
+    local _tmp
+    _tmp=$(mktemp) || return 1
+    relay_render_stream_conf "${relay_listen_addr}" "${relay_listen_port}" \
+        "${relay_backend_host}" "${relay_backend_port}" >"${_tmp}"
+    if ! relay_stream_conf_install "${_tmp}"; then
+        rm -f "${_tmp}"
+        return 1
+    fi
+    rm -f "${_tmp}"
+    return 0
 }
 
 install_xray_ws_tls() {
@@ -9756,6 +11198,9 @@ install_xray_ws_tls() {
     nginx_servers_conf_add || return 1
     xray_conf_add || return 1
     harden_config_permissions || return 1
+    # Native GeoData refresh must be deployed before the service starts so the
+    # first scheduled download already finds a writable asset directory.
+    geodata_native_enable || return 1
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
@@ -9763,6 +11208,9 @@ install_xray_ws_tls() {
     acme_cron_update
     auto_update || return 1
     service_restart || return 1
+    # The native schedule only replaces the external updater once the service
+    # is confirmed healthy; a user-written cron entry is never touched.
+    geodata_legacy_cron_disable || true
     setup_auto_clean_logs || return 1
     # Clear trap before finalize — finalize handles its own restore.
     trap - RETURN
@@ -9830,68 +11278,24 @@ install_xray_reality() {
     reality_balance_add_fq
     reality_nginx_add_fq || return 1
     xray_conf_add || return 1
+    # 26.7.11 起 REALITY 未显式 minClientVer 会按 26.3.27 要求客户端版本,
+    # 旧客户端因此握手失败；配置一生成就补齐，避免装完即不可用。
+    reality_min_client_ver_repair
     install_config_reality || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     harden_config_permissions || return 1
+    # Native GeoData refresh must be deployed before the service starts so the
+    # first scheduled download already finds a writable asset directory.
+    geodata_native_enable || return 1
     if [[ ${reality_add_nginx} == "on" ]]; then
         tls_type || return 1
     fi
     enable_process_systemd || return 1
     auto_update || return 1
     service_restart || return 1
-    setup_auto_clean_logs || return 1
-    trap - RETURN
-    # Propagate reinstall_finalize's exact return code (1 restore-ok / 2 restore-failed).
-    reinstall_finalize
-    local finalize_rc=$?
-    if [[ ${finalize_rc} -ne 0 ]]; then
-        return "${finalize_rc}"
-    fi
-    rxa_reconfigure_leave 0
-    basic_information
-    vless_link_image_choice
-    show_information
-}
-
-install_xray_xtls_only() {
-    is_root
-    check_and_create_user_group
-    check_system
-    dependency_install || return 1
-    # Snapshot the source configuration BEFORE create_directory modifies any
-    # managed path (see install_xray_ws_tls).
-    old_config_exist_check || return 1
-    rxa_reconfigure_enter
-    # Register RETURN trap AFTER old_config_exist_check so _reinstall_backup_dir
-    # is already populated. Any non-zero return triggers a single restore.
-    local _tx_backup="${_reinstall_backup_dir:-}"
-    if [[ -n "${_tx_backup}" ]]; then
-        # Capture _tx_backup value NOW (double quotes) so the trap fires with a
-        # literal path even after the local variable is destroyed on return.
-        trap "rxa_rc=\$?; reinstall_rollback_on_return \"\$rxa_rc\" \"${_tx_backup}\"; rxa_reconfigure_leave \"\$rxa_rc\"" RETURN
-    else
-        trap 'rxa_reconfigure_leave $?' RETURN
-    fi
-    basic_optimization || return 1
-    create_directory || return 1
-    ip_check || return 1
-    shell_mode="XTLS ONLY"
-    tls_mode="XTLS"
-    port_set || return 1
-    validate_active_ports || return 1
-    port_exist_check "${port}" || return 1
-    firewall_set || return 1
-    email_set || return 1
-    UUID_set || return 1
-    install_config_xtls_only || return 1
-    stop_service_all
-    xray_install || return 1
-    update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
-    xray_conf_add || return 1
-    harden_config_permissions || return 1
-    enable_process_systemd || return 1
-    auto_update || return 1
-    service_restart || return 1
+    # The native schedule only replaces the external updater once the service
+    # is confirmed healthy; a user-written cron entry is never touched.
+    geodata_legacy_cron_disable || true
     setup_auto_clean_logs || return 1
     trap - RETURN
     # Propagate reinstall_finalize's exact return code (1 restore-ok / 2 restore-failed).
@@ -9949,15 +11353,23 @@ install_xray_ws_only() {
     email_set || return 1
     UUID_set || return 1
     transport_qr
+    # No transport encryption here: never fall back to the 0.0.0.0 wildcard.
+    ws_backend_listen_addr="$(resolve_ws_backend_listen_addr)"
     install_config_ws_only || return 1
     stop_service_all
     xray_install || return 1
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version'
     xray_conf_add || return 1
     harden_config_permissions || return 1
+    # Native GeoData refresh must be deployed before the service starts so the
+    # first scheduled download already finds a writable asset directory.
+    geodata_native_enable || return 1
     enable_process_systemd || return 1
     auto_update || return 1
     service_restart || return 1
+    # The native schedule only replaces the external updater once the service
+    # is confirmed healthy; a user-written cron entry is never touched.
+    geodata_legacy_cron_disable || true
     setup_auto_clean_logs || return 1
     trap - RETURN
     # Propagate reinstall_finalize's exact return code (1 restore-ok / 2 restore-failed).
@@ -10603,18 +12015,18 @@ list() {
         *) ;;
         esac
         ;;
+    '--install-relay')
+        node_role="relay"
+        tls_mode="None"
+        transport_mode="None"
+        install_nginx_relay
+        ;;
+    # The XTLS ONLY profile was removed in stage 02. Stale notes/scripts that
+    # still pass the old flag get an explicit answer instead of the main menu.
     '-4' | '--install-xtls')
-        echo
-        log_echo "${Warning} ${YellowBG} $(gettext "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
-        read -r xtlsonly_fq
-        case $xtlsonly_fq in
-        [yY][eE][sS] | [yY])
-            shell_mode="XTLS ONLY"
-            tls_mode="XTLS"
-            install_xray_xtls_only
-            ;;
-        *) ;;
-        esac
+        log_echo "${Error} ${RedBG} $(gettext "旧版 XTLS 模式 (已取消)") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "中转节点") / Reality: --install-relay / --install-reality ${Font}"
+        return 1
         ;;
     '-5' | '--add-upstream')
         nginx_upstream_server_set
@@ -10724,8 +12136,8 @@ show_help() {
     echo "OPTION:"
     echo "  -1, --install-tls           $(gettext "安装") Xray (Nginx+ws/gRPC/xHTTP+TLS)"
     echo "  -2, --install-reality       $(gettext "安装") Xray (Nginx+Reality+ws/gRPC/xHTTP)"
-    echo "  -3, --install-none          $(gettext "安装") Xray (ws/gRPC/xHTTP ONLY)"
-    echo "  -4, --install-xtls          $(gettext "安装") Xray (XTLS ONLY)"
+    echo "  -3, --install-none          $(gettext "安装") Xray (ws/gRPC/xHTTP ONLY, $(gettext "默认仅监听 127.0.0.1"))"
+    echo "  --install-relay             $(gettext "安装中转节点") (Nginx Stream TCP $(gettext "转发"), $(gettext "不安装") Xray)"
     echo "  -5, --add-upstream          $(gettext "变更") Nginx $(gettext "负载均衡配置")"
     echo "  -6, --add-servernames       $(gettext "变更") Nginx serverNames $(gettext "配置")"
     echo "  -sg, --sni-guard            $(gettext "变更") SNI Guard"
@@ -10849,9 +12261,18 @@ idleleo_commend() {
 }
 
 check_program() {
+    if is_relay_role; then
+        if [[ -n $(pgrep nginx) ]]; then
+            nginx_status="${Green}$(gettext "运行中")..${Font}"
+        else
+            nginx_status="${Red}$(gettext "未运行")${Font}"
+        fi
+        xray_status="${Green}$(gettext "不适用")${Font}"
+        return 0
+    fi
     if [[ -n $(pgrep nginx) ]]; then
         nginx_status="${Green}$(gettext "运行中")..${Font}"
-    elif [[ ${tls_mode} == "None" ]] || [[ ${tls_mode} == "XTLS" ]] || [[ ${tls_mode} == "Reality" && ${reality_add_nginx} != "on" ]]; then
+    elif [[ ${tls_mode} == "None" ]] || [[ ${tls_mode} == "Reality" && ${reality_add_nginx} != "on" ]]; then
         nginx_status="${Green}$(gettext "无需测试")${Font}"
     else
         nginx_status="${Red}$(gettext "未运行")${Font}"
@@ -10895,6 +12316,23 @@ xray_inbound_port() {
     jq -r --arg tag "${inbound_tag}" 'first(.inbounds[]? | select(.tag == $tag) | .port) // empty' "${xray_conf}" 2>/dev/null
 }
 
+xray_inbound_listen() {
+    local inbound_tag="$1"
+
+    [[ -f "${xray_conf}" ]] || return 1
+    jq -r --arg tag "${inbound_tag}" 'first(.inbounds[]? | select(.tag == $tag) | .listen) // empty' "${xray_conf}" 2>/dev/null
+}
+
+# First listen address of the ws/gRPC/xHTTP inbounds (None/"ONLY" mode).
+none_mode_listen_address() {
+    local _tag _addr=""
+    for _tag in VLESS-ws-in VLESS-gRPC-in VLESS-xhttp-in; do
+        _addr=$(xray_inbound_listen "${_tag}")
+        [[ -n "${_addr}" ]] && break
+    done
+    printf '%s' "${_addr}"
+}
+
 check_transport_tcp_ports() {
     if is_ws_mode && ! tcp_local_connect "$(info_extraction ws_port)"; then
         return 1
@@ -10923,6 +12361,12 @@ check_reality_tcp_ports() {
 }
 
 check_xray_local_connect() {
+    if is_relay_role; then
+        _relay_state_load
+        relay_status_refresh
+        xray_local_connect_status="${relay_local_connect_status}"
+        return 0
+    fi
     if [[ -f "${xray_install_config_file}" ]]; then
         if [[ ${tls_mode} == "TLS" ]]; then
             xray_local_connect_status="${Yellow}$(gettext "无法连通")${Font}"
@@ -10945,8 +12389,6 @@ check_xray_local_connect() {
             check_reality_tcp_ports && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
         elif [[ ${tls_mode} == "None" ]]; then
             check_transport_tcp_ports && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
-        elif [[ ${tls_mode} == "XTLS" ]]; then
-            tcp_local_connect "$(info_extraction port)" && xray_local_connect_status="${Green}$(gettext "本地正常")${Font}"
         fi
     else
         xray_local_connect_status="${Red}$(gettext "未安装")${Font}"
@@ -12052,27 +13494,7 @@ menu_action() {
         esac
         ;;
      6)
-        echo
-        log_echo "${Warning} ${YellowBG} $(gettext "此模式仅用于流量中转, 不建议在其他情况下使用, 是否安装") [Y/${Red}N${Font}${YellowBG}]? ${Font}"
-        read -r xtlsonly_fq
-        case $xtlsonly_fq in
-        [yY][eE][sS] | [yY])
-            shell_mode="XTLS ONLY"
-            tls_mode="XTLS"
-            install_xray_xtls_only
-            local install_rc=$?
-            if [[ ${install_rc} -eq 0 ]]; then
-                exec "${BASH:-bash}" "${idleleo}"
-            fi
-            if [[ ${install_rc} -eq 2 ]]; then
-                log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
-            else
-                log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
-            fi
-            return "${install_rc}"
-            ;;
-        *) ;;
-        esac
+        menu_install_relay
         ;;
     7)
         reset_UUID
@@ -12422,13 +13844,38 @@ menu_install_reality_balance_role() {
     done
 }
 
+# ws/gRPC/xHTTP ONLY has no transport encryption: default to loopback and let
+# the operator explicitly opt into another (trusted, e.g. internal) address.
+ws_listen_address_choose() {
+    local _listen_custom_fq
+    ws_backend_listen_addr="$(ws_backend_listen_default)"
+    echo
+    log_echo "${Warning} ${YellowBG} $(gettext "此模式没有传输层加密, 仅应用于可信后端链路") ${Font}"
+    log_echo "${GreenBG} $(gettext "默认仅监听") $(ws_backend_listen_default), $(gettext "是否需要指定其他监听地址") [y/${Red}N${Font}${GreenBG}]? ${Font}"
+    read -r _listen_custom_fq
+    case ${_listen_custom_fq:-} in
+    [yY][eE][sS] | [yY])
+        while true; do
+            read_optimize "$(gettext "请输入监听地址") ($(gettext "例如") 10.0.0.2): " "ws_backend_listen_addr" "NULL" || return 1
+            if is_valid_listen_address "${ws_backend_listen_addr}"; then
+                break
+            fi
+            log_echo "${Error} ${RedBG} $(gettext "监听地址无效, 请重新输入")! ${Font}"
+        done
+        ;;
+    *) ;;
+    esac
+    log_echo "${Green} $(gettext "监听地址") (listen): ${ws_backend_listen_addr} ${Font}"
+    return 0
+}
+
 # Third-level menu: ws/gRPC/xHTTP deployment methods.
 menu_install_transport() {
     local menu_num
     while true; do
         menu_submenu_begin "ws/gRPC/xHTTP $(gettext "部署方式")"
         menu_item 1 "Nginx + TLS ($(gettext "推荐"))"
-        menu_item 2 "ONLY ($(gettext "无 Nginx、无 TLS")，$(gettext "高级"))"
+        menu_item 2 "ONLY ($(gettext "无 Nginx、无传输层加密")，$(gettext "仅限可信后端")，$(gettext "高级"))"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
@@ -12457,7 +13904,7 @@ menu_install_transport() {
                 reset_install_wizard_state
                 install_profile="transport_only"
                 echo
-                log_echo "${Warning} ${YellowBG} $(gettext "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境") ${Font}"
+                log_echo "${Warning} ${YellowBG} $(gettext "ONLY 模式没有传输层加密, 主要用于中转、负载均衡后端或已有上层代理的环境") ${Font}"
                 log_echo "${GreenBG} $(gettext "是否继续") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
                 read -r wsonly_fq
                 case ${wsonly_fq:-} in
@@ -12465,6 +13912,7 @@ menu_install_transport() {
                     *) continue ;;
                 esac
                 menu_choose_transport || continue
+                ws_listen_address_choose || continue
                 install_wizard_preset="on"
                 apply_install_profile
                 install_xray_ws_only
@@ -12490,7 +13938,7 @@ menu_install() {
         menu_submenu_begin "$(gettext "安装向导")"
         menu_item 1 "Reality"
         menu_item 2 "ws/gRPC/xHTTP"
-        menu_item 3 "XTLS ONLY ($(gettext "高级"))"
+        menu_item 3 "$(gettext "中转节点") ($(gettext "Nginx Stream TCP 转发"))"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
@@ -12500,29 +13948,10 @@ menu_install() {
             1) menu_install_reality ;;
             2) menu_install_transport ;;
             3)
-                echo
-                log_echo "${Warning} ${YellowBG} $(gettext "此模式主要用于流量中转或特殊部署，不建议普通用户使用") ${Font}"
-                log_echo "${GreenBG} $(gettext "是否继续") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
-                read -r xtlsonly_fq
-                case ${xtlsonly_fq:-} in
-                    [yY][eE][sS] | [yY]) ;;
-                    *) continue ;;
-                esac
-                reset_install_wizard_state
-                install_profile="xtls_only"
-                install_wizard_preset="on"
-                apply_install_profile
-                install_xray_xtls_only
-                local install_rc=$?
-                if [[ ${install_rc} -eq 0 ]]; then
-                    exec "${BASH:-bash}" "${idleleo}"
-                fi
-                if [[ ${install_rc} -eq 2 ]]; then
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败且自动恢复失败, 备份已保留, 请手动检查") ${Font}"
-                else
-                    log_echo "${Error} ${RedBG} $(gettext "安装失败, 原配置已恢复") ${Font}"
-                fi
-                return "${install_rc}"
+                # Propagate the relay install rc so the caller (and the test
+                # harness) can distinguish success from a failed install.
+                menu_install_relay
+                return $?
                 ;;
         esac
     done
@@ -12806,6 +14235,10 @@ menu_main_header() {
 
 menu() {
     local menu_num
+    if is_relay_role; then
+        menu_relay_main
+        return
+    fi
     while true; do
         menu_main_header
         menu_item 1 "$(gettext "安装向导")"
@@ -12902,6 +14335,7 @@ dispatch_pure_readonly_command() {
 }
 
 dispatch_offline_root_mutation_command() {
+    relay_bootstrap_role || true
     case "${1:-}" in
         --purge|--uninstall) uninstall_all ;;
         --service-start) service_start ;;

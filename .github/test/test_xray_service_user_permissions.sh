@@ -73,8 +73,8 @@ apply_sensitive_file_permissions() {
 }
 mkdir() { printf 'mkdir %s\n' "$*" >> "${FS_LOG}"; }
 chown() { printf 'chown %s\n' "$*" >> "${FS_LOG}"; }
-chmod() { :; }
-find()  { :; }
+chmod() { printf 'chmod %s\n' "$*" >> "${FS_LOG}"; }
+find()  { printf 'find %s\n' "$*" >> "${FS_LOG}"; }
 # Directory access is exercised with real users by test_xray_runtime_permissions.sh.
 xray_config_directory_permissions() { :; }
 
@@ -142,6 +142,22 @@ if grep -q "chown -fR xray:xray /var/log/xray/" "${FS_LOG}"; then
     ok "xray_privilege_escalation owns /var/log/xray by xray"
 else
     bad "xray_privilege_escalation owns /var/log/xray by xray; got: $(tr '\n' ';' < "${FS_LOG}")"
+fi
+# Connection logs must not be world-readable (was 755 dir / 644 files).
+if grep -qx "chmod -f 750 /var/log/xray/" "${FS_LOG}"; then
+    ok "xray_privilege_escalation keeps /var/log/xray at 750 (not world-readable)"
+else
+    bad "xray_privilege_escalation did not set /var/log/xray to 750; got: $(tr '\n' ';' < "${FS_LOG}")"
+fi
+if grep -q "chmod -f 640" "${FS_LOG}"; then
+    ok "xray_privilege_escalation keeps Xray log files at 640 (not world-readable)"
+else
+    bad "xray_privilege_escalation left Xray log files world-readable; got: $(tr '\n' ';' < "${FS_LOG}")"
+fi
+if grep -q "chmod -f 755 /var/log/xray/" "${FS_LOG}" || grep -q "chmod -f 644" "${FS_LOG}"; then
+    bad "xray_privilege_escalation still widens log permissions to 755/644"
+else
+    ok "no world-readable log permissions are applied"
 fi
 
 # ---- 4. root unit repairs logs despite restricted capabilities ------

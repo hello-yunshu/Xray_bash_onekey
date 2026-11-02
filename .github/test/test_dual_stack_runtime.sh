@@ -10,7 +10,7 @@
 # Coverage:
 #   - ensure_network_runtime_state hydrates globals from a dual config
 #   - in-memory state already loaded is never overwritten
-#   - install_link_image emits IPv4 + IPv6 links after hydration: Reality, XTLS,
+#   - install_link_image emits IPv4 + IPv6 links after hydration: Reality,
 #     None ws (dual configs)
 #   - an ipv4-only config never emits an IPv6 link after restart
 #   - multi-user links (second user) keep dual entries after hydration
@@ -109,17 +109,6 @@ else
     bad "fresh Reality dual lost a link; out=${out}"
 fi
 
-# XTLS dual
-fresh_start
-tls_mode="XTLS"
-xray_info_file="${TMP_ROOT}/xtls.inf"; rm -f "${xray_info_file}"
-out=$(install_link_image 2>/dev/null; cat "${xray_info_file}" 2>/dev/null)
-if [[ "${out}" == *"vless://test-user@203.0.113.10:443?security=none"* && "${out}" == *"vless://test-user@[2001:db8::10]:443?security=none"* ]]; then
-    ok "fresh XTLS dual keeps IPv4 + IPv6 links after restart"
-else
-    bad "fresh XTLS dual lost a link; out=${out}"
-fi
-
 # None ws dual (transport_mode drives is_ws_mode through the real helper)
 fresh_start
 tls_mode="None"; transport_mode="ws"
@@ -157,14 +146,6 @@ if [[ "${u2_v4}" == *"@203.0.113.10:"* && "${u2_v6}" == *"${user2}@"* && "${u2_v
 else
     bad "multi-user Reality link broken after hydration; v6=${u2_v6}"
 fi
-u2_v4=$(generate_vless_link "${user2}" "xtls")
-u2_v6=$(generate_vless_link "${user2}" "xtls" "${ipv6_address}")
-if [[ "${u2_v4}" == *"@203.0.113.10:"* && "${u2_v6}" == *"@[2001:db8::10]:"* ]]; then
-    ok "multi-user XTLS link survives hydration with IPv6 entry"
-else
-    bad "multi-user XTLS link broken after hydration; v6=${u2_v6}"
-fi
-
 echo
 if [[ ${FAIL} -eq 0 ]]; then
     printf 'ALL dual-stack runtime tests PASSED (%d)\n' "${PASS}"

@@ -1553,10 +1553,6 @@ msgstr "download Xray Reality configuration"
 msgid "下载 Xray 配置"
 msgstr "download Xray configuration"
 
-#: install.sh:6783
-msgid "下载 Xray XTLS 配置"
-msgstr "download Xray XTLS configuration"
-
 #: install.sh:6791
 msgid "检测到 Xray 配置过多用户"
 msgstr "detected that Xray is configured with too many users"
@@ -4288,3 +4284,535 @@ msgstr "reset"
 #: scripts/traffic_blocker.sh:1154 scripts/traffic_blocker.sh:1157
 msgid "已恢复"
 msgstr "restored"
+
+#: install.sh
+msgid "监听地址无效, 已回退到 127.0.0.1"
+msgstr "Invalid listen address, falling back to 127.0.0.1"
+
+#: install.sh
+msgid "无传输层加密的后端入站监听地址"
+msgstr "Plaintext backend inbound listen address"
+
+#: install.sh
+msgid "此模式没有传输层加密 (VLESS 载荷自身仍有加密), 只应用于可信后端链路"
+msgstr "This mode has no transport encryption (the VLESS payload itself is still encrypted); use it only on a trusted backend link"
+
+#: install.sh
+msgid "当前仅监听本机, 外部客户端需经可信代理接入, 或改用 TLS/Reality 模式"
+msgstr "It currently listens on this host only; external clients must connect through a trusted proxy, or use TLS/Reality mode"
+
+#: install.sh
+msgid "监听地址"
+msgstr "Listen address"
+
+#: install.sh
+msgid "此模式没有传输层加密, 仅应用于可信后端链路"
+msgstr "This mode has no transport encryption; use it only on a trusted backend link"
+
+#: install.sh
+msgid "默认仅监听"
+msgstr "Listens on"
+
+#: install.sh
+msgid "是否需要指定其他监听地址"
+msgstr "Do you want to specify another listen address"
+
+#: install.sh
+msgid "请输入监听地址"
+msgstr "Enter the listen address"
+
+#: install.sh
+msgid "例如"
+msgstr "for example"
+
+#: install.sh
+msgid "监听地址无效, 请重新输入"
+msgstr "Invalid listen address, please try again"
+
+#: install.sh
+msgid "无法读取域名, 已取消证书更新"
+msgstr "Cannot read the domain; certificate update cancelled"
+
+#: install.sh
+msgid "证书目录不可用, 已取消证书更新"
+msgstr "Certificate directory is not usable; certificate update cancelled"
+
+#: install.sh
+msgid "证书所需的服务组不存在, 已取消证书更新"
+msgstr "The service group required by the certificate is missing; certificate update cancelled"
+
+#: install.sh
+msgid "无法停止 Xray, 已取消证书更新"
+msgstr "Cannot stop Xray; certificate update cancelled"
+
+#: install.sh
+msgid "续签失败"
+msgstr "renewal failed"
+
+#: install.sh
+msgid "证书安装失败"
+msgstr "certificate installation failed"
+
+#: install.sh
+msgid "已恢复 Xray 原有运行状态"
+msgstr "Xray running state restored"
+
+#: install.sh
+msgid "Xray 服务恢复失败, 请手动检查"
+msgstr "Failed to restore the Xray service; please check manually"
+
+#: install.sh
+msgid "无 Nginx、无传输层加密"
+msgstr "no Nginx, no transport encryption"
+
+#: install.sh
+msgid "仅限可信后端"
+msgstr "trusted backends only"
+
+#: install.sh
+msgid "默认仅监听 127.0.0.1"
+msgstr "listens on 127.0.0.1 by default"
+
+#: install.sh
+msgid "旧版 XTLS 模式 (已取消)"
+msgstr "legacy XTLS mode (removed)"
+
+#: install.sh
+msgid "当前服务器为中转节点, 不支持与普通节点混装"
+msgstr "This server is a relay node; mixing it with an ordinary node is not supported"
+
+#: install.sh
+msgid "请先删除中转节点, 再安装普通节点"
+msgstr "Delete the relay node first, then install an ordinary node"
+
+#: install.sh
+msgid "检测到旧版 XTLS 模式, 该模式已取消, 不支持重装或模式切换"
+msgstr "A legacy XTLS mode install was found. That mode has been removed; reinstalling or switching to it is not supported"
+
+#: install.sh
+msgid "现有配置与服务不会被改动; 如需继续使用请卸载后重新部署"
+msgstr "Existing files and services are left untouched; uninstall and redeploy to continue"
+
+#: install.sh
+msgid "中转节点"
+msgstr "Relay node"
+
+#: install.sh
+msgid "落地服务器地址无效"
+msgstr "Invalid landing server address"
+
+#: install.sh
+msgid "端口无效, 必须是 1-65535"
+msgstr "Invalid port, must be 1-65535"
+
+#: install.sh
+msgid "监听地址无效"
+msgstr "Invalid listen address"
+
+#: install.sh
+msgid "写入中转配置失败"
+msgstr "Failed to write the relay configuration"
+
+#: install.sh
+msgid "Nginx 主配置中已存在自定义 stream 块, 请手动处理后重试"
+msgstr "The Nginx main config already contains a custom stream block; handle it manually and retry"
+
+#: install.sh
+msgid "已恢复上一次的转发配置"
+msgstr "Restored the previous forwarding configuration"
+
+#: install.sh
+msgid "恢复转发配置后 Nginx 校验仍失败, 请查看 Nginx 错误日志"
+msgstr "Nginx still fails validation after restoring; check the Nginx error log"
+
+#: install.sh
+msgid "Nginx 配置校验失败, 已恢复原转发配置"
+msgstr "Nginx configuration check failed; the previous forwarding config was restored"
+
+#: install.sh
+msgid "检测到已有普通节点安装, 中转节点需要独立服务器"
+msgstr "An ordinary node is already installed; a relay node needs a dedicated server"
+
+#: install.sh
+msgid "请先卸载原节点或改用普通节点安装, 本脚本不会覆盖现有配置"
+msgstr "Uninstall it first or use the ordinary node installer; existing config is never overwritten"
+
+#: install.sh
+msgid "检测到脚本管理的 Nginx 站点配置"
+msgstr "Managed Nginx site configuration detected"
+
+#: install.sh
+msgid "中转节点不能与普通节点或受管站点混装, 请先手动处理"
+msgstr "A relay cannot share the server with an ordinary node or managed site; handle it manually first"
+
+#: install.sh
+msgid "检测到 Xray 配置文件"
+msgstr "Xray configuration file detected"
+
+#: install.sh
+msgid "中转节点不安装 Xray, 请先手动处理现有 Xray 配置"
+msgstr "A relay node does not install Xray; handle the existing Xray config manually first"
+
+#: install.sh
+msgid "中转节点安装向导"
+msgstr "Relay node setup"
+
+#: install.sh
+msgid "中转节点只做 TCP 透明转发, 不安装 Xray, 不终止 TLS/REALITY"
+msgstr "A relay only forwards TCP transparently: no Xray, no TLS/REALITY termination"
+
+#: install.sh
+msgid "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 保持不变"
+msgstr "Clients only change the server address and port; the landing node REALITY public key/SNI/ShortId stay the same"
+
+#: install.sh
+msgid "落地服务器地址 (IP 或域名)"
+msgstr "Landing server address (IP or domain)"
+
+#: install.sh
+msgid "落地服务器地址无效, 请重新输入"
+msgstr "Invalid landing server address, please try again"
+
+#: install.sh
+msgid "落地服务器端口"
+msgstr "Landing server port"
+
+#: install.sh
+msgid "本机监听端口"
+msgstr "Local listen port"
+
+#: install.sh
+msgid "默认监听所有地址"
+msgstr "listens on all addresses by default"
+
+#: install.sh
+msgid "监听地址 (IPv4/IPv6)"
+msgstr "Listen address (IPv4/IPv6)"
+
+#: install.sh
+msgid "转发已生效, 但配置记录写入失败, 请重新运行安装向导"
+msgstr "Forwarding is active but the config record could not be written; rerun the setup"
+
+#: install.sh
+msgid "防火墙端口同步失败, 请手动放行新端口"
+msgstr "Failed to sync the firewall port; open the new port manually"
+
+#: install.sh
+msgid "当前没有可修改的中转配置"
+msgstr "No relay configuration to modify"
+
+#: install.sh
+msgid "修改落地目标"
+msgstr "Change landing target"
+
+#: install.sh
+msgid "落地服务器地址无效, 已取消"
+msgstr "Invalid landing server address; cancelled"
+
+#: install.sh
+msgid "落地目标已更新"
+msgstr "Landing target updated"
+
+#: install.sh
+msgid "修改监听端口"
+msgstr "Change listen port"
+
+#: install.sh
+msgid "监听端口已更新"
+msgstr "Listen port updated"
+
+#: install.sh
+msgid "当前没有可测试的中转配置"
+msgstr "No relay configuration to test"
+
+#: install.sh
+msgid "测试到落地节点的 TCP 连通性"
+msgstr "Testing TCP reachability to the landing node"
+
+#: install.sh
+msgid "TCP 连接成功 (仅代表端口可达, 不代表 REALITY/TLS 握手成功)"
+msgstr "TCP connected (port reachability only, not proof of a REALITY/TLS handshake)"
+
+#: install.sh
+msgid "无法连接落地节点端口, 请检查地址/端口/防火墙"
+msgstr "Cannot reach the landing port; check the address, port and firewall"
+
+#: install.sh
+msgid "中转节点配置信息"
+msgstr "Relay node configuration"
+
+#: install.sh
+msgid "本机中转入口"
+msgstr "Relay entry point"
+
+#: install.sh
+msgid "落地服务器"
+msgstr "Landing server"
+
+#: install.sh
+msgid "转发方式"
+msgstr "Forwarding"
+
+#: install.sh
+msgid "透传"
+msgstr "pass-through"
+
+#: install.sh
+msgid "启用状态"
+msgstr "State"
+
+#: install.sh
+msgid "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 等参数保持不变"
+msgstr "Clients only change the server address and port; REALITY public key/SNI/ShortId on the landing node stay unchanged"
+
+#: install.sh
+msgid "TCP 端口可达不代表 REALITY/TLS 握手成功, 请以客户端实际连接为准"
+msgstr "A reachable TCP port does not prove a REALITY/TLS handshake; verify with a real client"
+
+#: install.sh
+msgid "本机不安装 Xray, 不终止 TLS, 也不保存落地节点的私钥"
+msgstr "No Xray, no TLS termination and no landing-node private key on this server"
+
+#: install.sh
+msgid "Nginx 错误日志不存在"
+msgstr "Nginx error log not found"
+
+#: install.sh
+msgid "将删除中转配置并卸载 Nginx, 是否继续"
+msgstr "This deletes the relay configuration and uninstalls Nginx. Continue"
+
+#: install.sh
+msgid "已取消"
+msgstr "Cancelled"
+
+#: install.sh
+msgid "删除中转配置后 Nginx 仍无法通过校验, 请手动检查"
+msgstr "Nginx still fails validation after removing the relay config; check it manually"
+
+#: install.sh
+msgid "已保留脚本文件"
+msgstr "Script files kept"
+
+#: install.sh
+msgid "中转节点已删除"
+msgstr "Relay node removed"
+
+#: install.sh
+msgid "中转节点管理"
+msgstr "Relay node"
+
+#: install.sh
+msgid "转发信息"
+msgstr "Forwarding"
+
+#: install.sh
+msgid "入口"
+msgstr "entry"
+
+#: install.sh
+msgid "落地"
+msgstr "landing"
+
+#: install.sh
+msgid "中转节点菜单"
+msgstr "Relay node menu"
+
+#: install.sh
+msgid "测试后端连通"
+msgstr "Test backend reachability"
+
+#: install.sh
+msgid "删除中转"
+msgstr "Remove relay"
+
+#: install.sh
+msgid "中转节点需要一台独立服务器, 只做单目标 TCP 转发"
+msgstr "A relay node needs a dedicated server and forwards a single TCP target"
+
+#: install.sh
+msgid "不安装 Xray, 不终止 TLS/REALITY, 也不需要落地节点的 SSH 凭据"
+msgstr "No Xray, no TLS/REALITY termination, and no SSH credentials for the landing node"
+
+#: install.sh
+msgid "中转节点安装失败"
+msgstr "Relay node installation failed"
+
+#: install.sh
+msgid "安装中转节点"
+msgstr "install a relay node"
+
+#: install.sh
+msgid "转发"
+msgstr "forwarding"
+
+#: install.sh
+msgid "不安装"
+msgstr "without"
+
+#: install.sh
+msgid "不适用"
+msgstr "N/A"
+
+#: install.sh
+msgid "ONLY 模式没有传输层加密, 主要用于中转、负载均衡后端或已有上层代理的环境"
+msgstr "ONLY modes have no transport encryption; use them for relays, load-balancer backends or hosts behind an existing proxy"
+
+#: install.sh
+msgid "Nginx Stream TCP 转发"
+msgstr "Nginx Stream TCP forwarding"
+
+#: install.sh
+msgid "无法创建 GeoData 资源目录"
+msgstr "Cannot create the GeoData asset directory"
+
+#: install.sh
+msgid "缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置"
+msgstr "geoip.dat/geosite.dat are missing; skipping the native GeoData setup"
+
+#: install.sh
+msgid "GeoData 资源目录与 Xray 实际读取路径不一致, 跳过原生配置"
+msgstr "The GeoData directory does not match the path Xray actually reads; skipping the native setup"
+
+#: install.sh
+msgid "systemd 沙箱禁止写入 GeoData 资源目录, 跳过原生配置"
+msgstr "The systemd sandbox forbids writes to the GeoData directory; skipping the native setup"
+
+#: install.sh
+msgid "低内存设备 (小于 1 GiB): GeoData 定时更新会有短暂内存峰值, 请留意"
+msgstr "Low-memory host (under 1 GiB): scheduled GeoData updates cause a brief memory spike"
+
+#: install.sh
+msgid "检测到自定义 geodata 配置, 保留原样"
+msgstr "A custom geodata block was found and left untouched"
+
+#: install.sh
+msgid "Xray 配置无法解析, 跳过 GeoData 原生配置"
+msgstr "The Xray config cannot be parsed; skipping the native GeoData setup"
+
+#: install.sh
+msgid "Xray 服务账号仍无法写入 GeoData 文件, 原生更新可能失败"
+msgstr "The Xray service account still cannot write the GeoData files; scheduled updates may fail"
+
+#: install.sh
+msgid "当前 Xray 配置未通过 xray run -test, 跳过 GeoData 原生配置"
+msgstr "The current Xray config fails xray run -test; skipping the native GeoData setup"
+
+#: install.sh
+msgid "加入 geodata 后 Xray 配置测试失败, 已恢复原配置"
+msgstr "Xray rejected the config after adding geodata; the previous config was restored"
+
+#: install.sh
+msgid "GeoData 文件权限设置失败"
+msgstr "Failed to set the GeoData file permissions"
+
+#: install.sh
+msgid "GeoData 文件权限恢复失败"
+msgstr "Failed to restore the GeoData file permissions"
+
+#: install.sh
+msgid "已启用 Xray 原生 GeoData 定时更新"
+msgstr "Enabled Xray's native GeoData schedule"
+
+#: install.sh
+msgid "已移除脚本创建的 geo_update.sh 周期任务, 避免与原生更新重复执行"
+msgstr "Removed the geo_update.sh cron job created by this script to avoid duplicate updates"
+
+#: scripts/traffic_blocker.sh
+msgid "移除 geo_update.sh 周期任务失败, 请手动检查 crontab"
+msgstr "Failed to remove the geo_update.sh cron job; please check crontab manually"
+
+#: scripts/traffic_blocker.sh
+msgid "由 Xray 原生 geodata 定时更新"
+msgstr "refreshed by Xray's native geodata schedule"
+
+#: scripts/traffic_blocker.sh
+msgid "本地时区, 不重启 Xray"
+msgstr "local timezone, no restart"
+
+#: scripts/traffic_blocker.sh
+msgid "最后更新"
+msgstr "last updated"
+
+#: scripts/traffic_blocker.sh
+msgid "待执行"
+msgstr "pending"
+
+#: scripts/traffic_blocker.sh
+msgid "异常"
+msgstr "error"
+
+#: scripts/traffic_blocker.sh
+msgid "配置异常: geodata.assets 缺少有效的 HTTPS 下载地址"
+msgstr "Config error: geodata.assets has no valid HTTPS download URL"
+
+#: scripts/traffic_blocker.sh
+msgid "说明: 这里只反映配置与文件现状, 不代表某次定时任务已成功"
+msgstr "Note: this reflects the configuration and current files, not the outcome of a specific run"
+
+#: scripts/traffic_blocker.sh
+msgid "可在此菜单手动更新, 或检查"
+msgstr "Update manually from this menu, or check"
+
+#: scripts/traffic_blocker.sh
+msgid "与 Xray 错误日志"
+msgstr "and the Xray error log"
+
+#: scripts/traffic_blocker.sh
+msgid "GeoData 由 Xray 原生 geodata 定时更新"
+msgstr "GeoData is refreshed by Xray's native geodata schedule"
+
+#: scripts/traffic_blocker.sh
+msgid "原生更新在进程内热重载, 不重启 Xray, 无需额外的定时任务"
+msgstr "Native updates reload in-process without restarting Xray; no extra cron job is needed"
+
+#: scripts/traffic_blocker.sh
+msgid "未发现重复的 geo_update.sh 周期任务"
+msgstr "No duplicate geo_update.sh cron job found"
+
+#: scripts/traffic_blocker.sh
+msgid "发现脚本安装的 geo_update.sh 周期任务, 与原生更新重复"
+msgstr "Found a geo_update.sh cron job installed by this script, duplicating the native update"
+
+#: scripts/traffic_blocker.sh
+msgid "是否移除该重复任务"
+msgstr "Remove this duplicate job"
+
+#: scripts/traffic_blocker.sh
+msgid "移除重复的 GeoData 定时任务"
+msgstr "Remove the duplicate GeoData cron job"
+
+#: scripts/traffic_blocker.sh
+msgid "重新安装或重配置为普通节点后, 将改用 Xray 原生定时更新, 该任务会被自动移除"
+msgstr "After reinstalling or reconfiguring as a node, Xray's native schedule takes over and this job is removed"
+
+#: scripts/traffic_blocker.sh
+msgid "原生定时更新已启用; 这里的手动更新会重启 Xray"
+msgstr "Native scheduling is enabled; a manual update here restarts Xray"
+
+#: install.sh
+msgid "写入 REALITY minClientVer 失败, 已恢复原配置"
+msgstr "Failed to write the REALITY minClientVer, the previous config was restored"
+
+#: install.sh
+msgid "加入 minClientVer 后配置测试失败, 已恢复原配置"
+msgstr "The config failed Xray's test after adding minClientVer, the previous config was restored"
+
+#: install.sh
+msgid "已为 REALITY 入站补上 minClientVer"
+msgstr "Added minClientVer to the REALITY inbound"
+
+#: install.sh
+msgid "已安装版本高于在线清单, 不执行降级"
+msgstr "The installed version is newer than the online manifest; skipping the downgrade"
+
+#: install.sh
+msgid "在线清单"
+msgstr "Online manifest"
+
+#: install.sh
+msgid "如确需降级, 请手动指定版本或先卸载再安装"
+msgstr "If a downgrade is really required, install a specific version manually or uninstall first"
+
+#: install.sh
+msgid "本机版本高于清单钉定版本, 将按清单重新安装"
+msgstr "The local version is newer than the pinned manifest version; reinstalling the pinned version"
