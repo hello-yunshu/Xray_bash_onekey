@@ -10,7 +10,7 @@
 #   2. stop_service_all fails                     -> aborts (commit must NOT run)
 #   3. acme_cron_cleanup fails                    -> aborts
 #   4. systemctl disable xray fails               -> aborts
-#   5. xray_install_release remove --purge fails  -> aborts
+#   5. offline metadata absent still removes Xray -> succeeds without installer
 #   6. Xray safe_rm (config dir) fails            -> aborts
 #   7. systemctl disable nginx fails              -> aborts
 #   8. Nginx safe_rm fails                        -> aborts
@@ -52,7 +52,6 @@ PREPARE_FAIL=0
 STOP_FAIL=0
 ACME_FAIL=0
 DISABLE_XRAY_FAIL=0
-XRAY_REMOVE_FAIL=0
 XRAY_RM_FAIL=0
 DISABLE_NGINX_FAIL=0
 NGINX_RM_FAIL=0
@@ -79,11 +78,6 @@ systemctl() {
     esac
     return 0
 }
-xray_install_release() {
-    # only the remove path is exercised by uninstall_all
-    [[ ${XRAY_REMOVE_FAIL} -eq 1 ]] && return 1
-    return 0
-}
 safe_rm() {
     local target="${2:-${1:-}}"
     # route by the sourcing call site: uninstall_xray removes config dir,
@@ -99,6 +93,8 @@ safety_check() { :; }
 check_file_integrity() { :; }
 
 # --- Rill two-phase contract hooks (mock commit/abort to record routing) ---
+# The production wrapper only calls finish when the agent is present.
+rxa_apply_mode() { :; }
 rxa_uninstall_commit() { printf '0\n' > "${FINISH_FILE}"; return 0; }
 rxa_uninstall_abort()  { printf '1\n' > "${FINISH_FILE}"; return 1; }
 rxa_uninstall_finish() {
@@ -149,7 +145,7 @@ touch "${xray_bin_dir}/xray"
 printf 'x' > "${xray_install_config_file}"
 
 reset_controls() {
-    PREPARE_FAIL=0 STOP_FAIL=0 ACME_FAIL=0 DISABLE_XRAY_FAIL=0 XRAY_REMOVE_FAIL=0
+    PREPARE_FAIL=0 STOP_FAIL=0 ACME_FAIL=0 DISABLE_XRAY_FAIL=0
     XRAY_RM_FAIL=0 DISABLE_NGINX_FAIL=0 NGINX_RM_FAIL=0 DAEMON_RELOAD_FAIL=0
     POST_VERIFY_FAIL=0
     : > "${FINISH_FILE}"
@@ -207,13 +203,13 @@ rc=0; rc=$(run_uninstall_all); rc=$?
 [[ "$(read_finish)" == "1" ]] && ok "disable xray failure routes to abort" || bad "disable xray failure routed finish=$(read_finish)"
 
 # ---------------------------------------------------------------------------
-# Scenario 5: xray_install_release remove --purge fails -> aborts
+# Scenario 5: offline metadata absent -> direct removal succeeds
 # ---------------------------------------------------------------------------
 reset_controls
-XRAY_REMOVE_FAIL=1
+# Leave xray_installer_ref/sha empty, exactly as the offline `--purge` dispatch.
 rc=0; rc=$(run_uninstall_all); rc=$?
-[[ "$rc" != 0 ]] && ok "xray remove failure exits non-zero" || bad "xray remove failure exits 0"
-[[ "$(read_finish)" == "1" ]] && ok "xray remove failure routes to abort" || bad "xray remove failure routed finish=$(read_finish)"
+[[ "$rc" == 0 ]] && ok "offline uninstall without installer metadata exits 0" || bad "offline uninstall without installer metadata exits $rc"
+[[ "$(read_finish)" == "0" ]] && ok "offline uninstall without installer metadata routes to commit" || bad "offline uninstall routed finish=$(read_finish)"
 
 # ---------------------------------------------------------------------------
 # Scenario 6: Xray config dir safe_rm fails -> aborts
