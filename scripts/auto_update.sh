@@ -113,6 +113,12 @@ failure_record_get() {
     printf '%s\n' "${value}"
 }
 
+failure_record_field() {
+    local component="$1" field="$2"
+    [[ -f "${failure_record_file}" ]] || return 1
+    jq -er --arg c "${component}" --arg f "${field}" '.[$c][$f] // empty' "${failure_record_file}" 2>/dev/null
+}
+
 failure_record_failed_at() {
     local component="$1"
     [[ -f "${failure_record_file}" ]] || return 1
@@ -120,19 +126,25 @@ failure_record_failed_at() {
 }
 
 failure_record_write() {
-    local component="$1" version="$2" tmp_file
+    local component="$1" version="$2" installer_ref="${3:-}" installer_sha="${4:-}" tmp_file
     [[ -n "${version}" ]] || return 1
     mkdir -p "${log_dir}" 2>/dev/null || true
     tmp_file=$(mktemp "${failure_record_file}.XXXXXX" 2>/dev/null) || return 1
     if [[ -f "${failure_record_file}" ]] && jq -e 'type == "object"' "${failure_record_file}" >/dev/null 2>&1; then
-        if ! jq --arg c "${component}" --arg v "${version}" --arg at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
-            '.[$c] = {version: $v, failed_at: $at}' "${failure_record_file}" >"${tmp_file}" 2>/dev/null; then
+        if ! jq --arg c "${component}" --arg v "${version}" \
+            --arg ir "${installer_ref}" --arg is "${installer_sha}" \
+            --arg at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+            '.[$c] = {version: $v, installer_ref: $ir, installer_sha: $is, failed_at: $at}' \
+            "${failure_record_file}" >"${tmp_file}" 2>/dev/null; then
             rm -f "${tmp_file}"
             return 1
         fi
     else
-        if ! jq -n --arg c "${component}" --arg v "${version}" --arg at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
-            '{($c): {version: $v, failed_at: $at}}' >"${tmp_file}" 2>/dev/null; then
+        if ! jq -n --arg c "${component}" --arg v "${version}" \
+            --arg ir "${installer_ref}" --arg is "${installer_sha}" \
+            --arg at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+            '{($c): {version: $v, installer_ref: $ir, installer_sha: $is, failed_at: $at}}' \
+            >"${tmp_file}" 2>/dev/null; then
             rm -f "${tmp_file}"
             return 1
         fi
@@ -176,17 +188,31 @@ legacy_marker_migrate() {
     return 0
 }
 
-# 0 = attempt this target, 1 = skip, the failed target version is unchanged.
+# 0 = attempt this target, 1 = skip, the failed target (version + installer
+# identity) is unchanged. A legacy record without installer identity gets one
+# retry so a migration is never permanently blocked by old metadata.
 component_should_attempt() {
-    local component="$1" target="$2" failed_version failed_at
+    local component="$1" target="$2" installer_ref="${3:-}" installer_sha="${4:-}"
+    local failed_version failed_at failed_ref failed_sha
     failed_version=$(failure_record_get "${component}") || return 0
-    if [[ "${failed_version}" == "${target}" ]]; then
+    if [[ "${failed_version}" != "${target}" ]]; then
+        log "Recorded ${component} failure was for v${failed_version}; the current target is v${target}, retrying."
+        return 0
+    fi
+
+    failed_ref=$(failure_record_field "${component}" installer_ref 2>/dev/null || true)
+    failed_sha=$(failure_record_field "${component}" installer_sha 2>/dev/null || true)
+    if [[ "${component}" == "xray" && -z "${failed_ref}" && -z "${failed_sha}" ]]; then
+        log "${component} v${target} has a legacy failure record without installer identity; retrying once."
+        return 0
+    fi
+    if [[ "${failed_ref}" == "${installer_ref}" && "${failed_sha}" == "${installer_sha}" ]]; then
         failed_at=$(failure_record_failed_at "${component}" 2>/dev/null || echo "unknown")
-        log "${component} v${target} already failed on ${failed_at}; skipping this target version."
+        log "${component} v${target} already failed on ${failed_at} with the same installer; skipping this target."
         failure_retry_hint "${component}"
         return 1
     fi
-    log "Recorded ${component} failure was for v${failed_version}; the current target is v${target}, retrying."
+    log "Recorded ${component} failure used installer ${failed_ref}; the current installer is ${installer_ref:-unknown}; retrying."
     return 0
 }
 
@@ -369,16 +395,49 @@ else
         exit 1
     fi
 fi
+xray_installer_ref="$(check_online_version_silent xray_installer_ref || true)"
+xray_installer_sha="$(check_online_version_silent xray_installer_sha256 || true)"
 
-if [[ $(info_extraction shell_version) == null ]] || [[ $(info_extraction shell_version) != "${shell_online_version}" ]] ||
-   [[ ! -f "${idleleo_dir}/release-managed.version" ]] || [[ $(cat "${idleleo_dir}/release-managed.version" 2>/dev/null) != "${shell_online_version}" ]]; then
+installed_shell_version="$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' \
+    "${idleleo_dir}/install.sh" 2>/dev/null | head -n 1)"
+config_shell_version="$(info_extraction shell_version)"
+overlay_shell_version="$(cat "${idleleo_dir}/release-managed.version" 2>/dev/null || true)"
+
+if [[ -z "${installed_shell_version}" ]]; then
+    log "Installed shell_version is missing from ${idleleo_dir}/install.sh; skipping the Shell update."
+    exit 1
+fi
+
+# config is a cache, not an authority. Repair known drift before deciding.
+if [[ "${config_shell_version}" != "${installed_shell_version}" ]]; then
+    if safe_update_install_config --arg sv "${installed_shell_version}" '. += {"shell_version": $sv}'; then
+        log "Repaired install_config.shell_version ${config_shell_version:-empty} -> ${installed_shell_version}."
+        config_shell_version="${installed_shell_version}"
+    else
+        log "Failed to repair install_config.shell_version (original preserved)."
+    fi
+fi
+
+if version_gt "${installed_shell_version}" "${shell_online_version}"; then
+    log "Installed Shell ${installed_shell_version} is newer than the metadata target ${shell_online_version}; refusing shell downgrade."
+elif [[ "${shell_online_version}" != "${installed_shell_version}" ]]; then
     IDLELEO_UPDATE_LOCK_HELD=1 bash "${idleleo_dir}/install.sh" -u auto_update
-    [[ 0 -ne $? ]] && log "Script update failed!" && exit 1
-    log "Script updated successfully!"
-    # Persist shell_version preserving owner/group/mode (avoids permission regression)
-    if ! safe_update_install_config --arg sv "${shell_online_version}" '. += {"shell_version": $sv}'; then
+    [[ 0 -eq $? ]] || { log "Script update failed!"; exit 1; }
+    installed_after="$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' \
+        "${idleleo_dir}/install.sh" 2>/dev/null | head -n 1)"
+    if [[ "${installed_after}" == "${shell_online_version}" ]]; then
+        log "Script updated successfully!"
+    else
+        log "Script update completed with version ${installed_after:-unknown} (target ${shell_online_version})."
+    fi
+    if ! safe_update_install_config --arg sv "${installed_after:-${installed_shell_version}}" '. += {"shell_version": $sv}'; then
         log "Failed to persist shell_version in config (original preserved)"
     fi
+elif [[ "${overlay_shell_version}" != "${installed_shell_version}" ]]; then
+    # Same version, but the Release reconciliation marker is missing/stale.
+    IDLELEO_UPDATE_LOCK_HELD=1 bash "${idleleo_dir}/install.sh" -u auto_update
+    [[ 0 -eq $? ]] || { log "Script reconciliation failed!"; exit 1; }
+    log "Script is up to date (Release state reconciled)."
 else
     log "Script is up to date!"
 fi
@@ -427,14 +486,14 @@ elif version_gt "${installed_xray_version}" "${xray_online_version}"; then
     # Metadata can regress (reverted release, stale CDN copy). Moving a working
     # host backwards is never an automatic action; a human decides that.
     log "Installed Xray ${installed_xray_version} is newer than the metadata target ${xray_online_version}; refusing to downgrade."
-elif ! component_should_attempt "xray" "${xray_online_version}"; then
+elif ! component_should_attempt "xray" "${xray_online_version}" "${xray_installer_ref}" "${xray_installer_sha}"; then
     log "Xray ${xray_online_version} stays blocked until the metadata moves to another version."
 else
     log "Updating Xray to ${xray_online_version}..."
     auto_update=YES bash "${idleleo_dir}/install.sh" -x auto_update
     if [[ $? -ne 0 ]]; then
         log "Xray update to ${xray_online_version} failed!"
-        failure_record_write "xray" "${xray_online_version}" || log "Failed to record the Xray failure."
+        failure_record_write "xray" "${xray_online_version}" "${xray_installer_ref}" "${xray_installer_sha}" || log "Failed to record the Xray failure."
         failure_retry_hint "xray"
     else
         log "Xray updated successfully!"

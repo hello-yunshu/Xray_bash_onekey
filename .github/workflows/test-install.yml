@@ -61,6 +61,8 @@ jobs:
         with:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
+          # The legacy auto_update fixture reads the v3.2.11 tag.
+          fetch-depth: 0
 
       - name: Checkout API contract branch
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -97,6 +99,11 @@ jobs:
           bash .github/test/test_shell_bootstrap_ordering.sh
           # Xray update transaction tests (auto + manual mode coverage)
           bash .github/test/test_xray_update_transaction.sh
+          bash .github/test/test_shell_update_confirmation.sh
+          bash .github/test/test_backup_permissions.sh
+          bash .github/test/test_log_privacy.sh
+          bash .github/test/test_install_uninstall_transaction.sh
+          bash .github/test/test_legacy_auto_update_path.sh
           bash .github/test/test_xray_version_pipefail.sh
           bash .github/test/test_xray_installer_metadata.sh
           # Xray config/log ownership must follow the systemd unit account
@@ -298,6 +305,10 @@ jobs:
           XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
         run: sudo -E bash .github/test/test_xray_legacy_service_upgrade.sh
 
+      - name: Verify offline purge removes the host surface
+        timeout-minutes: 10
+        run: sudo bash .github/test/test_uninstall_clean.sh
+
       - name: Collect debug info on failure (redacted)
         if: failure()
         run: |
@@ -451,6 +462,39 @@ jobs:
           path: ${{ runner.temp }}/xray-true-fresh-artifacts
           if-no-files-found: ignore
 
+  true-fresh-modes:
+    # M6: every install mode starts from a clean runner, not only the reality
+    # top-level journey. This matrix intentionally mirrors test-install so a
+    # mode-specific regression cannot be hidden behind the main matrix.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        mode:
+          - relay
+          - ws_grpc_xhttp
+          - reality
+          - reality_nginx
+          - tls
+    name: True Fresh Mode (${{ matrix.mode }})
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.candidate_commit || github.sha }}
+          persist-credentials: false
+      - name: Checkout API metadata contract
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_api
+          ref: ${{ inputs.api_ref || 'main' }}
+          path: .phase1-contracts/api
+          persist-credentials: false
+      - name: Run fresh mode
+        env:
+          XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
+        run: sudo -E bash .github/test/test_install.sh ${{ matrix.mode }}
+
   release-gate:
     # T5: single, independent gate. `if: always()` ensures every qualification
     # job's result is evaluated even when some of them fail; the step below
@@ -460,8 +504,10 @@ jobs:
     needs:
       - security-regression
       - test-install
+      - relay-guards
       - minimal-bootstrap
       - true-fresh-install
+      - true-fresh-modes
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -471,6 +517,7 @@ jobs:
           echo "test-install matrix: ${{ needs.test-install.result }}"
           echo "minimal-bootstrap matrix: ${{ needs.minimal-bootstrap.result }}"
           echo "true-fresh-install: ${{ needs.true-fresh-install.result }}"
+          echo "true-fresh-modes matrix: ${{ needs.true-fresh-modes.result }}"
           for job in ${{ join(needs.*.result, ' ') }}; do
             if [ "$job" != "success" ]; then
               echo "release-gate FAIL: required job result '$job' (only success qualifies)" >&2
@@ -485,8 +532,10 @@ jobs:
       - security-regression
       - rill-qualification
       - test-install
+      - relay-guards
       - minimal-bootstrap
       - true-fresh-install
+      - true-fresh-modes
       - release-gate
     runs-on: ubuntu-latest
     timeout-minutes: 50

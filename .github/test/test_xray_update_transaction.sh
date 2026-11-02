@@ -115,7 +115,8 @@ make_xray_binary() {
 
 BACKUP_RESULT=0
 backup_xray_binary() {
-    [[ ! -f "${xray_bin_dir}/xray" ]] && return 1
+    # Real behavior: a missing binary is a repair, not a backup failure.
+    [[ ! -f "${xray_bin_dir}/xray" ]] && return 0
     return ${BACKUP_RESULT}
 }
 
@@ -175,6 +176,16 @@ RC=$?
 [[ ${FALLBACK_CALLS} -eq 0 ]] && ok "online update success did not call fallback" || bad "online update success should not call fallback"
 [[ ${ESCALATION_CALLS} -ge 1 ]] && ok "online update re-applied service account ownership" || bad "online update did not re-apply service account ownership"
 [[ "${CALL_SEQ}" == *"escalation health"* ]] && ok "ownership applied before the health gate" || bad "health gate ran before ownership fix (${CALL_SEQ})"
+
+printf '%s\n' '--- [auto] missing binary is repaired, not refused ---'
+reset_state
+rm -f "${xray_bin_dir}/xray"
+CURRENT_XRAY_VERSION="25.12.7"
+xray_update >/dev/null 2>&1
+RC=$?
+[[ ${RC} -eq 0 ]] && ok "missing binary repair returns 0" || bad "missing binary repair returned ${RC}"
+[[ ${XRAY_INSTALL_CALLS} -ge 1 ]] && ok "missing binary repair called xray_install_release" || bad "missing binary repair did not call xray_install_release"
+[[ ${SYSTEMCTL_STOP_COUNT} -ge 1 ]] && ok "missing binary repair stopped/restarted the service" || bad "missing binary repair did not manage the service"
 
 printf '%s\n' '--- [auto] online update failure, local backup restore success -> non-zero ---'
 reset_state
