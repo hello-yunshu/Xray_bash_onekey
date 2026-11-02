@@ -351,9 +351,6 @@ else
 fi
 if [[ ! "${v6_link}" == *"@[2001%3Adb8"* ]]; then ok "IPv6 authority colon is not percent-encoded"; else bad "IPv6 authority colon was percent-encoded"; fi
 
-xtls_v6=$(generate_vless_link "test-user" "xtls" "2001:db8::10")
-if [[ "${xtls_v6}" == *"@[2001:db8::10]:"* ]]; then ok "XTLS IPv6 authority wrapped"; else bad "XTLS IPv6 authority malformed: ${xtls_v6}"; fi
-
 # --- dual direct-IP link generation in install_link_image ---
 # install_link_image emits links; capture stdout and grep. Mock qrencode + info reads.
 printf '%s\n' '--- install_link_image: dual direct-IP v6 entry ---'
@@ -400,16 +397,7 @@ fi
 # --- direct-IP dual-stack links across transports (install_link_image) ---
 # Each scenario asserts the IPv6 authority is @[IPv6] and the IPv4 canonical
 # entry still exists, not merely that some "IPv6" text appears.
-printf '%s\n' '--- direct-IP dual-stack links: XTLS / None ws, grpc, xhttp ---'
-
-network_mode="dual"; ipv6_address="2001:db8::10"; tls_mode="XTLS"; reality_add_more="off"
-rm -f "${xray_info_file}"
-out=$(install_link_image 2>/dev/null; cat "${xray_info_file}" 2>/dev/null)
-if [[ "${out}" == *"vless://test-user@203.0.113.10:443?security=none"* && "${out}" == *"vless://test-user@[2001:db8::10]:443?security=none"* ]]; then
-    ok "dual XTLS emits IPv4 + IPv6 direct-IP links"
-else
-    bad "dual XTLS missing a direct-IP link; out=${out}"
-fi
+printf '%s\n' '--- direct-IP dual-stack links: None ws, grpc, xhttp ---'
 
 # None ws
 is_ws_mode() { return 0; }
@@ -478,13 +466,5 @@ if [[ "${u2_v4}" == *"@203.0.113.10:"* && "${u2_v6}" == *"${user2}@"* && "${u2_v
 else
     bad "multi-user Reality dual link broken; v6=${u2_v6}"
 fi
-u2_v4=$(generate_vless_link "${user2}" "xtls")
-u2_v6=$(generate_vless_link "${user2}" "xtls" "2001:db8::10")
-if [[ "${u2_v4}" == *"@203.0.113.10:"* && "${u2_v6}" == *"@[2001:db8::10]:"* ]]; then
-    ok "multi-user XTLS link keeps IPv4 + IPv6 direct-IP entries"
-else
-    bad "multi-user XTLS dual link broken; v6=${u2_v6}"
-fi
-
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]

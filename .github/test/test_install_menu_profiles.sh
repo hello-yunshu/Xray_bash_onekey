@@ -2,15 +2,14 @@
 # Install wizard profile and hierarchical menu tests.
 #
 # Coverage:
-#   - 9 profiles: reality_nginx, reality_standard, reality_transport,
+#   - 8 profiles: reality_nginx, reality_standard, reality_transport,
 #     reality_transport_nginx, reality_balance_primary,
-#     reality_balance_secondary, transport_nginx_tls, transport_only,
-#     xtls_only
+#     reality_balance_secondary, transport_nginx_tls, transport_only
 #   - Each profile asserts: tls_mode, transport_mode, reality_add_more,
 #     reality_add_nginx, reality_add_balance, reality_balance_role, shell_mode
 #   - reset_install_wizard_state clears profile state (incl. reality_balance_role)
 #   - profile does not pollute next selection
-#   - real hierarchical menu state machine routes all 9 profiles, including
+#   - real hierarchical menu state machine routes all 8 profiles, including
 #     the fourth-level Reality balance role menu (primary/secondary/return)
 #   - real menu input covers every return level, invalid input, confirmations,
 #     narrow terminals, and non-TTY stdin
@@ -57,12 +56,12 @@ uninstall_nginx() { UNINSTALL_NGINX_CALLED=1; }
 INSTALL_REALITY_CALLS=0
 INSTALL_WS_TLS_CALLS=0
 INSTALL_WS_ONLY_CALLS=0
-INSTALL_XTLS_ONLY_CALLS=0
 
 install_xray_reality() { INSTALL_REALITY_CALLS=$((INSTALL_REALITY_CALLS + 1)); }
 install_xray_ws_tls() { INSTALL_WS_TLS_CALLS=$((INSTALL_WS_TLS_CALLS + 1)); }
 install_xray_ws_only() { INSTALL_WS_ONLY_CALLS=$((INSTALL_WS_ONLY_CALLS + 1)); }
-install_xray_xtls_only() { INSTALL_XTLS_ONLY_CALLS=$((INSTALL_XTLS_ONLY_CALLS + 1)); }
+install_nginx_relay() { INSTALL_RELAY_CALLS=$((INSTALL_RELAY_CALLS + 1)); }
+INSTALL_RELAY_CALLS=0
 
 # Mock Nginx-related functions called by _apply_reality_nginx_install
 # Track call counts so balance primary/secondary side-effect tests can assert.
@@ -214,17 +213,6 @@ assert_eq "transport_only transport_mode preserved" "wsxhttp" "${transport_mode}
 assert_eq "transport_only reality_add_more" "off" "${reality_add_more}"
 assert_eq "transport_only reality_add_nginx" "off" "${reality_add_nginx}"
 assert_eq "transport_only reality_add_balance" "off" "${reality_add_balance}"
-
-echo "--- Profile: xtls_only ---"
-reset_for_profile_test
-install_profile="xtls_only"
-apply_install_profile
-assert_eq "xtls_only tls_mode" "XTLS" "${tls_mode}"
-assert_eq "xtls_only transport_mode" "None" "${transport_mode}"
-assert_eq "xtls_only reality_add_more" "off" "${reality_add_more}"
-assert_eq "xtls_only reality_add_nginx" "off" "${reality_add_nginx}"
-assert_eq "xtls_only reality_add_balance" "off" "${reality_add_balance}"
-assert_eq "xtls_only shell_mode" "XTLS ONLY" "${shell_mode}"
 
 echo "--- Profile: unknown profile returns error ---"
 reset_for_profile_test
@@ -568,9 +556,9 @@ run_judge_mode_from_config '{"tls":"Reality","transport_mode":"None","reality_ad
 assert_eq "readback Balance secondary shell_mode" "Reality+Balance" "${READBACK_SHELL_MODE}"
 assert_eq "readback Balance secondary role" "secondary" "${READBACK_BALANCE_ROLE}"
 
-echo "--- readback: XTLS ONLY ---"
+echo "--- readback: removed XTLS mode is labelled, not resurrected ---"
 run_judge_mode_from_config '{"tls":"XTLS","transport_mode":"None"}'
-assert_eq "readback XTLS ONLY shell_mode" "XTLS ONLY" "${READBACK_SHELL_MODE}"
+assert_eq "readback legacy XTLS shell_mode" "旧版 XTLS 模式 (已取消)" "${READBACK_SHELL_MODE}"
 
 echo "--- readback: not installed ---"
 run_judge_mode_from_config '{"tls":"None","transport_mode":"None"}'
@@ -625,9 +613,9 @@ run_real_menu_flow() {
                 printf "ROUTE=only PROFILE=%s TRANSPORT=%s\n" \
                     "$install_profile" "$transport_mode"
             }
-            install_xray_xtls_only() {
-                printf "ROUTE=xtls PROFILE=%s TRANSPORT=%s\n" \
-                    "$install_profile" "$transport_mode"
+            install_nginx_relay() {
+                printf "ROUTE=relay PROFILE=%s TRANSPORT=%s\n" \
+                    "relay" "$transport_mode"
             }
             exec() { :; }
             menu_install
@@ -718,23 +706,27 @@ assert_output_contains "routes transport_nginx_tls" \
     "ROUTE=tls PROFILE=transport_nginx_tls TRANSPORT=onlyxhttp" "${MENU_OUTPUT}"
 
 echo "--- real menu: transport ONLY confirmation accepted ---"
-MENU_OUTPUT=$(run_real_menu_flow '2\n2\ny\n2\n0\n0\n')
+MENU_OUTPUT=$(run_real_menu_flow '2\n2\ny\n2\nn\n0\n0\n')
 assert_output_contains "routes transport_only" \
     "ROUTE=only PROFILE=transport_only TRANSPORT=onlygRPC" "${MENU_OUTPUT}"
 assert_output_contains "transport_only shows risk explanation" \
-    "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境" "${MENU_OUTPUT}"
+    "ONLY 模式没有传输层加密" "${MENU_OUTPUT}"
+assert_output_contains "transport_only defaults to loopback listen address" \
+    "默认仅监听 127.0.0.1" "${MENU_OUTPUT}"
 
-echo "--- real menu: XTLS confirmation accepted ---"
-MENU_OUTPUT=$(run_real_menu_flow '3\ny\n0\n')
-assert_output_contains "routes xtls_only" \
-    "ROUTE=xtls PROFILE=xtls_only TRANSPORT=None" "${MENU_OUTPUT}"
+echo "--- real menu: relay confirmation accepted ---"
+MENU_OUTPUT=$(run_real_menu_flow '3\ny\n')
+assert_output_contains "routes relay" \
+    "ROUTE=relay PROFILE=relay TRANSPORT=None" "${MENU_OUTPUT}"
+assert_output_contains "relay menu explains the dedicated-server requirement" \
+    "中转节点需要一台独立服务器" "${MENU_OUTPUT}"
 
 echo "--- real menu: advanced confirmations rejected ---"
 MENU_OUTPUT=$(run_real_menu_flow '2\n2\nn\n0\n0\n')
 assert_output_not_contains "transport_only rejection does not install" \
     "ROUTE=" "${MENU_OUTPUT}"
 MENU_OUTPUT=$(run_real_menu_flow '3\nn\n0\n')
-assert_output_not_contains "xtls rejection does not install" \
+assert_output_not_contains "relay rejection does not install" \
     "ROUTE=" "${MENU_OUTPUT}"
 
 echo "--- real menu: every return level and invalid input ---"
@@ -780,7 +772,7 @@ run_menu_rc_flow() {
             install_xray_reality() { printf "INSTALLED=reality\n"; return "${INSTALL_RC}"; }
             install_xray_ws_tls() { printf "INSTALLED=ws_tls\n"; return "${INSTALL_RC}"; }
             install_xray_ws_only() { printf "INSTALLED=ws_only\n"; return "${INSTALL_RC}"; }
-            install_xray_xtls_only() { printf "INSTALLED=xtls_only\n"; return "${INSTALL_RC}"; }
+            install_nginx_relay() { printf "INSTALLED=relay\n"; return "${INSTALL_RC}"; }
             exec() {
                 printf "EXEC_REACHED\n"
                 if [[ "${EXEC_MODE}" == "exit" ]]; then exit 0; fi
@@ -835,7 +827,14 @@ for _rc in 0 1 2; do
             _out=$(run_menu_rc_flow "menu_action ${_entry}" ${_rc} return 'y\n')
             assert_output_contains "${_name}: returns ${_rc}" "RETURN=${_rc}" "${_out}"
             assert_output_not_contains "${_name}: no exec on failure" "EXEC_REACHED" "${_out}"
-            if [[ ${_rc} -eq 2 ]]; then
+            if [[ ${_entry} -eq 6 ]]; then
+                # A relay has no Xray reinstall transaction, so it reports its
+                # own failure text instead of the reinstall restore messages.
+                assert_output_contains "${_name}: relay failure message" \
+                    "中转节点安装失败" "${_out}"
+                assert_output_not_contains "${_name}: no reinstall restore text" \
+                    "原配置已恢复" "${_out}"
+            elif [[ ${_rc} -eq 2 ]]; then
                 assert_output_contains "${_name}: backup retained message" \
                     "自动恢复失败, 备份已保留" "${_out}"
             else
@@ -848,7 +847,7 @@ done
 
 echo "--- menu rc propagation: wizard entries ---"
 # Reality standard (menu_install_reality case 2), balance primary (case 1),
-# TLS transport (menu_install_transport case 1), ws ONLY (case 2), XTLS
+# TLS transport (menu_install_transport case 1), ws ONLY (case 2), relay
 # (menu_install case 3). Each must propagate rc 1/2 to the caller.
 _out=$(run_menu_rc_flow "menu_install_reality" 1 return '2\n')
 assert_output_contains "wizard reality standard rc=1: returns 1" "RETURN=1" "${_out}"
@@ -870,8 +869,8 @@ assert_output_contains "wizard ws ONLY rc=2: returns 2" "RETURN=2" "${_out}"
 assert_output_contains "wizard ws ONLY rc=2: backup retained" "自动恢复失败, 备份已保留" "${_out}"
 
 _out=$(run_menu_rc_flow "menu_install" 2 return '3\ny\n')
-assert_output_contains "wizard xtls_only rc=2: returns 2" "RETURN=2" "${_out}"
-assert_output_contains "wizard xtls_only rc=2: backup retained" "自动恢复失败, 备份已保留" "${_out}"
+assert_output_contains "wizard relay rc=2: returns 2" "RETURN=2" "${_out}"
+assert_output_contains "wizard relay rc=2: failure reported" "中转节点安装失败" "${_out}"
 
 echo "--- menu translations are complete and non-fuzzy ---"
 for lang in en fa fr ko ru; do
@@ -880,7 +879,6 @@ for lang in en fa fr ko ru; do
         "选择传输协议" \
         "Reality 部署方式" \
         "无 Nginx、无 TLS" \
-        "此模式主要用于流量中转或特殊部署，不建议普通用户使用" \
         "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境" \
         "Reality 负载均衡角色" \
         "主服务器" \

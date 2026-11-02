@@ -58,7 +58,7 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 | Reality + Nginx | Recommended mode, you can attach ws/gRPC/xHTTP simple protocol as needed for load balancing |
 | Nginx + TLS | Support ws/gRPC/xHTTP, automatically apply for and renew Let's Encrypt certificate |
 | ws/gRPC/xHTTP ONLY | Independent inbound mode without TLS, mainly used in backend or load balancing scenarios |
-| XTLS ONLY | Only used in specific scenarios such as traffic transfer |
+| Relay node | Standalone role: single-target TCP forwarding with Nginx Stream, no Xray installed |
 | Docker | Xray, Nginx and the main script are pre-installed in the image |
 
 Optional when installing ws/gRPC/xHTTP related modes`ws`、`gRPC`、`xHTTP`or`ws+gRPC+xHTTP`. The script will generate the corresponding port, path, sharing link and QR code respectively; Clash currently does not support xHTTP, and the script will prompt in the configuration output.
@@ -136,7 +136,7 @@ Supports automatic deployment of Xray via AI tools such as Trae without manual i
 
 The traditional method requires SSH to go to the server, run the installation script, and answer interactive questions one by one; the Skill method only needs to tell AI your needs, and AI will automatically generate a non-interactive script and execute it, directly returning the VLESS link.
 
-**Supported modes**: Reality / TLS / ws ONLY / XTLS ONLY
+**Supported modes**: Reality / TLS / ws ONLY / relay node
 
 **How ​​to use**: Just say "Help me build Xray on the server" in the AI tool that supports Skill, and AI will automatically collect information, generate scripts, perform deployment and return connection information.
 
