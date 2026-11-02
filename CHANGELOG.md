@@ -7,26 +7,35 @@
 ### 修复
 
 - **非交互 `-u` 假成功**：`read` 失败、非 TTY、EOF 返回非零并明确提示“未升级”；
-  新增 `--yes` 仅用于自动化。`-u auto_update` 的跨 minor 保护不变。
-- **离线 `--purge` 残留**：不再依赖 `xray_installer_ref`/metadata，直接 stop/disable、
-  删除 Xray 二进制、配置目录、systemd unit 并 `daemon-reload`；保留配置的选择不变。
+  `--yes` 只自动确认同一 minor，跨 minor 必须显式 `--allow-major`
+  （非交互场景仍需同时给 `--yes`）。`-u auto_update` 的跨 minor 保护不变。
+- **离线 `--purge` 残留**：不再依赖 `xray_installer_ref`/metadata，也不依赖二进制
+  是否存在，直接 stop/disable（unit 存在时）、删除 Xray 二进制、`/usr/local/etc/xray`、
+  配置目录和 systemd unit 并 `daemon-reload`；保留配置的选择不变。
+- **中转卸载中断**：Nginx 目录/unit 已不存在时不再让 `uninstall_nginx --force`
+  返回失败，relay purge 能继续删除 `/etc/idleleo`；清理后不再向已删除的日志
+  文件写入（消除 `tee: No such file or directory` 假错误）。
 - **备份权限与失败处理**：备份使用 0600，旧备份迁移；tar 非零时删除半成品并返回失败，
   不再报告“备份成功”。
-- **日志泄密**：日志目录 0700、`install.log`/归档 0600；UUIDv5 映射字符串与
-  `mode_switch_reuse` 的完整 UUID 仅输出到终端，不落盘；旧日志做权限迁移。
+- **日志泄密**：日志目录 0700、`install.log`/归档 0600；`basic_information`
+  的 UUIDv5 映射字符串与 `mode_switch_reuse` 的完整 UUID 仅输出到终端/信息文件，
+  不写 `install.log`；旧日志做权限迁移。CI 脱敏与诊断扫描同步覆盖
+  `UUIDv5`/`映射字符串`/`idc`。
 - **缺 Xray 修复**：二进制不存在时按安装/修复路径继续 `-x`，不再因无法备份而拒绝。
-- **失败记录与 installer 身份**：记录增加 `installer_ref`/`installer_sha`；
-  同一 Xray 版本换 installer 会重试；旧格式记录迁移后允许一次重试。
+- **失败记录与 installer 身份**：记录增加 `schema:2`、`installer_ref`/`installer_sha`；
+  同一 Xray 版本换 installer 会重试；无 schema 的旧格式 Xray/Nginx 记录各允许
+  一次重试；schema:2 的空身份记录不会每天重复重试。
 - **Shell 版本防护**：`auto_update.sh` 读取实际安装的 `shell_version` 数值比较；
   在线版本低于已安装版本时拒绝降级且不写 `install_config`；启动时修正
   config 与实际脚本版本不一致。
 
 ### 验证与门禁
 
-- 新增定向测试：非交互确认、离线卸载、备份权限/tar 失败、日志隐私、
-  缺 Xray 修复、失败记录 installer、Shell 元数据回退、旧 `auto_update.sh` 路径。
-- `relay-guards` 纳入 `release-gate` / `release-candidate-gate`；真实 purge、
-  五模式全新安装矩阵、旧自动更新路径全部进入门禁。
+- 新增定向测试：非交互确认与同/跨 minor 三档、离线卸载、备份权限/tar 半成品/
+  低权限读取、`basic_information` 日志隐私、缺 Xray 修复（走生产备份函数）、
+  失败记录 schema/空身份二次抑制、Shell 元数据回退、旧 `auto_update.sh` 路径。
+- `relay-guards` 纳入 `release-gate` / `release-candidate-gate`；真实 purge
+  （含二进制/unit 缺失的中断场景）、五模式全新安装矩阵、旧自动更新路径全部进入门禁。
 - 文档补充两步升级、`--yes`、`--install-relay`、`--purge`、XTLS 迁移和
   自动更新不跨 minor 的说明；恢复被替换成中文的英文 README。
 

@@ -113,11 +113,16 @@ make_xray_binary() {
     chmod 755 "${xray_bin_dir}/xray"
 }
 
-BACKUP_RESULT=0
-backup_xray_binary() {
-    # Real behavior: a missing binary is a repair, not a backup failure.
-    [[ ! -f "${xray_bin_dir}/xray" ]] && return 0
-    return ${BACKUP_RESULT}
+# Do NOT mock backup_xray_binary: the missing-binary repair path must run the
+# production function. A backup failure is injected by making the production
+# destination un-writable-by-shape: `${idleleo_dir}/tmp/xray.prev` is a
+# directory whose child `xray` is also a directory, so `cp -p` cannot overwrite
+# it (this fails even when the test runs as root).
+clear_backup_state() {
+    rm -rf "${idleleo_dir}/tmp/xray.prev" "${idleleo_dir}/tmp/xray.prev.meta"
+}
+make_backup_fail() {
+    mkdir -p "${idleleo_dir}/tmp/xray.prev/xray"
 }
 
 RESTORE_RESULT=0
@@ -140,7 +145,7 @@ reset_state() {
     FALLBACK_CALLS=0
     ESCALATION_CALLS=0
     CALL_SEQ=""
-    BACKUP_RESULT=0
+    clear_backup_state
     XRAY_INSTALL_RESULT=0
     HEALTH_CHECK_RESULT=0
     RESTORE_RESULT=0
@@ -157,7 +162,7 @@ printf '%s\n' '--- [auto] backup failure refuses to stop service ---'
 reset_state
 make_xray_binary
 CURRENT_XRAY_VERSION="25.12.7"
-BACKUP_RESULT=1
+make_backup_fail
 xray_update >/dev/null 2>&1
 RC=$?
 [[ ${RC} -ne 0 ]] && ok "backup failure returns non-zero" || bad "backup failure should return non-zero"
@@ -186,6 +191,9 @@ RC=$?
 [[ ${RC} -eq 0 ]] && ok "missing binary repair returns 0" || bad "missing binary repair returned ${RC}"
 [[ ${XRAY_INSTALL_CALLS} -ge 1 ]] && ok "missing binary repair called xray_install_release" || bad "missing binary repair did not call xray_install_release"
 [[ ${SYSTEMCTL_STOP_COUNT} -ge 1 ]] && ok "missing binary repair stopped/restarted the service" || bad "missing binary repair did not manage the service"
+[[ ! -e "${idleleo_dir}/tmp/xray.prev" && ! -e "${idleleo_dir}/tmp/xray.prev.meta" ]] &&
+    ok "missing binary repair skipped the production backup" ||
+    bad "missing binary repair still created a backup"
 
 printf '%s\n' '--- [auto] online update failure, local backup restore success -> non-zero ---'
 reset_state
@@ -267,7 +275,7 @@ printf '%s\n' '--- [auto] same-version reinstall backup failure refuses to proce
 reset_state
 make_xray_binary
 CURRENT_XRAY_VERSION="25.12.8"
-BACKUP_RESULT=1
+make_backup_fail
 XRAY_INSTALL_RESULT=0
 HEALTH_CHECK_RESULT=0
 xray_update >/dev/null 2>&1
