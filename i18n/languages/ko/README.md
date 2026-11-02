@@ -13,7 +13,7 @@
 * 支持 Reality 协议，建议搭配 Nginx 前置（脚本内可安装）
 * 支持 WebSocket、gRPC、xHTTP 传输，可选择单一传输或 `ws+gRPC+xHTTP` 同时启用
 * 支持 IPv4 / IPv6 双栈：安装时可自动检测公网出口能力，按域名 A/AAAA 记录独立校验并生成对应分享链接与 Clash 配置
-* 내장된 fail2ban 보호(스크립트 내에 설치 가능)
+* 内置 fail2ban 防护（脚本内可安装）
 * 内置 Xray 流量统计、流量阻断、GeoIP/GeoSite 规则更新及定时更新
 * 支持脚本、Xray、Nginx 和证书更新，并为关键更新提供备份与失败回滚
 * 重新安装和模式切换前会自动备份当前运行配置，失败时恢复原配置
@@ -136,7 +136,7 @@ docker attach xray-onekey
 
 传统方式需要 SSH 到服务器、运行安装脚本、逐个回答交互式问题；Skill 方式只需告诉 AI 你的需求，AI 会自动生成非交互式脚本并执行，直接返回 VLESS 链接。
 
-**지원되는 모드**: Reality / TLS / ws ONLY / 중계 노드
+**支持模式**：Reality / TLS / ws ONLY / 中转节点
 
 **使用方式**：在支持 Skill 的 AI 工具中直接说"帮我在服务器上搭建 Xray"，AI 会自动收集信息、生成脚本、执行部署并返回连接信息。
 
@@ -148,53 +148,53 @@ docker attach xray-onekey
 * 支持 Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+，部分 CentOS 模板可能存在编译问题，建议遇到问题时更换系统
 * 建议单服务器仅部署单个代理，使用默认 443 端口
 * 自定义字符串映射至 UUIDv5 需要客户端支持
-* 순수한 환경에서 사용하는 것을 권장합니다. 초보자는 CentOS을 사용하면 안 됩니다.
-* 本程序依赖 Nginx，已通过 [LNMP](https://lnmp.org)Nginx 스크립트를 설치한 사용자는 잠재적인 충돌에 유의하시기 바랍니다.
+* 推荐在纯净环境下使用；新手请勿使用 CentOS
+* 本程序依赖 Nginx，已通过 [LNMP](https://lnmp.org) 等脚本安装过 Nginx 的用户请注意潜在冲突
 * xHTTP 分享链接适用于支持 xHTTP 的客户端；Clash 配置输出会跳过 xHTTP
 * 请勿在未验证可用性前将本脚本用于生产环境
 * 作者：云舒，仅提供有限支持
 
-## 감사의 말
+## 鸣谢
 
-* 기반으로[wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey) 开发
-* TCP에서 인용된 가속 스크립트[ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
+* 基于 [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey) 开发
+* TCP 加速脚本引用自 [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
-## 인증서 구성
+## 证书配置
 
-**맞춤 인증서**: crt 및 key 파일의 이름을 각각 지정합니다.`xray.crt`그리고`xray.key`, 넣다`/etc/idleleo/cert`디렉토리(디렉토리가 없으면 먼저 작성하십시오). 인증기관 및 유효기간에 주의하시기 바랍니다. 사용자 정의 인증서가 만료된 후에는 직접 갱신해야 합니다.
+**自定义证书**：将 crt 和 key 文件分别命名为 `xray.crt` 和 `xray.key`，放入 `/etc/idleleo/cert` 目录（目录不存在则先创建）。请注意证书权限及有效期，自定义证书过期后需自行续签。
 
-**자동 인증서**: 스크립트는 Let's Encrypt 인증서(3개월 동안 유효) 자동 생성을 지원하며 이론적으로 자동 갱신을 지원합니다.
+**自动证书**：脚本支持自动生成 Let's Encrypt 证书（有效期 3 个月），理论上支持自动续签。
 
-## 클라이언트 구성 보기
+## 查看客户端配置
 
 ```bash
 cat /etc/idleleo/info/xray_info.inf
 ```
 
-## Xray 소개
+## Xray 简介
 
-* Xray은 Windows, macOS, Android, iOS, Linux 및 기타 전체 플랫폼을 지원하는 뛰어난 오픈 소스 네트워크 프록시 도구입니다.
-* 이 스크립트는 원클릭 완전한 구성 스크립트입니다. 모든 과정이 정상적으로 완료된 후, 출력 결과에 따라 클라이언트를 이용하실 수 있습니다.
-* **적극 권장** 프로그램의 작업 흐름과 원칙에 대한 포괄적인 이해
+* Xray 是一款优秀的开源网络代理工具，支持 Windows、macOS、Android、iOS、Linux 等全平台
+* 本脚本为一键完整配置脚本，所有流程正常完成后，按输出结果设置客户端即可使用
+* **强烈建议**全面了解程序的工作流程及原理
 
-## 서비스 관리
+## 服务管理
 
-| 작동하다 | 주문하다 |
+| 操作 | 命令 |
 |------|------|
-| Xray 시작 | `systemctl start xray` |
-| Xray 중지 | `systemctl stop xray` |
-| Nginx 시작 | `systemctl start nginx` |
-| Nginx 중지 | `systemctl stop nginx` |
+| 启动 Xray | `systemctl start xray` |
+| 停止 Xray | `systemctl stop xray` |
+| 启动 Nginx | `systemctl start nginx` |
+| 停止 Nginx | `systemctl stop nginx` |
 
-## 관련 카탈로그
+## 相关目录
 
-| 콘텐츠 | 길 |
+| 内容 | 路径 |
 |------|------|
-| 홈 디렉토리 | `/etc/idleleo` |
-| Xray 구성 | `/etc/idleleo/conf/xray/config.json` |
-| Nginx 구성 | `/etc/idleleo/conf/nginx/` |
-| 설치정보 | `/etc/idleleo/conf/install_config.json` |
-| 인증서 파일 | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
-| 로그 디렉터리 | `/etc/idleleo/logs/`、`/var/log/xray/` |
-| Nginx 설치 디렉터리 | `/usr/local/nginx` |
-| 관리 명령 | `/usr/bin/idleleo` |
+| 主目录 | `/etc/idleleo` |
+| Xray 配置 | `/etc/idleleo/conf/xray/config.json` |
+| Nginx 配置 | `/etc/idleleo/conf/nginx/` |
+| 安装信息 | `/etc/idleleo/conf/install_config.json` |
+| 证书文件 | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
+| 日志目录 | `/etc/idleleo/logs/`、`/var/log/xray/` |
+| Nginx 安装目录 | `/usr/local/nginx` |
+| 管理命令 | `/usr/bin/idleleo` |
