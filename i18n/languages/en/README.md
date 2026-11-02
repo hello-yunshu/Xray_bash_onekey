@@ -106,12 +106,16 @@ steps, or use the explicit automation flag:
 ```bash
 bash /etc/idleleo/install.sh --update          # interactive terminal, answer Y
 bash /etc/idleleo/install.sh --xray-update
-# automation:
+# automation (same minor):
 bash /etc/idleleo/install.sh --update --yes
+# automation (cross minor):
+bash /etc/idleleo/install.sh --update --yes --allow-major
 ```
 
-`--yes` only replaces the Y/N confirmation; it does not bypass the cross-minor
-compatibility policy. Take a backup before upgrading.
+`--yes` only auto-confirms a same-minor update. A cross-minor update additionally
+requires the explicit `--allow-major` switch; `--allow-major` only lifts the
+series restriction and does not replace the Y/N confirmation by itself (non-
+interactive use still needs `--yes`). Take a backup before upgrading.
 
 ### 3.3.0 → 3.3.1
 

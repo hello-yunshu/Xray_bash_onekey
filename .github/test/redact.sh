@@ -58,6 +58,9 @@ redact_text_for_diagnostics() {
         | sed -E 's/(password[":= ]+)[A-Za-z0-9_-]+/\1<redacted>/gI' \
         | sed -E 's/(shortIds?[":= ]+)[A-Za-z0-9_-]+/\1<redacted>/gI' \
         | sed -E 's/(UUID[":= ]+)[A-Za-z0-9-]+/\1<redacted>/gI' \
+        | sed -E 's/(UUIDv5[^:：=]*[:：= ]+)[A-Za-z0-9_-]+/\1<redacted>/gI' \
+        | sed -E 's/(映射字符串[^:：=]*[:：= ]+)[A-Za-z0-9_-]+/\1<redacted>/g' \
+        | sed -E 's/(idc[":= ]+)[A-Za-z0-9_-]+/\1<redacted>/gI' \
         | sed -E 's/(host[":= ]+)[A-Za-z0-9._-]+/\1<redacted>/gI' \
         | sed -E 's/(domain[":= ]+)[A-Za-z0-9._-]+/\1<redacted>/gI' \
         | sed -E 's/(decoy_domain[":= ]+)[A-Za-z0-9._-]+/\1<redacted>/gI' \
@@ -77,7 +80,7 @@ scan_diagnostics_artifact_for_secrets() {
     [[ -n "${directory}" && -d "${directory}" ]] || return 2
 
     if matches=$(grep -RInE --binary-files=without-match \
-        'vless://|[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[1-5][0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}|(privateKey|publicKey|password|shortIds?|token|Authorization)[":=[:space:]]+[A-Za-z0-9+/_.=-]{12,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}' \
+        'vless://|[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[1-5][0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}|(privateKey|publicKey|password|shortIds?|token|Authorization|idc|UUIDv5[^:：=]*|映射字符串[^:：=]*)[":=[:space:]]+[A-Za-z0-9+/_.=-]{4,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}' \
         "${directory}" 2>&1); then
         printf '%s\n' "${matches}" >&2
         return 1
