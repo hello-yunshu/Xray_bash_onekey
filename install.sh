@@ -138,9 +138,13 @@ shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=""
 _get_versions_loaded=0
 # Explicit non-interactive confirmation for `-u --yes` / `--update --yes`.
-# It never bypasses the cross-minor auto-update guard; it only replaces the
-# interactive Y/N prompt for automation.
+# `--yes` only replaces the Y/N prompt for a same-minor update; it never
+# authorises a cross-minor update by itself.
 update_assume_yes="off"
+# `--allow-major` is the separate, explicit switch for a cross-minor update.
+# It only lifts the series guard: automation still needs `--yes` for the
+# confirmation, and an interactive run still sees the cross-minor prompt.
+update_allow_major="off"
 
 shell_release_asset_url() {
     if [[ "${XRAY_QUALIFICATION_MODE:-0}" == "1" && -n "${SHELL_RELEASE_BASE_OVERRIDE:-}" ]]; then
@@ -9237,7 +9241,7 @@ basic_information() {
                 log_echo "${Red} Xray xHTTP $(gettext "端口") (inbound_port):${Font} $(info_extraction xhttp_port) "
             fi
         fi
-        log_echo "${Red} UUIDv5 $(gettext "映射字符串"):${Font} $(info_extraction idc)"
+        log_echo_secure "${Red} UUIDv5 $(gettext "映射字符串"):${Font} $(info_extraction idc)"
         log_echo_secure "${Red} $(gettext "用户id") (UUID):${Font} $(info_extraction id)"
 
         log_echo "${Red} $(gettext "加密") (encryption):${Font} None "
@@ -10095,8 +10099,12 @@ uninstall_xray() {
     # the known host files directly. The pinned installer path is retained only
     # when metadata is already available (e.g. an in-process call).
     local rcx=0
-    systemctl disable xray 2>/dev/null || rcx=1
-    systemctl stop xray 2>/dev/null || true
+    local had_xray_unit=0
+    if [[ -f "${xray_systemd_file}" || -f "${xray_systemd_file%.service}@.service" ]]; then
+        had_xray_unit=1
+        systemctl disable xray 2>/dev/null || rcx=1
+        systemctl stop xray 2>/dev/null || true
+    fi
 
     if verified_installer_metadata_valid; then
         if ! xray_install_release remove --purge; then
@@ -10119,6 +10127,8 @@ uninstall_xray() {
         safe_rm "${xray_systemd_file%.service}@.service" || rcx=1
     fi
     [[ -d "${xray_systemd_file}.d" ]] && { safe_rm "${xray_systemd_file}.d" || rcx=1; }
+    # Not tied to the binary or unit surviving: purge is exactly the path where
+    # one of them may already be gone. systemd must still drop any stale state.
     systemctl daemon-reload 2>/dev/null || rcx=1
     if [[ -f "${xray_install_config_file}" ]]; then
         update_json_config "${xray_install_config_file}" -r 'del(.xray_version)' || rcx=1
@@ -10143,9 +10153,12 @@ uninstall_nginx() {
             ;;
         esac
     fi
-    systemctl disable nginx 2>/dev/null || rcn=1
-    safe_rm "${nginx_dir}" || rcn=1
-    safe_rm "${nginx_conf_dir}" || rcn=1
+    if [[ -f "${nginx_systemd_file}" ]]; then
+        systemctl disable nginx 2>/dev/null || rcn=1
+        systemctl stop nginx 2>/dev/null || true
+    fi
+    [[ -d "${nginx_dir}" ]] && { safe_rm "${nginx_dir}" || rcn=1; }
+    [[ -d "${nginx_conf_dir}" ]] && { safe_rm "${nginx_conf_dir}" || rcn=1; }
     [[ -f "${nginx_systemd_file}" ]] && { safe_rm "${nginx_systemd_file}" || rcn=1; }
     if [[ -f "${xray_install_config_file}" ]]; then
         update_json_config "${xray_install_config_file}" 'del(.nginx_build_version)' || rcn=1
@@ -10183,13 +10196,11 @@ uninstall_all() {
     [[ -f "/etc/logrotate.d/xray_log_cleanup" ]] && rm -f "/etc/logrotate.d/xray_log_cleanup"
     [[ -L "/usr/local/etc/xray/config.json" ]] && rm -f "/usr/local/etc/xray/config.json"
     [[ -L "/usr/local/share/xray" ]] && rm -f "/usr/local/share/xray"
-    if [[ -f "${xray_bin_dir}/xray" ]]; then
-        uninstall_xray || rxa_uninstall_rc=1
-    fi
+    # Node cleanup must not depend on the binary surviving: a missing binary is
+    # exactly the case where stale units/config dirs are most likely.
+    uninstall_xray || rxa_uninstall_rc=1
     echo
-    if [[ -d "${nginx_dir}" ]]; then
-        uninstall_nginx --force || rxa_uninstall_rc=1
-    fi
+    uninstall_nginx --force || rxa_uninstall_rc=1
     echo
     local keep_config=true
     if [[ -f "${xray_install_config_file}" ]]; then
@@ -10209,6 +10220,11 @@ uninstall_all() {
     read -r remove_all_idleleo_file_fq
     case $remove_all_idleleo_file_fq in
     [yY][eE][sS] | [yY])
+        # The managed tree, including logs/, is about to disappear. Keep the
+        # terminal messages but stop file logging, otherwise the final
+        # log_echo calls make tee print "No such file or directory".
+        LOG_FILE=/dev/null
+        log_file=/dev/null
         if [[ "${keep_config}" == "true" && -f "${xray_install_config_file}" ]]; then
             local _tmp_config
             _tmp_config=$(mktemp)
@@ -10975,6 +10991,10 @@ relay_uninstall() {
     read -r _remove_scripts
     case ${_remove_scripts:-} in
     [yY][eE][sS] | [yY])
+        # Same as the node purge: logs/ disappears with the managed tree, so
+        # the remaining messages must not tee into a deleted log file.
+        LOG_FILE=/dev/null
+        log_file=/dev/null
         safe_rm "${idleleo_commend_file}"
         safe_rm "${idleleo_dir}"
         log_echo "${OK} ${GreenBG} $(gettext "已删除所有文件") ${Font}"
@@ -11898,15 +11918,34 @@ _update_sh_impl() {
                 echo
                 log_echo "${GreenBG} $(gettext "存在新版本, 是否更新") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             fi
+            update_confirm=""
             if [[ "${update_assume_yes:-off}" == "YES" ]]; then
-                log_echo "${Info} $(gettext "已按 --yes 自动确认更新") ${Font}"
-                update_confirm="YES"
+                if [[ ${version_difference} == 1 && "${update_allow_major:-off}" != "YES" ]]; then
+                    # --yes is a same-minor convenience only. A cross-minor
+                    # update needs the separate --allow-major switch; in a
+                    # terminal the user can still answer the prompt explicitly.
+                    if [[ ! -t 0 ]]; then
+                        log_echo "${Error} ${RedBG} $(gettext "未升级")：$(gettext "跨 minor 更新需要显式 --allow-major；--yes 仅自动确认同一 minor") ${Font}"
+                        return 1
+                    fi
+                    log_echo "${Warning} ${YellowBG} $(gettext "跨 minor 更新未被 --yes 自动确认；请确认或改用 --allow-major") ${Font}"
+                else
+                    if [[ ${version_difference} == 1 ]]; then
+                        log_echo "${Info} $(gettext "已按 --yes --allow-major 自动确认跨 minor 更新") ${Font}"
+                    else
+                        log_echo "${Info} $(gettext "已按 --yes 自动确认更新") ${Font}"
+                    fi
+                    update_confirm="YES"
+                fi
             elif [[ ! -t 0 ]]; then
                 log_echo "${Error} ${RedBG} $(gettext "未升级")：$(gettext "当前输入不是交互终端；自动化请使用 --yes") ${Font}"
                 return 1
-            elif ! read -r update_confirm; then
-                log_echo "${Error} ${RedBG} $(gettext "未升级")：$(gettext "无法读取确认输入") ${Font}"
-                return 1
+            fi
+            if [[ -z "${update_confirm}" ]]; then
+                if ! read -r update_confirm; then
+                    log_echo "${Error} ${RedBG} $(gettext "未升级")：$(gettext "无法读取确认输入") ${Font}"
+                    return 1
+                fi
             fi
         else
             [[ -z ${ol_version} ]] && echo "$(gettext "检测最新版本失败")!" >>"${log_file}" && return 1
@@ -12216,11 +12255,13 @@ list() {
         ;;
     '-u' | '--update')
         update_assume_yes="off"
+        update_allow_major="off"
         local _update_arg
-        for _update_arg in "${2:-}" "${3:-}"; do
+        for _update_arg in "${2:-}" "${3:-}" "${4:-}"; do
             case "${_update_arg}" in
             auto_update) auto_update="YES"; log_file="${log_dir}/auto_update.log" ;;
             --yes|-y) update_assume_yes="YES" ;;
+            --allow-major) update_allow_major="YES" ;;
             esac
         done
         update_sh
@@ -12299,7 +12340,8 @@ show_help() {
     echo "  -t, --target-reset          $(gettext "变更") target"
     echo "  -tcp, --tcp                 $(gettext "配置") TCP $(gettext "加速")"
     echo "  -tls, --tls                 $(gettext "修改") TLS $(gettext "配置")"
-    echo "  -u, --update [--yes]        $(gettext "更新脚本") ($(gettext "自动化请加") --yes)"
+    echo "  -u, --update [--yes] [--allow-major]"
+    echo "                              $(gettext "更新脚本") ($(gettext "自动化请加") --yes；$(gettext "跨 minor 另加") --allow-major)"
     echo "  -uu, --uuid-reset           $(gettext "变更") UUIDv5/$(gettext "映射字符串")"
     echo "  -xa, --xray-access          $(gettext "显示") Xray $(gettext "访问信息")"
     echo "  -xe, --xray-error           $(gettext "显示") Xray $(gettext "错误信息")"

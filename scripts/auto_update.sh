@@ -104,6 +104,11 @@ check_update() {
 # ---- Failure record -------------------------------------------------------
 # component -> failed target version, so the retry decision is about the
 # version that actually failed, not about "has this component ever failed".
+#
+# Records written by this version carry `schema: 2`. A missing schema is the
+# legacy format and earns exactly one retry. Without this marker, a record
+# written while installer metadata was unavailable (empty installer_ref/sha)
+# is indistinguishable from an old record and would be retried on every run.
 
 failure_record_get() {
     local component="$1" value
@@ -134,7 +139,7 @@ failure_record_write() {
         if ! jq --arg c "${component}" --arg v "${version}" \
             --arg ir "${installer_ref}" --arg is "${installer_sha}" \
             --arg at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
-            '.[$c] = {version: $v, installer_ref: $ir, installer_sha: $is, failed_at: $at}' \
+            '.[$c] = {schema: 2, version: $v, installer_ref: $ir, installer_sha: $is, failed_at: $at}' \
             "${failure_record_file}" >"${tmp_file}" 2>/dev/null; then
             rm -f "${tmp_file}"
             return 1
@@ -143,7 +148,7 @@ failure_record_write() {
         if ! jq -n --arg c "${component}" --arg v "${version}" \
             --arg ir "${installer_ref}" --arg is "${installer_sha}" \
             --arg at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
-            '{($c): {version: $v, installer_ref: $ir, installer_sha: $is, failed_at: $at}}' \
+            '{($c): {schema: 2, version: $v, installer_ref: $ir, installer_sha: $is, failed_at: $at}}' \
             >"${tmp_file}" 2>/dev/null; then
             rm -f "${tmp_file}"
             return 1
@@ -189,26 +194,34 @@ legacy_marker_migrate() {
 }
 
 # 0 = attempt this target, 1 = skip, the failed target (version + installer
-# identity) is unchanged. A legacy record without installer identity gets one
-# retry so a migration is never permanently blocked by old metadata.
+# identity) is unchanged. A record without `schema` is the legacy format and
+# gets one retry for both components. A schema:2 record with an empty installer
+# identity is a deliberate "installer metadata was unavailable" record: it is
+# suppressed like any other identical target, so it cannot retry every day.
 component_should_attempt() {
     local component="$1" target="$2" installer_ref="${3:-}" installer_sha="${4:-}"
-    local failed_version failed_at failed_ref failed_sha
+    local failed_version failed_at failed_ref failed_sha failed_schema
     failed_version=$(failure_record_get "${component}") || return 0
     if [[ "${failed_version}" != "${target}" ]]; then
         log "Recorded ${component} failure was for v${failed_version}; the current target is v${target}, retrying."
         return 0
     fi
 
-    failed_ref=$(failure_record_field "${component}" installer_ref 2>/dev/null || true)
-    failed_sha=$(failure_record_field "${component}" installer_sha 2>/dev/null || true)
-    if [[ "${component}" == "xray" && -z "${failed_ref}" && -z "${failed_sha}" ]]; then
-        log "${component} v${target} has a legacy failure record without installer identity; retrying once."
+    failed_schema=$(failure_record_field "${component}" schema 2>/dev/null || true)
+    if [[ -z "${failed_schema}" ]]; then
+        log "${component} v${target} has a legacy failure record without a schema; retrying once."
         return 0
     fi
+
+    failed_ref=$(failure_record_field "${component}" installer_ref 2>/dev/null || true)
+    failed_sha=$(failure_record_field "${component}" installer_sha 2>/dev/null || true)
     if [[ "${failed_ref}" == "${installer_ref}" && "${failed_sha}" == "${installer_sha}" ]]; then
         failed_at=$(failure_record_failed_at "${component}" 2>/dev/null || echo "unknown")
-        log "${component} v${target} already failed on ${failed_at} with the same installer; skipping this target."
+        if [[ -z "${installer_ref}" && -z "${installer_sha}" ]]; then
+            log "${component} v${target} already failed on ${failed_at} without installer identity (schema ${failed_schema}); skipping this target."
+        else
+            log "${component} v${target} already failed on ${failed_at} with the same installer; skipping this target."
+        fi
         failure_retry_hint "${component}"
         return 1
     fi
