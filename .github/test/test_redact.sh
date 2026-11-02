@@ -66,7 +66,7 @@ JSON_INPUT=$(cat <<EOF
   "host": "${FAKE_HOST}",
   "domain": "${FAKE_DOMAIN}",
   "email": "${FAKE_EMAIL}",
-  "shell_mode": "XTLS ONLY",
+  "shell_mode": "Relay",
   "shell_version": "3.0.1",
   "nested": {
     "uuid": "${FAKE_UUID}",
@@ -103,7 +103,7 @@ assert_not_contains "JSON: nested uuid redacted" "${REDACTED_JSON}" "${FAKE_UUID
 assert_not_contains "JSON: nested privateKey in array redacted" "${REDACTED_JSON}" "${FAKE_PRIVATE_KEY}"
 
 # Non-sensitive values must still be visible
-assert_contains "JSON: shell_mode visible" "${REDACTED_JSON}" "XTLS ONLY"
+assert_contains "JSON: shell_mode visible" "${REDACTED_JSON}" "Relay"
 assert_contains "JSON: shell_version visible" "${REDACTED_JSON}" "3.0.1"
 assert_contains "JSON: tag visible" "${REDACTED_JSON}" "VLESS-Reality-in"
 

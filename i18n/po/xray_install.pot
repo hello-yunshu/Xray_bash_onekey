@@ -1467,10 +1467,6 @@ msgstr ""
 msgid "下载 Xray 配置"
 msgstr ""
 
-#: install.sh:6783
-msgid "下载 Xray XTLS 配置"
-msgstr ""
-
 #: install.sh:6791
 msgid "检测到 Xray 配置过多用户"
 msgstr ""
@@ -4065,4 +4061,160 @@ msgstr ""
 
 #: scripts/traffic_blocker.sh:1154 scripts/traffic_blocker.sh:1157
 msgid "已恢复"
+msgstr ""
+
+#: install.sh
+msgid "无法创建 GeoData 资源目录"
+msgstr ""
+
+#: install.sh
+msgid "缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置"
+msgstr ""
+
+#: install.sh
+msgid "GeoData 资源目录与 Xray 实际读取路径不一致, 跳过原生配置"
+msgstr ""
+
+#: install.sh
+msgid "systemd 沙箱禁止写入 GeoData 资源目录, 跳过原生配置"
+msgstr ""
+
+#: install.sh
+msgid "低内存设备 (小于 1 GiB): GeoData 定时更新会有短暂内存峰值, 请留意"
+msgstr ""
+
+#: install.sh
+msgid "检测到自定义 geodata 配置, 保留原样"
+msgstr ""
+
+#: install.sh
+msgid "Xray 配置无法解析, 跳过 GeoData 原生配置"
+msgstr ""
+
+#: install.sh
+msgid "Xray 服务账号仍无法写入 GeoData 文件, 原生更新可能失败"
+msgstr ""
+
+#: install.sh
+msgid "当前 Xray 配置未通过 xray run -test, 跳过 GeoData 原生配置"
+msgstr ""
+
+#: install.sh
+msgid "加入 geodata 后 Xray 配置测试失败, 已恢复原配置"
+msgstr ""
+
+#: install.sh
+msgid "GeoData 文件权限设置失败"
+msgstr ""
+
+#: install.sh
+msgid "GeoData 文件权限恢复失败"
+msgstr ""
+
+#: install.sh
+msgid "已启用 Xray 原生 GeoData 定时更新"
+msgstr ""
+
+#: install.sh
+msgid "已移除脚本创建的 geo_update.sh 周期任务, 避免与原生更新重复执行"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "移除 geo_update.sh 周期任务失败, 请手动检查 crontab"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "由 Xray 原生 geodata 定时更新"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "本地时区, 不重启 Xray"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "最后更新"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "待执行"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "异常"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "配置异常: geodata.assets 缺少有效的 HTTPS 下载地址"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "说明: 这里只反映配置与文件现状, 不代表某次定时任务已成功"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "可在此菜单手动更新, 或检查"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "与 Xray 错误日志"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "GeoData 由 Xray 原生 geodata 定时更新"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "原生更新在进程内热重载, 不重启 Xray, 无需额外的定时任务"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "未发现重复的 geo_update.sh 周期任务"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "发现脚本安装的 geo_update.sh 周期任务, 与原生更新重复"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "是否移除该重复任务"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "移除重复的 GeoData 定时任务"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "重新安装或重配置为普通节点后, 将改用 Xray 原生定时更新, 该任务会被自动移除"
+msgstr ""
+
+#: scripts/traffic_blocker.sh
+msgid "原生定时更新已启用; 这里的手动更新会重启 Xray"
+msgstr ""
+
+#: install.sh
+msgid "写入 REALITY minClientVer 失败, 已恢复原配置"
+msgstr ""
+
+#: install.sh
+msgid "加入 minClientVer 后配置测试失败, 已恢复原配置"
+msgstr ""
+
+#: install.sh
+msgid "已为 REALITY 入站补上 minClientVer"
+msgstr ""
+
+#: install.sh
+msgid "已安装版本高于在线清单, 不执行降级"
+msgstr ""
+
+#: install.sh
+msgid "在线清单"
+msgstr ""
+
+#: install.sh
+msgid "如确需降级, 请手动指定版本或先卸载再安装"
+msgstr ""
+
+#: install.sh
+msgid "本机版本高于清单钉定版本, 将按清单重新安装"
 msgstr ""

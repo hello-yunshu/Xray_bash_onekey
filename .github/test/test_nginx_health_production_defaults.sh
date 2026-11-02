@@ -13,7 +13,7 @@
 #                          path exists and nginx passes -t
 #   * Reality + Nginx  -> nginx required, healthy
 #   * Reality-only     -> nginx NOT required, healthy without nginx present
-#   * XTLS-only        -> nginx NOT required, healthy without nginx present
+#   * None/ONLY        -> nginx NOT required, healthy without nginx present
 #   * Wrong-path guard -> a fragment dir that contains nginx.conf is NOT used;
 #                          the derived nginx_main_conf path is authoritative.
 #
@@ -176,12 +176,12 @@ else
     bad "Reality-only without Nginx => $? (want 0)"
 fi
 
-# ---------- 4: XTLS-only does NOT require Nginx ----------
+# ---------- 4: ws/gRPC/xHTTP ONLY does NOT require Nginx ----------
 write_cfg "none" "off"
 if FAKE_ACTIVE="xray" FAKE_LISTEN="60000" health; then
-    ok "XTLS/none-only ignores Nginx => 0"
+    ok "none-only ignores Nginx => 0"
 else
-    bad "XTLS/none-only without Nginx => $? (want 0)"
+    bad "none-only without Nginx => $? (want 0)"
 fi
 
 # ---------- 5: wrong-path guard: fragment dir is NOT the main config ----------

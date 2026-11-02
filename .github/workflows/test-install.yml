@@ -102,6 +102,35 @@ jobs:
           # Xray config/log ownership must follow the systemd unit account
           # (Xray-install switched User=nobody -> User=xray).
           bash .github/test/test_xray_service_user_permissions.sh
+          # Stage 01: certificate renewal must never leave a running Nginx down,
+          # Xray logs must not be world-readable, and new ws/gRPC/xHTTP ONLY
+          # backends must not bind 0.0.0.0 by default.
+          bash .github/test/test_ssl_update_recovery.sh
+          bash .github/test/test_cert_update_recovery.sh
+          bash .github/test/test_ws_only_listen_address.sh
+          # Stage 02: the XTLS ONLY profile is gone (Vision/Reality untouched)
+          # and the independent relay role only ever writes a managed Nginx
+          # Stream fragment, with rollback and role persistence.
+          bash .github/test/test_relay_node.sh
+          # Stage 03: normal nodes get Xray's native geodata schedule (no
+          # external cron, no restart), scoped asset permissions, and an
+          # honest status view instead of the legacy geo_version.json.
+          bash .github/test/test_geodata_native.sh
+          # Stage 04: auto-update retries are keyed on the failed target
+          # version (legacy .xray/.nginx markers no longer block forever),
+          # metadata falls back to GitHub Raw, and relay nodes never treat a
+          # missing Xray as a failure.
+          bash .github/test/test_auto_update_failure_records.sh
+          # Stage 04: Xray 26.7.11 made an unset REALITY minClientVer reject
+          # older clients; the installer/template now write it explicitly and
+          # repair existing configs without touching a user-chosen value.
+          bash .github/test/test_reality_min_client_ver.sh
+          # Stage 04: "different" is not "newer". A regressed metadata target
+          # must never reinstall an older Xray/Nginx over a working host.
+          bash .github/test/test_version_downgrade_guard.sh
+          # The release workflow tags whatever install.sh declares; the
+          # CHANGELOG and README must describe that same version and role set.
+          bash .github/test/test_shell_version_consistency.sh
           bash -n .github/test/test_installer_candidate_smoke.sh
           bash .github/test/test_vps_auto_update_schedule.sh
           # Online version metadata must fall back cleanly without contaminating values.
@@ -225,7 +254,9 @@ jobs:
       fail-fast: false
       matrix:
         mode:
-          - xtls_only
+          # relay replaces the removed XTLS ONLY profile: an independent Nginx
+          # Stream TCP relay that never installs Xray.
+          - relay
           - ws_grpc_xhttp
           - reality
           - reality_nginx
@@ -257,9 +288,11 @@ jobs:
         run: sudo -E bash .github/test/test_install.sh ${{ matrix.mode }}
 
       - name: Verify real Xray access after fresh and legacy permission migration
+        if: matrix.mode != 'relay'
         run: sudo bash .github/test/test_xray_runtime_permissions.sh
 
       - name: Upgrade legacy service accounts with the pinned official installer
+        if: matrix.mode != 'relay'
         timeout-minutes: 10
         env:
           XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
@@ -296,6 +329,41 @@ jobs:
           echo ""
           echo "=== Install log (redacted) ==="
           sudo tail -100 /etc/idleleo/logs/install.log 2>/dev/null | redact_text_for_diagnostics /dev/stdin || echo "(not found)"
+
+  relay-guards:
+    # The relay role must never coexist with a node install, and a legacy
+    # XTLS ONLY host must never be silently reinstalled. Both guards are cheap
+    # (no Nginx download) and run separately from the install matrix so a guard
+    # regression is not buried in a 15-minute install log.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    name: Relay mixing and legacy-mode guards
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.candidate_commit || github.sha }}
+          persist-credentials: false
+
+      - name: Checkout API contract branch
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey_api
+          ref: ${{ inputs.api_ref || 'main' }}
+          path: .phase1-contracts/api
+          persist-credentials: false
+
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq jq curl qrencode iproute2 netcat-openbsd openssl socat
+
+      - name: Verify relay mixing and legacy-mode guards
+        timeout-minutes: 8
+        env:
+          XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
+        run: sudo -E bash .github/test/test_relay_container.sh guard
 
   minimal-bootstrap:
     # T5: independent of security-regression so a red unit job cannot skip the

@@ -31,7 +31,7 @@
 #     [15] ipv4 mode + no ip6tables -> succeeds
 #     [16] ipv6 mode + no ip6tables -> explicit fail
 #     [17] dual mode + no ip6tables -> explicit fail (no silent ipv4-only)
-#   Fresh-process runtime hydration ([18]-[21] Reality/XTLS/None/multi-user)
+#   Fresh-process runtime hydration ([18]-[21] Reality/None/multi-user)
 #   are covered by .github/test/test_dual_stack_runtime.sh (also mandatory CI).
 #
 # All netfilter interactions are mocked; this test never touches the host
