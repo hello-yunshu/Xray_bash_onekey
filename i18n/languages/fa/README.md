@@ -1,25 +1,25 @@
-# Xray اسکریپت مدیریت — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray 管理脚本 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
-چینی ساده شده |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
+简体中文 | [English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
 > Thanks for non-commercial open source development authorization by JetBrains
 
-## ویژگی ها
+## 功能特性
 
-* وارد کنید`idleleo` 打开 Xray 管理菜单，管理安装、服务、安全设置等
-* برای دستیابی به ترجمه دقیق به چندین زبان، از Qwen-MT-Plus AI استفاده کنید
-* از پروتکل Reality پشتیبانی می کند، توصیه می شود از پیشوند Nginx استفاده کنید (قابل نصب در اسکریپت)
-* از انتقال WebSocket، gRPC، xHTTP پشتیبانی می کند، می توانید انتقال تک یا`ws+gRPC+xHTTP`هر دو را فعال کنید
-* پشته دوتایی IPv4 / IPv6 را پشتیبانی می کند: می تواند به طور خودکار قابلیت های صادرات شبکه عمومی را در حین نصب شناسایی کند، تأیید مستقل را بر اساس نام دامنه A/AAAA ثبت کند و پیوندهای اشتراک گذاری مربوطه و تنظیمات Clash را ایجاد کند.
-* محافظت داخلی fail2ban (قابل نصب در اسکریپت)
-* آمار ترافیک Xray داخلی، مسدود کردن ترافیک، به‌روزرسانی قانون GeoIP/GeoSite و به‌روزرسانی منظم
-* از اسکریپت‌ها، Xray، Nginx و به‌روزرسانی‌های گواهی پشتیبانی می‌کند و برای به‌روزرسانی‌های حیاتی، پشتیبان‌گیری و بازگشت خرابی را فراهم می‌کند.
-* از پیکربندی فعلی در حال اجرا قبل از نصب مجدد و تغییر حالت به طور خودکار پشتیبان گیری می شود و در صورت خرابی پیکربندی اولیه بازیابی می شود.
-* پیکربندی مجدد سه مسیر امن را فراهم می کند: استقرار مجدد با حفظ پیکربندی، بازسازی الگوی استاندارد و تغییر حالت.
-* استفاده کنید[@DuckSoft](https://github.com/DuckSoft)لینک به اشتراک گذاری[提案](https://github.com/XTLS/Xray-core/issues/91)（beta），兼容 Qv2ray、V2rayN、V2rayNG
-* استفاده کنید[XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，支持自定义字符串映射至 VLESS UUID
+* 输入 `idleleo` 打开 Xray 管理菜单，管理安装、服务、安全设置等
+* 采用 Qwen-MT-Plus AI 实现多语言精准翻译
+* 支持 Reality 协议，建议搭配 Nginx 前置（脚本内可安装）
+* 支持 WebSocket、gRPC、xHTTP 传输，可选择单一传输或 `ws+gRPC+xHTTP` 同时启用
+* 支持 IPv4 / IPv6 双栈：安装时可自动检测公网出口能力，按域名 A/AAAA 记录独立校验并生成对应分享链接与 Clash 配置
+* 内置 fail2ban 防护（脚本内可安装）
+* 内置 Xray 流量统计、流量阻断、GeoIP/GeoSite 规则更新及定时更新
+* 支持脚本、Xray、Nginx 和证书更新，并为关键更新提供备份与失败回滚
+* 重新安装和模式切换前会自动备份当前运行配置，失败时恢复原配置
+* 重配置提供三条安全路径：保留配置重新部署、标准模板重建、模式切换
+* 采用 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91)（beta），兼容 Qv2ray、V2rayN、V2rayNG
+* 采用 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，支持自定义字符串映射至 VLESS UUID
 * 支持 gRPC 协议：[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
 * 支持 Reality / ws/gRPC/xHTTP 负载均衡：
   - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
@@ -61,7 +61,7 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 | 中转节点 | 独立服务器角色，仅用 Nginx Stream 做单目标 TCP 转发，不安装 Xray |
 | Docker | 镜像内预装 Xray、Nginx 与主脚本 |
 
-安装 ws/gRPC/xHTTP 相关模式时，可选择 `ws`、`gRPC`、`xHTTP` 或 `ws+gRPC+xHTTP`. اسکریپت به ترتیب پورت، مسیر، لینک اشتراک گذاری و کد QR مربوطه را تولید می کند. Clash در حال حاضر xHTTP را پشتیبانی نمی کند، و اسکریپت در خروجی پیکربندی درخواست می کند.
+安装 ws/gRPC/xHTTP 相关模式时，可选择 `ws`、`gRPC`、`xHTTP` 或 `ws+gRPC+xHTTP`。脚本会分别生成对应端口、路径、分享链接和二维码；Clash 目前不支持 xHTTP，脚本会在配置输出中提示。
 
 ## 重配置说明
 
@@ -179,7 +179,7 @@ cat /etc/idleleo/info/xray_info.inf
 
 ## 服务管理
 
-| 操作 | سفارش دهید |
+| 操作 | 命令 |
 |------|------|
 | 启动 Xray | `systemctl start xray` |
 | 停止 Xray | `systemctl stop xray` |
@@ -188,9 +188,9 @@ cat /etc/idleleo/info/xray_info.inf
 
 ## 相关目录
 
-| محتوا | مسیر |
+| 内容 | 路径 |
 |------|------|
-| دایرکتوری صفحه اصلی | `/etc/idleleo` |
+| 主目录 | `/etc/idleleo` |
 | Xray 配置 | `/etc/idleleo/conf/xray/config.json` |
 | Nginx 配置 | `/etc/idleleo/conf/nginx/` |
 | 安装信息 | `/etc/idleleo/conf/install_config.json` |
