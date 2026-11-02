@@ -60,7 +60,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.3.0"
+shell_version="3.3.1"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -137,6 +137,10 @@ release_managed_file="${idleleo_dir}/release-managed.version"
 shell_version_tmp="${idleleo_dir}/tmp/shell_version.tmp"
 get_versions_all=""
 _get_versions_loaded=0
+# Explicit non-interactive confirmation for `-u --yes` / `--update --yes`.
+# It never bypasses the cross-minor auto-update guard; it only replaces the
+# interactive Y/N prompt for automation.
+update_assume_yes="off"
 
 shell_release_asset_url() {
     if [[ "${XRAY_QUALIFICATION_MODE:-0}" == "1" && -n "${SHELL_RELEASE_BASE_OVERRIDE:-}" ]]; then
@@ -209,6 +213,30 @@ version_compare() {
         fi
     done
     printf '0\n'
+}
+
+# 1 when $1 and $2 differ in major or minor series, 0 when they are in the
+# same series. Numeric components are compared, so 3.9 vs 3.10 is a series
+# change and 3.10 vs 3.11 is not (the old first-three-characters heuristic got
+# both cases backwards).
+version_series_difference() {
+    local a="${1#v}" b="${2#v}"
+    local a_major a_minor b_major b_minor a_rest b_rest
+    version_is_numeric "${a}" && version_is_numeric "${b}" || {
+        printf '0\n'
+        return 0
+    }
+    a_major="${a%%.*}"
+    a_rest="${a#*.}"
+    a_minor="${a_rest%%.*}"
+    b_major="${b%%.*}"
+    b_rest="${b#*.}"
+    b_minor="${b_rest%%.*}"
+    if [[ "${a_major}" != "${b_major}" || "${a_minor}" != "${b_minor}" ]]; then
+        printf '1\n'
+    else
+        printf '0\n'
+    fi
 }
 
 # 0 when $1 is strictly newer than $2. Incomparable input is never "newer".
@@ -478,11 +506,28 @@ _log_init() {
     [[ ${_LOG_INITIALIZED} -eq 1 ]] && return 0
     _LOG_INITIALIZED=1
     [[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}" 2>/dev/null
-    [[ -d "${log_dir}" && ! -f "${LOG_FILE}" ]] && : > "${LOG_FILE}" 2>/dev/null
+    [[ -d "${log_dir}" ]] && chmod 700 "${log_dir}" 2>/dev/null || true
+    if [[ -d "${log_dir}" && ! -f "${LOG_FILE}" ]]; then
+        ( umask 077; : > "${LOG_FILE}" ) 2>/dev/null || true
+    fi
+    [[ -f "${LOG_FILE}" ]] && chmod 600 "${LOG_FILE}" 2>/dev/null || true
+}
+# Existing logs and backup archives predate the 0700/0600 model; tighten them
+# once on every mutable startup. This is migration, not a new permission policy.
+harden_runtime_secret_permissions() {
+    if [[ -d "${log_dir}" ]]; then
+        chmod 700 "${log_dir}" 2>/dev/null || true
+        find "${log_dir}" -maxdepth 1 -type f -exec chmod 600 {} + 2>/dev/null || true
+    fi
+    if [[ -d "${idleleo_dir}" ]]; then
+        find "${idleleo_dir}" -maxdepth 1 -type f -name 'xray_bash_*.tar.gz' \
+            -exec chmod 600 {} + 2>/dev/null || true
+    fi
 }
 # Called exactly once the pure/read-only dispatch phase has passed.
 enable_file_logging() {
     _PURE_READONLY=0
+    harden_runtime_secret_permissions
     _log_init
 }
 
@@ -507,15 +552,17 @@ log_rotate() {
     local timestamp=$(date +%Y%m%d%H%M%S)
     local archived_log="${LOG_FILE}.${timestamp}.gz"
 
-    if ! gzip -c "$LOG_FILE" > "$archived_log"; then
+    if ! ( umask 077; gzip -c "$LOG_FILE" > "$archived_log" ); then
         log_echo "${Error} ${RedBG} $(gettext "日志文件归档失败") ${Font}"
         return 1
     fi
+    chmod 600 "$archived_log" 2>/dev/null || true
 
     if ! :> "$LOG_FILE"; then
         log_echo "${Error} ${RedBG} $(gettext "日志文件清空失败") ${Font}"
         return 1
     fi
+    chmod 600 "$LOG_FILE" 2>/dev/null || true
 
     log "$(gettext "日志文件已轮转并归档为") $archived_log"
 
@@ -3573,7 +3620,7 @@ email_set() {
 UUID_set() {
     # Reuse old UUID during mode switch without re-prompting.
     if [[ ${mode_switch_reuse} == "yes" && -n "${UUID:-}" ]]; then
-        log_echo "${Green} UUID: ${UUID} ${Font}"
+        log_echo_secure "${Green} UUID: ${UUID} ${Font}"
         return 0
     fi
     if [[ "on" != ${old_config_status} ]] || [[ ${change_user} == "yes" ]]; then
@@ -3584,14 +3631,14 @@ UUID_set() {
         [yY][eE][sS] | [yY])
             read_optimize "$(gettext "请输入自定义字符串") ($(gettext "最多30字符")):" "UUID5_char" "NULL" || return 1
             UUID="$(UUIDv5_tranc ${UUID5_char})"
-            log_echo "${Green} $(gettext "自定义字符串"): ${UUID5_char} ${Font}"
+            log_echo_secure "${Green} $(gettext "自定义字符串"): ${UUID5_char} ${Font}"
             log_echo_secure "${Green} UUIDv5: ${UUID} ${Font}"
             echo
             ;;
         *)
             UUID5_char="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
             UUID="$(UUIDv5_tranc ${UUID5_char})"
-            log_echo "${Green} UUID $(gettext "映射字符串"): ${UUID5_char} ${Font}"
+            log_echo_secure "${Green} UUID $(gettext "映射字符串"): ${UUID5_char} ${Font}"
             log_echo_secure "${Green} UUID: ${UUID} ${Font}"
             echo
             ;;
@@ -6232,7 +6279,13 @@ restore_nginx_backup() {
 backup_xray_binary() {
     local xray_binary="${xray_bin_dir}/xray"
     local backup_dir="${idleleo_dir}/tmp"
-    [[ ! -f "${xray_binary}" ]] && return 1
+    if [[ ! -f "${xray_binary}" ]]; then
+        # A missing binary is a repair/install, not an update with nothing to
+        # protect. Keep any older xray.prev (it may still be a valid fallback)
+        # and let xray_install_pinned_and_check install the pinned version.
+        log_echo "${Warning} ${YellowBG} $(gettext "未找到 Xray 二进制，按安装/修复处理") ${Font}"
+        return 0
+    fi
     mkdir -p "${backup_dir}"
     # cp -p preserves owner/group/mode; the .prev file must not be world-readable
     if ! cp -p "${xray_binary}" "${backup_dir}/xray.prev"; then
@@ -10035,11 +10088,38 @@ uninstall_xray() {
     # Failure propagation: every removal step contributes to rcx. The final
     # log_echo must never mask an earlier failure (a non-zero rcx is returned
     # so uninstall_all() can route host commit vs abort correctly).
+    #
+    # `--purge` is dispatched as an offline root mutation, so read_version has
+    # not populated the pinned Xray-install metadata. Offline removal must not
+    # depend on downloading an installer: stop/disable the service and remove
+    # the known host files directly. The pinned installer path is retained only
+    # when metadata is already available (e.g. an in-process call).
     local rcx=0
     systemctl disable xray 2>/dev/null || rcx=1
-    xray_install_release remove --purge || rcx=1
+    systemctl stop xray 2>/dev/null || true
+
+    if verified_installer_metadata_valid; then
+        if ! xray_install_release remove --purge; then
+            rcx=1
+            log_echo "${Warning} ${YellowBG} Xray-install remove failed; falling back to direct removal ${Font}"
+        fi
+    fi
+
+    if [[ -f "${xray_bin_dir}/xray" ]]; then
+        safe_rm "${xray_bin_dir}/xray" || rcx=1
+    fi
     [[ -d "${xray_conf_dir}" ]] && { safe_rm "${xray_conf_dir}" || rcx=1; }
+    [[ -d "${local_bin}/etc/xray" ]] && { safe_rm "${local_bin}/etc/xray" || rcx=1; }
+    if [[ -d "${local_bin}/share/xray" || -L "${local_bin}/share/xray" ]]; then
+        safe_rm "${local_bin}/share/xray" || rcx=1
+    fi
+    [[ -d "/var/log/xray" ]] && { safe_rm "/var/log/xray" || rcx=1; }
     [[ -f "${xray_systemd_file}" ]] && { safe_rm "${xray_systemd_file}" || rcx=1; }
+    if [[ -f "${xray_systemd_file%.service}@.service" ]]; then
+        safe_rm "${xray_systemd_file%.service}@.service" || rcx=1
+    fi
+    [[ -d "${xray_systemd_file}.d" ]] && { safe_rm "${xray_systemd_file}.d" || rcx=1; }
+    systemctl daemon-reload 2>/dev/null || rcx=1
     if [[ -f "${xray_install_config_file}" ]]; then
         update_json_config "${xray_install_config_file}" -r 'del(.xray_version)' || rcx=1
     fi
@@ -10149,7 +10229,7 @@ uninstall_all() {
             rxa_uninstall_rc=1
             log_echo "${Error} ${RedBG} $(gettext "卸载后校验失败, 已保留 Rill 诊断") ${Font}"
         fi
-        rxa_uninstall_finish "$rxa_uninstall_rc"
+        rxa_uninstall_finish_if_present "$rxa_uninstall_rc"
         exit "$?"
         ;;
     *)
@@ -10166,7 +10246,21 @@ uninstall_all() {
         rxa_uninstall_rc=1
         log_echo "${Error} ${RedBG} $(gettext "卸载后校验失败, 已保留 Rill 诊断") ${Font}"
     fi
-    rxa_uninstall_finish "$rxa_uninstall_rc"
+    rxa_uninstall_finish_if_present "$rxa_uninstall_rc"
+}
+
+# uninstall_all must not treat "Rill is not installed" as a Rill failure.
+# rxa_uninstall_prepare() is already a no-op in that case; route finish through
+# this wrapper so a clean node purge returns the host rc. The candidate probe
+# still calls rxa_uninstall_commit() directly and requires its fail-closed
+# behavior when the purge script is missing.
+rxa_uninstall_finish_if_present() {
+    local rc="$1"
+    if command -v rxa_apply_mode >/dev/null 2>&1; then
+        rxa_uninstall_finish "${rc}"
+    else
+        return "${rc}"
+    fi
 }
 
 delete_tls_key_and_crt() {
@@ -11789,7 +11883,7 @@ _update_sh_impl() {
     echo "${shell_version}" >>"${shell_version_tmp}"
     newest_version=$(sort -rV "${shell_version_tmp}" | head -1)
     oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
-    version_difference=$(echo "(${newest_version:0:3}-${oldest_version:0:3})>0" | bc)
+    version_difference="$(version_series_difference "${newest_version}" "${oldest_version}")"
     if [[ ${shell_version} != ${newest_version} ]]; then
         rxa_update_title
         rxa_stage_begin 1 "下载并校验新版主脚本"
@@ -11804,7 +11898,16 @@ _update_sh_impl() {
                 echo
                 log_echo "${GreenBG} $(gettext "存在新版本, 是否更新") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             fi
-            read -r update_confirm
+            if [[ "${update_assume_yes:-off}" == "YES" ]]; then
+                log_echo "${Info} $(gettext "已按 --yes 自动确认更新") ${Font}"
+                update_confirm="YES"
+            elif [[ ! -t 0 ]]; then
+                log_echo "${Error} ${RedBG} $(gettext "未升级")：$(gettext "当前输入不是交互终端；自动化请使用 --yes") ${Font}"
+                return 1
+            elif ! read -r update_confirm; then
+                log_echo "${Error} ${RedBG} $(gettext "未升级")：$(gettext "无法读取确认输入") ${Font}"
+                return 1
+            fi
         else
             [[ -z ${ol_version} ]] && echo "$(gettext "检测最新版本失败")!" >>"${log_file}" && return 1
             [[ ${version_difference} == 1 ]] && echo "$(gettext "脚本版本差别过大, 跳过更新")!" >>"${log_file}" && return 1
@@ -11860,6 +11963,7 @@ _update_sh_impl() {
             return 0
             ;;
         *)
+            log_echo "${Warning} ${YellowBG} $(gettext "已取消更新，未升级") ${Font}"
             return 0
             ;;
         esac
@@ -11882,6 +11986,26 @@ _update_sh_impl() {
 
 update_sh() {
     with_update_lock _update_sh_impl "$@"
+}
+
+# The managed script is the authority for the installed Shell version. A stale
+# install_config value (e.g. after a failed metadata write or an older API copy)
+# must not be used for update decisions; repair it during startup.
+sync_shell_version_config_with_actual() {
+    [[ -f "${xray_install_config_file}" ]] || return 0
+    has_jq_binary || return 0
+    local actual recorded
+    actual=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' "${idleleo}" 2>/dev/null | head -n 1)
+    [[ -n "${actual}" ]] || return 0
+    recorded=$(jq -r '.shell_version // empty' "${xray_install_config_file}" 2>/dev/null) || return 0
+    [[ "${recorded}" == "${actual}" ]] && return 0
+    if update_json_config "${xray_install_config_file}" \
+        --arg shell_version "${actual}" '.shell_version = $shell_version'; then
+        log_echo "${Info} ${Green} $(gettext "已修正") install_config.shell_version: ${recorded:-empty} → ${actual} ${Font}" 2>/dev/null || true
+    else
+        log_echo "${Warning} ${YellowBG} $(gettext "修正") install_config.shell_version $(gettext "失败，保留原文件") ${Font}" 2>/dev/null || true
+    fi
+    return 0
 }
 
 check_file_integrity() {
@@ -12090,6 +12214,17 @@ list() {
     '--purge' | '--uninstall')
         uninstall_all
         ;;
+    '-u' | '--update')
+        update_assume_yes="off"
+        local _update_arg
+        for _update_arg in "${2:-}" "${3:-}"; do
+            case "${_update_arg}" in
+            auto_update) auto_update="YES"; log_file="${log_dir}/auto_update.log" ;;
+            --yes|-y) update_assume_yes="YES" ;;
+            esac
+        done
+        update_sh
+        ;;
     '-s' | '--show')
         clear
         basic_information
@@ -12104,10 +12239,6 @@ list() {
         ;;
     '-tls' | '--tls')
         tls_type
-        ;;
-    '-u' | '--update')
-        [[ $2 == "auto_update" ]] && auto_update="YES" && log_file="${log_dir}/auto_update.log"
-        update_sh
         ;;
     '-uu' | '--uuid-reset')
         reset_UUID
@@ -12168,7 +12299,7 @@ show_help() {
     echo "  -t, --target-reset          $(gettext "变更") target"
     echo "  -tcp, --tcp                 $(gettext "配置") TCP $(gettext "加速")"
     echo "  -tls, --tls                 $(gettext "修改") TLS $(gettext "配置")"
-    echo "  -u, --update                $(gettext "更新脚本")"
+    echo "  -u, --update [--yes]        $(gettext "更新脚本") ($(gettext "自动化请加") --yes)"
     echo "  -uu, --uuid-reset           $(gettext "变更") UUIDv5/$(gettext "映射字符串")"
     echo "  -xa, --xray-access          $(gettext "显示") Xray $(gettext "访问信息")"
     echo "  -xe, --xray-error           $(gettext "显示") Xray $(gettext "错误信息")"
@@ -12183,7 +12314,7 @@ idleleo_commend() {
         echo "${old_version}" >"${shell_version_tmp}"
         echo "${shell_version}" >>"${shell_version_tmp}"
         oldest_version=$(sort -V "${shell_version_tmp}" | head -1)
-        version_difference=$(echo "(${shell_version:0:3}-${oldest_version:0:3})>0" | bc)
+        version_difference="$(version_series_difference "${shell_version}" "${oldest_version}")"
         if [[ -z ${old_version} ]]; then
             rxa_refresh_main_script "${idleleo}" || return 1
 
@@ -12495,27 +12626,46 @@ set_language() {
 }
 
 function backup_directories() {
-    local timestamp=$(date +"%Y%m%d%H%M%S")
+    local timestamp
+    timestamp=$(date +"%Y%m%d%H%M%S")
     local backup_name=""
     read_optimize "$(gettext "请输入备份名称") ($(gettext "不需要后缀")): " "backup_name" ""
     local backup_filename="xray_bash_${backup_name}_${timestamp}.tar.gz"
-    local backup_path="/etc/idleleo/${backup_filename}"
+    local backup_path="${idleleo_dir}/${backup_filename}"
+    local backup_tmp backup_tar_paths=() tar_output old_umask
 
-    local tar_output
-    tar_output=''
-    tar_output=$(tar --exclude='/etc/idleleo/xray_bash_*.tar.gz' -czf "${backup_path}" /etc/idleleo /usr/local/nginx 2>&1)
+    # Create outside the tree being archived: the archive itself would otherwise
+    # change /etc/idleleo while tar is reading it. Keep the temp file 0600 so no
+    # partially written archive is exposed.
+    backup_tmp=$(mktemp "${TMPDIR:-/tmp}/xray-backup.XXXXXX") || {
+        log_echo "${Error} ${RedBG} $(gettext "备份") $(gettext "失败")：$(gettext "无法创建临时文件") ${Font}"
+        return 1
+    }
+    chmod 600 "${backup_tmp}" 2>/dev/null || true
+    backup_tar_paths=("${idleleo_dir}")
+    [[ -d /usr/local/nginx ]] && backup_tar_paths+=("/usr/local/nginx")
 
-    if [[ $? -ne 0 ]]; then
+    old_umask=$(umask)
+    umask 077
+    if ! tar_output=$(tar --exclude='xray_bash_*.tar.gz' \
+        -czf "${backup_tmp}" "${backup_tar_paths[@]}" 2>&1); then
+        umask "${old_umask}"
+        rm -f "${backup_tmp}"
         log_echo "${Green} tar $(gettext "报错信息"): ${Font}"
         echo "${tar_output}"
-        log_echo "${Warning} ${YellowBG} $(gettext "备份完整性可能受到影响, 请检查上述错误信息") ${Font}"
+        log_echo "${Error} ${RedBG} $(gettext "备份") $(gettext "失败")：tar $(gettext "返回非零") ${Font}"
+        return 1
     fi
-
-    if [[ ! -f "${backup_path}" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "备份") $(gettext "失败") ${Font}"
-    else
-        log_echo "${OK} ${GreenBG} $(gettext "备份") $(gettext "成功"): ${backup_path} ${Font}"
+    chmod 600 "${backup_tmp}" 2>/dev/null || true
+    if ! mv -f "${backup_tmp}" "${backup_path}"; then
+        umask "${old_umask}"
+        rm -f "${backup_tmp}"
+        log_echo "${Error} ${RedBG} $(gettext "备份") $(gettext "失败")：$(gettext "无法写入备份文件") ${Font}"
+        return 1
     fi
+    chmod 600 "${backup_path}" 2>/dev/null || true
+    umask "${old_umask}"
+    log_echo "${OK} ${GreenBG} $(gettext "备份") $(gettext "成功"): ${backup_path} ${Font}"
 }
 
 function restore_directories() {
@@ -14441,6 +14591,9 @@ enable_file_logging
 init_language online
 
 check_file_integrity "$@" || exit 1
+# Repair a stale install_config shell_version before any update decision. The
+# managed script itself is authoritative; never rewrite it from old metadata.
+sync_shell_version_config_with_actual || true
 judge_mode
 check_online_version_connect
 read_version || exit 1

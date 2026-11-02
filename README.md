@@ -1,5 +1,7 @@
 # Xray 管理脚本 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
+当前版本：**3.3.1**
+
 简体中文 | [English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
@@ -84,6 +86,8 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 | 安装 Reality 模式 | `idleleo --install-reality` |
 | 安装 TLS 模式 | `idleleo --install-tls` |
 | 安装 ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
+| 安装中转节点 | `idleleo --install-relay` |
+| 卸载脚本与 Xray/Nginx | `idleleo --purge` |
 | 查看安装信息 | `idleleo --show` |
 | 更新脚本 | `idleleo --update` |
 | 更新 Xray | `idleleo --xray-update` |
@@ -91,6 +95,49 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 | 设置 Fail2ban | `idleleo --set-fail2ban` |
 | 设置流量阻断 | `idleleo --traffic-blocker` |
 | 查看端口实时流量 | `idleleo --port-traffic` |
+
+## 升级说明
+
+### 3.2.9 / 3.2.10 / 3.2.11 → 3.3.x
+
+旧 Shell 的自动更新不会跨 minor；`idleleo --update auto_update` 会明确跳过并保持
+旧版本，且不会静默报告成功。请使用交互式两步升级：
+
+```bash
+bash /etc/idleleo/install.sh --update          # 交互终端，选择 Y
+bash /etc/idleleo/install.sh --xray-update     # 再更新 Xray
+```
+
+自动化环境必须显式确认：
+
+```bash
+bash /etc/idleleo/install.sh --update --yes
+```
+
+`--yes` 只替代交互确认，不会绕过跨 minor 兼容策略。升级前建议先执行
+`idleleo --backup`；3.3.1 起备份文件权限为 0600。
+
+### 3.3.0 → 3.3.1
+
+在管理菜单“更新向导 → 更新脚本”中更新，或执行：
+
+```bash
+bash /etc/idleleo/install.sh --update
+```
+
+3.3.1 修复离线卸载残留、备份/日志权限、缺 Xray 修复、失败记录 installer 身份和
+Shell 元数据回退防护。升级不会改动现有 Xray 配置；REALITY `minClientVer` 补齐仍按
+3.3.0 的规则执行。
+
+### 旧版 XTLS 模式
+
+3.3.0 起旧版 XTLS 模式已移除。已有 XTLS 服务升级后仍可运行，但不能通过脚本重装或
+切换模式；需要继续管理时请先备份并卸载，再重新部署 Reality/TLS/中转模式。
+
+### 自动更新
+
+自动更新只在同一 minor 内自动升级 Shell；跨 minor 需要手动执行上述两步。Xray 和
+Nginx 的自动更新仍按 API 元数据执行，并在失败时记录 `{组件, 目标版本, installer, 时间}`。
 
 ## RillML Xray AI 运维助手
 
