@@ -10131,7 +10131,12 @@ uninstall_xray() {
     # one of them may already be gone. systemd must still drop any stale state.
     systemctl daemon-reload 2>/dev/null || rcx=1
     if [[ -f "${xray_install_config_file}" ]]; then
-        update_json_config "${xray_install_config_file}" -r 'del(.xray_version)' || rcx=1
+        # Purge must stay a cleanup operation even when interrupted metadata
+        # is corrupt. The file is preserved or removed by the caller's explicit
+        # keep-config choice; a failed metadata edit is diagnostic, not a
+        # reason to report that the already-removed files were not removed.
+        update_json_config "${xray_install_config_file}" -r 'del(.xray_version)' \
+            || log_echo "${Warning} ${YellowBG} $(gettext "安装配置损坏, 跳过") .xray_version $(gettext "元数据清理") ${Font}"
     fi
     if [[ "$rcx" == 0 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "已卸载") Xray ${Font}"
@@ -10161,7 +10166,10 @@ uninstall_nginx() {
     [[ -d "${nginx_conf_dir}" ]] && { safe_rm "${nginx_conf_dir}" || rcn=1; }
     [[ -f "${nginx_systemd_file}" ]] && { safe_rm "${nginx_systemd_file}" || rcn=1; }
     if [[ -f "${xray_install_config_file}" ]]; then
-        update_json_config "${xray_install_config_file}" 'del(.nginx_build_version)' || rcn=1
+        # Same corrupt-metadata rule as uninstall_xray: a failed edit is a
+        # warning; it does not turn a completed file cleanup into a failure.
+        update_json_config "${xray_install_config_file}" 'del(.nginx_build_version)' \
+            || log_echo "${Warning} ${YellowBG} $(gettext "安装配置损坏, 跳过") .nginx_build_version $(gettext "元数据清理") ${Font}"
     fi
     if [[ "$rcn" == 0 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "已卸载") Nginx ${Font}"
@@ -10950,6 +10958,21 @@ install_nginx_relay() {
     show_information
 }
 
+# A relay owns the host, but a mixed/interrupted installation may still carry
+# the node surface. Purge is a cleanup contract, so remove that stale surface
+# rather than reporting success while leaving Xray binaries, configs or units.
+relay_clean_xray_residue() {
+    local residue=0
+    [[ -e "${xray_bin_dir}/xray" ]] && residue=1
+    [[ -e "${local_bin}/etc/xray" || -L "${local_bin}/etc/xray" ]] && residue=1
+    [[ -e "${local_bin}/share/xray" || -L "${local_bin}/share/xray" ]] && residue=1
+    [[ -e "${xray_conf_dir}" ]] && residue=1
+    [[ -f "${xray_systemd_file}" || -f "${xray_systemd_file%.service}@.service" ]] && residue=1
+    (( residue == 0 )) && return 0
+    log_echo "${Warning} ${YellowBG} $(gettext "检测到旧 node 残留, 一并清理") ${Font}"
+    uninstall_xray
+}
+
 relay_uninstall() {
     local _confirm _keep_config _remove_scripts
 
@@ -10972,6 +10995,7 @@ relay_uninstall() {
         log_echo "${Warning} ${YellowBG} $(gettext "删除中转配置后 Nginx 仍无法通过校验, 请手动检查") ${Font}"
     fi
     uninstall_nginx --force || return 1
+    relay_clean_xray_residue || return 1
 
     log_echo "${GreenBG} $(gettext "是否保留配置文件") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
     read -r _keep_config
@@ -14600,6 +14624,14 @@ init_language offline
 # calls, zero network, zero /etc write, zero log-file create. These commands
 # must work as a non-root user with no tooling installed.
 if is_pure_readonly_command "${1:-}"; then
+    # `-s/--show` reads /etc/idleleo/info/xray_info.inf, which intentionally
+    # stays 0600 because it contains UUID/mapping material. The pure-readonly
+    # dispatcher runs before the root gate, so name the actual requirement
+    # instead of letting a non-root run fail with a raw Permission denied.
+    if [[ "${1:-}" == "-s" || "${1:-}" == "--show" ]] && [[ "$(id -u)" -ne 0 ]]; then
+        echo "${Error} ${RedBG} $(gettext "读取安装信息需要 root 权限")（$(gettext "信息文件权限为") 0600）${Font}" >&2
+        exit 1
+    fi
     dispatch_pure_readonly_command "$@"
     exit $?
 fi

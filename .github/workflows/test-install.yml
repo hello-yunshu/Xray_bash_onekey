@@ -501,6 +501,7 @@ jobs:
         timeout-minutes: 10
         env:
           PURGE_DROP_BINARY: "1"
+          PURGE_CORRUPT_CONFIG: "1"
         run: sudo -E bash .github/test/test_uninstall_clean.sh
 
   release-gate:

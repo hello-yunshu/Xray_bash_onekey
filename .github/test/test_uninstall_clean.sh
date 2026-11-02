@@ -7,6 +7,10 @@
 # xray@; relay also loses its Nginx dir/unit). The managed unit/config surface
 # must still be removed. This is the case where the old `if [[ -f binary ]]`
 # guard left units and /usr/local/etc/xray behind while returning 0.
+#
+# PURGE_CORRUPT_CONFIG=1 corrupts install_config.json before a node purge.
+# Purge must still clean the host and return 0, with only a diagnostic warning
+# for the skipped metadata edit.
 set -uo pipefail
 
 LOG=$(mktemp)
@@ -31,12 +35,28 @@ if [[ -f /etc/idleleo/logs/install.log ]]; then
     fi
 fi
 drop_binary=${PURGE_DROP_BINARY:-0}
-echo "=== purge role=${role} drop_binary=${drop_binary} ==="
+corrupt_config=${PURGE_CORRUPT_CONFIG:-0}
+echo "=== purge role=${role} drop_binary=${drop_binary} corrupt_config=${corrupt_config} ==="
 
 if [[ "${drop_binary}" == "1" ]]; then
     if [[ "${role}" == "relay" ]]; then
         rm -rf /usr/local/nginx
         rm -f /etc/systemd/system/nginx.service
+        # Mixed/interrupted host: the relay still carries an old node surface.
+        # Purge must remove it instead of returning 0 with Xray bits left.
+        mkdir -p /usr/local/etc/xray /usr/local/share/xray
+        printf '{"inbounds":[]}' > /usr/local/etc/xray/config.json
+        printf '#!/bin/sh\nexit 0\n' > /usr/local/bin/xray
+        chmod 755 /usr/local/bin/xray
+        cat > /etc/systemd/system/xray.service <<'UNIT'
+[Unit]
+Description=Xray residue
+[Service]
+ExecStart=/usr/local/bin/xray run
+[Install]
+WantedBy=multi-user.target
+UNIT
+        systemctl daemon-reload >/dev/null 2>&1 || true
     else
         # The reported state: the Xray binary is gone (e.g. an interrupted
         # upgrade) but the main unit and managed config still exist. Keep the
@@ -46,6 +66,14 @@ if [[ "${drop_binary}" == "1" ]]; then
         rm -f /etc/systemd/system/xray@.service
     fi
     echo "=== simulated interrupted uninstall: role surface not present ==="
+fi
+
+# Corrupting the role document on a relay would make role detection fall back
+# to the node path and would not exercise relay_uninstall; node is the intended
+# corrupt-metadata fixture. The relay mixed-state fixture above keeps valid JSON.
+if [[ "${corrupt_config}" == "1" && "${role}" != "relay" ]]; then
+    printf '{not-json' > /etc/idleleo/conf/install_config.json
+    echo "=== simulated corrupt install_config.json ==="
 fi
 
 # Keep-config=no + delete-scripts=yes: the strongest purge, so a leftover
@@ -72,6 +100,12 @@ if [[ "${role}" == "relay" ]]; then
     exists /etc/systemd/system/nginx.service && bad "relay nginx unit remains" || ok "relay nginx unit removed"
     active nginx && bad "relay nginx still active" || ok "relay nginx inactive"
     exists /etc/idleleo/conf/nginx && bad "managed relay config dir remains" || ok "managed relay config dir removed"
+    # PURGE_DROP_BINARY=1 seeds the mixed node surface above. These must be
+    # removed on the real relay path, not left behind with RC=0.
+    exists /usr/local/etc/xray && bad "relay purge left /usr/local/etc/xray" || ok "relay purge removed /usr/local/etc/xray"
+    exists /usr/local/share/xray && bad "relay purge left /usr/local/share/xray" || ok "relay purge removed /usr/local/share/xray"
+    exists /usr/local/bin/xray && bad "relay purge left /usr/local/bin/xray" || ok "relay purge removed /usr/local/bin/xray"
+    exists /etc/systemd/system/xray.service && bad "relay purge left Xray unit" || ok "relay purge removed Xray unit"
 else
     exists /usr/local/bin/xray && bad "Xray binary remains" || ok "Xray binary removed"
     exists /usr/local/etc/xray && bad "/usr/local/etc/xray remains" || ok "/usr/local/etc/xray removed"
@@ -89,6 +123,13 @@ else
     ok "purge produced no tee error"
 fi
 exists /etc/idleleo && bad "/etc/idleleo remains after a full purge" || ok "/etc/idleleo removed"
+if [[ "${corrupt_config}" == "1" && "${role}" != "relay" ]]; then
+    if grep -Eq 'Xray 卸载失败|Nginx 卸载失败' "${LOG}"; then
+        bad "corrupt install_config turned a completed purge into a failure"
+    else
+        ok "corrupt install_config did not turn purge into a failure"
+    fi
+fi
 
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]
