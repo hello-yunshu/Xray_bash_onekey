@@ -403,6 +403,7 @@ else
     if [[ $? -ne 0 ]]; then
         log "Nginx update to ${nginx_online_version} failed!"
         failure_record_write "nginx" "${nginx_online_version}" || log "Failed to record the Nginx failure."
+        failure_retry_hint "nginx"
     else
         log "Nginx updated successfully!"
         failure_record_clear "nginx" || true
@@ -434,6 +435,7 @@ else
     if [[ $? -ne 0 ]]; then
         log "Xray update to ${xray_online_version} failed!"
         failure_record_write "xray" "${xray_online_version}" || log "Failed to record the Xray failure."
+        failure_retry_hint "xray"
     else
         log "Xray updated successfully!"
         failure_record_clear "xray" || true
