@@ -278,12 +278,16 @@ jobs:
         env:
           VERSION: ${{ needs.candidate.outputs.version }}
           INSTALL_SHA: ${{ needs.candidate.outputs.install_sha }}
+          CANDIDATE_COMMIT: ${{ needs.candidate.outputs.candidate_commit }}
           INPUT_DETAILS: ${{ inputs.details }}
         run: |
           set -euo pipefail
           details=${INPUT_DETAILS:-release: publish shell ${VERSION}}
           python3 scripts/release_automation.py update-api \
-            --xray . --api api --details "$details" --shell-release-sha256 "$INSTALL_SHA"
+            --xray . --api api --details "$details" \
+            --shell-release-sha256 "$INSTALL_SHA" \
+            --shell-commit "$CANDIDATE_COMMIT" \
+            --baseline-scenarios 'direct,shell-first,reinstall,failure-recovery,restart-recovery,fallback'
           (cd api && bash validate-json.sh)
 
       - name: Publish API promotion after the immutable Release
@@ -292,19 +296,34 @@ jobs:
           X_ACCESS_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
         run: |
           set -euo pipefail
-          if git -C api diff --quiet; then
+          if ! git -C api diff --quiet; then
+            branch="automation/shell-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+            git -C api config user.name github-actions[bot]
+            git -C api config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git -C api switch -c "$branch"
+            git -C api add xray_shell_versions.json compatibility-baselines.json
+            git -C api commit -m "chore(release): publish shell ${VERSION} Release metadata"
+            git -C api push "https://x-access-token:${X_ACCESS_TOKEN}@github.com/hello-yunshu/Xray_bash_onekey_api.git" "HEAD:${branch}"
+            pr=$(gh pr create --repo hello-yunshu/Xray_bash_onekey_api --base main --head "$branch" \
+              --title "chore(release): publish shell ${VERSION}" \
+              --body "Paired with Xray Release v${VERSION}; manifest records candidate SHA, canonical digest, asset hashes, and qualification run.")
+            scripts/merge_checked_pr.sh hello-yunshu/Xray_bash_onekey_api "${pr##*/}"
+          else
             echo 'API already contains the paired shell Release metadata'
-            exit 0
           fi
-          branch="automation/shell-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          git -C api config user.name github-actions[bot]
-          git -C api config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git -C api switch -c "$branch"
-          git -C api add xray_shell_versions.json
-          git -C api commit -m "chore(release): publish shell ${VERSION} Release metadata"
-          git -C api push "https://x-access-token:${X_ACCESS_TOKEN}@github.com/hello-yunshu/Xray_bash_onekey_api.git" "HEAD:${branch}"
-          pr=$(gh pr create --repo hello-yunshu/Xray_bash_onekey_api --base main --head "$branch" \
-            --title "chore(release): publish shell ${VERSION}" \
-            --body "Paired with Xray Release v${VERSION}; manifest records candidate SHA, canonical digest, asset hashes, and qualification run.")
-          scripts/merge_checked_pr.sh hello-yunshu/Xray_bash_onekey_api "${pr##*/}"
-          curl -fsS "https://purge.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json" >/dev/null || true
+          # The purge must run on idempotent reruns too. Previously it lived
+          # after the "API already exists" early exit, so the CDN kept serving
+          # the previous version even though raw main had advanced.
+          for attempt in 1 2 3 4 5; do
+            curl -fsS "https://purge.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json" >/dev/null || true
+            sleep 5
+            cdn_version=$(curl -fsSL "https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json" 2>/dev/null | jq -r '.shell_online_version // empty' 2>/dev/null || true)
+            raw_version=$(curl -fsSL "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/xray_shell_versions.json" 2>/dev/null | jq -r '.shell_online_version // empty' 2>/dev/null || true)
+            if [[ "$cdn_version" == "$VERSION" && "$raw_version" == "$VERSION" ]]; then
+              echo "CDN and raw both serve shell ${VERSION}"
+              exit 0
+            fi
+            echo "CDN propagation attempt ${attempt}: cdn=${cdn_version:-unavailable} raw=${raw_version:-unavailable}"
+          done
+          echo "CDN/raw did not converge to shell ${VERSION}" >&2
+          exit 1
