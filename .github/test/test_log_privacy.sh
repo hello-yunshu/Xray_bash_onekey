@@ -55,5 +55,46 @@ else
     ok "mode-switch UUID not in install.log"
 fi
 
+# Direct call on the install-success path. `basic_information` is what the
+# installer runs after a successful install, so this covers the real logging
+# side effect instead of only UUID_set.
+echo "--- basic_information install-success path ---"
+FAKE_IDC="fakeidc-logprivacy-123"
+FAKE_UUID="22222222-2222-5222-8222-222222222222"
+xray_info_file="${TMP_ROOT}/xray_info.inf"
+tls_mode="None"
+transport_mode="None"
+shell_mode="test-mode"
+ensure_reality_public_key() { :; }
+none_mode_listen_address() { :; }
+info_extraction() {
+    case "$1" in
+        idc) printf '%s\n' "${FAKE_IDC}" ;;
+        id) printf '%s\n' "${FAKE_UUID}" ;;
+        *) printf 'test\n' ;;
+    esac
+}
+basic_information >/dev/null 2>&1
+if grep -Fq "${FAKE_IDC}" "${xray_info_file}"; then
+    ok "basic_information still prints the mapping string for the operator"
+else
+    bad "basic_information lost the mapping string"
+fi
+if grep -Fq "${FAKE_IDC}" "${LOG_FILE}"; then
+    bad "basic_information leaked the mapping string into install.log"
+else
+    ok "basic_information does not leak the mapping string into install.log"
+fi
+if grep -Fq "${FAKE_UUID}" "${LOG_FILE}"; then
+    bad "basic_information leaked the UUID into install.log"
+else
+    ok "basic_information does not leak the UUID into install.log"
+fi
+if grep -Eq '映射字符串: [A-Za-z0-9]' "${LOG_FILE}"; then
+    bad "install.log still contains mapping-string material"
+else
+    ok "install.log contains no mapping-string material after basic_information"
+fi
+
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]

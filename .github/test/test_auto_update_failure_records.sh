@@ -53,6 +53,9 @@ export IDLELEO_UPDATE_LOCK_FILE="${TMP_ROOT}/run/update.lock"
 
 versions_json='{"shell_online_version":"3.2.11","xray_online_version":"26.10.31","xray_installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","xray_installer_sha256":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","nginx_build_online_version":"2026.10.15.7679"}'
 versions_json_new_installer='{"shell_online_version":"3.2.11","xray_online_version":"26.10.31","xray_installer_ref":"e42df6a772e60dd7b058f852262c4dbeb0bc231d","xray_installer_sha256":"954666bb028ba8561b2218372b7db76ba051f8252b2db9195321e672263aab94","nginx_build_online_version":"2026.10.15.7679"}'
+# No installer identity: exactly what an auto-update run sees when the API
+# metadata omits the pinned Xray-install pin.
+versions_json_no_installer='{"shell_online_version":"3.2.11","xray_online_version":"26.10.31","nginx_build_online_version":"2026.10.15.7679"}'
 
 # Fresh, isolated installation root for one scenario.
 new_root() {
@@ -124,7 +127,7 @@ if log_has "Removed legacy xray failure marker"; then ok "migration is logged"; 
 suite "B. the same failed target version is not retried"
 new_root
 cat >"${root}/logs/update_failed.json" <<'EOF'
-{"xray":{"version":"26.10.31","installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","installer_sha":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","failed_at":"2026-11-01T10:00:00Z"}}
+{"xray":{"schema":2,"version":"26.10.31","installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","installer_sha":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","failed_at":"2026-11-01T10:00:00Z"}}
 EOF
 export CDN_JSON="${versions_json}" RAW_JSON="${versions_json}"
 run_update
@@ -162,7 +165,7 @@ fi
 suite "C2. same Xray version but a new installer retries"
 new_root
 cat >"${root}/logs/update_failed.json" <<'EOF'
-{"xray":{"version":"26.10.31","installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","installer_sha":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","failed_at":"2026-11-01T10:00:00Z"}}
+{"xray":{"schema":2,"version":"26.10.31","installer_ref":"e741a4f56d368afbb9e5be3361b40c4552d3710d","installer_sha":"7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555","failed_at":"2026-11-01T10:00:00Z"}}
 EOF
 export CDN_JSON="${versions_json_new_installer}" RAW_JSON="${versions_json_new_installer}"
 run_update
@@ -178,22 +181,75 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-suite "C3. a legacy version-only record gets one retry"
+suite "C3. a legacy Xray record gets one retry, then an empty identity is suppressed"
 new_root
 cat >"${root}/logs/update_failed.json" <<'EOF'
 {"xray":{"version":"26.10.31","failed_at":"2026-11-01T10:00:00Z"}}
 EOF
-export CDN_JSON="${versions_json}" RAW_JSON="${versions_json}"
+export CDN_JSON="${versions_json_no_installer}" RAW_JSON="${versions_json_no_installer}" FAIL_XRAY=1
 run_update
 if grep -Fq -- "-x auto_update" "${INSTALL_LOG}"; then
     ok "legacy version-only record is retried once"
 else
     bad "legacy version-only record still blocked"
 fi
-if log_has "legacy failure record without installer identity"; then
+if log_has "legacy failure record without a schema"; then
     ok "legacy migration is logged"
 else
     bad "legacy migration is not logged"
+fi
+if jq -e '.xray.schema == 2 and .xray.installer_ref == "" and .xray.installer_sha == ""' \
+    "${root}/logs/update_failed.json" >/dev/null 2>&1; then
+    ok "the retry writes a schema:2 record with an explicit empty identity"
+else
+    bad "the retry record is not schema:2/empty: $(cat "${root}/logs/update_failed.json" 2>/dev/null)"
+fi
+: >"${INSTALL_LOG}"
+unset FAIL_XRAY
+run_update
+if grep -Fq -- "-x auto_update" "${INSTALL_LOG}"; then
+    bad "an empty-identity schema:2 record was retried a second time"
+else
+    ok "an empty-identity schema:2 record is suppressed on the second run"
+fi
+if log_has "without installer identity (schema 2); skipping this target"; then
+    ok "the second-run skip names the empty identity"
+else
+    bad "the second-run skip is not explained"
+fi
+
+# ---------------------------------------------------------------------------
+suite "C4. a legacy Nginx record gets one retry, then is suppressed"
+new_root
+cat >"${root}/logs/update_failed.json" <<'EOF'
+{"nginx":{"version":"2026.10.15.7679","failed_at":"2026-11-01T10:00:00Z"}}
+EOF
+export CDN_JSON="${versions_json_no_installer}" RAW_JSON="${versions_json_no_installer}" FAIL_NGINX=1
+unset FAIL_XRAY
+run_update
+if grep -Fq -- "-n auto_update" "${INSTALL_LOG}"; then
+    ok "legacy Nginx record is retried once"
+else
+    bad "legacy Nginx record still blocked"
+fi
+if log_has "nginx v2026.10.15.7679 has a legacy failure record without a schema"; then
+    ok "legacy Nginx migration is logged"
+else
+    bad "legacy Nginx migration is not logged"
+fi
+if jq -e '.nginx.schema == 2 and .nginx.installer_ref == "" and .nginx.installer_sha == ""' \
+    "${root}/logs/update_failed.json" >/dev/null 2>&1; then
+    ok "the Nginx retry writes a schema:2 record"
+else
+    bad "the Nginx retry record is not schema:2: $(cat "${root}/logs/update_failed.json" 2>/dev/null)"
+fi
+: >"${INSTALL_LOG}"
+unset FAIL_NGINX
+run_update
+if grep -Fq -- "-n auto_update" "${INSTALL_LOG}"; then
+    bad "the same schema:2 Nginx target was retried a second time"
+else
+    ok "the same schema:2 Nginx target is suppressed"
 fi
 
 # ---------------------------------------------------------------------------
@@ -207,6 +263,19 @@ if [[ -n "$(jq -r '.xray.failed_at // empty' "${root}/logs/update_failed.json" 2
     ok "the record carries a timestamp"
 else
     bad "the record has no timestamp"
+fi
+if jq -e '.xray.schema == 2' "${root}/logs/update_failed.json" >/dev/null 2>&1; then
+    ok "the record carries schema 2"
+else
+    bad "the record has no schema marker"
+fi
+recorded_ref=$(jq -r '.xray.installer_ref // empty' "${root}/logs/update_failed.json" 2>/dev/null)
+recorded_sha=$(jq -r '.xray.installer_sha // empty' "${root}/logs/update_failed.json" 2>/dev/null)
+if [[ "${recorded_ref}" == "e741a4f56d368afbb9e5be3361b40c4552d3710d" &&
+      "${recorded_sha}" == "7f70c95f6b418da8b4f4883343d602964915e28748993870fd554383afdbe555" ]]; then
+    ok "the record carries the installer ref and sha"
+else
+    bad "the record installer identity is ref='${recorded_ref}' sha='${recorded_sha}'"
 fi
 if log_has "Manual retry: jq 'del(.xray)'"; then
     ok "the failure log explains how to retry immediately"
@@ -267,7 +336,7 @@ else
 fi
 # A different failed target means the metadata moved on; success must clear it.
 cat >"${root}/logs/update_failed.json" <<'EOF'
-{"nginx":{"version":"2026.01.01.1","failed_at":"2026-11-01T10:00:00Z"}}
+{"nginx":{"schema":2,"version":"2026.01.01.1","installer_ref":"","installer_sha":"","failed_at":"2026-11-01T10:00:00Z"}}
 EOF
 unset FAIL_NGINX
 : >"${INSTALL_LOG}"
