@@ -1,12 +1,12 @@
-# Xray Сценарий управления — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray 管理脚本 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
-Упрощенный китайский |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
+简体中文 | [English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
 
 > Thanks for non-commercial open source development authorization by JetBrains
 
-## Функции
+## 功能特性
 
 * 输入 `idleleo` 打开 Xray 管理菜单，管理安装、服务、安全设置等
 * 采用 Qwen-MT-Plus AI 实现多语言精准翻译
@@ -20,7 +20,7 @@
 * 重配置提供三条安全路径：保留配置重新部署、标准模板重建、模式切换
 * 采用 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91)（beta），兼容 Qv2ray、V2rayN、V2rayNG
 * 采用 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，支持自定义字符串映射至 VLESS UUID
-* Поддерживает протокол gRPC:[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* 支持 gRPC 协议：[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
 * 支持 Reality / ws/gRPC/xHTTP 负载均衡：
   - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
   - [搭建后端负载均衡](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
@@ -171,30 +171,30 @@ docker attach xray-onekey
 cat /etc/idleleo/info/xray_info.inf
 ```
 
-## Xray Введение
+## Xray 简介
 
 * Xray 是一款优秀的开源网络代理工具，支持 Windows、macOS、Android、iOS、Linux 等全平台
-* Этот сценарий представляет собой сценарий полной настройки одним щелчком мыши. После того, как все процессы завершатся нормально, клиент можно использовать в соответствии с полученными результатами.
-* **НАСТОЯТЕЛЬНО РЕКОМЕНДУЕТСЯ** Полное понимание рабочего процесса и принципов программы.
+* 本脚本为一键完整配置脚本，所有流程正常完成后，按输出结果设置客户端即可使用
+* **强烈建议**全面了解程序的工作流程及原理
 
-## Управление услугами
+## 服务管理
 
-| действовать | Заказ |
+| 操作 | 命令 |
 |------|------|
-| Начать Xray | `systemctl start xray` |
-| Остановить Xray | `systemctl stop xray` |
-| Начать Nginx | `systemctl start nginx` |
-| Остановить Nginx | `systemctl stop nginx` |
+| 启动 Xray | `systemctl start xray` |
+| 停止 Xray | `systemctl stop xray` |
+| 启动 Nginx | `systemctl start nginx` |
+| 停止 Nginx | `systemctl stop nginx` |
 
-## Сопутствующий каталог
+## 相关目录
 
-| содержание | путь |
+| 内容 | 路径 |
 |------|------|
-| Домашний каталог | `/etc/idleleo` |
-| Xray конфигурация | `/etc/idleleo/conf/xray/config.json` |
-| Nginx конфигурация | `/etc/idleleo/conf/nginx/` |
-| Информация по установке | `/etc/idleleo/conf/install_config.json` |
-| файл сертификата | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
-| Каталог журналов | `/etc/idleleo/logs/`、`/var/log/xray/` |
-| Nginx каталог установки | `/usr/local/nginx` |
-| Административные команды | `/usr/bin/idleleo` |
+| 主目录 | `/etc/idleleo` |
+| Xray 配置 | `/etc/idleleo/conf/xray/config.json` |
+| Nginx 配置 | `/etc/idleleo/conf/nginx/` |
+| 安装信息 | `/etc/idleleo/conf/install_config.json` |
+| 证书文件 | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
+| 日志目录 | `/etc/idleleo/logs/`、`/var/log/xray/` |
+| Nginx 安装目录 | `/usr/local/nginx` |
+| 管理命令 | `/usr/bin/idleleo` |
