@@ -49,24 +49,81 @@ mode=$(stat -c '%a' "${archive}" 2>/dev/null || echo missing)
 [[ "${mode}" == "600" ]] && ok "backup archive mode 0600" || bad "backup archive mode=${mode}"
 tar -tzf "${archive}" >/dev/null 2>&1 && ok "backup archive readable" || bad "backup archive corrupt"
 
-# Tar failure: inject a failing tar and ensure no partial archive is left.
+# 0600 must actually deny another unprivileged account, not only look correct
+# in stat output. Probe in a traversable directory so only the file mode is
+# under test; a 0644 control proves the probe can read when allowed.
+lowpriv_mode="none"
+if [[ "$(id -u)" -eq 0 ]] && command -v runuser >/dev/null 2>&1 &&
+    runuser -u nobody -- true >/dev/null 2>&1; then
+    lowpriv_mode="runuser"
+elif command -v sudo >/dev/null 2>&1 && sudo -n -u nobody true >/dev/null 2>&1; then
+    lowpriv_mode="sudo"
+fi
+lowpriv_can_read() {
+    case "${lowpriv_mode}" in
+        runuser) runuser -u nobody -- test -r "$1" >/dev/null 2>&1 ;;
+        sudo) sudo -n -u nobody test -r "$1" >/dev/null 2>&1 ;;
+        *) return 2 ;;
+    esac
+}
+if [[ "${lowpriv_mode}" != "none" ]]; then
+    READ_PROBE="${TMP_ROOT}/read-probe"
+    chmod 755 "${TMP_ROOT}"
+    cp -p "${archive}" "${READ_PROBE}"
+    chmod 644 "${READ_PROBE}"
+    if lowpriv_can_read "${READ_PROBE}"; then
+        ok "low-privilege read probe works with 0644"
+    else
+        bad "low-privilege read probe cannot read a 0644 file (probe invalid)"
+    fi
+    chmod 600 "${READ_PROBE}"
+    if lowpriv_can_read "${READ_PROBE}"; then
+        bad "a low-privilege account can read the 0600 backup probe"
+    else
+        ok "a low-privilege account cannot read the 0600 backup probe"
+    fi
+    rm -f "${READ_PROBE}"
+else
+    bad "low-privilege read not verified (no runuser/sudo path to nobody)"
+fi
+
+# Tar failure: inject a failing tar that first writes to the -czf target, so
+# the test proves the half-written temp file is removed (an immediately failing
+# tar never creates the partial file at all).
 STUB="${TMP_ROOT}/bin"
 mkdir -p "${STUB}"
 cat >"${STUB}/tar" <<'EOF'
 #!/usr/bin/env bash
+out=""
+while [[ $# -gt 0 ]]; do
+    if [[ "$1" == "-czf" ]]; then
+        out="$2"
+        break
+    fi
+    shift
+done
+[[ -n "${out}" ]] && printf 'partial archive bytes' >"${out}"
 exit 1
 EOF
 chmod +x "${STUB}/tar"
 PATH="${STUB}:${PATH}"
 export PATH
+TMPDIR="${TMP_ROOT}/tmpdir"
+export TMPDIR
+mkdir -p "${TMPDIR}"
 rm -f "${idleleo_dir}"/xray_bash_case_*.tar.gz
 backup_directories
 rc=$?
 [[ ${rc} -ne 0 ]] && ok "tar failure returns non-zero" || bad "tar failure returned 0"
 if compgen -G "${idleleo_dir}/xray_bash_case_*.tar.gz" >/dev/null; then
-    bad "partial backup archive was left behind"
+    bad "a final backup archive was left behind"
 else
-    ok "partial backup archive removed"
+    ok "no final backup archive was left behind"
+fi
+if compgen -G "${TMPDIR}/xray-backup.*" >/dev/null; then
+    bad "a half-written backup temp file was left behind"
+else
+    ok "the half-written backup temp file was removed"
 fi
 
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"

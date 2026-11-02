@@ -25,11 +25,35 @@ else
     bad "CHANGELOG.md has no '## ${version}' entry"
 fi
 
+if grep -Fq "当前版本：**${version}**" README.md; then
+    ok "README.md advertises ${version}"
+else
+    bad "README.md does not advertise ${version}"
+fi
+
+if grep -Fq "Current version: **${version}**" i18n/languages/en/README.md; then
+    ok "English README advertises ${version}"
+else
+    bad "English README does not advertise ${version}"
+fi
+
 if grep -Fq "中转节点" README.md; then
     ok "README.md documents the relay role"
 else
     bad "README.md does not document the relay role"
 fi
+
+# Registered, not translated in this change: these language READMEs are still
+# Chinese content. This is a note for the next translation pass, not a gate.
+for lang in fr ru fa ko; do
+    if [[ -f "i18n/languages/${lang}/README.md" ]] &&
+       grep -Fq '# Xray 管理脚本' "i18n/languages/${lang}/README.md" &&
+       ! grep -Fq 'Current version:' "i18n/languages/${lang}/README.md"; then
+        printf '  NOTE: i18n/languages/%s/README.md is still Chinese content (translation deferred)\n' "${lang}"
+    else
+        printf '  NOTE: i18n/languages/%s/README.md no longer matches the registered Chinese state; update this note\n' "${lang}"
+    fi
+done
 
 if bash -n install.sh; then
     ok "install.sh syntax"

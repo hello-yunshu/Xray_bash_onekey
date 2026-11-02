@@ -137,11 +137,14 @@ xray_install_config_file="${SANDBOX}/install_config.json"
 idleleo_commend_file="${SANDBOX}/idleleo"
 idleleo_dir="${SANDBOX}/idleleo_dir"
 idleleo_conf_dir="${SANDBOX}/idleleo_conf"
-mkdir -p "${xray_bin_dir}" "${xray_conf_dir}" "${nginx_dir}" "${nginx_conf_dir}" "${idleleo_conf_dir}"
-# uninstall_all only removes Xray when the binary is present (and Nginx when
-# its dir exists); create both so the fault-injection paths exercise the real
-# uninstall_xray/uninstall_nginx implementation.
-touch "${xray_bin_dir}/xray"
+xray_systemd_file="${SANDBOX}/systemd/xray.service"
+nginx_systemd_file="${SANDBOX}/systemd/nginx.service"
+mkdir -p "${xray_bin_dir}" "${xray_conf_dir}" "${nginx_dir}" "${nginx_conf_dir}" \
+    "${idleleo_conf_dir}" "${SANDBOX}/systemd"
+# uninstall_all now cleans both roles unconditionally. Existing unit files make
+# the disable-failure scenarios exercise the real stop/disable path; unit
+# absence is covered by the real missing-binary/relay purge test.
+touch "${xray_bin_dir}/xray" "${xray_systemd_file}" "${nginx_systemd_file}"
 printf 'x' > "${xray_install_config_file}"
 
 reset_controls() {
@@ -263,6 +266,29 @@ reset_controls
 rc=0; rc=$(run_uninstall_all); rc=$?
 [[ "$rc" == 0 ]] && ok "all-success uninstall exits 0" || bad "all-success uninstall exits $rc (want 0)"
 [[ "$(read_finish)" == "0" ]] && ok "all-success routes to commit" || bad "all-success routed finish=$(read_finish)"
+
+# ---------------------------------------------------------------------------
+# Scenario 12: no Rill agent -> finish is skipped, host rc is preserved.
+# This is the real production path when `rxa_apply_mode` is absent; the
+# previous mock made the finish wrapper run in every scenario.
+# ---------------------------------------------------------------------------
+run_uninstall_all_no_rill() {
+    (
+        unset -f rxa_apply_mode
+        uninstall_all
+    )
+}
+
+reset_controls
+rc=0; rc=$(run_uninstall_all_no_rill); rc=$?
+[[ "$rc" == 0 ]] && ok "no-Rill success exits 0" || bad "no-Rill success exits $rc (want 0)"
+[[ -z "$(read_finish)" ]] && ok "no-Rill success skips finish (no phantom commit)" || bad "no-Rill success reached finish=$(read_finish)"
+
+reset_controls
+STOP_FAIL=1
+rc=0; rc=$(run_uninstall_all_no_rill); rc=$?
+[[ "$rc" != 0 ]] && ok "no-Rill host failure exits non-zero" || bad "no-Rill host failure exits 0"
+[[ -z "$(read_finish)" ]] && ok "no-Rill host failure skips finish (no phantom abort)" || bad "no-Rill host failure reached finish=$(read_finish)"
 
 printf '\n%d passed, %d failed\n' "${PASS}" "${FAIL}"
 [[ "${FAIL}" == 0 ]]
