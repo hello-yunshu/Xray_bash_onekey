@@ -126,6 +126,11 @@ bash /etc/idleleo/install.sh --update
 3.3.1 fixes offline purge residue, backup/log permissions, missing-Xray repair,
 failure-record installer identity, and Shell metadata rollback protection.
 
+This 3.3.1 republication keeps the same version number. An existing 3.3.1 install
+is treated as up to date by `-u` and will not fetch the new installer; `-x` only
+updates the Xray core, not the Shell script. Reinstall or overwrite
+`/etc/idleleo/install.sh` to obtain the republished package.
+
 ### Legacy XTLS
 
 The legacy XTLS mode was removed in 3.3.0. Existing XTLS services keep running,

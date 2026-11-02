@@ -28,6 +28,20 @@
 - **Shell 版本防护**：`auto_update.sh` 读取实际安装的 `shell_version` 数值比较；
   在线版本低于已安装版本时拒绝降级且不写 `install_config`；启动时修正
   config 与实际脚本版本不一致。
+- **Purge 混合态与损坏元数据**：relay purge 一并清理残留的 `/usr/local/etc/xray`、
+  `/usr/local/share/xray`、`/usr/local/bin/xray` 和 Xray unit；`install_config.json`
+  损坏时只输出诊断警告，不再把已完成的文件清理报告为失败。
+- **Release 重发与 API 基线**：Release 工作流在幂等重跑时也刷新 jsDelivr，
+  并同步写入 `compatibility-baselines.json`；3.3.1 基线覆盖
+  `direct`/`shell-first`/`reinstall`/`failure-recovery`/`restart-recovery`/`fallback`。
+- **非 root `idleleo -s`**：在纯只读分发前明确提示需要 root（信息文件保持 0600），
+  不再以原始 Permission denied 失败。
+
+### 同版本重发说明
+
+3.3.1 为同版本重发，安装器字节已更新但 `shell_version` 仍为 3.3.1。已安装旧 3.3.1 的
+节点不会通过 `-u` 自动获得新安装器（同版本跳过）；`-x` 只更新 Xray 核心，不更新
+Shell。请用重新安装/手动覆盖 `/etc/idleleo/install.sh` 的方式取得新包。
 
 ### 验证与门禁
 
