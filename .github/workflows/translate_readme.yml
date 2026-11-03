@@ -65,6 +65,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Restore translation cache
+        id: cache
         uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
           path: translation_cache_readme.json
@@ -79,6 +80,15 @@ jobs:
         run: python3 i18n/tools/translate_readme.py README.md i18n/languages/
         env:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
+
+      - name: Save translation cache
+        # Keep completed segments even when a later segment fails, so the
+        # next run resumes instead of restarting from an empty cache.
+        if: always() && steps.cache.outputs.cache-hit != 'true' && hashFiles('translation_cache_readme.json') != ''
+        uses: actions/cache/save@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        with:
+          path: translation_cache_readme.json
+          key: ${{ runner.os }}-readme-translations-${{ hashFiles('README.md') }}
 
       - name: Validate README translation outputs
         run: python3 i18n/tools/validate_readme.py README.md i18n/languages/
