@@ -3,6 +3,7 @@ import json
 import re
 import sys
 import time
+import hashlib
 from deep_translator import GoogleTranslator
 import logging
 from translation_terms import protect_terms, restore_placeholders
@@ -27,6 +28,11 @@ LANGUAGES = {
     'ko': 'korean'
 }
 
+# Records the SHA-256 of the README.md that produced the committed
+# translations. When the source is unchanged there is nothing to translate;
+# re-running the generator must not hammer the translation services.
+SOURCE_HASH_FILE = os.path.join('i18n', 'languages', '.readme-source.sha256')
+
 TRANSLATION_MAX_ATTEMPTS = 5
 TRANSLATION_REQUEST_INTERVAL = 1.0
 _LAST_REQUEST_AT = 0.0
@@ -47,6 +53,74 @@ def _rate_limit():
 
 def _retry_sleep(attempt):
     time.sleep(min(30, TRANSLATION_REQUEST_INTERVAL * (2 ** attempt)))
+
+
+def translate_with_qwen(text, target_lang):
+    """One request to Qwen-MT-Plus. Raises TranslationError on any problem."""
+    api_key = os.getenv('AI_API_KEY')
+    if not api_key:
+        raise TranslationError("AI_API_KEY is not set")
+    try:
+        from openai import OpenAI
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        )
+        protected_text, protected_terms = protect_terms(text)
+        completion = client.chat.completions.create(
+            model="qwen-mt-plus",
+            messages=[{'role': 'user', 'content': protected_text}],
+            extra_body={"translation_options": {
+                "source_lang": "zh",
+                "target_lang": target_lang,
+            }},
+        )
+        translated = completion.choices[0].message.content
+    except Exception as e:
+        raise TranslationError(f"Qwen-MT-Plus failed: {e}")
+    if not translated or not translated.strip():
+        raise TranslationError("Qwen-MT-Plus returned an empty translation")
+    translated = restore_placeholders(translated, protected_terms).strip()
+    if CHINESE_RE.search(translated):
+        raise TranslationError("Qwen-MT-Plus output still contains Chinese")
+    if '\n' in translated:
+        raise TranslationError("Qwen-MT-Plus output contains newlines")
+    return translated
+
+
+def translate_with_google(text, target_lang, translator):
+    """One request to Google Translate. Raises TranslationError on any problem."""
+    protected_text, protected_terms = protect_terms(text)
+    translated = translator.translate(protected_text)
+    if translated is None:
+        raise TranslationError("Google Translate returned None")
+    translated = restore_placeholders(translated, protected_terms).strip()
+    if CHINESE_RE.search(translated):
+        raise TranslationError("Google Translate output still contains Chinese")
+    return translated
+
+
+def read_source_hash(path):
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except OSError:
+        return None
+
+
+def write_source_hash(path, digest):
+    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+    tmp = path + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        f.write(digest + '\n')
+    os.replace(tmp, path)
+
+
+def outputs_are_present(output_dir, source_filename):
+    return all(
+        os.path.isfile(os.path.join(language_output_dir(output_dir, code), source_filename))
+        for code in LANGUAGES
+    )
 
 def load_translation_cache(cache_file):
     if os.path.exists(cache_file):
@@ -69,26 +143,30 @@ def translate_text(text, target_lang, translator, translations):
         logging.info(f"从缓存中获取翻译: '{text}' -> '{translations[cache_key]}'")
         return translations[cache_key]
 
+    providers = [
+        ("Google Translate", lambda: translate_with_google(text, target_lang, translator)),
+    ]
+    if os.getenv('AI_API_KEY'):
+        providers.insert(0, ("Qwen-MT-Plus", lambda: translate_with_qwen(text, target_lang)))
+
     last_error = None
     for attempt in range(TRANSLATION_MAX_ATTEMPTS):
-        _rate_limit()
-        try:
-            protected_text, protected_terms = protect_terms(text)
-            translated = translator.translate(protected_text)
-            if translated is None:
-                raise TranslationError("translator returned None")
-            translated = restore_placeholders(translated, protected_terms)
+        for provider, request in providers:
+            _rate_limit()
+            try:
+                translated = request()
+            except Exception as e:
+                last_error = e
+                logging.error(
+                    f"{provider} 翻译失败 (attempt {attempt + 1}/{TRANSLATION_MAX_ATTEMPTS}): {text}\n错误: {e}"
+                )
+                continue
             translations[cache_key] = translated
-            logging.info(f"翻译成功: '{text}' -> '{translated}'")
+            logging.info(f"翻译成功 ({provider}): '{text}' -> '{translated}'")
             return translated
-        except Exception as e:
-            last_error = e
-            logging.error(
-                f"翻译失败 (attempt {attempt + 1}/{TRANSLATION_MAX_ATTEMPTS}): {text}\n错误: {e}"
-            )
-            if attempt < TRANSLATION_MAX_ATTEMPTS - 1:
-                _retry_sleep(attempt)
-    raise TranslationError(f"Google Translate failed for {text!r}: {last_error}")
+        if attempt < TRANSLATION_MAX_ATTEMPTS - 1:
+            _retry_sleep(attempt)
+    raise TranslationError(f"所有翻译服务均失败: {text!r}: {last_error}")
 
 def should_translate(segment):
     skip_patterns = [
@@ -184,14 +262,25 @@ def language_output_dir(output_dir, lang_code):
 
 def translate_readme(input_file, output_dir):
     cache_file = 'translation_cache_readme.json'
+
+    with open(input_file, 'rb') as f:
+        source_digest = hashlib.sha256(f.read()).hexdigest()
+    source_filename = os.path.basename(input_file)
+
+    # A tool/workflow-only change must not re-translate an unchanged README
+    # from scratch: doing so would issue hundreds of requests and trip the
+    # upstream rate limit while producing an identical result.
+    if (read_source_hash(SOURCE_HASH_FILE) == source_digest
+            and outputs_are_present(output_dir, source_filename)):
+        logging.info("README 源文件未变化，现有翻译已是最新，跳过翻译。")
+        return
+
     translations = load_translation_cache(cache_file)
     logging.info(f"缓存文件 '{cache_file}' 加载完成，共有 {len(translations)} 条缓存记录。")
 
     with open(input_file, 'r', encoding='utf-8') as f:
         content = f.read()
     logging.info(f"读取 '{input_file}' 完成，共 {len(content)} 个字符。")
-
-    source_filename = os.path.basename(input_file)
 
     # Build every language in memory first. A 429/failure in any language
     # aborts the run before a partial README is written or staged.
@@ -230,7 +319,8 @@ def translate_readme(input_file, output_dir):
         logging.info(f"翻译完成，文件保存至: {output_file}")
 
     save_translation_cache(cache_file, translations)
-    logging.info("所有翻译完成，并已保存缓存。")
+    write_source_hash(SOURCE_HASH_FILE, source_digest)
+    logging.info("所有翻译完成，并已保存缓存与源文件校验值。")
 
 if __name__ == "__main__":
     input_readme = sys.argv[1] if len(sys.argv) > 1 else 'README.md'
