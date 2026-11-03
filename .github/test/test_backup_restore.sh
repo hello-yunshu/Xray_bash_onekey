@@ -174,5 +174,19 @@ rc=$?
 [[ "${output}" == *"已恢复脚本版本: 3.3.1"* ]] && ok "restored script version reported" || bad "restored script version not reported"
 [[ "${output}" == *"脚本与配置版本不一致"* ]] && ok "script/config version drift reported" || bad "version drift not reported"
 
+# ---------------------------------------------------------------------------
+# 6. Backup name cannot escape /etc/idleleo
+# ---------------------------------------------------------------------------
+read_optimize() { printf -v "$2" '%s' "../escape"; }
+rm -f "${idleleo_dir}"/xray_bash_*.tar.gz
+backup_directories >/dev/null 2>&1
+rc=$?
+[[ ${rc} -ne 0 ]] && ok "traversal backup name rejected" || bad "traversal backup name accepted"
+if compgen -G "${TMP_ROOT}/escape_*.tar.gz" >/dev/null; then
+    bad "backup escaped the idleleo directory"
+else
+    ok "no archive written outside idleleo"
+fi
+
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]
