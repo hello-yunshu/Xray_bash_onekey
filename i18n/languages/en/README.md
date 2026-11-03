@@ -8,44 +8,44 @@ Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/
 
 > Thanks for non-commercial open source development authorization by JetBrains
 
-## Features
+## Functional Features
 
-* enter`idleleo`Open the Xray management menu to manage installation, services, security settings, etc.
-* Use Qwen-MT-Plus AI to achieve accurate translation in multiple languages
-* Supports Reality protocol, it is recommended to use Nginx prefix (can be installed in the script)
-* Supports WebSocket, gRPC, xHTTP transmission, you can choose single transmission or`ws+gRPC+xHTTP`Enable both
-* Supports IPv4 / IPv6 dual stack: can automatically detect public network export capabilities during installation, record independent verification based on domain name A/AAAA and generate corresponding sharing links and Clash configurations
-* Built-in fail2ban protection (installable within script)
-* Built-in Xray traffic statistics, traffic blocking, GeoIP/GeoSite rule update and regular update
-* Supports scripts, Xray, Nginx and certificate updates, and provides backup and failure rollback for critical updates
-* The current running configuration will be automatically backed up before reinstallation and mode switching, and the original configuration will be restored in case of failure.
-* Reconfiguration provides three safe paths: configuration-preserving redeployment, standard template reconstruction, and mode switching.
-* use[@DuckSoft](https://github.com/DuckSoft)'s sharing link[提案](https://github.com/XTLS/Xray-core/issues/91)(beta), compatible with Qv2ray, V2rayN, V2rayNG
-* use[XTLS](https://github.com/XTLS/Xray-core/issues/158)proposal, follow[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)Standard, supports custom string mapping to VLESS UUID
-* Supports gRPC protocol:[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
+* Input`idleleo`Open the Xray management menu to manage installations, services, security settings, and more.
+* Uses Qwen-MT-Plus AI to achieve precise multilingual translation.
+* Supports the Reality protocol; it is recommended to use it with the Nginx preprocessor (which can be installed within the script).
+* Supports WebSocket, gRPC, and xHTTP transmission, with options for single transmission or`ws+gRPC+xHTTP`Enable simultaneously
+* Supports dual-stack IPv4 / IPv6: During installation, it can automatically detect public network egress capabilities, perform independent verification based on the domain name A/AAAA, and generate corresponding share links along with Clash configurations.
+* Built-in fail2ban protection (can be installed within the script)
+* Built-in Xray traffic statistics, traffic blocking, GeoIP/GeoSite rule updates, and scheduled updates.
+* Supports script, Xray, Nginx, and certificate updates, and provides backups and rollback in case of critical update failures.
+* Before reinstallation and mode switching, the current running configuration will be automatically backed up, and in case of failure, the original configuration will be restored.
+* Reconfiguration provides three secure paths: re-deployment of the retained configuration, reconstruction using a standard template, and mode switching.
+* Adopted[@DuckSoft](https://github.com/DuckSoft)The sharing link[Proposal](https://github.com/XTLS/Xray-core/issues/91)(beta), compatible with Qv2ray, V2rayN, V2rayNG
+* Adopted[XTLS](https://github.com/XTLS/Xray-core/issues/158)Proposal, follow[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)Standard, supports custom string mapping to VLESS and UUID.
+* Supports the gRPC protocol:[Use the gRPC protocol](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
 * Supports Reality / ws/gRPC/xHTTP load balancing:
-  - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
-  - [搭建后端负载均衡](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
-* Reality + Nginx mode is enabled by default. SNI Guard: unknown SNI, empty SNI and exception TLS will not enter the Xray Reality backend. The isolation strategy (ssl_reject_handshake) is adopted by default. Advanced users can switch to self-built decoy site fallback or directly TCP Denied. This function is used to reduce active detection and misconfiguration exposure, and does not pursue perfect camouflage.
+  - [Deploy Reality load balancing](https://hey.run/posts/bushu-reality-balance)
+  - [Set up backend load balancing](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
+* Reality + Nginx mode is enabled by default. SNI Guard: Unknown SNI, empty SNI, and abnormal TLS requests will not be forwarded to the Xray Reality backend; the default isolation policy (ssl_reject_handshake) is applied. Advanced users can switch to a fallback to a self-hosted decoy site or directly TCP reject. This feature is designed to reduce active probing and exposure due to misconfigurations, and does not aim for perfect obfuscation.
 
 ## Further reading
 
-* `idleleo`Naming backstory:[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
-* Reality Installation Guide:[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Reality Protocol Risk:[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
-* Reality Accelerated server:[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
+* `idleleo`Naming background story:[The true face behind the mist](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
+* Reality Installation Guide:[Set up Xray Reality server](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+* Reality Protocol Risk:[The risks of the Xray Reality agreement](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+* Reality Accelerated server:[Exploit the Reality protocol "vulnerability" to accelerate the server.](https://hey.run/posts/use-reality)
 
 ## Telegram group
 
-* Communication group:[点击加入](https://t.me/+48VSqv7xIIFmZDZl)
+* Communication group:[Click to join](https://t.me/+48VSqv7xIIFmZDZl)
 
-## Preparation
+## Preparatory work
 
-* An overseas server with public network IP
-* Install Reality protocol: You need to prepare a target domain name that meets the requirements of Xray
-* Install TLS version: You need to prepare the domain name and correctly configure A and/or AAAA records according to the available network of the server; for dual-stack environments, it is recommended to configure the correct A and AAAA at the same time. The script supports automatic detection of IPv4/IPv6 network capabilities. When dual stack is available, the corresponding client entry can be generated at the same time.
-* read[Xray 官方文档](https://xtls.github.io), understand Reality, TLS, WebSocket, gRPC and Xray related concepts
-* **Make sure curl is installed: CentOS user execution`yum install -y curl`;Debian/Ubuntu User execution`apt install -y curl`
+* A foreign server with a public network IP
+* Install the Reality protocol: You must prepare a target domain name that meets the requirements of Xray.
+* Installing version TLS: You need to prepare a domain name and correctly configure the A and/or AAAA records based on the server’s available network. In a dual-stack environment, it is recommended to also configure the correct A and AAAA. The script supports automatic detection of IPv4/IPv6 network capabilities and can generate corresponding client entry points for both stacks when dual-stack is available.
+* Reading[Xray official documentation](https://xtls.github.io)Understand the concepts related to Reality, TLS, WebSocket, gRPC, and Xray.
+* **Ensure curl is installed**: CentOS users execute`yum install -y curl`;Debian/Ubuntu user executes`apt install -y curl`
 
 ## Quick installation
 
@@ -55,118 +55,127 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 
 ## Installation mode
 
-| model | illustrate |
+| Mode | Description |
 |------|------|
-| Reality + Nginx | Recommended mode, you can attach ws/gRPC/xHTTP simple protocol as needed for load balancing |
-| Nginx + TLS | Support ws/gRPC/xHTTP, automatically apply for and renew Let's Encrypt certificate |
-| ws/gRPC/xHTTP ONLY | Independent inbound mode without TLS, mainly used in backend or load balancing scenarios |
-| Relay node | Standalone role: single-target TCP forwarding with Nginx Stream, no Xray installed |
-| Docker | Xray, Nginx and the main script are pre-installed in the image |
+| Reality + Nginx | Recommended mode, which can optionally include the ws/gRPC/xHTTP simple protocol for load balancing. |
+| Nginx + TLS | Supports ws/gRPC/xHTTP, automatically applies for and renews Let's Encrypt certificates. |
+| ws/gRPC/xHTTP ONLY | Independent ingress mode without TLS, primarily used in backend or load balancing scenarios. |
+| Transit node | Independent server role, used only for single-target Nginx Stream forwarding with TCP, without installing Xray. |
+| Docker | The image comes pre-installed with Xray, Nginx, and the main script. |
 
-Optional when installing ws/gRPC/xHTTP related modes`ws`、`gRPC`、`xHTTP`or`ws+gRPC+xHTTP`. The script will generate the corresponding port, path, sharing link and QR code respectively; Clash currently does not support xHTTP, and the script will prompt in the configuration output.
+When installing the ws/gRPC/xHTTP-related mode, you can select.`ws`、`gRPC`、`xHTTP`Or`ws+gRPC+xHTTP`The script will generate the corresponding port, path, share link, and QR code; Clash currently does not support xHTTP, and the script will display a prompt in the configuration output.
 
-## Reconfiguration instructions
+## Reconfiguration Instructions
 
-When the installed environment is installed again, the script will automatically back up the current running configuration and provide three reconfiguration paths:
+When the script is run again in an already installed environment, it will automatically back up the current running configuration and provide three reconfiguration options:
 
-| path | illustrate | limit |
+| Path | Description | Restriction |
 |------|------|------|
-| Preserve configuration redeployment | Keep custom routing/outbounds/DNS and multi-user configuration, modify only user-selected fields (ports, paths, UUID, Reality parameters, etc.) | Transmission structure changes (such as ws → gRPC) are not supported. If you need to change the transmission combination, please use the standard template to rebuild it. |
-| Standard template reconstruction | Generate standard template configuration using current reusable parameters, custom routing/outbounds/DNS may be removed | It is not mandatory that the number of users remains unchanged |
-| Mode switching | Switch to a different protocol mode (such as Reality → TLS). By default, only the main user UUID/email is reused. | Other users will not be automatically migrated and will be clearly prompted before switching. |
+| Retain configuration and redeploy | Retain custom routing/outbounds/DNS and multi-user configurations, modifying only the fields selected by the user (such as port, path, UUID, Reality parameters, etc.). | Structure changes during transmission are not supported (e.g., ws → gRPC). To modify the transmission configuration, please recreate it using the standard template. |
+| Standard template reconstruction | Use the current reusable parameters to generate a standard template configuration; the custom routing/outbounds/DNS may be removed. | It does not require the number of users to remain unchanged. |
+| Mode switching | Switch to a different protocol mode (e.g., Reality → TLS); by default, only the primary user UUID/email is reused. | Other users will not be automatically migrated; a clear prompt will appear before the switch. |
 
-If any step in the reconfiguration process fails (configuration writing, service startup, health check, etc.), it will automatically roll back to the original backup configuration. The backup directory uses a unique timestamp to support multiple consecutive reconfigurations without conflicting with each other.
+Any failure during the reconfiguration process—such as configuration write, service startup, or health checks—will automatically trigger a rollback to the backed-up original configuration. The backup directory uses a unique timestamp, enabling multiple consecutive reconfigurations without conflicts.
 
 ## Common commands
 
-| operate | Order |
+| Operation | Command |
 |------|------|
 | Open the admin menu | `idleleo` |
-| View help | `idleleo --help` |
+| View Help | `idleleo --help` |
 | Install Reality mode | `idleleo --install-reality` |
 | Install TLS mode | `idleleo --install-tls` |
 | Install ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
-| Install relay node | `idleleo --install-relay` |
-| Uninstall Script and Xray/Nginx | `idleleo --purge` |
+| Installing the transit node | `idleleo --install-relay` |
+| Uninstall script and Xray/Nginx | `idleleo --purge` |
 | View installation information | `idleleo --show` |
-| update script | `idleleo --update` |
+| Update script | `idleleo --update` |
 | Update Xray | `idleleo --xray-update` |
 | Update Nginx | `idleleo --nginx-update` |
 | Set Fail2ban | `idleleo --set-fail2ban` |
-| Set up traffic blocking | `idleleo --traffic-blocker` |
+| Set traffic blocking | `idleleo --traffic-blocker` |
 | View real-time port traffic | `idleleo --port-traffic` |
 
-## Upgrade notes
+## Upgrade Instructions
 
 ### 3.2.9 / 3.2.10 / 3.2.11 → 3.3.x
 
-Legacy Shell auto-update never crosses a minor version. Upgrade in two interactive
-steps, or use the explicit automation flag:
+Automatic updates for the old Shell will not carry over to minor;`idleleo --update auto_update`Will explicitly skip and retain.
+Old version, and it will not report success silently. Please use the interactive two-step upgrade:
 
 ```bash
-bash /etc/idleleo/install.sh --update          # interactive terminal, answer Y
-bash /etc/idleleo/install.sh --xray-update
-# automation (same minor):
-bash /etc/idleleo/install.sh --update --yes
-# automation (cross minor):
-bash /etc/idleleo/install.sh --update --yes --allow-major
+bash /etc/idleleo/install.sh --update          # 交互终端，选择 Y
+bash /etc/idleleo/install.sh --xray-update     # 再更新 Xray
 ```
 
-`--yes` only auto-confirms a same-minor update. A cross-minor update additionally
-requires the explicit `--allow-major` switch; `--allow-major` only lifts the
-series restriction and does not replace the Y/N confirmation by itself (non-
-interactive use still needs `--yes`). Take a backup before upgrading.
+The automated environment must be explicitly confirmed:
+
+```bash
+bash /etc/idleleo/install.sh --update --yes                  # 同一 minor
+bash /etc/idleleo/install.sh --update --yes --allow-major    # 跨 minor
+```
+
+`--yes`Only updates within the same minor are automatically confirmed; for updates across minor, explicit addition is still required.`--allow-major`。
+`--allow-major`Only removes the cross-minor restriction; it does not replace Y/N confirmation (non-interactive scenarios still require it).
+At the same time, give`--yes`). It is recommended to run this first before upgrading.`idleleo --backup`3.3.1 Permissions for creating backup files
+For 0600.
 
 ### 3.3.0 → 3.3.1
+
+Update in the management menu under “Update Wizard → Update Script,” or execute:
 
 ```bash
 bash /etc/idleleo/install.sh --update
 ```
 
-3.3.1 fixes offline purge residue, backup/log permissions, missing-Xray repair,
-failure-record installer identity, and Shell metadata rollback protection.
+3.3.1 Fixed offline uninstallation remnants, backup/log permissions, the missing Xray, and failed identity records installer.
+Shell metadata fallback protection. The upgrade will not modify the existing Xray configuration; REALITY`minClientVer`Replenish as before.
+Rule execution for version 3.3.0.
 
-This 3.3.1 republication keeps the same version number. An existing 3.3.1 install
-is treated as up to date by `-u` and will not fetch the new installer; `-x` only
-updates the Xray core, not the Shell script. Reinstall or overwrite
-`/etc/idleleo/install.sh` to obtain the republished package.
+3.3.1 Releasing a new version while keeping the version number unchanged. Nodes that have already installed the old 3.3.1 will not be updated through this process.`-u`Automatically obtain the new installer.
+(The same version is considered to be the latest);`-x`Only update the Xray core; do not update the Shell script. When new packages are needed,
+Please reinstall or manually overwrite.`/etc/idleleo/install.sh`。
 
-### Legacy XTLS
+### Old version of XTLS mode
 
-The legacy XTLS mode was removed in 3.3.0. Existing XTLS services keep running,
-but the script refuses reinstall or mode switching; back up, uninstall, and
-redeploy a supported mode if you need management.
+Starting from version 3.3.0, the legacy XTLS mode has been removed. Existing XTLS services can still run after upgrading, but they cannot be reinstalled via script or…
+Switch modes; when you need to continue managing, please back up and uninstall first, then redeploy the Reality/TLS/ relay mode.
 
-## RillML Xray AI Operation and maintenance assistant
+### Automatic update
 
-RillML (abbreviated as Rill) provides local adaptive intelligent operation and maintenance capabilities for Xray.
+Automatic updates only automatically upgrade Shell within the same minor; for cross-minor, you need to manually perform the two steps mentioned above. Xray and
+Automatic updates for Nginx are still performed based on API metadata and are logged upon failure.`{组件, 目标版本, installer, 时间}`。
 
-The built-in local AI operation and maintenance assistant monitors the health status of Xray/Nginx in real time, automatically diagnoses faults and gives treatment suggestions, without the need for external API. Main menu input`9`or execute`idleleo --rill-agent`Enter.
+## RillML Xray AI Operations Assistant
+
+RillML (short for Rill) provides local adaptive intelligent operations and maintenance capabilities for Xray.
+
+Built-in local AI operations assistant, real-time monitoring of Xray/Nginx health status, automatic fault diagnosis with recommended solutions—no external API required. Enter in the main menu.`9`Or execute.`idleleo --rill-agent`Enter.
 
 **Core Competencies**
 
-* Monitoring: Real-time observation of Xray/Nginx service and configuration status
-* Diagnosis: Locate the root cause of the fault, with confidence recommendations (high/medium/low/insufficient evidence)
-* Judgment: Automatically determine the fault type and give processing suggestions. The instructions clearly indicate that automatic processing is allowed or only suggestions are provided.
-* Mode: Intelligent judgment / observation only / safe deactivation, the system will not be changed until automatic modification is turned on
+* Monitoring: Real-time observation of the Xray/Nginx service and configuration status.
+* Diagnosis: Identify the root cause of the fault, with a confidence level recommendation (High / Medium / Low / Insufficient Evidence).
+* Diagnosis: Automatically identifies the fault type and provides troubleshooting recommendations, with clear indications in the description specifying whether automatic resolution is permitted or if only suggestions are provided.
+* Mode: Intelligent Judgment / Observe Only / Safety Disable. The system will not be modified before automatic adjustment is enabled.
 
-**Commonly used commands**
+**Common Commands**
 
-| operate | Order |
+| Operation | Command |
 |------|------|
-| Open the AI operation and maintenance assistant menu | `idleleo --rill-agent` |
+| Open the AI Operations Assistant menu | `idleleo --rill-agent` |
 | Install or repair the AI judgment engine | `idleleo --rill-agent-install` |
-| Check the AI judgment status | `idleleo --rill-agent-status` |
-| Run AI troubleshooting | `idleleo --rill-agent-diagnose` |
-| Verification AI judgment engine | `idleleo --rill-agent-verify` |
-| Security deactivation AI judgment | `idleleo --rill-agent-safe-disable` |
+| View AI judgment status | `idleleo --rill-agent-status` |
+| Run AI fault diagnosis | `idleleo --rill-agent-diagnose` |
+| Validation of the AI judgment engine | `idleleo --rill-agent-verify` |
+| Securely disable AI judgment | `idleleo --rill-agent-safe-disable` |
 | Uninstall Rill AI engine | `idleleo --rill-agent-uninstall` |
 
-AI The judgment engine is still in the testing stage. It is recommended to focus on diagnostic suggestions. The system will not be automatically modified by default.
+The AI decision engine is currently still in the testing phase. It is recommended to rely primarily on the diagnostic recommendations, and by default, it will not automatically modify the system.
 
-## Docker Deployment
+## Deploy Docker
 
-Supports deployment using Docker, the image is pre-installed with Xray and Nginx, and all functions of the original script can be used directly in the container. See details[Docker 部署指南](/docker/DOCKER.md)。
+Supports deployment using Docker; the image comes pre-installed with Xray and Nginx, allowing you to directly use all functions of the original script inside the container. See details here.[Docker Deployment Guide](/docker/DOCKER.md)。
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
@@ -175,40 +184,40 @@ docker compose up -d
 docker attach xray-onekey
 ```
 
-## AI Skill Deployment
+## Deploy AI Skill
 
-Supports automatic deployment of Xray via AI tools such as Trae without manual interaction. See details[Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
+Supports the automatic deployment of Xray via AI tools (such as Trae), without requiring manual interaction. See details at[Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
 
-The traditional method requires SSH to go to the server, run the installation script, and answer interactive questions one by one; the Skill method only needs to tell AI your needs, and AI will automatically generate a non-interactive script and execute it, directly returning the VLESS link.
+The traditional method requires SSH to connect to the server, run the installation script, and answer interactive questions one by one; with the Skill method, you simply tell AI your requirements, and AI will automatically generate a non-interactive script and execute it, directly returning the VLESS link.
 
-**Supported modes**: Reality / TLS / ws ONLY / relay node
+**Supported Modes**: Reality / TLS / ws ONLY / Relay Node
 
-**How ​​to use**: Just say "Help me build Xray on the server" in the AI tool that supports Skill, and AI will automatically collect information, generate scripts, perform deployment and return connection information.
+**How to use**: In a AI tool that supports Skill, simply say "Help me set up Xray on the server," and AI will automatically gather information, generate a script, perform the deployment, and return the connection details.
 
-## Things to note
+## Precautions
 
-* If you don’t understand the meaning of each setting, please use the default value except for required fields (just press Enter)
-* Cloudflare Users please open CDN after installation is complete.
-* This script requires basic knowledge of Linux and computer network knowledge
-* Supports Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+, some CentOS templates may have compilation problems, it is recommended to change the system when encountering problems
-* It is recommended that a single server deploy only a single agent and use the default port 443
-* Custom string mapping to UUIDv5 requires client support
-* It is recommended to use it in a pure environment; novices should not use CentOS
-* This program depends on Nginx, passed[LNMP](https://lnmp.org)Users who have installed the script Nginx please be aware of potential conflicts.
-* xHTTP shared link is for clients that support xHTTP; Clash configuration output will skip xHTTP
-* Do not use this script in a production environment without first verifying availability
-* Author: Yun Shu, providing limited support only
+* When you are unsure of the meaning of each setting, please use the default values for all non-required fields (simply press Enter throughout).
+* Cloudflare Please enable CDN after the installation is complete.
+* This script requires basic knowledge of Linux and general computer networking concepts.
+* Supports Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+, some CentOS templates may have compilation issues; it is recommended to switch systems if you encounter problems.
+* It is recommended to deploy only one agent per server, using the default port 443.
+* Mapping a custom string to UUIDv5 requires client support.
+* It is recommended to use in a clean environment; beginners should not use CentOS.
+* This program depends on Nginx, which has been verified.[LNMP](https://lnmp.org)Please note potential conflicts for users who have already installed the script via Nginx.
+* xHTTP share links are suitable for clients that support xHTTP; Clash configuration output will skip xHTTP.
+* Do not use this script in a production environment before verifying its availability.
+* Author: Yunshu, limited support only.
 
 ## Acknowledgments
 
-* based on[wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)develop
-* TCP acceleration script quoted from[ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
+* Based on[wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)Development
+* TCP The acceleration script is referenced from[ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
 
-## Certificate configuration
+## Certificate Configuration
 
-**Custom certificate**: Name the crt and key files respectively.`xray.crt`and`xray.key`, put in`/etc/idleleo/cert`Directory (if the directory does not exist, create it first). Please pay attention to the certificate authority and validity period. After the custom certificate expires, you need to renew it yourself.
+**Custom Certificate**: Rename the crt and key files to`xray.crt`and`xray.key`, put in`/etc/idleleo/cert`Directory (create it first if it does not exist). Please pay attention to the certificate permissions and validity period; you will need to renew custom certificates yourself once they expire.
 
-**Automatic certificate**: The script supports automatically generating Let's Encrypt certificates (valid for 3 months), and theoretically supports automatic renewal.
+**Automatic Certificate**: The script supports automatically generating a Let's Encrypt certificate (valid for 3 months) and, in theory, supports automatic renewal.
 
 ## View client configuration
 
@@ -218,28 +227,30 @@ cat /etc/idleleo/info/xray_info.inf
 
 ## Xray Introduction
 
-* Xray is an excellent open source network proxy tool that supports Windows, macOS, Android, iOS, Linux and other full platforms
-* This script is a one-click complete configuration script. After all processes are completed normally, the client can be used according to the output results.
-* **STRONGLY RECOMMENDED** A comprehensive understanding of the program’s workflow and principles
+* Xray is an excellent open-source network proxy tool that supports all platforms, including Windows, macOS, Android, iOS, and Linux.
+* This script is a one-click full configuration script. After all processes complete successfully, configure the client according to the output results to start using it.
+* **Strongly recommended** to gain a comprehensive understanding of the program's workflow and principles.
 
-## Service management
+## Service Management
 
-| operate | Order |
+| Operation | Command |
 |------|------|
 | Start Xray | `systemctl start xray` |
 | Stop Xray | `systemctl stop xray` |
-| 启动 Nginx | `systemctl start nginx` |
+| Start Nginx | `systemctl start nginx` |
 | Stop Nginx | `systemctl stop nginx` |
 
-## Related catalog
+## Related directory
 
-| 内容 | path |
+| Content | Path |
 |------|------|
-| 主目录 | `/etc/idleleo` |
-| Xray 配置 | `/etc/idleleo/conf/xray/config.json` |
-| Nginx 配置 | `/etc/idleleo/conf/nginx/` |
-| 安装信息 | `/etc/idleleo/conf/install_config.json` |
-| 证书文件 | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
-| 日志目录 | `/etc/idleleo/logs/`、`/var/log/xray/` |
-| Nginx 安装目录 | `/usr/local/nginx` |
-| Administrative commands | `/usr/bin/idleleo` |
+| Home directory | `/etc/idleleo` |
+| Xray Configuration | `/etc/idleleo/conf/xray/config.json` |
+| Nginx Configuration | `/etc/idleleo/conf/nginx/` |
+| Installation Information | `/etc/idleleo/conf/install_config.json` |
+| Certificate file | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
+| Log directory | `/etc/idleleo/logs/`、`/var/log/xray/` |
+| Nginx installation directory | `/usr/local/nginx` |
+| Management commands | `/usr/bin/idleleo` |
+
+Probe testing: Verify that the Qwen README translation pipeline works end-to-end.
