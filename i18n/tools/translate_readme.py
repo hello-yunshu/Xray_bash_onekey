@@ -132,12 +132,13 @@ def translate_text(text, target_lang, translations):
             break
         glossary_errors = glossary['errors']
         logging.warning(
-            "术语校验未通过 (attempt %d/2): %s; %s",
-            attempt + 1, text, "; ".join(glossary_errors),
+            "术语校验未通过 (attempt %d/2): %r -> %r; %s",
+            attempt + 1, text, translated, "; ".join(glossary_errors),
         )
     else:
         raise TranslationError(
-            f"glossary validation failed for {text!r}: {'; '.join(glossary_errors or [])}"
+            f"glossary validation failed for {text!r}: {'; '.join(glossary_errors or [])}; "
+            f"last={translated!r}"
         )
 
     translations[cache_key] = translated
