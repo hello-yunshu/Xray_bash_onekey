@@ -26,7 +26,7 @@ jobs:
       - name: Checkout Xray main
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          ref: main
+          ref: ${{ github.ref }}
           path: xray
           fetch-depth: 0
           persist-credentials: false
