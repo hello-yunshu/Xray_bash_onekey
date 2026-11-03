@@ -225,11 +225,11 @@ echo "============================================================"
 echo "  13.6: offline-safe command classification (no network)"
 echo "============================================================"
 for flag in --help --uninstall --purge --show --service-start --service-stop \
-            --service-restart --access-log --error-log --backup; do
+            --service-restart --access-log --error-log --backup --restore; do
     is_offline_safe_command "${flag}" && PASSED_OFFLINE=$((PASSED_OFFLINE + 1)) ||
         bad "is_offline_safe_command '${flag}' should be offline-safe"
 done
-[[ ${PASSED_OFFLINE:-0} -eq 10 ]] && ok "all 10 offline-safe flags recognized without network"
+[[ ${PASSED_OFFLINE:-0} -eq 11 ]] && ok "all 11 offline-safe flags recognized without network"
 
 echo "============================================================"
 echo "  Summary"
