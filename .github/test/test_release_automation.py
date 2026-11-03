@@ -91,6 +91,20 @@ class ReleaseAutomationTests(unittest.TestCase):
         self.assertIn('permissions:\n      contents: write', release)
         self.assertIn('gh release create "$tag"', release)
 
+    def test_promotion_probe_is_dispatch_only_and_fails_red(self):
+        workflow = (ROOT / ".github/workflows/publish-shell-version.yml").read_text()
+        self.assertIn('force_promotion_failure:', workflow)
+        self.assertIn('default: false', workflow[workflow.index('force_promotion_failure:'):])
+        jobs = workflow[workflow.index('jobs:\n'):]
+        release = jobs[jobs.index('  release:\n'):jobs.index('  promote:\n')]
+        promote = jobs[jobs.index('  promote:\n'):]
+        self.assertNotIn('force_promotion_failure', release)
+        self.assertIn('if: inputs.force_promotion_failure', promote)
+        self.assertIn('MANUAL ACTION REQUIRED: forced promotion failure', promote)
+        self.assertIn('exit 1', promote)
+        self.assertNotIn('continue-on-error', promote)
+        self.assertNotIn('gh release create', promote)
+
     def test_legacy_identity_excludes_provenance_bearing_bundle(self):
         manifest = {
             "files": {
