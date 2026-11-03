@@ -1,16 +1,39 @@
 name: Rill Xray Agent
-on: [push, pull_request, workflow_dispatch]
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'install.sh'
+      - 'scripts/rill*'
+      - 'repository_files/rill_integration/**'
+      - 'assets/**'
+      - '.github/workflows/rill-xray-agent.yml'
+  pull_request:
+    paths:
+      - 'install.sh'
+      - 'scripts/rill*'
+      - 'repository_files/rill_integration/**'
+      - 'assets/**'
+      - '.github/workflows/rill-xray-agent.yml'
+  workflow_dispatch:
+
 permissions:
   contents: read
+
 env:
   RILL_CANONICAL_PIN_FILE: repository_files/rill_integration/RILL_CANONICAL_PIN.json
+
 jobs:
   integration:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
+
       - name: Resolve Rill canonical pin
         id: canonical-pin
         run: |
@@ -34,13 +57,16 @@ jobs:
           print(f"commit={commit}")
           print(f"digest={digest}")
           PY
-      - name: Fetch Rill canonical manifest
-        uses: actions/checkout@v5
-        with:
-          repository: hello-yunshu/rill-xray-agent
-          ref: ${{ steps.canonical-pin.outputs.commit }}
-          path: rill-canonical
-          persist-credentials: false
+
+      - name: Fetch Rill canonical manifest (retry)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/checkout_external_repo.sh \
+            "hello-yunshu/rill-xray-agent" \
+            "${{ steps.canonical-pin.outputs.commit }}" \
+            "rill-canonical"
+
       - name: Verify canonical digest pin
         run: |
           set -euo pipefail
@@ -54,11 +80,14 @@ jobs:
           if pin["canonicalDigest"] != manifest.get("canonicalDigest"):
               raise SystemExit("canonical digest pin does not match fetched Agent manifest")
           PY
+
       - name: Verify payload against canonical manifest
         run: |
           python3 rill-canonical/integrations/xray_bash_onekey/tools/verify_xray_payload.py \
             "$GITHUB_WORKSPACE" \
             rill-canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json
+
       - name: RillML no-downstream-build gate (Xray must never compile RillML, §44)
         run: python3 rill-canonical/scripts/verify_no_build_gate.py --root "$GITHUB_WORKSPACE"
+
       - run: bash .github/test/test_rill_xray_agent.sh

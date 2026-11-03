@@ -13,5 +13,8 @@
     {"source": "Cloudflare", "target": ["Cloudflare"], "required": true},
     {"source": "AI", "target": ["AI", "IA"], "required": true}
   ],
-  "forbidden": ["nginx", "NGINX", "Vless", "GRPC", "XHTTP", "cloudflare"]
+  "forbidden": [
+    {"term": "nginx", "only_if_source_contains": "Nginx"},
+    "NGINX", "Vless", "GRPC", "XHTTP", "cloudflare"
+  ]
 }

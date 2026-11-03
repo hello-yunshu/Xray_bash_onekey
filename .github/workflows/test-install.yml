@@ -64,21 +64,15 @@ jobs:
           # The legacy auto_update fixture reads the v3.2.11 tag.
           fetch-depth: 0
 
-      - name: Checkout API contract branch
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_api
-          ref: ${{ inputs.api_ref || 'main' }}
-          path: .phase1-contracts/api
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_api" "${{ inputs.api_ref || 'main' }}" ".phase1-contracts/api"
 
-      - name: Checkout Nginx contract branch
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_Nginx
-          ref: ${{ inputs.nginx_ref || 'main' }}
-          path: .phase1-contracts/nginx
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_Nginx" "${{ inputs.nginx_ref || 'main' }}" ".phase1-contracts/nginx"
 
       - name: Run Phase 1 regression tests
         run: |
@@ -214,24 +208,18 @@ jobs:
         with:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_api
-          ref: ${{ inputs.api_ref || 'main' }}
-          path: .phase1-contracts/api
-          persist-credentials: false
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_Nginx
-          ref: ${{ inputs.nginx_ref || 'main' }}
-          path: .phase1-contracts/nginx
-          persist-credentials: false
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_skill
-          ref: ${{ inputs.skill_ref || 'main' }}
-          path: .phase1-contracts/skill
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_api" "${{ inputs.api_ref || 'main' }}" ".phase1-contracts/api"
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_Nginx" "${{ inputs.nginx_ref || 'main' }}" ".phase1-contracts/nginx"
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_skill" "${{ inputs.skill_ref || 'main' }}" ".phase1-contracts/skill"
       - name: Run Rill qualification
         env:
           GH_TOKEN: ${{ github.token }}
@@ -277,13 +265,10 @@ jobs:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
 
-      - name: Checkout API contract branch
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_api
-          ref: ${{ inputs.api_ref || 'main' }}
-          path: .phase1-contracts/api
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_api" "${{ inputs.api_ref || 'main' }}" ".phase1-contracts/api"
 
       - name: Run redaction unit tests
         run: bash .github/test/test_redact.sh
@@ -357,13 +342,10 @@ jobs:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
 
-      - name: Checkout API contract branch
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_api
-          ref: ${{ inputs.api_ref || 'main' }}
-          path: .phase1-contracts/api
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_api" "${{ inputs.api_ref || 'main' }}" ".phase1-contracts/api"
 
       - name: Install runtime dependencies
         run: |
@@ -432,13 +414,10 @@ jobs:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
 
-      - name: Checkout API metadata contract
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_api
-          ref: ${{ inputs.api_ref || 'main' }}
-          path: .phase1-contracts/api
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_api" "${{ inputs.api_ref || 'main' }}" ".phase1-contracts/api"
 
       - name: Run true fresh install through Xray health
         env:
@@ -456,7 +435,7 @@ jobs:
 
       - name: Upload redacted true-fresh diagnostics
         if: always() && steps.artifact-scan.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: xray-true-fresh-diagnostics
           path: ${{ runner.temp }}/xray-true-fresh-artifacts
@@ -483,13 +462,10 @@ jobs:
         with:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
-      - name: Checkout API metadata contract
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/Xray_bash_onekey_api
-          ref: ${{ inputs.api_ref || 'main' }}
-          path: .phase1-contracts/api
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_api" "${{ inputs.api_ref || 'main' }}" ".phase1-contracts/api"
       - name: Run fresh mode
         env:
           XRAY_VERSIONS_FILE: ${{ github.workspace }}/.phase1-contracts/api/xray_shell_versions.json
@@ -536,7 +512,7 @@ jobs:
           echo "release-gate PASS"
 
   release-candidate-gate:
-    if: inputs.candidate_commit != ''
+    if: always() && inputs.candidate_commit != ''
     needs:
       - security-regression
       - rill-qualification
@@ -554,17 +530,34 @@ jobs:
       canonical_digest: ${{ steps.subject.outputs.canonical_digest }}
       canonical_bundle_sha256: ${{ steps.subject.outputs.canonical_bundle_sha256 }}
     steps:
+      - name: Assert every required qualification job succeeded
+        run: |
+          set -euo pipefail
+          for result in \
+            "${{ needs.security-regression.result }}" \
+            "${{ needs.rill-qualification.result }}" \
+            "${{ needs.test-install.result }}" \
+            "${{ needs.relay-guards.result }}" \
+            "${{ needs.minimal-bootstrap.result }}" \
+            "${{ needs.true-fresh-install.result }}" \
+            "${{ needs.true-fresh-modes.result }}" \
+            "${{ needs.release-gate.result }}"; do
+            if [ "$result" != "success" ]; then
+              echo "release-candidate-gate FAIL: required job result '$result' (only success qualifies)" >&2
+              exit 1
+            fi
+          done
+          echo "release-candidate-gate prerequisites PASS"
+
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ inputs.candidate_commit }}
           persist-credentials: false
 
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/rill-xray-agent
-          ref: ${{ inputs.canonical_commit }}
-          path: .release-canonical
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/rill-xray-agent" "${{ inputs.canonical_commit }}" ".release-canonical"
 
       - name: Verify exact release qualification subject
         id: subject
