@@ -8,8 +8,8 @@
     {"source": "VLESS", "target": ["VLESS"], "required": true},
     {"source": "gRPC", "target": ["gRPC"], "required": true},
     {"source": "xHTTP", "target": ["xHTTP"], "required": true},
-    {"source": "ONLY 模式", "target": ["ONLY 모드", "모드 ONLY"], "required": true},
-    {"source": "ONLY", "target": ["ONLY"], "required": true},
+    {"source": "ONLY 模式", "target": ["ONLY 모드", "모드 ONLY"], "case_sensitive": true, "required": true},
+    {"source": "ONLY", "target": ["ONLY"], "case_sensitive": true, "required": true},
     {"source": "Cloudflare", "target": ["Cloudflare"], "required": true},
     {"source": "AI", "target": ["AI"], "required": true}
   ],
