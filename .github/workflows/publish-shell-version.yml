@@ -74,13 +74,10 @@ jobs:
           print(f"canonical_digest={pin['canonicalDigest']}")
           PY
 
-      - name: Checkout pinned canonical source
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/rill-xray-agent
-          ref: ${{ steps.pin.outputs.canonical_commit }}
-          path: .canonical
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/rill-xray-agent" "${{ steps.pin.outputs.canonical_commit }}" ".canonical"
 
       - name: Validate immutable candidate and host bytes
         id: subject
@@ -245,11 +242,15 @@ jobs:
             done
             prior_run=$(jq -r '.qualificationRunId' "$existing")
             [[ "$prior_run" =~ ^[0-9]+$ ]]
-            prior=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior_run")
-            [[ $(jq -r .head_sha <<<"$prior") == "$CANDIDATE_COMMIT" ]]
-            [[ $(jq -r .path <<<"$prior") == ".github/workflows/publish-shell-version.yml" ]]
-            jobs=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior_run/jobs")
-            [[ $(jq '[.jobs[] | select(.name | endswith("release-candidate-gate")) | select(.conclusion == "success")] | length' <<<"$jobs") == 1 ]]
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior_run" >/dev/null 2>&1; then
+              prior=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior_run")
+              [[ $(jq -r .head_sha <<<"$prior") == "$CANDIDATE_COMMIT" ]]
+              [[ $(jq -r .path <<<"$prior") == ".github/workflows/publish-shell-version.yml" ]]
+              jobs=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior_run/jobs")
+              [[ $(jq '[.jobs[] | select(.name | endswith("release-candidate-gate")) | select(.conclusion == "success")] | length' <<<"$jobs") == 1 ]]
+            else
+              echo "WARNING: qualification run $prior_run is no longer retained; the immutable Release manifest remains the evidence." >&2
+            fi
           else
             (cd "$SUMS_DIR" && sha256sum -c SHA256SUMS)
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$CANDIDATE_COMMIT" \
@@ -265,14 +266,40 @@ jobs:
             exit 1
           }
 
-      - name: Checkout version API main
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+  promote:
+    # API metadata and CDN propagation are release follow-up work, not a
+    # prerequisite for the immutable Release. A failure here is red and
+    # requires the manual steps printed below, but does not invalidate the
+    # already-published tag/assets.
+    needs:
+      - candidate
+      - qualify
+      - release
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+    steps:
+      - name: Verify automation token
+        env:
+          AUTOMATION_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+        run: |
+          if [ -z "${AUTOMATION_TOKEN}" ]; then
+            echo "RELEASE_AUTOMATION_TOKEN is required for API promotion and CDN verification." >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          repository: hello-yunshu/Xray_bash_onekey_api
-          ref: main
-          path: api
-          fetch-depth: 0
-          token: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+          ref: ${{ needs.candidate.outputs.candidate_commit }}
+          persist-credentials: false
+
+      - name: Checkout version API main (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/Xray_bash_onekey_api" "main" "api"
 
       - name: Prepare paired API metadata
         env:
@@ -290,12 +317,13 @@ jobs:
             --baseline-scenarios 'direct,shell-first,reinstall,failure-recovery,restart-recovery,fallback'
           (cd api && bash validate-json.sh)
 
-      - name: Publish API promotion after the immutable Release
+      - name: Publish API promotion
         env:
           VERSION: ${{ needs.candidate.outputs.version }}
           X_ACCESS_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
         run: |
           set -euo pipefail
+          merged=false
           if ! git -C api diff --quiet; then
             branch="automation/shell-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
             git -C api config user.name github-actions[bot]
@@ -304,19 +332,48 @@ jobs:
             git -C api add xray_shell_versions.json compatibility-baselines.json
             git -C api commit -m "chore(release): publish shell ${VERSION} Release metadata"
             git -C api push "https://x-access-token:${X_ACCESS_TOKEN}@github.com/hello-yunshu/Xray_bash_onekey_api.git" "HEAD:${branch}"
-            pr=$(gh pr create --repo hello-yunshu/Xray_bash_onekey_api --base main --head "$branch" \
+            if ! pr_url=$(gh pr create --repo hello-yunshu/Xray_bash_onekey_api --base main --head "$branch" \
               --title "chore(release): publish shell ${VERSION}" \
-              --body "Paired with Xray Release v${VERSION}; manifest records candidate SHA, canonical digest, asset hashes, and qualification run.")
-            scripts/merge_checked_pr.sh hello-yunshu/Xray_bash_onekey_api "${pr##*/}"
+              --body "Paired with Xray Release v${VERSION}; manifest records candidate SHA, canonical digest, asset hashes, and qualification run."); then
+              echo "MANUAL ACTION REQUIRED: could not open the API promotion PR." >&2
+              echo "1. Check RELEASE_AUTOMATION_TOKEN permissions for hello-yunshu/Xray_bash_onekey_api." >&2
+              echo "2. Push ${branch} and open the PR manually." >&2
+              echo "3. Rerun this workflow or purge jsDelivr manually." >&2
+              exit 1
+            fi
+            for attempt in 1 2 3; do
+              if scripts/merge_checked_pr.sh hello-yunshu/Xray_bash_onekey_api "${pr_url##*/}"; then
+                merged=true
+                break
+              fi
+              echo "API promotion merge attempt ${attempt}/3 failed; retrying after backoff." >&2
+              sleep $((attempt * 30))
+            done
+            if [ "$merged" != true ]; then
+              echo "MANUAL ACTION REQUIRED: API promotion PR ${pr_url} is not merged." >&2
+              echo "1. Inspect https://github.com/hello-yunshu/Xray_bash_onekey_api/pull/${pr_url##*/} checks." >&2
+              echo "2. Merge the PR manually after checks pass." >&2
+              echo "3. Purge https://purge.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json and verify CDN/raw." >&2
+              exit 1
+            fi
           else
             echo 'API already contains the paired shell Release metadata'
+            merged=true
           fi
-          # The purge must run on idempotent reruns too. Previously it lived
-          # after the "API already exists" early exit, so the CDN kept serving
-          # the previous version even though raw main had advanced.
-          for attempt in 1 2 3 4 5; do
+          if [ "$merged" != true ]; then
+            echo "MANUAL ACTION REQUIRED: API promotion did not complete." >&2
+            exit 1
+          fi
+
+      - name: Verify CDN propagation
+        env:
+          VERSION: ${{ needs.candidate.outputs.version }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
             curl -fsS "https://purge.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json" >/dev/null || true
-            sleep 5
+            if (( attempt <= 4 )); then delay=$((2 ** attempt)); else delay=30; fi
+            sleep "$delay"
             cdn_version=$(curl -fsSL "https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json" 2>/dev/null | jq -r '.shell_online_version // empty' 2>/dev/null || true)
             raw_version=$(curl -fsSL "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/xray_shell_versions.json" 2>/dev/null | jq -r '.shell_online_version // empty' 2>/dev/null || true)
             if [[ "$cdn_version" == "$VERSION" && "$raw_version" == "$VERSION" ]]; then
@@ -325,5 +382,8 @@ jobs:
             fi
             echo "CDN propagation attempt ${attempt}: cdn=${cdn_version:-unavailable} raw=${raw_version:-unavailable}"
           done
-          echo "CDN/raw did not converge to shell ${VERSION}" >&2
+          echo "MANUAL ACTION REQUIRED: CDN/raw did not converge to shell ${VERSION}." >&2
+          echo "1. Purge https://purge.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json" >&2
+          echo "2. Compare https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json with raw main." >&2
+          echo "3. Do not roll back the immutable Release; rerun this workflow once the CDN is healthy." >&2
           exit 1
