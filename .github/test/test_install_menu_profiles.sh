@@ -878,8 +878,8 @@ for lang in en fa fr ko ru; do
     for msgid in \
         "选择传输协议" \
         "Reality 部署方式" \
-        "无 Nginx、无 TLS" \
-        "ONLY 模式主要用于中转、负载均衡后端或已有上层代理的环境" \
+        "无 Nginx、无传输层加密" \
+        "ONLY 模式没有传输层加密, 主要用于中转、负载均衡后端或已有上层代理的环境" \
         "Reality 负载均衡角色" \
         "主服务器" \
         "安装 Nginx" \

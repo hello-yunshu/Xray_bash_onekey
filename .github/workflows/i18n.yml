@@ -20,6 +20,7 @@ on:
       - 'scripts/rill_xray_agent_manager.sh'
       - 'scripts/traffic_blocker.sh'
       - 'i18n/tools/translate.py'
+      - 'i18n/tools/validate_po.py'
       - 'i18n/tools/translation_terms.py'
     branches:
       - main
@@ -28,9 +29,12 @@ on:
 permissions:
   contents: read
 
+# The README workflow shares this group. Machine translation must be serial:
+# two workflows hitting Google concurrently exceed the documented 5 req/s
+# limit even though each script is internally serial.
 concurrency:
-  group: ${{ github.workflow }}-translations
-  cancel-in-progress: true
+  group: translation-google-serial
+  cancel-in-progress: false
 
 jobs:
   update-translations:
@@ -130,6 +134,11 @@ jobs:
         env:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
 
+      - name: Validate translation completeness
+        run: |
+          python3 i18n/tools/validate_po.py \
+            i18n/po/en.po i18n/po/fa.po i18n/po/ru.po i18n/po/ko.po i18n/po/fr.po
+
       - name: Compile MO files if necessary
         run: |
           needs_compile=false
@@ -139,6 +148,7 @@ jobs:
               if ! msgfmt --check -v --statistics -o i18n/languages/${lang}/LC_MESSAGES/xray_install.mo i18n/po/${lang}.po; then
                 echo "Error in ${lang}.po file:"
                 cat i18n/po/${lang}.po
+                exit 1
               fi
             fi
           done
