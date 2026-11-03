@@ -12698,6 +12698,12 @@ function backup_directories() {
     timestamp=$(date +"%Y%m%d%H%M%S")
     local backup_name=""
     read_optimize "$(gettext "请输入备份名称") ($(gettext "不需要后缀")): " "backup_name" ""
+    # The name becomes part of a root-owned path. Reject path separators and
+    # traversal so a typo cannot write outside /etc/idleleo.
+    if [[ ! "${backup_name}" =~ ^[A-Za-z0-9._-]+$ ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "值为空或超出范围, 请重新输入") ${Font}"
+        return 1
+    fi
     local backup_filename="xray_bash_${backup_name}_${timestamp}.tar.gz"
     local backup_path="${idleleo_dir}/${backup_filename}"
     local backup_tmp backup_tar_paths=() tar_output old_umask
