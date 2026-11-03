@@ -27,27 +27,34 @@ on:
 permissions:
   contents: read
 
-# Shared with Update Translations: machine translation is serial across
-# workflows, and README gets its own branch so the two workflows cannot
-# force-push over each other's commits.
+# Machine translation is serial per workflow. i18n and README use separate
+# groups so a push touching both paths cannot drop one of the two validations.
 concurrency:
-  group: translation-google-serial
+  group: readme-translations
   cancel-in-progress: false
 
 jobs:
   translate-readme:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: write
       pull-requests: write
     outputs:
       has_changes: ${{ steps.detect.outputs.has_changes }}
     steps:
+      - name: Verify automation token
+        env:
+          AUTOMATION_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+        run: |
+          if [ -z "${AUTOMATION_TOKEN}" ]; then
+            echo "RELEASE_AUTOMATION_TOKEN is required to push the translation branch, open the PR and merge it." >&2
+            exit 1
+          fi
+
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          # Use the user PAT when configured so the branch push / PR are
-          # attributed to a trusted actor and CI runs without manual approval.
-          token: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+          token: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5
@@ -60,6 +67,9 @@ jobs:
           sudo apt-get install -y gettext
           pip install --upgrade pip
           pip install deep-translator markdown beautifulsoup4 openai
+
+      - name: Run translation unit tests
+        run: python3 -m unittest discover -s i18n/tests -p 'test_*.py'
 
       - name: Cache Python dependencies
         uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
@@ -127,7 +137,7 @@ jobs:
         if: steps.detect.outputs.has_changes == 'true'
         id: pr
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
         run: |
           set -euo pipefail
           PR_EXISTS=$(gh pr list --head readme/auto-translations --json number --jq '.[0].number' 2>/dev/null || true)
@@ -151,6 +161,6 @@ jobs:
       - name: Merge translation PR after checks pass
         if: steps.detect.outputs.has_changes == 'true'
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
           PR_CHECK_ATTEMPTS: 180
         run: scripts/merge_checked_pr.sh "${GITHUB_REPOSITORY}" "${{ steps.pr.outputs.number }}"
