@@ -52,7 +52,7 @@ def provider_terms(lang, source_text):
         source = term['source']
         if source in seen:
             continue
-        if contains_term(visible, source):
+        if contains_term(visible, source, case_sensitive=term.get('case_sensitive', False)):
             active.append({"source": source, "target": term['target'][0]})
             seen.add(source)
     active.sort(key=lambda item: len(item['source']), reverse=True)
@@ -68,10 +68,11 @@ def check(lang, source_text, translated_text):
     missing = []
     for term in data['terms']:
         source = term['source']
-        if not contains_term(source_visible, source):
+        case_sensitive = term.get('case_sensitive', False)
+        if not contains_term(source_visible, source, case_sensitive=case_sensitive):
             continue
         total += 1
-        if any(contains_term(target_visible, target, case_sensitive=False)
+        if any(contains_term(target_visible, target, case_sensitive=case_sensitive)
                for target in term['target']):
             hits += 1
         else:
