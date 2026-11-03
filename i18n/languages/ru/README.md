@@ -252,5 +252,3 @@ cat /etc/idleleo/info/xray_info.inf
 | Каталог журналов | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Директория установки Nginx | `/usr/local/nginx` |
 | Команда управления | `/usr/bin/idleleo` |
-
-Тестирование зонда: проверка новых терминов и связей в системе контроля качества.

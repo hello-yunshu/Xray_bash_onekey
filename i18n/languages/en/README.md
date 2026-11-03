@@ -252,5 +252,3 @@ cat /etc/idleleo/info/xray_info.inf
 | Log directory | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Nginx installation directory | `/usr/local/nginx` |
 | Management commands | `/usr/bin/idleleo` |
-
-Probe testing: Verifying the new terminology and quality gate links.
