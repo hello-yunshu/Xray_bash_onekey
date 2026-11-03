@@ -1,0 +1,16 @@
+{
+  "terms": [
+    {"source": "Nginx", "target": ["Nginx"], "required": true},
+    {"source": "TLS", "target": ["TLS"], "required": true},
+    {"source": "传输层加密", "target": ["رمزگذاری لایه انتقال", "رمزنگاری لایه انتقال"], "required": true},
+    {"source": "REALITY", "target": ["REALITY", "Reality"], "required": true},
+    {"source": "Reality", "target": ["Reality", "REALITY"], "required": true},
+    {"source": "VLESS", "target": ["VLESS"], "required": true},
+    {"source": "gRPC", "target": ["gRPC"], "required": true},
+    {"source": "xHTTP", "target": ["xHTTP"], "required": true},
+    {"source": "ONLY 模式", "target": ["حالت ONLY", "ONLY حالت"], "required": true},
+    {"source": "ONLY", "target": ["ONLY"], "required": true},
+    {"source": "Cloudflare", "target": ["Cloudflare"], "required": true}
+  ],
+  "forbidden": ["nginx", "NGINX", "Vless", "GRPC", "XHTTP", "cloudflare"]
+}
