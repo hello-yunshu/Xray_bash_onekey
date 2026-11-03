@@ -10,6 +10,10 @@ on:
         description: Release summary
         required: false
         type: string
+      candidate_commit:
+        description: Optional candidate SHA for idempotent re-verification
+        required: false
+        type: string
 
 concurrency:
   group: release-xray
@@ -59,7 +63,7 @@ jobs:
       - name: Checkout exact dispatch candidate
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ inputs.candidate_commit || github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -84,6 +88,7 @@ jobs:
         env:
           EXPECTED_CANONICAL_COMMIT: ${{ steps.pin.outputs.canonical_commit }}
           EXPECTED_CANONICAL_DIGEST: ${{ steps.pin.outputs.canonical_digest }}
+          EXPECTED_CANDIDATE_REF: ${{ inputs.candidate_commit || github.sha }}
           INPUT_DETAILS: ${{ inputs.details }}
         run: |
           set -euo pipefail
@@ -95,7 +100,7 @@ jobs:
           version=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' install.sh)
           [[ -n "$version" ]] || { echo 'shell_version missing'; exit 1; }
           candidate_commit=$(git rev-parse HEAD)
-          [[ "$candidate_commit" == "$GITHUB_SHA" ]] || { echo 'candidate SHA drift'; exit 1; }
+          [[ "$candidate_commit" == "$EXPECTED_CANDIDATE_REF" ]] || { echo "candidate SHA drift: $candidate_commit != $EXPECTED_CANDIDATE_REF"; exit 1; }
           python3 .canonical/integrations/xray_bash_onekey/tools/verify_xray_payload.py \
             . .canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json \
             --expected-canonical-digest "$EXPECTED_CANONICAL_DIGEST"
