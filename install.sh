@@ -12354,8 +12354,8 @@ show_help() {
     echo "  -p, --port-reset            $(gettext "变更") port"
     echo "  -pt, --port-traffic         $(gettext "查看") port $(gettext "实时流量")"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
-    echo "      --backup                $(gettext "备份")"
-    echo "      --restore               $(gettext "恢复")"
+    echo "      --backup                $(gettext "备份") $(gettext "脚本管理文件")"
+    echo "      --restore               $(gettext "恢复") $(gettext "脚本管理文件")"
     echo "      --rill-agent-install    $(gettext "安装或修复 Rill AI 判断引擎")"
     echo "      --rill-agent-status     $(gettext "查看") Rill AI $(gettext "判断引擎状态")"
     echo "      --rill-agent-route-stage $(gettext "切换路由辅助阶段") observe/assist/auto"
@@ -12707,6 +12707,13 @@ function backup_directories() {
     local backup_filename="xray_bash_${backup_name}_${timestamp}.tar.gz"
     local backup_path="${idleleo_dir}/${backup_filename}"
     local backup_tmp backup_tar_paths=() tar_output old_umask
+    local manifest="${idleleo_dir}/.backup_sha256sums.txt"
+
+    # Never silently overwrite an existing archive (same name and same second).
+    if [[ -e "${backup_path}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "备份") $(gettext "失败")：${backup_path} ${Font}"
+        return 1
+    fi
 
     # Create outside the tree being archived: the archive itself would otherwise
     # change /etc/idleleo while tar is reading it. Keep the temp file 0600 so no
@@ -12733,12 +12740,45 @@ function backup_directories() {
     # ACME account state is needed for future certificate renewals.
     [[ -d /root/.acme.sh ]] && backup_tar_paths+=("/root/.acme.sh")
 
+    # Per-file checksum manifest, inside the archive, using the same
+    # sha256sum -c model as the reinstall snapshot. It excludes itself, old
+    # archives and /etc/idleleo/backup (previous reinstall snapshots) so the
+    # backup does not recursively grow.
+    local _manifest_err=0 _file _rel _hash
+    : >"${manifest}" || _manifest_err=1
+    while IFS= read -r -d '' _file; do
+        [[ "${_file}" == "${manifest}" ]] && continue
+        _rel="${_file#/}"
+        _hash=$(sha256sum "${_file}" 2>/dev/null | awk '{print $1}')
+        if [[ -z "${_hash}" ]]; then
+            _manifest_err=1
+            break
+        fi
+        printf '%s  %s\n' "${_hash}" "${_rel}" >>"${manifest}" || {
+            _manifest_err=1
+            break
+        }
+    done < <(
+        find "${backup_tar_paths[@]}" \
+            \( -path "${idleleo_dir}/backup" -o -name 'xray_bash_*.tar.gz' \
+               -o -name '.backup_sha256sums.txt' \) -prune -o \
+            -type f -print0 2>/dev/null
+    )
+    [[ -s "${manifest}" ]] || _manifest_err=1
+    if (( _manifest_err != 0 )); then
+        rm -f "${backup_tmp}" "${manifest}"
+        log_echo "${Error} ${RedBG} $(gettext "备份") $(gettext "失败")：$(gettext "完整性清单生成失败") ${Font}"
+        return 1
+    fi
+    chmod 600 "${manifest}" 2>/dev/null || true
+
     old_umask=$(umask)
     umask 077
     if ! tar_output=$(tar --exclude='xray_bash_*.tar.gz' \
+        --exclude="${idleleo_dir}/backup" \
         -czf "${backup_tmp}" "${backup_tar_paths[@]}" 2>&1); then
         umask "${old_umask}"
-        rm -f "${backup_tmp}"
+        rm -f "${backup_tmp}" "${manifest}"
         log_echo "${Green} tar $(gettext "报错信息"): ${Font}"
         echo "${tar_output}"
         log_echo "${Error} ${RedBG} $(gettext "备份") $(gettext "失败")：tar $(gettext "返回非零") ${Font}"
@@ -12747,10 +12787,11 @@ function backup_directories() {
     chmod 600 "${backup_tmp}" 2>/dev/null || true
     if ! mv -f "${backup_tmp}" "${backup_path}"; then
         umask "${old_umask}"
-        rm -f "${backup_tmp}"
+        rm -f "${backup_tmp}" "${manifest}"
         log_echo "${Error} ${RedBG} $(gettext "备份") $(gettext "失败")：$(gettext "无法写入备份文件") ${Font}"
         return 1
     fi
+    rm -f "${manifest}"
     chmod 600 "${backup_path}" 2>/dev/null || true
     umask "${old_umask}"
     log_echo "${OK} ${GreenBG} $(gettext "备份") $(gettext "成功"): ${backup_path} ${Font}"
@@ -12801,9 +12842,101 @@ function restore_directories() {
 
     countdown "$(gettext "恢复备份")!"
     local restore_root="${RESTORE_ROOT:-/}"
-    if ! tar -xzf "${latest_backup_file}" -C "${restore_root}" >/dev/null 2>&1; then
+    local staging
+    staging=$(mktemp -d "${TMPDIR:-/tmp}/xray-restore.XXXXXX") || {
         log_echo "${Error} ${RedBG} $(gettext "恢复") $(gettext "失败") ${Font}"
         return 1
+    }
+
+    # Extract to staging first: a corrupt or truncated archive must not touch
+    # the live tree, and the checksum manifest is verified before any copy.
+    if ! tar -xzf "${latest_backup_file}" -C "${staging}" >/dev/null 2>&1; then
+        rm -rf "${staging}"
+        log_echo "${Error} ${RedBG} $(gettext "恢复") $(gettext "失败") ${Font}"
+        return 1
+    fi
+
+    local manifest="${staging}/etc/idleleo/.backup_sha256sums.txt"
+    if [[ -f "${manifest}" ]]; then
+        if ! ( cd "${staging}" && sha256sum --strict -c "${manifest}" >/dev/null 2>&1 ); then
+            rm -rf "${staging}"
+            log_echo "${Error} ${RedBG} $(gettext "备份完整性校验失败, 拒绝恢复") ${Font}"
+            return 1
+        fi
+    else
+        # Archives created before the manifest existed can only be checked
+        # structurally; keep them restorable but make the limitation visible.
+        log_echo "${Warning} ${YellowBG} $(gettext "旧备份无完整性清单, 仅做结构校验") ${Font}"
+    fi
+
+    if ! cp -a "${staging}/." "${restore_root}/"; then
+        rm -rf "${staging}"
+        log_echo "${Error} ${RedBG} $(gettext "恢复") $(gettext "失败") ${Font}"
+        return 1
+    fi
+    rm -f "${restore_root}/etc/idleleo/.backup_sha256sums.txt"
+    rm -rf "${staging}"
+
+    # Remove target-mode managed files that were not present in the backup.
+    # Only exact script-owned names are removed; user-added .conf files and
+    # other custom files are preserved. Legacy archives have no manifest
+    # listing, so pruning is skipped and the cross-mode limitation is logged.
+    local _manifest_in_archive=0
+    if tar -tzf "${latest_backup_file}" 2>/dev/null | grep -qx 'etc/idleleo/.backup_sha256sums.txt'; then
+        _manifest_in_archive=1
+    fi
+    if (( _manifest_in_archive == 1 )); then
+        local _backed _managed_rel
+        _backed=$(tar -xOzf "${latest_backup_file}" etc/idleleo/.backup_sha256sums.txt 2>/dev/null | awk '{print $2}')
+        for _managed_rel in \
+            "${nginx_conf_dir#/}/00-xray.conf" \
+            "${nginx_conf_dir#/}/01-xray-80.conf" \
+            "${nginx_conf_dir#/}/02-xray-server.conf" \
+            "${nginx_conf_dir#/}/03-isolate.conf" \
+            "${nginx_conf_dir#/}/03-decoy.conf" \
+            "${relay_stream_conf#/}" \
+            "${xray_conf_dir#/}/config.json" \
+            "${xray_conf_dir#/}/status_config.json"; do
+            if ! grep -qx -- "${_managed_rel}" <<<"${_backed}"; then
+                rm -f "${restore_root}/${_managed_rel}" 2>/dev/null || true
+            fi
+        done
+    else
+        log_echo "${Warning} ${YellowBG} $(gettext "旧备份未做跨模式清理, 请手动检查残留配置") ${Font}"
+    fi
+
+    # Re-harden the restored config. Production uses the existing helper
+    # (which also assigns the Nginx worker group); tests restore into a temp
+    # root, so the direct 0600 fallback keeps UUID/private material non-root
+    # readable only.
+    if [[ "${restore_root}" == "/" ]] && declare -F harden_config_permissions >/dev/null 2>&1; then
+        harden_config_permissions 2>/dev/null || \
+            log_echo "${Warning} ${YellowBG} $(gettext "恢复后权限收紧未完全成功, 请手动检查") ${Font}"
+    fi
+    chmod 600 "${restore_root}/etc/idleleo/conf/install_config.json" 2>/dev/null || true
+    chmod 600 "${restore_root}/etc/idleleo/info/xray_info.inf" 2>/dev/null || true
+    chmod 600 "${restore_root}/etc/idleleo/info/xray_info_clash.yaml" 2>/dev/null || true
+    local _cert
+    for _cert in xray.key xray.crt decoy.key decoy.crt; do
+        [[ -f "${restore_root}/etc/idleleo/cert/${_cert}" ]] && \
+            chmod 640 "${restore_root}/etc/idleleo/cert/${_cert}" 2>/dev/null || true
+    done
+
+    # Reload systemd after restored units/config; do not start services here
+    # (installation/uninstall semantics stay unchanged).
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl daemon-reload 2>/dev/null || \
+            log_echo "${Warning} ${YellowBG} $(gettext "恢复后 daemon-reload 失败, 请手动检查") ${Font}"
+    fi
+
+    # Validate the restored Xray config with the restored binary when possible.
+    local _xray_bin="${restore_root%/}${xray_bin_dir}/xray"
+    local _xray_config="${restore_root%/}${xray_conf}"
+    if [[ -x "${_xray_bin}" && -f "${_xray_config}" ]]; then
+        if ! "${_xray_bin}" -test -config "${_xray_config}" >/dev/null 2>&1; then
+            log_echo "${Error} ${RedBG} $(gettext "恢复后 Xray 配置自检失败") ${Font}"
+            return 1
+        fi
     fi
 
     # Report the restored script/config versions. They must agree, and the
@@ -12817,10 +12950,6 @@ function restore_directories() {
         if [[ -n "${restored_config_version}" && "${restored_config_version}" != "${restored_script_version}" ]]; then
             log_echo "${Warning} ${YellowBG} $(gettext "脚本与配置版本不一致, 请重新执行安装") ${Font}"
         fi
-    fi
-    log_echo "${Info} ${Green} $(gettext "记得安装") xray ${Font}"
-    if [[ -d "${restore_root}${nginx_dir}" || -d "${restore_root}/usr/local/nginx" ]]; then
-        log_echo "${Info} ${Green} $(gettext "记得安装") nginx ${Font}"
     fi
     return 0
 }
@@ -14450,8 +14579,8 @@ menu_backup_and_uninstall() {
     local menu_num
     while true; do
         menu_submenu_begin "$(gettext "备份恢复")"
-        menu_item 1 "$(gettext "备份") $(gettext "全部文件")"
-        menu_item 2 "$(gettext "恢复") $(gettext "全部文件")"
+        menu_item 1 "$(gettext "备份") $(gettext "脚本管理文件")"
+        menu_item 2 "$(gettext "恢复") $(gettext "脚本管理文件")"
         menu_item 3 "$(gettext "清空") $(gettext "证书文件")"
         menu_item 4 "$(gettext "卸载") $(gettext "脚本")"
         menu_blank
