@@ -252,5 +252,3 @@ cat /etc/idleleo/info/xray_info.inf
 | Répertoire des journaux | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Répertoire d'installation de Nginx | `/usr/local/nginx` |
 | Commandes d'administration | `/usr/bin/idleleo` |
-
-Test de la sonde : vérification des nouveaux termes et de la chaîne de validation qualité.
