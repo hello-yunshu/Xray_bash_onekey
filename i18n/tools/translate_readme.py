@@ -12,7 +12,7 @@ from translation_backend import (
 )
 from translation_glossary import check as glossary_check, provider_terms
 from translation_overrides import load as load_overrides
-from text_quality import chinese_punctuation, normalize_punctuation
+from text_quality import CJK_PUNCT_RE, chinese_punctuation, normalize_punctuation
 from readme_validation import (
     evaluate_outputs,
     evaluate_translated_texts,
@@ -161,13 +161,17 @@ def should_translate(segment):
 
 
 def translate_plain_text(text, target_lang, translations):
-    if not text or not CHINESE_RE.search(text):
+    if not text:
         return text
+    if not CHINESE_RE.search(text):
+        return normalize_punctuation(text)
     return translate_text(text, target_lang, translations)
 
 
 def translate_segment(segment, target_lang, translations):
-    if not segment.strip() or not CHINESE_RE.search(segment) or not should_translate(segment):
+    if not segment.strip() or not should_translate(segment):
+        return segment
+    if not CHINESE_RE.search(segment) and not CJK_PUNCT_RE.search(segment):
         return segment
 
     translated_parts = []
@@ -208,7 +212,9 @@ def translate_table_row(line, target_lang, translations):
 
 
 def translate_markdown_line(line, target_lang, translations):
-    if not CHINESE_RE.search(line) or not should_translate(line):
+    if not should_translate(line):
+        return line
+    if not CHINESE_RE.search(line) and not CJK_PUNCT_RE.search(line):
         return line
     if re.match(r'^\s{0,3}([-*_]\s*){3,}$', line):
         return line

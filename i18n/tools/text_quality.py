@@ -19,7 +19,7 @@ PLACEHOLDER_RE = re.compile(
 )
 
 PUNCT_MAP = {
-    '，': ',', '。': '.', '：': ':', '；': ';', '、': ',',
+    '，': ',', '。': '.', '：': ':', '；': ';', '、': ', ',
     '！': '!', '？': '?', '（': '(', '）': ')',
     '【': '[', '】': ']', '《': '"', '》': '"',
     '「': '"', '」': '"', '『': "'", '』': "'",
@@ -95,7 +95,7 @@ def placeholders(text):
 
 
 def paragraph_count(text):
-    blocks = [b for b in re.split(r'\n\s*\n', visible_text(text)) if b.strip()]
+    blocks = [b for b in re.split(r'\n\s*\n', _outside_fences(text)) if b.strip()]
     return len(blocks)
 
 
