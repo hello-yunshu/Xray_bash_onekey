@@ -14,6 +14,10 @@ SOURCE_TERM_STOPWORDS = frozenset({
     'or', 'that', 'the', 'this', 'to', 'was', 'were', 'will', 'with',
 })
 
+# Acronyms that are legitimate to localize; the glossary decides the allowed
+# targets. Keep this explicit rather than treating them as English stopwords.
+PROTECT_EXCEPTIONS = frozenset({'AI'})
+
 
 def extract_source_terms(text):
     return [match.group(1) for match in SOURCE_TERM_RE.finditer(text)
@@ -24,9 +28,10 @@ def protect_terms(text):
     protected = []
 
     def replace(match):
-        if match.group(1) in SOURCE_TERM_STOPWORDS:
+        term = match.group(1)
+        if term in SOURCE_TERM_STOPWORDS or term in PROTECT_EXCEPTIONS:
             return match.group(0)
-        protected.append(match.group(1))
+        protected.append(term)
         return f"__TERM_{len(protected) - 1}__"
 
     return SOURCE_TERM_RE.sub(replace, text), protected
