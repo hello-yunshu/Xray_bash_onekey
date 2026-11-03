@@ -12354,6 +12354,8 @@ show_help() {
     echo "  -p, --port-reset            $(gettext "变更") port"
     echo "  -pt, --port-traffic         $(gettext "查看") port $(gettext "实时流量")"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
+    echo "      --backup                $(gettext "备份")"
+    echo "      --restore               $(gettext "恢复")"
     echo "      --rill-agent-install    $(gettext "安装或修复 Rill AI 判断引擎")"
     echo "      --rill-agent-status     $(gettext "查看") Rill AI $(gettext "判断引擎状态")"
     echo "      --rill-agent-route-stage $(gettext "切换路由辅助阶段") observe/assist/auto"
@@ -12709,7 +12711,21 @@ function backup_directories() {
     }
     chmod 600 "${backup_tmp}" 2>/dev/null || true
     backup_tar_paths=("${idleleo_dir}")
-    [[ -d /usr/local/nginx ]] && backup_tar_paths+=("/usr/local/nginx")
+    [[ -d "${nginx_dir}" ]] && backup_tar_paths+=("${nginx_dir}")
+    # Service units and the Xray binary live outside idleleo_dir/nginx_dir.
+    # "全部文件" must include them, otherwise a restore leaves the old binary
+    # or unit pointing at the restored (older) config.
+    [[ -f "${xray_bin_dir}/xray" ]] && backup_tar_paths+=("${xray_bin_dir}/xray")
+    [[ -f "${xray_systemd_file}" ]] && backup_tar_paths+=("${xray_systemd_file}")
+    [[ -f "${nginx_systemd_file}" ]] && backup_tar_paths+=("${nginx_systemd_file}")
+    # Root crontab spool differs by distro; include whichever exists so the
+    # cert-renewal / auto-update tasks survive a manual restore.
+    local cron_path
+    for cron_path in /var/spool/cron/crontabs/root /var/spool/cron/root; do
+        [[ -f "${cron_path}" ]] && backup_tar_paths+=("${cron_path}")
+    done
+    # ACME account state is needed for future certificate renewals.
+    [[ -d /root/.acme.sh ]] && backup_tar_paths+=("/root/.acme.sh")
 
     old_umask=$(umask)
     umask 077
@@ -12735,9 +12751,9 @@ function backup_directories() {
 }
 
 function restore_directories() {
-    log_echo "${Warning} ${YellowBG} $(gettext "请确保备份文件在目录"): /etc/idleleo ${Font}"
-    local backup_files=($(ls /etc/idleleo/xray_bash_*.tar.gz 2>/dev/null))
-    
+    log_echo "${Warning} ${YellowBG} $(gettext "请确保备份文件在目录"): ${idleleo_dir} ${Font}"
+    local backup_files=($(ls "${idleleo_dir}"/xray_bash_*.tar.gz 2>/dev/null))
+
     if [[ ${#backup_files[@]} -eq 0 ]]; then
         log_echo "${Error} ${RedBG} $(gettext "没有找到备份文件") ${Font}"
         return 1
@@ -12747,21 +12763,60 @@ function restore_directories() {
         log_echo "${Warning} ${YellowBG} $(gettext "发现多个备份文件"), $(gettext "将使用最新的文件进行恢复") ${Font}"
     fi
 
-    local latest_backup_file=${backup_files[-1]}
+    # Select by the 14-digit timestamp embedded in the name, not by ls order.
+    # Different backup names made the previous "last line wins" choice restore
+    # an older archive whose name merely sorted later.
+    local latest_backup_file="" latest_backup_ts=0 candidate candidate_ts
+    for candidate in "${backup_files[@]}"; do
+        candidate_ts=$(basename "${candidate}" | sed -n 's/.*_\([0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\)\.tar\.gz$/\1/p')
+        if [[ -z "${candidate_ts}" ]]; then
+            candidate_ts=$(stat -c '%Y' "${candidate}" 2>/dev/null || echo 0)
+        fi
+        if (( 10#${candidate_ts} > 10#${latest_backup_ts} )); then
+            latest_backup_ts="${candidate_ts}"
+            latest_backup_file="${candidate}"
+        fi
+    done
+
     log_echo "${Green} $(gettext "找到最新备份文件"): ${latest_backup_file} ${Font}"
 
-    countdown "$(gettext "恢复备份")!"
-    tar -xzf "${latest_backup_file}" -C / &> /dev/null
-
-    if [[ $? -eq 0 ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "恢复") $(gettext "成功") ${Font}"
-        log_echo "${Info} ${Green} $(gettext "记得安装") xray ${Font}"
-        if [[ -d "/usr/local/nginx" ]]; then
-            log_echo "${Info} ${Green} $(gettext "记得安装") nginx ${Font}"
-        fi
-    else
-        log_echo "${Error} ${RedBG} $(gettext "恢复") $(gettext "失败") ${Font}"
+    # Validate the whole archive before touching the live tree. A truncated
+    # archive used to report 恢复失败 yet still return 0 and could leave a
+    # partially extracted /etc/idleleo or /usr/local/nginx.
+    if ! tar -tzf "${latest_backup_file}" >/dev/null 2>&1; then
+        log_echo "${Error} ${RedBG} $(gettext "备份完整性校验失败, 拒绝恢复") ${Font}"
+        return 1
     fi
+
+    if ! tar -tzf "${latest_backup_file}" | grep -Eq '^/?(etc/idleleo|usr/local/nginx|usr/local/bin/xray|etc/systemd/system|root/.acme.sh)(/|$)'; then
+        log_echo "${Error} ${RedBG} $(gettext "备份内容不符合预期, 拒绝恢复") ${Font}"
+        return 1
+    fi
+
+    countdown "$(gettext "恢复备份")!"
+    local restore_root="${RESTORE_ROOT:-/}"
+    if ! tar -xzf "${latest_backup_file}" -C "${restore_root}" >/dev/null 2>&1; then
+        log_echo "${Error} ${RedBG} $(gettext "恢复") $(gettext "失败") ${Font}"
+        return 1
+    fi
+
+    # Report the restored script/config versions. They must agree, and the
+    # caller still has to reinstall binaries when required.
+    local restored_script_version="" restored_config_version=""
+    restored_script_version=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' "${restore_root}/etc/idleleo/install.sh" 2>/dev/null | head -1)
+    restored_config_version=$(jq -r '.shell_version // empty' "${restore_root}/etc/idleleo/conf/install_config.json" 2>/dev/null || true)
+    log_echo "${OK} ${GreenBG} $(gettext "恢复") $(gettext "成功") ${Font}"
+    if [[ -n "${restored_script_version}" ]]; then
+        log_echo "${Info} ${Green} $(gettext "已恢复脚本版本"): ${restored_script_version} ${Font}"
+        if [[ -n "${restored_config_version}" && "${restored_config_version}" != "${restored_script_version}" ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "脚本与配置版本不一致, 请重新执行安装") ${Font}"
+        fi
+    fi
+    log_echo "${Info} ${Green} $(gettext "记得安装") xray ${Font}"
+    if [[ -d "${restore_root}${nginx_dir}" || -d "${restore_root}/usr/local/nginx" ]]; then
+        log_echo "${Info} ${Green} $(gettext "记得安装") nginx ${Font}"
+    fi
+    return 0
 }
 
 # ============================================================
@@ -14510,7 +14565,7 @@ is_pure_readonly_command() {
 is_offline_root_mutation_command() {
     case "${1:-}" in
         --purge|--uninstall|--service-start|--service-stop|--service-restart|\
-        --backup|--rill-agent|--rill-agent-safe-disable|--rill-agent-verify|\
+        --backup|--restore|--rill-agent|--rill-agent-safe-disable|--rill-agent-verify|\
         --rill-agent-route-stage|--rill-agent-auto-confirm|--rill-agent-auto-revoke|\
         --rill-agent-fuse-ack|--rill-agent-uninstall)
             return 0
@@ -14558,6 +14613,7 @@ dispatch_offline_root_mutation_command() {
         --service-stop) service_stop ;;
         --service-restart) service_restart ;;
         --backup) backup_directories ;;
+        --restore) restore_directories ;;
         --rill-agent) rxa_menu ;;
         --rill-agent-safe-disable) rxa_dispatch mode safe-disabled ;;
         --rill-agent-verify) rxa_dispatch verify ;;
