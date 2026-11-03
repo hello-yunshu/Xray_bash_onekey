@@ -89,11 +89,17 @@ def _qwen_request(text, target_lang, terms=None):
 
 
 def _restore_checked(text, protected):
-    for index in range(len(protected)):
-        if not re.search(PLACEHOLDER_TEMPLATE.format(index), text, re.IGNORECASE):
-            raise TranslationError(
-                f"translation dropped technical term placeholder {PLACEHOLDER_TEMPLATE.format(index)}"
-            )
+    missing = []
+    for index, term in enumerate(protected):
+        if re.search(PLACEHOLDER_TEMPLATE.format(index), text, re.IGNORECASE):
+            continue
+        # Qwen sometimes drops the placeholder while keeping the term itself
+        # (for example "Shell" or "Xray"). Treat that as preserved.
+        if term.lower() in text.lower():
+            continue
+        missing.append(term)
+    if missing:
+        raise TranslationError(f"translation dropped technical terms: {missing}")
     return restore_placeholders(text, protected).strip()
 
 

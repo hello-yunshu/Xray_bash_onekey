@@ -38,6 +38,11 @@ LANGUAGES = {
 # is nothing to translate.
 SOURCE_HASH_FILE = os.path.join('i18n', 'languages', '.readme-source.sha256')
 
+# Flush completed translations periodically so a failure near the end of a
+# long run does not discard all provider work.
+CHECKPOINT_EVERY = 50
+_CACHE_FILE = None
+
 
 def read_source_hash(path):
     try:
@@ -90,6 +95,9 @@ def translate_text(text, target_lang, translations):
         ),
     )
     translations[cache_key] = translated
+    if _CACHE_FILE and len(translations) % CHECKPOINT_EVERY == 0:
+        save_translation_cache(_CACHE_FILE, translations)
+        logging.info(f"已写入缓存检查点: {len(translations)} 条")
     logging.info(f"翻译成功: '{text}' -> '{translated}'")
     return translated
 
@@ -202,7 +210,9 @@ def language_output_dir(output_dir, lang_code):
 
 
 def translate_readme(input_file, output_dir):
+    global _CACHE_FILE
     cache_file = 'translation_cache_readme.json'
+    _CACHE_FILE = cache_file
 
     with open(input_file, 'rb') as f:
         source_digest = hashlib.sha256(f.read()).hexdigest()
