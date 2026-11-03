@@ -12,6 +12,9 @@ on:
       - 'README.md'
       - 'i18n/tools/translate_readme.py'
       - 'i18n/tools/translation_terms.py'
+      - 'i18n/tools/translation_backend.py'
+      - 'i18n/tools/readme_validation.py'
+      - 'i18n/tools/validate_readme.py'
     branches:
       - main
   workflow_dispatch:
@@ -57,7 +60,7 @@ jobs:
         uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/translate_readme.py') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('i18n/tools/translate_readme.py', 'i18n/tools/translation_backend.py') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -71,10 +74,14 @@ jobs:
 
       - name: Translate README
         # Qwen-MT-Plus is tried first when AI_API_KEY is configured; Google
-        # remains the fallback. The script no-ops when README.md is unchanged.
+        # remains the fallback. The script no-ops only when the source hash
+        # matches and every committed output passes structural validation.
         run: python3 i18n/tools/translate_readme.py README.md i18n/languages/
         env:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
+
+      - name: Validate README translation outputs
+        run: python3 i18n/tools/validate_readme.py README.md i18n/languages/
 
       - name: Detect translation changes
         id: detect

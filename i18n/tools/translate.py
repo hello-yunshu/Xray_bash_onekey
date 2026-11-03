@@ -3,39 +3,14 @@ import json
 import os
 import re
 import polib
-from openai import OpenAI
-from deep_translator import GoogleTranslator
-from langdetect import detect, DetectorFactory
-from translation_terms import (
-    PLACEHOLDER_RE,
-    protect_terms,
-    restore_placeholders,
+from translation_terms import PLACEHOLDER_RE
+from translation_backend import (
+    TranslationError,
+    contains_chinese,
+    translate as translate_with_backend,
 )
 
-DetectorFactory.seed = 0
-
 SHORT_STRING_THRESHOLD = 15
-TRANSLATION_MAX_ATTEMPTS = 5
-TRANSLATION_REQUEST_INTERVAL = 1.0
-_LAST_REQUEST_AT = 0.0
-
-
-class TranslationError(Exception):
-    pass
-
-
-def _rate_limit():
-    """Keep all machine-translation requests serial and below Google's 5/s."""
-    global _LAST_REQUEST_AT
-    now = time.monotonic()
-    wait = TRANSLATION_REQUEST_INTERVAL - (now - _LAST_REQUEST_AT)
-    if wait > 0:
-        time.sleep(wait)
-    _LAST_REQUEST_AT = time.monotonic()
-
-
-def _retry_sleep(attempt):
-    time.sleep(min(30, TRANSLATION_REQUEST_INTERVAL * (2 ** attempt)))
 
 
 def load_translation_cache(cache_file):
@@ -71,74 +46,6 @@ def update_version(version_file):
         f.write(timestamp)
     os.replace(tmp, version_file)
     return timestamp
-
-
-def contains_chinese(text):
-    return any('\u4e00' <= char <= '\u9fff' for char in text)
-
-
-def translate_text_qwen_mt(text, target_lang):
-    api_key = os.getenv("AI_API_KEY")
-    if not api_key:
-        raise TranslationError("AI_API_KEY environment variable is not set.")
-    client = OpenAI(
-        api_key=api_key,
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-    )
-    protected_text, protected_terms = protect_terms(text)
-    messages = [
-        {'role': 'user', 'content': protected_text}
-    ]
-    translation_options = {
-        "source_lang": "zh",
-        "target_lang": target_lang
-    }
-    last_error = None
-    for attempt in range(TRANSLATION_MAX_ATTEMPTS):
-        _rate_limit()
-        try:
-            completion = client.chat.completions.create(
-                model="qwen-mt-plus",
-                messages=messages,
-                extra_body={
-                    "translation_options": translation_options
-                }
-            )
-            translated_text = completion.choices[0].message.content
-            translated_text = clean_translation(translated_text)
-            if len(text) < SHORT_STRING_THRESHOLD:
-                translated_text = translated_text.lower()
-            translated_text = restore_placeholders(translated_text, protected_terms)
-            return translated_text
-        except Exception as e:
-            last_error = e
-            print(f"Qwen-MT-Plus translation failed (attempt {attempt + 1}/{TRANSLATION_MAX_ATTEMPTS}): {e}")
-            if attempt < TRANSLATION_MAX_ATTEMPTS - 1:
-                _retry_sleep(attempt)
-    raise TranslationError(f"Qwen-MT-Plus failed after retries: {last_error}")
-
-
-def translate_text_google(text, target_lang):
-    last_error = None
-    for attempt in range(TRANSLATION_MAX_ATTEMPTS):
-        _rate_limit()
-        try:
-            protected_text, protected_terms = protect_terms(text)
-            translator = GoogleTranslator(source='zh-CN', target=target_lang)
-            translated_text = translator.translate(protected_text)
-            if translated_text is None:
-                raise TranslationError("Google Translate returned None")
-            translated_text = clean_translation(translated_text)
-            if len(text) < SHORT_STRING_THRESHOLD:
-                translated_text = translated_text.lower()
-            translated_text = restore_placeholders(translated_text, protected_terms)
-            return translated_text
-        except Exception as e:
-            last_error = e
-            print(f"Google Translate failed (attempt {attempt + 1}/{TRANSLATION_MAX_ATTEMPTS}): {e}")
-            if attempt < TRANSLATION_MAX_ATTEMPTS - 1:
-                _retry_sleep(attempt)
-    raise TranslationError(f"Google Translate failed after retries: {last_error}")
 
 
 def needs_fallback_translation(translated_text):
@@ -196,23 +103,18 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
                     entry.flags.remove('fuzzy')
                 continue
 
-        translated_text = ""
-        try:
-            translated_text = translate_text_qwen_mt(msgid_text, target_lang_code)
-            if (not translated_text or
-                contains_chinese(translated_text) or
-                needs_fallback_translation(translated_text)):
-                print("Qwen-MT-Plus output does not meet criteria. Using Google Translate...")
-                translated_text = translate_text_google(msgid_text, target_lang_code)
-        except TranslationError as e:
-            print(f"Qwen-MT-Plus unavailable ({e}); falling back to Google Translate")
-            translated_text = translate_text_google(msgid_text, target_lang_code)
-
-        translated_text = clean_translation(translated_text)
-        if (not translated_text or
-            contains_chinese(translated_text) or
-            needs_fallback_translation(translated_text)):
-            raise TranslationError(f"no valid translation for: {msgid_text}")
+        translated_text = translate_with_backend(
+            msgid_text,
+            target_lang_code,
+            postprocess=lambda value: clean_translation(value),
+            accept=lambda value: (
+                bool(value)
+                and not contains_chinese(value)
+                and not needs_fallback_translation(value)
+            ),
+        )
+        if len(msgid_text) < SHORT_STRING_THRESHOLD:
+            translated_text = translated_text.lower()
 
         translations[msgid_text] = translated_text
         print(f"New translation [{target_lang_code}]: {msgid_text} -> {translated_text}")
