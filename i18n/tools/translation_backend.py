@@ -88,7 +88,7 @@ def _qwen_request(text, target_lang, terms=None):
     return content
 
 
-def _restore_checked(text, protected):
+def _restore(text, protected):
     missing = []
     for index, term in enumerate(protected):
         if re.search(PLACEHOLDER_TEMPLATE.format(index), text, re.IGNORECASE):
@@ -98,14 +98,32 @@ def _restore_checked(text, protected):
         if term.lower() in text.lower():
             continue
         missing.append(term)
+    return restore_placeholders(text, protected).strip(), missing
+
+
+def _restore_checked(text, protected):
+    restored, missing = _restore(text, protected)
     if missing:
         raise TranslationError(f"translation dropped technical terms: {missing}")
-    return restore_placeholders(text, protected).strip()
+    return restored
 
 
 def qwen_translate(text, target_lang):
     protected_text, protected = protect_terms(text)
-    translated = _restore_checked(_qwen_request(protected_text, target_lang), protected)
+    identity_terms = [{"source": term, "target": term} for term in protected]
+
+    base_text = protected_text
+    raw = _qwen_request(base_text, target_lang)
+    translated, missing = _restore(raw, protected)
+    if missing:
+        # Qwen sometimes drops the placeholder and translates the term. Ask
+        # again with the original text and an identity terminology hint.
+        base_text = text
+        raw = _qwen_request(base_text, target_lang, terms=identity_terms)
+        translated, missing = _restore(raw, protected)
+        if missing:
+            raise TranslationError(f"translation dropped technical terms: {missing}")
+
     if not contains_chinese(translated):
         return translated
 
@@ -124,9 +142,13 @@ def qwen_translate(text, target_lang):
             terms.append({"source": span, "target": term})
     print(f"Qwen-MT-Plus left Chinese {residual}; retrying with terms={terms}", flush=True)
     if terms:
-        retried = _restore_checked(
-            _qwen_request(protected_text, target_lang, terms=terms), protected
-        )
+        repair_terms = terms
+        if base_text == text and identity_terms:
+            repair_terms = identity_terms + terms
+        raw = _qwen_request(base_text, target_lang, terms=repair_terms)
+        retried, missing = _restore(raw, protected)
+        if missing:
+            raise TranslationError(f"translation dropped technical terms: {missing}")
         if not contains_chinese(retried):
             return retried
         translated = retried
