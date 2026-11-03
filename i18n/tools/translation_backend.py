@@ -1,13 +1,21 @@
-"""Shared machine-translation backend for the PO and README generators.
+"""Shared machine-translation backend with a configurable provider chain.
 
-Both i18n/tools/translate.py and i18n/tools/translate_readme.py must use the
-same model, endpoint, secret name, timeout, retry policy and fallback order.
-Keep provider configuration here only; callers own content-specific cleanup.
+Providers:
+  - qwen          Qwen-MT-Plus via the OpenAI-compatible DashScope endpoint
+  - libretranslate  self-hosted LibreTranslate (optional), never blocked by IP
+  - google        legacy fallback, usually rate-limited from CI runners
+
+Configuration is read from the environment so the same code serves the PO and
+README generators. No provider is allowed to write a partial file: callers
+build every language in memory and only commit after the quality gate passes.
 """
 
+import json
 import os
 import re
 import time
+import urllib.error
+import urllib.request
 
 from deep_translator import GoogleTranslator
 from translation_terms import protect_terms, restore_placeholders
@@ -15,11 +23,15 @@ from translation_terms import protect_terms, restore_placeholders
 MODEL = "qwen-mt-plus"
 BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 API_KEY_ENV = "AI_API_KEY"
+LIBRETRANSLATE_URL_ENV = "LIBRETRANSLATE_URL"
+LIBRETRANSLATE_KEY_ENV = "LIBRETRANSLATE_API_KEY"
 
 MAX_ATTEMPTS = 5
 REQUEST_INTERVAL = 1.0
 RETRY_CAP_SECONDS = 30
 REQUEST_TIMEOUT_SECONDS = 30.0
+CIRCUIT_FAILURE_THRESHOLD = 3
+CIRCUIT_COOLDOWN_SECONDS = 60
 
 CHINESE_RE = re.compile(r'[\u4e00-\u9fff]+')
 PLACEHOLDER_TEMPLATE = r'__TERM_{}__'
@@ -33,8 +45,58 @@ class TranslationError(Exception):
     pass
 
 
+class ProviderError(TranslationError):
+    def __init__(self, provider, kind, message, status=None):
+        self.provider = provider
+        self.kind = kind
+        self.status = status
+        self.message = message
+        super().__init__(f"{provider} {kind}: {message}")
+
+
+class CircuitBreaker:
+    def __init__(self):
+        self.failures = {}
+        self.open_until = {}
+        self.last_error = {}
+
+    def is_open(self, provider):
+        if time.monotonic() >= self.open_until.get(provider, 0):
+            if self.failures.get(provider, 0) >= CIRCUIT_FAILURE_THRESHOLD:
+                self.failures[provider] = 0
+            return False
+        return True
+
+    def record_success(self, provider):
+        self.failures[provider] = 0
+        self.open_until[provider] = 0
+
+    def record_failure(self, provider, error):
+        self.last_error[provider] = error
+        # Content-level failures mean the provider is reachable but produced
+        # an unacceptable candidate for one string. Do not open the circuit
+        # for these; otherwise one bad sentence disables the provider for the
+        # rest of the run.
+        if error.kind not in ("quota", "auth", "network", "server"):
+            return
+        self.failures[provider] = self.failures.get(provider, 0) + 1
+        if self.failures[provider] >= CIRCUIT_FAILURE_THRESHOLD:
+            self.open_until[provider] = time.monotonic() + CIRCUIT_COOLDOWN_SECONDS
+
+    def summary(self):
+        parts = []
+        for provider, until in self.open_until.items():
+            remaining = int(until - time.monotonic())
+            if remaining > 0:
+                parts.append(f"{provider} open for {remaining}s")
+        return ", ".join(parts) if parts else "closed"
+
+
+_breaker = CircuitBreaker()
+_force = False
+
+
 def rate_limit():
-    """Keep every provider request serial and below the documented limits."""
     global _last_request_at
     now = time.monotonic()
     wait = REQUEST_INTERVAL - (now - _last_request_at)
@@ -59,7 +121,7 @@ def get_client():
     global _client, _client_key
     api_key = os.getenv(API_KEY_ENV)
     if not api_key:
-        raise TranslationError(f"{API_KEY_ENV} environment variable is not set.")
+        raise ProviderError("qwen", "not_configured", f"{API_KEY_ENV} is not set")
     if _client is None or _client_key != api_key:
         from openai import OpenAI
         _client = OpenAI(
@@ -72,20 +134,59 @@ def get_client():
     return _client
 
 
-def _qwen_request(text, target_lang, terms=None):
+def _classify(provider, error):
+    status = getattr(error, 'status_code', None)
+    if isinstance(error, urllib.error.HTTPError):
+        status = error.code
+    message = str(error).lower()
+    if status in (401, 403):
+        kind = "auth"
+    elif status == 429:
+        kind = "quota"
+    elif status and 500 <= status < 600:
+        kind = "server"
+    elif isinstance(error, (urllib.error.URLError, TimeoutError)):
+        kind = "network"
+    elif "too many requests" in message or "429" in message:
+        kind = "quota"
+    else:
+        name = type(error).__name__.lower()
+        kind = "network" if ("timeout" in name or "connection" in name) else "unknown"
+    return ProviderError(provider, kind, str(error), status)
+
+
+def _format_error(error):
+    if isinstance(error, ProviderError):
+        return f"{error.provider}(kind={error.kind}, status={error.status}, {error.message})"
+    return str(error)
+
+
+def _qwen_request(text, target_lang, terms=None, source_lang="zh"):
     rate_limit()
-    options = {"source_lang": "zh", "target_lang": target_lang}
+    options = {"source_lang": source_lang, "target_lang": target_lang}
     if terms:
         options["terms"] = terms
-    completion = get_client().chat.completions.create(
-        model=MODEL,
-        messages=[{"role": "user", "content": text}],
-        extra_body={"translation_options": options},
-    )
+    try:
+        completion = get_client().chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": text}],
+            extra_body={"translation_options": options},
+        )
+    except ProviderError:
+        raise
+    except Exception as e:
+        raise _classify("qwen", e)
     content = completion.choices[0].message.content
     if not content or not content.strip():
-        raise TranslationError("Qwen-MT-Plus returned an empty translation")
+        raise ProviderError("qwen", "empty", "Qwen-MT-Plus returned an empty translation")
     return content
+
+
+def _dedupe_protected_terms(text, protected):
+    for term in protected:
+        if term:
+            text = text.replace(term + term, term)
+    return text
 
 
 def _restore(text, protected):
@@ -93,27 +194,34 @@ def _restore(text, protected):
     for index, term in enumerate(protected):
         if re.search(PLACEHOLDER_TEMPLATE.format(index), text, re.IGNORECASE):
             continue
-        # Qwen sometimes drops the placeholder while keeping the term itself
-        # (for example "Shell" or "Xray"). Treat that as preserved.
         if term.lower() in text.lower():
             continue
         missing.append(term)
-    return restore_placeholders(text, protected).strip(), missing
+    restored = restore_placeholders(text, protected).strip()
+    return _dedupe_protected_terms(restored, protected), missing
 
 
-def _restore_checked(text, protected):
+def _restore_checked(text, protected, provider):
     restored, missing = _restore(text, protected)
     if missing:
-        raise TranslationError(f"translation dropped technical terms: {missing}")
+        raise ProviderError(provider, "term_missing", f"translation dropped technical terms: {missing}")
     return restored
 
 
-def _strip_short_residue(source, translated):
-    """Drop a duplicated source term from a short label translation.
+def _merge_terms(*groups):
+    merged = {}
+    for group in groups:
+        for item in group or []:
+            source = item.get("source")
+            target = item.get("target")
+            if source and target and source not in merged:
+                merged[source] = target
+    result = [{"source": source, "target": target} for source, target in merged.items()]
+    result.sort(key=lambda item: len(item["source"]), reverse=True)
+    return result
 
-    Qwen-MT sometimes returns e.g. "Режим模式" for the single word "模式".
-    Only apply this to short, punctuation-free source terms.
-    """
+
+def _strip_short_residue(source, translated):
     if " " in source.strip() or any(p in source for p in "，。：；、"):
         return translated
     stripped = CHINESE_RE.sub("", translated).strip()
@@ -122,112 +230,212 @@ def _strip_short_residue(source, translated):
     return translated
 
 
-def qwen_translate(text, target_lang):
+def qwen_translate(text, target_lang, terms=None):
     protected_text, protected = protect_terms(text)
+    protected_set = set(protected)
+    # Placeholders already preserve these terms; injecting them again makes
+    # Qwen append a duplicate (observed with "ONLYONLY").
+    glossary_terms = [
+        item for item in (terms or [])
+        if item.get('source') and item['source'] not in protected_set
+    ]
     identity_terms = [{"source": term, "target": term} for term in protected]
 
     base_text = protected_text
-    raw = _qwen_request(base_text, target_lang)
+    raw = _qwen_request(base_text, target_lang, terms=glossary_terms)
     translated, missing = _restore(raw, protected)
     if missing:
-        # Qwen sometimes drops the placeholder and translates the term. Ask
-        # again with the original text and an identity terminology hint.
         base_text = text
-        raw = _qwen_request(base_text, target_lang, terms=identity_terms)
+        raw = _qwen_request(
+            base_text, target_lang, terms=_merge_terms(terms or [], identity_terms)
+        )
         translated, missing = _restore(raw, protected)
         if missing:
-            raise TranslationError(f"translation dropped technical terms: {missing}")
+            raise ProviderError("qwen", "term_missing", f"translation dropped technical terms: {missing}")
 
     if not contains_chinese(translated):
         return translated
 
-    # Qwen-MT sometimes leaves a Chinese term untouched (observed with
-    # "公网"). Translate the residual span in isolation, then ask for the
-    # full text again with the provider's terminology hint.
     residual = chinese_spans(translated)
-    terms = []
+    residue_terms = []
     for span in residual:
         try:
             term = _qwen_request(span, target_lang).strip()
-        except Exception as e:
+        except ProviderError as e:
             print(f"Qwen-MT-Plus residual term lookup failed for {span!r}: {e}", flush=True)
             continue
         term = _strip_short_residue(span, term)
         if term and not contains_chinese(term):
-            terms.append({"source": span, "target": term})
-    print(f"Qwen-MT-Plus left Chinese {residual}; retrying with terms={terms}", flush=True)
-    if terms:
-        repair_terms = terms
-        if base_text == text and identity_terms:
-            repair_terms = identity_terms + terms
+            residue_terms.append({"source": span, "target": term})
+    print(f"Qwen-MT-Plus left Chinese {residual}; retrying with terms={residue_terms}", flush=True)
+    if residue_terms:
+        if base_text == text:
+            repair_terms = _merge_terms(terms or [], identity_terms, residue_terms)
+        else:
+            repair_terms = _merge_terms(glossary_terms, residue_terms)
         raw = _qwen_request(base_text, target_lang, terms=repair_terms)
         retried, missing = _restore(raw, protected)
         if missing:
-            raise TranslationError(f"translation dropped technical terms: {missing}")
+            raise ProviderError("qwen", "term_missing", f"translation dropped technical terms: {missing}")
         if not contains_chinese(retried):
             return retried
         translated = retried
     cleaned = _strip_short_residue(text, translated)
     if cleaned != translated and not contains_chinese(cleaned):
         return cleaned
-    raise TranslationError(f"Qwen-MT-Plus output still contains Chinese: {translated!r}")
+    raise ProviderError("qwen", "chinese_residue", f"output still contains Chinese: {translated!r}")
+
+
+def libretranslate_translate(text, target_lang, source_lang="zh"):
+    url = os.getenv(LIBRETRANSLATE_URL_ENV)
+    if not url:
+        raise ProviderError("libretranslate", "not_configured", f"{LIBRETRANSLATE_URL_ENV} is not set")
+    endpoint = url.rstrip("/")
+    if not endpoint.endswith("/translate"):
+        endpoint += "/translate"
+    protected_text, protected = protect_terms(text)
+    payload = {
+        "q": protected_text,
+        "source": source_lang,
+        "target": target_lang,
+        "format": "text",
+    }
+    api_key = os.getenv(LIBRETRANSLATE_KEY_ENV)
+    if api_key:
+        payload["api_key"] = api_key
+    data = json.dumps(payload).encode('utf-8')
+    request = urllib.request.Request(
+        endpoint, data=data, headers={"Content-Type": "application/json"}
+    )
+    rate_limit()
+    try:
+        with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
+            body = json.loads(response.read().decode('utf-8'))
+    except Exception as e:
+        raise _classify("libretranslate", e)
+    translated = body.get("translatedText") if isinstance(body, dict) else None
+    if not translated:
+        raise ProviderError("libretranslate", "empty", "LibreTranslate returned an empty translation")
+    return _restore_checked(translated, protected, "libretranslate")
 
 
 def google_translate(text, target_lang):
     protected_text, protected = protect_terms(text)
     rate_limit()
-    translator = GoogleTranslator(source='zh-CN', target=target_lang)
-    translated = translator.translate(protected_text)
+    try:
+        translated = GoogleTranslator(source='zh-CN', target=target_lang).translate(protected_text)
+    except Exception as e:
+        raise _classify("google", e)
     if translated is None:
-        raise TranslationError("Google Translate returned None")
-    return _restore_checked(translated, protected)
+        raise ProviderError("google", "empty", "Google Translate returned None")
+    return _restore_checked(translated, protected, "google")
 
 
-def translate(text, target_lang, postprocess=None, accept=None):
-    """Try Qwen-MT-Plus, then Google, with one shared retry policy.
+def _provider_chain():
+    chain = os.getenv("TRANSLATION_PROVIDER_CHAIN") or "qwen,libretranslate,google"
+    names = [name.strip() for name in chain.split(',') if name.strip()]
+    available = []
+    skipped = []
+    for name in names:
+        if name == "qwen":
+            if os.getenv(API_KEY_ENV):
+                available.append(
+                    ("qwen", lambda text, target, terms=None: qwen_translate(text, target, terms=terms))
+                )
+            else:
+                skipped.append("qwen(not configured: AI_API_KEY)")
+        elif name == "libretranslate":
+            if os.getenv(LIBRETRANSLATE_URL_ENV):
+                available.append(
+                    ("libretranslate", lambda text, target, terms=None: libretranslate_translate(text, target))
+                )
+            else:
+                skipped.append("libretranslate(not configured: LIBRETRANSLATE_URL)")
+        elif name == "google":
+            available.append(
+                ("google", lambda text, target, terms=None: google_translate(text, target))
+            )
+        else:
+            skipped.append(f"{name}(unknown provider)")
+    return available, skipped
 
-    ``postprocess`` cleans the raw provider output for the caller's format.
-    ``accept`` rejects a candidate that still violates the caller's contract.
-    Raises TranslationError when both providers are exhausted.
-    """
+
+def translate(text, target_lang, terms=None, postprocess=None, accept=None):
     if postprocess is None:
         postprocess = lambda value: value.strip()
     if accept is None:
         accept = lambda value: bool(value) and not contains_chinese(value)
 
-    qwen_error = TranslationError(f"{API_KEY_ENV} is not set; skipping Qwen-MT-Plus")
-    if os.getenv(API_KEY_ENV):
-        for attempt in range(MAX_ATTEMPTS):
-            try:
-                candidate = postprocess(qwen_translate(text, target_lang))
-                if accept(candidate):
-                    return candidate
-                qwen_error = TranslationError(f"Qwen-MT-Plus output rejected: {candidate!r}")
-            except Exception as e:
-                qwen_error = e
-            print(
-                f"Qwen-MT-Plus translation failed (attempt {attempt + 1}/{MAX_ATTEMPTS}): {qwen_error}",
-                flush=True,
-            )
-            if attempt < MAX_ATTEMPTS - 1:
-                retry_sleep(attempt)
-
-    google_error = None
+    providers, skipped = _provider_chain()
+    errors = {}
     for attempt in range(MAX_ATTEMPTS):
-        try:
-            candidate = postprocess(google_translate(text, target_lang))
-            if accept(candidate):
-                return candidate
-            google_error = TranslationError(f"Google Translate output rejected: {candidate!r}")
-        except Exception as e:
-            google_error = e
-        print(
-            f"Google Translate failed (attempt {attempt + 1}/{MAX_ATTEMPTS}): {google_error}",
-            flush=True,
-        )
+        available = [(name, func) for name, func in providers if not _breaker.is_open(name)]
+        if not available:
+            summary = "; ".join(
+                f"{name}(circuit open, last={_format_error(_breaker.last_error.get(name, 'none'))})"
+                for name, _ in providers
+            )
+            skipped_text = f"; skipped=[{'; '.join(skipped)}]" if skipped else ""
+            raise TranslationError(
+                f"all translation providers are unavailable for {text!r}: {summary}{skipped_text}"
+            )
+        for name, func in available:
+            try:
+                candidate = postprocess(func(text, target_lang, terms=terms))
+                if accept(candidate):
+                    _breaker.record_success(name)
+                    return candidate
+                raise ProviderError(name, "rejected", f"output rejected by accept(): {candidate!r}")
+            except ProviderError as e:
+                errors[name] = e
+                _breaker.record_failure(name, e)
+            except Exception as e:
+                wrapped = _classify(name, e)
+                errors[name] = wrapped
+                _breaker.record_failure(name, wrapped)
         if attempt < MAX_ATTEMPTS - 1:
             retry_sleep(attempt)
 
+    summary = "; ".join(
+        f"{name}({_format_error(errors.get(name, 'no attempt'))})" for name, _ in providers
+    )
+    skipped_text = f"; skipped=[{'; '.join(skipped)}]" if skipped else ""
     raise TranslationError(
-        f"both translation providers failed for {text!r}: qwen={qwen_error}; google={google_error}"
+        f"all translation providers failed for {text!r}: {summary}{skipped_text}; circuit={_breaker.summary()}"
+    )
+
+
+def back_translate(text, source_lang):
+    """Translate a target-language sentence back to Chinese for semantic QA."""
+    errors = []
+    if os.getenv(API_KEY_ENV) and not _breaker.is_open("qwen"):
+        try:
+            result = _qwen_request(text, "zh", source_lang=source_lang).strip()
+            _breaker.record_success("qwen")
+            return result
+        except ProviderError as e:
+            errors.append(_format_error(e))
+            _breaker.record_failure("qwen", e)
+    if os.getenv(LIBRETRANSLATE_URL_ENV) and not _breaker.is_open("libretranslate"):
+        try:
+            result = libretranslate_translate(text, "zh", source_lang=source_lang)
+            _breaker.record_success("libretranslate")
+            return result
+        except ProviderError as e:
+            errors.append(_format_error(e))
+            _breaker.record_failure("libretranslate", e)
+    if not _breaker.is_open("google"):
+        try:
+            rate_limit()
+            result = GoogleTranslator(source=source_lang, target='zh-CN').translate(text)
+            if not result:
+                raise ProviderError("google", "empty", "Google Translate returned an empty back-translation")
+            _breaker.record_success("google")
+            return result.strip()
+        except Exception as e:
+            wrapped = _classify("google", e)
+            errors.append(_format_error(wrapped))
+            _breaker.record_failure("google", wrapped)
+    raise TranslationError(
+        "back-translation unavailable: " + "; ".join(errors if errors else ["no provider configured"])
     )

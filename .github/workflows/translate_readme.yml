@@ -13,8 +13,13 @@ on:
       - 'i18n/tools/translate_readme.py'
       - 'i18n/tools/translation_terms.py'
       - 'i18n/tools/translation_backend.py'
+      - 'i18n/tools/translation_glossary.py'
+      - 'i18n/tools/translation_overrides.py'
+      - 'i18n/tools/text_quality.py'
       - 'i18n/tools/readme_validation.py'
       - 'i18n/tools/validate_readme.py'
+      - 'i18n/glossary/**'
+      - 'i18n/overrides/**'
     branches:
       - main
   workflow_dispatch:
@@ -80,6 +85,9 @@ jobs:
         run: python3 i18n/tools/translate_readme.py README.md i18n/languages/
         env:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          LIBRETRANSLATE_URL: ${{ secrets.LIBRETRANSLATE_URL }}
+          LIBRETRANSLATE_API_KEY: ${{ secrets.LIBRETRANSLATE_API_KEY }}
+          TRANSLATION_PROVIDER_CHAIN: ${{ vars.TRANSLATION_PROVIDER_CHAIN }}
 
       - name: Save translation cache
         # Keep completed segments even when a later segment fails, so the
