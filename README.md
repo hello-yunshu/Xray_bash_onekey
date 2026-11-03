@@ -252,3 +252,5 @@ cat /etc/idleleo/info/xray_info.inf
 | 日志目录 | `/etc/idleleo/logs/`、`/var/log/xray/` |
 | Nginx 安装目录 | `/usr/local/nginx` |
 | 管理命令 | `/usr/bin/idleleo` |
+
+探针测试：验证新的术语与质量门禁链路。
