@@ -32,6 +32,15 @@ class NginxForbiddenRuleTest(unittest.TestCase):
         self.assertEqual(result['forbidden'], [])
         self.assertEqual(result['errors'], [])
 
+    def test_russian_genitive_inflection_is_allowed(self):
+        result = check(
+            'ru',
+            '无传输层加密的后端入站监听地址',
+            'Адрес входящего прослушивания бэкенда без шифрования транспортного уровня',
+        )
+        self.assertEqual(result['errors'], [])
+        self.assertEqual(result['hit_rate'], 1.0)
+
 
 if __name__ == '__main__':
     unittest.main()
