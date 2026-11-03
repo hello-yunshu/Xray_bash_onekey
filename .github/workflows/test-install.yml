@@ -211,6 +211,10 @@ jobs:
   rill-qualification:
     # Rill, RillML, and Skill remain strict qualification surfaces, but are
     # deliberately outside the Core release-gate dependency chain.
+    # Kept separate from .github/workflows/rill-xray-agent.yml: the standalone
+    # workflow verifies the pinned Agent/canonical payload on Rill paths, while
+    # this job adds the cross-repo API/Nginx/Skill contract and install checks
+    # required by release-candidate-gate. Overlap is limited to Rill paths.
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:

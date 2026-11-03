@@ -14,6 +14,11 @@ on:
         description: Optional candidate SHA for idempotent re-verification
         required: false
         type: string
+      force_promotion_failure:
+        description: 'Dispatch-only probe: make the promotion job fail after the Release is verified'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: release-xray
@@ -305,6 +310,15 @@ jobs:
             echo "RELEASE_AUTOMATION_TOKEN is required for API promotion and CDN verification." >&2
             exit 1
           fi
+
+      - name: Forced promotion failure (dispatch-only probe)
+        if: inputs.force_promotion_failure
+        run: |
+          echo "MANUAL ACTION REQUIRED: forced promotion failure for dispatch verification." >&2
+          echo "1. Inspect the API promotion job log for the simulated failure point." >&2
+          echo "2. Do not roll back the immutable Release; rerun this workflow without the probe flag." >&2
+          echo "3. If this were a real failure, merge the API promotion PR and purge jsDelivr manually." >&2
+          exit 1
 
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
