@@ -252,5 +252,3 @@ cat /etc/idleleo/info/xray_info.inf
 | دیرکتوری روزنامه | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Nginx پوشه نصب | `/usr/local/nginx` |
 | دستور مدیریت | `/usr/bin/idleleo` |
-
-آزمایش پروب: تأیید اصطلاحات جدید و لینک‌های کنترل کیفیت.

@@ -252,5 +252,3 @@ cat /etc/idleleo/info/xray_info.inf
 | 로그 디렉터리 | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Nginx 설치 디렉터리 | `/usr/local/nginx` |
 | 관리 명령 | `/usr/bin/idleleo` |
-
-프로브 테스트: 새로운 용어와 품질 게이트 링크를 검증합니다.
