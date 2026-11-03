@@ -26,8 +26,12 @@ for ((attempt = 1; attempt <= attempts; attempt++)); do
     mergeable=$(jq -r '.mergeable' <<<"${payload}")
 
     if ((failed > 0)); then
+        failed_names=$(jq -r '[.statusCheckRollup[] | select(
+            .status == "COMPLETED" and
+            (.conclusion != "SUCCESS" and .conclusion != "NEUTRAL" and .conclusion != "SKIPPED")
+        ) | .name] | join(", ")' <<<"${payload}")
         gh pr checks "${pr}" --repo "${repo}" || true
-        echo "PR ${repo}#${pr} has a failed check" >&2
+        echo "PR ${repo}#${pr} has failed checks: ${failed_names}" >&2
         exit 1
     fi
     if ((count >= minimum_checks && pending == 0)) && [[ "${mergeable}" == "MERGEABLE" ]]; then
@@ -38,5 +42,6 @@ for ((attempt = 1; attempt <= attempts; attempt++)); do
     sleep "${interval}"
 done
 
-echo "timed out waiting for PR ${repo}#${pr}" >&2
+echo "timed out waiting for PR ${repo}#${pr} (pending checks may still be running)" >&2
+gh pr checks "${pr}" --repo "${repo}" || true
 exit 1
