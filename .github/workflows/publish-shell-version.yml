@@ -67,6 +67,16 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Ensure external checkout helper
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/checkout_external_repo.sh ]]; then
+            mkdir -p scripts
+            git fetch --quiet --depth=1 origin main
+            git show FETCH_HEAD:scripts/checkout_external_repo.sh > scripts/checkout_external_repo.sh
+            chmod +x scripts/checkout_external_repo.sh
+          fi
+
       - name: Read canonical pin
         id: pin
         run: |
@@ -300,6 +310,16 @@ jobs:
         with:
           ref: ${{ needs.candidate.outputs.candidate_commit }}
           persist-credentials: false
+
+      - name: Ensure external checkout helper
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/checkout_external_repo.sh ]]; then
+            mkdir -p scripts
+            git fetch --quiet --depth=1 origin main
+            git show FETCH_HEAD:scripts/checkout_external_repo.sh > scripts/checkout_external_repo.sh
+            chmod +x scripts/checkout_external_repo.sh
+          fi
 
       - name: Checkout version API main (retry)
         env:
