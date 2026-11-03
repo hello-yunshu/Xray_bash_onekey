@@ -76,7 +76,7 @@ jobs:
 
       - name: Checkout external repo (retry)
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: scripts/checkout_external_repo.sh "hello-yunshu/rill-xray-agent" "${{ steps.pin.outputs.canonical_commit }}" ".canonical"
 
       - name: Validate immutable candidate and host bytes
@@ -317,7 +317,7 @@ jobs:
             --baseline-scenarios 'direct,shell-first,reinstall,failure-recovery,restart-recovery,fallback'
           (cd api && bash validate-json.sh)
 
-      - name: Publish API promotion
+      - name: Publish API promotion after the immutable Release
         env:
           VERSION: ${{ needs.candidate.outputs.version }}
           X_ACCESS_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
