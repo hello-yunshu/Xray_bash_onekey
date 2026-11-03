@@ -34,7 +34,7 @@ jobs:
       - name: Checkout external repo (retry)
         env:
           GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
-        run: scripts/checkout_external_repo.sh "hello-yunshu/rill-xray-agent" "main" "rill"
+        run: xray/scripts/checkout_external_repo.sh "hello-yunshu/rill-xray-agent" "main" "rill"
 
       - name: Verify Xray Host Contract source bytes
         run: |
