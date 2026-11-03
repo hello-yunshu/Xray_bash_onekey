@@ -173,6 +173,13 @@ def _qwen_request(text, target_lang, terms=None, source_lang="zh"):
     return content
 
 
+def _dedupe_protected_terms(text, protected):
+    for term in protected:
+        if term:
+            text = text.replace(term + term, term)
+    return text
+
+
 def _restore(text, protected):
     missing = []
     for index, term in enumerate(protected):
@@ -181,7 +188,8 @@ def _restore(text, protected):
         if term.lower() in text.lower():
             continue
         missing.append(term)
-    return restore_placeholders(text, protected).strip(), missing
+    restored = restore_placeholders(text, protected).strip()
+    return _dedupe_protected_terms(restored, protected), missing
 
 
 def _restore_checked(text, protected, provider):
@@ -215,15 +223,23 @@ def _strip_short_residue(source, translated):
 
 def qwen_translate(text, target_lang, terms=None):
     protected_text, protected = protect_terms(text)
+    protected_set = set(protected)
+    # Placeholders already preserve these terms; injecting them again makes
+    # Qwen append a duplicate (observed with "ONLYONLY").
+    glossary_terms = [
+        item for item in (terms or [])
+        if item.get('source') and item['source'] not in protected_set
+    ]
     identity_terms = [{"source": term, "target": term} for term in protected]
-    base_terms = _merge_terms(terms or [], identity_terms)
 
     base_text = protected_text
-    raw = _qwen_request(base_text, target_lang, terms=base_terms)
+    raw = _qwen_request(base_text, target_lang, terms=glossary_terms)
     translated, missing = _restore(raw, protected)
     if missing:
         base_text = text
-        raw = _qwen_request(base_text, target_lang, terms=base_terms)
+        raw = _qwen_request(
+            base_text, target_lang, terms=_merge_terms(terms or [], identity_terms)
+        )
         translated, missing = _restore(raw, protected)
         if missing:
             raise ProviderError("qwen", "term_missing", f"translation dropped technical terms: {missing}")
@@ -244,7 +260,11 @@ def qwen_translate(text, target_lang, terms=None):
             residue_terms.append({"source": span, "target": term})
     print(f"Qwen-MT-Plus left Chinese {residual}; retrying with terms={residue_terms}", flush=True)
     if residue_terms:
-        raw = _qwen_request(base_text, target_lang, terms=_merge_terms(base_terms, residue_terms))
+        if base_text == text:
+            repair_terms = _merge_terms(terms or [], identity_terms, residue_terms)
+        else:
+            repair_terms = _merge_terms(glossary_terms, residue_terms)
+        raw = _qwen_request(base_text, target_lang, terms=repair_terms)
         retried, missing = _restore(raw, protected)
         if missing:
             raise ProviderError("qwen", "term_missing", f"translation dropped technical terms: {missing}")
