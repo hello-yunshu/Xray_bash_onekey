@@ -6,8 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
-"issues\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
 "POT-Creation-Date: 2026-11-02 18:50+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
@@ -268,7 +267,8 @@ msgstr "installation"
 #: install.sh:8241 install.sh:8679 install.sh:8683 install.sh:8688
 #: install.sh:11221 install.sh:11254 install.sh:12707 install.sh:12722
 #: install.sh:12729 install.sh:12763 install.sh:13797 install.sh:13806
-#: install.sh:14590 scripts/file_manager.sh:366 scripts/traffic_blocker.sh:1065
+#: install.sh:14590 scripts/file_manager.sh:366
+#: scripts/traffic_blocker.sh:1065
 msgid "失败"
 msgstr "failure"
 
@@ -461,13 +461,14 @@ msgstr ""
 msgid "防火墙规则前向修改失败且反向恢复未完成, 全局回滚时将再次尝试"
 msgstr ""
 "Forward modification of the firewall rule failed, and the rollback has not "
-"yet been completed; a second attempt will be made during the global rollback."
+"yet been completed; a second attempt will be made during the global "
+"rollback."
 
 #: install.sh:3389
 msgid "防火墙状态写入失败且反向恢复未完成, 全局回滚时将再次尝试"
 msgstr ""
-"Firewall state write failed and reverse recovery has not completed; a second "
-"attempt will be made during the global rollback."
+"Firewall state write failed and reverse recovery has not completed; a second"
+" attempt will be made during the global rollback."
 
 #: install.sh:3398 scripts/file_manager.sh:185
 msgid "是否需要设置防火墙"
@@ -476,8 +477,8 @@ msgstr "whether a firewall needs to be set up"
 #: install.sh:3419
 msgid "当前网络模式所需的防火墙工具缺失 (iptables/ip6tables), 防火墙配置已中止"
 msgstr ""
-"The required firewall tool for the current network mode is missing (iptables/"
-"ip6tables), and the firewall configuration has been aborted."
+"The required firewall tool for the current network mode is missing "
+"(iptables/ip6tables), and the firewall configuration has been aborted."
 
 #: install.sh:3430
 msgid "基础防火墙规则配置失败"
@@ -666,8 +667,8 @@ msgstr "download failed, please manually download and install the new version"
 msgid "版本过旧, 建议更新"
 msgstr "the version is too old; please update"
 
-#: install.sh:3879 scripts/fail2ban_manager.sh:1169 scripts/file_manager.sh:335
-#: scripts/traffic_blocker.sh:1301
+#: install.sh:3879 scripts/fail2ban_manager.sh:1169
+#: scripts/file_manager.sh:335 scripts/traffic_blocker.sh:1301
 msgid "是否下载并安装新版本"
 msgstr "do you want to download and install the new version"
 
@@ -730,7 +731,7 @@ msgstr "Invalid listen address, falling back to 127.0.0.1"
 
 #: install.sh:4019
 msgid "无传输层加密的后端入站监听地址"
-msgstr "Plaintext backend inbound listen address"
+msgstr "Backend inbound listening address without transport encryption"
 
 #: install.sh:4024 install.sh:4028 install.sh:4032 install.sh:4083
 #: install.sh:4086 install.sh:4406 install.sh:4412 install.sh:4490
@@ -777,8 +778,8 @@ msgstr ""
 #: install.sh:4577
 msgid "加入 minClientVer 后配置测试失败, 已恢复原配置"
 msgstr ""
-"The config failed Xray's test after adding minClientVer, the previous config "
-"was restored"
+"The config failed Xray's test after adding minClientVer, the previous config"
+" was restored"
 
 #: install.sh:4581
 msgid "已为 REALITY 入站补上 minClientVer"
@@ -855,8 +856,8 @@ msgstr "Enabled Xray's native GeoData schedule"
 #: install.sh:5058
 msgid "已移除脚本创建的 geo_update.sh 周期任务, 避免与原生更新重复执行"
 msgstr ""
-"Removed the geo_update.sh cron job created by this script to avoid duplicate "
-"updates"
+"Removed the geo_update.sh cron job created by this script to avoid duplicate"
+" updates"
 
 #: install.sh:5061
 msgid "移除 geo_update.sh 周期任务失败, 请手动检查 crontab"
@@ -935,8 +936,8 @@ msgstr "rollback operation not executed"
 #: install.sh:5154
 msgid "更新失败且未回滚, 当前服务可能不可用, 请手动检查"
 msgstr ""
-"Update failed and no rollback was performed; the service may be unavailable. "
-"Please check manually."
+"Update failed and no rollback was performed; the service may be unavailable."
+" Please check manually."
 
 #: install.sh:5156
 msgid "高优先级错误: Xray 服务已停止"
@@ -1008,7 +1009,8 @@ msgstr "recommend"
 
 #: install.sh:5471
 msgid "使用指向本机 IP 的自建 HTTPS 站点作为回落"
-msgstr "Use a self-hosted HTTPS site pointing to this machine's IP as fallback"
+msgstr ""
+"Use a self-hosted HTTPS site pointing to this machine's IP as fallback"
 
 #: install.sh:5471 install.sh:5472 install.sh:13927 install.sh:14094
 msgid "高级"
@@ -1019,9 +1021,7 @@ msgid "直接拒绝异常 TLS 连接"
 msgstr "Directly reject abnormal TLS connections"
 
 #: install.sh:5473
-msgid ""
-"第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了"
-"解含义, 请使用默认隔离策略。"
+msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
 msgstr ""
 "Option 2 requires you to have your own domain, and its A/AAAA record must "
 "point to this machine's public IP. If unsure, use the default isolation "
@@ -1050,8 +1050,8 @@ msgstr "decoy site setup"
 #: install.sh:5566
 msgid "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP"
 msgstr ""
-"Please enter your own domain; its A/AAAA record must point to this machine's "
-"public IP"
+"Please enter your own domain; its A/AAAA record must point to this machine's"
+" public IP"
 
 #: install.sh:5568 install.sh:5570
 msgid "请输入 decoy 域名"
@@ -1432,8 +1432,8 @@ msgstr "already updated to the latest version"
 #: install.sh:6740
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"set up a background scheduled automatic update program (including: script/"
-"xray/nginx)"
+"Set up a background scheduled automatic update program (including: "
+"scripts/Xray/Nginx)"
 
 #: install.sh:6741
 msgid "可能自动更新后有兼容问题, 谨慎启用"
@@ -1703,7 +1703,8 @@ msgstr "add simple ws/gRPC/xHTTP protocols"
 #: install.sh:7372
 msgid "当前服务器为中转节点, 不支持与普通节点混装"
 msgstr ""
-"This server is a relay node; mixing it with an ordinary node is not supported"
+"This server is a relay node; mixing it with an ordinary node is not "
+"supported"
 
 #: install.sh:7373
 msgid "请先删除中转节点, 再安装普通节点"
@@ -1817,8 +1818,8 @@ msgstr "Continue switching mode"
 #: install.sh:7521
 msgid "已删除旧配置文件, 将使用目标模式标准模板生成新配置"
 msgstr ""
-"Old config file deleted, will generate new config using target mode standard "
-"template"
+"Old config file deleted, will generate new config using target mode standard"
+" template"
 
 #: install.sh:7600
 msgid "检测到配置文件不完整"
@@ -1888,8 +1889,8 @@ msgstr "No more modifications, start redeployment"
 #: install.sh:7663
 msgid "UUID 和多用户信息请使用现有用户管理或 UUID 变更功能"
 msgstr ""
-"For UUID and multi-user information, please use the existing user management "
-"or the UUID modification feature."
+"For UUID and multi-user information, please use the existing user management"
+" or the UUID modification feature."
 
 #: install.sh:7664
 msgid "传输组合变更请使用标准模板重建"
@@ -2018,8 +2019,8 @@ msgstr "Certificate directory is not usable; certificate update cancelled"
 #: install.sh:8208
 msgid "证书所需的服务组不存在, 已取消证书更新"
 msgstr ""
-"The service group required by the certificate is missing; certificate update "
-"cancelled"
+"The service group required by the certificate is missing; certificate update"
+" cancelled"
 
 #: install.sh:8215
 msgid "无法停止 Xray, 已取消证书更新"
@@ -2170,8 +2171,8 @@ msgstr "Currently, xHTTP supports only the stream-one and stream-up modes."
 #: install.sh:9215
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
 msgstr ""
-"xHTTP requires the mihomo (Meta) kernel; the original Clash does not support "
-"it."
+"xHTTP requires the mihomo (Meta) kernel; the original Clash does not support"
+" it."
 
 #: install.sh:9218 install.sh:14262
 msgid "配置信息"
@@ -2232,13 +2233,14 @@ msgstr ""
 
 #: install.sh:9318
 msgid "如需使用自定义证书, 请按如下步骤:"
-msgstr "if you need to use a custom certificate, please follow the steps below"
+msgstr ""
+"if you need to use a custom certificate, please follow the steps below"
 
 #: install.sh:9319
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr ""
-"1. rename the certificate files: private key (xray.key), certificate (xray."
-"crt)"
+"1. rename the certificate files: private key (xray.key), certificate "
+"(xray.crt)"
 
 #: install.sh:9320
 msgid "2. 将重命名后的证书文件放入"
@@ -2271,7 +2273,8 @@ msgstr "certificate application"
 #: install.sh:9354
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr ""
-"the certificate issuance residual file already exists, do you want to keep it"
+"the certificate issuance residual file already exists, do you want to keep "
+"it"
 
 #: install.sh:9396 install.sh:14181
 msgid "添加"
@@ -2327,7 +2330,8 @@ msgstr "this mode does not support viewing users"
 
 #: install.sh:9719
 msgid "即将显示用户, 一次仅能显示一个"
-msgstr "users will be displayed soon, only one user can be displayed at a time"
+msgstr ""
+"users will be displayed soon, only one user can be displayed at a time"
 
 #: install.sh:9728 install.sh:9738
 msgid "请选择显示用户使用的协议"
@@ -2552,7 +2556,8 @@ msgstr ""
 #: install.sh:10604
 msgid "Nginx 配置校验失败, 已恢复原转发配置"
 msgstr ""
-"Nginx configuration check failed; the previous forwarding config was restored"
+"Nginx configuration check failed; the previous forwarding config was "
+"restored"
 
 #: install.sh:10645
 msgid "检测到已有普通节点安装, 中转节点需要独立服务器"
@@ -2582,8 +2587,8 @@ msgstr "Xray configuration file detected"
 #: install.sh:10660
 msgid "中转节点不安装 Xray, 请先手动处理现有 Xray 配置"
 msgstr ""
-"A relay node does not install Xray; handle the existing Xray config manually "
-"first"
+"A relay node does not install Xray; handle the existing Xray config manually"
+" first"
 
 #: install.sh:10673
 msgid "中转节点安装向导"
@@ -2595,8 +2600,7 @@ msgstr ""
 "A relay only forwards TCP transparently: no Xray, no TLS/REALITY termination"
 
 #: install.sh:10675
-msgid ""
-"客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 保持不变"
+msgid "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 保持不变"
 msgstr ""
 "Clients only change the server address and port; the landing node REALITY "
 "public key/SNI/ShortId stay the same"
@@ -2709,12 +2713,10 @@ msgid "启用状态"
 msgstr "State"
 
 #: install.sh:10876
-msgid ""
-"客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 等参数保持"
-"不变"
+msgid "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 等参数保持不变"
 msgstr ""
-"Clients only change the server address and port; REALITY public key/SNI/"
-"ShortId on the landing node stay unchanged"
+"Clients only change the server address and port; REALITY public "
+"key/SNI/ShortId on the landing node stay unchanged"
 
 #: install.sh:10877
 msgid "TCP 端口可达不代表 REALITY/TLS 握手成功, 请以客户端实际连接为准"
@@ -2871,7 +2873,8 @@ msgstr "exit"
 
 #: install.sh:11176
 msgid "中转节点需要一台独立服务器, 只做单目标 TCP 转发"
-msgstr "A relay node needs a dedicated server and forwards a single TCP target"
+msgstr ""
+"A relay node needs a dedicated server and forwards a single TCP target"
 
 #: install.sh:11177
 msgid "不安装 Xray, 不终止 TLS/REALITY, 也不需要落地节点的 SSH 凭据"
@@ -2886,7 +2889,7 @@ msgstr "Relay node installation failed"
 #: install.sh:11543
 msgid "正在更新 Xray 管理脚本，请勿关闭终端……"
 msgstr ""
-"Updating the Xray management script. Please do not close the terminal..."
+"Updating the Xray management script. Please do not close the terminal."
 
 #: install.sh:11879
 msgid "候选校验失败, 已阻止脚本更新"
@@ -2969,8 +2972,8 @@ msgstr "Update confirmed automatically with --yes."
 #: install.sh:11965
 msgid "当前输入不是交互终端；自动化请使用 --yes"
 msgstr ""
-"The current input is not an interactive terminal; for automation, please use "
-"--yes."
+"The current input is not an interactive terminal; for automation, please use"
+" --yes."
 
 #: install.sh:11970
 msgid "无法读取确认输入"
@@ -3022,8 +3025,8 @@ msgstr "this option is temporarily unavailable"
 #: install.sh:12194 install.sh:13691
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
-"this mode is recommended for load balancing; it is generally not recommended "
-"for use. do you want to install"
+"this mode is recommended for load balancing; it is generally not recommended"
+" for use. do you want to install"
 
 #: install.sh:12335
 msgid "默认仅监听 127.0.0.1"
@@ -3166,8 +3169,8 @@ msgstr "error message"
 #: install.sh:12396
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr ""
-"the script version has changed significantly, and there may be compatibility "
-"issues. do you want to continue using it"
+"the script version has changed significantly, and there may be compatibility"
+" issues. do you want to continue using it"
 
 #: install.sh:12423
 msgid "检测失败"
@@ -3200,8 +3203,8 @@ msgstr "script is under maintenance. please try again later"
 #: install.sh:12605
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
-"the required online version of the dependency cannot be detected. please try "
-"again later"
+"the required online version of the dependency cannot be detected. please try"
+" again later"
 
 #: install.sh:12622
 msgid "请输入数字"
@@ -3315,8 +3318,8 @@ msgstr "failed to roll back basic firewall rules."
 #: install.sh:13147
 msgid "防火墙持久化恢复未完成, 重启后可能回到失败状态"
 msgstr ""
-"Firewall persistence recovery has not been completed; after a reboot, it may "
-"revert to the failed state."
+"Firewall persistence recovery has not been completed; after a reboot, it may"
+" revert to the failed state."
 
 #: install.sh:13244
 msgid "恢复未完全成功, 请手动检查"
@@ -3777,11 +3780,13 @@ msgstr "failed to remove from the trusted list"
 #: scripts/fail2ban_manager.sh:668
 msgid "配置验证失败, 保留原配置"
 msgstr ""
-"configuration validation failed; the original configuration will be retained."
+"configuration validation failed; the original configuration will be "
+"retained."
 
 #: scripts/fail2ban_manager.sh:689
 msgid "原子替换失败, 保留原配置"
-msgstr "atom replacement failed; the original configuration has been retained."
+msgstr ""
+"atom replacement failed; the original configuration has been retained."
 
 #: scripts/fail2ban_manager.sh:695
 msgid "Fail2ban reload 失败, 恢复原配置"
@@ -4274,12 +4279,11 @@ msgstr "RillML"
 
 #: scripts/rill_xray_agent_manager.sh:903
 msgid ""
-"开启 AI 智能判断后，系统将持续观测 Xray/Nginx 状态，自动诊断故障并给出处理建"
-"议。说明：自动修改功能暂不开放，当前不会自动更改系统。"
+"开启 AI 智能判断后，系统将持续观测 Xray/Nginx 状态，自动诊断故障并给出处理建议。说明：自动修改功能暂不开放，当前不会自动更改系统。"
 msgstr ""
 "After enabling AI intelligent diagnostics, the system will continuously "
-"monitor the status of Xray/Nginx, automatically diagnose faults, and provide "
-"recommended remediation steps. Note: The automatic modification feature is "
+"monitor the status of Xray/Nginx, automatically diagnose faults, and provide"
+" recommended remediation steps. Note: The automatic modification feature is "
 "currently unavailable and will not automatically make changes to the system."
 
 #: scripts/rill_xray_agent_manager.sh:906
@@ -4320,8 +4324,8 @@ msgstr ""
 #: scripts/rill_xray_agent_manager.sh:949
 msgid "Xray 相关服务运行正常，未发现近期故障"
 msgstr ""
-"Xray The relevant services are operating normally, and no recent faults have "
-"been detected."
+"Xray The relevant services are operating normally, and no recent faults have"
+" been detected."
 
 #: scripts/rill_xray_agent_manager.sh:950
 msgid "近期配置发生过变化，但当前服务与配置校验均正常"
@@ -4409,7 +4413,8 @@ msgstr "unknown"
 #: scripts/rill_xray_agent_manager.sh:1008
 msgid "AI 故障诊断失败，后台服务没有返回有效结果"
 msgstr ""
-"AI Fault diagnosis failed; the backend service did not return a valid result."
+"AI Fault diagnosis failed; the backend service did not return a valid "
+"result."
 
 #: scripts/rill_xray_agent_manager.sh:1022
 msgid "AI 故障诊断失败，返回内容无法解析"
@@ -4438,9 +4443,7 @@ msgid "三种工作模式说明："
 msgstr "explanation of the three operating modes:"
 
 #: scripts/rill_xray_agent_manager.sh:1040
-msgid ""
-"智能判断：AI 实时诊断故障并给出处理建议。自动修改功能暂不开放，当前不会自动更"
-"改系统。"
+msgid "智能判断：AI 实时诊断故障并给出处理建议。自动修改功能暂不开放，当前不会自动更改系统。"
 msgstr ""
 "Intelligent diagnostics: AI performs real-time fault detection and provides "
 "troubleshooting recommendations. The automatic modification feature is "
@@ -4495,9 +4498,7 @@ msgid "Rill Xray AI 运维助手 / RillML 管理"
 msgstr "Rill Xray AI O&M Assistant / RillML Management"
 
 #: scripts/rill_xray_agent_manager.sh:1092
-msgid ""
-"RillML 预编译运行时：安装 / 升级 / 重装 / 回滚（root 操作，失败不阻塞主引"
-"擎）。"
+msgid "RillML 预编译运行时：安装 / 升级 / 重装 / 回滚（root 操作，失败不阻塞主引擎）。"
 msgstr ""
 "RillML Precompiled runtime: install / upgrade / reinstall / rollback (root "
 "operation; failure does not block the main engine)."
@@ -4523,8 +4524,7 @@ msgid "回滚 RillML"
 msgstr "rollback RillML"
 
 #: scripts/rill_xray_agent_manager.sh:1120
-msgid ""
-"本地 AI 运维助手：实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议。"
+msgid "本地 AI 运维助手：实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议。"
 msgstr ""
 "Local AI Operations Assistant: Monitors the health of Xray/Nginx in real "
 "time, automatically diagnoses faults, and provides remediation "
@@ -4807,8 +4807,7 @@ msgstr ""
 "3:00 am)"
 
 #: scripts/traffic_blocker.sh:751
-msgid ""
-"重新安装或重配置为普通节点后, 将改用 Xray 原生定时更新, 该任务会被自动移除"
+msgid "重新安装或重配置为普通节点后, 将改用 Xray 原生定时更新, 该任务会被自动移除"
 msgstr ""
 "After reinstalling or reconfiguring as a node, Xray's native schedule takes "
 "over and this job is removed"
