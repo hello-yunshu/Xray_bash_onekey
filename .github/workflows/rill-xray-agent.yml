@@ -1,5 +1,12 @@
 name: Rill Xray Agent
 
+# Trade-off: this standalone workflow and test-install's rill-qualification
+# intentionally stay separate. This workflow proves the pinned Agent repo,
+# canonical digest and payload contract on Rill-related paths; the reusable
+# workflow's rill-qualification additionally proves the cross-repo API/Nginx/
+# Skill contract as release evidence. They overlap only when Rill-related
+# paths change (install.sh, scripts/rill*, rill_integration, assets, this file).
+# Unrelated PRs no longer spend a Rill run here.
 on:
   push:
     branches:
