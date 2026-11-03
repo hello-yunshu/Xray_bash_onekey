@@ -64,6 +64,16 @@ jobs:
           # The legacy auto_update fixture reads the v3.2.11 tag.
           fetch-depth: 0
 
+      - name: Ensure external checkout helper
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/checkout_external_repo.sh ]]; then
+            mkdir -p scripts
+            git fetch --quiet --depth=1 origin main
+            git show FETCH_HEAD:scripts/checkout_external_repo.sh > scripts/checkout_external_repo.sh
+            chmod +x scripts/checkout_external_repo.sh
+          fi
+
       - name: Checkout external repo (retry)
         env:
           GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
@@ -208,6 +218,15 @@ jobs:
         with:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
+      - name: Ensure external checkout helper
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/checkout_external_repo.sh ]]; then
+            mkdir -p scripts
+            git fetch --quiet --depth=1 origin main
+            git show FETCH_HEAD:scripts/checkout_external_repo.sh > scripts/checkout_external_repo.sh
+            chmod +x scripts/checkout_external_repo.sh
+          fi
       - name: Checkout external repo (retry)
         env:
           GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
@@ -264,6 +283,16 @@ jobs:
         with:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
+
+      - name: Ensure external checkout helper
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/checkout_external_repo.sh ]]; then
+            mkdir -p scripts
+            git fetch --quiet --depth=1 origin main
+            git show FETCH_HEAD:scripts/checkout_external_repo.sh > scripts/checkout_external_repo.sh
+            chmod +x scripts/checkout_external_repo.sh
+          fi
 
       - name: Checkout external repo (retry)
         env:
@@ -342,6 +371,16 @@ jobs:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
 
+      - name: Ensure external checkout helper
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/checkout_external_repo.sh ]]; then
+            mkdir -p scripts
+            git fetch --quiet --depth=1 origin main
+            git show FETCH_HEAD:scripts/checkout_external_repo.sh > scripts/checkout_external_repo.sh
+            chmod +x scripts/checkout_external_repo.sh
+          fi
+
       - name: Checkout external repo (retry)
         env:
           GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
@@ -414,6 +453,16 @@ jobs:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
 
+      - name: Ensure external checkout helper
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/checkout_external_repo.sh ]]; then
+            mkdir -p scripts
+            git fetch --quiet --depth=1 origin main
+            git show FETCH_HEAD:scripts/checkout_external_repo.sh > scripts/checkout_external_repo.sh
+            chmod +x scripts/checkout_external_repo.sh
+          fi
+
       - name: Checkout external repo (retry)
         env:
           GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
@@ -462,6 +511,15 @@ jobs:
         with:
           ref: ${{ inputs.candidate_commit || github.sha }}
           persist-credentials: false
+      - name: Ensure external checkout helper
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/checkout_external_repo.sh ]]; then
+            mkdir -p scripts
+            git fetch --quiet --depth=1 origin main
+            git show FETCH_HEAD:scripts/checkout_external_repo.sh > scripts/checkout_external_repo.sh
+            chmod +x scripts/checkout_external_repo.sh
+          fi
       - name: Checkout external repo (retry)
         env:
           GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
@@ -553,6 +611,16 @@ jobs:
         with:
           ref: ${{ inputs.candidate_commit }}
           persist-credentials: false
+
+      - name: Ensure external checkout helper
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/checkout_external_repo.sh ]]; then
+            mkdir -p scripts
+            git fetch --quiet --depth=1 origin main
+            git show FETCH_HEAD:scripts/checkout_external_repo.sh > scripts/checkout_external_repo.sh
+            chmod +x scripts/checkout_external_repo.sh
+          fi
 
       - name: Checkout external repo (retry)
         env:
