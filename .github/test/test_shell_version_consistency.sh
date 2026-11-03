@@ -43,15 +43,17 @@ else
     bad "README.md does not document the relay role"
 fi
 
-# Registered, not translated in this change: these language READMEs are still
-# Chinese content. This is a note for the next translation pass, not a gate.
+# Non-English READMEs are machine-translated now. This shell test keeps the
+# hard gate on the canonical English version line; the README translation
+# workflow validates all five outputs (structure, version and Chinese
+# residue) before it opens a PR. A hard gate here would block version-bump
+# PRs until the post-merge translation PR lands.
 for lang in fr ru fa ko; do
     if [[ -f "i18n/languages/${lang}/README.md" ]] &&
-       grep -Fq '# Xray 管理脚本' "i18n/languages/${lang}/README.md" &&
-       ! grep -Fq 'Current version:' "i18n/languages/${lang}/README.md"; then
-        printf '  NOTE: i18n/languages/%s/README.md is still Chinese content (translation deferred)\n' "${lang}"
+       grep -Fq "${version}" "i18n/languages/${lang}/README.md"; then
+        printf '  NOTE: i18n/languages/%s/README.md advertises %s (validated by the translation workflow)\n' "${lang}" "${version}"
     else
-        printf '  NOTE: i18n/languages/%s/README.md no longer matches the registered Chinese state; update this note\n' "${lang}"
+        printf '  NOTE: i18n/languages/%s/README.md does not advertise %s (translation workflow will refresh it)\n' "${lang}" "${version}"
     fi
 done
 
