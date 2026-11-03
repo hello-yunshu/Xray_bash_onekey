@@ -22,6 +22,7 @@ on:
       - 'i18n/tools/translate.py'
       - 'i18n/tools/validate_po.py'
       - 'i18n/tools/translation_terms.py'
+      - 'i18n/tools/translation_backend.py'
     branches:
       - main
   workflow_dispatch:
