@@ -15,6 +15,27 @@ from translation_terms import (
 DetectorFactory.seed = 0
 
 SHORT_STRING_THRESHOLD = 15
+TRANSLATION_MAX_ATTEMPTS = 5
+TRANSLATION_REQUEST_INTERVAL = 1.0
+_LAST_REQUEST_AT = 0.0
+
+
+class TranslationError(Exception):
+    pass
+
+
+def _rate_limit():
+    """Keep all machine-translation requests serial and below Google's 5/s."""
+    global _LAST_REQUEST_AT
+    now = time.monotonic()
+    wait = TRANSLATION_REQUEST_INTERVAL - (now - _LAST_REQUEST_AT)
+    if wait > 0:
+        time.sleep(wait)
+    _LAST_REQUEST_AT = time.monotonic()
+
+
+def _retry_sleep(attempt):
+    time.sleep(min(30, TRANSLATION_REQUEST_INTERVAL * (2 ** attempt)))
 
 
 def load_translation_cache(cache_file):
@@ -30,8 +51,10 @@ def load_translation_cache(cache_file):
 def save_translation_cache(cache_file, translations):
     for key in translations:
         translations[key] = clean_translation(translations[key])
-    with open(cache_file, 'w', encoding='utf-8') as f:
+    tmp = cache_file + ".tmp"
+    with open(tmp, 'w', encoding='utf-8') as f:
         json.dump(translations, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, cache_file)
 
 
 def get_version(version_file):
@@ -43,8 +66,10 @@ def get_version(version_file):
 
 def update_version(version_file):
     timestamp = str(int(time.time()))
-    with open(version_file, 'w', encoding='utf-8') as f:
+    tmp = version_file + ".tmp"
+    with open(tmp, 'w', encoding='utf-8') as f:
         f.write(timestamp)
+    os.replace(tmp, version_file)
     return timestamp
 
 
@@ -55,7 +80,7 @@ def contains_chinese(text):
 def translate_text_qwen_mt(text, target_lang):
     api_key = os.getenv("AI_API_KEY")
     if not api_key:
-        raise ValueError("AI_API_KEY environment variable is not set.")
+        raise TranslationError("AI_API_KEY environment variable is not set.")
     client = OpenAI(
         api_key=api_key,
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
@@ -68,40 +93,52 @@ def translate_text_qwen_mt(text, target_lang):
         "source_lang": "zh",
         "target_lang": target_lang
     }
-    try:
-        completion = client.chat.completions.create(
-            model="qwen-mt-plus",
-            messages=messages,
-            extra_body={
-                "translation_options": translation_options
-            }
-        )
-        translated_text = completion.choices[0].message.content
-        translated_text = clean_translation(translated_text)
-        if len(text) < SHORT_STRING_THRESHOLD:
-            translated_text = translated_text.lower()
-        translated_text = restore_placeholders(translated_text, protected_terms)
-        return translated_text
-    except Exception as e:
-        print(f"Qwen-MT-Plus translation failed: {e}")
-        return ""
+    last_error = None
+    for attempt in range(TRANSLATION_MAX_ATTEMPTS):
+        _rate_limit()
+        try:
+            completion = client.chat.completions.create(
+                model="qwen-mt-plus",
+                messages=messages,
+                extra_body={
+                    "translation_options": translation_options
+                }
+            )
+            translated_text = completion.choices[0].message.content
+            translated_text = clean_translation(translated_text)
+            if len(text) < SHORT_STRING_THRESHOLD:
+                translated_text = translated_text.lower()
+            translated_text = restore_placeholders(translated_text, protected_terms)
+            return translated_text
+        except Exception as e:
+            last_error = e
+            print(f"Qwen-MT-Plus translation failed (attempt {attempt + 1}/{TRANSLATION_MAX_ATTEMPTS}): {e}")
+            if attempt < TRANSLATION_MAX_ATTEMPTS - 1:
+                _retry_sleep(attempt)
+    raise TranslationError(f"Qwen-MT-Plus failed after retries: {last_error}")
 
 
 def translate_text_google(text, target_lang):
-    try:
-        protected_text, protected_terms = protect_terms(text)
-        translator = GoogleTranslator(source='zh-CN', target=target_lang)
-        translated_text = translator.translate(protected_text)
-        if translated_text is None:
-            return ""
-        translated_text = clean_translation(translated_text)
-        if len(text) < SHORT_STRING_THRESHOLD:
-            translated_text = translated_text.lower()
-        translated_text = restore_placeholders(translated_text, protected_terms)
-        return translated_text
-    except Exception as e:
-        print(f"Google Translate failed: {e}")
-        return ""
+    last_error = None
+    for attempt in range(TRANSLATION_MAX_ATTEMPTS):
+        _rate_limit()
+        try:
+            protected_text, protected_terms = protect_terms(text)
+            translator = GoogleTranslator(source='zh-CN', target=target_lang)
+            translated_text = translator.translate(protected_text)
+            if translated_text is None:
+                raise TranslationError("Google Translate returned None")
+            translated_text = clean_translation(translated_text)
+            if len(text) < SHORT_STRING_THRESHOLD:
+                translated_text = translated_text.lower()
+            translated_text = restore_placeholders(translated_text, protected_terms)
+            return translated_text
+        except Exception as e:
+            last_error = e
+            print(f"Google Translate failed (attempt {attempt + 1}/{TRANSLATION_MAX_ATTEMPTS}): {e}")
+            if attempt < TRANSLATION_MAX_ATTEMPTS - 1:
+                _retry_sleep(attempt)
+    raise TranslationError(f"Google Translate failed after retries: {last_error}")
 
 
 def needs_fallback_translation(translated_text):
@@ -159,38 +196,29 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
                     entry.flags.remove('fuzzy')
                 continue
 
+        translated_text = ""
         try:
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    time.sleep(0.5)
-                    translated_text = translate_text_qwen_mt(msgid_text, target_lang_code)
+            translated_text = translate_text_qwen_mt(msgid_text, target_lang_code)
+            if (not translated_text or
+                contains_chinese(translated_text) or
+                needs_fallback_translation(translated_text)):
+                print("Qwen-MT-Plus output does not meet criteria. Using Google Translate...")
+                translated_text = translate_text_google(msgid_text, target_lang_code)
+        except TranslationError as e:
+            print(f"Qwen-MT-Plus unavailable ({e}); falling back to Google Translate")
+            translated_text = translate_text_google(msgid_text, target_lang_code)
 
-                    if (not translated_text or
-                        contains_chinese(translated_text) or
-                        needs_fallback_translation(translated_text)):
-                        print(f"Translation does not meet criteria using Qwen-MT-Plus. Using Google Translate...")
-                        translated_text = translate_text_google(msgid_text, target_lang_code)
+        translated_text = clean_translation(translated_text)
+        if (not translated_text or
+            contains_chinese(translated_text) or
+            needs_fallback_translation(translated_text)):
+            raise TranslationError(f"no valid translation for: {msgid_text}")
 
-                    translated_text = clean_translation(translated_text)
-
-                    translations[msgid_text] = translated_text
-                    print(f"New translation [{target_lang_code}]: {msgid_text} -> {translated_text}")
-                    entry.msgstr = translated_text
-                    if 'fuzzy' in entry.flags:
-                        entry.flags.remove('fuzzy')
-                    break
-                except Exception as e:
-                    if attempt == max_retries - 1:
-                        raise e
-                    print(f"Retry {attempt + 1}/{max_retries} for: {msgid_text}")
-                    time.sleep(0.5)
-        except Exception as e:
-            print(f"Translation failed for: {msgid_text}")
-            print(f"Error: {e}")
-            if msgid_text in translations:
-                del translations[msgid_text]
-            continue
+        translations[msgid_text] = translated_text
+        print(f"New translation [{target_lang_code}]: {msgid_text} -> {translated_text}")
+        entry.msgstr = translated_text
+        if 'fuzzy' in entry.flags:
+            entry.flags.remove('fuzzy')
 
     updated = False
     for entry in po:
@@ -215,20 +243,58 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
             po.remove(entry)
         updated = True
 
-    if updated:
-        po.save(output_file)
-        save_translation_cache(cache_file, translations)
-        new_version = update_version(version_file)
-        print(f"Updated version from {current_version} to {new_version}")
-    else:
-        print("No translation updates.")
-        no_update_file = os.path.join(os.path.dirname(output_file), f'{os.path.basename(output_file)}.no-update')
+    missing = [
+        entry.msgid for entry in po
+        if entry.msgid and not entry.obsolete
+        and (not entry.msgstr.strip() or entry.fuzzy)
+    ]
+    if missing:
+        raise TranslationError(
+            f"{target_lang_code}: {len(missing)} untranslated/fuzzy entries remain; "
+            f"first={missing[0]!r}"
+        )
+
+    # Do not write anything until the whole language is complete. The caller
+    # commits only after every language returns a validated result.
+    return {
+        'lang_code': target_lang_code,
+        'po': po,
+        'translations': translations,
+        'updated': updated,
+        'output_file': output_file,
+        'cache_file': cache_file,
+        'version_file': version_file,
+        'current_version': current_version,
+    }
+
+
+def write_translation_result(result):
+    if not result['updated']:
+        print(f"No translation updates for {result['lang_code']}.")
+        no_update_file = f"{result['output_file']}.no-update"
         with open(no_update_file, 'w', encoding='utf-8') as f:
             f.write("# No updates.\n")
+        return
+    output_file = result['output_file']
+    tmp_output = output_file + ".tmp"
+    result['po'].save(tmp_output)
+    save_translation_cache(result['cache_file'], result['translations'])
+    os.replace(tmp_output, output_file)
+    new_version = update_version(result['version_file'])
+    print(f"Updated {result['lang_code']} version from {result['current_version']} to {new_version}")
 
 if __name__ == '__main__':
-    for lang_code, lang_name in [('en', 'English'), ('fa', 'Persian'), ('ru', 'Russian'), ('ko', 'Korean'), ('fr', 'French')]:
-        print(f"\nTranslating to {lang_name} ({lang_code})...")
-        input_file = f'i18n/po/{lang_code}.po'
-        output_file = f'i18n/po/{lang_code}.po'
-        translate_po_file(input_file, output_file, lang_code, lang_name)
+    results = []
+    try:
+        for lang_code, lang_name in [('en', 'English'), ('fa', 'Persian'), ('ru', 'Russian'), ('ko', 'Korean'), ('fr', 'French')]:
+            print(f"\nTranslating to {lang_name} ({lang_code})...")
+            input_file = f'i18n/po/{lang_code}.po'
+            output_file = f'i18n/po/{lang_code}.po'
+            results.append(translate_po_file(input_file, output_file, lang_code, lang_name))
+    except TranslationError as e:
+        print(f"Translation aborted; no files were written: {e}", flush=True)
+        raise SystemExit(1)
+
+    # All languages validated in memory. Only now write PO/cache/version files.
+    for result in results:
+        write_translation_result(result)

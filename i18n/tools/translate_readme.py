@@ -2,6 +2,7 @@ import os
 import json
 import re
 import sys
+import time
 from deep_translator import GoogleTranslator
 import logging
 from translation_terms import protect_terms, restore_placeholders
@@ -26,6 +27,27 @@ LANGUAGES = {
     'ko': 'korean'
 }
 
+TRANSLATION_MAX_ATTEMPTS = 5
+TRANSLATION_REQUEST_INTERVAL = 1.0
+_LAST_REQUEST_AT = 0.0
+
+
+class TranslationError(Exception):
+    pass
+
+
+def _rate_limit():
+    global _LAST_REQUEST_AT
+    now = time.monotonic()
+    wait = TRANSLATION_REQUEST_INTERVAL - (now - _LAST_REQUEST_AT)
+    if wait > 0:
+        time.sleep(wait)
+    _LAST_REQUEST_AT = time.monotonic()
+
+
+def _retry_sleep(attempt):
+    time.sleep(min(30, TRANSLATION_REQUEST_INTERVAL * (2 ** attempt)))
+
 def load_translation_cache(cache_file):
     if os.path.exists(cache_file):
         with open(cache_file, 'r', encoding='utf-8') as f:
@@ -33,8 +55,10 @@ def load_translation_cache(cache_file):
     return {}
 
 def save_translation_cache(cache_file, translations):
-    with open(cache_file, 'w', encoding='utf-8') as f:
+    tmp = cache_file + ".tmp"
+    with open(tmp, 'w', encoding='utf-8') as f:
         json.dump(translations, f, ensure_ascii=False, indent=4)
+    os.replace(tmp, cache_file)
 
 def get_cache_key(text, target_lang):
     return f"{target_lang}::{text}"
@@ -45,19 +69,26 @@ def translate_text(text, target_lang, translator, translations):
         logging.info(f"从缓存中获取翻译: '{text}' -> '{translations[cache_key]}'")
         return translations[cache_key]
 
-    try:
-        protected_text, protected_terms = protect_terms(text)
-        translated = translator.translate(protected_text)
-        if translated is None:
-            logging.error(f"翻译返回空: {text}")
-            return text
-        translated = restore_placeholders(translated, protected_terms)
-        translations[cache_key] = translated
-        logging.info(f"翻译成功: '{text}' -> '{translated}'")
-        return translated
-    except Exception as e:
-        logging.error(f"翻译失败: {text}\n错误: {e}")
-        return text
+    last_error = None
+    for attempt in range(TRANSLATION_MAX_ATTEMPTS):
+        _rate_limit()
+        try:
+            protected_text, protected_terms = protect_terms(text)
+            translated = translator.translate(protected_text)
+            if translated is None:
+                raise TranslationError("translator returned None")
+            translated = restore_placeholders(translated, protected_terms)
+            translations[cache_key] = translated
+            logging.info(f"翻译成功: '{text}' -> '{translated}'")
+            return translated
+        except Exception as e:
+            last_error = e
+            logging.error(
+                f"翻译失败 (attempt {attempt + 1}/{TRANSLATION_MAX_ATTEMPTS}): {text}\n错误: {e}"
+            )
+            if attempt < TRANSLATION_MAX_ATTEMPTS - 1:
+                _retry_sleep(attempt)
+    raise TranslationError(f"Google Translate failed for {text!r}: {last_error}")
 
 def should_translate(segment):
     skip_patterns = [
@@ -162,24 +193,41 @@ def translate_readme(input_file, output_dir):
 
     source_filename = os.path.basename(input_file)
 
+    # Build every language in memory first. A 429/failure in any language
+    # aborts the run before a partial README is written or staged.
+    outputs = {}
     for lang_code, lang_name in LANGUAGES.items():
         logging.info(f"开始翻译到 {lang_name} ({lang_code})")
         try:
             translator = GoogleTranslator(source='zh-CN', target=lang_code)
         except Exception as e:
-            logging.error(f"初始化翻译器失败 ({lang_code}): {e}")
-            continue
+            raise TranslationError(f"初始化翻译器失败 ({lang_code}): {e}")
 
         translated_content = translate_markdown_content(content, lang_code, translator, translations)
         logging.info(f"{lang_name} 翻译内容重新组合完成。")
+        outputs[lang_code] = translated_content
 
-        lang_dir = language_output_dir(output_dir, lang_code)
-        os.makedirs(lang_dir, exist_ok=True)
+    tmp_files = []
+    try:
+        for lang_code, translated_content in outputs.items():
+            lang_dir = language_output_dir(output_dir, lang_code)
+            os.makedirs(lang_dir, exist_ok=True)
+            output_file = os.path.join(lang_dir, source_filename)
+            tmp_file = output_file + ".tmp"
+            with open(tmp_file, 'w', encoding='utf-8') as f:
+                f.write(translated_content)
+            tmp_files.append((tmp_file, output_file))
+    except Exception:
+        for tmp_file, _ in tmp_files:
+            try:
+                os.unlink(tmp_file)
+            except OSError:
+                pass
+        raise
 
-        output_file = os.path.join(lang_dir, source_filename)
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(translated_content)
-        logging.info(f"{lang_name} 翻译完成，文件保存至: {output_file}")
+    for tmp_file, output_file in tmp_files:
+        os.replace(tmp_file, output_file)
+        logging.info(f"翻译完成，文件保存至: {output_file}")
 
     save_translation_cache(cache_file, translations)
     logging.info("所有翻译完成，并已保存缓存。")
@@ -187,4 +235,8 @@ def translate_readme(input_file, output_dir):
 if __name__ == "__main__":
     input_readme = sys.argv[1] if len(sys.argv) > 1 else 'README.md'
     output_directory = sys.argv[2] if len(sys.argv) > 2 else '.'
-    translate_readme(input_readme, output_directory)
+    try:
+        translate_readme(input_readme, output_directory)
+    except TranslationError as e:
+        logging.error(f"翻译中止，未写入任何 README: {e}")
+        raise SystemExit(1)
