@@ -73,6 +73,12 @@ class CircuitBreaker:
 
     def record_failure(self, provider, error):
         self.last_error[provider] = error
+        # Content-level failures mean the provider is reachable but produced
+        # an unacceptable candidate for one string. Do not open the circuit
+        # for these; otherwise one bad sentence disables the provider for the
+        # rest of the run.
+        if error.kind not in ("quota", "auth", "network", "server"):
+            return
         self.failures[provider] = self.failures.get(provider, 0) + 1
         if self.failures[provider] >= CIRCUIT_FAILURE_THRESHOLD:
             self.open_until[provider] = time.monotonic() + CIRCUIT_COOLDOWN_SECONDS
@@ -132,6 +138,7 @@ def _classify(provider, error):
     status = getattr(error, 'status_code', None)
     if isinstance(error, urllib.error.HTTPError):
         status = error.code
+    message = str(error).lower()
     if status in (401, 403):
         kind = "auth"
     elif status == 429:
@@ -140,6 +147,8 @@ def _classify(provider, error):
         kind = "server"
     elif isinstance(error, (urllib.error.URLError, TimeoutError)):
         kind = "network"
+    elif "too many requests" in message or "429" in message:
+        kind = "quota"
     else:
         name = type(error).__name__.lower()
         kind = "network" if ("timeout" in name or "connection" in name) else "unknown"
