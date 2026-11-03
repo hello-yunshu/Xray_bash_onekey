@@ -108,6 +108,20 @@ def _restore_checked(text, protected):
     return restored
 
 
+def _strip_short_residue(source, translated):
+    """Drop a duplicated source term from a short label translation.
+
+    Qwen-MT sometimes returns e.g. "Режим模式" for the single word "模式".
+    Only apply this to short, punctuation-free source terms.
+    """
+    if " " in source.strip() or any(p in source for p in "，。：；、"):
+        return translated
+    stripped = CHINESE_RE.sub("", translated).strip()
+    if stripped and not contains_chinese(stripped):
+        return stripped
+    return translated
+
+
 def qwen_translate(text, target_lang):
     protected_text, protected = protect_terms(text)
     identity_terms = [{"source": term, "target": term} for term in protected]
@@ -138,6 +152,7 @@ def qwen_translate(text, target_lang):
         except Exception as e:
             print(f"Qwen-MT-Plus residual term lookup failed for {span!r}: {e}", flush=True)
             continue
+        term = _strip_short_residue(span, term)
         if term and not contains_chinese(term):
             terms.append({"source": span, "target": term})
     print(f"Qwen-MT-Plus left Chinese {residual}; retrying with terms={terms}", flush=True)
@@ -152,6 +167,9 @@ def qwen_translate(text, target_lang):
         if not contains_chinese(retried):
             return retried
         translated = retried
+    cleaned = _strip_short_residue(text, translated)
+    if cleaned != translated and not contains_chinese(cleaned):
+        return cleaned
     raise TranslationError(f"Qwen-MT-Plus output still contains Chinese: {translated!r}")
 
 
