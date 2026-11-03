@@ -9,8 +9,9 @@ from translation_backend import (
     contains_chinese,
     translate as translate_with_backend,
 )
-
-SHORT_STRING_THRESHOLD = 15
+from translation_glossary import check as glossary_check, provider_terms
+from translation_overrides import load as load_overrides
+from text_quality import chinese_chars, chinese_punctuation, normalize_punctuation
 
 
 def load_translation_cache(cache_file):
@@ -18,14 +19,14 @@ def load_translation_cache(cache_file):
         with open(cache_file, 'r', encoding='utf-8') as f:
             translations = json.load(f)
         for key in translations:
-            translations[key] = clean_translation(translations[key])
+            translations[key] = clean_translation(normalize_punctuation(translations[key]))
         return translations
     return {}
 
 
 def save_translation_cache(cache_file, translations):
     for key in translations:
-        translations[key] = clean_translation(translations[key])
+        translations[key] = clean_translation(normalize_punctuation(translations[key]))
     tmp = cache_file + ".tmp"
     with open(tmp, 'w', encoding='utf-8') as f:
         json.dump(translations, f, ensure_ascii=False, indent=2)
@@ -56,6 +57,18 @@ def clean_translation(text):
     return re.sub(r'\s+', ' ', text.replace('\n', '').replace('"', '')).strip()
 
 
+def _validate_po_override(override, msgid_text, target_lang_code):
+    text = override.strip()
+    if not text or '\n' in text or chinese_chars(text) or chinese_punctuation(text):
+        raise TranslationError(f"override violates quality rules for {msgid_text!r}")
+    glossary = glossary_check(target_lang_code, msgid_text, text)
+    if glossary['errors']:
+        raise TranslationError(
+            f"override glossary mismatch for {msgid_text!r}: {'; '.join(glossary['errors'])}"
+        )
+    return text
+
+
 def translate_po_file(input_file, output_file, target_lang_code, target_lang_name):
     lang_dir = os.path.dirname(output_file)
     lc_messages_dir = os.path.join('i18n/languages', target_lang_code, 'LC_MESSAGES')
@@ -67,6 +80,7 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
     version_file = os.path.join(lc_messages_dir, 'version')
 
     translations = load_translation_cache(cache_file)
+    overrides = load_overrides('po', target_lang_code)
     current_version = get_version(version_file)
 
     po = polib.pofile(input_file)
@@ -92,29 +106,59 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
 
         msgid_text = entry.msgid
 
+        if msgid_text in overrides:
+            translated_text = _validate_po_override(overrides[msgid_text], msgid_text, target_lang_code)
+            print(f"Using override: {msgid_text} -> {translated_text}")
+            entry.msgstr = translated_text
+            if 'fuzzy' in entry.flags:
+                entry.flags.remove('fuzzy')
+            continue
+
         if msgid_text in translations:
-            translated_text = clean_translation(translations[msgid_text])
-            if translated_text == "":
-                print(f"Cached translation is empty for: {msgid_text}. Re-translating...")
-            else:
+            translated_text = clean_translation(normalize_punctuation(translations[msgid_text]))
+            valid = (
+                bool(translated_text)
+                and not contains_chinese(translated_text)
+                and not chinese_punctuation(translated_text)
+            )
+            if valid:
+                glossary = glossary_check(target_lang_code, msgid_text, translated_text)
+                valid = not glossary['errors']
+            if valid:
                 print(f"Using cached translation: {msgid_text} -> {translated_text}")
                 entry.msgstr = translated_text
                 if 'fuzzy' in entry.flags:
                     entry.flags.remove('fuzzy')
                 continue
+            print(f"Cached translation failed quality checks; re-translating: {msgid_text}")
 
-        translated_text = translate_with_backend(
-            msgid_text,
-            target_lang_code,
-            postprocess=lambda value: clean_translation(value),
-            accept=lambda value: (
-                bool(value)
-                and not contains_chinese(value)
-                and not needs_fallback_translation(value)
-            ),
-        )
-        if len(msgid_text) < SHORT_STRING_THRESHOLD:
-            translated_text = translated_text.lower()
+        terms = provider_terms(target_lang_code, msgid_text)
+        glossary_errors = None
+        for attempt in range(2):
+            translated_text = translate_with_backend(
+                msgid_text,
+                target_lang_code,
+                terms=terms,
+                postprocess=lambda value: clean_translation(normalize_punctuation(value)),
+                accept=lambda value: (
+                    bool(value)
+                    and not contains_chinese(value)
+                    and not chinese_punctuation(value)
+                    and not needs_fallback_translation(value)
+                ),
+            )
+            glossary = glossary_check(target_lang_code, msgid_text, translated_text)
+            if not glossary['errors']:
+                break
+            glossary_errors = glossary['errors']
+            print(
+                f"Glossary mismatch (attempt {attempt + 1}/2) [{target_lang_code}]: "
+                f"{msgid_text} -> {translated_text}; {'; '.join(glossary_errors)}"
+            )
+        else:
+            raise TranslationError(
+                f"glossary validation failed for {msgid_text!r}: {'; '.join(glossary_errors or [])}"
+            )
 
         translations[msgid_text] = translated_text
         print(f"New translation [{target_lang_code}]: {msgid_text} -> {translated_text}")
@@ -144,6 +188,29 @@ def translate_po_file(input_file, output_file, target_lang_code, target_lang_nam
         for entry in list(po.obsolete_entries()):
             po.remove(entry)
         updated = True
+
+    quality = {"entries": 0, "glossary_terms": 0, "glossary_hits": 0}
+    for entry in po:
+        if not entry.msgid or entry.obsolete:
+            continue
+        quality["entries"] += 1
+        if chinese_chars(entry.msgstr) or chinese_punctuation(entry.msgstr):
+            raise TranslationError(
+                f"{target_lang_code}: Chinese residue in entry {entry.msgid!r}: {entry.msgstr!r}"
+            )
+        glossary = glossary_check(target_lang_code, entry.msgid, entry.msgstr)
+        if glossary['errors']:
+            raise TranslationError(
+                f"{target_lang_code}: entry {entry.msgid!r}: {'; '.join(glossary['errors'])}"
+            )
+        quality["glossary_terms"] += glossary['terms']
+        quality["glossary_hits"] += glossary['hits']
+    hit_rate = (quality["glossary_hits"] / quality["glossary_terms"]) if quality["glossary_terms"] else 1.0
+    print(
+        f"[{target_lang_code}] PO quality: entries={quality['entries']} "
+        f"glossary_hits={quality['glossary_hits']}/{quality['glossary_terms']} "
+        f"hit_rate={hit_rate:.3f} chinese=0"
+    )
 
     missing = [
         entry.msgid for entry in po

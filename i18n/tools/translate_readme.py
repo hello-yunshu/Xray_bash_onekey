@@ -10,7 +10,14 @@ from translation_backend import (
     contains_chinese,
     translate as translate_with_backend,
 )
-from readme_validation import validate_outputs, validate_translated_texts
+from translation_glossary import check as glossary_check, provider_terms
+from translation_overrides import load as load_overrides
+from text_quality import CJK_PUNCT_RE, chinese_punctuation, normalize_punctuation
+from readme_validation import (
+    evaluate_outputs,
+    evaluate_translated_texts,
+    semantic_check_and_repair,
+)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -33,15 +40,13 @@ LANGUAGES = {
     'ko': 'korean'
 }
 
-# Records the SHA-256 of the README.md that produced the committed
-# translations. When the source and the validated outputs are unchanged there
-# is nothing to translate.
 SOURCE_HASH_FILE = os.path.join('i18n', 'languages', '.readme-source.sha256')
+REPORT_FILE = 'readme-quality-report.json'
 
-# Flush completed translations periodically so a failure near the end of a
-# long run does not discard all provider work.
 CHECKPOINT_EVERY = 50
 _CACHE_FILE = None
+_OVERRIDES = {}
+_FORCE_RETRANSLATE = False
 
 
 def read_source_hash(path):
@@ -78,22 +83,64 @@ def get_cache_key(text, target_lang):
     return f"{target_lang}::{text}"
 
 
-def translate_text(text, target_lang, translations):
-    cache_key = get_cache_key(text, target_lang)
-    if cache_key in translations:
-        logging.info(f"从缓存中获取翻译: '{text}' -> '{translations[cache_key]}'")
-        return translations[cache_key]
+def _validate_override(override, source_text, target_lang):
+    if contains_chinese(override) or chinese_punctuation(override) or '\n' in override:
+        raise TranslationError(f"override violates quality rules for {source_text!r}")
+    glossary = glossary_check(target_lang, source_text, override)
+    if glossary['errors']:
+        raise TranslationError(
+            f"override glossary mismatch for {source_text!r}: {'; '.join(glossary['errors'])}"
+        )
 
-    translated = translate_with_backend(
-        text,
-        target_lang,
-        postprocess=lambda value: value.strip(),
-        accept=lambda value: (
-            bool(value)
-            and not contains_chinese(value)
-            and '\n' not in value
-        ),
-    )
+
+def translate_text(text, target_lang, translations):
+    override = _OVERRIDES.get(target_lang, {}).get(text)
+    if override:
+        _validate_override(override, text, target_lang)
+        logging.info(f"使用人工 override: '{text}' -> '{override}'")
+        return override
+
+    cache_key = get_cache_key(text, target_lang)
+    if not _FORCE_RETRANSLATE and cache_key in translations:
+        cached = normalize_punctuation(translations[cache_key])
+        if cached and not contains_chinese(cached) and not chinese_punctuation(cached):
+            glossary = glossary_check(target_lang, text, cached)
+            if not glossary['errors']:
+                if cached != translations[cache_key]:
+                    translations[cache_key] = cached
+                logging.info(f"从缓存中获取翻译: '{text}' -> '{cached}'")
+                return cached
+        logging.info(f"缓存译文未通过质检，重新翻译: '{text}'")
+
+    terms = provider_terms(target_lang, text)
+    glossary_errors = None
+    for attempt in range(2):
+        translated = translate_with_backend(
+            text,
+            target_lang,
+            terms=terms,
+            postprocess=lambda value: normalize_punctuation(value.strip()),
+            accept=lambda value: (
+                bool(value)
+                and not contains_chinese(value)
+                and not chinese_punctuation(value)
+                and '\n' not in value
+            ),
+        )
+        glossary = glossary_check(target_lang, text, translated)
+        if not glossary['errors']:
+            break
+        glossary_errors = glossary['errors']
+        logging.warning(
+            "术语校验未通过 (attempt %d/2): %r -> %r; %s",
+            attempt + 1, text, translated, "; ".join(glossary_errors),
+        )
+    else:
+        raise TranslationError(
+            f"glossary validation failed for {text!r}: {'; '.join(glossary_errors or [])}; "
+            f"last={translated!r}"
+        )
+
     translations[cache_key] = translated
     if _CACHE_FILE and len(translations) % CHECKPOINT_EVERY == 0:
         save_translation_cache(_CACHE_FILE, translations)
@@ -114,13 +161,17 @@ def should_translate(segment):
 
 
 def translate_plain_text(text, target_lang, translations):
-    if not text or not CHINESE_RE.search(text):
+    if not text:
         return text
+    if not CHINESE_RE.search(text):
+        return normalize_punctuation(text)
     return translate_text(text, target_lang, translations)
 
 
 def translate_segment(segment, target_lang, translations):
-    if not segment.strip() or not CHINESE_RE.search(segment) or not should_translate(segment):
+    if not segment.strip() or not should_translate(segment):
+        return segment
+    if not CHINESE_RE.search(segment) and not CJK_PUNCT_RE.search(segment):
         return segment
 
     translated_parts = []
@@ -132,7 +183,6 @@ def translate_segment(segment, target_lang, translations):
         token = match.group(0)
         link = LINK_RE.fullmatch(token)
         if link and not link.group(1).startswith('!['):
-            # Translate the visible label but keep the destination byte-for-byte.
             label = translate_plain_text(link.group(1), target_lang, translations)
             translated_parts.append(f"[{label}]({link.group(2)})")
         else:
@@ -162,7 +212,9 @@ def translate_table_row(line, target_lang, translations):
 
 
 def translate_markdown_line(line, target_lang, translations):
-    if not CHINESE_RE.search(line) or not should_translate(line):
+    if not should_translate(line):
+        return line
+    if not CHINESE_RE.search(line) and not CJK_PUNCT_RE.search(line):
         return line
     if re.match(r'^\s{0,3}([-*_]\s*){3,}$', line):
         return line
@@ -209,25 +261,32 @@ def language_output_dir(output_dir, lang_code):
     return os.path.join(output_dir, 'languages', lang_code)
 
 
+def retranslate_line(source_line, target_lang, translations):
+    global _FORCE_RETRANSLATE
+    _FORCE_RETRANSLATE = True
+    try:
+        return translate_markdown_line(source_line, target_lang, translations)
+    finally:
+        _FORCE_RETRANSLATE = False
+
+
 def translate_readme(input_file, output_dir):
-    global _CACHE_FILE
+    global _CACHE_FILE, _OVERRIDES
     cache_file = 'translation_cache_readme.json'
     _CACHE_FILE = cache_file
+    _OVERRIDES = {lang: load_overrides('readme', lang) for lang in LANGUAGES}
 
     with open(input_file, 'rb') as f:
         source_digest = hashlib.sha256(f.read()).hexdigest()
     source_filename = os.path.basename(input_file)
 
-    # A tool/workflow-only change must not re-translate an unchanged README.
-    # The committed outputs still have to pass the structural validation: a
-    # stale partial translation must trigger regeneration, not a silent skip.
-    existing_errors = validate_outputs(input_file, output_dir)
+    existing_errors, _ = evaluate_outputs(input_file, output_dir)
     if read_source_hash(SOURCE_HASH_FILE) == source_digest and not existing_errors:
-        logging.info("README 源文件未变化，现有翻译通过校验，跳过翻译。")
+        logging.info("README 源文件未变化，现有翻译通过质检，跳过翻译。")
         return
     if existing_errors:
         logging.info(
-            "现有 README 翻译未通过校验，将重新生成: %s",
+            "现有 README 翻译未通过质检，将重新生成: %s",
             "; ".join(existing_errors[:5]),
         )
 
@@ -238,19 +297,32 @@ def translate_readme(input_file, output_dir):
         content = f.read()
     logging.info(f"读取 '{input_file}' 完成，共 {len(content)} 个字符。")
 
-    # Build every language in memory first. A 429/failure in any language
-    # aborts the run before a partial README is written or staged.
     outputs = {}
     for lang_code, lang_name in LANGUAGES.items():
         logging.info(f"开始翻译到 {lang_name} ({lang_code})")
         outputs[lang_code] = translate_markdown_content(content, lang_code, translations)
         logging.info(f"{lang_name} 翻译内容重新组合完成。")
 
-    errors = validate_translated_texts(content, outputs)
+    semantic_reports = {}
+    for lang_code in list(outputs):
+        logging.info(f"开始语义抽检 ({lang_code})")
+        outputs[lang_code], semantic_reports[lang_code] = semantic_check_and_repair(
+            content,
+            outputs[lang_code],
+            lang_code,
+            lambda source_line, lang=lang_code: retranslate_line(source_line, lang, translations),
+        )
+
+    errors, metrics = evaluate_translated_texts(content, outputs, semantic_reports)
     if errors:
         raise TranslationError(
-            "translated README failed validation: " + "; ".join(errors[:10])
+            "translated README failed quality gates: " + "; ".join(errors[:10])
         )
+
+    report_tmp = REPORT_FILE + '.tmp'
+    with open(report_tmp, 'w', encoding='utf-8') as f:
+        json.dump(metrics, f, ensure_ascii=False, indent=2)
+    os.replace(report_tmp, REPORT_FILE)
 
     tmp_files = []
     try:
@@ -276,7 +348,7 @@ def translate_readme(input_file, output_dir):
 
     save_translation_cache(cache_file, translations)
     write_source_hash(SOURCE_HASH_FILE, source_digest)
-    logging.info("所有翻译完成，并已保存缓存与源文件校验值。")
+    logging.info("所有翻译完成，质检报告与源文件校验值已保存。")
 
 
 if __name__ == "__main__":

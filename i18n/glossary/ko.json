@@ -1,0 +1,17 @@
+{
+  "terms": [
+    {"source": "Nginx", "target": ["Nginx"], "required": true},
+    {"source": "TLS", "target": ["TLS"], "required": true},
+    {"source": "传输层加密", "target": ["전송 계층 암호화", "전송 계층의 암호화"], "required": true},
+    {"source": "REALITY", "target": ["REALITY", "Reality"], "required": true},
+    {"source": "Reality", "target": ["Reality", "REALITY"], "required": true},
+    {"source": "VLESS", "target": ["VLESS"], "required": true},
+    {"source": "gRPC", "target": ["gRPC"], "required": true},
+    {"source": "xHTTP", "target": ["xHTTP"], "required": true},
+    {"source": "ONLY 模式", "target": ["ONLY 모드", "모드 ONLY"], "required": true},
+    {"source": "ONLY", "target": ["ONLY"], "required": true},
+    {"source": "Cloudflare", "target": ["Cloudflare"], "required": true},
+    {"source": "AI", "target": ["AI"], "required": true}
+  ],
+  "forbidden": ["nginx", "NGINX", "Vless", "GRPC", "XHTTP", "cloudflare"]
+}
