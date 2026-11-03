@@ -144,7 +144,7 @@ Shell 元数据回退防护。升级不会改动现有 Xray 配置；REALITY `mi
 ### 自动更新
 
 自动更新只在同一 minor 内自动升级 Shell；跨 minor 需要手动执行上述两步。Xray 和
-Nginx 的自动更新仍按 API 元数据执行，并在失败时记录 `{组件, 目标版本, installer, 时间}`。
+Nginx 的自动更新仍按 API 元数据执行；失败记录包含 `component`、`version`、`installer_ref`、`installer_sha` 与 `failed_at` 字段（分别表示组件、目标版本、installer 引用、installer 哈希与失败时间）。
 
 ## RillML Xray AI 运维助手
 
