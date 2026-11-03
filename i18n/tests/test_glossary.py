@@ -32,6 +32,19 @@ class NginxForbiddenRuleTest(unittest.TestCase):
         self.assertEqual(result['forbidden'], [])
         self.assertEqual(result['errors'], [])
 
+    def test_lowercase_english_only_is_not_the_mode_name(self):
+        result = check(
+            'ru',
+            '由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)',
+            'Поскольку h3 поддерживает только TLSv1.3, здесь поддерживается только TLSv1.3 (безопасный режим).',
+        )
+        self.assertEqual(result['errors'], [])
+
+    def test_lowercase_only_does_not_satisfy_the_mode_name(self):
+        result = check('en', 'ONLY 模式用于中转环境', 'only mode for relay environments')
+        self.assertIn('ONLY 模式', result['missing'])
+        self.assertTrue(result['errors'])
+
     def test_russian_genitive_inflection_is_allowed(self):
         result = check(
             'ru',
