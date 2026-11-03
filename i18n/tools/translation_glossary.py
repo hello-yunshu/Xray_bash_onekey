@@ -34,6 +34,11 @@ def load(lang):
         targets = term.get('target')
         if not source or not isinstance(targets, list) or not targets:
             raise GlossaryError(f"glossary {path} has an invalid term: {term!r}")
+    for item in data.get('forbidden', []):
+        if isinstance(item, str):
+            continue
+        if not isinstance(item, dict) or not item.get('term'):
+            raise GlossaryError(f"glossary {path} has an invalid forbidden entry: {item!r}")
     _CACHE[lang] = data
     return data
 
@@ -71,10 +76,18 @@ def check(lang, source_text, translated_text):
             hits += 1
         else:
             missing.append(source)
-    forbidden = [
-        item for item in data.get('forbidden', [])
-        if contains_term(target_visible, item, case_sensitive=True)
-    ]
+    forbidden = []
+    for item in data.get('forbidden', []):
+        if isinstance(item, str):
+            term = item
+            condition = None
+        else:
+            term = item['term']
+            condition = item.get('only_if_source_contains')
+        if condition and not contains_term(source_visible, condition, case_sensitive=True):
+            continue
+        if contains_term(target_visible, term, case_sensitive=True):
+            forbidden.append(term)
     hit_rate = (hits / total) if total else 1.0
     errors = []
     if missing:

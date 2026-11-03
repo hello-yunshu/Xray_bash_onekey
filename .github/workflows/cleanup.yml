@@ -2,21 +2,34 @@ name: Cleanup Workflow Runs
 
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'List only, do not delete any run'
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
   del_runs:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       actions: write
       contents: read
     steps:
-      - name: Delete workflow runs
-        uses: Mattraks/delete-workflow-runs@b3018382ca039b53d238908238bd35d1fb14f8ee # v2.1.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          retain_days: 14
-          keep_minimum_runs: 10
-          
+          persist-credentials: false
+
+      - name: Delete old workflow runs, protecting release evidence
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=(--repo "${GITHUB_REPOSITORY}" --retain-days 14 --keep-minimum-runs 10)
+          if [ "${DRY_RUN}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+          python3 scripts/cleanup_workflow_runs.py "${args[@]}"

@@ -10,11 +10,13 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   sync:
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -29,14 +31,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Checkout Agent main
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          repository: hello-yunshu/rill-xray-agent
-          ref: main
-          path: rill
-          fetch-depth: 0
-          persist-credentials: false
+      - name: Checkout external repo (retry)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN || github.token }}
+        run: scripts/checkout_external_repo.sh "hello-yunshu/rill-xray-agent" "main" "rill"
 
       - name: Verify Xray Host Contract source bytes
         run: |
@@ -118,7 +116,9 @@ jobs:
           fi
           echo "PR: ${pr_url}"
           if ! gh pr merge "${pr_url##*/}" --repo "${XRAY_REPO}" --auto --squash; then
-            echo "AWAITING_MERGE_POLICY"
+            echo "AWAITING_MERGE_POLICY: auto-merge could not be enabled for ${pr_url}" >&2
+            echo "MANUAL ACTION REQUIRED: enable auto-merge or merge the PR after checks pass." >&2
+            exit 1
           fi
 
       - name: Report stable state
