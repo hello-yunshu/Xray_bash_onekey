@@ -51,6 +51,7 @@ service_start()       { SERVICE_START_CALLS=$((SERVICE_START_CALLS + 1)); }
 service_stop()        { SERVICE_STOP_CALLS=$((SERVICE_STOP_CALLS + 1)); }
 service_restart()     { SERVICE_RESTART_CALLS=$((SERVICE_RESTART_CALLS + 1)); }
 backup_directories()  { BACKUP_CALLS=$((BACKUP_CALLS + 1)); }
+restore_directories() { RESTORE_CALLS=$((RESTORE_CALLS + 1)); }
 show_access_log()     { SHOW_ACCESS_LOG_CALLS=$((SHOW_ACCESS_LOG_CALLS + 1)); }
 show_error_log()      { SHOW_ERROR_LOG_CALLS=$((SHOW_ERROR_LOG_CALLS + 1)); }
 show_information()    { SHOW_INFORMATION_CALLS=$((SHOW_INFORMATION_CALLS + 1)); }
@@ -67,7 +68,7 @@ echo "============================================================"
 echo "--- is_offline_safe_command recognizes offline-safe flags ---"
 for flag in -h --help --purge --uninstall -s --show \
             --service-start --service-stop --service-restart \
-            --access-log --error-log --backup; do
+            --access-log --error-log --backup --restore; do
     if is_offline_safe_command "${flag}"; then
         ok "is_offline_safe_command '${flag}' returns 0"
     else
@@ -138,6 +139,11 @@ echo "--- dispatch routes --backup ---"
 BACKUP_CALLS=0
 dispatch_offline_safe_command "--backup"
 [[ ${BACKUP_CALLS} -eq 1 ]] && ok "dispatch --backup called backup_directories" || bad "dispatch --backup failed"
+
+echo "--- dispatch routes --restore ---"
+RESTORE_CALLS=0
+dispatch_offline_safe_command "--restore"
+[[ ${RESTORE_CALLS} -eq 1 ]] && ok "dispatch --restore called restore_directories" || bad "dispatch --restore failed"
 
 echo "--- dispatch routes -s/--show to show_information ---"
 SHOW_INFORMATION_CALLS=0

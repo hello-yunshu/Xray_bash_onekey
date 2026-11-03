@@ -105,6 +105,9 @@ jobs:
           bash .github/test/test_xray_update_transaction.sh
           bash .github/test/test_shell_update_confirmation.sh
           bash .github/test/test_backup_permissions.sh
+          # User-facing --backup/restore: content completeness, timestamp
+          # selection, corrupt/truncated archive rejection, version reporting.
+          bash .github/test/test_backup_restore.sh
           bash .github/test/test_log_privacy.sh
           bash .github/test/test_install_uninstall_transaction.sh
           bash .github/test/test_legacy_auto_update_path.sh

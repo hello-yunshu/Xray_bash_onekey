@@ -88,6 +88,8 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 | 安装 ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
 | 安装中转节点 | `idleleo --install-relay` |
 | 卸载脚本与 Xray/Nginx | `idleleo --purge` |
+| 备份全部文件 | `idleleo --backup` |
+| 从最新备份恢复文件 | `idleleo --restore` |
 | 查看安装信息 | `idleleo --show` |
 | 更新脚本 | `idleleo --update` |
 | 更新 Xray | `idleleo --xray-update` |
@@ -95,6 +97,8 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 | 设置 Fail2ban | `idleleo --set-fail2ban` |
 | 设置流量阻断 | `idleleo --traffic-blocker` |
 | 查看端口实时流量 | `idleleo --port-traffic` |
+
+`--restore` 选择文件名中时间戳最新的备份并解包，不会删除备份之后新增的文件，也不会自动重启服务；跨模式恢复后请检查 Nginx/Xray 残留配置并重新安装或启动服务。
 
 ## 升级说明
 
