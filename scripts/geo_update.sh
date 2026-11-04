@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# Cron runs with a minimal PATH (usually /usr/bin:/bin), while the pinned Xray
+# binary lives in /usr/local/bin. Keep the caller's PATH first (tests and
+# custom installs may prepend wrappers) and append the standard directories,
+# so both cron and an interactive rescue run can resolve the binary.
+PATH="${PATH:+${PATH}:}/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+export PATH
+
 set -Eeuo pipefail
 
 VERSION="1.0.6"
@@ -12,7 +19,17 @@ geo_version_file="${xray_conf_dir}/geo_version.json"
 lock_file="${XRAY_UPDATE_LOCK_FILE:-/run/lock/idleleo-update.lock}"
 release_latest="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest"
 release_base="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download"
-xray_binary="${XRAY_BINARY:-$(command -v xray || true)}"
+xray_bin_dir="${XRAY_BIN_DIR:-/usr/local/bin}"
+xray_binary="${XRAY_BINARY:-}"
+if [[ -z "${xray_binary}" ]]; then
+    for _candidate in "${xray_bin_dir}/xray" /usr/local/bin/xray /usr/bin/xray; do
+        [[ -x "${_candidate}" ]] && { xray_binary="${_candidate}"; break; }
+    done
+fi
+if [[ -z "${xray_binary}" ]]; then
+    xray_binary="$(command -v xray 2>/dev/null || true)"
+fi
+xray_candidates="${XRAY_BINARY:-<unset>} ${xray_bin_dir}/xray /usr/local/bin/xray /usr/bin/xray PATH lookup"
 deadline=$((SECONDS + 600))
 stage_dir=""
 keep_stage=false
@@ -30,6 +47,16 @@ run_bounded() {
 }
 
 mkdir -p "${log_dir}" "${geo_dir}" "$(dirname "${lock_file}")"
+# Test-only probe: proves cron's minimal PATH can still resolve the pinned
+# binary without performing a network update.
+if [[ "${XRAY_GEO_RESOLVE_ONLY:-0}" == "1" ]]; then
+    log "Resolved Xray binary: ${xray_binary:-<unavailable>}"
+    if [[ ! -x "${xray_binary}" ]]; then
+        log "Xray executable is unavailable; tried: ${xray_candidates}"
+        exit 1
+    fi
+    exit 0
+fi
 if [[ "${IDLELEO_UPDATE_LOCK_HELD:-0}" != 1 ]]; then
     exec 9>"${lock_file}"
     if ! flock -n 9; then
@@ -108,7 +135,10 @@ restore_service() {
 remote_version=$(get_remote_version) || { log 'Failed to resolve immutable GeoData release tag'; exit 1; }
 log "Pinned GeoData release tag: ${remote_version}"
 
-[[ -x "${xray_binary}" ]] || { log 'Xray executable is unavailable; refusing to install unparsed GeoData'; exit 1; }
+[[ -x "${xray_binary}" ]] || {
+    log "Xray executable is unavailable; tried: ${xray_candidates}; refusing to install unparsed GeoData"
+    exit 1
+}
 [[ -f "${xray_conf}" && ! -L "${xray_conf}" ]] || { log 'Xray config is unavailable; refusing to install unparsed GeoData'; exit 1; }
 stage_dir=$(mktemp -d "${geo_dir}/.geo-update.XXXXXX")
 mkdir -m 0700 "${stage_dir}/previous"
