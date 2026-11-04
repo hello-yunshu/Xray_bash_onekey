@@ -548,8 +548,10 @@ legacy_setup() {
 # running process. Allow the failure path to be exercised without touching the
 # test host's service manager.
 GEO_RESTART_FAIL=0
+GEO_RESTART_FAIL_ONCE=0
 systemctl() {
     if [[ "${1:-}" == "restart" && "${GEO_RESTART_FAIL}" == "1" ]]; then
+        [[ "${GEO_RESTART_FAIL_ONCE}" == "1" ]] && GEO_RESTART_FAIL=0
         return 1
     fi
     return 0
@@ -623,6 +625,21 @@ check "the original config is restored after a restart failure" \
 check "the old cron remains after a restart failure" \
     grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
 GEO_RESTART_FAIL=0
+rm -f "${xray_conf}".legacy-migrate.*
+
+legacy_setup
+_legacy_cfg=$(cat "${xray_conf}")
+GEO_RESTART_FAIL=1
+GEO_RESTART_FAIL_ONCE=1
+check_not "a restart failure still aborts migration" geodata_migrate_legacy
+check "the original config is restored before the rollback restart" \
+    test "$(cat "${xray_conf}")" = "${_legacy_cfg}"
+check "the rollback restart removes the recovery backup" \
+    bash -c "! compgen -G '${xray_conf}.legacy-migrate.*' >/dev/null"
+check "the old cron remains after the rollback restart" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+GEO_RESTART_FAIL=0
+GEO_RESTART_FAIL_ONCE=0
 
 echo ""
 echo "-- H. legacy cron PATH resolution --"

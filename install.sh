@@ -5136,6 +5136,12 @@ geodata_legacy_cron_lines() {
 geodata_restart_if_active() {
     command -v systemctl >/dev/null 2>&1 || return 0
     systemctl is-active --quiet xray 2>/dev/null || return 0
+    geodata_force_restart
+}
+
+# Rollback must start Xray even when the failed migration already stopped it.
+geodata_force_restart() {
+    command -v systemctl >/dev/null 2>&1 || return 0
     systemctl restart xray 2>/dev/null || return 1
     systemctl is-active --quiet xray 2>/dev/null || return 1
     return 0
@@ -5275,7 +5281,7 @@ geodata_migrate_legacy() {
             log_echo "${Error} ${RedBG} $(gettext "Xray 重启失败, 正在回滚 GeoData 原生配置") ${Font}"
             restored=false
             if cp -p "${backup}" "${xray_conf}"; then
-                if geodata_restart_if_active; then
+                if geodata_force_restart; then
                     restored=true
                 fi
             fi
