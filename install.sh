@@ -88,7 +88,7 @@ confirm_prompt() {
     printf '%s [Y/%bN%b]? ' "$1" "${Red}" "${Font}" >&2
 }
 
-shell_version="3.3.2"
+shell_version="3.3.3"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -2052,6 +2052,14 @@ init_language() {
                     return 0
                     ;;
             esac
+            # Minimal images often ship only C/C.UTF-8 and do not generate
+            # en_US.UTF-8/ru_RU.UTF-8/etc. In that case gettext would silently
+            # fall back to the Chinese msgids even though language.conf selects
+            # another language. LANGUAGE picks the catalog and C.UTF-8 is the
+            # UTF-8 locale every supported distro provides; LANG keeps the
+            # user's choice for display and other logic.
+            export LANGUAGE="${lang_code}"
+            export LC_ALL=C.UTF-8
 
             local lang_file="${TEXTDOMAINDIR}/${lang_code}/LC_MESSAGES/${TEXTDOMAIN}.mo"
             if [[ ${allow_online} -eq 1 ]]; then
@@ -5130,6 +5138,18 @@ geodata_legacy_cron_lines() {
     crontab -l 2>/dev/null | awk -v script="${geo_update_file}" 'index($0, script) > 0'
 }
 
+# A real (non-symlink) /usr/local/share/xray tree is the second legacy marker.
+# Without one of these two markers there is nothing to migrate, and the startup
+# hook deliberately leaves an absent .geodata block alone: a user who removed
+# the block on purpose must not get it re-enabled on the next launch.
+geodata_legacy_evidence() {
+    local lines default_dir="${local_bin}/share/xray"
+    if lines=$(geodata_legacy_cron_lines 2>/dev/null) && [[ -n "${lines}" ]]; then
+        return 0
+    fi
+    [[ -d "${default_dir}" && ! -L "${default_dir}" ]]
+}
+
 # Xray reads the geodata block at process start; an existing install that is
 # already running will not pick up the new schedule until it is restarted.
 # Inactive hosts need no restart: the next service start reads the new config.
@@ -5258,6 +5278,13 @@ geodata_migrate_legacy() {
     is_relay_role && { geodata_migration_clear_failed; return 0; }
     [[ -x "${xray_bin_dir}/xray" && -f "${xray_conf}" ]] || return 0
     state=$(geodata_state)
+    # Automatic, but only when there is something to migrate. A managed block
+    # is re-asserted every startup so the official installer resetting asset
+    # ownership is repaired; an absent block with no legacy marker is respected
+    # as a deliberate opt-out.
+    if [[ "${state}" != "managed" ]] && ! geodata_legacy_evidence; then
+        return 0
+    fi
     case "${state}" in
         custom)
             geodata_migration_clear_failed
@@ -10379,7 +10406,7 @@ xray_status_add() {
         if [[ $(jq -r .stats "${xray_conf}") != "null" ]]; then
             echo
             log_echo "${GreenBG} $(gettext "已配置 Xray 流量统计") ${Font}"
-            log_echo "${GreenBG} $(gettext "是否需要关闭此功能") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+            log_echo "${GreenBG} $(gettext "关闭统计会重启 Xray (短暂中断)") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r xray_status_add_fq
             case $xray_status_add_fq in
             [yY][eE][sS] | [yY])
@@ -10398,6 +10425,7 @@ xray_status_add() {
         else
             echo
             log_echo "${GreenBG} Xray $(gettext "流量统计需要使用") api ${Font}"
+            log_echo "${GreenBG} $(gettext "将写入 stats/api/policy 并重启 Xray (短暂中断)") ${Font}"
             log_echo "${GreenBG} $(gettext "可能会影响 Xray 性能") ${Font}"
             log_echo "${GreenBG} $(gettext "是否继续") [Y/${Red}N${Font}${GreenBG}]? ${Font}"
             read -r xray_status_add_fq
@@ -10513,7 +10541,23 @@ xray_stats_cli() {
             return 4
             ;;
     esac
-    bash "${xray_stats_script}" --config "${xray_conf}" "${stats_args[@]}"
+    # The stats helper runs in its own process. Tell it which language the
+    # current menu is actually rendering, not merely which language.conf asks
+    # for: a minimal host may not have the requested locale generated, in which
+    # case gettext keeps the Chinese msgids. Probing a known string prevents a
+    # Chinese menu from opening an English stats table.
+    local _stats_lang="zh"
+    case "${LANG%.*}" in
+        en_US) _stats_lang="en" ;;
+        fr_FR) _stats_lang="fr" ;;
+        ru_RU) _stats_lang="ru" ;;
+        ko_KR) _stats_lang="ko" ;;
+        fa_IR) _stats_lang="fa" ;;
+    esac
+    if [[ "${_stats_lang}" != "zh" && "$(gettext "信息")" == "信息" ]]; then
+        _stats_lang="zh"
+    fi
+    XRAY_STATS_LANG="${_stats_lang}" bash "${xray_stats_script}" --config "${xray_conf}" "${stats_args[@]}"
 }
 
 bbr_boost_sh() {
@@ -12474,15 +12518,23 @@ _update_sh_impl() {
                 log_echo "${Error} ${RedBG} 主脚本已更新，但 Rill 同步失败；下次运行将自动重试 Rill 同步 ${Font}"
                 return 1
             fi
-            # Deliberately no post-update migration here. The process that ran
-            # `-u` may be an older version; replacing install.sh must not re-exec
-            # it. The next startup hook repairs old installs, and the GeoData
-            # menu can trigger the same migration explicitly.
+            # The startup hook ran before install.sh was replaced, and this
+            # process still holds the old function definitions. Run the newly
+            # installed script's own migration so an update repairs a legacy
+            # node without waiting for the next launch. The command is a
+            # root-only offline mutation and fails closed (old cron retained).
+            if [[ "$(id -u)" == "0" ]] && ! is_relay_role && {
+                [[ -n "$(geodata_legacy_cron_lines 2>/dev/null || true)" ]] ||
+                    [[ -d "${local_bin}/share/xray" && ! -L "${local_bin}/share/xray" ]]
+            }; then
+                if bash "${idleleo}" --internal-geodata-migrate-legacy; then
+                    log_echo "${OK} ${GreenBG} $(gettext "GeoData 已自动迁移为 Xray 原生刷新") ${Font}"
+                else
+                    log_echo "${Warning} ${YellowBG} $(gettext "GeoData 自动迁移未完成, 旧刷新任务已保留; 下次启动会自动重试") ${Font}"
+                fi
+            fi
             rxa_clear_screen
             log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
-            if [[ -n "$(geodata_legacy_cron_lines 2>/dev/null || true)" ]]; then
-                log_echo "${Info} ${Green} $(gettext "GeoData 迁移将在下次启动脚本或进入 GeoData 菜单时执行") ${Font}"
-            fi
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
             return 0
             ;;
@@ -13100,6 +13152,8 @@ set_language() {
         1)
             unset LANG
             unset LC_MESSAGES
+            unset LANGUAGE
+            unset LC_ALL
             rm -f "${idleleo_dir}/language.conf"
             rm -rf "${idleleo_dir}/languages"
             ;;
@@ -15307,9 +15361,17 @@ menu_update() {
 }
 
 menu_xray_stats() {
-    local menu_num
+    local menu_num stats_state listen
     while true; do
+        stats_state=$(gettext "未开启")
+        if [[ -f "${xray_conf}" ]] && jq -e 'has("stats")' "${xray_conf}" >/dev/null 2>&1; then
+            stats_state=$(gettext "已开启")
+            listen=$(jq -r '.api.listen // empty' "${xray_conf}" 2>/dev/null) || listen=""
+            [[ -n "${listen}" ]] && stats_state+=" (${listen})"
+        fi
         menu_submenu_begin "Xray $(gettext "流量统计")"
+        menu_row "${Green}$(gettext "当前状态"): ${Font}${stats_state}"
+        menu_blank
         menu_item 1 "$(gettext "开启/关闭统计")"
         menu_item 2 "$(gettext "查看统计")"
         menu_item 3 "$(gettext "重置统计")"
@@ -15482,7 +15544,8 @@ is_offline_root_mutation_command() {
         --purge|--uninstall|--service-start|--service-stop|--service-restart|\
         --stats-reset|--backup|--restore|--rill-agent|--rill-agent-safe-disable|--rill-agent-verify|\
         --rill-agent-route-stage|--rill-agent-auto-confirm|--rill-agent-auto-revoke|\
-        --rill-agent-fuse-ack|--rill-agent-uninstall)
+        --rill-agent-fuse-ack|--rill-agent-uninstall|\
+        --internal-geodata-migrate-legacy)
             return 0
             ;;
         *)
@@ -15545,6 +15608,7 @@ dispatch_offline_root_mutation_command() {
         --rill-agent-auto-revoke) rxa_dispatch autoRevoke ;;
         --rill-agent-fuse-ack) rxa_dispatch fuseAck ;;
         --rill-agent-uninstall) rxa_dispatch uninstall ;;
+        --internal-geodata-migrate-legacy) geodata_migrate_legacy ;;
         *) return 1 ;;
     esac
 }
@@ -15647,10 +15711,11 @@ check_online_version_connect
 read_version || exit 1
 
 harden_config_permissions_if_needed || exit 1
-# One-time legacy repair on every mutable startup (including `-u`): old
-# installs keep an external geo_update.sh cron and may still use the real
-# /usr/local/share/xray directory. Failure is non-fatal and leaves that cron
-# in place; a successful run writes .geodata and only then removes it.
+# One-time legacy repair on every mutable startup (including -u): old installs
+# keep an external geo_update.sh cron and may still use the real
+# /usr/local/share/xray directory. No prompt is shown: the hook migrates
+# automatically when legacy evidence exists, stays quiet when there is nothing
+# to do, and on failure leaves the old cron in place (fail closed).
 geodata_migrate_legacy || true
 idleleo_commend || exit 1
 rxa_reconcile_release_if_needed || {

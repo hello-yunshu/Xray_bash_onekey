@@ -4,9 +4,9 @@
 # Simulates an old node (real /usr/local/share/xray tree, old project cron,
 # no .geodata block) and runs the new updater with `-u --yes`. The updater
 # replaces the main script, then invokes the installed script's internal
-# migration command. The test asserts that the same command leaves native
-# geodata running, removes only the project's cron, and keeps a hand-written
-# cron entry. It then runs the internal command again to prove idempotence.
+# migration command in the same run. The test asserts native geodata is active,
+# only the project's cron is removed, and a hand-written cron entry survives.
+# It then runs the startup hook again to prove idempotence.
 
 set -uo pipefail
 
@@ -39,6 +39,7 @@ BIN="${ROOT}/usr/bin"
 CRON_FILE="${TMP_ROOT}/crontab.txt"
 GEO_COUNT="${TMP_ROOT}/geo-count.txt"
 GEO_CHOWN_LOG="${TMP_ROOT}/chown.log"
+SYSTEMCTL_LOG="${TMP_ROOT}/systemctl.log"
 NEW_SH="${TMP_ROOT}/install-new.sh"
 OLD_SH="${TMP_ROOT}/install-old.sh"
 DEST="${IDLE}/install.sh"
@@ -83,6 +84,7 @@ crontab() {
 }
 RESTART_COUNT=0
 systemctl() {
+    printf '%s\n' "$*" >>"${SYSTEMCTL_LOG}"
     if [[ "${1:-}" == "restart" ]]; then
         RESTART_COUNT=$((RESTART_COUNT + 1))
     fi
@@ -92,7 +94,7 @@ chown() {
     printf '%s %s\n' "$1" "$2" >>"${GEO_CHOWN_LOG}"
     return 0
 }
-export CRON_FILE GEO_COUNT_FILE="${GEO_COUNT}" GEO_CHOWN_LOG
+export CRON_FILE GEO_COUNT_FILE="${GEO_COUNT}" GEO_CHOWN_LOG SYSTEMCTL_LOG
 export -f crontab systemctl chown
 
 # Build a runnable copy whose managed paths point at the test root, so the
@@ -106,11 +108,11 @@ text = pathlib.Path(source).read_text(encoding="utf-8")
 text = text.replace("/etc/idleleo", idle)
 text = text.replace("/usr/local", local)
 text = text.replace("/etc/systemd", systemd)
-pathlib.Path(new).write_text(
-    text.replace('shell_version="3.3.2"', 'shell_version="3.3.3"', 1),
+pathlib.Path(new).write_text(text, encoding="utf-8")
+pathlib.Path(old).write_text(
+    text.replace('shell_version="3.3.3"', 'shell_version="3.3.2"', 1),
     encoding="utf-8",
 )
-pathlib.Path(old).write_text(text, encoding="utf-8")
 PY
 cp "${OLD_SH}" "${DEST}"
 chmod +x "${NEW_SH}" "${OLD_SH}" "${DEST}"
@@ -156,24 +158,36 @@ rxa_sync_release_helpers() { return 0; }
 rxa_reconcile_release() { return 0; }
 
 echo "============================================================"
-echo "  Stage 05: -u must not migrate; next startup must"
+echo "  Stage 05: -u migrates automatically in the same run"
 echo "============================================================"
 
+: >"${SYSTEMCTL_LOG}"
 _update_sh_impl -u --yes >"${TMP_ROOT}/update.out" 2>&1
 _update_rc=$?
 check "the non-interactive -u --yes update exits 0" test "${_update_rc}" -eq 0
 check "the update replaced the script with the downloaded version" \
     grep -q '^shell_version="3.3.3"' "${DEST}"
-check "-u does not write a native geodata block in the same run" \
-    test "$(jq -c 'has("geodata")' "${xray_conf}")" = "false"
-check "-u keeps the old real asset directory" \
-    test -d "${LOCAL}/share/xray"
-check "-u does not create the managed symlink" \
-    test ! -L "${LOCAL}/share/xray"
-check "-u keeps the project's old cron entry" \
-    grep -qF "${geo_update_file}" "${CRON_FILE}"
-check "-u does not restart Xray for migration" \
-    test "${RESTART_COUNT}" -eq 0
+
+if [[ "$(id -u)" -eq 0 ]]; then
+    check "-u writes the native geodata block in the same run" \
+        jq -e '.geodata.cron == "0 3 * * 1" and (.geodata.assets | length == 2)' "${xray_conf}"
+    check "-u replaces the old real asset directory with the managed symlink" \
+        test -L "${LOCAL}/share/xray"
+    check "-u points the symlink at the managed directory" \
+        test "$(readlink "${LOCAL}/share/xray")" = "${geodata_dir}"
+    check "-u removes only the project's old cron entry" \
+        bash -c "! grep -qF '${geo_update_file}' '${CRON_FILE}'"
+    check "-u preserves the hand-written cron entry" \
+        grep -qF 'hand-written-geo-job' "${CRON_FILE}"
+    check "-u restarts the active service for the migration" \
+        grep -q '^restart xray$' "${SYSTEMCTL_LOG}"
+else
+    echo "  SKIP: same-run migration assertions need root (container covers them)"
+    check "-u leaves migration to the startup hook when not root" \
+        test "$(jq -c 'has("geodata")' "${xray_conf}")" = "false"
+    check "-u keeps the old real asset directory when not root" \
+        test -d "${LOCAL}/share/xray"
+fi
 
 # The next startup of the new script runs the startup hook.
 geodata_migrate_legacy >"${TMP_ROOT}/startup.out" 2>&1
@@ -188,7 +202,7 @@ check "the next startup writes the native geodata block" \
 check "the next startup runs xray run -test" \
     test "$(cat "${GEO_COUNT}" 2>/dev/null || echo 0)" -ge 1
 check "the next startup restarts the active service" \
-    test "${RESTART_COUNT}" -ge 1
+    grep -q '^restart xray$' "${SYSTEMCTL_LOG}"
 check "the next startup removes the project's old cron" \
     bash -c "! grep -qF '${geo_update_file}' '${CRON_FILE}'"
 check "the hand-written cron entry is preserved" \

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# color-test-fixture: this file intentionally asserts on literal ESC bytes to
+# verify the stats renderer's TTY/NO_COLOR policy.
 # P3 readout/regression matrix for the stats CLI.
 # Requires root, bash, jq, curl, an Xray binary (XRAY_BIN or PATH), and a
 # supported distro (Debian 12 / Ubuntu 24.04 / CentOS Stream 10).
@@ -120,17 +122,77 @@ start_xray || bad "xray did not start after enable"
 
 run_script "${TMP_ROOT}/q.out" "${TMP_ROOT}/q.err"
 [[ $? -eq 0 ]] && ok "query rc=0" || bad "query rc!=0"
-grep -q "Uptime:" "${TMP_ROOT}/q.out" && grep -q "VLESS-Reality-in" "${TMP_ROOT}/q.out" && \
+grep -qE "运行时长|Uptime:" "${TMP_ROOT}/q.out" && grep -q "VLESS-Reality-in" "${TMP_ROOT}/q.out" && \
     ok "table has uptime and inbound" || bad "table missing fields"
-width=$(awk '{ if (length > max) max = length } END { print max + 0 }' "${TMP_ROOT}/q.out")
-[[ "${width}" -le 80 ]] && ok "table width ${width} <= 80" || bad "table width ${width}"
+grep -q "暂无流量" "${TMP_ROOT}/q.out" && \
+    ok "zero-traffic table explains there is no traffic" || bad "zero-traffic empty-state missing"
+width=$(LC_ALL=C.UTF-8 bash -c '
+    max=0
+    while IFS= read -r line; do
+        n=${#line}
+        (( n > max )) && max=$n
+    done < "$1"
+    printf "%s" "${max}"
+' _ "${TMP_ROOT}/q.out")
+[[ "${width}" -le 80 ]] && ok "table width ${width} <= 80 characters" || bad "table width ${width}"
+
+for requested_width in 100 120; do
+    XRAY_STATS_WIDTH="${requested_width}" XRAY_STATS_BIN="${XRAY_BIN}" \
+        bash "${SCRIPT}" --config "${CONF}" >"${TMP_ROOT}/w${requested_width}.out" 2>"${TMP_ROOT}/w${requested_width}.err"
+    [[ $? -eq 0 ]] && ok "width ${requested_width} query rc=0" || bad "width ${requested_width} query rc!=0"
+    measured=$(LC_ALL=C.UTF-8 bash -c '
+        max=0
+        while IFS= read -r line; do
+            n=${#line}
+            (( n > max )) && max=$n
+        done < "$1"
+        printf "%s" "${max}"
+    ' _ "${TMP_ROOT}/w${requested_width}.out")
+    expected=$((requested_width - 1))
+    [[ "${measured}" -le "${expected}" ]] && \
+        ok "width ${requested_width} stays within ${expected} characters" || \
+        bad "width ${requested_width} rendered ${measured} characters"
+done
 
 run_script "${TMP_ROOT}/j.out" "${TMP_ROOT}/j.err" --json
 [[ $? -eq 0 ]] && jq -e '.schemaVersion == 1 and .server == "127.0.0.1:10085" and (.inbounds | type == "array") and (.uptimeSeconds | numbers) and (.reset == false)' "${TMP_ROOT}/j.out" >/dev/null && \
     ok "--json contract valid" || bad "--json contract invalid"
 
+TEXTDOMAINDIR="${REPO_DIR}/i18n/languages" XRAY_STATS_LANG=en XRAY_STATS_BIN="${XRAY_BIN}" \
+    bash "${SCRIPT}" --config "${CONF}" >"${TMP_ROOT}/en.out" 2>"${TMP_ROOT}/en.err"
+[[ $? -eq 0 ]] && grep -q "Overview" "${TMP_ROOT}/en.out" && \
+    ok "English catalog renders English headings" || bad "English catalog missing"
+TEXTDOMAINDIR="${REPO_DIR}/i18n/languages" XRAY_STATS_LANG=zh XRAY_STATS_BIN="${XRAY_BIN}" \
+    bash "${SCRIPT}" --config "${CONF}" >"${TMP_ROOT}/zh.out" 2>"${TMP_ROOT}/zh.err"
+[[ $? -eq 0 ]] && grep -q "总览" "${TMP_ROOT}/zh.out" && \
+    ok "Chinese catalog renders Chinese headings" || bad "Chinese catalog missing"
+
+if command -v script >/dev/null 2>&1; then
+    TERM=xterm-256color script -q -c \
+        "XRAY_STATS_BIN='${XRAY_BIN}' bash '${SCRIPT}' --config '${CONF}'" /dev/null \
+        >"${TMP_ROOT}/color.out" 2>"${TMP_ROOT}/color.err"
+    grep -q $'\033' "${TMP_ROOT}/color.out" && \
+        ok "pseudo-TTY table contains ANSI colours" || bad "pseudo-TTY table has no ANSI colours"
+    NO_COLOR=1 TERM=xterm-256color script -q -c \
+        "NO_COLOR=1 XRAY_STATS_BIN='${XRAY_BIN}' bash '${SCRIPT}' --config '${CONF}'" /dev/null \
+        >"${TMP_ROOT}/nocolor.out" 2>"${TMP_ROOT}/nocolor.err"
+    grep -q $'\033' "${TMP_ROOT}/nocolor.out" && \
+        bad "NO_COLOR table still contains ANSI" || ok "NO_COLOR table contains no ANSI"
+    TERM=dumb script -q -c \
+        "TERM=dumb XRAY_STATS_BIN='${XRAY_BIN}' bash '${SCRIPT}' --config '${CONF}'" /dev/null \
+        >"${TMP_ROOT}/dumb.out" 2>"${TMP_ROOT}/dumb.err"
+    grep -q $'\033' "${TMP_ROOT}/dumb.out" && \
+        bad "TERM=dumb table still contains ANSI" || ok "TERM=dumb table contains no ANSI"
+    grep -q $'\033' "${TMP_ROOT}/q.out" && \
+        bad "non-TTY table contains ANSI" || ok "non-TTY table contains no ANSI"
+else
+    echo "  SKIP: script(1) unavailable for the colour matrix"
+fi
+
 run_script "${TMP_ROOT}/q2.out" "${TMP_ROOT}/q2.err"
-cmp -s "${TMP_ROOT}/q.out" "${TMP_ROOT}/q2.out" && ok "repeat query identical" || bad "repeat query differs"
+sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q.out" >"${TMP_ROOT}/q.norm"
+sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q2.out" >"${TMP_ROOT}/q2.norm"
+cmp -s "${TMP_ROOT}/q.norm" "${TMP_ROOT}/q2.norm" && ok "repeat query identical (uptime excluded)" || bad "repeat query differs"
 
 echo "== reset =="
 printf 'n\n' | XRAY_STATS_BIN="${XRAY_BIN}" bash "${SCRIPT}" --config "${CONF}" --reset >"${TMP_ROOT}/rc.out" 2>"${TMP_ROOT}/rc.err"
