@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# color-test-fixture: the ANSI assertion below intentionally matches real ESC.
 # Script update writes correct downloaded version.
 #
 # Coverage:
