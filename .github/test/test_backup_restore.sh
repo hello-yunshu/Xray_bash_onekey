@@ -30,6 +30,7 @@ trap 'rm -rf "${TMP_ROOT}"' EXIT
 
 idleleo_dir="${TMP_ROOT}/idleleo"
 nginx_dir="${TMP_ROOT}/nginx"
+local_bin="${TMP_ROOT}/usr/local"
 xray_bin_dir="${TMP_ROOT}/bin"
 xray_systemd_file="${TMP_ROOT}/systemd/xray.service"
 nginx_systemd_file="${TMP_ROOT}/systemd/nginx.service"
@@ -44,7 +45,10 @@ LOG_FILE="${log_dir}/install.log"
 mkdir -p "${xray_conf_dir}" "${nginx_conf_dir}" "${ssl_chainpath}" \
     "${idleleo_dir}/info" "${idleleo_dir}/scripts" "${log_dir}" \
     "${xray_bin_dir}" "${xray_systemd_file%/*}" \
-    "${nginx_dir}/conf" "${nginx_dir}/sbin" "${nginx_dir}/logs"
+    "${nginx_dir}/conf" "${nginx_dir}/sbin" "${nginx_dir}/logs" \
+    "${idleleo_dir}/share/xray" "${local_bin}/share"
+printf 'GEOIP\n' >"${idleleo_dir}/share/xray/geoip.dat"
+ln -s "${idleleo_dir}/share/xray" "${local_bin}/share/xray"
 
 printf '{"shell_version":"3.3.1","id":"uuid-secret","privateKey":"priv-secret"}\n' >"${xray_install_config_file}"
 printf '{"inbounds":[]}\n' >"${xray_conf_dir}/config.json"
@@ -90,6 +94,7 @@ for expected in \
     "cert/xray.key" \
     "info/xray_info.inf" \
     "bin/xray" \
+    "usr/local/share/xray" \
     "systemd/xray.service" \
     "systemd/nginx.service" \
     "nginx/conf/nginx.conf"; do
