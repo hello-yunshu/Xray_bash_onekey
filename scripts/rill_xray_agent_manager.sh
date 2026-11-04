@@ -984,7 +984,7 @@ print(result.get("diagnosisCode","UNKNOWN"))
     summary=$(rxa_diagnosis_summary "$code")
     case "$code" in
         HEALTHY|CONFIG_CHANGED_HEALTHY)
-            printf '%b%s%b\n' "${Green:-}" "$(gettext "检测")：${summary}" "${Font:-}"
+            printf '%s%s%s\n' "${Green:-}" "$(gettext "检测")：${summary}" "${Font:-}"
             ;;
         *)
             printf '%s\n' "$(gettext "检测")：${summary}"
