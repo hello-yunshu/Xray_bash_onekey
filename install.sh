@@ -10034,7 +10034,8 @@ xray_status_add() {
                     return 1
                 fi
                 service_start || return 1
-                [[ -f "${xray_status_conf}" ]] && rm -rf "${xray_status_conf}"
+                rm -f "${xray_status_conf}"
+                return 0
                 ;;
             *) ;;
             esac
@@ -10053,16 +10054,25 @@ xray_status_add() {
                 fi
                 local status_config
                 if ! status_config=$(jq -c . "${xray_status_conf}"); then
+                    rm -f "${xray_status_conf}"
                     log_echo "${Error} ${RedBG} $(gettext "流量统计配置解析失败") ${Font}"
                     service_start
                     return 1
                 fi
-                update_json_config "${xray_conf}" --argjson status_config "${status_config}" \
-                    '. += $status_config'
-                if ! judge -r "$(gettext "设置 Xray 流量统计")"; then
+                if ! update_json_config "${xray_conf}" --argjson status_config "${status_config}" \
+                    '. += $status_config'; then
+                    rm -f "${xray_status_conf}"
                     service_start
                     return 1
                 fi
+                if ! judge -r "$(gettext "设置 Xray 流量统计")"; then
+                    rm -f "${xray_status_conf}"
+                    service_start
+                    return 1
+                fi
+                # The downloaded status_config is a merge source only; leaving
+                # it behind made two files look like duplicated live config.
+                rm -f "${xray_status_conf}"
                 service_start || return 1
                 ;;
             *) ;;
