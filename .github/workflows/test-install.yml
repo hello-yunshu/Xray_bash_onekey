@@ -141,6 +141,9 @@ jobs:
           # external cron, no restart), scoped asset permissions, and an
           # honest status view instead of the legacy geo_version.json.
           bash .github/test/test_geodata_native.sh
+          # Stage 05: `-u` must not migrate in the same run; the next startup
+          # hook and the GeoData menu are the two migration entry points.
+          bash .github/test/test_geodata_update_path.sh
           # ANSI output: color variables must be real ESC bytes, non-TTY logs
           # must stay control-byte free, and a PTY must still render colors.
           python3 .github/test/test_color_output.py
