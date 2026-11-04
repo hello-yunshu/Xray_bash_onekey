@@ -60,6 +60,7 @@ jobs:
       version: ${{ steps.subject.outputs.version }}
       install_sha: ${{ steps.subject.outputs.install_sha }}
       bundle_sha: ${{ steps.subject.outputs.bundle_sha }}
+      stats_sha: ${{ steps.subject.outputs.stats_sha }}
       candidate_commit: ${{ steps.subject.outputs.candidate_commit }}
       canonical_commit: ${{ steps.subject.outputs.canonical_commit }}
       canonical_digest: ${{ steps.subject.outputs.canonical_digest }}
@@ -134,12 +135,14 @@ jobs:
           PY
           install_sha=$(sha256sum install.sh | awk '{print $1}')
           bundle_sha=$(sha256sum "$bundle" | awk '{print $1}')
+          stats_sha=$(sha256sum scripts/xray_stats.sh | awk '{print $1}')
           canonical_bundle_sha=$(python3 -c "import json; print(json.load(open('.canonical/integrations/xray_bash_onekey/CANONICAL_MANIFEST.json'))['bundleSha256'])")
           [[ "$bundle_sha" == "$canonical_bundle_sha" ]]
           {
             echo "version=$version"
             echo "install_sha=$install_sha"
             echo "bundle_sha=$bundle_sha"
+            echo "stats_sha=$stats_sha"
             echo "candidate_commit=$candidate_commit"
             echo "canonical_commit=$EXPECTED_CANONICAL_COMMIT"
             echo "canonical_digest=$EXPECTED_CANONICAL_DIGEST"
@@ -199,6 +202,7 @@ jobs:
           VERSION: ${{ needs.candidate.outputs.version }}
           INSTALL_SHA: ${{ needs.candidate.outputs.install_sha }}
           BUNDLE_SHA: ${{ needs.candidate.outputs.bundle_sha }}
+          STATS_SHA: ${{ needs.candidate.outputs.stats_sha }}
           CANDIDATE_COMMIT: ${{ needs.candidate.outputs.candidate_commit }}
           CANONICAL_COMMIT: ${{ needs.candidate.outputs.canonical_commit }}
           CANONICAL_DIGEST: ${{ needs.candidate.outputs.canonical_digest }}
@@ -207,8 +211,8 @@ jobs:
           set -euo pipefail
           tmp="$RUNNER_TEMP/xray-release-${GITHUB_RUN_ID}"
           mkdir -p "$tmp"
-          cp install.sh assets/rill-xray-agent-xray-bundle.tar.gz "$tmp/"
-          (cd "$tmp" && sha256sum install.sh rill-xray-agent-xray-bundle.tar.gz > SHA256SUMS)
+          cp install.sh assets/rill-xray-agent-xray-bundle.tar.gz scripts/xray_stats.sh "$tmp/"
+          (cd "$tmp" && sha256sum install.sh rill-xray-agent-xray-bundle.tar.gz xray_stats.sh > SHA256SUMS)
           python3 - "$tmp/release-manifest.json" <<'PY'
           import json, os, sys
           doc={
@@ -217,6 +221,7 @@ jobs:
             "candidateCommit":os.environ["CANDIDATE_COMMIT"],
             "installSha256":os.environ["INSTALL_SHA"],
             "bundleSha256":os.environ["BUNDLE_SHA"],
+            "statsScriptSha256":os.environ["STATS_SHA"],
             "canonicalCommit":os.environ["CANONICAL_COMMIT"],
             "canonicalDigest":os.environ["CANONICAL_DIGEST"],
             "qualificationRunId":os.environ["GITHUB_RUN_ID"],
@@ -233,6 +238,7 @@ jobs:
           VERSION: ${{ needs.candidate.outputs.version }}
           INSTALL_SHA: ${{ needs.candidate.outputs.install_sha }}
           BUNDLE_SHA: ${{ needs.candidate.outputs.bundle_sha }}
+          STATS_SHA: ${{ needs.candidate.outputs.stats_sha }}
           CANDIDATE_COMMIT: ${{ needs.candidate.outputs.candidate_commit }}
           CANONICAL_COMMIT: ${{ needs.candidate.outputs.canonical_commit }}
           CANONICAL_DIGEST: ${{ needs.candidate.outputs.canonical_digest }}
@@ -246,17 +252,34 @@ jobs:
             [[ $(jq -r .tagName <<<"$meta") == "$tag" ]]
             [[ $(jq -r .isDraft <<<"$meta") == false ]]
             [[ $(jq -r .isPrerelease <<<"$meta") == false ]]
+            mkdir -p "$SUMS_DIR/download"
             gh release download "$tag" --repo "$GITHUB_REPOSITORY" \
-              --pattern install.sh --pattern rill-xray-agent-xray-bundle.tar.gz \
-              --pattern SHA256SUMS --pattern release-manifest.json --dir "$SUMS_DIR/download"
+              --pattern release-manifest.json --dir "$SUMS_DIR/download"
+            existing="$SUMS_DIR/download/release-manifest.json"
+            stats_expected=$(jq -r '.statsScriptSha256 // empty' "$existing")
+            patterns=(--pattern install.sh --pattern rill-xray-agent-xray-bundle.tar.gz --pattern SHA256SUMS)
+            if [[ -n "$stats_expected" ]]; then
+              [[ "$stats_expected" =~ ^[0-9a-f]{64}$ ]]
+              patterns+=(--pattern xray_stats.sh)
+            else
+              echo "Legacy release has no statsScriptSha256; skipping stats asset verification." >&2
+            fi
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" \
+              "${patterns[@]}" --dir "$SUMS_DIR/download"
             (cd "$SUMS_DIR/download" && sha256sum -c SHA256SUMS)
             [[ $(sha256sum "$SUMS_DIR/download/install.sh" | awk '{print $1}') == "$INSTALL_SHA" ]]
             [[ $(sha256sum "$SUMS_DIR/download/rill-xray-agent-xray-bundle.tar.gz" | awk '{print $1}') == "$BUNDLE_SHA" ]]
-            existing="$SUMS_DIR/download/release-manifest.json"
-            for pair in \
-              "version:$VERSION" "candidateCommit:$CANDIDATE_COMMIT" \
-              "installSha256:$INSTALL_SHA" "bundleSha256:$BUNDLE_SHA" \
-              "canonicalCommit:$CANONICAL_COMMIT" "canonicalDigest:$CANONICAL_DIGEST"; do
+            pairs=(
+              "version:$VERSION" "candidateCommit:$CANDIDATE_COMMIT"
+              "installSha256:$INSTALL_SHA" "bundleSha256:$BUNDLE_SHA"
+              "canonicalCommit:$CANONICAL_COMMIT" "canonicalDigest:$CANONICAL_DIGEST"
+            )
+            if [[ -n "$stats_expected" ]]; then
+              [[ $(sha256sum "$SUMS_DIR/download/xray_stats.sh" | awk '{print $1}') == "$stats_expected" ]]
+              [[ "$stats_expected" == "$STATS_SHA" ]]
+              pairs+=("statsScriptSha256:$STATS_SHA")
+            fi
+            for pair in "${pairs[@]}"; do
               key=${pair%%:*}; value=${pair#*:}
               [[ $(jq -r --arg key "$key" '.[$key]' "$existing") == "$value" ]]
             done
@@ -276,6 +299,7 @@ jobs:
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$CANDIDATE_COMMIT" \
               --title "Xray ${VERSION}" --notes "${VERSION} Release" \
               "$SUMS_DIR/install.sh" "$SUMS_DIR/rill-xray-agent-xray-bundle.tar.gz" \
+              "$SUMS_DIR/xray_stats.sh" \
               "$SUMS_DIR/SHA256SUMS" "$expected_manifest"
           fi
           tag_ref=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.type + " " + .object.sha')

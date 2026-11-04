@@ -97,8 +97,45 @@ bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/late
 | 设置 Fail2ban | `idleleo --set-fail2ban` |
 | 设置流量阻断 | `idleleo --traffic-blocker` |
 | 查看端口实时流量 | `idleleo --port-traffic` |
+| 查看 Xray 流量统计 | `idleleo --stats` / `idleleo --stats --json` |
+| 重置流量统计 | `idleleo --stats-reset`（确认后执行，`--yes` 跳过确认） |
+| 实时监控流量统计 | `idleleo --stats-watch [秒]` |
 
 `--backup` 只备份脚本管理的文件（`/etc/idleleo`、`/usr/local/nginx`、Xray 二进制、systemd unit、root crontab、ACME 状态），不是主机全备份。`--restore` 选择文件名中时间戳最新的备份，校验归档内每文件 SHA256 后恢复；会移除备份中不存在的脚本管理配置，但保留用户自定义文件，也不会自动启动服务。跨模式恢复后请检查残留配置并按需重启服务。
+
+### Xray 流量统计读取
+
+统计开启后，统计 API 只监听 `127.0.0.1:10085`。读取由独立脚本
+`/etc/idleleo/scripts/xray_stats.sh`（`0600 root:root`）完成；主脚本只负责
+入口、下载、SHA256 校验和委托，不复制查询逻辑。
+
+```bash
+idleleo --stats                  # 表格：每个 inbound 的 upload/download/total
+idleleo --stats --json           # 机器可读 JSON
+idleleo --stats-reset            # 交互确认后清零计数
+idleleo --stats-reset --yes      # 自动化确认
+idleleo --stats-watch 5          # 每 5 秒刷新，Ctrl-C 退出
+```
+
+| 退出码 | 含义 |
+|---|---|
+| `0` | 查询成功；计数为 0 也是成功 |
+| `1` | 用户取消 reset |
+| `2` | 前置缺失：未开启统计、无 `api.listen`、Xray 未运行、API 不可达、脚本缺失/校验失败 |
+| `3` | API 调用或 JSON 解析失败 |
+| `4` | 参数错误 |
+| `5` | 非 root 或权限不足 |
+| `130` | watch 被 Ctrl-C 中断 |
+
+脚本缺失时会从当前 `v${shell_version}` Release 下载第五资产
+`xray_stats.sh`，并用 `release-manifest.json` 的 `statsScriptSha256`
+校验；校验失败只影响读取，不影响统计开启/关闭。旧配置缺少
+`api.listen` 时，首次 `--stats` 会明确询问是否补写并重启 Xray，拒绝不会
+修改配置。
+
+> 安全提示：统计 API 只绑定回环地址，但没有鉴权；本机其他用户理论上可
+> 访问该端口并读取/重置计数。建议单用户 VPS 使用，不要把 `10085` 暴露到
+> 公网；reset 必须显式确认。
 
 ## 升级说明
 

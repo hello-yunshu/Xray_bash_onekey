@@ -454,6 +454,56 @@ jobs:
             "${{ matrix.image }}" \
             bash /repo/.github/test/test_minimal_bootstrap.sh
 
+  stats-readout-matrix:
+    # Real-Xray readout matrix for the three supported distros. The Xray
+    # binary is downloaded on the runner and mounted read-only; each minimal
+    # image installs only jq/curl, so the test does not depend on host tooling.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - debian:12-slim
+          - ubuntu:24.04
+          - quay.io/centos/centos:stream10
+    name: Stats Readout (${{ matrix.image }})
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.candidate_commit || github.sha }}
+          persist-credentials: false
+
+      - name: Download real Xray for the matrix
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 \
+            https://github.com/XTLS/Xray-core/releases/download/v26.10.31/Xray-linux-64.zip \
+            -o /tmp/xray.zip
+          mkdir -p /tmp/xray-bin
+          unzip -q /tmp/xray.zip -d /tmp/xray-bin
+          chmod +x /tmp/xray-bin/xray
+
+      - name: Run stats tests in ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$PWD":/repo:ro \
+            -v /tmp/xray-bin/xray:/usr/local/bin/xray:ro \
+            "${{ matrix.image }}" \
+            bash -lc '
+              set -euo pipefail
+              if command -v apt-get >/dev/null 2>&1; then
+                apt-get update -qq
+                apt-get install -y -qq jq curl diffutils
+              else
+                dnf install -y -q jq curl diffutils
+              fi
+              bash /repo/.github/test/test_xray_stats.sh
+              XRAY_BIN=/usr/local/bin/xray bash /repo/.github/test/test_xray_stats_readout.sh
+            '
+
   true-fresh-install:
     # Core availability gate for Issue #102. This is deliberately separate
     # from the five-mode matrix: the matrix proves protocol/config breadth,
