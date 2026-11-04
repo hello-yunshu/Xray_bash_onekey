@@ -25,16 +25,22 @@ else
     bad "CHANGELOG.md has no '## ${version}' entry"
 fi
 
-if grep -Fq "当前版本：**${version}**" README.md; then
-    ok "README.md advertises ${version}"
+if grep -Fq "当前版本：" README.md; then
+    bad "README.md still contains a shell version banner"
 else
-    bad "README.md does not advertise ${version}"
+    ok "README.md has no shell version banner"
 fi
 
-if grep -Fq "Current version: **${version}**" i18n/languages/en/README.md; then
-    ok "English README advertises ${version}"
+if grep -Eq '^(###|##) 3\.[0-9]+\.[0-9]+' README.md; then
+    bad "README.md still contains version-specific upgrade sections"
 else
-    bad "English README does not advertise ${version}"
+    ok "README.md has no version-specific upgrade sections"
+fi
+
+if grep -Eq '\b3\.[0-9]+\.[0-9]+\b' README.md i18n/languages/*/README.md; then
+    bad "README files still mention a shell version number"
+else
+    ok "README files contain no shell version numbers"
 fi
 
 if grep -Fq "中转节点" README.md; then
@@ -43,19 +49,10 @@ else
     bad "README.md does not document the relay role"
 fi
 
-# Non-English READMEs are machine-translated now. This shell test keeps the
-# hard gate on the canonical English version line; the README translation
-# workflow validates all five outputs (structure, version and Chinese
-# residue) before it opens a PR. A hard gate here would block version-bump
-# PRs until the post-merge translation PR lands.
-for lang in fr ru fa ko; do
-    if [[ -f "i18n/languages/${lang}/README.md" ]] &&
-       grep -Fq "${version}" "i18n/languages/${lang}/README.md"; then
-        printf '  NOTE: i18n/languages/%s/README.md advertises %s (validated by the translation workflow)\n' "${lang}" "${version}"
-    else
-        printf '  NOTE: i18n/languages/%s/README.md does not advertise %s (translation workflow will refresh it)\n' "${lang}" "${version}"
-    fi
-done
+# README is product documentation, not release history. The release version
+# lives in install.sh and CHANGELOG.md; the README translation workflow still
+# validates structure, glossary use, and Chinese residue for all languages.
+
 
 if bash -n install.sh; then
     ok "install.sh syntax"

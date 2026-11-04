@@ -1,309 +1,228 @@
-# Xray 管理脚本 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Xray 管理脚本
 
-当前版本：**3.3.2**
+> 面向 Debian、Ubuntu 与 CentOS Stream 的 Xray 一键部署和管理工具，覆盖 Reality、TLS、ws/gRPC/xHTTP、中转节点与 Docker。
 
-简体中文 | [English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/LICENSE) [![Platform: Linux](https://img.shields.io/badge/platform-Linux-lightgrey)](https://github.com/hello-yunshu/Xray_bash_onekey) [![Shell: Bash](https://img.shields.io/badge/shell-Bash-4EAA25)](https://github.com/hello-yunshu/Xray_bash_onekey)
 
-[![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
+简体中文 | [English](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/en/README.md) | [Français](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/fr/README.md) | [Русский](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/ru/README.md) | [فارسی](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/fa/README.md) | [한국어](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/ko/README.md)
 
-> Thanks for non-commercial open source development authorization by JetBrains
+## 项目定位
 
-## 功能特性
+这是一个用 Bash 编写的 Xray 部署与运维脚本。它把安装、证书、Nginx 前置、客户端配置、服务管理、备份恢复和日常排障集中到一个菜单里，适合希望快速搭建单机代理、又不想手工维护整套配置的用户。
 
-* 输入 `idleleo` 打开 Xray 管理菜单，管理安装、服务、安全设置等
-* 采用 Qwen-MT-Plus AI 实现多语言精准翻译
-* 支持 Reality 协议，建议搭配 Nginx 前置（脚本内可安装）
-* 支持 WebSocket、gRPC、xHTTP 传输，可选择单一传输或 `ws+gRPC+xHTTP` 同时启用
-* 支持 IPv4 / IPv6 双栈：安装时可自动检测公网出口能力，按域名 A/AAAA 记录独立校验并生成对应分享链接与 Clash 配置
-* 内置 fail2ban 防护（脚本内可安装）
-* 内置 Xray 流量统计、流量阻断、GeoIP/GeoSite 规则更新及定时更新
-* 支持脚本、Xray、Nginx 和证书更新，并为关键更新提供备份与失败回滚
-* 重新安装和模式切换前会自动备份当前运行配置，失败时恢复原配置
-* 重配置提供三条安全路径：保留配置重新部署、标准模板重建、模式切换
-* 采用 [@DuckSoft](https://github.com/DuckSoft) 的分享链接[提案](https://github.com/XTLS/Xray-core/issues/91)（beta），兼容 Qv2ray、V2rayN、V2rayNG
-* 采用 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案，遵循 [UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3) 标准，支持自定义字符串映射至 VLESS UUID
-* 支持 gRPC 协议：[使用 gRPC 协议](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
-* 支持 Reality / ws/gRPC/xHTTP 负载均衡：
-  - [部署 Reality 负载均衡](https://hey.run/posts/bushu-reality-balance)
-  - [搭建后端负载均衡](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
-* Reality + Nginx 模式默认启用 SNI Guard：未知 SNI、空 SNI 与异常 TLS 不会进入 Xray Reality 后端，默认采用隔离策略（ssl_reject_handshake），高级用户可切换为自建 decoy 站点回落或直接 TCP 拒绝。该功能用于减少主动探测与误配置暴露，不追求完美伪装
+脚本负责生成配置和编排服务，Xray 负责实际代理；Reality 与 TLS 模式建议搭配 Nginx 前置。所有关键写入都会先做语法检查或备份，失败时尽量回滚，避免把正在运行的服务留在半成品状态。
 
-## 延伸阅读
+## 功能概览
 
-* `idleleo` 命名背景故事：[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
-* Reality 安装指南：[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Reality 协议风险：[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
-* Reality 加速服务器：[利用 Reality 协议"漏洞"加速服务器](https://hey.run/posts/use-reality)
+| 能力 | 说明 |
+|---|---|
+| 安装模式 | Reality + Nginx、Nginx + TLS、ws/gRPC/xHTTP ONLY、中转节点、Docker |
+| 传输协议 | WebSocket、gRPC、xHTTP，可单选或组合 `ws+gRPC+xHTTP` |
+| 双栈网络 | 自动检测 IPv4/IPv6 出口能力，按域名 A/AAAA 记录分别校验并生成客户端入口 |
+| 客户端输出 | 分享链接、二维码、Clash 配置；Clash 暂不支持 xHTTP |
+| 安全管理 | fail2ban、流量阻断、SNI Guard、防火墙与证书管理 |
+| 日常运维 | 服务管理、配置变更、日志清理、端口流量查看、备份恢复 |
+| 流量统计 | 按 inbound 读取上行、下行与总量，支持 JSON、重置和实时刷新 |
+| 智能助手 | RillML 本地 AI 运维助手，提供监控、诊断和处置建议 |
+| 更新维护 | 脚本、Xray、Nginx 与证书更新，关键更新带备份和失败回滚 |
 
-## Telegram 群组
+## 系统支持
 
-* 交流群：[点击加入](https://t.me/+48VSqv7xIIFmZDZl)
+| 系统 | 版本 | 说明 |
+|---|---|---|
+| Debian | 12、13 | 使用 `apt`，CI 覆盖 `debian:12-slim` 与 `debian:13-slim` |
+| Ubuntu | 24.04、26.04 | 使用 `apt`，CI 覆盖 `ubuntu:24.04` 与 `ubuntu:26.04` |
+| CentOS Stream | 10 | 使用 RPM 包管理器，CI 覆盖 `quay.io/centos/centos:stream10` |
+| Rocky / AlmaLinux | 10+ | 按 RPM 系处理，主版本不低于 10 |
 
-## 准备工作
+需要 root 权限、systemd、公网 IP 和可用的出站网络。安装过程会自动补齐 `curl`、`jq`、`openssl`、`qrencode`、`nmap` 等依赖；Reality/TLS 模式还需要准备域名，并按服务器网络配置 A 和/或 AAAA 记录。
 
-* 一台境外服务器，具备公网 IP
-* 安装 Reality 协议：需准备符合 Xray 要求的目标域名
-* 安装 TLS 版本：需准备域名，并根据服务器可用网络正确配置 A 和/或 AAAA 记录；双栈环境建议同时配置正确的 A 与 AAAA。脚本支持自动检测 IPv4/IPv6 网络能力，双栈可用时可同时生成对应客户端入口
-* 阅读 [Xray 官方文档](https://xtls.github.io)，了解 Reality、TLS、WebSocket、gRPC 及 Xray 相关概念
-* **确保已安装 curl**：CentOS 用户执行 `yum install -y curl`；Debian/Ubuntu 用户执行 `apt install -y curl`
+> 不支持的系统会在安装前被拒绝。CentOS 模板差异较大，若遇到编译或依赖问题，建议改用 Debian 或 Ubuntu。
 
-## 快速安装
+## 快速开始
+
+准备一台受支持的 Linux 服务器，使用 root 执行：
 
 ```bash
 bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh)
 ```
 
+安装完成后输入 `idleleo` 打开管理菜单；也可以直接执行 `idleleo --install-reality`、`idleleo --install-tls` 或 `idleleo --install-none` 进入对应模式。
+
+首次使用建议先阅读菜单中的安装向导，不确定的项目直接回车使用默认值。安装完成后按脚本输出的分享链接或二维码配置客户端。
+
 ## 安装模式
 
-| 模式 | 说明 |
-|------|------|
-| Reality + Nginx | 推荐模式，可按需附加 ws/gRPC/xHTTP 简单协议用于负载均衡 |
-| Nginx + TLS | 支持 ws/gRPC/xHTTP，自动申请并续期 Let's Encrypt 证书 |
-| ws/gRPC/xHTTP ONLY | 无 TLS 的独立入站模式，主要用于后端或负载均衡场景 |
-| 中转节点 | 独立服务器角色，仅用 Nginx Stream 做单目标 TCP 转发，不安装 Xray |
-| Docker | 镜像内预装 Xray、Nginx 与主脚本 |
+| 模式 | 适用场景 | 关键说明 |
+|---|---|---|
+| Reality + Nginx | 推荐的单机入口 | 可按需附加 ws/gRPC/xHTTP 简单协议用于负载均衡 |
+| Nginx + TLS | 需要标准 TLS 入口 | 自动申请并续期 Let's Encrypt 证书 |
+| ws/gRPC/xHTTP ONLY | 后端或负载均衡节点 | 无 TLS，默认仅监听 `127.0.0.1` |
+| 中转节点 | 独立 TCP 转发 | 仅使用 Nginx Stream 做单目标转发，不安装 Xray |
+| Docker | 容器化部署 | 镜像内预装 Xray、Nginx 与主脚本 |
 
-安装 ws/gRPC/xHTTP 相关模式时，可选择 `ws`、`gRPC`、`xHTTP` 或 `ws+gRPC+xHTTP`。脚本会分别生成对应端口、路径、分享链接和二维码；Clash 目前不支持 xHTTP，脚本会在配置输出中提示。
+安装 ws/gRPC/xHTTP 相关模式时，可选择 `ws`、`gRPC`、`xHTTP` 或 `ws+gRPC+xHTTP`。脚本会分别为每个传输生成端口、路径、分享链接和二维码；Clash 配置会跳过 xHTTP，并在输出中提示。
 
-## 重配置说明
+## 管理菜单
 
-已安装的环境再次运行安装时，脚本会自动备份当前运行配置，并提供三条重配置路径：
+输入 `idleleo` 进入主菜单：
 
-| 路径 | 说明 | 限制 |
-|------|------|------|
-| 保留配置重新部署 | 保留自定义 routing/outbounds/DNS 和多用户配置，仅修改用户选择的字段（端口、路径、UUID、Reality 参数等） | 不支持传输结构变更（如 ws → gRPC），需改传输组合请使用标准模板重建 |
-| 标准模板重建 | 使用当前可复用参数生成标准模板配置，自定义 routing/outbounds/DNS 可能被移除 | 不强制要求用户数量不变 |
-| 模式切换 | 切换到不同协议模式（如 Reality → TLS），默认只复用主用户 UUID/email | 其他用户不自动迁移，切换前会明确提示 |
+| 选项 | 功能 |
+|---|---|
+| `1` | 安装向导 |
+| `2` | 配置变更 |
+| `3` | 查看信息 |
+| `4` | Xray / TLS 服务与证书 |
+| `5` | 更新向导 |
+| `6` | 其他选项（TCP 加速、Fail2ban、流量统计、流量阻断、日志、网速） |
+| `7` | 备份恢复与卸载 |
+| `8` | 修改语言 |
+| `9` | Rill Xray AI 运维助手 |
+| `0` | 退出 |
 
-重配置过程中任何步骤失败（配置写入、服务启动、健康检查等）都会自动回滚到备份的原配置。备份目录使用唯一时间戳，支持连续多次重配置互不冲突。
+菜单中的“其他选项 → Xray 流量统计”提供开启/关闭统计、查看、重置和实时监控四个入口。
 
 ## 常用命令
 
 | 操作 | 命令 |
-|------|------|
+|---|---|
 | 打开管理菜单 | `idleleo` |
 | 查看帮助 | `idleleo --help` |
 | 安装 Reality 模式 | `idleleo --install-reality` |
 | 安装 TLS 模式 | `idleleo --install-tls` |
 | 安装 ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
 | 安装中转节点 | `idleleo --install-relay` |
-| 卸载脚本与 Xray/Nginx | `idleleo --purge` |
-| 备份脚本管理文件 | `idleleo --backup` |
-| 恢复脚本管理文件 | `idleleo --restore` |
 | 查看安装信息 | `idleleo --show` |
+| 查看 Xray 访问信息 | `idleleo --xray-access` |
+| 查看 Xray 错误信息 | `idleleo --xray-error` |
+| 查看端口实时流量 | `idleleo --port-traffic` |
 | 更新脚本 | `idleleo --update` |
 | 更新 Xray | `idleleo --xray-update` |
 | 更新 Nginx | `idleleo --nginx-update` |
 | 设置 Fail2ban | `idleleo --set-fail2ban` |
 | 设置流量阻断 | `idleleo --traffic-blocker` |
-| 查看端口实时流量 | `idleleo --port-traffic` |
-| 查看 Xray 流量统计 | `idleleo --stats` / `idleleo --stats --json` |
+| 备份脚本管理文件 | `idleleo --backup` |
+| 恢复脚本管理文件 | `idleleo --restore` |
+| 卸载脚本与 Xray/Nginx | `idleleo --purge` |
+| 查看流量统计 | `idleleo --stats` / `idleleo --stats --json` |
 | 重置流量统计 | `idleleo --stats-reset`（确认后执行，`--yes` 跳过确认） |
-| 实时监控流量统计 | `idleleo --stats-watch [秒]` |
+| 实时监控流量统计 | `idleleo --stats-watch` [秒] |
 
-`--backup` 只备份脚本管理的文件（`/etc/idleleo`、`/usr/local/nginx`、Xray 二进制、systemd unit、root crontab、ACME 状态），不是主机全备份。`--restore` 选择文件名中时间戳最新的备份，校验归档内每文件 SHA256 后恢复；会移除备份中不存在的脚本管理配置，但保留用户自定义文件，也不会自动启动服务。跨模式恢复后请检查残留配置并按需重启服务。
+## Xray 流量统计
 
-### Xray 流量统计读取
-
-统计开启后，统计 API 只监听 `127.0.0.1:10085`。读取由独立脚本
-`/etc/idleleo/scripts/xray_stats.sh`（`0600 root:root`）完成；主脚本只负责
-入口、下载、SHA256 校验和委托，不复制查询逻辑。
+统计开启后，统计 API 默认只监听 `127.0.0.1:10085`。读取工作由独立脚本 `/etc/idleleo/scripts/xray_stats.sh` 完成，权限为 `0600 root:root`；主脚本只负责入口、下载、SHA256 校验和委托，不复制查询逻辑。
 
 ```bash
-idleleo --stats                  # 表格：每个 inbound 的 upload/download/total
+idleleo --stats                  # 表格：每个 inbound 的上行、下行与总量
 idleleo --stats --json           # 机器可读 JSON
 idleleo --stats-reset            # 交互确认后清零计数
 idleleo --stats-reset --yes      # 自动化确认
 idleleo --stats-watch 5          # 每 5 秒刷新，Ctrl-C 退出
 ```
 
+统计脚本缺失时，主脚本会从当前 Release 下载 `xray_stats.sh`，并用 `release-manifest.json` 的 `statsScriptSha256` 校验。校验失败只影响读取，不会影响统计开关。统计已开启但配置缺少 `api.listen` 时，首次执行 `--stats` 会明确询问是否补写并重启 Xray；拒绝不会修改配置。
+
+### 退出码
+
 | 退出码 | 含义 |
 |---|---|
 | `0` | 查询成功；计数为 0 也是成功 |
 | `1` | 用户取消 reset |
-| `2` | 前置缺失：未开启统计、无 `api.listen`、Xray 未运行、API 不可达、脚本缺失/校验失败 |
+| `2` | 前置缺失：未开启统计、无 `api.listen`、Xray 未运行、API 不可达、脚本缺失或校验失败 |
 | `3` | API 调用或 JSON 解析失败 |
 | `4` | 参数错误 |
 | `5` | 非 root 或权限不足 |
 | `130` | watch 被 Ctrl-C 中断 |
 
-脚本缺失时会从当前 `v${shell_version}` Release 下载第五资产
-`xray_stats.sh`，并用 `release-manifest.json` 的 `statsScriptSha256`
-校验；校验失败只影响读取，不影响统计开启/关闭。旧配置缺少
-`api.listen` 时，首次 `--stats` 会明确询问是否补写并重启 Xray，拒绝不会
-修改配置。
+失败时不会打印伪造的 0：未开启统计或 API 不可达返回 `2`，坏 JSON 返回 `3`，非 root 返回 `5`。
 
-> 安全提示：统计 API 只绑定回环地址，但没有鉴权；本机其他用户理论上可
-> 访问该端口并读取/重置计数。建议单用户 VPS 使用，不要把 `10085` 暴露到
-> 公网；reset 必须显式确认。
+### 安全边界
 
-## 升级说明
+> 统计 API 只绑定回环地址，但没有鉴权。本机其他用户理论上可以访问该端口并读取或重置计数。建议在单用户 VPS 上使用，不要把 `10085` 暴露到公网；`--stats-reset` 必须显式确认。
 
-### 3.2.9 / 3.2.10 / 3.2.11 → 3.3.x
+Xray StatsService 只提供 inbound 上行/下行与 Uptime 等计数，**不提供活动连接数**。需要连接数时请使用系统级工具或独立观测方案，不要期待 `--stats` 给出连接数。
 
-旧 Shell 的自动更新不会跨 minor；`idleleo --update auto_update` 会明确跳过并保持
-旧版本，且不会静默报告成功。请使用交互式两步升级：
+## 备份与恢复
 
-```bash
-bash /etc/idleleo/install.sh --update          # 交互终端，选择 Y
-bash /etc/idleleo/install.sh --xray-update     # 再更新 Xray
-```
+`idleleo --backup` 只备份脚本管理的文件：`/etc/idleleo`、`/usr/local/nginx`、Xray 二进制、systemd unit、root crontab 和 ACME 状态。它不是主机全备份，也不会自动包含用户自己放在其他路径的数据。
 
-自动化环境必须显式确认：
+`idleleo --restore` 选择文件名中时间戳最新的备份，校验归档内每个文件的 SHA256 后恢复；会移除备份中不存在的脚本管理配置，但保留用户自定义文件，也不会自动启动服务。跨模式恢复后请检查残留配置，并按需重启服务。
 
-```bash
-bash /etc/idleleo/install.sh --update --yes                  # 同一 minor
-bash /etc/idleleo/install.sh --update --yes --allow-major    # 跨 minor
-```
+备份包可能包含证书、私钥和客户端配置，请按敏感文件保管，不要上传到公开位置。
 
-`--yes` 只自动确认同一 minor 的更新；跨 minor 还需显式加 `--allow-major`。
-`--allow-major` 只解除跨 minor 限制，本身不替代 Y/N 确认（非交互场景仍需
-同时给 `--yes`）。升级前建议先执行 `idleleo --backup`；3.3.1 起备份文件权限
-为 0600。
-
-### 3.3.0 → 3.3.1
+## 升级与更新
 
 在管理菜单“更新向导 → 更新脚本”中更新，或执行：
 
 ```bash
-bash /etc/idleleo/install.sh --update
+idleleo --update                  # 交互确认
+idleleo --update --yes            # 非交互，同一发布序列自动确认
+idleleo --update --yes --allow-major  # 跨发布序列，需显式解除限制
 ```
 
-3.3.1 修复离线卸载残留、备份/日志权限、缺 Xray 修复、失败记录 installer 身份和
-Shell 元数据回退防护。升级不会改动现有 Xray 配置；REALITY `minClientVer` 补齐仍按
-3.3.0 的规则执行。
+`--yes` 只自动确认同一发布序列的更新；跨发布序列还需显式加 `--allow-major`。`--allow-major` 只解除序列限制，本身不替代确认，非交互场景仍需同时给 `--yes`。更新脚本会用新脚本整体替换 `/etc/idleleo/install.sh`，并按新脚本重新计算 Release 地址，同时同步辅助资产。
 
-3.3.1 重发保持版本号不变。已安装旧 3.3.1 的节点不会通过 `-u` 自动拿到新安装器
-（同版本会被视为已是最新）；`-x` 只更新 Xray 核心，不更新 Shell 脚本。需要新包时
-请重新安装或手动覆盖 `/etc/idleleo/install.sh`。
+`--xray-update` 只更新 Xray 核心，`--nginx-update` 只更新 Nginx，都不会升级脚本本身。自动更新只在同一发布序列内自动升级脚本；Xray 和 Nginx 的自动更新仍按 API 元数据执行。升级前建议先执行 `idleleo --backup`。
 
-### 3.3.1 → 3.3.2
+旧版 XTLS 模式不再提供新建或重装入口；已有 XTLS 服务可以继续运行，但不能通过脚本重装或切换模式。需要继续管理时，请先备份并卸载，再重新部署 Reality、TLS 或中转模式。
 
-3.3.2 属于同一 minor，在管理菜单“更新向导 → 更新脚本”中更新，或执行：
+## 重配置
 
-```bash
-bash /etc/idleleo/install.sh --update          # 交互确认
-bash /etc/idleleo/install.sh --update --yes    # 非交互，同一 minor 自动确认
-```
+已安装的环境再次运行安装时，脚本会自动备份当前运行配置，并提供三条路径：
 
-3.3.2 新增 Xray 流量统计读取（`--stats` / `--stats --json` / `--stats-reset` /
-`--stats-watch`），统计 API 默认只监听 `127.0.0.1:10085`，读取脚本
-`/etc/idleleo/scripts/xray_stats.sh` 作为 Release 资产按 SHA256 校验下载。
+| 路径 | 说明 | 限制 |
+|---|---|---|
+| 保留配置重新部署 | 保留自定义 routing、outbounds、DNS 和多用户配置，仅修改用户选择的字段 | 不支持传输结构变更，例如 ws 改为 gRPC |
+| 标准模板重建 | 使用当前可复用参数生成标准模板配置 | 自定义 routing、outbounds、DNS 可能被移除 |
+| 模式切换 | 切换到不同协议模式，例如 Reality 改为 TLS | 默认只复用主用户 UUID/email，其他用户不自动迁移 |
 
-更新会用新脚本整体替换 `/etc/idleleo/install.sh`，并按新版本重新计算 Release
-地址，因此更新后下载的是 `v3.3.2` 的五份资产，不会继续指向 `v3.3.1`。仍停在
-3.3.1 的节点没有 `--stats` 入口，需先完成上述更新；只执行 `--xray-update`
-不会升级 Shell，也不会获得统计读取功能。旧统计配置缺少 `api.listen` 时，
-首次执行 `--stats` 会询问是否补写并重启 Xray，拒绝不会修改配置。
+重配置过程中任何步骤失败（配置写入、服务启动、健康检查等）都会自动回滚到备份的原配置。备份目录使用唯一时间戳，支持连续多次重配置互不冲突。
 
-### 旧版 XTLS 模式
+## 故障排查
 
-3.3.0 起旧版 XTLS 模式已移除。已有 XTLS 服务升级后仍可运行，但不能通过脚本重装或
-切换模式；需要继续管理时请先备份并卸载，再重新部署 Reality/TLS/中转模式。
+| 现象 | 先检查 | 处理建议 |
+|---|---|---|
+| 安装被拒绝 | `/etc/os-release` 与系统支持矩阵 | 升级到受支持的系统版本，或改用 Debian/Ubuntu |
+| Xray 未运行 | `systemctl status xray`、`idleleo --xray-error` | 查看 `journalctl -u xray`，检查配置和端口占用 |
+| 配置语法错误 | `xray run -test -config /etc/idleleo/conf/xray/config.json` | 按输出修正配置，必要时用 `idleleo --restore` 回滚 |
+| 端口被占用 | `ss -ltnp` | 释放端口，或在菜单中变更监听端口 |
+| 证书异常 | `idleleo --cert-status` | 检查域名解析、80/443 端口和 ACME 状态，再执行 `idleleo --cert-update` |
+| 与已有 Nginx 冲突 | `/usr/local/nginx/sbin/nginx -V`、`systemctl status nginx` | 不要在 LNMP 等脚本安装的 Nginx 上混装，先清理冲突 |
+| 统计返回 `2` | 菜单中的统计开关、Xray 状态、`127.0.0.1:10085` | 开启统计、启动 Xray，或检查 `api.listen` |
+| 统计返回 `3` | API 返回内容和 JSON 结构 | 检查 Xray 日志与配置，确认 StatsService 可用 |
+| 统计返回 `5` | 当前用户 | 使用 root 执行，或检查文件权限 |
+| Clash 缺少节点 | 协议类型 | Clash 不支持 xHTTP，改用支持 xHTTP 的客户端 |
 
-### 自动更新
+日志与诊断入口：`/etc/idleleo/logs/`、`/var/log/xray/`、`idleleo --show`、`idleleo --xray-access`、`idleleo --xray-error`。
 
-自动更新只在同一 minor 内自动升级 Shell；跨 minor 需要手动执行上述两步。Xray 和
-Nginx 的自动更新仍按 API 元数据执行；失败记录包含 `component`、`version`、`installer_ref`、`installer_sha` 与 `failed_at` 字段（分别表示组件、目标版本、installer 引用、installer 哈希与失败时间）。
+## 常见问题
 
-## RillML Xray AI 运维助手
+**统计能看到活动连接数吗？** 不能。StatsService 只提供 inbound 上行/下行与 Uptime 等计数，不提供连接数。
 
-RillML（简称 Rill）为 Xray 提供本地自适应智能运维能力。
+**Cloudflare 用户什么时候开启 CDN？** 建议在安装完成、证书和直连验证通过后再开启 CDN，避免申请证书时被 CDN 代理干扰。
 
-内置本地 AI 运维助手，实时监控 Xray/Nginx 健康状态，自动诊断故障并给出处理建议，无需外部 API。主菜单输入 `9` 或执行 `idleleo --rill-agent` 进入。
+**IPv4 和 IPv6 可以同时使用吗？** 可以。脚本会检测公网出口能力，并按域名 A/AAAA 记录分别校验；双栈环境建议同时配置正确的 A 与 AAAA。
 
-**核心能力**
+**如何修改端口、UUID 或传输方式？** 进入菜单“配置变更”，或重新运行安装向导选择重配置路径。涉及传输结构变更时使用标准模板重建。
 
-* 监控：实时观测 Xray/Nginx 服务与配置状态
-* 诊断：定位故障根因，附置信度建议（高 / 中 / 低 / 证据不足）
-* 判断：自动判断故障类型并给出处理建议，说明中明确标注允许自动处理或仅提供建议
-* 模式：智能判断 / 仅观察 / 安全停用，未开启自动修改前不会更改系统
+**如何卸载？** 执行 `idleleo --purge`。卸载前建议先 `idleleo --backup`，并确认是否需要保留配置和证书。
 
-**常用命令**
+**自定义字符串映射到 UUID 有什么要求？** 使用 UUIDv5 映射，需要客户端支持该特性；不支持时请使用标准 UUID。
 
-| 操作 | 命令 |
-|------|------|
-| 打开 AI 运维助手菜单 | `idleleo --rill-agent` |
-| 安装或修复 AI 判断引擎 | `idleleo --rill-agent-install` |
-| 查看 AI 判断状态 | `idleleo --rill-agent-status` |
-| 运行 AI 故障诊断 | `idleleo --rill-agent-diagnose` |
-| 校验 AI 判断引擎 | `idleleo --rill-agent-verify` |
-| 安全停用 AI 判断 | `idleleo --rill-agent-safe-disable` |
-| 卸载 Rill AI 引擎 | `idleleo --rill-agent-uninstall` |
+**可以在生产环境直接使用吗？** 请先在测试环境验证连通性、证书续期、备份恢复和升级路径，再用于生产。
 
-AI 判断引擎目前仍处于测试阶段，建议以诊断建议为主，默认不会自动修改系统。
+## 安全提示
 
-## Docker 部署
+- 统计 API 只绑定 `127.0.0.1`，但没有鉴权；不要把 `10085` 暴露到公网，也不要让不可信的本机用户访问。
+- Reality + Nginx 模式默认启用 SNI Guard：未知 SNI、空 SNI 与异常 TLS 不会进入 Xray Reality 后端，默认使用 `ssl_reject_handshake` 隔离。
+- Fail2ban、防火墙和流量阻断是可选加固项，启用前请确认不会误封自己的管理入口。
+- 备份包、证书和客户端配置都包含敏感信息，请限制文件权限并避免公开分享。
+- 脚本需要 root 权限；不要在未验证可用性前用于生产环境。
 
-支持使用 Docker 部署，镜像预装 Xray 和 Nginx，容器内可直接使用原脚本所有功能。详见 [Docker 部署指南](/docker/DOCKER.md)。
-
-```bash
-git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
-cd Xray_bash_onekey
-docker compose up -d
-docker attach xray-onekey
-```
-
-## AI Skill 部署
-
-支持通过 AI 工具（如 Trae）自动部署 Xray，无需手动交互。详见 [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
-
-传统方式需要 SSH 到服务器、运行安装脚本、逐个回答交互式问题；Skill 方式只需告诉 AI 你的需求，AI 会自动生成非交互式脚本并执行，直接返回 VLESS 链接。
-
-**支持模式**：Reality / TLS / ws ONLY / 中转节点
-
-**使用方式**：在支持 Skill 的 AI 工具中直接说"帮我在服务器上搭建 Xray"，AI 会自动收集信息、生成脚本、执行部署并返回连接信息。
-
-## 注意事项
-
-* 不了解各项设置含义时，除必填项外请使用默认值（全程回车即可）
-* Cloudflare 用户请在安装完成后再开启 CDN
-* 本脚本需要 Linux 基础知识及计算机网络常识
-* 支持 Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+，部分 CentOS 模板可能存在编译问题，建议遇到问题时更换系统
-* 建议单服务器仅部署单个代理，使用默认 443 端口
-* 自定义字符串映射至 UUIDv5 需要客户端支持
-* 推荐在纯净环境下使用；新手请勿使用 CentOS
-* 本程序依赖 Nginx，已通过 [LNMP](https://lnmp.org) 等脚本安装过 Nginx 的用户请注意潜在冲突
-* xHTTP 分享链接适用于支持 xHTTP 的客户端；Clash 配置输出会跳过 xHTTP
-* 请勿在未验证可用性前将本脚本用于生产环境
-* 作者：云舒，仅提供有限支持
-
-## 鸣谢
-
-* 基于 [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey) 开发
-* TCP 加速脚本引用自 [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
-
-## 证书配置
-
-**自定义证书**：将 crt 和 key 文件分别命名为 `xray.crt` 和 `xray.key`，放入 `/etc/idleleo/cert` 目录（目录不存在则先创建）。请注意证书权限及有效期，自定义证书过期后需自行续签。
-
-**自动证书**：脚本支持自动生成 Let's Encrypt 证书（有效期 3 个月），理论上支持自动续签。
-
-## 查看客户端配置
-
-```bash
-cat /etc/idleleo/info/xray_info.inf
-```
-
-## Xray 简介
-
-* Xray 是一款优秀的开源网络代理工具，支持 Windows、macOS、Android、iOS、Linux 等全平台
-* 本脚本为一键完整配置脚本，所有流程正常完成后，按输出结果设置客户端即可使用
-* **强烈建议**全面了解程序的工作流程及原理
-
-## 服务管理
-
-| 操作 | 命令 |
-|------|------|
-| 启动 Xray | `systemctl start xray` |
-| 停止 Xray | `systemctl stop xray` |
-| 启动 Nginx | `systemctl start nginx` |
-| 停止 Nginx | `systemctl stop nginx` |
-
-## 相关目录
+## 目录与服务
 
 | 内容 | 路径 |
-|------|------|
+|---|---|
 | 主目录 | `/etc/idleleo` |
 | Xray 配置 | `/etc/idleleo/conf/xray/config.json` |
 | Nginx 配置 | `/etc/idleleo/conf/nginx/` |
@@ -312,3 +231,62 @@ cat /etc/idleleo/info/xray_info.inf
 | 日志目录 | `/etc/idleleo/logs/`、`/var/log/xray/` |
 | Nginx 安装目录 | `/usr/local/nginx` |
 | 管理命令 | `/usr/bin/idleleo` |
+| 客户端配置 | `/etc/idleleo/info/xray_info.inf` |
+
+| 操作 | 命令 |
+|---|---|
+| 启动 Xray | `systemctl start xray` |
+| 停止 Xray | `systemctl stop xray` |
+| 启动 Nginx | `systemctl start nginx` |
+| 停止 Nginx | `systemctl stop nginx` |
+
+## Docker 与 AI Skill
+
+Docker 镜像预装 Xray、Nginx 与主脚本，容器内可以使用原脚本功能。详见 [Docker 部署指南](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/docker/DOCKER.md)。
+
+```bash
+git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
+cd Xray_bash_onekey
+docker compose up -d
+docker attach xray-onekey
+```
+
+AI Skill 适合让支持 Skill 的 AI 工具自动完成部署，无需逐项回答交互问题。详见 [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
+
+支持模式：Reality、TLS、ws ONLY、中转节点。对 AI 工具说“帮我在服务器上搭建 Xray”，它会收集信息、生成非交互式脚本、执行部署并返回连接信息。
+
+## RillML Xray AI 运维助手
+
+RillML（简称 Rill）为 Xray 提供本地自适应智能运维能力：实时监控 Xray/Nginx 健康状态，自动诊断故障并给出处理建议，无需外部 API。主菜单输入 `9` 或执行 `idleleo --rill-agent` 进入。
+
+| 操作 | 命令 |
+|---|---|
+| 打开 AI 运维助手菜单 | `idleleo --rill-agent` |
+| 安装或修复 AI 判断引擎 | `idleleo --rill-agent-install` |
+| 查看 AI 判断状态 | `idleleo --rill-agent-status` |
+| 运行 AI 故障诊断 | `idleleo --rill-agent-diagnose` |
+| 校验 AI 判断引擎 | `idleleo --rill-agent-verify` |
+| 安全停用 AI 判断 | `idleleo --rill-agent-safe-disable` |
+| 卸载 Rill AI 引擎 | `idleleo --rill-agent-uninstall` |
+
+Rill 默认以诊断建议为主，未开启自动修改前不会更改系统。
+
+## 延伸阅读
+
+- `idleleo` 命名背景：[迷雾后的真容](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
+- Reality 安装指南：[搭建 Xray Reality 服务器](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+- Reality 协议风险：[Xray Reality 协议的风险](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+- Reality 加速服务器：[利用 Reality 协议“漏洞”加速服务器](https://hey.run/posts/use-reality)
+- 交流群：[Telegram](https://t.me/+48VSqv7xIIFmZDZl)
+- 官方文档：[Xray 文档](https://xtls.github.io)
+
+## 许可证与致谢
+
+本项目使用 [GPL-3.0](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/LICENSE) 许可证。感谢 JetBrains 提供非商业开源开发授权。
+
+- 基于 [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey) 开发。
+- TCP 加速脚本引用自 [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)。
+- 分享链接方案参考 [@DuckSoft](https://github.com/DuckSoft) 的[提案](https://github.com/XTLS/Xray-core/issues/91)，UUIDv5 与 REALITY 相关内容参考 [XTLS](https://github.com/XTLS/Xray-core/issues/158) 提案。
+- 感谢 Xray-core、Nginx、Let's Encrypt 等上游项目。
+
+作者：云舒。项目仅提供有限支持，请先阅读文档并保留备份后再操作生产环境。
