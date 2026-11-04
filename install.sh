@@ -18,15 +18,36 @@ fi
 #=================================================================
 
 #fonts color
-Green="\033[32m"
-Red="\033[31m"
-GreenW="\033[1;32m"
-RedW="\033[1;31m"
-Yellow="\033[33m"
-GreenBG="\033[42;30m"
-RedBG="\033[41;30m"
-YellowBG="\033[43;30m"
-Font="\033[0m"
+# Store real ESC bytes, not the literal text "\033". A literal value only
+# expands when the caller uses printf '%b' or echo -e; plain echo or
+# printf '%s' would print the backslash sequence itself. Colors are empty when
+# stdout is not a terminal (logs/CI/pipe) or NO_COLOR/TERM=dumb is set, so
+# redirected output never contains ANSI control bytes.
+_color_enabled=0
+if [[ -t 1 && -z "${NO_COLOR:-}" && "${TERM:-dumb}" != "dumb" ]]; then
+    _color_enabled=1
+fi
+if [[ ${_color_enabled} -eq 1 ]]; then
+    Green=$'\033[32m'
+    Red=$'\033[31m'
+    GreenW=$'\033[1;32m'
+    RedW=$'\033[1;31m'
+    Yellow=$'\033[33m'
+    GreenBG=$'\033[42;30m'
+    RedBG=$'\033[41;30m'
+    YellowBG=$'\033[43;30m'
+    Font=$'\033[0m'
+else
+    Green=""
+    Red=""
+    GreenW=""
+    RedW=""
+    Yellow=""
+    GreenBG=""
+    RedBG=""
+    YellowBG=""
+    Font=""
+fi
 
 # Minimal gettext fallback: returns the input string as-is when the real
 # gettext binary/function is not yet available (e.g. before init_language).
@@ -59,6 +80,13 @@ Info="${Green}[$(gettext "信息")]${Font}"
 OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
+
+# One color-safe confirmation prompt. The text is passed as %s (never embedded
+# in the printf format), so user/gettext content cannot inject escapes. The
+# Y/N colors are real ESC or empty and are emitted with %b.
+confirm_prompt() {
+    printf '%s [Y/%bN%b]? ' "$1" "${Red}" "${Font}" >&2
+}
 
 shell_version="3.3.2"
 shell_mode="$(gettext "未安装")"
@@ -10405,7 +10433,7 @@ xray_stats_cli() {
         has_stats=$(jq -r 'has("stats")' "${xray_conf}" 2>/dev/null) || has_stats="false"
         listen_answer=$(jq -r '.api.listen // empty' "${xray_conf}" 2>/dev/null) || listen_answer=""
         if [[ "${has_stats}" == "true" && -z "${listen_answer}" ]]; then
-            printf '%s' "$(gettext "统计已开启但缺少 api.listen, 是否补写并重启 Xray") [Y/${Red}N${Font}]? " >&2
+            confirm_prompt "$(gettext "统计已开启但缺少 api.listen, 是否补写并重启 Xray")"
             local _answer=""
             read -r _answer || _answer=""
             case "${_answer}" in
@@ -10670,6 +10698,9 @@ delete_tls_key_and_crt() {
 }
 
 countdown() {
+    # The progress bar uses raw ANSI cursor sequences. A non-TTY caller must
+    # not receive control bytes in a redirected log; skip the visual delay.
+    [[ -t 1 ]] || return 0
     countdown_cnt=0
     countdown_str=""
     while [[ ${countdown_cnt} -le 30 ]]; do
@@ -10694,10 +10725,15 @@ countdown() {
         else
             countdown_index="0"
         fi
-        printf "${Warning} ${GreenBG} %d%s%s ${Font} \033[%d;%dm%-s\033[0m \033[%dm%d\033[0m \r" \
+        # Colors are passed as %b arguments, never concatenated into the
+        # printf format string: the countdown title is dynamic text and must
+        # not be able to inject a conversion specifier.
+        printf '%b %d%s%s %b \033[%d;%dm%-s\033[0m \033[%dm%d\033[0m \r' \
+            "${Warning} ${GreenBG}" \
             "$countdown_index" \
             " $(gettext "秒后") " \
             "$1" \
+            "${Font}" \
             "$countdown_color" \
             "$countdown_bg" \
             "$countdown_str" \
@@ -15250,7 +15286,7 @@ if is_pure_readonly_command "${1:-}"; then
     # dispatcher runs before the root gate, so name the actual requirement
     # instead of letting a non-root run fail with a raw Permission denied.
     if [[ "${1:-}" == "-s" || "${1:-}" == "--show" ]] && [[ "$(id -u)" -ne 0 ]]; then
-        echo "${Error} ${RedBG} $(gettext "读取安装信息需要 root 权限")（$(gettext "信息文件权限为") 0600）${Font}" >&2
+        printf '%b\n' "${Error} ${RedBG} $(gettext "读取安装信息需要 root 权限")（$(gettext "信息文件权限为") 0600）${Font}" >&2
         exit 1
     fi
     dispatch_pure_readonly_command "$@"

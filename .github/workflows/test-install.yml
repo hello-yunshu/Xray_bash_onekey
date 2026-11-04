@@ -141,6 +141,9 @@ jobs:
           # external cron, no restart), scoped asset permissions, and an
           # honest status view instead of the legacy geo_version.json.
           bash .github/test/test_geodata_native.sh
+          # ANSI output: color variables must be real ESC bytes, non-TTY logs
+          # must stay control-byte free, and a PTY must still render colors.
+          python3 .github/test/test_color_output.py
           # Stage 04: auto-update retries are keyed on the failed target
           # version (legacy .xray/.nginx markers no longer block forever),
           # metadata falls back to GitHub Raw, and relay nodes never treat a
