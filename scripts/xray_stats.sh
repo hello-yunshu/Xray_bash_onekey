@@ -128,6 +128,59 @@ TEXTDOMAINDIR="${TEXTDOMAINDIR:-/etc/idleleo/languages}"
 export TEXTDOMAIN TEXTDOMAINDIR
 
 _gettext_bin=$(type -P gettext 2>/dev/null || true)
+_msgunfmt_bin=$(type -P msgunfmt 2>/dev/null || true)
+_CAT_LANG=""
+_CAT_TEXT=""
+_EN_TEXT=""
+
+# gettext itself needs a generated locale: on minimal Ubuntu/CentOS images
+# with only C.utf8, LANGUAGE is ignored and the Chinese msgid comes back even
+# when language.conf says en_US. Read the tracked .mo directly through
+# msgunfmt instead, which is locale-independent. If msgunfmt is absent the
+# gettext path below still works on hosts where the locale is generated.
+_load_catalog_text() {
+    local lang="$1" mo="${TEXTDOMAINDIR}/${1}/LC_MESSAGES/${TEXTDOMAIN}.mo"
+    [[ -n "${_msgunfmt_bin}" && -r "${mo}" ]] || return 1
+    if [[ "${_CAT_LANG}" == "${lang}" && -n "${_CAT_TEXT}" ]]; then
+        return 0
+    fi
+    _CAT_TEXT=$("${_msgunfmt_bin}" --no-wrap "${mo}" 2>/dev/null) || {
+        _CAT_TEXT=""
+        _CAT_LANG=""
+        return 1
+    }
+    _CAT_LANG="${lang}"
+    return 0
+}
+
+_load_en_text() {
+    local mo="${TEXTDOMAINDIR}/en/LC_MESSAGES/${TEXTDOMAIN}.mo"
+    [[ -n "${_EN_TEXT}" || -z "${_msgunfmt_bin}" || ! -r "${mo}" ]] && return 0
+    _EN_TEXT=$("${_msgunfmt_bin}" --no-wrap "${mo}" 2>/dev/null) || _EN_TEXT=""
+    return 0
+}
+
+_catalog_lookup() {
+    local text="$1" msg="$2" id str
+    printf '%s\n' "${text}" | awk -v want="${msg}" '
+        /^msgid "/ {
+            id = substr($0, 8)
+            sub(/"$/, "", id)
+            next
+        }
+        /^msgstr "/ {
+            str = substr($0, 9)
+            sub(/"$/, "", str)
+            if (id == want) {
+                print str
+                exit
+            }
+            id = ""
+            next
+        }
+    '
+}
+
 _locale_lang_code() {
     if [[ -n "${XRAY_STATS_LANG:-}" ]]; then
         printf '%s' "${XRAY_STATS_LANG}"
@@ -145,6 +198,27 @@ _locale_lang_code() {
 
 _t() {
     local msg="$1" out en code
+    code=$(_locale_lang_code)
+    if [[ "${code}" == "zh" || -z "${code}" ]]; then
+        printf '%s' "${msg}"
+        return 0
+    fi
+    if [[ -n "${_msgunfmt_bin}" ]]; then
+        out=""
+        if _load_catalog_text "${code}"; then
+            out=$(_catalog_lookup "${_CAT_TEXT}" "${msg}")
+        fi
+        if [[ -z "${out}" && "${code}" != "en" ]]; then
+            _load_en_text
+            out=$(_catalog_lookup "${_EN_TEXT}" "${msg}")
+        fi
+        if [[ -n "${out}" ]]; then
+            printf '%s' "${out}"
+        else
+            printf '%s' "${msg}"
+        fi
+        return 0
+    fi
     if [[ -z "${_gettext_bin}" ]]; then
         printf '%s' "${msg}"
         return 0
@@ -152,18 +226,6 @@ _t() {
     out=$("${_gettext_bin}" "${msg}" 2>/dev/null) || out="${msg}"
     [[ -n "${out}" ]] || out="${msg}"
     if [[ "${out}" == "${msg}" ]]; then
-        # The main script passes XRAY_STATS_LANG only when the menu itself is
-        # rendering that language. A bare 'zh' means the rest of the UI is on
-        # Chinese msgids, so the table must stay Chinese instead of mixing.
-        code=$(_locale_lang_code)
-        if [[ "${code}" == "zh" || -z "${code}" ]]; then
-            printf '%s' "${msg}"
-            return 0
-        fi
-        # Minimal hosts often have only C/C.UTF-8 locales generated. Force the
-        # requested catalog through LANGUAGE with a UTF-8 locale so selecting
-        # English/French/etc in language.conf still works, then fall back to
-        # English when that catalog has a gap.
         out=$(LC_ALL=C.UTF-8 LANGUAGE="${code}" "${_gettext_bin}" "${msg}" 2>/dev/null) || out="${msg}"
         if [[ "${out}" == "${msg}" && "${code}" != "en" ]]; then
             en=$(LC_ALL=C.UTF-8 LANGUAGE=en "${_gettext_bin}" "${msg}" 2>/dev/null) || en="${msg}"
