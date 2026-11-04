@@ -261,7 +261,7 @@ chmod 644 "${stage_mode}/etc/idleleo/conf/install_config.json" \
     "${stage_mode}/etc/idleleo/cert/xray.key"
 cat >"${stage_mode}/usr/local/bin/xray" <<'EOF'
 #!/bin/sh
-if [ "$1" = "-test" ]; then echo "$@" >>"${XRAY_TEST_MARKER:-/tmp/xray-test-called}"; fi
+if [ "$1" = "run" ] || [ "$1" = "-test" ]; then echo "$@" >>"${XRAY_TEST_MARKER:-/tmp/xray-test-called}"; fi
 exit 0
 EOF
 chmod +x "${stage_mode}/usr/local/bin/xray"

@@ -379,6 +379,29 @@ stream {
 退出码透传和服务重启新风险；下一次启动新版脚本时由入口 1 完成迁移。更新日志会提示用户
 “GeoData 迁移将在下次启动脚本或进入 GeoData 菜单时执行”。
 
+#### 备份恢复时自愈（旧归档也可恢复到新主机）
+
+- **新备份**包含 `/usr/local/share/xray -> /etc/idleleo/share/xray` 软链；**旧归档**没有该条目
+  （或只有真实目录），恢复后会出现「`.dat` 在 `/etc/idleleo/share/xray`、Xray 却读
+  `/usr/local/share/xray`」的错位。恢复路径现在做三态自愈：
+  1. 软链已正确指向托管目录 → 不动（重复恢复幂等）；
+  2. 路径不存在、托管目录已有 `geoip.dat`/`geosite.dat` → 直接建软链；
+  3. 路径是真实目录且含两个 `.dat` → 合并进托管目录，**目标已有同名文件优先保留**，
+     原目录先移动到 `<path>.restore-backup.<timestamp>` 作为可回退副本，再替换为软链。
+- **重复恢复旧归档**：覆盖前先把归档里的真实目录移出 overlay，避免 `cp -a` 对现有软链报错
+  或把旧文件写穿软链；随后只补托管目录缺失的文件，不产生第二个回退副本。
+- 自愈后用恢复的二进制执行真实 `XRAY_LOCATION_ASSET=<软链路径> xray run -test`；失败时
+  删除新建软链、把回退副本移回原位、删除本次复制进托管目录的文件并还原配置快照，
+  明确报错，不留下半成品。没有可执行 Xray 时只跳过自检并告警，布局仍按上述规则修复。
+- **旧归档可直接恢复到全新主机，无需重装**；备份侧行为不变（新备份仍带软链）。
+- 备份/恢复影响面：`config.json` 里的 `.geodata` 随 `/etc/idleleo` 备份；root crontab spool
+  也在备份清单里（旧 cron 会一并恢复，之后由启动钩子或菜单迁移摘除）；`geo_update.sh`
+  若存在会随 `/etc/idleleo/scripts` 备份。卸载路径未新增清理项，仍清理软链、托管目录、
+  脚本和本项目 cron。
+- 测试：`.github/test/test_restore_geodata_selfheal.sh`（旧归档 fixture：真实目录 / 无条目的
+  托管数据 / 目标已有 geodata / 重复恢复 / 失败回滚），本地与 Linux 容器均为 0 failed；
+  真实 Xray `run -test`、`chroot` 默认路径探测、负向坏数据探测都在容器内执行。
+
 ### 2. 写入事务与失败回滚
 
 - 写前先判定「现有配置是否本来就有效」：`xray run -test` 不通过时**跳过**而不是修复，
@@ -428,12 +451,53 @@ stream {
   `tb_geo_native_file_state`（`missing/recent/pending/stale`，7 天 / 30 天阈值）。
 - `tb_display_geo_summary` 分流：原生已启用 → 显示真实 cron、两个文件的真实 mtime 状态；
   **不读 `geo_version.json`**（原生路径不写它，读了就是在编造历史）。
-- 诚实性：明确打印「这里只反映配置与文件现状, 不代表某次定时任务已成功」——
-  Xray 不落成功记录，菜单不能声称「上次更新成功」。
+- 诚实性：明确打印「这里只反映配置与文件现状, 不代表某次自动刷新已成功」——
+  Xray 不落成功记录，菜单不能声称「上次刷新成功」。
 - `tb_geo_auto_update`：原生已启用时**拒绝安装第二套自动化**（否则外部 cron 会自己重启 Xray，
   且与原生任务重复），只报告并允许移除重复的 `geo_update.sh` 条目；移除按路径精确匹配，
   用户自建条目不动。旧模式保留原逻辑，并提示「重装为普通节点后会被自动移除」。
-- 手动下载沿用 `geo_update.sh`（保留为救援工具），并提示手动更新会重启 Xray（与原生热更新不同）。
+- 手动下载沿用 `geo_update.sh`（保留为**手动刷新**工具），并提示手动刷新会重启 Xray（与原生热更新不同）。
+- 进入 GeoData 菜单和执行手动刷新前都先打印 `自动刷新状态` 头：原生已开启时显示 cron 与含义
+  （如 `0 3 * * 1` → 每周一 03:00）并说明无需手动操作；未开启、旧脚本 cron、custom、配置不可解析、
+  上次开启失败各自有独立文案。手动刷新结束再报成功/失败、写入位置和是否需要重启。
+- 术语统一为 **自动刷新 / 手动刷新**；不再出现「救援」「自动更新与救援」等混用文案。
+
+#### `geo_update.sh` 手动刷新入口审计
+
+| 审计项 | 实际行为 |
+| --- | --- |
+| 菜单脚本来源 | `tb_geo_ensure_updater` 优先用 `geo_remote_url`（`https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/v<shell_version>/scripts/geo_update.sh`），缺失时按同一路径回退；仅在本地文件不存在时下载 |
+| 脚本完整性 | **不走 `release-manifest.json`，也没有 SHA256/签名校验**；只依赖 HTTPS、版本化 tag（v3.3.2）和下载后的 `bash -n` 语法检查 |
+| 脚本权限 | `download_script_file` 写入临时文件后 `mv` 到 `/etc/idleleo/scripts/geo_update.sh` 并 `chmod +x`；不强制 0600/root:root（与 `xray_stats.sh` 的校验方式不同） |
+| GeoData 数据来源 | `geo_update.sh` 先解析 `Loyalsoldier/v2ray-rules-dat` 的 `releases/latest` 不可变 tag，再下载 `geoip.dat`/`geosite.dat` 及上游 `.sha256sum`；逐文件校验 SHA256，下载上限 100 MB，使用 `/run/lock/idleleo-update.lock` |
+| 是否改 `config.json` | **不改**；只写两个 `.dat` 与 `geo_version.json`（元数据）。脚本先构造校验配置并跑真实 `xray run -test`，通过后才提交文件 |
+| 是否重启 Xray | 仅当 `systemctl is-active xray` 为真时重启并做健康检查；未运行的服务不会被启动或重启。菜单包装层只查询状态，不主动重启 |
+| 失败残留 | 提交前失败不改线上文件；提交阶段失败回滚上一代 `.dat`/元数据并恢复原服务状态；回滚失败时保留 `stage` 并写 `RECOVERY REQUIRED`。日志在 `/etc/idleleo/logs/geo_update.log` |
+| 菜单项 1：立即启用 | 触发条件：无原生 `.geodata.cron`、存在本项目自建 `geo_update.sh` cron、`geodata_state` 非 `custom`/`invalid`。输出：已是自动刷新 / 未检测到旧 cron / custom 跳过 / 配置不可解析 / 切换中 / 切换成功或失败原因 |
+| 菜单项 2：手动刷新 | 始终可用；脚本缺失时先下载。先打印当前自动刷新状态，再执行；成功报写入位置与运行中/未运行的重启结论，失败报 rc、日志位置和「config 未改、未建 cron」 |
+| 菜单项 3：移除旧 cron | 仅删除包含本项目 `geo_update.sh` 路径的行；不重启、不改配置；没有匹配行时提示「没有找到」；手写 cron 永远保留 |
+| 定时任务副作用 | 三个手动刷新/维护动作都**不新建 cron**；测试断言 crontab 保持为空、未运行服务不被重启、失败时配置逐字节不变 |
+
+#### 分版本退役方案
+
+| 阶段 | 菜单行为 | 进入下一阶段的条件 |
+| --- | --- | --- |
+| 当前版本（3.3.2） | 保留「自动刷新与手动刷新」子菜单；手动刷新仅作为显式操作，不安装 cron | —（本版本基线） |
+| 下一版本 | 菜单项默认隐藏，仅在**故障态**显示：存在 `geodata_migration.failed`，或仍有本项目 `geo_update.sh` cron，或 `.dat` 缺失/超过 30 天未刷新；其余情况需用户显式输入确认词才显示 | 本版本发布后，至少 1 台真实 VPS（非容器）连续 **2 个完整周期**（`0 3 * * 1`）原生刷新成功：Xray 日志有下载+reload 记录、两个 `.dat` mtime 前进、无旧 cron、无失败标记 |
+| 再下一版本 | 菜单不再提供下载/运行入口；只保留文档中的手动命令（用户自行下载脚本、校验、运行） | 3 台不同发行版的真实 VPS（Debian/Ubuntu/CentOS）各自连续 2 个周期成功，且菜单手动刷新入口在这 2 个周期内未被使用（以脚本 mtime/日志为准）；无相关回归 issue |
+
+> 判定口径刻意要求「真实主机 + 连续两个周期」，容器内 1 分钟 cron 的验证不算数。
+
+本轮验证（2026-11-05）：
+
+| 验证 | 环境 | 结果 |
+| --- | --- | --- |
+| 旧归档恢复自愈 | macOS + 真实 Xray 26.10.31 | **39 passed, 0 failed, 1 skipped**（chroot 需 root/Linux） |
+| 旧归档恢复自愈 | CentOS Stream 10 / Ubuntu 24.04 容器 + 真实 Xray | **40 passed, 0 failed, 0 skipped**（含 chroot 默认路径探测） |
+| GeoData 菜单/迁移 | macOS | **208 passed, 0 failed, 1 skipped** |
+| `-u` 下次启动迁移 | Debian 12 容器 | **27 passed, 0 failed** |
+| 颜色全仓扫描 | macOS | **67 passed, 0 failed** |
+| 翻译完整性 | `validate_po.py` | en/fa/ru/ko/fr 全部 complete |
 
 ### 6. 国际化
 
@@ -488,7 +552,7 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 3. **数据源单点**：仍为 GitHub `latest/download`，被限流或不可达时原生下载静默失败（下个周期重试）。
 4. **`geodata` 是配置级设置**：用户若手工改 `config.json` 的 `geodata`（例如换 CDN），
    本脚本识别为 `custom` 并永不覆盖——这是刻意的，但也意味着脚本不再为它兜底。
-5. **`geo_update.sh` 保留双路径**：作为手动救援工具共存；若用户手动把它的 cron 加回来，
+5. **`geo_update.sh` 保留双路径**：作为手动刷新工具共存；若用户手动把它的 cron 加回来，
    会与原生任务重复（菜单会检测并提示移除，但不主动删除用户自建条目）。
 6. 沙箱判定依赖文本解析 unit/drop-in；若用户用 `systemd-analyze` 之外的方式（如容器内直接改挂载）
    放宽限制，判定可能与实际不一致——此时只跳过原生配置，不产生错误配置。

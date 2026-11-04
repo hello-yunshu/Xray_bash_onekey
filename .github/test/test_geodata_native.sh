@@ -477,15 +477,35 @@ check "the rescue menu keeps the manual updater path" \
 check "the rescue menu offers the native migration" \
     bash -c "awk '/^tb_geo_rescue_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_geo_migrate_to_native'"
 check "the summary distinguishes the legacy script mode" \
-    grep -qF '由 geo_update.sh 脚本定时更新' "${TRAFFIC_SH}"
+    grep -qF '由 geo_update.sh 脚本定时刷新' "${TRAFFIC_SH}"
 check "the summary shows a failed migration marker" \
     grep -qF 'tb_geo_show_migration_failure' "${TRAFFIC_SH}"
 check "the native summary is honest about the missing success record" \
-    bash -c "awk '/^tb_display_geo_native_summary\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '不代表某次定时任务已成功'"
+    bash -c "awk '/^tb_display_geo_native_summary\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '不代表某次自动刷新已成功'"
 check "the native summary does not read geo_version.json" \
     bash -c "awk '/^tb_display_geo_native_summary\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_get_geo_local_version' && exit 1 || exit 0"
 check "the native summary reports the real schedule" \
-    bash -c "awk '/^tb_display_geo_native_summary\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '更新计划'"
+    bash -c "awk '/^tb_display_geo_native_summary\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '自动刷新计划'"
+check "the state header names the automatic-refresh state" \
+    bash -c "awk '/^tb_geo_state_header\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '[自动刷新已开启]'"
+check "the state header names the not-enabled state" \
+    bash -c "awk '/^tb_geo_state_header\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '[自动刷新未开启]'"
+check "the state header names the custom-config state" \
+    bash -c "awk '/^tb_geo_state_header\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '[自定义 geodata]'"
+check "the state header names the invalid-config state" \
+    bash -c "awk '/^tb_geo_state_header\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '[配置不可解析]'"
+check "the state header names the enable-failure state" \
+    bash -c "awk '/^tb_geo_state_header\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '[自动刷新开启失败]'"
+check "the menu prints the state header before the summary" \
+    bash -c "awk '/^tb_geo_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_geo_state_header'"
+check "the rescue menu prints the state header" \
+    bash -c "awk '/^tb_geo_rescue_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_geo_state_header'"
+check "manual refresh announces the current automatic-refresh state" \
+    bash -c "awk '/^tb_geo_manual_refresh_intro\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '当前为自动刷新状态'"
+check "manual refresh reports its write location and restart status" \
+    bash -c "awk '/^tb_geo_manual_refresh_finish\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '写入位置'"
+check "no user-visible '救援' wording remains in GeoData paths" \
+    bash -c "! grep -qF '救援' '${TRAFFIC_SH}' && ! grep -qF '救援' '${INSTALL_SH}'"
 
 # The sub-script expects the installer's globals; stub the few it needs.
 scripts_dir="${idleleo_dir}/scripts"
@@ -731,7 +751,7 @@ check "the menu migration only targets the project's legacy cron" \
 check "the menu migration respects custom geodata" \
     bash -c "awk '/^tb_geo_try_migrate_from_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'custom)'"
 check "the menu migration preserves the old cron on failure" \
-    bash -c "awk '/^tb_geo_try_migrate_from_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'GeoData 原生迁移失败'"
+    bash -c "awk '/^tb_geo_try_migrate_from_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '自动刷新启用失败'"
 check "legacy migration never runs for relay" \
     bash -c "awk '/^geodata_migrate_legacy\(\)/,/^}/' '${INSTALL_SH}' | grep -qF 'is_relay_role &&'"
 
@@ -799,6 +819,144 @@ systemctl() {
     fi
     return 0
 }
+
+echo ""
+echo "-- J. automatic-refresh status header and manual refresh --"
+reset_geo
+geodata_apply_config >/dev/null
+_out=$(tb_geo_state_header 2>&1)
+check "native state header says automatic refresh is on" \
+    bash -c "[[ '${_out}' == *'[自动刷新已开启]'* ]]"
+check "native state header shows the schedule and its meaning" \
+    bash -c "[[ '${_out}' == *'0 3 * * 1'* && '${_out}' == *'每周一 03:00'* ]]"
+check "native state header says no manual action is needed" \
+    bash -c "[[ '${_out}' == *'无需手动操作'* ]]"
+check "native state header contains no legacy wording" \
+    bash -c "[[ '${_out}' != *'救援'* && '${_out}' != *'自动更新'* ]]"
+
+reset_geo
+_out=$(tb_geo_state_header 2>&1)
+check "no-cron header says automatic refresh is off" \
+    bash -c "[[ '${_out}' == *'[自动刷新未开启]'* ]]"
+check "no-cron header says this run will not refresh automatically" \
+    bash -c "[[ '${_out}' == *'当前不会自动刷新'* ]]"
+
+reset_geo
+printf '0 3 * * 1 bash "%s"\n' "${geo_update_file}" >"${GEO_CRONTAB}"
+_out=$(tb_geo_state_header 2>&1)
+check "legacy-cron header names the script mode and pending migration" \
+    bash -c "[[ '${_out}' == *'由 geo_update.sh 脚本定时刷新'* && '${_out}' == *'待迁移'* ]]"
+
+reset_geo
+jq '.geodata = {"cron":"0 5 * * *","assets":[{"url":"https://example.com/geoip.dat","file":"geoip.dat"}]}' \
+    "${xray_conf}" >"${TMP_ROOT}/header-custom.json"
+cp "${TMP_ROOT}/header-custom.json" "${xray_conf}"
+_out=$(tb_geo_state_header 2>&1)
+check "custom-config header says this project will not take over" \
+    bash -c "[[ '${_out}' == *'[自定义 geodata]'* && '${_out}' == *'不会自动接管'* ]]"
+
+printf 'not-json\n' >"${xray_conf}"
+_out=$(tb_geo_state_header 2>&1)
+check "invalid-config header names the parse failure and asks for a fix" \
+    bash -c "[[ '${_out}' == *'[配置不可解析]'* && '${_out}' == *'修复 config.json'* ]]"
+
+reset_geo
+geodata_apply_config >/dev/null
+printf 'status=failed\nreason=restart\ntime=2026-11-05 10:00:00\n' \
+    >"${idleleo_dir}/geodata_migration.failed"
+_out=$(tb_geo_state_header 2>&1)
+check "failure header includes the recorded reason and retry advice" \
+    bash -c "[[ '${_out}' == *'[自动刷新开启失败]'* && '${_out}' == *'Xray 重启失败，已回滚'* && '${_out}' == *'可在此重试'* ]]"
+rm -f "${idleleo_dir}/geodata_migration.failed"
+
+# Fake updater: records that it ran, never touches config/cron, and can fail.
+mkdir -p "${scripts_dir}"
+cat >"${geo_update_file}" <<'FAKE_UPDATER'
+#!/bin/sh
+printf 'ran\n' >>"${GEO_MANUAL_MARKER:-/tmp/geo-manual-ran}"
+[[ "${GEO_MANUAL_FAIL:-0}" == "1" ]] && exit 1
+exit 0
+FAKE_UPDATER
+chmod +x "${geo_update_file}"
+GEO_MANUAL_MARKER="${TMP_ROOT}/manual-ran"
+export GEO_MANUAL_MARKER
+GEO_SYSTEMCTL_LOG="${TMP_ROOT}/manual-systemctl.log"
+GEO_ACTIVE=0
+systemctl() {
+    printf '%s\n' "$*" >>"${GEO_SYSTEMCTL_LOG}"
+    case "${1:-}" in
+        is-active) [[ "${GEO_ACTIVE}" == "1" ]] && return 0 || return 1 ;;
+        restart) return 0 ;;
+        *) return 0 ;;
+    esac
+}
+
+reset_geo
+GEO_ACTIVE=0
+: >"${GEO_MANUAL_MARKER}"
+: >"${GEO_SYSTEMCTL_LOG}"
+_manual_cfg=$(cat "${xray_conf}")
+_out=$(tb_geo_run_manual_update 2>&1)
+_manual_rc=$?
+check "manual refresh succeeds on an inactive host" test "${_manual_rc}" -eq 0
+check "manual refresh announces the not-enabled state first" \
+    bash -c "[[ '${_out}' == *'当前未开启自动刷新'* && '${_out}' == *'本次仅刷新一次, 不会创建定时任务'* ]]"
+check "manual refresh reports success and the write location" \
+    bash -c "[[ '${_out}' == *'GeoData 手动刷新完成'* && '${_out}' == *'写入位置'* ]]"
+check "manual refresh says an inactive Xray was not restarted" \
+    bash -c "[[ '${_out}' == *'Xray 未运行, 未执行重启'* ]]"
+check "manual refresh did not restart the inactive service" \
+    bash -c "! grep -q 'restart' '${GEO_SYSTEMCTL_LOG}'"
+check "manual refresh created no cron entry" \
+    bash -c "[[ ! -s '${GEO_CRONTAB}' ]]"
+check "manual refresh left the live config byte-for-byte unchanged" \
+    test "$(cat "${xray_conf}")" = "${_manual_cfg}"
+
+reset_geo
+geodata_apply_config >/dev/null
+GEO_ACTIVE=1
+: >"${GEO_MANUAL_MARKER}"
+: >"${GEO_SYSTEMCTL_LOG}"
+_out=$(tb_geo_run_manual_update 2>&1)
+check "manual refresh announces the automatic-refresh state first" \
+    bash -c "[[ '${_out}' == *'当前为自动刷新状态'* && '${_out}' == *'0 3 * * 1'* && '${_out}' == *'每周一 03:00'* && '${_out}' == *'本次为手动补刷一次'* ]]"
+check "manual refresh reports the running-service result" \
+    bash -c "[[ '${_out}' == *'Xray 正在运行'* ]]"
+check "the menu itself never restarts an active service" \
+    bash -c "! grep -q 'restart' '${GEO_SYSTEMCTL_LOG}'"
+
+reset_geo
+: >"${GEO_MANUAL_MARKER}"
+: >"${GEO_SYSTEMCTL_LOG}"
+_manual_cfg=$(cat "${xray_conf}")
+export GEO_MANUAL_FAIL=1
+_out=$(tb_geo_run_manual_update 2>&1)
+_manual_rc=$?
+unset GEO_MANUAL_FAIL
+check "manual refresh failure returns non-zero" test "${_manual_rc}" -ne 0
+check "manual refresh failure explains the retained state" \
+    bash -c "[[ '${_out}' == *'GeoData 手动刷新失败'* && '${_out}' == *'config.json 未改动'* && '${_out}' == *'未创建定时任务'* ]]"
+check "manual refresh failure keeps the config unchanged" \
+    test "$(cat "${xray_conf}")" = "${_manual_cfg}"
+check "manual refresh failure keeps the crontab untouched" \
+    bash -c "[[ ! -s '${GEO_CRONTAB}' ]]"
+check "manual refresh failure does not restart Xray" \
+    bash -c "! grep -q 'restart' '${GEO_SYSTEMCTL_LOG}'"
+
+reset_geo
+printf '0 3 * * 1 bash "%s"\n' "${geo_update_file}" >"${GEO_CRONTAB}"
+: >"${GEO_SYSTEMCTL_LOG}"
+_out=$(tb_geo_remove_legacy_cron 2>&1)
+_remove_rc=$?
+check "removing the old cron succeeds" test "${_remove_rc}" -eq 0
+check "removing the old cron touches only the project entry" \
+    bash -c "[[ ! -s '${GEO_CRONTAB}' ]]"
+check "removing the old cron never restarts Xray" \
+    bash -c "! grep -q 'restart' '${GEO_SYSTEMCTL_LOG}'"
+check "the manual refresh path never writes a cron entry" \
+    bash -c "awk '/^tb_geo_run_manual_update\(\)/,/^}/' '${TRAFFIC_SH}' | grep -q 'crontab' && exit 1 || exit 0"
+check "the menu refresh path never writes a cron entry" \
+    bash -c "awk '/^tb_download_geo_file\(\)/,/^}/' '${TRAFFIC_SH}' | grep -q 'crontab' && exit 1 || exit 0"
 
 echo ""
 echo "============================================================"
