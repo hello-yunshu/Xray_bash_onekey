@@ -4863,7 +4863,7 @@ set_xray_config_path() {
 # ---- GeoData 原生下载与热更新 ------------------------------------------------
 # Xray 自带 geodata 模块：按 cron 下载 .dat 并热重载，不重启进程。普通节点改用
 # 这个原生路径，脚本不再为它安装自己的 cron + geo_update.sh（后者保留为手动
-# 救援工具）。纯中转节点只有 Nginx，不生成任何 GeoData 配置。
+# 刷新工具）。纯中转节点只有 Nginx，不生成任何 GeoData 配置。
 geodata_dir="${idleleo_dir}/share/xray"
 # Weekly, matching the legacy cron so the update cadence does not change.
 geodata_cron="0 3 * * 1"
@@ -5042,7 +5042,7 @@ geodata_low_memory_notice() {
     mem_kb=$(awk '/^MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null)
     [[ -n "${mem_kb}" ]] || return 0
     (( mem_kb < 1048576 )) || return 0
-    log_echo "${Warning} ${YellowBG} $(gettext "低内存设备 (小于 1 GiB): GeoData 定时更新会有短暂内存峰值, 请留意") ${Font}"
+    log_echo "${Warning} ${YellowBG} $(gettext "低内存设备 (小于 1 GiB): GeoData 自动刷新会有短暂内存峰值, 请留意") ${Font}"
 }
 
 # Write the managed block into the live Xray config. A user-authored geodata
@@ -5088,7 +5088,7 @@ geodata_native_enable() {
         # ownership because the official installer resets .dat to root:root 644.
         geodata_apply_permissions || return 1
         geodata_service_can_write || \
-            log_echo "${Warning} ${YellowBG} $(gettext "Xray 服务账号仍无法写入 GeoData 文件, 原生更新可能失败") ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "Xray 服务账号仍无法写入 GeoData 文件, 自动刷新可能失败") ${Font}"
         return 0
     fi
 
@@ -5118,8 +5118,8 @@ geodata_native_enable() {
         return 1
     fi
     geodata_service_can_write || \
-        log_echo "${Warning} ${YellowBG} $(gettext "Xray 服务账号仍无法写入 GeoData 文件, 原生更新可能失败") ${Font}"
-    log_echo "${OK} ${GreenBG} $(gettext "已启用 Xray 原生 GeoData 定时更新"): ${geodata_cron} ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "Xray 服务账号仍无法写入 GeoData 文件, 自动刷新可能失败") ${Font}"
+    log_echo "${OK} ${GreenBG} $(gettext "已启用 Xray 原生 GeoData 自动刷新"): ${geodata_cron} ${Font}"
     return 0
 }
 
@@ -5158,7 +5158,7 @@ geodata_legacy_cron_disable() {
     lines=$(geodata_legacy_cron_lines) || return 0
     [[ -n "${lines}" ]] || return 0
     if crontab -l 2>/dev/null | awk -v script="${geo_update_file}" 'index($0, script) == 0' | crontab -; then
-        log_echo "${OK} ${GreenBG} $(gettext "已移除脚本创建的 geo_update.sh 周期任务, 避免与原生更新重复执行") ${Font}"
+        log_echo "${OK} ${GreenBG} $(gettext "已移除脚本创建的 geo_update.sh 周期任务, 避免与原生自动刷新重复执行") ${Font}"
         return 0
     fi
     log_echo "${Warning} ${YellowBG} $(gettext "移除 geo_update.sh 周期任务失败, 请手动检查 crontab") ${Font}"
@@ -5261,12 +5261,12 @@ geodata_migrate_legacy() {
     case "${state}" in
         custom)
             geodata_migration_clear_failed
-            log_echo "${Info} ${Green} $(gettext "检测到自定义 geodata 配置, 保留原样且不改动旧更新任务") ${Font}"
+            log_echo "${Info} ${Green} $(gettext "检测到自定义 geodata 配置, 保留原样且不改动旧刷新任务") ${Font}"
             return 0
             ;;
         invalid)
             geodata_migration_mark_failed invalid_config
-            log_echo "${Warning} ${YellowBG} $(gettext "Xray 配置无法解析, 保留旧 GeoData 更新任务") ${Font}"
+            log_echo "${Warning} ${YellowBG} $(gettext "Xray 配置无法解析, 保留旧 GeoData 刷新任务") ${Font}"
             return 1
             ;;
         absent)
@@ -5287,19 +5287,19 @@ geodata_migrate_legacy() {
     if ! geodata_migrate_asset_layout; then
         [[ -n "${backup}" ]] && rm -f "${backup}"
         geodata_migration_mark_failed layout
-        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 路径迁移失败, 保留旧更新任务") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 路径迁移失败, 保留旧刷新任务") ${Font}"
         return 1
     fi
     if ! geodata_native_enable; then
         [[ -n "${backup}" ]] && rm -f "${backup}"
         geodata_migration_mark_failed native_enable
-        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 原生更新启用失败, 保留旧更新任务") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 自动刷新启用失败, 保留旧刷新任务") ${Font}"
         return 1
     fi
     if [[ "$(geodata_state)" != "managed" ]]; then
         [[ -n "${backup}" ]] && rm -f "${backup}"
         geodata_migration_mark_failed native_state
-        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 原生配置未生效, 保留旧更新任务") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 自动刷新配置未生效, 保留旧刷新任务") ${Font}"
         return 1
     fi
     # Only the absent -> managed transition needs a restart. A managed block
@@ -5316,7 +5316,7 @@ geodata_migrate_legacy() {
             if [[ "${restored}" == "true" ]]; then
                 rm -f "${backup}"
                 geodata_migration_mark_failed restart
-                log_echo "${Warning} ${YellowBG} $(gettext "已恢复原配置并重启 Xray, 保留旧更新任务") ${Font}"
+                log_echo "${Warning} ${YellowBG} $(gettext "已恢复原配置并重启 Xray, 保留旧刷新任务") ${Font}"
             else
                 geodata_migration_mark_failed recovery_required
                 log_echo "${Error} ${RedBG} $(gettext "RECOVERY REQUIRED: 原配置恢复或服务重启失败, 备份保留于") ${backup} ${Font}"
@@ -5327,9 +5327,10 @@ geodata_migrate_legacy() {
     fi
     if ! geodata_legacy_cron_disable; then
         geodata_migration_mark_failed cron_cleanup
-        log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 更新任务移除失败, 请手动检查 crontab") ${Font}"
+        log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 刷新任务移除失败, 请手动检查 crontab") ${Font}"
         return 1
     fi
+    log_echo "${OK} ${GreenBG} $(gettext "GeoData 已从脚本模式切换为自动刷新 (Xray 原生)") ${Font}"
     geodata_migration_clear_failed
     return 0
 }
@@ -13274,6 +13275,239 @@ function backup_directories() {
     log_echo "${OK} ${GreenBG} $(gettext "备份") $(gettext "成功"): ${backup_path} ${Font}"
 }
 
+# ---- restore-time GeoData layout self-heal ---------------------------------
+# Archives created before the managed asset layout either carry a real
+# /usr/local/share/xray directory or no entry at all, while Xray expects the
+# symlink into /etc/idleleo/share/xray. Restoring such an archive on a fresh
+# host therefore leaves the .dat files in a directory Xray never reads. The
+# helpers below repair the three layouts, validate with the restored binary and
+# roll back every change when validation fails.
+
+_restore_geo_pair_ok() {
+    local dir="$1"
+    [[ -f "${dir}/geoip.dat" && ! -L "${dir}/geoip.dat" ]] || return 1
+    [[ -f "${dir}/geosite.dat" && ! -L "${dir}/geosite.dat" ]] || return 1
+}
+
+# Heal /usr/local/share/xray after an archive overlay.
+#
+#   1. correct symlink -> do nothing (idempotent re-restore).
+#   2. missing path + managed geodata -> create the symlink.
+#   3. real directory with geodata -> merge into the managed directory, keep the
+#      original tree as a rollback copy and replace it with the symlink.
+#
+# Merge policy: the target (restored /etc/idleleo/share/xray) wins on every
+# same-name collision. The legacy file stays available in the kept backup
+# directory, so nothing is destroyed and repeated restores never overwrite
+# geodata the host already had.
+#
+# $2 is an optional legacy tree detached before the overlay (repeat restore of
+# an old archive onto an already-healed host); only missing files are merged.
+restore_geodata_layout_selfheal() {
+    local restore_root="${1:-/}"
+    local legacy_source="${2:-}"
+    local prefix="" link_target default_dir managed_dir
+    [[ "${restore_root}" == "/" ]] || prefix="${restore_root%/}"
+    default_dir="${prefix}${local_bin}/share/xray"
+    managed_dir="${prefix}/etc/idleleo/share/xray"
+    link_target="${prefix}/etc/idleleo/share/xray"
+
+    local xray_bin="${prefix}${xray_bin_dir}/xray"
+    local xray_config="${prefix}${xray_conf}"
+    local config_snapshot="" backup_dir="" created_link=0 moved_original=0
+    local relinked=0 original_link_target="" test_output="" managed_created=0
+    local -a copied_files=()
+
+    if [[ -f "${xray_config}" ]]; then
+        config_snapshot=$(mktemp "${TMPDIR:-/tmp}/xray-restore-config.XXXXXX" 2>/dev/null) || {
+            log_echo "${Error} ${RedBG} $(gettext "恢复前配置快照创建失败") ${Font}"
+            return 1
+        }
+        if ! cp -p "${xray_config}" "${config_snapshot}"; then
+            rm -f "${config_snapshot}"
+            log_echo "${Error} ${RedBG} $(gettext "恢复前配置快照创建失败") ${Font}"
+            return 1
+        fi
+    fi
+
+    # Bash dynamic scoping keeps the caller's locals visible here; this keeps
+    # every failure path on the same rollback sequence.
+    _restore_geo_fail() {
+        local reason="$1" rollback_ok=1 f
+        if [[ "${created_link}" == "1" ]]; then
+            rm -f "${default_dir}" || rollback_ok=0
+            created_link=0
+        fi
+        if [[ "${moved_original}" == "1" ]]; then
+            if [[ -d "${backup_dir}" && ! -e "${default_dir}" && ! -L "${default_dir}" ]]; then
+                mv "${backup_dir}" "${default_dir}" || rollback_ok=0
+            else
+                rollback_ok=0
+            fi
+            moved_original=0
+        fi
+        for f in ${copied_files[@]+"${copied_files[@]}"}; do
+            rm -f -- "${f}" || rollback_ok=0
+        done
+        if [[ "${managed_created}" == "1" && -d "${managed_dir}" ]]; then
+            rmdir "${managed_dir}" 2>/dev/null || true
+            managed_created=0
+        fi
+        if [[ "${relinked}" == "1" ]]; then
+            if [[ -n "${original_link_target}" ]]; then
+                ln -sfn "${original_link_target}" "${default_dir}" || rollback_ok=0
+            else
+                rm -f "${default_dir}" || rollback_ok=0
+            fi
+        fi
+        if [[ -n "${config_snapshot}" && -f "${config_snapshot}" ]]; then
+            cp -p "${config_snapshot}" "${xray_config}" || rollback_ok=0
+        fi
+        if [[ "${rollback_ok}" == "1" ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "GeoData 自愈失败, 已回滚到恢复前状态"): ${reason} ${Font}"
+        else
+            log_echo "${Error} ${RedBG} $(gettext "RECOVERY REQUIRED: GeoData 自愈回滚不完整"): ${reason} ${Font}"
+        fi
+        [[ -z "${config_snapshot}" ]] || rm -f "${config_snapshot}"
+        return 1
+    }
+
+    _restore_geo_merge() {
+        local source_dir="$1" target_dir="$2" entry base
+        if [[ ! -d "${target_dir}" ]]; then
+            mkdir -p "${target_dir}" || return 1
+            [[ "${target_dir}" == "${managed_dir}" ]] && managed_created=1
+        fi
+        for entry in "${source_dir}"/*; do
+            [[ -f "${entry}" && ! -L "${entry}" ]] || continue
+            base="${entry##*/}"
+            if [[ -e "${target_dir}/${base}" || -L "${target_dir}/${base}" ]]; then
+                continue
+            fi
+            if ! cp -p -- "${entry}" "${target_dir}/${base}"; then
+                log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 文件复制失败, 保留原目录"): ${entry} ${Font}"
+                return 1
+            fi
+            copied_files+=("${target_dir}/${base}")
+        done
+        return 0
+    }
+
+    if [[ -L "${default_dir}" ]]; then
+        local target
+        target=$(readlink "${default_dir}" 2>/dev/null)
+        # Relocated test roots cannot resolve the canonical absolute target.
+        # Re-point the restored link inside that root; production is unchanged.
+        if [[ "${restore_root}" != "/" && "${target}" == "/etc/idleleo/share/xray" ]]; then
+            original_link_target="${target}"
+            relinked=1
+            ln -sfn "${link_target}" "${default_dir}" || {
+                relinked=0
+                _restore_geo_fail "repoint link"
+                unset -f _restore_geo_fail _restore_geo_merge
+                return 1
+            }
+            target="${link_target}"
+        fi
+        if [[ "${target}" == "${link_target}" ]] || \
+            { [[ -d "${default_dir}" ]] && \
+              [[ "$(_geodata_realpath "${default_dir}")" == "$(_geodata_realpath "${managed_dir}")" ]]; }; then
+            if [[ -n "${legacy_source}" ]]; then
+                if ! _restore_geo_merge "${legacy_source}" "${managed_dir}"; then
+                    _restore_geo_fail "merge legacy assets"
+                    unset -f _restore_geo_fail _restore_geo_merge
+                    return 1
+                fi
+            fi
+        else
+            log_echo "${Warning} ${YellowBG} $(gettext "GeoData 软链指向其他目录, 保留现状"): ${target:-<broken>} ${Font}"
+            if [[ -n "${legacy_source}" ]]; then
+                log_echo "${Warning} ${YellowBG} $(gettext "旧归档 GeoData 文件未合并, 现有软链未被覆盖") ${Font}"
+            fi
+        fi
+    elif [[ -d "${default_dir}" ]]; then
+        if _restore_geo_pair_ok "${default_dir}"; then
+            if ! _restore_geo_merge "${default_dir}" "${managed_dir}"; then
+                _restore_geo_fail "merge legacy assets"
+                unset -f _restore_geo_fail _restore_geo_merge
+                return 1
+            fi
+            if ! _restore_geo_pair_ok "${managed_dir}"; then
+                _restore_geo_fail "managed assets incomplete"
+                unset -f _restore_geo_fail _restore_geo_merge
+                return 1
+            fi
+            backup_dir="${default_dir}.restore-backup.$(date +%Y%m%d%H%M%S)"
+            [[ -e "${backup_dir}" || -L "${backup_dir}" ]] && backup_dir="${backup_dir}.$$"
+            if ! mv "${default_dir}" "${backup_dir}"; then
+                _restore_geo_fail "move legacy directory"
+                unset -f _restore_geo_fail _restore_geo_merge
+                return 1
+            fi
+            moved_original=1
+            if ! ln -s "${link_target}" "${default_dir}"; then
+                _restore_geo_fail "create managed symlink"
+                unset -f _restore_geo_fail _restore_geo_merge
+                return 1
+            fi
+            created_link=1
+            log_echo "${OK} ${GreenBG} $(gettext "已将旧 GeoData 目录合并到"): ${managed_dir} ${Font}"
+            log_echo "${Info} ${Green} $(gettext "同名文件以目标目录为准, 原目录回退副本保留于"): ${backup_dir} ${Font}"
+        else
+            log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 目录缺少 geoip.dat/geosite.dat, 保留原目录且不建软链"): ${default_dir} ${Font}"
+        fi
+    elif [[ -e "${default_dir}" ]]; then
+        _restore_geo_fail "unsupported asset path"
+        unset -f _restore_geo_fail _restore_geo_merge
+        return 1
+    else
+        if _restore_geo_pair_ok "${managed_dir}"; then
+            mkdir -p "${default_dir%/*}" || {
+                _restore_geo_fail "create asset parent"
+                unset -f _restore_geo_fail _restore_geo_merge
+                return 1
+            }
+            if ! ln -s "${link_target}" "${default_dir}"; then
+                _restore_geo_fail "create managed symlink"
+                unset -f _restore_geo_fail _restore_geo_merge
+                return 1
+            fi
+            created_link=1
+            log_echo "${OK} ${GreenBG} $(gettext "已创建 GeoData 资源目录软链"): ${default_dir} ${Font}"
+        else
+            log_echo "${Info} ${Green} $(gettext "未找到可用的 GeoData 资源, 跳过软链自愈") ${Font}"
+        fi
+    fi
+
+    # Validation is part of the heal: a layout that cannot be read by the real
+    # binary must not be reported as a successful restore.
+    if [[ ! -x "${xray_bin}" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "未找到可执行的 Xray, 跳过 GeoData 自愈后自检") ${Font}"
+        [[ -z "${config_snapshot}" ]] || rm -f "${config_snapshot}"
+        unset -f _restore_geo_fail _restore_geo_merge
+        return 0
+    fi
+    if [[ ! -f "${xray_config}" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "恢复后缺少 Xray 配置, 跳过 GeoData 自愈后自检") ${Font}"
+        [[ -z "${config_snapshot}" ]] || rm -f "${config_snapshot}"
+        unset -f _restore_geo_fail _restore_geo_merge
+        return 0
+    fi
+    if ! test_output=$(XRAY_LOCATION_ASSET="${default_dir}" "${xray_bin}" run -test -config "${xray_config}" 2>&1); then
+        log_echo "${Error} ${RedBG} $(gettext "GeoData 自愈后 Xray 配置自检失败") ${Font}"
+        printf '%s\n' "${test_output}" | tail -n 5 | while IFS= read -r _line; do
+            [[ -n "${_line}" ]] && log_echo "  ${_line}"
+        done
+        _restore_geo_fail "xray -test"
+        unset -f _restore_geo_fail _restore_geo_merge
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "GeoData 自愈后 Xray 自检通过") ${Font}"
+    [[ -z "${config_snapshot}" ]] || rm -f "${config_snapshot}"
+    unset -f _restore_geo_fail _restore_geo_merge
+    return 0
+}
+
 function restore_directories() {
     log_echo "${Warning} ${YellowBG} $(gettext "请确保备份文件在目录"): ${idleleo_dir} ${Font}"
     local backup_files=($(ls "${idleleo_dir}"/xray_bash_*.tar.gz 2>/dev/null))
@@ -13312,7 +13546,15 @@ function restore_directories() {
         return 1
     fi
 
-    if ! tar -tzf "${latest_backup_file}" | grep -Eq '^/?(etc/idleleo|usr/local/nginx|usr/local/bin/xray|etc/systemd/system|root/.acme.sh)(/|$)'; then
+    # Capture the listing once. Piping tar directly into grep is unsafe under
+    # `set -o pipefail`: grep exits on the first match, tar receives SIGPIPE,
+    # and a perfectly valid archive is rejected as "unexpected content".
+    local _archive_listing=""
+    if ! _archive_listing=$(tar -tzf "${latest_backup_file}" 2>/dev/null); then
+        log_echo "${Error} ${RedBG} $(gettext "备份完整性校验失败, 拒绝恢复") ${Font}"
+        return 1
+    fi
+    if ! grep -Eq '^/?(etc/idleleo|usr/local/nginx|usr/local/bin/xray|etc/systemd/system|root/.acme.sh)(/|$)' <<<"${_archive_listing}"; then
         log_echo "${Error} ${RedBG} $(gettext "备份内容不符合预期, 拒绝恢复") ${Font}"
         return 1
     fi
@@ -13346,8 +13588,29 @@ function restore_directories() {
         log_echo "${Warning} ${YellowBG} $(gettext "旧备份无完整性清单, 仅做结构校验") ${Font}"
     fi
 
+    # A legacy archive stores /usr/local/share/xray as a real directory. When
+    # the host is already healed (the path is the managed symlink), `cp -a`
+    # would either fail or write the archived files through the link, silently
+    # replacing newer geodata. Detach that tree before the overlay and merge it
+    # later with target-wins rules; the self-heal owns the final layout.
+    local _legacy_geo_source=""
+    local _live_default_geo="${restore_root%/}${local_bin}/share/xray"
+    if [[ -d "${staging}/usr/local/share/xray" && ! -L "${staging}/usr/local/share/xray" ]] && \
+        [[ -L "${_live_default_geo}" ]]; then
+        _legacy_geo_source=$(mktemp -d "${TMPDIR:-/tmp}/xray-restore-geo.XXXXXX" 2>/dev/null) || {
+            rm -rf "${staging}"
+            log_echo "${Error} ${RedBG} $(gettext "旧 GeoData 目录暂存失败, 拒绝恢复") ${Font}"
+            return 1
+        }
+        if ! mv "${staging}/usr/local/share/xray" "${_legacy_geo_source}/xray"; then
+            rm -rf "${staging}" "${_legacy_geo_source}"
+            log_echo "${Error} ${RedBG} $(gettext "旧 GeoData 目录暂存失败, 拒绝恢复") ${Font}"
+            return 1
+        fi
+    fi
+
     if ! cp -a "${staging}/." "${restore_root}/"; then
-        rm -rf "${staging}"
+        rm -rf "${staging}" "${_legacy_geo_source}"
         log_echo "${Error} ${RedBG} $(gettext "恢复") $(gettext "失败") ${Font}"
         return 1
     fi
@@ -13359,7 +13622,7 @@ function restore_directories() {
     # other custom files are preserved. Legacy archives have no manifest
     # listing, so pruning is skipped and the cross-mode limitation is logged.
     local _manifest_in_archive=0
-    if tar -tzf "${latest_backup_file}" 2>/dev/null | grep -qx 'etc/idleleo/.backup_sha256sums.txt'; then
+    if grep -qx 'etc/idleleo/.backup_sha256sums.txt' <<<"${_archive_listing}"; then
         _manifest_in_archive=1
     fi
     if (( _manifest_in_archive == 1 )); then
@@ -13399,6 +13662,17 @@ function restore_directories() {
             chmod 640 "${restore_root}/etc/idleleo/cert/${_cert}" 2>/dev/null || true
     done
 
+    # Repair a legacy asset layout before validating the restored config.
+    # A failure rolls the layout and config back; never leave a half-healed tree.
+    local _legacy_geo_arg=""
+    [[ -n "${_legacy_geo_source}" ]] && _legacy_geo_arg="${_legacy_geo_source}/xray"
+    if ! restore_geodata_layout_selfheal "${restore_root}" "${_legacy_geo_arg}"; then
+        rm -rf "${_legacy_geo_source}"
+        log_echo "${Error} ${RedBG} $(gettext "恢复失败: GeoData 资源目录自愈未通过") ${Font}"
+        return 1
+    fi
+    rm -rf "${_legacy_geo_source}"
+
     # Reload systemd after restored units/config; do not start services here
     # (installation/uninstall semantics stay unchanged).
     if command -v systemctl >/dev/null 2>&1; then
@@ -13407,10 +13681,13 @@ function restore_directories() {
     fi
 
     # Validate the restored Xray config with the restored binary when possible.
+    # Point the asset root at the restored tree: with RESTORE_ROOT the default
+    # /usr/local/share/xray would otherwise resolve against the live host.
     local _xray_bin="${restore_root%/}${xray_bin_dir}/xray"
     local _xray_config="${restore_root%/}${xray_conf}"
+    local _xray_asset="${restore_root%/}${local_bin}/share/xray"
     if [[ -x "${_xray_bin}" && -f "${_xray_config}" ]]; then
-        if ! "${_xray_bin}" -test -config "${_xray_config}" >/dev/null 2>&1; then
+        if ! XRAY_LOCATION_ASSET="${_xray_asset}" "${_xray_bin}" run -test -config "${_xray_config}" >/dev/null 2>&1; then
             log_echo "${Error} ${RedBG} $(gettext "恢复后 Xray 配置自检失败") ${Font}"
             return 1
         fi
