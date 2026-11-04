@@ -1,6 +1,6 @@
 # Xray management script — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
-Current version: **3.3.1**
+Current version: **3.3.2**
 
 Simplified Chinese |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
