@@ -146,7 +146,7 @@ Xray StatsService provides only inbound uplink/downlink and Uptime counters; it 
 
 `idleleo --backup` backs up only script-managed files: `/etc/idleleo`, `/usr/local/nginx`, the Xray binary, systemd units, the root crontab, and ACME state. It is not a full-host backup and does not automatically include data you placed elsewhere.
 
-`idleleo --restore` selects the backup with the newest timestamp. Backups with a checksum manifest verify the SHA256 of every archived file and remove script-managed configuration absent from the backup; older backups without a manifest only receive structural validation and skip cross-mode pruning. User-created files are preserved and services are not started automatically. After restoring across modes, inspect leftover configuration and restart services as needed.
+`idleleo --restore` selects the backup with the newest timestamp. Backups with a checksum manifest verify the SHA256 of every archived file and remove script-managed configuration absent from the backup; older backups without a manifest only receive structural validation and skip cross-mode pruning. User-created files are preserved and services are not started automatically. After restoring across modes, inspect leftover configuration and restart services as needed. If an old backup has no `/usr/local/share/xray` symlink, restore creates it or merges the legacy GeoData directory into `/etc/idleleo/share/xray`, then validates with a real `xray run -test`; a failed self-heal is rolled back, so old backups still restore to a new host without reinstalling.
 
 Backup archives may contain certificates, private keys, and client configuration. Treat them as sensitive files and do not upload them to public locations.
 
