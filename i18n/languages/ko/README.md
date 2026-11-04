@@ -146,7 +146,7 @@ Xray StatsService는 인바운드 업로드/다운로드와 Uptime 카운터만 
 
 `idleleo --backup`은 스크립트가 관리하는 파일만 백업합니다: `/etc/idleleo`, `/usr/local/nginx`, Xray 바이너리, systemd unit, root crontab, ACME 상태. 전체 호스트 백업이 아니며 다른 경로에 둔 데이터를 자동으로 포함하지 않습니다.
 
-`idleleo --restore`는 타임스탬프가 가장 최신인 백업을 선택하고 아카이브 안의 각 파일 SHA256을 검증한 뒤 복구합니다. 백업에 없는 스크립트 관리 구성을 제거하지만 사용자 정의 파일은 유지하며 서비스를 자동으로 시작하지 않습니다. 모드 간 복구 후에는 남은 구성을 확인하고 필요에 따라 서비스를 재시작하세요.
+`idleleo --restore`는 타임스탬프가 가장 최신인 백업을 선택합니다. 체크섬 매니페스트가 있는 백업은 아카이브 안의 각 파일 SHA256을 검증하고 백업에 없는 스크립트 관리 구성을 제거합니다. 매니페스트가 없는 오래된 백업은 구조 검증만 수행하고 모드 간 정리를 건너뜁니다. 사용자 정의 파일은 유지되며 서비스는 자동으로 시작되지 않습니다. 모드 간 복구 후에는 남은 구성을 확인하고 필요에 따라 서비스를 재시작하세요.
 
 백업 아카이브에는 인증서, 개인 키, 클라이언트 구성이 포함될 수 있습니다. 민감한 파일로 취급하고 공개 위치에 업로드하지 마세요.
 
@@ -226,12 +226,12 @@ idleleo --update --yes --allow-major  # 계열 간 업데이트; 제한을 명�
 | 메인 디렉터리 | `/etc/idleleo` |
 | Xray 구성 | `/etc/idleleo/conf/xray/config.json` |
 | Nginx 구성 | `/etc/idleleo/conf/nginx/` |
-| 설치 정보 | `/etc/idleleo/conf/install_config.json` |
+| 스크립트 상태 구성 | `/etc/idleleo/conf/install_config.json` |
 | 인증서 파일 | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
 | 로그 디렉터리 | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Nginx 설치 디렉터리 | `/usr/local/nginx` |
 | 관리 명령 | `/usr/bin/idleleo` |
-| 클라이언트 구성 | `/etc/idleleo/info/xray_info.inf` |
+| 설치 정보 텍스트 | `/etc/idleleo/info/xray_info.inf` |
 
 | 작업 | 명령 |
 |---|---|
@@ -253,7 +253,7 @@ docker attach xray-onekey
 
 AI Skill은 Skills를 지원하는 AI 도구가 각 대화형 질문에 답하지 않고 배포를 자동으로 완료하도록 합니다. [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)을 참고하세요.
 
-지원 모드: Reality, TLS, ws ONLY, 중계 노드. AI 도구에 "내 서버에 Xray를 설치해 줘"라고 말하면 정보를 수집하고 비대화형 스크립트를 생성하여 배포한 뒤 연결 정보를 반환합니다.
+스크립트는 Reality, TLS, ws/gRPC/xHTTP ONLY, Nginx Stream 중계 노드를 지원합니다. AI Skill 자동 배포 템플릿은 현재 Reality와 TLS만 지원하므로, ws/gRPC/xHTTP ONLY와 중계 노드는 서버에서 idleleo로 설정하세요.
 
 ## RillML Xray AI 운영 도우미
 

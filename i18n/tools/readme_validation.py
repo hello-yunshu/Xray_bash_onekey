@@ -26,10 +26,15 @@ from translation_backend import back_translate
 
 LANGUAGES = ("en", "fr", "ru", "fa", "ko")
 
-# Calibrated to the current README's prose/code mix. The previous values were
-# tuned to an older, code-heavy source and would force artificial padding
-# instead of improving translation quality. Structure, glossary, and Chinese
-# residue checks remain unchanged.
+# These ratios are calibrated to the 2026-11 README rewrite, not universal
+# language constants: the source grew from ~1.2k to ~5.4k visible characters
+# and its prose/code ratio moved from ~0.48 to ~2.04, so Chinese-to-Latin
+# expansion is naturally much lower than the previous code-heavy sample.
+# Measured ratios for this sample are 1.67 (en), 1.99 (fr), 1.82 (ru),
+# 1.47 (fa), 0.84 (ko). LENGTH_TOLERANCE=0.35 is deliberately coarse (normal
+# translation variance), so these bounds are a regression guard, not proof of
+# semantic quality. Re-measure and recalibrate whenever the README's prose/code
+# mix changes; do not reuse these values as general-purpose thresholds.
 EXPECTED_LENGTH_RATIO = {
     "en": 1.7,
     "fr": 2.0,
