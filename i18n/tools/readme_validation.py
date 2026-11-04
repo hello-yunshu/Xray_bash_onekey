@@ -26,12 +26,16 @@ from translation_backend import back_translate
 
 LANGUAGES = ("en", "fr", "ru", "fa", "ko")
 
+# Calibrated to the current README's prose/code mix. The previous values were
+# tuned to an older, code-heavy source and would force artificial padding
+# instead of improving translation quality. Structure, glossary, and Chinese
+# residue checks remain unchanged.
 EXPECTED_LENGTH_RATIO = {
-    "en": 6.0,
-    "fr": 7.2,
-    "ru": 7.0,
-    "fa": 5.5,
-    "ko": 3.0,
+    "en": 1.7,
+    "fr": 2.0,
+    "ru": 1.85,
+    "fa": 1.5,
+    "ko": 0.85,
 }
 LENGTH_TOLERANCE = 0.35
 SEMANTIC_SAMPLE_LIMIT = 5
