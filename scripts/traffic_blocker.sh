@@ -769,7 +769,9 @@ tb_geo_auto_update() {
                     pkg_install "cron"
                     systemctl start cron >/dev/null 2>&1 && systemctl enable cron >/dev/null 2>&1
                 fi
-                (crontab -l 2>/dev/null; echo "0 3 * * 1 bash \"${geo_update_file}\"") | crontab -
+                # Cron starts with a minimal PATH; set it explicitly on the
+                # command line so Xray in /usr/local/bin is always resolvable.
+                (crontab -l 2>/dev/null; echo "0 3 * * 1 PATH=/usr/local/bin:/usr/bin:/bin bash \"${geo_update_file}\"") | crontab -
                 judge -r "$(gettext "设置 GeoData 自动更新")" || return 1
             fi
             ;;

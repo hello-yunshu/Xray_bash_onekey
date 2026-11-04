@@ -5102,6 +5102,17 @@ geodata_legacy_cron_lines() {
     crontab -l 2>/dev/null | awk -v script="${geo_update_file}" 'index($0, script) > 0'
 }
 
+# Xray reads the geodata block at process start; an existing install that is
+# already running will not pick up the new schedule until it is restarted.
+# Inactive hosts need no restart: the next service start reads the new config.
+geodata_restart_if_active() {
+    command -v systemctl >/dev/null 2>&1 || return 0
+    systemctl is-active --quiet xray 2>/dev/null || return 0
+    systemctl restart xray 2>/dev/null || return 1
+    systemctl is-active --quiet xray 2>/dev/null || return 1
+    return 0
+}
+
 # Runs after the service is confirmed healthy: with the native schedule live, a
 # second external updater would restart Xray on its own and double the work.
 geodata_legacy_cron_disable() {
@@ -5118,6 +5129,143 @@ geodata_legacy_cron_disable() {
     fi
     log_echo "${Warning} ${YellowBG} $(gettext "移除 geo_update.sh 周期任务失败, 请手动检查 crontab") ${Font}"
     return 1
+}
+
+# Legacy installs may still have /usr/local/share/xray as a real directory.
+# Xray's default asset root is that path, while this script and the legacy
+# updater write ${geodata_dir}; leaving both trees in place makes an update
+# succeed on disk but invisible to the running binary. Copy first, then replace
+# the old tree with a symlink; never delete source data before it is copied.
+geodata_migrate_asset_layout() {
+    local default_dir="${local_bin}/share/xray"
+    local target backup
+    if [[ ! -e "${default_dir}" && ! -L "${default_dir}" ]]; then
+        # A previous migration or a manual cleanup may have removed the symlink
+        # while the managed directory still holds the assets. Restore the link
+        # so Xray's default asset root keeps resolving.
+        [[ -d "${geodata_dir}" ]] && geodata_files_ok || return 0
+        if ! ln -s "${geodata_dir}" "${default_dir}"; then
+            log_echo "${Warning} ${YellowBG} $(gettext "GeoData 资源目录软链创建失败"): ${default_dir} ${Font}"
+            return 1
+        fi
+        log_echo "${OK} ${GreenBG} $(gettext "已恢复 GeoData 资源目录软链"): ${default_dir} ${Font}"
+        return 0
+    fi
+    if [[ -L "${default_dir}" ]]; then
+        target=$(_geodata_realpath "${default_dir}") || return 1
+        [[ "${target}" == "$(_geodata_realpath "${geodata_dir}")" ]] && return 0
+        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 软链指向其他目录, 跳过自动迁移"): ${target} ${Font}"
+        return 1
+    fi
+    [[ -d "${default_dir}" ]] || return 1
+    mkdir -p "${geodata_dir}" || return 1
+    # Merge regular files, but never overwrite a file the legacy updater has
+    # already written into ${geodata_dir}. The old directory remains readable
+    # until the managed path has both .dat files, so a failed migration cannot
+    # leave Xray with a half-moved asset directory.
+    local entry base
+    for entry in "${default_dir}"/*; do
+        [[ -f "${entry}" && ! -L "${entry}" ]] || continue
+        base="${entry##*/}"
+        if [[ ! -e "${geodata_dir}/${base}" && ! -L "${geodata_dir}/${base}" ]]; then
+            cp -p -- "${entry}" "${geodata_dir}/${base}" || {
+                log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 文件复制失败, 保留原目录"): ${entry} ${Font}"
+                return 1
+            }
+        fi
+    done
+    if ! geodata_files_ok; then
+        log_echo "${Warning} ${YellowBG} $(gettext "迁移后缺少 geoip.dat/geosite.dat, 保留原目录"): ${default_dir} ${Font}"
+        return 1
+    fi
+    backup="${default_dir}.legacy-migrate.$$"
+    if ! mv "${default_dir}" "${backup}"; then
+        log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 目录替换失败, 保留原目录"): ${default_dir} ${Font}"
+        return 1
+    fi
+    if ! ln -s "${geodata_dir}" "${default_dir}"; then
+        if ! mv "${backup}" "${default_dir}" 2>/dev/null; then
+            log_echo "${Error} ${RedBG} $(gettext "GeoData 目录迁移失败且无法恢复, 请手动检查"): ${backup} ${Font}"
+        fi
+        return 1
+    fi
+    rm -rf "${backup}" 2>/dev/null || \
+        log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 迁移备份未清理"): ${backup} ${Font}"
+    log_echo "${OK} ${GreenBG} $(gettext "已将旧 GeoData 目录迁移到"): ${geodata_dir} ${Font}"
+    return 0
+}
+
+# One-time bridge from the external geo_update.sh cron to Xray's native
+# scheduler. It is intentionally invoked from every mutable startup (including
+# the -u path) so old installs are repaired without requiring a reinstall.
+# Custom geodata, invalid configs, layout conflicts and config-test failures
+# all leave the legacy cron untouched (fail closed).
+geodata_migrate_legacy() {
+    local state backup="" restored
+    is_relay_role && return 0
+    [[ -x "${xray_bin_dir}/xray" && -f "${xray_conf}" ]] || return 0
+    state=$(geodata_state)
+    case "${state}" in
+        custom)
+            log_echo "${Info} ${Green} $(gettext "检测到自定义 geodata 配置, 保留原样且不改动旧更新任务") ${Font}"
+            return 0
+            ;;
+        invalid)
+            log_echo "${Warning} ${YellowBG} $(gettext "Xray 配置无法解析, 保留旧 GeoData 更新任务") ${Font}"
+            return 1
+            ;;
+        absent)
+            # Snapshot before the write so a post-write service failure can
+            # restore the exact pre-migration config, not just a config that
+            # happens to parse.
+            backup=$(mktemp "${xray_conf}.legacy-migrate.XXXXXX" 2>/dev/null) || return 1
+            if ! cp -p "${xray_conf}" "${backup}"; then
+                rm -f "${backup}"
+                return 1
+            fi
+            ;;
+    esac
+    if ! geodata_migrate_asset_layout; then
+        [[ -n "${backup}" ]] && rm -f "${backup}"
+        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 路径迁移失败, 保留旧更新任务") ${Font}"
+        return 1
+    fi
+    if ! geodata_native_enable; then
+        [[ -n "${backup}" ]] && rm -f "${backup}"
+        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 原生更新启用失败, 保留旧更新任务") ${Font}"
+        return 1
+    fi
+    if [[ "$(geodata_state)" != "managed" ]]; then
+        [[ -n "${backup}" ]] && rm -f "${backup}"
+        log_echo "${Warning} ${YellowBG} $(gettext "GeoData 原生配置未生效, 保留旧更新任务") ${Font}"
+        return 1
+    fi
+    # Only the absent -> managed transition needs a restart. A managed block
+    # found on entry is already what the running process reads.
+    if [[ "${state}" == "absent" ]]; then
+        if ! geodata_restart_if_active; then
+            log_echo "${Error} ${RedBG} $(gettext "Xray 重启失败, 正在回滚 GeoData 原生配置") ${Font}"
+            restored=false
+            if cp -p "${backup}" "${xray_conf}"; then
+                if geodata_restart_if_active; then
+                    restored=true
+                fi
+            fi
+            if [[ "${restored}" == "true" ]]; then
+                rm -f "${backup}"
+                log_echo "${Warning} ${YellowBG} $(gettext "已恢复原配置并重启 Xray, 保留旧更新任务") ${Font}"
+            else
+                log_echo "${Error} ${RedBG} $(gettext "RECOVERY REQUIRED: 原配置恢复或服务重启失败, 备份保留于") ${backup} ${Font}"
+            fi
+            return 1
+        fi
+        rm -f "${backup}"
+    fi
+    if ! geodata_legacy_cron_disable; then
+        log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 更新任务移除失败, 请手动检查 crontab") ${Font}"
+        return 1
+    fi
+    return 0
 }
 
 xray_install() {
@@ -12251,6 +12399,11 @@ _update_sh_impl() {
                 log_echo "${Error} ${RedBG} 主脚本已更新，但 Rill 同步失败；下次运行将自动重试 Rill 同步 ${Font}"
                 return 1
             fi
+            # `-u` must repair old GeoData installs in the same command, not
+            # only on the next fresh install/reinstall. A failure is reported
+            # but never removes the legacy cron.
+            geodata_migrate_legacy || \
+                log_echo "${Warning} ${YellowBG} $(gettext "GeoData 原生迁移未完成, 已保留旧更新任务") ${Font}"
             rxa_clear_screen
             log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
@@ -12972,6 +13125,11 @@ function backup_directories() {
     # "全部文件" must include them, otherwise a restore leaves the old binary
     # or unit pointing at the restored (older) config.
     [[ -f "${xray_bin_dir}/xray" ]] && backup_tar_paths+=("${xray_bin_dir}/xray")
+    # Xray's default asset root is /usr/local/share/xray, which this script
+    # manages as a symlink into /etc/idleleo/share/xray. Back up the link as
+    # well: a restore on a fresh host would otherwise leave the native
+    # geodata block in config.json without a resolvable asset directory.
+    [[ -L "${local_bin}/share/xray" ]] && backup_tar_paths+=("${local_bin}/share/xray")
     [[ -f "${xray_systemd_file}" ]] && backup_tar_paths+=("${xray_systemd_file}")
     [[ -f "${nginx_systemd_file}" ]] && backup_tar_paths+=("${nginx_systemd_file}")
     # Root crontab spool differs by distro; include whichever exists so the
@@ -15136,6 +15294,11 @@ check_online_version_connect
 read_version || exit 1
 
 harden_config_permissions_if_needed || exit 1
+# One-time legacy repair on every mutable startup (including `-u`): old
+# installs keep an external geo_update.sh cron and may still use the real
+# /usr/local/share/xray directory. Failure is non-fatal and leaves that cron
+# in place; a successful run writes .geodata and only then removes it.
+geodata_migrate_legacy || true
 idleleo_commend || exit 1
 rxa_reconcile_release_if_needed || {
     log_echo "${Error} ${RedBG} Release reconciliation failed; marker was not committed. It will retry on the next mutable startup. ${Font}" >&2
