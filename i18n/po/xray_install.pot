@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
 "issues\n"
-"POT-Creation-Date: 2026-11-04 19:13+0000\n"
+"POT-Creation-Date: 2026-11-05 07:18+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,13 +30,12 @@ msgstr ""
 msgid "警告"
 msgstr ""
 
-#: install.sh:92 install.sh:2539 install.sh:7003 install.sh:8548
-#: install.sh:11654 install.sh:12910 install.sh:12925 install.sh:12928
-#: install.sh:12929 install.sh:13066 scripts/fail2ban_manager.sh:163
+#: install.sh:92 install.sh:2539 install.sh:7022 install.sh:8567
+#: install.sh:11674 install.sh:12938 install.sh:12953 install.sh:12956
+#: install.sh:12957 install.sh:13094 scripts/fail2ban_manager.sh:163
 #: scripts/fail2ban_manager.sh:716 scripts/fail2ban_manager.sh:1124
 #: scripts/fail2ban_manager.sh:1204 scripts/rill_xray_agent_manager.sh:101
-#: scripts/traffic_blocker.sh:644 scripts/traffic_blocker.sh:717
-#: scripts/traffic_blocker.sh:729
+#: scripts/traffic_blocker.sh:643 scripts/traffic_blocker.sh:680
 msgid "未安装"
 msgstr ""
 
@@ -60,20 +59,20 @@ msgstr ""
 msgid "拒绝删除空路径或根目录"
 msgstr ""
 
-#: install.sh:672 install.sh:8713
+#: install.sh:672 install.sh:8732
 msgid "参数不能为空"
 msgstr ""
 
-#: install.sh:676 install.sh:10287 install.sh:10291
+#: install.sh:676 install.sh:10306 install.sh:10310
 msgid "文件不存在"
 msgstr ""
 
-#: install.sh:700 install.sh:8717 install.sh:8737 install.sh:8747
-#: install.sh:8755
+#: install.sh:700 install.sh:8736 install.sh:8756 install.sh:8766
+#: install.sh:8774
 msgid "生成的 JSON 无效，已保留原文件"
 msgstr ""
 
-#: install.sh:706 install.sh:4710 install.sh:8761
+#: install.sh:706 install.sh:4710 install.sh:8780
 msgid "配置文件权限收紧失败"
 msgstr ""
 
@@ -115,7 +114,7 @@ msgstr ""
 msgid "路由辅助: 关闭"
 msgstr ""
 
-#: install.sh:1030 install.sh:15396 install.sh:15437
+#: install.sh:1030 install.sh:15432 install.sh:15473
 #: scripts/rill_xray_agent_manager.sh:1119
 msgid "Rill Xray AI 运维助手"
 msgstr ""
@@ -128,12 +127,12 @@ msgstr ""
 msgid "安装 AI 判断引擎"
 msgstr ""
 
-#: install.sh:1035 install.sh:4004 install.sh:7713 install.sh:7876
-#: install.sh:11499 install.sh:11533 install.sh:14851 install.sh:14876
-#: install.sh:14967 install.sh:15043 install.sh:15106 install.sh:15131
-#: install.sh:15153 install.sh:15174 install.sh:15193 install.sh:15214
-#: install.sh:15236 install.sh:15257 install.sh:15276 install.sh:15296
-#: install.sh:15318 install.sh:15342 install.sh:15366
+#: install.sh:1035 install.sh:4004 install.sh:7732 install.sh:7895
+#: install.sh:11519 install.sh:11553 install.sh:14879 install.sh:14904
+#: install.sh:14995 install.sh:15071 install.sh:15134 install.sh:15159
+#: install.sh:15181 install.sh:15202 install.sh:15221 install.sh:15242
+#: install.sh:15264 install.sh:15285 install.sh:15304 install.sh:15324
+#: install.sh:15354 install.sh:15378 install.sh:15402
 #: scripts/fail2ban_manager.sh:730 scripts/fail2ban_manager.sh:784
 #: scripts/fail2ban_manager.sh:816 scripts/fail2ban_manager.sh:851
 #: scripts/fail2ban_manager.sh:886 scripts/fail2ban_manager.sh:911
@@ -142,9 +141,8 @@ msgstr ""
 #: scripts/rill_xray_agent_manager.sh:1076
 #: scripts/rill_xray_agent_manager.sh:1100
 #: scripts/rill_xray_agent_manager.sh:1135 scripts/traffic_blocker.sh:268
-#: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:946
-#: scripts/traffic_blocker.sh:998 scripts/traffic_blocker.sh:1083
-#: scripts/traffic_blocker.sh:1099
+#: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:867
+#: scripts/traffic_blocker.sh:951 scripts/traffic_blocker.sh:967
 msgid "返回"
 msgstr ""
 
@@ -213,9 +211,9 @@ msgid "语言文件更新"
 msgstr ""
 
 #: install.sh:1866 install.sh:2100 install.sh:4172 install.sh:4582
-#: install.sh:4843 install.sh:6361 install.sh:6916 install.sh:7054
-#: install.sh:8524 install.sh:9483 install.sh:11315 install.sh:11675
-#: install.sh:12482 scripts/file_manager.sh:199 scripts/file_manager.sh:203
+#: install.sh:4843 install.sh:6380 install.sh:6935 install.sh:7073
+#: install.sh:8543 install.sh:9502 install.sh:11335 install.sh:11695
+#: install.sh:12513 scripts/file_manager.sh:199 scripts/file_manager.sh:203
 #: scripts/file_manager.sh:207
 msgid "完成"
 msgstr ""
@@ -240,25 +238,25 @@ msgstr ""
 msgid "language.conf 未知键, 跳过"
 msgstr ""
 
-#: install.sh:1982 install.sh:9424
+#: install.sh:1982 install.sh:9443
 msgid "正在安装"
 msgstr ""
 
-#: install.sh:1984 install.sh:2173 install.sh:5352 install.sh:9483
-#: install.sh:11315 install.sh:12803 install.sh:12804 install.sh:12805
+#: install.sh:1984 install.sh:2173 install.sh:5371 install.sh:9502
+#: install.sh:11335 install.sh:12831 install.sh:12832 install.sh:12833
 #: scripts/fail2ban_manager.sh:63 scripts/fail2ban_manager.sh:91
 msgid "安装"
 msgstr ""
 
 #: install.sh:1984 install.sh:2103 install.sh:3899 install.sh:4169
-#: install.sh:4576 install.sh:5420 install.sh:5501 install.sh:5537
-#: install.sh:5538 install.sh:6357 install.sh:6365 install.sh:6913
-#: install.sh:6968 install.sh:7057 install.sh:7474 install.sh:7478
-#: install.sh:8514 install.sh:8952 install.sh:8956 install.sh:8961
-#: install.sh:11672 install.sh:11705 install.sh:13187 install.sh:13195
-#: install.sh:13248 install.sh:13262 install.sh:13269 install.sh:13566
-#: install.sh:13574 install.sh:13614 install.sh:14741 install.sh:14750
-#: install.sh:15564 scripts/file_manager.sh:366
+#: install.sh:4576 install.sh:5439 install.sh:5520 install.sh:5556
+#: install.sh:5557 install.sh:6376 install.sh:6384 install.sh:6932
+#: install.sh:6987 install.sh:7076 install.sh:7493 install.sh:7497
+#: install.sh:8533 install.sh:8971 install.sh:8975 install.sh:8980
+#: install.sh:11692 install.sh:11725 install.sh:13215 install.sh:13223
+#: install.sh:13276 install.sh:13290 install.sh:13297 install.sh:13594
+#: install.sh:13602 install.sh:13642 install.sh:14769 install.sh:14778
+#: install.sh:15602 scripts/file_manager.sh:366
 msgid "失败"
 msgstr ""
 
@@ -282,7 +280,7 @@ msgstr ""
 msgid "发现语言文件更新"
 msgstr ""
 
-#: install.sh:2115 install.sh:2121 install.sh:12563
+#: install.sh:2115 install.sh:2121 install.sh:12591
 msgid "在线版本检测失败, 请稍后再试"
 msgstr ""
 
@@ -290,8 +288,9 @@ msgstr ""
 msgid "软件包安装失败"
 msgstr ""
 
-#: install.sh:2170 install.sh:5358 install.sh:5386 install.sh:9433
-#: install.sh:12918 scripts/traffic_blocker.sh:647
+#: install.sh:2170 install.sh:5377 install.sh:5405 install.sh:9452
+#: install.sh:12946 scripts/traffic_blocker.sh:646
+#: scripts/traffic_blocker.sh:678
 msgid "已安装"
 msgstr ""
 
@@ -303,7 +302,7 @@ msgstr ""
 msgid "链接库安装"
 msgstr ""
 
-#: install.sh:2222 install.sh:3933 install.sh:7950 install.sh:13177
+#: install.sh:2222 install.sh:3933 install.sh:7969 install.sh:13205
 msgid "值为空或超出范围, 请重新输入"
 msgstr ""
 
@@ -316,8 +315,8 @@ msgid "值为空, 请重新输入"
 msgstr ""
 
 #: install.sh:2313 install.sh:2367 install.sh:2688 install.sh:2712
-#: install.sh:2737 install.sh:8102 install.sh:8112 install.sh:8123
-#: install.sh:8130
+#: install.sh:2737 install.sh:8121 install.sh:8131 install.sh:8142
+#: install.sh:8149
 msgid "端口不允许使用, 请重新输入"
 msgstr ""
 
@@ -334,18 +333,18 @@ msgstr ""
 msgid "请输入端口"
 msgstr ""
 
-#: install.sh:2365 install.sh:2368 install.sh:5748 scripts/file_manager.sh:173
+#: install.sh:2365 install.sh:2368 install.sh:5767 scripts/file_manager.sh:173
 #: scripts/file_manager.sh:178
 msgid "默认值"
 msgstr ""
 
 #: install.sh:2365 install.sh:2368 install.sh:2686 install.sh:2689
 #: install.sh:2710 install.sh:2713 install.sh:2735 install.sh:2738
-#: install.sh:9771 install.sh:9774 install.sh:9777 install.sh:9780
-#: install.sh:9781 install.sh:9785 install.sh:9786 install.sh:9787
-#: install.sh:9794 install.sh:9797 install.sh:9800 install.sh:9803
-#: install.sh:9804 install.sh:9808 install.sh:9809 install.sh:9810
-#: install.sh:11133 install.sh:11134 install.sh:11245 install.sh:11268
+#: install.sh:9790 install.sh:9793 install.sh:9796 install.sh:9799
+#: install.sh:9800 install.sh:9804 install.sh:9805 install.sh:9806
+#: install.sh:9813 install.sh:9816 install.sh:9819 install.sh:9822
+#: install.sh:9823 install.sh:9827 install.sh:9828 install.sh:9829
+#: install.sh:11153 install.sh:11154 install.sh:11265 install.sh:11288
 msgid "请输入 1-65535 之间的值"
 msgstr ""
 
@@ -357,11 +356,11 @@ msgstr ""
 msgid "请选择传输协议"
 msgstr ""
 
-#: install.sh:2478 install.sh:7096 install.sh:7118 install.sh:7136
-#: install.sh:7157 install.sh:7172 install.sh:7193 install.sh:7208
-#: install.sh:7237 install.sh:7252 install.sh:7298 install.sh:9696
-#: install.sh:10002 install.sh:10012 install.sh:10104 install.sh:10114
-#: install.sh:10196 install.sh:10206 scripts/fail2ban_manager.sh:956
+#: install.sh:2478 install.sh:7115 install.sh:7137 install.sh:7155
+#: install.sh:7176 install.sh:7191 install.sh:7212 install.sh:7227
+#: install.sh:7256 install.sh:7271 install.sh:7317 install.sh:9715
+#: install.sh:10021 install.sh:10031 install.sh:10123 install.sh:10133
+#: install.sh:10215 install.sh:10225 scripts/fail2ban_manager.sh:956
 #: scripts/fail2ban_manager.sh:957
 msgid "默认"
 msgstr ""
@@ -369,31 +368,31 @@ msgstr ""
 #: install.sh:2484 install.sh:2686 install.sh:2689 install.sh:2710
 #: install.sh:2713 install.sh:2735 install.sh:2738 install.sh:3583
 #: install.sh:3621 install.sh:3659 install.sh:3886 install.sh:4006
-#: install.sh:7099 install.sh:7119 install.sh:7137 install.sh:7158
-#: install.sh:7173 install.sh:7194 install.sh:7209 install.sh:7218
-#: install.sh:7238 install.sh:7253 install.sh:7302 install.sh:7336
-#: install.sh:9683 install.sh:9699 install.sh:9771 install.sh:9774
-#: install.sh:9777 install.sh:9780 install.sh:9781 install.sh:9785
-#: install.sh:9786 install.sh:9787 install.sh:9794 install.sh:9797
-#: install.sh:9800 install.sh:9803 install.sh:9804 install.sh:9808
-#: install.sh:9809 install.sh:9810 install.sh:10004 install.sh:10015
-#: install.sh:10030 install.sh:10106 install.sh:10117 install.sh:10198
-#: install.sh:10209 install.sh:10228 scripts/fail2ban_manager.sh:732
+#: install.sh:7118 install.sh:7138 install.sh:7156 install.sh:7177
+#: install.sh:7192 install.sh:7213 install.sh:7228 install.sh:7237
+#: install.sh:7257 install.sh:7272 install.sh:7321 install.sh:7355
+#: install.sh:9702 install.sh:9718 install.sh:9790 install.sh:9793
+#: install.sh:9796 install.sh:9799 install.sh:9800 install.sh:9804
+#: install.sh:9805 install.sh:9806 install.sh:9813 install.sh:9816
+#: install.sh:9819 install.sh:9822 install.sh:9823 install.sh:9827
+#: install.sh:9828 install.sh:9829 install.sh:10023 install.sh:10034
+#: install.sh:10049 install.sh:10125 install.sh:10136 install.sh:10217
+#: install.sh:10228 install.sh:10247 scripts/fail2ban_manager.sh:732
 #: scripts/fail2ban_manager.sh:913 scripts/fail2ban_manager.sh:954
 #: scripts/file_manager.sh:143
 msgid "请输入"
 msgstr ""
 
-#: install.sh:2484 install.sh:4006 install.sh:5748 install.sh:7099
-#: install.sh:7119 install.sh:7137 install.sh:7158 install.sh:7173
-#: install.sh:7194 install.sh:7209 install.sh:7238 install.sh:7253
-#: install.sh:7302 install.sh:9683 install.sh:9699 install.sh:10004
-#: install.sh:10015 install.sh:10106 install.sh:10117 install.sh:10198
-#: install.sh:10209 install.sh:14577
+#: install.sh:2484 install.sh:4006 install.sh:5767 install.sh:7118
+#: install.sh:7138 install.sh:7156 install.sh:7177 install.sh:7192
+#: install.sh:7213 install.sh:7228 install.sh:7257 install.sh:7272
+#: install.sh:7321 install.sh:9702 install.sh:9718 install.sh:10023
+#: install.sh:10034 install.sh:10125 install.sh:10136 install.sh:10217
+#: install.sh:10228 install.sh:14605
 msgid "请输入有效的数字"
 msgstr ""
 
-#: install.sh:2536 install.sh:12675
+#: install.sh:2536 install.sh:12703
 msgid "旧版 XTLS 模式 (已取消)"
 msgstr ""
 
@@ -401,7 +400,7 @@ msgstr ""
 msgid "是否添加用于负载均衡的 ws/gRPC 协议"
 msgstr ""
 
-#: install.sh:2613 install.sh:5564
+#: install.sh:2613 install.sh:5583
 msgid "如不清楚具体用途, 请勿选择"
 msgstr ""
 
@@ -467,9 +466,9 @@ msgstr ""
 msgid "防火墙规则更新失败"
 msgstr ""
 
-#: install.sh:3562 install.sh:8325 install.sh:8334 install.sh:8341
-#: install.sh:9713 install.sh:9716 install.sh:11061 install.sh:11494
-#: install.sh:15231 scripts/fail2ban_manager.sh:909
+#: install.sh:3562 install.sh:8344 install.sh:8353 install.sh:8360
+#: install.sh:9732 install.sh:9735 install.sh:11081 install.sh:11514
+#: install.sh:15259 scripts/fail2ban_manager.sh:909
 #: scripts/fail2ban_manager.sh:1116 scripts/file_manager.sh:203
 #: scripts/file_manager.sh:207 scripts/file_manager.sh:254
 #: scripts/file_manager.sh:363 scripts/file_manager.sh:366
@@ -484,8 +483,8 @@ msgstr ""
 msgid "若修改配置, 请注意关闭防火墙相关端口"
 msgstr ""
 
-#: install.sh:3566 install.sh:11531 install.sh:12808 install.sh:12840
-#: install.sh:12841 install.sh:15170 install.sh:15191 install.sh:15294
+#: install.sh:3566 install.sh:11551 install.sh:12836 install.sh:12868
+#: install.sh:12869 install.sh:15198 install.sh:15219 install.sh:15322
 #: scripts/fail2ban_manager.sh:88 scripts/fail2ban_manager.sh:93
 #: scripts/fail2ban_manager.sh:250
 msgid "配置"
@@ -507,7 +506,7 @@ msgstr ""
 msgid "不需要"
 msgstr ""
 
-#: install.sh:3691 install.sh:3696 install.sh:3706 install.sh:10043
+#: install.sh:3691 install.sh:3696 install.sh:3706 install.sh:10062
 msgid "用户名"
 msgstr ""
 
@@ -531,8 +530,8 @@ msgstr ""
 msgid "自定义字符串"
 msgstr ""
 
-#: install.sh:3731 install.sh:9517 install.sh:12844 install.sh:14661
-#: install.sh:15147
+#: install.sh:3731 install.sh:9536 install.sh:12872 install.sh:14689
+#: install.sh:15175
 msgid "映射字符串"
 msgstr ""
 
@@ -609,13 +608,13 @@ msgid "serverNames 仅支持单个合法域名, 请重新输入"
 msgstr ""
 
 #: install.sh:3899 install.sh:4616 install.sh:4623 install.sh:4800
-#: install.sh:7978 install.sh:8082 install.sh:8204 install.sh:8212
-#: install.sh:8222 install.sh:8260 install.sh:8952 install.sh:8956
-#: install.sh:8961 install.sh:15564
+#: install.sh:7997 install.sh:8101 install.sh:8223 install.sh:8231
+#: install.sh:8241 install.sh:8279 install.sh:8971 install.sh:8975
+#: install.sh:8980 install.sh:15602
 msgid "配置修改"
 msgstr ""
 
-#: install.sh:3903 install.sh:9550
+#: install.sh:3903 install.sh:9569
 msgid "已生成并保存（不显示）"
 msgstr ""
 
@@ -632,7 +631,7 @@ msgid "不存在, 正在下载"
 msgstr ""
 
 #: install.sh:3957 install.sh:3971 scripts/fail2ban_manager.sh:1180
-#: scripts/file_manager.sh:346 scripts/traffic_blocker.sh:1503
+#: scripts/file_manager.sh:346 scripts/traffic_blocker.sh:1371
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr ""
 
@@ -641,7 +640,7 @@ msgid "版本过旧, 建议更新"
 msgstr ""
 
 #: install.sh:3965 scripts/fail2ban_manager.sh:1169 scripts/file_manager.sh:335
-#: scripts/traffic_blocker.sh:1492
+#: scripts/traffic_blocker.sh:1360
 msgid "是否下载并安装新版本"
 msgstr ""
 
@@ -654,10 +653,10 @@ msgstr ""
 msgid "需要主脚本版本"
 msgstr ""
 
-#: install.sh:3983 install.sh:12356 scripts/fail2ban_manager.sh:10
+#: install.sh:3983 install.sh:12376 scripts/fail2ban_manager.sh:10
 #: scripts/fail2ban_manager.sh:1166 scripts/file_manager.sh:10
 #: scripts/file_manager.sh:332 scripts/traffic_blocker.sh:9
-#: scripts/traffic_blocker.sh:1489
+#: scripts/traffic_blocker.sh:1357
 msgid "当前版本"
 msgstr ""
 
@@ -670,7 +669,7 @@ msgstr ""
 msgid "是否变更"
 msgstr ""
 
-#: install.sh:3994 install.sh:14874 install.sh:15171
+#: install.sh:3994 install.sh:14902 install.sh:15199
 msgid "负载均衡"
 msgstr ""
 
@@ -678,19 +677,19 @@ msgstr ""
 msgid "请选择协议为 ws 或 gRPC 或 xHTTP"
 msgstr ""
 
-#: install.sh:4015 install.sh:13127 scripts/fail2ban_manager.sh:78
+#: install.sh:4015 install.sh:13155 scripts/fail2ban_manager.sh:78
 #: scripts/fail2ban_manager.sh:758 scripts/fail2ban_manager.sh:787
 #: scripts/fail2ban_manager.sh:819 scripts/fail2ban_manager.sh:854
 #: scripts/fail2ban_manager.sh:889 scripts/fail2ban_manager.sh:936
 #: scripts/fail2ban_manager.sh:1053 scripts/file_manager.sh:320
 #: scripts/traffic_blocker.sh:279 scripts/traffic_blocker.sh:315
-#: scripts/traffic_blocker.sh:625 scripts/traffic_blocker.sh:955
-#: scripts/traffic_blocker.sh:1009 scripts/traffic_blocker.sh:1103
+#: scripts/traffic_blocker.sh:625 scripts/traffic_blocker.sh:877
+#: scripts/traffic_blocker.sh:971
 msgid "无效的选择, 请重试"
 msgstr ""
 
-#: install.sh:4027 install.sh:4053 install.sh:5954 install.sh:8414
-#: install.sh:8451 install.sh:8457 install.sh:9708
+#: install.sh:4027 install.sh:4053 install.sh:5973 install.sh:8433
+#: install.sh:8470 install.sh:8476 install.sh:9727
 msgid "当前模式不支持此操作"
 msgstr ""
 
@@ -708,7 +707,7 @@ msgstr ""
 
 #: install.sh:4110 install.sh:4114 install.sh:4118 install.sh:4169
 #: install.sh:4172 install.sh:4492 install.sh:4498 install.sh:4576
-#: install.sh:4582 install.sh:4608 install.sh:4843 install.sh:12841
+#: install.sh:4582 install.sh:4608 install.sh:4843 install.sh:12869
 msgid "修改"
 msgstr ""
 
@@ -724,10 +723,10 @@ msgstr ""
 msgid "Nginx 分层权限应用不完整"
 msgstr ""
 
-#: install.sh:4500 install.sh:7917 install.sh:7921 install.sh:7925
-#: install.sh:9495 install.sh:9498 install.sh:9501 install.sh:9504
-#: install.sh:9508 install.sh:9511 install.sh:9514 install.sh:9558
-#: install.sh:9562 install.sh:9566
+#: install.sh:4500 install.sh:7936 install.sh:7940 install.sh:7944
+#: install.sh:9514 install.sh:9517 install.sh:9520 install.sh:9523
+#: install.sh:9527 install.sh:9530 install.sh:9533 install.sh:9577
+#: install.sh:9581 install.sh:9585
 msgid "端口"
 msgstr ""
 
@@ -811,2846 +810,2866 @@ msgstr ""
 msgid "已启用 Xray 原生 GeoData 自动刷新"
 msgstr ""
 
-#: install.sh:5161
+#: install.sh:5173
 msgid "已移除脚本创建的 geo_update.sh 周期任务, 避免与原生自动刷新重复执行"
 msgstr ""
 
-#: install.sh:5164
+#: install.sh:5176
 msgid "移除 geo_update.sh 周期任务失败, 请手动检查 crontab"
 msgstr ""
 
-#: install.sh:5182
+#: install.sh:5194
 msgid "GeoData 资源目录软链创建失败"
 msgstr ""
 
-#: install.sh:5185
+#: install.sh:5197
 msgid "已恢复 GeoData 资源目录软链"
 msgstr ""
 
-#: install.sh:5191
+#: install.sh:5203
 msgid "GeoData 软链指向其他目录, 跳过自动迁移"
 msgstr ""
 
-#: install.sh:5206 install.sh:13388
+#: install.sh:5218 install.sh:13416
 msgid "旧 GeoData 文件复制失败, 保留原目录"
 msgstr ""
 
-#: install.sh:5212
+#: install.sh:5224
 msgid "迁移后缺少 geoip.dat/geosite.dat, 保留原目录"
 msgstr ""
 
-#: install.sh:5217
+#: install.sh:5229
 msgid "旧 GeoData 目录替换失败, 保留原目录"
 msgstr ""
 
-#: install.sh:5222
+#: install.sh:5234
 msgid "GeoData 目录迁移失败且无法恢复, 请手动检查"
 msgstr ""
 
-#: install.sh:5227
+#: install.sh:5239
 msgid "旧 GeoData 迁移备份未清理"
 msgstr ""
 
-#: install.sh:5228
+#: install.sh:5240
 msgid "已将旧 GeoData 目录迁移到"
 msgstr ""
 
-#: install.sh:5264
+#: install.sh:5283
 msgid "检测到自定义 geodata 配置, 保留原样且不改动旧刷新任务"
 msgstr ""
 
-#: install.sh:5269
+#: install.sh:5288
 msgid "Xray 配置无法解析, 保留旧 GeoData 刷新任务"
 msgstr ""
 
-#: install.sh:5290
+#: install.sh:5309
 msgid "GeoData 路径迁移失败, 保留旧刷新任务"
 msgstr ""
 
-#: install.sh:5296
+#: install.sh:5315
 msgid "GeoData 自动刷新启用失败, 保留旧刷新任务"
 msgstr ""
 
-#: install.sh:5302
+#: install.sh:5321
 msgid "GeoData 自动刷新配置未生效, 保留旧刷新任务"
 msgstr ""
 
-#: install.sh:5309
+#: install.sh:5328
 msgid "Xray 重启失败, 正在回滚 GeoData 原生配置"
 msgstr ""
 
-#: install.sh:5319
+#: install.sh:5338
 msgid "已恢复原配置并重启 Xray, 保留旧刷新任务"
 msgstr ""
 
-#: install.sh:5322
+#: install.sh:5341
 msgid "RECOVERY REQUIRED: 原配置恢复或服务重启失败, 备份保留于"
 msgstr ""
 
-#: install.sh:5330
+#: install.sh:5349
 msgid "旧 GeoData 刷新任务移除失败, 请手动检查 crontab"
 msgstr ""
 
-#: install.sh:5333
+#: install.sh:5352
 msgid "GeoData 已从脚本模式切换为自动刷新 (Xray 原生)"
 msgstr ""
 
-#: install.sh:5348
+#: install.sh:5367
 msgid "本机版本高于清单钉定版本, 将按清单重新安装"
 msgstr ""
 
-#: install.sh:5350
+#: install.sh:5369
 msgid "即将安装"
 msgstr ""
 
-#: install.sh:5385
+#: install.sh:5404
 msgid "已安装版本高于在线清单, 不执行降级"
 msgstr ""
 
-#: install.sh:5387
+#: install.sh:5406
 msgid "在线清单"
 msgstr ""
 
-#: install.sh:5388
+#: install.sh:5407
 msgid "如确需降级, 请手动指定版本或先卸载再安装"
 msgstr ""
 
-#: install.sh:5395
+#: install.sh:5414
 msgid "若更新无效, 建议直接卸载再安装"
 msgstr ""
 
-#: install.sh:5396
+#: install.sh:5415
 msgid "部分新功能需要重新安装才可生效"
 msgstr ""
 
-#: install.sh:5398 install.sh:5406 install.sh:5418 install.sh:5420
-#: install.sh:5537 install.sh:5538 install.sh:6845 install.sh:6995
-#: install.sh:11529 install.sh:11530 install.sh:11665 install.sh:11711
-#: install.sh:12482 install.sh:12823 install.sh:12847 install.sh:15291
-#: install.sh:15292 install.sh:15293
+#: install.sh:5417 install.sh:5425 install.sh:5437 install.sh:5439
+#: install.sh:5556 install.sh:5557 install.sh:6864 install.sh:7014
+#: install.sh:11549 install.sh:11550 install.sh:11685 install.sh:11731
+#: install.sh:12513 install.sh:12851 install.sh:12875 install.sh:15319
+#: install.sh:15320 install.sh:15321
 msgid "更新"
 msgstr ""
 
-#: install.sh:5400
+#: install.sh:5419
 msgid "检测到存在最新版"
 msgstr ""
 
-#: install.sh:5401
+#: install.sh:5420
 msgid "脚本可能未兼容此版本"
 msgstr ""
 
-#: install.sh:5402
+#: install.sh:5421
 msgid "是否更新"
 msgstr ""
 
-#: install.sh:5410 install.sh:5464
+#: install.sh:5429 install.sh:5483
 msgid "本机备份失败, 拒绝继续更新"
 msgstr ""
 
-#: install.sh:5422 install.sh:5505 install.sh:6976
+#: install.sh:5441 install.sh:5524 install.sh:6995
 msgid "是否回滚到之前的版本"
 msgstr ""
 
-#: install.sh:5426 install.sh:5509 install.sh:6983
+#: install.sh:5445 install.sh:5528 install.sh:7002
 msgid "未执行回滚操作"
 msgstr ""
 
-#: install.sh:5427
+#: install.sh:5446
 msgid "更新失败且未回滚, 当前服务可能不可用, 请手动检查"
 msgstr ""
 
-#: install.sh:5429
+#: install.sh:5448
 msgid "高优先级错误: Xray 服务已停止"
 msgstr ""
 
-#: install.sh:5434 install.sh:5514 install.sh:6987
+#: install.sh:5453 install.sh:5533 install.sh:7006
 msgid "正在回滚"
 msgstr ""
 
-#: install.sh:5437 install.sh:5516 install.sh:6720
+#: install.sh:5456 install.sh:5535 install.sh:6739
 msgid "已成功回滚到之前的"
 msgstr ""
 
-#: install.sh:5437 install.sh:5516 install.sh:6720 install.sh:14676
-#: install.sh:15150
+#: install.sh:5456 install.sh:5535 install.sh:6739 install.sh:14704
+#: install.sh:15178
 msgid "版本"
 msgstr ""
 
-#: install.sh:5442 install.sh:6700
+#: install.sh:5461 install.sh:6719
 msgid "Layer 1 失败, 尝试 Layer 2 tested_version 恢复"
 msgstr ""
 
-#: install.sh:5448 install.sh:5482 install.sh:5525
+#: install.sh:5467 install.sh:5501 install.sh:5544
 msgid "回滚失败"
 msgstr ""
 
-#: install.sh:5488 install.sh:5499 install.sh:5501
+#: install.sh:5507 install.sh:5518 install.sh:5520
 msgid "重装"
 msgstr ""
 
-#: install.sh:5492
+#: install.sh:5511
 msgid "本机备份失败, 拒绝继续重装"
 msgstr ""
 
-#: install.sh:5555 install.sh:5569 scripts/fail2ban_manager.sh:179
+#: install.sh:5574 install.sh:5588 scripts/fail2ban_manager.sh:179
 #: scripts/fail2ban_manager.sh:189 scripts/fail2ban_manager.sh:214
 #: scripts/fail2ban_manager.sh:240 scripts/fail2ban_manager.sh:1000
 #: scripts/rill_xray_agent_manager.sh:100 scripts/traffic_blocker.sh:555
-#: scripts/traffic_blocker.sh:1054
+#: scripts/traffic_blocker.sh:922
 msgid "已启用"
 msgstr ""
 
-#: install.sh:5557 install.sh:5573
+#: install.sh:5576 install.sh:5592
 msgid "已跳过"
 msgstr ""
 
-#: install.sh:5562
+#: install.sh:5581
 msgid "是否添加 Reality 负载均衡"
 msgstr ""
 
-#: install.sh:5563
+#: install.sh:5582
 msgid "使用此功能前，建议先阅读作者教程"
 msgstr ""
 
-#: install.sh:5742
+#: install.sh:5761
 msgid "异常 SNI 处理方式"
 msgstr ""
 
-#: install.sh:5743
+#: install.sh:5762
 msgid "隔离异常流量, 不转发到 Xray"
 msgstr ""
 
-#: install.sh:5743 install.sh:6013 install.sh:7095 install.sh:7297
-#: install.sh:14870 install.sh:15040
+#: install.sh:5762 install.sh:6032 install.sh:7114 install.sh:7316
+#: install.sh:14898 install.sh:15068
 msgid "推荐"
 msgstr ""
 
-#: install.sh:5744
+#: install.sh:5763
 msgid "使用指向本机 IP 的自建 HTTPS 站点作为回落"
 msgstr ""
 
-#: install.sh:5744 install.sh:5745 install.sh:14874 install.sh:15041
+#: install.sh:5763 install.sh:5764 install.sh:14902 install.sh:15069
 msgid "高级"
 msgstr ""
 
-#: install.sh:5745
+#: install.sh:5764
 msgid "直接拒绝异常 TLS 连接"
 msgstr ""
 
-#: install.sh:5746
+#: install.sh:5765
 msgid ""
 "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了"
 "解含义, 请使用默认隔离策略。"
 msgstr ""
 
-#: install.sh:5748 install.sh:14577
+#: install.sh:5767 install.sh:14605
 msgid "请输入选项"
 msgstr ""
 
-#: install.sh:5756 install.sh:8107
+#: install.sh:5775 install.sh:8126
 msgid "decoy 站点设置失败, 回退到默认隔离策略"
 msgstr ""
 
-#: install.sh:5762
+#: install.sh:5781
 msgid "已选择直接拒绝异常 TLS 连接"
 msgstr ""
 
-#: install.sh:5766
+#: install.sh:5785
 msgid "已选择隔离异常流量"
 msgstr ""
 
-#: install.sh:5838
+#: install.sh:5857
 msgid "decoy 站点设置"
 msgstr ""
 
-#: install.sh:5839
+#: install.sh:5858
 msgid "请输入你自己的域名, 该域名的 A/AAAA 记录必须指向本机公网 IP"
 msgstr ""
 
-#: install.sh:5841 install.sh:5843
+#: install.sh:5860 install.sh:5862
 msgid "请输入 decoy 域名"
 msgstr ""
 
-#: install.sh:5852
+#: install.sh:5871
 msgid "无法解析该域名的 A/AAAA 记录, 请检查 DNS 是否已生效"
 msgstr ""
 
-#: install.sh:5856
+#: install.sh:5875
 msgid "该域名 A/AAAA 记录"
 msgstr ""
 
-#: install.sh:5856
+#: install.sh:5875
 msgid "未指向本机公网 IP"
 msgstr ""
 
-#: install.sh:5857
+#: install.sh:5876
 msgid "请先将域名 A/AAAA 记录指向本机, 或使用默认隔离策略"
 msgstr ""
 
-#: install.sh:5862
+#: install.sh:5881
 msgid "域名校验通过"
 msgstr ""
 
-#: install.sh:5872
+#: install.sh:5891
 msgid "自签证书生成失败"
 msgstr ""
 
-#: install.sh:5905
+#: install.sh:5924
 msgid "decoy 站点配置完成"
 msgstr ""
 
-#: install.sh:5906
+#: install.sh:5925
 msgid "当前使用自签证书, 浏览器访问会有证书提示。高级用户可自行替换"
 msgstr ""
 
-#: install.sh:5906
+#: install.sh:5925
 msgid "与"
 msgstr ""
 
-#: install.sh:5991
+#: install.sh:6010
 msgid "检测到已安装"
 msgstr ""
 
-#: install.sh:5992
+#: install.sh:6011
 msgid "已跳过安装 nginx, 保留现有 nginx 不卸载"
 msgstr ""
 
-#: install.sh:5994
+#: install.sh:6013
 msgid "已跳过安装"
 msgstr ""
 
-#: install.sh:6011
+#: install.sh:6030
 msgid "Reality 协议可能存在流量绕过风险"
 msgstr ""
 
-#: install.sh:6013 install.sh:6029
+#: install.sh:6032 install.sh:6048
 msgid "是否额外安装 nginx 前置保护"
 msgstr ""
 
-#: install.sh:6026
+#: install.sh:6045
 msgid "检测到已开启 Reality 负载均衡"
 msgstr ""
 
-#: install.sh:6027
+#: install.sh:6046
 msgid "作为 Reality 负载均衡主服务器时必须安装"
 msgstr ""
 
-#: install.sh:6028
+#: install.sh:6047
 msgid "作为 Reality 负载均衡二级服务器时无需安装"
 msgstr ""
 
-#: install.sh:6072
+#: install.sh:6091
 msgid "已存在, 跳过编译安装过程"
 msgstr ""
 
-#: install.sh:6074
+#: install.sh:6093
 msgid "检测到其他套件安装的 Nginx, 继续安装会造成冲突, 请处理后安装"
 msgstr ""
 
-#: install.sh:6099
+#: install.sh:6118
 msgid "tar 安全检查: 文件不存在"
 msgstr ""
 
-#: install.sh:6103
+#: install.sh:6122
 msgid "tar 安全检查: 目标目录未指定"
 msgstr ""
 
-#: install.sh:6220
+#: install.sh:6239
 msgid "tar 安全检查"
 msgstr ""
 
-#: install.sh:6234
+#: install.sh:6253
 msgid "tar 安全检查: 解压失败"
 msgstr ""
 
-#: install.sh:6296
+#: install.sh:6315
 msgid "不支持的系统架构"
 msgstr ""
 
-#: install.sh:6303
+#: install.sh:6322
 msgid "即将下载已编译的"
 msgstr ""
 
-#: install.sh:6310
+#: install.sh:6329
 msgid "release-manifest.json 下载失败或无效, 拒绝安装"
 msgstr ""
 
-#: install.sh:6325
+#: install.sh:6344
 msgid "manifest 中未找到架构"
 msgstr ""
 
-#: install.sh:6325
+#: install.sh:6344
 msgid "的产物记录, 拒绝安装"
 msgstr ""
 
-#: install.sh:6331
+#: install.sh:6350
 msgid "manifest 中未提供 SHA256, 拒绝未校验安装"
 msgstr ""
 
-#: install.sh:6336
+#: install.sh:6355
 msgid "manifest 产物文件名与架构契约不匹配, 拒绝安装"
 msgstr ""
 
-#: install.sh:6341
+#: install.sh:6360
 msgid "manifest SHA256 格式无效, 拒绝安装"
 msgstr ""
 
-#: install.sh:6347
+#: install.sh:6366
 msgid "manifest 版本或 tag 不匹配, 拒绝安装"
 msgstr ""
 
-#: install.sh:6357 install.sh:6361
+#: install.sh:6376 install.sh:6380
 msgid "下载"
 msgstr ""
 
-#: install.sh:6365 install.sh:6369
+#: install.sh:6384 install.sh:6388
 msgid "校验"
 msgstr ""
 
-#: install.sh:6365
+#: install.sh:6384
 msgid ", 拒绝安装"
 msgstr ""
 
-#: install.sh:6369
+#: install.sh:6388
 msgid "通过"
 msgstr ""
 
-#: install.sh:6377
+#: install.sh:6396
 msgid "Nginx 压缩包安全检查失败, 拒绝安装"
 msgstr ""
 
-#: install.sh:6381
+#: install.sh:6400
 msgid "Nginx 压缩包安全检查通过"
 msgstr ""
 
-#: install.sh:6385
+#: install.sh:6404
 msgid "解压后未找到 sbin/nginx 或不是常规文件, 结构校验失败"
 msgstr ""
 
-#: install.sh:6393
+#: install.sh:6412
 msgid "sbin/nginx 不是可执行 ELF 二进制, 拒绝安装"
 msgstr ""
 
-#: install.sh:6401
+#: install.sh:6420
 msgid "staging 目录移动失败"
 msgstr ""
 
-#: install.sh:6411
+#: install.sh:6430
 msgid "Nginx 现有目录备份失败, 拒绝替换"
 msgstr ""
 
-#: install.sh:6419
+#: install.sh:6438
 msgid "Nginx 替换失败"
 msgstr ""
 
-#: install.sh:6449
+#: install.sh:6468
 msgid "Nginx 分层权限应用失败, 可能影响服务运行"
 msgstr ""
 
-#: install.sh:6455
+#: install.sh:6474
 msgid "Nginx 分层权限验证失败"
 msgstr ""
 
-#: install.sh:6466 scripts/rill_xray_agent_manager.sh:958
+#: install.sh:6485 scripts/rill_xray_agent_manager.sh:958
 msgid "Nginx 配置校验失败"
 msgstr ""
 
-#: install.sh:6492
+#: install.sh:6511
 msgid "配置检测"
 msgstr ""
 
-#: install.sh:6498 install.sh:6514
+#: install.sh:6517 install.sh:6533
 msgid "服务日志"
 msgstr ""
 
-#: install.sh:6508 install.sh:15391
+#: install.sh:6527 install.sh:15427
 msgid "版本检测"
 msgstr ""
 
-#: install.sh:6522 install.sh:11581
+#: install.sh:6541 install.sh:11601
 msgid "错误日志"
 msgstr ""
 
-#: install.sh:6563
+#: install.sh:6582
 msgid "未找到 Xray 二进制，按安装/修复处理"
 msgstr ""
 
-#: install.sh:6569
+#: install.sh:6588
 msgid "二进制备份失败"
 msgstr ""
 
-#: install.sh:6590
+#: install.sh:6609
 msgid "本机备份不存在, 跳过 Layer 1 恢复"
 msgstr ""
 
-#: install.sh:6598
+#: install.sh:6617
 msgid "备份校验失败, 拒绝恢复"
 msgstr ""
 
-#: install.sh:6604
+#: install.sh:6623
 msgid "二进制恢复失败"
 msgstr ""
 
-#: install.sh:6623 install.sh:6653
+#: install.sh:6642 install.sh:6672
 msgid "tested_version 不可用, 跳过 Layer 2 恢复"
 msgstr ""
 
-#: install.sh:6626 install.sh:6656
+#: install.sh:6645 install.sh:6675
 msgid "尝试使用 tested_version 恢复"
 msgstr ""
 
-#: install.sh:6629 install.sh:6663
+#: install.sh:6648 install.sh:6682
 msgid "安装失败"
 msgstr ""
 
-#: install.sh:6633 install.sh:6734 install.sh:6778
+#: install.sh:6652 install.sh:6753 install.sh:6797
 msgid "二进制不可执行"
 msgstr ""
 
-#: install.sh:6644 install.sh:6678 install.sh:6722
+#: install.sh:6663 install.sh:6697 install.sh:6741
 msgid "已恢复到 tested_version"
 msgstr ""
 
-#: install.sh:6695
+#: install.sh:6714
 msgid "旧版本记录恢复失败, 继续 tested_version 恢复"
 msgstr ""
 
-#: install.sh:6708
+#: install.sh:6727
 msgid "所有回滚层均失败"
 msgstr ""
 
-#: install.sh:6711
+#: install.sh:6730
 msgid "更新失败且所有回滚层均失败, 请手动检查"
 msgstr ""
 
-#: install.sh:6736
+#: install.sh:6755
 msgid "二进制执行失败"
 msgstr ""
 
-#: install.sh:6746
+#: install.sh:6765
 msgid "版本不匹配"
 msgstr ""
 
-#: install.sh:6753
+#: install.sh:6772
 msgid "配置解析失败"
 msgstr ""
 
-#: install.sh:6758 install.sh:6785
+#: install.sh:6777 install.sh:6804
 msgid "服务未运行"
 msgstr ""
 
-#: install.sh:6766 install.sh:6794
+#: install.sh:6785 install.sh:6813
 msgid "端口未监听"
 msgstr ""
 
-#: install.sh:6780
+#: install.sh:6799
 msgid "配置检测失败"
 msgstr ""
 
-#: install.sh:6789
+#: install.sh:6808
 msgid "分层权限验证失败"
 msgstr ""
 
-#: install.sh:6817
+#: install.sh:6836
 msgid "脚本不存在"
 msgstr ""
 
-#: install.sh:6821
+#: install.sh:6840
 msgid "脚本语法检查失败"
 msgstr ""
 
-#: install.sh:6828
+#: install.sh:6847
 msgid "脚本版本不匹配"
 msgstr ""
 
-#: install.sh:6885 install.sh:6886 install.sh:6893 install.sh:6894
+#: install.sh:6904 install.sh:6905 install.sh:6912 install.sh:6913
 msgid "配置不完整, 退出更新"
 msgstr ""
 
-#: install.sh:6898 install.sh:6899
+#: install.sh:6917 install.sh:6918
 msgid "当前安装模式不需要"
 msgstr ""
 
-#: install.sh:6903 install.sh:6904
+#: install.sh:6922 install.sh:6923
 msgid "配置不存在, 退出更新"
 msgstr ""
 
-#: install.sh:6913 install.sh:6916 install.sh:11672 install.sh:11675
+#: install.sh:6932 install.sh:6935 install.sh:11692 install.sh:11695
 msgid "备份旧版"
 msgstr ""
 
-#: install.sh:6917
+#: install.sh:6936
 msgid "删除旧版"
 msgstr ""
 
-#: install.sh:6921
+#: install.sh:6940
 msgid "是否保留原 Nginx 配置文件"
 msgstr ""
 
-#: install.sh:6929 install.sh:7598
+#: install.sh:6948 install.sh:7617
 msgid "原配置文件已删除"
 msgstr ""
 
-#: install.sh:6933
+#: install.sh:6952
 msgid "原配置文件已保留"
 msgstr ""
 
-#: install.sh:6964 install.sh:11701
+#: install.sh:6983 install.sh:11721
 msgid "版本记录更新失败, 执行回滚"
 msgstr ""
 
-#: install.sh:6968 install.sh:8351 install.sh:8360 install.sh:8367
-#: install.sh:9465 install.sh:11066 install.sh:11495 install.sh:11705
-#: install.sh:14741 install.sh:15232 scripts/fail2ban_manager.sh:907
+#: install.sh:6987 install.sh:8370 install.sh:8379 install.sh:8386
+#: install.sh:9484 install.sh:11086 install.sh:11515 install.sh:11725
+#: install.sh:14769 install.sh:15260 scripts/fail2ban_manager.sh:907
 #: scripts/fail2ban_manager.sh:1085
 msgid "启动"
 msgstr ""
 
-#: install.sh:6997 install.sh:15129
+#: install.sh:7016 install.sh:15157
 msgid "删除"
 msgstr ""
 
-#: install.sh:6997 install.sh:12830 install.sh:13187 install.sh:13195
-#: install.sh:13248 install.sh:13262 install.sh:13269 install.sh:13275
-#: install.sh:15361
+#: install.sh:7016 install.sh:12858 install.sh:13215 install.sh:13223
+#: install.sh:13276 install.sh:13290 install.sh:13297 install.sh:13303
+#: install.sh:15397
 msgid "备份"
 msgstr ""
 
-#: install.sh:7000 install.sh:11659
+#: install.sh:7019 install.sh:11679
 msgid "已为最新版"
 msgstr ""
 
-#: install.sh:7013
+#: install.sh:7032
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
 
-#: install.sh:7014
+#: install.sh:7033
 msgid "可能自动更新后有兼容问题, 谨慎启用"
 msgstr ""
 
-#: install.sh:7015 scripts/fail2ban_manager.sh:206
+#: install.sh:7034 scripts/fail2ban_manager.sh:206
 #: scripts/fail2ban_manager.sh:232
 msgid "是否启用"
 msgstr ""
 
-#: install.sh:7020
+#: install.sh:7039
 msgid "下载自动更新脚本"
 msgstr ""
 
-#: install.sh:7022 install.sh:12810
+#: install.sh:7041 install.sh:12838
 msgid "设置自动更新"
 msgstr ""
 
-#: install.sh:7027
+#: install.sh:7046
 msgid "已设置自动更新"
 msgstr ""
 
-#: install.sh:7028
+#: install.sh:7047
 msgid "是否关闭"
 msgstr ""
 
-#: install.sh:7034
+#: install.sh:7053
 msgid "删除自动更新"
 msgstr ""
 
-#: install.sh:7044
+#: install.sh:7063
 msgid "安装 SSL 证书生成脚本依赖"
 msgstr ""
 
-#: install.sh:7047
+#: install.sh:7066
 msgid "下载 SSL 证书生成脚本失败"
 msgstr ""
 
-#: install.sh:7054 install.sh:7057
+#: install.sh:7073 install.sh:7076
 msgid "安装 SSL 证书生成脚本"
 msgstr ""
 
-#: install.sh:7067
+#: install.sh:7086
 msgid "检测到原域名配置存在, 是否跳过域名设置"
 msgstr ""
 
-#: install.sh:7083 install.sh:7285 install.sh:7320 install.sh:7349
+#: install.sh:7102 install.sh:7304 install.sh:7339 install.sh:7368
 msgid "无法获取公网IP地址"
 msgstr ""
 
-#: install.sh:7083 install.sh:7131 install.sh:7140 install.sh:7167
-#: install.sh:7176 install.sh:7203 install.sh:7212 install.sh:7247
-#: install.sh:7256 install.sh:7285 install.sh:7320 install.sh:7349
+#: install.sh:7102 install.sh:7150 install.sh:7159 install.sh:7186
+#: install.sh:7195 install.sh:7222 install.sh:7231 install.sh:7266
+#: install.sh:7275 install.sh:7304 install.sh:7339 install.sh:7368
 msgid "安装终止"
 msgstr ""
 
-#: install.sh:7086
+#: install.sh:7105
 msgid "已跳过域名设置"
 msgstr ""
 
-#: install.sh:7092
+#: install.sh:7111
 msgid "确定域名信息"
 msgstr ""
 
-#: install.sh:7093
+#: install.sh:7112
 msgid "请输入你的域名信息"
 msgstr ""
 
-#: install.sh:7094
+#: install.sh:7113
 msgid "请选择网络与域名校验方式"
 msgstr ""
 
-#: install.sh:7095 install.sh:7297
+#: install.sh:7114 install.sh:7316
 msgid "自动检测"
 msgstr ""
 
-#: install.sh:7098
+#: install.sh:7117
 msgid "手动输入域名"
 msgstr ""
 
-#: install.sh:7098
+#: install.sh:7117
 msgid "服务器商仅提供域名"
 msgstr ""
 
-#: install.sh:7100 install.sh:7304
+#: install.sh:7119 install.sh:7323
 msgid "正在获取公网IP信息, 请耐心等待"
 msgstr ""
 
-#: install.sh:7111 install.sh:7150 install.sh:7186 install.sh:7231
+#: install.sh:7130 install.sh:7169 install.sh:7205 install.sh:7250
 msgid "域名 DNS 解析记录与公网 IP 匹配"
 msgstr ""
 
-#: install.sh:7114 install.sh:7153 install.sh:7189 install.sh:7234
+#: install.sh:7133 install.sh:7172 install.sh:7208 install.sh:7253
 msgid "检测到错误的 A/AAAA 记录, 可能导致部分客户端连接失败"
 msgstr ""
 
-#: install.sh:7115 install.sh:7154 install.sh:7190
+#: install.sh:7134 install.sh:7173 install.sh:7209
 msgid "请修正或删除错误的 DNS 记录后再继续, 请选择"
 msgstr ""
 
-#: install.sh:7116 install.sh:7155 install.sh:7191 install.sh:7235
+#: install.sh:7135 install.sh:7174 install.sh:7210 install.sh:7254
 msgid "仍然继续安装"
 msgstr ""
 
-#: install.sh:7116 install.sh:7155 install.sh:7191 install.sh:7235
+#: install.sh:7135 install.sh:7174 install.sh:7210 install.sh:7254
 msgid "高风险"
 msgstr ""
 
-#: install.sh:7117 install.sh:7135 install.sh:7156 install.sh:7171
-#: install.sh:7192 install.sh:7207 install.sh:7236 install.sh:7251
+#: install.sh:7136 install.sh:7154 install.sh:7175 install.sh:7190
+#: install.sh:7211 install.sh:7226 install.sh:7255 install.sh:7270
 msgid "重新输入"
 msgstr ""
 
-#: install.sh:7118 install.sh:7136 install.sh:7157 install.sh:7172
-#: install.sh:7193 install.sh:7208 install.sh:7237 install.sh:7252
+#: install.sh:7137 install.sh:7155 install.sh:7176 install.sh:7191
+#: install.sh:7212 install.sh:7227 install.sh:7256 install.sh:7271
 msgid "终止安装"
 msgstr ""
 
-#: install.sh:7127 install.sh:7163 install.sh:7199 install.sh:7243
+#: install.sh:7146 install.sh:7182 install.sh:7218 install.sh:7262
 msgid "继续安装"
 msgstr ""
 
-#: install.sh:7134 install.sh:7170 install.sh:7206 install.sh:7250
+#: install.sh:7153 install.sh:7189 install.sh:7225 install.sh:7269
 msgid "无法通过域名 A/AAAA 记录校验公网 IP"
 msgstr ""
 
-#: install.sh:7134 install.sh:7170 install.sh:7206 install.sh:7250
-#: install.sh:7715 install.sh:7878 install.sh:7942
+#: install.sh:7153 install.sh:7189 install.sh:7225 install.sh:7269
+#: install.sh:7734 install.sh:7897 install.sh:7961
 #: scripts/fail2ban_manager.sh:722
 msgid "请选择"
 msgstr ""
 
-#: install.sh:7216
+#: install.sh:7235
 msgid "此选项用于服务器商仅提供域名访问服务器"
 msgstr ""
 
-#: install.sh:7217
+#: install.sh:7236
 msgid "请为服务器商提供的域名添加 CNAME 记录"
 msgstr ""
 
-#: install.sh:7267
+#: install.sh:7286
 msgid "检测到原IP配置存在, 是否跳过IP设置"
 msgstr ""
 
-#: install.sh:7289
+#: install.sh:7308
 msgid "已跳过IP设置"
 msgstr ""
 
-#: install.sh:7295
+#: install.sh:7314
 msgid "确定公网IP信息"
 msgstr ""
 
-#: install.sh:7296
+#: install.sh:7315
 msgid "请选择公网IP为IPv4或IPv6"
 msgstr ""
 
-#: install.sh:7300
+#: install.sh:7319
 msgid "手动输入"
 msgstr ""
 
-#: install.sh:7310
+#: install.sh:7329
 msgid "已检测到 IPv4 和 IPv6 均可用, 将启用双栈"
 msgstr ""
 
-#: install.sh:7314
+#: install.sh:7333
 msgid "当前仅 IPv4 可用"
 msgstr ""
 
-#: install.sh:7318
+#: install.sh:7337
 msgid "当前仅 IPv6 可用"
 msgstr ""
 
-#: install.sh:7352
+#: install.sh:7371
 msgid "公网IP/域名"
 msgstr ""
 
-#: install.sh:7403
+#: install.sh:7422
 msgid "端口格式无效"
 msgstr ""
 
-#: install.sh:7408
+#: install.sh:7427
 msgid "端口未被占用"
 msgstr ""
 
-#: install.sh:7441
+#: install.sh:7460
 msgid "端口由本项目服务占用, 将在安装前停止"
 msgstr ""
 
-#: install.sh:7445
+#: install.sh:7464
 msgid "检测到端口被占用"
 msgstr ""
 
-#: install.sh:7447
+#: install.sh:7466
 msgid "脚本不会自动终止占用该端口的进程"
 msgstr ""
 
-#: install.sh:7448
+#: install.sh:7467
 msgid "请更换端口或自行停止对应服务后重试"
 msgstr ""
 
-#: install.sh:7456
+#: install.sh:7475
 msgid "证书测试签发成功, 开始正式签发"
 msgstr ""
 
-#: install.sh:7459
+#: install.sh:7478
 msgid "证书测试签发失败"
 msgstr ""
 
-#: install.sh:7465 install.sh:7478
+#: install.sh:7484 install.sh:7497
 msgid "证书生成"
 msgstr ""
 
-#: install.sh:7465 install.sh:7471 install.sh:13275 install.sh:13701
+#: install.sh:7484 install.sh:7490 install.sh:13303 install.sh:13729
 #: scripts/fail2ban_manager.sh:1108 scripts/file_manager.sh:254
 #: scripts/file_manager.sh:363
 msgid "成功"
 msgstr ""
 
-#: install.sh:7471 install.sh:7474
+#: install.sh:7490 install.sh:7493
 msgid "证书配置"
 msgstr ""
 
-#: install.sh:7548
+#: install.sh:7567
 msgid "下载 Xray TLS 配置"
 msgstr ""
 
-#: install.sh:7565
+#: install.sh:7584
 msgid "下载 Xray Reality 配置"
 msgstr ""
 
-#: install.sh:7570
+#: install.sh:7589
 msgid "下载 Xray 配置"
 msgstr ""
 
-#: install.sh:7591
+#: install.sh:7610
 msgid "检测到 Xray 配置过多用户"
 msgstr ""
 
-#: install.sh:7592
+#: install.sh:7611
 msgid "是否保留原 Xray 配置文件"
 msgstr ""
 
-#: install.sh:7620
+#: install.sh:7639
 msgid "添加简单 ws/gRPC/xHTTP 协议"
 msgstr ""
 
-#: install.sh:7645
+#: install.sh:7664
 msgid "当前服务器为中转节点, 不支持与普通节点混装"
 msgstr ""
 
-#: install.sh:7646
+#: install.sh:7665
 msgid "请先删除中转节点, 再安装普通节点"
 msgstr ""
 
-#: install.sh:7650
+#: install.sh:7669
 msgid "检测到旧版 XTLS 模式, 该模式已取消, 不支持重装或模式切换"
 msgstr ""
 
-#: install.sh:7651
+#: install.sh:7670
 msgid "现有配置与服务不会被改动; 如需继续使用请卸载后重新部署"
 msgstr ""
 
-#: install.sh:7700
+#: install.sh:7719
 msgid "无法完成安全备份, 已取消重新配置"
 msgstr ""
 
-#: install.sh:7710
+#: install.sh:7729
 msgid "检测到已有安装配置"
 msgstr ""
 
-#: install.sh:7711
+#: install.sh:7730
 msgid "保留配置重新安装"
 msgstr ""
 
-#: install.sh:7712
+#: install.sh:7731
 msgid "使用标准模板重建"
 msgstr ""
 
-#: install.sh:7721
+#: install.sh:7740
 msgid "已选择保留配置重新安装"
 msgstr ""
 
-#: install.sh:7735
+#: install.sh:7754
 msgid "自定义 routing、outbounds、DNS 和其他非标准字段可能被移除"
 msgstr ""
 
-#: install.sh:7736
+#: install.sh:7755
 msgid "原配置已备份"
 msgstr ""
 
-#: install.sh:7737 install.sh:9595 install.sh:10402 install.sh:11629
-#: install.sh:15071
+#: install.sh:7756 install.sh:9614 install.sh:10422 install.sh:11649
+#: install.sh:15099
 msgid "是否继续"
 msgstr ""
 
-#: install.sh:7745
+#: install.sh:7764
 msgid "已删除配置文件, 将使用标准模板重建"
 msgstr ""
 
-#: install.sh:7748 install.sh:7754 install.sh:7797 install.sh:7895
+#: install.sh:7767 install.sh:7773 install.sh:7816 install.sh:7914
 msgid "已取消, 返回菜单"
 msgstr ""
 
-#: install.sh:7765
+#: install.sh:7784
 msgid "检测到当前安装模式与配置文件的安装模式不一致"
 msgstr ""
 
-#: install.sh:7766 install.sh:11563 install.sh:15382
+#: install.sh:7785 install.sh:11583 install.sh:15418
 msgid "当前模式"
 msgstr ""
 
-#: install.sh:7767
+#: install.sh:7786
 msgid "目标模式"
 msgstr ""
 
-#: install.sh:7769
+#: install.sh:7788
 msgid "可以复用"
 msgstr ""
 
-#: install.sh:7771
+#: install.sh:7790
 msgid "用户名 (email)"
 msgstr ""
 
-#: install.sh:7773
+#: install.sh:7792
 msgid "不能直接复用"
 msgstr ""
 
-#: install.sh:7774
+#: install.sh:7793
 msgid "模式相关参数 (target/privateKey/shortIds/路径等)"
 msgstr ""
 
-#: install.sh:7776
+#: install.sh:7795
 msgid "将保留"
 msgstr ""
 
-#: install.sh:7777
+#: install.sh:7796
 msgid "原 Xray 配置备份"
 msgstr ""
 
-#: install.sh:7778
+#: install.sh:7797
 msgid "原 Nginx 配置备份"
 msgstr ""
 
-#: install.sh:7779
+#: install.sh:7798
 msgid "原证书"
 msgstr ""
 
-#: install.sh:7781
+#: install.sh:7800
 msgid "是否继续切换模式"
 msgstr ""
 
-#: install.sh:7794
+#: install.sh:7813
 msgid "已删除旧配置文件, 将使用目标模式标准模板生成新配置"
 msgstr ""
 
-#: install.sh:7873
+#: install.sh:7892
 msgid "检测到配置文件不完整"
 msgstr ""
 
-#: install.sh:7874
+#: install.sh:7893
 msgid "尝试从实际 Xray 配置补全安装信息"
 msgstr ""
 
-#: install.sh:7875
+#: install.sh:7894
 msgid "备份旧配置后使用标准模板重建"
 msgstr ""
 
-#: install.sh:7886
+#: install.sh:7905
 msgid "将尝试使用已读取的配置继续"
 msgstr ""
 
-#: install.sh:7892
+#: install.sh:7911
 msgid "已删除不完整配置文件, 将使用标准模板重建"
 msgstr ""
 
-#: install.sh:7908
+#: install.sh:7927
 msgid "当前配置摘要"
 msgstr ""
 
-#: install.sh:7909
+#: install.sh:7928
 msgid "安装模式"
 msgstr ""
 
-#: install.sh:7910
+#: install.sh:7929
 msgid "传输组合"
 msgstr ""
 
-#: install.sh:7911
+#: install.sh:7930
 msgid "主端口"
 msgstr ""
 
-#: install.sh:7918 install.sh:7926 install.sh:9537 install.sh:9543
-#: install.sh:9559 install.sh:9567
+#: install.sh:7937 install.sh:7945 install.sh:9556 install.sh:9562
+#: install.sh:9578 install.sh:9586
 msgid "路径"
 msgstr ""
 
-#: install.sh:7929
+#: install.sh:7948
 msgid "可选择需要修改的项目 (未选择的保持原值)"
 msgstr ""
 
-#: install.sh:7930
+#: install.sh:7949
 msgid "修改主端口"
 msgstr ""
 
-#: install.sh:7931
+#: install.sh:7950
 msgid "修改内部端口"
 msgstr ""
 
-#: install.sh:7932
+#: install.sh:7951
 msgid "修改传输路径"
 msgstr ""
 
-#: install.sh:7933
+#: install.sh:7952
 msgid "修改 Reality 参数"
 msgstr ""
 
-#: install.sh:7934
+#: install.sh:7953
 msgid "不再修改, 开始重新部署"
 msgstr ""
 
-#: install.sh:7936
+#: install.sh:7955
 msgid "UUID 和多用户信息请使用现有用户管理或 UUID 变更功能"
 msgstr ""
 
-#: install.sh:7937
+#: install.sh:7956
 msgid "传输组合变更请使用标准模板重建"
 msgstr ""
 
-#: install.sh:7938
+#: install.sh:7957
 msgid "Nginx/SNI 修改请使用标准模板重建"
 msgstr ""
 
-#: install.sh:7945
+#: install.sh:7964
 msgid "已选择修改主端口"
 msgstr ""
 
-#: install.sh:7946
+#: install.sh:7965
 msgid "已选择修改内部端口"
 msgstr ""
 
-#: install.sh:7947
+#: install.sh:7966
 msgid "已选择修改传输路径"
 msgstr ""
 
-#: install.sh:7948
+#: install.sh:7967
 msgid "已选择修改 Reality 参数"
 msgstr ""
 
-#: install.sh:8228
+#: install.sh:8247
 msgid "配置删除"
 msgstr ""
 
-#: install.sh:8267 install.sh:8273
+#: install.sh:8286 install.sh:8292
 msgid "设置 Nginx 开机自启"
 msgstr ""
 
-#: install.sh:8277 scripts/fail2ban_manager.sh:61
+#: install.sh:8296 scripts/fail2ban_manager.sh:61
 #: scripts/traffic_blocker.sh:604
 msgid "设置"
 msgstr ""
 
-#: install.sh:8277 install.sh:8294
+#: install.sh:8296 install.sh:8313
 msgid "开机自启"
 msgstr ""
 
-#: install.sh:8284 install.sh:8290
+#: install.sh:8303 install.sh:8309
 msgid "关闭 Nginx 开机自启"
 msgstr ""
 
-#: install.sh:8294
+#: install.sh:8313
 msgid "关闭"
 msgstr ""
 
-#: install.sh:8300 install.sh:8310 install.sh:8377 install.sh:8383
-#: install.sh:8387 install.sh:11496 install.sh:14750 install.sh:15233
+#: install.sh:8319 install.sh:8329 install.sh:8396 install.sh:8402
+#: install.sh:8406 install.sh:11516 install.sh:14778 install.sh:15261
 #: scripts/fail2ban_manager.sh:908 scripts/fail2ban_manager.sh:1108
 msgid "停止"
 msgstr ""
 
-#: install.sh:8308
+#: install.sh:8327
 msgid "已清理残留的证书自动更新定时任务"
 msgstr ""
 
-#: install.sh:8316
+#: install.sh:8335
 msgid "已清理证书自动更新定时任务"
 msgstr ""
 
-#: install.sh:8396 install.sh:8411
+#: install.sh:8415 install.sh:8430
 msgid "新版本已自动设置证书自动更新"
 msgstr ""
 
-#: install.sh:8397
+#: install.sh:8416
 msgid "老版本请及时删除 废弃的 改版证书自动更新"
 msgstr ""
 
-#: install.sh:8398
+#: install.sh:8417
 msgid "已设置改版证书自动更新"
 msgstr ""
 
-#: install.sh:8399
+#: install.sh:8418
 msgid "是否需要删除改版证书自动更新 (请删除)"
 msgstr ""
 
-#: install.sh:8406
+#: install.sh:8425
 msgid "删除改版证书自动更新"
 msgstr ""
 
-#: install.sh:8428
+#: install.sh:8447
 msgid "已过期"
 msgstr ""
 
-#: install.sh:8430
+#: install.sh:8449
 msgid "证书生成日期"
 msgstr ""
 
-#: install.sh:8431
+#: install.sh:8450
 msgid "证书生成天数"
 msgstr ""
 
-#: install.sh:8432
+#: install.sh:8451
 msgid "证书剩余天数"
 msgstr ""
 
-#: install.sh:8436
+#: install.sh:8455
 msgid "是否立即更新证书"
 msgstr ""
 
-#: install.sh:8448 install.sh:8464
+#: install.sh:8467 install.sh:8483
 msgid "证书签发工具不存在, 请确认是否证书为脚本签发"
 msgstr ""
 
-#: install.sh:8471
+#: install.sh:8490
 msgid "无法读取域名, 已取消证书更新"
 msgstr ""
 
-#: install.sh:8475
+#: install.sh:8494
 msgid "证书目录不可用, 已取消证书更新"
 msgstr ""
 
-#: install.sh:8481
+#: install.sh:8500
 msgid "证书所需的服务组不存在, 已取消证书更新"
 msgstr ""
 
-#: install.sh:8488
+#: install.sh:8507
 msgid "无法停止 Xray, 已取消证书更新"
 msgstr ""
 
-#: install.sh:8498
+#: install.sh:8517
 msgid "续签失败"
 msgstr ""
 
-#: install.sh:8503
+#: install.sh:8522
 msgid "证书安装失败"
 msgstr ""
 
-#: install.sh:8514 install.sh:8524
+#: install.sh:8533 install.sh:8543
 msgid "证书更新"
 msgstr ""
 
-#: install.sh:8517
+#: install.sh:8536
 msgid "已恢复 Xray 原有运行状态"
 msgstr ""
 
-#: install.sh:8519
+#: install.sh:8538
 msgid "Xray 服务恢复失败, 请手动检查"
 msgstr ""
 
-#: install.sh:8548 install.sh:9439 install.sh:9450 install.sh:9746
-#: install.sh:9900 install.sh:9963 install.sh:9976 install.sh:10180
-#: install.sh:10282 install.sh:10445 scripts/fail2ban_manager.sh:163
+#: install.sh:8567 install.sh:9458 install.sh:9469 install.sh:9765
+#: install.sh:9919 install.sh:9982 install.sh:9995 install.sh:10199
+#: install.sh:10301 install.sh:10465 scripts/fail2ban_manager.sh:163
 #: scripts/fail2ban_manager.sh:716 scripts/fail2ban_manager.sh:1124
 #: scripts/fail2ban_manager.sh:1204
 msgid "请先安装"
 msgstr ""
 
-#: install.sh:8564
+#: install.sh:8583
 msgid "是否需要设置自动清理日志"
 msgstr ""
 
-#: install.sh:8568
+#: install.sh:8587
 msgid "已跳过设置自动清理日志"
 msgstr ""
 
-#: install.sh:8571
+#: install.sh:8590
 msgid "将每周轮转并压缩日志"
 msgstr ""
 
-#: install.sh:8578
+#: install.sh:8597
 msgid "已设置自动清理日志任务"
 msgstr ""
 
-#: install.sh:8579
+#: install.sh:8598
 msgid "是否需要删除现有自动清理日志任务"
 msgstr ""
 
-#: install.sh:8584
+#: install.sh:8603
 msgid "删除自动清理日志任务"
 msgstr ""
 
-#: install.sh:8587
+#: install.sh:8606
 msgid "保留现有自动清理日志任务"
 msgstr ""
 
-#: install.sh:8626
+#: install.sh:8645
 msgid "logrotate 配置检查失败"
 msgstr ""
 
-#: install.sh:8634
+#: install.sh:8653
 msgid "设置自动清理日志"
 msgstr ""
 
-#: install.sh:8646
+#: install.sh:8665
 msgid "检测到日志文件大小如下:"
 msgstr ""
 
-#: install.sh:8648
+#: install.sh:8667
 msgid "即将清除"
 msgstr ""
 
-#: install.sh:8654
+#: install.sh:8673
 msgid "未能清理"
 msgstr ""
 
-#: install.sh:8654
+#: install.sh:8673
 msgid "未知错误"
 msgstr ""
 
-#: install.sh:8658
+#: install.sh:8677
 msgid "日志清理"
 msgstr ""
 
-#: install.sh:8660
+#: install.sh:8679
 msgid "日志清理完成，但部分文件未清理"
 msgstr ""
 
-#: install.sh:9308
+#: install.sh:9327
 msgid "链接分享"
 msgstr ""
 
-#: install.sh:9310 install.sh:9315 install.sh:9322 install.sh:9327
-#: install.sh:9334 install.sh:9339 install.sh:9346 install.sh:9351
-#: install.sh:10063 install.sh:10067
+#: install.sh:9329 install.sh:9334 install.sh:9341 install.sh:9346
+#: install.sh:9353 install.sh:9358 install.sh:9365 install.sh:9370
+#: install.sh:10082 install.sh:10086
 msgid "分享链接"
 msgstr ""
 
-#: install.sh:9311 install.sh:9316 install.sh:9323 install.sh:9328
-#: install.sh:9335 install.sh:9340 install.sh:9347 install.sh:9352
+#: install.sh:9330 install.sh:9335 install.sh:9342 install.sh:9347
+#: install.sh:9354 install.sh:9359 install.sh:9366 install.sh:9371
 msgid "二维码"
 msgstr ""
 
-#: install.sh:9359 install.sh:9360
+#: install.sh:9378 install.sh:9379
 msgid "配置分享"
 msgstr ""
 
-#: install.sh:9375
+#: install.sh:9394
 msgid "生成分享链接"
 msgstr ""
 
-#: install.sh:9429
+#: install.sh:9448
 msgid "iftop 安装失败, 流量监控功能不可用"
 msgstr ""
 
-#: install.sh:9457
+#: install.sh:9476
 msgid "无法获取网卡, 将监控所有网卡"
 msgstr ""
 
-#: install.sh:9459
+#: install.sh:9478
 msgid "监控网卡"
 msgstr ""
 
-#: install.sh:9462
+#: install.sh:9481
 msgid "监控端口"
 msgstr ""
 
-#: install.sh:9464
+#: install.sh:9483
 msgid "按 q 键退出 iftop"
 msgstr ""
 
-#: install.sh:9485
+#: install.sh:9504
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr ""
 
-#: install.sh:9487
+#: install.sh:9506
 msgid "当前 xHTTP 仅支持 stream-one 和 stream-up 模式"
 msgstr ""
 
-#: install.sh:9488
+#: install.sh:9507
 msgid "xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持"
 msgstr ""
 
-#: install.sh:9491 install.sh:15209
+#: install.sh:9510 install.sh:15237
 msgid "配置信息"
 msgstr ""
 
-#: install.sh:9492
+#: install.sh:9511
 msgid "主机"
 msgstr ""
 
-#: install.sh:9518
+#: install.sh:9537
 msgid "用户id"
 msgstr ""
 
-#: install.sh:9520
+#: install.sh:9539
 msgid "加密"
 msgstr ""
 
-#: install.sh:9521
+#: install.sh:9540
 msgid "传输协议"
 msgstr ""
 
-#: install.sh:9522
+#: install.sh:9541
 msgid "底层传输安全"
 msgstr ""
 
-#: install.sh:9527 install.sh:11138 install.sh:11321 install.sh:15031
+#: install.sh:9546 install.sh:11158 install.sh:11341 install.sh:15059
 msgid "监听地址"
 msgstr ""
 
-#: install.sh:9528
+#: install.sh:9547
 msgid "此模式没有传输层加密 (VLESS 载荷自身仍有加密), 只应用于可信后端链路"
 msgstr ""
 
-#: install.sh:9531
+#: install.sh:9550
 msgid "当前仅监听本机, 外部客户端需经可信代理接入, 或改用 TLS/Reality 模式"
 msgstr ""
 
-#: install.sh:9537 install.sh:9543 install.sh:9559 install.sh:9567
+#: install.sh:9556 install.sh:9562 install.sh:9578 install.sh:9586
 msgid "不要落下"
 msgstr ""
 
-#: install.sh:9540 install.sh:9563
+#: install.sh:9559 install.sh:9582
 msgid "不需要加"
 msgstr ""
 
-#: install.sh:9547
+#: install.sh:9566
 msgid "流控"
 msgstr ""
 
-#: install.sh:9590
+#: install.sh:9609
 msgid "即将申请证书, 支持使用自定义证书"
 msgstr ""
 
-#: install.sh:9591
+#: install.sh:9610
 msgid "如需使用自定义证书, 请按如下步骤:"
 msgstr ""
 
-#: install.sh:9592
+#: install.sh:9611
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
 msgstr ""
 
-#: install.sh:9593
+#: install.sh:9612
 msgid "2. 将重命名后的证书文件放入"
 msgstr ""
 
-#: install.sh:9593
+#: install.sh:9612
 msgid "目录后再运行脚本"
 msgstr ""
 
-#: install.sh:9594
+#: install.sh:9613
 msgid "3. 重新运行脚本"
 msgstr ""
 
-#: install.sh:9606
+#: install.sh:9625
 msgid "所有证书文件均已存在, 是否保留"
 msgstr ""
 
-#: install.sh:9608
+#: install.sh:9627
 msgid "证书文件已存在, 是否保留"
 msgstr ""
 
-#: install.sh:9615 install.sh:9632 scripts/file_manager.sh:279
+#: install.sh:9634 install.sh:9651 scripts/file_manager.sh:279
 msgid "已删除"
 msgstr ""
 
-#: install.sh:9623 install.sh:9641
+#: install.sh:9642 install.sh:9660
 msgid "证书应用"
 msgstr ""
 
-#: install.sh:9627
+#: install.sh:9646
 msgid "证书签发残留文件已存在, 是否保留"
 msgstr ""
 
-#: install.sh:9669 install.sh:15128
+#: install.sh:9688 install.sh:15156
 msgid "添加"
 msgstr ""
 
-#: install.sh:9678
+#: install.sh:9697
 msgid "请选择支持的 TLS 版本"
 msgstr ""
 
-#: install.sh:9679
+#: install.sh:9698
 msgid "建议选择 TLSv1.3 only (安全模式)"
 msgstr ""
 
-#: install.sh:9680 install.sh:9697
+#: install.sh:9699 install.sh:9716
 msgid "兼容模式"
 msgstr ""
 
-#: install.sh:9681
+#: install.sh:9700
 msgid "安全模式"
 msgstr ""
 
-#: install.sh:9685
+#: install.sh:9704
 msgid "由于 h3 仅支持 TLSv1.3, 此处只支持 TLSv1.3 only (安全模式)"
 msgstr ""
 
-#: install.sh:9688 install.sh:9702 install.sh:9705
+#: install.sh:9707 install.sh:9721 install.sh:9724
 msgid "已切换至"
 msgstr ""
 
-#: install.sh:9694
+#: install.sh:9713
 msgid "请选择 TLS 版本"
 msgstr ""
 
-#: install.sh:9695
+#: install.sh:9714
 msgid "建议选择 TLSv1.3 (安全模式)"
 msgstr ""
 
-#: install.sh:9719
+#: install.sh:9738
 msgid "Nginx 配置文件不存在或当前模式不支持"
 msgstr ""
 
-#: install.sh:9960
+#: install.sh:9979
 msgid "此模式不支持修改"
 msgstr ""
 
-#: install.sh:9972
+#: install.sh:9991
 msgid "此模式不支持查看用户"
 msgstr ""
 
-#: install.sh:9992
+#: install.sh:10011
 msgid "即将显示用户, 一次仅能显示一个"
 msgstr ""
 
-#: install.sh:10001 install.sh:10011
+#: install.sh:10020 install.sh:10030
 msgid "请选择显示用户使用的协议"
 msgstr ""
 
-#: install.sh:10028
+#: install.sh:10047
 msgid "请选择要显示的用户编号"
 msgstr ""
 
-#: install.sh:10032
+#: install.sh:10051
 msgid "请直接在主菜单选择 [查看 Xray 配置信息] 显示主用户"
 msgstr ""
 
-#: install.sh:10039 install.sh:10230 install.sh:10233 install.sh:10236
+#: install.sh:10058 install.sh:10249 install.sh:10252 install.sh:10255
 msgid "选择错误"
 msgstr ""
 
-#: install.sh:10073
+#: install.sh:10092
 msgid "是否继续显示用户"
 msgstr ""
 
-#: install.sh:10093
+#: install.sh:10112
 msgid "即将添加用户, 一次仅能添加一个"
 msgstr ""
 
-#: install.sh:10103 install.sh:10113
+#: install.sh:10122 install.sh:10132
 msgid "请选择添加用户使用的协议"
 msgstr ""
 
-#: install.sh:10139
+#: install.sh:10158
 msgid "该用户名已存在, 请使用不同的用户名"
 msgstr ""
 
-#: install.sh:10152
+#: install.sh:10171
 msgid "添加用户"
 msgstr ""
 
-#: install.sh:10162
+#: install.sh:10181
 msgid "已为当前客户端生成独立 shortId。"
 msgstr ""
 
-#: install.sh:10168
+#: install.sh:10187
 msgid "是否继续添加用户"
 msgstr ""
 
-#: install.sh:10195 install.sh:10205
+#: install.sh:10214 install.sh:10224
 msgid "请选择删除用户使用的协议"
 msgstr ""
 
-#: install.sh:10225
+#: install.sh:10244
 msgid "即将删除用户, 一次仅能删除一个"
 msgstr ""
 
-#: install.sh:10226
+#: install.sh:10245
 msgid "请选择要删除的用户编号"
 msgstr ""
 
-#: install.sh:10240
+#: install.sh:10259
 msgid "主用户无法删除"
 msgstr ""
 
-#: install.sh:10253
+#: install.sh:10272
 msgid "删除用户"
 msgstr ""
 
-#: install.sh:10270
+#: install.sh:10289
 msgid "是否继续删除用户"
 msgstr ""
 
-#: install.sh:10323 install.sh:10328 install.sh:10336 install.sh:10414
+#: install.sh:10342 install.sh:10347 install.sh:10355 install.sh:10434
 msgid "流量统计配置解析失败"
 msgstr ""
 
-#: install.sh:10332
+#: install.sh:10351
 msgid "流量统计配置缺少 api 段"
 msgstr ""
 
-#: install.sh:10343
+#: install.sh:10362
 msgid "统计 API 仅允许监听 127.0.0.1"
 msgstr ""
 
-#: install.sh:10347
+#: install.sh:10366
 msgid "统计 API 端口已被占用"
 msgstr ""
 
-#: install.sh:10366
+#: install.sh:10385
 msgid "Xray 配置测试失败, 已还原原配置"
 msgstr ""
 
-#: install.sh:10370
+#: install.sh:10389
 msgid "Xray 配置测试失败, 还原失败"
 msgstr ""
 
-#: install.sh:10381
+#: install.sh:10400
 msgid "已配置 Xray 流量统计"
 msgstr ""
 
-#: install.sh:10382
-msgid "是否需要关闭此功能"
-msgstr ""
-
-#: install.sh:10388
-msgid "关闭 Xray 流量统计"
-msgstr ""
-
-#: install.sh:10400
-msgid "流量统计需要使用"
-msgstr ""
-
 #: install.sh:10401
-msgid "可能会影响 Xray 性能"
+msgid "关闭统计会重启 Xray (短暂中断)"
 msgstr ""
 
 #: install.sh:10407
+msgid "关闭 Xray 流量统计"
+msgstr ""
+
+#: install.sh:10419
+msgid "流量统计需要使用"
+msgstr ""
+
+#: install.sh:10420
+msgid "将写入 stats/api/policy 并重启 Xray (短暂中断)"
+msgstr ""
+
+#: install.sh:10421
+msgid "可能会影响 Xray 性能"
+msgstr ""
+
+#: install.sh:10427
 msgid "下载流量统计配置"
 msgstr ""
 
-#: install.sh:10431
+#: install.sh:10451
 msgid "设置 Xray 流量统计"
 msgstr ""
 
-#: install.sh:10456
+#: install.sh:10476 scripts/xray_stats.sh:393
 msgid "统计查询需要 root 权限"
 msgstr ""
 
-#: install.sh:10461
+#: install.sh:10481
 msgid "统计脚本缺失, 请先运行 --stats 完成下载与校验"
 msgstr ""
 
-#: install.sh:10465
+#: install.sh:10485
 msgid "统计脚本下载或校验失败, 不影响统计开关"
 msgstr ""
 
-#: install.sh:10475
+#: install.sh:10495
 msgid "统计已开启但缺少 api.listen, 是否补写并重启 Xray"
 msgstr ""
 
-#: install.sh:10488
+#: install.sh:10508
 msgid "未修改配置, 统计查询需要 api.listen"
 msgstr ""
 
-#: install.sh:10527
+#: install.sh:10547
 msgid "加速脚本下载失败"
 msgstr ""
 
-#: install.sh:10582 install.sh:10615
+#: install.sh:10602 install.sh:10635
 msgid "安装配置损坏, 跳过"
 msgstr ""
 
-#: install.sh:10582 install.sh:10615
+#: install.sh:10602 install.sh:10635
 msgid "元数据清理"
 msgstr ""
 
-#: install.sh:10585 install.sh:10618
+#: install.sh:10605 install.sh:10638
 msgid "已卸载"
 msgstr ""
 
-#: install.sh:10587
+#: install.sh:10607
 msgid "Xray 卸载失败"
 msgstr ""
 
-#: install.sh:10595
+#: install.sh:10615
 msgid "是否卸载"
 msgstr ""
 
-#: install.sh:10599
+#: install.sh:10619
 msgid "已取消卸载"
 msgstr ""
 
-#: install.sh:10620
+#: install.sh:10640
 msgid "Nginx 卸载失败"
 msgstr ""
 
-#: install.sh:10634
+#: install.sh:10654
 msgid "Rill Agent 准备失败, 已取消卸载"
 msgstr ""
 
-#: install.sh:10658 install.sh:11451
+#: install.sh:10678 install.sh:11471
 msgid "是否保留配置文件"
 msgstr ""
 
-#: install.sh:10662
+#: install.sh:10682
 msgid "已保留配置文件"
 msgstr ""
 
-#: install.sh:10666
+#: install.sh:10686
 msgid "将删除配置文件"
 msgstr ""
 
-#: install.sh:10670 install.sh:11465
+#: install.sh:10690 install.sh:11485
 msgid "是否删除所有脚本文件"
 msgstr ""
 
-#: install.sh:10692 install.sh:11475
+#: install.sh:10712 install.sh:11495
 msgid "已删除所有文件"
 msgstr ""
 
-#: install.sh:10693
+#: install.sh:10713
 msgid "ヾ(￣▽￣) 拜拜~"
 msgstr ""
 
-#: install.sh:10697 install.sh:10714
+#: install.sh:10717 install.sh:10734
 msgid "卸载后校验失败, 已保留 Rill 诊断"
 msgstr ""
 
-#: install.sh:10705
+#: install.sh:10725
 msgid "已删除配置文件"
 msgstr ""
 
-#: install.sh:10708
+#: install.sh:10728
 msgid "已保留脚本文件 (包含 SSL 证书等)"
 msgstr ""
 
-#: install.sh:10736
+#: install.sh:10756
 msgid "已清空证书遗留文件"
 msgstr ""
 
-#: install.sh:10773
+#: install.sh:10793
 msgid "秒后"
 msgstr ""
 
-#: install.sh:10796 install.sh:10864 install.sh:11315 install.sh:11563
-#: install.sh:12676 install.sh:15104
+#: install.sh:10816 install.sh:10884 install.sh:11335 install.sh:11583
+#: install.sh:12704 install.sh:15132
 msgid "中转节点"
 msgstr ""
 
-#: install.sh:10888
+#: install.sh:10908
 msgid "落地服务器地址无效"
 msgstr ""
 
-#: install.sh:10893
+#: install.sh:10913
 msgid "端口无效, 必须是 1-65535"
 msgstr ""
 
-#: install.sh:10898
+#: install.sh:10918
 msgid "监听地址无效"
 msgstr ""
 
-#: install.sh:10945
+#: install.sh:10965
 msgid "写入中转配置失败"
 msgstr ""
 
-#: install.sh:10991
+#: install.sh:11011
 msgid "Nginx 主配置中已存在自定义 stream 块, 请手动处理后重试"
 msgstr ""
 
-#: install.sh:11026
+#: install.sh:11046
 msgid "已恢复上一次的转发配置"
 msgstr ""
 
-#: install.sh:11028
+#: install.sh:11048
 msgid "恢复转发配置后 Nginx 校验仍失败, 请查看 Nginx 错误日志"
 msgstr ""
 
-#: install.sh:11055
+#: install.sh:11075
 msgid "Nginx 配置校验失败, 已恢复原转发配置"
 msgstr ""
 
-#: install.sh:11096
+#: install.sh:11116
 msgid "检测到已有普通节点安装, 中转节点需要独立服务器"
 msgstr ""
 
-#: install.sh:11097
+#: install.sh:11117
 msgid "请先卸载原节点或改用普通节点安装, 本脚本不会覆盖现有配置"
 msgstr ""
 
-#: install.sh:11104
+#: install.sh:11124
 msgid "检测到脚本管理的 Nginx 站点配置"
 msgstr ""
 
-#: install.sh:11105
+#: install.sh:11125
 msgid "中转节点不能与普通节点或受管站点混装, 请先手动处理"
 msgstr ""
 
-#: install.sh:11110
+#: install.sh:11130
 msgid "检测到 Xray 配置文件"
 msgstr ""
 
-#: install.sh:11111
+#: install.sh:11131
 msgid "中转节点不安装 Xray, 请先手动处理现有 Xray 配置"
 msgstr ""
 
-#: install.sh:11124
+#: install.sh:11144
 msgid "中转节点安装向导"
 msgstr ""
 
-#: install.sh:11125
+#: install.sh:11145
 msgid "中转节点只做 TCP 透明转发, 不安装 Xray, 不终止 TLS/REALITY"
 msgstr ""
 
-#: install.sh:11126
+#: install.sh:11146
 msgid ""
 "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 保持不变"
 msgstr ""
 
-#: install.sh:11129 install.sh:11239
+#: install.sh:11149 install.sh:11259
 msgid "落地服务器地址 (IP 或域名)"
 msgstr ""
 
-#: install.sh:11131
+#: install.sh:11151
 msgid "落地服务器地址无效, 请重新输入"
 msgstr ""
 
-#: install.sh:11133 install.sh:11245
+#: install.sh:11153 install.sh:11265
 msgid "落地服务器端口"
 msgstr ""
 
-#: install.sh:11134 install.sh:11268
+#: install.sh:11154 install.sh:11288
 msgid "本机监听端口"
 msgstr ""
 
-#: install.sh:11138
+#: install.sh:11158
 msgid "默认监听所有地址"
 msgstr ""
 
-#: install.sh:11139 install.sh:15017
+#: install.sh:11159 install.sh:15045
 msgid "是否需要指定其他监听地址"
 msgstr ""
 
-#: install.sh:11144
+#: install.sh:11164
 msgid "监听地址 (IPv4/IPv6)"
 msgstr ""
 
-#: install.sh:11146 install.sh:15026
+#: install.sh:11166 install.sh:15054
 msgid "监听地址无效, 请重新输入"
 msgstr ""
 
-#: install.sh:11202
+#: install.sh:11222
 msgid "转发已生效, 但配置记录写入失败, 请重新运行安装向导"
 msgstr ""
 
-#: install.sh:11219
+#: install.sh:11239
 msgid "防火墙端口同步失败, 请手动放行新端口"
 msgstr ""
 
-#: install.sh:11231 install.sh:11261
+#: install.sh:11251 install.sh:11281
 msgid "当前没有可修改的中转配置"
 msgstr ""
 
-#: install.sh:11238 install.sh:11576
+#: install.sh:11258 install.sh:11596
 msgid "修改落地目标"
 msgstr ""
 
-#: install.sh:11241
+#: install.sh:11261
 msgid "落地服务器地址无效, 已取消"
 msgstr ""
 
-#: install.sh:11252
+#: install.sh:11272
 msgid "落地目标已更新"
 msgstr ""
 
-#: install.sh:11267 install.sh:11577
+#: install.sh:11287 install.sh:11597
 msgid "修改监听端口"
 msgstr ""
 
-#: install.sh:11280
+#: install.sh:11300
 msgid "监听端口已更新"
 msgstr ""
 
-#: install.sh:11287
+#: install.sh:11307
 msgid "当前没有可测试的中转配置"
 msgstr ""
 
-#: install.sh:11290
+#: install.sh:11310
 msgid "测试到落地节点的 TCP 连通性"
 msgstr ""
 
-#: install.sh:11292
+#: install.sh:11312
 msgid "TCP 连接成功 (仅代表端口可达, 不代表 REALITY/TLS 握手成功)"
 msgstr ""
 
-#: install.sh:11295
+#: install.sh:11315
 msgid "无法连接落地节点端口, 请检查地址/端口/防火墙"
 msgstr ""
 
-#: install.sh:11317
+#: install.sh:11337
 msgid "中转节点配置信息"
 msgstr ""
 
-#: install.sh:11318
+#: install.sh:11338
 msgid "本机中转入口"
 msgstr ""
 
-#: install.sh:11319
+#: install.sh:11339
 msgid "落地服务器"
 msgstr ""
 
-#: install.sh:11320
+#: install.sh:11340
 msgid "转发方式"
 msgstr ""
 
-#: install.sh:11320
+#: install.sh:11340
 msgid "透传"
 msgstr ""
 
-#: install.sh:11322
+#: install.sh:11342
 msgid "启用状态"
 msgstr ""
 
-#: install.sh:11327
+#: install.sh:11347
 msgid ""
 "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 等参数保持"
 "不变"
 msgstr ""
 
-#: install.sh:11328
+#: install.sh:11348
 msgid "TCP 端口可达不代表 REALITY/TLS 握手成功, 请以客户端实际连接为准"
 msgstr ""
 
-#: install.sh:11329
+#: install.sh:11349
 msgid "本机不安装 Xray, 不终止 TLS, 也不保存落地节点的私钥"
 msgstr ""
 
-#: install.sh:11343 install.sh:12938 install.sh:12946 install.sh:12953
-#: install.sh:15401 scripts/rill_xray_agent_manager.sh:885
+#: install.sh:11363 install.sh:12966 install.sh:12974 install.sh:12981
+#: install.sh:15437 scripts/rill_xray_agent_manager.sh:885
 msgid "运行中"
 msgstr ""
 
-#: install.sh:11345 install.sh:12940 install.sh:12950 install.sh:12955
+#: install.sh:11365 install.sh:12968 install.sh:12978 install.sh:12983
 msgid "未运行"
 msgstr ""
 
-#: install.sh:11354 install.sh:13050 install.sh:13052 install.sh:13054
-#: install.sh:13056 install.sh:13058 install.sh:13061 install.sh:13063
+#: install.sh:11374 install.sh:13078 install.sh:13080 install.sh:13082
+#: install.sh:13084 install.sh:13086 install.sh:13089 install.sh:13091
 msgid "本地正常"
 msgstr ""
 
-#: install.sh:11356 install.sh:13044 install.sh:13046
+#: install.sh:11376 install.sh:13072 install.sh:13074
 msgid "无法连通"
 msgstr ""
 
-#: install.sh:11364
+#: install.sh:11384
 msgid "Nginx 错误日志不存在"
 msgstr ""
 
-#: install.sh:11423
+#: install.sh:11443
 msgid "检测到旧 node 残留, 一并清理"
 msgstr ""
 
-#: install.sh:11431
+#: install.sh:11451
 msgid "将删除中转配置并卸载 Nginx, 是否继续"
 msgstr ""
 
-#: install.sh:11436
+#: install.sh:11456
 msgid "已取消"
 msgstr ""
 
-#: install.sh:11446
+#: install.sh:11466
 msgid "删除中转配置后 Nginx 仍无法通过校验, 请手动检查"
 msgstr ""
 
-#: install.sh:11478
+#: install.sh:11498
 msgid "已保留脚本文件"
 msgstr ""
 
-#: install.sh:11483
+#: install.sh:11503
 msgid "中转节点已删除"
 msgstr ""
 
-#: install.sh:11493 install.sh:11578 install.sh:15230 install.sh:15273
+#: install.sh:11513 install.sh:11598 install.sh:15258 install.sh:15301
 msgid "服务相关"
 msgstr ""
 
-#: install.sh:11497 install.sh:12825 install.sh:12833 install.sh:15127
-#: install.sh:15234 scripts/fail2ban_manager.sh:66
+#: install.sh:11517 install.sh:12853 install.sh:12861 install.sh:15155
+#: install.sh:15262 scripts/fail2ban_manager.sh:66
 msgid "查看"
 msgstr ""
 
-#: install.sh:11497 scripts/fail2ban_manager.sh:66
+#: install.sh:11517 scripts/fail2ban_manager.sh:66
 #: scripts/fail2ban_manager.sh:999 scripts/traffic_blocker.sh:554
-#: scripts/traffic_blocker.sh:1053
+#: scripts/traffic_blocker.sh:921
 msgid "状态"
 msgstr ""
 
-#: install.sh:11528 install.sh:11579 install.sh:15290 install.sh:15433
+#: install.sh:11548 install.sh:11599 install.sh:15318 install.sh:15469
 msgid "更新向导"
 msgstr ""
 
-#: install.sh:11529 install.sh:15291 install.sh:15364 install.sh:15384
+#: install.sh:11549 install.sh:15319 install.sh:15400 install.sh:15420
 msgid "脚本"
 msgstr ""
 
-#: install.sh:11531 install.sh:15294
+#: install.sh:11551 install.sh:15322
 msgid "自动更新"
 msgstr ""
 
-#: install.sh:11541 install.sh:14598
+#: install.sh:11561 install.sh:14626
 msgid "不建议"
 msgstr ""
 
-#: install.sh:11541 install.sh:14598
+#: install.sh:11561 install.sh:14626
 msgid "频繁更新 Nginx, 请确认 Nginx 有更新的必要"
 msgstr ""
 
-#: install.sh:11542 install.sh:14599
+#: install.sh:11562 install.sh:14627
 msgid "开始更新"
 msgstr ""
 
-#: install.sh:11561
+#: install.sh:11581
 msgid "中转节点管理"
 msgstr ""
 
-#: install.sh:11564 install.sh:15383
+#: install.sh:11584 install.sh:15419
 msgid "当前语言"
 msgstr ""
 
-#: install.sh:11565
+#: install.sh:11585
 msgid "转发信息"
 msgstr ""
 
-#: install.sh:11567
+#: install.sh:11587
 msgid "入口"
 msgstr ""
 
-#: install.sh:11568
+#: install.sh:11588
 msgid "落地"
 msgstr ""
 
-#: install.sh:11569 install.sh:15393
+#: install.sh:11589 install.sh:15429
 msgid "运行状态"
 msgstr ""
 
-#: install.sh:11570 install.sh:15389
+#: install.sh:11590 install.sh:15425
 msgid "连通性"
 msgstr ""
 
-#: install.sh:11573
+#: install.sh:11593
 msgid "中转节点菜单"
 msgstr ""
 
-#: install.sh:11575 install.sh:15208 install.sh:15431
+#: install.sh:11595 install.sh:15236 install.sh:15467
 msgid "查看信息"
 msgstr ""
 
-#: install.sh:11580
+#: install.sh:11600
 msgid "测试后端连通"
 msgstr ""
 
-#: install.sh:11582 install.sh:12822 install.sh:15436
+#: install.sh:11602 install.sh:12850 install.sh:15472
 msgid "修改语言"
 msgstr ""
 
-#: install.sh:11583
+#: install.sh:11603
 msgid "删除中转"
 msgstr ""
 
-#: install.sh:11585 install.sh:15439 scripts/fail2ban_manager.sh:67
+#: install.sh:11605 install.sh:15475 scripts/fail2ban_manager.sh:67
 #: scripts/file_manager.sh:308 scripts/traffic_blocker.sh:614
 msgid "退出"
 msgstr ""
 
-#: install.sh:11627
+#: install.sh:11647
 msgid "中转节点需要一台独立服务器, 只做单目标 TCP 转发"
 msgstr ""
 
-#: install.sh:11628
+#: install.sh:11648
 msgid "不安装 Xray, 不终止 TLS/REALITY, 也不需要落地节点的 SSH 凭据"
 msgstr ""
 
-#: install.sh:11643
+#: install.sh:11663
 msgid "中转节点安装失败"
 msgstr ""
 
-#: install.sh:11994
+#: install.sh:12014
 msgid "正在更新 Xray 管理脚本，请勿关闭终端……"
 msgstr ""
 
-#: install.sh:12333
+#: install.sh:12353
 msgid "候选校验失败, 已阻止脚本更新"
 msgstr ""
 
-#: install.sh:12336
+#: install.sh:12356
 msgid "集成校验失败, 已阻止脚本更新"
 msgstr ""
 
-#: install.sh:12339
+#: install.sh:12359
 msgid "替换后校验失败, 已回滚"
 msgstr ""
 
-#: install.sh:12342
+#: install.sh:12362
 msgid "替换后校验失败, 已阻止启动"
 msgstr ""
 
-#: install.sh:12345 install.sh:12439
+#: install.sh:12365 install.sh:12459
 msgid "脚本更新失败"
 msgstr ""
 
-#: install.sh:12356
+#: install.sh:12376
 msgid "校验详情"
 msgstr ""
 
-#: install.sh:12356
+#: install.sh:12376
 msgid "阶段"
 msgstr ""
 
-#: install.sh:12356
+#: install.sh:12376
 msgid "来源"
 msgstr ""
 
-#: install.sh:12380 install.sh:12429
+#: install.sh:12400 install.sh:12449
 msgid "检测最新版本失败"
 msgstr ""
 
-#: install.sh:12390 install.sh:12867
+#: install.sh:12410 install.sh:12895
 msgid "新版本"
 msgstr ""
 
-#: install.sh:12390 install.sh:12867
+#: install.sh:12410 install.sh:12895
 msgid "更新内容"
 msgstr ""
 
-#: install.sh:12394
+#: install.sh:12414
 msgid "存在新版本, 但版本变化较大, 可能存在不兼容情况, 是否更新"
 msgstr ""
 
-#: install.sh:12397
+#: install.sh:12417
 msgid "存在新版本, 是否更新"
 msgstr ""
 
-#: install.sh:12406 install.sh:12419 install.sh:12424
+#: install.sh:12426 install.sh:12439 install.sh:12444
 msgid "未升级"
 msgstr ""
 
-#: install.sh:12406
+#: install.sh:12426
 msgid "跨 minor 更新需要显式 --allow-major；--yes 仅自动确认同一 minor"
 msgstr ""
 
-#: install.sh:12409
+#: install.sh:12429
 msgid "跨 minor 更新未被 --yes 自动确认；请确认或改用 --allow-major"
 msgstr ""
 
-#: install.sh:12412
+#: install.sh:12432
 msgid "已按 --yes --allow-major 自动确认跨 minor 更新"
 msgstr ""
 
-#: install.sh:12414
+#: install.sh:12434
 msgid "已按 --yes 自动确认更新"
 msgstr ""
 
-#: install.sh:12419
+#: install.sh:12439
 msgid "当前输入不是交互终端；自动化请使用 --yes"
 msgstr ""
 
-#: install.sh:12424
+#: install.sh:12444
 msgid "无法读取确认输入"
 msgstr ""
 
-#: install.sh:12430
+#: install.sh:12450
 msgid "脚本版本差别过大, 跳过更新"
 msgstr ""
 
-#: install.sh:12451
+#: install.sh:12471
 msgid "下载脚本版本校验失败"
 msgstr ""
 
-#: install.sh:12484
-msgid "GeoData 迁移将在下次启动脚本或进入 GeoData 菜单时执行"
+#: install.sh:12507
+msgid "GeoData 已自动迁移为 Xray 原生刷新"
 msgstr ""
 
-#: install.sh:12486 install.sh:12879
+#: install.sh:12509
+msgid "GeoData 自动迁移未完成, 旧刷新任务已保留; 下次启动会自动重试"
+msgstr ""
+
+#: install.sh:12514 install.sh:12907
 msgid "脚本版本变化较大, 若服务无法正常运行请卸载后重装"
 msgstr ""
 
-#: install.sh:12490
+#: install.sh:12518
 msgid "已取消更新，未升级"
 msgstr ""
 
-#: install.sh:12505 scripts/fail2ban_manager.sh:1188
-#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1511
+#: install.sh:12533 scripts/fail2ban_manager.sh:1188
+#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1379
 msgid "当前已经是最新版本"
 msgstr ""
 
-#: install.sh:12528
+#: install.sh:12556
 msgid "已修正"
 msgstr ""
 
-#: install.sh:12530
+#: install.sh:12558
 msgid "修正"
 msgstr ""
 
-#: install.sh:12530
+#: install.sh:12558
 msgid "失败，保留原文件"
 msgstr ""
 
-#: install.sh:12551 install.sh:12862 install.sh:12877 install.sh:12890
+#: install.sh:12579 install.sh:12890 install.sh:12905 install.sh:12918
 msgid "下载最新脚本"
 msgstr ""
 
-#: install.sh:12636
+#: install.sh:12664
 msgid "该选项暂时无法使用"
 msgstr ""
 
-#: install.sh:12655 install.sh:14635
+#: install.sh:12683 install.sh:14663
 msgid "此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装"
 msgstr ""
 
-#: install.sh:12805
+#: install.sh:12833
 msgid "默认仅监听 127.0.0.1"
 msgstr ""
 
-#: install.sh:12806
+#: install.sh:12834
 msgid "安装中转节点"
 msgstr ""
 
-#: install.sh:12806
+#: install.sh:12834
 msgid "转发"
 msgstr ""
 
-#: install.sh:12806
+#: install.sh:12834
 msgid "不安装"
 msgstr ""
 
-#: install.sh:12807 install.sh:12808 install.sh:12809 install.sh:12824
-#: install.sh:12839 install.sh:12844 install.sh:14661 install.sh:14666
-#: install.sh:14671 install.sh:14676 install.sh:14689 install.sh:15147
-#: install.sh:15148 install.sh:15149 install.sh:15150 install.sh:15151
+#: install.sh:12835 install.sh:12836 install.sh:12837 install.sh:12852
+#: install.sh:12867 install.sh:12872 install.sh:14689 install.sh:14694
+#: install.sh:14699 install.sh:14704 install.sh:14717 install.sh:15175
+#: install.sh:15176 install.sh:15177 install.sh:15178 install.sh:15179
 msgid "变更"
 msgstr ""
 
-#: install.sh:12807
+#: install.sh:12835
 msgid "负载均衡配置"
 msgstr ""
 
-#: install.sh:12811
+#: install.sh:12839
 msgid "清除日志文件"
 msgstr ""
 
-#: install.sh:12812
+#: install.sh:12840
 msgid "查看证书状态"
 msgstr ""
 
-#: install.sh:12813
+#: install.sh:12841
 msgid "更新证书有效期"
 msgstr ""
 
-#: install.sh:12814
+#: install.sh:12842
 msgid "设置证书自动更新"
 msgstr ""
 
-#: install.sh:12815
+#: install.sh:12843
 msgid "设置 Fail2ban 防暴力破解"
 msgstr ""
 
-#: install.sh:12816 scripts/fail2ban_manager.sh:1242
+#: install.sh:12844 scripts/fail2ban_manager.sh:1242
 msgid "查看 Fail2ban 状态"
 msgstr ""
 
-#: install.sh:12817 scripts/fail2ban_manager.sh:725
+#: install.sh:12845 scripts/fail2ban_manager.sh:725
 #: scripts/fail2ban_manager.sh:1243
 msgid "快速解封 IP"
 msgstr ""
 
-#: install.sh:12818 scripts/fail2ban_manager.sh:726
+#: install.sh:12846 scripts/fail2ban_manager.sh:726
 #: scripts/fail2ban_manager.sh:1244
 msgid "添加可信 IP/CIDR"
 msgstr ""
 
-#: install.sh:12819 scripts/fail2ban_manager.sh:727
+#: install.sh:12847 scripts/fail2ban_manager.sh:727
 #: scripts/fail2ban_manager.sh:1245
 msgid "移除可信 IP/CIDR"
 msgstr ""
 
-#: install.sh:12820
+#: install.sh:12848
 msgid "设置 Xray 流量阻断"
 msgstr ""
 
-#: install.sh:12821
+#: install.sh:12849
 msgid "显示帮助"
 msgstr ""
 
-#: install.sh:12825 install.sh:15212
+#: install.sh:12853 install.sh:15240
 msgid "实时流量"
 msgstr ""
 
-#: install.sh:12826
+#: install.sh:12854
 msgid "查看 Xray 流量统计"
 msgstr ""
 
-#: install.sh:12827
+#: install.sh:12855
 msgid "重置 Xray 流量统计"
 msgstr ""
 
-#: install.sh:12828
+#: install.sh:12856
 msgid "实时刷新 Xray 流量统计"
 msgstr ""
 
-#: install.sh:12829
+#: install.sh:12857
 msgid "脚本卸载"
 msgstr ""
 
-#: install.sh:12830 install.sh:12831 install.sh:15361 install.sh:15362
+#: install.sh:12858 install.sh:12859 install.sh:15397 install.sh:15398
 msgid "脚本管理文件"
 msgstr ""
 
-#: install.sh:12831 install.sh:13566 install.sh:13574 install.sh:13614
-#: install.sh:13701 install.sh:15362
+#: install.sh:12859 install.sh:13594 install.sh:13602 install.sh:13642
+#: install.sh:13729 install.sh:15398
 msgid "恢复"
 msgstr ""
 
-#: install.sh:12832
+#: install.sh:12860
 msgid "安装或修复 Rill AI 判断引擎"
 msgstr ""
 
-#: install.sh:12833
+#: install.sh:12861
 msgid "判断引擎状态"
 msgstr ""
 
-#: install.sh:12834
+#: install.sh:12862
 msgid "切换路由辅助阶段"
 msgstr ""
 
-#: install.sh:12835
+#: install.sh:12863
 msgid "查看自动修改状态"
 msgstr ""
 
-#: install.sh:12836
+#: install.sh:12864
 msgid "确认自动修改授权"
 msgstr ""
 
-#: install.sh:12837
+#: install.sh:12865
 msgid "撤销自动修改授权"
 msgstr ""
 
-#: install.sh:12838
+#: install.sh:12866
 msgid "显示安装信息"
 msgstr ""
 
-#: install.sh:12840 install.sh:15335
+#: install.sh:12868 install.sh:15371
 msgid "加速"
 msgstr ""
 
-#: install.sh:12843
+#: install.sh:12871
 msgid "更新脚本"
 msgstr ""
 
-#: install.sh:12843
+#: install.sh:12871
 msgid "自动化请加"
 msgstr ""
 
-#: install.sh:12843
+#: install.sh:12871
 msgid "跨 minor 另加"
 msgstr ""
 
-#: install.sh:12845 install.sh:12846
+#: install.sh:12873 install.sh:12874
 msgid "显示"
 msgstr ""
 
-#: install.sh:12845
+#: install.sh:12873
 msgid "访问信息"
 msgstr ""
 
-#: install.sh:12846
+#: install.sh:12874
 msgid "错误信息"
 msgstr ""
 
-#: install.sh:12871
+#: install.sh:12899
 msgid "脚本版本变化较大, 可能存在不兼容情况, 是否继续使用"
 msgstr ""
 
-#: install.sh:12898
+#: install.sh:12926
 msgid "检测失败"
 msgstr ""
 
-#: install.sh:12902 install.sh:12912 install.sh:12920
+#: install.sh:12930 install.sh:12940 install.sh:12948
 msgid "有新版"
 msgstr ""
 
-#: install.sh:12905 install.sh:12914 install.sh:12922
+#: install.sh:12933 install.sh:12942 install.sh:12950
 msgid "最新版"
 msgstr ""
 
-#: install.sh:12918
+#: install.sh:12946
 msgid "版本未知"
 msgstr ""
 
-#: install.sh:12942
+#: install.sh:12970
 msgid "不适用"
 msgstr ""
 
-#: install.sh:12948
+#: install.sh:12976
 msgid "无需测试"
 msgstr ""
 
-#: install.sh:13074
+#: install.sh:13102
 msgid "脚本维护中.. 请稍后再试"
 msgstr ""
 
-#: install.sh:13080
+#: install.sh:13108
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
 
-#: install.sh:13097
+#: install.sh:13125
 msgid "请输入数字"
 msgstr ""
 
-#: install.sh:13097
+#: install.sh:13125
 msgid "请输入 1 到 6 之间的有效数字"
 msgstr ""
 
-#: install.sh:13173
+#: install.sh:13201
 msgid "请输入备份名称"
 msgstr ""
 
-#: install.sh:13173
+#: install.sh:13201
 msgid "不需要后缀"
 msgstr ""
 
-#: install.sh:13195
+#: install.sh:13223
 msgid "无法创建临时文件"
 msgstr ""
 
-#: install.sh:13248
+#: install.sh:13276
 msgid "完整性清单生成失败"
 msgstr ""
 
-#: install.sh:13260
+#: install.sh:13288
 msgid "报错信息"
 msgstr ""
 
-#: install.sh:13262
+#: install.sh:13290
 msgid "返回非零"
 msgstr ""
 
-#: install.sh:13269
+#: install.sh:13297
 msgid "无法写入备份文件"
 msgstr ""
 
-#: install.sh:13323 install.sh:13328
+#: install.sh:13351 install.sh:13356
 msgid "恢复前配置快照创建失败"
 msgstr ""
 
-#: install.sh:13367
+#: install.sh:13395
 msgid "GeoData 自愈失败, 已回滚到恢复前状态"
 msgstr ""
 
-#: install.sh:13369
+#: install.sh:13397
 msgid "RECOVERY REQUIRED: GeoData 自愈回滚不完整"
 msgstr ""
 
-#: install.sh:13423
+#: install.sh:13451
 msgid "GeoData 软链指向其他目录, 保留现状"
 msgstr ""
 
-#: install.sh:13425
+#: install.sh:13453
 msgid "旧归档 GeoData 文件未合并, 现有软链未被覆盖"
 msgstr ""
 
-#: install.sh:13454
+#: install.sh:13482
 msgid "已将旧 GeoData 目录合并到"
 msgstr ""
 
-#: install.sh:13455
+#: install.sh:13483
 msgid "同名文件以目标目录为准, 原目录回退副本保留于"
 msgstr ""
 
-#: install.sh:13457
+#: install.sh:13485
 msgid "旧 GeoData 目录缺少 geoip.dat/geosite.dat, 保留原目录且不建软链"
 msgstr ""
 
-#: install.sh:13476
+#: install.sh:13504
 msgid "已创建 GeoData 资源目录软链"
 msgstr ""
 
-#: install.sh:13478
+#: install.sh:13506
 msgid "未找到可用的 GeoData 资源, 跳过软链自愈"
 msgstr ""
 
-#: install.sh:13485
+#: install.sh:13513
 msgid "未找到可执行的 Xray, 跳过 GeoData 自愈后自检"
 msgstr ""
 
-#: install.sh:13491
+#: install.sh:13519
 msgid "恢复后缺少 Xray 配置, 跳过 GeoData 自愈后自检"
 msgstr ""
 
-#: install.sh:13497
+#: install.sh:13525
 msgid "GeoData 自愈后 Xray 配置自检失败"
 msgstr ""
 
-#: install.sh:13505
+#: install.sh:13533
 msgid "GeoData 自愈后 Xray 自检通过"
 msgstr ""
 
-#: install.sh:13512
+#: install.sh:13540
 msgid "请确保备份文件在目录"
 msgstr ""
 
-#: install.sh:13516
+#: install.sh:13544
 msgid "没有找到备份文件"
 msgstr ""
 
-#: install.sh:13521
+#: install.sh:13549
 msgid "发现多个备份文件"
 msgstr ""
 
-#: install.sh:13521
+#: install.sh:13549
 msgid "将使用最新的文件进行恢复"
 msgstr ""
 
-#: install.sh:13539
+#: install.sh:13567
 msgid "找到最新备份文件"
 msgstr ""
 
-#: install.sh:13545 install.sh:13554 install.sh:13582 install.sh:13949
+#: install.sh:13573 install.sh:13582 install.sh:13610 install.sh:13977
 msgid "备份完整性校验失败, 拒绝恢复"
 msgstr ""
 
-#: install.sh:13558
+#: install.sh:13586
 msgid "备份内容不符合预期, 拒绝恢复"
 msgstr ""
 
-#: install.sh:13562
+#: install.sh:13590
 msgid "恢复备份"
 msgstr ""
 
-#: install.sh:13588
+#: install.sh:13616
 msgid "旧备份无完整性清单, 仅做结构校验"
 msgstr ""
 
-#: install.sh:13602 install.sh:13607
+#: install.sh:13630 install.sh:13635
 msgid "旧 GeoData 目录暂存失败, 拒绝恢复"
 msgstr ""
 
-#: install.sh:13645
+#: install.sh:13673
 msgid "旧备份未做跨模式清理, 请手动检查残留配置"
 msgstr ""
 
-#: install.sh:13654
+#: install.sh:13682
 msgid "恢复后权限收紧未完全成功, 请手动检查"
 msgstr ""
 
-#: install.sh:13671
+#: install.sh:13699
 msgid "恢复失败: GeoData 资源目录自愈未通过"
 msgstr ""
 
-#: install.sh:13680
+#: install.sh:13708
 msgid "恢复后 daemon-reload 失败, 请手动检查"
 msgstr ""
 
-#: install.sh:13691
+#: install.sh:13719
 msgid "恢复后 Xray 配置自检失败"
 msgstr ""
 
-#: install.sh:13703
+#: install.sh:13731
 msgid "已恢复脚本版本"
 msgstr ""
 
-#: install.sh:13705
+#: install.sh:13733
 msgid "脚本与配置版本不一致, 请重新执行安装"
 msgstr ""
 
-#: install.sh:13747
+#: install.sh:13775
 msgid "部署失败且自动恢复未完成"
 msgstr ""
 
-#: install.sh:13748 install.sh:14189 install.sh:14308 install.sh:14394
-#: install.sh:14403
+#: install.sh:13776 install.sh:14217 install.sh:14336 install.sh:14422
+#: install.sh:14431
 msgid "备份目录保留在"
 msgstr ""
 
-#: install.sh:13774
+#: install.sh:13802
 msgid "备份父目录创建失败, 中止重配置"
 msgstr ""
 
-#: install.sh:13780
+#: install.sh:13808
 msgid "备份目录创建失败, 中止重配置"
 msgstr ""
 
-#: install.sh:13826
+#: install.sh:13854
 msgid "关键文件备份失败, 中止重配置"
 msgstr ""
 
-#: install.sh:13922
+#: install.sh:13950
 msgid "备份元数据校验失败, 中止重配置"
 msgstr ""
 
-#: install.sh:13937
+#: install.sh:13965
 msgid "部署失败, 正在恢复原配置"
 msgstr ""
 
-#: install.sh:13945
+#: install.sh:13973
 msgid "备份完整性清单缺失, 拒绝恢复"
 msgstr ""
 
-#: install.sh:14045
+#: install.sh:14073
 msgid "防火墙规则回滚失败"
 msgstr ""
 
-#: install.sh:14071 install.sh:14077
+#: install.sh:14099 install.sh:14105
 msgid "基础防火墙规则回滚失败"
 msgstr ""
 
-#: install.sh:14091
+#: install.sh:14119
 msgid "防火墙持久化恢复未完成, 重启后可能回到失败状态"
 msgstr ""
 
-#: install.sh:14188
+#: install.sh:14216
 msgid "恢复未完全成功, 请手动检查"
 msgstr ""
 
-#: install.sh:14199
+#: install.sh:14227
 msgid "Xray 服务恢复后未运行"
 msgstr ""
 
-#: install.sh:14203
+#: install.sh:14231
 msgid "Xray 服务恢复后仍在运行"
 msgstr ""
 
-#: install.sh:14207
+#: install.sh:14235
 msgid "Xray 服务恢复后未启用"
 msgstr ""
 
-#: install.sh:14211
+#: install.sh:14239
 msgid "Xray 服务恢复后仍启用"
 msgstr ""
 
-#: install.sh:14216
+#: install.sh:14244
 msgid "Xray 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
 
-#: install.sh:14220
+#: install.sh:14248
 msgid "Xray 服务恢复后仍为 enabled, 但原系统无此 unit"
 msgstr ""
 
-#: install.sh:14226
+#: install.sh:14254
 msgid "Nginx 服务恢复后未运行"
 msgstr ""
 
-#: install.sh:14230
+#: install.sh:14258
 msgid "Nginx 服务恢复后仍在运行"
 msgstr ""
 
-#: install.sh:14234
+#: install.sh:14262
 msgid "Nginx 服务恢复后未启用"
 msgstr ""
 
-#: install.sh:14238
+#: install.sh:14266
 msgid "Nginx 服务恢复后仍启用"
 msgstr ""
 
-#: install.sh:14243
+#: install.sh:14271
 msgid "Nginx 服务恢复后仍被 systemd 加载为 active, 但原系统无此 unit"
 msgstr ""
 
-#: install.sh:14247
+#: install.sh:14275
 msgid "Nginx 服务恢复后仍为 enabled, 但原系统无此 unit"
 msgstr ""
 
-#: install.sh:14273 install.sh:14277
+#: install.sh:14301 install.sh:14305
 msgid "ACME 定时任务未能恢复, 请手动检查"
 msgstr ""
 
-#: install.sh:14300
+#: install.sh:14328
 msgid "ACME 定时任务删除后仍存在, 请手动检查"
 msgstr ""
 
-#: install.sh:14307
+#: install.sh:14335
 msgid "恢复后验证失败, 请手动检查"
 msgstr ""
 
-#: install.sh:14327
+#: install.sh:14355
 msgid "已恢复原配置"
 msgstr ""
 
-#: install.sh:14334
+#: install.sh:14362
 msgid "Xray 配置测试失败"
 msgstr ""
 
-#: install.sh:14339
+#: install.sh:14367
 msgid "Nginx 配置测试失败"
 msgstr ""
 
-#: install.sh:14344 scripts/rill_xray_agent_manager.sh:959
+#: install.sh:14372 scripts/rill_xray_agent_manager.sh:959
 msgid "Xray 服务未运行"
 msgstr ""
 
-#: install.sh:14349 scripts/rill_xray_agent_manager.sh:960
+#: install.sh:14377 scripts/rill_xray_agent_manager.sh:960
 msgid "Nginx 服务未运行"
 msgstr ""
 
-#: install.sh:14378
+#: install.sh:14406
 msgid "用户 UUID 集合发生变化, 将恢复原配置"
 msgstr ""
 
-#: install.sh:14393 install.sh:14402
+#: install.sh:14421 install.sh:14430
 msgid "最终验证失败且自动恢复未完成"
 msgstr ""
 
-#: install.sh:14571
+#: install.sh:14599
 msgid "回到菜单"
 msgstr ""
 
-#: install.sh:14612 install.sh:14627 install.sh:14647 install.sh:14892
-#: install.sh:14909 install.sh:14927 install.sh:14945 install.sh:14983
-#: install.sh:15000 install.sh:15060 install.sh:15087
+#: install.sh:14640 install.sh:14655 install.sh:14675 install.sh:14920
+#: install.sh:14937 install.sh:14955 install.sh:14973 install.sh:15011
+#: install.sh:15028 install.sh:15088 install.sh:15115
 msgid "安装失败且自动恢复失败, 备份已保留, 请手动检查"
 msgstr ""
 
-#: install.sh:14614 install.sh:14629 install.sh:14649 install.sh:14894
-#: install.sh:14911 install.sh:14929 install.sh:14947 install.sh:14985
-#: install.sh:15002 install.sh:15062 install.sh:15089
+#: install.sh:14642 install.sh:14657 install.sh:14677 install.sh:14922
+#: install.sh:14939 install.sh:14957 install.sh:14975 install.sh:15013
+#: install.sh:15030 install.sh:15090 install.sh:15117
 msgid "安装失败, 原配置已恢复"
 msgstr ""
 
-#: install.sh:14741 install.sh:14750 install.sh:15231 install.sh:15232
-#: install.sh:15233 install.sh:15234
+#: install.sh:14769 install.sh:14778 install.sh:15259 install.sh:15260
+#: install.sh:15261 install.sh:15262
 msgid "所有服务"
 msgstr ""
 
-#: install.sh:14807
+#: install.sh:14835
 msgid "网速测试脚本下载失败"
 msgstr ""
 
-#: install.sh:14844
+#: install.sh:14872
 msgid "选择传输协议"
 msgstr ""
 
-#: install.sh:14869
+#: install.sh:14897
 msgid "Reality 部署方式"
 msgstr ""
 
-#: install.sh:14870
+#: install.sh:14898
 msgid "前置保护"
 msgstr ""
 
-#: install.sh:14871
+#: install.sh:14899
 msgid "标准"
 msgstr ""
 
-#: install.sh:14963
+#: install.sh:14991
 msgid "Reality 负载均衡角色"
 msgstr ""
 
-#: install.sh:14964
+#: install.sh:14992
 msgid "主服务器"
 msgstr ""
 
-#: install.sh:14964
+#: install.sh:14992
 msgid "安装 Nginx"
 msgstr ""
 
-#: install.sh:14965
+#: install.sh:14993
 msgid "二级服务器"
 msgstr ""
 
-#: install.sh:14965
+#: install.sh:14993
 msgid "仅提供 Reality 后端"
 msgstr ""
 
-#: install.sh:15016
+#: install.sh:15044
 msgid "此模式没有传输层加密, 仅应用于可信后端链路"
 msgstr ""
 
-#: install.sh:15017
+#: install.sh:15045
 msgid "默认仅监听"
 msgstr ""
 
-#: install.sh:15022
+#: install.sh:15050
 msgid "请输入监听地址"
 msgstr ""
 
-#: install.sh:15022
+#: install.sh:15050
 msgid "例如"
 msgstr ""
 
-#: install.sh:15039
+#: install.sh:15067
 msgid "部署方式"
 msgstr ""
 
-#: install.sh:15041
+#: install.sh:15069
 msgid "无 Nginx、无传输层加密"
 msgstr ""
 
-#: install.sh:15041
+#: install.sh:15069
 msgid "仅限可信后端"
 msgstr ""
 
-#: install.sh:15070
+#: install.sh:15098
 msgid "ONLY 模式没有传输层加密, 主要用于中转、负载均衡后端或已有上层代理的环境"
 msgstr ""
 
-#: install.sh:15101 install.sh:15429
+#: install.sh:15129 install.sh:15465
 msgid "安装向导"
 msgstr ""
 
-#: install.sh:15104
+#: install.sh:15132
 msgid "Nginx Stream TCP 转发"
 msgstr ""
 
-#: install.sh:15126 install.sh:15189
+#: install.sh:15154 install.sh:15217
 msgid "用户管理"
 msgstr ""
 
-#: install.sh:15127 install.sh:15128 install.sh:15129
+#: install.sh:15155 install.sh:15156 install.sh:15157
 msgid "用户"
 msgstr ""
 
-#: install.sh:15146 install.sh:15188 install.sh:15190 install.sh:15430
+#: install.sh:15174 install.sh:15216 install.sh:15218 install.sh:15466
 msgid "配置变更"
 msgstr ""
 
-#: install.sh:15210
+#: install.sh:15238
 msgid "实时访问日志"
 msgstr ""
 
-#: install.sh:15211
+#: install.sh:15239
 msgid "实时错误日志"
 msgstr ""
 
-#: install.sh:15252 install.sh:15274
+#: install.sh:15280 install.sh:15302
 msgid "证书相关"
 msgstr ""
 
-#: install.sh:15253
+#: install.sh:15281
 msgid "证书状态"
 msgstr ""
 
-#: install.sh:15254
+#: install.sh:15282
 msgid "证书有效期"
 msgstr ""
 
-#: install.sh:15255
+#: install.sh:15283
 msgid "证书自动更新"
 msgstr ""
 
-#: install.sh:15312 install.sh:15337
+#: install.sh:15340
+msgid "未开启"
+msgstr ""
+
+#: install.sh:15342 scripts/rill_xray_agent_manager.sh:745
+msgid "已开启"
+msgstr ""
+
+#: install.sh:15346 install.sh:15373
 msgid "流量统计"
 msgstr ""
 
-#: install.sh:15313
+#: install.sh:15347
+msgid "当前状态"
+msgstr ""
+
+#: install.sh:15349
 msgid "开启/关闭统计"
 msgstr ""
 
-#: install.sh:15314
+#: install.sh:15350
 msgid "查看统计"
 msgstr ""
 
-#: install.sh:15315
+#: install.sh:15351
 msgid "重置统计"
 msgstr ""
 
-#: install.sh:15316
+#: install.sh:15352 scripts/xray_stats.sh:732
 msgid "实时监控"
 msgstr ""
 
-#: install.sh:15334 install.sh:15434
+#: install.sh:15370 install.sh:15470
 msgid "其他选项"
 msgstr ""
 
-#: install.sh:15338 scripts/traffic_blocker.sh:604
+#: install.sh:15374 scripts/traffic_blocker.sh:604
 msgid "流量阻断"
 msgstr ""
 
-#: install.sh:15339
+#: install.sh:15375
 msgid "清除"
 msgstr ""
 
-#: install.sh:15339
+#: install.sh:15375
 msgid "日志文件"
 msgstr ""
 
-#: install.sh:15340
+#: install.sh:15376
 msgid "服务器网速"
 msgstr ""
 
-#: install.sh:15360 install.sh:15435
+#: install.sh:15396 install.sh:15471
 msgid "备份恢复"
 msgstr ""
 
-#: install.sh:15363
+#: install.sh:15399
 msgid "清空"
 msgstr ""
 
-#: install.sh:15363
+#: install.sh:15399
 msgid "证书文件"
 msgstr ""
 
-#: install.sh:15364 scripts/fail2ban_manager.sh:65
+#: install.sh:15400 scripts/fail2ban_manager.sh:65
 #: scripts/fail2ban_manager.sh:1093
 msgid "卸载"
 msgstr ""
 
-#: install.sh:15381
+#: install.sh:15417
 msgid "Xray 管理脚本"
 msgstr ""
 
-#: install.sh:15417
+#: install.sh:15453
 msgid "Xray 管理菜单"
 msgstr ""
 
-#: install.sh:15606
+#: install.sh:15644
 msgid "读取安装信息需要 root 权限"
 msgstr ""
 
-#: install.sh:15606
+#: install.sh:15644
 msgid "信息文件权限为"
 msgstr ""
 
@@ -3669,7 +3688,7 @@ msgstr ""
 
 #: scripts/fail2ban_manager.sh:69 scripts/file_manager.sh:310
 #: scripts/traffic_blocker.sh:308 scripts/traffic_blocker.sh:616
-#: scripts/traffic_blocker.sh:947 scripts/traffic_blocker.sh:1000
+#: scripts/traffic_blocker.sh:869
 msgid "请选择一个选项"
 msgstr ""
 
@@ -3689,13 +3708,13 @@ msgstr ""
 #: scripts/fail2ban_manager.sh:189 scripts/fail2ban_manager.sh:206
 #: scripts/fail2ban_manager.sh:211 scripts/fail2ban_manager.sh:214
 #: scripts/fail2ban_manager.sh:232 scripts/fail2ban_manager.sh:237
-#: scripts/fail2ban_manager.sh:240 scripts/traffic_blocker.sh:1126
+#: scripts/fail2ban_manager.sh:240 scripts/traffic_blocker.sh:994
 msgid "规则"
 msgstr ""
 
 #: scripts/fail2ban_manager.sh:211 scripts/fail2ban_manager.sh:237
 #: scripts/fail2ban_manager.sh:1001 scripts/traffic_blocker.sh:556
-#: scripts/traffic_blocker.sh:1055
+#: scripts/traffic_blocker.sh:923
 msgid "已禁用"
 msgstr ""
 
@@ -3959,7 +3978,7 @@ msgid "模块名称"
 msgstr ""
 
 #: scripts/fail2ban_manager.sh:1032 scripts/file_manager.sh:112
-#: scripts/traffic_blocker.sh:1091
+#: scripts/traffic_blocker.sh:959
 msgid "序号"
 msgstr ""
 
@@ -3967,15 +3986,15 @@ msgstr ""
 msgid "请选择要管理的模块"
 msgstr ""
 
-#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:1118
+#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:986
 msgid "启用"
 msgstr ""
 
-#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:1118
+#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:986
 msgid "禁用"
 msgstr ""
 
-#: scripts/fail2ban_manager.sh:1066 scripts/traffic_blocker.sh:1126
+#: scripts/fail2ban_manager.sh:1066 scripts/traffic_blocker.sh:994
 msgid "是否"
 msgstr ""
 
@@ -3984,7 +4003,7 @@ msgid "模块"
 msgstr ""
 
 #: scripts/fail2ban_manager.sh:1076 scripts/traffic_blocker.sh:215
-#: scripts/traffic_blocker.sh:1133 scripts/traffic_blocker.sh:1416
+#: scripts/traffic_blocker.sh:1001 scripts/traffic_blocker.sh:1284
 msgid "操作已取消"
 msgstr ""
 
@@ -4007,32 +4026,32 @@ msgid "未启用或配置异常"
 msgstr ""
 
 #: scripts/fail2ban_manager.sh:1166 scripts/file_manager.sh:332
-#: scripts/traffic_blocker.sh:1489
+#: scripts/traffic_blocker.sh:1357
 msgid "新版本可用"
 msgstr ""
 
 #: scripts/fail2ban_manager.sh:1167 scripts/file_manager.sh:333
-#: scripts/traffic_blocker.sh:1490
+#: scripts/traffic_blocker.sh:1358
 msgid "请访问"
 msgstr ""
 
 #: scripts/fail2ban_manager.sh:1167 scripts/file_manager.sh:333
-#: scripts/traffic_blocker.sh:1490
+#: scripts/traffic_blocker.sh:1358
 msgid "查看更新说明"
 msgstr ""
 
 #: scripts/fail2ban_manager.sh:1173 scripts/file_manager.sh:339
-#: scripts/traffic_blocker.sh:1496
+#: scripts/traffic_blocker.sh:1364
 msgid "正在下载新版本"
 msgstr ""
 
 #: scripts/fail2ban_manager.sh:1175 scripts/file_manager.sh:341
-#: scripts/traffic_blocker.sh:1498
+#: scripts/traffic_blocker.sh:1366
 msgid "下载完成, 正在重新加载..."
 msgstr ""
 
 #: scripts/fail2ban_manager.sh:1184 scripts/file_manager.sh:350
-#: scripts/traffic_blocker.sh:1507
+#: scripts/traffic_blocker.sh:1375
 msgid "跳过更新"
 msgstr ""
 
@@ -4251,10 +4270,6 @@ msgstr ""
 msgid "安全停用"
 msgstr ""
 
-#: scripts/rill_xray_agent_manager.sh:745
-msgid "已开启"
-msgstr ""
-
 #: scripts/rill_xray_agent_manager.sh:747
 msgid "已停用"
 msgstr ""
@@ -4390,8 +4405,6 @@ msgid "证据不足"
 msgstr ""
 
 #: scripts/rill_xray_agent_manager.sh:1001 scripts/traffic_blocker.sh:505
-#: scripts/traffic_blocker.sh:712 scripts/traffic_blocker.sh:714
-#: scripts/traffic_blocker.sh:724 scripts/traffic_blocker.sh:726
 msgid "未知"
 msgstr ""
 
@@ -4660,11 +4673,11 @@ msgstr ""
 msgid "不存在"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:536 scripts/traffic_blocker.sh:862
+#: scripts/traffic_blocker.sh:536 scripts/traffic_blocker.sh:843
 msgid "GeoData 手动刷新脚本下载失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:553 scripts/traffic_blocker.sh:1052
+#: scripts/traffic_blocker.sh:553 scripts/traffic_blocker.sh:920
 msgid "规则名称"
 msgstr ""
 
@@ -4676,7 +4689,7 @@ msgstr ""
 msgid "管理阻断规则"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:612 scripts/traffic_blocker.sh:983
+#: scripts/traffic_blocker.sh:612 scripts/traffic_blocker.sh:858
 msgid "刷新 GeoData"
 msgstr ""
 
@@ -4684,417 +4697,438 @@ msgstr ""
 msgid "重置所有阻断规则"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:634 scripts/traffic_blocker.sh:686
-#: scripts/traffic_blocker.sh:689
-msgid "GeoData 状态"
-msgstr ""
-
 #: scripts/traffic_blocker.sh:634
-msgid "由 Xray 原生 geodata 自动刷新"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:635
 msgid "自动刷新计划"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:635
+#: scripts/traffic_blocker.sh:634
 msgid "本地时区, 不重启 Xray"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:647 scripts/traffic_blocker.sh:650
-#: scripts/traffic_blocker.sh:654
+#: scripts/traffic_blocker.sh:646 scripts/traffic_blocker.sh:649
+#: scripts/traffic_blocker.sh:653 scripts/traffic_blocker.sh:678
+#: scripts/xray_stats.sh:732
 msgid "最后刷新"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:650
+#: scripts/traffic_blocker.sh:649
 msgid "待执行"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:654
+#: scripts/traffic_blocker.sh:653
 msgid "异常"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:661
+#: scripts/traffic_blocker.sh:660
 msgid "配置异常: geodata.assets 缺少有效的 HTTPS 下载地址"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:667
+#: scripts/traffic_blocker.sh:666
 msgid "说明: 这里只反映配置与文件现状, 不代表某次自动刷新已成功"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:669
+#: scripts/traffic_blocker.sh:668
 msgid "可在此菜单手动刷新, 或检查"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:669
+#: scripts/traffic_blocker.sh:668
 msgid "与 Xray 错误日志"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:678
-msgid "发现脚本安装的 geo_update.sh 周期任务, 与原生自动刷新重复"
+#: scripts/traffic_blocker.sh:696
+msgid "沿用自定义 geodata 配置, 本项目不修改也不接管"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:686
-msgid "由 geo_update.sh 脚本定时刷新 (待迁移)"
+#: scripts/traffic_blocker.sh:707
+msgid "配置无法解析, 修复 config.json 后重启脚本会自动重试迁移"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:689
+#: scripts/traffic_blocker.sh:713
+msgid "旧 geo_update.sh 任务仍在, 自动迁移未完成时会保留它"
+msgstr ""
+
+#: scripts/traffic_blocker.sh:716
 msgid "未启用自动刷新"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:712 scripts/traffic_blocker.sh:724
-msgid "有新版本可用"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:712 scripts/traffic_blocker.sh:724
-msgid "本地版本"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:712 scripts/traffic_blocker.sh:724
-msgid "刷新时间"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:714 scripts/traffic_blocker.sh:726
-msgid "已是最新"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:743
+#: scripts/traffic_blocker.sh:732
 msgid "Xray 配置无法解析"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:744
+#: scripts/traffic_blocker.sh:733
 msgid "GeoData 目录迁移失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:745
+#: scripts/traffic_blocker.sh:734
 msgid "自动刷新启用失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:746
+#: scripts/traffic_blocker.sh:735
 msgid "自动刷新配置未生效"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:747
+#: scripts/traffic_blocker.sh:736
 msgid "Xray 重启失败，已回滚"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:748
+#: scripts/traffic_blocker.sh:737 scripts/traffic_blocker.sh:796
 msgid "回滚后服务仍未恢复，需要人工处理"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:749
+#: scripts/traffic_blocker.sh:738
 msgid "旧 cron 移除失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:750
+#: scripts/traffic_blocker.sh:739
 msgid "迁移前配置快照失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:751
+#: scripts/traffic_blocker.sh:740
 msgid "未知原因"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:761
+#: scripts/traffic_blocker.sh:750
 msgid "上次切换自动刷新失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:767
-msgid "无法读取 crontab, 请手动检查"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:771
-msgid "没有找到本项目创建的 geo_update.sh 周期任务"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:776
-msgid "已移除旧的 geo_update.sh 周期任务; 手动刷新脚本保留"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:777
-msgid "移除旧的 GeoData 周期任务"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:783
+#: scripts/traffic_blocker.sh:755
 msgid "每周一 03:00"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:784
+#: scripts/traffic_blocker.sh:756
 msgid "每天 03:00"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:785
+#: scripts/traffic_blocker.sh:757
 msgid "每天 00:00"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:786
+#: scripts/traffic_blocker.sh:758
 msgid "按配置的调度"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:798
+#: scripts/traffic_blocker.sh:770
 msgid "自动刷新状态"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:801
-msgid ""
-"[配置不可解析] Xray 配置无法读取, 无法确认自动刷新状态; 请先修复 config.json "
-"后重试"
+#: scripts/traffic_blocker.sh:773
+msgid "[配置不可解析] 修复 config.json 后重启脚本, 会自动重试迁移"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:804
-msgid "[自定义 geodata] 已跳过本项目托管, 不会自动接管; 现有配置保持不变"
+#: scripts/traffic_blocker.sh:776
+msgid "[自定义 geodata] 保留现有配置, 本项目不接管"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:808
+#: scripts/traffic_blocker.sh:780
 msgid "[自动刷新已开启] Xray 原生自动刷新:"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:808
+#: scripts/traffic_blocker.sh:780
 msgid "无需手动操作"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:810
-msgid ""
-"[自动刷新未开启] 当前由 geo_update.sh 脚本定时刷新 (待迁移); 建议在本菜单启"
-"用 Xray 原生自动刷新"
+#: scripts/traffic_blocker.sh:782
+msgid "[自动刷新未开启] 配置中没有可读取的 geodata 计划"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:812
-msgid "[自动刷新未开启] 当前不会自动刷新; 可在本菜单启用 Xray 原生定时刷新"
+#: scripts/traffic_blocker.sh:787
+msgid "[自动刷新未开启] 旧的 geo_update.sh 任务仍在; 重启脚本会自动重试迁移"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:819
-msgid "[自动刷新开启失败]"
+#: scripts/traffic_blocker.sh:789
+msgid "[自动刷新未开启] 当前不会自动刷新"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:819
-msgid "旧刷新任务与现有配置已保留, 可在此重试"
+#: scripts/traffic_blocker.sh:797 scripts/traffic_blocker.sh:799
+msgid "[上次自动迁移未完成]"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:826
+#: scripts/traffic_blocker.sh:799
+msgid "旧刷新任务与现有配置已保留; 重启脚本会自动重试"
+msgstr ""
+
+#: scripts/traffic_blocker.sh:807
 msgid "当前为自动刷新状态"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:826
+#: scripts/traffic_blocker.sh:807
 msgid "本次为手动补刷一次"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:828
+#: scripts/traffic_blocker.sh:809
 msgid "当前未开启自动刷新, 本次仅刷新一次, 不会创建定时任务"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:835
+#: scripts/traffic_blocker.sh:816
 msgid "GeoData 手动刷新失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:835
+#: scripts/traffic_blocker.sh:816
 msgid "config.json 未改动, 未创建定时任务; 现有数据已保留或由脚本回滚; 详情见"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:838
+#: scripts/traffic_blocker.sh:819
 msgid "GeoData 手动刷新完成; 写入位置"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:840
+#: scripts/traffic_blocker.sh:821
 msgid "Xray 正在运行, 脚本已重启 Xray 以加载新 GeoData"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:842
+#: scripts/traffic_blocker.sh:823
 msgid "Xray 未运行, 未执行重启; 下次启动时加载新 GeoData"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:867
+#: scripts/traffic_blocker.sh:848
 msgid "正在运行 geo_update.sh"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:883
-msgid "找不到主脚本, 无法执行迁移"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:890 scripts/traffic_blocker.sh:927
-msgid "已从手动/脚本模式切换为自动刷新 (Xray 原生)"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:892
-msgid "自动刷新启用未完成, 旧刷新任务已保留"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:901
-msgid "已是自动刷新状态, 无需迁移"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:905
-msgid "未检测到项目创建的旧版脚本 cron, 跳过自动迁移"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:912
-msgid "检测到自定义 geodata 配置, 跳过自动迁移"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:916
-msgid "Xray 配置无法解析, 跳过自动迁移"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:922
-msgid "当前菜单无法调用主脚本迁移逻辑, 请重新运行主脚本"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:925
-msgid "检测到旧 geo_update.sh 脚本体系, 正在尝试切换为 Xray 原生自动刷新"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:930
-msgid "自动刷新启用失败, 旧刷新任务与现有配置已保留"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:939
-msgid "GeoData 自动刷新与手动刷新"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:941
-msgid "脚本定时模式已停用; 手动刷新不会创建定时任务"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:943
-msgid "立即启用 Xray 原生自动刷新 (已是则跳过)"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:944
-msgid "手动刷新 GeoData (运行 geo_update.sh 一次)"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:945
-msgid "移除旧的 geo_update.sh 周期任务"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:994
+#: scripts/traffic_blocker.sh:864
 msgid "手动刷新全部 GeoData"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:995 scripts/traffic_blocker.sh:996
+#: scripts/traffic_blocker.sh:865 scripts/traffic_blocker.sh:866
 msgid "手动刷新"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:997
-msgid "自动刷新与手动刷新"
-msgstr ""
-
-#: scripts/traffic_blocker.sh:1019
+#: scripts/traffic_blocker.sh:887
 msgid "正在手动刷新全部 GeoData"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1031
+#: scripts/traffic_blocker.sh:899
 msgid "正在手动刷新"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1038
+#: scripts/traffic_blocker.sh:906
 msgid "已刷新至"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1044
+#: scripts/traffic_blocker.sh:912
 msgid "管理流量阻断规则"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1103
+#: scripts/traffic_blocker.sh:971
 msgid "请选择要管理的规则"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1184
+#: scripts/traffic_blocker.sh:1052
 msgid "备份 Xray 配置失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1197
+#: scripts/traffic_blocker.sh:1065
 msgid "重启失败, 已恢复原配置"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1227
+#: scripts/traffic_blocker.sh:1095
 msgid "缺少 GeoData 文件"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1228
+#: scripts/traffic_blocker.sh:1096
 msgid "正在下载"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1250
+#: scripts/traffic_blocker.sh:1118
 msgid "以下 GeoData 文件有新版本可用"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1251
+#: scripts/traffic_blocker.sh:1119
 msgid "是否立即手动刷新"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1256
+#: scripts/traffic_blocker.sh:1124
 msgid "刷新失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1268
+#: scripts/traffic_blocker.sh:1136
 msgid "Xray 配置文件不存在"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1273
+#: scripts/traffic_blocker.sh:1141
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1278
+#: scripts/traffic_blocker.sh:1146
 msgid "Xray 配置中缺少 direct 出站, 无法应用阻断规则"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1293
+#: scripts/traffic_blocker.sh:1161
 msgid "当前阻断规则配置"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1305
+#: scripts/traffic_blocker.sh:1173
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1309
+#: scripts/traffic_blocker.sh:1177
 msgid "GeoData 下载失败, 无法应用规则"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1328 scripts/traffic_blocker.sh:1435
+#: scripts/traffic_blocker.sh:1196 scripts/traffic_blocker.sh:1303
 msgid "无法从 Xray 配置中提取入站标签"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1387 scripts/traffic_blocker.sh:1461
+#: scripts/traffic_blocker.sh:1255 scripts/traffic_blocker.sh:1329
 msgid "修改 Xray 配置失败"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1399
+#: scripts/traffic_blocker.sh:1267
 msgid "流量阻断规则"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1399 scripts/traffic_blocker.sh:1402
-#: scripts/traffic_blocker.sh:1405
+#: scripts/traffic_blocker.sh:1267 scripts/traffic_blocker.sh:1270
+#: scripts/traffic_blocker.sh:1273
 msgid "已应用"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1400 scripts/traffic_blocker.sh:1473
+#: scripts/traffic_blocker.sh:1268 scripts/traffic_blocker.sh:1341
 msgid "已重启"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1402 scripts/traffic_blocker.sh:1475
+#: scripts/traffic_blocker.sh:1270 scripts/traffic_blocker.sh:1343
 msgid "域名解析策略"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1405 scripts/traffic_blocker.sh:1478
+#: scripts/traffic_blocker.sh:1273 scripts/traffic_blocker.sh:1346
 msgid "协议嗅探"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1411
+#: scripts/traffic_blocker.sh:1279
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1412
+#: scripts/traffic_blocker.sh:1280
 msgid "确认重置"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1471
+#: scripts/traffic_blocker.sh:1339
 msgid "所有阻断规则"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1471
+#: scripts/traffic_blocker.sh:1339
 msgid "已重置"
 msgstr ""
 
-#: scripts/traffic_blocker.sh:1475 scripts/traffic_blocker.sh:1478
+#: scripts/traffic_blocker.sh:1343 scripts/traffic_blocker.sh:1346
 msgid "已恢复"
+msgstr ""
+
+#: scripts/xray_stats.sh:398
+msgid "未找到配置文件"
+msgstr ""
+
+#: scripts/xray_stats.sh:402
+msgid "配置文件不是合法 JSON"
+msgstr ""
+
+#: scripts/xray_stats.sh:407
+msgid "无法解析 stats 配置"
+msgstr ""
+
+#: scripts/xray_stats.sh:411
+msgid "流量统计未开启"
+msgstr ""
+
+#: scripts/xray_stats.sh:417
+msgid "无法解析 api.listen"
+msgstr ""
+
+#: scripts/xray_stats.sh:422
+msgid "统计已开启但缺少 api.listen，请先在主脚本中开启统计"
+msgstr ""
+
+#: scripts/xray_stats.sh:428
+msgid "拒绝非回环统计 API 地址"
+msgstr ""
+
+#: scripts/xray_stats.sh:443
+msgid "未找到 xray 可执行文件"
+msgstr ""
+
+#: scripts/xray_stats.sh:451
+msgid "Xray 未运行或统计 API 不可达"
+msgstr ""
+
+#: scripts/xray_stats.sh:455
+msgid "统计 API 调用失败"
+msgstr ""
+
+#: scripts/xray_stats.sh:471
+msgid "重置返回的结果不是合法 JSON"
+msgstr ""
+
+#: scripts/xray_stats.sh:480
+msgid "统计查询返回的结果不是合法 JSON"
+msgstr ""
+
+#: scripts/xray_stats.sh:485
+msgid "statssys 调用失败"
+msgstr ""
+
+#: scripts/xray_stats.sh:489
+msgid "statssys 缺少 Uptime 字段"
+msgstr ""
+
+#: scripts/xray_stats.sh:521
+msgid "无法生成统计结果"
+msgstr ""
+
+#: scripts/xray_stats.sh:545
+msgid "无法格式化入站数据"
+msgstr ""
+
+#: scripts/xray_stats.sh:571
+msgid "总览"
+msgstr ""
+
+#: scripts/xray_stats.sh:572
+msgid "入站明细"
+msgstr ""
+
+#: scripts/xray_stats.sh:573
+msgid "运行时长"
+msgstr ""
+
+#: scripts/xray_stats.sh:574
+msgid "入站数量"
+msgstr ""
+
+#: scripts/xray_stats.sh:575
+msgid "有流量入站"
+msgstr ""
+
+#: scripts/xray_stats.sh:576 scripts/xray_stats.sh:585
+msgid "上行"
+msgstr ""
+
+#: scripts/xray_stats.sh:577 scripts/xray_stats.sh:586
+msgid "下行"
+msgstr ""
+
+#: scripts/xray_stats.sh:578 scripts/xray_stats.sh:587
+msgid "合计"
+msgstr ""
+
+#: scripts/xray_stats.sh:580
+msgid "暂无流量"
+msgstr ""
+
+#: scripts/xray_stats.sh:581
+msgid "产生一次访问后刷新"
+msgstr ""
+
+#: scripts/xray_stats.sh:584
+msgid "入站"
+msgstr ""
+
+#: scripts/xray_stats.sh:697
+msgid "重置入站流量统计"
+msgstr ""
+
+#: scripts/xray_stats.sh:703
+msgid "重置已取消"
+msgstr ""
+
+#: scripts/xray_stats.sh:730
+#, sh-printf-format
+msgid "每 %s 秒刷新，Ctrl-C 退出"
 msgstr ""
