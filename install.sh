@@ -10018,6 +10018,89 @@ show_error_log() {
     [[ -f "${xray_error_log}" ]] && tail -f ${xray_error_log} || log_echo "${Error} ${RedBG} log $(gettext "文件不存在")! ${Font}"
 }
 
+# True when something is already listening on the requested loopback port.
+# ss/lsof are preferred; /dev/tcp is a last-resort check for minimal images.
+xray_stats_port_in_use() {
+    local host="$1" port="$2"
+    [[ -n "${host}" && "${port}" =~ ^[0-9]+$ ]] || return 1
+    if command -v ss >/dev/null 2>&1; then
+        ss -lnt 2>/dev/null |
+            awk -v p=":${port}" '$4 ~ (p "$") { found = 1 } END { exit !found }'
+        return $?
+    fi
+    if command -v lsof >/dev/null 2>&1; then
+        lsof -nP -iTCP:"${port}" -sTCP:LISTEN >/dev/null 2>&1
+        return $?
+    fi
+    (exec 3<>"/dev/tcp/${host}/${port}") >/dev/null 2>&1
+}
+
+# Migrate an already-enabled stats config that predates api.listen.
+# Writes only .api.listen, via the existing atomic update_json_config helper.
+# No-op when stats is off or api.listen is already present, so repeated runs
+# cannot change a single byte. On any test failure the original bytes are
+# restored atomically with the original mode/owner preserved.
+xray_stats_listen_ensure() {
+    local listen="${1:-127.0.0.1:10085}"
+    local conf="${xray_conf}"
+    [[ -f "${conf}" ]] || return 0
+
+    local has_stats has_api current
+    has_stats=$(jq -r 'has("stats")' "${conf}" 2>/dev/null) || {
+        log_echo "${Error} ${RedBG} $(gettext "流量统计配置解析失败") ${Font}"
+        return 1
+    }
+    [[ "${has_stats}" == "true" ]] || return 0
+    has_api=$(jq -r 'has("api")' "${conf}" 2>/dev/null) || {
+        log_echo "${Error} ${RedBG} $(gettext "流量统计配置解析失败") ${Font}"
+        return 1
+    }
+    [[ "${has_api}" == "true" ]] || {
+        log_echo "${Error} ${RedBG} $(gettext "流量统计配置缺少 api 段") ${Font}"
+        return 1
+    }
+    current=$(jq -r '.api.listen // empty' "${conf}" 2>/dev/null) || {
+        log_echo "${Error} ${RedBG} $(gettext "流量统计配置解析失败") ${Font}"
+        return 1
+    }
+    [[ -z "${current}" ]] || return 0
+
+    local host="${listen%:*}" port="${listen##*:}"
+    if [[ "${host}" != "127.0.0.1" || ! "${port}" =~ ^[0-9]+$ ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "统计 API 仅允许监听 127.0.0.1") ${Font}"
+        return 1
+    fi
+    if xray_stats_port_in_use "${host}" "${port}"; then
+        log_echo "${Error} ${RedBG} $(gettext "统计 API 端口已被占用"): ${listen} ${Font}"
+        return 1
+    fi
+
+    local backup restore
+    backup=$(mktemp "${conf}.stats-listen.XXXXXX" 2>/dev/null) || return 1
+    if ! cp -p "${conf}" "${backup}" 2>/dev/null; then
+        rm -f "${backup}"
+        return 1
+    fi
+    if ! update_json_config "${conf}" --arg listen "${listen}" '.api.listen = $listen'; then
+        rm -f "${backup}"
+        return 1
+    fi
+    if [[ ! -x "${xray_bin_dir}/xray" ]] ||
+        ! "${xray_bin_dir}/xray" run -test -config "${conf}" >/dev/null 2>&1; then
+        restore="${conf}.stats-restore.$$"
+        if cp -p "${backup}" "${restore}" 2>/dev/null && mv -f "${restore}" "${conf}"; then
+            rm -f "${backup}"
+            log_echo "${Error} ${RedBG} $(gettext "Xray 配置测试失败, 已还原原配置") ${Font}"
+            return 1
+        fi
+        rm -f "${restore}"
+        log_echo "${Error} ${RedBG} $(gettext "Xray 配置测试失败, 还原失败") ${Font}"
+        return 1
+    fi
+    rm -f "${backup}"
+    return 0
+}
+
 xray_status_add() {
     if [[ -f "${xray_conf}" ]]; then
         if [[ $(jq -r .stats "${xray_conf}") != "null" ]]; then
@@ -10061,6 +10144,13 @@ xray_status_add() {
                 fi
                 if ! update_json_config "${xray_conf}" --argjson status_config "${status_config}" \
                     '. += $status_config'; then
+                    rm -f "${xray_status_conf}"
+                    service_start
+                    return 1
+                fi
+                # Older status_config fragments may not carry api.listen yet.
+                # This is the only enable path allowed to add it.
+                if ! xray_stats_listen_ensure; then
                     rm -f "${xray_status_conf}"
                     service_start
                     return 1
