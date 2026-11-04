@@ -112,6 +112,10 @@ jobs:
           # re-verification. Every new candidate from main runs it.
           if [[ -f .github/test/test_backup_restore.sh ]]; then
             bash .github/test/test_backup_restore.sh
+            # Legacy archives without the managed asset symlink must self-heal
+            # on restore; layout/rollback assertions run here, the real-Xray
+            # read-through probe runs in stats-readout-matrix.
+            bash .github/test/test_restore_geodata_selfheal.sh
             # Traffic stats: api/stats/policy merge is idempotent, the
             # downloaded status_config merge source is removed, and
             # enable->disable->enable converges byte-for-byte.
@@ -509,6 +513,7 @@ jobs:
               fi
               bash /repo/.github/test/test_xray_stats.sh
               XRAY_BIN=/usr/local/bin/xray bash /repo/.github/test/test_xray_stats_readout.sh
+              XRAY_BIN=/usr/local/bin/xray bash /repo/.github/test/test_restore_geodata_selfheal.sh
             '
 
   true-fresh-install:
