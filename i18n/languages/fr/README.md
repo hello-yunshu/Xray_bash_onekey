@@ -146,7 +146,7 @@ Xray StatsService fournit uniquement les compteurs montants/descendants par inbo
 
 `idleleo --backup` ne sauvegarde que les fichiers gérés par le script : `/etc/idleleo`, `/usr/local/nginx`, le binaire Xray, les unités systemd, la crontab root et l'état ACME. Ce n'est pas une sauvegarde complète de l'hôte et elle n'inclut pas automatiquement les données placées ailleurs.
 
-`idleleo --restore` sélectionne la sauvegarde la plus récente, vérifie le SHA256 de chaque fichier de l'archive, puis la restaure. Elle supprime la configuration gérée par le script absente de la sauvegarde, conserve les fichiers créés par l'utilisateur et ne démarre pas les services automatiquement. Après une restauration entre modes, inspectez la configuration restante et redémarrez les services si nécessaire.
+`idleleo --restore` sélectionne la sauvegarde la plus récente. Les sauvegardes avec manifeste de sommes de contrôle vérifient le SHA256 de chaque fichier archivé et suppriment la configuration gérée absente de la sauvegarde ; les sauvegardes plus anciennes sans manifeste ne reçoivent qu'une validation structurelle et ignorent le nettoyage entre modes. Les fichiers créés par l'utilisateur sont conservés et les services ne sont pas démarrés automatiquement. Après une restauration entre modes, inspectez la configuration restante et redémarrez les services si nécessaire.
 
 Les archives de sauvegarde peuvent contenir des certificats, des clés privées et la configuration client. Traitez-les comme des fichiers sensibles et ne les téléchargez pas vers des emplacements publics.
 
@@ -226,12 +226,12 @@ Journaux et diagnostics : `/etc/idleleo/logs/`, `/var/log/xray/`, `idleleo --sho
 | Répertoire principal | `/etc/idleleo` |
 | Configuration Xray | `/etc/idleleo/conf/xray/config.json` |
 | Configuration Nginx | `/etc/idleleo/conf/nginx/` |
-| Informations d'installation | `/etc/idleleo/conf/install_config.json` |
+| Configuration d'état du script | `/etc/idleleo/conf/install_config.json` |
 | Fichiers de certificat | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
 | Répertoires de journaux | `/etc/idleleo/logs/`, `/var/log/xray/` |
 | Répertoire d'installation Nginx | `/usr/local/nginx` |
 | Commande de gestion | `/usr/bin/idleleo` |
-| Configuration client | `/etc/idleleo/info/xray_info.inf` |
+| Texte d'information d'installation | `/etc/idleleo/info/xray_info.inf` |
 
 | Action | Commande |
 |---|---|
@@ -253,7 +253,7 @@ docker attach xray-onekey
 
 AI Skill permet à un outil AI compatible de réaliser le déploiement automatiquement sans répondre à chaque question interactive. Consultez [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill).
 
-Modes pris en charge : Reality, TLS, ws ONLY et nœud relais. Dites à l'outil AI « installe Xray sur mon serveur » : il collecte les informations, génère un script non interactif, effectue le déploiement et renvoie les informations de connexion.
+Le script prend en charge Reality, TLS, ws/gRPC/xHTTP ONLY et le nœud relais Nginx Stream. Les modèles de déploiement automatique du Skill AI couvrent actuellement uniquement Reality et TLS ; utilisez idleleo sur le serveur pour ws/gRPC/xHTTP ONLY et le relais.
 
 ## Assistant d'exploitation RillML Xray AI
 
