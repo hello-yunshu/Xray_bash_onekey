@@ -823,75 +823,75 @@ msgstr "geo_update.sh 주기 작업 제거에 실패했습니다. crontab을(를
 
 #: install.sh:5182
 msgid "GeoData 资源目录软链创建失败"
-msgstr "GeoData 리소스 디렉터리 소프트 체인 생성 실패"
+msgstr "GeoData 리소스 디렉터리 소프트 링크 생성 실패"
 
 #: install.sh:5185
 msgid "已恢复 GeoData 资源目录软链"
-msgstr "GeoData 리소스 디렉토리 소프트 체인 복원됨"
+msgstr "GeoData 리소스 디렉터리 소프트 링크가 복구되었습니다."
 
 #: install.sh:5191
 msgid "GeoData 软链指向其他目录, 跳过自动迁移"
-msgstr "GeoData 소프트 체인은 자동 마이그레이션을 건너뛰고 다른 디렉토리를 가리킵니다"
+msgstr "GeoData 심볼릭 링크가 다른 디렉터리를 가리키고 있어 자동 마이그레이션을 건너뜁니다."
 
 #: install.sh:5206
 msgid "旧 GeoData 文件复制失败, 保留原目录"
-msgstr "이전 GeoData 파일을 복사하지 못했습니다. 원본 디렉토리를 유지합니다."
+msgstr "기존 GeoData 파일 복사에 실패하여 원래 디렉터리를 유지합니다."
 
 #: install.sh:5212
 msgid "迁移后缺少 geoip.dat/geosite.dat, 保留原目录"
-msgstr "마이그레이션 후 geoip.dat/geosite.dat 누락, 원래 디렉토리 유지"
+msgstr "이전 후 geoip.dat/geosite.dat이 누락되어 원래 디렉터리를 유지합니다."
 
 #: install.sh:5217
 msgid "旧 GeoData 目录替换失败, 保留原目录"
-msgstr "이전 GeoData 디렉토리를 대체하지 못했습니다. 원래 디렉토리를 유지하십시오."
+msgstr "기존 GeoData 디렉터리 교체에 실패하여 원래 디렉터리를 유지합니다."
 
 #: install.sh:5222
 msgid "GeoData 目录迁移失败且无法恢复, 请手动检查"
-msgstr "GeoData 디렉터리 마이그레이션에 실패하여 복구할 수 없습니다. 수동으로 확인하십시오"
+msgstr "GeoData 디렉터리 마이그레이션에 실패하여 복구할 수 없습니다. 수동으로 확인해 주십시오."
 
 #: install.sh:5227
 msgid "旧 GeoData 迁移备份未清理"
-msgstr "이전 GeoData 마이그레이션 백업이 정리되지 않음"
+msgstr "기존 GeoData 마이그레이션 백업이 정리되지 않았습니다."
 
 #: install.sh:5228
 msgid "已将旧 GeoData 目录迁移到"
-msgstr "이전 GeoData 디렉토리를 (으) 로 마이그레이션함"
+msgstr "기존 GeoData 디렉터리를 이동했습니다."
 
 #: install.sh:5264
 msgid "检测到自定义 geodata 配置, 保留原样且不改动旧更新任务"
-msgstr "사용자 지정 위치 데이터 구성이 감지되어 이전 업데이트 작업이 변경되지 않음"
+msgstr "사용자 정의 geodata 구성이 감지되었습니다. 기존 업데이트 작업은 그대로 유지하고 변경하지 않습니다."
 
 #: install.sh:5269
 msgid "Xray 配置无法解析, 保留旧 GeoData 更新任务"
-msgstr "Xray 구성을 구문 분석할 수 없음, 이전 GeoData 업데이트 작업 유지"
+msgstr "Xray 구성이 해석되지 않아 기존의 GeoData 업데이트 작업을 유지합니다."
 
 #: install.sh:5290
 msgid "GeoData 路径迁移失败, 保留旧更新任务"
-msgstr "GeoData 경로 마이그레이션 실패, 이전 업데이트 작업 유지"
+msgstr "GeoData 경로 마이그레이션에 실패하여 기존 업데이트 작업을 유지합니다."
 
 #: install.sh:5296
 msgid "GeoData 原生更新启用失败, 保留旧更新任务"
-msgstr "GeoData 기본 업데이트 활성화 실패, 이전 업데이트 작업 유지"
+msgstr "GeoData 기본 업데이트 활성화에 실패하여 기존 업데이트 작업이 유지됩니다."
 
 #: install.sh:5302
 msgid "GeoData 原生配置未生效, 保留旧更新任务"
-msgstr "GeoData 기본 구성이 유효하지 않습니다. 이전 업데이트 작업을 유지하십시오"
+msgstr "GeoData 기본 구성이 적용되지 않았습니다. 기존 업데이트 작업을 유지합니다."
 
 #: install.sh:5309
 msgid "Xray 重启失败, 正在回滚 GeoData 原生配置"
-msgstr "Xray 재시작 실패, GeoData 기본 구성 롤백"
+msgstr "Xray 재시작에 실패하여 GeoData 기본 설정으로 롤백 중입니다."
 
 #: install.sh:5319
 msgid "已恢复原配置并重启 Xray, 保留旧更新任务"
-msgstr "원래 구성을 복원하고 Xray를 다시 시작하여 이전 업데이트 작업을 그대로 두었습니다."
+msgstr "기존 구성으로 복원하고 Xray을 재시작했습니다. 기존 업데이트 작업은 유지됩니다."
 
 #: install.sh:5322
 msgid "RECOVERY REQUIRED: 原配置恢复或服务重启失败, 备份保留于"
-msgstr "복구 필요: 원래 구성 복구 또는 서비스 재시작에 실패했습니다. 백업은 다음에 유지됩니다."
+msgstr "RECOVERY REQUIRED: 원래 구성 복구 또는 서비스 재시작에 실패했습니다. 백업은 다음 위치에 보관됩니다:"
 
 #: install.sh:5330
 msgid "旧 GeoData 更新任务移除失败, 请手动检查 crontab"
-msgstr "이전 GeoData 업데이트 작업 제거에 실패했습니다. 수동으로 crontab을 확인하십시오"
+msgstr "기존 GeoData 업데이트 작업 제거에 실패했습니다. 수동으로 crontab을 확인해 주세요."
 
 #: install.sh:5347
 msgid "本机版本高于清单钉定版本, 将按清单重新安装"
@@ -2335,23 +2335,23 @@ msgstr "트래픽 통계 구성 파싱에 실패했습니다"
 
 #: install.sh:10331
 msgid "流量统计配置缺少 api 段"
-msgstr "트래픽 통계 구성 누락 api 세그먼트"
+msgstr "트래픽 통계 구성에 api 섹션이 누락되었습니다."
 
 #: install.sh:10342
 msgid "统计 API 仅允许监听 127.0.0.1"
-msgstr "통계 API는 스누핑만 허용합니다 127.0.0.1"
+msgstr "통계 API은 127.0.0.1만 허용합니다."
 
 #: install.sh:10346
 msgid "统计 API 端口已被占用"
-msgstr "통계 API 포트가 이미 사용 중입니다"
+msgstr "통계 API 포트가 이미 사용 중입니다."
 
 #: install.sh:10365
 msgid "Xray 配置测试失败, 已还原原配置"
-msgstr "Xray 구성 테스트 실패, 구성 복원됨"
+msgstr "Xray 구성 테스트에 실패하여 기존 구성으로 복원되었습니다."
 
 #: install.sh:10369
 msgid "Xray 配置测试失败, 还原失败"
-msgstr "Xray 구성 테스트 실패, 복원 실패"
+msgstr "Xray 구성 테스트에 실패했습니다. 복구에 실패했습니다."
 
 #: install.sh:10380
 msgid "已配置 Xray 流量统计"
@@ -2383,23 +2383,23 @@ msgstr "Xray 트래픽 통계 설정"
 
 #: install.sh:10455
 msgid "统计查询需要 root 权限"
-msgstr "통계 쿼리에 루트 권한이 필요합니다"
+msgstr "통계 조회에는 root 권한이 필요합니다."
 
 #: install.sh:10460
 msgid "统计脚本缺失, 请先运行 --stats 完成下载与校验"
-msgstr "통계 스크립트가 누락되었습니다. 다운로드 및 검증을 완료하려면 --stats를 실행하십시오."
+msgstr "통계 스크립트가 없습니다. 먼저 --stats 옵션을 실행하여 다운로드와 검증을 완료해 주세요."
 
 #: install.sh:10464
 msgid "统计脚本下载或校验失败, 不影响统计开关"
-msgstr "통계 스크립트 다운로드 또는 검증이 통계 전환에 영향을 주지 않고 실패했습니다"
+msgstr "통계 스크립트 다운로드 또는 검증에 실패했지만, 통계 기능의 활성화/비활성화에는 영향을 미치지 않습니다."
 
 #: install.sh:10474
 msgid "统计已开启但缺少 api.listen, 是否补写并重启 Xray"
-msgstr "통계가 켜져 있지만 api.listen이 누락되었습니다. Xray를 채우고 다시 시작하시겠습니까?"
+msgstr "통계가 활성화되었지만 api.listen이 누락되었습니다. 보완 후 Xray을 재시작하시겠습니까?"
 
 #: install.sh:10487
 msgid "未修改配置, 统计查询需要 api.listen"
-msgstr "구성이 수정되지 않았습니다. 통계 쿼리에 api.listen이 필요합니다."
+msgstr "구성 수정 없음, 통계 조회에는 api.listen이 필요합니다."
 
 #: install.sh:10526
 msgid "加速脚本下载失败"
@@ -3044,11 +3044,11 @@ msgstr "Xray 트래픽 통계 보기"
 
 #: install.sh:12826
 msgid "重置 Xray 流量统计"
-msgstr "Xray 트래픽 통계 재설정"
+msgstr "Xray 트래픽 통계 초기화"
 
 #: install.sh:12827
 msgid "实时刷新 Xray 流量统计"
-msgstr "Xray 트래픽 통계 실시간 새로 고침"
+msgstr "실시간으로 Xray 트래픽 통계를 새로 고침"
 
 #: install.sh:12828
 msgid "脚本卸载"
@@ -3536,7 +3536,7 @@ msgstr "트래픽 통계"
 
 #: install.sh:15036
 msgid "开启/关闭统计"
-msgstr "통계 켜기/끄기"
+msgstr "통계 활성화/비활성화"
 
 #: install.sh:15037
 msgid "查看统计"
@@ -4796,12 +4796,10 @@ msgid "未检测到项目创建的旧版脚本 cron, 跳过自动迁移"
 msgstr "프로젝트 생성을 위한 레거시 스크립트 크론이 감지되지 않음, 자동 마이그레이션 건너뛰기"
 
 #: scripts/traffic_blocker.sh:847
-#| msgid "检测到自定义 geodata 配置, 保留原样"
 msgid "检测到自定义 geodata 配置, 跳过自动迁移"
 msgstr "사용자 지정 지리 데이터 구성 감지됨, 자동 마이그레이션 건너뛰기"
 
 #: scripts/traffic_blocker.sh:851
-#| msgid "Xray 配置无法解析"
 msgid "Xray 配置无法解析, 跳过自动迁移"
 msgstr "Xray 구성을 해결할 수 없습니다. 자동 마이그레이션을 건너뜁니다."
 
@@ -4814,12 +4812,10 @@ msgid "检测到旧 geo_update.sh 脚本体系, 正在尝试迁移到 Xray 原�
 msgstr "이전 geo_update.sh 스크립팅 스키마가 감지되어 Xray 네이티브로 마이그레이션 시도 중"
 
 #: scripts/traffic_blocker.sh:862
-#| msgid "GeoData 原生迁移完成"
 msgid "GeoData 原生迁移成功"
 msgstr "GeoData 네이티브 마이그레이션 성공"
 
 #: scripts/traffic_blocker.sh:865
-#| msgid "GeoData 原生迁移未完成, 旧更新任务已保留"
 msgid "GeoData 原生迁移失败, 旧更新任务与现有配置已保留"
 msgstr "GeoData 네이티브 마이그레이션 실패, 이전 업데이트 작업 및 기존 구성 유지"
 
@@ -4991,31 +4987,3 @@ msgstr "초기화되었습니다"
 #: scripts/traffic_blocker.sh:1408 scripts/traffic_blocker.sh:1411
 msgid "已恢复"
 msgstr "복구되었습니다"
-
-#~ msgid "脚本已更新, 但 GeoData 原生迁移未完成; 已保留旧更新任务"
-#~ msgstr "스크립트가 업데이트되었지만 GeoData 기본 마이그레이션이 완료되지 않았습니다. 이전 업데이트 작업이 보존되었습니다."
-
-#~ msgid "原生更新在进程内热重载, 不重启 Xray, 无需额外的定时任务"
-#~ msgstr "네이티브 업데이트는 프로세스 내에서 핫 리로드되며, Xray을 재시작할 필요가 없고 별도의 타이밍 작업도 필요하지 않습니다."
-
-#~ msgid "是否移除该重复任务"
-#~ msgstr "해당 중복 작업을 삭제하시겠습니까?"
-
-#~ msgid "设置 GeoData 定时自动更新 (每周一凌晨3点)"
-#~ msgstr "GeoData의 정기 자동 업데이트를 설정합니다(매주 월요일 오전 3시)"
-
-#~ msgid "重新安装或重配置为普通节点后, 将改用 Xray 原生定时更新, 该任务会被自动移除"
-#~ msgstr ""
-#~ "일반 노드로 다시 설치하거나 재구성한 후에는 Xray의 기본 타이밍 업데이트를 사용하게 되며, 해당 작업은 자동으로 제거됩니다."
-
-#~ msgid "下载 GeoData 自动更新脚本"
-#~ msgstr "GeoData 자동 업데이트 스크립트 다운로드"
-
-#~ msgid "已设置 GeoData 自动更新"
-#~ msgstr "GeoData 자동 업데이트가 설정되었습니다"
-
-#~ msgid "当前计划"
-#~ msgstr "현재 계획"
-
-#~ msgid "删除 GeoData 自动更新"
-#~ msgstr "GeoData 자동 업데이트 삭제"
