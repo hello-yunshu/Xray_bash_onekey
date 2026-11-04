@@ -869,84 +869,96 @@ msgstr ""
 
 #: install.sh:5182
 msgid "GeoData 资源目录软链创建失败"
-msgstr "GeoData resource directory soft chain creation failed"
+msgstr "Failed to create a soft link for the GeoData resource directory."
 
 #: install.sh:5185
 msgid "已恢复 GeoData 资源目录软链"
-msgstr "GeoData Resource Directory Soft Chain Restored"
+msgstr "The soft link for the GeoData resource directory has been restored."
 
 #: install.sh:5191
 msgid "GeoData 软链指向其他目录, 跳过自动迁移"
 msgstr ""
-"GeoData soft chain points to other directories, skipping automated migration"
+"GeoData The soft link points to another directory; automatic migration is "
+"skipped."
 
 #: install.sh:5206
 msgid "旧 GeoData 文件复制失败, 保留原目录"
-msgstr "Failed to copy old GeoData file, keep original directory"
+msgstr ""
+"Failed to copy the old GeoData file; the original directory is retained."
 
 #: install.sh:5212
 msgid "迁移后缺少 geoip.dat/geosite.dat, 保留原目录"
 msgstr ""
-"Missing geoip.dat/geosite.dat after migration, keep the original directory"
+"After migration, geoip.dat/geosite.dat is missing; the original directory "
+"has been retained."
 
 #: install.sh:5217
 msgid "旧 GeoData 目录替换失败, 保留原目录"
-msgstr "Failed to replace old GeoData directory, keep original directory"
+msgstr ""
+"Failed to replace the old GeoData directory; the original directory has been"
+" retained."
 
 #: install.sh:5222
 msgid "GeoData 目录迁移失败且无法恢复, 请手动检查"
 msgstr ""
-"GeoData directory migration failed and cannot be recovered, please check "
-"manually"
+"GeoData directory migration failed and cannot be restored; please check "
+"manually."
 
 #: install.sh:5227
 msgid "旧 GeoData 迁移备份未清理"
-msgstr "Old GeoData migration backup not cleaned up"
+msgstr "Old GeoData migration backups have not been cleaned up."
 
 #: install.sh:5228
 msgid "已将旧 GeoData 目录迁移到"
-msgstr "Migrated old GeoData directory to"
+msgstr "The old GeoData directory has been migrated to"
 
 #: install.sh:5264
 msgid "检测到自定义 geodata 配置, 保留原样且不改动旧更新任务"
 msgstr ""
-"Custom geodata configuration detected, leaving old update tasks unchanged"
+"Detected a custom geodata configuration; preserving it as is and not "
+"modifying the existing update task."
 
 #: install.sh:5269
 msgid "Xray 配置无法解析, 保留旧 GeoData 更新任务"
-msgstr "Xray configuration cannot be parsed, keep old GeoData update tasks"
+msgstr ""
+"The Xray configuration cannot be parsed; the old GeoData update task will be"
+" retained."
 
 #: install.sh:5290
 msgid "GeoData 路径迁移失败, 保留旧更新任务"
-msgstr "GeoData path migration failed, keep old update task"
+msgstr "GeoData Path migration failed; the old update task has been retained."
 
 #: install.sh:5296
 msgid "GeoData 原生更新启用失败, 保留旧更新任务"
-msgstr "GeoData native update activation failed, keep old update task"
+msgstr ""
+"GeoData native update failed to enable; the old update task is retained."
 
 #: install.sh:5302
 msgid "GeoData 原生配置未生效, 保留旧更新任务"
-msgstr "GeoData native configuration is not valid, keep the old update task"
+msgstr ""
+"GeoData The native configuration has not taken effect; the old update task "
+"is retained."
 
 #: install.sh:5309
 msgid "Xray 重启失败, 正在回滚 GeoData 原生配置"
-msgstr "Xray restart failed, rolling back GeoData native configuration"
+msgstr "Xray Restart failed, rolling back GeoData native configuration."
 
 #: install.sh:5319
 msgid "已恢复原配置并重启 Xray, 保留旧更新任务"
 msgstr ""
-"Restored the original configuration and restarted Xray, leaving the old "
-"update task"
+"Restored to the original configuration and restarted Xray, retaining the old"
+" update task."
 
 #: install.sh:5322
 msgid "RECOVERY REQUIRED: 原配置恢复或服务重启失败, 备份保留于"
 msgstr ""
-"Recovery required: The original configuration recovery or service restart "
-"failed, the backup is retained at"
+"RECOVERY REQUIRED: The original configuration failed to be restored or the "
+"service failed to restart; the backup is retained at"
 
 #: install.sh:5330
 msgid "旧 GeoData 更新任务移除失败, 请手动检查 crontab"
-msgstr "Old GeoData update task removal failed, please check crontab manually"
+msgstr ""
+"Failed to remove the old GeoData update task. Please manually check crontab."
 
 #: install.sh:5347
 msgid "本机版本高于清单钉定版本, 将按清单重新安装"
@@ -2494,23 +2506,25 @@ msgstr "failed to parse traffic statistics configuration"
 
 #: install.sh:10331
 msgid "流量统计配置缺少 api 段"
-msgstr "Traffic statistics configuration missing api segment"
+msgstr "The traffic statistics configuration is missing the api segment."
 
 #: install.sh:10342
 msgid "统计 API 仅允许监听 127.0.0.1"
-msgstr "Statistics API only allows snooping 127.0.0.1"
+msgstr "Statistics API only allow listening on 127.0.0.1."
 
 #: install.sh:10346
 msgid "统计 API 端口已被占用"
-msgstr "Statistics API port already in use"
+msgstr "Port API is already in use."
 
 #: install.sh:10365
 msgid "Xray 配置测试失败, 已还原原配置"
-msgstr "Xray configuration test failed, configuration restored"
+msgstr ""
+"Xray Configuration test failed; the original configuration has been "
+"restored."
 
 #: install.sh:10369
 msgid "Xray 配置测试失败, 还原失败"
-msgstr "Xray configuration test failed, restore failed"
+msgstr "Xray Configuration test failed, rollback failed."
 
 #: install.sh:10380
 msgid "已配置 Xray 流量统计"
@@ -2542,31 +2556,29 @@ msgstr "set up Xray traffic statistics"
 
 #: install.sh:10455
 msgid "统计查询需要 root 权限"
-msgstr "Root permission is required for statistical queries"
+msgstr "Statistical queries require the root permission."
 
 #: install.sh:10460
 msgid "统计脚本缺失, 请先运行 --stats 完成下载与校验"
 msgstr ""
-"Statistics script is missing, please run --stats to complete download and "
-"verification"
+"The statistics script is missing. Please run `--stats` first to complete the"
+" download and verification."
 
 #: install.sh:10464
 msgid "统计脚本下载或校验失败, 不影响统计开关"
 msgstr ""
-"Statistics script download or verification failed without affecting the "
-"statistics switch"
+"The statistics script download or verification failed, but this does not "
+"affect the statistics switch."
 
 #: install.sh:10474
 msgid "统计已开启但缺少 api.listen, 是否补写并重启 Xray"
 msgstr ""
-"Statistics are on but api.listen is missing, do you want to fill in and "
-"restart Xray?"
+"Statistics have been enabled but api.listen is missing. Do you want to "
+"Complete the writing and restart Xray?"
 
 #: install.sh:10487
 msgid "未修改配置, 统计查询需要 api.listen"
-msgstr ""
-"Configuration has not been modified, api.listen is required for statistical "
-"queries"
+msgstr "Configuration not modified; statistical queries require api.listen."
 
 #: install.sh:10526
 msgid "加速脚本下载失败"
@@ -3247,11 +3259,11 @@ msgstr "real-time traffic"
 
 #: install.sh:12825
 msgid "查看 Xray 流量统计"
-msgstr "View Xray Traffic Stats"
+msgstr "View Xray traffic statistics"
 
 #: install.sh:12826
 msgid "重置 Xray 流量统计"
-msgstr "Reset Xray Traffic Statistics"
+msgstr "Reset Xray traffic statistics"
 
 #: install.sh:12827
 msgid "实时刷新 Xray 流量统计"
@@ -3768,19 +3780,19 @@ msgstr "traffic statistics"
 
 #: install.sh:15036
 msgid "开启/关闭统计"
-msgstr "Turn statistics on/off"
+msgstr "Enable/Disable Statistics"
 
 #: install.sh:15037
 msgid "查看统计"
-msgstr "View Statistic"
+msgstr "View statistics"
 
 #: install.sh:15038
 msgid "重置统计"
-msgstr "Reset stats"
+msgstr "Reset statistics"
 
 #: install.sh:15039
 msgid "实时监控"
-msgstr "Real-time Monitoring"
+msgstr "Real-time monitoring"
 
 #: install.sh:15057 install.sh:15157
 msgid "其他选项"
@@ -5088,12 +5100,10 @@ msgstr ""
 "migration"
 
 #: scripts/traffic_blocker.sh:847
-#| msgid "检测到自定义 geodata 配置, 保留原样"
 msgid "检测到自定义 geodata 配置, 跳过自动迁移"
 msgstr "Custom geodata configuration detected, skipping auto migration"
 
 #: scripts/traffic_blocker.sh:851
-#| msgid "Xray 配置无法解析"
 msgid "Xray 配置无法解析, 跳过自动迁移"
 msgstr "Xray configuration could not be resolved, skipping auto migration"
 
@@ -5110,12 +5120,10 @@ msgstr ""
 "native"
 
 #: scripts/traffic_blocker.sh:862
-#| msgid "GeoData 原生迁移完成"
 msgid "GeoData 原生迁移成功"
 msgstr "GeoData native migration successful"
 
 #: scripts/traffic_blocker.sh:865
-#| msgid "GeoData 原生迁移未完成, 旧更新任务已保留"
 msgid "GeoData 原生迁移失败, 旧更新任务与现有配置已保留"
 msgstr ""
 "GeoData native migration failed, old update tasks and existing "
@@ -5297,38 +5305,3 @@ msgstr "reset"
 #: scripts/traffic_blocker.sh:1408 scripts/traffic_blocker.sh:1411
 msgid "已恢复"
 msgstr "restored"
-
-#~ msgid "脚本已更新, 但 GeoData 原生迁移未完成; 已保留旧更新任务"
-#~ msgstr ""
-#~ "Script updated, but GeoData native migration not completed; old update task "
-#~ "preserved"
-
-#~ msgid "原生更新在进程内热重载, 不重启 Xray, 无需额外的定时任务"
-#~ msgstr ""
-#~ "Native updates reload in-process without restarting Xray; no extra cron job "
-#~ "is needed"
-
-#~ msgid "是否移除该重复任务"
-#~ msgstr "Remove this duplicate job"
-
-#~ msgid "设置 GeoData 定时自动更新 (每周一凌晨3点)"
-#~ msgstr ""
-#~ "configure GeoData to update automatically on a schedule (every monday at "
-#~ "3:00 am)"
-
-#~ msgid "重新安装或重配置为普通节点后, 将改用 Xray 原生定时更新, 该任务会被自动移除"
-#~ msgstr ""
-#~ "After reinstalling or reconfiguring as a node, Xray's native schedule takes "
-#~ "over and this job is removed"
-
-#~ msgid "下载 GeoData 自动更新脚本"
-#~ msgstr "download the GeoData automatic update script"
-
-#~ msgid "已设置 GeoData 自动更新"
-#~ msgstr "GeoData automatic updates have been enabled"
-
-#~ msgid "当前计划"
-#~ msgstr "current plan"
-
-#~ msgid "删除 GeoData 自动更新"
-#~ msgstr "disable GeoData automatic updates"
