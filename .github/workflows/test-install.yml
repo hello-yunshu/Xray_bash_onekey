@@ -112,6 +112,10 @@ jobs:
           # re-verification. Every new candidate from main runs it.
           if [[ -f .github/test/test_backup_restore.sh ]]; then
             bash .github/test/test_backup_restore.sh
+            # Traffic stats: api/stats/policy merge is idempotent, the
+            # downloaded status_config merge source is removed, and
+            # enable->disable->enable converges byte-for-byte.
+            bash .github/test/test_xray_stats.sh
           else
             echo "legacy candidate predates test_backup_restore.sh; skipped only for immutable re-verification"
           fi
