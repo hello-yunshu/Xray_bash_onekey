@@ -6,8 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xray_install 1.0\n"
-"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/issues\n"
-"POT-Creation-Date: 2026-11-05 02:52+0800\n"
+"Report-Msgid-Bugs-To: https://github.com/hello-yunshu/Xray_bash_onekey/"
+"issues\n"
+"POT-Creation-Date: 2026-11-04 19:13+0000\n"
 "PO-Revision-Date: 2026-05-14 05:38+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -15,7 +16,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: install.sh:79
 msgid "信息"
@@ -79,8 +81,8 @@ msgstr "не удалось ужесточить права доступа к к
 #: install.sh:976 scripts/rill_xray_agent_manager.sh:754
 msgid "提示：Rill AI 判断引擎目前仍处于测试阶段。"
 msgstr ""
-"Примечание: движок логического вывода Rill AI в настоящее время находится на"
-" стадии тестирования."
+"Примечание: движок логического вывода Rill AI в настоящее время находится на "
+"стадии тестирования."
 
 #: install.sh:977 scripts/rill_xray_agent_manager.sh:755
 msgid "可能存在兼容性、判断准确性或稳定性问题，不能保证完全无故障。"
@@ -150,8 +152,8 @@ msgstr "установка движка проверки AI"
 #: scripts/rill_xray_agent_manager.sh:1100
 #: scripts/rill_xray_agent_manager.sh:1135 scripts/traffic_blocker.sh:268
 #: scripts/traffic_blocker.sh:306 scripts/traffic_blocker.sh:946
-#: scripts/traffic_blocker.sh:986 scripts/traffic_blocker.sh:1071
-#: scripts/traffic_blocker.sh:1087
+#: scripts/traffic_blocker.sh:998 scripts/traffic_blocker.sh:1083
+#: scripts/traffic_blocker.sh:1099
 msgid "返回"
 msgstr "вернуться"
 
@@ -639,8 +641,8 @@ msgstr "введите один доменное имя"
 #: install.sh:3865
 msgid "serverNames 仅支持单个合法域名, 请重新输入"
 msgstr ""
-"serverNames Поддерживается только один допустимый домен. Пожалуйста, введите"
-" снова."
+"serverNames Поддерживается только один допустимый домен. Пожалуйста, введите "
+"снова."
 
 #: install.sh:3899 install.sh:4616 install.sh:4623 install.sh:4800
 #: install.sh:7978 install.sh:8082 install.sh:8204 install.sh:8212
@@ -666,18 +668,17 @@ msgid "不存在, 正在下载"
 msgstr "не существует, загрузка…"
 
 #: install.sh:3957 install.sh:3971 scripts/fail2ban_manager.sh:1180
-#: scripts/file_manager.sh:346 scripts/traffic_blocker.sh:1491
+#: scripts/file_manager.sh:346 scripts/traffic_blocker.sh:1503
 msgid "下载失败, 请手动下载并安装新版本"
 msgstr ""
-"скачивание не удалось, пожалуйста, скачайте и установите новую версию "
-"вручную"
+"скачивание не удалось, пожалуйста, скачайте и установите новую версию вручную"
 
 #: install.sh:3964
 msgid "版本过旧, 建议更新"
 msgstr "версия устарела, рекомендуется обновить"
 
-#: install.sh:3965 scripts/fail2ban_manager.sh:1169
-#: scripts/file_manager.sh:335 scripts/traffic_blocker.sh:1480
+#: install.sh:3965 scripts/fail2ban_manager.sh:1169 scripts/file_manager.sh:335
+#: scripts/traffic_blocker.sh:1492
 msgid "是否下载并安装新版本"
 msgstr "скачать и установить новую версию"
 
@@ -693,7 +694,7 @@ msgstr "требуется основная версия скрипта"
 #: install.sh:3983 install.sh:12356 scripts/fail2ban_manager.sh:10
 #: scripts/fail2ban_manager.sh:1166 scripts/file_manager.sh:10
 #: scripts/file_manager.sh:332 scripts/traffic_blocker.sh:9
-#: scripts/traffic_blocker.sh:1477
+#: scripts/traffic_blocker.sh:1489
 msgid "当前版本"
 msgstr "текущая версия"
 
@@ -721,7 +722,7 @@ msgstr "пожалуйста, выберите протокол: ws, gRPC или
 #: scripts/fail2ban_manager.sh:1053 scripts/file_manager.sh:320
 #: scripts/traffic_blocker.sh:279 scripts/traffic_blocker.sh:315
 #: scripts/traffic_blocker.sh:625 scripts/traffic_blocker.sh:955
-#: scripts/traffic_blocker.sh:997 scripts/traffic_blocker.sh:1091
+#: scripts/traffic_blocker.sh:1009 scripts/traffic_blocker.sh:1103
 msgid "无效的选择, 请重试"
 msgstr "недопустимый выбор, попробуйте еще раз"
 
@@ -810,8 +811,7 @@ msgstr "Не удалось создать каталог ресурсов GeoDa
 #: install.sh:4964
 msgid "缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置"
 msgstr ""
-"Отсутствует geoip.dat/geosite.dat; пропускается нативная конфигурация "
-"GeoData"
+"Отсутствует geoip.dat/geosite.dat; пропускается нативная конфигурация GeoData"
 
 #: install.sh:4970
 msgid "GeoData 资源目录与 Xray 实际读取路径不一致, 跳过原生配置"
@@ -829,8 +829,8 @@ msgstr ""
 msgid "低内存设备 (小于 1 GiB): GeoData 自动刷新会有短暂内存峰值, 请留意"
 msgstr ""
 "На устройствах с малым объемом памяти (менее 1 GiB): автоматические "
-"обновления GeoData могут вызывать кратковременные пики использования памяти,"
-" пожалуйста, учитывайте это."
+"обновления GeoData могут вызывать кратковременные пики использования памяти, "
+"пожалуйста, учитывайте это."
 
 #: install.sh:5058
 msgid "检测到自定义 geodata 配置, 保留原样"
@@ -846,8 +846,8 @@ msgstr ""
 #: install.sh:5091 install.sh:5121
 msgid "Xray 服务账号仍无法写入 GeoData 文件, 自动刷新可能失败"
 msgstr ""
-"Учётная запись службы по-прежнему не может записать файл Xray, обновление из"
-" источника может завершиться неудачно."
+"Учётная запись службы по-прежнему не может записать файл Xray, обновление из "
+"источника может завершиться неудачно."
 
 #: install.sh:5098
 msgid "当前 Xray 配置未通过 xray run -test, 跳过 GeoData 原生配置"
@@ -1096,7 +1096,7 @@ msgstr ""
 #: scripts/fail2ban_manager.sh:189 scripts/fail2ban_manager.sh:214
 #: scripts/fail2ban_manager.sh:240 scripts/fail2ban_manager.sh:1000
 #: scripts/rill_xray_agent_manager.sh:100 scripts/traffic_blocker.sh:555
-#: scripts/traffic_blocker.sh:1042
+#: scripts/traffic_blocker.sh:1054
 msgid "已启用"
 msgstr "уже включено"
 
@@ -1130,8 +1130,8 @@ msgstr "рекомендовать"
 #: install.sh:5744
 msgid "使用指向本机 IP 的自建 HTTPS 站点作为回落"
 msgstr ""
-"Использовать собственный сайт HTTPS, указывающий на локальный IP, в качестве"
-" резервного варианта."
+"Использовать собственный сайт HTTPS, указывающий на локальный IP, в качестве "
+"резервного варианта."
 
 #: install.sh:5744 install.sh:5745 install.sh:14874 install.sh:15041
 msgid "高级"
@@ -1142,7 +1142,9 @@ msgid "直接拒绝异常 TLS 连接"
 msgstr "напрямую отклонить подключение с ошибкой TLS"
 
 #: install.sh:5746
-msgid "第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。"
+msgid ""
+"第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了"
+"解含义, 请使用默认隔离策略。"
 msgstr ""
 "Пункт 2 требует, чтобы у вас уже был собственный домен, а запись A/AAAA "
 "этого домена указывала на ваш публичный IP‑адрес. Если вы не понимаете, что "
@@ -1214,9 +1216,9 @@ msgstr "decoy конфигурация сайта завершена"
 #: install.sh:5906
 msgid "当前使用自签证书, 浏览器访问会有证书提示。高级用户可自行替换"
 msgstr ""
-"В настоящее время используется самоподписанный сертификат; при доступе через"
-" браузер будет выводиться уведомление о сертификате. Продвинутые "
-"пользователи могут заменить его самостоятельно."
+"В настоящее время используется самоподписанный сертификат; при доступе через "
+"браузер будет выводиться уведомление о сертификате. Продвинутые пользователи "
+"могут заменить его самостоятельно."
 
 #: install.sh:5906
 msgid "与"
@@ -1459,8 +1461,8 @@ msgstr "все уровни отката выполнены с ошибкой"
 #: install.sh:6711
 msgid "更新失败且所有回滚层均失败, 请手动检查"
 msgstr ""
-"Обновление не удалось, и все уровни отката также не выполнились. Пожалуйста,"
-" проверьте вручную."
+"Обновление не удалось, и все уровни отката также не выполнились. Пожалуйста, "
+"проверьте вручную."
 
 #: install.sh:6736
 msgid "二进制执行失败"
@@ -1562,14 +1564,14 @@ msgstr "уже для последней версии"
 #: install.sh:7013
 msgid "设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx)"
 msgstr ""
-"Настроить фоновую программу автоматического обновления (включая: "
-"скрипт/Xray/Nginx)"
+"Настроить фоновую программу автоматического обновления (включая: скрипт/Xray/"
+"Nginx)"
 
 #: install.sh:7014
 msgid "可能自动更新后有兼容问题, 谨慎启用"
 msgstr ""
-"после автоматического обновления могут возникнуть проблемы с совместимостью,"
-" поэтому включайте с осторожностью"
+"после автоматического обновления могут возникнуть проблемы с совместимостью, "
+"поэтому включайте с осторожностью"
 
 #: install.sh:7015 scripts/fail2ban_manager.sh:206
 #: scripts/fail2ban_manager.sh:232
@@ -1654,8 +1656,7 @@ msgstr "хостинг-провайдер предоставляет тольк�
 
 #: install.sh:7100 install.sh:7304
 msgid "正在获取公网IP信息, 请耐心等待"
-msgstr ""
-"получение информации о публичном IP-адресе, пожалуйста, подождите [IP]"
+msgstr "получение информации о публичном IP-адресе, пожалуйста, подождите [IP]"
 
 #: install.sh:7111 install.sh:7150 install.sh:7186 install.sh:7231
 msgid "域名 DNS 解析记录与公网 IP 匹配"
@@ -1670,8 +1671,7 @@ msgstr ""
 #: install.sh:7115 install.sh:7154 install.sh:7190
 msgid "请修正或删除错误的 DNS 记录后再继续, 请选择"
 msgstr ""
-"Пожалуйста, исправьте или удалите ошибочную запись DNS и продолжите; "
-"выберите"
+"Пожалуйста, исправьте или удалите ошибочную запись DNS и продолжите; выберите"
 
 #: install.sh:7116 install.sh:7155 install.sh:7191 install.sh:7235
 msgid "仍然继续安装"
@@ -1963,14 +1963,14 @@ msgstr "обнаружено, что конфигурационный файл �
 #: install.sh:7874
 msgid "尝试从实际 Xray 配置补全安装信息"
 msgstr ""
-"Попытка дополнить информацию об установке на основе фактической конфигурации"
-" Xray"
+"Попытка дополнить информацию об установке на основе фактической конфигурации "
+"Xray"
 
 #: install.sh:7875
 msgid "备份旧配置后使用标准模板重建"
 msgstr ""
-"после резервного копирования старой конфигурации выполните её восстановление"
-" на основе стандартного шаблона."
+"после резервного копирования старой конфигурации выполните её восстановление "
+"на основе стандартного шаблона."
 
 #: install.sh:7886
 msgid "将尝试使用已读取的配置继续"
@@ -2155,8 +2155,8 @@ msgstr "обновить сертификат немедленно"
 #: install.sh:8448 install.sh:8464
 msgid "证书签发工具不存在, 请确认是否证书为脚本签发"
 msgstr ""
-"инструмент для выдачи сертификатов не существует, пожалуйста, убедитесь, был"
-" ли сертификат выдан с помощью скрипта"
+"инструмент для выдачи сертификатов не существует, пожалуйста, убедитесь, был "
+"ли сертификат выдан с помощью скрипта"
 
 #: install.sh:8471
 msgid "无法读取域名, 已取消证书更新"
@@ -2294,8 +2294,7 @@ msgstr "iftop Сбой установки, функция мониторинга
 #: install.sh:9457
 msgid "无法获取网卡, 将监控所有网卡"
 msgstr ""
-"не удалось получить сетевую карту, будет вестись мониторинг всех сетевых "
-"карт"
+"не удалось получить сетевую карту, будет вестись мониторинг всех сетевых карт"
 
 #: install.sh:9459
 msgid "监控网卡"
@@ -2313,8 +2312,8 @@ msgstr "нажмите клавишу q, чтобы выйти из iftop"
 msgid "目前分享链接规范为实验阶段, 请自行判断是否适用"
 msgstr ""
 "в настоящее время формат ссылки для совместного использования находится на "
-"экспериментальной стадии, пожалуйста, самостоятельно определите, применим ли"
-" он"
+"экспериментальной стадии, пожалуйста, самостоятельно определите, применим ли "
+"он"
 
 #: install.sh:9487
 msgid "当前 xHTTP 仅支持 stream-one 和 stream-up 模式"
@@ -2390,8 +2389,8 @@ msgstr ""
 #: install.sh:9591
 msgid "如需使用自定义证书, 请按如下步骤:"
 msgstr ""
-"если требуется использовать пользовательский сертификат, выполните следующие"
-" шаги"
+"если требуется использовать пользовательский сертификат, выполните следующие "
+"шаги"
 
 #: install.sh:9592
 msgid "1. 将证书文件重命名: 私钥(xray.key)、证书(xray.crt)"
@@ -2758,8 +2757,8 @@ msgstr "восстановлена последняя конфигурация �
 #: install.sh:11028
 msgid "恢复转发配置后 Nginx 校验仍失败, 请查看 Nginx 错误日志"
 msgstr ""
-"После восстановления конфигурации ретрансляции проверка Nginx по-прежнему не"
-" проходит. Пожалуйста, просмотрите журнал ошибок Nginx."
+"После восстановления конфигурации ретрансляции проверка Nginx по-прежнему не "
+"проходит. Пожалуйста, просмотрите журнал ошибок Nginx."
 
 #: install.sh:11055
 msgid "Nginx 配置校验失败, 已恢复原转发配置"
@@ -2806,11 +2805,12 @@ msgstr "мастер установки узла пересылки"
 #: install.sh:11125
 msgid "中转节点只做 TCP 透明转发, 不安装 Xray, 不终止 TLS/REALITY"
 msgstr ""
-"Узел транзита осуществляет только прозрачную пересылку TCP, не устанавливает"
-" Xray и не завершает TLS/REALITY."
+"Узел транзита осуществляет только прозрачную пересылку TCP, не устанавливает "
+"Xray и не завершает TLS/REALITY."
 
 #: install.sh:11126
-msgid "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 保持不变"
+msgid ""
+"客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 保持不变"
 msgstr ""
 "Клиент изменяет только адрес сервера и порт, а открытый ключ/SNI/ShortId "
 "узла доставки REALITY остаются неизменными."
@@ -2929,7 +2929,9 @@ msgid "启用状态"
 msgstr "статус активации"
 
 #: install.sh:11327
-msgid "客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 等参数保持不变"
+msgid ""
+"客户端只修改服务器地址和端口, 落地节点的 REALITY 公钥/SNI/ShortId 等参数保持"
+"不变"
 msgstr ""
 "Клиент изменяет только адрес сервера и порт, при этом параметры узла "
 "доставки — открытый ключ REALITY, SNI, ShortId и другие — остаются "
@@ -2944,8 +2946,8 @@ msgstr ""
 #: install.sh:11329
 msgid "本机不安装 Xray, 不终止 TLS, 也不保存落地节点的私钥"
 msgstr ""
-"На этом узле не устанавливается Xray, не завершается выполнение TLS, а также"
-" не сохраняется закрытый ключ узла."
+"На этом узле не устанавливается Xray, не завершается выполнение TLS, а также "
+"не сохраняется закрытый ключ узла."
 
 #: install.sh:11343 install.sh:12938 install.sh:12946 install.sh:12953
 #: install.sh:15401 scripts/rill_xray_agent_manager.sh:885
@@ -3008,7 +3010,7 @@ msgstr "просмотреть"
 
 #: install.sh:11497 scripts/fail2ban_manager.sh:66
 #: scripts/fail2ban_manager.sh:999 scripts/traffic_blocker.sh:554
-#: scripts/traffic_blocker.sh:1041
+#: scripts/traffic_blocker.sh:1053
 msgid "状态"
 msgstr "состояние"
 
@@ -3173,9 +3175,9 @@ msgstr "не обновлено"
 #: install.sh:12406
 msgid "跨 minor 更新需要显式 --allow-major；--yes 仅自动确认同一 minor"
 msgstr ""
-"Обновление через minor требует явного указания флага --allow-major; флаг "
-"--yes автоматически подтверждает обновления только в пределах одной и той же"
-" версии minor."
+"Обновление через minor требует явного указания флага --allow-major; флаг --"
+"yes автоматически подтверждает обновления только в пределах одной и той же "
+"версии minor."
 
 #: install.sh:12409
 msgid "跨 minor 更新未被 --yes 自动确认；请确认或改用 --allow-major"
@@ -3186,8 +3188,8 @@ msgstr ""
 #: install.sh:12412
 msgid "已按 --yes --allow-major 自动确认跨 minor 更新"
 msgstr ""
-"Автоматически подтверждено обновление через minor с параметрами --yes и "
-"--allow-major."
+"Автоматически подтверждено обновление через minor с параметрами --yes и --"
+"allow-major."
 
 #: install.sh:12414
 msgid "已按 --yes 自动确认更新"
@@ -3229,7 +3231,7 @@ msgid "已取消更新，未升级"
 msgstr "обновление отменено, не обновлено"
 
 #: install.sh:12505 scripts/fail2ban_manager.sh:1188
-#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1499
+#: scripts/file_manager.sh:354 scripts/traffic_blocker.sh:1511
 msgid "当前已经是最新版本"
 msgstr "в настоящее время уже установлена последняя версия"
 
@@ -3455,8 +3457,7 @@ msgstr "скрипт находится на обслуживании. пожа�
 #: install.sh:13080
 msgid "无法检测所需依赖的在线版本, 请稍后再试"
 msgstr ""
-"невозможно обнаружить онлайн-версию необходимой зависимости, попробуйте "
-"позже"
+"невозможно обнаружить онлайн-версию необходимой зависимости, попробуйте позже"
 
 #: install.sh:13097
 msgid "请输入数字"
@@ -3760,8 +3761,8 @@ msgstr ""
 #: install.sh:14247
 msgid "Nginx 服务恢复后仍为 enabled, 但原系统无此 unit"
 msgstr ""
-"Служба Nginx после восстановления по‑прежнему имеет статус enabled, однако в"
-" исходной системе такого unit не существует."
+"Служба Nginx после восстановления по‑прежнему имеет статус enabled, однако в "
+"исходной системе такого unit не существует."
 
 #: install.sh:14273 install.sh:14277
 msgid "ACME 定时任务未能恢复, 请手动检查"
@@ -4041,7 +4042,7 @@ msgstr "управление"
 
 #: scripts/fail2ban_manager.sh:69 scripts/file_manager.sh:310
 #: scripts/traffic_blocker.sh:308 scripts/traffic_blocker.sh:616
-#: scripts/traffic_blocker.sh:947 scripts/traffic_blocker.sh:988
+#: scripts/traffic_blocker.sh:947 scripts/traffic_blocker.sh:1000
 msgid "请选择一个选项"
 msgstr "выберите один из вариантов"
 
@@ -4061,13 +4062,13 @@ msgstr "пропустить включение"
 #: scripts/fail2ban_manager.sh:189 scripts/fail2ban_manager.sh:206
 #: scripts/fail2ban_manager.sh:211 scripts/fail2ban_manager.sh:214
 #: scripts/fail2ban_manager.sh:232 scripts/fail2ban_manager.sh:237
-#: scripts/fail2ban_manager.sh:240 scripts/traffic_blocker.sh:1114
+#: scripts/fail2ban_manager.sh:240 scripts/traffic_blocker.sh:1126
 msgid "规则"
 msgstr "правило"
 
 #: scripts/fail2ban_manager.sh:211 scripts/fail2ban_manager.sh:237
 #: scripts/fail2ban_manager.sh:1001 scripts/traffic_blocker.sh:556
-#: scripts/traffic_blocker.sh:1043
+#: scripts/traffic_blocker.sh:1055
 msgid "已禁用"
 msgstr "отключено"
 
@@ -4155,8 +4156,8 @@ msgstr ""
 #: scripts/fail2ban_manager.sh:493
 msgid "重启 Fail2ban 后该可信 IP 可能丢失, 请手动检查配置文件"
 msgstr ""
-"После перезапуска Fail2ban этот доверенный IP может быть утерян; пожалуйста,"
-" вручную проверьте конфигурационный файл."
+"После перезапуска Fail2ban этот доверенный IP может быть утерян; пожалуйста, "
+"вручную проверьте конфигурационный файл."
 
 #: scripts/fail2ban_manager.sh:497
 msgid "添加可信名单失败"
@@ -4173,8 +4174,8 @@ msgstr "удаление с сохранением выполнено успеш
 #: scripts/fail2ban_manager.sh:536
 msgid "重启 Fail2ban 后该可信 IP 可能仍在, 请手动检查配置文件"
 msgstr ""
-"После перезапуска Fail2ban данный доверенный IP может по‑прежнему оставаться"
-" активным; проверьте конфигурационный файл вручную."
+"После перезапуска Fail2ban данный доверенный IP может по‑прежнему оставаться "
+"активным; проверьте конфигурационный файл вручную."
 
 #: scripts/fail2ban_manager.sh:540
 msgid "移除可信名单失败"
@@ -4190,8 +4191,7 @@ msgstr "замена атома не удалась, сохранена исхо
 
 #: scripts/fail2ban_manager.sh:695
 msgid "Fail2ban reload 失败, 恢复原配置"
-msgstr ""
-"не удалось перезагрузить Fail2ban; исходная конфигурация восстановлена"
+msgstr "не удалось перезагрузить Fail2ban; исходная конфигурация восстановлена"
 
 #: scripts/fail2ban_manager.sh:700
 msgid "原配置自动恢复失败, 备份保留于"
@@ -4345,7 +4345,7 @@ msgid "模块名称"
 msgstr "название модуля"
 
 #: scripts/fail2ban_manager.sh:1032 scripts/file_manager.sh:112
-#: scripts/traffic_blocker.sh:1079
+#: scripts/traffic_blocker.sh:1091
 msgid "序号"
 msgstr "порядковый номер"
 
@@ -4353,15 +4353,15 @@ msgstr "порядковый номер"
 msgid "请选择要管理的模块"
 msgstr "пожалуйста, выберите модуль для управления"
 
-#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:1106
+#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:1118
 msgid "启用"
 msgstr "включить"
 
-#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:1106
+#: scripts/fail2ban_manager.sh:1064 scripts/traffic_blocker.sh:1118
 msgid "禁用"
 msgstr "отключить"
 
-#: scripts/fail2ban_manager.sh:1066 scripts/traffic_blocker.sh:1114
+#: scripts/fail2ban_manager.sh:1066 scripts/traffic_blocker.sh:1126
 msgid "是否"
 msgstr "является ли"
 
@@ -4370,7 +4370,7 @@ msgid "模块"
 msgstr "модуль"
 
 #: scripts/fail2ban_manager.sh:1076 scripts/traffic_blocker.sh:215
-#: scripts/traffic_blocker.sh:1121 scripts/traffic_blocker.sh:1404
+#: scripts/traffic_blocker.sh:1133 scripts/traffic_blocker.sh:1416
 msgid "操作已取消"
 msgstr "операция отменена"
 
@@ -4393,32 +4393,32 @@ msgid "未启用或配置异常"
 msgstr "не активировано или возникла ошибка конфигурации"
 
 #: scripts/fail2ban_manager.sh:1166 scripts/file_manager.sh:332
-#: scripts/traffic_blocker.sh:1477
+#: scripts/traffic_blocker.sh:1489
 msgid "新版本可用"
 msgstr "доступна новая версия"
 
 #: scripts/fail2ban_manager.sh:1167 scripts/file_manager.sh:333
-#: scripts/traffic_blocker.sh:1478
+#: scripts/traffic_blocker.sh:1490
 msgid "请访问"
 msgstr "пожалуйста, посетите"
 
 #: scripts/fail2ban_manager.sh:1167 scripts/file_manager.sh:333
-#: scripts/traffic_blocker.sh:1478
+#: scripts/traffic_blocker.sh:1490
 msgid "查看更新说明"
 msgstr "просмотреть описание обновлений"
 
 #: scripts/fail2ban_manager.sh:1173 scripts/file_manager.sh:339
-#: scripts/traffic_blocker.sh:1484
+#: scripts/traffic_blocker.sh:1496
 msgid "正在下载新版本"
 msgstr "загружается новая версия"
 
 #: scripts/fail2ban_manager.sh:1175 scripts/file_manager.sh:341
-#: scripts/traffic_blocker.sh:1486
+#: scripts/traffic_blocker.sh:1498
 msgid "下载完成, 正在重新加载..."
 msgstr "загрузка завершена, выполняется перезагрузка"
 
 #: scripts/fail2ban_manager.sh:1184 scripts/file_manager.sh:350
-#: scripts/traffic_blocker.sh:1495
+#: scripts/traffic_blocker.sh:1507
 msgid "跳过更新"
 msgstr "пропустить обновление"
 
@@ -4682,7 +4682,8 @@ msgstr "__терм_0__"
 
 #: scripts/rill_xray_agent_manager.sh:903
 msgid ""
-"开启 AI 智能判断后，系统将持续观测 Xray/Nginx 状态，自动诊断故障并给出处理建议。说明：自动修改功能暂不开放，当前不会自动更改系统。"
+"开启 AI 智能判断后，系统将持续观测 Xray/Nginx 状态，自动诊断故障并给出处理建"
+"议。说明：自动修改功能暂不开放，当前不会自动更改系统。"
 msgstr ""
 "После включения функции интеллектуального анализа AI система будет "
 "непрерывно отслеживать состояние Xray/Nginx, автоматически диагностировать "
@@ -4693,8 +4694,8 @@ msgstr ""
 #: scripts/rill_xray_agent_manager.sh:906
 msgid "切换到 AI 观察模式后，AI 仅观测和判断，不会自动修改系统，结果仅供参考。"
 msgstr ""
-"После переключения в режим наблюдения AI AI будет лишь наблюдать и оценивать"
-" состояние системы, не внося при этом автоматических изменений; полученные "
+"После переключения в режим наблюдения AI AI будет лишь наблюдать и оценивать "
+"состояние системы, не внося при этом автоматических изменений; полученные "
 "результаты носят исключительно справочный характер."
 
 #: scripts/rill_xray_agent_manager.sh:909
@@ -4847,10 +4848,12 @@ msgid "三种工作模式说明："
 msgstr "описание трёх режимов работы:"
 
 #: scripts/rill_xray_agent_manager.sh:1040
-msgid "智能判断：AI 实时诊断故障并给出处理建议。自动修改功能暂不开放，当前不会自动更改系统。"
+msgid ""
+"智能判断：AI 实时诊断故障并给出处理建议。自动修改功能暂不开放，当前不会自动更"
+"改系统。"
 msgstr ""
-"Умное определение: AI в режиме реального времени диагностирует неисправности"
-" и предоставляет рекомендации по их устранению. Функция автоматического "
+"Умное определение: AI в режиме реального времени диагностирует неисправности "
+"и предоставляет рекомендации по их устранению. Функция автоматического "
 "изменения временно недоступна; в настоящее время система не изменяется "
 "автоматически."
 
@@ -4892,8 +4895,7 @@ msgstr "просмотреть описание режимов работы"
 #: scripts/rill_xray_agent_manager.sh:1072
 msgid "Rill Xray AI 运维助手 / 校验与诊断"
 msgstr ""
-"Rill Xray AI Помощник по эксплуатации и обслуживанию / Проверка и "
-"диагностика"
+"Rill Xray AI Помощник по эксплуатации и обслуживанию / Проверка и диагностика"
 
 #: scripts/rill_xray_agent_manager.sh:1073
 msgid "校验 AI 判断引擎"
@@ -4909,11 +4911,12 @@ msgstr ""
 "Rill Xray AI Помощник по эксплуатации и обслуживанию / RillML управление"
 
 #: scripts/rill_xray_agent_manager.sh:1092
-msgid "RillML 预编译运行时：安装 / 升级 / 重装 / 回滚（root 操作，失败不阻塞主引擎）。"
+msgid ""
+"RillML 预编译运行时：安装 / 升级 / 重装 / 回滚（root 操作，失败不阻塞主引"
+"擎）。"
 msgstr ""
 "RillML Предкомпилированное время выполнения: установка / обновление / "
-"переустановка / откат (root операция, при сбое не блокирует основной "
-"движок)."
+"переустановка / откат (root операция, при сбое не блокирует основной движок)."
 
 #: scripts/rill_xray_agent_manager.sh:1094
 msgid "查看 RillML 状态"
@@ -4936,7 +4939,8 @@ msgid "回滚 RillML"
 msgstr "откатить RillML"
 
 #: scripts/rill_xray_agent_manager.sh:1120
-msgid "本地 AI 运维助手：实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议。"
+msgid ""
+"本地 AI 运维助手：实时监控 Xray/Nginx 健康，自动诊断故障并给出处理建议。"
 msgstr ""
 "Местный помощник по эксплуатации и обслуживанию AI: в режиме реального "
 "времени отслеживает состояние Xray/Nginx, автоматически диагностирует "
@@ -5109,7 +5113,7 @@ msgstr "не существует"
 msgid "GeoData 手动刷新脚本下载失败"
 msgstr "Не удалось скачать скрипт ручного обновления GeoData"
 
-#: scripts/traffic_blocker.sh:553 scripts/traffic_blocker.sh:1040
+#: scripts/traffic_blocker.sh:553 scripts/traffic_blocker.sh:1052
 msgid "规则名称"
 msgstr "название правила"
 
@@ -5121,7 +5125,7 @@ msgstr "просмотреть статус правил блокировки"
 msgid "管理阻断规则"
 msgstr "правило блокировки управления"
 
-#: scripts/traffic_blocker.sh:612 scripts/traffic_blocker.sh:976
+#: scripts/traffic_blocker.sh:612 scripts/traffic_blocker.sh:983
 msgid "刷新 GeoData"
 msgstr "Обновить GeoData"
 
@@ -5287,7 +5291,9 @@ msgid "自动刷新状态"
 msgstr "Состояние автоматического обновления"
 
 #: scripts/traffic_blocker.sh:801
-msgid "[配置不可解析] Xray 配置无法读取, 无法确认自动刷新状态; 请先修复 config.json 后重试"
+msgid ""
+"[配置不可解析] Xray 配置无法读取, 无法确认自动刷新状态; 请先修复 config.json "
+"后重试"
 msgstr ""
 "[Конфигурация не читается] Не удалось прочитать конфиг Xray; состояние "
 "автоматического обновления неизвестно. Исправьте config.json и повторите"
@@ -5301,15 +5307,16 @@ msgstr ""
 #: scripts/traffic_blocker.sh:808
 msgid "[自动刷新已开启] Xray 原生自动刷新:"
 msgstr ""
-"[Автоматическое обновление включено] Нативное автоматическое обновление "
-"Xray:"
+"[Автоматическое обновление включено] Нативное автоматическое обновление Xray:"
 
 #: scripts/traffic_blocker.sh:808
 msgid "无需手动操作"
 msgstr "Ручные действия не требуются"
 
 #: scripts/traffic_blocker.sh:810
-msgid "[自动刷新未开启] 当前由 geo_update.sh 脚本定时刷新 (待迁移); 建议在本菜单启用 Xray 原生自动刷新"
+msgid ""
+"[自动刷新未开启] 当前由 geo_update.sh 脚本定时刷新 (待迁移); 建议在本菜单启"
+"用 Xray 原生自动刷新"
 msgstr ""
 "[Автоматическое обновление отключено] Сейчас обновление выполняет cron-"
 "задача geo_update.sh (ожидается миграция); включите нативное автоматическое "
@@ -5318,8 +5325,8 @@ msgstr ""
 #: scripts/traffic_blocker.sh:812
 msgid "[自动刷新未开启] 当前不会自动刷新; 可在本菜单启用 Xray 原生定时刷新"
 msgstr ""
-"[Автоматическое обновление отключено] Автоматического обновления сейчас нет;"
-" включите нативное обновление по расписанию Xray в этом меню"
+"[Автоматическое обновление отключено] Автоматического обновления сейчас нет; "
+"включите нативное обновление по расписанию Xray в этом меню"
 
 #: scripts/traffic_blocker.sh:819
 msgid "[自动刷新开启失败]"
@@ -5328,8 +5335,8 @@ msgstr "[Не удалось включить автоматическое об�
 #: scripts/traffic_blocker.sh:819
 msgid "旧刷新任务与现有配置已保留, 可在此重试"
 msgstr ""
-"Старая задача обновления и текущая конфигурация сохранены; повторите попытку"
-" в этом меню"
+"Старая задача обновления и текущая конфигурация сохранены; повторите попытку "
+"в этом меню"
 
 #: scripts/traffic_blocker.sh:826
 msgid "当前为自动刷新状态"
@@ -5451,145 +5458,141 @@ msgstr "Ручное обновление GeoData (запуск geo_update.sh о
 msgid "移除旧的 geo_update.sh 周期任务"
 msgstr "Удалить старые задачи цикла geo_update.sh"
 
-#: scripts/traffic_blocker.sh:982
+#: scripts/traffic_blocker.sh:994
 msgid "手动刷新全部 GeoData"
 msgstr "Обновить вручную все GeoData"
 
-#: scripts/traffic_blocker.sh:983 scripts/traffic_blocker.sh:984
+#: scripts/traffic_blocker.sh:995 scripts/traffic_blocker.sh:996
 msgid "手动刷新"
 msgstr "Ручное обновление"
 
-#: scripts/traffic_blocker.sh:985
+#: scripts/traffic_blocker.sh:997
 msgid "自动刷新与手动刷新"
 msgstr "Автоматическое обновление и ручное обновление"
 
-#: scripts/traffic_blocker.sh:1007
+#: scripts/traffic_blocker.sh:1019
 msgid "正在手动刷新全部 GeoData"
 msgstr "Ручное обновление всех GeoData"
 
-#: scripts/traffic_blocker.sh:1019
-#| msgid "手动刷新"
+#: scripts/traffic_blocker.sh:1031
 msgid "正在手动刷新"
 msgstr "Выполняется ручное обновление"
 
-#: scripts/traffic_blocker.sh:1026
+#: scripts/traffic_blocker.sh:1038
 msgid "已刷新至"
 msgstr "Обновлено до"
 
-#: scripts/traffic_blocker.sh:1032
+#: scripts/traffic_blocker.sh:1044
 msgid "管理流量阻断规则"
 msgstr "управление правилами блокировки трафика"
 
-#: scripts/traffic_blocker.sh:1091
+#: scripts/traffic_blocker.sh:1103
 msgid "请选择要管理的规则"
 msgstr "пожалуйста, выберите правило для управления"
 
-#: scripts/traffic_blocker.sh:1172
+#: scripts/traffic_blocker.sh:1184
 msgid "备份 Xray 配置失败"
 msgstr "не удалось создать резервную копию конфигурации Xray"
 
-#: scripts/traffic_blocker.sh:1185
+#: scripts/traffic_blocker.sh:1197
 msgid "重启失败, 已恢复原配置"
 msgstr "перезагрузка не удалась, восстановлены исходные настройки"
 
-#: scripts/traffic_blocker.sh:1215
+#: scripts/traffic_blocker.sh:1227
 msgid "缺少 GeoData 文件"
 msgstr "отсутствует файл GeoData"
 
-#: scripts/traffic_blocker.sh:1216
+#: scripts/traffic_blocker.sh:1228
 msgid "正在下载"
 msgstr "идёт загрузка"
 
-#: scripts/traffic_blocker.sh:1238
-#| msgid "以下 GeoData 文件有更新可用"
+#: scripts/traffic_blocker.sh:1250
 msgid "以下 GeoData 文件有新版本可用"
 msgstr "Для следующих файлов GeoData доступна новая версия"
 
-#: scripts/traffic_blocker.sh:1239
-#| msgid "是否立即更新"
+#: scripts/traffic_blocker.sh:1251
 msgid "是否立即手动刷新"
 msgstr "Обновить вручную сейчас"
 
-#: scripts/traffic_blocker.sh:1244
-#| msgid "GeoData 手动刷新失败"
+#: scripts/traffic_blocker.sh:1256
 msgid "刷新失败"
 msgstr "Не удалось обновить"
 
-#: scripts/traffic_blocker.sh:1256
+#: scripts/traffic_blocker.sh:1268
 msgid "Xray 配置文件不存在"
 msgstr "файл конфигурации Xray отсутствует"
 
-#: scripts/traffic_blocker.sh:1261
+#: scripts/traffic_blocker.sh:1273
 msgid "Xray 配置中缺少 blocked 出站, 无法应用阻断规则"
 msgstr ""
 "в конфигурации Xray отсутствует настройка блокировки исходящего трафика, "
 "поэтому правила блокировки не могут быть применены [blocked]"
 
-#: scripts/traffic_blocker.sh:1266
+#: scripts/traffic_blocker.sh:1278
 msgid "Xray 配置中缺少 direct 出站, 无法应用阻断规则"
 msgstr ""
 "в конфигурации Xray отсутствует прямой исходящий трафик, поэтому правила "
 "блокировки не могут быть применены [direct]"
 
-#: scripts/traffic_blocker.sh:1281
+#: scripts/traffic_blocker.sh:1293
 msgid "当前阻断规则配置"
 msgstr "текущая конфигурация правил блокировки"
 
-#: scripts/traffic_blocker.sh:1293
+#: scripts/traffic_blocker.sh:1305
 msgid "应用规则将重建路由配置, 自定义路由规则将被覆盖"
 msgstr ""
 "применение правил приведёт к перестройке конфигурации маршрутизации; "
 "пользовательские правила маршрутизации будут заменены"
 
-#: scripts/traffic_blocker.sh:1297
+#: scripts/traffic_blocker.sh:1309
 msgid "GeoData 下载失败, 无法应用规则"
 msgstr "сбой загрузки геоданных, применение правил невозможно [GeoData]"
 
-#: scripts/traffic_blocker.sh:1316 scripts/traffic_blocker.sh:1423
+#: scripts/traffic_blocker.sh:1328 scripts/traffic_blocker.sh:1435
 msgid "无法从 Xray 配置中提取入站标签"
 msgstr "не удалось извлечь входящую метку из конфигурации Xray"
 
-#: scripts/traffic_blocker.sh:1375 scripts/traffic_blocker.sh:1449
+#: scripts/traffic_blocker.sh:1387 scripts/traffic_blocker.sh:1461
 msgid "修改 Xray 配置失败"
 msgstr "не удалось изменить конфигурацию Xray"
 
-#: scripts/traffic_blocker.sh:1387
+#: scripts/traffic_blocker.sh:1399
 msgid "流量阻断规则"
 msgstr "правила блокировки трафика"
 
-#: scripts/traffic_blocker.sh:1387 scripts/traffic_blocker.sh:1390
-#: scripts/traffic_blocker.sh:1393
+#: scripts/traffic_blocker.sh:1399 scripts/traffic_blocker.sh:1402
+#: scripts/traffic_blocker.sh:1405
 msgid "已应用"
 msgstr "уже применено"
 
-#: scripts/traffic_blocker.sh:1388 scripts/traffic_blocker.sh:1461
+#: scripts/traffic_blocker.sh:1400 scripts/traffic_blocker.sh:1473
 msgid "已重启"
 msgstr "перезагрузка выполнена"
 
-#: scripts/traffic_blocker.sh:1390 scripts/traffic_blocker.sh:1463
+#: scripts/traffic_blocker.sh:1402 scripts/traffic_blocker.sh:1475
 msgid "域名解析策略"
 msgstr "стратегия разрешения доменных имён"
 
-#: scripts/traffic_blocker.sh:1393 scripts/traffic_blocker.sh:1466
+#: scripts/traffic_blocker.sh:1405 scripts/traffic_blocker.sh:1478
 msgid "协议嗅探"
 msgstr "слежение за протоколами"
 
-#: scripts/traffic_blocker.sh:1399
+#: scripts/traffic_blocker.sh:1411
 msgid "此操作将重置所有阻断规则为禁用状态"
 msgstr "это действие сбросит все правила блокировки до отключённого состояния"
 
-#: scripts/traffic_blocker.sh:1400
+#: scripts/traffic_blocker.sh:1412
 msgid "确认重置"
 msgstr "подтвердить сброс"
 
-#: scripts/traffic_blocker.sh:1459
+#: scripts/traffic_blocker.sh:1471
 msgid "所有阻断规则"
 msgstr "все правила блокировки"
 
-#: scripts/traffic_blocker.sh:1459
+#: scripts/traffic_blocker.sh:1471
 msgid "已重置"
 msgstr "уже сброшено"
 
-#: scripts/traffic_blocker.sh:1463 scripts/traffic_blocker.sh:1466
+#: scripts/traffic_blocker.sh:1475 scripts/traffic_blocker.sh:1478
 msgid "已恢复"
 msgstr "восстановлено"
