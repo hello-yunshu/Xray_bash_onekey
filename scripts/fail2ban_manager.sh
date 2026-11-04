@@ -7,7 +7,7 @@ MIN_MAIN_VERSION="2.12.10"
 if [ -n "$shell_version" ]; then
     oldest=$(printf '%s\n%s\n' "$MIN_MAIN_VERSION" "$shell_version" | sort -V | head -1)
     if [ "$oldest" != "$MIN_MAIN_VERSION" ]; then
-        echo "${Error} ${RedBG} fail2ban_manager.sh $(gettext "需要主脚本版本") >= ${MIN_MAIN_VERSION}, $(gettext "当前版本"): ${shell_version}, $(gettext "请先更新主脚本") ${Font}"
+        printf '%b\n' "${Error} ${RedBG} fail2ban_manager.sh $(gettext "需要主脚本版本") >= ${MIN_MAIN_VERSION}, $(gettext "当前版本"): ${shell_version}, $(gettext "请先更新主脚本") ${Font}"
         return 1
     fi
 fi
@@ -778,10 +778,10 @@ mf_menu_view_banned_ips() {
     while IFS= read -r jail; do
         [[ -n "$jail" ]] || continue
         jail_list[$index]="$jail"
-        echo "${Green}${index}.${Font} ${jail}"
+        printf '%b%s%b %s\n' "${Green}" "${index}." "${Font}" "${jail}"
         index=$((index + 1))
     done <<< "$active_jails"
-    echo "${Green}0.${Font} $(gettext "返回")"
+    printf '%b%s%b %s\n' "${Green}" "0." "${Font}" "$(gettext "返回")"
 
     local jail_choice
     read_optimize "$(gettext "请选择要查看的 Jail"):" jail_choice 0 0 ${#jail_list[@]} "$(gettext "无效的选择, 请重试")"
@@ -810,10 +810,10 @@ mf_menu_quick_unban() {
     while IFS= read -r jail; do
         [[ -n "$jail" ]] || continue
         jail_list[$index]="$jail"
-        echo "${Green}${index}.${Font} ${jail}"
+        printf '%b%s%b %s\n' "${Green}" "${index}." "${Font}" "${jail}"
         index=$((index + 1))
     done <<< "$active_jails"
-    echo "${Green}0.${Font} $(gettext "返回")"
+    printf '%b%s%b %s\n' "${Green}" "0." "${Font}" "$(gettext "返回")"
 
     local jail_choice
     read_optimize "$(gettext "请选择要解封的 Jail"):" jail_choice 0 0 ${#jail_list[@]} "$(gettext "无效的选择, 请重试")"
@@ -845,10 +845,10 @@ mf_menu_add_trust_ip() {
     while IFS= read -r jail; do
         [[ -n "$jail" ]] || continue
         jail_list[$index]="$jail"
-        echo "${Green}${index}.${Font} ${jail}"
+        printf '%b%s%b %s\n' "${Green}" "${index}." "${Font}" "${jail}"
         index=$((index + 1))
     done <<< "$active_jails"
-    echo "${Green}0.${Font} $(gettext "返回")"
+    printf '%b%s%b %s\n' "${Green}" "0." "${Font}" "$(gettext "返回")"
 
     local jail_choice
     read_optimize "$(gettext "请选择要添加可信 IP 的 Jail"):" jail_choice 0 0 ${#jail_list[@]} "$(gettext "无效的选择, 请重试")"
@@ -880,10 +880,10 @@ mf_menu_remove_trust_ip() {
     while IFS= read -r jail; do
         [[ -n "$jail" ]] || continue
         jail_list[$index]="$jail"
-        echo "${Green}${index}.${Font} ${jail}"
+        printf '%b%s%b %s\n' "${Green}" "${index}." "${Font}" "${jail}"
         index=$((index + 1))
     done <<< "$active_jails"
-    echo "${Green}0.${Font} $(gettext "返回")"
+    printf '%b%s%b %s\n' "${Green}" "0." "${Font}" "$(gettext "返回")"
 
     local jail_choice
     read_optimize "$(gettext "请选择要移除可信 IP 的 Jail"):" jail_choice 0 0 ${#jail_list[@]} "$(gettext "无效的选择, 请重试")"

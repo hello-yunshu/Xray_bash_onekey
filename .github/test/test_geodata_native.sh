@@ -525,6 +525,173 @@ rm -f "${geodata_dir}/geosite.dat"
 check "a missing file reports missing" test "$(tb_geo_native_file_state "${geodata_dir}/geosite.dat")" = "missing"
 
 echo ""
+echo "-- G. legacy install -> native geodata migration --"
+legacy_setup() {
+    rm -rf "${geodata_dir}" "${local_bin}/share/xray"
+    mkdir -p "${geodata_dir}" "${local_bin}/share/xray"
+    printf 'LEGACY-IP\n' >"${local_bin}/share/xray/geoip.dat"
+    printf 'LEGACY-SITE\n' >"${local_bin}/share/xray/geosite.dat"
+    jq 'del(.geodata)' "${xray_conf}" >"${TMP_ROOT}/legacy.json"
+    cp "${TMP_ROOT}/legacy.json" "${xray_conf}"
+    printf '0 3 * * 1 bash "%s"\n' "${geo_update_file}" >"${GEO_CRONTAB}"
+    printf '0 4 * * * /usr/local/bin/hand-written-geo-job\n' >>"${GEO_CRONTAB}"
+    xray_service_user() { printf 'root\n'; }
+    xray_service_group() { printf 'root\n'; }
+    GEO_TEST_RC=0
+    unset GEO_TEST_PLAN
+    : >"${GEO_TEST_COUNT_FILE}"
+    : >"${GEO_CHOWN_LOG}"
+    node_role="node"
+}
+
+# The migration restarts an active Xray so the new geodata block is read by the
+# running process. Allow the failure path to be exercised without touching the
+# test host's service manager.
+GEO_RESTART_FAIL=0
+GEO_RESTART_FAIL_ONCE=0
+systemctl() {
+    if [[ "${1:-}" == "restart" && "${GEO_RESTART_FAIL}" == "1" ]]; then
+        [[ "${GEO_RESTART_FAIL_ONCE}" == "1" ]] && GEO_RESTART_FAIL=0
+        return 1
+    fi
+    return 0
+}
+
+legacy_setup
+_legacy_cfg=$(cat "${xray_conf}")
+check "legacy migration sees the old cron entry" \
+    test -n "$(grep -F "${geo_update_file}" "${GEO_CRONTAB}")"
+check "legacy real directory is migrated and linked" geodata_migrate_legacy
+check "the old real directory is replaced by a symlink" \
+    test -L "${local_bin}/share/xray"
+check "the symlink points at the managed directory" \
+    test "$(_geodata_realpath "${local_bin}/share/xray")" = "$(_geodata_realpath "${geodata_dir}")"
+check "legacy data is present in the managed directory" \
+    test "$(cat "${geodata_dir}/geoip.dat")" = "LEGACY-IP"
+check "native geodata block is written" \
+    jq -e '.geodata.cron == "0 3 * * 1" and (.geodata.assets | length == 2)' "${xray_conf}"
+check "xray run -test was executed during migration" \
+    test "$(cat "${GEO_TEST_COUNT_FILE}" 2>/dev/null || echo 0)" -ge 1
+check "the project's old cron entry is removed after success" \
+    bash -c "! grep -qF '${geo_update_file}' '${GEO_CRONTAB}'"
+check "a hand-written cron entry is preserved" \
+    grep -qF 'hand-written-geo-job' "${GEO_CRONTAB}"
+_legacy_cfg=$(cat "${xray_conf}")
+check "migration is idempotent on a second run" geodata_migrate_legacy
+check "the second run does not rewrite the config" \
+    test "$(cat "${xray_conf}")" = "$_legacy_cfg"
+check "the second run leaves no duplicate cron" \
+    bash -c "! grep -qF '${geo_update_file}' '${GEO_CRONTAB}'"
+
+rm -f "${local_bin}/share/xray"
+check "a missing asset symlink is recreated" geodata_migrate_legacy
+check "the recreated symlink points at the managed directory" \
+    test "$(_geodata_realpath "${local_bin}/share/xray")" = "$(_geodata_realpath "${geodata_dir}")"
+
+legacy_setup
+jq '.geodata = {"cron":"0 5 * * *","assets":[{"url":"https://example.com/geoip.dat","file":"geoip.dat"}]}' \
+    "${xray_conf}" >"${TMP_ROOT}/custom-migrate.json"
+cp "${TMP_ROOT}/custom-migrate.json" "${xray_conf}"
+_legacy_cfg=$(cat "${xray_conf}")
+check "custom geodata migration is skipped" geodata_migrate_legacy
+check "custom geodata config is unchanged" \
+    test "$(cat "${xray_conf}")" = "${_legacy_cfg}"
+check "custom geodata keeps the old cron" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+check "custom geodata keeps the real asset directory" \
+    test -d "${local_bin}/share/xray"
+
+legacy_setup
+_legacy_cfg=$(cat "${xray_conf}")
+set_geo_plan "0,1"
+check_not "a post-write config test failure aborts migration" geodata_migrate_legacy
+check "the original config is restored on failure" \
+    test "$(cat "${xray_conf}")" = "$_legacy_cfg"
+check "the old cron remains when native migration fails" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+check "no native block leaks into the failed migration" \
+    test "$(jq -c 'has("geodata")' "${xray_conf}")" = "false"
+set_geo_plan "0"
+
+legacy_setup
+rm -rf "${geodata_dir}"
+printf 'not-a-directory\n' >"${geodata_dir}"
+check_not "a blocked asset directory aborts migration" geodata_migrate_legacy
+check "the old cron remains when the managed path is blocked" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+
+legacy_setup
+cp() { return 1; }
+check_not "a failed copy (unwritable target) aborts migration" geodata_migrate_legacy
+unset -f cp
+check "the old cron remains when the copy fails" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+check "the old real asset directory is kept when the copy fails" \
+    test -d "${local_bin}/share/xray"
+
+legacy_setup
+_legacy_cfg=$(cat "${xray_conf}")
+GEO_RESTART_FAIL=1
+check_not "an Xray restart failure aborts migration" geodata_migrate_legacy
+check "the original config is restored after a restart failure" \
+    test "$(cat "${xray_conf}")" = "${_legacy_cfg}"
+check "the old cron remains after a restart failure" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+GEO_RESTART_FAIL=0
+rm -f "${xray_conf}".legacy-migrate.*
+
+legacy_setup
+_legacy_cfg=$(cat "${xray_conf}")
+GEO_RESTART_FAIL=1
+GEO_RESTART_FAIL_ONCE=1
+check_not "a restart failure still aborts migration" geodata_migrate_legacy
+check "the original config is restored before the rollback restart" \
+    test "$(cat "${xray_conf}")" = "${_legacy_cfg}"
+check "the rollback restart removes the recovery backup" \
+    bash -c "! compgen -G '${xray_conf}.legacy-migrate.*' >/dev/null"
+check "the old cron remains after the rollback restart" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+GEO_RESTART_FAIL=0
+GEO_RESTART_FAIL_ONCE=0
+
+echo ""
+echo "-- H. legacy cron PATH resolution --"
+GEO_RESOLVE_ROOT="${TMP_ROOT}/geo-resolve"
+mkdir -p "${GEO_RESOLVE_ROOT}/logs" "${GEO_RESOLVE_ROOT}/conf/xray"
+printf '{}\n' >"${GEO_RESOLVE_ROOT}/conf/xray/config.json"
+env -i PATH=/usr/bin:/bin \
+    XRAY_BIN_DIR="${xray_bin_dir}" \
+    XRAY_GEO_ROOT="${GEO_RESOLVE_ROOT}" \
+    XRAY_GEO_CONFIG="${GEO_RESOLVE_ROOT}/conf/xray/config.json" \
+    XRAY_UPDATE_LOCK_FILE="${GEO_RESOLVE_ROOT}/update.lock" \
+    XRAY_GEO_RESOLVE_ONLY=1 \
+    bash "${GEO_UPDATE_SH}" >/dev/null 2>&1
+_geo_resolve_rc=$?
+check "cron PATH resolves the pinned Xray binary" test "${_geo_resolve_rc}" -eq 0
+check "the resolved path is the configured bin directory" \
+    grep -qF "Resolved Xray binary: ${xray_bin_dir}/xray" "${GEO_RESOLVE_ROOT}/logs/geo_update.log"
+rm -rf "${GEO_RESOLVE_ROOT}/logs"
+env -i PATH=/usr/bin:/bin \
+    XRAY_BIN_DIR=/nonexistent \
+    XRAY_GEO_ROOT="${GEO_RESOLVE_ROOT}" \
+    XRAY_GEO_CONFIG="${GEO_RESOLVE_ROOT}/conf/xray/config.json" \
+    XRAY_UPDATE_LOCK_FILE="${GEO_RESOLVE_ROOT}/update.lock" \
+    XRAY_GEO_RESOLVE_ONLY=1 \
+    bash "${GEO_UPDATE_SH}" >/dev/null 2>&1
+_geo_missing_rc=$?
+check "a missing binary returns non-zero" test "${_geo_missing_rc}" -eq 1
+check "the failure log names every attempted path" \
+    grep -qF "tried: <unset> /nonexistent/xray /usr/local/bin/xray /usr/bin/xray" \
+    "${GEO_RESOLVE_ROOT}/logs/geo_update.log"
+
+check "legacy migration is wired into mutable startup" \
+    grep -qF 'geodata_migrate_legacy || true' "${INSTALL_SH}"
+check "legacy migration is wired into the -u success path" \
+    bash -c "awk '/^_update_sh_impl\(\)/,/^}/' '${INSTALL_SH}' | grep -qF 'geodata_migrate_legacy'"
+check "legacy migration never runs for relay" \
+    bash -c "awk '/^geodata_migrate_legacy\(\)/,/^}/' '${INSTALL_SH}' | grep -qF 'is_relay_role && return 0'"
+
+echo ""
 echo "============================================================"
 printf 'Result: %d passed, %d failed, %d skipped\n' "${PASS}" "${FAIL}" "${SKIP}"
 echo "============================================================"
