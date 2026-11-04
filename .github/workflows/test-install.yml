@@ -153,8 +153,9 @@ jobs:
           # Stage 04: "different" is not "newer". A regressed metadata target
           # must never reinstall an older Xray/Nginx over a working host.
           bash .github/test/test_version_downgrade_guard.sh
-          # The release workflow tags whatever install.sh declares; the
-          # CHANGELOG and README must describe that same version and role set.
+          # The release workflow tags whatever install.sh declares; CHANGELOG
+          # must have the matching entry. README is product documentation, not
+          # release history, and must not narrate a shell version.
           bash .github/test/test_shell_version_consistency.sh
           bash -n .github/test/test_installer_candidate_smoke.sh
           bash .github/test/test_vps_auto_update_schedule.sh
@@ -637,6 +638,11 @@ jobs:
           done
           echo "release-gate PASS"
 
+  # Known coverage gap: on push/PR runs `inputs.candidate_commit` is empty, so
+  # this job is skipped by design. It only runs when a release workflow passes a
+  # candidate commit. `release-gate` intentionally does not list this job in its
+  # `needs` and treats `skipped` as failure for every required job; do not add
+  # this job to that gate just to make runs green.
   release-candidate-gate:
     if: always() && inputs.candidate_commit != ''
     needs:

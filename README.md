@@ -146,7 +146,7 @@ Xray StatsService 只提供 inbound 上行/下行与 Uptime 等计数，**不提
 
 `idleleo --backup` 只备份脚本管理的文件：`/etc/idleleo`、`/usr/local/nginx`、Xray 二进制、systemd unit、root crontab 和 ACME 状态。它不是主机全备份，也不会自动包含用户自己放在其他路径的数据。
 
-`idleleo --restore` 选择文件名中时间戳最新的备份，校验归档内每个文件的 SHA256 后恢复；会移除备份中不存在的脚本管理配置，但保留用户自定义文件，也不会自动启动服务。跨模式恢复后请检查残留配置，并按需重启服务。
+`idleleo --restore` 选择文件名中时间戳最新的备份：带完整性清单的备份会校验归档内每个文件的 SHA256，并移除备份中不存在的脚本管理配置；无清单的旧备份只做结构校验，并跳过跨模式清理。恢复保留用户自定义文件，也不会自动启动服务。跨模式恢复后请检查残留配置，并按需重启服务。
 
 备份包可能包含证书、私钥和客户端配置，请按敏感文件保管，不要上传到公开位置。
 
@@ -226,12 +226,12 @@ idleleo --update --yes --allow-major  # 跨发布序列，需显式解除限制
 | 主目录 | `/etc/idleleo` |
 | Xray 配置 | `/etc/idleleo/conf/xray/config.json` |
 | Nginx 配置 | `/etc/idleleo/conf/nginx/` |
-| 安装信息 | `/etc/idleleo/conf/install_config.json` |
+| 脚本状态配置 | `/etc/idleleo/conf/install_config.json` |
 | 证书文件 | `/etc/idleleo/cert/xray.key`、`/etc/idleleo/cert/xray.crt` |
 | 日志目录 | `/etc/idleleo/logs/`、`/var/log/xray/` |
 | Nginx 安装目录 | `/usr/local/nginx` |
 | 管理命令 | `/usr/bin/idleleo` |
-| 客户端配置 | `/etc/idleleo/info/xray_info.inf` |
+| 安装信息文本 | `/etc/idleleo/info/xray_info.inf` |
 
 | 操作 | 命令 |
 |---|---|
@@ -253,7 +253,7 @@ docker attach xray-onekey
 
 AI Skill 适合让支持 Skill 的 AI 工具自动完成部署，无需逐项回答交互问题。详见 [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill)。
 
-支持模式：Reality、TLS、ws ONLY、中转节点。对 AI 工具说“帮我在服务器上搭建 Xray”，它会收集信息、生成非交互式脚本、执行部署并返回连接信息。
+脚本支持 Reality、TLS、ws/gRPC/xHTTP ONLY 和 Nginx Stream 中转节点。AI Skill 的自动部署模板当前只覆盖 Reality 与 TLS；ws/gRPC/xHTTP ONLY 与中转节点请在服务器上用 idleleo 完成。
 
 ## RillML Xray AI 运维助手
 
