@@ -1,4 +1,5 @@
 #!/bin/bash
+# color-test-fixture: ANSI stripping in assertions is intentional test tooling.
 
 MODE="${1:-}"
 

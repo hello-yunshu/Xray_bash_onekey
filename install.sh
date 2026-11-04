@@ -5229,6 +5229,25 @@ geodata_migrate_asset_layout() {
     return 0
 }
 
+geodata_migration_failure_path() {
+    printf '%s\n' "${idleleo_dir}/geodata_migration.failed"
+}
+
+# A marker survives the failing process so the menu can distinguish "native is
+# running" from "migration was attempted and failed, old cron retained".
+geodata_migration_clear_failed() {
+    rm -f "$(geodata_migration_failure_path)" 2>/dev/null || true
+}
+
+geodata_migration_mark_failed() {
+    local reason="$1"
+    {
+        printf 'status=failed\n'
+        printf 'reason=%s\n' "${reason}"
+        printf 'time=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+    } >"$(geodata_migration_failure_path)" 2>/dev/null || true
+}
+
 # One-time bridge from the external geo_update.sh cron to Xray's native
 # scheduler. It is intentionally invoked from every mutable startup (including
 # the -u path) so old installs are repaired without requiring a reinstall.
@@ -5236,15 +5255,17 @@ geodata_migrate_asset_layout() {
 # all leave the legacy cron untouched (fail closed).
 geodata_migrate_legacy() {
     local state backup="" restored
-    is_relay_role && return 0
+    is_relay_role && { geodata_migration_clear_failed; return 0; }
     [[ -x "${xray_bin_dir}/xray" && -f "${xray_conf}" ]] || return 0
     state=$(geodata_state)
     case "${state}" in
         custom)
+            geodata_migration_clear_failed
             log_echo "${Info} ${Green} $(gettext "检测到自定义 geodata 配置, 保留原样且不改动旧更新任务") ${Font}"
             return 0
             ;;
         invalid)
+            geodata_migration_mark_failed invalid_config
             log_echo "${Warning} ${YellowBG} $(gettext "Xray 配置无法解析, 保留旧 GeoData 更新任务") ${Font}"
             return 1
             ;;
@@ -5252,25 +5273,32 @@ geodata_migrate_legacy() {
             # Snapshot before the write so a post-write service failure can
             # restore the exact pre-migration config, not just a config that
             # happens to parse.
-            backup=$(mktemp "${xray_conf}.legacy-migrate.XXXXXX" 2>/dev/null) || return 1
+            backup=$(mktemp "${xray_conf}.legacy-migrate.XXXXXX" 2>/dev/null) || {
+                geodata_migration_mark_failed snapshot
+                return 1
+            }
             if ! cp -p "${xray_conf}" "${backup}"; then
                 rm -f "${backup}"
+                geodata_migration_mark_failed snapshot
                 return 1
             fi
             ;;
     esac
     if ! geodata_migrate_asset_layout; then
         [[ -n "${backup}" ]] && rm -f "${backup}"
+        geodata_migration_mark_failed layout
         log_echo "${Warning} ${YellowBG} $(gettext "GeoData 路径迁移失败, 保留旧更新任务") ${Font}"
         return 1
     fi
     if ! geodata_native_enable; then
         [[ -n "${backup}" ]] && rm -f "${backup}"
+        geodata_migration_mark_failed native_enable
         log_echo "${Warning} ${YellowBG} $(gettext "GeoData 原生更新启用失败, 保留旧更新任务") ${Font}"
         return 1
     fi
     if [[ "$(geodata_state)" != "managed" ]]; then
         [[ -n "${backup}" ]] && rm -f "${backup}"
+        geodata_migration_mark_failed native_state
         log_echo "${Warning} ${YellowBG} $(gettext "GeoData 原生配置未生效, 保留旧更新任务") ${Font}"
         return 1
     fi
@@ -5287,8 +5315,10 @@ geodata_migrate_legacy() {
             fi
             if [[ "${restored}" == "true" ]]; then
                 rm -f "${backup}"
+                geodata_migration_mark_failed restart
                 log_echo "${Warning} ${YellowBG} $(gettext "已恢复原配置并重启 Xray, 保留旧更新任务") ${Font}"
             else
+                geodata_migration_mark_failed recovery_required
                 log_echo "${Error} ${RedBG} $(gettext "RECOVERY REQUIRED: 原配置恢复或服务重启失败, 备份保留于") ${backup} ${Font}"
             fi
             return 1
@@ -5296,9 +5326,11 @@ geodata_migrate_legacy() {
         rm -f "${backup}"
     fi
     if ! geodata_legacy_cron_disable; then
+        geodata_migration_mark_failed cron_cleanup
         log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 更新任务移除失败, 请手动检查 crontab") ${Font}"
         return 1
     fi
+    geodata_migration_clear_failed
     return 0
 }
 
@@ -12441,13 +12473,15 @@ _update_sh_impl() {
                 log_echo "${Error} ${RedBG} 主脚本已更新，但 Rill 同步失败；下次运行将自动重试 Rill 同步 ${Font}"
                 return 1
             fi
-            # `-u` must repair old GeoData installs in the same command, not
-            # only on the next fresh install/reinstall. A failure is reported
-            # but never removes the legacy cron.
-            geodata_migrate_legacy || \
-                log_echo "${Warning} ${YellowBG} $(gettext "GeoData 原生迁移未完成, 已保留旧更新任务") ${Font}"
+            # Deliberately no post-update migration here. The process that ran
+            # `-u` may be an older version; replacing install.sh must not re-exec
+            # it. The next startup hook repairs old installs, and the GeoData
+            # menu can trigger the same migration explicitly.
             rxa_clear_screen
             log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
+            if [[ -n "$(geodata_legacy_cron_lines 2>/dev/null || true)" ]]; then
+                log_echo "${Info} ${Green} $(gettext "GeoData 迁移将在下次启动脚本或进入 GeoData 菜单时执行") ${Font}"
+            fi
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
             return 0
             ;;
