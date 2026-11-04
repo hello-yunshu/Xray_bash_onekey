@@ -60,7 +60,7 @@ OK="${Green}[OK]${Font}"
 Error="${RedW}[$(gettext "错误")]${Font}"
 Warning="${Yellow}[$(gettext "警告")]${Font}"
 
-shell_version="3.3.1"
+shell_version="3.3.2"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"

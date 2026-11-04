@@ -1,6 +1,6 @@
 # Xray 관리 스크립트 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
-현재 버전: **3.3.1**
+현재 버전: **3.3.2**
 
 간체 중국어 |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 

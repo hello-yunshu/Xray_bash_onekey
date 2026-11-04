@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 3.3.2 — 2026-11-04
+
+流量统计读取与发布资产版本。
+
+### 新增
+
+- **统计读取**：新增 `--stats`、`--stats --json`、`--stats-reset`、
+  `--stats-watch [秒]` 和“其他选项 → Xray 流量统计”子菜单；读取委托
+  `/etc/idleleo/scripts/xray_stats.sh`（0600 root），主脚本不复制查询逻辑。
+- **回环统计 API**：统计片段新增 `api.listen=127.0.0.1:10085`，不引入
+  `HandlerService`/dokodemo-door；旧 v3.3.x 统计配置首次读取时确认补写，
+  失败自动还原原配置。
+- **第五 Release 资产**：发布 `xray_stats.sh`、`SHA256SUMS` 与
+  `release-manifest.json` 的 `statsScriptSha256`；脚本缺失时按 SHA 校验下载，
+  校验失败只影响读取，不影响统计开关。
+
+### 验证与门禁
+
+- 新增 `test_xray_stats_readout.sh`，覆盖查询、reset、watch、JSON、
+  未开启/无监听/API 不可达/坏 JSON/非 root/校验失败等失败态，且断言
+  所有失败态 stdout 为空、无假 0。
+- 现有 16 项统计幂等测试保留；Debian 12、Ubuntu 24.04、CentOS Stream 10
+  真实 Xray CI 矩阵均通过（16/16 + 25/25）。
+
 ## 3.3.1 — 2026-11-02
 
 审计复核后的修复版本。
