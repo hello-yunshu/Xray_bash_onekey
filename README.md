@@ -1,6 +1,6 @@
 # Xray 管理脚本 — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
 
-当前版本：**3.3.1**
+当前版本：**3.3.2**
 
 简体中文 | [English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
 
@@ -176,6 +176,25 @@ Shell 元数据回退防护。升级不会改动现有 Xray 配置；REALITY `mi
 3.3.1 重发保持版本号不变。已安装旧 3.3.1 的节点不会通过 `-u` 自动拿到新安装器
 （同版本会被视为已是最新）；`-x` 只更新 Xray 核心，不更新 Shell 脚本。需要新包时
 请重新安装或手动覆盖 `/etc/idleleo/install.sh`。
+
+### 3.3.1 → 3.3.2
+
+3.3.2 属于同一 minor，在管理菜单“更新向导 → 更新脚本”中更新，或执行：
+
+```bash
+bash /etc/idleleo/install.sh --update          # 交互确认
+bash /etc/idleleo/install.sh --update --yes    # 非交互，同一 minor 自动确认
+```
+
+3.3.2 新增 Xray 流量统计读取（`--stats` / `--stats --json` / `--stats-reset` /
+`--stats-watch`），统计 API 默认只监听 `127.0.0.1:10085`，读取脚本
+`/etc/idleleo/scripts/xray_stats.sh` 作为 Release 资产按 SHA256 校验下载。
+
+更新会用新脚本整体替换 `/etc/idleleo/install.sh`，并按新版本重新计算 Release
+地址，因此更新后下载的是 `v3.3.2` 的五份资产，不会继续指向 `v3.3.1`。仍停在
+3.3.1 的节点没有 `--stats` 入口，需先完成上述更新；只执行 `--xray-update`
+不会升级 Shell，也不会获得统计读取功能。旧统计配置缺少 `api.listen` 时，
+首次执行 `--stats` 会询问是否补写并重启 Xray，拒绝不会修改配置。
 
 ### 旧版 XTLS 模式
 
