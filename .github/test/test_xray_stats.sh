@@ -31,7 +31,7 @@ xray_conf="${xray_conf_dir}/config.json"
 xray_status_conf="${xray_conf_dir}/status_config.json"
 xray_install_config_file="${idleleo_dir}/conf/install_config.json"
 LOG_FILE="${idleleo_dir}/logs/install.log"
-mkdir -p "${xray_conf_dir}" "${idleleo_dir}/logs"
+mkdir -p "${xray_conf_dir}" "${idleleo_dir}/logs" /var/log/xray
 cp "${REPO_DIR}/config/vless_reality.json" "${xray_conf}"
 # The repository template intentionally carries placeholders. When a real
 # Xray binary is available, replace them with a valid test UUID/key/shortId so
