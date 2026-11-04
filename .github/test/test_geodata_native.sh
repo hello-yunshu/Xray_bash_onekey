@@ -589,6 +589,19 @@ check "the recreated symlink points at the managed directory" \
     test "$(_geodata_realpath "${local_bin}/share/xray")" = "$(_geodata_realpath "${geodata_dir}")"
 
 legacy_setup
+jq '.geodata = {"cron":"0 5 * * *","assets":[{"url":"https://example.com/geoip.dat","file":"geoip.dat"}]}' \
+    "${xray_conf}" >"${TMP_ROOT}/custom-migrate.json"
+cp "${TMP_ROOT}/custom-migrate.json" "${xray_conf}"
+_legacy_cfg=$(cat "${xray_conf}")
+check "custom geodata migration is skipped" geodata_migrate_legacy
+check "custom geodata config is unchanged" \
+    test "$(cat "${xray_conf}")" = "${_legacy_cfg}"
+check "custom geodata keeps the old cron" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+check "custom geodata keeps the real asset directory" \
+    test -d "${local_bin}/share/xray"
+
+legacy_setup
 _legacy_cfg=$(cat "${xray_conf}")
 set_geo_plan "0,1"
 check_not "a post-write config test failure aborts migration" geodata_migrate_legacy
