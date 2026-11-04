@@ -363,6 +363,22 @@ stream {
   任何一条不满足就跳过原生配置并给出提示——原生下载只会替换「本来就解析得到」的文件，
   缺文件时不写入 `geodata`，避免路由规则静默变化。
 
+#### 迁移入口（旧 `geo_update.sh` 安装）
+
+迁移到原生 geodata 有且只有两条入口：
+
+1. **下次启动脚本**：`install.sh` 启动钩子调用 `geodata_migrate_legacy`，覆盖普通启动、
+   `-u`、菜单等所有可变启动路径。成功后摘除本项目自建的 `geo_update.sh` cron；失败保留
+   旧 cron、恢复原配置并写入 `geodata_migration.failed` 供菜单显示原因。
+2. **进入 GeoData 菜单**：`traffic_blocker.sh` 在首次进入 GeoData 菜单时，仅当
+   「没有 `.geodata.cron` + 存在本项目 `geo_update.sh` cron」才尝试迁移；已是原生、
+   `custom` 配置、配置无法解析、没有旧 cron 都直接跳过。失败同样保留旧 cron 和原配置，
+   不会重启一个未运行的 Xray。
+
+`-u` **故意不在当次迁移**：旧进程替换 `install.sh` 后不 re-exec 新脚本，避免递归、
+退出码透传和服务重启新风险；下一次启动新版脚本时由入口 1 完成迁移。更新日志会提示用户
+“GeoData 迁移将在下次启动脚本或进入 GeoData 菜单时执行”。
+
 ### 2. 写入事务与失败回滚
 
 - 写前先判定「现有配置是否本来就有效」：`xray run -test` 不通过时**跳过**而不是修复，

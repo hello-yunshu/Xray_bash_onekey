@@ -470,10 +470,16 @@ check "the native reader reads .geodata.cron" \
     bash -c "awk '/^tb_geo_native_cron\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '.geodata.cron'"
 check "the assets validator requires HTTPS" \
     bash -c "awk '/^tb_geo_native_assets_ok\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'https://'"
-check "auto-update refuses to add a second automation" \
-    bash -c "awk '/^tb_geo_auto_update\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_geo_native_cron'"
-check "auto-update removes only the project's own entry" \
-    bash -c "awk '/^tb_geo_auto_update\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_geo_updater_path'"
+check "the rescue menu never installs a legacy cron" \
+    bash -c "awk '/^tb_geo_rescue_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qE 'crontab -' && exit 1 || exit 0"
+check "the rescue menu keeps the manual updater path" \
+    bash -c "awk '/^tb_geo_rescue_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_geo_run_manual_update'"
+check "the rescue menu offers the native migration" \
+    bash -c "awk '/^tb_geo_rescue_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_geo_migrate_to_native'"
+check "the summary distinguishes the legacy script mode" \
+    grep -qF '由 geo_update.sh 脚本定时更新' "${TRAFFIC_SH}"
+check "the summary shows a failed migration marker" \
+    grep -qF 'tb_geo_show_migration_failure' "${TRAFFIC_SH}"
 check "the native summary is honest about the missing success record" \
     bash -c "awk '/^tb_display_geo_native_summary\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF '不代表某次定时任务已成功'"
 check "the native summary does not read geo_version.json" \
@@ -488,6 +494,15 @@ xray_error_log="${TMP_ROOT}/error.log"
 source "${TRAFFIC_SH}" >/dev/null 2>&1 || true
 tb_geo_dir="${geodata_dir}"
 tb_config_file="${TMP_ROOT}/traffic_blocker.json"
+
+printf 'status=failed\nreason=restart\ntime=2026-11-05 10:00:00\n' \
+    >"${idleleo_dir}/geodata_migration.failed"
+_marker_text=$(tb_geo_migration_failure_text)
+check "the menu maps a failed restart marker" \
+    test "${_marker_text%%|*}" = "Xray 重启失败，已回滚"
+check "the menu keeps the marker timestamp" \
+    test "${_marker_text#*|}" = "2026-11-05 10:00:00"
+rm -f "${idleleo_dir}/geodata_migration.failed"
 
 reset_geo
 check "no native cron before the block exists" \
@@ -576,6 +591,8 @@ check "the project's old cron entry is removed after success" \
     bash -c "! grep -qF '${geo_update_file}' '${GEO_CRONTAB}'"
 check "a hand-written cron entry is preserved" \
     grep -qF 'hand-written-geo-job' "${GEO_CRONTAB}"
+check "successful migration clears the failure marker" \
+    test ! -f "${idleleo_dir}/geodata_migration.failed"
 _legacy_cfg=$(cat "${xray_conf}")
 check "migration is idempotent on a second run" geodata_migrate_legacy
 check "the second run does not rewrite the config" \
@@ -600,6 +617,8 @@ check "custom geodata keeps the old cron" \
     grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
 check "custom geodata keeps the real asset directory" \
     test -d "${local_bin}/share/xray"
+check "custom geodata clears a stale failure marker" \
+    test ! -f "${idleleo_dir}/geodata_migration.failed"
 
 legacy_setup
 _legacy_cfg=$(cat "${xray_conf}")
@@ -611,6 +630,8 @@ check "the old cron remains when native migration fails" \
     grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
 check "no native block leaks into the failed migration" \
     test "$(jq -c 'has("geodata")' "${xray_conf}")" = "false"
+check "a failed config test records the migration failure marker" \
+    grep -q '^reason=native_enable$' "${idleleo_dir}/geodata_migration.failed"
 set_geo_plan "0"
 
 legacy_setup
@@ -619,15 +640,24 @@ printf 'not-a-directory\n' >"${geodata_dir}"
 check_not "a blocked asset directory aborts migration" geodata_migrate_legacy
 check "the old cron remains when the managed path is blocked" \
     grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+check "a blocked layout records the failure marker" \
+    grep -q '^reason=layout$' "${idleleo_dir}/geodata_migration.failed"
 
 legacy_setup
-cp() { return 1; }
+cp() {
+    case "$*" in
+        *"/share/xray/"*) return 1 ;;
+        *) command cp "$@" ;;
+    esac
+}
 check_not "a failed copy (unwritable target) aborts migration" geodata_migrate_legacy
 unset -f cp
 check "the old cron remains when the copy fails" \
     grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
 check "the old real asset directory is kept when the copy fails" \
     test -d "${local_bin}/share/xray"
+check "a copy failure records the failure marker" \
+    grep -q '^reason=layout$' "${idleleo_dir}/geodata_migration.failed"
 
 legacy_setup
 _legacy_cfg=$(cat "${xray_conf}")
@@ -637,6 +667,8 @@ check "the original config is restored after a restart failure" \
     test "$(cat "${xray_conf}")" = "${_legacy_cfg}"
 check "the old cron remains after a restart failure" \
     grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+check "a failed recovery records the recovery marker" \
+    grep -q '^reason=recovery_required$' "${idleleo_dir}/geodata_migration.failed"
 GEO_RESTART_FAIL=0
 rm -f "${xray_conf}".legacy-migrate.*
 
@@ -649,6 +681,8 @@ check "the original config is restored before the rollback restart" \
     test "$(cat "${xray_conf}")" = "${_legacy_cfg}"
 check "the rollback restart removes the recovery backup" \
     bash -c "! compgen -G '${xray_conf}.legacy-migrate.*' >/dev/null"
+check "a rolled-back restart records the restart marker" \
+    grep -q '^reason=restart$' "${idleleo_dir}/geodata_migration.failed"
 check "the old cron remains after the rollback restart" \
     grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
 GEO_RESTART_FAIL=0
@@ -686,10 +720,85 @@ check "the failure log names every attempted path" \
 
 check "legacy migration is wired into mutable startup" \
     grep -qF 'geodata_migrate_legacy || true' "${INSTALL_SH}"
-check "legacy migration is wired into the -u success path" \
-    bash -c "awk '/^_update_sh_impl\(\)/,/^}/' '${INSTALL_SH}' | grep -qF 'geodata_migrate_legacy'"
+check "the -u update path does not migrate in the same run" \
+    bash -c "awk '/^_update_sh_impl\(\)/,/^}/' '${INSTALL_SH}' | grep -qF 'geodata_migrate_legacy' && exit 1 || exit 0"
+check "the -u update path does not re-exec the installed script" \
+    bash -c "awk '/^_update_sh_impl\(\)/,/^}/' '${INSTALL_SH}' | grep -qF -- '--internal-geodata-migrate-legacy' && exit 1 || exit 0"
+check "the geo menu triggers a migration attempt" \
+    bash -c "awk '/^tb_geo_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_geo_try_migrate_from_menu'"
+check "the menu migration only targets the project's legacy cron" \
+    bash -c "awk '/^tb_geo_try_migrate_from_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'tb_geo_legacy_cron_lines'"
+check "the menu migration respects custom geodata" \
+    bash -c "awk '/^tb_geo_try_migrate_from_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'custom)'"
+check "the menu migration preserves the old cron on failure" \
+    bash -c "awk '/^tb_geo_try_migrate_from_menu\(\)/,/^}/' '${TRAFFIC_SH}' | grep -qF 'GeoData 原生迁移失败'"
 check "legacy migration never runs for relay" \
-    bash -c "awk '/^geodata_migrate_legacy\(\)/,/^}/' '${INSTALL_SH}' | grep -qF 'is_relay_role && return 0'"
+    bash -c "awk '/^geodata_migrate_legacy\(\)/,/^}/' '${INSTALL_SH}' | grep -qF 'is_relay_role &&'"
+
+echo ""
+echo "-- I. menu-triggered migration --"
+legacy_setup
+geodata_apply_config >/dev/null
+_menu_cfg=$(cat "${xray_conf}")
+check "an already-native node skips the menu migration" tb_geo_try_migrate_from_menu
+check "the already-native config is unchanged" \
+    test "$(cat "${xray_conf}")" = "${_menu_cfg}"
+check "the skipped menu migration leaves the old cron alone" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+
+legacy_setup
+check "a legacy node migrates from the menu" tb_geo_try_migrate_from_menu
+check "the menu migration writes the native block" \
+    jq -e '.geodata.cron == "0 3 * * 1"' "${xray_conf}"
+check "the menu migration removes the project's cron" \
+    bash -c "! grep -qF '${geo_update_file}' '${GEO_CRONTAB}'"
+check "the menu migration preserves a hand-written cron" \
+    grep -qF 'hand-written-geo-job' "${GEO_CRONTAB}"
+check "the menu migration clears the failure marker" \
+    test ! -f "${idleleo_dir}/geodata_migration.failed"
+
+legacy_setup
+jq '.geodata = {"cron":"0 5 * * *","assets":[{"url":"https://example.com/geoip.dat","file":"geoip.dat"}]}' \
+    "${xray_conf}" >"${TMP_ROOT}/menu-custom.json"
+cp "${TMP_ROOT}/menu-custom.json" "${xray_conf}"
+_menu_cfg=$(cat "${xray_conf}")
+check "custom geodata is skipped from the menu" tb_geo_try_migrate_from_menu
+check "the custom menu config is unchanged" \
+    test "$(cat "${xray_conf}")" = "${_menu_cfg}"
+check "the custom menu skip leaves the old cron" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+
+legacy_setup
+_menu_cfg=$(cat "${xray_conf}")
+set_geo_plan "0,1"
+check_not "a failed menu migration returns non-zero" tb_geo_try_migrate_from_menu
+check "the failed menu migration restores the config" \
+    test "$(cat "${xray_conf}")" = "${_menu_cfg}"
+check "the failed menu migration keeps the old cron" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+check "the failed menu migration records the reason" \
+    grep -q '^reason=native_enable$' "${idleleo_dir}/geodata_migration.failed"
+set_geo_plan "0"
+
+legacy_setup
+GEO_MENU_RESTARTS=0
+systemctl() {
+    if [[ "${1:-}" == "restart" ]]; then
+        GEO_MENU_RESTARTS=$((GEO_MENU_RESTARTS + 1))
+        return 0
+    fi
+    [[ "${1:-}" == "is-active" ]] && return 1
+    return 0
+}
+check "an inactive service still migrates from the menu" tb_geo_try_migrate_from_menu
+check "the menu never restarts an inactive service" \
+    test "${GEO_MENU_RESTARTS}" -eq 0
+systemctl() {
+    if [[ "${1:-}" == "restart" && "${GEO_RESTART_FAIL:-0}" == "1" ]]; then
+        return 1
+    fi
+    return 0
+}
 
 echo ""
 echo "============================================================"
