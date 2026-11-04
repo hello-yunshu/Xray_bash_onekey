@@ -2,8 +2,8 @@
 # color-test-fixture: this file intentionally asserts on literal ESC bytes to
 # verify the stats renderer's TTY/NO_COLOR policy.
 # P3 readout/regression matrix for the stats CLI.
-# Requires root, bash, jq, curl, an Xray binary (XRAY_BIN or PATH), and a
-# supported distro (Debian 12 / Ubuntu 24.04 / CentOS Stream 10).
+# Requires root, bash, jq, curl, gettext, an Xray binary (XRAY_BIN or PATH),
+# and a supported distro (Debian 12 / Ubuntu 24.04 / CentOS Stream 10).
 set -uo pipefail
 
 PASS=0
@@ -158,14 +158,18 @@ run_script "${TMP_ROOT}/j.out" "${TMP_ROOT}/j.err" --json
 [[ $? -eq 0 ]] && jq -e '.schemaVersion == 1 and .server == "127.0.0.1:10085" and (.inbounds | type == "array") and (.uptimeSeconds | numbers) and (.reset == false)' "${TMP_ROOT}/j.out" >/dev/null && \
     ok "--json contract valid" || bad "--json contract invalid"
 
-TEXTDOMAINDIR="${REPO_DIR}/i18n/languages" XRAY_STATS_LANG=en XRAY_STATS_BIN="${XRAY_BIN}" \
-    bash "${SCRIPT}" --config "${CONF}" >"${TMP_ROOT}/en.out" 2>"${TMP_ROOT}/en.err"
-[[ $? -eq 0 ]] && grep -q "Overview" "${TMP_ROOT}/en.out" && \
-    ok "English catalog renders English headings" || bad "English catalog missing"
-TEXTDOMAINDIR="${REPO_DIR}/i18n/languages" XRAY_STATS_LANG=zh XRAY_STATS_BIN="${XRAY_BIN}" \
-    bash "${SCRIPT}" --config "${CONF}" >"${TMP_ROOT}/zh.out" 2>"${TMP_ROOT}/zh.err"
-[[ $? -eq 0 ]] && grep -q "总览" "${TMP_ROOT}/zh.out" && \
-    ok "Chinese catalog renders Chinese headings" || bad "Chinese catalog missing"
+if command -v gettext >/dev/null 2>&1; then
+    TEXTDOMAINDIR="${REPO_DIR}/i18n/languages" XRAY_STATS_LANG=en XRAY_STATS_BIN="${XRAY_BIN}" \
+        bash "${SCRIPT}" --config "${CONF}" >"${TMP_ROOT}/en.out" 2>"${TMP_ROOT}/en.err"
+    [[ $? -eq 0 ]] && grep -q "Overview" "${TMP_ROOT}/en.out" && \
+        ok "English catalog renders English headings" || bad "English catalog missing"
+    TEXTDOMAINDIR="${REPO_DIR}/i18n/languages" XRAY_STATS_LANG=zh XRAY_STATS_BIN="${XRAY_BIN}" \
+        bash "${SCRIPT}" --config "${CONF}" >"${TMP_ROOT}/zh.out" 2>"${TMP_ROOT}/zh.err"
+    [[ $? -eq 0 ]] && grep -q "总览" "${TMP_ROOT}/zh.out" && \
+        ok "Chinese catalog renders Chinese headings" || bad "Chinese catalog missing"
+else
+    echo "  SKIP: gettext unavailable for the catalog checks"
+fi
 
 if command -v script >/dev/null 2>&1; then
     TERM=xterm-256color script -q -c \
