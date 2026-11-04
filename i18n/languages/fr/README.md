@@ -1,185 +1,248 @@
-# Xray Script de gestion — Reality / VLESS WebSocket/gRPC/xHTTP+TLS + Nginx
+# Script de gestion Xray
 
-Version actuelle : **3.3.2**
+> Un outil tout-en-un de déploiement et de gestion Xray pour Debian, Ubuntu et CentOS Stream, couvrant Reality, TLS, ws/gRPC/xHTTP, les nœuds relais et Docker.
 
-Chinois simplifié |[English](/i18n/languages/en/README.md) | [Français](/i18n/languages/fr/README.md) | [Русский](/i18n/languages/ru/README.md) | [فارسی](/i18n/languages/fa/README.md) | [한국어](/i18n/languages/ko/README.md)
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/LICENSE) [![Platform: Linux](https://img.shields.io/badge/platform-Linux-lightgrey)](https://github.com/hello-yunshu/Xray_bash_onekey) [![Shell: Bash](https://img.shields.io/badge/shell-Bash-4EAA25)](https://github.com/hello-yunshu/Xray_bash_onekey)
 
-[![GitHub stars](https://img.shields.io/github/stars/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/stargazers) [![GitHub forks](https://img.shields.io/github/forks/hello-yunshu/Xray_bash_onekey?color=%230885ce)](https://github.com/hello-yunshu/Xray_bash_onekey/network) [![GitHub issues](https://img.shields.io/github/issues/hello-yunshu/Xray_bash_onekey)](https://github.com/hello-yunshu/Xray_bash_onekey/issues)
+Chinois simplifié | [English](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/en/README.md) | [Français](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/fr/README.md) | [Русский](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/ru/README.md) | [فارسی](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/fa/README.md) | [한국어](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/i18n/languages/ko/README.md)
 
-> Thanks for non-commercial open source development authorization by JetBrains
+## Présentation
 
-## Caractéristiques fonctionnelles
+Ce projet est un script de déploiement et d'exploitation Xray écrit en Bash. Il réunit l'installation, les certificats, le frontal Nginx, la configuration client, la gestion des services, la sauvegarde et la restauration, ainsi que le dépannage courant dans un seul menu. Il convient aux utilisateurs qui veulent rapidement mettre en place un proxy sur un serveur unique sans maintenir toute la pile de configuration à la main.
 
-* Entrée`idleleo`Ouvrez le menu d’administration Xray pour gérer les installations, les services, les paramètres de sécurité, etc.
-* Adopter Qwen-MT-Plus AI pour réaliser une traduction précise multilingue
-* Prend en charge le protocole Reality ; il est recommandé d’associer un préprocesseur Nginx (installable via le script).
-* Prend en charge les transmissions WebSocket, gRPC et xHTTP, avec possibilité de choisir une transmission unique ou`ws+gRPC+xHTTP`Activer simultanément
-* Prise en charge du double stack IPv4 / IPv6 : lors de l’installation, la capacité de sortie vers Internet est détectée automatiquement ; pour chaque nom de domaine A/AAAA, une vérification indépendante est effectuée et les liens de partage correspondants ainsi qu’une configuration Clash sont générés.
-* Protection fail2ban intégrée (peut être installée dans le script)
-* Intègre la surveillance du trafic, le blocage du trafic, les mises à jour des règles Xray et les mises à jour planifiées GeoIP/GeoSite.
-* Prend en charge les scripts, Xray, Nginx et la mise à jour des certificats, et offre une sauvegarde ainsi qu’un retour à l’état précédent en cas d’échec pour les mises à jour critiques.
-* Avant une réinstallation ou un changement de mode, la configuration en cours est automatiquement sauvegardée ; en cas d’échec, la configuration d’origine est restaurée.
-* La reconfiguration offre trois voies de sécurité : redéploiement de la configuration conservée, reconstruction à partir d’un modèle standard et basculement de mode.
-* Adopter[@DuckSoft](https://github.com/DuckSoft)Le lien de partage de[Proposition](https://github.com/XTLS/Xray-core/issues/91)(beta) est compatible avec Qv2ray, V2rayN et V2rayNG.
-* Adopter[XTLS](https://github.com/XTLS/Xray-core/issues/158)Proposition, conformément à[UUIDv5](https://tools.ietf.org/html/rfc4122#section-4.3)Standard, prise en charge du mappage de chaînes personnalisées vers VLESS et UUID.
-* Prend en charge le protocole gRPC:[Utiliser le protocole gRPC](https://hey.run/posts/xrayjin-jie-wan-fa---shi-yong-grpcxie-yi)
-* Prend en charge l'équilibrage de charge Reality / ws/gRPC/xHTTP :
-  - [Déployer l'équilibrage de charge de Reality](https://hey.run/posts/bushu-reality-balance)
-  - [Mise en place d'un équilibrage de charge côté serveur](https://hey.run/posts/xrayjin-jie-wan-fa---da-jian-hou-duan-fu-wu-qi-fu-zai-jun-heng)
-* Le mode Reality + Nginx active par défaut le SNI Guard : les SNI inconnus, les SNI vides et les anomalies TLS ne pénètrent pas dans le backend Xray Reality ; par défaut, une stratégie de confinement (ssl_reject_handshake) est appliquée. Les utilisateurs avancés peuvent basculer vers un site decoy personnalisé en fallback ou vers un rejet direct en TCP. Cette fonction permet de réduire les sondages actifs et les expositions dues aux mauvaises configurations, sans chercher à obtenir un camouflage parfait.
+Le script génère la configuration et orchestre les services, tandis que Xray assure le proxy proprement dit. Les modes Reality et TLS fonctionnent mieux avec un frontal Nginx. Chaque écriture critique est précédée d'une vérification de syntaxe ou d'une sauvegarde, et les échecs sont annulés autant que possible afin de ne pas laisser un service en cours d'exécution dans un état incomplet.
 
-## Lecture complémentaire
+## Fonctionnalités
 
-* `idleleo`Histoire de la création du nom :[La véritable apparence derrière le brouillard](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
-* Reality Guide d'installation :[Déployer un serveur Xray Reality dans la REALITY](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
-* Risque lié au protocole Reality :[Les risques du protocole Xray Reality](https://hey.run/posts/reality-xie-yi-de-feng-xian)
-* Reality Serveur d'accélération :[Accélérer le serveur en exploitant la « vulnérabilité » du protocole Reality](https://hey.run/posts/use-reality)
+| Capacité | Description |
+|---|---|
+| Modes d'installation | Reality + Nginx, Nginx + TLS, ws/gRPC/xHTTP ONLY, nœud relais, Docker |
+| Protocoles de transport | WebSocket, gRPC et xHTTP, seuls ou combinés en `ws+gRPC+xHTTP` |
+| Réseau double pile | Détecte la sortie IPv4/IPv6, valide séparément les enregistrements A/AAAA du domaine et génère les points d'accès client correspondants |
+| Sortie client | Liens de partage, QR codes et profils Clash ; Clash ne prend pas encore en charge xHTTP |
+| Gestion de la sécurité | fail2ban, blocage du trafic, SNI Guard, pare-feu et gestion des certificats |
+| Opérations quotidiennes | Gestion des services, modifications de configuration, nettoyage des journaux, inspection du trafic par port, sauvegarde et restauration |
+| Statistiques de trafic | Lecture des octets montants, descendants et du total par inbound, avec JSON, réinitialisation et actualisation en direct |
+| Assistant intelligent | Assistant d'exploitation local RillML pour la surveillance, le diagnostic et les conseils de remédiation |
+| Maintenance | Mises à jour du script, de Xray, de Nginx et des certificats, avec sauvegarde et restauration en cas de changement critique |
 
-## Groupe Telegram
+## Systèmes pris en charge
 
-* Groupe de discussion :[Cliquez pour rejoindre](https://t.me/+48VSqv7xIIFmZDZl)
+| Système | Version | Remarques |
+|---|---|---|
+| Debian | 12, 13 | Utilise `apt` ; la CI couvre `debian:12-slim` et `debian:13-slim` |
+| Ubuntu | 24.04, 26.04 | Utilise `apt` ; la CI couvre `ubuntu:24.04` et `ubuntu:26.04` |
+| CentOS Stream | 10 | Utilise le gestionnaire de paquets RPM ; la CI couvre `quay.io/centos/centos:stream10` |
+| Rocky / AlmaLinux | 10+ | Traités comme la famille RPM ; la version majeure doit être au moins 10 |
 
-## préparation
+Le script exige root, systemd, une adresse IP publique et un accès réseau sortant fonctionnel. L'installation installe automatiquement les dépendances telles que `curl`, `jq`, `openssl`, `qrencode` et `nmap`. Les modes Reality/TLS exigent aussi un domaine avec des enregistrements A et/ou AAAA corrects pour le réseau du serveur.
 
-* Un serveur situé à l’étranger, doté d’une adresse IP publique.
-* Installer le protocole Reality: il faut préparer un nom de domaine cible conforme aux exigences de Xray.
-* Installation de la version TLS: il est nécessaire de préparer un nom de domaine et de configurer correctement les enregistrements A et/ou A en fonction du réseau disponible sur le serveur; dans un environnement à double pile, il est recommandé de configurer simultanément les enregistrements A et A appropriés. Le script prend en charge la détection automatique de la connectivité réseau IPv4/IPv6; lorsqu’une double pile est disponible, il peut générer simultanément les points d’accès clients correspondants.
-* Lecture[Xray Documentation officielle](https://xtls.github.io), comprendre les concepts liés à Reality, TLS, WebSocket, gRPC et Xray
-* **Assurez-vous que curl est installé** : les utilisateurs de CentOS doivent exécuter`yum install -y curl`L’utilisateur exécute Debian/Ubuntu`apt install -y curl`
+> Les systèmes non pris en charge sont refusés avant l'installation. Les modèles CentOS varient beaucoup ; en cas de problème de compilation ou de dépendance, utilisez plutôt Debian ou Ubuntu.
 
-## Installation rapide
+## Démarrage rapide
+
+Préparez un serveur Linux pris en charge et exécutez la commande suivante en root :
 
 ```bash
 bash <(curl -fsSL https://github.com/hello-yunshu/Xray_bash_onekey/releases/latest/download/install.sh)
 ```
 
-## Mode d'installation
+Une fois l'installation terminée, exécutez `idleleo` pour ouvrir le menu de gestion. Vous pouvez aussi lancer `idleleo --install-reality`, `idleleo --install-tls` ou `idleleo --install-none` pour entrer directement dans un mode.
 
-| Mode | Explication |
-|------|------|
-| Reality + Nginx | Mode recommandé, permet d’ajouter à la demande le protocole simple ws/gRPC/xHTTP pour l’équilibrage de charge. |
-| Nginx + TLS | Prend en charge ws/gRPC/xHTTP et demande ainsi que renouvelle automatiquement les certificats Let's Encrypt via xHTTP et gRPC. |
-| ws/gRPC/xHTTP ONLY | Mode d’entrée indépendant sans TLS , principalement utilisé dans les scénarios de backend ou de répartition de charge. |
-| Nœud de transit | Rôle de serveur dédié : effectue uniquement la redirection vers une seule cible Nginx Stream pour TCP, sans installer Xray. |
-| Docker | L’image contient préinstallés Xray, Nginx ainsi que le script principal. |
+Lors de la première utilisation, suivez l'assistant d'installation et appuyez sur Entrée pour accepter les valeurs par défaut des éléments que vous ne connaissez pas. Après l'installation, configurez le client à partir du lien de partage ou du QR code affiché par le script.
 
-Lors de l’installation du mode lié à ws/gRPC/xHTTP, vous pouvez choisir.`ws`, `gRPC`, `xHTTP`Ou`ws+gRPC+xHTTP`Le script génère séparément les ports, les chemins d’accès, les liens de partage et les codes QR correspondants ; Clash ne prend actuellement pas en charge xHTTP, et le script en informera dans la sortie de configuration.
+## Modes d'installation
 
-## Instructions de reconfiguration
+| Mode | Cas d'usage | Points clés |
+|---|---|---|
+| Reality + Nginx | Point d'entrée recommandé pour un serveur unique | Des protocoles simples ws/gRPC/xHTTP peuvent être ajoutés pour l'équilibrage de charge |
+| Nginx + TLS | Point d'entrée TLS standard | Demande et renouvelle automatiquement les certificats Let's Encrypt |
+| ws/gRPC/xHTTP ONLY | Nœud backend ou d'équilibrage | Sans TLS ; écoute uniquement sur `127.0.0.1` par défaut |
+| Nœud relais | Redirection TCP indépendante | Utilise Nginx Stream pour rediriger vers une seule cible et n'installe pas Xray |
+| Docker | Déploiement conteneurisé | L'image inclut Xray, Nginx et le script principal |
 
-Lorsque l’environnement déjà installé est réinstallé, le script sauvegarde automatiquement la configuration en cours et propose trois options de reconfiguration :
+Lors de l'installation d'un mode ws/gRPC/xHTTP, choisissez `ws`, `gRPC`, `xHTTP` ou `ws+gRPC+xHTTP`. Le script génère un port, un chemin, un lien de partage et un QR code pour chaque transport. Les profils Clash ignorent xHTTP et le script affiche un avertissement.
 
-| Chemin | Explication | Restriction |
-|------|------|------|
-| Réimplémentation avec conservation des configurations | Conservez les configurations personnalisées de routing/outbounds/DNS et multi-utilisateurs, et ne modifiez que les champs sélectionnés par l’utilisateur (ports, chemins, paramètres UUID, Reality, etc.). | Les modifications de la structure de transfert (par exemple, ws → gRPC) ne sont pas prises en charge. Pour modifier la combinaison de transfert, veuillez reconstruire à l’aide du modèle standard. |
-| Reconstruction selon le modèle standard | Générer la configuration du modèle standard à l’aide des paramètres réutilisables actuels ; routing/outbounds/DNS personnalisé pourrait être supprimé. | Le nombre d’utilisateurs n’est pas obligatoirement maintenu constant. |
-| Changement de mode | Basculez vers un mode de protocole différent (par exemple Reality → TLS), par défaut seul l’utilisateur principal UUID/email est réutilisé. | Les autres utilisateurs ne seront pas migrés automatiquement ; un message explicite apparaîtra avant le basculement. |
+## Menu de gestion
 
-Toute défaillance survenue au cours d’une étape de la procédure de reconfiguration (écriture de la configuration, démarrage des services, vérification de l’état de santé, etc.) entraîne automatiquement un retour à la configuration d’origine sauvegardée. Le répertoire de sauvegarde est nommé selon une horodatage unique, ce qui permet d’effectuer plusieurs reconfigurations successives sans qu’elles ne se chevauchent.
+Exécutez `idleleo` pour ouvrir le menu principal :
 
-## Commandes couramment utilisées
+| Option | Fonction |
+|---|---|
+| `1` | Assistant d'installation |
+| `2` | Modifications de configuration |
+| `3` | Afficher les informations |
+| `4` | Services et certificats Xray / TLS |
+| `5` | Assistant de mise à jour |
+| `6` | Options supplémentaires (accélération TCP, Fail2ban, statistiques de trafic, blocage du trafic, journaux, débit réseau) |
+| `7` | Sauvegarde, restauration et désinstallation |
+| `8` | Changer la langue |
+| `9` | Assistant d'exploitation Rill Xray AI |
+| `0` | Quitter |
 
-| Opération | Commande |
-|------|------|
-| Ouvrir le menu d'administration | `idleleo` |
-| Afficher l’aide | `idleleo --help` |
+L'entrée « Options supplémentaires → Statistiques de trafic Xray » propose quatre actions : activer ou désactiver les statistiques, les consulter, les réinitialiser et les surveiller en direct.
+
+## Commandes courantes
+
+| Action | Commande |
+|---|---|
+| Ouvrir le menu de gestion | `idleleo` |
+| Afficher l'aide | `idleleo --help` |
 | Installer le mode Reality | `idleleo --install-reality` |
 | Installer le mode TLS | `idleleo --install-tls` |
 | Installer ws/gRPC/xHTTP ONLY | `idleleo --install-none` |
-| Installer le nœud de transit | `idleleo --install-relay` |
-| Script de désinstallation avec Xray/Nginx | `idleleo --purge` |
-| Sauvegarder tous les fichiers | `idleleo --backup` |
-| Restaurer les fichiers à partir de la dernière sauvegarde | `idleleo --restore` |
+| Installer un nœud relais | `idleleo --install-relay` |
 | Afficher les informations d'installation | `idleleo --show` |
-| Script de mise à jour | `idleleo --update` |
-| Mise à jour de Xray | `idleleo --xray-update` |
-| Mise à jour de Nginx | `idleleo --nginx-update` |
+| Afficher les informations d'accès Xray | `idleleo --xray-access` |
+| Afficher les erreurs Xray | `idleleo --xray-error` |
+| Afficher le trafic en temps réel par port | `idleleo --port-traffic` |
+| Mettre à jour le script | `idleleo --update` |
+| Mettre à jour Xray | `idleleo --xray-update` |
+| Mettre à jour Nginx | `idleleo --nginx-update` |
 | Configurer Fail2ban | `idleleo --set-fail2ban` |
 | Configurer le blocage du trafic | `idleleo --traffic-blocker` |
-| Afficher le trafic en temps réel des ports | `idleleo --port-traffic` |
+| Sauvegarder les fichiers gérés par le script | `idleleo --backup` |
+| Restaurer les fichiers gérés par le script | `idleleo --restore` |
+| Désinstaller le script avec Xray/Nginx | `idleleo --purge` |
+| Consulter les statistiques de trafic | `idleleo --stats` / `idleleo --stats --json` |
+| Réinitialiser les statistiques | `idleleo --stats-reset` (demande confirmation ; `--yes` la contourne) |
+| Surveiller les statistiques en direct | `idleleo --stats-watch` [secondes] |
 
-`--restore`Sélectionnez la sauvegarde dont le nom de fichier comporte le timestamp le plus récent et décompressez-la ; les fichiers ajoutés après la sauvegarde ne seront pas supprimés, et le service ne redémarrera pas automatiquement. Après une restauration entre modes, veuillez vérifier la configuration résiduelle de Nginx/Xray et réinstaller ou démarrer le service.
+## Statistiques de trafic Xray
 
-## Instructions de mise à jour
-
-### 3.2.9 / 3.2.10 / 3.2.11 → 3.3.x
-
-Les mises à jour automatiques de l’ancien Shell ne seront pas transférées vers minor;`idleleo --update auto_update`Sera clairement ignoré et conservé
-Ancienne version, et aucune notification silencieuse de réussite ne sera envoyée. Veuillez utiliser la mise à niveau interactive en deux étapes :
-
-```bash
-bash /etc/idleleo/install.sh --update          # 交互终端，选择 Y
-bash /etc/idleleo/install.sh --xray-update     # 再更新 Xray
-```
-
-L’environnement automatisé doit être explicitement confirmé :
+Lorsque les statistiques sont activées, l'API de statistiques écoute uniquement sur `127.0.0.1:10085` par défaut. La lecture est assurée par le script autonome `/etc/idleleo/scripts/xray_stats.sh`, avec les permissions `0600 root:root`. Le script principal ne fournit que le point d'entrée, le téléchargement, la vérification SHA256 et la délégation ; il ne duplique pas la logique de requête.
 
 ```bash
-bash /etc/idleleo/install.sh --update --yes                  # 同一 minor
-bash /etc/idleleo/install.sh --update --yes --allow-major    # 跨 minor
+idleleo --stats                  # Tableau : montant, descendant et total par inbound
+idleleo --stats --json           # JSON lisible par machine
+idleleo --stats-reset            # Remise à zéro après confirmation interactive
+idleleo --stats-reset --yes      # Confirmation pour l'automatisation
+idleleo --stats-watch 5          # Actualisation toutes les 5 secondes ; Ctrl-C quitte
 ```
 
-`--yes`Seules les mises à jour du même minor sont automatiquement confirmées ; pour les mises à jour entre minor, une confirmation explicite est encore requise.`--allow-major`.
-`--allow-major`Seule la restriction inter-minor est levée ; cela ne remplace pas la confirmation de Y/N (dans les scénarios non interactifs, celle-ci reste requise).
-Donner en même temps à`--yes`). Il est recommandé d’exécuter d’abord avant la mise à niveau.`idleleo --backup`3.3.1 Autorisations du fichier de sauvegarde initiale
-Égal à 0600.
+Si le script de statistiques est absent, le script principal télécharge `xray_stats.sh` depuis la Release actuelle et le vérifie avec `statsScriptSha256` de `release-manifest.json`. Un échec de vérification n'affecte que la lecture, pas l'activation des statistiques. Si les statistiques sont activées mais que `api.listen` manque, la première exécution de `--stats` demande explicitement s'il faut l'ajouter et redémarrer Xray ; un refus laisse la configuration inchangée.
 
-### 3.3.0 → 3.3.1
+### Codes de sortie
 
-Mettez à jour dans le menu d’administration « Assistant de mise à jour → Script de mise à jour », ou exécutez :
+| Code de sortie | Signification |
+|---|---|
+| `0` | Requête réussie ; des compteurs à zéro restent un succès |
+| `1` | L'utilisateur a annulé la réinitialisation |
+| `2` | Prérequis manquant : statistiques désactivées, pas de `api.listen`, Xray arrêté, API inaccessible, script absent ou vérification échouée |
+| `3` | Échec de l'appel API ou de l'analyse JSON |
+| `4` | Arguments invalides |
+| `5` | Utilisateur non root ou permissions insuffisantes |
+| `130` | Surveillance interrompue par Ctrl-C |
+
+Les échecs n'affichent jamais un faux zéro : des statistiques désactivées ou une API inaccessible renvoient `2`, un JSON invalide renvoie `3` et un utilisateur non root renvoie `5`.
+
+### Frontière de sécurité
+
+> L'API de statistiques écoute sur l'adresse de bouclage mais n'a pas d'authentification. D'autres utilisateurs locaux peuvent théoriquement accéder au port et lire ou réinitialiser les compteurs. Utilisez-la sur un VPS mono-utilisateur et n'exposez jamais `10085` sur Internet ; `--stats-reset` exige toujours une confirmation explicite.
+
+Xray StatsService fournit uniquement les compteurs montants/descendants par inbound et l'Uptime ; il **ne fournit pas le nombre de connexions actives**. Pour obtenir ce nombre, utilisez des outils système ou une solution d'observabilité séparée plutôt que d'attendre cette information de `--stats`.
+
+## Sauvegarde et restauration
+
+`idleleo --backup` ne sauvegarde que les fichiers gérés par le script : `/etc/idleleo`, `/usr/local/nginx`, le binaire Xray, les unités systemd, la crontab root et l'état ACME. Ce n'est pas une sauvegarde complète de l'hôte et elle n'inclut pas automatiquement les données placées ailleurs.
+
+`idleleo --restore` sélectionne la sauvegarde la plus récente, vérifie le SHA256 de chaque fichier de l'archive, puis la restaure. Elle supprime la configuration gérée par le script absente de la sauvegarde, conserve les fichiers créés par l'utilisateur et ne démarre pas les services automatiquement. Après une restauration entre modes, inspectez la configuration restante et redémarrez les services si nécessaire.
+
+Les archives de sauvegarde peuvent contenir des certificats, des clés privées et la configuration client. Traitez-les comme des fichiers sensibles et ne les téléchargez pas vers des emplacements publics.
+
+## Mise à niveau et mises à jour
+
+Mettez à jour depuis « Assistant de mise à jour → Mettre à jour le script » dans le menu de gestion, ou exécutez :
 
 ```bash
-bash /etc/idleleo/install.sh --update
+idleleo --update                  # Confirmation interactive
+idleleo --update --yes            # Non interactif, confirmation automatique dans la même série de publication
+idleleo --update --yes --allow-major  # Mise à jour entre séries ; lever explicitement la restriction
 ```
 
-3.3.1 Correction des résidus de désinstallation hors ligne, des permissions de sauvegarde/journaux, correction de l’absence de Xray, enregistrement des échecs d’authentification installer et autres.
-Protection contre le rétrolien des métadonnées de Shell. La mise à niveau ne modifiera pas la configuration existante de Xray; REALITY`minClientVer`Compléter comme précédemment
-Exécution des règles de la version 3.3.0.
+`--yes` ne confirme automatiquement que les mises à jour d'une même série de publication ; une mise à jour entre séries exige aussi `--allow-major`. `--allow-major` ne fait que lever la restriction de série et ne remplace pas la confirmation ; en mode non interactif, `--yes` reste nécessaire. Une mise à jour du script remplace `/etc/idleleo/install.sh` dans son ensemble, recalcule les URL de Release pour le nouveau script et synchronise les ressources auxiliaires.
 
-3.3.1 La réémission conserve le numéro de version inchangé. Les nœuds ayant déjà installé l’ancienne version 3.3.1 ne seront pas mis à jour par`-u`Obtenir automatiquement le nouvel installateur
-(La même version est considérée comme la plus récente) ;`-x`Seul le noyau Xray est mis à jour, les scripts Shell ne le sont pas. Lorsque de nouveaux paquets sont nécessaires,
-Veuillez réinstaller ou effectuer une mise à jour manuelle.`/etc/idleleo/install.sh`.
+`--xray-update` ne met à jour que le cœur Xray, tandis que `--nginx-update` ne met à jour que Nginx ; aucun des deux ne met à jour le script lui-même. Les mises à jour automatiques du script restent limitées à la même série de publication ; les mises à jour automatiques de Xray et Nginx suivent toujours les métadonnées de l'API. Exécutez `idleleo --backup` avant une mise à jour.
 
-### Mode XTLS de l’ancienne version
+Le mode XTLS historique ne propose plus de point d'entrée pour une nouvelle installation ou une réinstallation. Les services XTLS existants peuvent continuer à fonctionner, mais le script ne peut plus les réinstaller ni changer de mode. Pour continuer à les gérer, sauvegardez puis désinstallez, avant de redéployer Reality, TLS ou le mode relais.
 
-À partir de la version 3.3.0, l’ancien mode XTLS a été supprimé. Les services XTLS existants peuvent continuer à fonctionner après la mise à niveau, mais ne peuvent plus être réinstallés via script.
-Basculez le mode ; lorsque vous devez poursuivre la gestion, veuillez d'abord sauvegarder et désinstaller, puis redéployer le mode de transit Reality/TLS/ dans REALITY.
+## Reconfiguration
 
-### Mise à jour automatique
+Lorsque l'installateur est relancé sur un système déjà installé, il sauvegarde automatiquement la configuration en cours et propose trois chemins :
 
-La mise à jour automatique ne met à niveau automatiquement Shell que dans le même minor; entre minor, les deux étapes susmentionnées doivent être exécutées manuellement. Xray et
-La mise à jour automatique de Nginx est toujours effectuée conformément aux métadonnées de API ; les enregistrements d’échec contiennent`component`, `version`, `installer_ref`, `installer_sha`Avec et`failed_at`Champs (représentant respectivement le composant, la version cible, la référence installer, le hachage installer et l’heure de l’échec).
+| Chemin | Description | Limite |
+|---|---|---|
+| Conserver la configuration et redéployer | Conserve le routage, les outbounds, le DNS et la configuration multi-utilisateur personnalisés ; ne modifie que les champs sélectionnés | Ne prend pas en charge les changements de structure de transport, par exemple ws vers gRPC |
+| Reconstruire depuis le modèle standard | Génère un modèle standard à partir des paramètres réutilisables | Le routage, les outbounds et le DNS personnalisés peuvent être supprimés |
+| Changement de mode | Passe à un autre mode de protocole, par exemple Reality vers TLS | Réutilise uniquement l'UUID/email de l'utilisateur principal par défaut ; les autres utilisateurs ne sont pas migrés |
 
-## RillML Xray Assistant d'exploitation et de maintenance basé sur l'AI
+Si une étape échoue (écriture de configuration, démarrage du service, contrôle de santé, etc.), le script revient à la configuration originale sauvegardée. Les répertoires de sauvegarde utilisent des horodatages uniques, de sorte que des reconfigurations successives ne se chevauchent pas.
 
-RillML (abréviation : Rill) fournit à Xray des capacités locales d’exploitation et de maintenance intelligentes et adaptatives.
+## Dépannage
 
-Assistant d’exploitation et de maintenance local intégré à l’IA, surveille en temps réel l’état de santé de Xray/Nginx, diagnostique automatiquement les pannes et propose des recommandations de résolution, sans nécessiter de API externe. Saisissez dans le menu principal.`9`Ou exécuter`idleleo --rill-agent`Entrer.
+| Symptôme | À vérifier en premier | Action suggérée |
+|---|---|---|
+| Installation refusée | `/etc/os-release` et la matrice de prise en charge | Passez à une version de système prise en charge, ou utilisez Debian/Ubuntu |
+| Xray ne démarre pas | `systemctl status xray`, `idleleo --xray-error` | Consultez `journalctl -u xray`, la configuration et l'utilisation des ports |
+| Erreur de syntaxe de configuration | `xray run -test -config /etc/idleleo/conf/xray/config.json` | Corrigez le problème signalé, ou revenez en arrière avec `idleleo --restore` |
+| Port déjà utilisé | `ss -ltnp` | Libérez le port ou changez le port d'écoute depuis le menu |
+| Problème de certificat | `idleleo --cert-status` | Vérifiez le DNS, les ports 80/443 et l'état ACME, puis exécutez `idleleo --cert-update` |
+| Conflit avec un Nginx existant | `/usr/local/nginx/sbin/nginx -V`, `systemctl status nginx` | Ne mélangez pas avec un Nginx installé par LNMP ou un script similaire ; supprimez d'abord le conflit |
+| Les statistiques renvoient `2` | Activation des statistiques, état de Xray, `127.0.0.1:10085` | Activez les statistiques, démarrez Xray ou vérifiez `api.listen` |
+| Les statistiques renvoient `3` | Réponse de l'API et structure JSON | Vérifiez les journaux et la configuration Xray, et confirmez que StatsService est disponible |
+| Les statistiques renvoient `5` | Utilisateur actuel | Exécutez en root ou vérifiez les permissions des fichiers |
+| Clash n'a pas de nœuds | Type de protocole | Clash ne prend pas en charge xHTTP ; utilisez un client compatible |
 
-**Compétences clés**
+Journaux et diagnostics : `/etc/idleleo/logs/`, `/var/log/xray/`, `idleleo --show`, `idleleo --xray-access` et `idleleo --xray-error`.
 
-* Surveillance : observation en temps réel de l’état des services et des configurations de Xray/Nginx
-* Diagnostic : localisation de la cause racine du défaut, avec recommandation concernant le niveau de confiance (élevé / moyen / faible / preuves insuffisantes)
-* Diagnostic : détermination automatique du type de panne avec recommandations de résolution, les explications indiquant clairement si le traitement peut être automatisé ou s’il ne s’agit que de conseils.
-* Mode : Détection intelligente / Surveillance uniquement / Désactivation sécurisée. Le système ne sera pas modifié tant que la modification automatique n’aura pas été activée.
+## Questions fréquentes
 
-**Commandes couramment utilisées**
+**Les statistiques peuvent-elles afficher le nombre de connexions actives ?** Non. StatsService fournit uniquement les compteurs montants/descendants par inbound et l'Uptime ; il ne fournit pas le nombre de connexions.
 
-| Opération | Commande |
-|------|------|
-| Ouvrir le menu de l'assistant d'exploitation et de maintenance AI | `idleleo --rill-agent` |
-| Installer ou réparer le moteur de jugement par IA | `idleleo --rill-agent-install` |
-| Voir l’état de la décision de l’AI | `idleleo --rill-agent-status` |
-| Exécuter le diagnostic des pannes par l'AI | `idleleo --rill-agent-diagnose` |
-| Vérification du moteur de décision d'AI | `idleleo --rill-agent-verify` |
-| Arrêt sécurisé du jugement de l'AI | `idleleo --rill-agent-safe-disable` |
-| Désinstaller le moteur d'AI Rill | `idleleo --rill-agent-uninstall` |
+**Quand les utilisateurs de Cloudflare doivent-ils activer le CDN ?** Activez le CDN seulement après avoir vérifié l'installation, les certificats et la connectivité directe. Sinon, le proxy CDN peut interférer avec l'émission des certificats.
 
-Le moteur de jugement par AI est actuellement encore en phase de test ; il est recommandé de se fier principalement aux recommandations diagnostiques, et par défaut, le système ne sera pas modifié automatiquement.
+**Peut-on utiliser IPv4 et IPv6 ensemble ?** Oui. Le script détecte la capacité de sortie publique et valide séparément les enregistrements A/AAAA du domaine. En environnement double pile, configurez correctement les enregistrements A et AAAA.
 
-## Déploiement de Docker
+**Comment modifier le port, l'UUID ou le transport ?** Ouvrez « Modifications de configuration » dans le menu, ou relancez l'assistant d'installation et choisissez un chemin de reconfiguration. Utilisez la reconstruction depuis le modèle standard pour changer la structure de transport.
 
-Prise en charge du déploiement via Docker ; l’image contient préinstallés Xray et Nginx, et toutes les fonctionnalités du script d’origine sont directement utilisables à l’intérieur du conteneur. Voir plus de détails.[Docker Guide de déploiement](/docker/DOCKER.md).
+**Comment désinstaller ?** Exécutez `idleleo --purge`. Avant la désinstallation, exécutez `idleleo --backup` et décidez si vous souhaitez conserver la configuration et les certificats.
+
+**Quelles sont les exigences pour mapper une chaîne personnalisée vers un UUID ?** Le script utilise le mappage UUIDv5, qui exige la prise en charge côté client. Si le client ne la prend pas en charge, utilisez un UUID standard.
+
+**Puis-je l'utiliser directement en production ?** Vérifiez d'abord la connectivité, le renouvellement des certificats, la sauvegarde/restauration et le chemin de mise à jour dans un environnement de test avant de l'utiliser en production.
+
+## Consignes de sécurité
+
+- L'API de statistiques écoute uniquement sur `127.0.0.1` et n'a pas d'authentification. N'exposez pas `10085` sur Internet et ne laissez pas des utilisateurs locaux non fiables y accéder.
+- Le mode Reality + Nginx active SNI Guard par défaut : les SNI inconnus, les SNI vides et les TLS anormaux n'atteignent jamais le backend Xray Reality ; l'isolation `ssl_reject_handshake` est utilisée par défaut.
+- Fail2ban, le pare-feu et le blocage du trafic sont des renforcements facultatifs. Avant de les activer, assurez-vous qu'ils ne peuvent pas bloquer votre propre accès d'administration.
+- Les archives de sauvegarde, les certificats et la configuration client contiennent des informations sensibles. Restreignez les permissions et évitez tout partage public.
+- Le script exige root ; ne l'utilisez pas en production avant d'avoir vérifié sa disponibilité.
+
+## Répertoires et services
+
+| Élément | Chemin |
+|---|---|
+| Répertoire principal | `/etc/idleleo` |
+| Configuration Xray | `/etc/idleleo/conf/xray/config.json` |
+| Configuration Nginx | `/etc/idleleo/conf/nginx/` |
+| Informations d'installation | `/etc/idleleo/conf/install_config.json` |
+| Fichiers de certificat | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
+| Répertoires de journaux | `/etc/idleleo/logs/`, `/var/log/xray/` |
+| Répertoire d'installation Nginx | `/usr/local/nginx` |
+| Commande de gestion | `/usr/bin/idleleo` |
+| Configuration client | `/etc/idleleo/info/xray_info.inf` |
+
+| Action | Commande |
+|---|---|
+| Démarrer Xray | `systemctl start xray` |
+| Arrêter Xray | `systemctl stop xray` |
+| Démarrer Nginx | `systemctl start nginx` |
+| Arrêter Nginx | `systemctl stop nginx` |
+
+## Docker et AI Skill
+
+L'image Docker inclut Xray, Nginx et le script principal ; les fonctionnalités du script restent disponibles dans le conteneur. Consultez le [guide de déploiement Docker](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/docker/DOCKER.md).
 
 ```bash
 git clone https://github.com/hello-yunshu/Xray_bash_onekey.git
@@ -188,71 +251,42 @@ docker compose up -d
 docker attach xray-onekey
 ```
 
-## Déploiement de l'AI Skill
+AI Skill permet à un outil AI compatible de réaliser le déploiement automatiquement sans répondre à chaque question interactive. Consultez [Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill).
 
-Prend en charge le déploiement automatique de Xray via des outils d’AI (tels que Trae), sans interaction manuelle. Voir les détails.[Xray_bash_onekey_skill](https://github.com/hello-yunshu/Xray_bash_onekey_skill).
+Modes pris en charge : Reality, TLS, ws ONLY et nœud relais. Dites à l'outil AI « installe Xray sur mon serveur » : il collecte les informations, génère un script non interactif, effectue le déploiement et renvoie les informations de connexion.
 
-La méthode traditionnelle exige de se connecter au serveur via SSH, d’exécuter un script d’installation et de répondre à chaque question de manière interactive ; avec la Skill, il suffit de communiquer vos besoins à l’IA, qui génère automatiquement un script non interactif et l’exécute, puis vous renvoie directement le lien VLESS.
+## Assistant d'exploitation RillML Xray AI
 
-**Modes de support** : Reality / TLS / ws ONLY / Nœud de transit
+RillML (Rill en abrégé) fournit une exploitation locale et adaptative pour Xray : surveillance en temps réel de la santé de Xray/Nginx, diagnostic automatique des pannes et conseils de remédiation sans API externe. Saisissez `9` dans le menu principal ou exécutez `idleleo --rill-agent`.
 
-**Mode d’utilisation** : Dans un outil AI prenant en charge Skill, il suffit de dire « Aide-moi à déployer Xray sur le serveur », et l’AI collectera automatiquement les informations, générera le script, exécutera le déploiement et renverra les informations de connexion.
+| Action | Commande |
+|---|---|
+| Ouvrir le menu de l'assistant AI | `idleleo --rill-agent` |
+| Installer ou réparer le moteur de décision AI | `idleleo --rill-agent-install` |
+| Afficher l'état de la décision AI | `idleleo --rill-agent-status` |
+| Lancer un diagnostic AI | `idleleo --rill-agent-diagnose` |
+| Vérifier le moteur de décision AI | `idleleo --rill-agent-verify` |
+| Désactiver prudemment les décisions AI | `idleleo --rill-agent-safe-disable` |
+| Désinstaller le moteur Rill AI | `idleleo --rill-agent-uninstall` |
 
-## Remarques importantes
+Rill privilégie les conseils de diagnostic par défaut et ne modifie pas le système avant l'activation des modifications automatiques.
 
-* Si vous ne connaissez pas la signification des différents paramètres, utilisez les valeurs par défaut pour les champs non obligatoires (appuyez simplement sur Entrée tout au long de la procédure).
-* Les utilisateurs de Cloudflare, veuillez activer le CDN uniquement après l’installation.
-* Ce script nécessite des connaissances de base en Linux ainsi que des notions élémentaires en réseaux informatiques.
-* Prend en charge Debian 12+ / Ubuntu 24.04+ / CentOS Stream 10+, certains modèles de CentOS peuvent présenter des problèmes de compilation ; il est recommandé de changer de système si vous rencontrez des difficultés.
-* Il est recommandé de ne déployer qu’un seul agent sur chaque serveur, en utilisant le port par défaut 443.
-* Le mappage d’une chaîne personnalisée vers UUIDv5 nécessite la prise en charge du client.
-* Il est recommandé de l’utiliser dans un environnement propre ; les débutants sont priés de ne pas utiliser CentOS
-* Ce programme dépend de Nginx, qui a été validé.[LNMP](https://lnmp.org)Les utilisateurs ayant déjà installé Nginx via un script sont priés de faire attention aux éventuels conflits.
-* Les liens de partage xHTTP sont destinés aux clients prenant en charge xHTTP ; la sortie de configuration Clash ignorera xHTTP.
-* Veuillez ne pas utiliser ce script en environnement de production avant d’en avoir vérifié la fonctionnalité.
-* Auteur : Yun Shu, assistance limitée uniquement.
+## Pour aller plus loin
 
-## Remerciements
+- Pourquoi la commande s'appelle `idleleo` : [Le vrai visage derrière la brume](https://github.com/hello-yunshu/Xray_bash_onekey/wiki/%E8%BF%B7%E9%9B%9C%E5%90%8E%E7%9A%84%E7%9C%9F%E5%AE%B9)
+- Guide d'installation Reality : [Construire un serveur Xray Reality](https://hey.run/posts/da-jian-xray-reality-xie-yi-fu-wu-qi)
+- Risques du protocole Reality : [Risques du protocole Xray Reality](https://hey.run/posts/reality-xie-yi-de-feng-xian)
+- Accélération Reality : [Utiliser une « vulnérabilité » du protocole Reality pour accélérer un serveur](https://hey.run/posts/use-reality)
+- Communauté : [Telegram](https://t.me/+48VSqv7xIIFmZDZl)
+- Documentation officielle : [Documentation Xray](https://xtls.github.io)
 
-* Basé sur[wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)Développer
-* TCP Le script d'accélération est référencé depuis[ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed)
+## Licence et remerciements
 
-## Configuration du certificat
+Ce projet est sous licence [GPL-3.0](https://github.com/hello-yunshu/Xray_bash_onekey/blob/main/LICENSE). Merci à JetBrains pour la licence de développement open source non commerciale.
 
-**Certificat personnalisé** : Renommez respectivement les fichiers crt et key en`xray.crt`Et`xray.key`, mettre dans`/etc/idleleo/cert`Répertoire (créé si le répertoire n’existe pas). Veuillez prêter attention aux autorisations et à la durée de validité du certificat ; après l’expiration d’un certificat personnalisé, vous devrez le renouveler vous-même.
+- Basé sur [wulabing/V2Ray_ws-tls_bash_onekey](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey).
+- Le script d'accélération TCP est dérivé de [ylx2016/Linux-NetSpeed](https://github.com/ylx2016/Linux-NetSpeed).
+- Le format des liens de partage suit la [proposition](https://github.com/XTLS/Xray-core/issues/91) de [@DuckSoft](https://github.com/DuckSoft) ; les détails UUIDv5 et REALITY suivent la proposition [XTLS](https://github.com/XTLS/Xray-core/issues/158).
+- Merci aux projets amont Xray-core, Nginx, Let's Encrypt et aux autres.
 
-**Certificat automatique** : Le script prend en charge la génération automatique d’un certificat Let's Encrypt (valable 3 mois) et, en théorie, permet également son renouvellement automatique.
-
-## Afficher la configuration du client
-
-```bash
-cat /etc/idleleo/info/xray_info.inf
-```
-
-## Xray Introduction
-
-* Xray est un excellent outil open source de proxy réseau, pris en charge sur toutes les plateformes, notamment Windows, macOS, Android, iOS et Linux.
-* Ce script constitue une configuration complète en une seule étape ; une fois toutes les étapes exécutées sans incident, il suffit de configurer le client conformément aux résultats affichés pour pouvoir l’utiliser.
-* **Il est fortement recommandé** de bien comprendre le flux de travail et les principes de fonctionnement du programme.
-
-## Gestion des services
-
-| Opération | Commande |
-|------|------|
-| Lancer Xray | `systemctl start xray` |
-| Arrêter Xray | `systemctl stop xray` |
-| Lancer Nginx | `systemctl start nginx` |
-| Arrêter Nginx | `systemctl stop nginx` |
-
-## Répertoire associé
-
-| Contenu | Chemin |
-|------|------|
-| Répertoire principal | `/etc/idleleo` |
-| Configurer Xray | `/etc/idleleo/conf/xray/config.json` |
-| Configurer Nginx | `/etc/idleleo/conf/nginx/` |
-| Informations d'installation | `/etc/idleleo/conf/install_config.json` |
-| Fichier de certificat | `/etc/idleleo/cert/xray.key`, `/etc/idleleo/cert/xray.crt` |
-| Répertoire des journaux | `/etc/idleleo/logs/`, `/var/log/xray/` |
-| Répertoire d’installation de Nginx | `/usr/local/nginx` |
-| Commandes d'administration | `/usr/bin/idleleo` |
+Auteur : Yunshu. Le projet n'offre qu'un support limité ; lisez la documentation et conservez une sauvegarde avant toute opération en production.
