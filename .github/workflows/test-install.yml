@@ -496,9 +496,9 @@ jobs:
               set -euo pipefail
               if command -v apt-get >/dev/null 2>&1; then
                 apt-get update -qq
-                apt-get install -y -qq jq curl
+                apt-get install -y -qq jq curl diffutils
               else
-                dnf install -y -q jq curl
+                dnf install -y -q jq curl diffutils
               fi
               bash /repo/.github/test/test_xray_stats.sh
               XRAY_BIN=/usr/local/bin/xray bash /repo/.github/test/test_xray_stats_readout.sh
