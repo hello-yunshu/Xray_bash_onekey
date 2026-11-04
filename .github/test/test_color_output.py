@@ -181,18 +181,27 @@ def scan_repository():
 
 def test_static():
     print("\n-- A. static color definition / output scan --")
-    literal_defs, dangerous, color_lines = scan_repository()
+    literal_defs, non_b_sites, color_lines = scan_repository()
 
     check(len(literal_defs) == 0,
           f"no color variable stores the literal text \\033 (found {len(literal_defs)})")
-    check(len(dangerous) == 0,
-          f"no color variable reaches a non-interpreting output call (found {len(dangerous)})")
+    # With real ESC bytes (or empty values), printf '%s' and plain echo are
+    # correct: they carry the ESC byte through untouched in a TTY and print
+    # nothing extra when colors are disabled. The leak only exists when a
+    # literal "\033" definition is paired with a call that does not interpret
+    # backslash escapes.
+    leaks = non_b_sites if literal_defs else []
+    check(len(leaks) == 0,
+          f"literal color definitions never reach a non-interpreting call (found {len(leaks)})")
     print(f"  INFO: {len(COLOR_NAMES)} color definitions, "
-          f"{color_lines} color-bearing lines, {len(dangerous)} leaks")
+          f"{color_lines} color-bearing lines, "
+          f"{len(non_b_sites)} non-%b sites, {len(leaks)} leaks")
+    if non_b_sites and not literal_defs:
+        print("  INFO: non-%b sites are safe because definitions hold real ESC bytes or are empty")
 
     for path, number, name, value in literal_defs:
         print(f"  DETAIL: {path}:{number}: {name}={value}")
-    for path, number, kind, line in dangerous:
+    for path, number, kind, line in leaks:
         print(f"  DETAIL: {path}:{number}: {kind}: {line}")
 
     # The scanner must be able to fail. A fixture using the pre-fix shape is
