@@ -117,6 +117,7 @@ amce_sh_file="/root/.acme.sh/acme.sh"
 auto_update_file="${scripts_dir}/auto_update.sh"
 ssl_update_file="${scripts_dir}/ssl_update.sh"
 geo_update_file="${scripts_dir}/geo_update.sh"
+xray_stats_script="${scripts_dir}/xray_stats.sh"
 shell_release_sha256=""
 shell_online_version=""
 xray_installer_ref=""
@@ -1326,6 +1327,59 @@ download_json_file() {
     mv "${tmp_file}" "${dest_file}"
 }
 
+# Install or refresh the read-only stats helper from the current Release.
+# The helper is optional for the install itself: any download/hash/syntax
+# failure only disables stats readout, never the stats enable/disable path.
+xray_stats_script_ensure() {
+    local force="${1:-0}"
+    local dest="${xray_stats_script}"
+    if [[ -f "${dest}" && "${force}" != "1" ]]; then
+        return 0
+    fi
+
+    mkdir -p "${scripts_dir}" || return 1
+    local manifest asset expected actual
+    manifest=$(mktemp "${TMPDIR:-/tmp}/xray-stats-manifest.XXXXXX" 2>/dev/null) || return 1
+    asset=$(mktemp "${TMPDIR:-/tmp}/xray-stats-asset.XXXXXX" 2>/dev/null) || {
+        rm -f "${manifest}"
+        return 1
+    }
+    local base
+    base=$(shell_release_asset_url "${shell_version}" '')
+    base=${base%/}
+    if ! download_json_file "${base}/release-manifest.json" "${manifest}"; then
+        rm -f "${manifest}" "${asset}"
+        return 1
+    fi
+    expected=$(jq -r '.statsScriptSha256 // empty' "${manifest}" 2>/dev/null) || {
+        rm -f "${manifest}" "${asset}"
+        return 1
+    }
+    if [[ ! "${expected}" =~ ^[0-9a-f]{64}$ ]]; then
+        rm -f "${manifest}" "${asset}"
+        return 1
+    fi
+    if ! download_script_file "$(shell_release_asset_url "${shell_version}" "xray_stats.sh")" "${asset}"; then
+        rm -f "${manifest}" "${asset}"
+        return 1
+    fi
+    actual=$(sha256sum "${asset}" 2>/dev/null | awk '{print $1}')
+    if [[ "${actual}" != "${expected}" ]]; then
+        rm -f "${manifest}" "${asset}"
+        return 1
+    fi
+    if ! chmod 600 "${asset}" || ! chown root:root "${asset}" 2>/dev/null; then
+        rm -f "${manifest}" "${asset}"
+        return 1
+    fi
+    if ! mv -f "${asset}" "${dest}"; then
+        rm -f "${manifest}" "${asset}"
+        return 1
+    fi
+    rm -f "${manifest}"
+    return 0
+}
+
 xray_install_release() {
     local installer="${idleleo_dir}/tmp/xray-install-release.sh"
     local installer_url installer_sha actual
@@ -2125,6 +2179,10 @@ dependency_install() {
         fi
         judge "Nginx $(gettext "链接库安装")"
     fi
+    # Best-effort: the read-only stats helper is optional for install/update.
+    # A missing fifth asset or failed hash must never abort installation or
+    # disable the existing stats enable/disable path.
+    xray_stats_script_ensure >/dev/null 2>&1 || true
 }
 
 read_optimize() {
@@ -10173,6 +10231,76 @@ xray_status_add() {
     fi
 }
 
+# CLI/menu delegate for the read-only stats helper. Config mutation remains
+# here: only --stats may offer the one-time api.listen migration, and only
+# after an explicit confirmation. The helper itself never writes config.
+xray_stats_cli() {
+    local mode="${1:-}"
+    shift || true
+    if [[ "$(id -u)" != "0" ]]; then
+        printf '%s\n' "$(gettext "统计查询需要 root 权限")" >&2
+        return 5
+    fi
+    if [[ ! -f "${xray_stats_script}" ]]; then
+        if [[ "${mode}" == "reset" ]]; then
+            printf '%s\n' "$(gettext "统计脚本缺失, 请先运行 --stats 完成下载与校验")" >&2
+            return 2
+        fi
+        if ! xray_stats_script_ensure; then
+            printf '%s\n' "$(gettext "统计脚本下载或校验失败, 不影响统计开关")" >&2
+            return 2
+        fi
+    fi
+
+    if [[ "${mode}" == "stats" && -f "${xray_conf}" ]]; then
+        local has_stats listen_answer
+        has_stats=$(jq -r 'has("stats")' "${xray_conf}" 2>/dev/null) || has_stats="false"
+        listen_answer=$(jq -r '.api.listen // empty' "${xray_conf}" 2>/dev/null) || listen_answer=""
+        if [[ "${has_stats}" == "true" && -z "${listen_answer}" ]]; then
+            printf '%s' "$(gettext "统计已开启但缺少 api.listen, 是否补写并重启 Xray") [Y/${Red}N${Font}]? " >&2
+            local _answer=""
+            read -r _answer || _answer=""
+            case "${_answer}" in
+                [yY][eE][sS] | [yY])
+                    service_stop || return 1
+                    if ! xray_stats_listen_ensure; then
+                        service_start
+                        return 1
+                    fi
+                    service_start || return 1
+                    ;;
+                *)
+                    printf '%s\n' "$(gettext "未修改配置, 统计查询需要 api.listen")" >&2
+                    return 2
+                    ;;
+            esac
+        fi
+    fi
+
+    local -a stats_args=()
+    case "${mode}" in
+        stats)
+            stats_args=("$@")
+            ;;
+        reset)
+            stats_args=(--reset "$@")
+            ;;
+        watch)
+            local interval="5"
+            if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+                interval="$1"
+                shift
+            fi
+            stats_args=(--watch "${interval}" "$@")
+            ;;
+        *)
+            printf '%s\n' "xray_stats_cli: unsupported mode: ${mode}" >&2
+            return 4
+            ;;
+    esac
+    bash "${xray_stats_script}" --config "${xray_conf}" "${stats_args[@]}"
+}
+
 bbr_boost_sh() {
     read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
     if [[ -f "${scripts_dir}/tcp.sh" ]]; then
@@ -11804,6 +11932,9 @@ rxa_sync_release_helpers() {
         done
     fi
     rm -rf "$dir"
+    # Refresh the optional read-only stats helper together with the release.
+    # Failure is non-fatal: readout stays on the previous verified copy.
+    xray_stats_script_ensure 1 >/dev/null 2>&1 || true
     return 0
 }
 
@@ -12374,6 +12505,15 @@ list() {
         clear
         monitor_traffic_with_iftop
         ;;
+    '--stats')
+        xray_stats_cli stats "${@:2}"
+        ;;
+    '--stats-reset')
+        xray_stats_cli reset "${@:2}"
+        ;;
+    '--stats-watch')
+        xray_stats_cli watch "${@:2}"
+        ;;
     '--purge' | '--uninstall')
         uninstall_all
         ;;
@@ -12453,6 +12593,9 @@ show_help() {
     echo "  -n, --nginx-update          $(gettext "更新") Nginx"
     echo "  -p, --port-reset            $(gettext "变更") port"
     echo "  -pt, --port-traffic         $(gettext "查看") port $(gettext "实时流量")"
+    echo "      --stats                 $(gettext "查看 Xray 流量统计") [--json]"
+    echo "      --stats-reset           $(gettext "重置 Xray 流量统计") [--yes]"
+    echo "      --stats-watch [秒]       $(gettext "实时刷新 Xray 流量统计")"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
     echo "      --backup                $(gettext "备份") $(gettext "脚本管理文件")"
     echo "      --restore               $(gettext "恢复") $(gettext "脚本管理文件")"
@@ -14132,6 +14275,9 @@ menu_action() {
         xray_status_add
         menu_pause
         ;;
+    40)
+        menu_xray_stats
+        ;;
     31)
         set_traffic_blocker
         ;;
@@ -14649,6 +14795,28 @@ menu_update() {
     done
 }
 
+menu_xray_stats() {
+    local menu_num
+    while true; do
+        menu_submenu_begin "Xray $(gettext "流量统计")"
+        menu_item 1 "$(gettext "开启/关闭统计")"
+        menu_item 2 "$(gettext "查看统计")"
+        menu_item 3 "$(gettext "重置统计")"
+        menu_item 4 "$(gettext "实时监控")"
+        menu_blank
+        menu_item 0 "$(gettext "返回")"
+        menu_footer
+        menu_read menu_num 4
+        case $menu_num in
+            0) return ;;
+            1) menu_action 30 ;;
+            2) xray_stats_cli stats; menu_pause ;;
+            3) xray_stats_cli reset; menu_pause ;;
+            4) xray_stats_cli watch ;;
+        esac
+    done
+}
+
 menu_tools() {
     local menu_num
     while true; do
@@ -14667,7 +14835,7 @@ menu_tools() {
             0) return ;;
             1) menu_action 28 ;;
             2) menu_action 29 ;;
-            3) menu_action 30 ;;
+            3) menu_action 40 ;;
             4) menu_action 31 ;;
             5) menu_action 32 ;;
             6) menu_action 33 ;;
@@ -14787,6 +14955,7 @@ menu() {
 is_pure_readonly_command() {
     case "${1:-}" in
         -h|--help|-s|--show|--access-log|--error-log|\
+        --stats|--stats-watch|\
         --rill-agent-status|--rill-agent-diagnose|--rill-agent-timeline|\
         --rill-agent-auto-status|--rill-integration-self-check)
             return 0
@@ -14800,7 +14969,7 @@ is_pure_readonly_command() {
 is_offline_root_mutation_command() {
     case "${1:-}" in
         --purge|--uninstall|--service-start|--service-stop|--service-restart|\
-        --backup|--restore|--rill-agent|--rill-agent-safe-disable|--rill-agent-verify|\
+        --stats-reset|--backup|--restore|--rill-agent|--rill-agent-safe-disable|--rill-agent-verify|\
         --rill-agent-route-stage|--rill-agent-auto-confirm|--rill-agent-auto-revoke|\
         --rill-agent-fuse-ack|--rill-agent-uninstall)
             return 0
@@ -14831,6 +15000,8 @@ dispatch_pure_readonly_command() {
             ;;
         --access-log) show_access_log ;;
         --error-log) show_error_log ;;
+        --stats) xray_stats_cli stats "${@:2}" ;;
+        --stats-watch) xray_stats_cli watch "${@:2}" ;;
         --rill-agent-status) rxa_dispatch status ;;
         --rill-agent-diagnose) rxa_dispatch diagnose ;;
         --rill-agent-timeline) rxa_dispatch timeline ;;
@@ -14847,6 +15018,7 @@ dispatch_offline_root_mutation_command() {
         --service-start) service_start ;;
         --service-stop) service_stop ;;
         --service-restart) service_restart ;;
+        --stats-reset) xray_stats_cli reset "${@:2}" ;;
         --backup) backup_directories ;;
         --restore) restore_directories ;;
         --rill-agent) rxa_menu ;;

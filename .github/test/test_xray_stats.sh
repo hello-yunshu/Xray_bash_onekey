@@ -33,6 +33,22 @@ xray_install_config_file="${idleleo_dir}/conf/install_config.json"
 LOG_FILE="${idleleo_dir}/logs/install.log"
 mkdir -p "${xray_conf_dir}" "${idleleo_dir}/logs"
 cp "${REPO_DIR}/config/vless_reality.json" "${xray_conf}"
+# The repository template intentionally carries placeholders. When a real
+# Xray binary is available, replace them with a valid test UUID/key/shortId so
+# the final xray -test exercises the merged stats config, not template values.
+if command -v xray >/dev/null 2>&1; then
+    _fixture_uuid=$(xray uuid 2>/dev/null || true)
+    _fixture_key=$(xray x25519 2>/dev/null | awk '/^PrivateKey:/ {print $2; exit}')
+    if [[ -n "${_fixture_uuid}" && -n "${_fixture_key}" ]]; then
+        jq --arg uuid "${_fixture_uuid}" --arg key "${_fixture_key}" \
+            '.inbounds[0].settings.clients[0].id = $uuid
+             | .inbounds[0].streamSettings.realitySettings.privateKey = $key
+             | .inbounds[0].streamSettings.realitySettings.shortIds = ["0123456789abcdef"]' \
+            "${xray_conf}" >"${xray_conf}.fixture" &&
+            mv "${xray_conf}.fixture" "${xray_conf}"
+        chmod 600 "${xray_conf}"
+    fi
+fi
 printf '{"shell_version":"3.3.1"}\n' >"${xray_install_config_file}"
 
 log_echo() { printf '%s\n' "$*"; }
