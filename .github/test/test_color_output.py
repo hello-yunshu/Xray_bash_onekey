@@ -391,11 +391,11 @@ source "@TRAFFIC_BLOCKER@" 2>/dev/null
 true
 """,
     "root_info": """\
-if command -v runuser >/dev/null 2>&1 && id nobody >/dev/null 2>&1; then
-    runuser -u nobody -- bash "@INSTALL@" -s || true
+if [[ "$(id -u)" -ne 0 ]]; then
+    bash "@INSTALL@" -s || true
 else
-    # Portable fallback for hosts without runuser: exercise the same
-    # non-root message and printf '%b' call with the sourced color variables.
+    # Root fallback (container/local root): exercise the same non-root message
+    # and printf '%b' call with the sourced color variables.
     printf '%b\\n' "${Error} ${RedBG} $(gettext "读取安装信息需要 root 权限")（$(gettext "信息文件权限为") 0600）${Font}"
 fi
 """,
