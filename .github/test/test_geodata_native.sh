@@ -463,7 +463,7 @@ if [[ "${EUID}" -eq 0 ]]; then
     # ownership has to be applied for real.
     unset -f chown
     xray_service_user() { printf 'nobody\n'; }
-    xray_service_group() { printf 'nogroup\n'; }
+    xray_service_group() { printf '%s\n' "$(id -gn nobody 2>/dev/null || printf 'nogroup')"; }
     check_not "the write probe fails when the account cannot write" geodata_service_can_write
     geodata_apply_permissions >/dev/null 2>&1
     check "the write probe passes after the permission step" geodata_service_can_write
@@ -471,7 +471,7 @@ else
     skip "service-account write probe needs root (container/CI covers it)"
 fi
 xray_service_user() { printf 'nobody\n'; }
-xray_service_group() { printf 'nogroup\n'; }
+xray_service_group() { printf '%s\n' "$(id -gn nobody 2>/dev/null || printf 'nogroup')"; }
 
 echo ""
 echo "-- F. traffic_blocker reporting --"
