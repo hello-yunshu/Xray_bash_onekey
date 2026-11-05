@@ -43,10 +43,8 @@ tb_geo_native_cron() { return 1; }
 tb_geo_legacy_cron_lines() { return 1; }
 tb_geo_manual_refresh_intro() { printf 'INTRO\n'; }
 tb_geo_manual_refresh_finish() { printf 'FINISH rc=%s\n' "$1"; return "$1"; }
-tb_geo_ensure_updater() { UPDATER_CALLS=$((UPDATER_CALLS + 1)); return 0; }
 
 CALLS=0
-UPDATER_CALLS=0
 SYSTEMCTL_CALLS=0
 tb_download_geo_file() {
     CALLS=$((CALLS + 1))
@@ -84,21 +82,7 @@ RC=$?
 [[ "${RC}" -eq 0 ]] && ok "GEO_REFRESH_ASSUME_YES skips the prompt" || bad "automation bypass rc=${RC}"
 [[ "${CALLS}" -eq $((BEFORE_CALLS + 1)) ]] && ok "automation bypass downloads" || bad "automation bypass skipped download"
 
-# 4. Single-file menu path still confirms first.
-BEFORE_CALLS=${CALLS}
-tb_update_geo_file geoip.dat <<<"y" >"${TMP_ROOT}/last.out" 2>&1
-RC=$?
-[[ "${RC}" -eq 0 ]] && ok "single-file y executes" || bad "single-file y rc=${RC}"
-[[ "${CALLS}" -eq $((BEFORE_CALLS + 1)) ]] && ok "single-file downloads" || bad "single-file did not download"
-
-# 5. Legacy manual-updater path confirms before fetching the updater.
-BEFORE_UPDATER=${UPDATER_CALLS}
-tb_geo_run_manual_update <<<"" >"${TMP_ROOT}/last.out" 2>&1
-RC=$?
-[[ "${RC}" -eq 1 ]] && ok "manual updater cancel returns 1" || bad "manual updater cancel rc=${RC}"
-[[ "${UPDATER_CALLS}" -eq "${BEFORE_UPDATER}" ]] && ok "cancel does not fetch the updater" || bad "cancel fetched the updater"
-
-# 6. Colour safety.
+# 4. Colour safety.
 if grep -q $'\033' "${TMP_ROOT}/last.out"; then
     bad "non-TTY prompt contains ESC"
 else

@@ -407,6 +407,12 @@ source "@RILL_MANAGER@" 2>/dev/null
 rxa_diagnose() { printf '%s' '{"result":{"diagnosisCode":"HEALTHY"}}'; }
 rxa_health_label
 """,
+    "clear_screen": """\
+clear() { printf '\\033[H\\033[2J\\033[3J'; }
+menu_clear
+rxa_clear_screen
+printf 'CLEAR-DONE\\n'
+""",
 }
 
 SCENARIO_EXPECT = {
@@ -421,6 +427,7 @@ SCENARIO_EXPECT = {
     "root_info": "读取安装信息需要 root 权限",
     "stats_prompt": "[Y/N]?",
     "rill_status": "检测",
+    "clear_screen": "CLEAR-DONE",
 }
 
 

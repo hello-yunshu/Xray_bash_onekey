@@ -99,6 +99,10 @@ _XRAY_EN_READY=0
 _XRAY_REAL_GETTEXT=""
 
 _xray_i18n_source_catalog() {
+    # Keep the msgunfmt msgid/msgstr parsing in sync with
+    # scripts/xray_stats.sh::_load_catalog_text/_catalog_lookup. The two
+    # processes cannot share code, so any parser rule change must be applied
+    # to both implementations.
     local lang="$1" fn="$2" mo tmp id str
     mo="${TEXTDOMAINDIR}/${lang}/LC_MESSAGES/${TEXTDOMAIN}.mo"
     [[ -r "${mo}" ]] || return 1
@@ -5052,39 +5056,18 @@ xray_privilege_escalation() {
 }
 
 set_xray_config_path() {
-    [[ -L "${xray_default_conf}" || -e "${xray_default_conf}" ]] && rm -f "${xray_default_conf}"
-    ln -s "${xray_conf}" "${xray_default_conf}"
     local _default_geo_dir="${local_bin}/share/xray"
-    if [[ -d "${_default_geo_dir}" ]] && [[ ! -L "${_default_geo_dir}" ]]; then
-        local _new_geo_dir="${idleleo_dir}/share/xray" _entry _non_regular=""
-        # Never silently delete a legacy subdirectory or symlink. Fail closed
-        # and leave the old tree intact; the user can migrate it manually.
-        for _entry in "${_default_geo_dir}"/* "${_default_geo_dir}"/.[!.]* "${_default_geo_dir}"/..?*; do
-            [[ -e "${_entry}" || -L "${_entry}" ]] || continue
-            if [[ -L "${_entry}" || ! -f "${_entry}" ]]; then
-                _non_regular="${_entry##*/}"
-                break
-            fi
-        done
-        if [[ -n "${_non_regular}" ]]; then
-            log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 目录包含非普通条目, 跳过迁移并保留原目录"): ${_non_regular} ${Font}"
-            return 1
-        fi
-        mkdir -p "${_new_geo_dir}"
-        for _entry in "${_default_geo_dir}"/*; do
-            [[ -f "${_entry}" && ! -L "${_entry}" ]] || continue
-            mv "${_entry}" "${_new_geo_dir}/" || {
-                log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 文件移动失败, 保留原目录") ${Font}"
-                return 1
-            }
-        done
-        if ! rmdir "${_default_geo_dir}" 2>/dev/null; then
-            log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 目录仍非空, 跳过迁移") ${Font}"
-            return 1
-        fi
+    # A legacy real asset directory must go through the same transactional
+    # migration as the startup hook: hidden files, same-name conflicts and a
+    # partial .dat set are all handled there. Never move/overwrite inline.
+    # Run it before touching the config symlink so a failure leaves no trace.
+    if [[ -d "${_default_geo_dir}" && ! -L "${_default_geo_dir}" ]]; then
+        geodata_migrate_asset_layout || return 1
     fi
+    [[ -L "${xray_default_conf}" || -e "${xray_default_conf}" ]] && rm -f "${xray_default_conf}"
+    ln -s "${xray_conf}" "${xray_default_conf}" || return 1
     if [[ ! -L "${_default_geo_dir}" ]]; then
-        ln -s "${idleleo_dir}/share/xray" "${_default_geo_dir}"
+        ln -s "${geodata_dir}" "${_default_geo_dir}" || return 1
     fi
 }
 
@@ -5451,7 +5434,8 @@ geodata_migrate_asset_layout() {
     # already written into ${geodata_dir}. The old directory remains readable
     # until the managed path has both .dat files, so a failed migration cannot
     # leave Xray with a half-moved asset directory.
-    for entry in "${default_dir}"/*; do
+    for entry in "${default_dir}"/* "${default_dir}"/.[!.]* "${default_dir}"/..?*; do
+        [[ -e "${entry}" || -L "${entry}" ]] || continue
         [[ -f "${entry}" && ! -L "${entry}" ]] || continue
         base="${entry##*/}"
         if [[ ! -e "${geodata_dir}/${base}" && ! -L "${geodata_dir}/${base}" ]]; then
@@ -5486,7 +5470,8 @@ geodata_migrate_asset_layout() {
     # A same-named file in ${geodata_dir} wins by policy. If its content differs
     # from the legacy copy, keep the old tree as a backup instead of deleting it.
     local keep_backup=0
-    for entry in "${backup}"/*; do
+    for entry in "${backup}"/* "${backup}"/.[!.]* "${backup}"/..?*; do
+        [[ -e "${entry}" || -L "${entry}" ]] || continue
         [[ -f "${entry}" && ! -L "${entry}" ]] || continue
         base="${entry##*/}"
         if [[ -e "${geodata_dir}/${base}" ]] && ! cmp -s -- "${entry}" "${geodata_dir}/${base}"; then
@@ -5635,7 +5620,10 @@ xray_install() {
         xray_install_release install -f --version v${xray_online_version}
         judge "$(gettext "安装") Xray"
         xray_privilege_escalation || return 1
-        set_xray_config_path
+        if ! set_xray_config_path; then
+            log_echo "${Error} ${RedBG} $(gettext "GeoData 布局迁移失败, 已中止安装") ${Font}"
+            return 1
+        fi
         systemctl daemon-reload
         xray_version=${xray_online_version}
     else
@@ -5812,7 +5800,10 @@ xray_update() {
         fi
     fi
     xray_privilege_escalation || return 1
-    set_xray_config_path
+    if ! set_xray_config_path; then
+        log_echo "${Error} ${RedBG} $(gettext "GeoData 布局迁移失败, 已中止更新") ${Font}"
+        return 1
+    fi
     update_json_config "${xray_install_config_file}" --arg xray_version "${xray_version}" '.xray_version = $xray_version' || return 1
     systemctl daemon-reload
     systemctl start xray
@@ -10760,11 +10751,13 @@ xray_stats_cleanup_legacy_config() {
 xray_stats_cli() {
     local mode="${1:-}"
     shift || true
-    xray_stats_cleanup_legacy_config || true
     if [[ "$(id -u)" != "0" ]]; then
         printf '%s\n' "$(gettext "统计查询需要 root 权限")" >&2
         return 5
     fi
+    # Mutating cleanup must happen only after the root gate: --stats is a
+    # documented read-only command and must never delete files as non-root.
+    xray_stats_cleanup_legacy_config || true
     if [[ ! -f "${xray_stats_script}" ]]; then
         if [[ "${mode}" == "reset" ]]; then
             printf '%s\n' "$(gettext "统计脚本缺失, 请先运行 --stats 完成下载与校验")" >&2
@@ -12308,7 +12301,7 @@ rxa_update_title() {
 }
 
 rxa_clear_screen() {
-    if [[ -t 1 && -n ${TERM:-} && ${TERM} != "dumb" ]]; then
+    if [[ -t 1 && -n ${TERM:-} && ${TERM} != "dumb" && -z "${NO_COLOR:-}" ]]; then
         clear
     fi
 }
@@ -14746,7 +14739,7 @@ reinstall_finalize() {
 }
 
 menu_clear() {
-    if [[ -t 1 && -n ${TERM:-} && ${TERM} != "dumb" ]]; then
+    if [[ -t 1 && -n ${TERM:-} && ${TERM} != "dumb" && -z "${NO_COLOR:-}" ]]; then
         clear
     else
         echo
@@ -14802,6 +14795,59 @@ menu_repeat() {
     done
 }
 
+# East Asian Ambiguous symbols used by the menus render one cell.
+menu_char_width() {
+    local ch="$1" step="$2"
+    case "${ch}" in
+        '↑'|'↓'|'→'|'←'|'…'|'Σ'|'·'|'─'|'│'|'┌'|'┐'|'└'|'┘'|'├'|'┤')
+            printf '1'
+            return 0
+            ;;
+    esac
+    if ((step >= 3)); then
+        printf '2'
+    else
+        printf '1'
+    fi
+}
+
+# Truncate overlong menu text by display width. Colors are dropped for this
+# row because slicing ANSI sequences safely is not worth the complexity; the
+# surrounding border keeps its colors.
+menu_truncate_visible() {
+    local text="$1" max="$2" out="" i=0 n w=0 c v step cw ch
+    local LC_ALL=C
+    text=$(printf '%b' "${text}" | sed $'s/\033\\[[0-9;]*m//g')
+    n=${#text}
+    while ((i < n)); do
+        c=${text:i:1}
+        v=$(printf '%d' "'$c" 2>/dev/null) || v=63
+        # bash 3.2 reports high bytes as negative signed chars.
+        ((v < 0)) && v=$((v + 256))
+        if ((v < 128)); then
+            step=1
+        elif ((v < 192)); then
+            step=1
+        elif ((v < 224)); then
+            step=2
+        elif ((v < 240)); then
+            step=3
+        else
+            step=4
+        fi
+        ch=${text:i:step}
+        cw=$(menu_char_width "${ch}" "${step}")
+        if ((w + cw > max - 3)); then
+            out="${out}..."
+            break
+        fi
+        out="${out}${text:i:step}"
+        w=$((w + cw))
+        i=$((i + step))
+    done
+    printf '%s' "${out}"
+}
+
 menu_title() {
     local title="$1" title_width line_count
     menu_prepare_width
@@ -14834,15 +14880,45 @@ menu_divider() {
 }
 
 menu_row() {
-    local content="$1" content_width padding
+    local content="$1" content_width padding max
     menu_ensure_width
+    max=$((MENU_BOX_WIDTH - 4))
     content_width=$(menu_visible_width "${content}")
+    if ((content_width > max)); then
+        content=$(menu_truncate_visible "${content}" "${max}")
+        content_width=$(menu_visible_width "${content}")
+    fi
     padding=$((MENU_BOX_WIDTH - content_width - 4))
     ((padding < 0)) && padding=0
 
     printf '%b│%b %b' "${GreenW}" "${Font}" "${content}"
     printf '%*s' "${padding}" ''
     printf '%b │%b\n' "${GreenW}" "${Font}"
+}
+
+# Word-wrap a single long label across multiple menu rows. This keeps the
+# Rill health sentence inside the box instead of truncating it to one line.
+menu_wrapped_row() {
+    local text="$1" line="" word candidate candidate_width max
+    local -a words=()
+    menu_ensure_width
+    max=$((MENU_BOX_WIDTH - 4))
+    read -ra words <<<"${text}"
+    for word in "${words[@]}"; do
+        if [[ -z "${line}" ]]; then
+            line="${word}"
+            continue
+        fi
+        candidate="${line} ${word}"
+        candidate_width=$(menu_visible_width "${candidate}")
+        if ((candidate_width <= max)); then
+            line="${candidate}"
+        else
+            menu_row "${line}"
+            line="${word}"
+        fi
+    done
+    [[ -n "${line}" ]] && menu_row "${line}"
 }
 
 _menu_fields_render() {
@@ -15744,7 +15820,7 @@ menu_main_header() {
     rxa_refresh_summary
     menu_divider "$(gettext "Rill Xray AI 运维助手")"
     menu_blank
-    menu_row "$(rxa_health_label)"
+    menu_wrapped_row "$(rxa_health_label)"
     menu_blank
     # 仅运行中的状态着绿色；关闭、未运行不加颜色。
     if [[ "${RILL_XRAY_AGENT_HEADER_RUNTIME}" == *"$(gettext "运行中")"* ]]; then

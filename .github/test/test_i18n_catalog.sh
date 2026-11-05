@@ -32,8 +32,18 @@ cp "${REPO_DIR}/i18n/languages/fr/LC_MESSAGES/xray_install.mo" \
     "${TMP_ROOT}/idleleo/languages/fr/LC_MESSAGES/xray_install.mo"
 
 export _TEST_MODE=1
+# The test runs with set -u; on a non-Linux dev host /etc/os-release may be
+# absent and install.sh would abort mid-source. Restore -u after loading.
+set +u
 # shellcheck disable=SC1090
 source "${REPO_DIR}/install.sh"
+set -u
+# install.sh pins PATH to the standard system directories; on macOS the
+# Homebrew gettext tools live elsewhere. Restore them for this test only.
+if [[ -d /opt/homebrew/bin ]]; then
+    PATH="${PATH}:/opt/homebrew/bin"
+    export PATH
+fi
 idleleo_dir="${TMP_ROOT}/idleleo"
 TEXTDOMAIN="xray_install"
 TEXTDOMAINDIR="${idleleo_dir}/languages"
@@ -123,39 +133,121 @@ else
 fi
 
 # Real 45-column tmux: the box must shrink instead of wrapping.
-if command -v tmux >/dev/null 2>&1; then
-    cat >"${TMP_ROOT}/menu-run.sh" <<EOF
+cat >"${TMP_ROOT}/menu-run.sh" <<EOF
 #!/usr/bin/env bash
 _TEST_MODE=1
 source "${REPO_DIR}/install.sh" >/dev/null 2>&1
+if [[ -d /opt/homebrew/bin ]]; then PATH="\${PATH}:/opt/homebrew/bin"; export PATH; fi
 idleleo_dir="${TMP_ROOT}/idleleo"
 printf 'LANG=en_US.UTF-8\nLC_MESSAGES=en_US.UTF-8\n' >"\${idleleo_dir}/language.conf"
 init_language offline >/dev/null 2>&1
 shell_emoji=""; shell_need_update=""; xray_need_update=""; nginx_need_update=""
 xray_status=""; nginx_status=""; xray_local_connect_status=""
 printf '0\n' | menu
-sleep 10
+[[ "\${MENU_HOLD:-0}" == "1" ]] && sleep 10
+exit 0
 EOF
-    tmux kill-session -t i18n-menu 2>/dev/null || true
-    tmux new-session -d -s i18n-menu -x 45 -y 40 "bash '${TMP_ROOT}/menu-run.sh'"
-    sleep 8
-    tmux capture-pane -pt i18n-menu >"${TMP_ROOT}/menu-45.txt" 2>/dev/null || true
-    tmux kill-session -t i18n-menu 2>/dev/null || true
-    sed $'s/\033\\[[0-9;]*m//g' "${TMP_ROOT}/menu-45.txt" >"${TMP_ROOT}/menu-45.clean"
-    tops=$(grep -c '^╭─.*╮$' "${TMP_ROOT}/menu-45.clean" || true)
-    bottoms=$(grep -c '^╰.*╯$' "${TMP_ROOT}/menu-45.clean" || true)
-    if [[ "${tops}" -eq 2 && "${bottoms}" -eq 2 ]]; then
-        ok "45-column menu borders stay closed"
+
+WC_LOCALE=$(locale -a 2>/dev/null | grep -ix 'C.utf8' | head -1)
+[[ -n "${WC_LOCALE}" ]] || WC_LOCALE=$(locale -a 2>/dev/null | grep -ix 'C.UTF-8' | head -1)
+[[ -n "${WC_LOCALE}" ]] || WC_LOCALE=C
+
+# Every row inside a menu box must start and end on the border and keep the
+# same display width as the box top; a wrapped continuation line has no
+# leading border and is counted as an error.
+assert_menu_rows_closed() {
+    local file="$1" limit="$2" label="$3"
+    local line width first_width="" errors=0 rows=0 boxes=0 inside=0
+    while IFS= read -r line; do
+        if [[ ${inside} -eq 0 ]]; then
+            case "${line}" in
+                '╭'*'╮')
+                    inside=1
+                    boxes=$((boxes + 1))
+                    rows=$((rows + 1))
+                    width=$(LC_ALL="${WC_LOCALE}" wc -L <<<"${line}" | tr -d ' ')
+                    [[ -n "${first_width}" ]] || first_width=${width}
+                    ((width > limit)) && errors=$((errors + 1))
+                    ;;
+                '╭'*) errors=$((errors + 1)) ;;
+            esac
+            continue
+        fi
+        rows=$((rows + 1))
+        case "${line}" in
+            '│'*'│'|'├'*'┤') ;;
+            '╰'*'╯') inside=0 ;;
+            *) errors=$((errors + 1)); continue ;;
+        esac
+        width=$(LC_ALL="${WC_LOCALE}" wc -L <<<"${line}" | tr -d ' ')
+        [[ "${width}" -ne "${first_width}" ]] && errors=$((errors + 1))
+        ((width > limit)) && errors=$((errors + 1))
+    done <"${file}"
+    if [[ ${inside} -eq 0 && ${boxes} -ge 2 && ${errors} -eq 0 ]]; then
+        ok "${label}: ${boxes} boxes, ${rows} rows closed at ${first_width}/${limit} cols"
     else
-        bad "45-column menu wrapped (top=${tops} bottom=${bottoms})"
+        bad "${label}: boxes=${boxes} rows=${rows} errors=${errors} width=${first_width} limit=${limit}"
     fi
-    WC_LOCALE=$(locale -a 2>/dev/null | grep -ix 'C.utf8' | head -1)
-    [[ -n "${WC_LOCALE}" ]] || WC_LOCALE=$(locale -a 2>/dev/null | grep -ix 'C.UTF-8' | head -1)
-    [[ -n "${WC_LOCALE}" ]] || WC_LOCALE=C
-    menu_width=$(LC_ALL="${WC_LOCALE}" wc -L <"${TMP_ROOT}/menu-45.clean" | tr -d ' ')
-    [[ "${menu_width}" -le 45 ]] && ok "45-column menu renders ${menu_width} cols" || bad "45-column menu renders ${menu_width} cols"
+}
+
+if command -v python3 >/dev/null 2>&1; then
+    cat >"${TMP_ROOT}/menu-pty.py" <<'PY'
+import fcntl
+import os
+import pty
+import struct
+import sys
+import termios
+
+width, height, script = int(sys.argv[1]), int(sys.argv[2]), sys.argv[3]
+env = dict(os.environ)
+env["TERM"] = "xterm-256color"
+env.pop("NO_COLOR", None)
+if env.get("PTY_NO_COLOR") == "1":
+    env["NO_COLOR"] = "1"
+
+master, slave = pty.openpty()
+fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", height, width, 0, 0))
+pid = os.fork()
+if pid == 0:
+    os.setsid()
+    fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
+    os.dup2(slave, 0)
+    os.dup2(slave, 1)
+    os.dup2(slave, 2)
+    os.close(master)
+    os.close(slave)
+    os.execvpe("bash", ["bash", script], env)
+
+os.close(slave)
+chunks = []
+while True:
+    try:
+        data = os.read(master, 4096)
+    except OSError:
+        break
+    if not data:
+        break
+    chunks.append(data)
+os.close(master)
+os.waitpid(pid, 0)
+sys.stdout.buffer.write(b"".join(chunks))
+PY
+    for width in 45 80 100 120; do
+        PTY_NO_COLOR=1 python3 "${TMP_ROOT}/menu-pty.py" "${width}" 40 \
+            "${TMP_ROOT}/menu-run.sh" >"${TMP_ROOT}/menu-${width}.raw" 2>/dev/null || true
+        sed $'s/\033\\[[0-9;?]*[A-Za-z]/ /g' "${TMP_ROOT}/menu-${width}.raw" \
+            | tr -d '\r' >"${TMP_ROOT}/menu-${width}.clean"
+        assert_menu_rows_closed "${TMP_ROOT}/menu-${width}.clean" "${width}" \
+            "${width}-column main menu"
+        if grep -q $'\033' "${TMP_ROOT}/menu-${width}.raw"; then
+            bad "${width}-column NO_COLOR menu emitted ESC"
+        else
+            ok "${width}-column NO_COLOR menu emits zero ESC"
+        fi
+    done
 else
-    echo "  SKIP: tmux unavailable for the 45-column menu check"
+    echo "  SKIP: python3 unavailable for the 45/80/100/120-column PTY menu checks"
 fi
 
 printf 'PASS=%s FAIL=%s\n' "${PASS}" "${FAIL}"

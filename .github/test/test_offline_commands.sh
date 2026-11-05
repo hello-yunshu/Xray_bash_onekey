@@ -286,6 +286,42 @@ else
     echo "  SKIP: non-root -s check requires a non-root runner"
 fi
 
+echo "--- --stats is read-only before the root gate ---"
+STATS_DIR=$(mktemp -d)
+STATS_STATUS="${STATS_DIR}/status_config.json"
+printf '{"api":{}}\n' >"${STATS_STATUS}"
+CLEANUP_CALLS=0
+xray_stats_cleanup_legacy_config() {
+    CLEANUP_CALLS=$((CLEANUP_CALLS + 1))
+    rm -f "${STATS_STATUS}"
+}
+id() {
+    if [[ "${1:-}" == "-u" ]]; then
+        printf '1000\n'
+    else
+        command id "$@"
+    fi
+}
+xray_stats_cli "" >/dev/null 2>&1
+STATS_NONROOT_RC=$?
+unset -f id
+if [[ ${STATS_NONROOT_RC} -eq 5 ]]; then
+    ok "non-root --stats exits 5"
+else
+    bad "non-root --stats exited ${STATS_NONROOT_RC} (expected 5)"
+fi
+if [[ -f "${STATS_STATUS}" ]]; then
+    ok "non-root --stats leaves status_config.json untouched"
+else
+    bad "non-root --stats deleted status_config.json before the root gate"
+fi
+if [[ ${CLEANUP_CALLS} -eq 0 ]]; then
+    ok "legacy cleanup does not run before the root gate"
+else
+    bad "legacy cleanup ran ${CLEANUP_CALLS} time(s) before the root gate"
+fi
+rm -rf "${STATS_DIR}"
+
 rm -rf "${MOCK_BIN}" "${MAIN_WRAPPER}" "${DOWNLOAD_CALLS_FILE}" "${CFI_CALLS_FILE}" "${CURL_CALL_LOG}"
 
 echo ""

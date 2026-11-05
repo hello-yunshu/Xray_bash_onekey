@@ -139,6 +139,9 @@ _EN_TEXT=""
 # msgunfmt instead, which is locale-independent. If msgunfmt is absent the
 # gettext path below still works on hosts where the locale is generated.
 _load_catalog_text() {
+    # Keep the msgunfmt msgid/msgstr parsing in sync with
+    # install.sh::_xray_i18n_source_catalog. They run in separate processes;
+    # any parser rule change must be applied to both implementations.
     local lang="$1" mo="${TEXTDOMAINDIR}/${1}/LC_MESSAGES/${TEXTDOMAIN}.mo"
     [[ -n "${_msgunfmt_bin}" && -r "${mo}" ]] || return 1
     if [[ "${_CAT_LANG}" == "${lang}" && -n "${_CAT_TEXT}" ]]; then
@@ -319,6 +322,8 @@ _dw() {
     while ((i < n)); do
         c=${s:i:1}
         v=$(printf '%d' "'$c" 2>/dev/null) || v=63
+        # bash 3.2 reports high bytes as negative signed chars.
+        ((v < 0)) && v=$((v + 256))
         if ((v < 128)); then
             step=1
         elif ((v < 192)); then
@@ -364,6 +369,8 @@ _truncate() {
     while ((i < n)); do
         c=${text:i:1}
         v=$(printf '%d' "'$c" 2>/dev/null) || v=63
+        # bash 3.2 reports high bytes as negative signed chars.
+        ((v < 0)) && v=$((v + 256))
         if ((v < 128)); then
             step=1
         elif ((v < 192)); then

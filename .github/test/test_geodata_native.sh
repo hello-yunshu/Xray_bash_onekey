@@ -107,12 +107,14 @@ local_bin="${TMP_ROOT}/usr/local"
 xray_bin_dir="${TMP_ROOT}/bin"
 xray_conf_dir="${idleleo_dir}/conf/xray"
 xray_conf="${xray_conf_dir}/config.json"
+xray_default_conf="${local_bin}/etc/xray/config.json"
 xray_install_config_file="${idleleo_dir}/conf/install_config.json"
 xray_systemd_file="${TMP_ROOT}/systemd/xray.service"
 geo_update_file="${idleleo_dir}/scripts/geo_update.sh"
 geodata_dir="${idleleo_dir}/share/xray"
 mkdir -p "${xray_conf_dir}" "${xray_bin_dir}" "$(dirname "${xray_systemd_file}")" \
-    "${geodata_dir}" "${idleleo_dir}/scripts" "${local_bin}/share"
+    "${geodata_dir}" "${idleleo_dir}/scripts" "${local_bin}/share" \
+    "${xray_default_conf%/*}"
 
 # `info_extraction` needs associative arrays (bash 4+); the dev host runs 3.2.
 info_extraction() {
@@ -577,7 +579,7 @@ check "a missing file reports missing" test "$(tb_geo_native_file_state "${geoda
 echo ""
 echo "-- G. legacy install -> native geodata migration --"
 legacy_setup() {
-    rm -rf "${geodata_dir}" "${local_bin}/share/xray"
+    rm -rf "${geodata_dir}" "${local_bin}/share/xray" "${local_bin}"/share/xray.legacy-migrate.*
     mkdir -p "${geodata_dir}" "${local_bin}/share/xray"
     printf 'LEGACY-IP\n' >"${local_bin}/share/xray/geoip.dat"
     printf 'LEGACY-SITE\n' >"${local_bin}/share/xray/geosite.dat"
@@ -760,6 +762,73 @@ check "the old cron remains after the rollback restart" \
 GEO_RESTART_FAIL=0
 GEO_RESTART_FAIL_ONCE=0
 
+# Hidden regular files are ordinary data: they must be migrated, compared and
+# never deleted by the post-migration backup cleanup.
+legacy_setup
+printf 'LEGACY-HIDDEN-A\n' >"${local_bin}/share/xray/.hidden"
+check "migration succeeds with a hidden regular file" geodata_migrate_legacy
+check "the hidden regular file is migrated" \
+    test "$(cat "${geodata_dir}/.hidden")" = "LEGACY-HIDDEN-A"
+check "the old tree is replaced by a symlink after the hidden migration" \
+    test -L "${local_bin}/share/xray"
+
+legacy_setup
+printf 'LEGACY-HIDDEN-B\n' >"${local_bin}/share/xray/.hidden"
+printf 'MANAGED-HIDDEN\n' >"${geodata_dir}/.hidden"
+check "a conflicting hidden file keeps the legacy backup" geodata_migrate_legacy
+check "the managed hidden file wins" \
+    test "$(cat "${geodata_dir}/.hidden")" = "MANAGED-HIDDEN"
+check "the legacy hidden content survives in the backup" \
+    bash -c "grep -rqF 'LEGACY-HIDDEN-B' '${local_bin}'/share/xray.legacy-migrate.*/.hidden"
+
+# The real install/update entry point must reuse the same transactional
+# migration; an inline move/overwrite is exactly what the recheck flagged.
+legacy_setup
+rm -f "${xray_default_conf}"
+rm -f "${local_bin}/share/xray/geosite.dat"
+check_not "set_xray_config_path rejects a single .dat" set_xray_config_path
+check "the rejected entry point keeps the old directory" \
+    test -d "${local_bin}/share/xray" && test ! -L "${local_bin}/share/xray"
+check "the rejected entry point leaves no partial .dat" \
+    test ! -e "${geodata_dir}/geoip.dat"
+check "the rejected entry point does not touch the config symlink" \
+    test ! -e "${xray_default_conf}"
+
+legacy_setup
+rm -f "${xray_default_conf}"
+printf 'MANAGED-IP\n' >"${geodata_dir}/geoip.dat"
+check "set_xray_config_path succeeds with a same-name conflict" set_xray_config_path
+check "the managed content still wins" \
+    test "$(cat "${geodata_dir}/geoip.dat")" = "MANAGED-IP"
+check "the legacy conflict is backed up" \
+    bash -c "grep -rqF 'LEGACY-IP' '${local_bin}'/share/xray.legacy-migrate.*/geoip.dat"
+check "the entry point links the config path" test -L "${xray_default_conf}"
+check "the entry point leaves the asset symlink in place" \
+    test -L "${local_bin}/share/xray"
+
+legacy_setup
+rm -f "${xray_default_conf}"
+printf 'LEGACY-HIDDEN-C\n' >"${local_bin}/share/xray/.hidden"
+check "set_xray_config_path migrates hidden files" set_xray_config_path
+check "the hidden file reached the managed directory" \
+    test "$(cat "${geodata_dir}/.hidden")" = "LEGACY-HIDDEN-C"
+check "the entry point replaced the old tree with a symlink" \
+    test -L "${local_bin}/share/xray"
+
+legacy_setup
+rm -f "${xray_default_conf}"
+mkdir -p "${local_bin}/share/xray/custom"
+check_not "set_xray_config_path fails closed on non-regular entries" set_xray_config_path
+check "a non-regular entry keeps the legacy tree" \
+    test -d "${local_bin}/share/xray" && test ! -L "${local_bin}/share/xray"
+check "a rejected entry point leaves no config symlink" \
+    test ! -e "${xray_default_conf}"
+
+check "xray_install checks the layout migration result" \
+    fn_has xray_install 'if ! set_xray_config_path'
+check "xray_update checks the layout migration result" \
+    fn_has xray_update 'if ! set_xray_config_path'
+
 echo ""
 echo "-- H. legacy cron PATH resolution --"
 GEO_RESOLVE_ROOT="${TMP_ROOT}/geo-resolve"
@@ -786,8 +855,8 @@ env -i PATH=/usr/bin:/bin \
     bash "${GEO_UPDATE_SH}" >/dev/null 2>&1
 _geo_missing_rc=$?
 check "a missing binary returns non-zero" test "${_geo_missing_rc}" -eq 1
-check "the failure log names every attempted path" \
-    grep -qF "tried: <unset> /nonexistent/xray /usr/local/bin/xray /usr/bin/xray" \
+check "an explicit XRAY_BIN_DIR is authoritative (no system fallback)" \
+    grep -qF "tried: <unset> /nonexistent/xray" \
     "${GEO_RESOLVE_ROOT}/logs/geo_update.log"
 
 check "legacy migration never runs for relay" \
@@ -898,60 +967,6 @@ systemctl() {
     esac
 }
 
-reset_geo
-GEO_ACTIVE=0
-: >"${GEO_MANUAL_MARKER}"
-: >"${GEO_SYSTEMCTL_LOG}"
-_manual_cfg=$(cat "${xray_conf}")
-_out=$(GEO_REFRESH_ASSUME_YES=1 tb_geo_run_manual_update 2>&1)
-_manual_rc=$?
-check "manual refresh succeeds on an inactive host" test "${_manual_rc}" -eq 0
-check "manual refresh announces the not-enabled state first" \
-    bash -c "[[ '${_out}' == *'当前未开启自动刷新'* && '${_out}' == *'本次仅刷新一次, 不会创建定时任务'* ]]"
-check "manual refresh reports success and the write location" \
-    bash -c "[[ '${_out}' == *'GeoData 手动刷新完成'* && '${_out}' == *'写入位置'* ]]"
-check "manual refresh says an inactive Xray was not restarted" \
-    bash -c "[[ '${_out}' == *'Xray 未运行, 未执行重启'* ]]"
-check "manual refresh did not restart the inactive service" \
-    bash -c "! grep -q 'restart' '${GEO_SYSTEMCTL_LOG}'"
-check "manual refresh created no cron entry" \
-    bash -c "[[ ! -s '${GEO_CRONTAB}' ]]"
-check "manual refresh left the live config byte-for-byte unchanged" \
-    test "$(cat "${xray_conf}")" = "${_manual_cfg}"
-
-reset_geo
-geodata_apply_config >/dev/null
-GEO_ACTIVE=1
-: >"${GEO_MANUAL_MARKER}"
-: >"${GEO_SYSTEMCTL_LOG}"
-_out=$(GEO_REFRESH_ASSUME_YES=1 tb_geo_run_manual_update 2>&1)
-check "manual refresh announces the automatic-refresh state first" \
-    bash -c "[[ '${_out}' == *'当前为自动刷新状态'* && '${_out}' == *'0 3 * * 1'* && '${_out}' == *'每周一 03:00'* && '${_out}' == *'本次为手动补刷一次'* ]]"
-check "manual refresh reports the running-service result" \
-    bash -c "[[ '${_out}' == *'Xray 正在运行'* ]]"
-check "the menu itself never restarts an active service" \
-    bash -c "! grep -q 'restart' '${GEO_SYSTEMCTL_LOG}'"
-
-reset_geo
-: >"${GEO_MANUAL_MARKER}"
-: >"${GEO_SYSTEMCTL_LOG}"
-_manual_cfg=$(cat "${xray_conf}")
-export GEO_MANUAL_FAIL=1
-_out=$(GEO_REFRESH_ASSUME_YES=1 tb_geo_run_manual_update 2>&1)
-_manual_rc=$?
-unset GEO_MANUAL_FAIL
-check "manual refresh failure returns non-zero" test "${_manual_rc}" -ne 0
-check "manual refresh failure explains the retained state" \
-    bash -c "[[ '${_out}' == *'GeoData 手动刷新失败'* && '${_out}' == *'config.json 未改动'* && '${_out}' == *'未创建定时任务'* ]]"
-check "manual refresh failure keeps the config unchanged" \
-    test "$(cat "${xray_conf}")" = "${_manual_cfg}"
-check "manual refresh failure keeps the crontab untouched" \
-    bash -c "[[ ! -s '${GEO_CRONTAB}' ]]"
-check "manual refresh failure does not restart Xray" \
-    bash -c "! grep -q 'restart' '${GEO_SYSTEMCTL_LOG}'"
-
-check "the manual refresh path never writes a cron entry" \
-    bash -c "awk '/^tb_geo_run_manual_update\(\)/,/^}/' '${TRAFFIC_SH}' | grep -q 'crontab' && exit 1 || exit 0"
 check "the menu refresh path never writes a cron entry" \
     bash -c "awk '/^tb_download_geo_file\(\)/,/^}/' '${TRAFFIC_SH}' | grep -q 'crontab' && exit 1 || exit 0"
 

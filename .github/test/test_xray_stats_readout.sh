@@ -2,8 +2,9 @@
 # color-test-fixture: this file intentionally asserts on literal ESC bytes to
 # verify the stats renderer's TTY/NO_COLOR policy.
 # P3 readout/regression matrix for the stats CLI.
-# Requires root, bash, jq, curl, gettext, an Xray binary (XRAY_BIN or PATH),
-# and a supported distro (Debian 12 / Ubuntu 24.04 / CentOS Stream 10).
+# Requires root, bash, jq, curl, gettext, cmp (diffutils), an Xray binary
+# (XRAY_BIN or PATH), and a supported distro (Debian 12 / Ubuntu 24.04 /
+# CentOS Stream 10).
 set -uo pipefail
 
 PASS=0
@@ -21,6 +22,10 @@ fi
 if ! command -v jq >/dev/null 2>&1; then
     echo "jq not found" >&2
     exit 1
+fi
+if ! command -v cmp >/dev/null 2>&1; then
+    echo "SKIP: cmp (diffutils) unavailable" >&2
+    exit 0
 fi
 if [[ "$(id -u)" != "0" ]]; then
     echo "run as root" >&2
