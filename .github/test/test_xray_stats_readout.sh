@@ -2,8 +2,9 @@
 # color-test-fixture: this file intentionally asserts on literal ESC bytes to
 # verify the stats renderer's TTY/NO_COLOR policy.
 # P3 readout/regression matrix for the stats CLI.
-# Requires root, bash, jq, curl, gettext, an Xray binary (XRAY_BIN or PATH),
-# and a supported distro (Debian 12 / Ubuntu 24.04 / CentOS Stream 10).
+# Requires root, bash, jq, curl, gettext, cmp (diffutils), an Xray binary
+# (XRAY_BIN or PATH), and a supported distro (Debian 12 / Ubuntu 24.04 /
+# CentOS Stream 10).
 set -uo pipefail
 
 PASS=0
@@ -21,6 +22,12 @@ fi
 if ! command -v jq >/dev/null 2>&1; then
     echo "jq not found" >&2
     exit 1
+fi
+HAVE_CMP=0
+if command -v cmp >/dev/null 2>&1; then
+    HAVE_CMP=1
+else
+    echo "  SKIP: cmp (diffutils) unavailable; repeat-comparison case only" >&2
 fi
 if [[ "$(id -u)" != "0" ]]; then
     echo "run as root" >&2
@@ -136,23 +143,44 @@ width=$(LC_ALL=C.UTF-8 bash -c '
 ' _ "${TMP_ROOT}/q.out")
 [[ "${width}" -le 80 ]] && ok "table width ${width} <= 80 characters" || bad "table width ${width}"
 
-for requested_width in 100 120; do
-    XRAY_STATS_WIDTH="${requested_width}" XRAY_STATS_BIN="${XRAY_BIN}" \
-        bash "${SCRIPT}" --config "${CONF}" >"${TMP_ROOT}/w${requested_width}.out" 2>"${TMP_ROOT}/w${requested_width}.err"
-    [[ $? -eq 0 ]] && ok "width ${requested_width} query rc=0" || bad "width ${requested_width} query rc!=0"
-    measured=$(LC_ALL=C.UTF-8 bash -c '
-        max=0
-        while IFS= read -r line; do
-            n=${#line}
-            (( n > max )) && max=$n
-        done < "$1"
-        printf "%s" "${max}"
-    ' _ "${TMP_ROOT}/w${requested_width}.out")
-    expected=$((requested_width - 1))
-    [[ "${measured}" -le "${expected}" ]] && \
-        ok "width ${requested_width} stays within ${expected} characters" || \
-        bad "width ${requested_width} rendered ${measured} characters"
-done
+if command -v tmux >/dev/null 2>&1; then
+    WC_LOCALE=$(locale -a 2>/dev/null | grep -ix 'C.utf8' | head -1)
+    [[ -n "${WC_LOCALE}" ]] || WC_LOCALE=$(locale -a 2>/dev/null | grep -ix 'C.UTF-8' | head -1)
+    [[ -n "${WC_LOCALE}" ]] || WC_LOCALE=C
+    max_display_width() {
+        LC_ALL="${WC_LOCALE}" wc -L <"$1" | tr -d ' '
+    }
+    echo "== width auto-detection (real tmux, no XRAY_STATS_WIDTH) =="
+    for term_width in 45 80 100 120; do
+        session="stats-w${term_width}"
+        out="${TMP_ROOT}/width-${term_width}.out"
+        err="${TMP_ROOT}/width-${term_width}.err"
+        tmux kill-session -t "${session}" 2>/dev/null || true
+        tmux new-session -d -s "${session}" -x "${term_width}" -y 40
+        tmux send-keys -t "${session}" \
+            "env -u COLUMNS -u XRAY_STATS_WIDTH TERM=xterm-256color XRAY_STATS_BIN='${XRAY_BIN}' bash '${SCRIPT}' --config '${CONF}' >'${out}' 2>'${err}'; sleep 2" Enter
+        sleep 3
+        tmux send-keys -t "${session}" "exit" Enter
+        tmux kill-session -t "${session}" 2>/dev/null || true
+        measured=$(max_display_width "${out}")
+        if [[ "${measured}" -le "${term_width}" ]]; then
+            ok "auto width ${term_width}: rendered ${measured} cols, no wrap"
+        else
+            bad "auto width ${term_width}: rendered ${measured} cols (wraps)"
+        fi
+        if [[ "${term_width}" -ge 80 ]]; then
+            if [[ "${measured}" -ge $((term_width - 4)) ]]; then
+                ok "auto width ${term_width}: width actually grew"
+            else
+                bad "auto width ${term_width}: stayed at ${measured} (detection ignored)"
+            fi
+        fi
+        grep -q $'\033' "${out}" && bad "auto width ${term_width}: redirected table has ANSI" || \
+            ok "auto width ${term_width}: redirected table has no ANSI"
+    done
+else
+    echo "  SKIP: tmux unavailable for the width auto-detection matrix"
+fi
 
 run_script "${TMP_ROOT}/j.out" "${TMP_ROOT}/j.err" --json
 [[ $? -eq 0 ]] && jq -e '.schemaVersion == 1 and .server == "127.0.0.1:10085" and (.inbounds | type == "array") and (.uptimeSeconds | numbers) and (.reset == false)' "${TMP_ROOT}/j.out" >/dev/null && \
@@ -167,6 +195,18 @@ if command -v gettext >/dev/null 2>&1; then
         bash "${SCRIPT}" --config "${CONF}" >"${TMP_ROOT}/zh.out" 2>"${TMP_ROOT}/zh.err"
     [[ $? -eq 0 ]] && grep -q "总览" "${TMP_ROOT}/zh.out" && \
         ok "Chinese catalog renders Chinese headings" || bad "Chinese catalog missing"
+    # The install.sh wrapper must pass the menu language through without a
+    # gettext probe that would downgrade to zh on a minimal image.
+    cp "${SCRIPT}" "${SCRIPTS_DIR}/xray_stats.sh"
+    export TEXTDOMAIN=xray_install
+    export TEXTDOMAINDIR="${REPO_DIR}/i18n/languages"
+    export XRAY_STATS_BIN="${XRAY_BIN}"
+    export _XRAY_UI_LANG=en
+    xray_stats_cli stats >"${TMP_ROOT}/wrapper.out" 2>"${TMP_ROOT}/wrapper.err"
+    wrapper_rc=$?
+    unset _XRAY_UI_LANG XRAY_STATS_BIN
+    [[ "${wrapper_rc}" -eq 0 ]] && grep -q "Overview" "${TMP_ROOT}/wrapper.out" && \
+        ok "wrapper keeps English on a minimal image" || bad "wrapper downgraded the language"
 else
     echo "  SKIP: gettext unavailable for the catalog checks"
 fi
@@ -194,13 +234,18 @@ else
 fi
 
 run_script "${TMP_ROOT}/q2.out" "${TMP_ROOT}/q2.err"
-sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q.out" >"${TMP_ROOT}/q.norm"
-sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q2.out" >"${TMP_ROOT}/q2.norm"
-cmp -s "${TMP_ROOT}/q.norm" "${TMP_ROOT}/q2.norm" && ok "repeat query identical (uptime excluded)" || bad "repeat query differs"
+if [[ ${HAVE_CMP} -eq 1 ]]; then
+    sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q.out" >"${TMP_ROOT}/q.norm"
+    sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q2.out" >"${TMP_ROOT}/q2.norm"
+    cmp -s "${TMP_ROOT}/q.norm" "${TMP_ROOT}/q2.norm" && ok "repeat query identical (uptime excluded)" || bad "repeat query differs"
+else
+    echo "  SKIP: repeat query comparison needs cmp (diffutils)"
+fi
 
 echo "== reset =="
 printf 'n\n' | XRAY_STATS_BIN="${XRAY_BIN}" bash "${SCRIPT}" --config "${CONF}" --reset >"${TMP_ROOT}/rc.out" 2>"${TMP_ROOT}/rc.err"
 [[ $? -eq 1 ]] && stdout_zero "${TMP_ROOT}/rc.out" && ok "reset cancel rc=1, stdout empty" || bad "reset cancel contract"
+grep -qF '[Y/N]?' "${TMP_ROOT}/rc.err" && ok "reset prompt offers Y" || bad "reset prompt is missing Y"
 printf 'y\n' | XRAY_STATS_BIN="${XRAY_BIN}" bash "${SCRIPT}" --config "${CONF}" --reset --json >"${TMP_ROOT}/ry.out" 2>"${TMP_ROOT}/ry.err"
 [[ $? -eq 0 ]] && jq -e '.reset == true and (.inbounds | type == "array")' "${TMP_ROOT}/ry.out" >/dev/null && \
     ok "reset confirm rc=0, reset=true" || bad "reset confirm contract"
@@ -211,6 +256,16 @@ jq -e '.reset == false and (.inbounds[]?.uplinkBytes == 0) and (.inbounds[]?.dow
 echo "== watch =="
 timeout --preserve-status -s INT 1 bash "${SCRIPT}" --config "${CONF}" --watch 1 >"${TMP_ROOT}/watch.out" 2>"${TMP_ROOT}/watch.err"
 [[ $? -eq 130 ]] && ok "watch SIGINT rc=130" || bad "watch rc != 130"
+[[ -s "${TMP_ROOT}/watch.err" ]] && \
+    bad "watch stderr is not empty: $(head -2 "${TMP_ROOT}/watch.err")" || \
+    ok "watch stderr is empty"
+
+# The first human frame must not print its title before the API is proven.
+XRAY_STATS_BIN="${XRAY_BIN}" bash "${SCRIPT}" --config "${CONF}" --server 127.0.0.1:19999 --watch 1 \
+    >"${TMP_ROOT}/watchfail.out" 2>"${TMP_ROOT}/watchfail.err"
+[[ $? -eq 2 ]] && stdout_zero "${TMP_ROOT}/watchfail.out" && \
+    ok "watch with unreachable API rc=2, stdout empty" || \
+    bad "watch failure contract ($(wc -c <"${TMP_ROOT}/watchfail.out") bytes)"
 
 echo "== failure states: stdout must be empty =="
 stop_xray

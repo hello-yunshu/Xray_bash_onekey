@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.8.0"
+tb_SCRIPT_VERSION="1.8.1"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -105,28 +105,49 @@ tb_set_countries() {
     jq --argjson val "$countries_json" '.country_block = $val' "${tb_config_file}" > "${tmp_file}" 2>/dev/null && mv "${tmp_file}" "${tb_config_file}" || { rm -f "${tmp_file}"; return 1; }
 }
 
+# UTF-8 display width in cells (no external dependency).
+# ASCII = 1, 2-byte sequences = 1, 3/4-byte sequences = 2. Box-drawing and the
+# arrows used by this table are East Asian Ambiguous and must stay 1 cell.
+tb_char_width() {
+    local ch="$1" step="$2"
+    case "${ch}" in
+        '↑'|'↓'|'→'|'←'|'…'|'Σ'|'·'|'─'|'│'|'┌'|'┐'|'└'|'┘'|'├'|'┤')
+            printf '1'
+            return 0
+            ;;
+    esac
+    if ((step >= 3)); then
+        printf '2'
+    else
+        printf '1'
+    fi
+}
+
 tb_display_width() {
-    local str="$1"
-    local lang="zh_CN"
-    if [[ -z "${idleleo_dir:-}" || -f "${idleleo_dir}/language.conf" ]]; then
-        lang="${LC_MESSAGES:-${LANG:-zh_CN}}"
-    fi
-    lang="${lang%%.*}"
-    lang="${lang%%@*}"
-
-    if [[ "$lang" != "zh_CN" && "$lang" != "ko_KR" ]]; then
-        echo "${#str}"
-        return
-    fi
-
-    local width=0 i=0 char code
-    while (( i < ${#str} )); do
-        char="${str:i:1}"
-        printf -v code '%d' "'$char" 2>/dev/null || code=0
-        (( code < 0 || code > 127 )) && width=$((width + 2)) || width=$((width + 1))
-        i=$((i + 1))
+    local str="$1" i=0 n w=0 c v step ch
+    local LC_ALL=C
+    n=${#str}
+    while ((i < n)); do
+        c=${str:i:1}
+        v=$(printf '%d' "'$c" 2>/dev/null) || v=63
+        # bash 3.2 reports high bytes as negative signed chars.
+        ((v < 0)) && v=$((v + 256))
+        if ((v < 128)); then
+            step=1
+        elif ((v < 192)); then
+            step=1
+        elif ((v < 224)); then
+            step=2
+        elif ((v < 240)); then
+            step=3
+        else
+            step=4
+        fi
+        ch=${str:i:step}
+        w=$((w + $(tb_char_width "${ch}" "${step}")))
+        i=$((i + step))
     done
-    echo "$width"
+    printf '%s' "${w}"
 }
 
 tb_pad() {
@@ -837,19 +858,25 @@ tb_geo_ensure_updater() {
     download_script_file "${remote}" "${updater}"
 }
 
-tb_geo_run_manual_update() {
-    local updater rc
-    if ! tb_geo_ensure_updater; then
-        log_echo "${Error} ${RedBG} $(gettext "GeoData 手动刷新脚本下载失败") ${Font}"
-        return 1
+# Manual refresh is a destructive action: it downloads both files and may
+# restart Xray. Default is No; GEO_REFRESH_ASSUME_YES=1 is the documented
+# non-interactive path. Cancellation returns 1, matching --stats-reset.
+tb_geo_confirm_refresh() {
+    local answer="" prompt prefix suffix
+    [[ "${GEO_REFRESH_ASSUME_YES:-0}" == "1" ]] && return 0
+    prefix=$(gettext "将下载并替换 geoip.dat、geosite.dat 到")
+    suffix=$(gettext "若 Xray 正在运行会重启 Xray（短暂中断），通常需要 5–30 秒。是否继续？")
+    prompt="${prefix} ${tb_geo_dir}"$'\n'"${suffix}"
+    if declare -F confirm_prompt_no >/dev/null 2>&1; then
+        confirm_prompt_no "${prompt}"
+    else
+        printf '%s [y/N]? ' "${prompt}" >&2
     fi
-    updater=$(tb_geo_updater_path)
-    tb_geo_manual_refresh_intro
-    log_echo "${Info} ${Green} $(gettext "正在运行 geo_update.sh")... ${Font}"
-    bash "${updater}"
-    rc=$?
-    tb_geo_manual_refresh_finish "${rc}"
-    return "${rc}"
+    IFS= read -r answer || answer=""
+    case "${answer}" in
+        [yY]|[yY][eE][sS]) return 0 ;;
+        *) return 1 ;;
+    esac
 }
 
 tb_geo_menu() {
@@ -862,16 +889,12 @@ tb_geo_menu() {
         tb_display_geo_summary
         echo
         echo "1. $(gettext "手动刷新全部 GeoData")"
-        echo "2. $(gettext "手动刷新") geoip.dat"
-        echo "3. $(gettext "手动刷新") geosite.dat"
-        echo "4. $(gettext "返回")"
+        echo "2. $(gettext "返回")"
         local geo_choice
         read_optimize "$(gettext "请选择一个选项"):" geo_choice "" 1
         case $geo_choice in
             1) tb_update_all_geo ;;
-            2) tb_update_geo_file "geoip.dat" ;;
-            3) tb_update_geo_file "geosite.dat" ;;
-            4) return ;;
+            2) return ;;
             *)
                 echo
                 log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
@@ -884,26 +907,15 @@ tb_update_all_geo() {
     local rc
     echo
     tb_geo_manual_refresh_intro
+    if ! tb_geo_confirm_refresh; then
+        log_echo "${Info} ${Green} $(gettext "已取消手动刷新") ${Font}"
+        return 1
+    fi
     log_echo "${Info} ${Green} $(gettext "正在手动刷新全部 GeoData")... ${Font}"
     tb_download_geo_file geoip.dat
     rc=$?
     tb_geo_manual_refresh_finish "${rc}"
     return "${rc}"
-}
-
-tb_update_geo_file() {
-    local file_name="$1" rc
-
-    echo
-    tb_geo_manual_refresh_intro
-    log_echo "${Info} ${Green} ${file_name} $(gettext "正在手动刷新")... ${Font}"
-    tb_download_geo_file "${file_name}"
-    rc=$?
-    tb_geo_manual_refresh_finish "${rc}"
-    [[ "${rc}" -eq 0 ]] || return "${rc}"
-    local new_version
-    new_version=$(tb_get_geo_local_version "${file_name}")
-    log_echo "${OK} ${GreenBG} ${file_name} $(gettext "已刷新至"): ${new_version} ${Font}"
 }
 
 tb_manage_rules() {
