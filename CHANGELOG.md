@@ -27,6 +27,9 @@
   同名不同内容的旧文件保留为备份。managed 状态不再重复打印“已切换”日志。
 - **菜单与统计一致性**：缺语言目录时与统计 helper 一样回退英文；菜单预初始化的
   “未安装/信息/警告/错误”会随语言刷新；无 `api.listen` 时统计菜单明确提示。
+- **systemd 沙箱边界**：`ProtectSystem=strict` 下支持多条 `ReadWritePaths`
+  累加；真实 systemd + `User=nobody` 容器验证：没有资产写路径时 fail-closed，
+  有 `/etc/idleleo/share/xray` 与日志写路径时迁移成功且服务保持 active。
 - **其它修复**：`--reset` 提示补回 `Y`；`countdown` 在 `NO_COLOR`/`TERM=dumb`
   下 0 ESC；旧 `status_config.json` 在启动与 `--stats` 时清理；“只刷新单个
   `.dat`”的不可实现选项已移除；“其他选项”新增 GeoData 直达入口；修正英文
