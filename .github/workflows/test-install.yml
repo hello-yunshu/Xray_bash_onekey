@@ -145,8 +145,9 @@ jobs:
           # external cron, no restart), scoped asset permissions, and an
           # honest status view instead of the legacy geo_version.json.
           bash .github/test/test_geodata_native.sh
-          # Stage 05: `-u` must not migrate in the same run; the next startup
-          # hook and the GeoData menu are the two migration entry points.
+          # Stage 05: `-u` runs the newly installed script's internal migration
+          # in the same run; the startup hook remains the fallback for older
+          # updaters and for hosts where the child cannot run.
           bash .github/test/test_geodata_update_path.sh
           # ANSI output: color variables must be real ESC bytes, non-TTY logs
           # must stay control-byte free, and a PTY must still render colors.
@@ -507,9 +508,9 @@ jobs:
               set -euo pipefail
               if command -v apt-get >/dev/null 2>&1; then
                 apt-get update -qq
-                apt-get install -y -qq jq curl diffutils
+                apt-get install -y -qq jq curl diffutils gettext
               else
-                dnf install -y -q jq curl diffutils
+                dnf install -y -q jq curl diffutils gettext
               fi
               bash /repo/.github/test/test_xray_stats.sh
               XRAY_BIN=/usr/local/bin/xray bash /repo/.github/test/test_xray_stats_readout.sh

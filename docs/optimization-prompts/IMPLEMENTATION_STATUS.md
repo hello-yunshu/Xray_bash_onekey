@@ -365,19 +365,19 @@ stream {
 
 #### 迁移入口（旧 `geo_update.sh` 安装）
 
-迁移到原生 geodata 有且只有两条入口：
+迁移到原生 geodata 全程自动，用户不需要做选择题：
 
-1. **下次启动脚本**：`install.sh` 启动钩子调用 `geodata_migrate_legacy`，覆盖普通启动、
-   `-u`、菜单等所有可变启动路径。成功后摘除本项目自建的 `geo_update.sh` cron；失败保留
-   旧 cron、恢复原配置并写入 `geodata_migration.failed` 供菜单显示原因。
-2. **进入 GeoData 菜单**：`traffic_blocker.sh` 在首次进入 GeoData 菜单时，仅当
-   「没有 `.geodata.cron` + 存在本项目 `geo_update.sh` cron」才尝试迁移；已是原生、
-   `custom` 配置、配置无法解析、没有旧 cron 都直接跳过。失败同样保留旧 cron 和原配置，
-   不会重启一个未运行的 Xray。
+1. **每次可变启动**：`install.sh` 启动钩子调用 `geodata_migrate_legacy`，覆盖普通启动、
+   `-u`、菜单等所有入口。仅当存在本项目 `geo_update.sh` cron 或真实
+   `/usr/local/share/xray` 目录时才执行；没有 legacy 证据的 `absent` 配置视为用户主动关闭，
+   不会在下次启动被重新打开。成功后摘除本项目自建的 cron；失败保留旧 cron、恢复原配置
+   并写入 `geodata_migration.failed` 供菜单显示原因。
+2. **`-u` 当次迁移**：主脚本替换完成后，由新安装的 `install.sh` 执行
+   `--internal-geodata-migrate-legacy`（root-only offline mutation），不再等下一次启动。
+   旧进程不 re-exec 新脚本，避免递归；子进程失败时旧 cron 原样保留。
 
-`-u` **故意不在当次迁移**：旧进程替换 `install.sh` 后不 re-exec 新脚本，避免递归、
-退出码透传和服务重启新风险；下一次启动新版脚本时由入口 1 完成迁移。更新日志会提示用户
-“GeoData 迁移将在下次启动脚本或进入 GeoData 菜单时执行”。
+GeoData 菜单只展示事实状态与手动补刷入口，不再提供“立即迁移/移除旧任务”的选择。
+`custom` 配置保留原样；配置不可解析时提示修复 `config.json` 后重启脚本自动重试。
 
 #### 备份恢复时自愈（旧归档也可恢复到新主机）
 
@@ -482,7 +482,7 @@ stream {
 
 | 阶段 | 菜单行为 | 进入下一阶段的条件 |
 | --- | --- | --- |
-| 当前版本（3.3.2） | 保留「自动刷新与手动刷新」子菜单；手动刷新仅作为显式操作，不安装 cron | —（本版本基线） |
+| 当前版本（3.3.3） | GeoData 迁移全程自动；菜单只展示状态与手动补刷，不提供迁移选择题 | —（本版本基线） |
 | 下一版本 | 菜单项默认隐藏，仅在**故障态**显示：存在 `geodata_migration.failed`，或仍有本项目 `geo_update.sh` cron，或 `.dat` 缺失/超过 30 天未刷新；其余情况需用户显式输入确认词才显示 | 本版本发布后，至少 1 台真实 VPS（非容器）连续 **2 个完整周期**（`0 3 * * 1`）原生刷新成功：Xray 日志有下载+reload 记录、两个 `.dat` mtime 前进、无旧 cron、无失败标记 |
 | 再下一版本 | 菜单不再提供下载/运行入口；只保留文档中的手动命令（用户自行下载脚本、校验、运行） | 3 台不同发行版的真实 VPS（Debian/Ubuntu/CentOS）各自连续 2 个周期成功，且菜单手动刷新入口在这 2 个周期内未被使用（以脚本 mtime/日志为准）；无相关回归 issue |
 
