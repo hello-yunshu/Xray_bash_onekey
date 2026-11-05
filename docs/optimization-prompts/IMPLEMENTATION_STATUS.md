@@ -372,8 +372,10 @@ stream {
    `/usr/local/share/xray` 目录时才执行；没有 legacy 证据的 `absent` 配置视为用户主动关闭，
    不会在下次启动被重新打开。成功后摘除本项目自建的 cron；失败保留旧 cron、恢复原配置
    并写入 `geodata_migration.failed` 供菜单显示原因。
-2. **`-u` 当次迁移**：主脚本替换完成后，由新安装的 `install.sh` 执行
-   `--internal-geodata-migrate-legacy`（root-only offline mutation），不再等下一次启动。
+2. **`-u` 当次迁移（仅限 3.3.3+ 自更新）**：主脚本替换完成后，由新安装的
+   `install.sh` 执行 `--internal-geodata-migrate-legacy`（root-only offline mutation）。
+   这只能覆盖“运行中的进程本身已含该代码”的升级（3.3.3 及以后的自更新）。
+   **真实 3.3.2 进程没有这段代码，升级后仍会在下一次启动或进入菜单时迁移**。
    旧进程不 re-exec 新脚本，避免递归；子进程失败时旧 cron 原样保留。
 
 GeoData 菜单只展示事实状态与手动补刷入口，不再提供“立即迁移/移除旧任务”的选择。

@@ -514,6 +514,12 @@ xray_error_log="${TMP_ROOT}/error.log"
 source "${TRAFFIC_SH}" >/dev/null 2>&1 || true
 tb_geo_dir="${geodata_dir}"
 tb_config_file="${TMP_ROOT}/traffic_blocker.json"
+check "CJK table width counts wide chars once" \
+    test "$(tb_display_width "国家/地区阻断 (未配置)")" = "22"
+check "Cyrillic text stays single-cell" \
+    test "$(tb_display_width "Привет")" = "6"
+check "box-drawing characters stay single-cell" \
+    test "$(tb_display_width "─│")" = "2"
 
 printf 'status=failed\nreason=restart\ntime=2026-11-05 10:00:00\n' \
     >"${idleleo_dir}/geodata_migration.failed"
@@ -619,11 +625,48 @@ check "the second run does not rewrite the config" \
     test "$(cat "${xray_conf}")" = "$_legacy_cfg"
 check "the second run leaves no duplicate cron" \
     bash -c "! grep -qF '${geo_update_file}' '${GEO_CRONTAB}'"
+_managed_log=$(geodata_migrate_legacy 2>&1)
+check_not "a managed re-run does not claim a migration" \
+    grep -qF '已从脚本模式切换' <<<"${_managed_log}"
 
 rm -f "${local_bin}/share/xray"
 check "a missing asset symlink is recreated" geodata_migrate_legacy
 check "the recreated symlink points at the managed directory" \
     test "$(_geodata_realpath "${local_bin}/share/xray")" = "$(_geodata_realpath "${geodata_dir}")"
+
+# Non-regular entries must never be deleted by a "successful" migration.
+legacy_setup
+mkdir -p "${local_bin}/share/xray/custom"
+printf 'keep-me\n' >"${local_bin}/share/xray/custom/keep.txt"
+ln -s geoip.dat "${local_bin}/share/xray/link.dat"
+check_not "migration fails closed on a legacy subdirectory/symlink" geodata_migrate_legacy
+check "the legacy directory is still a real directory" \
+    test -d "${local_bin}/share/xray" && test ! -L "${local_bin}/share/xray"
+check "the legacy subdirectory content survives" \
+    test "$(cat "${local_bin}/share/xray/custom/keep.txt")" = "keep-me"
+check "the legacy symlink survives" test -L "${local_bin}/share/xray/link.dat"
+check "the failed migration keeps the old cron" \
+    grep -qF "${geo_update_file}" "${GEO_CRONTAB}"
+check "the failed migration leaves no .geodata block" \
+    test "$(jq -c '.geodata // null' "${xray_conf}")" = "null"
+
+# A failed copy must not leave half of the assets in the managed directory.
+legacy_setup
+rm -f "${local_bin}/share/xray/geosite.dat"
+rm -rf "${geodata_dir}"
+mkdir -p "${geodata_dir}"
+check_not "migration fails when only one .dat exists" geodata_migrate_legacy
+check "the partial copy is removed from the managed directory" \
+    test ! -e "${geodata_dir}/geoip.dat"
+
+# A same-named file with different content is preserved as a backup.
+legacy_setup
+printf 'MANAGED-IP\n' >"${geodata_dir}/geoip.dat"
+check "migration succeeds with a same-named managed file" geodata_migrate_legacy
+check "the differing legacy file is kept in a backup" \
+    bash -c "ls -d '${local_bin}/share/xray.legacy-migrate.'* >/dev/null 2>&1"
+check "the backup keeps the legacy content" \
+    bash -c "grep -rqF 'LEGACY-IP' '${local_bin}'/share/xray.legacy-migrate.*/geoip.dat"
 
 legacy_setup
 jq '.geodata = {"cron":"0 5 * * *","assets":[{"url":"https://example.com/geoip.dat","file":"geoip.dat"}]}' \
@@ -851,7 +894,7 @@ GEO_ACTIVE=0
 : >"${GEO_MANUAL_MARKER}"
 : >"${GEO_SYSTEMCTL_LOG}"
 _manual_cfg=$(cat "${xray_conf}")
-_out=$(tb_geo_run_manual_update 2>&1)
+_out=$(GEO_REFRESH_ASSUME_YES=1 tb_geo_run_manual_update 2>&1)
 _manual_rc=$?
 check "manual refresh succeeds on an inactive host" test "${_manual_rc}" -eq 0
 check "manual refresh announces the not-enabled state first" \
@@ -872,7 +915,7 @@ geodata_apply_config >/dev/null
 GEO_ACTIVE=1
 : >"${GEO_MANUAL_MARKER}"
 : >"${GEO_SYSTEMCTL_LOG}"
-_out=$(tb_geo_run_manual_update 2>&1)
+_out=$(GEO_REFRESH_ASSUME_YES=1 tb_geo_run_manual_update 2>&1)
 check "manual refresh announces the automatic-refresh state first" \
     bash -c "[[ '${_out}' == *'当前为自动刷新状态'* && '${_out}' == *'0 3 * * 1'* && '${_out}' == *'每周一 03:00'* && '${_out}' == *'本次为手动补刷一次'* ]]"
 check "manual refresh reports the running-service result" \
@@ -885,7 +928,7 @@ reset_geo
 : >"${GEO_SYSTEMCTL_LOG}"
 _manual_cfg=$(cat "${xray_conf}")
 export GEO_MANUAL_FAIL=1
-_out=$(tb_geo_run_manual_update 2>&1)
+_out=$(GEO_REFRESH_ASSUME_YES=1 tb_geo_run_manual_update 2>&1)
 _manual_rc=$?
 unset GEO_MANUAL_FAIL
 check "manual refresh failure returns non-zero" test "${_manual_rc}" -ne 0
