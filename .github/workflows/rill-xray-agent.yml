@@ -32,6 +32,10 @@ permissions:
 env:
   RILL_CANONICAL_PIN_FILE: repository_files/rill_integration/RILL_CANONICAL_PIN.json
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   integration:
     runs-on: ubuntu-latest
