@@ -5157,7 +5157,7 @@ geodata_sandbox_allows_write() {
         [[ -f "${file}" ]] || continue
         value=$(sed -n 's/^[[:space:]]*ProtectSystem[[:space:]]*=[[:space:]]*\([^[:space:]]*\).*/\1/p' "${file}" | tail -n 1)
         [[ -n "${value}" ]] && protect="${value}"
-        value=$(sed -n 's/^[[:space:]]*ReadWritePaths[[:space:]]*=[[:space:]]*//p' "${file}" | tail -n 1)
+        value=$(sed -n 's/^[[:space:]]*ReadWritePaths[[:space:]]*=[[:space:]]*//p' "${file}")
         [[ -n "${value}" ]] && writable="${writable} ${value}"
     done
     case "${protect}" in
