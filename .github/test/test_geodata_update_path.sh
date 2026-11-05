@@ -8,8 +8,10 @@
 # only the project's cron is removed, and a hand-written cron entry survives.
 # It then runs the startup hook again to prove idempotence.
 #
-# Stage 05b pins the real v3.3.2 script by SHA256 and asserts it has no
-# same-run hook: a real 3.3.2 process can only migrate on its next start.
+# Stage 05 uses a text-substituted script (3.3.4 -> 3.3.3) to exercise the
+# same-run hook; it is not a real v3.3.2 process. Stage 05b pins the real
+# v3.3.2 artifact by SHA256 and asserts it has no same-run hook: a real 3.3.2
+# process can only migrate on its next start.
 
 set -uo pipefail
 
@@ -161,7 +163,7 @@ rxa_sync_release_helpers() { return 0; }
 rxa_reconcile_release() { return 0; }
 
 echo "============================================================"
-echo "  Stage 05: -u migrates automatically in the same run"
+echo "  Stage 05: -u migrates automatically in the same run (simulated 3.3.3)"
 echo "============================================================"
 
 : >"${SYSTEMCTL_LOG}"
