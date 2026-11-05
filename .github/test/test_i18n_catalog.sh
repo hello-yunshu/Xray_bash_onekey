@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# color-test-fixture: strips ANSI from captured tmux output for width checks.
+# color-test-fixture: strips ANSI from captured PTY output for width checks.
 # Locale-independent menu catalog regression.
 #
+# Requires: bash, gettext/msgunfmt, python3 (PTY menu layout assertions).
 # The target images only have C/C.utf8 generated. gettext ignores LANGUAGE
 # there, so this test proves install.sh's direct .mo lookup renders English /
 # French without en_US.UTF-8 and falls back to English for a missing entry.
@@ -23,13 +24,16 @@ if ! command -v msgunfmt >/dev/null 2>&1 || ! command -v gettext >/dev/null 2>&1
     echo "SKIP: gettext/msgunfmt unavailable"
     exit 0
 fi
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "SKIP: python3 required for the PTY menu layout assertions"
+    exit 0
+fi
 
-mkdir -p "${TMP_ROOT}/idleleo/languages/en/LC_MESSAGES" \
-    "${TMP_ROOT}/idleleo/languages/fr/LC_MESSAGES"
-cp "${REPO_DIR}/i18n/languages/en/LC_MESSAGES/xray_install.mo" \
-    "${TMP_ROOT}/idleleo/languages/en/LC_MESSAGES/xray_install.mo"
-cp "${REPO_DIR}/i18n/languages/fr/LC_MESSAGES/xray_install.mo" \
-    "${TMP_ROOT}/idleleo/languages/fr/LC_MESSAGES/xray_install.mo"
+for lang in en fr ru ko fa zh_CN; do
+    mkdir -p "${TMP_ROOT}/idleleo/languages/${lang}/LC_MESSAGES"
+    cp "${REPO_DIR}/i18n/languages/${lang}/LC_MESSAGES/xray_install.mo" \
+        "${TMP_ROOT}/idleleo/languages/${lang}/LC_MESSAGES/xray_install.mo"
+done
 
 export _TEST_MODE=1
 # The test runs with set -u; on a non-Linux dev host /etc/os-release may be
@@ -139,7 +143,7 @@ _TEST_MODE=1
 source "${REPO_DIR}/install.sh" >/dev/null 2>&1
 if [[ -d /opt/homebrew/bin ]]; then PATH="\${PATH}:/opt/homebrew/bin"; export PATH; fi
 idleleo_dir="${TMP_ROOT}/idleleo"
-printf 'LANG=en_US.UTF-8\nLC_MESSAGES=en_US.UTF-8\n' >"\${idleleo_dir}/language.conf"
+printf 'LANG=%s\nLC_MESSAGES=%s\n' "\${MENU_LOCALE:-en_US.UTF-8}" "\${MENU_LOCALE:-en_US.UTF-8}" >"\${idleleo_dir}/language.conf"
 init_language offline >/dev/null 2>&1
 shell_emoji=""; shell_need_update=""; xray_need_update=""; nginx_need_update=""
 xray_status=""; nginx_status=""; xray_local_connect_status=""
@@ -244,6 +248,23 @@ PY
             bad "${width}-column NO_COLOR menu emitted ESC"
         else
             ok "${width}-column NO_COLOR menu emits zero ESC"
+        fi
+    done
+    # Long translated section titles (fr/ru) must be truncated inside the box
+    # at 45 columns, not printed at full width with a wrapped continuation.
+    for locale in en_US.UTF-8 zh_CN.UTF-8 fr_FR.UTF-8 ru_RU.UTF-8 fa_IR.UTF-8 ko_KR.UTF-8; do
+        lang=${locale%%.*}
+        MENU_LOCALE="${locale}" PTY_NO_COLOR=1 \
+            python3 "${TMP_ROOT}/menu-pty.py" 45 40 "${TMP_ROOT}/menu-run.sh" \
+            >"${TMP_ROOT}/menu-${lang}-45.raw" 2>/dev/null || true
+        sed $'s/\033\\[[0-9;?]*[A-Za-z]/ /g' "${TMP_ROOT}/menu-${lang}-45.raw" \
+            | tr -d '\r' >"${TMP_ROOT}/menu-${lang}-45.clean"
+        assert_menu_rows_closed "${TMP_ROOT}/menu-${lang}-45.clean" 45 \
+            "${lang} 45-column main menu"
+        if grep -q $'\033' "${TMP_ROOT}/menu-${lang}-45.raw"; then
+            bad "${lang} 45-column NO_COLOR menu emitted ESC"
+        else
+            ok "${lang} 45-column NO_COLOR menu emits zero ESC"
         fi
     done
 else

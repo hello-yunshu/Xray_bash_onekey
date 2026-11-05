@@ -14849,9 +14849,15 @@ menu_truncate_visible() {
 }
 
 menu_title() {
-    local title="$1" title_width line_count
+    local title="$1" title_width line_count max
     menu_prepare_width
+    # Keep at least one dash after the title: 5 fixed cells + title + 1 dash.
+    max=$((MENU_BOX_WIDTH - 6))
     title_width=$(menu_visible_width "${title}")
+    if ((title_width > max)); then
+        title=$(menu_truncate_visible "${title}" "${max}")
+        title_width=$(menu_visible_width "${title}")
+    fi
     line_count=$((MENU_BOX_WIDTH - title_width - 5))
     ((line_count < 1)) && line_count=1
 
@@ -14868,9 +14874,15 @@ menu_footer() {
 }
 
 menu_divider() {
-    local title="$1" title_width line_count
+    local title="$1" title_width line_count max
     menu_ensure_width
+    # Keep at least one dash after the title: 5 fixed cells + title + 1 dash.
+    max=$((MENU_BOX_WIDTH - 6))
     title_width=$(menu_visible_width "${title}")
+    if ((title_width > max)); then
+        title=$(menu_truncate_visible "${title}" "${max}")
+        title_width=$(menu_visible_width "${title}")
+    fi
     line_count=$((MENU_BOX_WIDTH - title_width - 5))
     ((line_count < 1)) && line_count=1
 

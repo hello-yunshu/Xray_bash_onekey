@@ -23,9 +23,11 @@ if ! command -v jq >/dev/null 2>&1; then
     echo "jq not found" >&2
     exit 1
 fi
-if ! command -v cmp >/dev/null 2>&1; then
-    echo "SKIP: cmp (diffutils) unavailable" >&2
-    exit 0
+HAVE_CMP=0
+if command -v cmp >/dev/null 2>&1; then
+    HAVE_CMP=1
+else
+    echo "  SKIP: cmp (diffutils) unavailable; repeat-comparison case only" >&2
 fi
 if [[ "$(id -u)" != "0" ]]; then
     echo "run as root" >&2
@@ -232,9 +234,13 @@ else
 fi
 
 run_script "${TMP_ROOT}/q2.out" "${TMP_ROOT}/q2.err"
-sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q.out" >"${TMP_ROOT}/q.norm"
-sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q2.out" >"${TMP_ROOT}/q2.norm"
-cmp -s "${TMP_ROOT}/q.norm" "${TMP_ROOT}/q2.norm" && ok "repeat query identical (uptime excluded)" || bad "repeat query differs"
+if [[ ${HAVE_CMP} -eq 1 ]]; then
+    sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q.out" >"${TMP_ROOT}/q.norm"
+    sed -E '/运行时长|Uptime:/d' "${TMP_ROOT}/q2.out" >"${TMP_ROOT}/q2.norm"
+    cmp -s "${TMP_ROOT}/q.norm" "${TMP_ROOT}/q2.norm" && ok "repeat query identical (uptime excluded)" || bad "repeat query differs"
+else
+    echo "  SKIP: repeat query comparison needs cmp (diffutils)"
+fi
 
 echo "== reset =="
 printf 'n\n' | XRAY_STATS_BIN="${XRAY_BIN}" bash "${SCRIPT}" --config "${CONF}" --reset >"${TMP_ROOT}/rc.out" 2>"${TMP_ROOT}/rc.err"

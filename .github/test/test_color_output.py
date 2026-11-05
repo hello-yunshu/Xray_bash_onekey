@@ -3,6 +3,9 @@
 # (and an old-style counterexample) to prove the scanner can fail.
 """ANSI color output regression tests.
 
+Requires: python3. Run via test_color_output.sh so a missing interpreter is a
+clear SKIP instead of a bare rc=127.
+
 Two independent failure modes are covered:
 
 1. Static: color variables must hold real ESC bytes (``$'\\033...'``), never the
