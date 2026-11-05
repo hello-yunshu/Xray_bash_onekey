@@ -508,12 +508,15 @@ jobs:
               set -euo pipefail
               if command -v apt-get >/dev/null 2>&1; then
                 apt-get update -qq
-                apt-get install -y -qq jq curl diffutils gettext
+                apt-get install -y -qq jq curl diffutils gettext tmux
               else
-                dnf install -y -q jq curl diffutils gettext
+                dnf install -y -q jq curl diffutils gettext tmux
               fi
               bash /repo/.github/test/test_xray_stats.sh
               XRAY_BIN=/usr/local/bin/xray bash /repo/.github/test/test_xray_stats_readout.sh
+              bash /repo/.github/test/test_i18n_catalog.sh
+              bash /repo/.github/test/test_geodata_manual_confirm.sh
+              bash /repo/.github/test/test_install_menu_profiles.sh
               XRAY_BIN=/usr/local/bin/xray bash /repo/.github/test/test_restore_geodata_selfheal.sh
             '
 

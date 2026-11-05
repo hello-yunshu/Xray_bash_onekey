@@ -75,11 +75,185 @@ has_jq_binary() {
     type -P jq >/dev/null 2>&1
 }
 
+has_msgunfmt_binary() {
+    type -P msgunfmt >/dev/null 2>&1
+}
+
+# Locale-independent catalog lookup for the interactive menu.
+#
+# gettext only selects a catalog when the requested locale is generated. On a
+# minimal Ubuntu/CentOS image with only C/C.utf8, LANGUAGE is ignored and the
+# Chinese msgid is returned even though language.conf says en_US.UTF-8. The
+# menu therefore reads the tracked .mo directly and generates a case-based
+# lookup function, with gettext kept as the fallback for hosts where the
+# requested locale (or a newer catalog) is available.
+#
+# The generated function is small enough to build per process (roughly 130-190
+# KB, measurable generation time, sub-millisecond lookups) and is removed from
+# /tmp immediately after being sourced. No new runtime package is required:
+# msgunfmt ships with gettext, which the installer already needs.
+_XRAY_UI_LANG="zh"
+_XRAY_CAT_LANG=""
+_XRAY_CAT_READY=0
+_XRAY_EN_READY=0
+_XRAY_REAL_GETTEXT=""
+
+_xray_i18n_source_catalog() {
+    local lang="$1" fn="$2" mo tmp id str
+    mo="${TEXTDOMAINDIR}/${lang}/LC_MESSAGES/${TEXTDOMAIN}.mo"
+    [[ -r "${mo}" ]] || return 1
+    has_msgunfmt_binary || return 1
+    tmp=$(mktemp "${TMPDIR:-/tmp}/idleleo-catalog.XXXXXX" 2>/dev/null) || return 1
+    if ! msgunfmt --no-wrap "${mo}" 2>/dev/null | awk '
+        /^msgid "/ {
+            id = substr($0, 8)
+            sub(/"$/, "", id)
+            next
+        }
+        /^msgstr "/ {
+            str = substr($0, 9)
+            sub(/"$/, "", str)
+            if (id != "") {
+                print id "\t" str
+                id = ""
+            }
+            next
+        }
+    ' >"${tmp}.tsv"; then
+        rm -f "${tmp}" "${tmp}.tsv"
+        return 1
+    fi
+
+    {
+        printf '%s() {\n' "${fn}"
+        printf '    case "$1" in\n'
+        while IFS=$'\t' read -r id str; do
+            [[ -n "${id}" && -n "${str}" ]] || continue
+            printf '        %q) _XRAY_LOOKUP_RESULT=%q; return 0 ;;\n' "${id}" "${str}"
+        done <"${tmp}.tsv"
+        printf '    esac\n'
+        printf '    return 1\n'
+        printf '}\n'
+    } >"${tmp}.sh" || {
+        rm -f "${tmp}" "${tmp}.tsv" "${tmp}.sh"
+        return 1
+    }
+
+    if ! . "${tmp}.sh"; then
+        rm -f "${tmp}" "${tmp}.tsv" "${tmp}.sh"
+        return 1
+    fi
+    rm -f "${tmp}" "${tmp}.tsv" "${tmp}.sh"
+    return 0
+}
+
+# Install the active gettext wrapper. `zh` always returns the Chinese msgid;
+# other languages use the generated selected catalog, then a real gettext call
+# when it actually translated something, then the English catalog, then the
+# msgid. This keeps an untranslated entry from becoming a half-Chinese,
+# half-English screen.
+_xray_i18n_setup() {
+    local lang="${1:-zh}"
+    _XRAY_UI_LANG="${lang}"
+    _XRAY_REAL_GETTEXT=$(type -P gettext 2>/dev/null || true)
+    _XRAY_CAT_LANG=""
+    _XRAY_CAT_READY=0
+    _XRAY_EN_READY=0
+
+    if [[ "${lang}" != "zh" && -n "${lang}" ]]; then
+        if _xray_i18n_source_catalog "${lang}" _xray_catalog_lookup; then
+            _XRAY_CAT_LANG="${lang}"
+            _XRAY_CAT_READY=1
+        fi
+        if [[ "${lang}" != "en" ]] &&
+            _xray_i18n_source_catalog "en" _xray_catalog_lookup_en; then
+            _XRAY_EN_READY=1
+        fi
+    fi
+
+    gettext() {
+        local msg="$1" out=""
+        if [[ "${_XRAY_UI_LANG}" == "zh" ]]; then
+            printf '%s' "${msg}"
+            return 0
+        fi
+        if [[ "${_XRAY_CAT_READY}" == "1" ]]; then
+            _XRAY_LOOKUP_RESULT=""
+            if _xray_catalog_lookup "${msg}"; then
+                out="${_XRAY_LOOKUP_RESULT}"
+            fi
+            if [[ -n "${out}" ]]; then
+                printf '%s' "${out}"
+                return 0
+            fi
+        fi
+        if [[ -n "${_XRAY_REAL_GETTEXT}" ]]; then
+            out=$("${_XRAY_REAL_GETTEXT}" "${msg}" 2>/dev/null) || out=""
+            if [[ -n "${out}" && "${out}" != "${msg}" ]]; then
+                printf '%s' "${out}"
+                return 0
+            fi
+        fi
+        if [[ "${_XRAY_EN_READY}" == "1" ]]; then
+            _XRAY_LOOKUP_RESULT=""
+            if _xray_catalog_lookup_en "${msg}"; then
+                out="${_XRAY_LOOKUP_RESULT}"
+            fi
+            if [[ -n "${out}" ]]; then
+                printf '%s' "${out}"
+                return 0
+            fi
+        fi
+        printf '%s' "${msg}"
+    }
+    # Prefixes are computed once at source time today; refresh them after a
+    # language switch so an English menu does not keep [信息]/[错误]/[警告].
+    _xray_apply_ui_prefixes
+    # `shell_mode` is initialized before language selection. Refresh only the
+    # still-uninstalled default, never a real detected mode.
+    if [[ "${shell_mode:-}" == "未安装" || -z "${shell_mode:-}" ]]; then
+        shell_mode="$(gettext "未安装")"
+    fi
+}
+
+_xray_apply_ui_prefixes() {
+    Info="${Green}[$(gettext "信息")]${Font}"
+    OK="${Green}[OK]${Font}"
+    Error="${RedW}[$(gettext "错误")]${Font}"
+    Warning="${Yellow}[$(gettext "警告")]${Font}"
+}
+
+# Same fallback policy as the stats helper: a requested non-Chinese catalog is
+# better served by English than by silently reverting the whole menu to Chinese.
+_xray_i18n_fallback_en() {
+    local en_mo="${TEXTDOMAINDIR}/en/LC_MESSAGES/${TEXTDOMAIN}.mo"
+    if [ -f "${en_mo}" ]; then
+        export LANG=en_US.UTF-8 2>/dev/null
+        export LC_MESSAGES=en_US.UTF-8 2>/dev/null
+        _xray_i18n_setup en
+        return 0
+    fi
+    unset LANG
+    unset LC_MESSAGES
+    _xray_i18n_setup zh
+    return 1
+}
+
+# Menu header display name. LANG can be unset (Chinese default) or point at a
+# locale the image never generated, so derive it from the active UI catalog.
+_xray_lang_display() {
+    case "${_XRAY_UI_LANG:-zh}" in
+        en) printf 'en_US' ;;
+        fr) printf 'fr_FR' ;;
+        fa) printf 'fa_IR' ;;
+        ru) printf 'ru_RU' ;;
+        ko) printf 'ko_KR' ;;
+        *) printf 'zh_CN' ;;
+    esac
+}
+
 #notification information
-Info="${Green}[$(gettext "信息")]${Font}"
-OK="${Green}[OK]${Font}"
-Error="${RedW}[$(gettext "错误")]${Font}"
-Warning="${Yellow}[$(gettext "警告")]${Font}"
+_xray_apply_ui_prefixes
 
 # One color-safe confirmation prompt. The text is passed as %s (never embedded
 # in the printf format), so user/gettext content cannot inject escapes. The
@@ -88,7 +262,24 @@ confirm_prompt() {
     printf '%s [Y/%bN%b]? ' "$1" "${Red}" "${Font}" >&2
 }
 
-shell_version="3.3.3"
+# Destructive action with a safe default: bare Enter cancels. The visible
+# prompt therefore emphasises N, not Y.
+confirm_prompt_no() {
+    printf '%s [y/%bN%b]? ' "$1" "${Red}" "${Font}" >&2
+}
+
+# Print the [y/N] prompt and read one answer. Only y/yes returns success.
+confirm_no_answer() {
+    local answer=""
+    confirm_prompt_no "$1"
+    IFS= read -r answer || answer=""
+    case "${answer}" in
+        [yY]|[yY][eE][sS]) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+shell_version="3.3.4"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -1953,8 +2144,10 @@ safe_source_language_conf() {
     # Reject the complete file rather than partially applying a mixed
     # valid/malicious payload.
     [[ ${invalid} -eq 0 ]] || return 1
-    [[ -n "${parsed_lang}" ]] && export LANG="${parsed_lang}"
-    [[ -n "${parsed_lc_messages}" ]] && export LC_MESSAGES="${parsed_lc_messages}"
+    # Minimal images usually lack en_US.UTF-8/ru_RU.UTF-8; bash would print a
+    # setlocale warning even though the catalog lookup no longer needs it.
+    [[ -n "${parsed_lang}" ]] && export LANG="${parsed_lang}" 2>/dev/null
+    [[ -n "${parsed_lc_messages}" ]] && export LC_MESSAGES="${parsed_lc_messages}" 2>/dev/null
     return 0
 }
 
@@ -2025,6 +2218,9 @@ init_language() {
     export TEXTDOMAIN="xray_install"
     export TEXTDOMAINDIR="${idleleo_dir}/languages"
     . "$gettext_sh"
+    # Default until language.conf is parsed. This also refreshes the [信息]/
+    # [错误]/[警告] prefixes so they cannot stay stale after a switch.
+    _xray_i18n_setup zh
 
     if [ -f "${idleleo_dir}/language.conf" ]; then
         # Safe-read language.conf instead of sourcing it directly.
@@ -2052,36 +2248,40 @@ init_language() {
                     return 0
                     ;;
             esac
-            # Minimal images often ship only C/C.UTF-8 and do not generate
-            # en_US.UTF-8/ru_RU.UTF-8/etc. In that case gettext would silently
-            # fall back to the Chinese msgids even though language.conf selects
-            # another language. LANGUAGE picks the catalog and C.UTF-8 is the
-            # UTF-8 locale every supported distro provides; LANG keeps the
-            # user's choice for display and other logic.
-            export LANGUAGE="${lang_code}"
-            export LC_ALL=C.UTF-8
-
+            # The menu reads the .mo directly through _xray_i18n_setup; do not
+            # force LC_ALL here. gettext remains the fallback, but the catalog
+            # lookup no longer depends on a generated en_US.UTF-8/ru_RU.UTF-8
+            # locale on minimal images.
             local lang_file="${TEXTDOMAINDIR}/${lang_code}/LC_MESSAGES/${TEXTDOMAIN}.mo"
-            if [[ ${allow_online} -eq 1 ]]; then
-                if [ ! -f "$lang_file" ]; then
-                    if ! update_language_file "$lang_code"; then
+            local had_lang_file=0
+            [ -f "$lang_file" ] && had_lang_file=1
+            if [[ ${allow_online} -eq 1 && ${had_lang_file} -eq 0 ]]; then
+                if ! update_language_file "$lang_code"; then
+                    if _xray_i18n_fallback_en; then
+                        log_echo "${Warning} ${YellowBG} $(gettext "语言文件缺失, 已回退英文") ${Font}"
+                    else
                         log_echo "${Warning} ${YellowBG} $(gettext "语言文件更新失败"), $(gettext "将使用默认语言") ${Font}"
-                        unset LANG
-                        unset LC_MESSAGES
-                        return 0
                     fi
-                elif check_language_update "$lang_code"; then
-                    log_echo "${Info} ${Green} $(gettext "发现语言文件更新") ${Font}"
-                    if update_language_file "$lang_code"; then
-                        . "$gettext_sh"
-                    fi
+                    return 0
                 fi
-            elif [ ! -f "$lang_file" ]; then
-                # offline: no local translation available -> default language,
-                # never try to download. Keeps offline commands network-free.
-                unset LANG
-                unset LC_MESSAGES
+            fi
+            if [ ! -f "$lang_file" ]; then
+                # offline: no local translation available. Match the stats helper
+                # and fall back to English, never to a Chinese menu.
+                if _xray_i18n_fallback_en; then
+                    log_echo "${Warning} ${YellowBG} $(gettext "语言文件缺失, 已回退英文") ${Font}"
+                fi
                 return 0
+            fi
+            # Switch before probing for a remote update so those notices are
+            # already in the selected language, not the Chinese default.
+            _xray_i18n_setup "$lang_code"
+            if [[ ${allow_online} -eq 1 && ${had_lang_file} -eq 1 ]] && check_language_update "$lang_code"; then
+                log_echo "${Info} ${Green} $(gettext "发现语言文件更新") ${Font}"
+                if update_language_file "$lang_code"; then
+                    . "$gettext_sh"
+                    _xray_i18n_setup "$lang_code"
+                fi
             fi
         fi
     # else
@@ -4856,12 +5056,32 @@ set_xray_config_path() {
     ln -s "${xray_conf}" "${xray_default_conf}"
     local _default_geo_dir="${local_bin}/share/xray"
     if [[ -d "${_default_geo_dir}" ]] && [[ ! -L "${_default_geo_dir}" ]]; then
-        local _new_geo_dir="${idleleo_dir}/share/xray"
-        mkdir -p "${_new_geo_dir}"
-        for _f in "${_default_geo_dir}"/*; do
-            [[ -f "$_f" ]] && mv "$_f" "${_new_geo_dir}/"
+        local _new_geo_dir="${idleleo_dir}/share/xray" _entry _non_regular=""
+        # Never silently delete a legacy subdirectory or symlink. Fail closed
+        # and leave the old tree intact; the user can migrate it manually.
+        for _entry in "${_default_geo_dir}"/* "${_default_geo_dir}"/.[!.]* "${_default_geo_dir}"/..?*; do
+            [[ -e "${_entry}" || -L "${_entry}" ]] || continue
+            if [[ -L "${_entry}" || ! -f "${_entry}" ]]; then
+                _non_regular="${_entry##*/}"
+                break
+            fi
         done
-        rmdir "${_default_geo_dir}" 2>/dev/null || rm -rf "${_default_geo_dir}"
+        if [[ -n "${_non_regular}" ]]; then
+            log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 目录包含非普通条目, 跳过迁移并保留原目录"): ${_non_regular} ${Font}"
+            return 1
+        fi
+        mkdir -p "${_new_geo_dir}"
+        for _entry in "${_default_geo_dir}"/*; do
+            [[ -f "${_entry}" && ! -L "${_entry}" ]] || continue
+            mv "${_entry}" "${_new_geo_dir}/" || {
+                log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 文件移动失败, 保留原目录") ${Font}"
+                return 1
+            }
+        done
+        if ! rmdir "${_default_geo_dir}" 2>/dev/null; then
+            log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 目录仍非空, 跳过迁移") ${Font}"
+            return 1
+        fi
     fi
     if [[ ! -L "${_default_geo_dir}" ]]; then
         ln -s "${idleleo_dir}/share/xray" "${_default_geo_dir}"
@@ -5212,23 +5432,43 @@ geodata_migrate_asset_layout() {
         return 1
     fi
     [[ -d "${default_dir}" ]] || return 1
+    # Scan every entry before touching anything: a legacy subdirectory, symlink
+    # or device must never be silently deleted by the later `rm -rf backup`.
+    local entry base non_regular="" copied=()
+    for entry in "${default_dir}"/* "${default_dir}"/.[!.]* "${default_dir}"/..?*; do
+        [[ -e "${entry}" || -L "${entry}" ]] || continue
+        if [[ -L "${entry}" || ! -f "${entry}" ]]; then
+            non_regular="${entry##*/}"
+            break
+        fi
+    done
+    if [[ -n "${non_regular}" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 目录包含非普通条目, 跳过迁移并保留原目录"): ${non_regular} ${Font}"
+        return 1
+    fi
     mkdir -p "${geodata_dir}" || return 1
     # Merge regular files, but never overwrite a file the legacy updater has
     # already written into ${geodata_dir}. The old directory remains readable
     # until the managed path has both .dat files, so a failed migration cannot
     # leave Xray with a half-moved asset directory.
-    local entry base
     for entry in "${default_dir}"/*; do
         [[ -f "${entry}" && ! -L "${entry}" ]] || continue
         base="${entry##*/}"
         if [[ ! -e "${geodata_dir}/${base}" && ! -L "${geodata_dir}/${base}" ]]; then
-            cp -p -- "${entry}" "${geodata_dir}/${base}" || {
+            if ! cp -p -- "${entry}" "${geodata_dir}/${base}"; then
+                if (( ${#copied[@]} > 0 )); then
+                    for base in "${copied[@]}"; do rm -f "${geodata_dir}/${base}"; done
+                fi
                 log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 文件复制失败, 保留原目录"): ${entry} ${Font}"
                 return 1
-            }
+            fi
+            copied+=("${base}")
         fi
     done
     if ! geodata_files_ok; then
+        if (( ${#copied[@]} > 0 )); then
+            for base in "${copied[@]}"; do rm -f "${geodata_dir}/${base}"; done
+        fi
         log_echo "${Warning} ${YellowBG} $(gettext "迁移后缺少 geoip.dat/geosite.dat, 保留原目录"): ${default_dir} ${Font}"
         return 1
     fi
@@ -5243,8 +5483,23 @@ geodata_migrate_asset_layout() {
         fi
         return 1
     fi
-    rm -rf "${backup}" 2>/dev/null || \
-        log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 迁移备份未清理"): ${backup} ${Font}"
+    # A same-named file in ${geodata_dir} wins by policy. If its content differs
+    # from the legacy copy, keep the old tree as a backup instead of deleting it.
+    local keep_backup=0
+    for entry in "${backup}"/*; do
+        [[ -f "${entry}" && ! -L "${entry}" ]] || continue
+        base="${entry##*/}"
+        if [[ -e "${geodata_dir}/${base}" ]] && ! cmp -s -- "${entry}" "${geodata_dir}/${base}"; then
+            keep_backup=1
+            break
+        fi
+    done
+    if [[ ${keep_backup} -eq 1 ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 存在同名不同内容的文件, 旧目录备份保留于"): ${backup} ${Font}"
+    else
+        rm -rf "${backup}" 2>/dev/null || \
+            log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 迁移备份未清理"): ${backup} ${Font}"
+    fi
     log_echo "${OK} ${GreenBG} $(gettext "已将旧 GeoData 目录迁移到"): ${geodata_dir} ${Font}"
     return 0
 }
@@ -5357,7 +5612,9 @@ geodata_migrate_legacy() {
         log_echo "${Warning} ${YellowBG} $(gettext "旧 GeoData 刷新任务移除失败, 请手动检查 crontab") ${Font}"
         return 1
     fi
-    log_echo "${OK} ${GreenBG} $(gettext "GeoData 已从脚本模式切换为自动刷新 (Xray 原生)") ${Font}"
+    if [[ "${state}" == "absent" ]]; then
+        log_echo "${OK} ${GreenBG} $(gettext "GeoData 已从脚本模式切换为自动刷新 (Xray 原生)") ${Font}"
+    fi
     geodata_migration_clear_failed
     return 0
 }
@@ -8583,6 +8840,21 @@ set_traffic_blocker() {
     tb_main_menu
 }
 
+# Direct GeoData entry (audit P2-9): the same page was buried under
+# "other options -> traffic blocker -> refresh". Keep the safe update check.
+set_geodata_menu() {
+    if [[ ! -f "${xray_conf}" ]]; then
+        log_echo "${Error} ${RedBG} Xray $(gettext "未安装"), $(gettext "请先安装") Xray ${Font}"
+        return 1
+    fi
+    if ! ensure_sub_script "traffic_blocker.sh" "${tb_remote_url}"; then
+        return 1
+    fi
+    source "${scripts_dir}/traffic_blocker.sh"
+    tb_check_for_updates
+    tb_geo_menu
+}
+
 setup_auto_clean_logs() {
     local logrotate_config="${LOGROTATE_CONFIG_PATH:-/etc/logrotate.d/xray_log_cleanup}"
     local logrotate_dir tmp_config nginx_user nginx_group
@@ -10477,9 +10749,18 @@ xray_status_add() {
 # CLI/menu delegate for the read-only stats helper. Config mutation remains
 # here: only --stats may offer the one-time api.listen migration, and only
 # after an explicit confirmation. The helper itself never writes config.
+# Legacy enable path left this downloaded merge source in the live config
+# directory. It is never live config; remove it on startup and --stats so an
+# upgraded node cannot keep looking at two similar files.
+xray_stats_cleanup_legacy_config() {
+    [[ -f "${xray_status_conf}" ]] || return 0
+    rm -f "${xray_status_conf}" 2>/dev/null || return 1
+}
+
 xray_stats_cli() {
     local mode="${1:-}"
     shift || true
+    xray_stats_cleanup_legacy_config || true
     if [[ "$(id -u)" != "0" ]]; then
         printf '%s\n' "$(gettext "统计查询需要 root 权限")" >&2
         return 5
@@ -10541,22 +10822,10 @@ xray_stats_cli() {
             return 4
             ;;
     esac
-    # The stats helper runs in its own process. Tell it which language the
-    # current menu is actually rendering, not merely which language.conf asks
-    # for: a minimal host may not have the requested locale generated, in which
-    # case gettext keeps the Chinese msgids. Probing a known string prevents a
-    # Chinese menu from opening an English stats table.
-    local _stats_lang="zh"
-    case "${LANG%.*}" in
-        en_US) _stats_lang="en" ;;
-        fr_FR) _stats_lang="fr" ;;
-        ru_RU) _stats_lang="ru" ;;
-        ko_KR) _stats_lang="ko" ;;
-        fa_IR) _stats_lang="fa" ;;
-    esac
-    if [[ "${_stats_lang}" != "zh" && "$(gettext "信息")" == "信息" ]]; then
-        _stats_lang="zh"
-    fi
+    # The stats helper resolves its own catalog and falls back to English.
+    # Pass the menu's actual language directly; never downgrade to zh merely
+    # because a gettext probe failed on a minimal image.
+    local _stats_lang="${_XRAY_UI_LANG:-zh}"
     XRAY_STATS_LANG="${_stats_lang}" bash "${xray_stats_script}" --config "${xray_conf}" "${stats_args[@]}"
 }
 
@@ -10781,9 +11050,9 @@ delete_tls_key_and_crt() {
 }
 
 countdown() {
-    # The progress bar uses raw ANSI cursor sequences. A non-TTY caller must
-    # not receive control bytes in a redirected log; skip the visual delay.
-    [[ -t 1 ]] || return 0
+    # The progress bar uses raw ANSI cursor sequences. Skip it when stdout is
+    # not a TTY, and also under NO_COLOR/TERM=dumb, so those modes see zero ESC.
+    [[ -t 1 && "${_color_enabled}" == "1" ]] || return 0
     countdown_cnt=0
     countdown_str=""
     while [[ ${countdown_cnt} -le 30 ]]; do
@@ -11605,7 +11874,7 @@ menu_relay_main() {
         menu_title "$(gettext "中转节点管理") ${Red}[${shell_version}]${Font}"
         menu_spaced_fields \
             "$(gettext "当前模式"): $(gettext "中转节点")" \
-            "$(gettext "当前语言"): ${LANG%.*}"
+            "$(gettext "当前语言"): $(_xray_lang_display)"
         menu_divider "$(gettext "转发信息")"
         menu_fields \
             "$(gettext "入口"): $(relay_entry_display)" \
@@ -12870,6 +13139,7 @@ show_help() {
     echo "      --fail2ban-trust-add <jail> <ip-or-cidr>   $(gettext "添加可信 IP/CIDR")"
     echo "      --fail2ban-trust-del <jail> <ip-or-cidr>   $(gettext "移除可信 IP/CIDR")"
     echo "  -tb, --traffic-blocker      $(gettext "设置 Xray 流量阻断")"
+    echo "      GEO_REFRESH_ASSUME_YES=1   $(gettext "跳过 GeoData 手动刷新确认 (仅自动化)")"
     echo "  -h, --help                  $(gettext "显示帮助")"
     echo "  -l, --language              $(gettext "修改语言")"
     echo "  -n, --nginx-update          $(gettext "更新") Nginx"
@@ -13158,24 +13428,24 @@ set_language() {
             rm -rf "${idleleo_dir}/languages"
             ;;
         2)
-            export LANG=en_US.UTF-8
-            export LC_MESSAGES=en_US.UTF-8
+            export LANG=en_US.UTF-8 2>/dev/null
+            export LC_MESSAGES=en_US.UTF-8 2>/dev/null
             ;;
         3)
-            export LANG=fr_FR.UTF-8
-            export LC_MESSAGES=fr_FR.UTF-8
+            export LANG=fr_FR.UTF-8 2>/dev/null
+            export LC_MESSAGES=fr_FR.UTF-8 2>/dev/null
             ;;
         4)
-            export LANG=fa_IR.UTF-8
-            export LC_MESSAGES=fa_IR.UTF-8
+            export LANG=fa_IR.UTF-8 2>/dev/null
+            export LC_MESSAGES=fa_IR.UTF-8 2>/dev/null
             ;;
         5)
-            export LANG=ru_RU.UTF-8
-            export LC_MESSAGES=ru_RU.UTF-8
+            export LANG=ru_RU.UTF-8 2>/dev/null
+            export LC_MESSAGES=ru_RU.UTF-8 2>/dev/null
             ;;
         6)
-            export LANG=ko_KR.UTF-8
-            export LC_MESSAGES=ko_KR.UTF-8
+            export LANG=ko_KR.UTF-8 2>/dev/null
+            export LC_MESSAGES=ko_KR.UTF-8 2>/dev/null
             ;;
         *)
             log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
@@ -14484,16 +14754,18 @@ menu_clear() {
 }
 
 menu_prepare_width() {
-    local terminal_columns="" max_box_width=60
+    local terminal_columns="" max_box_width=60 size=""
 
-    if [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
-        terminal_columns=$(tput cols 2>/dev/null || true)
-    fi
+    # Query the controlling terminal first. tmux/detached sessions do not
+    # necessarily keep fd 1 a TTY, and `[[ -t 1 ]]` inside a pipeline is false,
+    # which previously pinned the box at 60 columns even in a 45-column pane.
+    size=$(stty size 2>/dev/null </dev/tty || true)
+    terminal_columns=${size#* }
     if ! [[ ${terminal_columns} =~ ^[0-9]+$ ]]; then
         terminal_columns="${COLUMNS:-}"
     fi
-    if ! [[ ${terminal_columns} =~ ^[0-9]+$ ]] && [[ -t 1 ]]; then
-        terminal_columns=$(stty size 2>/dev/null | awk '{print $2}')
+    if ! [[ ${terminal_columns} =~ ^[0-9]+$ ]] && command -v tput >/dev/null 2>&1; then
+        terminal_columns=$(tput cols 2>/dev/null || true)
     fi
     [[ ${terminal_columns} =~ ^[0-9]+$ ]] || terminal_columns=80
 
@@ -14843,6 +15115,9 @@ menu_action() {
     40)
         menu_xray_stats
         ;;
+    41)
+        set_geodata_menu
+        ;;
     31)
         set_traffic_blocker
         ;;
@@ -14868,16 +15143,22 @@ menu_action() {
         menu_pause
         ;;
     35)
-        restore_directories
+        if confirm_no_answer "$(gettext "将用最新备份覆盖当前配置与程序, 是否继续")"; then
+            restore_directories
+        fi
         menu_pause
         ;;
     36)
-        uninstall_all
-        exec "${BASH:-bash}" "${idleleo}"
+        if confirm_no_answer "$(gettext "将停止并卸载 Xray/Nginx, 是否继续")"; then
+            uninstall_all
+            exec "${BASH:-bash}" "${idleleo}"
+        fi
         ;;
     37)
-        delete_tls_key_and_crt
-        rm -rf "${ssl_chainpath:?}"/*
+        if confirm_no_answer "$(gettext "将删除 ACME 证书与证书残留文件, 是否继续")"; then
+            delete_tls_key_and_crt
+            rm -rf "${ssl_chainpath:?}"/*
+        fi
         menu_pause
         ;;
     38)
@@ -15367,7 +15648,11 @@ menu_xray_stats() {
         if [[ -f "${xray_conf}" ]] && jq -e 'has("stats")' "${xray_conf}" >/dev/null 2>&1; then
             stats_state=$(gettext "已开启")
             listen=$(jq -r '.api.listen // empty' "${xray_conf}" 2>/dev/null) || listen=""
-            [[ -n "${listen}" ]] && stats_state+=" (${listen})"
+            if [[ -n "${listen}" ]]; then
+                stats_state+=" (${listen})"
+            else
+                stats_state+=" ($(gettext "缺少 api.listen"))"
+            fi
         fi
         menu_submenu_begin "Xray $(gettext "流量统计")"
         menu_row "${Green}$(gettext "当前状态"): ${Font}${stats_state}"
@@ -15400,10 +15685,11 @@ menu_tools() {
         menu_item 4 "Xray $(gettext "流量阻断")"
         menu_item 5 "$(gettext "清除") $(gettext "日志文件")"
         menu_item 6 "$(gettext "服务器网速")"
+        menu_item 7 "$(gettext "刷新 GeoData")"
         menu_blank
         menu_item 0 "$(gettext "返回")"
         menu_footer
-        menu_read menu_num 6
+        menu_read menu_num 7
         case $menu_num in
             0) return ;;
             1) menu_action 28 ;;
@@ -15412,6 +15698,7 @@ menu_tools() {
             4) menu_action 31 ;;
             5) menu_action 32 ;;
             6) menu_action 33 ;;
+            7) menu_action 41 ;;
         esac
     done
 }
@@ -15442,7 +15729,7 @@ menu_main_header() {
     menu_clear
     menu_title "$(gettext "Xray 管理脚本") ${Red}[${shell_version}]${Font} ${shell_emoji}"
     local mode_field="$(gettext "当前模式"): ${shell_mode}"
-    local language_field="$(gettext "当前语言"): ${LANG%.*}"
+    local language_field="$(gettext "当前语言"): $(_xray_lang_display)"
     local shell_version_field="$(gettext "脚本"): ${shell_need_update}"
     local xray_version_field="Xray: ${xray_need_update}"
     local nginx_version_field="Nginx: ${nginx_need_update}"
@@ -15711,6 +15998,9 @@ check_online_version_connect
 read_version || exit 1
 
 harden_config_permissions_if_needed || exit 1
+# A stale legacy status_config.json must go even when the user never toggles
+# statistics again (audit P2-1).
+xray_stats_cleanup_legacy_config || true
 # One-time legacy repair on every mutable startup (including -u): old installs
 # keep an external geo_update.sh cron and may still use the real
 # /usr/local/share/xray directory. No prompt is shown: the hook migrates

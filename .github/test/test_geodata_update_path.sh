@@ -7,6 +7,9 @@
 # migration command in the same run. The test asserts native geodata is active,
 # only the project's cron is removed, and a hand-written cron entry survives.
 # It then runs the startup hook again to prove idempotence.
+#
+# Stage 05b pins the real v3.3.2 script by SHA256 and asserts it has no
+# same-run hook: a real 3.3.2 process can only migrate on its next start.
 
 set -uo pipefail
 
@@ -110,7 +113,7 @@ text = text.replace("/usr/local", local)
 text = text.replace("/etc/systemd", systemd)
 pathlib.Path(new).write_text(text, encoding="utf-8")
 pathlib.Path(old).write_text(
-    text.replace('shell_version="3.3.3"', 'shell_version="3.3.2"', 1),
+    text.replace('shell_version="3.3.4"', 'shell_version="3.3.3"', 1),
     encoding="utf-8",
 )
 PY
@@ -141,8 +144,8 @@ LOG_FILE="${log_dir}/install.log"
 shell_version_tmp="${IDLE}/tmp/shell_version.tmp"
 mkdir -p "${IDLE}/tmp" "${BIN}"
 
-shell_version="3.3.2"
-shell_online_version="3.3.3"
+shell_version="3.3.3"
+shell_online_version="3.3.4"
 auto_update="NO"
 update_assume_yes="YES"
 update_allow_major="NO"
@@ -166,7 +169,7 @@ _update_sh_impl -u --yes >"${TMP_ROOT}/update.out" 2>&1
 _update_rc=$?
 check "the non-interactive -u --yes update exits 0" test "${_update_rc}" -eq 0
 check "the update replaced the script with the downloaded version" \
-    grep -q '^shell_version="3.3.3"' "${DEST}"
+    grep -q '^shell_version="3.3.4"' "${DEST}"
 
 if [[ "$(id -u)" -eq 0 ]]; then
     check "-u writes the native geodata block in the same run" \
@@ -253,6 +256,28 @@ check "the retry clears the failure marker" \
 
 echo ""
 echo "============================================================"
+echo "  Stage 05b: real v3.3.2 cannot migrate in the same process"
+echo "============================================================"
+V332="${TMP_ROOT}/install-v3.3.2.sh"
+V332_SHA="764ac1253591f1f9d46c1b69ac3ead593d2ea35012ffbf79f583ba993e5a5df4"
+if command -v curl >/dev/null 2>&1 &&
+    curl -fsSL --retry 2 --max-time 60 \
+        "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/v3.3.2/install.sh" \
+        -o "${V332}" 2>/dev/null; then
+    if command -v sha256sum >/dev/null 2>&1; then
+        got_sha=$(sha256sum "${V332}" | awk '{print $1}')
+    else
+        got_sha=$(shasum -a 256 "${V332}" | awk '{print $1}')
+    fi
+    check "downloaded real v3.3.2 matches its pinned SHA256" test "${got_sha}" = "${V332_SHA}"
+    check_not "real v3.3.2 has no same-run migration hook" \
+        grep -qF -- '--internal-geodata-migrate-legacy' "${V332}"
+    check "the new script has the same-run migration hook" \
+        grep -qF -- '--internal-geodata-migrate-legacy' "${INSTALL_SH}"
+else
+    echo "  SKIP: real v3.3.2 asset unavailable (network)"
+fi
+
 printf 'Result: %d passed, %d failed\n' "${PASS}" "${FAIL}"
 echo "============================================================"
 [[ "${FAIL}" -eq 0 ]] || exit 1
