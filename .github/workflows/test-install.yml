@@ -151,7 +151,8 @@ jobs:
           bash .github/test/test_geodata_update_path.sh
           # ANSI output: color variables must be real ESC bytes, non-TTY logs
           # must stay control-byte free, and a PTY must still render colors.
-          python3 .github/test/test_color_output.py
+          # The wrapper turns a missing python3 into an explicit SKIP.
+          bash .github/test/test_color_output.sh
           # Stage 04: auto-update retries are keyed on the failed target
           # version (legacy .xray/.nginx markers no longer block forever),
           # metadata falls back to GitHub Raw, and relay nodes never treat a
@@ -508,9 +509,9 @@ jobs:
               set -euo pipefail
               if command -v apt-get >/dev/null 2>&1; then
                 apt-get update -qq
-                apt-get install -y -qq jq curl diffutils gettext tmux
+                apt-get install -y -qq jq curl diffutils gettext tmux python3
               else
-                dnf install -y -q jq curl diffutils gettext tmux
+                dnf install -y -q jq curl diffutils gettext tmux python3
               fi
               bash /repo/.github/test/test_xray_stats.sh
               XRAY_BIN=/usr/local/bin/xray bash /repo/.github/test/test_xray_stats_readout.sh
