@@ -191,9 +191,14 @@ if command -v gettext >/dev/null 2>&1; then
     # The install.sh wrapper must pass the menu language through without a
     # gettext probe that would downgrade to zh on a minimal image.
     cp "${SCRIPT}" "${SCRIPTS_DIR}/xray_stats.sh"
-    _XRAY_UI_LANG=en XRAY_STATS_BIN="${XRAY_BIN}" xray_stats_cli stats \
-        >"${TMP_ROOT}/wrapper.out" 2>"${TMP_ROOT}/wrapper.err"
-    [[ $? -eq 0 ]] && grep -q "Overview" "${TMP_ROOT}/wrapper.out" && \
+    export TEXTDOMAIN=xray_install
+    export TEXTDOMAINDIR="${REPO_DIR}/i18n/languages"
+    export XRAY_STATS_BIN="${XRAY_BIN}"
+    export _XRAY_UI_LANG=en
+    xray_stats_cli stats >"${TMP_ROOT}/wrapper.out" 2>"${TMP_ROOT}/wrapper.err"
+    wrapper_rc=$?
+    unset _XRAY_UI_LANG XRAY_STATS_BIN
+    [[ "${wrapper_rc}" -eq 0 ]] && grep -q "Overview" "${TMP_ROOT}/wrapper.out" && \
         ok "wrapper keeps English on a minimal image" || bad "wrapper downgraded the language"
 else
     echo "  SKIP: gettext unavailable for the catalog checks"
