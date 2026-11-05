@@ -388,12 +388,16 @@ _truncate() {
 }
 
 _term_cols() {
-    local w="${XRAY_STATS_WIDTH:-}"
+    local w="${XRAY_STATS_WIDTH:-}" size=""
+    [[ -n "${w}" ]] || w="${COLUMNS:-}"
+    # `[[ -t 1 ]]` is useless inside $(...): the command substitution's stdout
+    # is a pipe. Query the controlling terminal directly instead.
     if [[ -z "${w}" ]]; then
-        if [[ -t 1 ]]; then
-            w=$(tput cols 2>/dev/null || true)
-        fi
-        [[ -n "${w}" ]] || w="${COLUMNS:-80}"
+        size=$(stty size 2>/dev/null </dev/tty || true)
+        w=${size#* }
+    fi
+    if [[ -z "${w}" ]] && [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
+        w=$(tput cols 2>/dev/null || true)
     fi
     case "${w}" in
         ''|*[!0-9]*) w=80 ;;
@@ -781,7 +785,7 @@ watch_cleanup() {
 
 if [[ "${RESET}" == "1" ]]; then
     if [[ "${ASSUME_YES}" != "1" ]]; then
-        printf '%s [%s/%bN%b]? ' "$(_t "重置入站流量统计")" "${Green}" "${Red}" "${Font}" >&2
+        printf '%s [Y/%bN%b]? ' "$(_t "重置入站流量统计")" "${Red}" "${Font}" >&2
         answer=""
         read -r answer || answer=""
         case "${answer}" in
@@ -813,14 +817,28 @@ if [[ -n "${WATCH_INTERVAL}" ]]; then
         elif [[ "${JSON_OUTPUT}" != "1" && "${_watch_first}" != "1" ]]; then
             printf '\n'
         fi
+        _watch_is_first="${_watch_first}"
         _watch_first=0
         if [[ "${JSON_OUTPUT}" != "1" ]]; then
-            local every header
             every=$(_t "每 %s 秒刷新，Ctrl-C 退出")
             header="$(printf "${every}" "${WATCH_INTERVAL}")"
-            printf '%b%s%b\n\n' "${Bold}" "$(_t "实时监控") · ${header} · $(_t "最后刷新") $(date '+%H:%M:%S')" "${Font}"
+            if [[ "${_watch_is_first}" == "1" ]]; then
+                # First human frame: query before writing the title so an
+                # unreachable API leaves stdout at zero bytes.
+                _watch_buffered=$(run_once 0)
+                _watch_rc=$?
+                if [[ "${_watch_rc}" -ne 0 ]]; then
+                    exit "${_watch_rc}"
+                fi
+                printf '%b%s%b\n\n' "${Bold}" "$(_t "实时监控") · ${header} · $(_t "最后刷新") $(date '+%H:%M:%S')" "${Font}"
+                printf '%s\n' "${_watch_buffered}"
+            else
+                printf '%b%s%b\n\n' "${Bold}" "$(_t "实时监控") · ${header} · $(_t "最后刷新") $(date '+%H:%M:%S')" "${Font}"
+                run_once 0
+            fi
+        else
+            run_once 0
         fi
-        run_once 0
         sleep "${WATCH_INTERVAL}"
     done
 fi
