@@ -285,6 +285,15 @@ check "an explicit ReadWritePaths for the asset directory is accepted" geodata_s
 cat >"${xray_systemd_file}" <<UNIT
 [Service]
 User=nobody
+ProtectSystem=strict
+ReadWritePaths=/var/log/xray
+ReadWritePaths=${geodata_dir}
+ExecStart=/usr/local/bin/xray run -config /usr/local/etc/xray/config.json
+UNIT
+check "multiple ReadWritePaths lines are additive" geodata_sandbox_allows_write
+cat >"${xray_systemd_file}" <<UNIT
+[Service]
+User=nobody
 ExecStart=/usr/local/bin/xray run -config /usr/local/etc/xray/config.json
 UNIT
 check "the pinned unit (no sandbox directives) is accepted" geodata_sandbox_allows_write
