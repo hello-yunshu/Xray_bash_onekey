@@ -130,6 +130,8 @@ tb_display_width() {
     while ((i < n)); do
         c=${str:i:1}
         v=$(printf '%d' "'$c" 2>/dev/null) || v=63
+        # bash 3.2 reports high bytes as negative signed chars.
+        ((v < 0)) && v=$((v + 256))
         if ((v < 128)); then
             step=1
         elif ((v < 192)); then
@@ -856,25 +858,6 @@ tb_geo_ensure_updater() {
     download_script_file "${remote}" "${updater}"
 }
 
-tb_geo_run_manual_update() {
-    local updater rc
-    if ! tb_geo_confirm_refresh; then
-        log_echo "${Info} ${Green} $(gettext "已取消手动刷新") ${Font}"
-        return 1
-    fi
-    if ! tb_geo_ensure_updater; then
-        log_echo "${Error} ${RedBG} $(gettext "GeoData 手动刷新脚本下载失败") ${Font}"
-        return 1
-    fi
-    updater=$(tb_geo_updater_path)
-    tb_geo_manual_refresh_intro
-    log_echo "${Info} ${Green} $(gettext "正在运行 geo_update.sh")... ${Font}"
-    bash "${updater}"
-    rc=$?
-    tb_geo_manual_refresh_finish "${rc}"
-    return "${rc}"
-}
-
 # Manual refresh is a destructive action: it downloads both files and may
 # restart Xray. Default is No; GEO_REFRESH_ASSUME_YES=1 is the documented
 # non-interactive path. Cancellation returns 1, matching --stats-reset.
@@ -933,25 +916,6 @@ tb_update_all_geo() {
     rc=$?
     tb_geo_manual_refresh_finish "${rc}"
     return "${rc}"
-}
-
-tb_update_geo_file() {
-    local file_name="$1" rc
-
-    echo
-    tb_geo_manual_refresh_intro
-    if ! tb_geo_confirm_refresh; then
-        log_echo "${Info} ${Green} $(gettext "已取消手动刷新") ${Font}"
-        return 1
-    fi
-    log_echo "${Info} ${Green} ${file_name} $(gettext "正在手动刷新")... ${Font}"
-    tb_download_geo_file "${file_name}"
-    rc=$?
-    tb_geo_manual_refresh_finish "${rc}"
-    [[ "${rc}" -eq 0 ]] || return "${rc}"
-    local new_version
-    new_version=$(tb_get_geo_local_version "${file_name}")
-    log_echo "${OK} ${GreenBG} ${file_name} $(gettext "已刷新至"): ${new_version} ${Font}"
 }
 
 tb_manage_rules() {

@@ -21,6 +21,12 @@ release_latest="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest"
 release_base="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download"
 xray_bin_dir="${XRAY_BIN_DIR:-/usr/local/bin}"
 xray_binary="${XRAY_BINARY:-}"
+# An explicit XRAY_BIN_DIR is authoritative: callers use it to pin a wrapper or
+# a custom install, and tests use it to simulate a missing install. Only the
+# default (unset) case falls back to the standard system locations.
+if [[ -z "${xray_binary}" && -n "${XRAY_BIN_DIR:-}" ]]; then
+    xray_binary="${XRAY_BIN_DIR}/xray"
+fi
 if [[ -z "${xray_binary}" ]]; then
     for _candidate in "${xray_bin_dir}/xray" /usr/local/bin/xray /usr/bin/xray; do
         [[ -x "${_candidate}" ]] && { xray_binary="${_candidate}"; break; }
@@ -29,7 +35,11 @@ fi
 if [[ -z "${xray_binary}" ]]; then
     xray_binary="$(command -v xray 2>/dev/null || true)"
 fi
-xray_candidates="${XRAY_BINARY:-<unset>} ${xray_bin_dir}/xray /usr/local/bin/xray /usr/bin/xray PATH lookup"
+if [[ -n "${XRAY_BIN_DIR:-}" ]]; then
+    xray_candidates="${XRAY_BINARY:-<unset>} ${xray_bin_dir}/xray"
+else
+    xray_candidates="${XRAY_BINARY:-<unset>} ${xray_bin_dir}/xray /usr/local/bin/xray /usr/bin/xray PATH lookup"
+fi
 deadline=$((SECONDS + 600))
 stage_dir=""
 keep_stage=false
