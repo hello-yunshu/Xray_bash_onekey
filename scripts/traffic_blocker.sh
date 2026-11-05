@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tb_SCRIPT_VERSION="1.7.0"
+tb_SCRIPT_VERSION="1.8.0"
 MIN_MAIN_VERSION="2.12.10"
 
 if [ -n "$shell_version" ]; then
@@ -631,7 +631,6 @@ tb_main_menu() {
 tb_display_geo_native_summary() {
     local cron="$1" name path state date_text needs_help=false
 
-    log_echo "${Green} $(gettext "GeoData 状态"): ${Font}${Green}$(gettext "由 Xray 原生 geodata 自动刷新")${Font}"
     log_echo "  $(gettext "自动刷新计划"): ${cron} ($(gettext "本地时区, 不重启 Xray"))"
 
     for name in geoip.dat geosite.dat; do
@@ -670,68 +669,58 @@ tb_display_geo_native_summary() {
     fi
 }
 
-tb_display_geo_summary() {
-    local native_cron legacy_lines
-    if native_cron=$(tb_geo_native_cron); then
-        tb_display_geo_native_summary "${native_cron}"
-        if legacy_lines=$(tb_geo_legacy_cron_lines) && [[ -n "${legacy_lines}" ]]; then
-            log_echo "  ${Warning}${YellowBG} $(gettext "发现脚本安装的 geo_update.sh 周期任务, 与原生自动刷新重复") ${Font}"
-            echo "${legacy_lines}"
-        fi
-        tb_geo_show_migration_failure
-        return 0
-    fi
-
-    if legacy_lines=$(tb_geo_legacy_cron_lines) && [[ -n "${legacy_lines}" ]]; then
-        log_echo "${Green} $(gettext "GeoData 状态"): ${Font}${Yellow}$(gettext "由 geo_update.sh 脚本定时刷新 (待迁移)")${Font}"
-        echo "  ${legacy_lines}"
-    else
-        log_echo "${Green} $(gettext "GeoData 状态"): ${Font}${Warning}$(gettext "未启用自动刷新")${Font}"
-    fi
-    tb_geo_show_migration_failure
-
-    local now=$(date +%s)
-    local remote_version=""
-    if [[ $((now - _tb_cached_remote_time)) -gt 300 ]]; then
-        remote_version=$(tb_get_geo_remote_version)
-        _tb_cached_remote_version="${remote_version}"
-        _tb_cached_remote_time=${now}
-    else
-        remote_version="${_tb_cached_remote_version}"
-    fi
-
-    local geoip_exists="false"
-    local geosite_exists="false"
-    [[ -f "${tb_geo_dir}/geoip.dat" ]] && geoip_exists="true"
-    [[ -f "${tb_geo_dir}/geosite.dat" ]] && geosite_exists="true"
-
-    if [[ "$geoip_exists" == "true" ]]; then
-        local geoip_version=$(tb_get_geo_local_version "geoip.dat")
-        local geoip_date=$(tb_format_date "$(tb_get_geo_file_date "${tb_geo_dir}/geoip.dat")")
-        if tb_is_geo_outdated "geoip.dat" "$remote_version"; then
-            log_echo "  geoip.dat:  ${Yellow}$(gettext "有新版本可用")${Font} ($(gettext "本地版本"): ${geoip_version:-$(gettext "未知")}, $(gettext "刷新时间"): ${geoip_date})"
+tb_display_geo_files() {
+    local name path date_text
+    for name in geoip.dat geosite.dat; do
+        path="${tb_geo_dir}/${name}"
+        if [[ -f "${path}" ]]; then
+            date_text=$(tb_format_date "$(tb_get_geo_file_date "${path}")")
+            log_echo "  ${name}: ${Green}$(gettext "已安装")${Font} ($(gettext "最后刷新"): ${date_text})"
         else
-            log_echo "  geoip.dat:  ${Green}$(gettext "已是最新")${Font} (${geoip_version:-$(gettext "未知")}, ${geoip_date})"
+            log_echo "  ${name}: ${Red}$(gettext "未安装")${Font}"
         fi
-    else
-        log_echo "  geoip.dat:  ${Red}$(gettext "未安装")${Font}"
-    fi
-
-    if [[ "$geosite_exists" == "true" ]]; then
-        local geosite_version=$(tb_get_geo_local_version "geosite.dat")
-        local geosite_date=$(tb_format_date "$(tb_get_geo_file_date "${tb_geo_dir}/geosite.dat")")
-        if tb_is_geo_outdated "geosite.dat" "$remote_version"; then
-            log_echo "  geosite.dat: ${Yellow}$(gettext "有新版本可用")${Font} ($(gettext "本地版本"): ${geosite_version:-$(gettext "未知")}, $(gettext "刷新时间"): ${geosite_date})"
-        else
-            log_echo "  geosite.dat: ${Green}$(gettext "已是最新")${Font} (${geosite_version:-$(gettext "未知")}, ${geosite_date})"
-        fi
-    else
-        log_echo "  geosite.dat: ${Red}$(gettext "未安装")${Font}"
-    fi
+    done
 }
 
-# GeoData migration has exactly two entry points: the startup hook in install.sh
-# and this menu. `-u` itself intentionally does not migrate in the same run.
+# The state header is the single source of truth. The summary below only adds
+# file-level facts, so custom configurations and failed migrations can no
+# longer be described as "native auto refresh" by a second code path.
+tb_display_geo_summary() {
+    local state="" native_cron legacy_lines
+    if declare -F geodata_state >/dev/null 2>&1; then
+        state=$(geodata_state)
+    fi
+
+    case "${state}" in
+        custom)
+            log_echo "  $(gettext "沿用自定义 geodata 配置, 本项目不修改也不接管")"
+            tb_display_geo_files
+            return 0
+            ;;
+        managed)
+            if native_cron=$(tb_geo_native_cron); then
+                tb_display_geo_native_summary "${native_cron}"
+            fi
+            return 0
+            ;;
+        invalid)
+            log_echo "  $(gettext "配置无法解析, 修复 config.json 后重启脚本会自动重试迁移")"
+            return 0
+            ;;
+    esac
+
+    if legacy_lines=$(tb_geo_legacy_cron_lines) && [[ -n "${legacy_lines}" ]]; then
+        log_echo "  $(gettext "旧 geo_update.sh 任务仍在, 自动迁移未完成时会保留它")"
+        echo "  ${legacy_lines}"
+    else
+        log_echo "  $(gettext "未启用自动刷新")"
+    fi
+    tb_display_geo_files
+}
+
+# Migration is automatic: install.sh's startup hook and the post-update
+# internal command run it without a menu prompt. This file only reports the
+# resulting state; it never offers a "migrate now?" choice.
 tb_geo_migration_failure_file="${idleleo_dir}/geodata_migration.failed"
 
 tb_geo_migration_failure_text() {
@@ -761,23 +750,6 @@ tb_geo_show_migration_failure() {
     log_echo "  ${Warning}${YellowBG} $(gettext "上次切换自动刷新失败"): ${text} (${time}) ${Font}"
 }
 
-tb_geo_remove_legacy_cron() {
-    local lines updater
-    if ! lines=$(tb_geo_legacy_cron_lines); then
-        log_echo "${Warning} ${YellowBG} $(gettext "无法读取 crontab, 请手动检查") ${Font}"
-        return 1
-    fi
-    if [[ -z "${lines}" ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "没有找到本项目创建的 geo_update.sh 周期任务") ${Font}"
-        return 0
-    fi
-    updater=$(tb_geo_updater_path)
-    crontab -l 2>/dev/null | awk -v script="${updater}" 'index($0, script) == 0' | crontab - || return 1
-    log_echo "${OK} ${GreenBG} $(gettext "已移除旧的 geo_update.sh 周期任务; 手动刷新脚本保留") ${Font}"
-    declare -F judge >/dev/null 2>&1 && judge -r "$(gettext "移除旧的 GeoData 周期任务")"
-    return 0
-}
-
 tb_geo_cron_description() {
     case "${1:-}" in
         "0 3 * * 1") gettext "每周一 03:00" ;;
@@ -798,25 +770,34 @@ tb_geo_state_header() {
     log_echo "${Green} $(gettext "自动刷新状态") ${Font}"
     case "${state}" in
         invalid)
-            log_echo "  ${Warning}${YellowBG} $(gettext "[配置不可解析] Xray 配置无法读取, 无法确认自动刷新状态; 请先修复 config.json 后重试") ${Font}"
+            log_echo "  ${Warning}${YellowBG} $(gettext "[配置不可解析] 修复 config.json 后重启脚本, 会自动重试迁移") ${Font}"
             ;;
         custom)
-            log_echo "  ${Info}${Green} $(gettext "[自定义 geodata] 已跳过本项目托管, 不会自动接管; 现有配置保持不变") ${Font}"
+            log_echo "  ${Info}${Green} $(gettext "[自定义 geodata] 保留现有配置, 本项目不接管") ${Font}"
             ;;
-        *)
+        managed)
             if cron=$(tb_geo_native_cron); then
                 log_echo "  ${Green}$(gettext "[自动刷新已开启] Xray 原生自动刷新:") ${cron} ($(tb_geo_cron_description "${cron}")), $(gettext "无需手动操作")${Font}"
-            elif legacy_lines=$(tb_geo_legacy_cron_lines 2>/dev/null) && [[ -n "${legacy_lines}" ]]; then
-                log_echo "  ${Warning}${YellowBG} $(gettext "[自动刷新未开启] 当前由 geo_update.sh 脚本定时刷新 (待迁移); 建议在本菜单启用 Xray 原生自动刷新") ${Font}"
             else
-                log_echo "  ${Warning}${YellowBG} $(gettext "[自动刷新未开启] 当前不会自动刷新; 可在本菜单启用 Xray 原生定时刷新") ${Font}"
+                log_echo "  ${Warning}${YellowBG} $(gettext "[自动刷新未开启] 配置中没有可读取的 geodata 计划") ${Font}"
+            fi
+            ;;
+        *)
+            if legacy_lines=$(tb_geo_legacy_cron_lines 2>/dev/null) && [[ -n "${legacy_lines}" ]]; then
+                log_echo "  ${Warning}${YellowBG} $(gettext "[自动刷新未开启] 旧的 geo_update.sh 任务仍在; 重启脚本会自动重试迁移") ${Font}"
+            else
+                log_echo "  ${Warning}${YellowBG} $(gettext "[自动刷新未开启] 当前不会自动刷新") ${Font}"
             fi
             ;;
     esac
     if detail=$(tb_geo_migration_failure_text); then
         text=${detail%%|*}
         time=${detail#*|}
-        log_echo "  ${Warning}${YellowBG} $(gettext "[自动刷新开启失败]") ${text} (${time}), $(gettext "旧刷新任务与现有配置已保留, 可在此重试") ${Font}"
+        if [[ "${text}" == "$(gettext "回滚后服务仍未恢复，需要人工处理")" ]]; then
+            log_echo "  ${Warning}${YellowBG} $(gettext "[上次自动迁移未完成]") ${text} (${time}) ${Font}"
+        else
+            log_echo "  ${Warning}${YellowBG} $(gettext "[上次自动迁移未完成]") ${text} (${time}), $(gettext "旧刷新任务与现有配置已保留; 重启脚本会自动重试") ${Font}"
+        fi
     fi
 }
 
@@ -871,139 +852,26 @@ tb_geo_run_manual_update() {
     return "${rc}"
 }
 
-tb_geo_migrate_to_native() {
-    local installer rc
-    echo
-    if declare -F geodata_migrate_legacy >/dev/null 2>&1; then
-        geodata_migrate_legacy
-        rc=$?
-    else
-        installer="${idleleo:-${idleleo_dir}/install.sh}"
-        if [[ ! -f "${installer}" ]]; then
-            log_echo "${Error} ${RedBG} $(gettext "找不到主脚本, 无法执行迁移") ${Font}"
-            return 1
-        fi
-        bash "${installer}" --internal-geodata-migrate-legacy
-        rc=$?
-    fi
-    if [[ ${rc} -eq 0 ]]; then
-        log_echo "${OK} ${GreenBG} $(gettext "已从手动/脚本模式切换为自动刷新 (Xray 原生)") ${Font}"
-    else
-        log_echo "${Warning} ${YellowBG} $(gettext "自动刷新启用未完成, 旧刷新任务已保留") ${Font}"
-        tb_geo_show_migration_failure
-    fi
-    return "${rc}"
-}
-
-tb_geo_try_migrate_from_menu() {
-    local native_cron legacy_lines state
-    if native_cron=$(tb_geo_native_cron); then
-        log_echo "${Info} ${Green} $(gettext "已是自动刷新状态, 无需迁移") ${Font}"
-        return 0
-    fi
-    if ! legacy_lines=$(tb_geo_legacy_cron_lines) || [[ -z "${legacy_lines}" ]]; then
-        log_echo "${Info} ${Green} $(gettext "未检测到项目创建的旧版脚本 cron, 跳过自动迁移") ${Font}"
-        return 0
-    fi
-    if declare -F geodata_state >/dev/null 2>&1; then
-        state=$(geodata_state)
-        case "${state}" in
-            custom)
-                log_echo "${Info} ${Green} $(gettext "检测到自定义 geodata 配置, 跳过自动迁移") ${Font}"
-                return 0
-                ;;
-            invalid)
-                log_echo "${Warning} ${YellowBG} $(gettext "Xray 配置无法解析, 跳过自动迁移") ${Font}"
-                return 0
-                ;;
-        esac
-    fi
-    if ! declare -F geodata_migrate_legacy >/dev/null 2>&1; then
-        log_echo "${Warning} ${YellowBG} $(gettext "当前菜单无法调用主脚本迁移逻辑, 请重新运行主脚本") ${Font}"
-        return 1
-    fi
-    log_echo "${Info} ${Green} $(gettext "检测到旧 geo_update.sh 脚本体系, 正在尝试切换为 Xray 原生自动刷新")... ${Font}"
-    if geodata_migrate_legacy; then
-        log_echo "${OK} ${GreenBG} $(gettext "已从手动/脚本模式切换为自动刷新 (Xray 原生)") ${Font}"
-        return 0
-    fi
-    log_echo "${Warning} ${YellowBG} $(gettext "自动刷新启用失败, 旧刷新任务与现有配置已保留") ${Font}"
-    tb_geo_show_migration_failure
-    return 1
-}
-
-tb_geo_rescue_menu() {
-    local choice
-    while true; do
-        echo
-        log_echo "${Green} $(gettext "GeoData 自动刷新与手动刷新") ${Font}"
-        tb_geo_state_header
-        log_echo "${Info} ${Green} $(gettext "脚本定时模式已停用; 手动刷新不会创建定时任务") ${Font}"
-        echo
-        echo "1. $(gettext "立即启用 Xray 原生自动刷新 (已是则跳过)")"
-        echo "2. $(gettext "手动刷新 GeoData (运行 geo_update.sh 一次)")"
-        echo "3. $(gettext "移除旧的 geo_update.sh 周期任务")"
-        echo "4. $(gettext "返回")"
-        read_optimize "$(gettext "请选择一个选项"):" choice "" 1
-        case "${choice}" in
-            1) tb_geo_migrate_to_native ;;
-            2) tb_geo_run_manual_update ;;
-            3) tb_geo_remove_legacy_cron ;;
-            4) return ;;
-            *)
-                echo
-                log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"
-                ;;
-        esac
-    done
-}
-
-# Backward-compatible name; it no longer installs a cron entry.
-tb_geo_auto_update() {
-    tb_geo_rescue_menu
-}
-
 tb_geo_menu() {
-    # Only the first entry into this menu attempts migration. A failure keeps
-    # the old cron and the user can retry from the explicit rescue submenu.
-    local _header_pending=1
-    if [[ "${_tb_geo_menu_migration_attempted:-0}" != "1" ]]; then
-        _tb_geo_menu_migration_attempted=1
-        # Show the state before the automatic migration, then let its output
-        # state the outcome ("already automatic" / "switched" / "kept the old
-        # task"). This makes the before/after comparison explicit.
-        tb_geo_state_header
-        echo
-        tb_geo_try_migrate_from_menu
-        echo
-        _header_pending=0
-    fi
     while true; do
         echo
         echo -e "${Green} $(gettext "刷新 GeoData") ${Font}"
         echo
-        # The pre-migration header was just printed in this frame; later frames
-        # (and later menu entries) print it again so state is never hidden.
-        if [[ "${_header_pending}" == "1" ]]; then
-            tb_geo_state_header
-            echo
-        fi
-        _header_pending=1
+        tb_geo_state_header
+        echo
         tb_display_geo_summary
         echo
         echo "1. $(gettext "手动刷新全部 GeoData")"
         echo "2. $(gettext "手动刷新") geoip.dat"
         echo "3. $(gettext "手动刷新") geosite.dat"
-        echo "4. $(gettext "自动刷新与手动刷新")"
-        echo "5. $(gettext "返回")"
+        echo "4. $(gettext "返回")"
         local geo_choice
         read_optimize "$(gettext "请选择一个选项"):" geo_choice "" 1
         case $geo_choice in
             1) tb_update_all_geo ;;
             2) tb_update_geo_file "geoip.dat" ;;
             3) tb_update_geo_file "geosite.dat" ;;
-            4) tb_geo_rescue_menu ;;
-            5) return ;;
+            4) return ;;
             *)
                 echo
                 log_echo "${Error} ${RedBG} $(gettext "无效的选择, 请重试") ${Font}"

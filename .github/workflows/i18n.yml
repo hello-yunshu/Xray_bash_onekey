@@ -19,6 +19,7 @@ on:
       - 'scripts/file_manager.sh'
       - 'scripts/rill_xray_agent_manager.sh'
       - 'scripts/traffic_blocker.sh'
+      - 'scripts/xray_stats.sh'
       - 'i18n/tools/translate.py'
       - 'i18n/tools/validate_po.py'
       - 'i18n/tools/translation_terms.py'
@@ -105,6 +106,7 @@ jobs:
             echo "scripts/file_manager.sh"
             echo "scripts/rill_xray_agent_manager.sh"
             echo "scripts/traffic_blocker.sh"
+            echo "scripts/xray_stats.sh"
           } > i18n/po/POTFILES.in
 
           if [ -f i18n/po/xray_install.pot ]; then
@@ -116,6 +118,7 @@ jobs:
             --from-code=UTF-8 \
             --language=Shell \
             --keyword=gettext \
+            --keyword=_t \
             --package-name=xray_install \
             --package-version=1.0 \
             --msgid-bugs-address=https://github.com/hello-yunshu/Xray_bash_onekey/issues \
