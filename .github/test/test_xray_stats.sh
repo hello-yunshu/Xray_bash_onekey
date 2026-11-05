@@ -108,7 +108,20 @@ for key in '"api"' '"stats"' '"policy"'; do
     [[ "${count}" -eq 1 ]] && ok "single ${key} key" || bad "duplicate ${key} key count=${count}"
 done
 
-# 5. Real xray -test when installed; otherwise JSON validation.
+# 5. A legacy status_config.json is removed on startup/--stats, without a toggle.
+printf '{}\n' >"${xray_status_conf}"
+xray_stats_cleanup_legacy_config
+[[ ! -f "${xray_status_conf}" ]] && ok "legacy status_config.json is cleaned" || bad "legacy status_config.json remains"
+
+# 6. The stats menu must say api.listen is missing instead of only "enabled".
+cp "${xray_conf}" "${TMP_ROOT}/stats-with-listen.json"
+jq 'del(.api.listen)' "${xray_conf}" >"${TMP_ROOT}/no-listen.json"
+cp "${TMP_ROOT}/no-listen.json" "${xray_conf}"
+menu_out=$(printf '0\n' | menu_xray_stats 2>/dev/null || true)
+grep -q '缺少 api.listen' <<<"${menu_out}" && ok "stats menu reports missing api.listen" || bad "stats menu hides missing api.listen"
+cp "${TMP_ROOT}/stats-with-listen.json" "${xray_conf}"
+
+# 7. Real xray -test when installed; otherwise JSON validation.
 if command -v xray >/dev/null 2>&1; then
     xray -test -config "${xray_conf}" >/dev/null 2>&1 && ok "xray -test passed" || bad "xray -test failed"
 else
