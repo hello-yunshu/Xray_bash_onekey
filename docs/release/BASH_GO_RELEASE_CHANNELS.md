@@ -8,7 +8,7 @@
 
 | 项 | Bash 通道（现状，未改） | Go 通道（本轮实现） |
 |---|---|---|
-| 版本来源 | API `shell_online_version` = `3.3.4` | Go release manifest `channel=go` |
+| 版本来源 | API `shell_online_version` = `3.3.4`（线上）；本分支 `3.3.5` 待发布 | Go release manifest `channel=go` |
 | 资产 | `install.sh` + 固定捆包 | `idleleo-linux-amd64` / `linux-arm64` |
 | 校验 | `shell_release_sha256` = `0af8e8f2…cfa6`（与基线一致） | manifest 内 per-asset `sha256` + `size` |
 | 管理器状态 | Bash `install_config.json` / `auto_update` cron | `etc/idleleo/release/channel.json`、`var/lib/idleleo/release/state.json` |
@@ -52,11 +52,14 @@
 
 ## 4. 自动更新不会触发 Bash → Go 迁移
 
-- Bash 的 `auto_update.sh` / `-u` 路径本轮**未修改**，仍在 `main`/`legacy` 侧按原契约工作；
+- Bash `install.sh -u` 的**手动 TTY 路径**增加了迁移入口（版本 3.3.5，待发布）；
+  `auto_update=YES` 与非 TTY 不进入该入口（Phase 03 实证 `requests=0`）；
+  `-u --yes` 的“实际更新成功”分支仍会调用 offer，属于审计 P1-1，本轮随后修复并补回归；
+- 「已是最新」分支同样只在手动 TTY 下提示，从不自动切换；
 - Go 的 `AutoUpdate` 只更新 `idleleo` 自身二进制，不写 `/usr/bin/idleleo` 以外的入口，
   不安装/移除 Bash 文件，不修改 `shell_online_version`；
-- Bridge 迁移仍只在 `idleleo --update` 的真实 TTY 手动路径触发（Phase 03 实证：
-  `auto_update=YES` 与 `--yes` 均 `requests=0`、入口不变）；
+- Bridge 迁移仍只在 `install.sh -u` 的真实 TTY 手动路径触发（Phase 03 实证：
+  `auto_update=YES` 与非 TTY 均 `requests=0`、入口不变）；
 - 已 `COMMITTED` 的 Go 安装不会因 Bash `-u` 自动反向迁移。
 
 ## 5. 两个通道共用的安全原语
@@ -79,3 +82,23 @@
 | 真实 GitHub Release 下载 Go 资产 | 未发布、无 tag；本轮只用固定本地 origin | 用户无法从公网自动升级 Go 管理器 | 28 项门禁全绿 + 受保护 CI 出包 + 独立 tag 命名空间 |
 | 旧 Bash 更新器真正读到双字段 | Bash 侧代码未改，API 只有 Bash 字段 | 旧 Bash 用户仍只收到 Bash 更新（符合预期） | 发布 `go_manager_*` 字段并通过旧更新器回归 |
 | `latest/download` 公网链路 | 同上 | Go 通道只能手工配置 manifest URL | 正式发布后以固定 URL + SHA 复验 |
+
+## 7. Bridge 资产清单的生产链路（P0-2）
+
+| 环节 | 实现 | 状态 |
+|---|---|---|
+| 生成 | [`packaging/bridge_asset.py`](../../packaging/bridge_asset.py)：只接受 ELF、非空文件、40 位 commit、HTTPS origin；输出 `schemaVersion/version/sourceCommit/arch/url/sha256/size/recoveryUrl/recoverySha256/recoverySize` | 已实现，本地实跑 |
+| 打包 | [`packaging/build-go-release.sh`](../../packaging/build-go-release.sh)：主/恢复二进制各两架构；`SHA256SUMS` 4 项；`BRIDGE_BASE_URL` 设置时生成两份清单，未设置显式 SKIP | 已实现，本地实跑 |
+| 发布 | [`.github/workflows/publish-go-bridge.yml`](../../.github/workflows/publish-go-bridge.yml)：`workflow_dispatch` + `check_release_gate.py` 门禁；创建 `go-v<version>` Release；把清单推到 API 仓库 `bridge/asset-linux-<arch>.json` | 已实现，**零 run**（门禁红） |
+| 消费 | `install.sh` 的 `bridge_install_manifest`：手动 TTY 守卫全部通过后才 fetch；校验 schema/arch/URL 协议/SHA 形状；原子写入 `/etc/idleleo/bridge/asset.json`（0600）；失败静默跳过 | 已实现，Phase 03 容器实证 |
+
+清单固定 URL（Bash 默认读取，测试可用 `IDLELEO_BRIDGE_MANIFEST_URL` 覆盖）：
+
+```
+https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/bridge/asset-linux-amd64.json
+https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/bridge/asset-linux-arm64.json
+```
+
+未发布事实不变：上述 Release 与 API 清单在本轮均**未产生**；`publish-go-bridge.yml`
+在当前 28 项 PENDING 状态下会以 exit 2 拒绝发布，因此不存在“已发布但不可用”的清单。
+
