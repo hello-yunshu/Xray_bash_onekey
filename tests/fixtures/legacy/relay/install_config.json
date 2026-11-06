@@ -1,0 +1,18 @@
+{
+  "role": "relay",
+  "shell_mode": "Relay",
+  "transport_mode": "None",
+  "tls": "None",
+  "host": "203.0.113.10",
+  "ip_version": "IPv4",
+  "network_mode": "ipv4",
+  "ipv4_address": "203.0.113.10",
+  "ipv6_address": "",
+  "relay_backend_host": "198.51.100.20",
+  "relay_backend_port": 443,
+  "relay_listen_port": 8443,
+  "relay_listen_addr": "0.0.0.0",
+  "relay_enabled": "on",
+  "shell_version": "3.3.4",
+  "nginx_build_version": "2026.10.15.7679"
+}
