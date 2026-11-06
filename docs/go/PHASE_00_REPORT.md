@@ -158,5 +158,5 @@ docker run --rm -v "$PWD/tests/fixtures/legacy":/fx:ro \
 
 ## 7. 对应 Git commit SHA
 
-- 阶段交付提交：`__PHASE00_COMMIT__`（本文件随后单独记录最终 head）。
+- 阶段交付提交：`b9e0a53`（66 个文件，Phase 00 文档 / 差分夹具 / 门禁工作流）。
 - 分支：`develop/go-native`（未合并 `main`）。
