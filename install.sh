@@ -12840,6 +12840,71 @@ update_sh() {
 # migration: an explicit manual check (-u) in a real TTY, never auto_update,
 # never --yes, never a pipe. It performs no network request and changes
 # nothing unless the operator explicitly answers yes.
+bridge_asset_arch() {
+    case "$(uname -m)" in
+        x86_64 | amd64) printf 'amd64' ;;
+        aarch64 | arm64) printf 'arm64' ;;
+        *) return 1 ;;
+    esac
+}
+
+# Fixed production manifest origin. Overridable only for container E2E; the
+# default must stay the immutable API copy, never a mutable branch artifact.
+bridge_manifest_url() {
+    local arch
+    arch=$(bridge_asset_arch) || return 1
+    printf '%s' "${IDLELEO_BRIDGE_MANIFEST_URL:-https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/bridge/asset-linux-${arch}.json}"
+}
+
+# Fetch and validate the production manifest into the local cache. Failures are
+# deliberately silent (the offer then reports "尚未发布"): a missing manifest
+# must never block normal Bash operation or leave a partial file behind.
+bridge_install_manifest() {
+    local manifest="${IDLELEO_BRIDGE_MANIFEST:-/etc/idleleo/bridge/asset.json}"
+    local arch url tmpdir rc=0
+    [[ -r "${manifest}" ]] && return 0
+    arch=$(bridge_asset_arch) || return 1
+    url=$(bridge_manifest_url) || return 1
+    tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/idleleo-bridge-manifest.XXXXXX") || return 1
+    if ! curl -fsSL --proto '=https,file' --connect-timeout 10 --max-time 60 \
+        -o "${tmpdir}/asset.json" "${url}"; then
+        rc=1
+    fi
+    if [[ ${rc} -eq 0 ]]; then
+        python3 - "${tmpdir}/asset.json" "${arch}" <<'PY' || rc=1
+import json, re, sys
+path, arch = sys.argv[1:3]
+doc = json.load(open(path))
+if doc.get("schemaVersion") != 1:
+    raise SystemExit("schemaVersion")
+if doc.get("arch") != arch:
+    raise SystemExit("arch mismatch")
+for key in ("url", "recoveryUrl"):
+    value = doc.get(key) or ""
+    if not (value.startswith("https://") or value.startswith("file://")):
+        raise SystemExit("%s scheme" % key)
+for key in ("sha256", "recoverySha256"):
+    if not re.fullmatch(r"[0-9a-f]{64}", doc.get(key) or ""):
+        raise SystemExit(key)
+PY
+    fi
+    if [[ ${rc} -ne 0 ]]; then
+        rm -rf "${tmpdir}"
+        return 0
+    fi
+    mkdir -p "$(dirname "${manifest}")" || { rm -rf "${tmpdir}"; return 1; }
+    chmod 0700 "$(dirname "${manifest}")" 2>/dev/null || true
+    if ! cp "${tmpdir}/asset.json" "${manifest}.tmp.$$" ||
+        ! chmod 0600 "${manifest}.tmp.$$" ||
+        ! mv -f "${manifest}.tmp.$$" "${manifest}"; then
+        rm -f "${manifest}.tmp.$$"
+        rm -rf "${tmpdir}"
+        return 1
+    fi
+    rm -rf "${tmpdir}"
+    return 0
+}
+
 bridge_migration_offer() {
     local bridge_manifest="${IDLELEO_BRIDGE_MANIFEST:-/etc/idleleo/bridge/asset.json}"
     local go_entry="/opt/idleleo/bin/idleleo"
@@ -12851,6 +12916,9 @@ bridge_migration_offer() {
     if [[ -x "${go_entry}" ]] && [[ "$(readlink -f "${entry_file}" 2>/dev/null)" == "${go_entry}" ]]; then
         return 0
     fi
+    # The manifest is a published artifact, not a test fixture: fetch it from the
+    # fixed API URL only after every non-interactive guard has passed.
+    bridge_install_manifest || true
     if [[ ! -r "${bridge_manifest}" ]]; then
         echo "$(gettext "Go 迁移资产尚未发布，跳过（未下载、未改动")"
         return 0

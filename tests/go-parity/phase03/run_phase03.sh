@@ -17,6 +17,7 @@ JOURNAL=/var/lib/idleleo/bridge/journal.json
 # so `-u` stays on the "already latest" branch. Hardcoding a release number
 # breaks every install.sh version bump.
 SHELL_VERSION=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' /work/install.sh | head -n1)
+BRIDGE_ARCH=$(case "$(uname -m)" in x86_64 | amd64) echo amd64 ;; aarch64 | arm64) echo arm64 ;; esac)
 PASS=0
 FAIL=0
 
@@ -283,13 +284,21 @@ PY
 }
 
 write_manifest() {
-    local s1 s2
-    s1=$(sha /work/assets/idleleo)
-    s2=$(sha /work/assets/idleleo-recover)
-    mkdir -p /etc/idleleo/bridge
-    cat >/etc/idleleo/bridge/asset.json <<EOF
-{"schemaVersion":1,"version":"0.1.0-phase03-test","url":"https://127.0.0.1:18443/idleleo","sha256":"$s1","recoveryUrl":"https://127.0.0.1:18443/idleleo-recover","recoverySha256":"$s2"}
-EOF
+    mkdir -p /work/assets /etc/idleleo/bridge
+    cp "$BIN" "/work/assets/idleleo-linux-$BRIDGE_ARCH"
+    cp "$REC" "/work/assets/idleleo-recover-linux-$BRIDGE_ARCH"
+    chmod 0755 "/work/assets/idleleo-linux-$BRIDGE_ARCH" "/work/assets/idleleo-recover-linux-$BRIDGE_ARCH"
+    # The E2E must consume the same generator the release workflow uses, not a
+    # hand-written fixture; the only test-only input is the local origin.
+    python3 /work/packaging/bridge_asset.py \
+        --bin-dir /work/assets \
+        --version "$SHELL_VERSION" \
+        --source-commit 0000000000000000000000000000000000000000 \
+        --arch "$BRIDGE_ARCH" \
+        --base-url https://127.0.0.1:18443 \
+        --output "/work/assets/bridge-asset-linux-$BRIDGE_ARCH.json" >/dev/null || return 1
+    cp "/work/assets/bridge-asset-linux-$BRIDGE_ARCH.json" /etc/idleleo/bridge/asset.json
+    chmod 0600 /etc/idleleo/bridge/asset.json
 }
 
 requests() { [[ -f /tmp/requests.log ]] && wc -l </tmp/requests.log | tr -d ' ' || echo 0; }
@@ -1101,14 +1110,29 @@ rc=$?
 [[ "$(requests)" == "0" ]] && ok "gate: missing container write ack makes 0 asset requests" || bad "gate: requests=$(requests)"
 grep -q '未设置 IDLELEO_ALLOW_SYSTEM_WRITES' /tmp/offer.out && ok "gate: missing write ack is reported" || bad "gate: write ack message missing"
 
-# Missing manifest: the offer reports skip and downloads nothing.
+# Missing manifest: the offer reports skip and downloads nothing. The override
+# keeps the lookup offline instead of hitting the real API origin.
 reset_requests
 mv /etc/idleleo/bridge/asset.json /tmp/asset.json.bak
-tty_run 'y\n' "bash /etc/idleleo/install.sh --internal-bridge-offer" >/tmp/offer.out 2>&1
+tty_run 'y\n' "env IDLELEO_BRIDGE_MANIFEST_URL=file:///work/assets/missing-bridge-asset.json bash /etc/idleleo/install.sh --internal-bridge-offer" >/tmp/offer.out 2>&1
 rc=$?
 [[ "$(requests)" == "0" ]] && ok "gate: missing manifest makes 0 asset requests" || bad "gate: requests=$(requests)"
 grep -q '尚未发布' /tmp/offer.out && ok "gate: missing manifest is reported" || bad "gate: manifest message missing"
 mv /tmp/asset.json.bak /etc/idleleo/bridge/asset.json
+
+# Production manifest is fetched from the fixed origin, validated, cached 0600,
+# and only then offered. A refusal after the fetch must download no binary.
+reset_requests
+rm -f /etc/idleleo/bridge/asset.json
+tty_run 'n\n' "env IDLELEO_BRIDGE_MANIFEST_URL=https://127.0.0.1:18443/bridge-asset-linux-$BRIDGE_ARCH.json bash /etc/idleleo/install.sh --internal-bridge-offer" >/tmp/offer.out 2>&1
+rc=$?
+[[ "$(requests)" == "1" ]] && grep -q "^/bridge-asset-linux-$BRIDGE_ARCH.json$" /tmp/requests.log \
+    && ok "manifest: offer fetched exactly the production manifest" || { bad "manifest: requests=$(requests)"; cat /tmp/requests.log 2>/dev/null; }
+[[ -f /etc/idleleo/bridge/asset.json ]] && ok "manifest: fetched manifest is cached locally" || bad "manifest: cache missing"
+[[ "$(stat -c '%a' /etc/idleleo/bridge/asset.json 2>/dev/null)" == "600" ]] && ok "manifest: cache is 0600" || bad "manifest: cache mode $(stat -c '%a' /etc/idleleo/bridge/asset.json 2>/dev/null)"
+[[ "$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["sha256"])' /etc/idleleo/bridge/asset.json)" == "$(sha "/work/assets/idleleo-linux-$BRIDGE_ARCH")" ]] \
+    && ok "manifest: pinned sha matches the served binary" || bad "manifest: sha mismatch"
+[[ "$(readlink "$ENTRY")" == "$entry_before" ]] && ok "manifest: refusal after fetch left the entry unchanged" || bad "manifest: entry changed"
 
 # Real manual TTY consent: exactly two asset downloads and a committed switch.
 reset_requests

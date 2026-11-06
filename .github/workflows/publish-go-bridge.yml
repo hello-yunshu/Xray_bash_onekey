@@ -1,0 +1,134 @@
+name: Publish Go bridge assets
+
+# Manual only: this never runs on push or tags. It is additionally blocked by
+# the Phase 04 feature ledger (check_release_gate.py). While any F01-F28 entry is
+# PENDING or its executable test is missing, the gate exits 2 and no release,
+# manifest or API change is produced.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Go manager version, e.g. 0.2.0 (published as go-v<version>)"
+        required: true
+        type: string
+      channel:
+        description: "Release channel recorded in the manifest"
+        required: true
+        default: stable
+        type: choice
+        options:
+          - stable
+          - beta
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Validate version input
+        run: |
+          set -euo pipefail
+          if ! printf '%s' "${{ inputs.version }}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "version must look like 0.2.0" >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          path: current
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey
+          ref: 4752f77c58028ac169c429fe7674c20060b30c9e
+          path: legacy
+          persist-credentials: false
+
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version: '1.24.x'
+
+      - name: Phase 04 release gate (blocks while any feature is PENDING)
+        working-directory: current
+        env:
+          REQUIRED_PRODUCTION_PACKAGE: github.com/hello-yunshu/Xray_bash_onekey/internal/service
+        run: |
+          set -euo pipefail
+          python3 tests/go-parity/parity/scripts/check_release_gate.py \
+            --bash-repo ../legacy \
+            --native-go-dir . \
+            --native-package ./cmd/parity-adapter \
+            --go-cli-package ./cmd/idleleo \
+            --require-package "$REQUIRED_PRODUCTION_PACKAGE"
+
+      - name: Build pinned binaries and per-arch bridge manifests
+        working-directory: current
+        env:
+          VERSION: ${{ inputs.version }}
+          BRIDGE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/go-v${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          bash packaging/build-go-release.sh "$RUNNER_TEMP/go-release"
+          ls -l "$RUNNER_TEMP/go-release"
+          for f in "$RUNNER_TEMP"/go-release/bridge-asset-linux-*.json; do
+            python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d["url"].startswith("https://")' "$f"
+          done
+
+      - name: Create the immutable Go release
+        working-directory: current
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/go-release"
+          gh release create "go-v$VERSION" \
+            --title "Go manager v$VERSION ($CHANNEL)" \
+            --notes "Build from $GITHUB_SHA; see SHA256SUMS and manifest.json." \
+            --target "$GITHUB_SHA" \
+            "$out/idleleo-linux-amd64" \
+            "$out/idleleo-linux-arm64" \
+            "$out/idleleo-recover-linux-amd64" \
+            "$out/idleleo-recover-linux-arm64" \
+            "$out/SHA256SUMS" \
+            "$out/manifest.json" \
+            "$out/bridge-asset-linux-amd64.json" \
+            "$out/bridge-asset-linux-arm64.json"
+
+      # The Bash installer reads a fixed raw URL, so the manifest must live on
+      # the API repository's main branch. This is the only mutable target; the
+      # binaries themselves stay in the immutable go-v<version> release.
+      - name: Publish per-arch manifests to the API repository
+        env:
+          API_TOKEN: ${{ secrets.XRAY_API_PUSH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${API_TOKEN:-}" ]; then
+            echo "XRAY_API_PUSH_TOKEN is required to publish bridge manifests" >&2
+            exit 1
+          fi
+          api="$RUNNER_TEMP/api"
+          git clone --depth 1 "https://x-access-token:${API_TOKEN}@github.com/hello-yunshu/Xray_bash_onekey_api.git" "$api"
+          mkdir -p "$api/bridge"
+          cp "$RUNNER_TEMP/go-release/bridge-asset-linux-amd64.json" "$api/bridge/asset-linux-amd64.json"
+          cp "$RUNNER_TEMP/go-release/bridge-asset-linux-arm64.json" "$api/bridge/asset-linux-arm64.json"
+          git -C "$api" config user.name "bridge-release-bot"
+          git -C "$api" config user.email "bridge-release-bot@users.noreply.github.com"
+          git -C "$api" add bridge/asset-linux-amd64.json bridge/asset-linux-arm64.json
+          if git -C "$api" diff --cached --quiet; then
+            echo "manifests unchanged"
+            exit 0
+          fi
+          git -C "$api" commit -m "bridge: publish go-v${{ inputs.version }} manifests"
+          git -C "$api" push origin HEAD:main
+          for arch in amd64 arm64; do
+            curl -fsSL "https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey_api/main/bridge/asset-linux-${arch}.json" \
+              | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["version"]=="${{ inputs.version }}", d' 
+          done
