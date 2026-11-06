@@ -223,7 +223,9 @@ func rollback(req Request, entry Entry, before store.RuntimeSnapshot, rollbackPa
 
 func stageCandidate(target string, data []byte, before store.RuntimeSnapshot) (string, error) {
 	dir := filepath.Dir(target)
-	f, err := os.CreateTemp(dir, ".idleleo-phase01-candidate-*")
+	// Keep the target extension: real validators such as `xray -test` infer the
+	// config format from the suffix.
+	f, err := os.CreateTemp(dir, ".idleleo-phase01-candidate-*"+filepath.Ext(target))
 	if err != nil {
 		return "", fmt.Errorf("stage candidate: %w", err)
 	}

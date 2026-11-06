@@ -145,6 +145,19 @@ rc=$?
 grep -q 'authority:' "$WORK/c04.show" && auth=0 || auth=1
 record C04.2 "show derives authority" "$BIN show" 0 "$rc" "$(ok $([ "$rc" -eq 0 ] && [ "$auth" -eq 0 ] && echo 1 || echo 0))" "no rewrite"
 
+# C04.3 parse real Bash baseline fixtures (Phase 00 samples)
+for fx in reality-direct tls-multi custom-dns-routing; do
+  FR=$(empty_root "c04-$fx")
+  mkdir -p "$FR/etc/idleleo/conf/xray"
+  cp "$REPO/tests/fixtures/legacy/$fx/xray-config.json" "$FR/etc/idleleo/conf/xray/config.json"
+  before=$(snapshot "$FR")
+  "$BIN" --root "$FR" --json config inspect >/dev/null 2>&1
+  rc=$?
+  "$BIN" --root "$FR" show >/dev/null 2>&1
+  rc2=$?
+  record "C04.$fx" "fixture $fx read-only" "$BIN config inspect; $BIN show" 0 "$rc/$rc2" "$(ok $([ "$rc" -eq 0 ] && [ "$rc2" -eq 0 ] && [ "$before" = "$(snapshot "$FR")" ] && echo 1 || echo 0))" "parsed, sha unchanged"
+done
+
 # C05 external drift
 SB=$(make_sandbox c05)
 META="$SB/etc/idleleo/v1/metadata.json"
@@ -190,6 +203,22 @@ before=$(sha256sum "$SB/etc/idleleo/conf/xray/config.json" | cut -d' ' -f1)
 rc=$?
 after=$(sha256sum "$SB/etc/idleleo/conf/xray/config.json" | cut -d' ' -f1)
 record C08.2 "injected service failure" "$BIN change --fault service-fail" 9 "$rc" "$(ok $([ "$rc" -eq 9 ] && [ "$before" = "$after" ] && echo 1 || echo 0))" "restored"
+
+# C06.real: the same transaction against the real Xray validator (optional).
+if [ -n "${XRAY_BIN:-}" ] && [ -x "$XRAY_BIN" ]; then
+  SB=$(make_sandbox c06real)
+  cp "$REPO/tests/fixtures/legacy/reality-direct/xray-config.json" "$SB/etc/idleleo/conf/xray/config.json"
+  sha=$(sha256sum "$SB/etc/idleleo/conf/xray/config.json" | cut -d' ' -f1)
+  sed -i "s/\"runtimeSha256\":\"[0-9a-f]*\"/\"runtimeSha256\":\"$sha\"/" "$SB/etc/idleleo/v1/metadata.json"
+  before=$(sha256sum "$SB/etc/idleleo/conf/xray/config.json" | cut -d' ' -f1)
+  "$BIN" --root "$SB" change set-inbound-port --sandbox "$SB" --port 8443 --validator "$XRAY_BIN" >/dev/null 2>"$WORK/c06real.err"
+  rc=$?
+  after=$(sha256sum "$SB/etc/idleleo/conf/xray/config.json" | cut -d' ' -f1)
+  "$XRAY_BIN" -test -config "$SB/etc/idleleo/conf/xray/config.json" >"$WORK/c06real.test" 2>&1
+  xrc=$?
+  xver=$("$XRAY_BIN" version 2>/dev/null | head -1)
+  record C06.real "real xray validator" "$BIN change --validator <xray>" 0 "$rc" "$(ok $([ "$rc" -eq 0 ] && [ "$xrc" -eq 0 ] && [ "$before" != "$after" ] && echo 1 || echo 0))" "$xver; xray-test=$xrc; committed"
+fi
 
 # C09 concurrent mutation
 SB=$(make_sandbox c09)
@@ -256,7 +285,13 @@ record C12.4 "legacy Bash still loads" "_TEST_MODE=1 source install.sh; echo she
   echo
   echo "- Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "- Binary: $BIN (sha256 $(sha256sum "$BIN" | cut -d' ' -f1))"
+  echo "- Image: ${PHASE01_IMAGE:-unspecified}"
   echo "- Arch: $(uname -m); kernel: $(uname -r)"
+  if [ -n "${XRAY_BIN:-}" ] && [ -x "$XRAY_BIN" ]; then
+    echo "- Xray: $("$XRAY_BIN" version 2>/dev/null | head -1) (sha256 $(sha256sum "$XRAY_BIN" | cut -d' ' -f1))"
+  else
+    echo "- Xray: not supplied (C06.real skipped)"
+  fi
   echo "- Pin: $PIN; install.sh sha256: $PIN_SHA"
   echo "- Result: $((TOTAL - FAILED))/$TOTAL passed, $FAILED failed"
   echo
