@@ -1189,6 +1189,20 @@ rc=$?
 [[ "$(journal_state)" == "COMMITTED" ]] && ok "retained cron: journal stayed COMMITTED" || bad "retained cron: journal=$(journal_state)"
 [[ "$(bridge_requests)" == "0" ]] && ok "retained cron: auto_update made 0 bridge requests" || bad "retained cron: bridge requests=$(bridge_requests)"
 
+# Self-audit follow-up: a full reinstall wipes /etc/idleleo and the entry but
+# leaves /opt/idleleo and the COMMITTED journal behind. The bootstrap must
+# restore the Go entry instead of rebuilding a Bash symlink.
+rm -f "$ENTRY"
+rm -rf /etc/idleleo
+reset_requests
+env XRAY_QUALIFICATION_MODE=1 SHELL_RELEASE_BASE_OVERRIDE=https://127.0.0.1:18443 XRAY_VERSIONS_FILE=/work/versions.json bash /work/install.sh -u --yes >/tmp/reinstall.out 2>&1
+rc=$?
+[[ "$(readlink "$ENTRY")" == "$GOENTRY" ]] \
+    && ok "reinstall: bootstrap restored the Go entry" || { bad "reinstall: entry=$(readlink "$ENTRY" 2>/dev/null) rc=$rc"; tail -25 /tmp/reinstall.out; }
+[[ "$(journal_state)" == "COMMITTED" ]] && ok "reinstall: journal stayed COMMITTED" || bad "reinstall: journal=$(journal_state)"
+[[ -f /etc/idleleo/install.sh ]] && ok "reinstall: bootstrap refreshed the Bash script" || bad "reinstall: Bash script missing after bootstrap"
+[[ "$(bridge_requests)" == "0" ]] && ok "reinstall: 0 bridge requests" || bad "reinstall: bridge requests=$(bridge_requests)"
+
 # P1-1: --yes must never reach the Go offer, even when the Bash update really
 # succeeds and a TTY is present. A same-run update is the only branch that used
 # to bypass the guard.

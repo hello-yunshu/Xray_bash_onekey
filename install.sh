@@ -12938,7 +12938,8 @@ rxa_entry_is_go_managed() {
     if [[ -L "${entry}" ]] && [[ "$(readlink -f "${entry}" 2>/dev/null)" == "/opt/idleleo/bin/idleleo" ]]; then
         return 0
     fi
-    grep -Eq '"state"[[:space:]]*:[[:space:]]*"COMMITTED"' /var/lib/idleleo/bridge/journal.json 2>/dev/null
+    grep -Eq '"state"[[:space:]]*:[[:space:]]*"COMMITTED"' \
+        "${IDLELEO_BRIDGE_JOURNAL:-/var/lib/idleleo/bridge/journal.json}" 2>/dev/null
 }
 
 rxa_set_bash_entry() {
@@ -12946,6 +12947,22 @@ rxa_set_bash_entry() {
         return 0
     fi
     ln -sf "${idleleo}" "${idleleo_commend_file}"
+}
+
+# A full reinstall (or a wiped install directory) re-runs the bootstrap and
+# used to rebuild /usr/bin/idleleo as a Bash symlink. A committed migration
+# must survive that: restore the Go entry instead. Return 0 when the entry
+# was claimed, 1 when the caller may create the Bash link.
+rxa_keep_committed_entry() {
+    local go_entry="${IDLELEO_GO_ENTRY:-/opt/idleleo/bin/idleleo}"
+    rxa_entry_is_go_managed || return 1
+    if [[ -x "${go_entry}" ]]; then
+        ln -sfn "${go_entry}" "${idleleo_commend_file}"
+        log_echo "${Info} ${GreenBG} $(gettext "检测到已提交的 Go 迁移，保留 Go 入口") ${Font}"
+    else
+        log_echo "${Warning} ${YellowBG} $(gettext "检测到已提交的 Go 迁移但 Go 入口缺失，未创建 Bash 入口；请运行 idleleo-recover") ${Font}"
+    fi
+    return 0
 }
 
 bridge_migration_offer() {
@@ -13115,7 +13132,9 @@ check_file_integrity() {
         [[ ! -d "${scripts_dir}" ]] && mkdir -p "${scripts_dir}"
         rxa_refresh_main_script "${idleleo}" || return 1
         judge "$(gettext "下载最新脚本")"
-        ln -sf "${idleleo}" "${idleleo_commend_file}" || return 1
+        if ! rxa_keep_committed_entry; then
+            ln -sf "${idleleo}" "${idleleo_commend_file}" || return 1
+        fi
         clear
         exec "${BASH:-bash}" "${idleleo}" "$@"
     fi
@@ -13425,7 +13444,10 @@ show_help() {
 
 idleleo_commend() {
     if [[ -L "${idleleo_commend_file}" ]] || [[ -f "${idleleo}" ]]; then
-        [[ ! -L "${idleleo_commend_file}" ]] && chmod +x "${idleleo}" && ln -sf "${idleleo}" "${idleleo_commend_file}"
+        if [[ ! -L "${idleleo_commend_file}" ]]; then
+            chmod +x "${idleleo}"
+            rxa_keep_committed_entry || ln -sf "${idleleo}" "${idleleo_commend_file}"
+        fi
         old_version=$(grep "shell_version=" "${idleleo}" | head -1 | awk -F '=|"' '{print $3}')
         echo "${old_version}" >"${shell_version_tmp}"
         echo "${shell_version}" >>"${shell_version_tmp}"
