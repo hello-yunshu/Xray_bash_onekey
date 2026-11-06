@@ -104,7 +104,7 @@ start_xray() {
             tail -3 "${LOG_FILE}" >&2 || true
             return 1
         fi
-        if "${XRAY_BIN}" api statsquery --server=127.0.0.1:10085 -pattern "inbound>>>" >/dev/null 2>&1; then
+        if "${XRAY_BIN}" api statssys --server=127.0.0.1:10085 2>/dev/null | grep -q "Uptime"; then
             return 0
         fi
         sleep 0.2
