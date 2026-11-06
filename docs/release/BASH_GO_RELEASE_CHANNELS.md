@@ -53,8 +53,8 @@
 ## 4. 自动更新不会触发 Bash → Go 迁移
 
 - Bash `install.sh -u` 的**手动 TTY 路径**增加了迁移入口（版本 3.3.5，待发布）；
-  `auto_update=YES` 与非 TTY 不进入该入口（Phase 03 实证 `requests=0`）；
-  `-u --yes` 的“实际更新成功”分支仍会调用 offer，属于审计 P1-1，本轮随后修复并补回归；
+  `auto_update=YES`、`--yes` 与非 TTY 不进入该入口（Phase 03 实证：三类路径
+  `bridge_requests=0`，入口不变）；
 - 「已是最新」分支同样只在手动 TTY 下提示，从不自动切换；
 - Go 的 `AutoUpdate` 只更新 `idleleo` 自身二进制，不写 `/usr/bin/idleleo` 以外的入口，
   不安装/移除 Bash 文件，不修改 `shell_online_version`；

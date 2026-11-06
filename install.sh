@@ -12801,7 +12801,8 @@ _update_sh_impl() {
             # Phase 03: a manual TTY update may discover the Go bridge. Run the
             # freshly installed script's own offer so this same run is wired
             # through the maintenance version instead of the old functions.
-            if [[ "${bridge_manual_invocation:-off}" == "on" ]] && [[ -t 0 ]] && [[ ${auto_update} != "YES" ]]; then
+            if [[ "${bridge_manual_invocation:-off}" == "on" ]] && [[ -t 0 ]] &&
+                [[ ${auto_update} != "YES" ]] && [[ "${update_assume_yes:-off}" != "YES" ]]; then
                 bash "${idleleo}" --internal-bridge-offer
                 return 0
             fi

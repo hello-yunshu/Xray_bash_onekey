@@ -17,6 +17,9 @@
 
 ### 修复
 
+- **`-u --yes` 不再在“实际更新成功”后触发迁移入口**：此前该分支会重新执行
+  刚下载脚本的 offer，`--yes` 在子进程里丢失；现在 `--yes`、`auto_update`
+  与非 TTY 一样直接返回，Phase 03 回归覆盖了“真实升级成功 + TTY + `--yes`”。
 - **迁移保留证书续期与自动更新 cron**：Go 尚无等价执行器的 `ssl_update.sh`、
   `auto_update.sh` 在切换后保留原 cron，只有已有 Go 执行器的 `geo_update.sh`、
   `xray_stats.sh` 被移除；`schedule status` 仍如实标记 `degraded`。
