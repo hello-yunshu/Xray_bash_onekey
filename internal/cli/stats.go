@@ -16,6 +16,13 @@ import (
 // running Xray API with reset=false, so it never mutates counters or files.
 func statsCommand(ctx context.Context, opts Options, cfg config, args []string) int {
 	cfg.json = cfg.json || hasFlag(args, "--json")
+	// The legacy `--stats` flag required root; keeping the same exit code and
+	// boundary avoids silently widening what a non-root caller can query on a
+	// real installation.
+	if cfg.root == "/" && os.Geteuid() != 0 {
+		fmt.Fprint(opts.Err, "stats query requires root\n")
+		return 5
+	}
 	rel := "etc/idleleo/conf/xray/config.json"
 	if v := flagValue(args, "--path"); v != "" {
 		// An absolute --path is interpreted relative to the explicit root, the
