@@ -9,11 +9,11 @@
   "oracle_mode": "LIVE_PINNED_CLEAN",
   "go_provenance": {
     "mode": "SOURCE_BUILT_NATIVE_GO_L0",
-    "source_commit": "3b2671b55921a37d907044a625ab597c0193c505",
+    "source_commit": "6fc78b63cb723e2debaef80f3adbdb236a0d27af",
     "module": "github.com/hello-yunshu/Xray_bash_onekey",
     "required_package": "github.com/hello-yunshu/Xray_bash_onekey/internal/compat",
     "target": "./cmd/parity-adapter",
-    "binary_sha256": "a3d25534456e73aba0b218a5e644d2c29fc41e49bf9845f799427b1e9713305d",
+    "binary_sha256": "70b73e39d9f06cc0c4d3a5e7be300579cddb537056ce79f486441b3b8defae24",
     "warning": "compile-time import does not prove runtime use; CI reviews required"
   },
   "native_l0_only": true,
@@ -1517,6 +1517,6 @@
       }
     }
   ],
-  "generated_utc": "2026-11-06T10:16:52.013870+00:00",
+  "generated_utc": "2026-11-06T10:27:50.970372+00:00",
   "scope_limit": "Only 7 pure function contracts; FS snapshot limited to CWD/HOME/TMPDIR; no host isolation"
 }
