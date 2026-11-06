@@ -283,7 +283,7 @@ confirm_no_answer() {
     esac
 }
 
-shell_version="3.3.4"
+shell_version="3.3.5"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"

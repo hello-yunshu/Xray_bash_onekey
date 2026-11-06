@@ -13,6 +13,10 @@ ENTRY=/usr/bin/idleleo
 GOENTRY=/opt/idleleo/bin/idleleo
 CRON=/var/spool/cron/crontabs/root
 JOURNAL=/var/lib/idleleo/bridge/journal.json
+# The legacy fixture must claim the same shell release as the served candidate,
+# so `-u` stays on the "already latest" branch. Hardcoding a release number
+# breaks every install.sh version bump.
+SHELL_VERSION=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' /work/install.sh | head -n1)
 PASS=0
 FAIL=0
 
@@ -168,7 +172,7 @@ setup_legacy() {
     cp /work/install.sh /etc/idleleo/install.sh
     chmod 0755 /etc/idleleo/install.sh
     ln -sfn /etc/idleleo/install.sh "$ENTRY"
-    printf '3.3.4\n' >/etc/idleleo/release-managed.version
+    printf '%s\n' "$SHELL_VERSION" >/etc/idleleo/release-managed.version
     cat >"$CRON" <<'CRON'
 # user jobs must survive migration
 0 4 * * * /usr/bin/certbot renew --quiet
@@ -1072,9 +1076,7 @@ rc=$?
 
 # M02: the real `-u --yes` path. setup supplies XRAY_VERSIONS_FILE (the only
 # version source) so the run is offline except for the Bash release probe.
-cat >/work/versions.json <<'EOF'
-{"shell_online_version":"3.3.4","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"2026.10.15.7679"}
-EOF
+printf '{"shell_online_version":"%s","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"2026.10.15.7679"}\n' "$SHELL_VERSION" >/work/versions.json
 setup_legacy reality-direct
 write_manifest
 reset_requests
@@ -1120,9 +1122,7 @@ rc=$?
 # M14: the real Bash -u path uses XRAY_VERSIONS_FILE metadata only. The local
 # versions file has no Go asset field, so an automatic update cannot discover
 # the Go channel; auto_update=YES must make zero Go requests.
-cat >/work/versions.json <<'EOF'
-{"shell_online_version":"3.3.4","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"2026.10.15.7679"}
-EOF
+printf '{"shell_online_version":"%s","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"2026.10.15.7679"}\n' "$SHELL_VERSION" >/work/versions.json
 setup_legacy reality-direct
 write_manifest
 reset_requests
