@@ -16,7 +16,9 @@ Xray 原生 GeoData 两轮刷新周期。
 - Phase 02 容器 E2E：**36 passed, 0 failed**（`phase02-exit=0`）。
 - Relay/Nginx：TLS 片段与 stream 片段 `nginx -t` 通过，真实网络内 PING 经 Nginx stream 转发回显。
 - GeoData：两次破坏后分别恢复到 `16475156B`（源文件 `16475153B` + 下载器 3 字节 Lua guard）。
-- Phase 01 回归：**35/35 passed**（真实 Xray 26.10.31 校验器）。
+- Phase 01 回归：**32/34 passed**（C12.1/C12.2 红：本分支携带未发布的 3.3.5，
+  与已发布 pin `4752f77` 的 `install.sh` 有意偏离；C12.3/C12.4 绿）。
+  审计原文的 “35/35” 是过期记录，已按实测更正。
 - Go 质量门禁：`gofmt`/`go vet`/`go test`/`go test -race` 全绿。
 
 **不具备生产发布资格**：F01–F28 仍无一项 Go 状态为“已验证”；本轮只把有实测子集的功能
@@ -135,8 +137,19 @@ nginx-image: nginx:1.27 sha256:6784fb0834aa7dbbe12e3d7471e69c290df3e6ba810dc38b3
 
 ```bash
 IDLELEO_XRAY_BIN=/tmp/xray-26/xray bash tests/go-parity/phase01/run_phase01_container.sh
-# PHASE01: 35/35 passed, 0 failed
+# PHASE01: 32/34 passed, 2 failed
 ```
+
+C12 当前真实状态（与上表一致）：
+
+- C12.1 `install.sh bytes match pin`：**FAIL**。`develop/go-native` 的
+  `install.sh`（3.3.5）尚未发布，与 pin `0af8e8f2…`（v3.3.4 资产）不同；
+- C12.2 `product code diff empty`：**FAIL**。`git diff 4752f77..HEAD -- install.sh
+  scripts config` 非空，原因是 Bridge 迁移入口与版本号变更；
+- C12.3、C12.4：**PASS**。C12.4 改为加载已发布 pin（`git show $PIN:install.sh`），
+  不再把 develop 上未发布的 3.3.5 误判为 legacy 损坏。
+
+结论：C12.1/C12.2 是“发布前应有的红”，不是回归；发布 3.3.5 并更新 pin 后才会转绿。
 
 ## 5. F01–F28 状态变化
 

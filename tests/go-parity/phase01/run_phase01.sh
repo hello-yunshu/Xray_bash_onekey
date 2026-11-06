@@ -277,8 +277,13 @@ diffout=$(cd "$REPO" && git diff --stat "$PIN..HEAD" -- install.sh scripts confi
 record C12.2 "product code diff empty" "git diff $PIN..HEAD -- install.sh scripts config" empty "$([ -z "$diffout" ] && echo empty || echo "$diffout")" "$(ok $([ -z "$diffout" ] && echo 1 || echo 0))" "no Bash core change"
 legacy=$(test -e /etc/idleleo/install.sh && echo LEGACY_TOUCHED || true)
 record C12.3 "Go does not install over Bash entry" "test -e /etc/idleleo/install.sh" empty "$legacy" "$(ok $([ -z "$legacy" ] && echo 1 || echo 0))" "legacy path absent"
-ver=$(cd "$REPO" && bash -c '_TEST_MODE=1 . ./install.sh >/dev/null 2>&1; printf "%s" "$shell_version"')
-record C12.4 "legacy Bash still loads" "_TEST_MODE=1 source install.sh; echo shell_version" 3.3.4 "$ver" "$(ok $([ "$ver" = 3.3.4 ] && echo 1 || echo 0))" "stable Bash untouched"
+# C12.4 loads the *published* pin, not the working tree: develop may legitimately
+# carry an unreleased 3.3.5, and that must not be reported as a broken legacy.
+pinsh=$(mktemp)
+git -C "$REPO" show "$PIN:install.sh" >"$pinsh"
+ver=$(cd "$REPO" && PIN_SH="$pinsh" bash -c '_TEST_MODE=1 . "$PIN_SH" >/dev/null 2>&1; printf "%s" "$shell_version"')
+rm -f "$pinsh"
+record C12.4 "published Bash pin still loads" "_TEST_MODE=1 source git $PIN:install.sh; echo shell_version" 3.3.4 "$ver" "$(ok $([ "$ver" = 3.3.4 ] && echo 1 || echo 0))" "published pin untouched"
 
 {
   echo "# Phase 01 C01-C12 evidence"
