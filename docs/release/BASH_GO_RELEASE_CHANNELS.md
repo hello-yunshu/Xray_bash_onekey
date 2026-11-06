@@ -64,6 +64,20 @@
   `auto_update.sh` cron 即使刷新 Bash 脚本，检测到 Go 入口/journal `COMMITTED`
   时也不会重写 `/usr/bin/idleleo`（Phase 03 回归覆盖）。
 
+### 4.1 Nginx xHTTP 上行限制（历史模板缺陷）
+
+- 缺陷引入于 `335f4d8c`：xhttp location 的 `client_max_body_size 0;` 被注释，
+  Nginx 回落默认 `1m`，`stream-one` 上行单请求体超过约 1MB 时返回 `413`；
+  ws location 不受影响。本版模板已把它改为生效行，并在同一处说明
+  `proxy_buffering` 对 `grpc_pass` 无效（该 location 实际使用 `grpc_pass`），
+  不再保留“看起来对齐、实际无效”的配置。
+- **`-u` 只替换主脚本与 helper，不会重写
+  `/etc/idleleo/conf/nginx/00-xray.conf`**；已部署的 xhttp 节点必须重新运行
+  安装脚本重建 Nginx 配置，或手工放开该行。`-u` 成功后会检测到旧模板并
+  打印这条提示。
+- 回归：`.github/test/test_nginx_xhttp_limits.sh` 断言生成的 xhttp location
+  必须是生效的 `client_max_body_size 0;`，且不得出现被注释的同名指令。
+
 ## 5. 两个通道共用的安全原语
 
 - 共享更新锁 `run/lock/idleleo-update.lock`：scheduler 已持锁时通过 `held *host.UpdateLock`

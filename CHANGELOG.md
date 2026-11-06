@@ -17,6 +17,12 @@
 
 ### 修复
 
+- **xHTTP 上行超过 1MB 返回 413（历史模板缺陷，非本版引入）**：`335f4d8c`
+  起生成的 `/etc/idleleo/conf/nginx/00-xray.conf` 把 xhttp location 的
+  `client_max_body_size 0;` 注释掉，Nginx 回落默认 `1m`，`stream-one`
+  的大请求体（如 `git push`）失败；ws location 一直正常。模板已改为生效行，
+  并去掉对 `grpc_pass` 无效的 `proxy_buffering` 假配置。已部署节点需要
+  **重装**或手工放开该行；`-u` 不重建 Nginx 配置，更新成功后会打印提示。
 - **保留的 auto_update cron 不会静默回退迁移**：Bash 自更新路径原先无条件把
   `/usr/bin/idleleo` 重新指向 `/etc/idleleo/install.sh`；现在检测到 Go 入口或
   journal `COMMITTED` 时只刷新 Bash 脚本，不改变入口。

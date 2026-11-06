@@ -8333,6 +8333,13 @@ server {
         grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         grpc_set_header Early-Data \$ssl_early_data;
         grpc_set_header Host \$host;
+        # grpc_pass ignores proxy_buffering (ngx_http_proxy_module only); the
+        # gRPC module keeps its own buffering default, so no proxy_buffering
+        # line belongs here. The proxy_pass alternative below is inactive and
+        # its commented proxy_buffering only matters if it is switched back on.
+        # Request bodies above nginx's 1m default must still pass: stream-one /
+        # stream-up uploads used to fail with 413 while ws stayed healthy.
+        client_max_body_size 0;
         #proxy_pass http://xray-xhttp-server;
         #proxy_redirect off;
         #proxy_http_version 1.1;
@@ -8340,7 +8347,6 @@ server {
         #proxy_send_timeout 720m;
         #proxy_read_timeout 720m;
         #proxy_buffering off;
-        #client_max_body_size 0;
         #proxy_set_header X-Real-IP \$remote_addr;
         #proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         #proxy_set_header Host \$http_host;
@@ -12677,6 +12683,20 @@ rxa_refresh_main_script() {
     return 0
 }
 
+# Historical template defect (335f4d8c): the generated xhttp location shipped
+# with a commented `#client_max_body_size 0;`, so Nginx used its 1m default and
+# stream-one request bodies above ~1MB failed with 413. `-u` only refreshes the
+# script and its helpers; it never rewrites 00-xray.conf. Tell the operator how
+# to fix an existing deployment instead of failing silently.
+rxa_warn_legacy_xhttp_limit() {
+    [[ "${tls_mode:-}" == "TLS" ]] || return 0
+    is_xhttp_mode || return 0
+    [[ -r "${nginx_conf}" ]] || return 0
+    grep -qE '^[[:space:]]*grpc_pass[[:space:]]+grpc://xray-xhttp-server;' "${nginx_conf}" || return 0
+    grep -qE '^[[:space:]]*#[[:space:]]*client_max_body_size[[:space:]]+0;' "${nginx_conf}" || return 0
+    log_echo "${Warning} ${YellowBG} $(gettext "检测到旧版 Nginx 模板：xHTTP 上行超过 1MB 会被 Nginx 拒绝 (413)。更新脚本不会重建 Nginx 配置，请重新运行安装脚本重建，或手工在 xHTTP location 放开 client_max_body_size 0;") ${Font}"
+}
+
 _update_sh_impl() {
     local downloaded_shell_version _candidate
     _rxa_update_title_shown=0
@@ -12799,6 +12819,7 @@ _update_sh_impl() {
             fi
             rxa_clear_screen
             log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
+            rxa_warn_legacy_xhttp_limit
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
             # Phase 03: a manual TTY update may discover the Go bridge. Run the
             # freshly installed script's own offer so this same run is wired
@@ -12827,6 +12848,7 @@ _update_sh_impl() {
         fi
         rxa_clear_screen
         log_echo "${OK} ${GreenBG} $(gettext "当前已经是最新版本") ${Font}"
+        rxa_warn_legacy_xhttp_limit
         if [[ "${bridge_manual_invocation:-off}" == "on" ]] && [[ -t 0 ]] && [[ ${auto_update} != "YES" ]]; then
             bridge_migration_offer || true
         fi
