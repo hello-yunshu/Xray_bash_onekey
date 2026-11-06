@@ -1,0 +1,264 @@
+{
+  "baseline_commit": "4752f77c58028ac169c429fe7674c20060b30c9e",
+  "status_legend": [
+    "PENDING_GO_IMPLEMENTATION",
+    "PENDING_BASELINE_CAPTURE",
+    "VERIFIED_GO_PARITY",
+    "APPROVED_SAFE_DIVERGENCE",
+    "BLOCKED"
+  ],
+  "features": [
+    {
+      "id": "F01",
+      "name": "Reality安装与真实握手",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F02",
+      "name": "TLS ws/gRPC/xHTTP+组合安装",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F03",
+      "name": "无TLS后端回环监听",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F04",
+      "name": "Reality主次级负载均衡",
+      "priority": "P1",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F05",
+      "name": "独立中转与字节转发",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F06",
+      "name": "用户增删与UUIDv5",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F07",
+      "name": "Reality shortId及spiderX绑定",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F08",
+      "name": "端口/target/serverNames/SNI Guard修改",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F09",
+      "name": "Nginx upstream文件管理",
+      "priority": "P1",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F10",
+      "name": "TLS版本修改",
+      "priority": "P1",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F11",
+      "name": "systemd状态启停日志",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F12",
+      "name": "证书签发续期清理",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F13",
+      "name": "Shell/Go Xray Nginx更新",
+      "priority": "P0",
+      "owner_stage": "02+03",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F14",
+      "name": "自动更新和cron",
+      "priority": "P0",
+      "owner_stage": "02+03",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F15",
+      "name": "统计查询/watch/reset和退出码",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F16",
+      "name": "GeoData原生热更新与旧任务",
+      "priority": "P0",
+      "owner_stage": "02+03",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F17",
+      "name": "IPv4/IPv6与A/AAAA及防火墙",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F18",
+      "name": "分享链接二维码Clash",
+      "priority": "P1",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F19",
+      "name": "备份恢复重配置保留",
+      "priority": "P0",
+      "owner_stage": "02+03",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F20",
+      "name": "Fail2ban管理与越界清理",
+      "priority": "P0",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F21",
+      "name": "流量阻断和自定义路由",
+      "priority": "P1",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F22",
+      "name": "Rill观察授权诊断卸载",
+      "priority": "P0",
+      "owner_stage": "02+03",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F23",
+      "name": "多语言TTY与窄屏",
+      "priority": "P1",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F24",
+      "name": "Docker入口与服务",
+      "priority": "P1",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F25",
+      "name": "TCP优化和测速(可选去留)",
+      "priority": "P1",
+      "owner_stage": "02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "需确认是否实现或批准正式废弃，不能静默跳过"
+    },
+    {
+      "id": "F26",
+      "name": "废弃XTLS ONLY识别",
+      "priority": "P0",
+      "owner_stage": "00+03",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "只读识别并阻止不支持模式自动迁移"
+    },
+    {
+      "id": "F27",
+      "name": "旧CLI flag兼容与退出码",
+      "priority": "P0",
+      "owner_stage": "01+02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    },
+    {
+      "id": "F28",
+      "name": "运行态及分享信息离线显示",
+      "priority": "P0",
+      "owner_stage": "01+02",
+      "status": "PENDING_GO_IMPLEMENTATION",
+      "evidence": null,
+      "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
+    }
+  ]
+}

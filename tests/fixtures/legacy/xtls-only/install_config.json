@@ -1,0 +1,20 @@
+{
+  "shell_mode": "TLS",
+  "transport_mode": "None",
+  "host": "203.0.113.10",
+  "ip_version": "IPv4",
+  "network_mode": "ipv4",
+  "ipv4_address": "203.0.113.10",
+  "ipv6_address": "",
+  "port": 443,
+  "tls": "XTLS",
+  "email": "fixture@example.invalid",
+  "idc": "fixture-idc",
+  "id": "11111111-2222-4333-8444-555555555555",
+  "net": "tcp",
+  "path": "",
+  "serviceName": "",
+  "xhttp_path": "",
+  "shell_version": "2.7.1",
+  "xray_version": "1.8.4"
+}

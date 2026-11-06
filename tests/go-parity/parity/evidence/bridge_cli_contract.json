@@ -1,0 +1,204 @@
+{
+  "suite": "GO_V2_BRIDGE_CLI_SYNTHETIC",
+  "total": 39,
+  "passed": 39,
+  "failed": 0,
+  "production_migration_certified": false,
+  "results": [
+    {
+      "test": "inspect-reality",
+      "ok": true,
+      "detail": "read-only"
+    },
+    {
+      "test": "inspect-no-journal-reality",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "prepare-reality",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "secrets-not-duplicated-reality",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "injected-after-swap-reality",
+      "ok": true,
+      "detail": "PROBE_V2_ERROR: injected interruption\n"
+    },
+    {
+      "test": "recovered-reality",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "status-restored-reality",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "runtime-unchanged-reality",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "old-entry-exists-reality",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "inspect-tls",
+      "ok": true,
+      "detail": "read-only"
+    },
+    {
+      "test": "inspect-no-journal-tls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "prepare-tls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "secrets-not-duplicated-tls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "injected-after-swap-tls",
+      "ok": true,
+      "detail": "PROBE_V2_ERROR: injected interruption\n"
+    },
+    {
+      "test": "recovered-tls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "status-restored-tls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "runtime-unchanged-tls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "old-entry-exists-tls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "inspect-relay",
+      "ok": true,
+      "detail": "read-only"
+    },
+    {
+      "test": "inspect-no-journal-relay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "prepare-relay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "secrets-not-duplicated-relay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "injected-after-swap-relay",
+      "ok": true,
+      "detail": "PROBE_V2_ERROR: injected interruption\n"
+    },
+    {
+      "test": "recovered-relay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "status-restored-relay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "runtime-unchanged-relay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "old-entry-exists-relay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "normal-prepare",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "normal-activate",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "real-entry-executable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "xtls-rejected",
+      "ok": true,
+      "detail": "PROBE_V2_ERROR: unsupported or ambiguous legacy profile: retired XTLS ONLY\n"
+    },
+    {
+      "test": "candidate-change-prepare",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "candidate-change-blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "entry-change-prepare",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "entry-change-blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "recover-change-prepare",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "recover-change-after-swap",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "recover-change-preserved",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "fake-executable-refused",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}
