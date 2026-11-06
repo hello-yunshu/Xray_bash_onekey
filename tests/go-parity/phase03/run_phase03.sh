@@ -17,7 +17,7 @@ JOURNAL=/var/lib/idleleo/bridge/journal.json
 # so `-u` stays on the "already latest" branch. Hardcoding a release number
 # breaks every install.sh version bump.
 SHELL_VERSION=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' /work/install.sh | head -n1)
-BRIDGE_ARCH=$(case "$(uname -m)" in x86_64 | amd64) echo amd64 ;; aarch64 | arm64) echo arm64 ;; esac)
+BRIDGE_ARCH=$(case "$(uname -m)" in x86_64|amd64) echo amd64 ;; aarch64|arm64) echo arm64 ;; esac)
 PASS=0
 FAIL=0
 
@@ -302,6 +302,9 @@ write_manifest() {
 }
 
 requests() { [[ -f /tmp/requests.log ]] && wc -l </tmp/requests.log | tr -d ' ' || echo 0; }
+bridge_requests() {
+    grep -cE '^/(bridge-asset-linux-|idleleo-linux-|idleleo-recover-linux-)' /tmp/requests.log 2>/dev/null || true
+}
 
 # Run a command with a real controlling TTY (the offer uses [[ -t 0 ]]) and
 # deliver operator answers to the pty. Piping into `script` is unreliable: the
@@ -1166,6 +1169,28 @@ else
     bad "M14: real -u manual path requests=$(requests) entry=$(readlink "$ENTRY") exit=$rc"
     tail -30 /tmp/update.out
 fi
+
+# P1-1: --yes must never reach the Go offer, even when the Bash update really
+# succeeds and a TTY is present. A same-run update is the only branch that used
+# to bypass the guard.
+CANDIDATE_VERSION=$(python3 -c 'import sys;p=sys.argv[1].split(".");print(f"{p[0]}.{p[1]}.{int(p[2])+1}")' "$SHELL_VERSION")
+CAND_DIR=/work/assets/releases/download/v${CANDIDATE_VERSION}
+mkdir -p "$CAND_DIR"
+sed "s/^shell_version=\"$SHELL_VERSION\"$/shell_version=\"$CANDIDATE_VERSION\"/" /work/install.sh >"$CAND_DIR/install.sh"
+(cd "$CAND_DIR" && sha256sum install.sh >SHA256SUMS)
+CAND_SHA=$(sha "$CAND_DIR/install.sh")
+setup_legacy reality-direct
+write_manifest
+printf '{"shell_online_version":"%s","shell_release_sha256":"%s","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"2026.10.15.7679"}\n' "$CANDIDATE_VERSION" "$CAND_SHA" >/work/versions.json
+reset_requests
+tty_run 'y\n' "env XRAY_QUALIFICATION_MODE=1 SHELL_RELEASE_BASE_OVERRIDE=https://127.0.0.1:18443 XRAY_VERSIONS_FILE=/work/versions.json bash /etc/idleleo/install.sh -u --yes" >/tmp/update.out 2>&1
+rc=$?
+[[ $(grep -c '^shell_version=' /etc/idleleo/install.sh) -eq 1 && \
+    "$(sed -n 's/^shell_version="\([0-9.]*\)"$/\1/p' /etc/idleleo/install.sh)" == "$CANDIDATE_VERSION" ]] \
+    && ok "P1-1: --yes really updated the Bash script to $CANDIDATE_VERSION" || { bad "P1-1: update did not succeed (rc=$rc)"; tail -25 /tmp/update.out; }
+[[ "$(bridge_requests)" == "0" ]] && ok "P1-1: successful --yes update made 0 bridge requests" || bad "P1-1: bridge requests=$(bridge_requests)"
+grep -q '检测到可迁移的 Bash 安装' /tmp/update.out && bad "P1-1: --yes reached the Go offer" || ok "P1-1: --yes never reached the Go offer"
+[[ "$(readlink "$ENTRY")" == "/etc/idleleo/install.sh" ]] && ok "P1-1: --yes left the Bash entry in place" || bad "P1-1: entry $(readlink "$ENTRY")"
 
 # ---------------------------------------------------------------- exit status
 echo "== Result: $PASS passed, $FAIL failed =="
