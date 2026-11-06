@@ -19,9 +19,10 @@
 
 **结论：F01–F28 的 Go 迁移状态无一为「已验证」。** Phase 02 后在固定 digest 容器内把
 F01/F02/F03/F05/F06/F07/F08/F11/F18/F19/F27/F28 推进到「部分实现（容器级）」；
-Phase 03 再把 F26 推进到「部分实现（容器级）」（真实容器内只读识别 XTLS-only 并阻断迁移）。
+Phase 03 把 F26、F14、F15、F16、F22 推进到「部分实现（容器级）」。
 其中 F01 的 fresh install、systemd、Reality 数据面，F05 的 Nginx stream 转发，
-F06 的事务/回滚/故障注入，F19 的保留配置重装，F16 的 Xray 原生 GeoData 双周期刷新均有实测证据。
+F06 的事务/回滚/故障注入，F19 的保留配置重装，F14/F16 的原生 systemd timer +
+Xray GeoData 刷新，F15 的真实 Stats API 采集，F22 的 Rill 状态/交接均有实测证据。
 这些仍只是容器级子集，不是真实 VPS 验证，也没有任何一项升格为「已验证」。
 
 > **判定口径（2026-11-06 用户明确授权）：** 真实公网 VPS 不再是本轮阻塞项，
@@ -96,17 +97,17 @@ F06 的事务/回滚/故障注入，F19 的保留配置重装，F16 的 Xray 原
 | F09 | `--add-upstream`，上游片段管理 | `test_nginx_security`、`test_reinstall_preservation` | 部分验证 | 未实现 | 只允许改写项目片段 |
 | F10 | `--tls` 版本变更 | `test_nginx_security`、`test_nginx_update_rollback` | 部分验证 | 未实现 | R07：当前是 `sed -i` 后重启 |
 | F11 | 服务状态/启停/日志 | `test_offline_commands`、`test_phase1_safety` | 已验证 | 部分实现（容器级） | 容器内 install/uninstall 的 `enable/start/stop/disable` 与 `active/inactive` 已实测；日志读取命令仍未实现 |
-| F12 | 证书状态/签发/续期/清理 | `test_cert_update_recovery`、`test_ssl_update_recovery` | 部分验证 | 未实现 | 真实 ACME 因容器内无公网域名/CA，**不纳入本轮验收**；R08/R13 |
+| F12 | 证书状态/签发/续期/清理 | `test_cert_update_recovery`、`test_ssl_update_recovery` | 部分验证 | 未实现（有到期监控） | 真实 ACME 因容器内无公网域名/CA，**不纳入本轮验收**；Go 定时任务只解析证书到期时间并在到期/<30 天时记录**显式降级**，不伪造续期；R08/R13 |
 | F13 | `--update`、`--xray-update`、`--nginx-update` | `test_xray_update_transaction`、`test_nginx_update_rollback`、`test_candidate_real_upgrade` | 已验证 | 未实现 | 需哈希/降级/失败注入 |
-| F14 | `--auto-update` 与 cron | `test_vps_auto_update_schedule`、`test_legacy_auto_update_path`、`test_auto_update_failure_records` | 已验证 | 未实现 | R14：旧 cron 仍走 Bash `-u`；Phase 03 迁移只精确移除 4 条项目 cron 并在故障恢复中原样还原，Go 定时入口仍未实现（迁移后相关自动化暂停并记入 `DeferredTasks`） |
-| F15 | `--stats` / `--json` / watch / reset | `test_xray_stats_readout`（真实 Xray API）、`test_xray_stats` | 已验证 | 未实现 | 首次查询瞬态失败见 `BASELINE_AND_CI.md` |
-| F16 | GeoData 热更新/手动刷新/旧布局 | `test_geodata_native`（真实 Xray）、`test_geodata_update_path`、`test_restore_geodata_selfheal` | 已验证 | 未实现 | Go 未生成/管理 `geodata` 配置；本轮用 Xray 26.10.31 原生 `cron` + 本地 HTTPS/2 origin，容器内实测两轮“破坏→下载→替换→重载” |
+| F14 | `--auto-update` 与 cron | `test_vps_auto_update_schedule`、`test_legacy_auto_update_path`、`test_auto_update_failure_records` | 已验证 | 部分实现（容器级） | Phase 03 新增原生 `idleleo schedule`：systemd timer 接管 4 条旧 cron；GeoData/统计完整实现，auto-update 无 Go release 通道、cert-renew 无 ACME，均**显式降级**并每轮记录；`DeferredTasks` 已移除 |
+| F15 | `--stats` / `--json` / watch / reset | `test_xray_stats_readout`（真实 Xray API）、`test_xray_stats` | 已验证 | 部分实现（容器级） | `stats-collect` 用真实 `xray api statsquery` 写 `stats.json`；`--stats/--json/watch/reset` 交互 CLI 仍未实现；首次查询瞬态失败见 `BASELINE_AND_CI.md` |
+| F16 | GeoData 热更新/手动刷新/旧布局 | `test_geodata_native`（真实 Xray）、`test_geodata_update_path`、`test_restore_geodata_selfheal` | 已验证 | 部分实现（容器级） | `geodata-refresh` 下载双文件→内存校验→原子替换→重启 Xray；容器内用本地固定 origin 实测字节一致，截断下载不覆盖旧文件；旧布局迁移仍未实现 |
 | F17 | IPv4/IPv6、DNS、端口、防火墙 | `test_dual_stack`、`test_dns_multi_record`、`test_firewall_ipv6`、`test_firewall_transaction_complete` | 已验证 | 未实现 | R12：iptables 直写未纳入统一事务 |
 | F18 | 分享链接/二维码/Clash | `test_clash_yaml`、`test_color_output` | 部分验证 | 部分实现（容器级） | 容器内 `share` 从真实配置派生 URI，实测 `flow/sni/pbk/sid/spx`；Clash 生成存在，xHTTP 明确告警且不伪造；二维码未实现 |
-| F19 | 备份/恢复/重配置保留/模式切换 | `test_backup_restore`、`test_backup_permissions`、`test_reinstall_preservation`、`test_restore_geodata_selfheal` | 已验证 | 部分实现（容器级） | 容器内实测卸载保留配置、`--keep-config` 重装后自定义 DNS 逐字节保留；Phase 03 增加 Bridge 快照与故障回滚（入口/unit/配置哈希、精确 cron），backup/restore CLI 仍未实现 |
+| F19 | 备份/恢复/重配置保留/模式切换 | `test_backup_restore`、`test_backup_permissions`、`test_reinstall_preservation`、`test_restore_geodata_selfheal` | 已验证 | 部分实现（容器级） | 容器内实测卸载保留配置、`--keep-config` 重装后自定义 DNS 逐字节保留；Phase 03 增加 Bridge 快照与故障回滚（入口/unit/配置哈希、精确 cron、schedule units、权限 mode/group），backup/restore CLI 仍未实现 |
 | F20 | Fail2ban（含 trusted/unban） | `test_fail2ban` | 已验证 | 未实现 | **已批准差异**：不得 `rm -f jail.d/*.local` |
 | F21 | 流量阻断与自定义路由 | `test_firewall_reconcile`、`test_geodata_manual_confirm` | 部分验证 | 未实现 | 规则生成后必须 `xray -test` |
-| F22 | Rill 观察/诊断/授权/卸载 | `test_rill_*`（7 个）、CI `rill-qualification` | 已验证 | 未实现 | R03：`.py` 被 `bash` 启动并吞错 |
+| F22 | Rill 观察/诊断/授权/卸载 | `test_rill_*`（7 个）、CI `rill-qualification` | 已验证 | 部分实现（容器级） | Phase 03 审计/快照/预验收/激活/回滚纳入 Rill 状态与哈希；观测漂移 → validate exit 6；Rill 自身安装/诊断/授权命令未迁移；R03：`.py` 被 `bash` 启动并吞错 |
 | F23 | 六语言 | `test_i18n_catalog`、`test_color_output`、CI `i18n.yml` | 已验证 | 部分实现（容器级） | zh/en 完整，fr/fa/ru/ko 回退英文；未与 Bash 文案逐条差分 |
 | F24 | Docker 交付 | `test_relay_container`、`test_minimal_bootstrap`、`docker/fake-systemctl` | 部分验证 | 未实现 | R16：不能假设宿主 systemd DBus |
 | F25 | TCP 优化/测速 | 无自动化（仅有菜单项） | 未验证 | 未实现 | **已批准差异**：不执行浮动远程脚本；仍无自动化 |

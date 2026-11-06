@@ -59,6 +59,7 @@ After=network.target
 Type=simple
 User=xray
 Group=xray
+Environment=XRAY_LOCATION_ASSET=/etc/idleleo/share/xray
 ExecStart=/opt/xray/xray run -config /etc/idleleo/conf/xray/config.json
 Restart=on-failure
 LimitNOFILE=100000
@@ -150,11 +151,14 @@ EOF
 
 setup_legacy() {
     local fx="$1" tls role addng runtime
+    systemctl disable --now idleleo-schedule.timer 2>/dev/null || true
     systemctl stop nginx 2>/dev/null || true
     systemctl stop xray 2>/dev/null || true
-    rm -f /etc/systemd/system/xray.service /etc/systemd/system/nginx.service
+    rm -f /etc/systemd/system/xray.service /etc/systemd/system/nginx.service \
+        /etc/systemd/system/idleleo-schedule.service /etc/systemd/system/idleleo-schedule.timer
     systemctl daemon-reload 2>/dev/null || true
-    rm -rf /etc/idleleo /opt/idleleo /var/lib/idleleo /var/log/xray
+    rm -rf /etc/idleleo /opt/idleleo /var/lib/idleleo /var/log/xray /var/log/idleleo
+    rm -rf /etc/rill-xray-agent /var/lib/rill-xray-agent-xray /opt/rill-xray-agent /var/lib/rill-xray-agent-runtime
     rm -f "$ENTRY" /usr/local/bin/xray /run/lock/idleleo-update.lock
     mkdir -p /etc/idleleo/conf/xray /etc/idleleo/conf/nginx /etc/idleleo/cert /etc/idleleo/tmp \
         /var/log/xray /var/spool/cron/crontabs /etc/systemd/system
@@ -189,6 +193,7 @@ CRON
         if [[ -f "$runtime" ]]; then
             write_xray_unit
             systemctl daemon-reload
+            systemctl reset-failed xray >/dev/null 2>&1 || true
             systemctl enable xray >/dev/null 2>&1 || true
             systemctl start xray >/dev/null 2>&1 || true
         fi
@@ -200,10 +205,14 @@ CRON
     fi
     systemctl daemon-reload
     if [[ -f /etc/systemd/system/nginx.service ]]; then
+        systemctl reset-failed nginx >/dev/null 2>&1 || true
         systemctl enable nginx >/dev/null 2>&1 || true
         systemctl start nginx >/dev/null 2>&1 || true
     fi
-    sleep 1
+    for _ in $(seq 1 5); do
+        [[ "$(active xray)" == "active" ]] && break
+        sleep 1
+    done
     echo "setup[$fx] tls=$tls role=${role:-node} xray=$(active xray) nginx=$(active nginx)"
 }
 
@@ -221,6 +230,20 @@ write_asset_server() {
         -keyout /work/assets/key.pem -out /work/assets/cert.pem >/dev/null 2>&1
     cp /work/assets/cert.pem /usr/local/share/ca-certificates/bridge-test.crt
     update-ca-certificates >/tmp/ca.log 2>&1
+    # GeoData origin used by the native schedule's geodata-refresh job.
+    mkdir -p /work/assets/geo
+    printf 'GEOIP-FIXTURE-%s\n' "$(date +%s)" >/work/assets/geo/geoip.dat
+    printf 'GEOSITE-FIXTURE\n' >/work/assets/geo/geosite.dat
+    # A fixed local "latest/download" layout: the exact GitHub release path.
+    mkdir -p /work/assets/latest/download
+    cp "$BIN" /work/assets/latest/download/idleleo
+    chmod 0755 /work/assets/latest/download/idleleo
+    if [[ -f /work/packaging/install.sh ]]; then
+        cp /work/packaging/install.sh /work/assets/latest/download/install.sh
+    fi
+    cat >/tmp/release-manifest.json <<EOF
+{"schemaVersion":1,"version":"0.1.0-phase03-test","url":"https://127.0.0.1:18443/latest/download/idleleo","sha256":"$(sha /work/assets/latest/download/idleleo)"}
+EOF
     cat >/tmp/https_assets.py <<'PY'
 import http.server, ssl, sys
 port = int(sys.argv[1]); root = sys.argv[2]; log = sys.argv[3]
@@ -230,6 +253,17 @@ class H(http.server.SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):
         with open(log, 'a') as f:
             f.write(self.path + "\n")
+    def do_GET(self):
+        if self.path.startswith('/interrupt/'):
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/octet-stream')
+            self.send_header('Content-Length', '999999')
+            self.end_headers()
+            self.wfile.write(b'PARTIAL-BYTE-PREFIX' * 50)
+            self.wfile.flush()
+            self.close_connection = True
+            return
+        super().do_GET()
 ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 ctx.load_cert_chain(root + '/cert.pem', root + '/key.pem')
 httpd = http.server.ThreadingHTTPServer(('127.0.0.1', port), H)
@@ -241,7 +275,7 @@ PY
     ASSET_PID=$!
     sleep 1
     write_manifest
-    echo "asset server: pid=$ASSET_PID assets idleleo=$(sha /work/assets/idleleo) recovery=$(sha /work/assets/idleleo-recover)"
+    echo "asset server: pid=$ASSET_PID assets idleleo=$(sha /work/assets/idleleo) recovery=$(sha /work/assets/idleleo-recover) release=$(sha /work/assets/latest/download/idleleo)"
 }
 
 write_manifest() {
@@ -270,6 +304,7 @@ if pid == 0:
     os.execvp('bash', ['bash', '-c', command])
 out = []
 status = 0
+finished = False
 slept = 0.0
 sent = False
 start = time.time()
@@ -277,6 +312,7 @@ while True:
     if time.time() - start > 150:
         os.kill(pid, 9)
         status = 9
+        finished = True
         break
     if not sent and slept >= 1.0:
         if answers:
@@ -297,6 +333,7 @@ while True:
     done, st = os.waitpid(pid, os.WNOHANG)
     if done == pid:
         status = st
+        finished = True
         break
     slept += 0.1
 try:
@@ -307,6 +344,10 @@ try:
         out.append(data)
 except OSError:
     pass
+# The pty closes before waitpid reports the exit, so collect the real status
+# instead of silently reporting 0.
+if not finished:
+    _, status = os.waitpid(pid, 0)
 sys.stdout.write(''.join(x.decode('utf-8', 'replace') for x in out))
 sys.exit(os.waitstatus_to_exitcode(status))
 PY
@@ -373,8 +414,12 @@ v = json.load(open('/tmp/val.json'))
 assert v['state'] == 'VALIDATED', v
 assert v['xrayExit'] == 0 and v['candidateExit'] == 0, v
 assert v['runtimeSha256']
+assert v['candidateStatusExit'] == 0, v
+assert v['candidateInstalled'] is True, v
+assert v['candidateMatchesMetadata'] is True, v
+assert v['rillStatus'] == 'absent' and v['rillUnchanged'] is True, v
 PY
-[[ $? -eq 0 ]] && ok "reality: real xray -test accepted runtime (exit 0)" || bad "reality: validate report"
+[[ $? -eq 0 ]] && ok "reality: real xray -test accepted runtime; candidate loaded converted manager.json" || bad "reality: validate report"
 
 bridge activate --json >/tmp/act.json 2>/tmp/act.err
 arc=$?
@@ -386,8 +431,17 @@ assert r['state'] == 'COMMITTED', r
 assert r['removedCronLines'] == 4, r
 assert r['serviceXray'] == 'active', r
 assert r['serviceEnabled'] == 'enabled', r
+assert r['deferredTasks'] == [], r
+assert set(r['scheduledJobs']) == {'auto-update','cert-renew','geodata-refresh','stats-collect'}, r
+assert r['degradedJobs'] and all('explicit degradation' in d for d in r['degradedJobs']), r
+assert r['timer'] == 'enabled', r
+assert r['rillStatus'] == 'absent' and r['rillUnchanged'] is True, r
 PY
-[[ $? -eq 0 ]] && ok "reality: activate committed, removed 4 project cron lines" || bad "reality: activate report"
+[[ $? -eq 0 ]] && ok "reality: activate committed, zero deferred, native schedule installed and enabled" || bad "reality: activate report"
+[[ -f /etc/systemd/system/idleleo-schedule.timer && -f /etc/systemd/system/idleleo-schedule.service ]] \
+    && ok "reality: schedule service/timer units exist" || bad "reality: schedule units missing"
+[[ "$(active idleleo-schedule.timer)" == "active" && "$(enabled idleleo-schedule.timer)" == "enabled" ]] \
+    && ok "reality: schedule timer active/enabled after commit" || bad "reality: schedule timer not active"
 [[ "$(readlink "$ENTRY")" == "$GOENTRY" ]] && ok "reality: entry points at Go manager" || bad "reality: entry $(readlink "$ENTRY")"
 [[ -x "$ENTRY" && "$("$ENTRY" version 2>/dev/null | head -1 | grep -c phase)" -ge 0 ]] && ok "reality: /usr/bin/idleleo runs Go version" || bad "reality: entry not runnable"
 [[ "$(sha "$RT")" == "$rt_before" ]] && ok "reality: runtime config byte-identical after commit" || bad "reality: runtime changed"
@@ -431,12 +485,10 @@ PY
 set +e
 bridge prepare --candidate "$BIN" --recovery "$REC" >/tmp/prep2.out 2>&1
 rc=$?
-set -e
 [[ $rc -eq 3 ]] && ok "M13 reality: repeat prepare refused (exit 3)" || bad "M13 reality: repeat prepare exit $rc"
 set +e
 "$BIN" recover --container >/tmp/rec.out 2>&1
 rc=$?
-set -e
 [[ $rc -eq 3 ]] && ok "M13 reality: recover after COMMITTED refused (exit 3)" || bad "M13 reality: committed recover exit $rc"
 [[ "$(readlink "$ENTRY")" == "$GOENTRY" ]] && ok "M13 reality: committed entry untouched" || bad "M13 reality: entry moved"
 
@@ -461,10 +513,31 @@ assert a['userCount'] == 4, a
 assert len(a['certFiles']) >= 2, a
 PY
 [[ $? -eq 0 ]] && ok "tls: audit convertible, 4 users, nginx+certs required" || bad "tls: audit fields"
+# 03-B: custom content needs an explicit human acknowledgment.
+set +e
+bridge prepare --candidate "$BIN" --recovery "$REC" >/tmp/prep-noack.out 2>&1
+rc=$?
+[[ $rc -eq 6 ]] && ok "tls: prepare refuses custom fragment without --acknowledge-custom (exit 6)" || { bad "tls: no-ack exit $rc"; cat /tmp/prep-noack.out; }
+[[ "$(journal_state)" == "none" ]] && ok "tls: refused prepare wrote no journal" || bad "tls: refused prepare journal $(journal_state)"
 
-bridge prepare --candidate "$BIN" --recovery "$REC" --json >/tmp/prep.json 2>/tmp/prep.err
+# 03-A: the complete change summary is printed before consent.
+bridge audit --summary >/tmp/summary.out 2>/tmp/summary.err
+[[ $? -eq 0 ]] && ok "summary: audit --summary exit 0" || { bad "summary: exit $?"; cat /tmp/summary.err; }
+for needle in '变更摘要' 'users=4' 'certificates=' 'customItems=1' 'projectCronLines=4' 'rill=status:' 'scheduledJobs=' 'degraded=' 'permissionFixes='; do
+    grep -qF "$needle" /tmp/summary.out || bad "summary: missing $needle"
+done
+ok "summary: complete change summary includes users/certs/custom/cron/rill/schedule/degradation"
+
+bridge prepare --candidate "$BIN" --recovery "$REC" --acknowledge-custom --json >/tmp/prep.json 2>/tmp/prep.err
 prec=$?
-[[ $prec -eq 0 ]] && ok "tls: prepare exit 0" || { bad "tls: prepare exit $prec"; cat /tmp/prep.err; }
+[[ $prec -eq 0 ]] && ok "tls: prepare exit 0 with custom acknowledgment" || { bad "tls: prepare exit $prec"; cat /tmp/prep.err; }
+python3 - <<'PY'
+import json
+p = json.load(open('/tmp/prep.json'))
+assert p['customItems'] == 1 and p['customAcknowledged'] is True, p
+assert p['scheduledJobs'] and p['degradedJobs'], p
+PY
+[[ $? -eq 0 ]] && ok "tls: prepare report records acknowledged custom item and scheduled takeover" || bad "tls: prepare custom report"
 bridge validate --xray /usr/local/bin/xray --nginx /usr/sbin/nginx --json >/tmp/val.json 2>/tmp/val.err
 vrc=$?
 [[ $vrc -eq 0 ]] && ok "tls: validate exit 0 (xray -test + nginx -t)" || { bad "tls: validate exit $vrc"; cat /tmp/val.err; }
@@ -494,6 +567,7 @@ cron_has /usr/bin/certbot && ok "tls: user certbot cron kept" || bad "tls: user 
 echo "--- M08 relay: no Xray, nginx stream only ---"
 setup_legacy relay
 frag_before=$(sha /etc/idleleo/conf/nginx/relay-stream.conf)
+custom_before=$(sha /etc/idleleo/conf/nginx/http-custom.conf)
 cron_before=$(sha "$CRON")
 bridge audit --json >/tmp/audit.json 2>/dev/null
 python3 - <<'PY'
@@ -505,8 +579,16 @@ assert a['nginxRequired'] is True, a
 assert a['units']['xray']['present'] is False, a
 PY
 [[ $? -eq 0 ]] && ok "relay: audit convertible role=relay, no xray unit" || bad "relay: audit fields"
-bridge prepare --candidate "$BIN" --recovery "$REC" --json >/tmp/prep.json 2>/tmp/prep.err
-[[ $? -eq 0 ]] && ok "relay: prepare exit 0 without xray" || { bad "relay: prepare"; cat /tmp/prep.err; }
+bridge prepare --candidate "$BIN" --recovery "$REC" --acknowledge-custom --json >/tmp/prep.json 2>/tmp/prep.err
+prec=$?
+[[ $prec -eq 0 ]] && ok "relay: prepare exit 0 without xray" || { bad "relay: prepare exit $prec"; cat /tmp/prep.err; }
+python3 - <<'PY'
+import json
+p = json.load(open('/tmp/prep.json'))
+assert p['customItems'] == 1 and p['customAcknowledged'] is True, p
+assert p['scheduledJobs'] and p['degradedJobs'], p
+PY
+[[ $? -eq 0 ]] && ok "relay: custom fragment needs and records human acknowledgment" || bad "relay: prepare custom report"
 bridge validate --nginx /usr/sbin/nginx --json >/tmp/val.json 2>/tmp/val.err
 vrc=$?
 [[ $vrc -eq 0 ]] && ok "relay: validate exit 0 without --xray" || { bad "relay: validate exit $vrc"; cat /tmp/val.err; }
@@ -521,6 +603,7 @@ arc=$?
 [[ $arc -eq 0 ]] && ok "relay: activate exit 0" || { bad "relay: activate exit $arc"; cat /tmp/act.err; }
 [[ "$(readlink "$ENTRY")" == "$GOENTRY" ]] && ok "relay: entry switched" || bad "relay: entry"
 [[ "$(sha /etc/idleleo/conf/nginx/relay-stream.conf)" == "$frag_before" ]] && ok "relay: stream fragment byte-identical" || bad "relay: stream fragment changed"
+[[ "$(sha /etc/idleleo/conf/nginx/http-custom.conf)" == "$custom_before" ]] && ok "relay: acknowledged custom fragment byte-identical" || bad "relay: custom fragment changed"
 [[ "$(active nginx)" == "active" ]] && ok "relay: nginx still active" || bad "relay: nginx inactive"
 [[ ! -e /etc/systemd/system/xray.service ]] && ok "relay: migration did not invent an xray unit" || bad "relay: xray unit appeared"
 python3 - <<'PY'
@@ -540,7 +623,6 @@ cron_before=$(sha "$CRON")
 set +e
 bridge prepare --candidate "$BIN" --recovery "$REC" >/tmp/prep.out 2>&1
 rc=$?
-set -e
 [[ $rc -eq 3 ]] && ok "xtls: prepare refused (exit 3)" || bad "xtls: prepare exit $rc"
 bridge audit --json >/tmp/audit.json 2>/dev/null
 python3 - <<'PY'
@@ -566,7 +648,6 @@ bridge validate --xray /usr/local/bin/xray >/dev/null 2>&1
 set +e
 bridge activate >/tmp/act.out 2>&1
 rc=$?
-set -e
 [[ $rc -eq 3 ]] && ok "M15: activate refused because recovery entry is missing (exit 3)" || bad "M15: activate exit $rc"
 [[ "$(journal_state)" == "VALIDATED" ]] && ok "M15: journal stays VALIDATED" || bad "M15: journal $(journal_state)"
 [[ "$(readlink "$ENTRY")" == "$entry_before" ]] && ok "M15: entry still Bash" || bad "M15: entry changed"
@@ -578,7 +659,7 @@ set -e
 echo "--- M12 runtime drift: validate refuses, files preserved ---"
 setup_legacy tls-multi
 RT=/etc/idleleo/conf/xray/config.json
-bridge prepare --candidate "$BIN" --recovery "$REC" >/dev/null 2>&1
+bridge prepare --candidate "$BIN" --recovery "$REC" --acknowledge-custom >/dev/null 2>&1
 printf '\n' >>"$RT"
 drift_sha=$(sha "$RT")
 entry_before=$(readlink "$ENTRY")
@@ -586,7 +667,6 @@ cron_before=$(sha "$CRON")
 set +e
 bridge validate --xray /usr/local/bin/xray --nginx /usr/sbin/nginx >/tmp/val.out 2>&1
 rc=$?
-set -e
 [[ $rc -eq 6 ]] && ok "M12: validate detects drift (exit 6)" || { bad "M12: validate exit $rc"; cat /tmp/val.out; }
 [[ "$(sha "$RT")" == "$drift_sha" ]] && ok "M12: runtime file not overwritten" || bad "M12: runtime overwritten"
 [[ "$(readlink "$ENTRY")" == "$entry_before" ]] && ok "M12: entry unchanged" || bad "M12: entry changed"
@@ -594,7 +674,6 @@ set -e
 set +e
 bridge activate >/tmp/act.out 2>&1
 rc=$?
-set -e
 [[ $rc -eq 3 ]] && ok "M12: activation refused without VALIDATED (exit 3)" || bad "M12: activate exit $rc"
 [[ "$(sha "$RT")" == "$drift_sha" ]] && ok "M12: activation did not overwrite drifted runtime" || bad "M12: runtime changed on activate"
 "$BIN" recover --container >/dev/null 2>&1
@@ -615,8 +694,7 @@ fault_case() {
     set +e
     bridge activate --fault "$point" >/tmp/fault.out 2>&1
     local frc=$?
-    set -e
-    [[ $frc -eq 70 ]] && ok "$point: process killed abruptly (exit 70)" || { bad "$point: fault exit $frc"; cat /tmp/fault.out; }
+        [[ $frc -eq 70 ]] && ok "$point: process killed abruptly (exit 70)" || { bad "$point: fault exit $frc"; cat /tmp/fault.out; }
     [[ "$(journal_state)" == "ACTIVATING" ]] && ok "$point: journal survives as ACTIVATING" || bad "$point: journal $(journal_state)"
     if [[ "$expect_entry" == "go" ]]; then
         [[ "$(readlink "$ENTRY")" == "$GOENTRY" ]] && ok "$point: entry had switched before the kill" || bad "$point: entry $(readlink "$ENTRY")"
@@ -633,8 +711,7 @@ fault_case() {
     set +e
     "$REC" --root / --container --json >/tmp/rec.json 2>/tmp/rec.err
     local rrc=$?
-    set -e
-    [[ $rrc -eq 0 ]] && ok "$point: independent idleleo-recover exits 0" || { bad "$point: recover exit $rrc"; cat /tmp/rec.err; }
+        [[ $rrc -eq 0 ]] && ok "$point: independent idleleo-recover exits 0" || { bad "$point: recover exit $rrc"; cat /tmp/rec.err; }
     [[ "$(journal_state)" == "ROLLED_BACK" ]] && ok "$point: journal ROLLED_BACK after recovery" || bad "$point: journal $(journal_state)"
     [[ "$(readlink "$ENTRY")" == "$entry_before" ]] && ok "$point: Bash entry restored" || bad "$point: entry $(readlink "$ENTRY")"
     [[ "$(sha "$RT")" == "$rt_before" ]] && ok "$point: runtime byte-identical after recovery" || bad "$point: runtime changed"
@@ -652,6 +729,280 @@ fault_case after-activating before untouched
 fault_case after-entry-switch go untouched
 fault_case after-cron go removed
 
+# ---------------------------------------------------------------- Rill contract
+setup_rill() {
+    local age="${1:-0}" mode="${2:-observe}"
+    mkdir -p /etc/rill-xray-agent /var/lib/rill-xray-agent-xray/status /opt/rill-xray-agent/bin
+    printf '{"schemaVersion":1,"mode":"%s","enabled":true}\n' "$mode" >/etc/rill-xray-agent/config.json
+    printf '#!/bin/sh\nexit 0\n' >/opt/rill-xray-agent/bin/rill-xray-agent
+    chmod 0755 /opt/rill-xray-agent/bin/rill-xray-agent
+    local ts
+    ts=$(date -u -d "@$(( $(date +%s) - age ))" +%Y-%m-%dT%H:%M:%SZ)
+    printf '{"agent":"rill-xray-agent","updatedAt":"%s","inbounds":[{"tag":"vless-in","up":12345}]}\n' "$ts" \
+        >/var/lib/rill-xray-agent-xray/status/xray-observation.json
+}
+
+echo "--- Rill: audit status, drift refusal, activation handover, recovery ---"
+setup_legacy reality-direct
+setup_rill 0 observe
+bridge audit --json >/tmp/audit.json 2>/dev/null
+python3 - <<'PY'
+import json
+a = json.load(open('/tmp/audit.json'))
+assert a['rill']['installed'] is True, a['rill']
+assert a['rill']['status'] == 'active', a['rill']
+assert a['rill']['mode'] == 'observe' and a['rill']['configSha256'], a['rill']
+assert a['rill']['observationAgeSeconds'] < 60, a['rill']
+PY
+[[ $? -eq 0 ]] && ok "rill: audit records installed active agent, mode and hashes" || bad "rill: audit state"
+
+setup_rill 3600 observe
+bridge audit --json >/tmp/audit-stale.json 2>/dev/null
+python3 - <<'PY'
+import json
+a = json.load(open('/tmp/audit-stale.json'))
+assert a['rill']['status'] == 'stale', a['rill']
+assert any(f['code'] == 'rill-observation-stale' for f in a['findings']), a['findings']
+PY
+[[ $? -eq 0 ]] && ok "rill: stale observation is surfaced as an explicit warning" || bad "rill: stale detection"
+
+setup_rill 0 observe
+cp /var/lib/rill-xray-agent-xray/status/xray-observation.json /tmp/rill-obs-backup
+obs_before=$(sha /var/lib/rill-xray-agent-xray/status/xray-observation.json)
+bridge prepare --candidate "$BIN" --recovery "$REC" --json >/tmp/prep.json 2>/dev/null
+python3 - <<'PY'
+import json
+p = json.load(open('/tmp/prep.json'))
+assert p['rillStatus'] == 'active', p
+PY
+[[ $? -eq 0 ]] && ok "rill: prepare records handover status" || bad "rill: prepare status"
+printf '{"agent":"rill-xray-agent","updatedAt":"2026-01-01T00:00:00Z","changed":true}\n' \
+    >/var/lib/rill-xray-agent-xray/status/xray-observation.json
+set +e
+bridge validate --xray /usr/local/bin/xray >/tmp/val.out 2>&1
+rc=$?
+[[ $rc -eq 6 ]] && ok "rill: validate refuses a changed handover state (exit 6)" || { bad "rill: drift exit $rc"; cat /tmp/val.out; }
+set +e
+"$BIN" recover --container --json >/tmp/rec.json 2>>/tmp/rec.err
+rc=$?
+[[ $rc -eq 0 ]] && ok "rill: drift scenario recovered (candidate discarded)" || { bad "rill: recover exit $rc"; cat /tmp/rec.err; }
+python3 - <<'PY'
+import json
+r = json.load(open('/tmp/rec.json'))
+assert r['rillUnchanged'] is False, r
+PY
+[[ $? -eq 0 ]] && ok "rill: recovery reports the changed handover state instead of hiding it" || bad "rill: recover report"
+
+setup_legacy reality-direct
+setup_rill 0 observe
+cp /var/lib/rill-xray-agent-xray/status/xray-observation.json /tmp/rill-obs-backup
+obs_before=$(sha /var/lib/rill-xray-agent-xray/status/xray-observation.json)
+bridge prepare --candidate "$BIN" --recovery "$REC" >/dev/null 2>&1
+bridge validate --xray /usr/local/bin/xray >/dev/null 2>&1
+bridge activate --json >/tmp/act.json 2>/dev/null
+python3 - <<'PY'
+import json
+r = json.load(open('/tmp/act.json'))
+assert r['rillStatus'] == 'active' and r['rillUnchanged'] is True, r
+PY
+[[ $? -eq 0 ]] && ok "rill: activation handover includes unchanged active status" || bad "rill: activate status"
+[[ "$(sha /var/lib/rill-xray-agent-xray/status/xray-observation.json)" == "$obs_before" ]] \
+    && ok "rill: bridge never rewrote the observation file" || bad "rill: observation changed"
+
+setup_legacy reality-direct
+setup_rill 0 observe
+obs_before=$(sha /var/lib/rill-xray-agent-xray/status/xray-observation.json)
+bridge prepare --candidate "$BIN" --recovery "$REC" >/dev/null 2>&1
+bridge validate --xray /usr/local/bin/xray >/dev/null 2>&1
+set +e
+bridge activate --fault after-cron >/dev/null 2>&1
+"$REC" --root / --container --json >/tmp/rec.json 2>/dev/null
+python3 - <<'PY'
+import json
+r = json.load(open('/tmp/rec.json'))
+assert r['rillUnchanged'] is True, r
+PY
+[[ $? -eq 0 ]] && ok "rill: rollback verifies Rill was not touched" || bad "rill: rollback verification"
+[[ "$(sha /var/lib/rill-xray-agent-xray/status/xray-observation.json)" == "$obs_before" ]] \
+    && ok "rill: rollback left the observation byte-identical" || bad "rill: rollback changed observation"
+
+# ---------------------------------------------------------------- permissions
+echo "--- permissions: audit fixes, activation tightens, rollback restores ---"
+setup_legacy reality-direct
+RT=/etc/idleleo/conf/xray/config.json
+mkdir -p /etc/idleleo/cert
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /etc/idleleo/cert/privkey.pem >/dev/null 2>&1
+chmod 0666 "$RT"
+chmod 0644 /etc/idleleo/cert/privkey.pem
+bridge audit --json >/tmp/audit.json 2>/dev/null
+python3 - <<'PY'
+import json
+a = json.load(open('/tmp/audit.json'))
+assert a['verdict'] == 'needs-fix', a
+fixes = {f['path']: f for f in a['permissionFixes']}
+assert 'etc/idleleo/conf/xray/config.json' in fixes, a['permissionFixes']
+assert any(p.endswith('privkey.pem') for p in fixes), a['permissionFixes']
+assert fixes['etc/idleleo/conf/xray/config.json']['oldMode'] == '0666', fixes
+PY
+[[ $? -eq 0 ]] && ok "permissions: audit flags world-writable config and readable private key" || bad "permissions: audit"
+bridge prepare --candidate "$BIN" --recovery "$REC" >/dev/null 2>&1
+bridge validate --xray /usr/local/bin/xray >/dev/null 2>&1
+set +e
+bridge activate --fault after-schedule >/tmp/act.out 2>&1
+rc=$?
+[[ $rc -eq 70 ]] && ok "permissions: fault after-schedule fired after fixes and unit install" || { bad "permissions: fault exit $rc"; cat /tmp/act.out; }
+[[ "$(stat -c %a "$RT")" == "644" ]] && ok "permissions: activation tightened runtime config to 0644 (no write)" || bad "permissions: config mode $(stat -c %a "$RT")"
+[[ "$(stat -c %a /etc/idleleo/cert/privkey.pem)" == "640" ]] && ok "permissions: activation tightened private key to 0640 for the xray group" || bad "permissions: key mode"
+[[ "$(stat -c %g /etc/idleleo/cert/privkey.pem)" == "$(getent group xray | cut -d: -f3)" ]] && ok "permissions: private key group changed to xray" || bad "permissions: key group"
+[[ -f /etc/systemd/system/idleleo-schedule.timer ]] && ok "permissions: schedule units installed before the fault" || bad "permissions: units missing"
+"$REC" --root / --container --json >/tmp/rec.json 2>/dev/null
+rc=$?
+[[ $rc -eq 0 ]] && ok "permissions: independent recovery exits 0" || bad "permissions: recover exit $rc"
+[[ "$(stat -c %a "$RT")" == "666" ]] && ok "permissions: rollback restored the original 0666 config mode" || bad "permissions: config mode not restored"
+[[ "$(stat -c %a /etc/idleleo/cert/privkey.pem)" == "644" ]] && ok "permissions: rollback restored the original 0644 key mode" || bad "permissions: key mode not restored"
+[[ "$(stat -c %g /etc/idleleo/cert/privkey.pem)" == "0" ]] && ok "permissions: rollback restored the original key group" || bad "permissions: key group not restored"
+[[ ! -f /etc/systemd/system/idleleo-schedule.timer ]] && ok "permissions: rollback removed the schedule timer unit" || bad "permissions: timer survived rollback"
+
+# ---------------------------------------------------------------- symlink escape
+echo "--- symlink escape: audit blocks the migration ---"
+setup_legacy reality-direct
+cp "$RT" /tmp/real-runtime.json
+rm -f "$RT"
+ln -s /tmp/real-runtime.json "$RT"
+bridge audit --json >/tmp/audit.json 2>/dev/null
+python3 - <<'PY'
+import json
+a = json.load(open('/tmp/audit.json'))
+assert a['verdict'] == 'blocked', a
+assert any(f['code'] == 'runtime-config-symlink' for f in a['findings']), a['findings']
+PY
+[[ $? -eq 0 ]] && ok "symlink: runtime config symlink is blocked" || bad "symlink: audit"
+set +e
+bridge prepare --candidate "$BIN" --recovery "$REC" >/tmp/prep.out 2>&1
+rc=$?
+[[ $rc -eq 3 ]] && ok "symlink: prepare refused with exit 3" || { bad "symlink: prepare exit $rc"; cat /tmp/prep.out; }
+[[ "$(journal_state)" == "none" ]] && ok "symlink: no journal was written" || bad "symlink: journal $(journal_state)"
+
+# ---------------------------------------------------------------- disk full
+echo "--- disk full: prepare fails cleanly, nothing half-written ---"
+setup_legacy reality-direct
+rt_before=$(sha "/etc/idleleo/conf/xray/config.json")
+cron_before=$(sha "$CRON")
+entry_before=$(readlink "$ENTRY")
+set +e
+bridge prepare --candidate "$BIN" --recovery "$REC" --fault disk-full >/tmp/prep.out 2>&1
+rc=$?
+[[ $rc -eq 13 ]] && ok "disk-full: prepare exits 13 (ENOSPC)" || { bad "disk-full: exit $rc"; cat /tmp/prep.out; }
+[[ "$(journal_state)" == "none" ]] && ok "disk-full: no journal survives" || bad "disk-full: journal $(journal_state)"
+[[ ! -f /var/lib/idleleo/bridge/plan.json ]] && ok "disk-full: no partial plan file" || bad "disk-full: plan written"
+[[ "$(sha "/etc/idleleo/conf/xray/config.json")" == "$rt_before" ]] && ok "disk-full: runtime untouched" || bad "disk-full: runtime changed"
+[[ "$(sha "$CRON")" == "$cron_before" ]] && ok "disk-full: cron untouched" || bad "disk-full: cron changed"
+[[ "$(readlink "$ENTRY")" == "$entry_before" ]] && ok "disk-full: entry untouched" || bad "disk-full: entry changed"
+bridge prepare --candidate "$BIN" --recovery "$REC" >/dev/null 2>&1
+[[ $? -eq 0 ]] && ok "disk-full: a clean prepare succeeds afterwards" || bad "disk-full: retry failed"
+
+# ---------------------------------------------------------------- download interrupted
+echo "--- download interrupted: zero changes ---"
+setup_legacy reality-direct
+cron_before=$(sha "$CRON")
+entry_before=$(readlink "$ENTRY")
+mkdir -p /etc/idleleo/bridge
+cat >/etc/idleleo/bridge/asset.json <<EOF
+{"schemaVersion":1,"version":"0.1.0-phase03-test","url":"https://127.0.0.1:18443/interrupt/idleleo","sha256":"$(sha "$BIN")","recoveryUrl":"https://127.0.0.1:18443/idleleo-recover","recoverySha256":"$(sha "$REC")"}
+EOF
+set +e
+tty_run 'y\n' "bash /etc/idleleo/install.sh --internal-bridge-offer" >/tmp/interrupt.out 2>&1
+rc=$?
+[[ $rc -ne 0 ]] && ok "interrupt: the offer fails closed on a truncated download" || { bad "interrupt: exit $rc"; cat /tmp/interrupt.out; }
+grep -q "下载或校验失败" /tmp/interrupt.out && ok "interrupt: operator sees the download failure" || bad "interrupt: no failure message"
+[[ "$(journal_state)" == "none" ]] && ok "interrupt: no journal written" || bad "interrupt: journal $(journal_state)"
+[[ "$(sha "$CRON")" == "$cron_before" ]] && ok "interrupt: cron untouched" || bad "interrupt: cron changed"
+[[ "$(readlink "$ENTRY")" == "$entry_before" ]] && ok "interrupt: entry untouched" || bad "interrupt: entry changed"
+[[ ! -e /opt/idleleo/bin/idleleo.candidate ]] && ok "interrupt: no candidate staged" || bad "interrupt: candidate exists"
+
+# ---------------------------------------------------------------- latest/download install path
+echo "--- release path: latest/download/install.sh against a fixed local origin ---"
+setup_legacy reality-direct
+rm -f /opt/idleleo/bin/idleleo
+: >/tmp/requests.log
+set +e
+curl -fsSL --proto '=https,file' -o /tmp/release-install.sh https://127.0.0.1:18443/latest/download/install.sh
+c1=$?
+[[ $c1 -eq 0 ]] && ok "release: install.sh fetched from the exact latest/download path" || bad "release: install.sh fetch exit $c1"
+[[ -s /tmp/release-install.sh ]] && ok "release: served install.sh is non-empty" || bad "release: install.sh empty"
+set +e
+bash /tmp/release-install.sh --manifest /tmp/release-manifest.json --fetch-only >/tmp/release.out 2>&1
+rc=$?
+[[ $rc -eq 0 ]] && ok "release: install.sh --fetch-only exits 0 on the local fixed origin" || { bad "release: fetch-only exit $rc"; cat /tmp/release.out; }
+grep -q '^/opt/idleleo/bin/idleleo$' /tmp/release.out && ok "release: install.sh reports the staged binary path" || bad "release: missing path output"
+[[ -x /opt/idleleo/bin/idleleo ]] && ok "release: staged binary is executable" || bad "release: binary not executable"
+grep -q '^/latest/download/install.sh$' /tmp/requests.log && ok "release: origin served latest/download/install.sh" || bad "release: install.sh request missing"
+grep -q '^/latest/download/idleleo$' /tmp/requests.log && ok "release: origin served latest/download/idleleo" || bad "release: asset request missing"
+[[ "$(requests)" == "2" ]] && ok "release: exactly the two release-path requests were made" || bad "release: requests=$(requests)"
+
+# ---------------------------------------------------------------- native scheduler real trigger
+echo "--- native schedule: real systemd timer fires the Go jobs ---"
+setup_legacy reality-direct
+RT=/etc/idleleo/conf/xray/config.json
+python3 - "$RT" <<'PY'
+import json,sys
+p=sys.argv[1]; d=json.load(open(p))
+d['api']={'tag':'api','listen':'127.0.0.1:10085','services':['StatsService']}
+d['stats']={}
+json.dump(d, open(p,'w'))
+PY
+systemctl reset-failed xray >/dev/null 2>&1 || true
+systemctl restart xray
+sleep 2
+[[ "$(active xray)" == "active" ]] && ok "scheduler: xray restarted with the stats API" || { bad "scheduler: xray not active"; systemctl status xray --no-pager 2>&1 | head -20; }
+bridge prepare --candidate "$BIN" --recovery "$REC" >/dev/null 2>&1 || bad "scheduler: prepare"
+bridge validate --xray /usr/local/bin/xray >/dev/null 2>&1 || bad "scheduler: validate"
+bridge activate >/dev/null 2>&1 || bad "scheduler: activate"
+"$BIN" schedule install --interval 30 --geodata-url https://127.0.0.1:18443/geo --container >/tmp/sched-install.out 2>&1
+[[ $? -eq 0 ]] && ok "scheduler: install with a 30s interval and local GeoData origin" || { bad "scheduler: install"; cat /tmp/sched-install.out; }
+"$BIN" schedule status >/tmp/sched-status-before.out 2>&1
+grep -q 'installed=true' /tmp/sched-status-before.out && ok "scheduler: status reports the timer installed" || bad "scheduler: status"
+systemctl restart idleleo-schedule.timer
+fire_start=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+deadline=$((SECONDS + 80))
+while (( SECONDS < deadline )); do
+    if grep -q 'job=geodata-refresh result=ok' /var/log/idleleo/schedule/schedule.log 2>/dev/null \
+        && grep -q 'job=stats-collect result=ok' /var/log/idleleo/schedule/schedule.log 2>/dev/null; then
+        break
+    fi
+    sleep 2
+done
+fire_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+echo "scheduler window: $fire_start .. $fire_end"
+grep -q 'job=geodata-refresh result=ok' /var/log/idleleo/schedule/schedule.log 2>/dev/null \
+    && ok "scheduler: systemd timer really ran geodata-refresh" || { bad "scheduler: geodata did not run"; cat /var/log/idleleo/schedule/schedule.log 2>/dev/null; }
+grep -q 'job=stats-collect result=ok' /var/log/idleleo/schedule/schedule.log 2>/dev/null \
+    && ok "scheduler: systemd timer really ran stats-collect" || { bad "scheduler: stats did not run"; cat /var/log/idleleo/schedule/schedule.log 2>/dev/null; }
+grep -q 'job=auto-update result=degraded' /var/log/idleleo/schedule/schedule.log 2>/dev/null \
+    && ok "scheduler: auto-update runs and records the explicit degradation" || bad "scheduler: auto-update not recorded"
+[[ "$(sha /etc/idleleo/share/xray/geoip.dat)" == "$(sha /work/assets/geo/geoip.dat)" ]] \
+    && ok "scheduler: downloaded GeoData is byte-identical to the fixed origin" || bad "scheduler: geodata mismatch"
+[[ -s /var/lib/idleleo/schedule/stats.json ]] && ok "scheduler: statsquery output persisted" || bad "scheduler: stats.json missing"
+[[ "$(active xray)" == "active" ]] && ok "scheduler: xray still active after the geodata restart" || bad "scheduler: xray stopped"
+echo "--- scheduler timer evidence (real timestamps) ---"
+date -u '+now=%Y-%m-%dT%H:%M:%SZ'
+systemctl list-timers idleleo-schedule.timer --no-pager 2>/dev/null | head -3
+systemctl status idleleo-schedule.service --no-pager 2>/dev/null | head -8
+cat /var/log/idleleo/schedule/schedule.log
+echo "--- end scheduler evidence ---"
+
+# Interrupted GeoData download must not replace good assets.
+"$BIN" schedule install --interval 30 --geodata-url https://127.0.0.1:18443/interrupt --container >/dev/null 2>&1
+systemctl stop idleleo-schedule.timer
+geo_before=$(sha /etc/idleleo/share/xray/geoip.dat)
+set +e
+"$BIN" schedule run --jobs geodata-refresh >>/var/log/idleleo/schedule/schedule.log 2>&1
+rc=$?
+[[ $rc -eq 1 ]] && ok "scheduler: interrupted GeoData download reports failure (exit 1)" || bad "scheduler: interrupt run exit $rc"
+[[ "$(sha /etc/idleleo/share/xray/geoip.dat)" == "$geo_before" ]] && ok "scheduler: interrupted download left the good asset untouched" || bad "scheduler: asset overwritten"
+"$BIN" schedule install --interval 30 --geodata-url https://127.0.0.1:18443/geo --container >/dev/null 2>&1
+systemctl restart idleleo-schedule.timer
+
 # ---------------------------------------------------------------- bad journal
 echo "--- corrupt journal: honest exit, no silent success ---"
 setup_legacy reality-direct
@@ -661,13 +1012,11 @@ printf 'not json\n' >"$JOURNAL"
 set +e
 "$REC" --root / --container >/tmp/rec.out 2>&1
 rc=$?
-set -e
 [[ $rc -eq 2 ]] && ok "journal: independent recover refuses corrupt journal (exit 2)" || bad "journal: recover exit $rc"
 [[ "$(readlink "$ENTRY")" == "$entry_before" ]] && ok "journal: corrupt journal left entry unchanged" || bad "journal: entry changed"
 set +e
 "$BIN" --root / bridge status --json >/tmp/status.json 2>/tmp/status.err
 rc=$?
-set -e
 [[ $rc -eq 5 ]] && ok "journal: status reports unusable journal (exit 5)" || { bad "journal: status exit $rc"; cat /tmp/status.err; }
 
 # ---------------------------------------------------------------- update lock
@@ -680,7 +1029,6 @@ sleep 0.5
 set +e
 bridge prepare --candidate "$BIN" --recovery "$REC" >/tmp/lock.out 2>&1
 rc=$?
-set -e
 wait "$locker" 2>/dev/null || true
 [[ $rc -eq 13 ]] && ok "lock: prepare refused while the Bash update lock is held (exit 13)" || { bad "lock: prepare exit $rc"; cat /tmp/lock.out; }
 [[ "$(journal_state)" == "none" ]] && ok "lock: no journal written under contention" || bad "lock: journal $(journal_state)"

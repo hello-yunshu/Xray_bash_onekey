@@ -42,6 +42,7 @@ docker run -d --name "$NAME" \
     -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
     -v "$BIN_DIR:/work/bin:ro" \
     -v "$ROOT/install.sh:/work/install.sh:ro" \
+    -v "$ROOT/packaging:/work/packaging:ro" \
     -v "$ROOT/tests/fixtures/legacy:/work/fixtures:ro" \
     -v "$XRAY_BIN:/opt/xray/xray:ro" \
     -v "$ROOT/tests/go-parity/phase03/run_phase03.sh:/phase03/run_phase03.sh:ro" \

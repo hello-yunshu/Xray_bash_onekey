@@ -54,20 +54,25 @@ func (a *App) Status(ctx context.Context) (StatusReport, error) {
 	if err != nil {
 		return StatusReport{SchemaVersion: 1, Installed: true}, err
 	}
+	report := StatusReport{
+		SchemaVersion: 1, Installed: true, Engine: meta.ActiveEngine,
+		Role: meta.Role, TLS: meta.TLS, Transport: meta.Transport,
+		Config:  ConfigStatus{Path: path},
+		Service: runtime.InspectServices(ctx, a.Paths.Root),
+		Drift:   []string{}, Warnings: []string{},
+	}
+	// Relay installations have no Xray runtime config; status must still work
+	// so the bridge can pre-validate a converted relay metadata.
+	if meta.RuntimeSHA256 == "" {
+		report.Warnings = append(report.Warnings, "metadata-has-no-runtime-sha")
+		return report, nil
+	}
 	view, err := store.LoadConfig(path)
 	if err != nil {
 		return StatusReport{SchemaVersion: 1, Installed: true}, err
 	}
-	report := StatusReport{
-		SchemaVersion: 1, Installed: true, Engine: meta.ActiveEngine,
-		Role: meta.Role, TLS: meta.TLS, Transport: meta.Transport,
-		Config:  ConfigStatus{Path: path, SHA256: view.SHA256},
-		Service: runtime.InspectServices(ctx, a.Paths.Root),
-		Drift:   []string{}, Warnings: []string{},
-	}
-	if meta.RuntimeSHA256 == "" {
-		report.Warnings = append(report.Warnings, "metadata-has-no-runtime-sha")
-	} else if meta.RuntimeSHA256 != view.SHA256 {
+	report.Config.SHA256 = view.SHA256
+	if meta.RuntimeSHA256 != view.SHA256 {
 		report.Drift = append(report.Drift, "runtime-config-sha-mismatch")
 	} else {
 		report.Config.MatchesMetadata = true

@@ -7,11 +7,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/runtime"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
 )
 
@@ -117,6 +120,8 @@ type PrepareOptions struct {
 	Root                 string
 	Candidate            string
 	Recovery             string
+	AcknowledgeCustom    bool
+	Fault                string
 	AllowContainerWrites bool
 }
 
@@ -131,20 +136,43 @@ type PrepareReport struct {
 	RecoverySHA256   string   `json:"recoverySha256,omitempty"`
 	MetadataPath     string   `json:"metadataPath"`
 	ProjectCronLines int      `json:"projectCronLines"`
+	CustomItems      int      `json:"customItems"`
+	CustomAcked      bool     `json:"customAcknowledged"`
+	PermissionFixes  int      `json:"permissionFixes"`
+	RillStatus       string   `json:"rillStatus"`
+	ScheduledJobs    []string `json:"scheduledJobs"`
+	DegradedJobs     []string `json:"degradedJobs"`
 	Warnings         []string `json:"warnings"`
 }
 
 // Prepare audits, snapshots and converts metadata. It never changes the
 // entry, cron, services or the runtime Xray config.
 func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, error) {
-	report := PrepareReport{SchemaVersion: 1, Warnings: []string{}}
+	report := PrepareReport{
+		SchemaVersion: 1, Warnings: []string{},
+		ScheduledJobs: schedule.Jobs, DegradedJobs: schedule.DegradedJobs,
+	}
 	audit, err := AuditMigration(opts.Root)
 	if err != nil {
 		return report, audit, &Error{Code: 1, Msg: "audit failed", Err: err}
 	}
 	report.Verdict = audit.Verdict
+	report.CustomItems = len(audit.CustomItems)
+	report.PermissionFixes = len(audit.PermissionFixes)
+	report.RillStatus = audit.Rill.Status
 	if audit.Verdict == VerdictBlocked {
 		return report, audit, &Error{Code: 3, Msg: "migration blocked by audit"}
+	}
+	if len(audit.CustomItems) > 0 && !opts.AcknowledgeCustom {
+		return report, audit, &Error{Code: 6, Msg: fmt.Sprintf(
+			"%d custom item(s) need explicit human merge acknowledgment; re-run with --acknowledge-custom after reviewing the audit summary", len(audit.CustomItems))}
+	}
+	report.CustomAcked = len(audit.CustomItems) > 0 && opts.AcknowledgeCustom
+	if report.CustomAcked {
+		report.Warnings = append(report.Warnings, fmt.Sprintf("custom-content:%d acknowledged for manual merge", len(audit.CustomItems)))
+	}
+	for _, fix := range audit.PermissionFixes {
+		report.Warnings = append(report.Warnings, fmt.Sprintf("permission-fix:%s %s->%s %s", fix.Path, fix.OldMode, fix.NewMode, fix.Reason))
 	}
 	if err := requireWriteAccess(opts.Root, opts.AllowContainerWrites); err != nil {
 		return report, audit, err
@@ -189,6 +217,11 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 		report.RecoverySHA256 = sha
 	}
 
+	if opts.Fault == "disk-full" {
+		// Injected at the first plan write: the candidate copy may exist, but no
+		// journal, metadata, snapshot or entry change may survive.
+		return report, audit, &Error{Code: 13, Msg: "write plan failed", Err: syscall.ENOSPC}
+	}
 	if err := writePlan(opts.Root, audit); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "write plan failed", Err: err}
 	}
@@ -225,15 +258,19 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 	j.PlanSHA256 = planSHA
 	j.RuntimeSHA256 = audit.RuntimeSHA256
 	j.EntryLink = audit.Entry.LinkTarget
-	j.DeferredTasks = pendingDeferredTasks(audit, opts.Root)
+	// The legacy cron jobs are taken over by the native scheduler at
+	// activation; nothing is parked without an owner.
+	j.DeferredTasks = []string{}
+	j.ScheduledJobs = schedule.Jobs
+	j.DegradedJobs = schedule.DegradedJobs
 	j.setState(StatePrepared, "snapshot and plan written")
 	if err := writeJournal(opts.Root, &j); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "write journal failed", Err: err}
 	}
 	report.State = StatePrepared
 	report.ProjectCronLines = countProjectCronLines(opts.Root)
-	if len(j.DeferredTasks) > 0 {
-		report.Warnings = append(report.Warnings, "deferred-tasks:"+strings.Join(j.DeferredTasks, ","))
+	for _, d := range schedule.DegradedJobs {
+		report.Warnings = append(report.Warnings, "degraded:"+d)
 	}
 	return report, audit, nil
 }
@@ -353,6 +390,20 @@ func writeSnapshot(root string, audit Audit) error {
 	if err := writeAtomic(filepath.Join(dir, "nginx.json"), append(nginxJSON, '\n'), 0o640); err != nil {
 		return err
 	}
+	// Rill is never written by the bridge; the snapshot only proves that the
+	// handover state is byte-identical before and after the migration window.
+	rillJSON, _ := json.MarshalIndent(audit.Rill, "", "  ")
+	if err := writeAtomic(filepath.Join(dir, "rill.json"), append(rillJSON, '\n'), 0o640); err != nil {
+		return err
+	}
+	customJSON, _ := json.MarshalIndent(audit.CustomItems, "", "  ")
+	if err := writeAtomic(filepath.Join(dir, "custom.json"), append(customJSON, '\n'), 0o640); err != nil {
+		return err
+	}
+	permJSON, _ := json.MarshalIndent(audit.PermissionFixes, "", "  ")
+	if err := writeAtomic(filepath.Join(dir, "permissions.json"), append(permJSON, '\n'), 0o640); err != nil {
+		return err
+	}
 	// Only project cron lines are recorded; the user's crontab is never copied.
 	lines, err := projectCronLines(root)
 	if err != nil {
@@ -414,26 +465,7 @@ func writeMetadata(root string, audit Audit) error {
 	return writeAtomic(p, b, 0o640)
 }
 
-func pendingDeferredTasks(audit Audit, root string) []string {
-	out := []string{}
-	lines, _ := projectCronLines(root)
-	for _, line := range lines {
-		switch {
-		case strings.Contains(line, "auto_update.sh"):
-			out = append(out, "auto-update (no Go scheduled equivalent yet)")
-		case strings.Contains(line, "ssl_update.sh"):
-			out = append(out, "certificate-renewal cron (no Go scheduled equivalent yet)")
-		case strings.Contains(line, "geo_update.sh"):
-			out = append(out, "geodata-refresh cron (no Go scheduled equivalent yet)")
-		}
-	}
-	if audit.GeoLegacyCron && len(out) == 0 {
-		out = append(out, "geodata-refresh cron")
-	}
-	sort.Strings(out)
-	return out
-}
-
+// projectCronLines returns only the cron lines owned by this project.
 func projectCronLines(root string) ([]string, error) {
 	p := mustResolve(root, crontabRel)
 	b, err := os.ReadFile(p)
@@ -467,14 +499,19 @@ type ValidateOptions struct {
 
 // ValidateReport records the real validator results.
 type ValidateReport struct {
-	SchemaVersion int    `json:"schemaVersion"`
-	State         string `json:"state"`
-	XrayExit      int    `json:"xrayExit"`
-	XrayOutput    string `json:"xrayOutput,omitempty"`
-	NginxExit     int    `json:"nginxExit"`
-	NginxOutput   string `json:"nginxOutput,omitempty"`
-	CandidateExit int    `json:"candidateExit"`
-	RuntimeSHA256 string `json:"runtimeSha256"`
+	SchemaVersion            int    `json:"schemaVersion"`
+	State                    string `json:"state"`
+	XrayExit                 int    `json:"xrayExit"`
+	XrayOutput               string `json:"xrayOutput,omitempty"`
+	NginxExit                int    `json:"nginxExit"`
+	NginxOutput              string `json:"nginxOutput,omitempty"`
+	CandidateExit            int    `json:"candidateExit"`
+	CandidateStatusExit      int    `json:"candidateStatusExit"`
+	CandidateInstalled       bool   `json:"candidateInstalled"`
+	CandidateMatchesMetadata bool   `json:"candidateMatchesMetadata"`
+	RuntimeSHA256            string `json:"runtimeSha256"`
+	RillStatus               string `json:"rillStatus"`
+	RillUnchanged            bool   `json:"rillUnchanged"`
 }
 
 // Validate runs xray -test, nginx -t and the candidate binary without
@@ -524,6 +561,43 @@ func Validate(ctx context.Context, opts ValidateOptions) (ValidateReport, error)
 	report.CandidateExit = res.ExitCode
 	if res.ExitCode != 0 {
 		return report, &Error{Code: 4, Msg: "candidate binary failed to run: " + strings.TrimSpace(res.Stderr)}
+	}
+
+	// The candidate must load the converted manager.json for real. This is the
+	// 03-D closure: not just a Go unit test, but the actual binary reading the
+	// metadata written by Prepare.
+	statusRes, err := host.Run(ctx, host.ExecSpec{
+		Path: candPath, Args: []string{"--root", opts.Root, "status", "--json"}, Timeout: 30 * time.Second,
+	})
+	if err != nil {
+		return report, &Error{Code: 4, Msg: "candidate status could not run", Err: err}
+	}
+	report.CandidateStatusExit = statusRes.ExitCode
+	if statusRes.ExitCode != 0 {
+		return report, &Error{Code: 4, Msg: "candidate status failed on converted metadata: " + strings.TrimSpace(statusRes.Stderr)}
+	}
+	var candidateStatus struct {
+		Installed bool `json:"installed"`
+		Config    struct {
+			MatchesMetadata bool `json:"matchesMetadata"`
+		} `json:"config"`
+	}
+	if err := json.Unmarshal([]byte(statusRes.Stdout), &candidateStatus); err != nil {
+		return report, &Error{Code: 4, Msg: "candidate status did not return JSON", Err: err}
+	}
+	report.CandidateInstalled = candidateStatus.Installed
+	report.CandidateMatchesMetadata = candidateStatus.Config.MatchesMetadata
+	if !candidateStatus.Installed {
+		return report, &Error{Code: 4, Msg: "candidate reported installed=false for converted metadata"}
+	}
+	if audit.Role == "node" && !candidateStatus.Config.MatchesMetadata {
+		return report, &Error{Code: 4, Msg: "candidate metadata/config hash does not match the converted manager.json"}
+	}
+
+	report.RillStatus = audit.Rill.Status
+	report.RillUnchanged = rillUnchanged(opts.Root, audit.Rill)
+	if !report.RillUnchanged {
+		return report, &Error{Code: 6, Msg: "Rill handover state changed since prepare"}
 	}
 
 	if audit.Role == "node" {
@@ -576,6 +650,94 @@ func verifyMetadata(root string) error {
 	return nil
 }
 
+// rillUnchanged compares only content hashes: the observation age may cross a
+// freshness threshold during a slow migration without the state being touched.
+func rillUnchanged(root string, current RillInfo) bool {
+	b, err := os.ReadFile(filepath.Join(mustResolve(root, snapshotRel), "rill.json"))
+	if err != nil {
+		return true
+	}
+	var snap RillInfo
+	if err := json.Unmarshal(b, &snap); err != nil {
+		return false
+	}
+	return snap.Installed == current.Installed &&
+		snap.ConfigSHA256 == current.ConfigSHA256 &&
+		snap.ObservationSHA256 == current.ObservationSHA256
+}
+
+func parseMode(s string) (os.FileMode, error) {
+	v, err := strconv.ParseUint(s, 8, 32)
+	if err != nil {
+		return 0, err
+	}
+	return os.FileMode(v), nil
+}
+
+func applyPermissionFixes(root string) (int, error) {
+	b, err := os.ReadFile(filepath.Join(mustResolve(root, snapshotRel), "permissions.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	var fixes []PermissionFix
+	if err := json.Unmarshal(b, &fixes); err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, f := range fixes {
+		mode, err := parseMode(f.NewMode)
+		if err != nil {
+			return n, err
+		}
+		p := mustResolve(root, f.Path)
+		if f.NewGID != f.OldGID && f.NewGID != 0 {
+			if err := os.Chown(p, -1, f.NewGID); err != nil {
+				return n, err
+			}
+		}
+		if err := os.Chmod(p, mode); err != nil {
+			return n, err
+		}
+		n++
+	}
+	return n, nil
+}
+
+func restorePermissions(root string) (int, error) {
+	b, err := os.ReadFile(filepath.Join(mustResolve(root, snapshotRel), "permissions.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	var fixes []PermissionFix
+	if err := json.Unmarshal(b, &fixes); err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, f := range fixes {
+		mode, err := parseMode(f.OldMode)
+		if err != nil {
+			return n, err
+		}
+		p := mustResolve(root, f.Path)
+		if f.NewGID != f.OldGID {
+			if err := os.Chown(p, -1, f.OldGID); err != nil {
+				return n, err
+			}
+		}
+		if err := os.Chmod(p, mode); err != nil {
+			return n, err
+		}
+		n++
+	}
+	return n, nil
+}
+
 // ActivateOptions describes the entry switch.
 type ActivateOptions struct {
 	Root                 string
@@ -586,23 +748,32 @@ type ActivateOptions struct {
 
 // ActivateReport is the committed migration result.
 type ActivateReport struct {
-	SchemaVersion  int      `json:"schemaVersion"`
-	State          string   `json:"state"`
-	Entry          string   `json:"entry"`
-	EntryLink      string   `json:"entryLink"`
-	InstalledSHA   string   `json:"installedSha256"`
-	RemovedCron    int      `json:"removedCronLines"`
-	DeferredTasks  []string `json:"deferredTasks"`
-	RuntimeSHA256  string   `json:"runtimeSha256"`
-	ServiceXray    string   `json:"serviceXray"`
-	ServiceNginx   string   `json:"serviceNginx"`
-	ServiceEnabled string   `json:"serviceEnabled"`
+	SchemaVersion   int      `json:"schemaVersion"`
+	State           string   `json:"state"`
+	Entry           string   `json:"entry"`
+	EntryLink       string   `json:"entryLink"`
+	InstalledSHA    string   `json:"installedSha256"`
+	RemovedCron     int      `json:"removedCronLines"`
+	DeferredTasks   []string `json:"deferredTasks"`
+	ScheduledJobs   []string `json:"scheduledJobs"`
+	DegradedJobs    []string `json:"degradedJobs"`
+	RuntimeSHA256   string   `json:"runtimeSha256"`
+	ServiceXray     string   `json:"serviceXray"`
+	ServiceNginx    string   `json:"serviceNginx"`
+	ServiceEnabled  string   `json:"serviceEnabled"`
+	Timer           string   `json:"timer"`
+	PermissionFixes int      `json:"permissionFixes"`
+	RillStatus      string   `json:"rillStatus"`
+	RillUnchanged   bool     `json:"rillUnchanged"`
 }
 
 // Activate switches /usr/bin/idleleo to the Go binary, removes only project
 // cron lines and commits the journal. It never restarts services.
 func Activate(ctx context.Context, opts ActivateOptions) (ActivateReport, error) {
-	report := ActivateReport{SchemaVersion: 1, DeferredTasks: []string{}}
+	report := ActivateReport{
+		SchemaVersion: 1, DeferredTasks: []string{},
+		ScheduledJobs: schedule.Jobs, DegradedJobs: schedule.DegradedJobs,
+	}
 	if err := requireWriteAccess(opts.Root, opts.AllowContainerWrites); err != nil {
 		return report, err
 	}
@@ -702,13 +873,39 @@ func Activate(ctx context.Context, opts ActivateOptions) (ActivateReport, error)
 		return failActivation(opts.Root, &j, report, &Error{Code: 6, Msg: "runtime config changed during activation"})
 	}
 	report.RuntimeSHA256 = j.RuntimeSHA256
+	report.RillStatus = audit.Rill.Status
+	report.RillUnchanged = rillUnchanged(opts.Root, audit.Rill)
+	if !report.RillUnchanged {
+		return failActivation(opts.Root, &j, report, &Error{Code: 6, Msg: "Rill handover state changed during activation"})
+	}
+
+	// Apply the permission and key-mode fixes recorded at prepare time. The
+	// snapshot keeps the old modes so rollback can restore them exactly.
+	fixed, err := applyPermissionFixes(opts.Root)
+	if err != nil {
+		return failActivation(opts.Root, &j, report, &Error{Code: 13, Msg: "apply permission fixes failed", Err: err})
+	}
+	report.PermissionFixes = fixed
+
+	// Install the native scheduler before committing: after this point the
+	// legacy cron lines are gone, so the takeover must already exist.
+	sched, err := schedule.Install(ctx, schedule.InstallOptions{Root: opts.Root, IntervalSeconds: schedule.DefaultIntervalSeconds})
+	if err != nil {
+		return failActivation(opts.Root, &j, report, &Error{Code: 13, Msg: "install native schedule failed", Err: err})
+	}
+	report.Timer = sched.Systemd
+	if opts.Fault == "after-schedule" {
+		os.Exit(70)
+	}
 
 	state := serviceState(ctx, opts.Root)
 	report.ServiceXray, report.ServiceNginx, report.ServiceEnabled = state.Xray, state.Nginx, state.Enabled
 
-	report.DeferredTasks = append(report.DeferredTasks, pendingDeferredTasks(audit, opts.Root)...)
-	j.setState(StateCommitted, fmt.Sprintf("entry switched; removed %d project cron lines", removed))
-	j.DeferredTasks = report.DeferredTasks
+	report.DeferredTasks = []string{}
+	j.setState(StateCommitted, fmt.Sprintf("entry switched; removed %d project cron lines; native schedule installed", removed))
+	j.DeferredTasks = []string{}
+	j.ScheduledJobs = schedule.Jobs
+	j.DegradedJobs = schedule.DegradedJobs
 	if err := writeJournal(opts.Root, &j); err != nil {
 		return report, &Error{Code: 13, Msg: "commit journal failed", Err: err}
 	}
@@ -740,6 +937,7 @@ type RecoverReport struct {
 	State          string   `json:"state"`
 	Actions        []string `json:"actions"`
 	RequiresManual bool     `json:"requiresManual"`
+	RillUnchanged  bool     `json:"rillUnchanged"`
 	Message        string   `json:"message,omitempty"`
 }
 
@@ -747,7 +945,7 @@ type RecoverReport struct {
 // restores the previous entry and project cron lines. It never performs a
 // silent reverse migration after COMMITTED.
 func Recover(opts RecoverOptions) (RecoverReport, error) {
-	report := RecoverReport{SchemaVersion: 1, Actions: []string{}}
+	report := RecoverReport{SchemaVersion: 1, Actions: []string{}, RillUnchanged: true}
 	if err := requireWriteAccess(opts.Root, opts.AllowContainerWrites); err != nil {
 		return report, err
 	}
@@ -763,6 +961,7 @@ func Recover(opts RecoverOptions) (RecoverReport, error) {
 		return report, &Error{Code: 2, Msg: "cannot recover", Err: err}
 	}
 	report.PreviousState = j.State
+	report.RillUnchanged = rillUnchanged(opts.Root, currentRill(opts.Root))
 	switch j.State {
 	case StateCommitted:
 		report.State, report.RequiresManual = StateCommitted, true
@@ -801,8 +1000,34 @@ func rollback(root string, j *Journal) (string, error) {
 	return state, err
 }
 
+func currentRill(root string) RillInfo {
+	a, err := AuditMigration(root)
+	if err != nil {
+		return RillInfo{}
+	}
+	return a.Rill
+}
+
 func rollbackWithActions(root string, j *Journal) (string, []string, error) {
 	actions := []string{}
+	// Remove the native schedule first: once the entry is restored, a timer
+	// pointing at the Go binary must not keep firing.
+	if removed, err := schedule.Remove(context.Background(), root); err == nil && len(removed) > 0 {
+		actions = append(actions, "removed native schedule units")
+	} else if err != nil {
+		j.LastError = err.Error()
+		j.setState(StateRecoveryRequired, "schedule removal failed")
+		_ = writeJournal(root, j)
+		return StateRecoveryRequired, actions, err
+	}
+	if n, err := restorePermissions(root); err != nil {
+		j.LastError = err.Error()
+		j.setState(StateRecoveryRequired, "permission restore failed")
+		_ = writeJournal(root, j)
+		return StateRecoveryRequired, actions, err
+	} else if n > 0 {
+		actions = append(actions, fmt.Sprintf("restored %d file mode(s)", n))
+	}
 	if err := restoreEntry(root); err != nil {
 		j.LastError = err.Error()
 		j.setState(StateRecoveryRequired, "entry restore failed")
@@ -937,6 +1162,9 @@ type StatusReport struct {
 	Entry         string   `json:"entry,omitempty"`
 	Root          string   `json:"root"`
 	DeferredTasks []string `json:"deferredTasks,omitempty"`
+	ScheduledJobs []string `json:"scheduledJobs,omitempty"`
+	DegradedJobs  []string `json:"degradedJobs,omitempty"`
+	RillStatus    string   `json:"rillStatus,omitempty"`
 	UpdatedAt     string   `json:"updatedAt,omitempty"`
 }
 
@@ -945,6 +1173,7 @@ func Status(root string) (StatusReport, error) {
 	report := StatusReport{SchemaVersion: 1, Root: root}
 	if j, err := readJournal(root); err == nil {
 		report.State, report.Entry, report.DeferredTasks, report.UpdatedAt = j.State, j.EntryLink, j.DeferredTasks, j.UpdatedAt
+		report.ScheduledJobs, report.DegradedJobs = j.ScheduledJobs, j.DegradedJobs
 	} else if !strings.Contains(err.Error(), "no bridge journal") {
 		return report, &Error{Code: 5, Msg: "journal unusable", Err: err}
 	}
@@ -952,6 +1181,7 @@ func Status(root string) (StatusReport, error) {
 		var a Audit
 		if json.Unmarshal(b, &a) == nil {
 			report.Verdict = a.Verdict
+			report.RillStatus = a.Rill.Status
 		}
 	}
 	return report, nil
