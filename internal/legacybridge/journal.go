@@ -53,6 +53,7 @@ type Journal struct {
 	PlanSHA256      string   `json:"planSha256,omitempty"`
 	RuntimeSHA256   string   `json:"runtimeSha256,omitempty"`
 	RemovedCron     int      `json:"removedCronLines,omitempty"`
+	RetainedCron    []string `json:"retainedCronLines,omitempty"`
 	DeferredTasks   []string `json:"deferredTasks,omitempty"`
 	ScheduledJobs   []string `json:"scheduledJobs,omitempty"`
 	DegradedJobs    []string `json:"degradedJobs,omitempty"`

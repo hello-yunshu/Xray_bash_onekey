@@ -593,11 +593,30 @@ func (a *Audit) scanUnits(root string) {
 // of these names; unrelated user jobs are never touched.
 var projectCronMarkers = []string{"auto_update.sh", "ssl_update.sh", "geo_update.sh", "xray_stats.sh"}
 
+// retainedCronMarkers are legacy jobs that Go has no equivalent executor for
+// yet. Activation must keep their cron lines: an explicit "degraded" result is
+// not a reason to silently remove certificate renewal or Xray/Nginx updates.
+var retainedCronMarkers = []string{"auto_update.sh", "ssl_update.sh"}
+
 func isProjectCronLine(line string) bool {
 	if !strings.Contains(line, "/etc/idleleo") {
 		return false
 	}
 	for _, marker := range projectCronMarkers {
+		if strings.Contains(line, marker) {
+			return true
+		}
+	}
+	return false
+}
+
+// isRetainedCronLine reports whether the line must survive activation because
+// the Go scheduler cannot perform the job yet.
+func isRetainedCronLine(line string) bool {
+	if !isProjectCronLine(line) {
+		return false
+	}
+	for _, marker := range retainedCronMarkers {
 		if strings.Contains(line, marker) {
 			return true
 		}

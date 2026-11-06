@@ -136,6 +136,7 @@ type PrepareReport struct {
 	RecoverySHA256   string   `json:"recoverySha256,omitempty"`
 	MetadataPath     string   `json:"metadataPath"`
 	ProjectCronLines int      `json:"projectCronLines"`
+	RetainedCron     []string `json:"retainedCronLines"`
 	CustomItems      int      `json:"customItems"`
 	CustomAcked      bool     `json:"customAcknowledged"`
 	PermissionFixes  int      `json:"permissionFixes"`
@@ -259,16 +260,24 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 	j.RuntimeSHA256 = audit.RuntimeSHA256
 	j.EntryLink = audit.Entry.LinkTarget
 	// The legacy cron jobs are taken over by the native scheduler at
-	// activation; nothing is parked without an owner.
+	// activation, except the ones Go cannot execute yet. Those stay installed:
+	// a degraded result is not a reason to remove renewal/update coverage.
 	j.DeferredTasks = []string{}
 	j.ScheduledJobs = schedule.Jobs
 	j.DegradedJobs = schedule.DegradedJobs
+	j.RetainedCron = retainedCronLines(mustResolve(opts.Root, crontabRel))
 	j.setState(StatePrepared, "snapshot and plan written")
 	if err := writeJournal(opts.Root, &j); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "write journal failed", Err: err}
 	}
 	report.State = StatePrepared
 	report.ProjectCronLines = countProjectCronLines(opts.Root)
+	report.RetainedCron = j.RetainedCron
+	if len(report.RetainedCron) > 0 {
+		report.Warnings = append(report.Warnings, fmt.Sprintf(
+			"retained %d legacy cron line(s) for jobs without a Go executor yet (auto_update.sh, ssl_update.sh)",
+			len(report.RetainedCron)))
+	}
 	for _, d := range schedule.DegradedJobs {
 		report.Warnings = append(report.Warnings, "degraded:"+d)
 	}
@@ -754,6 +763,7 @@ type ActivateReport struct {
 	EntryLink       string   `json:"entryLink"`
 	InstalledSHA    string   `json:"installedSha256"`
 	RemovedCron     int      `json:"removedCronLines"`
+	RetainedCron    []string `json:"retainedCronLines"`
 	DeferredTasks   []string `json:"deferredTasks"`
 	ScheduledJobs   []string `json:"scheduledJobs"`
 	DegradedJobs    []string `json:"degradedJobs"`
@@ -855,6 +865,8 @@ func Activate(ctx context.Context, opts ActivateOptions) (ActivateReport, error)
 	}
 	report.RemovedCron = removed
 	j.RemovedCron = removed
+	report.RetainedCron = retainedCronLines(cronPath)
+	j.RetainedCron = report.RetainedCron
 	if opts.Fault == "after-cron" {
 		os.Exit(70)
 	}
@@ -902,7 +914,7 @@ func Activate(ctx context.Context, opts ActivateOptions) (ActivateReport, error)
 	report.ServiceXray, report.ServiceNginx, report.ServiceEnabled = state.Xray, state.Nginx, state.Enabled
 
 	report.DeferredTasks = []string{}
-	j.setState(StateCommitted, fmt.Sprintf("entry switched; removed %d project cron lines; native schedule installed", removed))
+	j.setState(StateCommitted, fmt.Sprintf("entry switched; removed %d project cron lines; retained %d for jobs without a Go executor; native schedule installed", removed, len(report.RetainedCron)))
 	j.DeferredTasks = []string{}
 	j.ScheduledJobs = schedule.Jobs
 	j.DegradedJobs = schedule.DegradedJobs
@@ -1118,7 +1130,8 @@ func restoreCron(root string) error {
 	return writeCrontab(cronPath, strings.Join(kept, "\n")+"\n")
 }
 
-// rewriteCrontab removes only project lines and keeps everything else.
+// rewriteCrontab removes only project lines Go can execute, and keeps the
+// legacy lines whose jobs have no Go equivalent yet.
 func rewriteCrontab(path string) (int, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -1131,6 +1144,10 @@ func rewriteCrontab(path string) (int, error) {
 	removed := 0
 	for _, line := range strings.Split(string(b), "\n") {
 		if isProjectCronLine(line) {
+			if isRetainedCronLine(line) {
+				kept = append(kept, line)
+				continue
+			}
 			removed++
 			continue
 		}
@@ -1140,6 +1157,22 @@ func rewriteCrontab(path string) (int, error) {
 		return 0, nil
 	}
 	return removed, writeCrontab(path, strings.Join(kept, "\n"))
+}
+
+// retainedCronLines returns the project cron lines that activation leaves in
+// place because Go cannot perform the job yet.
+func retainedCronLines(path string) []string {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+	out := []string{}
+	for _, line := range strings.Split(string(b), "\n") {
+		if isRetainedCronLine(line) {
+			out = append(out, line)
+		}
+	}
+	return out
 }
 
 func writeCrontab(path, content string) error {

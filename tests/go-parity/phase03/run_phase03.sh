@@ -428,7 +428,10 @@ python3 - <<'PY'
 import json
 r = json.load(open('/tmp/act.json'))
 assert r['state'] == 'COMMITTED', r
-assert r['removedCronLines'] == 4, r
+assert r['removedCronLines'] == 2, r
+assert len(r['retainedCronLines']) == 2, r
+assert 'auto_update.sh' in ' '.join(r['retainedCronLines']), r
+assert 'ssl_update.sh' in ' '.join(r['retainedCronLines']), r
 assert r['serviceXray'] == 'active', r
 assert r['serviceEnabled'] == 'enabled', r
 assert r['deferredTasks'] == [], r
@@ -448,7 +451,14 @@ PY
 [[ "$(count_users "$RT")" == "$users_before" ]] && ok "reality: user set unchanged ($users_before users)" || bad "reality: user count changed"
 [[ "$(sha /etc/systemd/system/xray.service)" == "$unit_before" ]] && ok "reality: xray unit byte-identical" || bad "reality: unit changed"
 [[ "$(active xray)" == "active" && "$(enabled xray)" == "enabled" ]] && ok "reality: xray active/enabled after commit" || bad "reality: xray not active/enabled"
-[[ "$(project_cron_count)" == "0" ]] && ok "reality: no project cron lines remain" || bad "reality: project cron remains"
+python3 - <<'PY'
+lines = [l for l in open('/var/spool/cron/crontabs/root') if '/etc/idleleo' in l]
+assert len(lines) == 2, lines
+assert sum('auto_update.sh' in l for l in lines) == 1, lines
+assert sum('ssl_update.sh' in l for l in lines) == 1, lines
+assert not any('geo_update.sh' in l or 'xray_stats.sh' in l for l in lines), lines
+PY
+[[ $? -eq 0 ]] && ok "reality: taken-over cron removed, renewal/update cron retained" || bad "reality: project cron set wrong"
 cron_has /usr/bin/certbot && ok "reality: user certbot cron kept" || bad "reality: user cron lost"
 cron_has /usr/local/bin/my-geo-refresh.sh && ok "reality: custom geo refresh cron kept" || bad "reality: custom cron lost"
 [[ -x /opt/idleleo/recovery/legacy-install.sh ]] && ok "reality: legacy Bash kept as recovery backup" || bad "reality: legacy backup missing"
@@ -701,8 +711,8 @@ fault_case() {
     else
         [[ "$(readlink "$ENTRY")" == "$entry_before" ]] && ok "$point: entry had not switched" || bad "$point: entry moved"
     fi
-    if [[ "$expect_cron" == "removed" ]]; then
-        [[ "$(project_cron_count)" == "0" ]] && ok "$point: project cron had been removed before the kill" || bad "$point: project cron still present"
+    if [[ "$expect_cron" == "retained" ]]; then
+        [[ "$(project_cron_count)" == "2" ]] && ok "$point: taken-over cron removed, renewal/update cron retained" || bad "$point: project cron set wrong"
     else
         [[ "$(sha "$CRON")" == "$cron_before" ]] && ok "$point: cron untouched before the kill" || bad "$point: cron changed"
     fi
@@ -727,7 +737,7 @@ fault_case() {
 
 fault_case after-activating before untouched
 fault_case after-entry-switch go untouched
-fault_case after-cron go removed
+fault_case after-cron go retained
 
 # ---------------------------------------------------------------- Rill contract
 setup_rill() {
