@@ -49,6 +49,7 @@ Docker **不能**替代真实公网 VPS、公共 CA 证书签发、宿主内核/
 | 完整 fresh install E2E | `idleleo-phase02-test:24.04` | root、systemd、真实 Xray 二进制、独立 Docker 网络 | 已实测 Phase 02 E2E **36/36**（install/uninstall/reinstall/purge/事务/生成矩阵/GeoData）；`CONTAINER_VERIFIED`，不是真实 VPS |
 | GeoData 原生两次完整刷新 | `idleleo-phase02-test:24.04` + 真实 Xray 26.10.31 + 本地 `nginx:1.27` HTTPS/2 origin | 联网或本地 HTTPS origin；记录两次 SHA/日志/失败恢复 | 已实测两轮“破坏→下载→替换→重载”：`16475156B`（源 `16475153B` + 3B Lua guard），两轮均恢复；`CONTAINER_VERIFIED`；不证明公网 CDN 长期可用 |
 | Xray reload/重启与 Stats API | `idleleo-phase02-test:24.04` + 真实 Xray 26.10.31 | 真实二进制、loopback API；systemd | 已实测 Reality 服务重启后客户端经隧道取回 `http://example.com/` 577 字节（含 `Example Domain`）；`CONTAINER_VERIFIED`（容器内真实数据面） |
+| Bridge 旧用户迁移（Phase 03） | `idleleo-phase03-test:24.04`（base `ubuntu:24.04@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852`） | `--privileged --cgroupns=host` + `-v /sys/fs/cgroup:/sys/fs/cgroup:rw`；真实 Xray、nginx、crontab、真实 TTY、本地 HTTPS origin | 已实测 **136/136**：只读审计、journal、原子入口切换、精确 cron 接管、3 个故障点独立恢复、共享 flock 冲突（exit 13）；`CONTAINER_VERIFIED`，不是真实 VPS |
 | 卸载/重装事务 | `idleleo-phase02-test:24.04` | 文件快照与真实容器服务；容器重建用于“重装” | 已实测卸载保留配置、`--keep-config` 重装后自定义 DNS 逐字节保留；`CONTAINER_VERIFIED`；不能证明宿主重启持久性 |
 | amd64/arm64 构建（C11） | `golang:1.24` 或宿主 Go | `GOOS=linux GOARCH=amd64/arm64` 交叉编译 | 构建为 `CONTAINER_VERIFIED`/本地构建证据；执行仅在匹配架构，QEMU 结果不计性能 |
 | Phase 01 C01–C12 + native L0 | `idleleo-phase01-test:1.24`（base `golang:1.24@sha256:d2d2bc1c84f7e60d7d2438a3836ae7d0c847f4888464e7ec9ba3a1339a1ee804`；本次 image ID `sha256:8af4eaa68338d882c32104e30d347f575f5c23730c6249fb82b78bebd3bab6c5`） | `--network=none`、容器 root、挂载仓库；C06.real 额外只读挂载固定 Xray 二进制；不需要特权 | 已实测 C01–C12 **35/35**（含真实 `xray -test` 校验器）与 native L0 **83/83**；`CONTAINER_VERIFIED` |
@@ -119,6 +120,9 @@ Docker **不能**替代真实公网 VPS、公共 CA 证书签发、宿主内核/
 | Phase 02 Relay TCP | `bash tests/go-parity/phase02/run_relay_nginx.sh` | TLS/stream `nginx -t` 通过；`PING` 经 Nginx stream 回显；`CONTAINER_VERIFIED` |
 | Phase 02 GeoData 双周期 | 本地 `nginx:1.27` HTTPS/2 origin + Xray 26.10.31 `cron` | 两轮均从 18B 恢复为 `16475156B`（源 + 3B guard） |
 | Phase 02 回归 | `IDLELEO_XRAY_BIN=/tmp/xray-26/xray bash tests/go-parity/phase01/run_phase01_container.sh` | **35/35**；metadata 指纹刷新未破坏 Phase 01 |
+| Phase 03 Bridge E2E | `idleleo-phase03-test:24.04`（本次 image ID `sha256:a7090c72d05c3e848262a3607847d564a6406e55e0ae7562d4548cc884fd96bf`）+ `--privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw`；`IDLELEO_XRAY_BIN=/tmp/xray-26/xray bash tests/go-parity/phase03/run_phase03_container.sh` | **136 passed, 0 failed**，`phase03-exit=0`；含真实 `xray -test`/`nginx -t`、3 个故障点独立恢复、cron 精确还原、Bash TTY 下载与 6 类门禁 |
+| Phase 03 共享更新锁 | 同一容器内 `flock /run/lock/idleleo-update.lock` 持有中 | `bridge prepare` **exit 13**、无 journal；释放后同一命令 exit 0 |
+| Phase 03 Bash 迁移发现 | 同一容器内真实 TTY（`pty.fork`）+ 本地 HTTPS origin（`127.0.0.1:18443`） | 非 TTY / `auto_update=YES` / `-u --yes` / 拒绝 / 缺写确认 / 缺 manifest = **0 请求**；同意 = **2 次固定下载**并 `COMMITTED` |
 
 ## 7. 约束
 
