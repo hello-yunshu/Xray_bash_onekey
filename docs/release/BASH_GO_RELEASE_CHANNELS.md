@@ -66,8 +66,10 @@
 - 安装顺序固定：download → size → SHA-256 → ELF magic/machine → 备份旧二进制 →
   原子写新二进制 → 健康检查（输出必须含 `idleleo` 与 manifest 版本）→ 失败恢复；
   恢复失败返回 `RECOVERY_REQUIRED`（CLI exit 10）。
-- 真实 root 写入需要 `--container` + `IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY` +
-  容器标记（`/.dockerenv` 或 `/run/.containerenv`），见
+- root 写入门禁：容器内真实 root 需要 `--container` +
+  `IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY` + 容器标记；
+  **真机 root 放行**，但每次写入先追加到 `/var/log/idleleo/system-writes.log`
+  （mode/uid/pid/argv，0600），审计不可写则拒绝，见
   [`internal/host/gate.go`](../../internal/host/gate.go)。
 
 ## 6. 未验证事实（不得当作已满足）

@@ -136,28 +136,11 @@ func path(root, rel string) string {
 }
 
 // RequireWriteAccess gates schedule installation exactly like the bridge gate:
-// a non-root target must be a marked disposable sandbox and the real root
-// requires the container acknowledgement.
+// a non-root target must be a marked disposable sandbox; a container real root
+// requires the explicit acknowledgement, while a real host root is allowed and
+// recorded in the system-write audit log.
 func RequireWriteAccess(root string, ack bool) error {
-	if root != "/" {
-		p, err := host.NewPaths(root)
-		if err != nil {
-			return err
-		}
-		return p.RequireSandbox()
-	}
-	if !ack {
-		return errors.New("real root writes require --container")
-	}
-	if os.Getenv("IDLELEO_ALLOW_SYSTEM_WRITES") != "I_ACCEPT_CONTAINER_ONLY" {
-		return errors.New("real root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY")
-	}
-	for _, marker := range []string{"/.dockerenv", "/run/.containerenv"} {
-		if _, err := os.Stat(marker); err == nil {
-			return nil
-		}
-	}
-	return errors.New("refusing real root writes outside a container")
+	return host.RequireSystemWrite(root, ack)
 }
 
 // requireRunRoot is deliberately weaker than the install gate: the timer
