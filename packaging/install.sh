@@ -45,7 +45,7 @@ if [[ ! -r "${manifest}" ]]; then
 fi
 
 read_manifest() {
-    python3 -c 'import json,sys;print(json.load(open(sys.argv[1]).get(sys.argv[2],"") or "")' "${manifest}" "$1"
+    python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get(sys.argv[2],"") or "")' "${manifest}" "$1"
 }
 
 asset_url=$(read_manifest url) || asset_url=""

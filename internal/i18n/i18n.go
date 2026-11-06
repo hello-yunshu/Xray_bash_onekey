@@ -21,6 +21,10 @@ var zh = map[string]string{
   config inspect       只读结构化配置视图
   change set-inbound-port --sandbox PATH --port N --validator PATH
                        在一次性沙箱内修改入站端口（Phase 01 演示）
+  bridge audit|prepare|validate|activate|recover|status
+                       旧 Bash 安装的审计、预检、切换与恢复
+  schedule install|remove|run|status
+                       Go 原生定时任务（接管旧 cron 的更新/证书/GeoData/统计）
   stats                未实现（退出码 11）
   help                 显示本帮助
 `,
@@ -54,6 +58,10 @@ Commands:
   config inspect       read-only structured config view
   change set-inbound-port --sandbox PATH --port N --validator PATH
                        change one inbound port inside a disposable sandbox
+  bridge audit|prepare|validate|activate|recover|status
+                       audit, pre-flight, switch and recovery for legacy Bash installs
+  schedule install|remove|run|status
+                       native Go jobs (takeover of the legacy update/cert/GeoData/stats cron)
   stats                not implemented (exit 11)
   help                 show this help
 `,

@@ -1,5 +1,42 @@
 # CHANGELOG
 
+## 未发布 — Go 管理器迁移（Phase 03 收尾）
+
+实验性 Bash → Go 迁移路径补齐 Phase 03 缺口；证据等级为容器级
+`CONTAINER_VERIFIED`，**不是“真实 VPS 已验证”**，真实 ACME 不纳入本轮。
+
+### 新增
+
+- **原生 Go 定时入口**：`idleleo schedule install|remove|run|status`，
+  由 `idleleo-schedule.timer` 接管旧 cron 的 `auto_update.sh`、`ssl_update.sh`、
+  `geo_update.sh`、`xray_stats.sh`。GeoData 刷新与统计采集为完整实现
+  （原子替换、真实 Xray Stats API）；自动更新与证书续期为**显式降级**
+  （无 Go release 通道 / 无 ACME），每轮写入 `schedule.log`，不再静默暂停。
+- **Rill 契约**：审计、快照、候选预验收、激活与回滚均纳入 Rill 状态与文件哈希；
+  观测漂移时 validate 以 exit 6 拒绝。
+- **迁移审计增强**：`bridge audit --summary` 展示完整变更摘要；未知 Xray 顶层键与
+  自定义 nginx 片段进入 `customItems`，未确认时 `prepare` 以 exit 6 拒绝
+  （`--acknowledge-custom`）。
+- **权限/软链修复**：runtime config world-writable → 0644；私钥 → 0640 且归属 xray 组；
+  runtime 配置符号链接与越界 entry 软链 → `blocked`；修复随回滚恢复原 mode/group。
+- **03-D 预验收**：validate 运行转换后 metadata 的候选 `status --json`，校验
+  `installed` 与 `config.matchesMetadata`；relay 允许无 runtime 配置。
+- **故障注入**：`prepare --fault disk-full`（ENOSPC → exit 13，零 journal/plan）、
+  Bash 下载截断、Go GeoData 下载截断；`activate --fault after-schedule` 可在
+  timer 安装与权限修复后中断并回滚。
+
+### 修复
+
+- `packaging/install.sh` manifest 解析括号错误（对 dict 调用 `.get` 后再 `json.load`）。
+- relay 无 runtime 配置时 `status` 报错，导致 03-D 预验收无法通过。
+
+### 迁移说明
+
+- 迁移仅在 `idleleo --update` 的真实 TTY 手动路径提示；`--yes` 与自动更新不触发。
+- 保留配置、证书/私钥、用户、用户自定义 cron 与 nginx 自定义片段。
+- 回滚使用 `/opt/idleleo/recovery/idleleo-recover`；已 `COMMITTED` 后不隐式逆向迁移。
+- 本轮未合并 `main`、未打 tag、未发 Release。
+
 ## 3.3.4 — 2026-11-05
 
 菜单 i18n 的 locale 依赖修复，以及 GeoData 手动刷新前置确认。

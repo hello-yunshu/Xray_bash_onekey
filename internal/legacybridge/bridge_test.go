@@ -76,7 +76,14 @@ func fixtureRuntime(t *testing.T, fixture string) string {
 func stubBin(t *testing.T, dir, name string) string {
 	t.Helper()
 	p := filepath.Join(dir, name)
-	writeFile(t, p, "#!/bin/sh\necho \"idleleo test 0.0.0\"\n", 0o755)
+	script := `#!/bin/sh
+if [ "$3" = "status" ] || [ "$2" = "status" ]; then
+  echo '{"schemaVersion":1,"installed":true,"config":{"matchesMetadata":true}}'
+  exit 0
+fi
+echo "idleleo test 0.0.0"
+`
+	writeFile(t, p, script, 0o755)
 	return p
 }
 

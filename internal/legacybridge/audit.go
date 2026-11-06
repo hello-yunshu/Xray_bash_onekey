@@ -9,9 +9,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"sort"
 	"strings"
+	"syscall"
+	"time"
 )
 
 const (
@@ -26,6 +29,11 @@ const (
 	unitXrayRel      = "etc/systemd/system/xray.service"
 	unitNginxRel     = "etc/systemd/system/nginx.service"
 	geoDirRel        = "etc/idleleo/geo"
+
+	rillConfigRel      = "etc/rill-xray-agent/config.json"
+	rillObservationRel = "var/lib/rill-xray-agent-xray/status/xray-observation.json"
+	rillBinaryRel      = "opt/rill-xray-agent/bin/rill-xray-agent"
+	rillFreshSeconds   = 600
 
 	VerdictConvertible = "convertible"
 	VerdictNeedsFix    = "needs-fix"
@@ -73,33 +81,72 @@ type EntryInfo struct {
 	IsGoBridge bool   `json:"isGoBridge"`
 }
 
+// RillInfo projects the Rill/Xray agent handover state. Contents are never
+// copied: only hashes, mode and observation age are recorded.
+type RillInfo struct {
+	Installed             bool   `json:"installed"`
+	Binary                string `json:"binary,omitempty"`
+	ConfigPath            string `json:"configPath,omitempty"`
+	ConfigSHA256          string `json:"configSha256,omitempty"`
+	ObservationPath       string `json:"observationPath,omitempty"`
+	ObservationSHA256     string `json:"observationSha256,omitempty"`
+	ObservationAgeSeconds int64  `json:"observationAgeSeconds"`
+	Status                string `json:"status"`
+	Mode                  string `json:"mode,omitempty"`
+	Enabled               bool   `json:"enabled"`
+	Warning               string `json:"warning,omitempty"`
+}
+
+// CustomItem is project-external content that cannot be merged automatically.
+// Prepare requires --acknowledge-custom before proceeding.
+type CustomItem struct {
+	Kind   string `json:"kind"`
+	Path   string `json:"path"`
+	Detail string `json:"detail"`
+}
+
+// PermissionFix records a mode (and optionally group) that activation will
+// tighten and that rollback must restore.
+type PermissionFix struct {
+	Path    string `json:"path"`
+	OldMode string `json:"oldMode"`
+	NewMode string `json:"newMode"`
+	OldGID  int    `json:"oldGid"`
+	NewGID  int    `json:"newGid"`
+	Reason  string `json:"reason"`
+}
+
 // Audit is the read-only migration discovery result. It is also the plan.
 type Audit struct {
-	SchemaVersion   int                 `json:"schemaVersion"`
-	Root            string              `json:"root"`
-	LegacyVersion   string              `json:"legacyVersion,omitempty"`
-	XrayVersion     string              `json:"xrayVersion,omitempty"`
-	Role            string              `json:"role"`
-	TLS             string              `json:"tls"`
-	Transport       string              `json:"transport"`
-	NginxRequired   bool                `json:"nginxRequired"`
-	Port            int                 `json:"port,omitempty"`
-	UserCount       int                 `json:"userCount"`
-	RuntimePath     string              `json:"runtimePath,omitempty"`
-	RuntimeSHA256   string              `json:"runtimeSha256,omitempty"`
-	RuntimeBytes    int                 `json:"runtimeBytes,omitempty"`
-	CustomDNS       bool                `json:"customDns"`
-	CustomRouting   bool                `json:"customRouting"`
-	CustomOutbounds bool                `json:"customOutbounds"`
-	CertFiles       []FileFingerprint   `json:"certFiles"`
-	NginxFiles      []FileFingerprint   `json:"nginxFiles"`
-	Units           map[string]UnitInfo `json:"units"`
-	Entry           EntryInfo           `json:"entry"`
-	LegacyScript    FileFingerprint     `json:"legacyScript"`
-	GeoLegacyCron   bool                `json:"geoLegacyCron"`
-	RelayConf       FileFingerprint     `json:"relayConf"`
-	Findings        []Finding           `json:"findings"`
-	Verdict         string              `json:"verdict"`
+	SchemaVersion    int                 `json:"schemaVersion"`
+	Root             string              `json:"root"`
+	LegacyVersion    string              `json:"legacyVersion,omitempty"`
+	XrayVersion      string              `json:"xrayVersion,omitempty"`
+	Role             string              `json:"role"`
+	TLS              string              `json:"tls"`
+	Transport        string              `json:"transport"`
+	NginxRequired    bool                `json:"nginxRequired"`
+	Port             int                 `json:"port,omitempty"`
+	UserCount        int                 `json:"userCount"`
+	RuntimePath      string              `json:"runtimePath,omitempty"`
+	RuntimeSHA256    string              `json:"runtimeSha256,omitempty"`
+	RuntimeBytes     int                 `json:"runtimeBytes,omitempty"`
+	CustomDNS        bool                `json:"customDns"`
+	CustomRouting    bool                `json:"customRouting"`
+	CustomOutbounds  bool                `json:"customOutbounds"`
+	CustomItems      []CustomItem        `json:"customItems"`
+	CertFiles        []FileFingerprint   `json:"certFiles"`
+	NginxFiles       []FileFingerprint   `json:"nginxFiles"`
+	Units            map[string]UnitInfo `json:"units"`
+	Entry            EntryInfo           `json:"entry"`
+	LegacyScript     FileFingerprint     `json:"legacyScript"`
+	GeoLegacyCron    bool                `json:"geoLegacyCron"`
+	ProjectCronLines int                 `json:"projectCronLines"`
+	RelayConf        FileFingerprint     `json:"relayConf"`
+	Rill             RillInfo            `json:"rill"`
+	PermissionFixes  []PermissionFix     `json:"permissionFixes"`
+	Findings         []Finding           `json:"findings"`
+	Verdict          string              `json:"verdict"`
 }
 
 type legacyConfig struct {
@@ -125,10 +172,13 @@ type legacyConfig struct {
 func AuditMigration(root string) (Audit, error) {
 	a := Audit{
 		SchemaVersion: 1, Root: root,
-		Units:      map[string]UnitInfo{},
-		Findings:   []Finding{},
-		CertFiles:  []FileFingerprint{},
-		NginxFiles: []FileFingerprint{},
+		Units:           map[string]UnitInfo{},
+		Findings:        []Finding{},
+		CertFiles:       []FileFingerprint{},
+		NginxFiles:      []FileFingerprint{},
+		CustomItems:     []CustomItem{},
+		PermissionFixes: []PermissionFix{},
+		Rill:            RillInfo{Status: "absent"},
 	}
 
 	entryPath, _ := resolve(root, entryRel)
@@ -160,6 +210,31 @@ func AuditMigration(root string) (Audit, error) {
 	installedRel := installedRel
 	if a.Entry.LinkTarget != "" && strings.Contains(a.Entry.LinkTarget, installedRel) {
 		a.Entry.IsGoBridge = true
+	}
+	if a.Entry.IsSymlink && a.Entry.LinkTarget != "" {
+		target := a.Entry.LinkTarget
+		if !filepath.IsAbs(target) {
+			target = filepath.Join(root, filepath.Dir(entryRel), target)
+		}
+		target = filepath.Clean(target)
+		if root != "/" {
+			rootPrefix := filepath.Clean(root) + string(os.PathSeparator)
+			if !strings.HasPrefix(target, rootPrefix) && target != filepath.Clean(root) {
+				a.block("entry-symlink-escape", "the entry symlink points outside the sandbox root")
+			}
+		} else {
+			allowed := []string{"/etc/idleleo/", "/opt/idleleo/"}
+			ok := false
+			for _, prefix := range allowed {
+				if strings.HasPrefix(target, prefix) {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				a.block("entry-symlink-escape", "the entry symlink points outside the managed product paths")
+			}
+		}
 	}
 
 	scriptPath, _ := resolve(root, legacyScriptRel)
@@ -235,6 +310,8 @@ func AuditMigration(root string) (Audit, error) {
 	a.scanCerts(root)
 	a.scanNginx(root)
 	a.scanUnits(root)
+	a.scanRill(root)
+	a.scanPermissions(root)
 
 	if _, err := os.Stat(mustResolve(root, geoDirRel)); err == nil {
 		a.GeoLegacyCron = true
@@ -247,6 +324,10 @@ func AuditMigration(root string) (Audit, error) {
 func (a *Audit) scanRuntime(root string, lc legacyConfig) error {
 	path, _ := resolve(root, runtimeConfigRel)
 	a.RuntimePath = path
+	if fi, err := os.Lstat(path); err == nil && fi.Mode()&os.ModeSymlink != 0 {
+		a.block("runtime-config-symlink", "the runtime config is a symlink; refusing to follow it")
+		return nil
+	}
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("runtime config unreadable: %w", err)
@@ -265,6 +346,26 @@ func (a *Audit) scanRuntime(root string, lc legacyConfig) error {
 	}
 	if _, ok := doc["outbounds"]; ok {
 		a.CustomOutbounds = true
+	}
+	known := map[string]bool{
+		"log": true, "dns": true, "routing": true, "policy": true, "inbounds": true,
+		"outbounds": true, "transport": true, "stats": true, "api": true, "reverse": true,
+		"fakedns": true, "browserForwarder": true, "observatory": true, "geodata": true,
+		"burstObservatory": true,
+	}
+	keys := make([]string, 0, len(doc))
+	for key := range doc {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		if known[key] {
+			continue
+		}
+		a.CustomItems = append(a.CustomItems, CustomItem{
+			Kind: "xray-config-key", Path: runtimeConfigRel,
+			Detail: fmt.Sprintf("unknown top-level key %q is preserved but needs a manual merge review", key),
+		})
 	}
 	inbounds, _ := doc["inbounds"].([]any)
 	realityKey := false
@@ -340,6 +441,173 @@ func (a *Audit) scanCerts(root string) {
 func (a *Audit) scanNginx(root string) {
 	dir := mustResolve(root, managedNginxRel)
 	a.NginxFiles = walkFingerprints(dir)
+	for _, fp := range a.NginxFiles {
+		if fp.Path == "relay-stream.conf" {
+			continue
+		}
+		a.CustomItems = append(a.CustomItems, CustomItem{
+			Kind: "nginx-fragment", Path: filepath.Join(managedNginxRel, fp.Path),
+			Detail: "project-external nginx fragment; confirm the merge manually before activation",
+		})
+	}
+}
+
+// scanRill records the Rill handover state without copying any content. Stale
+// or missing observations are warnings, not blocks: the bridge never writes
+// Rill state, so migration must not fail because the agent is quiet.
+func (a *Audit) scanRill(root string) {
+	a.Rill = RillInfo{Status: "absent", Enabled: false}
+	cfgPath := mustResolve(root, rillConfigRel)
+	obsPath := mustResolve(root, rillObservationRel)
+	binPath := mustResolve(root, rillBinaryRel)
+
+	installed := false
+	if _, err := os.Stat(binPath); err == nil {
+		installed = true
+		a.Rill.Binary = rillBinaryRel
+	}
+	if b, err := os.ReadFile(cfgPath); err == nil {
+		installed = true
+		a.Rill.ConfigPath = rillConfigRel
+		a.Rill.ConfigSHA256 = hashBytes(b)
+		a.Rill.Enabled = true
+		var doc map[string]any
+		if err := json.Unmarshal(b, &doc); err == nil {
+			a.Rill.Mode = rillMode(doc)
+			if v, ok := doc["enabled"].(bool); ok {
+				a.Rill.Enabled = v
+			}
+		} else {
+			a.Rill.Warning = "config.json is not valid JSON"
+			a.warn("rill-config-unreadable", "Rill config.json is present but not valid JSON")
+		}
+	}
+	if !installed {
+		return
+	}
+	a.Rill.Installed = true
+	b, err := os.ReadFile(obsPath)
+	if err != nil {
+		a.Rill.Status = "installed-unobserved"
+		a.Rill.Warning = "no xray-observation.json yet"
+		a.warn("rill-observation-missing", "Rill is installed but has no xray observation")
+		return
+	}
+	a.Rill.ObservationPath = rillObservationRel
+	a.Rill.ObservationSHA256 = hashBytes(b)
+	observed := observationTime(b)
+	if observed.IsZero() {
+		if fi, err := os.Stat(obsPath); err == nil {
+			observed = fi.ModTime()
+		}
+	}
+	age := int64(time.Since(observed).Seconds())
+	if age < 0 {
+		age = 0
+	}
+	a.Rill.ObservationAgeSeconds = age
+	if age <= rillFreshSeconds {
+		a.Rill.Status = "active"
+	} else {
+		a.Rill.Status = "stale"
+		a.Rill.Warning = fmt.Sprintf("last observation is %d seconds old", age)
+		a.warn("rill-observation-stale", fmt.Sprintf("Rill observation is %d seconds old (freshness limit %ds)", age, rillFreshSeconds))
+	}
+}
+
+func rillMode(doc map[string]any) string {
+	for _, key := range []string{"mode", "agent_mode", "integration_mode"} {
+		if v, ok := doc[key].(string); ok && v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+func observationTime(b []byte) time.Time {
+	var doc map[string]any
+	if err := json.Unmarshal(b, &doc); err != nil {
+		return time.Time{}
+	}
+	for _, key := range []string{"updatedAt", "updated_at", "observedAt", "observed_at", "timestamp", "lastUpdated", "generatedAt"} {
+		switch v := doc[key].(type) {
+		case string:
+			for _, layout := range []string{time.RFC3339Nano, time.RFC3339, "2006-01-02T15:04:05Z0700"} {
+				if t, err := time.Parse(layout, v); err == nil {
+					return t
+				}
+			}
+		case float64:
+			return time.Unix(int64(v), 0)
+		}
+	}
+	return time.Time{}
+}
+
+// scanPermissions tightens world-writable config/directories and group/other
+// readable private keys. Activation applies the fixes and rollback restores the
+// recorded old modes.
+func (a *Audit) scanPermissions(root string) {
+	// Only file modes are tightened. Directory modes are deliberately left
+	// alone: the legacy installer may rely on a specific group/other traversal
+	// bit for the xray/nginx users, and changing it can lock the service out.
+	xrayGroup := a.Units["xray"].Group
+	a.checkPermission(root, runtimeConfigRel, 0o002, 0o644, "", "runtime config is world-writable")
+	keyDir := mustResolve(root, certDirRel)
+	_ = filepath.Walk(keyDir, func(p string, fi os.FileInfo, err error) error {
+		if err != nil || fi == nil || !fi.Mode().IsRegular() {
+			return nil
+		}
+		base := strings.ToLower(filepath.Base(p))
+		if !strings.Contains(base, "privkey") && !strings.HasSuffix(base, ".key") {
+			return nil
+		}
+		rel, relErr := filepath.Rel(root, p)
+		if relErr != nil {
+			return nil
+		}
+		a.checkPermission(root, filepath.ToSlash(rel), 0o077, 0o640, xrayGroup, "private key is group/other readable")
+		return nil
+	})
+	sort.SliceStable(a.PermissionFixes, func(i, j int) bool { return a.PermissionFixes[i].Path < a.PermissionFixes[j].Path })
+}
+
+func (a *Audit) checkPermission(root, rel string, mask, want os.FileMode, wantGroup, reason string) {
+	p := mustResolve(root, rel)
+	fi, err := os.Lstat(p)
+	if err != nil {
+		return
+	}
+	perm := fi.Mode().Perm()
+	if perm&mask == 0 {
+		return
+	}
+	fix := PermissionFix{
+		Path: rel, OldMode: fmt.Sprintf("%04o", perm), NewMode: fmt.Sprintf("%04o", want), Reason: reason,
+	}
+	if st, ok := fi.Sys().(*syscall.Stat_t); ok {
+		fix.OldGID = int(st.Gid)
+		fix.NewGID = fix.OldGID
+	}
+	if wantGroup != "" {
+		if gid, ok := groupID(wantGroup); ok {
+			fix.NewGID = gid
+		}
+	}
+	a.PermissionFixes = append(a.PermissionFixes, fix)
+	a.fix("permissions-"+strings.ReplaceAll(rel, "/", "-"), fmt.Sprintf("%s: %04o -> %04o", reason, perm, want))
+}
+
+func groupID(name string) (int, bool) {
+	g, err := user.LookupGroup(name)
+	if err != nil {
+		return 0, false
+	}
+	var gid int
+	if _, err := fmt.Sscanf(g.Gid, "%d", &gid); err != nil {
+		return 0, false
+	}
+	return gid, true
 }
 
 func (a *Audit) scanUnits(root string) {
@@ -396,7 +664,11 @@ func (a *Audit) scanCron(root string) {
 		return
 	}
 	for _, line := range strings.Split(string(b), "\n") {
-		if strings.Contains(line, "geo_update.sh") && isProjectCronLine(line) {
+		if !isProjectCronLine(line) {
+			continue
+		}
+		a.ProjectCronLines++
+		if strings.Contains(line, "geo_update.sh") {
 			a.GeoLegacyCron = true
 		}
 	}
@@ -425,6 +697,9 @@ func (a *Audit) block(code, msg string) {
 }
 func (a *Audit) fix(code, msg string) {
 	a.Findings = append(a.Findings, Finding{Code: code, Severity: severityFix, Message: msg})
+}
+func (a *Audit) warn(code, msg string) {
+	a.Findings = append(a.Findings, Finding{Code: code, Severity: severityWarn, Message: msg})
 }
 
 func (a *Audit) computeVerdict() {

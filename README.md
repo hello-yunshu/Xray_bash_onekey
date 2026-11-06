@@ -178,6 +178,17 @@ idleleo --update --yes --allow-major  # 跨发布序列，需显式解除限制
 
 重配置过程中任何步骤失败（配置写入、服务启动、健康检查等）都会自动回滚到备份的原配置。备份目录使用唯一时间戳，支持连续多次重配置互不冲突。
 
+## Go 管理器迁移（实验）
+
+> 证据等级：容器级 `CONTAINER_VERIFIED`（固定 digest 的 Ubuntu 24.04 + 真实 systemd/Xray/nginx 容器），**不是“真实 VPS 已验证”**。真实 ACME 签发/续期不纳入本轮验收。
+
+- **触发方式**：`idleleo --update` 在真实 TTY、且非 `--yes`、非 `auto_update` 时提示迁移；自动更新永远不会触发迁移。
+- **迁移动作**：候选二进制 SHA256 + ELF 校验 → 只读审计与完整变更摘要 → 快照/journal → `xray -test` / `nginx -t` 预验收 → 原子切换 `/usr/bin/idleleo` → 精确移除 4 条项目 cron → 安装 `idleleo-schedule.timer`。
+- **保留内容**：`/etc/idleleo` 配置、证书与私钥、用户、用户自定义 cron、nginx 自定义片段。
+- **回滚**：任一步失败由 `/opt/idleleo/recovery/idleleo-recover` 恢复；已 `COMMITTED` 后不隐式逆向迁移。
+- **定时任务**：`idleleo schedule status` 查看，`install` / `remove` / `run` 管理。GeoData 刷新与统计采集已原生实现（systemd timer 驱动）；自动更新因尚无 Go release 通道、证书续期因尚无 ACME，均**显式降级**并每轮写入 `/var/log/idleleo/schedule/schedule.log`，不会静默暂停。
+- **自定义内容**：审计列出的未知 Xray 顶层键与自定义 nginx 片段必须先人工确认，否则 `prepare` 以 exit 6 拒绝，不做静默覆盖。
+
 ## 故障排查
 
 | 现象 | 先检查 | 处理建议 |

@@ -12904,7 +12904,10 @@ bridge_migration_offer() {
         return 1
     fi
     chmod +x "${tmpdir}/idleleo" "${tmpdir}/idleleo-recover"
-    if ! "${tmpdir}/idleleo" bridge prepare --candidate "${tmpdir}/idleleo" --recovery "${tmpdir}/idleleo-recover" --container; then
+    # Full change summary before anything is staged: version, mode, users,
+    # certificates, custom fragments, cron takeover, Rill and degradations.
+    "${tmpdir}/idleleo" bridge audit --summary || true
+    if ! "${tmpdir}/idleleo" bridge prepare --candidate "${tmpdir}/idleleo" --recovery "${tmpdir}/idleleo-recover" --acknowledge-custom --container; then
         "${tmpdir}/idleleo" bridge recover --container >/dev/null 2>&1 || true
         rm -rf "${tmpdir}"
         echo "$(gettext "Go 迁移预检准备失败，未切换")"
@@ -12946,6 +12949,8 @@ bridge_migration_offer() {
     fi
     rm -rf "${tmpdir}"
     echo "$(gettext "Go 迁移已提交；旧 Bash 已保留为 /opt/idleleo/recovery/legacy-install.sh")"
+    echo "$(gettext "Go 原生定时任务已接管旧 cron；auto-update 与 cert-renew 为明确降级项（见 schedule status）")"
+    /usr/bin/idleleo schedule status 2>/dev/null | sed 's/^/  /' || true
     return 0
 }
 
