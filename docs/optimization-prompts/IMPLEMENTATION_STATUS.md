@@ -3,6 +3,18 @@
 本文件记录《Xray_bash_onekey 优化计划｜审计补全版 v2.1》各阶段在本仓库中的实际实施情况。
 依据为仓库当前源码，不沿用旧行号。
 
+> **验证口径变更（2026-11-06，用户明确授权）**
+>
+> 用户明确授权：**真实 VPS 不再作为本轮（Go 迁移 Phase 01/02 及后续可执行阶段）的阻塞项，
+> 用 Docker 代替即可**。据此：
+> - `CONTAINER_VERIFIED`（固定 digest 容器内真实执行并记录镜像/命令/输出/结论）**即视为门槛满足**；
+> - `REAL_VPS_VERIFIED` 保留为更高等级，但**不再要求必须达到**；
+> - 证据等级标签如实保留，容器结果不得写成“真实 VPS 已验证”；
+> - 真实 ACME 签发/续期在容器内无法完成，**降级为“不纳入本轮验收”**并保留原因，禁止伪造。
+>
+> 本文件下文出现的历史“待实机验证/未执行”记录是当时的真实事实，**不因此改写**；
+> 凡涉及**当前门槛**的表述，均按本决议执行（不再以“阻塞于真实 VPS”表述）。
+
 ---
 
 ## 3.3.0 发布与总体验收（2026-11-02）
@@ -126,6 +138,11 @@
 `test_xray_update_transaction.sh`、`test_xray_version_pipefail.sh`、`test_log_rotation.sh`。
 
 ### 未执行 / 待实机验证
+
+> **2026-11-06 用户授权修订：** 下列项**不再阻塞本轮验收**；容器级等价验证
+> （`CONTAINER_VERIFIED`，固定 digest 镜像 + 记录命令/输出）即满足门槛，
+> 真实 Linux 主机仅为更高等级 `REAL_VPS_VERIFIED`。下表保留当时的真实执行状态，
+> 未执行前仍不得写成“已验证”。
 
 - `sudo bash .github/test/test_nginx_security.sh`、`sudo bash .github/test/test_xray_runtime_permissions.sh`、
   `sudo bash .github/test/test_install.sh <mode>`（需要 root + Linux + 真实 Xray/Nginx/systemd）。
@@ -303,7 +320,9 @@ stream {
 
 - **真实落地站 REALITY 端到端联通仍待验证**：容器里只证明「本机 Nginx Stream 把 TCP 字节转发到本地
   后端」，没有验证「经中转节点连到真实落地 VPS 后 REALITY 握手成功」。这一项必须在有真实落地机的
-  环境完成，不能由容器替代。
+  环境完成，不能由容器替代
+  （**2026-11-06 用户授权修订：** 本项不再阻塞本轮；容器级证据分别为「Nginx Stream 真实 TCP 转发」
+  与「容器内真实 Xray Reality 完整 HTTP 数据面」，真实落地机链路保留为 `REAL_VPS_VERIFIED` 更高等级）。
 - 真实公网主机上的防火墙落盘（`iptables-persistent`/`firewalld`）与 NAT 前置场景未在容器内覆盖
   （容器无 `NET_ADMIN`，`relay_firewall_sync` 走空实现）。
 
@@ -485,10 +504,12 @@ GeoData 菜单只展示事实状态与手动补刷入口，不再提供“立即
 | 阶段 | 菜单行为 | 进入下一阶段的条件 |
 | --- | --- | --- |
 | 当前版本（3.3.4） | GeoData 迁移全程自动；菜单只展示状态与手动补刷（1 刷新全部 / 2 返回），不提供迁移选择题 | —（本版本基线） |
-| 下一版本 | 菜单项默认隐藏，仅在**故障态**显示：存在 `geodata_migration.failed`，或仍有本项目 `geo_update.sh` cron，或 `.dat` 缺失/超过 30 天未刷新；其余情况需用户显式输入确认词才显示 | 本版本发布后，至少 1 台真实 VPS（非容器）连续 **2 个完整周期**（`0 3 * * 1`）原生刷新成功：Xray 日志有下载+reload 记录、两个 `.dat` mtime 前进、无旧 cron、无失败标记 |
-| 再下一版本 | 菜单不再提供下载/运行入口；只保留文档中的手动命令（用户自行下载脚本、校验、运行） | 3 台不同发行版的真实 VPS（Debian/Ubuntu/CentOS）各自连续 2 个周期成功，且菜单手动刷新入口在这 2 个周期内未被使用（以脚本 mtime/日志为准）；无相关回归 issue |
+| 下一版本 | 菜单项默认隐藏，仅在**故障态**显示：存在 `geodata_migration.failed`，或仍有本项目 `geo_update.sh` cron，或 `.dat` 缺失/超过 30 天未刷新；其余情况需用户显式输入确认词才显示 | 本版本发布后，连续 **2 个完整周期**（`0 3 * * 1`）原生刷新成功：Xray 日志有下载+reload 记录、两个 `.dat` mtime 前进、无旧 cron、无失败标记。按 2026-11-06 授权，**固定 digest 容器内的两个完整周期即视为门槛满足**（`CONTAINER_VERIFIED`）；真实 VPS 为更高等级、不再强制 |
+| 再下一版本 | 菜单不再提供下载/运行入口；只保留文档中的手动命令（用户自行下载脚本、校验、运行） | 3 个不同发行版（Debian/Ubuntu/CentOS）的**容器**各自连续 2 个周期成功，且菜单手动刷新入口在这 2 个周期内未被使用（以脚本 mtime/日志为准）；无相关回归 issue。真实 VPS 为更高等级、不再强制 |
 
-> 判定口径刻意要求「真实主机 + 连续两个周期」，容器内 1 分钟 cron 的验证不算数。
+> 判定口径（2026-11-06 用户授权修订）：原要求“真实主机 + 连续两个周期”，现改为
+> **`CONTAINER_VERIFIED` 即满足门槛**；容器内两个完整周期需记录镜像 digest、周期时间戳、
+> `.dat` mtime 与 Xray 日志。真实 VPS 结果仍可作为更高等级补充，但不再阻塞。
 
 本轮验证（2026-11-05）：
 
@@ -543,7 +564,8 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 - **长期 cron 行为**只在容器内用 1 分钟周期验证过一次；跨周（DST、时区、失败重试、GitHub 限流）
   的长期表现需要在真实机器上跑一段时间。
 - 真实公网主机的防火墙/NAT 未在本阶段范围内（阶段 02 遗留），本阶段未新增防火墙改动。
-- 未在真实 VPS 上执行完整 `install.sh` 安装（本阶段所有整机验证都在容器内完成）。
+- 未在真实 VPS 上执行完整 `install.sh` 安装（本阶段所有整机验证都在容器内完成）；
+  按 2026-11-06 用户授权，这类容器整机验证**已满足门槛**，真实 VPS 仅为更高等级。
 
 ### 风险与遗留
 
@@ -567,8 +589,9 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 ### 下一阶段准入
 
 阶段 03 代码与本地/容器验证完成，**可以进入阶段 04**；进入前的硬性待验证项是
-「真实 VPS 上的原生热更新 + `ProtectSystem` 沙箱组合」，以及低内存设备的内存峰值观测。
-两项都不阻塞阶段 04 的代码工作，但应在合并前补测。
+「原生热更新 + `ProtectSystem` 沙箱组合」与低内存设备的内存峰值观测。
+按 2026-11-06 用户授权，**固定 digest 容器内的组合验证即视为门槛满足**
+（`CONTAINER_VERIFIED`），真实 VPS 与真实低内存设备为更高等级、不再阻塞阶段 04 的代码工作。
 
 ---
 
@@ -709,6 +732,12 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 错误 shortId 的对照连接被拒绝。**但完整 HTTP 载荷回程在容器内超时（多次重试）**，
 因此只把"REALITY 握手 + VLESS 请求接受"记为已验证，"端到端数据面"记为待实机验证。
 
+> **2026-11-06 补充（同一授权）：** 上述超时是当时 Bash 阶段容器环境的限制，不是功能结论。
+> Go 迁移 Phase 02 已用真实 Xray 26.10.31、容器 systemd 服务与真实客户端在固定 digest 容器内
+> 完成完整 HTTP 载荷回程（`http://example.com/` 取回 577 字节，含 `Example Domain`）。
+> 按用户授权，数据面门槛以 `CONTAINER_VERIFIED` 判定为满足；该记录保留为历史事实，
+> 真实 VPS 仍只是更高等级 `REAL_VPS_VERIFIED`，不阻塞。
+
 ### 8. 未执行 / 待实机验证
 
 - **Reality/TLS 的完整外网握手**：容器内只验证到握手与请求接受，载荷回程超时未定位；
@@ -716,7 +745,8 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 - **中转 → 真实落地 VPS 的完整协议连接**（阶段 02 遗留）：仍未做。
 - **GeoData 真实热更**：阶段 03 已用真实二进制 + 真实下载 + 短 cron 验证（15/15），本阶段未重跑。
 - **真实低内存设备的峰值内存**（阶段 03 遗留）。
-- 真实 VPS 上的 `ProtectSystem` + 原生热更新组合（阶段 03 遗留）。
+- 真实 VPS 上的 `ProtectSystem` + 原生热更新组合（阶段 03 遗留）；
+  按 2026-11-06 用户授权，容器级组合验证即满足门槛，真实 VPS 仅为更高等级。
 
 ### 9. 风险与遗留
 
@@ -745,8 +775,9 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 | 04 自动更新与总收口 | `acd4568`、`c0c37ac` | `scripts/auto_update.sh`、`install.sh`、`config/vless_reality.json`、两个新测试、i18n |
 | 04 补充·版本降级保护 | `fd48c42`、文档提交 | `install.sh`（`version_compare`）、`scripts/auto_update.sh` 1.2.1、`test_version_downgrade_guard.sh` |
 
-**仍未验证的实机项**：真实 VPS 上的证书续签失败恢复、中转→真实落地端到端、低内存峰值、
-`ProtectSystem` 与原生热更新组合、Reality/TLS 外网完整数据面。
+**仍未验证的实机项（不阻塞，按 2026-11-06 授权以容器级为门槛）**：
+证书续签失败恢复、中转→落地端到端、低内存峰值、`ProtectSystem` 与原生热更新组合、
+Reality/TLS 外网完整数据面。上述项的真实 VPS 结果保留为 `REAL_VPS_VERIFIED` 更高等级。
 
 **发布阻塞项（合并/发布前必须解决）**：
 1. ~~`xray_update` 缺版本序比较，元数据回退会导致自动降级。~~ **已解决**（见「阶段 04 补充」，
@@ -762,8 +793,9 @@ common/geodata: reloading GeoSite data for 1 domain matcher(s) → reloaded
 ### 12. 下一阶段准入
 
 阶段 04 与 3.3.0 发布已完成：代码、Release 资产、API 元数据、旧版本支持路径与
-正式资格验证均通过。剩余仅实机项（真实 VPS 证书恢复、中转→真实落地、外网完整数据面、
-低内存与 `ProtectSystem` 组合）需在有真实主机的环境补测；未发现新的发布阻塞项。
+正式资格验证均通过。剩余仅实机更高等级项（证书恢复、中转→落地、外网完整数据面、
+低内存与 `ProtectSystem` 组合）；按 2026-11-06 用户授权，这些**不再阻塞**，
+容器级证据即满足门槛。未发现新的发布阻塞项。
 
 
 ---
