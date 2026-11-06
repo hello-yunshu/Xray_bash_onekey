@@ -95,11 +95,22 @@ start_xray() {
     stop_xray
     nohup "${XRAY_BIN}" run -config "${CONF}" >"${LOG_FILE}" 2>&1 &
     echo $! >"${PID_FILE}"
-    sleep 1
-    if ! kill -0 "$(cat "${PID_FILE}")" 2>/dev/null; then
-        tail -3 "${LOG_FILE}" >&2 || true
-        return 1
-    fi
+    # 固定 sleep 1 在负载高的 runner 上会偶发「端口已监听、API 尚未就绪」，
+    # 导致后续 statsquery 连接失败。这里改成轮询真实 API（最多 10s），
+    # 属于启动就绪等待，不改变任何断言。
+    local i
+    for i in $(seq 1 50); do
+        if ! kill -0 "$(cat "${PID_FILE}")" 2>/dev/null; then
+            tail -3 "${LOG_FILE}" >&2 || true
+            return 1
+        fi
+        if "${XRAY_BIN}" api statsquery --server=127.0.0.1:10085 -pattern "inbound>>>" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 0.2
+    done
+    tail -3 "${LOG_FILE}" >&2 || true
+    return 1
 }
 
 port_listener() {
