@@ -4,7 +4,8 @@
 > 行为基线：`4752f77` 的完整 Bash 源码（`install.sh` + `scripts/` + `config/`），
 > `install.sh` SHA-256 `0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6`。
 > 当前 `main` 为 `59a87c6`；与基线相比只多出 CI 测试/工作流 4 个提交，`install.sh`、`scripts/`、`config/` 无差异（`git diff --stat 4752f77 59a87c6 -- install.sh scripts config` 为空）。
-> 本仓库中**不存在生产 Go 管理器**；`tests/go-parity/prototype` 只是参考原型，不能被当作实现。
+> 本仓库中**存在 Phase 01 候选 Go 管理器**（`cmd/idleleo`，只在隔离沙盒执行变更），
+> 它不是生产替代品；`tests/go-parity/prototype` 仍只是参考原型，不能被当作实现。
 
 ## 1. 状态定义
 
@@ -13,9 +14,11 @@
 | **已验证** | 有可重复执行的证据，且在本轮真实运行过；**只描述 Bash 基线**，不等于 Go 已迁移 |
 | **未实现** | 没有生产 Go 代码。Phase 00 的 28 项全部属于此类（Go 侧） |
 | **未验证** | Go 代码存在但缺少证据（当前没有这种项） |
+| **部分实现（容器级）** | Phase 01 有 Go 代码并已在固定 digest 容器内真实执行；只覆盖该功能的一个原语/子集，**不是完整 Bash 行为等价**，也不是真实 VPS 验证 |
 | **已批准的安全差异** | 已记录、已批准「Go 不复制 Bash 危险行为」的口径，见第 5 节 |
 
-**结论：F01–F28 的 Go 迁移状态全部为「未实现」。** L0 的 83/83 只覆盖 7 个纯函数，不能用来宣布任何业务功能已迁移。
+**结论：F01–F28 的 Go 迁移状态无一为「已验证」。** Phase 01 只把 F08/F11/F23/F27/F28 推进到
+「部分实现（容器级）」；L0 的 83/83 只覆盖 7 个纯函数，不能用来宣布任何业务功能已迁移。
 
 ## 2. Bash CLI 对照表（实测自 `show_help` 与入口分派）
 
@@ -80,10 +83,10 @@
 | F05 | `--install-relay`，独立中转 | `test_relay_node`、`test_relay_container`、CI job `Install (relay)` / `True Fresh Mode (relay)` | 已验证 | 未实现 | fixture `relay`；⚠ 不能创建 Xray/UUID/证书 |
 | F06 | 用户查看/添加/删除、UUIDv5 | `test_install`、`test_reinstall_preservation` | 部分验证 | 未实现 | R01 的 stop→改→start 不是事务 |
 | F07 | shortId / spiderX / 用户映射 | `test_reality_min_client_ver`、`test_reinstall_preservation` | 部分验证 | 未实现 | 需与 F06 原子化 |
-| F08 | 端口、target、serverNames、SNI Guard | `test_port_safety`、`test_port_validation`、`test_install_menu_profiles` | 已验证 | 未实现 | 与 F10 共用候选配置校验 |
+| F08 | 端口、target、serverNames、SNI Guard | `test_port_safety`、`test_port_validation`、`test_install_menu_profiles` | 已验证 | 部分实现（容器级） | 仅 `set-inbound-port` 原语 + 真实 `xray -test` 校验；target/serverNames/SNI Guard 未实现 |
 | F09 | `--add-upstream`，上游片段管理 | `test_nginx_security`、`test_reinstall_preservation` | 部分验证 | 未实现 | 只允许改写项目片段 |
 | F10 | `--tls` 版本变更 | `test_nginx_security`、`test_nginx_update_rollback` | 部分验证 | 未实现 | R07：当前是 `sed -i` 后重启 |
-| F11 | 服务状态/启停/日志 | `test_offline_commands`、`test_phase1_safety` | 已验证 | 未实现 | 需保留 active/enabled 原状态 |
+| F11 | 服务状态/启停/日志 | `test_offline_commands`、`test_phase1_safety` | 已验证 | 部分实现（容器级） | 只有只读服务探测；启停/日志未实现，需保留 active/enabled 原状态 |
 | F12 | 证书状态/签发/续期/清理 | `test_cert_update_recovery`、`test_ssl_update_recovery` | 部分验证 | 未实现 | 未做真实 ACME；R08/R13 |
 | F13 | `--update`、`--xray-update`、`--nginx-update` | `test_xray_update_transaction`、`test_nginx_update_rollback`、`test_candidate_real_upgrade` | 已验证 | 未实现 | 需哈希/降级/失败注入 |
 | F14 | `--auto-update` 与 cron | `test_vps_auto_update_schedule`、`test_legacy_auto_update_path`、`test_auto_update_failure_records` | 已验证 | 未实现 | R14：旧 cron 仍走 Bash `-u` |
@@ -95,25 +98,27 @@
 | F20 | Fail2ban（含 trusted/unban） | `test_fail2ban` | 已验证 | 未实现 | **已批准差异**：不得 `rm -f jail.d/*.local` |
 | F21 | 流量阻断与自定义路由 | `test_firewall_reconcile`、`test_geodata_manual_confirm` | 部分验证 | 未实现 | 规则生成后必须 `xray -test` |
 | F22 | Rill 观察/诊断/授权/卸载 | `test_rill_*`（7 个）、CI `rill-qualification` | 已验证 | 未实现 | R03：`.py` 被 `bash` 启动并吞错 |
-| F23 | 六语言 | `test_i18n_catalog`、`test_color_output`、CI `i18n.yml` | 已验证 | 未实现 | 缺省回退英文 |
+| F23 | 六语言 | `test_i18n_catalog`、`test_color_output`、CI `i18n.yml` | 已验证 | 部分实现（容器级） | zh/en 完整，fr/fa/ru/ko 回退英文；未与 Bash 文案逐条差分 |
 | F24 | Docker 交付 | `test_relay_container`、`test_minimal_bootstrap`、`docker/fake-systemctl` | 部分验证 | 未实现 | R16：不能假设宿主 systemd DBus |
-| F25 | TCP 优化/测速 | 无自动化（仅有菜单项） | 未验证 | 未实现 | **已批准差异**：不执行浮动远程脚本 |
+| F25 | TCP 优化/测速 | 无自动化（仅有菜单项） | 未验证 | 未实现 | **已批准差异**：不执行浮动远程脚本；仍无自动化 |
 | F26 | XTLS ONLY 旧模式 | `test_install_menu_profiles`、CI `Relay mixing and legacy-mode guards` | 已验证（只读识别/阻断） | 未实现 | fixture `xtls-only`；只读识别，禁止激活 |
-| F27 | `--backup/--restore/--purge/--service-*` | `test_offline_commands`、`test_uninstall_clean`、`test_install_uninstall_transaction` | 已验证 | 未实现 | 退出码/JSON 兼容 |
-| F28 | 运行态与分享信息展示 | `.github/test/test_offline_commands.sh` | 已验证 | 未实现 | 打开/`--show` 必须零网络零写入 |
+| F27 | `--backup/--restore/--purge/--service-*` | `test_offline_commands`、`test_uninstall_clean`、`test_install_uninstall_transaction` | 已验证 | 部分实现（容器级） | 只有 `status/config inspect/show` 只读；backup/restore/purge/service-* 未实现 |
+| F28 | 运行态与分享信息展示 | `.github/test/test_offline_commands.sh` | 已验证 | 部分实现（容器级） | `show/status` 只读视图已可解析旧样本；输出契约未与 Bash 逐字段差分 |
 
-## 4. L0 纯函数差分（Phase 00 实际执行）
+## 4. L0 纯函数差分（Phase 00 与 Phase 01 实际执行）
 
-| 项目 | 结果 |
-|---|---|
-| Oracle | `LIVE_PINNED_CLEAN`（独立 clone，`HEAD=4752f77`，`install.sh` 干净且哈希匹配） |
-| Go 侧 | `BUNDLED_TOY_GO_DEMO`（参考原型，**非生产实现**） |
-| 用例 | 83 |
-| 通过 | **83 / 83** |
-| 失败 | 0 |
-| 覆盖 | `version_compare`(14)、`version_series_difference`(10)、`relay_is_valid_host`(24)、`format_uri_authority_host`(9)、`format_xhttp_path`(8)、`vless_urlquote`(11)、`yaml_quote_scalar`(7) |
-| Release 认证 | **否**（`release_certified=false`，`native_l0_only=false`） |
-| 证据 | `tests/go-parity/parity/evidence/functional_parity.json` / `.md` |
+| 项目 | Phase 00（参考原型） | Phase 01（生产源码） |
+|---|---|---|
+| Oracle | `LIVE_PINNED_CLEAN`（独立 clone，`HEAD=4752f77`） | 同左（独立 clone，`HEAD=4752f77`） |
+| Go 侧 | `BUNDLED_TOY_GO_DEMO`（非生产） | `SOURCE_BUILT_NATIVE_GO_L0`（`./cmd/parity-adapter` 导入 `internal/compat`） |
+| 用例 | 83 | 83 |
+| 通过 | **83 / 83** | **83 / 83** |
+| `native_l0_only` | `false` | **`true`** |
+| Release 认证 | 否 | 否（`release_certified=false`） |
+| 证据 | `tests/go-parity/parity/evidence/functional_parity.json` | `tests/go-parity/parity/evidence/phase01-native-l0/functional_parity.json` |
+
+Phase 00 的 L0 只能说明参考原型的 7 个纯函数行为一致；Phase 01 的 native L0 说明**生产
+`internal/compat` 源码**在干净 checkout 中构建并与固定 Bash 基线逐例一致。两者都不覆盖业务功能。
 
 补充：同一轮 `run_stage_gate.py` 的 Bridge 合成契约 39/39 通过（`bridge_cli_contract.json`），但它明确标注
 `production_migration_certified=false`，同样不能作为迁移完成依据。
@@ -136,6 +141,8 @@ D1–D4 在 `feature_contracts.json` 中仍保持 `PENDING`，因为 Go 实现�
 
 ## 6. 不可宣称的事项
 
-- 83/83 或 39/39 表示**参考原型的纯函数/合成桥接**通过，**不代表** F01–F28 已迁移。
+- 83/83 native L0 只表示 `internal/compat` 的 7 个纯函数与固定 Bash 基线一致；它不是 F01–F28 迁移完成。
+- 39/39 Bridge 仍是合成契约，不得当作生产迁移认证。
 - 不得用本文件的「已验证」描述 Go；该列只描述 Bash 基线。
-- 不得因为 CI 绿灯宣布发布就绪；`check_release_gate.py` 在缺少生产 Go 与 28 个功能测试时按设计返回红灯。
+- 不得因为 CI 绿灯或容器 35/35 宣布发布就绪；`check_release_gate.py` 在缺少生产 Go 与 28 个功能测试时按设计返回红灯。
+- 容器证据一律是 `CONTAINER_VERIFIED`，不得升格为 `REAL_VPS_VERIFIED`。

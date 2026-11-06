@@ -9,7 +9,7 @@
   "oracle_mode": "LIVE_PINNED_CLEAN",
   "go_provenance": {
     "mode": "BUNDLED_TOY_GO_DEMO",
-    "binary_sha256": "38a76736355aeb0a41834148ff709db08191062e2ccc1d27b1d9ac17808eab3a"
+    "binary_sha256": "c6d8196dd21010cc4f446dc0b718a8ca8b3e06b97e074c086bd907d5405ea809"
   },
   "native_l0_only": false,
   "release_certified": false,
@@ -1512,6 +1512,6 @@
       }
     }
   ],
-  "generated_utc": "2026-11-06T09:15:08.061038+00:00",
+  "generated_utc": "2026-11-06T10:26:38.739453+00:00",
   "scope_limit": "Only 7 pure function contracts; FS snapshot limited to CWD/HOME/TMPDIR; no host isolation"
 }
