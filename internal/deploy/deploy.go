@@ -1,0 +1,541 @@
+// Package deploy performs the Phase 02 container-level fresh install of Xray:
+// binary, native config, systemd unit, service account and metadata.
+//
+// It refuses to write the real root ("/") unless all three conditions hold:
+// the caller passed --container, IDLELEO_ALLOW_SYSTEM_WRITES equals the
+// documented acknowledgement, and the process really runs inside a container.
+// Non-root targets must be a marked disposable sandbox.
+package deploy
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+	"os/user"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg"
+)
+
+const (
+	binaryRel = "usr/local/bin/xray"
+	unitRel   = "etc/systemd/system/xray.service"
+	configRel = "etc/idleleo/conf/xray/config.json"
+	logDirRel = "var/log/xray"
+	// ContainerWritesAck is the only accepted acknowledgement value.
+	ContainerWritesAck = "I_ACCEPT_CONTAINER_ONLY"
+)
+
+// InstallSpec is one fresh install request.
+type InstallSpec struct {
+	Root                 string
+	SourceBinary         string
+	Mode                 string
+	Transport            string
+	Port                 int
+	Domain               string
+	Target               string
+	ServerNames          []string
+	KeepConfig           bool
+	NoService            bool
+	AllowContainerWrites bool
+}
+
+// Report is the machine-readable installation result.
+type Report struct {
+	Mode           string   `json:"mode"`
+	Transport      string   `json:"transport"`
+	TLS            string   `json:"tls"`
+	BinaryPath     string   `json:"binaryPath"`
+	ConfigPath     string   `json:"configPath"`
+	UnitPath       string   `json:"unitPath"`
+	MetadataPath   string   `json:"metadataPath"`
+	ConfigSHA256   string   `json:"configSha256"`
+	ServiceActive  string   `json:"serviceActive,omitempty"`
+	ServiceEnabled string   `json:"serviceEnabled,omitempty"`
+	Preserved      bool     `json:"preservedConfig"`
+	ValidatorExit  int      `json:"validatorExit"`
+	OwnedResources []string `json:"ownedResources"`
+	Warnings       []string `json:"warnings"`
+}
+
+// UninstallSpec is one removal request.
+type UninstallSpec struct {
+	Root                 string
+	Purge                bool
+	AllowContainerWrites bool
+}
+
+// UninstallReport lists what was removed.
+type UninstallReport struct {
+	Removed         []string `json:"removed"`
+	ServiceStopped  bool     `json:"serviceStopped"`
+	ServiceDisabled bool     `json:"serviceDisabled"`
+	ConfigPreserved bool     `json:"configPreserved"`
+	Warnings        []string `json:"warnings"`
+}
+
+// Install writes the complete node layout and, when allowed, starts systemd.
+func Install(ctx context.Context, spec InstallSpec) (Report, error) {
+	paths, err := host.NewPaths(spec.Root)
+	if err != nil {
+		return Report{}, err
+	}
+	if err := requireWriteAccess(paths, spec.AllowContainerWrites); err != nil {
+		return Report{}, err
+	}
+	bin, err := host.ResolveBinary(spec.SourceBinary)
+	if err != nil {
+		return Report{}, err
+	}
+	res, err := host.Run(ctx, host.ExecSpec{Path: bin, Args: []string{"version"}, Timeout: 5 * time.Second})
+	if err != nil {
+		return Report{}, err
+	}
+	if res.ExitCode != 0 {
+		return Report{}, fmt.Errorf("xray version failed with exit %d", res.ExitCode)
+	}
+
+	configPath, err := paths.Join(configRel, true)
+	if err != nil {
+		return Report{}, err
+	}
+	rep := Report{Mode: spec.Mode, Warnings: []string{}}
+	var configBytes []byte
+	if spec.KeepConfig {
+		if existing, readErr := os.ReadFile(configPath); readErr == nil {
+			configBytes = existing
+			rep.Preserved = true
+		}
+	}
+	if len(configBytes) == 0 {
+		g, genErr := xraycfg.Generate(xraycfg.Spec{
+			Mode: spec.Mode, Transport: spec.Transport, Port: spec.Port,
+			Domain: spec.Domain, Target: spec.Target, ServerNames: spec.ServerNames,
+		})
+		if genErr != nil {
+			return Report{}, genErr
+		}
+		configBytes = g.Config
+		rep.Mode, rep.Transport = g.Mode, g.Transport
+	}
+	if rep.Mode == "" {
+		rep.Mode, rep.Transport, _ = classifyConfig(configBytes)
+	}
+	rep.TLS = tlsLabel(rep.Mode)
+
+	// xray -test opens the configured logs, so the log directory must exist
+	// before the candidate can be validated.
+	logDir, err := joinDir(paths, logDirRel)
+	if err != nil {
+		return Report{}, err
+	}
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
+		return Report{}, err
+	}
+
+	tmp, err := os.CreateTemp("", "idleleo-candidate-*.json")
+	if err != nil {
+		return Report{}, err
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName)
+	if _, err := tmp.Write(configBytes); err != nil {
+		tmp.Close()
+		return Report{}, err
+	}
+	if err := tmp.Close(); err != nil {
+		return Report{}, err
+	}
+	if err := os.Chmod(tmpName, 0o600); err != nil {
+		return Report{}, err
+	}
+	ver, err := host.Run(ctx, host.ExecSpec{Path: bin, Args: []string{"-test", "-config", tmpName}})
+	if err != nil {
+		return Report{}, err
+	}
+	rep.ValidatorExit = ver.ExitCode
+	if ver.ExitCode != 0 {
+		return Report{}, fmt.Errorf("xray -test rejected the candidate (exit %d): %s", ver.ExitCode, strings.TrimSpace(ver.Stderr))
+	}
+
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
+		return Report{}, err
+	}
+	if err := writeFileAtomic(configPath, configBytes, 0o600); err != nil {
+		return Report{}, err
+	}
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
+		return Report{}, err
+	}
+
+	installedBin, err := paths.Join(binaryRel, true)
+	if err != nil {
+		return Report{}, err
+	}
+	if err := copyExecutable(bin, installedBin); err != nil {
+		return Report{}, err
+	}
+
+	account := ""
+	if paths.Root == "/" {
+		account, err = ensureServiceAccount(ctx)
+		if err != nil {
+			return Report{}, err
+		}
+	}
+	unitPath, err := paths.Join(unitRel, true)
+	if err != nil {
+		return Report{}, err
+	}
+	if err := os.MkdirAll(filepath.Dir(unitPath), 0o755); err != nil {
+		return Report{}, err
+	}
+	unit := unitContent(installedBin, configPath, account)
+	if err := writeFileAtomic(unitPath, []byte(unit), 0o644); err != nil {
+		return Report{}, err
+	}
+	if account != "" {
+		uid, gid := uidOf(account), groupID(account)
+		if err := os.Chown(configPath, 0, gid); err == nil {
+			_ = os.Chmod(configPath, 0o640)
+		}
+		// Xray (User=xray) writes access.log/error.log itself, so the directory
+		// and any leftover log files must belong to the service account.
+		if err := os.Chown(logDir, uid, gid); err == nil {
+			_ = os.Chmod(logDir, 0o750)
+		}
+		for _, name := range []string{"access.log", "error.log"} {
+			p := filepath.Join(logDir, name)
+			if _, statErr := os.Lstat(p); statErr == nil {
+				_ = os.Chown(p, uid, gid)
+			}
+		}
+	}
+
+	metaPath, err := paths.Join(paths.ManagerMetadata(), true)
+	if err != nil {
+		return Report{}, err
+	}
+	meta := store.Metadata{
+		SchemaVersion:     store.ManagerSchemaVersion,
+		ActiveEngine:      "xray",
+		Role:              "node",
+		TLS:               rep.TLS,
+		Transport:         rep.Transport,
+		RuntimeConfigPath: configRel,
+		RuntimeSHA256:     store.HashBytes(configBytes),
+		OwnedResources:    []string{binaryRel, configRel, unitRel},
+		UpdatedAt:         time.Now().UTC().Format(time.RFC3339),
+	}
+	metaBytes, _ := json.MarshalIndent(meta, "", "  ")
+	metaBytes = append(metaBytes, '\n')
+	if err := os.MkdirAll(filepath.Dir(metaPath), 0o755); err != nil {
+		return Report{}, err
+	}
+	if err := writeFileAtomic(metaPath, metaBytes, 0o644); err != nil {
+		return Report{}, err
+	}
+
+	rep.BinaryPath, rep.ConfigPath, rep.UnitPath, rep.MetadataPath = installedBin, configPath, unitPath, metaPath
+	rep.ConfigSHA256 = store.HashBytes(configBytes)
+	rep.OwnedResources = meta.OwnedResources
+	if rep.Mode == xraycfg.ModeTLS {
+		rep.Warnings = append(rep.Warnings, "nginx-config-not-applied")
+	}
+	if spec.NoService || paths.Root != "/" {
+		return rep, nil
+	}
+	if err := service(ctx, "daemon-reload"); err != nil {
+		return rep, err
+	}
+	if err := service(ctx, "enable", "xray"); err != nil {
+		return rep, err
+	}
+	if err := service(ctx, "restart", "xray"); err != nil {
+		return rep, err
+	}
+	rep.ServiceEnabled = queryService(ctx, "is-enabled", "xray")
+	rep.ServiceActive = waitActive(ctx)
+	if rep.ServiceActive != "active" {
+		return rep, fmt.Errorf("xray.service is %q after start", rep.ServiceActive)
+	}
+	return rep, nil
+}
+
+// Uninstall stops and removes the Go-managed resources. Config is kept unless
+// purge is requested, so a reinstall can preserve user customisations.
+func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error) {
+	paths, err := host.NewPaths(spec.Root)
+	if err != nil {
+		return UninstallReport{}, err
+	}
+	if err := requireWriteAccess(paths, spec.AllowContainerWrites); err != nil {
+		return UninstallReport{}, err
+	}
+	rep := UninstallReport{Warnings: []string{}}
+	unitPath, _ := paths.Join(unitRel, false)
+	if _, statErr := os.Stat(unitPath); statErr == nil {
+		if paths.Root == "/" {
+			if err := service(ctx, "stop", "xray"); err == nil {
+				rep.ServiceStopped = true
+			}
+			if err := service(ctx, "disable", "xray"); err == nil {
+				rep.ServiceDisabled = true
+			}
+			_ = service(ctx, "daemon-reload")
+		}
+		if err := os.Remove(unitPath); err == nil {
+			rep.Removed = append(rep.Removed, unitRel)
+		}
+	}
+	for _, rel := range []string{binaryRel, paths.ManagerMetadata()} {
+		p, joinErr := paths.Join(rel, false)
+		if joinErr != nil {
+			continue
+		}
+		if err := os.Remove(p); err == nil {
+			rep.Removed = append(rep.Removed, rel)
+		}
+	}
+	if spec.Purge {
+		for _, rel := range []string{configRel, logDirRel} {
+			p, joinErr := joinDir(paths, rel)
+			if joinErr != nil {
+				continue
+			}
+			if err := os.RemoveAll(p); err == nil {
+				rep.Removed = append(rep.Removed, rel)
+			}
+		}
+	} else {
+		rep.ConfigPreserved = true
+	}
+	return rep, nil
+}
+
+func joinDir(paths host.Paths, rel string) (string, error) {
+	p, err := paths.Join(rel, false)
+	if err == nil {
+		return p, nil
+	}
+	if os.IsNotExist(err) {
+		return paths.Join(rel, true)
+	}
+	return "", err
+}
+
+func requireWriteAccess(paths host.Paths, ack bool) error {
+	if paths.IsSandbox() {
+		return paths.RequireSandbox()
+	}
+	if !ack {
+		return fmt.Errorf("real root writes require --container")
+	}
+	if os.Getenv("IDLELEO_ALLOW_SYSTEM_WRITES") != ContainerWritesAck {
+		return fmt.Errorf("real root writes require IDLELEO_ALLOW_SYSTEM_WRITES=%s", ContainerWritesAck)
+	}
+	if !inContainer() {
+		return fmt.Errorf("refusing real root writes outside a container")
+	}
+	return nil
+}
+
+func inContainer() bool {
+	for _, marker := range []string{"/.dockerenv", "/run/.containerenv"} {
+		if _, err := os.Stat(marker); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func ensureServiceAccount(ctx context.Context) (string, error) {
+	if res, err := host.Run(ctx, host.ExecSpec{Path: "id", Args: []string{"-u", "xray"}}); err == nil && res.ExitCode == 0 {
+		return "xray", nil
+	}
+	if res, err := host.Run(ctx, host.ExecSpec{Path: "groupadd", Args: []string{"--system", "xray"}}); err != nil || res.ExitCode != 0 {
+		return "", fmt.Errorf("create xray group failed: %s", strings.TrimSpace(res.Stderr))
+	}
+	if res, err := host.Run(ctx, host.ExecSpec{Path: "useradd", Args: []string{
+		"--system", "--no-create-home", "--shell", "/usr/sbin/nologin", "--gid", "xray", "xray",
+	}}); err != nil || res.ExitCode != 0 {
+		return "", fmt.Errorf("create xray user failed: %s", strings.TrimSpace(res.Stderr))
+	}
+	return "xray", nil
+}
+
+func uidOf(name string) int {
+	if u, err := user.Lookup(name); err == nil {
+		var uid int
+		if _, err := fmt.Sscanf(u.Uid, "%d", &uid); err == nil {
+			return uid
+		}
+	}
+	return -1
+}
+
+func groupID(name string) int {
+	if g, err := user.LookupGroup(name); err == nil {
+		var gid int
+		if _, err := fmt.Sscanf(g.Gid, "%d", &gid); err == nil {
+			return gid
+		}
+	}
+	return -1
+}
+
+func unitContent(bin, config, account string) string {
+	userLine := ""
+	if account != "" {
+		userLine = "User=" + account + "\nGroup=" + account + "\n"
+	}
+	return fmt.Sprintf(`[Unit]
+Description=Xray Service
+After=network.target nss-lookup.target
+
+[Service]
+%sCapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+ExecStart=%s run -config %s
+Restart=on-failure
+RestartPreventExitStatus=23
+LimitNPROC=10000
+LimitNOFILE=1000000
+
+[Install]
+WantedBy=multi-user.target
+`, userLine, bin, config)
+}
+
+func service(ctx context.Context, args ...string) error {
+	res, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: args, Timeout: 15 * time.Second})
+	if err != nil {
+		return err
+	}
+	if res.ExitCode != 0 {
+		return fmt.Errorf("systemctl %s failed (exit %d): %s", strings.Join(args, " "), res.ExitCode, strings.TrimSpace(res.Stderr))
+	}
+	return nil
+}
+
+func queryService(ctx context.Context, args ...string) string {
+	res, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: args, Timeout: 10 * time.Second})
+	if err != nil {
+		return "unknown"
+	}
+	out := strings.TrimSpace(res.Stdout)
+	if out == "" {
+		return fmt.Sprintf("exit-%d", res.ExitCode)
+	}
+	return out
+}
+
+func waitActive(ctx context.Context) string {
+	for i := 0; i < 20; i++ {
+		state := queryService(ctx, "is-active", "xray")
+		if state == "active" || state == "failed" {
+			return state
+		}
+		time.Sleep(250 * time.Millisecond)
+	}
+	return queryService(ctx, "is-active", "xray")
+}
+
+func copyExecutable(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return err
+	}
+	tmp := dst + ".tmp"
+	out, err := os.OpenFile(tmp, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(out, in); err != nil {
+		out.Close()
+		os.Remove(tmp)
+		return err
+	}
+	if err := out.Sync(); err != nil {
+		out.Close()
+		os.Remove(tmp)
+		return err
+	}
+	if err := out.Close(); err != nil {
+		os.Remove(tmp)
+		return err
+	}
+	return os.Rename(tmp, dst)
+}
+
+func writeFileAtomic(path string, data []byte, mode os.FileMode) error {
+	tmp := path + ".tmp"
+	f, err := os.OpenFile(tmp, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
+	if err != nil {
+		return err
+	}
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		os.Remove(tmp)
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		f.Close()
+		os.Remove(tmp)
+		return err
+	}
+	if err := f.Close(); err != nil {
+		os.Remove(tmp)
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
+func classifyConfig(raw []byte) (mode, transport string, err error) {
+	var root struct {
+		Inbounds []struct {
+			StreamSettings struct {
+				Network  string `json:"network"`
+				Security string `json:"security"`
+			} `json:"streamSettings"`
+		} `json:"inbounds"`
+	}
+	if err := json.Unmarshal(raw, &root); err != nil {
+		return "", "", err
+	}
+	if len(root.Inbounds) == 0 {
+		return "", "", fmt.Errorf("config has no inbounds")
+	}
+	network, security := root.Inbounds[0].StreamSettings.Network, root.Inbounds[0].StreamSettings.Security
+	switch security {
+	case "reality":
+		return xraycfg.ModeReality, xraycfg.TransportRaw, nil
+	case "tls":
+		return xraycfg.ModeTLS, network, nil
+	default:
+		return xraycfg.ModeNone, network, nil
+	}
+}
+
+func tlsLabel(mode string) string {
+	switch mode {
+	case xraycfg.ModeReality, xraycfg.ModeRealityNginx:
+		return "Reality"
+	case xraycfg.ModeTLS:
+		return "TLS"
+	default:
+		return "None"
+	}
+}

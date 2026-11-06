@@ -133,6 +133,8 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		return configCommand(opts, cfg, a, args)
 	case "change":
 		return changeCommand(ctx, opts, cfg, a, args)
+	case "xray":
+		return xrayCommand(ctx, opts, cfg, a, args)
 	case "stats":
 		fmt.Fprint(opts.Err, i18n.T(cfg.lang, "not_implemented"))
 		return 11

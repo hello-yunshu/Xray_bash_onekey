@@ -3,15 +3,18 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/change"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/compat"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/runtime"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg"
 )
 
 // App binds one root, language and output mode.
@@ -180,7 +183,108 @@ func (a *App) ChangePort(ctx context.Context, override string, inbound, port int
 		LockPath:  a.Paths.LockFile(),
 		Fault:     fault,
 	}
-	return change.Apply(ctx, req)
+	entry, err := change.Apply(ctx, req)
+	if err != nil {
+		return entry, err
+	}
+	_ = a.refreshRuntimeSHA(entry.NewSHA256)
+	return entry, nil
+}
+
+// ChangeUser adds or removes one VLESS client through the same atomic
+// transaction as ChangePort. The metadata drift check is identical.
+func (a *App) ChangeUser(ctx context.Context, override string, inbound int, add bool, ident string, spec xraycfg.AddUserSpec, validatorPath, servicePath, fault string) (change.Entry, xraycfg.UserView, error) {
+	if err := a.Paths.RequireSandbox(); err != nil {
+		return change.Entry{}, xraycfg.UserView{}, &change.UsageError{Msg: err.Error()}
+	}
+	path, err := store.ResolveRuntimePath(a.Paths, override)
+	if err != nil {
+		return change.Entry{}, xraycfg.UserView{}, err
+	}
+	meta, _, metaErr := store.LoadMetadata(a.Paths)
+	if metaErr == nil && meta.RuntimeSHA256 != "" {
+		snap, err := store.ReadRuntimeSnapshot(path)
+		if err != nil {
+			return change.Entry{}, xraycfg.UserView{}, err
+		}
+		if snap.SHA != meta.RuntimeSHA256 {
+			return change.Entry{}, xraycfg.UserView{}, &store.Error{Kind: store.KindDrift, Msg: "runtime config differs from metadata sha256"}
+		}
+	} else if metaErr != nil {
+		var se *store.Error
+		if !errors.As(metaErr, &se) || se.Kind != store.KindNotFound {
+			return change.Entry{}, xraycfg.UserView{}, metaErr
+		}
+	}
+	var view xraycfg.UserView
+	mutate := func(raw []byte) ([]byte, error) {
+		if add {
+			out, v, err := xraycfg.AddUser(raw, inbound, spec)
+			if err != nil {
+				return nil, err
+			}
+			view = v
+			return out, nil
+		}
+		out, v, err := xraycfg.RemoveUser(raw, inbound, ident)
+		if err != nil {
+			return nil, err
+		}
+		view = v
+		return out, nil
+	}
+	req := change.Request{
+		Target:    path,
+		Mutate:    mutate,
+		Validator: runtime.XrayValidator{Path: validatorPath},
+		Service:   runtime.CommandService{Path: servicePath},
+		Journal:   change.Journal{Path: a.Paths.JournalFile()},
+		LockPath:  a.Paths.LockFile(),
+		Fault:     fault,
+	}
+	entry, err := change.Apply(ctx, req)
+	if err != nil {
+		return entry, xraycfg.UserView{}, err
+	}
+	// The committed config is now ours, so the ownership fingerprint must move
+	// with it. Otherwise the next transaction would see self-inflicted drift.
+	_ = a.refreshRuntimeSHA(entry.NewSHA256)
+	return entry, view, nil
+}
+
+// refreshRuntimeSHA updates only the metadata fingerprint after a successful
+// commit. It never creates metadata for isolated samples.
+func (a *App) refreshRuntimeSHA(sha string) error {
+	if sha == "" {
+		return nil
+	}
+	p, err := a.Paths.Join(a.Paths.ManagerMetadata(), false)
+	if err != nil {
+		return nil
+	}
+	fi, err := os.Stat(p)
+	if err != nil {
+		return nil
+	}
+	meta, _, err := store.LoadMetadata(a.Paths)
+	if err != nil {
+		return err
+	}
+	if meta.RuntimeSHA256 == sha {
+		return nil
+	}
+	meta.RuntimeSHA256 = sha
+	meta.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+	b, err := json.MarshalIndent(meta, "", "  ")
+	if err != nil {
+		return err
+	}
+	b = append(b, '\n')
+	tmp := p + ".tmp"
+	if err := os.WriteFile(tmp, b, fi.Mode().Perm()); err != nil {
+		return err
+	}
+	return os.Rename(tmp, p)
 }
 
 func (a *App) runtimePath(meta store.Metadata) (string, error) {
