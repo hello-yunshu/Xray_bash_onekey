@@ -17,8 +17,16 @@
 | **部分实现（容器级）** | Phase 01 有 Go 代码并已在固定 digest 容器内真实执行；只覆盖该功能的一个原语/子集，**不是完整 Bash 行为等价**，也不是真实 VPS 验证 |
 | **已批准的安全差异** | 已记录、已批准「Go 不复制 Bash 危险行为」的口径，见第 5 节 |
 
-**结论：F01–F28 的 Go 迁移状态无一为「已验证」。** Phase 01 只把 F08/F11/F23/F27/F28 推进到
-「部分实现（容器级）」；L0 的 83/83 只覆盖 7 个纯函数，不能用来宣布任何业务功能已迁移。
+**结论：F01–F28 的 Go 迁移状态无一为「已验证」。** Phase 02 后在固定 digest 容器内把
+F01/F02/F03/F05/F06/F07/F08/F11/F18/F19/F27/F28 推进到「部分实现（容器级）」；
+其中 F01 的 fresh install、systemd、Reality 数据面，F05 的 Nginx stream 转发，
+F06 的事务/回滚/故障注入，F19 的保留配置重装，F16 的 Xray 原生 GeoData 双周期刷新均有实测证据。
+这些仍只是容器级子集，不是真实 VPS 验证，也没有任何一项升格为「已验证」。
+
+> **判定口径（2026-11-06 用户明确授权）：** 真实公网 VPS 不再是本轮阻塞项，
+> `CONTAINER_VERIFIED`（固定 digest 容器内真实执行并记录）即视为出口门槛满足；
+> `REAL_VPS_VERIFIED` 保留为更高等级但不再强制。真实 ACME 因容器内无公网域名/CA 条件，
+> **降级为“不纳入本轮验收”**。等级标签必须如实保留：容器结果不得写成“真实 VPS 已验证”。
 
 ## 2. Bash CLI 对照表（实测自 `show_help` 与入口分派）
 
@@ -76,25 +84,25 @@
 
 | ID | Bash 功能 | Bash 证据 | Bash 状态 | Go 状态 | 迁移备注 |
 |---|---|---|---|---|---|
-| F01 | `--install-reality`，普通/加 Nginx | `test_install`、`test_true_fresh_install`、`test_reality_nginx_feedback`、CI job `Install (reality)` | 已验证 | 未实现 | fixture `reality-direct` / `reality-nginx` 已通过 `xray -test` |
-| F02 | `--install-tls` ws/gRPC/xHTTP/组合 | `test_install`、`test_true_fresh_install`、CI job `Install (ws_grpc_xhttp)` | 已验证 | 未实现 | fixture `tls-multi` 已通过 `xray -test` |
-| F03 | `--install-none`，ws ONLY | `test_ws_only_listen_address`、`test_install_menu_profiles` | 已验证 | 未实现 | 必须保留「显式非回环确认」 |
+| F01 | `--install-reality`，普通/加 Nginx | `test_install`、`test_true_fresh_install`、`test_reality_nginx_feedback`、CI job `Install (reality)` | 已验证 | 部分实现（容器级） | 容器内 fresh install 真实验证：systemd `active/enabled`、`User=xray`、`xray -test`、Reality 客户端隧道取回 HTTP；`reality-nginx` 仅配置生成 + `-test`，未做 Nginx 安装 |
+| F02 | `--install-tls` ws/gRPC/xHTTP/组合 | `test_install`、`test_true_fresh_install`、CI job `Install (ws_grpc_xhttp)` | 已验证 | 部分实现（容器级） | 容器内生成 ws/gRPC/xHTTP 配置并通过真实 `xray -test`；TLS 安装需要真实域名/证书，未纳入本轮验收 |
+| F03 | `--install-none`，ws ONLY | `test_ws_only_listen_address`、`test_install_menu_profiles` | 已验证 | 部分实现（容器级） | 容器内生成 none+ws 配置并通过 `xray -test`；保留「显式非回环确认」并实测 exit 2、零落盘 |
 | F04 | Reality primary/secondary 负载均衡 | `test_install_menu_profiles`、`test_reality_nginx_feedback` | 部分验证 | 未实现 | 负载均衡无真实双节点验收，Phase 02 补 |
-| F05 | `--install-relay`，独立中转 | `test_relay_node`、`test_relay_container`、CI job `Install (relay)` / `True Fresh Mode (relay)` | 已验证 | 未实现 | fixture `relay`；⚠ 不能创建 Xray/UUID/证书 |
-| F06 | 用户查看/添加/删除、UUIDv5 | `test_install`、`test_reinstall_preservation` | 部分验证 | 未实现 | R01 的 stop→改→start 不是事务 |
-| F07 | shortId / spiderX / 用户映射 | `test_reality_min_client_ver`、`test_reinstall_preservation` | 部分验证 | 未实现 | 需与 F06 原子化 |
-| F08 | 端口、target、serverNames、SNI Guard | `test_port_safety`、`test_port_validation`、`test_install_menu_profiles` | 已验证 | 部分实现（容器级） | 仅 `set-inbound-port` 原语 + 真实 `xray -test` 校验；target/serverNames/SNI Guard 未实现 |
+| F05 | `--install-relay`，独立中转 | `test_relay_node`、`test_relay_container`、CI job `Install (relay)` / `True Fresh Mode (relay)` | 已验证 | 部分实现（容器级） | 生成 Nginx `stream` 片段；`nginx -t` 通过；真实容器网络内 PING 经 stream 转发回显；仍不能创建 Xray/UUID/证书 |
+| F06 | 用户查看/添加/删除、UUIDv5 | `test_install`、`test_reinstall_preservation` | 部分验证 | 部分实现（容器级） | `user list/add/remove` 走事务并真实重启服务；主用户保护、重复拒绝、write-fail/service-fail 回滚已实测；UUID 为随机 v4，**未实现 UUIDv5** |
+| F07 | shortId / spiderX / 用户映射 | `test_reality_min_client_ver`、`test_reinstall_preservation` | 部分验证 | 部分实现（容器级） | 新增用户可追加 Reality `shortId`；分享 URI 带 `sid/spx`；未实现完整用户映射管理 |
+| F08 | 端口、target、serverNames、SNI Guard | `test_port_safety`、`test_port_validation`、`test_install_menu_profiles` | 已验证 | 部分实现（容器级） | `set-inbound-port` 原语、serverNames/target 校验与生成、非法 serverName fail-closed；SNI Guard 未实现 |
 | F09 | `--add-upstream`，上游片段管理 | `test_nginx_security`、`test_reinstall_preservation` | 部分验证 | 未实现 | 只允许改写项目片段 |
 | F10 | `--tls` 版本变更 | `test_nginx_security`、`test_nginx_update_rollback` | 部分验证 | 未实现 | R07：当前是 `sed -i` 后重启 |
-| F11 | 服务状态/启停/日志 | `test_offline_commands`、`test_phase1_safety` | 已验证 | 部分实现（容器级） | 只有只读服务探测；启停/日志未实现，需保留 active/enabled 原状态 |
-| F12 | 证书状态/签发/续期/清理 | `test_cert_update_recovery`、`test_ssl_update_recovery` | 部分验证 | 未实现 | 未做真实 ACME；R08/R13 |
+| F11 | 服务状态/启停/日志 | `test_offline_commands`、`test_phase1_safety` | 已验证 | 部分实现（容器级） | 容器内 install/uninstall 的 `enable/start/stop/disable` 与 `active/inactive` 已实测；日志读取命令仍未实现 |
+| F12 | 证书状态/签发/续期/清理 | `test_cert_update_recovery`、`test_ssl_update_recovery` | 部分验证 | 未实现 | 真实 ACME 因容器内无公网域名/CA，**不纳入本轮验收**；R08/R13 |
 | F13 | `--update`、`--xray-update`、`--nginx-update` | `test_xray_update_transaction`、`test_nginx_update_rollback`、`test_candidate_real_upgrade` | 已验证 | 未实现 | 需哈希/降级/失败注入 |
 | F14 | `--auto-update` 与 cron | `test_vps_auto_update_schedule`、`test_legacy_auto_update_path`、`test_auto_update_failure_records` | 已验证 | 未实现 | R14：旧 cron 仍走 Bash `-u` |
 | F15 | `--stats` / `--json` / watch / reset | `test_xray_stats_readout`（真实 Xray API）、`test_xray_stats` | 已验证 | 未实现 | 首次查询瞬态失败见 `BASELINE_AND_CI.md` |
-| F16 | GeoData 热更新/手动刷新/旧布局 | `test_geodata_native`（真实 Xray）、`test_geodata_update_path`、`test_restore_geodata_selfheal` | 已验证 | 未实现 | 迁移必须 fail-closed，保留旧 cron |
+| F16 | GeoData 热更新/手动刷新/旧布局 | `test_geodata_native`（真实 Xray）、`test_geodata_update_path`、`test_restore_geodata_selfheal` | 已验证 | 未实现 | Go 未生成/管理 `geodata` 配置；本轮用 Xray 26.10.31 原生 `cron` + 本地 HTTPS/2 origin，容器内实测两轮“破坏→下载→替换→重载” |
 | F17 | IPv4/IPv6、DNS、端口、防火墙 | `test_dual_stack`、`test_dns_multi_record`、`test_firewall_ipv6`、`test_firewall_transaction_complete` | 已验证 | 未实现 | R12：iptables 直写未纳入统一事务 |
-| F18 | 分享链接/二维码/Clash | `test_clash_yaml`、`test_color_output` | 部分验证 | 未实现 | 需逐字段对照 URI/Clash |
-| F19 | 备份/恢复/重配置保留/模式切换 | `test_backup_restore`、`test_backup_permissions`、`test_reinstall_preservation`、`test_restore_geodata_selfheal` | 已验证 | 未实现 | 必须保留自定义 DNS/routing |
+| F18 | 分享链接/二维码/Clash | `test_clash_yaml`、`test_color_output` | 部分验证 | 部分实现（容器级） | 容器内 `share` 从真实配置派生 URI，实测 `flow/sni/pbk/sid/spx`；Clash 生成存在，xHTTP 明确告警且不伪造；二维码未实现 |
+| F19 | 备份/恢复/重配置保留/模式切换 | `test_backup_restore`、`test_backup_permissions`、`test_reinstall_preservation`、`test_restore_geodata_selfheal` | 已验证 | 部分实现（容器级） | 容器内实测卸载保留配置、`--keep-config` 重装后自定义 DNS 逐字节保留；backup/restore 未实现 |
 | F20 | Fail2ban（含 trusted/unban） | `test_fail2ban` | 已验证 | 未实现 | **已批准差异**：不得 `rm -f jail.d/*.local` |
 | F21 | 流量阻断与自定义路由 | `test_firewall_reconcile`、`test_geodata_manual_confirm` | 部分验证 | 未实现 | 规则生成后必须 `xray -test` |
 | F22 | Rill 观察/诊断/授权/卸载 | `test_rill_*`（7 个）、CI `rill-qualification` | 已验证 | 未实现 | R03：`.py` 被 `bash` 启动并吞错 |
@@ -102,8 +110,8 @@
 | F24 | Docker 交付 | `test_relay_container`、`test_minimal_bootstrap`、`docker/fake-systemctl` | 部分验证 | 未实现 | R16：不能假设宿主 systemd DBus |
 | F25 | TCP 优化/测速 | 无自动化（仅有菜单项） | 未验证 | 未实现 | **已批准差异**：不执行浮动远程脚本；仍无自动化 |
 | F26 | XTLS ONLY 旧模式 | `test_install_menu_profiles`、CI `Relay mixing and legacy-mode guards` | 已验证（只读识别/阻断） | 未实现 | fixture `xtls-only`；只读识别，禁止激活 |
-| F27 | `--backup/--restore/--purge/--service-*` | `test_offline_commands`、`test_uninstall_clean`、`test_install_uninstall_transaction` | 已验证 | 部分实现（容器级） | 只有 `status/config inspect/show` 只读；backup/restore/purge/service-* 未实现 |
-| F28 | 运行态与分享信息展示 | `.github/test/test_offline_commands.sh` | 已验证 | 部分实现（容器级） | `show/status` 只读视图已可解析旧样本；输出契约未与 Bash 逐字段差分 |
+| F27 | `--backup/--restore/--purge/--service-*` | `test_offline_commands`、`test_uninstall_clean`、`test_install_uninstall_transaction` | 已验证 | 部分实现（容器级） | 容器内实测 `uninstall` 保留配置、`uninstall --purge` 删除配置/log、systemd 停用；backup/restore 未实现 |
+| F28 | 运行态与分享信息展示 | `.github/test/test_offline_commands.sh` | 已验证 | 部分实现（容器级） | `status/show` 只读视图 + `xray share` 已在容器内真实读取安装结果；输出契约未与 Bash 逐字段差分 |
 
 ## 4. L0 纯函数差分（Phase 00 与 Phase 01 实际执行）
 

@@ -140,7 +140,7 @@ docker run --rm -v "$PWD/tests/fixtures/legacy":/fx:ro \
 | R19 Stats flake | 已由上游修复 | 本分支 CI 未运行，需 push 后复核 |
 | F25 无自动化 | 未验证 | 只能人工验证；不得签收 |
 | Relay Nginx 语法 | 未验证 | 环境无 Nginx；Phase 02 用真实 Nginx 容器补 |
-| 真实 ACME / 真实 VPS | 未执行 | 用户约束明确禁止；不得伪造为通过 |
+| 真实 ACME / 真实 VPS | 不纳入本轮验收 / 更高等级 | 2026-11-06 用户授权：真实 VPS 不再阻塞，`CONTAINER_VERIFIED` 满足门槛；真实 ACME 因容器无公网域名/CA 条件而降级为不纳入本轮，禁止伪造 |
 | `go-release-qualification.yml` | 红灯（设计如此） | 缺生产 Go、28 个功能测试、迁移/回滚证据 |
 | `release-candidate-gate` | PR 场景 skipped | 无 candidate 输入；未造假绿 |
 
@@ -152,7 +152,8 @@ docker run --rm -v "$PWD/tests/fixtures/legacy":/fx:ro \
 - 契约、资源所有权表、Bridge 契约、发布迁移契约、fixtures 均已交付；
 - 条件：
   1. F25 保持「未验证」，不得在 Phase 01 签收；
-  2. Relay fixture 的 Nginx 语法、真实 ACME、真实 VPS 仍为未验证，不得在文档中写成通过；
+  2. Relay fixture 的 Nginx 语法、真实 ACME、真实 VPS 仍为未验证；按 2026-11-06 用户授权，
+     它们**不再阻塞**后续阶段，但文档中不得写成“真实 ACME/真实 VPS 已通过”；
   3. R01–R18 的 Bash 风险继续以「仍成立」跟踪，不允许因为 Go 开工而忽略；
   4. 本分支 push 后的 CI 结果需复核 Stats Readout 是否稳定。
 
