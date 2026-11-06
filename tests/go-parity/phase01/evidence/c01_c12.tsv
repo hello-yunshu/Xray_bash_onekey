@@ -1,0 +1,31 @@
+C01.1	version	/tmp/idleleo version	0	0	1	empty root unchanged
+C01.2	status on empty root	/tmp/idleleo --root <empty> status	3	3	1	not-installed exit, zero files
+C01.3	status fixture	/tmp/idleleo --root <fixture> --json status	0	0	1	sha unchanged
+C01.4	config inspect	/tmp/idleleo --root <fixture> config inspect --json	0	0	1	sha unchanged
+C01.5	show non-root sandbox	/tmp/idleleo --root <fixture> show	0	0	1	sha unchanged
+C02.1	no TTY does not hang	/tmp/idleleo (stdin=/dev/null)	2	2	1	explained exit 2
+C02.2	TERM=dumb no ANSI	TERM=dumb /tmp/idleleo status	0	0	1	no ESC bytes
+C03.corrupt	corrupt metadata	/tmp/idleleo --root <corrupt> status	4	4	1	classified exit
+C03.schema	schema metadata	/tmp/idleleo --root <schema> status	5	5	1	classified exit
+C03.unsupported	unsupported metadata	/tmp/idleleo --root <unsupported> status	12	12	1	classified exit
+C03.secret	secret metadata	/tmp/idleleo --root <secret> status	4	4	1	classified exit
+C03.missing	missing metadata	/tmp/idleleo --root <empty> status	3	3	1	no files created
+C04.1	custom dns/routing/top-level	/tmp/idleleo config inspect --json	0	0	1	sha unchanged
+C04.2	show derives authority	/tmp/idleleo show	0	0	1	no rewrite
+C05.1	status reports drift	/tmp/idleleo status	0	0	1	read-only drift report
+C05.2	change refuses stale baseline	/tmp/idleleo change ... --port 8443	7	7	1	no journal write
+C06	validator rejects	/tmp/idleleo change --validator <exit 1>	8	8	1	target bytes unchanged
+C07	injected write failure	/tmp/idleleo change --fault write-fail	13	13	1	target untouched
+C08.1	service apply failure	/tmp/idleleo change --service <exit 1>	9	9	1	restored, only apply invoked
+C08.2	injected service failure	/tmp/idleleo change --fault service-fail	9	9	1	restored
+C09	lock contention	flock held; /tmp/idleleo change	7	7	1	no write under lock
+C10.1	non-root status	setpriv nobody /tmp/idleleo status	0	0	1	read-only
+C10.2	non-root illegal command	setpriv nobody /tmp/idleleo frobnicate	2	2	1	no mutation
+C10.3	non-root change refused	setpriv nobody /tmp/idleleo change	nonzero	2	1	no write
+C11.1	linux/amd64 build	GOOS=linux GOARCH=amd64 go build	0	0	1	bytes=4372162
+C11.2	linux/arm64 build	GOOS=linux GOARCH=arm64 go build	0	0	1	bytes=4195046
+C11.3	current-arch binary runs	/tmp/idleleo version	0	0	1	aarch64
+C12.1	install.sh bytes match pin	sha256sum install.sh	0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6	0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6	1	pin 4752f77c58028ac169c429fe7674c20060b30c9e
+C12.2	product code diff empty	git diff 4752f77c58028ac169c429fe7674c20060b30c9e..HEAD -- install.sh scripts config	empty	empty	1	no Bash core change
+C12.3	Go does not install over Bash entry	test -e /etc/idleleo/install.sh	empty		1	legacy path absent
+C12.4	legacy Bash still loads	_TEST_MODE=1 source install.sh; echo shell_version	3.3.4	3.3.4	1	stable Bash untouched
