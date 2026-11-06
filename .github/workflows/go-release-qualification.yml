@@ -1,6 +1,11 @@
-# Copy to .github/workflows/go-release-qualification.yml ONLY after reviewing module path.
-# This workflow NEVER publishes. Official publishing must depend on its success.
-# Expected RED until real Go manager, source-built native adapter and F01–F28 L1–L3 exist.
+# NEVER publishes. Official publishing must depend on its success.
+# Expected RED until the real Go manager and F01-F28 executable tests exist.
+#
+# Zero runs so far: workflow_dispatch only appears on the repository's default
+# branch, and this file lives on develop/go-native, so GitHub cannot dispatch it
+# yet. The paths and package below were corrected against the real layout
+# (module root = repo root, production package = internal/service); the gate
+# returns exit 2 (28 PENDING + 28 missing tests), which is the intended result.
 name: Go production parity release qualification
 on:
   workflow_call:
@@ -27,13 +32,14 @@ jobs:
           go-version: '1.23.2'
       - name: Execute provenance-checked native L0 and all 28 real feature tests
         env:
-          # Explicit package must match actual production Go module when implemented.
-          REQUIRED_PRODUCTION_PACKAGE: github.com/hello-yunshu/Xray_bash_onekey/go/internal/manager
+          # Explicit package must match the actual production Go module (repo root)
+          # and its real service package; this is what the gate verifies.
+          REQUIRED_PRODUCTION_PACKAGE: github.com/hello-yunshu/Xray_bash_onekey/internal/service
         run: |
           set -euo pipefail
           python3 current/tests/go-parity/parity/scripts/check_release_gate.py \
             --bash-repo legacy \
-            --native-go-dir current/go \
+            --native-go-dir current \
             --native-package ./cmd/parity-adapter \
             --go-cli-package ./cmd/idleleo \
             --require-package "$REQUIRED_PRODUCTION_PACKAGE"

@@ -84,8 +84,10 @@
 | 产品影响 | **不能发布、不能合并 `main`、不能打 tag**；Go 资产只是候选 |
 | 解锁条件 | 28 个真实 feature test + 受保护 CI 绿色 + 独立 VM/systemd 等强制 job |
 
-另：`go-release-qualification.yml` 的 `current/go` 路径与根模块布局不一致，当前即使
-门禁项齐全也无法直接跑通；本轮未修改工作流，以免制造“绿灯假象”。
+另：`go-release-qualification.yml` 已按真实布局修正（`--native-go-dir current`、
+`--require-package github.com/hello-yunshu/Xray_bash_onekey/internal/service`）；
+本地按同一参数实测门禁 `exit 2`（28 PENDING + 28 missing tests）。该工作流仍**零 run**：
+`workflow_dispatch` 只对默认分支可见，它目前只存在于 `develop/go-native`。
 
 ## 8. CI 状态
 
@@ -94,7 +96,7 @@
 | 旧红灯 run | `42048259341`，head `4752f77`，job `Stats Readout (ubuntu:24.04)` |
 | 根因 | 旧 readiness 检查在慢 runner 上过早判定 API 就绪 |
 | 现状 | 当前代码在 amd64 + tmux 容器真实复现：`Summary: PASS=47 FAIL=0`，`repro-exit=0` |
-| 未完成 | 候选分支**没有**绿色 GitHub Actions run（未创建 PR；workflow 只对 main/PR/dispatch 触发） |
+| 未完成 | 候选分支**没有**绿色 GitHub Actions run（未创建 PR；workflow 只对 main/PR/dispatch 触发）。`go-release-qualification.yml` 与 `publish-go-bridge.yml` 均零 run：前者只在默认分支可 dispatch，后者还受 28 项 PENDING 门禁阻断 |
 | 影响 | 不能以“CI 已绿”为依据发布 |
 
 ## 9. 安全与运维边界
