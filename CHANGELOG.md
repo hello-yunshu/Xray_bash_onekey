@@ -17,6 +17,9 @@
 
 ### 修复
 
+- **保留的 auto_update cron 不会静默回退迁移**：Bash 自更新路径原先无条件把
+  `/usr/bin/idleleo` 重新指向 `/etc/idleleo/install.sh`；现在检测到 Go 入口或
+  journal `COMMITTED` 时只刷新 Bash 脚本，不改变入口。
 - **`-u --yes` 不再在“实际更新成功”后触发迁移入口**：此前该分支会重新执行
   刚下载脚本的 offer，`--yes` 在子进程里丢失；现在 `--yes`、`auto_update`
   与非 TTY 一样直接返回，Phase 03 回归覆盖了“真实升级成功 + TTY + `--yes`”。
