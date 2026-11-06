@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 3.3.5 — 2026-11-07
+
+> 状态：**待发布**。版本号、CHANGELOG 与测试断言已就绪；实际发布需与生产
+> `bridge/asset.json`（P0-2）同批合并 `main`，本轮未合并、未打 tag、未发 Release。
+> 影响面见 `docs/release/BASH_VERSION_3_3_5_ASSESSMENT.md`。
+
+### 新增
+
+- **Go 迁移入口（Bridge-aware Bash）**：手动 TTY `-u` 在版本检查后提示是否迁移；
+  `auto_update`、`--yes`、非 TTY 一律不触发。入口只读
+  `/etc/idleleo/bridge/asset.json`，缺文件/字段不完整时干净跳过（不下载、不改动）。
+- **真机写入门禁**：容器内仍要求 `IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY`；
+  真实 root 主机放行切换，但先在 `/var/log/idleleo/system-writes.log`（0600）写入
+  可审计记录，写失败则拒绝。
+
+### 修复
+
+- **迁移保留证书续期与自动更新 cron**：Go 尚无等价执行器的 `ssl_update.sh`、
+  `auto_update.sh` 在切换后保留原 cron，只有已有 Go 执行器的 `geo_update.sh`、
+  `xray_stats.sh` 被移除；`schedule status` 仍如实标记 `degraded`。
+- **真实 root 迁移不再被容器标记硬阻断**：容器标记只用于区分执行环境，
+  不再作为真机拒绝条件。
+
+### 迁移说明
+
+- 已发布 v3.3.4 资产保持不变（`install.sh` SHA-256 `0af8e8f2…`）；本条目对应新资产，
+  由 `publish-shell-version.yml` 在合并 `main` 后自动发布。
+
 ## 未发布 — Go 管理器迁移（Phase 04 候选）
 
 Phase 04 完成容器级验收与发布候选，但**发布门禁仍为红灯**；证据等级
