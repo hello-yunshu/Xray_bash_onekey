@@ -121,6 +121,11 @@ run_script() {
     local out="$1" err="$2"
     shift 2
     XRAY_STATS_BIN="${XRAY_BIN}" bash "${SCRIPT}" --config "${CONF}" "$@" >"${out}" 2>"${err}"
+    local rc=$?
+    if [[ ${rc} -ne 0 && -s "${err}" ]]; then
+        printf '  INFO(%s rc=%d): %s\n' "$(basename "${err}")" "${rc}" "$(head -2 "${err}" | tr '\n' ' ')"
+    fi
+    return ${rc}
 }
 
 stdout_zero() {
