@@ -55,8 +55,8 @@
 | 项 | 内容 |
 |---|---|
 | 是什么 | `service status/start/stop/restart/reload/logs` 仅允许 `xray`、`nginx`、`idleleo-schedule.timer` |
-| 为什么 | 防止 Go 管理器越界操作宿主任意 unit；真实 root 写入还要求 `--container` + 环境变量 + 容器标记 |
-| 产品影响 | 不能管理第三方服务；在非容器真实 root 上默认拒绝写入（避免误操作宿主） |
+| 为什么 | 防止 Go 管理器越界操作宿主任意 unit；容器内真实 root 写入要求 `--container` + 环境变量 + 容器标记，真机 root 放行但写入前必须记录审计日志 |
+| 产品影响 | 不能管理第三方服务；真机 root 可用，但每次系统写入会在 `/var/log/idleleo/system-writes.log` 留痕（`mode=host`），审计不可写时命令拒绝执行 |
 | 解锁条件 | 明确的产品需求与权限模型；当前按最小权限原则保留 |
 
 ## 6. 仍未迁移的功能（用户会失去的旧能力）
@@ -99,7 +99,7 @@
 
 ## 9. 安全与运维边界
 
-- 不修改真实 VPS；真实 root 写入门禁默认拒绝。
+- 不修改真实 VPS；容器内真实 root 写入仍要求双确认，真机 root 放行但强制写审计日志。
 - 不执行浮动远程脚本（D3）；不复刻 `rm -f jail.d/*.local`（D1）。
 - 不默认禁用 SELinux / 改全局 limits（D2）。
 - 旧 XTLS 只读识别并阻断（D4）。

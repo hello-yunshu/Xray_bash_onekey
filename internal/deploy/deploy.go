@@ -332,28 +332,7 @@ func joinDir(paths host.Paths, rel string) (string, error) {
 }
 
 func requireWriteAccess(paths host.Paths, ack bool) error {
-	if paths.IsSandbox() {
-		return paths.RequireSandbox()
-	}
-	if !ack {
-		return fmt.Errorf("real root writes require --container")
-	}
-	if os.Getenv("IDLELEO_ALLOW_SYSTEM_WRITES") != ContainerWritesAck {
-		return fmt.Errorf("real root writes require IDLELEO_ALLOW_SYSTEM_WRITES=%s", ContainerWritesAck)
-	}
-	if !inContainer() {
-		return fmt.Errorf("refusing real root writes outside a container")
-	}
-	return nil
-}
-
-func inContainer() bool {
-	for _, marker := range []string{"/.dockerenv", "/run/.containerenv"} {
-		if _, err := os.Stat(marker); err == nil {
-			return true
-		}
-	}
-	return false
+	return host.RequireSystemWrite(paths.Root, ack)
 }
 
 func ensureServiceAccount(ctx context.Context) (string, error) {

@@ -12864,9 +12864,22 @@ bridge_migration_offer() {
         echo "$(gettext "Go 迁移清单不完整，跳过（未下载、未改动")"
         return 0
     fi
-    if [[ "${IDLELEO_ALLOW_SYSTEM_WRITES:-}" != "I_ACCEPT_CONTAINER_ONLY" ]]; then
-        echo "$(gettext "未设置 IDLELEO_ALLOW_SYSTEM_WRITES，拒绝切换；未下载、未改动")"
-        return 0
+    if [[ -f /.dockerenv || -f /run/.containerenv ]]; then
+        if [[ "${IDLELEO_ALLOW_SYSTEM_WRITES:-}" != "I_ACCEPT_CONTAINER_ONLY" ]]; then
+            echo "$(gettext "未设置 IDLELEO_ALLOW_SYSTEM_WRITES，拒绝切换；未下载、未改动")"
+            return 0
+        fi
+    else
+        # Real host root: the migration must be possible, but it has to leave an
+        # auditable record before any asset is downloaded or the entry switches.
+        mkdir -p /var/log/idleleo 2>/dev/null || true
+        if ! printf '%s mode=host uid=%s pid=%s argv=%q\n' \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(id -u)" "$$" "install.sh bridge-offer" \
+            >>/var/log/idleleo/system-writes.log 2>/dev/null; then
+            echo "$(gettext "无法写入迁移审计日志，拒绝切换；未下载、未改动")"
+            return 0
+        fi
+        chmod 0600 /var/log/idleleo/system-writes.log 2>/dev/null || true
     fi
     echo "$(gettext "检测到可迁移的 Bash 安装。迁移只切换入口并保留原配置/证书/用户；是否继续") [y/${Red}N${Font}]? "
     local answer=""
