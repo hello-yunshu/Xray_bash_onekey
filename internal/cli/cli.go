@@ -20,9 +20,11 @@ import (
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
 )
 
-// Version is the Phase 01 candidate version, deliberately not the Bash 3.3.4
-// release string and not a published Go release.
-const Version = "0.1.0-phase01"
+// Version is the Phase 04 release-candidate version, deliberately not the
+// Bash 3.3.4 release string and not a published Go release. It is a variable
+// so release qualification can build fixtures with distinct versions via
+// -ldflags -X, which is how the update channel is exercised end to end.
+var Version = "0.2.0-phase04"
 
 // Options injects streams and TTY detection for tests.
 type Options struct {
@@ -139,11 +141,16 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		return bridgeCommand(ctx, opts, cfg, args)
 	case "schedule":
 		return scheduleCommand(ctx, opts, cfg, args)
+	case "update":
+		return updateCommand(ctx, opts, cfg, args)
+	case "stats":
+		return statsCommand(ctx, opts, cfg, args)
+	case "service":
+		return serviceCommand(ctx, opts, cfg, args)
+	case "rill":
+		return rillCommand(opts, cfg, args)
 	case "recover":
 		return recoverCommand(opts, cfg, args)
-	case "stats":
-		fmt.Fprint(opts.Err, i18n.T(cfg.lang, "not_implemented"))
-		return 11
 	default:
 		return usage(opts, cfg.lang, "help")
 	}

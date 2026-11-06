@@ -3,9 +3,10 @@
 // and xray_stats.sh). Migration removes those cron lines, so these jobs must be
 // taken over explicitly instead of being parked in a deferred list.
 //
-// Two jobs are intentionally degraded rather than silently paused:
-//   - auto-update has no published Go release channel yet, so it records an
-//     explicit degraded result on every run;
+// Two jobs have explicit degradation semantics rather than silent pausing:
+//   - auto-update uses the Go release channel when one is configured and
+//     records an explicit degraded result when it is not (the legacy Bash
+//     updater has been removed, so guessing a URL is not acceptable);
 //   - cert-renew monitors certificate expiry but never performs ACME issuance
 //     (real ACME is out of scope for this phase).
 //
@@ -15,7 +16,9 @@ package schedule
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -29,6 +32,7 @@ import (
 	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/release"
 )
 
 const (
@@ -63,7 +67,7 @@ var Jobs = []string{"auto-update", "cert-renew", "geodata-refresh", "stats-colle
 
 // DegradedJobs documents the two product degradations in machine-readable form.
 var DegradedJobs = []string{
-	"auto-update: no Go release channel is published; the legacy Bash updater is removed and no automatic update runs (explicit degradation)",
+	"auto-update: runs through the Go release channel only when one is configured; with no channel the legacy Bash updater is removed and no automatic update runs (explicit degradation)",
 	"cert-renew: certificate expiry is monitored but ACME issuance/renewal is not implemented (explicit degradation; renew externally)",
 }
 
@@ -374,9 +378,9 @@ func Run(ctx context.Context, opts RunOptions) (Report, error) {
 		var res JobResult
 		switch job {
 		case "auto-update":
-			res = autoUpdateJob(at)
+			res = autoUpdateJob(ctx, opts.Root, at, lock)
 		case "cert-renew":
-			res = certRenewJob(opts.Root, at)
+			res = certRenewJob(ctx, opts.Root, at)
 		case "geodata-refresh":
 			res = geodataJob(ctx, opts.Root, cfg, at)
 		case "stats-collect":
@@ -405,41 +409,33 @@ func pathsFor(root string) host.Paths {
 	return p
 }
 
-func autoUpdateJob(at string) JobResult {
-	return JobResult{
-		Job: "auto-update", Result: "degraded", At: at,
-		Detail: "no Go release channel is published; the legacy Bash auto-update cron is removed and no automatic update is performed (explicit product degradation, see README migration notes)",
-	}
+func autoUpdateJob(ctx context.Context, root, at string, lock *host.UpdateLock) JobResult {
+	rep := release.AutoUpdate(ctx, root, lock)
+	return JobResult{Job: "auto-update", Result: rep.Action, At: at, Detail: rep.Detail}
 }
 
-func certRenewJob(root, at string) JobResult {
-	expiry, name, err := nearestExpiry(path(root, CertDirRel))
-	switch {
-	case err != nil && !os.IsNotExist(err):
-		return JobResult{Job: "cert-renew", Result: "failed", At: at, Detail: err.Error()}
-	case expiry.IsZero():
-		return JobResult{Job: "cert-renew", Result: "skipped", At: at, Detail: "no certificate files to monitor"}
-	}
-	days := int(time.Until(expiry).Hours() / 24)
-	switch {
-	case days < 0:
-		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expired %d days ago; ACME renewal is not implemented (explicit degradation)", name, -days)}
-	case days < 30:
-		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expires in %d days; ACME issuance/renewal is not implemented (explicit degradation; renew externally)", name, days)}
-	default:
-		return JobResult{Job: "cert-renew", Result: "ok", At: at, Detail: fmt.Sprintf("%s is valid for %d more days", name, days)}
-	}
+// certObservation is the external-renewal contract: the certificate file that
+// currently expires soonest, its DER fingerprint, and any private-key file
+// whose mode is world-accessible.
+type certObservation struct {
+	NotAfter    time.Time
+	Name        string
+	Path        string
+	Fingerprint string
+	InsecureKey []string
 }
 
-func nearestExpiry(dir string) (time.Time, string, error) {
-	var soonest time.Time
-	var name string
+func scanCert(dir string) (certObservation, error) {
+	var obs certObservation
 	err := filepath.Walk(dir, func(p string, fi os.FileInfo, err error) error {
 		if err != nil || fi == nil || fi.IsDir() {
 			return nil
 		}
 		base := strings.ToLower(filepath.Base(p))
 		if strings.Contains(base, "privkey") || strings.HasSuffix(base, ".key") {
+			if fi.Mode().Perm()&0o004 != 0 {
+				obs.InsecureKey = append(obs.InsecureKey, fmt.Sprintf("%s mode %04o is world-readable", p, fi.Mode().Perm()))
+			}
 			return nil
 		}
 		if !strings.HasSuffix(base, ".pem") && !strings.HasSuffix(base, ".crt") {
@@ -462,13 +458,129 @@ func nearestExpiry(dir string) (time.Time, string, error) {
 			if err != nil {
 				continue
 			}
-			if soonest.IsZero() || cert.NotAfter.Before(soonest) {
-				soonest, name = cert.NotAfter, filepath.Base(p)
+			if obs.NotAfter.IsZero() || cert.NotAfter.Before(obs.NotAfter) {
+				obs.NotAfter = cert.NotAfter
+				obs.Name = filepath.Base(p)
+				obs.Path = p
+				obs.Fingerprint = hashRaw(cert.Raw)
 			}
 		}
 		return nil
 	})
-	return soonest, name, err
+	return obs, err
+}
+
+func hashRaw(b []byte) string {
+	sum := sha256.Sum256(b)
+	return hex.EncodeToString(sum[:])
+}
+
+// certState records the last fingerprint that was actually reloaded. Without
+// it a renewal job cannot tell "nothing changed" from "someone renewed the
+// certificate", and would either never reload or restart on every tick.
+type certState struct {
+	SchemaVersion int    `json:"schemaVersion"`
+	Fingerprint   string `json:"fingerprint"`
+	File          string `json:"file"`
+	NotAfter      string `json:"notAfter"`
+	ReloadedAt    string `json:"reloadedAt,omitempty"`
+}
+
+const CertStateRel = "var/lib/idleleo/schedule/cert.json"
+
+func loadCertState(root string) certState {
+	var st certState
+	if b, err := os.ReadFile(path(root, CertStateRel)); err == nil {
+		_ = json.Unmarshal(b, &st)
+	}
+	return st
+}
+
+func saveCertState(root string, obs certObservation, at string) error {
+	st := certState{
+		SchemaVersion: SchemaVersion, Fingerprint: obs.Fingerprint, File: obs.Name,
+		NotAfter: obs.NotAfter.UTC().Format(time.RFC3339), ReloadedAt: at,
+	}
+	b, err := json.MarshalIndent(st, "", "  ")
+	if err != nil {
+		return err
+	}
+	return writeAtomic(path(root, CertStateRel), append(b, '\n'), 0o640)
+}
+
+func certRenewJob(ctx context.Context, root, at string) JobResult {
+	obs, err := scanCert(path(root, CertDirRel))
+	switch {
+	case err != nil && !os.IsNotExist(err):
+		return JobResult{Job: "cert-renew", Result: "failed", At: at, Detail: err.Error()}
+	case obs.NotAfter.IsZero():
+		return JobResult{Job: "cert-renew", Result: "skipped", At: at, Detail: "no certificate files to monitor"}
+	}
+	last := loadCertState(root)
+	changed := last.Fingerprint != "" && last.Fingerprint != obs.Fingerprint
+	baseline := last.Fingerprint == ""
+	days := int(time.Until(obs.NotAfter).Hours() / 24)
+
+	if (changed || baseline) && len(obs.InsecureKey) > 0 && root == "/" {
+		return JobResult{Job: "cert-renew", Result: "failed", At: at,
+			Detail: "refusing to reload a certificate whose private key is world-readable: " + strings.Join(obs.InsecureKey, "; ")}
+	}
+
+	detail := obs.Name
+	reload := ""
+	// A missing state is a baseline, not a renewal: the first observation must
+	// never restart services that were healthy before the cron takeover.
+	if root == "/" && changed {
+		reload, err = reloadForCert(ctx)
+		if err != nil {
+			return JobResult{Job: "cert-renew", Result: "failed", At: at, Detail: detail + "; " + err.Error()}
+		}
+	}
+	switch {
+	case days < 0:
+		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expired %d days ago; ACME renewal is not implemented (explicit degradation)", obs.Name, -days)}
+	case changed:
+		detail += fmt.Sprintf(" changed (sha256=%s); %s; expires in %d days", short(obs.Fingerprint), reload, days)
+	case baseline:
+		detail += fmt.Sprintf(" baseline recorded (sha256=%s); no restart; expires in %d days", short(obs.Fingerprint), days)
+	case days < 30:
+		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expires in %d days, unchanged; ACME issuance/renewal is not implemented (explicit degradation; renew externally)", obs.Name, days)}
+	default:
+		detail += fmt.Sprintf(" unchanged; expires in %d days; no restart", days)
+	}
+	if err := saveCertState(root, obs, at); err != nil {
+		return JobResult{Job: "cert-renew", Result: "failed", At: at, Detail: detail + "; state: " + err.Error()}
+	}
+	return JobResult{Job: "cert-renew", Result: "ok", At: at, Detail: detail}
+}
+
+// reloadForCert restarts Xray and reloads Nginx only when the certificate
+// fingerprint changed. A stopped service is left stopped.
+func reloadForCert(ctx context.Context) (string, error) {
+	actions := []string{}
+	for _, svc := range []struct{ unit, verb string }{{"xray", "restart"}, {"nginx", "reload"}} {
+		res, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"is-active", svc.unit}, Timeout: 10 * time.Second})
+		if err != nil || res.ExitCode != 0 || strings.TrimSpace(res.Stdout) != "active" {
+			actions = append(actions, svc.unit+" inactive, no "+svc.verb)
+			continue
+		}
+		res, err = host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{svc.verb, svc.unit}, Timeout: 60 * time.Second})
+		if err != nil {
+			return strings.Join(actions, ", "), err
+		}
+		if res.ExitCode != 0 {
+			return strings.Join(actions, ", "), fmt.Errorf("systemctl %s %s exit %d: %s", svc.verb, svc.unit, res.ExitCode, strings.TrimSpace(res.Stderr))
+		}
+		actions = append(actions, svc.unit+" "+svc.verb+"ed")
+	}
+	return strings.Join(actions, ", "), nil
+}
+
+func short(sha string) string {
+	if len(sha) > 12 {
+		return sha[:12]
+	}
+	return sha
 }
 
 func geodataJob(ctx context.Context, root string, cfg Config, at string) JobResult {
@@ -658,6 +770,7 @@ type StatusReport struct {
 	UnitPath        string   `json:"unitPath"`
 	TimerPath       string   `json:"timerPath"`
 	Timer           string   `json:"timer"`
+	ReleaseChannel  bool     `json:"releaseChannelConfigured"`
 	State           State    `json:"state"`
 	LastLogLine     string   `json:"lastLogLine,omitempty"`
 }
@@ -673,6 +786,9 @@ func Status(ctx context.Context, root string) (StatusReport, error) {
 		Jobs: cfg.Jobs, DegradedJobs: DegradedJobs,
 		UnitPath: path(root, UnitRel), TimerPath: path(root, TimerRel),
 		Timer: "not-installed", State: State{SchemaVersion: SchemaVersion, Jobs: map[string]JobState{}},
+	}
+	if ch, err := release.LoadChannel(root); err == nil && ch.ManifestURL != "" {
+		report.ReleaseChannel = true
 	}
 	fi, err := os.Stat(report.TimerPath)
 	if err == nil && fi.Mode().IsRegular() {
@@ -706,7 +822,7 @@ func Status(ctx context.Context, root string) (StatusReport, error) {
 // SummaryLines renders a compact status for the CLI.
 func (r StatusReport) SummaryLines() []string {
 	out := []string{
-		fmt.Sprintf("installed=%t interval=%ds timer=%s", r.Installed, r.IntervalSeconds, r.Timer),
+		fmt.Sprintf("installed=%t interval=%ds timer=%s releaseChannel=%t", r.Installed, r.IntervalSeconds, r.Timer, r.ReleaseChannel),
 		"jobs=" + strings.Join(r.Jobs, ","),
 	}
 	for _, d := range r.DegradedJobs {

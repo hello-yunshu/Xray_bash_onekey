@@ -25,7 +25,12 @@ var zh = map[string]string{
                        旧 Bash 安装的审计、预检、切换与恢复
   schedule install|remove|run|status
                        Go 原生定时任务（接管旧 cron 的更新/证书/GeoData/统计）
-  stats                未实现（退出码 11）
+  update status|check|apply|configure --manifest-url URL
+                       Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+  stats [--json]       只读查询 Xray 统计（reset=false）
+  service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                       服务类操作（仅真实 systemd）
+  rill status          只读 Rill 交接状态
   help                 显示本帮助
 `,
 	"version":          "idleleo %s (go)\n",
@@ -62,7 +67,12 @@ Commands:
                        audit, pre-flight, switch and recovery for legacy Bash installs
   schedule install|remove|run|status
                        native Go jobs (takeover of the legacy update/cert/GeoData/stats cron)
-  stats                not implemented (exit 11)
+  update status|check|apply|configure --manifest-url URL
+                       Go release channel self-update (manifest/SHA256/ELF/health checks)
+  stats [--json]       read-only Xray stats query (reset=false)
+  service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                       service-class operations (real systemd only)
+  rill status          read-only Rill handover state
   help                 show this help
 `,
 	"version":          "idleleo %s (go)\n",

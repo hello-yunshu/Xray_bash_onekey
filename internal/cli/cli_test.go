@@ -82,7 +82,7 @@ func snapshot(t *testing.T, root string) map[string]string {
 }
 
 func TestVersionHelpAndNoTTY(t *testing.T) {
-	if code, out, _ := run(t, "version"); code != 0 || !strings.Contains(out, "phase01") {
+	if code, out, _ := run(t, "version"); code != 0 || !strings.Contains(out, "phase04") {
 		t.Fatalf("version: %d %q", code, out)
 	}
 	if code, out, _ := run(t, "--help"); code != 0 || !strings.Contains(out, "status") {
@@ -98,10 +98,30 @@ func TestVersionHelpAndNoTTY(t *testing.T) {
 	}
 }
 
-func TestStatsIsExplicitlyNotImplemented(t *testing.T) {
-	code, _, errOut := run(t, "--lang", "en", "stats", "--json")
-	if code != 11 || !strings.Contains(errOut, "not implemented") {
+func TestStatsUnavailableIsReadOnly(t *testing.T) {
+	root := t.TempDir()
+	code, _, errOut := run(t, "--root", root, "--lang", "en", "stats", "--json")
+	if code != 3 || !strings.Contains(errOut, "stats unavailable") {
 		t.Fatalf("stats: %d %q", code, errOut)
+	}
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("stats wrote files: %v", entries)
+	}
+}
+
+func TestUpdateUnconfiguredIsReadOnly(t *testing.T) {
+	root := t.TempDir()
+	code, _, errOut := run(t, "--root", root, "--lang", "en", "update", "check")
+	if code != 3 || !strings.Contains(errOut, "no Go release channel") {
+		t.Fatalf("update check: %d %q", code, errOut)
+	}
+	code, out, _ := run(t, "--root", root, "--lang", "en", "update", "status", "--json")
+	if code != 0 || !strings.Contains(out, "configured") {
+		t.Fatalf("update status: %d %q", code, out)
 	}
 }
 
