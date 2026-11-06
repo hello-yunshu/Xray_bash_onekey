@@ -12798,6 +12798,13 @@ _update_sh_impl() {
             rxa_clear_screen
             log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
+            # Phase 03: a manual TTY update may discover the Go bridge. Run the
+            # freshly installed script's own offer so this same run is wired
+            # through the maintenance version instead of the old functions.
+            if [[ "${bridge_manual_invocation:-off}" == "on" ]] && [[ -t 0 ]] && [[ ${auto_update} != "YES" ]]; then
+                bash "${idleleo}" --internal-bridge-offer
+                return 0
+            fi
             return 0
             ;;
         *)
@@ -12817,6 +12824,9 @@ _update_sh_impl() {
         fi
         rxa_clear_screen
         log_echo "${OK} ${GreenBG} $(gettext "当前已经是最新版本") ${Font}"
+        if [[ "${bridge_manual_invocation:-off}" == "on" ]] && [[ -t 0 ]] && [[ ${auto_update} != "YES" ]]; then
+            bridge_migration_offer || true
+        fi
     fi
     return 0
 
@@ -12824,6 +12834,119 @@ _update_sh_impl() {
 
 update_sh() {
     with_update_lock _update_sh_impl "$@"
+}
+
+# Phase 03 bridge discovery. This is the ONLY Bash path that may offer the Go
+# migration: an explicit manual check (-u) in a real TTY, never auto_update,
+# never --yes, never a pipe. It performs no network request and changes
+# nothing unless the operator explicitly answers yes.
+bridge_migration_offer() {
+    local bridge_manifest="${IDLELEO_BRIDGE_MANIFEST:-/etc/idleleo/bridge/asset.json}"
+    local go_entry="/opt/idleleo/bin/idleleo"
+    local entry_file="${idleleo_commend_file:-/usr/bin/idleleo}"
+    [[ "${bridge_manual_invocation:-off}" == "on" ]] || return 0
+    [[ "${auto_update:-}" != "YES" ]] || return 0
+    [[ "${update_assume_yes:-off}" != "YES" ]] || return 0
+    [[ -t 0 ]] || return 0
+    if [[ -x "${go_entry}" ]] && [[ "$(readlink -f "${entry_file}" 2>/dev/null)" == "${go_entry}" ]]; then
+        return 0
+    fi
+    if [[ ! -r "${bridge_manifest}" ]]; then
+        echo "$(gettext "Go 迁移资产尚未发布，跳过（未下载、未改动")"
+        return 0
+    fi
+    local asset_url="" asset_sha="" rec_url="" rec_sha=""
+    asset_url=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("url","") or "")' "${bridge_manifest}" 2>/dev/null) || asset_url=""
+    asset_sha=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("sha256","") or "")' "${bridge_manifest}" 2>/dev/null) || asset_sha=""
+    rec_url=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("recoveryUrl","") or "")' "${bridge_manifest}" 2>/dev/null) || rec_url=""
+    rec_sha=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("recoverySha256","") or "")' "${bridge_manifest}" 2>/dev/null) || rec_sha=""
+    if [[ -z "${asset_url}" || -z "${asset_sha}" || -z "${rec_url}" || -z "${rec_sha}" ]]; then
+        echo "$(gettext "Go 迁移清单不完整，跳过（未下载、未改动")"
+        return 0
+    fi
+    if [[ "${IDLELEO_ALLOW_SYSTEM_WRITES:-}" != "I_ACCEPT_CONTAINER_ONLY" ]]; then
+        echo "$(gettext "未设置 IDLELEO_ALLOW_SYSTEM_WRITES，拒绝切换；未下载、未改动")"
+        return 0
+    fi
+    echo "$(gettext "检测到可迁移的 Bash 安装。迁移只切换入口并保留原配置/证书/用户；是否继续") [y/${Red}N${Font}]? "
+    local answer=""
+    if ! read -r answer; then
+        return 0
+    fi
+    case "${answer}" in
+    [yY][eE][sS] | [yY]) ;;
+    *)
+        echo "$(gettext "已取消 Go 迁移，未下载、未改动")"
+        return 0
+        ;;
+    esac
+    local tmpdir=""
+    tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/idleleo-bridge.XXXXXX") || return 1
+    local _rc=0
+    if ! curl -fsSL --proto '=https,file' --connect-timeout 10 --max-time 180 -o "${tmpdir}/idleleo" "${asset_url}"; then
+        _rc=1
+    fi
+    if ! curl -fsSL --proto '=https,file' --connect-timeout 10 --max-time 180 -o "${tmpdir}/idleleo-recover" "${rec_url}"; then
+        _rc=1
+    fi
+    if [[ ${_rc} -eq 0 ]] && ! echo "${asset_sha}  ${tmpdir}/idleleo" | sha256sum -c - >/dev/null 2>&1; then
+        _rc=1
+    fi
+    if [[ ${_rc} -eq 0 ]] && ! echo "${rec_sha}  ${tmpdir}/idleleo-recover" | sha256sum -c - >/dev/null 2>&1; then
+        _rc=1
+    fi
+    if [[ ${_rc} -eq 0 ]] && [[ "$(head -c 4 "${tmpdir}/idleleo" 2>/dev/null | od -An -tx1 | tr -d ' \n')" != "7f454c46" ]]; then
+        _rc=1
+    fi
+    if [[ ${_rc} -ne 0 ]]; then
+        rm -rf "${tmpdir}"
+        echo "$(gettext "Go 候选下载或校验失败，未改动")"
+        return 1
+    fi
+    chmod +x "${tmpdir}/idleleo" "${tmpdir}/idleleo-recover"
+    if ! "${tmpdir}/idleleo" bridge prepare --candidate "${tmpdir}/idleleo" --recovery "${tmpdir}/idleleo-recover" --container; then
+        "${tmpdir}/idleleo" bridge recover --container >/dev/null 2>&1 || true
+        rm -rf "${tmpdir}"
+        echo "$(gettext "Go 迁移预检准备失败，未切换")"
+        return 1
+    fi
+    local xray_bin="" nginx_bin=""
+    command -v xray >/dev/null 2>&1 && xray_bin="$(command -v xray)"
+    command -v nginx >/dev/null 2>&1 && nginx_bin="$(command -v nginx)"
+    local validate_args=("bridge" "validate" "--container")
+    [[ -n "${xray_bin}" ]] && validate_args+=(--xray "${xray_bin}")
+    [[ -n "${nginx_bin}" ]] && validate_args+=(--nginx "${nginx_bin}")
+    if ! "${tmpdir}/idleleo" "${validate_args[@]}"; then
+        "${tmpdir}/idleleo" bridge recover --container >/dev/null 2>&1 || true
+        rm -rf "${tmpdir}"
+        echo "$(gettext "xray -test / nginx -t 预检失败，未切换")"
+        return 1
+    fi
+    echo "$(gettext "预检通过。切换后入口为 Go 管理器，旧 Bash 仅保留为恢复备份；是否切换") [y/${Red}N${Font}]? "
+    answer=""
+    if ! read -r answer; then
+        "${tmpdir}/idleleo" bridge recover --container >/dev/null 2>&1 || true
+        rm -rf "${tmpdir}"
+        return 0
+    fi
+    case "${answer}" in
+    [yY][eE][sS] | [yY]) ;;
+    *)
+        "${tmpdir}/idleleo" bridge recover --container >/dev/null 2>&1 || true
+        rm -rf "${tmpdir}"
+        echo "$(gettext "已取消切换，候选已丢弃")"
+        return 0
+        ;;
+    esac
+    if ! "${tmpdir}/idleleo" bridge activate --container; then
+        "${tmpdir}/idleleo" bridge recover --container >/dev/null 2>&1 || true
+        rm -rf "${tmpdir}"
+        echo "$(gettext "切换失败，已按恢复流程处理")"
+        return 1
+    fi
+    rm -rf "${tmpdir}"
+    echo "$(gettext "Go 迁移已提交；旧 Bash 已保留为 /opt/idleleo/recovery/legacy-install.sh")"
+    return 0
 }
 
 # The managed script is the authority for the installed Shell version. A stale
@@ -13064,6 +13187,7 @@ list() {
     '-u' | '--update')
         update_assume_yes="off"
         update_allow_major="off"
+        bridge_manual_invocation="on"
         local _update_arg
         for _update_arg in "${2:-}" "${3:-}" "${4:-}"; do
             case "${_update_arg}" in
@@ -13073,6 +13197,13 @@ list() {
             esac
         done
         update_sh
+        ;;
+    '--internal-bridge-offer')
+        # Kept for internal dispatch compatibility; the early dispatch above is
+        # the authoritative entry (zero network before consent).
+        bridge_manual_invocation="on"
+        bridge_migration_offer
+        exit $?
         ;;
     '-s' | '--show')
         clear
@@ -16024,6 +16155,14 @@ case "${1:-}" in
         # call so stdout carries ONLY the JSON contract. Never installs.
         rxa_integration_self_check
         exit 0
+        ;;
+    --internal-bridge-offer)
+        # Phase 03: dispatched before init_language, integrity checks, version
+        # checks and dependency installs so the offer path makes zero network
+        # requests unless the operator explicitly consents. Credential-free.
+        bridge_manual_invocation="on"
+        bridge_migration_offer
+        exit $?
         ;;
 esac
 
