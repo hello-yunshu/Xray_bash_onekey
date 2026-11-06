@@ -456,62 +456,10 @@ func (a *Audit) scanNginx(root string) {
 // or missing observations are warnings, not blocks: the bridge never writes
 // Rill state, so migration must not fail because the agent is quiet.
 func (a *Audit) scanRill(root string) {
-	a.Rill = RillInfo{Status: "absent", Enabled: false}
-	cfgPath := mustResolve(root, rillConfigRel)
-	obsPath := mustResolve(root, rillObservationRel)
-	binPath := mustResolve(root, rillBinaryRel)
-
-	installed := false
-	if _, err := os.Stat(binPath); err == nil {
-		installed = true
-		a.Rill.Binary = rillBinaryRel
-	}
-	if b, err := os.ReadFile(cfgPath); err == nil {
-		installed = true
-		a.Rill.ConfigPath = rillConfigRel
-		a.Rill.ConfigSHA256 = hashBytes(b)
-		a.Rill.Enabled = true
-		var doc map[string]any
-		if err := json.Unmarshal(b, &doc); err == nil {
-			a.Rill.Mode = rillMode(doc)
-			if v, ok := doc["enabled"].(bool); ok {
-				a.Rill.Enabled = v
-			}
-		} else {
-			a.Rill.Warning = "config.json is not valid JSON"
-			a.warn("rill-config-unreadable", "Rill config.json is present but not valid JSON")
-		}
-	}
-	if !installed {
-		return
-	}
-	a.Rill.Installed = true
-	b, err := os.ReadFile(obsPath)
-	if err != nil {
-		a.Rill.Status = "installed-unobserved"
-		a.Rill.Warning = "no xray-observation.json yet"
-		a.warn("rill-observation-missing", "Rill is installed but has no xray observation")
-		return
-	}
-	a.Rill.ObservationPath = rillObservationRel
-	a.Rill.ObservationSHA256 = hashBytes(b)
-	observed := observationTime(b)
-	if observed.IsZero() {
-		if fi, err := os.Stat(obsPath); err == nil {
-			observed = fi.ModTime()
-		}
-	}
-	age := int64(time.Since(observed).Seconds())
-	if age < 0 {
-		age = 0
-	}
-	a.Rill.ObservationAgeSeconds = age
-	if age <= rillFreshSeconds {
-		a.Rill.Status = "active"
-	} else {
-		a.Rill.Status = "stale"
-		a.Rill.Warning = fmt.Sprintf("last observation is %d seconds old", age)
-		a.warn("rill-observation-stale", fmt.Sprintf("Rill observation is %d seconds old (freshness limit %ds)", age, rillFreshSeconds))
+	info, findings := projectRill(root)
+	a.Rill = info
+	for _, f := range findings {
+		a.warn(f.Code, f.Message)
 	}
 }
 
