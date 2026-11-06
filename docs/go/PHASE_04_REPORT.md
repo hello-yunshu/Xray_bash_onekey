@@ -113,8 +113,8 @@ RELEASE BLOCKED: pending 28; missing executable feature tests 28
 
 | 前置 | 结果 |
 |---|---|
-| 自动更新通道 | **已实现（容器验证）**：显式 `update configure` 后定时升级 0.3.0→0.4.0；未配置时 `degraded`，用户失去自动更新 |
-| ACME / 外部续约契约 | **外部契约已实现，ACME 未纳入**：指纹基线、变化才重启、未变不重启、短证书降级；用户仍需外部工具续期 |
+| 自动更新通道 | **已实现（容器验证）**：显式 `update configure` 后定时升级 0.3.0→0.4.0；未配置时只影响 Go 管理器自身升级（`degraded`），**迁移保留旧 `auto_update.sh` cron**，Xray/Nginx 更新不中断 |
+| ACME / 外部续约契约 | **外部契约已实现，ACME 未纳入**：指纹基线、变化才重启、未变不重启、短证书降级；迁移保留旧 `ssl_update.sh` cron，已有续期链继续运行 |
 | Rill 管理命令 / 服务类 CLI | **部分完成**：`rill status` 只读 + `service` 自有 unit 管理；Rill 安装/授权/卸载未迁移 |
 
 ## 6. 最终发布门槛核对

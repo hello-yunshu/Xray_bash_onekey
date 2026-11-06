@@ -97,8 +97,8 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 			return writeJSON(opts, report)
 		}
 		fmt.Fprintf(opts.Out, "state=%s entry=%s\n", report.State, report.Entry)
-		fmt.Fprintf(opts.Out, "removedCronLines=%d deferred=%v timer=%s\n",
-			report.RemovedCron, report.DeferredTasks, report.Timer)
+		fmt.Fprintf(opts.Out, "removedCronLines=%d retainedCronLines=%v deferred=%v timer=%s\n",
+			report.RemovedCron, report.RetainedCron, report.DeferredTasks, report.Timer)
 		fmt.Fprintf(opts.Out, "scheduledJobs=%v\n", report.ScheduledJobs)
 		for _, d := range report.DegradedJobs {
 			fmt.Fprintf(opts.Out, "degraded=%s\n", d)

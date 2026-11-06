@@ -66,9 +66,11 @@ const (
 var Jobs = []string{"auto-update", "cert-renew", "geodata-refresh", "stats-collect"}
 
 // DegradedJobs documents the two product degradations in machine-readable form.
+// Neither is a reason to remove the legacy cron: activation keeps
+// auto_update.sh and ssl_update.sh until Go has equivalent executors.
 var DegradedJobs = []string{
-	"auto-update: runs through the Go release channel only when one is configured; with no channel the legacy Bash updater is removed and no automatic update runs (explicit degradation)",
-	"cert-renew: certificate expiry is monitored but ACME issuance/renewal is not implemented (explicit degradation; renew externally)",
+	"auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)",
+	"cert-renew: certificate expiry is monitored but ACME issuance/renewal is not implemented, so the legacy ssl_update.sh cron is retained (explicit degradation; renew externally)",
 }
 
 // Config is the persisted schedule definition.

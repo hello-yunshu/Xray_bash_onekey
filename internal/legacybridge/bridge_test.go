@@ -273,13 +273,19 @@ func TestActivateSwitchesEntryAndCronOnly(t *testing.T) {
 	if !strings.Contains(string(b), "/bin/true user-job") {
 		t.Fatal("activation removed an unrelated user cron line")
 	}
-	for _, marker := range projectCronMarkers {
-		if strings.Contains(string(b), marker) {
-			t.Fatalf("project cron line %s survived", marker)
+	for _, marker := range []string{"auto_update.sh", "ssl_update.sh"} {
+		if strings.Count(string(b), marker) != 1 {
+			t.Fatalf("retained cron line %s count=%d", marker, strings.Count(string(b), marker))
 		}
 	}
-	if rep.RemovedCron != 3 {
+	if strings.Contains(string(b), "geo_update.sh") {
+		t.Fatal("taken-over project cron line geo_update.sh survived")
+	}
+	if rep.RemovedCron != 1 {
 		t.Fatalf("removed=%d", rep.RemovedCron)
+	}
+	if len(rep.RetainedCron) != 2 {
+		t.Fatalf("retained=%v", rep.RetainedCron)
 	}
 	j, err := readJournal(root)
 	if err != nil {
@@ -388,7 +394,7 @@ func TestRecoverActivatingRestoresEntryAndCron(t *testing.T) {
 		t.Fatal(err)
 	}
 	removed, err := rewriteCrontab(filepath.Join(root, "var/spool/cron/crontabs/root"))
-	if err != nil || removed != 3 {
+	if err != nil || removed != 1 {
 		t.Fatalf("cron removal=%d err=%v", removed, err)
 	}
 	rep, err := Recover(RecoverOptions{Root: root})

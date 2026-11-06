@@ -19,9 +19,11 @@
 
 ## 2. Phase 03 迁移链（本轮未重写，作为前置证据）
 
-Phase 03 容器 E2E：**201 / 201 PASS**，`phase03-exit=0`（`/tmp/phase03-run5.log`）。
+Phase 03 容器 E2E：**201 / 201 PASS**，`phase03-exit=0`（`/tmp/p05-phase03.log`，P0-5 修改后重跑）。
 迁移链覆盖：只读审计 → 自定义内容确认 → 快照/journal → 预验收 → 原子入口切换 →
-精确移除 4 条项目 cron → 安装 `idleleo-schedule.timer` → `COMMITTED`。
+仅移除 Go 已有执行器的两条 cron（`geo_update.sh`、`xray_stats.sh`），保留
+`auto_update.sh` 与 `ssl_update.sh` 以便证书续期和 Xray/Nginx 更新不中断 →
+安装 `idleleo-schedule.timer` → `COMMITTED`。
 
 拒绝路径（真实容器）：
 
@@ -43,7 +45,7 @@ Phase 03 容器 E2E：**201 / 201 PASS**，`phase03-exit=0`（`/tmp/phase03-run5
 |---|---|
 | `after-activating` | journal 保持 `ACTIVATING`，入口仍 Bash；恢复器 exit 0 → `ROLLED_BACK` |
 | `after-entry-switch` | 入口已指向 Go；恢复器还原 Bash 入口 |
-| `after-cron` | 项目 cron 已移除；恢复器恢复**精确原集合** |
+| `after-cron` | 项目 cron 中 `geo_update.sh`/`xray_stats.sh` 已移除，`auto_update.sh`/`ssl_update.sh` 保留；恢复器恢复**精确原集合** |
 | `after-schedule` | schedule units 已安装、权限已收紧；恢复器先移除 timer、再还原权限与入口 |
 | `disk-full` | `syscall.ENOSPC` → exit 13，无 journal、无 plan；runtime/cron/entry 不变 |
 | 下载中断 | Bash 非 0 且零 journal/candidate；Go GeoData 旧 asset 字节不变 |
@@ -94,5 +96,5 @@ PASS read-only commands wrote nothing under /etc/idleleo
 | 真实 VPS 上的 Bash 3.3.4 → Go | **未做** | 容器级证据替代，按授权不阻塞 |
 | 更早 Bash 版本迁移 | **未做** | 只有 `tests/fixtures/legacy` 的代表性安装 |
 | 真实断电/重启后的自动恢复 | **未做** | 容器内无真实内核重启；journal 恢复逻辑只在同进程生命周期内验证 |
-| 迁移后 Bash 备份被 cron 再启动 | **已覆盖（容器）** | 精确移除 4 条项目 cron，用户 cron 保留 |
+| 迁移后 Bash 备份被 cron 再启动 | **已覆盖（容器）** | 移除 `geo_update.sh`/`xray_stats.sh`，保留 `auto_update.sh`/`ssl_update.sh`；用户 cron 保留 |
 | 已接管后 Go 二进制被替换/损坏 | **部分覆盖** | 更新失败保留旧二进制；未覆盖人工删除后的自愈 |
