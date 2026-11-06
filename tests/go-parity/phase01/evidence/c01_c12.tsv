@@ -26,10 +26,11 @@ C09	lock contention	flock held; /tmp/idleleo change	7	7	1	no write under lock
 C10.1	non-root status	setpriv nobody /tmp/idleleo status	0	0	1	read-only
 C10.2	non-root illegal command	setpriv nobody /tmp/idleleo frobnicate	2	2	1	no mutation
 C10.3	non-root change refused	setpriv nobody /tmp/idleleo change	nonzero	2	1	no write
-C11.1	linux/amd64 build	GOOS=linux GOARCH=amd64 go build	0	0	1	bytes=4908578
-C11.2	linux/arm64 build	GOOS=linux GOARCH=arm64 go build	0	0	1	bytes=4787596
+C11.1	linux/amd64 build	GOOS=linux GOARCH=amd64 go build	0	0	1	bytes=10200473
+C11.2	linux/arm64 build	GOOS=linux GOARCH=arm64 go build	0	0	1	bytes=9721729
 C11.3	current-arch binary runs	/tmp/idleleo version	0	0	1	aarch64
-C12.1	install.sh bytes match pin	sha256sum install.sh	0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6	0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6	1	pin 4752f77c58028ac169c429fe7674c20060b30c9e
-C12.2	product code diff empty	git diff 4752f77c58028ac169c429fe7674c20060b30c9e..HEAD -- install.sh scripts config	empty	empty	1	no Bash core change
+C12.1	install.sh bytes match pin	sha256sum install.sh	0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6	2abd0c91835e54cbdf6cb60288b61cf66d6ccd273ccaaded36028cc934d07fd7	0	pin 4752f77c58028ac169c429fe7674c20060b30c9e
+C12.2	product code diff empty	git diff 4752f77c58028ac169c429fe7674c20060b30c9e..HEAD -- install.sh scripts config	empty	 install.sh | 228 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 227 insertions(+), 1 deletion(-)	0	no Bash core change
 C12.3	Go does not install over Bash entry	test -e /etc/idleleo/install.sh	empty		1	legacy path absent
-C12.4	legacy Bash still loads	_TEST_MODE=1 source install.sh; echo shell_version	3.3.4	3.3.4	1	stable Bash untouched
+C12.4	published Bash pin still loads	_TEST_MODE=1 source git 4752f77c58028ac169c429fe7674c20060b30c9e:install.sh; echo shell_version	3.3.4	3.3.4	1	published pin untouched
