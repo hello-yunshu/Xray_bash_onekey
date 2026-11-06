@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## 未发布 — Go 管理器迁移（Phase 04 候选）
+
+Phase 04 完成容器级验收与发布候选，但**发布门禁仍为红灯**；证据等级
+`CONTAINER_VERIFIED`，不是“真实 VPS 已验证”，真实 ACME 不纳入本轮。
+
+### 新增
+
+- **Go 自更新通道**：`idleleo update status|check|apply|configure`。manifest
+  `channel=go`、per-asset SHA256/size、ELF 校验、原子替换、健康检查、失败回滚；
+  错误 SHA、截断下载、非 ELF、降级、磁盘满均保留旧二进制；恢复失败 exit 10。
+- **证书外部续约契约**：DER 指纹基线，变化才 `restart xray` / `reload nginx`；
+  未变不重启；world-readable 私钥拒绝 reload；到期/<30 天显式降级。
+- **服务类 CLI**：`idleleo service status|start|stop|restart|reload|logs`，
+  仅允许 `xray`、`nginx`、`idleleo-schedule.timer`。
+- **只读查询**：`idleleo stats [--json]`（真实 `xray api statsquery`）、
+  `idleleo rill status`（absent/active/stale，不写 Rill 状态）。
+- **发布候选**：`packaging/build-go-release.sh` 生成 linux-amd64/arm64 +
+  `SHA256SUMS` + `manifest.json`；`assets/go/` 记录候选身份。
+
+### 验证
+
+- 固定 digest Ubuntu 24.04 特权 systemd 容器：`42/42 PASS`，含真实 Xray 统计、
+  systemd 重启计数、证书变化/未变化、更新失败注入。
+- 双架构产物各自在对应平台容器执行 exit 0；manifest 真实 HTTP 下载校验
+  `verified=true`。
+- `go test ./...` / `go vet ./...` exit 0。
+
+### 已知限制
+
+- `check_release_gate.py` 实测 exit 2（28 pending + 28 个功能测试缺失）；未改 JSON
+  状态、未伪造执行器。因此未合并 `main`、未打 tag、未发 Release。
+- 自动更新需显式配置 manifest URL，否则用户失去自动更新（每轮记录 `degraded`）。
+- ACME 签发/续期/清理、Rill 安装/授权/卸载、`backup/restore/purge`、
+  Xray/Nginx 更新、Fail2ban、防火墙、多发行版/SELinux、真实 VPS 均未实现或未验证。
+- 详见 `docs/release/KNOWN_LIMITATIONS.md` 与 `docs/go/PHASE_04_REPORT.md`。
+
 ## 未发布 — Go 管理器迁移（Phase 03 收尾）
 
 实验性 Bash → Go 迁移路径补齐 Phase 03 缺口；证据等级为容器级
