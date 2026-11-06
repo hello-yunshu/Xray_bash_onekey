@@ -352,5 +352,60 @@ echo "$out" >"$EVID/rill-stale.json"
 status=$(echo "$out" | jq -r '.rill.status')
 [[ "$status" == stale ]] && ok "rill status detects a stale observation" || bad "rill stale: $out"
 
+# ---- read-only CLI and real stats -----------------------------------------
+out=$($BIN --help 2>&1)
+rc=$?
+[[ $rc -eq 0 && "$out" == *"update"* && "$out" == *"service"* ]] && ok "help lists the new commands" || bad "help rc=$rc"
+
+mkdir -p /etc/idleleo/conf/xray
+cat >/etc/idleleo/conf/xray/config.json <<'EOF'
+{
+  "log": {"loglevel": "warning"},
+  "api": {"tag": "api", "listen": "127.0.0.1:10085", "services": ["HandlerService", "StatsService"]},
+  "stats": {},
+  "policy": {"system": {"statsInboundUplink": true, "statsInboundDownlink": true}},
+  "inbounds": [{"tag": "socks", "protocol": "socks", "listen": "127.0.0.1", "port": 10808}],
+  "outbounds": [{"protocol": "freedom"}]
+}
+EOF
+xray run -c /etc/idleleo/conf/xray/config.json >/tmp/xray-run.log 2>&1 &
+XRAY_PID=$!
+for _ in $(seq 1 40); do
+    if ss -ltn 2>/dev/null | grep -q ':10085 '; then break; fi
+    sleep 0.2
+done
+curl -fsS --socks5-hostname 127.0.0.1:10808 "http://127.0.0.1:18080/go/manifest.json" >/dev/null 2>&1 || true
+out=$($BIN stats --json 2>&1)
+rc=$?
+echo "$out" >"$EVID/stats-json.json"
+if [[ $rc -eq 0 ]] && echo "$out" | jq -e '.stat[] | select(.name=="inbound>>>socks>>>traffic>>>uplink")' >/dev/null 2>&1; then
+    ok "stats --json returned a real inbound counter"
+else
+    bad "stats --json rc=$rc: $out"
+fi
+
+out=$($BIN --show --json 2>&1)
+rc=$?
+echo "$out" >"$EVID/show.json"
+[[ $rc -eq 0 ]] && ok "show reads the runtime config" || bad "show rc=$rc: $out"
+
+before=$(find /etc/idleleo -type f -printf '%p %s %T@\n' 2>/dev/null | sort | sha256sum)
+$BIN --help >/dev/null 2>&1
+$BIN stats --json >/dev/null 2>&1
+$BIN --show --json >/dev/null 2>&1
+after=$(find /etc/idleleo -type f -printf '%p %s %T@\n' 2>/dev/null | sort | sha256sum)
+[[ "$before" == "$after" ]] && ok "read-only commands wrote nothing under /etc/idleleo" || bad "read-only commands changed /etc/idleleo"
+
+setpriv --reuid=nobody --regid=nogroup --clear-groups "$BIN" stats --json >/tmp/nonroot-stats.log 2>&1
+rc=$?
+[[ $rc -eq 5 ]] && ok "non-root stats preserves the legacy exit 5" || bad "non-root stats rc=$rc: $(cat /tmp/nonroot-stats.log)"
+
+kill "$XRAY_PID" 2>/dev/null || true
+wait "$XRAY_PID" 2>/dev/null || true
+out=$($BIN stats --json 2>&1)
+rc=$?
+echo "$out" >"$EVID/stats-api-down.log"
+[[ $rc -eq 8 ]] && ok "stats with API down reports exit 8" || bad "stats API down rc=$rc: $out"
+
 echo "phase04-end $(date -u +%Y-%m-%dT%H:%M:%SZ) pass=$pass fail=$fail"
 [[ $fail -eq 0 ]]
