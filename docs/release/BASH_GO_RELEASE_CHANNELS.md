@@ -60,7 +60,9 @@
   不安装/移除 Bash 文件，不修改 `shell_online_version`；
 - Bridge 迁移仍只在 `install.sh -u` 的真实 TTY 手动路径触发（Phase 03 实证：
   `auto_update=YES` 与非 TTY 均 `requests=0`、入口不变）；
-- 已 `COMMITTED` 的 Go 安装不会因 Bash `-u` 自动反向迁移。
+- 已 `COMMITTED` 的 Go 安装不会因 Bash `-u` 自动反向迁移；保留的
+  `auto_update.sh` cron 即使刷新 Bash 脚本，检测到 Go 入口/journal `COMMITTED`
+  时也不会重写 `/usr/bin/idleleo`（Phase 03 回归覆盖）。
 
 ## 5. 两个通道共用的安全原语
 

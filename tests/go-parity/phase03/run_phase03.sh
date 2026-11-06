@@ -17,7 +17,8 @@ JOURNAL=/var/lib/idleleo/bridge/journal.json
 # so `-u` stays on the "already latest" branch. Hardcoding a release number
 # breaks every install.sh version bump.
 SHELL_VERSION=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' /work/install.sh | head -n1)
-BRIDGE_ARCH=$(case "$(uname -m)" in x86_64|amd64) echo amd64 ;; aarch64|arm64) echo arm64 ;; esac)
+BRIDGE_ARCH=$(uname -m)
+case "$BRIDGE_ARCH" in x86_64|amd64) BRIDGE_ARCH=amd64 ;; aarch64|arm64) BRIDGE_ARCH=arm64 ;; esac
 PASS=0
 FAIL=0
 
@@ -1170,18 +1171,29 @@ else
     tail -30 /tmp/update.out
 fi
 
-# P1-1: --yes must never reach the Go offer, even when the Bash update really
-# succeeds and a TTY is present. A same-run update is the only branch that used
-# to bypass the guard.
+# Self-audit: the retained auto_update cron must refresh the Bash script without
+# undoing a COMMITTED Go migration by re-pointing /usr/bin/idleleo at Bash.
 CANDIDATE_VERSION=$(python3 -c 'import sys;p=sys.argv[1].split(".");print(f"{p[0]}.{p[1]}.{int(p[2])+1}")' "$SHELL_VERSION")
 CAND_DIR=/work/assets/releases/download/v${CANDIDATE_VERSION}
 mkdir -p "$CAND_DIR"
 sed "s/^shell_version=\"$SHELL_VERSION\"$/shell_version=\"$CANDIDATE_VERSION\"/" /work/install.sh >"$CAND_DIR/install.sh"
 (cd "$CAND_DIR" && sha256sum install.sh >SHA256SUMS)
 CAND_SHA=$(sha "$CAND_DIR/install.sh")
+printf '{"shell_online_version":"%s","shell_release_sha256":"%s","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"2026.10.15.7679"}\n' "$CANDIDATE_VERSION" "$CAND_SHA" >/work/versions.json
+reset_requests
+env XRAY_QUALIFICATION_MODE=1 SHELL_RELEASE_BASE_OVERRIDE=https://127.0.0.1:18443 XRAY_VERSIONS_FILE=/work/versions.json bash /etc/idleleo/install.sh -u auto_update >/tmp/auto-update.out 2>&1
+rc=$?
+[[ "$(sed -n 's/^shell_version="\([0-9.]*\)"$/\1/p' /etc/idleleo/install.sh)" == "$CANDIDATE_VERSION" ]] \
+    && ok "retained cron: auto_update refreshed the Bash script" || { bad "retained cron: Bash refresh failed (rc=$rc)"; tail -20 /tmp/auto-update.out; }
+[[ "$(readlink "$ENTRY")" == "$GOENTRY" ]] && ok "retained cron: auto_update kept the Go entry" || bad "retained cron: entry became $(readlink "$ENTRY")"
+[[ "$(journal_state)" == "COMMITTED" ]] && ok "retained cron: journal stayed COMMITTED" || bad "retained cron: journal=$(journal_state)"
+[[ "$(bridge_requests)" == "0" ]] && ok "retained cron: auto_update made 0 bridge requests" || bad "retained cron: bridge requests=$(bridge_requests)"
+
+# P1-1: --yes must never reach the Go offer, even when the Bash update really
+# succeeds and a TTY is present. A same-run update is the only branch that used
+# to bypass the guard.
 setup_legacy reality-direct
 write_manifest
-printf '{"shell_online_version":"%s","shell_release_sha256":"%s","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"2026.10.15.7679"}\n' "$CANDIDATE_VERSION" "$CAND_SHA" >/work/versions.json
 reset_requests
 tty_run 'y\n' "env XRAY_QUALIFICATION_MODE=1 SHELL_RELEASE_BASE_OVERRIDE=https://127.0.0.1:18443 XRAY_VERSIONS_FILE=/work/versions.json bash /etc/idleleo/install.sh -u --yes" >/tmp/update.out 2>&1
 rc=$?

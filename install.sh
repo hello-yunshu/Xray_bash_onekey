@@ -12738,10 +12738,12 @@ _update_sh_impl() {
         fi
         case $update_confirm in
         [yY][eE][sS] | [yY])
-            [[ -L "${idleleo_commend_file}" ]] && rm -f "${idleleo_commend_file}"
+            if ! rxa_entry_is_go_managed; then
+                [[ -L "${idleleo_commend_file}" ]] && rm -f "${idleleo_commend_file}"
+            fi
             _candidate="${idleleo_dir}/install.sh.rxa-candidate.$$"
             if ! rxa_download_main_candidate "${_candidate}"; then
-                ln -sf "${idleleo}" "${idleleo_commend_file}"
+                rxa_set_bash_entry
                 [[ ${auto_update} == "YES" ]] && echo "$(gettext "脚本更新失败")!" >>"${log_file}"
                 [[ ${auto_update} != "YES" ]] && rxa_log_candidate_failure
                 return 1
@@ -12755,15 +12757,15 @@ _update_sh_impl() {
                   "${downloaded_shell_version}" != "${newest_version}" ]]; then
                 rm -f "${_candidate}"
                 log_echo "${Error} ${RedBG} $(gettext "下载脚本版本校验失败") ${Font}"
-                ln -sf "${idleleo}" "${idleleo_commend_file}"
+                rxa_set_bash_entry
                 return 1
             fi
             if ! rxa_replace_main_candidate "${_candidate}" "${idleleo}"; then
-                ln -sf "${idleleo}" "${idleleo_commend_file}"
+                rxa_set_bash_entry
                 rxa_log_candidate_failure
                 return 1
             fi
-            ln -sf "${idleleo}" "${idleleo_commend_file}" || return 1
+            rxa_set_bash_entry || return 1
             rxa_stage_done 1 "下载并校验新版主脚本" "✓"
             if [[ -f "${xray_install_config_file}" ]]; then
                 update_json_config "${xray_install_config_file}" \
@@ -12904,6 +12906,24 @@ PY
     fi
     rm -rf "${tmpdir}"
     return 0
+}
+
+# A completed Bridge migration owns /usr/bin/idleleo. Refreshing the Bash
+# script (manual -u or the retained auto_update cron) must not re-point the
+# entry back to Bash: that would silently undo the migration.
+rxa_entry_is_go_managed() {
+    local entry="${idleleo_commend_file:-/usr/bin/idleleo}"
+    if [[ -L "${entry}" ]] && [[ "$(readlink -f "${entry}" 2>/dev/null)" == "/opt/idleleo/bin/idleleo" ]]; then
+        return 0
+    fi
+    grep -Eq '"state"[[:space:]]*:[[:space:]]*"COMMITTED"' /var/lib/idleleo/bridge/journal.json 2>/dev/null
+}
+
+rxa_set_bash_entry() {
+    if rxa_entry_is_go_managed; then
+        return 0
+    fi
+    ln -sf "${idleleo}" "${idleleo_commend_file}"
 }
 
 bridge_migration_offer() {
