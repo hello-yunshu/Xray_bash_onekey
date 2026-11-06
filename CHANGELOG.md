@@ -23,9 +23,10 @@
   的大请求体（如 `git push`）失败；ws location 一直正常。模板已改为生效行，
   并去掉对 `grpc_pass` 无效的 `proxy_buffering` 假配置。已部署节点需要
   **重装**或手工放开该行；`-u` 不重建 Nginx 配置，更新成功后会打印提示。
-- **保留的 auto_update cron 不会静默回退迁移**：Bash 自更新路径原先无条件把
-  `/usr/bin/idleleo` 重新指向 `/etc/idleleo/install.sh`；现在检测到 Go 入口或
-  journal `COMMITTED` 时只刷新 Bash 脚本，不改变入口。
+- **保留的 auto_update cron 与全量重装不会静默回退迁移**：Bash 自更新与安装
+  bootstrap 原先无条件把 `/usr/bin/idleleo` 重新指向 `/etc/idleleo/install.sh`；
+  现在检测到 Go 入口或 journal `COMMITTED` 时只刷新 Bash 脚本、恢复 Go 入口，
+  不会把已提交的迁移改回 Bash（Phase 03 回归覆盖）。
 - **`-u --yes` 不再在“实际更新成功”后触发迁移入口**：此前该分支会重新执行
   刚下载脚本的 offer，`--yes` 在子进程里丢失；现在 `--yes`、`auto_update`
   与非 TTY 一样直接返回，Phase 03 回归覆盖了“真实升级成功 + TTY + `--yes`”。

@@ -62,7 +62,9 @@
   `auto_update=YES` 与非 TTY 均 `requests=0`、入口不变）；
 - 已 `COMMITTED` 的 Go 安装不会因 Bash `-u` 自动反向迁移；保留的
   `auto_update.sh` cron 即使刷新 Bash 脚本，检测到 Go 入口/journal `COMMITTED`
-  时也不会重写 `/usr/bin/idleleo`（Phase 03 回归覆盖）。
+  时也不会重写 `/usr/bin/idleleo`（Phase 03 回归覆盖）。同样的守卫已前移到
+  安装 bootstrap：即使全量重装清空了 `/etc/idleleo` 与入口，只要 journal 仍是
+  `COMMITTED`，就会恢复 Go 入口而不是新建 Bash 入口。
 
 ### 4.1 Nginx xHTTP 上行限制（历史模板缺陷）
 
