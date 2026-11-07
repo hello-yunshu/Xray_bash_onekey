@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: hello-yunshu/Xray_bash_onekey
-          ref: 4752f77c58028ac169c429fe7674c20060b30c9e
+          ref: 0fa7052e51b9bd7e6ffb46bc86befb006034da3c
           path: legacy
           persist-credentials: false
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5

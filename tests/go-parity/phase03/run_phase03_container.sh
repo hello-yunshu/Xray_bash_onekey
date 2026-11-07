@@ -4,11 +4,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+# shellcheck source=../lib/docker_common.sh
+. "$ROOT/tests/go-parity/lib/docker_common.sh"
+ARCH=$(docker_arch)
 GO="${GO:-go}"
 if [[ ! -x "$(command -v "$GO" 2>/dev/null || true)" ]]; then
     GO=/tmp/gotoolchain/go/bin/go
 fi
-XRAY_BIN="${IDLELEO_XRAY_BIN:-/tmp/xray-26/xray}"
+XRAY_BIN=$(ensure_xray_bin "$ARCH")
 IMAGE="${IDLELEO_PHASE03_IMAGE:-idleleo-phase03-test:24.04}"
 BIN_DIR="${IDLELEO_PHASE03_BIN_DIR:-/tmp/idleleo-phase03-bin}"
 NAME="idleleo-phase03-e2e-$$"
@@ -22,24 +25,27 @@ docker build -t "$IMAGE" -f "$ROOT/tests/go-parity/phase03/Dockerfile" "$ROOT/te
 IMAGE_ID=$(docker image inspect "$IMAGE" --format '{{.Id}}')
 echo "image: $IMAGE"
 echo "image-id: $IMAGE_ID"
-echo "xray-bin: $XRAY_BIN sha256=$(sha256sum "$XRAY_BIN" | cut -d' ' -f1)"
+echo "xray-bin: $XRAY_BIN arch=$ARCH sha256=$(host_sha256 "$XRAY_BIN")"
 
-echo "== building linux/arm64 idleleo and idleleo-recover =="
+echo "== building linux/$ARCH idleleo and idleleo-recover =="
 mkdir -p "$BIN_DIR"
-(cd "$ROOT" && GOOS=linux GOARCH=arm64 "$GO" build -o "$BIN_DIR/idleleo" ./cmd/idleleo)
-(cd "$ROOT" && GOOS=linux GOARCH=arm64 "$GO" build -o "$BIN_DIR/idleleo-recover" ./cmd/idleleo-recover)
-echo "idleleo: $(sha256sum "$BIN_DIR/idleleo" | cut -d' ' -f1)"
-echo "idleleo-recover: $(sha256sum "$BIN_DIR/idleleo-recover" | cut -d' ' -f1)"
+(cd "$ROOT" && GOOS=linux GOARCH="$ARCH" "$GO" build -o "$BIN_DIR/idleleo" ./cmd/idleleo)
+(cd "$ROOT" && GOOS=linux GOARCH="$ARCH" "$GO" build -o "$BIN_DIR/idleleo-recover" ./cmd/idleleo-recover)
+echo "idleleo: $(host_sha256 "$BIN_DIR/idleleo")"
+echo "idleleo-recover: $(host_sha256 "$BIN_DIR/idleleo-recover")"
 
 cleanup() {
     docker rm -f "$NAME" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 
+CGROUP_ARGS=()
+while IFS= read -r arg; do CGROUP_ARGS+=("$arg"); done < <(cgroup_mount_args)
+
 echo "== starting privileged systemd probe =="
 docker run -d --name "$NAME" \
     --privileged --cgroupns=host \
-    -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
+    "${CGROUP_ARGS[@]+"${CGROUP_ARGS[@]}"}" \
     -v "$BIN_DIR:/work/bin:ro" \
     -v "$ROOT/install.sh:/work/install.sh:ro" \
     -v "$ROOT/packaging:/work/packaging:ro" \
