@@ -283,7 +283,7 @@ confirm_no_answer() {
     esac
 }
 
-shell_version="3.3.5"
+shell_version="3.3.6"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -13328,7 +13328,9 @@ list() {
     '-u' | '--update')
         update_assume_yes="off"
         update_allow_major="off"
-        bridge_manual_invocation="on"
+        # Never arm the Go migration offer here. The only reachable entry is the
+        # explicit --internal-bridge-offer parameter; the Bash release must stay
+        # invisible to ordinary users.
         local _update_arg
         for _update_arg in "${2:-}" "${3:-}" "${4:-}"; do
             case "${_update_arg}" in

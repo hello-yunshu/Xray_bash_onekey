@@ -98,6 +98,27 @@ init_language offline >/dev/null 2>&1
 [[ "$(gettext "总览")" == "Vue d'ensemble" ]] && ok "French catalog works without fr_FR locale" || bad "French menu failed: $(gettext "总览")"
 [[ "${Info}" == *"informations"* ]] && ok "Info prefix refreshed to French" || bad "French Info prefix stale: ${Info}"
 
+# 3.3.5 regression: the new nginx xHTTP warning must resolve in every shipped
+# translation instead of falling back to Chinese. The auto-translate run that
+# introduced it aborted on upstream quota before writing the catalogs.
+xhttp_warning='检测到旧版 Nginx 模板：xHTTP 上行超过 1MB 会被 Nginx 拒绝 (413)。更新脚本不会重建 Nginx 配置，请重新运行安装脚本重建，或手工在 xHTTP location 放开 client_max_body_size 0;'
+for entry in "en_US:Legacy Nginx template detected" "fr_FR:Ancien modèle Nginx détecté" \
+    "ru_RU:Обнаружен устаревший шаблон Nginx" "ko_KR:이전 Nginx 템플릿이 감지되었습니다" \
+    "fa_IR:قالب قدیمی Nginx شناسایی شد"; do
+    locale_name=${entry%%:*}
+    expected=${entry#*:}
+    printf 'LANG=%s\nLC_MESSAGES=%s\n' "${locale_name}.UTF-8" "${locale_name}.UTF-8" >"${idleleo_dir}/language.conf"
+    init_language offline >/dev/null 2>&1
+    rendered=$(gettext "$xhttp_warning")
+    if [[ "$rendered" == "$xhttp_warning" ]]; then
+        bad "${locale_name} xHTTP warning still falls back to Chinese"
+    elif [[ "$rendered" == *"$expected"* ]]; then
+        ok "${locale_name} xHTTP warning translated"
+    else
+        bad "${locale_name} xHTTP warning unexpected: ${rendered:0:40}"
+    fi
+done
+
 # A partially translated catalog must fall back per-entry to English, never
 # leave a Chinese line inside a French screen.
 cat >"${TMP_ROOT}/partial.po" <<'EOF'
