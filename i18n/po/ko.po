@@ -5193,3 +5193,88 @@ msgstr "재설정이 취소되었습니다"
 #: scripts/xray_stats.sh:830
 msgid "每 %s 秒刷新，Ctrl-C 退出"
 msgstr "%s초마다 새로고침, Ctrl-C로 종료"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12697
+msgid "检测到旧版 Nginx 模板：xHTTP 上行超过 1MB 会被 Nginx 拒绝 (413)。更新脚本不会重建 Nginx 配置，请重新运行安装脚本重建，或手工在 xHTTP location 放开 client_max_body_size 0;"
+msgstr "이전 Nginx 템플릿이 감지되었습니다. 1MB를 초과하는 xHTTP 업로드는 Nginx에서 거부됩니다 (413). 업데이트 스크립트는 Nginx 구성을 다시 만들지 않습니다. 설치 스크립트를 다시 실행해 재생성하거나 xHTTP location에서 client_max_body_size 0;을 직접 활성화하세요."
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12961
+msgid "检测到已提交的 Go 迁移，保留 Go 入口"
+msgstr "커밋된 Go 마이그레이션이 감지되어 Go 진입점을 유지합니다"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12963
+msgid "检测到已提交的 Go 迁移但 Go 入口缺失，未创建 Bash 入口；请运行 idleleo-recover"
+msgstr "커밋된 Go 마이그레이션이 감지되었지만 Go 진입점이 없습니다. Bash 진입점을 만들지 않았습니다. idleleo-recover를 실행하세요"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12983
+msgid "Go 迁移资产尚未发布，跳过（未下载、未改动"
+msgstr "Go 마이그레이션 자산이 아직 게시되지 않아 건너뜁니다 (다운로드와 변경 없음"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12992
+msgid "Go 迁移清单不完整，跳过（未下载、未改动"
+msgstr "Go 마이그레이션 매니페스트가 불완전하여 건너뜁니다 (다운로드와 변경 없음"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12997
+msgid "未设置 IDLELEO_ALLOW_SYSTEM_WRITES，拒绝切换；未下载、未改动"
+msgstr "IDLELEO_ALLOW_SYSTEM_WRITES가 설정되지 않아 전환을 거부합니다 (다운로드와 변경 없음)"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13007
+msgid "无法写入迁移审计日志，拒绝切换；未下载、未改动"
+msgstr "마이그레이션 감사 로그를 쓸 수 없어 전환을 거부합니다 (다운로드와 변경 없음)"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13012
+msgid "检测到可迁移的 Bash 安装。迁移只切换入口并保留原配置/证书/用户；是否继续"
+msgstr "마이그레이션 가능한 Bash 설치가 감지되었습니다. 마이그레이션은 진입점만 전환하고 기존 구성·인증서·사용자를 보존합니다. 계속"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13020
+msgid "已取消 Go 迁移，未下载、未改动"
+msgstr "Go 마이그레이션이 취소되었습니다. 다운로드와 변경 없음"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13044
+msgid "Go 候选下载或校验失败，未改动"
+msgstr "Go 후보 다운로드 또는 검증에 실패했습니다. 변경 없음"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13054
+msgid "Go 迁移预检准备失败，未切换"
+msgstr "Go 마이그레이션 사전 점검 준비에 실패하여 전환하지 않았습니다"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13066
+msgid "xray -test / nginx -t 预检失败，未切换"
+msgstr "xray -test / nginx -t 사전 점검에 실패하여 전환하지 않았습니다"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13069
+msgid "预检通过。切换后入口为 Go 管理器，旧 Bash 仅保留为恢复备份；是否切换"
+msgstr "사전 점검을 통과했습니다. 전환 후 진입점은 Go 관리자가 되며 기존 Bash는 복구 백업으로만 남습니다. 전환"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13081
+msgid "已取消切换，候选已丢弃"
+msgstr "전환이 취소되어 후보를 버렸습니다"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13088
+msgid "切换失败，已按恢复流程处理"
+msgstr "전환에 실패하여 복구 절차를 적용했습니다"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13092
+msgid "Go 迁移已提交；旧 Bash 已保留为 /opt/idleleo/recovery/legacy-install.sh"
+msgstr "Go 마이그레이션이 커밋되었습니다. 기존 Bash는 /opt/idleleo/recovery/legacy-install.sh에 보존됩니다"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13093
+msgid "Go 原生定时任务已接管旧 cron；auto-update 与 cert-renew 为明确降级项（见 schedule status）"
+msgstr "Go 네이티브 일정이 기존 cron을 인계했습니다. auto-update와 cert-renew는 명시적 성능 저하 항목입니다 (schedule status 참조)"

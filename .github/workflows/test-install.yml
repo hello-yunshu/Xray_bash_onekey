@@ -95,6 +95,9 @@ jobs:
           # must carry an active client_max_body_size 0 and no dead
           # proxy_buffering next to grpc_pass.
           bash .github/test/test_nginx_xhttp_limits.sh
+          # The Go migration offer must stay invisible to ordinary Bash users:
+          # `-u` never arms it, only explicit --internal-bridge-offer may.
+          bash .github/test/test_bridge_offer_dormant.sh
           bash .github/test/test_phase1_safety.sh
           # Bootstrap dependency / error-propagation regression (13.2-13.4, 13.10):
           # pkg_install multi-package failure propagation, offline/online language
