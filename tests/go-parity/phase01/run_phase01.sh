@@ -8,8 +8,8 @@ BIN=${IDLELEO_BIN:?set IDLELEO_BIN to the built Linux binary}
 GO=${GO:-go}
 REPO=${REPO:-$(cd "$(dirname "$0")/../../.." && pwd)}
 OUT=${PHASE01_EVIDENCE:-$REPO/tests/go-parity/phase01/evidence}
-PIN=4752f77c58028ac169c429fe7674c20060b30c9e
-PIN_SHA=0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6
+PIN=0fa7052e51b9bd7e6ffb46bc86befb006034da3c
+PIN_SHA=a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c
 WORK=$(mktemp -d "${TMPDIR:-/tmp}/idleleo-p01.XXXXXX")
 export TMPDIR="$WORK"
 export LANG=C.UTF-8 LC_ALL=C.UTF-8 NO_COLOR=1 TERM=dumb
@@ -283,7 +283,7 @@ pinsh=$(mktemp)
 git -C "$REPO" show "$PIN:install.sh" >"$pinsh"
 ver=$(cd "$REPO" && PIN_SH="$pinsh" bash -c '_TEST_MODE=1 . "$PIN_SH" >/dev/null 2>&1; printf "%s" "$shell_version"')
 rm -f "$pinsh"
-record C12.4 "published Bash pin still loads" "_TEST_MODE=1 source git $PIN:install.sh; echo shell_version" 3.3.4 "$ver" "$(ok $([ "$ver" = 3.3.4 ] && echo 1 || echo 0))" "published pin untouched"
+record C12.4 "published Bash pin still loads" "_TEST_MODE=1 source git $PIN:install.sh; echo shell_version" 3.3.6 "$ver" "$(ok $([ "$ver" = 3.3.6 ] && echo 1 || echo 0))" "published pin untouched"
 
 {
   echo "# Phase 01 C01-C12 evidence"

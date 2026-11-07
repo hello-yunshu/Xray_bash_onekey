@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pure-function EXTRACT from install.sh at main commit
-# 4752f77c58028ac169c429fe7674c20060b30c9e.
+# 0fa7052e51b9bd7e6ffb46bc86befb006034da3c (v3.3.6).
 # Source line anchors: 410-464, 1653-1701, 9190-9192, 9213-9216, 11178-11189.
 # This file is a subset snapshot, NOT a substitute for executing full upstream install.sh.
 # The live-repository gate in scripts/run_parity.py is required for release.
