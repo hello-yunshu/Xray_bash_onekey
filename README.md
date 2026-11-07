@@ -166,6 +166,15 @@ idleleo --update --yes --allow-major  # 跨发布序列，需显式解除限制
 
 旧版 XTLS 模式不再提供新建或重装入口；已有 XTLS 服务可以继续运行，但不能通过脚本重装或切换模式。需要继续管理时，请先备份并卸载，再重新部署 Reality、TLS 或中转模式。
 
+## Go 管理器（实验性，未启用）
+
+仓库内已包含未来 Go 管理器的源码和迁移桥接代码，但**当前发布不提供 Go 二进制，也不启用迁移**：
+
+- 新装、`-u`、全量重装、菜单、`auto_update` 与 cron 都不会探测、提示或下载任何 Go 相关资产，也不会向 bridge 清单发起请求。
+- 清单地址保持不存在时，迁移入口不会出现；普通用户看不到任何 Go 选项。
+- 唯一入口是显式的 `--internal-bridge-offer`，仅用于维护者验证，不面向普通用户。
+- 待 Go 管理器达到可切换的稳定度后，才会在后续版本中显式开启；在此之前请继续使用现有的 Bash 管理脚本。
+
 ## 重配置
 
 已安装的环境再次运行安装时，脚本会自动备份当前运行配置，并提供三条路径：
@@ -177,19 +186,6 @@ idleleo --update --yes --allow-major  # 跨发布序列，需显式解除限制
 | 模式切换 | 切换到不同协议模式，例如 Reality 改为 TLS | 默认只复用主用户 UUID/email，其他用户不自动迁移 |
 
 重配置过程中任何步骤失败（配置写入、服务启动、健康检查等）都会自动回滚到备份的原配置。备份目录使用唯一时间戳，支持连续多次重配置互不冲突。
-
-## Go 管理器迁移（实验）
-
-> 证据等级：容器级 `CONTAINER_VERIFIED`（固定 digest 的 Ubuntu 24.04 + 真实 systemd/Xray/nginx 容器），**不是“真实 VPS 已验证”**。真实 ACME 签发/续期不纳入本轮验收。
-
-- **当前版本不启用 Go，也不会自动提示迁移**：新装、`-u`、`auto_update`、全量重装和菜单都不会探测、下载或提示 Go，普通用户看不到任何迁移入口。迁移代码仅为后续版本保留，维护者验证时才显式传入内部参数 `--internal-bridge-offer`。
-- **迁移动作**：候选二进制 SHA256 + ELF 校验 → 只读审计与完整变更摘要 → 快照/journal → `xray -test` / `nginx -t` 预验收 → 原子切换 `/usr/bin/idleleo` → 精确移除 4 条项目 cron → 安装 `idleleo-schedule.timer`。
-- **保留内容**：`/etc/idleleo` 配置、证书与私钥、用户、用户自定义 cron、nginx 自定义片段。
-- **回滚**：任一步失败由 `/opt/idleleo/recovery/idleleo-recover` 恢复；已 `COMMITTED` 后不隐式逆向迁移。
-- **定时任务**：`idleleo schedule status` 查看，`install` / `remove` / `run` 管理。GeoData 刷新与统计采集已原生实现（systemd timer 驱动）；自动更新改用 Go release 通道，**必须显式 `idleleo update configure --manifest-url URL`**，未配置时每轮记录 `degraded`（不猜测来源，也不静默失败）；证书续期仍无 ACME，只做外部续约后的指纹契约与到期告警。
-- **Phase 04 新增命令**：`idleleo update status|check|apply|configure`、`idleleo stats [--json]`、`idleleo service status|start|stop|restart|reload|logs`、`idleleo rill status`。服务命令只允许自有 unit；`stats` 只读查询，不支持 watch/reset。
-- **证书契约**：记录证书 DER 指纹基线；只有指纹变化才 `restart xray` / `reload nginx`，未变化不重启；world-readable 私钥拒绝 reload；到期或 <30 天未变化记录 `degraded`。**真实 ACME 签发/续期/清理未实现**。
-- **自定义内容**：审计列出的未知 Xray 顶层键与自定义 nginx 片段必须先人工确认，否则 `prepare` 以 exit 6 拒绝，不做静默覆盖。
 
 ## 故障排查
 

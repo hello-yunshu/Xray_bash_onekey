@@ -178,18 +178,14 @@ Lorsque l'installateur est relancé sur un système déjà installé, il sauvega
 
 Si une étape échoue (écriture de configuration, démarrage du service, contrôle de santé, etc.), le script revient à la configuration originale sauvegardée. Les répertoires de sauvegarde utilisent des horodatages uniques, de sorte que des reconfigurations successives ne se chevauchent pas.
 
-## Migration vers le gestionnaire Go (expérimental)
+## Gestionnaire Go (expérimental, non activé)
 
-> Niveau de preuve : `CONTAINER_VERIFIED` au niveau conteneur (Ubuntu 24.04 épinglé par digest avec systemd/Xray/nginx réels), **et non « vérifié sur un vrai VPS »**. L'émission/le renouvellement ACME réels sont hors périmètre de cette série.
+Le dépôt contient déjà le code source du futur gestionnaire Go et le code de pont de migration, mais **la version actuelle ne fournit pas de binaire Go et n'active pas la migration** :
 
-- **La version actuelle n'active pas Go et ne propose jamais la migration** : une nouvelle installation, `-u`, `auto_update`, une réinstallation complète et le menu ne sondent, ne téléchargent et ne mentionnent jamais Go ; les utilisateurs ordinaires ne voient aucun point d'entrée de migration. Le code de migration n'est conservé que pour les versions ultérieures et n'est atteint que par le paramètre interne `--internal-bridge-offer`, lors des vérifications des mainteneurs.
-- **Étapes de migration** : SHA256 du binaire candidat + vérification ELF → audit en lecture seule et résumé complet des changements → instantané/journal → pré-vérification `xray -test` / `nginx -t` → bascule atomique de `/usr/bin/idleleo` → suppression précise des 4 entrées cron du projet → installation de `idleleo-schedule.timer`.
-- **Contenu conservé** : configuration `/etc/idleleo`, certificats et clés privées, utilisateurs, cron défini par l'utilisateur, fragments nginx personnalisés.
-- **Retour arrière** : toute étape échouée est restaurée par `/opt/idleleo/recovery/idleleo-recover` ; après `COMMITTED`, aucune migration inverse implicite.
-- **Tâches planifiées** : `idleleo schedule status` pour consulter, `install` / `remove` / `run` pour gérer. Le rafraîchissement GeoData et la collecte des statistiques sont natifs (timers systemd) ; la mise à jour automatique utilise le canal de release Go et **exige un `idleleo update configure --manifest-url URL` explicite** ; sans configuration, chaque cycle enregistre `degraded` (jamais de source devinée, jamais d'échec silencieux) ; le renouvellement des certificats reste sans ACME, avec seulement le contrat d'empreinte et les alertes d'expiration après renouvellement externe.
-- **Commandes Phase 04** : `idleleo update status|check|apply|configure`, `idleleo stats [--json]`, `idleleo service status|start|stop|restart|reload|logs`, `idleleo rill status`. Les commandes de service n'autorisent que les unités propres ; `stats` est en lecture seule, sans watch/reset.
-- **Contrat de certificat** : enregistre l'empreinte DER ; `restart xray` / `reload nginx` uniquement si l'empreinte change, pas de redémarrage sinon ; une clé privée lisible par tous refuse le reload ; expiration ou <30 jours sans changement enregistre `degraded`. **L'émission/le renouvellement/le nettoyage ACME réels ne sont pas implémentés.**
-- **Contenu personnalisé** : les clés racine Xray inconnues et les fragments nginx personnalisés listés par l'audit doivent être confirmés manuellement, sinon `prepare` refuse avec exit 6, sans écrasement silencieux.
+- Une nouvelle installation, `-u`, une réinstallation complète, le menu, `auto_update` et cron ne sondent, ne proposent et ne téléchargent jamais aucun actif Go, et n'émettent aucune requête vers le manifeste bridge.
+- Tant que l'URL du manifeste reste absente, aucun point d'entrée de migration n'apparaît ; les utilisateurs ordinaires ne voient aucune option Go.
+- Le seul point d'entrée est le paramètre explicite `--internal-bridge-offer`, réservé à la vérification des mainteneurs et non exposé aux utilisateurs ordinaires.
+- Le gestionnaire Go ne sera activé explicitement que dans une version ultérieure, une fois suffisamment stable pour la bascule ; d'ici là, continuez d'utiliser le script de gestion Bash existant.
 
 ## Dépannage
 
