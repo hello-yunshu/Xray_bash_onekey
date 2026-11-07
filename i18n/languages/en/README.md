@@ -178,6 +178,15 @@ When the installer runs again on an installed system, it automatically backs up 
 
 If any step fails (configuration write, service start, health check, and so on), the script rolls back to the backed-up original configuration. Backup directories use unique timestamps, so repeated reconfigurations do not collide.
 
+## Go manager (experimental, not enabled)
+
+The repository already contains the source of the future Go manager and the migration bridge code, but **the current release does not provide a Go binary and does not enable migration**:
+
+- Fresh installs, `-u`, full reinstall, the menu, `auto_update`, and cron never probe, prompt for, or download any Go asset, and never request the bridge manifest.
+- While the manifest URL stays absent, no migration entry point appears; ordinary users see no Go option at all.
+- The only entry point is the explicit `--internal-bridge-offer`, used solely for maintainer verification and not exposed to ordinary users.
+- The Go manager will only be explicitly enabled in a later release once it is stable enough to switch; until then, keep using the existing Bash management script.
+
 ## Troubleshooting
 
 | Symptom | Check first | Suggested action |
