@@ -1,0 +1,73 @@
+### 1) ProtectSystem=full, no ReadWritePaths (rename)
+Running as unit: probe-ro.service; invocation ID: c90ffb57ce94468aa6099497da5616d3
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 9ms
+CPU time consumed: 3ms
+Memory peak: 0B
+Memory swap peak: 0B
+exit=1
+journal: Nov 07 15:25:06 f774c695fe99 systemd[1]: Started probe-ro.service - /bin/sh -c "mv /usr/local/nginx/logs/access.log /usr/local/nginx/logs/access.log.1".
+journal: Nov 07 15:25:06 f774c695fe99 sh[687]: mv: cannot move '/usr/local/nginx/logs/access.log' to '/usr/local/nginx/logs/access.log.1': Read-only file system
+journal: Nov 07 15:25:06 f774c695fe99 systemd[1]: probe-ro.service: Main process exited, code=exited, status=1/FAILURE
+journal: Nov 07 15:25:06 f774c695fe99 systemd[1]: probe-ro.service: Failed with result 'exit-code'.
+
+### 2) ProtectSystem=full + ReadWritePaths=-/usr/local/nginx/logs (rename)
+Running as unit: probe-rw.service; invocation ID: f095e9b00b4443b7992ed2c56e096994
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 12ms
+CPU time consumed: 5ms
+Memory peak: 768.0K
+Memory swap peak: 0B
+exit=0
+journal: Nov 07 15:25:06 f774c695fe99 systemd[1]: Started probe-rw.service - /bin/sh -c "mv /usr/local/nginx/logs/access.log /usr/local/nginx/logs/access.log.1 && touch /usr/local/nginx/logs/access.log".
+journal: Nov 07 15:25:06 f774c695fe99 systemd[1]: probe-rw.service: Deactivated successfully.
+total 4
+-rw-r--r-- 1 root root 0 Nov  7 15:25 access.log
+-rw-r----- 1 root root 7 Oct 24 15:25 access.log.1
+
+### 3) real logrotate -f under ProtectSystem=full, no ReadWritePaths
+Running as unit: probe-lr-ro.service; invocation ID: bc8b4fd2cec44e79b77bb454d390c08d
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 22ms
+CPU time consumed: 8ms
+Memory peak: 768.0K
+Memory swap peak: 0B
+exit=1
+journal: Nov 07 15:25:06 f774c695fe99 logrotate[708]: error: error renaming /usr/local/nginx/logs/access.log.3.gz to /usr/local/nginx/logs/access.log.4.gz: Read-only file system
+total 4
+-rw-r--r-- 1 root root 7 Oct 24 15:25 access.log
+
+### 4) real logrotate -f with ReadWritePaths drop-in
+Running as unit: probe-lr-rw.service; invocation ID: b5d41bc921a2405693c634a525c562cd
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 23ms
+CPU time consumed: 9ms
+Memory peak: 256.0K
+Memory swap peak: 0B
+exit=0
+total 4
+-rw-r----- 1 root root  0 Nov  7 15:25 access.log
+-rw-r--r-- 1 root root 27 Oct 24 15:25 access.log.1.gz
+
+### 5) pure Xray config (no nginx directory), ProtectSystem=full
+Running as unit: probe-xray.service; invocation ID: f359e395664b411490946ef38c97e8a4
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 82ms
+CPU time consumed: 13ms
+Memory peak: 768.0K
+Memory swap peak: 0B
+exit=0
+journal: Nov 07 15:25:06 f774c695fe99 systemd[1]: Started probe-xray.service - /usr/sbin/logrotate -f -s /tmp/lr-xray.state /tmp/lr-xray.conf.
+journal: Nov 07 15:25:07 f774c695fe99 systemd[1]: probe-xray.service: Deactivated successfully.
+
+### 6) logrotate --debug under ProtectSystem=full (no drop-in)
+$ systemd-run ... -p ProtectSystem=full -- /usr/sbin/logrotate --debug -s /tmp/lr.state /tmp/lr.conf
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+exit=0
+# --debug 只打印模拟动作，不执行 rename/truncate/compress，且进程不在 logrotate.service 的命名空间内。
