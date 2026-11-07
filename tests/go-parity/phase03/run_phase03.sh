@@ -1160,16 +1160,25 @@ rc=$?
 grep -q 'Go 迁移资产' /tmp/update.out && bad "M14: auto update reached the Go offer" || ok "M14: auto update never reached the Go offer"
 [[ "$(readlink "$ENTRY")" == "/etc/idleleo/install.sh" ]] && ok "M14: auto update left the Bash entry in place" || bad "M14: entry $(readlink "$ENTRY")"
 
-# M14 positive: the same real -u path with a manual TTY reaches the offer.
+# M14 negative: the real -u path must stay dormant even with a manual TTY. Only
+# the explicit --internal-bridge-offer flag may trigger migration (3.3.5+).
 reset_requests
 tty_run 'y\ny\n' "env XRAY_VERSIONS_FILE=/work/versions.json bash /etc/idleleo/install.sh -u" >/tmp/update.out 2>&1
 rc=$?
-if [[ "$(requests)" == "2" && "$(readlink "$ENTRY")" == "$GOENTRY" ]]; then
-    ok "M14/M03: real Bash -u manual TTY reached the offer and committed"
+if [[ "$(requests)" == "0" && "$(readlink "$ENTRY")" == "/etc/idleleo/install.sh" ]]; then
+    ok "M14: real -u with a TTY stayed dormant (0 requests, Bash entry)"
 else
     bad "M14: real -u manual path requests=$(requests) entry=$(readlink "$ENTRY") exit=$rc"
     tail -30 /tmp/update.out
 fi
+
+# Establish a real COMMITTED migration for the retained-cron self-audit. This is
+# the only supported trigger: explicit internal bridge offer with TTY consent.
+reset_requests
+tty_run 'y\ny\n' "bash /etc/idleleo/install.sh --internal-bridge-offer" >/tmp/offer.out 2>&1
+[[ "$(readlink "$ENTRY")" == "$GOENTRY" && "$(journal_state)" == "COMMITTED" ]] \
+    && ok "retained cron setup: explicit offer committed the Go migration" \
+    || { bad "retained cron setup: entry=$(readlink "$ENTRY") journal=$(journal_state)"; tail -20 /tmp/offer.out; }
 
 # Self-audit: the retained auto_update cron must refresh the Bash script without
 # undoing a COMMITTED Go migration by re-pointing /usr/bin/idleleo at Bash.
