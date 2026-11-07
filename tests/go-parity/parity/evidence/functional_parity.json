@@ -1,0 +1,1517 @@
+{
+  "schema_version": 2,
+  "baseline_commit": "4752f77c58028ac169c429fe7674c20060b30c9e",
+  "pinned_bash": {
+    "git_commit": "4752f77c58028ac169c429fe7674c20060b30c9e",
+    "install_sh_sha256": "0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6",
+    "clean_file": true
+  },
+  "oracle_mode": "LIVE_PINNED_CLEAN",
+  "go_provenance": {
+    "mode": "BUNDLED_TOY_GO_DEMO",
+    "binary_sha256": "c6d8196dd21010cc4f446dc0b718a8ca8b3e06b97e074c086bd907d5405ea809"
+  },
+  "native_l0_only": false,
+  "release_certified": false,
+  "total": 83,
+  "passed": 83,
+  "failed": 0,
+  "rows": [
+    {
+      "case": "version-compare-01",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "-1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "-1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-02",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-03",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-04",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-05",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "-1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "-1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-06",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-07",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 2,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 2,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-08",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 2,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 2,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-09",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-10",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-11",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 2,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 2,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-12",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 2,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 2,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-13",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-compare-14",
+      "feature": "version-compare",
+      "op": "version_compare",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "-1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "-1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-01",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-02",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-03",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-04",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-05",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-06",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-07",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-08",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-09",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "version-series-10",
+      "feature": "version-series",
+      "op": "version_series_difference",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "0\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-01",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-02",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-03",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-04",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-05",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-06",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-07",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-08",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-09",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-10",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-11",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-12",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-13",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-14",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-15",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-16",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-17",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-18",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-19",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-20",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-21",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-22",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-23",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "relay-host-24",
+      "feature": "relay-host",
+      "op": "relay_is_valid_host",
+      "match": true,
+      "bash": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "xhttp-path-01",
+      "feature": "xhttp-path",
+      "op": "format_xhttp_path",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "/\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "/\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "xhttp-path-02",
+      "feature": "xhttp-path",
+      "op": "format_xhttp_path",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "/a\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "/a\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "xhttp-path-03",
+      "feature": "xhttp-path",
+      "op": "format_xhttp_path",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "/a\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "/a\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "xhttp-path-04",
+      "feature": "xhttp-path",
+      "op": "format_xhttp_path",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "//a\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "//a\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "xhttp-path-05",
+      "feature": "xhttp-path",
+      "op": "format_xhttp_path",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "///abc\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "///abc\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "xhttp-path-06",
+      "feature": "xhttp-path",
+      "op": "format_xhttp_path",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "/\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "/\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "xhttp-path-07",
+      "feature": "xhttp-path",
+      "op": "format_xhttp_path",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "/中文\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "/中文\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "xhttp-path-08",
+      "feature": "xhttp-path",
+      "op": "format_xhttp_path",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "/?x=2\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "/?x=2\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "uri-host-01",
+      "feature": "uri-host",
+      "op": "format_uri_authority_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "[2001:db8::1]\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "[2001:db8::1]\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "uri-host-02",
+      "feature": "uri-host",
+      "op": "format_uri_authority_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "[2001:db8::1]\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "[2001:db8::1]\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "uri-host-03",
+      "feature": "uri-host",
+      "op": "format_uri_authority_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "example.org\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "example.org\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "uri-host-04",
+      "feature": "uri-host",
+      "op": "format_uri_authority_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "192.0.2.1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "192.0.2.1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "uri-host-05",
+      "feature": "uri-host",
+      "op": "format_uri_authority_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": ":::\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": ":::\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "uri-host-06",
+      "feature": "uri-host",
+      "op": "format_uri_authority_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "[bad]:443\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "[bad]:443\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "uri-host-07",
+      "feature": "uri-host",
+      "op": "format_uri_authority_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "[::1]\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "[::1]\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "uri-host-08",
+      "feature": "uri-host",
+      "op": "format_uri_authority_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "[fe80::1%eth0]\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "[fe80::1%eth0]\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "uri-host-09",
+      "feature": "uri-host",
+      "op": "format_uri_authority_host",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "yaml-scalar-01",
+      "feature": "yaml-scalar",
+      "op": "yaml_quote_scalar",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "'2001:db8::1'\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "'2001:db8::1'\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "yaml-scalar-02",
+      "feature": "yaml-scalar",
+      "op": "yaml_quote_scalar",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "'[2001:db8::1]'\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "'[2001:db8::1]'\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "yaml-scalar-03",
+      "feature": "yaml-scalar",
+      "op": "yaml_quote_scalar",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "example.org\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "example.org\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "yaml-scalar-04",
+      "feature": "yaml-scalar",
+      "op": "yaml_quote_scalar",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "192.0.2.1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "192.0.2.1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "yaml-scalar-05",
+      "feature": "yaml-scalar",
+      "op": "yaml_quote_scalar",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "a:b\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "a:b\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "yaml-scalar-06",
+      "feature": "yaml-scalar",
+      "op": "yaml_quote_scalar",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "'::1'\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "'::1'\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "yaml-scalar-07",
+      "feature": "yaml-scalar",
+      "op": "yaml_quote_scalar",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-01",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "a%20b\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "a%20b\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-02",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "a/b\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "a/b\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-03",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "%E6%B1%89%E5%AD%97\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "%E6%B1%89%E5%AD%97\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-04",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "a%2Bb\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "a%2Bb\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-05",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "hello%40example.org\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "hello%40example.org\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-06",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "%3Ffoo%3Dbar%26x%3D1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "%3Ffoo%3Dbar%26x%3D1\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-07",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "%25\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "%25\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-08",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "%23\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "%23\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-09",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "~\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "~\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-10",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "hello%20world/%E4%B8%AD%E6%96%87\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "hello%20world/%E4%B8%AD%E6%96%87\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    },
+    {
+      "case": "urlquote-11",
+      "feature": "urlquote",
+      "op": "vless_urlquote",
+      "match": true,
+      "bash": {
+        "rc": 0,
+        "stdout": "\n",
+        "stderr": "",
+        "unexpected_files": {}
+      },
+      "go": {
+        "rc": 0,
+        "stdout": "\n",
+        "stderr": "",
+        "unexpected_files": {}
+      }
+    }
+  ],
+  "generated_utc": "2026-11-06T10:26:38.739453+00:00",
+  "scope_limit": "Only 7 pure function contracts; FS snapshot limited to CWD/HOME/TMPDIR; no host isolation"
+}
