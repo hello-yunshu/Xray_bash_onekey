@@ -182,7 +182,7 @@ If any step fails (configuration write, service start, health check, and so on),
 
 > Evidence level: container-level `CONTAINER_VERIFIED` (digest-pinned Ubuntu 24.04 with real systemd/Xray/nginx), **not "verified on a real VPS"**. Real ACME issuance/renewal is out of scope for this round.
 
-- **3.3.5 does not enable Go and never prompts for migration**: fresh installs, `-u`, `auto_update`, full reinstall, and the menu never probe, download, or mention Go; ordinary users see no migration entry point. The migration code is retained only for later releases and is reached solely through the internal parameter `--internal-bridge-offer` during maintainer verification.
+- **The current release does not enable Go and never prompts for migration**: fresh installs, `-u`, `auto_update`, full reinstall, and the menu never probe, download, or mention Go; ordinary users see no migration entry point. The migration code is retained only for later releases and is reached solely through the internal parameter `--internal-bridge-offer` during maintainer verification.
 - **Migration steps**: Candidate binary SHA256 + ELF verification → read-only audit and full change summary → snapshot/journal → `xray -test` / `nginx -t` preflight → atomic switch of `/usr/bin/idleleo` → precise removal of the 4 project cron entries → install `idleleo-schedule.timer`.
 - **Preserved**: `/etc/idleleo` configuration, certificates and private keys, users, user-defined cron, custom nginx fragments.
 - **Rollback**: Any failed step is restored by `/opt/idleleo/recovery/idleleo-recover`; once `COMMITTED`, no implicit reverse migration.
