@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -51,6 +52,16 @@ var (
 	// ErrRecoveryRequired means the old binary could not be restored after a
 	// failed health check and a human must intervene.
 	ErrRecoveryRequired = errors.New("RECOVERY_REQUIRED: previous idleleo binary could not be restored")
+)
+
+var (
+	// writeStateFile and healthCheckBinary are variables so tests can inject a
+	// failed state commit or a controlled health result.
+	writeStateFile    = writeState
+	healthCheckBinary = healthCheck
+	// platformKey defaults to the running platform; tests may pin it so the
+	// manifest contract can be exercised outside Linux.
+	platformKey = Platform
 )
 
 // Channel is the persisted `update configure` result.
@@ -166,13 +177,32 @@ func validateManifestURL(raw string) error {
 	if err != nil {
 		return fmt.Errorf("manifest URL is invalid: %w", err)
 	}
-	if u.Scheme != "http" && u.Scheme != "https" {
-		return fmt.Errorf("manifest URL scheme %q is not allowed", u.Scheme)
+	if u.User != nil {
+		return errors.New("manifest URL must not contain credentials")
 	}
 	if u.Host == "" {
 		return errors.New("manifest URL has no host")
 	}
-	return nil
+	switch u.Scheme {
+	case "https":
+		return nil
+	case "http":
+		// Plain HTTP is only for an explicitly isolated local test origin.
+		if isLoopbackHost(u.Hostname()) {
+			return nil
+		}
+		return fmt.Errorf("manifest URL %q must use HTTPS; plain HTTP is only allowed for loopback test origins", raw)
+	default:
+		return fmt.Errorf("manifest URL scheme %q is not allowed", u.Scheme)
+	}
+}
+
+func isLoopbackHost(host string) bool {
+	if host == "localhost" {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }
 
 // ParseManifest strictly validates the release contract. A manifest that
@@ -253,9 +283,9 @@ func Check(ctx context.Context, root, manifestURL string) (CheckReport, error) {
 		return rep, err
 	}
 	rep.LatestVersion = m.Version
-	asset, ok := m.Assets[Platform()]
+	asset, ok := m.Assets[platformKey()]
 	if !ok {
-		return rep, fmt.Errorf("manifest has no asset for platform %s", Platform())
+		return rep, fmt.Errorf("manifest has no asset for platform %s", platformKey())
 	}
 	rep.Asset = asset
 	st, _ := ReadState(root)
@@ -320,7 +350,22 @@ func assetURL(manifestURL string, a Asset) (string, error) {
 		return "", fmt.Errorf("asset URL %q is invalid: %w", raw, err)
 	}
 	u := base.ResolveReference(ref)
-	if u.Scheme != "http" && u.Scheme != "https" {
+	if u.User != nil {
+		return "", errors.New("asset URL must not contain credentials")
+	}
+	// An asset must stay on the trusted manifest origin. Without this a
+	// compromised manifest could point the download at any third-party host
+	// and the manifest's own digest would be the only (self-attested) check.
+	if u.Hostname() != base.Hostname() {
+		return "", fmt.Errorf("asset URL host %q is not the trusted manifest host %q", u.Hostname(), base.Hostname())
+	}
+	switch u.Scheme {
+	case "https":
+	case "http":
+		if !isLoopbackHost(base.Hostname()) {
+			return "", fmt.Errorf("asset URL %q must use HTTPS", u.String())
+		}
+	default:
 		return "", fmt.Errorf("asset URL scheme %q is not allowed", u.Scheme)
 	}
 	return u.String(), nil
@@ -497,9 +542,9 @@ func Apply(ctx context.Context, root, manifestURL string, held *host.UpdateLock)
 	if err != nil {
 		return rep, err
 	}
-	asset, ok := m.Assets[Platform()]
+	asset, ok := m.Assets[platformKey()]
 	if !ok {
-		return rep, fmt.Errorf("manifest has no asset for platform %s", Platform())
+		return rep, fmt.Errorf("manifest has no asset for platform %s", platformKey())
 	}
 	st, err := ReadState(root)
 	if err != nil {
@@ -565,7 +610,7 @@ func Apply(ctx context.Context, root, manifestURL string, held *host.UpdateLock)
 	rep.NewVersion = m.Version
 	rep.NewSHA256 = asset.SHA256
 
-	out, err := healthCheck(ctx, installPath, m.Version)
+	out, err := healthCheckBinary(ctx, installPath, m.Version)
 	rep.HealthOutput = out
 	if err != nil {
 		restoreErr := restore(installPath, backupPath, hadOld)
@@ -578,10 +623,17 @@ func Apply(ctx context.Context, root, manifestURL string, held *host.UpdateLock)
 	}
 
 	final := State{SchemaVersion: SchemaVersion, Version: m.Version, SHA256: asset.SHA256, AppliedAt: now()}
-	if err := writeState(root, final); err != nil {
-		// The binary is already replaced; report the state write failure instead
-		// of pretending the release record is trustworthy.
-		return rep, fmt.Errorf("release installed but state could not be recorded: %w", err)
+	if err := writeStateFile(root, final); err != nil {
+		// The binary is already replaced. Restore the previous binary so the
+		// on-disk state and the recorded release cannot disagree; if that also
+		// fails, stop with an explicit recovery requirement.
+		restoreErr := restore(installPath, backupPath, hadOld)
+		if restoreErr != nil {
+			rep.Action = "recovery-required"
+			return rep, fmt.Errorf("%w: release state could not be recorded (%v); restore failed: %v", ErrRecoveryRequired, err, restoreErr)
+		}
+		rep.Action = "rolled-back"
+		return rep, fmt.Errorf("release state could not be recorded and the previous binary was restored: %w", err)
 	}
 	rep.Action = "applied"
 	return rep, nil

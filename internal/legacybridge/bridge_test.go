@@ -3,6 +3,7 @@ package legacybridge
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -347,6 +348,144 @@ func TestPrepareRefusesUnfinishedJournal(t *testing.T) {
 	_, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand})
 	if err == nil {
 		t.Fatal("prepare must refuse an unfinished transaction")
+	}
+}
+
+func TestPrepareDoesNotOverwriteRecoveryEvidence(t *testing.T) {
+	for _, state := range []string{StateActivating, StateRollbackRequired, StateRecoveryRequired, StateCommitted} {
+		t.Run(state, func(t *testing.T) {
+			root := sandbox(t, "reality-direct")
+			// Evidence written by the interrupted transaction.
+			evidence := map[string]string{
+				"var/lib/idleleo/bridge/snapshot/entry.json":    `{"path":"/usr/bin/idleleo","exists":true}` + "\n",
+				"var/lib/idleleo/bridge/snapshot/entry-idleleo": "legacy entry payload\n",
+				"var/lib/idleleo/bridge/plan.json":              `{"state":"sentinel"}` + "\n",
+				"opt/idleleo/bin/idleleo.candidate":             "existing candidate\n",
+			}
+			for rel, body := range evidence {
+				writeFile(t, filepath.Join(root, rel), body, 0o640)
+			}
+			j := Journal{SchemaVersion: JournalSchema, State: state}
+			if err := writeJournal(root, &j); err != nil {
+				t.Fatal(err)
+			}
+			before := map[string]string{}
+			for rel := range evidence {
+				before[rel] = mustHash(t, filepath.Join(root, rel))
+			}
+			cand := stubBin(t, t.TempDir(), "idleleo")
+			_, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand})
+			if err == nil {
+				t.Fatal("prepare must refuse an unfinished transaction")
+			}
+			var be *Error
+			if !asError(err, &be) || be.Code != 3 {
+				t.Fatalf("expected exit 3, got %v", err)
+			}
+			for rel := range evidence {
+				if got := mustHash(t, filepath.Join(root, rel)); got != before[rel] {
+					t.Fatalf("%s was modified by a refused prepare", rel)
+				}
+			}
+		})
+	}
+}
+
+func TestRequireWriteAccessDelegatesToHostGate(t *testing.T) {
+	old := systemWriteGate
+	t.Cleanup(func() { systemWriteGate = old })
+	var gotRoot string
+	var gotAck bool
+	systemWriteGate = func(root string, ack bool) error {
+		gotRoot, gotAck = root, ack
+		return nil
+	}
+	if err := requireWriteAccess("/", false); err != nil {
+		t.Fatalf("real host without container marker was refused: %v", err)
+	}
+	if gotRoot != "/" || gotAck {
+		t.Fatalf("gate called with root=%q ack=%v", gotRoot, gotAck)
+	}
+	systemWriteGate = func(string, bool) error { return errors.New("audit trail unavailable") }
+	var be *Error
+	err := requireWriteAccess("/", false)
+	if !asError(err, &be) || be.Code != 2 {
+		t.Fatalf("expected exit 2, got %v", err)
+	}
+}
+
+func TestActivateRefusesChangedEntry(t *testing.T) {
+	root := sandbox(t, "reality-direct")
+	dir := t.TempDir()
+	cand := stubBin(t, dir, "idleleo")
+	rec := stubBin(t, dir, "idleleo-recover")
+	xray := stubBin(t, dir, "xray")
+	nginx := stubBin(t, dir, "nginx")
+	if _, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand, Recovery: rec}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Validate(context.Background(), ValidateOptions{Root: root, XrayBin: xray, NginxBin: nginx}); err != nil {
+		t.Fatal(err)
+	}
+	entry := filepath.Join(root, "usr/bin/idleleo")
+	_ = os.Remove(entry)
+	if err := os.Symlink(filepath.Join(root, "opt/third-party/idleleo"), entry); err != nil {
+		t.Fatal(err)
+	}
+	_, err := Activate(context.Background(), ActivateOptions{Root: root})
+	if err == nil {
+		t.Fatal("activation must refuse a replaced entry")
+	}
+	var be *Error
+	if !asError(err, &be) || be.Code != 6 {
+		t.Fatalf("expected exit 6, got %v", err)
+	}
+	if link, _ := os.Readlink(entry); link != filepath.Join(root, "opt/third-party/idleleo") {
+		t.Fatalf("refused activation changed the third-party entry: %s", link)
+	}
+}
+
+func TestRecoverPreservesThirdPartyEntry(t *testing.T) {
+	root := sandbox(t, "reality-direct")
+	dir := t.TempDir()
+	cand := stubBin(t, dir, "idleleo")
+	rec := stubBin(t, dir, "idleleo-recover")
+	xray := stubBin(t, dir, "xray")
+	nginx := stubBin(t, dir, "nginx")
+	if _, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand, Recovery: rec}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Validate(context.Background(), ValidateOptions{Root: root, XrayBin: xray, NginxBin: nginx}); err != nil {
+		t.Fatal(err)
+	}
+	entry := filepath.Join(root, "usr/bin/idleleo")
+	_ = os.Remove(entry)
+	if err := os.Symlink(filepath.Join(root, "opt/idleleo/bin/idleleo"), entry); err != nil {
+		t.Fatal(err)
+	}
+	j, _ := readJournal(root)
+	j.setState(StateActivating, "simulated crash")
+	if err := writeJournal(root, &j); err != nil {
+		t.Fatal(err)
+	}
+	// A third party replaces the entry after the crash.
+	_ = os.Remove(entry)
+	if err := os.Symlink(filepath.Join(root, "opt/third-party/idleleo"), entry); err != nil {
+		t.Fatal(err)
+	}
+	rep, err := Recover(RecoverOptions{Root: root})
+	if err == nil {
+		t.Fatal("recovery must refuse to overwrite a third-party entry")
+	}
+	var be *Error
+	if !asError(err, &be) || be.Code != 5 {
+		t.Fatalf("expected exit 5, got %v", err)
+	}
+	if rep.State != StateRecoveryRequired || !rep.RequiresManual {
+		t.Fatalf("report=%+v", rep)
+	}
+	if link, _ := os.Readlink(entry); link != filepath.Join(root, "opt/third-party/idleleo") {
+		t.Fatalf("recovery overwrote the third-party entry: %s", link)
 	}
 }
 

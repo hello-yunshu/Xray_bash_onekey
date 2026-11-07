@@ -82,6 +82,15 @@ type UninstallReport struct {
 }
 
 // Install writes the complete node layout and, when allowed, starts systemd.
+//
+// serviceCommand/serviceQuery/serviceManaged are variables so tests can inject
+// systemctl failures and drive the rollback path without a real init system.
+var (
+	serviceCommand = service
+	serviceQuery   = queryService
+	serviceManaged = func(root string) bool { return root == "/" }
+)
+
 func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	paths, err := host.NewPaths(spec.Root)
 	if err != nil {
@@ -165,41 +174,58 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		return Report{}, fmt.Errorf("xray -test rejected the candidate (exit %d): %s", ver.ExitCode, strings.TrimSpace(ver.Stderr))
 	}
 
-	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
-		return Report{}, err
-	}
-	if err := writeFileAtomic(configPath, configBytes, 0o600); err != nil {
-		return Report{}, err
-	}
-	if err := os.MkdirAll(logDir, 0o755); err != nil {
-		return Report{}, err
-	}
-
 	installedBin, err := paths.Join(binaryRel, true)
 	if err != nil {
 		return Report{}, err
 	}
-	if err := copyExecutable(bin, installedBin); err != nil {
+	unitPath, err := paths.Join(unitRel, true)
+	if err != nil {
 		return Report{}, err
+	}
+	metaPath, err := paths.Join(paths.ManagerMetadata(), true)
+	if err != nil {
+		return Report{}, err
+	}
+
+	// Capture the previous files and service state before the first mutation.
+	// A failed install or reinstall must be able to return to exactly this
+	// state; if it cannot, the error must say so instead of pretending success.
+	backups, err := captureFiles([]string{configPath, installedBin, unitPath, metaPath})
+	if err != nil {
+		return Report{}, err
+	}
+	snap := captureService(ctx, unitPath, paths.Root, spec.NoService)
+	fail := func(cause error) (Report, error) {
+		return rollbackInstall(ctx, backups, snap, rep, cause)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
+		return fail(err)
+	}
+	if err := writeFileAtomic(configPath, configBytes, 0o600); err != nil {
+		return fail(err)
+	}
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
+		return fail(err)
+	}
+
+	if err := copyExecutable(bin, installedBin); err != nil {
+		return fail(err)
 	}
 
 	account := ""
 	if paths.Root == "/" {
 		account, err = ensureServiceAccount(ctx)
 		if err != nil {
-			return Report{}, err
+			return fail(err)
 		}
 	}
-	unitPath, err := paths.Join(unitRel, true)
-	if err != nil {
-		return Report{}, err
-	}
 	if err := os.MkdirAll(filepath.Dir(unitPath), 0o755); err != nil {
-		return Report{}, err
+		return fail(err)
 	}
 	unit := unitContent(installedBin, configPath, account)
 	if err := writeFileAtomic(unitPath, []byte(unit), 0o644); err != nil {
-		return Report{}, err
+		return fail(err)
 	}
 	if account != "" {
 		uid, gid := uidOf(account), groupID(account)
@@ -219,10 +245,6 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		}
 	}
 
-	metaPath, err := paths.Join(paths.ManagerMetadata(), true)
-	if err != nil {
-		return Report{}, err
-	}
 	meta := store.Metadata{
 		SchemaVersion:     store.ManagerSchemaVersion,
 		ActiveEngine:      "xray",
@@ -237,10 +259,10 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	metaBytes, _ := json.MarshalIndent(meta, "", "  ")
 	metaBytes = append(metaBytes, '\n')
 	if err := os.MkdirAll(filepath.Dir(metaPath), 0o755); err != nil {
-		return Report{}, err
+		return fail(err)
 	}
 	if err := writeFileAtomic(metaPath, metaBytes, 0o644); err != nil {
-		return Report{}, err
+		return fail(err)
 	}
 
 	rep.BinaryPath, rep.ConfigPath, rep.UnitPath, rep.MetadataPath = installedBin, configPath, unitPath, metaPath
@@ -249,22 +271,22 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	if rep.Mode == xraycfg.ModeTLS {
 		rep.Warnings = append(rep.Warnings, "nginx-config-not-applied")
 	}
-	if spec.NoService || paths.Root != "/" {
+	if spec.NoService || !serviceManaged(paths.Root) {
 		return rep, nil
 	}
-	if err := service(ctx, "daemon-reload"); err != nil {
-		return rep, err
+	if err := serviceCommand(ctx, "daemon-reload"); err != nil {
+		return fail(err)
 	}
-	if err := service(ctx, "enable", "xray"); err != nil {
-		return rep, err
+	if err := serviceCommand(ctx, "enable", "xray"); err != nil {
+		return fail(err)
 	}
-	if err := service(ctx, "restart", "xray"); err != nil {
-		return rep, err
+	if err := serviceCommand(ctx, "restart", "xray"); err != nil {
+		return fail(err)
 	}
-	rep.ServiceEnabled = queryService(ctx, "is-enabled", "xray")
+	rep.ServiceEnabled = serviceQuery(ctx, "is-enabled", "xray")
 	rep.ServiceActive = waitActive(ctx)
 	if rep.ServiceActive != "active" {
-		return rep, fmt.Errorf("xray.service is %q after start", rep.ServiceActive)
+		return fail(fmt.Errorf("xray.service is %q after start", rep.ServiceActive))
 	}
 	return rep, nil
 }
@@ -318,6 +340,126 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 		rep.ConfigPreserved = true
 	}
 	return rep, nil
+}
+
+// fileState is the prior content and mode of one install target.
+type fileState struct {
+	path   string
+	data   []byte
+	mode   os.FileMode
+	exists bool
+}
+
+type serviceState struct {
+	managed     bool
+	unitExisted bool
+	enabled     string
+	active      string
+}
+
+func captureFiles(paths []string) ([]fileState, error) {
+	out := make([]fileState, 0, len(paths))
+	for _, p := range paths {
+		st, err := captureFile(p)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, st)
+	}
+	return out, nil
+}
+
+func captureFile(path string) (fileState, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fileState{path: path}, nil
+		}
+		return fileState{}, err
+	}
+	if !info.Mode().IsRegular() {
+		return fileState{}, fmt.Errorf("%s is not a regular file", path)
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return fileState{}, err
+	}
+	return fileState{path: path, data: b, mode: info.Mode().Perm(), exists: true}, nil
+}
+
+func (s fileState) restore() error {
+	if !s.exists {
+		if err := os.Remove(s.path); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+		return nil
+	}
+	return writeFileAtomic(s.path, s.data, s.mode)
+}
+
+func captureService(ctx context.Context, unitPath, root string, noService bool) serviceState {
+	if noService || !serviceManaged(root) {
+		return serviceState{}
+	}
+	st := serviceState{managed: true}
+	if _, err := os.Lstat(unitPath); err == nil {
+		st.unitExisted = true
+	}
+	st.enabled = serviceQuery(ctx, "is-enabled", "xray")
+	st.active = serviceQuery(ctx, "is-active", "xray")
+	return st
+}
+
+// rollbackInstall restores the captured files and service state. When either
+// part cannot be restored the returned error names the remaining manual work;
+// it never reports the original failure as if the host were clean.
+func rollbackInstall(ctx context.Context, backups []fileState, snap serviceState, rep Report, cause error) (Report, error) {
+	if snap.managed && !snap.unitExisted {
+		// A fresh install may have started the new unit. Stop it before the
+		// restored file set removes the unit itself.
+		_ = serviceCommand(ctx, "stop", "xray")
+	}
+	for i := len(backups) - 1; i >= 0; i-- {
+		if err := backups[i].restore(); err != nil {
+			return rep, fmt.Errorf("%w; rollback failed: %v; files may be partially updated, inspect manually", cause, err)
+		}
+	}
+	if err := restoreService(ctx, snap); err != nil {
+		return rep, fmt.Errorf("%w; rollback failed: %v; systemd state may be inconsistent, inspect 'systemctl status xray' manually", cause, err)
+	}
+	return rep, fmt.Errorf("%w; installation rolled back to the previous state", cause)
+}
+
+func restoreService(ctx context.Context, snap serviceState) error {
+	if !snap.managed || !snap.unitExisted {
+		return nil
+	}
+	if err := serviceCommand(ctx, "daemon-reload"); err != nil {
+		return err
+	}
+	wantEnabled := strings.Contains(snap.enabled, "enabled")
+	if wantEnabled {
+		if err := serviceCommand(ctx, "enable", "xray"); err != nil {
+			return err
+		}
+	} else if err := serviceCommand(ctx, "disable", "xray"); err != nil {
+		return err
+	}
+	wantActive := snap.active == "active"
+	if wantActive {
+		if err := serviceCommand(ctx, "restart", "xray"); err != nil {
+			return err
+		}
+	} else if err := serviceCommand(ctx, "stop", "xray"); err != nil {
+		return err
+	}
+	if gotEnabled := serviceQuery(ctx, "is-enabled", "xray"); strings.Contains(gotEnabled, "enabled") != wantEnabled {
+		return fmt.Errorf("service enabled state is %q, want enabled=%v", gotEnabled, wantEnabled)
+	}
+	if gotActive := serviceQuery(ctx, "is-active", "xray"); (gotActive == "active") != wantActive {
+		return fmt.Errorf("service active state is %q, want active=%v", gotActive, wantActive)
+	}
+	return nil
 }
 
 func joinDir(paths host.Paths, rel string) (string, error) {
@@ -419,13 +561,13 @@ func queryService(ctx context.Context, args ...string) string {
 
 func waitActive(ctx context.Context) string {
 	for i := 0; i < 20; i++ {
-		state := queryService(ctx, "is-active", "xray")
+		state := serviceQuery(ctx, "is-active", "xray")
 		if state == "active" || state == "failed" {
 			return state
 		}
 		time.Sleep(250 * time.Millisecond)
 	}
-	return queryService(ctx, "is-active", "xray")
+	return serviceQuery(ctx, "is-active", "xray")
 }
 
 func copyExecutable(src, dst string) error {
