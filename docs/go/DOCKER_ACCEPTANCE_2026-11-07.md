@@ -64,6 +64,27 @@ IDLELEO_XRAY_BIN=/private/tmp/xray-26/xray bash tests/go-parity/phase01/run_phas
 已直接采用 main 中已发布文件（sha256 `a8e4d850…`），随后 Phase 01 为 35/35；
 C12.3/C12.4 均通过（发布 pin 仍可 source 出 `3.3.6`）。
 
+### 后续变更：logrotate 修复使 C12 再次变红（预期）
+
+D 包提交后又在同一分支提交了 `2d44d98`（logrotate `ReadWritePaths` 修复，
+见 [LOGROTATE_AUDIT_2026-11-07.md](LOGROTATE_AUDIT_2026-11-07.md)）。该提交
+按设计修改了 `install.sh`（+27 行），而 C12 的 pin 仍指向已发布的 v3.3.6，
+因此在当前 HEAD 上复跑 Phase 01 的真实结果是：
+
+```text
+PHASE01: 33/35 passed, 2 failed
+C12.1 install.sh bytes match pin            FAIL (1a2af27… != a8e4d850…)
+C12.2 product code diff empty               FAIL (install.sh | 27 ++…)
+C12.3/C12.4                                 PASS
+```
+
+这是门禁在正确工作（产品代码相对已发布版本发生了变更），不是回归。
+只有把修复发布为新的 Bash 版本（如 v3.3.7）并推进 pin 后，C12 才能重新变绿；
+发版需要用户授权，本次未做。证据：
+[phase01-after-fix.log](../../tests/go-parity/evidence/logrotate/phase01-after-fix.log)、
+[phase01-after-fix-c12.tsv](../../tests/go-parity/evidence/logrotate/phase01-after-fix-c12.tsv)。
+上文 35/35 的结论对应提交 `a829b08`。
+
 ## 3. 代码修改清单
 
 | 工作包 | 提交 | 内容 |

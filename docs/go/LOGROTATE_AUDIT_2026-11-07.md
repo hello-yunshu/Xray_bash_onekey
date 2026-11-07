@@ -161,6 +161,11 @@ ReadWritePaths=-${nginx_dir}/logs
 | 真实 `logrotate -f`，有 drop-in | exit 0，生成 `access.log.1.gz` 与新 `access.log` | protect-system-full.log |
 | `logrotate --debug`，`ProtectSystem=full` | exit 0（证明自检抓不到） | protect-system-full.log |
 | 纯 Xray 配置（无 nginx 目录） | exit 0，无错误 | protect-system-full.log |
+| Phase 01（修复提交后复跑） | **33/35**：C12.1/C12.2 红，C12.3/C12.4 绿 | phase01-after-fix.log |
+
+最后一行是预期的门禁反应：C12 校验 `install.sh` 与已发布 pin（v3.3.6）零差异，
+而本修复按设计改动了 `install.sh`（+27 行）。门禁没有误报，只有发版并推进 pin
+后才会重新变绿；在此之前如实保留红色。
 
 ## 6. 是否需要发版才对存量用户生效
 
