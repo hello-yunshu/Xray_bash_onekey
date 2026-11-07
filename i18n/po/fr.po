@@ -5786,3 +5786,88 @@ msgstr "Réinitialisation annulée"
 #: scripts/xray_stats.sh:830
 msgid "每 %s 秒刷新，Ctrl-C 退出"
 msgstr "Actualiser toutes les %s secondes ; Ctrl-C quitte"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12697
+msgid "检测到旧版 Nginx 模板：xHTTP 上行超过 1MB 会被 Nginx 拒绝 (413)。更新脚本不会重建 Nginx 配置，请重新运行安装脚本重建，或手工在 xHTTP location 放开 client_max_body_size 0;"
+msgstr "Ancien modèle Nginx détecté : les téléversements xHTTP de plus de 1MB seront rejetés par Nginx (413). Le script de mise à jour ne reconstruit pas la configuration Nginx ; relancez le script d'installation pour la reconstruire, ou activez manuellement client_max_body_size 0; dans le location xHTTP."
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12961
+msgid "检测到已提交的 Go 迁移，保留 Go 入口"
+msgstr "Migration Go validée détectée ; conservation du point d'entrée Go"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12963
+msgid "检测到已提交的 Go 迁移但 Go 入口缺失，未创建 Bash 入口；请运行 idleleo-recover"
+msgstr "Migration Go validée détectée mais le point d'entrée Go est absent ; aucun point d'entrée Bash n'a été créé. Exécutez idleleo-recover"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12983
+msgid "Go 迁移资产尚未发布，跳过（未下载、未改动"
+msgstr "Les ressources de migration Go ne sont pas encore publiées ; ignoré (rien téléchargé ni modifié"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12992
+msgid "Go 迁移清单不完整，跳过（未下载、未改动"
+msgstr "Le manifeste de migration Go est incomplet ; ignoré (rien téléchargé ni modifié"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:12997
+msgid "未设置 IDLELEO_ALLOW_SYSTEM_WRITES，拒绝切换；未下载、未改动"
+msgstr "IDLELEO_ALLOW_SYSTEM_WRITES n'est pas défini ; bascule refusée (rien téléchargé ni modifié)"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13007
+msgid "无法写入迁移审计日志，拒绝切换；未下载、未改动"
+msgstr "Impossible d'écrire le journal d'audit de migration ; bascule refusée (rien téléchargé ni modifié)"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13012
+msgid "检测到可迁移的 Bash 安装。迁移只切换入口并保留原配置/证书/用户；是否继续"
+msgstr "Une installation Bash migrable a été détectée. La migration ne change que le point d'entrée et conserve la configuration, les certificats et les utilisateurs existants. Continuer"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13020
+msgid "已取消 Go 迁移，未下载、未改动"
+msgstr "Migration Go annulée ; rien téléchargé ni modifié"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13044
+msgid "Go 候选下载或校验失败，未改动"
+msgstr "Le téléchargement ou la vérification du candidat Go a échoué ; rien n'a changé"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13054
+msgid "Go 迁移预检准备失败，未切换"
+msgstr "La préparation de la migration Go a échoué ; pas de bascule"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13066
+msgid "xray -test / nginx -t 预检失败，未切换"
+msgstr "La pré-vérification xray -test / nginx -t a échoué ; pas de bascule"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13069
+msgid "预检通过。切换后入口为 Go 管理器，旧 Bash 仅保留为恢复备份；是否切换"
+msgstr "Pré-vérification réussie. Après bascule, le point d'entrée est le gestionnaire Go et le Bash historique ne sert plus que de sauvegarde de récupération. Basculer"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13081
+msgid "已取消切换，候选已丢弃"
+msgstr "Bascule annulée ; candidat supprimé"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13088
+msgid "切换失败，已按恢复流程处理"
+msgstr "La bascule a échoué ; la procédure de récupération a été appliquée"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13092
+msgid "Go 迁移已提交；旧 Bash 已保留为 /opt/idleleo/recovery/legacy-install.sh"
+msgstr "Migration Go validée ; le Bash historique est conservé dans /opt/idleleo/recovery/legacy-install.sh"
+
+# 3.3.5 i18n backfill: missing translation
+#: install.sh:13093
+msgid "Go 原生定时任务已接管旧 cron；auto-update 与 cert-renew 为明确降级项（见 schedule status）"
+msgstr "Les tâches planifiées natives Go ont repris le cron historique ; auto-update et cert-renew sont des dégradations explicites (voir schedule status)"
