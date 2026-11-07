@@ -65,31 +65,20 @@ func mustResolve(root, rel string) string {
 	return p
 }
 
-// requireWriteAccess mirrors internal/deploy: a non-root target must be a
-// marked disposable sandbox; the real root requires the container ack.
+// systemWriteGate is a variable so tests can exercise the real-root branch
+// without writing to the machine that runs the test suite.
+var systemWriteGate = host.RequireSystemWrite
+
+// requireWriteAccess delegates to internal/host. A non-root target must be a
+// marked disposable sandbox. The real root allows a genuine host run (no
+// container marker) through the shared audit gate, and requires the explicit
+// container acknowledgement only when the process really is in a container.
+// It never hard-requires /.dockerenv.
 func requireWriteAccess(root string, ack bool) error {
-	if root != "/" {
-		paths, err := host.NewPaths(root)
-		if err != nil {
-			return &Error{Code: 2, Msg: "invalid root", Err: err}
-		}
-		if err := paths.RequireSandbox(); err != nil {
-			return &Error{Code: 2, Msg: "sandbox marker required", Err: err}
-		}
-		return nil
+	if err := systemWriteGate(root, ack); err != nil {
+		return &Error{Code: 2, Msg: "write access refused", Err: err}
 	}
-	if !ack {
-		return &Error{Code: 2, Msg: "real root writes require --container"}
-	}
-	if os.Getenv("IDLELEO_ALLOW_SYSTEM_WRITES") != ContainerWritesAck {
-		return &Error{Code: 2, Msg: "real root writes require IDLELEO_ALLOW_SYSTEM_WRITES=" + ContainerWritesAck}
-	}
-	for _, marker := range []string{"/.dockerenv", "/run/.containerenv"} {
-		if _, err := os.Stat(marker); err == nil {
-			return nil
-		}
-	}
-	return &Error{Code: 2, Msg: "refusing real root writes outside a container"}
+	return nil
 }
 
 // lockForWrite takes the same /run/lock/idleleo-update.lock that the legacy
@@ -195,6 +184,20 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 	if err != nil {
 		return report, audit, &Error{Code: 13, Msg: "candidate hash failed", Err: err}
 	}
+
+	// Read the existing transaction before writing anything. A committed,
+	// activating or recovery-required journal is the only copy of the
+	// rollback evidence; re-entering prepare must fail without touching
+	// the candidate, snapshot, plan or metadata.
+	j, err := readOrCreateJournal(opts.Root)
+	if err != nil {
+		return report, audit, err
+	}
+	switch j.State {
+	case StateActivating, StateRollbackRequired, StateRecoveryRequired, StateCommitted:
+		return report, audit, &Error{Code: 3, Msg: "unfinished or committed bridge transaction in state " + j.State + "; run bridge recover first"}
+	}
+
 	candPath := mustResolve(opts.Root, candidateRel)
 	if err := copyFileAtomic(opts.Candidate, candPath, 0o755); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "write candidate failed", Err: err}
@@ -244,14 +247,6 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 		return report, audit, &Error{Code: 13, Msg: "converted metadata does not load", Err: err}
 	}
 
-	j, err := readOrCreateJournal(opts.Root)
-	if err != nil {
-		return report, audit, err
-	}
-	switch j.State {
-	case StateActivating, StateRollbackRequired, StateRecoveryRequired, StateCommitted:
-		return report, audit, &Error{Code: 3, Msg: "unfinished or committed bridge transaction in state " + j.State + "; run bridge recover first"}
-	}
 	j.CandidateSHA256 = candSHA
 	if report.RecoverySHA256 != "" {
 		j.RecoverySHA256 = report.RecoverySHA256
@@ -814,6 +809,9 @@ func Activate(ctx context.Context, opts ActivateOptions) (ActivateReport, error)
 	if sha, err := hashFile(recPath); err != nil || (j.RecoverySHA256 != "" && sha != j.RecoverySHA256) {
 		return report, &Error{Code: 3, Msg: "recovery binary hash mismatch; activation refused"}
 	}
+	if err := verifyEntrySnapshot(opts.Root); err != nil {
+		return report, &Error{Code: 6, Msg: "entry changed since prepare; activation refused", Err: err}
+	}
 
 	j.setState(StateActivating, "activation started")
 	if err := writeJournal(opts.Root, &j); err != nil {
@@ -1062,12 +1060,118 @@ func rollbackWithActions(root string, j *Journal) (string, []string, error) {
 	return StateRolledBack, actions, nil
 }
 
+// verifyEntrySnapshot refuses activation when the entry no longer matches the
+// exact object recorded at prepare time. Another administrator or installer may
+// have replaced it between prepare and activate; switching it then would
+// silently discard that change.
+func verifyEntrySnapshot(root string) error {
+	entryPath := mustResolve(root, entryRel)
+	snapDir := mustResolve(root, snapshotRel)
+	var info EntryInfo
+	b, err := os.ReadFile(filepath.Join(snapDir, "entry.json"))
+	if err != nil {
+		return fmt.Errorf("entry snapshot is missing: %w", err)
+	}
+	if err := json.Unmarshal(b, &info); err != nil {
+		return fmt.Errorf("entry snapshot is invalid: %w", err)
+	}
+	fi, err := os.Lstat(entryPath)
+	if err != nil {
+		if os.IsNotExist(err) && !info.Exists && !info.IsSymlink {
+			return nil
+		}
+		return fmt.Errorf("entry disappeared since prepare")
+	}
+	switch {
+	case info.IsSymlink:
+		if fi.Mode()&os.ModeSymlink == 0 {
+			return fmt.Errorf("entry is no longer a symlink")
+		}
+		target, err := os.Readlink(entryPath)
+		if err != nil {
+			return err
+		}
+		if target != info.LinkTarget {
+			return fmt.Errorf("entry target changed since prepare")
+		}
+		return nil
+	case info.Exists:
+		if !fi.Mode().IsRegular() {
+			return fmt.Errorf("entry is no longer a regular file")
+		}
+		want, err := hashFile(filepath.Join(snapDir, "entry-idleleo"))
+		if err != nil {
+			return fmt.Errorf("entry snapshot is incomplete: %w", err)
+		}
+		got, err := hashFile(entryPath)
+		if err != nil {
+			return err
+		}
+		if got != want {
+			return fmt.Errorf("entry content changed since prepare")
+		}
+		return nil
+	default:
+		return fmt.Errorf("entry appeared since prepare")
+	}
+}
+
+// entryRestoreSafe reports whether the current entry is still the object this
+// transaction installed (or is already the snapshot target). Anything else is a
+// third-party change that rollback must preserve instead of overwriting.
+func entryRestoreSafe(root, entryPath, snapDir string, info EntryInfo) (bool, error) {
+	installedPath := mustResolve(root, installedRel)
+	fi, err := os.Lstat(entryPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Nothing is there to preserve; restoring the snapshot is safe.
+			return true, nil
+		}
+		return false, err
+	}
+	switch {
+	case fi.Mode()&os.ModeSymlink != 0:
+		target, err := os.Readlink(entryPath)
+		if err != nil {
+			return false, err
+		}
+		if target == installedPath {
+			return true, nil
+		}
+		if info.IsSymlink && target == info.LinkTarget {
+			return true, nil
+		}
+		return false, nil
+	case fi.Mode().IsRegular():
+		got, err := hashFile(entryPath)
+		if err != nil {
+			return false, err
+		}
+		if installedSHA, err := hashFile(installedPath); err == nil && got == installedSHA {
+			return true, nil
+		}
+		if info.Exists {
+			if want, err := hashFile(filepath.Join(snapDir, "entry-idleleo")); err == nil && got == want {
+				return true, nil
+			}
+		}
+		return false, nil
+	default:
+		return false, nil
+	}
+}
+
 func restoreEntry(root string) error {
 	entryPath := mustResolve(root, entryRel)
 	snapDir := mustResolve(root, snapshotRel)
 	var info EntryInfo
 	if b, err := os.ReadFile(filepath.Join(snapDir, "entry.json")); err == nil {
 		_ = json.Unmarshal(b, &info)
+	}
+	if ok, err := entryRestoreSafe(root, entryPath, snapDir, info); err != nil {
+		return err
+	} else if !ok {
+		return fmt.Errorf("entry was replaced outside this bridge transaction; refusing to overwrite it")
 	}
 	if info.IsSymlink && info.LinkTarget != "" {
 		tmp := filepath.Join(filepath.Dir(entryPath), ".idleleo-recover.tmp")
