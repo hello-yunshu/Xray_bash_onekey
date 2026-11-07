@@ -9,7 +9,9 @@
 > **2026-11-07 状态**：v3.3.6 已发布（tag `v3.3.6`，commit
 > `0fa7052e`，`install.sh` SHA-256 `a8e4d850…358c`）。`develop/go-native` 相对
 > 该 pin 仅多出测试与文档，产品代码无差异；`tests/go-parity` 的 pin 已同步到
-> 3.3.6，Phase 01 在固定 digest 容器内 **34 / 34 通过**。下面各节描述的
+> 3.3.6，Phase 01 在固定 digest 容器内 **35 / 35 通过**（含真实 Xray
+> `C06.real` 与 `C12.1/C12.2` 零差异校验，见
+> [DOCKER_ACCEPTANCE_2026-11-07.md](DOCKER_ACCEPTANCE_2026-11-07.md)）。下面各节描述的
 > `4752f77` 仍是 F01–F28 的**行为基线**（3.3.6 仅删除了一行不可达的 `-u`
 > 死标志，行为未变）；迁移状态没有因此改变，见
 > [FEATURE_PARITY_RESULTS.md](../release/FEATURE_PARITY_RESULTS.md) 第 5 节。
