@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## 3.3.5 — 2026-11-07
+
+### 修复
+
+- **xHTTP 上行超过 1MB 返回 413（历史模板缺陷，非本版引入）**：`335f4d8c`
+  起生成的 `/etc/idleleo/conf/nginx/00-xray.conf` 把 xhttp location 的
+  `client_max_body_size 0;` 注释掉，Nginx 回落默认 `1m`，`stream-one`
+  的大请求体（如 `git push`）失败；ws location 一直正常。模板已改为生效行，
+  并去掉对 `grpc_pass` 无效的 `proxy_buffering` 假配置。已部署节点需要
+  **重装**或手工放开该行；`-u` 不重建 Nginx 配置，更新成功后会打印提示。
+- **保留的 auto_update cron 与全量重装不会静默回退已提交的迁移**：Bash
+  自更新与安装 bootstrap 原先无条件把 `/usr/bin/idleleo` 重新指向
+  `/etc/idleleo/install.sh`；现在检测到 Go 入口或 journal `COMMITTED` 时只刷新
+  Bash 脚本、恢复 Go 入口。对从未迁移的 v3.3.4 用户，该分支不可达，行为不变。
+
+### 说明
+
+- **Go 管理器仍为实验性，3.3.5 不启用**。本版不发布 Go 二进制、不写入
+  bridge 清单；清单地址保持不存在时，新装、`-u`、全量重装、菜单、
+  auto_update 与 cron 都不会探测或提示 Go 迁移，也不会产生任何 bridge 请求。
+  迁移代码仅为后续版本保留，唯一入口是显式的 `--internal-bridge-offer`，
+  供维护者验证使用，不面向普通用户。
+
 ## 3.3.4 — 2026-11-05
 
 菜单 i18n 的 locale 依赖修复，以及 GeoData 手动刷新前置确认。
