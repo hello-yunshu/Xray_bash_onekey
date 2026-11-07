@@ -8854,7 +8854,7 @@ set_geodata_menu() {
 
 setup_auto_clean_logs() {
     local logrotate_config="${LOGROTATE_CONFIG_PATH:-/etc/logrotate.d/xray_log_cleanup}"
-    local logrotate_dir tmp_config nginx_user nginx_group
+    local logrotate_dir tmp_config nginx_user nginx_group logrotate_dropin_dir logrotate_dropin
     echo
 
     log_echo "${GreenBG} $(gettext "是否需要设置自动清理日志") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -8927,6 +8927,26 @@ EOF
             rm -f "${tmp_config}"
             return 1
         fi
+        # Ubuntu/Debian 的 logrotate.service 带 ProtectSystem=full，/usr 在单元
+        # 命名空间内只读；${nginx_dir} 位于 /usr/local，轮转时会 EROFS。
+        # logrotate --debug 只做模拟且不带该沙箱，抓不到这个问题，因此显式
+        # 放行日志目录（前缀 - 表示目录不存在时忽略）。
+        logrotate_dropin_dir="${LOGROTATE_DROPIN_DIR:-/etc/systemd/system/logrotate.service.d}"
+        logrotate_dropin="${logrotate_dropin_dir}/10-idleleo-readwrite.conf"
+        if ! mkdir -p "${logrotate_dropin_dir}" ||
+            ! cat >"${logrotate_dropin}" <<EOF
+[Service]
+ReadWritePaths=-${nginx_dir}/logs
+EOF
+        then
+            rm -f "${logrotate_dropin}"
+            return 1
+        fi
+        if ! chmod 644 "${logrotate_dropin}"; then
+            rm -f "${logrotate_dropin}"
+            return 1
+        fi
+        systemctl daemon-reload >/dev/null 2>&1 || true
         judge -r "$(gettext "设置自动清理日志")"
         ;;
     esac
@@ -10957,6 +10977,11 @@ uninstall_all() {
         sed -i "\|${ssl_update_file}|d" "${crontab_file}"
     fi
     [[ -f "/etc/logrotate.d/xray_log_cleanup" ]] && rm -f "/etc/logrotate.d/xray_log_cleanup"
+    logrotate_dropin_dir="${LOGROTATE_DROPIN_DIR:-/etc/systemd/system/logrotate.service.d}"
+    if [[ -f "${logrotate_dropin_dir}/10-idleleo-readwrite.conf" ]]; then
+        rm -f "${logrotate_dropin_dir}/10-idleleo-readwrite.conf"
+        systemctl daemon-reload >/dev/null 2>&1 || true
+    fi
     [[ -L "/usr/local/etc/xray/config.json" ]] && rm -f "/usr/local/etc/xray/config.json"
     [[ -L "/usr/local/share/xray" ]] && rm -f "/usr/local/share/xray"
     # Node cleanup must not depend on the binary surviving: a missing binary is

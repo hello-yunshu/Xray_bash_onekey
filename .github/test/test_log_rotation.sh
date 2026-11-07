@@ -36,11 +36,12 @@ judge() {
 }
 systemctl() {
     printf '%s\n' "$*" >>"${SYSTEMCTL_TEST_CALLS}"
-    [[ "$*" == 'enable --now logrotate.timer' ]]
+    [[ "$*" == 'enable --now logrotate.timer' || "$*" == 'daemon-reload' ]]
 }
 
 mkdir -p "${TMP_ROOT}/bin" "${TMP_ROOT}/logrotate.d"
 export LOGROTATE_CONFIG_PATH="${TMP_ROOT}/logrotate.d/xray_log_cleanup"
+export LOGROTATE_DROPIN_DIR="${TMP_ROOT}/logrotate.service.d"
 export LOGROTATE_TEST_CALLS="${TMP_ROOT}/logrotate.calls"
 export SYSTEMCTL_TEST_CALLS="${TMP_ROOT}/systemctl.calls"
 export nginx_dir="${TMP_ROOT}/nginx"
@@ -86,6 +87,21 @@ if [[ -s "${LOGROTATE_TEST_CALLS}" ]]; then
     ok 'generated configuration is validated before installation'
 else
     bad 'logrotate validation was not invoked'
+fi
+# logrotate.service 在 Ubuntu/Debian 上带 ProtectSystem=full（/usr 只读），
+# 而 nginx 日志位于 /usr/local；必须落一份 ReadWritePaths drop-in，否则
+# 轮转 rename 会 EROFS，logrotate --debug 抓不到。
+DROPIN_FILE="${LOGROTATE_DROPIN_DIR}/10-idleleo-readwrite.conf"
+if [[ -f "${DROPIN_FILE}" ]] && grep -Fq '[Service]' "${DROPIN_FILE}" &&
+    grep -Fqx "ReadWritePaths=-${nginx_dir}/logs" "${DROPIN_FILE}"; then
+    ok 'systemd drop-in grants ReadWritePaths for the nginx log directory'
+else
+    bad 'missing ReadWritePaths drop-in for the nginx log directory'
+fi
+if grep -Fq 'daemon-reload' "${SYSTEMCTL_TEST_CALLS}"; then
+    ok 'logrotate.service drop-in is reloaded by systemd'
+else
+    bad 'drop-in was written without a systemctl daemon-reload'
 fi
 
 printf 'Checking manual cleanup error reporting...\n'
