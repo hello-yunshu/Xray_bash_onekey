@@ -8,9 +8,9 @@
 
 | 项 | Bash 通道（现状，未改） | Go 通道（本轮实现） |
 |---|---|---|
-| 版本来源 | API `shell_online_version` = `3.3.5`（线上，2026-11-07 发布） | Go release manifest `channel=go` |
+| 版本来源 | API `shell_online_version` = `3.3.6`（线上，2026-11-07 发布） | Go release manifest `channel=go` |
 | 资产 | `install.sh` + 固定捆包 | `idleleo-linux-amd64` / `linux-arm64` |
-| 校验 | `shell_release_sha256` = `9e415e0f…d3eb`（= 已发布 v3.3.5 install.sh） | manifest 内 per-asset `sha256` + `size` |
+| 校验 | `shell_release_sha256` = `a8e4d850…358c`（= 已发布 v3.3.6 install.sh） | manifest 内 per-asset `sha256` + `size` |
 | 管理器状态 | Bash `install_config.json` / `auto_update` cron | `etc/idleleo/release/channel.json`、`var/lib/idleleo/release/state.json` |
 | 更新执行者 | `scripts/auto_update.sh` | `idleleo schedule` 的 `auto-update` job → `internal/release` |
 | 发布门禁 | `test-install.yml` + Bash `release-gate` | `check_release_gate.py` / `go-release-qualification.yml`（当前红灯） |
