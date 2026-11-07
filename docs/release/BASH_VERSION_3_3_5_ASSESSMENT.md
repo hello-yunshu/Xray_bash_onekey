@@ -14,6 +14,11 @@
 > Go，唯一可达入口是显式内部参数 `--internal-bridge-offer`。因此下文“手动 TTY
 > `-u` 触发”的表述只代表评估时的候选设计，不是已发布行为；真实 v3.3.4→3.3.5
 > 升级实测 `bridge_requests=0`、无迁移文案。
+>
+> **2026-11-07 后续**：3.3.5 的 `-u` 分支仍残留一行不可达的
+> `bridge_manual_invocation="on"`；该行已在 3.3.6 删除（tag `v3.3.6`，
+> install.sh `a8e4d850…358c`），并有 `test_bridge_offer_dormant.sh` 防回归。
+> 3.3.5 本身对用户不可见的历史结论不变。
 
 ## 结论
 
