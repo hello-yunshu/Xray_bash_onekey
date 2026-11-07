@@ -4,6 +4,10 @@
 > 行为基线：`4752f77` 的完整 Bash 源码（`install.sh` + `scripts/` + `config/`），
 > `install.sh` SHA-256 `0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6`。
 > 当前 `main` 为 `59a87c6`；与基线相比只多出 CI 测试/工作流 4 个提交，`install.sh`、`scripts/`、`config/` 无差异（`git diff --stat 4752f77 59a87c6 -- install.sh scripts config` 为空）。
+> **2026-11-07 状态**：`main` 已到 `bebbee3`（v3.3.5 已发布，`install.sh`
+> SHA-256 `9e415e0f…d3eb`）；`develop/go-native` 相对 pin 只差一行有意的
+> `-u` 死标志移除。下面的可行性证据仍以 `4752f77` 为行为基线；更新 pin 必须等
+> 下一次 Shell 发布（见 [FEATURE_PARITY_RESULTS.md](../release/FEATURE_PARITY_RESULTS.md) 第 5 节）。
 > 本仓库中**存在 Phase 01 候选 Go 管理器**（`cmd/idleleo`，只在隔离沙盒执行变更），
 > 它不是生产替代品；`tests/go-parity/prototype` 仍只是参考原型，不能被当作实现。
 

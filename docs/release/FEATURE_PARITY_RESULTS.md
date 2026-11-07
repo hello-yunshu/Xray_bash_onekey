@@ -77,3 +77,29 @@ RELEASE BLOCKED: pending 28; missing executable feature tests 28
 | 本轮 E2E 原始日志 | `/tmp/phase04-c.log`（42/42）、`/tmp/phase04-b.log`（36/36，旧轮次） |
 | Phase 03 迁移证据 | [PHASE_03_REPORT.md](../go/PHASE_03_REPORT.md) |
 | 发布门禁红灯 | [GO_RELEASE_CANDIDATE.md](GO_RELEASE_CANDIDATE.md) 第 6 节 |
+
+## 5. 2026-11-07 复核（v3.3.5 已发布后）
+
+**结论：仍是 `0 / 28`，本轮不升格任何一项。** v3.3.5 已真实发布，但发布的是
+Bash 侧修复，Go 二进制、bridge 清单和 `VERIFIED_GO_PARITY` 都没有发布；按硬约束
+“现在是 Go 实验性、需显式选择”，矩阵必须保持红。
+
+未实现项按解锁条件分三类，本轮都没有条件执行：
+
+| 类别 | 代表项 | 现在缺什么才能判定 |
+|---|---|---|
+| 需要真实公网与 CA | F12（ACME 签发/续期/清理） | 真实域名 + 可访问 CA + DNS-01/HTTP-01 环境；容器内无法签发 |
+| 需要真实多机/数据面 | F04（主备负载均衡）、F24/F25（多入口/多落地） | 至少两台真实 VPS、真实 DNS 与故障切换观测；容器只能证明单机路径 |
+| 需要先发布 Go 通道 | F09/F10/F13/F17/F20/F21 等 Go 原生入口 | 发布 Go 二进制与 bridge 清单，并在发布后重跑同一可执行测试；不能用 Bash 夹具替代 |
+
+`C12.1` / `C12.2` 本轮仍为 **FAIL**，但原因已经收敛为**一行有意的加固**：
+
+- 3.3.5 的 `-u` 分支仍写着无人读取的 `bridge_manual_invocation="on"`。为避免未来
+  合并时被重新接回自动 offer，`develop/go-native` 已删除该行；因此
+  `install.sh` 与已发布 pin（v3.3.4，`0af8e8f2…`）不同。
+- `C12.2` 的 `git diff $PIN..HEAD -- install.sh scripts config` 只差这一行（外加
+  已发布的 3.3.5 版本号）。
+- **转绿条件（不可放宽）**：把这条加固随下一次 Shell 发布（例如 3.3.6）发出去，
+  然后同步更新 `tests/go-parity/phase01/run_phase01.sh` 的 `PIN` / `PIN_SHA` /
+  `C12.4` 期望版本和 `parity/scripts/run_parity.py` 的 pin。在发布之前把 pin 指向
+  未发布提交属于自证，不能算通过。

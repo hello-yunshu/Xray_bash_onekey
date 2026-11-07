@@ -12821,14 +12821,9 @@ _update_sh_impl() {
             log_echo "${OK} ${GreenBG} $(gettext "更新") $(gettext "完成") ${Font}"
             rxa_warn_legacy_xhttp_limit
             [[ ${version_difference} == 1 ]] && log_echo "${Warning} ${YellowBG} $(gettext "脚本版本变化较大, 若服务无法正常运行请卸载后重装")! ${Font}"
-            # Phase 03: a manual TTY update may discover the Go bridge. Run the
-            # freshly installed script's own offer so this same run is wired
-            # through the maintenance version instead of the old functions.
-            if [[ "${bridge_manual_invocation:-off}" == "on" ]] && [[ -t 0 ]] &&
-                [[ ${auto_update} != "YES" ]] && [[ "${update_assume_yes:-off}" != "YES" ]]; then
-                bash "${idleleo}" --internal-bridge-offer
-                return 0
-            fi
+            # 3.3.5 ships the Go bridge code but keeps it dormant: a plain `-u`
+            # must not probe, prompt or download anything Go-related. The
+            # explicit entry stays `--internal-bridge-offer` only.
             return 0
             ;;
         *)
@@ -12849,9 +12844,6 @@ _update_sh_impl() {
         rxa_clear_screen
         log_echo "${OK} ${GreenBG} $(gettext "当前已经是最新版本") ${Font}"
         rxa_warn_legacy_xhttp_limit
-        if [[ "${bridge_manual_invocation:-off}" == "on" ]] && [[ -t 0 ]] && [[ ${auto_update} != "YES" ]]; then
-            bridge_migration_offer || true
-        fi
     fi
     return 0
 
@@ -12861,10 +12853,11 @@ update_sh() {
     with_update_lock _update_sh_impl "$@"
 }
 
-# Phase 03 bridge discovery. This is the ONLY Bash path that may offer the Go
-# migration: an explicit manual check (-u) in a real TTY, never auto_update,
-# never --yes, never a pipe. It performs no network request and changes
-# nothing unless the operator explicitly answers yes.
+# Phase 03 bridge discovery, kept dormant in the 3.3.5 release. Nothing in the
+# normal install / `-u` / auto_update / menu / cron paths calls it: the only
+# entry is the explicit `--internal-bridge-offer` switch. That keeps 3.3.5
+# users from seeing or contacting the experimental Go channel until it is
+# deliberately enabled in a later release.
 bridge_asset_arch() {
     case "$(uname -m)" in
         x86_64 | amd64) printf 'amd64' ;;
@@ -13335,7 +13328,8 @@ list() {
     '-u' | '--update')
         update_assume_yes="off"
         update_allow_major="off"
-        bridge_manual_invocation="on"
+        # Never arm the Go migration offer here. The only reachable entry is the
+        # explicit --internal-bridge-offer parameter; 3.3.5 must stay invisible.
         local _update_arg
         for _update_arg in "${2:-}" "${3:-}" "${4:-}"; do
             case "${_update_arg}" in
