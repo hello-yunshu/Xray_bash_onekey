@@ -8,6 +8,13 @@
   `Xray_bash_onekey_api` 的 `shell_online_version` / `shell_release_sha256`、
   `scripts/auto_update.sh` 更新链、Phase 03 E2E 夹具。
 
+> **2026-11-07 发布后复核**：v3.3.5 已发布（tag `v3.3.5`，install.sh
+> `9e415e0f…`，API `shell_online_version` / `shell_release_sha256` 已同步）。
+> 发布前已移除本评估中设想的 `-u` 自动迁移入口：3.3.5 对普通用户完全不提示
+> Go，唯一可达入口是显式内部参数 `--internal-bridge-offer`。因此下文“手动 TTY
+> `-u` 触发”的表述只代表评估时的候选设计，不是已发布行为；真实 v3.3.4→3.3.5
+> 升级实测 `bridge_requests=0`、无迁移文案。
+
 ## 结论
 
 1. **能升。** `3.3.4 → 3.3.5` 是同一 minor 内的补丁版本，`--yes` 会自动确认；
@@ -63,8 +70,9 @@
   - Release 已创建、API 未改，用户停留在 3.3.4，不会误升级；
   - CDN 未收敛时 `promote` 会红灯并打印手工步骤，不会静默。
 - 现有工作流顺序（先 Release、后 API）是正确的；本轮不修改。
-- 迁移入口只出现在**手动 TTY `-u`**（非 `auto_update`、非 `--yes`）；
-  自动更新链即使升到 3.3.5 也不会触发 Bridge offer。
+- 迁移入口**不出现在** `-u`（包括手动 TTY）；3.3.5 发布前已移除自动 offer，
+  自动更新链与其他路径均不会触发 Bridge offer。唯一入口是显式内部参数
+  `--internal-bridge-offer`。
 
 ### 5. 测试与夹具版本耦合
 
@@ -88,11 +96,14 @@
    `release-manifest.json` 的 `installSha256` 一致。
 6. API PR 合并后确认 CDN/raw `shell_online_version=3.3.5`、
    `shell_release_sha256` 与 Release 资产一致。
-7. 真实 v3.3.4 节点执行 `-u`：下载 3.3.5、TTY 下看到迁移入口；
-   无资产清单时干净跳过（不下载、不改动）。
+7. 真实 v3.3.4 节点执行 `-u`：下载 3.3.5、升级成功，且**看不到迁移入口**；
+   无资产清单时干净跳过（不下载、不改动）。发布后已实测通过。
 
 ## 未决项
 
 - 本轮不执行第 5–7 步（不合并 `main`、不发布、不碰真实 VPS）。
+- **2026-11-07 更新**：第 5–7 步已完成——`v3.3.5` Release 与资产、API
+  `shell_online_version=3.3.5`、真实 v3.3.4→3.3.5 升级均验证通过；升级后
+  用户看不到任何 Go 迁移入口。
 - 若 P0-2 迟迟不落地，3.3.5 不应合并 `main`；否则用户只会看到“资产尚未发布”，
   属于无效发布。

@@ -178,6 +178,19 @@ idleleo --update --yes --allow-major  # 계열 간 업데이트; 제한을 명�
 
 어느 단계라도 실패하면(구성 쓰기, 서비스 시작, 상태 확인 등) 스크립트는 백업된 원래 구성으로 롤백합니다. 백업 디렉터리는 고유 타임스탬프를 사용하여 연속 재구성이 충돌하지 않습니다.
 
+## Go 관리자 마이그레이션(실험)
+
+> 근거 수준: 컨테이너 수준 `CONTAINER_VERIFIED`(digest가 고정된 Ubuntu 24.04와 실제 systemd/Xray/nginx), **"실제 VPS에서 검증됨"은 아님**. 실제 ACME 발급/갱신은 이번 범위에서 제외됩니다.
+
+- **3.3.5는 Go를 활성화하지 않으며 마이그레이션을 자동으로 제안하지 않습니다**: 새 설치, `-u`, `auto_update`, 전체 재설치, 메뉴 모두 Go를 탐지·다운로드·언급하지 않으며, 일반 사용자는 어떤 마이그레이션 진입점도 볼 수 없습니다. 마이그레이션 코드는 이후 버전을 위해 남겨진 것이고, 관리자가 검증할 때 내부 매개변수 `--internal-bridge-offer`로만 도달합니다.
+- **마이그레이션 절차**: 후보 바이너리 SHA256 + ELF 검증 → 읽기 전용 감사 및 전체 변경 요약 → 스냅샷/journal → `xray -test` / `nginx -t` 사전 검증 → `/usr/bin/idleleo` 원자적 전환 → 프로젝트 cron 4개 정확히 제거 → `idleleo-schedule.timer` 설치.
+- **보존 항목**: `/etc/idleleo` 구성, 인증서와 개인 키, 사용자, 사용자 정의 cron, 사용자 정의 nginx 조각.
+- **복구**: 실패한 단계는 `/opt/idleleo/recovery/idleleo-recover`로 복원되며, `COMMITTED` 이후에는 암시적 역마이그레이션을 하지 않습니다.
+- **예약 작업**: `idleleo schedule status`로 조회하고 `install` / `remove` / `run`으로 관리합니다. GeoData 새로고침과 통계 수집은 네이티브(systemd timer)로 구현되었으며, 자동 업데이트는 Go 릴리스 채널을 사용하고 **명시적 `idleleo update configure --manifest-url URL`이 필요합니다**; 미설정 시 매 주기 `degraded`를 기록합니다(출처를 추측하지 않고 조용히 실패하지 않음). 인증서 갱신은 여전히 ACME가 없으며 외부 갱신 후 지문 계약과 만료 경고만 제공합니다.
+- **Phase 04 명령**: `idleleo update status|check|apply|configure`, `idleleo stats [--json]`, `idleleo service status|start|stop|restart|reload|logs`, `idleleo rill status`. 서비스 명령은 자체 unit만 허용하며 `stats`는 읽기 전용이고 watch/reset은 지원하지 않습니다.
+- **인증서 계약**: 인증서 DER 지문 기준선을 기록하고 지문이 바뀔 때만 `restart xray` / `reload nginx`를 수행하며, 바뀌지 않으면 재시작하지 않습니다. 모든 사용자가 읽을 수 있는 개인 키는 reload를 거부하며, 만료 또는 30일 미만에서 변화가 없으면 `degraded`를 기록합니다. **실제 ACME 발급/갱신/정리는 구현되지 않았습니다.**
+- **사용자 정의 콘텐츠**: 감사에서 나열된 미지의 Xray 최상위 키와 사용자 정의 nginx 조각은 먼저 수동 확인해야 하며, 그렇지 않으면 `prepare`가 exit 6으로 거부하고 조용히 덮어쓰지 않습니다.
+
 ## 문제 해결
 
 | 증상 | 먼저 확인 | 제안 |

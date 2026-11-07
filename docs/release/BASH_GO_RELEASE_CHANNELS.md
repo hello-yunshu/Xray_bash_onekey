@@ -8,9 +8,9 @@
 
 | 项 | Bash 通道（现状，未改） | Go 通道（本轮实现） |
 |---|---|---|
-| 版本来源 | API `shell_online_version` = `3.3.4`（线上）；本分支 `3.3.5` 待发布 | Go release manifest `channel=go` |
+| 版本来源 | API `shell_online_version` = `3.3.5`（线上，2026-11-07 发布） | Go release manifest `channel=go` |
 | 资产 | `install.sh` + 固定捆包 | `idleleo-linux-amd64` / `linux-arm64` |
-| 校验 | `shell_release_sha256` = `0af8e8f2…cfa6`（与基线一致） | manifest 内 per-asset `sha256` + `size` |
+| 校验 | `shell_release_sha256` = `9e415e0f…d3eb`（= 已发布 v3.3.5 install.sh） | manifest 内 per-asset `sha256` + `size` |
 | 管理器状态 | Bash `install_config.json` / `auto_update` cron | `etc/idleleo/release/channel.json`、`var/lib/idleleo/release/state.json` |
 | 更新执行者 | `scripts/auto_update.sh` | `idleleo schedule` 的 `auto-update` job → `internal/release` |
 | 发布门禁 | `test-install.yml` + Bash `release-gate` | `check_release_gate.py` / `go-release-qualification.yml`（当前红灯） |
@@ -52,14 +52,15 @@
 
 ## 4. 自动更新不会触发 Bash → Go 迁移
 
-- Bash `install.sh -u` 的**手动 TTY 路径**增加了迁移入口（版本 3.3.5，待发布）；
-  `auto_update=YES`、`--yes` 与非 TTY 不进入该入口（Phase 03 实证：三类路径
-  `bridge_requests=0`，入口不变）；
-- 「已是最新」分支同样只在手动 TTY 下提示，从不自动切换；
+- **3.3.5 已移除 `install.sh -u` 的自动迁移入口**：新装、`-u`、`auto_update`、
+  `--yes`、非 TTY、菜单与全量重装都不会探测、下载或提示 Go（发布后实测
+  `bridge_requests=0`、无迁移文案、无 journal/目录）；
+- 「已是最新」分支同样不再提示，更不会自动切换；
 - Go 的 `AutoUpdate` 只更新 `idleleo` 自身二进制，不写 `/usr/bin/idleleo` 以外的入口，
   不安装/移除 Bash 文件，不修改 `shell_online_version`；
-- Bridge 迁移仍只在 `install.sh -u` 的真实 TTY 手动路径触发（Phase 03 实证：
-  `auto_update=YES` 与非 TTY 均 `requests=0`、入口不变）；
+- Bridge 迁移代码仅为后续版本保留，唯一可达入口是显式的内部参数
+  `--internal-bridge-offer`（维护者验证用），普通用户路径不可达；CI 的
+  `.github/test/test_bridge_offer_dormant.sh` 防止未来合并把它接回 `-u`；
 - 已 `COMMITTED` 的 Go 安装不会因 Bash `-u` 自动反向迁移；保留的
   `auto_update.sh` cron 即使刷新 Bash 脚本，检测到 Go 入口/journal `COMMITTED`
   时也不会重写 `/usr/bin/idleleo`（Phase 03 回归覆盖）。同样的守卫已前移到

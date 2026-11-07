@@ -178,6 +178,19 @@ When the installer runs again on an installed system, it automatically backs up 
 
 If any step fails (configuration write, service start, health check, and so on), the script rolls back to the backed-up original configuration. Backup directories use unique timestamps, so repeated reconfigurations do not collide.
 
+## Go manager migration (experimental)
+
+> Evidence level: container-level `CONTAINER_VERIFIED` (digest-pinned Ubuntu 24.04 with real systemd/Xray/nginx), **not "verified on a real VPS"**. Real ACME issuance/renewal is out of scope for this round.
+
+- **3.3.5 does not enable Go and never prompts for migration**: fresh installs, `-u`, `auto_update`, full reinstall, and the menu never probe, download, or mention Go; ordinary users see no migration entry point. The migration code is retained only for later releases and is reached solely through the internal parameter `--internal-bridge-offer` during maintainer verification.
+- **Migration steps**: Candidate binary SHA256 + ELF verification → read-only audit and full change summary → snapshot/journal → `xray -test` / `nginx -t` preflight → atomic switch of `/usr/bin/idleleo` → precise removal of the 4 project cron entries → install `idleleo-schedule.timer`.
+- **Preserved**: `/etc/idleleo` configuration, certificates and private keys, users, user-defined cron, custom nginx fragments.
+- **Rollback**: Any failed step is restored by `/opt/idleleo/recovery/idleleo-recover`; once `COMMITTED`, no implicit reverse migration.
+- **Schedules**: `idleleo schedule status` to inspect, `install` / `remove` / `run` to manage. GeoData refresh and stats collection are native (systemd timers); auto-update uses the Go release channel and **requires an explicit `idleleo update configure --manifest-url URL`**; when unconfigured it records `degraded` every round (never guesses a source and never fails silently); certificate renewal still has no ACME, only the fingerprint contract and expiry warnings after external renewal.
+- **Phase 04 commands**: `idleleo update status|check|apply|configure`, `idleleo stats [--json]`, `idleleo service status|start|stop|restart|reload|logs`, `idleleo rill status`. Service commands allow only the project's own units; `stats` is read-only and supports no watch/reset.
+- **Certificate contract**: Records the DER fingerprint baseline; `restart xray` / `reload nginx` only when the fingerprint changes, no restart when unchanged; a world-readable private key refuses reload; expiry or <30 days without change records `degraded`. **Real ACME issuance/renewal/cleanup is not implemented.**
+- **Custom content**: Unknown Xray top-level keys and custom nginx fragments listed by the audit must be confirmed manually, otherwise `prepare` refuses with exit 6 and never overwrites silently.
+
 ## Troubleshooting
 
 | Symptom | Check first | Suggested action |

@@ -152,7 +152,14 @@ C12 当前真实状态（与上表一致）：
 - C12.3、C12.4：**PASS**。C12.4 改为加载已发布 pin（`git show $PIN:install.sh`），
   不再把 develop 上未发布的 3.3.5 误判为 legacy 损坏。
 
-结论：C12.1/C12.2 是“发布前应有的红”，不是回归；发布 3.3.5 并更新 pin 后才会转绿。
+结论：C12.1/C12.2 是“发布前应有的红”，不是回归。
+
+**2026-11-07 更新**：v3.3.5 已发布，但 `develop/go-native` 为避免 `-u` 分支残留的
+`bridge_manual_invocation="on"` 被未来合并重新接回自动 offer，删除了该行；因此与
+pin 的差异收敛为这一行（外加已发布的 3.3.5 版本号）。要真绿必须让这条加固随下一次
+Shell 发布，再更新 `PIN` / `PIN_SHA` / C12.4 期望版本；在未发布前把 pin 指向本分支
+提交属于自证，不算通过。详见
+[FEATURE_PARITY_RESULTS.md](../release/FEATURE_PARITY_RESULTS.md) 第 5 节。
 
 ## 5. F01–F28 状态变化
 
