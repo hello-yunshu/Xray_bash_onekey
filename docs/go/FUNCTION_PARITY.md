@@ -3,11 +3,16 @@
 > 本文件是 Phase 00 的**事实基线**，不是迁移完成声明。
 > 行为基线：`4752f77` 的完整 Bash 源码（`install.sh` + `scripts/` + `config/`），
 > `install.sh` SHA-256 `0af8e8f222f26f02904f80bfd0e3cf5cd119b24bbde462019f0b582e1b79cfa6`。
-> 当前 `main` 为 `59a87c6`；与基线相比只多出 CI 测试/工作流 4 个提交，`install.sh`、`scripts/`、`config/` 无差异（`git diff --stat 4752f77 59a87c6 -- install.sh scripts config` 为空）。
-> **2026-11-07 状态**：`main` 已到 `bebbee3`（v3.3.5 已发布，`install.sh`
-> SHA-256 `9e415e0f…d3eb`）；`develop/go-native` 相对 pin 只差一行有意的
-> `-u` 死标志移除。下面的可行性证据仍以 `4752f77` 为行为基线；更新 pin 必须等
-> 下一次 Shell 发布（见 [FEATURE_PARITY_RESULTS.md](../release/FEATURE_PARITY_RESULTS.md) 第 5 节）。
+> 当前 `main` 为 `04d76c2`（v3.3.6 之后追加了一次自动翻译提交；tag `v3.3.6`
+> 指向 `0fa7052e`）。与 `4752f77` 相比，`install.sh` 只差“删除 `-u` 死标志”
+> 一行与版本号，`scripts/`、`config/` 无差异。
+> **2026-11-07 状态**：v3.3.6 已发布（tag `v3.3.6`，commit
+> `0fa7052e`，`install.sh` SHA-256 `a8e4d850…358c`）。`develop/go-native` 相对
+> 该 pin 仅多出测试与文档，产品代码无差异；`tests/go-parity` 的 pin 已同步到
+> 3.3.6，Phase 01 在固定 digest 容器内 **34 / 34 通过**。下面各节描述的
+> `4752f77` 仍是 F01–F28 的**行为基线**（3.3.6 仅删除了一行不可达的 `-u`
+> 死标志，行为未变）；迁移状态没有因此改变，见
+> [FEATURE_PARITY_RESULTS.md](../release/FEATURE_PARITY_RESULTS.md) 第 5 节。
 > 本仓库中**存在 Phase 01 候选 Go 管理器**（`cmd/idleleo`，只在隔离沙盒执行变更），
 > 它不是生产替代品；`tests/go-parity/prototype` 仍只是参考原型，不能被当作实现。
 
