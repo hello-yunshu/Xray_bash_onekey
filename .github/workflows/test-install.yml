@@ -91,6 +91,10 @@ jobs:
           bash .github/test/test_fail2ban.sh
           bash .github/test/test_nginx_tar_security.sh
           bash .github/test/test_nginx_update_rollback.sh
+          # Historical template defect 335f4d8c: the generated xhttp location
+          # must carry an active client_max_body_size 0 and no dead
+          # proxy_buffering next to grpc_pass.
+          bash .github/test/test_nginx_xhttp_limits.sh
           bash .github/test/test_phase1_safety.sh
           # Bootstrap dependency / error-propagation regression (13.2-13.4, 13.10):
           # pkg_install multi-package failure propagation, offline/online language
