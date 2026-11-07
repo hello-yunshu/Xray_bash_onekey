@@ -182,7 +182,7 @@ idleleo --update --yes --allow-major  # 跨发布序列，需显式解除限制
 
 > 证据等级：容器级 `CONTAINER_VERIFIED`（固定 digest 的 Ubuntu 24.04 + 真实 systemd/Xray/nginx 容器），**不是“真实 VPS 已验证”**。真实 ACME 签发/续期不纳入本轮验收。
 
-- **3.3.5 不启用 Go，也不会自动提示迁移**：新装、`-u`、`auto_update`、全量重装和菜单都不会探测、下载或提示 Go，普通用户看不到任何迁移入口。迁移代码仅为后续版本保留，维护者验证时才显式传入内部参数 `--internal-bridge-offer`。
+- **当前版本不启用 Go，也不会自动提示迁移**：新装、`-u`、`auto_update`、全量重装和菜单都不会探测、下载或提示 Go，普通用户看不到任何迁移入口。迁移代码仅为后续版本保留，维护者验证时才显式传入内部参数 `--internal-bridge-offer`。
 - **迁移动作**：候选二进制 SHA256 + ELF 校验 → 只读审计与完整变更摘要 → 快照/journal → `xray -test` / `nginx -t` 预验收 → 原子切换 `/usr/bin/idleleo` → 精确移除 4 条项目 cron → 安装 `idleleo-schedule.timer`。
 - **保留内容**：`/etc/idleleo` 配置、证书与私钥、用户、用户自定义 cron、nginx 自定义片段。
 - **回滚**：任一步失败由 `/opt/idleleo/recovery/idleleo-recover` 恢复；已 `COMMITTED` 后不隐式逆向迁移。

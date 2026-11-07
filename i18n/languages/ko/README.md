@@ -182,7 +182,7 @@ idleleo --update --yes --allow-major  # 계열 간 업데이트; 제한을 명�
 
 > 근거 수준: 컨테이너 수준 `CONTAINER_VERIFIED`(digest가 고정된 Ubuntu 24.04와 실제 systemd/Xray/nginx), **"실제 VPS에서 검증됨"은 아님**. 실제 ACME 발급/갱신은 이번 범위에서 제외됩니다.
 
-- **3.3.5는 Go를 활성화하지 않으며 마이그레이션을 자동으로 제안하지 않습니다**: 새 설치, `-u`, `auto_update`, 전체 재설치, 메뉴 모두 Go를 탐지·다운로드·언급하지 않으며, 일반 사용자는 어떤 마이그레이션 진입점도 볼 수 없습니다. 마이그레이션 코드는 이후 버전을 위해 남겨진 것이고, 관리자가 검증할 때 내부 매개변수 `--internal-bridge-offer`로만 도달합니다.
+- **현재 버전은 Go를 활성화하지 않으며 마이그레이션을 자동으로 제안하지 않습니다**: 새 설치, `-u`, `auto_update`, 전체 재설치, 메뉴 모두 Go를 탐지·다운로드·언급하지 않으며, 일반 사용자는 어떤 마이그레이션 진입점도 볼 수 없습니다. 마이그레이션 코드는 이후 버전을 위해 남겨진 것이고, 관리자가 검증할 때 내부 매개변수 `--internal-bridge-offer`로만 도달합니다.
 - **마이그레이션 절차**: 후보 바이너리 SHA256 + ELF 검증 → 읽기 전용 감사 및 전체 변경 요약 → 스냅샷/journal → `xray -test` / `nginx -t` 사전 검증 → `/usr/bin/idleleo` 원자적 전환 → 프로젝트 cron 4개 정확히 제거 → `idleleo-schedule.timer` 설치.
 - **보존 항목**: `/etc/idleleo` 구성, 인증서와 개인 키, 사용자, 사용자 정의 cron, 사용자 정의 nginx 조각.
 - **복구**: 실패한 단계는 `/opt/idleleo/recovery/idleleo-recover`로 복원되며, `COMMITTED` 이후에는 암시적 역마이그레이션을 하지 않습니다.
