@@ -178,6 +178,15 @@ Lorsque l'installateur est relancé sur un système déjà installé, il sauvega
 
 Si une étape échoue (écriture de configuration, démarrage du service, contrôle de santé, etc.), le script revient à la configuration originale sauvegardée. Les répertoires de sauvegarde utilisent des horodatages uniques, de sorte que des reconfigurations successives ne se chevauchent pas.
 
+## Gestionnaire Go (expérimental, non activé)
+
+Le dépôt contient déjà le code source du futur gestionnaire Go et le code de pont de migration, mais **la version actuelle ne fournit pas de binaire Go et n'active pas la migration** :
+
+- Une nouvelle installation, `-u`, une réinstallation complète, le menu, `auto_update` et cron ne sondent, ne proposent et ne téléchargent jamais aucun actif Go, et n'émettent aucune requête vers le manifeste bridge.
+- Tant que l'URL du manifeste reste absente, aucun point d'entrée de migration n'apparaît ; les utilisateurs ordinaires ne voient aucune option Go.
+- Le seul point d'entrée est le paramètre explicite `--internal-bridge-offer`, réservé à la vérification des mainteneurs et non exposé aux utilisateurs ordinaires.
+- Le gestionnaire Go ne sera activé explicitement que dans une version ultérieure, une fois suffisamment stable pour la bascule ; d'ici là, continuez d'utiliser le script de gestion Bash existant.
+
 ## Dépannage
 
 | Symptôme | À vérifier en premier | Action suggérée |
