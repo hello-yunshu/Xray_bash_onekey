@@ -104,7 +104,15 @@ Bash 侧修复，Go 二进制、bridge 清单和 `VERIFIED_GO_PARITY` 都没有�
   `C12.4` 期望版本和 `parity/scripts/run_parity.py` 的 pin。在发布之前把 pin 指向
   未发布提交属于自证，不能算通过。
 
-复跑记录（2026-11-07，固定 digest 容器 `idleleo-phase01-test:1.24`，未提供
-Xray 二进制因此 `C06.real` 跳过）：**32 / 34 通过，失败项恰好只有
-`C12.1` / `C12.2`**；`C01`–`C11`、`C12.3`、`C12.4` 全绿。历史证据
-`phase01/evidence/c01_c12.tsv` 保留 2026-11-06 带真实 Xray 的 33/35 运行。
+> **2026-11-07 更新（v3.3.6 已发布）**：上述转绿条件已满足。3.3.6 把这条加固
+> 发布为 tag `v3.3.6`（commit
+> `0fa7052e51b9bd7e6ffb46bc86befb006034da3c`，install.sh
+> `a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c`，
+> `shell_version=3.3.6`）。`tests/go-parity` 的 `PIN` / `PIN_SHA` / `C12.4`
+> 期望版本、`parity/scripts/run_parity.py` 的 pin、`feature_contracts.json` 的
+> `baseline_commit` 与 `parity/ci` 模板引用均已同步到该 tag 的提交。
+>
+> 固定 digest 容器 `idleleo-phase01-test:1.24` 复跑（未提供 Xray，`C06.real`
+> 跳过）：**34 / 34 通过，0 失败**，`C12.1` / `C12.2` / `C12.4` 全绿。
+> `phase01/evidence/` 已更新为本次 34/34 结果；2026-11-06 带真实 Xray 的
+> 33/35 运行作为历史记录保留在本节文字中。
