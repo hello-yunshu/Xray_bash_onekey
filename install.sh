@@ -283,7 +283,7 @@ confirm_no_answer() {
     esac
 }
 
-shell_version="3.3.5"
+shell_version="3.3.6"
 shell_mode="$(gettext "未安装")"
 tls_mode="None"
 transport_mode="None"
@@ -13329,7 +13329,8 @@ list() {
         update_assume_yes="off"
         update_allow_major="off"
         # Never arm the Go migration offer here. The only reachable entry is the
-        # explicit --internal-bridge-offer parameter; 3.3.5 must stay invisible.
+        # explicit --internal-bridge-offer parameter; the Bash release must stay
+        # invisible to ordinary users.
         local _update_arg
         for _update_arg in "${2:-}" "${3:-}" "${4:-}"; do
             case "${_update_arg}" in
