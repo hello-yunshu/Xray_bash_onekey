@@ -8,10 +8,10 @@
 # only the project's cron is removed, and a hand-written cron entry survives.
 # It then runs the startup hook again to prove idempotence.
 #
-# Stage 05 uses a text-substituted script (3.3.4 -> 3.3.3) to exercise the
-# same-run hook; it is not a real v3.3.2 process. Stage 05b pins the real
-# v3.3.2 artifact by SHA256 and asserts it has no same-run hook: a real 3.3.2
-# process can only migrate on its next start.
+# Stage 05 uses a text-substituted script (current version -> previous patch) to
+# exercise the same-run hook; it is not a real older release process. Stage 05b
+# pins the real v3.3.2 artifact by SHA256 and asserts it has no same-run hook:
+# a real 3.3.2 process can only migrate on its next start.
 
 set -uo pipefail
 
@@ -35,6 +35,15 @@ check_not() {
 
 TMP_ROOT=$(mktemp -d)
 trap 'rm -rf "${TMP_ROOT}"' EXIT
+
+# The updater version must follow install.sh; hardcoding a release number turns
+# every version bump into a false failure. Stage 05 only needs "one patch older".
+SHELL_VERSION=$(sed -n 's/^shell_version="\([0-9][0-9.]*\)"$/\1/p' "${INSTALL_SH}" | head -n1)
+OLD_SHELL_VERSION=$(python3 -c 'import sys; p=sys.argv[1].split("."); print(f"{p[0]}.{p[1]}.{int(p[2])-1}")' "${SHELL_VERSION}")
+[[ -n "${SHELL_VERSION}" && -n "${OLD_SHELL_VERSION}" ]] || {
+    echo "cannot determine shell_version from ${INSTALL_SH}" >&2
+    exit 1
+}
 
 ROOT="${TMP_ROOT}/root"
 IDLE="${ROOT}/etc/idleleo"
@@ -104,18 +113,18 @@ export -f crontab systemctl chown
 
 # Build a runnable copy whose managed paths point at the test root, so the
 # child process cannot touch the real /etc/idleleo or /usr/local.
-python3 - "$INSTALL_SH" "$NEW_SH" "$OLD_SH" "$IDLE" "$LOCAL" "$SYSTEMD" <<'PY'
+python3 - "$INSTALL_SH" "$NEW_SH" "$OLD_SH" "$IDLE" "$LOCAL" "$SYSTEMD" "$SHELL_VERSION" "$OLD_SHELL_VERSION" <<'PY'
 import pathlib
 import sys
 
-source, new, old, idle, local, systemd = sys.argv[1:7]
+source, new, old, idle, local, systemd, current, previous = sys.argv[1:9]
 text = pathlib.Path(source).read_text(encoding="utf-8")
 text = text.replace("/etc/idleleo", idle)
 text = text.replace("/usr/local", local)
 text = text.replace("/etc/systemd", systemd)
 pathlib.Path(new).write_text(text, encoding="utf-8")
 pathlib.Path(old).write_text(
-    text.replace('shell_version="3.3.4"', 'shell_version="3.3.3"', 1),
+    text.replace(f'shell_version="{current}"', f'shell_version="{previous}"', 1),
     encoding="utf-8",
 )
 PY
@@ -146,8 +155,8 @@ LOG_FILE="${log_dir}/install.log"
 shell_version_tmp="${IDLE}/tmp/shell_version.tmp"
 mkdir -p "${IDLE}/tmp" "${BIN}"
 
-shell_version="3.3.3"
-shell_online_version="3.3.4"
+shell_version="${OLD_SHELL_VERSION}"
+shell_online_version="${SHELL_VERSION}"
 auto_update="NO"
 update_assume_yes="YES"
 update_allow_major="NO"
@@ -163,7 +172,7 @@ rxa_sync_release_helpers() { return 0; }
 rxa_reconcile_release() { return 0; }
 
 echo "============================================================"
-echo "  Stage 05: -u migrates automatically in the same run (simulated 3.3.3)"
+echo "  Stage 05: -u migrates automatically in the same run (simulated ${OLD_SHELL_VERSION})"
 echo "============================================================"
 
 : >"${SYSTEMCTL_LOG}"
@@ -171,7 +180,7 @@ _update_sh_impl -u --yes >"${TMP_ROOT}/update.out" 2>&1
 _update_rc=$?
 check "the non-interactive -u --yes update exits 0" test "${_update_rc}" -eq 0
 check "the update replaced the script with the downloaded version" \
-    grep -q '^shell_version="3.3.4"' "${DEST}"
+    grep -q "^shell_version=\"${SHELL_VERSION}\"" "${DEST}"
 
 if [[ "$(id -u)" -eq 0 ]]; then
     check "-u writes the native geodata block in the same run" \
