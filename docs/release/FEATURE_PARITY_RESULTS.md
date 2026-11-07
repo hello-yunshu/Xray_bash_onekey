@@ -103,3 +103,8 @@ Bash 侧修复，Go 二进制、bridge 清单和 `VERIFIED_GO_PARITY` 都没有�
   然后同步更新 `tests/go-parity/phase01/run_phase01.sh` 的 `PIN` / `PIN_SHA` /
   `C12.4` 期望版本和 `parity/scripts/run_parity.py` 的 pin。在发布之前把 pin 指向
   未发布提交属于自证，不能算通过。
+
+复跑记录（2026-11-07，固定 digest 容器 `idleleo-phase01-test:1.24`，未提供
+Xray 二进制因此 `C06.real` 跳过）：**32 / 34 通过，失败项恰好只有
+`C12.1` / `C12.2`**；`C01`–`C11`、`C12.3`、`C12.4` 全绿。历史证据
+`phase01/evidence/c01_c12.tsv` 保留 2026-11-06 带真实 Xray 的 33/35 运行。
