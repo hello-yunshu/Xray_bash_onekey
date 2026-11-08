@@ -1,0 +1,39 @@
+label=ACME_LOCAL_CA
+started=2026-11-08T15:57:01Z
+repo_commit=53b61916eef96cf047b6d5ade68696fdde28e7b4
+pebble_image=sha256:ddf230642b1a584f519f32e347de1b05a6e4c1f6c35c1863b33effeab5f78199
+client_image=sha256:f481cd9e9f57e7240fccceee0342d766fb45bf90ea3f89bb8484b265c4d01183
+pebble_test_assets=localhost
+pebble.minica.key.pem
+pebble.minica.pem
+README.md
+--- build go binary
+build=OK sha256=ec92ed35bbc023b3d9ac5125a633e084608dde8773ae5112c74f9630d7dd0ec5
+--- start network/pebble/client
+pebble_ready=OK webroot_ready=OK
+pebble_root=fetched
+--- issue
+issue=OK
+reload_marker=OK
+account_key_mode=600
+key_mode=600
+--- renew inside window (expect skip)
+renew_skip_cmd=OK
+--- renew forced (expect real reissue)
+renew_force=OK
+--- negative: renewal with an unusable challenge webroot must keep the old pair
+renew_webroot_fail=FAILED_AS_EXPECTED exit=1
+renew_webroot_fail_old_cert=KEPT
+--- negative: reload failure must restore the previous certificate pair
+renew_reload_fail=FAILED_AS_EXPECTED exit=1
+reload_failure_restored_old_pair=YES
+cert_mode=644
+key_mode=600
+old_pair_still_valid=YES
+--- negative: read-only destination must be refused without writing a cert
+negative_readonly=REFUSED exit=1
+negative_readonly_wrote_cert=NO
+--- negative: blocked domain must be rejected by CA
+negative_blocked=REJECTED exit=1
+negative_cert_written=NO
+finished=2026-11-08T15:57:20Z

@@ -21,6 +21,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -138,6 +139,9 @@ func Issue(ctx context.Context, cfg Config) (Result, error) {
 	}
 	res := Result{Domain: cfg.Domain, DirectoryURL: cfg.DirectoryURL,
 		Certificate: cfg.CertFile, Key: cfg.KeyFile}
+	// Keep the installed pair in memory so a failed install/reload restores the
+	// previous, still-usable certificate instead of leaving a half-applied pair.
+	oldCert, oldKey, hadCert, hadKey := readPair(cfg.CertFile, cfg.KeyFile)
 	res.AccountURL, res.OrderURL, res.NotAfter, res.Serial, err = c.issue(ctx)
 	if err != nil {
 		return res, err
@@ -145,7 +149,10 @@ func Issue(ctx context.Context, cfg Config) (Result, error) {
 	res.Issued = true
 	if cfg.ReloadCommand != "" {
 		if err := runReload(ctx, cfg.ReloadCommand); err != nil {
-			return res, err
+			if restoreErr := restorePair(cfg.CertFile, cfg.KeyFile, oldCert, oldKey, hadCert, hadKey); restoreErr != nil {
+				return res, fmt.Errorf("certificate installed but reload failed, and restoring the previous pair also failed: %w (restore: %v)", err, restoreErr)
+			}
+			return res, fmt.Errorf("certificate installed but reload failed; previous pair restored: %w", err)
 		}
 		res.Reloaded = true
 	}
@@ -397,14 +404,11 @@ func (c *client) issue(ctx context.Context) (accountURL, orderURL, notAfter, ser
 	if err != nil {
 		return "", "", "", "", err
 	}
-	if err := writeCertificate(c.cfg.CertFile, chain); err != nil {
-		return "", "", "", "", err
-	}
 	keyDER, err := x509.MarshalPKCS8PrivateKey(certKey)
 	if err != nil {
 		return "", "", "", "", err
 	}
-	if err := writePEM(c.cfg.KeyFile, "PRIVATE KEY", keyDER, 0o600); err != nil {
+	if err := replacePair(c.cfg.CertFile, c.cfg.KeyFile, chain, keyDER); err != nil {
 		return "", "", "", "", err
 	}
 	return c.kid, orderURL, leaf.NotAfter.UTC().Format(time.RFC3339), leaf.SerialNumber.Text(16), nil
@@ -476,6 +480,9 @@ func (c *client) completeHTTP01(ctx context.Context, authzURL string) error {
 	}
 	if challengeURL == "" {
 		return fmt.Errorf("authorization for %s has no http-01 challenge", authz.Identifier.Value)
+	}
+	if !validToken(token) {
+		return fmt.Errorf("CA returned an unsafe http-01 token %q", token)
 	}
 	keyAuth := token + "." + c.thumb
 	challengeFile := filepath.Join(c.cfg.Webroot, filepath.FromSlash(strings.TrimPrefix(wellKnownPath, "/")), token)
@@ -652,11 +659,159 @@ func certNotAfter(path string) (time.Time, error) {
 	return cert.NotAfter, nil
 }
 
-func writeCertificate(path string, chain []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+// validToken accepts only the RFC 8555 base64url token alphabet. A token is
+// joined into the webroot path, so anything that could traverse directories
+// (slashes, dots, whitespace) is rejected before a file is written.
+func validToken(token string) bool {
+	if token == "" || len(token) > 256 {
+		return false
+	}
+	for _, r := range token {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '-', r == '_':
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// replacePair installs a certificate and key as one transaction: both temp
+// files are written and fsynced first, the certificate is renamed into place,
+// then the key. If the key cannot be renamed the previous certificate is
+// restored, so callers never observe a new certificate with an old key.
+func replacePair(certPath, keyPath string, chain, keyDER []byte) error {
+	if _, err := firstCertificate(chain); err != nil {
 		return err
 	}
-	return os.WriteFile(path, chain, 0o644)
+	if err := os.MkdirAll(filepath.Dir(certPath), 0o755); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(keyPath), 0o700); err != nil {
+		return err
+	}
+	oldCert, oldKey, hadCert, hadKey := readPair(certPath, keyPath)
+	certPEM := chain
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyDER})
+	certTmp, err := stageFile(certPath, certPEM, 0o644)
+	if err != nil {
+		return err
+	}
+	keyTmp, err := stageFile(keyPath, keyPEM, 0o600)
+	if err != nil {
+		os.Remove(certTmp)
+		return err
+	}
+	if err := os.Rename(certTmp, certPath); err != nil {
+		os.Remove(certTmp)
+		os.Remove(keyTmp)
+		return fmt.Errorf("install certificate: %w", err)
+	}
+	if err := os.Rename(keyTmp, keyPath); err != nil {
+		os.Remove(keyTmp)
+		// Roll the certificate back to the pair that was working before this run.
+		if restoreErr := restorePair(certPath, keyPath, oldCert, oldKey, hadCert, hadKey); restoreErr != nil {
+			return fmt.Errorf("install private key: %w (certificate rollback also failed: %v)", err, restoreErr)
+		}
+		return fmt.Errorf("install private key: %w", err)
+	}
+	if err := os.Chmod(certPath, 0o644); err != nil {
+		return err
+	}
+	if err := os.Chmod(keyPath, 0o600); err != nil {
+		return err
+	}
+	return nil
+}
+
+// stageFile writes a temp file next to the destination and fsyncs it so the
+// later rename cannot publish a partially written artifact.
+func stageFile(dest string, body []byte, mode os.FileMode) (string, error) {
+	tmp, err := os.CreateTemp(filepath.Dir(dest), ".idleleo-acme-*")
+	if err != nil {
+		return "", err
+	}
+	name := tmp.Name()
+	if _, err := tmp.Write(body); err != nil {
+		tmp.Close()
+		os.Remove(name)
+		return "", err
+	}
+	if err := tmp.Chmod(mode); err != nil {
+		tmp.Close()
+		os.Remove(name)
+		return "", err
+	}
+	if err := tmp.Sync(); err != nil {
+		tmp.Close()
+		os.Remove(name)
+		return "", err
+	}
+	if err := tmp.Close(); err != nil {
+		os.Remove(name)
+		return "", err
+	}
+	return name, nil
+}
+
+// readMaybe returns the file contents and whether anything existed at path. A
+// file that exists but cannot be read is reported as existing with nil contents
+// so a rollback never deletes or overwrites it.
+func readMaybe(path string) ([]byte, bool) {
+	raw, err := os.ReadFile(path)
+	if err == nil {
+		return raw, true
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, false
+	}
+	return nil, true
+}
+
+func readPair(certPath, keyPath string) (cert, key []byte, certExisted, keyExisted bool) {
+	cert, certExisted = readMaybe(certPath)
+	key, keyExisted = readMaybe(keyPath)
+	return cert, key, certExisted, keyExisted
+}
+
+// restorePair puts the previous certificate pair back after a failed install.
+// Only files that existed before are restored, and a file that existed but was
+// unreadable is left untouched rather than being silently deleted. A failure
+// creating the temporary artifact is reported so the caller can say the pair
+// may be half-applied.
+func restorePair(certPath, keyPath string, cert, key []byte, certExisted, keyExisted bool) error {
+	var errs []string
+	if err := restoreOne(certPath, cert, certExisted, 0o644); err != nil {
+		errs = append(errs, "certificate: "+err.Error())
+	}
+	if err := restoreOne(keyPath, key, keyExisted, 0o600); err != nil {
+		errs = append(errs, "key: "+err.Error())
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "; "))
+	}
+	return nil
+}
+
+func restoreOne(dest string, body []byte, existed bool, mode os.FileMode) error {
+	if body != nil {
+		return stageReplace(dest, body, mode)
+	}
+	if existed {
+		return nil
+	}
+	if err := os.Remove(dest); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	return nil
+}
+
+func stageReplace(dest string, body []byte, mode os.FileMode) error {
+	tmp, err := stageFile(dest, body, mode)
+	if err != nil {
+		return err
+	}
+	return os.Rename(tmp, dest)
 }
 
 func writePEM(path, blockType string, der []byte, mode os.FileMode) error {

@@ -1,0 +1,13 @@
+{
+  "subject": "",
+  "dnsNames": [
+    "acme.local"
+  ],
+  "serial": "7cc75e1c1afd1e40",
+  "notBefore": "2026-11-08T15:57:08Z",
+  "notAfter": "2027-02-06T15:57:07Z",
+  "validDays": 89.99998842592593,
+  "verifiedToLocalRoot": true,
+  "hostnameVerified": true,
+  "privateKeyMatches": true
+}

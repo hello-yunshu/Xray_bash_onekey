@@ -154,6 +154,76 @@ else
   log "renew_force=FAIL exit=$?"
 fi
 verify fullchain.pem key.pem verify-after-force.json
+cp "$WORK/certs/fullchain.pem" "$WORK/certs/fullchain-before-failure.pem"
+cp "$WORK/certs/key.pem" "$WORK/certs/key-before-failure.pem"
+
+sha() { shasum -a 256 "$1" | awk '{print $1}'; }
+
+log "--- negative: renewal with an unusable challenge webroot must keep the old pair"
+cp "$WORK/certs/fullchain.pem" "$WORK/certs/fullchain-pre-webroot-fail.pem"
+: >"$WORK/webroot-file"
+FAIL_ARGS=(xray cert renew --domain acme.local --webroot /work/webroot-file
+  --cert-out /work/certs/fullchain.pem --key-out /work/certs/key.pem
+  --directory https://pebble:14000/dir --email acme@idleleo.example
+  --ca-cert /test/certs/pebble.minica.pem
+  --account-key /work/state/account.key --state /work/state/account.json
+  --renew-before 24h --force --json)
+if docker exec "$CLIENT" /work/idleleo "${FAIL_ARGS[@]}" >"$EVIDENCE/renew-webroot-fail.out" 2>"$EVIDENCE/renew-webroot-fail.err"; then
+  log "renew_webroot_fail=UNEXPECTED_SUCCESS"
+else
+  log "renew_webroot_fail=FAILED_AS_EXPECTED exit=$?"
+fi
+if [ "$(sha "$WORK/certs/fullchain.pem")" = "$(sha "$WORK/certs/fullchain-pre-webroot-fail.pem")" ]; then
+  log "renew_webroot_fail_old_cert=KEPT"
+else
+  log "renew_webroot_fail_old_cert=CHANGED"
+fi
+
+log "--- negative: reload failure must restore the previous certificate pair"
+RELOAD_ARGS=(xray cert renew --domain acme.local --webroot /work/webroot
+  --cert-out /work/certs/fullchain.pem --key-out /work/certs/key.pem
+  --directory https://pebble:14000/dir --email acme@idleleo.example
+  --ca-cert /test/certs/pebble.minica.pem
+  --account-key /work/state/account.key --state /work/state/account.json
+  --renew-before 24h --force --reload-command 'exit 1' --json)
+if docker exec "$CLIENT" /work/idleleo "${RELOAD_ARGS[@]}" >"$EVIDENCE/renew-reload-fail.out" 2>"$EVIDENCE/renew-reload-fail.err"; then
+  log "renew_reload_fail=UNEXPECTED_SUCCESS"
+else
+  log "renew_reload_fail=FAILED_AS_EXPECTED exit=$?"
+fi
+if [ "$(sha "$WORK/certs/fullchain.pem")" = "$(sha "$WORK/certs/fullchain-before-failure.pem")" ] && \
+   [ "$(sha "$WORK/certs/key.pem")" = "$(sha "$WORK/certs/key-before-failure.pem")" ]; then
+  log "reload_failure_restored_old_pair=YES"
+else
+  log "reload_failure_restored_old_pair=NO"
+fi
+log "cert_mode=$(docker exec "$CLIENT" stat -c %a /work/certs/fullchain.pem)"
+log "key_mode=$(docker exec "$CLIENT" stat -c %a /work/certs/key.pem)"
+
+# The restored pair must still be a usable certificate, not merely the same
+# bytes: verify chain, SAN and that the certificate matches its private key.
+if verify fullchain.pem key.pem verify-after-failures.json; then
+  log "old_pair_still_valid=YES"
+else
+  log "old_pair_still_valid=NO"
+fi
+
+log "--- negative: read-only destination must be refused without writing a cert"
+RO_ARGS=(xray cert issue --domain acme.local --webroot /work/webroot
+  --cert-out /test/certs/ro-fullchain.pem --key-out /test/certs/ro-key.pem
+  --directory https://pebble:14000/dir --email acme@idleleo.example
+  --ca-cert /test/certs/pebble.minica.pem
+  --account-key /work/state/account.key --state /work/state/account.json --json)
+if docker exec "$CLIENT" /work/idleleo "${RO_ARGS[@]}" >"$EVIDENCE/negative-readonly.out" 2>"$EVIDENCE/negative-readonly.err"; then
+  log "negative_readonly=UNEXPECTED_SUCCESS"
+else
+  log "negative_readonly=REFUSED exit=$?"
+fi
+if docker exec "$CLIENT" test -e /test/certs/ro-fullchain.pem; then
+  log "negative_readonly_wrote_cert=YES"
+else
+  log "negative_readonly_wrote_cert=NO"
+fi
 
 log "--- negative: blocked domain must be rejected by CA"
 NEG_ARGS=(xray cert issue --domain blocked-domain.example --webroot /work/webroot
@@ -197,6 +267,20 @@ summary = {
     "serial_changed": initial.get("serial") != force.get("serial"),
     "verify_initial": vi,
     "verify_after_force": vf,
+    "negative": {
+        "webroot_failure_kept_old_pair": "renew_webroot_fail_old_cert=KEPT" in
+            (ev / "run.log").read_text(),
+        "reload_failure_restored_old_pair": "reload_failure_restored_old_pair=YES" in
+            (ev / "run.log").read_text(),
+        "restored_pair_still_valid": "old_pair_still_valid=YES" in
+            (ev / "run.log").read_text(),
+        "readonly_destination_refused": "negative_readonly=REFUSED" in
+            (ev / "run.log").read_text(),
+        "readonly_destination_wrote_no_cert": "negative_readonly_wrote_cert=NO" in
+            (ev / "run.log").read_text(),
+        "blocked_domain_rejected": "negative_blocked=REJECTED" in (ev / "run.log").read_text(),
+        "blocked_domain_wrote_no_cert": "negative_cert_written=NO" in (ev / "run.log").read_text(),
+    },
 }
 (ev / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
 print(json.dumps(summary, indent=2))
