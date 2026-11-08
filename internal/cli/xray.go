@@ -35,6 +35,8 @@ func xrayCommand(ctx context.Context, opts Options, cfg config, a *app.App, args
 		return xrayInstall(ctx, opts, cfg, rest)
 	case "uninstall":
 		return xrayUninstall(ctx, opts, cfg, rest)
+	case "recover":
+		return xrayRecover(ctx, opts, cfg, rest)
 	default:
 		return usage(opts, cfg.lang, "help")
 	}
@@ -358,6 +360,26 @@ func xrayUninstall(ctx context.Context, opts Options, cfg config, args []string)
 	}
 	fmt.Fprintf(opts.Out, "removed: %s\n", strings.Join(report.Removed, ","))
 	fmt.Fprintf(opts.Out, "configPreserved=%t\n", report.ConfigPreserved)
+	return 0
+}
+
+func xrayRecover(ctx context.Context, opts Options, cfg config, args []string) int {
+	report, err := deploy.Recover(ctx, deploy.RecoverSpec{
+		Root:                 cfg.root,
+		AllowContainerWrites: hasFlag(args, "--container"),
+	})
+	if err != nil {
+		return fail(opts, cfg, err)
+	}
+	cfg.json = cfg.json || hasFlag(args, "--json")
+	if cfg.json {
+		return writeJSON(opts, report)
+	}
+	fmt.Fprintf(opts.Out, "recovery journal=%s action=%s converged=%t restored=%d\n",
+		report.JournalState, report.Action, report.Converged, report.Restored)
+	for _, w := range report.Warnings {
+		fmt.Fprintf(opts.Out, "warning=%s\n", w)
+	}
 	return 0
 }
 

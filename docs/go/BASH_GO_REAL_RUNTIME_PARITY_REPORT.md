@@ -185,8 +185,30 @@ Xray 26.10.31 二进制、标准 unit 与 `/var/log/xray` 目录；`install.sh` 
 （见上），未删除任何断言；Phase 03 的故障注入随后在 C 包中真实复跑。
 复检阶段又定位到 B4 的属主/符号链接/新装 enable 回滚缺口，已按“先失败测试、
 再修代码”的顺序补上；新装回滚与 `root:xray 0640` 读取均真实执行通过。
-**边界**：以上只覆盖进程内失败回滚；`SIGKILL`/容器重启后的跨进程恢复仍未实现，
-见 §9 P0-3，不得表述为“部署事务已完整可恢复”。
+
+**B4 跨进程崩溃恢复（本次补齐）**
+
+- 新增持久 journal `var/lib/idleleo/deploy/journal.json` 与快照目录
+  `var/lib/idleleo/deploy/snapshot/entry-N`；每次安装先 fsync journal（`PREPARED`）
+  才允许改动 live 文件，成功写 `COMMITTED` 后清理。
+- `Install` / `Uninstall` / `Recover` 共用 `host.AcquireUpdate(paths.LockFile())`
+  排他锁；下一进程持锁后先 `recoverPendingLocked`：`PREPARED` /
+  `ROLLING_BACK` / `RECOVERY_REQUIRED` 一律逆序还原快照，失败保留
+  `RECOVERY_REQUIRED` 并给出显式 `idleleo xray recover` 指引。
+- journal 只存相对路径，`applyRoot` 拒绝绝对路径与 `..` 越界；单测覆盖
+  dead-install 回滚、坏快照保留、损坏 journal 拒绝、COMMITTED 清理、越界拒绝、
+  锁冲突拒绝，以及 `Install` 自动收敛 pending journal
+  [journal_test.go](../../internal/deploy/journal_test.go)。
+- **真实注入证据**（`DOCKER_CRASH_INJECTION`，非生产验收）：在容器内以 250MB
+  假二进制拖慢 copy，等 journal 出现后 100ms `kill -9`；进度日志记录
+  `journal_state="state": "PREPARED"` 且 `partial_mutation=yes`（config 已变、
+  binary/unit/meta 未变）。新容器执行 `idleleo xray recover --json` 返回
+  `{"journalState":"ROLLED_BACK","action":"rolled_back","converged":true,"restoredFiles":4}`，
+  四个文件 SHA 与 kill 前一致，journal 与 `.tmp` 清除；随后正常 install 成功。
+  证据见 [evidence/b4-2026-11-08](../../tests/go-parity/evidence/b4-2026-11-08)，
+  驱动脚本见 [run_crash_recovery_container.sh](../../tests/go-parity/deploy/run_crash_recovery_container.sh)。
+- **边界**：容器返回 `exit 0`/`converged=true` 只证明恢复逻辑在一次性容器成立；
+  没有真实 VPS 断电/重启证据，F01–F28 仍为 0/28，不得升格为生产签收。
 
 ## 4. C 包：Docker 真实服务与完整迁移
 
@@ -318,6 +340,9 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | Phase 03 容器复跑 | 219 / 219，exit 0 | `DOCKER_MIGRATION_VERIFIED` |
 | Phase 04 容器复跑 | 42 / 42，exit 0 | `DOCKER_SERVICE_VERIFIED` |
 | 98 项 Bash/Go 矩阵（修复后，commit `ace4a16`） | MATCH 54 / CORE 32 / GAP 8 / REFUSED 4 | `BASH_EXECUTED` + `GO_EXECUTED` |
+| A2 真实安装 6 拓扑（§2.1） | 1 MATCH / 3 CORE / 0 GAP / 2 UNSUPPORTED | `BASH_EXECUTED` |
+| B4 真实 SIGKILL 注入（journal 出现后 kill -9） | journal `PREPARED` → 新进程 `ROLLED_BACK`，4 文件 SHA 还原 | `DOCKER_CRASH_INJECTION` |
+| B4 单测（含 `Install` 自动收敛 pending journal） | 7 / 7 PASS | `GO_EXECUTED` |
 | `gofmt` / `go vet` / `go test` / `go test -race` / `bash -n` | 全部通过（gofmt 无输出） | `GO_EXECUTED` |
 
 ## 8. 各阶段提交
@@ -331,6 +356,8 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | `7f82d35` | D：TCP 容器 30 项场景与证据 |
 | `ace4a16` | 复检修复：B4 回滚恢复 UID/GID/符号链接/父目录，并撤销新装 enable 链接 |
 | （本复检报告提交） | docs：合规复检附录、矩阵 provenance 修正、D1 上游审计与门禁证据 |
+| `a53dfee` | A2：真实交互式 Bash 主安装 6 拓扑 runtime 基线与重跑统计 |
+| （本次 B4 提交） | B4：持久 deploy journal + 排他锁 + `idleleo xray recover` + 真实 SIGKILL 注入证据 |
 
 既有关联提交：`2d44d98`（logrotate drop-in 修复）、`e859724`（install.sh 对齐
 v3.3.6 基线）。
@@ -344,49 +371,50 @@ v3.3.6 基线）。
    容器内真实跑完 `install.sh -2/-3` 并采集 Runtime（§2.1），
    `xray -test=0`、服务 active。TLS 与 `reality-nginx` 因需要真实域名/ACME
    未捕获；旧 54 个元数据 `MATCH` 不能升级为 Runtime 签收。
-3. **B4 崩溃恢复缺口**：`internal/deploy` 只有内存内 `backups`，没有
-   持久 journal/lock；安装过程被 `SIGKILL` 或容器重启后，无法自动检测并回滚
-   已写入的 unit/二进制/配置。提示词 B4 要求“至少明确检测、持久回滚/安全失败”，
-   当前未实现。Bridge 有 journal，但 `deploy` 没有复用。
-4. Xray/Nginx 自动升级执行器仍在 Bash；Go 无降级/失败注入验证。
-5. 真实 ACME 签发/续期未验收；F12 只提供外部续约契约。
-6. 无任何 `REAL_VPS_VERIFIED` 证据，正式签收 0/28。
+3. Xray/Nginx 自动升级执行器仍在 Bash；Go 无降级/失败注入验证。
+4. 真实 ACME 签发/续期未验收；F12 只提供外部续约契约。
+5. 无任何 `REAL_VPS_VERIFIED` 证据，正式签收 0/28。
+
+> B4 跨进程恢复已补齐（持久 journal/lock + `idleleo xray recover` + 真实
+> `SIGKILL` 注入），但仍只是 `DOCKER_CRASH_INJECTION` 证据，未做真实断电/重启，
+> 因此从 P0 列表移出的是“实现缺口”，不是“生产签收”。
 
 **P1**
 
-7. **A1 覆盖缺口**：98 case 不含节点级 IPv4/IPv6 绑定、hostname 校验、
+6. **A1 覆盖缺口**：98 case 不含节点级 IPv4/IPv6 绑定、hostname 校验、
    1/4/20 用户与主备负载均衡。这些不能由 Phase 02/03 的局部用例替代。
-8. **C4 故障点未全覆盖**：缺 invalid candidate/recovery 二进制、reload 失败、
+7. **C4 故障点未全覆盖**：缺 invalid candidate/recovery 二进制、reload 失败、
    cron 修改冲突、写盘失败后的独立注入；其余 disk-full、kill 点、drift、
    corrupt journal、`--yes` 不自动迁移已真实执行。
-9. `backup/restore/purge` CLI、Fail2ban、流量阻断、SNI Guard、二维码、watch/reset
+8. `backup/restore/purge` CLI、Fail2ban、流量阻断、SNI Guard、二维码、watch/reset
    未实现。
-10. Phase 01 C12.1/C12.2 会持续红，直到下次发版并推进 pin；不得为此改 pin 或改断言。
-11. TCP 未做性能/吞吐验收；未扫描 `/run/sysctl.d`、`/usr/lib/sysctl.d` 的冲突。
+9. Phase 01 C12.1/C12.2 会持续红，直到下次发版并推进 pin；不得为此改 pin 或改断言。
+10. TCP 未做性能/吞吐验收；未扫描 `/run/sysctl.d`、`/usr/lib/sysctl.d` 的冲突。
 
 **P2**
 
-12. F01–F28 矩阵的 Go 状态仍使用中文标签，仅靠
+11. F01–F28 矩阵的 Go 状态仍使用中文标签，仅靠
     [FUNCTION_PARITY.md](FUNCTION_PARITY.md) 的映射表换算到提示词标签；未物理重写列。
-13. fr/fa/ru/ko 文案回退英文，未与 Bash 逐条差分。
-14. Docker 交付路径未实现（F24）。
+12. fr/fa/ru/ko 文案回退英文，未与 Bash 逐条差分。
+13. Docker 交付路径未实现（F24）。
 
 ## 10. 最终结论
 
 - **流程完成，不等于技术验收通过**：A/B/C/D 四包均完成“复现 → 修复 → 实跑 →
   自审 → 提交”，真实测试记录与失败证据完整保留；但 §9 的 P0 硬缺口仍在，
-  相对提示词包约 **72%**（附录 A）。
+  相对提示词包约 **79%**（附录 A）。
 - **Go 可接管**配置生成、迁移状态机、服务/GeoData/Stats/timer 原语与 TCP 安全子集；
   **不可宣称**全量生产接管或真实 VPS 签收。
-- 下一步建议顺序：真实 Bash 安装基线（A2）→ 多传输组合 → 部署崩溃恢复 →
-  升级执行器 → ACME → P1 功能项；在此之前保持 Bash 为生产入口。
+- 下一步建议顺序：多传输组合（B3，关闭剩余 8 个 GAP）→ 升级执行器 →
+  ACME → A1 覆盖缺口 → P1 功能项；A2 与 B4 已在本轮补齐。在此之前保持 Bash
+  为生产入口。
 
 ## 附录 A：提示词包逐条合规复检（2026-11-08）
 
 > 判定口径：**PASS** = 有可核对产物且满足要求；**部分满足** = 做了但覆盖/口径不完整；
-> **FAIL** = 要求未完成或证据不成立。共 38 项：PASS 22、部分满足 11、FAIL 5；
-> 加权完成度（PASS=1，部分=0.5）≈ **72%**。流程/交付接近 100%，
-> 技术实质约 65%–70%；正式签收仍为 0/28。
+> **FAIL** = 要求未完成或证据不成立。共 38 项：PASS 24、部分满足 12、FAIL 2；
+> 加权完成度（PASS=1，部分=0.5）≈ **79%**（A2 与 B4 补齐后）。
+> 流程/交付接近 100%；正式签收仍为 0/28（仅真实 VPS 证据才能改口径）。
 
 | # | 检查项（提示词出处） | 判定 | 证据 / 说明 |
 |---|---|---|---|
@@ -401,8 +429,8 @@ v3.3.6 基线）。
 | 9 | A1 执行 ZIP 夹具并记录 commit/dirty/Go/Docker/镜像/夹具 SHA | PASS | [baseline/environment.txt](../../tests/go-parity/evidence/matrix-2026-11-08/baseline/environment.txt)：`dd97eb1`、dirty=0、arm64、digest；报告补 Go/Xray/Nginx/SHA |
 | 10 | A1 必需覆盖：IPv4/IPv6、hostname、1/4/20 用户、主备负载均衡 | FAIL | 98 case 无节点级 IPv4/IPv6、hostname、20 用户、balance；仅 relay 覆盖 IPv6/域名后端 |
 | 11 | A1 分契约比较、敏感字段保护 | PASS | 矩阵按 metadata/runtime/share 分契约；证据只存哈希与字段，不含私钥 |
-| 12 | A2 真实 Bash 主安装生成 Runtime（非静态 JSON） | FAIL | 矩阵只 source `install.sh` 调 `install_config_*`（生成安装元数据，非 Runtime）；Phase 03 用 [generate.sh](../../tests/fixtures/legacy/generate.sh) 按模板重建的静态 fixture；均非真实主安装 |
-| 13 | A2 模式/传输/角色/网络/用户/自定义组合覆盖 | FAIL | 无真实 Bash 安装组合；Phase 02/03 只覆盖 Go 安装与固定 fixture 子集 |
+| 12 | A2 真实 Bash 主安装生成 Runtime（非静态 JSON） | PASS | `a53dfee`：一次性 systemd 容器内 `install.sh -2/-3` 真实交互安装，采集 `/etc/idleleo/conf/xray/config.json`；6 拓扑 `install_exit=0`、`xray_test_exit=0`、服务 active（§2.1） |
+| 13 | A2 模式/传输/角色/网络/用户/自定义组合覆盖 | 部分满足 | 已覆盖 none-ws/grpc/xhttp/三合一、reality-raw/reality-三合一；TLS、reality-nginx 与多用户/自定义 serverNames 未捕获 |
 | 14 | A3 Bash→Go 真实 CLI 双向 | 部分满足 | Phase 03 跑 audit/prepare/validate/activate/recover、用户/分享操作；未覆盖全部模式 |
 | 15 | A3 Go→运行时真实 `xray -test` 与客户端流量 | 部分满足 | F01 Reality 客户端隧道、F05 relay 真实转发；TLS/多传输无真实客户端 |
 | 16 | A3 异常输入全覆盖（UUID/SNI/IPv6/路径遍历/重复/0-20 用户/损坏 JSON/磁盘满等） | 部分满足 | 矩阵 4 个 REFUSED；Phase 03 覆盖 drift/disk-full/corrupt journal/世界可读私钥；其余未逐项 |
@@ -413,7 +441,7 @@ v3.3.6 基线）。
 | 21 | B3 多用户按 inbound+UUID/email 选择、1/4/20 用户 | 部分满足 | `--user` 已支持；Phase 03 覆盖 4 用户，20 用户未测 |
 | 22 | B4 文件快照含 UID/GID/mode/exists/symlink/父目录 | PASS | `ace4a16`：`captureFile`/`restore` 全部实现；单测覆盖属主、链接、父目录 |
 | 23 | B4 新装失败撤销 unit/enable/daemon 状态 | PASS | `rollbackInstall` stop+disable+daemon-reload；`TestFreshInstallRollbackRemovesNewFiles` |
-| 24 | B4 SIGKILL/容器重启的持久检测与回滚 | FAIL | `internal/deploy` 无 journal/lock；`backups` 只在内存；未实现跨进程恢复 |
+| 24 | B4 SIGKILL/容器重启的持久检测与回滚 | PASS | 持久 journal + `host.AcquireUpdate` 锁 + `idleleo xray recover`；真实注入 `kill -9` 后新进程 `ROLLED_BACK`、4 文件 SHA 还原（`DOCKER_CRASH_INJECTION`，非生产签收） |
 | 25 | B4 Bridge 入口/cron/证书/Rill/幂等回归 | PASS | Phase 03 219 项含入口漂移、cron 保留、私钥权限、Rill 交接、重复 prepare |
 | 26 | C1 复用 Phase 脚本、C12 两项红保留、pin 不改 | PASS | `33/35` exit 1；[DOCKER_MIGRATION_ACCEPTANCE.md](DOCKER_MIGRATION_ACCEPTANCE.md) §2.1 明写 FAIL，不软化 |
 | 27 | C2 真实拓扑/客户端流量/内部 CA | 部分满足 | F01/F05 有真实客户端与流量；Bridge 迁移后未对每种模式补真实客户端 |
@@ -437,14 +465,16 @@ v3.3.6 基线）。
 | after-fix 证据引用不存在的 commit `7b15c83` | 证据 provenance | 在 `ace4a16` 上用修正版 runner 重跑，替换 summary/environment |
 | 直接运行缓存镜像得到 `13/32/44/5/4` | 复现陷阱 | 记录为“镜像内旧脚本”，明确不得作证据 |
 | B4 回滚丢 UID/GID/符号链接/父目录、新装未 disable | 真缺陷 | commit `ace4a16`；新增 root:xray 0640 与 symlink/父目录回归 |
-| B4 “回滚完整”措辞过强 | 不实口径 | 报告现在明确“内存快照可回滚，跨进程未实现” |
+| B4 “回滚完整”措辞过强 | 不实口径 | 先用“内存快照可回滚，跨进程未实现”限定；后续补齐后改为“容器内 SIGKILL 可收敛，仍非生产签收” |
 | D1 只写“审计 scripts/tcp.sh”但无实际行为 | 反向缺口 | 抓取上游快照 SHA-256 并逐类列行为，固定版本判定 BLOCKED |
 | C5 标签与提示词不一致 | 口径 | FUNCTION_PARITY 增加逐项映射表 |
 | A1 覆盖被暗示为全量 | 不实口径 | 报告明列未覆盖的 IPv4/IPv6/hostname/20 用户/负载均衡 |
 
-**复检结论**：这一轮相对提示词包约 **72%** 完成。
-- **硬缺口（真未做）**：A2 真实 Bash 主安装 Runtime、B3 多传输、B4 跨进程崩溃恢复、
-  A1 必需覆盖矩阵。
+**复检结论**：这一轮相对提示词包约 **79%** 完成（A2/B4 补齐后）。
+- **硬缺口（仍未做）**：B3 多传输、A1 必需覆盖矩阵。
+- **已补齐但非生产签收**：A2 真实 Bash 安装 runtime（6 拓扑，TLS/ACME 与
+  reality-nginx 未捕获）；B4 跨进程 journal/lock + 真实 SIGKILL 注入
+  （`DOCKER_CRASH_INJECTION`，无真实断电/重启）。
 - **措辞/证据口径问题（已修）**：REFUSED 定义、矩阵 provenance、B4 过度表述、
   D1 审计缺实际行为、C5 标签映射、A1 覆盖边界。
 - **不算缺口但需保留**：330/332 中的 C12.1/C12.2 红（pin 与 logrotate 修复差异）、

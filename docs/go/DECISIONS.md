@@ -110,18 +110,24 @@ Rill 安装/卸载保持 Bash。TCP 的 Bash 菜单不默认接线到 Go，只�
 强行迁移会制造“看起来迁移了”的假象；详见
 [SCRIPT_NATIVE_MIGRATION_MATRIX.md](SCRIPT_NATIVE_MIGRATION_MATRIX.md)。
 
-## D-010 部署回滚补齐属主/链接/父目录；跨进程恢复仍不实现（2026-11-08）
+## D-010 部署回滚补齐属主/链接/父目录，并增加跨进程 journal/lock（2026-11-08）
 
 **决定**：
 - `internal/deploy` 的文件快照扩展为 `uid/gid/link/exists/missingDirs`，回滚恢复
   mode、属主、符号链接与父目录副作用；新装失败显式 `stop + disable`，移除 unit 后
   `daemon-reload` 并校验 `is-enabled`。
-- **不**在本轮给 `deploy` 增加持久 journal/lock；`SIGKILL`/容器重启后的跨进程
-  安装事务仍不在支持范围，报告与附录明确标为 P0 缺口。
+- 增加持久事务 journal `var/lib/idleleo/deploy/journal.json` 与
+  `snapshot/entry-N`：安装前 fsync `PREPARED`，成功写 `COMMITTED`；
+  `PREPARED/ROLLING_BACK/RECOVERY_REQUIRED` 由下一持锁进程逆序还原，失败保留
+  `RECOVERY_REQUIRED` 并提供 `idleleo xray recover`。
+- `Install`/`Uninstall`/`Recover` 共用 `host.AcquireUpdate` 排他锁；journal 只存
+  相对路径，恢复时拒绝绝对路径与 `..` 越界。
+- 验证边界：容器内真实 `kill -9`（写入中途）→ 新容器 `recover` 收敛，
+  证据等级 `DOCKER_CRASH_INJECTION`；未做真实 VPS 断电/重启，不据此升格签收。
 
-**理由**：属主/链接/父目录是已复现的真实缺陷，可小范围修复并有 root:xray 0640
-回归；跨进程恢复需要持久 snapshots 与恢复入口设计，风险与验证成本远高于本轮，
-不能在没有真实故障环境的情况下草率加入。
+**理由**：属主/链接/父目录是已复现的真实缺陷；跨进程恢复由持久快照 + 锁 +
+显式恢复入口构成，先写 journal 再改 live 状态的顺序可以由同进程失败测试与
+真实 SIGKILL 注入共同验证，且不需要新框架。
 
 ## D-011 `tcp.sh` 只审计入口与风险，不承诺固定版本逐行等价（2026-11-08）
 

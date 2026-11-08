@@ -100,6 +100,17 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	if err := requireWriteAccess(paths, spec.AllowContainerWrites); err != nil {
 		return Report{}, err
 	}
+	lock, err := host.AcquireUpdate(paths.LockFile())
+	if err != nil {
+		return Report{}, err
+	}
+	defer lock.Release()
+	// A previous process may have died mid-transaction. Converge it before
+	// starting a new one so a crash cannot stack two half-applied states.
+	recovery, err := recoverPendingLocked(ctx, paths)
+	if err != nil {
+		return Report{}, err
+	}
 	bin, err := host.ResolveBinary(spec.SourceBinary)
 	if err != nil {
 		return Report{}, err
@@ -140,42 +151,6 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	}
 	rep.TLS = tlsLabel(rep.Mode)
 
-	// xray -test opens the configured logs, so the log directory must exist
-	// before the candidate can be validated.
-	logDir, err := joinDir(paths, logDirRel)
-	if err != nil {
-		return Report{}, err
-	}
-	logDirMissing := missingDirChain(logDir)
-	if err := os.MkdirAll(logDir, 0o755); err != nil {
-		return Report{}, err
-	}
-
-	tmp, err := os.CreateTemp("", "idleleo-candidate-*.json")
-	if err != nil {
-		return Report{}, err
-	}
-	tmpName := tmp.Name()
-	defer os.Remove(tmpName)
-	if _, err := tmp.Write(configBytes); err != nil {
-		tmp.Close()
-		return Report{}, err
-	}
-	if err := tmp.Close(); err != nil {
-		return Report{}, err
-	}
-	if err := os.Chmod(tmpName, 0o600); err != nil {
-		return Report{}, err
-	}
-	ver, err := host.Run(ctx, host.ExecSpec{Path: bin, Args: []string{"-test", "-config", tmpName}})
-	if err != nil {
-		return Report{}, err
-	}
-	rep.ValidatorExit = ver.ExitCode
-	if ver.ExitCode != 0 {
-		return Report{}, fmt.Errorf("xray -test rejected the candidate (exit %d): %s", ver.ExitCode, strings.TrimSpace(ver.Stderr))
-	}
-
 	installedBin, err := paths.Join(binaryRel, true)
 	if err != nil {
 		return Report{}, err
@@ -189,6 +164,15 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		return Report{}, err
 	}
 
+	// xray -test opens the configured logs, so the log directory must exist.
+	// Record which ancestors were missing before creating any of them; recovery
+	// must remove only what the install created.
+	logDir, err := joinDir(paths, logDirRel)
+	if err != nil {
+		return Report{}, err
+	}
+	logDirMissing := missingDirChain(logDir)
+
 	// Capture the previous files and service state before the first mutation.
 	// A failed install or reinstall must be able to return to exactly this
 	// state; if it cannot, the error must say so instead of pretending success.
@@ -197,10 +181,54 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		return Report{}, err
 	}
 	snap := captureService(ctx, unitPath, paths.Root, spec.NoService)
+
+	// The durable journal must be fsynced before the first byte of live state
+	// changes. From here on a SIGKILL leaves a rollback record for the next
+	// process instead of a half-applied install.
+	j, err := newJournal(paths, backups, snap, logDirMissing, rep.Mode, rep.Transport)
+	if err != nil {
+		return Report{}, err
+	}
+	if recovery.Action == "rolled_back" {
+		rep.Warnings = append(rep.Warnings, "recovered unfinished deploy transaction")
+	}
 	fail := func(cause error) (Report, error) {
-		return rollbackInstall(ctx, backups, snap, rep, cause, logDirMissing)
+		if rbErr := restoreTransaction(ctx, backups, snap, logDirMissing); rbErr != nil {
+			journalMarkRecoveryRequired(paths, &j, rbErr)
+			return rep, fmt.Errorf("%w; rollback failed: %v; recovery journal kept, inspect and run 'idleleo xray recover'", cause, rbErr)
+		}
+		_ = journalMarkRolledBack(paths, &j, cause)
+		return rep, fmt.Errorf("%w; installation rolled back to the previous state", cause)
 	}
 
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
+		return fail(err)
+	}
+
+	tmp, err := os.CreateTemp("", "idleleo-candidate-*.json")
+	if err != nil {
+		return fail(err)
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName)
+	if _, err := tmp.Write(configBytes); err != nil {
+		tmp.Close()
+		return fail(err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fail(err)
+	}
+	if err := os.Chmod(tmpName, 0o600); err != nil {
+		return fail(err)
+	}
+	ver, err := host.Run(ctx, host.ExecSpec{Path: bin, Args: []string{"-test", "-config", tmpName}})
+	if err != nil {
+		return fail(err)
+	}
+	rep.ValidatorExit = ver.ExitCode
+	if ver.ExitCode != 0 {
+		return fail(fmt.Errorf("xray -test rejected the candidate (exit %d): %s", ver.ExitCode, strings.TrimSpace(ver.Stderr)))
+	}
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		return fail(err)
 	}
@@ -274,6 +302,9 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		rep.Warnings = append(rep.Warnings, "nginx-config-not-applied")
 	}
 	if spec.NoService || !serviceManaged(paths.Root) {
+		if err := journalMarkCommitted(paths, &j); err != nil {
+			return fail(err)
+		}
 		return rep, nil
 	}
 	if err := serviceCommand(ctx, "daemon-reload"); err != nil {
@@ -290,6 +321,9 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	if rep.ServiceActive != "active" {
 		return fail(fmt.Errorf("xray.service is %q after start", rep.ServiceActive))
 	}
+	if err := journalMarkCommitted(paths, &j); err != nil {
+		return fail(err)
+	}
 	return rep, nil
 }
 
@@ -301,6 +335,14 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 		return UninstallReport{}, err
 	}
 	if err := requireWriteAccess(paths, spec.AllowContainerWrites); err != nil {
+		return UninstallReport{}, err
+	}
+	lock, err := host.AcquireUpdate(paths.LockFile())
+	if err != nil {
+		return UninstallReport{}, err
+	}
+	defer lock.Release()
+	if _, err := recoverPendingLocked(ctx, paths); err != nil {
 		return UninstallReport{}, err
 	}
 	rep := UninstallReport{Warnings: []string{}}
@@ -474,10 +516,10 @@ func captureService(ctx context.Context, unitPath, root string, noService bool) 
 	return st
 }
 
-// rollbackInstall restores the captured files and service state. When either
-// part cannot be restored the returned error names the remaining manual work;
-// it never reports the original failure as if the host were clean.
-func rollbackInstall(ctx context.Context, backups []fileState, snap serviceState, rep Report, cause error, logDirMissing []string) (Report, error) {
+// restoreTransaction puts back the captured files and service state. When any
+// part cannot be restored the error names the remaining manual work; callers
+// never report the original failure as if the host were clean.
+func restoreTransaction(ctx context.Context, backups []fileState, snap serviceState, logDirMissing []string) error {
 	if snap.managed && !snap.unitExisted {
 		// A fresh install may have started and enabled the new unit. Stop and
 		// disable it before the restored file set removes the unit itself, so
@@ -486,23 +528,24 @@ func rollbackInstall(ctx context.Context, backups []fileState, snap serviceState
 		_ = serviceCommand(ctx, "disable", "xray")
 	}
 	for i := len(backups) - 1; i >= 0; i-- {
+		_ = os.Remove(backups[i].path + ".tmp")
 		if err := backups[i].restore(); err != nil {
-			return rep, fmt.Errorf("%w; rollback failed: %v; files may be partially updated, inspect manually", cause, err)
+			return err
 		}
 	}
 	removeEmptyDirs(logDirMissing)
 	if err := restoreService(ctx, snap); err != nil {
-		return rep, fmt.Errorf("%w; rollback failed: %v; systemd state may be inconsistent, inspect 'systemctl status xray' manually", cause, err)
+		return err
 	}
 	if snap.managed && !snap.unitExisted {
 		if err := serviceCommand(ctx, "daemon-reload"); err != nil {
-			return rep, fmt.Errorf("%w; rollback failed: %v; systemd state may be inconsistent, inspect 'systemctl status xray' manually", cause, err)
+			return err
 		}
 		if got := serviceQuery(ctx, "is-enabled", "xray"); strings.Contains(got, "enabled") {
-			return rep, fmt.Errorf("%w; rollback failed: xray.service is still enabled (%q), inspect manually", cause, got)
+			return fmt.Errorf("xray.service is still enabled (%q)", got)
 		}
 	}
-	return rep, fmt.Errorf("%w; installation rolled back to the previous state", cause)
+	return nil
 }
 
 func restoreService(ctx context.Context, snap serviceState) error {
