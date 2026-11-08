@@ -1,0 +1,63 @@
+{
+  "inbounds": [
+    {
+      "tag": "VLESS-ws-in",
+      "listen": "127.0.0.1",
+      "port": 10805,
+      "protocol": "VLESS",
+      "network": "ws",
+      "security": "none",
+      "wsPath": "/d6976c7e",
+      "grpcServiceName": null,
+      "xhttpPath": null,
+      "reality": null,
+      "clients": [
+        {
+          "id": "b841312a-d0ff-5175-83d0-6a31c9dad4ce",
+          "email": "cdbd40b8@hey.run",
+          "flow": null
+        }
+      ]
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "VLESS-ws-in"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  },
+  "dns": {
+    "servers": [
+      "https+local://dns.google/dns-query",
+      "https+local://cloudflare-dns.com/dns-query",
+      "https+local://doh.opendns.com/dns-query",
+      "208.67.222.222",
+      "8.8.8.8",
+      "1.1.1.1",
+      "localhost"
+    ],
+    "disableCache": false
+  },
+  "outbounds": [
+    {
+      "tag": "direct",
+      "protocol": "freedom"
+    },
+    {
+      "tag": "blocked",
+      "protocol": "blackhole"
+    }
+  ],
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "policy": null
+}

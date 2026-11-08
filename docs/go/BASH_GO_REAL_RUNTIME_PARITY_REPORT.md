@@ -19,6 +19,7 @@
 | 工作包 | 结论 | 最高证据等级 |
 |---|---|---|
 | A：真实 Bash 配置 vs Go 管理器 | 基线 98 项：`MATCH 2 / MATCH_CORE_FIELDS 32 / GAP 60 / REFUSED 4` | `BASH_EXECUTED` + `GO_EXECUTED` |
+| A2：真实交互式主安装 runtime | 6 个真实拓扑：`MATCH 1 / MATCH_CORE_FIELDS 3 / GAP 0 / UNSUPPORTED 2`；TLS/reality-nginx 因真实域名/ACME 未捕获 | `BASH_EXECUTED` + `GO_EXECUTED` |
 | B：兼容差异与故障恢复 | 修复后 `MATCH 54 / MATCH_CORE_FIELDS 32 / GAP 8 / REFUSED 4`；剩余 8 项均为已登记的预期缺口 | `GO_EXECUTED` |
 | C：Docker 真实服务与完整迁移 | Phase 01–04 合计 **330 / 332**，Bridge 状态机与故障注入全部真实执行 | `DOCKER_SERVICE_VERIFIED` / `DOCKER_MIGRATION_VERIFIED` |
 | D：TCP 原生 + 辅助脚本审计 | 20 项单测 + 30 项容器断言全绿；14 个脚本迁移判定表完成 | `GO_EXECUTED` + `DOCKER_MOCK_APPLY` |
@@ -96,6 +97,57 @@
 
 证据：[matrix-2026-11-08/baseline](../../tests/go-parity/evidence/matrix-2026-11-08/baseline/summary.json)、
 [environment.txt](../../tests/go-parity/evidence/matrix-2026-11-08/baseline/environment.txt)。
+
+### 2.1 A2：真实交互式 Bash 主安装 runtime 基线
+
+> 上一轮矩阵的 Bash 侧只调用 `install_config_*`，产出的是**安装元数据**，
+> 不是 Xray Runtime。A2 补齐这一层：在一次性 systemd 容器里真实执行
+> `install.sh -2`（Reality）与 `install.sh -3`（none/ws、gRPC、xHTTP、
+> ws+gRPC+xHTTP），由 `expect` 在出现提示后再作答（合成参数：Reality 目标
+> `www.cloudflare.com`，用户/路径/端口全部接受默认或随机值），最后采集
+> `/etc/idleleo/conf/xray/config.json` 并跑真实 `xray -test`。
+
+| 真实安装 | 模式/传输 | 真实端口 | `xray -test` | 服务 | 与 Go 真实配置对比 |
+|---|---|---|---|---|---|
+| reality-raw | Reality raw | 443 | 0 | active | `MATCH` |
+| none-ws | none ws | 容器随机 | 0 | active | `MATCH_CORE_FIELDS` |
+| none-grpc | none gRPC | 容器随机 | 0 | active | `MATCH_CORE_FIELDS` |
+| none-xhttp | none xHTTP | 容器随机 | 0 | active | `MATCH_CORE_FIELDS` |
+| none-ws_grpc_xhttp | none ws+gRPC+xHTTP | 3 个随机端口 | 0 | active | `UNSUPPORTED`（Go 只支持单传输） |
+| reality-ws_grpc_xhttp | Reality + ws+gRPC+xHTTP | 4 个随机端口 | 0 | active | `UNSUPPORTED`（同上） |
+
+**重跑结果（真实 runtime，6 个可捕获拓扑）**
+
+| 状态 | 数量 | 说明 |
+|---|---|---|
+| `MATCH` | 1 | Reality raw 的全部连接语义字段与 Go 一致 |
+| `MATCH_CORE_FIELDS` | 3 | none 单传输的连接字段一致；差异仅为 Bash 遗留的 `realitySettings` 空块、`geodata` 顶层键、gRPC tag 大小写 |
+| `GAP` | 0 | 未发现会导致连接语义不一致的字段 |
+| `UNSUPPORTED` | 2 | `ws+gRPC+xHTTP`，Go 目前拒绝 |
+| `REFUSED` | 0 | 主安装流没有负例用例，不能把矩阵里的 4 个 `REFUSED` 平移到 A2 |
+
+**与旧 54 / 32 / 8 / 4 的差异来源**
+
+- 旧 98 项矩阵的 54 个 `MATCH` 是**安装元数据**对比，不是 Runtime 对比；
+  A2 的真实 Runtime 重检**不能**把 54 直接继承为 runtime 签收。
+- 真实 Runtime 只覆盖 6 个“模式 + 传输”拓扑；旧矩阵里 32 个节点 case 的
+  443/8443/10086/65535 端口组合并没有逐个跑真实安装，不能声称已验证。
+- 单传输的真实 Runtime 里没有 `GAP`；3 个 `MATCH_CORE_FIELDS` 都是
+  非连接语义差异（Bash 模板遗留 `realitySettings`、none-ws 模板的 `geodata`、
+  `VLESS-gRPC-in` 大小写），与旧矩阵的“结构不一致”不是同一口径。
+- `ws+gRPC+xHTTP` 的 2 个真实拓扑仍是 `UNSUPPORTED`，对应旧矩阵剩余
+  8 个 `GAP`，说明 **GAP 8 没有被 A2 关掉**。
+- TLS 与 `reality-nginx` 需要真实域名/ACME 或域名证书，A2 **未捕获**，
+  这两类在旧矩阵中的结果仍只是元数据级，不能升级为 runtime 证据。
+
+**证据完整性说明**：为避开重复下载数分钟的 Xray 包，容器内预置了与 pin 一致的
+Xray 26.10.31 二进制、标准 unit 与 `/var/log/xray` 目录；`install.sh` 的交互、
+依赖检查、模板下载、配置生成、`xray -test`、enable/restart 均真实执行。
+6 个拓扑全部 `install_exit=0`、`xray_test_exit=0`、`xray.service=active`。
+采集脚本见 [a2/run_bash_real_install_container.sh](../../tests/go-parity/a2/run_bash_real_install_container.sh)、
+[drive_install.exp](../../tests/go-parity/a2/drive_install.exp)、
+[compare_real_runtime.py](../../tests/go-parity/a2/compare_real_runtime.py)；
+证据见 [evidence/a2-2026-11-08](../../tests/go-parity/evidence/a2-2026-11-08)。
 
 ## 3. B 包：兼容差异与故障恢复修复
 
@@ -288,11 +340,10 @@ v3.3.6 基线）。
 **P0（生产接管前必须解决）**
 
 1. `ws+gRPC+xHTTP` 多传输组合未实现（剩余 8 个 GAP 的唯一来源）。
-2. **A2 真实 Bash 主安装未执行**：`tests/fixtures/legacy` 由
-   [generate.sh](../../tests/fixtures/legacy/generate.sh) 按模板重建 JSON，
-   Phase 03 使用的是静态 fixture；本轮**没有**让真实 `install.sh` 在容器内生成
-   Runtime 配置。这不满足提示词 A2“不接受只复制静态 JSON 作为 Bash 实际生成”的要求。
-   补齐需要独立的交互式 Bash 安装容器与合成参数，属于下一轮工作包。
+2. **A2 真实 Bash 主安装已执行，但覆盖不完整**：6 个拓扑在一次性 systemd
+   容器内真实跑完 `install.sh -2/-3` 并采集 Runtime（§2.1），
+   `xray -test=0`、服务 active。TLS 与 `reality-nginx` 因需要真实域名/ACME
+   未捕获；旧 54 个元数据 `MATCH` 不能升级为 Runtime 签收。
 3. **B4 崩溃恢复缺口**：`internal/deploy` 只有内存内 `backups`，没有
    持久 journal/lock；安装过程被 `SIGKILL` 或容器重启后，无法自动检测并回滚
    已写入的 unit/二进制/配置。提示词 B4 要求“至少明确检测、持久回滚/安全失败”，

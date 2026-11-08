@@ -1,0 +1,23 @@
+{
+  "shell_mode": "ws+gRPC+xHTTP ONLY",
+  "transport_mode": "wsgRPCxhttp",
+  "host": "2001:db8::42",
+  "ip_version": "IPv4",
+  "network_mode": "ipv4",
+  "ipv4_address": "2001:db8::42",
+  "ipv6_address": "",
+  "ws_port": "10066",
+  "grpc_port": "10990",
+  "xhttp_port": "11067",
+  "tls": "None",
+  "email": "b4ec@hey.run",
+  "idc": "c597",
+  "id": "9e62cf6d-8085-5d3c-86e8-6068f00ac24e",
+  "net": "ws/gRPC/xHTTP",
+  "path": "31cc",
+  "serviceName": "63fc",
+  "xhttp_path": "cff0",
+  "shell_version": "3.3.6",
+  "xray_version": "26.10.31",
+  "privateKey": "REDACTED"
+}

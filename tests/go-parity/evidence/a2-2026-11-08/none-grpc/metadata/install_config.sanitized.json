@@ -1,0 +1,23 @@
+{
+  "shell_mode": "gRPC ONLY",
+  "transport_mode": "onlygRPC",
+  "host": "2001:db8::42",
+  "ip_version": "IPv4",
+  "network_mode": "ipv4",
+  "ipv4_address": "2001:db8::42",
+  "ipv6_address": "",
+  "ws_port": "None",
+  "grpc_port": "10272",
+  "xhttp_port": "None",
+  "tls": "None",
+  "email": "8ae35698510e3@hey.run",
+  "idc": "7fae9268e1ed5",
+  "id": "73b6fb01-a3eb-5e61-a956-ba77a97e9d0c",
+  "net": "ws/gRPC",
+  "path": "None",
+  "serviceName": "ed6f6b835d9a2",
+  "xhttp_path": "None",
+  "shell_version": "3.3.6",
+  "xray_version": "26.10.31",
+  "privateKey": "REDACTED"
+}

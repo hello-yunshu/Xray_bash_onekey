@@ -1,0 +1,176 @@
+{
+  "dns": {
+    "disableCache": false,
+    "servers": [
+      "https+local://dns.google/dns-query",
+      "https+local://cloudflare-dns.com/dns-query",
+      "https+local://doh.opendns.com/dns-query",
+      "208.67.222.222",
+      "8.8.8.8",
+      "1.1.1.1",
+      "localhost"
+    ]
+  },
+  "inbounds": [
+    {
+      "listen": "0.0.0.0",
+      "port": 443,
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "email": "952396367b3@hey.run",
+            "flow": "xtls-rprx-vision",
+            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "raw",
+        "realitySettings": {
+          "minClientVer": "1.0.0",
+          "privateKey": "REDACTED",
+          "serverNames": [
+            "www.cloudflare.com"
+          ],
+          "settings": {
+            "privateKey": "REDACTED"
+          },
+          "shortIds": [
+            "4bfbc2a56c770a6e"
+          ],
+          "target": "www.cloudflare.com:443"
+        },
+        "security": "reality"
+      },
+      "tag": "VLESS-Reality-in"
+    },
+    {
+      "listen": "0.0.0.0",
+      "port": 10128,
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "email": "952396367b3@hey.run",
+            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "realitySettings": {
+          "privateKey": "REDACTED",
+          "settings": {
+            "privateKey": "REDACTED"
+          }
+        },
+        "security": "none",
+        "wsSettings": {
+          "path": "/1f1fdb7439c"
+        }
+      },
+      "tag": "VLESS-ws-in"
+    },
+    {
+      "listen": "0.0.0.0",
+      "port": 10760,
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "email": "952396367b3@hey.run",
+            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "grpcSettings": {
+          "idle_timeout": 20,
+          "multiMode": true,
+          "serviceName": "50f55b5abac"
+        },
+        "network": "grpc",
+        "realitySettings": {
+          "privateKey": "REDACTED",
+          "settings": {
+            "privateKey": "REDACTED"
+          }
+        },
+        "security": "none"
+      },
+      "tag": "VLESS-gRPC-in"
+    },
+    {
+      "listen": "0.0.0.0",
+      "port": 11207,
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "email": "952396367b3@hey.run",
+            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "xhttp",
+        "realitySettings": {
+          "privateKey": "REDACTED",
+          "settings": {
+            "privateKey": "REDACTED"
+          }
+        },
+        "security": "none",
+        "xhttpSettings": {
+          "mode": "auto",
+          "path": "/957ba4fd40c"
+        }
+      },
+      "tag": "VLESS-xhttp-in"
+    }
+  ],
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4v6"
+        }
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "inboundTag": [
+          "VLESS-Reality-in",
+          "VLESS-ws-in",
+          "VLESS-gRPC-in",
+          "VLESS-xhttp-in"
+        ],
+        "outboundTag": "direct",
+        "type": "field"
+      }
+    ]
+  }
+}
