@@ -241,6 +241,26 @@ newOrder、authorization、challenge、finalize、certificate 下载）与
 脚本与证据：[acme/](../../tests/go-parity/acme)、
 [evidence/acme-2026-11-08](../../tests/go-parity/evidence/acme-2026-11-08)。
 
+### 2.4 A1 覆盖接入矩阵统计
+
+矩阵 runner 在原有 98 个 Bash 对照 case 之外，新增 6 个 **Go-only** A1 行：
+hostname 校验、IPv4/IPv6 绑定、1/4/20 用户、主备 primary、secondary、
+balance 拒绝路径。A1 行不伪装成 Bash 等价，状态单列为 `A1_PASS/A1_FAIL`；
+`total_bash_parity=98` 保留原统计口径，`total=104`。
+
+在干净克隆 `ad9dcf3`（`repo_dirty=0`）运行：
+
+| 统计项 | 结果 |
+|---|---|
+| 98 项 Bash 对照 | `MATCH 54 / MATCH_CORE_FIELDS 40 / GAP 0 / REFUSED 4` |
+| 6 项 A1 覆盖 | `A1_PASS 6 / A1_FAIL 0` |
+| 总计 | 104 |
+
+A1 行调用真实 `go test -run <group>`，不是 Python 重新实现断言；其中
+IPv6 绑定另有真实 `xray -test` 证据（§7）。`A1_PASS` 只表示 Go 侧用例
+通过，**不等于** Bash 等价或生产签收。证据：
+[evidence/matrix-2026-11-08/a1](../../tests/go-parity/evidence/matrix-2026-11-08/a1)。
+
 ## 3. B 包：兼容差异与故障恢复修复
 
 **代码修改（commit `f9df1ea` + `ace4a16`）**
@@ -450,6 +470,7 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | Phase 03 容器复跑 | 219 / 219，exit 0 | `DOCKER_MIGRATION_VERIFIED` |
 | Phase 04 容器复跑 | 42 / 42，exit 0 | `DOCKER_SERVICE_VERIFIED` |
 | 98 项 Bash/Go 矩阵（B3 多入口后） | MATCH 54 / CORE 40 / GAP 0 / REFUSED 4 | `BASH_EXECUTED` + `GO_EXECUTED` |
+| A1 覆盖行（§2.4，接入矩阵） | 6 / 6 `A1_PASS`；总计 104 行 | `GO_EXECUTED` |
 | A2 真实安装 6 拓扑（§2.1） | 2 MATCH / 4 CORE / 0 GAP / 0 UNSUPPORTED | `BASH_EXECUTED` |
 | B3 多入口 `xray -test`（tls/none/reality） | 3 / 3 exit 0（真实 Xray 26.10.31） | `GO_EXECUTED` |
 | A1 hostname/bind/users 用例 | `TestA1HostnameValidation`、`TestA1BindIPv4IPv6`、`TestA1UserScaleOneFourTwenty` 全 PASS | `GO_EXECUTED` |
@@ -472,7 +493,10 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | `a53dfee` | A2：真实交互式 Bash 主安装 6 拓扑 runtime 基线与重跑统计 |
 | （本次 B4 提交） | B4：持久 deploy journal + 排他锁 + `idleleo xray recover` + 真实 SIGKILL 注入证据 |
 | （本次 B3 提交） | B3：`ws+gRPC+xHTTP` 多入口生成、Nginx 多 location、矩阵与真实 Xray 校验 |
-| （本次 A1 提交） | A1：hostname 校验、IPv4/IPv6 绑定、1/4/20 用户覆盖与真实 `xray -test` |
+| `（本次 A1 提交）` | A1：hostname 校验、IPv4/IPv6 绑定、1/4/20 用户覆盖与真实 `xray -test` |
+| `5ac22db` | 主备负载均衡：角色/后端片段/stream 规则 + Bash 逐字段对照与 Nginx 模拟 |
+| `7212ec6` / `b86fbc2` / `4f73564` | ACME 原生客户端、badNonce 重试、已 valid 授权跳过 |
+| `ad9dcf3` | 矩阵接入 6 个 A1 覆盖行，`98 + 6 = 104` |
 
 既有关联提交：`2d44d98`（logrotate drop-in 修复）、`e859724`（install.sh 对齐
 v3.3.6 基线）。
@@ -498,11 +522,11 @@ v3.3.6 基线）。
 
 **P1**
 
-5. **A1 覆盖缺口（部分补齐）**：节点级 IPv4/IPv6 绑定、hostname 校验、
+5. **A1 覆盖缺口（已补齐）**：节点级 IPv4/IPv6 绑定、hostname 校验、
    1/4/20 用户已由 Go 用例覆盖并通过真实 Xray `-test`；主备负载均衡已按
-   Bash 语义实现并完成容器级逐字段对照（§2.2，primary CORE / secondary MATCH），
-   但尚未做真实双 VPS 与真实 Reality 握手；这些用例尚未进入 98 项 Bash
-   对照矩阵统计口径（下一项处理），因此不能表述为全量 Bash 等价或生产签收。
+   Bash 语义实现并完成容器级逐字段对照（§2.2，primary CORE / secondary MATCH）；
+   6 个 A1 组已接入矩阵统计（§2.4，`98 + 6 = 104`，6/6 `A1_PASS`）。
+   仍缺真实双 VPS 与真实 Reality 握手，因此不构成生产签收。
 6. **C4 故障点未全覆盖**：缺 invalid candidate/recovery 二进制、reload 失败、
    cron 修改冲突、写盘失败后的独立注入；其余 disk-full、kill 点、drift、
    corrupt journal、`--yes` 不自动迁移已真实执行。
@@ -522,18 +546,17 @@ v3.3.6 基线）。
 
 - **流程完成，不等于技术验收通过**：A/B/C/D 四包均完成“复现 → 修复 → 实跑 →
   自审 → 提交”，真实测试记录与失败证据完整保留；但 §9 的 P0 硬缺口仍在，
-  相对提示词包约 **83%**（附录 A）。
+  相对提示词包约 **84%**（附录 A）。
 - **Go 可接管**配置生成（含多入口）、迁移状态机、服务/GeoData/Stats/timer 原语、
   跨进程安装恢复与 TCP 安全子集；**不可宣称**全量生产接管或真实 VPS 签收。
-- 下一步建议顺序：升级执行器 → 公网 CA/生产 ACME 验收 → A1 矩阵统计 →
-  P1 功能项；A2、B3、B4、主备负载均衡已补齐，A1 已补齐 binding/hostname/
-  1-4-20 用户。在此之前保持 Bash 为生产入口。
+- 下一步建议顺序：升级执行器 → 公网 CA/生产 ACME 验收 → P1 功能项；
+  A2、B3、B4、主备负载均衡、A1 矩阵统计均已补齐。在此之前保持 Bash 为生产入口。
 
 ## 附录 A：提示词包逐条合规复检（2026-11-08）
 
 > 判定口径：**PASS** = 有可核对产物且满足要求；**部分满足** = 做了但覆盖/口径不完整；
-> **FAIL** = 要求未完成或证据不成立。共 38 项：PASS 25、部分满足 13、FAIL 0；
-> 加权完成度（PASS=1，部分=0.5）≈ **83%**（A2、B3、B4 补齐，A1 部分补齐）。
+> **FAIL** = 要求未完成或证据不成立。共 38 项：PASS 26、部分满足 12、FAIL 0；
+> 加权完成度（PASS=1，部分=0.5）≈ **84%**（A1 覆盖进入矩阵，A2/B3/B4 已补齐）。
 > 流程/交付接近 100%；正式签收仍为 0/28（仅真实 VPS 证据才能改口径）。
 
 | # | 检查项（提示词出处） | 判定 | 证据 / 说明 |
@@ -547,7 +570,7 @@ v3.3.6 基线）。
 | 7 | 0.7 证据等级标注、不把容器写成签收 | PASS | 报告 §1 定义等级；F01–F28 正式签收 **0/28**；无“真实 VPS 已验证”表述 |
 | 8 | 0.8 不引入大型框架，复用事务/锁/恢复日志 | PASS | 仅新增 `internal/tcpcfg` 与 deploy 修复；TCP 复用 journal/lock 模式 |
 | 9 | A1 执行 ZIP 夹具并记录 commit/dirty/Go/Docker/镜像/夹具 SHA | PASS | [baseline/environment.txt](../../tests/go-parity/evidence/matrix-2026-11-08/baseline/environment.txt)：`dd97eb1`、dirty=0、arm64、digest；报告补 Go/Xray/Nginx/SHA |
-| 10 | A1 必需覆盖：IPv4/IPv6、hostname、1/4/20 用户、主备负载均衡 | 部分满足 | 绑定/hostname/1-4-20 用户已有 Go 用例与真实 `xray -test`；主备负载均衡未实现，且未进入 98 项 Bash 矩阵 |
+| 10 | A1 必需覆盖：IPv4/IPv6、hostname、1/4/20 用户、主备负载均衡 | PASS | 绑定/hostname/1-4-20 用户 Go 用例与真实 `xray -test`；主备已实现并做 Bash 逐字段对照；6 个 A1 组接入矩阵（`98 + 6 = 104`，6/6 `A1_PASS`），A1 单列为 Go-only 覆盖 |
 | 11 | A1 分契约比较、敏感字段保护 | PASS | 矩阵按 metadata/runtime/share 分契约；证据只存哈希与字段，不含私钥 |
 | 12 | A2 真实 Bash 主安装生成 Runtime（非静态 JSON） | PASS | `a53dfee`：一次性 systemd 容器内 `install.sh -2/-3` 真实交互安装，采集 `/etc/idleleo/conf/xray/config.json`；6 拓扑 `install_exit=0`、`xray_test_exit=0`、服务 active（§2.1） |
 | 13 | A2 模式/传输/角色/网络/用户/自定义组合覆盖 | 部分满足 | 已覆盖 none-ws/grpc/xhttp/三合一、reality-raw/reality-三合一；TLS、reality-nginx 与多用户/自定义 serverNames 未捕获 |
@@ -573,7 +596,7 @@ v3.3.6 基线）。
 | 33 | D2 TCP status/plan/apply/rollback 安全实现 | PASS | 20 项单测覆盖部分失败/回滚失败/漂移/只读/符号链接/pending；30 项沙箱断言；不重放 `sysctl --system` |
 | 34 | D3 辅助脚本迁移矩阵与后续顺序 | PASS | 14 个脚本 + install.sh TCP/端口/证书/防火墙入口；目标/契约/优先级齐全 |
 | 35 | 回归门禁 gofmt/vet/test/race/bash -n | PASS | [gates-2026-11-08.log](../../tests/go-parity/evidence/gates-2026-11-08.log)：`GATES_OK` |
-| 36 | 98 矩阵 + Phase 01–04 日志/退出码/镜像 digest | PASS | 矩阵在 `ace4a16` 与 B3 后各重跑一次；Phase 日志与 exit code 齐全 |
+| 36 | 98 矩阵 + Phase 01–04 日志/退出码/镜像 digest | PASS | 矩阵在 `ace4a16`、B3 后与 `ad9dcf3`（98+6 A1）各重跑；Phase 日志与 exit code 齐全 |
 | 37 | 脱敏、无真实私钥、资产固定版本与哈希 | PASS | 证据中无 `PRIVATE KEY`；A2 生成 UUID/公钥/shortId/主机 IP/分享链接已二次脱敏；Xray SHA 与夹具/镜像 digest 记录 |
 | 38 | 交付物 5 项、F01–F28、commit SHA | PASS | 报告、DOCKER_MIGRATION_ACCEPTANCE、TCP_NATIVE_DESIGN_AND_QA、SCRIPT_NATIVE_MIGRATION_MATRIX、FUNCTION_PARITY 均在仓库 |
 
