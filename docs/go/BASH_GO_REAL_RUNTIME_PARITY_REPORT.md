@@ -206,13 +206,24 @@ newOrder、authorization、challenge、finalize、certificate 下载）与
 | 步骤 | 真实结果 | 证据 |
 |---|---|---|
 | 账户注册 | `newAccount` 成功，`accountUrl` 持久化 | `issue.json` |
-| 下单 + HTTP-01 | 订单 `f2gjyA9…`；挑战文件被 Pebble 以 HTTP 200 拉取 | `client-http.log`、`pebble.log` |
-| 签发 | 证书 serial `5292ffa7d1ddf595`，有效期 90 天 | `issue.json`、`verify-initial.json` |
+| 下单 + HTTP-01 | 订单 `RRVXuZg4…`；挑战文件被 Pebble 以 HTTP 200 拉取 | `client-http.log`、`pebble.log` |
+| 签发 | 证书 serial `6198fb3215330c0c`，有效期 90 天 | `issue.json`、`verify-initial.json` |
 | 安装 | 证书 0644、私钥 0600；`reload` 命令执行并写 marker | `run.log` |
 | 窗口内续期 | `skipped=true`，未发起新订单 | `renew-skip.json` |
-| 强制续签 | 新 serial `7eef85582eca3cd5`，私钥轮换，账户复用 | `renew-force.json`、`verify-after-force.json` |
+| 强制续签 | 新 serial `623489df63a3c339`，私钥轮换，账户复用 | `renew-force.json`、`verify-after-force.json` |
 | 链/主机名 | 以 Pebble 动态根验证通过，SAN `acme.local`，89.9999 天 | `verify-*.json` |
 | 拒绝域 | Pebble 返回 `rejectedIdentifier`，未写出证书 | `negative-blocked.err` |
+
+**协议执行中发现并修复的两个真实缺陷**（先复现、后修复）：
+
+1. **badNonce 只重试一次**：Pebble 默认拒绝 5% 的新 nonce，连续命中时续期
+   `badNonce` 失败（首轮实跑复现）。改为清空缓存 nonce 后最多重试 5 次
+   （commit `b86fbc2`）。
+2. **已 valid 的授权仍被 POST**：Pebble 有 50% 概率复用有效授权，第二次下单
+   复用后客户端仍提交 challenge，CA 返回
+   `malformed: Cannot update challenge with status valid, only status pending`
+   （第二轮实跑复现）。改为授权或 http-01 challenge 已 valid 时直接跳过
+   （commit `4f73564`）；用 `PEBBLE_AUTHZREUSE=100` 确定性覆盖该分支。
 
 **结论**：`ACME_LOCAL_CA` —— 账户注册、下单、HTTP-01、签发、安装、续期判定
 与强制续签均为真实 ACME v2 协议执行；**不是公网 CA 验收**，也**不是**
