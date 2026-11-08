@@ -350,7 +350,7 @@ v3.3.6 基线）。
 | 9 | A1 执行 ZIP 夹具并记录 commit/dirty/Go/Docker/镜像/夹具 SHA | PASS | [baseline/environment.txt](../../tests/go-parity/evidence/matrix-2026-11-08/baseline/environment.txt)：`dd97eb1`、dirty=0、arm64、digest；报告补 Go/Xray/Nginx/SHA |
 | 10 | A1 必需覆盖：IPv4/IPv6、hostname、1/4/20 用户、主备负载均衡 | FAIL | 98 case 无节点级 IPv4/IPv6、hostname、20 用户、balance；仅 relay 覆盖 IPv6/域名后端 |
 | 11 | A1 分契约比较、敏感字段保护 | PASS | 矩阵按 metadata/runtime/share 分契约；证据只存哈希与字段，不含私钥 |
-| 12 | A2 真实 Bash 主安装生成 Runtime（非静态 JSON） | FAIL | `tests/fixtures/legacy/generate.sh` 用 jq 按模板重建；Phase 03 直接使用静态 fixture |
+| 12 | A2 真实 Bash 主安装生成 Runtime（非静态 JSON） | FAIL | 矩阵只 source `install.sh` 调 `install_config_*`（生成安装元数据，非 Runtime）；Phase 03 用 [generate.sh](../../tests/fixtures/legacy/generate.sh) 按模板重建的静态 fixture；均非真实主安装 |
 | 13 | A2 模式/传输/角色/网络/用户/自定义组合覆盖 | FAIL | 无真实 Bash 安装组合；Phase 02/03 只覆盖 Go 安装与固定 fixture 子集 |
 | 14 | A3 Bash→Go 真实 CLI 双向 | 部分满足 | Phase 03 跑 audit/prepare/validate/activate/recover、用户/分享操作；未覆盖全部模式 |
 | 15 | A3 Go→运行时真实 `xray -test` 与客户端流量 | 部分满足 | F01 Reality 客户端隧道、F05 relay 真实转发；TLS/多传输无真实客户端 |
