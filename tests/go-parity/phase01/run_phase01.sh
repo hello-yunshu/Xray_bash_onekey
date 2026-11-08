@@ -22,6 +22,9 @@ TOTAL=0
 record() {
   local id=$1 name=$2 cmd=$3 exp=$4 act=$5 pass=$6 detail=$7
   cmd=$(printf '%s' "$cmd" | tr '\t\n' '  ')
+  # act may carry a multi-line git diff; keep the TSV one row (and one FAIL row)
+  # instead of letting embedded newlines fabricate extra rows and counts.
+  act=$(printf '%s' "$act" | tr '\t\n' '  ')
   detail=$(printf '%s' "$detail" | tr '\t\n' '  ')
   TOTAL=$((TOTAL + 1))
   printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$id" "$name" "$cmd" "$exp" "$act" "$pass" "$detail" >>"$TSV"
