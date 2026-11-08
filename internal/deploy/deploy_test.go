@@ -303,6 +303,139 @@ func TestCaptureRestoreSymlink(t *testing.T) {
 	}
 }
 
+func fakeNginx(t *testing.T, exit int) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "nginx")
+	body := "#!/bin/sh\nif [ \"$1\" = \"-V\" ]; then echo 'nginx version: nginx/1.24'; exit 0; fi\n"
+	if exit != 0 {
+		body += "exit " + strconv.Itoa(exit) + "\n"
+	} else {
+		body += "exit 0\n"
+	}
+	if err := os.WriteFile(path, []byte(body), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+func TestNginxModesRefuseSilentExtensionlessInstall(t *testing.T) {
+	for _, tc := range []struct{ mode, role string }{
+		{"tls", ""}, {"reality-nginx", ""}, {"reality-balance", "primary"},
+	} {
+		root := sandbox(t)
+		_, err := Install(context.Background(), InstallSpec{
+			Root: root, SourceBinary: stubXray(t), Mode: tc.mode, BalanceRole: tc.role,
+			Port: 8443, Domain: "example.com", NoService: true,
+		})
+		if err == nil || !strings.Contains(err.Error(), "--external-nginx-managed") {
+			t.Fatalf("%s must refuse without the explicit front acknowledgement: %v", tc.mode, err)
+		}
+		if _, statErr := os.Stat(filepath.Join(root, configRel)); statErr == nil {
+			t.Fatalf("%s wrote a config despite refusing", tc.mode)
+		}
+	}
+}
+
+func TestNginxModesRequireAndVerifyRealBinary(t *testing.T) {
+	root := sandbox(t)
+	_, err := Install(context.Background(), InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "reality-balance", BalanceRole: "primary",
+		Port: 8443, ExternalNginxManaged: true, NoService: true,
+	})
+	if err == nil || !strings.Contains(err.Error(), "--nginx-bin") {
+		t.Fatalf("missing nginx binary must fail closed: %v", err)
+	}
+
+	root = sandbox(t)
+	rep, err := Install(context.Background(), InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "reality-balance", BalanceRole: "primary",
+		Port: 8443, Domain: "example.com", ExternalNginxManaged: true, NginxBin: fakeNginx(t, 0), NoService: true,
+	})
+	if err != nil {
+		t.Fatalf("verified nginx install must succeed: %v", err)
+	}
+	if !rep.NginxManaged || !rep.NginxVerified {
+		t.Fatalf("nginx verification not reported: %+v", rep)
+	}
+	for _, name := range []string{"00-xray.conf", "127.0.0.1.realityServers", "03-isolate.conf"} {
+		if _, statErr := os.Stat(filepath.Join(rep.NginxDir, name)); statErr != nil {
+			t.Fatalf("missing nginx artifact %s", name)
+		}
+	}
+
+	root = sandbox(t)
+	if _, err := Install(context.Background(), InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "reality-balance", BalanceRole: "primary",
+		Port: 8443, Domain: "example.com", ExternalNginxManaged: true, NginxBin: fakeNginx(t, 1), NoService: true,
+	}); err == nil || !strings.Contains(err.Error(), "nginx -t") {
+		t.Fatalf("nginx -t failure must abort and roll back: %v", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(root, configRel)); statErr == nil {
+		t.Fatal("failed nginx verification left the runtime config behind")
+	}
+}
+
+func TestRealityBalanceSecondaryNeedsNoNginx(t *testing.T) {
+	root := sandbox(t)
+	rep, err := Install(context.Background(), InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "reality-balance", BalanceRole: "secondary",
+		Port: 8443, Domain: "example.com", NoService: true,
+	})
+	if err != nil {
+		t.Fatalf("secondary must install without a front: %v", err)
+	}
+	if rep.NginxManaged {
+		t.Fatal("secondary must not claim Nginx management")
+	}
+}
+
+func TestExistingConfigIsNeverRegeneratedImplicitly(t *testing.T) {
+	root := sandbox(t)
+	previous := seedReinstall(t, root)
+	_, err := Install(context.Background(), InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "none", Transport: "ws", Port: 10085, NoService: true,
+	})
+	if err == nil {
+		t.Fatal("install must refuse to replace an existing runtime config without an explicit choice")
+	}
+	if !strings.Contains(err.Error(), "--keep-config") || !strings.Contains(err.Error(), "--rewrite-config") {
+		t.Fatalf("refusal must name both explicit options: %v", err)
+	}
+	if got := readFile(t, filepath.Join(root, configRel)); got != previous[configRel] {
+		t.Fatalf("refused install modified the existing config: %q", got)
+	}
+}
+
+func TestRewriteConfigIsExplicitAndReported(t *testing.T) {
+	root := sandbox(t)
+	seedReinstall(t, root)
+	rep, err := Install(context.Background(), InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "none", Transport: "ws", Port: 10085,
+		RewriteConfig: true, NoService: true,
+	})
+	if err != nil {
+		t.Fatalf("explicit rewrite must succeed: %v", err)
+	}
+	if rep.Preserved {
+		t.Fatal("rewrite must not report the preserved-config path")
+	}
+	if got := readFile(t, filepath.Join(root, configRel)); strings.Contains(got, `"inbounds":[]`) {
+		t.Fatal("rewrite did not install the requested generation")
+	}
+}
+
+func TestRealityBalanceMetadataIsReality(t *testing.T) {
+	for _, mode := range []string{"reality", "reality-nginx", "reality-balance", "tls", "none"} {
+		want := map[string]string{
+			"reality": "Reality", "reality-nginx": "Reality", "reality-balance": "Reality",
+			"tls": "TLS", "none": "None",
+		}[mode]
+		if got := tlsLabel(mode); got != want {
+			t.Fatalf("tlsLabel(%q) = %q, want %q", mode, got, want)
+		}
+	}
+}
+
 func TestRollbackFailureIsReportedNotHidden(t *testing.T) {
 	root := sandbox(t)
 	seedReinstall(t, root)

@@ -1,0 +1,16 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:1081...
+* Connected to 127.0.0.1 (127.0.0.1) port 1081
+* SOCKS5 connect to example.com:80 (remotely resolved)
+* SOCKS5 request granted.
+* Connected to 127.0.0.1 (127.0.0.1) port 1081
+> GET / HTTP/1.1
+> Host: example.com
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:03 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:04 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:05 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:06 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:07 --:--:--     0* Operation timed out after 8009 milliseconds with 0 bytes received
+  0     0    0     0    0     0      0      0 --:--:--  0:00:08 --:--:--     0
+* Closing connection
+curl: (28) Operation timed out after 8009 milliseconds with 0 bytes received

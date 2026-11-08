@@ -401,11 +401,26 @@ func xrayInstall(ctx context.Context, opts Options, cfg config, args []string) i
 		Port:                 spec.Port,
 		Domain:               spec.Domain,
 		Target:               spec.Target,
+		Path:                 spec.Path,
+		ServiceName:          spec.ServiceName,
+		UUID:                 spec.UUID,
+		Email:                spec.Email,
+		Flow:                 spec.Flow,
+		PrivateKey:           spec.PrivateKey,
+		ShortID:              spec.ShortID,
+		CertFile:             spec.CertFile,
+		KeyFile:              spec.KeyFile,
+		Listen:               spec.Listen,
+		PublicPort:           spec.PublicPort,
 		ServerNames:          spec.ServerNames,
 		BalanceRole:          spec.BalanceRole,
 		Backends:             spec.Backends,
 		UnknownSNIPolicy:     spec.UnknownSNIPolicy,
+		AllowNonLoopback:     spec.AllowNonLoopback,
 		KeepConfig:           hasFlag(args, "--keep-config"),
+		RewriteConfig:        hasFlag(args, "--rewrite-config"),
+		ExternalNginxManaged: hasFlag(args, "--external-nginx-managed"),
+		NginxBin:             flagValue(args, "--nginx-bin"),
 		NoService:            hasFlag(args, "--no-service"),
 		AllowContainerWrites: hasFlag(args, "--container"),
 	})
@@ -419,6 +434,9 @@ func xrayInstall(ctx context.Context, opts Options, cfg config, args []string) i
 	fmt.Fprintf(opts.Out, "installed: mode=%s transport=%s tls=%s\n", report.Mode, report.Transport, report.TLS)
 	fmt.Fprintf(opts.Out, "config=%s sha256=%s\n", report.ConfigPath, report.ConfigSHA256)
 	fmt.Fprintf(opts.Out, "service active=%s enabled=%s\n", report.ServiceActive, report.ServiceEnabled)
+	if report.NginxManaged {
+		fmt.Fprintf(opts.Out, "nginx managed=%t verified=%t dir=%s\n", report.NginxManaged, report.NginxVerified, report.NginxDir)
+	}
 	for _, w := range report.Warnings {
 		fmt.Fprintf(opts.Out, "warning=%s\n", w)
 	}

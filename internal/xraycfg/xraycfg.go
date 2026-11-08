@@ -296,6 +296,11 @@ func Generate(spec Spec) (Generated, error) {
 			targetHost = host
 		} else if strings.Contains(realityTarget, ":") && !strings.HasPrefix(realityTarget, "[") {
 			return Generated{}, fmt.Errorf("invalid reality target %q: expected host:port", realityTarget)
+		} else {
+			// Xray rejects a Reality target without an explicit port; the Bash
+			// default is 443, so normalize instead of emitting a broken config.
+			targetHost = strings.Trim(realityTarget, "[]")
+			realityTarget = net.JoinHostPort(targetHost, "443")
 		}
 		if !compat.RelayIsValidHost(strings.Trim(targetHost, "[]")) {
 			return Generated{}, fmt.Errorf("invalid reality target host %q", targetHost)
@@ -820,13 +825,22 @@ stream {
 // stream config. One .realityServers file holds every upstream line, which
 // matches how scripts/file_manager.sh appends backends.
 func buildRealityBalanceFragments(spec Spec, serverName string) map[string]string {
-	backends := spec.Backends
-	if len(backends) == 0 {
-		backends = []string{net.JoinHostPort("127.0.0.1", strconv.Itoa(realityBalanceBackendPort))}
+	// Bash always keeps the local 127.0.0.1:9443 backend line and appends
+	// operator-added servers; --backend never replaces the primary.
+	primary := net.JoinHostPort("127.0.0.1", strconv.Itoa(realityBalanceBackendPort))
+	backends := []string{primary}
+	seen := map[string]bool{primary: true}
+	for _, raw := range spec.Backends {
+		backend := strings.TrimSpace(raw)
+		if seen[backend] {
+			continue
+		}
+		seen[backend] = true
+		backends = append(backends, backend)
 	}
 	var upstream strings.Builder
 	for _, backend := range backends {
-		fmt.Fprintf(&upstream, "server %s weight=50 max_fails=2 fail_timeout=10;\n", strings.TrimSpace(backend))
+		fmt.Fprintf(&upstream, "server %s weight=50 max_fails=2 fail_timeout=10;\n", backend)
 	}
 	frags := map[string]string{
 		"127.0.0.1.realityServers":  upstream.String(),

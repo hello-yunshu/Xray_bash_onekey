@@ -155,12 +155,13 @@ func TestInstallConvergesPendingJournal(t *testing.T) {
 		}
 	}
 	rep, err := Install(context.Background(), InstallSpec{
-		Root:         paths.Root,
-		SourceBinary: stubXray(t),
-		Mode:         "none",
-		Transport:    "ws",
-		Port:         10081,
-		NoService:    true,
+		Root:          paths.Root,
+		SourceBinary:  stubXray(t),
+		Mode:          "none",
+		Transport:     "ws",
+		Port:          10081,
+		RewriteConfig: true,
+		NoService:     true,
 	})
 	if err != nil {
 		t.Fatalf("install must converge the pending journal, got %v", err)
