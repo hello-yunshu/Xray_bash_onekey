@@ -31,6 +31,50 @@
 | `install.sh:10851-10864` `bbr_boost_sh` | 有 `scripts/tcp.sh` 就执行；否则从 `raw.githubusercontent.com/ylx2016/Linux-NetSpeed` 下载后执行 | `idleleo tcp ...` 只管理 `/etc/sysctl.d/90-idleleo-tcp.conf`，支持回退与漂移拒绝 | 部分迁移（安全子集，未替换菜单） |
 | `install.sh:13384-13387` `-tcp/--tcp` | 调 `bbr_boost_sh` | 同上 | 未接线 |
 | `install.sh:15493-15496` 菜单 28 | 调 `bbr_boost_sh` | 同上 | 未接线 |
+| `install.sh:13337` `-pt/--port-traffic` | 实时端口流量（iftop） | 无 | 保留 Bash（只读工具） |
+| `install.sh:13294-13296` `-c/--clean-logs` | 日志清理 | 无 | 保留 Bash（日志体系不重构） |
+| `install.sh:13297-13304` `-cs/-cu/-cau` | 证书状态/手动续期/acme cron | 外部续约契约（F12） | 保留 Bash（无 ACME） |
+| `install.sh:3696-3728` 防火墙提示 | 安装时可选 iptables/ip6tables 持久化 | 无 | 保留 Bash（F17/F21 未实现） |
+| `install.sh:5925` 起 `network_mode` | IPv4/IPv6/dual 校验与后端选择 | `xray generate` 部分字段 | 部分迁移（无完整双栈事务） |
+
+### 1.1 `tcp.sh` 实际行为审计（D1）
+
+`install.sh` 不携带 `tcp.sh`：`bbr_boost_sh` 优先执行本地 `scripts/tcp.sh`，否则从
+`raw.githubusercontent.com/ylx2016/Linux-NetSpeed` 下载并**直接以 root 执行**，
+既没有 pin 也没有哈希校验。因此**运行内容不可复现**，这是本项最高风险。
+
+本轮取 2026-11-08 上游快照（SHA-256
+`0b7614e7f5b0de93d7bfd790be672c26c54b223b47ec1b1ae5fa2884e2ea61c0`）逐段审读，
+证据见 [tcp-upstream-2026-11-08.txt](../../tests/go-parity/evidence/tcp-upstream-2026-11-08.txt)：
+
+| 类别 | 实际行为 | 归属 | 影响面 | 项目级回退 |
+|---|---|---|---|---|
+| 内核安装 | 下载并 `yum/apt install` BBR/BBRplus/Lotserver/cloud 内核，提示或直接 `reboot` | 上游脚本 | 可能更换引导内核、导致无法启动；无签名/哈希 | 无 |
+| 加速切换 | 写 `/etc/sysctl.d/bbr.conf`、`99-sysctl.conf`，`sed -i` 修改 `/etc/sysctl.conf`，执行 `sysctl -p`、`sysctl --system` | 上游脚本 | 覆盖整机 TCP/qdisc/ECN，影响所有服务 | 无 |
+| 系统优化 | 重写 `/etc/systemd/system.conf`、`/etc/security/limits.conf`、`/etc/profile`、`/etc/pam.d/common-session`，改透明大页 | 上游脚本 | 登录/服务资源限制、PAM 行为 | 无 |
+| 双栈 | 菜单提供禁用/开启 IPv6 | 上游脚本 | 主机网络可达性 | 无 |
+| 第三方执行 | `wget \| bash` 安装/卸载 Lotserver，菜单 60 切换到外部 IP 质量脚本 | 上游第三方 | 任意 root 代码执行 | 无 |
+| 卸载 | `remove_all`/`remove_bbr_lotserver` 删除加速配置，可能卸载多余内核 | 上游脚本 | 删除系统内核有失联风险 | 无 |
+
+**结论**：Bash 入口是“下载即执行 + 无回退 + 可重启/换内核”的高风险路径；
+Go `idleleo tcp` 只覆盖 `bbr-fq` 的单文件、可回退安全子集，**不是行为等价替代**。
+D1 的判定为：入口与风险已审计（PASS），但“逐行复现上游行为”因脚本未入库而
+**BLOCKED**，不能声明已完整审计某个固定版本。
+
+## 1.2 迁移目标、保留契约与验收
+
+| 脚本 | 目标 Go 入口 | 必须保留的契约 | 优先级 / 验收 |
+|---|---|---|---|
+| `auto_update.sh` | `idleleo schedule` + 自升级 | 只移除已接管的 cron；Xray/Nginx/证书保留 Bash；失败不删 cron | P1；Phase 04 定时升级 + 失败注入 |
+| `xray_stats.sh` | `idleleo stats` | 只读 API、`--json` 原样、非 root exit 5、API down exit 8 | P1；watch/reset 需新增 |
+| `geo_update.sh` | `idleleo geodata-refresh` | 双文件校验、原子替换、失败不覆盖旧文件 | P2；真实 Xray 已验证 |
+| `ssl_update.sh` | 无（保留 Bash） | 证书指纹变化才 reload；私钥可读拒绝 reload；到期降级 | P0 外部续约契约已验；ACME 仍 BLOCKED |
+| `fail2ban_manager.sh` | 无 | 不得 `rm -f jail.d/*.local`；unban/trusted 语义 | P2；需真实 jail 环境 |
+| `traffic_blocker.sh` | 无 | 生成规则后必须 `xray -test` | P2；需规则回归 |
+| `file_manager.sh` | `xray generate` 子集 | 只改项目自有 serverNames/server 片段 | P2；当前未拆分 |
+| `rill_*` | Bridge 状态机 | audit/prepare/validate/activate/recover 可回退；权限/epoch 不变 | P1；install/uninstall 未迁移 |
+| `tcp.sh` | `idleleo tcp` | 只写自有文件、只改指定 key、漂移拒绝、可回退 | P1；安全子集已验，菜单未接线 |
+| `checkout_external_repo.sh` / `merge_checked_pr.sh` | 无 | CI 工具链不进入运行时 | 出范围；不迁移 |
 
 ## 2. 建议的迁移顺序（下一轮）
 

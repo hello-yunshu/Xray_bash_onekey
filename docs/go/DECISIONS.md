@@ -109,3 +109,38 @@ Rill 安装/卸载保持 Bash。TCP 的 Bash 菜单不默认接线到 Go，只�
 **理由**：这些脚本涉及 ACME、防火墙、权限/epoch 或混合升级器，缺少真实验证环境时
 强行迁移会制造“看起来迁移了”的假象；详见
 [SCRIPT_NATIVE_MIGRATION_MATRIX.md](SCRIPT_NATIVE_MIGRATION_MATRIX.md)。
+
+## D-010 部署回滚补齐属主/链接/父目录；跨进程恢复仍不实现（2026-11-08）
+
+**决定**：
+- `internal/deploy` 的文件快照扩展为 `uid/gid/link/exists/missingDirs`，回滚恢复
+  mode、属主、符号链接与父目录副作用；新装失败显式 `stop + disable`，移除 unit 后
+  `daemon-reload` 并校验 `is-enabled`。
+- **不**在本轮给 `deploy` 增加持久 journal/lock；`SIGKILL`/容器重启后的跨进程
+  安装事务仍不在支持范围，报告与附录明确标为 P0 缺口。
+
+**理由**：属主/链接/父目录是已复现的真实缺陷，可小范围修复并有 root:xray 0640
+回归；跨进程恢复需要持久 snapshots 与恢复入口设计，风险与验证成本远高于本轮，
+不能在没有真实故障环境的情况下草率加入。
+
+## D-011 `tcp.sh` 只审计入口与风险，不承诺固定版本逐行等价（2026-11-08）
+
+**决定**：`install.sh` 的 `bbr_boost_sh` 会优先执行本地 `scripts/tcp.sh`，否则
+下载上游 Linux-NetSpeed 脚本并直接以 root 执行，无 pin、无哈希。本轮取
+2026-11-08 快照（SHA-256 `0b7614e7…2ea61c0`）逐类审计内核安装/reboot、
+`sysctl.conf` 改写、systemd/PAM/profile、IPv6、远程 lotServer 与内核卸载，
+证据落盘 `tests/go-parity/evidence/tcp-upstream-2026-11-08.txt`。
+
+**理由**：上游脚本不在仓库，无法证明“任意时刻下载到的内容”逐行等价；只能审计
+入口与已知快照。Go 只实现 `bbr-fq` 安全子集，不移植 `wget | bash`。
+
+## D-012 矩阵 after-fix 证据必须在真实 commit 重跑（2026-11-08）
+
+**决定**：复检发现旧 `after-fix/environment.txt` 记录 `repo_commit=7b15c83…`，
+该对象不存在于仓库。改为在真实 HEAD `ace4a16` 上用仓库修正版
+`tests/go-parity/matrix/run_matrix.py`（bind-mount 覆盖缓存镜像内构建时烤入的旧
+副本）重跑，状态仍为 `54/32/8/4`，替换 summary/environment；缓存镜像旧脚本的
+`13/32/44/5/4` 结果明确标注不得作为证据。
+
+**理由**：证据必须可追溯到真实提交；缓存镜像不会自动更新 `COPY` 进去的脚本，
+直接运行会得到假阴性。以后矩阵复跑必须显式 bind-mount 仓库脚本或重建镜像。

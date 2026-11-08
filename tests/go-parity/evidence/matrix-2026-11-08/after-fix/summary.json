@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "git_commit": "7b15c83caf39f42b57dab69762fd0071f3a580cf",
-  "go_sha": "e1d20dcb0d04c02a7efdf11d7ee0745366b9bea63cf5d85dc3a42ebcb640c35a",
+  "git_commit": "ace4a164813fa2c28bf1310aa42264467c3c6419",
+  "go_sha": "7a33717056560eb8b8a10e331cc0572256d23b0474d65bac2d12df8b3f4a8c7d",
   "bash_sha": "1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f",
   "scope": "Bash install metadata + relay render vs current Go generate/relay; NO full Bash deploy or live service claim",
   "total": 98,
@@ -32,7 +32,7 @@
           "legacy_mode": true
         },
         "bash_meta_sha": "6b86c423ee03e89f007f16c3a2e1d47b859fde13ffa1adff6fc3487e56c09314",
-        "go_runtime_sha": "03d17c27eb0e085b04a547783508d518f6f2108cb6bd7177d953c8963eb2bacc",
+        "go_runtime_sha": "db20012ea09c2420fef25e11d0d69ce8e94ab74bedbbd9d04b0b55f38262d1a8",
         "bash_fields": [
           "decoy_domain",
           "email",
@@ -92,7 +92,7 @@
           "legacy_mode": true
         },
         "bash_meta_sha": "4375ce458ec6a3b6af9a62906d3c483f5d9432a6e3b58967da2cee149a3a4cbb",
-        "go_runtime_sha": "c2222a7cde79168d93ea7b5d7278e7f9cbea346ca60131eec818093321dff0da",
+        "go_runtime_sha": "ef19e669dfe85f827db8f90816cce60b56b67500205668b732b95be5c5c665ce",
         "bash_fields": [
           "decoy_domain",
           "email",
@@ -152,7 +152,7 @@
           "legacy_mode": true
         },
         "bash_meta_sha": "a3604a10501d8b91d18b092975430de3216be321c2eec00e25e2c03f548cd302",
-        "go_runtime_sha": "12930bc599f899e92babc6f5fbfdae6ba3887a7db38a29a586f13ccdf94d0014",
+        "go_runtime_sha": "4f504a64c27789028ec7d206f1f6bb74f762b71b656f8d82526ee3648e7311e1",
         "bash_fields": [
           "decoy_domain",
           "email",
@@ -212,7 +212,7 @@
           "legacy_mode": true
         },
         "bash_meta_sha": "3abffecc503bf04d77cc5188f4cb525807c9e69cf05ac27c4b426fd21309b654",
-        "go_runtime_sha": "037beb2a64cd16764c8e18eeecc1fd9fab9aac2962aebc679cba702866ee9b97",
+        "go_runtime_sha": "d9f622df1704d52a6e82e1d3cf1a04a0a392cbbbb907051bfc40f3a5c6285ad2",
         "bash_fields": [
           "decoy_domain",
           "email",
@@ -272,7 +272,7 @@
           "legacy_mode": true
         },
         "bash_meta_sha": "9156185bdd6800246e2fef3005234dfbe330c150465df389812db040729d4b96",
-        "go_runtime_sha": "974356ef4b4b674eac46f8d6837545983618ce4aeb084134a8882ab1a4997b34",
+        "go_runtime_sha": "fdb3da2c0a207960bfef4665317a81974fa75a06b8d4f337b5ea9d3b5e37d38a",
         "bash_fields": [
           "decoy_domain",
           "email",
@@ -333,7 +333,7 @@
           "legacy_mode": true
         },
         "bash_meta_sha": "92be67a808e87021d3e29cfafea97e8a34a753b08d98504560188b7fe5c39c20",
-        "go_runtime_sha": "65a181d984690156669d968b475a629c7a935e4c69be1fa011b1b7937007a057",
+        "go_runtime_sha": "cf29d89f030137e886d02451b1d573d51736f0f92f9715c85daacc84d02b5dba",
         "bash_fields": [
           "decoy_domain",
           "email",
@@ -394,7 +394,7 @@
           "legacy_mode": true
         },
         "bash_meta_sha": "7b135f2eb416fbd68bd9c1c3f9d6e17354e99611b93c24300473f757235e6c95",
-        "go_runtime_sha": "95d499150573b1afa1a1ef74d054d8b1ff2203d6ee5592be28f725b363f0d63e",
+        "go_runtime_sha": "9202ef287b006983685e2b37fc06b1746a9dffe61006b3518561a6c304bfd2be",
         "bash_fields": [
           "decoy_domain",
           "email",
@@ -455,7 +455,7 @@
           "legacy_mode": true
         },
         "bash_meta_sha": "6b117881b028f3d20dd284376cce332ab258ffccf47b23d3360c1a7ceb7f9a46",
-        "go_runtime_sha": "309f4f5e74258b430dfb88f0ccf72f6a7a65e81c40a8e11d863b4e6596c35b25",
+        "go_runtime_sha": "c33e5a17f041c7c2e246210158d6b865ef058c3719810b46e06e2a96a8365058",
         "bash_fields": [
           "decoy_domain",
           "email",
