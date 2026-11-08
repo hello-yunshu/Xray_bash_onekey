@@ -30,6 +30,8 @@ var zh = map[string]string{
   stats [--json]       只读查询 Xray 统计（reset=false）
   service status|start|stop|restart|reload|logs [--unit xray|nginx]
                        服务类操作（仅真实 systemd）
+  tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                       Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
   rill status          只读 Rill 交接状态
   help                 显示本帮助
 `,
@@ -72,6 +74,8 @@ Commands:
   stats [--json]       read-only Xray stats query (reset=false)
   service status|start|stop|restart|reload|logs [--unit xray|nginx]
                        service-class operations (real systemd only)
+  tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                       native TCP profile (only /etc/sysctl.d/90-idleleo-tcp.conf)
   rill status          read-only Rill handover state
   help                 show this help
 `,
