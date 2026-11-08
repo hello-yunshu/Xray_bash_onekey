@@ -3,6 +3,7 @@ package xraycfg
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -302,6 +303,55 @@ func TestUserRejectsDuplicate(t *testing.T) {
 	}
 	if _, _, err := AddUser(g.Config, 0, AddUserSpec{UUID: g.UUID}); err == nil {
 		t.Fatal("duplicate uuid must be refused")
+	}
+}
+
+func TestAdoptRuntimePreservesEveryValue(t *testing.T) {
+	raw := []byte(`{"log":{"loglevel":"warning"},"inbounds":[` +
+		`{"tag":"custom-in","listen":"127.0.0.1","port":10805,"protocol":"vless",` +
+		`"settings":{"clients":[{"id":"7a4ab30c-b199-4840-a31e-316f4f73a72b","flow":"xtls-rprx-vision"}],"decryption":"none"},` +
+		`"streamSettings":{"network":"ws","security":"none","wsSettings":{"path":"/custom-path"}}},` +
+		`{"tag":"r2","listen":"::","port":9443,"protocol":"vless","settings":{"clients":[{"id":"f0ca9bf0-07d9-44c0-9371-035e4160aa2b"}]},` +
+		`"streamSettings":{"network":"raw","security":"reality","realitySettings":{"privateKey":"` + testRealityKey(t) + `","shortIds":["abcd"],"serverNames":["example.com"]}}}` +
+		`],"outbounds":[{"protocol":"freedom"}],"customField":{"keep":true}}`)
+	adopted, err := AdoptRuntime(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var before, after map[string]any
+	_ = json.Unmarshal(raw, &before)
+	_ = json.Unmarshal(adopted, &after)
+	if !reflect.DeepEqual(before, after) {
+		t.Fatalf("adoption changed values:\nbefore=%v\nafter=%v", before, after)
+	}
+	if !strings.Contains(string(adopted), `"path": "/custom-path"`) || !strings.Contains(string(adopted), `"port": 10805`) {
+		t.Fatalf("adoption lost explicit values: %s", adopted)
+	}
+}
+
+func testRealityKey(t *testing.T) string {
+	t.Helper()
+	g, err := Generate(Spec{Mode: ModeReality, Domain: "example.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return g.PrivateKey
+}
+
+func TestAdoptRuntimeRefusesUnusableConfig(t *testing.T) {
+	bad := []string{
+		`{"inbounds":[]}`,
+		`{"inbounds":[{"port":0,"protocol":"vless"}]}`,
+		`{"inbounds":[{"port":443,"protocol":"vless"},{"port":443,"protocol":"vless"}]}`,
+		`{"inbounds":[{"port":443,"protocol":"vless","tag":"x"},{"port":8443,"protocol":"vless","tag":"x"}]}`,
+		`{"inbounds":[{"port":443,"protocol":"vless","settings":{"clients":[{"id":"not-a-uuid"}]}}]}`,
+		`{"inbounds":[{"port":443,"protocol":"vless","streamSettings":{"security":"bogus"}}]}`,
+		`{"inbounds":[{"port":443,"protocol":"vless","streamSettings":{"network":"raw","security":"reality","realitySettings":{"privateKey":"short"}}}]}`,
+	}
+	for _, raw := range bad {
+		if _, err := AdoptRuntime([]byte(raw)); err == nil {
+			t.Fatalf("adoption must refuse %s", raw)
+		}
 	}
 }
 

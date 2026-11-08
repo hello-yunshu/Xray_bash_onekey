@@ -47,6 +47,9 @@ func xrayCommand(ctx context.Context, opts Options, cfg config, a *app.App, args
 }
 
 func xrayGenerate(opts Options, cfg config, args []string) int {
+	if from := flagValue(args, "--from-config"); from != "" {
+		return xrayAdopt(opts, cfg, args, from)
+	}
 	spec, err := specFromFlags(args)
 	if err != nil {
 		return fail(opts, cfg, &change.UsageError{Msg: err.Error()})
@@ -106,6 +109,57 @@ func xrayGenerate(opts Options, cfg config, args []string) int {
 	for _, w := range g.Warnings {
 		fmt.Fprintf(opts.Out, "warning=%s\n", w)
 	}
+	fmt.Fprintf(opts.Out, "config: %s\n", out)
+	return 0
+}
+
+// xrayAdopt copies an existing runtime config without changing any value. It is
+// the only supported way to bring a Bash- or third-party-managed config under
+// Go management; every regeneration path refuses to overwrite an existing
+// config unless the operator explicitly opts in.
+func xrayAdopt(opts Options, cfg config, args []string, from string) int {
+	for _, flag := range []string{"--mode", "--transport", "--port", "--uuid", "--private-key", "--domain"} {
+		if hasFlag(args, flag) || flagValue(args, flag) != "" {
+			return fail(opts, cfg, &change.UsageError{
+				Msg: "cannot combine --from-config with " + flag + "; adoption preserves the existing values",
+			})
+		}
+	}
+	out := flagValue(args, "--out")
+	if out == "" {
+		return usage(opts, cfg.lang, "help")
+	}
+	if _, statErr := os.Lstat(out); statErr == nil && !hasFlag(args, "--force") {
+		return fail(opts, cfg, &change.UsageError{Msg: "refusing to overwrite existing file (use --force)"})
+	}
+	raw, err := os.ReadFile(from)
+	if err != nil {
+		return fail(opts, cfg, err)
+	}
+	adopted, err := xraycfg.AdoptRuntime(raw)
+	if err != nil {
+		return fail(opts, cfg, &change.UsageError{Msg: err.Error()})
+	}
+	if err := os.WriteFile(out, adopted, 0o600); err != nil {
+		return fail(opts, cfg, err)
+	}
+	if err := os.Chmod(out, 0o600); err != nil {
+		return fail(opts, cfg, err)
+	}
+	info := map[string]any{
+		"adopted":  true,
+		"source":   from,
+		"config":   out,
+		"sha256":   store.HashBytes(adopted),
+		"bytes":    len(adopted),
+		"warnings": []string{"values preserved; use 'idleleo xray user add/remove' for edits"},
+	}
+	cfg.json = cfg.json || hasFlag(args, "--json")
+	if cfg.json {
+		return writeJSON(opts, info)
+	}
+	fmt.Fprintf(opts.Out, "adopted: source=%s\n", from)
+	fmt.Fprintf(opts.Out, "preserved sha256=%s bytes=%d\n", store.HashBytes(adopted), len(adopted))
 	fmt.Fprintf(opts.Out, "config: %s\n", out)
 	return 0
 }

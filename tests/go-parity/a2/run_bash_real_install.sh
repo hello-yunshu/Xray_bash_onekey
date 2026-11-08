@@ -102,16 +102,23 @@ META_SRC="/etc/idleleo/conf/install_config.json"
 INFO_SRC="/etc/idleleo/info/xray_info.inf"
 mkdir -p "$OUT/runtime" "$OUT/metadata" "$OUT/state"
 
-for pair in "$RUNTIME_SRC:runtime/config.json" "$META_SRC:metadata/install_config.json" "$INFO_SRC:metadata/xray_info.inf"; do
-    src=${pair%%:*}; dst=${pair#*:}
-    if [[ -f "$src" ]]; then
-        cp "$src" "$OUT/$dst"
-        chmod 600 "$OUT/$dst"
-        log "captured $src -> $dst"
-    else
-        log "MISSING $src"
-    fi
-done
+# Never copy raw runtime/metadata into the evidence tree: they carry UUIDs and
+# Reality private keys. Only sanitized copies leave the container.
+if [[ -f "$RUNTIME_SRC" ]]; then
+    log "captured $RUNTIME_SRC -> runtime/config.sanitized.json (sanitized)"
+else
+    log "MISSING $RUNTIME_SRC"
+fi
+if [[ -f "$META_SRC" ]]; then
+    log "captured $META_SRC -> metadata/install_config.sanitized.json (sanitized)"
+else
+    log "MISSING $META_SRC"
+fi
+if [[ -f "$INFO_SRC" ]]; then
+    log "captured $INFO_SRC -> metadata/xray_info.sanitized.inf (sanitized)"
+else
+    log "MISSING $INFO_SRC"
+fi
 
 if [[ -f /etc/systemd/system/xray.service ]]; then
     cp /etc/systemd/system/xray.service "$OUT/state/xray.service"
@@ -145,6 +152,42 @@ if [[ -f "$META_SRC" ]]; then
 fi
 if [[ -f "$INFO_SRC" ]]; then
     sed -E 's/(privateKey[=:][[:space:]]*).*/\1REDACTED/I' "$INFO_SRC" >"$OUT/metadata/xray_info.sanitized.inf" || true
+fi
+
+# Identity fingerprints let the comparator verify that Go preserved (fresh) or
+# adopted (preserve) the exact Reality identity and client UUID without ever
+# writing the secret to evidence. The public key is derived in-process from the
+# private key, then only its SHA-256 leaves this block.
+if [[ -f "$RUNTIME_SRC" ]]; then
+    python3 - "$RUNTIME_SRC" "$OUT/runtime/identity.json" <<'PY' || true
+import hashlib, json, subprocess, sys
+src, out = sys.argv[1], sys.argv[2]
+cfg = json.load(open(src))
+def sha(value):
+    return hashlib.sha256(value.encode()).hexdigest()
+rows = []
+for ib in cfg.get("inbounds") or []:
+    ss = ib.get("streamSettings") or {}
+    rs = ss.get("realitySettings") or {}
+    client_ids = [c.get("id") for c in (ib.get("settings") or {}).get("clients") or [] if c.get("id")]
+    private_key = rs.get("privateKey") or (rs.get("settings") or {}).get("privateKey")
+    public_key = ""
+    if private_key:
+        proc = subprocess.run(["/usr/local/bin/xray", "x25519", "-i", private_key],
+                              capture_output=True, text=True)
+        for line in proc.stdout.splitlines():
+            if "ublic key" in line or "ublicKey" in line:
+                public_key = line.split(":", 1)[-1].strip()
+    rows.append({
+        "tag": ib.get("tag"),
+        "uuidSha256": sorted(sha(x) for x in client_ids),
+        "realityPublicKeySha256": sha(public_key) if public_key else None,
+        "realityPublicKeyPresent": bool(public_key),
+        "shortIdsSha256": sorted(sha(x) for x in rs.get("shortIds") or []),
+    })
+json.dump({"inbounds": rows}, open(out, "w"), indent=2, sort_keys=True)
+PY
+    [[ -f "$OUT/runtime/identity.json" ]] && log "captured identity fingerprints (no secrets)"
 fi
 
 # --- structured summary --------------------------------------------------
