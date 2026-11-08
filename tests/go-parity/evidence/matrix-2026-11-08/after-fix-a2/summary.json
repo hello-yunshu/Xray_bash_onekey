@@ -3375,7 +3375,7 @@
       },
       "result": {
         "status": "MATCH",
-        "share_uuid": "f0ca9bf0-07d9-44c0-9371-035e4160aa2b",
+        "share_uuid": "<redacted-uuid>",
         "missing_second_user_link": false
       }
     },

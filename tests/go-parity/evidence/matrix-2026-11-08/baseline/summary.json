@@ -3375,7 +3375,7 @@
       },
       "result": {
         "status": "GAP",
-        "share_uuid": "7a4ab30c-b199-4840-a31e-316f4f73a72b",
+        "share_uuid": "<redacted-uuid>",
         "missing_second_user_link": true
       }
     },
