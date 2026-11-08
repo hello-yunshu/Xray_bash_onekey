@@ -74,6 +74,9 @@ const (
 	orderMaxWait    = 120 * time.Second
 	problemBadNonce = "urn:ietf:params:acme:error:badNonce"
 	problemNoAcct   = "urn:ietf:params:acme:error:accountDoesNotExist"
+	// badNonceAttempts covers CAs (and Pebble's deliberate 5% injection) that
+	// reject a fresh nonce more than once in a row.
+	badNonceAttempts = 5
 )
 
 type problem struct {
@@ -506,10 +509,18 @@ func (c *client) completeHTTP01(ctx context.Context, authzURL string) error {
 }
 
 func (c *client) postJWS(url string, payload []byte, kid string, useJWK bool) (*http.Response, []byte, error) {
-	resp, body, err := c.postJWSOnce(url, payload, kid, useJWK)
-	if p, ok := err.(*problem); ok && p.Type == problemBadNonce {
+	var (
+		resp *http.Response
+		body []byte
+		err  error
+	)
+	for attempt := 0; attempt < badNonceAttempts; attempt++ {
+		resp, body, err = c.postJWSOnce(url, payload, kid, useJWK)
+		p, ok := err.(*problem)
+		if !ok || p.Type != problemBadNonce {
+			return resp, body, err
+		}
 		c.nonce = ""
-		return c.postJWSOnce(url, payload, kid, useJWK)
 	}
 	return resp, body, err
 }
