@@ -6,17 +6,16 @@
 > 当前 `main` 为 `04d76c2`（v3.3.6 之后追加了一次自动翻译提交；tag `v3.3.6`
 > 指向 `0fa7052e`）。与 `4752f77` 相比，`install.sh` 只差“删除 `-u` 死标志”
 > 一行与版本号，`scripts/`、`config/` 无差异。
-> **2026-11-07 状态**：v3.3.6 已发布（tag `v3.3.6`，commit
-> `0fa7052e`，`install.sh` SHA-256 `a8e4d850…358c`）。`develop/go-native` 相对
-> 该 pin 仅多出测试与文档，产品代码无差异；`tests/go-parity` 的 pin 已同步到
-> 3.3.6，Phase 01 在固定 digest 容器内 **35 / 35 通过**（含真实 Xray
-> `C06.real` 与 `C12.1/C12.2` 零差异校验，见
-> [DOCKER_ACCEPTANCE_2026-11-07.md](DOCKER_ACCEPTANCE_2026-11-07.md)）。下面各节描述的
-> `4752f77` 仍是 F01–F28 的**行为基线**（3.3.6 仅删除了一行不可达的 `-u`
-> 死标志，行为未变）；迁移状态没有因此改变，见
-> [FEATURE_PARITY_RESULTS.md](../release/FEATURE_PARITY_RESULTS.md) 第 5 节。
-> 本仓库中**存在 Phase 01 候选 Go 管理器**（`cmd/idleleo`，只在隔离沙盒执行变更），
-> 它不是生产替代品；`tests/go-parity/prototype` 仍只是参考原型，不能被当作实现。
+> **2026-11-08 状态**：分支 `audit/bash-go-native-parity` 在固定 digest 容器内复跑
+> Phase 01–04，真实结果为 **33/35、36/36、219/219、42/42**（见
+> [DOCKER_MIGRATION_ACCEPTANCE.md](DOCKER_MIGRATION_ACCEPTANCE.md)）。Phase 01 的
+> C12.1/C12.2 为红：`2d44d98` 的 logrotate `ReadWritePaths` 修复在 v3.3.6 发布后
+> 修改了 `install.sh`（+26/−1），本轮不篡改 pin，差异如实保留。Go 侧新增
+> `idleleo tcp status/plan/apply/rollback`（仅管理项目自有 sysctl 文件），F25 因此
+> 从「未实现」升到「部分实现（容器级）」；其余 27 项状态不变，正式签收仍 **0/28**。
+> `4752f77` 仍是 F01–F28 的**行为基线**（3.3.6 仅删除了一行不可达的 `-u` 死标志，
+> 行为未变）。本仓库中**存在 Phase 01 候选 Go 管理器**（`cmd/idleleo`，只在隔离
+> 沙盒执行变更），它不是生产替代品；`tests/go-parity/prototype` 仍只是参考原型。
 
 ## 1. 状态定义
 
@@ -31,11 +30,13 @@
 **结论：F01–F28 的 Go 迁移状态无一为「已验证」。** Phase 02 后在固定 digest 容器内把
 F01/F02/F03/F05/F06/F07/F08/F11/F18/F19/F27/F28 推进到「部分实现（容器级）」；
 Phase 03 把 F26、F14、F15、F16、F22 推进到「部分实现（容器级）」。
-Phase 04 只加强 F11/F12/F14/F15/F22/F27/F28 的**容器级证据**，**没有改变任何状态标签**，
-也没有把任何一项升格为「已验证」（详见 `docs/release/FEATURE_PARITY_RESULTS.md`）。
+Phase 04 只加强 F11/F12/F14/F15/F22/F27/F28 的**容器级证据**，**没有改变任何状态标签**。
+2026-11-08 的 A–D 轮次复跑 Phase 01–04（33/35、36/36、219/219、42/42），并新增
+`idleleo tcp`：F25 由「未实现」升为「部分实现（容器级）」，其余标签不变。
 其中 F01 的 fresh install、systemd、Reality 数据面，F05 的 Nginx stream 转发，
 F06 的事务/回滚/故障注入，F19 的保留配置重装，F14/F16 的原生 systemd timer +
-Xray GeoData 刷新，F15 的真实 Stats API 采集，F22 的 Rill 状态/交接均有实测证据。
+Xray GeoData 刷新，F15 的真实 Stats API 采集，F22 的 Rill 状态/交接，F25 的
+TCP 事务/回退均有实测证据。
 这些仍只是容器级子集，不是真实 VPS 验证，也没有任何一项升格为「已验证」。
 
 > **判定口径（2026-11-06 用户明确授权）：** 真实公网 VPS 不再是本轮阻塞项，
@@ -123,7 +124,7 @@ Xray GeoData 刷新，F15 的真实 Stats API 采集，F22 的 Rill 状态/交�
 | F22 | Rill 观察/诊断/授权/卸载 | `test_rill_*`（7 个）、CI `rill-qualification` | 已验证 | 部分实现（容器级） | Phase 03 审计/快照/预验收/激活/回滚纳入 Rill 状态与哈希；观测漂移 → validate exit 6。Phase 04 新增只读 `rill status`（absent/active/stale），复用 legacybridge 投影、不写 Rill 状态；**安装/诊断/授权/两阶段卸载命令未迁移**；R03：`.py` 被 `bash` 启动并吞错 |
 | F23 | 六语言 | `test_i18n_catalog`、`test_color_output`、CI `i18n.yml` | 已验证 | 部分实现（容器级） | zh/en 完整，fr/fa/ru/ko 回退英文；未与 Bash 文案逐条差分 |
 | F24 | Docker 交付 | `test_relay_container`、`test_minimal_bootstrap`、`docker/fake-systemctl` | 部分验证 | 未实现 | R16：不能假设宿主 systemd DBus |
-| F25 | TCP 优化/测速 | 无自动化（仅有菜单项） | 未验证 | 未实现 | **已批准差异**：不执行浮动远程脚本；仍无自动化 |
+| F25 | TCP 优化/测速 | 无自动化（仅有菜单项） | 未验证 | 部分实现（容器级） | `idleleo tcp status/plan/apply/rollback` 只管理 `/etc/sysctl.d/90-idleleo-tcp.conf`（profile `bbr-fq`）：真实单测 20 项 + Docker sandbox 30 项断言，覆盖幂等、部分失败回滚、journal pending、文件/运行值漂移、符号链接、非 root、内核不支持；**仍不执行 `tcp.sh`、不下载远程脚本、不做测速与性能验收**；Bash 菜单未接线；详见 [TCP_NATIVE_DESIGN_AND_QA.md](TCP_NATIVE_DESIGN_AND_QA.md) |
 | F26 | XTLS ONLY 旧模式 | `test_install_menu_profiles`、CI `Relay mixing and legacy-mode guards` | 已验证（只读识别/阻断） | 部分实现（容器级） | Phase 03 容器内实测：audit 识别 `legacy-xtls-removed` 并判定 `blocked`，prepare 拒绝（exit 3），入口/cron 不变、无 journal；按设计不执行迁移 |
 | F27 | `--backup/--restore/--purge/--service-*` | `test_offline_commands`、`test_uninstall_clean`、`test_install_uninstall_transaction` | 已验证 | 部分实现（容器级） | 容器内实测 `uninstall` 保留配置、`uninstall --purge` 删除配置/log、systemd 停用；Phase 03 增加“迁移后服务仍 active/enabled + 故障恢复”。Phase 04 实现 `service status/start/stop/restart/reload/logs`；**`backup/restore/purge` CLI 仍未实现** |
 | F28 | 运行态与分享信息展示 | `.github/test/test_offline_commands.sh` | 已验证 | 部分实现（容器级） | `status/show` 只读视图 + `xray share` 已在容器内真实读取安装结果；Phase 04 额外验证 `help`、`show`、`stats` 只读路径不写 `/etc/idleleo`；输出契约未与 Bash 逐字段差分 |

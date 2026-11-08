@@ -60,3 +60,52 @@ nginx 支持 `-s reopen`，用 `create` + 精确属主比 `copytruncate` 更安�
 
 **理由**：仓库约束优先复用既有测试；systemd 沙箱行为无法用纯 shell 桩可靠模拟，
 但错误信息与修复效果可以用真实 systemd 一次性证明并留证。
+
+## D-005 Phase 01 多行 diff 既保留失败又修夹具（2026-11-08）
+
+**决定**：在 `run_phase01.sh` 的 `record()` 里对 `act` 做换行/制表符折叠，保留
+完整 diff 文本但不再撑裂 TSV；C12.1/C12.2 仍为 FAIL。
+
+**理由**：多行 `git diff` 被原样写入单行 TSV，导致一行变多行、通过/失败计数虚增
+（首次复跑 33/35 但 TSV 只有 34 行）。这是夹具缺陷，不是产品失败；修复只改证据
+编码，不改期望、不隐去差异。
+
+## D-006 C12.1/C12.2 保持红色，不改 pin（2026-11-08）
+
+**决定**：`install.sh` 因 logrotate `ReadWritePaths` 修复（`2d44d98`）比已发布
+v3.3.6 pin 多 26 行；Phase 01 的这两项继续 FAIL，pin 指向发布的 `0fa7052e` 不变。
+
+**理由**：改 pin 会把“未发布的产品改动”伪装成“与发布版一致”；C12 的价值正是
+暴露这种差异。等下一次正式发版后再同步 pin，届时两项会自然转绿。
+
+## D-007 TCP 原生化实现边界（2026-11-08）
+
+**决定**：
+- 只管理 `/etc/sysctl.d/90-idleleo-tcp.conf` 一个文件，只做 `bbr-fq` 一个 profile；
+- journal 先写后改，pending 标记阻断半事务再次 apply；
+- 只写指定 key 到 `/proc/sys`，不重放 `sysctl --system`；
+- `WriteSysctl` 使用 `O_WRONLY|O_TRUNC`（与 shell `>` 一致，sandbox 可复现 procfs 语义）；
+- 回退只撤销 journal 记录的 key，第三方漂移一律拒绝；
+- 锁使用独立 `run/lock/idleleo-tcp.lock`，与配置更新锁分离。
+
+**理由**：满足“安全、轻量、可回退”，把变更面压到最小；见
+[TCP_NATIVE_DESIGN_AND_QA.md](TCP_NATIVE_DESIGN_AND_QA.md)。
+
+## D-008 Docker 只做 sandbox mock apply（2026-11-08）
+
+**决定**：容器内 apply/rollback 通过 `--root <sandbox>` 重定向到一次性目录，
+伪造 `/proc/sys` 与 marker；不写 Docker VM 内核。证据标签固定为
+`DOCKER_MOCK_APPLY`，不写成宿主内核验收或性能验收。
+
+**理由**：写容器内核会污染共享 VM，且无法证明真实 VPS 行为；sandbox 能完整验证
+文件/事务/回退/漂移逻辑，同时用前后哈希证明真实 `/proc/sys` 未变。
+
+## D-009 辅助脚本迁移取舍（2026-11-08）
+
+**决定**：本轮只把已有 Go 原语的部分标注为已迁移/部分迁移；`ssl_update.sh`、
+`fail2ban_manager.sh`、`traffic_blocker.sh`、`auto_update.sh` 的 Xray/Nginx 升级器、
+Rill 安装/卸载保持 Bash。TCP 的 Bash 菜单不默认接线到 Go，只提供可审计的替代入口。
+
+**理由**：这些脚本涉及 ACME、防火墙、权限/epoch 或混合升级器，缺少真实验证环境时
+强行迁移会制造“看起来迁移了”的假象；详见
+[SCRIPT_NATIVE_MIGRATION_MATRIX.md](SCRIPT_NATIVE_MIGRATION_MATRIX.md)。

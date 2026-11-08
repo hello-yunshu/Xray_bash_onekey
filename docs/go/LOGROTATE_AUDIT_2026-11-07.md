@@ -167,7 +167,25 @@ ReadWritePaths=-${nginx_dir}/logs
 而本修复按设计改动了 `install.sh`（+27 行）。门禁没有误报，只有发版并推进 pin
 后才会重新变绿；在此之前如实保留红色。
 
-## 6. 是否需要发版才对存量用户生效
+## 6. 2026-11-08 独立复核（A–D 轮次追加）
+
+为回应“独立复核外部报告”的要求，本轮不采信上文结论，重新从仓库取证：
+
+| 复核项 | 方法 | 结果 |
+|---|---|---|
+| A：`/usr` 只读 | 读 [install.sh](../../install.sh#L298) `local_bin="/usr/local"`、[install.sh](../../install.sh#L332) `nginx_dir`；读当前模板 [install.sh](../../install.sh#L8901-L8914)；核对 Ubuntu 24.04 单元 `ProtectSystem=full` | **成立**；`/usr/local/nginx/logs` 不在任何 `ReadWritePaths` 中 |
+| A：修复 | 读 [install.sh](../../install.sh#L8930-L8949) 的 drop-in 生成与 `daemon-reload`；读卸载清理 [install.sh](../../install.sh#L10979-L10984) | 已修复，`ReadWritePaths=-${nginx_dir}/logs` 与实际路径一致 |
+| B：v3.2.8 轮转无效 | `git show v3.2.8:install.sh`（7626–7635 行）确认共享段、无 `copytruncate`、无 `postrotate`、`create 640 nobody` | **成立**；v3.2.10+ 已修 |
+| B：master 是否完整 | 读当前模板：xray 段 `copytruncate`，nginx 段独立 `create` + `sharedscripts` + `postrotate` + `nginx -s reopen` | 完整；两侧语义分别正确 |
+| 回归 | 本轮真实执行 `bash .github/test/test_log_rotation.sh` | **12 passed, 0 failed** |
+| 语法 | `bash -n install.sh` 与 `scripts/*.sh` | 全部 exit 0 |
+| 修复归属 | `git merge-base --is-ancestor 2d44d98 develop/go-native` | 成立：修复已在 `develop/go-native` 与远端 |
+
+**判定不变**：A 成立（当前 master / v3.3.6 仍成立）；B 成立（仅 v3.2.8 / v3.2.9）；
+修复已在 `develop/go-native`，无需重复提交。上文第 3 节同类审计的 10 项清单本轮复核
+未发现新增 `/usr` 可写依赖。
+
+## 7. 是否需要发版才对存量用户生效
 
 **需要发版。**
 
