@@ -364,6 +364,8 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | 98 项 Bash/Go 矩阵（B3 多入口后） | MATCH 54 / CORE 40 / GAP 0 / REFUSED 4 | `BASH_EXECUTED` + `GO_EXECUTED` |
 | A2 真实安装 6 拓扑（§2.1） | 2 MATCH / 4 CORE / 0 GAP / 0 UNSUPPORTED | `BASH_EXECUTED` |
 | B3 多入口 `xray -test`（tls/none/reality） | 3 / 3 exit 0（真实 Xray 26.10.31） | `GO_EXECUTED` |
+| A1 hostname/bind/users 用例 | `TestA1HostnameValidation`、`TestA1BindIPv4IPv6`、`TestA1UserScaleOneFourTwenty` 全 PASS | `GO_EXECUTED` |
+| A1 IPv6 bind 真实 `xray -test`（none/reality） | 2 / 2 `Configuration OK` | `GO_EXECUTED` |
 | B4 真实 SIGKILL 注入（journal 出现后 kill -9） | journal `PREPARED` → 新进程 `ROLLED_BACK`，4 文件 SHA 还原 | `DOCKER_CRASH_INJECTION` |
 | B4 单测（含 `Install` 自动收敛 pending journal） | 8 / 8 PASS | `GO_EXECUTED` |
 | `gofmt` / `go vet` / `go test` / `go test -race` / `bash -n` | 全部通过（gofmt 无输出） | `GO_EXECUTED` |
@@ -382,6 +384,7 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | `a53dfee` | A2：真实交互式 Bash 主安装 6 拓扑 runtime 基线与重跑统计 |
 | （本次 B4 提交） | B4：持久 deploy journal + 排他锁 + `idleleo xray recover` + 真实 SIGKILL 注入证据 |
 | （本次 B3 提交） | B3：`ws+gRPC+xHTTP` 多入口生成、Nginx 多 location、矩阵与真实 Xray 校验 |
+| （本次 A1 提交） | A1：hostname 校验、IPv4/IPv6 绑定、1/4/20 用户覆盖与真实 `xray -test` |
 
 既有关联提交：`2d44d98`（logrotate drop-in 修复）、`e859724`（install.sh 对齐
 v3.3.6 基线）。
@@ -404,8 +407,10 @@ v3.3.6 基线）。
 
 **P1**
 
-5. **A1 覆盖缺口**：98 case 不含节点级 IPv4/IPv6 绑定、hostname 校验、
-   1/4/20 用户与主备负载均衡。这些不能由 Phase 02/03 的局部用例替代。
+5. **A1 覆盖缺口（部分补齐）**：节点级 IPv4/IPv6 绑定、hostname 校验、
+   1/4/20 用户已由 Go 用例覆盖并通过真实 Xray `-test`；**主备负载均衡仍未实现**，
+   且这些用例尚未进入 98 项 Bash 对照矩阵（无对应 Bash 元数据口径），
+   因此不能表述为 Bash 等价。
 6. **C4 故障点未全覆盖**：缺 invalid candidate/recovery 二进制、reload 失败、
    cron 修改冲突、写盘失败后的独立注入；其余 disk-full、kill 点、drift、
    corrupt journal、`--yes` 不自动迁移已真实执行。
@@ -425,17 +430,18 @@ v3.3.6 基线）。
 
 - **流程完成，不等于技术验收通过**：A/B/C/D 四包均完成“复现 → 修复 → 实跑 →
   自审 → 提交”，真实测试记录与失败证据完整保留；但 §9 的 P0 硬缺口仍在，
-  相对提示词包约 **82%**（附录 A）。
+  相对提示词包约 **83%**（附录 A）。
 - **Go 可接管**配置生成（含多入口）、迁移状态机、服务/GeoData/Stats/timer 原语、
   跨进程安装恢复与 TCP 安全子集；**不可宣称**全量生产接管或真实 VPS 签收。
-- 下一步建议顺序：A1 覆盖缺口 → 升级执行器 → ACME → P1 功能项；A2、B3、B4
-  已在本轮补齐。在此之前保持 Bash 为生产入口。
+- 下一步建议顺序：主备负载均衡 → 升级执行器 → ACME → P1 功能项；
+  A2、B3、B4 已补齐，A1 已补齐 binding/hostname/1-4-20 用户。
+  在此之前保持 Bash 为生产入口。
 
 ## 附录 A：提示词包逐条合规复检（2026-11-08）
 
 > 判定口径：**PASS** = 有可核对产物且满足要求；**部分满足** = 做了但覆盖/口径不完整；
-> **FAIL** = 要求未完成或证据不成立。共 38 项：PASS 25、部分满足 12、FAIL 1；
-> 加权完成度（PASS=1，部分=0.5）≈ **82%**（A2、B3、B4 补齐后）。
+> **FAIL** = 要求未完成或证据不成立。共 38 项：PASS 25、部分满足 13、FAIL 0；
+> 加权完成度（PASS=1，部分=0.5）≈ **83%**（A2、B3、B4 补齐，A1 部分补齐）。
 > 流程/交付接近 100%；正式签收仍为 0/28（仅真实 VPS 证据才能改口径）。
 
 | # | 检查项（提示词出处） | 判定 | 证据 / 说明 |
@@ -449,7 +455,7 @@ v3.3.6 基线）。
 | 7 | 0.7 证据等级标注、不把容器写成签收 | PASS | 报告 §1 定义等级；F01–F28 正式签收 **0/28**；无“真实 VPS 已验证”表述 |
 | 8 | 0.8 不引入大型框架，复用事务/锁/恢复日志 | PASS | 仅新增 `internal/tcpcfg` 与 deploy 修复；TCP 复用 journal/lock 模式 |
 | 9 | A1 执行 ZIP 夹具并记录 commit/dirty/Go/Docker/镜像/夹具 SHA | PASS | [baseline/environment.txt](../../tests/go-parity/evidence/matrix-2026-11-08/baseline/environment.txt)：`dd97eb1`、dirty=0、arm64、digest；报告补 Go/Xray/Nginx/SHA |
-| 10 | A1 必需覆盖：IPv4/IPv6、hostname、1/4/20 用户、主备负载均衡 | FAIL | 98 case 无节点级 IPv4/IPv6、hostname、20 用户、balance；仅 relay 覆盖 IPv6/域名后端 |
+| 10 | A1 必需覆盖：IPv4/IPv6、hostname、1/4/20 用户、主备负载均衡 | 部分满足 | 绑定/hostname/1-4-20 用户已有 Go 用例与真实 `xray -test`；主备负载均衡未实现，且未进入 98 项 Bash 矩阵 |
 | 11 | A1 分契约比较、敏感字段保护 | PASS | 矩阵按 metadata/runtime/share 分契约；证据只存哈希与字段，不含私钥 |
 | 12 | A2 真实 Bash 主安装生成 Runtime（非静态 JSON） | PASS | `a53dfee`：一次性 systemd 容器内 `install.sh -2/-3` 真实交互安装，采集 `/etc/idleleo/conf/xray/config.json`；6 拓扑 `install_exit=0`、`xray_test_exit=0`、服务 active（§2.1） |
 | 13 | A2 模式/传输/角色/网络/用户/自定义组合覆盖 | 部分满足 | 已覆盖 none-ws/grpc/xhttp/三合一、reality-raw/reality-三合一；TLS、reality-nginx 与多用户/自定义 serverNames 未捕获 |
@@ -490,11 +496,12 @@ v3.3.6 基线）。
 | B4 “回滚完整”措辞过强 | 不实口径 | 先用“内存快照可回滚，跨进程未实现”限定；后续补齐后改为“容器内 SIGKILL 可收敛，仍非生产签收” |
 | D1 只写“审计 scripts/tcp.sh”但无实际行为 | 反向缺口 | 抓取上游快照 SHA-256 并逐类列行为，固定版本判定 BLOCKED |
 | C5 标签与提示词不一致 | 口径 | FUNCTION_PARITY 增加逐项映射表 |
-| A1 覆盖被暗示为全量 | 不实口径 | 报告明列未覆盖的 IPv4/IPv6/hostname/20 用户/负载均衡 |
+| A1 覆盖被暗示为全量 | 不实口径 | 补齐 binding/hostname/1-4-20 用户后，报告仍明列未覆盖的负载均衡与 Bash 矩阵口径 |
 | B3 多入口长期挂账为 `expected_gap` | 反向缺口 | 实现 3/4 inbound 生成，矩阵 8 项 GAP 关闭，A2 真实 runtime 重新对比 |
 
-**复检结论**：这一轮相对提示词包约 **82%** 完成（A2/B3/B4 补齐后）。
-- **硬缺口（仍未做）**：A1 必需覆盖矩阵。
+**复检结论**：这一轮相对提示词包约 **83%** 完成（A2/B3/B4 补齐、A1 部分补齐后）。
+- **硬缺口（仍未做）**：A1 主备负载均衡；A1 绑定/hostname/用户覆盖尚未进入
+  98 项 Bash 对照矩阵。
 - **已补齐但非生产签收**：A2 真实 Bash 安装 runtime（6 拓扑，TLS/ACME 与
   reality-nginx 未捕获）；B3 多入口（结构 + `xray -test`，未建立真实多连接）；
   B4 跨进程 journal/lock + 真实 SIGKILL 注入（`DOCKER_CRASH_INJECTION`，

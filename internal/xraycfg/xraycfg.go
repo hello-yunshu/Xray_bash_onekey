@@ -201,6 +201,11 @@ func Generate(spec Spec) (Generated, error) {
 	if spec.Mode == ModeTLS && spec.Domain == "" {
 		return Generated{}, fmt.Errorf("tls mode requires --domain")
 	}
+	if spec.Domain != "" && !compat.RelayIsValidHost(spec.Domain) {
+		// The domain also becomes part of the default certificate path and
+		// Nginx server_name, so a path-like or malformed value must not pass.
+		return Generated{}, fmt.Errorf("invalid domain %q", spec.Domain)
+	}
 	if spec.CertFile == "" && spec.Domain != "" {
 		spec.CertFile = "/etc/idleleo/cert/" + spec.Domain + ".crt"
 	}

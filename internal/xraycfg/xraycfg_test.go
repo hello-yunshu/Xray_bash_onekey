@@ -2,6 +2,7 @@ package xraycfg
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -199,6 +200,99 @@ func TestUserLifecyclePreservesCustomFields(t *testing.T) {
 	if len(users) != 1 || !users[0].Primary {
 		t.Fatalf("primary user lost after removal: %+v", users)
 	}
+}
+
+func TestA1HostnameValidation(t *testing.T) {
+	bad := []string{"bad host", "../escape", "host/name", "a b.example.com"}
+	for _, domain := range bad {
+		if _, err := Generate(Spec{Mode: ModeTLS, Domain: domain}); err == nil {
+			t.Fatalf("tls domain %q must be rejected", domain)
+		}
+		if _, err := Generate(Spec{Mode: ModeNone, Domain: domain}); err == nil {
+			t.Fatalf("none domain %q must be rejected", domain)
+		}
+	}
+	good := []string{"example.com", "sub.example.com", "203.0.113.9", "2001:db8::1"}
+	for _, domain := range good {
+		if _, err := Generate(Spec{Mode: ModeTLS, Domain: domain}); err != nil {
+			t.Fatalf("tls domain %q must be accepted: %v", domain, err)
+		}
+	}
+	if _, err := Generate(Spec{Mode: ModeReality, ServerNames: []string{"bad/name"}}); err == nil {
+		t.Fatal("invalid reality server name must be rejected")
+	}
+}
+
+func TestA1BindIPv4IPv6(t *testing.T) {
+	cases := []struct {
+		name    string
+		mode    string
+		listen  string
+		allow   bool
+		wantErr bool
+	}{
+		{"reality ipv4 any", ModeReality, "0.0.0.0", false, false},
+		{"reality ipv6 any", ModeReality, "::", false, false},
+		{"reality ipv6 loopback", ModeReality, "::1", false, false},
+		{"tls ipv4 any", ModeTLS, "0.0.0.0", false, false},
+		{"none ipv6 loopback", ModeNone, "::1", false, false},
+		{"none ipv6 global denied", ModeNone, "2001:db8::1", false, true},
+		{"none ipv6 global allowed", ModeNone, "2001:db8::1", true, false},
+	}
+	for _, tc := range cases {
+		spec := Spec{Mode: tc.mode, Domain: "example.com", Listen: tc.listen, AllowNonLoopback: tc.allow}
+		g, err := Generate(spec)
+		if tc.wantErr {
+			if err == nil {
+				t.Fatalf("%s: expected refusal for %s", tc.name, tc.listen)
+			}
+			continue
+		}
+		if err != nil {
+			t.Fatalf("%s: %v", tc.name, err)
+		}
+		in := multiInbounds(t, g)[0]
+		if in["listen"] != tc.listen {
+			t.Fatalf("%s: listen = %v, want %s", tc.name, in["listen"], tc.listen)
+		}
+	}
+}
+
+func TestA1UserScaleOneFourTwenty(t *testing.T) {
+	g, err := Generate(Spec{Mode: ModeTLS, Domain: "example.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw := g.Config
+	for _, want := range []int{1, 4, 20} {
+		for i := len(mustList(t, raw)) + 1; i <= want; i++ {
+			uid := fmt.Sprintf("00000000-0000-4000-8000-%012d", i)
+			raw, _, err = AddUser(raw, 0, AddUserSpec{UUID: uid, Email: fmt.Sprintf("u%d@example.com", i)})
+			if err != nil {
+				t.Fatalf("add user %d: %v", i, err)
+			}
+		}
+		if got := len(mustList(t, raw)); got != want {
+			t.Fatalf("user count = %d, want %d", got, want)
+		}
+	}
+	info, err := ShareConfig(raw, ShareOptions{Host: "example.com", PublicPort: 443,
+		PublicSecurity: "tls", User: "u20@example.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(info.ShareURI, "00000000-0000-4000-8000-000000000020") {
+		t.Fatalf("share for user 20 lost its uuid: %s", info.ShareURI)
+	}
+}
+
+func mustList(t *testing.T, raw []byte) []UserView {
+	t.Helper()
+	users, err := ListUsers(raw, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return users
 }
 
 func TestUserRejectsDuplicate(t *testing.T) {

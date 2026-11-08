@@ -1,0 +1,8 @@
+=== RUN   TestA1HostnameValidation
+--- PASS: TestA1HostnameValidation (0.00s)
+=== RUN   TestA1BindIPv4IPv6
+--- PASS: TestA1BindIPv4IPv6 (0.00s)
+=== RUN   TestA1UserScaleOneFourTwenty
+--- PASS: TestA1UserScaleOneFourTwenty (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.003s
