@@ -344,7 +344,7 @@ v3.3.6 基线）。
 | 3 | 0.3 ZIP 外置、编译当前 `cmd/idleleo`、用仓库 `install.sh` | PASS | 矩阵 `go_sha` 由当前 checkout 构建；`environment.txt` 记录 `install.sh` SHA |
 | 4 | 0.4 A→D 连续执行，每包先复现再修、独立 commit | PASS | `f9df1ea`、`ace4a16`、`5cf34d7`、`7f82d35`、`8b88b7a`；B4 先加失败测试 |
 | 5 | 0.5 破坏性操作仅在可销毁容器，不碰宿主/VPS | PASS | Phase 01–04 均 `--network=none` 或无宿主关键目录绑定；`--privileged` 仅 systemd 探针；TCP sandbox |
-| 6 | 0.6 新测试初始失败、不删断言/不改测试状态、测失败路径 | PASS | `git diff` 仅替换 1 行函数签名；新增 795 行测试；330/332 与 C12 两项红保留 |
+| 6 | 0.6 新测试初始失败、不删断言/不改测试状态、测失败路径 | PASS | `git diff develop/go-native..HEAD -- '*_test.go'`：新增 741 行、删除 1 行（仅函数签名替换）；330/332 与 C12 两项红保留 |
 | 7 | 0.7 证据等级标注、不把容器写成签收 | PASS | 报告 §1 定义等级；F01–F28 正式签收 **0/28**；无“真实 VPS 已验证”表述 |
 | 8 | 0.8 不引入大型框架，复用事务/锁/恢复日志 | PASS | 仅新增 `internal/tcpcfg` 与 deploy 修复；TCP 复用 journal/lock 模式 |
 | 9 | A1 执行 ZIP 夹具并记录 commit/dirty/Go/Docker/镜像/夹具 SHA | PASS | [baseline/environment.txt](../../tests/go-parity/evidence/matrix-2026-11-08/baseline/environment.txt)：`dd97eb1`、dirty=0、arm64、digest；报告补 Go/Xray/Nginx/SHA |
