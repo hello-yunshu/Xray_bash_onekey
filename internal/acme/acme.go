@@ -459,9 +459,17 @@ func (c *client) completeHTTP01(ctx context.Context, authzURL string) error {
 	if err := json.Unmarshal(body, &authz); err != nil {
 		return err
 	}
+	// CAs may reuse a still-valid authorization from an earlier order (Pebble
+	// does this 50% of the time). Nothing to prove in that case.
+	if authz.Status == "valid" {
+		return nil
+	}
 	var challengeURL, token string
 	for _, ch := range authz.Challenges {
 		if ch.Type == "http-01" {
+			if ch.Status == "valid" {
+				return nil
+			}
 			challengeURL, token = ch.URL, ch.Token
 			break
 		}

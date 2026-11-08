@@ -54,6 +54,8 @@ log "--- start network/pebble/client"
 docker network create "$NET" >/dev/null 2>&1 || true
 docker run -d --name "$PEBBLE" --network "$NET" --network-alias pebble \
   -e PEBBLE_VA_NOSLEEP=1 \
+  -e PEBBLE_WFE_NONCEREJECT="${PEBBLE_WFE_NONCEREJECT:-5}" \
+  -e PEBBLE_AUTHZREUSE="${PEBBLE_AUTHZREUSE:-50}" \
   -v "$PEBBLE_TEST/certs":/test/certs:ro \
   -v "$REPO/tests/go-parity/acme/pebble-config.json":/conf/pebble-config.json:ro \
   --entrypoint /app "$PEBBLE_IMAGE" -config /conf/pebble-config.json -strict >/dev/null
