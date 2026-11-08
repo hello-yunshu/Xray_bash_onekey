@@ -16,6 +16,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
@@ -145,6 +146,7 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	if err != nil {
 		return Report{}, err
 	}
+	logDirMissing := missingDirChain(logDir)
 	if err := os.MkdirAll(logDir, 0o755); err != nil {
 		return Report{}, err
 	}
@@ -196,7 +198,7 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	}
 	snap := captureService(ctx, unitPath, paths.Root, spec.NoService)
 	fail := func(cause error) (Report, error) {
-		return rollbackInstall(ctx, backups, snap, rep, cause)
+		return rollbackInstall(ctx, backups, snap, rep, cause, logDirMissing)
 	}
 
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
@@ -342,12 +344,19 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 	return rep, nil
 }
 
-// fileState is the prior content and mode of one install target.
+// fileState is the prior content, mode, ownership and link target of one
+// install target. A rollback must restore ownership as well: the runtime runs
+// as an unprivileged user and a root:root 0640 config would become unreadable
+// even though the bytes were "restored".
 type fileState struct {
-	path   string
-	data   []byte
-	mode   os.FileMode
-	exists bool
+	path        string
+	data        []byte
+	mode        os.FileMode
+	uid         int
+	gid         int
+	link        string
+	exists      bool
+	missingDirs []string
 }
 
 type serviceState struct {
@@ -370,12 +379,21 @@ func captureFiles(paths []string) ([]fileState, error) {
 }
 
 func captureFile(path string) (fileState, error) {
-	info, err := os.Stat(path)
+	st := fileState{path: path, uid: -1, gid: -1, missingDirs: missingDirChain(filepath.Dir(path))}
+	info, err := os.Lstat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return fileState{path: path}, nil
+			return st, nil
 		}
 		return fileState{}, err
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		target, err := os.Readlink(path)
+		if err != nil {
+			return fileState{}, err
+		}
+		st.link, st.exists = target, true
+		return st, nil
 	}
 	if !info.Mode().IsRegular() {
 		return fileState{}, fmt.Errorf("%s is not a regular file", path)
@@ -384,17 +402,63 @@ func captureFile(path string) (fileState, error) {
 	if err != nil {
 		return fileState{}, err
 	}
-	return fileState{path: path, data: b, mode: info.Mode().Perm(), exists: true}, nil
+	st.data, st.mode, st.exists = b, info.Mode().Perm(), true
+	if raw, ok := info.Sys().(*syscall.Stat_t); ok {
+		st.uid, st.gid = int(raw.Uid), int(raw.Gid)
+	}
+	return st, nil
 }
+
+// chownFile is a test seam; production restore must run as root to put back a
+// root:xray 0640 config that the unprivileged Xray user can still read.
+var chownFile = os.Chown
 
 func (s fileState) restore() error {
 	if !s.exists {
 		if err := os.Remove(s.path); err != nil && !os.IsNotExist(err) {
 			return err
 		}
+		removeEmptyDirs(s.missingDirs)
 		return nil
 	}
-	return writeFileAtomic(s.path, s.data, s.mode)
+	if s.link != "" {
+		if err := os.Remove(s.path); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+		return os.Symlink(s.link, s.path)
+	}
+	if err := writeFileAtomic(s.path, s.data, s.mode); err != nil {
+		return err
+	}
+	if s.uid >= 0 && s.gid >= 0 {
+		if err := chownFile(s.path, s.uid, s.gid); err != nil {
+			return err
+		}
+	}
+	return os.Chmod(s.path, s.mode)
+}
+
+// missingDirChain returns the not-yet-existing ancestors of dir, deepest first.
+// A fresh install creates them; a rollback may remove only the empty ones.
+func missingDirChain(dir string) []string {
+	var out []string
+	for {
+		if _, err := os.Lstat(dir); err == nil || !os.IsNotExist(err) {
+			return out
+		}
+		out = append(out, dir)
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return out
+		}
+		dir = parent
+	}
+}
+
+func removeEmptyDirs(dirs []string) {
+	for _, dir := range dirs {
+		_ = os.Remove(dir)
+	}
 }
 
 func captureService(ctx context.Context, unitPath, root string, noService bool) serviceState {
@@ -413,19 +477,30 @@ func captureService(ctx context.Context, unitPath, root string, noService bool) 
 // rollbackInstall restores the captured files and service state. When either
 // part cannot be restored the returned error names the remaining manual work;
 // it never reports the original failure as if the host were clean.
-func rollbackInstall(ctx context.Context, backups []fileState, snap serviceState, rep Report, cause error) (Report, error) {
+func rollbackInstall(ctx context.Context, backups []fileState, snap serviceState, rep Report, cause error, logDirMissing []string) (Report, error) {
 	if snap.managed && !snap.unitExisted {
-		// A fresh install may have started the new unit. Stop it before the
-		// restored file set removes the unit itself.
+		// A fresh install may have started and enabled the new unit. Stop and
+		// disable it before the restored file set removes the unit itself, so
+		// no dangling wants/ symlink survives the rollback.
 		_ = serviceCommand(ctx, "stop", "xray")
+		_ = serviceCommand(ctx, "disable", "xray")
 	}
 	for i := len(backups) - 1; i >= 0; i-- {
 		if err := backups[i].restore(); err != nil {
 			return rep, fmt.Errorf("%w; rollback failed: %v; files may be partially updated, inspect manually", cause, err)
 		}
 	}
+	removeEmptyDirs(logDirMissing)
 	if err := restoreService(ctx, snap); err != nil {
 		return rep, fmt.Errorf("%w; rollback failed: %v; systemd state may be inconsistent, inspect 'systemctl status xray' manually", cause, err)
+	}
+	if snap.managed && !snap.unitExisted {
+		if err := serviceCommand(ctx, "daemon-reload"); err != nil {
+			return rep, fmt.Errorf("%w; rollback failed: %v; systemd state may be inconsistent, inspect 'systemctl status xray' manually", cause, err)
+		}
+		if got := serviceQuery(ctx, "is-enabled", "xray"); strings.Contains(got, "enabled") {
+			return rep, fmt.Errorf("%w; rollback failed: xray.service is still enabled (%q), inspect manually", cause, got)
+		}
 	}
 	return rep, fmt.Errorf("%w; installation rolled back to the previous state", cause)
 }
