@@ -532,7 +532,11 @@ v3.3.6 基线）。
    corrupt journal、`--yes` 不自动迁移已真实执行。
 7. `backup/restore/purge` CLI、Fail2ban、流量阻断、SNI Guard、二维码、watch/reset
    未实现。
-8. Phase 01 C12.1/C12.2 会持续红，直到下次发版并推进 pin；不得为此改 pin 或改断言。
+8. **Phase 01 C12.1/C12.2 会持续红，直到下次发版并推进 pin**：当前差异仅为
+   `install.sh` 26 插入/1 删除（`2d44d98` logrotate 修复），pin `0fa7052e`
+   的 SHA 为 `a8e4d850…`、当前树为 `1a2af27e…`；C12.3/C12.4 仍绿。转绿需
+   正式发布新版本并把 5 处 PIN 与 C12.4 期望版本同步到新发布 commit，再在
+   干净 checkout 重跑；不得改 pin 或改断言（D-006 复核）。
 9. TCP 未做性能/吞吐验收；未扫描 `/run/sysctl.d`、`/usr/lib/sysctl.d` 的冲突。
 
 **P2**

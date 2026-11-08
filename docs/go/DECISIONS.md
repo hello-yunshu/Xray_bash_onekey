@@ -78,6 +78,25 @@ v3.3.6 pin 多 26 行；Phase 01 的这两项继续 FAIL，pin 指向发布的 `
 **理由**：改 pin 会把“未发布的产品改动”伪装成“与发布版一致”；C12 的价值正是
 暴露这种差异。等下一次正式发版后再同步 pin，届时两项会自然转绿。
 
+**2026-11-08 复核（capability/C12 与 pin）**：
+
+- 当前红线是 `C12.1`（`install.sh` 字节不等于 pin）与 `C12.2`
+  （`git diff pin..HEAD -- install.sh scripts config` 非空），差异为
+  `install.sh | 27 +++-`（26 插入 / 1 删除），唯一来源是 `2d44d98`
+  （logrotate `ReadWritePaths` 修复）。
+- 哈希：pin `0fa7052e` 的 `install.sh` 为
+  `a8e4d850…6797358c`，当前树为 `1a2af27e…ec72b7f`。
+- `C12.3`（不得覆盖 Bash 入口）与 `C12.4`（pin 仍可加载、版本 3.3.6）仍为绿。
+- **转绿条件（按优先级）**：
+  1. 正式发布新版本（tag + Release），其 `install.sh` 包含该修复；随后把
+     `tests/go-parity/phase01/run_phase01.sh`、`parity/scripts/run_parity.py`、
+     `parity/cases/feature_contracts.json`、`parity/ci/*.yml`、
+     `parity/oracle/pinned-extract.sh` 的 PIN 同步到新发布 commit，并把
+     `C12.4` 期望版本改为新 `shell_version`，再在干净 checkout 重跑 Phase 01。
+  2. 回退 `install.sh` 的修复（不推荐：会重新引入 logrotate 沙箱失败）。
+- **不可接受的做法**：把 PIN 指向一个含修复但未发布的 commit 来“变绿”；
+  那只是把当前差异合法化，失去 C12 的基线守护意义。
+
 ## D-007 TCP 原生化实现边界（2026-11-08）
 
 **决定**：
