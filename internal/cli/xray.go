@@ -39,6 +39,8 @@ func xrayCommand(ctx context.Context, opts Options, cfg config, a *app.App, args
 		return xrayUninstall(ctx, opts, cfg, rest)
 	case "recover":
 		return xrayRecover(ctx, opts, cfg, rest)
+	case "cert":
+		return xrayCert(ctx, opts, cfg, rest)
 	default:
 		return usage(opts, cfg.lang, "help")
 	}

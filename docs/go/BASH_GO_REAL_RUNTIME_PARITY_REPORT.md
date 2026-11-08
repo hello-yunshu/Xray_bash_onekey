@@ -10,8 +10,9 @@
 - **可以接管**：配置生成（含 `ws+gRPC+xHTTP` 多入口）、安装元数据读取、迁移状态机
   （Audit→Prepare→Validate→Activate→Recover/Rollback）、服务原语、GeoData 刷新、
   Stats 读取、systemd timer、跨进程安装事务恢复，以及本轮新增的 TCP 安全子集。
-- **尚不能全量接管**：真实 ACME 签发/续期、Xray/Nginx 自动升级执行器、Fail2ban、
-  流量阻断、备份/恢复 CLI、Docker 交付路径仍缺实现或真实验证。
+- **尚不能全量接管**：公网 CA 的 ACME 签发（本地 Pebble 已跑通完整协议流程）、
+  Xray/Nginx 自动升级执行器、Fail2ban、流量阻断、备份/恢复 CLI、Docker
+  交付路径仍缺实现或真实验证。
 - **正式接管门槛未达**：没有任何一项达到 `REAL_VPS_VERIFIED`；
   F01–F28 正式签收 **0/28**。生产替换前必须先补齐第 9 节的阻塞项。
 
@@ -20,6 +21,7 @@
 | A：真实 Bash 配置 vs Go 管理器 | 基线 98 项：`MATCH 2 / MATCH_CORE_FIELDS 32 / GAP 60 / REFUSED 4` | `BASH_EXECUTED` + `GO_EXECUTED` |
 | A2：真实交互式主安装 runtime | 6 个真实拓扑：`MATCH 2 / MATCH_CORE_FIELDS 4 / GAP 0 / UNSUPPORTED 0`；TLS/reality-nginx 因真实域名/ACME 未捕获 | `BASH_EXECUTED` + `GO_EXECUTED` |
 | 主备负载均衡 | primary `CORE`（runtime/stream/片段一致，仅宿主 `nginx.conf` 接线未代管）、secondary `MATCH`；Nginx 双后端轮询与默认拒绝通过 | `BASH_EXECUTED` + `GO_EXECUTED` + `DOCKER_BALANCE_SIMULATED` |
+| TLS / ACME | Pebble 本地 CA + 自签根：账户注册、下单、HTTP-01、签发、安装、窗口内跳过、强制续签、拒绝域全部真实执行；**不是公网 CA 验收** | `ACME_LOCAL_CA` |
 | B：兼容差异与故障恢复 | 修复后 `MATCH 54 / MATCH_CORE_FIELDS 32 / GAP 8 / REFUSED 4`；B3 多入口实现后复跑 `54 / 40 / 0 / 4` | `GO_EXECUTED` |
 | C：Docker 真实服务与完整迁移 | Phase 01–04 合计 **330 / 332**，Bridge 状态机与故障注入全部真实执行 | `DOCKER_SERVICE_VERIFIED` / `DOCKER_MIGRATION_VERIFIED` |
 | D：TCP 原生 + 辅助脚本审计 | 20 项单测 + 30 项容器断言全绿；14 个脚本迁移判定表完成 | `GO_EXECUTED` + `DOCKER_MOCK_APPLY` |
@@ -59,6 +61,7 @@
 | `DOCKER_SERVICE_VERIFIED` | 容器内真实 systemd + 真实 Xray/Nginx 服务 |
 | `DOCKER_MIGRATION_VERIFIED` | 容器内完整迁移状态机与回滚 |
 | `DOCKER_MOCK_APPLY` | 容器内执行，但副作用重定向到 sandbox（TCP） |
+| `ACME_LOCAL_CA` | 真实 ACME v2 协议流程，对本地 Pebble CA；不等价公网 CA 签发 |
 | `HOST_NOT_VERIFIED` | 本次未做真实 VPS/宿主内核验收 |
 
 ## 2. A 包：真实 Bash 生成配置，交给当前 Go 管理器
@@ -183,6 +186,49 @@ primary 与 secondary 产物；Go 侧用同一组 UUID/私钥/shortId/域名/端
   证据 [evidence/balance-2026-11-08](../../tests/go-parity/evidence/balance-2026-11-08)
   （`install.sh` SHA-256 `1a2af27e…`，primary runtime `cf6d0572…`，
   secondary `abf85cf8…`）。
+
+### 2.3 TLS / ACME：本地 CA 的真实协议全流程
+
+**做法**：不依赖公网域名或公网 CA。Docker 用户网络内启动
+`ghcr.io/letsencrypt/pebble:latest`（Pebble 本地 ACME CA，自签根
+`pebble.minica.pem` 仅用于保护 ACME 服务端 TLS），Go 客户端容器以网络别名
+`acme.local` 加入同一网络；Pebble 的 `httpPort=5002` 指向该容器内的
+`python3 -m http.server`。ACME 目录为 `https://pebble:14000/dir`，
+HTTP-01 校验 URL 为
+`http://acme.local:5002/.well-known/acme-challenge/<token>`，与真实
+HTTP-01 端口/路径结构一致。未发布端口到宿主，未修改宿主网络与内核。
+
+Go 侧新增 `internal/acme`（纯 stdlib：JWS ES256、Replay-Nonce、newAccount、
+newOrder、authorization、challenge、finalize、certificate 下载）与
+`idleleo xray cert issue|renew`；证书私钥自动生成并落盘，账户键/账户 URL
+持久化，续期按 `--renew-before` 判定，`--reload-command` 在签发/续期后执行。
+
+| 步骤 | 真实结果 | 证据 |
+|---|---|---|
+| 账户注册 | `newAccount` 成功，`accountUrl` 持久化 | `issue.json` |
+| 下单 + HTTP-01 | 订单 `f2gjyA9…`；挑战文件被 Pebble 以 HTTP 200 拉取 | `client-http.log`、`pebble.log` |
+| 签发 | 证书 serial `5292ffa7d1ddf595`，有效期 90 天 | `issue.json`、`verify-initial.json` |
+| 安装 | 证书 0644、私钥 0600；`reload` 命令执行并写 marker | `run.log` |
+| 窗口内续期 | `skipped=true`，未发起新订单 | `renew-skip.json` |
+| 强制续签 | 新 serial `7eef85582eca3cd5`，私钥轮换，账户复用 | `renew-force.json`、`verify-after-force.json` |
+| 链/主机名 | 以 Pebble 动态根验证通过，SAN `acme.local`，89.9999 天 | `verify-*.json` |
+| 拒绝域 | Pebble 返回 `rejectedIdentifier`，未写出证书 | `negative-blocked.err` |
+
+**结论**：`ACME_LOCAL_CA` —— 账户注册、下单、HTTP-01、签发、安装、续期判定
+与强制续签均为真实 ACME v2 协议执行；**不是公网 CA 验收**，也**不是**
+`REAL_VPS_VERIFIED`，F12 不因此升格签收。
+
+**仍缺的环节**：
+
+- 未验证 DNS-01 与通配符证书；仅实现 HTTP-01。
+- 未接公网 Let's Encrypt/ZeroSSL、EAB 与公网 DNS；Pebble 的根是本地动态根。
+- “到期”由续期窗口 + `--force` 驱动，未改系统时钟做真实时间推进。
+- 权限/服务语义未复制 Bash：Bash `acme()` 先 staging 测试再正式签发，并由
+  `--reloadcmd` 执行 `chown root:idleleo-nginx`、`chmod 640`、重启 nginx/xray；
+  Go 写 `0644/0600` 并由调用方提供 reload 命令，未内置组/服务编排。
+
+脚本与证据：[acme/](../../tests/go-parity/acme)、
+[evidence/acme-2026-11-08](../../tests/go-parity/evidence/acme-2026-11-08)。
 
 ## 3. B 包：兼容差异与故障恢复修复
 
@@ -361,7 +407,7 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | F09 | `--add-upstream` | 未实现 | — | — |
 | F10 | `--tls` 版本变更 | 未实现 | — | Bash 侧为 `sed -i` 后重启 |
 | F11 | 服务状态 / 启停 / 日志 | 部分实现 | `DOCKER_SERVICE_VERIFIED` | 仅限项目自有 unit |
-| F12 | 证书状态 / 签发 / 续期 / 清理 | 未实现（有到期监控） | `DOCKER_SERVICE_VERIFIED` | 无公网 ACME；只做外部续约契约 |
+| F12 | 证书状态 / 签发 / 续期 / 清理 | 部分实现：本地 CA 全流程 | `ACME_LOCAL_CA` | 公网 CA 与 DNS-01 未验收；Bash 的组/重启语义由调用方提供 |
 | F13 | `--update` / `--xray-update` / `--nginx-update` | 未实现 | — | 需哈希/降级/失败注入 |
 | F14 | `--auto-update` / cron | 部分实现 | `DOCKER_SERVICE_VERIFIED` | Go 通道只升级自身；Xray/Nginx 执行器仍 Bash |
 | F15 | Stats / `--json` / watch / reset | 部分实现 | `DOCKER_SERVICE_VERIFIED` | watch/reset 未实现 |
@@ -429,7 +475,10 @@ v3.3.6 基线）。
    `xray -test=0`、服务 active。TLS 与 `reality-nginx` 因需要真实域名/ACME
    未捕获；旧 54 个元数据 `MATCH` 不能升级为 Runtime 签收。
 2. Xray/Nginx 自动升级执行器仍在 Bash；Go 无降级/失败注入验证。
-3. 真实 ACME 签发/续期未验收；F12 只提供外部续约契约。
+3. **公网 CA 的 ACME 签发/续期未验收**：本地 Pebble 已真实跑通账户、下单、
+   HTTP-01、签发、安装、窗口内跳过与强制续签（§2.3，`ACME_LOCAL_CA`），但
+   未接公网 Let's Encrypt/ZeroSSL、DNS-01、EAB 与真实 DNS；F12 仍不构成
+   生产签收。
 4. 无任何 `REAL_VPS_VERIFIED` 证据，正式签收 0/28。
 
 > B3 多入口与 B4 跨进程恢复已补齐，并从 P0 的“实现缺口”中移出；但 B3 只做了
@@ -465,9 +514,9 @@ v3.3.6 基线）。
   相对提示词包约 **83%**（附录 A）。
 - **Go 可接管**配置生成（含多入口）、迁移状态机、服务/GeoData/Stats/timer 原语、
   跨进程安装恢复与 TCP 安全子集；**不可宣称**全量生产接管或真实 VPS 签收。
-- 下一步建议顺序：主备负载均衡 → 升级执行器 → ACME → P1 功能项；
-  A2、B3、B4 已补齐，A1 已补齐 binding/hostname/1-4-20 用户。
-  在此之前保持 Bash 为生产入口。
+- 下一步建议顺序：升级执行器 → 公网 CA/生产 ACME 验收 → A1 矩阵统计 →
+  P1 功能项；A2、B3、B4、主备负载均衡已补齐，A1 已补齐 binding/hostname/
+  1-4-20 用户。在此之前保持 Bash 为生产入口。
 
 ## 附录 A：提示词包逐条合规复检（2026-11-08）
 

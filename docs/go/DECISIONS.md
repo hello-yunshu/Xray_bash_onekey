@@ -184,3 +184,24 @@ Xray 拒绝配置。用拓扑断言可以在不牺牲真实配置合法性的前
 **理由**：双机无法在当前环境复现，但 Bash 语义可完整抽取；把“角色 + 后端
 片段 + stream 规则”作为纯产物生成，再用真实 Nginx 做 SNI/协议/默认拒绝的
 容器级验证，能覆盖除宿主 Nginx 主配置接线外的全部连接语义。
+
+## D-015 ACME 原生客户端以 Pebble 本地 CA 验收（2026-11-08）
+
+**决定**：
+- 新增 `internal/acme`，用 stdlib 实现 ACME v2（ES256 JWS、nonce、账户、
+  订单、HTTP-01、CSR、finalize、证书下载）；新增 `idleleo xray cert
+  issue|renew`，目录 URL 必须显式传入，避免隐式访问公网 CA。
+- 验收环境固定为 Pebble 容器 + 自签 `pebble.minica.pem`（仅保护 ACME 服务端
+  TLS），HttpPort 5002，域名用 Docker 网络别名 `acme.local`，不发布宿主端口。
+- 证书链验证对象是 Pebble 管理接口 `/roots/0` 返回的**动态根**，不是
+  `pebble.minica.pem`；后者只签服务端证书。
+- 证据标签固定为 `ACME_LOCAL_CA`；不得据此把 F12 或 F01–F28 升格为
+  `REAL_VPS_VERIFIED`。
+
+**理由**：本地 CA 能真实执行协议状态机（账户/订单/挑战/签发/续期），比桩服务
+更能暴露 JWS、nonce、CSR、链下载问题；但公网 CA、DNS-01、EAB、真实 DNS 与
+Bash 的 `idleleo-nginx` 组/重启语义仍不在本次范围内，必须如实标注。
+
+**已知差异**：Bash 用 `acme.sh` 先 staging 测试再正式签发，reloadcmd 内置
+`chown root:idleleo-nginx`、`chmod 640` 与重启 nginx/xray；Go 只做协议与落盘，
+权限/服务编排由调用方通过 `--reload-command` 提供。
