@@ -43,6 +43,9 @@ type InstallSpec struct {
 	Domain               string
 	Target               string
 	ServerNames          []string
+	BalanceRole          string
+	Backends             []string
+	UnknownSNIPolicy     string
 	KeepConfig           bool
 	NoService            bool
 	AllowContainerWrites bool
@@ -139,6 +142,8 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		g, genErr := xraycfg.Generate(xraycfg.Spec{
 			Mode: spec.Mode, Transport: spec.Transport, Port: spec.Port,
 			Domain: spec.Domain, Target: spec.Target, ServerNames: spec.ServerNames,
+			BalanceRole: spec.BalanceRole, Backends: spec.Backends,
+			UnknownSNIPolicy: spec.UnknownSNIPolicy,
 		})
 		if genErr != nil {
 			return Report{}, genErr

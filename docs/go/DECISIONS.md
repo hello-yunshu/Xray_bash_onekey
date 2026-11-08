@@ -164,3 +164,23 @@ Rill 安装/卸载保持 Bash。TCP 的 Bash 菜单不默认接线到 Go，只�
 **理由**：多入口天然不是单流配置；把 `network` 写成 `ws+grpc+xhttp` 会让
 Xray 拒绝配置。用拓扑断言可以在不牺牲真实配置合法性的前提下覆盖原 8 个
 `GAP`，并由真实 Xray `-test` 与 A2 真实 runtime 双重验证。
+
+## D-014 主备负载均衡按 Bash 的 primary/secondary 角色建模（2026-11-08）
+
+**决定**：
+- `--mode reality-balance --role primary|secondary`；角色必须显式给出。
+- primary：Xray Reality 保持模板 `9443/0.0.0.0`，Nginx stream 监听用户端口；
+  `--backend host:port` 可重复，默认 `127.0.0.1:9443`，片段行固定
+  `weight=50 max_fails=2 fail_timeout=10`，与 `file_manager.sh` 一致。
+- secondary：Xray Reality 监听用户端口，不生成 Nginx 产物；secondary 带
+  `--backend` 直接拒绝。
+- 9403/9404/9443/9444 对所有 Reality 模式作为用户端口一律拒绝（Bash
+  `reality_reserved_port_conflict` 语义）；`decoy` SNI 策略需要外部站点产物，
+  Go 生成器明确拒绝而不是静默降级。
+- Nginx stream 模板、include 路径、日志路径、isolate 站点均按安装态的
+  `/etc/idleleo/conf/nginx` 与 `/usr/local/nginx/logs` 输出，保证可直接
+  与 Bash 产物逐字节比较。Go 不代管 `nginx.conf` 主配置，这是已知 CORE。
+
+**理由**：双机无法在当前环境复现，但 Bash 语义可完整抽取；把“角色 + 后端
+片段 + stream 规则”作为纯产物生成，再用真实 Nginx 做 SNI/协议/默认拒绝的
+容器级验证，能覆盖除宿主 Nginx 主配置接线外的全部连接语义。

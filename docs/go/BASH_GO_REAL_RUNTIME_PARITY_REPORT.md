@@ -19,6 +19,7 @@
 |---|---|---|
 | A：真实 Bash 配置 vs Go 管理器 | 基线 98 项：`MATCH 2 / MATCH_CORE_FIELDS 32 / GAP 60 / REFUSED 4` | `BASH_EXECUTED` + `GO_EXECUTED` |
 | A2：真实交互式主安装 runtime | 6 个真实拓扑：`MATCH 2 / MATCH_CORE_FIELDS 4 / GAP 0 / UNSUPPORTED 0`；TLS/reality-nginx 因真实域名/ACME 未捕获 | `BASH_EXECUTED` + `GO_EXECUTED` |
+| 主备负载均衡 | primary `CORE`（runtime/stream/片段一致，仅宿主 `nginx.conf` 接线未代管）、secondary `MATCH`；Nginx 双后端轮询与默认拒绝通过 | `BASH_EXECUTED` + `GO_EXECUTED` + `DOCKER_BALANCE_SIMULATED` |
 | B：兼容差异与故障恢复 | 修复后 `MATCH 54 / MATCH_CORE_FIELDS 32 / GAP 8 / REFUSED 4`；B3 多入口实现后复跑 `54 / 40 / 0 / 4` | `GO_EXECUTED` |
 | C：Docker 真实服务与完整迁移 | Phase 01–04 合计 **330 / 332**，Bridge 状态机与故障注入全部真实执行 | `DOCKER_SERVICE_VERIFIED` / `DOCKER_MIGRATION_VERIFIED` |
 | D：TCP 原生 + 辅助脚本审计 | 20 项单测 + 30 项容器断言全绿；14 个脚本迁移判定表完成 | `GO_EXECUTED` + `DOCKER_MOCK_APPLY` |
@@ -152,6 +153,36 @@ Xray 26.10.31 二进制、标准 unit 与 `/var/log/xray` 目录；复跑多入�
 [drive_install.exp](../../tests/go-parity/a2/drive_install.exp)、
 [compare_real_runtime.py](../../tests/go-parity/a2/compare_real_runtime.py)；
 证据见 [evidence/a2-2026-11-08](../../tests/go-parity/evidence/a2-2026-11-08)。
+
+### 2.2 主备负载均衡：Go 原生实现 vs 同一份 Bash
+
+**做法**：不依赖真实双机。在一次性 systemd 容器内 `source install.sh`
+（`_TEST_MODE=1`，模板走 `file:///src`），直接调用真实安装流使用的
+`modify_target_serverNames / modify_privateKey_shortIds / xray_reality_add_more /
+modify_email_address / modify_UUID / nginx_reality_conf_add /
+nginx_reality_servers_add / nginx_reality_serverNames_add`，分别生成
+primary 与 secondary 产物；Go 侧用同一组 UUID/私钥/shortId/域名/端口生成，
+再逐字段对比。
+
+| 角色 | Runtime | Nginx stream conf | 片段 | Bash/Go `xray -test` | 结论 |
+|---|---|---|---|---|---|
+| primary | inbound `9443/0.0.0.0`；公网端口 8443 | 逐字节一致 | 逐字节一致 | `0/0` | **MATCH_CORE_FIELDS（CORE）** |
+| secondary | inbound `8443/0.0.0.0`；无 Nginx | 无 | 无 | `0/0` | **MATCH** |
+
+- primary 的 CORE 唯一差异：Bash 还会改写受管 `nginx.conf`（追加
+  `include 00-xray.conf;`、`server_tokens` 等）；Go `xray generate` 只产出
+  runtime 与 stream 片段，**不写宿主机 Nginx 主配置**。这不是连接语义差异，
+  但在 Go 尚无 Nginx 部署器前不能算正式 MATCH。
+- 双实例模拟（`DOCKER_BALANCE_SIMULATED`）：真实 Nginx 1.24 + stream 模块，
+  Go 产物配两个后端 `127.0.0.1:9443/9444`。6 次匹配 SNI + TLS1.3 连接
+  `3/3` 轮询；3 次未知 SNI 与 1 次非 TLS 连接**零后端命中**（走 isolate deny）。
+  Bash 生成的 stream conf 同样通过 `nginx -t`。
+- 这是容器内路由层验证，**不是**双 VPS、真实 Reality 握手或生产签收；
+  F01–F28 计数不变。
+- 采集与对比：[balance/](../../tests/go-parity/balance)、
+  证据 [evidence/balance-2026-11-08](../../tests/go-parity/evidence/balance-2026-11-08)
+  （`install.sh` SHA-256 `1a2af27e…`，primary runtime `cf6d0572…`，
+  secondary `abf85cf8…`）。
 
 ## 3. B 包：兼容差异与故障恢复修复
 
@@ -408,9 +439,10 @@ v3.3.6 基线）。
 **P1**
 
 5. **A1 覆盖缺口（部分补齐）**：节点级 IPv4/IPv6 绑定、hostname 校验、
-   1/4/20 用户已由 Go 用例覆盖并通过真实 Xray `-test`；**主备负载均衡仍未实现**，
-   且这些用例尚未进入 98 项 Bash 对照矩阵（无对应 Bash 元数据口径），
-   因此不能表述为 Bash 等价。
+   1/4/20 用户已由 Go 用例覆盖并通过真实 Xray `-test`；主备负载均衡已按
+   Bash 语义实现并完成容器级逐字段对照（§2.2，primary CORE / secondary MATCH），
+   但尚未做真实双 VPS 与真实 Reality 握手；这些用例尚未进入 98 项 Bash
+   对照矩阵统计口径（下一项处理），因此不能表述为全量 Bash 等价或生产签收。
 6. **C4 故障点未全覆盖**：缺 invalid candidate/recovery 二进制、reload 失败、
    cron 修改冲突、写盘失败后的独立注入；其余 disk-full、kill 点、drift、
    corrupt journal、`--yes` 不自动迁移已真实执行。

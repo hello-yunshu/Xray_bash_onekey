@@ -318,3 +318,102 @@ func TestShareFromExistingConfig(t *testing.T) {
 		t.Fatalf("share mismatch:\n got %s\nwant %s", s.ShareURI, g.ShareURI)
 	}
 }
+
+func TestGenerateRealityBalancePrimary(t *testing.T) {
+	g, err := Generate(Spec{
+		Mode: ModeRealityBalance, BalanceRole: BalanceRolePrimary, Port: 8443,
+		ServerNames: []string{"example.com"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.BalanceRole != BalanceRolePrimary {
+		t.Fatalf("balance role = %q", g.BalanceRole)
+	}
+	if g.Port != 9443 || g.PublicPort != 8443 {
+		t.Fatalf("primary ports: inbound=%d public=%d", g.Port, g.PublicPort)
+	}
+	in := multiInbounds(t, g)
+	if len(in) != 1 {
+		t.Fatalf("primary must have one backend inbound, got %d", len(in))
+	}
+	if in[0]["port"].(float64) != 9443 || in[0]["listen"] != "0.0.0.0" {
+		t.Fatalf("primary backend must be 9443/0.0.0.0: %v", in[0])
+	}
+	for _, needle := range []string{
+		"include /etc/idleleo/conf/nginx/*.serverNames;",
+		"include /etc/idleleo/conf/nginx/*.realityServers;",
+		"listen 8443 reuseport so_keepalive=on backlog=65535;",
+		"ssl_preread on;",
+		"default deny;",
+		"server 127.0.0.1:9403;",
+		`TLSv1.3    1;`,
+	} {
+		if !strings.Contains(g.NginxConf, needle) {
+			t.Fatalf("nginx conf missing %q:\n%s", needle, g.NginxConf)
+		}
+	}
+	if got := g.NginxFragments["127.0.0.1.realityServers"]; got != "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n" {
+		t.Fatalf("realityServers fragment = %q", got)
+	}
+	if got := g.NginxFragments["example.com.serverNames"]; got != "example.com reality;\n" {
+		t.Fatalf("serverNames fragment = %q", got)
+	}
+	if _, ok := g.NginxFragments["03-isolate.conf"]; !ok {
+		t.Fatal("isolate site fragment missing")
+	}
+}
+
+func TestGenerateRealityBalanceSecondary(t *testing.T) {
+	g, err := Generate(Spec{
+		Mode: ModeRealityBalance, BalanceRole: BalanceRoleSecondary, Port: 8443,
+		ServerNames: []string{"example.com"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.Port != 8443 || g.PublicPort != 8443 || g.Listen != "0.0.0.0" {
+		t.Fatalf("secondary ports: %d/%d/%s", g.Port, g.PublicPort, g.Listen)
+	}
+	in := multiInbounds(t, g)
+	if len(in) != 1 || in[0]["port"].(float64) != 8443 {
+		t.Fatalf("secondary inbound must use the public port: %v", in)
+	}
+	if g.NginxConf != "" || len(g.NginxFragments) != 0 {
+		t.Fatal("secondary must not generate a Nginx front")
+	}
+}
+
+func TestGenerateRealityBalanceBackendsAndRefusals(t *testing.T) {
+	g, err := Generate(Spec{
+		Mode: ModeRealityBalance, BalanceRole: BalanceRolePrimary, Port: 8443,
+		ServerNames: []string{"example.com"},
+		Backends:    []string{"127.0.0.1:9443", "10.0.0.2:9443"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n" +
+		"server 10.0.0.2:9443 weight=50 max_fails=2 fail_timeout=10;\n"
+	if got := g.NginxFragments["127.0.0.1.realityServers"]; got != want {
+		t.Fatalf("multi-backend fragment = %q", got)
+	}
+	if _, err := Generate(Spec{Mode: ModeRealityBalance, Port: 8443, ServerNames: []string{"example.com"}}); err == nil {
+		t.Fatal("role must be required")
+	}
+	if _, err := Generate(Spec{Mode: ModeRealityBalance, BalanceRole: BalanceRolePrimary, Port: 9443, ServerNames: []string{"example.com"}}); err == nil {
+		t.Fatal("reserved port must be refused")
+	}
+	if _, err := Generate(Spec{
+		Mode: ModeRealityBalance, BalanceRole: BalanceRoleSecondary, Port: 8443,
+		ServerNames: []string{"example.com"}, Backends: []string{"10.0.0.2:9443"},
+	}); err == nil {
+		t.Fatal("secondary backends must be refused")
+	}
+	if _, err := Generate(Spec{
+		Mode: ModeRealityBalance, BalanceRole: BalanceRolePrimary, Port: 8443,
+		ServerNames: []string{"example.com"}, UnknownSNIPolicy: "decoy",
+	}); err == nil {
+		t.Fatal("decoy policy must be refused by the generator")
+	}
+}

@@ -1,0 +1,27 @@
+{
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "7a4ab30c-b199-4840-a31e-316f4f73a72b",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "7a4ab30c-b199-4840-a31e-316f4f73a72b",
+  "shortId": "d4615130bbd45453",
+  "privateKey": "REDACTED",
+  "publicKey": "wvaFlLEDDgWO7CFiDjVbLQKf412ULuAewkyNH3FKa08",
+  "serverName": "www.cloudflare.com",
+  "target": "www.cloudflare.com:443",
+  "shareUri": "vless://7a4ab30c-b199-4840-a31e-316f4f73a72b@www.cloudflare.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=wvaFlLEDDgWO7CFiDjVbLQKf412ULuAewkyNH3FKa08&sid=d4615130bbd45453&type=raw#idleleo-reality-balance",
+  "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: www.cloudflare.com\n    port: 8443\n    uuid: 7a4ab30c-b199-4840-a31e-316f4f73a72b\n    network: tcp\n    udp: true\n    tls: true\n    servername: www.cloudflare.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: wvaFlLEDDgWO7CFiDjVbLQKf412ULuAewkyNH3FKa08\n      short-id: d4615130bbd45453\n",
+  "balanceRole": "secondary",
+  "warnings": []
+}

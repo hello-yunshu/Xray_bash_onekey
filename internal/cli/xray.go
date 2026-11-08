@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -64,6 +66,28 @@ func xrayGenerate(opts Options, cfg config, args []string) int {
 	if err := os.Chmod(out, 0o600); err != nil {
 		return fail(opts, cfg, err)
 	}
+	nginxOut := flagValue(args, "--nginx-out")
+	if g.NginxConf != "" && nginxOut != "" {
+		if err := os.WriteFile(nginxOut, []byte(g.NginxConf), 0o644); err != nil {
+			return fail(opts, cfg, err)
+		}
+	}
+	fragmentsOut := flagValue(args, "--fragments-out")
+	names := make([]string, 0, len(g.NginxFragments))
+	if fragmentsOut != "" && len(g.NginxFragments) > 0 {
+		if err := os.MkdirAll(fragmentsOut, 0o755); err != nil {
+			return fail(opts, cfg, err)
+		}
+		for name := range g.NginxFragments {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			if err := os.WriteFile(filepath.Join(fragmentsOut, name), []byte(g.NginxFragments[name]), 0o644); err != nil {
+				return fail(opts, cfg, err)
+			}
+		}
+	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	if cfg.json {
 		return writeJSON(opts, g)
@@ -71,14 +95,11 @@ func xrayGenerate(opts Options, cfg config, args []string) int {
 	fmt.Fprintf(opts.Out, "mode=%s transport=%s port=%d listen=%s\n", g.Mode, g.Transport, g.Port, g.Listen)
 	fmt.Fprintf(opts.Out, "uuid=%s shortId=%s\n", g.UUID, g.ShortID)
 	fmt.Fprintf(opts.Out, "share: %s\n", g.ShareURI)
-	if g.NginxConf != "" {
-		nginxOut := flagValue(args, "--nginx-out")
-		if nginxOut != "" {
-			if err := os.WriteFile(nginxOut, []byte(g.NginxConf), 0o644); err != nil {
-				return fail(opts, cfg, err)
-			}
-			fmt.Fprintf(opts.Out, "nginx: %s\n", nginxOut)
-		}
+	if nginxOut != "" && g.NginxConf != "" {
+		fmt.Fprintf(opts.Out, "nginx: %s\n", nginxOut)
+	}
+	for _, name := range names {
+		fmt.Fprintf(opts.Out, "fragment: %s\n", filepath.Join(fragmentsOut, name))
 	}
 	for _, w := range g.Warnings {
 		fmt.Fprintf(opts.Out, "warning=%s\n", w)
@@ -325,6 +346,9 @@ func xrayInstall(ctx context.Context, opts Options, cfg config, args []string) i
 		Domain:               spec.Domain,
 		Target:               spec.Target,
 		ServerNames:          spec.ServerNames,
+		BalanceRole:          spec.BalanceRole,
+		Backends:             spec.Backends,
+		UnknownSNIPolicy:     spec.UnknownSNIPolicy,
 		KeepConfig:           hasFlag(args, "--keep-config"),
 		NoService:            hasFlag(args, "--no-service"),
 		AllowContainerWrites: hasFlag(args, "--container"),
@@ -397,6 +421,13 @@ func specFromFlags(args []string) (xraycfg.Spec, error) {
 		PrivateKey:       flagValue(args, "--private-key"),
 		ShortID:          flagValue(args, "--short-id"),
 		AllowNonLoopback: hasFlag(args, "--allow-non-loopback"),
+		BalanceRole:      flagValue(args, "--role"),
+		UnknownSNIPolicy: flagValue(args, "--unknown-sni-policy"),
+	}
+	for i, a := range args {
+		if a == "--backend" && i+1 < len(args) {
+			spec.Backends = append(spec.Backends, args[i+1])
+		}
 	}
 	if raw := flagValue(args, "--listen"); raw != "" {
 		spec.Listen = raw
