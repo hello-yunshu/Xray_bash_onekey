@@ -1,0 +1,18 @@
+PASS nginx -t accepted the generated stream artifacts
+INFO round-robin http200=6/6 primary=5 secondary=4
+PASS both backends served real Reality traffic
+INFO secondary-down http200=8/8 primary=13 secondary=4
+PASS traffic continued on the primary after secondary failure
+INFO recovered http_ok=13/13 primary=25 secondary=6 rejoined=1
+PASS secondary rejoined and served traffic after recovery
+PASS unknown SNI refused (openssl exit 1)
+PASS nginx -t accepted the generated stream artifacts
+INFO round-robin http200=6/6 primary=5 secondary=4
+PASS both backends served real Reality traffic
+INFO secondary-down http200=8/8 primary=13 secondary=4
+PASS traffic continued on the primary after secondary failure
+INFO recovered http_ok=13/13 primary=25 secondary=6 rejoined=1
+PASS secondary rejoined and served traffic after recovery
+PASS unknown SNI refused (openssl exit 1)
+e2e exit=0 evidence=/Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/go-parity/evidence/balance-e2e-2026-11-08
+e2e_rc=0

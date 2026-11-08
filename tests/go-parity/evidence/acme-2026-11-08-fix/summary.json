@@ -6,19 +6,19 @@
   "account_reused": true,
   "issue": {
     "issued": true,
-    "notAfter": "2027-02-06T15:57:07Z",
-    "serial": "7cc75e1c1afd1e40",
+    "notAfter": "2027-02-06T16:02:04Z",
+    "serial": "3bb45f425b2ed3b7",
     "reloaded": true
   },
   "renew_in_window": {
     "skipped": true,
     "issued": false,
-    "reason": "certificate valid until 2027-02-06T15:57:07Z; renew window 24h0m0s not reached"
+    "reason": "certificate valid until 2027-02-06T16:02:04Z; renew window 24h0m0s not reached"
   },
   "renew_forced": {
     "issued": true,
-    "serial": "39db07fe01998fe3",
-    "notAfter": "2027-02-06T15:57:11Z"
+    "serial": "2a53a9014a07548c",
+    "notAfter": "2027-02-06T16:02:09Z"
   },
   "serial_changed": true,
   "verify_initial": {
@@ -26,9 +26,9 @@
     "dnsNames": [
       "acme.local"
     ],
-    "serial": "7cc75e1c1afd1e40",
-    "notBefore": "2026-11-08T15:57:08Z",
-    "notAfter": "2027-02-06T15:57:07Z",
+    "serial": "3bb45f425b2ed3b7",
+    "notBefore": "2026-11-08T16:02:05Z",
+    "notAfter": "2027-02-06T16:02:04Z",
     "validDays": 89.99998842592593,
     "verifiedToLocalRoot": true,
     "hostnameVerified": true,
@@ -39,9 +39,9 @@
     "dnsNames": [
       "acme.local"
     ],
-    "serial": "39db07fe01998fe3",
-    "notBefore": "2026-11-08T15:57:12Z",
-    "notAfter": "2027-02-06T15:57:11Z",
+    "serial": "2a53a9014a07548c",
+    "notBefore": "2026-11-08T16:02:10Z",
+    "notAfter": "2027-02-06T16:02:09Z",
     "validDays": 89.99998842592593,
     "verifiedToLocalRoot": true,
     "hostnameVerified": true,

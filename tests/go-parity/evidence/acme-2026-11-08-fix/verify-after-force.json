@@ -3,9 +3,9 @@
   "dnsNames": [
     "acme.local"
   ],
-  "serial": "39db07fe01998fe3",
-  "notBefore": "2026-11-08T15:57:12Z",
-  "notAfter": "2027-02-06T15:57:11Z",
+  "serial": "2a53a9014a07548c",
+  "notBefore": "2026-11-08T16:02:10Z",
+  "notAfter": "2027-02-06T16:02:09Z",
   "validDays": 89.99998842592593,
   "verifiedToLocalRoot": true,
   "hostnameVerified": true,

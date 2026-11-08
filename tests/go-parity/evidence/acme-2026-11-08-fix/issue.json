@@ -1,12 +1,12 @@
 {
   "domain": "acme.local",
   "directoryUrl": "https://pebble:14000/dir",
-  "accountUrl": "https://pebble:14000/my-account/11af648afd074817",
-  "orderUrl": "https://pebble:14000/my-order/cge7UwnhNISn_rtXaxy7DySNhiJn6Oo_OVf3rnqf_Xc",
+  "accountUrl": "https://pebble:14000/my-account/738fb3aa196816f1",
+  "orderUrl": "https://pebble:14000/my-order/8_OydSnlXglu4l3_orkxmsO__UX3vyJY7PgVLkzdjRc",
   "certificateFile": "/work/certs/fullchain.pem",
   "keyFile": "/work/certs/key.pem",
-  "notAfter": "2027-02-06T15:57:07Z",
-  "serial": "7cc75e1c1afd1e40",
+  "notAfter": "2027-02-06T16:02:04Z",
+  "serial": "3bb45f425b2ed3b7",
   "issued": true,
   "skipped": false,
   "reloaded": true

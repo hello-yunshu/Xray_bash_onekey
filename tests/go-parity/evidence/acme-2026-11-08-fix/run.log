@@ -1,6 +1,6 @@
 label=ACME_LOCAL_CA
-started=2026-11-08T15:57:01Z
-repo_commit=53b61916eef96cf047b6d5ade68696fdde28e7b4
+started=2026-11-08T16:01:57Z
+repo_commit=3d07613a16e56e7d80c2a3ad7d621880aec7139c
 pebble_image=sha256:ddf230642b1a584f519f32e347de1b05a6e4c1f6c35c1863b33effeab5f78199
 client_image=sha256:f481cd9e9f57e7240fccceee0342d766fb45bf90ea3f89bb8484b265c4d01183
 pebble_test_assets=localhost
@@ -8,7 +8,7 @@ pebble.minica.key.pem
 pebble.minica.pem
 README.md
 --- build go binary
-build=OK sha256=ec92ed35bbc023b3d9ac5125a633e084608dde8773ae5112c74f9630d7dd0ec5
+build=OK sha256=a4c3be5184ca902241718e7eb8daf48577b375acee9e6927792eb134d686d222
 --- start network/pebble/client
 pebble_ready=OK webroot_ready=OK
 pebble_root=fetched
@@ -36,4 +36,4 @@ negative_readonly_wrote_cert=NO
 --- negative: blocked domain must be rejected by CA
 negative_blocked=REJECTED exit=1
 negative_cert_written=NO
-finished=2026-11-08T15:57:20Z
+finished=2026-11-08T16:02:21Z

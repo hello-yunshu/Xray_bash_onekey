@@ -224,3 +224,47 @@ Bash 的 `idleleo-nginx` 组/重启语义仍不在本次范围内，必须如实
 **已知差异**：Bash 用 `acme.sh` 先 staging 测试再正式签发，reloadcmd 内置
 `chown root:idleleo-nginx`、`chmod 640` 与重启 nginx/xray；Go 只做协议与落盘，
 权限/服务编排由调用方通过 `--reload-command` 提供。
+
+## D-016 既有运行配置只能显式接管或显式改写（2026-11-08 收尾轮）
+
+**决定**：
+- 安装/迁移遇到已存在的 `config.json` 一律 fail-closed：要么
+  `--keep-config` 原样接管，要么 `--rewrite-config` 显式替换；没有第三个默认路径。
+- 新增 `idleleo xray generate --from-config <path> --out <path>`：只重排缩进，
+  端口、listen、路径、UUID、flow、Reality privateKey/shortIds/serverNames、
+  证书路径与自定义字段全部原样保留；`--out` 必填、已存在需 `--force`、落盘 0600。
+- 接管前拒绝不可运行配置（无 inbound、端口越界、重复 tag、重复
+  `listen:port`、非法 UUID、未知 security、非法 Reality key），避免把坏配置
+  带进托管态。
+
+**理由**：迁移最危险的失败不是报错，而是“看起来成功但把用户的端口/UUID/
+Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开关把决定权交回操作者。
+
+## D-017 Nginx 必需模式没有真实前端就拒绝安装（2026-11-08 收尾轮）
+
+**决定**：
+- `tls`、`reality-nginx`、`reality-balance --role primary` 必须同时给出
+  `--external-nginx-managed` 与 `--nginx-bin`，否则安装在任何落盘前返回错误。
+- 生成的 `00-xray.conf` 与全部片段写入 `/etc/idleleo/conf/nginx` 后，用真实
+  `nginx -t` 在临时 root 内验证；验证失败触发整体回滚。
+- `ssl_reject_handshake` 只从 `http{}` 引入：它属于 `ngx_http_ssl_module`，
+  Bash 的 isolate 站点就是 http 片段，绝不能塞进 `stream{}`。
+- 只有 `nginx -t` + 容器 e2e 都通过时，报告才允许出现“已管理 Nginx”；
+  两者都不等于生产可用，e2e 标签固定为 `REAL_NGINX_REAL_XRAY_E2E`（container）。
+
+**理由**：只生成片段 + `xray -test` 不能证明主备可用。缺少前端时“成功”只是
+幻觉；必须先拒绝，再把能验证的部分（语法、SNI 分流、故障切换）用真实进程验证。
+
+## D-018 ACME 证书对按单事务发布（2026-11-08 收尾轮）
+
+**决定**：
+- 证书与私钥都先写临时文件并 `fsync`，证书 `rename` 成功后再 `rename` 私钥；
+  私钥失败即恢复旧证书，绝不出现“新证书 + 旧私钥”。
+- `--reload-command` 失败时恢复**整对**旧证书并返回错误；回滚本身失败时
+  错误信息必须写明，不能宣称已恢复。
+- HTTP-01 token 先按 base64url 字母表校验，再拼进 webroot 路径。
+- 权限：证书 `0644`、私钥 `0600`（含账号私钥）；负面证据必须覆盖
+  webroot 失效、reload 失败、只读目标、CA 拒绝。
+
+**理由**：证书更新是典型的“部分成功最危险”操作。任何一步失败后，
+磁盘上必须仍是更新前可用的那一对；只有真实负面路径能证明这一点。
