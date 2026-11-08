@@ -19,9 +19,9 @@
       "settings": {
         "clients": [
           {
-            "email": "952396367b3@hey.run",
+            "email": "4f957f69e03d1d@hey.run",
             "flow": "xtls-rprx-vision",
-            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "id": "<redacted-uuid>",
             "level": 0
           }
         ],
@@ -39,7 +39,7 @@
             "privateKey": "REDACTED"
           },
           "shortIds": [
-            "4bfbc2a56c770a6e"
+            "6148dc51d3fbc61a"
           ],
           "target": "www.cloudflare.com:443"
         },
@@ -49,13 +49,13 @@
     },
     {
       "listen": "0.0.0.0",
-      "port": 10128,
+      "port": 10972,
       "protocol": "VLESS",
       "settings": {
         "clients": [
           {
-            "email": "952396367b3@hey.run",
-            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "email": "4f957f69e03d1d@hey.run",
+            "id": "<redacted-uuid>",
             "level": 0
           }
         ],
@@ -71,20 +71,20 @@
         },
         "security": "none",
         "wsSettings": {
-          "path": "/1f1fdb7439c"
+          "path": "/6fc0048a9ebe4f"
         }
       },
       "tag": "VLESS-ws-in"
     },
     {
       "listen": "0.0.0.0",
-      "port": 10760,
+      "port": 10837,
       "protocol": "VLESS",
       "settings": {
         "clients": [
           {
-            "email": "952396367b3@hey.run",
-            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "email": "4f957f69e03d1d@hey.run",
+            "id": "<redacted-uuid>",
             "level": 0
           }
         ],
@@ -94,7 +94,7 @@
         "grpcSettings": {
           "idle_timeout": 20,
           "multiMode": true,
-          "serviceName": "50f55b5abac"
+          "serviceName": "62eae5fe038e2b"
         },
         "network": "grpc",
         "realitySettings": {
@@ -109,13 +109,13 @@
     },
     {
       "listen": "0.0.0.0",
-      "port": 11207,
+      "port": 11019,
       "protocol": "VLESS",
       "settings": {
         "clients": [
           {
-            "email": "952396367b3@hey.run",
-            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "email": "4f957f69e03d1d@hey.run",
+            "id": "<redacted-uuid>",
             "level": 0
           }
         ],
@@ -132,7 +132,7 @@
         "security": "none",
         "xhttpSettings": {
           "mode": "auto",
-          "path": "/957ba4fd40c"
+          "path": "/b5d2c8bbde3de9"
         }
       },
       "tag": "VLESS-xhttp-in"

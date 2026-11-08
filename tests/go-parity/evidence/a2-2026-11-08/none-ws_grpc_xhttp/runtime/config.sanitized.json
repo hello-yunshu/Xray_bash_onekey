@@ -6,16 +6,16 @@
   },
   "inbounds": [
     {
-      "port": 10066,
+      "port": 10226,
       "listen": "127.0.0.1",
       "tag": "VLESS-ws-in",
       "protocol": "VLESS",
       "settings": {
         "clients": [
           {
-            "id": "9e62cf6d-8085-5d3c-86e8-6068f00ac24e",
+            "id": "<redacted-uuid>",
             "level": 0,
-            "email": "b4ec@hey.run"
+            "email": "f27daf@hey.run"
           }
         ],
         "decryption": "none"
@@ -24,7 +24,7 @@
         "network": "ws",
         "security": "none",
         "wsSettings": {
-          "path": "/31cc"
+          "path": "/63ca81"
         },
         "realitySettings": {
           "privateKey": "REDACTED",
@@ -35,16 +35,16 @@
       }
     },
     {
-      "port": 10990,
+      "port": 10198,
       "listen": "127.0.0.1",
       "tag": "VLESS-gRPC-in",
       "protocol": "VLESS",
       "settings": {
         "clients": [
           {
-            "id": "9e62cf6d-8085-5d3c-86e8-6068f00ac24e",
+            "id": "<redacted-uuid>",
             "level": 0,
-            "email": "b4ec@hey.run"
+            "email": "f27daf@hey.run"
           }
         ],
         "decryption": "none"
@@ -53,7 +53,7 @@
         "network": "grpc",
         "security": "none",
         "grpcSettings": {
-          "serviceName": "63fc",
+          "serviceName": "9bf09d",
           "multiMode": true,
           "idle_timeout": 20
         },
@@ -66,16 +66,16 @@
       }
     },
     {
-      "port": 11067,
+      "port": 11556,
       "listen": "127.0.0.1",
       "tag": "VLESS-xhttp-in",
       "protocol": "VLESS",
       "settings": {
         "clients": [
           {
-            "id": "9e62cf6d-8085-5d3c-86e8-6068f00ac24e",
+            "id": "<redacted-uuid>",
             "level": 0,
-            "email": "b4ec@hey.run"
+            "email": "f27daf@hey.run"
           }
         ],
         "decryption": "none"
@@ -84,7 +84,7 @@
         "network": "xhttp",
         "security": "none",
         "xhttpSettings": {
-          "path": "/cff0",
+          "path": "/90db40",
           "mode": "auto"
         },
         "realitySettings": {

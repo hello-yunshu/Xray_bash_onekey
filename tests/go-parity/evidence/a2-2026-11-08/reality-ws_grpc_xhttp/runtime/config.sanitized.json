@@ -13,10 +13,10 @@
       "settings": {
         "clients": [
           {
-            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "id": "<redacted-uuid>",
             "flow": "xtls-rprx-vision",
             "level": 0,
-            "email": "952396367b3@hey.run"
+            "email": "4f957f69e03d1d@hey.run"
           }
         ],
         "decryption": "none"
@@ -32,7 +32,7 @@
           "minClientVer": "1.0.0",
           "privateKey": "REDACTED",
           "shortIds": [
-            "4bfbc2a56c770a6e"
+            "6148dc51d3fbc61a"
           ],
           "settings": {
             "privateKey": "REDACTED"
@@ -41,16 +41,16 @@
       }
     },
     {
-      "port": 10128,
+      "port": 10972,
       "listen": "0.0.0.0",
       "tag": "VLESS-ws-in",
       "protocol": "VLESS",
       "settings": {
         "clients": [
           {
-            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "id": "<redacted-uuid>",
             "level": 0,
-            "email": "952396367b3@hey.run"
+            "email": "4f957f69e03d1d@hey.run"
           }
         ],
         "decryption": "none"
@@ -59,7 +59,7 @@
         "network": "ws",
         "security": "none",
         "wsSettings": {
-          "path": "/1f1fdb7439c"
+          "path": "/6fc0048a9ebe4f"
         },
         "realitySettings": {
           "privateKey": "REDACTED",
@@ -70,16 +70,16 @@
       }
     },
     {
-      "port": 10760,
+      "port": 10837,
       "listen": "0.0.0.0",
       "tag": "VLESS-gRPC-in",
       "protocol": "VLESS",
       "settings": {
         "clients": [
           {
-            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "id": "<redacted-uuid>",
             "level": 0,
-            "email": "952396367b3@hey.run"
+            "email": "4f957f69e03d1d@hey.run"
           }
         ],
         "decryption": "none"
@@ -88,7 +88,7 @@
         "network": "grpc",
         "security": "none",
         "grpcSettings": {
-          "serviceName": "50f55b5abac",
+          "serviceName": "62eae5fe038e2b",
           "multiMode": true,
           "idle_timeout": 20
         },
@@ -101,16 +101,16 @@
       }
     },
     {
-      "port": 11207,
+      "port": 11019,
       "listen": "0.0.0.0",
       "tag": "VLESS-xhttp-in",
       "protocol": "VLESS",
       "settings": {
         "clients": [
           {
-            "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
+            "id": "<redacted-uuid>",
             "level": 0,
-            "email": "952396367b3@hey.run"
+            "email": "4f957f69e03d1d@hey.run"
           }
         ],
         "decryption": "none"
@@ -119,7 +119,7 @@
         "network": "xhttp",
         "security": "none",
         "xhttpSettings": {
-          "path": "/957ba4fd40c",
+          "path": "/b5d2c8bbde3de9",
           "mode": "auto"
         },
         "realitySettings": {

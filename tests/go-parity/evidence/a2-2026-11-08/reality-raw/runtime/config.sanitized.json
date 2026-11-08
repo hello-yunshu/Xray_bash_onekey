@@ -13,7 +13,7 @@
       "settings": {
         "clients": [
           {
-            "id": "18475f62-9df0-5ff0-ae70-797e7c666d3d",
+            "id": "<redacted-uuid>",
             "flow": "xtls-rprx-vision",
             "level": 0,
             "email": "4b447ef671578a8@hey.run"

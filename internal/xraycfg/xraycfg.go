@@ -35,7 +35,22 @@ const (
 	TransportGRPC  = "grpc"
 	TransportXHTTP = "xhttp"
 	TransportRaw   = "raw"
+	// TransportMulti is the Bash multi-entry topology: one base inbound plus
+	// the two remaining transports on their own loopback ports.
+	TransportMulti = "ws+grpc+xhttp"
 )
+
+// inboundDef is one generated inbound entry.
+type inboundDef struct {
+	tag         string
+	transport   string
+	port        int
+	listen      string
+	email       string
+	flow        string
+	path        string
+	serviceName string
+}
 
 // Spec describes one to-be-generated configuration.
 type Spec struct {
@@ -107,14 +122,24 @@ func Generate(spec Spec) (Generated, error) {
 	g := Generated{Mode: spec.Mode, Warnings: []string{}}
 	switch spec.Mode {
 	case ModeReality, ModeRealityNginx:
-		g.Transport = TransportRaw
+		spec.Transport = strings.ToLower(strings.TrimSpace(spec.Transport))
+		switch spec.Transport {
+		case "", TransportRaw:
+			spec.Transport = TransportRaw
+		case TransportMulti:
+			// Reality stays the primary raw inbound; the other transports are
+			// added as loopback inbounds, matching Bash reality_add_more.
+		default:
+			return Generated{}, fmt.Errorf("unsupported transport %q for mode %s", spec.Transport, spec.Mode)
+		}
+		g.Transport = spec.Transport
 	case ModeTLS, ModeNone:
 		if spec.Transport == "" {
 			spec.Transport = TransportWS
 		}
 		spec.Transport = strings.ToLower(spec.Transport)
 		switch spec.Transport {
-		case TransportWS, TransportGRPC, TransportXHTTP:
+		case TransportWS, TransportGRPC, TransportXHTTP, TransportMulti:
 		default:
 			return Generated{}, fmt.Errorf("unsupported transport %q for mode %s", spec.Transport, spec.Mode)
 		}
@@ -241,7 +266,8 @@ func Generate(spec Spec) (Generated, error) {
 		}
 	}
 
-	config := buildConfig(spec, g.Transport, serverName, realityTarget, privateKey, shortID)
+	defs := buildInboundDefs(spec, g.Transport)
+	config := buildConfig(spec, defs, serverName, realityTarget, privateKey, shortID)
 
 	g.Port, g.PublicPort, g.Listen = spec.Port, spec.PublicPort, spec.Listen
 	g.UUID, g.ShortID, g.PrivateKey, g.PublicKey = spec.UUID, shortID, privateKey, publicKey
@@ -258,43 +284,134 @@ func Generate(spec Spec) (Generated, error) {
 	if shareHost == "" {
 		shareHost = spec.Listen
 	}
-	g.ShareURI = buildShareURI(spec, g.Transport, shareHost, publicKey, shortID, serverName)
-	g.ClashYAML = buildClash(spec, g.Transport, shareHost, publicKey, shortID, serverName, &g)
-	g.NginxConf = buildNginx(spec, g.Transport, serverName)
+	base := defs[0]
+	g.ShareURI = buildShareURI(spec, base.transport, shareHost, publicKey, shortID, serverName)
+	g.ClashYAML = buildClash(spec, base.transport, shareHost, publicKey, shortID, serverName, &g)
+	g.NginxConf = buildNginx(spec, defs, serverName)
+	if g.Transport == TransportMulti {
+		g.Warnings = append(g.Warnings, "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others")
+	}
 	return g, nil
 }
 
-func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID string) []byte {
-	client := map[string]any{
-		"id":    spec.UUID,
-		"level": 0,
-		"email": spec.Email,
+const defaultXHTTPPath = "/xhttp/"
+
+// portOffset returns a distinct port near base, wrapping inside the valid
+// range. Multi-entry installs use consecutive ports instead of Bash's random
+// selection so the artifact stays reproducible.
+func portOffset(base, offset int) int {
+	p := base + offset
+	for p > 65535 {
+		p -= 65535
 	}
-	if spec.Flow != "" {
-		client["flow"] = spec.Flow
+	if p < 1 {
+		p = 1
 	}
-	stream := map[string]any{"security": "none", "network": transport}
+	return p
+}
+
+func inboundTag(transport string) string {
 	switch transport {
 	case TransportWS:
-		stream["wsSettings"] = map[string]any{"path": spec.Path}
+		return "VLESS-ws-in"
 	case TransportGRPC:
-		stream["grpcSettings"] = map[string]any{"serviceName": spec.ServiceName}
+		return "VLESS-gRPC-in"
 	case TransportXHTTP:
-		stream["xhttpSettings"] = map[string]any{"path": spec.Path, "mode": "auto"}
-	case TransportRaw:
-		stream["security"] = "reality"
-		rs := map[string]any{
-			"target":       target,
-			"serverNames":  spec.ServerNames,
-			"privateKey":   privateKey,
-			"shortIds":     []any{shortID},
-			"minClientVer": "1.0.0",
-		}
-		stream["realitySettings"] = rs
+		return "VLESS-xhttp-in"
+	default:
+		return "VLESS-Reality-in"
 	}
-	tag := "VLESS-Reality-in"
-	if transport != TransportRaw {
-		tag = "VLESS-" + transport + "-in"
+}
+
+// buildInboundDefs returns the inbounds for the requested transport. The
+// primary inbound always uses spec.Port so callers can address it by index 0.
+func buildInboundDefs(spec Spec, transport string) []inboundDef {
+	if transport != TransportMulti {
+		if transport == TransportRaw {
+			return []inboundDef{{tag: inboundTag(transport), transport: TransportRaw, port: spec.Port,
+				listen: spec.Listen, email: spec.Email, flow: spec.Flow}}
+		}
+		return []inboundDef{{
+			tag: inboundTag(transport), transport: transport, port: spec.Port, listen: spec.Listen,
+			email: spec.Email, path: spec.Path, serviceName: spec.ServiceName,
+		}}
+	}
+	reality := spec.Mode == ModeReality || spec.Mode == ModeRealityNginx
+	defs := make([]inboundDef, 0, 4)
+	if reality {
+		defs = append(defs, inboundDef{tag: inboundTag(TransportRaw), transport: TransportRaw,
+			port: spec.Port, listen: spec.Listen, email: spec.Email, flow: spec.Flow})
+	} else {
+		defs = append(defs, inboundDef{tag: inboundTag(TransportWS), transport: TransportWS,
+			port: spec.Port, listen: spec.Listen, email: spec.Email, path: spec.Path})
+	}
+	// Bash keeps added inbounds on loopback for none/TLS but exposes them on
+	// the primary listen address for Reality (reality_add_more runs after the
+	// 0.0.0.0 rewrite). Match that instead of forcing loopback everywhere.
+	extraListen := "127.0.0.1"
+	if reality {
+		extraListen = spec.Listen
+	}
+	offset := 1
+	if reality {
+		defs = append(defs, inboundDef{tag: inboundTag(TransportWS), transport: TransportWS,
+			port: portOffset(spec.Port, offset), listen: extraListen, email: "ws@hey.run", path: spec.Path})
+		offset++
+	}
+	defs = append(defs, inboundDef{tag: inboundTag(TransportGRPC), transport: TransportGRPC,
+		port: portOffset(spec.Port, offset), listen: extraListen, email: "me@hey.run",
+		serviceName: spec.ServiceName})
+	offset++
+	defs = append(defs, inboundDef{tag: inboundTag(TransportXHTTP), transport: TransportXHTTP,
+		port: portOffset(spec.Port, offset), listen: extraListen, email: "xhttp@hey.run",
+		path: defaultXHTTPPath})
+	return defs
+}
+
+func buildConfig(spec Spec, defs []inboundDef, serverName, target, privateKey, shortID string) []byte {
+	inbounds := make([]any, 0, len(defs))
+	tags := make([]any, 0, len(defs))
+	for _, def := range defs {
+		client := map[string]any{
+			"id":    spec.UUID,
+			"level": 0,
+			"email": def.email,
+		}
+		if def.flow != "" {
+			client["flow"] = def.flow
+		}
+		stream := map[string]any{"security": "none", "network": def.transport}
+		switch def.transport {
+		case TransportWS:
+			stream["wsSettings"] = map[string]any{"path": def.path}
+		case TransportGRPC:
+			stream["grpcSettings"] = map[string]any{
+				"serviceName": def.serviceName, "multiMode": true, "idle_timeout": 20,
+			}
+		case TransportXHTTP:
+			stream["xhttpSettings"] = map[string]any{"path": def.path, "mode": "auto"}
+		case TransportRaw:
+			stream["security"] = "reality"
+			stream["realitySettings"] = map[string]any{
+				"target":       target,
+				"serverNames":  spec.ServerNames,
+				"privateKey":   privateKey,
+				"shortIds":     []any{shortID},
+				"minClientVer": "1.0.0",
+			}
+		}
+		inbounds = append(inbounds, map[string]any{
+			"tag":      def.tag,
+			"port":     def.port,
+			"listen":   def.listen,
+			"protocol": "vless",
+			"settings": map[string]any{
+				"clients":    []any{client},
+				"decryption": "none",
+			},
+			"streamSettings": stream,
+		})
+		tags = append(tags, def.tag)
 	}
 	root := map[string]any{
 		"log": map[string]any{
@@ -302,17 +419,7 @@ func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID s
 			"error":    "/var/log/xray/error.log",
 			"loglevel": "warning",
 		},
-		"inbounds": []any{map[string]any{
-			"tag":      tag,
-			"port":     spec.Port,
-			"listen":   spec.Listen,
-			"protocol": "vless",
-			"settings": map[string]any{
-				"clients":    []any{client},
-				"decryption": "none",
-			},
-			"streamSettings": stream,
-		}},
+		"inbounds": inbounds,
 		"outbounds": []any{
 			map[string]any{
 				"protocol": "freedom",
@@ -339,7 +446,7 @@ func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID s
 			"domainStrategy": "AsIs",
 			"rules": []any{map[string]any{
 				"type":        "field",
-				"inboundTag":  []any{tag},
+				"inboundTag":  tags,
 				"outboundTag": "direct",
 			}},
 		},
@@ -458,29 +565,32 @@ func yamlValue(v string) string {
 	return strings.TrimRight(q, "\n")
 }
 
-func buildNginx(spec Spec, transport, serverName string) string {
+func buildNginx(spec Spec, defs []inboundDef, serverName string) string {
 	if spec.Mode == ModeTLS {
-		var loc string
-		switch transport {
-		case TransportWS:
-			loc = fmt.Sprintf(`    location %s {
+		locs := make([]string, 0, len(defs))
+		for _, def := range defs {
+			switch def.transport {
+			case TransportWS:
+				locs = append(locs, fmt.Sprintf(`    location %s {
         proxy_pass http://127.0.0.1:%d;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
-    }`, spec.Path, spec.Port)
-		case TransportGRPC:
-			loc = fmt.Sprintf(`    location /%s {
+    }`, def.path, def.port))
+			case TransportGRPC:
+				locs = append(locs, fmt.Sprintf(`    location /%s {
         grpc_pass grpc://127.0.0.1:%d;
-    }`, spec.ServiceName, spec.Port)
-		case TransportXHTTP:
-			loc = fmt.Sprintf(`    location %s {
+    }`, def.serviceName, def.port))
+			case TransportXHTTP:
+				locs = append(locs, fmt.Sprintf(`    location %s {
         proxy_pass http://127.0.0.1:%d;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
-    }`, spec.Path, spec.Port)
+    }`, def.path, def.port))
+			}
 		}
+		loc := strings.Join(locs, "\n")
 		return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Do not edit by hand.
 server {
     listen 443 ssl http2;

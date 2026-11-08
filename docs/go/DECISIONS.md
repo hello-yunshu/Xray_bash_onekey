@@ -150,3 +150,17 @@ Rill 安装/卸载保持 Bash。TCP 的 Bash 菜单不默认接线到 Go，只�
 
 **理由**：证据必须可追溯到真实提交；缓存镜像不会自动更新 `COPY` 进去的脚本，
 直接运行会得到假阴性。以后矩阵复跑必须显式 bind-mount 仓库脚本或重建镜像。
+
+## D-013 多入口用相邻端口生成，按拓扑而非单一 network 校验（2026-11-08）
+
+**决定**：
+- `--transport ws+grpc+xhttp` 在主端口建主 inbound，其余入口使用相邻端口
+  （65535 附近回绕），保持产物可复现；Bash 的随机端口不复制。
+- none/TLS 主入口为 ws、附加入口绑定 `127.0.0.1`；Reality 主入口为 raw、
+  附加入口沿用主监听地址（对齐 Bash `reality_add_more` 的 0.0.0.0 行为）。
+- 矩阵对多入口不再比较单一 `streamSettings.network`，而是要求 3 个 inbound、
+  网络集合为 ws/grpc/xhttp、端口互异；这是增强校验，不是放宽断言。
+
+**理由**：多入口天然不是单流配置；把 `network` 写成 `ws+grpc+xhttp` 会让
+Xray 拒绝配置。用拓扑断言可以在不牺牲真实配置合法性的前提下覆盖原 8 个
+`GAP`，并由真实 Xray `-test` 与 A2 真实 runtime 双重验证。

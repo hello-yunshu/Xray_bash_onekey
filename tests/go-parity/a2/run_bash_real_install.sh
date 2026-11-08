@@ -63,6 +63,22 @@ WantedBy=multi-user.target
 UNIT
     systemctl daemon-reload || true
     log "seeded_xray=$(/usr/local/bin/xray version 2>/dev/null | head -1)"
+    # Startup reconciles shell helpers from raw.githubusercontent before the
+    # install flow runs. That fetch is unrelated to the runtime under test and
+    # a transient 5xx aborts the whole run, so seed the repo copies and the
+    # release marker. Every config/install step below still executes for real.
+    if [[ -d /src/scripts ]]; then
+        mkdir -p /etc/idleleo/scripts
+        for helper in fail2ban_manager.sh traffic_blocker.sh file_manager.sh \
+                      auto_update.sh ssl_update.sh geo_update.sh xray_stats.sh; do
+            [[ -f "/src/scripts/${helper}" ]] && install -m 0644 "/src/scripts/${helper}" "/etc/idleleo/scripts/${helper}"
+        done
+        src_version=$(grep -m1 '^shell_version=' /src/install.sh | awk -F'=|"' '{print $3}')
+        if [[ -n "${src_version}" ]]; then
+            printf '%s\n' "${src_version}" >/etc/idleleo/release-managed.version
+            log "seeded_release_helpers=yes version=${src_version}"
+        fi
+    fi
 fi
 
 # --- drive the real interactive install ----------------------------------

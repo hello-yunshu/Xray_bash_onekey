@@ -3,18 +3,18 @@
     {
       "tag": "VLESS-ws-in",
       "listen": "127.0.0.1",
-      "port": 10066,
+      "port": 10226,
       "protocol": "VLESS",
       "network": "ws",
       "security": "none",
-      "wsPath": "/31cc",
+      "wsPath": "/63ca81",
       "grpcServiceName": null,
       "xhttpPath": null,
       "reality": null,
       "clients": [
         {
-          "id": "9e62cf6d-8085-5d3c-86e8-6068f00ac24e",
-          "email": "b4ec@hey.run",
+          "id": "<redacted-uuid>",
+          "email": "f27daf@hey.run",
           "flow": null
         }
       ]
@@ -22,18 +22,18 @@
     {
       "tag": "VLESS-gRPC-in",
       "listen": "127.0.0.1",
-      "port": 10990,
+      "port": 10198,
       "protocol": "VLESS",
       "network": "grpc",
       "security": "none",
       "wsPath": null,
-      "grpcServiceName": "63fc",
+      "grpcServiceName": "9bf09d",
       "xhttpPath": null,
       "reality": null,
       "clients": [
         {
-          "id": "9e62cf6d-8085-5d3c-86e8-6068f00ac24e",
-          "email": "b4ec@hey.run",
+          "id": "<redacted-uuid>",
+          "email": "f27daf@hey.run",
           "flow": null
         }
       ]
@@ -41,18 +41,18 @@
     {
       "tag": "VLESS-xhttp-in",
       "listen": "127.0.0.1",
-      "port": 11067,
+      "port": 11556,
       "protocol": "VLESS",
       "network": "xhttp",
       "security": "none",
       "wsPath": null,
       "grpcServiceName": null,
-      "xhttpPath": "/cff0",
+      "xhttpPath": "/90db40",
       "reality": null,
       "clients": [
         {
-          "id": "9e62cf6d-8085-5d3c-86e8-6068f00ac24e",
-          "email": "b4ec@hey.run",
+          "id": "<redacted-uuid>",
+          "email": "f27daf@hey.run",
           "flow": null
         }
       ]

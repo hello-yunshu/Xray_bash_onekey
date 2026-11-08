@@ -7,20 +7,19 @@
 
 **Go 能否正式接管 Bash？**
 
-- **可以接管**：配置生成、安装元数据读取、迁移状态机（Audit→Prepare→Validate→
-  Activate→Recover/Rollback）、服务原语、GeoData 刷新、Stats 读取、systemd timer、
-  以及本轮新增的 TCP 安全子集。
-- **尚不能全量接管**：`ws+gRPC+xHTTP` 多传输组合、真实 ACME 签发/续期、
-  Xray/Nginx 自动升级执行器、Fail2ban、流量阻断、备份/恢复 CLI、Docker 交付路径
-  仍缺实现或真实验证。
+- **可以接管**：配置生成（含 `ws+gRPC+xHTTP` 多入口）、安装元数据读取、迁移状态机
+  （Audit→Prepare→Validate→Activate→Recover/Rollback）、服务原语、GeoData 刷新、
+  Stats 读取、systemd timer、跨进程安装事务恢复，以及本轮新增的 TCP 安全子集。
+- **尚不能全量接管**：真实 ACME 签发/续期、Xray/Nginx 自动升级执行器、Fail2ban、
+  流量阻断、备份/恢复 CLI、Docker 交付路径仍缺实现或真实验证。
 - **正式接管门槛未达**：没有任何一项达到 `REAL_VPS_VERIFIED`；
   F01–F28 正式签收 **0/28**。生产替换前必须先补齐第 9 节的阻塞项。
 
 | 工作包 | 结论 | 最高证据等级 |
 |---|---|---|
 | A：真实 Bash 配置 vs Go 管理器 | 基线 98 项：`MATCH 2 / MATCH_CORE_FIELDS 32 / GAP 60 / REFUSED 4` | `BASH_EXECUTED` + `GO_EXECUTED` |
-| A2：真实交互式主安装 runtime | 6 个真实拓扑：`MATCH 1 / MATCH_CORE_FIELDS 3 / GAP 0 / UNSUPPORTED 2`；TLS/reality-nginx 因真实域名/ACME 未捕获 | `BASH_EXECUTED` + `GO_EXECUTED` |
-| B：兼容差异与故障恢复 | 修复后 `MATCH 54 / MATCH_CORE_FIELDS 32 / GAP 8 / REFUSED 4`；剩余 8 项均为已登记的预期缺口 | `GO_EXECUTED` |
+| A2：真实交互式主安装 runtime | 6 个真实拓扑：`MATCH 2 / MATCH_CORE_FIELDS 4 / GAP 0 / UNSUPPORTED 0`；TLS/reality-nginx 因真实域名/ACME 未捕获 | `BASH_EXECUTED` + `GO_EXECUTED` |
+| B：兼容差异与故障恢复 | 修复后 `MATCH 54 / MATCH_CORE_FIELDS 32 / GAP 8 / REFUSED 4`；B3 多入口实现后复跑 `54 / 40 / 0 / 4` | `GO_EXECUTED` |
 | C：Docker 真实服务与完整迁移 | Phase 01–04 合计 **330 / 332**，Bridge 状态机与故障注入全部真实执行 | `DOCKER_SERVICE_VERIFIED` / `DOCKER_MIGRATION_VERIFIED` |
 | D：TCP 原生 + 辅助脚本审计 | 20 项单测 + 30 项容器断言全绿；14 个脚本迁移判定表完成 | `GO_EXECUTED` + `DOCKER_MOCK_APPLY` |
 
@@ -113,17 +112,17 @@
 | none-ws | none ws | 容器随机 | 0 | active | `MATCH_CORE_FIELDS` |
 | none-grpc | none gRPC | 容器随机 | 0 | active | `MATCH_CORE_FIELDS` |
 | none-xhttp | none xHTTP | 容器随机 | 0 | active | `MATCH_CORE_FIELDS` |
-| none-ws_grpc_xhttp | none ws+gRPC+xHTTP | 3 个随机端口 | 0 | active | `UNSUPPORTED`（Go 只支持单传输） |
-| reality-ws_grpc_xhttp | Reality + ws+gRPC+xHTTP | 4 个随机端口 | 0 | active | `UNSUPPORTED`（同上） |
+| none-ws_grpc_xhttp | none ws+gRPC+xHTTP | 3 个随机端口 | 0 | active | `MATCH_CORE_FIELDS`（仅剩 Bash 空 `realitySettings`） |
+| reality-ws_grpc_xhttp | Reality + ws+gRPC+xHTTP | 4 个随机端口 | 0 | active | `MATCH`（网络、监听地址、主线语义一致） |
 
 **重跑结果（真实 runtime，6 个可捕获拓扑）**
 
 | 状态 | 数量 | 说明 |
 |---|---|---|
-| `MATCH` | 1 | Reality raw 的全部连接语义字段与 Go 一致 |
-| `MATCH_CORE_FIELDS` | 3 | none 单传输的连接字段一致；差异仅为 Bash 遗留的 `realitySettings` 空块、`geodata` 顶层键、gRPC tag 大小写 |
+| `MATCH` | 2 | Reality raw 与 Reality+三入口的连接语义字段与 Go 一致 |
+| `MATCH_CORE_FIELDS` | 4 | none 单/多传输的连接字段一致；差异仅为 Bash 遗留的 `realitySettings` 空块、`geodata` 顶层键、gRPC tag 大小写 |
 | `GAP` | 0 | 未发现会导致连接语义不一致的字段 |
-| `UNSUPPORTED` | 2 | `ws+gRPC+xHTTP`，Go 目前拒绝 |
+| `UNSUPPORTED` | 0 | `ws+gRPC+xHTTP` 已在 B3 中实现并参与对比 |
 | `REFUSED` | 0 | 主安装流没有负例用例，不能把矩阵里的 4 个 `REFUSED` 平移到 A2 |
 
 **与旧 54 / 32 / 8 / 4 的差异来源**
@@ -132,18 +131,23 @@
   A2 的真实 Runtime 重检**不能**把 54 直接继承为 runtime 签收。
 - 真实 Runtime 只覆盖 6 个“模式 + 传输”拓扑；旧矩阵里 32 个节点 case 的
   443/8443/10086/65535 端口组合并没有逐个跑真实安装，不能声称已验证。
-- 单传输的真实 Runtime 里没有 `GAP`；3 个 `MATCH_CORE_FIELDS` 都是
+- 真实 Runtime 里没有 `GAP`；4 个 `MATCH_CORE_FIELDS` 都是
   非连接语义差异（Bash 模板遗留 `realitySettings`、none-ws 模板的 `geodata`、
   `VLESS-gRPC-in` 大小写），与旧矩阵的“结构不一致”不是同一口径。
-- `ws+gRPC+xHTTP` 的 2 个真实拓扑仍是 `UNSUPPORTED`，对应旧矩阵剩余
-  8 个 `GAP`，说明 **GAP 8 没有被 A2 关掉**。
+- `ws+gRPC+xHTTP` 的 2 个真实拓扑原先为 `UNSUPPORTED`；B3 实现后重跑对比，
+  none 多入口仅剩模板遗留键（`MATCH_CORE_FIELDS`），Reality 多入口完全一致
+  （`MATCH`）。旧矩阵剩余 8 个 `GAP` 已全部关闭，复跑为
+  `MATCH 54 / MATCH_CORE_FIELDS 40 / GAP 0 / REFUSED 4`。
 - TLS 与 `reality-nginx` 需要真实域名/ACME 或域名证书，A2 **未捕获**，
   这两类在旧矩阵中的结果仍只是元数据级，不能升级为 runtime 证据。
 
 **证据完整性说明**：为避开重复下载数分钟的 Xray 包，容器内预置了与 pin 一致的
-Xray 26.10.31 二进制、标准 unit 与 `/var/log/xray` 目录；`install.sh` 的交互、
-依赖检查、模板下载、配置生成、`xray -test`、enable/restart 均真实执行。
-6 个拓扑全部 `install_exit=0`、`xray_test_exit=0`、`xray.service=active`。
+Xray 26.10.31 二进制、标准 unit 与 `/var/log/xray` 目录；复跑多入口时为绕开
+`raw.githubusercontent` 的临时 504，预置了仓库内 helper 脚本与
+`release-managed.version`（仅跳过启动时的网络 helper 同步，安装/配置/`xray -test`
+仍全部真实执行）。`install.sh` 的交互、依赖检查、模板下载、配置生成、
+`xray -test`、enable/restart 均真实执行。6 个拓扑全部 `install_exit=0`、
+`xray_test_exit=0`、`xray.service=active`。
 采集脚本见 [a2/run_bash_real_install_container.sh](../../tests/go-parity/a2/run_bash_real_install_container.sh)、
 [drive_install.exp](../../tests/go-parity/a2/drive_install.exp)、
 [compare_real_runtime.py](../../tests/go-parity/a2/compare_real_runtime.py)；
@@ -169,17 +173,18 @@ Xray 26.10.31 二进制、标准 unit 与 `/var/log/xray` 目录；`install.sh` 
 
 **结果**
 
-| 状态 | 基线 | 修复后 |
-|---|---|---|
-| `MATCH` | 2 | **54** |
-| `MATCH_CORE_FIELDS` | 32 | 32 |
-| `GAP` | 60 | **8** |
-| `REFUSED` | 4 | 4 |
+| 状态 | 基线 | 修复后 | B3 多入口后 |
+|---|---|---|---|
+| `MATCH` | 2 | 54 | **54** |
+| `MATCH_CORE_FIELDS` | 32 | 32 | **40** |
+| `GAP` | 60 | 8 | **0** |
+| `REFUSED` | 4 | 4 | 4 |
 
-剩余 8 个 `GAP` 全部是 `tls/none ws+grpc+xhttp` 多传输组合，
-且 `expected_gap=true`：Go 当前只支持单传输，P1 未实现，属于**已登记缺口**，
-不是本轮回归。证据：
-[after-fix/summary.json](../../tests/go-parity/evidence/matrix-2026-11-08/after-fix/summary.json)。
+原剩余 8 个 `GAP` 全部是 `tls/none ws+grpc+xhttp` 多传输组合；B3 实现后
+`expected_gap=false`，复跑全部转为 `MATCH_CORE_FIELDS`（多入口检查同时要求
+三个 inbound、各传输网络与端口互异）。证据：
+[after-fix/summary.json](../../tests/go-parity/evidence/matrix-2026-11-08/after-fix/summary.json)、
+[b3/summary.json](../../tests/go-parity/evidence/matrix-2026-11-08/b3/summary.json)。
 
 **故障恢复侧**：B 轮还复现并修复了 Go 管理器在 relay/share 上的两个语义缺陷
 （见上），未删除任何断言；Phase 03 的故障注入随后在 C 包中真实复跑。
@@ -209,6 +214,23 @@ Xray 26.10.31 二进制、标准 unit 与 `/var/log/xray` 目录；`install.sh` 
   驱动脚本见 [run_crash_recovery_container.sh](../../tests/go-parity/deploy/run_crash_recovery_container.sh)。
 - **边界**：容器返回 `exit 0`/`converged=true` 只证明恢复逻辑在一次性容器成立；
   没有真实 VPS 断电/重启证据，F01–F28 仍为 0/28，不得升格为生产签收。
+
+**B3 `ws+gRPC+xHTTP` 多入口（本次补齐）**
+
+- `internal/xraycfg` 接受 `--transport ws+grpc+xhttp`：单传输模式保持原样，
+  多入口在 `spec.Port` 上建主 inbound，其余传输使用相邻端口（65535 附近回绕），
+  每个 inbound 独立 tag/client/streamSettings，routing 的 `inboundTag` 覆盖全部入口。
+- 主 inbound 规则与 Bash 一致：none/TLS 以 ws 为主、附加 grpc/xhttp 绑定
+  `127.0.0.1`；Reality 以 raw 为主、附加入口沿用主监听地址（Bash
+  `reality_add_more` 的 0.0.0.0 语义）。TLS 的 Nginx 片段为三个入口各生成
+  一个 location/grpc_pass。
+- 校验：`ws+grpc+xhttp` 的 tls/none/reality 三份生成配置均通过真实
+  Xray 26.10.31 `-test`（`xray_test_exit=0`，日志见
+  [b3/xray-test](../../tests/go-parity/evidence/b3-2026-11-08/xray-test)）；
+  98 项矩阵复跑 `54 / 40 / 0 / 4`；A2 用真实 Bash 多入口 runtime 重新对比，
+  none 多入口 `MATCH_CORE_FIELDS`、Reality 多入口 `MATCH`。
+- **边界**：多入口矩阵检查在无 TLS 的模式下只验证结构与端口，不建立真实
+  多入口连接；TLS/ACME 侧仍未验收。
 
 ## 4. C 包：Docker 真实服务与完整迁移
 
@@ -298,7 +320,7 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | ID | 功能 | Go 状态 | 最高证据等级 | 关键限制 |
 |---|---|---|---|---|
 | F01 | Reality（普通 / +Nginx） | 部分实现 | `DOCKER_SERVICE_VERIFIED` | `reality-nginx` 只生成配置 + `-test`，未装 Nginx |
-| F02 | TLS ws/gRPC/xHTTP/组合 | 部分实现 | `DOCKER_SERVICE_VERIFIED` | 组合传输未实现；TLS 需真实域名/证书 |
+| F02 | TLS ws/gRPC/xHTTP/组合 | 部分实现 | `DOCKER_SERVICE_VERIFIED` | 组合传输已实现并通过 `xray -test`；TLS 多入口需真实域名/证书 |
 | F03 | none ws ONLY | 部分实现 | `DOCKER_SERVICE_VERIFIED` | 保留显式非回环确认，实测 exit 2 零落盘 |
 | F04 | Reality 主备负载均衡 | 未实现 | — | 无双节点验收 |
 | F05 | relay 独立中转 | 部分实现 | `DOCKER_SERVICE_VERIFIED` | 不能创建 Xray/UUID/证书 |
@@ -339,10 +361,11 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | Phase 02 容器复跑 | 36 / 36，exit 0 | `DOCKER_SERVICE_VERIFIED` |
 | Phase 03 容器复跑 | 219 / 219，exit 0 | `DOCKER_MIGRATION_VERIFIED` |
 | Phase 04 容器复跑 | 42 / 42，exit 0 | `DOCKER_SERVICE_VERIFIED` |
-| 98 项 Bash/Go 矩阵（修复后，commit `ace4a16`） | MATCH 54 / CORE 32 / GAP 8 / REFUSED 4 | `BASH_EXECUTED` + `GO_EXECUTED` |
-| A2 真实安装 6 拓扑（§2.1） | 1 MATCH / 3 CORE / 0 GAP / 2 UNSUPPORTED | `BASH_EXECUTED` |
+| 98 项 Bash/Go 矩阵（B3 多入口后） | MATCH 54 / CORE 40 / GAP 0 / REFUSED 4 | `BASH_EXECUTED` + `GO_EXECUTED` |
+| A2 真实安装 6 拓扑（§2.1） | 2 MATCH / 4 CORE / 0 GAP / 0 UNSUPPORTED | `BASH_EXECUTED` |
+| B3 多入口 `xray -test`（tls/none/reality） | 3 / 3 exit 0（真实 Xray 26.10.31） | `GO_EXECUTED` |
 | B4 真实 SIGKILL 注入（journal 出现后 kill -9） | journal `PREPARED` → 新进程 `ROLLED_BACK`，4 文件 SHA 还原 | `DOCKER_CRASH_INJECTION` |
-| B4 单测（含 `Install` 自动收敛 pending journal） | 7 / 7 PASS | `GO_EXECUTED` |
+| B4 单测（含 `Install` 自动收敛 pending journal） | 8 / 8 PASS | `GO_EXECUTED` |
 | `gofmt` / `go vet` / `go test` / `go test -race` / `bash -n` | 全部通过（gofmt 无输出） | `GO_EXECUTED` |
 
 ## 8. 各阶段提交
@@ -358,6 +381,7 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | （本复检报告提交） | docs：合规复检附录、矩阵 provenance 修正、D1 上游审计与门禁证据 |
 | `a53dfee` | A2：真实交互式 Bash 主安装 6 拓扑 runtime 基线与重跑统计 |
 | （本次 B4 提交） | B4：持久 deploy journal + 排他锁 + `idleleo xray recover` + 真实 SIGKILL 注入证据 |
+| （本次 B3 提交） | B3：`ws+gRPC+xHTTP` 多入口生成、Nginx 多 location、矩阵与真实 Xray 校验 |
 
 既有关联提交：`2d44d98`（logrotate drop-in 修复）、`e859724`（install.sh 对齐
 v3.3.6 基线）。
@@ -366,54 +390,52 @@ v3.3.6 基线）。
 
 **P0（生产接管前必须解决）**
 
-1. `ws+gRPC+xHTTP` 多传输组合未实现（剩余 8 个 GAP 的唯一来源）。
-2. **A2 真实 Bash 主安装已执行，但覆盖不完整**：6 个拓扑在一次性 systemd
+1. **A2 真实 Bash 主安装已执行，但覆盖不完整**：6 个拓扑在一次性 systemd
    容器内真实跑完 `install.sh -2/-3` 并采集 Runtime（§2.1），
    `xray -test=0`、服务 active。TLS 与 `reality-nginx` 因需要真实域名/ACME
    未捕获；旧 54 个元数据 `MATCH` 不能升级为 Runtime 签收。
-3. Xray/Nginx 自动升级执行器仍在 Bash；Go 无降级/失败注入验证。
-4. 真实 ACME 签发/续期未验收；F12 只提供外部续约契约。
-5. 无任何 `REAL_VPS_VERIFIED` 证据，正式签收 0/28。
+2. Xray/Nginx 自动升级执行器仍在 Bash；Go 无降级/失败注入验证。
+3. 真实 ACME 签发/续期未验收；F12 只提供外部续约契约。
+4. 无任何 `REAL_VPS_VERIFIED` 证据，正式签收 0/28。
 
-> B4 跨进程恢复已补齐（持久 journal/lock + `idleleo xray recover` + 真实
-> `SIGKILL` 注入），但仍只是 `DOCKER_CRASH_INJECTION` 证据，未做真实断电/重启，
-> 因此从 P0 列表移出的是“实现缺口”，不是“生产签收”。
+> B3 多入口与 B4 跨进程恢复已补齐，并从 P0 的“实现缺口”中移出；但 B3 只做了
+> 配置结构 + `xray -test`（未建立多入口真实连接），B4 只是
+> `DOCKER_CRASH_INJECTION`（未做真实断电/重启），因此都不构成生产签收。
 
 **P1**
 
-6. **A1 覆盖缺口**：98 case 不含节点级 IPv4/IPv6 绑定、hostname 校验、
+5. **A1 覆盖缺口**：98 case 不含节点级 IPv4/IPv6 绑定、hostname 校验、
    1/4/20 用户与主备负载均衡。这些不能由 Phase 02/03 的局部用例替代。
-7. **C4 故障点未全覆盖**：缺 invalid candidate/recovery 二进制、reload 失败、
+6. **C4 故障点未全覆盖**：缺 invalid candidate/recovery 二进制、reload 失败、
    cron 修改冲突、写盘失败后的独立注入；其余 disk-full、kill 点、drift、
    corrupt journal、`--yes` 不自动迁移已真实执行。
-8. `backup/restore/purge` CLI、Fail2ban、流量阻断、SNI Guard、二维码、watch/reset
+7. `backup/restore/purge` CLI、Fail2ban、流量阻断、SNI Guard、二维码、watch/reset
    未实现。
-9. Phase 01 C12.1/C12.2 会持续红，直到下次发版并推进 pin；不得为此改 pin 或改断言。
-10. TCP 未做性能/吞吐验收；未扫描 `/run/sysctl.d`、`/usr/lib/sysctl.d` 的冲突。
+8. Phase 01 C12.1/C12.2 会持续红，直到下次发版并推进 pin；不得为此改 pin 或改断言。
+9. TCP 未做性能/吞吐验收；未扫描 `/run/sysctl.d`、`/usr/lib/sysctl.d` 的冲突。
 
 **P2**
 
-11. F01–F28 矩阵的 Go 状态仍使用中文标签，仅靠
+10. F01–F28 矩阵的 Go 状态仍使用中文标签，仅靠
     [FUNCTION_PARITY.md](FUNCTION_PARITY.md) 的映射表换算到提示词标签；未物理重写列。
-12. fr/fa/ru/ko 文案回退英文，未与 Bash 逐条差分。
-13. Docker 交付路径未实现（F24）。
+11. fr/fa/ru/ko 文案回退英文，未与 Bash 逐条差分。
+12. Docker 交付路径未实现（F24）。
 
 ## 10. 最终结论
 
 - **流程完成，不等于技术验收通过**：A/B/C/D 四包均完成“复现 → 修复 → 实跑 →
   自审 → 提交”，真实测试记录与失败证据完整保留；但 §9 的 P0 硬缺口仍在，
-  相对提示词包约 **79%**（附录 A）。
-- **Go 可接管**配置生成、迁移状态机、服务/GeoData/Stats/timer 原语与 TCP 安全子集；
-  **不可宣称**全量生产接管或真实 VPS 签收。
-- 下一步建议顺序：多传输组合（B3，关闭剩余 8 个 GAP）→ 升级执行器 →
-  ACME → A1 覆盖缺口 → P1 功能项；A2 与 B4 已在本轮补齐。在此之前保持 Bash
-  为生产入口。
+  相对提示词包约 **82%**（附录 A）。
+- **Go 可接管**配置生成（含多入口）、迁移状态机、服务/GeoData/Stats/timer 原语、
+  跨进程安装恢复与 TCP 安全子集；**不可宣称**全量生产接管或真实 VPS 签收。
+- 下一步建议顺序：A1 覆盖缺口 → 升级执行器 → ACME → P1 功能项；A2、B3、B4
+  已在本轮补齐。在此之前保持 Bash 为生产入口。
 
 ## 附录 A：提示词包逐条合规复检（2026-11-08）
 
 > 判定口径：**PASS** = 有可核对产物且满足要求；**部分满足** = 做了但覆盖/口径不完整；
-> **FAIL** = 要求未完成或证据不成立。共 38 项：PASS 24、部分满足 12、FAIL 2；
-> 加权完成度（PASS=1，部分=0.5）≈ **79%**（A2 与 B4 补齐后）。
+> **FAIL** = 要求未完成或证据不成立。共 38 项：PASS 25、部分满足 12、FAIL 1；
+> 加权完成度（PASS=1，部分=0.5）≈ **82%**（A2、B3、B4 补齐后）。
 > 流程/交付接近 100%；正式签收仍为 0/28（仅真实 VPS 证据才能改口径）。
 
 | # | 检查项（提示词出处） | 判定 | 证据 / 说明 |
@@ -437,7 +459,7 @@ v3.3.6 基线）。
 | 17 | A3 case ID 对应 F01–F28 的永久夹具 | 部分满足 | 矩阵 case 可执行，但未逐 case 标注 F 编号 |
 | 18 | B1 relay 监听地址/片段语义/负例/真实流量 | 部分满足 | `ListenAddress`、`proxy_timeout`、IPv6/域名/端口边界已测；`proxy_connect_timeout`、DNS 更新未单独验证 |
 | 19 | B2 分享链接结构化/真实客户端/Clash 降级 | 部分满足 | share 字段断言与 `--user/--public-security` 已修；真实客户端未覆盖 TLS/多传输 |
-| 20 | B3 多传输 `ws+gRPC+xHTTP` 多入口 | FAIL | after-fix 仍有 8 个预期 GAP，Go 只支持单传输 |
+| 20 | B3 多传输 `ws+gRPC+xHTTP` 多入口 | PASS | 3 个 inbound（Reality 4 个）、多 location、routing 全覆盖；矩阵 8 个 GAP 关闭，真实 `xray -test` 3/3；未做多入口真实连接 |
 | 21 | B3 多用户按 inbound+UUID/email 选择、1/4/20 用户 | 部分满足 | `--user` 已支持；Phase 03 覆盖 4 用户，20 用户未测 |
 | 22 | B4 文件快照含 UID/GID/mode/exists/symlink/父目录 | PASS | `ace4a16`：`captureFile`/`restore` 全部实现；单测覆盖属主、链接、父目录 |
 | 23 | B4 新装失败撤销 unit/enable/daemon 状态 | PASS | `rollbackInstall` stop+disable+daemon-reload；`TestFreshInstallRollbackRemovesNewFiles` |
@@ -453,8 +475,8 @@ v3.3.6 基线）。
 | 33 | D2 TCP status/plan/apply/rollback 安全实现 | PASS | 20 项单测覆盖部分失败/回滚失败/漂移/只读/符号链接/pending；30 项沙箱断言；不重放 `sysctl --system` |
 | 34 | D3 辅助脚本迁移矩阵与后续顺序 | PASS | 14 个脚本 + install.sh TCP/端口/证书/防火墙入口；目标/契约/优先级齐全 |
 | 35 | 回归门禁 gofmt/vet/test/race/bash -n | PASS | [gates-2026-11-08.log](../../tests/go-parity/evidence/gates-2026-11-08.log)：`GATES_OK` |
-| 36 | 98 矩阵 + Phase 01–04 日志/退出码/镜像 digest | PASS | 矩阵 after-fix 已在 `ace4a16` 重跑并可复现；Phase 日志与 exit code 齐全 |
-| 37 | 脱敏、无真实私钥、资产固定版本与哈希 | PASS | 证据中无 `PRIVATE KEY`；Xray SHA 记录；夹具/镜像 digest 记录 |
+| 36 | 98 矩阵 + Phase 01–04 日志/退出码/镜像 digest | PASS | 矩阵在 `ace4a16` 与 B3 后各重跑一次；Phase 日志与 exit code 齐全 |
+| 37 | 脱敏、无真实私钥、资产固定版本与哈希 | PASS | 证据中无 `PRIVATE KEY`；A2 生成 UUID/公钥/shortId/主机 IP/分享链接已二次脱敏；Xray SHA 与夹具/镜像 digest 记录 |
 | 38 | 交付物 5 项、F01–F28、commit SHA | PASS | 报告、DOCKER_MIGRATION_ACCEPTANCE、TCP_NATIVE_DESIGN_AND_QA、SCRIPT_NATIVE_MIGRATION_MATRIX、FUNCTION_PARITY 均在仓库 |
 
 ## 附录 B：本轮复检直接修复的不实口径与缺陷
@@ -469,12 +491,14 @@ v3.3.6 基线）。
 | D1 只写“审计 scripts/tcp.sh”但无实际行为 | 反向缺口 | 抓取上游快照 SHA-256 并逐类列行为，固定版本判定 BLOCKED |
 | C5 标签与提示词不一致 | 口径 | FUNCTION_PARITY 增加逐项映射表 |
 | A1 覆盖被暗示为全量 | 不实口径 | 报告明列未覆盖的 IPv4/IPv6/hostname/20 用户/负载均衡 |
+| B3 多入口长期挂账为 `expected_gap` | 反向缺口 | 实现 3/4 inbound 生成，矩阵 8 项 GAP 关闭，A2 真实 runtime 重新对比 |
 
-**复检结论**：这一轮相对提示词包约 **79%** 完成（A2/B4 补齐后）。
-- **硬缺口（仍未做）**：B3 多传输、A1 必需覆盖矩阵。
+**复检结论**：这一轮相对提示词包约 **82%** 完成（A2/B3/B4 补齐后）。
+- **硬缺口（仍未做）**：A1 必需覆盖矩阵。
 - **已补齐但非生产签收**：A2 真实 Bash 安装 runtime（6 拓扑，TLS/ACME 与
-  reality-nginx 未捕获）；B4 跨进程 journal/lock + 真实 SIGKILL 注入
-  （`DOCKER_CRASH_INJECTION`，无真实断电/重启）。
+  reality-nginx 未捕获）；B3 多入口（结构 + `xray -test`，未建立真实多连接）；
+  B4 跨进程 journal/lock + 真实 SIGKILL 注入（`DOCKER_CRASH_INJECTION`，
+  无真实断电/重启）。
 - **措辞/证据口径问题（已修）**：REFUSED 定义、矩阵 provenance、B4 过度表述、
   D1 审计缺实际行为、C5 标签映射、A1 覆盖边界。
 - **不算缺口但需保留**：330/332 中的 C12.1/C12.2 红（pin 与 logrotate 修复差异）、

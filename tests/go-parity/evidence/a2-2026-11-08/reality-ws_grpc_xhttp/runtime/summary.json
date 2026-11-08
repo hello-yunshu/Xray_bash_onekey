@@ -16,7 +16,7 @@
           "www.cloudflare.com"
         ],
         "shortIds": [
-          "4bfbc2a56c770a6e"
+          "6148dc51d3fbc61a"
         ],
         "publicKey": null,
         "fingerprint": null,
@@ -26,8 +26,8 @@
       },
       "clients": [
         {
-          "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
-          "email": "952396367b3@hey.run",
+          "id": "<redacted-uuid>",
+          "email": "4f957f69e03d1d@hey.run",
           "flow": "xtls-rprx-vision"
         }
       ]
@@ -35,18 +35,18 @@
     {
       "tag": "VLESS-ws-in",
       "listen": "0.0.0.0",
-      "port": 10128,
+      "port": 10972,
       "protocol": "VLESS",
       "network": "ws",
       "security": "none",
-      "wsPath": "/1f1fdb7439c",
+      "wsPath": "/6fc0048a9ebe4f",
       "grpcServiceName": null,
       "xhttpPath": null,
       "reality": null,
       "clients": [
         {
-          "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
-          "email": "952396367b3@hey.run",
+          "id": "<redacted-uuid>",
+          "email": "4f957f69e03d1d@hey.run",
           "flow": null
         }
       ]
@@ -54,18 +54,18 @@
     {
       "tag": "VLESS-gRPC-in",
       "listen": "0.0.0.0",
-      "port": 10760,
+      "port": 10837,
       "protocol": "VLESS",
       "network": "grpc",
       "security": "none",
       "wsPath": null,
-      "grpcServiceName": "50f55b5abac",
+      "grpcServiceName": "62eae5fe038e2b",
       "xhttpPath": null,
       "reality": null,
       "clients": [
         {
-          "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
-          "email": "952396367b3@hey.run",
+          "id": "<redacted-uuid>",
+          "email": "4f957f69e03d1d@hey.run",
           "flow": null
         }
       ]
@@ -73,18 +73,18 @@
     {
       "tag": "VLESS-xhttp-in",
       "listen": "0.0.0.0",
-      "port": 11207,
+      "port": 11019,
       "protocol": "VLESS",
       "network": "xhttp",
       "security": "none",
       "wsPath": null,
       "grpcServiceName": null,
-      "xhttpPath": "/957ba4fd40c",
+      "xhttpPath": "/b5d2c8bbde3de9",
       "reality": null,
       "clients": [
         {
-          "id": "5e531b99-f641-5d0b-abd6-f5cd0740d228",
-          "email": "952396367b3@hey.run",
+          "id": "<redacted-uuid>",
+          "email": "4f957f69e03d1d@hey.run",
           "flow": null
         }
       ]

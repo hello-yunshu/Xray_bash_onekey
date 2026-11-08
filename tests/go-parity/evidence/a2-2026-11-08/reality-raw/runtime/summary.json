@@ -26,7 +26,7 @@
       },
       "clients": [
         {
-          "id": "18475f62-9df0-5ff0-ae70-797e7c666d3d",
+          "id": "<redacted-uuid>",
           "email": "4b447ef671578a8@hey.run",
           "flow": "xtls-rprx-vision"
         }

@@ -64,6 +64,91 @@ func TestGenerateXHTTPClashIsExplicit(t *testing.T) {
 	}
 }
 
+func multiInbounds(t *testing.T, g Generated) []map[string]any {
+	t.Helper()
+	var root map[string]any
+	if err := json.Unmarshal(g.Config, &root); err != nil {
+		t.Fatalf("generated config is not JSON: %v", err)
+	}
+	raw, _ := root["inbounds"].([]any)
+	out := make([]map[string]any, 0, len(raw))
+	for _, item := range raw {
+		out = append(out, item.(map[string]any))
+	}
+	return out
+}
+
+func TestGenerateMultiTransportNone(t *testing.T) {
+	g, err := Generate(Spec{Mode: ModeNone, Transport: TransportMulti, Port: 10080})
+	if err != nil {
+		t.Fatalf("multi transport must be accepted: %v", err)
+	}
+	in := multiInbounds(t, g)
+	if len(in) != 3 {
+		t.Fatalf("expected three inbounds, got %d", len(in))
+	}
+	want := []string{"ws", "grpc", "xhttp"}
+	seenPorts := map[int]bool{}
+	for i, d := range in {
+		st := d["streamSettings"].(map[string]any)
+		if st["network"] != want[i] {
+			t.Fatalf("inbound %d network = %v, want %s", i, st["network"], want[i])
+		}
+		seenPorts[int(d["port"].(float64))] = true
+	}
+	if len(seenPorts) != 3 {
+		t.Fatalf("inbound ports must be distinct: %v", seenPorts)
+	}
+	if _, ok := seenPorts[10080]; !ok {
+		t.Fatalf("primary inbound must use the requested port: %v", seenPorts)
+	}
+	if g.Transport != TransportMulti {
+		t.Fatalf("generated transport = %q", g.Transport)
+	}
+	var root map[string]any
+	if err := json.Unmarshal(g.Config, &root); err != nil {
+		t.Fatal(err)
+	}
+	rule := root["routing"].(map[string]any)["rules"].([]any)[0].(map[string]any)
+	if len(rule["inboundTag"].([]any)) != 3 {
+		t.Fatalf("routing must cover all inbound tags: %v", rule["inboundTag"])
+	}
+}
+
+func TestGenerateMultiTransportTLSRoutesEachInbound(t *testing.T) {
+	g, err := Generate(Spec{Mode: ModeTLS, Domain: "example.com", Transport: TransportMulti, Port: 10080})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, needle := range []string{"proxy_pass http://127.0.0.1:10080;", "grpc_pass grpc://127.0.0.1:10081;", "location /xhttp/"} {
+		if !strings.Contains(g.NginxConf, needle) {
+			t.Fatalf("nginx snippet missing %q:\n%s", needle, g.NginxConf)
+		}
+	}
+}
+
+func TestGenerateMultiTransportRealityKeepsRawPrimary(t *testing.T) {
+	g, err := Generate(Spec{Mode: ModeReality, Domain: "example.com", Transport: TransportMulti, Port: 10080})
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := multiInbounds(t, g)
+	if len(in) != 4 {
+		t.Fatalf("reality multi expected four inbounds, got %d", len(in))
+	}
+	if in[0]["streamSettings"].(map[string]any)["network"] != TransportRaw {
+		t.Fatalf("reality primary must stay raw: %v", in[0]["streamSettings"])
+	}
+	if in[0]["tag"] != "VLESS-Reality-in" {
+		t.Fatalf("reality primary tag = %v", in[0]["tag"])
+	}
+	for _, d := range in[1:] {
+		if d["listen"] != "0.0.0.0" {
+			t.Fatalf("reality added inbounds must follow the primary listen address: %v", d["listen"])
+		}
+	}
+}
+
 func TestGenerateIPv6ShareAuthority(t *testing.T) {
 	g, err := Generate(Spec{Mode: ModeReality, Domain: "2001:db8::1"})
 	if err != nil {

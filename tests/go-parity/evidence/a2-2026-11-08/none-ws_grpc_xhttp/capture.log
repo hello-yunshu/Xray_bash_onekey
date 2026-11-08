@@ -1,10 +1,11 @@
 run=none-ws+grpc+xhttp
-date=2026-11-08T08:31:40Z
-image=sha256:73109e9a9fdead873ca4c0fdfe69a589e38aeb20ea2336ea6143f0112ad1592b
+date=2026-11-08T09:07:59Z
+image=sha256:a5bab73768add6abf9e56254fe4c7358fd41b5f13181a95afa1c5b268c93523d
 install_source_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f
 systemd_state=running
 container_ipv4=192.168.215.9
 seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
 install_exit=0
 executed_script_sha256=a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c
 executed_shell_version="3.3.6"
@@ -12,5 +13,5 @@ captured /etc/idleleo/conf/xray/config.json -> runtime/config.json
 captured /etc/idleleo/conf/install_config.json -> metadata/install_config.json
 captured /etc/idleleo/info/xray_info.inf -> metadata/xray_info.inf
 xray_test_exit=0
-runtime_sha256=252052b0f9a75793c32d76acd18bf89849cbf9ce73d0ef48fe0af9237c6f84c9
+runtime_sha256=66da7530115b32382ba2412c00e92407e0ca466a40e37c61461f32ae5d48d4ab
 done=none-ws+grpc+xhttp install_exit=0

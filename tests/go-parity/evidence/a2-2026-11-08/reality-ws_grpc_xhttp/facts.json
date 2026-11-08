@@ -6,7 +6,7 @@
   "systemdState": "running",
   "executedScriptSha256": "a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c",
   "sourceScriptSha256": "1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f",
-  "runtimeSha256": "4f1f511823aeb0000ac29e2194e7b4dc10f09a11c157c30a6666065ed6164485",
+  "runtimeSha256": "cecfe8d95c45e05d5d5e52595b411f65b09656c0a8658a42af48ddc8fbd67153",
   "xrayVersion": "Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)",
   "serviceActive": "active"
 }

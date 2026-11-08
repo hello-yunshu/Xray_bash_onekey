@@ -97,7 +97,7 @@ def capture_facts(run_dir: Path):
 def go_generate(go_bin: Path, facts: dict, work: Path):
     mode = facts["mode"]
     transport = facts["transport"]
-    if transport in ("ws+grpc+xhttp", "ws+xhttp"):
+    if transport == "ws+xhttp":
         return None, "Go supports only one transport (got %s)" % transport
     args = [str(go_bin), "xray", "generate",
             "--mode", mode,
@@ -198,6 +198,16 @@ def compare(bash: dict, go_cfg: dict):
         core.append({"field": "reality", "bash": bs["reality"], "go": gs["reality"]})
     if bs["tcpSettings"] != gs["tcpSettings"]:
         core.append({"field": "tcpSettings", "bash": bs["tcpSettings"], "go": gs["tcpSettings"]})
+    bi = bash.get("inbounds") or []
+    gi = go_cfg.get("inbounds") or []
+    if len(bi) > 1 or len(gi) > 1:
+        bn = sorted((i.get("streamSettings") or {}).get("network") for i in bi)
+        gn = sorted((i.get("streamSettings") or {}).get("network") for i in gi)
+        bl = [i.get("listen") for i in bi]
+        gl = [i.get("listen") for i in gi]
+        if bn != gn or bl != gl:
+            core.append({"field": "multiTopology", "bash": {"networks": bn, "listen": bl},
+                         "go": {"networks": gn, "listen": gl}})
     if bs["extraStreamKeys"] != gs["extraStreamKeys"]:
         diffs.append({"field": "extraStreamKeys", "bash": bs["extraStreamKeys"], "go": gs["extraStreamKeys"]})
     if bs["streamKeys"] != gs["streamKeys"]:

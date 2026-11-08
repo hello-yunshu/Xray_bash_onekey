@@ -3,11 +3,6 @@
     {
       "differences": [
         {
-          "bash": "VLESS-gRPC-in",
-          "field": "tagCasing",
-          "go": "VLESS-grpc-in"
-        },
-        {
           "bash": [
             "grpcSettings",
             "network",
@@ -70,10 +65,26 @@
       "transport": "ws"
     },
     {
-      "error": "Go supports only one transport (got ws+grpc+xhttp)",
+      "differences": [
+        {
+          "bash": [
+            "network",
+            "realitySettings",
+            "security",
+            "wsSettings"
+          ],
+          "field": "streamKeys",
+          "go": [
+            "network",
+            "security",
+            "wsSettings"
+          ]
+        }
+      ],
       "mode": "none",
+      "port": 10226,
       "run": "none-ws+grpc+xhttp",
-      "status": "UNSUPPORTED",
+      "status": "MATCH_CORE_FIELDS",
       "transport": "ws+grpc+xhttp"
     },
     {
@@ -108,18 +119,18 @@
       "transport": "raw"
     },
     {
-      "error": "Go supports only one transport (got ws+grpc+xhttp)",
+      "differences": [],
       "mode": "reality",
+      "port": 443,
       "run": "reality-ws+grpc+xhttp",
-      "status": "UNSUPPORTED",
+      "status": "MATCH",
       "transport": "ws+grpc+xhttp"
     }
   ],
   "counts": {
-    "MATCH": 1,
-    "MATCH_CORE_FIELDS": 3,
-    "UNSUPPORTED": 2
+    "MATCH": 2,
+    "MATCH_CORE_FIELDS": 4
   },
   "evidence": "tests/go-parity/evidence/a2-2026-11-08",
-  "goBin": "/tmp/a2go/idleleo-darwin"
+  "goBin": "tests/go-parity/evidence/a2-2026-11-08/idleleo-darwin-arm64"
 }

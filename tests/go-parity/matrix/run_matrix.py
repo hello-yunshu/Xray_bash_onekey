@@ -25,7 +25,7 @@ def matrix():
         for trans in transports:
             for port in (443,8443,10086,65535):
                 rows.append(dict(id=f'{mode}_{trans}_{port}', kind='node',mode=mode,transport=trans,port=port,
-                                 expected_gap=trans=='ws+grpc+xhttp'))
+                                 expected_gap=False))
     for ip in ('127.0.0.1','0.0.0.0','::1','2001:db8::1'):
         for port in (443,8443,10086,65535):
             for host in ('example.org','192.0.2.100','2001:db8::2'):
@@ -131,15 +131,26 @@ def test_node(row,repo,go_bin,work):
     if gg['exit'] or not goout.is_file():
         return {'status':'GAP' if row['expected_gap'] else 'GO_FAILED','bash_schema':sorted(bm),
                 'go':gg,'reason':'Go generate refused this Bash-supported selection' if row['expected_gap'] else 'Go failed a supported selection'}
-    gc=json.loads(goout.read_text()); inb=gc.get('inbounds',[{}])[0]; st=inb.get('streamSettings',{}); cli=inb.get('settings',{}).get('clients',[{}])[0]
+    gc=json.loads(goout.read_text()); inbs=gc.get('inbounds') or [{}]; inb=inbs[0]
+    st=inb.get('streamSettings',{}); cli=inb.get('settings',{}).get('clients',[{}])[0]
+    multi=trans=='ws+grpc+xhttp'
     expected_transport='raw' if row['mode'].startswith('reality') else trans
     expected_tls='reality' if row['mode'].startswith('reality') else 'none'  # TLS is terminated by Nginx
     checks={'uuid':cli.get('id')==bm.get('id'),
-            'transport':st.get('network')==expected_transport,
             'security':st.get('security')==expected_tls,
             'email':cli.get('email')==bm.get('email'),
             'port':inb.get('port')==row['port'],
             'legacy_mode':bm.get('tls')==('Reality' if row['mode'].startswith('reality') else ('TLS' if row['mode']=='tls' else 'None'))}
+    if multi:
+        # Multi-entry is a topology, not a single streamSettings.network value:
+        # require all three transports, one inbound each, on distinct ports.
+        nets=sorted((i.get('streamSettings') or {}).get('network') for i in inbs)
+        ports=[i.get('port') for i in inbs]
+        checks['transport']=nets==['grpc','ws','xhttp']
+        checks['inbound_count']=len(inbs)==3
+        checks['distinct_ports']=len(set(ports))==len(ports)
+    else:
+        checks['transport']=st.get('network')==expected_transport
     # Verify Bash merge preservation with an explicit unique key in second run.
     # Go --keep-config and field-level reconfiguration have different semantics.
     return {'status':'MATCH_CORE_FIELDS' if all(checks.values()) else 'GAP', 'checks':checks,
