@@ -42,6 +42,17 @@ def matrix():
         ('bad_short_id_odd',dict(mode='reality',transport='raw',port=443,short_id='abc')),
     ):
         rows.append(dict(id='negative_'+tag,kind='negative',**kwargs))
+    # A1 coverage groups are Go-executed assertions, not Bash-vs-Go rows. They
+    # are counted separately so the 98-case Bash parity denominator stays intact.
+    for cid, test in (
+        ('a1_hostname_validation','TestA1HostnameValidation'),
+        ('a1_bind_ipv4_ipv6','TestA1BindIPv4IPv6'),
+        ('a1_user_scale_1_4_20','TestA1UserScaleOneFourTwenty'),
+        ('a1_balance_primary','TestGenerateRealityBalancePrimary'),
+        ('a1_balance_secondary','TestGenerateRealityBalanceSecondary'),
+        ('a1_balance_refusals','TestGenerateRealityBalanceBackendsAndRefusals'),
+    ):
+        rows.append(dict(id=cid,kind='a1',test=test,expected_gap=False))
     return rows
 
 
@@ -181,6 +192,18 @@ def test_relay(row,repo,go_bin,work):
             'go_listen':re.findall(r'listen\s+[^;]+;',text)}
 
 
+def test_a1(row, repo):
+    """Run one A1 coverage group with the real Go test binary.
+
+    These rows do not compare against Bash; they make A1 coverage visible in
+    the matrix run without inflating the 98-case Bash parity denominator.
+    """
+    r=run(['go','test','./internal/xraycfg','-run','^'+row['test']+'$','-count=1'],
+          timeout=180,cwd=repo)
+    ok=r['exit']==0
+    return {'status':'A1_PASS' if ok else 'A1_FAIL','test':row['test'],'exit':r['exit'],
+            'output':(r['stdout']+r['stderr'])[-4000:]}
+
 def test_negative(row,repo,go_bin,work):
     args=[str(go_bin),'xray','generate','--mode',row['mode'],'--transport',row['transport'],
           '--port',str(row['port']),'--domain',row.get('server_name','example.org'),
@@ -259,6 +282,7 @@ def main():
             result=(test_node(row,repo,go_bin,work) if kind=='node' else
                     test_relay(row,repo,go_bin,work) if kind=='relay' else
                     test_share(row,repo,go_bin,work) if kind in ('share','multiuser_share') else
+                    test_a1(row,repo) if kind=='a1' else
                     test_negative(row,repo,go_bin,work))
             results.append(dict(case=row, result=result))
             print(f"{row['id']}: {result['status']}",flush=True)
@@ -266,10 +290,13 @@ def main():
     status={}
     for e in results:status[e['result']['status']]=status.get(e['result']['status'],0)+1
     report=dict(schema=1,git_commit=gitsha,go_sha=sha_file(go_bin),
-                bash_sha=sha_file(repo/'install.sh'), scope='Bash install metadata + relay render vs current Go generate/relay; NO full Bash deploy or live service claim',
-                total=len(rows),status=status,results=results)
+                bash_sha=sha_file(repo/'install.sh'), scope='Bash install metadata + relay render vs current Go generate/relay; A1 rows are Go-only coverage; NO full Bash deploy or live service claim',
+                total=len(rows),
+                total_bash_parity=sum(1 for r in rows if r['kind']!='a1'),
+                total_a1=sum(1 for r in rows if r['kind']=='a1'),
+                status=status,results=results)
     (out/'summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
     print('SUMMARY:',json.dumps(status,ensure_ascii=False))
-    return 0 if not any(k in status for k in ('BASH_FAILED','GO_FAILED','ACCEPTED_REVIEW','GAP')) else 1
+    return 0 if not any(k in status for k in ('BASH_FAILED','GO_FAILED','ACCEPTED_REVIEW','GAP','A1_FAIL')) else 1
 
 if __name__=='__main__':sys.exit(main())
