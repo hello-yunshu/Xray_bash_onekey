@@ -110,7 +110,13 @@ func xrayShare(opts Options, cfg config, args []string) int {
 	if err != nil {
 		return fail(opts, cfg, err)
 	}
-	info, err := xraycfg.Share(raw, inbound, flagValue(args, "--host"), publicPort)
+	info, err := xraycfg.ShareConfig(raw, xraycfg.ShareOptions{
+		InboundIndex:   inbound,
+		Host:           flagValue(args, "--host"),
+		PublicPort:     publicPort,
+		PublicSecurity: flagValue(args, "--public-security"),
+		User:           flagValue(args, "--user"),
+	})
 	if err != nil {
 		return fail(opts, cfg, err)
 	}
@@ -118,7 +124,7 @@ func xrayShare(opts Options, cfg config, args []string) int {
 	if cfg.json {
 		return writeJSON(opts, info)
 	}
-	fmt.Fprintf(opts.Out, "mode=%s transport=%s uuid=%s host=%s port=%d\n", info.Mode, info.Transport, info.UUID, info.Host, info.Port)
+	fmt.Fprintf(opts.Out, "mode=%s transport=%s uuid=%s email=%s host=%s port=%d\n", info.Mode, info.Transport, info.UUID, info.Email, info.Host, info.Port)
 	fmt.Fprintf(opts.Out, "share: %s\n", info.ShareURI)
 	if info.ClashYAML != "" {
 		fmt.Fprint(opts.Out, info.ClashYAML)
@@ -147,8 +153,9 @@ func xrayRelay(opts Options, cfg config, args []string) int {
 		}
 		listenPort = v
 	}
+	listenAddress := flagValue(args, "--listen-address")
 	conf, err := xraycfg.RelayConf(xraycfg.RelaySpec{
-		ListenPort: listenPort, BackendHost: host, BackendPort: port,
+		ListenAddress: listenAddress, ListenPort: listenPort, BackendHost: host, BackendPort: port,
 	})
 	if err != nil {
 		return fail(opts, cfg, &change.UsageError{Msg: err.Error()})
@@ -165,9 +172,13 @@ func xrayRelay(opts Options, cfg config, args []string) int {
 	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	if cfg.json {
-		return writeJSON(opts, map[string]any{"listenPort": listenPort, "target": target, "conf": conf})
+		return writeJSON(opts, map[string]any{"listenAddress": listenAddress, "listenPort": listenPort, "target": target, "conf": conf})
 	}
-	fmt.Fprintf(opts.Out, "relay: %s -> %s\n", net.JoinHostPort("0.0.0.0", strconv.Itoa(listenPort)), target)
+	showAddr := listenAddress
+	if showAddr == "" {
+		showAddr = "0.0.0.0"
+	}
+	fmt.Fprintf(opts.Out, "relay: %s -> %s\n", net.JoinHostPort(showAddr, strconv.Itoa(listenPort)), target)
 	fmt.Fprintf(opts.Out, "nginx: %s\n", out)
 	return 0
 }

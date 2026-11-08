@@ -1,0 +1,3441 @@
+{
+  "schema": 1,
+  "git_commit": "dd97eb13c2f9c48d27f9e6b5218a221870344208",
+  "go_sha": "7b94a0367b48f67d1c135281bc35ec69c21fb90f36cf4198a4984ad5897662c8",
+  "bash_sha": "1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f",
+  "scope": "Bash install metadata + relay render vs current Go generate/relay; NO full Bash deploy or live service claim",
+  "total": 98,
+  "status": {
+    "MATCH_CORE_FIELDS": 32,
+    "GAP": 60,
+    "MATCH": 2,
+    "REFUSED": 4
+  },
+  "results": [
+    {
+      "case": {
+        "id": "reality_raw_443",
+        "kind": "node",
+        "mode": "reality",
+        "transport": "raw",
+        "port": 443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "6b86c423ee03e89f007f16c3a2e1d47b859fde13ffa1adff6fc3487e56c09314",
+        "go_runtime_sha": "57354f177438240d6df0181db91625be268698da821cda8df08e038d38e809b8",
+        "bash_fields": [
+          "decoy_domain",
+          "email",
+          "grpc_port",
+          "grpc_serviceName",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "password",
+          "port",
+          "privateKey",
+          "publicKey",
+          "reality_add_balance",
+          "reality_add_more",
+          "reality_add_nginx",
+          "reality_balance_role",
+          "reality_nginx_sni_guard",
+          "serverNames",
+          "shell_mode",
+          "shell_version",
+          "shortIds",
+          "spiderx_path",
+          "target",
+          "tls",
+          "transport_mode",
+          "unknown_sni_policy",
+          "ws_path",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "reality_raw_8443",
+        "kind": "node",
+        "mode": "reality",
+        "transport": "raw",
+        "port": 8443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "4375ce458ec6a3b6af9a62906d3c483f5d9432a6e3b58967da2cee149a3a4cbb",
+        "go_runtime_sha": "a639a6919b3ea522c44cb5fffc2cbf68929d941a0f53c921f5cb2867ef21f403",
+        "bash_fields": [
+          "decoy_domain",
+          "email",
+          "grpc_port",
+          "grpc_serviceName",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "password",
+          "port",
+          "privateKey",
+          "publicKey",
+          "reality_add_balance",
+          "reality_add_more",
+          "reality_add_nginx",
+          "reality_balance_role",
+          "reality_nginx_sni_guard",
+          "serverNames",
+          "shell_mode",
+          "shell_version",
+          "shortIds",
+          "spiderx_path",
+          "target",
+          "tls",
+          "transport_mode",
+          "unknown_sni_policy",
+          "ws_path",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "reality_raw_10086",
+        "kind": "node",
+        "mode": "reality",
+        "transport": "raw",
+        "port": 10086,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "a3604a10501d8b91d18b092975430de3216be321c2eec00e25e2c03f548cd302",
+        "go_runtime_sha": "0e2a2bd66f2e030ad5f7939817d0630871e3b3f88c366f93f12d9f66d4d01e96",
+        "bash_fields": [
+          "decoy_domain",
+          "email",
+          "grpc_port",
+          "grpc_serviceName",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "password",
+          "port",
+          "privateKey",
+          "publicKey",
+          "reality_add_balance",
+          "reality_add_more",
+          "reality_add_nginx",
+          "reality_balance_role",
+          "reality_nginx_sni_guard",
+          "serverNames",
+          "shell_mode",
+          "shell_version",
+          "shortIds",
+          "spiderx_path",
+          "target",
+          "tls",
+          "transport_mode",
+          "unknown_sni_policy",
+          "ws_path",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "reality_raw_65535",
+        "kind": "node",
+        "mode": "reality",
+        "transport": "raw",
+        "port": 65535,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "3abffecc503bf04d77cc5188f4cb525807c9e69cf05ac27c4b426fd21309b654",
+        "go_runtime_sha": "1f0cdb758757e81320fd2520c9b964b1a24467befcec22a9a66bb128dd3c9fd7",
+        "bash_fields": [
+          "decoy_domain",
+          "email",
+          "grpc_port",
+          "grpc_serviceName",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "password",
+          "port",
+          "privateKey",
+          "publicKey",
+          "reality_add_balance",
+          "reality_add_more",
+          "reality_add_nginx",
+          "reality_balance_role",
+          "reality_nginx_sni_guard",
+          "serverNames",
+          "shell_mode",
+          "shell_version",
+          "shortIds",
+          "spiderx_path",
+          "target",
+          "tls",
+          "transport_mode",
+          "unknown_sni_policy",
+          "ws_path",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "reality-nginx_raw_443",
+        "kind": "node",
+        "mode": "reality-nginx",
+        "transport": "raw",
+        "port": 443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "9156185bdd6800246e2fef3005234dfbe330c150465df389812db040729d4b96",
+        "go_runtime_sha": "f47b0b76feb81088fbe73b7dd851414181b94e22c79d1c2739e9f393303e248b",
+        "bash_fields": [
+          "decoy_domain",
+          "email",
+          "grpc_port",
+          "grpc_serviceName",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "password",
+          "port",
+          "privateKey",
+          "publicKey",
+          "reality_add_balance",
+          "reality_add_more",
+          "reality_add_nginx",
+          "reality_balance_role",
+          "reality_nginx_sni_guard",
+          "serverNames",
+          "shell_mode",
+          "shell_version",
+          "shortIds",
+          "spiderx_path",
+          "target",
+          "tls",
+          "transport_mode",
+          "unknown_sni_policy",
+          "ws_path",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "reality-nginx_raw_8443",
+        "kind": "node",
+        "mode": "reality-nginx",
+        "transport": "raw",
+        "port": 8443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "92be67a808e87021d3e29cfafea97e8a34a753b08d98504560188b7fe5c39c20",
+        "go_runtime_sha": "b22195f983bc398cb2563436c78b006274fbeda0d0c65ceb0bd70c6f33df5754",
+        "bash_fields": [
+          "decoy_domain",
+          "email",
+          "grpc_port",
+          "grpc_serviceName",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "password",
+          "port",
+          "privateKey",
+          "publicKey",
+          "reality_add_balance",
+          "reality_add_more",
+          "reality_add_nginx",
+          "reality_balance_role",
+          "reality_nginx_sni_guard",
+          "serverNames",
+          "shell_mode",
+          "shell_version",
+          "shortIds",
+          "spiderx_path",
+          "target",
+          "tls",
+          "transport_mode",
+          "unknown_sni_policy",
+          "ws_path",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "reality-nginx_raw_10086",
+        "kind": "node",
+        "mode": "reality-nginx",
+        "transport": "raw",
+        "port": 10086,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "7b135f2eb416fbd68bd9c1c3f9d6e17354e99611b93c24300473f757235e6c95",
+        "go_runtime_sha": "d91e80b835742a50e7ab35ad87278f81dd10a26ee55418716002e6fd473d9b54",
+        "bash_fields": [
+          "decoy_domain",
+          "email",
+          "grpc_port",
+          "grpc_serviceName",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "password",
+          "port",
+          "privateKey",
+          "publicKey",
+          "reality_add_balance",
+          "reality_add_more",
+          "reality_add_nginx",
+          "reality_balance_role",
+          "reality_nginx_sni_guard",
+          "serverNames",
+          "shell_mode",
+          "shell_version",
+          "shortIds",
+          "spiderx_path",
+          "target",
+          "tls",
+          "transport_mode",
+          "unknown_sni_policy",
+          "ws_path",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "reality-nginx_raw_65535",
+        "kind": "node",
+        "mode": "reality-nginx",
+        "transport": "raw",
+        "port": 65535,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "6b117881b028f3d20dd284376cce332ab258ffccf47b23d3360c1a7ceb7f9a46",
+        "go_runtime_sha": "0154eab549f1d6d984f6ffc149bf3a6a6d48647b13b987ba3993434c6571bbc8",
+        "bash_fields": [
+          "decoy_domain",
+          "email",
+          "grpc_port",
+          "grpc_serviceName",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "password",
+          "port",
+          "privateKey",
+          "publicKey",
+          "reality_add_balance",
+          "reality_add_more",
+          "reality_add_nginx",
+          "reality_balance_role",
+          "reality_nginx_sni_guard",
+          "serverNames",
+          "shell_mode",
+          "shell_version",
+          "shortIds",
+          "spiderx_path",
+          "target",
+          "tls",
+          "transport_mode",
+          "unknown_sni_policy",
+          "ws_path",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_ws_443",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "ws",
+        "port": 443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "0a85f4a122d2815da460441e271bae127a08e3312dc0f05414e250624cee9687",
+        "go_runtime_sha": "77b753b9b15ff6d59f24a10d51229f949ff7b7ca4dfdce275c437b4ee6fcf363",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_ws_8443",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "ws",
+        "port": 8443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "329c6d7ed87b2ae6ae1c39edd8ade6edd4625358fd1d1a9b4d2bf40d8cc1aaaf",
+        "go_runtime_sha": "386011e1443b537b3f83f5d0a26a718a2da2332811ac29a4340372efcb4a2d33",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_ws_10086",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "ws",
+        "port": 10086,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "d43421bbb9b599df2756085732db345d1a93456ec445bf4e6a8180cd0b86c67c",
+        "go_runtime_sha": "173d1f784cfb9b8c0746824e5bb28454a8d1c917fe0403f68cbb3f0fa295bbcd",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_ws_65535",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "ws",
+        "port": 65535,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "ad88f44e4e292a1c3eaee45b3bd7f9bf8b1491f0d684efaa9561b094e7be1075",
+        "go_runtime_sha": "7955e0278b287a68cd13f1ba10ee9c84cf6327a50fb432defec47684323a81a8",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_grpc_443",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "grpc",
+        "port": 443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "9994d7d006bf145cbdc0aa77519efa20db30ef16a03dc9ceb38ef737b40bef77",
+        "go_runtime_sha": "6d0d41d39c8c97f6619c66c61eae5c4468b0ec56aa079d74816c04ac7e40fcc1",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_grpc_8443",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "grpc",
+        "port": 8443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "002c9c08c4f1c216561f42da8934785dbdde3264053a4e8b54bfe7404290952b",
+        "go_runtime_sha": "576dbdf85249c3b8ecde0d152c00ca05eecffc1185b6dc6ebde47fbfb8caa1c2",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_grpc_10086",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "grpc",
+        "port": 10086,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "a4b021473447dc3d95bbd131a0c184cfb0e2f692b63d3cdc881a1737f39bc0d1",
+        "go_runtime_sha": "361e7c8bb0ff89ead784dcd959f3d7231ce79dd44b185a19eb0b974ef28a865d",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_grpc_65535",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "grpc",
+        "port": 65535,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "5fd72c682cc8f54a8e70466d4232ff6ffc335b160f20784172e1c986facafdc4",
+        "go_runtime_sha": "c35191d305ec9423ddfcbbae3665d26c392c6805ba16119b163e4e7854025176",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_xhttp_443",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "xhttp",
+        "port": 443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "749a8659b5cb7b0db9f62008a0f2d9748204239e951fba515f3d108a4784f07b",
+        "go_runtime_sha": "e9aafc486654448a2be81f6e5f18e22ec445cbce66040fd125be920abb191f7f",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_xhttp_8443",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "xhttp",
+        "port": 8443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "5e290642506d2358e653c418bfcbe28fe053cd7455bdece0dad6acffdbe3c09b",
+        "go_runtime_sha": "4a05673b485cce1470786e50147f4d67aa31c447449eb02cc3301299d95a2625",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_xhttp_10086",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "xhttp",
+        "port": 10086,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "65eb8802fe2b8b825f42f8d2eaed0762848788bea3dfb0c502ea6007b453d235",
+        "go_runtime_sha": "96f0c4188356ea817f63ea9746a4795e435de33ad38d177a2d4cf32dc5f5fe89",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_xhttp_65535",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "xhttp",
+        "port": 65535,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "67bbd84e8a2350f8a2ea47d2f68331881ae713e7346c99bfb930664b834f8436",
+        "go_runtime_sha": "87e3d0967e38a9420df56598e4a7a7dc485d37c39b7fbfd425610bcb0a3ef0e0",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "tls_ws+grpc+xhttp_443",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "ws+grpc+xhttp",
+        "port": 443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "bash_schema": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ],
+        "go": {
+          "exit": 2,
+          "stdout": "",
+          "stderr": "unsupported transport \"ws+grpc+xhttp\" for mode tls\n"
+        },
+        "reason": "Go generate refused this Bash-supported selection"
+      }
+    },
+    {
+      "case": {
+        "id": "tls_ws+grpc+xhttp_8443",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "ws+grpc+xhttp",
+        "port": 8443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "bash_schema": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ],
+        "go": {
+          "exit": 2,
+          "stdout": "",
+          "stderr": "unsupported transport \"ws+grpc+xhttp\" for mode tls\n"
+        },
+        "reason": "Go generate refused this Bash-supported selection"
+      }
+    },
+    {
+      "case": {
+        "id": "tls_ws+grpc+xhttp_10086",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "ws+grpc+xhttp",
+        "port": 10086,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "bash_schema": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ],
+        "go": {
+          "exit": 2,
+          "stdout": "",
+          "stderr": "unsupported transport \"ws+grpc+xhttp\" for mode tls\n"
+        },
+        "reason": "Go generate refused this Bash-supported selection"
+      }
+    },
+    {
+      "case": {
+        "id": "tls_ws+grpc+xhttp_65535",
+        "kind": "node",
+        "mode": "tls",
+        "transport": "ws+grpc+xhttp",
+        "port": 65535,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "bash_schema": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "nginx_build_version",
+          "path",
+          "port",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ],
+        "go": {
+          "exit": 2,
+          "stdout": "",
+          "stderr": "unsupported transport \"ws+grpc+xhttp\" for mode tls\n"
+        },
+        "reason": "Go generate refused this Bash-supported selection"
+      }
+    },
+    {
+      "case": {
+        "id": "none_ws_443",
+        "kind": "node",
+        "mode": "none",
+        "transport": "ws",
+        "port": 443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "d4a6b7668b4188a41720db82c04b0ae0ddd706427a170f8f8754acddbf6177fc",
+        "go_runtime_sha": "77b753b9b15ff6d59f24a10d51229f949ff7b7ca4dfdce275c437b4ee6fcf363",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_ws_8443",
+        "kind": "node",
+        "mode": "none",
+        "transport": "ws",
+        "port": 8443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "d4a6b7668b4188a41720db82c04b0ae0ddd706427a170f8f8754acddbf6177fc",
+        "go_runtime_sha": "386011e1443b537b3f83f5d0a26a718a2da2332811ac29a4340372efcb4a2d33",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_ws_10086",
+        "kind": "node",
+        "mode": "none",
+        "transport": "ws",
+        "port": 10086,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "d4a6b7668b4188a41720db82c04b0ae0ddd706427a170f8f8754acddbf6177fc",
+        "go_runtime_sha": "173d1f784cfb9b8c0746824e5bb28454a8d1c917fe0403f68cbb3f0fa295bbcd",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_ws_65535",
+        "kind": "node",
+        "mode": "none",
+        "transport": "ws",
+        "port": 65535,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "d4a6b7668b4188a41720db82c04b0ae0ddd706427a170f8f8754acddbf6177fc",
+        "go_runtime_sha": "7955e0278b287a68cd13f1ba10ee9c84cf6327a50fb432defec47684323a81a8",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_grpc_443",
+        "kind": "node",
+        "mode": "none",
+        "transport": "grpc",
+        "port": 443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "77e710bb16408a7cf04968269bdfed90f63b498701cb60cc3c12be036efc441c",
+        "go_runtime_sha": "6d0d41d39c8c97f6619c66c61eae5c4468b0ec56aa079d74816c04ac7e40fcc1",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_grpc_8443",
+        "kind": "node",
+        "mode": "none",
+        "transport": "grpc",
+        "port": 8443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "77e710bb16408a7cf04968269bdfed90f63b498701cb60cc3c12be036efc441c",
+        "go_runtime_sha": "576dbdf85249c3b8ecde0d152c00ca05eecffc1185b6dc6ebde47fbfb8caa1c2",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_grpc_10086",
+        "kind": "node",
+        "mode": "none",
+        "transport": "grpc",
+        "port": 10086,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "77e710bb16408a7cf04968269bdfed90f63b498701cb60cc3c12be036efc441c",
+        "go_runtime_sha": "361e7c8bb0ff89ead784dcd959f3d7231ce79dd44b185a19eb0b974ef28a865d",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_grpc_65535",
+        "kind": "node",
+        "mode": "none",
+        "transport": "grpc",
+        "port": 65535,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "77e710bb16408a7cf04968269bdfed90f63b498701cb60cc3c12be036efc441c",
+        "go_runtime_sha": "c35191d305ec9423ddfcbbae3665d26c392c6805ba16119b163e4e7854025176",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_xhttp_443",
+        "kind": "node",
+        "mode": "none",
+        "transport": "xhttp",
+        "port": 443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "fd853bdcc37fa66fc2fb4eb81292b51b420117ac35d1de9c779ea4c0cfc60621",
+        "go_runtime_sha": "e9aafc486654448a2be81f6e5f18e22ec445cbce66040fd125be920abb191f7f",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_xhttp_8443",
+        "kind": "node",
+        "mode": "none",
+        "transport": "xhttp",
+        "port": 8443,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "fd853bdcc37fa66fc2fb4eb81292b51b420117ac35d1de9c779ea4c0cfc60621",
+        "go_runtime_sha": "4a05673b485cce1470786e50147f4d67aa31c447449eb02cc3301299d95a2625",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_xhttp_10086",
+        "kind": "node",
+        "mode": "none",
+        "transport": "xhttp",
+        "port": 10086,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "fd853bdcc37fa66fc2fb4eb81292b51b420117ac35d1de9c779ea4c0cfc60621",
+        "go_runtime_sha": "96f0c4188356ea817f63ea9746a4795e435de33ad38d177a2d4cf32dc5f5fe89",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_xhttp_65535",
+        "kind": "node",
+        "mode": "none",
+        "transport": "xhttp",
+        "port": 65535,
+        "expected_gap": false
+      },
+      "result": {
+        "status": "MATCH_CORE_FIELDS",
+        "checks": {
+          "uuid": true,
+          "transport": true,
+          "security": true,
+          "email": true,
+          "port": true,
+          "legacy_mode": true
+        },
+        "bash_meta_sha": "fd853bdcc37fa66fc2fb4eb81292b51b420117ac35d1de9c779ea4c0cfc60621",
+        "go_runtime_sha": "87e3d0967e38a9420df56598e4a7a7dc485d37c39b7fbfd425610bcb0a3ef0e0",
+        "bash_fields": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "none_ws+grpc+xhttp_443",
+        "kind": "node",
+        "mode": "none",
+        "transport": "ws+grpc+xhttp",
+        "port": 443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "bash_schema": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ],
+        "go": {
+          "exit": 2,
+          "stdout": "",
+          "stderr": "unsupported transport \"ws+grpc+xhttp\" for mode none\n"
+        },
+        "reason": "Go generate refused this Bash-supported selection"
+      }
+    },
+    {
+      "case": {
+        "id": "none_ws+grpc+xhttp_8443",
+        "kind": "node",
+        "mode": "none",
+        "transport": "ws+grpc+xhttp",
+        "port": 8443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "bash_schema": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ],
+        "go": {
+          "exit": 2,
+          "stdout": "",
+          "stderr": "unsupported transport \"ws+grpc+xhttp\" for mode none\n"
+        },
+        "reason": "Go generate refused this Bash-supported selection"
+      }
+    },
+    {
+      "case": {
+        "id": "none_ws+grpc+xhttp_10086",
+        "kind": "node",
+        "mode": "none",
+        "transport": "ws+grpc+xhttp",
+        "port": 10086,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "bash_schema": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ],
+        "go": {
+          "exit": 2,
+          "stdout": "",
+          "stderr": "unsupported transport \"ws+grpc+xhttp\" for mode none\n"
+        },
+        "reason": "Go generate refused this Bash-supported selection"
+      }
+    },
+    {
+      "case": {
+        "id": "none_ws+grpc+xhttp_65535",
+        "kind": "node",
+        "mode": "none",
+        "transport": "ws+grpc+xhttp",
+        "port": 65535,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "bash_schema": [
+          "email",
+          "grpc_port",
+          "host",
+          "id",
+          "idc",
+          "ip_version",
+          "ipv4_address",
+          "ipv6_address",
+          "net",
+          "network_mode",
+          "path",
+          "serviceName",
+          "shell_mode",
+          "shell_version",
+          "tls",
+          "transport_mode",
+          "ws_port",
+          "xhttp_path",
+          "xhttp_port",
+          "xray_version"
+        ],
+        "go": {
+          "exit": 2,
+          "stdout": "",
+          "stderr": "unsupported transport \"ws+grpc+xhttp\" for mode none\n"
+        },
+        "reason": "Go generate refused this Bash-supported selection"
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_443_example.org",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 443,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "386c0173f8d11d5f2532dc283e2fe29517329952cae1bb17cfb462cca7bb815f",
+        "go_sha": "856a28752cc8f2f80c3341eb21fc63c5f58b2272b0f6afc86c8c5bc8ffe68197",
+        "bash_listen": [
+          "listen 127.0.0.1:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_443_192.0.2.100",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 443,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "8ca6e484e4ef1b15b6f595036d5e0da87e48866c8c1d40dc25e4a8e371a8a442",
+        "go_sha": "b8f16f9baa7f442452065e9e8e5bc13f56842b2954dcb15732c4e0a620b189f2",
+        "bash_listen": [
+          "listen 127.0.0.1:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_443_2001_db8__2",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 443,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "9b576276a0d8e0eb24ff51d5e8115666cf750e0a3641713bae2df78a70400a56",
+        "go_sha": "c50a8701e75874f402cb4b4f7f9944dff5c59db919f1d62f6821c106caf7840b",
+        "bash_listen": [
+          "listen 127.0.0.1:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_8443_example.org",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 8443,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "46510220016f4ca5775ef4bcaf1b00c8a24db5e0ebb529d7fc64165849add7e8",
+        "go_sha": "1b88fa5c16791e17d326a6fad82358cde8f2b5b90eee23a51457942a9f36e225",
+        "bash_listen": [
+          "listen 127.0.0.1:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_8443_192.0.2.100",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 8443,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "8b0b5c0a2b7046b25b3ffb0474480dd0ba4829a6e43d6ec45679fef359e3303b",
+        "go_sha": "f08e3d1542aff7948eb5a5fa7c64464ade28b69730a2b8be0ba8df63db945987",
+        "bash_listen": [
+          "listen 127.0.0.1:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_8443_2001_db8__2",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 8443,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "5738d90c47e20afd82e8c1979327196bdfc4f2021c9f7adf98d76481c8203fb1",
+        "go_sha": "50af2bcf2a2d31c6afa579fb70f49776a02f666ff0aa9582ea82dd023dc99f5b",
+        "bash_listen": [
+          "listen 127.0.0.1:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_10086_example.org",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 10086,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "8c050375a413102e608e773b6439ac1326295a2f7bcb7a17c3e073dea9ce30e1",
+        "go_sha": "693b377f56980a6690fb079677100c520624104d91692886d4917233c5c8dc53",
+        "bash_listen": [
+          "listen 127.0.0.1:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_10086_192.0.2.100",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 10086,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "bcfad2fee402485fd5626548d233cb6ddf2281f2ecb9f734c21295d4469ba09e",
+        "go_sha": "895b2956285c2e396b126602835070aa99557276ebeddebe0a57e4334ef2024a",
+        "bash_listen": [
+          "listen 127.0.0.1:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_10086_2001_db8__2",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 10086,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "bb921a1bbc6fe80d34721f1fdf0ce37a899ccc4a687aa4eae5153723b88c7440",
+        "go_sha": "913cbf121edc0bf12febcd5aba9d7bb786bbd627a906ff524952ed1b4174b329",
+        "bash_listen": [
+          "listen 127.0.0.1:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_65535_example.org",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 65535,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "fe6d7ca5b96eb4c3a4d61c1ecd4b5240fcf16db727f03f25d9d5c7989d723d3a",
+        "go_sha": "1e0070c658c83a68aad933302fea5d20520c4a092c769d43b8e581fdd22e76d9",
+        "bash_listen": [
+          "listen 127.0.0.1:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_65535_192.0.2.100",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 65535,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "b70872ef9973ef39d3cb134490cf983d4ad2aa3cd30a868e5b027f3e22da0c0e",
+        "go_sha": "6ae10e4ca820cf58faaf0f34e63fbc37bdc96ebf0c869c7c186d98197749a1c9",
+        "bash_listen": [
+          "listen 127.0.0.1:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_127.0.0.1_65535_2001_db8__2",
+        "kind": "relay",
+        "listen": "127.0.0.1",
+        "port": 65535,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "1694ded90e49918714b2d982f244168cb86572aeea13de77d7e7e74d39b43fb3",
+        "go_sha": "b32d0adedcca91c6b037ff4533d1abcf4aa38db7c7b68a857648d21021e6064d",
+        "bash_listen": [
+          "listen 127.0.0.1:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_443_example.org",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 443,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "7d4931abc079541d071ddb47c946cd2503cb4a47ffcc65d1bfecf652123d7979",
+        "go_sha": "856a28752cc8f2f80c3341eb21fc63c5f58b2272b0f6afc86c8c5bc8ffe68197",
+        "bash_listen": [
+          "listen 0.0.0.0:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_443_192.0.2.100",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 443,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "70364c9fe983a1f055c4e5fa9a5e5ace372e4517a27089d6055752bd6669cccc",
+        "go_sha": "b8f16f9baa7f442452065e9e8e5bc13f56842b2954dcb15732c4e0a620b189f2",
+        "bash_listen": [
+          "listen 0.0.0.0:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_443_2001_db8__2",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 443,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "9deb429369d3d8406c7af716985f338502b138136003a7b948dfea1e785e3e82",
+        "go_sha": "c50a8701e75874f402cb4b4f7f9944dff5c59db919f1d62f6821c106caf7840b",
+        "bash_listen": [
+          "listen 0.0.0.0:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_8443_example.org",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 8443,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "667829574100678366f08aa9b90b65b419397bc6b51a653cab3a65c9220b10bd",
+        "go_sha": "1b88fa5c16791e17d326a6fad82358cde8f2b5b90eee23a51457942a9f36e225",
+        "bash_listen": [
+          "listen 0.0.0.0:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_8443_192.0.2.100",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 8443,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "79e433a6d3b0bede4120e375c163a5419f8bf5e9cd6ac65af7b1934ca24c9df3",
+        "go_sha": "f08e3d1542aff7948eb5a5fa7c64464ade28b69730a2b8be0ba8df63db945987",
+        "bash_listen": [
+          "listen 0.0.0.0:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_8443_2001_db8__2",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 8443,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "ff0a4a4288a8f6a85de89dc2c913f268c6e1508164033c2fe709b2d5f6ab9ae8",
+        "go_sha": "50af2bcf2a2d31c6afa579fb70f49776a02f666ff0aa9582ea82dd023dc99f5b",
+        "bash_listen": [
+          "listen 0.0.0.0:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_10086_example.org",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 10086,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "6032d4bdecc32d0de43e815a481a834571645e0cf155b3c65e942ab39e246b76",
+        "go_sha": "693b377f56980a6690fb079677100c520624104d91692886d4917233c5c8dc53",
+        "bash_listen": [
+          "listen 0.0.0.0:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_10086_192.0.2.100",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 10086,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "9be2388ce62b00a07d5d8b4c6c04d53a3e2c2b753e28a4484254703aec8f4780",
+        "go_sha": "895b2956285c2e396b126602835070aa99557276ebeddebe0a57e4334ef2024a",
+        "bash_listen": [
+          "listen 0.0.0.0:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_10086_2001_db8__2",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 10086,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "a6a00768e52b89a14b22e9e1252fcc83b87ced05d38c0f407500f8ba9120ad9d",
+        "go_sha": "913cbf121edc0bf12febcd5aba9d7bb786bbd627a906ff524952ed1b4174b329",
+        "bash_listen": [
+          "listen 0.0.0.0:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_65535_example.org",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 65535,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "54a955a2de5b789b6a1bd365bb88e67074b46a75f8b1f9ae37f8371a945a664d",
+        "go_sha": "1e0070c658c83a68aad933302fea5d20520c4a092c769d43b8e581fdd22e76d9",
+        "bash_listen": [
+          "listen 0.0.0.0:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_65535_192.0.2.100",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 65535,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "cc93e83e2139d469eaad4aaad564a1acd0168d938110da95f4abf3708388dae6",
+        "go_sha": "6ae10e4ca820cf58faaf0f34e63fbc37bdc96ebf0c869c7c186d98197749a1c9",
+        "bash_listen": [
+          "listen 0.0.0.0:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_0.0.0.0_65535_2001_db8__2",
+        "kind": "relay",
+        "listen": "0.0.0.0",
+        "port": 65535,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "0ec28cf2d7473b4c0c5961cb3fd3b86cf1b49f297b7405631336f70f887daba3",
+        "go_sha": "b32d0adedcca91c6b037ff4533d1abcf4aa38db7c7b68a857648d21021e6064d",
+        "bash_listen": [
+          "listen 0.0.0.0:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_443_example.org",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 443,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "57ab2d39d25479fccdb46681c6199c3e11d78f8408c6bf5a7542d91ca51a7451",
+        "go_sha": "856a28752cc8f2f80c3341eb21fc63c5f58b2272b0f6afc86c8c5bc8ffe68197",
+        "bash_listen": [
+          "listen [::1]:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_443_192.0.2.100",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 443,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "70aa882935de70600161504a84b539071e666e518663f133cbfff12c34104f11",
+        "go_sha": "b8f16f9baa7f442452065e9e8e5bc13f56842b2954dcb15732c4e0a620b189f2",
+        "bash_listen": [
+          "listen [::1]:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_443_2001_db8__2",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 443,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "e31fba86822faaeb283b0f16f9fc05755915809cff38753fc14c2e18258ee941",
+        "go_sha": "c50a8701e75874f402cb4b4f7f9944dff5c59db919f1d62f6821c106caf7840b",
+        "bash_listen": [
+          "listen [::1]:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_8443_example.org",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 8443,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "12f00d27112eee2ac3baa010784cabd8103e0b8de0b597d5e790f546b97309cf",
+        "go_sha": "1b88fa5c16791e17d326a6fad82358cde8f2b5b90eee23a51457942a9f36e225",
+        "bash_listen": [
+          "listen [::1]:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_8443_192.0.2.100",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 8443,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "bb4231909fd5adbd36e62e873f7335011a344f9e8de20d6b886712d63f3f62e9",
+        "go_sha": "f08e3d1542aff7948eb5a5fa7c64464ade28b69730a2b8be0ba8df63db945987",
+        "bash_listen": [
+          "listen [::1]:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_8443_2001_db8__2",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 8443,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "698e3b131054529c0059e7cdde119fcdc1f3c5ae9cb27f9eb51cb3affaf4ae28",
+        "go_sha": "50af2bcf2a2d31c6afa579fb70f49776a02f666ff0aa9582ea82dd023dc99f5b",
+        "bash_listen": [
+          "listen [::1]:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_10086_example.org",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 10086,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "4260349a9255a24633308397e33071595ccca7c28e408bffbc97ec470dbcc633",
+        "go_sha": "693b377f56980a6690fb079677100c520624104d91692886d4917233c5c8dc53",
+        "bash_listen": [
+          "listen [::1]:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_10086_192.0.2.100",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 10086,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "54d3484ddef0de0644bb35f8bebb1d328ec281ff5ab34fd4df10808596f74c6d",
+        "go_sha": "895b2956285c2e396b126602835070aa99557276ebeddebe0a57e4334ef2024a",
+        "bash_listen": [
+          "listen [::1]:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_10086_2001_db8__2",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 10086,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "3cd33289e86edfd1302748b18d26fa544dedb2d762a34a82d80ecbeb49fc4e68",
+        "go_sha": "913cbf121edc0bf12febcd5aba9d7bb786bbd627a906ff524952ed1b4174b329",
+        "bash_listen": [
+          "listen [::1]:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_65535_example.org",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 65535,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "594ed8392e578f01032b837c034f27cd2073f62746eb9f23ade362a35db6ebbb",
+        "go_sha": "1e0070c658c83a68aad933302fea5d20520c4a092c769d43b8e581fdd22e76d9",
+        "bash_listen": [
+          "listen [::1]:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_65535_192.0.2.100",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 65535,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "7022ab4323866dff5a85e728e80a9a93b57576a381e4306cdbac9eabb8b811df",
+        "go_sha": "6ae10e4ca820cf58faaf0f34e63fbc37bdc96ebf0c869c7c186d98197749a1c9",
+        "bash_listen": [
+          "listen [::1]:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay___1_65535_2001_db8__2",
+        "kind": "relay",
+        "listen": "::1",
+        "port": 65535,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "0b46be3624929f9899083fbf1bba305ec9dd0e7b831432cccb281400376d71ef",
+        "go_sha": "b32d0adedcca91c6b037ff4533d1abcf4aa38db7c7b68a857648d21021e6064d",
+        "bash_listen": [
+          "listen [::1]:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_443_example.org",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 443,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "fcd69b77e5acc00984e26f1c54801eae50bd652c803a0c81721cbec325304808",
+        "go_sha": "856a28752cc8f2f80c3341eb21fc63c5f58b2272b0f6afc86c8c5bc8ffe68197",
+        "bash_listen": [
+          "listen [2001:db8::1]:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_443_192.0.2.100",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 443,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "a398696ccd1f7d8fa29d3a5dbfca0b92ab1242260622ec8d619b4fae02809ffb",
+        "go_sha": "b8f16f9baa7f442452065e9e8e5bc13f56842b2954dcb15732c4e0a620b189f2",
+        "bash_listen": [
+          "listen [2001:db8::1]:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_443_2001_db8__2",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 443,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "926c5b4600308b1d0222b3ed6905cf36e16d302f2a33d3c621f1d917814778bb",
+        "go_sha": "c50a8701e75874f402cb4b4f7f9944dff5c59db919f1d62f6821c106caf7840b",
+        "bash_listen": [
+          "listen [2001:db8::1]:443;"
+        ],
+        "go_listen": [
+          "listen 443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_8443_example.org",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 8443,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "8b704c1e9d687dcbf5167a53141223b32c58a209c46d1081d276ea75692dc2ed",
+        "go_sha": "1b88fa5c16791e17d326a6fad82358cde8f2b5b90eee23a51457942a9f36e225",
+        "bash_listen": [
+          "listen [2001:db8::1]:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_8443_192.0.2.100",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 8443,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "acbc031634ef5b3fa296f7cfb5f0ba4f866089ea8756d739e500daf1289a37cb",
+        "go_sha": "f08e3d1542aff7948eb5a5fa7c64464ade28b69730a2b8be0ba8df63db945987",
+        "bash_listen": [
+          "listen [2001:db8::1]:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_8443_2001_db8__2",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 8443,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "2815083664ac9d7f493409bb7b4381f241609682144a962882c895339588673d",
+        "go_sha": "50af2bcf2a2d31c6afa579fb70f49776a02f666ff0aa9582ea82dd023dc99f5b",
+        "bash_listen": [
+          "listen [2001:db8::1]:8443;"
+        ],
+        "go_listen": [
+          "listen 8443;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_10086_example.org",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 10086,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "11bd3eb6c286c889f92672e4ab2adaf2c7b29e3e5916961ac1802a2a457aba88",
+        "go_sha": "693b377f56980a6690fb079677100c520624104d91692886d4917233c5c8dc53",
+        "bash_listen": [
+          "listen [2001:db8::1]:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_10086_192.0.2.100",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 10086,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "fe38fc8999acb287937c56bed7ed20712c12ead44c4441d6d2cb5587041afe26",
+        "go_sha": "895b2956285c2e396b126602835070aa99557276ebeddebe0a57e4334ef2024a",
+        "bash_listen": [
+          "listen [2001:db8::1]:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_10086_2001_db8__2",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 10086,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "6cc1a319bcb8dd53825ef3bde06fac7840455c70599ee89a12fc10e303c51624",
+        "go_sha": "913cbf121edc0bf12febcd5aba9d7bb786bbd627a906ff524952ed1b4174b329",
+        "bash_listen": [
+          "listen [2001:db8::1]:10086;"
+        ],
+        "go_listen": [
+          "listen 10086;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_65535_example.org",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 65535,
+        "target": "example.org",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "ea852ae643a0fa5f494ecb549f65f4f5627edc7dd3fbdc3654487fd4dca2a5a0",
+        "go_sha": "1e0070c658c83a68aad933302fea5d20520c4a092c769d43b8e581fdd22e76d9",
+        "bash_listen": [
+          "listen [2001:db8::1]:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_65535_192.0.2.100",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 65535,
+        "target": "192.0.2.100",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "548d1bc3fbb8b0c638a665866a45fbe8f4c74d275c71ce6fc8efed92266b6f14",
+        "go_sha": "6ae10e4ca820cf58faaf0f34e63fbc37bdc96ebf0c869c7c186d98197749a1c9",
+        "bash_listen": [
+          "listen [2001:db8::1]:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "relay_2001_db8__1_65535_2001_db8__2",
+        "kind": "relay",
+        "listen": "2001:db8::1",
+        "port": 65535,
+        "target": "2001:db8::2",
+        "backend_port": 9443,
+        "expected_gap": true
+      },
+      "result": {
+        "status": "GAP",
+        "checks": {
+          "listen_address": false,
+          "backend": true,
+          "timeout": false,
+          "keepalive": false
+        },
+        "bash_sha": "82a5ed95b82962b559486c59dcc9fc0ef0d54d68d594f2fb0ca8a62ceb0c682e",
+        "go_sha": "b32d0adedcca91c6b037ff4533d1abcf4aa38db7c7b68a857648d21021e6064d",
+        "bash_listen": [
+          "listen [2001:db8::1]:65535;"
+        ],
+        "go_listen": [
+          "listen 65535;"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "share_tls_ws",
+        "kind": "share",
+        "mode": "tls",
+        "transport": "ws",
+        "port": 10086
+      },
+      "result": {
+        "status": "GAP",
+        "expected_security": "tls",
+        "reported_mode": "none",
+        "uri_security": [
+          "none"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "share_tls_grpc",
+        "kind": "share",
+        "mode": "tls",
+        "transport": "grpc",
+        "port": 10086
+      },
+      "result": {
+        "status": "GAP",
+        "expected_security": "tls",
+        "reported_mode": "none",
+        "uri_security": [
+          "none"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "share_tls_xhttp",
+        "kind": "share",
+        "mode": "tls",
+        "transport": "xhttp",
+        "port": 10086
+      },
+      "result": {
+        "status": "GAP",
+        "expected_security": "tls",
+        "reported_mode": "none",
+        "uri_security": [
+          "none"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "share_none_ws",
+        "kind": "share",
+        "mode": "none",
+        "transport": "ws",
+        "port": 10086
+      },
+      "result": {
+        "status": "MATCH",
+        "expected_security": "none",
+        "reported_mode": "none",
+        "uri_security": [
+          "none"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "share_reality_raw",
+        "kind": "share",
+        "mode": "reality",
+        "transport": "raw",
+        "port": 10086
+      },
+      "result": {
+        "status": "MATCH",
+        "expected_security": "reality",
+        "reported_mode": "reality",
+        "uri_security": [
+          "reality"
+        ]
+      }
+    },
+    {
+      "case": {
+        "id": "multiuser_share_tls",
+        "kind": "multiuser_share",
+        "mode": "tls",
+        "transport": "ws",
+        "port": 10086
+      },
+      "result": {
+        "status": "GAP",
+        "share_uuid": "7a4ab30c-b199-4840-a31e-316f4f73a72b",
+        "missing_second_user_link": true
+      }
+    },
+    {
+      "case": {
+        "id": "negative_empty_server_name",
+        "kind": "negative",
+        "mode": "reality",
+        "transport": "raw",
+        "port": 443,
+        "server_name": ""
+      },
+      "result": {
+        "status": "REFUSED",
+        "exit": 2,
+        "error": "reality mode requires --server-name or --domain\n"
+      }
+    },
+    {
+      "case": {
+        "id": "negative_bad_port_low",
+        "kind": "negative",
+        "mode": "tls",
+        "transport": "ws",
+        "port": -1
+      },
+      "result": {
+        "status": "REFUSED",
+        "exit": 2,
+        "error": "port must be between 1 and 65535\n"
+      }
+    },
+    {
+      "case": {
+        "id": "negative_bad_port_high",
+        "kind": "negative",
+        "mode": "none",
+        "transport": "ws",
+        "port": 65536
+      },
+      "result": {
+        "status": "REFUSED",
+        "exit": 2,
+        "error": "port must be between 1 and 65535\n"
+      }
+    },
+    {
+      "case": {
+        "id": "negative_bad_short_id_odd",
+        "kind": "negative",
+        "mode": "reality",
+        "transport": "raw",
+        "port": 443,
+        "short_id": "abc"
+      },
+      "result": {
+        "status": "REFUSED",
+        "exit": 2,
+        "error": "shortId must be 1-16 hex characters with even length\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+repo_commit=7b15c83caf39f42b57dab69762fd0071f3a580cf
+repo_dirty=3
+base_image=idleleo-phase01-test:1.24
+test_image=sha256:6c74912e2249543d6e3623eae7075f9aa61207e4bde9a85acab81f33ba4b3ba6
+docker_arch=arm64
+docker_version=29.8.2
+bash_install_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f  /private/tmp/xray-audit-clone/install.sh
