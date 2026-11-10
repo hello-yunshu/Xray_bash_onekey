@@ -1,0 +1,18 @@
+{
+  "bashFacts": {
+    "installSourceSha256": "1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f",
+    "nginxConfSha256": "",
+    "port": 8443,
+    "publicKey": "wvaFlLEDDgWO7CFiDjVbLQKf412ULuAewkyNH3FKa08",
+    "role": "secondary",
+    "runtimeSha256": "abf85cf8ef31dd00e2e0a84310d1897d0f373e7573bb4fa9a0ec246784ad1de7",
+    "serverName": "www.cloudflare.com",
+    "target": "www.cloudflare.com:443",
+    "uuid": "7a4ab30c-b199-4840-a31e-316f4f73a72b",
+    "xrayTestExit": 0
+  },
+  "coreDifferences": [],
+  "cosmeticDifferences": [],
+  "role": "secondary",
+  "status": "MATCH"
+}

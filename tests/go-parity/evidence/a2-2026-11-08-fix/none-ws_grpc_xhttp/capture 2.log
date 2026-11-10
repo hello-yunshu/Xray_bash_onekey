@@ -1,0 +1,18 @@
+run=none-ws+grpc+xhttp
+date=2026-11-08T15:01:24Z
+image=sha256:e696372c5806096d0376e737b318de82a2fbba15994ba75d6e701cf26a18ce86
+install_source_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f
+systemd_state=running
+container_ipv4=192.168.215.11
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+executed_script_sha256=a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c
+executed_shell_version="3.3.6"
+captured /etc/idleleo/conf/xray/config.json -> runtime/config.sanitized.json (sanitized)
+captured /etc/idleleo/conf/install_config.json -> metadata/install_config.sanitized.json (sanitized)
+captured /etc/idleleo/info/xray_info.inf -> metadata/xray_info.sanitized.inf (sanitized)
+xray_test_exit=0
+runtime_sha256=071e3de95fc75e10ffea3fb2e5d5a18d4dae10d385241bd75170683ebeed73a9
+captured identity fingerprints (no secrets)
+done=none-ws+grpc+xhttp install_exit=0

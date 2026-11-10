@@ -1,0 +1,81 @@
+{
+  "certFiles": [],
+  "customDns": false,
+  "customItems": [],
+  "customOutbounds": true,
+  "customRouting": false,
+  "entry": {
+    "exists": false,
+    "isGoBridge": false,
+    "isSymlink": false,
+    "path": "/work/evidence/F26/legacy-xtls-root/usr/bin/idleleo"
+  },
+  "findings": [
+    {
+      "code": "legacy-xtls-removed",
+      "message": "the XTLS-only profile was removed; automatic migration is refused",
+      "severity": "block"
+    },
+    {
+      "code": "entry-missing",
+      "message": "no /usr/bin/idleleo entry; activation creates one",
+      "severity": "fix"
+    },
+    {
+      "code": "permissions-etc-idleleo-conf-xray-config.json",
+      "message": "runtime config is world-writable: 0666 -> 0644",
+      "severity": "fix"
+    }
+  ],
+  "geoLegacyCron": false,
+  "legacyScript": {
+    "path": "/work/evidence/F26/legacy-xtls-root/etc/idleleo/install.sh",
+    "sha256": "9a686bada70383c02d77ee1889206503ca7267f583d0bcf0ea55122a14d5b38a"
+  },
+  "legacyVersion": "3.3.4",
+  "nginxFiles": [],
+  "nginxRequired": false,
+  "permissionFixes": [
+    {
+      "newGid": 0,
+      "newMode": "0644",
+      "oldGid": 0,
+      "oldMode": "0666",
+      "path": "etc/idleleo/conf/xray/config.json",
+      "reason": "runtime config is world-writable"
+    }
+  ],
+  "port": 8443,
+  "projectCronLines": 0,
+  "relayConf": {
+    "path": ""
+  },
+  "rill": {
+    "enabled": false,
+    "installed": false,
+    "observationAgeSeconds": 0,
+    "status": "absent"
+  },
+  "role": "node",
+  "root": "/work/evidence/F26/legacy-xtls-root",
+  "runtimeBytes": 605,
+  "runtimePath": "/work/evidence/F26/legacy-xtls-root/etc/idleleo/conf/xray/config.json",
+  "runtimeSha256": "f445a56caad2000c384b9ce7d32a244f357ce5753656da46239b7aac8c65571e",
+  "schemaVersion": 1,
+  "tls": "XTLS",
+  "transport": "tcp",
+  "units": {
+    "nginx": {
+      "path": "/work/evidence/F26/legacy-xtls-root/etc/systemd/system/nginx.service",
+      "present": false
+    },
+    "xray": {
+      "path": "/work/evidence/F26/legacy-xtls-root/etc/systemd/system/xray.service",
+      "present": true,
+      "sha256": "08d2bce2321c7af903c0bada8bf949699b6dbe4177aa69e1ddec4421c914d275"
+    }
+  },
+  "userCount": 1,
+  "verdict": "blocked",
+  "xrayVersion": "25.1.1"
+}

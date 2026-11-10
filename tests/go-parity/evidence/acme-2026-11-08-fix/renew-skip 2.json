@@ -1,0 +1,12 @@
+{
+  "domain": "acme.local",
+  "directoryUrl": "https://pebble:14000/dir",
+  "accountUrl": "",
+  "orderUrl": "",
+  "certificateFile": "/work/certs/fullchain.pem",
+  "keyFile": "/work/certs/key.pem",
+  "notAfter": "2027-02-06T16:02:04Z",
+  "issued": false,
+  "skipped": true,
+  "reason": "certificate valid until 2027-02-06T16:02:04Z; renew window 24h0m0s not reached"
+}

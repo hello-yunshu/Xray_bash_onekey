@@ -1,0 +1,32 @@
+# Copy to .github/workflows/go-parity-stage.yml only after integrating tests/go-parity/.
+# Phase 00/01 required PR gate: does not claim L1-L3 business/release parity.
+name: Go parity stage gate
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  stage-parity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          path: current
+          persist-credentials: false
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey
+          ref: 0fa7052e51b9bd7e6ffb46bc86befb006034da3c
+          path: legacy
+          persist-credentials: false
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version: '1.23.2'
+      - name: Fixed clean Bash baseline + Go demo L0 + Go Bridge and negative cases
+        run: |
+          set -euo pipefail
+          python3 current/tests/go-parity/parity/scripts/run_stage_gate.py --bash-repo legacy
+      - name: Keep production release eligibility separate
+        run: echo 'Stage smoke passed; 28 production Go contracts remain independent, red until implemented.'

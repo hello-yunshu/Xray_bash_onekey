@@ -1,0 +1,46 @@
+
+[OK]  Xray+Reality 安装 完成 
+
+[警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
+
+ —————————————— Xray 配置信息 —————————————— 
+ 主机 (host): <redacted-ip> 
+ 端口 (port): 443 
+ UUIDv5 映射字符串: <redacted>
+ 用户id (UUID): <redacted-uuid>
+ 加密 (encryption): None 
+ 传输协议 (network): raw 
+ 底层传输安全 (tls): Reality 
+ 流控 (flow): xtls-rprx-vision 
+ target: www.cloudflare.com 
+ serverNames: www.cloudflare.com 
+ privateKey: REDACTED
+ publicKey (Password): <redacted-key>
+ shortIds: <redacted-shortid>
+ spiderX: <redacted-spx>
+ —————————————— Xray 链接分享 —————————————— 
+ URL 分享链接: vless://<redacted-link>
+ 二维码: 
+<redacted-qr>
+
+ —————————————— Clash 配置分享 —————————————— 
+ Clash 配置分享: 
+proxies:
+
+  - name: VLESS-<redacted-ip>-tcp
+    type: vless
+    server: <redacted-ip>
+    port: 443
+    uuid: <redacted-uuid>
+    client-fingerprint: chrome
+    tls: true
+    flow: xtls-rprx-vision
+    network: tcp
+    skip-cert-verify: false
+    servername: www.cloudflare.com
+    reality-opts:
+      public-key: <redacted-key>
+      short-id: <redacted-shortid>
+      spider-x: <redacted-spx>
+ ——————————————————  END  —————————————————— 
+

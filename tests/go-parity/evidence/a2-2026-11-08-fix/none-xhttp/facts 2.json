@@ -1,0 +1,12 @@
+{
+  "run": "none-xhttp",
+  "mode": "none",
+  "transport": "xhttp",
+  "installExit": 0,
+  "systemdState": "running",
+  "executedScriptSha256": "a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c",
+  "sourceScriptSha256": "1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f",
+  "runtimeSha256": "7bec8989c7fa3b9a3671c44e77cb1c81f356a7dd106777fac51c3aa11c7f8e18",
+  "xrayVersion": "Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)",
+  "serviceActive": "active"
+}

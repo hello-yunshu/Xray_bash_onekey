@@ -1,0 +1,44 @@
+
+[OK]  Xray+xHTTP ONLY 安装 完成 
+
+[警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
+[警告]  当前 xHTTP 仅支持 stream-one 和 stream-up 模式 
+[警告]  xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持 
+
+ —————————————— Xray 配置信息 —————————————— 
+ 主机 (host): 2001:db8::42 
+ xHTTP 端口 (port): 11634 
+ UUIDv5 映射字符串: <redacted>
+ 用户id (UUID): <redacted-uuid>
+ 加密 (encryption): None 
+ 传输协议 (network): xHTTP 
+ 底层传输安全 (tls): None 
+ 监听地址 (listen): 127.0.0.1 
+[警告]  此模式没有传输层加密 (VLESS 载荷自身仍有加密), 只应用于可信后端链路 
+[警告]  当前仅监听本机, 外部客户端需经可信代理接入, 或改用 TLS/Reality 模式 
+ xHTTP 路径 (path 不要落下/): /7cb9 
+
+ —————————————— Xray 链接分享 —————————————— 
+ xHTTP URL 分享链接: vless://<redacted-link>
+ 二维码: 
+<redacted-qr>
+
+ —————————————— Clash 配置分享 —————————————— 
+ Clash 配置分享: 
+proxies:
+
+  - name: VLESS-2001:db8::42-xhttp
+    type: vless
+    server: '2001:db8::42'
+    port: 11634
+    uuid: <redacted-uuid>
+    client-fingerprint: chrome
+    tls: false
+    network: xhttp
+    xhttp-opts:
+      path: /7cb9
+      mode: auto
+    skip-cert-verify: false
+
+ ——————————————————  END  —————————————————— 
+

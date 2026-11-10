@@ -1,0 +1,25 @@
+2026/11/08 16:00:41.726341 from 127.0.0.1:42894 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:41.726491 from DNS accepted https://dns.google/dns-query [local]
+2026/11/08 16:00:45.322182 from 127.0.0.1:50600 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:46.694846 from 127.0.0.1:50612 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:48.253673 from 127.0.0.1:40834 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:49.968791 from 127.0.0.1:40848 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:50.602443 from 127.0.0.1:40862 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:52.113919 from 127.0.0.1:40872 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:52.792242 from 127.0.0.1:40886 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:53.502605 from 127.0.0.1:40902 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:54.187931 from 127.0.0.1:40916 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:54.864516 from 127.0.0.1:40924 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:55.810002 from 127.0.0.1:40940 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:56.814113 from 127.0.0.1:53400 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:00:58.758940 from 127.0.0.1:53404 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:00.701431 from 127.0.0.1:53412 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:02.446383 from 127.0.0.1:53418 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:04.362676 from 127.0.0.1:53434 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:06.263002 from 127.0.0.1:53438 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:07.960265 from 127.0.0.1:40860 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:09.641604 from 127.0.0.1:40862 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:12.080905 from 127.0.0.1:40866 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:13.759970 from 127.0.0.1:40868 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:15.467652 from 127.0.0.1:40876 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
+2026/11/08 16:01:17.354685 from 127.0.0.1:44660 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run

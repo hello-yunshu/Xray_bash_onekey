@@ -1,0 +1,8 @@
+repo_commit=dd97eb13c2f9c48d27f9e6b5218a221870344208
+repo_dirty=0
+base_image=idleleo-phase01-test:1.24
+test_image=sha256:c8bfade1a93341747d155ee3197cf1c39ab5b129e3a63e05402454a0db825171
+docker_arch=arm64
+docker_version=29.8.2
+bash_install_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f
+note=original fixture run_matrix.py does not pass --listen-address/--public-security/--user; harness defects recorded in docs

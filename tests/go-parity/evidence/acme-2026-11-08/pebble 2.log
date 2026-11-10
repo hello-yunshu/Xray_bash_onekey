@@ -1,0 +1,56 @@
+Running in strict mode
+Pebble 2026/11/08 10:12:29 Starting Pebble ACME server
+Pebble 2026/11/08 10:12:29 Generated new root issuer CN=Pebble Root CA 6c4d2f with serial 21515a32ea150963 and SKI 5150458af2f3289e6cf71e0b5855f4e67882f46d
+Pebble 2026/11/08 10:12:29 Generated new intermediate issuer CN=Pebble Intermediate CA 06bd37 with serial 03f02474bccbaa7a and SKI afd56ab1d934533be7229024141ef31f385d5064
+Pebble 2026/11/08 10:12:29 Generated issuance chain: Pebble Root CA 6c4d2f -> Pebble Intermediate CA 06bd37
+Pebble 2026/11/08 10:12:29 Loaded profile "default" with certificate validity period of 7776000 seconds (promote CN=false)
+Pebble 2026/11/08 10:12:29 Using system DNS resolver for ACME challenges
+Pebble 2026/11/08 10:12:29 Disabling random VA sleeps
+Pebble 2026/11/08 10:12:29 No CAA identities configured, using default [pebble.letsencrypt.org]
+Pebble 2026/11/08 10:12:29 Configured to reject 5% of good nonces
+Pebble 2026/11/08 10:12:29 Configured to attempt authz reuse for each identifier 50% of the time
+Pebble 2026/11/08 10:12:29 Configured to show 3 orders per page
+Pebble 2026/11/08 10:12:29 Management interface listening on: 0.0.0.0:15000
+Pebble 2026/11/08 10:12:29 Root CA certificate available at: https://0.0.0.0:15000/roots/0
+Pebble 2026/11/08 10:12:29 Listening on: 0.0.0.0:14000
+Pebble 2026/11/08 10:12:29 ACME directory available at: https://0.0.0.0:14000/dir
+Pebble 2026/11/08 10:12:29 GET /dir -> calling handler()
+Pebble 2026/11/08 10:12:30 GET /dir -> calling handler()
+Pebble 2026/11/08 10:12:30 HEAD /nonce-plz -> calling handler()
+Pebble 2026/11/08 10:12:30 POST /sign-me-up -> calling handler()
+Pebble 2026/11/08 10:12:30 There are now 1 accounts in memory
+Pebble 2026/11/08 10:12:30 POST /order-plz -> calling handler()
+Pebble 2026/11/08 10:12:30 There are now 1 authorizations in the db
+Pebble 2026/11/08 10:12:30 Added order "RRVXuZg4sy29wAp0wqrnyKj_ydMCu6CUyJJGAW-9UOE" to the db
+Pebble 2026/11/08 10:12:30 There are now 1 orders in the db
+Pebble 2026/11/08 10:12:30 POST /authZ/ -> calling handler()
+Pebble 2026/11/08 10:12:30 POST /chalZ/ -> calling handler()
+Pebble 2026/11/08 10:12:30 Pulled a task from the Tasks queue: &va.vaTask{Identifier:acme.Identifier{Type:"dns", Value:"acme.local"}, Challenge:(*core.Challenge)(0x40002189c0), Account:(*core.Account)(0x40000baa80), AccountURL:"https://pebble:14000/my-account/5382add8eaf5ebff", Wildcard:false}
+Pebble 2026/11/08 10:12:30 Starting 3 validations.
+Pebble 2026/11/08 10:12:30 POST /authZ/ -> calling handler()
+Pebble 2026/11/08 10:12:30 Attempting to validate w/ HTTP: http://acme.local:5002/.well-known/acme-challenge/pUMVc3joxFMzaIhgDkmObRQ0CGCaNmL_xdp4CsBMdPo
+Pebble 2026/11/08 10:12:30 Attempting to validate w/ HTTP: http://acme.local:5002/.well-known/acme-challenge/pUMVc3joxFMzaIhgDkmObRQ0CGCaNmL_xdp4CsBMdPo
+Pebble 2026/11/08 10:12:30 Attempting to validate w/ HTTP: http://acme.local:5002/.well-known/acme-challenge/pUMVc3joxFMzaIhgDkmObRQ0CGCaNmL_xdp4CsBMdPo
+Pebble 2026/11/08 10:12:30 authz g9ZSqhcndJj-iylctBJNsFNAEeiy_9nhmTu3qp7duDo set VALID by completed challenge dp4lIwuHx1CLfyLRnijjNZDMEchi9Owjdv6rgpWB6bQ
+Pebble 2026/11/08 10:12:31 POST /authZ/ -> calling handler()
+Pebble 2026/11/08 10:12:31 POST /finalize-order/ -> calling handler()
+Pebble 2026/11/08 10:12:31 Order RRVXuZg4sy29wAp0wqrnyKj_ydMCu6CUyJJGAW-9UOE is fully authorized. Processing finalization
+Pebble 2026/11/08 10:12:31 POST /my-order/ -> calling handler()
+Pebble 2026/11/08 10:12:31 Issued certificate serial 6198fb3215330c0c for order RRVXuZg4sy29wAp0wqrnyKj_ydMCu6CUyJJGAW-9UOE
+Pebble 2026/11/08 10:12:31 POST /certZ/ -> calling handler()
+Pebble 2026/11/08 10:12:31 HEAD /nonce-plz -> calling handler()
+Pebble 2026/11/08 10:12:31 POST /certZ/ -> calling handler()
+Pebble 2026/11/08 10:12:34 GET /dir -> calling handler()
+Pebble 2026/11/08 10:12:34 HEAD /nonce-plz -> calling handler()
+Pebble 2026/11/08 10:12:34 POST /order-plz -> calling handler()
+Pebble 2026/11/08 10:12:34 Added order "oLthXvO3oDwZqLQf9kutygTWIC3mTSQUA0EIL9iTNNI" to the db
+Pebble 2026/11/08 10:12:34 There are now 2 orders in the db
+Pebble 2026/11/08 10:12:34 POST /authZ/ -> calling handler()
+Pebble 2026/11/08 10:12:34 POST /finalize-order/ -> calling handler()
+Pebble 2026/11/08 10:12:34 Order oLthXvO3oDwZqLQf9kutygTWIC3mTSQUA0EIL9iTNNI is fully authorized. Processing finalization
+Pebble 2026/11/08 10:12:34 Issued certificate serial 623489df63a3c339 for order oLthXvO3oDwZqLQf9kutygTWIC3mTSQUA0EIL9iTNNI
+Pebble 2026/11/08 10:12:34 POST /my-order/ -> calling handler()
+Pebble 2026/11/08 10:12:34 POST /certZ/ -> calling handler()
+Pebble 2026/11/08 10:12:37 GET /dir -> calling handler()
+Pebble 2026/11/08 10:12:37 HEAD /nonce-plz -> calling handler()
+Pebble 2026/11/08 10:12:37 POST /order-plz -> calling handler()

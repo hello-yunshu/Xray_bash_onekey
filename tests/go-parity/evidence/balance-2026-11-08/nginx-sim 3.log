@@ -1,0 +1,5 @@
+bash_nginx_test_exit=0
+go_nginx_test_exit=0
+after_valid_sni hits_9443=3 hits_9444=3
+after_unknown_sni hits_9443=3 hits_9444=3
+after_plain_tcp hits_9443=3 hits_9444=3

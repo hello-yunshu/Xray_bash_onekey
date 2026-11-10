@@ -1,0 +1,17 @@
+run=reality-ws+grpc+xhttp
+date=2026-11-08T09:09:47Z
+image=sha256:c8d3621ec65bf74c85379a1d45fbaf0a0706af26d2665522efc4085c93ed2a3f
+install_source_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f
+systemd_state=running
+container_ipv4=192.168.215.9
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+executed_script_sha256=a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c
+executed_shell_version="3.3.6"
+captured /etc/idleleo/conf/xray/config.json -> runtime/config.json
+captured /etc/idleleo/conf/install_config.json -> metadata/install_config.json
+captured /etc/idleleo/info/xray_info.inf -> metadata/xray_info.inf
+xray_test_exit=0
+runtime_sha256=cecfe8d95c45e05d5d5e52595b411f65b09656c0a8658a42af48ddc8fbd67153
+done=reality-ws+grpc+xhttp install_exit=0

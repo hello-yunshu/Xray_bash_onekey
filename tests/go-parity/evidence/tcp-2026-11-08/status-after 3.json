@@ -1,0 +1,72 @@
+{
+  "supported": true,
+  "goos": "linux",
+  "kernelRelease": "6.8.0-test",
+  "availableCongestion": [
+    "cubic",
+    "bbr",
+    "reno"
+  ],
+  "current": {
+    "net.core.default_qdisc": "fq",
+    "net.ipv4.tcp_congestion_control": "bbr"
+  },
+  "managedFile": {
+    "path": "/tmp/tcp-sandbox/etc/sysctl.d/90-idleleo-tcp.conf",
+    "exists": true,
+    "owned": true,
+    "mode": 420,
+    "uid": 0,
+    "gid": 0,
+    "sha256": "5ce4959f226928fcfe0d04055e09354a7a8dc1054140feee9507c2a5788f7183",
+    "values": {
+      "net.core.default_qdisc": "fq",
+      "net.ipv4.tcp_congestion_control": "bbr"
+    }
+  },
+  "statePath": "/tmp/tcp-sandbox/var/lib/idleleo/tcp/state.json",
+  "state": {
+    "version": 1,
+    "profile": "bbr-fq",
+    "filePath": "/tmp/tcp-sandbox/etc/sysctl.d/90-idleleo-tcp.conf",
+    "statePath": "/tmp/tcp-sandbox/var/lib/idleleo/tcp/state.json",
+    "fileExisted": false,
+    "fileMode": 0,
+    "fileUid": 0,
+    "fileGid": 0,
+    "targetHash": "5ce4959f226928fcfe0d04055e09354a7a8dc1054140feee9507c2a5788f7183",
+    "appliedHash": "5ce4959f226928fcfe0d04055e09354a7a8dc1054140feee9507c2a5788f7183",
+    "oldValues": {
+      "net.core.default_qdisc": "fq_codel",
+      "net.ipv4.tcp_congestion_control": "cubic"
+    },
+    "newValues": {
+      "net.core.default_qdisc": "fq",
+      "net.ipv4.tcp_congestion_control": "bbr"
+    },
+    "appliedKeys": [
+      "net.core.default_qdisc",
+      "net.ipv4.tcp_congestion_control"
+    ],
+    "pending": false,
+    "createdAtUtc": "2026-11-08T06:30:21Z"
+  },
+  "sources": [
+    {
+      "path": "/tmp/tcp-sandbox/etc/sysctl.d/90-idleleo-tcp.conf",
+      "name": "90-idleleo-tcp.conf",
+      "ours": true,
+      "values": {
+        "net.core.default_qdisc": "fq",
+        "net.ipv4.tcp_congestion_control": "bbr"
+      },
+      "priority": 0
+    }
+  ],
+  "effective": {
+    "net.core.default_qdisc": "fq",
+    "net.ipv4.tcp_congestion_control": "bbr"
+  },
+  "conflicts": [],
+  "warnings": []
+}

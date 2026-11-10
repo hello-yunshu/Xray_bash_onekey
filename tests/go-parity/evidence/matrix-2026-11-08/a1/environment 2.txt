@@ -1,0 +1,7 @@
+repo_commit=ad9dcf3327669a0aa5169644e85af45b8a80e695
+repo_dirty=0
+base_image=golang:1.23-bookworm
+test_image=sha256:e4054028740f3ebe4a50f7004d1abc4d835bc703af8c9353de6fa710a218b545
+docker_arch=arm64
+docker_version=29.8.2
+bash_install_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f  /private/tmp/xray-clean-matrix/install.sh

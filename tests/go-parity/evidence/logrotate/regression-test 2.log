@@ -1,0 +1,39 @@
+### pre-fix (HEAD install.sh):
+Checking generated rotation rules...
+
+  PASS: log rotation setup succeeds with an available timer
+  PASS: configuration is installed at the requested path
+  PASS: Xray truncates safely and Nginx reopens logs with its worker owner
+  PASS: logrotate package is requested
+  PASS: logrotate timer is enabled
+  PASS: generated configuration is validated before installation
+  FAIL: missing ReadWritePaths drop-in for the nginx log directory
+  FAIL: drop-in was written without a systemctl daemon-reload
+Checking manual cleanup error reporting...
+  PASS: cleanup completes while reporting files it could not truncate
+  PASS: cleanup continues and clears later writable logs
+  PASS: failed path and summary are reported
+  PASS: underlying filesystem error is included in the warning
+
+Result: 10 passed, 2 failed
+pre-fix-exit=1
+
+### post-fix (working tree):
+Checking generated rotation rules...
+
+  PASS: log rotation setup succeeds with an available timer
+  PASS: configuration is installed at the requested path
+  PASS: Xray truncates safely and Nginx reopens logs with its worker owner
+  PASS: logrotate package is requested
+  PASS: logrotate timer is enabled
+  PASS: generated configuration is validated before installation
+  PASS: systemd drop-in grants ReadWritePaths for the nginx log directory
+  PASS: logrotate.service drop-in is reloaded by systemd
+Checking manual cleanup error reporting...
+  PASS: cleanup completes while reporting files it could not truncate
+  PASS: cleanup continues and clears later writable logs
+  PASS: failed path and summary are reported
+  PASS: underlying filesystem error is included in the warning
+
+Result: 12 passed, 0 failed
+post-fix-exit=0
