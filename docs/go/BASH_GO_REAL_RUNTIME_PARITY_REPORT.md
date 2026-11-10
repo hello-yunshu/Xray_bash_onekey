@@ -15,6 +15,8 @@
   交付路径仍缺实现或真实验证。
 - **正式接管门槛未达**：没有任何一项达到 `REAL_VPS_VERIFIED`；
   F01–F28 正式签收 **0/28**。生产替换前必须先补齐第 9 节的阻塞项。
+  2026-11-11 已有 6/28 可执行 preview 夹具（F01/F05/F11/F26/F27/F28）全绿，
+  但 preview 无发布权限，不改变签收计数。
 
 | 工作包 | 结论 | 最高证据等级 |
 |---|---|---|
@@ -275,6 +277,44 @@ IPv6 绑定另有真实 `xray -test` 证据（§7）。`A1_PASS` 只表示 Go �
 通过，**不等于** Bash 等价或生产签收。证据：
 [evidence/matrix-2026-11-08/a1](../../tests/go-parity/evidence/matrix-2026-11-08/a1)。
 
+### 2.5 preview 通道：6 个真实夹具（2026-11-11）
+
+为已有真实夹具建立 **preview 执行通道**，不触碰发布闸门：
+
+- `tests/go-parity/parity/scripts/check_preview_gate.py`：输出
+  `PREVIEW — NOT FOR RELEASE` 与 `release authority: NONE`；运行前后各校验
+  `check_release_gate.py`（`d7493b28…2564`）与 `feature_contracts.json`
+  （`670f4c29…efed`）的 SHA-256；
+- `tests/go-parity/parity/cases/preview_contract.json`：只列已有夹具的子集，
+  条目保持 `PENDING_PREVIEW`，不写 evidence、不升格；
+- 容器入口 `scripts/run_preview_container.sh`，固定 digest 镜像
+  `idleleo-preview:latest`；`ci/go-preview-qualification.yml` 仅静态约束，
+  尚未在 GitHub Actions 实跑。
+
+本轮 6 个夹具各跑两遍全绿：
+
+| ID | 实际执行 | 结果 |
+|---|---|---|
+| F01 | Reality 真实安装 + systemd + SOCKS 取回 HTTP 200 | PASS |
+| F05 | 独立 nginx stream + 两次逐字节回显，副作用哈希不变 | PASS |
+| F11 | systemd 启停/重载，journal 启动计数 1→2→3 | PASS |
+| F26 | XTLS 旧布局 → `blocked`/`legacy-xtls-removed`；prepare exit 3；无 journal | PASS |
+| F27 | 版本/帮助/退出码；uninstall 保留配置、`--purge` 删除、二次 purge 幂等 | PASS |
+| F28 | `show/status/share` 逐字段断言 + 密钥派生；三个命令零写入 | PASS |
+
+发布闸门仍为红灯（同容器实测）：
+
+```text
+RELEASE BLOCKED: pending 28; missing executable feature tests 22
+```
+
+负向验证 4 类场景均实际变红（缺夹具、改发布闸门、改账本状态、破坏 F05 断言），
+还原后 6/6 回绿；原始输出在
+`tests/go-parity/evidence/preview-2026-11-11/negative/`。
+
+边界：F02/F04/F12 不在 preview（缺真实域名证书 / 双机主备 / 公网 CA）；
+F27 的 `backup/restore` 仍为 `not_verified`；F28 仍未与 Bash 输出逐字段差分。
+
 ## 3. B 包：兼容差异与故障恢复修复
 
 **代码修改（commit `f9df1ea` + `ace4a16`）**
@@ -466,9 +506,9 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | F23 | 六语言 | 部分实现 | `DOCKER_SERVICE_VERIFIED` | zh/en 完整，fr/fa/ru/ko 回退英文 |
 | F24 | Docker 交付 | 未实现 | — | 不能假设宿主 systemd DBus |
 | F25 | TCP 优化 / 测速 | 部分实现 | `GO_EXECUTED` + `DOCKER_MOCK_APPLY` | 仅 `bbr-fq`；不测速、不执行 `tcp.sh` |
-| F26 | XTLS ONLY 旧模式 | 部分实现 | `DOCKER_MIGRATION_VERIFIED` | 只读识别 + 阻断，按设计不迁移 |
-| F27 | backup/restore/purge/service-* | 部分实现 | `DOCKER_SERVICE_VERIFIED` | backup/restore/purge CLI 未实现 |
-| F28 | 运行态与分享信息展示 | 部分实现 | `DOCKER_SERVICE_VERIFIED` | 未与 Bash 逐字段差分 |
+| F26 | XTLS ONLY 旧模式 | 部分实现 | `DOCKER_MIGRATION_VERIFIED` | 只读识别 + 阻断，按设计不迁移；preview 夹具复验无 journal、全树哈希不变 |
+| F27 | backup/restore/purge/service-* | 部分实现 | `DOCKER_SERVICE_VERIFIED` | `backup/restore` CLI 未实现（`not_verified`）；`uninstall/purge` 已由 preview 夹具实测 |
+| F28 | 运行态与分享信息展示 | 部分实现 | `DOCKER_SERVICE_VERIFIED` | 未与 Bash 逐字段差分；preview 已断言 Go 字段契约且零写入 |
 
 **统计**：部分实现 19 项，未实现 9 项（含 F12 的到期监控分支），
 已验证/正式签收 **0 项**。
@@ -492,6 +532,8 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | B4 真实 SIGKILL 注入（journal 出现后 kill -9） | journal `PREPARED` → 新进程 `ROLLED_BACK`，4 文件 SHA 还原 | `DOCKER_CRASH_INJECTION` |
 | B4 单测（含 `Install` 自动收敛 pending journal） | 8 / 8 PASS | `GO_EXECUTED` |
 | `gofmt` / `go vet` / `go test` / `go test -race` / `bash -n` | 全部通过（gofmt 无输出） | `GO_EXECUTED` |
+| preview 门禁 6 个夹具（两遍） | 6 / 6 PASS，exit 0；`release authority: NONE` | `CONTAINER_VERIFIED`（preview，无发布权限） |
+| preview 负向验证（缺夹具/改闸门/改账本/坏断言） | 4 类场景均 exit 2 RED；还原后 6 / 6 回绿 | `CONTAINER_VERIFIED`（preview） |
 
 ## 8. 各阶段提交
 
@@ -511,6 +553,8 @@ XTLS ONLY 只识别 + 阻断，零落盘。
 | `5ac22db` | 主备负载均衡：角色/后端片段/stream 规则 + Bash 逐字段对照与 Nginx 模拟 |
 | `7212ec6` / `b86fbc2` / `4f73564` | ACME 原生客户端、badNonce 重试、已 valid 授权跳过 |
 | `ad9dcf3` | 矩阵接入 6 个 A1 覆盖行，`98 + 6 = 104` |
+| `6d4a4aa` / `3691428` / `562d466` | preview 门禁骨架 + F01 / F05 / F11 夹具 |
+| `0dd31e8` / `a05dc3e` / `56aa92a` | F26 / F27 / F28 preview 夹具（各自独立提交） |
 
 既有关联提交：`2d44d98`（logrotate drop-in 修复）、`e859724`（install.sh 对齐
 v3.3.6 基线）。
@@ -544,8 +588,8 @@ v3.3.6 基线）。
 6. **C4 故障点未全覆盖**：缺 invalid candidate/recovery 二进制、reload 失败、
    cron 修改冲突、写盘失败后的独立注入；其余 disk-full、kill 点、drift、
    corrupt journal、`--yes` 不自动迁移已真实执行。
-7. `backup/restore/purge` CLI、Fail2ban、流量阻断、SNI Guard、二维码、watch/reset
-   未实现。
+7. `backup/restore` CLI、Fail2ban、流量阻断、SNI Guard、二维码、watch/reset
+   未实现；`uninstall/purge` 已实现并由 preview 夹具实测。
 8. **Phase 01 C12.1/C12.2 会持续红，直到下次发版并推进 pin**：当前差异仅为
    `install.sh` 26 插入/1 删除（`2d44d98` logrotate 修复），pin `0fa7052e`
    的 SHA 为 `a8e4d850…`、当前树为 `1a2af27e…`；C12.3/C12.4 仍绿。转绿需

@@ -49,6 +49,16 @@ Xray GeoData 刷新，F15 的真实 Stats API 采集，F22 的 Rill 状态/交�
 TCP 事务/回退均有实测证据。
 这些仍只是容器级子集，不是真实 VPS 验证，也没有任何一项升格为「已验证」。
 
+**2026-11-11 preview 通道（不改变状态标签）**：新增
+`tests/go-parity/parity/scripts/check_preview_gate.py` 与
+`tests/go-parity/parity/cases/preview_contract.json`，为 **F01、F05、F11、F26、F27、F28**
+建立可重复执行的真实夹具，并在固定 digest 容器内各跑两遍全绿。preview 通道显式打印
+`PREVIEW — NOT FOR RELEASE`、`release_authority=false`，不写 tag/release；
+`check_release_gate.py` 与 `feature_contracts.json` 字节未变，28 项仍为
+`PENDING_GO_IMPLEMENTATION`。因此：**可执行夹具 6/28，仍缺 22 个；正式签收仍 0/28**；
+`preview_contract.json` 自身保持 `PENDING_PREVIEW`，不因夹具通过而升格。F27 的
+`backup/restore` 与 F28 与 Bash 的逐字段差分仍记为未验证。
+
 > **判定口径（2026-11-06 用户明确授权）：** 真实公网 VPS 不再是本轮阻塞项，
 > `CONTAINER_VERIFIED`（固定 digest 容器内真实执行并记录）即视为出口门槛满足；
 > `REAL_VPS_VERIFIED` 保留为更高等级但不再强制。真实 ACME 因容器内无公网域名/CA 条件，
@@ -110,17 +120,17 @@ TCP 事务/回退均有实测证据。
 
 | ID | Bash 功能 | Bash 证据 | Bash 状态 | Go 状态 | 迁移备注 |
 |---|---|---|---|---|---|
-| F01 | `--install-reality`，普通/加 Nginx | `test_install`、`test_true_fresh_install`、`test_reality_nginx_feedback`、CI job `Install (reality)` | 已验证 | 部分实现（容器级） | 容器内 fresh install 真实验证：systemd `active/enabled`、`User=xray`、`xray -test`、Reality 客户端隧道取回 HTTP；`reality-nginx` 仅配置生成 + `-test`，未做 Nginx 安装 |
+| F01 | `--install-reality`，普通/加 Nginx | `test_install`、`test_true_fresh_install`、`test_reality_nginx_feedback`、CI job `Install (reality)` | 已验证 | 部分实现（容器级） | 容器内 fresh install 真实验证：systemd `active/enabled`、`User=xray`、`xray -test`、Reality 客户端隧道取回 HTTP；`reality-nginx` 仅配置生成 + `-test`，未做 Nginx 安装；preview 夹具 `F01_test.py` 全绿 |
 | F02 | `--install-tls` ws/gRPC/xHTTP/组合 | `test_install`、`test_true_fresh_install`、CI job `Install (ws_grpc_xhttp)` | 已验证 | 部分实现（容器级） | 容器内生成 ws/gRPC/xHTTP 配置并通过真实 `xray -test`；TLS 安装需要真实域名/证书，未纳入本轮验收 |
 | F03 | `--install-none`，ws ONLY | `test_ws_only_listen_address`、`test_install_menu_profiles` | 已验证 | 部分实现（容器级） | 容器内生成 none+ws 配置并通过 `xray -test`；保留「显式非回环确认」并实测 exit 2、零落盘 |
 | F04 | Reality primary/secondary 负载均衡 | `test_install_menu_profiles`、`test_reality_nginx_feedback` | 部分验证 | 部分实现（容器级） | `--mode reality-balance --role primary/secondary` 生成真实 Nginx stream + 两个真实 Xray Reality 后端；容器 e2e（真实 nginx、真实客户端）验证轮询命中、secondary 宕机时 primary 全量承载、重启后重新加入、未知 SNI 拒绝（`tests/go-parity/evidence/balance-e2e-2026-11-08`）。**未在真实 VPS 双机验收**，生产签收仍需两台主机 |
-| F05 | `--install-relay`，独立中转 | `test_relay_node`、`test_relay_container`、CI job `Install (relay)` / `True Fresh Mode (relay)` | 已验证 | 部分实现（容器级） | 生成 Nginx `stream` 片段；`nginx -t` 通过；真实容器网络内 PING 经 stream 转发回显；仍不能创建 Xray/UUID/证书 |
+| F05 | `--install-relay`，独立中转 | `test_relay_node`、`test_relay_container`、CI job `Install (relay)` / `True Fresh Mode (relay)` | 已验证 | 部分实现（容器级） | 生成 Nginx `stream` 片段；`nginx -t` 通过；真实容器网络内 PING 经 stream 转发回显；仍不能创建 Xray/UUID/证书；preview 夹具 `F05_test.py` 全绿 |
 | F06 | 用户查看/添加/删除、UUIDv5 | `test_install`、`test_reinstall_preservation` | 部分验证 | 部分实现（容器级） | `user list/add/remove` 走事务并真实重启服务；主用户保护、重复拒绝、write-fail/service-fail 回滚已实测；UUID 为随机 v4，**未实现 UUIDv5**；Phase 03 迁移保留 4 用户逐字节不变 |
 | F07 | shortId / spiderX / 用户映射 | `test_reality_min_client_ver`、`test_reinstall_preservation` | 部分验证 | 部分实现（容器级） | 新增用户可追加 Reality `shortId`；分享 URI 带 `sid/spx`；未实现完整用户映射管理 |
 | F08 | 端口、target、serverNames、SNI Guard | `test_port_safety`、`test_port_validation`、`test_install_menu_profiles` | 已验证 | 部分实现（容器级） | `set-inbound-port` 原语、serverNames/target 校验与生成、非法 serverName fail-closed；SNI Guard 未实现 |
 | F09 | `--add-upstream`，上游片段管理 | `test_nginx_security`、`test_reinstall_preservation` | 部分验证 | 未实现 | 只允许改写项目片段 |
 | F10 | `--tls` 版本变更 | `test_nginx_security`、`test_nginx_update_rollback` | 部分验证 | 未实现 | R07：当前是 `sed -i` 后重启 |
-| F11 | 服务状态/启停/日志 | `test_offline_commands`、`test_phase1_safety` | 已验证 | 部分实现（容器级） | Phase 04 新增 `service status/start/stop/restart/reload/logs`，仅限自有 unit；容器内实测 `xray=active`、restart 计数 3→4、stop/start、journal 日志、非法 unit exit 2、sandbox root 拒绝 exit 2 |
+| F11 | 服务状态/启停/日志 | `test_offline_commands`、`test_phase1_safety` | 已验证 | 部分实现（容器级） | Phase 04 新增 `service status/start/stop/restart/reload/logs`，仅限自有 unit；容器内实测 `xray=active`、restart 计数 3→4、stop/start、journal 日志、非法 unit exit 2、sandbox root 拒绝 exit 2；preview 夹具 `F11_test.py` 全绿 |
 | F12 | 证书状态/签发/续期/清理 | `test_cert_update_recovery`、`test_ssl_update_recovery` | 部分验证 | 部分实现（本地 CA） | 原生 ACME v2 客户端（ES256/JWS/nonce/订单/HTTP-01）在 Pebble 本地 CA 上真实签发、窗口内跳过、强制续期；证书对原子替换（temp+fsync+rename），私钥 0600/证书 0644，`--reload-command` 失败回滚旧证书对且回滚后仍通过链/SAN/私钥匹配校验；负面覆盖 webroot 失效、reload 失败、只读目标、CA 拒绝域名（`tests/go-parity/evidence/acme-2026-11-08-fix`）。**公网 CA、DNS-01、EAB、真实域名与 Bash 的 `idleleo-nginx` 组/重启语义未验收**，不得据此升格 |
 | F13 | `--update`、`--xray-update`、`--nginx-update` | `test_xray_update_transaction`、`test_nginx_update_rollback`、`test_candidate_real_upgrade` | 已验证 | 未实现 | 需哈希/降级/失败注入 |
 | F14 | `--auto-update` 与 cron | `test_vps_auto_update_schedule`、`test_legacy_auto_update_path`、`test_auto_update_failure_records` | 已验证 | 部分实现（容器级） | Phase 03 新增原生 `idleleo schedule`：systemd timer 接管 GeoData/统计。Phase 04 接入 Go release 通道：配置后容器内真实定时升级 `0.3.0→0.4.0`。**P0-5 修正**：Go 无 Xray/Nginx 自动更新执行器，迁移保留旧 `auto_update.sh` cron（只移除 `geo_update.sh`/`xray_stats.sh`）；未配置 Go 通道只影响 Go 自身升级，`degraded` 不删除 cron；cert-renew 未接原生 ACME（签发/续期命令存在，仅本地 CA 验证，见 F12），`ssl_update.sh` 同样保留 |
@@ -135,9 +145,9 @@ TCP 事务/回退均有实测证据。
 | F23 | 六语言 | `test_i18n_catalog`、`test_color_output`、CI `i18n.yml` | 已验证 | 部分实现（容器级） | zh/en 完整，fr/fa/ru/ko 回退英文；未与 Bash 文案逐条差分 |
 | F24 | Docker 交付 | `test_relay_container`、`test_minimal_bootstrap`、`docker/fake-systemctl` | 部分验证 | 未实现 | R16：不能假设宿主 systemd DBus |
 | F25 | TCP 优化/测速 | 无自动化（仅有菜单项） | 未验证 | 部分实现（容器级） | `idleleo tcp status/plan/apply/rollback` 只管理 `/etc/sysctl.d/90-idleleo-tcp.conf`（profile `bbr-fq`）：真实单测 20 项 + Docker sandbox 30 项断言，覆盖幂等、部分失败回滚、journal pending、文件/运行值漂移、符号链接、非 root、内核不支持；**仍不执行 `tcp.sh`、不下载远程脚本、不做测速与性能验收**；Bash 菜单未接线；详见 [TCP_NATIVE_DESIGN_AND_QA.md](TCP_NATIVE_DESIGN_AND_QA.md) |
-| F26 | XTLS ONLY 旧模式 | `test_install_menu_profiles`、CI `Relay mixing and legacy-mode guards` | 已验证（只读识别/阻断） | 部分实现（容器级） | Phase 03 容器内实测：audit 识别 `legacy-xtls-removed` 并判定 `blocked`，prepare 拒绝（exit 3），入口/cron 不变、无 journal；按设计不执行迁移 |
-| F27 | `--backup/--restore/--purge/--service-*` | `test_offline_commands`、`test_uninstall_clean`、`test_install_uninstall_transaction` | 已验证 | 部分实现（容器级） | 容器内实测 `uninstall` 保留配置、`uninstall --purge` 删除配置/log、systemd 停用；Phase 03 增加“迁移后服务仍 active/enabled + 故障恢复”。Phase 04 实现 `service status/start/stop/restart/reload/logs`；**`backup/restore/purge` CLI 仍未实现** |
-| F28 | 运行态与分享信息展示 | `.github/test/test_offline_commands.sh` | 已验证 | 部分实现（容器级） | `status/show` 只读视图 + `xray share` 已在容器内真实读取安装结果；Phase 04 额外验证 `help`、`show`、`stats` 只读路径不写 `/etc/idleleo`；输出契约未与 Bash 逐字段差分 |
+| F26 | XTLS ONLY 旧模式 | `test_install_menu_profiles`、CI `Relay mixing and legacy-mode guards` | 已验证（只读识别/阻断） | 部分实现（容器级） | Phase 03 容器内实测：audit 识别 `legacy-xtls-removed` 并判定 `blocked`，prepare 拒绝（exit 3），入口/cron 不变、无 journal；按设计不执行迁移；preview 夹具 `F26_test.py` 复验：审计与 prepare 前后全树哈希不变，整棵根下不存在任何 journal 文件 |
+| F27 | `--backup/--restore/--purge/--service-*` | `test_offline_commands`、`test_uninstall_clean`、`test_install_uninstall_transaction` | 已验证 | 部分实现（容器级） | 容器内实测 `uninstall` 保留配置、`uninstall --purge` 删除配置/log、systemd 停用；Phase 03 增加“迁移后服务仍 active/enabled + 故障恢复”。Phase 04 实现 `service status/start/stop/restart/reload/logs`；**`uninstall --purge` 已实现并由 preview 夹具 `F27_test.py` 实测（保留配置 / purge 删除配置与自有目录；二次 purge 幂等）；`backup/restore` CLI 仍未实现** |
+| F28 | 运行态与分享信息展示 | `.github/test/test_offline_commands.sh` | 已验证 | 部分实现（容器级） | `status/show` 只读视图 + `xray share` 已在容器内真实读取安装结果；Phase 04 额外验证 `help`、`show`、`stats` 只读路径不写 `/etc/idleleo`；preview 夹具 `F28_test.py` 已逐字段断言 `show/status/share` 的 Go 输出契约并证明三个命令零写入，但仍**未与 Bash 逐字段差分** |
 
 ## 4. L0 纯函数差分（Phase 00 与 Phase 01 实际执行）
 
@@ -178,7 +188,9 @@ D1–D4 在 `feature_contracts.json` 中仍保持 `PENDING`，因为 Go 实现�
 - 83/83 native L0 只表示 `internal/compat` 的 7 个纯函数与固定 Bash 基线一致；它不是 F01–F28 迁移完成。
 - 39/39 Bridge 仍是合成契约，不得当作生产迁移认证。
 - 不得用本文件的「已验证」描述 Go；该列只描述 Bash 基线。
-- 不得因为 CI 绿灯或容器 35/35 宣布发布就绪；`check_release_gate.py` 在缺少生产 Go 与 28 个功能测试时按设计返回红灯。
+- 不得因为 CI 绿灯或容器 35/35 宣布发布就绪；`check_release_gate.py` 在缺少生产 Go 与 22 个功能执行器（28 项中仅有 6 个 preview 夹具）时按设计返回红灯。
 - Phase 04 的 42/42 容器 E2E 与双架构产物只加强 F11/F12/F14/F15/F22/F27/F28 的证据描述，
   **不改变任何状态标签**，也不构成发布授权。
 - 容器证据一律是 `CONTAINER_VERIFIED`，不得升格为 `REAL_VPS_VERIFIED`。
+- preview 通道 6/6 全绿只表示这 6 个夹具真实执行；不得据此修改 `feature_contracts.json`、
+  不得写成 `PASS`/「已验证」，也不构成任何发布授权。
