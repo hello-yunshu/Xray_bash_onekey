@@ -36,18 +36,25 @@ jobs:
           curl -fsSL --retry 3 -o /tmp/xray.zip \
             "https://github.com/XTLS/Xray-core/releases/latest/download/$asset"
           python3 -m zipfile -e /tmp/xray.zip /tmp/xray
-          sudo install -m 0755 /tmp/xray/xray /opt/xray/xray
+          # Hosted runners have no /opt/xray; install(1) does not create parents.
+          sudo install -D -m 0755 /tmp/xray/xray /opt/xray/xray
           /opt/xray/xray version
 
       - name: Build the Go manager from this checkout
-        run: go build -trimpath -o "$RUNNER_TEMP/idleleo" ./cmd/idleleo
+        run: |
+          go build -trimpath -o "$RUNNER_TEMP/idleleo" ./cmd/idleleo
+          chmod 0755 "$RUNNER_TEMP/idleleo"
 
       - name: Preview qualification (no release authority)
         env:
           IDLELEO_PREVIEW_EVIDENCE: ${{ runner.temp }}/preview-evidence
         run: |
           mkdir -p "$IDLELEO_PREVIEW_EVIDENCE"
-          python3 tests/go-parity/parity/scripts/check_preview_gate.py \
+          # The fixtures require root: they install real units, run systemd and
+          # write /etc/idleleo and /var/lib/idleleo. Running the gate through sudo
+          # changes only the caller identity; the gate's pass/fail rules and the
+          # fixtures' root precondition stay untouched.
+          sudo -E env "PATH=$PATH" python3 tests/go-parity/parity/scripts/check_preview_gate.py \
             --go-bin "$RUNNER_TEMP/idleleo" \
             --bash-repo "$GITHUB_WORKSPACE" \
             --evidence "$IDLELEO_PREVIEW_EVIDENCE"
