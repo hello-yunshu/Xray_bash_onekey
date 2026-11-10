@@ -96,7 +96,10 @@ class Fixture:
             return
         print(f"UNSUPPORTED_ENVIRONMENT: {message}", file=sys.stderr, flush=True)
         self._log(f"UNSUPPORTED_ENVIRONMENT {message}")
-        raise SystemExit(self.finish())
+        self.finish()
+        # A missing precondition is never a pass: write the evidence result,
+        # then exit with the fixture-contract code for an unusable environment.
+        raise SystemExit(2)
 
     def elapsed(self):
         return time.monotonic() - self.started

@@ -39,7 +39,7 @@ Phase 02/03 的 201/201、83/83 L0 等证据仍只在其原范围内有效。
 | F02 | TLS ws/gRPC/xHTTP/组合 | 部分实现（容器级） | 无新增；TLS 真实证书仍不纳入 |
 | F03 | ws ONLY | 部分实现（容器级） | 无新增 |
 | F04 | Reality primary/secondary 负载均衡 | 部分实现（容器级） | **标签变化**：`--mode reality-balance --role primary/secondary` 生成真实 Nginx stream + 两个真实 Xray Reality 后端；`evidence/balance-e2e-2026-11-08` 容器 e2e 5/5 PASS（轮询命中、双后端、secondary 宕机时 primary 全量承载、重启后恢复、未知 SNI 拒绝）。**未做真实双 VPS 故障切换**，不升格 |
-| F05 | 独立 relay（Nginx Stream） | 部分实现（容器级） | 无新增；沿用 Phase 02 真实 TCP 转发；preview 夹具 `F05_test.py` 全绿（独立 nginx + 两次逐字节回显，且不创建 Xray/UUID/证书） |
+| F05 | 独立 relay（Nginx Stream） | 部分实现（容器级） | 无新增；沿用 Phase 02 真实 TCP 转发；preview 夹具 `F05_test.py` 全绿（独立 nginx + 两次逐字节回显，且不创建 Xray/UUID/证书）。GitHub Actions 上 `/etc/idleleo` 不存在，空树哈希前后相等的断言强度弱于容器 |
 | F06 | 用户查看/添加/删除、UUIDv5 | 部分实现（容器级） | 无新增；UUIDv5 仍未实现 |
 | F07 | shortId / spiderX / 用户映射 | 部分实现（容器级） | 无新增 |
 | F08 | 端口、target、serverNames、SNI Guard | 部分实现（容器级） | 无新增；SNI Guard 未实现 |
