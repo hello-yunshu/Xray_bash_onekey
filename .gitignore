@@ -5,5 +5,6 @@ __pycache__/
 *.pyc
 tests/go-parity/.cache/
 * [0-9].*
+Dockerfile [0-9]
 tests/go-parity/evidence/preview-*/F[0-9][0-9]/
 .workbuddy/
