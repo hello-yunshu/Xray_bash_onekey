@@ -44,6 +44,7 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 		report, _, err := legacybridge.Prepare(ctx, legacybridge.PrepareOptions{
 			Root:                 cfg.root,
 			Candidate:            flagValue(rest, "--candidate"),
+			CandidateManifest:    flagValue(rest, "--candidate-manifest"),
 			Recovery:             flagValue(rest, "--recovery"),
 			AcknowledgeCustom:    hasFlag(rest, "--acknowledge-custom"),
 			Fault:                flagValue(rest, "--fault"),
@@ -55,7 +56,8 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 		if cfg.json {
 			return writeJSON(opts, report)
 		}
-		fmt.Fprintf(opts.Out, "state=%s verdict=%s candidate=%s\n", report.State, report.Verdict, report.CandidateSHA256)
+		fmt.Fprintf(opts.Out, "state=%s verdict=%s candidate=%s version=%s pinned=%t\n",
+			report.State, report.Verdict, report.CandidateSHA256, report.CandidateVersion, report.CandidatePinned)
 		fmt.Fprintf(opts.Out, "plan=%s snapshot=%s\n", report.PlanPath, report.SnapshotPath)
 		fmt.Fprintf(opts.Out, "projectCronLines=%d customItems=%d customAcknowledged=%t permissionFixes=%d rill=%s\n",
 			report.ProjectCronLines, report.CustomItems, report.CustomAcked, report.PermissionFixes, report.RillStatus)

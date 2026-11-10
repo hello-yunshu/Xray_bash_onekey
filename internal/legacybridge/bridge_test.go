@@ -2,11 +2,17 @@ package legacybridge
 
 import (
 	"context"
+	"debug/elf"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -85,6 +91,96 @@ fi
 echo "idleleo test 0.0.0"
 `
 	writeFile(t, p, script, 0o755)
+	return p
+}
+
+var (
+	candOnce sync.Once
+	candPath string
+	candErr  error
+	candDir  string
+)
+
+func TestMain(m *testing.M) {
+	code := m.Run()
+	if candDir != "" {
+		_ = os.RemoveAll(candDir)
+	}
+	os.Exit(code)
+}
+
+// elfCandidate builds one real ELF manager once per test binary. Prepare now
+// rejects non-ELF executables, so the old shell stub can no longer stand in
+// for the candidate; recovery binaries keep using stubBin.
+func elfCandidate(t *testing.T) string {
+	t.Helper()
+	candOnce.Do(func() {
+		dir, err := os.MkdirTemp("", "idleleo-bridge-candidate-")
+		if err != nil {
+			candErr = err
+			return
+		}
+		candDir = dir
+		src := filepath.Join(dir, "main.go")
+		prog := `package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	for _, a := range os.Args[1:] {
+		if a == "status" {
+			fmt.Println(` + "`" + `{"schemaVersion":1,"installed":true,"config":{"matchesMetadata":true}}` + "`" + `)
+			return
+		}
+		if a == "version" {
+			fmt.Println("idleleo 0.2.0-phase04 (go)")
+			return
+		}
+	}
+	fmt.Println("idleleo 0.2.0-phase04 (go)")
+}
+`
+		if err := os.WriteFile(src, []byte(prog), 0o644); err != nil {
+			candErr = err
+			return
+		}
+		out := filepath.Join(dir, "idleleo")
+		cmd := exec.Command("go", "build", "-o", out, src)
+		cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
+		if b, err := cmd.CombinedOutput(); err != nil {
+			candErr = fmt.Errorf("build test candidate: %v: %s", err, b)
+			return
+		}
+		candPath = out
+	})
+	if candErr != nil {
+		t.Fatal(candErr)
+	}
+	return candPath
+}
+
+// fakeELFWrongArch writes a parseable ELF header for another machine so the
+// architecture check is exercised without cross-compiling a real binary.
+func fakeELFWrongArch(t *testing.T) string {
+	t.Helper()
+	machine := elf.EM_AARCH64
+	if runtime.GOARCH == "arm64" {
+		machine = elf.EM_X86_64
+	}
+	b := make([]byte, 64)
+	copy(b, "\x7fELF")
+	b[4] = 2                                 // ELFCLASS64
+	b[5] = 1                                 // little endian
+	b[6] = 1                                 // EV_CURRENT
+	binary.LittleEndian.PutUint16(b[16:], 2) // ET_EXEC
+	binary.LittleEndian.PutUint16(b[18:], uint16(machine))
+	binary.LittleEndian.PutUint32(b[20:], 1)  // e_version
+	binary.LittleEndian.PutUint16(b[52:], 64) // e_ehsize
+	p := filepath.Join(t.TempDir(), "idleleo")
+	writeFile(t, p, string(b), 0o755)
 	return p
 }
 
@@ -189,7 +285,7 @@ func TestPrepareLeavesRuntimeEntryCronUntouched(t *testing.T) {
 	cronBefore := mustHash(t, cron)
 	entryBefore, _ := os.Readlink(filepath.Join(root, "usr/bin/idleleo"))
 
-	cand := stubBin(t, t.TempDir(), "idleleo")
+	cand := elfCandidate(t)
 	rep, audit, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand})
 	if err != nil {
 		t.Fatal(err)
@@ -235,7 +331,7 @@ func mustHash(t *testing.T, p string) string {
 func TestActivateSwitchesEntryAndCronOnly(t *testing.T) {
 	root := sandbox(t, "reality-direct")
 	dir := t.TempDir()
-	cand := stubBin(t, dir, "idleleo")
+	cand := elfCandidate(t)
 	rec := stubBin(t, dir, "idleleo-recover")
 	xray := stubBin(t, dir, "xray")
 	nginx := stubBin(t, dir, "nginx")
@@ -300,7 +396,7 @@ func TestActivateSwitchesEntryAndCronOnly(t *testing.T) {
 func TestActivateRefusesWithoutRecoveryEntry(t *testing.T) {
 	root := sandbox(t, "reality-direct")
 	dir := t.TempDir()
-	cand := stubBin(t, dir, "idleleo")
+	cand := elfCandidate(t)
 	xray := stubBin(t, dir, "xray")
 	nginx := stubBin(t, dir, "nginx")
 	if _, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand}); err != nil {
@@ -321,7 +417,7 @@ func TestActivateRefusesWithoutRecoveryEntry(t *testing.T) {
 func TestValidateRejectsDrift(t *testing.T) {
 	root := sandbox(t, "reality-direct")
 	dir := t.TempDir()
-	cand := stubBin(t, dir, "idleleo")
+	cand := elfCandidate(t)
 	xray := stubBin(t, dir, "xray")
 	nginx := stubBin(t, dir, "nginx")
 	if _, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand}); err != nil {
@@ -340,7 +436,7 @@ func TestValidateRejectsDrift(t *testing.T) {
 
 func TestPrepareRefusesUnfinishedJournal(t *testing.T) {
 	root := sandbox(t, "reality-direct")
-	cand := stubBin(t, t.TempDir(), "idleleo")
+	cand := elfCandidate(t)
 	j := Journal{SchemaVersion: JournalSchema, State: StateActivating}
 	if err := writeJournal(root, &j); err != nil {
 		t.Fatal(err)
@@ -373,7 +469,7 @@ func TestPrepareDoesNotOverwriteRecoveryEvidence(t *testing.T) {
 			for rel := range evidence {
 				before[rel] = mustHash(t, filepath.Join(root, rel))
 			}
-			cand := stubBin(t, t.TempDir(), "idleleo")
+			cand := elfCandidate(t)
 			_, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand})
 			if err == nil {
 				t.Fatal("prepare must refuse an unfinished transaction")
@@ -417,7 +513,7 @@ func TestRequireWriteAccessDelegatesToHostGate(t *testing.T) {
 func TestActivateRefusesChangedEntry(t *testing.T) {
 	root := sandbox(t, "reality-direct")
 	dir := t.TempDir()
-	cand := stubBin(t, dir, "idleleo")
+	cand := elfCandidate(t)
 	rec := stubBin(t, dir, "idleleo-recover")
 	xray := stubBin(t, dir, "xray")
 	nginx := stubBin(t, dir, "nginx")
@@ -448,7 +544,7 @@ func TestActivateRefusesChangedEntry(t *testing.T) {
 func TestRecoverPreservesThirdPartyEntry(t *testing.T) {
 	root := sandbox(t, "reality-direct")
 	dir := t.TempDir()
-	cand := stubBin(t, dir, "idleleo")
+	cand := elfCandidate(t)
 	rec := stubBin(t, dir, "idleleo-recover")
 	xray := stubBin(t, dir, "xray")
 	nginx := stubBin(t, dir, "nginx")
@@ -491,7 +587,7 @@ func TestRecoverPreservesThirdPartyEntry(t *testing.T) {
 
 func TestRecoverPreparedDiscards(t *testing.T) {
 	root := sandbox(t, "reality-direct")
-	cand := stubBin(t, t.TempDir(), "idleleo")
+	cand := elfCandidate(t)
 	if _, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand}); err != nil {
 		t.Fatal(err)
 	}
@@ -511,7 +607,7 @@ func TestRecoverPreparedDiscards(t *testing.T) {
 func TestRecoverActivatingRestoresEntryAndCron(t *testing.T) {
 	root := sandbox(t, "reality-direct")
 	dir := t.TempDir()
-	cand := stubBin(t, dir, "idleleo")
+	cand := elfCandidate(t)
 	rec := stubBin(t, dir, "idleleo-recover")
 	xray := stubBin(t, dir, "xray")
 	nginx := stubBin(t, dir, "nginx")
@@ -561,7 +657,7 @@ func TestRecoverActivatingRestoresEntryAndCron(t *testing.T) {
 func TestRecoverCommittedRefuses(t *testing.T) {
 	root := sandbox(t, "reality-direct")
 	dir := t.TempDir()
-	cand := stubBin(t, dir, "idleleo")
+	cand := elfCandidate(t)
 	rec := stubBin(t, dir, "idleleo-recover")
 	xray := stubBin(t, dir, "xray")
 	nginx := stubBin(t, dir, "nginx")
@@ -629,7 +725,7 @@ func asError(err error, target **Error) bool {
 
 func TestStatusReadsJournal(t *testing.T) {
 	root := sandbox(t, "reality-direct")
-	cand := stubBin(t, t.TempDir(), "idleleo")
+	cand := elfCandidate(t)
 	if _, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand}); err != nil {
 		t.Fatal(err)
 	}
@@ -643,5 +739,210 @@ func TestStatusReadsJournal(t *testing.T) {
 	b, _ := json.Marshal(rep)
 	if strings.Contains(string(b), "privateKey") || strings.Contains(string(b), "uuid") {
 		t.Fatalf("status leaked secrets: %s", b)
+	}
+}
+
+func bridgeCode(t *testing.T, err error) int {
+	t.Helper()
+	var be *Error
+	if !asError(err, &be) {
+		t.Fatalf("expected a bridge Error, got %v", err)
+	}
+	return be.Code
+}
+
+func TestPrepareRejectsTextCandidateWithExecBit(t *testing.T) {
+	root := sandbox(t, "reality-direct")
+	p := filepath.Join(t.TempDir(), "idleleo")
+	writeFile(t, p, "#!/bin/sh\necho not-a-go-manager\n", 0o755)
+
+	_, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: p})
+	if err == nil {
+		t.Fatal("a text file with the executable bit must not be accepted as the Go manager")
+	}
+	if code := bridgeCode(t, err); code != 2 {
+		t.Fatalf("expected exit 2, got %d: %v", code, err)
+	}
+	if !strings.Contains(err.Error(), "not an ELF") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(root, journalRel)); !os.IsNotExist(statErr) {
+		t.Fatal("a rejected candidate must not create a journal")
+	}
+}
+
+func TestPrepareRejectsWrongArchitectureCandidate(t *testing.T) {
+	root := sandbox(t, "reality-direct")
+	_, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: fakeELFWrongArch(t)})
+	if err == nil {
+		t.Fatal("an ELF for another architecture must be rejected")
+	}
+	if code := bridgeCode(t, err); code != 2 {
+		t.Fatalf("expected exit 2, got %d: %v", code, err)
+	}
+	if !strings.Contains(err.Error(), "architecture") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func writeCandidateManifest(t *testing.T, candidate string, mutate func(*CandidateManifest)) string {
+	t.Helper()
+	b, err := os.ReadFile(candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := CandidateManifest{SHA256: hashBytes(b), Version: "0.2.0-phase04", GOARCH: runtime.GOARCH}
+	if mutate != nil {
+		mutate(&m)
+	}
+	raw, err := json.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := filepath.Join(t.TempDir(), "manifest.json")
+	writeFile(t, p, string(raw), 0o644)
+	return p
+}
+
+func TestPrepareAcceptsTrustedManifest(t *testing.T) {
+	root := sandbox(t, "reality-direct")
+	cand := elfCandidate(t)
+	manifest := writeCandidateManifest(t, cand, nil)
+
+	rep, _, err := Prepare(context.Background(), PrepareOptions{
+		Root: root, Candidate: cand, CandidateManifest: manifest,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rep.State != StatePrepared || !rep.CandidatePinned {
+		t.Fatalf("report=%+v", rep)
+	}
+	if rep.CandidateVersion != "0.2.0-phase04" {
+		t.Fatalf("candidate version not recorded: %+v", rep)
+	}
+}
+
+func TestPrepareRejectsManifestDigestMismatch(t *testing.T) {
+	root := sandbox(t, "reality-direct")
+	cand := elfCandidate(t)
+	manifest := writeCandidateManifest(t, cand, func(m *CandidateManifest) {
+		m.SHA256 = strings.Repeat("0", 64)
+	})
+	_, _, err := Prepare(context.Background(), PrepareOptions{
+		Root: root, Candidate: cand, CandidateManifest: manifest,
+	})
+	if err == nil {
+		t.Fatal("a candidate that does not match the trusted digest must be rejected")
+	}
+	if code := bridgeCode(t, err); code != 2 {
+		t.Fatalf("expected exit 2, got %d: %v", code, err)
+	}
+	if !strings.Contains(err.Error(), "trusted manifest") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestPrepareRejectsManifestVersionMismatch(t *testing.T) {
+	root := sandbox(t, "reality-direct")
+	cand := elfCandidate(t)
+	manifest := writeCandidateManifest(t, cand, func(m *CandidateManifest) {
+		m.Version = "9.9.9"
+	})
+	_, _, err := Prepare(context.Background(), PrepareOptions{
+		Root: root, Candidate: cand, CandidateManifest: manifest,
+	})
+	if err == nil {
+		t.Fatal("a candidate whose self-reported version differs from the manifest must be rejected")
+	}
+	if code := bridgeCode(t, err); code != 2 {
+		t.Fatalf("expected exit 2, got %d: %v", code, err)
+	}
+	if !strings.Contains(err.Error(), "requires") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRecoverAfterMetadataCrashLeavesNoHalfMigration(t *testing.T) {
+	root := sandbox(t, "reality-direct")
+	meta := filepath.Join(root, metadataRel)
+	cand := elfCandidate(t)
+
+	_, _, err := Prepare(context.Background(), PrepareOptions{
+		Root: root, Candidate: cand, Fault: "crash-after-metadata",
+	})
+	if err == nil {
+		t.Fatal("the crash fault must fail the prepare")
+	}
+	if code := bridgeCode(t, err); code != 13 {
+		t.Fatalf("expected exit 13, got %d: %v", code, err)
+	}
+	j, err := readJournal(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if j.State != StatePreparing {
+		t.Fatalf("journal state after crash=%s, want %s", j.State, StatePreparing)
+	}
+	if _, err := os.Stat(meta); err != nil {
+		t.Fatalf("the fault must leave the written metadata behind for recovery: %v", err)
+	}
+	// The journal already knew the exact metadata digest before the write, which
+	// is only possible because PREPARING was committed first.
+	written, err := os.ReadFile(meta)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if j.MetadataNewSHA256 != hashBytes(written) {
+		t.Fatalf("journal digest %q does not match the staged metadata", j.MetadataNewSHA256)
+	}
+	if _, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand}); err == nil {
+		t.Fatal("prepare must refuse to continue a PREPARING journal")
+	}
+
+	rep, err := Recover(RecoverOptions{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rep.State != StateRolledBack {
+		t.Fatalf("recover state=%s", rep.State)
+	}
+	if _, err := os.Stat(meta); !os.IsNotExist(err) {
+		t.Fatal("staged manager metadata must be removed, otherwise the root claims Go ownership while Bash still runs")
+	}
+	if link, _ := os.Readlink(filepath.Join(root, "usr/bin/idleleo")); link != filepath.Join(root, "etc/idleleo/install.sh") {
+		t.Fatalf("entry changed during discard: %s", link)
+	}
+
+	rep2, _, err := Prepare(context.Background(), PrepareOptions{Root: root, Candidate: cand})
+	if err != nil {
+		t.Fatalf("prepare after recovery must work again: %v", err)
+	}
+	if rep2.State != StatePrepared {
+		t.Fatalf("second prepare state=%s", rep2.State)
+	}
+}
+
+func TestRecoverAfterMetadataCrashRestoresPreviousMetadata(t *testing.T) {
+	root := sandbox(t, "reality-direct")
+	meta := filepath.Join(root, metadataRel)
+	writeFile(t, meta, "{\"sentinel\":\"previous-manager\"}\n", 0o640)
+	before := mustHash(t, meta)
+
+	_, _, err := Prepare(context.Background(), PrepareOptions{
+		Root: root, Candidate: elfCandidate(t), Fault: "crash-after-metadata",
+	})
+	if err == nil {
+		t.Fatal("the crash fault must fail the prepare")
+	}
+	rep, err := Recover(RecoverOptions{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rep.State != StateRolledBack {
+		t.Fatalf("recover state=%s", rep.State)
+	}
+	if mustHash(t, meta) != before {
+		t.Fatal("pre-migration manager metadata was not restored")
 	}
 }
