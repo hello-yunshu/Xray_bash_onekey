@@ -1,7 +1,0 @@
-{
-  "changed": false,
-  "noop": true,
-  "statePath": "/tmp/tcp-sandbox/var/lib/idleleo/tcp/state.json",
-  "applied": [],
-  "message": "no project-owned TCP transaction to roll back"
-}

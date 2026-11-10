@@ -1,9 +1,0 @@
-repo_commit=dac717acea1a262c661d0ed4f900a012fc25cc48
-repo_dirty=8
-image=idleleo-phase01-test:1.24
-image_id=sha256:8af4eaa68338d882c32104e30d347f575f5c23730c6249fb82b78bebd3bab6c5
-docker_arch=arm64
-docker_version=29.8.2
-evidence_level=DOCKER_MOCK_APPLY
-date_utc=2026-11-08T06:30:17Z
-kernel_note=apply/rollback are redirected to a sandbox root; the Docker VM kernel is not written

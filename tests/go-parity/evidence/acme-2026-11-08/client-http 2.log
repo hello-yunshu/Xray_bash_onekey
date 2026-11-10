@@ -1,5 +1,0 @@
-127.0.0.1 - - [08/Nov/2026 10:12:29] code 404, message File not found
-127.0.0.1 - - [08/Nov/2026 10:12:29] "GET /.well-known/acme-challenge/probe HTTP/1.1" 404 -
-pebble-va - - [08/Nov/2026 10:12:30] "GET /.well-known/acme-challenge/pUMVc3joxFMzaIhgDkmObRQ0CGCaNmL_xdp4CsBMdPo HTTP/1.1" 200 -
-pebble-va - - [08/Nov/2026 10:12:30] "GET /.well-known/acme-challenge/pUMVc3joxFMzaIhgDkmObRQ0CGCaNmL_xdp4CsBMdPo HTTP/1.1" 200 -
-pebble-va - - [08/Nov/2026 10:12:30] "GET /.well-known/acme-challenge/pUMVc3joxFMzaIhgDkmObRQ0CGCaNmL_xdp4CsBMdPo HTTP/1.1" 200 -

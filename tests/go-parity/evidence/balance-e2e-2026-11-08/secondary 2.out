@@ -1,4 +1,0 @@
-Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
-A unified platform for anti-censorship.
-2026/11/08 15:51:38.702864 [Info] infra/conf/serial: Reading config: &{Name:/e2e/conf/secondary.json Format:json}
-2026/11/08 15:51:38.702895 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW

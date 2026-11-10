@@ -1,7 +1,0 @@
-repo_commit=3d07613a16e56e7d80c2a3ad7d621880aec7139c
-repo_dirty=2
-base_image=golang:1.23-bookworm
-test_image=sha256:872befbc40b39da23d1f4ca18357cc4678c79fd9bdc678b039521fafb61a447c
-docker_arch=arm64
-docker_version=29.8.2
-bash_install_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f  <workspace>/install.sh

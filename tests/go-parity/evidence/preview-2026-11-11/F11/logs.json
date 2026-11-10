@@ -1,7 +1,0 @@
-{
-  "journalctl": "journalctl -u xray.service -n 100 --no-pager",
-  "lines": 100,
-  "output": "Nov 10 18:32:28 f9cbd2f0a1bd systemd[1]: Started xray.service - idleleo preview F11 probe.\nNov 10 18:32:28 f9cbd2f0a1bd idleleo-f11-probe[189]: idleleo-f11-start 1794335548908085209\nNov 10 18:32:28 f9cbd2f0a1bd systemd[1]: Stopping xray.service - idleleo preview F11 probe...\nNov 10 18:32:28 f9cbd2f0a1bd systemd[1]: xray.service: Deactivated successfully.\nNov 10 18:32:28 f9cbd2f0a1bd systemd[1]: Stopped xray.service - idleleo preview F11 probe.\nNov 10 18:32:28 f9cbd2f0a1bd systemd[1]: Started xray.service - idleleo preview F11 probe.\nNov 10 18:32:28 f9cbd2f0a1bd idleleo-f11-probe[218]: idleleo-f11-start 1794335548939856275\nNov 10 18:32:28 f9cbd2f0a1bd systemd[1]: Stopping xray.service - idleleo preview F11 probe...\nNov 10 18:32:28 f9cbd2f0a1bd systemd[1]: xray.service: Deactivated successfully.\nNov 10 18:32:28 f9cbd2f0a1bd systemd[1]: Stopped xray.service - idleleo preview F11 probe.\nNov 10 18:32:28 f9cbd2f0a1bd systemd[1]: Started xray.service - idleleo preview F11 probe.\nNov 10 18:32:28 f9cbd2f0a1bd idleleo-f11-probe[258]: idleleo-f11-start 1794335548973278894",
-  "schemaVersion": 1,
-  "unit": "xray.service"
-}

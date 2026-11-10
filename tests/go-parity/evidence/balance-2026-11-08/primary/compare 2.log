@@ -1,2 +1,0 @@
-primary: MATCH_CORE_FIELDS
-  CORE nginx.mainConfigWiring: Bash appends include 00-xray.conf and applies server_tokens/user directives; Go generate leaves nginx.conf untouched by design.

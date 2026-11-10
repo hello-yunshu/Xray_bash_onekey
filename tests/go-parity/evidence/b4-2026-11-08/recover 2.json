@@ -1,7 +1,0 @@
-{
-  "journalState": "ROLLED_BACK",
-  "action": "rolled_back",
-  "converged": true,
-  "restoredFiles": 4,
-  "warnings": []
-}

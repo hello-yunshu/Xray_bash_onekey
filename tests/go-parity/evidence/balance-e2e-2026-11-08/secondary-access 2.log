@@ -1,6 +1,0 @@
-2026/11/08 15:51:47.166385 from 127.0.0.1:56306 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
-2026/11/08 15:51:47.166460 from DNS accepted https://dns.google/dns-query [local]
-2026/11/08 15:51:49.550582 from 127.0.0.1:56316 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
-2026/11/08 15:51:50.933596 from 127.0.0.1:56326 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
-2026/11/08 15:52:22.647135 from 127.0.0.1:46852 accepted tcp:example.com:80 [VLESS-Reality-in -> direct] email: me@hey.run
-2026/11/08 15:52:22.647199 from DNS accepted https://dns.google/dns-query [local]
