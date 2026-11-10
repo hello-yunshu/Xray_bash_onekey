@@ -181,4 +181,9 @@ RELEASE BLOCKED: pending 28; missing executable feature tests 22
 - F02/F04/F12 不在 preview：分别缺真实域名证书、双机主备、公网 CA/DNS-01/EAB；
 - F27 的 `backup/restore` 未实现，契约保持 `not_verified`，未用 `uninstall/purge` 替代；
 - F28 只断言 Go 自身字段契约，**未与 Bash 输出逐字段差分**；
-- `ci/go-preview-qualification.yml` 目前只做静态约束，尚未在 GitHub Actions 实跑（需要 push）。
+- `ci/go-preview-qualification.yml` 已在 GitHub Actions 实跑（`ubuntu-24.04`）：
+  runner 没有 `/opt/xray`，靠 `install -D` 创建；gate 以 `sudo -E` 运行以满足夹具的 root 前置。
+- runner 的 `systemctl is-system-running` 实测返回 `starting` 或 `degraded`，两次 rc 都是 1，
+  只有状态字不同；夹具对 `running`/`degraded` 最多等待 30 秒（1.5 秒轮询），
+  超时仍按 `UNSUPPORTED_ENVIRONMENT` exit 2，**不接受 `starting`**。
+- `UNSUPPORTED_ENVIRONMENT` 不再算通过：`need()` 仍写 `fixture-result.json`，再以 exit 2 退出。

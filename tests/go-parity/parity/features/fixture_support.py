@@ -149,10 +149,24 @@ class Fixture:
     def need_root(self):
         self.need(os.geteuid() == 0, "fixture must run as root")
 
-    def need_systemd(self):
-        r = self.run(["systemctl", "is-system-running"], timeout=15)
-        state = (r.out or r.err).strip().splitlines()[-1] if (r.out or r.err).strip() else ""
-        self.need(state in ("running", "degraded"), f"systemd is not usable: {state or r.rc}")
+    def need_systemd(self, budget=30.0, interval=1.5):
+        """Wait a bounded time for systemd to leave the boot "starting" state.
+
+        Hosted runners can report "starting" for a while after boot. Only
+        "running"/"degraded" are accepted; waiting never widens that set, and a
+        timeout is still UNSUPPORTED_ENVIRONMENT (exit 2).
+        """
+        deadline = time.monotonic() + budget
+        while True:
+            r = self.run(["systemctl", "is-system-running"], timeout=15)
+            state = (r.out or r.err).strip().splitlines()[-1] if (r.out or r.err).strip() else ""
+            if state in ("running", "degraded"):
+                break
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                self.need(False, f"systemd is not usable after {budget:.0f}s: {state or r.rc}")
+            time.sleep(min(interval, remaining))
+        self.ok("systemd is usable", f"{state} after {self.elapsed():.1f}s")
 
     def need_tool(self, name):
         path = shutil.which(name)
