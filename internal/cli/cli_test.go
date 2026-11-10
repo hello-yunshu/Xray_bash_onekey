@@ -92,9 +92,50 @@ func TestVersionHelpAndNoTTY(t *testing.T) {
 	if code != 2 || !strings.Contains(errOut, "no TTY") {
 		t.Fatalf("no tty: %d %q", code, errOut)
 	}
-	code, out, _ := run(t, "--lang", "fr", "--help")
+	code, out, errOut := run(t, "--lang", "fr", "--help")
 	if code != 0 || !strings.Contains(out, "Usage") {
 		t.Fatalf("fr fallback: %d %q", code, out)
+	}
+	if !strings.Contains(errOut, "fr") || !strings.Contains(errOut, "falling back to English") {
+		t.Fatalf("fr fallback must be announced, got %q", errOut)
+	}
+	if code, _, errOut := run(t, "--lang", "zh", "--help"); code != 0 || errOut != "" {
+		t.Fatalf("complete language must not warn: %d %q", code, errOut)
+	}
+}
+
+func TestHelpListsEveryTopLevelCommand(t *testing.T) {
+	code, out, _ := run(t, "--help")
+	if code != 0 {
+		t.Fatalf("help: %d", code)
+	}
+	for _, want := range []string{
+		"xray generate", "xray share", "xray relay", "xray user", "xray install",
+		"xray cert issue|renew", "recover", "0.2.0-phase04",
+	} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("help is missing %q:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "Phase 01") {
+		t.Fatalf("help still advertises Phase 01:\n%s", out)
+	}
+}
+
+func TestSubcommandHelpIsNotExecuted(t *testing.T) {
+	for _, args := range [][]string{
+		{"xray", "generate", "--help"},
+		{"xray", "cert", "--help"},
+		{"bridge", "prepare", "-h"},
+		{"schedule", "install", "--help"},
+	} {
+		code, out, errOut := run(t, append([]string{"--lang", "en"}, args...)...)
+		if code != 0 || !strings.Contains(out, "Usage") {
+			t.Fatalf("%v: code=%d out=%q err=%q", args, code, out, errOut)
+		}
+		if errOut != "" {
+			t.Fatalf("%v: help must not write an error: %q", args, errOut)
+		}
 	}
 }
 

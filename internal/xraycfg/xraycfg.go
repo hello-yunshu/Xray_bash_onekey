@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"strconv"
 	"strings"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/compat"
@@ -23,11 +24,23 @@ import (
 
 // Modes mirror the Bash install modes that this package can build.
 const (
-	ModeReality      = "reality"
-	ModeRealityNginx = "reality-nginx"
-	ModeTLS          = "tls"
-	ModeNone         = "none"
+	ModeReality        = "reality"
+	ModeRealityNginx   = "reality-nginx"
+	ModeRealityBalance = "reality-balance"
+	ModeTLS            = "tls"
+	ModeNone           = "none"
 )
+
+// Reality balance roles mirror the Bash primary/secondary wizard profiles.
+const (
+	BalanceRolePrimary   = "primary"
+	BalanceRoleSecondary = "secondary"
+)
+
+// realityBalanceBackendPort is the fixed loopback port the Bash Reality
+// template keeps for a balance primary; the primary Nginx front owns the
+// public port.
+const realityBalanceBackendPort = 9443
 
 // Transports are the backend transports used with Nginx TLS or no TLS.
 const (
@@ -35,7 +48,22 @@ const (
 	TransportGRPC  = "grpc"
 	TransportXHTTP = "xhttp"
 	TransportRaw   = "raw"
+	// TransportMulti is the Bash multi-entry topology: one base inbound plus
+	// the two remaining transports on their own loopback ports.
+	TransportMulti = "ws+grpc+xhttp"
 )
+
+// inboundDef is one generated inbound entry.
+type inboundDef struct {
+	tag         string
+	transport   string
+	port        int
+	listen      string
+	email       string
+	flow        string
+	path        string
+	serviceName string
+}
 
 // Spec describes one to-be-generated configuration.
 type Spec struct {
@@ -57,6 +85,15 @@ type Spec struct {
 	PrivateKey       string
 	ShortID          string
 	AllowNonLoopback bool
+	// BalanceRole is required by ModeRealityBalance: primary runs the Nginx
+	// stream front, secondary only serves the Reality backend.
+	BalanceRole string
+	// Backends are extra host:port entries written into the primary
+	// Nginx upstream fragment. Empty means the local 127.0.0.1:9443 backend.
+	Backends []string
+	// UnknownSNIPolicy selects the Bash SNI guard branch: isolate (default),
+	// reject. decoy requires pre-existing site artifacts and is refused here.
+	UnknownSNIPolicy string
 }
 
 // UserView is one VLESS client in the generated/edited inbound.
@@ -87,7 +124,11 @@ type Generated struct {
 	ShareURI   string     `json:"shareUri"`
 	ClashYAML  string     `json:"clashYaml,omitempty"`
 	NginxConf  string     `json:"nginxConf,omitempty"`
-	Warnings   []string   `json:"warnings"`
+	// NginxFragments holds the files the Bash installer writes next to the
+	// stream config (upstream servers, SNI map entries, isolate site).
+	NginxFragments map[string]string `json:"nginxFragments,omitempty"`
+	BalanceRole    string            `json:"balanceRole,omitempty"`
+	Warnings       []string          `json:"warnings"`
 }
 
 const (
@@ -105,16 +146,40 @@ func Generate(spec Spec) (Generated, error) {
 		spec.Mode = ModeReality
 	}
 	g := Generated{Mode: spec.Mode, Warnings: []string{}}
+	if spec.Mode == ModeRealityBalance {
+		// Bash exposes the role as an explicit wizard choice; requiring it here
+		// avoids silently deploying a front-end on a server meant as a backend.
+		spec.BalanceRole = strings.ToLower(strings.TrimSpace(spec.BalanceRole))
+		switch spec.BalanceRole {
+		case BalanceRolePrimary, BalanceRoleSecondary:
+		default:
+			return Generated{}, fmt.Errorf("reality-balance requires --role primary or secondary")
+		}
+		g.BalanceRole = spec.BalanceRole
+	}
 	switch spec.Mode {
-	case ModeReality, ModeRealityNginx:
-		g.Transport = TransportRaw
+	case ModeReality, ModeRealityNginx, ModeRealityBalance:
+		spec.Transport = strings.ToLower(strings.TrimSpace(spec.Transport))
+		switch spec.Transport {
+		case "", TransportRaw:
+			spec.Transport = TransportRaw
+		case TransportMulti:
+			// Reality stays the primary raw inbound; the other transports are
+			// added as loopback inbounds, matching Bash reality_add_more.
+			if spec.Mode == ModeRealityBalance {
+				return Generated{}, fmt.Errorf("reality-balance does not support transport %q", spec.Transport)
+			}
+		default:
+			return Generated{}, fmt.Errorf("unsupported transport %q for mode %s", spec.Transport, spec.Mode)
+		}
+		g.Transport = spec.Transport
 	case ModeTLS, ModeNone:
 		if spec.Transport == "" {
 			spec.Transport = TransportWS
 		}
 		spec.Transport = strings.ToLower(spec.Transport)
 		switch spec.Transport {
-		case TransportWS, TransportGRPC, TransportXHTTP:
+		case TransportWS, TransportGRPC, TransportXHTTP, TransportMulti:
 		default:
 			return Generated{}, fmt.Errorf("unsupported transport %q for mode %s", spec.Transport, spec.Mode)
 		}
@@ -124,7 +189,7 @@ func Generate(spec Spec) (Generated, error) {
 	}
 	if spec.Port == 0 {
 		switch spec.Mode {
-		case ModeReality:
+		case ModeReality, ModeRealityBalance:
 			spec.Port = 443
 		default:
 			spec.Port = 10086
@@ -133,16 +198,29 @@ func Generate(spec Spec) (Generated, error) {
 	if spec.Port < 1 || spec.Port > 65535 {
 		return Generated{}, fmt.Errorf("port must be between 1 and 65535")
 	}
+	// Bash reserves 9403/9404/9443/9444 for the SNI guard and Reality backend
+	// and rejects them as the operator-facing port for every Reality mode.
+	if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx || spec.Mode == ModeRealityBalance {
+		if isRealityReservedPort(spec.Port) {
+			return Generated{}, fmt.Errorf("port %d is reserved for Reality internals (9403, 9404, 9443, 9444)", spec.Port)
+		}
+	}
 	if spec.PublicPort == 0 {
 		switch spec.Mode {
 		case ModeTLS, ModeRealityNginx:
 			spec.PublicPort = 443
+		case ModeRealityBalance:
+			// The selected port is the public front port, not the backend port.
+			spec.PublicPort = spec.Port
 		default:
 			spec.PublicPort = spec.Port
 		}
 	}
+	if spec.PublicPort < 1 || spec.PublicPort > 65535 {
+		return Generated{}, fmt.Errorf("public port must be between 1 and 65535")
+	}
 	if spec.Listen == "" {
-		if spec.Mode == ModeReality {
+		if spec.Mode == ModeReality || spec.Mode == ModeRealityBalance {
 			spec.Listen = "0.0.0.0"
 		} else {
 			spec.Listen = "127.0.0.1"
@@ -176,6 +254,11 @@ func Generate(spec Spec) (Generated, error) {
 	if spec.Mode == ModeTLS && spec.Domain == "" {
 		return Generated{}, fmt.Errorf("tls mode requires --domain")
 	}
+	if spec.Domain != "" && !compat.RelayIsValidHost(spec.Domain) {
+		// The domain also becomes part of the default certificate path and
+		// Nginx server_name, so a path-like or malformed value must not pass.
+		return Generated{}, fmt.Errorf("invalid domain %q", spec.Domain)
+	}
 	if spec.CertFile == "" && spec.Domain != "" {
 		spec.CertFile = "/etc/idleleo/cert/" + spec.Domain + ".crt"
 	}
@@ -186,7 +269,7 @@ func Generate(spec Spec) (Generated, error) {
 	serverName := ""
 	var realityTarget string
 	var privateKey, publicKey, shortID string
-	if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx {
+	if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx || spec.Mode == ModeRealityBalance {
 		if len(spec.ServerNames) == 0 {
 			if spec.Domain == "" {
 				return Generated{}, fmt.Errorf("reality mode requires --server-name or --domain")
@@ -198,6 +281,11 @@ func Generate(spec Spec) (Generated, error) {
 				return Generated{}, fmt.Errorf("invalid server name %q", sn)
 			}
 		}
+		// Bash serverNames_set accepts exactly one hostname; the balance SNI
+		// fragment is one "<name> reality;" line per name, so keep it single.
+		if spec.Mode == ModeRealityBalance && len(spec.ServerNames) != 1 {
+			return Generated{}, fmt.Errorf("reality-balance requires exactly one --server-name")
+		}
 		serverName = spec.ServerNames[0]
 		realityTarget = spec.Target
 		if realityTarget == "" {
@@ -208,6 +296,11 @@ func Generate(spec Spec) (Generated, error) {
 			targetHost = host
 		} else if strings.Contains(realityTarget, ":") && !strings.HasPrefix(realityTarget, "[") {
 			return Generated{}, fmt.Errorf("invalid reality target %q: expected host:port", realityTarget)
+		} else {
+			// Xray rejects a Reality target without an explicit port; the Bash
+			// default is 443, so normalize instead of emitting a broken config.
+			targetHost = strings.Trim(realityTarget, "[]")
+			realityTarget = net.JoinHostPort(targetHost, "443")
 		}
 		if !compat.RelayIsValidHost(strings.Trim(targetHost, "[]")) {
 			return Generated{}, fmt.Errorf("invalid reality target host %q", targetHost)
@@ -241,9 +334,22 @@ func Generate(spec Spec) (Generated, error) {
 		}
 	}
 
-	config := buildConfig(spec, g.Transport, serverName, realityTarget, privateKey, shortID)
+	inboundPort := spec.Port
+	if spec.Mode == ModeRealityBalance {
+		if err := validateBalance(spec); err != nil {
+			return Generated{}, err
+		}
+		if spec.BalanceRole == BalanceRolePrimary {
+			// Bash keeps the Reality template port on a primary and lets Nginx
+			// own the public port.
+			inboundPort = realityBalanceBackendPort
+		}
+	}
 
-	g.Port, g.PublicPort, g.Listen = spec.Port, spec.PublicPort, spec.Listen
+	defs := buildInboundDefs(spec, g.Transport, inboundPort)
+	config := buildConfig(spec, defs, serverName, realityTarget, privateKey, shortID)
+
+	g.Port, g.PublicPort, g.Listen = inboundPort, spec.PublicPort, spec.Listen
 	g.UUID, g.ShortID, g.PrivateKey, g.PublicKey = spec.UUID, shortID, privateKey, publicKey
 	g.ServerName, g.Target = serverName, realityTarget
 	g.Users = []UserView{{Index: 0, UUID: spec.UUID, Email: spec.Email, Flow: spec.Flow, Level: 0, Primary: true}}
@@ -258,43 +364,138 @@ func Generate(spec Spec) (Generated, error) {
 	if shareHost == "" {
 		shareHost = spec.Listen
 	}
-	g.ShareURI = buildShareURI(spec, g.Transport, shareHost, publicKey, shortID, serverName)
-	g.ClashYAML = buildClash(spec, g.Transport, shareHost, publicKey, shortID, serverName, &g)
-	g.NginxConf = buildNginx(spec, g.Transport, serverName)
+	base := defs[0]
+	g.ShareURI = buildShareURI(spec, base.transport, shareHost, publicKey, shortID, serverName)
+	g.ClashYAML = buildClash(spec, base.transport, shareHost, publicKey, shortID, serverName, &g)
+	g.NginxConf = buildNginx(spec, defs, serverName)
+	if spec.Mode == ModeRealityBalance && spec.BalanceRole == BalanceRolePrimary {
+		g.NginxConf = buildRealityBalanceNginx(spec.Port, balanceDenyPort(spec.UnknownSNIPolicy))
+		g.NginxFragments = buildRealityBalanceFragments(spec, serverName)
+	}
+	if g.Transport == TransportMulti {
+		g.Warnings = append(g.Warnings, "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others")
+	}
 	return g, nil
 }
 
-func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID string) []byte {
-	client := map[string]any{
-		"id":    spec.UUID,
-		"level": 0,
-		"email": spec.Email,
+const defaultXHTTPPath = "/xhttp/"
+
+// portOffset returns a distinct port near base, wrapping inside the valid
+// range. Multi-entry installs use consecutive ports instead of Bash's random
+// selection so the artifact stays reproducible.
+func portOffset(base, offset int) int {
+	p := base + offset
+	for p > 65535 {
+		p -= 65535
 	}
-	if spec.Flow != "" {
-		client["flow"] = spec.Flow
+	if p < 1 {
+		p = 1
 	}
-	stream := map[string]any{"security": "none", "network": transport}
+	return p
+}
+
+func inboundTag(transport string) string {
 	switch transport {
 	case TransportWS:
-		stream["wsSettings"] = map[string]any{"path": spec.Path}
+		return "VLESS-ws-in"
 	case TransportGRPC:
-		stream["grpcSettings"] = map[string]any{"serviceName": spec.ServiceName}
+		return "VLESS-gRPC-in"
 	case TransportXHTTP:
-		stream["xhttpSettings"] = map[string]any{"path": spec.Path, "mode": "auto"}
-	case TransportRaw:
-		stream["security"] = "reality"
-		rs := map[string]any{
-			"target":       target,
-			"serverNames":  spec.ServerNames,
-			"privateKey":   privateKey,
-			"shortIds":     []any{shortID},
-			"minClientVer": "1.0.0",
-		}
-		stream["realitySettings"] = rs
+		return "VLESS-xhttp-in"
+	default:
+		return "VLESS-Reality-in"
 	}
-	tag := "VLESS-Reality-in"
-	if transport != TransportRaw {
-		tag = "VLESS-" + transport + "-in"
+}
+
+// buildInboundDefs returns the inbounds for the requested transport. The
+// primary inbound always uses inboundPort so callers can address it by index 0.
+func buildInboundDefs(spec Spec, transport string, inboundPort int) []inboundDef {
+	if transport != TransportMulti {
+		if transport == TransportRaw {
+			return []inboundDef{{tag: inboundTag(transport), transport: TransportRaw, port: inboundPort,
+				listen: spec.Listen, email: spec.Email, flow: spec.Flow}}
+		}
+		return []inboundDef{{
+			tag: inboundTag(transport), transport: transport, port: inboundPort, listen: spec.Listen,
+			email: spec.Email, path: spec.Path, serviceName: spec.ServiceName,
+		}}
+	}
+	reality := spec.Mode == ModeReality || spec.Mode == ModeRealityNginx
+	defs := make([]inboundDef, 0, 4)
+	if reality {
+		defs = append(defs, inboundDef{tag: inboundTag(TransportRaw), transport: TransportRaw,
+			port: inboundPort, listen: spec.Listen, email: spec.Email, flow: spec.Flow})
+	} else {
+		defs = append(defs, inboundDef{tag: inboundTag(TransportWS), transport: TransportWS,
+			port: inboundPort, listen: spec.Listen, email: spec.Email, path: spec.Path})
+	}
+	// Bash keeps added inbounds on loopback for none/TLS but exposes them on
+	// the primary listen address for Reality (reality_add_more runs after the
+	// 0.0.0.0 rewrite). Match that instead of forcing loopback everywhere.
+	extraListen := "127.0.0.1"
+	if reality {
+		extraListen = spec.Listen
+	}
+	offset := 1
+	if reality {
+		defs = append(defs, inboundDef{tag: inboundTag(TransportWS), transport: TransportWS,
+			port: portOffset(spec.Port, offset), listen: extraListen, email: "ws@hey.run", path: spec.Path})
+		offset++
+	}
+	defs = append(defs, inboundDef{tag: inboundTag(TransportGRPC), transport: TransportGRPC,
+		port: portOffset(spec.Port, offset), listen: extraListen, email: "me@hey.run",
+		serviceName: spec.ServiceName})
+	offset++
+	defs = append(defs, inboundDef{tag: inboundTag(TransportXHTTP), transport: TransportXHTTP,
+		port: portOffset(spec.Port, offset), listen: extraListen, email: "xhttp@hey.run",
+		path: defaultXHTTPPath})
+	return defs
+}
+
+func buildConfig(spec Spec, defs []inboundDef, serverName, target, privateKey, shortID string) []byte {
+	inbounds := make([]any, 0, len(defs))
+	tags := make([]any, 0, len(defs))
+	for _, def := range defs {
+		client := map[string]any{
+			"id":    spec.UUID,
+			"level": 0,
+			"email": def.email,
+		}
+		if def.flow != "" {
+			client["flow"] = def.flow
+		}
+		stream := map[string]any{"security": "none", "network": def.transport}
+		switch def.transport {
+		case TransportWS:
+			stream["wsSettings"] = map[string]any{"path": def.path}
+		case TransportGRPC:
+			stream["grpcSettings"] = map[string]any{
+				"serviceName": def.serviceName, "multiMode": true, "idle_timeout": 20,
+			}
+		case TransportXHTTP:
+			stream["xhttpSettings"] = map[string]any{"path": def.path, "mode": "auto"}
+		case TransportRaw:
+			stream["security"] = "reality"
+			stream["realitySettings"] = map[string]any{
+				"target":       target,
+				"serverNames":  spec.ServerNames,
+				"privateKey":   privateKey,
+				"shortIds":     []any{shortID},
+				"minClientVer": "1.0.0",
+			}
+		}
+		inbounds = append(inbounds, map[string]any{
+			"tag":      def.tag,
+			"port":     def.port,
+			"listen":   def.listen,
+			"protocol": "vless",
+			"settings": map[string]any{
+				"clients":    []any{client},
+				"decryption": "none",
+			},
+			"streamSettings": stream,
+		})
+		tags = append(tags, def.tag)
 	}
 	root := map[string]any{
 		"log": map[string]any{
@@ -302,17 +503,7 @@ func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID s
 			"error":    "/var/log/xray/error.log",
 			"loglevel": "warning",
 		},
-		"inbounds": []any{map[string]any{
-			"tag":      tag,
-			"port":     spec.Port,
-			"listen":   spec.Listen,
-			"protocol": "vless",
-			"settings": map[string]any{
-				"clients":    []any{client},
-				"decryption": "none",
-			},
-			"streamSettings": stream,
-		}},
+		"inbounds": inbounds,
 		"outbounds": []any{
 			map[string]any{
 				"protocol": "freedom",
@@ -339,7 +530,7 @@ func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID s
 			"domainStrategy": "AsIs",
 			"rules": []any{map[string]any{
 				"type":        "field",
-				"inboundTag":  []any{tag},
+				"inboundTag":  tags,
 				"outboundTag": "direct",
 			}},
 		},
@@ -428,7 +619,7 @@ func buildClash(spec Spec, transport, host, publicKey, shortID, serverName strin
 	if spec.Mode == ModeTLS {
 		b.WriteString("    tls: true\n")
 		fmt.Fprintf(&b, "    servername: %s\n", yamlValue(serverName))
-	} else if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx {
+	} else if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx || spec.Mode == ModeRealityBalance {
 		b.WriteString("    tls: true\n")
 		fmt.Fprintf(&b, "    servername: %s\n", yamlValue(serverName))
 		fmt.Fprintf(&b, "    flow: %s\n", spec.Flow)
@@ -458,29 +649,32 @@ func yamlValue(v string) string {
 	return strings.TrimRight(q, "\n")
 }
 
-func buildNginx(spec Spec, transport, serverName string) string {
+func buildNginx(spec Spec, defs []inboundDef, serverName string) string {
 	if spec.Mode == ModeTLS {
-		var loc string
-		switch transport {
-		case TransportWS:
-			loc = fmt.Sprintf(`    location %s {
+		locs := make([]string, 0, len(defs))
+		for _, def := range defs {
+			switch def.transport {
+			case TransportWS:
+				locs = append(locs, fmt.Sprintf(`    location %s {
         proxy_pass http://127.0.0.1:%d;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
-    }`, spec.Path, spec.Port)
-		case TransportGRPC:
-			loc = fmt.Sprintf(`    location /%s {
+    }`, def.path, def.port))
+			case TransportGRPC:
+				locs = append(locs, fmt.Sprintf(`    location /%s {
         grpc_pass grpc://127.0.0.1:%d;
-    }`, spec.ServiceName, spec.Port)
-		case TransportXHTTP:
-			loc = fmt.Sprintf(`    location %s {
+    }`, def.serviceName, def.port))
+			case TransportXHTTP:
+				locs = append(locs, fmt.Sprintf(`    location %s {
         proxy_pass http://127.0.0.1:%d;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
-    }`, spec.Path, spec.Port)
+    }`, def.path, def.port))
+			}
 		}
+		loc := strings.Join(locs, "\n")
 		return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Do not edit by hand.
 server {
     listen 443 ssl http2;
@@ -507,6 +701,162 @@ stream {
 `, spec.Port)
 	}
 	return ""
+}
+
+func isRealityReservedPort(p int) bool {
+	switch p {
+	case 9403, 9404, 9443, 9444:
+		return true
+	}
+	return false
+}
+
+func validateBalance(spec Spec) error {
+	for _, raw := range spec.Backends {
+		backend := strings.TrimSpace(raw)
+		host, portStr, err := net.SplitHostPort(backend)
+		if err != nil {
+			return fmt.Errorf("invalid backend %q: expected host:port", raw)
+		}
+		if !compat.RelayIsValidHost(strings.Trim(host, "[]")) {
+			return fmt.Errorf("invalid backend host %q", host)
+		}
+		port, convErr := strconv.Atoi(portStr)
+		if convErr != nil || port < 1 || port > 65535 {
+			return fmt.Errorf("invalid backend port in %q", raw)
+		}
+	}
+	if spec.BalanceRole == BalanceRoleSecondary && len(spec.Backends) > 0 {
+		return fmt.Errorf("reality-balance secondary has no Nginx front; --backend is primary only")
+	}
+	switch spec.UnknownSNIPolicy {
+	case "", "isolate", "reject":
+	case "decoy":
+		return fmt.Errorf("unknown-sni-policy decoy needs pre-existing decoy cert/site artifacts and is not generated by the Go CLI")
+	default:
+		return fmt.Errorf("unsupported unknown-sni-policy %q", spec.UnknownSNIPolicy)
+	}
+	return nil
+}
+
+func balanceDenyPort(policy string) int {
+	if policy == "reject" {
+		return 9404
+	}
+	return 9403
+}
+
+// buildRealityBalanceNginx renders the Bash nginx_reality_conf_add stream
+// block verbatim, with the operator port applied by modify_nginx_port. Paths
+// are the Bash-owned /etc/idleleo and /usr/local/nginx locations so a Go
+// deployment and a Bash deployment include the same fragments.
+func buildRealityBalanceNginx(publicPort, denyPort int) string {
+	return fmt.Sprintf(`
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        default 0;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $error_type {
+        ~^reality:0$     "tls_error";
+        ~^deny:1$        "sni_error";
+        ~^deny:0$        "tls_sni_error";
+        default          "other_error";
+    }
+
+    map $error_type $is_tls_error {
+        "tls_error"      1;
+        #"tls_sni_error"  1;
+        default          0;
+    }
+
+    map $error_type $is_sni_error {
+        "sni_error"      1;
+        "tls_sni_error"  1;
+        default          0;
+    }
+
+    upstream reality {
+        include /etc/idleleo/conf/nginx/*.realityServers;
+    }
+
+    upstream deny {
+        server 127.0.0.1:%d;
+    }
+
+    log_format tls_error_log '$remote_addr [$time_local] "$ssl_preread_server_name" '
+                             '$ssl_preread_protocol $status';
+
+    log_format sni_error_log '$remote_addr [$time_local] "$ssl_preread_server_name" '
+                             '$ssl_preread_protocol $status';
+
+    server {
+        listen %d reuseport so_keepalive=on backlog=65535;
+        proxy_pass $final_upstream;
+        ssl_preread on;
+        proxy_connect_timeout 5s;
+        proxy_timeout 300s;
+        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;
+        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;
+    }
+}
+`, denyPort, publicPort)
+}
+
+// buildRealityBalanceFragments returns the files Bash writes beside the
+// stream config. One .realityServers file holds every upstream line, which
+// matches how scripts/file_manager.sh appends backends.
+func buildRealityBalanceFragments(spec Spec, serverName string) map[string]string {
+	// Bash always keeps the local 127.0.0.1:9443 backend line and appends
+	// operator-added servers; --backend never replaces the primary.
+	primary := net.JoinHostPort("127.0.0.1", strconv.Itoa(realityBalanceBackendPort))
+	backends := []string{primary}
+	seen := map[string]bool{primary: true}
+	for _, raw := range spec.Backends {
+		backend := strings.TrimSpace(raw)
+		if seen[backend] {
+			continue
+		}
+		seen[backend] = true
+		backends = append(backends, backend)
+	}
+	var upstream strings.Builder
+	for _, backend := range backends {
+		fmt.Fprintf(&upstream, "server %s weight=50 max_fails=2 fail_timeout=10;\n", backend)
+	}
+	frags := map[string]string{
+		"127.0.0.1.realityServers":  upstream.String(),
+		serverName + ".serverNames": serverName + " reality;\n",
+	}
+	if spec.UnknownSNIPolicy == "" || spec.UnknownSNIPolicy == "isolate" {
+		frags["03-isolate.conf"] = `# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert
+server {
+    listen 127.0.0.1:9403 ssl;
+    ssl_reject_handshake on;
+    access_log off;
+    error_log /dev/null;
+}
+`
+	}
+	return frags
 }
 
 // NewUUID returns a random RFC 4122 version 4 UUID.

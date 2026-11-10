@@ -1,4 +1,4 @@
-// Package cli implements the Phase 01 candidate command surface.
+// Package cli implements the idleleo command surface.
 package cli
 
 import (
@@ -68,9 +68,11 @@ func Run(ctx context.Context, args []string, opts Options) int {
 		case "--json":
 			cfg.json = true
 		case "--help", "-h":
-			fmt.Fprint(opts.Out, i18n.T(cfg.lang, "help"))
+			announceFallback(opts, cfg.lang)
+			printHelp(opts, cfg.lang)
 			return 0
 		case "--version":
+			announceFallback(opts, cfg.lang)
 			fmt.Fprintf(opts.Out, i18n.T(cfg.lang, "version"), Version)
 			return 0
 		default:
@@ -81,13 +83,24 @@ func Run(ctx context.Context, args []string, opts Options) int {
 	if !i18n.Supported(cfg.lang) {
 		return usage(opts, "en", "help")
 	}
+	if notice := i18n.FallbackNotice(cfg.lang); notice != "" {
+		fmt.Fprint(opts.Err, notice)
+	}
 	if cmd == "" {
 		if opts.TTY {
 			return menu(ctx, opts, cfg)
 		}
 		fmt.Fprint(opts.Err, i18n.T(cfg.lang, "no_tty"))
-		fmt.Fprint(opts.Err, i18n.T(cfg.lang, "help"))
+		printHelp(opts, cfg.lang)
 		return 2
+	}
+	// Subcommand help must never fall through to command execution; without
+	// this, `xray generate --help` was parsed as a generation request.
+	for _, arg := range rest {
+		if arg == "--help" || arg == "-h" {
+			printHelp(opts, cfg.lang)
+			return 0
+		}
 	}
 	return dispatch(ctx, opts, cfg, cmd, rest)
 }
@@ -100,7 +113,7 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 	a := &app.App{Paths: paths, Lang: cfg.lang}
 	switch cmd {
 	case "help":
-		fmt.Fprint(opts.Out, i18n.T(cfg.lang, "help"))
+		printHelp(opts, cfg.lang)
 		return 0
 	case "version":
 		fmt.Fprintf(opts.Out, i18n.T(cfg.lang, "version"), Version)
@@ -147,6 +160,8 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		return statsCommand(ctx, opts, cfg, args)
 	case "service":
 		return serviceCommand(ctx, opts, cfg, args)
+	case "tcp":
+		return tcpCommand(ctx, opts, cfg, args)
 	case "rill":
 		return rillCommand(opts, cfg, args)
 	case "recover":
@@ -246,7 +261,7 @@ func menu(ctx context.Context, opts Options, cfg config) int {
 		case "3":
 			_ = dispatch(ctx, opts, cfg, "config", []string{"inspect"})
 		case "4":
-			fmt.Fprint(opts.Out, i18n.T(cfg.lang, "help"))
+			printHelp(opts, cfg.lang)
 		default:
 			fmt.Fprint(opts.Err, i18n.T(cfg.lang, "usage"))
 		}
@@ -349,8 +364,26 @@ func fail(opts Options, cfg config, err error) int {
 }
 
 func usage(opts Options, lang, key string) int {
-	fmt.Fprint(opts.Err, i18n.T(lang, key))
+	if key == "help" {
+		printHelp(opts, lang)
+	} else {
+		fmt.Fprint(opts.Err, i18n.T(lang, key))
+	}
 	return 2
+}
+
+// printHelp renders the help text with the same version string that
+// `idleleo version` prints, so the help header cannot drift from the binary.
+func printHelp(opts Options, lang string) {
+	fmt.Fprint(opts.Out, i18n.T(lang, "help", Version))
+}
+
+// announceFallback tells the operator that the requested language has no Go
+// catalog yet. Silence would look like a broken translation.
+func announceFallback(opts Options, lang string) {
+	if notice := i18n.FallbackNotice(lang); notice != "" {
+		fmt.Fprint(opts.Err, notice)
+	}
 }
 
 func hasFlag(args []string, name string) bool {

@@ -1,0 +1,5 @@
+total 122820
+drwxr-xr-x 1 root root       128 Nov  8 08:54 .
+drwxr-xr-x 1 root root        96 Nov  8 08:54 ..
+-rw-r--r-- 1 root root        11 Nov  8 08:54 xray
+-rwxr-xr-x 1 root root 125763584 Nov  8 08:54 xray.tmp

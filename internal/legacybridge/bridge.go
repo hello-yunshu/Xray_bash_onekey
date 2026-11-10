@@ -108,6 +108,7 @@ func lockForWrite(root string) (*host.UpdateLock, error) {
 type PrepareOptions struct {
 	Root                 string
 	Candidate            string
+	CandidateManifest    string
 	Recovery             string
 	AcknowledgeCustom    bool
 	Fault                string
@@ -122,6 +123,8 @@ type PrepareReport struct {
 	PlanPath         string   `json:"planPath"`
 	SnapshotPath     string   `json:"snapshotPath"`
 	CandidateSHA256  string   `json:"candidateSha256"`
+	CandidateVersion string   `json:"candidateVersion,omitempty"`
+	CandidatePinned  bool     `json:"candidatePinned"`
 	RecoverySHA256   string   `json:"recoverySha256,omitempty"`
 	MetadataPath     string   `json:"metadataPath"`
 	ProjectCronLines int      `json:"projectCronLines"`
@@ -177,13 +180,14 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 	if opts.Candidate == "" {
 		return report, audit, &Error{Code: 2, Msg: "--candidate is required"}
 	}
-	if err := runnableFile(opts.Candidate); err != nil {
-		return report, audit, &Error{Code: 2, Msg: "candidate is not an executable file", Err: err}
-	}
-	candSHA, err := hashFile(opts.Candidate)
+	candSHA, candVersion, candWarnings, err := verifyCandidate(ctx, opts.Candidate, opts.CandidateManifest)
 	if err != nil {
-		return report, audit, &Error{Code: 13, Msg: "candidate hash failed", Err: err}
+		return report, audit, &Error{Code: 2, Msg: err.Error()}
 	}
+	report.Warnings = append(report.Warnings, candWarnings...)
+	report.CandidateSHA256 = candSHA
+	report.CandidateVersion = candVersion
+	report.CandidatePinned = opts.CandidateManifest != ""
 
 	// Read the existing transaction before writing anything. A committed,
 	// activating or recovery-required journal is the only copy of the
@@ -194,8 +198,31 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 		return report, audit, err
 	}
 	switch j.State {
-	case StateActivating, StateRollbackRequired, StateRecoveryRequired, StateCommitted:
+	case StatePreparing, StateActivating, StateRollbackRequired, StateRecoveryRequired, StateCommitted:
 		return report, audit, &Error{Code: 3, Msg: "unfinished or committed bridge transaction in state " + j.State + "; run bridge recover first"}
+	}
+
+	if opts.Fault == "disk-full" {
+		// Injected before the journal so this fault keeps its contract:
+		// no journal, plan, metadata, snapshot or entry change survives.
+		return report, audit, &Error{Code: 13, Msg: "write plan failed", Err: syscall.ENOSPC}
+	}
+
+	// PREPARING must be durable before the first side effect. Without it a
+	// crash after the metadata write leaves a root that claims Go ownership
+	// while the legacy entry is still installed.
+	metaPath := mustResolve(opts.Root, metadataRel)
+	j.MetadataStaged = true
+	j.MetadataPreexisting = false
+	j.MetadataPreviousSHA256 = ""
+	if sha, err := hashFile(metaPath); err == nil {
+		j.MetadataPreexisting = true
+		j.MetadataPreviousSHA256 = sha
+	}
+	j.CandidateSHA256 = candSHA
+	j.setState(StatePreparing, "prepare started; candidate "+candVersion+" verified")
+	if err := writeJournal(opts.Root, &j); err != nil {
+		return report, audit, &Error{Code: 13, Msg: "write journal failed", Err: err}
 	}
 
 	candPath := mustResolve(opts.Root, candidateRel)
@@ -205,7 +232,6 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 	if sha, err := hashFile(candPath); err != nil || sha != candSHA {
 		return report, audit, &Error{Code: 13, Msg: "candidate copy verification failed"}
 	}
-	report.CandidateSHA256 = candSHA
 
 	if opts.Recovery != "" {
 		if err := runnableFile(opts.Recovery); err != nil {
@@ -221,11 +247,6 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 		report.RecoverySHA256 = sha
 	}
 
-	if opts.Fault == "disk-full" {
-		// Injected at the first plan write: the candidate copy may exist, but no
-		// journal, metadata, snapshot or entry change may survive.
-		return report, audit, &Error{Code: 13, Msg: "write plan failed", Err: syscall.ENOSPC}
-	}
 	if err := writePlan(opts.Root, audit); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "write plan failed", Err: err}
 	}
@@ -237,11 +258,32 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 		return report, audit, &Error{Code: 13, Msg: "write snapshot failed", Err: err}
 	}
 	report.SnapshotPath = mustResolve(opts.Root, snapshotRel)
+	if j.MetadataPreexisting {
+		backup := filepath.Join(report.SnapshotPath, "metadata.prev.json")
+		if err := copyFileAtomic(metaPath, backup, 0o640); err != nil {
+			return report, audit, &Error{Code: 13, Msg: "back up existing metadata failed", Err: err}
+		}
+	}
 
-	if err := writeMetadata(opts.Root, audit); err != nil {
+	metaBytes, err := buildMetadata(audit)
+	if err != nil {
+		return report, audit, &Error{Code: 13, Msg: "build metadata failed", Err: err}
+	}
+	j.MetadataNewSHA256 = hashBytes(metaBytes)
+	j.setState(StatePreparing, "metadata staged; journal updated before writing it")
+	if err := writeJournal(opts.Root, &j); err != nil {
+		return report, audit, &Error{Code: 13, Msg: "write journal failed", Err: err}
+	}
+	if err := writeAtomic(metaPath, metaBytes, 0o640); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "write metadata failed", Err: err}
 	}
-	report.MetadataPath = mustResolve(opts.Root, metadataRel)
+	report.MetadataPath = metaPath
+
+	if opts.Fault == "crash-after-metadata" {
+		// Keeps PREPARING on disk exactly like a process kill between the
+		// metadata write and the PREPARED update.
+		return report, audit, &Error{Code: 13, Msg: "simulated crash after metadata write", Err: errors.New("crashed between metadata and journal")}
+	}
 
 	if _, _, err := store.LoadMetadata(pathsFor(opts.Root)); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "converted metadata does not load", Err: err}
@@ -323,6 +365,9 @@ func writePlan(root string, audit Audit) error {
 }
 
 func writeAtomic(p string, b []byte, mode os.FileMode) error {
+	if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
+		return err
+	}
 	tmp := p + ".tmp"
 	f, err := os.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
@@ -426,8 +471,10 @@ func unitRelFor(name string) string {
 	return unitXrayRel
 }
 
-// writeMetadata converts ownership metadata without storing secrets.
-func writeMetadata(root string, audit Audit) error {
+// buildMetadata converts ownership metadata without storing secrets. It is
+// separated from the write so the journal can record the exact digest before
+// the file exists.
+func buildMetadata(audit Audit) ([]byte, error) {
 	meta := store.Metadata{
 		SchemaVersion: store.ManagerSchemaVersion,
 		ActiveEngine:  "xray",
@@ -457,16 +504,11 @@ func writeMetadata(root string, audit Audit) error {
 		resources = append(resources, unitNginxRel)
 	}
 	meta.OwnedResources = resources
-	p := mustResolve(root, metadataRel)
-	if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
-		return err
-	}
 	b, err := json.MarshalIndent(meta, "", "  ")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	b = append(b, '\n')
-	return writeAtomic(p, b, 0o640)
+	return append(b, '\n'), nil
 }
 
 // projectCronLines returns only the cron lines owned by this project.
@@ -980,8 +1022,25 @@ func Recover(opts RecoverOptions) (RecoverReport, error) {
 	case StateRolledBack:
 		report.State, report.Message = StateRolledBack, "already rolled back"
 		return report, nil
-	case StateDiscovered, StatePrepared, StateValidated:
+	case StateDiscovered:
 		report.Actions = append(report.Actions, "discarded unactivated candidate")
+		j.setState(StateRolledBack, "discarded before activation")
+		if err := writeJournal(opts.Root, &j); err != nil {
+			return report, &Error{Code: 13, Msg: "write journal failed", Err: err}
+		}
+		report.State = StateRolledBack
+		return report, nil
+	case StatePreparing, StatePrepared, StateValidated:
+		report.Actions = append(report.Actions, "discarded unactivated candidate")
+		actions, discardErr := discardStagedState(opts.Root, &j)
+		report.Actions = append(report.Actions, actions...)
+		if discardErr != nil {
+			j.setState(StateRecoveryRequired, "discard failed: "+discardErr.Error())
+			_ = writeJournal(opts.Root, &j)
+			report.State, report.RequiresManual = StateRecoveryRequired, true
+			report.Message = "automatic discard failed; staged metadata was left untouched for manual inspection"
+			return report, &Error{Code: 5, Msg: report.Message, Err: discardErr}
+		}
 		j.setState(StateRolledBack, "discarded before activation")
 		if err := writeJournal(opts.Root, &j); err != nil {
 			return report, &Error{Code: 13, Msg: "write journal failed", Err: err}
@@ -1003,6 +1062,65 @@ func Recover(opts RecoverOptions) (RecoverReport, error) {
 		report.State, report.RequiresManual = StateRecoveryRequired, true
 		return report, &Error{Code: 5, Msg: "unknown journal state"}
 	}
+}
+
+// discardStagedState removes what prepare staged but activation never used.
+// It exists because a crash after the metadata write used to leave a root whose
+// manager metadata claimed ownership while the legacy entry was still active:
+// prepare would then refuse to run and the next auditor would see a half
+// migration.
+func discardStagedState(root string, j *Journal) ([]string, error) {
+	actions := []string{}
+	if !j.MetadataStaged {
+		return actions, nil
+	}
+	metaPath := mustResolve(root, metadataRel)
+	current, err := hashFile(metaPath)
+	exists := err == nil
+	if err != nil && !os.IsNotExist(err) {
+		return actions, err
+	}
+	if j.MetadataPreexisting {
+		backup := filepath.Join(mustResolve(root, snapshotRel), "metadata.prev.json")
+		switch {
+		case !exists:
+			// The staged write never landed; nothing to restore.
+		case current == j.MetadataPreviousSHA256:
+			// Never replaced (or already restored); the backup is identical.
+		case j.MetadataNewSHA256 == "" || current != j.MetadataNewSHA256:
+			return actions, errors.New("manager metadata changed outside this bridge transaction; refusing to overwrite it")
+		default:
+			if _, statErr := os.Stat(backup); statErr != nil {
+				return actions, fmt.Errorf("previous manager metadata backup is missing: %w", statErr)
+			}
+			if err := copyFileAtomic(backup, metaPath, 0o640); err != nil {
+				return actions, err
+			}
+			actions = append(actions, "restored pre-migration manager metadata")
+		}
+	} else if exists {
+		if j.MetadataNewSHA256 == "" || current != j.MetadataNewSHA256 {
+			return actions, errors.New("manager metadata appeared outside this bridge transaction; refusing to delete it")
+		}
+		if err := os.Remove(metaPath); err != nil {
+			return actions, err
+		}
+		actions = append(actions, "removed staged manager metadata")
+	}
+
+	for _, rel := range []string{planRel, candidateRel} {
+		p := mustResolve(root, rel)
+		if err := os.Remove(p); err == nil {
+			actions = append(actions, "removed "+rel)
+		} else if !os.IsNotExist(err) {
+			return actions, err
+		}
+	}
+	if err := os.RemoveAll(mustResolve(root, snapshotRel)); err != nil {
+		return actions, err
+	}
+	actions = append(actions, "removed staged snapshot")
+	return actions, nil
 }
 
 func rollback(root string, j *Journal) (string, error) {

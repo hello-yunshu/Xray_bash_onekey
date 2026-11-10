@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -35,12 +37,19 @@ func xrayCommand(ctx context.Context, opts Options, cfg config, a *app.App, args
 		return xrayInstall(ctx, opts, cfg, rest)
 	case "uninstall":
 		return xrayUninstall(ctx, opts, cfg, rest)
+	case "recover":
+		return xrayRecover(ctx, opts, cfg, rest)
+	case "cert":
+		return xrayCert(ctx, opts, cfg, rest)
 	default:
 		return usage(opts, cfg.lang, "help")
 	}
 }
 
 func xrayGenerate(opts Options, cfg config, args []string) int {
+	if from := flagValue(args, "--from-config"); from != "" {
+		return xrayAdopt(opts, cfg, args, from)
+	}
 	spec, err := specFromFlags(args)
 	if err != nil {
 		return fail(opts, cfg, &change.UsageError{Msg: err.Error()})
@@ -62,6 +71,28 @@ func xrayGenerate(opts Options, cfg config, args []string) int {
 	if err := os.Chmod(out, 0o600); err != nil {
 		return fail(opts, cfg, err)
 	}
+	nginxOut := flagValue(args, "--nginx-out")
+	if g.NginxConf != "" && nginxOut != "" {
+		if err := os.WriteFile(nginxOut, []byte(g.NginxConf), 0o644); err != nil {
+			return fail(opts, cfg, err)
+		}
+	}
+	fragmentsOut := flagValue(args, "--fragments-out")
+	names := make([]string, 0, len(g.NginxFragments))
+	if fragmentsOut != "" && len(g.NginxFragments) > 0 {
+		if err := os.MkdirAll(fragmentsOut, 0o755); err != nil {
+			return fail(opts, cfg, err)
+		}
+		for name := range g.NginxFragments {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			if err := os.WriteFile(filepath.Join(fragmentsOut, name), []byte(g.NginxFragments[name]), 0o644); err != nil {
+				return fail(opts, cfg, err)
+			}
+		}
+	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	if cfg.json {
 		return writeJSON(opts, g)
@@ -69,18 +100,66 @@ func xrayGenerate(opts Options, cfg config, args []string) int {
 	fmt.Fprintf(opts.Out, "mode=%s transport=%s port=%d listen=%s\n", g.Mode, g.Transport, g.Port, g.Listen)
 	fmt.Fprintf(opts.Out, "uuid=%s shortId=%s\n", g.UUID, g.ShortID)
 	fmt.Fprintf(opts.Out, "share: %s\n", g.ShareURI)
-	if g.NginxConf != "" {
-		nginxOut := flagValue(args, "--nginx-out")
-		if nginxOut != "" {
-			if err := os.WriteFile(nginxOut, []byte(g.NginxConf), 0o644); err != nil {
-				return fail(opts, cfg, err)
-			}
-			fmt.Fprintf(opts.Out, "nginx: %s\n", nginxOut)
-		}
+	if nginxOut != "" && g.NginxConf != "" {
+		fmt.Fprintf(opts.Out, "nginx: %s\n", nginxOut)
+	}
+	for _, name := range names {
+		fmt.Fprintf(opts.Out, "fragment: %s\n", filepath.Join(fragmentsOut, name))
 	}
 	for _, w := range g.Warnings {
 		fmt.Fprintf(opts.Out, "warning=%s\n", w)
 	}
+	fmt.Fprintf(opts.Out, "config: %s\n", out)
+	return 0
+}
+
+// xrayAdopt copies an existing runtime config without changing any value. It is
+// the only supported way to bring a Bash- or third-party-managed config under
+// Go management; every regeneration path refuses to overwrite an existing
+// config unless the operator explicitly opts in.
+func xrayAdopt(opts Options, cfg config, args []string, from string) int {
+	for _, flag := range []string{"--mode", "--transport", "--port", "--uuid", "--private-key", "--domain"} {
+		if hasFlag(args, flag) || flagValue(args, flag) != "" {
+			return fail(opts, cfg, &change.UsageError{
+				Msg: "cannot combine --from-config with " + flag + "; adoption preserves the existing values",
+			})
+		}
+	}
+	out := flagValue(args, "--out")
+	if out == "" {
+		return usage(opts, cfg.lang, "help")
+	}
+	if _, statErr := os.Lstat(out); statErr == nil && !hasFlag(args, "--force") {
+		return fail(opts, cfg, &change.UsageError{Msg: "refusing to overwrite existing file (use --force)"})
+	}
+	raw, err := os.ReadFile(from)
+	if err != nil {
+		return fail(opts, cfg, err)
+	}
+	adopted, err := xraycfg.AdoptRuntime(raw)
+	if err != nil {
+		return fail(opts, cfg, &change.UsageError{Msg: err.Error()})
+	}
+	if err := os.WriteFile(out, adopted, 0o600); err != nil {
+		return fail(opts, cfg, err)
+	}
+	if err := os.Chmod(out, 0o600); err != nil {
+		return fail(opts, cfg, err)
+	}
+	info := map[string]any{
+		"adopted":  true,
+		"source":   from,
+		"config":   out,
+		"sha256":   store.HashBytes(adopted),
+		"bytes":    len(adopted),
+		"warnings": []string{"values preserved; use 'idleleo xray user add/remove' for edits"},
+	}
+	cfg.json = cfg.json || hasFlag(args, "--json")
+	if cfg.json {
+		return writeJSON(opts, info)
+	}
+	fmt.Fprintf(opts.Out, "adopted: source=%s\n", from)
+	fmt.Fprintf(opts.Out, "preserved sha256=%s bytes=%d\n", store.HashBytes(adopted), len(adopted))
 	fmt.Fprintf(opts.Out, "config: %s\n", out)
 	return 0
 }
@@ -110,7 +189,13 @@ func xrayShare(opts Options, cfg config, args []string) int {
 	if err != nil {
 		return fail(opts, cfg, err)
 	}
-	info, err := xraycfg.Share(raw, inbound, flagValue(args, "--host"), publicPort)
+	info, err := xraycfg.ShareConfig(raw, xraycfg.ShareOptions{
+		InboundIndex:   inbound,
+		Host:           flagValue(args, "--host"),
+		PublicPort:     publicPort,
+		PublicSecurity: flagValue(args, "--public-security"),
+		User:           flagValue(args, "--user"),
+	})
 	if err != nil {
 		return fail(opts, cfg, err)
 	}
@@ -118,7 +203,7 @@ func xrayShare(opts Options, cfg config, args []string) int {
 	if cfg.json {
 		return writeJSON(opts, info)
 	}
-	fmt.Fprintf(opts.Out, "mode=%s transport=%s uuid=%s host=%s port=%d\n", info.Mode, info.Transport, info.UUID, info.Host, info.Port)
+	fmt.Fprintf(opts.Out, "mode=%s transport=%s uuid=%s email=%s host=%s port=%d\n", info.Mode, info.Transport, info.UUID, info.Email, info.Host, info.Port)
 	fmt.Fprintf(opts.Out, "share: %s\n", info.ShareURI)
 	if info.ClashYAML != "" {
 		fmt.Fprint(opts.Out, info.ClashYAML)
@@ -147,8 +232,9 @@ func xrayRelay(opts Options, cfg config, args []string) int {
 		}
 		listenPort = v
 	}
+	listenAddress := flagValue(args, "--listen-address")
 	conf, err := xraycfg.RelayConf(xraycfg.RelaySpec{
-		ListenPort: listenPort, BackendHost: host, BackendPort: port,
+		ListenAddress: listenAddress, ListenPort: listenPort, BackendHost: host, BackendPort: port,
 	})
 	if err != nil {
 		return fail(opts, cfg, &change.UsageError{Msg: err.Error()})
@@ -165,9 +251,13 @@ func xrayRelay(opts Options, cfg config, args []string) int {
 	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	if cfg.json {
-		return writeJSON(opts, map[string]any{"listenPort": listenPort, "target": target, "conf": conf})
+		return writeJSON(opts, map[string]any{"listenAddress": listenAddress, "listenPort": listenPort, "target": target, "conf": conf})
 	}
-	fmt.Fprintf(opts.Out, "relay: %s -> %s\n", net.JoinHostPort("0.0.0.0", strconv.Itoa(listenPort)), target)
+	showAddr := listenAddress
+	if showAddr == "" {
+		showAddr = "0.0.0.0"
+	}
+	fmt.Fprintf(opts.Out, "relay: %s -> %s\n", net.JoinHostPort(showAddr, strconv.Itoa(listenPort)), target)
 	fmt.Fprintf(opts.Out, "nginx: %s\n", out)
 	return 0
 }
@@ -311,8 +401,26 @@ func xrayInstall(ctx context.Context, opts Options, cfg config, args []string) i
 		Port:                 spec.Port,
 		Domain:               spec.Domain,
 		Target:               spec.Target,
+		Path:                 spec.Path,
+		ServiceName:          spec.ServiceName,
+		UUID:                 spec.UUID,
+		Email:                spec.Email,
+		Flow:                 spec.Flow,
+		PrivateKey:           spec.PrivateKey,
+		ShortID:              spec.ShortID,
+		CertFile:             spec.CertFile,
+		KeyFile:              spec.KeyFile,
+		Listen:               spec.Listen,
+		PublicPort:           spec.PublicPort,
 		ServerNames:          spec.ServerNames,
+		BalanceRole:          spec.BalanceRole,
+		Backends:             spec.Backends,
+		UnknownSNIPolicy:     spec.UnknownSNIPolicy,
+		AllowNonLoopback:     spec.AllowNonLoopback,
 		KeepConfig:           hasFlag(args, "--keep-config"),
+		RewriteConfig:        hasFlag(args, "--rewrite-config"),
+		ExternalNginxManaged: hasFlag(args, "--external-nginx-managed"),
+		NginxBin:             flagValue(args, "--nginx-bin"),
 		NoService:            hasFlag(args, "--no-service"),
 		AllowContainerWrites: hasFlag(args, "--container"),
 	})
@@ -326,6 +434,9 @@ func xrayInstall(ctx context.Context, opts Options, cfg config, args []string) i
 	fmt.Fprintf(opts.Out, "installed: mode=%s transport=%s tls=%s\n", report.Mode, report.Transport, report.TLS)
 	fmt.Fprintf(opts.Out, "config=%s sha256=%s\n", report.ConfigPath, report.ConfigSHA256)
 	fmt.Fprintf(opts.Out, "service active=%s enabled=%s\n", report.ServiceActive, report.ServiceEnabled)
+	if report.NginxManaged {
+		fmt.Fprintf(opts.Out, "nginx managed=%t verified=%t dir=%s\n", report.NginxManaged, report.NginxVerified, report.NginxDir)
+	}
 	for _, w := range report.Warnings {
 		fmt.Fprintf(opts.Out, "warning=%s\n", w)
 	}
@@ -350,6 +461,26 @@ func xrayUninstall(ctx context.Context, opts Options, cfg config, args []string)
 	return 0
 }
 
+func xrayRecover(ctx context.Context, opts Options, cfg config, args []string) int {
+	report, err := deploy.Recover(ctx, deploy.RecoverSpec{
+		Root:                 cfg.root,
+		AllowContainerWrites: hasFlag(args, "--container"),
+	})
+	if err != nil {
+		return fail(opts, cfg, err)
+	}
+	cfg.json = cfg.json || hasFlag(args, "--json")
+	if cfg.json {
+		return writeJSON(opts, report)
+	}
+	fmt.Fprintf(opts.Out, "recovery journal=%s action=%s converged=%t restored=%d\n",
+		report.JournalState, report.Action, report.Converged, report.Restored)
+	for _, w := range report.Warnings {
+		fmt.Fprintf(opts.Out, "warning=%s\n", w)
+	}
+	return 0
+}
+
 func specFromFlags(args []string) (xraycfg.Spec, error) {
 	spec := xraycfg.Spec{
 		Mode:             flagValue(args, "--mode"),
@@ -364,6 +495,13 @@ func specFromFlags(args []string) (xraycfg.Spec, error) {
 		PrivateKey:       flagValue(args, "--private-key"),
 		ShortID:          flagValue(args, "--short-id"),
 		AllowNonLoopback: hasFlag(args, "--allow-non-loopback"),
+		BalanceRole:      flagValue(args, "--role"),
+		UnknownSNIPolicy: flagValue(args, "--unknown-sni-policy"),
+	}
+	for i, a := range args {
+		if a == "--backend" && i+1 < len(args) {
+			spec.Backends = append(spec.Backends, args[i+1])
+		}
 	}
 	if raw := flagValue(args, "--listen"); raw != "" {
 		spec.Listen = raw

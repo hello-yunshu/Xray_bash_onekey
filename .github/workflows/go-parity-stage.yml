@@ -32,6 +32,13 @@ jobs:
           go vet ./...
           go test ./...
           go build -trimpath -o /tmp/idleleo ./cmd/idleleo
+      - name: A2 comparator mutation self-test and committed-runtime compare
+        run: |
+          set -euo pipefail
+          python3 current/tests/go-parity/a2/compare_real_runtime.py --self-test
+          python3 current/tests/go-parity/a2/compare_real_runtime.py \
+            --evidence current/tests/go-parity/evidence/a2-2026-11-08 \
+            --go-bin /tmp/idleleo --out /tmp/a2-compare.json
       - name: Native Go L0 against the pinned Bash baseline
         run: |
           set -euo pipefail

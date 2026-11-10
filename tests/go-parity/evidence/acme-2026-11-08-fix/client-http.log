@@ -1,0 +1,8 @@
+127.0.0.1 - - [08/Nov/2026 16:02:04] code 404, message File not found
+127.0.0.1 - - [08/Nov/2026 16:02:04] "GET /.well-known/acme-challenge/probe HTTP/1.1" 404 -
+192.168.97.2 - - [08/Nov/2026 16:02:04] "GET /.well-known/acme-challenge/OdQdF-AYcrNTZ0WepI5t-VAC7pLTisl1VRf5F_pe9e4 HTTP/1.1" 200 -
+192.168.97.2 - - [08/Nov/2026 16:02:04] "GET /.well-known/acme-challenge/OdQdF-AYcrNTZ0WepI5t-VAC7pLTisl1VRf5F_pe9e4 HTTP/1.1" 200 -
+192.168.97.2 - - [08/Nov/2026 16:02:04] "GET /.well-known/acme-challenge/OdQdF-AYcrNTZ0WepI5t-VAC7pLTisl1VRf5F_pe9e4 HTTP/1.1" 200 -
+192.168.97.2 - - [08/Nov/2026 16:02:19] "GET /.well-known/acme-challenge/kLezR6DKKluxUEq5hSuMlVC8FSD-T-ECUy_rztuKOSc HTTP/1.1" 200 -
+192.168.97.2 - - [08/Nov/2026 16:02:19] "GET /.well-known/acme-challenge/kLezR6DKKluxUEq5hSuMlVC8FSD-T-ECUy_rztuKOSc HTTP/1.1" 200 -
+192.168.97.2 - - [08/Nov/2026 16:02:19] "GET /.well-known/acme-challenge/kLezR6DKKluxUEq5hSuMlVC8FSD-T-ECUy_rztuKOSc HTTP/1.1" 200 -

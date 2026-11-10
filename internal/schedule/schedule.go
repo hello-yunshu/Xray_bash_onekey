@@ -7,8 +7,10 @@
 //   - auto-update uses the Go release channel when one is configured and
 //     records an explicit degraded result when it is not (the legacy Bash
 //     updater has been removed, so guessing a URL is not acceptable);
-//   - cert-renew monitors certificate expiry but never performs ACME issuance
-//     (real ACME is out of scope for this phase).
+//   - cert-renew monitors certificate expiry but does not drive ACME itself:
+//     issuance/renewal exists as `idleleo xray cert issue|renew` and has been
+//     verified against a local CA (Pebble) only, not a public CA, and it is not
+//     wired into this scheduler yet, so the legacy ssl_update.sh cron stays.
 //
 // geodata-refresh and stats-collect are fully implemented with the real asset
 // origin and the real Xray API.
@@ -70,7 +72,7 @@ var Jobs = []string{"auto-update", "cert-renew", "geodata-refresh", "stats-colle
 // auto_update.sh and ssl_update.sh until Go has equivalent executors.
 var DegradedJobs = []string{
 	"auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)",
-	"cert-renew: certificate expiry is monitored but ACME issuance/renewal is not implemented, so the legacy ssl_update.sh cron is retained (explicit degradation; renew externally)",
+	"cert-renew: certificate expiry is monitored; native ACME issuance/renewal exists as `idleleo xray cert issue|renew` but is verified against a local CA (Pebble) only, not a public CA, and is not wired into this scheduler, so the legacy ssl_update.sh cron is retained (explicit degradation)",
 }
 
 // Config is the persisted schedule definition.
@@ -523,13 +525,13 @@ func certRenewJob(ctx context.Context, root, at string) JobResult {
 	}
 	switch {
 	case days < 0:
-		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expired %d days ago; ACME renewal is not implemented (explicit degradation)", obs.Name, -days)}
+		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expired %d days ago; automatic ACME renewal is not wired into this scheduler (explicit degradation; run 'idleleo xray cert renew' with an explicit --directory, or the legacy ssl_update.sh)", obs.Name, -days)}
 	case changed:
 		detail += fmt.Sprintf(" changed (sha256=%s); %s; expires in %d days", short(obs.Fingerprint), reload, days)
 	case baseline:
 		detail += fmt.Sprintf(" baseline recorded (sha256=%s); no restart; expires in %d days", short(obs.Fingerprint), days)
 	case days < 30:
-		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expires in %d days, unchanged; ACME issuance/renewal is not implemented (explicit degradation; renew externally)", obs.Name, days)}
+		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expires in %d days, unchanged; automatic ACME renewal is not wired into this scheduler (explicit degradation; run 'idleleo xray cert renew' with an explicit --directory, or the legacy ssl_update.sh)", obs.Name, days)}
 	default:
 		detail += fmt.Sprintf(" unchanged; expires in %d days; no restart", days)
 	}

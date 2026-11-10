@@ -1,0 +1,26 @@
+run=none-xhttp
+date=2026-11-08T14:55:00Z
+image=sha256:e6939802735a7555044f400f006460d63ac28732d785610f9b79a36b2f505590
+install_source_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f
+systemd_state=running
+container_ipv4=192.168.215.9
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=1
+captured /etc/idleleo/conf/xray/config.json -> runtime/config.sanitized.json (sanitized)
+MISSING /etc/idleleo/conf/install_config.json
+MISSING /etc/idleleo/info/xray_info.inf
+xray_test_exit=0
+runtime_sha256=9f8e8b957a2c8b462c8532263746fb0afe2d9fdce4ffe7e88d547cf94920a03f
+captured identity fingerprints (no secrets)
+done=none-xhttp install_exit=1
+install_exit=0
+executed_script_sha256=a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c
+executed_shell_version="3.3.6"
+captured /etc/idleleo/conf/xray/config.json -> runtime/config.sanitized.json (sanitized)
+captured /etc/idleleo/conf/install_config.json -> metadata/install_config.sanitized.json (sanitized)
+captured /etc/idleleo/info/xray_info.inf -> metadata/xray_info.sanitized.inf (sanitized)
+xray_test_exit=0
+runtime_sha256=7bec8989c7fa3b9a3671c44e77cb1c81f356a7dd106777fac51c3aa11c7f8e18
+captured identity fingerprints (no secrets)
+done=none-xhttp install_exit=0

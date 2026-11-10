@@ -2,18 +2,31 @@
 
 > 本文件只记录**证据变化**，不改变授权账本。
 > `tests/go-parity/parity/cases/feature_contracts.json` 仍为 **28 ×
-> `PENDING_GO_IMPLEMENTATION`**，`evidence=null`；本轮**没有**因为夹具或容器通过而升格。
+> `PENDING_GO_IMPLEMENTATION`**，`evidence=null`；**没有**因为夹具或容器通过而升格。
 > 状态标签含义见 [FUNCTION_PARITY.md](../go/FUNCTION_PARITY.md) 第 1 节。
 
 ## 1. 总览
 
 | 结论 | 数量 |
 |---|---|
-| 状态标签发生变化 | **0** |
-| 证据加强、标签不变 | 7（F11、F12、F14、F15、F22、F27、F28） |
-| 完全不变 | 21 |
+| 状态标签发生变化 | **3**（F04、F12、F25） |
+| 证据加强、标签不变 | 6（F11、F14、F15、F22、F27、F28） |
+| 完全不变 | 19 |
 | 升格为「已验证」 | **0** |
 | 授权账本 `VERIFIED_GO_PARITY` | **0 / 28** |
+
+> 2026-11-11 preview 通道另新增 6 个可执行夹具（见第 6 节）：可执行夹具 6/28，
+> 状态标签与签收结论均不变。
+
+### 1.1 验证口径（2026-11-06 用户授权）
+
+- **阶段门禁**：`CONTAINER_VERIFIED`（固定 digest 容器内真实执行，记录镜像、命令、输出、
+  结论）**即视为 Phase 02/04 的出口门槛满足**；`REAL_VPS_VERIFIED` 保留为更高等级，不再强制。
+  依据：[02_Xray完整能力.md](../go-migration/phases/02_Xray完整能力.md#L120-L124)、
+  [04_验收发布与回退.md](../go-migration/phases/04_验收发布与回退.md#L101-L105)。
+- **F01–F28 签收**：容器级结果**不得**据此升格为「已验证」或 `VERIFIED_GO_PARITY`。
+  签收仍要求 `feature_contracts.json` 状态、真实 `Fxx_test.py` 执行器与受保护 CI 三条同时满足
+  （见第 3 节）。环境门槛与功能签收是两套判定，不能互相替代。
 
 容器 E2E 全量：`42 / 42 PASS`（`/tmp/phase04-c.log`）。
 Phase 02/03 的 201/201、83/83 L0 等证据仍只在其原范围内有效。
@@ -22,18 +35,18 @@ Phase 02/03 的 201/201、83/83 L0 等证据仍只在其原范围内有效。
 
 | ID | 功能 | Phase 04 后 Go 状态 | 本轮证据 / 变化 |
 |---|---|---|---|
-| F01 | Reality 安装（普通/加 Nginx） | 部分实现（容器级） | 无新增；沿用 Phase 02 容器内 systemd + Reality 数据面证据 |
+| F01 | Reality 安装（普通/加 Nginx） | 部分实现（容器级） | 无新增；沿用 Phase 02 容器内 systemd + Reality 数据面证据；preview 夹具 `F01_test.py` 全绿（真实安装 + SOCKS 握手取回 HTTP 200） |
 | F02 | TLS ws/gRPC/xHTTP/组合 | 部分实现（容器级） | 无新增；TLS 真实证书仍不纳入 |
 | F03 | ws ONLY | 部分实现（容器级） | 无新增 |
-| F04 | Reality primary/secondary 负载均衡 | 未实现 | 无变化 |
-| F05 | 独立 relay（Nginx Stream） | 部分实现（容器级） | 无新增；沿用 Phase 02 真实 TCP 转发 |
+| F04 | Reality primary/secondary 负载均衡 | 部分实现（容器级） | **标签变化**：`--mode reality-balance --role primary/secondary` 生成真实 Nginx stream + 两个真实 Xray Reality 后端；`evidence/balance-e2e-2026-11-08` 容器 e2e 5/5 PASS（轮询命中、双后端、secondary 宕机时 primary 全量承载、重启后恢复、未知 SNI 拒绝）。**未做真实双 VPS 故障切换**，不升格 |
+| F05 | 独立 relay（Nginx Stream） | 部分实现（容器级） | 无新增；沿用 Phase 02 真实 TCP 转发；preview 夹具 `F05_test.py` 全绿（独立 nginx + 两次逐字节回显，且不创建 Xray/UUID/证书）。GitHub Actions 上 `/etc/idleleo` 不存在，空树哈希前后相等的断言强度弱于容器 |
 | F06 | 用户查看/添加/删除、UUIDv5 | 部分实现（容器级） | 无新增；UUIDv5 仍未实现 |
 | F07 | shortId / spiderX / 用户映射 | 部分实现（容器级） | 无新增 |
 | F08 | 端口、target、serverNames、SNI Guard | 部分实现（容器级） | 无新增；SNI Guard 未实现 |
 | F09 | `--add-upstream` | 未实现 | 无变化 |
 | F10 | `--tls` 版本变更 | 未实现 | 无变化 |
-| F11 | 服务状态/启停/日志 | 部分实现（容器级） | **证据加强**：`service status/start/stop/restart/reload/logs` 全部真机执行；日志读取从“未实现”变为已实现；非法 unit exit 2、sandbox root 拒绝 exit 2 |
-| F12 | 证书状态/签发/续期/清理 | 未实现（有到期监控） | **证据加强**：证书 DER 指纹基线、变化才重启 Xray / reload Nginx、未变不重启、world-readable 私钥拒绝、<30 天显式降级；**ACME 签发/续期/清理仍未实现**，标签不升格 |
+| F11 | 服务状态/启停/日志 | 部分实现（容器级） | **证据加强**：`service status/start/stop/restart/reload/logs` 全部真机执行；日志读取从“未实现”变为已实现；非法 unit exit 2、sandbox root 拒绝 exit 2；preview 夹具 `F11_test.py` 全绿（journal 启动计数严格递增） |
+| F12 | 证书状态/签发/续期/清理 | 部分实现（本地 CA） | **标签变化**：原生 ACME v2（JWS ES256 / Replay-Nonce / HTTP-01）在 Pebble 本地 CA 完成账户注册、签发、窗口内跳过、强制续期；证书对 `temp+fsync+rename` 原子替换、证书 0644 / 私钥 0600、reload 失败恢复旧证书对且旧对仍可验证；负面覆盖 webroot 失效、reload 失败、只读目标、CA 拒绝域名（`evidence/acme-2026-11-08-fix`）。**公网 CA、DNS-01、EAB、真实域名未验证** |
 | F13 | `--update`、`--xray-update`、`--nginx-update` | 未实现 | 无变化。本轮 Go 自更新只更新 `idleleo` 自身，不等于 Xray/Nginx 更新 |
 | F14 | `--auto-update` 与 cron | 部分实现（容器级） | **证据加强**：配置 Go 通道后真实 `0.3.0 → 0.4.0` 定时升级；未配置时 `degraded` 且保留旧二进制；**仍不覆盖旧 cron 的 Xray/Nginx 自动更新语义** |
 | F15 | `--stats` / `--json` / watch / reset | 部分实现（容器级） | **证据加强**：`idleleo stats` 真实调用 `xray api statsquery` 返回 inbound 计数；`--json` 原样输出；非 root exit 5、API down exit 8；**watch/reset 仍未实现** |
@@ -46,10 +59,10 @@ Phase 02/03 的 201/201、83/83 L0 等证据仍只在其原范围内有效。
 | F22 | Rill 观察/诊断/授权/卸载 | 部分实现（容器级） | **证据加强**：只读 `rill status` 在 absent / active / stale 三种真实状态下正确输出，且不写 Rill 状态；**安装/诊断/授权/两阶段卸载命令仍未迁移** |
 | F23 | 六语言 | 部分实现（容器级） | 无新增；fr/fa/ru/ko 仍回退英文 |
 | F24 | Docker 交付 | 未实现 | 无变化。本轮用 Docker 做测试环境，不等于产品 Docker 交付 |
-| F25 | TCP 优化/测速 | 未实现 | 无变化；D3 安全差异仍待实现 |
-| F26 | XTLS ONLY 旧模式 | 部分实现（容器级） | 无新增；按设计只读识别/阻断 |
-| F27 | `--backup/--restore/--purge/--service-*` | 部分实现（容器级） | **证据加强**：`--service-*` 等价能力（status/start/stop/restart/reload/logs）已实现并实测；`backup/restore/purge` 仍未实现 |
-| F28 | 运行态与分享信息展示 | 部分实现（容器级） | **证据加强**：`help`、`show`、`stats` 只读路径在真实安装上执行，且 `/etc/idleleo` 零写入；输出契约仍未与 Bash 逐字段差分 |
+| F25 | TCP 优化/测速 | 部分实现（容器级） | **标签变化**：`idleleo tcp status/plan/apply/rollback` 只管理 `/etc/sysctl.d/90-idleleo-tcp.conf`（profile `bbr-fq`）；20 项单测 + 30 项容器断言覆盖幂等、部分失败回滚、journal pending、漂移、符号链接、非 root、内核不支持。**仍不执行 `tcp.sh`、不做测速** |
+| F26 | XTLS ONLY 旧模式 | 部分实现（容器级） | **证据加强**：preview 夹具 `F26_test.py` 复验 audit 判定 `blocked` + `legacy-xtls-removed`，prepare exit 3，审计与 prepare 前后全树哈希不变，整棵根下不存在任何 journal 文件 |
+| F27 | `--backup/--restore/--purge/--service-*` | 部分实现（容器级） | **证据加强**：`--service-*` 等价能力（status/start/stop/restart/reload/logs）已实现并实测；preview 夹具 `F27_test.py` 实测 `uninstall` 保留配置、`--purge` 删除配置与自有目录、二次 purge 幂等；**`backup/restore` 仍未实现（`not_verified`）** |
+| F28 | 运行态与分享信息展示 | 部分实现（容器级） | **证据加强**：`help`、`show`、`stats` 只读路径在真实安装上执行，且 `/etc/idleleo` 零写入；preview 夹具 `F28_test.py` 逐字段断言 `show/status/share` 输出并证明三个命令零写入；**仍与 Bash 逐字段差分未完成** |
 
 ## 3. 为什么没有升级任何一项
 
@@ -59,10 +72,13 @@ Phase 02/03 的 201/201、83/83 L0 等证据仍只在其原范围内有效。
 2. `tests/go-parity/parity/features/Fxx_test.py` 真实存在并在受保护 CI 中执行；
 3. 结果来自源码构建，而不是人工填写的 evidence。
 
-本轮只新增了**容器级实现与运行证据**，上述 1–3 均未满足：
+本轮新增的是 **F04/F12/F25 的 Go 实现与容器级运行证据**，以及 F11/F14/F15/F22/F27/F28
+的补充证据；2026-11-11 又新增 6 个可执行 preview 夹具（F01/F05/F11/F26/F27/F28）。
+但上述 1–3 仍未满足：账本未改、仅 6/28 执行器存在（22 个仍缺）、结果不是受保护发布 CI 产出，
+因此没有任何一项升格为「已验证」。
 
 ```text
-RELEASE BLOCKED: pending 28; missing executable feature tests 28
+RELEASE BLOCKED: pending 28; missing executable feature tests 22
 ```
 
 因此 F01–F28 保持原状态；加强的只是备注中的证据描述。
@@ -84,12 +100,12 @@ RELEASE BLOCKED: pending 28; missing executable feature tests 28
 Bash 侧修复，Go 二进制、bridge 清单和 `VERIFIED_GO_PARITY` 都没有发布；按硬约束
 “现在是 Go 实验性、需显式选择”，矩阵必须保持红。
 
-未实现项按解锁条件分三类，本轮都没有条件执行：
+未签收项按解锁条件分三类；F04/F12 已完成容器级前沿，剩余条件如下：
 
 | 类别 | 代表项 | 现在缺什么才能判定 |
 |---|---|---|
-| 需要真实公网与 CA | F12（ACME 签发/续期/清理） | 真实域名 + 可访问 CA + DNS-01/HTTP-01 环境；容器内无法签发 |
-| 需要真实多机/数据面 | F04（主备负载均衡）、F24/F25（多入口/多落地） | 至少两台真实 VPS、真实 DNS 与故障切换观测；容器只能证明单机路径 |
+| 需要真实公网与 CA | F12（ACME 签发/续期/清理） | **本地 CA 已闭环**（Pebble：签发/续期/负面）；仍缺真实域名 + 公网 CA + DNS-01/EAB 环境才能签收 |
+| 需要真实多机/数据面 | F04（主备负载均衡）、F24/F25（多入口/多落地） | **F04 容器 e2e 已闭环**（真实 nginx + 双 Xray 后端 + 真实客户端）；仍缺两台真实 VPS 的真实故障切换观测 |
 | 需要先发布 Go 通道 | F09/F10/F13/F17/F20/F21 等 Go 原生入口 | 发布 Go 二进制与 bridge 清单，并在发布后重跑同一可执行测试；不能用 Bash 夹具替代 |
 
 `C12.1` / `C12.2` 本轮仍为 **FAIL**，但原因已经收敛为**一行有意的加固**：
@@ -116,3 +132,58 @@ Bash 侧修复，Go 二进制、bridge 清单和 `VERIFIED_GO_PARITY` 都没有�
 > 跳过）：**34 / 34 通过，0 失败**，`C12.1` / `C12.2` / `C12.4` 全绿。
 > `phase01/evidence/` 已更新为本次 34/34 结果；2026-11-06 带真实 Xray 的
 > 33/35 运行作为历史记录保留在本节文字中。
+
+## 6. 2026-11-11 preview 通道（6 个可执行夹具）
+
+**结论：可执行夹具从 0/28 变为 6/28，正式签收仍是 `0 / 28`，不升格任何一项。**
+
+preview 通道与发布闸门隔离：
+
+- `tests/go-parity/parity/scripts/check_preview_gate.py`：首行打印
+  `PREVIEW — NOT FOR RELEASE`，结尾 `release authority: NONE`；
+- `tests/go-parity/parity/cases/preview_contract.json`：只列已有夹具的子集，
+  条目状态保持 `PENDING_PREVIEW`，不写证据、不升格；
+- 运行前后各校验一次 `check_release_gate.py`（`d7493b28…2564`）与
+  `feature_contracts.json`（`670f4c29…efed`）的 SHA-256，任一变化即红灯；
+- 不接受 tag/release，只接受容器证据或 `GITHUB_ACTIONS=true`。
+
+本轮 6 个夹具各跑两遍全绿（固定 digest 镜像 `idleleo-preview:latest`）：
+
+| ID | 夹具 | 实际执行 | 结果 |
+|---|---|---|---|
+| F01 | `F01_test.py` | Reality 真实安装 + systemd + SOCKS 客户端取回 HTTP 200 | PASS |
+| F05 | `F05_test.py` | 独立 nginx stream + 本地 echo 两次逐字节回显；副作用哈希不变 | PASS |
+| F11 | `F11_test.py` | systemd 启停/重载/journal 计数 1→2→3；非法 unit 与 sandbox 拒绝 | PASS |
+| F26 | `F26_test.py` | XTLS 旧布局 → audit `blocked`/`legacy-xtls-removed`；prepare exit 3；无 journal | PASS |
+| F27 | `F27_test.py` | 版本/帮助/退出码；uninstall 保留配置、`--purge` 删除、二次 purge 幂等 | PASS |
+| F28 | `F28_test.py` | `show/status/share` 逐字段断言 + 密钥派生；三个命令零写入 | PASS |
+
+当前发布闸门实测输出（同一容器内执行）：
+
+```text
+RELEASE BLOCKED: pending 28; missing executable feature tests 22
+```
+
+负向验证（同一门禁环境，全部留实际输出于
+`tests/go-parity/evidence/preview-2026-11-11/negative/`）：
+
+| 场景 | 退出码 | 命中信息 |
+|---|---|---|
+| 缺 `F05_test.py` | 2 | `missing executable feature fixtures: F05:…` |
+| 改 `check_release_gate.py` | 2 | `check_release_gate.py changed; preview may not run against a modified release gate` |
+| 改账本状态 | 2 | `feature_contracts.json changed; preview must not alter the release ledger` |
+| 改状态并同步重钉哈希 | 2 | `release ledger is no longer all PENDING: F11` |
+| 反转 F05 回显断言 | 2 | `FAIL first TCP connection echoed byte-for-byte` + `RED (1 failed: F05)` |
+| 全部还原后回归 | 0 | `F01…F28` 6/6 PASS |
+
+**仍然未验证的边界**：
+
+- F02/F04/F12 不在 preview：分别缺真实域名证书、双机主备、公网 CA/DNS-01/EAB；
+- F27 的 `backup/restore` 未实现，契约保持 `not_verified`，未用 `uninstall/purge` 替代；
+- F28 只断言 Go 自身字段契约，**未与 Bash 输出逐字段差分**；
+- `ci/go-preview-qualification.yml` 已在 GitHub Actions 实跑（`ubuntu-24.04`）：
+  runner 没有 `/opt/xray`，靠 `install -D` 创建；gate 以 `sudo -E` 运行以满足夹具的 root 前置。
+- runner 的 `systemctl is-system-running` 实测返回 `starting` 或 `degraded`，两次 rc 都是 1，
+  只有状态字不同；夹具对 `running`/`degraded` 最多等待 30 秒（1.5 秒轮询），
+  超时仍按 `UNSUPPORTED_ENVIRONMENT` exit 2，**不接受 `starting`**。
+- `UNSUPPORTED_ENVIRONMENT` 不再算通过：`need()` 仍写 `fixture-result.json`，再以 exit 2 退出。

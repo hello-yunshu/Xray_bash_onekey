@@ -1,0 +1,8 @@
+{
+  "uuid": "<redacted-uuid>",
+  "serverName": "www.cloudflare.com",
+  "publicKey": "u_GejouoS-XeML8bYONDsCpBO6KTTco9ZfMJIQcP6i4",
+  "shortId": "60fb6ec1",
+  "primaryPort": 8443,
+  "secondaryPort": 10444
+}

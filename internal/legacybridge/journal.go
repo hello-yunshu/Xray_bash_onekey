@@ -11,11 +11,14 @@ import (
 )
 
 // Bridge states follow the Phase 03 contract. The sequence is
-// DISCOVERED -> PREPARED -> VALIDATED -> ACTIVATING -> COMMITTED.
+// DISCOVERED -> PREPARING -> PREPARED -> VALIDATED -> ACTIVATING -> COMMITTED.
+// PREPARING is written before the first side effect (candidate copy, plan,
+// snapshot, metadata) so a crash cannot leave unrecorded state behind.
 // Any interruption after ACTIVATING either rolls back (ROLLED_BACK), asks for
 // a retry (ROLLBACK_REQUIRED) or stops with an honest RECOVERY_REQUIRED.
 const (
 	StateDiscovered       = "DISCOVERED"
+	StatePreparing        = "PREPARING"
 	StatePrepared         = "PREPARED"
 	StateValidated        = "VALIDATED"
 	StateActivating       = "ACTIVATING"
@@ -59,6 +62,13 @@ type Journal struct {
 	DegradedJobs    []string `json:"degradedJobs,omitempty"`
 	Steps           []Step   `json:"steps"`
 	LastError       string   `json:"lastError,omitempty"`
+
+	// Metadata staging bookkeeping. A PREPARING crash must be recoverable
+	// without guessing whether manager metadata existed before.
+	MetadataStaged         bool   `json:"metadataStaged,omitempty"`
+	MetadataPreexisting    bool   `json:"metadataPreexisting,omitempty"`
+	MetadataPreviousSHA256 string `json:"metadataPreviousSha256,omitempty"`
+	MetadataNewSHA256      string `json:"metadataNewSha256,omitempty"`
 }
 
 func now() string { return time.Now().UTC().Format(time.RFC3339) }
