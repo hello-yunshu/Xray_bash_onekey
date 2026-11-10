@@ -1,0 +1,61 @@
+# Copy to .github/workflows/ only after reviewing the environment assumptions.
+# This workflow has read-only repository permission and no tag/release step.
+name: Go preview qualification (NOT FOR RELEASE)
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    if: github.ref_type != 'tag' && github.event_name != 'release'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install preview runtime prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends nginx libnginx-mod-stream curl jq
+          sudo systemctl start nginx
+          arch=$(uname -m)
+          case "$arch" in
+            x86_64) asset=Xray-linux-64.zip ;;
+            aarch64|arm64) asset=Xray-linux-arm64-v8a.zip ;;
+            *) echo "unsupported runner arch $arch" >&2; exit 2 ;;
+          esac
+          curl -fsSL --retry 3 -o /tmp/xray.zip \
+            "https://github.com/XTLS/Xray-core/releases/latest/download/$asset"
+          python3 -m zipfile -e /tmp/xray.zip /tmp/xray
+          sudo install -m 0755 /tmp/xray/xray /opt/xray/xray
+          /opt/xray/xray version
+
+      - name: Build the Go manager from this checkout
+        run: go build -trimpath -o "$RUNNER_TEMP/idleleo" ./cmd/idleleo
+
+      - name: Preview qualification (no release authority)
+        env:
+          IDLELEO_PREVIEW_EVIDENCE: ${{ runner.temp }}/preview-evidence
+        run: |
+          mkdir -p "$IDLELEO_PREVIEW_EVIDENCE"
+          python3 tests/go-parity/parity/scripts/check_preview_gate.py \
+            --go-bin "$RUNNER_TEMP/idleleo" \
+            --bash-repo "$GITHUB_WORKSPACE" \
+            --evidence "$IDLELEO_PREVIEW_EVIDENCE"
+
+      - name: Upload preview evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-evidence
+          path: ${{ runner.temp }}/preview-evidence
+          if-no-files-found: warn
