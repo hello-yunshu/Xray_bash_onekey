@@ -6,13 +6,13 @@
 > 当前 `main` 为 `04d76c2`（v3.3.6 之后追加了一次自动翻译提交；tag `v3.3.6`
 > 指向 `0fa7052e`）。与 `4752f77` 相比，`install.sh` 只差“删除 `-u` 死标志”
 > 一行与版本号，`scripts/`、`config/` 无差异。
-> **2026-11-08 状态**：分支 `audit/bash-go-native-parity` 在固定 digest 容器内复跑
-> Phase 01–04，真实结果为 **33/35、36/36、219/219、42/42**（见
-> [DOCKER_MIGRATION_ACCEPTANCE.md](DOCKER_MIGRATION_ACCEPTANCE.md)）。Phase 01 的
-> C12.1/C12.2 为红：`2d44d98` 的 logrotate `ReadWritePaths` 修复在 v3.3.6 发布后
-> 修改了 `install.sh`（+26/−1），本轮不篡改 pin，差异如实保留。Go 侧新增
-> `idleleo tcp status/plan/apply/rollback`（仅管理项目自有 sysctl 文件），F25 因此
-> 从「未实现」升到「部分实现（容器级）」；其余 27 项状态不变，正式签收仍 **0/28**。
+> **2026-11-11 状态**：在 2026-11-08 固定 digest 容器复跑（Phase 01–04：
+> **33/35、36/36、219/219、42/42**，见 [DOCKER_MIGRATION_ACCEPTANCE.md](DOCKER_MIGRATION_ACCEPTANCE.md)）
+> 之上，修复分支补齐 `idleleo tcp`、Reality 主备容器 e2e 与原生 ACME（本地 CA）。
+> F04 由「未实现」升为「部分实现（容器级）」，F12 由「未实现（有到期监控）」升为
+> 「部分实现（本地 CA）」，F25 由「未实现」升为「部分实现（容器级）」；其余 25 项状态不变，
+> 正式签收仍 **0/28**。Phase 01 的 C12.1/C12.2 仍为红：`2d44d98` 的 logrotate
+> `ReadWritePaths` 修复在 v3.3.6 发布后修改了 `install.sh`（+26/−1），本轮不篡改 pin，差异如实保留。
 > `4752f77` 仍是 F01–F28 的**行为基线**（3.3.6 仅删除了一行不可达的 `-u` 死标志，
 > 行为未变）。本仓库中**存在 Phase 01 候选 Go 管理器**（`cmd/idleleo`，只在隔离
 > 沙盒执行变更），它不是生产替代品；`tests/go-parity/prototype` 仍只是参考原型。
@@ -123,7 +123,7 @@ TCP 事务/回退均有实测证据。
 | F11 | 服务状态/启停/日志 | `test_offline_commands`、`test_phase1_safety` | 已验证 | 部分实现（容器级） | Phase 04 新增 `service status/start/stop/restart/reload/logs`，仅限自有 unit；容器内实测 `xray=active`、restart 计数 3→4、stop/start、journal 日志、非法 unit exit 2、sandbox root 拒绝 exit 2 |
 | F12 | 证书状态/签发/续期/清理 | `test_cert_update_recovery`、`test_ssl_update_recovery` | 部分验证 | 部分实现（本地 CA） | 原生 ACME v2 客户端（ES256/JWS/nonce/订单/HTTP-01）在 Pebble 本地 CA 上真实签发、窗口内跳过、强制续期；证书对原子替换（temp+fsync+rename），私钥 0600/证书 0644，`--reload-command` 失败回滚旧证书对且回滚后仍通过链/SAN/私钥匹配校验；负面覆盖 webroot 失效、reload 失败、只读目标、CA 拒绝域名（`tests/go-parity/evidence/acme-2026-11-08-fix`）。**公网 CA、DNS-01、EAB、真实域名与 Bash 的 `idleleo-nginx` 组/重启语义未验收**，不得据此升格 |
 | F13 | `--update`、`--xray-update`、`--nginx-update` | `test_xray_update_transaction`、`test_nginx_update_rollback`、`test_candidate_real_upgrade` | 已验证 | 未实现 | 需哈希/降级/失败注入 |
-| F14 | `--auto-update` 与 cron | `test_vps_auto_update_schedule`、`test_legacy_auto_update_path`、`test_auto_update_failure_records` | 已验证 | 部分实现（容器级） | Phase 03 新增原生 `idleleo schedule`：systemd timer 接管 GeoData/统计。Phase 04 接入 Go release 通道：配置后容器内真实定时升级 `0.3.0→0.4.0`。**P0-5 修正**：Go 无 Xray/Nginx 自动更新执行器，迁移保留旧 `auto_update.sh` cron（只移除 `geo_update.sh`/`xray_stats.sh`）；未配置 Go 通道只影响 Go 自身升级，`degraded` 不删除 cron；cert-renew 无 ACME，`ssl_update.sh` 同样保留 |
+| F14 | `--auto-update` 与 cron | `test_vps_auto_update_schedule`、`test_legacy_auto_update_path`、`test_auto_update_failure_records` | 已验证 | 部分实现（容器级） | Phase 03 新增原生 `idleleo schedule`：systemd timer 接管 GeoData/统计。Phase 04 接入 Go release 通道：配置后容器内真实定时升级 `0.3.0→0.4.0`。**P0-5 修正**：Go 无 Xray/Nginx 自动更新执行器，迁移保留旧 `auto_update.sh` cron（只移除 `geo_update.sh`/`xray_stats.sh`）；未配置 Go 通道只影响 Go 自身升级，`degraded` 不删除 cron；cert-renew 未接原生 ACME（签发/续期命令存在，仅本地 CA 验证，见 F12），`ssl_update.sh` 同样保留 |
 | F15 | `--stats` / `--json` / watch / reset | `test_xray_stats_readout`（真实 Xray API）、`test_xray_stats` | 已验证 | 部分实现（容器级） | `stats-collect` 用真实 `xray api statsquery` 写 `stats.json`。Phase 04 新增只读 `idleleo stats`：真实调用 `xray api statsquery`、`--json` 原样输出、非 root exit 5、API down exit 8；**watch/reset 仍未实现**；首次查询瞬态失败见 `BASELINE_AND_CI.md` |
 | F16 | GeoData 热更新/手动刷新/旧布局 | `test_geodata_native`（真实 Xray）、`test_geodata_update_path`、`test_restore_geodata_selfheal` | 已验证 | 部分实现（容器级） | `geodata-refresh` 下载双文件→内存校验→原子替换→重启 Xray；容器内用本地固定 origin 实测字节一致，截断下载不覆盖旧文件；旧布局迁移仍未实现 |
 | F17 | IPv4/IPv6、DNS、端口、防火墙 | `test_dual_stack`、`test_dns_multi_record`、`test_firewall_ipv6`、`test_firewall_transaction_complete` | 已验证 | 未实现 | R12：iptables 直写未纳入统一事务 |

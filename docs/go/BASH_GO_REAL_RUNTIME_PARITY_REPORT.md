@@ -19,7 +19,7 @@
 | 工作包 | 结论 | 最高证据等级 |
 |---|---|---|
 | A：真实 Bash 配置 vs Go 管理器 | 基线 98 项：`MATCH 2 / MATCH_CORE_FIELDS 32 / GAP 60 / REFUSED 4` | `BASH_EXECUTED` + `GO_EXECUTED` |
-| A2：真实交互式主安装 runtime | 6 个真实拓扑：`MATCH 2 / MATCH_CORE_FIELDS 4 / GAP 0 / UNSUPPORTED 0`；TLS/reality-nginx 因真实域名/ACME 未捕获 | `BASH_EXECUTED` + `GO_EXECUTED` |
+| A2：真实交互式主安装 runtime | 6 个真实拓扑 × `fresh`/`preserve` = 12 组：`MATCH 0 / MATCH_CORE_FIELDS 1 / MATCH_STRUCTURE_UNCOVERED 11 / GAP 0 / FAIL 0`；TLS/reality-nginx 因真实域名/ACME 未捕获 | `BASH_EXECUTED` + `GO_EXECUTED` |
 | 主备负载均衡 | primary `CORE`（runtime/stream/片段一致，仅宿主 `nginx.conf` 接线未代管）、secondary `MATCH`；Nginx 双后端轮询与默认拒绝通过 | `BASH_EXECUTED` + `GO_EXECUTED` + `DOCKER_BALANCE_SIMULATED` |
 | TLS / ACME | Pebble 本地 CA + 自签根：账户注册、下单、HTTP-01、签发、安装、窗口内跳过、强制续签、拒绝域全部真实执行；**不是公网 CA 验收** | `ACME_LOCAL_CA` |
 | B：兼容差异与故障恢复 | 修复后 `MATCH 54 / MATCH_CORE_FIELDS 32 / GAP 8 / REFUSED 4`；B3 多入口实现后复跑 `54 / 40 / 0 / 4` | `GO_EXECUTED` |
@@ -110,38 +110,50 @@
 > `www.cloudflare.com`，用户/路径/端口全部接受默认或随机值），最后采集
 > `/etc/idleleo/conf/xray/config.json` 并跑真实 `xray -test`。
 
-| 真实安装 | 模式/传输 | 真实端口 | `xray -test` | 服务 | 与 Go 真实配置对比 |
-|---|---|---|---|---|---|
-| reality-raw | Reality raw | 443 | 0 | active | `MATCH` |
-| none-ws | none ws | 容器随机 | 0 | active | `MATCH_CORE_FIELDS` |
-| none-grpc | none gRPC | 容器随机 | 0 | active | `MATCH_CORE_FIELDS` |
-| none-xhttp | none xHTTP | 容器随机 | 0 | active | `MATCH_CORE_FIELDS` |
-| none-ws_grpc_xhttp | none ws+gRPC+xHTTP | 3 个随机端口 | 0 | active | `MATCH_CORE_FIELDS`（仅剩 Bash 空 `realitySettings`） |
-| reality-ws_grpc_xhttp | Reality + ws+gRPC+xHTTP | 4 个随机端口 | 0 | active | `MATCH`（网络、监听地址、主线语义一致） |
+| 真实安装 | 模式/传输 | 真实端口 | `xray -test` | 服务 | `fresh` | `preserve` |
+|---|---|---|---|---|---|---|
+| reality-raw | Reality raw | 443 | 0 | active | `UNCOVERED` | `UNCOVERED` |
+| none-ws | none ws | 容器随机 | 0 | active | `UNCOVERED` | `UNCOVERED` |
+| none-grpc | none gRPC | 容器随机 | 0 | active | `UNCOVERED` | `UNCOVERED` |
+| none-xhttp | none xHTTP | 容器随机 | 0 | active | `UNCOVERED` | `UNCOVERED` |
+| none-ws_grpc_xhttp | none ws+gRPC+xHTTP | 3 个随机端口 | 0 | active | `MATCH_CORE_FIELDS` | `UNCOVERED` |
+| reality-ws_grpc_xhttp | Reality + ws+gRPC+xHTTP | 4 个随机端口 | 0 | active | `UNCOVERED` | `UNCOVERED` |
 
-**重跑结果（真实 runtime，6 个可捕获拓扑）**
+`UNCOVERED` = `MATCH_STRUCTURE_UNCOVERED`（结构一致但部分字段被脱敏，无法取值比对）。
+
+**重跑结果（真实 runtime，6 拓扑 × 2 契约 = 12 组）**
 
 | 状态 | 数量 | 说明 |
 |---|---|---|
-| `MATCH` | 2 | Reality raw 与 Reality+三入口的连接语义字段与 Go 一致 |
-| `MATCH_CORE_FIELDS` | 4 | none 单/多传输的连接字段一致；差异仅为 Bash 遗留的 `realitySettings` 空块、`geodata` 顶层键、gRPC tag 大小写 |
-| `GAP` | 0 | 未发现会导致连接语义不一致的字段 |
-| `UNSUPPORTED` | 0 | `ws+gRPC+xHTTP` 已在 B3 中实现并参与对比 |
-| `REFUSED` | 0 | 主安装流没有负例用例，不能把矩阵里的 4 个 `REFUSED` 平移到 A2 |
+| `MATCH` | 0 | 没有任何一组能在包含身份字段的全部字段上比对 |
+| `MATCH_CORE_FIELDS` | 1 | `none-ws_grpc_xhttp` fresh：仅 6 处多入口新装的确定性取值差异（端口、`grpcServiceName`、`xhttpPath`、email 标签），无连接语义差异 |
+| `MATCH_STRUCTURE_UNCOVERED` | 11 | 所有可比字段一致；Bash 证据对 UUID / Reality `privateKey` / `identity` 脱敏，这些字段无法比对，显式标为未覆盖 |
+| `GAP` | 0 | 没有字段值不一致 |
+| `FAIL` | 0 | 12 组全部完成采集与比对 |
+| `UNSUPPORTED` | 0 | `ws+gRPC+xHTTP` 已在 B3 实现并参与对比 |
+| `REFUSED` | 0 | 主安装流没有负例，不能把矩阵的 4 个 `REFUSED` 平移过来 |
 
-**与旧 54 / 32 / 8 / 4 的差异来源**
+**为什么 11 组是 UNCOVERED，而不是 MATCH 或假阳性**
+
+- 两侧都是真实产出：Bash 侧是 `install.sh -2/-3` 真交互安装 + 真实 `xray -test`；
+  Go 侧是源码构建的 `idleleo xray generate`。不存在“复制静态 JSON 当 Bash 产物”。
+- 可比字段逐项比对：端口、监听地址、协议、`security`、`flow`、`network`、
+  ws/gRPC/xHTTP 参数、`serverNames`、`shortIds` 等；这 11 组的 `diffs` 全为空。
+- 不可比的只有三类被脱敏字段：`clients[0].id`（UUID）、`realityPrivateKey`、
+  `identity`（`preserve` 契约的安装身份指纹）。比较器不把“两边都看不到”判成一致，
+  而是标 `MATCH_STRUCTURE_UNCOVERED`，所以既不会产生假 `MATCH`，也不是 `GAP`。
+- 旧的 `MATCH 2 / MATCH_CORE_FIELDS 4` 来自结构级比较（只比 key 集合）；
+  逐字段比较器替换后，这两个数字不再成立，以本节为准。
+
+**与旧 54 / 32 / 8 / 4 的关系**
 
 - 旧 98 项矩阵的 54 个 `MATCH` 是**安装元数据**对比，不是 Runtime 对比；
   A2 的真实 Runtime 重检**不能**把 54 直接继承为 runtime 签收。
 - 真实 Runtime 只覆盖 6 个“模式 + 传输”拓扑；旧矩阵里 32 个节点 case 的
   443/8443/10086/65535 端口组合并没有逐个跑真实安装，不能声称已验证。
-- 真实 Runtime 里没有 `GAP`；4 个 `MATCH_CORE_FIELDS` 都是
-  非连接语义差异（Bash 模板遗留 `realitySettings`、none-ws 模板的 `geodata`、
-  `VLESS-gRPC-in` 大小写），与旧矩阵的“结构不一致”不是同一口径。
-- `ws+gRPC+xHTTP` 的 2 个真实拓扑原先为 `UNSUPPORTED`；B3 实现后重跑对比，
-  none 多入口仅剩模板遗留键（`MATCH_CORE_FIELDS`），Reality 多入口完全一致
-  （`MATCH`）。旧矩阵剩余 8 个 `GAP` 已全部关闭，复跑为
-  `MATCH 54 / MATCH_CORE_FIELDS 40 / GAP 0 / REFUSED 4`。
+- 旧矩阵剩余 8 个 `GAP` 在 B3 实现后已按元数据口径关闭，复跑为
+  `MATCH 54 / MATCH_CORE_FIELDS 40 / GAP 0 / REFUSED 4`；这与 A2 的 runtime
+  口径不同，两个数字不能互相替代。
 - TLS 与 `reality-nginx` 需要真实域名/ACME 或域名证书，A2 **未捕获**，
   这两类在旧矩阵中的结果仍只是元数据级，不能升级为 runtime 证据。
 
@@ -155,7 +167,9 @@ Xray 26.10.31 二进制、标准 unit 与 `/var/log/xray` 目录；复跑多入�
 采集脚本见 [a2/run_bash_real_install_container.sh](../../tests/go-parity/a2/run_bash_real_install_container.sh)、
 [drive_install.exp](../../tests/go-parity/a2/drive_install.exp)、
 [compare_real_runtime.py](../../tests/go-parity/a2/compare_real_runtime.py)；
-证据见 [evidence/a2-2026-11-08](../../tests/go-parity/evidence/a2-2026-11-08)。
+证据见 [evidence/a2-2026-11-08-fix](../../tests/go-parity/evidence/a2-2026-11-08-fix)
+（`compare-summary.json` 的 `counts` 为上述 12 组结果；旧 `evidence/a2-2026-11-08`
+保留结构级比较的历史记录，不再作为计数依据）。
 
 ### 2.2 主备负载均衡：Go 原生实现 vs 同一份 Bash
 

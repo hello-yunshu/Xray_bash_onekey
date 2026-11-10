@@ -9,7 +9,7 @@
 |---|---|
 | 全部验收环境 | 固定 digest 容器（`CONTAINER_VERIFIED`） |
 | 真实 VPS | **未使用、未修改** |
-| 真实 ACME | **不纳入本轮**（容器内无公网域名/CA） |
+| 真实 ACME（公网 CA） | **不纳入本轮**（无公网域名/CA）；本地 CA（Pebble）已验证，见第 3 节 |
 | 结论措辞 | 任何文档不得写“真实 VPS 已验证” |
 
 **用户影响**：容器级结果可以证明代码路径与 systemd/HTTP/文件系统行为，但**不能**
@@ -34,10 +34,10 @@
 
 | 项 | 内容 |
 |---|---|
-| 是什么 | 只实现**外部续约后的状态契约**：记录证书 DER 指纹基线；指纹变化才 `restart xray` / `reload nginx`；未变化不重启；私钥 world-readable 拒绝 reload；到期或 <30 天未变化记录 `degraded` |
-| 为什么 | 容器内无法完成真实 ACME 签发/续期；不伪造证书，也不调用外部 CA |
-| 产品影响 | **ACME 签发、手动续期、证书清理均不可用**。迁移保留旧的 `ssl_update.sh` cron，已有证书续期链继续运行；Go 只负责“续约后让服务用上新证书”。低于 30 天且未变化时产品明确告警但**不会自动续期** |
-| 解锁条件 | 真实域名 + 可达 CA 的隔离环境；实现签发/续期/清理并通过真实 ACME E2E |
+| 是什么 | 已实现原生 ACME v2 客户端（ES256/JWS/Replay-Nonce/newAccount/newOrder/HTTP-01/finalize），入口 `idleleo xray cert issue\|renew`；本轮在 **Pebble 本地 CA** 上真实验证签发、窗口内跳过、强制续期。证书对原子替换（temp+fsync+rename），证书 0644 / 私钥 0600；`--reload-command` 失败恢复整对旧证书且旧对仍通过链/SAN/私钥匹配校验。负面覆盖 webroot 失效、reload 失败、只读目标、CA 拒绝域名。另保留“外部续约后状态契约”：DER 指纹变化才 `restart xray` / `reload nginx`，未变化不重启，私钥 world-readable 拒绝 reload，<30 天未变化记录 `degraded` |
+| 为什么 | 本轮没有真实域名与可达的公网 CA；不伪造证书，也不调用公网 CA |
+| 产品影响 | **本地 CA 已验证签发/续期事务与负面用例，公网 CA 未验证**。DNS-01、EAB、真实域名，以及 Bash 的 `idleleo-nginx` 组/重启语义未验收。迁移保留旧的 `ssl_update.sh` cron，已有证书续期链继续运行；低于 30 天且未变化时产品明确告警，但**不会自动续期**（`cert-renew` 尚未接入原生 ACME） |
+| 解锁条件 | 真实域名 + 可达公网 CA 的隔离环境；补 DNS-01/EAB；把 `cert-renew` 接入 scheduler 并重跑正面/负面 E2E |
 
 ## 4. Rill 管理命令
 
@@ -73,7 +73,7 @@
 | 真实 amd64 硬件 | 只有 amd64 容器执行 | 真实 amd64 主机/云实例 |
 | `stats watch` / `stats reset`（F15） | 只有一次性查询与 `--json` | 实现 watch/reset 并与 Bash 契约差分 |
 | 六语言完整文案（F23） | fr/fa/ru/ko 回退英文 | 逐条与 Bash 文案差分 |
-| Reality primary/secondary（F04） | 未实现 | 双节点真实负载均衡验收 |
+| Reality primary/secondary（F04） | 部分实现（容器级）：真实 Nginx + 双 Xray 后端 e2e 已过 | 双节点真实负载均衡与故障切换验收 |
 
 ## 7. 发布门禁相关限制
 
