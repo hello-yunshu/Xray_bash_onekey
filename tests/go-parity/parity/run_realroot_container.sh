@@ -49,7 +49,8 @@ docker run --rm \
     -e GIT_CONFIG_KEY_0=safe.directory \
     -e GIT_CONFIG_VALUE_0=/src \
     golang:1.27.4@sha256:08bcb99a38f85a265f9a93d1d3323e2440eec333380f3ea26ee0dec9264bb41c go build -buildvcs=false -trimpath -o /out/idleleo ./cmd/idleleo
-chmod 0755 "$BUILD/idleleo"
+# go build already writes 0755; the file is container-owned on a CI checkout and
+# cannot be chmod'ed by the runner user.
 
 echo "[2/5] resolve a Linux Xray for the Docker arch" >&2
 XRAY=$(ensure_xray_bin "$(docker_arch)")
