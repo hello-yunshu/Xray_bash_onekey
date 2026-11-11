@@ -101,7 +101,9 @@ phase01 C12 保持**已知 pin 不匹配**：pin 本身可解析，但当前 `in
 | 旧红灯 run | `42048259341`，head `4752f77`（重写后为 `945bc76`），job `Stats Readout (ubuntu:24.04)` |
 | 根因 | 旧 readiness 检查在慢 runner 上过早判定 API 就绪 |
 | 现状 | 当前代码在 amd64 + tmux 容器真实复现：`Summary: PASS=47 FAIL=0`，`repro-exit=0` |
-| 候选分支 CI | `develop/go-native` 上 `Go parity stage gate`、`Test Install`、`Go real-root change acceptance (container)`、`Go native artifacts (NOT FOR RELEASE)` 均为 success；`Go preview qualification (NOT FOR RELEASE)` 曾因 runner 启动后 systemd 约 44s 才离开 `starting`（F01 预算 30s）与 journald 写入滞后（F11）失败，已修复并复跑，结论见 `docs/go/CLOSEOUT_S0_S3_2026-11-11.md` 第 7 节 |
+| 候选分支 CI（head `79e8ec9`） | 四个开发 workflow 全部 success：`Go parity stage gate` `43032253403`、`Test Install` `43032253375`、`Go real-root change acceptance (container)` `43032253565`、`Go native artifacts (NOT FOR RELEASE)` `43032253332`；`Go preview qualification (NOT FOR RELEASE)` `43032253249` **success**（F01 21/0、F05 17/0、F11 21/0） |
+| 曾红的原因 | 三次不同提交在 F01 报 `UNSUPPORTED_ENVIRONMENT: systemd is not usable after 30s`；同分钟另一 runner 的 run `43030084048` 成功且 `degraded 0.0s`，而修复后本 run 记录 `PASS systemd is usable: degraded after 51.2s`。判定为**真实时序问题**（等待预算不足），不是 runner 抖动；F11 的计数先 `1 -> 1` 后 `1 -> 3` 证明是 journald 滞后。修复：预算 30s → 120s，F11 改为轮询 journald。 |
+| 拒绝测试在 CI 的实际执行 | `security-regression` job 中 `sudo -E bash .github/test/test_install_top_level_refusal.sh` 输出 `PASS: refused at the metadata gate (rc=1); no network, package, log or system write` |
 | 未完成 | 未创建 PR；`go-release-qualification.yml` 与 `publish-go-bridge.yml` 仍零 run（前者只在默认分支可 dispatch，后者还受 28 项 PENDING 门禁阻断）；`main` 的重写后历史因 ruleset 保护尚未强推 |
 | 影响 | 不能以“CI 已绿”为依据发布 |
 
