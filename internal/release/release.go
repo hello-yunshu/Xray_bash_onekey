@@ -86,6 +86,7 @@ type Manifest struct {
 	Channel       string           `json:"channel"`
 	Version       string           `json:"version"`
 	Assets        map[string]Asset `json:"assets"`
+	Signature     string           `json:"signature,omitempty"`
 }
 
 // State is the last applied release record.
@@ -333,7 +334,14 @@ func fetchManifest(ctx context.Context, manifestURL string) (Manifest, error) {
 	if len(b) > MaxManifestSize {
 		return Manifest{}, errors.New("manifest is larger than the 1MiB limit")
 	}
-	return ParseManifest(b)
+	m, err := ParseManifest(b)
+	if err != nil {
+		return Manifest{}, err
+	}
+	if err := VerifyManifest(b); err != nil {
+		return Manifest{}, fmt.Errorf("manifest signature verification failed: %w", err)
+	}
+	return m, nil
 }
 
 func assetURL(manifestURL string, a Asset) (string, error) {

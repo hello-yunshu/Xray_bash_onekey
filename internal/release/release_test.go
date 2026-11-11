@@ -3,7 +3,6 @@ package release
 import (
 	"context"
 	"encoding/binary"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -32,17 +31,18 @@ func pinLinuxPlatform(t *testing.T) {
 
 func serveRelease(t *testing.T, assetBytes []byte) *httptest.Server {
 	t.Helper()
+	key := installTestReleaseKey(t)
+	body := signedManifestBytes(t, Manifest{
+		SchemaVersion: SchemaVersion,
+		Channel:       ChannelName,
+		Version:       "0.5.0",
+		Assets: map[string]Asset{
+			platformKey(): {Name: "asset", SHA256: hashBytes(assetBytes), Size: int64(len(assetBytes))},
+		},
+	}, key)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/go/manifest.json", func(w http.ResponseWriter, _ *http.Request) {
-		manifest := Manifest{
-			SchemaVersion: SchemaVersion,
-			Channel:       ChannelName,
-			Version:       "0.5.0",
-			Assets: map[string]Asset{
-				platformKey(): {Name: "asset", SHA256: hashBytes(assetBytes), Size: int64(len(assetBytes))},
-			},
-		}
-		_ = json.NewEncoder(w).Encode(manifest)
+		_, _ = w.Write(body)
 	})
 	mux.HandleFunc("/go/asset", func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write(assetBytes)
@@ -133,16 +133,18 @@ func TestApplyCanceledDownloadLeavesPreviousBinary(t *testing.T) {
 	pinLinuxPlatform(t)
 	root := t.TempDir()
 	asset := fakeELF(runtime.GOARCH)
+	key := installTestReleaseKey(t)
+	body := signedManifestBytes(t, Manifest{
+		SchemaVersion: SchemaVersion,
+		Channel:       ChannelName,
+		Version:       "0.5.0",
+		Assets: map[string]Asset{
+			platformKey(): {Name: "idleleo", SHA256: hashBytes(asset), Size: int64(len(asset))},
+		},
+	}, key)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/go/manifest.json", func(w http.ResponseWriter, _ *http.Request) {
-		_ = json.NewEncoder(w).Encode(Manifest{
-			SchemaVersion: SchemaVersion,
-			Channel:       ChannelName,
-			Version:       "0.5.0",
-			Assets: map[string]Asset{
-				platformKey(): {Name: "idleleo", SHA256: hashBytes(asset), Size: int64(len(asset))},
-			},
-		})
+		_, _ = w.Write(body)
 	})
 	mux.HandleFunc("/go/asset", func(_ http.ResponseWriter, r *http.Request) {
 		<-r.Context().Done()
