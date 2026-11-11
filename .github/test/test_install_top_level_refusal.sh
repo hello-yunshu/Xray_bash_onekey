@@ -64,16 +64,20 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin \
 # Name-level snapshots of every writable root. Name-only comparison ignores
 # ordinary growth of existing files (journal, logs) while still catching any
 # created/removed path. Known churn is pruned: our own $WORK, systemd's
-# per-service private tmp dirs and the journal's rolling file names.
+# per-service private tmp dirs, the journal's rolling file names, and the two
+# directories the hosted runner itself writes during the run (waagent events,
+# snapd seeding). TMPDIR keeps sort's temp files out of the /tmp snapshot.
 snapshot() {
     (
         cd /
         find etc var tmp usr/local -xdev \
             \( -path "tmp/${WORK#/tmp/}" \
             -o -path 'var/log/journal' -o -path 'var/log/journal/*' \
+            -o -path 'var/lib/waagent' -o -path 'var/lib/waagent/*' \
+            -o -path 'var/lib/snapd' -o -path 'var/lib/snapd/*' \
             -o -path 'tmp/systemd-private-*' -o -path 'var/tmp/systemd-private-*' \
             \) -prune -o -print
-    ) | sort
+    ) | TMPDIR="$WORK" sort
 }
 
 before=$(snapshot)
@@ -88,8 +92,10 @@ grep -q 'Bash 不再执行配置变更/更新/重装（-u）' "$WORK/err.log" ||
     fail "refusal message missing"
 [[ ! -s "$CALLS" ]] ||
     fail "network/package/system command ran: $(tr '\n' ' ' <"$CALLS")"
-[[ "$before" == "$after" ]] ||
-    fail "system tree changed: $(diff <(printf '%s\n' "$before") <(printf '%s\n' "$after") || true)"
+[[ "$before" == "$after" ]] || {
+    delta=$(diff <(printf '%s\n' "$before") <(printf '%s\n' "$after") | grep -E '^[<>]' | head -10)
+    fail "system tree changed: ${delta//$'\n'/ }"
+}
 grep -q '^+ idleleo_go_refuse_bash_mutation' "$WORK/err.log" ||
     fail "refusal helper was not reached"
 ! grep -q '^+ validate_supported_system' "$WORK/err.log" ||

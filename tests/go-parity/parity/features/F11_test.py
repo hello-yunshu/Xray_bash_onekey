@@ -10,6 +10,7 @@ this fixture can be rerun without leftovers.
 """
 import json
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -50,6 +51,21 @@ def cleanup(f):
 def journal_starts(f, lines=500):
     r = f.run(["journalctl", "-u", "xray.service", "-n", str(lines), "--no-pager"], timeout=30)
     return sum(1 for line in r.out.splitlines() if MARKER in line)
+
+
+def wait_starts(f, expected, timeout=20.0):
+    """Wait for journald to catch up with a unit action.
+
+    journald can lag a few seconds behind a start/restart on a booting runner,
+    which reads as 1 -> 1 followed by 1 -> 3 several seconds later. Poll
+    instead of sampling once; a genuine duplicate start still never matches.
+    """
+    deadline = time.monotonic() + timeout
+    count = journal_starts(f)
+    while count != expected and time.monotonic() < deadline:
+        time.sleep(0.5)
+        count = journal_starts(f)
+    return count
 
 
 def unit_state(report, name="xray.service"):
@@ -94,7 +110,7 @@ def main(f):
     f.check(restart_json.get("action") == "restart", "restart report action", str(restart_json.get("action")))
     f.check(restart_json.get("unit") == "xray.service", "restart targets xray.service",
             str(restart_json.get("unit")))
-    after_restart = journal_starts(f)
+    after_restart = wait_starts(f, before + 1)
     f.check(after_restart == before + 1, "restart added exactly one start",
             f"{before} -> {after_restart}")
 
@@ -108,7 +124,7 @@ def main(f):
 
     start = f.run([f.go, "service", "start", "--container", "--json"], timeout=60, env=write_env)
     f.check(start.rc == 0, "service start exit 0", f"rc={start.rc}")
-    after_start = journal_starts(f)
+    after_start = wait_starts(f, after_restart + 1)
     f.check(after_start == after_restart + 1, "start added exactly one start",
             f"{after_restart} -> {after_start}")
 

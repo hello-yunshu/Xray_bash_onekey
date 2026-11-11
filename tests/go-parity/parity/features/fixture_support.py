@@ -149,12 +149,13 @@ class Fixture:
     def need_root(self):
         self.need(os.geteuid() == 0, "fixture must run as root")
 
-    def need_systemd(self, budget=30.0, interval=1.5):
+    def need_systemd(self, budget=120.0, interval=1.5):
         """Wait a bounded time for systemd to leave the boot "starting" state.
 
-        Hosted runners can report "starting" for a while after boot. Only
-        "running"/"degraded" are accepted; waiting never widens that set, and a
-        timeout is still UNSUPPORTED_ENVIRONMENT (exit 2).
+        Hosted runners can report "starting" for 40-50s after boot (measured on
+        ubuntu-24.04: F11 reached "degraded" at 44s while F01 timed out at 30s).
+        Only "running"/"degraded" are accepted; waiting never widens that set,
+        and a timeout is still UNSUPPORTED_ENVIRONMENT (exit 2).
         """
         deadline = time.monotonic() + budget
         while True:

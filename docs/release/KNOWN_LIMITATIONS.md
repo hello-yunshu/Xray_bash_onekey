@@ -79,24 +79,30 @@
 
 | 项 | 内容 |
 |---|---|
-| 是什么 | `check_release_gate.py` 返回 exit 2：28 pending、28 个功能测试缺失 |
-| 为什么 | 本轮只做实现与容器证据，未编写/伪造 28 个 L1–L3 执行器；改 JSON 状态被明确禁止 |
+| 是什么 | `check_release_gate.py` 返回 exit 2：28 pending、22 个功能缺少可执行测试 |
+| 为什么 | 本轮只做实现与容器证据，未编写/伪造 28 个 L1–L3 执行器；改 JSON 状态被明确禁止。当前只有 F01/F05/F11/F26/F27/F28 有执行器 |
 | 产品影响 | **不能发布、不能合并 `main`、不能打 tag**；Go 资产只是候选 |
 | 解锁条件 | 28 个真实 feature test + 受保护 CI 绿色 + 独立 VM/systemd 等强制 job |
 
 另：`go-release-qualification.yml` 已按真实布局修正（`--native-go-dir current`、
 `--require-package github.com/hello-yunshu/Xray_bash_onekey/internal/service`）；
-本地按同一参数实测门禁 `exit 2`（28 PENDING + 28 missing tests）。该工作流仍**零 run**：
+本地按同一参数实测门禁 `exit 2`（28 PENDING + 22 missing tests）。该工作流仍**零 run**：
 `workflow_dispatch` 只对默认分支可见，它目前只存在于 `develop/go-native`。
+`baseline_commit` 与 `PIN` 已随 2026-11-11 历史重写从 `0fa7052e…` 更新为 `3b2a5045…`
+（v3.3.6 的 `install.sh` 字节未变），见 `docs/go/HISTORY_REWRITE_2026-11-11.md`。
+
+phase01 C12 保持**已知 pin 不匹配**：pin 本身可解析，但当前 `install.sh` 因 S1 改动
+与 v3.3.6 基线不同，C12.1 仍为 FAIL；这是预期状态，不要为了变绿去改基线。
 
 ## 8. CI 状态
 
 | 项 | 内容 |
 |---|---|
-| 旧红灯 run | `42048259341`，head `4752f77`，job `Stats Readout (ubuntu:24.04)` |
+| 旧红灯 run | `42048259341`，head `4752f77`（重写后为 `945bc76`），job `Stats Readout (ubuntu:24.04)` |
 | 根因 | 旧 readiness 检查在慢 runner 上过早判定 API 就绪 |
 | 现状 | 当前代码在 amd64 + tmux 容器真实复现：`Summary: PASS=47 FAIL=0`，`repro-exit=0` |
-| 未完成 | 候选分支**没有**绿色 GitHub Actions run（未创建 PR；workflow 只对 main/PR/dispatch 触发）。`go-release-qualification.yml` 与 `publish-go-bridge.yml` 均零 run：前者只在默认分支可 dispatch，后者还受 28 项 PENDING 门禁阻断 |
+| 候选分支 CI | `develop/go-native` 上 `Go parity stage gate`、`Test Install`、`Go real-root change acceptance (container)`、`Go native artifacts (NOT FOR RELEASE)` 均为 success；`Go preview qualification (NOT FOR RELEASE)` 曾因 runner 启动后 systemd 约 44s 才离开 `starting`（F01 预算 30s）与 journald 写入滞后（F11）失败，已修复并复跑，结论见 `docs/go/CLOSEOUT_S0_S3_2026-11-11.md` 第 7 节 |
+| 未完成 | 未创建 PR；`go-release-qualification.yml` 与 `publish-go-bridge.yml` 仍零 run（前者只在默认分支可 dispatch，后者还受 28 项 PENDING 门禁阻断）；`main` 的重写后历史因 ruleset 保护尚未强推 |
 | 影响 | 不能以“CI 已绿”为依据发布 |
 
 ## 9. 安全与运维边界

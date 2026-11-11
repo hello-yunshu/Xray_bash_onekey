@@ -49,7 +49,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: hello-yunshu/Xray_bash_onekey
-          ref: 0fa7052e51b9bd7e6ffb46bc86befb006034da3c
+          ref: 3b2a5045fec4535e189a0b25ca27dc534945bab5
           path: legacy
           persist-credentials: false
 
