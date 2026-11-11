@@ -1,7 +1,7 @@
 # S6/S7 qualification evidence
-repo_commit=9753c6eee4b2f2384db812522ffe1dd4f4e404c3
+repo_commit=50067b4bdc68a05b5883aab3f4fb508a22bf6d32
 branch=develop/go-native
-generated_at=2026-11-11T17:49:27Z
+generated_at=2026-11-11T17:53:42Z
 host_env=macOS host + docker (golang:1.27.4, ubuntu:24.04)
 note=this directory and docs/*.md are added by the commit that follows repo_commit; no product code changes after it
 
@@ -188,23 +188,23 @@ VET_OK
 ?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo	[no test files]
 ?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo-recover	[no test files]
 ?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/parity-adapter	[no test files]
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/acme	0.097s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/acme	0.150s
 ?   	github.com/hello-yunshu/Xray_bash_onekey/internal/app	[no test files]
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	0.178s
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	1.731s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	0.307s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	1.939s
 ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/compat	0.002s
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.497s
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/host	0.009s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.534s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/host	0.005s
 ?   	github.com/hello-yunshu/Xray_bash_onekey/internal/i18n	[no test files]
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	1.529s
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/release	0.096s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	1.667s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/release	0.134s
 ?   	github.com/hello-yunshu/Xray_bash_onekey/internal/runtime	[no test files]
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.115s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.172s
 ?   	github.com/hello-yunshu/Xray_bash_onekey/internal/service	[no test files]
 ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/speedtest	0.209s
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	0.012s
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/tcpcfg	0.014s
-ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.004s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	0.006s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/tcpcfg	0.007s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.005s
 ?   	github.com/hello-yunshu/Xray_bash_onekey/tests/go-parity/acme	[no test files]
 go_suite_exit=0
 
