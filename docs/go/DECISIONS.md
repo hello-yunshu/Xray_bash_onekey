@@ -342,3 +342,47 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
   `account.key` + `account.json`。
 - 签发仅覆盖单域名（`Domains: []string{domain}`），未实现多 SAN/通配符。
 - 以上能力若要启用，需要新增判据与验收环境（DNS-01/EAB 必须真实公网 CA）。
+
+## D-021 S6/S7：信任根下沉、helper 校验与 shell 入口退役（2026-11-12）
+
+**决定**：
+- 版本元数据的信任根前移到 `install.sh`：`load_versions` 在采用响应前先验
+  `metadata_signature`，格式 `ed25519:<base64>`，签名覆盖规范化 JSON
+  （`jq -cS 'del(.metadata_signature)'`，无结尾换行）。切点 `3.4.0`：低于切点
+  允许无签名并告警（兼容期），达到切点缺签名直接拒绝；无 OpenSSL 3
+  （`pkeyutl -rawin`）时 fail-closed。私钥不入库，签名器为
+  `scripts/sign_json_ed25519.sh`。
+- helper 下载不再“先跑后验”：`release-manifest.json` 的 `helperScripts`
+  声明每个 helper 的 sha256，`download_script_file` 第 4 参数强制校验，
+  不匹配不落盘；达到切点仍未声明校验值的 helper 直接拒绝。
+- TCP 入口与测速入口不再下载第三方脚本：`bbr_boost_sh` 默认调用
+  `idleleo tcp status`（失败回落 `tcp plan`），`--apply` 用
+  `tcp apply --profile bbr-fq --confirm`；`--legacy` 仅使用本机既有 `tcp.sh`。
+  菜单 33 调用 `idleleo speedtest`，不再取 `superspeed.sh`。
+- `acme.sh` 采用“停用 + 保留一个版本”的原子退役：入口、签发、续签 cron、
+  卸载清理、备份在同一提交内切换为 native `idleleo xray cert issue|renew`；
+  `ssl_update.sh` 仍由原 cron 触发，但内部调用 native 续签，且 native 模式
+  不再停止 Nginx（HTTP-01 webroot 必须在线）。卸载只删 `acme.sh --cron`
+  crontab 行与 `*_ecc` 目录，**不调用 `acme.sh --uninstall`**，也不删
+  `/root/.acme.sh`；`IDLELEO_ACME_LEGACY=1` 保留一版回退。
+- Go 发布通道的 manifest 增加 Ed25519 验签：canonical 形式必须与
+  `scripts/sign_json_ed25519.sh` 的 `jq -cS 'del(.signature)'` 逐字节一致
+  （`json.Decoder.UseNumber`、键排序、`SetEscapeHTML(false)`、去掉结尾换行）。
+  缺签名、非 `ed25519:` 前缀、长度不为 64 字节、验签失败一律拒绝。
+  `IDLELEO_RELEASE_PUBKEY_FILE` 仅用于测试/运维覆盖，生产使用内置公钥。
+
+**理由**：这些入口的旧实现会在运行时从第三方地址取脚本并直接执行，
+信任边界在远端；把校验、签名与调用收敛到仓库内可控的代码后，失败模式是
+“拒绝执行”而不是“执行了再发现不对”。
+
+**验收要求**：新增的金签名、helper 校验、入口退役测试必须能用注入失败证明
+非 0 退出；只断言“成功路径”不算验收。证据在最终代码 HEAD 复跑，
+`repo_commit` 记录被测提交，后续提交只能包含证据与文档。
+
+**已知边界**：
+- 生产版本 JSON 由独立 API 仓库生成，该仓库尚未接入签名器，因此线上元数据
+  仍处于“无签名 + 兼容期告警”状态。
+- 当前没有任何流水线生成 Go 发布 manifest，S7-5 的验签是 fail-closed 的接收端，
+  但还没有可签的产物。
+- `acme.sh` 的公网 CA 真实续签仍未验收；F12 与 28 项账本保持
+  `PENDING_GO_IMPLEMENTATION`，不因本轮改动升格。

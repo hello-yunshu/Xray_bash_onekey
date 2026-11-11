@@ -1,0 +1,71 @@
+{
+  "bundle": "s6-s7-2026-11-12",
+  "repo_commit": "ced25aa352050576e630f45ee7036574dfc684e4",
+  "branch": "develop/go-native",
+  "generated_at": "2026-11-11T17:44:12Z",
+  "host_env": "macOS host + docker golang:1.27.4 and ubuntu:24.04",
+  "release_authority": false,
+  "protected_files": {
+    "feature_contracts.json": "zero diff vs origin/develop/go-native",
+    "check_release_gate.py": "zero diff vs origin/develop/go-native",
+    "release_gate_sha256": "d7493b289af919d9c38087176ff4fea8d4b8fbc5aae68bec792db9350e542564"
+  },
+  "ledger": {
+    "total": 28,
+    "statuses": { "PENDING_GO_IMPLEMENTATION": 28 }
+  },
+  "tasks": {
+    "S6-0": "done (vendor hygiene: 812 tracked files, no duplicate copies, gofmt/build/vet/test clean)",
+    "S6-3": "done (Ed25519 signature over version JSON; cutover 3.4.0; fail-closed without openssl 3)",
+    "S6-2": "done (helper sha256 pinned from release manifest; unpinned helpers refused from 3.4.0)",
+    "S6-1": "done (tcp entry defaults to idleleo tcp status/plan; --apply uses bbr-fq)",
+    "S6-4": "not in this round (pluginisation deferred to a separate project)",
+    "S7-1": "done (idleleo speedtest with JSON output and fail-closed validation)",
+    "S7-2": "done (tcp.sh download retired; no Linux-NetSpeed URL remains)",
+    "S7-3": "done (superspeed.sh retired; menu 33 calls idleleo speedtest)",
+    "S7-4": "done (acme.sh atomic retirement: issue/renew/cron/uninstall/backup in one commit, /root/.acme.sh retained)",
+    "S7-5": "partially verifiable (manifest Ed25519 verify implemented; no pipeline produces the Go manifest yet)"
+  },
+  "results": {
+    "shell_syntax": "all files bash -n OK",
+    "bash_suite": {
+      "test_versions_signature.sh": "PASS=7 FAIL=0",
+      "test_helper_checksum.sh": "PASS=6 FAIL=0",
+      "test_tcp_entry.sh": "PASS=9 FAIL=0",
+      "test_acme_retire.sh": "PASS=11 FAIL=0",
+      "test_version_loading.sh": "PASS=8 FAIL=0",
+      "test_shell_update_metadata.sh": "PASS=30 FAIL=0",
+      "exit": 0
+    },
+    "go": {
+      "gofmt_files": 0,
+      "build": "OK",
+      "vet": "OK",
+      "test": "all packages ok",
+      "exit": 0
+    },
+    "preview_qualification": {
+      "F01": "PASS",
+      "F05": "PASS",
+      "F11": "PASS",
+      "F26": "PASS",
+      "F27": "PASS",
+      "F28": "PASS",
+      "release_ledger_status": "28/28 PENDING_GO_IMPLEMENTATION",
+      "install_sh_sha256": "4e793c1f7a6a1143492b7df90f8089b6b5fe788ebd4436f34d410472a516ee72"
+    },
+    "evidence_hygiene": "0 findings in 527 files"
+  },
+  "negative_evidence": {
+    "acme_cron_cleanup_without_sed": "FAIL: acme_cron_cleanup removed the wrong crontab lines or deleted ~/.acme.sh (exit 1)",
+    "ssl_update_native_stopping_nginx": "FAIL: native renewal failed (rc=0) or stopped nginx (exit 1)",
+    "manifest_verify_disabled": "FAIL: TestVerifyManifestRejectsTampering (exit 1)"
+  },
+  "known_limits": [
+    "F12 remains PENDING_GO_IMPLEMENTATION: no real public domain, public CA, DNS-01 or EAB available in this environment.",
+    "All 28 ledger entries remain PENDING_GO_IMPLEMENTATION; no status was relaxed to claim completion.",
+    "The Go release manifest verifier is fail-closed, but no pipeline currently produces or signs that manifest.",
+    "Version metadata signing verification shipped; the JSON producer lives in the separate API repository, so published metadata is still unsigned until that repository adopts scripts/sign_json_ed25519.sh.",
+    "acme.sh is retired by default but kept on disk for one release; a public-CA renewal through the native path is still unverified."
+  ]
+}

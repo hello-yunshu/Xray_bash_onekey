@@ -1,0 +1,11 @@
+{
+  "configPreserved": false,
+  "removed": [
+    "etc/idleleo/conf/xray/config.json",
+    "etc/idleleo/conf/nginx",
+    "var/log/xray"
+  ],
+  "serviceDisabled": false,
+  "serviceStopped": false,
+  "warnings": []
+}

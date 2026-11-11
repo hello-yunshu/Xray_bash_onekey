@@ -1,0 +1,174 @@
+== F11 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ systemctl is-system-running (rc=0 0.0s)
+  stdout: running
+PASS systemd is usable running after 0.0s
+$ systemctl stop xray (rc=5 0.01s)
+  stderr: Failed to stop xray.service: Unit xray.service not loaded.
+$ systemctl disable xray (rc=1 0.0s)
+  stderr: Failed to disable unit: Unit file xray.service does not exist.
+$ systemctl daemon-reload (rc=0 0.03s)
+$ systemctl reset-failed xray (rc=1 0.0s)
+  stderr: Failed to reset failed state of unit xray.service: Unit xray.service not loaded.
+$ systemctl daemon-reload (rc=0 0.03s)
+$ systemctl enable --now xray (rc=0 0.03s)
+  stderr: Created symlink /etc/systemd/system/multi-user.target.wants/xray.service → /etc/systemd/system/xray.service.
+PASS probe unit enabled and started rc=0
+$ /work/bin/idleleo service status --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/",
+            "units": [
+              {
+                "name": "xray",
+                "unit": "xray.service",
+                "active": "active",
+                "enabled": "enabled"
+              },
+              {
+                "name": "nginx",
+                "unit": "nginx.service",
+                "active": "active",
+                "enabled": "enabled"
+              },
+              {
+                "name": "idleleo-schedule.timer",
+                "unit": "idleleo-schedule.timer",
+                "active": "inactive",
+                "enabled": "not-found"
+              }
+            ]
+          }
+PASS service status exit 0 rc=0
+PASS status reports xray active active
+PASS status reports xray enabled enabled
+$ journalctl -u xray.service -n 500 --no-pager (rc=0 0.01s)
+  stdout: Nov 11 17:43:08 79e551f52b5f systemd[1]: Started xray.service - Xray Service.
+          Nov 11 17:43:08 79e551f52b5f xray[229]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          Nov 11 17:43:08 79e551f52b5f xray[229]: A unified platform for anti-censorship.
+          Nov 11 17:43:08 79e551f52b5f xray[229]: 2026/11/11 17:43:08.175389 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+          Nov 11 17:43:08 79e551f52b5f xray[229]: 2026/11/11 17:43:08.175497 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Nov 11 17:43:14 79e551f52b5f systemd[1]: Stopping xray.service - Xray Service...
+          Nov 11 17:43:14 79e551f52b5f systemd[1]: xray.service: Deactivated successfully.
+          Nov 11 17:43:14 79e551f52b5f systemd[1]: Stopped xray.service - Xray Service.
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Started xray.service - idleleo preview F11 probe.
+          Nov 11 17:43:15 79e551f52b5f idleleo-f11-probe[387]: idleleo-f11-start 1794418995286197833
+PASS journal contains the probe start marker count=1
+$ /work/bin/idleleo service restart --container --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "action": "restart",
+            "unit": "xray.service",
+            "systemctl": "systemctl restart xray.service",
+            "exitCode": 0
+          }
+PASS service restart exit 0 rc=0 
+PASS restart report action restart
+PASS restart targets xray.service xray.service
+$ journalctl -u xray.service -n 500 --no-pager (rc=0 0.01s)
+  stdout: Nov 11 17:43:08 79e551f52b5f systemd[1]: Started xray.service - Xray Service.
+          Nov 11 17:43:08 79e551f52b5f xray[229]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          Nov 11 17:43:08 79e551f52b5f xray[229]: A unified platform for anti-censorship.
+          Nov 11 17:43:08 79e551f52b5f xray[229]: 2026/11/11 17:43:08.175389 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+          Nov 11 17:43:08 79e551f52b5f xray[229]: 2026/11/11 17:43:08.175497 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Nov 11 17:43:14 79e551f52b5f systemd[1]: Stopping xray.service - Xray Service...
+          Nov 11 17:43:14 79e551f52b5f systemd[1]: xray.service: Deactivated successfully.
+          Nov 11 17:43:14 79e551f52b5f systemd[1]: Stopped xray.service - Xray Service.
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Started xray.service - idleleo preview F11 probe.
+          Nov 11 17:43:15 79e551f52b5f idleleo-f11-probe[387]: idleleo-f11-start 1794418995286197833
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Stopping xray.service - idleleo preview F11 probe...
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: xray.service: Deactivated successfully.
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Stopped xray.service - idleleo preview F11 probe.
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Started xray.service - idleleo preview F11 probe.
+          Nov 11 17:43:15 79e551f52b5f idleleo-f11-probe[415]: idleleo-f11-start 1794418995309640959
+PASS restart added exactly one start 1 -> 2
+$ /work/bin/idleleo service stop --container --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "action": "stop",
+            "unit": "xray.service",
+            "systemctl": "systemctl stop xray.service",
+            "exitCode": 0
+          }
+PASS service stop exit 0 rc=0
+$ /work/bin/idleleo service status --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/",
+            "units": [
+              {
+                "name": "xray",
+                "unit": "xray.service",
+                "active": "inactive",
+                "enabled": "enabled"
+              },
+              {
+                "name": "nginx",
+                "unit": "nginx.service",
+                "active": "active",
+                "enabled": "enabled"
+              },
+              {
+                "name": "idleleo-schedule.timer",
+                "unit": "idleleo-schedule.timer",
+                "active": "inactive",
+                "enabled": "not-found"
+              }
+            ]
+          }
+PASS status reports xray inactive inactive
+$ /work/bin/idleleo service start --container --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "action": "start",
+            "unit": "xray.service",
+            "systemctl": "systemctl start xray.service",
+            "exitCode": 0
+          }
+PASS service start exit 0 rc=0
+$ journalctl -u xray.service -n 500 --no-pager (rc=0 0.0s)
+  stdout: Nov 11 17:43:08 79e551f52b5f systemd[1]: Started xray.service - Xray Service.
+          Nov 11 17:43:08 79e551f52b5f xray[229]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          Nov 11 17:43:08 79e551f52b5f xray[229]: A unified platform for anti-censorship.
+          Nov 11 17:43:08 79e551f52b5f xray[229]: 2026/11/11 17:43:08.175389 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+          Nov 11 17:43:08 79e551f52b5f xray[229]: 2026/11/11 17:43:08.175497 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Nov 11 17:43:14 79e551f52b5f systemd[1]: Stopping xray.service - Xray Service...
+          Nov 11 17:43:14 79e551f52b5f systemd[1]: xray.service: Deactivated successfully.
+          Nov 11 17:43:14 79e551f52b5f systemd[1]: Stopped xray.service - Xray Service.
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Started xray.service - idleleo preview F11 probe.
+          Nov 11 17:43:15 79e551f52b5f idleleo-f11-probe[387]: idleleo-f11-start 1794418995286197833
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Stopping xray.service - idleleo preview F11 probe...
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: xray.service: Deactivated successfully.
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Stopped xray.service - idleleo preview F11 probe.
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Started xray.service - idleleo preview F11 probe.
+          Nov 11 17:43:15 79e551f52b5f idleleo-f11-probe[415]: idleleo-f11-start 1794418995309640959
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Stopping xray.service - idleleo preview F11 probe...
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: xray.service: Deactivated successfully.
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Stopped xray.service - idleleo preview F11 probe.
+          Nov 11 17:43:15 79e551f52b5f systemd[1]: Started xray.service - idleleo preview F11 probe.
+          Nov 11 17:43:15 79e551f52b5f idleleo-f11-probe[454]: idleleo-f11-start 1794418995333730593
+PASS start added exactly one start 2 -> 3
+$ /work/bin/idleleo service logs --lines 100 --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "unit": "xray.service",
+            "lines": 100,
+            "journalctl": "journalctl -u xray.service -n 100 --no-pager",
+            "output": "Nov 11 17:43:08 79e551f52b5f systemd[1]: Started xray.service - Xray Service.\nNov 11 17:43:08 79e551f52b5f xray[229]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)\nNov 11 17:43:08 79e551f52b5f xray[229]: A unified platform for anti-censorship.\nNov 11 17:43:08 79e551f52b5f xray[229]: 2026/11/11 17:43:08.175389 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}\nNov 11 17:43:08 79e551f52b5f xray[229]: 2026/11/11 17:43:08.175497 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW\nNov 11 17:43:14 79e551f52b5f systemd[1]: Stopping xray.service - Xray Service...\nNov 11 17:43:14 79e551f52b5f systemd[1]: xray.service: Deactivated successfully.\nNov 11 17:43:14 79e551f52b5f systemd[1]: Stopped xray.service - Xray Service.\nNov 11 17:43:15 79e551f52b5f systemd[1]: Started xray.service - idleleo preview F11 probe.\nNov 11 17:43:15 79e551f52b5f idleleo-f11-probe[387]: idleleo-f11-start 1794418995286197833\nNov 11 17:43:15 79e551f52b5f systemd[1]: Stopping xray.service - idleleo preview F11 probe...\nNov 11 17:43:15 79e551f52b5f systemd[1]: xray.service: Deactivated successfully.\nNov 11 17:43:15 79e551f52b5f systemd[1]: Stopped xray.service - idleleo preview F11 probe.\nNov 11 17:43:15 79e551f52b5f systemd[1]: Started xray.service - idleleo preview F11 probe.\nNov 11 17:43:15 79e551f52b5f idleleo-f11-probe[415]: idleleo-f11-start 1794418995309640959\nNov 11 17:43:15 79e551f52b5f systemd[1]: Stopping xray.service - idleleo preview F11 probe...\nNov 11 17:43:15 79e551f52b5f systemd[1]: xray.service: Deactivated successfully.\nNov 11 17:43:15 79e551f52b5f systemd[1]: Stopped xray.service - idleleo preview F11 probe.\nNov 11 17:43:15 79e551f52b5f systemd[1]: Started xray.service - idleleo preview F11 probe.\nNov 11 17:43:15 79e551f52b5f idleleo-f11-probe[454]: idleleo-f11-start 1794418995333730593"
+          }
+PASS service logs exit 0 rc=0
+PASS logs target xray.service xray.service
+PASS logs include the probe marker 
+$ /work/bin/idleleo service restart --unit sshd --container --json (rc=2 0.0s)
+  stderr: unit "sshd" is not managed by idleleo
+PASS unmanaged unit refused with exit 2 rc=2
+PASS unmanaged unit error is explicit unit "sshd" is not managed by idleleo
+$ /work/bin/idleleo --root /work/evidence/F11/sandbox-root service status --json (rc=2 0.0s)
+  stderr: service commands operate on the real system only (--root must be /)
+PASS sandbox root refused with exit 2 rc=2
+PASS sandbox refusal is explicit service commands operate on the real system only (--root must be /)
+$ systemctl stop xray (rc=0 0.0s)
+$ systemctl disable xray (rc=0 0.03s)
+  stderr: Removed "/etc/systemd/system/multi-user.target.wants/xray.service".
+$ systemctl daemon-reload (rc=0 0.03s)
+$ systemctl reset-failed xray (rc=1 0.0s)
+  stderr: Failed to reset failed state of unit xray.service: Unit xray.service not loaded.

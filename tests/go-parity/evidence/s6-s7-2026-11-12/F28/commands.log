@@ -1,0 +1,130 @@
+== F28 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /opt/xray/xray version (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ /opt/xray/xray x25519 (rc=0 0.01s)
+  stdout: PrivateKey: CDZ3uRgt-VwFG_IvAlL0qYHRJ5pCWAnfmNzP99vNaHU
+          Password (PublicKey): 9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0
+          Hash32: ThTUC71qZWetY-WSJPGSCwH9TZxNG9YXUhuAimCloNk
+PASS xray x25519 produced a private key expected=<non-empty> actual='CDZ3uRgt-VwFG_IvAlL0qYHRJ5pCWAnfmNzP99vNaHU' output='PrivateKey: CDZ3uRgt-VwFG_IvAlL0qYHRJ5pCWAnfmNzP99vNaHU\nPassword (PublicKey): 9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0\nHash32: ThTUC71qZWetY-WSJPGSCwH9TZxNG9YXUhuAimCloNk'
+$ /opt/xray/xray x25519 -i CDZ3uRgt-VwFG_IvAlL0qYHRJ5pCWAnfmNzP99vNaHU (rc=0 0.01s)
+  stdout: PrivateKey: CDZ3uRgt-VwFG_IvAlL0qYHRJ5pCWAnfmNzP99vNaHU
+          Password (PublicKey): 9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0
+          Hash32: ThTUC71qZWetY-WSJPGSCwH9TZxNG9YXUhuAimCloNk
+PASS xray x25519 -i produced a public key expected=<non-empty> actual='9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0' output='PrivateKey: CDZ3uRgt-VwFG_IvAlL0qYHRJ5pCWAnfmNzP99vNaHU\nPassword (PublicKey): 9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0\nHash32: ThTUC71qZWetY-WSJPGSCwH9TZxNG9YXUhuAimCloNk'
+$ /work/bin/idleleo --root /work/evidence/F28/readonly-root show --json (rc=0 0.0s)
+  stdout: {
+            "path": "/work/evidence/F28/readonly-root/etc/idleleo/conf/xray/config.json",
+            "sha256": "51e32e682632031cc891f28d7ab21f5929766091d03bc3e473e1d037e285bdba",
+            "authority": "127.0.0.1",
+            "inbounds": [
+              {
+                "index": 0,
+                "tag": "vless-in",
+                "protocol": "vless",
+                "listen": "127.0.0.1",
+                "port": "8443",
+                "network": "tcp",
+                "security": "reality"
+              }
+            ],
+            "info": {
+              "domain": "www.example.com",
+              "network": "tcp",
+              "port": "8443",
+              "tls": "Reality",
+              "uuid": "11111111-2222-4333-8444-555555555555"
+            },
+            "warnings": []
+          }
+PASS show exit 0 rc=0 
+PASS show path expected='/work/evidence/F28/readonly-root/etc/idleleo/conf/xray/config.json' actual='/work/evidence/F28/readonly-root/etc/idleleo/conf/xray/config.json'
+PASS show sha256 expected='51e32e682632031cc891f28d7ab21f5929766091d03bc3e473e1d037e285bdba' actual='51e32e682632031cc891f28d7ab21f5929766091d03bc3e473e1d037e285bdba'
+PASS show authority expected='127.0.0.1' actual='127.0.0.1'
+PASS show info.domain expected='www.example.com' actual='www.example.com'
+PASS show info.port expected='8443' actual='8443'
+PASS show info.tls expected='Reality' actual='Reality'
+PASS show info.network expected='tcp' actual='tcp'
+PASS show info.uuid expected='11111111-2222-4333-8444-555555555555' actual='11111111-2222-4333-8444-555555555555'
+PASS show inbounds[0].index expected=0 actual=0
+PASS show inbounds[0].protocol expected='vless' actual='vless'
+PASS show inbounds[0].listen expected='127.0.0.1' actual='127.0.0.1'
+PASS show inbounds[0].port expected='8443' actual='8443'
+PASS show inbounds[0].network expected='tcp' actual='tcp'
+PASS show inbounds[0].security expected='reality' actual='reality'
+PASS show warnings expected=[] actual=[]
+$ /work/bin/idleleo --root /work/evidence/F28/readonly-root status --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "installed": true,
+            "engine": "xray",
+            "role": "node",
+            "tls": "Reality",
+            "transport": "tcp",
+            "config": {
+              "path": "/work/evidence/F28/readonly-root/etc/idleleo/conf/xray/config.json",
+              "sha256": "51e32e682632031cc891f28d7ab21f5929766091d03bc3e473e1d037e285bdba",
+              "matchesMetadata": true
+            },
+            "service": {
+              "xray": "sandbox-not-queried",
+              "nginx": "sandbox-not-queried",
+              "enabled": "sandbox-not-queried",
+              "source": "sandbox",
+              "sandbox": true
+            },
+            "drift": [],
+            "warnings": []
+          }
+PASS status exit 0 rc=0 
+PASS status schemaVersion expected=1 actual=1
+PASS status installed expected=True actual=True
+PASS status engine expected='xray' actual='xray'
+PASS status role expected='node' actual='node'
+PASS status tls expected='Reality' actual='Reality'
+PASS status transport expected='tcp' actual='tcp'
+PASS status config.path expected='/work/evidence/F28/readonly-root/etc/idleleo/conf/xray/config.json' actual='/work/evidence/F28/readonly-root/etc/idleleo/conf/xray/config.json'
+PASS status config.sha256 expected='51e32e682632031cc891f28d7ab21f5929766091d03bc3e473e1d037e285bdba' actual='51e32e682632031cc891f28d7ab21f5929766091d03bc3e473e1d037e285bdba'
+PASS status config.matchesMetadata expected=True actual=True
+PASS status service.source expected='sandbox' actual='sandbox'
+PASS status service.sandbox expected=True actual=True
+PASS status service.xray expected='sandbox-not-queried' actual='sandbox-not-queried'
+PASS status service.nginx expected='sandbox-not-queried' actual='sandbox-not-queried'
+PASS status service.enabled expected='sandbox-not-queried' actual='sandbox-not-queried'
+PASS status drift expected=[] actual=[]
+PASS status warnings expected=[] actual=[]
+$ /work/bin/idleleo xray share --path /work/evidence/F28/readonly-root/etc/idleleo/conf/xray/config.json --host cdn.example.com --public-port 8443 --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "11111111-2222-4333-8444-555555555555",
+            "email": "preview@example.com",
+            "flow": "xtls-rprx-vision",
+            "host": "cdn.example.com",
+            "port": 8443,
+            "shareUri": "vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: cdn.example.com\n    port: 8443\n    uuid: 11111111-2222-4333-8444-555555555555\n    network: tcp\n    udp: true\n    tls: true\n    servername: www.example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0\n      short-id: 6ba85179e30d4fc2\n",
+            "warnings": []
+          }
+PASS share exit 0 rc=0 
+PASS share mode expected='reality' actual='reality'
+PASS share transport expected='raw' actual='raw'
+PASS share uuid expected='11111111-2222-4333-8444-555555555555' actual='11111111-2222-4333-8444-555555555555'
+PASS share email expected='preview@example.com' actual='preview@example.com'
+PASS share flow expected='xtls-rprx-vision' actual='xtls-rprx-vision'
+PASS share host expected='cdn.example.com' actual='cdn.example.com'
+PASS share port expected=8443 actual=8443
+PASS share shareUri targets the public authority expected prefix='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains encryption=none expected substring='encryption=none' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains flow=xtls-rprx-vision expected substring='flow=xtls-rprx-vision' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains security=reality expected substring='security=reality' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains sni=www.example.com expected substring='sni=www.example.com' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains fp=chrome expected substring='fp=chrome' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0 expected substring='pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains sid=6ba85179e30d4fc2 expected substring='sid=6ba85179e30d4fc2' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains type=raw expected substring='type=raw' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share emits a Clash proxy expected=<non-empty> actual='proxies:\n  - name: "idleleo-reality"\n    type: vless\n    server: cdn.example.com\n    port: 8443\n    uuid: 11111111-2222-'
+PASS share clashYaml contains 11111111-2222-4333-8444-555555555555 expected substring='11111111-2222-4333-8444-555555555555' actual='proxies:\n  - name: "idleleo-reality"\n    type: vless\n    server: cdn.example.com\n    port: 8443\n    uuid: 11111111-2222-4333-8444-555555555555\n    network: tcp\n    udp: true\n    tls: true\n    servername: www.example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 9bwrC4zav2qVaIkK_ftXdtflZPDFKLQYsolOhW93qH0\n      short-id: 6ba85179e30d4fc2\n'
+PASS share warnings is a list expected=list actual=list
+PASS show/status/share changed no byte under the root before=a38b5345e36ffd6c after=a38b5345e36ffd6c
+PASS no transaction journal was created var/lib/idleleo/transactions

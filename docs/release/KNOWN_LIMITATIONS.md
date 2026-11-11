@@ -36,7 +36,7 @@
 |---|---|
 | 是什么 | 已实现基于 **lego v5.6.0 库模式**（vendor，离线可构建）的 ACME v2 客户端，入口 `idleleo xray cert issue\|renew`；账户、订单、JWS/nonce、HTTP-01、CSR、finalize、证书下载由 lego 承担，证书对原子替换（temp+fsync+rename）、证书 0644 / 私钥 0600、webroot token 校验与 reload 回滚仍在本仓库；本轮在 **Pebble 本地 CA** 上真实验证签发、窗口内跳过、强制续期。`--reload-command` 失败恢复整对旧证书且旧对仍通过链/SAN/私钥匹配校验。负面覆盖 webroot 失效、reload 失败、只读目标、CA 拒绝域名。另保留“外部续约后状态契约”：DER 指纹变化才 `restart xray` / `reload nginx`，未变化不重启，私钥 world-readable 拒绝 reload，<30 天未变化记录 `degraded` |
 | 为什么 | 本轮没有真实域名与可达的公网 CA；不伪造证书，也不调用公网 CA |
-| 产品影响 | **本地 CA 已验证签发/续期事务与负面用例，公网 CA 未验证**。DNS-01、EAB、真实域名，以及 Bash 的 `idleleo-nginx` 组/重启语义未验收。迁移保留旧的 `ssl_update.sh` cron，已有证书续期链继续运行；低于 30 天且未变化时产品明确告警，但**不会自动续期**（`cert-renew` 尚未接入原生 ACME） |
+| 产品影响 | **本地 CA 已验证签发/续期事务与负面用例，公网 CA 未验证**。DNS-01、EAB、真实域名，以及 Bash 的 `idleleo-nginx` 组/重启语义未验收。S7-4 起 `install.sh` 与 `ssl_update.sh` 默认走 `idleleo xray cert issue\|renew`（native），不再下载 `get.acme.sh`；`IDLELEO_ACME_LEGACY=1` 可回退一版，`/root/.acme.sh` 保留不删。旧 cron 仍是触发点，但调用的是 native 续签；公网 CA 上的真实续签仍是未验收项 |
 | 解锁条件 | 真实域名 + 可达公网 CA 的隔离环境；补 DNS-01/EAB；把 `cert-renew` 接入 scheduler 并重跑正面/负面 E2E |
 
 ## 4. Rill 管理命令
@@ -118,3 +118,17 @@ phase01 C12 保持**已知 pin 不匹配**：pin 本身可解析，但当前 `in
 - 旧 XTLS 只读识别并阻断（D4）。
 - 不收集遥测；日志中不写入私钥。
 - `.workbuddy/`、`docs/plans/` 保持未跟踪。
+
+## 10. S6/S7：信任根、helper 校验与入口退役（2026-11-12）
+
+| 项 | 现状 | 仍未解决 |
+|---|---|---|
+| 版本元数据签名（S6-3） | `install.sh` 在 `load_versions` 前用 Ed25519 验 `metadata_signature`，切点 `3.4.0`；低于切点允许无签名但告警，≥ 3.4.0 缺签名即拒绝；依赖 OpenSSL 3（无 `-rawin` 时 fail-closed） | 生产版本 JSON 由**独立的 API 仓库**生成，该仓库尚未调用 `scripts/sign_json_ed25519.sh`；在它接入前，线上元数据仍是无签名的“兼容期”状态 |
+| helper 校验（S6-2） | `release-manifest.json` 的 `helperScripts` 提供每个 helper 的 sha256，`download_script_file` 第 4 参数强制校验；≥ 3.4.0 未声明校验值的 helper 直接拒绝 | manifest 本身由发布流水线生成，人工改 manifest 不做兜底；manifest 的“生成→签名”链路见 S7-5 |
+| TCP 入口（S6-1/S7-2） | `bbr_boost_sh` 默认调用 `idleleo tcp status`（失败回落 `tcp plan`），`--apply` 走 `tcp apply --profile bbr-fq --confirm`；不再下载 `Linux-NetSpeed/master/tcp.sh` | `--legacy` 只能使用本机已存在的 `tcp.sh`，不再提供下载；内核/发行版覆盖仍以容器为准 |
+| speedtest（S7-1/S7-3） | 新增 `idleleo speedtest`（默认 Cloudflare 测速端点，`--json` 输出），菜单 33 改为调用它；不再下载 `superspeed.sh` | 只测下行吞吐；没有多节点/上行/延迟分解 |
+| acme.sh 退役（S7-4） | 签发、续签、状态展示、卸载清理、备份全部改为 native `idleleo xray cert issue\|renew`；`ssl_update.sh` cron 保留但调用 native；卸载只删 `acme.sh --cron` 行与 `*_ecc` 目录，**保留 `/root/.acme.sh`**；`IDLELEO_ACME_LEGACY=1` 可回退一版 | 公网 CA 上的真实签发/续签仍未验收；下一版删除 `/root/.acme.sh` 前需要一次真实域名迁移演练 |
+| manifest 验签（S7-5） | `internal/release` 对 Go 发布通道的 manifest 做 Ed25519 验签，canonical 形式与 `jq -cS 'del(.signature)'` 逐字节一致；缺签名、坏前缀、截断、篡改全部 fail-closed | **当前没有任何流水线生成 Go 发布 manifest**，因此也没有签名产物；`IDLELEO_RELEASE_PUBKEY_FILE` 仅用于测试/运维覆盖 |
+| 插件化（S6-4） | 本轮明确不做 | 单独立项后再评估 |
+
+补充：F12 仍为 `PENDING_GO_IMPLEMENTATION`。本环境没有真实公网域名、可达的公网 CA、DNS-01 与 EAB，无法签发可信证书；28 项账本一条未改，也没有为了“收尾”放宽 `check_release_gate.py` 的判据。

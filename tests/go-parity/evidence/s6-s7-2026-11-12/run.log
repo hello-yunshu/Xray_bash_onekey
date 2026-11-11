@@ -1,0 +1,225 @@
+# S6/S7 qualification evidence
+repo_commit=ced25aa352050576e630f45ee7036574dfc684e4
+branch=develop/go-native
+generated_at=2026-11-11T17:44:12Z
+host_env=macOS host + docker (golang:1.27.4, ubuntu:24.04)
+note=this directory and docs/*.md are added by the commit that follows repo_commit; no product code changes after it
+
+## protected files vs origin/develop/go-native
+protected_diff_lines=0
+
+## ledger status
+features=28 statuses={'PENDING_GO_IMPLEMENTATION': 28}
+release_gate_sha256=d7493b289af919d9c38087176ff4fea8d4b8fbc5aae68bec792db9350e542564
+
+## shell syntax
+bash -n OK install.sh
+bash -n OK scripts/ssl_update.sh
+bash -n OK scripts/sign_json_ed25519.sh
+bash -n OK .github/test/test_versions_signature.sh
+bash -n OK .github/test/test_helper_checksum.sh
+bash -n OK .github/test/test_tcp_entry.sh
+bash -n OK .github/test/test_acme_retire.sh
+
+## bash test suite (docker ubuntu:24.04)
+$ docker run ... bash -lc 'for t in ...; do bash .github/test/$t; done'
+=== test_versions_signature.sh ===
+--- valid signature is accepted ---
+  PASS: signed metadata loads with unchanged field values
+--- signature covers every field ---
+  PASS: field tampering after signing is rejected
+--- corrupted signature bytes ---
+  PASS: corrupted signature is rejected
+--- truncated signature ---
+  PASS: signature that is not 64 bytes is rejected
+--- unsupported algorithm prefix ---
+  PASS: unknown signature algorithm is rejected
+--- compatibility window ---
+  PASS: unsigned metadata below the cutover is accepted with a warning
+  PASS: unsigned metadata at 3.4.0 is rejected
+
+Summary: PASS=7 FAIL=0
+OK test_versions_signature.sh
+=== test_helper_checksum.sh ===
+--- pinned hash mismatch is fatal ---
+  PASS: hash mismatch returns nonzero and writes nothing
+--- pinned hash match installs ---
+  PASS: matching hash installs the helper
+--- direct download honours the pinned hash ---
+  PASS: download_script_file rejects a mismatched body
+  PASS: download_script_file installs a matching body
+--- unpinned helper and the cutover ---
+  PASS: unpinned helper below the cutover installs with a warning
+  PASS: unpinned helper at 3.4.0 is refused
+
+Summary: PASS=6 FAIL=0
+OK test_helper_checksum.sh
+=== test_tcp_entry.sh ===
+--- default branch uses idleleo tcp and stays offline ---
+  PASS: default branch calls 'tcp status' with no network access
+--- status failure falls back to plan ---
+  PASS: read-only fallback is 'tcp plan'
+--- apply branch passes the profile and confirmation ---
+  PASS: apply branch calls 'tcp apply --profile bbr-fq --confirm'
+--- missing idleleo refuses instead of downloading ---
+  PASS: missing idleleo fails closed without network access
+--- legacy needs the typed confirmation ---
+  PASS: legacy without the typed confirmation is refused offline
+--- legacy no longer downloads tcp.sh ---
+  PASS: legacy without a local tcp.sh fails closed and offline
+  PASS: install.sh no longer carries a tcp.sh download URL
+--- menu 33 uses idleleo speedtest ---
+  PASS: menu 33 calls 'idleleo speedtest' without downloading anything
+  PASS: install.sh no longer carries a superspeed URL
+
+Summary: PASS=9 FAIL=0
+OK test_tcp_entry.sh
+=== test_acme_retire.sh ===
+--- ssl_install default is native and offline ---
+  PASS: native ssl_install succeeds without downloading acme.sh
+--- ssl_install fails closed without idleleo ---
+  PASS: native ssl_install fails closed when idleleo is missing
+--- acme() issues through idleleo ---
+  PASS: native acme() calls 'xray cert issue --domain example.com' and stops nginx once
+--- acme() is really red when idleleo fails ---
+  PASS: idleleo failure propagates out of acme()
+--- delete_tls_key_and_crt keeps acme.sh ---
+  PASS: per-domain state removed while ~/.acme.sh/acme.sh is retained
+--- acme_cron_cleanup removes only the acme renewal line ---
+  PASS: acme cron line removed, ssl_update.sh kept and ~/.acme.sh retained
+--- ssl_update.sh renews natively without stopping nginx ---
+  PASS: native renewal calls 'xray cert renew --domain example.com' and never stops nginx
+--- ssl_update.sh is really red when idleleo fails ---
+  PASS: idleleo renew failure makes ssl_update.sh fail
+--- legacy renewal still requires acme.sh ---
+  PASS: legacy renewal fails when IDLELEO_ACME_HOME has no acme.sh
+--- source assertions ---
+  PASS: get.acme.sh is referenced only by the legacy fallback branch
+  PASS: install.sh never removes ~/.acme.sh
+
+Summary: PASS=11 FAIL=0
+OK test_acme_retire.sh
+=== test_version_loading.sh ===
+--- CDN fallback and single-fetch cache ---
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+  PASS: origin fallback supplies every mandatory version
+  PASS: CDN failure performs exactly one origin fallback
+  PASS: subsequent field reads reuse the in-shell version cache
+--- qualification-only Xray candidate override ---
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+  PASS: candidate override changes only the qualification input
+--- fail-closed output separation ---
+  PASS: complete source failure returns nonzero
+  PASS: failure diagnostics stay off version-data stdout
+  PASS: failed reads do not partially overwrite prior versions
+--- Release SHA contract is mandatory from 3.2.3 ---
+  PASS: 3.2.3 metadata without shell_release_sha256 is rejected
+
+Summary: PASS=8 FAIL=0
+OK test_version_loading.sh
+=== test_shell_update_metadata.sh ===
+--- Release SHA contract rejects 3.2.3+ candidates without SHA ---
+  PASS: 3.2.3+ candidate without shell_release_sha256 is rejected
+--- Release SHA contract rejects malformed and mismatched SHA ---
+  PASS: 3.2.3+ candidate with malformed shell_release_sha256 is rejected
+  PASS: 3.2.3+ candidate with mismatched shell_release_sha256 is rejected
+  PASS: 3.2.3+ candidate with correct shell_release_sha256 is accepted
+============================================================
+  Section 7: Shell Update Metadata
+============================================================
+--- Old 3.0.0, download 3.0.1: config must write 3.0.1 ---
+[1/6] 下载并校验新版主脚本 ... 处理中
+[1/6] 下载并校验新版主脚本 ... ✓
+[2/6] 检测 Rill Xray AI 运维助手 ... 处理中
+[2/6] 检测 Rill Xray AI 运维助手 ... — 未安装
+[3/6] 下载并校验 Rill 更新包 ... 处理中
+[3/6] 下载并校验 Rill 更新包 ... — 跳过
+[4/6] 更新 Rill 核心组件 ... — 跳过
+[5/6] 恢复 AI 工作状态 ... — 跳过
+[6/6] 运行升级后健康检查 ... 处理中
+[6/6] 运行升级后健康检查 ... ✓
+  PASS: Config shell_version updated to 3.0.1
+  PASS: shell_version variable updated to 3.0.1
+  PASS: update_json_config was called to persist version
+  PASS: Downloaded script persisted with version 3.0.1
+--- Syntax error in download does NOT overwrite ---
+--- Download version still 3.0.0 (no update) must fail ---
+[1/6] 下载并校验新版主脚本 ... 处理中
+  PASS: update_sh fails when downloaded version != newest
+  PASS: Original script restored after version mismatch failure
+  PASS: Config shell_version unchanged (still 3.0.0) after failed update
+  PASS: update_json_config was NOT called on failed update
+--- Download failure restores backup ---
+[1/6] 下载并校验新版主脚本 ... 处理中
+  PASS: update_sh fails when download fails
+  PASS: Original script restored after download failure
+  PASS: Symlink restored after download failure
+--- Already latest version: no update ---
+[1/6] 下载并校验新版主脚本 ... ✓ 已是 v3.0.1
+  PASS: No config update when already latest version
+--- Non-TTY update UI has one title and no terminal warning ---
+  PASS: Non-TTY update/reconciliation succeeds
+  PASS: Update title appears exactly once
+  PASS: Non-TTY output includes stage 1/6
+  PASS: Non-TTY output includes stage 2/6
+  PASS: Non-TTY output includes stage 3/6
+  PASS: Non-TTY output includes stage 4/6
+  PASS: Non-TTY output includes stage 5/6
+  PASS: Non-TTY output includes stage 6/6
+  PASS: Rill-absent stages 3/4/5 are skipped
+  PASS: Non-TTY output has no TERM warning
+  PASS: Non-TTY output has no ANSI cursor escape
+--- Post-replacement validation failure restores previous script ---
+  PASS: post-replacement failure is classified as postcheck
+  PASS: Previous script restored after post-replacement failure
+  PASS: Rollback leaves no stale backup file
+
+============================================================
+  Results: 30 passed, 0 failed
+============================================================
+OK test_shell_update_metadata.sh
+bash_suite_failures=0
+bash_suite_exit=0
+
+## go build / vet / test (docker golang:1.27.4, GOPROXY=off)
+gofmt_files=0
+BUILD_OK
+VET_OK
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo-recover	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/parity-adapter	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/acme	0.097s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/app	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	0.194s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	1.815s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/compat	0.002s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.557s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/host	0.011s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/i18n	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	1.349s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/release	0.097s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/runtime	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.107s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/service	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/speedtest	0.207s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	0.005s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/tcpcfg	0.006s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.006s
+?   	github.com/hello-yunshu/Xray_bash_onekey/tests/go-parity/acme	[no test files]
+go_suite_exit=0
+
+## preview qualification (container, F01/F05/F11/F26/F27/F28)
+preview_qualification.json is committed next to this log; the run used the same tree:
+preview_install_sh_sha256=4e793c1f7a6a1143492b7df90f8089b6b5fe788ebd4436f34d410472a516ee72
+current_install_sh_sha256=4e793c1f7a6a1143492b7df90f8089b6b5fe788ebd4436f34d410472a516ee72
+preview_release_ledger_status=28/28 PENDING_GO_IMPLEMENTATION
+preview F01 PASS rc=0
+preview F05 PASS rc=0
+preview F11 PASS rc=0
+preview F26 PASS rc=0
+preview F27 PASS rc=0
+preview F28 PASS rc=0
+
+## evidence hygiene
+hygiene: 0 finding(s) in 527 file(s)
+hygiene_exit=0
