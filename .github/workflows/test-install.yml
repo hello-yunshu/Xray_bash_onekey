@@ -27,6 +27,7 @@ on:
   push:
     branches:
       - main
+      - develop/go-native
   pull_request:
   workflow_dispatch:
     inputs:
@@ -87,6 +88,10 @@ jobs:
       - name: Run Phase 1 regression tests
         run: |
           set -euo pipefail
+          # S1: the ONLINE mutation entrypoint must exit at the Go metadata gate
+          # before OS validation, logging, network, packages or /etc writes.
+          # Runs first because it needs a clean runner without /etc/idleleo.
+          sudo -E bash .github/test/test_install_top_level_refusal.sh
           bash .github/test/test_redact.sh
           bash .github/test/test_fail2ban.sh
           bash .github/test/test_nginx_tar_security.sh

@@ -2,6 +2,9 @@
 # Phase 00/01 required PR gate: does not claim L1-L3 business/release parity.
 name: Go parity stage gate
 on:
+  push:
+    branches:
+      - develop/go-native
   pull_request:
   workflow_dispatch:
 permissions:
@@ -36,7 +39,7 @@ jobs:
               break
             fi
           done
-      - name: Evidence hygiene (no host paths or private addresses)
+      - name: Evidence hygiene (no host paths, public addresses or user names)
         run: |
           set -euo pipefail
           python3 current/tests/go-parity/parity/scripts/check_evidence_hygiene.py current/tests/go-parity/evidence current/tests/go-parity/parity/evidence
