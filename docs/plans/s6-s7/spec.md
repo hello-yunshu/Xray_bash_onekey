@@ -187,10 +187,10 @@ S6-0 已核实完成：`git ls-files vendor` 812 个文件，无 `* 2.*` 副本�
 | 项 | 值 |
 |---|---|
 | 算法 | Ed25519 |
-| 公钥（SPKI PEM，内嵌） | `MCowBQYDK2VwAyEAiQVZy38jQPyS7lKDtM0vk+jSNSgavB/60UtVeFcw1t4=` |
-| SHA-256 指纹（DER） | `DpKqYUvMG2FMmWBWMxVVEdwkh9MgVJRU8Def6n858SY=` |
-| 私钥位置（不入库） | `~/.idleleo-signing/versions-ed25519.pem`（0600），需登记为 GitHub Secret `IDLELEO_METADATA_SIGNING_KEY` |
-| 未登记 Secret 时 | 发布流水线输出警告并发布未签名 JSON；3.4.0 起 install.sh 拒绝未签名元数据（必须在此之前登记） |
+| 公钥（SPKI PEM，内嵌） | `MCowBQYDK2VwAyEAUoalfNZ0sm8gFnuKlitv2fJP7Scfae3YHhCE3YMr7lc=` |
+| SHA-256 指纹（DER） | `i9tgMeTyzckKNYJCpg1uiPlI1mHdPQl9H3SfXeOM6+E=` |
+| 私钥位置（不入库） | GitHub Secret `IDLELEO_VERSIONS_ED25519_KEY`（Go manifest 用独立的 `IDLELEO_RELEASE_ED25519_KEY`） |
+| 未登记 Secret 时 | 发布流水线 fail-closed（`exit 1`），不发布未签名 JSON；3.6.0 起 install.sh 拒绝未签名元数据 |
 
 ## 6. 未纳入本轮 / 明确不做
 

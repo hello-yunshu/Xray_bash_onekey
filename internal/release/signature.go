@@ -23,11 +23,11 @@ const SignatureField = "signature"
 const signaturePrefix = "ed25519:"
 
 // releasePublicKeyPEM is the trusted Ed25519 public key for the Go release
-// manifest. It is the same anchor install.sh uses for its metadata signature
-// (shell_versions_pubkey_pem). Override only for tests and operations with
-// IDLELEO_RELEASE_PUBKEY_FILE.
+// manifest. It is a separate anchor from install.sh's metadata key
+// (shell_versions_pubkey_pem); the two secrets are rotated independently.
+// Override only for tests and operations with IDLELEO_RELEASE_PUBKEY_FILE.
 const releasePublicKeyPEM = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAiQVZy38jQPyS7lKDtM0vk+jSNSgavB/60UtVeFcw1t4=
+MCowBQYDK2VwAyEACWmX4juhphiHOwD+Vr/JM+03XA+nmdQATBC7A80YMt0=
 -----END PUBLIC KEY-----
 `
 

@@ -359,7 +359,7 @@ xray_installer_verified_at=""
 # signature covers `jq -cS 'del(.metadata_signature)'` byte for byte, with no
 # trailing newline; scripts/sign_json_ed25519.sh is the only supported signer.
 shell_versions_pubkey_pem='-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAiQVZy38jQPyS7lKDtM0vk+jSNSgavB/60UtVeFcw1t4=
+MCowBQYDK2VwAyEAUoalfNZ0sm8gFnuKlitv2fJP7Scfae3YHhCE3YMr7lc=
 -----END PUBLIC KEY-----'
 # Unsigned metadata is tolerated only while the running script is older than
 # this release. From 3.6.0 on the signature is mandatory (fail-closed). The

@@ -386,15 +386,15 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
 
 **已知边界**：
 - 生产版本 JSON 由独立 API 仓库生成，该仓库尚未接入签名器，因此线上元数据
-  仍处于“无签名 + 兼容期告警”状态。**仓库 Secret 必须配置
-  `IDLELEO_VERSIONS_ED25519_KEY`**（与 `install.sh` 内置公钥
-  `MCowBQYDK2VwAyEAiQVZy38jQPyS7lKDtM0vk+jSNSgavB/60UtVeFcw1t4=` 配对的私钥；
-  公钥不同则签名验证必然失败）。未配置时 workflow fail-closed，不会发布无签名
-  JSON，但到 3.6.0 切点仍会断。
+  仍处于“无签名 + 兼容期告警”状态。仓库 Secret `IDLELEO_VERSIONS_ED25519_KEY`
+  已配置（与 `install.sh` 内置公钥
+  `MCowBQYDK2VwAyEAUoalfNZ0sm8gFnuKlitv2fJP7Scfae3YHhCE3YMr7lc=` 配对的私钥；
+  公钥不同则签名验证必然失败）。Secret 缺失时 workflow fail-closed，不会发布
+  无签名 JSON。3.6.0 切点前必须由 API 仓库产出签名元数据。
 - `.github/workflows/publish-go-bridge.yml` 已在发布前对 `manifest.json`
-  fail-closed 签名，并要求 `IDLELEO_RELEASE_ED25519_KEY`（与
-  `internal/release` 内置公钥配对）存在；签名缺失或前缀不是 `ed25519:` 时
-  发布 job 失败。候选项（`assets/go/manifest.json`）刷新仍要等 release gate
-  变绿、28 项退出 `PENDING_GO_IMPLEMENTATION` 后由受保护流水线产出，本轮不手改。
+  fail-closed 签名，`IDLELEO_RELEASE_ED25519_KEY`（与
+  `internal/release` 内置公钥 `MCowBQYDK2VwAyEACWmX4juhphiHOwD+Vr/JM+03XA+nmdQATBC7A80YMt0=` 配对）
+  已配置；签名缺失或前缀不是 `ed25519:` 时发布 job 失败。候选项（`assets/go/manifest.json`）
+  刷新仍要等 release gate 变绿、28 项退出 `PENDING_GO_IMPLEMENTATION` 后由受保护流水线产出，本轮不手改。
 - `acme.sh` 的公网 CA 真实续签仍未验收；F12 与 28 项账本保持
   `PENDING_GO_IMPLEMENTATION`，不因本轮改动升格。
