@@ -116,5 +116,20 @@ else
     ok "install.sh no longer carries a tcp.sh download URL"
 fi
 
+printf '%s\n' '--- menu 33 uses idleleo speedtest ---'
+rm -f "${NETWORK_MARKER}"
+: >"${IDLELEO_CALL_LOG}"
+PATH="${STUB_BIN}:${base_path}" menu_action 33 </dev/null >/dev/null 2>&1 || true
+if grep -q '^speedtest' "${IDLELEO_CALL_LOG}" && [[ ! -e "${NETWORK_MARKER}" ]]; then
+    ok "menu 33 calls 'idleleo speedtest' without downloading anything"
+else
+    bad "menu 33 did not use idleleo speedtest: $(cat "${IDLELEO_CALL_LOG}")"
+fi
+if grep -q 'hello-yunshu/superspeed' "${REPO_DIR}/install.sh"; then
+    bad "install.sh still references the superspeed download"
+else
+    ok "install.sh no longer carries a superspeed URL"
+fi
+
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]

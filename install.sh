@@ -15901,12 +15901,13 @@ menu_action() {
     33)
         clear
         read -r -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
-        local superspeed_script="${idleleo_dir}/tmp/superspeed.sh"
-        if download_script_file "https://cdn.jsdelivr.net/gh/hello-yunshu/superspeed@master/superspeed.sh" "$superspeed_script"; then
-            bash "$superspeed_script"
-            rm -f "$superspeed_script"
+        local speedtest_bin=""
+        speedtest_bin=$(command -v idleleo 2>/dev/null || true)
+        if [[ -z "${speedtest_bin}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 请先安装 Go 版本") ${Font}"
+            log_echo "${Info} ${Green} $(gettext "测速已由 idleleo speedtest 提供, 不再下载第三方脚本") ${Font}"
         else
-            log_echo "${Error} ${RedBG} $(gettext "网速测试脚本下载失败") ${Font}"
+            "${speedtest_bin}" speedtest
         fi
         read -r -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
         menu_pause
