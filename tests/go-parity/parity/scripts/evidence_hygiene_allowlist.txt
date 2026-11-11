@@ -7,3 +7,18 @@
 198.18.11.158  # RFC 2544 benchmarking-range placeholder kept by the evidence sanitizer; not a live host
 /root/.acme.sh  # fixed acme.sh install path; carries no user name
 /root/idleleo-export.json  # documented CLI export example path; carries no user name
+# Vendored third-party source (go mod vendor). These values are upstream public
+# resolver constants or documentation examples, not host identifiers from this
+# project. They are listed individually so the no-whole-file-skip rule holds.
+1.0.0.1  # Cloudflare public resolver constant in vendored lego challenge code
+9.9.9.9  # Quad9 public resolver example in vendored miekg/dns
+2606:4700:4700::1111  # Cloudflare public resolver constant in vendored lego challenge code
+2606:4700:4700::1001  # Cloudflare public resolver constant in vendored lego challenge code
+2001:7b8:32a::2  # documentation example address in vendored miekg/dns
+176.58.119.54  # documentation example address in vendored miekg/dns
+3.4.2.6  # ASN.1 object identifier misread as IPv4 in vendored miekg/dns docs
+4.6.1.1  # ASN.1 object identifier misread as IPv4 in vendored go-jose
+4.8.1.2  # ASN.1 object identifier misread as IPv4 in vendored go-jose
+6.2.1.2  # ASN.1 object identifier misread as IPv4 in vendored go-jose
+6.2.2.1  # ASN.1 object identifier misread as IPv4 in vendored go-jose
+::D  # ASCII diagram fragment matched as IPv6 in vendored miekg/dns README
