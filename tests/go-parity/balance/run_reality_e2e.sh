@@ -24,7 +24,7 @@ mkdir -p "$TMP/conf" "$TMP/nginx" "$TMP/out" "$TMP/www"
 printf 'idleleo reality e2e\n' >"$TMP/www/index.html"
 
 docker run --rm -v "$REPO:/src:ro" -v "$TMP:/out" -v /tmp/go-build-cache:/gocache \
-    -e GOCACHE=/gocache -w /src golang:1.24 sh -c '
+    -e GOCACHE=/gocache -w /src golang:1.27.4@sha256:08bcb99a38f85a265f9a93d1d3323e2440eec333380f3ea26ee0dec9264bb41c sh -c '
         set -e
         go build -o /out/idleleo ./cmd/idleleo
         python3 tests/go-parity/balance/gen_e2e_configs.py /out

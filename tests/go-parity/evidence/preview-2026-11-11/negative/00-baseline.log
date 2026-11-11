@@ -1,4 +1,4 @@
-[1/4] build idleleo from /Users/<user>/Documents/GitHub/Xray_bash_onekey
+[1/4] build idleleo from /workspace/repo
 [2/4] resolve a Linux Xray for the Docker arch
 [3/4] build the systemd fixture image
 [4/4] start systemd container and run preview gate

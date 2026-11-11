@@ -39,7 +39,7 @@ docker run --rm \
     -v "$ROOT":/src -w /src \
     -v "$BUILD":/out \
     -e CGO_ENABLED=0 \
-    golang:1.24 go build -trimpath -o /out/idleleo ./cmd/idleleo
+    golang:1.27.4@sha256:08bcb99a38f85a265f9a93d1d3323e2440eec333380f3ea26ee0dec9264bb41c go build -trimpath -o /out/idleleo ./cmd/idleleo
 chmod 0755 "$BUILD/idleleo"
 
 echo "[2/4] resolve a Linux Xray for the Docker arch" >&2

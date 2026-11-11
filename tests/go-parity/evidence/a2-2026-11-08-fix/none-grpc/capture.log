@@ -3,7 +3,7 @@ date=2026-11-08T14:51:40Z
 image=sha256:d7c2c1552b58629af58a357d8a111a87526cecaae5592fcb625f3ae6f1d05303
 install_source_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f
 systemd_state=running
-container_ipv4=192.168.215.9
+container_ipv4=203.0.113.9
 seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
 seeded_release_helpers=yes version=3.3.6
 install_exit=0

@@ -4,7 +4,7 @@
 # MATRIX_BASE_IMAGE to a locally cached image that already has go, python3,
 # jq and git (for example an existing density test image) when the network
 # cannot reach deb.debian.org. The test logic is identical either way.
-ARG BASE_IMAGE=golang:1.23-bookworm
+ARG BASE_IMAGE=golang:1.27.4-bookworm@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea
 FROM ${BASE_IMAGE}
 RUN if ! command -v go >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1 \
        || ! command -v jq >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1; then \

@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-IMAGE="${B4_IMAGE:-idleleo-phase01-test:1.24}"
+IMAGE="${B4_IMAGE:-idleleo-phase01-test:1.27.4}"
 EVIDENCE="${B4_EVIDENCE:-$ROOT/tests/go-parity/evidence/b4-2026-11-08}"
 WORK="${B4_WORK:-/tmp/idleleo-b4-work}"
 

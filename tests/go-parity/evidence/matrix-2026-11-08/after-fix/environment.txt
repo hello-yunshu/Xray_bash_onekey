@@ -4,7 +4,7 @@ base_image=golang:1.23-bookworm
 test_image=sha256:5c555078de5e5e3b8e8aea740bcad27f3799da1bb42d12eea86cfeb0e2b62df6
 docker_arch=arm64
 docker_version=29.8.2
-bash_install_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f  /Users/<user>/Documents/GitHub/Xray_bash_onekey/install.sh
+bash_install_sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f  /workspace/repo/install.sh
 runner=tests/go-parity/matrix/run_matrix.py (bind-mounted over /audit/run_matrix.py in cached xray-bash-go-matrix:local)
 runner_note=cached image had stale COPY of run_matrix.py; direct image run yields MATCH 13 / MATCH_CORE_FIELDS 32 / GAP 44 / GO_FAILED 5 / REFUSED 4 with repo_commit=None and must not be used as evidence
 repo_dirty_note=7 dirty entries are docs/evidence only; Go source and install.sh are at the recorded commit

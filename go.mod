@@ -1,3 +1,3 @@
 module github.com/hello-yunshu/Xray_bash_onekey
 
-go 1.23
+go 1.27.4

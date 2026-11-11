@@ -1,7 +1,8 @@
-FROM golang:1.24@sha256:d2d2bc1c84f7e60d7d2438a3836ae7d0c847f4888464e7ec9ba3a1339a1ee804
+FROM golang:1.27.4@sha256:08bcb99a38f85a265f9a93d1d3323e2440eec333380f3ea26ee0dec9264bb41c
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GOTOOLCHAIN=local
+ENV GOPROXY=off
 RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 jq git ca-certificates util-linux \
  && rm -rf /var/lib/apt/lists/*

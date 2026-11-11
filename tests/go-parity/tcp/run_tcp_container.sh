@@ -12,7 +12,7 @@ REPO="$(cd "$REPO" && pwd -P)"
 OUT="${2:-$REPO/.audit-tcp-native}"
 mkdir -p "$OUT"
 OUT="$(cd "$OUT" && pwd -P)"
-IMAGE="${TCP_IMAGE:-idleleo-phase01-test:1.24}"
+IMAGE="${TCP_IMAGE:-idleleo-phase01-test:1.27.4}"
 
 [[ -f "$REPO/install.sh" && -f "$REPO/go.mod" ]] || {
   echo "ERROR: first argument must be a checkout with install.sh and go.mod" >&2

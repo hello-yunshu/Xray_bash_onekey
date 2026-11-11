@@ -20,12 +20,22 @@ jobs:
     if: github.ref_type != 'tag' && github.event_name != 'release'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    env:
+      GOTOOLCHAIN: local
+      GOPROXY: "off"
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.27.4'
+
+      - name: Use vendored modules when present
+        run: |
+          set -euo pipefail
+          if [ -f vendor/modules.txt ]; then
+            echo "GOFLAGS=-mod=vendor" >> "$GITHUB_ENV"
+          fi
 
       - name: Install preview runtime prerequisites
         run: |

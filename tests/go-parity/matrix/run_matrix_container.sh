@@ -24,13 +24,13 @@ command -v docker >/dev/null || { echo "ERROR: Docker unavailable" >&2; exit 3; 
 docker info >/dev/null
 
 docker build --pull=false -q \
-  --build-arg "BASE_IMAGE=${MATRIX_BASE_IMAGE:-golang:1.23-bookworm}" \
+  --build-arg "BASE_IMAGE=${MATRIX_BASE_IMAGE:-golang:1.27.4-bookworm@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea}" \
   -t "$IMAGE" -f "$DIR/Dockerfile" "$DIR" >/dev/null
 
 {
   echo "repo_commit=$(git -C "$REPO" rev-parse HEAD)"
   echo "repo_dirty=$(git -C "$REPO" status --porcelain | wc -l | tr -d ' ')"
-  echo "base_image=${MATRIX_BASE_IMAGE:-golang:1.23-bookworm}"
+  echo "base_image=${MATRIX_BASE_IMAGE:-golang:1.27.4-bookworm@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea}"
   echo "test_image=$(docker image inspect "$IMAGE" --format '{{.Id}}')"
   echo "docker_arch=$(docker version --format '{{.Server.Arch}}')"
   echo "docker_version=$(docker version --format '{{.Server.Version}}')"

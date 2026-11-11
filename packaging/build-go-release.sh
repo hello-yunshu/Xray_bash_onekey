@@ -12,6 +12,19 @@ if ! command -v "$GO" >/dev/null 2>&1; then
     GO=/tmp/gotoolchain/go/bin/go
 fi
 
+# The release must use exactly the toolchain on this machine and must never
+# fetch a module: go.mod pins go 1.27.4 and every dependency is vendored.
+export GOTOOLCHAIN=local
+export GOPROXY=off
+
+# vendor/modules.txt only exists once a real dependency is vendored (S4 adds
+# lego). Testing for the file instead of creating an empty vendor/ keeps an
+# empty directory from pretending dependencies are pinned.
+MOD_FLAG=()
+if [[ -f "$ROOT/vendor/modules.txt" ]]; then
+    MOD_FLAG=(-mod=vendor)
+fi
+
 rm -rf "$OUT"
 mkdir -p "$OUT"
 COMMIT=$(git -C "$ROOT" rev-parse HEAD)
@@ -21,14 +34,17 @@ for arch in amd64 arm64; do
     name="idleleo-linux-$arch"
     rec="idleleo-recover-linux-$arch"
     (cd "$ROOT" && CGO_ENABLED=0 GOOS=linux GOARCH="$arch" "$GO" build \
-        -trimpath -buildvcs=false \
+        "${MOD_FLAG[@]+"${MOD_FLAG[@]}"}" -trimpath -buildvcs=false \
         -ldflags "-s -w -X github.com/hello-yunshu/Xray_bash_onekey/internal/cli.Version=$VERSION" \
         -o "$OUT/$name" ./cmd/idleleo)
     (cd "$ROOT" && CGO_ENABLED=0 GOOS=linux GOARCH="$arch" "$GO" build \
-        -trimpath -buildvcs=false \
+        "${MOD_FLAG[@]+"${MOD_FLAG[@]}"}" -trimpath -buildvcs=false \
         -ldflags "-s -w -X github.com/hello-yunshu/Xray_bash_onekey/internal/cli.Version=$VERSION" \
         -o "$OUT/$rec" ./cmd/idleleo-recover)
     chmod 0755 "$OUT/$name" "$OUT/$rec"
+    # Per-arch checksum on stdout so a release log alone proves both
+    # architectures were built, not just listed in SHA256SUMS.
+    echo "dual-arch sha256 linux-$arch=$(sha256sum "$OUT/$name" | awk '{print $1}') recover=$(sha256sum "$OUT/$rec" | awk '{print $1}')"
 done
 
 (

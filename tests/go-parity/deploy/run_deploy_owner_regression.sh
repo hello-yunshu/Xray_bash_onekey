@@ -5,7 +5,7 @@
 set -euo pipefail
 
 repo=$(cd "$(dirname "$0")/../../.." && pwd)
-image=${IDLELEO_GO_TEST_IMAGE:-idleleo-phase01-test:1.24}
+image=${IDLELEO_GO_TEST_IMAGE:-idleleo-phase01-test:1.27.4}
 
 docker run --rm --network=none \
     -v "${repo}:/src:ro" -w /src "${image}" sh -c '
