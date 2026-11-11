@@ -1,0 +1,35 @@
+# Real-root change acceptance. Runs the manager against a real, installed
+# environment inside a privileged systemd container: /etc/idleleo is written,
+# systemd restarts the unit, and failure paths (validator, service, SIGKILL)
+# are re-run at the real root. Read-only repository permission; no release step.
+name: Go real-root change acceptance (container)
+
+on:
+  push:
+    branches:
+      - develop/go-native
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  realroot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run privileged systemd acceptance
+        env:
+          IDLELEO_REALROOT_EVIDENCE: ${{ runner.temp }}/realroot-evidence
+        run: bash tests/go-parity/parity/run_realroot_container.sh
+
+      - name: Upload real-root evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: realroot-evidence
+          path: ${{ runner.temp }}/realroot-evidence
+          if-no-files-found: warn

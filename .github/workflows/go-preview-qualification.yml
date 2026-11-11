@@ -1,7 +1,6 @@
 # Preview qualification. Read-only repository permission, no tag/release step,
-# and no release authority. The push trigger is scoped to the feature branch so
-# this workflow can be executed before it exists on the default branch; remove
-# it once the workflow is promoted.
+# and no release authority. The push trigger covers the migration branch so the
+# gate can run before it exists on the default branch.
 name: Go preview qualification (NOT FOR RELEASE)
 
 on:
@@ -10,7 +9,7 @@ on:
   pull_request:
   push:
     branches:
-      - fix/go-parity-install-acme-closeout
+      - develop/go-native
 
 permissions:
   contents: read
