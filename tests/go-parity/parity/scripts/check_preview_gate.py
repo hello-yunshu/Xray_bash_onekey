@@ -6,8 +6,9 @@ reuses the same fixture contract (python3 -I <fixture> --go-bin --bash-repo,
 240s per fixture) but has no release authority:
 
   * the release ledger (feature_contracts.json) must stay 28 x PENDING,
-  * check_release_gate.py and feature_contracts.json must keep their pinned
-    digests (a preview run may never rewrite the release decision),
+  * check_release_gate.py must match RELEASE_GATE_SHA256, provided by the
+    workflow environment rather than pinned in a data file; the ledger digest
+    is computed at run time and recorded in preview_qualification.json,
   * evidence may come from a prepared container or GitHub Actions,
   * tag/release events are refused outright.
 
@@ -82,19 +83,25 @@ def load_contract():
             raise ValueError(f"{fid}: fixture must be a bare file name")
         if f.get("status") not in ("PENDING_PREVIEW", "EXTERNAL_RESOURCE_REQUIRED", "EXTERNAL_RESOURCE_PARTIAL"):
             raise ValueError(f"{fid}: preview status {f.get('status')!r} is not allowed")
-    pins = (data.get("release_gate_sha256"), data.get("feature_ledger_sha256"))
-    if not all(pins):
-        raise ValueError("preview contract must pin the release gate and feature ledger digests")
     return path, data
 
 
-def check_pins(data):
+def check_gate_and_ledger():
+    """Pin the release gate from the environment and keep the ledger read-only.
+
+    The gate digest is no longer a data-file constant: the workflow supplies
+    RELEASE_GATE_SHA256 so the reviewed gate cannot drift unnoticed. The ledger
+    digest is not a precondition any more; it is computed at run time as an
+    audit record in preview_qualification.json. Its 28 x PENDING content and
+    the exact F01-F28 ids are still enforced.
+    """
     gate = ROOT / "scripts/check_release_gate.py"
     ledger = ROOT / "cases/feature_contracts.json"
-    if digest(gate) != data["release_gate_sha256"]:
+    pinned = os.environ.get("RELEASE_GATE_SHA256", "").strip().lower()
+    if not pinned:
+        raise ValueError("RELEASE_GATE_SHA256 is not set; the preview run must pin a reviewed release gate")
+    if digest(gate) != pinned:
         raise ValueError("check_release_gate.py changed; preview may not run against a modified release gate")
-    if digest(ledger) != data["feature_ledger_sha256"]:
-        raise ValueError("feature_contracts.json changed; preview must not alter the release ledger")
     manifest = json.loads(ledger.read_text())
     feats = manifest.get("features") or []
     ids = [f.get("id") for f in feats]
@@ -118,7 +125,8 @@ def main():
 
     try:
         contract_path, contract = load_contract()
-        gate_path, ledger_path, manifest = check_pins(contract)
+        gate_path, ledger_path, _manifest = check_gate_and_ledger()
+        ledger_sha = digest(ledger_path)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return refuse(str(exc), 2)
 
@@ -222,16 +230,20 @@ def main():
         "bashRepo": str(bash_repo),
         "installShSha256": digest(install_sh),
         "releaseGateSha256": digest(gate_path),
-        "featureLedgerSha256": digest(ledger_path),
+        "featureLedgerSha256": ledger_sha,
         "releaseLedgerStatus": "28/28 PENDING_GO_IMPLEMENTATION",
         "features": results,
     }
     (evidence / "preview_qualification.json").write_text(json.dumps(report, indent=2) + "\n")
 
-    # Re-check the pins after running: a fixture or a stray process must not be
-    # able to rewrite the release decision mid-run.
+    # Re-check the release gate pin and the ledger invariants after running: a
+    # fixture or a stray process must not be able to rewrite the release
+    # decision mid-run. The ledger digest is compared to the value captured at
+    # start so a mid-run rewrite is still caught without a data-file pin.
     try:
-        check_pins(contract)
+        check_gate_and_ledger()
+        if digest(ledger_path) != ledger_sha:
+            raise ValueError("feature_contracts.json changed during this preview run")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"PREVIEW RESULT: RED — release decision changed during this run: {exc}", file=sys.stderr)
         return 2

@@ -3,8 +3,6 @@
   "channel": "preview",
   "banner": "PREVIEW — NOT FOR RELEASE",
   "release_authority": false,
-  "release_gate_sha256": "d7493b289af919d9c38087176ff4fea8d4b8fbc5aae68bec792db9350e542564",
-  "feature_ledger_sha256": "670f4c29a4bf0f4a2bd73e907822632934d68977a16e6b7fcda76d72b775efed",
   "status_legend": [
     "PENDING_PREVIEW",
     "EXTERNAL_RESOURCE_REQUIRED",

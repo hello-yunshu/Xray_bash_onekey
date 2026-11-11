@@ -48,6 +48,21 @@ jobs:
           go vet ./...
           go test ./...
           go build -trimpath -o /tmp/idleleo ./cmd/idleleo
+      - name: Feature ledger transition policy (positive and negative cases)
+        run: |
+          set -euo pipefail
+          python3 current/.github/test/test_ledger_transition.py
+      - name: Refuse forbidden ledger transitions against the PR base
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git -C current fetch --no-tags --depth=1 origin "$GITHUB_BASE_REF"
+          base=$(mktemp)
+          git -C current show "FETCH_HEAD:tests/go-parity/parity/cases/feature_contracts.json" > "$base"
+          python3 current/tests/go-parity/parity/scripts/check_ledger_transition.py \
+            --base "$base" \
+            --head current/tests/go-parity/parity/cases/feature_contracts.json \
+            --root current
       - name: A2 comparator mutation self-test and committed-runtime compare
         run: |
           set -euo pipefail

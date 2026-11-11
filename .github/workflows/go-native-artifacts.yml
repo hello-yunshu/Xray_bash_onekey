@@ -1,0 +1,60 @@
+# Development artifacts for the Go migration branch. This is a build channel,
+# not a release: it never tags, never creates a Release and never writes a
+# bridge manifest (BRIDGE_BASE_URL stays unset). The only output is a workflow
+# artifact kept for a short time.
+name: Go native artifacts (NOT FOR RELEASE)
+
+on:
+  push:
+    branches:
+      - develop/go-native
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GOTOOLCHAIN: local
+      GOPROXY: "off"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.4'
+
+      - name: Use vendored modules when present
+        run: |
+          set -euo pipefail
+          if [ -f vendor/modules.txt ]; then
+            echo "GOFLAGS=-mod=vendor" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build amd64/arm64 binaries and checksums
+        env:
+          VERSION: 0.0.0-dev.${{ github.sha }}
+        run: |
+          set -euo pipefail
+          bash packaging/build-go-release.sh "$RUNNER_TEMP/go-native"
+          (cd "$RUNNER_TEMP/go-native" && sha256sum -c SHA256SUMS)
+          # A bridge manifest must not exist on this channel.
+          test ! -e "$RUNNER_TEMP/go-native/bridge-asset-linux-amd64.json"
+          test ! -e "$RUNNER_TEMP/go-native/bridge-asset-linux-arm64.json"
+          for arch in amd64 arm64; do
+            file "$RUNNER_TEMP/go-native/idleleo-linux-$arch" | grep -q "ELF 64-bit"
+            file "$RUNNER_TEMP/go-native/idleleo-recover-linux-$arch" | grep -q "ELF 64-bit"
+          done
+          cat "$RUNNER_TEMP/go-native/SHA256SUMS"
+
+      - name: Upload development artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: idleleo-go-native-${{ github.sha }}
+          path: ${{ runner.temp }}/go-native
+          if-no-files-found: error
+          retention-days: 14

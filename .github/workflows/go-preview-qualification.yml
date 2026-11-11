@@ -23,6 +23,10 @@ jobs:
     env:
       GOTOOLCHAIN: local
       GOPROXY: "off"
+      # The reviewed release gate digest lives in workflow configuration, not in
+      # a data file, so a contract edit cannot re-pin it. Update this value only
+      # together with a reviewed change to check_release_gate.py.
+      RELEASE_GATE_SHA256: d7493b289af919d9c38087176ff4fea8d4b8fbc5aae68bec792db9350e542564
     steps:
       - uses: actions/checkout@v4
 
@@ -69,7 +73,8 @@ jobs:
           # write /etc/idleleo and /var/lib/idleleo. Running the gate through sudo
           # changes only the caller identity; the gate's pass/fail rules and the
           # fixtures' root precondition stay untouched.
-          sudo -E env "PATH=$PATH" python3 tests/go-parity/parity/scripts/check_preview_gate.py \
+          sudo -E env "PATH=$PATH" "RELEASE_GATE_SHA256=$RELEASE_GATE_SHA256" \
+            python3 tests/go-parity/parity/scripts/check_preview_gate.py \
             --go-bin "$RUNNER_TEMP/idleleo" \
             --bash-repo "$GITHUB_WORKSPACE" \
             --evidence "$IDLELEO_PREVIEW_EVIDENCE"

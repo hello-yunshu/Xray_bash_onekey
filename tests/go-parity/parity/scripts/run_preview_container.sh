@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Run the preview qualification gate inside a reproducible systemd container.
 #
-#   ./run_preview_container.sh            # all features in preview_contract.json
-#   ./run_preview_container.sh F01        # one feature while developing
+#   RELEASE_GATE_SHA256=<sha> ./run_preview_container.sh   # all features
+#   RELEASE_GATE_SHA256=<sha> ./run_preview_container.sh F01  # one feature
 #   KEEP_PREVIEW_CONTAINER=1 ...          # leave the container for inspection
 #
 # The host may be macOS (no Go, no Linux Xray): the binary is built with the
@@ -16,6 +16,10 @@ export ROOT
 source "$ROOT/tests/go-parity/lib/docker_common.sh"
 
 ONLY=${1:-}
+# The release gate digest is a workflow-owned pin, not a contract field. The
+# caller must export the reviewed value; the container inherits it through
+# docker run so check_preview_gate.py can enforce it.
+: "${RELEASE_GATE_SHA256:?RELEASE_GATE_SHA256 must be set to the reviewed check_release_gate.py sha256}"
 BUILD=$(mktemp -d "${TMPDIR:-/tmp}/idleleo-preview.XXXXXX")
 CID=""
 IMAGE=idleleo-preview:latest
@@ -61,6 +65,7 @@ CID=$(docker run -d --privileged --cgroupns=host \
     -v "$BUILD/xray:/opt/xray/xray:ro" \
     -v "$ROOT:/work/repo:ro" \
     -v "$BUILD/evidence:/work/evidence" \
+    -e "RELEASE_GATE_SHA256=$RELEASE_GATE_SHA256" \
     "$IMAGE")
 
 state=""
