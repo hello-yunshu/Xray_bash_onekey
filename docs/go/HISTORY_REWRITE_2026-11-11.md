@@ -68,6 +68,15 @@
 
 工作树内容与重写前 HEAD 逐字节一致（`git archive` 对比 0 差异），只有历史版本变化。
 
+**远端复验（强推 `main` 之后）**：
+
+- 普通 `git clone`（877 提交，只含分支与 tag）：三个旧值 `-S` 均 0 命中；
+- `git clone --mirror`（1578 提交，额外拉取 131 个 `refs/pull/*`）：前两个值 0 命中，
+  `/Users/<旧用户名 A>` 仍有 **1** 个提交命中——`4851375`
+  （"docs: add consolidated audit repair prompts and startup guide"），
+  只被 `refs/pull/114/head`、`refs/pull/115/head`、`refs/pull/116/head` 可达。
+  这正是第 7 节第 2 条所说的 pull ref 残留，无法通过重写或强推消除。
+
 ## 6. 新旧 SHA 对照
 
 分支头（重写完成时）：
@@ -75,7 +84,7 @@
 | 分支 | 旧 | 新 |
 |---|---|---|
 | develop/go-native | `bfb540b` | `75364b7`（后续 `c47926f`，再往后见 `git log`） |
-| main | `81e10ac` | `6f291fa`（受 ruleset 保护，截至本记录**尚未推上去**） |
+| main | `81e10ac` | `6f291fa`（2026-11-11 强推：临时把 ruleset `15353378` 置 `disabled`，推送后立即恢复 `active` 并回读确认） |
 | audit/bash-go-native-parity | `e21e824` | `dc925c6` |
 | docs/geo-stats-tui-audit-2026-11-05-r2 | `5b10018` | `48839e0` |
 | fix/go-parity-install-acme-closeout | `e129725` | `81ce461` |
@@ -118,7 +127,9 @@ Tag（15 个，全部已强推）：
    成功 checkout（run `43030086252`），说明 GitHub 仍保留并按需提供不可达对象。
    已知形式的 ghost commit URL 在缓存清理前仍可能被访问。
 2. **`refs/pull/*/head` 不在本次可控范围。** 仓库有 131 个 pull ref（100+ 已关闭 PR），
-   它们指向重写前的提交；只要这些 PR 还在，旧对象就可能通过它们取回。
+   它们指向重写前的提交；只要这些 PR 还在，旧对象就可能通过它们取回。已定位到具体残留：
+   `4851375` 仍含 `/Users/<旧用户名 A>`，由 `refs/pull/114..116` 可达。关闭/删除 PR
+   不会删除这些 ref。
 3. 因此**不能**声称“已彻底清除”。本项目对外证据应写明：
    “历史已于 2026-11-11 重写，此前通过 PUBLIC 仓库暴露的主机地址与用户名视为不可撤回。”
 4. 处置建议：

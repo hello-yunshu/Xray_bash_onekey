@@ -105,7 +105,9 @@ phase01 C12 保持**已知 pin 不匹配**：pin 本身可解析，但当前 `in
 | 曾红的原因 | 三次不同提交在 F01 报 `UNSUPPORTED_ENVIRONMENT: systemd is not usable after 30s`；同分钟另一 runner 的 run `43030084048` 成功且 `degraded 0.0s`，而修复后本 run 记录 `PASS systemd is usable: degraded after 51.2s`。判定为**真实时序问题**（等待预算不足），不是 runner 抖动；F11 的计数先 `1 -> 1` 后 `1 -> 3` 证明是 journald 滞后。修复：预算 30s → 120s，F11 改为轮询 journald。 |
 | 拒绝测试在 CI 的实际执行 | `security-regression` job 中 `sudo -E bash .github/test/test_install_top_level_refusal.sh` 输出 `PASS: refused at the metadata gate (rc=1); no network, package, log or system write` |
 | runner 侧网络故障（2026-11-11 13:52Z 起） | 之后的提交（`b84fc41` 文档、`891203c` 空提交重触发）上 `Test Install`、`preview`、`realroot` 变红，失败点统一是 apt：`Temporary failure resolving 'azure.archive.ubuntu.com'` / `E: Unable to fetch some archives` / `exit code 100`，与代码无关。全绿证据以 head `79e8ec9` 为准，不要引用这些红 run 判断代码质量 |
-| 未完成 | 未创建 PR；`go-release-qualification.yml` 与 `publish-go-bridge.yml` 仍零 run（前者只在默认分支可 dispatch，后者还受 28 项 PENDING 门禁阻断）；`main` 的重写后历史因 ruleset 保护尚未强推 |
+| 未完成 | 未创建 PR；`go-release-qualification.yml` 与 `publish-go-bridge.yml` 仍零 run（前者只在默认分支可 dispatch，后者还受 28 项 PENDING 门禁阻断） |
+| `main` 与保护 | `main` 已于 2026-11-11 强推到重写后的 `6f291fa`（临时 `enforcement=disabled`，推完立即恢复 `active` 并回读确认）；ruleset `15353378` 的 `deletion` / `non_fast_forward` / `pull_request` / `required_status_checks` 四条规则保持不变 |
+| 仍暴露的 pull ref | 普通 clone 三值 0 命中；`--mirror` clone（131 个 `refs/pull/*`）里 `4851375` 仍含一个旧用户名，仅由 `refs/pull/114..116` 可达，需 GitHub Support 清理 |
 | 影响 | 不能以“CI 已绿”为依据发布 |
 
 ## 9. 安全与运维边界
