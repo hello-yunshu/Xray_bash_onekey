@@ -42,7 +42,7 @@ jobs:
       - name: Evidence hygiene (no host paths, public addresses or user names)
         run: |
           set -euo pipefail
-          python3 current/tests/go-parity/parity/scripts/check_evidence_hygiene.py current/tests/go-parity/evidence current/tests/go-parity/parity/evidence
+          python3 current/tests/go-parity/parity/scripts/check_evidence_hygiene.py current/tests/go-parity/evidence current/tests/go-parity/parity/evidence current/docs
       - name: Go core formatting, vet, tests and build
         run: |
           set -euo pipefail

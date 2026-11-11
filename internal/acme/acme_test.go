@@ -124,6 +124,54 @@ func TestReplacePairRestoresOldCertificateWhenKeyCannotBeInstalled(t *testing.T)
 	}
 }
 
+func TestReloadFailureRestoresPreviousPair(t *testing.T) {
+	dir := t.TempDir()
+	certPath := filepath.Join(dir, "cert.pem")
+	keyPath := filepath.Join(dir, "key.pem")
+	oldChain, oldKeyDER := testPair(t, 1, "old.example.com")
+	if err := replacePair(certPath, keyPath, oldChain, oldKeyDER); err != nil {
+		t.Fatal(err)
+	}
+	oldCertOnDisk, err := os.ReadFile(certPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldKeyOnDisk, err := os.ReadFile(keyPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Simulate a successful install of a new pair, then a reload that fails.
+	oldCert, oldKey, hadCert, hadKey := readPair(certPath, keyPath)
+	newChain, newKeyDER := testPair(t, 2, "new.example.com")
+	if err := replacePair(certPath, keyPath, newChain, newKeyDER); err != nil {
+		t.Fatal(err)
+	}
+	cfg := Config{CertFile: certPath, KeyFile: keyPath, ReloadCommand: "exit 1"}
+	err = reloadOrRestore(context.Background(), cfg, oldCert, oldKey, hadCert, hadKey)
+	if err == nil || !strings.Contains(err.Error(), "previous pair restored") {
+		t.Fatalf("reload failure = %v, want a previous-pair-restored error", err)
+	}
+
+	gotCert, err := os.ReadFile(certPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(gotCert, oldCertOnDisk) {
+		t.Fatal("reload failure did not restore the previous certificate")
+	}
+	gotKey, err := os.ReadFile(keyPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(gotKey, oldKeyOnDisk) {
+		t.Fatal("reload failure did not restore the previous private key")
+	}
+	if info, err := os.Stat(keyPath); err != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("restored key mode = %v, %v; want 0600", info, err)
+	}
+}
+
 func TestWebrootProviderRejectsUnsafeToken(t *testing.T) {
 	root := t.TempDir()
 	p := &webrootProvider{root: root}

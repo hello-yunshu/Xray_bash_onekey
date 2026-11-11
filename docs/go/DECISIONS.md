@@ -303,8 +303,10 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
 
 **决定**：
 - 依赖采用 `github.com/go-acme/lego/v5 v5.6.0` 的**库模式**，不引入 lego 外部
-  二进制，不调用 `acme.sh`；`go mod vendor` 只落实际 import 的包（9 个模块、
-  13MB / 812 文件），空模块缓存 + `GOPROXY=off` 可完成 `go build` / `go test`。
+  二进制，不调用 `acme.sh`；上游 commit 为 `226c09fbe704ea412bea76cb268414f67686be1d`
+  （注释标签对象 `b639b2749b8de7b51ba8cf37f32584edd954c3d4`）。`go mod vendor` 只落
+  实际 import 的包（9 个模块、812 个文件、11.22 MiB；`du` 磁盘占用约 13M），
+  空模块缓存 + `GOPROXY=off` 可完成 `go build` / `go test`。
   早期“lego 要求 Go 1.26、只能用外部二进制”的结论随 Go 1.27.4 升级作废。
 - `internal/acme` 的协议层（账户、订单、JWS/nonce、HTTP-01、CSR、finalize、
   证书下载）改由 lego 承担；本仓库保留并继续测试：显式目录 URL、账户密钥/状态
@@ -317,8 +319,14 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
 - lego 默认日志写 stdout，会污染 `--json`；本仓库在构建客户端时把 lego 日志改到
   stderr。
 - `tests/go-parity/acme/run_acme_container.sh` 的 Go 镜像默认改为
-  `golang:1.27.4`（旧 matrix 镜像是 Go 1.23，无法构建本仓库），并把
-  `PEBBLE_AUTHZREUSE` 默认设为 0，使 webroot 失败负面用例可确定复现。
+  `golang:1.27.4`（旧 matrix 镜像是 Go 1.23，无法构建本仓库）。主 Pebble 的
+  `PEBBLE_AUTHZREUSE` 默认设为 0，使 webroot 失败负面用例可确定复现；该用例的
+  基线独立捕获，reload 失败用例在测试前恢复已知良好证书对并单独取基线，两个负面
+  用例互不影响。另用第二个 `PEBBLE_AUTHZREUSE>0` 的 Pebble 单独覆盖“CA 复用
+  授权”场景，断言签发与强制续期都成功。
+- 验收脚本的任何断言不符预期都会置失败位并以非 0 退出；`verify_cert.go` 的
+  验证失败写在 JSON 里且本身退出 0，脚本改为显式断言
+  `verifiedToLocalRoot` / `hostnameVerified` / `privateKeyMatches` 三个布尔。
 
 **理由**：lego 是被广泛审计的 ACME 实现，可减少自研 JWS/订单状态机的协议风险；
 但证书落盘的事务、权限与回滚是本项目对用户的责任，不能外包给库。vendor 保证
@@ -326,3 +334,11 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
 
 **已知边界**：本轮只完成协议层替换与本地 CA 全流程/负面验收，不等同于 F12
 签收；`acme.sh` 入口与 cron 仍属 S7，未删除。
+
+**能力边界（当前未接线，不得据此宣称“能力完整”）**：
+- 只接入了 HTTP-01（`SetHTTP01Provider`）。`tls-alpn-01`、`dns-01` 在 vendor 中
+  有实现，但本仓库没有设置对应 provider，也没有 CLI 开关。
+- 不支持 EAB（外部账户绑定）与账户密钥轮转；账户身份仅保存在本地
+  `account.key` + `account.json`。
+- 签发仅覆盖单域名（`Domains: []string{domain}`），未实现多 SAN/通配符。
+- 以上能力若要启用，需要新增判据与验收环境（DNS-01/EAB 必须真实公网 CA）。

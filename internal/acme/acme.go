@@ -116,16 +116,27 @@ func Issue(ctx context.Context, cfg Config) (Result, error) {
 		return res, err
 	}
 	res.Issued = true
-	if cfg.ReloadCommand != "" {
-		if err := runReload(ctx, cfg.ReloadCommand); err != nil {
-			if restoreErr := restorePair(cfg.CertFile, cfg.KeyFile, oldCert, oldKey, hadCert, hadKey); restoreErr != nil {
-				return res, fmt.Errorf("certificate installed but reload failed, and restoring the previous pair also failed: %w (restore: %v)", err, restoreErr)
-			}
-			return res, fmt.Errorf("certificate installed but reload failed; previous pair restored: %w", err)
-		}
-		res.Reloaded = true
+	if err := reloadOrRestore(ctx, cfg, oldCert, oldKey, hadCert, hadKey); err != nil {
+		return res, err
 	}
+	res.Reloaded = cfg.ReloadCommand != ""
 	return res, nil
+}
+
+// reloadOrRestore runs the reload command after a successful install. If the
+// reload fails the newly installed pair is rolled back to the previous one, so
+// the service never keeps a certificate it refused to load.
+func reloadOrRestore(ctx context.Context, cfg Config, oldCert, oldKey []byte, hadCert, hadKey bool) error {
+	if cfg.ReloadCommand == "" {
+		return nil
+	}
+	if err := runReload(ctx, cfg.ReloadCommand); err != nil {
+		if restoreErr := restorePair(cfg.CertFile, cfg.KeyFile, oldCert, oldKey, hadCert, hadKey); restoreErr != nil {
+			return fmt.Errorf("certificate installed but reload failed, and restoring the previous pair also failed: %w (restore: %v)", err, restoreErr)
+		}
+		return fmt.Errorf("certificate installed but reload failed; previous pair restored: %w", err)
+	}
+	return nil
 }
 
 // Renew reissues only when the installed certificate is inside the renew
