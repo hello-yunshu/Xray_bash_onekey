@@ -478,6 +478,7 @@ func buildMetadata(audit Audit) ([]byte, error) {
 	meta := store.Metadata{
 		SchemaVersion: store.ManagerSchemaVersion,
 		ActiveEngine:  "xray",
+		Provenance:    "legacy",
 		Role:          audit.Role,
 		TLS:           audit.TLS,
 		Transport:     audit.Transport,

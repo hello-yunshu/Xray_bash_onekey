@@ -694,6 +694,123 @@ lazy_load_config_for_read() {
     _lazy_load_info_extraction
 }
 
+# S1: Go 元数据是唯一真相。Bash 只做只读推导，绝不写第二份。
+idleleo_go_metadata_file="${idleleo_dir}/v1/metadata.json"
+
+# Go 接管的判定只看唯一真相文件是否存在。文件存在但损坏时同样按 Go 环境处理，
+# 因为回落到 install_config.json 会产生第二份真相。
+idleleo_go_metadata_present() {
+    [[ -f "${idleleo_go_metadata_file}" ]]
+}
+
+# 读取 Go 元数据的单个字段。缺失或无法解析时显式提示并返回 1，绝不回落到默认值。
+idleleo_go_metadata_field() {
+    local field="$1" value
+    if [[ ! -f "${idleleo_go_metadata_file}" ]]; then
+        printf '%s\n' "来自 Go 元数据、字段缺失: ${field}（${idleleo_go_metadata_file} 不存在）" >&2
+        return 1
+    fi
+    if ! has_jq_binary; then
+        printf '%s\n' "来自 Go 元数据、字段缺失: ${field}（缺少 jq，无法读取 ${idleleo_go_metadata_file}）" >&2
+        return 1
+    fi
+    if ! value=$(jq -r --arg f "${field}" '.[$f] // empty' "${idleleo_go_metadata_file}" 2>/dev/null); then
+        printf '%s\n' "来自 Go 元数据、字段缺失: ${field}（${idleleo_go_metadata_file} 无法解析）" >&2
+        return 1
+    fi
+    if [[ -z "${value}" ]]; then
+        printf '%s\n' "来自 Go 元数据、字段缺失: ${field}" >&2
+        return 1
+    fi
+    printf '%s' "${value}"
+}
+
+# Go 的 transport 取值与 Bash 的 UI 组合值不同。未知值显式失败，不猜测。
+idleleo_go_transport_to_shell_mode() {
+    case "$1" in
+        ws|onlyws) printf '%s' "onlyws" ;;
+        grpc|onlygrpc) printf '%s' "onlygRPC" ;;
+        xhttp|onlyxhttp) printf '%s' "onlyxhttp" ;;
+        multi) printf '%s' "wsgRPCxhttp" ;;
+        raw|none|stream) printf '%s' "None" ;;
+        *) return 1 ;;
+    esac
+}
+
+# 用 Go 元数据填充 judge_mode 依赖的全局变量。任何必填字段缺失都会中止。
+idleleo_go_mode_load() {
+    local _role _tls _transport _mode
+    _role=$(idleleo_go_metadata_field role) || return 1
+    _tls=$(idleleo_go_metadata_field tls) || return 1
+    _transport=$(idleleo_go_metadata_field transport) || return 1
+    case "${_role}" in
+        node|relay) ;;
+        *) printf '%s\n' "来自 Go 元数据、字段不可用: role=${_role}" >&2; return 1 ;;
+    esac
+    case "${_tls}" in
+        Reality|TLS|None) ;;
+        *) printf '%s\n' "来自 Go 元数据、字段不可用: tls=${_tls}" >&2; return 1 ;;
+    esac
+    if ! _mode=$(idleleo_go_transport_to_shell_mode "${_transport}"); then
+        printf '%s\n' "来自 Go 元数据、字段不可用: transport=${_transport}" >&2
+        return 1
+    fi
+    node_role="${_role}"
+    tls_mode="${_tls}"
+    transport_mode="${_mode}"
+    old_tls_mode="${tls_mode}"
+    # shell_mode 只用于旧菜单展示；Go 模式下配置变更入口已被拒绝，这里给一个
+    # 不会伪装成某种 legacy 组合的明确标签。
+    shell_mode="$(gettext "Go 原生管理")"
+    return 0
+}
+
+# Go 模式下的只读状态展示。只读元数据与运行配置摘要，不重写 info 文件。
+idleleo_go_show_information() {
+    local _role _tls _transport _path _sha _abs _actual
+    _role=$(idleleo_go_metadata_field role) || return 1
+    _tls=$(idleleo_go_metadata_field tls) || return 1
+    _transport=$(idleleo_go_metadata_field transport) || return 1
+    printf '\n%s\n\n' "—————— Go 原生管理状态（来自 Go 元数据） ——————"
+    printf 'role: %s\ntls: %s\ntransport: %s\n' "${_role}" "${_tls}" "${_transport}"
+    if [[ "${_role}" == "node" ]]; then
+        _path=$(idleleo_go_metadata_field runtimeConfigPath) || return 1
+        _sha=$(idleleo_go_metadata_field runtimeSha256) || return 1
+        _abs="/${_path#/}"
+        _actual=""
+        if [[ -f "${_abs}" ]] && command -v sha256sum >/dev/null 2>&1; then
+            _actual=$(sha256sum "${_abs}" | awk '{print $1}')
+        fi
+        if [[ -z "${_actual}" ]]; then
+            printf 'runtime: %s\nruntimeSha256: %s\nruntimeSha256Actual: <无法读取>\nmatches: false\n' \
+                "${_abs}" "${_sha}"
+        else
+            printf 'runtime: %s\nruntimeSha256: %s\nruntimeSha256Actual: %s\nmatches: %s\n' \
+                "${_abs}" "${_sha}" "${_actual}" \
+                "$([[ ${_actual} == "${_sha}" ]] && printf 'true' || printf 'false')"
+        fi
+    else
+        printf '%s\n' "runtime: relay 无运行配置摘要"
+    fi
+    if [[ -f "${xray_info_file}" ]]; then
+        printf '\n%s\n' "—————— 旧版信息文件（只读，未重写） ——————"
+        cat "${xray_info_file}"
+    fi
+    return 0
+}
+
+# Go 模式下的写操作拒绝。绝不回落到 legacy 写路径。
+idleleo_go_refuse_bash_mutation() {
+    local action="${1:-mutation}"
+    printf '%s\n' \
+        "当前环境由 Go 原生管理器接管（${idleleo_go_metadata_file} 是唯一真相）。" \
+        "Bash 不再执行配置变更/更新/重装（${action}），以免写出第二份状态。" \
+        "请改用 idleleo：idleleo config / idleleo update / idleleo xray install。" \
+        "如需退回纯 Bash 管理，先执行：" \
+        "  idleleo metadata export --out /root/idleleo-export.json" \
+        "  idleleo bridge deactivate --export /root/idleleo-export.json" >&2
+}
+
 is_ws_mode() {
     [[ ${transport_mode} == *ws* ]]
 }
@@ -9488,6 +9605,10 @@ generate_clash_config() {
 }
 
 install_link_image() {
+    if idleleo_go_metadata_present; then
+        # S1: Go 元数据是唯一真相；不重写 xray_info.inf / Clash 配置，也不生成链接。
+        return 0
+    fi
     if is_relay_role; then
         # A relay has no VLESS inbound, so no share link or QR code exists.
         return 0
@@ -9789,6 +9910,10 @@ monitor_traffic_with_iftop() {
 }
 
 basic_information() {
+    if idleleo_go_metadata_present; then
+        # S1: --show 在 Go 模式下是纯读；绝不重写 info 文件。
+        return 0
+    fi
     if is_relay_role; then
         relay_basic_information
         return 0
@@ -9890,6 +10015,10 @@ basic_information() {
 }
 
 show_information() {
+    if idleleo_go_metadata_present; then
+        idleleo_go_show_information
+        return $?
+    fi
     cat "${xray_info_file}"
 }
 
@@ -11125,6 +11254,11 @@ judge_mode() {
     # Restore dual-stack runtime state on a fresh process so --show / menus
     # still emit IPv6 links after the script exits and re-runs.
     ensure_network_runtime_state
+    if idleleo_go_metadata_present; then
+        # S1: Go 元数据是唯一真相，字段缺失时显式失败，不回落到 install_config.json。
+        idleleo_go_mode_load || return 1
+        return 0
+    fi
     if [[ -f "${xray_install_config_file}" ]]; then
         node_role=$(info_extraction role)
         [[ -z ${node_role} || ${node_role} == "null" ]] && node_role="node"
@@ -16244,7 +16378,7 @@ dispatch_pure_readonly_command() {
     case "${1:-}" in
         -h|--help) show_help ;;
         -s|--show)
-            judge_mode
+            judge_mode || exit 1
             basic_information
             install_link_image
             show_information
@@ -16380,6 +16514,15 @@ fi
 # bootstrap). Validate the OS BEFORE any apt update / dnf makecache / pkg
 # install / GitHub curl / mkdir /etc/idleleo, then enable logging, then go
 # through the full bootstrap + candidate-guard + config-load path.
+#
+# S1: when Go metadata owns the root, refuse install/update/repair/reinstall
+# before the first system write, package call or network request. Silently
+# writing a second config through Bash is the dual-truth failure this phase
+# exists to prevent.
+if idleleo_go_metadata_present; then
+    idleleo_go_refuse_bash_mutation "${1:-interactive}"
+    exit 1
+fi
 validate_supported_system || exit 1
 enable_file_logging
 
@@ -16391,7 +16534,7 @@ check_file_integrity "$@" || exit 1
 # Repair a stale install_config shell_version before any update decision. The
 # managed script itself is authoritative; never rewrite it from old metadata.
 sync_shell_version_config_with_actual || true
-judge_mode
+judge_mode || exit 1
 check_online_version_connect
 read_version || exit 1
 

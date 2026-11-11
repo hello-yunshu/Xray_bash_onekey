@@ -25,6 +25,7 @@ var shaHex = regexp.MustCompile(`^[0-9a-f]{64}$`)
 type Metadata struct {
 	SchemaVersion     int      `json:"schemaVersion"`
 	ActiveEngine      string   `json:"activeEngine"`
+	Provenance        string   `json:"provenance,omitempty"`
 	Role              string   `json:"role"`
 	TLS               string   `json:"tls"`
 	Transport         string   `json:"transport"`

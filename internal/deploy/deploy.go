@@ -371,6 +371,7 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	meta := store.Metadata{
 		SchemaVersion:     store.ManagerSchemaVersion,
 		ActiveEngine:      "xray",
+		Provenance:        "native",
 		Role:              "node",
 		TLS:               rep.TLS,
 		Transport:         rep.Transport,

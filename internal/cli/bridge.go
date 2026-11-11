@@ -128,6 +128,26 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 			}
 		}
 		return 0
+	case "deactivate":
+		report, err := legacybridge.Deactivate(legacybridge.DeactivateOptions{
+			Root:                 cfg.root,
+			Export:               flagValue(rest, "--export"),
+			AllowContainerWrites: hasFlag(rest, "--container"),
+		})
+		if err != nil {
+			return bridgeFail(opts, cfg, err)
+		}
+		if cfg.json {
+			return writeJSON(opts, report)
+		}
+		fmt.Fprintf(opts.Out, "state=%s entry=%s rillUnchanged=%t\n",
+			report.State, report.Entry, report.RillUnchanged)
+		fmt.Fprintf(opts.Out, "export=%s runtime=%s\n", report.ExportPath, report.RuntimeSHA256)
+		fmt.Fprintf(opts.Out, "metadataArchive=%s\n", report.MetadataArchive)
+		for _, a := range report.Actions {
+			fmt.Fprintf(opts.Out, "action=%s\n", a)
+		}
+		return 0
 	case "status":
 		report, err := legacybridge.Status(cfg.root)
 		if err != nil {

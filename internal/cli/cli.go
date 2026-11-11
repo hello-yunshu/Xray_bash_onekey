@@ -152,6 +152,8 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		return xrayCommand(ctx, opts, cfg, a, args)
 	case "bridge":
 		return bridgeCommand(ctx, opts, cfg, args)
+	case "metadata":
+		return metadataCommand(opts, cfg, args)
 	case "schedule":
 		return scheduleCommand(ctx, opts, cfg, args)
 	case "update":

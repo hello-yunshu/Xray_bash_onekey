@@ -98,6 +98,9 @@ jobs:
           # The Go migration offer must stay invisible to ordinary Bash users:
           # `-u` never arms it, only explicit --internal-bridge-offer may.
           bash .github/test/test_bridge_offer_dormant.sh
+          # S1: Bash derives state from Go metadata read-only and fails loudly on
+          # a missing field instead of defaulting.
+          bash .github/test/test_go_metadata_adapter.sh
           bash .github/test/test_phase1_safety.sh
           # Bootstrap dependency / error-propagation regression (13.2-13.4, 13.10):
           # pkg_install multi-package failure propagation, offline/online language

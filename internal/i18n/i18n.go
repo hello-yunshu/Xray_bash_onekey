@@ -48,8 +48,10 @@ var zh = map[string]string{
                        卸载托管文件 / 收敛未完成的安装
   xray cert issue|renew
                        ACME v2 证书签发与续期（必须显式给出 --directory）
-  bridge audit|prepare|validate|activate|recover|status
-                       旧 Bash 安装的审计、预检、切换与恢复
+  bridge audit|prepare|validate|activate|deactivate|recover|status
+                       旧 Bash 安装的审计、预检、切换、回退与恢复
+  metadata import|export [--from install_config.json] [--out FILE]
+                       从旧配置派生唯一元数据 / 导出并校验运行时摘要
   schedule install|remove|run|status
                        Go 原生定时任务（接管旧 cron 的更新/证书/GeoData/统计）
   update status|check|apply|configure --manifest-url URL
@@ -107,8 +109,10 @@ Commands:
                        remove managed files / converge a half-finished install
   xray cert issue|renew
                        ACME v2 issuance and renewal (--directory is mandatory)
-  bridge audit|prepare|validate|activate|recover|status
-                       audit, pre-flight, switch and recovery for legacy Bash installs
+  bridge audit|prepare|validate|activate|deactivate|recover|status
+                       audit, pre-flight, switch, hand-back and recovery for legacy Bash installs
+  metadata import|export [--from install_config.json] [--out FILE]
+                       derive the single metadata record / export with runtime digest check
   schedule install|remove|run|status
                        native Go jobs (takeover of the legacy update/cert/GeoData/stats cron)
   update status|check|apply|configure --manifest-url URL
