@@ -63,6 +63,8 @@ var zh = map[string]string{
                        服务类操作（仅真实 systemd）
   tcp status|plan|apply|rollback --profile bbr-fq --confirm
                        Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+  speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                       下行测速（本机实现，不下载执行第三方脚本）
   rill status          只读 Rill 交接状态
   recover              收敛未完成的 xray install
   help                 显示本帮助
@@ -126,6 +128,8 @@ Commands:
                        service-class operations (real systemd only)
   tcp status|plan|apply|rollback --profile bbr-fq --confirm
                        native TCP profile (only /etc/sysctl.d/90-idleleo-tcp.conf)
+  speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                       downstream throughput (local, no third-party script)
   rill status          read-only Rill handover state
   recover              converge a half-finished xray install
   help                 show this help

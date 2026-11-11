@@ -164,6 +164,8 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		return serviceCommand(ctx, opts, cfg, args)
 	case "tcp":
 		return tcpCommand(ctx, opts, cfg, args)
+	case "speedtest":
+		return speedtestCommand(ctx, opts, cfg, args)
 	case "rill":
 		return rillCommand(opts, cfg, args)
 	case "recover":
