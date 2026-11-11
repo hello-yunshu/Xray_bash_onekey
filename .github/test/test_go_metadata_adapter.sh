@@ -52,8 +52,39 @@ if has_jq_binary; then
     rc=$?
     [[ ${rc} -ne 0 ]] || fail "a missing transport must abort the load"
     [[ ${out} == *"字段缺失: transport"* ]] || fail "missing transport message: ${out}"
+
+    # 4. relay_bootstrap_role derives the role from metadata, not install_config.
+    printf '%s' '{"role":"relay","tls":"None","transport":"stream"}' >"${idleleo_go_metadata_file}"
+    node_role=""
+    relay_bootstrap_role || fail "a Go relay root must bootstrap as relay"
+    [[ ${node_role} == "relay" ]] || fail "relay role=${node_role}"
+    printf '%s' '{"role":"node","tls":"Reality","transport":"onlyws"}' >"${idleleo_go_metadata_file}"
+    node_role="node"
+    if relay_bootstrap_role; then
+        fail "a Go node root must not bootstrap as relay"
+    fi
 else
     echo "SKIP: jq not installed, field-read branch not exercised"
+fi
+
+# 5. Offline root mutations are graded in Go mode: state-rebuilding commands
+# are refused, reversible ones pass with a warning.
+printf '%s' '{}' >"${idleleo_go_metadata_file}"
+for cmd in --restore --purge --uninstall; do
+    out=$(idleleo_go_offline_mutation_policy "${cmd}" 2>&1)
+    rc=$?
+    [[ ${rc} -ne 0 ]] || fail "${cmd} must be refused on a Go-owned root"
+    [[ ${out} == *"idleleo"* ]] || fail "${cmd} refusal must name the idleleo command: ${out}"
+done
+for cmd in --service-start --service-stop --service-restart --stats-reset; do
+    out=$(idleleo_go_offline_mutation_policy "${cmd}" 2>&1)
+    rc=$?
+    [[ ${rc} -eq 0 ]] || fail "${cmd} must be allowed on a Go-owned root"
+    [[ ${out} == *"警告"* ]] || fail "${cmd} must warn on a Go-owned root: ${out}"
+done
+rm -f "${idleleo_go_metadata_file}"
+if ! idleleo_go_offline_mutation_policy --restore >/dev/null 2>&1; then
+    fail "a legacy root must not be refused"
 fi
 
 echo "PASS: go metadata adapter"

@@ -811,6 +811,47 @@ idleleo_go_refuse_bash_mutation() {
         "  idleleo bridge deactivate --export /root/idleleo-export.json" >&2
 }
 
+# S1: Go 模式下离线 root 命令的分级策略。会重建或删除运行状态的命令直接拒绝；
+# 可逆的启停与计数清零放行，但明确提示当前由 Go 管理。
+idleleo_go_offline_mutation_policy() {
+    local cmd="${1:-}"
+    [[ -n "${cmd}" ]] || return 0
+    idleleo_go_metadata_present || return 0
+    case "${cmd}" in
+        --restore)
+            printf '%s\n' \
+                "当前环境由 Go 原生管理器接管（${idleleo_go_metadata_file} 是唯一真相）。" \
+                "Bash 不再执行 --restore：恢复归档会重建运行配置，与单一真相冲突。" \
+                "请改用 idleleo：先 idleleo metadata export 留档，再用 idleleo xray install --binary PATH 部署。" \
+                "如需退回纯 Bash 管理，先执行：" \
+                "  idleleo metadata export --out /root/idleleo-export.json" \
+                "  idleleo bridge deactivate --export /root/idleleo-export.json" >&2
+            return 1
+            ;;
+        --purge|--uninstall)
+            printf '%s\n' \
+                "当前环境由 Go 原生管理器接管（${idleleo_go_metadata_file} 是唯一真相）。" \
+                "Bash 不再执行 ${cmd}：删除运行状态会绕过 Go 的托管记录。" \
+                "请改用 idleleo：idleleo xray uninstall。" \
+                "如需退回纯 Bash 管理，先执行：" \
+                "  idleleo metadata export --out /root/idleleo-export.json" \
+                "  idleleo bridge deactivate --export /root/idleleo-export.json" >&2
+            return 1
+            ;;
+        --service-start|--service-stop|--service-restart)
+            printf '%s\n' \
+                "警告：当前环境由 Go 原生管理器接管；${cmd} 仍按 Bash 路径执行，请优先使用 idleleo service ${cmd#--service-}。" >&2
+            return 0
+            ;;
+        --stats-reset)
+            printf '%s\n' \
+                "警告：当前环境由 Go 原生管理器接管；--stats-reset 只清零计数，不改变配置一致性，仍按 Bash 路径执行。Go 侧目前只提供只读 idleleo stats。" >&2
+            return 0
+            ;;
+    esac
+    return 0
+}
+
 is_ws_mode() {
     [[ ${transport_mode} == *ws* ]]
 }
@@ -11322,11 +11363,22 @@ _relay_state_load() {
     [[ -n "${relay_listen_port}" ]] && port="${relay_listen_port}"
 }
 
-# Set the role globals straight from install_config.json. Used by dispatch
-# paths that run without judge_mode() (offline root mutations such as
-# --service-restart / --purge), so they never fall back to the Xray code path
-# on a relay host.
+# Set the role globals without judge_mode(). Used by dispatch paths that run
+# offline root mutations (--service-restart / --purge), so they never fall back
+# to the Xray code path on a relay host. Go-owned roots read role from the
+# single metadata record; legacy roots keep reading install_config.json.
 relay_bootstrap_role() {
+    if idleleo_go_metadata_present; then
+        # S1: role 只从 Go 元数据推导，不再读 install_config.json。
+        local _role
+        _role=$(idleleo_go_metadata_field role) || return 1
+        [[ "${_role}" == "relay" ]] || return 1
+        node_role="relay"
+        tls_mode="None"
+        transport_mode="None"
+        shell_mode="$(gettext "中转节点")"
+        return 0
+    fi
     [[ -f "${xray_install_config_file}" ]] || return 1
     [[ "$(info_extraction role 2>/dev/null)" == "relay" ]] || return 1
     node_role="relay"
@@ -16503,6 +16555,10 @@ is_root
 # may attempt network downloads, so they work even when GitHub is unreachable.
 # Logging is enabled here: mutation commands persist their outcome.
 if is_offline_root_mutation_command "${1:-}"; then
+    # S1: Go-owned roots refuse state-rebuilding offline commands (restore,
+    # purge, uninstall) and only warn on reversible ones (service control,
+    # stats-reset) before any dispatch or log write.
+    idleleo_go_offline_mutation_policy "${1:-}" || exit 1
     enable_file_logging
     dispatch_offline_root_mutation_command "$@"
     exit $?

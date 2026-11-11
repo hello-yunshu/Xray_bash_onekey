@@ -117,6 +117,12 @@ func TestDeactivateReleasesImportedMetadataWithoutJournal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	runtime := filepath.Join(root, "etc/idleleo/conf/xray/config.json")
+	runtimeBefore := mustHash(t, runtime)
+	certBefore := mustHash(t, filepath.Join(root, "etc/idleleo/cert/fullchain.pem"))
+	keyBefore := mustHash(t, filepath.Join(root, "etc/idleleo/cert/privkey.pem"))
+	cron := filepath.Join(root, "var/spool/cron/crontabs/root")
+	cronBefore := mustHash(t, cron)
 
 	out := filepath.Join(t.TempDir(), "idleleo-export.json")
 	if _, err := ExportMetadata(ExportOptions{Root: root, Out: out}); err != nil {
@@ -141,6 +147,19 @@ func TestDeactivateReleasesImportedMetadataWithoutJournal(t *testing.T) {
 	}
 	if _, err := os.Stat(rep.MetadataArchive); err != nil {
 		t.Fatalf("archived metadata missing: %v", err)
+	}
+	// The import-only release may archive metadata and nothing else.
+	if mustHash(t, runtime) != runtimeBefore {
+		t.Fatal("import-only release rewrote the runtime config")
+	}
+	if mustHash(t, filepath.Join(root, "etc/idleleo/cert/fullchain.pem")) != certBefore {
+		t.Fatal("import-only release rewrote the certificate")
+	}
+	if mustHash(t, filepath.Join(root, "etc/idleleo/cert/privkey.pem")) != keyBefore {
+		t.Fatal("import-only release rewrote the private key")
+	}
+	if mustHash(t, cron) != cronBefore {
+		t.Fatal("import-only release rewrote user cron")
 	}
 }
 
