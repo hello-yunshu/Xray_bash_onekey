@@ -49,11 +49,15 @@ func RequireSystemWrite(root string, ack bool) error {
 	if err != nil {
 		return err
 	}
-	if err := recordSystemWrite(root, mode); err != nil {
+	if err := recordWrite(root, mode); err != nil {
 		return fmt.Errorf("system write refused: audit trail unavailable: %w", err)
 	}
 	return nil
 }
+
+// recordWrite is a test seam so the audit-trail failure branch can be proven
+// without making /var/log unwritable.
+var recordWrite = recordSystemWrite
 
 // writeMode decides whether a real-root write is allowed. Container runs need
 // both the flag and the environment acknowledgement; a real host does not.

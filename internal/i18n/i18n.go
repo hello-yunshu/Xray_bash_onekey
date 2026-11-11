@@ -36,12 +36,14 @@ var zh = map[string]string{
   show                 只读运行与分享信息
   config inspect       只读结构化配置视图
   change set-inbound-port --sandbox PATH --port N --validator PATH
-                       在一次性沙箱内修改入站端口
+                       在一次性沙箱或真实根上修改入站端口
+                       （真实根用 --sandbox / 并加 --service 与 --container）
+  change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
   xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
   xray share           为现有配置输出分享链接与 Clash 配置
   xray relay           生成指向后端的 nginx 中转配置
   xray user list|add|remove
-                       列出现有用户，或增删用户（增删需要沙箱）
+                       列出现有用户，或增删用户（增删需沙箱或真实根门禁）
   xray install --binary PATH
                        用本地二进制安装 Xray 并接管根目录
   xray uninstall|recover
@@ -97,12 +99,14 @@ Commands:
   show                 read-only runtime and share information
   config inspect       read-only structured config view
   change set-inbound-port --sandbox PATH --port N --validator PATH
-                       change one inbound port inside a disposable sandbox
+                       change one inbound port in a sandbox or on the real root
+                       (real root: --sandbox / plus --service and --container)
+  change recover       converge a change interrupted by a hard kill
   xray generate        generate a runtime config (reality/tls/ws/grpc/xhttp, relay, balance)
   xray share           print share URI and Clash YAML for an existing config
   xray relay           generate the nginx relay conf for one backend
   xray user list|add|remove
-                       list users, or add/remove one (add/remove need a sandbox)
+                       list users, or add/remove one (add/remove need a sandbox or the real-root gate)
   xray install --binary PATH
                        install Xray from a local binary and take over the root
   xray uninstall|recover

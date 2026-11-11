@@ -315,6 +315,11 @@ func xrayUser(ctx context.Context, opts Options, cfg config, a *app.App, args []
 		if validator == "" {
 			return usage(opts, cfg.lang, "help")
 		}
+		if paths.Root == "/" && flagValue(rest, "--service") == "" {
+			return fail(opts, cfg, &change.UsageError{
+				Msg: "real-root changes require --service so the service reloads the committed config",
+			})
+		}
 		var spec xraycfg.AddUserSpec
 		ident := ""
 		if action == "add" {
@@ -360,7 +365,7 @@ func xrayUser(ctx context.Context, opts Options, cfg config, a *app.App, args []
 			}
 		}
 		entry, view, err := a.ChangeUser(ctx, flagValue(rest, "--path"), inbound, action == "add", ident, spec,
-			validator, flagValue(rest, "--service"), flagValue(rest, "--fault"))
+			validator, flagValue(rest, "--service"), flagValue(rest, "--fault"), hasFlag(rest, "--container"))
 		cfg.json = cfg.json || hasFlag(rest, "--json")
 		if err != nil {
 			if cfg.json {

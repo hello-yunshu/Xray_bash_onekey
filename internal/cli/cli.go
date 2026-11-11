@@ -196,7 +196,14 @@ func configCommand(opts Options, cfg config, a *app.App, args []string) int {
 }
 
 func changeCommand(ctx context.Context, opts Options, cfg config, a *app.App, args []string) int {
-	if len(args) == 0 || args[0] != "set-inbound-port" {
+	if len(args) == 0 {
+		return usage(opts, cfg.lang, "help")
+	}
+	switch args[0] {
+	case "recover":
+		return changeRecover(ctx, opts, cfg, a, args[1:])
+	case "set-inbound-port":
+	default:
 		return usage(opts, cfg.lang, "help")
 	}
 	args = args[1:]
@@ -230,9 +237,14 @@ func changeCommand(ctx context.Context, opts Options, cfg config, a *app.App, ar
 		return usage(opts, cfg.lang, "help")
 	}
 	service := flagValue(args, "--service")
+	if paths.Root == "/" && service == "" {
+		return fail(opts, cfg, &change.UsageError{
+			Msg: "real-root changes require --service so the service reloads the committed config",
+		})
+	}
 	fault := flagValue(args, "--fault")
 	cfg.json = cfg.json || hasFlag(args, "--json")
-	entry, err := a.ChangePort(ctx, flagValue(args, "--path"), inbound, port, validator, service, fault)
+	entry, err := a.ChangePort(ctx, flagValue(args, "--path"), inbound, port, validator, service, fault, hasFlag(args, "--container"))
 	if err != nil {
 		if cfg.json {
 			_ = writeJSONNoExit(opts.Out, entry)
@@ -243,6 +255,32 @@ func changeCommand(ctx context.Context, opts Options, cfg config, a *app.App, ar
 		return writeJSON(opts, entry)
 	}
 	fmt.Fprintf(opts.Out, "%s: %s -> %s (%s)\n", entry.State, entry.OldSHA256[:12], entry.NewSHA256[:12], entry.ID)
+	return 0
+}
+
+// changeRecover converges a change transaction that was interrupted by a hard
+// kill. It is gated exactly like a mutation because a rollback rewrites the
+// runtime config.
+func changeRecover(ctx context.Context, opts Options, cfg config, a *app.App, args []string) int {
+	if err := host.RequireSystemWrite(a.Paths.Root, hasFlag(args, "--container")); err != nil {
+		return fail(opts, cfg, &change.UsageError{Msg: err.Error()})
+	}
+	report, err := change.Recover(ctx, change.Journal{Path: a.Paths.JournalFile()}, a.Paths.LockFile())
+	cfg.json = cfg.json || hasFlag(args, "--json")
+	if err != nil {
+		if cfg.json {
+			_ = writeJSONNoExit(opts.Out, report)
+		}
+		return fail(opts, cfg, err)
+	}
+	if cfg.json {
+		return writeJSON(opts, report)
+	}
+	fmt.Fprintf(opts.Out, "journal=%s action=%s converged=%t\n",
+		report.JournalState, report.Action, report.Converged)
+	for _, w := range report.Warnings {
+		fmt.Fprintf(opts.Out, "warning=%s\n", w)
+	}
 	return 0
 }
 

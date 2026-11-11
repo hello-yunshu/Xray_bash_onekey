@@ -68,7 +68,7 @@ func Apply(ctx context.Context, req Request) (Entry, error) {
 	if req.Target == "" || req.Mutate == nil || req.Validator.Path == "" {
 		return Entry{}, &UsageError{Msg: "target, mutator and validator are required"}
 	}
-	entry := Entry{ID: req.ID, State: StatePrepared, Target: req.Target, StartedAt: now()}
+	entry := Entry{ID: req.ID, State: StatePrepared, Target: req.Target, ServicePath: req.Service.Path, StartedAt: now()}
 	if entry.ID == "" {
 		entry.ID = fmt.Sprintf("%d-%d", time.Now().UnixNano(), os.Getpid())
 	}
@@ -85,6 +85,16 @@ func Apply(ctx context.Context, req Request) (Entry, error) {
 		return entry, &IOError{Msg: "acquire lock: " + err.Error()}
 	}
 	defer lock.Release()
+
+	// A hard kill leaves PREPARED behind. Converge it before reading the
+	// baseline, otherwise the new transaction would adopt a half-applied file
+	// as if it were the previous known-good state.
+	if _, recErr := recoverLocked(ctx, req.Journal); recErr != nil {
+		entry.State = StateFailed
+		entry.Reason = "recovery of the previous transaction failed: " + recErr.Error()
+		entry.UpdatedAt = now()
+		return entry, &RecoveryError{Msg: entry.Reason}
+	}
 
 	before, err := store.ReadRuntimeSnapshot(req.Target)
 	if err != nil {

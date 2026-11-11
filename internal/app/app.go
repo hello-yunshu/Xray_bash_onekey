@@ -153,31 +153,27 @@ func (a *App) Inspect(override string) (store.ConfigView, error) {
 	return store.LoadRuntimeView(a.Paths, override)
 }
 
-// ChangePort performs the one isolated Phase 01 change.
-func (a *App) ChangePort(ctx context.Context, override string, inbound, port int, validatorPath, servicePath, fault string) (change.Entry, error) {
-	if err := a.Paths.RequireSandbox(); err != nil {
-		return change.Entry{}, &change.UsageError{Msg: err.Error()}
+// ChangePort changes one inbound port.
+//
+// Both a disposable sandbox and the real root are allowed, but the gate is
+// different: a sandbox still needs its marker, while the real root needs a Go
+// metadata record whose runtime fingerprint matches the current config. The
+// sandbox path is byte-for-byte the old behaviour.
+func (a *App) ChangePort(ctx context.Context, override string, inbound, port int, validatorPath, servicePath, fault string, containerAck bool) (change.Entry, error) {
+	if err := a.beginSystemChange(fault, containerAck); err != nil {
+		return change.Entry{}, err
+	}
+	if a.Paths.Root == "/" {
+		if err := a.requireManagerMetadata(); err != nil {
+			return change.Entry{}, err
+		}
 	}
 	path, err := store.ResolveRuntimePath(a.Paths, override)
 	if err != nil {
 		return change.Entry{}, err
 	}
-	// Refuse a stale baseline before staging anything. A missing metadata file
-	// is allowed for isolated samples; a mismatching SHA is never allowed.
-	meta, _, metaErr := store.LoadMetadata(a.Paths)
-	if metaErr == nil && meta.RuntimeSHA256 != "" {
-		snap, err := store.ReadRuntimeSnapshot(path)
-		if err != nil {
-			return change.Entry{}, err
-		}
-		if snap.SHA != meta.RuntimeSHA256 {
-			return change.Entry{}, &store.Error{Kind: store.KindDrift, Msg: "runtime config differs from metadata sha256"}
-		}
-	} else if metaErr != nil {
-		var se *store.Error
-		if !errors.As(metaErr, &se) || se.Kind != store.KindNotFound {
-			return change.Entry{}, metaErr
-		}
+	if err := a.requireChangeBaseline(path); err != nil {
+		return change.Entry{}, err
 	}
 	req := change.Request{
 		Target:    path,
@@ -197,29 +193,23 @@ func (a *App) ChangePort(ctx context.Context, override string, inbound, port int
 }
 
 // ChangeUser adds or removes one VLESS client through the same atomic
-// transaction as ChangePort. The metadata drift check is identical.
-func (a *App) ChangeUser(ctx context.Context, override string, inbound int, add bool, ident string, spec xraycfg.AddUserSpec, validatorPath, servicePath, fault string) (change.Entry, xraycfg.UserView, error) {
-	if err := a.Paths.RequireSandbox(); err != nil {
-		return change.Entry{}, xraycfg.UserView{}, &change.UsageError{Msg: err.Error()}
+// transaction as ChangePort. The gate and the metadata drift check are
+// identical.
+func (a *App) ChangeUser(ctx context.Context, override string, inbound int, add bool, ident string, spec xraycfg.AddUserSpec, validatorPath, servicePath, fault string, containerAck bool) (change.Entry, xraycfg.UserView, error) {
+	if err := a.beginSystemChange(fault, containerAck); err != nil {
+		return change.Entry{}, xraycfg.UserView{}, err
+	}
+	if a.Paths.Root == "/" {
+		if err := a.requireManagerMetadata(); err != nil {
+			return change.Entry{}, xraycfg.UserView{}, err
+		}
 	}
 	path, err := store.ResolveRuntimePath(a.Paths, override)
 	if err != nil {
 		return change.Entry{}, xraycfg.UserView{}, err
 	}
-	meta, _, metaErr := store.LoadMetadata(a.Paths)
-	if metaErr == nil && meta.RuntimeSHA256 != "" {
-		snap, err := store.ReadRuntimeSnapshot(path)
-		if err != nil {
-			return change.Entry{}, xraycfg.UserView{}, err
-		}
-		if snap.SHA != meta.RuntimeSHA256 {
-			return change.Entry{}, xraycfg.UserView{}, &store.Error{Kind: store.KindDrift, Msg: "runtime config differs from metadata sha256"}
-		}
-	} else if metaErr != nil {
-		var se *store.Error
-		if !errors.As(metaErr, &se) || se.Kind != store.KindNotFound {
-			return change.Entry{}, xraycfg.UserView{}, metaErr
-		}
+	if err := a.requireChangeBaseline(path); err != nil {
+		return change.Entry{}, xraycfg.UserView{}, err
 	}
 	var view xraycfg.UserView
 	mutate := func(raw []byte) ([]byte, error) {
@@ -255,6 +245,71 @@ func (a *App) ChangeUser(ctx context.Context, override string, inbound int, add 
 	// with it. Otherwise the next transaction would see self-inflicted drift.
 	_ = a.refreshRuntimeSHA(entry.NewSHA256)
 	return entry, view, nil
+}
+
+// beginSystemChange applies the write gate to every root. For a disposable
+// sandbox this is exactly the old marker check; for the real root it requires
+// the container acknowledgement on a container host and writes the audit line
+// before the transaction starts. Failure injection stays sandbox-only.
+func (a *App) beginSystemChange(fault string, containerAck bool) error {
+	if err := host.RequireSystemWrite(a.Paths.Root, containerAck); err != nil {
+		return &change.UsageError{Msg: err.Error()}
+	}
+	if fault != "" && a.Paths.Root == "/" {
+		return &change.UsageError{Msg: "failure injection (--fault) is only available in a marked sandbox"}
+	}
+	return nil
+}
+
+// requireManagerMetadata proves, before any path resolution, that the Go
+// manager owns this real root. It runs first so an uninstalled host gets an
+// ownership error instead of a confusing missing-directory error.
+func (a *App) requireManagerMetadata() error {
+	meta, _, err := store.LoadMetadata(a.Paths)
+	if err != nil {
+		var se *store.Error
+		if errors.As(err, &se) && se.Kind == store.KindNotFound {
+			return &store.Error{Kind: store.KindNotFound, Msg: "real-root changes require manager metadata"}
+		}
+		return err
+	}
+	if meta.RuntimeSHA256 == "" {
+		return &store.Error{Kind: store.KindUnsupported, Msg: "real-root changes require metadata with runtimeSha256"}
+	}
+	return nil
+}
+
+// requireChangeBaseline refuses a stale or unowned baseline. A disposable
+// sandbox may run without metadata (isolated samples); the real root may not:
+// only a metadata record with a matching runtime fingerprint proves that the
+// Go manager owns this config.
+func (a *App) requireChangeBaseline(path string) error {
+	realRoot := a.Paths.Root == "/"
+	meta, _, metaErr := store.LoadMetadata(a.Paths)
+	if metaErr != nil {
+		var se *store.Error
+		if !errors.As(metaErr, &se) || se.Kind != store.KindNotFound {
+			return metaErr
+		}
+		if realRoot {
+			return &store.Error{Kind: store.KindNotFound, Msg: "real-root changes require manager metadata"}
+		}
+		return nil
+	}
+	if meta.RuntimeSHA256 == "" {
+		if realRoot {
+			return &store.Error{Kind: store.KindUnsupported, Msg: "real-root changes require metadata with runtimeSha256"}
+		}
+		return nil
+	}
+	snap, err := store.ReadRuntimeSnapshot(path)
+	if err != nil {
+		return err
+	}
+	if snap.SHA != meta.RuntimeSHA256 {
+		return &store.Error{Kind: store.KindDrift, Msg: "runtime config differs from metadata sha256"}
+	}
+	return nil
 }
 
 // refreshRuntimeSHA updates only the metadata fingerprint after a successful
