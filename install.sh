@@ -11180,19 +11180,51 @@ xray_stats_cli() {
     XRAY_STATS_LANG="${_stats_lang}" bash "${xray_stats_script}" --config "${xray_conf}" "${stats_args[@]}"
 }
 
+# TCP acceleration entry. The default path is the project-owned profile from
+# internal/tcpcfg: it only writes the managed sysctl drop-in, can be rolled
+# back, and never downloads a third-party script. The legacy tcp.sh keeps
+# kernel replacement reachable only behind an explicit typed confirmation,
+# because that path cannot undo a kernel swap.
 bbr_boost_sh() {
+    local mode="${1:-default}" idleleo_bin="" confirm=""
     read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
-    if [[ -f "${scripts_dir}/tcp.sh" ]]; then
-        cd "${scripts_dir}" && chmod +x ./tcp.sh && ./tcp.sh
-    else
-        if download_script_file "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" "${scripts_dir}/tcp.sh"; then
+
+    if [[ "${mode}" == "--legacy" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "legacy tcp.sh 会替换内核且不可回滚, 仅用于兼容旧环境") ${Font}"
+        log_echo "${GreenBG} $(gettext "如确认继续, 请输入") legacy [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r confirm
+        if [[ "${confirm}" != "legacy" ]]; then
+            log_echo "${OK} ${GreenBG} $(gettext "已取消") ${Font}"
+            return 1
+        fi
+        if [[ -f "${scripts_dir}/tcp.sh" ]]; then
+            (cd "${scripts_dir}" && chmod +x ./tcp.sh && ./tcp.sh)
+        elif download_script_file "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" "${scripts_dir}/tcp.sh"; then
             "${scripts_dir}/tcp.sh"
         else
             log_echo "${Error} ${RedBG} TCP $(gettext "加速脚本下载失败") ${Font}"
             return 1
         fi
+        read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
+        return 0
     fi
-    read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
+
+    idleleo_bin=$(command -v idleleo 2>/dev/null || true)
+    if [[ -z "${idleleo_bin}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 请先安装 Go 版本") ${Font}"
+        log_echo "${Info} ${Green} $(gettext "TCP 加速现在由 idleleo tcp 管理, 不再自动下载第三方脚本") ${Font}"
+        return 1
+    fi
+    case "${mode}" in
+    --apply)
+        "${idleleo_bin}" tcp apply --profile bbr-fq --confirm
+        ;;
+    *)
+        log_echo "${Info} ${Green} $(gettext "TCP 加速由 idleleo tcp 管理 (status/plan/apply/rollback)") ${Font}"
+        "${idleleo_bin}" tcp status || "${idleleo_bin}" tcp plan
+        log_echo "${Info} ${Green} $(gettext "应用") : idleleo tcp apply --profile bbr-fq --confirm  $(gettext "回滚") : idleleo tcp rollback ${Font}"
+        ;;
+    esac
 }
 
 uninstall_xray() {
