@@ -331,6 +331,28 @@ func TestCertRenewJobFailureWritesAlertAndPostsWebhook(t *testing.T) {
 	}
 }
 
+func TestCertRenewJobStaysFailedWhenAlertCannotBePersisted(t *testing.T) {
+	root := sandbox(t)
+	writeCert(t, root, CertDirRel+"/xray.crt", time.Now().Add(20*24*time.Hour))
+	cfg := testCertConfig()
+	restoreCertHooks(t)
+
+	// A regular file where the alerts directory should be makes persistence
+	// fail even when the tests run as root (chmod alone would be bypassed).
+	write(t, root, AlertsDirRel, "not a directory", 0o600)
+	renewCertificate = func(ctx context.Context, spec acme.Config) (acme.Result, error) {
+		return acme.Result{}, errors.New("acme boom")
+	}
+
+	res := certRenewJob(context.Background(), root, cfg, "2026-11-12T00:00:00Z")
+	if res.Result != "failed" {
+		t.Fatalf("alert persistence failure changed the job result: %+v", res)
+	}
+	if !strings.Contains(res.Detail, "acme boom") {
+		t.Fatalf("detail=%q", res.Detail)
+	}
+}
+
 func TestCertRenewJobSuccessClearsAlert(t *testing.T) {
 	root := sandbox(t)
 	writeCert(t, root, CertDirRel+"/xray.crt", time.Now().Add(20*24*time.Hour))
@@ -391,8 +413,15 @@ func TestInstallWritesOnFailureAndAlertUnit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(service), "OnFailure=idleleo-alert.service") {
-		t.Fatalf("service=%s", service)
+	// OnFailure is a [Unit] directive; in [Service] systemd logs
+	// "Unknown key name 'OnFailure'" and ignores it, so a failed run would
+	// never start the alert unit.
+	unitSection, _, found := strings.Cut(string(service), "[Service]")
+	if !found {
+		t.Fatalf("service has no [Service] section: %s", service)
+	}
+	if !strings.Contains(unitSection, "OnFailure=idleleo-alert.service") {
+		t.Fatalf("OnFailure is not in the [Unit] section: %s", service)
 	}
 	alertUnit, err := os.ReadFile(rep.AlertServicePath)
 	if err != nil {

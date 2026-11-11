@@ -307,11 +307,11 @@ func Install(ctx context.Context, opts InstallOptions) (InstallReport, error) {
 Description=idleleo Go scheduled maintenance (Bridge migration takeover)
 After=network-online.target
 Wants=network-online.target
+OnFailure=idleleo-alert.service
 
 [Service]
 Type=oneshot
 ExecStart=%s schedule run
-OnFailure=idleleo-alert.service
 `, exec)
 	alertUnit := fmt.Sprintf(`[Unit]
 Description=idleleo scheduled-job failure alert

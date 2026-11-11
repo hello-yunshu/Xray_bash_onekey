@@ -133,6 +133,16 @@ jobs:
           print("manifest signature: present")
           PY
 
+      - name: Verify the Go release manifest signature (fail closed)
+        working-directory: current
+        run: |
+          set -euo pipefail
+          # A secret that does not pair with the embedded anchor would still
+          # produce a syntactically valid signature, so verify the exact bytes
+          # against signature.go before the release becomes immutable.
+          bash scripts/preflight_manifest_signature.sh \
+            "$RUNNER_TEMP/go-release/manifest.json" internal/release/signature.go
+
       - name: Create the immutable Go release
         working-directory: current
         env:

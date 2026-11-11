@@ -25,15 +25,43 @@ cutover=$(sed -n 's/^versions_signature_required_from="\([0-9][0-9.]*\)"$/\1/p' 
 version=$(jq -r '.shell_online_version // empty' "${json}")
 [[ -n ${version} ]] || { echo "preflight: shell_online_version missing in ${json}" >&2; exit 1; }
 
-# Prints nothing; returns 0 when $1 < $2 under numeric-dotted ordering.
-version_lt() {
-    [[ $1 != "$2" ]] || return 1
-    local lowest
-    lowest=$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)
-    [[ ${lowest} == "$1" ]]
+# Prints -1/0/1; returns 2 when either side is not numeric-dotted.
+#
+# This must mirror install.sh::version_compare exactly. `sort -V` is not a
+# substitute: it ranks 3.6 below 3.6.0 and 3.06.0 below 3.6.0, while install.sh
+# pads the missing components with zero and parses `10#`, so both are equal to
+# the cutover. A publisher that disagreed with the client here would happily
+# publish unsigned metadata that every 3.6.0 client rejects.
+version_compare() {
+    local a="${1#v}" b="${2#v}"
+    [[ ${a} =~ ^[0-9]+(\.[0-9]+)*$ && ${b} =~ ^[0-9]+(\.[0-9]+)*$ ]] || return 2
+    local i n x y
+    local -a av bv
+    IFS='.' read -r -a av <<<"${a}"
+    IFS='.' read -r -a bv <<<"${b}"
+    n=${#av[@]}
+    ((${#bv[@]} > n)) && n=${#bv[@]}
+    for ((i = 0; i < n; i++)); do
+        x=$((10#${av[i]:-0}))
+        y=$((10#${bv[i]:-0}))
+        if ((x > y)); then
+            printf '1\n'
+            return 0
+        fi
+        if ((x < y)); then
+            printf -- '-1\n'
+            return 0
+        fi
+    done
+    printf '0\n'
 }
 
-if version_lt "${version}" "${cutover}"; then
+if ! ordering=$(version_compare "${version}" "${cutover}"); then
+    echo "preflight: shell_online_version '${version}' is not a numeric dotted version" >&2
+    exit 1
+fi
+
+if [[ ${ordering} == "-1" ]]; then
     echo "preflight: shell ${version} is below the ${cutover} cutover; unsigned metadata is allowed"
     exit 0
 fi
