@@ -117,6 +117,7 @@ phase01 C12 保持**已知 pin 不匹配**：pin 本身可解析，但当前 `in
 - 不默认禁用 SELinux / 改全局 limits（D2）。
 - 旧 XTLS 只读识别并阻断（D4）。
 - 不收集遥测；日志中不写入私钥。
+- `--backup` 归档包含证书私钥与 `/root/.acme.sh` 的账户态（`account.conf`、`ca/`，含账户私钥）；归档写为 `0600`，必须按密钥文件保管，不要上传或外传。
 - `.workbuddy/`、`docs/plans/` 保持未跟踪。
 
 ## 10. S6/S7：信任根、helper 校验与入口退役（2026-11-12）
