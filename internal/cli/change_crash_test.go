@@ -132,6 +132,63 @@ func TestChangeRealRootIsRefusedWithoutEnvAck(t *testing.T) {
 	}
 }
 
+// A metadata fingerprint that cannot be written must fail the whole change:
+// the committed config is rolled back, both fingerprints stay at the old
+// value, and the journal converges to ROLLED_BACK instead of COMMITTED.
+func TestChangeRollsBackWhenMetadataRefreshFails(t *testing.T) {
+	root := fixture(t)
+	if err := os.WriteFile(filepath.Join(root, host.SandboxMarker), []byte(host.SandboxMarkerValue+"\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	cfgPath := filepath.Join(root, "etc/idleleo/conf/xray/config.json")
+	metaPath := filepath.Join(root, "etc/idleleo/v1/metadata.json")
+	oldCfg, err := os.ReadFile(cfgPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldMeta, err := os.ReadFile(metaPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The atomic metadata write opens "<metadata>.tmp"; a directory at that
+	// path fails even for root, so this proves the fatal branch without a seam.
+	if err := os.Mkdir(metaPath+".tmp", 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	code, out, errOut := run(t, "--root", root, "change", "set-inbound-port",
+		"--sandbox", root, "--port", "8443", "--validator", "/usr/bin/true")
+	if code != 13 {
+		t.Fatalf("metadata refresh failure was not fatal: %d %q %q", code, out, errOut)
+	}
+	if !strings.Contains(errOut, "finalize") {
+		t.Fatalf("error does not name the finalize step: %q", errOut)
+	}
+
+	newCfg, err := os.ReadFile(cfgPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if store.HashBytes(newCfg) != store.HashBytes(oldCfg) {
+		t.Fatalf("config was not rolled back after the failed refresh: %s", newCfg)
+	}
+	newMeta, err := os.ReadFile(metaPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if store.HashBytes(newMeta) != store.HashBytes(oldMeta) {
+		t.Fatalf("metadata changed despite the failed refresh: %s", newMeta)
+	}
+	entries := journalEntries(t, root)
+	last := entries[len(entries)-1]
+	if state, _ := last["state"].(string); state != "ROLLED_BACK" {
+		t.Fatalf("journal state=%q entries=%v", state, entries)
+	}
+	if _, err := os.Stat(filepath.Join(filepath.Dir(cfgPath), ".idleleo-phase01-rollback")); !os.IsNotExist(err) {
+		t.Fatal("rollback snapshot left behind")
+	}
+}
+
 // With both acknowledgements the gate opens, but an unowned real root still
 // has no baseline and must be refused before staging.
 func TestChangeRealRootRequiresManagerMetadata(t *testing.T) {

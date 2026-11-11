@@ -183,13 +183,10 @@ func (a *App) ChangePort(ctx context.Context, override string, inbound, port int
 		Journal:   change.Journal{Path: a.Paths.JournalFile()},
 		LockPath:  a.Paths.LockFile(),
 		Fault:     fault,
+		Finalize:  a.refreshRuntimeSHA,
 	}
 	entry, err := change.Apply(ctx, req)
-	if err != nil {
-		return entry, err
-	}
-	_ = a.refreshRuntimeSHA(entry.NewSHA256)
-	return entry, nil
+	return entry, err
 }
 
 // ChangeUser adds or removes one VLESS client through the same atomic
@@ -236,14 +233,15 @@ func (a *App) ChangeUser(ctx context.Context, override string, inbound int, add 
 		Journal:   change.Journal{Path: a.Paths.JournalFile()},
 		LockPath:  a.Paths.LockFile(),
 		Fault:     fault,
+		// The committed config is now ours, so the ownership fingerprint must
+		// move with it. Otherwise the next transaction would see self-inflicted
+		// drift - and a fingerprint that cannot move must roll the config back.
+		Finalize: a.refreshRuntimeSHA,
 	}
 	entry, err := change.Apply(ctx, req)
 	if err != nil {
 		return entry, xraycfg.UserView{}, err
 	}
-	// The committed config is now ours, so the ownership fingerprint must move
-	// with it. Otherwise the next transaction would see self-inflicted drift.
-	_ = a.refreshRuntimeSHA(entry.NewSHA256)
 	return entry, view, nil
 }
 
@@ -313,18 +311,22 @@ func (a *App) requireChangeBaseline(path string) error {
 }
 
 // refreshRuntimeSHA updates only the metadata fingerprint after a successful
-// commit. It never creates metadata for isolated samples.
+// commit. It never creates metadata for isolated samples, but any failure on a
+// root that does own metadata is returned so the transaction rolls back.
 func (a *App) refreshRuntimeSHA(sha string) error {
 	if sha == "" {
 		return nil
 	}
 	p, err := a.Paths.Join(a.Paths.ManagerMetadata(), false)
 	if err != nil {
-		return nil
+		return err
 	}
 	fi, err := os.Stat(p)
 	if err != nil {
-		return nil
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
 	}
 	meta, _, err := store.LoadMetadata(a.Paths)
 	if err != nil {
@@ -344,7 +346,11 @@ func (a *App) refreshRuntimeSHA(sha string) error {
 	if err := os.WriteFile(tmp, b, fi.Mode().Perm()); err != nil {
 		return err
 	}
-	return os.Rename(tmp, p)
+	if err := os.Rename(tmp, p); err != nil {
+		_ = os.Remove(tmp)
+		return err
+	}
+	return nil
 }
 
 func (a *App) runtimePath(meta store.Metadata) (string, error) {
