@@ -1,0 +1,61 @@
+Red probes for the five-round self-audit (all run against a pristine export of
+c88a29d unless stated otherwise; each probe mutates ONE thing and is expected to
+turn the named assertion red).
+
+R8  exit-code mapping removed  -> TestScheduleRunExitsNonZeroOnFailedJob
+    patch: internal/cli/schedule.go, drop the `failed -> code=1` loop
+    cmd:   go test ./internal/cli -run TestScheduleRunExitsNonZeroOnFailedJob
+    observed: FAIL  (schedule run exited 0 with a failed job)
+    verdict: assertion bites
+
+R9  version_compare reverted to `sort -V` -> preflight cutover matrix
+    patch: scripts/preflight_versions_signature.sh, version_compare body
+    cmd:   python3 .github/test/test_release_signing_workflows.py
+    observed: FAIL "unsigned metadata '3.6' is treated as the cutover",
+              FAIL "unsigned metadata '3.06.0' is treated as the cutover"
+              (3.6.00 / v3.6.0 stay red-safe under sort -V)
+    verdict: assertion bites
+
+R10 OnFailure moved back into [Service] -> TestInstallWritesOnFailureAndAlertUnit
+    patch: internal/schedule/schedule.go, move the OnFailure= line
+    cmd:   go test ./internal/schedule -run TestInstallWritesOnFailureAndAlertUnit
+    observed: FAIL  (OnFailure not found in the [Unit] section)
+    verdict: assertion bites
+
+R11 manifest verify step removed -> static workflow assertions
+    patch: .github/workflows/publish-go-bridge.yml, delete the verify step
+    cmd:   python3 .github/test/test_release_signing_workflows.py
+    observed: FAIL "manifest verify step exists"; Summary: PASS=41 FAIL=1
+    verdict: assertion bites
+
+R12 unpersisted alert mapped to ok -> TestCertRenewJobStaysFailedWhenAlertCannotBePersisted
+    patch: internal/schedule/schedule.go, certFailure returns ok when the
+           alert file is missing after WriteAlert
+    cmd:   go test ./internal/schedule -run TestCertRenewJobStaysFailedWhenAlertCannotBePersisted
+    observed: FAIL "alert persistence failure changed the job result"
+              {Job:cert-renew Result:ok ...}
+    verdict: assertion bites
+
+R13 CI skip guard removed -> silent green skip
+    patch: .github/test/test_versions_signature.sh, drop the CI guard
+    cmd:   docker run ... -e CI=true golang:1.27.4 bash .github/test/test_versions_signature.sh
+    observed: SKIP line, rc=0 (a green run that executed zero cases)
+    with the guard: FAIL "FAIL: jq is required; refusing to skip in CI", rc=1
+    host variant (openssl 3 absent, jq present):
+      FAIL "FAIL: openssl 3 (pkeyutl -rawin) is required; refusing to skip in CI"
+    verdict: guard is load-bearing
+
+Attribution (round 2), new tests/scripts overlaid on the 80717c2 worktree:
+    python3 .github/test/test_release_signing_workflows.py
+      rc=1  FAIL: manifest verify step exists
+    go test ./internal/schedule -run 'TestInstallWritesOnFailureAndAlertUnit|TestCertRenewJobStaysFailedWhenAlertCannotBePersisted'
+      FAIL  (OnFailure lives in [Service] at 80717c2)
+    old scripts/preflight_versions_signature.sh (sort -V) on unsigned metadata:
+      3.6 rc=0, 3.06.0 rc=0, 03.6.0 rc=0   <-- allowed unsigned, client rejects
+    same fixtures on c88a29d: rc=1 for all three.
+
+Not re-probed here: R1-R7 from s6-s7-closeout-2026-11-12. Their code paths
+(cert renewal branch, Apply tamper check, helper re-hash, deletion wording,
+backup warning, shell sign step, cutover bypass) were not modified by
+e145f2d..c88a29d; that bundle's recorded results still describe the same
+implementations.

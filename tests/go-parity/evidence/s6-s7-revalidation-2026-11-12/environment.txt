@@ -1,0 +1,34 @@
+bundle: s6-s7-revalidation-2026-11-12
+generated_at_utc: 2026-11-11T23:46:20Z
+local_time: 2026-11-12T07:46:20+08:00 (Asia/Shanghai)
+branch: develop/go-native
+repo_commit: c88a29daaa87ba1cbe351b9b629a91ac73444b59
+repo_commit_subject: test(schedule): prove schedule run exits nonzero when a job fails
+
+host:
+  kernel: Darwin 27.2.0
+  docker_server: 29.8.2
+
+shell_runner:
+  image: idleleo-phase04-test:24.04 (sha256:30d16f7c5e4c...)
+  os: Ubuntu 24.04.5 LTS
+  bash: 5.2.21(1)
+  openssl: 3.0.13 (supports pkeyutl -rawin)
+  python: 3.12.3
+  note: this is the same OS family as the GitHub runner (ubuntu-24.04)
+
+go_runner:
+  image: golang:1.27.4
+  go: go1.27.4 linux/arm64
+  env: GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local
+
+protected_files (unchanged, byte-identical to origin):
+  tests/go-parity/parity/cases/feature_contracts.json
+    sha256 bfe3386e3a2565d3281d9956242d04b9d4d5a489c9e44994b65522af68a38d72
+  tests/go-parity/parity/scripts/check_release_gate.py
+    sha256 d7493b289af919d9c38087176ff4fea8d4b8fbc5aae68bec792db9350e542564
+
+working_tree_dirty_files_at_generation: 0
+
+release_authority: false
+evidence_level: CONTAINER_VERIFIED

@@ -1,0 +1,114 @@
+{
+  "bundle": "s6-s7-revalidation-2026-11-12",
+  "repo_commit": "c88a29daaa87ba1cbe351b9b629a91ac73444b59",
+  "branch": "develop/go-native",
+  "generated_at": "2026-11-11T23:46:20Z",
+  "host_env": "macOS host + docker golang:1.27.4 and Ubuntu 24.04.5 runner image",
+  "evidence_level": "CONTAINER_VERIFIED",
+  "release_authority": false,
+  "tree_note": "the commit that follows repo_commit adds only this directory; product code and tests are identical to repo_commit",
+  "supersedes": {
+    "bundle": "s6-s7-closeout-2026-11-12",
+    "reason": "its note 'both release secrets are still missing' is no longer true, and its repo_commit (284bfde) predates the signing and scheduling fixes"
+  },
+  "commits_covered": [
+    "e145f2d",
+    "9a55114",
+    "12091d9",
+    "c88a29d"
+  ],
+  "protected_files": {
+    "feature_contracts.json": {
+      "sha256": "bfe3386e3a2565d3281d9956242d04b9d4d5a489c9e44994b65522af68a38d72",
+      "diff_lines_vs_origin": 0
+    },
+    "check_release_gate.py": {
+      "sha256": "d7493b289af919d9c38087176ff4fea8d4b8fbc5aae68bec792db9350e542564",
+      "diff_lines_vs_origin": 0
+    }
+  },
+  "ledger": {
+    "total": 28,
+    "statuses": { "PENDING_GO_IMPLEMENTATION": 28 },
+    "release_gate_exit": 2
+  },
+  "suites": {
+    "test_versions_signature.sh": { "pass": 8, "fail": 0, "exit": 0 },
+    "test_helper_checksum.sh": { "pass": 8, "fail": 0, "exit": 0 },
+    "test_version_loading.sh": { "pass": 8, "fail": 0, "exit": 0 },
+    "test_release_signing_workflows.py": { "pass": 46, "fail": 0, "exit": 0 },
+    "test_ledger_transition.py": { "tests": 17, "result": "OK", "exit": 0 },
+    "test_color_output.py": { "pass": 71, "fail": 0, "exit": 0 },
+    "go": {
+      "gofmt_offenders": 0,
+      "build": "BUILD_OK",
+      "vet": "VET_OK",
+      "test": "go_suite_exit=0",
+      "packages_ok": 14
+    }
+  },
+  "self_audit_rounds": {
+    "1_key_rotation": {
+      "criteria": "a secret that does not pair with the embedded anchor must fail before the artifact becomes immutable",
+      "constructions": ["A mismatch -> rc=1", "B match -> rc=0", "C tampered -> rc=1", "D unsigned -> rc=1", "E missing anchor -> rc=1", "F shell mismatch -> rc=1", "G shell match -> rc=0"],
+      "coverage_note": "bridge-asset-*.json carries no signature field; releasePublicKeyPEM only verifies manifest.json, so one manifest check is complete",
+      "changes": "none",
+      "red_probe": "R11 manifest verify step removed -> FAIL"
+    },
+    "2_evidence_attribution": {
+      "criteria": "new assertions must be red on 80717c2 and green on c88a29d",
+      "results": {
+        "workflow_assertions_on_80717c2": "rc=1 FAIL: manifest verify step exists",
+        "schedule_onfailure_on_80717c2": "FAIL (OnFailure in [Service])",
+        "old_preflight_unsigned_3.6_3.06.0_03.6.0": "rc=0 (false positive), rc=1 on c88a29d"
+      },
+      "changes": "this bundle replaces the stale status claims of the previous bundle"
+    },
+    "3_zshenv_scope": {
+      "criteria": "only Trae terminals, only ghu_, never a user export, no sh/bash/CI impact, gh still works",
+      "results": {
+        "trae_ghu": "unset",
+        "trae_ghp_gho_github_pat": "preserved",
+        "no_trae_ghu": "preserved",
+        "zsh_f": "preserved",
+        "bash_sh": "preserved",
+        "user_export_in_zshrc_zprofile": "wins over the block",
+        "new_shell_gh_secret_list": "success",
+        "new_shell_git_ls_remote": "success"
+      },
+      "residual": "a user-supplied ghu_ token from the parent env or from .zshenv above the block is still dropped inside a Trae terminal; personal PATs cannot carry the ghu_ prefix",
+      "changes": "none"
+    },
+    "4_p0_2_renewal": {
+      "criteria": "renewal failure stays failed; alert persistence failure cannot flip it; schedule run exits nonzero; OnFailure lives in [Unit]",
+      "results": {
+        "alert_persist_failure": "job still failed (new unit test PASS)",
+        "exit_code_test": "added TestScheduleRunExitsNonZeroOnFailedJob",
+        "systemd_analyze_good": "no output, rc=0",
+        "systemd_analyze_bad": "Unknown key name 'OnFailure' in section 'Service', ignoring (rc still 0, so exit code is not a gate)"
+      },
+      "residual": "WriteAlert swallows persistence errors by design; idleleo status cannot distinguish 'no alert' from 'alert lost' (journal still records the failed unit)",
+      "changes": ["internal/cli/cli_test.go (c88a29d)"],
+      "red_probes": ["R8 exit-code mapping removed -> FAIL", "R12 unpersisted alert mapped to ok -> FAIL"]
+    },
+    "5_gate_false_positive": {
+      "criteria": "preflight ordering must match install.sh; non-numeric and suffixed versions fail closed; suites must not skip into green",
+      "results": {
+        "parity_matrix": "17 version strings, diff between install.sh and preflight is empty",
+        "old_sort_v": "allowed unsigned 3.6 / 3.06.0 / 03.6.0 (clients reject them)",
+        "new_implementation": "rejects 3.6, 3.06.0, 03.6.0, 3.6.00, v3.6.0, 3.6.0.0, 3.6.0-rc1, 3.6.0+build, empty, abc; allows 3.5.9",
+        "skip_hole": "macOS LibreSSL after install.sh pins PATH -> silent SKIP + rc=0; CI had the same hole if OpenSSL 3 were missing"
+      },
+      "changes": [".github/test/test_versions_signature.sh (12091d9)"],
+      "red_probes": ["R9 sort -V revert -> FAIL", "R13 CI skip guard removed -> SKIP + rc=0"]
+    }
+  },
+  "open_items": [
+    "the two release secrets cannot be read from this environment",
+    "no real 3.6.0 publish has been exercised",
+    "public CA / DNS-01 / EAB and a real two-host VPS are unavailable",
+    "28 feature-ledger entries remain PENDING_GO_IMPLEMENTATION; release gate exits 2",
+    "alert persistence failures have no operator-visible signal beyond the journal",
+    "evidence is container-verified, not a CI run"
+  ]
+}

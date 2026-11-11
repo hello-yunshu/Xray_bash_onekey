@@ -1,0 +1,90 @@
+bundle: s6-s7-revalidation-2026-11-12
+repo_commit: c88a29daaa87ba1cbe351b9b629a91ac73444b59
+branch: develop/go-native
+generated_at: 2026-11-11T23:46:20Z
+evidence_level: CONTAINER_VERIFIED
+release_authority: false
+tree_note: the commit that follows repo_commit adds only this directory; product code and tests are identical to repo_commit
+
+purpose
+  Re-validate the S6/S7 closeout after the five-round self-audit, and replace the
+  stale status claims in s6-s7-closeout-2026-11-12 (that bundle said both release
+  secrets were still missing; they are configured now, and its repo_commit predates
+  the signing and scheduling fixes).
+  Commits covered: e145f2d, 9a55114, 12091d9, c88a29d.
+
+[1] shell suites -- image idleleo-phase04-test:24.04 (Ubuntu 24.04.5, bash 5.2.21,
+    OpenSSL 3.0.13, Python 3.12.3), CI=true, repo mounted read-only
+
+    .github/test/test_versions_signature.sh          Summary: PASS=8  FAIL=0  rc=0
+    .github/test/test_helper_checksum.sh             Summary: PASS=8  FAIL=0  rc=0
+    .github/test/test_version_loading.sh             Summary: PASS=8  FAIL=0  rc=0
+    .github/test/test_release_signing_workflows.py   Summary: PASS=46 FAIL=0  rc=0
+    .github/test/test_ledger_transition.py           OK (17 tests)             rc=0
+    .github/test/test_color_output.py                Result: 71 passed, 0 failed rc=0
+
+    full output: shell-suite.log
+    No ESC bytes in the log (test_color_output.py requirement).
+
+[2] Go suites -- image golang:1.27.4,
+    GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local
+
+    gofmt -l (excluding vendor)  : 0 files
+    go build ./...               : BUILD_OK
+    go vet ./...                 : VET_OK
+    go test ./...                : go_suite_exit=0, 14 packages ok
+
+    full output: go-suite.log
+
+[3] five self-audit rounds (criteria, findings, fixes, verification)
+
+    round 1 key rotation ........ fail-closed proven with 7 constructions
+                                  (A-G); red probe R11
+    round 2 evidence attribution  new assertions red on 80717c2, green on c88a29d;
+                                  this bundle supersedes the old status claims
+    round 3 ~/.zshenv ............ 11-scenario matrix; user exports win; sh/bash/CI
+                                  unaffected; new shell gh/git work; no change made
+    round 4 P0-2 renewal ......... job stays failed on alert-write failure; NEW test
+                                  for `schedule run` exit code; OnFailure verified in
+                                  [Unit] by systemd-analyze (good vs bad control)
+    round 5 gate false positive .. 17-version parity between install.sh and
+                                  preflight (diff empty); 3 old false positives fixed;
+                                  NEW CI skip guard
+
+    detail: self-audit-rounds.md
+
+[4] attribution run on 80717c2 (worktree, HEAD tests/scripts overlaid, product
+    code untouched)
+
+    test_release_signing_workflows.py                 rc=1 FAIL: manifest verify step exists
+    go test ./internal/schedule (OnFailure test)      FAIL  (OnFailure in [Service])
+    old preflight (sort -V), unsigned metadata        rc=0 for 3.6 / 3.06.0 / 03.6.0
+    same fixtures on c88a29d                          rc=1 for all three
+
+[5] red probes
+
+    R8   exit-code mapping removed                -> FAIL (rc=1)
+    R9   version_compare reverted to sort -V      -> FAIL (rc=1)
+    R10  OnFailure moved into [Service]           -> FAIL (rc=1)
+    R11  manifest verify step removed             -> FAIL (rc=1)
+    R12  unpersisted alert mapped to ok           -> FAIL (rc=1)
+    R13  CI skip guard removed                    -> SKIP + rc=0 (guard is load-bearing)
+
+    exact commands and outputs: red-tests.txt
+
+[6] not re-run in this bundle
+
+    The full 13-case shell suite and the red probes R1-R5 from
+    s6-s7-closeout-2026-11-12 cover code paths that e145f2d..c88a29d did not modify
+    (cert renewal branch, Apply tamper check, helper re-hash, deletion wording,
+    backup warning). Those results remain valid for those paths.
+    No CI run is recorded here; CI status is decided by the push that follows.
+
+[7] still open (unchanged by this bundle)
+
+    - the two release secrets cannot be read from this environment
+    - no real 3.6.0 publish has been exercised
+    - public CA / DNS-01 / EAB and a real two-host VPS are unavailable
+    - 28 feature-ledger entries remain PENDING_GO_IMPLEMENTATION;
+      check_release_gate.py still exits 2
+    - alert persistence failures have no operator-visible signal beyond the journal
