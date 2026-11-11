@@ -126,11 +126,22 @@ else
     bad "unsigned metadata below the cutover was rejected"
 fi
 
-shell_version="3.4.0"
+shell_version="3.5.9"
+if load_json "${TMP_ROOT}/meta.json"; then
+    if grep -q '兼容期' "${TMP_ROOT}/stderr"; then
+        ok "unsigned metadata below the deferred cutover is still accepted with a warning"
+    else
+        bad "unsigned metadata at 3.5.9 was accepted without the compatibility warning"
+    fi
+else
+    bad "unsigned metadata at 3.5.9 was rejected; the cutover moved backwards"
+fi
+
+shell_version="3.6.0"
 if load_json "${TMP_ROOT}/meta.json"; then
     bad "unsigned metadata at the cutover version was accepted"
 else
-    ok "unsigned metadata at 3.4.0 is rejected"
+    ok "unsigned metadata at 3.6.0 is rejected"
 fi
 shell_version=${saved_shell_version}
 

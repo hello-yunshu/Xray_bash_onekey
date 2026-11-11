@@ -11,6 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/app"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 )
 
 const cfg = `{
@@ -163,6 +166,58 @@ func TestUpdateUnconfiguredIsReadOnly(t *testing.T) {
 	code, out, _ := run(t, "--root", root, "--lang", "en", "update", "status", "--json")
 	if code != 0 || !strings.Contains(out, "configured") {
 		t.Fatalf("update status: %d %q", code, out)
+	}
+}
+
+func TestPrintStatusPrintsAlertsFirst(t *testing.T) {
+	var out bytes.Buffer
+	printStatus(&out, app.StatusReport{
+		SchemaVersion: 1,
+		Alerts: []schedule.Alert{{
+			Job: "cert-renew", Result: "failed", Detail: "renewal failed",
+			At: "2026-11-12T00:00:00Z",
+		}},
+	})
+	first := strings.SplitN(out.String(), "\n", 2)[0]
+	if !strings.HasPrefix(first, "alert: job=cert-renew result=failed") {
+		t.Fatalf("first line=%q", first)
+	}
+}
+
+func TestStatusCommandShowsScheduledAlert(t *testing.T) {
+	root := fixture(t)
+	alertDir := filepath.Join(root, "etc/idleleo/alerts")
+	if err := os.MkdirAll(alertDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	alert := `{"schemaVersion":1,"job":"cert-renew","result":"failed","detail":"renewal failed","at":"2026-11-12T00:00:00Z"}`
+	if err := os.WriteFile(filepath.Join(alertDir, "cert-renew.json"), []byte(alert), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, out, errOut := run(t, "--root", root, "status")
+	if code != 0 {
+		t.Fatalf("status: %d %s", code, errOut)
+	}
+	if !strings.HasPrefix(out, "alert: job=cert-renew") {
+		t.Fatalf("status output=%q", out)
+	}
+}
+
+func TestScheduleAlertCommandWritesAlert(t *testing.T) {
+	root := fixture(t)
+	code, out, errOut := run(t, "--root", root, "schedule", "alert", "--job", "cert-renew", "--detail", "boom")
+	if code != 0 {
+		t.Fatalf("schedule alert: %d %s", code, errOut)
+	}
+	if !strings.Contains(out, "alert=cert-renew") {
+		t.Fatalf("output=%q", out)
+	}
+	b, err := os.ReadFile(filepath.Join(root, "etc/idleleo/alerts/cert-renew.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(b), "boom") || !strings.Contains(string(b), `"result": "failed"`) {
+		t.Fatalf("alert=%s", b)
 	}
 }
 

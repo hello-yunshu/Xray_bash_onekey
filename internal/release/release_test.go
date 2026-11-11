@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -126,6 +127,64 @@ func TestApplyRestoresPreviousBinaryWhenStateCannotBeWritten(t *testing.T) {
 	}
 	if string(b) != "old binary\n" {
 		t.Fatalf("previous binary was not restored: %q", string(b))
+	}
+}
+
+func TestApplyRejectsTamperedManifest(t *testing.T) {
+	pinLinuxPlatform(t)
+	root := t.TempDir()
+	asset := fakeELF(runtime.GOARCH)
+	key := installTestReleaseKey(t)
+	body := signedManifestBytes(t, Manifest{
+		SchemaVersion: SchemaVersion,
+		Channel:       ChannelName,
+		Version:       "0.5.0",
+		Assets: map[string]Asset{
+			platformKey(): {Name: "asset", SHA256: hashBytes(asset), Size: int64(len(asset))},
+		},
+	}, key)
+	// The asset bytes and their digests stay valid; only the signed document is
+	// altered. A caller that skips verification would happily install this.
+	tampered := strings.Replace(string(body), `"0.5.0"`, `"0.5.1"`, 1)
+	if tampered == string(body) {
+		t.Fatal("tamper fixture did not change the manifest")
+	}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/go/manifest.json", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(tampered))
+	})
+	mux.HandleFunc("/go/asset", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write(asset)
+	})
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+	if _, err := Configure(context.Background(), root, srv.URL+"/go/manifest.json", "opt/idleleo/bin/idleleo"); err != nil {
+		t.Fatal(err)
+	}
+	install := filepath.Join(root, "opt/idleleo/bin/idleleo")
+	if err := os.MkdirAll(filepath.Dir(install), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(install, []byte("old binary\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	rep, err := Apply(context.Background(), root, "", nil)
+	if err == nil {
+		t.Fatal("apply must reject a manifest whose signature no longer covers its content")
+	}
+	if !strings.Contains(err.Error(), "signature") {
+		t.Fatalf("refusal must name the signature, got: %v", err)
+	}
+	if rep.NewVersion != "" {
+		t.Fatalf("tampered manifest must not reach the install stage: %+v", rep)
+	}
+	b, readErr := os.ReadFile(install)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	if string(b) != "old binary\n" {
+		t.Fatalf("tampered manifest changed the installed binary: %q", string(b))
 	}
 }
 

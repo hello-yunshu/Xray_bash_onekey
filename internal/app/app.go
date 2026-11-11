@@ -13,6 +13,7 @@ import (
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/compat"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/runtime"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg"
 )
@@ -35,6 +36,7 @@ type StatusReport struct {
 	Service       runtime.ServiceState `json:"service"`
 	Drift         []string             `json:"drift"`
 	Warnings      []string             `json:"warnings"`
+	Alerts        []schedule.Alert     `json:"alerts,omitempty"`
 }
 
 // ConfigStatus is the runtime config fingerprint comparison.
@@ -46,20 +48,27 @@ type ConfigStatus struct {
 
 // Status never writes and never contacts an update server.
 func (a *App) Status(ctx context.Context) (StatusReport, error) {
+	// Alerts are loaded first and attached to every return path so a failed
+	// renewal stays visible even when metadata or config cannot be read.
+	alerts := schedule.Alerts(a.Paths.Root)
+	withAlerts := func(r StatusReport) StatusReport {
+		r.Alerts = alerts
+		return r
+	}
 	meta, _, err := store.LoadMetadata(a.Paths)
 	if err != nil {
-		return StatusReport{SchemaVersion: 1, Installed: false}, err
+		return withAlerts(StatusReport{SchemaVersion: 1, Installed: false}), err
 	}
 	path, err := a.runtimePath(meta)
 	if err != nil {
-		return StatusReport{SchemaVersion: 1, Installed: true}, err
+		return withAlerts(StatusReport{SchemaVersion: 1, Installed: true}), err
 	}
 	report := StatusReport{
 		SchemaVersion: 1, Installed: true, Engine: meta.ActiveEngine,
 		Role: meta.Role, TLS: meta.TLS, Transport: meta.Transport,
 		Config:  ConfigStatus{Path: path},
 		Service: runtime.InspectServices(ctx, a.Paths.Root),
-		Drift:   []string{}, Warnings: []string{},
+		Drift:   []string{}, Warnings: []string{}, Alerts: alerts,
 	}
 	// Relay installations have no Xray runtime config; status must still work
 	// so the bridge can pre-validate a converted relay metadata.
@@ -69,7 +78,7 @@ func (a *App) Status(ctx context.Context) (StatusReport, error) {
 	}
 	view, err := store.LoadConfig(path)
 	if err != nil {
-		return StatusReport{SchemaVersion: 1, Installed: true}, err
+		return withAlerts(StatusReport{SchemaVersion: 1, Installed: true}), err
 	}
 	report.Config.SHA256 = view.SHA256
 	if meta.RuntimeSHA256 != view.SHA256 {

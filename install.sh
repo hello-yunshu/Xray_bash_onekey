@@ -362,8 +362,14 @@ shell_versions_pubkey_pem='-----BEGIN PUBLIC KEY-----
 MCowBQYDK2VwAyEAiQVZy38jQPyS7lKDtM0vk+jSNSgavB/60UtVeFcw1t4=
 -----END PUBLIC KEY-----'
 # Unsigned metadata is tolerated only while the running script is older than
-# this release. From 3.4.0 on the signature is mandatory (fail-closed).
-versions_signature_required_from="3.4.0"
+# this release. From 3.6.0 on the signature is mandatory (fail-closed). The
+# cutover was moved from 3.4.0 because the publisher Secret could not be
+# confirmed; 3.4.x/3.5.x stay in the compatibility window and 3.6.0 must not
+# ship until IDLELEO_VERSIONS_ED25519_KEY is configured.
+versions_signature_required_from="3.6.0"
+# Helper script pins are a separate trust root and keep the original cutover:
+# moving the metadata cutover must not relax helper verification.
+helper_sha_required_from="3.4.0"
 xray_release_ref="v${shell_version}"
 shell_release_raw_base="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/${xray_release_ref}"
 shell_release_download_base="https://github.com/hello-yunshu/Xray_bash_onekey/releases/download/${xray_release_ref}"
@@ -1841,7 +1847,7 @@ helper_script_sha256() {
         printf '%s' "${expected}"
         return 0
     fi
-    if version_lt "${shell_version}" "${versions_signature_required_from}"; then
+    if version_lt "${shell_version}" "${helper_sha_required_from}"; then
         log_echo "${Warning} ${YellowBG} $(gettext "Release 未声明该校验值(兼容期), 继续安装"): ${name} ${Font}" >&2
         return 0
     fi
@@ -4492,6 +4498,21 @@ ensure_sub_script() {
             return 1
         fi
     else
+        # An already-installed helper must still match its pinned hash. Without
+        # this check a stale or hand-edited copy would bypass the manifest
+        # entirely and keep executing, since the download path is skipped.
+        if [[ -n "${expected_sha256}" ]]; then
+            local actual_sha256
+            actual_sha256=$(sha256sum "$local_file" 2>/dev/null | awk '{print $1}')
+            if [[ "${actual_sha256}" != "${expected_sha256}" ]]; then
+                log_echo "${Warning} ${YellowBG} ${script_name} $(gettext "校验值不匹配, 正在重新下载") ${Font}"
+                if ! download_script_file "$remote_url" "$local_file" bash "${expected_sha256}"; then
+                    log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+                    return 1
+                fi
+                return 0
+            fi
+        fi
         local required_version
         required_version=$(grep '^MIN_MAIN_VERSION=' "$local_file" | head -1 | sed 's/MIN_MAIN_VERSION="//; s/"//')
         if [ -z "$required_version" ]; then
@@ -8075,12 +8096,19 @@ acme() {
         _reloadcmd="chown -f root:${_cert_group} ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"
         local -a _email_args=()
         [[ -n "${custom_email}" ]] && _email_args=(--email "${custom_email}")
+        local -a _dir_args=()
+        if [[ -n "${IDLELEO_ACME_DIRECTORY:-}" ]]; then
+            _dir_args=(--directory "${IDLELEO_ACME_DIRECTORY}")
+        else
+            # The installer is a production path; the CLI default is staging.
+            _dir_args=(--production)
+        fi
         if ! "${idleleo_bin}" xray cert issue \
             --domain "${domain}" \
             --webroot "${idleleo_conf_dir}" \
             --cert-out "${ssl_chainpath}/xray.crt" \
             --key-out "${ssl_chainpath}/xray.key" \
-            --directory "${IDLELEO_ACME_DIRECTORY:-https://acme-v02.api.letsencrypt.org/directory}" \
+            "${_dir_args[@]}" \
             "${_email_args[@]}" \
             --force \
             --reload-command "${_reloadcmd}"; then
@@ -9179,6 +9207,12 @@ cert_update_manuel() {
     fi
 
     local _reloadcmd="chown -f root:${_cert_group} ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key"
+    local -a _dir_args=()
+    if [[ -n "${IDLELEO_ACME_DIRECTORY:-}" ]]; then
+        _dir_args=(--directory "${IDLELEO_ACME_DIRECTORY}")
+    else
+        _dir_args=(--production)
+    fi
     # In legacy mode --reloadcmd is persisted in the acme.sh renewal config; in
     # native mode it is the one-shot reload hook of `xray cert renew`. Neither
     # may restart services here: this function and ssl_update.sh already
@@ -9198,7 +9232,7 @@ cert_update_manuel() {
         --webroot "${idleleo_conf_dir}" \
         --cert-out "${ssl_chainpath}/xray.crt" \
         --key-out "${ssl_chainpath}/xray.key" \
-        --directory "${IDLELEO_ACME_DIRECTORY:-https://acme-v02.api.letsencrypt.org/directory}" \
+        "${_dir_args[@]}" \
         --reload-command "${_reloadcmd}"; then
         log_echo "${Error} ${RedBG} $(gettext "证书续签失败")! ${Font}"
         _rc=1
@@ -10358,7 +10392,7 @@ ssl_judge_and_install() {
 
     if [[ ${has_cert_files} == "true" ]]; then
         if [[ ${has_acme_files} == "true" ]]; then
-            log_echo "${GreenBG} $(gettext "所有证书文件均已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            log_echo "${GreenBG} $(gettext "所有证书文件均已存在, 是否保留") (${Red}$(gettext "仅删除域名证书, 账户与账户密钥保留")${Font}${GreenBG}) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         else
             log_echo "${GreenBG} $(gettext "证书文件已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         fi
@@ -10379,7 +10413,7 @@ ssl_judge_and_install() {
             ;;
         esac
     elif [[ ${has_acme_files} == "true" ]]; then
-        log_echo "${GreenBG} $(gettext "证书签发残留文件已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        log_echo "${GreenBG} $(gettext "证书签发残留文件已存在, 是否保留") (${Red}$(gettext "仅删除域名证书, 账户与账户密钥保留")${Font}${GreenBG}) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r ssl_delete_3
         case $ssl_delete_3 in
         [nN][oO] | [nN])
@@ -11546,7 +11580,7 @@ delete_tls_key_and_crt() {
             [[ -d "${d}" ]] && rm -rf "${d}"
         done
     fi
-    log_echo "${OK} ${GreenBG} $(gettext "已清空证书遗留文件") ${Font}"
+    log_echo "${OK} ${GreenBG} $(gettext "已删除域名证书; ACME 账户与账户密钥 (account.conf, ca/) 保留") ${Font}"
 }
 
 countdown() {
@@ -13473,10 +13507,43 @@ rxa_keep_committed_entry() {
     rxa_entry_is_go_managed || return 1
     if [[ -x "${go_entry}" ]]; then
         ln -sfn "${go_entry}" "${idleleo_commend_file}"
+        ensure_go_schedule_installed
         log_echo "${Info} ${GreenBG} $(gettext "检测到已提交的 Go 迁移，保留 Go 入口") ${Font}"
     else
         log_echo "${Warning} ${YellowBG} $(gettext "检测到已提交的 Go 迁移但 Go 入口缺失，未创建 Bash 入口；请运行 idleleo-recover") ${Font}"
     fi
+    return 0
+}
+
+# Install the Go scheduler after the native manager has taken over. It is
+# idempotent: running it again rewrites the same config/units and re-enables the
+# timer. Failures are reported but never abort the install.
+ensure_go_schedule_installed() {
+    [[ "${_TEST_MODE:-0}" == "1" ]] && return 0
+    local bin
+    bin="$(command -v idleleo 2>/dev/null || true)"
+    [[ -n "${bin}" ]] || return 0
+    local -a args=("schedule" "install")
+    if [[ -f /.dockerenv || -f /run/.containerenv ]]; then
+        args+=("--container")
+    fi
+    if [[ -n "${domain:-}" ]]; then
+        args+=(
+            "--cert-domain" "${domain}"
+            "--cert-webroot" "${idleleo_conf_dir}"
+            "--cert-out" "${ssl_chainpath}/xray.crt"
+            "--cert-key-out" "${ssl_chainpath}/xray.key"
+        )
+    fi
+    [[ -n "${custom_email:-}" ]] && args+=("--acme-email" "${custom_email}")
+    [[ -n "${IDLELEO_ALERT_WEBHOOK:-}" ]] && args+=("--alert-webhook" "${IDLELEO_ALERT_WEBHOOK}")
+    if [[ -n "${IDLELEO_ACME_DIRECTORY:-}" ]]; then
+        args+=("--acme-directory" "${IDLELEO_ACME_DIRECTORY}")
+    else
+        args+=("--acme-production")
+    fi
+    "${bin}" "${args[@]}" >/dev/null 2>&1 ||
+        log_echo "${Warning} ${YellowBG} $(gettext "Go 定时任务安装失败，请手动执行 idleleo schedule install") ${Font}" 2>/dev/null || true
     return 0
 }
 
@@ -13605,7 +13672,8 @@ bridge_migration_offer() {
     fi
     rm -rf "${tmpdir}"
     echo "$(gettext "Go 迁移已提交；旧 Bash 已保留为 /opt/idleleo/recovery/legacy-install.sh")"
-    echo "$(gettext "Go 原生定时任务已接管旧 cron；auto-update 与 cert-renew 为明确降级项（见 schedule status）")"
+    ensure_go_schedule_installed
+    echo "$(gettext "Go 原生定时任务已接管旧 cron；cert-renew 在到期前 30 天自动续签，auto-update 仍为明确降级项（见 schedule status）")"
     /usr/bin/idleleo schedule status 2>/dev/null | sed 's/^/  /' || true
     return 0
 }
@@ -13938,7 +14006,7 @@ show_help() {
     echo "      --stats-reset           $(gettext "重置 Xray 流量统计") [--yes]"
     echo "      --stats-watch [秒]       $(gettext "实时刷新 Xray 流量统计")"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
-    echo "      --backup                $(gettext "备份") $(gettext "脚本管理文件")"
+    echo "      --backup                $(gettext "备份") $(gettext "脚本管理文件") ($(gettext "含证书私钥与 ACME 账户私钥"))"
     echo "      --restore               $(gettext "恢复") $(gettext "脚本管理文件")"
     echo "      --rill-agent-install    $(gettext "安装或修复 Rill AI 判断引擎")"
     echo "      --rill-agent-status     $(gettext "查看") Rill AI $(gettext "判断引擎状态")"
@@ -14313,6 +14381,11 @@ function backup_directories() {
     }
     chmod 600 "${backup_tmp}" 2>/dev/null || true
     backup_tar_paths=("${idleleo_dir}")
+    # The archive carries secret key material: the Xray certificate key pair and
+    # the ACME account state (account.conf and ca/ under /root/.acme.sh), which
+    # can re-issue or revoke certificates for the domain. It is written 0600 and
+    # must be handled like a private key.
+    log_echo "${Warning} ${YellowBG} $(gettext "备份包含证书私钥与 ACME 账户私钥(account.conf, ca/), 请按密钥文件保管") ${Font}"
     [[ -d "${nginx_dir}" ]] && backup_tar_paths+=("${nginx_dir}")
     # Service units and the Xray binary live outside idleleo_dir/nginx_dir.
     # "全部文件" must include them, otherwise a restore leaves the old binary

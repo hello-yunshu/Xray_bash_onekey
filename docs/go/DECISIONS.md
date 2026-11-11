@@ -348,13 +348,18 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
 **决定**：
 - 版本元数据的信任根前移到 `install.sh`：`load_versions` 在采用响应前先验
   `metadata_signature`，格式 `ed25519:<base64>`，签名覆盖规范化 JSON
-  （`jq -cS 'del(.metadata_signature)'`，无结尾换行）。切点 `3.4.0`：低于切点
-  允许无签名并告警（兼容期），达到切点缺签名直接拒绝；无 OpenSSL 3
-  （`pkeyutl -rawin`）时 fail-closed。私钥不入库，签名器为
-  `scripts/sign_json_ed25519.sh`。
+  （`jq -cS 'del(.metadata_signature)'`，无结尾换行）。切点
+  `versions_signature_required_from="3.6.0"`：低于切点允许无签名并告警（兼容期），
+  达到切点缺签名直接拒绝；无 OpenSSL 3（`pkeyutl -rawin`）时 fail-closed。
+  原切点为 `3.4.0`，因无法确认仓库 Secret 已配置而后移到 3.6.0，避免把
+  “线上 JSON 至今无签名”变成 3.4.0 的实际断路。私钥不入库，签名器为
+  `scripts/sign_json_ed25519.sh`；`.github/workflows/publish-shell-version.yml`
+  在上传前 fail-closed 签名，并带 preflight 复核。
 - helper 下载不再“先跑后验”：`release-manifest.json` 的 `helperScripts`
   声明每个 helper 的 sha256，`download_script_file` 第 4 参数强制校验，
-  不匹配不落盘；达到切点仍未声明校验值的 helper 直接拒绝。
+  不匹配不落盘；达到切点仍未声明校验值的 helper 直接拒绝。helper 切点使用
+  独立的 `helper_sha_required_from="3.4.0"`，与版本签名切点解耦——版本签名
+  后移到 3.6.0 不得连带放宽 helper 校验。
 - TCP 入口与测速入口不再下载第三方脚本：`bbr_boost_sh` 默认调用
   `idleleo tcp status`（失败回落 `tcp plan`），`--apply` 用
   `tcp apply --profile bbr-fq --confirm`；`--legacy` 仅使用本机既有 `tcp.sh`。
@@ -381,8 +386,15 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
 
 **已知边界**：
 - 生产版本 JSON 由独立 API 仓库生成，该仓库尚未接入签名器，因此线上元数据
-  仍处于“无签名 + 兼容期告警”状态。
-- 当前没有任何流水线生成 Go 发布 manifest，S7-5 的验签是 fail-closed 的接收端，
-  但还没有可签的产物。
+  仍处于“无签名 + 兼容期告警”状态。**仓库 Secret 必须配置
+  `IDLELEO_VERSIONS_ED25519_KEY`**（与 `install.sh` 内置公钥
+  `MCowBQYDK2VwAyEAiQVZy38jQPyS7lKDtM0vk+jSNSgavB/60UtVeFcw1t4=` 配对的私钥；
+  公钥不同则签名验证必然失败）。未配置时 workflow fail-closed，不会发布无签名
+  JSON，但到 3.6.0 切点仍会断。
+- `.github/workflows/publish-go-bridge.yml` 已在发布前对 `manifest.json`
+  fail-closed 签名，并要求 `IDLELEO_RELEASE_ED25519_KEY`（与
+  `internal/release` 内置公钥配对）存在；签名缺失或前缀不是 `ed25519:` 时
+  发布 job 失败。候选项（`assets/go/manifest.json`）刷新仍要等 release gate
+  变绿、28 项退出 `PENDING_GO_IMPLEMENTATION` 后由受保护流水线产出，本轮不手改。
 - `acme.sh` 的公网 CA 真实续签仍未验收；F12 与 28 项账本保持
   `PENDING_GO_IMPLEMENTATION`，不因本轮改动升格。

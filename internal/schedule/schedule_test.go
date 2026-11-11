@@ -2,13 +2,25 @@ package schedule
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
+	"encoding/pem"
+	"errors"
+	"io"
+	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/acme"
 )
 
 func sandbox(t *testing.T) string {
@@ -181,7 +193,230 @@ func TestStatusDefaultsAndLastLog(t *testing.T) {
 	if !strings.Contains(rep.LastLogLine, "job=auto-update") {
 		t.Fatalf("last=%q", rep.LastLogLine)
 	}
-	if len(rep.DegradedJobs) != 2 {
+	if len(rep.DegradedJobs) != 1 {
 		t.Fatalf("degraded=%v", rep.DegradedJobs)
+	}
+}
+
+func writeCert(t *testing.T, root, rel string, notAfter time.Time) {
+	t.Helper()
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject:      pkix.Name{CommonName: "example.com"},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     notAfter,
+		DNSNames:     []string{"example.com"},
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	write(t, root, rel, string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})), 0o644)
+}
+
+func testCertConfig() Config {
+	cfg := Config{
+		CertDomain: "example.com", CertWebroot: "etc/idleleo/conf",
+		CertFile: CertDirRel + "/xray.crt", CertKeyFile: CertDirRel + "/xray.key",
+		ACMEDirectory: ACMEStagingDirectory,
+	}
+	cfg.applyDefaults()
+	return cfg
+}
+
+func restoreCertHooks(t *testing.T) {
+	t.Helper()
+	renew, reload := renewCertificate, reloadServices
+	t.Cleanup(func() { renewCertificate, reloadServices = renew, reload })
+}
+
+// TestCertRenewJobRenewsInsideWindow is the red test for P0-2: deleting the
+// renewCertificate call leaves the fingerprint unchanged and fails this test.
+func TestCertRenewJobRenewsInsideWindow(t *testing.T) {
+	root := sandbox(t)
+	writeCert(t, root, CertDirRel+"/xray.crt", time.Now().Add(20*24*time.Hour))
+	cfg := testCertConfig()
+	restoreCertHooks(t)
+
+	calls, reloads := 0, 0
+	renewCertificate = func(ctx context.Context, spec acme.Config) (acme.Result, error) {
+		calls++
+		if spec.Domain != "example.com" {
+			t.Errorf("domain=%q", spec.Domain)
+		}
+		if spec.DirectoryURL != ACMEStagingDirectory {
+			t.Errorf("directory=%q", spec.DirectoryURL)
+		}
+		if spec.RenewBefore != CertRenewWindow {
+			t.Errorf("renewBefore=%s", spec.RenewBefore)
+		}
+		writeCert(t, root, CertDirRel+"/xray.crt", time.Now().Add(60*24*time.Hour))
+		return acme.Result{Issued: true, Domain: spec.Domain}, nil
+	}
+	reloadServices = func(ctx context.Context, gotRoot string) (string, error) {
+		reloads++
+		if gotRoot != root {
+			t.Errorf("root=%q", gotRoot)
+		}
+		return "xray restarted", nil
+	}
+
+	res := certRenewJob(context.Background(), root, cfg, "2026-11-12T00:00:00Z")
+	if res.Result != "ok" {
+		t.Fatalf("result=%+v", res)
+	}
+	if calls != 1 || reloads != 1 {
+		t.Fatalf("renew calls=%d reloads=%d", calls, reloads)
+	}
+	if !strings.Contains(res.Detail, "renewed") {
+		t.Fatalf("detail=%q", res.Detail)
+	}
+	obs, err := scanCert(filepath.Join(root, CertDirRel))
+	if err != nil {
+		t.Fatal(err)
+	}
+	state := loadCertState(root)
+	if state.Fingerprint == "" || state.Fingerprint != obs.Fingerprint {
+		t.Fatalf("state fingerprint=%q cert fingerprint=%q", state.Fingerprint, obs.Fingerprint)
+	}
+	if time.Until(obs.NotAfter) < 40*24*time.Hour {
+		t.Fatalf("certificate was not replaced: notAfter=%s", obs.NotAfter)
+	}
+}
+
+func TestCertRenewJobFailureWritesAlertAndPostsWebhook(t *testing.T) {
+	root := sandbox(t)
+	writeCert(t, root, CertDirRel+"/xray.crt", time.Now().Add(20*24*time.Hour))
+	cfg := testCertConfig()
+	restoreCertHooks(t)
+
+	hits := 0
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits++
+		if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+			t.Errorf("content-type=%q", r.Header.Get("Content-Type"))
+		}
+		_, _ = io.Copy(io.Discard, r.Body)
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer ts.Close()
+	cfg.AlertWebhook = ts.URL
+	renewCertificate = func(ctx context.Context, spec acme.Config) (acme.Result, error) {
+		return acme.Result{}, errors.New("acme boom")
+	}
+
+	res := certRenewJob(context.Background(), root, cfg, "2026-11-12T00:00:00Z")
+	if res.Result != "failed" || !strings.Contains(res.Detail, "acme boom") {
+		t.Fatalf("result=%+v", res)
+	}
+	b, err := os.ReadFile(filepath.Join(root, AlertsDirRel, "cert-renew.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var a Alert
+	if err := json.Unmarshal(b, &a); err != nil {
+		t.Fatal(err)
+	}
+	if a.Job != "cert-renew" || a.Result != "failed" || a.Webhook != "posted" {
+		t.Fatalf("alert=%+v", a)
+	}
+	if hits != 1 {
+		t.Fatalf("webhook hits=%d", hits)
+	}
+}
+
+func TestCertRenewJobSuccessClearsAlert(t *testing.T) {
+	root := sandbox(t)
+	writeCert(t, root, CertDirRel+"/xray.crt", time.Now().Add(20*24*time.Hour))
+	write(t, root, AlertsDirRel+"/cert-renew.json",
+		`{"schemaVersion":1,"job":"cert-renew","result":"failed","detail":"old","at":"2026-11-01T00:00:00Z"}`, 0o640)
+	cfg := testCertConfig()
+	restoreCertHooks(t)
+	renewCertificate = func(ctx context.Context, spec acme.Config) (acme.Result, error) {
+		writeCert(t, root, CertDirRel+"/xray.crt", time.Now().Add(60*24*time.Hour))
+		return acme.Result{Issued: true}, nil
+	}
+	reloadServices = func(ctx context.Context, root string) (string, error) { return "ok", nil }
+
+	res := certRenewJob(context.Background(), root, cfg, "2026-11-12T00:00:00Z")
+	if res.Result != "ok" {
+		t.Fatalf("result=%+v", res)
+	}
+	if _, err := os.Stat(filepath.Join(root, AlertsDirRel, "cert-renew.json")); !os.IsNotExist(err) {
+		t.Fatalf("alert was not cleared: %v", err)
+	}
+}
+
+func TestCertRenewJobRequiresDomain(t *testing.T) {
+	root := sandbox(t)
+	writeCert(t, root, CertDirRel+"/xray.crt", time.Now().Add(20*24*time.Hour))
+	cfg := testCertConfig()
+	cfg.CertDomain = ""
+	restoreCertHooks(t)
+	renewCertificate = func(ctx context.Context, spec acme.Config) (acme.Result, error) {
+		t.Fatal("renewal must not run without certDomain")
+		return acme.Result{}, nil
+	}
+
+	res := certRenewJob(context.Background(), root, cfg, "2026-11-12T00:00:00Z")
+	if res.Result != "failed" || !strings.Contains(res.Detail, "certDomain") {
+		t.Fatalf("result=%+v", res)
+	}
+	if _, err := os.Stat(filepath.Join(root, AlertsDirRel, "cert-renew.json")); err != nil {
+		t.Fatalf("alert missing: %v", err)
+	}
+}
+
+func TestDegradedJobsExcludesCertRenew(t *testing.T) {
+	for _, d := range DegradedJobs {
+		if strings.HasPrefix(d, "cert-renew") {
+			t.Fatalf("cert-renew is still degraded: %s", d)
+		}
+	}
+}
+
+func TestInstallWritesOnFailureAndAlertUnit(t *testing.T) {
+	root := sandbox(t)
+	rep, err := Install(context.Background(), InstallOptions{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	service, err := os.ReadFile(filepath.Join(root, UnitRel))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(service), "OnFailure=idleleo-alert.service") {
+		t.Fatalf("service=%s", service)
+	}
+	alertUnit, err := os.ReadFile(rep.AlertServicePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(alertUnit), "schedule alert") {
+		t.Fatalf("alert unit=%s", alertUnit)
+	}
+}
+
+func TestStatusReturnsAlertsWhenConfigIsBroken(t *testing.T) {
+	root := sandbox(t)
+	write(t, root, ConfigRel, "not-json", 0o600)
+	write(t, root, AlertsDirRel+"/cert-renew.json",
+		`{"schemaVersion":1,"job":"cert-renew","result":"failed","detail":"renewal failed","at":"2026-11-12T00:00:00Z"}`, 0o640)
+	rep, err := Status(context.Background(), root)
+	if err == nil {
+		t.Fatal("broken config was accepted")
+	}
+	if len(rep.Alerts) != 1 || rep.Alerts[0].Job != "cert-renew" {
+		t.Fatalf("alerts=%+v", rep.Alerts)
+	}
+	lines := rep.SummaryLines()
+	if len(lines) == 0 || !strings.HasPrefix(lines[0], "alert=cert-renew") {
+		t.Fatalf("summary=%v", lines)
 	}
 }

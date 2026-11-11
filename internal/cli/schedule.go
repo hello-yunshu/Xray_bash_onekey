@@ -3,8 +3,10 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 )
@@ -32,10 +34,24 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 			}
 			interval = n
 		}
+		acmeDir := flagValue(rest, "--acme-directory")
+		if acmeDir == "" && hasFlag(rest, "--acme-production") {
+			acmeDir = schedule.ACMEProductionDirectory
+		}
+		if acmeDir == "" {
+			acmeDir = os.Getenv("IDLELEO_ACME_DIRECTORY")
+		}
 		rep, err := schedule.Install(ctx, schedule.InstallOptions{
 			Root:            cfg.root,
 			IntervalSeconds: interval,
 			GeodataURL:      flagValue(rest, "--geodata-url"),
+			CertDomain:      flagValue(rest, "--cert-domain"),
+			CertWebroot:     flagValue(rest, "--cert-webroot"),
+			CertFile:        flagValue(rest, "--cert-out"),
+			CertKeyFile:     flagValue(rest, "--cert-key-out"),
+			ACMEDirectory:   acmeDir,
+			ACMEEmail:       flagValue(rest, "--acme-email"),
+			AlertWebhook:    flagValue(rest, "--alert-webhook"),
 		})
 		if err != nil {
 			fmt.Fprint(opts.Err, err.Error()+"\n")
@@ -44,8 +60,9 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 		if cfg.json {
 			return writeJSON(opts, rep)
 		}
-		fmt.Fprintf(opts.Out, "config=%s\nservice=%s\ntimer=%s\ninterval=%ds\njobs=%s\nsystemd=%s\n",
-			rep.ConfigPath, rep.ServicePath, rep.TimerPath, rep.IntervalSeconds, strings.Join(rep.Jobs, ","), rep.Systemd)
+		fmt.Fprintf(opts.Out, "config=%s\nservice=%s\ntimer=%s\nalertService=%s\ninterval=%ds\njobs=%s\nsystemd=%s\n",
+			rep.ConfigPath, rep.ServicePath, rep.TimerPath, rep.AlertServicePath,
+			rep.IntervalSeconds, strings.Join(rep.Jobs, ","), rep.Systemd)
 		for _, d := range rep.DegradedJobs {
 			fmt.Fprintf(opts.Out, "degraded=%s\n", d)
 		}
@@ -89,6 +106,21 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 			fmt.Fprintf(opts.Out, "%s job=%s result=%s %s\n", res.At, res.Job, res.Result, res.Detail)
 		}
 		return code
+	case "alert":
+		job := flagValue(rest, "--job")
+		if job == "" {
+			job = "service-failure"
+		}
+		detail := flagValue(rest, "--detail")
+		if detail == "" {
+			detail = "scheduled job failed"
+		}
+		a := schedule.RecordAlert(ctx, cfg.root, job, detail, time.Now().UTC().Format(time.RFC3339))
+		if cfg.json {
+			return writeJSON(opts, a)
+		}
+		fmt.Fprintf(opts.Out, "alert=%s result=%s webhook=%s\n", a.Job, a.Result, a.Webhook)
+		return 0
 	case "status":
 		rep, err := schedule.Status(ctx, cfg.root)
 		if err != nil {

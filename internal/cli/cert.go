@@ -3,15 +3,24 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/acme"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/change"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 )
 
-// xrayCert implements `xray cert issue|renew`. A directory URL must be given
-// explicitly so the command never silently talks to a public CA.
+// acmeIssueFn and acmeRenewFn are variables so tests can verify directory
+// resolution without contacting a CA.
+var (
+	acmeIssueFn = acme.Issue
+	acmeRenewFn = acme.Renew
+)
+
+// xrayCert implements `xray cert issue|renew`. The directory defaults to Let's
+// Encrypt staging; production requires --production or IDLELEO_ACME_DIRECTORY.
 func xrayCert(ctx context.Context, opts Options, cfg config, args []string) int {
 	if len(args) == 0 {
 		return usage(opts, cfg.lang, "help")
@@ -28,7 +37,17 @@ func xrayCert(ctx context.Context, opts Options, cfg config, args []string) int 
 	certFile := flagValue(rest, "--cert-out")
 	keyFile := flagValue(rest, "--key-out")
 	directory := flagValue(rest, "--directory")
-	if domain == "" || webroot == "" || certFile == "" || keyFile == "" || directory == "" {
+	if directory == "" {
+		directory = os.Getenv("IDLELEO_ACME_DIRECTORY")
+	}
+	if directory == "" {
+		if hasFlag(rest, "--production") {
+			directory = schedule.ACMEProductionDirectory
+		} else {
+			directory = schedule.ACMEStagingDirectory
+		}
+	}
+	if domain == "" || webroot == "" || certFile == "" || keyFile == "" {
 		return usage(opts, cfg.lang, "help")
 	}
 	if cfg.root != "/" {
@@ -72,9 +91,9 @@ func xrayCert(ctx context.Context, opts Options, cfg config, args []string) int 
 		err    error
 	)
 	if action == "renew" {
-		result, err = acme.Renew(ctx, spec)
+		result, err = acmeRenewFn(ctx, spec)
 	} else {
-		result, err = acme.Issue(ctx, spec)
+		result, err = acmeIssueFn(ctx, spec)
 	}
 	if err != nil {
 		return fail(opts, cfg, err)

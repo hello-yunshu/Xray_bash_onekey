@@ -20,7 +20,13 @@ host=""
 # into the one-release acme.sh fallback. The native path needs Nginx to keep
 # serving the HTTP-01 webroot, so it never stops the unit.
 acme_legacy="${IDLELEO_ACME_LEGACY:-0}"
-acme_directory="${IDLELEO_ACME_DIRECTORY:-https://acme-v02.api.letsencrypt.org/directory}"
+# This script renews an existing production certificate, so production must be
+# explicit. The CLI itself defaults to staging.
+if [[ -n "${IDLELEO_ACME_DIRECTORY:-}" ]]; then
+    acme_dir_args=(--directory "${IDLELEO_ACME_DIRECTORY}")
+else
+    acme_dir_args=(--production)
+fi
 idleleo_bin=""
 # Nginx state bookkeeping. "yes" means THIS run stopped a unit that was
 # running before; it is the only condition that ever starts Nginx again.
@@ -160,7 +166,7 @@ renew_and_install_cert() {
         --webroot "${idleleo_dir}/conf" \
         --cert-out "${ssl_chainpath}/xray.crt" \
         --key-out "${ssl_chainpath}/xray.key" \
-        --directory "${acme_directory}"; then
+        "${acme_dir_args[@]}"; then
         ssl_log "idleleo xray cert renew failed for ${host}"
         return 1
     fi

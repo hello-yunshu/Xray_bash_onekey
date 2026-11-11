@@ -17,6 +17,7 @@ import (
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/i18n"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/runtime"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
 )
 
@@ -122,6 +123,9 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		cfg.json = cfg.json || hasFlag(args, "--json")
 		report, err := a.Status(ctx)
 		if err != nil {
+			if !cfg.json {
+				printAlerts(opts.Out, report.Alerts)
+			}
 			return fail(opts, cfg, err)
 		}
 		if cfg.json {
@@ -310,7 +314,14 @@ func menu(ctx context.Context, opts Options, cfg config) int {
 	}
 }
 
+func printAlerts(out io.Writer, alerts []schedule.Alert) {
+	for _, a := range alerts {
+		fmt.Fprintf(out, "alert: job=%s result=%s at=%s %s\n", a.Job, a.Result, a.At, a.Detail)
+	}
+}
+
 func printStatus(out io.Writer, r app.StatusReport) {
+	printAlerts(out, r.Alerts)
 	fmt.Fprintf(out, "installed: %t\nengine: %s\nrole: %s\ntls: %s\ntransport: %s\n",
 		r.Installed, r.Engine, r.Role, r.TLS, r.Transport)
 	fmt.Fprintf(out, "config: %s\nsha256: %s\nmatchesMetadata: %t\n", r.Config.Path, r.Config.SHA256, r.Config.MatchesMetadata)

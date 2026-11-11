@@ -32,7 +32,9 @@ GOOD_SHA=$(sha256sum "${TMP_ROOT}/body.sh" | awk '{print $1}')
 BAD_SHA='0000000000000000000000000000000000000000000000000000000000000000'
 
 # curl is replaced by a local body writer so no test touches the network.
+CURL_FAIL=0
 curl() {
+    [[ ${CURL_FAIL} == "0" ]] || return 22
     local dest="" prev=""
     for arg in "$@"; do
         if [[ "${prev}" == "-o" ]]; then dest="${arg}"; fi
@@ -84,6 +86,26 @@ if ensure_sub_script "file_manager.sh" "https://example.invalid/file_manager.sh"
 else
     bad "matching hash was rejected"
 fi
+
+printf '%s\n' '--- an existing helper is re-hashed ---'
+with_manifest "$(jq -cn --arg sha "${GOOD_SHA}" '{("file_manager.sh"): $sha}')"
+printf '#!/usr/bin/env bash\ntampered\n' >"${scripts_dir}/file_manager.sh"
+if ensure_sub_script "file_manager.sh" "https://example.invalid/file_manager.sh" >/dev/null 2>&1 &&
+    [[ $(sha256sum "${scripts_dir}/file_manager.sh" | awk '{print $1}') == "${GOOD_SHA}" ]]; then
+    ok "an existing helper with a stale hash is re-downloaded"
+else
+    bad "an existing helper with a stale hash was accepted or not replaced"
+fi
+
+printf '%s\n' '--- a failed re-download of a stale helper is fatal ---'
+printf '#!/usr/bin/env bash\ntampered\n' >"${scripts_dir}/file_manager.sh"
+CURL_FAIL=1
+if ensure_sub_script "file_manager.sh" "https://example.invalid/file_manager.sh" >/dev/null 2>&1; then
+    bad "a stale helper was kept when the re-download failed"
+else
+    ok "a failed re-download of a stale helper returns nonzero"
+fi
+CURL_FAIL=0
 
 printf '%s\n' '--- direct download honours the pinned hash ---'
 rm -f "${TMP_ROOT}/direct.sh"

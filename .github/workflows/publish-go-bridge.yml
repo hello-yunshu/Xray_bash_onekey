@@ -92,6 +92,47 @@ jobs:
             python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d["url"].startswith("https://")' "$f"
           done
 
+      - name: Sign the Go release manifest (fail closed)
+        working-directory: current
+        env:
+          RELEASE_KEY: ${{ secrets.IDLELEO_RELEASE_ED25519_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RELEASE_KEY}" ]; then
+            echo "IDLELEO_RELEASE_ED25519_KEY is not configured; refusing to publish an unsigned manifest." >&2
+            echo "Configure the Ed25519 private key that pairs with the internal/release trust anchor." >&2
+            exit 1
+          fi
+          umask 077
+          key="$RUNNER_TEMP/idleleo-release-ed25519.pem"
+          if printf '%s' "${RELEASE_KEY}" | grep -q 'PRIVATE KEY'; then
+            printf '%s\n' "${RELEASE_KEY}" >"$key"
+          else
+            printf '%s' "${RELEASE_KEY}" | base64 -d >"$key" 2>/dev/null || {
+              echo "IDLELEO_RELEASE_ED25519_KEY is neither a PEM key nor base64-encoded PEM." >&2
+              exit 1
+            }
+          fi
+          chmod 600 "$key"
+          openssl pkey -in "$key" -noout -text 2>/dev/null | grep -q 'ED25519' || {
+            echo "IDLELEO_RELEASE_ED25519_KEY is not an Ed25519 private key." >&2
+            rm -f "$key"
+            exit 1
+          }
+          manifest="$RUNNER_TEMP/go-release/manifest.json"
+          [[ -s "$manifest" ]] || { echo "manifest.json was not built" >&2; exit 1; }
+          bash scripts/sign_json_ed25519.sh "$manifest" "$key" signature >"$RUNNER_TEMP/manifest.signed.json"
+          rm -f "$key"
+          mv "$RUNNER_TEMP/manifest.signed.json" "$manifest"
+          python3 - "$manifest" <<'PY'
+          import json, sys
+          doc = json.load(open(sys.argv[1]))
+          sig = doc.get("signature") or ""
+          if not sig.startswith("ed25519:"):
+              sys.exit("manifest.json must carry an ed25519: signature before release")
+          print("manifest signature: present")
+          PY
+
       - name: Create the immutable Go release
         working-directory: current
         env:

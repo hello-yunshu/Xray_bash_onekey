@@ -205,6 +205,14 @@ jobs:
           # must never overwrite manually promoted tested-version metadata.
           python3 .github/test/test_release_automation.py
           python3 .github/test/test_convergence.py
+          # S6-2/S6-3 trust roots: unsigned metadata is only tolerated below the
+          # cutover, and an unpinned helper is refused at its own cutover.
+          bash .github/test/test_versions_signature.sh
+          bash .github/test/test_helper_checksum.sh
+          # Both publishers must sign before upload and fail closed when the
+          # signing secret is missing; the preflight is executed against real
+          # fixtures, so a weakened check turns this red.
+          python3 .github/test/test_release_signing_workflows.py
           bash -n scripts/merge_checked_pr.sh
 
       - name: Install PyYAML for Clash parser test

@@ -49,13 +49,13 @@ var zh = map[string]string{
   xray uninstall|recover
                        卸载托管文件 / 收敛未完成的安装
   xray cert issue|renew
-                       ACME v2 证书签发与续期（必须显式给出 --directory）
+                       ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
   bridge audit|prepare|validate|activate|deactivate|recover|status
                        旧 Bash 安装的审计、预检、切换、回退与恢复
   metadata import|export [--from install_config.json] [--out FILE]
                        从旧配置派生唯一元数据 / 导出并校验运行时摘要
-  schedule install|remove|run|status
-                       Go 原生定时任务（接管旧 cron 的更新/证书/GeoData/统计）
+  schedule install|remove|run|status|alert
+                       Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
   update status|check|apply|configure --manifest-url URL
                        Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
   stats [--json]       只读查询 Xray 统计（reset=false）
@@ -114,13 +114,13 @@ Commands:
   xray uninstall|recover
                        remove managed files / converge a half-finished install
   xray cert issue|renew
-                       ACME v2 issuance and renewal (--directory is mandatory)
+                       ACME v2 issuance and renewal (defaults to LE staging; production needs --production or IDLELEO_ACME_DIRECTORY)
   bridge audit|prepare|validate|activate|deactivate|recover|status
                        audit, pre-flight, switch, hand-back and recovery for legacy Bash installs
   metadata import|export [--from install_config.json] [--out FILE]
                        derive the single metadata record / export with runtime digest check
-  schedule install|remove|run|status
-                       native Go jobs (takeover of the legacy update/cert/GeoData/stats cron)
+  schedule install|remove|run|status|alert
+                       native Go jobs (auto-renew inside 30 days; alert backs OnFailure)
   update status|check|apply|configure --manifest-url URL
                        Go release channel self-update (manifest/SHA256/ELF/health checks)
   stats [--json]       read-only Xray stats query (reset=false)

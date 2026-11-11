@@ -121,7 +121,19 @@ else
 fi
 HOME=${saved_home}
 
-printf '%s\n' '--- acme_cron_cleanup removes only the acme renewal line ---'
+printf '%s\n' '--- delete_tls_key_and_crt says account keys are kept ---'
+saved_home=${HOME}
+HOME="${TMP_ROOT}/home-delete-msg"
+mkdir -p "${HOME}/.acme.sh"
+delete_out=$(delete_tls_key_and_crt 2>&1)
+# The menu previously read like a full wipe; it only deletes domain certs, so
+# the wording must say the ACME account and its key stay on disk.
+if printf '%s' "${delete_out}" | grep -q '账户与账户密钥'; then
+    ok "deletion message states the ACME account and its key are retained"
+else
+    bad "deletion message does not mention the retained ACME account key: ${delete_out}"
+fi
+HOME=${saved_home}
 saved_home=${HOME}
 HOME="${TMP_ROOT}/home-cron"
 mkdir -p "${HOME}/.acme.sh"

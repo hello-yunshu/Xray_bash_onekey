@@ -123,12 +123,12 @@ phase01 C12 保持**已知 pin 不匹配**：pin 本身可解析，但当前 `in
 
 | 项 | 现状 | 仍未解决 |
 |---|---|---|
-| 版本元数据签名（S6-3） | `install.sh` 在 `load_versions` 前用 Ed25519 验 `metadata_signature`，切点 `3.4.0`；低于切点允许无签名但告警，≥ 3.4.0 缺签名即拒绝；依赖 OpenSSL 3（无 `-rawin` 时 fail-closed） | 生产版本 JSON 由**独立的 API 仓库**生成，该仓库尚未调用 `scripts/sign_json_ed25519.sh`；在它接入前，线上元数据仍是无签名的“兼容期”状态 |
-| helper 校验（S6-2） | `release-manifest.json` 的 `helperScripts` 提供每个 helper 的 sha256，`download_script_file` 第 4 参数强制校验；≥ 3.4.0 未声明校验值的 helper 直接拒绝 | manifest 本身由发布流水线生成，人工改 manifest 不做兜底；manifest 的“生成→签名”链路见 S7-5 |
+| 版本元数据签名（S6-3） | `install.sh` 在 `load_versions` 前用 Ed25519 验 `metadata_signature`；切点为 `versions_signature_required_from="3.6.0"`：低于切点允许无签名但告警，≥ 3.6.0 缺签名即 `exit 1`；依赖 OpenSSL 3（无 `-rawin` 时 fail-closed）。`publish-shell-version.yml` 在写完 JSON、上传前 fail-closed 签名，并带 preflight 复核 | **仓库 Secret 必须配置 `IDLELEO_VERSIONS_ED25519_KEY`（与 `install.sh` 内置公钥配对的私钥）**；Secret 缺失时 workflow 直接红、拒绝无签名发布，因此若不配置，到 3.6.0 仍会断。生产版本 JSON 由独立的 API 仓库生成，该仓库尚未调用 `scripts/sign_json_ed25519.sh` |
+| helper 校验（S6-2） | `release-manifest.json` 的 `helperScripts` 提供每个 helper 的 sha256，`download_script_file` 第 4 参数强制校验；切点由独立的 `helper_sha_required_from="3.4.0"` 控制（不随版本签名切点后移而放宽），≥ 3.4.0 未声明校验值的 helper 直接拒绝；已存在的 helper 也会重算 sha256，不一致则重下、失败返回非 0 | manifest 本身由发布流水线生成，人工改 manifest 不做兜底；manifest 的“生成→签名”链路见 S7-5 |
 | TCP 入口（S6-1/S7-2） | `bbr_boost_sh` 默认调用 `idleleo tcp status`（失败回落 `tcp plan`），`--apply` 走 `tcp apply --profile bbr-fq --confirm`；不再下载 `Linux-NetSpeed/master/tcp.sh` | `--legacy` 只能使用本机已存在的 `tcp.sh`，不再提供下载；内核/发行版覆盖仍以容器为准 |
 | speedtest（S7-1/S7-3） | 新增 `idleleo speedtest`（默认 Cloudflare 测速端点，`--json` 输出），菜单 33 改为调用它；不再下载 `superspeed.sh` | 只测下行吞吐；没有多节点/上行/延迟分解 |
 | acme.sh 退役（S7-4） | 签发、续签、状态展示、卸载清理、备份全部改为 native `idleleo xray cert issue\|renew`；`ssl_update.sh` cron 保留但调用 native；卸载只删 `acme.sh --cron` 行与 `*_ecc` 目录，**保留 `/root/.acme.sh`**；`IDLELEO_ACME_LEGACY=1` 可回退一版 | 公网 CA 上的真实签发/续签仍未验收；下一版删除 `/root/.acme.sh` 前需要一次真实域名迁移演练 |
-| manifest 验签（S7-5） | `internal/release` 对 Go 发布通道的 manifest 做 Ed25519 验签，canonical 形式与 `jq -cS 'del(.signature)'` 逐字节一致；缺签名、坏前缀、截断、篡改全部 fail-closed | **当前没有任何流水线生成 Go 发布 manifest**，因此也没有签名产物；`IDLELEO_RELEASE_PUBKEY_FILE` 仅用于测试/运维覆盖 |
+| manifest 验签（S7-5） | `internal/release` 对 Go 发布通道的 manifest 做 Ed25519 验签，canonical 形式与 `jq -cS 'del(.signature)'` 逐字节一致；缺签名、坏前缀、截断、篡改全部 fail-closed；调用方 `Apply`/`fetchManifest` 已由篡改集成测试覆盖（只测 `VerifyManifest` 的短路不再成立）。`publish-go-bridge.yml` 在发布前 fail-closed 签名 `manifest.json`，签名缺失或前缀不是 `ed25519:` 时发布 job 失败 | 候选项刷新（重建签名 manifest 并落盘）仍要等 release gate 变绿、28 项退出 PENDING 后才能由受保护流水线产出；`IDLELEO_RELEASE_PUBKEY_FILE` 仅用于测试/运维覆盖 |
 | 插件化（S6-4） | 本轮明确不做 | 单独立项后再评估 |
 
 补充：F12 仍为 `PENDING_GO_IMPLEMENTATION`。本环境没有真实公网域名、可达的公网 CA、DNS-01 与 EAB，无法签发可信证书；28 项账本一条未改，也没有为了“收尾”放宽 `check_release_gate.py` 的判据。
