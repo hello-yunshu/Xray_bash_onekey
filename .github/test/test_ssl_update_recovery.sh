@@ -120,8 +120,13 @@ prepare_case() {
     IDLELEO_ACME_HOME="${CASE_DIR}/acme"
     XRAY_UPDATE_LOCK_FILE="${CASE_DIR}/update.lock"
     IDLELEO_CERT_GROUP="idleleo-nginx"
+    # S7-4: renewal is native by default. This suite pins the retained
+    # acme.sh fallback so its failure/rollback guarantees stay covered; the
+    # native path (never stops Nginx, fails on a non-zero idleleo) is covered
+    # by test_acme_retire.sh.
+    IDLELEO_ACME_LEGACY=1
     export IDLELEO_DIR IDLELEO_CERT_DIR IDLELEO_NGINX_UNIT IDLELEO_XRAY_UNIT \
-        IDLELEO_ACME_HOME XRAY_UPDATE_LOCK_FILE IDLELEO_CERT_GROUP
+        IDLELEO_ACME_HOME XRAY_UPDATE_LOCK_FILE IDLELEO_CERT_GROUP IDLELEO_ACME_LEGACY
 }
 
 run_update() {
