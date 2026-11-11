@@ -3,22 +3,23 @@
   "protocol": "ACME v2 (RFC 8555), JWS ES256, HTTP-01",
   "ca": "Pebble local test CA + pebble.minica.pem (self-signed; not a public CA)",
   "domain": "acme.local (Docker network alias; no public DNS)",
+  "result": "PASS",
   "account_reused": true,
   "issue": {
     "issued": true,
-    "notAfter": "2027-02-09T14:45:52Z",
-    "serial": "67a1550ae639b229",
+    "notAfter": "2027-02-09T16:46:42Z",
+    "serial": "40630f9d87ccfe02",
     "reloaded": true
   },
   "renew_in_window": {
     "skipped": true,
     "issued": false,
-    "reason": "certificate valid until 2027-02-09T14:45:52Z; renew window 24h0m0s not reached"
+    "reason": "certificate valid until 2027-02-09T16:46:42Z; renew window 24h0m0s not reached"
   },
   "renew_forced": {
     "issued": true,
-    "serial": "428c64500e5d523e",
-    "notAfter": "2027-02-09T14:46:04Z"
+    "serial": "5bccbe318aafc402",
+    "notAfter": "2027-02-09T16:46:49Z"
   },
   "serial_changed": true,
   "verify_initial": {
@@ -26,9 +27,9 @@
     "dnsNames": [
       "acme.local"
     ],
-    "serial": "67a1550ae639b229",
-    "notBefore": "2026-11-11T14:45:53Z",
-    "notAfter": "2027-02-09T14:45:52Z",
+    "serial": "40630f9d87ccfe02",
+    "notBefore": "2026-11-11T16:46:43Z",
+    "notAfter": "2027-02-09T16:46:42Z",
     "validDays": 89.99998842592593,
     "verifiedToLocalRoot": true,
     "hostnameVerified": true,
@@ -39,9 +40,9 @@
     "dnsNames": [
       "acme.local"
     ],
-    "serial": "428c64500e5d523e",
-    "notBefore": "2026-11-11T14:46:05Z",
-    "notAfter": "2027-02-09T14:46:04Z",
+    "serial": "5bccbe318aafc402",
+    "notBefore": "2026-11-11T16:46:50Z",
+    "notAfter": "2027-02-09T16:46:49Z",
     "validDays": 89.99998842592593,
     "verifiedToLocalRoot": true,
     "hostnameVerified": true,
@@ -55,5 +56,10 @@
     "readonly_destination_wrote_no_cert": true,
     "blocked_domain_rejected": true,
     "blocked_domain_wrote_no_cert": true
+  },
+  "authz_reuse": {
+    "issue_ok": true,
+    "renew_ok": true,
+    "serial_changed": true
   }
 }

@@ -1,14 +1,20 @@
-127.0.0.1 - - [11/Nov/2026 14:45:47] code 404, message File not found
-127.0.0.1 - - [11/Nov/2026 14:45:47] "GET /.well-known/acme-challenge/probe HTTP/1.1" 404 -
-192.168.97.2 - - [11/Nov/2026 14:45:47] "GET /.well-known/acme-challenge/IeYnjoJqdZ66G0HPF2eqqd2VvVXr-7NaJ1xjMXau2bA HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:45:47] "GET /.well-known/acme-challenge/IeYnjoJqdZ66G0HPF2eqqd2VvVXr-7NaJ1xjMXau2bA HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:45:47] "GET /.well-known/acme-challenge/IeYnjoJqdZ66G0HPF2eqqd2VvVXr-7NaJ1xjMXau2bA HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:45:58] "GET /.well-known/acme-challenge/a9XaoaOmW5LSG07JEZ3_n3LMhzaIylEwwqdON2WB1N0 HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:45:58] "GET /.well-known/acme-challenge/a9XaoaOmW5LSG07JEZ3_n3LMhzaIylEwwqdON2WB1N0 HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:45:58] "GET /.well-known/acme-challenge/a9XaoaOmW5LSG07JEZ3_n3LMhzaIylEwwqdON2WB1N0 HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:46:09] "GET /.well-known/acme-challenge/rs84eO6znGgMqIKCLWyV62gkeOKr6nZn6953oAeRiBM HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:46:09] "GET /.well-known/acme-challenge/rs84eO6znGgMqIKCLWyV62gkeOKr6nZn6953oAeRiBM HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:46:09] "GET /.well-known/acme-challenge/rs84eO6znGgMqIKCLWyV62gkeOKr6nZn6953oAeRiBM HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:46:18] "GET /.well-known/acme-challenge/M4hJiXhLw3epv3ooFasUpQJFkE1GKjb0CgdPidiqJEE HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:46:18] "GET /.well-known/acme-challenge/M4hJiXhLw3epv3ooFasUpQJFkE1GKjb0CgdPidiqJEE HTTP/1.1" 200 -
-192.168.97.2 - - [11/Nov/2026 14:46:18] "GET /.well-known/acme-challenge/M4hJiXhLw3epv3ooFasUpQJFkE1GKjb0CgdPidiqJEE HTTP/1.1" 200 -
+127.0.0.1 - - [11/Nov/2026 16:46:36] code 404, message File not found
+127.0.0.1 - - [11/Nov/2026 16:46:36] "GET /.well-known/acme-challenge/probe HTTP/1.1" 404 -
+192.168.97.2 - - [11/Nov/2026 16:46:36] "GET /.well-known/acme-challenge/e5hiF4unFUPVvSg3MNEIcbmkGLvcIiJI_CbcHaok6so HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:46:36] "GET /.well-known/acme-challenge/e5hiF4unFUPVvSg3MNEIcbmkGLvcIiJI_CbcHaok6so HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:46:36] "GET /.well-known/acme-challenge/e5hiF4unFUPVvSg3MNEIcbmkGLvcIiJI_CbcHaok6so HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:46:47] "GET /.well-known/acme-challenge/csch64L4wvL9DXMC1a0gX53KVkVdcAFnFXL2o1Z5UIg HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:46:47] "GET /.well-known/acme-challenge/csch64L4wvL9DXMC1a0gX53KVkVdcAFnFXL2o1Z5UIg HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:46:47] "GET /.well-known/acme-challenge/csch64L4wvL9DXMC1a0gX53KVkVdcAFnFXL2o1Z5UIg HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:46:57] "GET /.well-known/acme-challenge/dtPkMDSOsnk3AxT96vlbn2t8Gcci_N9MBMUfci25IdY HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:46:57] "GET /.well-known/acme-challenge/dtPkMDSOsnk3AxT96vlbn2t8Gcci_N9MBMUfci25IdY HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:46:57] "GET /.well-known/acme-challenge/dtPkMDSOsnk3AxT96vlbn2t8Gcci_N9MBMUfci25IdY HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:47:04] "GET /.well-known/acme-challenge/NoVpQ9C2ixfJ4Q2oXS4fR9zDZUI6J8ghHsXqvb-4BQ0 HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:47:04] "GET /.well-known/acme-challenge/NoVpQ9C2ixfJ4Q2oXS4fR9zDZUI6J8ghHsXqvb-4BQ0 HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:47:04] "GET /.well-known/acme-challenge/NoVpQ9C2ixfJ4Q2oXS4fR9zDZUI6J8ghHsXqvb-4BQ0 HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:47:08] "GET /.well-known/acme-challenge/JBHQrSDZb3rF-9CF5js302pXZ7fo2h22H4Q_gzTDJXY HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:47:08] "GET /.well-known/acme-challenge/JBHQrSDZb3rF-9CF5js302pXZ7fo2h22H4Q_gzTDJXY HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:47:08] "GET /.well-known/acme-challenge/JBHQrSDZb3rF-9CF5js302pXZ7fo2h22H4Q_gzTDJXY HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:47:16] "GET /.well-known/acme-challenge/VuHcb_yO45Hy61-5hHd1VU-MwjA1GE--va09anz3Rf8 HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:47:16] "GET /.well-known/acme-challenge/VuHcb_yO45Hy61-5hHd1VU-MwjA1GE--va09anz3Rf8 HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 16:47:16] "GET /.well-known/acme-challenge/VuHcb_yO45Hy61-5hHd1VU-MwjA1GE--va09anz3Rf8 HTTP/1.1" 200 -

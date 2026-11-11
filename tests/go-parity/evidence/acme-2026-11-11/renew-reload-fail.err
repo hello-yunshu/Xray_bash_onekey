@@ -1,8 +1,8 @@
-time=2026-11-11T14:46:09.024Z level=INFO msg="Obtaining bundled SAN certificate." domains=acme.local
-time=2026-11-11T14:46:09.084Z level=INFO msg="Use solver." domain=acme.local type=http-01
-time=2026-11-11T14:46:09.084Z level=INFO msg="http01: Trying to solve HTTP-01." domain=acme.local
-time=2026-11-11T14:46:14.864Z level=INFO msg="The server validated our request." domain=acme.local
-time=2026-11-11T14:46:14.865Z level=INFO msg="Validations succeeded; requesting certificates." domains=acme.local
-time=2026-11-11T14:46:14.866Z level=INFO msg="Waiting for certificates." timeout=2m0s interval=2s domains=acme.local
-time=2026-11-11T14:46:14.867Z level=INFO msg="Server responded with a certificate." domains=acme.local
+time=2026-11-11T16:46:57.596Z level=INFO msg="Obtaining bundled SAN certificate." domains=acme.local
+time=2026-11-11T16:46:57.654Z level=INFO msg="Use solver." domain=acme.local type=http-01
+time=2026-11-11T16:46:57.654Z level=INFO msg="http01: Trying to solve HTTP-01." domain=acme.local
+time=2026-11-11T16:47:01.184Z level=INFO msg="The server validated our request." domain=acme.local
+time=2026-11-11T16:47:01.185Z level=INFO msg="Validations succeeded; requesting certificates." domains=acme.local
+time=2026-11-11T16:47:01.187Z level=INFO msg="Waiting for certificates." timeout=2m0s interval=2s domains=acme.local
+time=2026-11-11T16:47:01.190Z level=INFO msg="Server responded with a certificate." domains=acme.local
 certificate installed but reload failed; previous pair restored: reload command failed: exit status 1: 

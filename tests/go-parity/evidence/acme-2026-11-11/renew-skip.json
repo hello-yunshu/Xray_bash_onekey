@@ -5,8 +5,8 @@
   "orderUrl": "",
   "certificateFile": "/work/certs/fullchain.pem",
   "keyFile": "/work/certs/key.pem",
-  "notAfter": "2027-02-09T14:45:52Z",
+  "notAfter": "2027-02-09T16:46:42Z",
   "issued": false,
   "skipped": true,
-  "reason": "certificate valid until 2027-02-09T14:45:52Z; renew window 24h0m0s not reached"
+  "reason": "certificate valid until 2027-02-09T16:46:42Z; renew window 24h0m0s not reached"
 }

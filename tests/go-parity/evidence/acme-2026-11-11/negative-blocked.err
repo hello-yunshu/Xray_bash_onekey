@@ -1,2 +1,2 @@
-time=2026-11-11T14:46:24.024Z level=INFO msg="Obtaining bundled SAN certificate." domains=blocked-domain.example
+time=2026-11-11T16:47:07.808Z level=INFO msg="Obtaining bundled SAN certificate." domains=blocked-domain.example
 acme: error: 400 :: POST :: https://pebble:14000/order-plz :: urn:ietf:params:acme:error:rejectedIdentifier :: Order included an identifier for which issuance is forbidden by policy: "blocked-domain.example", problem: "urn:ietf:params:acme:error:rejectedIdentifier" :: blocked-domain.example is a forbidden domain

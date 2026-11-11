@@ -1,5 +1,5 @@
-time=2026-11-11T14:46:08.748Z level=INFO msg="Obtaining bundled SAN certificate." domains=acme.local
-time=2026-11-11T14:46:08.808Z level=INFO msg="Use solver." domain=acme.local type=http-01
-time=2026-11-11T14:46:08.808Z level=INFO msg="http01: Trying to solve HTTP-01." domain=acme.local
-time=2026-11-11T14:46:08.808Z level=INFO msg="Deactivating authorization." url=https://pebble:14000/authZ/62AcJZSyW0_rpS9P9zhBVTvhPQXDr7KGgqAel3o1kg4
+time=2026-11-11T16:46:54.440Z level=INFO msg="Obtaining bundled SAN certificate." domains=acme.local
+time=2026-11-11T16:46:54.500Z level=INFO msg="Use solver." domain=acme.local type=http-01
+time=2026-11-11T16:46:54.500Z level=INFO msg="http01: Trying to solve HTTP-01." domain=acme.local
+time=2026-11-11T16:46:54.500Z level=INFO msg="Deactivating authorization." url=https://pebble:14000/authZ/nHGXEKGoBMzeq2k4PFbiSFc_ggJ9uxfRXftNA-hPy4Q
 resolver: one or more domains had a problem: [acme.local: http01: error presenting token (acme.local): mkdir /work/webroot-file: not a directory]
