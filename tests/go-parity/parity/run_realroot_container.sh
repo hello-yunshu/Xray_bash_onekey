@@ -39,11 +39,16 @@ trap cleanup EXIT
 mkdir -p "$OUT/evidence"
 
 echo "[1/5] build idleleo from $ROOT" >&2
+# A CI checkout is owned by another uid than the container user, so git refuses
+# to inspect it; safe.directory plus -buildvcs=false keeps the build hermetic.
 docker run --rm \
     -v "$ROOT":/src -w /src \
     -v "$BUILD":/out \
     -e CGO_ENABLED=0 \
-    golang:1.27.4@sha256:08bcb99a38f85a265f9a93d1d3323e2440eec333380f3ea26ee0dec9264bb41c go build -trimpath -o /out/idleleo ./cmd/idleleo
+    -e GIT_CONFIG_COUNT=1 \
+    -e GIT_CONFIG_KEY_0=safe.directory \
+    -e GIT_CONFIG_VALUE_0=/src \
+    golang:1.27.4@sha256:08bcb99a38f85a265f9a93d1d3323e2440eec333380f3ea26ee0dec9264bb41c go build -buildvcs=false -trimpath -o /out/idleleo ./cmd/idleleo
 chmod 0755 "$BUILD/idleleo"
 
 echo "[2/5] resolve a Linux Xray for the Docker arch" >&2
