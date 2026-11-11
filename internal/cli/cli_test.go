@@ -221,6 +221,32 @@ func TestScheduleAlertCommandWritesAlert(t *testing.T) {
 	}
 }
 
+// TestScheduleRunExitsNonZeroOnFailedJob guards the systemd OnFailure chain:
+// idleleo-alert.service only fires when `idleleo schedule run` exits non-zero,
+// so a report that contains a failed job must also set the exit code.
+func TestScheduleRunExitsNonZeroOnFailedJob(t *testing.T) {
+	root := fixture(t)
+	marker := filepath.Join(root, ".idleleo-phase01-sandbox")
+	if err := os.WriteFile(marker, []byte("I_ACCEPT_DISPOSABLE_SANDBOX\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfgPath := filepath.Join(root, "etc/idleleo/schedule/jobs.json")
+	if err := os.MkdirAll(filepath.Dir(cfgPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	body := `{"schemaVersion":1,"intervalSeconds":3600,"jobs":["geodata-refresh"],"geodataUrl":"http://127.0.0.1:1/geoip.dat"}`
+	if err := os.WriteFile(cfgPath, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	code, out, errOut := run(t, "--root", root, "schedule", "run")
+	if code != 1 {
+		t.Fatalf("schedule run with a failed job: code=%d out=%s err=%s", code, out, errOut)
+	}
+	if !strings.Contains(out, "result=failed") {
+		t.Fatalf("output=%q err=%q", out, errOut)
+	}
+}
+
 func TestStatusMissingRootCreatesNothing(t *testing.T) {
 	root := t.TempDir()
 	code, _, _ := run(t, "--root", root, "status")
