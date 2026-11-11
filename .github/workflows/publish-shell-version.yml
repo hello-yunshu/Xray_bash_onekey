@@ -214,7 +214,7 @@ jobs:
           cp install.sh assets/rill-xray-agent-xray-bundle.tar.gz scripts/xray_stats.sh "$tmp/"
           (cd "$tmp" && sha256sum install.sh rill-xray-agent-xray-bundle.tar.gz xray_stats.sh > SHA256SUMS)
           python3 - "$tmp/release-manifest.json" <<'PY'
-          import json, os, sys
+          import hashlib, json, os, sys
           doc={
             "schemaVersion":1,
             "version":os.environ["VERSION"],
@@ -227,6 +227,17 @@ jobs:
             "qualificationRunId":os.environ["GITHUB_RUN_ID"],
             "qualificationWorkflow":".github/workflows/test-install.yml",
           }
+          helpers=("fail2ban_manager.sh","traffic_blocker.sh","file_manager.sh",
+                   "auto_update.sh","ssl_update.sh","geo_update.sh")
+          def sha256(path):
+            digest = hashlib.sha256()
+            with open(path,"rb") as handle:
+              for chunk in iter(lambda: handle.read(65536), b""):
+                digest.update(chunk)
+            return digest.hexdigest()
+          doc["helperScripts"]={name: sha256(os.path.join("scripts", name))
+                                for name in helpers
+                                if os.path.exists(os.path.join("scripts", name))}
           with open(sys.argv[1],"w") as f: json.dump(doc,f,indent=2,sort_keys=True); f.write("\n")
           PY
           details=${INPUT_DETAILS:-release: publish Xray shell ${VERSION}}

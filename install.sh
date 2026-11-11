@@ -1764,10 +1764,15 @@ download_file() {
     mv "${tmp_file}" "${dest_file}"
 }
 
+# Downloads a script, optionally pinning it to an expected sha256 (4th arg).
+# A hash mismatch is fatal for that download: the temporary file is removed and
+# the destination is left untouched, so a partial or substituted body can never
+# be installed or executed.
 download_script_file() {
     local url="$1"
     local dest_file="$2"
     local syntax_shell="${3:-bash}"
+    local expected_sha256="${4:-}"
     local tmp_file="${dest_file}.tmp.$$"
 
     mkdir -p "$(dirname "${dest_file}")"
@@ -1780,8 +1785,61 @@ download_script_file() {
         rm -f "${tmp_file}"
         return 1
     fi
+    if [[ -n "${expected_sha256}" ]]; then
+        local actual_sha256
+        actual_sha256=$(sha256sum "${tmp_file}" 2>/dev/null | awk '{print $1}')
+        if [[ "${actual_sha256}" != "${expected_sha256}" ]]; then
+            rm -f "${tmp_file}"
+            log_echo "${Error} ${RedBG} $(gettext "脚本校验值不匹配, 已拒绝安装"): ${url} ${Font}" >&2
+            return 1
+        fi
+    fi
     mv "${tmp_file}" "${dest_file}"
     chmod +x "${dest_file}"
+}
+
+# Helper scripts are pinned by the Release manifest, which is the same document
+# that already carries statsScriptSha256. The manifest is fetched once per
+# Release. A Release that predates helperScripts passes only while the running
+# script is below the signature cutover; afterwards an unpinned helper is
+# refused rather than executed unverified.
+_release_manifest_cache_version=""
+_release_manifest_cache_path=""
+
+release_manifest_path() {
+    local version="$1" path
+    if [[ "${_release_manifest_cache_version}" == "${version}" &&
+        -n "${_release_manifest_cache_path}" && -f "${_release_manifest_cache_path}" ]]; then
+        printf '%s' "${_release_manifest_cache_path}"
+        return 0
+    fi
+    path=$(mktemp "${TMPDIR:-/tmp}/idleleo-release-manifest.XXXXXX" 2>/dev/null) || return 1
+    if ! download_json_file "$(shell_release_asset_url "${version}" release-manifest.json)" "${path}"; then
+        rm -f "${path}"
+        return 1
+    fi
+    _release_manifest_cache_version="${version}"
+    _release_manifest_cache_path="${path}"
+    printf '%s' "${path}"
+}
+
+# Prints the pinned sha256 for one helper, or an empty string during the
+# compatibility window. Returns 1 when an unverified download must be refused.
+helper_script_sha256() {
+    local name="$1" version="${2:-${shell_version}}" manifest expected=""
+    if manifest=$(release_manifest_path "${version}"); then
+        expected=$(jq -r --arg name "${name}" '.helperScripts[$name] // empty' "${manifest}" 2>/dev/null)
+    fi
+    if [[ "${expected}" =~ ^[0-9a-f]{64}$ ]]; then
+        printf '%s' "${expected}"
+        return 0
+    fi
+    if version_lt "${shell_version}" "${versions_signature_required_from}"; then
+        log_echo "${Warning} ${YellowBG} $(gettext "Release 未声明该校验值(兼容期), 继续安装"): ${name} ${Font}" >&2
+        return 0
+    fi
+    log_echo "${Error} ${RedBG} $(gettext "Release 未声明该校验值, 已拒绝未校验的脚本"): ${name} ${Font}" >&2
+    return 1
 }
 
 download_json_file() {
@@ -4413,11 +4471,16 @@ ensure_sub_script() {
     local script_name="$1"
     local remote_url="$2"
     local local_file="${scripts_dir}/${script_name}"
+    local expected_sha256
 
     mkdir -p "${scripts_dir}"
+    if ! expected_sha256=$(helper_script_sha256 "${script_name}"); then
+        log_echo "${Error} ${RedBG} $(gettext "无法校验") ${script_name} $(gettext "的完整性, 已拒绝安装") ${Font}"
+        return 1
+    fi
     if [ ! -f "$local_file" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件") ${script_name} $(gettext "不存在, 正在下载")... ${Font}"
-        if ! download_script_file "$remote_url" "$local_file"; then
+        if ! download_script_file "$remote_url" "$local_file" bash "${expected_sha256}"; then
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
         fi
@@ -4431,7 +4494,7 @@ ensure_sub_script() {
             read -r update_choice
             case $update_choice in
                 [yY][eE][sS] | [yY])
-                    if ! download_script_file "$remote_url" "$local_file"; then
+                    if ! download_script_file "$remote_url" "$local_file" bash "${expected_sha256}"; then
                         log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
                         return 1
                     fi
@@ -7543,7 +7606,12 @@ auto_update() {
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
-            download_script_file "${au_remote_url}" "${auto_update_file}"
+            local auto_update_sha256
+            if ! auto_update_sha256=$(helper_script_sha256 "auto_update.sh"); then
+                log_echo "${Error} ${RedBG} $(gettext "无法校验自动更新脚本的完整性") ${Font}"
+                return 1
+            fi
+            download_script_file "${au_remote_url}" "${auto_update_file}" bash "${auto_update_sha256}"
             judge -r "$(gettext "下载自动更新脚本")" || return 1
             echo "0 1 * * * bash \"${auto_update_file}\"" >>"${crontab_file}"
             judge -r "$(gettext "设置自动更新")"
@@ -12758,7 +12826,12 @@ rxa_sync_release_helpers() {
         [[ -f "${scripts_dir}/${file}" ]] || continue
         any=1
         url=$(shell_release_raw_url "$version" "scripts/${file}")
-        if ! download_script_file "$url" "${dir}/${file}"; then
+        local expected_sha256
+        if ! expected_sha256=$(helper_script_sha256 "${file}" "${version}"); then
+            rm -rf "$dir"
+            return 1
+        fi
+        if ! download_script_file "$url" "${dir}/${file}" bash "${expected_sha256}"; then
             rm -rf "$dir"
             return 1
         fi
