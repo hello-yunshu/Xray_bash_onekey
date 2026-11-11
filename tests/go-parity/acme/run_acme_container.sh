@@ -9,7 +9,7 @@ WORK=${WORK:-/tmp/idleleo-acme-work}
 NET=idleleo-acme-net
 PEBBLE=idleleo-pebble
 CLIENT=idleleo-acme-client
-GO_IMAGE=xray-bash-go-matrix:local
+GO_IMAGE=${GO_IMAGE:-golang:1.27.4}
 CLIENT_IMAGE=arm64v8/python:3.12-slim
 PEBBLE_IMAGE=ghcr.io/letsencrypt/pebble:latest
 PEBBLE_TEST=${PEBBLE_TEST:-/tmp/pebble-test}
@@ -52,10 +52,12 @@ log "build=OK sha256=$(shasum -a 256 "$WORK/idleleo" | awk '{print $1}')"
 
 log "--- start network/pebble/client"
 docker network create "$NET" >/dev/null 2>&1 || true
+# AUTHZREUSE=0 keeps the webroot-failure negative deterministic: with reuse
+# enabled Pebble may skip HTTP-01 and the "unusable webroot" case could succeed.
 docker run -d --name "$PEBBLE" --network "$NET" --network-alias pebble \
   -e PEBBLE_VA_NOSLEEP=1 \
   -e PEBBLE_WFE_NONCEREJECT="${PEBBLE_WFE_NONCEREJECT:-5}" \
-  -e PEBBLE_AUTHZREUSE="${PEBBLE_AUTHZREUSE:-50}" \
+  -e PEBBLE_AUTHZREUSE="${PEBBLE_AUTHZREUSE:-0}" \
   -v "$PEBBLE_TEST/certs":/test/certs:ro \
   -v "$REPO/tests/go-parity/acme/pebble-config.json":/conf/pebble-config.json:ro \
   --entrypoint /app "$PEBBLE_IMAGE" -config /conf/pebble-config.json -strict >/dev/null

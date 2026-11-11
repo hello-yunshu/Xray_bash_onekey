@@ -2,6 +2,7 @@ package acme
 
 import (
 	"bytes"
+	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -11,8 +12,11 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
+
+	legoacme "github.com/go-acme/lego/v5/acme"
 )
 
 func testPair(t *testing.T, serial int64, commonName string) ([]byte, []byte) {
@@ -117,5 +121,56 @@ func TestReplacePairRestoresOldCertificateWhenKeyCannotBeInstalled(t *testing.T)
 	}
 	if !bytes.Equal(got, oldChain) {
 		t.Fatal("failed key install did not restore the previous certificate")
+	}
+}
+
+func TestWebrootProviderRejectsUnsafeToken(t *testing.T) {
+	root := t.TempDir()
+	p := &webrootProvider{root: root}
+	if err := p.Present(context.Background(), "example.com", "../escape", "key-auth"); err == nil {
+		t.Fatal("unsafe token must be rejected before writing")
+	}
+	if _, err := os.Stat(filepath.Join(filepath.Dir(root), "escape")); err == nil {
+		t.Fatal("unsafe token escaped the webroot")
+	}
+}
+
+func TestWebrootProviderWritesAndRemovesToken(t *testing.T) {
+	root := t.TempDir()
+	p := &webrootProvider{root: root}
+	const token = "abcDEF_123-"
+	if err := p.Present(context.Background(), "example.com", token, "key-auth"); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(root, ".well-known", "acme-challenge", token)
+	got, err := os.ReadFile(path)
+	if err != nil || string(got) != "key-auth" {
+		t.Fatalf("token file = %q, %v", got, err)
+	}
+	if err := p.CleanUp(context.Background(), "example.com", token, "key-auth"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		t.Fatal("challenge file was not removed")
+	}
+}
+
+func TestIssueRequiresExplicitDirectory(t *testing.T) {
+	dir := t.TempDir()
+	_, err := Issue(context.Background(), Config{
+		Domain: "example.com", Webroot: dir,
+		CertFile: filepath.Join(dir, "cert.pem"), KeyFile: filepath.Join(dir, "key.pem"),
+	})
+	if err == nil || !strings.Contains(err.Error(), "directory URL") {
+		t.Fatalf("Issue without a directory URL = %v, want explicit-directory error", err)
+	}
+}
+
+func TestIsAccountMissing(t *testing.T) {
+	if !isAccountMissing(&legoacme.ProblemDetails{Type: legoacme.AccountDoesNotExistErrorType}) {
+		t.Fatal("accountDoesNotExist problem must be recognised")
+	}
+	if isAccountMissing(&legoacme.ProblemDetails{Type: "urn:ietf:params:acme:error:badNonce"}) {
+		t.Fatal("badNonce must not be treated as a missing account")
 	}
 }

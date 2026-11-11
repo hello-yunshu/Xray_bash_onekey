@@ -1,0 +1,14 @@
+127.0.0.1 - - [11/Nov/2026 14:45:47] code 404, message File not found
+127.0.0.1 - - [11/Nov/2026 14:45:47] "GET /.well-known/acme-challenge/probe HTTP/1.1" 404 -
+192.168.97.2 - - [11/Nov/2026 14:45:47] "GET /.well-known/acme-challenge/IeYnjoJqdZ66G0HPF2eqqd2VvVXr-7NaJ1xjMXau2bA HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:45:47] "GET /.well-known/acme-challenge/IeYnjoJqdZ66G0HPF2eqqd2VvVXr-7NaJ1xjMXau2bA HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:45:47] "GET /.well-known/acme-challenge/IeYnjoJqdZ66G0HPF2eqqd2VvVXr-7NaJ1xjMXau2bA HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:45:58] "GET /.well-known/acme-challenge/a9XaoaOmW5LSG07JEZ3_n3LMhzaIylEwwqdON2WB1N0 HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:45:58] "GET /.well-known/acme-challenge/a9XaoaOmW5LSG07JEZ3_n3LMhzaIylEwwqdON2WB1N0 HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:45:58] "GET /.well-known/acme-challenge/a9XaoaOmW5LSG07JEZ3_n3LMhzaIylEwwqdON2WB1N0 HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:46:09] "GET /.well-known/acme-challenge/rs84eO6znGgMqIKCLWyV62gkeOKr6nZn6953oAeRiBM HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:46:09] "GET /.well-known/acme-challenge/rs84eO6znGgMqIKCLWyV62gkeOKr6nZn6953oAeRiBM HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:46:09] "GET /.well-known/acme-challenge/rs84eO6znGgMqIKCLWyV62gkeOKr6nZn6953oAeRiBM HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:46:18] "GET /.well-known/acme-challenge/M4hJiXhLw3epv3ooFasUpQJFkE1GKjb0CgdPidiqJEE HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:46:18] "GET /.well-known/acme-challenge/M4hJiXhLw3epv3ooFasUpQJFkE1GKjb0CgdPidiqJEE HTTP/1.1" 200 -
+192.168.97.2 - - [11/Nov/2026 14:46:18] "GET /.well-known/acme-challenge/M4hJiXhLw3epv3ooFasUpQJFkE1GKjb0CgdPidiqJEE HTTP/1.1" 200 -

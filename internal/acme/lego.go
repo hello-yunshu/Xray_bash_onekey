@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -16,6 +17,7 @@ import (
 	"github.com/go-acme/lego/v5/certcrypto"
 	"github.com/go-acme/lego/v5/certificate"
 	"github.com/go-acme/lego/v5/lego"
+	legolog "github.com/go-acme/lego/v5/log"
 	"github.com/go-acme/lego/v5/registration"
 )
 
@@ -65,14 +67,17 @@ func (p *webrootProvider) CleanUp(ctx context.Context, domain, token, keyAuth st
 // newLegoClient builds a lego client for cfg and restores (or creates) the ACME
 // account. Registration is the only protocol step kept here; issuance is driven
 // by obtainWithLego.
-func newLegoClient(ctx context.Context, cfg Config) (*lego.Client, error) {
+func newLegoClient(ctx context.Context, cfg Config) (*lego.Client, string, error) {
+	// lego's default logger writes to stdout, which would corrupt `--json`
+	// output. Keep the diagnostics but send them to stderr.
+	legolog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	key, err := loadOrCreateAccountKey(cfg.AccountKeyFile)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	pool, err := rootPool(cfg.CACertFile, cfg.Insecure)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	user := &legoUser{email: cfg.Email, key: key}
 	if kid := readAccountURL(cfg.StateFile, cfg.DirectoryURL); kid != "" {
@@ -80,7 +85,7 @@ func newLegoClient(ctx context.Context, cfg Config) (*lego.Client, error) {
 	}
 	legoCfg := lego.NewConfig(user)
 	legoCfg.CADirURL = cfg.DirectoryURL
-	legoCfg.Certificate.Timeout = 60 * time.Second
+	legoCfg.Certificate.Timeout = 120 * time.Second
 	legoCfg.HTTPClient = &http.Client{
 		Timeout: defaultTimeout,
 		Transport: &http.Transport{
@@ -89,25 +94,25 @@ func newLegoClient(ctx context.Context, cfg Config) (*lego.Client, error) {
 	}
 	client, err := lego.NewClient(legoCfg)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if user.reg == nil {
 		account, err := client.Registration.Register(ctx, registration.RegisterOptions{TermsOfServiceAgreed: true})
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		if account.Location == "" {
-			return nil, fmt.Errorf("newAccount did not return an account URL")
+			return nil, "", fmt.Errorf("newAccount did not return an account URL")
 		}
 		user.reg = account
 		if err := writeAccountURL(cfg.StateFile, cfg.DirectoryURL, account.Location); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 	}
 	if err := client.Challenge.SetHTTP01Provider(&webrootProvider{root: cfg.Webroot}); err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return client, nil
+	return client, user.reg.Location, nil
 }
 
 // obtainWithLego runs the ACME order through lego and returns the issued chain

@@ -206,6 +206,9 @@ Xray 拒绝配置。用拓扑断言可以在不牺牲真实配置合法性的前
 
 ## D-015 ACME 原生客户端以 Pebble 本地 CA 验收（2026-11-08）
 
+**状态**：协议实现部分由 **D-020**（lego 库模式）取代；本条的验收环境、显式目录
+URL、证据标签与“不得据此升格”约束继续有效。
+
 **决定**：
 - 新增 `internal/acme`，用 stdlib 实现 ACME v2（ES256 JWS、nonce、账户、
   订单、HTTP-01、CSR、finalize、证书下载）；新增 `idleleo xray cert
@@ -294,3 +297,32 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
 **已知偏差**：审计备忘把被 S2 取代的规则记作 “D-015”，但本文件的 D-015 是
 “ACME 原生客户端以 Pebble 本地 CA 验收”，仍然有效、未被取代；实际被取代的是
 上文所述 sandbox-only 写入约束。详见 `CLOSEOUT_S0_S3_2026-11-11.md`。
+（S5 补充：D-015 的**协议实现**已由 D-020 取代，验收与标签约束仍有效。）
+
+## D-020 S4/S5：lego 库模式取代 stdlib ACME 协议实现（2026-11-11）
+
+**决定**：
+- 依赖采用 `github.com/go-acme/lego/v5 v5.6.0` 的**库模式**，不引入 lego 外部
+  二进制，不调用 `acme.sh`；`go mod vendor` 只落实际 import 的包（9 个模块、
+  13MB / 812 文件），空模块缓存 + `GOPROXY=off` 可完成 `go build` / `go test`。
+  早期“lego 要求 Go 1.26、只能用外部二进制”的结论随 Go 1.27.4 升级作废。
+- `internal/acme` 的协议层（账户、订单、JWS/nonce、HTTP-01、CSR、finalize、
+  证书下载）改由 lego 承担；本仓库保留并继续测试：显式目录 URL、账户密钥/状态
+  （0600）、webroot token 的 base64url 校验、证书对单事务发布（temp+fsync+
+  rename，证书 0644 / 私钥 0600）、reload 失败整对回滚、安装失败恢复旧证书。
+- 验收不变：Pebble 本地 CA，证据标签 `ACME_LOCAL_CA`，不得据此把 F12 升格；
+  F12 继续 `PENDING_GO_IMPLEMENTATION`（缺公网 CA、DNS-01/EAB、真实域名）。
+- 诊断字段变化：lego 不暴露订单 URL，`Result.OrderURL` 保留但为空，CLI 仅在
+  非空时打印；JSON 字段名不变。
+- lego 默认日志写 stdout，会污染 `--json`；本仓库在构建客户端时把 lego 日志改到
+  stderr。
+- `tests/go-parity/acme/run_acme_container.sh` 的 Go 镜像默认改为
+  `golang:1.27.4`（旧 matrix 镜像是 Go 1.23，无法构建本仓库），并把
+  `PEBBLE_AUTHZREUSE` 默认设为 0，使 webroot 失败负面用例可确定复现。
+
+**理由**：lego 是被广泛审计的 ACME 实现，可减少自研 JWS/订单状态机的协议风险；
+但证书落盘的事务、权限与回滚是本项目对用户的责任，不能外包给库。vendor 保证
+离线可构建，且不引入 lego 的全部 DNS provider。
+
+**已知边界**：本轮只完成协议层替换与本地 CA 全流程/负面验收，不等同于 F12
+签收；`acme.sh` 入口与 cron 仍属 S7，未删除。

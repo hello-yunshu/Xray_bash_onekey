@@ -34,7 +34,7 @@
 
 | 项 | 内容 |
 |---|---|
-| 是什么 | 已实现原生 ACME v2 客户端（ES256/JWS/Replay-Nonce/newAccount/newOrder/HTTP-01/finalize），入口 `idleleo xray cert issue\|renew`；本轮在 **Pebble 本地 CA** 上真实验证签发、窗口内跳过、强制续期。证书对原子替换（temp+fsync+rename），证书 0644 / 私钥 0600；`--reload-command` 失败恢复整对旧证书且旧对仍通过链/SAN/私钥匹配校验。负面覆盖 webroot 失效、reload 失败、只读目标、CA 拒绝域名。另保留“外部续约后状态契约”：DER 指纹变化才 `restart xray` / `reload nginx`，未变化不重启，私钥 world-readable 拒绝 reload，<30 天未变化记录 `degraded` |
+| 是什么 | 已实现基于 **lego v5.6.0 库模式**（vendor，离线可构建）的 ACME v2 客户端，入口 `idleleo xray cert issue\|renew`；账户、订单、JWS/nonce、HTTP-01、CSR、finalize、证书下载由 lego 承担，证书对原子替换（temp+fsync+rename）、证书 0644 / 私钥 0600、webroot token 校验与 reload 回滚仍在本仓库；本轮在 **Pebble 本地 CA** 上真实验证签发、窗口内跳过、强制续期。`--reload-command` 失败恢复整对旧证书且旧对仍通过链/SAN/私钥匹配校验。负面覆盖 webroot 失效、reload 失败、只读目标、CA 拒绝域名。另保留“外部续约后状态契约”：DER 指纹变化才 `restart xray` / `reload nginx`，未变化不重启，私钥 world-readable 拒绝 reload，<30 天未变化记录 `degraded` |
 | 为什么 | 本轮没有真实域名与可达的公网 CA；不伪造证书，也不调用公网 CA |
 | 产品影响 | **本地 CA 已验证签发/续期事务与负面用例，公网 CA 未验证**。DNS-01、EAB、真实域名，以及 Bash 的 `idleleo-nginx` 组/重启语义未验收。迁移保留旧的 `ssl_update.sh` cron，已有证书续期链继续运行；低于 30 天且未变化时产品明确告警，但**不会自动续期**（`cert-renew` 尚未接入原生 ACME） |
 | 解锁条件 | 真实域名 + 可达公网 CA 的隔离环境；补 DNS-01/EAB；把 `cert-renew` 接入 scheduler 并重跑正面/负面 E2E |

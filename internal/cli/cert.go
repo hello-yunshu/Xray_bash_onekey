@@ -92,7 +92,10 @@ func xrayCert(ctx context.Context, opts Options, cfg config, args []string) int 
 	}
 	fmt.Fprintf(opts.Out, "cert %s: domain=%s state=%s notAfter=%s\n", action, result.Domain, state, result.NotAfter)
 	fmt.Fprintf(opts.Out, "certificate: %s\nkey: %s\n", result.Certificate, result.Key)
-	fmt.Fprintf(opts.Out, "account: %s\norder: %s\n", result.AccountURL, result.OrderURL)
+	fmt.Fprintf(opts.Out, "account: %s\n", result.AccountURL)
+	if result.OrderURL != "" {
+		fmt.Fprintf(opts.Out, "order: %s\n", result.OrderURL)
+	}
 	if result.Reason != "" {
 		fmt.Fprintf(opts.Out, "reason: %s\n", result.Reason)
 	}
