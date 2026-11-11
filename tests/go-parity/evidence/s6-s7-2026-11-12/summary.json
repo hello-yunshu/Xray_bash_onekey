@@ -1,10 +1,11 @@
 {
   "bundle": "s6-s7-2026-11-12",
-  "repo_commit": "ced25aa352050576e630f45ee7036574dfc684e4",
+  "repo_commit": "9753c6eee4b2f2384db812522ffe1dd4f4e404c3",
   "branch": "develop/go-native",
-  "generated_at": "2026-11-11T17:44:12Z",
+  "generated_at": "2026-11-11T18:20:00Z",
   "host_env": "macOS host + docker golang:1.27.4 and ubuntu:24.04",
   "release_authority": false,
+  "tree_note": "the commit that follows repo_commit adds only this directory; product code and tests are identical to repo_commit",
   "protected_files": {
     "feature_contracts.json": "zero diff vs origin/develop/go-native",
     "check_release_gate.py": "zero diff vs origin/develop/go-native",
@@ -24,7 +25,7 @@
     "S7-2": "done (tcp.sh download retired; no Linux-NetSpeed URL remains)",
     "S7-3": "done (superspeed.sh retired; menu 33 calls idleleo speedtest)",
     "S7-4": "done (acme.sh atomic retirement: issue/renew/cron/uninstall/backup in one commit, /root/.acme.sh retained)",
-    "S7-5": "partially verifiable (manifest Ed25519 verify implemented; no pipeline produces the Go manifest yet)"
+    "S7-5": "verify side done (manifest Ed25519 verify is fail-closed); no pipeline produces or signs the Go manifest yet"
   },
   "results": {
     "shell_syntax": "all files bash -n OK",
@@ -33,6 +34,8 @@
       "test_helper_checksum.sh": "PASS=6 FAIL=0",
       "test_tcp_entry.sh": "PASS=9 FAIL=0",
       "test_acme_retire.sh": "PASS=11 FAIL=0",
+      "test_ssl_update_recovery.sh": "PASS=28 FAIL=0",
+      "test_cert_update_recovery.sh": "PASS=14 FAIL=0",
       "test_version_loading.sh": "PASS=8 FAIL=0",
       "test_shell_update_metadata.sh": "PASS=30 FAIL=0",
       "exit": 0
@@ -54,7 +57,7 @@
       "release_ledger_status": "28/28 PENDING_GO_IMPLEMENTATION",
       "install_sh_sha256": "4e793c1f7a6a1143492b7df90f8089b6b5fe788ebd4436f34d410472a516ee72"
     },
-    "evidence_hygiene": "0 findings in 527 files"
+    "evidence_hygiene": "0 findings"
   },
   "negative_evidence": {
     "acme_cron_cleanup_without_sed": "FAIL: acme_cron_cleanup removed the wrong crontab lines or deleted ~/.acme.sh (exit 1)",
