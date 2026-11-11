@@ -83,7 +83,17 @@ fi
 printf '%s\n' '--- corrupted signature bytes ---'
 sig_b64=$(jq -r '.metadata_signature' "${TMP_ROOT}/meta.signed.json")
 printf '%s' "${sig_b64#ed25519:}" | openssl enc -base64 -d -A -out "${TMP_ROOT}/sig.raw"
-printf '\x00' | dd of="${TMP_ROOT}/sig.raw" bs=1 seek=0 conv=notrunc 2>/dev/null
+# Overwrite byte 0 with a value that is guaranteed to differ. Writing a fixed
+# 0x00 made this case flaky: when the original byte was already zero the
+# signature stayed valid and the test failed roughly once in 256 runs.
+orig_byte=$(od -An -tu1 -N1 "${TMP_ROOT}/sig.raw" | tr -d '[:space:]')
+if [[ ${orig_byte} -eq 255 ]]; then
+    new_byte=0
+else
+    new_byte=$((orig_byte + 1))
+fi
+printf "\\$(printf '%03o' "${new_byte}")" |
+    dd of="${TMP_ROOT}/sig.raw" bs=1 seek=0 conv=notrunc 2>/dev/null
 flipped=$(openssl enc -base64 -A -in "${TMP_ROOT}/sig.raw")
 jq --arg s "ed25519:${flipped}" '.metadata_signature = $s' \
     "${TMP_ROOT}/meta.signed.json" >"${TMP_ROOT}/meta.flipped.json"
