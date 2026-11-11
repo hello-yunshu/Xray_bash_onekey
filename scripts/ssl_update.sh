@@ -16,6 +16,12 @@ running_file_max_age_minutes=120
 update_lock_file="${XRAY_UPDATE_LOCK_FILE:-/run/lock/idleleo-update.lock}"
 
 host=""
+# S7-4: renewal is native (`idleleo xray cert renew`) unless the operator opts
+# into the one-release acme.sh fallback. The native path needs Nginx to keep
+# serving the HTTP-01 webroot, so it never stops the unit.
+acme_legacy="${IDLELEO_ACME_LEGACY:-0}"
+acme_directory="${IDLELEO_ACME_DIRECTORY:-https://acme-v02.api.letsencrypt.org/directory}"
+idleleo_bin=""
 # Nginx state bookkeeping. "yes" means THIS run stopped a unit that was
 # running before; it is the only condition that ever starts Nginx again.
 nginx_stopped="no"
@@ -82,9 +88,21 @@ preflight_checks() {
         return 1
     fi
 
-    if [[ ! -x "${acme_sh_dir}/acme.sh" ]]; then
-        ssl_log "acme.sh not found at ${acme_sh_dir}"
-        return 1
+    if [[ "${acme_legacy}" == "1" ]]; then
+        if [[ ! -x "${acme_sh_dir}/acme.sh" ]]; then
+            ssl_log "acme.sh not found at ${acme_sh_dir}"
+            return 1
+        fi
+    else
+        idleleo_bin=$(command -v idleleo 2>/dev/null || true)
+        if [[ -z "${idleleo_bin}" ]]; then
+            ssl_log "idleleo not found on PATH"
+            return 1
+        fi
+        if [[ ! -d "${idleleo_dir}/conf" ]]; then
+            ssl_log "ACME webroot not found: ${idleleo_dir}/conf"
+            return 1
+        fi
     fi
 
     if ! mkdir -p "${ssl_chainpath}" 2>/dev/null || [[ ! -d "${ssl_chainpath}" ]]; then
@@ -126,20 +144,29 @@ restore_nginx_state() {
 }
 
 renew_and_install_cert() {
-    if ! "${acme_sh_dir}/acme.sh" --cron --home "${acme_sh_dir}" >/dev/null 2>&1; then
-        ssl_log "acme.sh cron renewal failed"
-        return 1
-    fi
-
-    if ! "${acme_sh_dir}/acme.sh" --installcert -d "${host}" \
-        --fullchainpath "${ssl_chainpath}/xray.crt" \
-        --keypath "${ssl_chainpath}/xray.key" --ecc >/dev/null 2>&1; then
-        ssl_log "acme.sh installcert failed for ${host}"
+    if [[ "${acme_legacy}" == "1" ]]; then
+        if ! "${acme_sh_dir}/acme.sh" --cron --home "${acme_sh_dir}" >/dev/null 2>&1; then
+            ssl_log "acme.sh cron renewal failed"
+            return 1
+        fi
+        if ! "${acme_sh_dir}/acme.sh" --installcert -d "${host}" \
+            --fullchainpath "${ssl_chainpath}/xray.crt" \
+            --keypath "${ssl_chainpath}/xray.key" --ecc >/dev/null 2>&1; then
+            ssl_log "acme.sh installcert failed for ${host}"
+            return 1
+        fi
+    elif ! "${idleleo_bin}" xray cert renew \
+        --domain "${host}" \
+        --webroot "${idleleo_dir}/conf" \
+        --cert-out "${ssl_chainpath}/xray.crt" \
+        --key-out "${ssl_chainpath}/xray.key" \
+        --directory "${acme_directory}"; then
+        ssl_log "idleleo xray cert renew failed for ${host}"
         return 1
     fi
 
     if [[ ! -f "${ssl_chainpath}/xray.crt" || ! -f "${ssl_chainpath}/xray.key" ]]; then
-        ssl_log "Certificate files missing after installcert"
+        ssl_log "Certificate files missing after renewal"
         return 1
     fi
 
@@ -192,7 +219,11 @@ ssl_update_main() {
 
     preflight_checks || rc=1
     if [[ ${rc} -eq 0 ]]; then
-        stop_nginx_for_renewal
+        # HTTP-01 native issuance reads the token from the Nginx webroot, so
+        # Nginx must stay up; only the legacy acme.sh path stops it.
+        if [[ "${acme_legacy}" == "1" ]]; then
+            stop_nginx_for_renewal
+        fi
         renew_and_install_cert || rc=1
     fi
     if [[ ${rc} -eq 0 ]]; then

@@ -336,7 +336,14 @@ nginx_systemd_file="/etc/systemd/system/nginx.service"
 xray_systemd_file="/etc/systemd/system/xray.service"
 xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
+# S7-4: issuing and renewing certificates moves to `idleleo xray cert issue|renew`
+# (lego, internal/acme). acme.sh is kept for one release behind this explicit
+# switch so an operator can fall back without reinstalling; the directory
+# /root/.acme.sh itself is never deleted.
 amce_sh_file="/root/.acme.sh/acme.sh"
+acme_legacy_enabled() {
+    [[ "${IDLELEO_ACME_LEGACY:-0}" == "1" ]]
+}
 auto_update_file="${scripts_dir}/auto_update.sh"
 ssl_update_file="${scripts_dir}/ssl_update.sh"
 geo_update_file="${scripts_dir}/geo_update.sh"
@@ -7634,7 +7641,16 @@ auto_update() {
 }
 
 ssl_install() {
-    # P1-9: socat is required for the acme.sh SSL workflow below.
+    if ! acme_legacy_enabled; then
+        if ! command -v idleleo >/dev/null 2>&1; then
+            log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 无法使用原生 ACME 签发证书") ${Font}"
+            log_echo "${Info} ${Green} $(gettext "如需临时回退 acme.sh, 设置 IDLELEO_ACME_LEGACY=1 后重试") ${Font}"
+            return 1
+        fi
+        log_echo "${OK} ${GreenBG} $(gettext "使用 idleleo xray cert issue 签发证书") ${Font}"
+        return 0
+    fi
+    # Legacy acme.sh path, retained for one release.
     pkg_install "socat" || return 1
     judge -r "$(gettext "安装 SSL 证书生成脚本依赖")" || return 1
     local acme_install_file="${idleleo_dir}/tmp/acme-install.sh"
@@ -8046,6 +8062,39 @@ port_exist_check() {
 
 acme() {
     systemctl restart nginx
+    if ! acme_legacy_enabled; then
+        local idleleo_bin="" _cert_group="" _reloadcmd=""
+        idleleo_bin=$(command -v idleleo 2>/dev/null || true)
+        if [[ -z "${idleleo_bin}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 证书签发终止") ${Font}"
+            return 1
+        fi
+        _cert_group="$(get_nginx_worker_group)"
+        [[ -n "${_cert_group}" ]] || _cert_group="idleleo-nginx"
+        mkdir -p "${ssl_chainpath}"
+        _reloadcmd="chown -f root:${_cert_group} ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"
+        local -a _email_args=()
+        [[ -n "${custom_email}" ]] && _email_args=(--email "${custom_email}")
+        if ! "${idleleo_bin}" xray cert issue \
+            --domain "${domain}" \
+            --webroot "${idleleo_conf_dir}" \
+            --cert-out "${ssl_chainpath}/xray.crt" \
+            --key-out "${ssl_chainpath}/xray.key" \
+            --directory "${IDLELEO_ACME_DIRECTORY:-https://acme-v02.api.letsencrypt.org/directory}" \
+            "${_email_args[@]}" \
+            --force \
+            --reload-command "${_reloadcmd}"; then
+            log_echo "${Error} ${RedBG} SSL $(gettext "证书生成") $(gettext "失败") ${Font}"
+            return 1
+        fi
+        # Reuse authoritative layered permission model.
+        apply_nginx_layered_permissions || return 1
+        verify_nginx_layered_permissions || return 1
+        log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置") $(gettext "成功") ${Font}"
+        systemctl stop nginx
+        return 0
+    fi
+    # Legacy acme.sh path, retained for one release.
     #暂时解决ca问题
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force --test; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书测试签发成功, 开始正式签发") ${Font}"
@@ -8904,18 +8953,26 @@ stop_service_all() {
     [[ -f "${nginx_systemd_file}" ]] && { systemctl stop nginx 2>/dev/null; systemctl disable nginx 2>/dev/null; }
     systemctl stop xray 2>/dev/null
     systemctl disable xray 2>/dev/null
-    if [[ ${tls_mode} != "TLS" ]] && [[ -f "$HOME/.acme.sh/acme.sh" ]]; then
-        /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
-        log_echo "${OK} ${GreenBG} $(gettext "已清理残留的证书自动更新定时任务") ${Font}"
+    if [[ ${tls_mode} != "TLS" ]]; then
+        acme_cron_cleanup
     fi
     log_echo "${OK} ${GreenBG} $(gettext "停止") ${Font}"
 }
 
 acme_cron_cleanup() {
-    if [[ -f "$HOME/.acme.sh/acme.sh" ]]; then
-        /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
+    # S7-4: acme.sh is retired but kept on disk for one release. Only the
+    # renewal cron line is removed; `acme.sh --uninstall` is never called
+    # because it would delete /root/.acme.sh along with the account state.
+    local crontab_file
+    crontab_file="$(root_crontab_path)"
+    [[ -f "${crontab_file}" ]] || return 0
+    grep -q 'acme\.sh.*--cron' "${crontab_file}" 2>/dev/null || return 0
+    if sed -i '/acme\.sh.*--cron/d' "${crontab_file}"; then
         log_echo "${OK} ${GreenBG} $(gettext "已清理证书自动更新定时任务") ${Font}"
+        return 0
     fi
+    log_echo "${Warning} ${YellowBG} $(gettext "清理证书自动更新定时任务失败, 请手动检查 crontab") ${Font}"
+    return 1
 }
 
 service_restart() {
@@ -9019,16 +9076,38 @@ acme_cron_update() {
 check_cert_status() {
     if [[ ${tls_mode} == "TLS" ]]; then
         host="$(info_extraction host)"
-        if [[ -d "$HOME/.acme.sh/${host}_ecc" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.key" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.cer" ]]; then
-            modifyTime=$(stat -c %Y "$HOME/.acme.sh/${host}_ecc/${host}.cer" 2>/dev/null)
+        local _cer_file="" _issued_epoch="" _notafter_epoch=""
+        if acme_legacy_enabled; then
+            _cer_file="$HOME/.acme.sh/${host}_ecc/${host}.cer"
+            [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.key" ]] || _cer_file=""
+        else
+            _cer_file="${ssl_chainpath}/xray.crt"
+            [[ -f "${ssl_chainpath}/xray.key" ]] || _cer_file=""
+        fi
+        if [[ -n "${_cer_file}" && -f "${_cer_file}" ]]; then
             currentTime=$(date +%s)
-            ((stampDiff = currentTime - modifyTime))
-            ((days = stampDiff / 86400))
-            ((remainingDays = 90 - days))
+            if acme_legacy_enabled; then
+                modifyTime=$(stat -c %Y "${_cer_file}" 2>/dev/null)
+                _issued_epoch="${modifyTime}"
+                ((days = (currentTime - modifyTime) / 86400))
+                ((remainingDays = 90 - days))
+            else
+                local _enddate _startdate
+                _enddate=$(openssl x509 -in "${_cer_file}" -noout -enddate 2>/dev/null | cut -d= -f2-)
+                _startdate=$(openssl x509 -in "${_cer_file}" -noout -startdate 2>/dev/null | cut -d= -f2-)
+                _notafter_epoch=$(date -d "${_enddate}" +%s 2>/dev/null || true)
+                _issued_epoch=$(date -d "${_startdate}" +%s 2>/dev/null || true)
+                if [[ -z "${_notafter_epoch}" || -z "${_issued_epoch}" ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "无法读取证书有效期")! ${Font}"
+                    return 1
+                fi
+                ((days = (currentTime - _issued_epoch) / 86400))
+                ((remainingDays = (_notafter_epoch - currentTime) / 86400))
+            fi
             tlsStatus=${remainingDays}
             [[ ${remainingDays} -le 0 ]] && tlsStatus="${Yellow}$(gettext "已过期")${Font}"
             echo
-            log_echo "${Green}$(gettext "证书生成日期"): $(date -d "@${modifyTime}" +"%F %H:%M:%S")${Font}"
+            log_echo "${Green}$(gettext "证书生成日期"): $(date -d "@${_issued_epoch}" +"%F %H:%M:%S")${Font}"
             log_echo "${Green}$(gettext "证书生成天数"): ${days}${Font}"
             log_echo "${Green}$(gettext "证书剩余天数"): ${tlsStatus}${Font}"
             echo
@@ -9061,12 +9140,20 @@ cert_update_manuel() {
 
     # Every precondition is checked before a service is stopped, so a missing
     # prerequisite can never leave Xray down.
-    if [[ ! -f "${amce_sh_file}" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
-        return 1
+    local _cert_host _cert_group _xray_was_active="no" _rc=0 _idleleo_bin=""
+    if acme_legacy_enabled; then
+        if [[ ! -f "${amce_sh_file}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
+            return 1
+        fi
+    else
+        _idleleo_bin=$(command -v idleleo 2>/dev/null || true)
+        if [[ -z "${_idleleo_bin}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 已取消证书更新")! ${Font}"
+            return 1
+        fi
     fi
 
-    local _cert_host _cert_group _xray_was_active="no" _rc=0
     _cert_host="$(info_extraction host)"
     if [[ -z "${_cert_host}" || "${_cert_host}" == "null" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "无法读取域名, 已取消证书更新")! ${Font}"
@@ -9092,22 +9179,37 @@ cert_update_manuel() {
     fi
 
     local _reloadcmd="chown -f root:${_cert_group} ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key"
-    # --reloadcmd is persisted in the acme.sh renewal config. It must not
-    # restart services: this function and ssl_update.sh already restart them
-    # once, and a restart inside the hook would double-restart every renewal.
-    if ! "${amce_sh_file}" --cron --home "$(dirname "${amce_sh_file}")"; then
-        log_echo "${Error} ${RedBG} acme.sh $(gettext "续签失败")! ${Font}"
+    # In legacy mode --reloadcmd is persisted in the acme.sh renewal config; in
+    # native mode it is the one-shot reload hook of `xray cert renew`. Neither
+    # may restart services here: this function and ssl_update.sh already
+    # restart them once, and a restart inside the hook would double-restart.
+    if acme_legacy_enabled; then
+        if ! "${amce_sh_file}" --cron --home "$(dirname "${amce_sh_file}")"; then
+            log_echo "${Error} ${RedBG} acme.sh $(gettext "续签失败")! ${Font}"
+            _rc=1
+        elif ! "${amce_sh_file}" --installcert -d "${_cert_host}" \
+            --fullchainpath "${ssl_chainpath}/xray.crt" \
+            --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "${_reloadcmd}"; then
+            log_echo "${Error} ${RedBG} $(gettext "证书安装失败")! ${Font}"
+            _rc=1
+        fi
+    elif ! "${_idleleo_bin}" xray cert renew \
+        --domain "${_cert_host}" \
+        --webroot "${idleleo_conf_dir}" \
+        --cert-out "${ssl_chainpath}/xray.crt" \
+        --key-out "${ssl_chainpath}/xray.key" \
+        --directory "${IDLELEO_ACME_DIRECTORY:-https://acme-v02.api.letsencrypt.org/directory}" \
+        --reload-command "${_reloadcmd}"; then
+        log_echo "${Error} ${RedBG} $(gettext "证书续签失败")! ${Font}"
         _rc=1
-    elif ! "${amce_sh_file}" --installcert -d "${_cert_host}" \
-        --fullchainpath "${ssl_chainpath}/xray.crt" \
-        --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "${_reloadcmd}"; then
-        log_echo "${Error} ${RedBG} $(gettext "证书安装失败")! ${Font}"
+    fi
+    if [[ ${_rc} -eq 0 ]] && ! apply_nginx_layered_permissions; then
         _rc=1
-    elif ! apply_nginx_layered_permissions; then
+    fi
+    if [[ ${_rc} -eq 0 ]] && ! verify_nginx_layered_permissions; then
         _rc=1
-    elif ! verify_nginx_layered_permissions; then
-        _rc=1
-    elif ! service_restart; then
+    fi
+    if [[ ${_rc} -eq 0 ]] && ! service_restart; then
         _rc=1
     fi
 
@@ -10232,7 +10334,12 @@ ssl_judge_and_install() {
     local has_acme_files="false"
 
     [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] && has_cert_files="true"
-    [[ -f "$HOME/.acme.sh/acme.sh" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && has_acme_files="true"
+    # S7-4: native issuance keeps no state under ~/.acme.sh, so a leftover
+    # acme.sh directory must not be mistaken for a usable certificate.
+    if acme_legacy_enabled &&
+        [[ -f "$HOME/.acme.sh/acme.sh" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+        has_acme_files="true"
+    fi
 
     if [[ ${has_cert_files} != "true" && ${has_acme_files} != "true" ]]; then
         log_echo "${GreenBG} $(gettext "即将申请证书, 支持使用自定义证书") ${Font}"
@@ -11430,8 +11537,15 @@ rxa_uninstall_finish_if_present() {
 }
 
 delete_tls_key_and_crt() {
-    [[ -f "$HOME/.acme.sh/acme.sh" ]] && /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
-    [[ -d "$HOME/.acme.sh" ]] && rm -rf "$HOME/.acme.sh"
+    # S7-4: /root/.acme.sh and its account state are retained for one release
+    # so IDLELEO_ACME_LEGACY=1 still works. Only per-domain issuance
+    # directories are removed; the installed acme.sh itself stays.
+    local d
+    if [[ -d "$HOME/.acme.sh" ]]; then
+        for d in "$HOME"/.acme.sh/*_ecc; do
+            [[ -d "${d}" ]] && rm -rf "${d}"
+        done
+    fi
     log_echo "${OK} ${GreenBG} $(gettext "已清空证书遗留文件") ${Font}"
 }
 
@@ -14217,7 +14331,9 @@ function backup_directories() {
     for cron_path in /var/spool/cron/crontabs/root /var/spool/cron/root; do
         [[ -f "${cron_path}" ]] && backup_tar_paths+=("${cron_path}")
     done
-    # ACME account state is needed for future certificate renewals.
+    # ACME account state: the native account lives under ${ssl_chainpath}/acme
+    # (inside /etc/idleleo, already covered); the retained /root/.acme.sh keeps
+    # the one-release acme.sh fallback usable.
     [[ -d /root/.acme.sh ]] && backup_tar_paths+=("/root/.acme.sh")
 
     # Per-file checksum manifest, inside the archive, using the same
