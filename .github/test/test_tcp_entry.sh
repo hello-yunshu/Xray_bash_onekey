@@ -98,5 +98,23 @@ else
     ok "legacy without the typed confirmation is refused offline"
 fi
 
+printf '%s\n' '--- legacy no longer downloads tcp.sh ---'
+rm -f "${NETWORK_MARKER}"
+: >"${IDLELEO_CALL_LOG}"
+PATH="${STUB_BIN}:${base_path}"
+scripts_dir="${TMP_ROOT}/no-such-scripts"
+if printf 'legacy\n' | bbr_boost_sh "--legacy" >/dev/null 2>&1; then
+    bad "legacy succeeded without a local tcp.sh"
+elif [[ -e "${NETWORK_MARKER}" ]]; then
+    bad "legacy downloaded tcp.sh again"
+else
+    ok "legacy without a local tcp.sh fails closed and offline"
+fi
+if grep -q 'Linux-NetSpeed/master/tcp.sh' "${REPO_DIR}/install.sh"; then
+    bad "install.sh still references the remote tcp.sh"
+else
+    ok "install.sh no longer carries a tcp.sh download URL"
+fi
+
 printf '\nSummary: PASS=%d FAIL=%d\n' "${PASS}" "${FAIL}"
 [[ ${FAIL} -eq 0 ]]

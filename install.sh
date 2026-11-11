@@ -11197,14 +11197,12 @@ bbr_boost_sh() {
             log_echo "${OK} ${GreenBG} $(gettext "已取消") ${Font}"
             return 1
         fi
-        if [[ -f "${scripts_dir}/tcp.sh" ]]; then
-            (cd "${scripts_dir}" && chmod +x ./tcp.sh && ./tcp.sh)
-        elif download_script_file "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" "${scripts_dir}/tcp.sh"; then
-            "${scripts_dir}/tcp.sh"
-        else
-            log_echo "${Error} ${RedBG} TCP $(gettext "加速脚本下载失败") ${Font}"
+        if [[ ! -f "${scripts_dir}/tcp.sh" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "本地不存在 tcp.sh, 已不再自动下载第三方脚本") ${Font}"
+            log_echo "${Info} ${Green} $(gettext "请改用 idleleo tcp apply --profile bbr-fq --confirm") ${Font}"
             return 1
         fi
+        (cd "${scripts_dir}" && chmod +x ./tcp.sh && ./tcp.sh)
         read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
         return 0
     fi
