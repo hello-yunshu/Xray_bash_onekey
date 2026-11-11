@@ -1,0 +1,68 @@
+# S6/S7 audit remediation evidence
+repo_commit=284bfde43db91cffc00c4ef0cb9901f2348c9707
+branch=develop/go-native
+generated_at=2026-11-11T19:04:36Z
+host_env=macOS host + docker (golang:1.27.4, ubuntu:24.04)
+evidence_level=CONTAINER_VERIFIED
+note=the commit that follows repo_commit adds only this directory; product code and tests are identical to repo_commit
+
+## protected files vs origin/develop/go-native
+feature_contracts.json diff_lines=0 sha256=bfe3386e3a2565d3281d9956242d04b9d4d5a489c9e44994b65522af68a38d72
+check_release_gate.py diff_lines=0 sha256=d7493b289af919d9c38087176ff4fea8d4b8fbc5aae68bec792db9350e542564
+
+## release gate
+$ python3 tests/go-parity/parity/scripts/check_release_gate.py --native-go-dir current --require-package github.com/hello-yunshu/Xray_bash_onekey/internal/service
+RELEASE BLOCKED: pending 28; missing executable feature tests 22; JSON statuses alone never grant success
+PENDING: F01,F02,...,F28
+MISSING TESTS: F02,F03,F04,F06,F07,F08,F09,F10,F12,...,F25
+gate rc=2
+ledger=28/28 PENDING_GO_IMPLEMENTATION (unchanged)
+
+## shell syntax
+bash -n OK install.sh
+bash -n OK scripts/ssl_update.sh
+bash -n OK scripts/sign_json_ed25519.sh
+bash -n OK scripts/preflight_versions_signature.sh
+bash -n OK .github/test/test_versions_signature.sh
+bash -n OK .github/test/test_helper_checksum.sh
+bash -n OK .github/test/test_acme_retire.sh
+bash -n OK .github/test/test_backup_permissions.sh
+
+## green suites
+shell-suite.log  (ubuntu:24.04)  bash_suite_failures=0
+  test_versions_signature.sh        rc=0  PASS=8  FAIL=0
+  test_helper_checksum.sh           rc=0  PASS=8  FAIL=0
+  test_tcp_entry.sh                 rc=0  PASS=9  FAIL=0
+  test_acme_retire.sh               rc=0  PASS=12 FAIL=0
+  test_version_loading.sh           rc=0  PASS=8  FAIL=0
+  test_shell_update_metadata.sh     rc=0  30 passed, 0 failed
+  test_ssl_update_recovery.sh       rc=0
+  test_cert_update_recovery.sh      rc=0
+  test_backup_permissions.sh        rc=0  PASS=12 FAIL=0
+  test_install_top_level_refusal.sh rc=0
+  test_color_output.py              rc=0
+  test_ledger_transition.py         rc=0
+  test_release_signing_workflows.py rc=0  PASS=31 FAIL=0
+
+go-suite.log  (golang:1.27.4, GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local)
+  gofmt_files=0
+  BUILD_OK / VET_OK
+  go_suite_exit=0   (all internal packages ok, including internal/app, internal/release, internal/schedule)
+
+## red probes (red-tests.txt) -- each remediation removed, test must fail
+R1 schedule: renewal branch disabled        -> FAIL TestCertRenewJobRenewsInsideWindow        rc=1
+R2 release: caller-side VerifyManifest gone -> FAIL TestApplyRejectsTamperedManifest           rc=1
+R3 install.sh: existing-helper re-hash gone -> FAIL stale-hash cases (PASS=4 FAIL=4)            rc=1
+R4 install.sh: deletion wording reverted    -> FAIL account-key wording                        rc=1
+R5 install.sh: backup warning removed       -> FAIL ACME account-key warning                   rc=1
+R6 workflow: signing step removed           -> FAIL "sign step exists"                         rc=1
+R7 preflight: cutover comparison bypassed   -> FAIL unsigned/tampered/prefix at cutover        rc=1
+
+## what is not proven here
+- The two GitHub secrets are still absent/unverifiable from this environment:
+  IDLELEO_VERSIONS_ED25519_KEY and IDLELEO_RELEASE_ED25519_KEY. Both publishers now
+  fail closed, so the first release attempt after the secrets are set is the real test.
+- No public CA, DNS-01 or EAB was available: renewal is proven against internal/acme with
+  an injected renewer, not against Let's Encrypt.
+- assets/go/manifest.json was not regenerated; the release gate is still blocked at 28
+  PENDING, so no protected pipeline can produce the signed candidate.

@@ -1,0 +1,399 @@
+
+=== test_versions_signature.sh ===
+--- valid signature is accepted ---
+  PASS: signed metadata loads with unchanged field values
+--- signature covers every field ---
+  PASS: field tampering after signing is rejected
+--- corrupted signature bytes ---
+  PASS: corrupted signature is rejected
+--- truncated signature ---
+  PASS: signature that is not 64 bytes is rejected
+--- unsupported algorithm prefix ---
+  PASS: unknown signature algorithm is rejected
+--- compatibility window ---
+  PASS: unsigned metadata below the cutover is accepted with a warning
+  PASS: unsigned metadata below the deferred cutover is still accepted with a warning
+  PASS: unsigned metadata at 3.6.0 is rejected
+
+Summary: PASS=8 FAIL=0
+rc=0
+
+=== test_helper_checksum.sh ===
+--- pinned hash mismatch is fatal ---
+  PASS: hash mismatch returns nonzero and writes nothing
+--- pinned hash match installs ---
+  PASS: matching hash installs the helper
+--- an existing helper is re-hashed ---
+  PASS: an existing helper with a stale hash is re-downloaded
+--- a failed re-download of a stale helper is fatal ---
+  PASS: a failed re-download of a stale helper returns nonzero
+--- direct download honours the pinned hash ---
+  PASS: download_script_file rejects a mismatched body
+  PASS: download_script_file installs a matching body
+--- unpinned helper and the cutover ---
+  PASS: unpinned helper below the cutover installs with a warning
+  PASS: unpinned helper at 3.4.0 is refused
+
+Summary: PASS=8 FAIL=0
+rc=0
+
+=== test_tcp_entry.sh ===
+--- default branch uses idleleo tcp and stays offline ---
+  PASS: default branch calls 'tcp status' with no network access
+--- status failure falls back to plan ---
+  PASS: read-only fallback is 'tcp plan'
+--- apply branch passes the profile and confirmation ---
+  PASS: apply branch calls 'tcp apply --profile bbr-fq --confirm'
+--- missing idleleo refuses instead of downloading ---
+  PASS: missing idleleo fails closed without network access
+--- legacy needs the typed confirmation ---
+  PASS: legacy without the typed confirmation is refused offline
+--- legacy no longer downloads tcp.sh ---
+  PASS: legacy without a local tcp.sh fails closed and offline
+  PASS: install.sh no longer carries a tcp.sh download URL
+--- menu 33 uses idleleo speedtest ---
+  PASS: menu 33 calls 'idleleo speedtest' without downloading anything
+  PASS: install.sh no longer carries a superspeed URL
+
+Summary: PASS=9 FAIL=0
+rc=0
+
+=== test_acme_retire.sh ===
+--- ssl_install default is native and offline ---
+  PASS: native ssl_install succeeds without downloading acme.sh
+--- ssl_install fails closed without idleleo ---
+  PASS: native ssl_install fails closed when idleleo is missing
+--- acme() issues through idleleo ---
+  PASS: native acme() calls 'xray cert issue --domain example.com' and stops nginx once
+--- acme() is really red when idleleo fails ---
+  PASS: idleleo failure propagates out of acme()
+--- delete_tls_key_and_crt keeps acme.sh ---
+  PASS: per-domain state removed while ~/.acme.sh/acme.sh is retained
+--- delete_tls_key_and_crt says account keys are kept ---
+  PASS: deletion message states the ACME account and its key are retained
+  PASS: acme cron line removed, ssl_update.sh kept and ~/.acme.sh retained
+--- ssl_update.sh renews natively without stopping nginx ---
+  PASS: native renewal calls 'xray cert renew --domain example.com' and never stops nginx
+--- ssl_update.sh is really red when idleleo fails ---
+  PASS: idleleo renew failure makes ssl_update.sh fail
+--- legacy renewal still requires acme.sh ---
+  PASS: legacy renewal fails when IDLELEO_ACME_HOME has no acme.sh
+--- source assertions ---
+  PASS: get.acme.sh is referenced only by the legacy fallback branch
+  PASS: install.sh never removes ~/.acme.sh
+
+Summary: PASS=12 FAIL=0
+rc=0
+
+=== test_version_loading.sh ===
+--- CDN fallback and single-fetch cache ---
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+  PASS: origin fallback supplies every mandatory version
+  PASS: CDN failure performs exactly one origin fallback
+  PASS: subsequent field reads reuse the in-shell version cache
+--- qualification-only Xray candidate override ---
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+  PASS: candidate override changes only the qualification input
+--- fail-closed output separation ---
+  PASS: complete source failure returns nonzero
+  PASS: failure diagnostics stay off version-data stdout
+  PASS: failed reads do not partially overwrite prior versions
+--- Release SHA contract is mandatory from 3.2.3 ---
+  PASS: 3.2.3 metadata without shell_release_sha256 is rejected
+
+Summary: PASS=8 FAIL=0
+rc=0
+
+=== test_shell_update_metadata.sh ===
+--- Release SHA contract rejects 3.2.3+ candidates without SHA ---
+  PASS: 3.2.3+ candidate without shell_release_sha256 is rejected
+--- Release SHA contract rejects malformed and mismatched SHA ---
+  PASS: 3.2.3+ candidate with malformed shell_release_sha256 is rejected
+  PASS: 3.2.3+ candidate with mismatched shell_release_sha256 is rejected
+  PASS: 3.2.3+ candidate with correct shell_release_sha256 is accepted
+============================================================
+  Section 7: Shell Update Metadata
+============================================================
+--- Old 3.0.0, download 3.0.1: config must write 3.0.1 ---
+[1/6] 下载并校验新版主脚本 ... 处理中
+[1/6] 下载并校验新版主脚本 ... ✓
+[2/6] 检测 Rill Xray AI 运维助手 ... 处理中
+[2/6] 检测 Rill Xray AI 运维助手 ... — 未安装
+[3/6] 下载并校验 Rill 更新包 ... 处理中
+[3/6] 下载并校验 Rill 更新包 ... — 跳过
+[4/6] 更新 Rill 核心组件 ... — 跳过
+[5/6] 恢复 AI 工作状态 ... — 跳过
+[6/6] 运行升级后健康检查 ... 处理中
+[6/6] 运行升级后健康检查 ... ✓
+  PASS: Config shell_version updated to 3.0.1
+  PASS: shell_version variable updated to 3.0.1
+  PASS: update_json_config was called to persist version
+  PASS: Downloaded script persisted with version 3.0.1
+--- Syntax error in download does NOT overwrite ---
+--- Download version still 3.0.0 (no update) must fail ---
+[1/6] 下载并校验新版主脚本 ... 处理中
+  PASS: update_sh fails when downloaded version != newest
+  PASS: Original script restored after version mismatch failure
+  PASS: Config shell_version unchanged (still 3.0.0) after failed update
+  PASS: update_json_config was NOT called on failed update
+--- Download failure restores backup ---
+[1/6] 下载并校验新版主脚本 ... 处理中
+  PASS: update_sh fails when download fails
+  PASS: Original script restored after download failure
+  PASS: Symlink restored after download failure
+--- Already latest version: no update ---
+[1/6] 下载并校验新版主脚本 ... ✓ 已是 v3.0.1
+  PASS: No config update when already latest version
+--- Non-TTY update UI has one title and no terminal warning ---
+  PASS: Non-TTY update/reconciliation succeeds
+  PASS: Update title appears exactly once
+  PASS: Non-TTY output includes stage 1/6
+  PASS: Non-TTY output includes stage 2/6
+  PASS: Non-TTY output includes stage 3/6
+  PASS: Non-TTY output includes stage 4/6
+  PASS: Non-TTY output includes stage 5/6
+  PASS: Non-TTY output includes stage 6/6
+  PASS: Rill-absent stages 3/4/5 are skipped
+  PASS: Non-TTY output has no TERM warning
+  PASS: Non-TTY output has no ANSI cursor escape
+--- Post-replacement validation failure restores previous script ---
+  PASS: post-replacement failure is classified as postcheck
+  PASS: Previous script restored after post-replacement failure
+  PASS: Rollback leaves no stale backup file
+
+============================================================
+  Results: 30 passed, 0 failed
+============================================================
+rc=0
+
+=== test_ssl_update_recovery.sh ===
+============================================================
+  ssl_update.sh certificate renewal recovery tests
+============================================================
+  PASS: installcert failure returns non-zero
+  PASS: installcert failure restores a running Nginx
+  PASS: installcert failure is reported on stderr
+  PASS: certificate permission failure returns non-zero
+  PASS: certificate permission failure restores a running Nginx
+  PASS: permission failure is reported
+  PASS: failure with an initially stopped Nginx returns non-zero
+  PASS: initially stopped Nginx stays stopped on failure
+  PASS: renewal succeeds with an initially stopped Nginx
+  PASS: initially stopped Nginx stays stopped on success
+  PASS: no Nginx start command is issued for a stopped unit
+  PASS: successful renewal returns 0
+  PASS: successful renewal leaves Nginx running
+  PASS: Xray is restarted exactly once
+  PASS: Nginx is started exactly once
+  PASS: ssl update lock directory is cleaned up
+  PASS: inactive Xray is left untouched
+  PASS: missing certificate group fails the run
+  PASS: Nginx is not stopped when a precondition is missing
+  PASS: Nginx keeps running after a pre-check failure
+  PASS: unrecoverable Nginx state returns exit code 2
+  PASS: unrecoverable Nginx state is reported clearly
+  PASS: an in-flight renewal blocks a second run
+  PASS: a blocked run does not touch services
+  PASS: a blocked run leaves Nginx running
+  PASS: a held shared update lock aborts the renewal
+  PASS: held shared update lock is reported
+  PASS: a lock-blocked run does not stop Nginx
+============================================================
+  PASS: 28  FAIL: 0
+============================================================
+rc=0
+
+=== test_cert_update_recovery.sh ===
+============================================================
+  manual certificate update recovery tests
+============================================================
+  PASS: installcert failure returns non-zero
+  PASS: installcert failure restarts the previously running Xray
+  PASS: Xray is running again after a failed renewal
+  PASS: failure with an initially stopped Xray returns non-zero
+  PASS: an initially stopped Xray is not started
+  PASS: successful manual renewal returns 0
+  PASS: manual renewal restarts services exactly once
+  PASS: the acme.sh reload hook only adjusts certificate permissions
+  PASS: missing acme.sh returns non-zero
+  PASS: no service is stopped when acme.sh is missing
+  PASS: certificate permission failure returns non-zero
+  PASS: Xray keeps running after a permission failure
+  PASS: non-TLS mode is refused
+  PASS: refused mode does not stop Xray
+============================================================
+  PASS: 14  FAIL: 0
+============================================================
+rc=0
+
+=== test_backup_permissions.sh ===
+  PASS: existing backup migrated to 0600
+  PASS: existing install.log migrated to 0600
+  PASS: backup succeeds
+  PASS: backup archive created
+  PASS: backup archive mode 0600
+  PASS: backup archive readable
+  PASS: backup warns that the archive contains the ACME account private key
+  PASS: low-privilege read probe works with 0644
+  PASS: a low-privilege account cannot read the 0600 backup probe
+
+  PASS: tar failure returns non-zero
+  PASS: no final backup archive was left behind
+  PASS: the half-written backup temp file was removed
+
+Summary: PASS=12 FAIL=0
+rc=0
+
+=== test_install_top_level_refusal.sh ===
+PASS: refused at the metadata gate (rc=1); no network, package, log or system write
+rc=0
+
+=== test_color_output.py ===
+============================================================
+  ANSI color output regression
+============================================================
+
+-- A. static color definition / output scan --
+  PASS: no color variable stores the literal text \033 (found 0)
+  PASS: literal color definitions never reach a non-interpreting call (found 0)
+  INFO: 9 color definitions, 1351 color-bearing lines, 3 non-%b sites, 0 leaks
+  INFO: non-%b sites are safe because definitions hold real ESC bytes or are empty
+  PASS: no production output path carries a literal ANSI escape (found 0)
+  PASS: no README/doc example carries a literal ANSI escape (found 0)
+  PASS: every test fixture literal is annotated with color-test-fixture (missing 0)
+  INFO: tracked files scanned: 1073; types={'.conf': 10, '.dockerfile': 1, '.dockerignore': 1, '.editorconfig': 1, '.err': 35, '.exp': 1, '.gitignore': 1, '.go': 80, '.in': 1, '.inf': 12, '.json': 191, '.log': 145, '.md': 88, '.mod': 3, '.out': 18, '.path': 5, '.pem': 7, '.po': 6, '.pot': 1, '.py': 85, '.realityservers': 3, '.sample': 14, '.servernames': 3, '.service': 22, '.sh': 141, '.sha': 2, '.sha256': 1, '.sum': 1, '.timer': 1, '.tsv': 4, '.txt': 71, '.yml': 17, 'COMMIT_EDITMSG': 1, 'Dockerfile': 8, 'FETCH_HEAD': 2, 'HEAD': 6, 'HEAD 2': 1, 'LICENSE': 1, 'ORIG_HEAD': 2, 'SHA256SUMS': 2, 'already_ran': 1, 'bash-go-native-parity': 2, 'bitmap-ref-tips_50xJQR': 1, 'bitmap-ref-tips_5FvUeQ': 1, 'bitmap-ref-tips_If3mU5': 1, 'bitmap-ref-tips_JBpwSP': 1, 'bitmap-ref-tips_Jb6QA7': 1, 'bitmap-ref-tips_K5WfcM': 1, 'bitmap-ref-tips_KpnmZ0': 1, 'bitmap-ref-tips_LQqWoy': 1, 'bitmap-ref-tips_LUYO6O': 1, 'bitmap-ref-tips_NEwlTL': 1, 'bitmap-ref-tips_OVPJyP': 1, 'bitmap-ref-tips_TGuT5e': 1, 'bitmap-ref-tips_Vrs9go': 1, 'bitmap-ref-tips_WYX8N0': 1, 'bitmap-ref-tips_XIkDKm': 1, 'bitmap-ref-tips_a4mwoM': 1, 'bitmap-ref-tips_fDZypq': 1, 'bitmap-ref-tips_hTUyg5': 1, 'bitmap-ref-tips_hWlzbY': 1, 'bitmap-ref-tips_i7Mg81': 1, 'bitmap-ref-tips_jaFfhi': 1, 'bitmap-ref-tips_klieRa': 1, 'bitmap-ref-tips_mOtBzZ': 1, 'bitmap-ref-tips_mmmAhI': 1, 'bitmap-ref-tips_mpjDqn': 1, 'bitmap-ref-tips_okTVHg': 1, 'bitmap-ref-tips_qCt52s': 1, 'bitmap-ref-tips_qtHUtn': 1, 'bitmap-ref-tips_s8ZRUA': 1, 'bitmap-ref-tips_sScMzN': 1, 'bitmap-ref-tips_t7n1TQ': 1, 'bitmap-ref-tips_v2zKPO': 1, 'bitmap-ref-tips_xpnRkB': 1, 'bitmap-ref-tips_yzd0s8': 1, 'candidate-idleleo': 1, 'changed-refs': 1, 'commit-map': 1, 'commondir': 1, 'config': 2, 'description': 1, 'exclude': 1, 'fake-systemctl': 1, 'first-changed-commits': 1, 'geo-stats-tui-audit-2026-11-05-r2': 2, 'gitdir': 1, 'go-native': 4, 'go-parity-install-acme-closeout': 2, 'main': 3, 'packed-refs': 1, 'packs': 1, 'prepush-scrub': 2, 'ref-map': 1, 'refs': 1, 'rill-xray-agent': 1, 'rill-xray-agent-agent': 1, 'rill-xray-agent-apply': 1, 'rill-xray-agent-auto-evaluate': 1, 'rill-xray-agent-root-policy': 1, 'rill-xray-agent-runtime': 1, 'suboptimal-issues': 1, 'version': 6}
+  INFO: ANSI inventory: total=78, production-risk=0, docs=0, test-fixtures=46, canonical=0
+  INFO: ANSI inventory by file type / category:
+    .py          test-fixture             27
+    .sh          real-esc                 15
+    .sh          source-comment           1
+    .sh          test-fixture             19
+    .sh          tooling                  8
+    .sh          tooling-variable         8
+  PASS: the ANSI scanner flags a Markdown example
+  PASS: the ANSI scanner flags a plain shell output
+  PASS: the counterexample fixture is correctly reported as red
+  INFO: counterexample literal definition: (1, 'Green', '"\\033[32m"')
+  INFO: counterexample leak: (3, 'plain echo', 'echo "${Green}ok${Font}"')
+
+-- B. non-TTY / pseudo-TTY runtime output --
+  PASS: non-TTY child exits 0 (got 0)
+  PASS: non-TTY output contains no raw ESC byte
+  PASS: non-TTY output contains no literal \033 / \e / \x1b text
+  PASS: non-TTY output contains no bare control bytes
+  PASS: non-TTY Fail2ban list is plain text
+  PASS: non-TTY stats confirmation prompt is plain text
+  INFO: non-TTY sample: ['', ' 活跃的 Jail 列表: ', '1. sshd']
+  PASS: pseudo-TTY child exits 0 (got 0)
+  PASS: pseudo-TTY output contains green and reset escape sequences
+  PASS: pseudo-TTY confirmation prompt contains red N
+  PASS: pseudo-TTY Fail2ban list still renders text
+  INFO: pseudo-TTY sample: ['统计已开启但缺少 api.listen, 是否补写并重启 Xray [Y/\x1b[31mN\x1b[0m]? ', '\x1b[32m 活跃的 Jail 列表: \x1b[0m']
+  PASS: NO_COLOR pseudo-TTY child exits 0 (got 0)
+  PASS: NO_COLOR output contains no raw ESC byte
+  PASS: NO_COLOR output still contains the jail list text
+  PASS: TERM=dumb pseudo-TTY child exits 0 (got 0)
+  PASS: TERM=dumb output contains no raw ESC byte
+
+-- C. the old 14 leak sites, one by one --
+  PASS: combined/non-tty: expected text and non-tty color policy
+  PASS: combined/tty: expected text and tty color policy
+  PASS: combined/no-color: expected text and no-color color policy
+  PASS: combined/dumb: expected text and dumb color policy
+  PASS: list_view/non-tty: expected text and non-tty color policy
+  PASS: list_view/tty: expected text and tty color policy
+  PASS: list_view/no-color: expected text and no-color color policy
+  PASS: list_view/dumb: expected text and dumb color policy
+  PASS: list_unban/non-tty: expected text and non-tty color policy
+  PASS: list_unban/tty: expected text and tty color policy
+  PASS: list_unban/no-color: expected text and no-color color policy
+  PASS: list_unban/dumb: expected text and dumb color policy
+  PASS: list_trust_add/non-tty: expected text and non-tty color policy
+  PASS: list_trust_add/tty: expected text and tty color policy
+  PASS: list_trust_add/no-color: expected text and no-color color policy
+  PASS: list_trust_add/dumb: expected text and dumb color policy
+  PASS: list_trust_del/non-tty: expected text and non-tty color policy
+  PASS: list_trust_del/tty: expected text and tty color policy
+  PASS: list_trust_del/no-color: expected text and no-color color policy
+  PASS: list_trust_del/dumb: expected text and dumb color policy
+  PASS: guard_fail2ban/non-tty: expected text and non-tty color policy
+  PASS: guard_fail2ban/tty: expected text and tty color policy
+  PASS: guard_fail2ban/no-color: expected text and no-color color policy
+  PASS: guard_fail2ban/dumb: expected text and dumb color policy
+  PASS: guard_file_manager/non-tty: expected text and non-tty color policy
+  PASS: guard_file_manager/tty: expected text and tty color policy
+  PASS: guard_file_manager/no-color: expected text and no-color color policy
+  PASS: guard_file_manager/dumb: expected text and dumb color policy
+  PASS: guard_traffic_blocker/non-tty: expected text and non-tty color policy
+  PASS: guard_traffic_blocker/tty: expected text and tty color policy
+  PASS: guard_traffic_blocker/no-color: expected text and no-color color policy
+  PASS: guard_traffic_blocker/dumb: expected text and dumb color policy
+  PASS: root_info/non-tty: expected text and non-tty color policy
+  PASS: root_info/tty: expected text and tty color policy
+  PASS: root_info/no-color: expected text and no-color color policy
+  PASS: root_info/dumb: expected text and dumb color policy
+  PASS: stats_prompt/non-tty: expected text and non-tty color policy
+  PASS: stats_prompt/tty: expected text and tty color policy
+  PASS: stats_prompt/no-color: expected text and no-color color policy
+  PASS: stats_prompt/dumb: expected text and dumb color policy
+  PASS: rill_status/non-tty: expected text and non-tty color policy
+  PASS: rill_status/tty: expected text and tty color policy
+  PASS: rill_status/no-color: expected text and no-color color policy
+  PASS: rill_status/dumb: expected text and dumb color policy
+  PASS: clear_screen/non-tty: expected text and non-tty color policy
+  PASS: clear_screen/tty: expected text and tty color policy
+  PASS: clear_screen/no-color: expected text and no-color color policy
+  PASS: clear_screen/dumb: expected text and dumb color policy
+
+============================================================
+  Result: 71 passed, 0 failed
+============================================================
+rc=0
+
+=== test_ledger_transition.py ===
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.219s
+
+OK
+rc=0
+
+=== test_release_signing_workflows.py ===
+--- publish-shell-version.yml signs before publishing ---
+  PASS: shell workflow exists
+  PASS: promote job exists
+  PASS: sign step exists
+  PASS: preflight step exists
+  PASS: publish step exists
+  PASS: sign runs before the API promotion
+  PASS: preflight runs after signing and before publishing
+  PASS: sign step reads IDLELEO_VERSIONS_ED25519_KEY
+  PASS: missing secret exits nonzero
+  PASS: sign step calls scripts/sign_json_ed25519.sh
+  PASS: sign step covers the published file
+  PASS: sign step is not tolerant of failures
+  PASS: preflight calls scripts/preflight_versions_signature.sh
+  PASS: preflight runs against the JSON being published
+--- publish-go-bridge.yml signs the manifest before release ---
+  PASS: go workflow exists
+  PASS: publish job exists
+  PASS: manifest sign step exists
+  PASS: release step exists
+  PASS: manifest is signed before the release is created
+  PASS: manifest sign step reads IDLELEO_RELEASE_ED25519_KEY
+  PASS: missing manifest secret exits nonzero
+  PASS: manifest sign step signs with the shared signer
+  PASS: manifest sign step asserts the ed25519: prefix
+  PASS: manifest sign step is not tolerant of failures
+--- preflight_versions_signature.sh enforces the cutover ---
+  PASS: preflight script exists
+  PASS: unsigned metadata at the cutover is refused
+  PASS: unsigned metadata below the cutover is allowed
+  PASS: signer produced a signature
+  PASS: signed metadata at the cutover is accepted
+  PASS: tampered metadata is refused
+  PASS: non-ed25519 signature prefix is refused
+
+Summary: PASS=31 FAIL=0
+rc=0
+bash_suite_failures=0

@@ -1,0 +1,61 @@
+{
+  "bundle": "s6-s7-closeout-2026-11-12",
+  "repo_commit": "284bfde43db91cffc00c4ef0cb9901f2348c9707",
+  "branch": "develop/go-native",
+  "generated_at": "2026-11-11T19:04:36Z",
+  "host_env": "macOS host + docker golang:1.27.4 and ubuntu:24.04",
+  "evidence_level": "CONTAINER_VERIFIED",
+  "release_authority": false,
+  "tree_note": "the commit that follows repo_commit adds only this directory; product code and tests are identical to repo_commit",
+  "protected_files": {
+    "feature_contracts.json": {
+      "diff_lines_vs_origin": 0,
+      "sha256": "bfe3386e3a2565d3281d9956242d04b9d4d5a489c9e44994b65522af68a38d72"
+    },
+    "check_release_gate.py": {
+      "diff_lines_vs_origin": 0,
+      "sha256": "d7493b289af919d9c38087176ff4fea8d4b8fbc5aae68bec792db9350e542564"
+    }
+  },
+  "ledger": {
+    "total": 28,
+    "statuses": {
+      "PENDING_GO_IMPLEMENTATION": 28
+    },
+    "release_gate_exit": 2
+  },
+  "findings": {
+    "P0-1": {
+      "state": "fixed (publisher + preflight)",
+      "details": "publish-shell-version.yml signs api/xray_shell_versions.json after writing it and before upload; a missing IDLELEO_VERSIONS_ED25519_KEY exits 1. scripts/preflight_versions_signature.sh re-verifies the exact bytes against the install.sh anchor from the 3.6.0 cutover.",
+      "blocked_on": "secret IDLELEO_VERSIONS_ED25519_KEY is not configured and cannot be verified from this environment; the cutover therefore moved 3.4.0 -> 3.6.0 and the helper cutover stayed at 3.4.0"
+    },
+    "P0-2": {
+      "state": "fixed",
+      "details": "certRenewJob renews inside the 30-day window through internal/acme, reloads, updates the fingerprint; failures return failed and write etc/idleleo/alerts/cert-renew.json, surfaced at the top of idleleo status and POSTed when a webhook is configured. cert-renew left DegradedJobs, the unit got OnFailure=idleleo-alert.service, install.sh runs an idempotent schedule install.",
+      "blocked_on": "public CA / DNS-01 / EAB unavailable; renewal is proven with an injected renewer, not against Let's Encrypt"
+    },
+    "P1": {
+      "state": "fixed",
+      "details": "xray cert defaults to the LE staging directory; --production or IDLELEO_ACME_DIRECTORY is required for production. publish-go-bridge.yml signs manifest.json fail-closed. TestApplyRejectsTamperedManifest goes through Apply.",
+      "blocked_on": "secret IDLELEO_RELEASE_ED25519_KEY is not configured and cannot be verified from this environment"
+    },
+    "P2": {
+      "state": "fixed",
+      "details": "existing helpers are re-hashed and re-downloaded on drift; certificate deletion wording says the ACME account and key are kept; the backup path warns the archive holds the account private key",
+      "blocked_on": null
+    }
+  },
+  "red_probes": {
+    "R1_renewal_branch_removed": "FAIL TestCertRenewJobRenewsInsideWindow (rc=1)",
+    "R2_caller_verify_removed": "FAIL TestApplyRejectsTamperedManifest (rc=1)",
+    "R3_existing_helper_rehash_removed": "FAIL stale-hash cases, PASS=4 FAIL=4 (rc=1)",
+    "R4_deletion_wording_reverted": "FAIL account-key wording (rc=1)",
+    "R5_backup_warning_removed": "FAIL ACME account-key warning (rc=1)",
+    "R6_workflow_sign_step_removed": "FAIL sign step exists (rc=1)",
+    "R7_preflight_cutover_bypassed": "FAIL unsigned/tampered/prefix at cutover (rc=1)"
+  },
+  "go_release_candidate": {
+    "assets_go_manifest_json": "not regenerated (untouched); the gate is still blocked at 28 PENDING so no protected pipeline can produce the signed candidate"
+  }
+}
