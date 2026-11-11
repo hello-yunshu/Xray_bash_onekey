@@ -1,0 +1,9 @@
+# Value-level allowlist for check_evidence_hygiene.py.
+# Every entry needs a reason. Whole-file exemptions are not supported.
+8.8.8.8  # public DNS resolver used in sample Xray DNS configs; not a host address
+1.1.1.1  # public DNS resolver used in sample Xray DNS configs; not a host address
+208.67.222.222  # public OpenDNS resolver used in sample DNS configs; not a host address
+1.2.3.4  # documentation placeholder in legacy tests; not a live host
+198.18.11.158  # RFC 2544 benchmarking-range placeholder kept by the evidence sanitizer; not a live host
+/root/.acme.sh  # fixed acme.sh install path; carries no user name
+/root/idleleo-export.json  # documented CLI export example path; carries no user name
