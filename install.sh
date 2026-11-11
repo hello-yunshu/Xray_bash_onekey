@@ -346,6 +346,17 @@ shell_online_version=""
 xray_installer_ref=""
 xray_installer_sha256=""
 xray_installer_verified_at=""
+# --- S6-3: Ed25519 trust anchor for the remote version metadata ---
+# xray_shell_versions.json decides which shell release, which sha256, and which
+# Xray installer pin every later download uses, so it is the trust root. The
+# signature covers `jq -cS 'del(.metadata_signature)'` byte for byte, with no
+# trailing newline; scripts/sign_json_ed25519.sh is the only supported signer.
+shell_versions_pubkey_pem='-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAiQVZy38jQPyS7lKDtM0vk+jSNSgavB/60UtVeFcw1t4=
+-----END PUBLIC KEY-----'
+# Unsigned metadata is tolerated only while the running script is older than
+# this release. From 3.4.0 on the signature is mandatory (fail-closed).
+versions_signature_required_from="3.4.0"
 xray_release_ref="v${shell_version}"
 shell_release_raw_base="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/${xray_release_ref}"
 shell_release_download_base="https://github.com/hello-yunshu/Xray_bash_onekey/releases/download/${xray_release_ref}"
@@ -530,6 +541,85 @@ fetch_versions_json() {
     printf '%s' "${response}"
 }
 
+# Public key used to verify the version metadata signature. Qualification runs
+# may inject a throwaway key so the failure paths can be exercised without the
+# production private key.
+versions_metadata_pubkey() {
+    if [[ "${XRAY_QUALIFICATION_MODE:-0}" == "1" && -n "${IDLELEO_VERSIONS_PUBKEY_FILE:-}" &&
+        -f "${IDLELEO_VERSIONS_PUBKEY_FILE}" ]]; then
+        cat "${IDLELEO_VERSIONS_PUBKEY_FILE}"
+        return 0
+    fi
+    printf '%s\n' "${shell_versions_pubkey_pem}"
+}
+
+# Canonical bytes covered by the signature: compact, key-sorted JSON without
+# the signature field and without a trailing newline.
+versions_metadata_canonical_file() {
+    local json="$1" out="$2" canonical
+    canonical=$(printf '%s' "${json}" | jq -cS 'del(.metadata_signature)' 2>/dev/null) || return 1
+    [[ -n "${canonical}" ]] || return 1
+    printf '%s' "${canonical}" >"${out}"
+}
+
+openssl_supports_rawin() {
+    command -v openssl >/dev/null 2>&1 || return 1
+    openssl pkeyutl -help 2>&1 | grep -q -- '-rawin'
+}
+
+# Returns 0 when the metadata may be trusted, 1 when it must be rejected.
+# A present-but-invalid signature is always rejected; unsigned metadata is
+# accepted only until the script itself reaches the cutover version.
+versions_metadata_trusted() {
+    local json="$1" signature work="" rc=0 signature_bytes=""
+
+    signature=$(printf '%s' "${json}" | jq -r '.metadata_signature // empty' 2>/dev/null)
+    if [[ -z "${signature}" ]]; then
+        if version_lt "${shell_version}" "${versions_signature_required_from}"; then
+            log_echo "${Warning} ${YellowBG} $(gettext "在线版本元数据未签名(兼容期), 请尽快更新签名元数据") ${Font}" >&2
+            return 0
+        fi
+        log_echo "${Error} ${RedBG} $(gettext "在线版本元数据缺少签名, 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    if [[ "${signature}" != ed25519:* ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本元数据签名算法不受支持, 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    if ! openssl_supports_rawin; then
+        log_echo "${Error} ${RedBG} $(gettext "缺少可用的签名校验器(需要 openssl 3 的 pkeyutl -rawin), 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    if ! work=$(mktemp -d 2>/dev/null); then
+        log_echo "${Error} ${RedBG} $(gettext "签名校验无法创建临时目录, 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    if ! versions_metadata_canonical_file "${json}" "${work}/message"; then
+        rc=1
+    fi
+    if [[ ${rc} -eq 0 ]]; then
+        printf '%s' "${signature#ed25519:}" |
+            openssl enc -base64 -d -A -out "${work}/signature" 2>/dev/null || rc=1
+    fi
+    if [[ ${rc} -eq 0 ]]; then
+        signature_bytes=$(wc -c <"${work}/signature" 2>/dev/null | tr -d '[:space:]')
+        [[ "${signature_bytes}" == "64" ]] || rc=1
+    fi
+    if [[ ${rc} -eq 0 ]]; then
+        versions_metadata_pubkey >"${work}/pub.pem" || rc=1
+    fi
+    if [[ ${rc} -eq 0 ]]; then
+        openssl pkeyutl -verify -pubin -inkey "${work}/pub.pem" -rawin \
+            -in "${work}/message" -sigfile "${work}/signature" >/dev/null 2>&1 || rc=1
+    fi
+    rm -rf "${work}"
+    if [[ ${rc} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本元数据签名校验失败, 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    return 0
+}
+
 load_versions() {
     if [[ ${_get_versions_loaded} -eq 0 ]]; then
         local versions_cdn_url="https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json"
@@ -550,6 +640,10 @@ load_versions() {
                 get_versions_all=""
                 return 1
             }
+        fi
+        if ! versions_metadata_trusted "${response}"; then
+            get_versions_all=""
+            return 1
         fi
         get_versions_all="${response}"
         _get_versions_loaded=1
