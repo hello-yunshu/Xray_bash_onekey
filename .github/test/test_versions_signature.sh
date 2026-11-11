@@ -6,8 +6,13 @@ set -uo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 export _TEST_MODE=1
+# install.sh pins PATH for a production install. Restore the caller's PATH after
+# sourcing so this suite still finds a real OpenSSL 3 (macOS ships LibreSSL in
+# /usr/bin, which has no `pkeyutl -rawin`).
+_saved_path=${PATH}
 # shellcheck source=/dev/null
 source "${REPO_DIR}/install.sh" >/dev/null 2>&1 || true
+export PATH=${_saved_path}
 
 PASS=0
 FAIL=0
@@ -19,11 +24,21 @@ gettext() { printf '%s' "$1"; }
 TMP_ROOT=$(mktemp -d)
 trap 'rm -rf "${TMP_ROOT}"' EXIT
 
+# A skip exits 0, which in CI is indistinguishable from "all cases passed".
+# CI must therefore fail loudly when the fixture tooling is missing.
 if ! command -v openssl >/dev/null 2>&1 || ! openssl pkeyutl -help 2>&1 | grep -q -- '-rawin'; then
+    if [[ -n ${CI:-} ]]; then
+        echo "FAIL: openssl 3 (pkeyutl -rawin) is required; refusing to skip in CI" >&2
+        exit 1
+    fi
     echo "SKIP: openssl 3 (pkeyutl -rawin) is required to build the fixtures"
     exit 0
 fi
 if ! command -v jq >/dev/null 2>&1; then
+    if [[ -n ${CI:-} ]]; then
+        echo "FAIL: jq is required; refusing to skip in CI" >&2
+        exit 1
+    fi
     echo "SKIP: jq is unavailable"
     exit 0
 fi
