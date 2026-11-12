@@ -14,6 +14,9 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 		return usage(opts, cfg.lang, "help")
 	}
 	sub, rest := args[0], args[1:]
+	if rc, ok := checkFlags(opts, cfg, rest, "bridge "+sub); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(rest, "--json")
 	switch sub {
 	case "audit":
@@ -172,6 +175,9 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 }
 
 func recoverCommand(opts Options, cfg config, args []string) int {
+	if rc, ok := checkFlags(opts, cfg, args, "recover"); ok && rc != 0 {
+		return rc
+	}
 	report, err := legacybridge.Recover(legacybridge.RecoverOptions{
 		Root:                 cfg.root,
 		AllowContainerWrites: hasFlag(args, "--container"),

@@ -17,6 +17,9 @@ func tcpCommand(ctx context.Context, opts Options, cfg config, args []string) in
 		return usage(opts, cfg.lang, "help")
 	}
 	sub, rest := args[0], args[1:]
+	if rc, ok := checkFlags(opts, cfg, rest, "tcp "+sub); ok && rc != 0 {
+		return rc
+	}
 	m, err := tcpcfg.New(cfg.root)
 	if err != nil {
 		return fail(opts, cfg, err)

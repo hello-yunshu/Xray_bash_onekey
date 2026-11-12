@@ -12,6 +12,9 @@ import (
 // speedtestCommand replaces the downloaded superspeed.sh. It only reads the
 // network and never writes host state, so it stays usable without root.
 func speedtestCommand(ctx context.Context, opts Options, cfg config, args []string) int {
+	if rc, ok := checkFlags(opts, cfg, args, "speedtest"); ok && rc != 0 {
+		return rc
+	}
 	options := speedtest.Options{Server: flagValue(args, "--server")}
 	if raw := flagValue(args, "--bytes"); raw != "" {
 		bytes, err := strconv.Atoi(raw)

@@ -141,6 +141,23 @@ func (c *Config) applyDefaults() {
 	}
 }
 
+// validatePaths rejects configuration paths that would escape the selected
+// root. Skipping this check used to surface as a confusing empty path such as
+// "mkdir : no such file or directory".
+func (c Config) validatePaths() error {
+	for _, f := range []struct{ name, value string }{
+		{"geodataDir", c.GeodataDir},
+		{"certFile", c.CertFile},
+		{"certKeyFile", c.CertKeyFile},
+		{"certWebroot", c.CertWebroot},
+	} {
+		if _, err := resolve("/", f.value); err != nil {
+			return fmt.Errorf("unsafe schedule config path: %s %q", f.name, f.value)
+		}
+	}
+	return nil
+}
+
 // JobState is the last recorded result of one job.
 type JobState struct {
 	LastRun string `json:"lastRun"`
@@ -170,6 +187,9 @@ type Report struct {
 	Root          string      `json:"root"`
 	StartedAt     string      `json:"startedAt"`
 	Results       []JobResult `json:"results"`
+	// LogWarning records a failure to append the run log. It never changes the
+	// exit code: a lost log line is visible but is not a job failure.
+	LogWarning string `json:"logWarning,omitempty"`
 }
 
 // RunOptions selects the root and an optional job subset.
@@ -236,6 +256,9 @@ func loadConfig(root string) (Config, error) {
 		return Config{}, fmt.Errorf("schedule config schema %d is not supported", cfg.SchemaVersion)
 	}
 	cfg.applyDefaults()
+	if err := cfg.validatePaths(); err != nil {
+		return cfg, err
+	}
 	return cfg, nil
 }
 
@@ -288,6 +311,9 @@ func Install(ctx context.Context, opts InstallOptions) (InstallReport, error) {
 		AlertWebhook: opts.AlertWebhook,
 	}
 	cfg.applyDefaults()
+	if err := cfg.validatePaths(); err != nil {
+		return report, err
+	}
 	cfgPath := path(opts.Root, ConfigRel)
 	b, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
@@ -412,6 +438,11 @@ func Run(ctx context.Context, opts RunOptions) (Report, error) {
 		return Report{SchemaVersion: SchemaVersion}, err
 	}
 	report := Report{SchemaVersion: SchemaVersion, Root: opts.Root, StartedAt: now(), Results: []JobResult{}}
+	recordLog := func(res JobResult) {
+		if err := appendLog(opts.Root, res); err != nil && report.LogWarning == "" {
+			report.LogWarning = err.Error()
+		}
+	}
 	cfg, err := loadConfig(opts.Root)
 	if err != nil {
 		return report, err
@@ -432,7 +463,7 @@ func Run(ctx context.Context, opts RunOptions) (Report, error) {
 			for _, job := range selected {
 				res := JobResult{Job: job, Result: "skipped", Detail: "another idleleo update holds the update lock", At: now()}
 				report.Results = append(report.Results, res)
-				_ = appendLog(opts.Root, res)
+				recordLog(res)
 			}
 			return report, nil
 		}
@@ -454,7 +485,7 @@ func Run(ctx context.Context, opts RunOptions) (Report, error) {
 			res = statsJob(ctx, opts.Root, at)
 		}
 		report.Results = append(report.Results, res)
-		_ = appendLog(opts.Root, res)
+		recordLog(res)
 	}
 	if err := writeState(opts.Root, report.Results); err != nil {
 		return report, err
@@ -652,10 +683,13 @@ func certRenewJob(ctx context.Context, root string, cfg Config, at string) JobRe
 		if err := saveCertState(root, renewed, at); err != nil {
 			return certFailure(ctx, root, cfg, at, "renewal succeeded but state could not be saved: "+err.Error())
 		}
-		_ = ClearAlert(root, "cert-renew")
-		return JobResult{Job: "cert-renew", Result: "ok", At: at, Detail: fmt.Sprintf(
+		detail := fmt.Sprintf(
 			"%s renewed (sha256=%s); %s; expires in %d days",
-			renewed.Name, short(renewed.Fingerprint), reloaded, int(time.Until(renewed.NotAfter).Hours()/24))}
+			renewed.Name, short(renewed.Fingerprint), reloaded, int(time.Until(renewed.NotAfter).Hours()/24))
+		if err := ClearAlert(root, "cert-renew"); err != nil {
+			detail += "; alert not cleared: " + err.Error()
+		}
+		return JobResult{Job: "cert-renew", Result: "ok", At: at, Detail: detail}
 	}
 
 	detail := obs.Name
@@ -679,7 +713,9 @@ func certRenewJob(ctx context.Context, root string, cfg Config, at string) JobRe
 	if err := saveCertState(root, obs, at); err != nil {
 		return certFailure(ctx, root, cfg, at, detail+"; state: "+err.Error())
 	}
-	_ = ClearAlert(root, "cert-renew")
+	if err := ClearAlert(root, "cert-renew"); err != nil {
+		detail += "; alert not cleared: " + err.Error()
+	}
 	return JobResult{Job: "cert-renew", Result: "ok", At: at, Detail: detail}
 }
 
@@ -1023,11 +1059,14 @@ func writeAtomic(p string, b []byte, mode os.FileMode) error {
 	if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
 		return err
 	}
-	tmp := p + ".tmp"
-	f, err := os.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
+	f, err := os.CreateTemp(filepath.Dir(p), filepath.Base(p)+".tmp.*")
 	if err != nil {
 		return err
 	}
+	tmp := f.Name()
+	// Remove the temp file on every failure path; after a successful rename
+	// this is a harmless ENOENT.
+	defer os.Remove(tmp)
 	if _, err := f.Write(b); err != nil {
 		_ = f.Close()
 		return err

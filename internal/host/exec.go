@@ -85,6 +85,10 @@ func Run(ctx context.Context, spec ExecSpec) (ExecResult, error) {
 	cctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	cmd := exec.CommandContext(cctx, bin, spec.Args...)
+	// WaitDelay bounds the wait for inherited stdio after the process exits or
+	// the timeout fires. Without it, a child that keeps stdout open can defeat
+	// the timeout entirely.
+	cmd.WaitDelay = time.Second
 	cmd.Env = []string{
 		"PATH=" + FixedPATH,
 		"HOME=/",

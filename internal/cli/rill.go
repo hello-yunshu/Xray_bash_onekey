@@ -11,6 +11,9 @@ func rillCommand(opts Options, cfg config, args []string) int {
 	if len(args) == 0 || args[0] != "status" {
 		return usage(opts, cfg.lang, "help")
 	}
+	if rc, ok := checkFlags(opts, cfg, args[1:], "rill status"); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(args[1:], "--json")
 	info := legacybridge.RillStatus(cfg.root)
 	if cfg.json {

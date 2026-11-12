@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Container Go tests for gated suites
+        run: bash tests/go-parity/parity/run_container_go_tests.sh
+
       - name: Run privileged systemd acceptance
         env:
           IDLELEO_REALROOT_EVIDENCE: ${{ runner.temp }}/realroot-evidence

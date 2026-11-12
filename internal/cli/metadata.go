@@ -14,6 +14,9 @@ func metadataCommand(opts Options, cfg config, args []string) int {
 		return usage(opts, cfg.lang, "help")
 	}
 	sub, rest := args[0], args[1:]
+	if rc, ok := checkFlags(opts, cfg, rest, "metadata "+sub); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(rest, "--json")
 	switch sub {
 	case "import":

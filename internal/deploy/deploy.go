@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -497,7 +496,7 @@ func verifyNginx(ctx context.Context, bin, conf string, frags map[string]string,
 	if stream {
 		// Ubuntu ships the stream module dynamically; loading it is required
 		// before nginx can parse a stream block.
-		if module := streamModule(bin); module != "" {
+		if module := streamModule(ctx, bin); module != "" {
 			wrapper.WriteString("load_module " + module + ";\n")
 		}
 		wrapper.WriteString(body)
@@ -523,9 +522,18 @@ func verifyNginx(ctx context.Context, bin, conf string, frags map[string]string,
 	return nil
 }
 
-func streamModule(bin string) string {
-	out, err := exec.Command(bin, "-V").CombinedOutput()
-	if err != nil || !strings.Contains(string(out), "--with-stream=dynamic") {
+// moduleProbeTimeout bounds the nginx -V probe. It is a variable so tests can
+// prove the timeout without waiting for the production default.
+var moduleProbeTimeout = host.DefaultTimeout
+
+// streamModule reports the dynamic stream module path when nginx was built with
+// it. The probe goes through host.Run so it gets the fixed PATH, a hard timeout
+// and the same redaction as every other external command.
+func streamModule(ctx context.Context, bin string) string {
+	res, err := host.Run(ctx, host.ExecSpec{
+		Path: bin, Args: []string{"-V"}, Timeout: moduleProbeTimeout,
+	})
+	if err != nil || res.ExitCode != 0 || !strings.Contains(res.Stdout, "--with-stream=dynamic") {
 		return ""
 	}
 	candidates := []string{

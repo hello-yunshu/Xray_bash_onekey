@@ -17,6 +17,9 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 		return usage(opts, cfg.lang, "help")
 	}
 	sub, rest := args[0], args[1:]
+	if rc, ok := checkFlags(opts, cfg, rest, "schedule "+sub); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(rest, "--json")
 
 	switch sub {
@@ -104,6 +107,9 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 		}
 		for _, res := range rep.Results {
 			fmt.Fprintf(opts.Out, "%s job=%s result=%s %s\n", res.At, res.Job, res.Result, res.Detail)
+		}
+		if rep.LogWarning != "" {
+			fmt.Fprintf(opts.Err, "log warning: %s\n", rep.LogWarning)
 		}
 		return code
 	case "alert":

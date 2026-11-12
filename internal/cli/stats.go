@@ -15,6 +15,9 @@ import (
 // statsCommand implements the read-only `--stats` replacement. It queries the
 // running Xray API with reset=false, so it never mutates counters or files.
 func statsCommand(ctx context.Context, opts Options, cfg config, args []string) int {
+	if rc, ok := checkFlags(opts, cfg, args, "stats"); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	// The legacy `--stats` flag required root; keeping the same exit code and
 	// boundary avoids silently widening what a non-root caller can query on a
@@ -23,13 +26,34 @@ func statsCommand(ctx context.Context, opts Options, cfg config, args []string) 
 		fmt.Fprint(opts.Err, "stats query requires root\n")
 		return 5
 	}
-	rel := "etc/idleleo/conf/xray/config.json"
-	if v := flagValue(args, "--path"); v != "" {
-		// An absolute --path is interpreted relative to the explicit root, the
-		// same rule every other read-only command follows.
-		rel = strings.TrimPrefix(filepath.Clean(v), "/")
+	timeout := 30 * time.Second
+	if v := flagValue(args, "--timeout"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil || d <= 0 {
+			fmt.Fprint(opts.Err, "invalid --timeout\n")
+			return 2
+		}
+		timeout = d
 	}
-	cfgPath := filepath.Join(cfg.root, rel)
+	paths, err := host.NewPaths(cfg.root)
+	if err != nil {
+		return fail(opts, cfg, err)
+	}
+	rel := paths.RuntimeConfig()
+	if v := flagValue(args, "--path"); v != "" {
+		// --path follows the same rule as every other read-only override: it is
+		// relative to --root, never an absolute host path, and ".." is refused.
+		rel = v
+	}
+	cfgPath, err := paths.Join(rel, false)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Fprintf(opts.Err, "stats unavailable: no runtime config at %s\n", filepath.Join(cfg.root, filepath.Clean(rel)))
+			return 3
+		}
+		fmt.Fprintf(opts.Err, "stats --path must be a relative path inside --root (%s)\n", err)
+		return 2
+	}
 	b, err := os.ReadFile(cfgPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -52,12 +76,6 @@ func statsCommand(ctx context.Context, opts Options, cfg config, args []string) 
 	pattern := flagValue(args, "--pattern")
 	if pattern == "" {
 		pattern = "inbound>>>"
-	}
-	timeout := 30 * time.Second
-	if v := flagValue(args, "--timeout"); v != "" {
-		if d, err := time.ParseDuration(v); err == nil && d > 0 {
-			timeout = d
-		}
 	}
 	res, err := host.Run(ctx, host.ExecSpec{
 		Path:    "xray",

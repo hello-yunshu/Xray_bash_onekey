@@ -120,6 +120,9 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		fmt.Fprintf(opts.Out, i18n.T(cfg.lang, "version"), Version)
 		return 0
 	case "status":
+		if rc, ok := checkFlags(opts, cfg, args, "status"); ok && rc != 0 {
+			return rc
+		}
 		cfg.json = cfg.json || hasFlag(args, "--json")
 		report, err := a.Status(ctx)
 		if err != nil {
@@ -142,6 +145,9 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		}
 		return 0
 	case "show", "-s", "--show":
+		if rc, ok := checkFlags(opts, cfg, args, "show"); ok && rc != 0 {
+			return rc
+		}
 		if paths.Root == "/" && os.Geteuid() != 0 {
 			return fail(opts, cfg, &store.Error{Kind: store.KindPermission, Msg: "root required"})
 		}
@@ -191,6 +197,9 @@ func configCommand(opts Options, cfg config, a *app.App, args []string) int {
 	if len(args) == 0 || args[0] != "inspect" {
 		return usage(opts, cfg.lang, "help")
 	}
+	if rc, ok := checkFlags(opts, cfg, args[1:], "config inspect"); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	view, err := a.Inspect(flagValue(args, "--path"))
 	if err != nil {
@@ -215,8 +224,14 @@ func changeCommand(ctx context.Context, opts Options, cfg config, a *app.App, ar
 	}
 	switch args[0] {
 	case "recover":
+		if rc, ok := checkFlags(opts, cfg, args[1:], "change recover"); ok && rc != 0 {
+			return rc
+		}
 		return changeRecover(ctx, opts, cfg, a, args[1:])
 	case "set-inbound-port":
+		if rc, ok := checkFlags(opts, cfg, args[1:], "change set-inbound-port"); ok && rc != 0 {
+			return rc
+		}
 	default:
 		return usage(opts, cfg.lang, "help")
 	}
@@ -457,8 +472,9 @@ func announceFallback(opts Options, lang string) {
 }
 
 func hasFlag(args []string, name string) bool {
+	want := strings.TrimLeft(name, "-")
 	for _, a := range args {
-		if a == name {
+		if n, _, _, isFlag := splitFlagToken(a); isFlag && n == want {
 			return true
 		}
 	}
@@ -466,8 +482,16 @@ func hasFlag(args []string, name string) bool {
 }
 
 func flagValue(args []string, name string) string {
+	want := strings.TrimLeft(name, "-")
 	for i, a := range args {
-		if a == name && i+1 < len(args) {
+		n, inline, hasInline, isFlag := splitFlagToken(a)
+		if !isFlag || n != want {
+			continue
+		}
+		if hasInline {
+			return inline
+		}
+		if i+1 < len(args) {
 			return args[i+1]
 		}
 	}
