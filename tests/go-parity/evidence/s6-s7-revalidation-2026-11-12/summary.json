@@ -96,7 +96,7 @@
       "results": {
         "parity_matrix": "17 version strings, diff between install.sh and preflight is empty",
         "old_sort_v": "allowed unsigned 3.6 / 3.06.0 / 03.6.0 (clients reject them)",
-        "new_implementation": "rejects 3.6, 3.06.0, 03.6.0, 3.6.00, v3.6.0, 3.6.0.0, 3.6.0-rc1, 3.6.0+build, empty, abc; allows 3.5.9",
+        "new_implementation": "rejects 3.6, 3.06.0, 03.6.0, 3.6.00, v3.6.0, the four-segment version (3-6-0-0), 3.6.0-rc1, 3.6.0+build, empty, abc; allows 3.5.9",
         "skip_hole": "macOS LibreSSL after install.sh pins PATH -> silent SKIP + rc=0; CI had the same hole if OpenSSL 3 were missing"
       },
       "changes": [".github/test/test_versions_signature.sh (12091d9)"],

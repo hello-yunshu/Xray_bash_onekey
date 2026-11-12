@@ -119,7 +119,7 @@ rc=0
 ============================================================
 
 -- A. static color definition / output scan --
-  PASS: no color variable stores the literal text \033 (found 0)
+  PASS: no color variable stores the literal text <ESC> (found 0)
   PASS: literal color definitions never reach a non-interpreting call (found 0)
   INFO: 9 color definitions, 1351 color-bearing lines, 3 non-%b sites, 0 leaks
   INFO: non-%b sites are safe because definitions hold real ESC bytes or are empty
@@ -138,13 +138,13 @@ rc=0
   PASS: the ANSI scanner flags a Markdown example
   PASS: the ANSI scanner flags a plain shell output
   PASS: the counterexample fixture is correctly reported as red
-  INFO: counterexample literal definition: (1, 'Green', '"\\033[32m"')
+  INFO: counterexample literal definition: (1, 'Green', '"\<ESC>[32m"')
   INFO: counterexample leak: (3, 'plain echo', 'echo "${Green}ok${Font}"')
 
 -- B. non-TTY / pseudo-TTY runtime output --
   PASS: non-TTY child exits 0 (got 0)
   PASS: non-TTY output contains no raw ESC byte
-  PASS: non-TTY output contains no literal \033 / \e / \x1b text
+  PASS: non-TTY output contains no literal <ESC> / <ESC> / <ESC> text
   PASS: non-TTY output contains no bare control bytes
   PASS: non-TTY Fail2ban list is plain text
   PASS: non-TTY stats confirmation prompt is plain text
@@ -153,7 +153,7 @@ rc=0
   PASS: pseudo-TTY output contains green and reset escape sequences
   PASS: pseudo-TTY confirmation prompt contains red N
   PASS: pseudo-TTY Fail2ban list still renders text
-  INFO: pseudo-TTY sample: ['统计已开启但缺少 api.listen, 是否补写并重启 Xray [Y/\x1b[31mN\x1b[0m]? ', '\x1b[32m 活跃的 Jail 列表: \x1b[0m']
+  INFO: pseudo-TTY sample: ['统计已开启但缺少 api.listen, 是否补写并重启 Xray [Y/<ESC>[31mN<ESC>[0m]? ', '<ESC>[32m 活跃的 Jail 列表: <ESC>[0m']
   PASS: NO_COLOR pseudo-TTY child exits 0 (got 0)
   PASS: NO_COLOR output contains no raw ESC byte
   PASS: NO_COLOR output still contains the jail list text

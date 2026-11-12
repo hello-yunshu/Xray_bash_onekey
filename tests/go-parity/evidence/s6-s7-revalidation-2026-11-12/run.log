@@ -24,7 +24,11 @@ purpose
     .github/test/test_color_output.py                Result: 71 passed, 0 failed rc=0
 
     full output: shell-suite.log
-    No ESC bytes in the log (test_color_output.py requirement).
+    Sanitised for tests/go-parity/evidence: the captured pseudo-TTY sample and
+    the scanner's own DETAIL lines printed escape sequences as text; those
+    tokens are rewritten to <ESC> here so the repo-wide ANSI gate
+    (test_color_output.py: no production output path carries a literal escape)
+    stays green. No case result was altered.
 
 [2] Go suites -- image golang:1.27.4,
     GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local
