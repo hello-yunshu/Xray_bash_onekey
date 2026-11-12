@@ -203,6 +203,64 @@ func TestStatusCommandShowsScheduledAlert(t *testing.T) {
 	}
 }
 
+// TestStatusSeparatesNoAlertsFromUnreadableStore covers the three states the
+// status command has to distinguish. A broken alert store used to render as an
+// empty alert list, which is indistinguishable from "no alerts".
+func TestStatusSeparatesNoAlertsFromUnreadableStore(t *testing.T) {
+	healthy := fixture(t)
+	code, out, errOut := run(t, "--root", healthy, "status")
+	if code != 0 {
+		t.Fatalf("healthy status: %d %s", code, errOut)
+	}
+	if strings.Contains(out, "alerts: unreadable") {
+		t.Fatalf("healthy output claims an unreadable store: %q", out)
+	}
+	code, out, errOut = run(t, "--root", healthy, "--json", "status")
+	if code != 0 {
+		t.Fatalf("healthy json status: %d %s", code, errOut)
+	}
+	if strings.Contains(out, "alertsUnreadable") {
+		t.Fatalf("healthy json grew a new field: %q", out)
+	}
+
+	broken := fixture(t)
+	// A regular file where the alerts directory belongs is unreadable even as
+	// root, and keeps the failure reproducible in the test container.
+	if err := os.WriteFile(filepath.Join(broken, "etc/idleleo/alerts"), []byte("not a directory"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	code, out, errOut = run(t, "--root", broken, "status")
+	if code != 1 {
+		t.Fatalf("unreadable store must exit 1: code=%d out=%s err=%s", code, out, errOut)
+	}
+	if !strings.Contains(out, "alerts: unreadable:") {
+		t.Fatalf("output=%q", out)
+	}
+	code, out, errOut = run(t, "--root", broken, "--json", "status")
+	if code != 1 {
+		t.Fatalf("unreadable store json must exit 1: code=%d out=%s err=%s", code, out, errOut)
+	}
+	if !strings.Contains(out, `"alertsUnreadable": true`) {
+		t.Fatalf("json=%q", out)
+	}
+}
+
+// TestScheduleStatusExitReflectsUnreadableAlerts keeps the schedule status
+// command script-visible for the same reason.
+func TestScheduleStatusExitReflectsUnreadableAlerts(t *testing.T) {
+	root := fixture(t)
+	if err := os.WriteFile(filepath.Join(root, "etc/idleleo/alerts"), []byte("not a directory"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	code, out, errOut := run(t, "--root", root, "schedule", "status")
+	if code != 1 {
+		t.Fatalf("schedule status: code=%d out=%s err=%s", code, out, errOut)
+	}
+	if !strings.Contains(out, "alerts=unreadable ") {
+		t.Fatalf("output=%q", out)
+	}
+}
+
 func TestScheduleAlertCommandWritesAlert(t *testing.T) {
 	root := fixture(t)
 	code, out, errOut := run(t, "--root", root, "schedule", "alert", "--job", "cert-renew", "--detail", "boom")
@@ -218,6 +276,22 @@ func TestScheduleAlertCommandWritesAlert(t *testing.T) {
 	}
 	if !strings.Contains(string(b), "boom") || !strings.Contains(string(b), `"result": "failed"`) {
 		t.Fatalf("alert=%s", b)
+	}
+}
+
+// TestScheduleAlertCommandFailsWhenAlertIsLost: the OnFailure unit must not
+// report success when the alert never reached disk.
+func TestScheduleAlertCommandFailsWhenAlertIsLost(t *testing.T) {
+	root := fixture(t)
+	if err := os.WriteFile(filepath.Join(root, "etc/idleleo/alerts"), []byte("not a directory"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	code, _, errOut := run(t, "--root", root, "schedule", "alert", "--job", "cert-renew", "--detail", "boom")
+	if code != 1 {
+		t.Fatalf("lost alert must exit 1: code=%d err=%s", code, errOut)
+	}
+	if !strings.Contains(errOut, "persist alert cert-renew") {
+		t.Fatalf("stderr=%q", errOut)
 	}
 }
 

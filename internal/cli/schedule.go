@@ -115,11 +115,20 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 		if detail == "" {
 			detail = "scheduled job failed"
 		}
-		a := schedule.RecordAlert(ctx, cfg.root, job, detail, time.Now().UTC().Format(time.RFC3339))
+		a, alertErr := schedule.RecordAlert(ctx, cfg.root, job, detail, time.Now().UTC().Format(time.RFC3339))
 		if cfg.json {
-			return writeJSON(opts, a)
+			if rc := writeJSON(opts, a); rc != 0 {
+				return rc
+			}
+		} else {
+			fmt.Fprintf(opts.Out, "alert=%s result=%s webhook=%s\n", a.Job, a.Result, a.Webhook)
 		}
-		fmt.Fprintf(opts.Out, "alert=%s result=%s webhook=%s\n", a.Job, a.Result, a.Webhook)
+		if alertErr != nil {
+			// An alert that never reached disk is a lost alert: fail so systemd
+			// records it instead of reporting a successful alert unit.
+			fmt.Fprint(opts.Err, alertErr.Error()+"\n")
+			return 1
+		}
 		return 0
 	case "status":
 		rep, err := schedule.Status(ctx, cfg.root)
@@ -128,10 +137,16 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 			return 1
 		}
 		if cfg.json {
-			return writeJSON(opts, rep)
+			if rc := writeJSON(opts, rep); rc != 0 {
+				return rc
+			}
+		} else {
+			for _, line := range rep.SummaryLines() {
+				fmt.Fprintln(opts.Out, line)
+			}
 		}
-		for _, line := range rep.SummaryLines() {
-			fmt.Fprintln(opts.Out, line)
+		if rep.AlertsUnreadable {
+			return 1
 		}
 		return 0
 	default:

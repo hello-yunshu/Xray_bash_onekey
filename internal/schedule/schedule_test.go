@@ -351,6 +351,11 @@ func TestCertRenewJobStaysFailedWhenAlertCannotBePersisted(t *testing.T) {
 	if !strings.Contains(res.Detail, "acme boom") {
 		t.Fatalf("detail=%q", res.Detail)
 	}
+	// A lost alert used to be invisible outside the journal; the job detail
+	// must now carry the persistence failure.
+	if !strings.Contains(res.Detail, "alert not persisted") {
+		t.Fatalf("persistence failure was swallowed: detail=%q", res.Detail)
+	}
 }
 
 func TestCertRenewJobSuccessClearsAlert(t *testing.T) {
@@ -446,6 +451,99 @@ func TestStatusReturnsAlertsWhenConfigIsBroken(t *testing.T) {
 	}
 	lines := rep.SummaryLines()
 	if len(lines) == 0 || !strings.HasPrefix(lines[0], "alert=cert-renew") {
+		t.Fatalf("summary=%v", lines)
+	}
+}
+
+// TestWriteAlertReturnsPersistenceError is the red test for the swallowed
+// error: with persistence forced to fail, WriteAlert must report it instead of
+// returning a healthy alert and leaving the caller to guess.
+func TestWriteAlertReturnsPersistenceError(t *testing.T) {
+	root := sandbox(t)
+	// A regular file where the alerts directory belongs makes MkdirAll fail
+	// even when the tests run as root (chmod alone would be bypassed).
+	write(t, root, AlertsDirRel, "not a directory", 0o600)
+
+	a, err := WriteAlert(context.Background(), root, Config{}, "cert-renew", "failed", "boom", "2026-11-12T00:00:00Z")
+	if err == nil {
+		t.Fatal("WriteAlert swallowed the persistence failure")
+	}
+	if !strings.Contains(err.Error(), "persist alert cert-renew") {
+		t.Fatalf("err=%q", err)
+	}
+	// The in-memory alert is still returned so callers can log or forward it.
+	if a.Job != "cert-renew" || a.Result != "failed" || a.Detail != "boom" {
+		t.Fatalf("alert=%+v", a)
+	}
+}
+
+// TestAlertsDistinguishesMissingFromUnreadable covers the three states that
+// `idleleo status` has to tell apart: no alerts yet, alerts present, and a
+// store that failed to read. Dropping the error return makes the third case
+// look identical to the first.
+func TestAlertsDistinguishesMissingFromUnreadable(t *testing.T) {
+	if got, err := Alerts(sandbox(t)); err != nil || len(got) != 0 {
+		t.Fatalf("missing directory must mean no alerts: alerts=%+v err=%v", got, err)
+	}
+
+	root := sandbox(t)
+	write(t, root, AlertsDirRel+"/cert-renew.json",
+		`{"schemaVersion":1,"job":"cert-renew","result":"failed","detail":"x","at":"2026-11-12T00:00:00Z"}`, 0o640)
+	got, err := Alerts(root)
+	if err != nil || len(got) != 1 || got[0].Job != "cert-renew" {
+		t.Fatalf("healthy store: alerts=%+v err=%v", got, err)
+	}
+
+	root = sandbox(t)
+	write(t, root, AlertsDirRel+"/cert-renew.json",
+		`{"schemaVersion":1,"job":"cert-renew","result":"failed","detail":"x","at":"2026-11-12T00:00:00Z"}`, 0o640)
+	write(t, root, AlertsDirRel+"/stats-collect.json", "{not json", 0o640)
+	got, err = Alerts(root)
+	if err == nil {
+		t.Fatal("corrupt alert file was silently skipped")
+	}
+	if !strings.Contains(err.Error(), "parse alert stats-collect.json") {
+		t.Fatalf("err=%q", err)
+	}
+	if len(got) != 1 || got[0].Job != "cert-renew" {
+		t.Fatalf("readable alerts must survive: %+v", got)
+	}
+
+	root = sandbox(t)
+	write(t, root, AlertsDirRel, "not a directory", 0o600)
+	if got, err := Alerts(root); err == nil || !strings.Contains(err.Error(), "read alerts directory") {
+		t.Fatalf("unreadable directory: alerts=%+v err=%v", got, err)
+	}
+}
+
+// TestStatusMarksUnreadableAlertStore keeps the healthy status output intact
+// while making a broken alert store visible to scripts.
+func TestStatusMarksUnreadableAlertStore(t *testing.T) {
+	healthy := sandbox(t)
+	rep, err := Status(context.Background(), healthy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rep.AlertsUnreadable || rep.AlertsError != "" {
+		t.Fatalf("healthy store flagged: %+v", rep)
+	}
+	for _, line := range rep.SummaryLines() {
+		if strings.HasPrefix(line, "alerts=unreadable") {
+			t.Fatalf("healthy summary says unreadable: %v", rep.SummaryLines())
+		}
+	}
+
+	broken := sandbox(t)
+	write(t, broken, AlertsDirRel, "not a directory", 0o600)
+	rep, err = Status(context.Background(), broken)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !rep.AlertsUnreadable || rep.AlertsError == "" {
+		t.Fatalf("unreadable store not reported: %+v", rep)
+	}
+	lines := rep.SummaryLines()
+	if len(lines) == 0 || !strings.HasPrefix(lines[0], "alerts=unreadable ") {
 		t.Fatalf("summary=%v", lines)
 	}
 }

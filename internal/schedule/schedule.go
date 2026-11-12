@@ -583,9 +583,13 @@ var (
 	reloadServices   = reloadForCert
 )
 
-// certFailure records a durable alert and returns the failed job result.
+// certFailure records a durable alert and returns the failed job result. A
+// persistence failure never downgrades the result, but it is appended to the
+// detail so `schedule run` output carries the loss instead of hiding it.
 func certFailure(ctx context.Context, root string, cfg Config, at, detail string) JobResult {
-	_ = WriteAlert(ctx, root, cfg, "cert-renew", "failed", detail, at)
+	if _, err := WriteAlert(ctx, root, cfg, "cert-renew", "failed", detail, at); err != nil {
+		detail += "; alert not persisted: " + err.Error()
+	}
 	return JobResult{Job: "cert-renew", Result: "failed", At: at, Detail: detail}
 }
 
@@ -901,21 +905,35 @@ type StatusReport struct {
 	ReleaseChannel  bool     `json:"releaseChannelConfigured"`
 	State           State    `json:"state"`
 	Alerts          []Alert  `json:"alerts,omitempty"`
-	LastLogLine     string   `json:"lastLogLine,omitempty"`
+	// AlertsUnreadable distinguishes "no alerts" from "alerts could not be
+	// read". Both used to print nothing, so a lost alert was invisible.
+	AlertsUnreadable bool   `json:"alertsUnreadable,omitempty"`
+	AlertsError      string `json:"alertsError,omitempty"`
+	LastLogLine      string `json:"lastLogLine,omitempty"`
+}
+
+// alertErrText renders an alerts read failure for the report. It returns "" so
+// the healthy path keeps its existing JSON and text output byte-for-byte.
+func alertErrText(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
 }
 
 // Status reads the units, config and state without writing.
 func Status(ctx context.Context, root string) (StatusReport, error) {
 	// Alerts are loaded before anything that can fail so `idleleo status` still
 	// surfaces a failed renewal even when metadata or config is unreadable.
-	alerts := Alerts(root)
+	alerts, alertsErr := Alerts(root)
 	cfg, err := loadConfig(root)
 	if err != nil {
-		return StatusReport{SchemaVersion: SchemaVersion, Alerts: alerts}, err
+		return StatusReport{SchemaVersion: SchemaVersion, Alerts: alerts, AlertsUnreadable: alertsErr != nil, AlertsError: alertErrText(alertsErr)}, err
 	}
 	report := StatusReport{
 		SchemaVersion: SchemaVersion, IntervalSeconds: cfg.IntervalSeconds,
 		Jobs: cfg.Jobs, DegradedJobs: DegradedJobs, Alerts: alerts,
+		AlertsUnreadable: alertsErr != nil, AlertsError: alertErrText(alertsErr),
 		UnitPath: path(root, UnitRel), TimerPath: path(root, TimerRel),
 		Timer: "not-installed", State: State{SchemaVersion: SchemaVersion, Jobs: map[string]JobState{}},
 	}
@@ -954,6 +972,9 @@ func Status(ctx context.Context, root string) (StatusReport, error) {
 // SummaryLines renders a compact status for the CLI.
 func (r StatusReport) SummaryLines() []string {
 	out := []string{}
+	if r.AlertsUnreadable {
+		out = append(out, "alerts=unreadable "+r.AlertsError)
+	}
 	for _, a := range r.Alerts {
 		out = append(out, fmt.Sprintf("alert=%s result=%s at=%s %s", a.Job, a.Result, a.At, a.Detail))
 	}

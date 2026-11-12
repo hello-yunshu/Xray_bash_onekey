@@ -125,13 +125,21 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		if err != nil {
 			if !cfg.json {
 				printAlerts(opts.Out, report.Alerts)
+				printAlertsUnreadable(opts.Out, report.AlertsUnreadable, report.AlertsError)
 			}
 			return fail(opts, cfg, err)
 		}
 		if cfg.json {
-			return writeJSON(opts, report)
+			if rc := writeJSON(opts, report); rc != 0 {
+				return rc
+			}
+		} else {
+			printStatus(opts.Out, report)
 		}
-		printStatus(opts.Out, report)
+		if report.AlertsUnreadable {
+			// A broken alert store is not a clean state; make it script-visible.
+			return 1
+		}
 		return 0
 	case "show", "-s", "--show":
 		if paths.Root == "/" && os.Geteuid() != 0 {
@@ -320,8 +328,17 @@ func printAlerts(out io.Writer, alerts []schedule.Alert) {
 	}
 }
 
+// printAlertsUnreadable emits a line only when the alert store itself failed,
+// so the healthy output stays byte-identical while scripts can grep this.
+func printAlertsUnreadable(out io.Writer, unreadable bool, errText string) {
+	if unreadable {
+		fmt.Fprintf(out, "alerts: unreadable: %s\n", errText)
+	}
+}
+
 func printStatus(out io.Writer, r app.StatusReport) {
 	printAlerts(out, r.Alerts)
+	printAlertsUnreadable(out, r.AlertsUnreadable, r.AlertsError)
 	fmt.Fprintf(out, "installed: %t\nengine: %s\nrole: %s\ntls: %s\ntransport: %s\n",
 		r.Installed, r.Engine, r.Role, r.TLS, r.Transport)
 	fmt.Fprintf(out, "config: %s\nsha256: %s\nmatchesMetadata: %t\n", r.Config.Path, r.Config.SHA256, r.Config.MatchesMetadata)

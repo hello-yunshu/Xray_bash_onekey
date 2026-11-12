@@ -37,6 +37,10 @@ type StatusReport struct {
 	Drift         []string             `json:"drift"`
 	Warnings      []string             `json:"warnings"`
 	Alerts        []schedule.Alert     `json:"alerts,omitempty"`
+	// AlertsUnreadable marks a read failure rather than an empty alert list, so
+	// a script can tell "nothing wrong" apart from "the alert store is broken".
+	AlertsUnreadable bool   `json:"alertsUnreadable,omitempty"`
+	AlertsError      string `json:"alertsError,omitempty"`
 }
 
 // ConfigStatus is the runtime config fingerprint comparison.
@@ -50,9 +54,13 @@ type ConfigStatus struct {
 func (a *App) Status(ctx context.Context) (StatusReport, error) {
 	// Alerts are loaded first and attached to every return path so a failed
 	// renewal stays visible even when metadata or config cannot be read.
-	alerts := schedule.Alerts(a.Paths.Root)
+	alerts, alertsErr := schedule.Alerts(a.Paths.Root)
 	withAlerts := func(r StatusReport) StatusReport {
 		r.Alerts = alerts
+		if alertsErr != nil {
+			r.AlertsUnreadable = true
+			r.AlertsError = alertsErr.Error()
+		}
 		return r
 	}
 	meta, _, err := store.LoadMetadata(a.Paths)
@@ -69,6 +77,10 @@ func (a *App) Status(ctx context.Context) (StatusReport, error) {
 		Config:  ConfigStatus{Path: path},
 		Service: runtime.InspectServices(ctx, a.Paths.Root),
 		Drift:   []string{}, Warnings: []string{}, Alerts: alerts,
+	}
+	if alertsErr != nil {
+		report.AlertsUnreadable = true
+		report.AlertsError = alertsErr.Error()
 	}
 	// Relay installations have no Xray runtime config; status must still work
 	// so the bridge can pre-validate a converted relay metadata.

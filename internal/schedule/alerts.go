@@ -35,23 +35,28 @@ func alertRel(job string) string {
 }
 
 // WriteAlert persists the alert and, when configured, POSTs it to the webhook.
-// Persistence errors are ignored: an alert must never turn a job result into a
-// crash, and the caller still returns the original failure.
-func WriteAlert(ctx context.Context, root string, cfg Config, job, result, detail, at string) Alert {
+// The persisted file is the only durable signal `idleleo status` can read, so an
+// encoding or write failure is returned instead of being swallowed: callers must
+// be able to tell "no alert" apart from "alert lost".
+func WriteAlert(ctx context.Context, root string, cfg Config, job, result, detail, at string) (Alert, error) {
 	a := Alert{SchemaVersion: SchemaVersion, Job: job, Result: result, Detail: detail, At: at}
 	if cfg.AlertWebhook != "" {
 		a.Webhook = postAlertWebhook(ctx, cfg.AlertWebhook, a)
 	}
-	if b, err := json.MarshalIndent(a, "", "  "); err == nil {
-		_ = writeAtomic(path(root, alertRel(job)), append(b, '\n'), 0o640)
+	b, err := json.MarshalIndent(a, "", "  ")
+	if err != nil {
+		return a, fmt.Errorf("encode alert %s: %w", job, err)
 	}
-	return a
+	if err := writeAtomic(path(root, alertRel(job)), append(b, '\n'), 0o640); err != nil {
+		return a, fmt.Errorf("persist alert %s: %w", job, err)
+	}
+	return a, nil
 }
 
 // RecordAlert loads the persisted config and writes a failed-job alert. It is
 // used by the systemd OnFailure hook (`schedule alert`) and by callers that do
 // not already hold a Config.
-func RecordAlert(ctx context.Context, root, job, detail, at string) Alert {
+func RecordAlert(ctx context.Context, root, job, detail, at string) (Alert, error) {
 	cfg, _ := loadConfig(root)
 	return WriteAlert(ctx, root, cfg, job, "failed", detail, at)
 }
@@ -65,30 +70,49 @@ func ClearAlert(root, job string) error {
 	return err
 }
 
-// Alerts returns every readable alert, sorted by job name.
-func Alerts(root string) []Alert {
+// Alerts returns every readable alert, sorted by job name. A missing alert
+// directory means "no alerts yet" and is not an error. Any other failure (an
+// unreadable directory, or an unreadable/corrupt alert file) is returned as
+// well as the alerts that did parse, because silently dropping a record would
+// make a lost alert look exactly like a clean state.
+func Alerts(root string) ([]Alert, error) {
 	dir := path(root, AlertsDirRel)
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("read alerts directory: %w", err)
 	}
 	out := []Alert{}
+	var firstErr error
+	note := func(err error) {
+		if firstErr == nil {
+			firstErr = err
+		}
+	}
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
 			continue
 		}
 		b, err := os.ReadFile(filepath.Join(dir, entry.Name()))
 		if err != nil {
+			note(fmt.Errorf("read alert %s: %w", entry.Name(), err))
 			continue
 		}
 		var a Alert
-		if json.Unmarshal(b, &a) != nil || a.Job == "" {
+		if err := json.Unmarshal(b, &a); err != nil {
+			note(fmt.Errorf("parse alert %s: %w", entry.Name(), err))
+			continue
+		}
+		if a.Job == "" {
+			note(fmt.Errorf("parse alert %s: missing job", entry.Name()))
 			continue
 		}
 		out = append(out, a)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Job < out[j].Job })
-	return out
+	return out, firstErr
 }
 
 func postAlertWebhook(ctx context.Context, url string, a Alert) string {
