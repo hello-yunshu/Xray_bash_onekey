@@ -12,6 +12,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
@@ -761,6 +762,26 @@ func certDirWarning(paths host.Paths) string {
 	return ""
 }
 
+// certDirForWorkerAssertion resolves the certificate directory through a
+// symlink so the worker readability assertion still runs. Bash dereferences
+// the same path when it proves `idleleo-nginx` can read the key, so skipping
+// the check here would hide a broken TLS front.
+func certDirForWorkerAssertion(paths host.Paths) string {
+	literal := filepath.Join(paths.Root, CertDirRel)
+	if _, err := os.Lstat(literal); err != nil {
+		return ""
+	}
+	resolved, err := filepath.EvalSymlinks(literal)
+	if err != nil {
+		return ""
+	}
+	info, err := os.Stat(resolved)
+	if err != nil || !info.IsDir() {
+		return ""
+	}
+	return resolved
+}
+
 // VerifyLayeredPermissions asserts the effective ownership and mode of the
 // managed tree. Bash fails the install when these drift; without this check a
 // partially applied chown/chmod still reports success and the worker may be
@@ -785,12 +806,14 @@ func VerifyLayeredPermissions(ctx context.Context, root string) error {
 		return err
 	}
 	certDir, certErr := paths.Join(CertDirRel, false)
+	assertDir := certDir
 	if certErr != nil {
 		// ApplyLayeredPermissions reports an unresolvable certificate
 		// directory as a warning, so verification must not hard-fail on the
 		// same condition (for example an operator-managed symlink). The
-		// readability assertion below still checks it.
+		// readability assertion below still resolves and checks it.
 		certDir = ""
+		assertDir = certDirForWorkerAssertion(paths)
 	}
 	chown := paths.Root == "/"
 	uid, gid := workerIDs()
@@ -881,9 +904,10 @@ func VerifyLayeredPermissions(ctx context.Context, root string) error {
 		}
 	}
 	// The worker must be able to read the TLS key and must not be able to
-	// rewrite it. This is the Bash runuser assertion.
-	if chown && certDir != "" {
-		key := filepath.Join(certDir, "xray.key")
+	// rewrite it. This is the Bash runuser assertion. assertDir follows a
+	// symlinked certificate directory so the check is never skipped.
+	if chown && assertDir != "" {
+		key := filepath.Join(assertDir, "xray.key")
 		if _, statErr := os.Lstat(key); statErr == nil {
 			if err := runAsWorker(ctx, "test", "-r", key); err != nil {
 				return fmt.Errorf("%s cannot read %s: %w", WorkerUser, key, err)
@@ -1003,6 +1027,11 @@ func repairManagedState(ctx context.Context, paths host.Paths, installDir string
 			return false, err
 		}
 		changed = true
+	}
+	// A same-build reinstall skips the apply step above when nothing drifted,
+	// so the symlinked-certificate warning must be reported here as well.
+	if warning := certDirWarning(paths); warning != "" && !slices.Contains(rep.Warnings, warning) {
+		rep.Warnings = append(rep.Warnings, warning)
 	}
 	return changed, nil
 }

@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 )
 
 const sampleMainConf = `#user  nobody;
@@ -207,6 +209,68 @@ func TestInstallSkipsSameBuild(t *testing.T) {
 	if b, _ := os.ReadFile(mainPath); string(b) != edited {
 		t.Fatalf("same-build reinstall must not rewrite an intact live config: %q", b)
 	}
+}
+
+func TestCertDirForWorkerAssertionFollowsSymlink(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "cert-target")
+	if err := os.MkdirAll(target, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "etc", "idleleo"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, CertDirRel)
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatal(err)
+	}
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := certDirForWorkerAssertion(paths); got != target {
+		t.Fatalf("assertion dir = %q, want resolved %q", got, target)
+	}
+	if warning := certDirWarning(paths); !strings.Contains(warning, "symlink refused") {
+		t.Fatalf("symlinked certificate directory must warn, got %q", warning)
+	}
+
+	empty, err := host.NewPaths(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if warning := certDirWarning(empty); warning != "" {
+		t.Fatalf("missing certificate directory must not warn, got %q", warning)
+	}
+}
+
+func TestSameBuildRepairWarnsOnSymlinkedCertDir(t *testing.T) {
+	stubRuntime(t)
+	root := t.TempDir()
+	art := sampleArtifact(t)
+	if _, err := Install(context.Background(), InstallSpec{Root: root, Artifact: art, NoService: true}); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(root, "cert-target")
+	if err := os.MkdirAll(target, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(target, filepath.Join(root, CertDirRel)); err != nil {
+		t.Fatal(err)
+	}
+	rep, err := Install(context.Background(), InstallSpec{Root: root, Artifact: art, NoService: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !rep.AlreadyInstalled {
+		t.Fatalf("second install must take the repair path: %+v", rep)
+	}
+	for _, warning := range rep.Warnings {
+		if strings.Contains(warning, "symlink refused") {
+			return
+		}
+	}
+	t.Fatalf("repair path must warn about the symlinked certificate directory: %v", rep.Warnings)
 }
 
 func TestUninstallRemovesManagedLayout(t *testing.T) {
