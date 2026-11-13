@@ -1,0 +1,150 @@
+#!/usr/bin/expect -f
+# Drives the REAL interactive install.sh (bash side) for the e2e-diff suite.
+#
+# Derived from tests/go-parity/a2/drive_install.exp, extended with the TLS
+# (self-signed cert preseeded) and relay branches. a2 itself stays untouched.
+#
+# Contract:
+#   * every answer is sent only after its own read prompt has been matched;
+#     there are no blind carriage returns;
+#   * `step` is used only where a generic "请输入:" read follows a unique
+#     section header; `ask` matches the unique prompt line itself and answers
+#     immediately (the read is already blocked at that point);
+#   * any unmatched prompt, unexpected main menu, EOF-before-prompt or timeout
+#     exits 124 and is reported as HARNESS-ERROR, never as a business result.
+#
+# Environment:
+#   E2E_LOG         transcript path (append)
+#   E2E_PROFILE     reality | tls | relay
+#   E2E_INSTALL_ARG e.g. -2 / -1 / --install-relay
+#   E2E_DOMAIN      domain (tls)
+#   E2E_TARGET      reality target domain
+#   E2E_PORT        public port
+#   E2E_LOCAL_IP    manual host for the TLS domain check
+#   E2E_RELAY_HOST  relay backend host
+#   E2E_RELAY_PORT  relay backend port
+
+set timeout 900
+
+set logf $env(E2E_LOG)
+log_file -a $logf
+
+set profile $env(E2E_PROFILE)
+set install_arg $env(E2E_INSTALL_ARG)
+set domain $env(E2E_DOMAIN)
+set target $env(E2E_TARGET)
+set port $env(E2E_PORT)
+set local_ip $env(E2E_LOCAL_IP)
+set relay_host $env(E2E_RELAY_HOST)
+set relay_port $env(E2E_RELAY_PORT)
+
+proc harness_error {msg} {
+    puts "HARNESS-ERROR: $msg"
+    exit 124
+}
+
+# step <header-regex> <prompt-regex> <answer> <label>
+# Two-stage: the header uniquely identifies the section, then the generic read
+# prompt (typically "请输入:") is answered.
+proc step {header prompt answer label} {
+    expect {
+        -re $header { }
+        eof { harness_error "$label: eof before header '$header'" }
+        timeout { harness_error "$label: timeout waiting header '$header'" }
+    }
+    expect {
+        -re $prompt {
+            send "$answer\r"
+            puts "STEP\[$label\]=$answer"
+        }
+        eof { harness_error "$label: eof before prompt '$prompt'" }
+        timeout { harness_error "$label: timeout waiting prompt '$prompt'" }
+    }
+}
+
+# ask <prompt-regex> <answer> <label>
+# The prompt line is itself the read point; match once and answer once.
+proc ask {prompt answer label} {
+    expect {
+        -re $prompt {
+            send "$answer\r"
+            puts "STEP\[$label\]=$answer"
+        }
+        eof { harness_error "$label: eof before prompt '$prompt'" }
+        timeout { harness_error "$label: timeout waiting prompt '$prompt'" }
+    }
+}
+
+puts "PROFILE=$profile ARG=$install_arg"
+spawn bash /src/install.sh $install_arg
+
+if {$profile eq "reality"} {
+    # ip_check prints a numbered menu and then reads with a generic prompt.
+    step {确定公网IP信息} {请输入[:：]} 2 ip
+
+    ask {请输入端口} $port port
+    ask {是否需要自定义 Xray 用户名} n email
+    ask {是否需要自定义字符串映射} n uuid
+    ask {确认域名符合要求后请输入} $target target
+    # The target probe may warn and re-ask; answering y accepts the target.
+    # Both branches converge on the serverNames section.
+    expect {
+        -re {是否仍要设置此域名} {
+            send "y\r"
+            puts "STEP\[targetForce\]=y"
+            exp_continue
+        }
+        -re {是否需要自定义 .*域名的 serverNames} {
+            send "n\r"
+            puts "STEP\[serverNames\]=n"
+        }
+        eof { harness_error "reality: eof before serverNames" }
+        timeout { harness_error "reality: timeout before serverNames" }
+    }
+    ask {是否需要自定义 shortIds} n shortIds
+    ask {是否添加用于负载均衡的 ws/gRPC 协议} n addMore
+    ask {是否需要自定义 privateKey} n privateKey
+    ask {是否需要设置防火墙} n firewall
+    ask {是否添加 Reality 负载均衡} n balance
+    ask {是否额外安装 nginx 前置保护} n nginxFront
+    ask {是否启用} n autoUpdate
+    ask {是否需要设置自动清理日志} n logrotate
+} elseif {$profile eq "tls"} {
+    ask {请输入你的域名信息} $domain domain
+    step {请选择网络与域名校验方式} {请输入[:：]} 4 dnsMode
+    # Manual mode still reads through the generic prompt; the preceding warning
+    # uniquely identifies this read.
+    step {此选项用于服务器商仅提供域名访问服务器} {请输入[:：]} $local_ip localIP
+    step {请选择传输协议} {请输入[:：]} 1 transport
+    ask {请输入端口} $port port
+    ask {是否需要自定义 ws inbound_port} n wsPort
+    ask {是否需要设置防火墙} n firewall
+    ask {是否需要自定义 ws 伪装路径} n wsPath
+    ask {是否需要自定义 Xray 用户名} n email
+    ask {是否需要自定义字符串映射} n uuid
+    ask {证书文件已存在, 是否保留} y keepCert
+    ask {是否启用} n autoUpdate
+    ask {是否需要设置自动清理日志} n logrotate
+} elseif {$profile eq "relay"} {
+    step {确定公网IP信息} {请输入[:：]} 2 ip
+    ask {落地服务器地址} $relay_host relayHost
+    ask {落地服务器端口} $relay_port relayPort
+    ask {本机监听端口} $port relayListen
+    ask {是否需要指定其他监听地址} n relayAddr
+    ask {是否需要设置防火墙} n firewall
+    ask {是否启用} n autoUpdate
+} else {
+    harness_error "unknown E2E_PROFILE '$profile'"
+}
+
+# Installation is expected to finish and exit. Dropping into the interactive
+# main menu means the non-interactive entry did not run to completion.
+expect {
+    -re {请输入选项} { harness_error "unexpected main menu after $profile install" }
+    eof {
+        set rc [wait]
+        puts "EXPECT_WAIT_STATUS=$rc"
+        exit [lindex $rc 3]
+    }
+    timeout { harness_error "install did not exit after $profile flow" }
+}
