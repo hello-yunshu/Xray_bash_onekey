@@ -1,0 +1,123 @@
+# prompts.tsv — bash 版交互提示词 → 应答映射（P0 冻结）
+# 列：flow <TAB> seq <TAB> context(菜单/场景正则) <TAB> prompt_regex <TAB> answer <TAB> confidence <TAB> source
+# confidence: verified = 来自 a2 已验证的 expect 转录；inferred = 由 install.sh 字符串推导，P1 首次运行必须确认
+# 规则：每步必须先匹配 prompt_regex 再发送 answer；超时或 context 不符 → HARNESS-ERROR，禁止盲发回车。
+# 菜单层级（install.sh）：
+#   主菜单 1安装向导 2配置变更 3查看信息 4Xray/TLS 5更新向导 6其他选项 7备份恢复 8语言 9Rill AI
+#   安装向导 1Reality 2ws/gRPC/xHTTP 3中转节点
+#   Reality 1+Nginx 2标准 3+ws/gRPC/xHTTP 4+ws/gRPC/xHTTP+Nginx 5负载均衡
+#   ws/gRPC/xHTTP 1Nginx+TLS 2ONLY
+#   配置变更 1用户管理 2配置变更 3Nginx配置
+#   用户管理 1查看 2添加 3删除；配置变更 1UUID 2port 3target 4TLS版本 5SNI Guard
+#   查看信息 1配置 2访问日志 3错误日志 4port流量；Xray/TLS 1服务 2证书
+#   服务 1重启 2启动 3停止 4状态；证书 1状态 2有效期 3自动更新
+#   更新向导 1脚本 2Xray 3Nginx 4自动更新
+#   其他 1TCP加速 2Fail2ban 3流量统计 4流量阻断 5清除日志 6网速 7GeoData
+#   备份恢复 1备份 2恢复 3清空证书 4卸载
+
+flow	seq	context	prompt_regex	answer	confidence	source
+GLOBAL	1	任意	回到菜单[^\n]*	\r	verified	install.sh 菜单循环
+GLOBAL	2	任意	按回车[^\n]*	\r	verified	install.sh 菜单循环
+MAIN	1	主菜单	请输入选项	1	verified	install.sh:16753
+MAIN	2	主菜单-退出	请输入选项	0	verified	install.sh:16755
+M1	1	\-2 安装	确定公网IP信息	2	verified	a2/drive_install.exp:27
+M1	2	\-2 安装	确定端口	443	verified	a2/drive_install.exp:30
+M1	3	\-2 安装	是否需要自定义 Xray 用户名	n	verified	a2/drive_install.exp:33
+M1	4	\-2 安装	是否需要自定义字符串映射	n	verified	a2/drive_install.exp:34
+M1	5	\-2 安装	请输入一个域名	example.com	verified	a2/drive_install.exp:37
+M1	6	\-2 安装	确认域名符合要求后请输入	example.com	verified	a2/drive_install.exp:38
+M1	7	\-2 安装	是否仍要设置此域名	y	verified	a2/drive_install.exp:39
+M1	8	\-2 安装	是否需要自定义 .*域名的 serverNames	n	verified	a2/drive_install.exp:40
+M1	9	\-2 安装	是否需要自定义 .*shortIds	n	verified	a2/drive_install.exp:41
+M1	10	\-2 安装	是否添加用于负载均衡的 ws/gRPC 协议	n	verified	a2/drive_install.exp:44
+M1	11	\-2 安装	是否需要自定义 privateKey	n	verified	a2/drive_install.exp:64
+M1	12	\-2 安装	是否需要设置防火墙	n	verified	a2/drive_install.exp:65
+M1	13	\-2 安装	是否添加 Reality 负载均衡	n	verified	a2/drive_install.exp:66
+M1	14	\-2 安装	是否额外安装 nginx 前置保护	n	verified	a2/drive_install.exp:67
+M1	15	\-2 安装	是否启用	n	verified	a2/drive_install.exp:70
+M1	16	\-2 安装	是否需要设置自动清理日志	n	verified	a2/drive_install.exp:71
+M2	1	主菜单	请输入选项	1	verified	install.sh:16756
+M2	2	安装向导	请输入选项	1	verified	install.sh:16409
+M2	3	Reality 部署方式	请输入选项	1	verified	install.sh:16168
+M2	4	Reality\+Nginx	确定公网IP信息	2	inferred	同 M1 公网步骤
+M2	5	Reality\+Nginx	确定端口	443	inferred	port_set
+M2	6	Reality\+Nginx	请输入一个域名	example.com	inferred	domain_check
+M2	7	Reality\+Nginx	确认域名符合要求后请输入	example.com	inferred	domain_check
+M2	8	Reality\+Nginx	是否仍要设置此域名	y	inferred	domain_check
+M2	9	Reality\+Nginx	是否需要自定义 .*serverNames	n	inferred	domain_check
+M2	10	Reality\+Nginx	是否需要自定义 .*shortIds	n	inferred	domain_check
+M2	11	Reality\+Nginx	是否需要自定义 Xray 用户名	n	inferred	email_set
+M2	12	Reality\+Nginx	是否需要自定义字符串映射	n	inferred	UUID_set
+M2	13	Reality\+Nginx	是否启用	n	inferred	post-install
+M2	14	Reality\+Nginx	是否需要设置自动清理日志	n	inferred	post-install
+M3	1	主菜单	请输入选项	1	verified	install.sh:16756
+M3	2	安装向导	请输入选项	1	verified	install.sh:16409
+M3	3	Reality 部署方式	请输入选项	3	verified	install.sh:16170
+M3	4	选择传输协议	请输入选项	1	verified	install.sh:16143
+M3	5	Reality\+传输	确定公网IP信息	2	inferred	同 M1 公网步骤
+M3	6	Reality\+传输	确定端口	443	inferred	port_set
+M3	7	Reality\+传输	请输入一个域名	example.com	inferred	domain_check
+M3	8	Reality\+传输	确认域名符合要求后请输入	example.com	inferred	domain_check
+M3	9	Reality\+传输	是否仍要设置此域名	y	inferred	domain_check
+M3	10	Reality\+传输	是否需要自定义 .*serverNames	n	inferred	domain_check
+M3	11	Reality\+传输	是否需要自定义 .*shortIds	n	inferred	domain_check
+M3	12	Reality\+传输	是否需要自定义 ws inbound_port	n	inferred	install.sh:4131
+M3	13	Reality\+传输	是否需要自定义 ws 伪装路径	n	inferred	install.sh:4131
+M3	14	Reality\+传输	是否需要自定义 Xray 用户名	n	inferred	email_set
+M3	15	Reality\+传输	是否需要自定义字符串映射	n	inferred	UUID_set
+M4	1	\-1 安装	确定公网IP信息	2	inferred	与 M9 同段
+M4	2	\-1 安装	请输入一个域名	example.com	inferred	domain_check
+M4	3	\-1 安装	确认域名符合要求后请输入	example.com	inferred	domain_check
+M4	4	\-1 安装	是否仍要设置此域名	y	inferred	domain_check
+M4	5	\-1 安装	确定端口	443	inferred	port_set
+M4	6	\-1 安装	请选择传输协议	1	inferred	install.sh:16143
+M4	7	\-1 安装	是否需要自定义 ws inbound_port	n	inferred	install.sh:4131
+M4	8	\-1 安装	是否需要自定义 ws 伪装路径	n	inferred	install.sh:4131
+M4	9	\-1 安装	是否需要自定义 Xray 用户名	n	inferred	email_set
+M4	10	\-1 安装	是否需要自定义字符串映射	n	inferred	UUID_set
+M4	11	\-1 安装	即将申请证书	n	inferred	install.sh:10379（自签走 ssl_install）
+M4	12	\-1 安装	是否启用	n	inferred	post-install
+M5	1	\-1 安装	请选择传输协议	2	inferred	install.sh:16144
+M5	2	\-1 安装	是否需要自定义 gRPC inbound_port	n	inferred	install.sh:4152
+M5	3	\-1 安装	是否需要自定义 gRPC 伪装路径	n	inferred	install.sh:4152
+M6	1	\-1 安装	请选择传输协议	3	inferred	install.sh:16145
+M6	2	\-1 安装	是否需要自定义 xHTTP inbound_port	n	inferred	install.sh:4173
+M6	3	\-1 安装	是否需要自定义 xHTTP 伪装路径	n	inferred	install.sh:4173
+M7	1	\-1 安装	请选择传输协议	5	inferred	install.sh:16147
+M7	2	\-1 安装	是否需要自定义 ws inbound_port	n	inferred	install.sh:4131
+M7	3	\-1 安装	是否需要自定义 gRPC inbound_port	n	inferred	install.sh:4152
+M7	4	\-1 安装	是否需要自定义 xHTTP inbound_port	n	inferred	install.sh:4173
+M8	1	\-1 安装	即将申请证书	y	inferred	install.sh:10384
+M8	2	\-1 安装	证书文件已存在, 是否保留	y	inferred	install.sh:10397（重复安装轮）
+M9	1	\-3 安装	此模式推荐用于负载均衡	y	verified	a2/drive_install.exp:24
+M9	2	\-3 安装	确定公网IP信息	2	verified	a2/drive_install.exp:27
+M9	3	\-3 安装	确定端口	443	verified	a2/drive_install.exp:30
+M9	4	\-3 安装	是否需要自定义 ws 伪装路径	n	verified	a2/drive_install.exp:59
+M9	5	\-3 安装	是否需要自定义 Xray 用户名	n	verified	a2/drive_install.exp:33
+M9	6	\-3 安装	是否需要自定义字符串映射	n	verified	a2/drive_install.exp:34
+M9	7	\-3 安装	是否启用	n	verified	a2/drive_install.exp:70
+M9	8	\-3 安装	是否需要设置自动清理日志	n	verified	a2/drive_install.exp:71
+M10	1	中转节点	是否继续	y	inferred	install.sh:11988 区段
+M10	2	中转节点	落地服务器地址	origin.example.com	inferred	install.sh:11992
+M10	3	中转节点	落地服务器端口	443	inferred	install.sh:11996
+M10	4	中转节点	本机监听端口	443	inferred	install.sh:11997
+M10	5	中转节点	监听地址	0.0.0.0	inferred	install.sh:12007
+M10	6	中转节点	是否启用	n	inferred	post-install
+OPS_USER	1	配置变更	请输入选项	2	verified	install.sh:16488
+OPS_USER	2	配置变更	请输入选项	1	verified	install.sh:16487
+OPS_PORT	1	配置变更	请输入选项	2	verified	install.sh:16488
+OPS_PORT	2	配置变更	请输入选项	2	verified	install.sh:16446
+OPS_UUID	1	配置变更	请输入选项	1	verified	install.sh:16445
+OPS_TARGET	1	配置变更	请输入选项	3	verified	install.sh:16447
+OPS_TLSVER	1	配置变更	请输入选项	4	verified	install.sh:16448
+OPS_SNIGUARD	1	配置变更	请输入选项	5	verified	install.sh:16449
+OPS_LB	1	Nginx 配置	请输入选项	1	verified	install.sh:16469
+OPS_SNI	1	Nginx 配置	请输入选项	2	verified	install.sh:16470
+OPS_F2B	1	其他选项	请输入选项	2	verified	install.sh:16646
+OPS_STATS	1	其他选项	请输入选项	3	verified	install.sh:16647
+OPS_BLOCK	1	其他选项	请输入选项	4	verified	install.sh:16648
+OPS_SPEED	1	其他选项	请输入选项	6	verified	install.sh:16650
+OPS_RESTORE	1	备份恢复	请输入选项	2	verified	install.sh:16674
+OPS_CLEARCERT	1	备份恢复	请输入选项	3	verified	install.sh:16675
+OPS_UNINSTALL	1	备份恢复	请输入选项	4	verified	install.sh:16676
+OPS_LANG	1	主菜单	请输入选项	8	verified	install.sh:16748

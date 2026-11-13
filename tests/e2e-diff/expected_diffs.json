@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "frozenAt": "2026-11-13T17:21:00+08:00",
+  "repoCommit": "fee7a68",
+  "policy": {
+    "requiredFields": ["id", "scenario", "layer", "reason", "owner", "approved_by", "expires"],
+    "unknownStatus": "BLOCKER",
+    "pendingStatus": "BLOCKER",
+    "expiredStatus": "BLOCKER",
+    "wildcardForbidden": true,
+    "matchKey": ["id", "scenario", "layer", "path", "field"],
+    "note": "Only exact matches are suppressed. Every suppressed difference must be cited by ED id in the report."
+  },
+  "entries": [
+    {
+      "id": "ED-001",
+      "scenario": "OPS-09",
+      "layer": "L2",
+      "path": "/usr/local/nginx/conf",
+      "field": "load-balancing upstream blocks",
+      "reason": "Go 版当前没有 Nginx 负载均衡配置的等价命令；bash 菜单 2>3>1 是唯一入口。",
+      "owner": "",
+      "approved_by": "",
+      "expires": "",
+      "status": "pending"
+    },
+    {
+      "id": "ED-002",
+      "scenario": "OPS-19",
+      "layer": "L1",
+      "path": "/etc/fail2ban",
+      "field": "jail.local + filter.d",
+      "reason": "Fail2ban 由 scripts/fail2ban_manager.sh 独占管理，Go 版无对应子命令；能力缺口待产品决策。",
+      "owner": "",
+      "approved_by": "",
+      "expires": "",
+      "status": "pending"
+    },
+    {
+      "id": "ED-003",
+      "scenario": "OPS-21",
+      "layer": "L3",
+      "path": "nftables/iptables ruleset",
+      "field": "traffic blocking rules",
+      "reason": "流量阻断由 scripts/traffic_blocker.sh 管理，Go 版无对应子命令。",
+      "owner": "",
+      "approved_by": "",
+      "expires": "",
+      "status": "pending"
+    },
+    {
+      "id": "ED-004",
+      "scenario": "OPS-22",
+      "layer": "L1",
+      "path": "/var/log",
+      "field": "log truncation result",
+      "reason": "清除日志是 bash 菜单 6>5 的本地操作，Go 版无对应子命令。",
+      "owner": "",
+      "approved_by": "",
+      "expires": "",
+      "status": "pending"
+    },
+    {
+      "id": "ED-005",
+      "scenario": "OPS-29",
+      "layer": "L5",
+      "path": "rill agent output",
+      "field": "agent status/diagnostic text",
+      "reason": "Rill AI 的安装/诊断入口在 bash 菜单 9 与 rill 子脚本，Go 只有 rill status；输出面天然不同。",
+      "owner": "",
+      "approved_by": "",
+      "expires": "",
+      "status": "pending"
+    }
+  ]
+}

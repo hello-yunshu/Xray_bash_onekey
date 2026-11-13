@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "runId": "20261113-1721-fee7a68",
+  "repoCommit": "fee7a68",
+  "branch": "develop/go-native",
+  "frozenAt": "2026-11-13T17:21:00+08:00",
+  "generatedAt": "2026-11-13T17:28:00+08:00",
+  "sourcePlan": "docs/plans/bash-vs-go-docker-differential-impl.md",
+  "environment": {
+    "host": "macOS (arm64)",
+    "dockerServerVersion": "29.8.2",
+    "a2Image": "idleleo-a2-bash:24.04",
+    "a2ImageId": "sha256:d53c6d510b5f1ff250a457e3e3a4a778d8aa85daa415c3a8b8267f528a7a64e8",
+    "seededXray": "Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)"
+  },
+  "artifacts": [
+    {
+      "path": "tests/e2e-diff/matrix.json",
+      "sha256": "576b6942eba176096bc238aae1c9301a28a1a5218c4545642fcf898e39609eb8"
+    },
+    {
+      "path": "tests/e2e-diff/expected_diffs.json",
+      "sha256": "926315b056d5abca4f8a57623d18d495c194f0baf0c08860f58c8e63aeacc136"
+    },
+    {
+      "path": "tests/e2e-diff/drivers/prompts.tsv",
+      "sha256": "4a9ad166c28ef1df82ff8556cf7cb2fa1a987cb82d8224e9f8ab1a81e12ab6ab"
+    },
+    {
+      "path": "tests/e2e-diff/README.md",
+      "sha256": "597e151ebfe5c524dc365962579159e12a06b2bd75054cbeedc141b2e6a235c5"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/20261113-1721-fee7a68/p0/self-test.log",
+      "sha256": "1e9744cd9a7880ed1ae12d6baca03d849a0393222a0ec3b1439aaca3e02d956e"
+    }
+  ],
+  "coverage": {
+    "installScenarios": 10,
+    "installEligible": 9,
+    "installIneligible": ["M8"],
+    "opsEntries": 32,
+    "subscripts": 9,
+    "upgradeAssertions": 8,
+    "upgradeInjections": 4,
+    "expectedDiffs": 5,
+    "expectedDiffStatus": "all pending",
+    "promptRows": 105,
+    "promptVerified": 53,
+    "promptInferred": 52
+  },
+  "checks": {
+    "compareSelfTest": {
+      "command": "python3 tests/go-parity/a2/compare_real_runtime.py --self-test",
+      "rc": 0,
+      "output": "SELFTEST_PASS mutations=14 baseline=MATCH",
+      "evidence": "tests/e2e-diff/evidence/20261113-1721-fee7a68/p0/self-test.log"
+    },
+    "a2BashSmoke": {
+      "command": "A2_EVIDENCE=<p0>/a2 bash tests/go-parity/a2/run_bash_real_install_container.sh reality raw",
+      "rc": 0,
+      "installExit": 0,
+      "xrayTestExit": 0,
+      "capturedConfig": "/etc/idleleo/conf/xray/config.json",
+      "runtimeConfigSha256": "9910d0bb9d72db67d8230fa4682b34b30e4617e3da92688606c625c8f66a2f06",
+      "evidence": "tests/e2e-diff/evidence/20261113-1721-fee7a68/p0/a2/reality-raw",
+      "captureLogSha256": "073eca4719e03590a5149673dd22d2c3a9b97b1ac97b715f078d7f1f15c5fc09"
+    },
+    "jsonSchema": {
+      "matrix": "parse OK, schemaVersion=1",
+      "expectedDiffs": "parse OK, schemaVersion=1",
+      "promptsTsv": "all data rows have 7 columns"
+    }
+  },
+  "openItems": [
+    {
+      "id": "M8",
+      "status": "ineligible",
+      "detail": "Pebble HTTP-01/TLS-ALPN resolution inside the container network is undecided; results must be HARNESS-BLOCKED, never PASS."
+    },
+    {
+      "id": "go-argv",
+      "status": "unverified",
+      "detail": "Every matrix go.argv is marked verified=false until P1 confirms it against `idleleo ... --help`."
+    },
+    {
+      "id": "prompts-inferred",
+      "status": "52 rows",
+      "detail": "Inferred prompt rows must be confirmed by the first real P1 run before being used to judge business differences."
+    },
+    {
+      "id": "expected-diffs",
+      "status": "5 pending",
+      "detail": "ED-001..ED-005 have empty owner/approved_by/expires and count as DIFF-BLOCKER until approved."
+    },
+    {
+      "id": "mirror-reachability",
+      "status": "not-executed",
+      "detail": "P0 freeze scope did not build tests/e2e-diff/mirror/; the static raw/release/geo reachability check moves to P1 when the mirror is created."
+    },
+    {
+      "id": "M2-capability",
+      "status": "to-verify",
+      "detail": "Whether Go has an equivalent Nginx fronting capability for Reality is unknown; record a capability gap if absent."
+    }
+  ],
+  "scopeGuard": {
+    "p1ArtifactsCreated": false,
+    "trackedFilesModified": false,
+    "a2FilesModified": false,
+    "untrackedPaths": [
+      "docs/plans/bash-vs-go-docker-differential.md",
+      "docs/plans/bash-vs-go-docker-differential-impl.md",
+      "tests/e2e-diff/"
+    ]
+  },
+  "rollback": "rm -rf tests/e2e-diff; no existing tracked file was modified in P0"
+}
