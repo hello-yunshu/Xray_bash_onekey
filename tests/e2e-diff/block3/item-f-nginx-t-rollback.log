@@ -1,0 +1,16 @@
+=== f-2: nginx -t failure after tree swap, rollback completeness ===
+before: bin=655bbb8485928af03d9f004b551bf1c53777426532a978a5245cacfb204a431f unit=d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d master=1925
+exit=1
+nginx -t rejected the configuration (exit 1): nginx: [emerg] unknown directive "this_is_not_valid" in /etc/idleleo/conf/nginx/99-operator.conf:1
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test failed; Nginx rollback failed: restore: restart: systemctl restart nginx failed (exit 1): Job for nginx.service failed because the control process exited with error code.
+See "systemctl status nginx.service" and "journalctl -xeu nginx.service" for details.; managed Nginx is installed at /etc/idleleo/conf/nginx and can be removed with 'idleleo xray uninstall'
+--- after ---
+PASS binary restored (655bbb8485928af03d9f004b551bf1c53777426532a978a5245cacfb204a431f)
+PASS unit restored
+FAIL metadata missing
+stray-check-done
+failed
+old-master=1925
+--- cleanup bogus fragment, restore service ---
+active
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful

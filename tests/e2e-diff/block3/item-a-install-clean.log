@@ -1,0 +1,31 @@
+{
+  "mode": "tls",
+  "transport": "ws",
+  "tls": "TLS",
+  "binaryPath": "/usr/local/bin/xray",
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "unitPath": "/etc/systemd/system/xray.service",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "configSha256": "c0ee24fa528a874a6b8ab3146e87e35ffcfb4bdb8983c73a3244e8f161810d10",
+  "serviceActive": "active",
+  "serviceEnabled": "enabled",
+  "preservedConfig": false,
+  "validatorExit": 0,
+  "ownedResources": [
+    "usr/local/bin/xray",
+    "etc/idleleo/conf/xray/config.json",
+    "etc/systemd/system/xray.service",
+    "etc/idleleo/conf/nginx/00-xray.conf",
+    "etc/idleleo/conf/nginx/127.0.0.1.wsServers",
+    "etc/idleleo/conf/nginx/01-xray-80.conf",
+    "etc/idleleo/conf/nginx/02-xray-server.conf"
+  ],
+  "warnings": [
+    "nginx version: nginx version: nginx/1.30.6",
+    "nginx-syntax-verified; routing verified only by the Docker e2e harness"
+  ],
+  "nginxManaged": true,
+  "nginxVerified": true,
+  "nginxDir": "/etc/idleleo/conf/nginx"
+}
+exit=0

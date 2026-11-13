@@ -1,0 +1,13 @@
+{
+  "removed": [
+    "etc/systemd/system/nginx.service",
+    "usr/local/nginx",
+    "etc/idleleo/v1/nginx.json",
+    "etc/idleleo/conf/nginx"
+  ],
+  "serviceStopped": true,
+  "serviceDisabled": true,
+  "configPreserved": true,
+  "warnings": []
+}
+exit=0

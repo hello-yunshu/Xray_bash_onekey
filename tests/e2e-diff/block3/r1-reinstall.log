@@ -1,0 +1,33 @@
+=== A: reinstall while managed nginx present ===
+drwxr-x--- 1 root idleleo-nginx 156 Nov 13 13:40 /etc/idleleo/conf/nginx
+{
+  "mode": "tls",
+  "transport": "ws",
+  "tls": "TLS",
+  "binaryPath": "/usr/local/bin/xray",
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "unitPath": "/etc/systemd/system/xray.service",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "configSha256": "90f852b03b95fd1325dfcdcf588780050f253a0f167ef016830b3f08d9099f56",
+  "serviceActive": "active",
+  "serviceEnabled": "enabled",
+  "preservedConfig": false,
+  "validatorExit": 0,
+  "ownedResources": [
+    "usr/local/bin/xray",
+    "etc/idleleo/conf/xray/config.json",
+    "etc/systemd/system/xray.service",
+    "etc/idleleo/conf/nginx/00-xray.conf",
+    "etc/idleleo/conf/nginx/127.0.0.1.wsServers",
+    "etc/idleleo/conf/nginx/01-xray-80.conf",
+    "etc/idleleo/conf/nginx/02-xray-server.conf"
+  ],
+  "warnings": [
+    "nginx version: nginx version: nginx/1.30.6",
+    "nginx-syntax-verified; routing verified only by the Docker e2e harness"
+  ],
+  "nginxManaged": true,
+  "nginxVerified": true,
+  "nginxDir": "/etc/idleleo/conf/nginx"
+}
+exit=0

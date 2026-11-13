@@ -1,0 +1,42 @@
+=== no injection: full uninstall ===
+{
+  "removed": [
+    "etc/systemd/system/xray.service",
+    "usr/local/bin/xray",
+    "etc/idleleo/v1/metadata.json",
+    "etc/systemd/system/nginx.service",
+    "usr/local/nginx",
+    "etc/idleleo/v1/nginx.json",
+    "etc/idleleo/conf/nginx"
+  ],
+  "serviceStopped": true,
+  "serviceDisabled": true,
+  "configPreserved": true,
+  "warnings": []
+}
+exit=0
+absent:  /usr/local/nginx
+absent:  /etc/idleleo/conf/nginx
+absent:  /etc/systemd/system/nginx.service
+absent:  /etc/idleleo/v1/nginx.json
+absent:  /usr/local/bin/xray
+absent:  /etc/systemd/system/xray.service
+absent:  /etc/idleleo/v1/metadata.json
+present: /etc/idleleo/conf/xray/config.json
+inactive
+disabled
+inactive
+=== reinstall after full uninstall ===
+attempt 1 failed: container root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
+attempt 2 failed: container root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
+attempt 3 failed: container root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
+exit=0
+inactive
+inactive
+sh: 9: /usr/local/nginx/sbin/nginx: not found
+install exit=0
+  "serviceActive": "active",
+  "nginxVerified": true,
+active
+active
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful

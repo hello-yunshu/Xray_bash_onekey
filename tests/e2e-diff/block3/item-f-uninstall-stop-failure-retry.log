@@ -1,0 +1,8 @@
+=== f-3 retry: stop nginx refused, tree must survive ===
+stop nginx.service failed: systemctl stop nginx failed (exit 1): fake systemctl: refusing stop nginx
+exit=1
+before: /etc/idleleo/conf/nginx /etc/idleleo/v1/nginx.json /etc/systemd/system/nginx.service /usr/local/nginx 
+after : /etc/idleleo/conf/nginx /etc/idleleo/v1/nginx.json /etc/systemd/system/nginx.service /usr/local/nginx 
+PASS nothing deleted
+active
+active

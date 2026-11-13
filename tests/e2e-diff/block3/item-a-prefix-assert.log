@@ -1,0 +1,36 @@
+=== running master ===
+    PID USER     COMMAND
+    656 root     nginx: master process /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+    693 idleleo+ nginx: worker process
+    694 idleleo+ nginx: worker process
+=== prefix assertion ===
+nginx version: nginx/1.30.6
+built by gcc 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04.3) 
+compiled prefix = [/usr/local/nginx]
+PASS prefix == InstallDirRel(usr/local/nginx)
+PASS configure has --with-stream
+PASS configure has --with-stream_ssl_preread_module
+PASS configure has --with-stream_ssl_module
+PASS configure has --with-http_ssl_module
+PASS configure has --with-http_v2_module
+PASS configure has --with-http_v3_module
+=== Go exact config-test form ===
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+exit=0
+=== without -p ===
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+exit=0
+=== fragments ===
+total 20
+-rw-r----- 1 root idleleo-nginx 1554 Nov 13 13:40 00-xray.conf
+-rw-r----- 1 root idleleo-nginx  420 Nov 13 13:40 01-xray-80.conf
+-rw-r----- 1 root idleleo-nginx  135 Nov 13 13:40 02-xray-server.conf
+-rw-r----- 1 root idleleo-nginx   62 Nov 13 13:40 127.0.0.1.wsServers
+-rw-r----- 1 root idleleo-nginx 2630 Nov 13 13:40 nginx.default
+=== unit ===
+enabled
+active
+enabled
+active

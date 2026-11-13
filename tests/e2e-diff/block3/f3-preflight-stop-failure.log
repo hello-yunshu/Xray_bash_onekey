@@ -1,0 +1,23 @@
+=== baseline ===
+/etc/idleleo/conf/nginx
+/etc/idleleo/conf/xray/config.json
+/etc/idleleo/v1/metadata.json
+/etc/idleleo/v1/nginx.json
+/etc/systemd/system/nginx.service
+/etc/systemd/system/xray.service
+/usr/local/bin/xray
+/usr/local/nginx
+=== F3: inject nginx stop failure ===
+stop nginx.service failed: systemctl stop nginx failed (exit 1): fake systemctl: refusing stop nginx
+exit=1
+xray binary sha before=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a after=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a
+present: /usr/local/nginx
+present: /etc/idleleo/conf/nginx
+present: /etc/systemd/system/nginx.service
+present: /etc/idleleo/v1/nginx.json
+present: /usr/local/bin/xray
+present: /etc/systemd/system/xray.service
+present: /etc/idleleo/v1/metadata.json
+present: /etc/idleleo/conf/xray/config.json
+active
+active

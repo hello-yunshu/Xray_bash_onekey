@@ -1,0 +1,5 @@
+target is not a regular file: /etc/idleleo/conf/nginx
+drwxr-x--- 1 root idleleo-nginx 26 Nov 13 13:38 /etc/idleleo/conf/nginx
+--- retry install ---
+target is not a regular file: /etc/idleleo/conf/nginx
+exit=1

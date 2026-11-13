@@ -1,0 +1,20 @@
+=== f-3: uninstall stop failure must not delete the tree ===
+{
+  "removed": [
+    "etc/systemd/system/xray.service",
+    "usr/local/bin/xray",
+    "etc/idleleo/v1/metadata.json",
+    "etc/systemd/system/nginx.service",
+    "usr/local/nginx",
+    "etc/idleleo/conf/nginx"
+  ],
+  "serviceStopped": true,
+  "serviceDisabled": true,
+  "configPreserved": true,
+  "warnings": []
+}
+exit=0
+before: /etc/idleleo/conf/nginx /etc/systemd/system/nginx.service /usr/local/nginx 
+after : 
+FAIL tree changed
+inactive

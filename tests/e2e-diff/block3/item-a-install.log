@@ -1,0 +1,2 @@
+nginx -t rejected the configuration (exit 1): nginx: [emerg] cannot load certificate "/etc/idleleo/cert/xray.crt": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/idleleo/cert/xray.crt, r) error:10000080:BIO routines::no such file)
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test failed; installation rolled back to the previous state
