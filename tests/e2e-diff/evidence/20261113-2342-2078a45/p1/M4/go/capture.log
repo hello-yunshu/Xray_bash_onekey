@@ -1,0 +1,65 @@
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=38ea4242710186238585c4ac1883aa16b69c7aa38f3e03bf172b2ac6f88c2bf8
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=1
+manifest entries=5
+runtime collected
+MISSING /etc/idleleo/conf/xray/config.json
+done=tls install_exit=1
+sanitized /out/install.log
+sanitized /out/expect.log
+sanitized /out/capture.log
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=b3e5dab4b1662701177c24ee05c60124eed69f9e5628e98a0a4b015e74debcb9
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=1
+manifest entries=5
+runtime collected
+MISSING /etc/idleleo/conf/xray/config.json
+done=tls install_exit=1
+sanitized /out/install.log
+sanitized /out/expect.log
+sanitized /out/capture.log
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=0ec1855e7392a0b71e6b8cc876c3acadc523bbc94706521bd2154c565bc510de
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=1
+manifest entries=5
+runtime collected
+MISSING /etc/idleleo/conf/xray/config.json
+done=tls install_exit=1
+sanitized /out/install.log
+sanitized /out/expect.log
+sanitized /out/capture.log
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=55c479e2a26aeeda22af5079fb18b29b17e175a1b36d07a90d96aec03d15ce5d
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=1
+manifest entries=5
+runtime collected
+MISSING /etc/idleleo/conf/xray/config.json
+done=tls install_exit=1
+sanitized /out/install.log
+sanitized /out/expect.log
+sanitized /out/capture.log
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=9d7b08c469ad76af98a618404f0e3caae23ae4b45fa90a40004a6656c72fdf2a
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+manifest entries=20
+runtime collected
+identity fingerprints written to /out/config/identity.json
+done=tls install_exit=0
+sanitized /out/install.log
+sanitized /out/expect.log
+sanitized /out/capture.log

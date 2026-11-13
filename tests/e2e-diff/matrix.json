@@ -40,11 +40,11 @@
       "tls": "Reality",
       "transport": null,
       "bash": {"entry": ["install.sh", "-2"], "answersRef": "M1"},
-      "go": {"argv": ["idleleo", "xray", "install", "--mode", "reality", "--container"], "verified": false},
+      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "reality", "--domain", "www.cloudflare.com", "--target", "www.cloudflare.com", "--port", "443", "--container"], "env": {"IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"}, "verified": true},
       "layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6"],
       "repeat": 2,
       "eligible": true,
-      "notes": "a2 已验证的驱动序列可直接复用"
+      "notes": "a2 已验证的驱动序列可直接复用；Go argv 于 P1 用 --help 与实跑核实（--binary 必填）"
     },
     {
       "id": "M2",
@@ -79,11 +79,11 @@
       "tls": "self-signed",
       "transport": "ws",
       "bash": {"entry": ["install.sh", "-1"], "answersRef": "M4"},
-      "go": {"argv": ["idleleo", "xray", "install", "--mode", "tls", "--transport", "ws", "--domain", "example.com", "--container"], "verified": false},
+      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "tls", "--transport", "ws", "--domain", "example.com", "--cert", "/etc/idleleo/cert/xray.crt", "--cert-key", "/etc/idleleo/cert/xray.key", "--port", "9000", "--public-port", "443", "--container"], "env": {"IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"}, "verified": true},
       "layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6"],
       "repeat": 2,
       "eligible": true,
-      "notes": "自签证书由安装流程生成，L1 只比路径/权限，证书比 SAN+指纹窗口"
+      "notes": "自签证书由测试预置（与 bash 侧同一份）；L1 只比路径/权限，证书比 SAN+指纹窗口。P1 实跑核实：--port 为 nginx 背后的 loopback inbound 端口，--public-port 为 nginx 监听端口；两者都用 443 会让 xray 与 nginx 争抢 :443 导致 xray 启动失败"
     },
     {
       "id": "M5",

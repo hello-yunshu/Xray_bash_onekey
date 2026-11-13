@@ -1,0 +1,12 @@
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=38ea4242710186238585c4ac1883aa16b69c7aa38f3e03bf172b2ac6f88c2bf8
+install_exit=0
+manifest entries=39
+runtime collected
+identity fingerprints written to /out/config/identity.json
+done=tls install_exit=0
+sanitized /out/install.log
+sanitized /out/expect.log
+sanitized /out/capture.log

@@ -1,0 +1,123 @@
+building idleleo-e2e:24.04
+image_id=sha256:d98a8e2bdabae2f32537cf23e2a5b96b2c58fb1001b2a8a88a4a3a99ee38d38a
+building idleleo from /Users/yunshu/Documents/GitHub/Xray_bash_onekey (golang:1.27.4)
+idleleo_sha256=1282627e9c7786e1a469fe72b98b5f5bd39ab63e420db4bcbee3718c1b52e96d
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64 source=a2-cache
+cert_sha256=38ea4242710186238585c4ac1883aa16b69c7aa38f3e03bf172b2ac6f88c2bf8
+[M1/bash] starting e2e-20261113-2342-2078a45-M1-bash
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+[M1/bash] install rc=0
+L4 ok (reality)
+[M1/bash] l4 rc=0
+[M1/go] starting e2e-20261113-2342-2078a45-M1-go
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+[M1/go] install rc=0
+L4 ok (reality)
+[M1/go] l4 rc=0
+[M4/bash] starting e2e-20261113-2342-2078a45-M4-bash
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=38ea4242710186238585c4ac1883aa16b69c7aa38f3e03bf172b2ac6f88c2bf8
+install_exit=0
+done=tls install_exit=0
+[M4/bash] install rc=0
+L4 ok (tls)
+[M4/bash] l4 rc=0
+[M4/go] starting e2e-20261113-2342-2078a45-M4-go
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=38ea4242710186238585c4ac1883aa16b69c7aa38f3e03bf172b2ac6f88c2bf8
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=1
+MISSING /etc/idleleo/conf/xray/config.json
+done=tls install_exit=1
+[M4/go] install rc=1
+evidence=/Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/20261113-2342-2078a45/p1
+done
+building idleleo-e2e:24.04
+image_id=sha256:1907bed5ee7a125d8350e3774f72fe497d94254f20b1a67bdbb995690d4d81d0
+building idleleo from /Users/yunshu/Documents/GitHub/Xray_bash_onekey (golang:1.27.4)
+idleleo_sha256=1282627e9c7786e1a469fe72b98b5f5bd39ab63e420db4bcbee3718c1b52e96d
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64 source=a2-cache
+cert_sha256=b3e5dab4b1662701177c24ee05c60124eed69f9e5628e98a0a4b015e74debcb9
+[M4/go] starting e2e-20261113-2342-2078a45-M4-go
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=b3e5dab4b1662701177c24ee05c60124eed69f9e5628e98a0a4b015e74debcb9
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=1
+MISSING /etc/idleleo/conf/xray/config.json
+done=tls install_exit=1
+[M4/go] install rc=1
+evidence=/Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/20261113-2342-2078a45/p1
+done
+building idleleo-e2e:24.04
+image_id=sha256:8f363df869ece0e58fd94787f8692bd7e3e1200c34dfdc68c5fe0f3dcf99064f
+building idleleo from /Users/yunshu/Documents/GitHub/Xray_bash_onekey (golang:1.27.4)
+idleleo_sha256=1282627e9c7786e1a469fe72b98b5f5bd39ab63e420db4bcbee3718c1b52e96d
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64 source=a2-cache
+cert_sha256=0ec1855e7392a0b71e6b8cc876c3acadc523bbc94706521bd2154c565bc510de
+github_ip=20.205.243.166
+[M4/go] starting e2e-20261113-2342-2078a45-M4-go
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=0ec1855e7392a0b71e6b8cc876c3acadc523bbc94706521bd2154c565bc510de
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=1
+MISSING /etc/idleleo/conf/xray/config.json
+done=tls install_exit=1
+[M4/go] install rc=1
+evidence=/Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/20261113-2342-2078a45/p1
+done
+building idleleo-e2e:24.04
+image_id=sha256:51d5078015618ae37e573b03b8e556be8c5910c4d410477846cd50f3aecb90c2
+building idleleo from /Users/yunshu/Documents/GitHub/Xray_bash_onekey (golang:1.27.4)
+idleleo_sha256=1282627e9c7786e1a469fe72b98b5f5bd39ab63e420db4bcbee3718c1b52e96d
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64 source=a2-cache
+cert_sha256=55c479e2a26aeeda22af5079fb18b29b17e175a1b36d07a90d96aec03d15ce5d
+github_ip=20.205.243.166
+[M4/go] starting e2e-20261113-2342-2078a45-M4-go
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=55c479e2a26aeeda22af5079fb18b29b17e175a1b36d07a90d96aec03d15ce5d
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=1
+MISSING /etc/idleleo/conf/xray/config.json
+done=tls install_exit=1
+[M4/go] install rc=1
+evidence=/Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/20261113-2342-2078a45/p1
+done
+host_pins=--add-host raw.githubusercontent.com:185.199.111.133 --add-host raw.githubusercontent.com:185.199.108.133 --add-host raw.githubusercontent.com:185.199.109.133 --add-host raw.githubusercontent.com:185.199.110.133 --add-host cdn.jsdelivr.net:104.16.180.112 --add-host cdn.jsdelivr.net:104.16.179.112 --add-host objects.githubusercontent.com:185.199.111.133 --add-host objects.githubusercontent.com:185.199.108.133 --add-host objects.githubusercontent.com:185.199.109.133 --add-host objects.githubusercontent.com:185.199.110.133 --add-host release-assets.githubusercontent.com:185.199.110.133 --add-host release-assets.githubusercontent.com:185.199.111.133 --add-host release-assets.githubusercontent.com:185.199.108.133 --add-host release-assets.githubusercontent.com:185.199.109.133 --add-host github.com:20.205.243.166
+building idleleo-e2e:24.04
+image_id=sha256:519258e62bb14c4099850a623d1b53be3bdbc9963957de62e37deb8196e23030
+building idleleo from /Users/yunshu/Documents/GitHub/Xray_bash_onekey (golang:1.27.4)
+idleleo_sha256=1282627e9c7786e1a469fe72b98b5f5bd39ab63e420db4bcbee3718c1b52e96d
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64 source=a2-cache
+cert_sha256=9d7b08c469ad76af98a618404f0e3caae23ae4b45fa90a40004a6656c72fdf2a
+[M4/go] starting e2e-20261113-2342-2078a45-M4-go
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=9d7b08c469ad76af98a618404f0e3caae23ae4b45fa90a40004a6656c72fdf2a
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+[M4/go] install rc=0
+L4 ok (tls)
+[M4/go] l4 rc=0
+evidence=/Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/20261113-2342-2078a45/p1
+done
