@@ -28,6 +28,9 @@ TARGET_URL="${E2E_L4_URL:-http://example.com/}"
 MARKER="${E2E_L4_MARKER:-Example Domain}"
 
 mkdir -p "$OUT" "$SECRET_DIR"
+# A previous failed attempt leaves a "L4 skipped" marker behind; remove it so
+# the evidence tree only reflects the run that actually reached L4.
+rm -f "$OUT/connectivity.txt"
 
 fail() {
     printf '%s\n' "$*" | tee -a "$OUT/connectivity.log"
