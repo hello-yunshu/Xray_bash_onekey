@@ -324,7 +324,7 @@ func TestNginxModesInstallManagedFrontByDefault(t *testing.T) {
 		{"tls", ""}, {"reality-nginx", ""}, {"reality-balance", "primary"},
 	} {
 		root := sandbox(t)
-		stubManagedNginx(t, nil)
+		stubManagedNginx(t, nil, nil)
 		rep, err := Install(context.Background(), InstallSpec{
 			Root: root, SourceBinary: stubXray(t), Mode: tc.mode, BalanceRole: tc.role,
 			Port: 8443, Domain: "example.com", NoService: true,
@@ -343,27 +343,63 @@ func TestNginxModesInstallManagedFrontByDefault(t *testing.T) {
 	}
 }
 
-func TestManagedNginxFailureLeavesRuntimeUntouched(t *testing.T) {
+func TestManagedNginxFailureReportsResidualInstall(t *testing.T) {
 	root := sandbox(t)
-	stubManagedNginx(t, fmt.Errorf("download failed"))
-	_, err := Install(context.Background(), InstallSpec{
+	stubManagedNginx(t, nil, fmt.Errorf("download failed"))
+	rep, err := Install(context.Background(), InstallSpec{
 		Root: root, SourceBinary: stubXray(t), Mode: "tls",
 		Port: 8443, Domain: "example.com", NoService: true,
 	})
 	if err == nil || !strings.Contains(err.Error(), "download failed") {
 		t.Fatalf("managed Nginx failure must abort: %v", err)
 	}
+	if !strings.Contains(err.Error(), "idleleo xray uninstall") {
+		t.Fatalf("failure must tell the operator how to clean up Nginx: %v", err)
+	}
+	if !rep.NginxManaged {
+		t.Fatalf("a failed managed install must still be reported: %+v", rep)
+	}
 	if _, statErr := os.Stat(filepath.Join(root, configRel)); statErr == nil {
 		t.Fatal("managed Nginx failure left the runtime config behind")
 	}
 }
 
-func stubManagedNginx(t *testing.T, installErr error) {
+func TestManagedNginxResolveFailureClaimsNothing(t *testing.T) {
+	root := sandbox(t)
+	stubManagedNginx(t, fmt.Errorf("manifest rejected"), nil)
+	rep, err := Install(context.Background(), InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "tls",
+		Port: 8443, Domain: "example.com", NoService: true,
+	})
+	if err == nil || !strings.Contains(err.Error(), "manifest rejected") {
+		t.Fatalf("resolve failure must abort: %v", err)
+	}
+	if rep.NginxManaged {
+		t.Fatalf("nothing was installed, so the report must not claim it: %+v", rep)
+	}
+}
+
+func TestFinalizeFailureMentionsManagedNginx(t *testing.T) {
+	root := sandbox(t)
+	stubManagedNginx(t, nil, nil)
+	finalizeManagedNginx = func(context.Context, nginx.FinalizeSpec) error {
+		return fmt.Errorf("nginx -t rejected the configuration")
+	}
+	_, err := Install(context.Background(), InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "tls",
+		Port: 8443, Domain: "example.com", NoService: true,
+	})
+	if err == nil || !strings.Contains(err.Error(), "managed Nginx is installed at") {
+		t.Fatalf("finalize failure must mention the managed front: %v", err)
+	}
+}
+
+func stubManagedNginx(t *testing.T, resolveErr, installErr error) {
 	t.Helper()
 	oldResolve, oldInstall, oldFinalize := resolveManagedNginx, installManagedNginx, finalizeManagedNginx
 	resolveManagedNginx = func(context.Context, nginx.Options) (nginx.Artifact, error) {
-		if installErr != nil {
-			return nginx.Artifact{}, installErr
+		if resolveErr != nil {
+			return nginx.Artifact{}, resolveErr
 		}
 		return nginx.Artifact{Build: "test-build", Version: nginx.Versions{Nginx: "1.30.6"}}, nil
 	}

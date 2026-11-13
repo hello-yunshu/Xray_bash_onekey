@@ -102,6 +102,7 @@ type Report struct {
 type UninstallSpec struct {
 	Root                 string
 	Purge                bool
+	KeepNginxConf        bool
 	AllowContainerWrites bool
 }
 
@@ -231,21 +232,35 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		rep.NginxDir = nginxDir
 		managedNginx = !spec.ExternalNginxManaged
 	}
-	// Install the managed front before the Xray transaction so a download or
-	// nginx -t failure leaves the runtime untouched. The follow-up install is
-	// idempotent and adopts an existing tree of the same build.
+	// Install the managed front before the Xray transaction. This ordering keeps
+	// the Xray runtime files untouched until Nginx is in place, but the managed
+	// Nginx tree, unit and service are real host mutations: a later failure does
+	// not unwind them, it only reports that they are installed.
 	if managedNginx {
 		artifact, resolveErr := resolveManagedNginx(ctx, nginx.Options{})
 		if resolveErr != nil {
 			return Report{}, resolveErr
 		}
+		localIP := spec.LocalIP
+		if localIP == "" {
+			if detected, ipErr := nginx.LocalAddress(ctx); ipErr != nil {
+				rep.Warnings = append(rep.Warnings, "managed nginx: local IP detection failed, local-IP 403 guard skipped: "+ipErr.Error())
+			} else {
+				localIP = detected
+			}
+		}
 		installed, installErr := installManagedNginx(ctx, nginx.InstallSpec{
 			Root: paths.Root, Artifact: artifact,
 			Stream:  strings.Contains(generated.NginxConf, "stream {"),
-			LocalIP: spec.LocalIP, NoService: spec.NoService,
+			LocalIP: localIP, NoService: spec.NoService,
 		})
 		if installErr != nil {
-			return Report{}, installErr
+			// Do not roll Nginx back here: it is a separate managed component and
+			// a later retry adopts the same build. Report it so the operator knows
+			// the host is no longer pristine.
+			rep.NginxManaged = true
+			rep.NginxDir = filepath.Join(paths.Root, nginxDirRel)
+			return rep, fmt.Errorf("%w; managed Nginx is installed at %s and can be removed with 'idleleo xray uninstall'", installErr, rep.NginxDir)
 		}
 		rep.NginxDir = installed.ConfDir
 		rep.NginxVerified = installed.Verified
@@ -348,7 +363,13 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		}
 		if managedNginx {
 			if err := finalizeManagedNginx(ctx, nginx.FinalizeSpec{Root: paths.Root, NoService: spec.NoService}); err != nil {
-				return fail(err)
+				// Finalize failing rolls the Xray transaction back but never
+				// uninstalls the managed front, so say it is still there.
+				nginxHostDir := rep.NginxDir
+				if nginxHostDir == "" {
+					nginxHostDir = filepath.Join(paths.Root, nginxDirRel)
+				}
+				return fail(fmt.Errorf("%w; managed Nginx is installed at %s and can be removed with 'idleleo xray uninstall'", err, nginxHostDir))
 			}
 		} else if err := verifyNginx(ctx, spec.NginxBin, generated.NginxConf, generated.NginxFragments, nginxDir); err != nil {
 			return fail(err)
@@ -625,14 +646,20 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 		}
 	}
 	// The managed front is part of the product: stop it and remove its tree and
-	// unit even when the caller keeps the configuration.
-	ngRep, ngErr := nginx.Uninstall(ctx, nginx.UninstallSpec{Root: paths.Root, PurgeConf: spec.Purge})
+	// unit even when the caller keeps the configuration. The fragment directory
+	// is removed by default so a reinstall starts clean; --keep-nginx-conf
+	// opts out.
+	ngRep, ngErr := nginx.Uninstall(ctx, nginx.UninstallSpec{
+		Root:     paths.Root,
+		KeepConf: spec.KeepNginxConf && !spec.Purge,
+	})
 	if ngErr != nil {
 		rep.Warnings = append(rep.Warnings, ngErr.Error())
 	} else {
 		rep.Removed = append(rep.Removed, ngRep.Removed...)
 		rep.ServiceStopped = rep.ServiceStopped || ngRep.ServiceStopped
 		rep.ServiceDisabled = rep.ServiceDisabled || ngRep.ServiceDisabled
+		rep.ConfigPreserved = rep.ConfigPreserved || ngRep.ConfigPreserved
 		rep.Warnings = append(rep.Warnings, ngRep.Warnings...)
 	}
 	if spec.Purge {
@@ -648,7 +675,7 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 	} else {
 		rep.ConfigPreserved = true
 	}
-	return rep, nil
+	return rep, ngErr
 }
 
 // fileState is the prior content, mode, ownership and link target of one

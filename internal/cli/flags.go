@@ -105,7 +105,7 @@ var commandFlags = map[string]flagSpec{
 	"xray install": specOf(
 		append(append([]string{}, installSpecValues...), "binary", "nginx-bin", "local-ip"),
 		"keep-config", "rewrite-config", "external-nginx-managed", "no-service", "container", "allow-non-loopback"),
-	"xray uninstall": specOf(nil, "purge", "container"),
+	"xray uninstall": specOf(nil, "purge", "keep-nginx-conf", "container"),
 	"xray recover":   specOf(nil, "container"),
 	"xray share":     specOf([]string{"path", "inbound", "public-port", "host", "public-security", "user"}),
 	"xray relay":     specOf([]string{"target", "listen-port", "listen-address", "out"}, "force"),

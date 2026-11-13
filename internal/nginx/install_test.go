@@ -189,7 +189,12 @@ func TestInstallSkipsSameBuild(t *testing.T) {
 		t.Fatalf("first install: %v", err)
 	}
 	mainPath := filepath.Join(root, "usr/local/nginx/conf/nginx.conf")
-	if err := os.WriteFile(mainPath, []byte("# operator edit\n"), 0o644); err != nil {
+	managed, err := os.ReadFile(mainPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	edited := string(managed) + "# operator edit\n"
+	if err := os.WriteFile(mainPath, []byte(edited), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	rep, err := Install(context.Background(), InstallSpec{Root: root, Artifact: art, NoService: true})
@@ -199,8 +204,8 @@ func TestInstallSkipsSameBuild(t *testing.T) {
 	if !rep.AlreadyInstalled {
 		t.Fatalf("same build must be reported as already installed: %+v", rep)
 	}
-	if b, _ := os.ReadFile(mainPath); string(b) != "# operator edit\n" {
-		t.Fatalf("same-build reinstall overwrote the live config: %q", b)
+	if b, _ := os.ReadFile(mainPath); string(b) != edited {
+		t.Fatalf("same-build reinstall must not rewrite an intact live config: %q", b)
 	}
 }
 
@@ -214,27 +219,240 @@ func TestUninstallRemovesManagedLayout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("uninstall: %v", err)
 	}
-	if !rep.Installed || !rep.ConfigPreserved {
+	if !rep.Installed || rep.ConfigPreserved {
 		t.Fatalf("unexpected report: %+v", rep)
 	}
-	for _, rel := range []string{"usr/local/nginx", UnitRel, MetadataRel} {
+	for _, rel := range []string{"usr/local/nginx", UnitRel, MetadataRel, ConfDirRel} {
 		if _, statErr := os.Stat(filepath.Join(root, rel)); statErr == nil {
 			t.Fatalf("%s survived uninstall", rel)
 		}
-	}
-	if _, statErr := os.Stat(filepath.Join(root, "etc/idleleo/conf/nginx/nginx.default")); statErr != nil {
-		t.Fatalf("configuration should be preserved without purge: %v", statErr)
 	}
 
 	root = t.TempDir()
 	if _, err := Install(context.Background(), InstallSpec{Root: root, Artifact: sampleArtifact(t), NoService: true}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Uninstall(context.Background(), UninstallSpec{Root: root, PurgeConf: true, NoService: true}); err != nil {
+	kept, err := Uninstall(context.Background(), UninstallSpec{Root: root, KeepConf: true, NoService: true})
+	if err != nil {
+		t.Fatalf("uninstall with keep conf: %v", err)
+	}
+	if !kept.ConfigPreserved {
+		t.Fatalf("keep-conf report: %+v", kept)
+	}
+	if _, statErr := os.Stat(filepath.Join(root, "etc/idleleo/conf/nginx/nginx.default")); statErr != nil {
+		t.Fatalf("configuration should be preserved with KeepConf: %v", statErr)
+	}
+
+	root = t.TempDir()
+	if _, err := Install(context.Background(), InstallSpec{Root: root, Artifact: sampleArtifact(t), NoService: true}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Uninstall(context.Background(), UninstallSpec{Root: root, NoService: true}); err != nil {
 		t.Fatal(err)
 	}
 	if _, statErr := os.Stat(filepath.Join(root, ConfDirRel)); statErr == nil {
 		t.Fatal("purge must remove the project configuration directory")
+	}
+}
+
+func TestInstallAddsLocalIPGuard(t *testing.T) {
+	stubRuntime(t)
+	root := t.TempDir()
+	if _, err := Install(context.Background(), InstallSpec{
+		Root: root, Artifact: sampleArtifact(t), LocalIP: "203.0.113.7", NoService: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(filepath.Join(root, InstallDirRel, "conf", "nginx.conf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(b), "if ($host = '203.0.113.7') {") {
+		t.Fatalf("local-IP guard missing:\n%s", b)
+	}
+}
+
+func TestRewriteWarnsWhenAnchorMissing(t *testing.T) {
+	_, warnings := RewriteMainConfigWithWarnings("http {\n}\n", ConfigOptions{LocalIP: "203.0.113.7"})
+	if len(warnings) == 0 {
+		t.Fatal("missing error_page anchor must produce a warning")
+	}
+}
+
+func TestVerifyLayeredPermissionsDetectsDrift(t *testing.T) {
+	stubRuntime(t)
+	root := t.TempDir()
+	if _, err := Install(context.Background(), InstallSpec{
+		Root: root, Artifact: sampleArtifact(t), NoService: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+	if err := VerifyLayeredPermissions(ctx, root); err != nil {
+		t.Fatalf("fresh install must verify: %v", err)
+	}
+
+	confDir := filepath.Join(root, ConfDirRel)
+	if err := os.Chmod(confDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := VerifyLayeredPermissions(ctx, root); err == nil ||
+		!strings.Contains(err.Error(), "want 0750") {
+		t.Fatalf("mode drift must be reported, got %v", err)
+	}
+}
+
+func TestInstallToleratesSymlinkInCertDir(t *testing.T) {
+	stubRuntime(t)
+	root := t.TempDir()
+	certDir := filepath.Join(root, CertDirRel)
+	if err := os.MkdirAll(certDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("/etc/ssl/certs/ca-certificates.crt", filepath.Join(certDir, "ca.pem")); err != nil {
+		t.Fatal(err)
+	}
+	rep, err := Install(context.Background(), InstallSpec{
+		Root: root, Artifact: sampleArtifact(t), NoService: true,
+	})
+	if err != nil {
+		t.Fatalf("an unrelated symlink must not abort the install: %v", err)
+	}
+	found := false
+	for _, w := range rep.Warnings {
+		if strings.Contains(w, "skipped symlink") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("symlink skip must be reported as a warning: %v", rep.Warnings)
+	}
+}
+
+func TestCertDirResolutionWarning(t *testing.T) {
+	stubRuntime(t)
+	root := t.TempDir()
+	target := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, "etc/idleleo"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(target, filepath.Join(root, CertDirRel)); err != nil {
+		t.Fatal(err)
+	}
+	rep, err := Install(context.Background(), InstallSpec{
+		Root: root, Artifact: sampleArtifact(t), NoService: true,
+	})
+	if err != nil {
+		t.Fatalf("install must tolerate an unresolvable cert dir: %v", err)
+	}
+	found := false
+	for _, w := range rep.Warnings {
+		if strings.Contains(w, "certificate directory unavailable") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("cert dir resolution failure must warn: %v", rep.Warnings)
+	}
+}
+
+func TestRestoreKeepsGoingAfterDaemonReloadFailure(t *testing.T) {
+	origService, origQuery := runService, queryService
+	var calls []string
+	runService = func(_ context.Context, args ...string) error {
+		calls = append(calls, args[0])
+		if args[0] == "daemon-reload" {
+			return errTestRejected
+		}
+		return nil
+	}
+	queryService = func(context.Context, ...string) string { return "enabled" }
+	t.Cleanup(func() { runService, queryService = origService, origQuery })
+
+	err := restore(context.Background(), serviceSnapshot{
+		managed: true, unitExisted: true, enabled: "enabled", active: "active",
+	}, nil, &swapState{})
+	if err == nil || !strings.Contains(err.Error(), "daemon-reload") {
+		t.Fatalf("daemon-reload failure must surface: %v", err)
+	}
+	for _, want := range []string{"enable", "restart"} {
+		found := false
+		for _, call := range calls {
+			if call == want {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("service state restore stopped early; %q not attempted: %v", want, calls)
+		}
+	}
+}
+
+func TestSameBuildRepairsMainConfigDrift(t *testing.T) {
+	stubRuntime(t)
+	root := t.TempDir()
+	art := sampleArtifact(t)
+	if _, err := Install(context.Background(), InstallSpec{Root: root, Artifact: art, NoService: true}); err != nil {
+		t.Fatal(err)
+	}
+	mainPath := filepath.Join(root, InstallDirRel, "conf", "nginx.conf")
+	if err := os.WriteFile(mainPath, []byte(sampleMainConf), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	rep, err := Install(context.Background(), InstallSpec{Root: root, Artifact: art, NoService: true})
+	if err != nil {
+		t.Fatalf("same-build reinstall: %v", err)
+	}
+	if !rep.AlreadyInstalled {
+		t.Fatalf("same build must be reported as already installed: %+v", rep)
+	}
+	b, err := os.ReadFile(mainPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(b), "server_tokens off;") ||
+		!strings.Contains(string(b), "include /etc/idleleo/conf/nginx/*.conf;") {
+		t.Fatalf("drifted main config was not repaired:\n%s", b)
+	}
+}
+
+func TestEnsureServiceSkipsRestartWhenUnchanged(t *testing.T) {
+	stubRuntime(t)
+	origService, origQuery := runService, queryService
+	t.Cleanup(func() { runService, queryService = origService, origQuery })
+
+	drive := func(changed bool) []string {
+		var calls []string
+		runService = func(_ context.Context, args ...string) error {
+			calls = append(calls, args[0])
+			return nil
+		}
+		queryService = func(_ context.Context, args ...string) string {
+			if args[0] == "is-enabled" {
+				return "enabled"
+			}
+			return "active"
+		}
+		rep := InstallReport{}
+		if err := ensureService(context.Background(), "/", false, changed, &rep); err != nil {
+			t.Fatalf("ensureService: %v", err)
+		}
+		return calls
+	}
+
+	for _, call := range drive(false) {
+		if call == "restart" {
+			t.Fatal("an unchanged same-build install must not restart an active service")
+		}
+	}
+	found := false
+	for _, call := range drive(true) {
+		if call == "restart" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("a repaired install must restart the active service")
 	}
 }
 

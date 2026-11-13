@@ -82,8 +82,10 @@ type FinalizeSpec struct {
 
 // UninstallSpec is one managed Nginx removal request.
 type UninstallSpec struct {
-	Root      string
-	PurgeConf bool
+	Root string
+	// KeepConf preserves the project fragment directory. The default is to
+	// remove it so a reinstall starts from a clean tree (Bash parity).
+	KeepConf  bool
 	NoService bool
 }
 
@@ -113,7 +115,7 @@ var (
 	workerConns = regexp.MustCompile(`^(\s*)worker_connections\s+1024\s*;\s*$`)
 	includeMain = regexp.MustCompile(`^\s*include\s+/etc/idleleo/conf/nginx/` + regexp.QuoteMeta(MainConf) + `\s*;\s*$`)
 	includeGlob = regexp.MustCompile(`^\s*include\s+/etc/idleleo/conf/nginx/\*\.conf\s*;\s*$`)
-	errorPage   = regexp.MustCompile(`^\s*error_page\s+500\s+502\s+503\s+504\s+`)
+	errorPage   = regexp.MustCompile(`^\s*error_page\b.*\b504\b`)
 	httpOpen    = regexp.MustCompile(`^\s*http\s*\{\s*$`)
 )
 
@@ -170,6 +172,24 @@ var runVersion = func(ctx context.Context, bin string) string {
 	return strings.TrimSpace(res.Stdout + res.Stderr)
 }
 
+// runAsWorker executes a command as the unprivileged worker account. The Bash
+// harness proves certificate readability with `runuser -u idleleo-nginx --
+// test -r ...`; the same assertion runs here after permissions are applied.
+var runAsWorker = func(ctx context.Context, args ...string) error {
+	res, err := host.Run(ctx, host.ExecSpec{
+		Path:    "runuser",
+		Args:    append([]string{"-u", WorkerUser, "--"}, args...),
+		Timeout: 10 * time.Second,
+	})
+	if err != nil {
+		return err
+	}
+	if res.ExitCode != 0 {
+		return fmt.Errorf("runuser %s failed (exit %d): %s", WorkerUser, res.ExitCode, strings.TrimSpace(res.Stderr))
+	}
+	return nil
+}
+
 // Install unpacks the verified artifact into a staging directory on the same
 // filesystem, backs up the current tree, swaps it atomically, rewrites the main
 // configuration, applies layered permissions, validates with nginx -t, writes
@@ -212,7 +232,14 @@ func Install(ctx context.Context, spec InstallSpec) (InstallReport, error) {
 	if meta, ok := installedSameBuild(metaPath, rep.BinaryPath, spec.Artifact.Build); ok {
 		rep.AlreadyInstalled = true
 		rep.BinarySHA256 = meta.BinarySHA256
-		if err := ensureService(ctx, paths.Root, spec.NoService, &rep); err != nil {
+		// A reinstall of the same build must not churn the live tree, but an
+		// operator edit or a permission reset can leave the managed surface
+		// broken. Repair drift, then only restart when something changed.
+		drifted, err := repairManagedState(ctx, paths, installDir, spec, &rep)
+		if err != nil {
+			return rep, err
+		}
+		if err := ensureService(ctx, paths.Root, spec.NoService, drifted, &rep); err != nil {
 			return rep, err
 		}
 		return rep, nil
@@ -299,11 +326,17 @@ func Install(ctx context.Context, spec InstallSpec) (InstallReport, error) {
 		}
 	}
 	opts := ConfigOptions{User: WorkerUser, Group: WorkerGroup, LocalIP: spec.LocalIP, Stream: spec.Stream}
-	rewritten := RewriteMainConfig(string(rawMain), opts)
+	rewritten, warnings := RewriteMainConfigWithWarnings(string(rawMain), opts)
+	rep.Warnings = append(rep.Warnings, warnings...)
 	if err := writeAtomic(filepath.Join(installDir, "conf", "nginx.conf"), []byte(rewritten), 0o644); err != nil {
 		return fail(err)
 	}
-	if err := ApplyLayeredPermissions(paths.Root); err != nil {
+	permWarnings, err := ApplyLayeredPermissions(paths.Root)
+	rep.Warnings = append(rep.Warnings, permWarnings...)
+	if err != nil {
+		return fail(err)
+	}
+	if err := VerifyLayeredPermissions(ctx, paths.Root); err != nil {
 		return fail(err)
 	}
 	if err := runConfigTest(ctx, rep.BinaryPath, installDir, filepath.Join(installDir, "conf", "nginx.conf")); err != nil {
@@ -333,11 +366,13 @@ func Install(ctx context.Context, spec InstallSpec) (InstallReport, error) {
 	if err := writeAtomic(metaPath, metaBytes, 0o644); err != nil {
 		return fail(err)
 	}
-	if err := ensureService(ctx, paths.Root, spec.NoService, &rep); err != nil {
+	if err := ensureService(ctx, paths.Root, spec.NoService, true, &rep); err != nil {
 		return fail(err)
 	}
 	if backupDir := swap.backupDir; backupDir != "" {
-		_ = os.RemoveAll(backupDir)
+		if err := os.RemoveAll(backupDir); err != nil {
+			rep.Warnings = append(rep.Warnings, "managed nginx: previous tree backup kept at "+backupDir+": "+err.Error())
+		}
 	}
 	return rep, nil
 }
@@ -353,7 +388,10 @@ func Finalize(ctx context.Context, spec FinalizeSpec) error {
 	if err != nil {
 		return err
 	}
-	if err := ApplyLayeredPermissions(spec.Root); err != nil {
+	if _, err := ApplyLayeredPermissions(spec.Root); err != nil {
+		return err
+	}
+	if err := VerifyLayeredPermissions(ctx, spec.Root); err != nil {
 		return err
 	}
 	bin := filepath.Join(installDir, "sbin", "nginx")
@@ -388,7 +426,13 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 	unitPath, _ := paths.Join(UnitRel, false)
 	if paths.Root == "/" && !spec.NoService {
 		if _, statErr := os.Lstat(unitPath); statErr == nil {
-			if err := runService(ctx, "stop", ServiceName); err == nil {
+			if err := runService(ctx, "stop", ServiceName); err != nil {
+				// Deleting the tree under a live process leaves an
+				// unmanageable runtime; refuse instead of pretending success.
+				if queryService(ctx, "is-active", ServiceName) == "active" {
+					return rep, fmt.Errorf("stop nginx.service failed: %w", err)
+				}
+			} else {
 				rep.ServiceStopped = true
 			}
 			if err := runService(ctx, "disable", ServiceName); err == nil {
@@ -406,15 +450,18 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 		{InstallDirRel, installDir, true},
 		{MetadataRel, metaPath, false},
 	}
-	if spec.PurgeConf {
+	if spec.KeepConf {
+		if _, statErr := os.Lstat(confDir); statErr == nil {
+			rep.ConfigPreserved = true
+		}
+	} else {
 		targets = append(targets, struct {
 			rel  string
 			path string
 			dir  bool
 		}{ConfDirRel, confDir, true})
-	} else if _, statErr := os.Lstat(confDir); statErr == nil {
-		rep.ConfigPreserved = true
 	}
+	var cleanupErr error
 	for _, t := range targets {
 		if t.path == "" {
 			continue
@@ -430,6 +477,7 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 		}
 		if rmErr != nil {
 			rep.Warnings = append(rep.Warnings, fmt.Sprintf("remove %s: %v", t.rel, rmErr))
+			cleanupErr = errors.Join(cleanupErr, fmt.Errorf("remove %s: %w", t.rel, rmErr))
 			continue
 		}
 		rep.Removed = append(rep.Removed, t.rel)
@@ -439,22 +487,31 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 			rep.Warnings = append(rep.Warnings, err.Error())
 		}
 	}
-	return rep, nil
+	return rep, cleanupErr
 }
 
 // RewriteMainConfig applies the Bash modify_nginx_origin_conf transformations:
 // worker identity, process/connection sizing, a single project include, and
-// server_tokens/local-IP hardening.
+// server_tokens/local-IP hardening. It keeps the historical string-only
+// signature; callers that surface warnings use RewriteMainConfigWithWarnings.
 func RewriteMainConfig(conf string, opts ConfigOptions) string {
+	out, _ := RewriteMainConfigWithWarnings(conf, opts)
+	return out
+}
+
+// RewriteMainConfigWithWarnings is RewriteMainConfig plus diagnostics for
+// anchors it could not find. A missing hardening anchor must never be silent.
+func RewriteMainConfigWithWarnings(conf string, opts ConfigOptions) (string, []string) {
 	if opts.User == "" {
 		opts.User = WorkerUser
 	}
 	if opts.Group == "" {
 		opts.Group = WorkerGroup
 	}
+	warnings := []string{}
 	hadTrailingNewline := strings.HasSuffix(conf, "\n")
 	lines := strings.Split(strings.TrimSuffix(conf, "\n"), "\n")
-	out := make([]string, 0, len(lines)+6)
+	out := make([]string, 0, len(lines)+8)
 	userDone := false
 	for _, line := range lines {
 		if userLine.MatchString(line) {
@@ -483,15 +540,21 @@ func RewriteMainConfig(conf string, opts ConfigOptions) string {
 
 	// server_tokens off immediately after the http block opener.
 	if !containsLine(out, "server_tokens off;") {
+		inserted := false
 		for i, line := range out {
 			if httpOpen.MatchString(line) {
 				out = append(out[:i+1], append([]string{"    server_tokens off;"}, out[i+1:]...)...)
+				inserted = true
 				break
 			}
+		}
+		if !inserted {
+			warnings = append(warnings, "nginx main config has no http { block; server_tokens off not applied")
 		}
 	}
 	// Refuse requests addressed to the host's own IP (Bash parity).
 	if opts.LocalIP != "" && !containsLine(out, "if ($host = '"+opts.LocalIP+"') {") {
+		inserted := false
 		for i, line := range out {
 			if errorPage.MatchString(line) {
 				block := []string{
@@ -500,8 +563,12 @@ func RewriteMainConfig(conf string, opts ConfigOptions) string {
 					"\t\t}",
 				}
 				out = append(out[:i], append(block, out[i:]...)...)
+				inserted = true
 				break
 			}
+		}
+		if !inserted {
+			warnings = append(warnings, "nginx main config has no error_page ... 504 anchor; local-IP 403 guard not applied")
 		}
 	}
 
@@ -509,18 +576,23 @@ func RewriteMainConfig(conf string, opts ConfigOptions) string {
 		out = append(out, "include /etc/idleleo/conf/nginx/"+MainConf+";")
 	} else {
 		// Insert the http include before the final closing brace.
+		inserted := false
 		for i := len(out) - 1; i >= 0; i-- {
 			if strings.TrimSpace(out[i]) == "}" {
 				out = append(out[:i], append([]string{"    include /etc/idleleo/conf/nginx/*.conf;"}, out[i:]...)...)
+				inserted = true
 				break
 			}
+		}
+		if !inserted {
+			warnings = append(warnings, "nginx main config has no closing brace; *.conf include not applied")
 		}
 	}
 	joined := strings.Join(out, "\n")
 	if hadTrailingNewline {
 		joined += "\n"
 	}
-	return joined
+	return joined, warnings
 }
 
 func containsLine(lines []string, want string) bool {
@@ -555,8 +627,127 @@ WantedBy=multi-user.target
 
 // ApplyLayeredPermissions enforces the documented ownership model. It skips
 // chown for a sandbox root because the test process is not root; mode changes
-// still apply so the model is exercised.
-func ApplyLayeredPermissions(root string) error {
+// still apply so the model is exercised. Symlinks are skipped with a warning:
+// the Bash implementation uses `find -type f`, so an unrelated symlink must not
+// abort an otherwise valid install.
+func ApplyLayeredPermissions(root string) ([]string, error) {
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		return nil, err
+	}
+	warnings := []string{}
+	installDir, err := dirAt(paths, InstallDirRel)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := os.Lstat(installDir); err != nil {
+		if os.IsNotExist(err) {
+			return warnings, nil
+		}
+		return nil, err
+	}
+	confDir, err := dirAt(paths, ConfDirRel)
+	if err != nil {
+		return nil, err
+	}
+	if warning := certDirWarning(paths); warning != "" {
+		warnings = append(warnings, warning)
+	}
+	certDir, _ := paths.Join(CertDirRel, false)
+	chown := paths.Root == "/"
+	uid, gid := workerIDs()
+	if chown && (uid < 0 || gid < 0) {
+		return nil, fmt.Errorf("worker account %s is not resolvable", WorkerUser)
+	}
+
+	if err := chmodChown(installDir, 0o755, 0, 0, chown); err != nil {
+		return nil, err
+	}
+	if err := chmodChown(filepath.Join(installDir, "sbin", "nginx"), 0o755, 0, 0, chown); err != nil {
+		return nil, err
+	}
+	for _, name := range []string{"conf", "html"} {
+		dir := filepath.Join(installDir, name)
+		if _, err := os.Lstat(dir); err != nil {
+			continue
+		}
+		if err := chmodChown(dir, 0o750, 0, gid, chown); err != nil {
+			return nil, err
+		}
+		if err := walkFiles(dir, 0o640, 0o750, 0, gid, chown, &warnings); err != nil {
+			return nil, err
+		}
+	}
+	if _, err := os.Lstat(confDir); err == nil {
+		if err := chmodChown(confDir, 0o750, 0, gid, chown); err != nil {
+			return nil, err
+		}
+		if err := walkFiles(confDir, 0o640, 0o750, 0, gid, chown, &warnings); err != nil {
+			return nil, err
+		}
+	}
+	for _, name := range []string{"logs", "client_body_temp", "proxy_temp", "fastcgi_temp", "uwsgi_temp", "scgi_temp"} {
+		dir := filepath.Join(installDir, name)
+		if _, err := os.Lstat(dir); err != nil {
+			continue
+		}
+		if err := chmodChown(dir, 0o750, uid, gid, chown); err != nil {
+			return nil, err
+		}
+		if err := walkFiles(dir, 0o640, 0o750, uid, gid, chown, &warnings); err != nil {
+			return nil, err
+		}
+	}
+	if certDir != "" {
+		if _, err := os.Lstat(certDir); err == nil {
+			if err := chmodChown(certDir, 0o750, 0, gid, chown); err != nil {
+				return nil, err
+			}
+			if err := walkFiles(certDir, 0o640, 0o750, 0, gid, chown, &warnings); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return warnings, nil
+}
+
+func walkFiles(dir string, fileMode, dirMode, uid, gid int, chown bool, warnings *[]string) error {
+	return filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if path == dir {
+			return nil
+		}
+		if d.Type()&os.ModeSymlink != 0 {
+			*warnings = append(*warnings, "managed nginx: skipped symlink "+path)
+			return nil
+		}
+		if d.IsDir() {
+			return chmodChown(path, dirMode, uid, gid, chown)
+		}
+		if !d.Type().IsRegular() {
+			return fmt.Errorf("refusing to chmod non-regular %s", path)
+		}
+		return chmodChown(path, fileMode, uid, gid, chown)
+	})
+}
+
+// certDirWarning reports a managed certificate directory that host.Paths
+// refuses to resolve, for example an operator symlink to a certbot live/ tree.
+// Callers surface it as a warning instead of skipping the directory silently.
+func certDirWarning(paths host.Paths) string {
+	if _, err := paths.Join(CertDirRel, false); err != nil && !os.IsNotExist(err) {
+		return "managed nginx: certificate directory unavailable: " + err.Error()
+	}
+	return ""
+}
+
+// VerifyLayeredPermissions asserts the effective ownership and mode of the
+// managed tree. Bash fails the install when these drift; without this check a
+// partially applied chown/chmod still reports success and the worker may be
+// unable to read certificates.
+func VerifyLayeredPermissions(ctx context.Context, root string) error {
 	paths, err := host.NewPaths(root)
 	if err != nil {
 		return err
@@ -575,83 +766,124 @@ func ApplyLayeredPermissions(root string) error {
 	if err != nil {
 		return err
 	}
-	certDir, _ := paths.Join(CertDirRel, false)
+	certDir, certErr := paths.Join(CertDirRel, false)
+	if certErr != nil {
+		// ApplyLayeredPermissions reports an unresolvable certificate
+		// directory as a warning, so verification must not hard-fail on the
+		// same condition (for example an operator-managed symlink). The
+		// readability assertion below still checks it.
+		certDir = ""
+	}
 	chown := paths.Root == "/"
 	uid, gid := workerIDs()
 	if chown && (uid < 0 || gid < 0) {
 		return fmt.Errorf("worker account %s is not resolvable", WorkerUser)
 	}
 
-	if err := chmodChown(installDir, 0o755, 0, 0, chown); err != nil {
+	check := func(path string, want os.FileMode, wantUID, wantGID int) error {
+		info, err := os.Lstat(path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return nil
+			}
+			return err
+		}
+		if info.Mode().Perm() != want {
+			return fmt.Errorf("%s mode %04o, want %04o", path, info.Mode().Perm(), want)
+		}
+		if chown {
+			if gotUID, gotGID, ok := statOwner(info); ok && (gotUID != wantUID || gotGID != wantGID) {
+				return fmt.Errorf("%s owner %d:%d, want %d:%d", path, gotUID, gotGID, wantUID, wantGID)
+			}
+		}
+		return nil
+	}
+	verifyTree := func(dir string, fileMode, dirMode os.FileMode, wantUID, wantGID int) error {
+		return filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if path == dir || d.Type()&os.ModeSymlink != 0 {
+				return nil
+			}
+			want := fileMode
+			if d.IsDir() {
+				want = dirMode
+			}
+			return check(path, want, wantUID, wantGID)
+		})
+	}
+
+	if err := check(installDir, 0o755, 0, 0); err != nil {
 		return err
 	}
-	if err := chmodChown(filepath.Join(installDir, "sbin", "nginx"), 0o755, 0, 0, chown); err != nil {
+	if err := check(filepath.Join(installDir, "sbin", "nginx"), 0o755, 0, 0); err != nil {
 		return err
 	}
 	for _, name := range []string{"conf", "html"} {
 		dir := filepath.Join(installDir, name)
-		if _, err := os.Lstat(dir); err != nil {
+		if _, statErr := os.Lstat(dir); statErr != nil {
 			continue
 		}
-		if err := chmodChown(dir, 0o750, 0, gid, chown); err != nil {
+		if err := check(dir, 0o750, 0, gid); err != nil {
 			return err
 		}
-		if err := walkFiles(dir, 0o640, 0o750, 0, gid, chown); err != nil {
+		if err := verifyTree(dir, 0o640, 0o750, 0, gid); err != nil {
 			return err
 		}
 	}
-	if _, err := os.Lstat(confDir); err == nil {
-		if err := chmodChown(confDir, 0o750, 0, gid, chown); err != nil {
+	if _, statErr := os.Lstat(confDir); statErr == nil {
+		if err := check(confDir, 0o750, 0, gid); err != nil {
 			return err
 		}
-		if err := walkFiles(confDir, 0o640, 0o750, 0, gid, chown); err != nil {
+		if err := verifyTree(confDir, 0o640, 0o750, 0, gid); err != nil {
 			return err
 		}
 	}
 	for _, name := range []string{"logs", "client_body_temp", "proxy_temp", "fastcgi_temp", "uwsgi_temp", "scgi_temp"} {
 		dir := filepath.Join(installDir, name)
-		if _, err := os.Lstat(dir); err != nil {
+		if _, statErr := os.Lstat(dir); statErr != nil {
 			continue
 		}
-		if err := chmodChown(dir, 0o750, uid, gid, chown); err != nil {
+		if err := check(dir, 0o750, uid, gid); err != nil {
 			return err
 		}
-		if err := walkFiles(dir, 0o640, 0o750, uid, gid, chown); err != nil {
+		if err := verifyTree(dir, 0o640, 0o750, uid, gid); err != nil {
 			return err
 		}
 	}
 	if certDir != "" {
-		if _, err := os.Lstat(certDir); err == nil {
-			if err := chmodChown(certDir, 0o750, 0, gid, chown); err != nil {
+		if _, statErr := os.Lstat(certDir); statErr == nil {
+			if err := check(certDir, 0o750, 0, gid); err != nil {
 				return err
 			}
-			if err := walkFiles(certDir, 0o640, 0o750, 0, gid, chown); err != nil {
+			if err := verifyTree(certDir, 0o640, 0o750, 0, gid); err != nil {
 				return err
+			}
+		}
+	}
+	// The worker must be able to read the TLS key and must not be able to
+	// rewrite it. This is the Bash runuser assertion.
+	if chown && certDir != "" {
+		key := filepath.Join(certDir, "xray.key")
+		if _, statErr := os.Lstat(key); statErr == nil {
+			if err := runAsWorker(ctx, "test", "-r", key); err != nil {
+				return fmt.Errorf("%s cannot read %s: %w", WorkerUser, key, err)
+			}
+			if err := runAsWorker(ctx, "test", "!", "-w", key); err != nil {
+				return fmt.Errorf("%s can write %s: %w", WorkerUser, key, err)
 			}
 		}
 	}
 	return nil
 }
 
-func walkFiles(dir string, fileMode, dirMode, uid, gid int, chown bool) error {
-	return filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if path == dir {
-			return nil
-		}
-		if d.Type()&os.ModeSymlink != 0 {
-			return fmt.Errorf("refusing to chmod symlink %s", path)
-		}
-		if d.IsDir() {
-			return chmodChown(path, dirMode, uid, gid, chown)
-		}
-		if !d.Type().IsRegular() {
-			return fmt.Errorf("refusing to chmod non-regular %s", path)
-		}
-		return chmodChown(path, fileMode, uid, gid, chown)
-	})
+func statOwner(info os.FileInfo) (int, int, bool) {
+	st, ok := info.Sys().(*syscall.Stat_t)
+	if !ok {
+		return 0, 0, false
+	}
+	return int(st.Uid), int(st.Gid), true
 }
 
 func chmodChown(path string, mode int, uid, gid int, chown bool) error {
@@ -704,7 +936,60 @@ func ensureWorker(ctx context.Context) error {
 	return nil
 }
 
-func ensureService(ctx context.Context, root string, noService bool, rep *InstallReport) error {
+// repairManagedState re-applies the managed surface when a same-build install
+// finds the main config, the unit file or the layered permissions drifted. It
+// returns true when anything had to be fixed, which tells the caller whether a
+// restart is warranted.
+func repairManagedState(ctx context.Context, paths host.Paths, installDir string, spec InstallSpec, rep *InstallReport) (bool, error) {
+	changed := false
+	mainPath := filepath.Join(installDir, "conf", "nginx.conf")
+	rawMain, err := os.ReadFile(mainPath)
+	if err != nil {
+		return false, err
+	}
+	opts := ConfigOptions{User: WorkerUser, Group: WorkerGroup, LocalIP: spec.LocalIP, Stream: spec.Stream}
+	rewritten, warnings := RewriteMainConfigWithWarnings(string(rawMain), opts)
+	if rewritten != string(rawMain) {
+		// Validate the repaired file before it replaces the live config.
+		tmp := mainPath + ".repair"
+		if err := os.WriteFile(tmp, []byte(rewritten), 0o644); err != nil {
+			return false, err
+		}
+		checkErr := runConfigTest(ctx, filepath.Join(installDir, "sbin", "nginx"), installDir, tmp)
+		_ = os.Remove(tmp)
+		if checkErr != nil {
+			return false, checkErr
+		}
+		if err := writeAtomic(mainPath, []byte(rewritten), 0o644); err != nil {
+			return false, err
+		}
+		rep.Warnings = append(rep.Warnings, warnings...)
+		changed = true
+	}
+	if unitPath, err := paths.Join(UnitRel, true); err == nil {
+		want := UnitContent(installDir)
+		if cur, readErr := os.ReadFile(unitPath); readErr != nil || string(cur) != want {
+			if err := writeAtomic(unitPath, []byte(want), 0o644); err != nil {
+				return false, err
+			}
+			changed = true
+		}
+	}
+	if err := VerifyLayeredPermissions(ctx, paths.Root); err != nil {
+		permWarnings, applyErr := ApplyLayeredPermissions(paths.Root)
+		rep.Warnings = append(rep.Warnings, permWarnings...)
+		if applyErr != nil {
+			return false, applyErr
+		}
+		if err := VerifyLayeredPermissions(ctx, paths.Root); err != nil {
+			return false, err
+		}
+		changed = true
+	}
+	return changed, nil
+}
+
+func ensureService(ctx context.Context, root string, noService, changed bool, rep *InstallReport) error {
 	if noService || root != "/" {
 		return nil
 	}
@@ -714,12 +999,15 @@ func ensureService(ctx context.Context, root string, noService bool, rep *Instal
 	if err := runService(ctx, "enable", ServiceName); err != nil {
 		return err
 	}
-	if queryService(ctx, "is-active", ServiceName) == "active" {
+	active := queryService(ctx, "is-active", ServiceName) == "active"
+	if active && changed {
 		if err := runService(ctx, "restart", ServiceName); err != nil {
 			return err
 		}
-	} else if err := runService(ctx, "start", ServiceName); err != nil {
-		return err
+	} else if !active {
+		if err := runService(ctx, "start", ServiceName); err != nil {
+			return err
+		}
 	}
 	rep.ServiceEnabled = queryService(ctx, "is-enabled", ServiceName)
 	rep.ServiceActive = waitActive(ctx)
@@ -863,7 +1151,12 @@ type swapState struct {
 	swapped    bool
 }
 
+// restore returns the host to the captured state. Every step runs even when an
+// earlier one fails: a failed daemon-reload must not leave nginx.service
+// enabled/started, otherwise a retry sees a half-restored host and refuses to
+// proceed. All failures are joined and returned together.
 func restore(ctx context.Context, snap serviceSnapshot, files []fileSnapshot, swap *swapState) error {
+	var errs error
 	if snap.managed && !snap.unitExisted {
 		_ = runService(ctx, "stop", ServiceName)
 		_ = runService(ctx, "disable", ServiceName)
@@ -872,44 +1165,47 @@ func restore(ctx context.Context, snap serviceSnapshot, files []fileSnapshot, sw
 	// extraction or verification must leave the live tree untouched.
 	if swap.swapped {
 		if err := os.RemoveAll(swap.installDir); err != nil {
-			return err
-		}
-		if swap.backupDir != "" {
+			errs = errors.Join(errs, fmt.Errorf("restore: remove new tree %s: %w", swap.installDir, err))
+		} else if swap.backupDir != "" {
 			if err := os.Rename(swap.backupDir, swap.installDir); err != nil {
-				return err
+				errs = errors.Join(errs, fmt.Errorf("restore: reinstate %s: %w", swap.backupDir, err))
 			}
 		}
 	}
 	for i := len(files) - 1; i >= 0; i-- {
 		if err := files[i].restore(); err != nil {
-			return err
+			errs = errors.Join(errs, fmt.Errorf("restore %s: %w", files[i].path, err))
 		}
 	}
 	if !snap.managed {
-		return nil
+		return errs
 	}
 	if err := runService(ctx, "daemon-reload"); err != nil {
-		return err
+		errs = errors.Join(errs, fmt.Errorf("restore: daemon-reload: %w", err))
 	}
 	if !snap.unitExisted {
 		if got := queryService(ctx, "is-enabled", ServiceName); strings.Contains(got, "enabled") {
-			return fmt.Errorf("nginx.service is still enabled (%q)", got)
+			errs = errors.Join(errs, fmt.Errorf("nginx.service is still enabled (%q)", got))
 		}
-		return nil
+		return errs
 	}
 	wantEnabled := strings.Contains(snap.enabled, "enabled")
 	if wantEnabled {
 		if err := runService(ctx, "enable", ServiceName); err != nil {
-			return err
+			errs = errors.Join(errs, fmt.Errorf("restore: enable: %w", err))
 		}
 	} else if err := runService(ctx, "disable", ServiceName); err != nil {
-		return err
+		errs = errors.Join(errs, fmt.Errorf("restore: disable: %w", err))
 	}
 	wantActive := snap.active == "active"
 	if wantActive {
-		return runService(ctx, "restart", ServiceName)
+		if err := runService(ctx, "restart", ServiceName); err != nil {
+			errs = errors.Join(errs, fmt.Errorf("restore: restart: %w", err))
+		}
+	} else if err := runService(ctx, "stop", ServiceName); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("restore: stop: %w", err))
 	}
-	return runService(ctx, "stop", ServiceName)
+	return errs
 }
 
 func dirAt(paths host.Paths, rel string) (string, error) {

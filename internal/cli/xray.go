@@ -462,6 +462,7 @@ func xrayUninstall(ctx context.Context, opts Options, cfg config, args []string)
 	report, err := deploy.Uninstall(ctx, deploy.UninstallSpec{
 		Root:                 cfg.root,
 		Purge:                hasFlag(args, "--purge"),
+		KeepNginxConf:        hasFlag(args, "--keep-nginx-conf"),
 		AllowContainerWrites: hasFlag(args, "--container"),
 	})
 	if err != nil {
