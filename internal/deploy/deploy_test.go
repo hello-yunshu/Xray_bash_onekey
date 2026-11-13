@@ -414,6 +414,31 @@ func TestFinalizeFailureMentionsManagedNginx(t *testing.T) {
 	}
 }
 
+func TestUninstallAbortsBeforeXrayWhenNginxStopFails(t *testing.T) {
+	root := sandbox(t)
+	stubManagedNginx(t, nil, nil)
+	if _, err := Install(context.Background(), InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "tls",
+		Port: 8443, Domain: "example.com", NoService: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	old := preflightManagedStop
+	preflightManagedStop = func(context.Context, string) error {
+		return fmt.Errorf("stop nginx.service failed: exit 1")
+	}
+	t.Cleanup(func() { preflightManagedStop = old })
+	if _, err := Uninstall(context.Background(), UninstallSpec{Root: root}); err == nil ||
+		!strings.Contains(err.Error(), "stop nginx.service failed") {
+		t.Fatalf("uninstall must abort on nginx stop failure: %v", err)
+	}
+	for _, rel := range []string{"usr/local/bin/xray", "etc/systemd/system/xray.service", "etc/idleleo/conf/xray/config.json"} {
+		if _, statErr := os.Stat(filepath.Join(root, rel)); statErr != nil {
+			t.Fatalf("%s must survive the aborted uninstall: %v", rel, statErr)
+		}
+	}
+}
+
 func stubManagedNginx(t *testing.T, resolveErr, installErr error) {
 	t.Helper()
 	oldResolve, oldInstall, oldFinalize := resolveManagedNginx, installManagedNginx, finalizeManagedNginx

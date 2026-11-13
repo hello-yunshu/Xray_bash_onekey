@@ -494,6 +494,34 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 	return rep, cleanupErr
 }
 
+// PreflightStop stops the managed service and fails when it is still active
+// afterwards. Uninstall runs it before removing anything else so a stop
+// failure aborts the whole removal instead of leaving a half-uninstalled host
+// (for example Xray deleted while Nginx keeps serving).
+func PreflightStop(ctx context.Context, root string) error {
+	if root != "/" {
+		return nil
+	}
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		return err
+	}
+	unitPath, err := paths.Join(UnitRel, false)
+	if err != nil {
+		// No managed unit: nothing to preflight.
+		return nil
+	}
+	if _, statErr := os.Lstat(unitPath); statErr != nil {
+		return nil
+	}
+	if err := runService(ctx, "stop", ServiceName); err != nil {
+		if queryService(ctx, "is-active", ServiceName) == "active" {
+			return fmt.Errorf("stop nginx.service failed: %w", err)
+		}
+	}
+	return nil
+}
+
 // RewriteMainConfig applies the Bash modify_nginx_origin_conf transformations:
 // worker identity, process/connection sizing, a single project include, and
 // server_tokens/local-IP hardening. It keeps the historical string-only

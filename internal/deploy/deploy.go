@@ -131,6 +131,7 @@ var (
 	resolveManagedNginx  = nginx.Resolve
 	installManagedNginx  = nginx.Install
 	finalizeManagedNginx = nginx.Finalize
+	preflightManagedStop = nginx.PreflightStop
 )
 
 func Install(ctx context.Context, spec InstallSpec) (Report, error) {
@@ -656,6 +657,12 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 		return UninstallReport{}, err
 	}
 	rep := UninstallReport{Warnings: []string{}}
+	// Preflight the managed front before removing anything. If Nginx cannot be
+	// stopped, abort here: deleting Xray first would leave the host with Xray
+	// gone while Nginx keeps serving.
+	if err := preflightManagedStop(ctx, paths.Root); err != nil {
+		return rep, err
+	}
 	unitPath, _ := paths.Join(unitRel, false)
 	if _, statErr := os.Stat(unitPath); statErr == nil {
 		if paths.Root == "/" {
