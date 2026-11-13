@@ -245,6 +245,9 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
 
 ## D-017 Nginx 必需模式没有真实前端就拒绝安装（2026-11-08 收尾轮）
 
+**状态**：安装策略已被 D-022 取代（默认托管安装）；`nginx -t` 验证与
+`ssl_reject_handshake` 的 http 归属仍然有效。
+
 **决定**：
 - `tls`、`reality-nginx`、`reality-balance --role primary` 必须同时给出
   `--external-nginx-managed` 与 `--nginx-bin`，否则安装在任何落盘前返回错误。
@@ -398,3 +401,23 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
   刷新仍要等 release gate 变绿、28 项退出 `PENDING_GO_IMPLEMENTATION` 后由受保护流水线产出，本轮不手改。
 - `acme.sh` 的公网 CA 真实续签仍未验收；F12 与 28 项账本保持
   `PENDING_GO_IMPLEMENTATION`，不因本轮改动升格。
+
+## D-022 Nginx 改为默认托管安装（2026-11-13，取代 D-017 的拒绝策略）
+
+**决定**：
+- 方案 B：复用 Bash 同一个预编译产物（`hello-yunshu/Xray_bash_onekey_Nginx`
+  Releases 的 `xray-nginx-custom-{x86,arm}.tar.gz`），Go 侧不引入编译链。
+- `tls`、`reality-nginx`、`reality-balance --role primary` 默认由 Go 完成
+  manifest/SHA256 校验、安全解包、事务换入 `/usr/local/nginx`、`idleleo-nginx`
+  用户与分层权限、主配置改写、`nginx -t`、systemd unit 与 enable/start。
+- `--external-nginx-managed` 保留为显式 opt-out；选它时仍必须给
+  `--nginx-bin` 才能验证生成的片段。
+- 安装失败必须回滚到旧树；`nginx -t` 失败、unit 写入失败、服务启动失败都在
+  同一事务内回滚。F13 的 Nginx 更新与版本回滚不在本轮范围。
+- 版本对齐口径：同一版本、同一 configure 参数、同一安装路径，安装后可对
+  `nginx -V` 断言。
+
+**理由**：Bash 本来就不编译，只是下载并验证预编译包。Go 侧继续 fail-closed
+会让所有 Nginx 必需模式在 Go 中不可用，而不是更安全；把校验与事务搬进 Go
+既能消除“无前端却报告成功”的旧问题，也不增加构建依赖。
+

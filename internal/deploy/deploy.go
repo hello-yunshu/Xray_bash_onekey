@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/nginx"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg"
 )
@@ -60,12 +61,14 @@ type InstallSpec struct {
 	UnknownSNIPolicy string
 	AllowNonLoopback bool
 	KeepConfig       bool
-	// ExternalNginxManaged acknowledges that the operator owns the Nginx front.
-	// Without it, modes that need Nginx refuse to install rather than report a
-	// node that has no public entry point. NginxBin must point at a real nginx
-	// for the generated stream/http artifacts to be syntax-verified.
+	// ExternalNginxManaged opts out of the managed Nginx front. By default a
+	// mode that needs Nginx installs the verified release artifact; with this
+	// flag the operator owns the front and NginxBin must point at a real nginx
+	// so the generated artifacts are syntax-verified.
 	ExternalNginxManaged bool
 	NginxBin             string
+	// LocalIP is the host address that the managed front answers with 403.
+	LocalIP string
 	// RewriteConfig is the explicit opt-in for replacing an existing runtime
 	// config. Without it (or KeepConfig) Install refuses to overwrite a live
 	// config, so a migration cannot silently change ports, paths, UUIDs or keys.
@@ -121,6 +124,14 @@ var (
 	serviceManaged = func(root string) bool { return root == "/" }
 )
 
+// Managed Nginx seams. Tests replace them so a deployment test never reaches
+// the network or a real init system.
+var (
+	resolveManagedNginx  = nginx.Resolve
+	installManagedNginx  = nginx.Install
+	finalizeManagedNginx = nginx.Finalize
+)
+
 func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	paths, err := host.NewPaths(spec.Root)
 	if err != nil {
@@ -162,17 +173,12 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		// identity and custom routing without telling the operator.
 		return Report{}, fmt.Errorf("existing runtime config %s: refusing implicit regeneration; pass --keep-config to adopt it unchanged or --rewrite-config to replace it explicitly", configPath)
 	}
-	// Modes that expose the public entry through Nginx must never report a
-	// successful install while no front exists. Refuse before any mutation
-	// unless the operator explicitly states that they manage the front, and
-	// require a real nginx binary so the generated artifacts are verified.
-	if requiresNginx(spec.Mode, spec.BalanceRole) {
-		if !spec.ExternalNginxManaged {
-			return Report{}, fmt.Errorf("mode %s needs an Nginx front: refusing to install without --external-nginx-managed", spec.Mode)
-		}
-		if spec.NginxBin == "" {
-			return Report{}, fmt.Errorf("mode %s needs Nginx verification: pass --nginx-bin to run nginx -t on the generated artifacts", spec.Mode)
-		}
+	// Modes that expose the public entry through Nginx always get a front. The
+	// default is a managed install from the verified release artifact; the
+	// explicit opt-out must supply a real binary so the generated artifacts are
+	// still syntax-verified.
+	if requiresNginx(spec.Mode, spec.BalanceRole) && spec.ExternalNginxManaged && spec.NginxBin == "" {
+		return Report{}, fmt.Errorf("mode %s needs Nginx verification: pass --nginx-bin to run nginx -t on the generated artifacts", spec.Mode)
 	}
 	rep := Report{Mode: spec.Mode, Warnings: []string{}}
 	var configBytes []byte
@@ -208,6 +214,7 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 
 	var nginxDir string
 	var nginxFiles []string
+	managedNginx := false
 	if requiresNginx(rep.Mode, spec.BalanceRole) {
 		if generated == nil {
 			return Report{}, fmt.Errorf("cannot adopt an existing config for mode %s: Nginx artifacts must be generated explicitly", rep.Mode)
@@ -216,12 +223,33 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		if err != nil {
 			return Report{}, err
 		}
-		nginxFiles = append(nginxFiles, filepath.Join(nginxDir, "00-xray.conf"))
+		nginxFiles = append(nginxFiles, filepath.Join(nginxDir, nginx.MainConf))
 		for name := range generated.NginxFragments {
 			nginxFiles = append(nginxFiles, filepath.Join(nginxDir, name))
 		}
 		rep.NginxManaged = true
 		rep.NginxDir = nginxDir
+		managedNginx = !spec.ExternalNginxManaged
+	}
+	// Install the managed front before the Xray transaction so a download or
+	// nginx -t failure leaves the runtime untouched. The follow-up install is
+	// idempotent and adopts an existing tree of the same build.
+	if managedNginx {
+		artifact, resolveErr := resolveManagedNginx(ctx, nginx.Options{})
+		if resolveErr != nil {
+			return Report{}, resolveErr
+		}
+		installed, installErr := installManagedNginx(ctx, nginx.InstallSpec{
+			Root: paths.Root, Artifact: artifact,
+			Stream:  strings.Contains(generated.NginxConf, "stream {"),
+			LocalIP: spec.LocalIP, NoService: spec.NoService,
+		})
+		if installErr != nil {
+			return Report{}, installErr
+		}
+		rep.NginxDir = installed.ConfDir
+		rep.NginxVerified = installed.Verified
+		rep.Warnings = append(rep.Warnings, installed.Warnings...)
 	}
 
 	installedBin, err := paths.Join(binaryRel, true)
@@ -318,7 +346,11 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		if err := writeNginxArtifacts(nginxDir, generated); err != nil {
 			return fail(err)
 		}
-		if err := verifyNginx(ctx, spec.NginxBin, generated.NginxConf, generated.NginxFragments, nginxDir); err != nil {
+		if managedNginx {
+			if err := finalizeManagedNginx(ctx, nginx.FinalizeSpec{Root: paths.Root, NoService: spec.NoService}); err != nil {
+				return fail(err)
+			}
+		} else if err := verifyNginx(ctx, spec.NginxBin, generated.NginxConf, generated.NginxFragments, nginxDir); err != nil {
 			return fail(err)
 		}
 		rep.NginxVerified = true
@@ -591,6 +623,17 @@ func Uninstall(ctx context.Context, spec UninstallSpec) (UninstallReport, error)
 		if err := os.Remove(p); err == nil {
 			rep.Removed = append(rep.Removed, rel)
 		}
+	}
+	// The managed front is part of the product: stop it and remove its tree and
+	// unit even when the caller keeps the configuration.
+	ngRep, ngErr := nginx.Uninstall(ctx, nginx.UninstallSpec{Root: paths.Root, PurgeConf: spec.Purge})
+	if ngErr != nil {
+		rep.Warnings = append(rep.Warnings, ngErr.Error())
+	} else {
+		rep.Removed = append(rep.Removed, ngRep.Removed...)
+		rep.ServiceStopped = rep.ServiceStopped || ngRep.ServiceStopped
+		rep.ServiceDisabled = rep.ServiceDisabled || ngRep.ServiceDisabled
+		rep.Warnings = append(rep.Warnings, ngRep.Warnings...)
 	}
 	if spec.Purge {
 		for _, rel := range []string{configRel, nginxDirRel, logDirRel} {

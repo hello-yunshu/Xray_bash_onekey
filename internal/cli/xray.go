@@ -435,6 +435,7 @@ func xrayInstall(ctx context.Context, opts Options, cfg config, args []string) i
 		RewriteConfig:        hasFlag(args, "--rewrite-config"),
 		ExternalNginxManaged: hasFlag(args, "--external-nginx-managed"),
 		NginxBin:             flagValue(args, "--nginx-bin"),
+		LocalIP:              flagValue(args, "--local-ip"),
 		NoService:            hasFlag(args, "--no-service"),
 		AllowContainerWrites: hasFlag(args, "--container"),
 	})
