@@ -279,6 +279,26 @@ func TestRewriteWarnsWhenAnchorMissing(t *testing.T) {
 	}
 }
 
+func TestStreamModeIncludesIsolate(t *testing.T) {
+	stubRuntime(t)
+	root := t.TempDir()
+	if _, err := Install(context.Background(), InstallSpec{
+		Root: root, Artifact: sampleArtifact(t), Stream: true, NoService: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(filepath.Join(root, InstallDirRel, "conf", "nginx.conf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(b), "include /etc/idleleo/conf/nginx/03-isolate.conf;") {
+		t.Fatalf("stream mode must include the isolate site:\n%s", b)
+	}
+	if _, err := os.Stat(filepath.Join(root, ConfDirRel, "03-isolate.conf")); err != nil {
+		t.Fatalf("isolate placeholder missing: %v", err)
+	}
+}
+
 func TestVerifyLayeredPermissionsDetectsDrift(t *testing.T) {
 	stubRuntime(t)
 	root := t.TempDir()

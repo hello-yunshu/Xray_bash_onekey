@@ -14,6 +14,7 @@ import (
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/nginx"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg"
 )
 
 func sandbox(t *testing.T) string {
@@ -553,5 +554,44 @@ func TestRollbackFailureIsReportedNotHidden(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "inspect") {
 		t.Fatalf("incomplete rollback must name the manual work: %v", err)
+	}
+}
+
+func TestWriteNginxArtifactsRemovesStaleManagedFiles(t *testing.T) {
+	dir := t.TempDir()
+	stale := []string{
+		"old.example.com.serverNames",
+		"127.0.0.1.realityServers",
+		"127.0.0.1.wsServers",
+		"01-xray-80.conf",
+	}
+	for _, name := range stale {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("stale"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	operator := filepath.Join(dir, "operator-notes.txt")
+	if err := os.WriteFile(operator, []byte("keep me"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	g := &xraycfg.Generated{
+		NginxConf: "stream {}\n",
+		NginxFragments: map[string]string{
+			"example.com.serverNames": "example.com reality;\n",
+		},
+	}
+	if err := writeNginxArtifacts(dir, g); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range stale {
+		if _, err := os.Stat(filepath.Join(dir, name)); err == nil {
+			t.Fatalf("stale managed file %s was not removed", name)
+		}
+	}
+	if _, err := os.Stat(operator); err != nil {
+		t.Fatalf("operator file must survive: %v", err)
+	}
+	if b, err := os.ReadFile(filepath.Join(dir, "example.com.serverNames")); err != nil || string(b) != "example.com reality;\n" {
+		t.Fatalf("serverNames fragment not written: %v %q", err, b)
 	}
 }

@@ -122,10 +122,115 @@ func TestGenerateMultiTransportTLSRoutesEachInbound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, needle := range []string{"proxy_pass http://127.0.0.1:10080;", "grpc_pass grpc://127.0.0.1:10081;", "location /xhttp/"} {
+	for _, needle := range []string{
+		"proxy_pass http://xray-ws-server;",
+		"grpc_pass grpc://xray-grpc-server;",
+		"grpc_pass grpc://xray-xhttp-server;",
+		"location /xhttp/",
+	} {
 		if !strings.Contains(g.NginxConf, needle) {
 			t.Fatalf("nginx snippet missing %q:\n%s", needle, g.NginxConf)
 		}
+	}
+	if got := g.NginxFragments["127.0.0.1.wsServers"]; !strings.Contains(got, "server 127.0.0.1:10080 weight=50") {
+		t.Fatalf("ws upstream fragment = %q", got)
+	}
+	if got := g.NginxFragments["02-xray-server.conf"]; !strings.Contains(got, "upstream xray-ws-server {") {
+		t.Fatalf("upstream conf missing ws block: %q", got)
+	}
+}
+
+func TestGenerateTLSMatchesBashFront(t *testing.T) {
+	g, err := Generate(Spec{Mode: ModeTLS, Domain: "example.com", Transport: TransportWS, Port: 10080})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, needle := range []string{
+		"listen 443 ssl reuseport;",
+		"listen [::]:443 ssl reuseport;",
+		"listen 443 quic reuseport;",
+		"http2 on;",
+		"real_ip_header        X-Forwarded-For;",
+		"ssl_certificate       /etc/idleleo/cert/xray.crt;",
+		"ssl_certificate_key   /etc/idleleo/cert/xray.key;",
+		"ssl_protocols         TLSv1.3;",
+		"ssl_early_data on;",
+		"proxy_pass http://xray-ws-server;",
+		"proxy_set_header Host $http_host;",
+		"client_max_body_size 0;",
+		"location / {\n        return 403;",
+	} {
+		if !strings.Contains(g.NginxConf, needle) {
+			t.Fatalf("tls site missing %q:\n%s", needle, g.NginxConf)
+		}
+	}
+	redirect := g.NginxFragments["01-xray-80.conf"]
+	for _, needle := range []string{
+		"listen 80;",
+		"listen [::]:80;",
+		"server_name example.com;",
+		"location ^~ /.well-known/acme-challenge/",
+		"return 301 https://example.com$request_uri;",
+	} {
+		if !strings.Contains(redirect, needle) {
+			t.Fatalf("acme site missing %q:\n%s", needle, redirect)
+		}
+	}
+	upstream := g.NginxFragments["02-xray-server.conf"]
+	if !strings.Contains(upstream, "upstream xray-ws-server {") ||
+		!strings.Contains(upstream, "include /etc/idleleo/conf/nginx/*.wsServers;") {
+		t.Fatalf("upstream file mismatch:\n%s", upstream)
+	}
+	if got := g.NginxFragments["127.0.0.1.wsServers"]; got != "server 127.0.0.1:10080 weight=50 max_fails=2 fail_timeout=10;\n" {
+		t.Fatalf("ws server fragment = %q", got)
+	}
+}
+
+func TestGenerateTLSHonoursPublicPort(t *testing.T) {
+	g, err := Generate(Spec{Mode: ModeTLS, Domain: "example.com", Port: 10080, PublicPort: 8443})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(g.NginxConf, "listen 8443 ssl reuseport;") {
+		t.Fatalf("public port not applied:\n%s", g.NginxConf)
+	}
+	if !strings.Contains(g.NginxFragments["01-xray-80.conf"], "return 301 https://example.com:8443$request_uri;") {
+		t.Fatalf("redirect must keep the non-standard port: %s", g.NginxFragments["01-xray-80.conf"])
+	}
+}
+
+func TestGenerateRealityNginxFrontsBackendPort(t *testing.T) {
+	g, err := Generate(Spec{Mode: ModeRealityNginx, Domain: "example.com", Port: 8443})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.Port != 9443 || g.PublicPort != 8443 {
+		t.Fatalf("ports: inbound=%d public=%d", g.Port, g.PublicPort)
+	}
+	in := multiInbounds(t, g)
+	if len(in) != 1 || in[0]["port"].(float64) != 9443 {
+		t.Fatalf("reality inbound must stay on 9443: %v", in)
+	}
+	for _, needle := range []string{
+		"include /etc/idleleo/conf/nginx/*.serverNames;",
+		"include /etc/idleleo/conf/nginx/*.realityServers;",
+		"listen 8443 reuseport so_keepalive=on backlog=65535;",
+		"ssl_preread on;",
+		"default deny;",
+		"server 127.0.0.1:9403;",
+	} {
+		if !strings.Contains(g.NginxConf, needle) {
+			t.Fatalf("stream front missing %q:\n%s", needle, g.NginxConf)
+		}
+	}
+	if got := g.NginxFragments["127.0.0.1.realityServers"]; got != "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n" {
+		t.Fatalf("realityServers fragment = %q", got)
+	}
+	if got := g.NginxFragments["example.com.serverNames"]; got != "example.com reality;\n" {
+		t.Fatalf("serverNames fragment = %q", got)
+	}
+	if _, ok := g.NginxFragments["03-isolate.conf"]; !ok {
+		t.Fatal("isolate site fragment missing")
 	}
 }
 

@@ -493,6 +493,34 @@ func writeNginxArtifacts(dir string, g *xraycfg.Generated) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
+	keep := map[string]bool{"00-xray.conf": true}
+	for name := range g.NginxFragments {
+		keep[name] = true
+	}
+	// Bash keeps the fragment directory tidy: a mode change must not leave an
+	// old site, upstream server or SNI allowlist behind. Only tool-owned names
+	// are removed, so operator files in the same directory survive.
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		name := entry.Name()
+		if keep[name] || !entry.Type().IsRegular() {
+			continue
+		}
+		stale := name == "01-xray-80.conf" || name == "02-xray-server.conf" || name == "03-isolate.conf"
+		for _, suffix := range []string{".serverNames", ".realityServers", ".wsServers", ".grpcServers", ".xhttpServers"} {
+			if strings.HasSuffix(name, suffix) {
+				stale = true
+			}
+		}
+		if stale {
+			if err := os.Remove(filepath.Join(dir, name)); err != nil {
+				return err
+			}
+		}
+	}
 	if err := writeFileAtomic(filepath.Join(dir, "00-xray.conf"), []byte(g.NginxConf), 0o644); err != nil {
 		return err
 	}
@@ -559,7 +587,10 @@ func verifyNginx(ctx context.Context, bin, conf string, frags map[string]string,
 			wrapper.WriteString("http {\n    include " + filepath.Join(fragDir, "03-isolate.conf") + ";\n}\n")
 		}
 	} else {
-		wrapper.WriteString("http {\n" + body + "}\n")
+		// The TLS site references upstreams that live in the fragment files, so
+		// the verification wrapper must include them exactly like the managed
+		// main config does.
+		wrapper.WriteString("http {\n" + body + "\n    include " + filepath.Join(fragDir, "*.conf") + ";\n}\n")
 	}
 	wrapperPath := filepath.Join(tmp, "nginx.conf")
 	if err := os.WriteFile(wrapperPath, []byte(wrapper.String()), 0o600); err != nil {

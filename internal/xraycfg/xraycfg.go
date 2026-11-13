@@ -189,7 +189,7 @@ func Generate(spec Spec) (Generated, error) {
 	}
 	if spec.Port == 0 {
 		switch spec.Mode {
-		case ModeReality, ModeRealityBalance:
+		case ModeReality, ModeRealityNginx, ModeRealityBalance:
 			spec.Port = 443
 		default:
 			spec.Port = 10086
@@ -207,10 +207,11 @@ func Generate(spec Spec) (Generated, error) {
 	}
 	if spec.PublicPort == 0 {
 		switch spec.Mode {
-		case ModeTLS, ModeRealityNginx:
+		case ModeTLS:
 			spec.PublicPort = 443
-		case ModeRealityBalance:
-			// The selected port is the public front port, not the backend port.
+		case ModeRealityNginx, ModeRealityBalance:
+			// Bash treats the selected port as the Nginx front port; Xray keeps
+			// listening on the fixed loopback backend port.
 			spec.PublicPort = spec.Port
 		default:
 			spec.PublicPort = spec.Port
@@ -260,10 +261,12 @@ func Generate(spec Spec) (Generated, error) {
 		return Generated{}, fmt.Errorf("invalid domain %q", spec.Domain)
 	}
 	if spec.CertFile == "" && spec.Domain != "" {
-		spec.CertFile = "/etc/idleleo/cert/" + spec.Domain + ".crt"
+		// Bash installs one well-known pair under /etc/idleleo/cert and points
+		// every TLS site at it; --cert/--key still override.
+		spec.CertFile = "/etc/idleleo/cert/xray.crt"
 	}
 	if spec.KeyFile == "" && spec.Domain != "" {
-		spec.KeyFile = "/etc/idleleo/cert/" + spec.Domain + ".key"
+		spec.KeyFile = "/etc/idleleo/cert/xray.key"
 	}
 
 	serverName := ""
@@ -335,13 +338,14 @@ func Generate(spec Spec) (Generated, error) {
 	}
 
 	inboundPort := spec.Port
-	if spec.Mode == ModeRealityBalance {
+	if spec.Mode == ModeRealityBalance || spec.Mode == ModeRealityNginx {
 		if err := validateBalance(spec); err != nil {
 			return Generated{}, err
 		}
-		if spec.BalanceRole == BalanceRolePrimary {
-			// Bash keeps the Reality template port on a primary and lets Nginx
-			// own the public port.
+		if spec.Mode == ModeRealityNginx || spec.BalanceRole == BalanceRolePrimary {
+			// Bash keeps the Reality template port (9443) on the Xray inbound and
+			// lets Nginx own the public port. Reusing the public port would make
+			// Xray and Nginx fight over the same TCP port.
 			inboundPort = realityBalanceBackendPort
 		}
 	}
@@ -368,8 +372,19 @@ func Generate(spec Spec) (Generated, error) {
 	g.ShareURI = buildShareURI(spec, base.transport, shareHost, publicKey, shortID, serverName)
 	g.ClashYAML = buildClash(spec, base.transport, shareHost, publicKey, shortID, serverName, &g)
 	g.NginxConf = buildNginx(spec, defs, serverName)
+	if spec.Mode == ModeTLS {
+		g.NginxFragments = buildTLSServerFragments(defs)
+		g.NginxFragments["01-xray-80.conf"] = buildTLSRedirectNginx(spec, serverName)
+		g.NginxFragments["02-xray-server.conf"] = buildTLSServerConf(defs)
+	}
+	if spec.Mode == ModeRealityNginx {
+		// Bash Reality+Nginx renders the same SNI Guard stream block and
+		// fragment set as a balance primary; only the Xray inbound port differs.
+		g.NginxConf = buildRealityBalanceNginx(spec.PublicPort, balanceDenyPort(spec.UnknownSNIPolicy))
+		g.NginxFragments = buildRealityBalanceFragments(spec, serverName)
+	}
 	if spec.Mode == ModeRealityBalance && spec.BalanceRole == BalanceRolePrimary {
-		g.NginxConf = buildRealityBalanceNginx(spec.Port, balanceDenyPort(spec.UnknownSNIPolicy))
+		g.NginxConf = buildRealityBalanceNginx(spec.PublicPort, balanceDenyPort(spec.UnknownSNIPolicy))
 		g.NginxFragments = buildRealityBalanceFragments(spec, serverName)
 	}
 	if g.Transport == TransportMulti {
@@ -650,57 +665,154 @@ func yamlValue(v string) string {
 }
 
 func buildNginx(spec Spec, defs []inboundDef, serverName string) string {
-	if spec.Mode == ModeTLS {
-		locs := make([]string, 0, len(defs))
-		for _, def := range defs {
-			switch def.transport {
-			case TransportWS:
-				locs = append(locs, fmt.Sprintf(`    location %s {
-        proxy_pass http://127.0.0.1:%d;
+	if spec.Mode != ModeTLS {
+		return ""
+	}
+	var sites strings.Builder
+	for _, def := range defs {
+		switch def.transport {
+		case TransportWS:
+			fmt.Fprintf(&sites, `    location %s {
+        proxy_redirect off;
         proxy_http_version 1.1;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 720m;
+        proxy_read_timeout 720m;
+        proxy_buffering off;
+        client_max_body_size 0;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-    }`, def.path, def.port))
-			case TransportGRPC:
-				locs = append(locs, fmt.Sprintf(`    location /%s {
-        grpc_pass grpc://127.0.0.1:%d;
-    }`, def.serviceName, def.port))
-			case TransportXHTTP:
-				locs = append(locs, fmt.Sprintf(`    location %s {
-        proxy_pass http://127.0.0.1:%d;
+        proxy_set_header Host $http_host;
+        proxy_pass http://xray-ws-server;
+    }
+`, def.path)
+		case TransportGRPC:
+			fmt.Fprintf(&sites, `    location /%s {
+        grpc_connect_timeout 60s;
+        grpc_read_timeout 720m;
+        grpc_send_timeout 720m;
+        proxy_redirect off;
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
-    }`, def.path, def.port))
-			}
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 720m;
+        proxy_read_timeout 720m;
+        proxy_buffering off;
+        client_max_body_size 0;
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header Early-Data $ssl_early_data;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        grpc_pass grpc://xray-grpc-server;
+    }
+`, def.serviceName)
+		case TransportXHTTP:
+			fmt.Fprintf(&sites, `    location %s {
+        grpc_connect_timeout 60s;
+        grpc_read_timeout 720m;
+        grpc_send_timeout 720m;
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header Early-Data $ssl_early_data;
+        grpc_set_header Host $host;
+        client_max_body_size 0;
+        grpc_pass grpc://xray-xhttp-server;
+    }
+`, def.path)
 		}
-		loc := strings.Join(locs, "\n")
-		return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Do not edit by hand.
+	}
+	return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Do not edit by hand.
 server {
-    listen 443 ssl http2;
-    server_name %s;
-    ssl_certificate %s;
-    ssl_certificate_key %s;
-    ssl_protocols TLSv1.3;
+    listen %[1]d ssl reuseport;
+    listen [::]:%[1]d ssl reuseport;
+    listen %[1]d quic reuseport;
+    listen [::]:%[1]d quic reuseport;
+
+    http2 on;
+    set_real_ip_from      127.0.0.1;
+    real_ip_header        X-Forwarded-For;
+    real_ip_recursive     on;
+    ssl_certificate       %[2]s;
+    ssl_certificate_key   %[3]s;
+    ssl_protocols         TLSv1.3;
+    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;
+    ssl_ecdh_curve        X25519:prime256v1:secp384r1;
+    server_name           %[4]s;
+    root /var/www/html;
+    error_page 403 https://hey.run/helloworld;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+    ssl_early_data on;
+    ssl_prefer_server_ciphers on;
+    add_header Strict-Transport-Security "max-age=31536000";
+
 %s
-}
-`, serverName, spec.CertFile, spec.KeyFile, loc)
-	}
-	if spec.Mode == ModeRealityNginx {
-		return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Stream SNI front for Reality.
-stream {
-    map $ssl_preread_server_name $idleleo_backend {
-        default 127.0.0.1:%d;
-    }
-    server {
-        listen 0.0.0.0:443;
-        ssl_preread on;
-        proxy_pass $idleleo_backend;
+    location / {
+        return 403;
     }
 }
-`, spec.Port)
+`, spec.PublicPort, spec.CertFile, spec.KeyFile, serverName, sites.String())
+}
+
+// buildTLSRedirectNginx renders the Bash 01-xray-80.conf ACME + redirect site.
+func buildTLSRedirectNginx(spec Spec, serverName string) string {
+	redirect := serverName
+	if spec.PublicPort != 443 {
+		redirect = fmt.Sprintf("%s:%d", serverName, spec.PublicPort)
 	}
-	return ""
+	return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Do not edit by hand.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name %s;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /etc/idleleo/conf;
+        default_type "text/plain";
+        allow all;
+    }
+    location = /.well-known/acme-challenge/ {
+        return 404;
+    }
+
+    location / {
+        return 301 https://%s$request_uri;
+    }
+}
+`, serverName, redirect)
+}
+
+// buildTLSServerConf renders the Bash 02-xray-server.conf upstream blocks.
+func buildTLSServerConf(defs []inboundDef) string {
+	var b strings.Builder
+	b.WriteString("# Managed by Xray_bash_onekey (Go). Do not edit by hand.\n")
+	seen := map[string]bool{}
+	for _, def := range defs {
+		if seen[def.transport] {
+			continue
+		}
+		seen[def.transport] = true
+		fmt.Fprintf(&b, `upstream xray-%s-server {
+    include /etc/idleleo/conf/nginx/*.%sServers;
+}
+
+`, def.transport, def.transport)
+	}
+	return b.String()
+}
+
+// buildTLSServerFragments renders the Bash 127.0.0.1.<transport>Servers files.
+func buildTLSServerFragments(defs []inboundDef) map[string]string {
+	frags := map[string]string{}
+	for _, def := range defs {
+		name := "127.0.0.1." + def.transport + "Servers"
+		frags[name] = fmt.Sprintf("server 127.0.0.1:%d weight=50 max_fails=2 fail_timeout=10;\n", def.port)
+	}
+	return frags
 }
 
 func isRealityReservedPort(p int) bool {

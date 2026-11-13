@@ -311,12 +311,15 @@ func Install(ctx context.Context, spec InstallSpec) (InstallReport, error) {
 		return fail(err)
 	}
 	if spec.Stream {
-		// Bash touches the include target so nginx -t passes before the
-		// stream block is written by the Xray step.
-		placeholder := filepath.Join(confDir, MainConf)
-		if _, statErr := os.Lstat(placeholder); os.IsNotExist(statErr) {
-			if err := writeAtomic(placeholder, nil, 0o644); err != nil {
-				return fail(err)
+		// Bash touches the include targets so nginx -t passes before the
+		// fragments are written by the Xray step. 03-isolate.conf is included
+		// from the http block, so it needs a placeholder too.
+		for _, name := range []string{MainConf, "03-isolate.conf"} {
+			placeholder := filepath.Join(confDir, name)
+			if _, statErr := os.Lstat(placeholder); os.IsNotExist(statErr) {
+				if err := writeAtomic(placeholder, nil, 0o644); err != nil {
+					return fail(err)
+				}
 			}
 		}
 	}
@@ -574,6 +577,21 @@ func RewriteMainConfigWithWarnings(conf string, opts ConfigOptions) (string, []s
 
 	if opts.Stream {
 		out = append(out, "include /etc/idleleo/conf/nginx/"+MainConf+";")
+		// The isolate site is an http{} server block, so it cannot be reached
+		// through the stream include. Bash inserts this include explicitly.
+		if !containsLine(out, "include /etc/idleleo/conf/nginx/03-isolate.conf;") {
+			inserted := false
+			for i, line := range out {
+				if httpOpen.MatchString(line) {
+					out = append(out[:i+1], append([]string{"    include /etc/idleleo/conf/nginx/03-isolate.conf;"}, out[i+1:]...)...)
+					inserted = true
+					break
+				}
+			}
+			if !inserted {
+				warnings = append(warnings, "nginx main config has no http { block; 03-isolate.conf not included")
+			}
+		}
 	} else {
 		// Insert the http include before the final closing brace.
 		inserted := false
