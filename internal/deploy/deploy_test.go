@@ -380,6 +380,25 @@ func TestManagedNginxResolveFailureClaimsNothing(t *testing.T) {
 	}
 }
 
+func TestReinstallWithManagedNginxPresent(t *testing.T) {
+	root := sandbox(t)
+	stubManagedNginx(t, nil, nil)
+	spec := InstallSpec{
+		Root: root, SourceBinary: stubXray(t), Mode: "tls",
+		Port: 8443, Domain: "example.com", NoService: true,
+	}
+	if _, err := Install(context.Background(), spec); err != nil {
+		t.Fatalf("first install: %v", err)
+	}
+	// The managed front leaves its fragment directory behind. A reinstall must
+	// resolve it as a directory instead of failing with
+	// "target is not a regular file".
+	spec.RewriteConfig = true
+	if _, err := Install(context.Background(), spec); err != nil {
+		t.Fatalf("reinstall with managed nginx present: %v", err)
+	}
+}
+
 func TestFinalizeFailureMentionsManagedNginx(t *testing.T) {
 	root := sandbox(t)
 	stubManagedNginx(t, nil, nil)

@@ -220,7 +220,11 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		if generated == nil {
 			return Report{}, fmt.Errorf("cannot adopt an existing config for mode %s: Nginx artifacts must be generated explicitly", rep.Mode)
 		}
-		nginxDir, err = paths.Join(nginxDirRel, true)
+		// The fragment directory already exists after a managed Nginx install
+		// (or a failed attempt that intentionally kept Nginx). Resolve it as a
+		// directory; Join(..., true) only accepts a regular file and would make
+		// every reinstall fail with "target is not a regular file".
+		nginxDir, err = joinDir(paths, nginxDirRel)
 		if err != nil {
 			return Report{}, err
 		}
