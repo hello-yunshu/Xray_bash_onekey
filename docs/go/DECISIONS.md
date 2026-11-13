@@ -421,3 +421,40 @@ Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开
 会让所有 Nginx 必需模式在 Go 中不可用，而不是更安全；把校验与事务搬进 Go
 既能消除“无前端却报告成功”的旧问题，也不增加构建依赖。
 
+## D-023 Nginx 线复检整改与有意分叉登记（2026-11-13）
+
+**背景**：复检 Nginx 产物层与安装事务，并按“功能与 Bash 一致、细节可更严格”
+的口径完成 A1-A7 与 CFG-1～CFG-9。
+
+**决定**：
+- A 类全部修复：默认本机 IP 403、卸载默认删除片段目录并新增
+  `--keep-nginx-conf`、symlink 跳过、权限断言（含 `runuser` 读证书）、回滚
+  聚合错误、同 build 漂移修复且仅在变更时重启、Xray 失败时提示 Nginx 残留。
+- Xray 协作配置按 Bash 功能对齐：TLS 80/ACME 跳转、`<publicPort>` +
+  `[::]` + QUIC + `http2 on`、完整 TLS 参数、ws/grpc/xhttp location（xhttp
+  使用 `grpc_pass`）、`xray-*-server` upstream 与 `*.<t>Servers` 片段、
+  Reality+Nginx 完整 SNI Guard stream、`03-isolate.conf` include、受管文件
+  清理、默认证书路径 `/etc/idleleo/cert/xray.crt|key`。Reality+Nginx 的
+  Xray 后端固定 9443，避免与 Nginx 公网端口抢占。
+- 以下差异登记为有意分叉，不回退到 Bash 行为：
+  1. manifest 校验更严（强制 schema/size/精确 SHA）。
+  2. 解包权限固定 0644/0755，不保留 tar 模式。
+  3. 产物下载仅初始 URL 允许 HTTPS→HTTP；其余重定向拒绝。
+  4. `useradd` 失败即失败，不回退 `nobody`。
+  5. 只处理首条 `user` 与首个 `http {`。
+  6. `nginx -t` 带显式 `-p <prefix>/`。
+  7. 使用独立 `etc/idleleo/v1/nginx.json`，不写 Xray 配置的
+     `nginx_build_version`。
+  8. 无 metadata 时同样停用并删除 `/usr/local/nginx`（与 Bash 一致，登记
+     待后续加守卫）。
+  9. 服务启动采用 20×250ms 等待，比 Bash 更积极失败。
+  10. Reality+Nginx 的 Xray inbound 监听 `127.0.0.1:9443`（Bash 为
+      `0.0.0.0:9443`），更严格且不影响 Nginx 回环代理。
+  11. 非 443 公网端口时 80 跳转携带 `:port`（Bash 不带，属 Bash 缺陷）。
+  12. Stream 模式始终保留空的 `03-isolate.conf` 占位，保证分阶段
+      `nginx -t` 可用。
+  13. TLS `location /ray/` 保留尾斜杠，前缀匹配语义与 Bash `/ray` 等价。
+
+**影响**：真实 root 下的 `nginx -V`、自启、卸载保留策略、symlink 证书与并发
+行为仍需 Block 3 验证；在此之前不得对外宣称与 Bash 完全等价。
+
