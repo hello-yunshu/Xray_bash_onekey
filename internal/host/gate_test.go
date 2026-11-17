@@ -1,6 +1,7 @@
 package host
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -76,5 +77,37 @@ func TestRequireSystemWriteSandboxNeedsMarker(t *testing.T) {
 	}
 	if err := RequireSystemWrite(root, false); err != nil {
 		t.Fatalf("marked sandbox rejected: %v", err)
+	}
+}
+
+// The audit line is the permission record: if it cannot be written, the write
+// must not happen at all.
+func TestRequireSystemWriteRefusesWhenAuditFails(t *testing.T) {
+	withMarkers(t, filepath.Join(t.TempDir(), "no-marker"))
+	old := recordWrite
+	recordWrite = func(string, string) error { return errors.New("disk full") }
+	t.Cleanup(func() { recordWrite = old })
+
+	err := RequireSystemWrite("/", false)
+	if err == nil || !strings.Contains(err.Error(), "audit trail unavailable") {
+		t.Fatalf("expected audit refusal, got %v", err)
+	}
+}
+
+func TestRequireSystemWriteRecordsBeforeAllowing(t *testing.T) {
+	withMarkers(t, filepath.Join(t.TempDir(), "no-marker"))
+	var modes []string
+	old := recordWrite
+	recordWrite = func(_ string, mode string) error {
+		modes = append(modes, mode)
+		return nil
+	}
+	t.Cleanup(func() { recordWrite = old })
+
+	if err := RequireSystemWrite("/", false); err != nil {
+		t.Fatalf("host write rejected: %v", err)
+	}
+	if len(modes) != 1 || modes[0] != "host" {
+		t.Fatalf("audit modes=%v", modes)
 	}
 }

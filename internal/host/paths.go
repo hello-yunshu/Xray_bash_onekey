@@ -97,6 +97,12 @@ func (p Paths) RelayConfig() string     { return "etc/idleleo/conf/nginx/relay-s
 func (p Paths) InfoFile() string        { return "etc/idleleo/info/xray_info.inf" }
 func (p Paths) TransactionsDir() string { return "var/lib/idleleo/transactions" }
 
+// GeodataDir is where GeoIP/GeoSite assets live and the value of
+// XRAY_LOCATION_ASSET.
+func (p Paths) GeodataDir() string {
+	return filepath.Join(p.Root, "etc/idleleo/share/xray")
+}
+
 // LockFile returns the Phase 01 update lock. It deliberately matches the
 // existing Bash lock name so the switch window cannot run two writers.
 func (p Paths) LockFile() string {
