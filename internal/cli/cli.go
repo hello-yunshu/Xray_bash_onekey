@@ -1,4 +1,4 @@
-// Package cli implements the Phase 01 candidate command surface.
+// Package cli implements the idleleo command surface.
 package cli
 
 import (
@@ -17,6 +17,7 @@ import (
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/i18n"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/runtime"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
 )
 
@@ -68,9 +69,11 @@ func Run(ctx context.Context, args []string, opts Options) int {
 		case "--json":
 			cfg.json = true
 		case "--help", "-h":
-			fmt.Fprint(opts.Out, i18n.T(cfg.lang, "help"))
+			announceFallback(opts, cfg.lang)
+			printHelp(opts, cfg.lang)
 			return 0
 		case "--version":
+			announceFallback(opts, cfg.lang)
 			fmt.Fprintf(opts.Out, i18n.T(cfg.lang, "version"), Version)
 			return 0
 		default:
@@ -81,13 +84,24 @@ func Run(ctx context.Context, args []string, opts Options) int {
 	if !i18n.Supported(cfg.lang) {
 		return usage(opts, "en", "help")
 	}
+	if notice := i18n.FallbackNotice(cfg.lang); notice != "" {
+		fmt.Fprint(opts.Err, notice)
+	}
 	if cmd == "" {
 		if opts.TTY {
 			return menu(ctx, opts, cfg)
 		}
 		fmt.Fprint(opts.Err, i18n.T(cfg.lang, "no_tty"))
-		fmt.Fprint(opts.Err, i18n.T(cfg.lang, "help"))
+		printHelp(opts, cfg.lang)
 		return 2
+	}
+	// Subcommand help must never fall through to command execution; without
+	// this, `xray generate --help` was parsed as a generation request.
+	for _, arg := range rest {
+		if arg == "--help" || arg == "-h" {
+			printHelp(opts, cfg.lang)
+			return 0
+		}
 	}
 	return dispatch(ctx, opts, cfg, cmd, rest)
 }
@@ -100,23 +114,40 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 	a := &app.App{Paths: paths, Lang: cfg.lang}
 	switch cmd {
 	case "help":
-		fmt.Fprint(opts.Out, i18n.T(cfg.lang, "help"))
+		printHelp(opts, cfg.lang)
 		return 0
 	case "version":
 		fmt.Fprintf(opts.Out, i18n.T(cfg.lang, "version"), Version)
 		return 0
 	case "status":
+		if rc, ok := checkFlags(opts, cfg, args, "status"); ok && rc != 0 {
+			return rc
+		}
 		cfg.json = cfg.json || hasFlag(args, "--json")
 		report, err := a.Status(ctx)
 		if err != nil {
+			if !cfg.json {
+				printAlerts(opts.Out, report.Alerts)
+				printAlertsUnreadable(opts.Out, report.AlertsUnreadable, report.AlertsError)
+			}
 			return fail(opts, cfg, err)
 		}
 		if cfg.json {
-			return writeJSON(opts, report)
+			if rc := writeJSON(opts, report); rc != 0 {
+				return rc
+			}
+		} else {
+			printStatus(opts.Out, report)
 		}
-		printStatus(opts.Out, report)
+		if report.AlertsUnreadable {
+			// A broken alert store is not a clean state; make it script-visible.
+			return 1
+		}
 		return 0
 	case "show", "-s", "--show":
+		if rc, ok := checkFlags(opts, cfg, args, "show"); ok && rc != 0 {
+			return rc
+		}
 		if paths.Root == "/" && os.Geteuid() != 0 {
 			return fail(opts, cfg, &store.Error{Kind: store.KindPermission, Msg: "root required"})
 		}
@@ -137,8 +168,12 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		return changeCommand(ctx, opts, cfg, a, args)
 	case "xray":
 		return xrayCommand(ctx, opts, cfg, a, args)
+	case "fail2ban":
+		return fail2banCommand(ctx, opts, cfg, args)
 	case "bridge":
 		return bridgeCommand(ctx, opts, cfg, args)
+	case "metadata":
+		return metadataCommand(opts, cfg, args)
 	case "schedule":
 		return scheduleCommand(ctx, opts, cfg, args)
 	case "update":
@@ -147,6 +182,14 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		return statsCommand(ctx, opts, cfg, args)
 	case "service":
 		return serviceCommand(ctx, opts, cfg, args)
+	case "container":
+		return containerCommand(ctx, opts, cfg, args)
+	case "net":
+		return netCommand(ctx, opts, cfg, args)
+	case "tcp":
+		return tcpCommand(ctx, opts, cfg, args)
+	case "speedtest":
+		return speedtestCommand(ctx, opts, cfg, args)
 	case "rill":
 		return rillCommand(opts, cfg, args)
 	case "recover":
@@ -159,6 +202,9 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 func configCommand(opts Options, cfg config, a *app.App, args []string) int {
 	if len(args) == 0 || args[0] != "inspect" {
 		return usage(opts, cfg.lang, "help")
+	}
+	if rc, ok := checkFlags(opts, cfg, args[1:], "config inspect"); ok && rc != 0 {
+		return rc
 	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	view, err := a.Inspect(flagValue(args, "--path"))
@@ -179,7 +225,20 @@ func configCommand(opts Options, cfg config, a *app.App, args []string) int {
 }
 
 func changeCommand(ctx context.Context, opts Options, cfg config, a *app.App, args []string) int {
-	if len(args) == 0 || args[0] != "set-inbound-port" {
+	if len(args) == 0 {
+		return usage(opts, cfg.lang, "help")
+	}
+	switch args[0] {
+	case "recover":
+		if rc, ok := checkFlags(opts, cfg, args[1:], "change recover"); ok && rc != 0 {
+			return rc
+		}
+		return changeRecover(ctx, opts, cfg, a, args[1:])
+	case "set-inbound-port":
+		if rc, ok := checkFlags(opts, cfg, args[1:], "change set-inbound-port"); ok && rc != 0 {
+			return rc
+		}
+	default:
 		return usage(opts, cfg.lang, "help")
 	}
 	args = args[1:]
@@ -213,9 +272,14 @@ func changeCommand(ctx context.Context, opts Options, cfg config, a *app.App, ar
 		return usage(opts, cfg.lang, "help")
 	}
 	service := flagValue(args, "--service")
+	if paths.Root == "/" && service == "" {
+		return fail(opts, cfg, &change.UsageError{
+			Msg: "real-root changes require --service so the service reloads the committed config",
+		})
+	}
 	fault := flagValue(args, "--fault")
 	cfg.json = cfg.json || hasFlag(args, "--json")
-	entry, err := a.ChangePort(ctx, flagValue(args, "--path"), inbound, port, validator, service, fault)
+	entry, err := a.ChangePort(ctx, flagValue(args, "--path"), inbound, port, validator, service, fault, hasFlag(args, "--container"))
 	if err != nil {
 		if cfg.json {
 			_ = writeJSONNoExit(opts.Out, entry)
@@ -226,6 +290,32 @@ func changeCommand(ctx context.Context, opts Options, cfg config, a *app.App, ar
 		return writeJSON(opts, entry)
 	}
 	fmt.Fprintf(opts.Out, "%s: %s -> %s (%s)\n", entry.State, entry.OldSHA256[:12], entry.NewSHA256[:12], entry.ID)
+	return 0
+}
+
+// changeRecover converges a change transaction that was interrupted by a hard
+// kill. It is gated exactly like a mutation because a rollback rewrites the
+// runtime config.
+func changeRecover(ctx context.Context, opts Options, cfg config, a *app.App, args []string) int {
+	if err := host.RequireSystemWrite(a.Paths.Root, hasFlag(args, "--container")); err != nil {
+		return fail(opts, cfg, &change.UsageError{Msg: err.Error()})
+	}
+	report, err := change.Recover(ctx, change.Journal{Path: a.Paths.JournalFile()}, a.Paths.LockFile())
+	cfg.json = cfg.json || hasFlag(args, "--json")
+	if err != nil {
+		if cfg.json {
+			_ = writeJSONNoExit(opts.Out, report)
+		}
+		return fail(opts, cfg, err)
+	}
+	if cfg.json {
+		return writeJSON(opts, report)
+	}
+	fmt.Fprintf(opts.Out, "journal=%s action=%s converged=%t\n",
+		report.JournalState, report.Action, report.Converged)
+	for _, w := range report.Warnings {
+		fmt.Fprintf(opts.Out, "warning=%s\n", w)
+	}
 	return 0
 }
 
@@ -246,14 +336,30 @@ func menu(ctx context.Context, opts Options, cfg config) int {
 		case "3":
 			_ = dispatch(ctx, opts, cfg, "config", []string{"inspect"})
 		case "4":
-			fmt.Fprint(opts.Out, i18n.T(cfg.lang, "help"))
+			printHelp(opts, cfg.lang)
 		default:
 			fmt.Fprint(opts.Err, i18n.T(cfg.lang, "usage"))
 		}
 	}
 }
 
+func printAlerts(out io.Writer, alerts []schedule.Alert) {
+	for _, a := range alerts {
+		fmt.Fprintf(out, "alert: job=%s result=%s at=%s %s\n", a.Job, a.Result, a.At, a.Detail)
+	}
+}
+
+// printAlertsUnreadable emits a line only when the alert store itself failed,
+// so the healthy output stays byte-identical while scripts can grep this.
+func printAlertsUnreadable(out io.Writer, unreadable bool, errText string) {
+	if unreadable {
+		fmt.Fprintf(out, "alerts: unreadable: %s\n", errText)
+	}
+}
+
 func printStatus(out io.Writer, r app.StatusReport) {
+	printAlerts(out, r.Alerts)
+	printAlertsUnreadable(out, r.AlertsUnreadable, r.AlertsError)
 	fmt.Fprintf(out, "installed: %t\nengine: %s\nrole: %s\ntls: %s\ntransport: %s\n",
 		r.Installed, r.Engine, r.Role, r.TLS, r.Transport)
 	fmt.Fprintf(out, "config: %s\nsha256: %s\nmatchesMetadata: %t\n", r.Config.Path, r.Config.SHA256, r.Config.MatchesMetadata)
@@ -349,13 +455,32 @@ func fail(opts Options, cfg config, err error) int {
 }
 
 func usage(opts Options, lang, key string) int {
-	fmt.Fprint(opts.Err, i18n.T(lang, key))
+	if key == "help" {
+		printHelp(opts, lang)
+	} else {
+		fmt.Fprint(opts.Err, i18n.T(lang, key))
+	}
 	return 2
 }
 
+// printHelp renders the help text with the same version string that
+// `idleleo version` prints, so the help header cannot drift from the binary.
+func printHelp(opts Options, lang string) {
+	fmt.Fprint(opts.Out, i18n.T(lang, "help", Version))
+}
+
+// announceFallback tells the operator that the requested language has no Go
+// catalog yet. Silence would look like a broken translation.
+func announceFallback(opts Options, lang string) {
+	if notice := i18n.FallbackNotice(lang); notice != "" {
+		fmt.Fprint(opts.Err, notice)
+	}
+}
+
 func hasFlag(args []string, name string) bool {
+	want := strings.TrimLeft(name, "-")
 	for _, a := range args {
-		if a == name {
+		if n, _, _, isFlag := splitFlagToken(a); isFlag && n == want {
 			return true
 		}
 	}
@@ -363,8 +488,16 @@ func hasFlag(args []string, name string) bool {
 }
 
 func flagValue(args []string, name string) string {
+	want := strings.TrimLeft(name, "-")
 	for i, a := range args {
-		if a == name && i+1 < len(args) {
+		n, inline, hasInline, isFlag := splitFlagToken(a)
+		if !isFlag || n != want {
+			continue
+		}
+		if hasInline {
+			return inline
+		}
+		if i+1 < len(args) {
 			return args[i+1]
 		}
 	}

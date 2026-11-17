@@ -15,6 +15,9 @@ func serviceCommand(ctx context.Context, opts Options, cfg config, args []string
 		return usage(opts, cfg.lang, "help")
 	}
 	sub, rest := args[0], args[1:]
+	if rc, ok := checkFlags(opts, cfg, rest, "service "+sub); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(rest, "--json")
 	unit := flagValue(rest, "--unit")
 	if unit == "" {

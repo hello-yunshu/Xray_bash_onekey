@@ -3,8 +3,10 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 )
@@ -15,6 +17,9 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 		return usage(opts, cfg.lang, "help")
 	}
 	sub, rest := args[0], args[1:]
+	if rc, ok := checkFlags(opts, cfg, rest, "schedule "+sub); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(rest, "--json")
 
 	switch sub {
@@ -32,10 +37,24 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 			}
 			interval = n
 		}
+		acmeDir := flagValue(rest, "--acme-directory")
+		if acmeDir == "" && hasFlag(rest, "--acme-production") {
+			acmeDir = schedule.ACMEProductionDirectory
+		}
+		if acmeDir == "" {
+			acmeDir = os.Getenv("IDLELEO_ACME_DIRECTORY")
+		}
 		rep, err := schedule.Install(ctx, schedule.InstallOptions{
 			Root:            cfg.root,
 			IntervalSeconds: interval,
 			GeodataURL:      flagValue(rest, "--geodata-url"),
+			CertDomain:      flagValue(rest, "--cert-domain"),
+			CertWebroot:     flagValue(rest, "--cert-webroot"),
+			CertFile:        flagValue(rest, "--cert-out"),
+			CertKeyFile:     flagValue(rest, "--cert-key-out"),
+			ACMEDirectory:   acmeDir,
+			ACMEEmail:       flagValue(rest, "--acme-email"),
+			AlertWebhook:    flagValue(rest, "--alert-webhook"),
 		})
 		if err != nil {
 			fmt.Fprint(opts.Err, err.Error()+"\n")
@@ -44,8 +63,9 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 		if cfg.json {
 			return writeJSON(opts, rep)
 		}
-		fmt.Fprintf(opts.Out, "config=%s\nservice=%s\ntimer=%s\ninterval=%ds\njobs=%s\nsystemd=%s\n",
-			rep.ConfigPath, rep.ServicePath, rep.TimerPath, rep.IntervalSeconds, strings.Join(rep.Jobs, ","), rep.Systemd)
+		fmt.Fprintf(opts.Out, "config=%s\nservice=%s\ntimer=%s\nalertService=%s\ninterval=%ds\njobs=%s\nsystemd=%s\n",
+			rep.ConfigPath, rep.ServicePath, rep.TimerPath, rep.AlertServicePath,
+			rep.IntervalSeconds, strings.Join(rep.Jobs, ","), rep.Systemd)
 		for _, d := range rep.DegradedJobs {
 			fmt.Fprintf(opts.Out, "degraded=%s\n", d)
 		}
@@ -88,7 +108,34 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 		for _, res := range rep.Results {
 			fmt.Fprintf(opts.Out, "%s job=%s result=%s %s\n", res.At, res.Job, res.Result, res.Detail)
 		}
+		if rep.LogWarning != "" {
+			fmt.Fprintf(opts.Err, "log warning: %s\n", rep.LogWarning)
+		}
 		return code
+	case "alert":
+		job := flagValue(rest, "--job")
+		if job == "" {
+			job = "service-failure"
+		}
+		detail := flagValue(rest, "--detail")
+		if detail == "" {
+			detail = "scheduled job failed"
+		}
+		a, alertErr := schedule.RecordAlert(ctx, cfg.root, job, detail, time.Now().UTC().Format(time.RFC3339))
+		if cfg.json {
+			if rc := writeJSON(opts, a); rc != 0 {
+				return rc
+			}
+		} else {
+			fmt.Fprintf(opts.Out, "alert=%s result=%s webhook=%s\n", a.Job, a.Result, a.Webhook)
+		}
+		if alertErr != nil {
+			// An alert that never reached disk is a lost alert: fail so systemd
+			// records it instead of reporting a successful alert unit.
+			fmt.Fprint(opts.Err, alertErr.Error()+"\n")
+			return 1
+		}
+		return 0
 	case "status":
 		rep, err := schedule.Status(ctx, cfg.root)
 		if err != nil {
@@ -96,10 +143,16 @@ func scheduleCommand(ctx context.Context, opts Options, cfg config, args []strin
 			return 1
 		}
 		if cfg.json {
-			return writeJSON(opts, rep)
+			if rc := writeJSON(opts, rep); rc != 0 {
+				return rc
+			}
+		} else {
+			for _, line := range rep.SummaryLines() {
+				fmt.Fprintln(opts.Out, line)
+			}
 		}
-		for _, line := range rep.SummaryLines() {
-			fmt.Fprintln(opts.Out, line)
+		if rep.AlertsUnreadable {
+			return 1
 		}
 		return 0
 	default:

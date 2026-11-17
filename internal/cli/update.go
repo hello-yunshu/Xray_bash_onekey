@@ -16,6 +16,9 @@ func updateCommand(ctx context.Context, opts Options, cfg config, args []string)
 		return usage(opts, cfg.lang, "help")
 	}
 	sub, rest := args[0], args[1:]
+	if rc, ok := checkFlags(opts, cfg, rest, "update "+sub); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(rest, "--json")
 
 	switch sub {
@@ -62,6 +65,8 @@ func updateCommand(ctx context.Context, opts Options, cfg config, args []string)
 		}
 		fmt.Fprintf(opts.Out, "channel=%s manifest=%s installPath=%s\n", ch.Channel, ch.ManifestURL, ch.InstallPath)
 		return 0
+	case "xray", "nginx":
+		return componentUpdateCommand(ctx, opts, cfg, sub, rest)
 	case "apply":
 		if err := host.RequireSystemWrite(cfg.root, hasFlag(rest, "--container")); err != nil {
 			fmt.Fprint(opts.Err, err.Error()+"\n")

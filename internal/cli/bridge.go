@@ -14,6 +14,9 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 		return usage(opts, cfg.lang, "help")
 	}
 	sub, rest := args[0], args[1:]
+	if rc, ok := checkFlags(opts, cfg, rest, "bridge "+sub); ok && rc != 0 {
+		return rc
+	}
 	cfg.json = cfg.json || hasFlag(rest, "--json")
 	switch sub {
 	case "audit":
@@ -44,6 +47,7 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 		report, _, err := legacybridge.Prepare(ctx, legacybridge.PrepareOptions{
 			Root:                 cfg.root,
 			Candidate:            flagValue(rest, "--candidate"),
+			CandidateManifest:    flagValue(rest, "--candidate-manifest"),
 			Recovery:             flagValue(rest, "--recovery"),
 			AcknowledgeCustom:    hasFlag(rest, "--acknowledge-custom"),
 			Fault:                flagValue(rest, "--fault"),
@@ -55,7 +59,8 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 		if cfg.json {
 			return writeJSON(opts, report)
 		}
-		fmt.Fprintf(opts.Out, "state=%s verdict=%s candidate=%s\n", report.State, report.Verdict, report.CandidateSHA256)
+		fmt.Fprintf(opts.Out, "state=%s verdict=%s candidate=%s version=%s pinned=%t\n",
+			report.State, report.Verdict, report.CandidateSHA256, report.CandidateVersion, report.CandidatePinned)
 		fmt.Fprintf(opts.Out, "plan=%s snapshot=%s\n", report.PlanPath, report.SnapshotPath)
 		fmt.Fprintf(opts.Out, "projectCronLines=%d customItems=%d customAcknowledged=%t permissionFixes=%d rill=%s\n",
 			report.ProjectCronLines, report.CustomItems, report.CustomAcked, report.PermissionFixes, report.RillStatus)
@@ -126,6 +131,26 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 			}
 		}
 		return 0
+	case "deactivate":
+		report, err := legacybridge.Deactivate(legacybridge.DeactivateOptions{
+			Root:                 cfg.root,
+			Export:               flagValue(rest, "--export"),
+			AllowContainerWrites: hasFlag(rest, "--container"),
+		})
+		if err != nil {
+			return bridgeFail(opts, cfg, err)
+		}
+		if cfg.json {
+			return writeJSON(opts, report)
+		}
+		fmt.Fprintf(opts.Out, "state=%s entry=%s rillUnchanged=%t\n",
+			report.State, report.Entry, report.RillUnchanged)
+		fmt.Fprintf(opts.Out, "export=%s runtime=%s\n", report.ExportPath, report.RuntimeSHA256)
+		fmt.Fprintf(opts.Out, "metadataArchive=%s\n", report.MetadataArchive)
+		for _, a := range report.Actions {
+			fmt.Fprintf(opts.Out, "action=%s\n", a)
+		}
+		return 0
 	case "status":
 		report, err := legacybridge.Status(cfg.root)
 		if err != nil {
@@ -150,6 +175,9 @@ func bridgeCommand(ctx context.Context, opts Options, cfg config, args []string)
 }
 
 func recoverCommand(opts Options, cfg config, args []string) int {
+	if rc, ok := checkFlags(opts, cfg, args, "recover"); ok && rc != 0 {
+		return rc
+	}
 	report, err := legacybridge.Recover(legacybridge.RecoverOptions{
 		Root:                 cfg.root,
 		AllowContainerWrites: hasFlag(args, "--container"),
