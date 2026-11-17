@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "activeEngine": "xray",
+  "provenance": "native",
+  "role": "node",
+  "tls": "Reality",
+  "transport": "raw",
+  "runtimeConfigPath": "etc/idleleo/conf/xray/config.json",
+  "runtimeSha256": "fde936eecf2c55097ef32d6239feb0e4906de32c55f0531c586dd135d88b233e",
+  "ownedResources": [
+    "etc/idleleo/conf/xray/config.json"
+  ],
+  "updatedAt": "2026-11-17T00:00:00Z",
+  "shareLinkOnly": {
+    "fingerprint": "firefox",
+    "spiderX": "/assets/abc.css"
+  }
+}

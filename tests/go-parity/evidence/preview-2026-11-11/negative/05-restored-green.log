@@ -1,0 +1,30 @@
+PREVIEW — NOT FOR RELEASE
+contract: cases/preview_contract.json (1 feature(s))
+ledger: 28/28 PENDING_GO_IMPLEMENTATION (unchanged)
+evidence level: CONTAINER_VERIFIED (reuse)
+go-bin: /work/bin/idleleo sha256=e0d40feb234b10abbf442ffdf0f365a6e02155b337470d99e61060381bcdb13f arch=0xb7
+bash: /work/repo install.sh sha256=1a2af27eedcd3b37be8a8b3014eac020e57e67f5f9458b448e56a5a71ec72b7f
+evidence: /work/evidence
+release authority: NONE
+PASS relay exit 0: rc=0 
+PASS listenAddress echoed: 127.0.0.1
+PASS listenPort echoed: 37517
+PASS target echoed: 127.0.0.1:32811
+PASS stream fragment written
+PASS fragment binds the requested port
+PASS fragment forwards to the backend
+PASS fragment keeps 10s connect timeout
+PASS fragment keeps 720m proxy timeout
+PASS fragment keeps socket keepalive
+PASS nginx -t accepts the rendered fragment: rc=0 nginx: the configuration file /work/evidence/F05/nginx/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/F05/nginx/nginx.conf test is successful
+
+PASS dedicated nginx started: rc=0 
+PASS relay port is listening: 127.0.0.1:37517
+PASS first TCP connection echoed byte-for-byte: sent=22 got=22
+PASS second TCP connection echoed byte-for-byte: sent=87 got=87
+PASS relay created no Xray/UUID/certificate state: e3b0c44298fc1c14 -> e3b0c44298fc1c14
+PASS invalid target wrote no fragment
+== F05: 17 passed, 0 failed, 0.03s ==
+F05 PASS (0.07s) evidence=/work/evidence/F05
+PREVIEW FUNCTIONAL RESULT — release authority: NONE; feature_contracts.json unchanged (28 PENDING)

@@ -1,0 +1,6 @@
+[Unit]
+Description=idleleo scheduled-job failure alert
+
+[Service]
+Type=oneshot
+ExecStart=/work/evidence/f14/release-work/root/usr/bin/idleleo schedule alert --job service-failure --detail idleleo-schedule.service_failed

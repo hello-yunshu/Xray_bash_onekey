@@ -1,0 +1,160 @@
+{
+  "completeCatalogs": [
+    "zh",
+    "en"
+  ],
+  "enHelpSha256": "b86940114727a174b1bc5fff975ae522f0d60f040b54ca6df02f4692509703b5",
+  "enVersion": "idleleo 0.2.0-phase04 (go)\n",
+  "fallbackLanguages": [
+    "fr",
+    "fa",
+    "ru",
+    "ko"
+  ],
+  "invalidLanguages": {
+    "ZH": {
+      "rc": 2,
+      "stderr": "",
+      "stdoutEqualsEnHelp": true
+    },
+    "de": {
+      "rc": 2,
+      "stderr": "",
+      "stdoutEqualsEnHelp": true
+    },
+    "zh_CN": {
+      "rc": 2,
+      "stderr": "",
+      "stdoutEqualsEnHelp": true
+    }
+  },
+  "languages": {
+    "en": {
+      "help": {
+        "hasAnsi": false,
+        "rc": 0,
+        "stderr": "",
+        "stdoutEqualsEn": true,
+        "stdoutSha256": "b86940114727a174b1bc5fff975ae522f0d60f040b54ca6df02f4692509703b5"
+      },
+      "version": {
+        "hasAnsi": false,
+        "matchesVersionPattern": true,
+        "rc": 0,
+        "stderr": "",
+        "stdout": "idleleo 0.2.0-phase04 (go)\n",
+        "stdoutEqualsEn": true
+      }
+    },
+    "fa": {
+      "help": {
+        "hasAnsi": false,
+        "rc": 0,
+        "stderr": "note: fa messages are not translated yet, falling back to English (use --lang en to silence this)\n",
+        "stdoutEqualsEn": true,
+        "stdoutSha256": "b86940114727a174b1bc5fff975ae522f0d60f040b54ca6df02f4692509703b5"
+      },
+      "version": {
+        "hasAnsi": false,
+        "matchesVersionPattern": true,
+        "rc": 0,
+        "stderr": "note: fa messages are not translated yet, falling back to English (use --lang en to silence this)\n",
+        "stdout": "idleleo 0.2.0-phase04 (go)\n",
+        "stdoutEqualsEn": true
+      }
+    },
+    "fr": {
+      "help": {
+        "hasAnsi": false,
+        "rc": 0,
+        "stderr": "note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\n",
+        "stdoutEqualsEn": true,
+        "stdoutSha256": "b86940114727a174b1bc5fff975ae522f0d60f040b54ca6df02f4692509703b5"
+      },
+      "version": {
+        "hasAnsi": false,
+        "matchesVersionPattern": true,
+        "rc": 0,
+        "stderr": "note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\n",
+        "stdout": "idleleo 0.2.0-phase04 (go)\n",
+        "stdoutEqualsEn": true
+      }
+    },
+    "ko": {
+      "help": {
+        "hasAnsi": false,
+        "rc": 0,
+        "stderr": "note: ko messages are not translated yet, falling back to English (use --lang en to silence this)\n",
+        "stdoutEqualsEn": true,
+        "stdoutSha256": "b86940114727a174b1bc5fff975ae522f0d60f040b54ca6df02f4692509703b5"
+      },
+      "version": {
+        "hasAnsi": false,
+        "matchesVersionPattern": true,
+        "rc": 0,
+        "stderr": "note: ko messages are not translated yet, falling back to English (use --lang en to silence this)\n",
+        "stdout": "idleleo 0.2.0-phase04 (go)\n",
+        "stdoutEqualsEn": true
+      }
+    },
+    "ru": {
+      "help": {
+        "hasAnsi": false,
+        "rc": 0,
+        "stderr": "note: ru messages are not translated yet, falling back to English (use --lang en to silence this)\n",
+        "stdoutEqualsEn": true,
+        "stdoutSha256": "b86940114727a174b1bc5fff975ae522f0d60f040b54ca6df02f4692509703b5"
+      },
+      "version": {
+        "hasAnsi": false,
+        "matchesVersionPattern": true,
+        "rc": 0,
+        "stderr": "note: ru messages are not translated yet, falling back to English (use --lang en to silence this)\n",
+        "stdout": "idleleo 0.2.0-phase04 (go)\n",
+        "stdoutEqualsEn": true
+      }
+    },
+    "zh": {
+      "help": {
+        "hasAnsi": false,
+        "rc": 0,
+        "stderr": "",
+        "stdoutEqualsEn": false,
+        "stdoutSha256": "9e87ca1b8f851f645d04498f63f1230d1db50941e0a16dd8804f783a6649b36b"
+      },
+      "version": {
+        "hasAnsi": false,
+        "matchesVersionPattern": true,
+        "rc": 0,
+        "stderr": "",
+        "stdout": "idleleo 0.2.0-phase04 (go)\n",
+        "stdoutEqualsEn": true
+      }
+    }
+  },
+  "preValidation": {
+    "deHelp": {
+      "rc": 0,
+      "stderr": "",
+      "stdoutEqualsEnHelp": true
+    },
+    "deVersion": {
+      "rc": 0,
+      "stderr": "",
+      "stdout": "idleleo 0.2.0-phase04 (go)\n"
+    },
+    "frVersion": {
+      "rc": 0,
+      "stderr": "note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\n",
+      "stdoutEqualsEnVersion": true
+    }
+  },
+  "supportedLanguages": [
+    "zh",
+    "en",
+    "fr",
+    "fa",
+    "ru",
+    "ko"
+  ]
+}

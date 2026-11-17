@@ -1,0 +1,79 @@
+{
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "port": 10289,
+      "listen": "127.0.0.1",
+      "tag": "VLESS-gRPC-in",
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "id": "<redacted-uuid>",
+            "level": 0,
+            "email": "d84fe@hey.run"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "security": "none",
+        "grpcSettings": {
+          "serviceName": "3cf56",
+          "multiMode": true,
+          "idle_timeout": 20
+        },
+        "realitySettings": {
+          "privateKey": "REDACTED",
+          "settings": {
+            "privateKey": "REDACTED"
+          }
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4v6"
+        }
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
+    }
+  ],
+  "dns": {
+    "servers": [
+      "https+local://dns.google/dns-query",
+      "https+local://cloudflare-dns.com/dns-query",
+      "https+local://doh.opendns.com/dns-query",
+      "208.67.222.222",
+      "8.8.8.8",
+      "1.1.1.1",
+      "localhost"
+    ],
+    "disableCache": false
+  },
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "VLESS-gRPC-in"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  }
+}

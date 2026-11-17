@@ -1,0 +1,7 @@
+commit=2ea4c8ae917e8fe9e3f476786f68116d281a7ecc
+image=golang@sha256:5e8afd493a7124a8586e134d9b532731161d4b9becf9dee5a5956b107426f93d
+level=unit+cli (no CA, no real nginx)
+date=2026-11-16T14:23:08Z
+go_rc=0
+bash_rc=0
+probe_rc=0

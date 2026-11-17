@@ -1,0 +1,8 @@
+{
+  "afterSha": "46db261fc61689cca3f7f5790d03a329e38fc766bf80897dbb0cac708ae415c0",
+  "beforeSha": "c9bc3021da5cb7a795cab7b30a1aa29af9d782537f306f5f1758b84f3ac6e81f",
+  "chain": "direct-tls->config-edit",
+  "mode": "tls-direct",
+  "newFingerprint": "5E:E7:C3:6F:8A:17:3D:ED:7E:79:9F:62:D8:3C:A7:7F:34:AD:94:40:4E:6F:81:A5:C2:D8:1D:1E:4D:55:56:CA",
+  "oldFingerprint": "E5:2C:2C:7D:17:68:CF:9B:F5:19:A2:46:65:E1:C2:1A:3E:D4:F8:04:E0:42:E1:32:DC:60:FD:81:13:77:73:93"
+}

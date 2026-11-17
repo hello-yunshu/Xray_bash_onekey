@@ -1,0 +1,109 @@
+[
+  {
+    "id": "1794844570150874001-571",
+    "state": "COMMITTED",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "6efdf173b0cf377d28901ab8681821aefd5fc00e2f0141294c3f54bd712cd865",
+    "newSha256": "402b6f4a256393dc6130e25630f255db1dae06032b25aab6bd5b68d388db5259",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  },
+  {
+    "id": "1794844570162617482-583",
+    "state": "COMMITTED",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "402b6f4a256393dc6130e25630f255db1dae06032b25aab6bd5b68d388db5259",
+    "newSha256": "550442843b704eb50070a54f789d3660ba580ac9484516cec6a2fac73ae4d2c9",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  },
+  {
+    "id": "1794844570191006181-642",
+    "state": "COMMITTED",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "550442843b704eb50070a54f789d3660ba580ac9484516cec6a2fac73ae4d2c9",
+    "newSha256": "330505d18c4f0c8f93a9e28e0bb15a9c5f611e0f4e03f708a1c6d036a4c95d09",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  },
+  {
+    "id": "1794844570208188734-666",
+    "state": "COMMITTED",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "330505d18c4f0c8f93a9e28e0bb15a9c5f611e0f4e03f708a1c6d036a4c95d09",
+    "newSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  },
+  {
+    "id": "1794844570219000378-693",
+    "state": "ROLLED_BACK",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+    "newSha256": "9ba8850825c8d8cf7b1912ce96dfdd8fc85049fbabc8b31e1ec3d03715458636",
+    "serviceExit": 1,
+    "reason": "injected service failure",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  },
+  {
+    "id": "1794844570227032672-702",
+    "state": "REJECTED",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+    "newSha256": "e8d81efbe576d445921b7b274b6c86951f48b45bb5973963bb3c96ae7e256f40",
+    "validatorExit": 1,
+    "reason": "candidate rejected by validator (exit 1): ",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  },
+  {
+    "id": "1794844570232264118-713",
+    "state": "FAILED",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+    "newSha256": "e8d81efbe576d445921b7b274b6c86951f48b45bb5973963bb3c96ae7e256f40",
+    "reason": "injected write failure",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  },
+  {
+    "id": "1794844570236395224-720",
+    "state": "ROLLED_BACK",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+    "newSha256": "e8d81efbe576d445921b7b274b6c86951f48b45bb5973963bb3c96ae7e256f40",
+    "serviceExit": 1,
+    "reason": "injected service failure",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  },
+  {
+    "id": "1794844570249579172-737",
+    "state": "COMMITTED",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+    "newSha256": "a344d3048c7ed078eea92d05b55e6119ac22ff85aa784d96eb43da020d926029",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  },
+  {
+    "id": "1794844570255790748-748",
+    "state": "COMMITTED",
+    "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "a344d3048c7ed078eea92d05b55e6119ac22ff85aa784d96eb43da020d926029",
+    "newSha256": "7e71728c7ca5fb1d396fe108c7294cbfe94ea21447469b0ec3cf45223e0b1146",
+    "startedAt": "2026-11-16T15:56:10Z",
+    "updatedAt": "2026-11-16T15:56:10Z"
+  }
+]

@@ -1,0 +1,625 @@
+== F22 go=/work/bin/idleleo bash=/work/repo host=aarch64
+PASS Bash install.sh --rill-agent-status baseline is present /work/repo/install.sh
+$ /work/bin/idleleo --root /work/evidence/rill-work/absent rill status --json (rc=0 0.0s)
+  stdout: {
+            "rill": {
+              "installed": false,
+              "observationAgeSeconds": 0,
+              "status": "absent",
+              "enabled": false
+            },
+            "schemaVersion": 1
+          }
+PASS absent status exits 0 rc=0 
+PASS absent reports installed=false {"installed": false, "observationAgeSeconds": 0, "status": "absent", "enabled": false}
+PASS absent reports status=absent absent
+PASS absent reports enabled=false 
+$ /work/bin/idleleo --root /work/evidence/rill-work/absent rill status (rc=0 0.0s)
+  stdout: installed=false status=absent enabled=false mode= observationAge=0s
+PASS absent text projection is stable installed=false status=absent enabled=false mode= observationAge=0s
+PASS absent status does not create or modify files 
+$ /work/bin/idleleo --root /work/evidence/rill-work/active rill status --json (rc=0 0.0s)
+  stdout: {
+            "rill": {
+              "installed": true,
+              "binary": "opt/rill-xray-agent/bin/rill-xray-agent",
+              "configPath": "etc/rill-xray-agent/config.json",
+              "configSha256": "0b3ec16017de385eacdd679885b5b4d8c55f18e8f2882f0fa3d6b2071d40c493",
+              "observationPath": "var/lib/rill-xray-agent-xray/status/xray-observation.json",
+              "observationSha256": "6db472542799a3799e23bfbdbf046d6ceda0b523b6a9692819ad7b008df3fc1d",
+              "observationAgeSeconds": 30,
+              "status": "active",
+              "mode": "normal",
+              "enabled": true
+            },
+            "schemaVersion": 1
+          }
+PASS active status exits 0 rc=0
+PASS active reports installed=true 
+PASS fresh capturedAt wins over an old mtime active
+PASS active reports enabled=true 
+PASS active reports the configured mode normal
+PASS active observation age is fresh 30
+PASS config hash matches the file 
+PASS observation hash matches the file 
+PASS projection exposes canonical relative paths opt/rill-xray-agent/bin/rill-xray-agent etc/rill-xray-agent/config.json
+$ /work/bin/idleleo --root /work/evidence/rill-work/active rill status (rc=0 0.0s)
+  stdout: installed=true status=active enabled=true mode=normal observationAge=30s
+          binary=opt/rill-xray-agent/bin/rill-xray-agent config=etc/rill-xray-agent/config.json observation=var/lib/rill-xray-agent-xray/status/xray-observation.json
+PASS active text projection includes paths installed=true status=active enabled=true mode=normal observationAge=30s
+binary=opt/rill-xray-agent/bin/rill-xray-agent config=etc/rill-xray-agent/config.json observation=var/lib/rill-xray-agent-xray/
+PASS active status is read-only 
+$ /work/bin/idleleo --root /work/evidence/rill-work/stale rill status --json (rc=0 0.0s)
+  stdout: {
+            "rill": {
+              "installed": true,
+              "binary": "opt/rill-xray-agent/bin/rill-xray-agent",
+              "configPath": "etc/rill-xray-agent/config.json",
+              "configSha256": "1c529dabc9ea1cd987e61dd8bb7eea50a17f635be314c94c1f35450355010ae7",
+              "observationPath": "var/lib/rill-xray-agent-xray/status/xray-observation.json",
+              "observationSha256": "0df0c10dfeecab056bf34191d408e9ac3a66611588039db6344e80ea97dfb16e",
+              "observationAgeSeconds": 1200,
+              "status": "stale",
+              "mode": "observe-only",
+              "enabled": true,
+              "warning": "last observation is 1200 seconds old"
+            },
+            "schemaVersion": 1
+          }
+PASS stale status exits 0 rc=0
+PASS old capturedAt wins over a fresh mtime stale
+PASS stale observation age is reported 1200
+PASS stale warning is explicit last observation is 1200 seconds old
+$ /work/bin/idleleo --root /work/evidence/rill-work/stale rill status (rc=0 0.0s)
+  stdout: installed=true status=stale enabled=true mode=observe-only observationAge=1200s
+          binary=opt/rill-xray-agent/bin/rill-xray-agent config=etc/rill-xray-agent/config.json observation=var/lib/rill-xray-agent-xray/status/xray-observation.json
+          warning=last observation is 1200 seconds old
+PASS stale text output carries the warning installed=true status=stale enabled=true mode=observe-only observationAge=1200s
+binary=opt/rill-xray-agent/bin/rill-xray-agent config=etc/rill-xray-agent/config.json observation=var/lib/rill-xray-agen
+PASS stale status is read-only 
+$ /work/bin/idleleo --root /work/evidence/rill-work/unobserved rill status --json (rc=0 0.0s)
+  stdout: {
+            "rill": {
+              "installed": true,
+              "binary": "opt/rill-xray-agent/bin/rill-xray-agent",
+              "configPath": "etc/rill-xray-agent/config.json",
+              "configSha256": "0b3ec16017de385eacdd679885b5b4d8c55f18e8f2882f0fa3d6b2071d40c493",
+              "observationAgeSeconds": 0,
+              "status": "installed-unobserved",
+              "mode": "normal",
+              "enabled": true,
+              "warning": "no xray-observation.json yet"
+            },
+            "schemaVersion": 1
+          }
+PASS missing observation is reported explicitly {"installed": true, "binary": "opt/rill-xray-agent/bin/rill-xray-agent", "configPath": "etc/rill-xray-agent/config.json", "configSha256": "0b3ec16017de385eacdd679885b5b4d8c55f18e8f2882f0fa3d6b2071d40c
+PASS missing-observation warning is exact no xray-observation.json yet
+$ /work/bin/idleleo --root /work/evidence/rill-work/unobserved rill status --json (rc=0 0.0s)
+  stdout: {
+            "rill": {
+              "installed": true,
+              "binary": "opt/rill-xray-agent/bin/rill-xray-agent",
+              "configPath": "etc/rill-xray-agent/config.json",
+              "configSha256": "0b3ec16017de385eacdd679885b5b4d8c55f18e8f2882f0fa3d6b2071d40c493",
+              "observationPath": "var/lib/rill-xray-agent-xray/status/xray-observation.json",
+              "observationSha256": "153938848d147e6201ceff3b4df8610156f3ed5324bcd9bc6357b04d46b93eb0",
+              "observationAgeSeconds": 0,
+              "status": "active",
+              "mode": "normal",
+              "enabled": true
+            },
+            "schemaVersion": 1
+          }
+PASS status flips to active once observed active
+$ /work/bin/idleleo --root /work/evidence/rill-work/unobserved rill status --json (rc=0 0.0s)
+  stdout: {
+            "rill": {
+              "installed": true,
+              "binary": "opt/rill-xray-agent/bin/rill-xray-agent",
+              "configPath": "etc/rill-xray-agent/config.json",
+              "configSha256": "0b3ec16017de385eacdd679885b5b4d8c55f18e8f2882f0fa3d6b2071d40c493",
+              "observationAgeSeconds": 0,
+              "status": "installed-unobserved",
+              "mode": "normal",
+              "enabled": true,
+              "warning": "no xray-observation.json yet"
+            },
+            "schemaVersion": 1
+          }
+PASS status returns to installed-unobserved when the observation is removed installed-unobserved
+$ /work/bin/idleleo --root /work/evidence/rill-work/badconfig rill status --json (rc=0 0.01s)
+  stdout: {
+            "rill": {
+              "installed": true,
+              "binary": "opt/rill-xray-agent/bin/rill-xray-agent",
+              "configPath": "etc/rill-xray-agent/config.json",
+              "configSha256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96",
+              "observationPath": "var/lib/rill-xray-agent-xray/status/xray-observation.json",
+              "observationSha256": "96588f3aa864a449d794b5b43d4d8c29441a5080571d5c00afeb0c8a2f47155a",
+              "observationAgeSeconds": 10,
+              "status": "active",
+              "enabled": true,
+              "warning": "config.json is not valid JSON"
+            },
+            "schemaVersion": 1
+          }
+PASS corrupt config exits 0 rc=0
+PASS corrupt config still projects installed state {"installed": true, "binary": "opt/rill-xray-agent/bin/rill-xray-agent", "configPath": "etc/rill-xray-agent/config.json", "configSha256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097
+PASS corrupt config warning is explicit config.json is not valid JSON
+PASS corrupt-config status is read-only 
+$ setpriv --reuid=65534 --regid=65534 --clear-groups /work/bin/idleleo --root /work/evidence/rill-work/rootless rill status --json (rc=0 0.0s)
+  stdout: {
+            "rill": {
+              "installed": true,
+              "binary": "opt/rill-xray-agent/bin/rill-xray-agent",
+              "configPath": "etc/rill-xray-agent/config.json",
+              "configSha256": "0b3ec16017de385eacdd679885b5b4d8c55f18e8f2882f0fa3d6b2071d40c493",
+              "observationPath": "var/lib/rill-xray-agent-xray/status/xray-observation.json",
+              "observationSha256": "633e4b73095c1fdb83204bcc0e9033083cb9c92727eb1affd69f3eebf69c9ee9",
+              "observationAgeSeconds": 20,
+              "status": "active",
+              "mode": "normal",
+              "enabled": true
+            },
+            "schemaVersion": 1
+          }
+PASS non-root rill status exits 0 rc=0 
+PASS non-root status reads the same state active
+$ /work/bin/idleleo --root /work/evidence/rill-work/active rill install (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS rill install is refused with exit 2 rc=2
+PASS rill install refusal shows the supported surface Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+$ /work/bin/idleleo --root /work/evidence/rill-work/active rill diagnose (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS rill diagnose is refused with exit 2 rc=2
+PASS rill diagnose refusal shows the supported surface Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+$ /work/bin/idleleo --root /work/evidence/rill-work/active rill authorize (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS rill authorize is refused with exit 2 rc=2
+PASS rill authorize refusal shows the supported surface Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+$ /work/bin/idleleo --root /work/evidence/rill-work/active rill uninstall (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS rill uninstall is refused with exit 2 rc=2
+PASS rill uninstall refusal shows the supported surface Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+$ /work/bin/idleleo --root /work/evidence/rill-work/active rill (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS rill without a subcommand exits 2 rc=2
+$ /work/bin/idleleo --root /work/evidence/rill-work/active rill status --bogus (rc=2 0.0s)
+  stderr: unknown flag: --bogus
+PASS unknown status flag exits 2 unknown flag: --bogus
+$ bash /work/repo/install.sh --rill-agent-status (rc=0 0.04s)
+  stdout: {"agentActive": false, "boundedAutoAllowed": false, "installed": true, "mode": "normal", "routeAssistEnabled": false, "routeStage": "observe", "runtimeActive": false, "schemaVersion": 1}
+  stderr: System has not been booted with systemd as init system (PID 1). Can't operate.
+          Failed to connect to bus: Host is down
+          System has not been booted with systemd as init system (PID 1). Can't operate.
+          Failed to connect to bus: Host is down
+PASS Bash rill status exits 0 rc=0 System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to bus: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Fai
+PASS Bash status keeps schemaVersion 1 
+PASS Bash reports installed=true 
+PASS Bash and Go agree on the configured mode bash=normal go=normal
+PASS Bash keeps route assist and bounded auto disabled False False
+PASS Bash status has no observation freshness surface 
+PASS Bash status leaves a pre-created root unchanged unchanged
+$ bash /work/repo/install.sh --rill-agent-status (rc=0 0.03s)
+  stdout: {"agentActive": false, "boundedAutoAllowed": false, "installed": true, "mode": "observe-only", "routeAssistEnabled": false, "routeStage": "observe", "runtimeActive": false, "schemaVersion": 1}
+  stderr: System has not been booted with systemd as init system (PID 1). Can't operate.
+          Failed to connect to bus: Host is down
+          System has not been booted with systemd as init system (PID 1). Can't operate.
+          Failed to connect to bus: Host is down
+PASS Bash status on an empty root exits 0 rc=0
+PASS Bash status creates a default config when none exists 
+PASS Bash reports installed=true on an empty root (documented divergence) True

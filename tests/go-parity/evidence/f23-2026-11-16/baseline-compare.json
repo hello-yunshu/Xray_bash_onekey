@@ -1,0 +1,97 @@
+{
+  "bash": {
+    "catalogs": {
+      "en": {
+        "error": "",
+        "\u4fe1\u606f": "information",
+        "\u603b\u89c8": "Overview"
+      },
+      "fa": {
+        "error": "",
+        "\u4fe1\u606f": "\u0627\u0637\u0644\u0627\u0639\u0627\u062a",
+        "\u603b\u89c8": "\u0646\u0645\u0627\u06cc \u06a9\u0644\u06cc"
+      },
+      "fr": {
+        "error": "",
+        "\u4fe1\u606f": "informations",
+        "\u603b\u89c8": "Vue d'ensemble"
+      },
+      "ko": {
+        "error": "",
+        "\u4fe1\u606f": "\uc815\ubcf4",
+        "\u603b\u89c8": "\uac1c\uc694"
+      },
+      "ru": {
+        "error": "",
+        "\u4fe1\u606f": "\u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f",
+        "\u603b\u89c8": "\u041e\u0431\u0437\u043e\u0440"
+      },
+      "zh_CN": {
+        "error": "",
+        "\u4fe1\u606f": "\u4fe1\u606f",
+        "\u603b\u89c8": "\u603b\u89c8"
+      }
+    },
+    "catalogsWithTranslations": [
+      "zh_CN",
+      "en",
+      "fr",
+      "ru",
+      "ko",
+      "fa"
+    ],
+    "menuColumns": 45,
+    "menuLocalizedAndAdaptive": true,
+    "readsLanguageConf": true,
+    "sampleEntries": [
+      "\u603b\u89c8",
+      "\u4fe1\u606f"
+    ]
+  },
+  "cliQuirks": {
+    "--lang de --help": "exit 0 with English help before language validation",
+    "--lang de --version": "exit 0 with English output before language validation"
+  },
+  "differences": [
+    "Bash ships complete catalogs for all six languages; Go has complete catalogs only for zh and en.",
+    "Bash falls back to English per missing message (_xray_i18n_setup); Go falls back for the whole language and prints one notice.",
+    "Bash reads etc/idleleo/language.conf; Go selects the language only from --lang.",
+    "Bash renders a localized 45-column adaptive menu box; Go renders an English single-line prompt with no width adaptation (not aligned).",
+    "Bash suppresses ANSI without a TTY or with NO_COLOR; Go never emits ANSI, which is stricter rather than a parity gap."
+  ],
+  "go": {
+    "completeCatalogs": [
+      "zh",
+      "en"
+    ],
+    "defaultLanguage": "zh",
+    "fallbackLanguages": [
+      "fr",
+      "fa",
+      "ru",
+      "ko"
+    ],
+    "helpMaxWidth": {
+      "en": 133,
+      "zh": 111
+    },
+    "helpWidthAdaptation": false,
+    "readsEnvironmentLocale": false,
+    "readsLanguageConf": false,
+    "supportedLanguages": [
+      "zh",
+      "en",
+      "fr",
+      "fa",
+      "ru",
+      "ko"
+    ],
+    "ttyMenu": "English single-line prompt, not localized"
+  },
+  "helpMaxWidth": {
+    "en": 133,
+    "zh": 111
+  },
+  "narrowScreenParity": "not aligned: Go help is a single unwrapped block wider than 80 columns",
+  "ttyMenuParity": "not aligned: Go menu prompt stays English and has no 45-column layout"
+}

@@ -1,0 +1,9 @@
+{
+  "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+  "domain": "example.com",
+  "due": true,
+  "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+  "missing": true,
+  "reason": "certificate file does not exist",
+  "renewBefore": "720h0m0s"
+}

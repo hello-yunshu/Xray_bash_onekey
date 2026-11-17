@@ -1,0 +1,13 @@
+{
+  "action": "rolled-back",
+  "backupPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo.previous",
+  "healthOutput": "true (GNU coreutils) 9.4\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.",
+  "installPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo",
+  "manifestUrl": "http://127.0.0.1:50123/manifest-rollback.json",
+  "newSha256": "a82c1b5fd392d72148d53992a860224ff3753cb2dc8909e9bdd1620e54ee1b88",
+  "newVersion": "0.2.1",
+  "platform": "linux-arm64",
+  "previousSha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8",
+  "previousVersion": "0.2.0-phase04",
+  "schemaVersion": 1
+}

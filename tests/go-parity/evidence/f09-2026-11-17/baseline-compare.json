@@ -1,0 +1,42 @@
+{
+  "defaultWeight": {
+    "classification": "aligned",
+    "value": 50
+  },
+  "deleteLoopback": {
+    "bash": "rc=0, rm deletes the loopback fragment",
+    "classification": "approved-difference",
+    "go": "rc=1, refuses the local 127.0.0.1 backend"
+  },
+  "dupReservedInvalid": {
+    "bash": "only character/range input checks; overwrites duplicates",
+    "classification": "approved-difference",
+    "go": "rejects duplicates, reserved ports, invalid hosts and weights"
+  },
+  "fragmentBody": {
+    "bashSha256": "7326cff48f5cdcf673fd1a038ad051e2f523d286f6e2f000234822e84fd72ae3",
+    "bytes": 60,
+    "classification": "aligned",
+    "goSha256": "7326cff48f5cdcf673fd1a038ad051e2f523d286f6e2f000234822e84fd72ae3"
+  },
+  "fragmentName": {
+    "bash": "10.0.0.2.realityServers",
+    "classification": "aligned",
+    "go": "10.0.0.2.realityServers"
+  },
+  "listOutput": {
+    "bash": "file-name table only",
+    "classification": "approved-difference",
+    "go": "TSV host/port/weight/file or --json"
+  },
+  "probe": {
+    "bash": "no probe",
+    "classification": "new-go-behavior",
+    "go": "--probe optional; default warns that nginx passively drops dead backends"
+  },
+  "reload": {
+    "bash": "always reloads/restarts nginx",
+    "classification": "approved-difference",
+    "go": "sandbox root skips reload and warns"
+  }
+}

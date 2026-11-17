@@ -1,0 +1,8 @@
+time=2026-11-11T16:47:08.375Z level=INFO msg="Registering the account." email=acme@idleleo.example
+time=2026-11-11T16:47:08.376Z level=INFO msg="Obtaining bundled SAN certificate." domains=acme.local
+time=2026-11-11T16:47:08.537Z level=INFO msg="Use solver." domain=acme.local type=http-01
+time=2026-11-11T16:47:08.537Z level=INFO msg="http01: Trying to solve HTTP-01." domain=acme.local
+time=2026-11-11T16:47:16.023Z level=INFO msg="The server validated our request." domain=acme.local
+time=2026-11-11T16:47:16.023Z level=INFO msg="Validations succeeded; requesting certificates." domains=acme.local
+time=2026-11-11T16:47:16.025Z level=INFO msg="Waiting for certificates." timeout=2m0s interval=2s domains=acme.local
+time=2026-11-11T16:47:16.026Z level=INFO msg="Server responded with a certificate." domains=acme.local

@@ -1,0 +1,136 @@
+{
+  "cases": [
+    {
+      "differences": [
+        {
+          "bash": [
+            "grpcSettings",
+            "network",
+            "realitySettings",
+            "security"
+          ],
+          "field": "streamKeys",
+          "go": [
+            "grpcSettings",
+            "network",
+            "security"
+          ]
+        }
+      ],
+      "mode": "none",
+      "port": 10272,
+      "run": "none-grpc",
+      "status": "MATCH_CORE_FIELDS",
+      "transport": "grpc"
+    },
+    {
+      "differences": [
+        {
+          "bash": [
+            "network",
+            "realitySettings",
+            "security",
+            "wsSettings"
+          ],
+          "field": "streamKeys",
+          "go": [
+            "network",
+            "security",
+            "wsSettings"
+          ]
+        },
+        {
+          "bash": [
+            "dns",
+            "geodata",
+            "inbounds",
+            "log",
+            "outbounds",
+            "routing"
+          ],
+          "field": "topLevelKeys",
+          "go": [
+            "dns",
+            "inbounds",
+            "log",
+            "outbounds",
+            "routing"
+          ]
+        }
+      ],
+      "mode": "none",
+      "port": 10805,
+      "run": "none-ws",
+      "status": "MATCH_CORE_FIELDS",
+      "transport": "ws"
+    },
+    {
+      "differences": [
+        {
+          "bash": [
+            "network",
+            "realitySettings",
+            "security",
+            "wsSettings"
+          ],
+          "field": "streamKeys",
+          "go": [
+            "network",
+            "security",
+            "wsSettings"
+          ]
+        }
+      ],
+      "mode": "none",
+      "port": 10226,
+      "run": "none-ws+grpc+xhttp",
+      "status": "MATCH_CORE_FIELDS",
+      "transport": "ws+grpc+xhttp"
+    },
+    {
+      "differences": [
+        {
+          "bash": [
+            "network",
+            "realitySettings",
+            "security",
+            "xhttpSettings"
+          ],
+          "field": "streamKeys",
+          "go": [
+            "network",
+            "security",
+            "xhttpSettings"
+          ]
+        }
+      ],
+      "mode": "none",
+      "port": 11634,
+      "run": "none-xhttp",
+      "status": "MATCH_CORE_FIELDS",
+      "transport": "xhttp"
+    },
+    {
+      "differences": [],
+      "mode": "reality",
+      "port": 443,
+      "run": "reality-raw",
+      "status": "MATCH",
+      "transport": "raw"
+    },
+    {
+      "differences": [],
+      "mode": "reality",
+      "port": 443,
+      "run": "reality-ws+grpc+xhttp",
+      "status": "MATCH",
+      "transport": "ws+grpc+xhttp"
+    }
+  ],
+  "counts": {
+    "MATCH": 2,
+    "MATCH_CORE_FIELDS": 4
+  },
+  "evidence": "tests/go-parity/evidence/a2-2026-11-08",
+  "goBin": "tests/go-parity/evidence/a2-2026-11-08/idleleo-darwin-arm64"
+}

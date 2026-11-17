@@ -1,0 +1,10 @@
+commit=d56572bd56582db7000636fb6fb55dd5dafdbe11
+image=idleleo-preview:latest@sha256=ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+level=CONTAINER_VERIFIED (real legacybridge projection + Bash install.sh --rill-agent-status)
+date=2026-11-16T15:25:02Z
+fixture=tests/go-parity/parity/features/F22_test.py
+command=python3 -I /work/repo/tests/go-parity/parity/features/F22_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo
+result=54 passed, 0 failed, exit 0 (run 1: 0.26s; run 2: 0.14s)
+go_bin_sha256=3d7288f1a059b2058ef104e8c124cfdfe5c53b095d04a43768860aba778902c7
+unit_test=go test ./internal/legacybridge/ (ok)
+notes=Go fix: observationTime now honors capturedAtEpochSeconds, the field written by scripts/rill_xray_agent_observe.py; the fixture proves the field wins over the file mtime in both directions (fresh field/old mtime active, old field/fresh mtime stale). Bash baseline uses the in-repo manager via RILL_XRAY_AGENT_MANAGER because install.sh otherwise takes the installed=false stub. Recorded divergence: Bash creates a default config and reports installed=true on an empty root, and its status JSON has no observation freshness (Bash verify uses 3700s, Go status 600s).

@@ -1,0 +1,50 @@
+F02 — TLS (Nginx front) ws / gRPC / xHTTP / combined transport executor
+Evidence level: CONTAINER_VERIFIED (config-level; real `xray -test`, no Xray data plane, no host Nginx, no network)
+
+commit: 1185259e634eda6c4900829373d772a07ad59136 + working tree
+        (tests/go-parity/parity/features/F02_test.py, internal/xraycfg port report fix + unit test)
+date: 2026-11-17
+image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+build image: golang:1.27.4
+build command: docker run --rm -v "$PWD":/src -w /src -v /tmp/f02bin:/out -e CGO_ENABLED=0 golang:1.27.4 go build -trimpath -o /out/idleleo ./cmd/idleleo
+go_bin_sha256: 8b56e6c0898cbd584f1f6dcf1a8f29dc52cf8851c811de6c392f5a979913bc07
+xray: Xray 26.11.9 (676eaf6, go1.27.3 linux/arm64), mounted from tests/go-parity/.cache/xray-linux-arm64/xray
+xray_sha256: c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a
+
+run 1: python3 -I /work/repo/tests/go-parity/parity/features/F02_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo --xray-bin /work/xray
+       rc=0, 171 passed, 0 failed, 0.28s
+run 2: python3 -I /work/repo/tests/go-parity/parity/features/F02_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo --xray-bin /work/xray
+       rc=0, 171 passed, 0 failed, 0.24s
+
+container command:
+docker run -d --name f02-preview --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock \
+  -v /tmp/f02bin:/work/bin:ro \
+  -v "$PWD":/work/repo:ro \
+  -v "$PWD/tests/go-parity/evidence/f02-2026-11-17":/work/evidence \
+  -v "$PWD/tests/go-parity/.cache/xray-linux-arm64/xray":/work/xray:ro \
+  idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+exec env: IDLELEO_PREVIEW_EVIDENCE=/work/evidence
+
+scope: `xray generate --mode tls` for ws / gRPC / xHTTP / ws+grpc+xhttp, artifact parity
+(runtime config, share URI, Clash, Nginx conf + fragments, port pinning, --public-port,
+--cert/--cert-key, --listen, overwrite/refusal paths), and real `xray -test` on every
+generated config plus the executed Bash baseline config.
+
+bash baseline: fixed checkout install.sh (sha256 recorded in baseline-compare.json and
+bash-result.json); config/vless_tls.json asserted in place; update_json_config,
+modify_listen_address, modify_inbound_port, add_grpc_inbound, add_xhttp_inbound and
+modify_path were extracted and executed for real with jq against a template copy, then
+compared field by field with the pinned Go combined config.
+
+fixes found by this executor (committed with this fixture):
+1. `xray generate --json` reported port=0 for TLS-fronted modes; the port was only known
+   after the picker ran. Generated.Port now reports the primary inbound port, so human
+   and JSON output no longer advertise an unconfigured backend
+   (internal/xraycfg/xraycfg.go, TestGenerateTLSReportsBackendPort).
+
+recorded gaps/divergences (baseline-compare.json): protocol naming (vless/VLESS), default
+ws port strategy, default path (Go /ray/ vs Bash random hex), xHTTP trailing slash,
+`--listen 0.0.0.0` honoured by Go while Bash forces loopback in TLS mode, `--port`
+semantics in TLS mode, ws+xhttp combination not implemented, combined share URI is
+primary-only, cert pair not validated at generate time, and real-certificate
+`xray install --mode tls` with host Nginx not executed (not faked).

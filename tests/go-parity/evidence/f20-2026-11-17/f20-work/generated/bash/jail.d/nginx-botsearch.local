@@ -1,0 +1,6 @@
+[nginx-botsearch]
+enabled  = true
+filter   = nginx-botsearch
+logpath  = /usr/local/nginx/logs/access.log
+           /usr/local/nginx/logs/error.log
+bantime  = 604800

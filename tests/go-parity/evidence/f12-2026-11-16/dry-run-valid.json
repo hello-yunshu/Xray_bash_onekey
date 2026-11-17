@@ -1,0 +1,10 @@
+{
+  "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+  "domain": "example.com",
+  "due": false,
+  "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+  "notAfter": "2027-02-14T15:07:52Z",
+  "reason": "next renewal at 2027-01-15T15:07:52Z (expires in 2160h0m0s)",
+  "renewAt": "2027-01-15T15:07:52Z",
+  "renewBefore": "720h0m0s"
+}

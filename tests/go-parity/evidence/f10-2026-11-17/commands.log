@@ -1,0 +1,898 @@
+== run1 (idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de)
+== F10 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray generate --mode reality-balance --role primary --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --server-names example.com --out /work/evidence/f10-work/reality-root/config.json --nginx-out /work/evidence/f10-work/reality-nginx.conf --fragments-out /work/evidence/f10-work/reality-root/fragments --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "CaCPDK_WE5wJ62AjQykkp0PQD_gprgSDa3mOE8WQZbY",
+            "publicKey": "Ri5QSPQ8LmdCOu5TCjvhT8yHuPNHs11zx54TCFCfPGM",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=Ri5QSPQ8LmdCOu5TCjvhT8yHuPNHs11zx54TCFCfPGM&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: Ri5QSPQ8LmdCOu5TCjvhT8yHuPNHs11zx54TCFCfPGM\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS generate reality-balance rc=0 {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary"
+PASS generated Reality anchor keeps the commented TLSv1.2 map entry 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+    
+$ /work/evidence/f10-work/reality-root/usr/local/nginx/sbin/nginx -t -p /work/evidence/f10-work/reality-root/usr/local/nginx/ -c /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf syntax is ok
+          nginx: configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf test is successful
+PASS real nginx -t accepts the generated Reality install nginx: the configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf test is successful
+
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.2+ --json (rc=0 0.01s)
+  stdout: {
+            "mode": "Reality",
+            "version": "1.2+",
+            "changed": true,
+            "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+            "reloaded": false,
+            "warnings": [
+              "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"
+            ]
+          }
+PASS reality tls 1.2+ rc=0 {
+  "mode": "Reality",
+  "version": "1.2+",
+  "changed": true,
+  "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+  "reloaded": false,
+  "warnings": [
+    "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"
+  ]
+PASS 1.2+ uncomments the Reality map entry 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+     
+PASS json mode=Reality {"mode": "Reality", "version": "1.2+", "changed": true, "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf", "reloaded": false, "warnings": ["managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]}
+PASS json version=1.2+ 
+PASS json changed=true 
+PASS json file is the stream anchor 
+PASS sandbox root does not reload 
+PASS json warns about the skipped reload ["managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.2+ --json (rc=0 0.0s)
+  stdout: {
+            "mode": "Reality",
+            "version": "1.2+",
+            "changed": false,
+            "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+            "reloaded": false,
+            "warnings": []
+          }
+PASS repeating 1.2+ is a no-op {
+  "mode": "Reality",
+  "version": "1.2+",
+  "changed": false,
+  "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+  "reloaded": false,
+  "warnings": []
+}
+
+PASS no-op repeat leaves the config tree unchanged 
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.3 --json (rc=0 0.0s)
+  stdout: {
+            "mode": "Reality",
+            "version": "1.3",
+            "changed": true,
+            "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+            "reloaded": false,
+            "warnings": [
+              "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"
+            ]
+          }
+PASS 1.3 comments the Reality map entry back {
+  "mode": "Reality",
+  "version": "1.3",
+  "changed": true,
+  "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+  "reloaded": false,
+  "warnings": [
+    "managed nginx service is not managed on this root;
+PASS 1.3 reports changed {"mode": "Reality", "version": "1.3", "changed": true, "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf", "reloaded": false, "warnings": ["managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]}
+PASS 1.3 round-trips to the generated bytes 
+PASS Bash tls_type choice 2 rc=0 
+PASS Bash TLSv1.2+ output is byte-identical to Go bash=2eb977177c8fa7db19616fcee55ac3c94d862f346bfecac09984c317609b83ae go=2eb977177c8fa7db19616fcee55ac3c94d862f346bfecac09984c317609b83ae
+PASS Bash tls_type choice 1 rc=0 
+PASS Bash TLSv1.3 output is byte-identical to Go bash=13f25ae60b058a4e62c5f04e2fe0c65ae6dc84dabad03d8867b6a1268580f955 go=13f25ae60b058a4e62c5f04e2fe0c65ae6dc84dabad03d8867b6a1268580f955
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 9.9 (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置；--qr 额外打印终端二维码
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray tls --version 1.3|1.2+
+                                 切换托管 Nginx 的 TLS 版本；nginx -t 失败自动还原
+                                 TLS 站只允许 1.3（h3/quic 要求）
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS invalid version exits 2 Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示版本
+  status               只读状态
+  show   
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置；--qr 额外打印终端二维码
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray tls --version 1.3|1.2+
+                                 切换托管 Nginx 的 TLS 版本；nginx -t 失败自动还原
+                                 TLS 站只允许 1.3（h3/quic 要求）
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS missing --version exits 2 Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示版本
+  status               只读状态
+  show   
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.3 --bogus (rc=2 0.0s)
+  stderr: unknown flag: --bogus
+PASS unknown flag exits 2 unknown flag: --bogus
+
+PASS rejected TLS commands leave the tree unchanged 
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.2+ (rc=1 0.01s)
+  stderr: nginx -t rejected the configuration (exit 1): 2026/11/17 05:51:47 [emerg] 92#92: unknown directive "bogus_directive" in /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf:7
+          nginx: configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf test failed; the TLS setting was restored
+PASS broken nginx makes the switch fail and restores nginx -t rejected the configuration (exit 1): 2026/11/17 05:51:47 [emerg] 92#92: unknown directive "bogus_directive" in /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf:7
+nginx: configuration file /work/evidence/f10-work/reality-root/usr/lo
+PASS failed switch leaves the previous TLS bytes in place 
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.2+ (rc=0 0.0s)
+  stdout: mode=Reality version=1.2+ changed=true file=/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf reloaded=false
+          warning=managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually
+PASS restored nginx lets the same switch succeed mode=Reality version=1.2+ changed=true file=/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf reloaded=false
+warning=managed nginx service is not managed on this root; reload sk
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.3 (rc=0 0.0s)
+  stdout: mode=Reality version=1.3 changed=true file=/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf reloaded=false
+          warning=managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually
+$ /work/bin/idleleo --root /work/evidence/f10-work/tls-root xray generate --mode tls --transport ws --domain example.com --port 443 --uuid eeeeeeee-4444-4444-8444-444444444444 --out /work/evidence/f10-work/tls-root/config.json --nginx-out /work/evidence/f10-work/tls-server.conf --fragments-out /work/evidence/f10-work/tls-root/fragments --json (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS generate TLS ws rc=0 {
+  "mode": "tls",
+  "transport": "ws",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "level": 0,
+$ /work/evidence/f10-work/tls-root/usr/local/nginx/sbin/nginx -t -p /work/evidence/f10-work/tls-root/usr/local/nginx/ -c /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf syntax is ok
+          nginx: configuration file /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf test is successful
+PASS real nginx -t accepts the TLS install nginx: the configuration file /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf test is successful
+
+$ /work/bin/idleleo --root /work/evidence/f10-work/tls-root xray tls --version 1.2+ (rc=1 0.0s)
+  stderr: TLS mode serves h3/quic, which requires TLS 1.3; TLSv1.2 cannot be enabled
+PASS TLS install refuses TLSv1.2 (h3/quic) TLS mode serves h3/quic, which requires TLS 1.3; TLSv1.2 cannot be enabled
+
+PASS refused TLSv1.2 leaves the server block untouched 
+$ /work/bin/idleleo --root /work/evidence/f10-work/tls-root xray tls --version 1.3 --json (rc=0 0.0s)
+  stdout: {
+            "mode": "TLS",
+            "version": "1.3",
+            "changed": true,
+            "file": "/work/evidence/f10-work/tls-root/etc/idleleo/conf/nginx/03-xray-https.conf",
+            "reloaded": false,
+            "warnings": [
+              "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"
+            ]
+          }
+PASS TLS install pins ssl_protocols to TLSv1.3 {
+  "mode": "TLS",
+  "version": "1.3",
+  "changed": true,
+  "file": "/work/evidence/f10-work/tls-root/etc/idleleo/conf/nginx/03-xray-https.conf",
+  "reloaded": false,
+  "warnings": [
+    "managed nginx service is not managed on this root; r
+PASS TLS json mode/file {"mode": "TLS", "version": "1.3", "changed": true, "file": "/work/evidence/f10-work/tls-root/etc/idleleo/conf/nginx/03-xray-https.conf", "reloaded": false, "warnings": ["managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]}
+PASS Bash tls_type TLS choice 2 rc=0 
+PASS Bash TLSv1.3 ssl_protocols line is byte-identical to Go bash=aa6dd713cae9144d1d7a9f444d7529c778d65c85e8e4362df0d2ea0d119509c4 go=aa6dd713cae9144d1d7a9f444d7529c778d65c85e8e4362df0d2ea0d119509c4
+$ /work/bin/idleleo --root /work/evidence/f10-work/gate-no-metadata xray tls --version 1.3 (rc=3 0.0s)
+  stderr: 未安装：缺少 manager metadata；只读命令不会创建任何文件
+PASS root without metadata exits 3 未安装：缺少 manager metadata；只读命令不会创建任何文件
+
+$ /work/bin/idleleo --root /work/evidence/f10-work/gate-no-front xray tls --version 1.3 (rc=1 0.0s)
+  stderr: this install is not a managed Nginx front: no $ssl_preread_protocol map under /work/evidence/f10-work/gate-no-front/etc/idleleo/conf/nginx
+PASS root without a managed front exits 1 this install is not a managed Nginx front: no $ssl_preread_protocol map under /work/evidence/f10-work/gate-no-front/etc/idleleo/conf/nginx
+
+$ /work/bin/idleleo --root /work/evidence/f10-work/gate-one-mode xray tls --version 1.3 (rc=1 0.0s)
+  stderr: the current install mode "None" has no managed Nginx TLS front
+PASS ws-only install exits 1 the current install mode "None" has no managed Nginx TLS front
+
+== run2 (same image, fresh container)
+== F10 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray generate --mode reality-balance --role primary --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --server-names example.com --out /work/evidence/f10-work/reality-root/config.json --nginx-out /work/evidence/f10-work/reality-nginx.conf --fragments-out /work/evidence/f10-work/reality-root/fragments --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "HfZltbv2ikInl_OKlejKCbYGyunFUB51IbbwT7KQBOA",
+            "publicKey": "E1ZF7J280Kn6mFQNqX-sWzPEiRAO9IXU9e4nBtXWqQk",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=E1ZF7J280Kn6mFQNqX-sWzPEiRAO9IXU9e4nBtXWqQk&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: E1ZF7J280Kn6mFQNqX-sWzPEiRAO9IXU9e4nBtXWqQk\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS generate reality-balance rc=0 {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary"
+PASS generated Reality anchor keeps the commented TLSv1.2 map entry 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+    
+$ /work/evidence/f10-work/reality-root/usr/local/nginx/sbin/nginx -t -p /work/evidence/f10-work/reality-root/usr/local/nginx/ -c /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf syntax is ok
+          nginx: configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf test is successful
+PASS real nginx -t accepts the generated Reality install nginx: the configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf test is successful
+
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.2+ --json (rc=0 0.01s)
+  stdout: {
+            "mode": "Reality",
+            "version": "1.2+",
+            "changed": true,
+            "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+            "reloaded": false,
+            "warnings": [
+              "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"
+            ]
+          }
+PASS reality tls 1.2+ rc=0 {
+  "mode": "Reality",
+  "version": "1.2+",
+  "changed": true,
+  "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+  "reloaded": false,
+  "warnings": [
+    "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"
+  ]
+PASS 1.2+ uncomments the Reality map entry 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+     
+PASS json mode=Reality {"mode": "Reality", "version": "1.2+", "changed": true, "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf", "reloaded": false, "warnings": ["managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]}
+PASS json version=1.2+ 
+PASS json changed=true 
+PASS json file is the stream anchor 
+PASS sandbox root does not reload 
+PASS json warns about the skipped reload ["managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.2+ --json (rc=0 0.0s)
+  stdout: {
+            "mode": "Reality",
+            "version": "1.2+",
+            "changed": false,
+            "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+            "reloaded": false,
+            "warnings": []
+          }
+PASS repeating 1.2+ is a no-op {
+  "mode": "Reality",
+  "version": "1.2+",
+  "changed": false,
+  "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+  "reloaded": false,
+  "warnings": []
+}
+
+PASS no-op repeat leaves the config tree unchanged 
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.3 --json (rc=0 0.0s)
+  stdout: {
+            "mode": "Reality",
+            "version": "1.3",
+            "changed": true,
+            "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+            "reloaded": false,
+            "warnings": [
+              "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"
+            ]
+          }
+PASS 1.3 comments the Reality map entry back {
+  "mode": "Reality",
+  "version": "1.3",
+  "changed": true,
+  "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf",
+  "reloaded": false,
+  "warnings": [
+    "managed nginx service is not managed on this root;
+PASS 1.3 reports changed {"mode": "Reality", "version": "1.3", "changed": true, "file": "/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf", "reloaded": false, "warnings": ["managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]}
+PASS 1.3 round-trips to the generated bytes 
+PASS Bash tls_type choice 2 rc=0 
+PASS Bash TLSv1.2+ output is byte-identical to Go bash=2eb977177c8fa7db19616fcee55ac3c94d862f346bfecac09984c317609b83ae go=2eb977177c8fa7db19616fcee55ac3c94d862f346bfecac09984c317609b83ae
+PASS Bash tls_type choice 1 rc=0 
+PASS Bash TLSv1.3 output is byte-identical to Go bash=13f25ae60b058a4e62c5f04e2fe0c65ae6dc84dabad03d8867b6a1268580f955 go=13f25ae60b058a4e62c5f04e2fe0c65ae6dc84dabad03d8867b6a1268580f955
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 9.9 (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置；--qr 额外打印终端二维码
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray tls --version 1.3|1.2+
+                                 切换托管 Nginx 的 TLS 版本；nginx -t 失败自动还原
+                                 TLS 站只允许 1.3（h3/quic 要求）
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS invalid version exits 2 Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示版本
+  status               只读状态
+  show   
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置；--qr 额外打印终端二维码
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray tls --version 1.3|1.2+
+                                 切换托管 Nginx 的 TLS 版本；nginx -t 失败自动还原
+                                 TLS 站只允许 1.3（h3/quic 要求）
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS missing --version exits 2 Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示版本
+  status               只读状态
+  show   
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.3 --bogus (rc=2 0.0s)
+  stderr: unknown flag: --bogus
+PASS unknown flag exits 2 unknown flag: --bogus
+
+PASS rejected TLS commands leave the tree unchanged 
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.2+ (rc=1 0.0s)
+  stderr: nginx -t rejected the configuration (exit 1): 2026/11/17 05:51:48 [emerg] 93#93: unknown directive "bogus_directive" in /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf:7
+          nginx: configuration file /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf test failed; the TLS setting was restored
+PASS broken nginx makes the switch fail and restores nginx -t rejected the configuration (exit 1): 2026/11/17 05:51:48 [emerg] 93#93: unknown directive "bogus_directive" in /work/evidence/f10-work/reality-root/usr/local/nginx/conf/nginx.conf:7
+nginx: configuration file /work/evidence/f10-work/reality-root/usr/lo
+PASS failed switch leaves the previous TLS bytes in place 
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.2+ (rc=0 0.0s)
+  stdout: mode=Reality version=1.2+ changed=true file=/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf reloaded=false
+          warning=managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually
+PASS restored nginx lets the same switch succeed mode=Reality version=1.2+ changed=true file=/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf reloaded=false
+warning=managed nginx service is not managed on this root; reload sk
+$ /work/bin/idleleo --root /work/evidence/f10-work/reality-root xray tls --version 1.3 (rc=0 0.0s)
+  stdout: mode=Reality version=1.3 changed=true file=/work/evidence/f10-work/reality-root/etc/idleleo/conf/nginx/00-xray.conf reloaded=false
+          warning=managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually
+$ /work/bin/idleleo --root /work/evidence/f10-work/tls-root xray generate --mode tls --transport ws --domain example.com --port 443 --uuid eeeeeeee-4444-4444-8444-444444444444 --out /work/evidence/f10-work/tls-root/config.json --nginx-out /work/evidence/f10-work/tls-server.conf --fragments-out /work/evidence/f10-work/tls-root/fragments --json (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS generate TLS ws rc=0 {
+  "mode": "tls",
+  "transport": "ws",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "level": 0,
+$ /work/evidence/f10-work/tls-root/usr/local/nginx/sbin/nginx -t -p /work/evidence/f10-work/tls-root/usr/local/nginx/ -c /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf syntax is ok
+          nginx: configuration file /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf test is successful
+PASS real nginx -t accepts the TLS install nginx: the configuration file /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/f10-work/tls-root/usr/local/nginx/conf/nginx.conf test is successful
+
+$ /work/bin/idleleo --root /work/evidence/f10-work/tls-root xray tls --version 1.2+ (rc=1 0.0s)
+  stderr: TLS mode serves h3/quic, which requires TLS 1.3; TLSv1.2 cannot be enabled
+PASS TLS install refuses TLSv1.2 (h3/quic) TLS mode serves h3/quic, which requires TLS 1.3; TLSv1.2 cannot be enabled
+
+PASS refused TLSv1.2 leaves the server block untouched 
+$ /work/bin/idleleo --root /work/evidence/f10-work/tls-root xray tls --version 1.3 --json (rc=0 0.0s)
+  stdout: {
+            "mode": "TLS",
+            "version": "1.3",
+            "changed": true,
+            "file": "/work/evidence/f10-work/tls-root/etc/idleleo/conf/nginx/03-xray-https.conf",
+            "reloaded": false,
+            "warnings": [
+              "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"
+            ]
+          }
+PASS TLS install pins ssl_protocols to TLSv1.3 {
+  "mode": "TLS",
+  "version": "1.3",
+  "changed": true,
+  "file": "/work/evidence/f10-work/tls-root/etc/idleleo/conf/nginx/03-xray-https.conf",
+  "reloaded": false,
+  "warnings": [
+    "managed nginx service is not managed on this root; r
+PASS TLS json mode/file {"mode": "TLS", "version": "1.3", "changed": true, "file": "/work/evidence/f10-work/tls-root/etc/idleleo/conf/nginx/03-xray-https.conf", "reloaded": false, "warnings": ["managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]}
+PASS Bash tls_type TLS choice 2 rc=0 
+PASS Bash TLSv1.3 ssl_protocols line is byte-identical to Go bash=aa6dd713cae9144d1d7a9f444d7529c778d65c85e8e4362df0d2ea0d119509c4 go=aa6dd713cae9144d1d7a9f444d7529c778d65c85e8e4362df0d2ea0d119509c4
+$ /work/bin/idleleo --root /work/evidence/f10-work/gate-no-metadata xray tls --version 1.3 (rc=3 0.0s)
+  stderr: 未安装：缺少 manager metadata；只读命令不会创建任何文件
+PASS root without metadata exits 3 未安装：缺少 manager metadata；只读命令不会创建任何文件
+
+$ /work/bin/idleleo --root /work/evidence/f10-work/gate-no-front xray tls --version 1.3 (rc=1 0.0s)
+  stderr: this install is not a managed Nginx front: no $ssl_preread_protocol map under /work/evidence/f10-work/gate-no-front/etc/idleleo/conf/nginx
+PASS root without a managed front exits 1 this install is not a managed Nginx front: no $ssl_preread_protocol map under /work/evidence/f10-work/gate-no-front/etc/idleleo/conf/nginx
+
+$ /work/bin/idleleo --root /work/evidence/f10-work/gate-one-mode xray tls --version 1.3 (rc=1 0.0s)
+  stderr: the current install mode "None" has no managed Nginx TLS front
+PASS ws-only install exits 1 the current install mode "None" has no managed Nginx TLS front
+

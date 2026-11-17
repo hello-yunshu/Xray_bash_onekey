@@ -1,0 +1,7 @@
+evidence=REAL_NGINX_REAL_XRAY_E2E
+container_only=1
+host_network_modified=0
+kernel_modified=0
+container_egress_required=1 (Reality target www.cloudflare.com:443)
+docker_exit=0
+image=idleleo-reality-e2e:local

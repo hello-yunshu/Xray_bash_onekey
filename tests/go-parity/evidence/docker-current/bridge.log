@@ -1,0 +1,19 @@
+?   	example.org/idleleo/bridge-probe-v2	[no test files]
+ok  	example.org/idleleo/bridge-probe-v2/bridge	0.368s
+?   	example.org/idleleo/bridge-probe-v2	[no test files]
+ok  	example.org/idleleo/bridge-probe-v2/bridge	27.784s
+fixture_created=/tmp/idleleo-parity-bridge.FnQU5x/host-reality mode=reality (synthetic data)
+--- reality: original Bash entry is executable ---
+PASS reality: interrupted process, separate recover, legacy executable and runtime hash intact
+fixture_created=/tmp/idleleo-parity-bridge.FnQU5x/host-tls mode=tls (synthetic data)
+--- tls: original Bash entry is executable ---
+PASS tls: interrupted process, separate recover, legacy executable and runtime hash intact
+fixture_created=/tmp/idleleo-parity-bridge.FnQU5x/host-relay mode=relay (synthetic data)
+--- relay: original Bash entry is executable ---
+PASS relay: interrupted process, separate recover, legacy executable and runtime hash intact
+fixture_created=/tmp/idleleo-parity-bridge.FnQU5x/host-xtls mode=xtls (synthetic data)
+PASS xtls: rejected without journal
+fixture_created=/tmp/idleleo-parity-bridge.FnQU5x/host-success mode=reality (synthetic data)
+PASS success: real executable available through switched relative link
+EVIDENCE_DIR=/tmp/idleleo-parity-bridge.FnQU5x
+GO v2 bridge CLI: 39 / 39 checks passed; production_migration_certified=False

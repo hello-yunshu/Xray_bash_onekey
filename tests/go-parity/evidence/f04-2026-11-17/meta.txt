@@ -1,0 +1,85 @@
+F04 Reality primary/secondary load balance — CONTAINER_VERIFIED evidence
+=======================================================================
+
+Date: 2026-11-17 (Asia/Shanghai)
+Evidence level: CONTAINER_VERIFIED
+The executor runs the real Go binary, the real `xray -test`, the real `nginx -t`
+and the real Bash baseline functions inside the pinned preview container.
+It does NOT claim full VERIFIED: no two-host VPS acceptance, no live Nginx or
+Xray service start, no client data plane, no firewall/ACL verification. Those
+gaps are listed in baseline-compare.json and must be closed on real hosts.
+
+Source state
+------------
+Commit at run time: 24d50fef2b7d158af441e0a7a28eea50a7071e11
+Plus the F04 change set in the working tree:
+  internal/xraycfg/xraycfg.go        (reserved public-port guard)
+  internal/xraycfg/xraycfg_test.go   (TestGenerateRejectsReservedPublicPort)
+  tests/go-parity/parity/features/F04_test.py
+  docs/plans/p2/specs/f04-executor/
+
+Go binary
+---------
+Build:
+  docker run --rm -v "$PWD":/src -w /src -v /tmp/f04out:/out \
+    -e CGO_ENABLED=0 golang:1.27.4 \
+    go build -trimpath -o /out/idleleo ./cmd/idleleo
+sha256: ac9fa55ac77dbcf533cb16d3fcece23107e21328d9d132b2e36ec63d89d6cc98
+
+Runtime container
+-----------------
+Image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+Flags: --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock
+Mounts: /work/bin (built binary), /work/repo (fixed source),
+        /work/evidence (this directory), /work/xray (fixed Xray cache)
+Env:    IDLELEO_PREVIEW_EVIDENCE=/work/evidence
+Xray:   26.11.9 (676eaf6, go1.27.3 linux/arm64)
+        sha256 c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a
+Nginx:  1.24.0 (Ubuntu), stream is a dynamic module
+        (/usr/lib/nginx/modules/ngx_stream_module.so); the executor records
+        load_module + temporary path rewrites as a harness adaptation.
+
+Command (run twice, identical counts)
+-------------------------------------
+python3 -I /work/repo/tests/go-parity/parity/features/F04_test.py \
+  --go-bin /work/bin/idleleo --bash-repo /work/repo --xray-bin /work/xray/xray
+
+Run 1: 214 passed, 0 failed (elapsed 0.48 s)
+Run 2: 214 passed, 0 failed (elapsed 0.45 s)
+Per-run results: run1-fixture-result.json / run2-fixture-result.json
+Command log: commands.log (two full runs appended)
+
+Coverage summary
+----------------
+S1 primary default: backend 9443, front 8443, 0.0.0.0, raw Reality inbound,
+  share URI and Clash, stream config, three fragments byte exact,
+  real xray -test, real nginx -t.
+S2 secondary: inbound equals --port, no Nginx artifacts; secondary+backend rc=2.
+S3 SNI policy: isolate 9403 + 03-isolate.conf, reject 9404 without it,
+  decoy and unknown policies rc=2 with zero writes.
+S4 backends: per-host fragments, byte-exact lines, identical duplicate
+  deduplicated, explicit loopback deduplicated, IPv6 brackets preserved,
+  seven invalid/conflicting backend forms rejected with zero writes,
+  DNS-name fragment asserted without nginx -t (not resolvable in isolation).
+S5 roles/defaults/guards: missing/invalid role, default 443, reserved
+  --port and --public-port, normal --public-port, secondary --public-port
+  client-view semantics, all non-raw transports, two server names.
+S6 Bash baseline (real execution): apply_install_profile both roles,
+  modify_inbound_port both roles + real xray -test, local upstream and
+  serverNames fragments byte exact, stale fragment self-heal, isolate site +
+  http include, nginx_reality_conf_add isolate/reject byte identical to Go,
+  both Bash stream configs pass real nginx -t.
+S7 validators: every valid Go config ran real xray -test; every primary
+  variant ran real nginx -t.
+
+Known gaps (not faked)
+----------------------
+1. No two-host VPS acceptance; production sign-off still needs two hosts and a
+   real client handshake.
+2. No Nginx/Xray service start or data-plane traffic; generate-level only.
+3. `--unknown-sni-policy decoy` is refused by Go (Bash can build a decoy site).
+4. generate does not self-heal stale serverNames fragments (Bash does).
+5. Firewall/ACL changes are outside this executor.
+6. nginx -t rewrites the managed install paths to a temporary root and loads
+   the distro's dynamic stream module; this validates grammar and includes,
+   not the real install paths.

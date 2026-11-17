@@ -1,0 +1,18 @@
+{
+  "baseline": {
+    "classificationCases": 6,
+    "familyRows": 10
+  },
+  "dns": {
+    "dual": "dual"
+  },
+  "firewall": {},
+  "gates": {
+    "family": 2,
+    "flag": 2,
+    "policy": 2,
+    "ports": 2,
+    "realRoot": 2,
+    "unmarked": 2
+  }
+}

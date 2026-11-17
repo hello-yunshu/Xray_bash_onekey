@@ -1,0 +1,31 @@
+{
+  "supported": true,
+  "goos": "linux",
+  "kernelRelease": "6.8.0-test",
+  "availableCongestion": [
+    "cubic",
+    "bbr",
+    "reno"
+  ],
+  "current": {
+    "net.core.default_qdisc": "fq_codel",
+    "net.ipv4.tcp_congestion_control": "cubic"
+  },
+  "managedFile": {
+    "path": "/tmp/tcp-sandbox/etc/sysctl.d/90-idleleo-tcp.conf",
+    "exists": false,
+    "owned": false,
+    "mode": 0,
+    "uid": 0,
+    "gid": 0,
+    "values": {}
+  },
+  "statePath": "/tmp/tcp-sandbox/var/lib/idleleo/tcp/state.json",
+  "sources": [],
+  "effective": {
+    "net.core.default_qdisc": "",
+    "net.ipv4.tcp_congestion_control": ""
+  },
+  "conflicts": [],
+  "warnings": []
+}

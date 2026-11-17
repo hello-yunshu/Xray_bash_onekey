@@ -1,0 +1,1336 @@
+== F18 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/reality.json --json --mode reality --domain example.com --port 8443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "9444de4e-23ca-4b8f-b207-6ed3f910a3ac",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "9444de4e-23ca-4b8f-b207-6ed3f910a3ac",
+            "shortId": "f28de4c5",
+            "shortIds": [
+              "f28de4c5"
+            ],
+            "privateKey": "I_i0vByx_QPUGgA1YuLIYOwNe_sC6tTL5A9E1hu9ErE",
+            "publicKey": "lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://9444de4e-23ca-4b8f-b207-6ed3f910a3ac@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU&sid=f28de4c5&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 9444de4e-23ca-4b8f-b207-6ed3f910a3ac\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU\n      short-id: f28de4c5\n",
+            "warnings": []
+          }
+PASS generate reality rc=0 and wrote config {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "9444de4e-23ca-4b8f-b207-6ed3f910a3ac",
+   
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/reality-ws.json --json --mode reality --transport ws --domain example.com --port 8443 (rc=0 0.01s)
+  stdout: {
+            "mode": "reality",
+            "transport": "ws",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "72ba6f6f-6b25-4c19-988e-136a2eb10e41",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "72ba6f6f-6b25-4c19-988e-136a2eb10e41",
+            "shortId": "c5b00df6",
+            "shortIds": [
+              "c5b00df6"
+            ],
+            "privateKey": "f59656eNx5tkkO7Z_8EEVc7rLV6wwBgczOGnt2GmyJ8",
+            "publicKey": "qcK0nG0zlIxbSvdIxedw0HVJas3WWh2I2MdhfO6fd1U",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://72ba6f6f-6b25-4c19-988e-136a2eb10e41@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=qcK0nG0zlIxbSvdIxedw0HVJas3WWh2I2MdhfO6fd1U&sid=c5b00df6&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 72ba6f6f-6b25-4c19-988e-136a2eb10e41\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: qcK0nG0zlIxbSvdIxedw0HVJas3WWh2I2MdhfO6fd1U\n      short-id: c5b00df6\n",
+            "warnings": []
+          }
+PASS generate reality-ws rc=0 and wrote config {
+  "mode": "reality",
+  "transport": "ws",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "72ba6f6f-6b25-4c19-988e-136a2eb10e41",
+    
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/tls-ws.json --json --mode tls --transport ws --domain example.com --port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "a3913763-d251-4fd5-be4d-1c63eed9b9b0",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "a3913763-d251-4fd5-be4d-1c63eed9b9b0",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://a3913763-d251-4fd5-be4d-1c63eed9b9b0@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: a3913763-d251-4fd5-be4d-1c63eed9b9b0\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS generate tls-ws rc=0 and wrote config {
+  "mode": "tls",
+  "transport": "ws",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "a3913763-d251-4fd5-be4d-1c63eed9b9b0",
+      
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/tls-grpc.json --json --mode tls --transport grpc --domain example.com --port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "grpc",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "a11aa94d-7de7-4968-bff5-18a4f64fadcc",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "a11aa94d-7de7-4968-bff5-18a4f64fadcc",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://a11aa94d-7de7-4968-bff5-18a4f64fadcc@example.com:443?encryption=none&security=tls&sni=example.com&type=grpc&serviceName=idleleo-grpc#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: a11aa94d-7de7-4968-bff5-18a4f64fadcc\n    network: grpc\n    udp: true\n    tls: true\n    servername: example.com\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /idleleo-grpc {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Host $http_host;\n        grpc_pass grpc://xray-grpc-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-grpc-server {\n    include /etc/idleleo/conf/nginx/*.grpcServers;\n}\n\n",
+              "127.0.0.1.grpcServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS generate tls-grpc rc=0 and wrote config {
+  "mode": "tls",
+  "transport": "grpc",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "a11aa94d-7de7-4968-bff5-18a4f64fadcc",
+    
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/tls-xhttp.json --json --mode tls --transport xhttp --domain example.com --port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "xhttp",
+            "port": 11000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/ray/&host=example.com#idleleo-tls",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        grpc_set_header Host $host;\n        client_max_body_size 0;\n        grpc_pass grpc://xray-xhttp-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-xhttp-server {\n    include /etc/idleleo/conf/nginx/*.xhttpServers;\n}\n\n",
+              "127.0.0.1.xhttpServers": "server 127.0.0.1:11000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": [
+              "clash-xhttp-unsupported"
+            ]
+          }
+PASS generate tls-xhttp rc=0 and wrote config {
+  "mode": "tls",
+  "transport": "xhttp",
+  "port": 11000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41",
+   
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/none-ws.json --json --mode none --transport ws --port 8080 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 8080,
+            "publicPort": 8080,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "9d2e569e-eab3-455d-a350-e8ab9d2cca80",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "9d2e569e-eab3-455d-a350-e8ab9d2cca80",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://9d2e569e-eab3-455d-a350-e8ab9d2cca80@127.0.0.1:8080?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 8080\n    uuid: 9d2e569e-eab3-455d-a350-e8ab9d2cca80\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS generate none-ws rc=0 and wrote config {
+  "mode": "none",
+  "transport": "ws",
+  "port": 8080,
+  "publicPort": 8080,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "9d2e569e-eab3-455d-a350-e8ab9d2cca80",
+     
+PASS reality config mode is 0600 0o600
+PASS reality-ws config mode is 0600 0o600
+PASS tls-ws config mode is 0600 0o600
+PASS tls-grpc config mode is 0600 0o600
+PASS tls-xhttp config mode is 0600 0o600
+PASS none-ws config mode is 0600 0o600
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "9444de4e-23ca-4b8f-b207-6ed3f910a3ac",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "example.com",
+            "port": 8443,
+            "shareUri": "vless://9444de4e-23ca-4b8f-b207-6ed3f910a3ac@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU&sid=f28de4c5&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 9444de4e-23ca-4b8f-b207-6ed3f910a3ac\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU\n      short-id: f28de4c5\n",
+            "warnings": []
+          }
+PASS reality share rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "9444de4e-23ca-4b8f-b207-6ed3f910a3ac",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareU
+PASS reality share mode reality
+PASS reality share transport raw
+PASS reality share uuid matches config client 
+PASS reality share email me@hey.run
+PASS reality share flow xtls-rprx-vision
+PASS reality share host example.com
+PASS reality share port is the config port 8443
+PASS reality URI scheme vless
+PASS reality URI user is the client uuid 
+PASS reality URI authority example.com:8443
+PASS reality URI encryption=none 
+PASS reality URI flow 
+PASS reality URI security 
+PASS reality URI sni 
+PASS reality URI fp 
+PASS reality URI pbk equals the generated public key lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU
+PASS reality URI sid equals config shortId ['f28de4c5']
+PASS reality URI type=raw 
+PASS reality URI has no spx without metadata 
+PASS reality URI has no target (Bash template does) ['encryption', 'flow', 'fp', 'pbk', 'security', 'sid', 'sni', 'type']
+PASS reality URI fragment idleleo-reality
+PASS reality share has no warnings []
+PASS reality Clash line: proxies: 
+PASS reality Clash line: - name: "idleleo-reality" 
+PASS reality Clash line: type: vless 
+PASS reality Clash line: server: example.com 
+PASS reality Clash line: port: 8443 
+PASS reality Clash line: uuid: 9444de4e-23ca-4b8f-b207-6ed3f910a3ac 
+PASS reality Clash line: network: tcp 
+PASS reality Clash line: udp: true 
+PASS reality Clash line: tls: true 
+PASS reality Clash line: servername: example.com 
+PASS reality Clash line: flow: xtls-rprx-vision 
+PASS reality Clash line: client-fingerprint: chrome 
+PASS reality Clash line: reality-opts: 
+PASS reality Clash line: public-key: lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU 
+PASS reality Clash line: short-id: f28de4c5 
+PASS reality Clash omits spider-x without metadata 
+PASS generate preview and share agree on the Reality URI 
+PASS generate preview and share agree on the Reality Clash proxy 
+PASS reality share never rewrites the runtime config 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --json --public-port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "9444de4e-23ca-4b8f-b207-6ed3f910a3ac",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "example.com",
+            "port": 443,
+            "shareUri": "vless://9444de4e-23ca-4b8f-b207-6ed3f910a3ac@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU&sid=f28de4c5&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: 9444de4e-23ca-4b8f-b207-6ed3f910a3ac\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU\n      short-id: f28de4c5\n",
+            "warnings": []
+          }
+PASS reality share --public-port rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "9444de4e-23ca-4b8f-b207-6ed3f910a3ac",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": 
+PASS public port overrides the URI port 443
+PASS public port appears in the JSON view 443
+PASS public port overrides the Clash port 
+PASS --public-port never rewrites the runtime config 
+PASS reality --transport ws generated two inbounds 2
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality-ws.json --host example.com --json --inbound 1 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "uuid": "72ba6f6f-6b25-4c19-988e-136a2eb10e41",
+            "email": "ws@hey.run",
+            "host": "example.com",
+            "port": 10000,
+            "shareUri": "vless://72ba6f6f-6b25-4c19-988e-136a2eb10e41@example.com:10000?encryption=none&security=none&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: example.com\n    port: 10000\n    uuid: 72ba6f6f-6b25-4c19-988e-136a2eb10e41\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS reality-ws companion share rc=0 {
+  "mode": "none",
+  "transport": "ws",
+  "uuid": "72ba6f6f-6b25-4c19-988e-136a2eb10e41",
+  "email": "ws@hey.run",
+  "host": "example.com",
+  "port": 10000,
+  "shareUri": "vless://72ba6f6f-6b25-4c19-
+PASS companion inbound renders as plain ws none/ws
+PASS companion share uses inbound 1 port 10000
+PASS companion URI carries inbound 1 port 
+PASS companion URI security=none 
+PASS companion URI type=ws 
+PASS companion URI path from wsSettings ['/ray/']
+PASS companion URI host 
+PASS companion URI sets sni from the caller host (Bash none-ws has none) 
+PASS companion URI has no flow 
+PASS companion URI has no pbk 
+PASS companion URI has no sid 
+PASS companion URI has no spx 
+PASS companion URI fragment idleleo-none
+PASS companion Clash network=ws 
+PASS companion Clash carries the ws path 
+PASS companion Clash is not tls 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality-ws.json --host example.com --json --inbound 9 (rc=1 0.0s)
+  stderr: inbound index 9 out of range
+PASS out-of-range inbound rc=1 inbound index 9 out of range
+
+PASS out-of-range inbound renders no URI 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-ws.json --host example.com --json (rc=1 0.0s)
+  stderr: inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls field)
+PASS loopback security=none share is refused as ambiguous inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls
+PASS ambiguity refusal names the problem 
+PASS ambiguity refusal names the remedy 
+PASS ambiguous share renders no URI 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-ws.json --host example.com --json --public-security tls --public-port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "uuid": "a3913763-d251-4fd5-be4d-1c63eed9b9b0",
+            "email": "me@hey.run",
+            "host": "example.com",
+            "port": 443,
+            "shareUri": "vless://a3913763-d251-4fd5-be4d-1c63eed9b9b0@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: a3913763-d251-4fd5-be4d-1c63eed9b9b0\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "warnings": [
+              "public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller"
+            ]
+          }
+PASS tls-ws share with --public-security tls rc=0 {
+  "mode": "tls",
+  "transport": "ws",
+  "uuid": "a3913763-d251-4fd5-be4d-1c63eed9b9b0",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 443,
+  "shareUri": "vless://a3913763-d251-4fd5-be4
+PASS tls-ws view tls/ws
+PASS tls-ws public port is 443 443
+PASS tls-ws share warns that the proxy terminates TLS ["public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller"]
+PASS tls-ws URI public port 443 
+PASS tls-ws URI security=tls 
+PASS tls-ws URI sni 
+PASS tls-ws URI type=ws 
+PASS tls-ws URI path 
+PASS tls-ws URI host 
+PASS tls-ws URI has no fp (Bash always adds fp=chrome) 
+PASS tls-ws URI has no flow 
+PASS tls-ws Clash line: network: ws 
+PASS tls-ws Clash line: tls: true 
+PASS tls-ws Clash line: servername: example.com 
+PASS tls-ws Clash line: ws-opts: 
+PASS tls-ws Clash line: path: /ray/ 
+PASS tls-ws Clash line: Host: example.com 
+PASS tls-ws Clash omits client-fingerprint (Bash always adds it) 
+PASS tls-ws Clash omits skip-cert-verify (Bash always adds it) 
+PASS tls-ws share never rewrites the runtime config 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-grpc.json --host example.com --json --public-security tls --public-port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "grpc",
+            "uuid": "a11aa94d-7de7-4968-bff5-18a4f64fadcc",
+            "email": "me@hey.run",
+            "host": "example.com",
+            "port": 443,
+            "shareUri": "vless://a11aa94d-7de7-4968-bff5-18a4f64fadcc@example.com:443?encryption=none&security=tls&sni=example.com&type=grpc&serviceName=idleleo-grpc#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: a11aa94d-7de7-4968-bff5-18a4f64fadcc\n    network: grpc\n    udp: true\n    tls: true\n    servername: example.com\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "warnings": [
+              "public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller"
+            ]
+          }
+PASS tls-grpc share rc=0 {
+  "mode": "tls",
+  "transport": "grpc",
+  "uuid": "a11aa94d-7de7-4968-bff5-18a4f64fadcc",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 443,
+  "shareUri": "vless://a11aa94d-7de7-4968-b
+PASS tls-grpc transport 
+PASS tls-grpc URI type=grpc 
+PASS tls-grpc URI serviceName ['idleleo-grpc']
+PASS tls-grpc URI has no path 
+PASS tls-grpc URI public port 443 
+PASS tls-grpc Clash line: network: grpc 
+PASS tls-grpc Clash line: grpc-opts: 
+PASS tls-grpc Clash line: grpc-service-name: idleleo-grpc 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-xhttp.json --host example.com --json --public-security tls --public-port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "xhttp",
+            "uuid": "0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41",
+            "email": "me@hey.run",
+            "host": "example.com",
+            "port": 443,
+            "shareUri": "vless://0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/ray/&host=example.com#idleleo-tls",
+            "warnings": [
+              "public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller",
+              "clash-xhttp-unsupported"
+            ]
+          }
+PASS tls-xhttp share rc=0 {
+  "mode": "tls",
+  "transport": "xhttp",
+  "uuid": "0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 443,
+  "shareUri": "vless://0a1a1d5d-c7db-4ab9-
+PASS tls-xhttp transport 
+PASS tls-xhttp URI type=xhttp 
+PASS tls-xhttp URI path 
+PASS tls-xhttp URI security=tls 
+PASS xhttp JSON has no Clash proxy None
+PASS xhttp share warns instead of fabricating Clash ["public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller", "clash-xhttp-unsupported"]
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-xhttp.json --host example.com --public-security tls --public-port 443 (rc=0 0.0s)
+  stdout: mode=tls transport=xhttp uuid=0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41 email=me@hey.run host=example.com port=443
+          share: vless://0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/ray/&host=example.com#idleleo-tls
+          warning=public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller
+          warning=clash-xhttp-unsupported
+PASS tls-xhttp text share rc=0 mode=tls transport=xhttp uuid=0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae41 email=me@hey.run host=example.com port=443
+share: vless://0a1a1d5d-c7db-4ab9-a7a2-3358ac59ae4
+PASS xhttp text output prints the warning 
+PASS xhttp text output contains no Clash proxy 
+PASS xhttp text output still carries the URI 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/none-ws.json --host example.com --json (rc=1 0.0s)
+  stderr: inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls field)
+PASS none ws without --public-security is refused inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls
+PASS none ws refusal names the ambiguity 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/none-ws.json --host example.com --json --public-security none (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "uuid": "9d2e569e-eab3-455d-a350-e8ab9d2cca80",
+            "email": "me@hey.run",
+            "host": "example.com",
+            "port": 8080,
+            "shareUri": "vless://9d2e569e-eab3-455d-a350-e8ab9d2cca80@example.com:8080?encryption=none&security=none&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: example.com\n    port: 8080\n    uuid: 9d2e569e-eab3-455d-a350-e8ab9d2cca80\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS none-ws share with --public-security none rc=0 {
+  "mode": "none",
+  "transport": "ws",
+  "uuid": "9d2e569e-eab3-455d-a350-e8ab9d2cca80",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 8080,
+  "shareUri": "vless://9d2e569e-eab3-455d-a
+PASS none-ws view none/ws
+PASS none-ws port is the config port 8080
+PASS none-ws share has no warnings 
+PASS none-ws URI security=none 
+PASS none-ws URI type=ws 
+PASS none-ws Clash is plain ws 
+PASS none-ws Clash has no servername 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/none-ws.json --host example.com --public-security none (rc=0 0.0s)
+  stdout: mode=none transport=ws uuid=9d2e569e-eab3-455d-a350-e8ab9d2cca80 email=me@hey.run host=example.com port=8080
+          share: vless://9d2e569e-eab3-455d-a350-e8ab9d2cca80@example.com:8080?encryption=none&security=none&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-none
+          proxies:
+            - name: "idleleo-none"
+              type: vless
+              server: example.com
+              port: 8080
+              uuid: 9d2e569e-eab3-455d-a350-e8ab9d2cca80
+              network: ws
+              udp: true
+              ws-opts:
+                path: /ray/
+PASS none-ws text share rc=0 mode=none transport=ws uuid=9d2e569e-eab3-455d-a350-e8ab9d2cca80 email=me@hey.run host=example.com port=8080
+share: vless://9d2e569e-eab3-455d-a350-e8ab9d2cca80
+PASS none-ws text header mode=none transport=ws uuid=9d2e569e-eab3-455d-a350-e8ab9d2cca80 email=me@hey.run host=example.com port=8080
+PASS none-ws text output carries the share URI 
+PASS none-ws text output appends the Clash proxy 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/none-ws.json --host example.com --json --public-security bogus (rc=1 0.0s)
+  stderr: --public-security must be tls, none or reality (got "bogus")
+PASS invalid --public-security rc=1 --public-security must be tls, none or reality (got "bogus")
+
+PASS invalid --public-security is named 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com (rc=0 0.0s)
+  stdout: mode=reality transport=raw uuid=9444de4e-23ca-4b8f-b207-6ed3f910a3ac email=me@hey.run host=example.com port=8443
+          share: vless://9444de4e-23ca-4b8f-b207-6ed3f910a3ac@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU&sid=f28de4c5&type=raw#idleleo-reality
+          proxies:
+            - name: "idleleo-reality"
+              type: vless
+              server: example.com
+              port: 8443
+              uuid: 9444de4e-23ca-4b8f-b207-6ed3f910a3ac
+              network: tcp
+              udp: true
+              tls: true
+              servername: example.com
+              flow: xtls-rprx-vision
+              client-fingerprint: chrome
+              reality-opts:
+                public-key: lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU
+                short-id: f28de4c5
+PASS S8 share without --qr stays text-only mode=reality transport=raw uuid=9444de4e-23ca-4b8f-b207-6ed3f910a3ac email=me@hey.run host=example.com port=8443
+share: vless://9444de4e-23ca-4b8f-b207-6ed3f910
+PASS S8 share line carries the URI vless://9444de4e-23ca-4b8f-b207-6ed3f910a3ac@example.com:8443?encryption=none&fl
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --qr (rc=0 0.01s)
+  stdout: mode=reality transport=raw uuid=9444de4e-23ca-4b8f-b207-6ed3f910a3ac email=me@hey.run host=example.com port=8443
+          share: vless://9444de4e-23ca-4b8f-b207-6ed3f910a3ac@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU&sid=f28de4c5&type=raw#idleleo-reality
+          qr:
+          █████████████████████████████████████████████████████████████
+          █████████████████████████████████████████████████████████████
+          ████ ▄▄▄▄▄ █▀█▀▀▄█▄▀███▀▀  ▄ ▀▀▄▄▄▄  █▀ ▄▄▀▀▄▄ ▀██ ▄▄▄▄▄ ████
+          ████ █   █ █▀▄▄▄ ▀▄█   ▄▀▄█ ▄ ██▀▀▀▄▄█▀ ▀▀▀▀▄▀▀▄▀█ █   █ ████
+          ████ █▄▄▄█ █▀ ▄▄▀█ ███▀ ▀█▄▄ ▄▄▄  ▄▀▄▀██▀▄▀ ▄▄ ███ █▄▄▄█ ████
+          ████▄▄▄▄▄▄▄█▄▀▄█ ▀▄█ ▀▄█▄█▄▀ █▄█ ▀ ▀ ▀▄█▄▀▄█ █ █▄█▄▄▄▄▄▄▄████
+          ████▄▄ ▄▄█▄  ▀▄▀▄ ▀▄▄▄▄ ▄▄▀▀▄   ▄  ▀▀▄█  █▄ ██▀▀▄ █ ▀▄▀▄▀████
+          ████▄▄█▄██▄ ▄▀  ▄ █▀█ █▄█▀█▀▀▀▄▀██▀▀▀▄ ▀▄ ▄▀▀ █▀█▀▄▄▄▄██▀████
+          ████ ██▄▀█▄▀▀ ▄  ▄▀▀▄▄▄ ▄▀▀█▄▀▄█▀▀▀█▀█▄   █▀█ ▀ ▄█▄▄▄▄▄ ▀████
+          █████▄█▀ █▄▄▀▄▀ █▄█▀▀▀▀▄▀▀█▄▀▄█ ▀ ▄▀▀█ ▄▄▄ ▀▀███▀▄▄▄█▄▄▀▀████
+          ████ ▀█▄ █▄█  ▀▀▀ ▀▄▄▄▄▀▄▀▀ ▀▀ █ ▀▀██▄█▄ ▄███▀ ▄▄▄█▄   █ ████
+          ████▄ █ ▄▀▄▀█▄█ ▄▀███▄██▄▀▄▄▀ ▄▀██▀▄▀ ▄██ ▄▀▀▀█ ▀▄ ▄▄ ███████
+          █████▀▀█ █▄ ▄ ▄▀▄▄▀█▄█▄▀▄█▀█▀▀▄▀▀ ▀▄▀▄▄   ▄▀█  ▀▄█▄▀ █ ▀▀████
+          ████ ▀▄█▄█▄▄█▄█▀ ▀▄▄█▄ ▀▄▄▀ ▀▀▄█▀▄ ▀▀█▄▀▄█▄▀ ▀▀▄▄▄▄▄▄█▄█▀████
+          ████▄▄ █ ▄▄▄ ▀▀█▄██▄▄▄▄ ▄▄▀  ▄▄▄  ▀██▀█  ▄█▀▀█▀▀ ▄▄▄ ▀▄ ▀████
+          █████▄▄  █▄█  ▄▄▀▄▄ ▄▄▄ ▀▄▀  █▄█  ▀▄█ ▄▄   ▀█▀▀█ █▄█  █▀█████
+          ████▀███▄ ▄ ▄█▄ ▄▄▀█▄ ▄ ▄ ▀    ▄ █▀ █▄▄▄▄ ▄▀█▄ ▄▄▄▄    █ ████
+          ████▀█▄██▄▄▄███▀▄▄ ▀▀▄▀ ▀██▀▄▄ ▀▄▄▀ ▀▄ ███▄█ ▀█▀▀ ▀▀ ▄▄▀▀████
+          ████ ▄█▄█▄▄▀ ▀▀█ ▄▄█▄▄▄▄▄ ▀▀▄▄▀ ▀▀▀██▄▄▄ ▀█▄█  █ █▄▀▀█ ▀▀████
+          ███████▀█ ▄▄▀▀   ▀▄█▀▀▄ ██▄█▄▀▀▄▄▄██▄  ▀ ▀▄▀ ▀▀ ▀ ▀▀▄▀█▀▀████
+          ████▄█ ▄▄▀▄▄▄  ▀  ▀▄▄▄▄█▄█▀ ▄▄▀▀▀   ▀█▄ ▄▀███▀▀▀▄█▄▄▀▀ ▀▀████
+          █████▄▀▄▄▄▄ █ █▄█▀█ ▄  █▀▀▀██ █████  ▀██ ██▀ ▄▀▀▄▄▀▀ ▄▄▄█████
+          █████▀███▄▄██▀██▀▀█ ▄▄▄▀▄█▀ ▄█▀█▄  █▀█▄ ▄▄█▄▀█▀██▀▀▀▀▄▄▄ ████
+          ████▄ ▀▄▄▄▄ ▄▀▄▀█ ▄█   ██ ▀▀▄▀▄▄▄ █▀▄  █  ▄█▀▄▀▀▀▀▀█  █▀█████
+          ███████▄██▄█ ▀█ ▀▀▀█▄▄▄ ▄█▀▀ ▄▄▄ ▀ ▄▀ █ ▄▀▄▄▀▀ ▀ ▄▄▄ █ █▀████
+          ████ ▄▄▄▄▄ █▄▀▄█▀ ▄██▄▀█▄▀█▄ █▄█ █ ▀▀▄ ██▄▄▄ █▀▄ █▄█ ▄█▀█████
+          ████ █   █ █ ▄█▀ █▀▄▄▄▄ ▄█▀█  ▄ ▄▀ ▀██▄   ▄ ██▀▀  ▄ ▄  ▀▀████
+          ████ █▄▄▄█ █ ▄█▀▄█▀██▀▄▄▀ █▄▄▀▄██ ▀  ▄ █▄█  ▀▄▀▄▀ ▄█  █▀▄████
+          ████▄▄▄▄▄▄▄█▄█████▄█▄▄▄▄▄██▄▄█▄███▄████▄▄▄█████▄██▄▄▄▄▄██████
+          █████████████████████████████████████████████████████████████
+          █████████████████████████████████████████████████████████████
+          proxies:
+            - name: "idleleo-reality"
+              type: vless
+              server: example.com
+              port: 8443
+              uuid: 9444de4e-23ca-4b8f-b207-6ed3f910a3ac
+              network: tcp
+              udp: true
+              tls: true
+              servername: example.com
+              flow: xtls-rprx-vision
+              client-fingerprint: chrome
+              reality-opts:
+                public-key: lLdb3ewodFykCZAerwOrrkX-2_EBb69rSV9lDWX4tCU
+                short-id: f28de4c5
+PASS S8 share --qr exits 0 mode=reality transport=raw uuid=9444de4e-23ca-4b8f-b207-6ed3f910a3ac email=me@hey.run host=example.com port=8443
+share: vless://9444de4e-23ca-4b8f-b207-6ed3f910
+PASS S8 --qr prints a QR matrix █████████████████████████████████████████████████████████████
+██████████████████
+PASS S8 real qrencode baseline runs 
+PASS S8 matrix is byte-identical to qrencode -o - -t utf8 go=0552c153a4063909 qrencode=0552c153a4063909
+$ qrencode --version (rc=0 0.0s)
+  stdout: qrencode version 4.1.1
+          Copyright (C) 2006-2017 Kentaro Fukuchi
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --json --qr (rc=2 0.0s)
+  stderr: --qr prints a terminal QR code and cannot be combined with --json
+PASS S8 --json --qr is rejected (rc=2) --qr prints a terminal QR code and cannot be combined with --json
+
+PASS S8 rejected --json --qr prints no matrix 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --qr (rc=1 0.0s)
+  stderr: qrencode is not installed; --qr needs it (Debian/Ubuntu: apt-get install qrencode, RHEL: dnf install qrencode, Alpine: apk add libqrencode-tools)
+PASS S8 missing qrencode fails with no partial output qrencode is not installed; --qr needs it (Debian/Ubuntu: apt-get install qrencode, RHEL: dnf install qrencode, Alpine: apk add libqrencode-tools)
+
+PASS S8 missing qrencode names the dependency qrencode is not installed; --qr needs it (Debian/Ubuntu: apt-get install qrencode, RHEL: dnf install qrencode, Alpine: apk add libqrencode-tools)
+
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --qr-bogus (rc=2 0.0s)
+  stderr: unknown flag: --qr-bogus
+PASS S8 unknown share flag still rc=2 unknown flag: --qr-bogus
+
+PASS Bash function generate_vless_link found in install.sh 
+PASS Bash function generate_clash_config found in install.sh 
+PASS Bash Reality link template includes target 
+PASS Bash ws link template hard-codes path=%2f...%3Fed%3D2048 
+PASS Bash xhttp link template includes mode=auto 
+PASS Bash link templates always include fp=chrome 
+PASS Bash ws_tls fragment is '<host> ws协议' 
+PASS Bash grpc_tls fragment is '<host> gRPC协议' 
+PASS Bash xhttp_tls fragment is '<host> xHTTP协议' 
+PASS Bash none-ws fragment is '<host> 单栈ws协议' 
+PASS Bash reality link reads a per-user spiderX mapping 
+PASS Bash Clash proxy always sets client-fingerprint 
+PASS Bash Clash proxy always sets skip-cert-verify 
+PASS Bash Clash renders an xhttp proxy (Go refuses) 
+PASS Bash Clash reality-opts carries the sID 
+PASS Bash Clash adds spider-x when present 
+PASS Bash Clash file starts from a bare proxies list 
+PASS Bash link generator covers reality 
+PASS Bash link generator covers ws_tls 
+PASS Bash link generator covers grpc_tls 
+PASS Bash link generator covers xhttp_tls 
+PASS Bash link generator covers ws 
+PASS Bash link generator covers grpc 
+PASS Bash link generator covers xhttp 
+PASS Bash prints QR codes for every share link 10 qrencode call sites
+PASS Bash prints the primary Reality QR code 
+PASS Bash prints the xHTTP QR code 
+== F18 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/reality.json --json --mode reality --domain example.com --port 8443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "a0cbeab2-9976-49ed-8425-22217167ba84",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "a0cbeab2-9976-49ed-8425-22217167ba84",
+            "shortId": "197e1b10",
+            "shortIds": [
+              "197e1b10"
+            ],
+            "privateKey": "HLB3o4Hu-5zy05HDOWIf7jTSB3Oixqdctp9uSoNHwrQ",
+            "publicKey": "M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://a0cbeab2-9976-49ed-8425-22217167ba84@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8&sid=197e1b10&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: a0cbeab2-9976-49ed-8425-22217167ba84\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8\n      short-id: 197e1b10\n",
+            "warnings": []
+          }
+PASS generate reality rc=0 and wrote config {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "a0cbeab2-9976-49ed-8425-22217167ba84",
+   
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/reality-ws.json --json --mode reality --transport ws --domain example.com --port 8443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "ws",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "139b2daa-d4a7-417a-9024-7f3af5219f09",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "139b2daa-d4a7-417a-9024-7f3af5219f09",
+            "shortId": "5c21b7dd",
+            "shortIds": [
+              "5c21b7dd"
+            ],
+            "privateKey": "BRoqPq5AVsKbCH66LgDnDWurbBtwUezGNRR9wGSpKLY",
+            "publicKey": "AQSEZkb8m4U0penKBNf_V_w2jHXTzHMy7RuwMDqajAI",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://139b2daa-d4a7-417a-9024-7f3af5219f09@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=AQSEZkb8m4U0penKBNf_V_w2jHXTzHMy7RuwMDqajAI&sid=5c21b7dd&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 139b2daa-d4a7-417a-9024-7f3af5219f09\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: AQSEZkb8m4U0penKBNf_V_w2jHXTzHMy7RuwMDqajAI\n      short-id: 5c21b7dd\n",
+            "warnings": []
+          }
+PASS generate reality-ws rc=0 and wrote config {
+  "mode": "reality",
+  "transport": "ws",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "139b2daa-d4a7-417a-9024-7f3af5219f09",
+    
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/tls-ws.json --json --mode tls --transport ws --domain example.com --port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "6a970a36-12a8-4ce2-bc44-2a0ef6e14244",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "6a970a36-12a8-4ce2-bc44-2a0ef6e14244",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://6a970a36-12a8-4ce2-bc44-2a0ef6e14244@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: 6a970a36-12a8-4ce2-bc44-2a0ef6e14244\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS generate tls-ws rc=0 and wrote config {
+  "mode": "tls",
+  "transport": "ws",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "6a970a36-12a8-4ce2-bc44-2a0ef6e14244",
+      
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/tls-grpc.json --json --mode tls --transport grpc --domain example.com --port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "grpc",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "74d6ca14-31ae-4bc7-86f5-adaebbfe9ec5",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "74d6ca14-31ae-4bc7-86f5-adaebbfe9ec5",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://74d6ca14-31ae-4bc7-86f5-adaebbfe9ec5@example.com:443?encryption=none&security=tls&sni=example.com&type=grpc&serviceName=idleleo-grpc#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: 74d6ca14-31ae-4bc7-86f5-adaebbfe9ec5\n    network: grpc\n    udp: true\n    tls: true\n    servername: example.com\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /idleleo-grpc {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Host $http_host;\n        grpc_pass grpc://xray-grpc-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-grpc-server {\n    include /etc/idleleo/conf/nginx/*.grpcServers;\n}\n\n",
+              "127.0.0.1.grpcServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS generate tls-grpc rc=0 and wrote config {
+  "mode": "tls",
+  "transport": "grpc",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "74d6ca14-31ae-4bc7-86f5-adaebbfe9ec5",
+    
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/tls-xhttp.json --json --mode tls --transport xhttp --domain example.com --port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "xhttp",
+            "port": 11000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "19da0e58-e16d-458c-a7de-b14d211a964c",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "19da0e58-e16d-458c-a7de-b14d211a964c",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://19da0e58-e16d-458c-a7de-b14d211a964c@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/ray/&host=example.com#idleleo-tls",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        grpc_set_header Host $host;\n        client_max_body_size 0;\n        grpc_pass grpc://xray-xhttp-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-xhttp-server {\n    include /etc/idleleo/conf/nginx/*.xhttpServers;\n}\n\n",
+              "127.0.0.1.xhttpServers": "server 127.0.0.1:11000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": [
+              "clash-xhttp-unsupported"
+            ]
+          }
+PASS generate tls-xhttp rc=0 and wrote config {
+  "mode": "tls",
+  "transport": "xhttp",
+  "port": 11000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "19da0e58-e16d-458c-a7de-b14d211a964c",
+   
+$ /work/bin/idleleo xray generate --out /work/evidence/f18-work/none-ws.json --json --mode none --transport ws --port 8080 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 8080,
+            "publicPort": 8080,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "8082f2d1-c8ab-4d92-86dd-56542b67ba73",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "8082f2d1-c8ab-4d92-86dd-56542b67ba73",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://8082f2d1-c8ab-4d92-86dd-56542b67ba73@127.0.0.1:8080?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 8080\n    uuid: 8082f2d1-c8ab-4d92-86dd-56542b67ba73\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS generate none-ws rc=0 and wrote config {
+  "mode": "none",
+  "transport": "ws",
+  "port": 8080,
+  "publicPort": 8080,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "8082f2d1-c8ab-4d92-86dd-56542b67ba73",
+     
+PASS reality config mode is 0600 0o600
+PASS reality-ws config mode is 0600 0o600
+PASS tls-ws config mode is 0600 0o600
+PASS tls-grpc config mode is 0600 0o600
+PASS tls-xhttp config mode is 0600 0o600
+PASS none-ws config mode is 0600 0o600
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "a0cbeab2-9976-49ed-8425-22217167ba84",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "example.com",
+            "port": 8443,
+            "shareUri": "vless://a0cbeab2-9976-49ed-8425-22217167ba84@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8&sid=197e1b10&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: a0cbeab2-9976-49ed-8425-22217167ba84\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8\n      short-id: 197e1b10\n",
+            "warnings": []
+          }
+PASS reality share rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "a0cbeab2-9976-49ed-8425-22217167ba84",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareU
+PASS reality share mode reality
+PASS reality share transport raw
+PASS reality share uuid matches config client 
+PASS reality share email me@hey.run
+PASS reality share flow xtls-rprx-vision
+PASS reality share host example.com
+PASS reality share port is the config port 8443
+PASS reality URI scheme vless
+PASS reality URI user is the client uuid 
+PASS reality URI authority example.com:8443
+PASS reality URI encryption=none 
+PASS reality URI flow 
+PASS reality URI security 
+PASS reality URI sni 
+PASS reality URI fp 
+PASS reality URI pbk equals the generated public key M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8
+PASS reality URI sid equals config shortId ['197e1b10']
+PASS reality URI type=raw 
+PASS reality URI has no spx without metadata 
+PASS reality URI has no target (Bash template does) ['encryption', 'flow', 'fp', 'pbk', 'security', 'sid', 'sni', 'type']
+PASS reality URI fragment idleleo-reality
+PASS reality share has no warnings []
+PASS reality Clash line: proxies: 
+PASS reality Clash line: - name: "idleleo-reality" 
+PASS reality Clash line: type: vless 
+PASS reality Clash line: server: example.com 
+PASS reality Clash line: port: 8443 
+PASS reality Clash line: uuid: a0cbeab2-9976-49ed-8425-22217167ba84 
+PASS reality Clash line: network: tcp 
+PASS reality Clash line: udp: true 
+PASS reality Clash line: tls: true 
+PASS reality Clash line: servername: example.com 
+PASS reality Clash line: flow: xtls-rprx-vision 
+PASS reality Clash line: client-fingerprint: chrome 
+PASS reality Clash line: reality-opts: 
+PASS reality Clash line: public-key: M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8 
+PASS reality Clash line: short-id: 197e1b10 
+PASS reality Clash omits spider-x without metadata 
+PASS generate preview and share agree on the Reality URI 
+PASS generate preview and share agree on the Reality Clash proxy 
+PASS reality share never rewrites the runtime config 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --json --public-port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "a0cbeab2-9976-49ed-8425-22217167ba84",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "example.com",
+            "port": 443,
+            "shareUri": "vless://a0cbeab2-9976-49ed-8425-22217167ba84@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8&sid=197e1b10&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: a0cbeab2-9976-49ed-8425-22217167ba84\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8\n      short-id: 197e1b10\n",
+            "warnings": []
+          }
+PASS reality share --public-port rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "a0cbeab2-9976-49ed-8425-22217167ba84",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": 
+PASS public port overrides the URI port 443
+PASS public port appears in the JSON view 443
+PASS public port overrides the Clash port 
+PASS --public-port never rewrites the runtime config 
+PASS reality --transport ws generated two inbounds 2
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality-ws.json --host example.com --json --inbound 1 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "uuid": "139b2daa-d4a7-417a-9024-7f3af5219f09",
+            "email": "ws@hey.run",
+            "host": "example.com",
+            "port": 10000,
+            "shareUri": "vless://139b2daa-d4a7-417a-9024-7f3af5219f09@example.com:10000?encryption=none&security=none&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: example.com\n    port: 10000\n    uuid: 139b2daa-d4a7-417a-9024-7f3af5219f09\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS reality-ws companion share rc=0 {
+  "mode": "none",
+  "transport": "ws",
+  "uuid": "139b2daa-d4a7-417a-9024-7f3af5219f09",
+  "email": "ws@hey.run",
+  "host": "example.com",
+  "port": 10000,
+  "shareUri": "vless://139b2daa-d4a7-417a-
+PASS companion inbound renders as plain ws none/ws
+PASS companion share uses inbound 1 port 10000
+PASS companion URI carries inbound 1 port 
+PASS companion URI security=none 
+PASS companion URI type=ws 
+PASS companion URI path from wsSettings ['/ray/']
+PASS companion URI host 
+PASS companion URI sets sni from the caller host (Bash none-ws has none) 
+PASS companion URI has no flow 
+PASS companion URI has no pbk 
+PASS companion URI has no sid 
+PASS companion URI has no spx 
+PASS companion URI fragment idleleo-none
+PASS companion Clash network=ws 
+PASS companion Clash carries the ws path 
+PASS companion Clash is not tls 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality-ws.json --host example.com --json --inbound 9 (rc=1 0.0s)
+  stderr: inbound index 9 out of range
+PASS out-of-range inbound rc=1 inbound index 9 out of range
+
+PASS out-of-range inbound renders no URI 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-ws.json --host example.com --json (rc=1 0.0s)
+  stderr: inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls field)
+PASS loopback security=none share is refused as ambiguous inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls
+PASS ambiguity refusal names the problem 
+PASS ambiguity refusal names the remedy 
+PASS ambiguous share renders no URI 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-ws.json --host example.com --json --public-security tls --public-port 443 (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "uuid": "6a970a36-12a8-4ce2-bc44-2a0ef6e14244",
+            "email": "me@hey.run",
+            "host": "example.com",
+            "port": 443,
+            "shareUri": "vless://6a970a36-12a8-4ce2-bc44-2a0ef6e14244@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: 6a970a36-12a8-4ce2-bc44-2a0ef6e14244\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "warnings": [
+              "public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller"
+            ]
+          }
+PASS tls-ws share with --public-security tls rc=0 {
+  "mode": "tls",
+  "transport": "ws",
+  "uuid": "6a970a36-12a8-4ce2-bc44-2a0ef6e14244",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 443,
+  "shareUri": "vless://6a970a36-12a8-4ce2-bc4
+PASS tls-ws view tls/ws
+PASS tls-ws public port is 443 443
+PASS tls-ws share warns that the proxy terminates TLS ["public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller"]
+PASS tls-ws URI public port 443 
+PASS tls-ws URI security=tls 
+PASS tls-ws URI sni 
+PASS tls-ws URI type=ws 
+PASS tls-ws URI path 
+PASS tls-ws URI host 
+PASS tls-ws URI has no fp (Bash always adds fp=chrome) 
+PASS tls-ws URI has no flow 
+PASS tls-ws Clash line: network: ws 
+PASS tls-ws Clash line: tls: true 
+PASS tls-ws Clash line: servername: example.com 
+PASS tls-ws Clash line: ws-opts: 
+PASS tls-ws Clash line: path: /ray/ 
+PASS tls-ws Clash line: Host: example.com 
+PASS tls-ws Clash omits client-fingerprint (Bash always adds it) 
+PASS tls-ws Clash omits skip-cert-verify (Bash always adds it) 
+PASS tls-ws share never rewrites the runtime config 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-grpc.json --host example.com --json --public-security tls --public-port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "grpc",
+            "uuid": "74d6ca14-31ae-4bc7-86f5-adaebbfe9ec5",
+            "email": "me@hey.run",
+            "host": "example.com",
+            "port": 443,
+            "shareUri": "vless://74d6ca14-31ae-4bc7-86f5-adaebbfe9ec5@example.com:443?encryption=none&security=tls&sni=example.com&type=grpc&serviceName=idleleo-grpc#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: 74d6ca14-31ae-4bc7-86f5-adaebbfe9ec5\n    network: grpc\n    udp: true\n    tls: true\n    servername: example.com\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "warnings": [
+              "public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller"
+            ]
+          }
+PASS tls-grpc share rc=0 {
+  "mode": "tls",
+  "transport": "grpc",
+  "uuid": "74d6ca14-31ae-4bc7-86f5-adaebbfe9ec5",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 443,
+  "shareUri": "vless://74d6ca14-31ae-4bc7-8
+PASS tls-grpc transport 
+PASS tls-grpc URI type=grpc 
+PASS tls-grpc URI serviceName ['idleleo-grpc']
+PASS tls-grpc URI has no path 
+PASS tls-grpc URI public port 443 
+PASS tls-grpc Clash line: network: grpc 
+PASS tls-grpc Clash line: grpc-opts: 
+PASS tls-grpc Clash line: grpc-service-name: idleleo-grpc 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-xhttp.json --host example.com --json --public-security tls --public-port 443 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "xhttp",
+            "uuid": "19da0e58-e16d-458c-a7de-b14d211a964c",
+            "email": "me@hey.run",
+            "host": "example.com",
+            "port": 443,
+            "shareUri": "vless://19da0e58-e16d-458c-a7de-b14d211a964c@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/ray/&host=example.com#idleleo-tls",
+            "warnings": [
+              "public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller",
+              "clash-xhttp-unsupported"
+            ]
+          }
+PASS tls-xhttp share rc=0 {
+  "mode": "tls",
+  "transport": "xhttp",
+  "uuid": "19da0e58-e16d-458c-a7de-b14d211a964c",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 443,
+  "shareUri": "vless://19da0e58-e16d-458c-
+PASS tls-xhttp transport 
+PASS tls-xhttp URI type=xhttp 
+PASS tls-xhttp URI path 
+PASS tls-xhttp URI security=tls 
+PASS xhttp JSON has no Clash proxy None
+PASS xhttp share warns instead of fabricating Clash ["public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller", "clash-xhttp-unsupported"]
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/tls-xhttp.json --host example.com --public-security tls --public-port 443 (rc=0 0.0s)
+  stdout: mode=tls transport=xhttp uuid=19da0e58-e16d-458c-a7de-b14d211a964c email=me@hey.run host=example.com port=443
+          share: vless://19da0e58-e16d-458c-a7de-b14d211a964c@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/ray/&host=example.com#idleleo-tls
+          warning=public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller
+          warning=clash-xhttp-unsupported
+PASS tls-xhttp text share rc=0 mode=tls transport=xhttp uuid=19da0e58-e16d-458c-a7de-b14d211a964c email=me@hey.run host=example.com port=443
+share: vless://19da0e58-e16d-458c-a7de-b14d211a964
+PASS xhttp text output prints the warning 
+PASS xhttp text output contains no Clash proxy 
+PASS xhttp text output still carries the URI 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/none-ws.json --host example.com --json (rc=1 0.0s)
+  stderr: inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls field)
+PASS none ws without --public-security is refused inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls
+PASS none ws refusal names the ambiguity 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/none-ws.json --host example.com --json --public-security none (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "uuid": "8082f2d1-c8ab-4d92-86dd-56542b67ba73",
+            "email": "me@hey.run",
+            "host": "example.com",
+            "port": 8080,
+            "shareUri": "vless://8082f2d1-c8ab-4d92-86dd-56542b67ba73@example.com:8080?encryption=none&security=none&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: example.com\n    port: 8080\n    uuid: 8082f2d1-c8ab-4d92-86dd-56542b67ba73\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS none-ws share with --public-security none rc=0 {
+  "mode": "none",
+  "transport": "ws",
+  "uuid": "8082f2d1-c8ab-4d92-86dd-56542b67ba73",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 8080,
+  "shareUri": "vless://8082f2d1-c8ab-4d92-8
+PASS none-ws view none/ws
+PASS none-ws port is the config port 8080
+PASS none-ws share has no warnings 
+PASS none-ws URI security=none 
+PASS none-ws URI type=ws 
+PASS none-ws Clash is plain ws 
+PASS none-ws Clash has no servername 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/none-ws.json --host example.com --public-security none (rc=0 0.01s)
+  stdout: mode=none transport=ws uuid=8082f2d1-c8ab-4d92-86dd-56542b67ba73 email=me@hey.run host=example.com port=8080
+          share: vless://8082f2d1-c8ab-4d92-86dd-56542b67ba73@example.com:8080?encryption=none&security=none&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-none
+          proxies:
+            - name: "idleleo-none"
+              type: vless
+              server: example.com
+              port: 8080
+              uuid: 8082f2d1-c8ab-4d92-86dd-56542b67ba73
+              network: ws
+              udp: true
+              ws-opts:
+                path: /ray/
+PASS none-ws text share rc=0 mode=none transport=ws uuid=8082f2d1-c8ab-4d92-86dd-56542b67ba73 email=me@hey.run host=example.com port=8080
+share: vless://8082f2d1-c8ab-4d92-86dd-56542b67ba73
+PASS none-ws text header mode=none transport=ws uuid=8082f2d1-c8ab-4d92-86dd-56542b67ba73 email=me@hey.run host=example.com port=8080
+PASS none-ws text output carries the share URI 
+PASS none-ws text output appends the Clash proxy 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/none-ws.json --host example.com --json --public-security bogus (rc=1 0.0s)
+  stderr: --public-security must be tls, none or reality (got "bogus")
+PASS invalid --public-security rc=1 --public-security must be tls, none or reality (got "bogus")
+
+PASS invalid --public-security is named 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com (rc=0 0.0s)
+  stdout: mode=reality transport=raw uuid=a0cbeab2-9976-49ed-8425-22217167ba84 email=me@hey.run host=example.com port=8443
+          share: vless://a0cbeab2-9976-49ed-8425-22217167ba84@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8&sid=197e1b10&type=raw#idleleo-reality
+          proxies:
+            - name: "idleleo-reality"
+              type: vless
+              server: example.com
+              port: 8443
+              uuid: a0cbeab2-9976-49ed-8425-22217167ba84
+              network: tcp
+              udp: true
+              tls: true
+              servername: example.com
+              flow: xtls-rprx-vision
+              client-fingerprint: chrome
+              reality-opts:
+                public-key: M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8
+                short-id: 197e1b10
+PASS S8 share without --qr stays text-only mode=reality transport=raw uuid=a0cbeab2-9976-49ed-8425-22217167ba84 email=me@hey.run host=example.com port=8443
+share: vless://a0cbeab2-9976-49ed-8425-22217167
+PASS S8 share line carries the URI vless://a0cbeab2-9976-49ed-8425-22217167ba84@example.com:8443?encryption=none&fl
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --qr (rc=0 0.0s)
+  stdout: mode=reality transport=raw uuid=a0cbeab2-9976-49ed-8425-22217167ba84 email=me@hey.run host=example.com port=8443
+          share: vless://a0cbeab2-9976-49ed-8425-22217167ba84@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8&sid=197e1b10&type=raw#idleleo-reality
+          qr:
+          █████████████████████████████████████████████████████████████
+          █████████████████████████████████████████████████████████████
+          ████ ▄▄▄▄▄ █▀   ▄▀▀  ▀█▀█▄▀▄ ▄█▄ ▄▀ ▀ ▄ ▄█▄▀ ▀ ▀██ ▄▄▄▄▄ ████
+          ████ █   █ █▀▄█▀ ██▀  ▄▄ ▀▀▄▀▄▄█▀▀██▀  ▀█▀ ▄ ▄▀▄▀█ █   █ ████
+          ████ █▄▄▄█ █▀█▀█▀▀  ▄▀▄ ▄▄█▀ ▄▄▄ ▄██ ▀██▄███▀▄ ███ █▄▄▄█ ████
+          ████▄▄▄▄▄▄▄█▄▀ ▀ ▀ █ █ ▀ ▀ █ █▄█ ▀▄█ █ █ ▀▄▀ █▄▀ █▄▄▄▄▄▄▄████
+          ████  ▄ ▄▀▄▄  ▀  █▀ ▄█▀▀▄ ▀ ▄   ▄▀ █▄ ▀█▄█  ▄  ▄▄▄█ ▀ ▀▄▀████
+          ████ ▄ █▀▀▄▀█▄  ▄ ▄█▀▄ ▀█▀ █▀ ▀▄▀▀█▄▄  ▄▀▄▀ ▄▀█▀█▄ █▄█▀█▀████
+          ████▄▀▄▀▀█▄▀█▄▀███▄▄█▄▀█▄▀▀▀▀▀▀▀██▄█▀ █▄▀  ▄██▄▀ ▀▀ ▀█▄ ▀████
+          █████▄█▄▀▀▄▄ ▄▀▄ ██▄  ▀ ▀▀▀█ ▀▄█▄▀██ ▄▄▄█▀▄█ ▀▀ ▀ ▄▄█▄▄▄ ████
+          ████▄█▄▄█▄▄ ██▄ ▄██ ▀█▀▀  █ █▀ ▀▄▀▀  █▀▀▀▄ █▀  ▄▄ ▄    █▀████
+          ████ ▄▄▄ ▄▄ ▄▄██▄ ▄█▀▄█▀ █████▀▄▀█▄▄█ ▀▄█▀▀ █▀▀ ▀█▄▄▄▄▄██████
+          █████▄██ ▄▄▄▄▀▀ ▄█▀  ▄▄▀▄  ▀▄▀ ▀  ▄▄  ▄█▄▄█▀▄▀▄▀█▄▀▄ █▀▀▀████
+          ███████▀▀ ▄▀ ▀▀ ▄▄ █▄▄▀▀ ▀███▄█▄ ▀▄▄▀▄ ▄▄▀  ▄▀ ▀  █▄██▄▄█████
+          ████▀ █  ▄▄▄     ▄▄ ▄███▄▀▄  ▄▄▄ ▄▀▄▀▄██ ▀█ ▄█ ▀ ▄▄▄ ▀ ▀ ████
+          ████  ▀▀ █▄█ ▀▄ █▄ ▄▀▄▀▀▀▀ ▄ █▄█ ▀█▄█  ▄██▀ █▀██ █▄█ ██▀█████
+          ████  █▄▄ ▄ ▄▄▀▄ █▄ ▄███▄▀█▀▄▄ ▄▄▄ ▄ ▀▀▀▄▄█▀ █▀▀     ▀ ▀▄████
+          ████▀ █▀█▀▄▄ ▄▀▄▀▀██  ▀ ▀▀  ▄▄█ ▀▀█▄▄▄ █▀▀ ▀██ ██ ▀█▀▄▄█▄████
+          ████▄▀▀██▀▄▀▀▀▄▀ ▀█  █▀▀█ ▄▀▄▄▄ ▀█▀█ █▀▀▄██▀██ █ ▀▄▀▄▀ ▀ ████
+          █████▀██▀ ▄▄█▄█▀▄  ▄▀▄▀▀ ▀  ▄▄▄▄▀▀ ▄█▄ ▄▀█  ▄ █ ▄▀▄  ▄▀▀▀████
+          ████▄▀█▄█▄▄█  ▄▀██▀ ▀▄▄▀▀ █  █▄█▀▄▀ ▄▀▄▄  █ ▀▀ ▀ █▄▀▀▀ ▀▀████
+          █████▄▄▀▄ ▄█ ▀▀ █▄ ▄ ▄▀▀ █ ▀█▄▄ █▀▄▄▄▄ ▄█▀█▀▀▀ ▀▀▄▀▄▀ ▄▀▀████
+          █████ ▀ ▀▀▄▀▀▀▄█ ▄▄▄████  ▀▀▄▄▄█▀███ ▀▀█▀▄▄ █▄▀█▀▀ ██▀ █ ████
+          ████▄ ▀▄▄▄▄█▄▄    ▄▄ ▄█ ▄▀ ▄█ ▀▄ █▄▄▀  ▄▀▀▀▀▀ █ ▄ █▀▄█▄▀▀████
+          ███████▄██▄█▀▀█▀▄   ▄███ ▀█▄ ▄▄▄ ▄▄█▄▄ ▄▄ ▀▄▄  ▀ ▄▄▄ ██ ▄████
+          ████ ▄▄▄▄▄ █▄ ▄ ▀█ █▀ ▀ █▀ ▄ █▄█ ▀██▄▄▄▄ ▀▄ ▄▀██ █▄█ ▄█▀▄████
+          ████ █   █ █ ▄ ▀▄ ▄  ▄██  ██▄▄ ▄▄▄ ▀▀█▄█ █ ▀ ▄ ▄   ▄▄  ██████
+          ████ █▄▄▄█ █ ▄▀ ▀ ▄██▄█▀▀█ ▄ ▀ ▀▄██▄█▄▀██▀▀▀▀  ▀ ▀█▄ ▄▀ █████
+          ████▄▄▄▄▄▄▄█▄██▄▄▄▄▄█▄▄██▄███▄███▄██▄▄▄▄█▄█▄▄▄█▄██▄█▄████████
+          █████████████████████████████████████████████████████████████
+          █████████████████████████████████████████████████████████████
+          proxies:
+            - name: "idleleo-reality"
+              type: vless
+              server: example.com
+              port: 8443
+              uuid: a0cbeab2-9976-49ed-8425-22217167ba84
+              network: tcp
+              udp: true
+              tls: true
+              servername: example.com
+              flow: xtls-rprx-vision
+              client-fingerprint: chrome
+              reality-opts:
+                public-key: M06FhoX_iIJoo2bY1fGRAQMyWtEnv6PT_eNi8MZhDx8
+                short-id: 197e1b10
+PASS S8 share --qr exits 0 mode=reality transport=raw uuid=a0cbeab2-9976-49ed-8425-22217167ba84 email=me@hey.run host=example.com port=8443
+share: vless://a0cbeab2-9976-49ed-8425-22217167
+PASS S8 --qr prints a QR matrix █████████████████████████████████████████████████████████████
+██████████████████
+PASS S8 real qrencode baseline runs 
+PASS S8 matrix is byte-identical to qrencode -o - -t utf8 go=6e6fbf7cfe63f006 qrencode=6e6fbf7cfe63f006
+$ qrencode --version (rc=0 0.0s)
+  stdout: qrencode version 4.1.1
+          Copyright (C) 2006-2017 Kentaro Fukuchi
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --json --qr (rc=2 0.0s)
+  stderr: --qr prints a terminal QR code and cannot be combined with --json
+PASS S8 --json --qr is rejected (rc=2) --qr prints a terminal QR code and cannot be combined with --json
+
+PASS S8 rejected --json --qr prints no matrix 
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --host example.com --qr (rc=1 0.0s)
+  stderr: qrencode is not installed; --qr needs it (Debian/Ubuntu: apt-get install qrencode, RHEL: dnf install qrencode, Alpine: apk add libqrencode-tools)
+PASS S8 missing qrencode fails with no partial output qrencode is not installed; --qr needs it (Debian/Ubuntu: apt-get install qrencode, RHEL: dnf install qrencode, Alpine: apk add libqrencode-tools)
+
+PASS S8 missing qrencode names the dependency qrencode is not installed; --qr needs it (Debian/Ubuntu: apt-get install qrencode, RHEL: dnf install qrencode, Alpine: apk add libqrencode-tools)
+
+$ /work/bin/idleleo xray share --path /work/evidence/f18-work/reality.json --qr-bogus (rc=2 0.0s)
+  stderr: unknown flag: --qr-bogus
+PASS S8 unknown share flag still rc=2 unknown flag: --qr-bogus
+
+PASS Bash function generate_vless_link found in install.sh 
+PASS Bash function generate_clash_config found in install.sh 
+PASS Bash Reality link template includes target 
+PASS Bash ws link template hard-codes path=%2f...%3Fed%3D2048 
+PASS Bash xhttp link template includes mode=auto 
+PASS Bash link templates always include fp=chrome 
+PASS Bash ws_tls fragment is '<host> ws协议' 
+PASS Bash grpc_tls fragment is '<host> gRPC协议' 
+PASS Bash xhttp_tls fragment is '<host> xHTTP协议' 
+PASS Bash none-ws fragment is '<host> 单栈ws协议' 
+PASS Bash reality link reads a per-user spiderX mapping 
+PASS Bash Clash proxy always sets client-fingerprint 
+PASS Bash Clash proxy always sets skip-cert-verify 
+PASS Bash Clash renders an xhttp proxy (Go refuses) 
+PASS Bash Clash reality-opts carries the sID 
+PASS Bash Clash adds spider-x when present 
+PASS Bash Clash file starts from a bare proxies list 
+PASS Bash link generator covers reality 
+PASS Bash link generator covers ws_tls 
+PASS Bash link generator covers grpc_tls 
+PASS Bash link generator covers xhttp_tls 
+PASS Bash link generator covers ws 
+PASS Bash link generator covers grpc 
+PASS Bash link generator covers xhttp 
+PASS Bash prints QR codes for every share link 10 qrencode call sites
+PASS Bash prints the primary Reality QR code 
+PASS Bash prints the xHTTP QR code 

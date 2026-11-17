@@ -1,0 +1,2 @@
+command: go build -o /out/idleleo ./cmd/idleleo (GOPROXY=off GOTOOLCHAIN=local GOFLAGS=-mod=vendor)
+result: OK sha256=eaf78fb9f7e1a6c59274f80742bb921a0f4ca8f4b22c25a764409569cdf17f5a

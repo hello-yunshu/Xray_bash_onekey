@@ -1,0 +1,58 @@
+F17 — dual-stack DNS qualification and managed firewall (CONTAINER_VERIFIED)
+date: 2026-11-17
+branch: develop/go-native
+host: macOS (arm64) + Docker Desktop
+image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+go: golang:1.27.4 (CGO_ENABLED=0, -mod=vendor, -trimpath)
+goBin: /work/bin/idleleo sha256=b4bb84a9beb2bc80acad4410e61a77c70fe30ad0100fc2e79fb92720a651ce87
+install.sh sha256=d76b3181a198e8aab225564d36f89ec46c6267e0c115ca354f5db4e86b1f5b68
+fixture: tests/go-parity/parity/features/F17_test.py sha256=601e96828be9a2e10e9d2e278f5509045ffea2dd32cb429d57c1915e73807c44
+
+run1: 113 passed, 0 failed, 1.12s
+run2: 113 passed, 0 failed, 1.21s
+gate: python3 -I ... --go-bin /work/bin/idleleo --bash-repo /work/repo
+unit: go test ./internal/netcfg ./internal/cli (ok)
+hygiene: 0 finding(s) in 27 file(s)
+
+scenarios:
+  S1 `net dns` against an in-process authoritative UDP DNS server: dual match, stale AAAA
+     rc=2 badAAAA, explicit ipv4 still rejects a foreign AAAA, AAAA-only auto, no
+     ipv4 match rc=1 mode=none, NXDOMAIN rc=1 mode=none
+  S2 first apply writes 4 rules per family plus both state files and both persisted
+     rulesets; a port diff replaces 443 with 8443; dual -> ipv4 empties ip6tables,
+     ipv4 -> dual recreates it, dual -> ipv6 empties iptables and ipv6 -> dual restores it
+  S3 an injected `ip6tables -I` failure exits 1, reports rolledBack=true, restores
+     both rulesets and leaves managed_ports.json at 8443; a second injection that
+     also fails an undo `-D` exits 10 with rolledBack=true, and a normal apply
+     afterwards converges the ruleset back to the persisted set
+  S4 dry-run lists `-C`/`-I` commands, touches no rule and does not rewrite the state
+  S5 bogus policy/port/family/flag, the real root without --container and an unmarked
+     sandbox exit 2 and write nothing
+  S6 status reports present rules, then the two missing iptables OUTPUT rules after
+     they are deleted; revert empties both rulesets and the state, a second revert is
+     a no-op, and status afterwards has no checks; status inspects only the families
+     recorded in managed_families.json
+  S6b an ipv4-only apply in a tree where ip6tables is also installed persists only
+     rules.v4, and status reports families=[iptables] with a single check instead of
+     treating the unmanaged ip6tables ruleset as drift
+  S7 hiding ip6tables makes dual apply exit 1 naming the family, with no rule or state
+     change (fail-closed, unlike the Bash auto fallback)
+  S8 Bash classify_resolved_ips matches Go on 6 inputs; managed_fw_families_for_mode
+     matches on 10 mode/x-ip6tables rows, and a family set naming a missing ip6tables
+     is required to exit 1 rather than reconcile one family silently
+
+approvals:
+  - DNS probe: Go never calls an outbound echo service; --server-ipv4/6 or the local
+    interface addresses supply the expected public address (approved difference)
+  - state layout: Go persists managed_ports.json + managed_families.json and writes
+    rules.v{4,6}; Bash keeps no explicit managed-state file
+  - fail-closed: a dual/ipv6 mode without ip6tables refuses before touching rules;
+    Bash falls back to iptables alone
+
+gaps (unchanged):
+  - no real VPS, no real netfilter and no reboot persistence check; rules are proven
+    against PATH shims that model `-C`/`-I`/`-D`/`-S` and `-save`
+  - only iptables/ip6tables are modelled; nft, ufw and firewalld interop is out of scope
+  - the Bash baseline covers classify_resolved_ips and managed_fw_families_for_mode;
+    validate_domain_network_records' echo probe and the interactive confirmation are
+    not executed

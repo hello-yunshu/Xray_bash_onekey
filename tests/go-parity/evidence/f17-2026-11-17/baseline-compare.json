@@ -1,0 +1,34 @@
+{
+  "badRecordsExit": {
+    "bash": "returns 2 from validate_domain_network_records",
+    "classification": "aligned",
+    "go": "rc=2 and the install must stop for confirmation"
+  },
+  "classification": {
+    "bash": "classify_resolved_ips from install.sh",
+    "cases": 6,
+    "classification": "aligned",
+    "go": "netcfg.Classify (IPv6 before IPv4, order preserved, no dedupe)"
+  },
+  "dnsProbe": {
+    "bash": "validate_domain_network_records probes an external echo service to learn the public address",
+    "classification": "approved-difference",
+    "go": "no outbound echo probe; the server address comes from --server-ipv4/6 or the local interfaces"
+  },
+  "familySet": {
+    "bash": "managed_fw_families_for_mode from install.sh",
+    "classification": "aligned",
+    "go": "netcfg.FamiliesForMode(mode, ip6tables present)",
+    "rows": 10
+  },
+  "ipv6FailClosed": {
+    "bash": "falls back to iptables alone in auto mode",
+    "classification": "new-go-behavior",
+    "go": "a dual/ipv6 mode without ip6tables refuses before touching any rule"
+  },
+  "stateLayout": {
+    "bash": "no explicit managed-state file; the Bash config is the source of truth",
+    "classification": "new-go-behavior",
+    "go": "etc/idleleo/managed_ports.json + managed_families.json, rules under etc/iptables/rules.v{4,6}"
+  }
+}

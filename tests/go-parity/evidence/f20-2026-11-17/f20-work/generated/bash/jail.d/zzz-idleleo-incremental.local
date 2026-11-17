@@ -1,0 +1,9 @@
+# Idleleo incremental ban policy
+# Repeat offenders get progressively longer bans.
+# Base bantime/maxretry/findtime per jail are NOT relaxed.
+[DEFAULT]
+bantime.increment = true
+bantime.multipliers = 1 2 4 8 16 32 64
+bantime.maxtime = 180d
+bantime.rndtime = 10m
+bantime.overalljails = false

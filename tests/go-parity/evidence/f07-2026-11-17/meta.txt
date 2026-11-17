@@ -1,0 +1,24 @@
+F07 — Reality shortId / spiderX binding executor
+Evidence level: CONTAINER_VERIFIED (config-level; no Xray data plane, no systemd, no network)
+
+commit: bd1043e5b90684b8d7c32d3d509767e6e5206f08
+date: 2026-11-17
+image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+build image: golang:1.27.4
+build command: docker run --rm -v "$PWD":/src -w /src -v /tmp/f07out:/out -e CGO_ENABLED=0 golang:1.27.4 go build -trimpath -o /out/idleleo ./cmd/idleleo
+go_bin_sha256: 960dd9ce788fc1b906c0b5681adf5339a7c123bf0322eb082502a6ff89f8d986
+
+run 1: python3 -I /work/repo/tests/go-parity/parity/features/F07_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo
+       rc=0, 94 passed, 0 failed, 0.11s
+run 2: python3 -I /work/repo/tests/go-parity/parity/features/F07_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo
+       rc=0, 94 passed, 0 failed, 0.09s
+
+container command:
+docker run -d --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock \
+  -v /tmp/f07out/idleleo:/work/bin/idleleo:ro \
+  -v "$PWD":/work/repo:ro \
+  -v "$PWD/tests/go-parity/evidence/f07-2026-11-17":/work/evidence \
+  idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+
+bash baseline: fixed checkout install.sh (sha256 recorded in baseline-compare.json);
+generate_reality_short_id and generate_spiderx are extracted and executed for real.

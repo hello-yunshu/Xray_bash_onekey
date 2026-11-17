@@ -1,0 +1,16 @@
+{
+  "acmeDirectory": "https://acme-staging-v02.api.letsencrypt.org/directory",
+  "certFile": "etc/idleleo/cert/xray.crt",
+  "certKeyFile": "etc/idleleo/cert/xray.key",
+  "certWebroot": "etc/idleleo/conf",
+  "geodataDir": "etc/idleleo/share/xray",
+  "geodataUrl": "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download",
+  "intervalSeconds": 3600,
+  "jobs": [
+    "auto-update",
+    "cert-renew",
+    "geodata-refresh",
+    "stats-collect"
+  ],
+  "schemaVersion": 1
+}

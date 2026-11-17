@@ -1,0 +1,5 @@
+{
+  "output": "profile-primary-rc=0\nprimary|Reality|on|on|off|None|primary|Nginx+Reality+Balance\nprofile-secondary-rc=0\nsecondary|Reality|off|on|off|None|secondary|Reality+Balance\nport-primary-rc=0\nport-secondary-rc=0\nconf-isolate-rc=0\nservers-rc=0\nnames-rc=0\nnames-stale-rc=0\nconf-reject-rc=0\nservers-reject-rc=0\nnames-reject-rc=0\n",
+  "rc": 0,
+  "script": "/work/evidence/f04-work/bash-baseline.sh"
+}

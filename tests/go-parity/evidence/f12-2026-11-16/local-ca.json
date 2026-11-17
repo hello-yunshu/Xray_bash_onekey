@@ -1,0 +1,6 @@
+{
+  "caCert": "/work/evidence/acme-work/ca/ca.crt",
+  "directory": "https://127.0.0.1:52297/directory",
+  "level": "ACME_LOCAL_CA",
+  "port": 52297
+}

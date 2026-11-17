@@ -1,0 +1,1 @@
+server 10.0.0.2:8443 weight=60 max_fails=2 fail_timeout=10;

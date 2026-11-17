@@ -1,0 +1,3190 @@
+spawn bash /src/install.sh -3
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  正在安装 gettext... 
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 64%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+E: Unable to locate package gettext
+[错误]  软件包安装失败: gettext 
+[错误]  gettext 安装 失败, 将使用默认语言 
+[OK]  当前系统为 Ubuntu 24.04 noble 
+
+0% [Working]
+0% [4 InRelease 96.2 kB/126 kB 76%]
+                                   
+0% [Working]
+13% [Waiting for headers]
+                         
+Get:5 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 Packages [19.0 MB]
+
+13% [5 Packages 2637 B/19.0 MB 0%]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease [256 kB]
+
+0% [1 InRelease 0 B/256 kB 0%]
+13% [5 Packages 83.3 kB/19.0 MB 0%]
+0% [1 InRelease 28.5 kB/256 kB 11%]
+14% [5 Packages 358 kB/19.0 MB 2%]                            160 kB/s 3min 38s
+0% [1 InRelease 77.5 kB/256 kB 30%]
+14% [5 Packages 410 kB/19.0 MB 2%]                            160 kB/s 3min 37s
+                                   
+0% [1 InRelease 123 kB/256 kB 48%]
+14% [5 Packages 494 kB/19.0 MB 3%]                            160 kB/s 3min 37s
+0% [1 InRelease 198 kB/256 kB 78%]
+14% [5 Packages 619 kB/19.0 MB 3%]                            160 kB/s 3min 36s
+0% [1 InRelease 240 kB/256 kB 94%]
+                                  
+0% [Waiting for headers]
+0% [Waiting for headers]
+15% [5 Packages 872 kB/19.0 MB 5%]                            160 kB/s 3min 34s
+                        
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease [126 kB]
+
+0% [2 InRelease 2572 B/126 kB 2%]
+15% [5 Packages 1065 kB/19.0 MB 6%]                           160 kB/s 3min 33s
+0% [2 InRelease 38.6 kB/126 kB 31%]
+16% [5 Packages 1183 kB/19.0 MB 6%]                           160 kB/s 3min 32s
+0% [2 InRelease 41.5 kB/126 kB 33%]
+16% [5 Packages 1217 kB/19.0 MB 6%]                           160 kB/s 3min 32s
+                                   
+0% [2 InRelease 118 kB/126 kB 93%]
+                                  
+0% [Working]
+0% [Waiting for headers]
+                        
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease [126 kB]
+
+0% [3 InRelease 1132 B/126 kB 1%]
+16% [5 Packages 1363 kB/19.0 MB 7%]                           160 kB/s 3min 31s
+0% [3 InRelease 35.7 kB/126 kB 28%]
+16% [5 Packages 1474 kB/19.0 MB 8%]                           160 kB/s 3min 31s
+0% [3 InRelease 58.7 kB/126 kB 47%]                          70.2 kB/s 6min 49s
+17% [5 Packages 1572 kB/19.0 MB 8%]                           160 kB/s 3min 30s
+0% [3 InRelease 96.2 kB/126 kB 76%]                          70.2 kB/s 6min 48s
+17% [5 Packages 1676 kB/19.0 MB 9%]                           160 kB/s 3min 29s
+0% [3 InRelease 125 kB/126 kB 99%]                           70.2 kB/s 6min 48s
+17% [5 Packages 1705 kB/19.0 MB 9%]                           223 kB/s 2min 30s
+0% [Waiting for headers]                                     70.2 kB/s 6min 48s
+0% [Waiting for headers]                                     70.2 kB/s 6min 49s
+                                                                               
+Get:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease [126 kB]
+
+0% [4 InRelease 1132 B/126 kB 1%]                            70.2 kB/s 6min 51s
+17% [5 Packages 1860 kB/19.0 MB 10%]                          223 kB/s 2min 29s
+0% [4 InRelease 18.4 kB/126 kB 15%]                          70.2 kB/s 6min 51s
+17% [5 Packages 1878 kB/19.0 MB 10%]                          223 kB/s 2min 29s
+0% [4 InRelease 57.3 kB/126 kB 45%]                          70.2 kB/s 6min 50s
+17% [5 Packages 1878 kB/19.0 MB 10%]                          223 kB/s 2min 29s
+0% [4 InRelease 121 kB/126 kB 96%]                           70.2 kB/s 6min 49s
+0% [Working]                                                 70.2 kB/s 6min 49s
+13% [Waiting for headers]                                    70.2 kB/s 8min 20s
+                                                                               
+Get:5 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 Packages [1776 kB]
+
+13% [5 Packages 1199 B/1776 kB 0%]                           70.2 kB/s 8min 20s
+18% [5 Packages 2153 kB/19.0 MB 11%]                          223 kB/s 2min 28s
+13% [5 Packages 14.2 kB/1776 kB 1%]                          70.2 kB/s 8min 20s
+18% [5 Packages 2294 kB/19.0 MB 12%]                          223 kB/s 2min 27s
+13% [5 Packages 44.4 kB/1776 kB 3%]                          70.2 kB/s 8min 19s
+18% [5 Packages 2406 kB/19.0 MB 13%]                          223 kB/s 2min 26s
+13% [5 Packages 97.7 kB/1776 kB 6%]                          70.2 kB/s 8min 19s
+19% [5 Packages 2510 kB/19.0 MB 13%]                          223 kB/s 2min 26s
+13% [5 Packages 147 kB/1776 kB 8%]                           70.2 kB/s 8min 18s
+19% [5 Packages 2657 kB/19.0 MB 14%]                          223 kB/s 2min 25s
+13% [5 Packages 150 kB/1776 kB 8%]                           70.2 kB/s 8min 18s
+19% [5 Packages 2770 kB/19.0 MB 15%]                          223 kB/s 2min 25s
+14% [5 Packages 194 kB/1776 kB 11%]                          63.4 kB/s 9min 11s
+19% [5 Packages 2851 kB/19.0 MB 15%]                          223 kB/s 2min 24s
+14% [5 Packages 250 kB/1776 kB 14%]                          63.4 kB/s 9min 10s
+20% [5 Packages 2972 kB/19.0 MB 16%]                          223 kB/s 2min 24s
+14% [5 Packages 327 kB/1776 kB 18%]                           63.4 kB/s 9min 9s
+20% [5 Packages 3071 kB/19.0 MB 16%]                          226 kB/s 2min 21s
+14% [5 Packages 347 kB/1776 kB 20%]                           63.4 kB/s 9min 9s
+20% [5 Packages 3210 kB/19.0 MB 17%]                          226 kB/s 2min 21s
+14% [5 Packages 389 kB/1776 kB 22%]                           63.4 kB/s 9min 8s
+20% [5 Packages 3296 kB/19.0 MB 17%]                          226 kB/s 2min 20s
+14% [5 Packages 458 kB/1776 kB 26%]                           63.4 kB/s 9min 7s
+21% [5 Packages 3339 kB/19.0 MB 18%]                          226 kB/s 2min 20s
+14% [5 Packages 497 kB/1776 kB 28%]                           63.4 kB/s 9min 6s
+21% [5 Packages 3483 kB/19.0 MB 18%]                          226 kB/s 2min 20s
+14% [5 Packages 547 kB/1776 kB 31%]                           63.4 kB/s 9min 6s
+21% [5 Packages 3633 kB/19.0 MB 19%]                          226 kB/s 2min 19s
+14% [5 Packages 594 kB/1776 kB 33%]                           63.4 kB/s 9min 5s
+21% [5 Packages 3702 kB/19.0 MB 19%]                          226 kB/s 2min 19s
+14% [5 Packages 613 kB/1776 kB 35%]                           63.4 kB/s 9min 5s
+22% [5 Packages 3865 kB/19.0 MB 20%]                          226 kB/s 2min 18s
+15% [5 Packages 677 kB/1776 kB 38%]                           63.4 kB/s 9min 4s
+22% [5 Packages 3882 kB/19.0 MB 20%]                          226 kB/s 2min 18s
+15% [5 Packages 741 kB/1776 kB 42%]                           63.4 kB/s 9min 3s
+22% [5 Packages 3960 kB/19.0 MB 21%]                          226 kB/s 2min 17s
+15% [5 Packages 787 kB/1776 kB 44%]                          98.0 kB/s 5min 50s
+22% [5 Packages 4071 kB/19.0 MB 21%]                          226 kB/s 2min 17s
+15% [5 Packages 835 kB/1776 kB 47%]                          98.0 kB/s 5min 50s
+22% [5 Packages 4177 kB/19.0 MB 22%]                          226 kB/s 2min 16s
+15% [5 Packages 857 kB/1776 kB 48%]                          98.0 kB/s 5min 49s
+23% [5 Packages 4307 kB/19.0 MB 23%]                          205 kB/s 2min 30s
+15% [5 Packages 898 kB/1776 kB 51%]                          98.0 kB/s 5min 49s
+23% [5 Packages 4307 kB/19.0 MB 23%]                          205 kB/s 2min 30s
+15% [5 Packages 934 kB/1776 kB 53%]                          98.0 kB/s 5min 49s
+23% [5 Packages 4403 kB/19.0 MB 23%]                          205 kB/s 2min 30s
+15% [5 Packages 996 kB/1776 kB 56%]                          98.0 kB/s 5min 48s
+23% [5 Packages 4549 kB/19.0 MB 24%]                          205 kB/s 2min 29s
+15% [5 Packages 1012 kB/1776 kB 57%]                         98.0 kB/s 5min 48s
+23% [5 Packages 4616 kB/19.0 MB 24%]                          205 kB/s 2min 29s
+15% [5 Packages 1065 kB/1776 kB 60%]                         98.0 kB/s 5min 47s
+23% [5 Packages 4651 kB/19.0 MB 24%]                          205 kB/s 2min 29s
+16% [5 Packages 1081 kB/1776 kB 61%]                         98.0 kB/s 5min 47s
+24% [5 Packages 4783 kB/19.0 MB 25%]                          205 kB/s 2min 28s
+16% [5 Packages 1103 kB/1776 kB 62%]                         98.0 kB/s 5min 47s
+24% [5 Packages 4874 kB/19.0 MB 26%]                          205 kB/s 2min 27s
+16% [5 Packages 1149 kB/1776 kB 65%]                         98.0 kB/s 5min 46s
+24% [5 Packages 4942 kB/19.0 MB 26%]                          205 kB/s 2min 27s
+16% [5 Packages 1160 kB/1776 kB 65%]                         98.0 kB/s 5min 46s
+24% [5 Packages 4943 kB/19.0 MB 26%]                          205 kB/s 2min 27s
+16% [5 Packages 1198 kB/1776 kB 67%]                         67.8 kB/s 8min 20s
+24% [5 Packages 5033 kB/19.0 MB 26%]                          205 kB/s 2min 27s
+16% [5 Packages 1231 kB/1776 kB 69%]                         67.8 kB/s 8min 20s
+25% [5 Packages 5201 kB/19.0 MB 27%]                          205 kB/s 2min 26s
+16% [5 Packages 1290 kB/1776 kB 73%]                         67.8 kB/s 8min 19s
+25% [5 Packages 5205 kB/19.0 MB 27%]                          149 kB/s 3min 21s
+16% [5 Packages 1310 kB/1776 kB 74%]                         67.8 kB/s 8min 19s
+25% [5 Packages 5331 kB/19.0 MB 28%]                          149 kB/s 3min 20s
+16% [5 Packages 1391 kB/1776 kB 78%]                         67.8 kB/s 8min 17s
+25% [5 Packages 5417 kB/19.0 MB 28%]                          149 kB/s 3min 20s
+16% [5 Packages 1434 kB/1776 kB 81%]                         67.8 kB/s 8min 17s
+25% [5 Packages 5503 kB/19.0 MB 29%]                          149 kB/s 3min 19s
+16% [5 Packages 1457 kB/1776 kB 82%]                         67.8 kB/s 8min 16s
+26% [5 Packages 5596 kB/19.0 MB 29%]                          149 kB/s 3min 19s
+16% [5 Packages 1526 kB/1776 kB 86%]                         67.8 kB/s 8min 15s
+26% [5 Packages 5650 kB/19.0 MB 30%]                          149 kB/s 3min 18s
+16% [5 Packages 1526 kB/1776 kB 86%]                         67.8 kB/s 8min 15s
+26% [5 Packages 5764 kB/19.0 MB 30%]                          149 kB/s 3min 17s
+17% [5 Packages 1585 kB/1776 kB 89%]                         67.8 kB/s 8min 14s
+26% [5 Packages 5838 kB/19.0 MB 31%]                          149 kB/s 3min 17s
+17% [5 Packages 1641 kB/1776 kB 92%]                         67.8 kB/s 8min 14s
+26% [5 Packages 5921 kB/19.0 MB 31%]                          149 kB/s 3min 16s
+17% [5 Packages 1685 kB/1776 kB 95%]                         67.8 kB/s 8min 13s
+26% [5 Packages 5963 kB/19.0 MB 31%]                          149 kB/s 3min 16s
+17% [5 Packages 1723 kB/1776 kB 97%]                         87.0 kB/s 6min 24s
+27% [5 Packages 6068 kB/19.0 MB 32%]                          149 kB/s 3min 15s
+17% [5 Packages 1762 kB/1776 kB 99%]                         87.0 kB/s 6min 23s
+27% [5 Packages 6110 kB/19.0 MB 32%]                          149 kB/s 3min 15s
+                                                                               
+Get:6 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 Packages [19.0 MB]
+
+17% [6 Packages 692 B/19.0 MB 0%]                            87.0 kB/s 6min 23s
+17% [5 Packages store 0 B] [6 Packages 692 B/19.0 MB 0%]     87.0 kB/s 6min 23s
+18% [6 Packages 3572 B/19.0 MB 0%]                           87.0 kB/s 6min 23s
+27% [5 Packages 6110 kB/19.0 MB 32%]                          150 kB/s 3min 14s
+18% [6 Packages 35.3 kB/19.0 MB 0%]                          87.0 kB/s 6min 23s
+27% [5 Packages 6244 kB/19.0 MB 33%]                          150 kB/s 3min 13s
+18% [6 Packages 78.7 kB/19.0 MB 0%]                          87.0 kB/s 6min 22s
+27% [5 Packages 6264 kB/19.0 MB 33%]                          150 kB/s 3min 13s
+18% [6 Packages 88.8 kB/19.0 MB 0%]                          87.0 kB/s 6min 22s
+27% [5 Packages 6301 kB/19.0 MB 33%]                          150 kB/s 3min 12s
+18% [6 Packages 146 kB/19.0 MB 1%]                           87.0 kB/s 6min 21s
+27% [5 Packages 6379 kB/19.0 MB 34%]                          150 kB/s 3min 12s
+18% [6 Packages 168 kB/19.0 MB 1%]                           87.0 kB/s 6min 21s
+27% [5 Packages 6414 kB/19.0 MB 34%]                          150 kB/s 3min 12s
+18% [6 Packages 168 kB/19.0 MB 1%]                           87.0 kB/s 6min 21s
+27% [5 Packages 6426 kB/19.0 MB 34%]                          150 kB/s 3min 12s
+18% [6 Packages 236 kB/19.0 MB 1%]                           87.0 kB/s 6min 20s
+28% [5 Packages 6483 kB/19.0 MB 34%]                          150 kB/s 3min 11s
+18% [6 Packages 263 kB/19.0 MB 1%]                           87.0 kB/s 6min 20s
+28% [5 Packages 6630 kB/19.0 MB 35%]                          150 kB/s 3min 10s
+18% [6 Packages 292 kB/19.0 MB 2%]                           87.0 kB/s 6min 20s
+28% [5 Packages 6667 kB/19.0 MB 35%]                          150 kB/s 3min 10s
+18% [6 Packages 292 kB/19.0 MB 2%]                           87.0 kB/s 6min 20s
+28% [5 Packages 6714 kB/19.0 MB 35%]                          150 kB/s 3min 10s
+18% [6 Packages 345 kB/19.0 MB 2%]                           63.9 kB/s 8min 36s
+28% [5 Packages 6750 kB/19.0 MB 35%]                           150 kB/s 3min 9s
+18% [6 Packages 367 kB/19.0 MB 2%]                           63.9 kB/s 8min 36s
+28% [5 Packages 6824 kB/19.0 MB 36%]                          118 kB/s 3min 59s
+19% [6 Packages 411 kB/19.0 MB 2%]                           63.9 kB/s 8min 35s
+28% [5 Packages 6824 kB/19.0 MB 36%]                          118 kB/s 3min 59s
+19% [6 Packages 434 kB/19.0 MB 2%]                           63.9 kB/s 8min 35s
+29% [5 Packages 6946 kB/19.0 MB 37%]                          118 kB/s 3min 58s
+19% [6 Packages 463 kB/19.0 MB 2%]                           63.9 kB/s 8min 34s
+29% [5 Packages 7008 kB/19.0 MB 37%]                          118 kB/s 3min 57s
+19% [6 Packages 496 kB/19.0 MB 3%]                           63.9 kB/s 8min 34s
+29% [5 Packages 7008 kB/19.0 MB 37%]                          118 kB/s 3min 57s
+19% [6 Packages 498 kB/19.0 MB 3%]                           63.9 kB/s 8min 34s
+29% [5 Packages 7008 kB/19.0 MB 37%]                          118 kB/s 3min 57s
+19% [6 Packages 541 kB/19.0 MB 3%]                           63.9 kB/s 8min 33s
+29% [5 Packages 7214 kB/19.0 MB 38%]                          118 kB/s 3min 55s
+19% [6 Packages 541 kB/19.0 MB 3%]                           63.9 kB/s 8min 33s
+29% [5 Packages 7250 kB/19.0 MB 38%]                          118 kB/s 3min 55s
+19% [6 Packages 630 kB/19.0 MB 3%]                           63.9 kB/s 8min 32s
+29% [5 Packages 7250 kB/19.0 MB 38%]                          118 kB/s 3min 55s
+19% [6 Packages 633 kB/19.0 MB 3%]                           63.9 kB/s 8min 32s
+29% [5 Packages 7338 kB/19.0 MB 39%]                          118 kB/s 3min 54s
+19% [6 Packages 678 kB/19.0 MB 4%]                           63.9 kB/s 8min 31s
+30% [5 Packages 7381 kB/19.0 MB 39%]                          118 kB/s 3min 54s
+19% [6 Packages 715 kB/19.0 MB 4%]                           61.2 kB/s 8min 54s
+30% [5 Packages 7476 kB/19.0 MB 39%]                          118 kB/s 3min 53s
+19% [6 Packages 763 kB/19.0 MB 4%]                           61.2 kB/s 8min 53s
+30% [5 Packages 7517 kB/19.0 MB 40%]                           115 kB/s 4min 0s
+19% [6 Packages 789 kB/19.0 MB 4%]                           61.2 kB/s 8min 52s
+30% [5 Packages 7586 kB/19.0 MB 40%]                          115 kB/s 3min 59s
+19% [6 Packages 812 kB/19.0 MB 4%]                           61.2 kB/s 8min 52s
+30% [5 Packages 7607 kB/19.0 MB 40%]                          115 kB/s 3min 59s
+20% [6 Packages 848 kB/19.0 MB 4%]                           61.2 kB/s 8min 51s
+30% [5 Packages 7630 kB/19.0 MB 40%]                          115 kB/s 3min 59s
+20% [6 Packages 862 kB/19.0 MB 5%]                           61.2 kB/s 8min 51s
+30% [5 Packages 7702 kB/19.0 MB 40%]                          115 kB/s 3min 58s
+20% [6 Packages 888 kB/19.0 MB 5%]                           61.2 kB/s 8min 51s
+30% [5 Packages 7748 kB/19.0 MB 41%]                          115 kB/s 3min 58s
+20% [6 Packages 901 kB/19.0 MB 5%]                           61.2 kB/s 8min 51s
+30% [5 Packages 7783 kB/19.0 MB 41%]                          115 kB/s 3min 58s
+20% [6 Packages 934 kB/19.0 MB 5%]                           61.2 kB/s 8min 50s
+31% [5 Packages 7829 kB/19.0 MB 41%]                          115 kB/s 3min 57s
+20% [6 Packages 963 kB/19.0 MB 5%]                           61.2 kB/s 8min 50s
+31% [5 Packages 7866 kB/19.0 MB 41%]                          115 kB/s 3min 57s
+20% [6 Packages 963 kB/19.0 MB 5%]                           61.2 kB/s 8min 50s
+31% [5 Packages 7923 kB/19.0 MB 42%]                          115 kB/s 3min 56s
+20% [6 Packages 1058 kB/19.0 MB 6%]                          61.2 kB/s 8min 48s
+31% [5 Packages 7956 kB/19.0 MB 42%]                          115 kB/s 3min 56s
+20% [6 Packages 1058 kB/19.0 MB 6%]                          56.9 kB/s 9min 28s
+31% [5 Packages 7982 kB/19.0 MB 42%]                          115 kB/s 3min 56s
+20% [6 Packages 1116 kB/19.0 MB 6%]                          56.9 kB/s 9min 27s
+31% [5 Packages 8054 kB/19.0 MB 42%]                          89.1 kB/s 5min 4s
+20% [6 Packages 1126 kB/19.0 MB 6%]                          56.9 kB/s 9min 27s
+31% [5 Packages 8095 kB/19.0 MB 43%]                          89.1 kB/s 5min 3s
+20% [6 Packages 1179 kB/19.0 MB 6%]                          56.9 kB/s 9min 26s
+31% [5 Packages 8116 kB/19.0 MB 43%]                          89.1 kB/s 5min 3s
+20% [6 Packages 1186 kB/19.0 MB 6%]                          56.9 kB/s 9min 26s
+31% [5 Packages 8175 kB/19.0 MB 43%]                          89.1 kB/s 5min 2s
+20% [6 Packages 1229 kB/19.0 MB 6%]                          56.9 kB/s 9min 25s
+31% [5 Packages 8212 kB/19.0 MB 43%]                          89.1 kB/s 5min 2s
+20% [6 Packages 1260 kB/19.0 MB 7%]                          56.9 kB/s 9min 24s
+31% [5 Packages 8237 kB/19.0 MB 43%]                          89.1 kB/s 5min 2s
+20% [6 Packages 1285 kB/19.0 MB 7%]                          56.9 kB/s 9min 24s
+32% [5 Packages 8267 kB/19.0 MB 43%]                          89.1 kB/s 5min 1s
+21% [6 Packages 1310 kB/19.0 MB 7%]                          56.9 kB/s 9min 24s
+32% [5 Packages 8334 kB/19.0 MB 44%]                          89.1 kB/s 5min 1s
+21% [6 Packages 1346 kB/19.0 MB 7%]                          56.9 kB/s 9min 23s
+32% [5 Packages 8378 kB/19.0 MB 44%]                          89.1 kB/s 5min 0s
+21% [6 Packages 1373 kB/19.0 MB 7%]                          56.9 kB/s 9min 22s
+32% [5 Packages 8428 kB/19.0 MB 44%]                          89.1 kB/s 5min 0s
+21% [6 Packages 1393 kB/19.0 MB 7%]                          56.9 kB/s 9min 22s
+32% [5 Packages 8454 kB/19.0 MB 44%]                         89.1 kB/s 4min 59s
+21% [6 Packages 1414 kB/19.0 MB 7%]                           58.9 kB/s 9min 2s
+32% [5 Packages 8454 kB/19.0 MB 44%]                         89.1 kB/s 4min 59s
+21% [6 Packages 1457 kB/19.0 MB 8%]                           58.9 kB/s 9min 2s
+32% [5 Packages 8543 kB/19.0 MB 45%]                         81.1 kB/s 5min 28s
+21% [6 Packages 1457 kB/19.0 MB 8%]                           58.9 kB/s 9min 2s
+32% [5 Packages 8552 kB/19.0 MB 45%]                         81.1 kB/s 5min 28s
+21% [6 Packages 1507 kB/19.0 MB 8%]                           58.9 kB/s 9min 1s
+32% [5 Packages 8607 kB/19.0 MB 45%]                         81.1 kB/s 5min 27s
+21% [6 Packages 1530 kB/19.0 MB 8%]                           58.9 kB/s 9min 0s
+32% [5 Packages 8630 kB/19.0 MB 45%]                         81.1 kB/s 5min 27s
+21% [6 Packages 1533 kB/19.0 MB 8%]                           58.9 kB/s 9min 0s
+32% [5 Packages 8660 kB/19.0 MB 46%]                         81.1 kB/s 5min 26s
+21% [6 Packages 1572 kB/19.0 MB 8%]                           58.9 kB/s 9min 0s
+33% [5 Packages 8694 kB/19.0 MB 46%]                         81.1 kB/s 5min 26s
+21% [6 Packages 1572 kB/19.0 MB 8%]                           58.9 kB/s 9min 0s
+33% [5 Packages 8723 kB/19.0 MB 46%]                         81.1 kB/s 5min 25s
+21% [6 Packages 1622 kB/19.0 MB 9%]                          58.9 kB/s 8min 59s
+33% [5 Packages 8730 kB/19.0 MB 46%]                         81.1 kB/s 5min 25s
+21% [6 Packages 1668 kB/19.0 MB 9%]                          58.9 kB/s 8min 58s
+33% [5 Packages 8774 kB/19.0 MB 46%]                         81.1 kB/s 5min 25s
+21% [6 Packages 1700 kB/19.0 MB 9%]                          58.9 kB/s 8min 57s
+33% [5 Packages 8801 kB/19.0 MB 46%]                         81.1 kB/s 5min 25s
+21% [6 Packages 1726 kB/19.0 MB 9%]                          58.9 kB/s 8min 57s
+33% [5 Packages 8823 kB/19.0 MB 46%]                         81.1 kB/s 5min 24s
+21% [6 Packages 1738 kB/19.0 MB 9%]                          53.4 kB/s 9min 52s
+33% [5 Packages 8853 kB/19.0 MB 47%]                         81.1 kB/s 5min 24s
+22% [6 Packages 1753 kB/19.0 MB 9%]                          53.4 kB/s 9min 52s
+33% [5 Packages 8898 kB/19.0 MB 47%]                         58.7 kB/s 7min 26s
+22% [6 Packages 1827 kB/19.0 MB 10%]                         53.4 kB/s 9min 51s
+33% [5 Packages 8919 kB/19.0 MB 47%]                         58.7 kB/s 7min 26s
+22% [6 Packages 1850 kB/19.0 MB 10%]                         53.4 kB/s 9min 50s
+33% [5 Packages 8954 kB/19.0 MB 47%]                         58.7 kB/s 7min 26s
+22% [6 Packages 1879 kB/19.0 MB 10%]                         53.4 kB/s 9min 50s
+33% [5 Packages 8985 kB/19.0 MB 47%]                         58.7 kB/s 7min 25s
+22% [6 Packages 1933 kB/19.0 MB 10%]                         53.4 kB/s 9min 49s
+33% [5 Packages 9036 kB/19.0 MB 47%]                         58.7 kB/s 7min 24s
+22% [6 Packages 1959 kB/19.0 MB 10%]                         53.4 kB/s 9min 48s
+33% [5 Packages 9057 kB/19.0 MB 48%]                         58.7 kB/s 7min 24s
+22% [6 Packages 1992 kB/19.0 MB 10%]                         53.4 kB/s 9min 47s
+33% [5 Packages 9089 kB/19.0 MB 48%]                         58.7 kB/s 7min 23s
+22% [6 Packages 2060 kB/19.0 MB 11%]                         53.4 kB/s 9min 46s
+33% [5 Packages 9098 kB/19.0 MB 48%]                         58.7 kB/s 7min 23s
+22% [6 Packages 2089 kB/19.0 MB 11%]                         53.4 kB/s 9min 46s
+34% [5 Packages 9151 kB/19.0 MB 48%]                         58.7 kB/s 7min 22s
+22% [6 Packages 2139 kB/19.0 MB 11%]                         53.4 kB/s 9min 45s
+34% [5 Packages 9171 kB/19.0 MB 48%]                         58.7 kB/s 7min 22s
+22% [6 Packages 2160 kB/19.0 MB 11%]                         53.4 kB/s 9min 44s
+34% [5 Packages 9200 kB/19.0 MB 48%]                         58.7 kB/s 7min 21s
+23% [6 Packages 2236 kB/19.0 MB 12%]                         82.3 kB/s 6min 18s
+34% [5 Packages 9214 kB/19.0 MB 48%]                         58.7 kB/s 7min 21s
+23% [6 Packages 2298 kB/19.0 MB 12%]                         82.3 kB/s 6min 17s
+34% [5 Packages 9255 kB/19.0 MB 49%]                         59.3 kB/s 7min 17s
+23% [6 Packages 2344 kB/19.0 MB 12%]                         82.3 kB/s 6min 17s
+34% [5 Packages 9299 kB/19.0 MB 49%]                         59.3 kB/s 7min 16s
+23% [6 Packages 2354 kB/19.0 MB 12%]                         82.3 kB/s 6min 17s
+34% [5 Packages 9299 kB/19.0 MB 49%]                         59.3 kB/s 7min 16s
+23% [6 Packages 2420 kB/19.0 MB 13%]                         82.3 kB/s 6min 16s
+34% [5 Packages 9367 kB/19.0 MB 49%]                         59.3 kB/s 7min 15s
+23% [6 Packages 2446 kB/19.0 MB 13%]                         82.3 kB/s 6min 15s
+34% [5 Packages 9391 kB/19.0 MB 49%]                         59.3 kB/s 7min 14s
+23% [6 Packages 2479 kB/19.0 MB 13%]                         82.3 kB/s 6min 15s
+34% [5 Packages 9427 kB/19.0 MB 50%]                         59.3 kB/s 7min 14s
+23% [6 Packages 2566 kB/19.0 MB 13%]                         82.3 kB/s 6min 14s
+34% [5 Packages 9462 kB/19.0 MB 50%]                         59.3 kB/s 7min 13s
+23% [6 Packages 2616 kB/19.0 MB 14%]                         82.3 kB/s 6min 13s
+34% [5 Packages 9511 kB/19.0 MB 50%]                         59.3 kB/s 7min 12s
+24% [6 Packages 2717 kB/19.0 MB 14%]                         82.3 kB/s 6min 12s
+34% [5 Packages 9543 kB/19.0 MB 50%]                         59.3 kB/s 7min 12s
+24% [6 Packages 2730 kB/19.0 MB 14%]                         82.3 kB/s 6min 12s
+34% [5 Packages 9577 kB/19.0 MB 50%]                         59.3 kB/s 7min 11s
+24% [6 Packages 2806 kB/19.0 MB 15%]                         82.3 kB/s 6min 11s
+35% [5 Packages 9632 kB/19.0 MB 51%]                         59.3 kB/s 7min 10s
+24% [6 Packages 2844 kB/19.0 MB 15%]                           100 kB/s 5min 4s
+35% [5 Packages 9632 kB/19.0 MB 51%]                         59.3 kB/s 7min 10s
+24% [6 Packages 2891 kB/19.0 MB 15%]                           100 kB/s 5min 3s
+35% [5 Packages 9728 kB/19.0 MB 51%]                         78.5 kB/s 5min 23s
+24% [6 Packages 2916 kB/19.0 MB 15%]                           100 kB/s 5min 3s
+35% [5 Packages 9736 kB/19.0 MB 51%]                         78.5 kB/s 5min 23s
+24% [6 Packages 2980 kB/19.0 MB 16%]                           100 kB/s 5min 2s
+35% [5 Packages 9806 kB/19.0 MB 52%]                         78.5 kB/s 5min 22s
+24% [6 Packages 3029 kB/19.0 MB 16%]                           100 kB/s 5min 2s
+35% [5 Packages 9844 kB/19.0 MB 52%]                         78.5 kB/s 5min 22s
+25% [6 Packages 3091 kB/19.0 MB 16%]                           100 kB/s 5min 1s
+35% [5 Packages 9874 kB/19.0 MB 52%]                         78.5 kB/s 5min 22s
+25% [6 Packages 3133 kB/19.0 MB 16%]                           100 kB/s 5min 1s
+35% [5 Packages 9947 kB/19.0 MB 52%]                         78.5 kB/s 5min 21s
+25% [6 Packages 3183 kB/19.0 MB 17%]                           100 kB/s 5min 0s
+35% [5 Packages 9998 kB/19.0 MB 53%]                         78.5 kB/s 5min 20s
+25% [6 Packages 3225 kB/19.0 MB 17%]                           100 kB/s 5min 0s
+36% [5 Packages 10.0 MB/19.0 MB 53%]                         78.5 kB/s 5min 20s
+25% [6 Packages 3278 kB/19.0 MB 17%]                          100 kB/s 4min 59s
+36% [5 Packages 10.1 MB/19.0 MB 53%]                         78.5 kB/s 5min 19s
+25% [6 Packages 3339 kB/19.0 MB 18%]                          100 kB/s 4min 59s
+36% [5 Packages 10.1 MB/19.0 MB 53%]                         78.5 kB/s 5min 18s
+25% [6 Packages 3358 kB/19.0 MB 18%]                          100 kB/s 4min 59s
+36% [5 Packages 10.2 MB/19.0 MB 54%]                         78.5 kB/s 5min 18s
+25% [6 Packages 3391 kB/19.0 MB 18%]                         90.6 kB/s 5min 31s
+36% [5 Packages 10.2 MB/19.0 MB 54%]                         78.5 kB/s 5min 17s
+25% [6 Packages 3437 kB/19.0 MB 18%]                         90.6 kB/s 5min 30s
+36% [5 Packages 10.3 MB/19.0 MB 54%]                         88.6 kB/s 4min 40s
+25% [6 Packages 3489 kB/19.0 MB 18%]                         90.6 kB/s 5min 30s
+36% [5 Packages 10.3 MB/19.0 MB 54%]                         88.6 kB/s 4min 40s
+26% [6 Packages 3564 kB/19.0 MB 19%]                         90.6 kB/s 5min 29s
+36% [5 Packages 10.4 MB/19.0 MB 54%]                         88.6 kB/s 4min 39s
+26% [6 Packages 3569 kB/19.0 MB 19%]                         90.6 kB/s 5min 29s
+36% [5 Packages 10.4 MB/19.0 MB 54%]                         88.6 kB/s 4min 39s
+26% [6 Packages 3614 kB/19.0 MB 19%]                         90.6 kB/s 5min 28s
+36% [5 Packages 10.4 MB/19.0 MB 55%]                         88.6 kB/s 4min 38s
+26% [6 Packages 3703 kB/19.0 MB 19%]                         90.6 kB/s 5min 27s
+37% [5 Packages 10.5 MB/19.0 MB 55%]                         88.6 kB/s 4min 38s
+26% [6 Packages 3719 kB/19.0 MB 20%]                         90.6 kB/s 5min 27s
+37% [5 Packages 10.5 MB/19.0 MB 55%]                         88.6 kB/s 4min 38s
+26% [6 Packages 3768 kB/19.0 MB 20%]                         90.6 kB/s 5min 26s
+37% [5 Packages 10.6 MB/19.0 MB 55%]                         88.6 kB/s 4min 37s
+26% [6 Packages 3830 kB/19.0 MB 20%]                         90.6 kB/s 5min 26s
+37% [5 Packages 10.6 MB/19.0 MB 56%]                         88.6 kB/s 4min 36s
+26% [6 Packages 3888 kB/19.0 MB 20%]                         90.6 kB/s 5min 25s
+37% [5 Packages 10.6 MB/19.0 MB 56%]                         88.6 kB/s 4min 36s
+26% [6 Packages 3895 kB/19.0 MB 20%]                         90.6 kB/s 5min 25s
+37% [5 Packages 10.7 MB/19.0 MB 56%]                         88.6 kB/s 4min 36s
+26% [6 Packages 3964 kB/19.0 MB 21%]                         94.6 kB/s 5min 10s
+37% [5 Packages 10.7 MB/19.0 MB 56%]                         88.6 kB/s 4min 35s
+27% [6 Packages 4034 kB/19.0 MB 21%]                         94.6 kB/s 5min 10s
+37% [5 Packages 10.8 MB/19.0 MB 57%]                         86.0 kB/s 4min 43s
+27% [6 Packages 4091 kB/19.0 MB 21%]                          94.6 kB/s 5min 9s
+37% [5 Packages 10.8 MB/19.0 MB 57%]                         86.0 kB/s 4min 43s
+27% [6 Packages 4091 kB/19.0 MB 21%]                          94.6 kB/s 5min 9s
+37% [5 Packages 10.9 MB/19.0 MB 57%]                         86.0 kB/s 4min 42s
+27% [6 Packages 4160 kB/19.0 MB 22%]                          94.6 kB/s 5min 8s
+37% [5 Packages 10.9 MB/19.0 MB 57%]                         86.0 kB/s 4min 42s
+27% [6 Packages 4296 kB/19.0 MB 23%]                          94.6 kB/s 5min 7s
+38% [5 Packages 10.9 MB/19.0 MB 57%]                         86.0 kB/s 4min 41s
+27% [6 Packages 4380 kB/19.0 MB 23%]                          94.6 kB/s 5min 6s
+38% [5 Packages 11.0 MB/19.0 MB 58%]                         86.0 kB/s 4min 41s
+28% [6 Packages 4440 kB/19.0 MB 23%]                          94.6 kB/s 5min 5s
+38% [5 Packages 11.0 MB/19.0 MB 58%]                         86.0 kB/s 4min 40s
+28% [6 Packages 4543 kB/19.0 MB 24%]                          94.6 kB/s 5min 4s
+38% [5 Packages 11.0 MB/19.0 MB 58%]                         86.0 kB/s 4min 40s
+28% [6 Packages 4609 kB/19.0 MB 24%]                          94.6 kB/s 5min 3s
+38% [5 Packages 11.1 MB/19.0 MB 58%]                         86.0 kB/s 4min 39s
+28% [6 Packages 4733 kB/19.0 MB 25%]                          94.6 kB/s 5min 2s
+38% [5 Packages 11.2 MB/19.0 MB 59%]                         86.0 kB/s 4min 38s
+28% [6 Packages 4824 kB/19.0 MB 25%]                          94.6 kB/s 5min 1s
+38% [5 Packages 11.2 MB/19.0 MB 59%]                         86.0 kB/s 4min 38s
+28% [6 Packages 4865 kB/19.0 MB 26%]                          149 kB/s 3min 11s
+38% [5 Packages 11.3 MB/19.0 MB 59%]                         86.0 kB/s 4min 37s
+29% [6 Packages 5002 kB/19.0 MB 26%]                          149 kB/s 3min 10s
+38% [5 Packages 11.3 MB/19.0 MB 59%]                         85.9 kB/s 4min 37s
+29% [6 Packages 5016 kB/19.0 MB 26%]                          149 kB/s 3min 10s
+38% [5 Packages 11.3 MB/19.0 MB 60%]                         85.9 kB/s 4min 37s
+29% [6 Packages 5155 kB/19.0 MB 27%]                           149 kB/s 3min 9s
+38% [5 Packages 11.3 MB/19.0 MB 60%]                         85.9 kB/s 4min 37s
+29% [6 Packages 5253 kB/19.0 MB 28%]                           149 kB/s 3min 8s
+39% [5 Packages 11.5 MB/19.0 MB 60%]                         85.9 kB/s 4min 35s
+29% [6 Packages 5304 kB/19.0 MB 28%]                           149 kB/s 3min 8s
+39% [5 Packages 11.5 MB/19.0 MB 60%]                         85.9 kB/s 4min 35s
+30% [6 Packages 5441 kB/19.0 MB 29%]                           149 kB/s 3min 7s
+39% [5 Packages 11.6 MB/19.0 MB 61%]                         85.9 kB/s 4min 34s
+30% [6 Packages 5503 kB/19.0 MB 29%]                           149 kB/s 3min 6s
+39% [5 Packages 11.7 MB/19.0 MB 61%]                         85.9 kB/s 4min 33s
+30% [6 Packages 5603 kB/19.0 MB 29%]                           149 kB/s 3min 6s
+39% [5 Packages 11.7 MB/19.0 MB 62%]                         85.9 kB/s 4min 32s
+30% [6 Packages 5742 kB/19.0 MB 30%]                           149 kB/s 3min 5s
+39% [5 Packages 11.8 MB/19.0 MB 62%]                         85.9 kB/s 4min 31s
+31% [6 Packages 5886 kB/19.0 MB 31%]                           149 kB/s 3min 4s
+40% [5 Packages 11.9 MB/19.0 MB 62%]                         85.9 kB/s 4min 31s
+31% [6 Packages 5927 kB/19.0 MB 31%]                           149 kB/s 3min 4s
+40% [5 Packages 12.0 MB/19.0 MB 63%]                         85.9 kB/s 4min 30s
+31% [6 Packages 6138 kB/19.0 MB 32%]                           211 kB/s 2min 9s
+40% [5 Packages 12.0 MB/19.0 MB 63%]                         85.9 kB/s 4min 29s
+31% [6 Packages 6161 kB/19.0 MB 32%]                           211 kB/s 2min 8s
+40% [5 Packages 12.1 MB/19.0 MB 64%]                          131 kB/s 2min 55s
+32% [6 Packages 6264 kB/19.0 MB 33%]                           211 kB/s 2min 8s
+40% [5 Packages 12.2 MB/19.0 MB 64%]                          131 kB/s 2min 55s
+32% [6 Packages 6409 kB/19.0 MB 34%]                           211 kB/s 2min 7s
+40% [5 Packages 12.2 MB/19.0 MB 64%]                          131 kB/s 2min 54s
+32% [6 Packages 6504 kB/19.0 MB 34%]                           211 kB/s 2min 7s
+41% [5 Packages 12.3 MB/19.0 MB 65%]                          131 kB/s 2min 53s
+32% [6 Packages 6649 kB/19.0 MB 35%]                           211 kB/s 2min 6s
+41% [5 Packages 12.3 MB/19.0 MB 65%]                          131 kB/s 2min 53s
+32% [6 Packages 6649 kB/19.0 MB 35%]                           211 kB/s 2min 6s
+41% [5 Packages 12.4 MB/19.0 MB 65%]                          131 kB/s 2min 53s
+33% [6 Packages 6901 kB/19.0 MB 36%]                           211 kB/s 2min 5s
+41% [5 Packages 12.5 MB/19.0 MB 66%]                          131 kB/s 2min 52s
+33% [6 Packages 7076 kB/19.0 MB 37%]                           211 kB/s 2min 4s
+41% [5 Packages 12.5 MB/19.0 MB 66%]                          131 kB/s 2min 52s
+34% [6 Packages 7151 kB/19.0 MB 38%]                           211 kB/s 2min 4s
+41% [5 Packages 12.6 MB/19.0 MB 66%]                          131 kB/s 2min 51s
+34% [6 Packages 7267 kB/19.0 MB 38%]                           211 kB/s 2min 3s
+41% [5 Packages 12.7 MB/19.0 MB 67%]                          131 kB/s 2min 51s
+34% [6 Packages 7385 kB/19.0 MB 39%]                           211 kB/s 2min 3s
+41% [5 Packages 12.7 MB/19.0 MB 67%]                          131 kB/s 2min 51s
+34% [6 Packages 7488 kB/19.0 MB 39%]                          223 kB/s 1min 55s
+42% [5 Packages 12.8 MB/19.0 MB 67%]                          131 kB/s 2min 50s
+35% [6 Packages 7581 kB/19.0 MB 40%]                          223 kB/s 1min 55s
+42% [5 Packages 12.8 MB/19.0 MB 68%]                           123 kB/s 3min 1s
+35% [6 Packages 7581 kB/19.0 MB 40%]                          223 kB/s 1min 55s
+42% [5 Packages 12.9 MB/19.0 MB 68%]                           123 kB/s 3min 0s
+35% [6 Packages 7791 kB/19.0 MB 41%]                          223 kB/s 1min 54s
+42% [5 Packages 12.9 MB/19.0 MB 68%]                           123 kB/s 3min 0s
+35% [6 Packages 7904 kB/19.0 MB 42%]                          223 kB/s 1min 54s
+42% [5 Packages 13.0 MB/19.0 MB 68%]                          123 kB/s 2min 59s
+35% [6 Packages 7997 kB/19.0 MB 42%]                          223 kB/s 1min 53s
+42% [5 Packages 13.1 MB/19.0 MB 69%]                          123 kB/s 2min 59s
+36% [6 Packages 8110 kB/19.0 MB 43%]                          223 kB/s 1min 53s
+42% [5 Packages 13.1 MB/19.0 MB 69%]                          123 kB/s 2min 59s
+36% [6 Packages 8146 kB/19.0 MB 43%]                          223 kB/s 1min 52s
+42% [5 Packages 13.2 MB/19.0 MB 69%]                          123 kB/s 2min 58s
+36% [6 Packages 8304 kB/19.0 MB 44%]                          223 kB/s 1min 52s
+43% [5 Packages 13.2 MB/19.0 MB 70%]                          123 kB/s 2min 57s
+36% [6 Packages 8304 kB/19.0 MB 44%]                          223 kB/s 1min 52s
+43% [5 Packages 13.3 MB/19.0 MB 70%]                          123 kB/s 2min 57s
+37% [6 Packages 8490 kB/19.0 MB 45%]                          223 kB/s 1min 51s
+43% [5 Packages 13.3 MB/19.0 MB 70%]                          123 kB/s 2min 57s
+37% [6 Packages 8582 kB/19.0 MB 45%]                          223 kB/s 1min 50s
+43% [5 Packages 13.4 MB/19.0 MB 70%]                          123 kB/s 2min 56s
+37% [6 Packages 8706 kB/19.0 MB 46%]                           202 kB/s 2min 2s
+43% [5 Packages 13.5 MB/19.0 MB 71%]                          123 kB/s 2min 56s
+37% [6 Packages 8841 kB/19.0 MB 46%]                           202 kB/s 2min 1s
+43% [5 Packages 13.5 MB/19.0 MB 71%]                           114 kB/s 3min 9s
+38% [6 Packages 8955 kB/19.0 MB 47%]                           202 kB/s 2min 0s
+43% [5 Packages 13.6 MB/19.0 MB 72%]                           114 kB/s 3min 9s
+38% [6 Packages 8997 kB/19.0 MB 47%]                           202 kB/s 2min 0s
+44% [5 Packages 13.7 MB/19.0 MB 72%]                           114 kB/s 3min 8s
+38% [6 Packages 9112 kB/19.0 MB 48%]                           202 kB/s 2min 0s
+44% [5 Packages 13.8 MB/19.0 MB 72%]                           114 kB/s 3min 7s
+38% [6 Packages 9243 kB/19.0 MB 49%]                          202 kB/s 1min 59s
+44% [5 Packages 13.8 MB/19.0 MB 73%]                           114 kB/s 3min 7s
+38% [6 Packages 9318 kB/19.0 MB 49%]                          202 kB/s 1min 59s
+44% [5 Packages 13.9 MB/19.0 MB 73%]                           114 kB/s 3min 6s
+38% [6 Packages 9318 kB/19.0 MB 49%]                          202 kB/s 1min 59s
+44% [5 Packages 14.0 MB/19.0 MB 73%]                           114 kB/s 3min 5s
+39% [6 Packages 9541 kB/19.0 MB 50%]                          202 kB/s 1min 58s
+44% [5 Packages 14.1 MB/19.0 MB 74%]                           114 kB/s 3min 5s
+39% [6 Packages 9620 kB/19.0 MB 51%]                          202 kB/s 1min 57s
+45% [5 Packages 14.1 MB/19.0 MB 74%]                           114 kB/s 3min 4s
+39% [6 Packages 9620 kB/19.0 MB 51%]                          202 kB/s 1min 57s
+45% [5 Packages 14.2 MB/19.0 MB 75%]                           114 kB/s 3min 4s
+39% [6 Packages 9737 kB/19.0 MB 51%]                          202 kB/s 1min 57s
+45% [5 Packages 14.3 MB/19.0 MB 75%]                           114 kB/s 3min 3s
+40% [6 Packages 9900 kB/19.0 MB 52%]                          198 kB/s 1min 58s
+45% [5 Packages 14.3 MB/19.0 MB 75%]                           114 kB/s 3min 2s
+40% [6 Packages 9925 kB/19.0 MB 52%]                          198 kB/s 1min 58s
+45% [5 Packages 14.4 MB/19.0 MB 76%]                          142 kB/s 2min 26s
+40% [6 Packages 9982 kB/19.0 MB 52%]                          198 kB/s 1min 58s
+45% [5 Packages 14.5 MB/19.0 MB 76%]                          142 kB/s 2min 25s
+40% [6 Packages 10.1 MB/19.0 MB 53%]                          198 kB/s 1min 58s
+46% [5 Packages 14.5 MB/19.0 MB 76%]                          142 kB/s 2min 25s
+40% [6 Packages 10.2 MB/19.0 MB 53%]                          198 kB/s 1min 57s
+46% [5 Packages 14.6 MB/19.0 MB 77%]                          142 kB/s 2min 24s
+40% [6 Packages 10.2 MB/19.0 MB 54%]                          198 kB/s 1min 57s
+46% [5 Packages 14.7 MB/19.0 MB 77%]                          142 kB/s 2min 24s
+41% [6 Packages 10.3 MB/19.0 MB 54%]                          198 kB/s 1min 56s
+46% [5 Packages 14.8 MB/19.0 MB 78%]                          142 kB/s 2min 23s
+41% [6 Packages 10.4 MB/19.0 MB 55%]                          198 kB/s 1min 56s
+46% [5 Packages 14.8 MB/19.0 MB 78%]                          142 kB/s 2min 23s
+41% [6 Packages 10.5 MB/19.0 MB 55%]                          198 kB/s 1min 55s
+46% [5 Packages 14.9 MB/19.0 MB 78%]                          142 kB/s 2min 23s
+41% [6 Packages 10.5 MB/19.0 MB 55%]                          198 kB/s 1min 55s
+46% [5 Packages 14.9 MB/19.0 MB 78%]                          142 kB/s 2min 22s
+41% [6 Packages 10.6 MB/19.0 MB 56%]                          198 kB/s 1min 55s
+47% [5 Packages 15.0 MB/19.0 MB 79%]                          142 kB/s 2min 22s
+42% [6 Packages 10.7 MB/19.0 MB 56%]                          198 kB/s 1min 54s
+47% [5 Packages 15.0 MB/19.0 MB 79%]                          142 kB/s 2min 22s
+42% [6 Packages 10.7 MB/19.0 MB 56%]                          135 kB/s 2min 48s
+47% [5 Packages 15.1 MB/19.0 MB 79%]                          142 kB/s 2min 21s
+42% [6 Packages 10.9 MB/19.0 MB 57%]                          135 kB/s 2min 47s
+47% [5 Packages 15.2 MB/19.0 MB 80%]                          127 kB/s 2min 37s
+42% [6 Packages 10.9 MB/19.0 MB 57%]                          135 kB/s 2min 46s
+47% [5 Packages 15.2 MB/19.0 MB 80%]                          127 kB/s 2min 36s
+42% [6 Packages 11.0 MB/19.0 MB 58%]                          135 kB/s 2min 46s
+47% [5 Packages 15.3 MB/19.0 MB 80%]                          127 kB/s 2min 36s
+42% [6 Packages 11.1 MB/19.0 MB 58%]                          135 kB/s 2min 45s
+47% [5 Packages 15.4 MB/19.0 MB 81%]                          127 kB/s 2min 35s
+43% [6 Packages 11.2 MB/19.0 MB 59%]                          135 kB/s 2min 44s
+48% [5 Packages 15.4 MB/19.0 MB 81%]                          127 kB/s 2min 35s
+43% [6 Packages 11.3 MB/19.0 MB 59%]                          135 kB/s 2min 44s
+48% [5 Packages 15.5 MB/19.0 MB 81%]                          127 kB/s 2min 35s
+43% [6 Packages 11.3 MB/19.0 MB 60%]                          135 kB/s 2min 43s
+48% [5 Packages 15.6 MB/19.0 MB 82%]                          127 kB/s 2min 34s
+43% [6 Packages 11.4 MB/19.0 MB 60%]                          135 kB/s 2min 42s
+48% [5 Packages 15.6 MB/19.0 MB 82%]                          127 kB/s 2min 34s
+43% [6 Packages 11.5 MB/19.0 MB 60%]                          135 kB/s 2min 42s
+48% [5 Packages 15.6 MB/19.0 MB 82%]                          127 kB/s 2min 33s
+43% [6 Packages 11.5 MB/19.0 MB 61%]                          135 kB/s 2min 42s
+48% [5 Packages 15.7 MB/19.0 MB 82%]                          127 kB/s 2min 33s
+44% [6 Packages 11.6 MB/19.0 MB 61%]                          135 kB/s 2min 41s
+48% [5 Packages 15.7 MB/19.0 MB 83%]                          127 kB/s 2min 32s
+44% [6 Packages 11.6 MB/19.0 MB 61%]                          151 kB/s 2min 23s
+48% [5 Packages 15.8 MB/19.0 MB 83%]                          127 kB/s 2min 32s
+44% [6 Packages 11.6 MB/19.0 MB 61%]                          151 kB/s 2min 23s
+49% [5 Packages 15.9 MB/19.0 MB 83%]                          116 kB/s 2min 46s
+44% [6 Packages 11.8 MB/19.0 MB 62%]                          151 kB/s 2min 22s
+49% [5 Packages 15.9 MB/19.0 MB 84%]                          116 kB/s 2min 46s
+44% [6 Packages 11.9 MB/19.0 MB 62%]                          151 kB/s 2min 21s
+49% [5 Packages 16.0 MB/19.0 MB 84%]                          116 kB/s 2min 45s
+44% [6 Packages 12.0 MB/19.0 MB 63%]                          151 kB/s 2min 21s
+49% [5 Packages 16.1 MB/19.0 MB 84%]                          116 kB/s 2min 45s
+44% [6 Packages 12.0 MB/19.0 MB 63%]                          151 kB/s 2min 21s
+49% [5 Packages 16.1 MB/19.0 MB 85%]                          116 kB/s 2min 44s
+45% [6 Packages 12.1 MB/19.0 MB 63%]                          151 kB/s 2min 20s
+49% [5 Packages 16.2 MB/19.0 MB 85%]                          116 kB/s 2min 44s
+45% [6 Packages 12.1 MB/19.0 MB 64%]                          151 kB/s 2min 20s
+49% [5 Packages 16.2 MB/19.0 MB 85%]                          116 kB/s 2min 43s
+45% [6 Packages 12.2 MB/19.0 MB 64%]                          151 kB/s 2min 20s
+49% [5 Packages 16.2 MB/19.0 MB 85%]                          116 kB/s 2min 43s
+45% [6 Packages 12.2 MB/19.0 MB 64%]                          151 kB/s 2min 19s
+49% [5 Packages 16.3 MB/19.0 MB 86%]                          116 kB/s 2min 43s
+45% [6 Packages 12.2 MB/19.0 MB 64%]                          151 kB/s 2min 19s
+50% [5 Packages 16.3 MB/19.0 MB 86%]                          116 kB/s 2min 42s
+45% [6 Packages 12.3 MB/19.0 MB 65%]                          151 kB/s 2min 18s
+50% [5 Packages 16.3 MB/19.0 MB 86%]                          116 kB/s 2min 42s
+45% [6 Packages 12.4 MB/19.0 MB 65%]                          133 kB/s 2min 37s
+50% [5 Packages 16.4 MB/19.0 MB 86%]                          116 kB/s 2min 42s
+46% [6 Packages 12.5 MB/19.0 MB 66%]                          133 kB/s 2min 36s
+50% [5 Packages 16.5 MB/19.0 MB 87%]                           100 kB/s 3min 6s
+46% [6 Packages 12.5 MB/19.0 MB 66%]                          133 kB/s 2min 36s
+50% [5 Packages 16.5 MB/19.0 MB 87%]                           100 kB/s 3min 5s
+46% [6 Packages 12.6 MB/19.0 MB 66%]                          133 kB/s 2min 35s
+50% [5 Packages 16.6 MB/19.0 MB 87%]                           100 kB/s 3min 5s
+46% [6 Packages 12.6 MB/19.0 MB 66%]                          133 kB/s 2min 35s
+50% [5 Packages 16.6 MB/19.0 MB 87%]                           100 kB/s 3min 5s
+46% [6 Packages 12.7 MB/19.0 MB 67%]                          133 kB/s 2min 35s
+50% [5 Packages 16.6 MB/19.0 MB 87%]                           100 kB/s 3min 4s
+46% [6 Packages 12.7 MB/19.0 MB 67%]                          133 kB/s 2min 35s
+50% [5 Packages 16.7 MB/19.0 MB 88%]                           100 kB/s 3min 4s
+46% [6 Packages 12.7 MB/19.0 MB 67%]                          133 kB/s 2min 35s
+50% [5 Packages 16.7 MB/19.0 MB 88%]                           100 kB/s 3min 3s
+46% [6 Packages 12.8 MB/19.0 MB 67%]                          133 kB/s 2min 34s
+50% [5 Packages 16.7 MB/19.0 MB 88%]                           100 kB/s 3min 3s
+46% [6 Packages 12.9 MB/19.0 MB 68%]                          133 kB/s 2min 34s
+51% [5 Packages 16.8 MB/19.0 MB 88%]                           100 kB/s 3min 2s
+46% [6 Packages 12.9 MB/19.0 MB 68%]                          133 kB/s 2min 34s
+51% [5 Packages 16.9 MB/19.0 MB 89%]                           100 kB/s 3min 2s
+46% [6 Packages 12.9 MB/19.0 MB 68%]                          133 kB/s 2min 34s
+51% [5 Packages 16.9 MB/19.0 MB 89%]                           100 kB/s 3min 1s
+47% [6 Packages 13.0 MB/19.0 MB 68%]                         92.2 kB/s 3min 41s
+51% [5 Packages 17.0 MB/19.0 MB 89%]                           100 kB/s 3min 1s
+47% [6 Packages 13.0 MB/19.0 MB 68%]                         92.2 kB/s 3min 40s
+51% [5 Packages 17.0 MB/19.0 MB 89%]                         84.1 kB/s 3min 36s
+47% [6 Packages 13.1 MB/19.0 MB 69%]                         92.2 kB/s 3min 39s
+51% [5 Packages 17.0 MB/19.0 MB 89%]                         84.1 kB/s 3min 36s
+47% [6 Packages 13.1 MB/19.0 MB 69%]                         92.2 kB/s 3min 39s
+51% [5 Packages 17.1 MB/19.0 MB 90%]                         84.1 kB/s 3min 35s
+47% [6 Packages 13.2 MB/19.0 MB 69%]                         92.2 kB/s 3min 39s
+51% [5 Packages 17.1 MB/19.0 MB 90%]                         84.1 kB/s 3min 34s
+47% [6 Packages 13.3 MB/19.0 MB 70%]                         92.2 kB/s 3min 38s
+51% [5 Packages 17.2 MB/19.0 MB 90%]                         84.1 kB/s 3min 34s
+47% [6 Packages 13.3 MB/19.0 MB 70%]                         92.2 kB/s 3min 37s
+52% [5 Packages 17.2 MB/19.0 MB 90%]                         84.1 kB/s 3min 33s
+48% [6 Packages 13.4 MB/19.0 MB 70%]                         92.2 kB/s 3min 36s
+52% [5 Packages 17.3 MB/19.0 MB 91%]                         84.1 kB/s 3min 32s
+48% [6 Packages 13.4 MB/19.0 MB 71%]                         92.2 kB/s 3min 36s
+52% [5 Packages 17.3 MB/19.0 MB 91%]                         84.1 kB/s 3min 32s
+48% [6 Packages 13.5 MB/19.0 MB 71%]                         92.2 kB/s 3min 35s
+52% [5 Packages 17.3 MB/19.0 MB 91%]                         84.1 kB/s 3min 32s
+48% [6 Packages 13.5 MB/19.0 MB 71%]                         92.2 kB/s 3min 35s
+52% [5 Packages 17.4 MB/19.0 MB 91%]                         84.1 kB/s 3min 31s
+48% [6 Packages 13.5 MB/19.0 MB 71%]                         92.2 kB/s 3min 35s
+52% [5 Packages 17.4 MB/19.0 MB 92%]                         84.1 kB/s 3min 31s
+48% [6 Packages 13.6 MB/19.0 MB 71%]                          102 kB/s 3min 14s
+52% [5 Packages 17.4 MB/19.0 MB 92%]                         84.1 kB/s 3min 30s
+48% [6 Packages 13.6 MB/19.0 MB 72%]                          102 kB/s 3min 14s
+52% [5 Packages 17.5 MB/19.0 MB 92%]                         81.6 kB/s 3min 36s
+48% [6 Packages 13.7 MB/19.0 MB 72%]                          102 kB/s 3min 13s
+52% [5 Packages 17.5 MB/19.0 MB 92%]                         81.6 kB/s 3min 36s
+48% [6 Packages 13.7 MB/19.0 MB 72%]                          102 kB/s 3min 13s
+52% [5 Packages 17.5 MB/19.0 MB 92%]                         81.6 kB/s 3min 36s
+48% [6 Packages 13.7 MB/19.0 MB 72%]                          102 kB/s 3min 13s
+52% [5 Packages 17.5 MB/19.0 MB 92%]                         81.6 kB/s 3min 35s
+48% [6 Packages 13.7 MB/19.0 MB 72%]                          102 kB/s 3min 13s
+52% [5 Packages 17.6 MB/19.0 MB 92%]                         81.6 kB/s 3min 35s
+49% [6 Packages 13.8 MB/19.0 MB 73%]                          102 kB/s 3min 12s
+52% [5 Packages 17.6 MB/19.0 MB 93%]                         81.6 kB/s 3min 34s
+49% [6 Packages 13.9 MB/19.0 MB 73%]                          102 kB/s 3min 11s
+53% [5 Packages 17.7 MB/19.0 MB 93%]                         81.6 kB/s 3min 34s
+49% [6 Packages 13.9 MB/19.0 MB 73%]                          102 kB/s 3min 11s
+53% [5 Packages 17.7 MB/19.0 MB 93%]                         81.6 kB/s 3min 33s
+49% [6 Packages 14.0 MB/19.0 MB 73%]                          102 kB/s 3min 10s
+53% [5 Packages 17.7 MB/19.0 MB 93%]                         81.6 kB/s 3min 33s
+49% [6 Packages 14.0 MB/19.0 MB 73%]                          102 kB/s 3min 10s
+53% [5 Packages 17.8 MB/19.0 MB 93%]                         81.6 kB/s 3min 33s
+49% [6 Packages 14.0 MB/19.0 MB 74%]                          102 kB/s 3min 10s
+53% [5 Packages 17.8 MB/19.0 MB 94%]                         81.6 kB/s 3min 32s
+49% [6 Packages 14.1 MB/19.0 MB 74%]                         76.1 kB/s 4min 14s
+53% [5 Packages 17.8 MB/19.0 MB 94%]                         81.6 kB/s 3min 32s
+49% [6 Packages 14.1 MB/19.0 MB 74%]                         76.1 kB/s 4min 13s
+53% [5 Packages 17.9 MB/19.0 MB 94%]                         63.5 kB/s 4min 32s
+49% [6 Packages 14.2 MB/19.0 MB 74%]                         76.1 kB/s 4min 12s
+53% [5 Packages 17.9 MB/19.0 MB 94%]                         63.5 kB/s 4min 32s
+49% [6 Packages 14.2 MB/19.0 MB 75%]                         76.1 kB/s 4min 12s
+53% [5 Packages 17.9 MB/19.0 MB 94%]                         63.5 kB/s 4min 31s
+49% [6 Packages 14.2 MB/19.0 MB 75%]                         76.1 kB/s 4min 11s
+53% [5 Packages 18.0 MB/19.0 MB 94%]                         63.5 kB/s 4min 30s
+49% [6 Packages 14.2 MB/19.0 MB 75%]                         76.1 kB/s 4min 11s
+53% [5 Packages 18.0 MB/19.0 MB 94%]                         63.5 kB/s 4min 30s
+50% [6 Packages 14.3 MB/19.0 MB 75%]                         76.1 kB/s 4min 10s
+53% [5 Packages 18.0 MB/19.0 MB 95%]                         63.5 kB/s 4min 29s
+50% [6 Packages 14.4 MB/19.0 MB 76%]                          76.1 kB/s 4min 9s
+54% [5 Packages 18.1 MB/19.0 MB 95%]                         63.5 kB/s 4min 28s
+50% [6 Packages 14.4 MB/19.0 MB 76%]                          76.1 kB/s 4min 9s
+54% [5 Packages 18.1 MB/19.0 MB 95%]                         63.5 kB/s 4min 28s
+50% [6 Packages 14.4 MB/19.0 MB 76%]                          76.1 kB/s 4min 9s
+54% [5 Packages 18.1 MB/19.0 MB 95%]                         63.5 kB/s 4min 28s
+50% [6 Packages 14.5 MB/19.0 MB 76%]                          76.1 kB/s 4min 8s
+54% [5 Packages 18.2 MB/19.0 MB 96%]                         63.5 kB/s 4min 27s
+50% [6 Packages 14.5 MB/19.0 MB 76%]                          76.1 kB/s 4min 7s
+54% [5 Packages 18.2 MB/19.0 MB 96%]                         63.5 kB/s 4min 27s
+50% [6 Packages 14.6 MB/19.0 MB 77%]                         82.3 kB/s 3min 48s
+54% [5 Packages 18.2 MB/19.0 MB 96%]                         63.5 kB/s 4min 27s
+50% [6 Packages 14.6 MB/19.0 MB 77%]                         82.3 kB/s 3min 48s
+54% [5 Packages 18.2 MB/19.0 MB 96%]                         64.9 kB/s 4min 20s
+50% [6 Packages 14.7 MB/19.0 MB 77%]                         82.3 kB/s 3min 47s
+54% [5 Packages 18.3 MB/19.0 MB 96%]                         64.9 kB/s 4min 20s
+50% [6 Packages 14.7 MB/19.0 MB 77%]                         82.3 kB/s 3min 47s
+54% [5 Packages 18.3 MB/19.0 MB 96%]                         64.9 kB/s 4min 19s
+51% [6 Packages 14.7 MB/19.0 MB 77%]                         82.3 kB/s 3min 46s
+54% [5 Packages 18.3 MB/19.0 MB 96%]                         64.9 kB/s 4min 19s
+51% [6 Packages 14.7 MB/19.0 MB 78%]                         82.3 kB/s 3min 46s
+54% [5 Packages 18.3 MB/19.0 MB 96%]                         64.9 kB/s 4min 19s
+51% [6 Packages 14.8 MB/19.0 MB 78%]                         82.3 kB/s 3min 46s
+54% [5 Packages 18.4 MB/19.0 MB 97%]                         64.9 kB/s 4min 18s
+51% [6 Packages 14.8 MB/19.0 MB 78%]                         82.3 kB/s 3min 45s
+54% [5 Packages 18.4 MB/19.0 MB 97%]                         64.9 kB/s 4min 18s
+51% [6 Packages 14.8 MB/19.0 MB 78%]                         82.3 kB/s 3min 45s
+54% [5 Packages 18.4 MB/19.0 MB 97%]                         64.9 kB/s 4min 18s
+51% [6 Packages 14.9 MB/19.0 MB 78%]                         82.3 kB/s 3min 45s
+54% [5 Packages 18.4 MB/19.0 MB 97%]                         64.9 kB/s 4min 18s
+51% [6 Packages 14.9 MB/19.0 MB 78%]                         82.3 kB/s 3min 44s
+54% [5 Packages 18.4 MB/19.0 MB 97%]                         64.9 kB/s 4min 17s
+51% [6 Packages 14.9 MB/19.0 MB 78%]                         82.3 kB/s 3min 44s
+54% [5 Packages 18.5 MB/19.0 MB 97%]                         64.9 kB/s 4min 17s
+51% [6 Packages 15.0 MB/19.0 MB 79%]                         68.3 kB/s 4min 29s
+54% [5 Packages 18.5 MB/19.0 MB 97%]                         64.9 kB/s 4min 16s
+51% [6 Packages 15.0 MB/19.0 MB 79%]                         68.3 kB/s 4min 29s
+54% [5 Packages 18.5 MB/19.0 MB 97%]                         44.6 kB/s 6min 13s
+51% [6 Packages 15.0 MB/19.0 MB 79%]                         68.3 kB/s 4min 29s
+54% [5 Packages 18.5 MB/19.0 MB 97%]                         44.6 kB/s 6min 13s
+51% [6 Packages 15.1 MB/19.0 MB 79%]                         68.3 kB/s 4min 28s
+55% [5 Packages 18.5 MB/19.0 MB 97%]                         44.6 kB/s 6min 12s
+51% [6 Packages 15.1 MB/19.0 MB 79%]                         68.3 kB/s 4min 27s
+55% [5 Packages 18.6 MB/19.0 MB 98%]                         44.6 kB/s 6min 12s
+51% [6 Packages 15.1 MB/19.0 MB 79%]                         68.3 kB/s 4min 27s
+55% [5 Packages 18.6 MB/19.0 MB 98%]                         44.6 kB/s 6min 11s
+51% [6 Packages 15.1 MB/19.0 MB 80%]                         68.3 kB/s 4min 27s
+55% [5 Packages 18.6 MB/19.0 MB 98%]                         44.6 kB/s 6min 10s
+52% [6 Packages 15.2 MB/19.0 MB 80%]                         68.3 kB/s 4min 26s
+55% [5 Packages 18.6 MB/19.0 MB 98%]                         44.6 kB/s 6min 10s
+52% [6 Packages 15.2 MB/19.0 MB 80%]                         68.3 kB/s 4min 26s
+55% [5 Packages 18.7 MB/19.0 MB 98%]                          44.6 kB/s 6min 9s
+52% [6 Packages 15.2 MB/19.0 MB 80%]                         68.3 kB/s 4min 26s
+55% [5 Packages 18.7 MB/19.0 MB 98%]                          44.6 kB/s 6min 9s
+52% [6 Packages 15.2 MB/19.0 MB 80%]                         68.3 kB/s 4min 25s
+55% [5 Packages 18.7 MB/19.0 MB 98%]                          44.6 kB/s 6min 9s
+52% [6 Packages 15.3 MB/19.0 MB 80%]                         68.3 kB/s 4min 24s
+55% [5 Packages 18.7 MB/19.0 MB 98%]                          44.6 kB/s 6min 8s
+52% [6 Packages 15.3 MB/19.0 MB 81%]                         57.8 kB/s 5min 12s
+55% [5 Packages 18.8 MB/19.0 MB 99%]                          44.6 kB/s 6min 7s
+52% [6 Packages 15.3 MB/19.0 MB 81%]                         57.8 kB/s 5min 12s
+55% [5 Packages 18.8 MB/19.0 MB 99%]                          44.8 kB/s 6min 5s
+52% [6 Packages 15.4 MB/19.0 MB 81%]                         57.8 kB/s 5min 11s
+55% [5 Packages 18.8 MB/19.0 MB 99%]                          44.8 kB/s 6min 4s
+52% [6 Packages 15.4 MB/19.0 MB 81%]                         57.8 kB/s 5min 10s
+55% [5 Packages 18.8 MB/19.0 MB 99%]                          44.8 kB/s 6min 4s
+52% [6 Packages 15.4 MB/19.0 MB 81%]                         57.8 kB/s 5min 10s
+55% [5 Packages 18.8 MB/19.0 MB 99%]                          44.8 kB/s 6min 4s
+52% [6 Packages 15.5 MB/19.0 MB 81%]                          57.8 kB/s 5min 9s
+55% [5 Packages 18.9 MB/19.0 MB 99%]                          44.8 kB/s 6min 3s
+52% [6 Packages 15.5 MB/19.0 MB 82%]                          57.8 kB/s 5min 8s
+55% [5 Packages 18.9 MB/19.0 MB 99%]                          44.8 kB/s 6min 3s
+52% [6 Packages 15.6 MB/19.0 MB 82%]                          57.8 kB/s 5min 8s
+55% [5 Packages 18.9 MB/19.0 MB 99%]                          44.8 kB/s 6min 2s
+52% [6 Packages 15.6 MB/19.0 MB 82%]                          57.8 kB/s 5min 7s
+55% [5 Packages 18.9 MB/19.0 MB 100%]                         44.8 kB/s 6min 1s
+53% [6 Packages 15.6 MB/19.0 MB 82%]                          57.8 kB/s 5min 7s
+55% [5 Packages 18.9 MB/19.0 MB 100%]                         44.8 kB/s 6min 1s
+53% [6 Packages 15.7 MB/19.0 MB 82%]                          57.8 kB/s 5min 6s
+55% [5 Packages 19.0 MB/19.0 MB 100%]                         44.8 kB/s 6min 1s
+53% [6 Packages 15.7 MB/19.0 MB 83%]                          57.8 kB/s 5min 5s
+56% [5 Packages 19.0 MB/19.0 MB 100%]                         44.8 kB/s 6min 1s
+53% [6 Packages 15.7 MB/19.0 MB 83%]                         67.3 kB/s 4min 22s
+56% [5 Packages 19.0 MB/19.0 MB 100%]                         44.8 kB/s 6min 0s
+53% [6 Packages 15.8 MB/19.0 MB 83%]                         67.3 kB/s 4min 21s
+56% [5 Packages 19.0 MB/19.0 MB 100%]                        36.9 kB/s 7min 17s
+53% [6 Packages 15.8 MB/19.0 MB 83%]                         67.3 kB/s 4min 21s
+                                                                               
+Get:6 http://ports.ubuntu.com/ubuntu-ports noble/multiverse arm64 Packages [274 kB]
+
+56% [6 Packages 1055 B/274 kB 0%]                            36.9 kB/s 7min 16s
+56% [5 Packages store 0 B] [6 Packages 1055 B/274 kB 0%]     36.9 kB/s 7min 16s
+56% [6 Packages 1055 B/274 kB 0%]                            36.9 kB/s 7min 16s
+53% [6 Packages 15.8 MB/19.0 MB 83%]                         67.3 kB/s 4min 20s
+56% [6 Packages 28.4 kB/274 kB 10%]                          36.9 kB/s 7min 15s
+53% [6 Packages 15.9 MB/19.0 MB 83%]                         67.3 kB/s 4min 20s
+56% [6 Packages 37.1 kB/274 kB 14%]                          36.9 kB/s 7min 15s
+53% [6 Packages 15.9 MB/19.0 MB 84%]                         67.3 kB/s 4min 20s
+56% [6 Packages 54.3 kB/274 kB 20%]                          36.9 kB/s 7min 15s
+53% [6 Packages 15.9 MB/19.0 MB 84%]                         67.3 kB/s 4min 19s
+56% [6 Packages 71.7 kB/274 kB 26%]                          36.9 kB/s 7min 14s
+53% [6 Packages 15.9 MB/19.0 MB 84%]                         67.3 kB/s 4min 19s
+56% [6 Packages 96.2 kB/274 kB 35%]                          36.9 kB/s 7min 14s
+53% [6 Packages 16.0 MB/19.0 MB 84%]                         67.3 kB/s 4min 19s
+56% [6 Packages 96.2 kB/274 kB 35%]                          36.9 kB/s 7min 14s
+53% [6 Packages 16.0 MB/19.0 MB 84%]                         67.3 kB/s 4min 18s
+56% [6 Packages 96.2 kB/274 kB 35%]                          36.9 kB/s 7min 14s
+53% [6 Packages 16.0 MB/19.0 MB 84%]                         67.3 kB/s 4min 18s
+56% [6 Packages 137 kB/274 kB 50%]                           36.9 kB/s 7min 12s
+53% [6 Packages 16.1 MB/19.0 MB 84%]                         67.3 kB/s 4min 17s
+56% [6 Packages 141 kB/274 kB 52%]                           36.9 kB/s 7min 12s
+54% [6 Packages 16.1 MB/19.0 MB 85%]                         61.8 kB/s 4min 39s
+57% [6 Packages 165 kB/274 kB 60%]                           36.9 kB/s 7min 12s
+54% [6 Packages 16.1 MB/19.0 MB 85%]                         61.8 kB/s 4min 39s
+57% [6 Packages 177 kB/274 kB 65%]                           32.1 kB/s 8min 17s
+54% [6 Packages 16.1 MB/19.0 MB 85%]                         61.8 kB/s 4min 39s
+57% [6 Packages 191 kB/274 kB 70%]                           32.1 kB/s 8min 16s
+54% [6 Packages 16.2 MB/19.0 MB 85%]                         61.8 kB/s 4min 38s
+57% [6 Packages 216 kB/274 kB 79%]                           32.1 kB/s 8min 16s
+54% [6 Packages 16.2 MB/19.0 MB 85%]                         61.8 kB/s 4min 37s
+57% [6 Packages 234 kB/274 kB 86%]                           32.1 kB/s 8min 15s
+54% [6 Packages 16.2 MB/19.0 MB 85%]                         61.8 kB/s 4min 37s
+57% [6 Packages 234 kB/274 kB 86%]                           32.1 kB/s 8min 15s
+54% [6 Packages 16.3 MB/19.0 MB 85%]                         61.8 kB/s 4min 37s
+57% [6 Packages 263 kB/274 kB 96%]                           32.1 kB/s 8min 14s
+54% [6 Packages 16.3 MB/19.0 MB 86%]                         61.8 kB/s 4min 36s
+57% [6 Packages 273 kB/274 kB 100%]                          32.1 kB/s 8min 14s
+                                                                               
+Get:7 http://ports.ubuntu.com/ubuntu-ports noble/restricted arm64 Packages [113 kB]
+
+57% [7 Packages 11.1 kB/113 kB 10%]                          32.1 kB/s 8min 13s
+57% [6 Packages store 0 B] [7 Packages 11.1 kB/113 kB 10%]   32.1 kB/s 8min 13s
+57% [7 Packages 11.1 kB/113 kB 10%]                          32.1 kB/s 8min 13s
+54% [6 Packages 16.3 MB/19.0 MB 86%]                         61.8 kB/s 4min 36s
+57% [7 Packages 25.5 kB/113 kB 23%]                          32.1 kB/s 8min 13s
+54% [6 Packages 16.3 MB/19.0 MB 86%]                         61.8 kB/s 4min 35s
+57% [7 Packages 32.7 kB/113 kB 29%]                          32.1 kB/s 8min 13s
+54% [6 Packages 16.4 MB/19.0 MB 86%]                         61.8 kB/s 4min 35s
+57% [7 Packages 51.0 kB/113 kB 45%]                          32.1 kB/s 8min 12s
+54% [6 Packages 16.4 MB/19.0 MB 86%]                         61.8 kB/s 4min 34s
+57% [7 Packages 66.9 kB/113 kB 59%]                          32.1 kB/s 8min 12s
+54% [6 Packages 16.4 MB/19.0 MB 86%]                         53.6 kB/s 5min 16s
+57% [7 Packages 66.9 kB/113 kB 59%]                          32.1 kB/s 8min 12s
+54% [6 Packages 16.4 MB/19.0 MB 86%]                         53.6 kB/s 5min 16s
+58% [7 Packages 104 kB/113 kB 92%]                           33.0 kB/s 7min 56s
+54% [6 Packages 16.5 MB/19.0 MB 87%]                         53.6 kB/s 5min 15s
+                                                                               
+Get:8 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 Packages [1776 kB]
+
+58% [8 Packages 5191 B/1776 kB 0%]                           33.0 kB/s 7min 56s
+58% [7 Packages store 0 B] [8 Packages 5191 B/1776 kB 0%]    33.0 kB/s 7min 56s
+58% [8 Packages 5191 B/1776 kB 0%]                           33.0 kB/s 7min 56s
+55% [6 Packages 16.5 MB/19.0 MB 87%]                         53.6 kB/s 5min 14s
+58% [8 Packages 29.7 kB/1776 kB 2%]                          33.0 kB/s 7min 55s
+55% [6 Packages 16.5 MB/19.0 MB 87%]                         53.6 kB/s 5min 14s
+58% [8 Packages 52.7 kB/1776 kB 3%]                          33.0 kB/s 7min 54s
+55% [6 Packages 16.6 MB/19.0 MB 87%]                         53.6 kB/s 5min 12s
+58% [8 Packages 67.4 kB/1776 kB 4%]                          33.0 kB/s 7min 54s
+55% [6 Packages 16.6 MB/19.0 MB 87%]                         53.6 kB/s 5min 12s
+58% [8 Packages 83.3 kB/1776 kB 5%]                          33.0 kB/s 7min 53s
+55% [6 Packages 16.7 MB/19.0 MB 88%]                         53.6 kB/s 5min 12s
+58% [8 Packages 97.7 kB/1776 kB 5%]                          33.0 kB/s 7min 53s
+55% [6 Packages 16.8 MB/19.0 MB 88%]                         53.6 kB/s 5min 10s
+58% [8 Packages 144 kB/1776 kB 8%]                           33.0 kB/s 7min 52s
+55% [6 Packages 16.8 MB/19.0 MB 88%]                          53.6 kB/s 5min 9s
+59% [8 Packages 160 kB/1776 kB 9%]                           33.0 kB/s 7min 51s
+55% [6 Packages 16.9 MB/19.0 MB 89%]                          53.6 kB/s 5min 8s
+59% [8 Packages 210 kB/1776 kB 12%]                          33.0 kB/s 7min 50s
+55% [6 Packages 16.9 MB/19.0 MB 89%]                          53.6 kB/s 5min 6s
+59% [8 Packages 227 kB/1776 kB 13%]                          33.0 kB/s 7min 49s
+56% [6 Packages 17.0 MB/19.0 MB 89%]                         95.6 kB/s 2min 51s
+59% [8 Packages 266 kB/1776 kB 15%]                          33.0 kB/s 7min 48s
+56% [6 Packages 17.0 MB/19.0 MB 90%]                         95.6 kB/s 2min 50s
+59% [8 Packages 315 kB/1776 kB 18%]                          53.8 kB/s 4min 46s
+56% [6 Packages 17.1 MB/19.0 MB 90%]                         95.6 kB/s 2min 49s
+59% [8 Packages 347 kB/1776 kB 20%]                          53.8 kB/s 4min 46s
+56% [6 Packages 17.2 MB/19.0 MB 91%]                         95.6 kB/s 2min 49s
+59% [8 Packages 364 kB/1776 kB 21%]                          53.8 kB/s 4min 45s
+56% [6 Packages 17.3 MB/19.0 MB 91%]                         95.6 kB/s 2min 48s
+59% [8 Packages 438 kB/1776 kB 25%]                          53.8 kB/s 4min 44s
+56% [6 Packages 17.3 MB/19.0 MB 91%]                         95.6 kB/s 2min 47s
+59% [8 Packages 474 kB/1776 kB 27%]                          53.8 kB/s 4min 43s
+57% [6 Packages 17.5 MB/19.0 MB 92%]                         95.6 kB/s 2min 46s
+59% [8 Packages 505 kB/1776 kB 28%]                          53.8 kB/s 4min 43s
+57% [6 Packages 17.5 MB/19.0 MB 92%]                         95.6 kB/s 2min 45s
+59% [8 Packages 570 kB/1776 kB 32%]                          53.8 kB/s 4min 41s
+57% [6 Packages 17.6 MB/19.0 MB 93%]                         95.6 kB/s 2min 44s
+59% [8 Packages 602 kB/1776 kB 34%]                          53.8 kB/s 4min 41s
+57% [6 Packages 17.6 MB/19.0 MB 93%]                         95.6 kB/s 2min 44s
+60% [8 Packages 652 kB/1776 kB 37%]                          53.8 kB/s 4min 40s
+57% [6 Packages 17.8 MB/19.0 MB 94%]                         95.6 kB/s 2min 43s
+60% [8 Packages 730 kB/1776 kB 41%]                          53.8 kB/s 4min 38s
+57% [6 Packages 17.8 MB/19.0 MB 94%]                         95.6 kB/s 2min 42s
+60% [8 Packages 766 kB/1776 kB 43%]                          53.8 kB/s 4min 38s
+58% [6 Packages 17.9 MB/19.0 MB 94%]                          154 kB/s 1min 40s
+60% [8 Packages 823 kB/1776 kB 46%]                          53.8 kB/s 4min 37s
+58% [6 Packages 18.0 MB/19.0 MB 95%]                          154 kB/s 1min 39s
+60% [8 Packages 888 kB/1776 kB 50%]                          94.7 kB/s 2min 36s
+58% [6 Packages 18.1 MB/19.0 MB 95%]                          154 kB/s 1min 39s
+60% [8 Packages 965 kB/1776 kB 54%]                          94.7 kB/s 2min 35s
+58% [6 Packages 18.2 MB/19.0 MB 96%]                          154 kB/s 1min 38s
+60% [8 Packages 1018 kB/1776 kB 57%]                         94.7 kB/s 2min 35s
+58% [6 Packages 18.3 MB/19.0 MB 96%]                          154 kB/s 1min 38s
+61% [8 Packages 1113 kB/1776 kB 63%]                         94.7 kB/s 2min 34s
+59% [6 Packages 18.3 MB/19.0 MB 96%]                          154 kB/s 1min 38s
+61% [8 Packages 1179 kB/1776 kB 66%]                         94.7 kB/s 2min 33s
+59% [6 Packages 18.4 MB/19.0 MB 97%]                          154 kB/s 1min 37s
+61% [8 Packages 1227 kB/1776 kB 69%]                         94.7 kB/s 2min 33s
+59% [6 Packages 18.4 MB/19.0 MB 97%]                          154 kB/s 1min 37s
+61% [8 Packages 1319 kB/1776 kB 74%]                         94.7 kB/s 2min 32s
+59% [6 Packages 18.6 MB/19.0 MB 98%]                          154 kB/s 1min 36s
+61% [8 Packages 1366 kB/1776 kB 77%]                         94.7 kB/s 2min 31s
+59% [6 Packages 18.6 MB/19.0 MB 98%]                          154 kB/s 1min 36s
+61% [8 Packages 1410 kB/1776 kB 79%]                         94.7 kB/s 2min 31s
+60% [6 Packages 18.7 MB/19.0 MB 99%]                          154 kB/s 1min 35s
+61% [8 Packages 1479 kB/1776 kB 83%]                         94.7 kB/s 2min 30s
+60% [6 Packages 18.8 MB/19.0 MB 99%]                          154 kB/s 1min 35s
+62% [8 Packages 1528 kB/1776 kB 86%]                         94.7 kB/s 2min 30s
+60% [6 Packages 18.8 MB/19.0 MB 99%]                          147 kB/s 1min 38s
+62% [8 Packages 1571 kB/1776 kB 88%]                         94.7 kB/s 2min 29s
+60% [6 Packages 18.9 MB/19.0 MB 99%]                          147 kB/s 1min 38s
+62% [8 Packages 1621 kB/1776 kB 91%]                          121 kB/s 1min 56s
+60% [6 Packages 19.0 MB/19.0 MB 100%]                         147 kB/s 1min 37s
+62% [8 Packages 1702 kB/1776 kB 96%]                          121 kB/s 1min 56s
+60% [6 Packages 19.0 MB/19.0 MB 100%]                         147 kB/s 1min 37s
+                                                                               
+Get:7 http://ports.ubuntu.com/ubuntu-ports noble/restricted arm64 Packages [113 kB]
+
+60% [7 Packages 46.8 kB/113 kB 41%]                           147 kB/s 1min 37s
+60% [6 Packages store 0 B] [7 Packages 46.8 kB/113 kB 41%]    147 kB/s 1min 37s
+62% [8 Packages 1719 kB/1776 kB 97%]                          121 kB/s 1min 55s
+61% [7 Packages 72.8 kB/113 kB 64%]                           147 kB/s 1min 37s
+                                                                               
+Get:9 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 Packages [1823 kB]
+
+62% [9 Packages 679 B/1823 kB 0%]                             121 kB/s 1min 55s
+62% [8 Packages store 0 B] [9 Packages 679 B/1823 kB 0%]      121 kB/s 1min 55s
+63% [9 Packages 4999 B/1823 kB 0%]                            121 kB/s 1min 55s
+61% [7 Packages 113 kB/113 kB 100%]                           147 kB/s 1min 36s
+                                                                               
+Get:8 http://ports.ubuntu.com/ubuntu-ports noble/multiverse arm64 Packages [274 kB]
+
+61% [8 Packages 9175 B/274 kB 3%]                             147 kB/s 1min 36s
+61% [7 Packages store 0 B] [8 Packages 48.6 kB/274 kB 18%]    147 kB/s 1min 36s
+62% [8 Packages 48.6 kB/274 kB 18%]                           147 kB/s 1min 36s
+63% [9 Packages 66.0 kB/1823 kB 4%]                           121 kB/s 1min 54s
+62% [8 Packages 96.1 kB/274 kB 35%]                           147 kB/s 1min 36s
+63% [9 Packages 138 kB/1823 kB 8%]                            121 kB/s 1min 54s
+62% [8 Packages 167 kB/274 kB 61%]                            147 kB/s 1min 35s
+63% [9 Packages 174 kB/1823 kB 10%]                           121 kB/s 1min 54s
+62% [8 Packages 224 kB/274 kB 82%]                            147 kB/s 1min 35s
+63% [9 Packages 206 kB/1823 kB 11%]                           121 kB/s 1min 53s
+62% [8 Packages 270 kB/274 kB 99%]                            147 kB/s 1min 34s
+                                                                               
+Get:9 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 Packages [2232 kB]
+
+62% [9 Packages 33.0 kB/2232 kB 1%]                           147 kB/s 1min 34s
+62% [8 Packages store 0 B] [9 Packages 33.0 kB/2232 kB 1%]    147 kB/s 1min 34s
+63% [9 Packages 33.0 kB/2232 kB 1%]                           147 kB/s 1min 34s
+63% [9 Packages 304 kB/1823 kB 17%]                           121 kB/s 1min 52s
+63% [9 Packages 125 kB/2232 kB 6%]                            147 kB/s 1min 34s
+63% [9 Packages 327 kB/1823 kB 18%]                           121 kB/s 1min 52s
+63% [9 Packages 163 kB/2232 kB 7%]                            147 kB/s 1min 33s
+64% [9 Packages 386 kB/1823 kB 21%]                           121 kB/s 1min 52s
+63% [9 Packages 262 kB/2232 kB 12%]                           137 kB/s 1min 40s
+64% [9 Packages 455 kB/1823 kB 25%]                           121 kB/s 1min 51s
+63% [9 Packages 353 kB/2232 kB 16%]                           137 kB/s 1min 39s
+64% [9 Packages 522 kB/1823 kB 29%]                           121 kB/s 1min 51s
+64% [9 Packages 443 kB/2232 kB 20%]                           137 kB/s 1min 39s
+64% [9 Packages 570 kB/1823 kB 31%]                           114 kB/s 1min 57s
+64% [9 Packages 497 kB/2232 kB 22%]                           137 kB/s 1min 38s
+64% [9 Packages 635 kB/1823 kB 35%]                           114 kB/s 1min 57s
+64% [9 Packages 582 kB/2232 kB 26%]                           137 kB/s 1min 38s
+64% [9 Packages 705 kB/1823 kB 39%]                           114 kB/s 1min 56s
+64% [9 Packages 657 kB/2232 kB 29%]                           137 kB/s 1min 37s
+64% [9 Packages 774 kB/1823 kB 42%]                           114 kB/s 1min 56s
+64% [9 Packages 716 kB/2232 kB 32%]                           137 kB/s 1min 37s
+65% [9 Packages 819 kB/1823 kB 45%]                           114 kB/s 1min 55s
+64% [9 Packages 795 kB/2232 kB 36%]                           137 kB/s 1min 36s
+65% [9 Packages 848 kB/1823 kB 47%]                           114 kB/s 1min 55s
+65% [9 Packages 906 kB/2232 kB 41%]                           137 kB/s 1min 35s
+65% [9 Packages 940 kB/1823 kB 52%]                           114 kB/s 1min 54s
+65% [9 Packages 1008 kB/2232 kB 45%]                          137 kB/s 1min 34s
+65% [9 Packages 985 kB/1823 kB 54%]                           114 kB/s 1min 54s
+65% [9 Packages 1109 kB/2232 kB 50%]                          137 kB/s 1min 34s
+65% [9 Packages 1011 kB/1823 kB 55%]                          114 kB/s 1min 54s
+65% [9 Packages 1168 kB/2232 kB 52%]                          137 kB/s 1min 33s
+65% [9 Packages 1054 kB/1823 kB 58%]                          114 kB/s 1min 53s
+66% [9 Packages 1306 kB/2232 kB 59%]                          173 kB/s 1min 13s
+65% [9 Packages 1110 kB/1823 kB 61%]                          114 kB/s 1min 53s
+66% [9 Packages 1414 kB/2232 kB 63%]                          173 kB/s 1min 12s
+65% [9 Packages 1119 kB/1823 kB 61%]                          114 kB/s 1min 53s
+66% [9 Packages 1521 kB/2232 kB 68%]                          173 kB/s 1min 11s
+65% [9 Packages 1201 kB/1823 kB 66%]                           104 kB/s 2min 2s
+66% [9 Packages 1617 kB/2232 kB 72%]                          173 kB/s 1min 11s
+65% [9 Packages 1261 kB/1823 kB 69%]                           104 kB/s 2min 1s
+67% [9 Packages 1722 kB/2232 kB 77%]                          173 kB/s 1min 10s
+66% [9 Packages 1293 kB/1823 kB 71%]                           104 kB/s 2min 1s
+67% [9 Packages 1865 kB/2232 kB 84%]                           173 kB/s 1min 9s
+66% [9 Packages 1349 kB/1823 kB 74%]                           104 kB/s 2min 0s
+67% [9 Packages 1873 kB/2232 kB 84%]                           173 kB/s 1min 9s
+66% [9 Packages 1395 kB/1823 kB 77%]                           104 kB/s 2min 0s
+67% [9 Packages 2033 kB/2232 kB 91%]                           173 kB/s 1min 8s
+66% [9 Packages 1448 kB/1823 kB 79%]                          104 kB/s 1min 59s
+67% [9 Packages 2107 kB/2232 kB 94%]                           173 kB/s 1min 8s
+66% [9 Packages 1479 kB/1823 kB 81%]                          104 kB/s 1min 59s
+68% [9 Packages 2197 kB/2232 kB 98%]                           173 kB/s 1min 7s
+66% [9 Packages 1503 kB/1823 kB 82%]                          104 kB/s 1min 59s
+68% [9 Packages 2197 kB/2232 kB 98%]                           173 kB/s 1min 7s
+                                                                               
+Get:10 http://ports.ubuntu.com/ubuntu-ports noble-updates/multiverse arm64 Packages [107 kB]
+
+68% [10 Packages 7962 B/107 kB 7%]                             173 kB/s 1min 7s
+68% [9 Packages store 0 B] [10 Packages 7962 B/107 kB 7%]      173 kB/s 1min 7s
+66% [9 Packages 1595 kB/1823 kB 88%]                          104 kB/s 1min 58s
+68% [10 Packages 31.0 kB/107 kB 29%]                           173 kB/s 1min 7s
+66% [9 Packages 1627 kB/1823 kB 89%]                          104 kB/s 1min 58s
+68% [10 Packages 74.1 kB/107 kB 69%]                           173 kB/s 1min 7s
+66% [9 Packages 1686 kB/1823 kB 92%]                          104 kB/s 1min 57s
+                                                                               
+Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 Packages [1823 kB]
+
+69% [11 Packages 26.0 kB/1823 kB 1%]                           174 kB/s 1min 6s
+69% [10 Packages store 0 B] [11 Packages 69.2 kB/1823 kB 4%]   174 kB/s 1min 6s
+69% [11 Packages 89.3 kB/1823 kB 5%]                           174 kB/s 1min 6s
+67% [9 Packages 1718 kB/1823 kB 94%]                          104 kB/s 1min 57s
+69% [11 Packages 125 kB/1823 kB 7%]                            174 kB/s 1min 6s
+67% [9 Packages 1758 kB/1823 kB 96%]                         92.4 kB/s 2min 12s
+70% [11 Packages 285 kB/1823 kB 16%]                           174 kB/s 1min 5s
+67% [9 Packages 1803 kB/1823 kB 99%]                         92.4 kB/s 2min 11s
+70% [11 Packages 331 kB/1823 kB 18%]                           174 kB/s 1min 4s
+                                                                               
+Get:10 http://ports.ubuntu.com/ubuntu-ports noble-updates/multiverse arm64 Packages [107 kB]
+
+67% [10 Packages 22.6 kB/107 kB 21%]                         92.4 kB/s 2min 11s
+67% [9 Packages store 0 B] [10 Packages 22.6 kB/107 kB 21%]  92.4 kB/s 2min 11s
+67% [10 Packages 22.6 kB/107 kB 21%]                         92.4 kB/s 2min 11s
+70% [11 Packages 397 kB/1823 kB 22%]                           174 kB/s 1min 4s
+67% [10 Packages 68.7 kB/107 kB 64%]                         92.4 kB/s 2min 10s
+70% [11 Packages 492 kB/1823 kB 27%]                           174 kB/s 1min 3s
+68% [10 Packages 102 kB/107 kB 95%]                          92.4 kB/s 2min 10s
+                                                                               
+Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/restricted arm64 Packages [3325 kB]
+
+68% [11 Packages 16.4 kB/3325 kB 0%]                         92.4 kB/s 2min 10s
+                                                                               
+68% [10 Packages store 0 B] [11 Packages 16.4 kB/3325 kB 0%]
+68% [11 Packages 16.4 kB/3325 kB 0%]                         92.4 kB/s 2min 10s
+70% [11 Packages 635 kB/1823 kB 35%]                           174 kB/s 1min 3s
+68% [11 Packages 61.0 kB/3325 kB 2%]                          92.4 kB/s 2min 9s
+71% [11 Packages 720 kB/1823 kB 39%]                           174 kB/s 1min 2s
+68% [11 Packages 109 kB/3325 kB 3%]                           92.4 kB/s 2min 9s
+71% [11 Packages 808 kB/1823 kB 44%]                           174 kB/s 1min 2s
+68% [11 Packages 136 kB/3325 kB 4%]                           92.4 kB/s 2min 8s
+71% [11 Packages 857 kB/1823 kB 47%]                           174 kB/s 1min 1s
+68% [11 Packages 175 kB/3325 kB 5%]                           92.4 kB/s 2min 8s
+71% [11 Packages 935 kB/1823 kB 51%]                           174 kB/s 1min 1s
+69% [11 Packages 241 kB/3325 kB 7%]                           92.4 kB/s 2min 7s
+71% [11 Packages 1068 kB/1823 kB 59%]                              174 kB/s 60s
+69% [11 Packages 291 kB/3325 kB 9%]                           92.4 kB/s 2min 7s
+71% [11 Packages 1076 kB/1823 kB 59%]                              174 kB/s 60s
+69% [11 Packages 299 kB/3325 kB 9%]                           92.4 kB/s 2min 7s
+72% [11 Packages 1241 kB/1823 kB 68%]                              174 kB/s 59s
+69% [11 Packages 346 kB/3325 kB 10%]                          92.4 kB/s 2min 6s
+72% [11 Packages 1318 kB/1823 kB 72%]                              174 kB/s 59s
+69% [11 Packages 356 kB/3325 kB 11%]                         81.8 kB/s 2min 22s
+72% [11 Packages 1397 kB/1823 kB 77%]                              174 kB/s 58s
+69% [11 Packages 424 kB/3325 kB 13%]                         81.8 kB/s 2min 22s
+72% [11 Packages 1508 kB/1823 kB 83%]                              174 kB/s 58s
+69% [11 Packages 446 kB/3325 kB 13%]                         81.8 kB/s 2min 21s
+73% [11 Packages 1562 kB/1823 kB 86%]                              174 kB/s 57s
+69% [11 Packages 497 kB/3325 kB 15%]                         81.8 kB/s 2min 21s
+73% [11 Packages 1701 kB/1823 kB 93%]                              174 kB/s 57s
+69% [11 Packages 535 kB/3325 kB 16%]                         81.8 kB/s 2min 20s
+73% [11 Packages 1728 kB/1823 kB 95%]                              174 kB/s 56s
+                                                                               
+Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/restricted arm64 Packages [3325 kB]
+
+73% [12 Packages 8640 B/3325 kB 0%]                                174 kB/s 56s
+73% [11 Packages store 0 B] [12 Packages 8640 B/3325 kB 0%]        174 kB/s 56s
+74% [12 Packages 8640 B/3325 kB 0%]                                174 kB/s 56s
+69% [11 Packages 566 kB/3325 kB 17%]                         81.8 kB/s 2min 20s
+74% [12 Packages 61.9 kB/3325 kB 2%]                               174 kB/s 56s
+69% [11 Packages 614 kB/3325 kB 18%]                         81.8 kB/s 2min 19s
+74% [12 Packages 181 kB/3325 kB 5%]                                174 kB/s 55s
+70% [11 Packages 664 kB/3325 kB 20%]                         81.8 kB/s 2min 19s
+74% [12 Packages 239 kB/3325 kB 7%]                                174 kB/s 55s
+70% [11 Packages 670 kB/3325 kB 20%]                         81.8 kB/s 2min 18s
+74% [12 Packages 274 kB/3325 kB 8%]                                174 kB/s 54s
+70% [11 Packages 725 kB/3325 kB 22%]                         81.8 kB/s 2min 18s
+74% [12 Packages 359 kB/3325 kB 11%]                               173 kB/s 54s
+70% [11 Packages 759 kB/3325 kB 23%]                         81.8 kB/s 2min 17s
+75% [12 Packages 448 kB/3325 kB 13%]                               173 kB/s 54s
+70% [11 Packages 788 kB/3325 kB 24%]                         81.8 kB/s 2min 17s
+75% [12 Packages 507 kB/3325 kB 15%]                               173 kB/s 53s
+70% [11 Packages 820 kB/3325 kB 25%]                         76.8 kB/s 2min 26s
+75% [12 Packages 507 kB/3325 kB 15%]                               173 kB/s 53s
+70% [11 Packages 866 kB/3325 kB 26%]                         76.8 kB/s 2min 25s
+75% [12 Packages 533 kB/3325 kB 16%]                               173 kB/s 53s
+70% [11 Packages 916 kB/3325 kB 28%]                         76.8 kB/s 2min 24s
+75% [12 Packages 550 kB/3325 kB 17%]                               173 kB/s 53s
+70% [11 Packages 941 kB/3325 kB 28%]                         76.8 kB/s 2min 24s
+75% [12 Packages 749 kB/3325 kB 23%]                               173 kB/s 52s
+70% [11 Packages 975 kB/3325 kB 29%]                         76.8 kB/s 2min 24s
+75% [12 Packages 831 kB/3325 kB 25%]                               173 kB/s 51s
+70% [11 Packages 997 kB/3325 kB 30%]                         76.8 kB/s 2min 23s
+76% [12 Packages 860 kB/3325 kB 26%]                               173 kB/s 51s
+70% [11 Packages 1053 kB/3325 kB 32%]                        76.8 kB/s 2min 23s
+76% [12 Packages 933 kB/3325 kB 28%]                               173 kB/s 51s
+70% [11 Packages 1076 kB/3325 kB 32%]                        76.8 kB/s 2min 22s
+76% [12 Packages 1037 kB/3325 kB 31%]                              173 kB/s 50s
+71% [11 Packages 1128 kB/3325 kB 34%]                        76.8 kB/s 2min 22s
+76% [12 Packages 1074 kB/3325 kB 32%]                              173 kB/s 50s
+71% [11 Packages 1183 kB/3325 kB 36%]                        76.8 kB/s 2min 21s
+76% [12 Packages 1205 kB/3325 kB 36%]                          140 kB/s 1min 1s
+71% [11 Packages 1207 kB/3325 kB 36%]                        76.8 kB/s 2min 21s
+76% [12 Packages 1205 kB/3325 kB 36%]                          140 kB/s 1min 1s
+71% [11 Packages 1248 kB/3325 kB 38%]                        76.8 kB/s 2min 20s
+77% [12 Packages 1297 kB/3325 kB 39%]                              140 kB/s 60s
+71% [11 Packages 1292 kB/3325 kB 39%]                        78.3 kB/s 2min 17s
+77% [12 Packages 1359 kB/3325 kB 41%]                              140 kB/s 60s
+71% [11 Packages 1351 kB/3325 kB 41%]                        78.3 kB/s 2min 16s
+77% [12 Packages 1476 kB/3325 kB 44%]                              140 kB/s 59s
+71% [11 Packages 1356 kB/3325 kB 41%]                        78.3 kB/s 2min 16s
+77% [12 Packages 1572 kB/3325 kB 47%]                              140 kB/s 58s
+71% [11 Packages 1443 kB/3325 kB 43%]                        78.3 kB/s 2min 15s
+77% [12 Packages 1580 kB/3325 kB 48%]                              140 kB/s 58s
+71% [11 Packages 1487 kB/3325 kB 45%]                        78.3 kB/s 2min 14s
+77% [12 Packages 1637 kB/3325 kB 49%]                              140 kB/s 58s
+71% [11 Packages 1521 kB/3325 kB 46%]                        78.3 kB/s 2min 14s
+78% [12 Packages 1770 kB/3325 kB 53%]                              140 kB/s 57s
+72% [11 Packages 1563 kB/3325 kB 47%]                        78.3 kB/s 2min 13s
+78% [12 Packages 1842 kB/3325 kB 55%]                              140 kB/s 56s
+72% [11 Packages 1608 kB/3325 kB 48%]                        78.3 kB/s 2min 13s
+78% [12 Packages 1922 kB/3325 kB 58%]                              140 kB/s 56s
+72% [11 Packages 1680 kB/3325 kB 51%]                        78.3 kB/s 2min 12s
+78% [12 Packages 2029 kB/3325 kB 61%]                              140 kB/s 55s
+72% [11 Packages 1695 kB/3325 kB 51%]                        78.3 kB/s 2min 12s
+78% [12 Packages 2064 kB/3325 kB 62%]                              142 kB/s 54s
+72% [11 Packages 1773 kB/3325 kB 53%]                        78.3 kB/s 2min 11s
+78% [12 Packages 2088 kB/3325 kB 63%]                              142 kB/s 54s
+72% [11 Packages 1805 kB/3325 kB 54%]                        78.3 kB/s 2min 10s
+79% [12 Packages 2196 kB/3325 kB 66%]                              142 kB/s 53s
+72% [11 Packages 1878 kB/3325 kB 56%]                        97.0 kB/s 1min 44s
+79% [12 Packages 2298 kB/3325 kB 69%]                              142 kB/s 52s
+72% [11 Packages 1910 kB/3325 kB 57%]                        97.0 kB/s 1min 44s
+79% [12 Packages 2364 kB/3325 kB 71%]                              142 kB/s 52s
+73% [11 Packages 2004 kB/3325 kB 60%]                        97.0 kB/s 1min 43s
+79% [12 Packages 2436 kB/3325 kB 73%]                              142 kB/s 51s
+73% [11 Packages 2096 kB/3325 kB 63%]                        97.0 kB/s 1min 42s
+79% [12 Packages 2550 kB/3325 kB 77%]                              142 kB/s 51s
+73% [11 Packages 2120 kB/3325 kB 64%]                        97.0 kB/s 1min 42s
+79% [12 Packages 2586 kB/3325 kB 78%]                              142 kB/s 50s
+73% [11 Packages 2188 kB/3325 kB 66%]                        97.0 kB/s 1min 41s
+80% [12 Packages 2655 kB/3325 kB 80%]                              142 kB/s 50s
+73% [11 Packages 2283 kB/3325 kB 69%]                        97.0 kB/s 1min 40s
+80% [12 Packages 2776 kB/3325 kB 84%]                              142 kB/s 49s
+73% [11 Packages 2332 kB/3325 kB 70%]                        97.0 kB/s 1min 40s
+80% [12 Packages 2814 kB/3325 kB 85%]                              142 kB/s 49s
+73% [11 Packages 2408 kB/3325 kB 72%]                        97.0 kB/s 1min 39s
+80% [12 Packages 2942 kB/3325 kB 88%]                              142 kB/s 48s
+74% [11 Packages 2462 kB/3325 kB 74%]                        97.0 kB/s 1min 38s
+80% [12 Packages 2989 kB/3325 kB 90%]                              153 kB/s 44s
+74% [11 Packages 2529 kB/3325 kB 76%]                        97.0 kB/s 1min 38s
+81% [12 Packages 3109 kB/3325 kB 94%]                              153 kB/s 43s
+74% [11 Packages 2585 kB/3325 kB 78%]                        97.0 kB/s 1min 37s
+81% [12 Packages 3109 kB/3325 kB 94%]                              153 kB/s 43s
+74% [11 Packages 2603 kB/3325 kB 78%]                         120 kB/s 1min 18s
+81% [12 Packages 3185 kB/3325 kB 96%]                              153 kB/s 43s
+74% [11 Packages 2696 kB/3325 kB 81%]                         120 kB/s 1min 17s
+81% [12 Packages 3221 kB/3325 kB 97%]                              153 kB/s 42s
+74% [11 Packages 2747 kB/3325 kB 83%]                         120 kB/s 1min 17s
+                                                                               
+Get:13 http://ports.ubuntu.com/ubuntu-ports noble-backports/multiverse arm64 Packages [669 B]
+
+                                                                               
+Get:14 http://ports.ubuntu.com/ubuntu-ports noble-backports/main arm64 Packages [49.0 kB]
+
+81% [14 Packages 8988 B/49.0 kB 18%]                               153 kB/s 42s
+81% [12 Packages store 0 B] [14 Packages 8988 B/49.0 kB 18%]       153 kB/s 42s
+82% [14 Packages 8988 B/49.0 kB 18%]                               153 kB/s 42s
+82% [14 Packages 8988 B/49.0 kB 18%]                               153 kB/s 42s
+74% [11 Packages 2806 kB/3325 kB 84%]                         120 kB/s 1min 16s
+                                                                               
+Get:15 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe arm64 Packages [36.3 kB]
+
+82% [15 Packages 15.2 kB/36.3 kB 42%]                              153 kB/s 41s
+82% [14 Packages store 0 B] [15 Packages 15.2 kB/36.3 kB 42%]      153 kB/s 41s
+83% [15 Packages 15.2 kB/36.3 kB 42%]                              153 kB/s 41s
+83% [Working]                                                      153 kB/s 41s
+                                                                               
+Get:16 http://ports.ubuntu.com/ubuntu-ports noble-security/universe arm64 Packages [1655 kB]
+
+83% [15 Packages store 0 B] [16 Packages 34.1 kB/1655 kB 2%]       153 kB/s 41s
+84% [16 Packages 34.1 kB/1655 kB 2%]                               153 kB/s 41s
+74% [11 Packages 2845 kB/3325 kB 86%]                         120 kB/s 1min 16s
+84% [16 Packages 100 kB/1655 kB 6%]                                153 kB/s 41s
+75% [11 Packages 2915 kB/3325 kB 88%]                         120 kB/s 1min 16s
+84% [16 Packages 145 kB/1655 kB 9%]                                153 kB/s 40s
+75% [11 Packages 2961 kB/3325 kB 89%]                         120 kB/s 1min 15s
+84% [16 Packages 195 kB/1655 kB 12%]                               153 kB/s 40s
+75% [11 Packages 3006 kB/3325 kB 90%]                         120 kB/s 1min 15s
+84% [16 Packages 236 kB/1655 kB 14%]                               153 kB/s 40s
+75% [11 Packages 3006 kB/3325 kB 90%]                         120 kB/s 1min 15s
+84% [16 Packages 328 kB/1655 kB 20%]                               153 kB/s 39s
+75% [11 Packages 3091 kB/3325 kB 93%]                         120 kB/s 1min 14s
+84% [16 Packages 421 kB/1655 kB 25%]                               140 kB/s 42s
+75% [11 Packages 3174 kB/3325 kB 95%]                         120 kB/s 1min 13s
+85% [16 Packages 472 kB/1655 kB 29%]                               140 kB/s 42s
+75% [11 Packages 3187 kB/3325 kB 96%]                         120 kB/s 1min 13s
+85% [16 Packages 522 kB/1655 kB 32%]                               140 kB/s 42s
+75% [11 Packages 3284 kB/3325 kB 99%]                         113 kB/s 1min 17s
+85% [16 Packages 632 kB/1655 kB 38%]                               140 kB/s 41s
+                                                                               
+Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 Packages [2232 kB]
+
+76% [12 Packages 7551 B/2232 kB 0%]                           113 kB/s 1min 17s
+76% [11 Packages store 0 B] [12 Packages 7551 B/2232 kB 0%]   113 kB/s 1min 17s
+76% [12 Packages 20.5 kB/2232 kB 1%]                          113 kB/s 1min 17s
+85% [16 Packages 650 kB/1655 kB 39%]                               140 kB/s 41s
+76% [12 Packages 77.5 kB/2232 kB 3%]                          113 kB/s 1min 16s
+85% [16 Packages 650 kB/1655 kB 39%]                               140 kB/s 41s
+76% [12 Packages 121 kB/2232 kB 5%]                           113 kB/s 1min 16s
+85% [16 Packages 812 kB/1655 kB 49%]                               140 kB/s 39s
+76% [12 Packages 173 kB/2232 kB 8%]                           113 kB/s 1min 15s
+86% [16 Packages 920 kB/1655 kB 56%]                               140 kB/s 39s
+77% [12 Packages 223 kB/2232 kB 10%]                          113 kB/s 1min 15s
+86% [16 Packages 920 kB/1655 kB 56%]                               140 kB/s 39s
+77% [12 Packages 306 kB/2232 kB 14%]                          113 kB/s 1min 14s
+86% [16 Packages 1080 kB/1655 kB 65%]                              140 kB/s 38s
+77% [12 Packages 353 kB/2232 kB 16%]                          113 kB/s 1min 14s
+86% [16 Packages 1137 kB/1655 kB 69%]                              140 kB/s 37s
+77% [12 Packages 387 kB/2232 kB 17%]                          113 kB/s 1min 13s
+86% [16 Packages 1215 kB/1655 kB 73%]                              140 kB/s 37s
+77% [12 Packages 472 kB/2232 kB 21%]                          113 kB/s 1min 13s
+86% [16 Packages 1254 kB/1655 kB 76%]                              138 kB/s 37s
+77% [12 Packages 547 kB/2232 kB 25%]                          113 kB/s 1min 12s
+87% [16 Packages 1353 kB/1655 kB 82%]                              138 kB/s 36s
+77% [12 Packages 597 kB/2232 kB 27%]                          113 kB/s 1min 11s
+87% [16 Packages 1402 kB/1655 kB 85%]                              138 kB/s 36s
+78% [12 Packages 674 kB/2232 kB 30%]                           116 kB/s 1min 9s
+87% [16 Packages 1477 kB/1655 kB 89%]                              138 kB/s 35s
+78% [12 Packages 740 kB/2232 kB 33%]                           116 kB/s 1min 8s
+87% [16 Packages 1549 kB/1655 kB 94%]                              138 kB/s 35s
+78% [12 Packages 783 kB/2232 kB 35%]                           116 kB/s 1min 8s
+87% [16 Packages 1598 kB/1655 kB 97%]                              138 kB/s 34s
+78% [12 Packages 880 kB/2232 kB 39%]                           116 kB/s 1min 7s
+                                                                               
+Get:17 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 Packages [1489 kB]
+
+87% [17 Packages 21.4 kB/1489 kB 1%]                               138 kB/s 34s
+87% [16 Packages store 0 B] [17 Packages 21.4 kB/1489 kB 1%]       138 kB/s 34s
+88% [17 Packages 21.4 kB/1489 kB 1%]                               138 kB/s 34s
+78% [12 Packages 962 kB/2232 kB 43%]                           116 kB/s 1min 6s
+88% [17 Packages 37.2 kB/1489 kB 2%]                               138 kB/s 34s
+78% [12 Packages 1001 kB/2232 kB 45%]                          116 kB/s 1min 6s
+88% [17 Packages 135 kB/1489 kB 9%]                                138 kB/s 33s
+79% [12 Packages 1111 kB/2232 kB 50%]                          116 kB/s 1min 5s
+88% [17 Packages 177 kB/1489 kB 12%]                               138 kB/s 33s
+79% [12 Packages 1235 kB/2232 kB 55%]                          116 kB/s 1min 4s
+88% [17 Packages 233 kB/1489 kB 16%]                               138 kB/s 32s
+79% [12 Packages 1287 kB/2232 kB 58%]                          116 kB/s 1min 3s
+88% [17 Packages 325 kB/1489 kB 22%]                               138 kB/s 32s
+79% [12 Packages 1369 kB/2232 kB 61%]                          116 kB/s 1min 3s
+89% [17 Packages 391 kB/1489 kB 26%]                               132 kB/s 32s
+79% [12 Packages 1384 kB/2232 kB 62%]                          116 kB/s 1min 2s
+89% [17 Packages 391 kB/1489 kB 26%]                               132 kB/s 32s
+79% [12 Packages 1411 kB/2232 kB 63%]                          116 kB/s 1min 2s
+89% [17 Packages 520 kB/1489 kB 35%]                               132 kB/s 31s
+80% [12 Packages 1578 kB/2232 kB 71%]                              150 kB/s 47s
+89% [17 Packages 570 kB/1489 kB 38%]                               132 kB/s 31s
+80% [12 Packages 1677 kB/2232 kB 75%]                              150 kB/s 46s
+89% [17 Packages 620 kB/1489 kB 42%]                               132 kB/s 31s
+80% [12 Packages 1751 kB/2232 kB 78%]                              150 kB/s 46s
+89% [17 Packages 666 kB/1489 kB 45%]                               132 kB/s 30s
+80% [12 Packages 1866 kB/2232 kB 84%]                              150 kB/s 45s
+89% [17 Packages 715 kB/1489 kB 48%]                               132 kB/s 30s
+80% [12 Packages 1934 kB/2232 kB 87%]                              150 kB/s 45s
+90% [17 Packages 796 kB/1489 kB 53%]                               132 kB/s 29s
+81% [12 Packages 2050 kB/2232 kB 92%]                              150 kB/s 44s
+90% [17 Packages 861 kB/1489 kB 58%]                               132 kB/s 29s
+81% [12 Packages 2121 kB/2232 kB 95%]                              150 kB/s 44s
+90% [17 Packages 923 kB/1489 kB 62%]                               132 kB/s 28s
+81% [Waiting for headers]                                          150 kB/s 43s
+                                                                               
+Get:13 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe arm64 Packages [36.3 kB]
+
+81% [13 Packages 29.6 kB/36.3 kB 81%]                              150 kB/s 43s
+81% [12 Packages store 0 B] [13 Packages 29.6 kB/36.3 kB 81%]      150 kB/s 43s
+82% [13 Packages 29.6 kB/36.3 kB 81%]                              150 kB/s 43s
+                                                                               
+Get:14 http://ports.ubuntu.com/ubuntu-ports noble-backports/multiverse arm64 Packages [669 B]
+
+                                                                               
+Get:15 http://ports.ubuntu.com/ubuntu-ports noble-backports/main arm64 Packages [49.0 kB]
+
+82% [15 Packages 7978 B/49.0 kB 16%]                               150 kB/s 42s
+82% [13 Packages store 0 B] [15 Packages 7978 B/49.0 kB 16%]       150 kB/s 42s
+82% [15 Packages 7978 B/49.0 kB 16%]                               150 kB/s 42s
+83% [15 Packages 7978 B/49.0 kB 16%]                               150 kB/s 42s
+83% [Working]                                                      150 kB/s 42s
+                                                                               
+Get:16 http://ports.ubuntu.com/ubuntu-ports noble-security/restricted arm64 Packages [3148 kB]
+
+83% [16 Packages 23.8 kB/3148 kB 1%]                               150 kB/s 42s
+83% [15 Packages store 0 B] [16 Packages 23.8 kB/3148 kB 1%]       150 kB/s 42s
+84% [16 Packages 23.8 kB/3148 kB 1%]                               150 kB/s 42s
+90% [17 Packages 952 kB/1489 kB 64%]                               132 kB/s 28s
+84% [16 Packages 71.3 kB/3148 kB 2%]                               150 kB/s 42s
+90% [17 Packages 1037 kB/1489 kB 70%]                              132 kB/s 28s
+84% [16 Packages 182 kB/3148 kB 6%]                                150 kB/s 41s
+90% [17 Packages 1101 kB/1489 kB 74%]                              117 kB/s 31s
+84% [16 Packages 284 kB/3148 kB 9%]                                150 kB/s 40s
+90% [17 Packages 1186 kB/1489 kB 80%]                              117 kB/s 30s
+84% [16 Packages 361 kB/3148 kB 11%]                               150 kB/s 40s
+91% [17 Packages 1260 kB/1489 kB 85%]                              117 kB/s 29s
+84% [16 Packages 400 kB/3148 kB 13%]                               182 kB/s 32s
+91% [17 Packages 1348 kB/1489 kB 91%]                              117 kB/s 28s
+85% [16 Packages 515 kB/3148 kB 16%]                               182 kB/s 32s
+91% [17 Packages 1424 kB/1489 kB 96%]                              117 kB/s 28s
+85% [16 Packages 614 kB/3148 kB 20%]                               182 kB/s 31s
+91% [17 Packages 1444 kB/1489 kB 97%]                              117 kB/s 28s
+                                                                               
+Get:18 http://ports.ubuntu.com/ubuntu-ports noble-security/multiverse arm64 Packages [102 kB]
+
+91% [18 Packages 20.0 kB/102 kB 20%]                               117 kB/s 27s
+91% [17 Packages store 0 B] [18 Packages 20.0 kB/102 kB 20%]       117 kB/s 27s
+92% [18 Packages 20.0 kB/102 kB 20%]                               117 kB/s 27s
+85% [16 Packages 688 kB/3148 kB 22%]                               182 kB/s 31s
+                                                                               
+Get:19 http://ports.ubuntu.com/ubuntu-ports noble-security/restricted arm64 Packages [3148 kB]
+
+92% [19 Packages 27.1 kB/3148 kB 1%]                               117 kB/s 26s
+92% [18 Packages store 0 B] [19 Packages 27.1 kB/3148 kB 1%]       117 kB/s 26s
+92% [19 Packages 27.1 kB/3148 kB 1%]                               117 kB/s 26s
+85% [16 Packages 775 kB/3148 kB 25%]                               182 kB/s 30s
+93% [19 Packages 150 kB/3148 kB 5%]                                117 kB/s 25s
+85% [16 Packages 872 kB/3148 kB 28%]                               182 kB/s 30s
+93% [19 Packages 214 kB/3148 kB 7%]                                117 kB/s 25s
+86% [16 Packages 958 kB/3148 kB 30%]                               182 kB/s 29s
+93% [19 Packages 371 kB/3148 kB 12%]                               117 kB/s 23s
+86% [16 Packages 1009 kB/3148 kB 32%]                              182 kB/s 29s
+93% [19 Packages 476 kB/3148 kB 15%]                               117 kB/s 22s
+86% [16 Packages 1072 kB/3148 kB 34%]                              182 kB/s 29s
+94% [19 Packages 584 kB/3148 kB 19%]                               117 kB/s 21s
+86% [16 Packages 1164 kB/3148 kB 37%]                              182 kB/s 28s
+94% [19 Packages 726 kB/3148 kB 23%]                               199 kB/s 12s
+86% [16 Packages 1193 kB/3148 kB 38%]                              182 kB/s 28s
+94% [19 Packages 772 kB/3148 kB 25%]                               199 kB/s 11s
+86% [16 Packages 1290 kB/3148 kB 41%]                              182 kB/s 28s
+94% [19 Packages 772 kB/3148 kB 25%]                               199 kB/s 11s
+87% [16 Packages 1385 kB/3148 kB 44%]                              163 kB/s 30s
+94% [19 Packages 927 kB/3148 kB 29%]                               199 kB/s 11s
+87% [16 Packages 1480 kB/3148 kB 47%]                              163 kB/s 30s
+95% [19 Packages 1150 kB/3148 kB 37%]                              199 kB/s 10s
+87% [16 Packages 1576 kB/3148 kB 50%]                              163 kB/s 29s
+95% [19 Packages 1274 kB/3148 kB 40%]                               199 kB/s 9s
+87% [16 Packages 1645 kB/3148 kB 52%]                              163 kB/s 29s
+96% [19 Packages 1399 kB/3148 kB 44%]                               199 kB/s 8s
+87% [16 Packages 1735 kB/3148 kB 55%]                              163 kB/s 28s
+96% [19 Packages 1545 kB/3148 kB 49%]                               199 kB/s 8s
+88% [16 Packages 1861 kB/3148 kB 59%]                              163 kB/s 27s
+96% [19 Packages 1778 kB/3148 kB 56%]                               199 kB/s 6s
+88% [16 Packages 1927 kB/3148 kB 61%]                              163 kB/s 27s
+96% [19 Packages 1778 kB/3148 kB 56%]                               199 kB/s 6s
+88% [16 Packages 2076 kB/3148 kB 66%]                              163 kB/s 26s
+97% [19 Packages 2137 kB/3148 kB 68%]                               199 kB/s 5s
+88% [16 Packages 2177 kB/3148 kB 69%]                              163 kB/s 25s
+97% [19 Packages 2253 kB/3148 kB 72%]                               199 kB/s 4s
+89% [16 Packages 2251 kB/3148 kB 72%]                              163 kB/s 25s
+98% [19 Packages 2308 kB/3148 kB 73%]                               262 kB/s 3s
+89% [16 Packages 2348 kB/3148 kB 75%]                              163 kB/s 24s
+98% [19 Packages 2603 kB/3148 kB 83%]                               262 kB/s 2s
+89% [16 Packages 2475 kB/3148 kB 79%]                              163 kB/s 24s
+99% [19 Packages 2788 kB/3148 kB 89%]                               262 kB/s 1s
+89% [16 Packages 2580 kB/3148 kB 82%]                              198 kB/s 19s
+99% [19 Packages 2901 kB/3148 kB 92%]                               262 kB/s 0s
+89% [16 Packages 2652 kB/3148 kB 84%]                              198 kB/s 18s
+99% [19 Packages 3048 kB/3148 kB 97%]                               262 kB/s 0s
+90% [16 Packages 2771 kB/3148 kB 88%]                              198 kB/s 18s
+99% [19 Packages 3048 kB/3148 kB 97%]                               262 kB/s 0s
+90% [16 Packages 2800 kB/3148 kB 89%]                              198 kB/s 18s
+99% [Working]                                                       262 kB/s 0s
+99% [19 Packages store 0 B]                                         262 kB/s 0s
+100% [Working]                                                      262 kB/s 0s
+                                                                               
+Fetched 35.8 MB in 4min 54s (122 kB/s)
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+90% [16 Packages 2891 kB/3148 kB 92%]                              198 kB/s 17s
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+3 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+90% [16 Packages 3039 kB/3148 kB 97%]                              198 kB/s 16s
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following NEW packages will be installed:
+  bc
+0 upgraded, 1 newly installed, 0 to remove and 3 not upgraded.
+Need to get 84.5 kB of archives.
+After this operation, 259 kB of additional disk space will be used.
+
+0% [Working]
+90% [16 Packages 3110 kB/3148 kB 99%]                              198 kB/s 16s
+                                                                               
+Get:17 http://ports.ubuntu.com/ubuntu-ports noble-security/multiverse arm64 Packages [102 kB]
+
+91% [17 Packages 29.1 kB/102 kB 29%]                               198 kB/s 16s
+91% [16 Packages store 0 B] [17 Packages 29.1 kB/102 kB 29%]       198 kB/s 16s
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 bc arm64 1.07.1-3ubuntu4 [84.5 kB]
+
+0% [1 bc 0 B/84.5 kB 0%]
+91% [17 Packages 29.1 kB/102 kB 29%]                               198 kB/s 16s
+                                                                               
+Get:18 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 Packages [1489 kB]
+
+91% [18 Packages 6068 B/1489 kB 0%]                                198 kB/s 15s
+91% [17 Packages store 0 B] [18 Packages 6068 B/1489 kB 0%]        198 kB/s 15s
+92% [18 Packages 6068 B/1489 kB 0%]                                198 kB/s 15s
+49% [1 bc 51.5 kB/84.5 kB 61%]
+                              
+100% [Working]
+              
+Fetched 84.5 kB in 1s (64.3 kB/s)
+
+92% [18 Packages 74.6 kB/1489 kB 5%]                               198 kB/s 15sdebconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package bc.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 8019 files and directories currently installed.)
+Preparing to unpack .../bc_1.07.1-3ubuntu4_arm64.deb ...
+Unpacking bc (1.07.1-3ubuntu4) ...
+Setting up bc (1.07.1-3ubuntu4) ...
+[OK]  安装 bc jq 完成 
+
+92% [18 Packages 138 kB/1489 kB 9%]                                198 kB/s 15s
+92% [18 Packages 253 kB/1489 kB 17%]                               198 kB/s 14s
+93% [18 Packages 311 kB/1489 kB 21%]                               198 kB/s 14s
+93% [18 Packages 377 kB/1489 kB 25%]                               165 kB/s 16s
+93% [18 Packages 504 kB/1489 kB 34%]                               165 kB/s 15s
+93% [18 Packages 616 kB/1489 kB 41%]                               165 kB/s 15s
+94% [18 Packages 736 kB/1489 kB 49%]                               165 kB/s 14s
+94% [18 Packages 798 kB/1489 kB 54%]                               165 kB/s 14s
+94% [18 Packages 857 kB/1489 kB 58%]                               165 kB/s 13s
+94% [18 Packages 936 kB/1489 kB 63%]                               165 kB/s 13s
+94% [18 Packages 1075 kB/1489 kB 72%]                              165 kB/s 12s
+94% [18 Packages 1094 kB/1489 kB 73%]                              165 kB/s 12s
+95% [18 Packages 1183 kB/1489 kB 79%]                              165 kB/s 11s
+95% [18 Packages 1280 kB/1489 kB 86%]                              165 kB/s 11s
+95% [18 Packages 1362 kB/1489 kB 91%]                              165 kB/s 10s
+95% [18 Packages 1441 kB/1489 kB 97%]                               177 kB/s 9s
+                                                                               
+Get:19 http://ports.ubuntu.com/ubuntu-ports noble-security/universe arm64 Packages [1655 kB]
+
+95% [19 Packages 32.9 kB/1655 kB 2%]                                177 kB/s 9s
+95% [18 Packages store 0 B] [19 Packages 32.9 kB/1655 kB 2%]        177 kB/s 9s
+96% [19 Packages 53.3 kB/1655 kB 3%]                                177 kB/s 9s
+96% [19 Packages 147 kB/1655 kB 9%]                                 177 kB/s 8s
+96% [19 Packages 164 kB/1655 kB 10%]                                177 kB/s 8s
+97% [19 Packages 338 kB/1655 kB 20%]                                177 kB/s 7s
+97% [19 Packages 420 kB/1655 kB 25%]                                177 kB/s 6s
+97% [19 Packages 517 kB/1655 kB 31%]                                177 kB/s 6scurl: (18) Transferred a partial file
+[错误]  脚本更新失败! 
+
+97% [19 Packages 580 kB/1655 kB 35%]                                177 kB/s 6s
+97% [19 Packages 596 kB/1655 kB 36%]                                177 kB/s 6s
+97% [19 Packages 746 kB/1655 kB 45%]                                177 kB/s 5s
+98% [19 Packages 842 kB/1655 kB 51%]                                177 kB/s 4s
+98% [19 Packages 943 kB/1655 kB 57%]                                177 kB/s 4s
+98% [19 Packages 999 kB/1655 kB 60%]                                177 kB/s 3s
+98% [19 Packages 1063 kB/1655 kB 64%]                               173 kB/s 3s
+98% [19 Packages 1149 kB/1655 kB 69%]                               173 kB/s 2s
+98% [19 Packages 1182 kB/1655 kB 71%]                               173 kB/s 2s
+99% [19 Packages 1259 kB/1655 kB 76%]                               173 kB/s 2s
+99% [19 Packages 1349 kB/1655 kB 82%]                               173 kB/s 1s
+99% [19 Packages 1440 kB/1655 kB 87%]                               173 kB/s 1s
+99% [19 Packages 1539 kB/1655 kB 93%]                               173 kB/s 0s
+99% [19 Packages 1623 kB/1655 kB 98%]                               173 kB/s 0s
+99% [Working]                                                       173 kB/s 0s
+99% [19 Packages store 0 B]                                         173 kB/s 0s
+100% [Working]                                                      173 kB/s 0s
+                                                                               
+Fetched 35.8 MB in 5min 20s (112 kB/s)
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+3 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following NEW packages will be installed:
+  bc
+0 upgraded, 1 newly installed, 0 to remove and 3 not upgraded.
+Need to get 84.5 kB of archives.
+After this operation, 259 kB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 bc arm64 1.07.1-3ubuntu4 [84.5 kB]
+
+0% [1 bc 0 B/84.5 kB 0%]
+13% [1 bc 14.1 kB/84.5 kB 17%]
+75% [1 bc 78.9 kB/84.5 kB 93%]
+                              
+100% [Working]
+              
+Fetched 84.5 kB in 1s (57.7 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package bc.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 8019 files and directories currently installed.)
+Preparing to unpack .../bc_1.07.1-3ubuntu4_arm64.deb ...
+Unpacking bc (1.07.1-3ubuntu4) ...
+Setting up bc (1.07.1-3ubuntu4) ...
+[OK]  安装 bc jq 完成 
+[OK]  下载最新脚本 完成 
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  正在安装 gettext... 
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  gettext-base libgomp1 libicu74 libxml2
+Suggested packages:
+  autopoint gettext-doc libasprintf-dev libgettextpo-dev
+The following NEW packages will be installed:
+  gettext gettext-base libgomp1 libicu74 libxml2
+0 upgraded, 5 newly installed, 0 to remove and 3 not upgraded.
+Need to get 12.6 MB of archives.
+After this operation, 43.6 MB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libicu74 arm64 74.2-1ubuntu3.1 [10.8 MB]
+
+0% [1 libicu74 0 B/10.8 MB 0%]
+0% [1 libicu74 5385 B/10.8 MB 0%]
+1% [1 libicu74 80.6 kB/10.8 MB 1%]
+                                  
+2% [1 libicu74 255 kB/10.8 MB 2%]
+3% [1 libicu74 549 kB/10.8 MB 5%]
+5% [1 libicu74 846 kB/10.8 MB 8%]
+6% [1 libicu74 917 kB/10.8 MB 8%]
+12% [1 libicu74 1945 kB/10.8 MB 18%]
+18% [1 libicu74 2786 kB/10.8 MB 26%]
+24% [1 libicu74 3736 kB/10.8 MB 35%]
+30% [1 libicu74 4649 kB/10.8 MB 43%]
+34% [1 libicu74 5297 kB/10.8 MB 49%]
+37% [1 libicu74 5811 kB/10.8 MB 54%]                                898 kB/s 7s
+48% [1 libicu74 7542 kB/10.8 MB 70%]                                898 kB/s 5s
+54% [1 libicu74 8445 kB/10.8 MB 78%]                                898 kB/s 4s
+58% [1 libicu74 9061 kB/10.8 MB 84%]                                898 kB/s 3s
+73% [Waiting for headers]                                           898 kB/s 1s
+                                                                               
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libxml2 arm64 2.9.14+dfsg-1.3ubuntu3.10 [736 kB]
+
+73% [2 libxml2 5388 B/736 kB 1%]                                    898 kB/s 1s
+73% [2 libxml2 28.1 kB/736 kB 4%]                                   898 kB/s 1s
+                                                                               
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 gettext-base arm64 0.21-14ubuntu2 [37.6 kB]
+
+                                                                               
+Get:4 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libgomp1 arm64 14.2.0-4ubuntu2~24.04.1 [145 kB]
+
+86% [4 libgomp1 66.7 kB/145 kB 46%]                                 898 kB/s 1s
+91% [Working]                                                       898 kB/s 0s
+                                                                               
+Get:5 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 gettext arm64 0.21-14ubuntu2 [845 kB]
+
+91% [5 gettext 0 B/845 kB 0%]                                       898 kB/s 0s
+100% [Working]                                                      898 kB/s 0s
+                                                                               
+Fetched 12.6 MB in 10s (1250 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package libicu74:arm64.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 8036 files and directories currently installed.)
+Preparing to unpack .../libicu74_74.2-1ubuntu3.1_arm64.deb ...
+Unpacking libicu74:arm64 (74.2-1ubuntu3.1) ...
+Selecting previously unselected package libxml2:arm64.
+Preparing to unpack .../libxml2_2.9.14+dfsg-1.3ubuntu3.10_arm64.deb ...
+Unpacking libxml2:arm64 (2.9.14+dfsg-1.3ubuntu3.10) ...
+Selecting previously unselected package gettext-base.
+Preparing to unpack .../gettext-base_0.21-14ubuntu2_arm64.deb ...
+Unpacking gettext-base (0.21-14ubuntu2) ...
+Selecting previously unselected package libgomp1:arm64.
+Preparing to unpack .../libgomp1_14.2.0-4ubuntu2~24.04.1_arm64.deb ...
+Unpacking libgomp1:arm64 (14.2.0-4ubuntu2~24.04.1) ...
+Selecting previously unselected package gettext.
+Preparing to unpack .../gettext_0.21-14ubuntu2_arm64.deb ...
+Unpacking gettext (0.21-14ubuntu2) ...
+Setting up gettext-base (0.21-14ubuntu2) ...
+Setting up libgomp1:arm64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up libicu74:arm64 (74.2-1ubuntu3.1) ...
+Setting up libxml2:arm64 (2.9.14+dfsg-1.3ubuntu3.10) ...
+Setting up gettext (0.21-14ubuntu2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+[OK]  安装 gettext 完成 
+
+[警告]  此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/N]? 
+y
+[OK]  当前用户是 root 用户, 开始安装 
+[OK]  当前系统为 Ubuntu 24.04 noble 
+
+0% [Working]
+            
+Hit:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease
+
+0% [Working]
+0% [Waiting for headers]
+                        
+Hit:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease
+
+0% [Waiting for headers]
+0% [Waiting for headers]
+                        
+Hit:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease
+
+0% [Waiting for headers]
+0% [Waiting for headers]
+                        
+Hit:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease
+
+                        
+0% [Working]
+20% [Working]
+             
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+3 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  git-man less libbsd0 libcbor0.10 libcurl3t64-gnutls libedit2 liberror-perl
+  libfido2-1 libgdbm-compat4t64 libgdbm6t64 libperl5.38t64 libx11-6
+  libx11-data libxau6 libxcb1 libxdmcp6 libxext6 libxmuu1 openssh-client patch
+  perl perl-modules-5.38 xauth
+Suggested packages:
+  git-daemon-run | git-daemon-sysvinit git-doc git-email git-gui gitk gitweb
+  git-cvs git-mediawiki git-svn gdbm-l10n keychain libpam-ssh monkeysphere
+  ssh-askpass ed diffutils-doc perl-doc libterm-readline-gnu-perl
+  | libterm-readline-perl-perl make libtap-harness-archive-perl
+The following NEW packages will be installed:
+  git git-man less libbsd0 libcbor0.10 libcurl3t64-gnutls libedit2
+  liberror-perl libfido2-1 libgdbm-compat4t64 libgdbm6t64 libperl5.38t64
+  libx11-6 libx11-data libxau6 libxcb1 libxdmcp6 libxext6 libxmuu1
+  openssh-client patch perl perl-modules-5.38 xauth
+0 upgraded, 24 newly installed, 0 to remove and 3 not upgraded.
+Need to get 15.7 MB of archives.
+After this operation, 86.7 MB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 perl-modules-5.38 all 5.38.2-3.2ubuntu0.6 [3110 kB]
+
+0% [1 perl-modules-5.38 0 B/3110 kB 0%]
+0% [1 perl-modules-5.38 28.1 kB/3110 kB 1%]
+0% [1 perl-modules-5.38 68.6 kB/3110 kB 2%]
+                                           
+1% [1 perl-modules-5.38 112 kB/3110 kB 4%]
+2% [1 perl-modules-5.38 305 kB/3110 kB 10%]
+2% [1 perl-modules-5.38 306 kB/3110 kB 10%]
+5% [1 perl-modules-5.38 935 kB/3110 kB 30%]
+6% [1 perl-modules-5.38 1120 kB/3110 kB 36%]
+12% [1 perl-modules-5.38 2419 kB/3110 kB 78%]
+                                             
+17% [Waiting for headers]
+                         
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libgdbm6t64 arm64 1.23-5.1build1 [34.4 kB]
+
+17% [2 libgdbm6t64 2550 B/34.4 kB 7%]
+                                     
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libgdbm-compat4t64 arm64 1.23-5.1build1 [6578 B]
+
+18% [3 libgdbm-compat4t64 569 B/6578 B 9%]
+                                          
+Get:4 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libperl5.38t64 arm64 5.38.2-3.2ubuntu0.6 [4785 kB]
+
+                                          
+19% [4 libperl5.38t64 13.6 kB/4785 kB 0%]
+                                         
+20% [4 libperl5.38t64 336 kB/4785 kB 7%]
+20% [4 libperl5.38t64 336 kB/4785 kB 7%]                           566 kB/s 21s
+32% [4 libperl5.38t64 2665 kB/4785 kB 56%]                         566 kB/s 17s
+36% [4 libperl5.38t64 3377 kB/4785 kB 71%]                         566 kB/s 16s
+41% [4 libperl5.38t64 4341 kB/4785 kB 91%]                         566 kB/s 14s
+42% [4 libperl5.38t64 4637 kB/4785 kB 97%]                         566 kB/s 13s
+44% [Waiting for headers]                                          566 kB/s 13s
+                                                                               
+Get:5 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 perl arm64 5.38.2-3.2ubuntu0.6 [231 kB]
+
+44% [5 perl 58.1 kB/231 kB 25%]                                    566 kB/s 13s
+46% [Waiting for headers]                                          566 kB/s 13s
+                                                                               
+Get:6 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 less arm64 590-2ubuntu2.1 [142 kB]
+
+46% [6 less 23.0 kB/142 kB 16%]                                    566 kB/s 13s
+                                                                               
+Get:7 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libbsd0 arm64 0.12.1-1build1.1 [41.0 kB]
+
+                                                                               
+Get:8 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libcbor0.10 arm64 0.10.2-1.2ubuntu2 [26.0 kB]
+
+49% [8 libcbor0.10 26.0 kB/26.0 kB 100%]                           566 kB/s 12s
+49% [Working]                                                      566 kB/s 12s
+                                                                               
+Get:9 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libedit2 arm64 3.1-20230828-1build1 [97.5 kB]
+
+49% [9 libedit2 0 B/97.5 kB 0%]                                    566 kB/s 12s
+51% [Working]                                                      566 kB/s 12s
+                                                                               
+Get:10 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libfido2-1 arm64 1.14.0-1build3 [82.5 kB]
+
+51% [10 libfido2-1 0 B/82.5 kB 0%]                                 566 kB/s 12s
+52% [Working]                                                      566 kB/s 12s
+                                                                               
+Get:11 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxau6 arm64 1:1.0.9-1build6 [7264 B]
+
+52% [11 libxau6 0 B/7264 B 0%]                                     566 kB/s 12s
+53% [Working]                                                      566 kB/s 12s
+                                                                               
+Get:12 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxdmcp6 arm64 1:1.1.3-0ubuntu6 [10.4 kB]
+
+53% [12 libxdmcp6 0 B/10.4 kB 0%]                                  566 kB/s 12s
+54% [Working]                                                      566 kB/s 12s
+                                                                               
+Get:13 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxcb1 arm64 1.15-1ubuntu2 [49.4 kB]
+
+55% [Waiting for headers]                                          566 kB/s 12s
+                                                                               
+Get:14 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libx11-data all 2:1.8.7-1ubuntu0.1 [116 kB]
+
+55% [14 libx11-data 0 B/116 kB 0%]                                 566 kB/s 12s
+55% [14 libx11-data 108 kB/116 kB 93%]                             566 kB/s 12s
+56% [Waiting for headers]                                          566 kB/s 12s
+                                                                               
+Get:15 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libx11-6 arm64 2:1.8.7-1ubuntu0.1 [651 kB]
+
+56% [15 libx11-6 28.1 kB/651 kB 4%]                                566 kB/s 12s
+57% [15 libx11-6 224 kB/651 kB 34%]                                566 kB/s 11s
+                                                                               
+Get:16 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxext6 arm64 2:1.3.4-1build2 [30.4 kB]
+
+60% [16 libxext6 6970 B/30.4 kB 23%]                               566 kB/s 11s
+61% [Working]                                                      566 kB/s 11s
+                                                                               
+Get:17 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxmuu1 arm64 2:1.1.3-3build2 [9140 B]
+
+                                                                               
+Get:18 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 openssh-client arm64 1:9.6p1-3ubuntu13.20 [891 kB]
+
+62% [18 openssh-client 16.9 kB/891 kB 2%]                          566 kB/s 11s
+65% [18 openssh-client 451 kB/891 kB 51%]                          566 kB/s 10s
+68% [Waiting for headers]                                           566 kB/s 9s
+                                                                               
+Get:19 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 xauth arm64 1:1.1.2-1build1 [25.3 kB]
+
+68% [19 xauth 266 B/25.3 kB 1%]                                     566 kB/s 9s
+                                                                               
+Get:20 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libcurl3t64-gnutls arm64 8.5.0-2ubuntu10.16 [331 kB]
+
+69% [20 libcurl3t64-gnutls 66.7 kB/331 kB 20%]                      566 kB/s 9s
+70% [20 libcurl3t64-gnutls 250 kB/331 kB 75%]                       566 kB/s 8s
+                                                                               
+Get:21 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 liberror-perl all 0.17029-2 [25.6 kB]
+
+71% [21 liberror-perl 25.6 kB/25.6 kB 100%]                         566 kB/s 8s
+72% [Waiting for headers]                                           566 kB/s 8s
+                                                                               
+Get:22 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 git-man all 1:2.43.0-1ubuntu7.4 [1101 kB]
+
+73% [22 git-man 170 kB/1101 kB 15%]                                 566 kB/s 8s
+79% [Working]                                                       566 kB/s 6s
+                                                                               
+Get:23 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 git arm64 1:2.43.0-1ubuntu7.4 [3774 kB]
+
+79% [23 git 0 B/3774 kB 0%]                                         566 kB/s 6s
+81% [23 git 425 kB/3774 kB 11%]                                     566 kB/s 6s
+86% [23 git 1378 kB/3774 kB 37%]                                   1515 kB/s 1s
+89% [23 git 2027 kB/3774 kB 54%]                                   1515 kB/s 1s
+94% [23 git 3123 kB/3774 kB 83%]                                   1515 kB/s 0s
+97% [23 git 3623 kB/3774 kB 96%]                                   1515 kB/s 0s
+99% [Working]                                                      1515 kB/s 0s
+                                                                               
+Get:24 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 patch arm64 2.7.6-7build3 [101 kB]
+
+99% [24 patch 79.0 kB/101 kB 78%]                                  1515 kB/s 0s
+100% [Working]                                                     1515 kB/s 0s
+                                                                               
+Fetched 15.7 MB in 14s (1113 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package perl-modules-5.38.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 8208 files and directories currently installed.)
+Preparing to unpack .../00-perl-modules-5.38_5.38.2-3.2ubuntu0.6_all.deb ...
+Unpacking perl-modules-5.38 (5.38.2-3.2ubuntu0.6) ...
+Selecting previously unselected package libgdbm6t64:arm64.
+Preparing to unpack .../01-libgdbm6t64_1.23-5.1build1_arm64.deb ...
+Unpacking libgdbm6t64:arm64 (1.23-5.1build1) ...
+Selecting previously unselected package libgdbm-compat4t64:arm64.
+Preparing to unpack .../02-libgdbm-compat4t64_1.23-5.1build1_arm64.deb ...
+Unpacking libgdbm-compat4t64:arm64 (1.23-5.1build1) ...
+Selecting previously unselected package libperl5.38t64:arm64.
+Preparing to unpack .../03-libperl5.38t64_5.38.2-3.2ubuntu0.6_arm64.deb ...
+Unpacking libperl5.38t64:arm64 (5.38.2-3.2ubuntu0.6) ...
+Selecting previously unselected package perl.
+Preparing to unpack .../04-perl_5.38.2-3.2ubuntu0.6_arm64.deb ...
+Unpacking perl (5.38.2-3.2ubuntu0.6) ...
+Selecting previously unselected package less.
+Preparing to unpack .../05-less_590-2ubuntu2.1_arm64.deb ...
+Unpacking less (590-2ubuntu2.1) ...
+Selecting previously unselected package libbsd0:arm64.
+Preparing to unpack .../06-libbsd0_0.12.1-1build1.1_arm64.deb ...
+Unpacking libbsd0:arm64 (0.12.1-1build1.1) ...
+Selecting previously unselected package libcbor0.10:arm64.
+Preparing to unpack .../07-libcbor0.10_0.10.2-1.2ubuntu2_arm64.deb ...
+Unpacking libcbor0.10:arm64 (0.10.2-1.2ubuntu2) ...
+Selecting previously unselected package libedit2:arm64.
+Preparing to unpack .../08-libedit2_3.1-20230828-1build1_arm64.deb ...
+Unpacking libedit2:arm64 (3.1-20230828-1build1) ...
+Selecting previously unselected package libfido2-1:arm64.
+Preparing to unpack .../09-libfido2-1_1.14.0-1build3_arm64.deb ...
+Unpacking libfido2-1:arm64 (1.14.0-1build3) ...
+Selecting previously unselected package libxau6:arm64.
+Preparing to unpack .../10-libxau6_1%3a1.0.9-1build6_arm64.deb ...
+Unpacking libxau6:arm64 (1:1.0.9-1build6) ...
+Selecting previously unselected package libxdmcp6:arm64.
+Preparing to unpack .../11-libxdmcp6_1%3a1.1.3-0ubuntu6_arm64.deb ...
+Unpacking libxdmcp6:arm64 (1:1.1.3-0ubuntu6) ...
+Selecting previously unselected package libxcb1:arm64.
+Preparing to unpack .../12-libxcb1_1.15-1ubuntu2_arm64.deb ...
+Unpacking libxcb1:arm64 (1.15-1ubuntu2) ...
+Selecting previously unselected package libx11-data.
+Preparing to unpack .../13-libx11-data_2%3a1.8.7-1ubuntu0.1_all.deb ...
+Unpacking libx11-data (2:1.8.7-1ubuntu0.1) ...
+Selecting previously unselected package libx11-6:arm64.
+Preparing to unpack .../14-libx11-6_2%3a1.8.7-1ubuntu0.1_arm64.deb ...
+Unpacking libx11-6:arm64 (2:1.8.7-1ubuntu0.1) ...
+Selecting previously unselected package libxext6:arm64.
+Preparing to unpack .../15-libxext6_2%3a1.3.4-1build2_arm64.deb ...
+Unpacking libxext6:arm64 (2:1.3.4-1build2) ...
+Selecting previously unselected package libxmuu1:arm64.
+Preparing to unpack .../16-libxmuu1_2%3a1.1.3-3build2_arm64.deb ...
+Unpacking libxmuu1:arm64 (2:1.1.3-3build2) ...
+Selecting previously unselected package openssh-client.
+Preparing to unpack .../17-openssh-client_1%3a9.6p1-3ubuntu13.20_arm64.deb ...
+Unpacking openssh-client (1:9.6p1-3ubuntu13.20) ...
+Selecting previously unselected package xauth.
+Preparing to unpack .../18-xauth_1%3a1.1.2-1build1_arm64.deb ...
+Unpacking xauth (1:1.1.2-1build1) ...
+Selecting previously unselected package libcurl3t64-gnutls:arm64.
+Preparing to unpack .../19-libcurl3t64-gnutls_8.5.0-2ubuntu10.16_arm64.deb ...
+Unpacking libcurl3t64-gnutls:arm64 (8.5.0-2ubuntu10.16) ...
+Selecting previously unselected package liberror-perl.
+Preparing to unpack .../20-liberror-perl_0.17029-2_all.deb ...
+Unpacking liberror-perl (0.17029-2) ...
+Selecting previously unselected package git-man.
+Preparing to unpack .../21-git-man_1%3a2.43.0-1ubuntu7.4_all.deb ...
+Unpacking git-man (1:2.43.0-1ubuntu7.4) ...
+Selecting previously unselected package git.
+Preparing to unpack .../22-git_1%3a2.43.0-1ubuntu7.4_arm64.deb ...
+Unpacking git (1:2.43.0-1ubuntu7.4) ...
+Selecting previously unselected package patch.
+Preparing to unpack .../23-patch_2.7.6-7build3_arm64.deb ...
+Unpacking patch (2.7.6-7build3) ...
+Setting up libxau6:arm64 (1:1.0.9-1build6) ...
+Setting up libgdbm6t64:arm64 (1.23-5.1build1) ...
+Setting up libgdbm-compat4t64:arm64 (1.23-5.1build1) ...
+Setting up libcbor0.10:arm64 (0.10.2-1.2ubuntu2) ...
+Setting up libcurl3t64-gnutls:arm64 (8.5.0-2ubuntu10.16) ...
+Setting up less (590-2ubuntu2.1) ...
+Setting up libx11-data (2:1.8.7-1ubuntu0.1) ...
+Setting up perl-modules-5.38 (5.38.2-3.2ubuntu0.6) ...
+Setting up patch (2.7.6-7build3) ...
+Setting up git-man (1:2.43.0-1ubuntu7.4) ...
+Setting up libperl5.38t64:arm64 (5.38.2-3.2ubuntu0.6) ...
+Setting up libfido2-1:arm64 (1.14.0-1build3) ...
+Setting up libbsd0:arm64 (0.12.1-1build1.1) ...
+Setting up libxdmcp6:arm64 (1:1.1.3-0ubuntu6) ...
+Setting up libxcb1:arm64 (1.15-1ubuntu2) ...
+Setting up libedit2:arm64 (3.1-20230828-1build1) ...
+Setting up perl (5.38.2-3.2ubuntu0.6) ...
+Setting up libx11-6:arm64 (2:1.8.7-1ubuntu0.1) ...
+Setting up libxmuu1:arm64 (2:1.1.3-3build2) ...
+Setting up openssh-client (1:9.6p1-3ubuntu13.20) ...
+Setting up libxext6:arm64 (2:1.3.4-1build2) ...
+Setting up liberror-perl (0.17029-2) ...
+Setting up git (1:2.43.0-1ubuntu7.4) ...
+Setting up xauth (1:1.1.2-1build1) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  libtirpc-common libtirpc3t64
+The following NEW packages will be installed:
+  libtirpc-common libtirpc3t64 lsof
+0 upgraded, 3 newly installed, 0 to remove and 3 not upgraded.
+Need to get 337 kB of archives.
+After this operation, 783 kB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libtirpc-common all 1.3.4+ds-1.1build1 [8094 B]
+
+0% [1 libtirpc-common 0 B/8094 B 0%]
+                                    
+9% [Waiting for headers]
+                        
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libtirpc3t64 arm64 1.3.4+ds-1.1build1 [83.6 kB]
+
+10% [2 libtirpc3t64 5389 B/83.6 kB 6%]
+16% [2 libtirpc3t64 29.5 kB/83.6 kB 35%]
+                                        
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 lsof arm64 4.95.0-1build3 [245 kB]
+
+                                        
+36% [3 lsof 2451 B/245 kB 1%]
+66% [3 lsof 129 kB/245 kB 53%]
+                              
+100% [Working]
+              
+Fetched 337 kB in 2s (142 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package libtirpc-common.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 11710 files and directories currently installed.)
+Preparing to unpack .../libtirpc-common_1.3.4+ds-1.1build1_all.deb ...
+Unpacking libtirpc-common (1.3.4+ds-1.1build1) ...
+Selecting previously unselected package libtirpc3t64:arm64.
+Preparing to unpack .../libtirpc3t64_1.3.4+ds-1.1build1_arm64.deb ...
+Adding 'diversion of /lib/aarch64-linux-gnu/libtirpc.so.3 to /lib/aarch64-linux-gnu/libtirpc.so.3.usr-is-merged by libtirpc3t64'
+Adding 'diversion of /lib/aarch64-linux-gnu/libtirpc.so.3.0.0 to /lib/aarch64-linux-gnu/libtirpc.so.3.0.0.usr-is-merged by libtirpc3t64'
+Unpacking libtirpc3t64:arm64 (1.3.4+ds-1.1build1) ...
+Selecting previously unselected package lsof.
+Preparing to unpack .../lsof_4.95.0-1build3_arm64.deb ...
+Unpacking lsof (4.95.0-1build3) ...
+Setting up libtirpc-common (1.3.4+ds-1.1build1) ...
+Setting up libtirpc3t64:arm64 (1.3.4+ds-1.1build1) ...
+Setting up lsof (4.95.0-1build3) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  libpng16-16t64 libqrencode4
+The following NEW packages will be installed:
+  libpng16-16t64 libqrencode4 qrencode
+0 upgraded, 3 newly installed, 0 to remove and 3 not upgraded.
+Need to get 238 kB of archives.
+After this operation, 559 kB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpng16-16t64 arm64 1.6.43-5ubuntu0.7 [187 kB]
+
+0% [1 libpng16-16t64 0 B/187 kB 0%]
+0% [1 libpng16-16t64 1128 B/187 kB 1%]
+3% [1 libpng16-16t64 8228 B/187 kB 4%]
+18% [1 libpng16-16t64 54.4 kB/187 kB 29%]
+19% [1 libpng16-16t64 55.8 kB/187 kB 30%]
+                                         
+59% [1 libpng16-16t64 176 kB/187 kB 94%]
+                                        
+70% [Waiting for headers]
+                         
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 libqrencode4 arm64 4.1.1-1build2 [25.3 kB]
+
+70% [2 libqrencode4 2550 B/25.3 kB 10%]
+                                       
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 qrencode arm64 4.1.1-1build2 [25.5 kB]
+
+                                       
+88% [3 qrencode 11.0 kB/25.5 kB 43%]
+                                    
+100% [Working]
+              
+Fetched 238 kB in 4s (66.0 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package libpng16-16t64:arm64.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 11750 files and directories currently installed.)
+Preparing to unpack .../libpng16-16t64_1.6.43-5ubuntu0.7_arm64.deb ...
+Unpacking libpng16-16t64:arm64 (1.6.43-5ubuntu0.7) ...
+Selecting previously unselected package libqrencode4:arm64.
+Preparing to unpack .../libqrencode4_4.1.1-1build2_arm64.deb ...
+Unpacking libqrencode4:arm64 (4.1.1-1build2) ...
+Selecting previously unselected package qrencode.
+Preparing to unpack .../qrencode_4.1.1-1build2_arm64.deb ...
+Unpacking qrencode (4.1.1-1build2) ...
+Setting up libqrencode4:arm64 (4.1.1-1build2) ...
+Setting up libpng16-16t64:arm64 (1.6.43-5ubuntu0.7) ...
+Setting up qrencode (4.1.1-1build2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+[OK]  安装 bc curl dbus git jq lsof python3 qrencode 完成 
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  cron-daemon-common
+Suggested packages:
+  anacron logrotate checksecurity supercat default-mta | mail-transport-agent
+The following NEW packages will be installed:
+  cron cron-daemon-common
+0 upgraded, 2 newly installed, 0 to remove and 3 not upgraded.
+Need to get 97.5 kB of archives.
+After this operation, 324 kB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 cron-daemon-common all 3.0pl1-184ubuntu2 [13.6 kB]
+
+0% [1 cron-daemon-common 0 B/13.6 kB 0%]
+                                        
+21% [Waiting for headers]
+                         
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 cron arm64 3.0pl1-184ubuntu2 [84.0 kB]
+
+28% [2 cron 8229 B/84.0 kB 10%]
+54% [2 cron 39.5 kB/84.0 kB 47%]
+85% [2 cron 77.8 kB/84.0 kB 93%]
+                                
+100% [Working]
+              
+Fetched 97.5 kB in 2s (44.1 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package cron-daemon-common.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 11774 files and directories currently installed.)
+Preparing to unpack .../cron-daemon-common_3.0pl1-184ubuntu2_all.deb ...
+Unpacking cron-daemon-common (3.0pl1-184ubuntu2) ...
+Setting up cron-daemon-common (3.0pl1-184ubuntu2) ...
+Creating group 'crontab' with GID 997.
+
+Selecting previously unselected package cron.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 11793 files and directories currently installed.)
+Preparing to unpack .../cron_3.0pl1-184ubuntu2_arm64.deb ...
+Unpacking cron (3.0pl1-184ubuntu2) ...
+Setting up cron (3.0pl1-184ubuntu2) ...
+invoke-rc.d: policy-rc.d denied execution of start.
+Created symlink /etc/systemd/system/multi-user.target.wants/cron.service → /usr/lib/systemd/system/cron.service.
+
+/usr/sbin/policy-rc.d returned 101, not running 'start cron.service'
+[OK]  安装 cron 完成 
+[OK]  crontab 自启动配置 完成 
+
+ 确定公网IP信息 
+2
+ 请选择公网IP为IPv4或IPv6 
+1: 自动检测 (IPv4/IPv6) (推荐)
+2: IPv4 (默认)
+3: IPv6
+4: 手动输入
+请输入: [OK]  正在获取公网IP信息, 请耐心等待 
+公网IP/域名: 2001:db8::42
+
+ 请选择传输协议 
+3
+1: ws (默认)
+2: gRPC
+3: xHTTP
+4: ws+xHTTP
+5: ws+gRPC+xHTTP
+请输入: 
+ 是否需要自定义 xHTTP inbound_port [Y/N]? 
+n
+ xHTTP inbound_port: 11147 
+[OK]  11147 端口未被占用 
+
+ 是否需要设置防火墙 [Y/N]? 
+n
+[OK]  跳过防火墙设置 
+
+ 是否需要自定义 xHTTP 伪装路径 [Y/N]? 
+n
+ xHTTP 伪装路径: bd11 
+
+ 是否需要自定义 Xray 用户名 [Y/N]? 
+n
+ Xray 用户名 (email): 78ac@hey.run 
+
+ 是否需要自定义字符串映射 (UUIDv5) [Y/N]? 
+n
+ UUID 映射字符串: 0889 
+ UUID: <redacted-uuid> 
+
+[OK]  停止 
+[OK]  已安装 Xray 
+[OK]  下载 Xray 配置 完成 
+[警告]  无传输层加密的后端入站监听地址: 127.0.0.1 
+[OK]  Xray listen address 修改 完成 
+[OK]  Xray 伪装路径 修改 完成 
+[OK]  Xray inbound port 修改 完成 
+[OK]  Xray 用户名修改 完成 
+[OK]  Xray UUID 修改 完成 
+[警告]  缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置 
+Created symlink /etc/systemd/system/multi-user.target.wants/xray.service → /etc/systemd/system/xray.service.
+
+[OK]  设置 Xray 开机自启 完成 
+
+ 设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx) 
+[警告]  可能自动更新后有兼容问题, 谨慎启用 
+ 是否启用 [Y/N]? 
+n
+[OK]  Xray 重启 完成 
+
+ 是否需要设置自动清理日志 [Y/N]? 
+n
+[OK]  已跳过设置自动清理日志 
+
+ 生成分享链接: 
+
+[OK]  Xray+xHTTP ONLY 安装 完成 
+
+[警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
+[警告]  当前 xHTTP 仅支持 stream-one 和 stream-up 模式 
+[警告]  xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持 
+
+ —————————————— Xray 配置信息 —————————————— 
+ 主机 (host): 2001:db8::42 
+ xHTTP 端口 (port): 11147 
+ UUIDv5 映射字符串: 0889
+ 用户id (UUID): <redacted-uuid>
+ 加密 (encryption): None 
+ 传输协议 (network): xHTTP 
+ 底层传输安全 (tls): None 
+ 监听地址 (listen): 127.0.0.1 
+[警告]  此模式没有传输层加密 (VLESS 载荷自身仍有加密), 只应用于可信后端链路 
+[警告]  当前仅监听本机, 外部客户端需经可信代理接入, 或改用 TLS/Reality 模式 
+ xHTTP 路径 (path 不要落下/): /bd11 
+
+ —————————————— Xray 链接分享 —————————————— 
+ xHTTP URL 分享链接: vless://<redacted-link>
+ 二维码: 
+█████████████████████████████████████████████████████████████████████
+█████████████████████████████████████████████████████████████████████
+████ ▄▄▄▄▄ █▀▀▄ ▀█▀▀ █▀▄███▀ █ █▀▀▄▀▄ ▄▄█▀▀▄▄█ █ ▀▀ ▀██  █ ▄▄▄▄▄ ████
+████ █   █ █▀███  ██▄  █▀▄▄█ ▄██  ▄██ █▀▀▀▀▀  ▄▀▄▄█▀▄  ▄ █ █   █ ████
+████ █▄▄▄█ █▀▄ ▀██▄▀▄▄▀▄▀  ▄▀█   ▄▄▄ ▄ ▀█ ▀▄███ ▀▄▀█▄█ ▄██ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄▀▄█▄█▄█ ▀ █ ▀▄█ █▄▀ █▄█ ▀ ▀▄█ ▀▄█▄▀ ▀ ▀ █▄█ █▄▄▄▄▄▄▄████
+████▄▄▄  ▀▄ ▄▄ ▄█▀█ ▄▀ ▀▀▀▀▀▀ █▀ ▄  ▄▀█▀ ▄▄ ▀█ ▀█ ▄▀▀ ▄▀▀▄▀ ▀ █▄█████
+████▄█ ▀ ▄▄  ▄▀ ███ █  ▀ █▄▀▀▄█▀ ▄█▀ █ ▄ ▄▀  ▄▀  ▄▀▀██▄▀▀█▀▄▄██▄▄████
+████▄█▄▀▀▄▄████▀█▄█▀▄▄▄█▄▀▀▀▀▀▀▄▄▀ █▀█▄█▀ ▀██  ▄▄▄██  █▄▄▄ ▀▄ ▄▄ ████
+█████▄▀▄▄█▄███▄██▀█▄▄  █▄▀   ▄  ▄ ▀▀  ▄█ █▄▀▀▄█ █▀█ ▄▄  █▄▀█  █▀ ████
+████ █▀█  ▄▀█▄▄█ ▀█▀██▄▄▄▀▄▀▄▀▀▀▄  █▀▀▄ ██▄▀█▄▄▀▄▀▄▀ █▄▀▄█ ▀ ▄▀▀█████
+████  ▄▄ ▄▄▀▀▄▄█ ██▀█ ▀▀█▄█▀█▀▄▄▄▄ ▄▀ ▄█▄ ▄ ▄ ▄▀  ▄▀▀▀▀██▀▄  ▄▀█▄████
+████▀█▀█▄▄▄ ▄█ ▀▄ █▄██ ▄▄▄▀█ ▀▄▀▀▄▀  ▀▄   █▄▄▄▄▀█▀█▄ ▄▀▄█▀▀▀█▄▀ █████
+██████▄ █ ▄▀   ▄ ▄▀▀▀▄█▄▄█ ▄ ▀▀▀▄▀▀████▄█▄ ██▄ ▄▀  █▄▀█ █ ▄█▀▄█▀▄████
+████ █▀▀ █▄▄██ ▄▄▀ ▀▄▄▀▄██▀█▀█▄ █▄▀▄█▄▄▄▄▄▀▄▄▀▀█▀▀▄▀  █ ▄▄▀█▀▄▄▀▄████
+████▀█ ▄█▄▄  ▀ ██▀ ▀█▄▄▄█ ▀  ███ ▄ █▄▄▀▄▄█▀  ▀▀▄▀  ██▀▄▀▀▄▀▀▄██▄▄████
+████ ███ ▄▄▄  █  ▀▄▀▄▀▄▄██▀▄▀▀▀█ ▄▄▄ ▄▄ ▀▄ █▀  ▄ ██▄▄▀██ ▄▄▄ ▄▄ ▀████
+██████ ▄ █▄█ █▀█▀█▄▀▄  ██▄██▀ ▄  █▄█   ▄▄▀█▄▀▄██▀█▀▀▄█ ▀ █▄█ ▀█▀ ████
+████▄ █ ▄ ▄▄▄▄█▄█▀█▄▀▀▄▄▄▄█▄ ▄▀ ▄  ▄▄█▀▀█▄█▄▀▄▄▀█▀█▀  ▀█    ▄▀▀▄▀████
+██████ █▀█▄▀ █ ▄ ▀▄▄ █ █▄  ▄ █ ▀▄ ▀█   ▀▄▄▄▀█▄▀█▀█▄▀▀▀▀█▄▀▄▄▀██▄ ████
+█████ ▀█▀ ▄█▄▄▄▄▄▄▀▄██ ▄▄▄▀█▄██▄▀▄▄▄▄  ▀ ▀▄▄  ▀▄█▄▄▄▀▀▄▄▀▀ █▄▄█▄█████
+████ ▄███▄▄▀▄▄▀▄██  ▀▀ ▀█▄▀▄▄ ▀ ▀██▀▄ ▄▀██ ▀▀▄▀▄▀   ▀ █  ██▀███▄▄████
+██████▄ █▀▄▀▀▄ ▀▄ █▄▄▀ ▀▀█▀▀▀▄█▄▄▀▄ █▄█▀▄▄▄▄█▄▀ █▀▄▀▀ █▀▀▀▀▄▄█▄▀▀████
+█████ ▀█▀ ▄▄▀▄▄▄█ █▀▄▀▀▀ ▄█▀█ █ ▄▀▀▄▄███ █▄▄▀ ▀▀▀▀ █▄█ ▀██▀█ ▄▄█▀████
+██████▄ ▀ ▄▀█▄▄▄ ▄ ▀▄▄▄█▀ ▄▄▀▀▀   ▄█▄▀██  ▄▀▀▀  ▄▀▀ ▄██▄▄▄▄▄▄▀██ ████
+████▄█▀ █ ▄█  ▄▄  ▀  ▀▄█▀▀ ██▄ ▄█▀▀    ▀▄ ██▀█▀▀ ▄█ █▄ ▄▄▄▄▄▄ █▄▄████
+████▄██▀▀ ▄▄ ▀█ ▄▀ ▀█▄ ▄▄▀▄▀▄▄▀▄█▀▀█ █ ▀  ▄▄█ ▄▀▀██▀ ▄▀▄ ▄  █▄▀▄█████
+████▀▀ ▄ ▄▄ ███▄▀ ▀▀█ ▄ ▀▄▄▀█▀▄▀▄▄▀▀█▄█▀▄█ █▄█▄█ ▄ ▄▀█ ▄▄▀▄██▄▀▀▀████
+████▄▄▄▄██▄█ ▀█▀▄▄▄▀▀▀▀▀▄▄▀█ ▀▄▄ ▄▄▄ ▄▄▄  █▀ ▄▄ ▀██  ▄▀▄ ▄▄▄ ▀█▀█████
+████ ▄▄▄▄▄ █▄ ▀▀▀ ▀▀▀▄█▀█▀█▄████ █▄█ ▀▀ ▄▄ ▄   ▄  ▄██▀█  █▄█ █▄█▄████
+████ █   █ █ ▄█▄▄  ▀▄▄▀▄█▄▀▀▀██ ▄▄▄  ▀▄▀▄▄▄▄▀▄ ▄██▀▀▄█▄ ▄▄ ▄▄█ ▄ ████
+████ █▄▄▄█ █ ▀ ▀ ██▀█▄▄▄█ █ ██▀ ▀▄▀█▀█▄█ ▄▄  ▀█▄█ ▀█▄▀ ██▄▀▄▀▀██ ████
+████▄▄▄▄▄▄▄█▄█▄▄████▄█▄█▄▄█▄█████▄█▄█▄▄█▄██▄█▄███▄██▄▄█▄▄▄████▄▄▄████
+█████████████████████████████████████████████████████████████████████
+█████████████████████████████████████████████████████████████████████
+
+ —————————————— Clash 配置分享 —————————————— 
+ Clash 配置分享: 
+proxies:
+
+  - name: VLESS-2001:db8::42-xhttp
+    type: vless
+    server: '2001:db8::42'
+    port: 11147
+    uuid: <redacted-uuid>
+    client-fingerprint: chrome
+    tls: false
+    network: xhttp
+    xhttp-opts:
+      path: /bd11
+      mode: auto
+    skip-cert-verify: false
+
+ ——————————————————  END  —————————————————— 
+

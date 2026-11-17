@@ -1,0 +1,88 @@
+{
+  "environment": {},
+  "generated": {
+    "grpc": {
+      "port": 10000,
+      "serviceName": "idleleo-grpc",
+      "share": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=grpc&serviceName=idleleo-grpc#idleleo-tls"
+    },
+    "listenOverride": "0.0.0.0",
+    "multi": {
+      "clash": [
+        "proxies:",
+        "  - name: \"idleleo-tls\"",
+        "    type: vless",
+        "    server: example.com",
+        "    port: 443",
+        "    uuid: bbbbbbbb-2222-4222-8222-222222222222",
+        "    network: ws",
+        "    udp: true"
+      ],
+      "ports": {
+        "grpc": 12444,
+        "ws": 12443,
+        "xhttp": 12445
+      },
+      "share": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls"
+    },
+    "multiAuto": {
+      "grpc": 10001,
+      "ws": 10000,
+      "xhttp": 11000
+    },
+    "portFlagIgnored": {
+      "backend": 10000,
+      "requested": 19999
+    },
+    "publicPort": 8443,
+    "ws": {
+      "fragments": [
+        "01-xray-80.conf",
+        "02-xray-server.conf",
+        "127.0.0.1.wsServers"
+      ],
+      "port": 10000,
+      "share": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+      "tag": "VLESS-ws-in",
+      "upstream": "xray-ws-server"
+    },
+    "xhttp": {
+      "path": "/xhttp/",
+      "port": 11000,
+      "share": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/xhttp/&host=example.com#idleleo-tls"
+    },
+    "xhttpDefaultPath": "/ray/"
+  },
+  "rejections": {
+    "duplicate ws/grpc port": 2,
+    "grpc port equals the public port": 2,
+    "malformed domain": 2,
+    "missing domain": 2,
+    "overwrite": 2,
+    "reality transport in tls mode": 2,
+    "unknown transport": 2,
+    "ws port out of range": 2
+  },
+  "xrayTest": {
+    "bash-baseline": {
+      "config": "/work/evidence/f02-work/bash/config.json",
+      "rc": 0
+    },
+    "tls-grpc": {
+      "config": "/work/evidence/f02-work/grpc/config.json",
+      "rc": 0
+    },
+    "tls-multi": {
+      "config": "/work/evidence/f02-work/multi-pinned/config.json",
+      "rc": 0
+    },
+    "tls-ws": {
+      "config": "/work/evidence/f02-work/ws/config.json",
+      "rc": 0
+    },
+    "tls-xhttp": {
+      "config": "/work/evidence/f02-work/xhttp/config.json",
+      "rc": 0
+    }
+  }
+}

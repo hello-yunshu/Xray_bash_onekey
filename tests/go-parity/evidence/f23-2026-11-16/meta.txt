@@ -1,0 +1,59 @@
+fixture: F23 six-language CLI, TTY and narrow screen
+feature: F23 多语言TTY与窄屏
+evidence level: CONTAINER_VERIFIED (config-level: real Go binary + fixed Bash catalogs)
+date: 2026-11-16
+branch: develop/go-native
+commit: 7f086229
+executor: tests/go-parity/parity/features/F23_test.py (new in this commit)
+image: idleleo-preview:latest
+image digest: sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+go_bin_sha256: ba0fafaba5c6a17810e614ab79275587e4c41bd685382648200de53f08c1743c
+
+build:
+  docker run --rm -v "$PWD":/src -w /src -v /tmp/idleleo-f23-build:/out -e CGO_ENABLED=0 golang:1.27.4 go build -trimpath -o /out/idleleo ./cmd/idleleo
+
+run container:
+  docker run -d --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock \
+    -v /tmp/idleleo-f23-build/idleleo:/work/bin/idleleo:ro \
+    -v "$PWD":/work/repo:ro \
+    -v "$PWD/tests/go-parity/evidence/f23-2026-11-16":/work/evidence \
+    -e IDLELEO_PREVIEW_EVIDENCE=/work/evidence idleleo-preview:latest
+
+command:
+  docker exec <cid> python3 -I /work/repo/tests/go-parity/parity/features/F23_test.py \
+    --go-bin /work/bin/idleleo --bash-repo /work/repo
+
+run1: 103 passed, 0 failed, 0.13s, exit 0
+run2: 103 passed, 0 failed, 0.12s, exit 0
+
+covered:
+  - zh/en/fa/ru/ko/fr are all accepted; zh and en help differ and both list every
+    top-level command token; every output is ANSI-free
+  - fr/fa/ru/ko version and help are byte-identical to en on stdout and emit exactly
+    one English fallback notice per invocation; zh/en emit none
+  - invalid de/ZH/zh_CN exit 2 with the English help and no notice; --lang de --version
+    and --help exit 0 in English because flag parsing precedes language validation
+  - LANG/LC_ALL and etc/idleleo/language.conf do not select the language; the default
+    is zh; --lang en overrides LANG=zh_CN.UTF-8
+  - empty-root status exits 3 across zh/en/fr/ko and fr stderr is the en message plus
+    one notice; config inspect exit codes do not vary by language; unknown subcommand
+    exits 2 with identical fr/en stdout
+  - status/config inspect/help leave the prepared root tree digest unchanged
+  - no-TTY zh exits 2 with the Chinese no_tty line and Chinese help; no-TTY fr exits 2
+    with the English help, the notice and the English no_tty line
+  - 45x40 PTY menu exits 0 for zh and fr, shows the same English single-line prompt
+    (1) status ... 0) exit), carries the fr notice, and emits no ESC byte
+  - zh help max display width 111 columns, en 133: no narrow-screen wrapping/truncation
+  - Bash catalogs read with gettext.GNUTranslations: zh_CN/en/fr/ru/ko/fa translate
+    总览 and 信息 exactly as recorded; Bash is complete in six languages while Go has
+    complete catalogs only for zh/en
+
+notes:
+  - Config-only fixture: no Xray binary, no systemd, no root and no network. It still
+    runs the real CLI binary and reads the real shipped Bash .mo catalogs.
+  - run1 (kept out of the committed evidence) failed one PTY assertion because a PTY
+    translates LF to CRLF; output is now normalized before string assertions while
+    ANSI detection still runs on the same bytes.
+  - Documented divergences live in baseline-compare.json: six-language completeness,
+    per-entry (Bash) vs whole-language (Go) fallback, language.conf, localized
+    45-column menu vs English single-line prompt, and ANSI suppression (Go is stricter).

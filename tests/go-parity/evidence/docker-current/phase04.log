@@ -1,0 +1,92 @@
+== building phase04 image ==
+#0 building with "orbstack" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 649B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/2] FROM docker.io/library/ubuntu:24.04@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852
+#4 resolve docker.io/library/ubuntu:24.04@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852 0.0s done
+#4 DONE 0.0s
+
+#5 [2/2] RUN apt-get update     && apt-get install -y --no-install-recommends         systemd systemd-sysv dbus ca-certificates curl iproute2 procps python3         nginx libnginx-mod-stream openssl jq gettext bc util-linux shellcheck     && rm -rf /var/lib/apt/lists/*
+#5 CACHED
+
+#6 exporting to image
+#6 exporting layers done
+#6 exporting manifest sha256:0baaf1bd760c2653123467ee5771c170cf5b0145c0edb3fa3262d57f065144fd done
+#6 exporting config sha256:079d727053b640f846f676ff7a89f19ce89d49e669db1fbb1aa6cc366ccf2b3b done
+#6 exporting attestation manifest sha256:b56707e51f455144ef570178967cd30f861c2914e3b41631670c1c6d6d4f6b9b 0.0s done
+#6 exporting manifest list sha256:50d90a9da5f8c987bd2f26ca5dbb4f3ee53ee5aa113db00acabf5268a0c8db34 0.0s done
+#6 naming to docker.io/library/idleleo-phase04-test:24.04
+#6 naming to docker.io/library/idleleo-phase04-test:24.04 done
+#6 unpacking to docker.io/library/idleleo-phase04-test:24.04 0.0s done
+#6 DONE 0.1s
+image: idleleo-phase04-test:24.04
+image-id: sha256:50d90a9da5f8c987bd2f26ca5dbb4f3ee53ee5aa113db00acabf5268a0c8db34
+xray-bin: /private/tmp/xray-26/xray arch=arm64 sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328
+== building linux/arm64 idleleo versions ==
+idleleo-old sha256=2ea35831fabd72e9d16bf95323c0e3fc80082feb4d83010bfda02de47926f1f1
+idleleo-0.3.0 sha256=8592ff2bd09e2886b5c1553546e2efec030f31bef0d60e0194558e4c5690460b
+idleleo-0.4.0 sha256=aefa5d3feaf306a2205da65e25f230e96abe202966a2738d2a827540970a0e93
+== starting privileged systemd container ==
+systemd: running
+== running Phase 04 qualification ==
+phase04-start 2026-11-07T14:57:12Z arch=arm64
+old=2ea35831fabd72e9d16bf95323c0e3fc80082feb4d83010bfda02de47926f1f1 new3=8592ff2bd09e2886b5c1553546e2efec030f31bef0d60e0194558e4c5690460b new4=aefa5d3feaf306a2205da65e25f230e96abe202966a2738d2a827540970a0e93
+installed: idleleo 0.2.0-phase04 (go)
+PASS installed old candidate 0.2.0-phase04
+PASS update configure rc=0
+PASS update check available verified latest=0.3.0-phase04
+PASS update apply action=applied health=idleleo 0.3.0-phase04 (go) version=idleleo 0.3.0-phase04 (go)
+installed-binary-sha=8592ff2bd09e2886b5c1553546e2efec030f31bef0d60e0194558e4c5690460b expected=8592ff2bd09e2886b5c1553546e2efec030f31bef0d60e0194558e4c5690460b
+PASS installed sha matches manifest
+PASS second apply is up-to-date
+PASS bad sha rejected rc=1
+PASS bad sha kept old binary
+PASS interrupted download rejected rc=1
+PASS interrupted download kept old binary
+PASS non-ELF asset rejected rc=1
+PASS non-ELF kept old binary
+PASS downgrade refused exit=4
+PASS downgrade kept old binary
+PASS disk full rejected rc=1
+PASS disk full kept old binary (idleleo 0.3.0-phase04 (go))
+umount: /mnt/full: target is busy.
+job=auto-update result=ok at=2026-11-07T14:57:13Z detail=updated 0.3.0-phase04 -> 0.4.0-phase04 sha256=aefa5d3feaf306a2205da65e25f230e96abe202966a2738d2a827540970a0e93 health=idleleo 0.4.0-phase04 (go)
+PASS scheduled auto-update applied 0.4.0 at=2026-11-07T14:57:13Z
+schedule-log: 2026-11-07T14:57:13Z job=auto-update result=ok detail=updated 0.3.0-phase04 -> 0.4.0-phase04 sha256=aefa5d3feaf306a2205da65e25f230e96abe202966a2738d2a827540970a0e93 health=idleleo 0.4.0-phase04 (go)
+PASS schedule log recorded the real run
+PASS schedule status sees the release channel
+PASS unconfigured auto-update is an explicit degradation
+PASS degraded run kept binary
+PASS cert baseline recorded without restart
+PASS changed certificate restarted xray once and reloaded nginx
+PASS unchanged certificate did not restart services
+PASS world-readable private key blocked the reload
+PASS short-lived unchanged certificate reports explicit degradation
+PASS service status xray=active nginx=active
+PASS service restart restarted xray (starts 3->4)
+PASS service stop left xray inactive
+PASS service start restored xray
+PASS service logs returned journal lines
+PASS unmanaged unit rejected rc=2
+PASS service status refuses a sandbox root rc=2
+PASS rill status reports absent on a clean system
+PASS rill status active mode=observe-only
+PASS rill status detects a stale observation
+PASS help lists the new commands
+PASS stats --json returned a real inbound counter
+PASS show reads the runtime config
+PASS read-only commands wrote nothing under /etc/idleleo
+PASS non-root stats preserves the legacy exit 5
+PASS stats with API down reports exit 8
+phase04-end 2026-11-07T14:57:17Z pass=42 fail=0
+phase04-exit=0

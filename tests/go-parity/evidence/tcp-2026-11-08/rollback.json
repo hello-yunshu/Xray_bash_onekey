@@ -1,0 +1,20 @@
+{
+  "changed": true,
+  "noop": false,
+  "profile": "bbr-fq",
+  "filePath": "/tmp/tcp-sandbox/etc/sysctl.d/90-idleleo-tcp.conf",
+  "statePath": "/tmp/tcp-sandbox/var/lib/idleleo/tcp/state.json",
+  "applied": [
+    {
+      "key": "net.core.default_qdisc",
+      "old": "fq",
+      "new": "fq_codel"
+    },
+    {
+      "key": "net.ipv4.tcp_congestion_control",
+      "old": "bbr",
+      "new": "cubic"
+    }
+  ],
+  "message": "rollback complete"
+}

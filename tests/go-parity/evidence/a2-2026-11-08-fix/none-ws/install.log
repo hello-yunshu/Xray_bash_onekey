@@ -1,0 +1,1980 @@
+spawn bash /src/install.sh -3
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  正在安装 gettext... 
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 64%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+E: Unable to locate package gettext
+[错误]  软件包安装失败: gettext 
+[错误]  gettext 安装 失败, 将使用默认语言 
+[OK]  当前系统为 Ubuntu 24.04 noble 
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease [256 kB]
+
+0% [1 InRelease 0 B/256 kB 0%]
+0% [1 InRelease 22.4 kB/256 kB 9%]
+0% [1 InRelease 97.7 kB/256 kB 38%]
+                                   
+0% [1 InRelease 170 kB/256 kB 66%]
+                                  
+0% [Waiting for headers]
+0% [Waiting for headers]
+                        
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease [126 kB]
+
+0% [2 InRelease 2532 B/126 kB 2%]
+0% [2 InRelease 66.4 kB/126 kB 53%]
+                                   
+0% [Waiting for headers]
+0% [Waiting for headers]
+                        
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease [126 kB]
+
+0% [3 InRelease 2532 B/126 kB 2%]
+0% [3 InRelease 99.1 kB/126 kB 79%]
+                                   
+0% [3 InRelease 112 kB/126 kB 89%]
+                                  
+0% [Waiting for headers]
+0% [Waiting for headers]
+                        
+Get:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease [126 kB]
+
+0% [4 InRelease 2532 B/126 kB 2%]
+0% [4 InRelease 35.2 kB/126 kB 28%]
+                                   
+0% [4 InRelease 125 kB/126 kB 99%]
+                                  
+0% [Working]
+13% [Waiting for headers]
+                         
+Get:5 http://ports.ubuntu.com/ubuntu-ports noble/restricted arm64 Packages [113 kB]
+
+13% [5 Packages 2601 B/113 kB 2%]
+13% [5 Packages 22.5 kB/113 kB 20%]                           103 kB/s 5min 40s
+13% [Waiting for headers]                                     103 kB/s 5min 39s
+                                                                               
+Get:6 http://ports.ubuntu.com/ubuntu-ports noble/multiverse arm64 Packages [274 kB]
+
+13% [6 Packages 29.0 kB/274 kB 11%]                           103 kB/s 5min 39s
+13% [5 Packages store 0 B] [6 Packages 29.0 kB/274 kB 11%]    103 kB/s 5min 39s
+14% [6 Packages 29.0 kB/274 kB 11%]                           103 kB/s 5min 39s
+14% [6 Packages 120 kB/274 kB 44%]                            103 kB/s 5min 38s
+                                                                               
+Get:7 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 Packages [19.0 MB]
+
+15% [7 Packages 5164 B/19.0 MB 0%]                            103 kB/s 5min 36s
+15% [6 Packages store 0 B] [7 Packages 5164 B/19.0 MB 0%]     103 kB/s 5min 36s
+15% [7 Packages 5164 B/19.0 MB 0%]                            103 kB/s 5min 36s
+15% [7 Packages 50.6 kB/19.0 MB 0%]                           103 kB/s 5min 36s
+15% [7 Packages 146 kB/19.0 MB 1%]                            103 kB/s 5min 35s
+16% [7 Packages 326 kB/19.0 MB 2%]                            103 kB/s 5min 33s
+16% [7 Packages 425 kB/19.0 MB 2%]                            103 kB/s 5min 32s
+16% [7 Packages 573 kB/19.0 MB 3%]                            103 kB/s 5min 31s
+17% [7 Packages 725 kB/19.0 MB 4%]                            103 kB/s 5min 29s
+17% [7 Packages 869 kB/19.0 MB 5%]                            103 kB/s 5min 28s
+17% [7 Packages 893 kB/19.0 MB 5%]                            103 kB/s 5min 28s
+17% [7 Packages 1069 kB/19.0 MB 6%]                           103 kB/s 5min 26s
+18% [7 Packages 1192 kB/19.0 MB 6%]                           244 kB/s 2min 17s
+18% [7 Packages 1353 kB/19.0 MB 7%]                           244 kB/s 2min 16s
+18% [7 Packages 1486 kB/19.0 MB 8%]                           244 kB/s 2min 16s
+19% [7 Packages 1564 kB/19.0 MB 8%]                           244 kB/s 2min 15s
+19% [7 Packages 1672 kB/19.0 MB 9%]                           244 kB/s 2min 15s
+19% [7 Packages 1840 kB/19.0 MB 10%]                          244 kB/s 2min 14s
+19% [7 Packages 1921 kB/19.0 MB 10%]                          244 kB/s 2min 14s
+20% [7 Packages 2060 kB/19.0 MB 11%]                          244 kB/s 2min 13s
+20% [7 Packages 2103 kB/19.0 MB 11%]                          244 kB/s 2min 13s
+20% [7 Packages 2281 kB/19.0 MB 12%]                          244 kB/s 2min 12s
+20% [7 Packages 2307 kB/19.0 MB 12%]                          244 kB/s 2min 12s
+21% [7 Packages 2473 kB/19.0 MB 13%]                          244 kB/s 2min 12s
+21% [7 Packages 2561 kB/19.0 MB 13%]                          226 kB/s 2min 22s
+21% [7 Packages 2653 kB/19.0 MB 14%]                          226 kB/s 2min 21s
+21% [7 Packages 2793 kB/19.0 MB 15%]                          226 kB/s 2min 21s
+21% [7 Packages 2879 kB/19.0 MB 15%]                          226 kB/s 2min 20s
+22% [7 Packages 2906 kB/19.0 MB 15%]                          226 kB/s 2min 20s
+22% [7 Packages 3068 kB/19.0 MB 16%]                          226 kB/s 2min 20s
+22% [7 Packages 3132 kB/19.0 MB 16%]                          226 kB/s 2min 19s
+22% [7 Packages 3315 kB/19.0 MB 17%]                          226 kB/s 2min 18s
+23% [7 Packages 3417 kB/19.0 MB 18%]                          226 kB/s 2min 18s
+23% [7 Packages 3440 kB/19.0 MB 18%]                          226 kB/s 2min 18s
+23% [7 Packages 3549 kB/19.0 MB 19%]                          226 kB/s 2min 17s
+23% [7 Packages 3682 kB/19.0 MB 19%]                          226 kB/s 2min 17s
+23% [7 Packages 3760 kB/19.0 MB 20%]                          198 kB/s 2min 36s
+24% [7 Packages 3914 kB/19.0 MB 21%]                          198 kB/s 2min 35s
+24% [7 Packages 4041 kB/19.0 MB 21%]                          198 kB/s 2min 35s
+24% [7 Packages 4143 kB/19.0 MB 22%]                          198 kB/s 2min 34s
+24% [7 Packages 4143 kB/19.0 MB 22%]                          198 kB/s 2min 34s
+25% [7 Packages 4291 kB/19.0 MB 23%]                          198 kB/s 2min 33s
+25% [7 Packages 4423 kB/19.0 MB 23%]                          198 kB/s 2min 33s
+25% [7 Packages 4541 kB/19.0 MB 24%]                          198 kB/s 2min 32s
+25% [7 Packages 4666 kB/19.0 MB 25%]                          198 kB/s 2min 31s
+26% [7 Packages 4739 kB/19.0 MB 25%]                          198 kB/s 2min 31s
+26% [7 Packages 4843 kB/19.0 MB 25%]                          198 kB/s 2min 31s
+26% [7 Packages 5060 kB/19.0 MB 27%]                          198 kB/s 2min 29s
+27% [7 Packages 5175 kB/19.0 MB 27%]                           234 kB/s 2min 6s
+27% [7 Packages 5369 kB/19.0 MB 28%]                           234 kB/s 2min 5s
+27% [7 Packages 5440 kB/19.0 MB 29%]                           234 kB/s 2min 5s
+27% [7 Packages 5539 kB/19.0 MB 29%]                           234 kB/s 2min 4s
+27% [7 Packages 5539 kB/19.0 MB 29%]                           234 kB/s 2min 4s
+28% [7 Packages 5810 kB/19.0 MB 31%]                           234 kB/s 2min 3s
+28% [7 Packages 5911 kB/19.0 MB 31%]                           234 kB/s 2min 3s
+28% [7 Packages 5990 kB/19.0 MB 31%]                           234 kB/s 2min 3s
+29% [7 Packages 6118 kB/19.0 MB 32%]                           234 kB/s 2min 2s
+29% [7 Packages 6358 kB/19.0 MB 33%]                           234 kB/s 2min 1s
+29% [7 Packages 6422 kB/19.0 MB 34%]                           234 kB/s 2min 1s
+30% [7 Packages 6588 kB/19.0 MB 35%]                           234 kB/s 2min 0s
+30% [7 Packages 6744 kB/19.0 MB 35%]                          260 kB/s 1min 47s
+30% [7 Packages 6892 kB/19.0 MB 36%]                          260 kB/s 1min 47s
+30% [7 Packages 6896 kB/19.0 MB 36%]                          260 kB/s 1min 47s
+31% [7 Packages 7142 kB/19.0 MB 38%]                          260 kB/s 1min 46s
+31% [7 Packages 7196 kB/19.0 MB 38%]                          260 kB/s 1min 46s
+31% [7 Packages 7352 kB/19.0 MB 39%]                          260 kB/s 1min 45s
+32% [7 Packages 7453 kB/19.0 MB 39%]                          260 kB/s 1min 45s
+32% [7 Packages 7550 kB/19.0 MB 40%]                          260 kB/s 1min 44s
+32% [7 Packages 7754 kB/19.0 MB 41%]                          260 kB/s 1min 44s
+32% [7 Packages 7791 kB/19.0 MB 41%]                          260 kB/s 1min 43s
+33% [7 Packages 7970 kB/19.0 MB 42%]                          260 kB/s 1min 43s
+33% [7 Packages 8072 kB/19.0 MB 42%]                          260 kB/s 1min 42s
+33% [7 Packages 8234 kB/19.0 MB 43%]                          247 kB/s 1min 47s
+34% [7 Packages 8288 kB/19.0 MB 44%]                          247 kB/s 1min 47s
+34% [7 Packages 8490 kB/19.0 MB 45%]                          247 kB/s 1min 46s
+34% [7 Packages 8609 kB/19.0 MB 45%]                          247 kB/s 1min 46s
+34% [7 Packages 8661 kB/19.0 MB 46%]                          247 kB/s 1min 45s
+35% [7 Packages 8805 kB/19.0 MB 46%]                          247 kB/s 1min 45s
+35% [7 Packages 8941 kB/19.0 MB 47%]                          247 kB/s 1min 44s
+35% [7 Packages 8963 kB/19.0 MB 47%]                          247 kB/s 1min 44s
+35% [7 Packages 9009 kB/19.0 MB 47%]                          247 kB/s 1min 44s
+36% [7 Packages 9183 kB/19.0 MB 48%]                          247 kB/s 1min 43s
+36% [7 Packages 9214 kB/19.0 MB 48%]                          247 kB/s 1min 43s
+36% [7 Packages 9352 kB/19.0 MB 49%]                          247 kB/s 1min 43s
+36% [7 Packages 9516 kB/19.0 MB 50%]                          212 kB/s 1min 59s
+36% [7 Packages 9582 kB/19.0 MB 50%]                          212 kB/s 1min 58s
+37% [7 Packages 9697 kB/19.0 MB 51%]                          212 kB/s 1min 58s
+37% [7 Packages 9810 kB/19.0 MB 52%]                          212 kB/s 1min 57s
+37% [7 Packages 9876 kB/19.0 MB 52%]                          212 kB/s 1min 57s
+37% [7 Packages 9975 kB/19.0 MB 52%]                          212 kB/s 1min 57s
+38% [7 Packages 10.1 MB/19.0 MB 53%]                          212 kB/s 1min 56s
+38% [7 Packages 10.2 MB/19.0 MB 54%]                          212 kB/s 1min 56s
+38% [7 Packages 10.3 MB/19.0 MB 54%]                          212 kB/s 1min 55s
+38% [7 Packages 10.4 MB/19.0 MB 55%]                          212 kB/s 1min 55s
+39% [7 Packages 10.5 MB/19.0 MB 55%]                          212 kB/s 1min 54s
+39% [7 Packages 10.6 MB/19.0 MB 56%]                          212 kB/s 1min 54s
+39% [7 Packages 10.6 MB/19.0 MB 56%]                          185 kB/s 2min 10s
+39% [7 Packages 10.8 MB/19.0 MB 57%]                           185 kB/s 2min 9s
+39% [7 Packages 10.9 MB/19.0 MB 57%]                           185 kB/s 2min 9s
+39% [7 Packages 10.9 MB/19.0 MB 57%]                           185 kB/s 2min 9s
+40% [7 Packages 11.0 MB/19.0 MB 58%]                           185 kB/s 2min 8s
+40% [7 Packages 11.1 MB/19.0 MB 58%]                           185 kB/s 2min 8s
+40% [7 Packages 11.2 MB/19.0 MB 59%]                           185 kB/s 2min 7s
+40% [7 Packages 11.2 MB/19.0 MB 59%]                           185 kB/s 2min 7s
+40% [7 Packages 11.3 MB/19.0 MB 59%]                           185 kB/s 2min 7s
+41% [7 Packages 11.5 MB/19.0 MB 60%]                           185 kB/s 2min 6s
+41% [7 Packages 11.5 MB/19.0 MB 61%]                           185 kB/s 2min 5s
+41% [7 Packages 11.6 MB/19.0 MB 61%]                           185 kB/s 2min 5s
+41% [7 Packages 11.8 MB/19.0 MB 62%]                           187 kB/s 2min 2s
+42% [7 Packages 11.8 MB/19.0 MB 62%]                           187 kB/s 2min 2s
+42% [7 Packages 11.8 MB/19.0 MB 62%]                           187 kB/s 2min 2s
+42% [7 Packages 12.1 MB/19.0 MB 63%]                           187 kB/s 2min 1s
+42% [7 Packages 12.1 MB/19.0 MB 64%]                           187 kB/s 2min 0s
+42% [7 Packages 12.2 MB/19.0 MB 64%]                           187 kB/s 2min 0s
+43% [7 Packages 12.3 MB/19.0 MB 65%]                          187 kB/s 1min 59s
+43% [7 Packages 12.4 MB/19.0 MB 65%]                          187 kB/s 1min 59s
+43% [7 Packages 12.5 MB/19.0 MB 66%]                          187 kB/s 1min 59s
+43% [7 Packages 12.6 MB/19.0 MB 66%]                          187 kB/s 1min 58s
+43% [7 Packages 12.7 MB/19.0 MB 67%]                          187 kB/s 1min 57s
+44% [7 Packages 12.8 MB/19.0 MB 67%]                          187 kB/s 1min 57s
+44% [7 Packages 12.9 MB/19.0 MB 68%]                          190 kB/s 1min 55s
+44% [7 Packages 13.1 MB/19.0 MB 69%]                          190 kB/s 1min 54s
+45% [7 Packages 13.2 MB/19.0 MB 69%]                          190 kB/s 1min 53s
+45% [7 Packages 13.3 MB/19.0 MB 70%]                          190 kB/s 1min 53s
+45% [7 Packages 13.5 MB/19.0 MB 71%]                          190 kB/s 1min 52s
+45% [7 Packages 13.5 MB/19.0 MB 71%]                          190 kB/s 1min 52s
+46% [7 Packages 13.7 MB/19.0 MB 72%]                          190 kB/s 1min 51s
+46% [7 Packages 13.7 MB/19.0 MB 72%]                          190 kB/s 1min 50s
+46% [7 Packages 13.8 MB/19.0 MB 73%]                          190 kB/s 1min 50s
+46% [7 Packages 14.0 MB/19.0 MB 74%]                          190 kB/s 1min 49s
+47% [7 Packages 14.1 MB/19.0 MB 74%]                          190 kB/s 1min 48s
+47% [7 Packages 14.3 MB/19.0 MB 75%]                          190 kB/s 1min 48s
+47% [7 Packages 14.5 MB/19.0 MB 76%]                          259 kB/s 1min 18s
+48% [7 Packages 14.6 MB/19.0 MB 77%]                          259 kB/s 1min 17s
+48% [7 Packages 14.8 MB/19.0 MB 78%]                          259 kB/s 1min 16s
+49% [7 Packages 15.0 MB/19.0 MB 79%]                          259 kB/s 1min 16s
+49% [7 Packages 15.0 MB/19.0 MB 79%]                          259 kB/s 1min 16s
+49% [7 Packages 15.2 MB/19.0 MB 80%]                          259 kB/s 1min 15s
+50% [7 Packages 15.5 MB/19.0 MB 81%]                          259 kB/s 1min 14s
+50% [7 Packages 15.5 MB/19.0 MB 81%]                          259 kB/s 1min 14s
+50% [7 Packages 15.5 MB/19.0 MB 81%]                          259 kB/s 1min 14s
+50% [7 Packages 15.8 MB/19.0 MB 83%]                          259 kB/s 1min 13s
+51% [7 Packages 16.0 MB/19.0 MB 84%]                          259 kB/s 1min 12s
+51% [7 Packages 16.1 MB/19.0 MB 84%]                          259 kB/s 1min 12s
+52% [7 Packages 16.4 MB/19.0 MB 86%]                               311 kB/s 59s
+52% [7 Packages 16.4 MB/19.0 MB 86%]                               311 kB/s 58s
+52% [7 Packages 16.7 MB/19.0 MB 88%]                               311 kB/s 58s
+53% [7 Packages 16.8 MB/19.0 MB 88%]                               311 kB/s 57s
+53% [7 Packages 17.1 MB/19.0 MB 90%]                               311 kB/s 56s
+54% [7 Packages 17.4 MB/19.0 MB 91%]                               311 kB/s 55s
+54% [7 Packages 17.5 MB/19.0 MB 92%]                               311 kB/s 55s
+55% [7 Packages 17.7 MB/19.0 MB 93%]                               311 kB/s 54s
+55% [7 Packages 17.8 MB/19.0 MB 93%]                               311 kB/s 54s
+55% [7 Packages 17.8 MB/19.0 MB 93%]                               311 kB/s 54s
+56% [7 Packages 18.4 MB/19.0 MB 97%]                               311 kB/s 52s
+57% [7 Packages 18.7 MB/19.0 MB 98%]                               311 kB/s 51s
+57% [7 Packages 18.9 MB/19.0 MB 99%]                               416 kB/s 38s
+                                                                               
+Get:8 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 Packages [1776 kB]
+
+58% [8 Packages 6300 B/1776 kB 0%]                                 416 kB/s 37s
+58% [7 Packages store 0 B] [8 Packages 6300 B/1776 kB 0%]          416 kB/s 37s
+59% [8 Packages 167 kB/1776 kB 9%]                                 416 kB/s 37s
+59% [8 Packages 324 kB/1776 kB 18%]                                416 kB/s 37s
+59% [8 Packages 471 kB/1776 kB 27%]                                416 kB/s 36s
+60% [8 Packages 679 kB/1776 kB 38%]                                416 kB/s 36s
+61% [8 Packages 1081 kB/1776 kB 61%]                               416 kB/s 35s
+61% [8 Packages 1296 kB/1776 kB 73%]                               416 kB/s 34s
+61% [8 Packages 1419 kB/1776 kB 80%]                               416 kB/s 34s
+62% [8 Packages 1651 kB/1776 kB 93%]                               416 kB/s 33s
+62% [8 Packages 1651 kB/1776 kB 93%]                               416 kB/s 33s
+                                                                               
+Get:9 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 Packages [1823 kB]
+
+62% [9 Packages 68.1 kB/1823 kB 4%]                                416 kB/s 33s
+62% [8 Packages store 0 B] [9 Packages 78.0 kB/1823 kB 4%]         416 kB/s 33s
+63% [9 Packages 223 kB/1823 kB 12%]                                416 kB/s 33s
+64% [9 Packages 388 kB/1823 kB 21%]                                416 kB/s 32s
+64% [9 Packages 459 kB/1823 kB 25%]                                388 kB/s 34s
+64% [9 Packages 532 kB/1823 kB 29%]                                388 kB/s 34s
+64% [9 Packages 726 kB/1823 kB 40%]                                388 kB/s 34s
+65% [9 Packages 875 kB/1823 kB 48%]                                388 kB/s 33s
+65% [9 Packages 1100 kB/1823 kB 60%]                               388 kB/s 33s
+66% [9 Packages 1291 kB/1823 kB 71%]                               388 kB/s 32s
+66% [9 Packages 1386 kB/1823 kB 76%]                               388 kB/s 32s
+66% [9 Packages 1693 kB/1823 kB 93%]                               388 kB/s 31s
+67% [Waiting for headers]                                          388 kB/s 31s
+                                                                               
+Get:10 http://ports.ubuntu.com/ubuntu-ports noble-updates/restricted arm64 Packages [3325 kB]
+
+67% [10 Packages 26.8 kB/3325 kB 1%]                               388 kB/s 31s
+67% [9 Packages store 0 B] [10 Packages 26.8 kB/3325 kB 1%]        388 kB/s 31s
+67% [10 Packages 26.8 kB/3325 kB 1%]                               388 kB/s 31s
+68% [10 Packages 162 kB/3325 kB 5%]                                388 kB/s 30s
+68% [10 Packages 341 kB/3325 kB 10%]                               388 kB/s 30s
+69% [10 Packages 559 kB/3325 kB 17%]                               388 kB/s 29s
+69% [10 Packages 721 kB/3325 kB 22%]                               343 kB/s 33s
+69% [10 Packages 812 kB/3325 kB 24%]                               343 kB/s 33s
+70% [10 Packages 995 kB/3325 kB 30%]                               343 kB/s 32s
+70% [10 Packages 1258 kB/3325 kB 38%]                              343 kB/s 31s
+71% [10 Packages 1470 kB/3325 kB 44%]                              343 kB/s 31s
+71% [10 Packages 1606 kB/3325 kB 48%]                              343 kB/s 30s
+71% [10 Packages 1832 kB/3325 kB 55%]                              343 kB/s 30s
+72% [10 Packages 1964 kB/3325 kB 59%]                              343 kB/s 29s
+72% [10 Packages 2094 kB/3325 kB 63%]                              343 kB/s 29s
+72% [10 Packages 2140 kB/3325 kB 64%]                              343 kB/s 29s
+73% [10 Packages 2351 kB/3325 kB 71%]                              343 kB/s 28s
+73% [10 Packages 2560 kB/3325 kB 77%]                              343 kB/s 27s
+73% [10 Packages 2662 kB/3325 kB 80%]                              321 kB/s 29s
+73% [10 Packages 2762 kB/3325 kB 83%]                              321 kB/s 29s
+74% [10 Packages 2867 kB/3325 kB 86%]                              321 kB/s 28s
+74% [10 Packages 3051 kB/3325 kB 92%]                              321 kB/s 28s
+74% [10 Packages 3105 kB/3325 kB 93%]                              321 kB/s 28s
+75% [10 Packages 3250 kB/3325 kB 98%]                              321 kB/s 27s
+                                                                               
+Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/multiverse arm64 Packages [107 kB]
+
+75% [11 Packages 26.8 kB/107 kB 25%]                               321 kB/s 27s
+75% [10 Packages store 0 B] [11 Packages 26.8 kB/107 kB 25%]       321 kB/s 27s
+75% [11 Packages 68.0 kB/107 kB 64%]                               321 kB/s 27s
+76% [Waiting for headers]                                          321 kB/s 27s
+                                                                               
+Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 Packages [2232 kB]
+
+76% [12 Packages 4932 B/2232 kB 0%]                                321 kB/s 27s
+76% [11 Packages store 0 B] [12 Packages 4932 B/2232 kB 0%]        321 kB/s 27s
+76% [12 Packages 4932 B/2232 kB 0%]                                321 kB/s 27s
+76% [12 Packages 147 kB/2232 kB 7%]                                321 kB/s 26s
+77% [12 Packages 296 kB/2232 kB 13%]                               321 kB/s 26s
+77% [12 Packages 459 kB/2232 kB 21%]                               321 kB/s 25s
+77% [12 Packages 482 kB/2232 kB 22%]                               321 kB/s 25s
+78% [12 Packages 685 kB/2232 kB 31%]                               321 kB/s 25s
+78% [12 Packages 786 kB/2232 kB 35%]                               245 kB/s 32s
+78% [12 Packages 990 kB/2232 kB 44%]                               245 kB/s 31s
+79% [12 Packages 1118 kB/2232 kB 50%]                              245 kB/s 31s
+79% [12 Packages 1320 kB/2232 kB 59%]                              245 kB/s 30s
+79% [12 Packages 1453 kB/2232 kB 65%]                              245 kB/s 29s
+79% [12 Packages 1453 kB/2232 kB 65%]                              245 kB/s 29s
+80% [12 Packages 1743 kB/2232 kB 78%]                              245 kB/s 28s
+80% [12 Packages 1891 kB/2232 kB 85%]                              245 kB/s 27s
+81% [12 Packages 1983 kB/2232 kB 89%]                              245 kB/s 27s
+81% [12 Packages 2106 kB/2232 kB 94%]                              245 kB/s 26s
+81% [Waiting for headers]                                          245 kB/s 26s
+                                                                               
+Get:13 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe arm64 Packages [36.3 kB]
+
+81% [13 Packages 4860 B/36.3 kB 13%]                               245 kB/s 26s
+                                                                               
+Get:14 http://ports.ubuntu.com/ubuntu-ports noble-backports/main arm64 Packages [49.0 kB]
+
+81% [12 Packages store 0 B] [14 Packages 48.9 kB/49.0 kB 100%]     245 kB/s 26s
+81% [12 Packages store 0 B]                                        245 kB/s 26s
+                                                                               
+Get:15 http://ports.ubuntu.com/ubuntu-ports noble-backports/multiverse arm64 Packages [669 B]
+
+                                                                               
+Get:16 http://ports.ubuntu.com/ubuntu-ports noble-security/multiverse arm64 Packages [102 kB]
+
+81% [12 Packages store 0 B] [16 Packages 18.2 kB/102 kB 18%]       245 kB/s 26s
+82% [16 Packages 23.9 kB/102 kB 23%]                               245 kB/s 26s
+82% [13 Packages store 0 B] [16 Packages 23.9 kB/102 kB 23%]       245 kB/s 26s
+82% [16 Packages 23.9 kB/102 kB 23%]                               245 kB/s 26s
+82% [14 Packages store 0 B] [16 Packages 23.9 kB/102 kB 23%]       245 kB/s 26s
+83% [16 Packages 23.9 kB/102 kB 23%]                               245 kB/s 26s
+83% [15 Packages store 0 B] [16 Packages 23.9 kB/102 kB 23%]       245 kB/s 26s
+84% [16 Packages 23.9 kB/102 kB 23%]                               245 kB/s 26s
+84% [Working]                                                      245 kB/s 25s
+                                                                               
+Get:17 http://ports.ubuntu.com/ubuntu-ports noble-security/universe arm64 Packages [1655 kB]
+
+84% [17 Packages 15.4 kB/1655 kB 1%]                               245 kB/s 25s
+84% [16 Packages store 0 B] [17 Packages 15.4 kB/1655 kB 1%]       245 kB/s 25s
+84% [17 Packages 15.4 kB/1655 kB 1%]                               245 kB/s 25s
+85% [17 Packages 194 kB/1655 kB 12%]                               303 kB/s 20s
+85% [17 Packages 242 kB/1655 kB 15%]                               303 kB/s 19s
+85% [17 Packages 316 kB/1655 kB 19%]                               303 kB/s 19s
+86% [17 Packages 637 kB/1655 kB 38%]                               303 kB/s 18s
+86% [17 Packages 712 kB/1655 kB 43%]                               303 kB/s 18s
+86% [17 Packages 854 kB/1655 kB 52%]                               303 kB/s 17s
+87% [17 Packages 1053 kB/1655 kB 64%]                              303 kB/s 17s
+87% [17 Packages 1151 kB/1655 kB 70%]                              303 kB/s 16s
+87% [17 Packages 1260 kB/1655 kB 76%]                              303 kB/s 16s
+87% [17 Packages 1381 kB/1655 kB 83%]                              303 kB/s 16s
+88% [17 Packages 1447 kB/1655 kB 87%]                              303 kB/s 16s
+88% [17 Packages 1591 kB/1655 kB 96%]                              303 kB/s 15s
+                                                                               
+Get:18 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 Packages [1489 kB]
+
+88% [18 Packages 27.5 kB/1489 kB 2%]                               303 kB/s 15s
+88% [17 Packages store 0 B] [18 Packages 27.5 kB/1489 kB 2%]       303 kB/s 15s
+89% [18 Packages 27.5 kB/1489 kB 2%]                               303 kB/s 15s
+89% [18 Packages 223 kB/1489 kB 15%]                               272 kB/s 16s
+89% [18 Packages 361 kB/1489 kB 24%]                               272 kB/s 15s
+90% [18 Packages 448 kB/1489 kB 30%]                               272 kB/s 15s
+90% [18 Packages 573 kB/1489 kB 38%]                               272 kB/s 14s
+90% [18 Packages 767 kB/1489 kB 52%]                               272 kB/s 14s
+90% [18 Packages 830 kB/1489 kB 56%]                               272 kB/s 13s
+91% [18 Packages 1017 kB/1489 kB 68%]                              272 kB/s 13s
+91% [18 Packages 1017 kB/1489 kB 68%]                              272 kB/s 13s
+91% [18 Packages 1317 kB/1489 kB 88%]                              272 kB/s 12s
+92% [18 Packages 1393 kB/1489 kB 94%]                              272 kB/s 11s
+                                                                               
+Get:19 http://ports.ubuntu.com/ubuntu-ports noble-security/restricted arm64 Packages [3148 kB]
+
+92% [19 Packages 2368 B/3148 kB 0%]                                272 kB/s 11s
+92% [18 Packages store 0 B] [19 Packages 2368 B/3148 kB 0%]        272 kB/s 11s
+92% [19 Packages 2368 B/3148 kB 0%]                                272 kB/s 11s
+93% [19 Packages 122 kB/3148 kB 4%]                                272 kB/s 11s
+93% [19 Packages 206 kB/3148 kB 7%]                                272 kB/s 10s
+93% [19 Packages 233 kB/3148 kB 7%]                                240 kB/s 12s
+93% [19 Packages 338 kB/3148 kB 11%]                               240 kB/s 11s
+94% [19 Packages 522 kB/3148 kB 17%]                               240 kB/s 10s
+94% [19 Packages 695 kB/3148 kB 22%]                               240 kB/s 10s
+94% [19 Packages 759 kB/3148 kB 24%]                                240 kB/s 9s
+94% [19 Packages 894 kB/3148 kB 28%]                                240 kB/s 9s
+95% [19 Packages 1066 kB/3148 kB 34%]                               240 kB/s 8s
+95% [19 Packages 1151 kB/3148 kB 37%]                               240 kB/s 8s
+95% [19 Packages 1265 kB/3148 kB 40%]                               240 kB/s 7s
+96% [19 Packages 1458 kB/3148 kB 46%]                               240 kB/s 7s
+96% [19 Packages 1543 kB/3148 kB 49%]                               240 kB/s 6s
+96% [19 Packages 1711 kB/3148 kB 54%]                               240 kB/s 5s
+97% [19 Packages 1849 kB/3148 kB 59%]                               267 kB/s 4s
+97% [19 Packages 1900 kB/3148 kB 60%]                               267 kB/s 4s
+97% [19 Packages 2076 kB/3148 kB 66%]                               267 kB/s 4s
+97% [19 Packages 2178 kB/3148 kB 69%]                               267 kB/s 3s
+97% [19 Packages 2252 kB/3148 kB 72%]                               267 kB/s 3s
+98% [19 Packages 2314 kB/3148 kB 74%]                               267 kB/s 3s
+98% [19 Packages 2475 kB/3148 kB 79%]                               267 kB/s 2s
+98% [19 Packages 2587 kB/3148 kB 82%]                               267 kB/s 2s
+98% [19 Packages 2688 kB/3148 kB 85%]                               267 kB/s 1s
+98% [19 Packages 2723 kB/3148 kB 87%]                               267 kB/s 1s
+99% [19 Packages 2817 kB/3148 kB 89%]                               267 kB/s 1s
+99% [19 Packages 3016 kB/3148 kB 96%]                               267 kB/s 0s
+99% [19 Packages 3142 kB/3148 kB 100%]                              214 kB/s 0s
+99% [Working]                                                       214 kB/s 0s
+99% [19 Packages store 0 B]                                         214 kB/s 0s
+100% [Working]                                                      214 kB/s 0s
+                                                                               
+Fetched 35.8 MB in 2min 21s (254 kB/s)
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+3 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following NEW packages will be installed:
+  bc
+0 upgraded, 1 newly installed, 0 to remove and 3 not upgraded.
+Need to get 84.5 kB of archives.
+After this operation, 259 kB of additional disk space will be used.
+
+0% [Working]
+0% [Waiting for headers]
+                        
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 bc arm64 1.07.1-3ubuntu4 [84.5 kB]
+
+2% [1 bc 2589 B/84.5 kB 3%]
+30% [1 bc 31.4 kB/84.5 kB 37%]
+69% [1 bc 73.1 kB/84.5 kB 87%]
+                              
+100% [Working]
+              
+Fetched 84.5 kB in 2s (48.1 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package bc.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 8019 files and directories currently installed.)
+Preparing to unpack .../bc_1.07.1-3ubuntu4_arm64.deb ...
+Unpacking bc (1.07.1-3ubuntu4) ...
+Setting up bc (1.07.1-3ubuntu4) ...
+[OK]  安装 bc jq 完成 
+[OK]  下载最新脚本 完成 
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  正在安装 gettext... 
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  gettext-base libgomp1 libicu74 libxml2
+Suggested packages:
+  autopoint gettext-doc libasprintf-dev libgettextpo-dev
+The following NEW packages will be installed:
+  gettext gettext-base libgomp1 libicu74 libxml2
+0 upgraded, 5 newly installed, 0 to remove and 3 not upgraded.
+Need to get 12.6 MB of archives.
+After this operation, 43.6 MB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libicu74 arm64 74.2-1ubuntu3.1 [10.8 MB]
+
+0% [1 libicu74 0 B/10.8 MB 0%]
+0% [1 libicu74 23.8 kB/10.8 MB 0%]
+1% [1 libicu74 92.0 kB/10.8 MB 1%]
+                                  
+1% [1 libicu74 152 kB/10.8 MB 1%]
+2% [1 libicu74 305 kB/10.8 MB 3%]
+3% [1 libicu74 409 kB/10.8 MB 4%]
+4% [1 libicu74 596 kB/10.8 MB 6%]
+5% [1 libicu74 737 kB/10.8 MB 7%]
+6% [1 libicu74 1004 kB/10.8 MB 9%]
+6% [1 libicu74 1004 kB/10.8 MB 9%]
+10% [1 libicu74 1538 kB/10.8 MB 14%]
+10% [1 libicu74 1645 kB/10.8 MB 15%]                               274 kB/s 39s
+11% [1 libicu74 1708 kB/10.8 MB 16%]                               274 kB/s 39s
+13% [1 libicu74 2101 kB/10.8 MB 19%]                               274 kB/s 38s
+14% [1 libicu74 2225 kB/10.8 MB 21%]                               274 kB/s 37s
+16% [1 libicu74 2458 kB/10.8 MB 23%]                               274 kB/s 36s
+17% [1 libicu74 2648 kB/10.8 MB 25%]                               274 kB/s 36s
+18% [1 libicu74 2851 kB/10.8 MB 26%]                               274 kB/s 35s
+20% [1 libicu74 3073 kB/10.8 MB 28%]                               274 kB/s 34s
+22% [1 libicu74 3392 kB/10.8 MB 31%]                               274 kB/s 33s
+22% [1 libicu74 3517 kB/10.8 MB 33%]                               274 kB/s 33s
+23% [1 libicu74 3597 kB/10.8 MB 33%]                               274 kB/s 32s
+26% [1 libicu74 4105 kB/10.8 MB 38%]                               274 kB/s 30s
+27% [1 libicu74 4270 kB/10.8 MB 40%]                               435 kB/s 19s
+28% [1 libicu74 4399 kB/10.8 MB 41%]                               435 kB/s 18s
+30% [1 libicu74 4645 kB/10.8 MB 43%]                               435 kB/s 18s
+31% [1 libicu74 4909 kB/10.8 MB 45%]                               435 kB/s 17s
+33% [1 libicu74 5110 kB/10.8 MB 47%]                               435 kB/s 17s
+34% [1 libicu74 5359 kB/10.8 MB 50%]                               435 kB/s 16s
+36% [1 libicu74 5604 kB/10.8 MB 52%]                               435 kB/s 16s
+38% [1 libicu74 5927 kB/10.8 MB 55%]                               435 kB/s 15s
+38% [1 libicu74 6011 kB/10.8 MB 56%]                               435 kB/s 15s
+39% [1 libicu74 6111 kB/10.8 MB 57%]                               435 kB/s 14s
+40% [1 libicu74 6330 kB/10.8 MB 59%]                               435 kB/s 14s
+42% [1 libicu74 6554 kB/10.8 MB 61%]                               435 kB/s 13s
+43% [1 libicu74 6773 kB/10.8 MB 63%]                               414 kB/s 13s
+45% [1 libicu74 7049 kB/10.8 MB 65%]                               414 kB/s 13s
+47% [1 libicu74 7338 kB/10.8 MB 68%]                               414 kB/s 12s
+48% [1 libicu74 7598 kB/10.8 MB 70%]                               414 kB/s 11s
+51% [1 libicu74 8041 kB/10.8 MB 74%]                               414 kB/s 10s
+52% [1 libicu74 8195 kB/10.8 MB 76%]                               414 kB/s 10s
+53% [1 libicu74 8376 kB/10.8 MB 78%]                               414 kB/s 10s
+56% [1 libicu74 8858 kB/10.8 MB 82%]                                414 kB/s 8s
+57% [1 libicu74 8973 kB/10.8 MB 83%]                                414 kB/s 8s
+57% [1 libicu74 8973 kB/10.8 MB 83%]                                414 kB/s 8s
+61% [1 libicu74 9599 kB/10.8 MB 89%]                                414 kB/s 7s
+61% [1 libicu74 9599 kB/10.8 MB 89%]                                414 kB/s 7s
+65% [1 libicu74 10.2 MB/10.8 MB 94%]                                568 kB/s 4s
+65% [1 libicu74 10.2 MB/10.8 MB 94%]                                568 kB/s 4s
+68% [1 libicu74 10.6 MB/10.8 MB 98%]                                568 kB/s 3s
+73% [Connecting to ports.ubuntu.com (198.18.11.158)]                568 kB/s 3s
+                                                                               
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libxml2 arm64 2.9.14+dfsg-1.3ubuntu3.10 [736 kB]
+
+73% [2 libxml2 0 B/736 kB 0%]                                       568 kB/s 3s
+73% [2 libxml2 44.3 kB/736 kB 6%]                                   568 kB/s 3s
+74% [2 libxml2 119 kB/736 kB 16%]                                   568 kB/s 2s
+74% [2 libxml2 194 kB/736 kB 26%]                                   568 kB/s 2s
+76% [2 libxml2 512 kB/736 kB 70%]                                   568 kB/s 2s
+77% [2 libxml2 641 kB/736 kB 87%]                                   568 kB/s 1s
+81% [Waiting for headers]                                           568 kB/s 1s
+                                                                               
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 gettext-base arm64 0.21-14ubuntu2 [37.6 kB]
+
+81% [3 gettext-base 2590 B/37.6 kB 7%]                              568 kB/s 1s
+86% [Waiting for headers]                                           568 kB/s 1s
+                                                                               
+Get:4 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libgomp1 arm64 14.2.0-4ubuntu2~24.04.1 [145 kB]
+
+86% [4 libgomp1 2588 B/145 kB 2%]                                   568 kB/s 1s
+91% [Waiting for headers]                                           568 kB/s 1s
+                                                                               
+Get:5 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 gettext arm64 0.21-14ubuntu2 [845 kB]
+
+91% [5 gettext 2588 B/845 kB 0%]                                    568 kB/s 1s
+91% [5 gettext 134 kB/845 kB 16%]                                   270 kB/s 2s
+94% [5 gettext 567 kB/845 kB 67%]                                   270 kB/s 1s
+94% [5 gettext 567 kB/845 kB 67%]                                   270 kB/s 1s
+100% [Working]                                                      270 kB/s 0s
+                                                                               
+Fetched 12.6 MB in 31s (400 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package libicu74:arm64.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 8036 files and directories currently installed.)
+Preparing to unpack .../libicu74_74.2-1ubuntu3.1_arm64.deb ...
+Unpacking libicu74:arm64 (74.2-1ubuntu3.1) ...
+Selecting previously unselected package libxml2:arm64.
+Preparing to unpack .../libxml2_2.9.14+dfsg-1.3ubuntu3.10_arm64.deb ...
+Unpacking libxml2:arm64 (2.9.14+dfsg-1.3ubuntu3.10) ...
+Selecting previously unselected package gettext-base.
+Preparing to unpack .../gettext-base_0.21-14ubuntu2_arm64.deb ...
+Unpacking gettext-base (0.21-14ubuntu2) ...
+Selecting previously unselected package libgomp1:arm64.
+Preparing to unpack .../libgomp1_14.2.0-4ubuntu2~24.04.1_arm64.deb ...
+Unpacking libgomp1:arm64 (14.2.0-4ubuntu2~24.04.1) ...
+Selecting previously unselected package gettext.
+Preparing to unpack .../gettext_0.21-14ubuntu2_arm64.deb ...
+Unpacking gettext (0.21-14ubuntu2) ...
+Setting up gettext-base (0.21-14ubuntu2) ...
+Setting up libgomp1:arm64 (14.2.0-4ubuntu2~24.04.1) ...
+Setting up libicu74:arm64 (74.2-1ubuntu3.1) ...
+Setting up libxml2:arm64 (2.9.14+dfsg-1.3ubuntu3.10) ...
+Setting up gettext (0.21-14ubuntu2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+[OK]  安装 gettext 完成 
+
+[警告]  此模式推荐用于负载均衡, 一般情况不推荐使用, 是否安装 [Y/N]? 
+y
+[OK]  当前用户是 root 用户, 开始安装 
+[OK]  当前系统为 Ubuntu 24.04 noble 
+
+0% [Working]
+            
+Hit:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease
+
+0% [Working]
+0% [Waiting for headers]
+                        
+Hit:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease
+
+0% [Waiting for headers]
+0% [Waiting for headers]
+0% [Waiting for headers]
+                        
+Hit:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease
+
+0% [Waiting for headers]
+0% [Waiting for headers]
+                        
+Hit:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease
+
+                        
+0% [Working]
+20% [Working]
+             
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+3 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  git-man less libbsd0 libcbor0.10 libcurl3t64-gnutls libedit2 liberror-perl
+  libfido2-1 libgdbm-compat4t64 libgdbm6t64 libperl5.38t64 libx11-6
+  libx11-data libxau6 libxcb1 libxdmcp6 libxext6 libxmuu1 openssh-client patch
+  perl perl-modules-5.38 xauth
+Suggested packages:
+  git-daemon-run | git-daemon-sysvinit git-doc git-email git-gui gitk gitweb
+  git-cvs git-mediawiki git-svn gdbm-l10n keychain libpam-ssh monkeysphere
+  ssh-askpass ed diffutils-doc perl-doc libterm-readline-gnu-perl
+  | libterm-readline-perl-perl make libtap-harness-archive-perl
+The following NEW packages will be installed:
+  git git-man less libbsd0 libcbor0.10 libcurl3t64-gnutls libedit2
+  liberror-perl libfido2-1 libgdbm-compat4t64 libgdbm6t64 libperl5.38t64
+  libx11-6 libx11-data libxau6 libxcb1 libxdmcp6 libxext6 libxmuu1
+  openssh-client patch perl perl-modules-5.38 xauth
+0 upgraded, 24 newly installed, 0 to remove and 3 not upgraded.
+Need to get 15.7 MB of archives.
+After this operation, 86.7 MB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 perl-modules-5.38 all 5.38.2-3.2ubuntu0.6 [3110 kB]
+
+0% [1 perl-modules-5.38 0 B/3110 kB 0%]
+0% [1 perl-modules-5.38 65.0 kB/3110 kB 2%]
+                                           
+1% [1 perl-modules-5.38 163 kB/3110 kB 5%]
+2% [1 perl-modules-5.38 301 kB/3110 kB 10%]
+3% [1 perl-modules-5.38 632 kB/3110 kB 20%]
+5% [1 perl-modules-5.38 1029 kB/3110 kB 33%]
+5% [1 perl-modules-5.38 1029 kB/3110 kB 33%]
+13% [1 perl-modules-5.38 2451 kB/3110 kB 79%]
+16% [1 perl-modules-5.38 3109 kB/3110 kB 100%]
+                                              
+17% [Waiting for headers]
+                         
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libgdbm6t64 arm64 1.23-5.1build1 [34.4 kB]
+
+17% [2 libgdbm6t64 3970 B/34.4 kB 12%]
+                                      
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libgdbm-compat4t64 arm64 1.23-5.1build1 [6578 B]
+
+                                      
+Get:4 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libperl5.38t64 arm64 5.38.2-3.2ubuntu0.6 [4785 kB]
+
+19% [4 libperl5.38t64 50.0 kB/4785 kB 1%]
+23% [4 libperl5.38t64 881 kB/4785 kB 18%]
+28% [4 libperl5.38t64 1933 kB/4785 kB 40%]
+42% [4 libperl5.38t64 4515 kB/4785 kB 94%]                         1197 kB/s 6s
+44% [Waiting for headers]                                          1197 kB/s 6s
+                                                                               
+Get:5 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 perl arm64 5.38.2-3.2ubuntu0.6 [231 kB]
+
+44% [5 perl 16.4 kB/231 kB 7%]                                     1197 kB/s 6s
+                                                                               
+Get:6 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 less arm64 590-2ubuntu2.1 [142 kB]
+
+46% [6 less 20.6 kB/142 kB 15%]                                    1197 kB/s 6s
+47% [Working]                                                      1197 kB/s 6s
+                                                                               
+Get:7 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libbsd0 arm64 0.12.1-1build1.1 [41.0 kB]
+
+                                                                               
+Get:8 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libcbor0.10 arm64 0.10.2-1.2ubuntu2 [26.0 kB]
+
+49% [8 libcbor0.10 19.8 kB/26.0 kB 76%]                            1197 kB/s 6s
+                                                                               
+Get:9 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libedit2 arm64 3.1-20230828-1build1 [97.5 kB]
+
+50% [9 libedit2 75.8 kB/97.5 kB 78%]                               1197 kB/s 6s
+                                                                               
+Get:10 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libfido2-1 arm64 1.14.0-1build3 [82.5 kB]
+
+51% [10 libfido2-1 33.4 kB/82.5 kB 40%]                            1197 kB/s 5s
+52% [Working]                                                      1197 kB/s 5s
+                                                                               
+Get:11 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxau6 arm64 1:1.0.9-1build6 [7264 B]
+
+                                                                               
+Get:12 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxdmcp6 arm64 1:1.1.3-0ubuntu6 [10.4 kB]
+
+                                                                               
+Get:13 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxcb1 arm64 1.15-1ubuntu2 [49.4 kB]
+
+54% [13 libxcb1 49.4 kB/49.4 kB 100%]                              1197 kB/s 5s
+55% [Waiting for headers]                                          1197 kB/s 5s
+                                                                               
+Get:14 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libx11-data all 2:1.8.7-1ubuntu0.1 [116 kB]
+
+55% [14 libx11-data 15.3 kB/116 kB 13%]                            1197 kB/s 5s
+55% [14 libx11-data 82.1 kB/116 kB 71%]                            1197 kB/s 5s
+                                                                               
+Get:15 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libx11-6 arm64 2:1.8.7-1ubuntu0.1 [651 kB]
+
+57% [15 libx11-6 56.5 kB/651 kB 9%]                                1197 kB/s 5s
+60% [Working]                                                      1197 kB/s 5s
+                                                                               
+Get:16 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxext6 arm64 2:1.3.4-1build2 [30.4 kB]
+
+                                                                               
+Get:17 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxmuu1 arm64 2:1.1.3-3build2 [9140 B]
+
+61% [17 libxmuu1 9140 B/9140 B 100%]                               1197 kB/s 5s
+                                                                               
+Get:18 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 openssh-client arm64 1:9.6p1-3ubuntu13.20 [891 kB]
+
+63% [18 openssh-client 63.7 kB/891 kB 7%]                          1197 kB/s 5s
+67% [18 openssh-client 862 kB/891 kB 97%]                          1197 kB/s 4s
+                                                                               
+Get:19 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 xauth arm64 1:1.1.2-1build1 [25.3 kB]
+
+68% [19 xauth 25.3 kB/25.3 kB 100%]                                1197 kB/s 4s
+                                                                               
+Get:20 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libcurl3t64-gnutls arm64 8.5.0-2ubuntu10.16 [331 kB]
+
+69% [20 libcurl3t64-gnutls 45.7 kB/331 kB 14%]                     1197 kB/s 4s
+                                                                               
+Get:21 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 liberror-perl all 0.17029-2 [25.6 kB]
+
+                                                                               
+Get:22 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 git-man all 1:2.43.0-1ubuntu7.4 [1101 kB]
+
+72% [22 git-man 65.2 kB/1101 kB 6%]                                1197 kB/s 4s
+75% [22 git-man 613 kB/1101 kB 56%]                                1197 kB/s 3s
+                                                                               
+Get:23 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 git arm64 1:2.43.0-1ubuntu7.4 [3774 kB]
+
+79% [23 git 117 kB/3774 kB 3%]                                     1197 kB/s 3s
+93% [23 git 2763 kB/3774 kB 73%]                                   1197 kB/s 0s
+93% [23 git 2796 kB/3774 kB 74%]                                   1197 kB/s 0s
+                                                                               
+Get:24 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 patch arm64 2.7.6-7build3 [101 kB]
+
+99% [24 patch 13.5 kB/101 kB 13%]                                  1197 kB/s 0s
+100% [Working]                                                     1197 kB/s 0s
+                                                                               
+Fetched 15.7 MB in 11s (1487 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package perl-modules-5.38.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 8208 files and directories currently installed.)
+Preparing to unpack .../00-perl-modules-5.38_5.38.2-3.2ubuntu0.6_all.deb ...
+Unpacking perl-modules-5.38 (5.38.2-3.2ubuntu0.6) ...
+Selecting previously unselected package libgdbm6t64:arm64.
+Preparing to unpack .../01-libgdbm6t64_1.23-5.1build1_arm64.deb ...
+Unpacking libgdbm6t64:arm64 (1.23-5.1build1) ...
+Selecting previously unselected package libgdbm-compat4t64:arm64.
+Preparing to unpack .../02-libgdbm-compat4t64_1.23-5.1build1_arm64.deb ...
+Unpacking libgdbm-compat4t64:arm64 (1.23-5.1build1) ...
+Selecting previously unselected package libperl5.38t64:arm64.
+Preparing to unpack .../03-libperl5.38t64_5.38.2-3.2ubuntu0.6_arm64.deb ...
+Unpacking libperl5.38t64:arm64 (5.38.2-3.2ubuntu0.6) ...
+Selecting previously unselected package perl.
+Preparing to unpack .../04-perl_5.38.2-3.2ubuntu0.6_arm64.deb ...
+Unpacking perl (5.38.2-3.2ubuntu0.6) ...
+Selecting previously unselected package less.
+Preparing to unpack .../05-less_590-2ubuntu2.1_arm64.deb ...
+Unpacking less (590-2ubuntu2.1) ...
+Selecting previously unselected package libbsd0:arm64.
+Preparing to unpack .../06-libbsd0_0.12.1-1build1.1_arm64.deb ...
+Unpacking libbsd0:arm64 (0.12.1-1build1.1) ...
+Selecting previously unselected package libcbor0.10:arm64.
+Preparing to unpack .../07-libcbor0.10_0.10.2-1.2ubuntu2_arm64.deb ...
+Unpacking libcbor0.10:arm64 (0.10.2-1.2ubuntu2) ...
+Selecting previously unselected package libedit2:arm64.
+Preparing to unpack .../08-libedit2_3.1-20230828-1build1_arm64.deb ...
+Unpacking libedit2:arm64 (3.1-20230828-1build1) ...
+Selecting previously unselected package libfido2-1:arm64.
+Preparing to unpack .../09-libfido2-1_1.14.0-1build3_arm64.deb ...
+Unpacking libfido2-1:arm64 (1.14.0-1build3) ...
+Selecting previously unselected package libxau6:arm64.
+Preparing to unpack .../10-libxau6_1%3a1.0.9-1build6_arm64.deb ...
+Unpacking libxau6:arm64 (1:1.0.9-1build6) ...
+Selecting previously unselected package libxdmcp6:arm64.
+Preparing to unpack .../11-libxdmcp6_1%3a1.1.3-0ubuntu6_arm64.deb ...
+Unpacking libxdmcp6:arm64 (1:1.1.3-0ubuntu6) ...
+Selecting previously unselected package libxcb1:arm64.
+Preparing to unpack .../12-libxcb1_1.15-1ubuntu2_arm64.deb ...
+Unpacking libxcb1:arm64 (1.15-1ubuntu2) ...
+Selecting previously unselected package libx11-data.
+Preparing to unpack .../13-libx11-data_2%3a1.8.7-1ubuntu0.1_all.deb ...
+Unpacking libx11-data (2:1.8.7-1ubuntu0.1) ...
+Selecting previously unselected package libx11-6:arm64.
+Preparing to unpack .../14-libx11-6_2%3a1.8.7-1ubuntu0.1_arm64.deb ...
+Unpacking libx11-6:arm64 (2:1.8.7-1ubuntu0.1) ...
+Selecting previously unselected package libxext6:arm64.
+Preparing to unpack .../15-libxext6_2%3a1.3.4-1build2_arm64.deb ...
+Unpacking libxext6:arm64 (2:1.3.4-1build2) ...
+Selecting previously unselected package libxmuu1:arm64.
+Preparing to unpack .../16-libxmuu1_2%3a1.1.3-3build2_arm64.deb ...
+Unpacking libxmuu1:arm64 (2:1.1.3-3build2) ...
+Selecting previously unselected package openssh-client.
+Preparing to unpack .../17-openssh-client_1%3a9.6p1-3ubuntu13.20_arm64.deb ...
+Unpacking openssh-client (1:9.6p1-3ubuntu13.20) ...
+Selecting previously unselected package xauth.
+Preparing to unpack .../18-xauth_1%3a1.1.2-1build1_arm64.deb ...
+Unpacking xauth (1:1.1.2-1build1) ...
+Selecting previously unselected package libcurl3t64-gnutls:arm64.
+Preparing to unpack .../19-libcurl3t64-gnutls_8.5.0-2ubuntu10.16_arm64.deb ...
+Unpacking libcurl3t64-gnutls:arm64 (8.5.0-2ubuntu10.16) ...
+Selecting previously unselected package liberror-perl.
+Preparing to unpack .../20-liberror-perl_0.17029-2_all.deb ...
+Unpacking liberror-perl (0.17029-2) ...
+Selecting previously unselected package git-man.
+Preparing to unpack .../21-git-man_1%3a2.43.0-1ubuntu7.4_all.deb ...
+Unpacking git-man (1:2.43.0-1ubuntu7.4) ...
+Selecting previously unselected package git.
+Preparing to unpack .../22-git_1%3a2.43.0-1ubuntu7.4_arm64.deb ...
+Unpacking git (1:2.43.0-1ubuntu7.4) ...
+Selecting previously unselected package patch.
+Preparing to unpack .../23-patch_2.7.6-7build3_arm64.deb ...
+Unpacking patch (2.7.6-7build3) ...
+Setting up libxau6:arm64 (1:1.0.9-1build6) ...
+Setting up libgdbm6t64:arm64 (1.23-5.1build1) ...
+Setting up libgdbm-compat4t64:arm64 (1.23-5.1build1) ...
+Setting up libcbor0.10:arm64 (0.10.2-1.2ubuntu2) ...
+Setting up libcurl3t64-gnutls:arm64 (8.5.0-2ubuntu10.16) ...
+Setting up less (590-2ubuntu2.1) ...
+Setting up libx11-data (2:1.8.7-1ubuntu0.1) ...
+Setting up perl-modules-5.38 (5.38.2-3.2ubuntu0.6) ...
+Setting up patch (2.7.6-7build3) ...
+Setting up git-man (1:2.43.0-1ubuntu7.4) ...
+Setting up libperl5.38t64:arm64 (5.38.2-3.2ubuntu0.6) ...
+Setting up libfido2-1:arm64 (1.14.0-1build3) ...
+Setting up libbsd0:arm64 (0.12.1-1build1.1) ...
+Setting up libxdmcp6:arm64 (1:1.1.3-0ubuntu6) ...
+Setting up libxcb1:arm64 (1.15-1ubuntu2) ...
+Setting up libedit2:arm64 (3.1-20230828-1build1) ...
+Setting up perl (5.38.2-3.2ubuntu0.6) ...
+Setting up libx11-6:arm64 (2:1.8.7-1ubuntu0.1) ...
+Setting up libxmuu1:arm64 (2:1.1.3-3build2) ...
+Setting up openssh-client (1:9.6p1-3ubuntu13.20) ...
+Setting up libxext6:arm64 (2:1.3.4-1build2) ...
+Setting up liberror-perl (0.17029-2) ...
+Setting up git (1:2.43.0-1ubuntu7.4) ...
+Setting up xauth (1:1.1.2-1build1) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  libtirpc-common libtirpc3t64
+The following NEW packages will be installed:
+  libtirpc-common libtirpc3t64 lsof
+0 upgraded, 3 newly installed, 0 to remove and 3 not upgraded.
+Need to get 337 kB of archives.
+After this operation, 783 kB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libtirpc-common all 1.3.4+ds-1.1build1 [8094 B]
+
+0% [1 libtirpc-common 0 B/8094 B 0%]
+                                    
+9% [Waiting for headers]
+                        
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libtirpc3t64 arm64 1.3.4+ds-1.1build1 [83.6 kB]
+
+10% [2 libtirpc3t64 5389 B/83.6 kB 6%]
+11% [2 libtirpc3t64 11.1 kB/83.6 kB 13%]
+25% [2 libtirpc3t64 68.3 kB/83.6 kB 82%]
+                                        
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 lsof arm64 4.95.0-1build3 [245 kB]
+
+                                        
+35% [3 lsof 1031 B/245 kB 0%]
+70% [3 lsof 147 kB/245 kB 60%]
+                              
+100% [Working]
+              
+Fetched 337 kB in 2s (138 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package libtirpc-common.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 11710 files and directories currently installed.)
+Preparing to unpack .../libtirpc-common_1.3.4+ds-1.1build1_all.deb ...
+Unpacking libtirpc-common (1.3.4+ds-1.1build1) ...
+Selecting previously unselected package libtirpc3t64:arm64.
+Preparing to unpack .../libtirpc3t64_1.3.4+ds-1.1build1_arm64.deb ...
+Adding 'diversion of /lib/aarch64-linux-gnu/libtirpc.so.3 to /lib/aarch64-linux-gnu/libtirpc.so.3.usr-is-merged by libtirpc3t64'
+Adding 'diversion of /lib/aarch64-linux-gnu/libtirpc.so.3.0.0 to /lib/aarch64-linux-gnu/libtirpc.so.3.0.0.usr-is-merged by libtirpc3t64'
+Unpacking libtirpc3t64:arm64 (1.3.4+ds-1.1build1) ...
+Selecting previously unselected package lsof.
+Preparing to unpack .../lsof_4.95.0-1build3_arm64.deb ...
+Unpacking lsof (4.95.0-1build3) ...
+Setting up libtirpc-common (1.3.4+ds-1.1build1) ...
+Setting up libtirpc3t64:arm64 (1.3.4+ds-1.1build1) ...
+Setting up lsof (4.95.0-1build3) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  libpng16-16t64 libqrencode4
+The following NEW packages will be installed:
+  libpng16-16t64 libqrencode4 qrencode
+0 upgraded, 3 newly installed, 0 to remove and 3 not upgraded.
+Need to get 238 kB of archives.
+After this operation, 559 kB of additional disk space will be used.
+
+0% [Working]
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpng16-16t64 arm64 1.6.43-5ubuntu0.7 [187 kB]
+
+0% [1 libpng16-16t64 0 B/187 kB 0%]
+13% [1 libpng16-16t64 38.6 kB/187 kB 21%]
+21% [1 libpng16-16t64 61.6 kB/187 kB 33%]
+21% [1 libpng16-16t64 61.6 kB/187 kB 33%]
+                                         
+70% [Waiting for headers]
+                         
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 libqrencode4 arm64 4.1.1-1build2 [25.3 kB]
+
+71% [2 libqrencode4 5470 B/25.3 kB 22%]
+                                       
+85% [Waiting for headers]
+                         
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 qrencode arm64 4.1.1-1build2 [25.5 kB]
+
+89% [3 qrencode 11.5 kB/25.5 kB 45%]
+89% [3 qrencode 11.5 kB/25.5 kB 45%]
+90% [3 qrencode 15.9 kB/25.5 kB 62%]
+                                    
+100% [Working]
+              
+Fetched 238 kB in 4s (59.5 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package libpng16-16t64:arm64.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 11750 files and directories currently installed.)
+Preparing to unpack .../libpng16-16t64_1.6.43-5ubuntu0.7_arm64.deb ...
+Unpacking libpng16-16t64:arm64 (1.6.43-5ubuntu0.7) ...
+Selecting previously unselected package libqrencode4:arm64.
+Preparing to unpack .../libqrencode4_4.1.1-1build2_arm64.deb ...
+Unpacking libqrencode4:arm64 (4.1.1-1build2) ...
+Selecting previously unselected package qrencode.
+Preparing to unpack .../qrencode_4.1.1-1build2_arm64.deb ...
+Unpacking qrencode (4.1.1-1build2) ...
+Setting up libqrencode4:arm64 (4.1.1-1build2) ...
+Setting up libpng16-16t64:arm64 (1.6.43-5ubuntu0.7) ...
+Setting up qrencode (4.1.1-1build2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+[OK]  安装 bc curl dbus git jq lsof python3 qrencode 完成 
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 54%
+
+Reading package lists... 54%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 67%
+
+Reading package lists... 67%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 89%
+
+Reading package lists... 89%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+The following additional packages will be installed:
+  cron-daemon-common
+Suggested packages:
+  anacron logrotate checksecurity supercat default-mta | mail-transport-agent
+The following NEW packages will be installed:
+  cron cron-daemon-common
+0 upgraded, 2 newly installed, 0 to remove and 3 not upgraded.
+Need to get 97.5 kB of archives.
+After this operation, 324 kB of additional disk space will be used.
+
+0% [Working]
+0% [Waiting for headers]
+                        
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 cron-daemon-common all 3.0pl1-184ubuntu2 [13.6 kB]
+
+11% [1 cron-daemon-common 13.6 kB/13.6 kB 100%]
+                                               
+21% [Waiting for headers]
+                         
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 cron arm64 3.0pl1-184ubuntu2 [84.0 kB]
+
+23% [2 cron 2549 B/84.0 kB 3%]
+62% [2 cron 49.4 kB/84.0 kB 59%]
+65% [2 cron 53.7 kB/84.0 kB 64%]
+71% [2 cron 60.8 kB/84.0 kB 72%]
+                                
+100% [Working]
+              
+Fetched 97.5 kB in 3s (35.9 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package cron-daemon-common.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 11774 files and directories currently installed.)
+Preparing to unpack .../cron-daemon-common_3.0pl1-184ubuntu2_all.deb ...
+Unpacking cron-daemon-common (3.0pl1-184ubuntu2) ...
+Setting up cron-daemon-common (3.0pl1-184ubuntu2) ...
+Creating group 'crontab' with GID 997.
+
+Selecting previously unselected package cron.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 11793 files and directories currently installed.)
+Preparing to unpack .../cron_3.0pl1-184ubuntu2_arm64.deb ...
+Unpacking cron (3.0pl1-184ubuntu2) ...
+Setting up cron (3.0pl1-184ubuntu2) ...
+invoke-rc.d: policy-rc.d denied execution of start.
+Created symlink /etc/systemd/system/multi-user.target.wants/cron.service → /usr/lib/systemd/system/cron.service.
+
+/usr/sbin/policy-rc.d returned 101, not running 'start cron.service'
+[OK]  安装 cron 完成 
+[OK]  crontab 自启动配置 完成 
+
+ 确定公网IP信息 
+2
+ 请选择公网IP为IPv4或IPv6 
+1: 自动检测 (IPv4/IPv6) (推荐)
+2: IPv4 (默认)
+3: IPv6
+4: 手动输入
+请输入: [OK]  正在获取公网IP信息, 请耐心等待 
+公网IP/域名: 2001:db8::42
+
+ 请选择传输协议 
+1
+1: ws (默认)
+2: gRPC
+3: xHTTP
+4: ws+xHTTP
+5: ws+gRPC+xHTTP
+请输入: 
+ 是否需要自定义 ws inbound_port [Y/N]? 
+n
+ ws inbound_port: 10694 
+[OK]  10694 端口未被占用 
+
+ 是否需要设置防火墙 [Y/N]? 
+n
+[OK]  跳过防火墙设置 
+
+ 是否需要自定义 ws 伪装路径 [Y/N]? 
+n
+ ws 伪装路径: e86559c246a16 
+
+ 是否需要自定义 Xray 用户名 [Y/N]? 
+n
+ Xray 用户名 (email): 12de083251427@hey.run 
+
+ 是否需要自定义字符串映射 (UUIDv5) [Y/N]? 
+n
+ UUID 映射字符串: 066a48d754d19 
+ UUID: <redacted-uuid> 
+
+[OK]  停止 
+[OK]  已安装 Xray 
+[OK]  下载 Xray 配置 完成 
+[警告]  无传输层加密的后端入站监听地址: 127.0.0.1 
+[OK]  Xray listen address 修改 完成 
+[OK]  Xray 伪装路径 修改 完成 
+[OK]  Xray inbound port 修改 完成 
+[OK]  Xray 用户名修改 完成 
+[OK]  Xray UUID 修改 完成 
+[警告]  缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置 
+Created symlink /etc/systemd/system/multi-user.target.wants/xray.service → /etc/systemd/system/xray.service.
+
+[OK]  设置 Xray 开机自启 完成 
+
+ 设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx) 
+[警告]  可能自动更新后有兼容问题, 谨慎启用 
+ 是否启用 [Y/N]? 
+n
+[OK]  Xray 重启 完成 
+
+ 是否需要设置自动清理日志 [Y/N]? 
+n
+[OK]  已跳过设置自动清理日志 
+
+ 生成分享链接: 
+
+[OK]  Xray+ws ONLY 安装 完成 
+
+[警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
+
+ —————————————— Xray 配置信息 —————————————— 
+ 主机 (host): 2001:db8::42 
+ ws 端口 (port): 10694 
+ UUIDv5 映射字符串: 066a48d754d19
+ 用户id (UUID): <redacted-uuid>
+ 加密 (encryption): None 
+ 传输协议 (network): ws/gRPC 
+ 底层传输安全 (tls): None 
+ 监听地址 (listen): 127.0.0.1 
+[警告]  此模式没有传输层加密 (VLESS 载荷自身仍有加密), 只应用于可信后端链路 
+[警告]  当前仅监听本机, 外部客户端需经可信代理接入, 或改用 TLS/Reality 模式 
+ 路径 (path 不要落下/): /e86559c246a16 
+
+ —————————————— Xray 链接分享 —————————————— 
+ ws URL 分享链接: vless://<redacted-link>
+ 二维码: 
+█████████████████████████████████████████████████████████████████
+█████████████████████████████████████████████████████████████████
+████ ▄▄▄▄▄ █▀█▄▀▄ ▄ ▀ ▀▀██▄█▄█▀▀▄▀▄▄▄▀▀▀▀▄▀ █▀▄█ ▄▄ ██ ▄▄▄▄▄ ████
+████ █   █ █▀ ██▀▀█▄▄▀▀▄█▀█▀▀▀█▀▄▀▀▄▄ ▀▄▀██▄▄  ▀▄▄▄ ██ █   █ ████
+████ █▄▄▄█ █▀ ▄  █ ▄██▀▄ ▀▄▀ █ ▄▄▄ ▄▄▀█ ▄▀█ ▄█▄▄▄█▀▄██ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄▀▄█ ▀ ▀▄▀ ▀ █▄█ █ █▄█ ▀▄▀▄█ ▀▄▀ █ ▀▄█ ▀▄█▄▄▄▄▄▄▄████
+████▄▄▄▄▄▀▄ ▄█▄▄▀█▀ ▀▄▀▄ ▀▄▄▀▄▄▄▄▄ ▀█ ██▄▄▀█▀█ ▀▄██▄▀▄█ ▀ ▀ █████
+████ ▄███▀▄ ▄ ▀▄▄▄ ▀▀▀ ▄▀▀ ▄█▀█ █▀███ ██▀▄█  ▄ █ ▀▄▀▀ ▄▀▀▀▀▄▀████
+█████▀ █ █▄▀ █▄▀▀▄▄█▄▀ █▄▀▄█▀ █▀█▀█▀▀▄██ █▄ █▄▀▄█▀█▄▀▀▄ ▀█▀  ████
+████ █▀ ▄▀▄▀█▀▀  ▀  ██▄█▀▄▀▀ █▄▀██▄█▀▄▄█▄█▄▄▀▄▀▀▀▀ ▄▀▄▄▄ ▄▀█▀████
+████▀▄▄▀  ▄█▀▀ ▀█▀▀▀▄▀▄▄▄▀▀▄▀█▄▀ ▄  █▀█▄▄ ██▀▄ ▀█▄▄▄▀ ▄▄▀ █  ████
+████ ▀ █▀▄▄▀▄  ▀ ▀█▀█  ██▄▀  ▄▀▀ ▄▀▀ █▄█▄▄ █  ▀▄ ▄▄ ▀ ▀▀   ██████
+████▀ ▄██ ▄  ▀██▄▀█▄▀▄▄▄█▀█▀▄ ▀▄▄█▀█▀ ██▄▄▀▄▀▄  ██▄▄▀▄▄▄█▀█ ▀████
+████▄▄▄▄██▄▀▀▀▀▄█▄ ▄ ▀█▄█▄ ▀█▀ ▄ ▄███▄  ▄█▄ ▀▄▀  ▀▄  █ ▀▀█▄▄█████
+████▄▀▄ █ ▄▀▄ █▄ █ ▀█▀▄▄▀▄▀█▀█▀▄█▄▄▄ ▄ █ █ ▀ ▀█▀ ▄█▀▀█▄██ ▄▀▀████
+████▀▀▄█ ▄▄▄   ▀███▀ ▄█▄▀▄█▄█  ▄▄▄   ▄█ ▀ ▀▄   ▀  ▄▄ ▄▄▄ ▀ ▀█████
+█████  ▀ █▄█ ▀█▄██▄█▄▄▀▄▄▄█▀▀█ █▄█ ▀▀▄▄▀ ▄█▄██▀██ ▄▀ █▄█ ███▀████
+████  ▀█▄ ▄  █▀▄▄█▄▀▀██▀█▄█  ▄  ▄  ▀▀   ▄ ▄▄▀▄▀ █▀▄▀▄    ▀▀ ▀████
+████ ▄██▄▄▄ ▀ █▄▀█ ▄▄▀▄▄▄▄▀▀▀█ ▀▄▀ ▀█ █▀ ▀█ ██ ▄▀▀▄█ ▄█▀▄▀█▄ ████
+████▄▄▀ ▀█▄▀▀█▀█▀▀▀▄▄▄█▀█▀██  ▀▀▄▀ ▄▀█ ▄▄▀ █▀▄▀▄▀▀▄█▀ ▀▀▄▀▀▄█████
+█████▄█ ▀ ▄ ██ ▄██▀▀█▄▄▀▀▄▀▄ █▀▀█▄ ▄█▀ ▄ ▀█▄█ ▀▀▀▀▄▄ █ ▄▄▀█▄▀████
+████▀▀    ▄█▀ ▄▄██ ▀█▀ ▀ ▄█▄ ▄█▀█▄▄▀█ ▄▀ ▀▀█▀▀ ▀▀  ▀▄   ▄▀██▄████
+█████▄▄▀▀█▄▀██▀▀▄ ▄ ██▄██ ▀█ █▀▄▀▄ ▀█▀███▄  ▄▄█▀█ ▄█   ▄▄ ▀██████
+████▀██ ██▄█  █▄▄▄   ▀ █ ▀ ███▀▀▀▀▄▀▀▀██ ▄ ▀ █▄▀▀ █▀▀▄▀▄   ▀█████
+████▀▀  █▄▄▄ ▀▄▀▀▀▀█▄▀ ▄▄▀▄▀▀▄█▄▄██▄▄ ▄█  ██▀▄ █▀██▀▄▀▀▀▄ ▀█▀████
+████ ▀ ▀▀▄▄ ▀▄ █▀█▄ ▄█▄██ █▀▀▄▀▄▄█ ▀▀█▄█▄█ ▄▀▀▀█▀ ▄▀▀▀▀▄▄   █████
+██████████▄▄▀▀ █▀██▄▄▀▄▄▄▄▀▄▀▀ ▄▄▄ ▀█ ▄▀ ██▄██▀ ████ ▄▄▄ ▀█▀ ████
+████ ▄▄▄▄▄ █▄▄█ █ ███▀▄█  ▀▀ ▄ █▄█  ▀▀▄ █  ▄ ▄▀ ▀ ▄▄ █▄█  ▀▀█████
+████ █   █ █ █ ▄▀▄▄▄▀ ▄▄█▄▀▀▄▄▄▄  ▄▀█ ██▄█▄▄█▄ █▀▀▄▀▄▄ ▄ ▀▀█▄████
+████ █▄▄▄█ █ █▀▀███▄ ▀▀▄█▄▄▀█▀▄ ▀▀██▄▄▀▄  ▄█▄ ▀██▀▄█▀ ██▀▄▄██████
+████▄▄▄▄▄▄▄█▄▄▄█▄▄█████▄█▄▄▄▄█▄███▄▄▄▄▄▄█▄█▄██▄██▄██▄▄▄▄█▄█▄█████
+█████████████████████████████████████████████████████████████████
+█████████████████████████████████████████████████████████████████
+
+ —————————————— Clash 配置分享 —————————————— 
+ Clash 配置分享: 
+proxies:
+
+  - name: VLESS-2001:db8::42-ws
+    type: vless
+    server: '2001:db8::42'
+    port: 10694
+    uuid: <redacted-uuid>
+    client-fingerprint: chrome
+    tls: false
+    network: ws
+    ws-opts:
+      path: /e86559c246a16
+      headers:
+        Host: 2001:db8::42
+    skip-cert-verify: false
+
+ ——————————————————  END  —————————————————— 
+

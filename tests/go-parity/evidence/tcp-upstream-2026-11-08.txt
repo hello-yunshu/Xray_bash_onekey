@@ -1,0 +1,30 @@
+# tcp.sh 上游快照审计证据（D1）
+
+- URL: https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh
+- Pulled: 2026-11-08 (UTC)
+- SHA-256: `0b7614e7f5b0de93d7bfd790be672c26c54b223b47ec1b1ae5fa2884e2ea61c0`
+- 重要限制：`install.sh:10851-10864` 每次运行时下载并直接执行，既不 pin 也不校验
+  哈希；本文件只证明“该日期的上游内容”，不能证明任意历史/未来运行版本。
+
+## 快照中的关键行为（行号为该快照）
+
+- 32-33：`rm -rf /etc/sysctl.d/bbr.conf`
+- 43-86：`optimizing_system_old` 用 `sed -i` 删除 `/etc/sysctl.conf` 中多项
+  TCP/内核参数，追加新配置，最后执行 `sysctl -p`
+- 90-94：提示并执行 `reboot`
+- 275-321：系统优化写入 `/etc/systemd/system.conf`、`/etc/security/limits.conf`、
+  `/etc/profile`、`/etc/pam.d/common-session`，修改透明大页，执行
+  `sysctl --system`
+- 709 起：`installbbr` 通过 GitHub API 下载内核包并 `yum/apt install`；
+  798-806 提示检查内核并执行 `reboot`
+- 1440-1460：`remove_bbr_lotserver` / `remove_all` 删除加速配置；卸载 Lotserver
+  时执行 `wget -qO- .../lotServerInstall.sh | bash`
+- 1645-1666：菜单包含安装/切换多种内核、BBR/FQ/CAKE/ECN、IPv6 开关、
+  “卸载全部加速”、切换到外部 IP 质量脚本
+
+## 判断
+
+- 入口与风险：`SOURCE_REVIEWED`（install.sh）+ 上游快照审读；
+- “某个固定版本逐行等价”：`BLOCKED`，因为仓库不保存脚本、不固定哈希；
+- Go `idleleo tcp` 仅提供单文件、指定 key、可回退的 `bbr-fq` 子集，不能宣称
+  行为等价，也不应默认接线到该远程脚本。

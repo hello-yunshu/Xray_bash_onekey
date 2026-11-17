@@ -1,0 +1,43 @@
+{
+  "api": {
+    "listen": "127.0.0.1:54535",
+    "services": [
+      "StatsService"
+    ],
+    "tag": "api"
+  },
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 44045,
+      "protocol": "http",
+      "settings": {},
+      "tag": "http-in"
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 54535,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      },
+      "tag": "api-in"
+    }
+  ],
+  "log": {
+    "loglevel": "warning"
+  },
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "direct"
+    }
+  ],
+  "policy": {
+    "system": {
+      "statsInboundDownlink": true,
+      "statsInboundUplink": true
+    }
+  },
+  "stats": {}
+}

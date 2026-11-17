@@ -1,0 +1,11 @@
+{
+  "accountUrl": "",
+  "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+  "directoryUrl": "https://127.0.0.1:52297/directory",
+  "domain": "example.com",
+  "issued": false,
+  "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+  "orderUrl": "",
+  "reason": "certificate is marked user-managed; renewal is external (pass --takeover to adopt it)",
+  "skipped": true
+}

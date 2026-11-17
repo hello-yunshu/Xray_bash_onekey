@@ -1,0 +1,12 @@
+{
+  "accountUrl": "",
+  "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+  "directoryUrl": "https://127.0.0.1:52297/directory",
+  "domain": "example.com",
+  "issued": false,
+  "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+  "notAfter": "2027-02-14T15:07:52Z",
+  "orderUrl": "",
+  "reason": "certificate valid until 2027-02-14T15:07:52Z; renew window 720h0m0s not reached",
+  "skipped": true
+}

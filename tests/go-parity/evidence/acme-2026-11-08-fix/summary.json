@@ -1,0 +1,59 @@
+{
+  "label": "ACME_LOCAL_CA",
+  "protocol": "ACME v2 (RFC 8555), JWS ES256, HTTP-01",
+  "ca": "Pebble local test CA + pebble.minica.pem (self-signed; not a public CA)",
+  "domain": "acme.local (Docker network alias; no public DNS)",
+  "account_reused": true,
+  "issue": {
+    "issued": true,
+    "notAfter": "2027-02-06T16:02:04Z",
+    "serial": "3bb45f425b2ed3b7",
+    "reloaded": true
+  },
+  "renew_in_window": {
+    "skipped": true,
+    "issued": false,
+    "reason": "certificate valid until 2027-02-06T16:02:04Z; renew window 24h0m0s not reached"
+  },
+  "renew_forced": {
+    "issued": true,
+    "serial": "2a53a9014a07548c",
+    "notAfter": "2027-02-06T16:02:09Z"
+  },
+  "serial_changed": true,
+  "verify_initial": {
+    "subject": "",
+    "dnsNames": [
+      "acme.local"
+    ],
+    "serial": "3bb45f425b2ed3b7",
+    "notBefore": "2026-11-08T16:02:05Z",
+    "notAfter": "2027-02-06T16:02:04Z",
+    "validDays": 89.99998842592593,
+    "verifiedToLocalRoot": true,
+    "hostnameVerified": true,
+    "privateKeyMatches": true
+  },
+  "verify_after_force": {
+    "subject": "",
+    "dnsNames": [
+      "acme.local"
+    ],
+    "serial": "2a53a9014a07548c",
+    "notBefore": "2026-11-08T16:02:10Z",
+    "notAfter": "2027-02-06T16:02:09Z",
+    "validDays": 89.99998842592593,
+    "verifiedToLocalRoot": true,
+    "hostnameVerified": true,
+    "privateKeyMatches": true
+  },
+  "negative": {
+    "webroot_failure_kept_old_pair": true,
+    "reload_failure_restored_old_pair": true,
+    "restored_pair_still_valid": true,
+    "readonly_destination_refused": true,
+    "readonly_destination_wrote_no_cert": true,
+    "blocked_domain_rejected": true,
+    "blocked_domain_wrote_no_cert": true
+  }
+}

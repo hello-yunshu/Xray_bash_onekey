@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1794850063700468956-638",
+    "state": "COMMITTED",
+    "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "53f135c2ba38662aeeebb834c455220ebf29cdb07431f0774a0b60fce7951e51",
+    "newSha256": "7ac62573297145a557f9f4cf2d8ac392c3701db5308646599be245e3bf9bd69a",
+    "startedAt": "2026-11-16T17:27:43Z",
+    "updatedAt": "2026-11-16T17:27:43Z"
+  },
+  {
+    "id": "1794850063710167917-650",
+    "state": "COMMITTED",
+    "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSha256": "7ac62573297145a557f9f4cf2d8ac392c3701db5308646599be245e3bf9bd69a",
+    "newSha256": "fde936eecf2c55097ef32d6239feb0e4906de32c55f0531c586dd135d88b233e",
+    "startedAt": "2026-11-16T17:27:43Z",
+    "updatedAt": "2026-11-16T17:27:43Z"
+  }
+]

@@ -1,0 +1,9 @@
+commit=f7828e8d4694d757a7ad9da406ffc0ba430c1730
+image=idleleo-preview:latest@sha256=ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+level=CONTAINER_VERIFIED (sandboxed /proc/sys regular files, real manager)
+date=2026-11-16T15:31:44Z
+fixture=tests/go-parity/parity/features/F25_test.py
+command=python3 -I /work/repo/tests/go-parity/parity/features/F25_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo
+result=78 passed, 0 failed, exit 0 (run 1: 0.26s; run 2: 0.14s)
+go_bin_sha256=3d7288f1a059b2058ef104e8c124cfdfe5c53b095d04a43768860aba778902c7
+notes=status/plan read-only; apply requires --confirm and a marked sandbox; transaction writes /etc/sysctl.d/90-idleleo-tcp.conf (0644, ownership marker) plus a committed journal; second apply no-op; rollback restores cubic/fq_codel and removes file+journal; drift is refused by both apply and rollback (exit 7) and recoverable after the drift is removed; pending journal blocks apply and rollback recovers it; foreign file, 99- override, symlink and unknown profile fail explicitly; a kernel without bbr exits 12; non-root cannot mutate a real root (exit 6) but can read status; poisoned curl/wget/tcp.sh PATH is never called; real /proc/sys values unchanged. The Bash -tcp entry only executes a local tcp.sh and refuses to download one, so it is captured as a baseline-absence record rather than an equality oracle.

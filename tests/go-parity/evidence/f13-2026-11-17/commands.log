@@ -1,0 +1,778 @@
+== F13 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.24.json --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.20",
+            "newVersion": "1.8.24",
+            "action": "update",
+            "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+            "sizeBytes": 238,
+            "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899962353018908",
+            "verified": true,
+            "health": true,
+            "restarted": false,
+            "rolledBack": false,
+            "warnings": [
+              "service reload skipped for a sandbox root; restart xray/nginx on the target host"
+            ]
+          }
+PASS xray upgrade rc=0 {
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "1.8.20",
+  "newVersion": "1.8.24",
+  "action": "update",
+  "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+  "sizeBytes": 238,
+  "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray
+PASS report update 1.8.20 -> 1.8.24 {"action": "update", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899962353018908", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.20", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS report verified and health true {"action": "update", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899962353018908", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.20", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS sandbox root does not restart {"action": "update", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899962353018908", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.20", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS sandbox restart warning recorded ['service reload skipped for a sandbox root; restart xray/nginx on the target host']
+PASS backup lives under etc/idleleo/backup /work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899962353018908
+PASS backup keeps the previous bytes /work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899962353018908
+PASS backup keeps mode 0755 0o755
+PASS binary equals the candidate artifact 
+PASS installed binary is 0755 
+PASS no .xray.new staging file 
+PASS exactly one backup after the upgrade ['xray-1.8.20-1794899962353018908']
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.24-again.json --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.24",
+            "newVersion": "1.8.24",
+            "action": "reinstall",
+            "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+            "sizeBytes": 238,
+            "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899962359760576",
+            "verified": true,
+            "health": true,
+            "restarted": false,
+            "rolledBack": false,
+            "warnings": [
+              "service reload skipped for a sandbox root; restart xray/nginx on the target host"
+            ]
+          }
+PASS equal version reinstall rc=0 {
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "1.8.24",
+  "newVersion": "1.8.24",
+  "action": "reinstall",
+  "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+  "sizeBytes": 238,
+  "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/x
+PASS equal version reports reinstall {"action": "reinstall", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899962359760576", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.24", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS reinstall refreshes the backup with the current bytes /work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899962359760576
+PASS reinstall adds a second backup ['xray-1.8.20-1794899962353018908', 'xray-1.8.24-1794899962359760576']
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.10.json (rc=4 0.0s)
+  stderr: refusing to downgrade: installed 1.8.24, manifest 1.8.10
+PASS downgrade exits 4 refusing to downgrade: installed 1.8.24, manifest 1.8.10
+
+PASS downgrade leaves the tree unchanged 
+PASS downgrade creates no backup ['xray-1.8.20-1794899962353018908', 'xray-1.8.24-1794899962359760576']
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-badsha.json (rc=5 0.0s)
+  stderr: downloaded artifact does not match the manifest: sha256 4f8b870c923123408deea106edd7cf5c9a7465801a2ba610fbf46d929d86b056 != aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+PASS sha256 mismatch exits 5 downloaded artifact does not match the manifest: sha256 4f8b870c923123408deea106edd7cf5c9a7465801a2ba610fbf46d929d86b056 != aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-badsize.json (rc=5 0.0s)
+  stderr: downloaded artifact does not match the manifest: size 238 != 239
+PASS size mismatch exits 5 downloaded artifact does not match the manifest: size 238 != 239
+
+PASS digest failures leave the tree unchanged 
+PASS digest failures create no backup ['xray-1.8.20-1794899962353018908', 'xray-1.8.24-1794899962359760576']
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.26.json --json (rc=6 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.24",
+            "newVersion": "1.8.26",
+            "action": "update",
+            "sha256": "7dfb254f4b34a5a1844cf66ca83a71f131ef77a42e502ded1fdc906ce6f0dff6",
+            "sizeBytes": 238,
+            "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899962376381016",
+            "verified": true,
+            "health": false,
+            "restarted": false,
+            "rolledBack": true
+          }
+  stderr: new component failed its health check: xray health check failed: xray test: 1.8.26 config ok
+PASS failed run -test exits 6 {
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "1.8.24",
+  "newVersion": "1.8.26",
+  "action": "update",
+  "sha256": "7dfb254f4b34a5a1844cf66ca83a71f131ef77a42e502ded1fdc906ce6f0dff6",
+  "sizeBytes": 238,
+  "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray
+PASS health failure reports rolledBack {"action": "update", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899962376381016", "component": "xray", "health": false, "newVersion": "1.8.26", "previousVersion": "1.8.24", "restarted": false, "rolledBack": true, "schemaVersion": 1, "sha256": "7dfb254f4b34a5a1844cf66ca83a71f131ef77a42e502ded1fdc906ce6f0dff6", "sizeBytes": 238, "verified": true}
+PASS rollback restores the previous bytes 
+PASS rollback removes the staging file 
+PASS failed health keeps exactly one new backup ['xray-1.8.20-1794899962353018908', 'xray-1.8.24-1794899962359760576', 'xray-1.8.24-1794899962376381016']
+$ /work/evidence/f13-work/nginx-root/usr/local/nginx/sbin/nginx -t -p /work/evidence/f13-work/nginx-root/usr/local/nginx/ -c /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf syntax is ok
+          nginx: configuration file /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf test is successful
+PASS seeded nginx tree passes a real nginx -t nginx: the configuration file /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf test is successful
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/nginx-root update nginx --manifest /work/evidence/f13-work/serve/nginx-1.24.1.json --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "nginx",
+            "previousVersion": "1.24.0",
+            "newVersion": "1.24.1",
+            "action": "update",
+            "sha256": "c962d546cf5b2a767cdce958b7c0773264fc857b389884d77a7a38e2d55cb1d1",
+            "sizeBytes": 402,
+            "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1794899962388665345",
+            "verified": true,
+            "health": true,
+            "restarted": false,
+            "rolledBack": false,
+            "warnings": [
+              "service reload skipped for a sandbox root; restart xray/nginx on the target host"
+            ]
+          }
+PASS nginx upgrade rc=0 {
+  "schemaVersion": 1,
+  "component": "nginx",
+  "previousVersion": "1.24.0",
+  "newVersion": "1.24.1",
+  "action": "update",
+  "sha256": "c962d546cf5b2a767cdce958b7c0773264fc857b389884d77a7a38e2d55cb1d1",
+  "sizeBytes": 402,
+  "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/ng
+PASS nginx report 1.24.0 -> 1.24.1 {"action": "update", "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1794899962388665345", "component": "nginx", "health": true, "newVersion": "1.24.1", "previousVersion": "1.24.0", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "c962d546cf5b2a767cdce958b7c0773264fc857b389884d77a7a38e2d55cb1d1", "sizeBytes": 402, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS nginx health true and sandbox restart skipped {"action": "update", "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1794899962388665345", "component": "nginx", "health": true, "newVersion": "1.24.1", "previousVersion": "1.24.0", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "c962d546cf5b2a767cdce958b7c0773264fc857b389884d77a7a38e2d55cb1d1", "sizeBytes": 402, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS nginx tree was replaced by the artifact tree 
+PASS the previous tree is gone from usr/local/nginx 
+PASS extraction staging directory removed 
+PASS the previous nginx tree is kept in the backup /work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1794899962388665345/conf/legacy-marker.txt
+$ /work/bin/idleleo --root /work/evidence/f13-work/nginx-root update nginx --manifest /work/evidence/f13-work/serve/nginx-1.24.2.json --json (rc=6 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "nginx",
+            "previousVersion": "1.24.1",
+            "newVersion": "1.24.2",
+            "action": "update",
+            "sha256": "37be6b47cec31a58a97c15037dab633192aea9ddd40b7315d2b199127bc22621",
+            "sizeBytes": 419,
+            "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.1-1794899962395850558",
+            "verified": true,
+            "health": false,
+            "restarted": false,
+            "rolledBack": true
+          }
+  stderr: new component failed its health check: nginx health check failed: nginx: configuration test failed
+PASS broken nginx artifact exits 6 {
+  "schemaVersion": 1,
+  "component": "nginx",
+  "previousVersion": "1.24.1",
+  "newVersion": "1.24.2",
+  "action": "update",
+  "sha256": "37be6b47cec31a58a97c15037dab633192aea9ddd40b7315d2b199127bc22621",
+  "sizeBytes": 419,
+  "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/ng
+PASS nginx failure reports rolledBack {"action": "update", "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.1-1794899962395850558", "component": "nginx", "health": false, "newVersion": "1.24.2", "previousVersion": "1.24.1", "restarted": false, "rolledBack": true, "schemaVersion": 1, "sha256": "37be6b47cec31a58a97c15037dab633192aea9ddd40b7315d2b199127bc22621", "sizeBytes": 419, "verified": true}
+PASS nginx health failure restores the whole tree digest 
+PASS failed nginx upgrade leaves no staging directory 
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray (rc=2 0.0s)
+  stderr: --manifest <path|http(s) URL> is required
+PASS missing --manifest exits 2 --manifest <path|http(s) URL> is required
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest (rc=2 0.0s)
+  stderr: --manifest <path|http(s) URL> is required
+PASS --manifest without a value exits 2 --manifest <path|http(s) URL> is required
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-good.json --bogus (rc=2 0.0s)
+  stderr: unknown flag: --bogus
+PASS unknown flag exits 2 unknown flag: --bogus
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/broken.json (rc=3 0.0s)
+  stderr: invalid component manifest: invalid JSON: invalid character 'n' looking for beginning of object key string
+PASS broken JSON exits 3 invalid component manifest: invalid JSON: invalid character 'n' looking for beginning of object key string
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/wrong-component.json (rc=3 0.01s)
+  stderr: manifest component mismatch: manifest is for nginx, command is xray
+PASS wrong component exits 3 manifest component mismatch: manifest is for nginx, command is xray
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/bad-version.json (rc=3 0.0s)
+  stderr: invalid component manifest: version "1.8.25-beta" is not a dotted version
+PASS non-dotted version exits 3 invalid component manifest: version "1.8.25-beta" is not a dotted version
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/bad-schema.json (rc=3 0.0s)
+  stderr: invalid component manifest: unsupported schemaVersion 2
+PASS unsupported schemaVersion exits 3 invalid component manifest: unsupported schemaVersion 2
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/zero-size.json (rc=3 0.0s)
+  stderr: invalid component manifest: sizeBytes must be positive
+PASS non-positive sizeBytes exits 3 invalid component manifest: sizeBytes must be positive
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest http://127.0.0.1:45761/missing.json (rc=3 0.0s)
+  stderr: invalid component manifest: http://127.0.0.1:45761/missing.json: HTTP 404
+PASS HTTP 404 manifest exits 3 invalid component manifest: http://127.0.0.1:45761/missing.json: HTTP 404
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /nonexistent/m.json (rc=3 0.0s)
+  stderr: invalid component manifest: open /nonexistent/m.json: no such file or directory
+PASS missing manifest file exits 3 invalid component manifest: open /nonexistent/m.json: no such file or directory
+
+PASS rejected manifests leave the tree unchanged 
+PASS rejected manifests create no backup 
+$ /work/bin/idleleo --root / update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-good.json (rc=2 0.0s)
+  stderr: container root writes require --container
+PASS real root without --container exits 2 container root writes require --container
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/unmarked-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-good.json (rc=2 0.0s)
+  stderr: sandbox marker required: open /work/evidence/f13-work/unmarked-root/.idleleo-phase01-sandbox: no such file or directory
+PASS unmarked sandbox exits 2 sandbox marker required: open /work/evidence/f13-work/unmarked-root/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked sandbox gets no backup directory 
+$ bash /work/evidence/f13-work/baseline-version.sh (rc=0 0.01s)
+  stdout: 1.8.24|1.8.20|1
+          1.8.20|1.8.24|-1
+          1.8.20|1.8.20|0
+          1.8|1.8.0|0
+          26.9.30|26.10.31|-1
+          2026.10.15.7679|2026.10.15.2|1
+          1.10|1.9|1
+          2.0|1.99.99|1
+          1.0.0.1|1.0.0|1
+PASS Bash version_compare baseline rc=0 1.8.24|1.8.20|1
+1.8.20|1.8.24|-1
+1.8.20|1.8.20|0
+1.8|1.8.0|0
+26.9.30|26.10.31|-1
+2026.10.15.7679|2026.10.15.2|1
+1.10|1.9|1
+2.0|1.99.99|1
+1.0.0.1|1.0.0|1
+
+PASS Bash baseline covers the whole table 9
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.8.20-1.8.24.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.20",
+            "newVersion": "1.8.24",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.8.24-1.8.20.json --json (rc=4 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.24",
+            "newVersion": "1.8.20",
+            "action": "install",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: refusing to downgrade: installed 1.8.24, manifest 1.8.20
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.8.20-1.8.20.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.20",
+            "newVersion": "1.8.20",
+            "action": "reinstall",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.8.0-1.8.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.0",
+            "newVersion": "1.8",
+            "action": "reinstall",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-26.10.31-26.9.30.json --json (rc=4 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "26.10.31",
+            "newVersion": "26.9.30",
+            "action": "install",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: refusing to downgrade: installed 26.10.31, manifest 26.9.30
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-2026.10.15.2-2026.10.15.7679.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "2026.10.15.2",
+            "newVersion": "2026.10.15.7679",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.9-1.10.json --json (rc=5 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.9",
+            "newVersion": "1.10",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.99.99-2.0.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.99.99",
+            "newVersion": "2.0",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.0.0-1.0.0.1.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.0.0",
+            "newVersion": "1.0.0.1",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+PASS Go CompareVersions matches Bash version_compare 
+== F13 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.24.json --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.20",
+            "newVersion": "1.8.24",
+            "action": "update",
+            "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+            "sizeBytes": 238,
+            "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899963130234017",
+            "verified": true,
+            "health": true,
+            "restarted": false,
+            "rolledBack": false,
+            "warnings": [
+              "service reload skipped for a sandbox root; restart xray/nginx on the target host"
+            ]
+          }
+PASS xray upgrade rc=0 {
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "1.8.20",
+  "newVersion": "1.8.24",
+  "action": "update",
+  "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+  "sizeBytes": 238,
+  "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray
+PASS report update 1.8.20 -> 1.8.24 {"action": "update", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899963130234017", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.20", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS report verified and health true {"action": "update", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899963130234017", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.20", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS sandbox root does not restart {"action": "update", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899963130234017", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.20", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS sandbox restart warning recorded ['service reload skipped for a sandbox root; restart xray/nginx on the target host']
+PASS backup lives under etc/idleleo/backup /work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899963130234017
+PASS backup keeps the previous bytes /work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1794899963130234017
+PASS backup keeps mode 0755 0o755
+PASS binary equals the candidate artifact 
+PASS installed binary is 0755 
+PASS no .xray.new staging file 
+PASS exactly one backup after the upgrade ['xray-1.8.20-1794899963130234017']
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.24-again.json --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.24",
+            "newVersion": "1.8.24",
+            "action": "reinstall",
+            "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+            "sizeBytes": 238,
+            "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899963141268296",
+            "verified": true,
+            "health": true,
+            "restarted": false,
+            "rolledBack": false,
+            "warnings": [
+              "service reload skipped for a sandbox root; restart xray/nginx on the target host"
+            ]
+          }
+PASS equal version reinstall rc=0 {
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "1.8.24",
+  "newVersion": "1.8.24",
+  "action": "reinstall",
+  "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+  "sizeBytes": 238,
+  "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/x
+PASS equal version reports reinstall {"action": "reinstall", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899963141268296", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.24", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS reinstall refreshes the backup with the current bytes /work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899963141268296
+PASS reinstall adds a second backup ['xray-1.8.20-1794899963130234017', 'xray-1.8.24-1794899963141268296']
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.10.json (rc=4 0.0s)
+  stderr: refusing to downgrade: installed 1.8.24, manifest 1.8.10
+PASS downgrade exits 4 refusing to downgrade: installed 1.8.24, manifest 1.8.10
+
+PASS downgrade leaves the tree unchanged 
+PASS downgrade creates no backup ['xray-1.8.20-1794899963130234017', 'xray-1.8.24-1794899963141268296']
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-badsha.json (rc=5 0.0s)
+  stderr: downloaded artifact does not match the manifest: sha256 4f8b870c923123408deea106edd7cf5c9a7465801a2ba610fbf46d929d86b056 != aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+PASS sha256 mismatch exits 5 downloaded artifact does not match the manifest: sha256 4f8b870c923123408deea106edd7cf5c9a7465801a2ba610fbf46d929d86b056 != aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-badsize.json (rc=5 0.0s)
+  stderr: downloaded artifact does not match the manifest: size 238 != 239
+PASS size mismatch exits 5 downloaded artifact does not match the manifest: size 238 != 239
+
+PASS digest failures leave the tree unchanged 
+PASS digest failures create no backup ['xray-1.8.20-1794899963130234017', 'xray-1.8.24-1794899963141268296']
+$ /work/bin/idleleo --root /work/evidence/f13-work/xray-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.26.json --json (rc=6 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.24",
+            "newVersion": "1.8.26",
+            "action": "update",
+            "sha256": "7dfb254f4b34a5a1844cf66ca83a71f131ef77a42e502ded1fdc906ce6f0dff6",
+            "sizeBytes": 238,
+            "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899963162758434",
+            "verified": true,
+            "health": false,
+            "restarted": false,
+            "rolledBack": true
+          }
+  stderr: new component failed its health check: xray health check failed: xray test: 1.8.26 config ok
+PASS failed run -test exits 6 {
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "1.8.24",
+  "newVersion": "1.8.26",
+  "action": "update",
+  "sha256": "7dfb254f4b34a5a1844cf66ca83a71f131ef77a42e502ded1fdc906ce6f0dff6",
+  "sizeBytes": 238,
+  "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray
+PASS health failure reports rolledBack {"action": "update", "backupPath": "/work/evidence/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1794899963162758434", "component": "xray", "health": false, "newVersion": "1.8.26", "previousVersion": "1.8.24", "restarted": false, "rolledBack": true, "schemaVersion": 1, "sha256": "7dfb254f4b34a5a1844cf66ca83a71f131ef77a42e502ded1fdc906ce6f0dff6", "sizeBytes": 238, "verified": true}
+PASS rollback restores the previous bytes 
+PASS rollback removes the staging file 
+PASS failed health keeps exactly one new backup ['xray-1.8.20-1794899963130234017', 'xray-1.8.24-1794899963141268296', 'xray-1.8.24-1794899963162758434']
+$ /work/evidence/f13-work/nginx-root/usr/local/nginx/sbin/nginx -t -p /work/evidence/f13-work/nginx-root/usr/local/nginx/ -c /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf syntax is ok
+          nginx: configuration file /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf test is successful
+PASS seeded nginx tree passes a real nginx -t nginx: the configuration file /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf test is successful
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/nginx-root update nginx --manifest /work/evidence/f13-work/serve/nginx-1.24.1.json --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "nginx",
+            "previousVersion": "1.24.0",
+            "newVersion": "1.24.1",
+            "action": "update",
+            "sha256": "02230e76b7af137b11cd620ac798ff951228bc018b21f24f22d1669ffae90411",
+            "sizeBytes": 402,
+            "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1794899963172554247",
+            "verified": true,
+            "health": true,
+            "restarted": false,
+            "rolledBack": false,
+            "warnings": [
+              "service reload skipped for a sandbox root; restart xray/nginx on the target host"
+            ]
+          }
+PASS nginx upgrade rc=0 {
+  "schemaVersion": 1,
+  "component": "nginx",
+  "previousVersion": "1.24.0",
+  "newVersion": "1.24.1",
+  "action": "update",
+  "sha256": "02230e76b7af137b11cd620ac798ff951228bc018b21f24f22d1669ffae90411",
+  "sizeBytes": 402,
+  "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/ng
+PASS nginx report 1.24.0 -> 1.24.1 {"action": "update", "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1794899963172554247", "component": "nginx", "health": true, "newVersion": "1.24.1", "previousVersion": "1.24.0", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "02230e76b7af137b11cd620ac798ff951228bc018b21f24f22d1669ffae90411", "sizeBytes": 402, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS nginx health true and sandbox restart skipped {"action": "update", "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1794899963172554247", "component": "nginx", "health": true, "newVersion": "1.24.1", "previousVersion": "1.24.0", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "02230e76b7af137b11cd620ac798ff951228bc018b21f24f22d1669ffae90411", "sizeBytes": 402, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS nginx tree was replaced by the artifact tree 
+PASS the previous tree is gone from usr/local/nginx 
+PASS extraction staging directory removed 
+PASS the previous nginx tree is kept in the backup /work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1794899963172554247/conf/legacy-marker.txt
+$ /work/bin/idleleo --root /work/evidence/f13-work/nginx-root update nginx --manifest /work/evidence/f13-work/serve/nginx-1.24.2.json --json (rc=6 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "nginx",
+            "previousVersion": "1.24.1",
+            "newVersion": "1.24.2",
+            "action": "update",
+            "sha256": "d668b5d95d679f74e7cb501ac3aec9b453ab800b30fbc6cf5e15ea119292eb4d",
+            "sizeBytes": 419,
+            "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.1-1794899963180019378",
+            "verified": true,
+            "health": false,
+            "restarted": false,
+            "rolledBack": true
+          }
+  stderr: new component failed its health check: nginx health check failed: nginx: configuration test failed
+PASS broken nginx artifact exits 6 {
+  "schemaVersion": 1,
+  "component": "nginx",
+  "previousVersion": "1.24.1",
+  "newVersion": "1.24.2",
+  "action": "update",
+  "sha256": "d668b5d95d679f74e7cb501ac3aec9b453ab800b30fbc6cf5e15ea119292eb4d",
+  "sizeBytes": 419,
+  "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/ng
+PASS nginx failure reports rolledBack {"action": "update", "backupPath": "/work/evidence/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.1-1794899963180019378", "component": "nginx", "health": false, "newVersion": "1.24.2", "previousVersion": "1.24.1", "restarted": false, "rolledBack": true, "schemaVersion": 1, "sha256": "d668b5d95d679f74e7cb501ac3aec9b453ab800b30fbc6cf5e15ea119292eb4d", "sizeBytes": 419, "verified": true}
+PASS nginx health failure restores the whole tree digest 
+PASS failed nginx upgrade leaves no staging directory 
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray (rc=2 0.0s)
+  stderr: --manifest <path|http(s) URL> is required
+PASS missing --manifest exits 2 --manifest <path|http(s) URL> is required
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest (rc=2 0.0s)
+  stderr: --manifest <path|http(s) URL> is required
+PASS --manifest without a value exits 2 --manifest <path|http(s) URL> is required
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-good.json --bogus (rc=2 0.0s)
+  stderr: unknown flag: --bogus
+PASS unknown flag exits 2 unknown flag: --bogus
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/broken.json (rc=3 0.0s)
+  stderr: invalid component manifest: invalid JSON: invalid character 'n' looking for beginning of object key string
+PASS broken JSON exits 3 invalid component manifest: invalid JSON: invalid character 'n' looking for beginning of object key string
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/wrong-component.json (rc=3 0.0s)
+  stderr: manifest component mismatch: manifest is for nginx, command is xray
+PASS wrong component exits 3 manifest component mismatch: manifest is for nginx, command is xray
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/bad-version.json (rc=3 0.01s)
+  stderr: invalid component manifest: version "1.8.25-beta" is not a dotted version
+PASS non-dotted version exits 3 invalid component manifest: version "1.8.25-beta" is not a dotted version
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/bad-schema.json (rc=3 0.0s)
+  stderr: invalid component manifest: unsupported schemaVersion 2
+PASS unsupported schemaVersion exits 3 invalid component manifest: unsupported schemaVersion 2
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /work/evidence/f13-work/serve/zero-size.json (rc=3 0.0s)
+  stderr: invalid component manifest: sizeBytes must be positive
+PASS non-positive sizeBytes exits 3 invalid component manifest: sizeBytes must be positive
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest http://127.0.0.1:45477/missing.json (rc=3 0.0s)
+  stderr: invalid component manifest: http://127.0.0.1:45477/missing.json: HTTP 404
+PASS HTTP 404 manifest exits 3 invalid component manifest: http://127.0.0.1:45477/missing.json: HTTP 404
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/gate-root update xray --manifest /nonexistent/m.json (rc=3 0.0s)
+  stderr: invalid component manifest: open /nonexistent/m.json: no such file or directory
+PASS missing manifest file exits 3 invalid component manifest: open /nonexistent/m.json: no such file or directory
+
+PASS rejected manifests leave the tree unchanged 
+PASS rejected manifests create no backup 
+$ /work/bin/idleleo --root / update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-good.json (rc=2 0.0s)
+  stderr: container root writes require --container
+PASS real root without --container exits 2 container root writes require --container
+
+$ /work/bin/idleleo --root /work/evidence/f13-work/unmarked-root update xray --manifest /work/evidence/f13-work/serve/xray-1.8.25-good.json (rc=2 0.01s)
+  stderr: sandbox marker required: open /work/evidence/f13-work/unmarked-root/.idleleo-phase01-sandbox: no such file or directory
+PASS unmarked sandbox exits 2 sandbox marker required: open /work/evidence/f13-work/unmarked-root/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked sandbox gets no backup directory 
+$ bash /work/evidence/f13-work/baseline-version.sh (rc=0 0.0s)
+  stdout: 1.8.24|1.8.20|1
+          1.8.20|1.8.24|-1
+          1.8.20|1.8.20|0
+          1.8|1.8.0|0
+          26.9.30|26.10.31|-1
+          2026.10.15.7679|2026.10.15.2|1
+          1.10|1.9|1
+          2.0|1.99.99|1
+          1.0.0.1|1.0.0|1
+PASS Bash version_compare baseline rc=0 1.8.24|1.8.20|1
+1.8.20|1.8.24|-1
+1.8.20|1.8.20|0
+1.8|1.8.0|0
+26.9.30|26.10.31|-1
+2026.10.15.7679|2026.10.15.2|1
+1.10|1.9|1
+2.0|1.99.99|1
+1.0.0.1|1.0.0|1
+
+PASS Bash baseline covers the whole table 9
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.8.20-1.8.24.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.20",
+            "newVersion": "1.8.24",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.8.24-1.8.20.json --json (rc=4 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.24",
+            "newVersion": "1.8.20",
+            "action": "install",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: refusing to downgrade: installed 1.8.24, manifest 1.8.20
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.8.20-1.8.20.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.20",
+            "newVersion": "1.8.20",
+            "action": "reinstall",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.8.0-1.8.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.8.0",
+            "newVersion": "1.8",
+            "action": "reinstall",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-26.10.31-26.9.30.json --json (rc=4 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "26.10.31",
+            "newVersion": "26.9.30",
+            "action": "install",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: refusing to downgrade: installed 26.10.31, manifest 26.9.30
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-2026.10.15.2-2026.10.15.7679.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "2026.10.15.2",
+            "newVersion": "2026.10.15.7679",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.9-1.10.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.9",
+            "newVersion": "1.10",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.99.99-2.0.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.99.99",
+            "newVersion": "2.0",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+$ /work/bin/idleleo --root /work/evidence/f13-work/compare-root update xray --manifest /work/evidence/f13-work/compare/manifest-1.0.0-1.0.0.1.json --json (rc=5 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "component": "xray",
+            "previousVersion": "1.0.0",
+            "newVersion": "1.0.0.1",
+            "action": "update",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 16,
+            "verified": false,
+            "health": false,
+            "restarted": false,
+            "rolledBack": false
+          }
+  stderr: downloaded artifact does not match the manifest: sha256 e4bad93e6b87e28e3131f840f7f0aa4ff16cffd8a5346c4b3791a4936489ff5d != 0000000000000000000000000000000000000000000000000000000000000000
+PASS Go CompareVersions matches Bash version_compare 

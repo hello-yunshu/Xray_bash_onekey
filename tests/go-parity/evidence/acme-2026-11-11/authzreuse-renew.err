@@ -1,0 +1,7 @@
+time=2026-11-11T16:47:16.147Z level=INFO msg="Obtaining bundled SAN certificate." domains=acme.local
+time=2026-11-11T16:47:16.206Z level=INFO msg="Use solver." domain=acme.local type=http-01
+time=2026-11-11T16:47:16.207Z level=INFO msg="http01: Trying to solve HTTP-01." domain=acme.local
+time=2026-11-11T16:47:21.649Z level=INFO msg="The server validated our request." domain=acme.local
+time=2026-11-11T16:47:21.650Z level=INFO msg="Validations succeeded; requesting certificates." domains=acme.local
+time=2026-11-11T16:47:21.652Z level=INFO msg="Waiting for certificates." timeout=2m0s interval=2s domains=acme.local
+time=2026-11-11T16:47:21.656Z level=INFO msg="Server responded with a certificate." domains=acme.local

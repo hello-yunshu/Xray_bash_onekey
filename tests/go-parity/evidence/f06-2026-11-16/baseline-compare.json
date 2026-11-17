@@ -1,0 +1,27 @@
+{
+  "bashBaseline": "/work/repo/install.sh",
+  "bashHasUUIDReset": true,
+  "bashHasUUIDv5Tranc": true,
+  "contracts": [
+    {
+      "bashEvidence": "install.sh user menu edits the runtime config directly",
+      "contract": "user list/add/remove",
+      "goStatus": "implemented",
+      "reason": "covered by the list/add/remove scenarios in this fixture"
+    },
+    {
+      "bashEvidence": "install.sh --uuid-reset rewrites the selected client",
+      "contract": "single-user uuid rotation",
+      "goStatus": "implemented",
+      "reason": "covered by the multi-inbound uuid scenarios in this fixture"
+    },
+    {
+      "bashEvidence": "install.sh:4291 asks for a UUIDv5 mapping string and install.sh:4650 defines UUIDv5_tranc",
+      "contract": "UUIDv5 mapping",
+      "goStatus": "not-implemented",
+      "reason": "Go generates random RFC4122 v4 for new users and has no UUIDv5 mapping flag"
+    }
+  ],
+  "fixture": "F06",
+  "goHelpClaimsUUIDv5": false
+}

@@ -1,0 +1,57 @@
+
+===== R1 schedule: disable the <30d renewal branch =====
+--- FAIL: TestCertRenewJobRenewsInsideWindow (0.01s)
+FAIL
+FAIL	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.016s
+FAIL
+rc=1
+
+===== R2 release: drop the caller-side VerifyManifest in fetchManifest =====
+patched: removed VerifyManifest call
+--- FAIL: TestApplyRejectsTamperedManifest (0.02s)
+FAIL
+FAIL	github.com/hello-yunshu/Xray_bash_onekey/internal/release	0.018s
+FAIL
+rc=1
+
+===== R3 install.sh: skip the re-hash of an existing helper =====
+  FAIL: a helper whose body does not match the pinned hash was installed
+  FAIL: an existing helper with a stale hash was accepted or not replaced
+  FAIL: a stale helper was kept when the re-download failed
+  FAIL: download_script_file accepted a body that does not match the expected hash
+Summary: PASS=4 FAIL=4
+rc=1
+
+===== R4 install.sh: revert the certificate deletion wording =====
+  FAIL: deletion message does not mention the retained ACME account key: [OK]  已清空证书遗留文件 
+Summary: PASS=11 FAIL=1
+rc=1
+
+===== R5 install.sh: drop the backup account-key warning =====
+  FAIL: backup does not warn about the ACME account private key
+Summary: PASS=11 FAIL=1
+rc=1
+
+===== R6 publish-shell-version.yml: remove the signing step =====
+patched: removed the sign step
+  FAIL: sign step exists: no step named 'Sign version metadata'
+Summary: PASS=24 FAIL=1
+rc=1
+
+===== R7 preflight: always allow the compatibility window =====
+patched: cutover comparison always takes the unsigned branch
+  FAIL: unsigned metadata at the cutover is refused: preflight: shell 3.6.0 is below the 3.6.0 cutover; unsigned metadata is allowed
+  FAIL: tampered metadata is refused: preflight: shell 3.6.1 is below the 3.6.0 cutover; unsigned metadata is allowed
+  FAIL: non-ed25519 signature prefix is refused: preflight: shell 3.6.0 is below the 3.6.0 cutover; unsigned metadata is allowed
+Summary: PASS=28 FAIL=3
+rc=1
+
+===== red probe summary =====
+probes=7
+rc=1
+rc=1
+rc=1
+rc=1
+rc=1
+rc=1
+rc=1

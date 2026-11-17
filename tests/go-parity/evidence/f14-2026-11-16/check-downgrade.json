@@ -1,0 +1,16 @@
+{
+  "asset": {
+    "name": "idleleo",
+    "sha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8",
+    "size": 14232715,
+    "url": "/idleleo"
+  },
+  "currentVersion": "0.2.0-phase04",
+  "detail": "installed version 0.2.0-phase04 is newer than manifest version 0.1.0; no downgrade",
+  "latestVersion": "0.1.0",
+  "manifestUrl": "http://127.0.0.1:50123/manifest-downgrade.json",
+  "platform": "linux-arm64",
+  "schemaVersion": 1,
+  "state": "refused-downgrade",
+  "verified": false
+}

@@ -1,0 +1,1 @@
+2026-11-16T15:40:29Z job=geodata-refresh result=failed detail=geosite.dat: sha256 mismatch (downloaded 48da7ae1d8c1b17457ac56d3d89f1158a79d4cdabb41b49103bf6afd25262585, release says 2b960e29fb549e7a676059100db701891823cf3b0c9a5d418f9473c950152765); keeping the previous file

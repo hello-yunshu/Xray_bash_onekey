@@ -1,0 +1,9 @@
+commit=21dca46679a7d10e86574d714fcf601013d9ebb5
+image=idleleo-preview:latest@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+level=CONTAINER_VERIFIED (real Xray 26.11.9 StatsService, loopback HTTP origin)
+date=2026-11-16T15:20:56Z
+fixture=tests/go-parity/parity/features/F15_test.py
+command=python3 -I /work/repo/tests/go-parity/parity/features/F15_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo --xray-bin /work/xray
+result=56 passed, 0 failed, exit 0 (run 1: 20.27s; run 2: 18.26s)
+go_bin_sha256=e1d93f07e055e77260499827be8306e59e1222f254a4130bb95410803b2bf10a
+notes=real inbound traffic (65536-byte body through the Xray HTTP proxy inbound); Go JSON passthrough and Bash normalized totals compared on the same live counters; watch/reset refused as unknown flags (exit 2); API-down divergence recorded in exit-code-divergence.json (Go 8, Bash 2); schedule stats-collect writes stats.json 0640 and reports failed when the API is down; Xray binary is the parity cache mount and is not copied into the evidence.

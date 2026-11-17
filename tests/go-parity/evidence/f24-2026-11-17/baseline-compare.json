@@ -1,0 +1,28 @@
+{
+  "activationSet": {
+    "bash": [
+      "nginx",
+      "xray"
+    ],
+    "classification": "aligned",
+    "go": [
+      "nginx",
+      "xray"
+    ]
+  },
+  "logLocation": {
+    "bash": "service output goes to the container stdout",
+    "classification": "approved-difference",
+    "go": "var/log/idleleo/container.log"
+  },
+  "stateVisibility": {
+    "bash": "only echo lines; no process truth",
+    "classification": "new-go-behavior",
+    "go": "container status --json exposes mode/pid/alive/stale warnings"
+  },
+  "systemdDependency": {
+    "bash": "systemctl via fake-systemctl unit state",
+    "classification": "approved-difference",
+    "go": "direct child processes with pid files; no unit, no DBus"
+  }
+}

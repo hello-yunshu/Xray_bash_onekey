@@ -1,0 +1,4 @@
+bash_generate_exit=0
+go_generate_exit=0
+go_xray_test_exit=0
+compare_exit=2

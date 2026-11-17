@@ -1,0 +1,61 @@
+F09 — Nginx upstream file management (`xray balance`)
+Evidence level: CONTAINER_VERIFIED
+Date: 2026-11-17
+Base commit: 3f8cd21f (F18 QR signed off)
+
+Image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+Host arch: aarch64
+Tools: Ubuntu 24.04.5, nginx 1.24.0 (real ngx_stream_module), bash 5.2.21, jq 1.7,
+       Python 3 (stdlib only), openssl (fixture-only self-signed probe cert)
+
+Artifacts:
+  go binary sha256   77694f56e1b96d80b7dbc3f18dda840754a97c714c136a87990a2596a0021fa4
+  install.sh sha256  d76b3181a198e8aab225564d36f89ec46c6267e0c115ca354f5db4e86b1f5b68
+  file_manager.sh    34b67fec6f1f22079c2ee83851c572e5dcbdefb37ddba75c08b595eab1e3e92e
+  go.mod/go.sum/vendor: unchanged (no new Go dependency)
+
+Runs (two separate fresh containers):
+  run1: 65 passed, 0 failed, 0.17 s
+  run2: 65 passed, 0 failed, 0.30 s
+
+Executed:
+  S1  real `xray generate --mode reality-balance --role primary` fragments +
+      real nginx -t; list returns only 127.0.0.1:9443 weight 50, tree unchanged.
+  S2  add 10.0.0.2:8443 weight=60: 60-byte fragment
+      sha256 7326cff48f5cdcf673fd1a038ad051e2f523d286f6e2f000234822e84fd72ae3,
+      identical to Bash `fm_create_server_file`; JSON changed/file/backends/warnings.
+  S2b `--probe` against a real TLS 1.3 + SNI listener on the container address:
+      probed=true, no "no liveness probe" warning; backend removed afterwards.
+  S3  duplicate host: rc=1, tree unchanged.
+  S4  remove: rc=0, fragment gone, loopback kept; second remove rc=1.
+  S5  loopback removal, reserved 443, invalid host, port 0/65536, weight 101/-1,
+      unknown upstream all rc=1; non-integer port / missing --upstream / unknown
+      flag rc=2; wrong-port remove and missing file rc=1; tree unchanged.
+  S6  broken nginx.conf: add rc=1 and the new fragment is deleted; restored
+      config lets the same add succeed.
+  S7  TLS ws install: real 02-xray-server.conf + real .wsServers fragment,
+      minimal server block for nginx 1.24; ws add/remove pass, reality rc=1.
+  S8  Bash baseline executed via extracted functions and stubs: create bytes
+      equal Go; `fm_delete_file` deletes the loopback fragment (rc=0), recorded
+      as an approved difference.
+  S9  missing metadata rc=3, missing anchor rc=1, missing nginx binary rc=1 and
+      the new fragment is removed; sandbox `--root` does not require a marker.
+  S10 repeated list/list --json never mutate the tree.
+
+Baseline comparison: baseline-compare.json
+  aligned: fragment body/name, default weight 50
+  approved-difference: list output, duplicate/reserved/host/weight guards,
+    loopback deletion, reload behaviour
+  new-go-behavior: --probe, --json, sandbox --root
+
+Not verified (gaps):
+  * no real VPS, no real systemd reload, no firewall changes;
+  * real root `/` write gate with/without --container not executable safely here;
+  * --probe TLS/SNI only against a container-local listener (no cross-host or
+    certificate-chain validation);
+  * Bash interactive menu, fm_edit_file and serverNames editing not executed;
+  * nginx 1.24 has no http3/quic, so the TLS server block is a minimal stand-in
+    (the real server block is covered by F02);
+  * no non-Linux filesystem case/length checks.
+
+Hygiene: 0 findings in 49 files.

@@ -1,0 +1,45 @@
+PASS systemd is usable: running after 0.0s
+PASS direct TLS xray service starts
+PASS old certificate is served on the wire: D0:1E:E6:F6:5E:2D:8C:5C:CB:AD:77:2E:E5:46:CE:E4:13:71:00:30:11:70:78:73:67:B5:DA:AF:BC:F2:24:1C
+PASS mismatched --domain is refused: certificate /etc/idleleo/cert/c6-old.crt does not cover "other.test" (SAN [example.com]); renew the certificate before changing the domain
+
+PASS refusal names the SAN mismatch
+PASS refused edit keeps the config byte-identical
+PASS refused edit does not restart xray
+PASS dry-run rc=0:  "tlsProbe": "skipped: dry-run",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": [
+    "certificate /etc/idleleo/cert/c6-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')"
+  ],
+  "upstreamUnchanged": false
+}
+
+PASS dry-run writes nothing
+PASS dry-run does not restart xray
+PASS dry-run reports mode=tls-direct
+PASS dry-run plans the pair rotation
+PASS pair rotation rc=0: "certificate /etc/idleleo/cert/c6-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')",
+    "direct TLS certificate renewal is not managed by this tool",
+    "served certificate chain is not trusted by the system roots (staging or private CA?): x509: certificate signed by unknown authority"
+  ],
+  "upstreamUnchanged": true
+}
+
+PASS report mode=tls-direct
+PASS local TLS probe verified
+PASS probe used the configured SNI
+PASS report warns that renewal is not managed: ["certificate /etc/idleleo/cert/c6-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')", 'direct TLS certificate renewal is not managed by this tool', 'served certificate chain is not trusted by the system roots (staging or private CA?): x509: certificate signed by unknown authority']
+PASS no schedule is rewritten
+PASS the new leaf is served on the wire: 27:76:89:BF:4B:E2:03:26:EF:FC:C1:68:20:FE:41:CB:B8:8A:0B:1F:E4:99:92:DB:65:2D:EF:A9:0C:7A:D8:A0
+PASS the served leaf changed
+PASS a TLS handshake still succeeds after the edit
+PASS config points at the new certificate
+PASS config points at the new key
+PASS ws path is untouched
+PASS routing is untouched
+PASS outbounds are untouched
+PASS xray restarted to load the pair
+PASS install-time TLS label is preserved: TLS
+PASS metadata records the new runtime sha
+== C6: 29 passed, 0 failed, 0.96s ==

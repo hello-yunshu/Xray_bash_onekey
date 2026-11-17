@@ -1,0 +1,352 @@
+== F12 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ systemctl is-system-running (rc=0 0.0s)
+  stdout: running
+PASS systemd is usable running after 0.0s
+$ groupadd --system idleleo-nginx (rc=0 0.03s)
+PASS worker group created for the layered model rc=0
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -keyout /work/evidence/acme-work/ca/ca.key -out /work/evidence/acme-work/ca/ca.crt -subj /CN=idleleo-f12-local-ca (rc=0 0.33s)
+  stderr: .+............+...+..+.......+..+.........+....+..+.+........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+...+............+......+.+......+..............+..........+......+...+..+...+.......+.....+.........+..........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+.....+.........+..........+..+......+.......+............+.........+.........+...+...+..+...+....+..+...+............+...............+.+.....+.............+..+.......+...+.........+.........+..+...+.+......+.....+....+........+......+.......+..+......+.+...+...+.....+.........+......+...+.......+..+.+..+.......+..+.........+....+...........+..........+..............+...+.......+..+......+...+.+......+...+..+...............+.......+......+......+.........+..+...+....+......+......+.....+......+.........+..........+.....+.+........+..........+.........+......+.....+....+......+.....+.+...+..+.+.........+.....+......+..................+.+...........+.......+......+..+....+........+.+..+...+.......+...+.........+..+.+...+.....+.+.....+....+......+.....+...+......+.+...+...........+......+.+............+.....+.......+........+......+....+...+...+......+..............+......+.+..+..........+......+.........+...+..+.+..+.........+...+...+..........+.....+..................+.......+..+.......+...+..........................+......+.+..+.......+...........+..........+...+..+...+....+...........+.+......+..+.............+..+............+.+.....+...+....+..+...+.+.........+..+.........+....+.....+......+....+...+...+......+.....+......+.......+...+.....+...+....+..+.........+....+.....+............+...+...............+.+..........................+...+...+..........+.........+...+..+.+.....+...+............+.......+............+...+...............+..+.+..+................+......+......+...........................+..+..........+...........+....+..............+....+...+...............+..+...+....+......+..+.......+.....+.+...+..+.............+...............+......+......+.....+.........+.+..+...............+.+.....+.+.....+...+......+....+..+....+..+.......+...+.................+......+....+.....+.+.....................+......+.....+...+......+..........+.....+....+.....+.........+.+..+.............+..+............+............+.........+.......+.....+...+.+...+.....+..........+........+.............+...........+...+.+..............+...............+.+.....+......+.+...+..+....+...+.....+......+....+........+...+.......+...+.........+..+......+.......+...+.........+...+............+...........+....+...+...+..+......+..........+.....+....+...+..+...............+.+.........+...+..+.......+.....+..........+........+..........+.....+..........+...+..............+....+......+.....+....+.....+.+...........+..........+.................+.+..+...+......+...+...+....+...+...+...+...............+..+.......+........+...+............+...+..........+............+...+......+...+...+.....+...+....+...+..............+..........+.......................+..........+...+..+.+......+.....+...+...+...................+.....+.........+.........+.+..+..................+.+.........+............+..+.+...............+...........+.+.....+..........+............+..+......+.......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+          .....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.......+...+....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+          -----
+PASS local CA created .+............+...+..+.......+..+.........+....+..+.+........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+...+............+......+.+......+..............+..........+......+...+..+...+.......+.....+.........+..........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$ openssl req -newkey rsa:2048 -nodes -keyout /work/evidence/acme-work/ca/tls.key -out /work/evidence/acme-work/ca/tls.csr -subj /CN=localhost (rc=0 0.09s)
+  stderr: ..+...+.+.........+......+.....+......+...+.+........+.......+.........+..+.......+..+....+......+...+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.........+.........+.+.........+..+......+...+....+........+....+.....+...+............+...+.+...........+...+................+.........+........+.......+..+..................+............+.+..+......+.......+............+...+..+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+          ....+...+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+.+..+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+..+.+.........+...+.........+.....+....+..............+...+.............+.....+....+...............+..+...+......+....+.....+.+......+.....+.+..............+.+...+......+..............+.......+...+...............+..+............+...+..........+..+...+.........+....+.....+.+...............+........+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+          -----
+PASS local CA TLS key created ..+...+.+.........+......+.....+......+...+.+........+.......+.........+..+.......+..+....+......+...+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.........+.........+.+.........+..+......+...+....+.......
+$ openssl x509 -req -in /work/evidence/acme-work/ca/tls.csr -CA /work/evidence/acme-work/ca/ca.crt -CAkey /work/evidence/acme-work/ca/ca.key -CAcreateserial -days 2 -out /work/evidence/acme-work/ca/tls.crt -extfile /work/evidence/acme-work/ca/tls.ext (rc=0 0.01s)
+  stderr: Certificate request self-signature ok
+          subject=CN = localhost
+PASS local CA TLS certificate signed Certificate request self-signature ok
+subject=CN = localhost
+
+$ /work/bin/idleleo xray cert renew --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --dry-run --renew-before 720h (rc=0 0.01s)
+  stdout: {
+            "domain": "example.com",
+            "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+            "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+            "renewBefore": "720h0m0s",
+            "due": true,
+            "missing": true,
+            "reason": "certificate file does not exist"
+          }
+PASS dry-run on a missing pair exit 0 rc=0
+PASS dry-run reports missing=true True
+PASS dry-run marks a missing pair as due True
+PASS dry-run echoes the certificate path 
+PASS dry-run echoes the renew window 
+PASS dry-run wrote nothing 
+$ /work/bin/idleleo xray cert issue --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account (rc=0 0.1s)
+  stdout: {
+            "domain": "example.com",
+            "directoryUrl": "https://127.0.0.1:52297/directory",
+            "accountUrl": "https://127.0.0.1:52297/acct/1",
+            "orderUrl": "",
+            "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+            "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+            "notAfter": "2027-02-14T15:07:52Z",
+            "serial": "b9a03cf0586461b6",
+            "issued": true,
+            "skipped": false
+          }
+  stderr: time=2026-11-16T15:07:52.521Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+          time=2026-11-16T15:07:52.588Z level=INFO msg="Use solver." domain=example.com type=http-01
+          time=2026-11-16T15:07:52.589Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+          time=2026-11-16T15:07:52.590Z level=INFO msg="The server validated our request." domain=example.com
+          time=2026-11-16T15:07:52.591Z level=INFO msg="Validations succeeded; requesting certificates." domains=example.com
+          time=2026-11-16T15:07:52.607Z level=INFO msg="Server responded with a certificate." domains=example.com
+PASS local CA issuance exit 0 rc=0 time=2026-11-16T15:07:52.521Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-16T15:07:52.588Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-16T15:07:52.589Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=2026-11-16T15:07:52.590Z level=INFO msg="The server validated our request." domain=example.com
+time=202
+PASS report issued=true True
+PASS report domain example.com
+PASS report carries the local account URL https://127.0.0.1:52297/acct/1
+PASS report carries notAfter 2027-02-14T15:07:52Z
+PASS certificate pair written 
+PASS standalone certificate is 0644 0o644
+PASS standalone key is 0600 0o600
+$ openssl verify -CAfile /work/evidence/acme-work/ca/ca.crt /work/evidence/acme-work/standalone/xray.crt (rc=0 0.01s)
+  stdout: /work/evidence/acme-work/standalone/xray.crt: OK
+PASS issued chain verifies against the local CA /work/evidence/acme-work/standalone/xray.crt: OK
+
+$ openssl x509 -in /work/evidence/acme-work/standalone/xray.crt -noout -ext subjectAltName (rc=0 0.01s)
+  stdout: X509v3 Subject Alternative Name: 
+              DNS:example.com
+PASS issued SAN contains example.com X509v3 Subject Alternative Name: 
+    DNS:example.com
+$ openssl x509 -in /work/evidence/acme-work/standalone/xray.crt -noout -pubkey (rc=0 0.01s)
+  stdout: -----BEGIN PUBLIC KEY-----
+          MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDXY7qm1ePePMWPqoGWUrn99Ksvbe
+          6pF17YzSWQwt1DOEt2rudBD3cSrrKtvrUPL9lYzn37erHJKvqhEMH26cwQ==
+          -----END PUBLIC KEY-----
+$ openssl pkey -in /work/evidence/acme-work/standalone/xray.key -pubout (rc=0 0.01s)
+  stdout: -----BEGIN PUBLIC KEY-----
+          MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDXY7qm1ePePMWPqoGWUrn99Ksvbe
+          6pF17YzSWQwt1DOEt2rudBD3cSrrKtvrUPL9lYzn37erHJKvqhEMH26cwQ==
+          -----END PUBLIC KEY-----
+PASS certificate and key are a pair 
+PASS account key lives outside the certificate tree at 0600 /work/evidence/acme-work/account/account.key 0o600
+PASS account state keeps one URL per CA directory {"accounts": {"https://127.0.0.1:52297/directory": "https://127.0.0.1:52297/acct/1"}}
+$ /work/bin/idleleo xray cert renew --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --dry-run (rc=0 0.0s)
+  stdout: {
+            "domain": "example.com",
+            "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+            "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+            "notAfter": "2027-02-14T15:07:52Z",
+            "renewAt": "2027-01-15T15:07:52Z",
+            "renewBefore": "720h0m0s",
+            "due": false,
+            "reason": "next renewal at 2027-01-15T15:07:52Z (expires in 2160h0m0s)"
+          }
+PASS dry-run reports a valid pair as not due {"domain": "example.com", "certificateFile": "/work/evidence/acme-work/standalone/xray.crt", "keyFile": "/work/evidence/acme-work/standalone/xray.key", "notAfter": "2027-02-14T15:07:52Z", "renewAt": "
+PASS dry-run prints the next renewal point 2027-01-15T15:07:52Z
+$ /work/bin/idleleo xray cert renew --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --dry-run --renew-before 2161h (rc=0 0.0s)
+  stdout: {
+            "domain": "example.com",
+            "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+            "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+            "notAfter": "2027-02-14T15:07:52Z",
+            "renewAt": "2026-11-16T14:07:52Z",
+            "renewBefore": "2161h0m0s",
+            "due": true,
+            "reason": "renew window reached (expires in 2160h0m0s)"
+          }
+PASS dry-run reports a due pair {"domain": "example.com", "certificateFile": "/work/evidence/acme-work/standalone/xray.crt", "keyFile": "/work/evidence/acme-work/standalone/xray.key", "notAfter": "2027-02-14T15:07:52Z", "renewAt": "
+$ /work/bin/idleleo xray cert renew --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account (rc=0 0.0s)
+  stdout: {
+            "domain": "example.com",
+            "directoryUrl": "https://127.0.0.1:52297/directory",
+            "accountUrl": "",
+            "orderUrl": "",
+            "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+            "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+            "notAfter": "2027-02-14T15:07:52Z",
+            "issued": false,
+            "skipped": true,
+            "reason": "certificate valid until 2027-02-14T15:07:52Z; renew window 720h0m0s not reached"
+          }
+PASS renew skips a certificate outside the window {"domain": "example.com", "directoryUrl": "https://127.0.0.1:52297/directory", "accountUrl": "", "orderUrl": "", "certificateFile": "/work/evidence/acme-work/standalone/xray.crt", "keyFile": "/work/ev
+PASS a skipped renewal leaves the pair unchanged 
+$ /work/bin/idleleo xray cert issue --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account (rc=1 0.01s)
+  stderr: certificate /work/evidence/acme-work/standalone/xray.crt is marked as user-managed; refusing to overwrite it (pass --takeover to adopt it)
+PASS issue refuses a user-managed pair with exit 1 rc=1
+PASS refusal names the user-managed marker certificate /work/evidence/acme-work/standalone/xray.crt is marked as user-managed; refusing to overwrite it (pass --takeover to adopt it)
+PASS refused issuance leaves the user pair untouched 
+$ /work/bin/idleleo xray cert renew --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account (rc=0 0.0s)
+  stdout: {
+            "domain": "example.com",
+            "directoryUrl": "https://127.0.0.1:52297/directory",
+            "accountUrl": "",
+            "orderUrl": "",
+            "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+            "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+            "issued": false,
+            "skipped": true,
+            "reason": "certificate is marked user-managed; renewal is external (pass --takeover to adopt it)"
+          }
+PASS renew skips a user-managed pair {"domain": "example.com", "directoryUrl": "https://127.0.0.1:52297/directory", "accountUrl": "", "orderUrl": "", "certificateFile": "/work/evidence/acme-work/standalone/xray.crt", "keyFile": "/work/ev
+$ /work/bin/idleleo xray cert renew --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --dry-run --renew-before 2161h (rc=0 0.0s)
+  stdout: {
+            "domain": "example.com",
+            "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+            "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+            "notAfter": "2027-02-14T15:07:52Z",
+            "renewAt": "2026-11-16T14:07:52Z",
+            "renewBefore": "2161h0m0s",
+            "due": true,
+            "userManaged": true,
+            "reason": "certificate is user-managed; renewal is external"
+          }
+PASS dry-run flags userManaged {"domain": "example.com", "certificateFile": "/work/evidence/acme-work/standalone/xray.crt", "keyFile": "/work/evidence/acme-work/standalone/xray.key", "notAfter": "2027-02-14T15:07:52Z", "renewAt": "
+$ /work/bin/idleleo xray cert issue --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account --takeover (rc=0 0.1s)
+  stdout: {
+            "domain": "example.com",
+            "directoryUrl": "https://127.0.0.1:52297/directory",
+            "accountUrl": "https://127.0.0.1:52297/acct/1",
+            "orderUrl": "",
+            "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+            "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+            "notAfter": "2027-02-14T15:07:52Z",
+            "serial": "4ea2928a84222ad9",
+            "issued": true,
+            "skipped": false
+          }
+  stderr: time=2026-11-16T15:07:52.676Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+          time=2026-11-16T15:07:52.745Z level=INFO msg="Use solver." domain=example.com type=http-01
+          time=2026-11-16T15:07:52.745Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+          time=2026-11-16T15:07:52.747Z level=INFO msg="The server validated our request." domain=example.com
+          time=2026-11-16T15:07:52.747Z level=INFO msg="Validations succeeded; requesting certificates." domains=example.com
+          time=2026-11-16T15:07:52.768Z level=INFO msg="Server responded with a certificate." domains=example.com
+PASS --takeover adopts the pair rc=0 time=2026-11-16T15:07:52.676Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-16T15:07:52.745Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-16T15:07:52.745Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=202
+PASS takeover removes the user-managed marker 
+PASS takeover records native ownership 
+$ /work/bin/idleleo xray cert issue --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account (rc=1 0.01s)
+  stderr: legacy ACME state /work/evidence/acme-work/standalone/acme contains unexpected entry "stray.txt"; refusing to migrate
+PASS legacy state with unexpected entries fails closed rc=1
+PASS legacy failure explains the refusal legacy ACME state /work/evidence/acme-work/standalone/acme contains unexpected entry "stray.txt"; refusing to migrate
+PASS legacy refusal leaves the pair untouched 
+$ openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out /work/evidence/acme-work/standalone/acme/account.key (rc=0 0.0s)
+PASS valid legacy account key generated 
+$ /work/bin/idleleo xray cert issue --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account2 (rc=0 0.11s)
+  stdout: {
+            "domain": "example.com",
+            "directoryUrl": "https://127.0.0.1:52297/directory",
+            "accountUrl": "https://127.0.0.1:52297/acct/1",
+            "orderUrl": "",
+            "certificateFile": "/work/evidence/acme-work/standalone/xray.crt",
+            "keyFile": "/work/evidence/acme-work/standalone/xray.key",
+            "notAfter": "2027-02-14T15:07:52Z",
+            "serial": "f3122d58ad4447d5",
+            "issued": true,
+            "skipped": false
+          }
+  stderr: time=2026-11-16T15:07:52.798Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+          time=2026-11-16T15:07:52.863Z level=INFO msg="Use solver." domain=example.com type=http-01
+          time=2026-11-16T15:07:52.863Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+          time=2026-11-16T15:07:52.865Z level=INFO msg="The server validated our request." domain=example.com
+          time=2026-11-16T15:07:52.865Z level=INFO msg="Validations succeeded; requesting certificates." domains=example.com
+          time=2026-11-16T15:07:52.888Z level=INFO msg="Server responded with a certificate." domains=example.com
+PASS legacy account state migrates into the new directory rc=0 time=2026-11-16T15:07:52.798Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-16T15:07:52.863Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-16T15:07:52.863Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=202
+PASS migrated account key exists at 0600 0o600
+PASS migrated account key is 0600 0o600
+PASS legacy account directory is removed after migration 
+$ /work/bin/idleleo xray cert issue --domain example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/standalone/xray.crt --key-out /work/evidence/acme-work/standalone/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account --reload-command false (rc=1 0.1s)
+  stderr: time=2026-11-16T15:07:52.902Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+          time=2026-11-16T15:07:52.966Z level=INFO msg="Use solver." domain=example.com type=http-01
+          time=2026-11-16T15:07:52.966Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+          time=2026-11-16T15:07:52.968Z level=INFO msg="The server validated our request." domain=example.com
+          time=2026-11-16T15:07:52.968Z level=INFO msg="Validations succeeded; requesting certificates." domains=example.com
+          time=2026-11-16T15:07:52.988Z level=INFO msg="Server responded with a certificate." domains=example.com
+          certificate installed but reload failed; previous pair restored: reload command failed: exit status 1:
+PASS failed reload exits 1 rc=1
+PASS failed reload is reported time=2026-11-16T15:07:52.902Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-16T15:07:52.966Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-16T15:07:52.966Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=202
+PASS failed reload restores the previous pair byte for byte 
+PASS failed reload restores file modes 0o644/0o600 vs 0o644/0o600
+PASS failed reload restores file owners (0, 0) vs (0, 0)
+$ /work/bin/idleleo xray cert issue --domain perm.example.com --webroot /work/evidence/acme-work/webroot --cert-out /etc/idleleo/cert/xray.crt --key-out /etc/idleleo/cert/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account (rc=0 0.11s)
+  stdout: {
+            "domain": "perm.example.com",
+            "directoryUrl": "https://127.0.0.1:52297/directory",
+            "accountUrl": "https://127.0.0.1:52297/acct/1",
+            "orderUrl": "",
+            "certificateFile": "/etc/idleleo/cert/xray.crt",
+            "keyFile": "/etc/idleleo/cert/xray.key",
+            "notAfter": "2027-02-14T15:07:53Z",
+            "serial": "a3fd6f707a7e3c64",
+            "issued": true,
+            "skipped": false
+          }
+  stderr: time=2026-11-16T15:07:53.004Z level=INFO msg="Obtaining bundled SAN certificate." domains=perm.example.com
+          time=2026-11-16T15:07:53.073Z level=INFO msg="Use solver." domain=perm.example.com type=http-01
+          time=2026-11-16T15:07:53.073Z level=INFO msg="http01: Trying to solve HTTP-01." domain=perm.example.com
+          time=2026-11-16T15:07:53.076Z level=INFO msg="The server validated our request." domain=perm.example.com
+          time=2026-11-16T15:07:53.076Z level=INFO msg="Validations succeeded; requesting certificates." domains=perm.example.com
+          time=2026-11-16T15:07:53.092Z level=INFO msg="Server responded with a certificate." domains=perm.example.com
+PASS managed-directory issuance exit 0 rc=0 time=2026-11-16T15:07:53.004Z level=INFO msg="Obtaining bundled SAN certificate." domains=perm.example.com
+time=2026-11-16T15:07:53.073Z level=INFO msg="Use solver." domain=perm.example.com type=http-01
+time=2026-11-16T15:07:53.073Z level=INFO msg="http01: Trying to solve HTTP-01." domain=perm.examp
+PASS managed certificate directory is 0750 0o750
+PASS managed certificate is 0640 0o640
+PASS managed key is 0640 0o640
+PASS managed pair is owned by root:<group> (0, 997) gid=997
+PASS ownership marker is 0640 in the managed directory 0o640
+$ /work/bin/idleleo xray cert issue --domain invalid --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/issuing/staging.crt --key-out /work/evidence/acme-work/issuing/staging.key --json --production (rc=1 0.0s)
+  stderr: staging preflight failed: invalid ACME domain "invalid"
+PASS --production without an explicit directory does not issue rc=1
+PASS default --production path names the staging preflight staging preflight failed: invalid ACME domain "invalid"
+$ /work/bin/idleleo xray cert issue --domain invalid --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/issuing/staging.crt --key-out /work/evidence/acme-work/issuing/staging.key --json --production --no-staging-check (rc=1 0.0s)
+  stderr: invalid ACME domain "invalid"
+PASS --no-staging-check still rejects an invalid domain rc=1
+PASS --no-staging-check bypasses the staging preflight invalid ACME domain "invalid"
+PASS rejected production/preflight attempts write no pair 
+$ systemctl daemon-reload (rc=0 0.03s)
+$ systemctl enable --now xray nginx (rc=0 0.13s)
+  stderr: Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+          Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+          Created symlink /etc/systemd/system/multi-user.target.wants/xray.service → /etc/systemd/system/xray.service.
+          Created symlink /etc/systemd/system/multi-user.target.wants/nginx.service → /etc/systemd/system/nginx.service.
+PASS probe xray/nginx units active rc=0 Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+Created symlink /etc/systemd/system/multi-user.target.wants/xray.service → /etc/systemd/system/xray.service.
+Created symlink /etc/sy
+$ /work/bin/idleleo schedule run --job cert-renew --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/",
+            "startedAt": "2026-11-16T15:07:53Z",
+            "results": [
+              {
+                "job": "cert-renew",
+                "result": "ok",
+                "detail": "xray.crt is user-managed (sha256=23a6626f1db0); renewal is external; expires in 89 days",
+                "at": "2026-11-16T15:07:53Z"
+              }
+            ]
+          }
+PASS schedule baseline run exit 0 rc=0 
+PASS schedule skips a user-managed pair {"schemaVersion": 1, "root": "/", "startedAt": "2026-11-16T15:07:53Z", "results": [{"job": "cert-renew", "result": "ok", "detail": "xray.crt is user-managed (sha256=23a6626f1db0); renewal is external; expires in 89 days", "at": "2026-11-16T15:07:53Z"}]}
+PASS baseline does not restart services 1
+$ /work/bin/idleleo xray cert issue --domain replacement.example.com --webroot /work/evidence/acme-work/webroot --cert-out /work/evidence/acme-work/issuing/replacement/xray.crt --key-out /work/evidence/acme-work/issuing/replacement/xray.key --json --directory https://127.0.0.1:52297/directory --ca-cert /work/evidence/acme-work/ca/ca.crt --account-dir /work/evidence/acme-work/account (rc=0 0.1s)
+  stdout: {
+            "domain": "replacement.example.com",
+            "directoryUrl": "https://127.0.0.1:52297/directory",
+            "accountUrl": "https://127.0.0.1:52297/acct/1",
+            "orderUrl": "",
+            "certificateFile": "/work/evidence/acme-work/issuing/replacement/xray.crt",
+            "keyFile": "/work/evidence/acme-work/issuing/replacement/xray.key",
+            "notAfter": "2027-02-14T15:07:53Z",
+            "serial": "6d2ab069dfaebce4",
+            "issued": true,
+            "skipped": false
+          }
+  stderr: time=2026-11-16T15:07:53.286Z level=INFO msg="Obtaining bundled SAN certificate." domains=replacement.example.com
+          time=2026-11-16T15:07:53.355Z level=INFO msg="Use solver." domain=replacement.example.com type=http-01
+          time=2026-11-16T15:07:53.355Z level=INFO msg="http01: Trying to solve HTTP-01." domain=replacement.example.com
+          time=2026-11-16T15:07:53.357Z level=INFO msg="The server validated our request." domain=replacement.example.com
+          time=2026-11-16T15:07:53.357Z level=INFO msg="Validations succeeded; requesting certificates." domains=replacement.example.com
+          time=2026-11-16T15:07:53.374Z level=INFO msg="Server responded with a certificate." domains=replacement.example.com
+PASS replacement pair issued rc=0 time=2026-11-16T15:07:53.286Z level=INFO msg="Obtaining bundled SAN certificate." domains=replacement.example.com
+time=2026-11-16T15:07:53.355Z level=INFO msg="Use solver." domain=replacement.example.com type=http-01
+time=2026-11-16T15:07:53.355Z level=INFO msg="http01: Trying to solve HTTP-01." dom
+$ /work/bin/idleleo schedule run --job cert-renew --json (rc=0 0.02s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/",
+            "startedAt": "2026-11-16T15:07:53Z",
+            "results": [
+              {
+                "job": "cert-renew",
+                "result": "ok",
+                "detail": "xray.crt is user-managed (sha256=a7c8a9567912); renewal is external; xray restarted, nginx reloaded; expires in 89 days",
+                "at": "2026-11-16T15:07:53Z"
+              }
+            ]
+          }
+PASS schedule reload run exit 0 rc=0 
+PASS replacement stays user-managed {"schemaVersion": 1, "root": "/", "startedAt": "2026-11-16T15:07:53Z", "results": [{"job": "cert-renew", "result": "ok", "detail": "xray.crt is user-managed (sha256=a7c8a9567912); renewal is external; xray restarted, nginx reloaded; expires in 89 days", "at": "2026-11-16T15:07:53Z"}]}
+PASS schedule never reissues a user-managed pair 
+PASS replacement restarts xray 1 -> 2
+PASS replacement reloads nginx 0 -> 1
+PASS baseline recorded the operator pair before replacement 
+$ systemctl stop xray.service (rc=0 0.01s)
+$ systemctl disable xray.service (rc=0 0.06s)
+  stderr: Removed "/etc/systemd/system/multi-user.target.wants/xray.service".
+$ systemctl stop nginx.service (rc=0 0.0s)
+$ systemctl disable nginx.service (rc=0 0.09s)
+  stderr: Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+          Executing: /usr/lib/systemd/systemd-sysv-install disable nginx
+          Removed "/etc/systemd/system/multi-user.target.wants/nginx.service".
+$ systemctl daemon-reload (rc=0 0.02s)
+$ systemctl daemon-reload (rc=0 0.02s)
+$ groupdel idleleo-nginx (rc=0 0.01s)

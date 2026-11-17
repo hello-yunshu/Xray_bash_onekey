@@ -1,0 +1,16 @@
+{
+  "assertions": {
+    "noCurlWgetOrTcpSh": true,
+    "realKernelUnchanged": true
+  },
+  "automation": "none; the entry executes a local tcp.sh and refuses to download one (D3/R09)",
+  "baseline": "install.sh -tcp / menu item",
+  "goContract": "native bbr-fq transaction; no remote download or execution",
+  "remoteReferences": [
+    "# back, and never downloads a third-party script. The legacy tcp.sh keeps",
+    "log_echo \"${Warning} ${YellowBG} $(gettext \"legacy tcp.sh \u4f1a\u66ff\u6362\u5185\u6838\u4e14\u4e0d\u53ef\u56de\u6eda, \u4ec5\u7528\u4e8e\u517c\u5bb9\u65e7\u73af\u5883\") ${Font}\"",
+    "if [[ ! -f \"${scripts_dir}/tcp.sh\" ]]; then",
+    "log_echo \"${Error} ${RedBG} $(gettext \"\u672c\u5730\u4e0d\u5b58\u5728 tcp.sh, \u5df2\u4e0d\u518d\u81ea\u52a8\u4e0b\u8f7d\u7b2c\u4e09\u65b9\u811a\u672c\") ${Font}\"",
+    "(cd \"${scripts_dir}\" && chmod +x ./tcp.sh && ./tcp.sh)"
+  ]
+}

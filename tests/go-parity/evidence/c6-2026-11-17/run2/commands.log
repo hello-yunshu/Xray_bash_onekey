@@ -1,0 +1,143 @@
+== C6 go=/usr/local/bin/idleleo bash=/src host=aarch64
+$ systemctl is-system-running (rc=0 0.0s)
+  stdout: running
+PASS systemd is usable running after 0.0s
+$ /seed/xray version (rc=0 0.01s)
+  stdout: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ systemctl daemon-reload (rc=0 0.03s)
+$ systemctl enable --now xray (rc=0 0.03s)
+  stderr: Created symlink /etc/systemd/system/multi-user.target.wants/xray.service → /etc/systemd/system/xray.service.
+$ systemctl is-active xray (rc=0 0.0s)
+  stdout: active
+PASS direct TLS xray service starts 
+PASS old certificate is served on the wire E5:2C:2C:7D:17:68:CF:9B:F5:19:A2:46:65:E1:C2:1A:3E:D4:F8:04:E0:42:E1:32:DC:60:FD:81:13:77:73:93
+$ systemctl show xray -p MainPID (rc=0 0.01s)
+  stdout: MainPID=158
+$ /usr/local/bin/idleleo xray config edit --container --json --domain other.test --yes (rc=1 0.0s)
+  stderr: certificate /etc/idleleo/cert/c6-old.crt does not cover "other.test" (SAN [example.com]); renew the certificate before changing the domain
+PASS mismatched --domain is refused certificate /etc/idleleo/cert/c6-old.crt does not cover "other.test" (SAN [example.com]); renew the certificate before changing the domain
+
+PASS refusal names the SAN mismatch 
+PASS refused edit keeps the config byte-identical 
+$ systemctl show xray -p MainPID (rc=0 0.01s)
+  stdout: MainPID=158
+PASS refused edit does not restart xray 
+$ /usr/local/bin/idleleo xray config edit --container --json --cert /etc/idleleo/cert/c6-new.crt --cert-key /etc/idleleo/cert/c6-new.key --dry-run (rc=0 0.0s)
+  stdout: {
+            "mode": "tls-direct",
+            "transport": "ws",
+            "changed": [
+              "cert-file",
+              "cert-key-file"
+            ],
+            "diff": [
+              "inbounds[0].streamSettings.tlsSettings.certificates[0].certificateFile",
+              "inbounds[0].streamSettings.tlsSettings.certificates[0].keyFile"
+            ],
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "c9bc3021da5cb7a795cab7b30a1aa29af9d782537f306f5f1758b84f3ac6e81f",
+            "newSha256": "46db261fc61689cca3f7f5790d03a329e38fc766bf80897dbb0cac708ae415c0",
+            "noChanges": false,
+            "noRestart": false,
+            "dryRun": true,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://7a4ab30c-b199-4840-a31e-316f4f73a72b@example.com:18443?encryption=none&security=tls&sni=example.com&type=ws&path=/c6&host=example.com#idleleo-tls",
+            "domain": "example.com",
+            "certFile": "/etc/idleleo/cert/c6-new.crt",
+            "certKeyFile": "/etc/idleleo/cert/c6-new.key",
+            "certNotAfter": "2026-12-17T12:17:19Z",
+            "certSans": [
+              "example.com"
+            ],
+            "tlsProbe": "skipped: dry-run",
+            "tlsSystemTrusted": false,
+            "disconnect": true,
+            "warnings": [
+              "certificate /etc/idleleo/cert/c6-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')"
+            ],
+            "upstreamUnchanged": false
+          }
+PASS dry-run rc=0  "tlsProbe": "skipped: dry-run",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": [
+    "certificate /etc/idleleo/cert/c6-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')"
+  ],
+  "upstreamUnchanged": false
+}
+
+PASS dry-run writes nothing 
+$ systemctl show xray -p MainPID (rc=0 0.01s)
+  stdout: MainPID=158
+PASS dry-run does not restart xray 
+PASS dry-run reports mode=tls-direct 
+PASS dry-run plans the pair rotation 
+$ /usr/local/bin/idleleo xray config edit --container --json --cert /etc/idleleo/cert/c6-new.crt --cert-key /etc/idleleo/cert/c6-new.key --yes (rc=0 0.45s)
+  stdout: {
+            "mode": "tls-direct",
+            "transport": "ws",
+            "changed": [
+              "cert-file",
+              "cert-key-file"
+            ],
+            "diff": [
+              "inbounds[0].streamSettings.tlsSettings.certificates[0].certificateFile",
+              "inbounds[0].streamSettings.tlsSettings.certificates[0].keyFile"
+            ],
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "c9bc3021da5cb7a795cab7b30a1aa29af9d782537f306f5f1758b84f3ac6e81f",
+            "newSha256": "46db261fc61689cca3f7f5790d03a329e38fc766bf80897dbb0cac708ae415c0",
+            "backupDir": "/etc/idleleo/backup/edit-20261117T121720",
+            "noChanges": false,
+            "noRestart": false,
+            "dryRun": false,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://7a4ab30c-b199-4840-a31e-316f4f73a72b@example.com:18443?encryption=none&security=tls&sni=example.com&type=ws&path=/c6&host=example.com#idleleo-tls",
+            "domain": "example.com",
+            "certFile": "/etc/idleleo/cert/c6-new.crt",
+            "certKeyFile": "/etc/idleleo/cert/c6-new.key",
+            "certNotAfter": "2026-12-17T12:17:19Z",
+            "certSans": [
+              "example.com"
+            ],
+            "tlsProbe": "ok",
+            "tlsServerName": "example.com",
+            "tlsVersion": "TLS 1.3",
+            "tlsSystemTrusted": false,
+            "disconnect": true,
+            "warnings": [
+              "certificate /etc/idleleo/cert/c6-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')",
+              "direct TLS certificate renewal is not managed by this tool",
+              "served certificate chain is not trusted by the system roots (staging or private CA?): x509: certificate signed by unknown authority"
+            ],
+            "upstreamUnchanged": true
+          }
+PASS pair rotation rc=0 "certificate /etc/idleleo/cert/c6-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')",
+    "direct TLS certificate renewal is not managed by this tool",
+    "served certificate chain is not trusted by the system roots (staging or private CA?): x509: certificate signed by unknown authority"
+  ],
+  "upstreamUnchanged": true
+}
+
+PASS report mode=tls-direct 
+PASS local TLS probe verified 
+PASS probe used the configured SNI 
+PASS report warns that renewal is not managed ["certificate /etc/idleleo/cert/c6-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')", 'direct TLS certificate renewal is not managed by this tool', 'served certificate chain is not trusted by the system roots (staging or private CA?): x509: certificate signed by unknown authority']
+PASS no schedule is rewritten 
+PASS the new leaf is served on the wire 5E:E7:C3:6F:8A:17:3D:ED:7E:79:9F:62:D8:3C:A7:7F:34:AD:94:40:4E:6F:81:A5:C2:D8:1D:1E:4D:55:56:CA
+PASS the served leaf changed 
+PASS a TLS handshake still succeeds after the edit 
+PASS config points at the new certificate 
+PASS config points at the new key 
+PASS ws path is untouched 
+PASS routing is untouched 
+PASS outbounds are untouched 
+$ systemctl show xray -p MainPID (rc=0 0.0s)
+  stdout: MainPID=213
+PASS xray restarted to load the pair 
+PASS install-time TLS label is preserved TLS
+PASS metadata records the new runtime sha 
+$ systemctl stop xray (rc=0 0.01s)

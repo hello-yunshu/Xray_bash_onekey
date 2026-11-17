@@ -1,0 +1,54 @@
+{
+  "inbounds": [
+    {
+      "listen": "0.0.0.0",
+      "port": 18443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "7a4ab30c-b199-4840-a31e-316f4f73a72b"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {
+              "certificateFile": "/etc/idleleo/cert/c6-new.crt",
+              "keyFile": "/etc/idleleo/cert/c6-new.key"
+            }
+          ],
+          "serverName": "example.com"
+        },
+        "wsSettings": {
+          "path": "/c6"
+        }
+      },
+      "tag": "vless-ws-tls"
+    }
+  ],
+  "log": {
+    "loglevel": "warning"
+  },
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "direct"
+    }
+  ],
+  "routing": {
+    "rules": [
+      {
+        "domain": [
+          "keep.example"
+        ],
+        "outboundTag": "direct",
+        "type": "field"
+      }
+    ]
+  }
+}

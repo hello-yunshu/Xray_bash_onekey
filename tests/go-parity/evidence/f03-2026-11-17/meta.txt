@@ -1,0 +1,59 @@
+F03 — no-TLS (transport_only) backend loopback listen executor
+Evidence level: CONTAINER_VERIFIED (config-level; real `xray -test`, no Xray data plane, no service install, no network)
+
+commit: 28c4be89 + working tree
+        (tests/go-parity/parity/features/F03_test.py, internal/xraycfg extra-listen fix + unit test)
+date: 2026-11-17
+image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+build image: golang:1.27.4
+build command: docker run --rm -v "$PWD":/src -w /src -v /tmp/f03out:/out -e CGO_ENABLED=0 golang:1.27.4 go build -trimpath -o /out/idleleo ./cmd/idleleo
+go_bin_sha256: 569f7a67e54372f84f7d94d4cac6e21eabf355bfbd51e83efc77bd9d1b350546
+xray: Xray 26.11.9 (676eaf6, go1.27.3 linux/arm64), mounted from tests/go-parity/.cache/xray-linux-arm64/xray
+xray_sha256: c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a
+
+run 1: python3 -I /work/repo/tests/go-parity/parity/features/F03_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo --xray-bin /work/xray/xray
+       rc=0, 159 passed, 0 failed, 0.41s
+run 2: python3 -I /work/repo/tests/go-parity/parity/features/F03_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo --xray-bin /work/xray/xray
+       rc=0, 159 passed, 0 failed, 0.43s
+
+container command:
+docker run -d --name f03-preview --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock \
+  -v /tmp/f03out:/work/bin:ro \
+  -v "$PWD":/work/repo:ro \
+  -v "$PWD/tests/go-parity/evidence/f03-2026-11-17":/work/evidence \
+  -v "$PWD/tests/go-parity/.cache/xray-linux-arm64":/work/xray:ro \
+  idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+exec env: IDLELEO_PREVIEW_EVIDENCE=/work/evidence
+
+scope: `xray generate --mode none` for ws / gRPC / xHTTP / ws+grpc+xhttp; default loopback
+listen, the --allow-non-loopback guard (IPv4, ::1, global IPv6, invalid text), no Nginx
+artifacts, port pinning/conflicts, --public-port semantics, overwrite protection, and real
+`xray -test` on every generated config plus every executed Bash baseline config.
+
+bash baseline: fixed checkout install.sh (sha256 recorded in baseline-compare.json and
+bash-result.json); config/vless_tls.json asserted in place; update_json_config,
+ws_backend_listen_default, is_valid_listen_address, resolve_ws_backend_listen_addr,
+modify_listen_address, modify_inbound_port, add_ws_inbound, add_grpc_inbound,
+add_xhttp_inbound and modify_path were extracted and executed for real with jq against
+template copies (single ws; multi loopback; multi with ws_backend_listen_addr=10.10.0.5),
+then compared field by field with the pinned Go multi config.
+
+fixes found by this executor (committed with this fixture):
+1. `--mode none --transport ws+grpc+xhttp --listen 10.10.0.5 --allow-non-loopback` kept the
+   added gRPC/xHTTP inbounds on 127.0.0.1 while Bash rewrites every added transport to the
+   resolved address. extraListenFor now returns the operator listen for ModeNone; the port
+   picker still probes loopback because a non-local address can never be bound
+   (internal/xraycfg/xraycfg.go, TestGenerateNoneMultiTransportHonoursListen).
+
+recorded gaps/divergences (baseline-compare.json): non-loopback guard (Go refuses by
+default, Bash only warns), listen address format not validated (generate accepts
+`--listen not-an-ip`; real `xray -test` rejects it, so this is a gap not a pass), default
+inbound port (Go 10086 vs Bash random pool), protocol naming (vless/VLESS), `--ws-port`
+ignored in a no-TLS multi topology because ws is the primary `--port` inbound, `--public-port`
+only changes the client view (Bash has no public port in this branch), standalone xHTTP
+inherits /ray/ while multi uses /xhttp/, Clash for xHTTP not rendered, and the real
+`install_xray_ws_only` service install not executed (not faked). TTY-only wizard functions
+are asserted by text and marked `mode: static`.
+
+hygiene: python3 tests/go-parity/parity/scripts/check_evidence_hygiene.py \
+  tests/go-parity/evidence/f03-2026-11-17 -> 0 finding(s)

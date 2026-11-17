@@ -1,0 +1,67 @@
+{
+  "cases": [
+    {
+      "detail": "geoip.dat: sha256 mismatch (downloaded c24c6766abcd2aaae346cf23baf7f7cbe5834e8425244cba253ed198216ca38b, release says dda4ad00390e4f2fc5831a615d745562159ee6335c35f213d83ca0856240d544); keeping the previous file",
+      "oldDigestUnchanged": true,
+      "origin": "/badsha",
+      "rc": 1,
+      "residueCount": 0,
+      "result": "failed",
+      "targetDirExists": true
+    },
+    {
+      "detail": "geoip.dat: sha256 mismatch (downloaded 92181dff9b3dd59eb119d25e16a68e95f00b062c449b78c564a842b4c43d7881, release says dda4ad00390e4f2fc5831a615d745562159ee6335c35f213d83ca0856240d544); keeping the previous file",
+      "oldDigestUnchanged": true,
+      "origin": "/truncated",
+      "rc": 1,
+      "residueCount": 0,
+      "result": "failed",
+      "targetDirExists": true
+    },
+    {
+      "detail": "geoip.dat: origin returned an empty asset",
+      "oldDigestUnchanged": true,
+      "origin": "/empty",
+      "rc": 1,
+      "residueCount": 0,
+      "result": "failed",
+      "targetDirExists": true
+    },
+    {
+      "detail": "geoip.dat: origin returned HTML/JSON instead of a GeoData asset",
+      "oldDigestUnchanged": true,
+      "origin": "/html",
+      "rc": 1,
+      "residueCount": 0,
+      "result": "failed",
+      "targetDirExists": true
+    },
+    {
+      "detail": "geoip.dat checksum: origin returned HTTP 404",
+      "oldDigestUnchanged": true,
+      "origin": "/missing",
+      "rc": 1,
+      "residueCount": 0,
+      "result": "failed",
+      "targetDirExists": true
+    },
+    {
+      "detail": "geosite.dat: sha256 mismatch (downloaded 48da7ae1d8c1b17457ac56d3d89f1158a79d4cdabb41b49103bf6afd25262585, release says 2b960e29fb549e7a676059100db701891823cf3b0c9a5d418f9473c950152765); keeping the previous file",
+      "oldDigestUnchanged": true,
+      "origin": "/mixed",
+      "rc": 1,
+      "residueCount": 0,
+      "result": "failed",
+      "targetDirExists": true
+    },
+    {
+      "detail": "geoip.dat: sha256 mismatch (downloaded c24c6766abcd2aaae346cf23baf7f7cbe5834e8425244cba253ed198216ca38b, release says dda4ad00390e4f2fc5831a615d745562159ee6335c35f213d83ca0856240d544); keeping the previous file",
+      "oldDigestUnchanged": true,
+      "origin": "/badsha (no previous assets)",
+      "rc": 1,
+      "residueCount": 0,
+      "result": "failed",
+      "targetDirExists": false
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+fixture: F06 user list / add / remove / uuid rotation
+feature: F06 user management and UUIDv5
+evidence level: CONTAINER_VERIFIED
+date: 2026-11-16
+branch: develop/go-native
+commit: fdad04ed
+executor: tests/go-parity/parity/features/F06_test.py (new in this commit)
+image: idleleo-preview:latest
+image digest: sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+go_bin_sha256: 7ab139b99d15e29fd888d7d6c94b6f51adda01a3e6c1efabf8fec1243448bfcc
+
+build:
+  docker run --rm -v "$PWD":/src -w /src -v /tmp/idleleo-f06-build:/out -e CGO_ENABLED=0 golang:1.27.4 go build -trimpath -o /out/idleleo ./cmd/idleleo
+
+run container:
+  docker run -d --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock \
+    -v /tmp/idleleo-f06-build/idleleo:/work/bin/idleleo:ro \
+    -v "$PWD":/work/repo:ro \
+    -v "$PWD/tests/go-parity/evidence/f06-2026-11-16":/work/evidence \
+    -e IDLELEO_PREVIEW_EVIDENCE=/work/evidence idleleo-preview:latest
+  systemctl is-system-running -> running after 2s
+
+command:
+  docker exec <cid> python3 -I /work/repo/tests/go-parity/parity/features/F06_test.py \
+    --go-bin /work/bin/idleleo --bash-repo /work/repo
+
+run1: 122 passed, 0 failed, 0.16s, exit 0
+run2: 122 passed, 0 failed, 0.14s, exit 0
+
+covered:
+  - user list reports the two clients, marks index 0 primary, and requires --path
+  - user add writes exactly one client (and one Reality shortId) through the change
+    transaction: COMMITTED journal entry, old/new digests, 0640 config, no rollback or
+    candidate file, and every non-user field (dns/routing/outbounds/stream) unchanged
+  - generated UUIDs are RFC4122 v4 and match the runtime config
+  - duplicate email/uuid/shortId, invalid uuid/shortId, missing --sandbox and an unmarked
+    root all exit 2 with zero writes and no journal entry
+  - user remove deletes exactly one secondary client by email and by uuid, refuses the
+    primary user and unknown users with exit 2 and zero writes
+  - user uuid rewrites every inbound that holds the email/uuid in one transaction;
+    --inbound narrows to one inbound; --dry-run and an explicit no-change preview write
+    nothing; duplicate target uuid and invalid --new-uuid exit 2
+  - validator rejection exits 8 (REJECTED), injected write failure exits 13 (FAILED),
+    injected service failure exits 9 (ROLLED_BACK); the config is byte-identical after all
+    three and no rollback/candidate file remains
+  - Bash UUIDv5_tranc / --uuid-reset recorded in baseline-compare.json as not-implemented;
+    Go help documents user list|add|remove and does not claim UUIDv5
+
+notes:
+  - Config-only fixture: no Xray binary, no network, no services. /bin/true is used as both
+    validator and service so the transaction path (validate, write, service, commit) runs.
+  - The sandbox includes an empty etc/idleleo/v1 directory because post-commit finalize
+    lstats the manager state directory before looking for (absent) metadata.
+  - First run exposed the missing v1 directory as a post-commit rename-back (exit 13,
+    ROLLED_BACK); the fixture now mirrors the real install layout instead of weakening the
+    assertion.
+  - The generated test scratch tree under evidence is disposable; the fixture recreates it
+    on every run.
