@@ -1,0 +1,8 @@
+05:03:10 run_id=s2-failover-0503
+05:03:11 image_id=sha256:b8bc803f44f9acb8b7a09c93729528f2d98e0cd615114b0fd04470df90ba17ce
+05:03:11 building idleleo
+05:03:16 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=8a6923dfa635c6fd3a212495c9de48a86ce2169ee9bfe1adc6c5fa36e0cf53c8
+05:03:18 argv-verify written
+05:03:18 [OPS-32] start
+05:04:35 [OPS-32] verdict=PASS
+05:04:35 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/s2-failover-0503/p2

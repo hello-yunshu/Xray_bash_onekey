@@ -1,0 +1,131 @@
+{
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "port": 10546,
+      "listen": "127.0.0.1",
+      "tag": "VLESS-ws-in",
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "id": "REDACTED",
+            "level": 0,
+            "email": "eb1f5b816c5f@hey.run"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "path": "/a335fc136bd0"
+        },
+        "realitySettings": {
+          "privateKey": "REDACTED"
+        }
+      }
+    },
+    {
+      "port": 10919,
+      "listen": "127.0.0.1",
+      "tag": "VLESS-gRPC-in",
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "id": "REDACTED",
+            "level": 0,
+            "email": "eb1f5b816c5f@hey.run"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "security": "none",
+        "grpcSettings": {
+          "serviceName": "d10e61e3ba0a",
+          "multiMode": true,
+          "idle_timeout": 20
+        },
+        "realitySettings": {
+          "privateKey": "REDACTED"
+        }
+      }
+    },
+    {
+      "port": 11888,
+      "listen": "127.0.0.1",
+      "tag": "VLESS-xhttp-in",
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "id": "REDACTED",
+            "level": 0,
+            "email": "eb1f5b816c5f@hey.run"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "xhttp",
+        "security": "none",
+        "xhttpSettings": {
+          "path": "/6f113c096935",
+          "mode": "auto"
+        },
+        "realitySettings": {
+          "privateKey": "REDACTED"
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4v6"
+        }
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
+    }
+  ],
+  "dns": {
+    "servers": [
+      "https+local://dns.google/dns-query",
+      "https+local://cloudflare-dns.com/dns-query",
+      "https+local://doh.opendns.com/dns-query",
+      "208.67.222.222",
+      "8.8.8.8",
+      "1.1.1.1",
+      "localhost"
+    ],
+    "disableCache": false
+  },
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "VLESS-ws-in",
+          "VLESS-gRPC-in",
+          "VLESS-xhttp-in"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  }
+}

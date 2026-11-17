@@ -1,0 +1,78 @@
+{
+  "id": "OPS-21",
+  "reasons": [
+    "bash failed: adsBlocked, baselineControl, controlAfterApply, controlAfterOff, countryBlocked, fallbackDirect, noCatchAllBlocked, privateBlocked, rulesAdded, serviceActive, shareUri",
+    "go failed: applyRcZero, baselineControl, controlAfterApply, controlAfterEdit, controlAfterOff, editBlockReported, editRcZero, editUuidApplied, offRcZero"
+  ],
+  "sides": {
+    "bash": {
+      "checks": {
+        "adsBlocked": false,
+        "applyRcZero": true,
+        "baselineControl": false,
+        "controlAfterApply": false,
+        "controlAfterOff": false,
+        "countryBlocked": false,
+        "fallbackDirect": false,
+        "noCatchAllBlocked": false,
+        "offRcZero": true,
+        "offRestored": true,
+        "privateBlocked": false,
+        "rulesAdded": false,
+        "serviceActive": false,
+        "shareUri": false
+      },
+      "failed": [
+        "serviceActive",
+        "shareUri",
+        "baselineControl",
+        "rulesAdded",
+        "fallbackDirect",
+        "noCatchAllBlocked",
+        "controlAfterApply",
+        "adsBlocked",
+        "privateBlocked",
+        "countryBlocked",
+        "controlAfterOff"
+      ],
+      "status": "fail"
+    },
+    "go": {
+      "checks": {
+        "adsBlocked": true,
+        "adsBlockedAfterEdit": true,
+        "applyRcZero": false,
+        "baselineControl": false,
+        "controlAfterApply": false,
+        "controlAfterEdit": false,
+        "controlAfterOff": false,
+        "countryBlocked": true,
+        "editBlockReported": false,
+        "editOwnedRulesKept": true,
+        "editRcZero": false,
+        "editRoutingIdentical": true,
+        "editUserRuleKept": true,
+        "editUuidApplied": false,
+        "fallbackDirect": true,
+        "noCatchAllBlocked": true,
+        "offRcZero": false,
+        "offRestored": true,
+        "privateBlocked": true,
+        "rulesAdded": true
+      },
+      "failed": [
+        "baselineControl",
+        "applyRcZero",
+        "controlAfterApply",
+        "editRcZero",
+        "editUuidApplied",
+        "editBlockReported",
+        "controlAfterEdit",
+        "offRcZero",
+        "controlAfterOff"
+      ],
+      "status": "fail"
+    }
+  },
+  "verdict": "BLOCKER"
+}

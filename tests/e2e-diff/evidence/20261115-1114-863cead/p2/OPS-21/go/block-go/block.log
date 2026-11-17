@@ -1,0 +1,21 @@
+03:17:28 uri built network=raw
+03:17:30 check baselineControl=false blocked
+03:17:30 check applyRcZero=false rc=1
+03:17:30 check rulesAdded=true before=2 after=2
+03:17:30 check fallbackDirect=true 
+03:17:30 check noCatchAllBlocked=true 
+03:17:32 check controlAfterApply=false blocked
+03:17:34 check adsBlocked=true blocked
+03:17:37 check privateBlocked=true blocked
+03:17:39 check countryBlocked=true blocked
+03:17:39 check editRcZero=false rc=1
+03:17:39 check editUuidApplied=false f1322c7a-caef-4a83-bf91-f81023316069
+03:17:39 check editRoutingIdentical=true 
+03:17:39 check editOwnedRulesKept=true apply=1 edit=1
+03:17:39 check editUserRuleKept=true 
+03:17:39 check editBlockReported=false blockRuleCount=
+03:17:41 check controlAfterEdit=false blocked
+03:17:43 check adsBlockedAfterEdit=true blocked
+03:17:43 check offRcZero=false rc=1
+03:17:43 check offRestored=true baseline=routing-with-user
+03:17:46 check controlAfterOff=false blocked

@@ -1,0 +1,6 @@
+<TS> e2e-ops32-measure-1115-OPS-32-ws-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-ops32-measure-1115-OPS-32-ws-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-ops32-measure-1115-OPS-32-ws-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-ops32-measure-1115-OPS-32-ws-bash xray[<PID>]: 2026/11/15 02:10:24.907208 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-ops32-measure-1115-OPS-32-ws-bash xray[<PID>]: 2026/11/15 02:10:24.907482 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/15 02:10:24.913151 [Warning] core: Xray 26.10.31 started

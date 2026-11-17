@@ -1,0 +1,10 @@
+10:40:40 run_id=s4-reality-1115c
+10:40:41 image_id=sha256:4fcb127bb949c55112cc931440d13d5059090561fb41b5109ff3c327df81142d
+10:40:42 building idleleo
+10:40:46 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=e412533ec2f73c0df7958e406833365870254bcae83d76426e8f47a34ac92eef
+10:40:49 argv-verify written
+10:40:49 [E7] start
+10:40:49 [E8] start
+10:41:47 [E8] done
+10:41:48 [E7] done
+10:41:48 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/s4-reality-1115c/p2

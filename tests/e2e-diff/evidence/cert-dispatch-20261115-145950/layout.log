@@ -1,0 +1,2 @@
+command_v=/usr/bin/idleleo
+readlink=/etc/idleleo/install.sh

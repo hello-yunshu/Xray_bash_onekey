@@ -1,0 +1,25 @@
+=== B: force Finalize failure (remove cert) ===
+nginx -t rejected the configuration (exit 1): nginx: [emerg] cannot load certificate "/etc/idleleo/cert/xray.crt": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/idleleo/cert/xray.crt, r) error:10000080:BIO routines::no such file)
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test failed; managed Nginx is installed at /etc/idleleo/conf/nginx and can be removed with 'idleleo xray uninstall'; installation rolled back to the previous state
+exit=1
+--- residual state after failure ---
+/etc/idleleo/conf/nginx
+/usr/local/nginx
+active
+active
+=== restore cert, install again ===
+{
+  "mode": "tls",
+  "transport": "ws",
+  "tls": "TLS",
+  "binaryPath": "/usr/local/bin/xray",
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "unitPath": "/etc/systemd/system/xray.service",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "configSha256": "ab2d8fc3c9206a9c682de2f8a70dd5c7ae3a7ab4fe16d2f3b4871405756e9b30",
+  "serviceActive": "active",
+  "serviceEnabled": "enabled",
+  "preservedConfig": false,
+exit=0
+active
+active

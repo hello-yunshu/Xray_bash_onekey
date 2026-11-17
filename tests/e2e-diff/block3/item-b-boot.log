@@ -1,0 +1,29 @@
+boot: 2026-11-13 03:21:17
+nginx enabled=enabled active=active activeEnter=[Fri 2026-11-13 13:44:55 UTC]
+  boot->active = 37418s
+xray enabled=enabled active=active activeEnter=[Fri 2026-11-13 13:44:55 UTC]
+  boot->active = 37418s
+--- listeners ---
+LISTEN 0      511          0.0.0.0:80         0.0.0.0:*    users:(("nginx",pid=104,fd=6),("nginx",pid=103,fd=6),("nginx",pid=101,fd=6),("nginx",pid=100,fd=6),("nginx",pid=99,fd=6),("nginx",pid=98,fd=6),("nginx",pid=96,fd=6),("nginx",pid=95,fd=6),("nginx",pid=94,fd=6),("nginx",pid=93,fd=6),("nginx",pid=92,fd=6))           
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=104,fd=20),("nginx",pid=103,fd=20),("nginx",pid=101,fd=20),("nginx",pid=100,fd=20),("nginx",pid=99,fd=20),("nginx",pid=98,fd=20),("nginx",pid=96,fd=20),("nginx",pid=95,fd=20),("nginx",pid=94,fd=20),("nginx",pid=93,fd=20),("nginx",pid=92,fd=20))
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=104,fd=19),("nginx",pid=103,fd=19),("nginx",pid=101,fd=19),("nginx",pid=100,fd=19),("nginx",pid=99,fd=19),("nginx",pid=98,fd=19),("nginx",pid=96,fd=19),("nginx",pid=95,fd=19),("nginx",pid=94,fd=19),("nginx",pid=93,fd=19),("nginx",pid=92,fd=19))
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=104,fd=18),("nginx",pid=103,fd=18),("nginx",pid=101,fd=18),("nginx",pid=100,fd=18),("nginx",pid=99,fd=18),("nginx",pid=98,fd=18),("nginx",pid=96,fd=18),("nginx",pid=95,fd=18),("nginx",pid=94,fd=18),("nginx",pid=93,fd=18),("nginx",pid=92,fd=18))
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=104,fd=17),("nginx",pid=103,fd=17),("nginx",pid=101,fd=17),("nginx",pid=100,fd=17),("nginx",pid=99,fd=17),("nginx",pid=98,fd=17),("nginx",pid=96,fd=17),("nginx",pid=95,fd=17),("nginx",pid=94,fd=17),("nginx",pid=93,fd=17),("nginx",pid=92,fd=17))
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=104,fd=16),("nginx",pid=103,fd=16),("nginx",pid=101,fd=16),("nginx",pid=100,fd=16),("nginx",pid=99,fd=16),("nginx",pid=98,fd=16),("nginx",pid=96,fd=16),("nginx",pid=95,fd=16),("nginx",pid=94,fd=16),("nginx",pid=93,fd=16),("nginx",pid=92,fd=16))
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=104,fd=15),("nginx",pid=103,fd=15),("nginx",pid=101,fd=15),("nginx",pid=100,fd=15),("nginx",pid=99,fd=15),("nginx",pid=98,fd=15),("nginx",pid=96,fd=15),("nginx",pid=95,fd=15),("nginx",pid=94,fd=15),("nginx",pid=93,fd=15),("nginx",pid=92,fd=15))
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=104,fd=14),("nginx",pid=103,fd=14),("nginx",pid=101,fd=14),("nginx",pid=100,fd=14),("nginx",pid=99,fd=14),("nginx",pid=98,fd=14),("nginx",pid=96,fd=14),("nginx",pid=95,fd=14),("nginx",pid=94,fd=14),("nginx",pid=93,fd=14),("nginx",pid=92,fd=14))
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=104,fd=13),("nginx",pid=103,fd=13),("nginx",pid=101,fd=13),("nginx",pid=100,fd=13),("nginx",pid=99,fd=13),("nginx",pid=98,fd=13),("nginx",pid=96,fd=13),("nginx",pid=95,fd=13),("nginx",pid=94,fd=13),("nginx",pid=93,fd=13),("nginx",pid=92,fd=13))
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=104,fd=12),("nginx",pid=103,fd=12),("nginx",pid=101,fd=12),("nginx",pid=100,fd=12),("nginx",pid=99,fd=12),("nginx",pid=98,fd=12),("nginx",pid=96,fd=12),("nginx",pid=95,fd=12),("nginx",pid=94,fd=12),("nginx",pid=93,fd=12),("nginx",pid=92,fd=12))
+--- http probe ---
+http80=200
+https443=302
+now(utc)=13:45:02
+manager userspace=Fri 2026-11-13 13:44:55 UTC
+manager mono=37417148996
+nginx active-enter=Fri 2026-11-13 13:44:55 UTC mono=37417294502
+xray active-enter=Fri 2026-11-13 13:44:55 UTC mono=37417275531
+=== cold restart timing (5s budget check) ===
+nginx state=active time_to_active=15ms (budget 5000ms)
+xray state=active time_to_active=5ms (budget 5000ms)
+http80=200
+https443=302

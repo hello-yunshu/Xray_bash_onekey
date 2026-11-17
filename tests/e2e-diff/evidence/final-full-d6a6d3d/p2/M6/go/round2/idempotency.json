@@ -1,0 +1,30 @@
+{
+  "cron": {
+    "curCount": 0,
+    "duplicates": [],
+    "prevCount": 0,
+    "stable": true
+  },
+  "inbounds": {
+    "countDelta": 0,
+    "curCount": 1,
+    "duplicates": [],
+    "prevCount": 1,
+    "stable": true
+  },
+  "manifest": {
+    "added": [],
+    "addedCount": 0,
+    "backupAddedCount": 0,
+    "backupRemovedCount": 0,
+    "changed": [
+      "/etc/idleleo/v1/metadata.json"
+    ],
+    "changedCount": 1,
+    "removed": [],
+    "removedCount": 0,
+    "stable": true
+  },
+  "ok": true,
+  "schemaVersion": 1
+}

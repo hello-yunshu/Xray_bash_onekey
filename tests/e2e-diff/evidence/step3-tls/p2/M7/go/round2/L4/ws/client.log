@@ -1,0 +1,26 @@
+Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/14 17:26:03.829063 [Info] infra/conf/serial: Reading config: &{Name:/client/client.json Format:json}
+2026/11/14 17:26:03.832230 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/14 17:26:03.832345 [Warning] common/errors: This feature "host" in "headers" is deprecated, will be removed soon and being migrated to independent "host". Please update your config(s) according to release note and documentation before removal.
+2026/11/14 17:26:03.832408 [Warning] core: Xray 26.10.31 started
+2026/11/14 17:26:05.992246 from tcp:127.0.0.1:35872 accepted tcp:example.com:80
+2026/11/14 17:26:09.127487 from tcp:127.0.0.1:53992 accepted tcp:example.com:80
+2026/11/14 17:26:12.265342 from tcp:127.0.0.1:54000 accepted tcp:example.com:80
+2026/11/14 17:26:15.390346 from tcp:127.0.0.1:54010 accepted tcp:example.com:80
+2026/11/14 17:26:18.538784 from tcp:127.0.0.1:33078 accepted tcp:example.com:80
+2026/11/14 17:26:21.672588 from tcp:127.0.0.1:33088 accepted tcp:example.com:80
+2026/11/14 17:26:24.812141 from tcp:127.0.0.1:33096 accepted tcp:example.com:80
+2026/11/14 17:26:27.984483 from tcp:127.0.0.1:54914 accepted tcp:example.com:80
+2026/11/14 17:26:31.114246 from tcp:127.0.0.1:54918 accepted tcp:example.com:80
+2026/11/14 17:26:34.258987 from tcp:127.0.0.1:54924 accepted tcp:example.com:80
+2026/11/14 17:26:37.396253 from tcp:127.0.0.1:54932 accepted tcp:example.com:80
+2026/11/14 17:26:40.548314 from tcp:127.0.0.1:41456 accepted tcp:example.com:80
+2026/11/14 17:26:43.690884 from tcp:127.0.0.1:41464 accepted tcp:example.com:80
+2026/11/14 17:26:46.826192 from tcp:127.0.0.1:41468 accepted tcp:example.com:80
+2026/11/14 17:26:49.967198 from tcp:127.0.0.1:52004 accepted tcp:example.com:80
+2026/11/14 17:26:53.116895 from tcp:127.0.0.1:52014 accepted tcp:example.com:80
+2026/11/14 17:26:56.238376 from tcp:127.0.0.1:52030 accepted tcp:example.com:80
+2026/11/14 17:26:59.385268 from tcp:127.0.0.1:58192 accepted tcp:example.com:80
+2026/11/14 17:27:02.534475 from tcp:127.0.0.1:58196 accepted tcp:example.com:80
+2026/11/14 17:27:05.685112 from tcp:127.0.0.1:58202 accepted tcp:example.com:80

@@ -1,0 +1,32 @@
+{
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": false,
+  "bittorrent": false,
+  "countries": [],
+  "customDomains": {
+    "enabled": false,
+    "items": []
+  },
+  "customIps": {
+    "enabled": false,
+    "items": []
+  },
+  "ownedRuleCount": 0,
+  "domainStrategy": "AsIs",
+  "sniffingEnabled": false,
+  "geosite": {
+    "path": "/etc/idleleo/share/xray/geosite.dat",
+    "size": 7554929,
+    "mtime": "2026-11-15T05:55:27Z"
+  },
+  "geoip": {
+    "path": "/etc/idleleo/share/xray/geoip.dat",
+    "size": 3312784,
+    "mtime": "2026-11-15T05:55:27Z"
+  },
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "serviceRestarted": false
+}

@@ -1,0 +1,2 @@
+systemctl start nginx failed (exit 1): Job for nginx.service failed because the control process exited with error code.
+See "systemctl status nginx.service" and "journalctl -xeu nginx.service" for details.; managed Nginx is installed at /etc/idleleo/conf/nginx and can be removed with 'idleleo xray uninstall'

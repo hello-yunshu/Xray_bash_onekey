@@ -1,0 +1,30 @@
+{
+  "installed": true,
+  "jails": [
+    {
+      "name": "nginx-badbots",
+      "currentlyBanned": 0,
+      "totalBanned": 0,
+      "bannedIPs": []
+    },
+    {
+      "name": "nginx-botsearch",
+      "currentlyBanned": 0,
+      "totalBanned": 0,
+      "bannedIPs": []
+    },
+    {
+      "name": "nginx-no-host",
+      "currentlyBanned": 0,
+      "totalBanned": 0,
+      "bannedIPs": []
+    },
+    {
+      "name": "nginx-tls-error",
+      "currentlyBanned": 0,
+      "totalBanned": 0,
+      "bannedIPs": []
+    }
+  ],
+  "raw": "Status\n|- Number of jail:\t4\n`- Jail list:\tnginx-badbots, nginx-botsearch, nginx-no-host, nginx-tls-error\n"
+}

@@ -1,0 +1,10 @@
+04:34:01 run_id=s2-ops-0434
+04:34:02 image_id=sha256:9e7c007d2d61e2ce142f4ab125faa78307e07d691af7db9627a3686d3fe79166
+04:34:02 building idleleo
+04:34:07 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=8a6923dfa635c6fd3a212495c9de48a86ce2169ee9bfe1adc6c5fa36e0cf53c8
+04:34:09 argv-verify written
+04:34:09 [OPS-09] start upstream=ws
+04:34:54 [OPS-09] verdict=PASS
+04:34:54 [OPS-31] start upstream=reality
+04:36:06 [OPS-31] verdict=PASS
+04:36:06 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/s2-ops-0434/p2

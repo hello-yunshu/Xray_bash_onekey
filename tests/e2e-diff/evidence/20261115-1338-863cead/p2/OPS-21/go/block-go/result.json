@@ -1,0 +1,118 @@
+{
+  "side": "go",
+  "checks": [
+    {
+      "name": "baselineControl",
+      "ok": false,
+      "detail": "blocked"
+    },
+    {
+      "name": "applyRcZero",
+      "ok": false,
+      "detail": "rc=1"
+    },
+    {
+      "name": "rulesAdded",
+      "ok": false,
+      "detail": "before=2 after=2"
+    },
+    {
+      "name": "fallbackDirect",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "noCatchAllBlocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "controlAfterApply",
+      "ok": false,
+      "detail": "blocked"
+    },
+    {
+      "name": "adsBlocked",
+      "ok": true,
+      "detail": "blocked"
+    },
+    {
+      "name": "privateBlocked",
+      "ok": true,
+      "detail": "blocked"
+    },
+    {
+      "name": "countryBlocked",
+      "ok": true,
+      "detail": "blocked"
+    },
+    {
+      "name": "editRcZero",
+      "ok": true,
+      "detail": "rc=0"
+    },
+    {
+      "name": "editUuidApplied",
+      "ok": true,
+      "detail": "68ca0c4e-2c06-4d5a-82d8-56235b6b99c1"
+    },
+    {
+      "name": "editRoutingIdentical",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "editOwnedRulesKept",
+      "ok": false,
+      "detail": "owned=0 missing=0"
+    },
+    {
+      "name": "editUserRuleKept",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "editBlockReported",
+      "ok": true,
+      "detail": "blockRuleCount=5"
+    },
+    {
+      "name": "controlAfterEdit",
+      "ok": false,
+      "detail": "blocked"
+    },
+    {
+      "name": "adsBlockedAfterEdit",
+      "ok": true,
+      "detail": "blocked"
+    },
+    {
+      "name": "offRcZero",
+      "ok": false,
+      "detail": "rc=1"
+    },
+    {
+      "name": "offRestored",
+      "ok": false,
+      "detail": "baseline=routing-with-user"
+    },
+    {
+      "name": "controlAfterOff",
+      "ok": false,
+      "detail": "blocked"
+    }
+  ],
+  "failed": [
+    "baselineControl",
+    "applyRcZero",
+    "rulesAdded",
+    "controlAfterApply",
+    "editRoutingIdentical",
+    "editOwnedRulesKept",
+    "controlAfterEdit",
+    "offRcZero",
+    "offRestored",
+    "controlAfterOff"
+  ],
+  "status": "fail"
+}

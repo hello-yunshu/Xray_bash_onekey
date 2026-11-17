@@ -1,0 +1,2 @@
+edit_argv=idleleo xray config edit --uuid 99999999-8888-7777-6666-555555555555 --yes --container --json
+edit_exit=0

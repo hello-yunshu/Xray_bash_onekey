@@ -1,0 +1,26 @@
+06:19:45 WARN: control origin did not come up
+06:19:46 check realityOriginLocal=true target=127.0.0.1:8443 sni=local.test
+06:19:47 check allUsersPresent=false a= b=99999999-2222-3333-4444-555555555555 c=77777777-2222-3333-4444-555555555555
+06:19:47 check shareUris=false one of the three links is empty
+06:19:57 check baselineA=false 
+06:19:59 check baselineB=true 
+06:20:02 check baselineC=true 
+06:20:02 check failRollbackExit=true rc=9
+06:20:02 check failConfigHash=true 
+06:20:02 check failAllOld=true a= b=99999999-2222-3333-4444-555555555555 c=77777777-2222-3333-4444-555555555555
+06:20:12 check failNoHalfState=false 
+06:20:12 check rotateExit=true rc=0 
+06:20:12 check serviceAfterRotate=true 
+06:20:13 check uuidApplied=true b=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+06:20:18 check bOldLinkRefused=true outcome=blocked (timeout means the probe is inconclusive)
+06:20:20 check bNewLinkWorks=true 
+06:20:31 check aStillWorks=false 
+06:20:33 check cStillWorks=true 
+06:20:33 check aClientUnchanged=true 
+06:20:33 check cClientUnchanged=true 
+06:20:33 check routingUnchanged=true 
+06:20:33 check revertExit=true rc=0
+06:20:40 check revertOldLinkWorks=true 
+06:20:51 check revertOthersStillWork=false 
+06:20:51 check revertUuid=true 
+06:20:51 done checks=24

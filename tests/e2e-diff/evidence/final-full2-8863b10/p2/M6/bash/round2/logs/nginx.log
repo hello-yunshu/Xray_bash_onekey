@@ -1,0 +1,11 @@
+<TS> e2e-final-full2-8863b10-M6-bash systemd[1]: Starting nginx.service - The NGINX HTTP and reverse proxy server...
+<TS> e2e-final-full2-8863b10-M6-bash nginx[<PID>]: nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+<TS> e2e-final-full2-8863b10-M6-bash nginx[<PID>]: nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+<TS> e2e-final-full2-8863b10-M6-bash systemd[1]: Started nginx.service - The NGINX HTTP and reverse proxy server.
+<TS> e2e-final-full2-8863b10-M6-bash systemd[1]: Stopping nginx.service - The NGINX HTTP and reverse proxy server...
+<TS> e2e-final-full2-8863b10-M6-bash systemd[1]: nginx.service: Deactivated successfully.
+<TS> e2e-final-full2-8863b10-M6-bash systemd[1]: Stopped nginx.service - The NGINX HTTP and reverse proxy server.
+<TS> e2e-final-full2-8863b10-M6-bash systemd[1]: Starting nginx.service - The NGINX HTTP and reverse proxy server...
+<TS> e2e-final-full2-8863b10-M6-bash nginx[<PID>]: nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+<TS> e2e-final-full2-8863b10-M6-bash nginx[<PID>]: nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+<TS> e2e-final-full2-8863b10-M6-bash systemd[1]: Started nginx.service - The NGINX HTTP and reverse proxy server.

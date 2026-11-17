@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "profile": "tls",
+  "reason": "business request failed (curl exit 52, body bytes 0)",
+  "target": "http://example.com/"
+}

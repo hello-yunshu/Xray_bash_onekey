@@ -1,0 +1,624 @@
+SCENARIO=M6 ROUND=1 ARG=-1 MENU=
+spawn bash /src/install.sh -1
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+[OK]  当前用户是 root 用户, 开始安装 
+[OK]  当前系统为 Ubuntu 24.04 noble 
+[33m
+0% [Working][0m
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease [256 kB]
+[33m
+0% [1 InRelease 0 B/256 kB 0%][0m[33m
+0% [1 InRelease 35.2 kB/256 kB 14%][0m[33m
+                                   
+0% [1 InRelease 102 kB/256 kB 40%][0m[33m
+0% [1 InRelease 243 kB/256 kB 95%][0m[33m
+                                  
+0% [Waiting for headers][0m[33m
+0% [Waiting for headers][0m
+                        
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease [126 kB]
+[33m
+0% [2 InRelease 1112 B/126 kB 1%][0m[33m
+0% [2 InRelease 28.1 kB/126 kB 22%][0m[33m
+                                   
+0% [Waiting for headers][0m[33m
+0% [Waiting for headers][0m
+                        
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease [126 kB]
+[33m
+0% [3 InRelease 2532 B/126 kB 2%][0m[33m
+0% [3 InRelease 21.0 kB/126 kB 17%][0m[33m
+0% [3 InRelease 77.8 kB/126 kB 62%][0m[33m
+                                   
+0% [Working][0m[33m
+0% [Waiting for headers][0m
+                        
+Get:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease [126 kB]
+[33m
+0% [4 InRelease 2532 B/126 kB 2%][0m[33m
+0% [4 InRelease 11.1 kB/126 kB 9%][0m[33m
+                                  
+0% [Working][0m[33m
+13% [Waiting for headers][0m
+                         
+Get:5 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 Packages [1776 kB]
+[33m
+13% [5 Packages 2599 B/1776 kB 0%][0m[33m
+13% [5 Packages 21.1 kB/1776 kB 1%][0m[33m
+14% [5 Packages 218 kB/1776 kB 12%]                           133 kB/s 4min 24s[0m[33m
+14% [5 Packages 241 kB/1776 kB 14%]                           133 kB/s 4min 24s[0m[33m
+14% [5 Packages 471 kB/1776 kB 27%]                           133 kB/s 4min 22s[0m[33m
+14% [5 Packages 562 kB/1776 kB 32%]                           133 kB/s 4min 22s[0m[33m
+15% [5 Packages 673 kB/1776 kB 38%]                           133 kB/s 4min 21s[0m[33m
+15% [5 Packages 686 kB/1776 kB 39%]                           133 kB/s 4min 21s[0m[33m
+15% [5 Packages 832 kB/1776 kB 47%]                           133 kB/s 4min 20s[0m[33m
+15% [5 Packages 1021 kB/1776 kB 57%]                          133 kB/s 4min 18s[0m[33m
+15% [5 Packages 1080 kB/1776 kB 61%]                          133 kB/s 4min 18s[0m[33m
+16% [5 Packages 1252 kB/1776 kB 71%]                          133 kB/s 4min 17s[0m[33m
+16% [5 Packages 1312 kB/1776 kB 74%]                          133 kB/s 4min 16s[0m[33m
+16% [5 Packages 1398 kB/1776 kB 79%]                          133 kB/s 4min 15s[0m[33m
+16% [5 Packages 1498 kB/1776 kB 84%]                          212 kB/s 2min 40s[0m[33m
+17% [5 Packages 1624 kB/1776 kB 91%]                          212 kB/s 2min 39s[0m
+                                                                               
+Get:6 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 Packages [19.0 MB]
+[33m
+17% [6 Packages 2992 B/19.0 MB 0%]                            212 kB/s 2min 38s[0m[33m
+17% [5 Packages store 0 B] [6 Packages 2992 B/19.0 MB 0%]     212 kB/s 2min 38s[0m[33m
+18% [6 Packages 2992 B/19.0 MB 0%]                            212 kB/s 2min 38s[0m[33m
+18% [6 Packages 127 kB/19.0 MB 1%]                            212 kB/s 2min 38s[0m[33m
+18% [6 Packages 215 kB/19.0 MB 1%]                            212 kB/s 2min 37s[0m[33m
+18% [6 Packages 285 kB/19.0 MB 1%]                            212 kB/s 2min 37s[0m[33m
+18% [6 Packages 354 kB/19.0 MB 2%]                            212 kB/s 2min 37s[0m[33m
+19% [6 Packages 461 kB/19.0 MB 2%]                            212 kB/s 2min 36s[0m[33m
+19% [6 Packages 614 kB/19.0 MB 3%]                            212 kB/s 2min 36s[0m[33m
+19% [6 Packages 679 kB/19.0 MB 4%]                            212 kB/s 2min 35s[0m[33m
+19% [6 Packages 857 kB/19.0 MB 5%]                            212 kB/s 2min 34s[0m[33m
+20% [6 Packages 958 kB/19.0 MB 5%]                            212 kB/s 2min 34s[0m[33m
+20% [6 Packages 958 kB/19.0 MB 5%]                            212 kB/s 2min 34s[0m[33m
+20% [6 Packages 1131 kB/19.0 MB 6%]                           217 kB/s 2min 29s[0m[33m
+20% [6 Packages 1257 kB/19.0 MB 7%]                           217 kB/s 2min 29s[0m[33m
+21% [6 Packages 1379 kB/19.0 MB 7%]                           217 kB/s 2min 28s[0m[33m
+21% [6 Packages 1496 kB/19.0 MB 8%]                           217 kB/s 2min 27s[0m[33m
+21% [6 Packages 1546 kB/19.0 MB 8%]                           217 kB/s 2min 27s[0m[33m
+21% [6 Packages 1652 kB/19.0 MB 9%]                           217 kB/s 2min 27s[0m[33m
+22% [6 Packages 1776 kB/19.0 MB 9%]                           217 kB/s 2min 26s[0m[33m
+22% [6 Packages 1872 kB/19.0 MB 10%]                          217 kB/s 2min 26s[0m[33m
+22% [6 Packages 1956 kB/19.0 MB 10%]                          217 kB/s 2min 25s[0m[33m
+22% [6 Packages 1982 kB/19.0 MB 10%]                          217 kB/s 2min 25s[0m[33m
+22% [6 Packages 2158 kB/19.0 MB 11%]                          217 kB/s 2min 24s[0m[33m
+23% [6 Packages 2260 kB/19.0 MB 12%]                          217 kB/s 2min 24s[0m[33m
+23% [6 Packages 2339 kB/19.0 MB 12%]                          200 kB/s 2min 36s[0m[33m
+23% [6 Packages 2372 kB/19.0 MB 12%]                          200 kB/s 2min 36s[0m[33m
+23% [6 Packages 2478 kB/19.0 MB 13%]                          200 kB/s 2min 36s[0m[33m
+23% [6 Packages 2483 kB/19.0 MB 13%]                          200 kB/s 2min 35s[0m[33m
+23% [6 Packages 2669 kB/19.0 MB 14%]                          200 kB/s 2min 35s[0m[33m
+24% [6 Packages 2761 kB/19.0 MB 15%]                          200 kB/s 2min 34s[0m[33m
+24% [6 Packages 2834 kB/19.0 MB 15%]                          200 kB/s 2min 34s[0m[33m
+24% [6 Packages 2855 kB/19.0 MB 15%]                          200 kB/s 2min 34s[0m[33m
+24% [6 Packages 3039 kB/19.0 MB 16%]                          200 kB/s 2min 33s[0m[33m
+24% [6 Packages 3103 kB/19.0 MB 16%]                          200 kB/s 2min 32s[0m[33m
+25% [6 Packages 3183 kB/19.0 MB 17%]                          200 kB/s 2min 32s[0m[33m
+25% [6 Packages 3296 kB/19.0 MB 17%]                          200 kB/s 2min 31s[0m[33m
+25% [6 Packages 3362 kB/19.0 MB 18%]                          169 kB/s 2min 59s[0m[33m
+25% [6 Packages 3477 kB/19.0 MB 18%]                          169 kB/s 2min 58s[0m[33m
+25% [6 Packages 3538 kB/19.0 MB 19%]                          169 kB/s 2min 57s[0m[33m
+26% [6 Packages 3681 kB/19.0 MB 19%]                          169 kB/s 2min 57s[0m[33m
+26% [6 Packages 3764 kB/19.0 MB 20%]                          169 kB/s 2min 56s[0m[33m
+26% [6 Packages 3887 kB/19.0 MB 20%]                          169 kB/s 2min 55s[0m[33m
+26% [6 Packages 3999 kB/19.0 MB 21%]                          169 kB/s 2min 55s[0m[33m
+26% [6 Packages 4012 kB/19.0 MB 21%]                          169 kB/s 2min 55s[0m[33m
+27% [6 Packages 4191 kB/19.0 MB 22%]                          169 kB/s 2min 54s[0m[33m
+27% [6 Packages 4316 kB/19.0 MB 23%]                          169 kB/s 2min 53s[0m[33m
+27% [6 Packages 4478 kB/19.0 MB 24%]                          169 kB/s 2min 52s[0m[33m
+28% [6 Packages 4542 kB/19.0 MB 24%]                          169 kB/s 2min 52s[0m[33m
+28% [6 Packages 4658 kB/19.0 MB 24%]                          215 kB/s 2min 15s[0m[33m
+28% [6 Packages 4687 kB/19.0 MB 25%]                          215 kB/s 2min 14s[0m[33m
+28% [6 Packages 4885 kB/19.0 MB 26%]                          215 kB/s 2min 14s[0m[33m
+29% [6 Packages 5091 kB/19.0 MB 27%]                          215 kB/s 2min 13s[0m[33m
+29% [6 Packages 5256 kB/19.0 MB 28%]                          215 kB/s 2min 12s[0m[33m
+29% [6 Packages 5309 kB/19.0 MB 28%]                          215 kB/s 2min 12s[0m[33m
+30% [6 Packages 5537 kB/19.0 MB 29%]                          215 kB/s 2min 11s[0m[33m
+30% [6 Packages 5750 kB/19.0 MB 30%]                          215 kB/s 2min 10s[0m[33m
+31% [6 Packages 5844 kB/19.0 MB 31%]                           215 kB/s 2min 9s[0m[33m
+31% [6 Packages 5852 kB/19.0 MB 31%]                           215 kB/s 2min 9s[0m[33m
+31% [6 Packages 6230 kB/19.0 MB 33%]                           215 kB/s 2min 7s[0m[33m
+32% [6 Packages 6447 kB/19.0 MB 34%]                           215 kB/s 2min 6s[0m[33m
+32% [6 Packages 6611 kB/19.0 MB 35%]                          324 kB/s 1min 23s[0m[33m
+33% [6 Packages 6743 kB/19.0 MB 35%]                          324 kB/s 1min 23s[0m[33m
+33% [6 Packages 6913 kB/19.0 MB 36%]                          324 kB/s 1min 22s[0m[33m
+33% [6 Packages 6997 kB/19.0 MB 37%]                          324 kB/s 1min 22s[0m[33m
+33% [6 Packages 7166 kB/19.0 MB 38%]                          324 kB/s 1min 21s[0m[33m
+34% [6 Packages 7282 kB/19.0 MB 38%]                          324 kB/s 1min 21s[0m[33m
+34% [6 Packages 7436 kB/19.0 MB 39%]                          324 kB/s 1min 21s[0m[33m
+34% [6 Packages 7608 kB/19.0 MB 40%]                          324 kB/s 1min 20s[0m[33m
+35% [6 Packages 7701 kB/19.0 MB 40%]                          324 kB/s 1min 20s[0m[33m
+35% [6 Packages 7751 kB/19.0 MB 41%]                          324 kB/s 1min 20s[0m[33m
+35% [6 Packages 7883 kB/19.0 MB 41%]                          324 kB/s 1min 19s[0m[33m
+35% [6 Packages 8008 kB/19.0 MB 42%]                          324 kB/s 1min 19s[0m[33m
+36% [6 Packages 8136 kB/19.0 MB 43%]                          253 kB/s 1min 41s[0m[33m
+36% [6 Packages 8303 kB/19.0 MB 44%]                          253 kB/s 1min 40s[0m[33m
+36% [6 Packages 8423 kB/19.0 MB 44%]                          253 kB/s 1min 39s[0m[33m
+37% [6 Packages 8600 kB/19.0 MB 45%]                          253 kB/s 1min 39s[0m[33m
+37% [6 Packages 8802 kB/19.0 MB 46%]                          253 kB/s 1min 38s[0m[33m
+37% [6 Packages 8941 kB/19.0 MB 47%]                          253 kB/s 1min 37s[0m[33m
+37% [6 Packages 8972 kB/19.0 MB 47%]                          253 kB/s 1min 37s[0m[33m
+38% [6 Packages 9134 kB/19.0 MB 48%]                          253 kB/s 1min 37s[0m[33m
+38% [6 Packages 9402 kB/19.0 MB 49%]                          253 kB/s 1min 36s[0m[33m
+39% [6 Packages 9561 kB/19.0 MB 50%]                          253 kB/s 1min 35s[0m[33m
+39% [6 Packages 9644 kB/19.0 MB 51%]                          253 kB/s 1min 35s[0m[33m
+39% [6 Packages 9889 kB/19.0 MB 52%]                          253 kB/s 1min 34s[0m[33m
+40% [6 Packages 10.0 MB/19.0 MB 53%]                          311 kB/s 1min 16s[0m[33m
+40% [6 Packages 10.1 MB/19.0 MB 53%]                          311 kB/s 1min 15s[0m[33m
+41% [6 Packages 10.4 MB/19.0 MB 55%]                          311 kB/s 1min 14s[0m[33m
+41% [6 Packages 10.5 MB/19.0 MB 55%]                          311 kB/s 1min 14s[0m[33m
+41% [6 Packages 10.7 MB/19.0 MB 56%]                          311 kB/s 1min 13s[0m[33m
+42% [6 Packages 10.9 MB/19.0 MB 57%]                          311 kB/s 1min 13s[0m[33m
+42% [6 Packages 11.0 MB/19.0 MB 58%]                          311 kB/s 1min 13s[0m[33m
+42% [6 Packages 11.1 MB/19.0 MB 58%]                          311 kB/s 1min 12s[0m[33m
+42% [6 Packages 11.2 MB/19.0 MB 59%]                          311 kB/s 1min 12s[0m[33m
+43% [6 Packages 11.5 MB/19.0 MB 61%]                          311 kB/s 1min 11s[0m[33m
+44% [6 Packages 11.7 MB/19.0 MB 62%]                          311 kB/s 1min 10s[0m[33m
+44% [6 Packages 11.9 MB/19.0 MB 63%]                          311 kB/s 1min 10s[0m[33m
+44% [6 Packages 12.0 MB/19.0 MB 63%]                           329 kB/s 1min 5s[0m[33m
+44% [6 Packages 12.1 MB/19.0 MB 64%]                           329 kB/s 1min 5s[0m[33m
+45% [6 Packages 12.5 MB/19.0 MB 66%]                           329 kB/s 1min 4s[0m[33m
+46% [6 Packages 12.7 MB/19.0 MB 67%]                           329 kB/s 1min 3s[0m[33m
+46% [6 Packages 13.0 MB/19.0 MB 68%]                           329 kB/s 1min 2s[0m[33m
+47% [6 Packages 13.1 MB/19.0 MB 69%]                           329 kB/s 1min 2s[0m[33m
+47% [6 Packages 13.3 MB/19.0 MB 70%]                           329 kB/s 1min 1s[0m[33m
+47% [6 Packages 13.3 MB/19.0 MB 70%]                           329 kB/s 1min 1s[0m[33m
+48% [6 Packages 13.8 MB/19.0 MB 73%]                               329 kB/s 60s[0m[33m
+48% [6 Packages 13.9 MB/19.0 MB 73%]                               329 kB/s 60s[0m[33m
+49% [6 Packages 14.1 MB/19.0 MB 74%]                               329 kB/s 59s[0m[33m
+49% [6 Packages 14.4 MB/19.0 MB 76%]                               329 kB/s 58s[0m[33m
+50% [6 Packages 14.5 MB/19.0 MB 76%]                               422 kB/s 45s[0m[33m
+50% [6 Packages 14.8 MB/19.0 MB 78%]                               422 kB/s 44s[0m[33m
+51% [6 Packages 15.0 MB/19.0 MB 79%]                               422 kB/s 44s[0m[33m
+51% [6 Packages 15.1 MB/19.0 MB 80%]                               422 kB/s 43s[0m[33m
+51% [6 Packages 15.3 MB/19.0 MB 80%]                               422 kB/s 43s[0m[33m
+52% [6 Packages 15.3 MB/19.0 MB 80%]                               422 kB/s 43s[0m[33m
+53% [6 Packages 15.8 MB/19.0 MB 83%]                               422 kB/s 42s[0m[33m
+53% [6 Packages 16.1 MB/19.0 MB 84%]                               422 kB/s 41s[0m[33m
+53% [6 Packages 16.2 MB/19.0 MB 85%]                               422 kB/s 41s[0m[33m
+54% [6 Packages 16.4 MB/19.0 MB 86%]                               422 kB/s 40s[0m[33m
+55% [6 Packages 16.8 MB/19.0 MB 88%]                               422 kB/s 40s[0m[33m
+55% [6 Packages 17.0 MB/19.0 MB 89%]                               422 kB/s 39s[0m[33m
+56% [6 Packages 17.2 MB/19.0 MB 90%]                               438 kB/s 37s[0m[33m
+56% [6 Packages 17.5 MB/19.0 MB 92%]                               438 kB/s 36s[0m[33m
+57% [6 Packages 17.9 MB/19.0 MB 94%]                               438 kB/s 36s[0m[33m
+58% [6 Packages 18.2 MB/19.0 MB 96%]                               438 kB/s 35s[0m[33m
+59% [6 Packages 18.5 MB/19.0 MB 97%]                               438 kB/s 34s[0m[33m
+59% [6 Packages 18.8 MB/19.0 MB 99%]                               438 kB/s 33s[0m
+                                                                               
+Get:7 http://ports.ubuntu.com/ubuntu-ports noble/restricted arm64 Packages [113 kB]
+[33m
+60% [7 Packages 51.1 kB/113 kB 45%]                                438 kB/s 33s[0m[33m
+60% [6 Packages store 0 B] [7 Packages 65.4 kB/113 kB 58%]         438 kB/s 33s[0m[33m
+60% [7 Packages 75.2 kB/113 kB 66%]                                438 kB/s 33s[0m
+                                                                               
+Get:8 http://ports.ubuntu.com/ubuntu-ports noble/multiverse arm64 Packages [274 kB]
+[33m
+61% [8 Packages 21.4 kB/274 kB 8%]                                 438 kB/s 33s[0m[33m
+61% [7 Packages store 0 B] [8 Packages 21.4 kB/274 kB 8%]          438 kB/s 33s[0m[33m
+61% [8 Packages 67.1 kB/274 kB 25%]                                438 kB/s 33s[0m
+                                                                               
+Get:9 http://ports.ubuntu.com/ubuntu-ports noble-updates/restricted arm64 Packages [3392 kB]
+[33m
+62% [9 Packages 16.8 kB/3392 kB 0%]                                438 kB/s 32s[0m[33m
+62% [8 Packages store 0 B] [9 Packages 16.8 kB/3392 kB 0%]         438 kB/s 32s[0m[33m
+62% [9 Packages 25.2 kB/3392 kB 1%]                                438 kB/s 32s[0m[33m
+63% [9 Packages 118 kB/3392 kB 3%]                                 438 kB/s 32s[0m[33m
+64% [9 Packages 818 kB/3392 kB 24%]                                438 kB/s 30s[0m[33m
+65% [9 Packages 1190 kB/3392 kB 35%]                               438 kB/s 29s[0m[33m
+65% [9 Packages 1422 kB/3392 kB 42%]                               438 kB/s 29s[0m[33m
+66% [9 Packages 1757 kB/3392 kB 52%]                               438 kB/s 28s[0m[33m
+66% [9 Packages 1819 kB/3392 kB 54%]                               631 kB/s 19s[0m[33m
+67% [9 Packages 1957 kB/3392 kB 58%]                               631 kB/s 19s[0m[33m
+68% [9 Packages 2413 kB/3392 kB 71%]                               631 kB/s 18s[0m[33m
+68% [9 Packages 2717 kB/3392 kB 80%]                               631 kB/s 18s[0m[33m
+70% [9 Packages 3329 kB/3392 kB 98%]                               631 kB/s 17s[0m
+                                                                               
+Get:10 http://ports.ubuntu.com/ubuntu-ports noble-updates/multiverse arm64 Packages [110 kB]
+[33m
+70% [10 Packages 32.9 kB/110 kB 30%]                               631 kB/s 17s[0m[33m
+70% [9 Packages store 0 B] [10 Packages 32.9 kB/110 kB 30%]        631 kB/s 17s[0m[33m
+70% [10 Packages 32.9 kB/110 kB 30%]                               631 kB/s 17s[0m
+                                                                               
+Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 Packages [1853 kB]
+[33m
+71% [11 Packages 5482 B/1853 kB 0%]                                631 kB/s 17s[0m[33m
+71% [10 Packages store 0 B] [11 Packages 5482 B/1853 kB 0%]        631 kB/s 17s[0m[33m
+71% [11 Packages 42.4 kB/1853 kB 2%]                               631 kB/s 16s[0m[33m
+72% [11 Packages 438 kB/1853 kB 24%]                               631 kB/s 16s[0m[33m
+73% [11 Packages 684 kB/1853 kB 37%]                               631 kB/s 15s[0m[33m
+73% [11 Packages 684 kB/1853 kB 37%]                               631 kB/s 15s[0m[33m
+74% [11 Packages 1474 kB/1853 kB 80%]                              631 kB/s 14s[0m
+                                                                               
+Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 Packages [2242 kB]
+[33m
+75% [12 Packages 9988 B/2242 kB 0%]                                631 kB/s 14s[0m[33m
+75% [11 Packages store 0 B] [12 Packages 9988 B/2242 kB 0%]        631 kB/s 14s[0m[33m
+76% [12 Packages 56.6 kB/2242 kB 3%]                               631 kB/s 14s[0m[33m
+77% [12 Packages 488 kB/2242 kB 22%]                               631 kB/s 13s[0m[33m
+78% [12 Packages 1061 kB/2242 kB 47%]                              631 kB/s 12s[0m[33m
+79% [12 Packages 1576 kB/2242 kB 70%]                               835 kB/s 8s[0m[33m
+80% [12 Packages 1734 kB/2242 kB 77%]                               835 kB/s 8s[0m
+                                                                               
+Get:13 http://ports.ubuntu.com/ubuntu-ports noble-backports/multiverse arm64 Packages [669 B]
+
+                                                                               
+Get:14 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe arm64 Packages [36.3 kB]
+[33m
+81% [14 Packages 23.4 kB/36.3 kB 65%]                               835 kB/s 7s[0m[33m
+81% [12 Packages store 0 B] [14 Packages 23.4 kB/36.3 kB 65%]       835 kB/s 7s[0m[33m
+81% [12 Packages store 0 B]                                         835 kB/s 7s[0m
+                                                                               
+Get:15 http://ports.ubuntu.com/ubuntu-ports noble-backports/main arm64 Packages [49.0 kB]
+[33m
+81% [12 Packages store 0 B] [15 Packages 16.7 kB/49.0 kB 34%]       835 kB/s 7s[0m[33m
+81% [12 Packages store 0 B] [Waiting for headers]                   835 kB/s 7s[0m
+                                                                               
+Get:16 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 Packages [1541 kB]
+[33m
+81% [12 Packages store 0 B] [16 Packages 1449 B/1541 kB 0%]         835 kB/s 7s[0m[33m
+82% [16 Packages 25.6 kB/1541 kB 2%]                                835 kB/s 7s[0m[33m
+82% [16 Packages 25.6 kB/1541 kB 2%]                                835 kB/s 7s[0m[33m
+82% [14 Packages store 0 B] [16 Packages 25.6 kB/1541 kB 2%]        835 kB/s 7s[0m[33m
+83% [16 Packages 25.6 kB/1541 kB 2%]                                835 kB/s 7s[0m[33m
+83% [16 Packages 25.6 kB/1541 kB 2%]                                835 kB/s 7s[0m[33m
+84% [16 Packages 446 kB/1541 kB 29%]                                835 kB/s 7s[0m[33m
+85% [16 Packages 676 kB/1541 kB 44%]                                835 kB/s 7s[0m[33m
+87% [16 Packages 1531 kB/1541 kB 99%]                               835 kB/s 6s[0m
+                                                                               
+Get:17 http://ports.ubuntu.com/ubuntu-ports noble-security/universe arm64 Packages [1656 kB]
+[33m
+87% [17 Packages 4100 B/1656 kB 0%]                                 835 kB/s 6s[0m[33m
+87% [16 Packages store 0 B] [17 Packages 54.2 kB/1656 kB 3%]        835 kB/s 5s[0m[33m
+88% [17 Packages 236 kB/1656 kB 14%]                                835 kB/s 5s[0m[33m
+89% [17 Packages 600 kB/1656 kB 36%]                                835 kB/s 5s[0m[33m
+89% [17 Packages 898 kB/1656 kB 54%]                                835 kB/s 4s[0m[33m
+91% [17 Packages 1546 kB/1656 kB 93%]                               835 kB/s 4s[0m
+                                                                               
+Get:18 http://ports.ubuntu.com/ubuntu-ports noble-security/multiverse arm64 Packages [102 kB]
+[33m
+91% [18 Packages 50.3 kB/102 kB 49%]                                835 kB/s 3s[0m[33m
+91% [17 Packages store 0 B] [18 Packages 57.6 kB/102 kB 56%]        835 kB/s 3s[0m
+                                                                               
+Get:19 http://ports.ubuntu.com/ubuntu-ports noble-security/restricted arm64 Packages [3270 kB]
+[33m
+91% [17 Packages store 0 B] [19 Packages 34.7 kB/3270 kB 1%]        835 kB/s 3s[0m[33m
+92% [19 Packages 85.7 kB/3270 kB 3%]                                835 kB/s 3s[0m[33m
+92% [18 Packages store 0 B] [19 Packages 85.7 kB/3270 kB 3%]        835 kB/s 3s[0m[33m
+92% [19 Packages 85.7 kB/3270 kB 3%]                                835 kB/s 3s[0m[33m
+93% [19 Packages 317 kB/3270 kB 10%]                                835 kB/s 3s[0m[33m
+94% [19 Packages 671 kB/3270 kB 21%]                                835 kB/s 3s[0m[33m
+95% [19 Packages 1075 kB/3270 kB 33%]                               835 kB/s 2s[0m[33m
+96% [19 Packages 1727 kB/3270 kB 53%]                               897 kB/s 1s[0m[33m
+97% [19 Packages 1971 kB/3270 kB 60%]                               897 kB/s 1s[0m[33m
+98% [19 Packages 2524 kB/3270 kB 77%]                               897 kB/s 0s[0m[33m
+99% [19 Packages 2956 kB/3270 kB 90%]                               897 kB/s 0s[0m[33m
+99% [Working]                                                       897 kB/s 0s[0m[33m
+99% [19 Packages store 0 B]                                         897 kB/s 0s[0m[33m
+100% [Working]                                                      897 kB/s 0s[0m
+                                                                               
+Fetched 36.1 MB in 1min 34s (384 kB/s)
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 52%
+
+Reading package lists... 52%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 66%
+
+Reading package lists... 66%
+
+Reading package lists... 77%
+
+Reading package lists... 77%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 88%
+
+Reading package lists... 88%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+5 packages can be upgraded. Run 'apt list --upgradable' to see them.
+[OK]  已安装 bc curl dbus git jq lsof python3 qrencode 
+[OK]  已安装 cron 
+[OK]  crontab 自启动配置 完成 
+[OK]  已安装 iputils-ping 
+[OK]  Nginx 链接库安装 完成 
+
+ 确定域名信息 
+请输入你的域名信息 (e.g. www.hey.run):STEP[domain]=example.com
+example.com
+
+ 请选择网络与域名校验方式 
+1: 自动检测 (IPv4/IPv6) (推荐)
+2: IPv4 (默认)
+3: IPv6
+4: 手动输入域名 (服务器商仅提供域名)
+请输入: STEP[dnsMode]=4
+4
+[OK]  正在获取公网IP信息, 请耐心等待 
+[警告]  此选项用于服务器商仅提供域名访问服务器 
+[警告]  请为服务器商提供的域名添加 CNAME 记录 
+请输入: STEP[localIP]=127.0.0.1
+127.0.0.1
+
+ 请选择传输协议 
+1: ws (默认)
+2: gRPC
+3: xHTTP
+4: ws+xHTTP
+5: ws+gRPC+xHTTP
+请输入: STEP[transport]=3
+3
+
+ 确定端口 
+请输入端口 (默认值:443):STEP[port]=443
+443
+
+ 是否需要自定义 xHTTP inbound_port [Y/N]? 
+STEP[xhttpPort]=n
+n
+ xHTTP inbound_port: 11281 
+[OK]  80 端口未被占用 
+[OK]  443 端口未被占用 
+[OK]  11281 端口未被占用 
+
+ 是否需要设置防火墙 [Y/N]? 
+STEP[firewall]=n
+n
+[OK]  跳过防火墙设置 
+
+ 是否需要自定义 xHTTP 伪装路径 [Y/N]? 
+STEP[xhttpPath]=n
+n
+ xHTTP 伪装路径: 9b990e 
+
+ 是否需要自定义 Xray 用户名 [Y/N]? 
+STEP[email]=n
+n
+ Xray 用户名 (email): 04772e@hey.run 
+
+ 是否需要自定义字符串映射 (UUIDv5) [Y/N]? 
+STEP[uuid]=n
+n
+ UUID 映射字符串: 75c699 
+ UUID: <UUID> 
+
+[OK]  停止 
+[OK]  已安装 Xray 
+[OK]  即将下载已编译的 Nginx v2026.10.15.7679 (arm) 
+#=#=#                                                                          
+##O#-#                                                                         
+##O=#  #                                                                       
+#=#=-#  #                                                                      
+-#O#- #   #                                                                    
+-=#=#   #   #                                                                  
+-=O#-#   #   #                                                                 
+
+                                                                           0.3%
+                                                                           0.5%
+                                                                           0.8%
+#                                                                          2.5%
+##                                                                         3.6%
+#####                                                                      7.1%
+#####                                                                      8.3%
+#######                                                                   10.3%
+########                                                                  11.5%
+###############                                                           21.7%
+###############                                                           21.9%
+################                                                          22.2%
+################                                                          22.6%
+##################                                                        25.8%
+###################                                                       27.5%
+#########################                                                 36.0%
+############################                                              40.1%
+##############################                                            43.0%
+####################################                                      50.3%
+######################################                                    52.8%
+#######################################                                   54.7%
+########################################                                  56.9%
+##########################################                                58.6%
+############################################                              62.2%
+##################################################                        69.5%
+####################################################                      72.3%
+######################################################                    76.3%
+########################################################                  78.5%
+#########################################################                 79.7%
+#############################################################             85.6%
+###############################################################           88.8%
+####################################################################      95.1%
+######################################################################    97.8%
+######################################################################## 100.0%
+[OK]  Nginx 下载 完成 
+[OK]  Nginx SHA256 校验 通过 
+[OK]  Nginx 压缩包安全检查通过 
+[OK]  Nginx systemd ServerFile 添加 完成 
+[OK]  Nginx SSL 配置修改 完成 
+
+ 证书文件已存在, 是否保留 [Y/N]? 
+STEP[keepCert]=y
+y
+[OK]  证书应用 完成 
+[OK]  Xray port 修改 完成 
+[OK]  端口: 443 
+[OK]  Nginx 配置修改 完成 
+[OK]  Nginx servers 配置修改 完成 
+[OK]  下载 Xray TLS 配置 完成 
+[OK]  Xray listen address 修改 完成 
+[OK]  Xray 伪装路径 修改 完成 
+[OK]  Xray inbound port 修改 完成 
+[OK]  Xray 用户名修改 完成 
+[OK]  Xray UUID 修改 完成 
+[警告]  缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置 
+Created symlink /etc/systemd/system/multi-user.target.wants/nginx.service → /etc/systemd/system/nginx.service.
+
+[OK]  设置 Nginx 开机自启 完成 
+Created symlink /etc/systemd/system/multi-user.target.wants/xray.service → /etc/systemd/system/xray.service.
+
+[OK]  设置 Xray 开机自启 完成 
+
+[OK]  新版本已自动设置证书自动更新 
+
+ 设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx) 
+[警告]  可能自动更新后有兼容问题, 谨慎启用 
+ 是否启用 [Y/N]? 
+STEP[autoUpdate]=n
+n
+[OK]  Nginx 重启 完成 
+[OK]  Xray 重启 完成 
+
+ 是否需要设置自动清理日志 [Y/N]? 
+STEP[logrotate]=n
+n
+[OK]  已跳过设置自动清理日志 
+Rill 检测到 Nginx 端口 None 未监听
+Rill 检测到 Xray 运行状态异常，已保持 AI 观察模式
+
+ 生成分享链接: 
+
+[OK]  Xray+Nginx+xHTTP+TLS 安装 完成 
+
+[警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
+[警告]  当前 xHTTP 仅支持 stream-one 和 stream-up 模式 
+[警告]  xHTTP 需要 mihomo (Meta) 内核, 原版 Clash 不支持 
+
+ —————————————— Xray 配置信息 —————————————— 
+ 主机 (host): example.com 
+ 端口 (port): 443 
+ Xray xHTTP 端口 (inbound_port): 11281 
+ UUIDv5 映射字符串: 75c699
+ 用户id (UUID): <UUID>
+ 加密 (encryption): None 
+ 传输协议 (network): xHTTP 
+ 底层传输安全 (tls): TLS 
+ xHTTP 路径 (path 不要落下/): /9b990e 
+
+ —————————————— Xray 链接分享 —————————————— 
+ xHTTP URL 分享链接: vless://REDACTED
+ 二维码: 
+█████████████████████████████████████████████████████████
+█████████████████████████████████████████████████████████
+████ ▄▄▄▄▄ █▀ ▀ ▀▄▄██▀█ ▀▄▀█▄▄▀ ▀▄▄▀▄ ▀ ▄▀▀▀ █ ▄▄▄▄▄ ████
+████ █   █ █▀█▀█▀▄█▀█   ▄█▄▀▀█ ▀▄█ ▀█▀█▄▀██ ▄█ █   █ ████
+████ █▄▄▄█ █▀  ██▄█▀ ▀▀ ▀  ▄▄▄ █▀▄▄██▀▀ ▄▄▀███ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄█ █▄█ █ █ ▀▄█ █▄█ █ ▀ █ █▄█▄▀ █▄█▄▄▄▄▄▄▄████
+████ ▄▄  █▄▄▄▀▀▀▀▄▀█▄▄▄▀▄▄  ▄▄▄██▀▀██▄▄ ▄ █▀▄ ▀▄▀ █ █████
+████ ▄▄▀▄ ▄█▄█▄█▀▄ ▀▄▄▀ ▀▀█▄█▄▄▀▀ ▀▀▀█▄▄█▀ ▄███  █▄ ▄████
+████▀ █ ▄▀▄ ▀▀ ▄█▄▄▀█▀█▄▀  ▄  ██▀  ██ █▀▄▄█▀▄  ▀█▀▄▀▄████
+████▀▄█▄▀▄▄██▄▀▀█▀▄▀█  ▄▄█▄▄▄▀▄▀ ▄▀ ▀█▄█▄ ▄▄▄▀█▄▀▄▄  ████
+████▄ ▄█▀▀▄▄ ▄▀ ▀ ▀▄▄▀▄▀▄█  ▄███▀█ ▄█▄█ ▄ ██▄ ▀ █▀▄▄▄████
+█████▄▄▄▀▄▄▀▄ █▀▀▀████▄▀▄▀▄▀▄   ▀▄█ ▀▀▄▀▄ ▄▀▄▀▀▄ ▀▄▄▄████
+████▀ ▀██ ▄ █▀██▀▀█▄▀  █▀▀    ██▀▀ █████ ▄█▄▄  ▄█▀ ▄█████
+████▀▀▄▀ ▄▄▄ ▄▄▀█▄█▄  ▀██  ▄▄▄  ▀▀█ ▀  ▄▄▄ ▀ ▄▄▄ ██▄ ████
+█████▀█▄ █▄█ ▄▄ ▀ ▀▄▄▄▄█▄  █▄█ ▄█  ▄███▄▄▀█▀ █▄█ ▀ ▄█████
+████  ▀   ▄▄▄▀█▀█▄ ▀▄▀▄ ██▄▄   ▀▀█▀▄▀█▄ ██▄█ ▄▄▄▄ ▄  ████
+████▀▀█▄▀ ▄ ▄▀▀█ ▄▄ █ █   ▀▀▀▄█▀▀  ▄▀ ▄▀ █▄▄ ▄█▄▄ ▄▄▄████
+████▀   ▀█▄  ██  ▀▄ █▀ █ ▀▄▀█▀▀▀ █▀ ▀▀▄▄▄▄▄█▀▄▄▀ ▄█▄▄████
+████▄  █ ▄▄▀█▄█▄█▀▀█▄ ▄▀▄▄█▀▀████ ▀▄█▄█▀  █▄▄  ▄▄█ ▄▄████
+████▀▄  ▄▀▄ ▀▀▀█ ▀█▄▄▄▄██▀▀█ ▄▀▀ ▀██ ▄▄▄▄▀▄▄▀▄▄▀▄▀▄▄▄████
+████▄▀▀▀ ▄▄▄█▀█▀▄▀█▄█▀█ █▀██▀▀▀▄█   █▀▄▄ ▀▄ █  ▀▄▄▄ ▄████
+█████ ▀▀█▄▄ █▄█▀█ ▄█▄  ▀▄▀▀  ▀▀▀▀▄██ █▄██▀ █▄█▄  ▄█▄ ████
+████▄▄▄███▄▄ ▀▀ ▀ ▀ ▄ ▄▄▄▄ ▄▄▄ █▀▀ ▄█▀█▄  █▄ ▄▄▄ ▄ ▄▄████
+████ ▄▄▄▄▄ █▄ ▀▀▄▄ █ █▀▄▀▀ █▄█ ▀ ▄▀▀ █▄ █ ▄▄ █▄█ ▀▄▀▄████
+████ █   █ █  ▄▄ ▄▄ ▀  █ ▄▄ ▄  ▀█▀ ▀▀▀▄▀ █▄▀ ▄ ▄ ▀ █▄████
+████ █▄▄▄█ █ ▄ ▄ ▄█▀▄▄ █ ▄▄ ▄▀█▀ █▀▀▀█ ▄██▄▀▀▄▀▄▀███▀████
+████▄▄▄▄▄▄▄█▄▄▄██▄█▄▄▄▄▄▄▄█▄██▄████▄███▄▄████████▄▄▄▄████
+█████████████████████████████████████████████████████████
+█████████████████████████████████████████████████████████
+
+ —————————————— Clash 配置分享 —————————————— 
+ Clash 配置分享: 
+proxies:
+
+  - name: VLESS-example.com-xhttp
+    type: vless
+    server: example.com
+    port: 443
+    uuid: <UUID>
+    client-fingerprint: chrome
+    tls: true
+    network: xhttp
+    xhttp-opts:
+      path: /9b990e
+      mode: auto
+    skip-cert-verify: false
+    servername: example.com
+
+ ——————————————————  END  —————————————————— 
+
+EXPECT_WAIT_STATUS=162 exp4 0 0

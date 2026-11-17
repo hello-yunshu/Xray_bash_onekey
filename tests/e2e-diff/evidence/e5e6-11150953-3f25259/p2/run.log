@@ -1,0 +1,10 @@
+09:53:28 run_id=e5e6-11150953-3f25259
+09:53:29 image_id=sha256:a20374dca6eb7b0229c0c5e41610e09484f2864aab0d9251ac69daab186e0c18
+09:53:29 building idleleo
+09:53:33 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=1859182e96c267189e25e0495e3f383bba1902f614cd2ebbb5a7147b54bde021
+09:53:36 argv-verify written
+09:53:36 [E5] start
+09:53:36 [E6] start
+09:53:54 [E5] done
+09:54:00 [E6] done
+09:54:00 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/e5e6-11150953-3f25259/p2

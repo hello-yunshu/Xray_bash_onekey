@@ -1,0 +1,38 @@
+{
+  "listeners": [
+    {
+      "local": "0.0.0.0:443",
+      "peer": "0.0.0.0:*",
+      "recvq": "0",
+      "sendq": "511",
+      "state": "LISTEN"
+    },
+    {
+      "local": "0.0.0.0:80",
+      "peer": "0.0.0.0:*",
+      "recvq": "0",
+      "sendq": "511",
+      "state": "LISTEN"
+    },
+    {
+      "local": "127.0.0.11:37615",
+      "peer": "0.0.0.0:*",
+      "recvq": "0",
+      "sendq": "4096",
+      "state": "LISTEN"
+    }
+  ],
+  "nginxActive": "active",
+  "nginxEnabled": "enabled",
+  "nginxTestExit": "0",
+  "nginxTestSupported": true,
+  "nginxVersion": "nginx version: nginx/1.30.6",
+  "units": {
+    "nginx": true,
+    "xray": false
+  },
+  "xrayActive": "inactive",
+  "xrayEnabled": "not-found",
+  "xrayTestExit": "skipped",
+  "xrayVersion": ""
+}

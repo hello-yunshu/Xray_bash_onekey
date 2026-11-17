@@ -1,0 +1,8 @@
+04:15:21 run_id=ops19-verify-0415
+04:15:22 image_id=sha256:6777d37f0a8c87e743b7024bbcbbfa4dedd99e875fe418931c0f8ff69b845cf7
+04:15:22 building idleleo
+04:15:28 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=0e0a019ef7d3f33848ec8cf429b5edab794f03e9dcde7a582619f485e64a5982
+04:15:30 argv-verify written
+04:15:30 [OPS-19] start
+04:16:44 [OPS-19] verdict=PASS
+04:16:44 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/ops19-verify-0415/p2

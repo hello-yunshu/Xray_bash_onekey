@@ -1,0 +1,2 @@
+nginx: [emerg] "stream" directive is not allowed here in /etc/idleleo/conf/nginx/relay-stream.conf:2
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test failed

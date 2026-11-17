@@ -1,0 +1,8 @@
+11:14:01 run_id=20261115-1114-863cead
+11:14:01 image_id=sha256:1acd39c2738636ee04625b038d08eb066ddc2b326220529f48cdceeb00719d88
+11:14:01 building idleleo
+11:14:06 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=19696342ed51a1804c3c4fb0012c50daf414936c24ebaf1edb8dc32649c452d2
+11:14:08 argv-verify written
+11:14:08 [OPS-21] start
+11:17:46 [OPS-21] verdict=BLOCKER
+11:17:46 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/20261115-1114-863cead/p2

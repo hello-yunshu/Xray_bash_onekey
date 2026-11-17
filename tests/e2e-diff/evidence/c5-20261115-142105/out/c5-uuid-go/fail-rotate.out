@@ -1,0 +1,4 @@
+target: user-c@idleleo
+inbound 0 client 2: user-c@idleleo  77777777-2222-3333-4444-555555555555 -> cccccccc-dddd-eeee-ffff-000000000000
+warning: this restarts the Xray service; every live connection drops for a few seconds (all users, not only user-c@idleleo)
+服务应用失败（退出码 1），已回滚：injected service failure

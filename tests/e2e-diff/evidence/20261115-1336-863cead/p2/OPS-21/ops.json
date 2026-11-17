@@ -1,0 +1,54 @@
+{
+  "id": "OPS-21",
+  "reasons": [
+    "bash: container network has no egress; the bash installer cannot resolve its public IP or fetch geoip.dat/geosite.dat",
+    "go never reached the control origin before blocking",
+    "go failed: applyRcZero, controlAfterApply, controlAfterEdit, controlAfterOff, editBlockReported, editOwnedRulesKept, editRcZero, editUuidApplied, offRcZero, rulesAdded"
+  ],
+  "sides": {
+    "bash": {
+      "checks": {},
+      "failed": [],
+      "status": null
+    },
+    "go": {
+      "checks": {
+        "adsBlocked": true,
+        "adsBlockedAfterEdit": true,
+        "applyRcZero": false,
+        "baselineControl": false,
+        "controlAfterApply": false,
+        "controlAfterEdit": false,
+        "controlAfterOff": false,
+        "countryBlocked": true,
+        "editBlockReported": false,
+        "editOwnedRulesKept": false,
+        "editRcZero": false,
+        "editRoutingIdentical": true,
+        "editUserRuleKept": true,
+        "editUuidApplied": false,
+        "fallbackDirect": true,
+        "noCatchAllBlocked": true,
+        "offRcZero": false,
+        "offRestored": true,
+        "privateBlocked": true,
+        "rulesAdded": false
+      },
+      "failed": [
+        "baselineControl",
+        "applyRcZero",
+        "rulesAdded",
+        "controlAfterApply",
+        "editRcZero",
+        "editUuidApplied",
+        "editOwnedRulesKept",
+        "editBlockReported",
+        "controlAfterEdit",
+        "offRcZero",
+        "controlAfterOff"
+      ],
+      "status": "fail"
+    }
+  },
+  "verdict": "HARNESS-ERROR"
+}

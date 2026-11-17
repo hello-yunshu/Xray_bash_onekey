@@ -1,0 +1,603 @@
+SCENARIO=M2 ROUND=1 ARG= MENU=1>1>5>1
+spawn bash /src/install.sh
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+
+╭─ Xray 管理脚... ─╮
+│                  │
+│ 当前模式: 未安装 │
+│ 当前语言: zh_CN  │
+│                  │
+├─ 版本检测 ───────┤
+│ 脚本: [最新版]   │
+│ Xray: [未安装]   │
+│ Nginx: [未安装]  │
+├─ 运行状态 ───────┤
+│ Xray: 未运行     │
+│ Nginx: 无需测试  │
+│ 连通性: 未安装   │
+├─ Rill Xray A... ─┤
+│                  │
+│ 检测：Rill       │
+│ 组件版本较旧...  │
+│                  │
+│ AI 判断: 未安装  │
+│ 服务: 未运行     │
+│ 路由辅助: 关闭   │
+╰──────────────────╯
+
+╭─ Xray 管理菜单 ──╮
+│                  │
+│  1. 安装向导     │
+│  2. 配置变更     │
+│  3. 查看信息     │
+│  4. Xray / TLS   │
+│  5. 更新向导     │
+│  6. 其他选项     │
+│  7. 备份恢复     │
+│  8. 修改语言 ... │
+│  9. Rill Xray... │
+│                  │
+│  0. 退出         │
+╰──────────────────╯
+请输入选项: STEP[menu]=1
+1
+
+╭─ 安装向导 ───────╮
+│                  │
+│  1. Reality      │
+│  2. ws/gRPC/x... │
+│  3. 中转节点 ... │
+│                  │
+│  0. 返回         │
+╰──────────────────╯
+请输入选项: STEP[menu]=1
+1
+
+╭─ Reality 部... ──╮
+│                  │
+│  1. Reality +... │
+│  2. 标准 Reality │
+│  3. Reality +... │
+│  4. Reality +... │
+│  5. Reality ...  │
+│                  │
+│  0. 返回         │
+╰──────────────────╯
+请输入选项: STEP[menu]=5
+5
+
+╭─ Reality 负... ──╮
+│                  │
+│  1. 主服务器(... │
+│  2. 二级服务...  │
+│                  │
+│  0. 返回         │
+╰──────────────────╯
+请输入选项: STEP[menu]=1
+1
+[OK]  当前用户是 root 用户, 开始安装 
+[OK]  当前系统为 Ubuntu 24.04 noble 
+[33m
+0% [Working][0m
+            
+Get:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease [256 kB]
+[33m
+0% [1 InRelease 0 B/256 kB 0%][0m[33m
+0% [1 InRelease 76.0 kB/256 kB 30%][0m[33m
+                                   
+0% [Waiting for headers][0m[33m
+0% [Waiting for headers][0m
+                        
+Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease [126 kB]
+[33m
+0% [2 InRelease 5452 B/126 kB 4%][0m[33m
+                                 
+0% [Waiting for headers][0m[33m
+0% [Waiting for headers][0m
+                        
+Get:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease [126 kB]
+[33m
+0% [3 InRelease 2572 B/126 kB 2%][0m[33m
+                                 
+0% [Working][0m[33m
+0% [Waiting for headers][0m
+                        
+Get:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease [126 kB]
+[33m
+0% [4 InRelease 5452 B/126 kB 4%][0m[33m
+                                 
+0% [Working][0m[33m
+13% [Waiting for headers][0m
+                         
+Get:5 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 Packages [19.0 MB]
+[33m
+13% [5 Packages 2637 B/19.0 MB 0%][0m[33m
+16% [5 Packages 1204 kB/19.0 MB 6%][0m[33m
+26% [5 Packages 5678 kB/19.0 MB 30%][0m[33m
+42% [5 Packages 12.9 MB/19.0 MB 68%][0m[33m
+                                    
+55% [Waiting for headers][0m
+                         
+Get:6 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 Packages [1776 kB]
+[33m
+55% [6 Packages 103 kB/1776 kB 6%][0m[33m
+56% [5 Packages store 0 B] [6 Packages 172 kB/1776 kB 10%][0m[33m
+                                                          
+59% [5 Packages store 0 B] [Waiting for headers][0m
+                                                
+Get:7 http://ports.ubuntu.com/ubuntu-ports noble/multiverse arm64 Packages [274 kB]
+[33m
+59% [5 Packages store 0 B] [7 Packages 53.9 kB/274 kB 20%][0m
+                                                          
+Get:8 http://ports.ubuntu.com/ubuntu-ports noble/restricted arm64 Packages [113 kB]
+[33m
+60% [5 Packages store 0 B] [8 Packages 27.2 kB/113 kB 24%][0m
+                                                          
+Get:9 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 Packages [1853 kB]
+[33m
+                                                          
+60% [5 Packages store 0 B] [9 Packages 0 B/1853 kB 0%][0m
+                                                      
+Get:10 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 Packages [2242 kB]
+[33m
+64% [5 Packages store 0 B] [10 Packages 3816 B/2242 kB 0%][0m[33m
+                                                          
+68% [10 Packages 1292 kB/2242 kB 58%][0m[33m
+68% [6 Packages store 0 B] [10 Packages 1329 kB/2242 kB 59%][0m[33m
+                                                            
+69% [10 Packages 1655 kB/2242 kB 74%][0m[33m
+69% [7 Packages store 0 B] [10 Packages 1662 kB/2242 kB 74%][0m[33m
+                                                            
+70% [10 Packages 1720 kB/2242 kB 77%][0m[33m
+70% [8 Packages store 0 B] [10 Packages 1727 kB/2242 kB 77%][0m[33m
+                                                            
+70% [10 Packages 1727 kB/2242 kB 77%][0m[33m
+70% [9 Packages store 0 B] [10 Packages 1727 kB/2242 kB 77%][0m[33m
+                                                            
+72% [10 Packages 2212 kB/2242 kB 99%][0m
+                                     
+Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/multiverse arm64 Packages [110 kB]
+[33m
+                                     
+72% [11 Packages 27.5 kB/110 kB 25%][0m[33m
+72% [10 Packages store 0 B] [11 Packages 30.4 kB/110 kB 28%][0m[33m
+                                                            
+72% [10 Packages store 0 B][0m
+                           
+Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/restricted arm64 Packages [3392 kB]
+[33m
+72% [10 Packages store 0 B] [12 Packages 0 B/3392 kB 0%][0m[33m
+                                                        
+74% [12 Packages 624 kB/3392 kB 18%][0m[33m
+74% [11 Packages store 0 B] [12 Packages 654 kB/3392 kB 19%][0m[33m
+                                                            
+75% [12 Packages 691 kB/3392 kB 20%][0m
+                                    
+Get:13 http://ports.ubuntu.com/ubuntu-ports noble-backports/multiverse arm64 Packages [669 B]
+[33m
+                                    
+81% [Waiting for headers][0m
+                         
+Get:14 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe arm64 Packages [36.3 kB]
+[33m
+81% [14 Packages 8497 B/36.3 kB 23%][0m[33m
+81% [12 Packages store 0 B] [14 Packages 8497 B/36.3 kB 23%][0m
+                                                            
+Get:15 http://ports.ubuntu.com/ubuntu-ports noble-backports/main arm64 Packages [49.0 kB]
+[33m
+                                                            
+81% [12 Packages store 0 B] [15 Packages 714 B/49.0 kB 1%][0m
+                                                          
+Get:16 http://ports.ubuntu.com/ubuntu-ports noble-security/universe arm64 Packages [1656 kB]
+[33m
+81% [12 Packages store 0 B] [16 Packages 2660 B/1656 kB 0%][0m[33m
+                                                           
+84% [16 Packages 1226 kB/1656 kB 74%][0m[33m
+85% [16 Packages 1226 kB/1656 kB 74%][0m[33m
+85% [14 Packages store 0 B] [16 Packages 1226 kB/1656 kB 74%][0m[33m
+                                                             
+85% [16 Packages 1226 kB/1656 kB 74%][0m[33m
+85% [15 Packages store 0 B] [16 Packages 1226 kB/1656 kB 74%][0m[33m
+                                                             
+86% [16 Packages 1226 kB/1656 kB 74%][0m
+                                     
+Get:17 http://ports.ubuntu.com/ubuntu-ports noble-security/restricted arm64 Packages [3270 kB]
+[33m
+                                     
+87% [17 Packages 2313 B/3270 kB 0%][0m[33m
+87% [16 Packages store 0 B] [17 Packages 11.4 kB/3270 kB 0%][0m[33m
+                                                            
+89% [17 Packages 594 kB/3270 kB 18%][0m
+                                    
+Get:18 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 Packages [1541 kB]
+[33m
+                                    
+95% [18 Packages 3526 B/1541 kB 0%][0m[33m
+95% [17 Packages store 0 B] [18 Packages 3526 B/1541 kB 0%][0m[33m
+                                                           
+98% [18 Packages 1444 kB/1541 kB 94%][0m[33m
+                                     
+99% [Working][0m[33m
+99% [18 Packages store 0 B][0m
+                           
+Get:19 http://ports.ubuntu.com/ubuntu-ports noble-security/multiverse arm64 Packages [102 kB]
+[33m
+99% [18 Packages store 0 B] [19 Packages 0 B/102 kB 0%][0m[33m
+                                                       
+99% [18 Packages store 0 B][0m[33m
+                           
+99% [Working][0m[33m
+99% [19 Packages store 0 B][0m[33m
+                           
+100% [Working][0m
+              
+Fetched 36.1 MB in 6s (6533 kB/s)
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 0%
+
+Reading package lists... 4%
+
+Reading package lists... 4%
+
+Reading package lists... 52%
+
+Reading package lists... 52%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 53%
+
+Reading package lists... 59%
+
+Reading package lists... 59%
+
+Reading package lists... 66%
+
+Reading package lists... 66%
+
+Reading package lists... 77%
+
+Reading package lists... 77%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 78%
+
+Reading package lists... 83%
+
+Reading package lists... 83%
+
+Reading package lists... 88%
+
+Reading package lists... 88%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... 99%
+
+Reading package lists... Done
+
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 0%
+
+Building dependency tree... 50%
+
+Building dependency tree... 50%
+
+Building dependency tree... Done
+
+
+Reading state information... 0% 
+
+Reading state information... 1%
+
+Reading state information... Done
+
+5 packages can be upgraded. Run 'apt list --upgradable' to see them.
+[OK]  已安装 bc curl dbus git jq lsof python3 qrencode 
+[OK]  已安装 cron 
+[OK]  crontab 自启动配置 完成 
+[OK]  已安装 iputils-ping 
+[OK]  Nginx 链接库安装 完成 
+
+ 确定公网IP信息 
+ 请选择公网IP为IPv4或IPv6 
+1: 自动检测 (IPv4/IPv6) (推荐)
+2: IPv4 (默认)
+3: IPv6
+4: 手动输入
+请输入: STEP[ip]=2
+2
+[OK]  正在获取公网IP信息, 请耐心等待 
+公网IP/域名: 203.0.113.42
+
+ 确定端口 
+请输入端口 (默认值:443):STEP[port]=443
+443
+
+ 是否需要自定义 Xray 用户名 [Y/N]? 
+STEP[email]=n
+n
+ Xray 用户名 (email): 4eccaceb62d7@hey.run 
+
+ 是否需要自定义字符串映射 (UUIDv5) [Y/N]? 
+STEP[uuid]=n
+n
+ UUID 映射字符串: 135bcb358982 
+ UUID: <UUID> 
+
+[OK]  已安装 nmap 
+
+ 请输入一个域名 (e.g. bing.com)
+域名必须支持 TLSv1.3、X25519、H2, 且不能跳转
+确认域名符合要求后请输入: STEP[target]=www.cloudflare.com
+www.cloudflare.com
+正在检测域名请等待...
+[OK]  域名 www.cloudflare.com 满足所有要求 
+ target 域名: www.cloudflare.com 
+
+ 是否需要自定义 www.cloudflare.com 域名的 serverNames [Y/N]? 
+STEP[serverNames]=n
+n
+ 默认为 www.cloudflare.com 域名本身
+[警告]  如不清楚具体用途, 请勿继续! 
+ serverNames: www.cloudflare.com 
+
+
+ 是否需要自定义 shortIds [Y/N]? 
+STEP[shortIds]=n
+n
+[OK]  已安装 openssl 
+ shortIds: 3fc79317e2b0c61f 
+
+ spiderX: /docs/yebd2jss/index.html 
+[OK]  443 端口未被占用 
+[OK]  已安装 Xray 
+
+ 是否需要自定义 privateKey [Y/N]? 
+STEP[privateKey]=n
+n
+ privateKey: 已生成并保存（不显示） 
+ publicKey (Password): Y3XGX8A0pLAO5ePm4wDxFffkQqP9sFJYtY93v9VsmXY 
+
+
+ 是否需要设置防火墙 [Y/N]? 
+STEP[firewall]=n
+n
+[OK]  跳过防火墙设置 
+[OK]  停止 
+[OK]  已启用 
+[OK]  即将下载已编译的 Nginx v2026.10.15.7679 (arm) 
+#=#=#                                                                          
+##O#-#                                                                         
+##O=#  #                                                                       
+#=#=-#  #                                                                      
+-#O#- #   #                                                                    
+-=#=#   #   #                                                                  
+
+                                                                           0.5%
+#                                                                          1.5%
+##                                                                         3.1%
+###                                                                        4.4%
+####                                                                       6.6%
+########                                                                  12.5%
+############                                                              17.2%
+####################                                                      28.8%
+#############################                                             41.0%
+######################################                                    53.5%
+###############################################                           65.9%
+##########################################################                81.3%
+###################################################################       93.2%
+######################################################################## 100.0%
+[OK]  Nginx 下载 完成 
+[OK]  Nginx SHA256 校验 通过 
+[OK]  Nginx 压缩包安全检查通过 
+[OK]  Nginx systemd ServerFile 添加 完成 
+
+ 异常 SNI 处理方式 
+1: 隔离异常流量, 不转发到 Xray (推荐)
+2: 使用指向本机 IP 的自建 HTTPS 站点作为回落 (高级)
+3: 直接拒绝异常 TLS 连接 (高级)
+[警告] 第 2 项需要你已有自己的域名, 并且该域名的 A/AAAA 记录指向本机公网 IP。若不了解含义, 请使用默认隔离策略。 
+请输入选项 (默认值:1):STEP[sniGuard]=1
+1
+[OK]  已选择隔离异常流量 
+[OK]  Nginx port 修改 完成 
+[OK]  端口: 443 
+[OK]  Nginx 配置修改 完成 
+[OK]  Nginx servers 配置修改 完成 
+[OK]  Nginx serverNames 配置修改 完成 
+[OK]  下载 Xray Reality 配置 完成 
+[OK]  target serverNames 配置修改 完成 
+[OK]  privateKey REDACTED 配置修改 完成 
+[警告]  Reality 不支持 path 
+[OK]  Xray inbound port 修改 完成 
+[OK]  Xray 用户名修改 完成 
+[OK]  Xray UUID 修改 完成 
+[警告]  缺少 geoip.dat/geosite.dat, 跳过 GeoData 原生配置 
+
+ 请选择 TLS 版本 (default:1): 
+ 建议选择 TLSv1.3 (安全模式) 
+1: TLSv1.3 (默认)
+2: TLSv1.2+ (兼容模式)
+请输入: STEP[tlsVersion]=1
+1
+[OK]  已切换至 TLSv1.3 
+[OK]  Nginx 重启 完成 
+[OK]  Xray 重启 完成 
+Created symlink /etc/systemd/system/multi-user.target.wants/nginx.service → /etc/systemd/system/nginx.service.
+
+[OK]  设置 Nginx 开机自启 完成 
+Created symlink /etc/systemd/system/multi-user.target.wants/xray.service → /etc/systemd/system/xray.service.
+
+[OK]  设置 Xray 开机自启 完成 
+
+ 设置后台定时自动更新程序 (包含: 脚本/Xray/Nginx) 
+[警告]  可能自动更新后有兼容问题, 谨慎启用 
+ 是否启用 [Y/N]? 
+STEP[autoUpdate]=n
+n
+[OK]  Nginx 重启 完成 
+[OK]  Xray 重启 完成 
+
+ 是否需要设置自动清理日志 [Y/N]? 
+STEP[logrotate]=n
+n
+[OK]  已跳过设置自动清理日志 
+Rill 检测到 Nginx 端口 None 未监听
+Rill 检测到 Xray 运行状态异常，已保持 AI 观察模式
+
+ 生成分享链接: 
+
+[OK]  Xray+Nginx+Reality+Balance 安装 完成 
+
+[警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
+
+ —————————————— Xray 配置信息 —————————————— 
+ 主机 (host): 203.0.113.42 
+ 端口 (port): 443 
+ UUIDv5 映射字符串: 135bcb358982
+ 用户id (UUID): <UUID>
+ 加密 (encryption): None 
+ 传输协议 (network): raw 
+ 底层传输安全 (tls): Reality 
+ 流控 (flow): xtls-rprx-vision 
+ target: www.cloudflare.com 
+ serverNames: www.cloudflare.com 
+ privateKey: 已生成并保存（不显示） 
+ publicKey (Password): Y3XGX8A0pLAO5ePm4wDxFffkQqP9sFJYtY93v9VsmXY 
+ shortIds: 3fc79317e2b0c61f 
+ spiderX: /docs/yebd2jss/index.html 
+
+ —————————————— Xray 链接分享 —————————————— 
+ URL 分享链接: vless://REDACTED
+ 二维码: 
+█████████████████████████████████████████████████████████████████████
+█████████████████████████████████████████████████████████████████████
+████ ▄▄▄▄▄ █▀▀ ▀▀ █▄█▀█▄▄▄█▄█▀ █▄  ▄█▄▄▄▄▀▀▄▄ ▀ █▀▀█▀██  █ ▄▄▄▄▄ ████
+████ █   █ █▀▄▀▀█ ▀ █ ▄ █▄▀▄▀▀▀ ▀▀▀██ ▀█ ▄▄▀▄▄ ▀▀█▄▀▄▄ ▄ █ █   █ ████
+████ █▄▄▄█ █▀  █ ▄██▄▀▄ ▄▀▄▀▀▄█▄ ▄▄▄ █▄▄   ▀▄▀█▄█▄ ▀   ▄██ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄▀▄▀▄▀▄█ █▄▀▄▀▄█▄█▄▀ █▄█ █▄█▄█▄█ █ █ █ ▀▄▀▄▀▄█▄▄▄▄▄▄▄████
+████▄▄▄▄ █▄▄▄ ██▄▄▀▄▄▄▀▄█▀ ▀ ██▄  ▄ ▄ █  ▄▀▄▄   █▀▀▀▀▀█▀▀▄▀ ▀ ▀▄█████
+████▀▀▀ ▀ ▄ ▄▄▀▄█▄▄██▀ ▄█ ▄  ▀█ █▄▄▀▄█▄  ▄▄▀ ██ ▄▀  ██ ▀██▀  ▀▀▄▄████
+████▄▀█▀██▄▀ █▀█▄▀   ▄█▀▀▀▄█▀▄▀  █▀▄█▄▀█ █ ▄▄▄▄▀▄▄▀▀▀ ▀▄▀▄▄█▄▀ ▄ ████
+█████ ▄ ▄█▄▀▄▀███▄ ▀█▄ ▄▀▄█▄▀▀█ ▀██ ▄▄██  ▄▄ ▄▀ ▄▄█ ▄█ ▀█▄█  ▀▀▀▀████
+████▄██ ▀▄▄ ▀ █▄▄▄▄▄▀▄▀▀▄▄█▄ ▀█▀▀ ▄▀▄ ▀ ▀▀█ █▀▄▀▄ █▀ ▄▀▀▄▄▄█▄   ▄████
+██████▄█▄█▄▄ █ █ █ ▄ ▀ ▄██▄▄ ▄▄▀█ █▄▄█▄▄▄▀▄▀█▄▀▄   █ ▄ █▄▀▄ ▄▀▀▀▀████
+████▄▀▀█ ▄▄ ▄▀▀▄▀▄█ ▀▄██ ▀▄▀▄▄ █▀  ▄ ▀ ▄▀ █ ███▀▄ ▀▄▀▄▀▄ ▄▄ ▄█▀ ▀████
+████▄▄ ▄ ▀▄█▀▄██▄▀ █▀▀ ▄▀██▀ ▄  ▄  ▀█ █▀▄▀  ██ ▄ ██▄▀█▄██▀██▀▄█▀▀████
+████▄  ▄▀▀▄█▄ ▄█▀█▀▀ ▀ ▀▀▀▄▀▄▄▄██▀ █▀▄▄▀  ▀▄▄▀▀▀█ ▀▀▀█▄▀▀▄▀█▀ ▄▀█████
+████▄ █ ▀▄▄█▀█ ▄▀ ▀█▀▄ ▀ ▄█  █▄▀▄▄▄ ▀ █▀ ▄█ ▄▀█▀▄████▄▄██▄▀█▄▀▀▄ ████
+██████   ▄▄▄ ▄██ ▄▀▀  █▄▀ ▄█ ▀█  ▄▄▄ █▀█▀█▀▄▄▄▄▀█ ▀▀▀█▀  ▄▄▄ █▄▀ ████
+████▄▄▄█ █▄█ █▄█ █▄██ ▀█▀▀ █ ▀▄█ █▄█  ▀▄▀ ▄ ▀ ▀▀█▄▀▄█▄▄█ █▄█ ▄▀▀▀████
+████▀▄▀█  ▄▄▄▄▄▄▄▀█▀█ ▀ ▀▀▄▀▄▀▄▀▄  ▄ ▀▀▀▀██▀█ ▄▀▄▀█  ▄▀▀▄    ▀▄▄ ████
+████▀ ▄█▄▀▄▀▀▀▀█ ▄ ▀██  ██▄▀█▄█▀  █▄▀▄██▄ ▄ █  █▄▀ ▄ ███▄▄▀ ▀▄▀ ▀████
+████  ▄██ ▄ ▄▀▀▄ ▀ ▀  █▀▀▄▄▄▄▄▄▀ ▀█▀█ █  ▀▀ ▀▄▄▀▄▀▀█▀ ▀ ▄ ▀ ▀▄█▀▀████
+█████▄  ▄▀▄█▄▀▀▄▄▀▀▀█▄█ ██▄ ▄▀█▀▄▀▀▄▄▀█ █▀█▄ ▀▀ ▀▀▀▀▄▄█▀▄▀█ ▀███▀████
+█████▀█▀▀█▄ █▀▄ ▄▄█▄▀▄▀▄█▄█▀ ▀█▄▀█  █ █▀▄▄▀ ▄▀▀█▀█▀█▀▀█▀▄  ▀ █  ▄████
+████▄█▄▄▄ ▄ ▀  █▀▄▀▀▀  ▄█▀▄ ▄▄▀▄ ▀ ▄▄▀▄▀▄ █▀▄▀▀▀█▀█▄ ▀▄  ▀█ ██▀█ ████
+████ ▀█▄ ▄▄▄  █▄ █▀ ▀▄▀▄▀█▄ ▄██ ▄▀██▄▀██▄█▄█▄▄▄██▄█ ▀ ▀▀ █▄▄▄███▄████
+████ ▀▄   ▄▄  ▀█▄▀████▀ █▄██ ▀▄███ ▀ █ ▀█▄▄▄  ▄▄█▄▄ ▄ █▀▀▄▄▄▄█▀ ▀████
+████▀▀ ███▄██▀██▀▄█▄▀▄█▀▄▄█▄ ▀▄ ▀ ██ ▀▀▀▀ ▄▄█ ▄ ▄▀█▀  ▀▀ ▄▀▀▀▀▀ ▀████
+████▀▀ ▄ ▄▄▄ █▄▄▄▄█▄ ▄ ▄▀██▄ ▄▄▀▀  ▄ █ ▀▀▀ █▄▄  ▀▀  ███▄▄▀█▄▀▀▀█▀████
+████▄▄▄▄██▄█▀▄█▀ █▀▀▀▀█ ▀ ▄ ▄▄▄▄ ▄▄▄  ▀▀  █▀▄▀ ▄▄█▀▀▀▄▀  ▄▄▄  ▄▄▄████
+████ ▄▄▄▄▄ █▄▄█ ▄▄██▀▀  ▀▄▄▀ ▄ ▄ █▄█ ▀▄█▄█▄▄█▄ █▀ █  ▄▄▀ █▄█ █▄ ▀████
+████ █   █ █ ▄█▀▀▄▀██▀ ▀▀ ▀██▄▄▀▄ ▄ ▄▀█▄▄▄▀█▄▄▀▄█▀▀▀▀▄█▄▄▄  ▄█ █ ████
+████ █▄▄▄█ █ ▀▀▄▄████▀▀▀  ▄▄▄▀ ▀█▀ ▄▄▀▄▀▄ ██▄▀▀▄▀▄▀███ ▄▄▄▄ ▄▄▀█ ████
+████▄▄▄▄▄▄▄█▄█▄▄▄█▄███████▄█▄█▄███▄████████▄▄█▄▄██▄██▄█▄▄▄█▄▄█▄▄▄████
+█████████████████████████████████████████████████████████████████████
+█████████████████████████████████████████████████████████████████████
+
+ —————————————— Clash 配置分享 —————————————— 
+ Clash 配置分享: 
+proxies:
+
+  - name: VLESS-203.0.113.42-tcp
+    type: vless
+    server: 203.0.113.42
+    port: 443
+    uuid: <UUID>
+    client-fingerprint: chrome
+    tls: true
+    flow: xtls-rprx-vision
+    network: tcp
+    skip-cert-verify: false
+    servername: www.cloudflare.com
+    reality-opts:
+      public-key: Y3XGX8A0pLAO5ePm4wDxFffkQqP9sFJYtY93v9VsmXY
+      short-id: 3fc79317e2b0c61f
+      spider-x: /docs/yebd2jss/index.html
+
+ ——————————————————  END  —————————————————— 
+
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+
+╭─ Xray 管理脚... ─╮
+│                  │
+│ 当前模式: Ngi... │
+│ 当前语言: zh_CN  │
+│                  │
+├─ 版本检测 ───────┤
+│ 脚本: [最新版]   │
+│ Xray: [最新版]   │
+│ Nginx: [最新版]  │
+├─ 运行状态 ───────┤
+│ Xray: 运行中..   │
+│ Nginx: 运行中..  │
+│ 连通性: 本地正常 │
+├─ Rill Xray A... ─┤
+│                  │
+│ 检测：Rill       │
+│ 组件版本较旧...  │
+│                  │
+│ AI 判断: 未安装  │
+│ 服务: 未运行     │
+│ 路由辅助: 关闭   │
+╰──────────────────╯
+
+╭─ Xray 管理菜单 ──╮
+│                  │
+│  1. 安装向导     │
+│  2. 配置变更     │
+│  3. 查看信息     │
+│  4. Xray / TLS   │
+│  5. 更新向导     │
+│  6. 其他选项     │
+│  7. 备份恢复     │
+│  8. 修改语言 ... │
+│  9. Rill Xray... │
+│                  │
+│  0. 退出         │
+╰──────────────────╯
+请输入选项: 0
+EXPECT_WAIT_STATUS=158 exp4 0 0

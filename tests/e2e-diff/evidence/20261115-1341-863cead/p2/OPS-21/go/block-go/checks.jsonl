@@ -1,0 +1,20 @@
+{"name":"baselineControl","ok":false,"detail":"blocked"}
+{"name":"applyRcZero","ok":true,"detail":"rc=0"}
+{"name":"rulesAdded","ok":true,"detail":"before=2 after=7"}
+{"name":"fallbackDirect","ok":true,"detail":""}
+{"name":"noCatchAllBlocked","ok":true,"detail":""}
+{"name":"controlAfterApply","ok":false,"detail":"blocked"}
+{"name":"adsBlocked","ok":true,"detail":"blocked"}
+{"name":"privateBlocked","ok":true,"detail":"blocked"}
+{"name":"countryBlocked","ok":true,"detail":"blocked"}
+{"name":"editRcZero","ok":false,"detail":"rc=1"}
+{"name":"editUuidApplied","ok":false,"detail":"c5d426a4-6531-42c9-9e25-ae5dc1141c73"}
+{"name":"editRoutingIdentical","ok":true,"detail":""}
+{"name":"editOwnedRulesKept","ok":true,"detail":"owned=5 missing=0"}
+{"name":"editUserRuleKept","ok":true,"detail":""}
+{"name":"editBlockReported","ok":false,"detail":"blockRuleCount="}
+{"name":"controlAfterEdit","ok":false,"detail":"blocked"}
+{"name":"adsBlockedAfterEdit","ok":true,"detail":"blocked"}
+{"name":"offRcZero","ok":true,"detail":"rc=0"}
+{"name":"offRestored","ok":true,"detail":"baseline=routing-with-user"}
+{"name":"controlAfterOff","ok":false,"detail":"blocked"}

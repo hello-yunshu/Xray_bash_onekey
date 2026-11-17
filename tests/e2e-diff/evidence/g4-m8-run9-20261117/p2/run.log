@@ -1,0 +1,12 @@
+20:49:23 run_id=g4-m8-run9-20261117
+20:49:24 image_id=sha256:f587e12e93ca39698d0855a3c5fb4905cd5738e3c2906150f6f0fb8b14087566
+20:49:24 building idleleo
+20:49:30 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=63606b9c787d7d68a9796c6ec2adbb443a95c7f442d4aef843f2d9c290bbb9ac
+20:49:30 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+20:49:30 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+20:49:33 argv-verify written
+20:49:33 [M8] start
+20:49:34 [M8] pebble ready
+20:53:41 [M8] done
+20:53:41 scope: installs=[M8] edits=[] ops=[]
+20:53:41 P2 finished: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/g4-m8-run9-20261117/p2

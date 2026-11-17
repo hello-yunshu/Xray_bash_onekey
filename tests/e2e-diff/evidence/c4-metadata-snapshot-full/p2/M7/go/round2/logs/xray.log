@@ -1,0 +1,21 @@
+<TS> e2e-c4-metadata-snapshot-full-M7-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: 2026/11/14 19:37:39.543231 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: 2026/11/14 19:37:39.543706 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: 2026/11/14 19:37:39.546323 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+<TS> e2e-c4-metadata-snapshot-full-M7-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-c4-metadata-snapshot-full-M7-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-c4-metadata-snapshot-full-M7-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M7-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: 2026/11/14 19:37:51.140711 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: 2026/11/14 19:37:51.140812 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-c4-metadata-snapshot-full-M7-go xray[<PID>]: 2026/11/14 19:37:51.140817 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+2026/11/14 19:37:39.551121 [Warning] core: Xray 26.10.31 started
+2026/11/14 19:37:42.479002 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:60372 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/14 19:37:46.680183 [Warning] transport/internet/grpc/encoding: received "X-Forwarded-For" from 127.0.0.1:54184 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/14 19:37:50.109939 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:40366 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/14 19:37:50.109968 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:40354 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/14 19:37:51.146777 [Warning] core: Xray 26.10.31 started

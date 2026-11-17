@@ -1,0 +1,4 @@
+installed: mode=none transport=ws tls=None
+config=/etc/idleleo/conf/xray/config.json sha256=8251f96a9495a0b91ef8f4d79344a7ecdb246d94ed5a9cd73d4d8860065257c3
+service active=active enabled=enabled
+warning=multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others

@@ -1,0 +1,27 @@
+{
+  "cron": {
+    "curCount": 0,
+    "duplicates": [],
+    "prevCount": 0,
+    "stable": true
+  },
+  "inbounds": null,
+  "manifest": {
+    "added": [],
+    "addedCount": 0,
+    "backupAddedCount": 23,
+    "backupRemovedCount": 0,
+    "changed": [
+      "/etc/idleleo/conf/install_config.json",
+      "/etc/idleleo/conf/xray/config.json",
+      "/etc/idleleo/info/xray_info.inf",
+      "/etc/idleleo/logs/install.log"
+    ],
+    "changedCount": 4,
+    "removed": [],
+    "removedCount": 0,
+    "stable": true
+  },
+  "ok": true,
+  "schemaVersion": 1
+}

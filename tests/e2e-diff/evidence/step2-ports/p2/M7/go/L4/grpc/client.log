@@ -1,0 +1,6 @@
+Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/14 16:48:35.932946 [Info] infra/conf/serial: Reading config: &{Name:/client/client.json Format:json}
+2026/11/14 16:48:35.933616 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+2026/11/14 16:48:35.933655 [Warning] core: Xray 26.10.31 started
+2026/11/14 16:48:38.089115 from tcp:127.0.0.1:45418 accepted tcp:example.com:80

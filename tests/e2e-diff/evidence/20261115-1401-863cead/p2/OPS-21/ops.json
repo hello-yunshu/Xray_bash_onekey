@@ -1,0 +1,49 @@
+{
+  "id": "OPS-21",
+  "reasons": [
+    "bash: container network has no egress; the bash installer cannot resolve its public IP or fetch geoip.dat/geosite.dat"
+  ],
+  "sides": {
+    "bash": {
+      "checks": {},
+      "failed": [],
+      "reasons": [
+        "bash: container network has no egress; the bash installer cannot resolve its public IP or fetch geoip.dat/geosite.dat"
+      ],
+      "status": "HARNESS-ERROR"
+    },
+    "go": {
+      "checks": {
+        "adsBlocked": true,
+        "adsBlockedAfterEdit": true,
+        "applyRcZero": true,
+        "baselineControl": true,
+        "controlAfterApply": true,
+        "controlAfterEdit": true,
+        "controlAfterOff": true,
+        "countryBlocked": true,
+        "customListConfigured": true,
+        "customListKept": true,
+        "customRuleApplied": true,
+        "customRuleRemoved": true,
+        "editBlockReported": true,
+        "editOwnedRulesKept": true,
+        "editRcZero": true,
+        "editRoutingIdentical": true,
+        "editUserRuleKept": true,
+        "editUuidApplied": true,
+        "fallbackDirect": true,
+        "noCatchAllBlocked": true,
+        "offRcZero": true,
+        "offRestored": true,
+        "privateBlocked": true,
+        "realityOriginLocal": true,
+        "rulesAdded": true
+      },
+      "failed": [],
+      "reasons": [],
+      "status": "pass"
+    }
+  },
+  "verdict": "HARNESS-ERROR"
+}

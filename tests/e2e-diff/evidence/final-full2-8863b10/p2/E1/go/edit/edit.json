@@ -1,0 +1,22 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "uuid"
+  ],
+  "diff": [
+    "inbounds[0].settings.clients[0].id"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "fe39904021f755666d228bcc9adad3162f95a2ae1986c8dd39fae2977bb6e72e",
+  "newSha256": "adcb74c4d708bcf4946a609ef30566ad4ed20fc8b3debc546e4dd7e3f9b7ba30",
+  "backupDir": "/etc/idleleo/backup/edit-20261114T181121",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://99999999-8888-7777-6666-555555555555@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=hWAEWngzu1plgutwTKfKzL3stzsJMGKAeHsP3Cca0w8&sid=f6356aeb&type=raw#idleleo-reality",
+  "disconnect": true,
+  "warnings": null
+}

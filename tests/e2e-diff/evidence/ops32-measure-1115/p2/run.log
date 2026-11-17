@@ -1,0 +1,11 @@
+10:09:11 run_id=ops32-measure-1115
+10:09:12 image_id=sha256:2b12394a5b815532ceb42eb98deb5977b0e378224fbf91d2267bf16854be3396
+10:09:12 building idleleo
+10:09:16 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=1859182e96c267189e25e0495e3f383bba1902f614cd2ebbb5a7147b54bde021
+10:09:19 argv-verify written
+10:09:19 [OPS-32] start upstream=ws
+10:13:22 [OPS-32/ws] verdict=PASS
+10:13:22 [OPS-32] start upstream=reality
+10:17:18 [OPS-32/reality] verdict=PASS
+10:17:18 [OPS-32] verdict=PASS
+10:17:19 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/ops32-measure-1115/p2

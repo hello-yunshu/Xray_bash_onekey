@@ -1,0 +1,2 @@
+== 127.0.0.1.wsServers
+server 127.0.0.1:10477 weight=50 max_fails=2 fail_timeout=10;

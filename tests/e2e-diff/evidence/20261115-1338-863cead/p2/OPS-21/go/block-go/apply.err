@@ -1,0 +1,1 @@
+reality handshake with example.com:443 failed: read tcp 127.0.0.1:55748->127.0.0.1:41669: read: connection reset by peer (); previous configuration restored

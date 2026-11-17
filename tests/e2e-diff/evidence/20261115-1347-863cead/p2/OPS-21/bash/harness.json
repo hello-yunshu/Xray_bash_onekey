@@ -1,0 +1,4 @@
+{
+  "status": "harness-error",
+  "reason": "container network has no egress; the bash installer cannot resolve its public IP or fetch geoip.dat/geosite.dat"
+}

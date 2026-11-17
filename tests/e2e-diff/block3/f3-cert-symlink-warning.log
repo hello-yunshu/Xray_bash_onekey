@@ -1,0 +1,30 @@
+=== symlink cert dir + same-build repair: warning must appear ===
+lrwxrwxrwx 1 root root 11 Nov 13 14:02 /etc/idleleo/cert -> /srv/certs2
+exit=0
+  "warnings": [
+    "managed nginx: certificate directory unavailable: symlink refused: /etc/idleleo/cert",
+    "nginx version: nginx version: nginx/1.30.6",
+    "nginx-syntax-verified; routing verified only by the Docker e2e harness"
+  ],
+active
+=== negative: worker cannot read key through symlink ===
+exit=1
+Nginx artifact download failed: https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v2026.10.15.7679/xray-nginx-custom-arm.tar.gz read failed: context deadline exceeded (Client.Timeout or context cancellation while reading body)
+attempt 1: download timeout, retry
+attempt 2: download timeout, retry
+exit=1
+idleleo-nginx cannot read /srv/certs2/xray.key: runuser idleleo-nginx failed (exit 1): ; managed Nginx is installed at /etc/idleleo/conf/nginx and can be removed with 'idleleo xray uninstall'
+active
+worker-read-exit=1
+=== restore key ownership, retry ===
+exit=0
+  "warnings": [
+    "managed nginx: certificate directory unavailable: symlink refused: /etc/idleleo/cert",
+    "nginx version: nginx version: nginx/1.30.6",
+active
+active
+=== restore real cert directory ===
+drwxr-x--- 1 root idleleo-nginx 32 Nov 13 14:07 /etc/idleleo/cert
+total 8
+-rw-r----- 1 root idleleo-nginx 1119 Nov 13 13:38 xray.crt
+-rw-r----- 1 root idleleo-nginx 1704 Nov 13 13:38 xray.key

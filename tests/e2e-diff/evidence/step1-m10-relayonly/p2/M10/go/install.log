@@ -1,0 +1,2 @@
+nginx -t rejected the configuration (exit 1): nginx: [emerg] "stream" directive is not allowed here in /etc/idleleo/conf/nginx/relay-stream.conf:2
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test failed; managed Nginx is installed at /etc/idleleo/conf/nginx and can be removed with 'idleleo xray uninstall'

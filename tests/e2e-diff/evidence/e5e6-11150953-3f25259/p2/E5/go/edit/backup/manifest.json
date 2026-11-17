@@ -1,0 +1,18 @@
+{
+  "changed": [
+    "cert-file",
+    "cert-key-file"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "createdAt": "2026-11-15T01:53:49Z",
+  "diff": null,
+  "scheduleFile": "/etc/idleleo/schedule/jobs.json",
+  "scheduleSaved": true,
+  "tlsCertFile": "/etc/idleleo/cert/xray.crt",
+  "tlsCertSaved": true,
+  "tlsDomain": "example.com",
+  "tlsKeyFile": "/etc/idleleo/cert/xray.key",
+  "tlsKeySaved": true,
+  "tlsNewCertFile": "/etc/idleleo/cert/e5-new.crt",
+  "tlsNewKeyFile": "/etc/idleleo/cert/e5-new.key"
+}
