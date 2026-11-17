@@ -3,12 +3,15 @@
 // and xray_stats.sh). Migration removes those cron lines, so these jobs must be
 // taken over explicitly instead of being parked in a deferred list.
 //
-// Two jobs have explicit degradation semantics rather than silent pausing:
-//   - auto-update uses the Go release channel when one is configured and
-//     records an explicit degraded result when it is not (the legacy Bash
-//     updater has been removed, so guessing a URL is not acceptable);
-//   - cert-renew monitors certificate expiry but never performs ACME issuance
-//     (real ACME is out of scope for this phase).
+// auto-update keeps one explicit degradation: it uses the Go release channel
+// when one is configured and records a degraded result when it is not (the
+// legacy Bash updater has been removed, so guessing a URL is not acceptable).
+//
+// cert-renew drives the native ACME renewal path itself once a certificate is
+// inside the 30-day window: it renews with the same internal/acme executor as
+// `idleleo xray cert renew`, records the new fingerprint and reloads Xray/Nginx.
+// Failures are recorded as "failed" and leave a durable alert file that
+// `idleleo status` prints first.
 //
 // geodata-refresh and stats-collect are fully implemented with the real asset
 // origin and the real Xray API.
@@ -23,14 +26,15 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
+	"os/user"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/acme"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/geodata"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/release"
 )
@@ -52,6 +56,19 @@ const (
 	UnitRel  = "etc/systemd/system/idleleo-schedule.service"
 	TimerRel = "etc/systemd/system/idleleo-schedule.timer"
 
+	// AlertServiceUnitRel is the OnFailure target of the schedule service.
+	AlertServiceUnitRel = "etc/systemd/system/idleleo-alert.service"
+	// AlertsDirRel stores durable job alerts. `idleleo status` reads it first.
+	AlertsDirRel = "etc/idleleo/alerts"
+
+	// ACMEStagingDirectory is the safe default for direct CLI use. Production
+	// paths (install.sh, ssl_update.sh, schedule install) pass --production.
+	ACMEStagingDirectory    = "https://acme-staging-v02.api.letsencrypt.org/directory"
+	ACMEProductionDirectory = "https://acme-v02.api.letsencrypt.org/directory"
+
+	// CertRenewWindow is the renewal window for cert-renew.
+	CertRenewWindow = 30 * 24 * time.Hour
+
 	DefaultIntervalSeconds = 3600
 	DefaultGeodataURL      = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download"
 
@@ -65,12 +82,11 @@ const (
 // Jobs are the four legacy cron responsibilities, in stable order.
 var Jobs = []string{"auto-update", "cert-renew", "geodata-refresh", "stats-collect"}
 
-// DegradedJobs documents the two product degradations in machine-readable form.
-// Neither is a reason to remove the legacy cron: activation keeps
-// auto_update.sh and ssl_update.sh until Go has equivalent executors.
+// DegradedJobs documents the remaining product degradation in machine-readable
+// form. cert-renew is no longer degraded: it runs the same ACME executor as the
+// CLI inside the renewal window.
 var DegradedJobs = []string{
 	"auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)",
-	"cert-renew: certificate expiry is monitored but ACME issuance/renewal is not implemented, so the legacy ssl_update.sh cron is retained (explicit degradation; renew externally)",
 }
 
 // Config is the persisted schedule definition.
@@ -80,6 +96,66 @@ type Config struct {
 	Jobs            []string `json:"jobs"`
 	GeodataURL      string   `json:"geodataUrl,omitempty"`
 	GeodataDir      string   `json:"geodataDir,omitempty"`
+
+	// Certificate renewal. CertDomain is required before cert-renew can renew;
+	// the rest have production-safe defaults so an existing install keeps
+	// working after an upgrade.
+	CertDomain    string `json:"certDomain,omitempty"`
+	CertWebroot   string `json:"certWebroot,omitempty"`
+	CertFile      string `json:"certFile,omitempty"`
+	CertKeyFile   string `json:"certKeyFile,omitempty"`
+	ACMEDirectory string `json:"acmeDirectory,omitempty"`
+	ACMEEmail     string `json:"acmeEmail,omitempty"`
+	AlertWebhook  string `json:"alertWebhook,omitempty"`
+}
+
+// applyDefaults fills every optional field. It is shared by loadConfig and
+// Install so a freshly written config and a config read back behave the same.
+func (c *Config) applyDefaults() {
+	if c.SchemaVersion == 0 {
+		c.SchemaVersion = SchemaVersion
+	}
+	if c.IntervalSeconds <= 0 {
+		c.IntervalSeconds = DefaultIntervalSeconds
+	}
+	if len(c.Jobs) == 0 {
+		c.Jobs = Jobs
+	}
+	if c.GeodataURL == "" {
+		c.GeodataURL = DefaultGeodataURL
+	}
+	if c.GeodataDir == "" {
+		c.GeodataDir = GeodataDirRel
+	}
+	if c.CertFile == "" {
+		c.CertFile = CertDirRel + "/xray.crt"
+	}
+	if c.CertKeyFile == "" {
+		c.CertKeyFile = CertDirRel + "/xray.key"
+	}
+	if c.CertWebroot == "" {
+		c.CertWebroot = "etc/idleleo/conf"
+	}
+	if c.ACMEDirectory == "" {
+		c.ACMEDirectory = ACMEStagingDirectory
+	}
+}
+
+// validatePaths rejects configuration paths that would escape the selected
+// root. Skipping this check used to surface as a confusing empty path such as
+// "mkdir : no such file or directory".
+func (c Config) validatePaths() error {
+	for _, f := range []struct{ name, value string }{
+		{"geodataDir", c.GeodataDir},
+		{"certFile", c.CertFile},
+		{"certKeyFile", c.CertKeyFile},
+		{"certWebroot", c.CertWebroot},
+	} {
+		if _, err := resolve("/", f.value); err != nil {
+			return fmt.Errorf("unsafe schedule config path: %s %q", f.name, f.value)
+		}
+	}
+	return nil
 }
 
 // JobState is the last recorded result of one job.
@@ -111,6 +187,9 @@ type Report struct {
 	Root          string      `json:"root"`
 	StartedAt     string      `json:"startedAt"`
 	Results       []JobResult `json:"results"`
+	// LogWarning records a failure to append the run log. It never changes the
+	// exit code: a lost log line is visible but is not a job failure.
+	LogWarning string `json:"logWarning,omitempty"`
 }
 
 // RunOptions selects the root and an optional job subset.
@@ -161,10 +240,11 @@ func requireRunRoot(root string) error {
 }
 
 func loadConfig(root string) (Config, error) {
-	cfg := Config{SchemaVersion: SchemaVersion, IntervalSeconds: DefaultIntervalSeconds, Jobs: Jobs, GeodataURL: DefaultGeodataURL}
+	var cfg Config
 	b, err := os.ReadFile(path(root, ConfigRel))
 	if err != nil {
 		if os.IsNotExist(err) {
+			cfg.applyDefaults()
 			return cfg, nil
 		}
 		return cfg, err
@@ -175,17 +255,9 @@ func loadConfig(root string) (Config, error) {
 	if cfg.SchemaVersion != SchemaVersion {
 		return Config{}, fmt.Errorf("schedule config schema %d is not supported", cfg.SchemaVersion)
 	}
-	if cfg.IntervalSeconds <= 0 {
-		cfg.IntervalSeconds = DefaultIntervalSeconds
-	}
-	if len(cfg.Jobs) == 0 {
-		cfg.Jobs = Jobs
-	}
-	if cfg.GeodataURL == "" {
-		cfg.GeodataURL = DefaultGeodataURL
-	}
-	if cfg.GeodataDir == "" {
-		cfg.GeodataDir = GeodataDirRel
+	cfg.applyDefaults()
+	if err := cfg.validatePaths(); err != nil {
+		return cfg, err
 	}
 	return cfg, nil
 }
@@ -195,18 +267,27 @@ type InstallOptions struct {
 	Root            string
 	IntervalSeconds int
 	GeodataURL      string
+
+	CertDomain    string
+	CertWebroot   string
+	CertFile      string
+	CertKeyFile   string
+	ACMEDirectory string
+	ACMEEmail     string
+	AlertWebhook  string
 }
 
 // InstallReport confirms what was written and enabled.
 type InstallReport struct {
-	SchemaVersion   int      `json:"schemaVersion"`
-	ConfigPath      string   `json:"configPath"`
-	ServicePath     string   `json:"servicePath"`
-	TimerPath       string   `json:"timerPath"`
-	IntervalSeconds int      `json:"intervalSeconds"`
-	Jobs            []string `json:"jobs"`
-	DegradedJobs    []string `json:"degradedJobs"`
-	Systemd         string   `json:"systemd"`
+	SchemaVersion    int      `json:"schemaVersion"`
+	ConfigPath       string   `json:"configPath"`
+	ServicePath      string   `json:"servicePath"`
+	TimerPath        string   `json:"timerPath"`
+	AlertServicePath string   `json:"alertServicePath"`
+	IntervalSeconds  int      `json:"intervalSeconds"`
+	Jobs             []string `json:"jobs"`
+	DegradedJobs     []string `json:"degradedJobs"`
+	Systemd          string   `json:"systemd"`
 }
 
 // Install writes the schedule config plus the systemd service/timer and starts
@@ -221,7 +302,18 @@ func Install(ctx context.Context, opts InstallOptions) (InstallReport, error) {
 	if geoURL == "" {
 		geoURL = DefaultGeodataURL
 	}
-	cfg := Config{SchemaVersion: SchemaVersion, IntervalSeconds: interval, Jobs: Jobs, GeodataURL: geoURL, GeodataDir: GeodataDirRel}
+	cfg := Config{
+		SchemaVersion: SchemaVersion, IntervalSeconds: interval, Jobs: Jobs,
+		GeodataURL: geoURL, GeodataDir: GeodataDirRel,
+		CertDomain: opts.CertDomain, CertWebroot: opts.CertWebroot,
+		CertFile: opts.CertFile, CertKeyFile: opts.CertKeyFile,
+		ACMEDirectory: opts.ACMEDirectory, ACMEEmail: opts.ACMEEmail,
+		AlertWebhook: opts.AlertWebhook,
+	}
+	cfg.applyDefaults()
+	if err := cfg.validatePaths(); err != nil {
+		return report, err
+	}
 	cfgPath := path(opts.Root, ConfigRel)
 	b, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
@@ -241,10 +333,18 @@ func Install(ctx context.Context, opts InstallOptions) (InstallReport, error) {
 Description=idleleo Go scheduled maintenance (Bridge migration takeover)
 After=network-online.target
 Wants=network-online.target
+OnFailure=idleleo-alert.service
 
 [Service]
 Type=oneshot
 ExecStart=%s schedule run
+`, exec)
+	alertUnit := fmt.Sprintf(`[Unit]
+Description=idleleo scheduled-job failure alert
+
+[Service]
+Type=oneshot
+ExecStart=%s schedule alert --job service-failure --detail idleleo-schedule.service_failed
 `, exec)
 	timer := fmt.Sprintf(`[Unit]
 Description=idleleo scheduled maintenance timer
@@ -260,13 +360,18 @@ WantedBy=timers.target
 `, interval, interval)
 	servicePath := path(opts.Root, UnitRel)
 	timerPath := path(opts.Root, TimerRel)
+	alertServicePath := path(opts.Root, AlertServiceUnitRel)
 	if err := writeAtomic(servicePath, []byte(service), 0o644); err != nil {
 		return report, err
 	}
 	if err := writeAtomic(timerPath, []byte(timer), 0o644); err != nil {
 		return report, err
 	}
+	if err := writeAtomic(alertServicePath, []byte(alertUnit), 0o644); err != nil {
+		return report, err
+	}
 	report.ServicePath, report.TimerPath = servicePath, timerPath
+	report.AlertServicePath = alertServicePath
 
 	if opts.Root == "/" {
 		if err := systemctl(ctx, "daemon-reload"); err != nil {
@@ -295,11 +400,14 @@ func Remove(ctx context.Context, root string) ([]string, error) {
 	if _, err := os.Stat(servicePath); err == nil {
 		installed = true
 	}
+	if _, err := os.Stat(path(root, AlertServiceUnitRel)); err == nil {
+		installed = true
+	}
 	if root == "/" && installed {
 		_ = systemctl(ctx, "disable", "--now", "idleleo-schedule.timer")
 		actions = append(actions, "stopped idleleo-schedule.timer")
 	}
-	for _, p := range []string{servicePath, timerPath} {
+	for _, p := range []string{servicePath, timerPath, path(root, AlertServiceUnitRel)} {
 		if err := os.Remove(p); err != nil && !os.IsNotExist(err) {
 			return actions, err
 		}
@@ -330,6 +438,11 @@ func Run(ctx context.Context, opts RunOptions) (Report, error) {
 		return Report{SchemaVersion: SchemaVersion}, err
 	}
 	report := Report{SchemaVersion: SchemaVersion, Root: opts.Root, StartedAt: now(), Results: []JobResult{}}
+	recordLog := func(res JobResult) {
+		if err := appendLog(opts.Root, res); err != nil && report.LogWarning == "" {
+			report.LogWarning = err.Error()
+		}
+	}
 	cfg, err := loadConfig(opts.Root)
 	if err != nil {
 		return report, err
@@ -350,7 +463,7 @@ func Run(ctx context.Context, opts RunOptions) (Report, error) {
 			for _, job := range selected {
 				res := JobResult{Job: job, Result: "skipped", Detail: "another idleleo update holds the update lock", At: now()}
 				report.Results = append(report.Results, res)
-				_ = appendLog(opts.Root, res)
+				recordLog(res)
 			}
 			return report, nil
 		}
@@ -365,14 +478,14 @@ func Run(ctx context.Context, opts RunOptions) (Report, error) {
 		case "auto-update":
 			res = autoUpdateJob(ctx, opts.Root, at, lock)
 		case "cert-renew":
-			res = certRenewJob(ctx, opts.Root, at)
+			res = certRenewJob(ctx, opts.Root, cfg, at)
 		case "geodata-refresh":
 			res = geodataJob(ctx, opts.Root, cfg, at)
 		case "stats-collect":
 			res = statsJob(ctx, opts.Root, at)
 		}
 		report.Results = append(report.Results, res)
-		_ = appendLog(opts.Root, res)
+		recordLog(res)
 	}
 	if err := writeState(opts.Root, report.Results); err != nil {
 		return report, err
@@ -460,6 +573,138 @@ func hashRaw(b []byte) string {
 	return hex.EncodeToString(sum[:])
 }
 
+// observeCert prefers the configured pair, so a certificate stored outside
+// etc/idleleo/cert is still observed after an in-place edit. The directory
+// scan stays as the fallback for installs that never set a path.
+func observeCert(root string, cfg Config) (certObservation, error) {
+	if cfg.CertFile != "" {
+		if obs, ok := scanCertFile(root, cfg.CertFile, cfg.CertKeyFile); ok {
+			return obs, nil
+		}
+	}
+	return scanCert(path(root, CertDirRel))
+}
+
+// scanCertFile observes exactly the configured certificate and key. It
+// reports ok=false when the pair is missing so the caller can fall back.
+func scanCertFile(root, certRel, keyRel string) (certObservation, bool) {
+	var obs certObservation
+	p, err := resolve(root, certRel)
+	if err != nil {
+		return obs, false
+	}
+	b, err := os.ReadFile(p)
+	if err != nil {
+		return obs, false
+	}
+	for {
+		var block *pem.Block
+		block, b = pem.Decode(b)
+		if block == nil {
+			break
+		}
+		if block.Type != "CERTIFICATE" {
+			continue
+		}
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			continue
+		}
+		if obs.NotAfter.IsZero() || cert.NotAfter.Before(obs.NotAfter) {
+			obs.NotAfter = cert.NotAfter
+			obs.Name = filepath.Base(p)
+			obs.Path = p
+			obs.Fingerprint = hashRaw(cert.Raw)
+		}
+	}
+	if obs.NotAfter.IsZero() {
+		return obs, false
+	}
+	if keyRel != "" {
+		if kp, err := resolve(root, keyRel); err == nil {
+			if fi, err := os.Stat(kp); err == nil && fi.Mode().Perm()&0o004 != 0 {
+				obs.InsecureKey = append(obs.InsecureKey, fmt.Sprintf("%s mode %04o is world-readable", kp, fi.Mode().Perm()))
+			}
+		}
+	}
+	return obs, true
+}
+
+// SetCertTarget points the cert-renew job at a new domain/pair after an
+// in-place edit. It never issues or renews anything. It returns false when no
+// schedule config exists (nothing to keep in sync). Paths outside the install
+// root cannot be expressed in jobs.json and are reported instead of written.
+func SetCertTarget(root, domain, certFile, keyFile string) (bool, []string, error) {
+	cfgPath := path(root, ConfigRel)
+	b, err := os.ReadFile(cfgPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil, nil
+		}
+		return false, nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return false, nil, fmt.Errorf("schedule config is not valid JSON: %w", err)
+	}
+	warnings := []string{}
+	set := func(field, src string) {
+		if src == "" {
+			return
+		}
+		rel, err := relToRoot(root, src)
+		if err != nil {
+			warnings = append(warnings, fmt.Sprintf("schedule %s not updated: %v", field, err))
+			return
+		}
+		raw[field] = rel
+	}
+	if domain != "" {
+		raw["certDomain"] = domain
+	}
+	set("certFile", certFile)
+	set("certKeyFile", keyFile)
+	out, err := json.MarshalIndent(raw, "", "  ")
+	if err != nil {
+		return false, warnings, err
+	}
+	out = append(out, '\n')
+	info, err := os.Stat(cfgPath)
+	if err != nil {
+		return false, warnings, err
+	}
+	if err := writeAtomic(cfgPath, out, info.Mode().Perm()); err != nil {
+		return false, warnings, err
+	}
+	return true, warnings, nil
+}
+
+// relToRoot converts a host path used by Nginx into the root-relative form
+// every schedule path uses. A path outside root has no valid representation
+// and is refused rather than stored as "../..".
+func relToRoot(root, p string) (string, error) {
+	if !filepath.IsAbs(p) {
+		if _, err := resolve(root, p); err != nil {
+			return "", err
+		}
+		return filepath.ToSlash(filepath.Clean(p)), nil
+	}
+	rel := ""
+	if filepath.Clean(root) == string(filepath.Separator) {
+		rel = strings.TrimPrefix(filepath.Clean(p), string(filepath.Separator))
+	} else {
+		r, err := filepath.Rel(root, p)
+		if err != nil {
+			return "", err
+		}
+		rel = r
+	}
+	if _, err := resolve(root, rel); err != nil {
+		return "", fmt.Errorf("%s is outside the install root %s", p, root)
+	}
+	return filepath.ToSlash(filepath.Clean(rel)), nil
+}
+
 // certState records the last fingerprint that was actually reloaded. Without
 // it a renewal job cannot tell "nothing changed" from "someone renewed the
 // certificate", and would either never reload or restart on every tick.
@@ -493,11 +738,29 @@ func saveCertState(root string, obs certObservation, at string) error {
 	return writeAtomic(path(root, CertStateRel), append(b, '\n'), 0o640)
 }
 
-func certRenewJob(ctx context.Context, root, at string) JobResult {
-	obs, err := scanCert(path(root, CertDirRel))
+// renewCertificate and reloadServices are package variables so tests can prove
+// that the in-window branch really drives ACME and reload instead of merely
+// reporting "ok".
+var (
+	renewCertificate = acme.Renew
+	reloadServices   = reloadForCert
+)
+
+// certFailure records a durable alert and returns the failed job result. A
+// persistence failure never downgrades the result, but it is appended to the
+// detail so `schedule run` output carries the loss instead of hiding it.
+func certFailure(ctx context.Context, root string, cfg Config, at, detail string) JobResult {
+	if _, err := WriteAlert(ctx, root, cfg, "cert-renew", "failed", detail, at); err != nil {
+		detail += "; alert not persisted: " + err.Error()
+	}
+	return JobResult{Job: "cert-renew", Result: "failed", At: at, Detail: detail}
+}
+
+func certRenewJob(ctx context.Context, root string, cfg Config, at string) JobResult {
+	obs, err := observeCert(root, cfg)
 	switch {
 	case err != nil && !os.IsNotExist(err):
-		return JobResult{Job: "cert-renew", Result: "failed", At: at, Detail: err.Error()}
+		return certFailure(ctx, root, cfg, at, err.Error())
 	case obs.NotAfter.IsZero():
 		return JobResult{Job: "cert-renew", Result: "skipped", At: at, Detail: "no certificate files to monitor"}
 	}
@@ -507,8 +770,86 @@ func certRenewJob(ctx context.Context, root, at string) JobResult {
 	days := int(time.Until(obs.NotAfter).Hours() / 24)
 
 	if (changed || baseline) && len(obs.InsecureKey) > 0 && root == "/" {
-		return JobResult{Job: "cert-renew", Result: "failed", At: at,
-			Detail: "refusing to reload a certificate whose private key is world-readable: " + strings.Join(obs.InsecureKey, "; ")}
+		return certFailure(ctx, root, cfg, at,
+			"refusing to reload a certificate whose private key is world-readable: "+strings.Join(obs.InsecureKey, "; "))
+	}
+
+	// A user-supplied certificate is renewed by whatever issued it. Keep
+	// watching for manual replacement so services still reload, but never
+	// overwrite it with a native ACME order.
+	if acme.IsUserManaged(path(root, cfg.CertFile)) {
+		reload := ""
+		if root == "/" && changed {
+			var rerr error
+			reload, rerr = reloadServices(ctx, root)
+			if rerr != nil {
+				return certFailure(ctx, root, cfg, at, "user-managed certificate changed; "+rerr.Error())
+			}
+		}
+		detail := fmt.Sprintf("%s is user-managed (sha256=%s); renewal is external", obs.Name, short(obs.Fingerprint))
+		if reload != "" {
+			detail += "; " + reload
+		}
+		detail += fmt.Sprintf("; expires in %d days", days)
+		if err := saveCertState(root, obs, at); err != nil {
+			detail += "; state: " + err.Error()
+		}
+		if err := ClearAlert(root, "cert-renew"); err != nil {
+			detail += "; alert not cleared: " + err.Error()
+		}
+		return JobResult{Job: "cert-renew", Result: "ok", At: at, Detail: detail}
+	}
+
+	// Inside the renewal window the scheduler must renew, not just report.
+	if time.Until(obs.NotAfter) < CertRenewWindow {
+		if cfg.CertDomain == "" {
+			return certFailure(ctx, root, cfg, at, fmt.Sprintf(
+				"%s expires in %d days; certDomain is not configured; run 'idleleo schedule install --cert-domain <domain>'",
+				obs.Name, days))
+		}
+		// Account state lives beside the certificate tree, never inside it:
+		// <base>/etc/idleleo/acme for <base>/etc/idleleo/cert/xray.crt.
+		acmeDir := filepath.Dir(filepath.Dir(cfg.CertFile))
+		spec := acme.Config{
+			DirectoryURL:   cfg.ACMEDirectory,
+			Email:          cfg.ACMEEmail,
+			Domain:         cfg.CertDomain,
+			Webroot:        path(root, cfg.CertWebroot),
+			CertFile:       path(root, cfg.CertFile),
+			KeyFile:        path(root, cfg.CertKeyFile),
+			AccountKeyFile: path(root, filepath.ToSlash(filepath.Join(acmeDir, "acme", "account.key"))),
+			StateFile:      path(root, filepath.ToSlash(filepath.Join(acmeDir, "acme", "account.json"))),
+			RenewBefore:    CertRenewWindow,
+			CertGroup:      managedCertGroup(path(root, cfg.CertFile)),
+		}
+		res, rerr := renewCertificate(ctx, spec)
+		if rerr != nil {
+			return certFailure(ctx, root, cfg, at, fmt.Sprintf(
+				"%s expires in %d days; renewal failed: %v", obs.Name, days, rerr))
+		}
+		if res.Skipped {
+			return certFailure(ctx, root, cfg, at, fmt.Sprintf(
+				"%s expires in %d days; renewal was skipped: %s", obs.Name, days, res.Reason))
+		}
+		renewed, serr := observeCert(root, cfg)
+		if serr != nil || renewed.NotAfter.IsZero() {
+			return certFailure(ctx, root, cfg, at,
+				"renewal completed but no readable certificate was produced")
+		}
+		reloaded, rerr := reloadServices(ctx, root)
+		if rerr != nil {
+			return certFailure(ctx, root, cfg, at, "renewal succeeded but reload failed: "+rerr.Error())
+		}
+		if err := saveCertState(root, renewed, at); err != nil {
+			return certFailure(ctx, root, cfg, at, "renewal succeeded but state could not be saved: "+err.Error())
+		}
+		detail := fmt.Sprintf(
+			"%s renewed (sha256=%s); %s; expires in %d days",
+			renewed.Name, short(renewed.Fingerprint), reloaded, int(time.Until(renewed.NotAfter).Hours()/24))
+		if err := ClearAlert(root, "cert-renew"); err != nil {
+			detail += "; alert not cleared: " + err.Error()
+		}
+		return JobResult{Job: "cert-renew", Result: "ok", At: at, Detail: detail}
 	}
 
 	detail := obs.Name
@@ -516,32 +857,34 @@ func certRenewJob(ctx context.Context, root, at string) JobResult {
 	// A missing state is a baseline, not a renewal: the first observation must
 	// never restart services that were healthy before the cron takeover.
 	if root == "/" && changed {
-		reload, err = reloadForCert(ctx)
+		reload, err = reloadServices(ctx, root)
 		if err != nil {
-			return JobResult{Job: "cert-renew", Result: "failed", At: at, Detail: detail + "; " + err.Error()}
+			return certFailure(ctx, root, cfg, at, detail+"; "+err.Error())
 		}
 	}
 	switch {
-	case days < 0:
-		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expired %d days ago; ACME renewal is not implemented (explicit degradation)", obs.Name, -days)}
 	case changed:
 		detail += fmt.Sprintf(" changed (sha256=%s); %s; expires in %d days", short(obs.Fingerprint), reload, days)
 	case baseline:
 		detail += fmt.Sprintf(" baseline recorded (sha256=%s); no restart; expires in %d days", short(obs.Fingerprint), days)
-	case days < 30:
-		return JobResult{Job: "cert-renew", Result: "degraded", At: at, Detail: fmt.Sprintf("%s expires in %d days, unchanged; ACME issuance/renewal is not implemented (explicit degradation; renew externally)", obs.Name, days)}
 	default:
 		detail += fmt.Sprintf(" unchanged; expires in %d days; no restart", days)
 	}
 	if err := saveCertState(root, obs, at); err != nil {
-		return JobResult{Job: "cert-renew", Result: "failed", At: at, Detail: detail + "; state: " + err.Error()}
+		return certFailure(ctx, root, cfg, at, detail+"; state: "+err.Error())
+	}
+	if err := ClearAlert(root, "cert-renew"); err != nil {
+		detail += "; alert not cleared: " + err.Error()
 	}
 	return JobResult{Job: "cert-renew", Result: "ok", At: at, Detail: detail}
 }
 
 // reloadForCert restarts Xray and reloads Nginx only when the certificate
 // fingerprint changed. A stopped service is left stopped.
-func reloadForCert(ctx context.Context) (string, error) {
+func reloadForCert(ctx context.Context, root string) (string, error) {
+	if root != "/" {
+		return "sandbox root, no service reload", nil
+	}
 	actions := []string{}
 	for _, svc := range []struct{ unit, verb string }{{"xray", "restart"}, {"nginx", "reload"}} {
 		res, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"is-active", svc.unit}, Timeout: 10 * time.Second})
@@ -568,22 +911,32 @@ func short(sha string) string {
 	return sha
 }
 
+// managedCertGroup returns the nginx worker group when this host uses the
+// layered certificate permission model, and empty for a pure Xray install or a
+// certificate stored outside the managed directory.
+func managedCertGroup(certFile string) string {
+	if filepath.Clean(filepath.Dir(certFile)) != acme.ManagedCertDir {
+		return ""
+	}
+	const group = "idleleo-nginx"
+	if _, err := user.LookupGroup(group); err != nil {
+		return ""
+	}
+	return group
+}
+
 func geodataJob(ctx context.Context, root string, cfg Config, at string) JobResult {
-	base := strings.TrimRight(cfg.GeodataURL, "/")
-	assets := []string{"geoip.dat", "geosite.dat"}
-	payloads := make(map[string][]byte, len(assets))
-	for _, asset := range assets {
-		b, err := fetch(ctx, base+"/"+asset)
-		if err != nil {
-			return JobResult{Job: "geodata-refresh", Result: "failed", At: at, Detail: fmt.Sprintf("%s: %v", asset, err)}
-		}
-		payloads[asset] = b
+	// The downloader verifies the release .sha256sum before anything is
+	// written, so a truncated or tampered asset keeps the previous file.
+	payloads, err := geodata.Fetch(ctx, cfg.GeodataURL)
+	if err != nil {
+		return JobResult{Job: "geodata-refresh", Result: "failed", At: at, Detail: err.Error()}
 	}
 	dir := path(root, cfg.GeodataDir)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return JobResult{Job: "geodata-refresh", Result: "failed", At: at, Detail: err.Error()}
 	}
-	for _, asset := range assets {
+	for _, asset := range geodata.Assets {
 		if err := writeAtomic(filepath.Join(dir, asset), payloads[asset], 0o644); err != nil {
 			return JobResult{Job: "geodata-refresh", Result: "failed", At: at, Detail: err.Error()}
 		}
@@ -610,39 +963,6 @@ func geodataJob(ctx context.Context, root string, cfg Config, at string) JobResu
 		detail += "; sandbox root, no service reload"
 	}
 	return JobResult{Job: "geodata-refresh", Result: "ok", At: at, Detail: detail}
-}
-
-var geodataClient = &http.Client{Timeout: 120 * time.Second}
-
-const maxGeodataBytes = 64 << 20
-
-func fetch(ctx context.Context, url string) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := geodataClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("origin returned HTTP %d", resp.StatusCode)
-	}
-	b, err := io.ReadAll(io.LimitReader(resp.Body, maxGeodataBytes+1))
-	if err != nil {
-		return nil, fmt.Errorf("download interrupted: %w", err)
-	}
-	if len(b) == 0 {
-		return nil, errors.New("origin returned an empty asset")
-	}
-	if len(b) > maxGeodataBytes {
-		return nil, errors.New("origin asset is larger than the 64MiB limit")
-	}
-	if b[0] == '<' || b[0] == '{' {
-		return nil, errors.New("origin returned HTML/JSON instead of a GeoData asset")
-	}
-	return b, nil
 }
 
 func statsJob(ctx context.Context, root, at string) JobResult {
@@ -757,18 +1077,36 @@ type StatusReport struct {
 	Timer           string   `json:"timer"`
 	ReleaseChannel  bool     `json:"releaseChannelConfigured"`
 	State           State    `json:"state"`
-	LastLogLine     string   `json:"lastLogLine,omitempty"`
+	Alerts          []Alert  `json:"alerts,omitempty"`
+	// AlertsUnreadable distinguishes "no alerts" from "alerts could not be
+	// read". Both used to print nothing, so a lost alert was invisible.
+	AlertsUnreadable bool   `json:"alertsUnreadable,omitempty"`
+	AlertsError      string `json:"alertsError,omitempty"`
+	LastLogLine      string `json:"lastLogLine,omitempty"`
+}
+
+// alertErrText renders an alerts read failure for the report. It returns "" so
+// the healthy path keeps its existing JSON and text output byte-for-byte.
+func alertErrText(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
 }
 
 // Status reads the units, config and state without writing.
 func Status(ctx context.Context, root string) (StatusReport, error) {
+	// Alerts are loaded before anything that can fail so `idleleo status` still
+	// surfaces a failed renewal even when metadata or config is unreadable.
+	alerts, alertsErr := Alerts(root)
 	cfg, err := loadConfig(root)
 	if err != nil {
-		return StatusReport{SchemaVersion: SchemaVersion}, err
+		return StatusReport{SchemaVersion: SchemaVersion, Alerts: alerts, AlertsUnreadable: alertsErr != nil, AlertsError: alertErrText(alertsErr)}, err
 	}
 	report := StatusReport{
 		SchemaVersion: SchemaVersion, IntervalSeconds: cfg.IntervalSeconds,
-		Jobs: cfg.Jobs, DegradedJobs: DegradedJobs,
+		Jobs: cfg.Jobs, DegradedJobs: DegradedJobs, Alerts: alerts,
+		AlertsUnreadable: alertsErr != nil, AlertsError: alertErrText(alertsErr),
 		UnitPath: path(root, UnitRel), TimerPath: path(root, TimerRel),
 		Timer: "not-installed", State: State{SchemaVersion: SchemaVersion, Jobs: map[string]JobState{}},
 	}
@@ -806,10 +1144,17 @@ func Status(ctx context.Context, root string) (StatusReport, error) {
 
 // SummaryLines renders a compact status for the CLI.
 func (r StatusReport) SummaryLines() []string {
-	out := []string{
-		fmt.Sprintf("installed=%t interval=%ds timer=%s releaseChannel=%t", r.Installed, r.IntervalSeconds, r.Timer, r.ReleaseChannel),
-		"jobs=" + strings.Join(r.Jobs, ","),
+	out := []string{}
+	if r.AlertsUnreadable {
+		out = append(out, "alerts=unreadable "+r.AlertsError)
 	}
+	for _, a := range r.Alerts {
+		out = append(out, fmt.Sprintf("alert=%s result=%s at=%s %s", a.Job, a.Result, a.At, a.Detail))
+	}
+	out = append(out,
+		fmt.Sprintf("installed=%t interval=%ds timer=%s releaseChannel=%t", r.Installed, r.IntervalSeconds, r.Timer, r.ReleaseChannel),
+		"jobs="+strings.Join(r.Jobs, ","),
+	)
 	for _, d := range r.DegradedJobs {
 		out = append(out, "degraded="+d)
 	}
@@ -851,11 +1196,14 @@ func writeAtomic(p string, b []byte, mode os.FileMode) error {
 	if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
 		return err
 	}
-	tmp := p + ".tmp"
-	f, err := os.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
+	f, err := os.CreateTemp(filepath.Dir(p), filepath.Base(p)+".tmp.*")
 	if err != nil {
 		return err
 	}
+	tmp := f.Name()
+	// Remove the temp file on every failure path; after a successful rename
+	// this is a harmless ENOENT.
+	defer os.Remove(tmp)
 	if _, err := f.Write(b); err != nil {
 		_ = f.Close()
 		return err
