@@ -25,6 +25,19 @@
 
 ## 3.3.5 — 2026-11-07
 
+> 状态：**待发布**。版本号、CHANGELOG 与测试断言已就绪；实际发布需与生产
+> `bridge/asset.json`（P0-2）同批合并 `main`，本轮未合并、未打 tag、未发 Release。
+> 影响面见 `docs/release/BASH_VERSION_3_3_5_ASSESSMENT.md`。
+
+### 新增
+
+- **Go 迁移入口（Bridge-aware Bash）**：手动 TTY `-u` 在版本检查后提示是否迁移；
+  `auto_update`、`--yes`、非 TTY 一律不触发。入口只读
+  `/etc/idleleo/bridge/asset.json`，缺文件/字段不完整时干净跳过（不下载、不改动）。
+- **真机写入门禁**：容器内仍要求 `IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY`；
+  真实 root 主机放行切换，但先在 `/var/log/idleleo/system-writes.log`（0600）写入
+  可审计记录，写失败则拒绝。
+
 ### 修复
 
 - **xHTTP 上行超过 1MB 返回 413（历史模板缺陷，非本版引入）**：`335f4d8c`
@@ -33,18 +46,96 @@
   的大请求体（如 `git push`）失败；ws location 一直正常。模板已改为生效行，
   并去掉对 `grpc_pass` 无效的 `proxy_buffering` 假配置。已部署节点需要
   **重装**或手工放开该行；`-u` 不重建 Nginx 配置，更新成功后会打印提示。
-- **保留的 auto_update cron 与全量重装不会静默回退已提交的迁移**：Bash
-  自更新与安装 bootstrap 原先无条件把 `/usr/bin/idleleo` 重新指向
-  `/etc/idleleo/install.sh`；现在检测到 Go 入口或 journal `COMMITTED` 时只刷新
-  Bash 脚本、恢复 Go 入口。对从未迁移的 v3.3.4 用户，该分支不可达，行为不变。
+- **保留的 auto_update cron 与全量重装不会静默回退迁移**：Bash 自更新与安装
+  bootstrap 原先无条件把 `/usr/bin/idleleo` 重新指向 `/etc/idleleo/install.sh`；
+  现在检测到 Go 入口或 journal `COMMITTED` 时只刷新 Bash 脚本、恢复 Go 入口，
+  不会把已提交的迁移改回 Bash（Phase 03 回归覆盖）。
+- **`-u --yes` 不再在“实际更新成功”后触发迁移入口**：此前该分支会重新执行
+  刚下载脚本的 offer，`--yes` 在子进程里丢失；现在 `--yes`、`auto_update`
+  与非 TTY 一样直接返回，Phase 03 回归覆盖了“真实升级成功 + TTY + `--yes`”。
+- **迁移保留证书续期与自动更新 cron**：Go 尚无等价执行器的 `ssl_update.sh`、
+  `auto_update.sh` 在切换后保留原 cron，只有已有 Go 执行器的 `geo_update.sh`、
+  `xray_stats.sh` 被移除；`schedule status` 仍如实标记 `degraded`。
+- **真实 root 迁移不再被容器标记硬阻断**：容器标记只用于区分执行环境，
+  不再作为真机拒绝条件。
 
-### 说明
+### 迁移说明
 
-- **Go 管理器仍为实验性，3.3.5 不启用**。本版不发布 Go 二进制、不写入
-  bridge 清单；清单地址保持不存在时，新装、`-u`、全量重装、菜单、
-  auto_update 与 cron 都不会探测或提示 Go 迁移，也不会产生任何 bridge 请求。
-  迁移代码仅为后续版本保留，唯一入口是显式的 `--internal-bridge-offer`，
-  供维护者验证使用，不面向普通用户。
+- 已发布 v3.3.4 资产保持不变（`install.sh` SHA-256 `0af8e8f2…`）；本条目对应新资产，
+  由 `publish-shell-version.yml` 在合并 `main` 后自动发布。
+
+## 未发布 — Go 管理器迁移（Phase 04 候选）
+
+Phase 04 完成容器级验收与发布候选，但**发布门禁仍为红灯**；证据等级
+`CONTAINER_VERIFIED`，不是“真实 VPS 已验证”，真实 ACME 不纳入本轮。
+
+### 新增
+
+- **Go 自更新通道**：`idleleo update status|check|apply|configure`。manifest
+  `channel=go`、per-asset SHA256/size、ELF 校验、原子替换、健康检查、失败回滚；
+  错误 SHA、截断下载、非 ELF、降级、磁盘满均保留旧二进制；恢复失败 exit 10。
+- **证书外部续约契约**：DER 指纹基线，变化才 `restart xray` / `reload nginx`；
+  未变不重启；world-readable 私钥拒绝 reload；到期/<30 天显式降级。
+- **服务类 CLI**：`idleleo service status|start|stop|restart|reload|logs`，
+  仅允许 `xray`、`nginx`、`idleleo-schedule.timer`。
+- **只读查询**：`idleleo stats [--json]`（真实 `xray api statsquery`）、
+  `idleleo rill status`（absent/active/stale，不写 Rill 状态）。
+- **发布候选**：`packaging/build-go-release.sh` 生成 linux-amd64/arm64 +
+  `SHA256SUMS` + `manifest.json`；`assets/go/` 记录候选身份。
+
+### 验证
+
+- 固定 digest Ubuntu 24.04 特权 systemd 容器：`42/42 PASS`，含真实 Xray 统计、
+  systemd 重启计数、证书变化/未变化、更新失败注入。
+- 双架构产物各自在对应平台容器执行 exit 0；manifest 真实 HTTP 下载校验
+  `verified=true`。
+- `go test ./...` / `go vet ./...` exit 0。
+
+### 已知限制
+
+- `check_release_gate.py` 实测 exit 2（28 pending + 28 个功能测试缺失）；未改 JSON
+  状态、未伪造执行器。因此未合并 `main`、未打 tag、未发 Release。
+- 自动更新需显式配置 manifest URL，否则用户失去自动更新（每轮记录 `degraded`）。
+- ACME 签发/续期/清理、Rill 安装/授权/卸载、`backup/restore/purge`、
+  Xray/Nginx 更新、Fail2ban、防火墙、多发行版/SELinux、真实 VPS 均未实现或未验证。
+- 详见 `docs/release/KNOWN_LIMITATIONS.md` 与 `docs/go/PHASE_04_REPORT.md`。
+
+## 未发布 — Go 管理器迁移（Phase 03 收尾）
+
+实验性 Bash → Go 迁移路径补齐 Phase 03 缺口；证据等级为容器级
+`CONTAINER_VERIFIED`，**不是“真实 VPS 已验证”**，真实 ACME 不纳入本轮。
+
+### 新增
+
+- **原生 Go 定时入口**：`idleleo schedule install|remove|run|status`，
+  由 `idleleo-schedule.timer` 接管旧 cron 的 `auto_update.sh`、`ssl_update.sh`、
+  `geo_update.sh`、`xray_stats.sh`。GeoData 刷新与统计采集为完整实现
+  （原子替换、真实 Xray Stats API）；自动更新与证书续期为**显式降级**
+  （无 Go release 通道 / 无 ACME），每轮写入 `schedule.log`，不再静默暂停。
+- **Rill 契约**：审计、快照、候选预验收、激活与回滚均纳入 Rill 状态与文件哈希；
+  观测漂移时 validate 以 exit 6 拒绝。
+- **迁移审计增强**：`bridge audit --summary` 展示完整变更摘要；未知 Xray 顶层键与
+  自定义 nginx 片段进入 `customItems`，未确认时 `prepare` 以 exit 6 拒绝
+  （`--acknowledge-custom`）。
+- **权限/软链修复**：runtime config world-writable → 0644；私钥 → 0640 且归属 xray 组；
+  runtime 配置符号链接与越界 entry 软链 → `blocked`；修复随回滚恢复原 mode/group。
+- **03-D 预验收**：validate 运行转换后 metadata 的候选 `status --json`，校验
+  `installed` 与 `config.matchesMetadata`；relay 允许无 runtime 配置。
+- **故障注入**：`prepare --fault disk-full`（ENOSPC → exit 13，零 journal/plan）、
+  Bash 下载截断、Go GeoData 下载截断；`activate --fault after-schedule` 可在
+  timer 安装与权限修复后中断并回滚。
+
+### 修复
+
+- `packaging/install.sh` manifest 解析括号错误（对 dict 调用 `.get` 后再 `json.load`）。
+- relay 无 runtime 配置时 `status` 报错，导致 03-D 预验收无法通过。
+
+### 迁移说明
+
+- 迁移仅在 `idleleo --update` 的真实 TTY 手动路径提示；`--yes` 与自动更新不触发。
+- 保留配置、证书/私钥、用户、用户自定义 cron 与 nginx 自定义片段。
+- 回滚使用 `/opt/idleleo/recovery/idleleo-recover`；已 `COMMITTED` 后不隐式逆向迁移。
+- 本轮未合并 `main`、未打 tag、未发 Release。
 
 ## 3.3.4 — 2026-11-05
 

@@ -336,9 +336,54 @@ nginx_systemd_file="/etc/systemd/system/nginx.service"
 xray_systemd_file="/etc/systemd/system/xray.service"
 xray_access_log="/var/log/xray/access.log"
 xray_error_log="/var/log/xray/error.log"
+# S7-4: issuing and renewing certificates moves to `idleleo xray cert issue|renew`
+# (lego, internal/acme). acme.sh stays for one release: an operator can force it
+# with IDLELEO_ACME_LEGACY=1, and a pure-Bash host (no ELF `idleleo`) falls back
+# to it automatically because that is the only path there that also renews.
+# The directory /root/.acme.sh itself is never deleted.
 amce_sh_file="/root/.acme.sh/acme.sh"
+# A pure-Bash install links /usr/bin/idleleo to this script, so an
+# `idleleo xray cert issue` call lands on the menu instead of the Go ACME
+# client. Only an ELF entry other than this script can issue natively.
+idleleo_native_acme_available() {
+    local bin resolved entry magic
+    # Tests cannot ship a real ELF `idleleo`, so they opt in explicitly. The
+    # switch only exists under _TEST_MODE, which production never sets.
+    if [[ "${_TEST_MODE:-0}" == "1" && "${IDLELEO_TEST_NATIVE_ACME:-0}" == "1" ]]; then
+        return 0
+    fi
+    bin=$(command -v idleleo 2>/dev/null || true)
+    [[ -n "${bin}" ]] || return 1
+    resolved=$(readlink -f "${bin}" 2>/dev/null || printf '%s' "${bin}")
+    entry=$(readlink -f "${idleleo}" 2>/dev/null || printf '%s' "${idleleo}")
+    [[ "${resolved}" != "${entry}" ]] || return 1
+    magic=$(od -An -tx1 -N4 "${resolved}" 2>/dev/null | tr -d ' \n')
+    [[ "${magic}" == "7f454c46" ]]
+}
+
+acme_legacy_enabled() {
+    [[ "${IDLELEO_ACME_LEGACY:-0}" == "1" ]] && return 0
+    idleleo_native_acme_available && return 1
+    return 0
+}
+
+# Do not switch silently: a pure-Bash host has no native ACME client, so
+# acme.sh is the only path that can both issue and renew. Called before an
+# actual issue/renew so status checks stay quiet.
+acme_legacy_fallback_note() {
+    [[ "${IDLELEO_ACME_LEGACY:-0}" == "1" ]] && return 0
+    idleleo_native_acme_available && return 0
+    if [[ "${_acme_legacy_fallback_noted:-0}" != "1" ]]; then
+        _acme_legacy_fallback_noted=1
+        log_echo "${Warning} ${YellowBG} $(gettext "当前是纯 Bash 安装, 没有 Go ACME 客户端; 证书签发与续期自动回退到 acme.sh") ${Font}"
+    fi
+    return 0
+}
 auto_update_file="${scripts_dir}/auto_update.sh"
 ssl_update_file="${scripts_dir}/ssl_update.sh"
+# Set by acme() when this run issues a certificate. Used to decide whether the
+# renewal-scheduler assertion is binding or only informational.
+cert_issued_this_run="no"
 geo_update_file="${scripts_dir}/geo_update.sh"
 xray_stats_script="${scripts_dir}/xray_stats.sh"
 shell_release_sha256=""
@@ -346,6 +391,23 @@ shell_online_version=""
 xray_installer_ref=""
 xray_installer_sha256=""
 xray_installer_verified_at=""
+# --- S6-3: Ed25519 trust anchor for the remote version metadata ---
+# xray_shell_versions.json decides which shell release, which sha256, and which
+# Xray installer pin every later download uses, so it is the trust root. The
+# signature covers `jq -cS 'del(.metadata_signature)'` byte for byte, with no
+# trailing newline; scripts/sign_json_ed25519.sh is the only supported signer.
+shell_versions_pubkey_pem='-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAUoalfNZ0sm8gFnuKlitv2fJP7Scfae3YHhCE3YMr7lc=
+-----END PUBLIC KEY-----'
+# Unsigned metadata is tolerated only while the running script is older than
+# this release. From 3.6.0 on the signature is mandatory (fail-closed). The
+# cutover was moved from 3.4.0 because the publisher Secret could not be
+# confirmed; 3.4.x/3.5.x stay in the compatibility window and 3.6.0 must not
+# ship until IDLELEO_VERSIONS_ED25519_KEY is configured.
+versions_signature_required_from="3.6.0"
+# Helper script pins are a separate trust root and keep the original cutover:
+# moving the metadata cutover must not relax helper verification.
+helper_sha_required_from="3.4.0"
 xray_release_ref="v${shell_version}"
 shell_release_raw_base="https://raw.githubusercontent.com/hello-yunshu/Xray_bash_onekey/${xray_release_ref}"
 shell_release_download_base="https://github.com/hello-yunshu/Xray_bash_onekey/releases/download/${xray_release_ref}"
@@ -530,6 +592,85 @@ fetch_versions_json() {
     printf '%s' "${response}"
 }
 
+# Public key used to verify the version metadata signature. Qualification runs
+# may inject a throwaway key so the failure paths can be exercised without the
+# production private key.
+versions_metadata_pubkey() {
+    if [[ "${XRAY_QUALIFICATION_MODE:-0}" == "1" && -n "${IDLELEO_VERSIONS_PUBKEY_FILE:-}" &&
+        -f "${IDLELEO_VERSIONS_PUBKEY_FILE}" ]]; then
+        cat "${IDLELEO_VERSIONS_PUBKEY_FILE}"
+        return 0
+    fi
+    printf '%s\n' "${shell_versions_pubkey_pem}"
+}
+
+# Canonical bytes covered by the signature: compact, key-sorted JSON without
+# the signature field and without a trailing newline.
+versions_metadata_canonical_file() {
+    local json="$1" out="$2" canonical
+    canonical=$(printf '%s' "${json}" | jq -cS 'del(.metadata_signature)' 2>/dev/null) || return 1
+    [[ -n "${canonical}" ]] || return 1
+    printf '%s' "${canonical}" >"${out}"
+}
+
+openssl_supports_rawin() {
+    command -v openssl >/dev/null 2>&1 || return 1
+    openssl pkeyutl -help 2>&1 | grep -q -- '-rawin'
+}
+
+# Returns 0 when the metadata may be trusted, 1 when it must be rejected.
+# A present-but-invalid signature is always rejected; unsigned metadata is
+# accepted only until the script itself reaches the cutover version.
+versions_metadata_trusted() {
+    local json="$1" signature work="" rc=0 signature_bytes=""
+
+    signature=$(printf '%s' "${json}" | jq -r '.metadata_signature // empty' 2>/dev/null)
+    if [[ -z "${signature}" ]]; then
+        if version_lt "${shell_version}" "${versions_signature_required_from}"; then
+            log_echo "${Warning} ${YellowBG} $(gettext "在线版本元数据未签名(兼容期), 请尽快更新签名元数据") ${Font}" >&2
+            return 0
+        fi
+        log_echo "${Error} ${RedBG} $(gettext "在线版本元数据缺少签名, 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    if [[ "${signature}" != ed25519:* ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本元数据签名算法不受支持, 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    if ! openssl_supports_rawin; then
+        log_echo "${Error} ${RedBG} $(gettext "缺少可用的签名校验器(需要 openssl 3 的 pkeyutl -rawin), 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    if ! work=$(mktemp -d 2>/dev/null); then
+        log_echo "${Error} ${RedBG} $(gettext "签名校验无法创建临时目录, 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    if ! versions_metadata_canonical_file "${json}" "${work}/message"; then
+        rc=1
+    fi
+    if [[ ${rc} -eq 0 ]]; then
+        printf '%s' "${signature#ed25519:}" |
+            openssl enc -base64 -d -A -out "${work}/signature" 2>/dev/null || rc=1
+    fi
+    if [[ ${rc} -eq 0 ]]; then
+        signature_bytes=$(wc -c <"${work}/signature" 2>/dev/null | tr -d '[:space:]')
+        [[ "${signature_bytes}" == "64" ]] || rc=1
+    fi
+    if [[ ${rc} -eq 0 ]]; then
+        versions_metadata_pubkey >"${work}/pub.pem" || rc=1
+    fi
+    if [[ ${rc} -eq 0 ]]; then
+        openssl pkeyutl -verify -pubin -inkey "${work}/pub.pem" -rawin \
+            -in "${work}/message" -sigfile "${work}/signature" >/dev/null 2>&1 || rc=1
+    fi
+    rm -rf "${work}"
+    if [[ ${rc} -ne 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "在线版本元数据签名校验失败, 已拒绝") ${Font}" >&2
+        return 1
+    fi
+    return 0
+}
+
 load_versions() {
     if [[ ${_get_versions_loaded} -eq 0 ]]; then
         local versions_cdn_url="https://cdn.jsdelivr.net/gh/hello-yunshu/Xray_bash_onekey_api@main/xray_shell_versions.json"
@@ -550,6 +691,10 @@ load_versions() {
                 get_versions_all=""
                 return 1
             }
+        fi
+        if ! versions_metadata_trusted "${response}"; then
+            get_versions_all=""
+            return 1
         fi
         get_versions_all="${response}"
         _get_versions_loaded=1
@@ -692,6 +837,164 @@ _lazy_load_info_extraction() {
 # must not depend on jq being present at source time). Idempotent.
 lazy_load_config_for_read() {
     _lazy_load_info_extraction
+}
+
+# S1: Go 元数据是唯一真相。Bash 只做只读推导，绝不写第二份。
+idleleo_go_metadata_file="${idleleo_dir}/v1/metadata.json"
+
+# Go 接管的判定只看唯一真相文件是否存在。文件存在但损坏时同样按 Go 环境处理，
+# 因为回落到 install_config.json 会产生第二份真相。
+idleleo_go_metadata_present() {
+    [[ -f "${idleleo_go_metadata_file}" ]]
+}
+
+# 读取 Go 元数据的单个字段。缺失或无法解析时显式提示并返回 1，绝不回落到默认值。
+idleleo_go_metadata_field() {
+    local field="$1" value
+    if [[ ! -f "${idleleo_go_metadata_file}" ]]; then
+        printf '%s\n' "来自 Go 元数据、字段缺失: ${field}（${idleleo_go_metadata_file} 不存在）" >&2
+        return 1
+    fi
+    if ! has_jq_binary; then
+        printf '%s\n' "来自 Go 元数据、字段缺失: ${field}（缺少 jq，无法读取 ${idleleo_go_metadata_file}）" >&2
+        return 1
+    fi
+    if ! value=$(jq -r --arg f "${field}" '.[$f] // empty' "${idleleo_go_metadata_file}" 2>/dev/null); then
+        printf '%s\n' "来自 Go 元数据、字段缺失: ${field}（${idleleo_go_metadata_file} 无法解析）" >&2
+        return 1
+    fi
+    if [[ -z "${value}" ]]; then
+        printf '%s\n' "来自 Go 元数据、字段缺失: ${field}" >&2
+        return 1
+    fi
+    printf '%s' "${value}"
+}
+
+# Go 的 transport 取值与 Bash 的 UI 组合值不同。未知值显式失败，不猜测。
+idleleo_go_transport_to_shell_mode() {
+    case "$1" in
+        ws|onlyws) printf '%s' "onlyws" ;;
+        grpc|onlygrpc) printf '%s' "onlygRPC" ;;
+        xhttp|onlyxhttp) printf '%s' "onlyxhttp" ;;
+        multi) printf '%s' "wsgRPCxhttp" ;;
+        raw|none|stream) printf '%s' "None" ;;
+        *) return 1 ;;
+    esac
+}
+
+# 用 Go 元数据填充 judge_mode 依赖的全局变量。任何必填字段缺失都会中止。
+idleleo_go_mode_load() {
+    local _role _tls _transport _mode
+    _role=$(idleleo_go_metadata_field role) || return 1
+    _tls=$(idleleo_go_metadata_field tls) || return 1
+    _transport=$(idleleo_go_metadata_field transport) || return 1
+    case "${_role}" in
+        node|relay) ;;
+        *) printf '%s\n' "来自 Go 元数据、字段不可用: role=${_role}" >&2; return 1 ;;
+    esac
+    case "${_tls}" in
+        Reality|TLS|None) ;;
+        *) printf '%s\n' "来自 Go 元数据、字段不可用: tls=${_tls}" >&2; return 1 ;;
+    esac
+    if ! _mode=$(idleleo_go_transport_to_shell_mode "${_transport}"); then
+        printf '%s\n' "来自 Go 元数据、字段不可用: transport=${_transport}" >&2
+        return 1
+    fi
+    node_role="${_role}"
+    tls_mode="${_tls}"
+    transport_mode="${_mode}"
+    old_tls_mode="${tls_mode}"
+    # shell_mode 只用于旧菜单展示；Go 模式下配置变更入口已被拒绝，这里给一个
+    # 不会伪装成某种 legacy 组合的明确标签。
+    shell_mode="$(gettext "Go 原生管理")"
+    return 0
+}
+
+# Go 模式下的只读状态展示。只读元数据与运行配置摘要，不重写 info 文件。
+idleleo_go_show_information() {
+    local _role _tls _transport _path _sha _abs _actual
+    _role=$(idleleo_go_metadata_field role) || return 1
+    _tls=$(idleleo_go_metadata_field tls) || return 1
+    _transport=$(idleleo_go_metadata_field transport) || return 1
+    printf '\n%s\n\n' "—————— Go 原生管理状态（来自 Go 元数据） ——————"
+    printf 'role: %s\ntls: %s\ntransport: %s\n' "${_role}" "${_tls}" "${_transport}"
+    if [[ "${_role}" == "node" ]]; then
+        _path=$(idleleo_go_metadata_field runtimeConfigPath) || return 1
+        _sha=$(idleleo_go_metadata_field runtimeSha256) || return 1
+        _abs="/${_path#/}"
+        _actual=""
+        if [[ -f "${_abs}" ]] && command -v sha256sum >/dev/null 2>&1; then
+            _actual=$(sha256sum "${_abs}" | awk '{print $1}')
+        fi
+        if [[ -z "${_actual}" ]]; then
+            printf 'runtime: %s\nruntimeSha256: %s\nruntimeSha256Actual: <无法读取>\nmatches: false\n' \
+                "${_abs}" "${_sha}"
+        else
+            printf 'runtime: %s\nruntimeSha256: %s\nruntimeSha256Actual: %s\nmatches: %s\n' \
+                "${_abs}" "${_sha}" "${_actual}" \
+                "$([[ ${_actual} == "${_sha}" ]] && printf 'true' || printf 'false')"
+        fi
+    else
+        printf '%s\n' "runtime: relay 无运行配置摘要"
+    fi
+    if [[ -f "${xray_info_file}" ]]; then
+        printf '\n%s\n' "—————— 旧版信息文件（只读，未重写） ——————"
+        cat "${xray_info_file}"
+    fi
+    return 0
+}
+
+# Go 模式下的写操作拒绝。绝不回落到 legacy 写路径。
+idleleo_go_refuse_bash_mutation() {
+    local action="${1:-mutation}"
+    printf '%s\n' \
+        "当前环境由 Go 原生管理器接管（${idleleo_go_metadata_file} 是唯一真相）。" \
+        "Bash 不再执行配置变更/更新/重装（${action}），以免写出第二份状态。" \
+        "请改用 idleleo：idleleo config / idleleo update / idleleo xray install。" \
+        "如需退回纯 Bash 管理，先执行：" \
+        "  idleleo metadata export --out /root/idleleo-export.json" \
+        "  idleleo bridge deactivate --export /root/idleleo-export.json" >&2
+}
+
+# S1: Go 模式下离线 root 命令的分级策略。会重建或删除运行状态的命令直接拒绝；
+# 可逆的启停与计数清零放行，但明确提示当前由 Go 管理。
+idleleo_go_offline_mutation_policy() {
+    local cmd="${1:-}"
+    [[ -n "${cmd}" ]] || return 0
+    idleleo_go_metadata_present || return 0
+    case "${cmd}" in
+        --restore)
+            printf '%s\n' \
+                "当前环境由 Go 原生管理器接管（${idleleo_go_metadata_file} 是唯一真相）。" \
+                "Bash 不再执行 --restore：恢复归档会重建运行配置，与单一真相冲突。" \
+                "请改用 idleleo：先 idleleo metadata export 留档，再用 idleleo xray install --binary PATH 部署。" \
+                "如需退回纯 Bash 管理，先执行：" \
+                "  idleleo metadata export --out /root/idleleo-export.json" \
+                "  idleleo bridge deactivate --export /root/idleleo-export.json" >&2
+            return 1
+            ;;
+        --purge|--uninstall)
+            printf '%s\n' \
+                "当前环境由 Go 原生管理器接管（${idleleo_go_metadata_file} 是唯一真相）。" \
+                "Bash 不再执行 ${cmd}：删除运行状态会绕过 Go 的托管记录。" \
+                "请改用 idleleo：idleleo xray uninstall。" \
+                "如需退回纯 Bash 管理，先执行：" \
+                "  idleleo metadata export --out /root/idleleo-export.json" \
+                "  idleleo bridge deactivate --export /root/idleleo-export.json" >&2
+            return 1
+            ;;
+        --service-start|--service-stop|--service-restart)
+            printf '%s\n' \
+                "警告：当前环境由 Go 原生管理器接管；${cmd} 仍按 Bash 路径执行，请优先使用 idleleo service ${cmd#--service-}。" >&2
+            return 0
+            ;;
+        --stats-reset)
+            printf '%s\n' \
+                "警告：当前环境由 Go 原生管理器接管；--stats-reset 只清零计数，不改变配置一致性，仍按 Bash 路径执行。Go 侧目前只提供只读 idleleo stats。" >&2
+            return 0
+            ;;
+    esac
+    return 0
 }
 
 is_ws_mode() {
@@ -1512,10 +1815,15 @@ download_file() {
     mv "${tmp_file}" "${dest_file}"
 }
 
+# Downloads a script, optionally pinning it to an expected sha256 (4th arg).
+# A hash mismatch is fatal for that download: the temporary file is removed and
+# the destination is left untouched, so a partial or substituted body can never
+# be installed or executed.
 download_script_file() {
     local url="$1"
     local dest_file="$2"
     local syntax_shell="${3:-bash}"
+    local expected_sha256="${4:-}"
     local tmp_file="${dest_file}.tmp.$$"
 
     mkdir -p "$(dirname "${dest_file}")"
@@ -1528,8 +1836,61 @@ download_script_file() {
         rm -f "${tmp_file}"
         return 1
     fi
+    if [[ -n "${expected_sha256}" ]]; then
+        local actual_sha256
+        actual_sha256=$(sha256sum "${tmp_file}" 2>/dev/null | awk '{print $1}')
+        if [[ "${actual_sha256}" != "${expected_sha256}" ]]; then
+            rm -f "${tmp_file}"
+            log_echo "${Error} ${RedBG} $(gettext "脚本校验值不匹配, 已拒绝安装"): ${url} ${Font}" >&2
+            return 1
+        fi
+    fi
     mv "${tmp_file}" "${dest_file}"
     chmod +x "${dest_file}"
+}
+
+# Helper scripts are pinned by the Release manifest, which is the same document
+# that already carries statsScriptSha256. The manifest is fetched once per
+# Release. A Release that predates helperScripts passes only while the running
+# script is below the signature cutover; afterwards an unpinned helper is
+# refused rather than executed unverified.
+_release_manifest_cache_version=""
+_release_manifest_cache_path=""
+
+release_manifest_path() {
+    local version="$1" path
+    if [[ "${_release_manifest_cache_version}" == "${version}" &&
+        -n "${_release_manifest_cache_path}" && -f "${_release_manifest_cache_path}" ]]; then
+        printf '%s' "${_release_manifest_cache_path}"
+        return 0
+    fi
+    path=$(mktemp "${TMPDIR:-/tmp}/idleleo-release-manifest.XXXXXX" 2>/dev/null) || return 1
+    if ! download_json_file "$(shell_release_asset_url "${version}" release-manifest.json)" "${path}"; then
+        rm -f "${path}"
+        return 1
+    fi
+    _release_manifest_cache_version="${version}"
+    _release_manifest_cache_path="${path}"
+    printf '%s' "${path}"
+}
+
+# Prints the pinned sha256 for one helper, or an empty string during the
+# compatibility window. Returns 1 when an unverified download must be refused.
+helper_script_sha256() {
+    local name="$1" version="${2:-${shell_version}}" manifest expected=""
+    if manifest=$(release_manifest_path "${version}"); then
+        expected=$(jq -r --arg name "${name}" '.helperScripts[$name] // empty' "${manifest}" 2>/dev/null)
+    fi
+    if [[ "${expected}" =~ ^[0-9a-f]{64}$ ]]; then
+        printf '%s' "${expected}"
+        return 0
+    fi
+    if version_lt "${shell_version}" "${helper_sha_required_from}"; then
+        log_echo "${Warning} ${YellowBG} $(gettext "Release 未声明该校验值(兼容期), 继续安装"): ${name} ${Font}" >&2
+        return 0
+    fi
+    log_echo "${Error} ${RedBG} $(gettext "Release 未声明该校验值, 已拒绝未校验的脚本"): ${name} ${Font}" >&2
+    return 1
 }
 
 download_json_file() {
@@ -4161,15 +4522,35 @@ ensure_sub_script() {
     local script_name="$1"
     local remote_url="$2"
     local local_file="${scripts_dir}/${script_name}"
+    local expected_sha256
 
     mkdir -p "${scripts_dir}"
+    if ! expected_sha256=$(helper_script_sha256 "${script_name}"); then
+        log_echo "${Error} ${RedBG} $(gettext "无法校验") ${script_name} $(gettext "的完整性, 已拒绝安装") ${Font}"
+        return 1
+    fi
     if [ ! -f "$local_file" ]; then
         log_echo "${Info} ${Green} $(gettext "本地文件") ${script_name} $(gettext "不存在, 正在下载")... ${Font}"
-        if ! download_script_file "$remote_url" "$local_file"; then
+        if ! download_script_file "$remote_url" "$local_file" bash "${expected_sha256}"; then
             log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
             return 1
         fi
     else
+        # An already-installed helper must still match its pinned hash. Without
+        # this check a stale or hand-edited copy would bypass the manifest
+        # entirely and keep executing, since the download path is skipped.
+        if [[ -n "${expected_sha256}" ]]; then
+            local actual_sha256
+            actual_sha256=$(sha256sum "$local_file" 2>/dev/null | awk '{print $1}')
+            if [[ "${actual_sha256}" != "${expected_sha256}" ]]; then
+                log_echo "${Warning} ${YellowBG} ${script_name} $(gettext "校验值不匹配, 正在重新下载") ${Font}"
+                if ! download_script_file "$remote_url" "$local_file" bash "${expected_sha256}"; then
+                    log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
+                    return 1
+                fi
+                return 0
+            fi
+        fi
         local required_version
         required_version=$(grep '^MIN_MAIN_VERSION=' "$local_file" | head -1 | sed 's/MIN_MAIN_VERSION="//; s/"//')
         if [ -z "$required_version" ]; then
@@ -4179,7 +4560,7 @@ ensure_sub_script() {
             read -r update_choice
             case $update_choice in
                 [yY][eE][sS] | [yY])
-                    if ! download_script_file "$remote_url" "$local_file"; then
+                    if ! download_script_file "$remote_url" "$local_file" bash "${expected_sha256}"; then
                         log_echo "${Error} ${RedBG} $(gettext "下载失败, 请手动下载并安装新版本") ${Font}"
                         return 1
                     fi
@@ -7291,7 +7672,12 @@ auto_update() {
         read -r auto_update_fq
         case $auto_update_fq in
         [yY][eE][sS] | [yY])
-            download_script_file "${au_remote_url}" "${auto_update_file}"
+            local auto_update_sha256
+            if ! auto_update_sha256=$(helper_script_sha256 "auto_update.sh"); then
+                log_echo "${Error} ${RedBG} $(gettext "无法校验自动更新脚本的完整性") ${Font}"
+                return 1
+            fi
+            download_script_file "${au_remote_url}" "${auto_update_file}" bash "${auto_update_sha256}"
             judge -r "$(gettext "下载自动更新脚本")" || return 1
             echo "0 1 * * * bash \"${auto_update_file}\"" >>"${crontab_file}"
             judge -r "$(gettext "设置自动更新")"
@@ -7314,7 +7700,17 @@ auto_update() {
 }
 
 ssl_install() {
-    # P1-9: socat is required for the acme.sh SSL workflow below.
+    acme_legacy_fallback_note
+    if ! acme_legacy_enabled; then
+        if ! command -v idleleo >/dev/null 2>&1; then
+            log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 无法使用原生 ACME 签发证书") ${Font}"
+            log_echo "${Info} ${Green} $(gettext "如需临时回退 acme.sh, 设置 IDLELEO_ACME_LEGACY=1 后重试") ${Font}"
+            return 1
+        fi
+        log_echo "${OK} ${GreenBG} $(gettext "使用 idleleo xray cert issue 签发证书") ${Font}"
+        return 0
+    fi
+    # Legacy acme.sh path, retained for one release.
     pkg_install "socat" || return 1
     judge -r "$(gettext "安装 SSL 证书生成脚本依赖")" || return 1
     local acme_install_file="${idleleo_dir}/tmp/acme-install.sh"
@@ -7725,7 +8121,51 @@ port_exist_check() {
 }
 
 acme() {
+    acme_legacy_fallback_note
     systemctl restart nginx
+    if ! acme_legacy_enabled; then
+        local idleleo_bin="" _cert_group="" _reloadcmd=""
+        idleleo_bin=$(command -v idleleo 2>/dev/null || true)
+        if [[ -z "${idleleo_bin}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 证书签发终止") ${Font}"
+            return 1
+        fi
+        _cert_group="$(get_nginx_worker_group)"
+        [[ -n "${_cert_group}" ]] || _cert_group="idleleo-nginx"
+        mkdir -p "${ssl_chainpath}"
+        _reloadcmd="chown -f root:${_cert_group} ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && systemctl restart nginx && systemctl restart xray"
+        local -a _email_args=()
+        [[ -n "${custom_email}" ]] && _email_args=(--email "${custom_email}")
+        local -a _dir_args=()
+        if [[ -n "${IDLELEO_ACME_DIRECTORY:-}" ]]; then
+            _dir_args=(--directory "${IDLELEO_ACME_DIRECTORY}")
+        else
+            # The installer is a production path; the CLI default is staging.
+            _dir_args=(--production)
+        fi
+        if ! "${idleleo_bin}" xray cert issue \
+            --domain "${domain}" \
+            --webroot "${idleleo_conf_dir}" \
+            --cert-out "${ssl_chainpath}/xray.crt" \
+            --key-out "${ssl_chainpath}/xray.key" \
+            "${_dir_args[@]}" \
+            "${_email_args[@]}" \
+            --cert-group "${_cert_group}" \
+            --takeover \
+            --force \
+            --reload-command "${_reloadcmd}"; then
+            log_echo "${Error} ${RedBG} SSL $(gettext "证书生成") $(gettext "失败") ${Font}"
+            return 1
+        fi
+        # Reuse authoritative layered permission model.
+        apply_nginx_layered_permissions || return 1
+        verify_nginx_layered_permissions || return 1
+        log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置") $(gettext "成功") ${Font}"
+        cert_issued_this_run="yes"
+        systemctl stop nginx
+        return 0
+    fi
+    # Legacy acme.sh path, retained for one release.
     #暂时解决ca问题
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" -w "${idleleo_conf_dir}" --server letsencrypt --keylength ec-256 --force --test; then
         log_echo "${OK} ${GreenBG} SSL $(gettext "证书测试签发成功, 开始正式签发") ${Font}"
@@ -7744,6 +8184,7 @@ acme() {
             apply_nginx_layered_permissions || return 1
             verify_nginx_layered_permissions || return 1
             log_echo "${OK} ${GreenBG} SSL $(gettext "证书配置") $(gettext "成功") ${Font}"
+            cert_issued_this_run="yes"
             systemctl stop nginx
         else
             log_echo "${Error} ${RedBG} SSL $(gettext "证书配置") $(gettext "失败") ${Font}"
@@ -8584,18 +9025,26 @@ stop_service_all() {
     [[ -f "${nginx_systemd_file}" ]] && { systemctl stop nginx 2>/dev/null; systemctl disable nginx 2>/dev/null; }
     systemctl stop xray 2>/dev/null
     systemctl disable xray 2>/dev/null
-    if [[ ${tls_mode} != "TLS" ]] && [[ -f "$HOME/.acme.sh/acme.sh" ]]; then
-        /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
-        log_echo "${OK} ${GreenBG} $(gettext "已清理残留的证书自动更新定时任务") ${Font}"
+    if [[ ${tls_mode} != "TLS" ]]; then
+        acme_cron_cleanup
     fi
     log_echo "${OK} ${GreenBG} $(gettext "停止") ${Font}"
 }
 
 acme_cron_cleanup() {
-    if [[ -f "$HOME/.acme.sh/acme.sh" ]]; then
-        /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
+    # S7-4: acme.sh is retired but kept on disk for one release. Only the
+    # renewal cron line is removed; `acme.sh --uninstall` is never called
+    # because it would delete /root/.acme.sh along with the account state.
+    local crontab_file
+    crontab_file="$(root_crontab_path)"
+    [[ -f "${crontab_file}" ]] || return 0
+    grep -q 'acme\.sh.*--cron' "${crontab_file}" 2>/dev/null || return 0
+    if sed -i '/acme\.sh.*--cron/d' "${crontab_file}"; then
         log_echo "${OK} ${GreenBG} $(gettext "已清理证书自动更新定时任务") ${Font}"
+        return 0
     fi
+    log_echo "${Warning} ${YellowBG} $(gettext "清理证书自动更新定时任务失败, 请手动检查 crontab") ${Font}"
+    return 1
 }
 
 service_restart() {
@@ -8670,45 +9119,172 @@ service_stop() {
 
 acme_cron_update() {
     if [[ ${tls_mode} == "TLS" ]]; then
-        local crontab_file
+        local crontab_file acme_sh_cron_present="no"
         crontab_file="$(root_crontab_path)"
-        if [[ -f "${ssl_update_file}" ]] && [[ $(crontab -l | grep -Fc -- "${ssl_update_file}") == "1" ]]; then
+        if crontab -l 2>/dev/null | grep -Eq 'acme\.sh.*--cron'; then
+            acme_sh_cron_present="yes"
+        fi
+        if [[ -f "${ssl_update_file}" ]] && [[ $(crontab -l 2>/dev/null | grep -Fc -- "${ssl_update_file}") == "1" ]]; then
             echo
-            log_echo "${Warning} ${GreenBG} $(gettext "新版本已自动设置证书自动更新") ${Font}"
-            log_echo "${Warning} ${GreenBG} $(gettext "老版本请及时删除 废弃的 改版证书自动更新")! ${Font}"
-            log_echo "${GreenBG} $(gettext "已设置改版证书自动更新") ${Font}"
-            log_echo "${GreenBG} $(gettext "是否需要删除改版证书自动更新 (请删除)") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
-            read -r remove_acme_cron_update_fq
-            case $remove_acme_cron_update_fq in
-            [nN][oO] | [nN]) ;;
-            *)
-                sed -i "\|${ssl_update_file}|d" "${crontab_file}"
-                rm -rf "${ssl_update_file}"
-                judge -r "$(gettext "删除改版证书自动更新")"
-                ;;
-            esac
+            if [[ "${acme_sh_cron_present}" != "yes" ]]; then
+                # Never leave the certificate with no renewal source: keep the
+                # old cron and say why instead of asking a question whose "yes"
+                # would delete the only scheduler.
+                log_echo "${Warning} ${RedBG} $(gettext "未找到 acme.sh 的续期调度, 已保留原有调度") ${Font}"
+                log_echo "${Info} ${Green} $(gettext "不能删成没人接的状态; 请先修复 acme.sh 调度再清理旧 cron") ${Font}"
+                judge -r "$(gettext "保留原有证书自动更新")"
+            else
+                log_echo "${Warning} ${GreenBG} $(gettext "已找到 acme.sh 续期调度, 删除旧调度后仍会续期") ${Font}"
+                log_echo "${GreenBG} $(gettext "是否需要删除改版证书自动更新 (请删除)") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+                read -r remove_acme_cron_update_fq
+                case $remove_acme_cron_update_fq in
+                [nN][oO] | [nN]) ;;
+                *)
+                    sed -i "\|${ssl_update_file}|d" "${crontab_file}"
+                    rm -rf "${ssl_update_file}"
+                    judge -r "$(gettext "删除改版证书自动更新")"
+                    ;;
+                esac
+            fi
         else
             echo
-            log_echo "${OK} ${GreenBG} $(gettext "新版本已自动设置证书自动更新") ${Font}"
+            if [[ "${acme_sh_cron_present}" == "yes" ]]; then
+                log_echo "${OK} ${GreenBG} $(gettext "acme.sh 续期调度已存在, 证书到期前会自动续期") ${Font}"
+            else
+                log_echo "${Warning} ${YellowBG} $(gettext "未检测到任何证书续期调度, 请检查证书续期配置") ${Font}"
+            fi
         fi
     else
         log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
     fi
 }
 
+# One line per scheduler that can actually renew the certificate. Three places
+# are checked because acme.sh writes to any of them depending on the host: the
+# root crontab, /etc/cron.d when no crontab binary exists, or a systemd timer.
+cert_renewal_scheduler_entries() {
+    local cron f unit
+    cron=$(crontab -l 2>/dev/null || true)
+    printf '%s\n' "${cron}" | grep -E 'acme\.sh.*--cron' | sed 's/^/acme.sh: /' || true
+    printf '%s\n' "${cron}" | grep -F -- "${ssl_update_file}" | sed 's/^/ssl_update: /' || true
+    for f in /etc/cron.d/*; do
+        [[ -f "${f}" ]] || continue
+        if grep -qE 'acme\.sh.*--cron' "${f}" 2>/dev/null; then
+            printf '%s\n' "acme.sh: ${f}"
+        fi
+    done
+    for unit in acme.sh.timer idleleo-schedule.timer; do
+        [[ -f "/etc/systemd/system/${unit}" ]] || continue
+        if systemctl is-active --quiet "${unit}" 2>/dev/null; then
+            printf '%s\n' "${unit}: active"
+        fi
+    done
+}
+
+# acme.sh renews once the certificate is older than Le_RenewalDays. The
+# Let's Encrypt lifetime is 90 days, so <=60 leaves at least the last 30 days.
+cert_renewal_window_ok() {
+    local kind=$1 conf="" renewal=""
+    case "${kind}" in
+    idleleo-schedule.timer)
+        # schedule.CertRenewWindow is 30 days in the Go manager.
+        return 0
+        ;;
+    acme.sh.timer)
+        # acme.sh's own timer runs --cron daily; renewal happens at Le_RenewalDays.
+        return 0
+        ;;
+    acme.sh)
+        conf="$HOME/.acme.sh/${domain}_ecc/${domain}.conf"
+        [[ -f "${conf}" ]] || conf="$HOME/.acme.sh/${domain}/${domain}.conf"
+        [[ -f "${conf}" ]] || return 1
+        renewal=$(sed -n 's/^Le_RenewalDays=//p' "${conf}" | tr -d '"' | head -n1)
+        renewal="${renewal:-60}"
+        [[ "${renewal}" =~ ^[0-9]+$ ]] && ((renewal <= 60))
+        ;;
+    ssl_update)
+        [[ -f "${ssl_update_file}" ]] || return 1
+        grep -qE 'xray cert renew|acme\.sh.*--cron' "${ssl_update_file}" 2>/dev/null
+        ;;
+    *)
+        return 1
+        ;;
+    esac
+}
+
+# Exactly one scheduler must be able to renew the certificate. Zero is a hard
+# failure when this run issued the certificate; more than one is redundant but
+# not a reason to tear down a working install.
+assert_cert_renewal_scheduler() {
+    local entries count kind
+    entries=$(cert_renewal_scheduler_entries)
+    count=$(printf '%s\n' "${entries}" | grep -c . || true)
+    if [[ "${count}" -eq 0 ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "证书续期断言失败: 没有找到任何续期调度") ${Font}"
+        return 1
+    fi
+    if [[ "${count}" -gt 1 ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "证书续期断言: 存在多条续期调度, 请清理重复项") ${Font}"
+        printf '%s\n' "${entries}"
+        return 0
+    fi
+    kind=${entries%%:*}
+    if ! cert_renewal_window_ok "${kind}"; then
+        log_echo "${Error} ${RedBG} $(gettext "证书续期断言失败: 未确认会在到期前 30 天内触发") ${Font}"
+        log_echo "  ${entries}"
+        return 1
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "证书续期断言通过") ${Font}: ${entries}"
+}
+
+# True when there is evidence that this manager issued the installed pair: the
+# native ownership marker or the legacy acme.sh domain state. Without either,
+# a kept pair was supplied by the operator and must not be renewed natively.
+cert_has_manager_ownership() {
+    [[ -f "${ssl_chainpath}/.managed-by-idleleo" ]] && return 0
+    if acme_legacy_enabled &&
+        [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+        return 0
+    fi
+    return 1
+}
+
 check_cert_status() {
     if [[ ${tls_mode} == "TLS" ]]; then
         host="$(info_extraction host)"
-        if [[ -d "$HOME/.acme.sh/${host}_ecc" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.key" ]] && [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.cer" ]]; then
-            modifyTime=$(stat -c %Y "$HOME/.acme.sh/${host}_ecc/${host}.cer" 2>/dev/null)
+        local _cer_file="" _issued_epoch="" _notafter_epoch="" _legacy_cer="no"
+        if acme_legacy_enabled &&
+            [[ -f "$HOME/.acme.sh/${host}_ecc/${host}.cer" && -f "$HOME/.acme.sh/${host}_ecc/${host}.key" ]]; then
+            _cer_file="$HOME/.acme.sh/${host}_ecc/${host}.cer"
+            _legacy_cer="yes"
+        else
+            _cer_file="${ssl_chainpath}/xray.crt"
+            [[ -f "${ssl_chainpath}/xray.key" ]] || _cer_file=""
+        fi
+        if [[ -n "${_cer_file}" && -f "${_cer_file}" ]]; then
             currentTime=$(date +%s)
-            ((stampDiff = currentTime - modifyTime))
-            ((days = stampDiff / 86400))
-            ((remainingDays = 90 - days))
+            if [[ "${_legacy_cer}" == "yes" ]]; then
+                modifyTime=$(stat -c %Y "${_cer_file}" 2>/dev/null)
+                _issued_epoch="${modifyTime}"
+                ((days = (currentTime - modifyTime) / 86400))
+                ((remainingDays = 90 - days))
+            else
+                local _enddate _startdate
+                _enddate=$(openssl x509 -in "${_cer_file}" -noout -enddate 2>/dev/null | cut -d= -f2-)
+                _startdate=$(openssl x509 -in "${_cer_file}" -noout -startdate 2>/dev/null | cut -d= -f2-)
+                _notafter_epoch=$(date -d "${_enddate}" +%s 2>/dev/null || true)
+                _issued_epoch=$(date -d "${_startdate}" +%s 2>/dev/null || true)
+                if [[ -z "${_notafter_epoch}" || -z "${_issued_epoch}" ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "无法读取证书有效期")! ${Font}"
+                    return 1
+                fi
+                ((days = (currentTime - _issued_epoch) / 86400))
+                ((remainingDays = (_notafter_epoch - currentTime) / 86400))
+            fi
             tlsStatus=${remainingDays}
             [[ ${remainingDays} -le 0 ]] && tlsStatus="${Yellow}$(gettext "已过期")${Font}"
             echo
-            log_echo "${Green}$(gettext "证书生成日期"): $(date -d "@${modifyTime}" +"%F %H:%M:%S")${Font}"
+            log_echo "${Green}$(gettext "证书生成日期"): $(date -d "@${_issued_epoch}" +"%F %H:%M:%S")${Font}"
             log_echo "${Green}$(gettext "证书生成天数"): ${days}${Font}"
             log_echo "${Green}$(gettext "证书剩余天数"): ${tlsStatus}${Font}"
             echo
@@ -8738,15 +9314,29 @@ cert_update_manuel() {
         log_echo "${Error} ${RedBG} $(gettext "当前模式不支持此操作")! ${Font}"
         return 1
     fi
+    # A user-managed certificate is renewed by its issuer. Refuse here instead
+    # of silently adopting it: taking it over would replace the operator's pair.
+    if [[ -f "${ssl_chainpath}/.user-managed" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "检测到用户自备证书, 已跳过自动续签; 请通过原签发方式更新") ${Font}"
+        return 0
+    fi
 
     # Every precondition is checked before a service is stopped, so a missing
     # prerequisite can never leave Xray down.
-    if [[ ! -f "${amce_sh_file}" ]]; then
-        log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
-        return 1
+    local _cert_host _cert_group _xray_was_active="no" _rc=0 _idleleo_bin=""
+    if acme_legacy_enabled; then
+        if [[ ! -f "${amce_sh_file}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "证书签发工具不存在, 请确认是否证书为脚本签发")! ${Font}"
+            return 1
+        fi
+    else
+        _idleleo_bin=$(command -v idleleo 2>/dev/null || true)
+        if [[ -z "${_idleleo_bin}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 已取消证书更新")! ${Font}"
+            return 1
+        fi
     fi
 
-    local _cert_host _cert_group _xray_was_active="no" _rc=0
     _cert_host="$(info_extraction host)"
     if [[ -z "${_cert_host}" || "${_cert_host}" == "null" ]]; then
         log_echo "${Error} ${RedBG} $(gettext "无法读取域名, 已取消证书更新")! ${Font}"
@@ -8772,22 +9362,44 @@ cert_update_manuel() {
     fi
 
     local _reloadcmd="chown -f root:${_cert_group} ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key && chmod -f 640 ${ssl_chainpath}/xray.crt ${ssl_chainpath}/xray.key"
-    # --reloadcmd is persisted in the acme.sh renewal config. It must not
-    # restart services: this function and ssl_update.sh already restart them
-    # once, and a restart inside the hook would double-restart every renewal.
-    if ! "${amce_sh_file}" --cron --home "$(dirname "${amce_sh_file}")"; then
-        log_echo "${Error} ${RedBG} acme.sh $(gettext "续签失败")! ${Font}"
+    local -a _dir_args=()
+    if [[ -n "${IDLELEO_ACME_DIRECTORY:-}" ]]; then
+        _dir_args=(--directory "${IDLELEO_ACME_DIRECTORY}")
+    else
+        _dir_args=(--production)
+    fi
+    # In legacy mode --reloadcmd is persisted in the acme.sh renewal config; in
+    # native mode it is the one-shot reload hook of `xray cert renew`. Neither
+    # may restart services here: this function and ssl_update.sh already
+    # restart them once, and a restart inside the hook would double-restart.
+    if acme_legacy_enabled; then
+        if ! "${amce_sh_file}" --cron --home "$(dirname "${amce_sh_file}")"; then
+            log_echo "${Error} ${RedBG} acme.sh $(gettext "续签失败")! ${Font}"
+            _rc=1
+        elif ! "${amce_sh_file}" --installcert -d "${_cert_host}" \
+            --fullchainpath "${ssl_chainpath}/xray.crt" \
+            --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "${_reloadcmd}"; then
+            log_echo "${Error} ${RedBG} $(gettext "证书安装失败")! ${Font}"
+            _rc=1
+        fi
+    elif ! "${_idleleo_bin}" xray cert renew \
+        --domain "${_cert_host}" \
+        --webroot "${idleleo_conf_dir}" \
+        --cert-out "${ssl_chainpath}/xray.crt" \
+        --key-out "${ssl_chainpath}/xray.key" \
+        "${_dir_args[@]}" \
+        --cert-group "${_cert_group}" \
+        --reload-command "${_reloadcmd}"; then
+        log_echo "${Error} ${RedBG} $(gettext "证书续签失败")! ${Font}"
         _rc=1
-    elif ! "${amce_sh_file}" --installcert -d "${_cert_host}" \
-        --fullchainpath "${ssl_chainpath}/xray.crt" \
-        --keypath "${ssl_chainpath}/xray.key" --ecc --reloadcmd "${_reloadcmd}"; then
-        log_echo "${Error} ${RedBG} $(gettext "证书安装失败")! ${Font}"
+    fi
+    if [[ ${_rc} -eq 0 ]] && ! apply_nginx_layered_permissions; then
         _rc=1
-    elif ! apply_nginx_layered_permissions; then
+    fi
+    if [[ ${_rc} -eq 0 ]] && ! verify_nginx_layered_permissions; then
         _rc=1
-    elif ! verify_nginx_layered_permissions; then
-        _rc=1
-    elif ! service_restart; then
+    fi
+    if [[ ${_rc} -eq 0 ]] && ! service_restart; then
         _rc=1
     fi
 
@@ -8854,7 +9466,7 @@ set_geodata_menu() {
 
 setup_auto_clean_logs() {
     local logrotate_config="${LOGROTATE_CONFIG_PATH:-/etc/logrotate.d/xray_log_cleanup}"
-    local logrotate_dir tmp_config nginx_user nginx_group
+    local logrotate_dir tmp_config nginx_user nginx_group logrotate_dropin_dir logrotate_dropin
     echo
 
     log_echo "${GreenBG} $(gettext "是否需要设置自动清理日志") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
@@ -8927,6 +9539,26 @@ EOF
             rm -f "${tmp_config}"
             return 1
         fi
+        # Ubuntu/Debian 的 logrotate.service 带 ProtectSystem=full，/usr 在单元
+        # 命名空间内只读；${nginx_dir} 位于 /usr/local，轮转时会 EROFS。
+        # logrotate --debug 只做模拟且不带该沙箱，抓不到这个问题，因此显式
+        # 放行日志目录（前缀 - 表示目录不存在时忽略）。
+        logrotate_dropin_dir="${LOGROTATE_DROPIN_DIR:-/etc/systemd/system/logrotate.service.d}"
+        logrotate_dropin="${logrotate_dropin_dir}/10-idleleo-readwrite.conf"
+        if ! mkdir -p "${logrotate_dropin_dir}" ||
+            ! cat >"${logrotate_dropin}" <<EOF
+[Service]
+ReadWritePaths=-${nginx_dir}/logs
+EOF
+        then
+            rm -f "${logrotate_dropin}"
+            return 1
+        fi
+        if ! chmod 644 "${logrotate_dropin}"; then
+            rm -f "${logrotate_dropin}"
+            return 1
+        fi
+        systemctl daemon-reload >/dev/null 2>&1 || true
         judge -r "$(gettext "设置自动清理日志")"
         ;;
     esac
@@ -9468,6 +10100,10 @@ generate_clash_config() {
 }
 
 install_link_image() {
+    if idleleo_go_metadata_present; then
+        # S1: Go 元数据是唯一真相；不重写 xray_info.inf / Clash 配置，也不生成链接。
+        return 0
+    fi
     if is_relay_role; then
         # A relay has no VLESS inbound, so no share link or QR code exists.
         return 0
@@ -9769,6 +10405,10 @@ monitor_traffic_with_iftop() {
 }
 
 basic_information() {
+    if idleleo_go_metadata_present; then
+        # S1: --show 在 Go 模式下是纯读；绝不重写 info 文件。
+        return 0
+    fi
     if is_relay_role; then
         relay_basic_information
         return 0
@@ -9870,6 +10510,10 @@ basic_information() {
 }
 
 show_information() {
+    if idleleo_go_metadata_present; then
+        idleleo_go_show_information
+        return $?
+    fi
     cat "${xray_info_file}"
 }
 
@@ -9880,7 +10524,12 @@ ssl_judge_and_install() {
     local has_acme_files="false"
 
     [[ -f "${ssl_chainpath}/xray.key" && -f "${ssl_chainpath}/xray.crt" ]] && has_cert_files="true"
-    [[ -f "$HOME/.acme.sh/acme.sh" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]] && has_acme_files="true"
+    # S7-4: native issuance keeps no state under ~/.acme.sh, so a leftover
+    # acme.sh directory must not be mistaken for a usable certificate.
+    if acme_legacy_enabled &&
+        [[ -f "$HOME/.acme.sh/acme.sh" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+        has_acme_files="true"
+    fi
 
     if [[ ${has_cert_files} != "true" && ${has_acme_files} != "true" ]]; then
         log_echo "${GreenBG} $(gettext "即将申请证书, 支持使用自定义证书") ${Font}"
@@ -9899,7 +10548,7 @@ ssl_judge_and_install() {
 
     if [[ ${has_cert_files} == "true" ]]; then
         if [[ ${has_acme_files} == "true" ]]; then
-            log_echo "${GreenBG} $(gettext "所有证书文件均已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+            log_echo "${GreenBG} $(gettext "所有证书文件均已存在, 是否保留") (${Red}$(gettext "仅删除域名证书, 账户与账户密钥保留")${Font}${GreenBG}) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         else
             log_echo "${GreenBG} $(gettext "证书文件已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         fi
@@ -9920,7 +10569,7 @@ ssl_judge_and_install() {
             ;;
         esac
     elif [[ ${has_acme_files} == "true" ]]; then
-        log_echo "${GreenBG} $(gettext "证书签发残留文件已存在, 是否保留") [${Red}Y${Font}${GreenBG}/N]? ${Font}"
+        log_echo "${GreenBG} $(gettext "证书签发残留文件已存在, 是否保留") (${Red}$(gettext "仅删除域名证书, 账户与账户密钥保留")${Font}${GreenBG}) [${Red}Y${Font}${GreenBG}/N]? ${Font}"
         read -r ssl_delete_3
         case $ssl_delete_3 in
         [nN][oO] | [nN])
@@ -10828,19 +11477,49 @@ xray_stats_cli() {
     XRAY_STATS_LANG="${_stats_lang}" bash "${xray_stats_script}" --config "${xray_conf}" "${stats_args[@]}"
 }
 
+# TCP acceleration entry. The default path is the project-owned profile from
+# internal/tcpcfg: it only writes the managed sysctl drop-in, can be rolled
+# back, and never downloads a third-party script. The legacy tcp.sh keeps
+# kernel replacement reachable only behind an explicit typed confirmation,
+# because that path cannot undo a kernel swap.
 bbr_boost_sh() {
+    local mode="${1:-default}" idleleo_bin="" confirm=""
     read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
-    if [[ -f "${scripts_dir}/tcp.sh" ]]; then
-        cd "${scripts_dir}" && chmod +x ./tcp.sh && ./tcp.sh
-    else
-        if download_script_file "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" "${scripts_dir}/tcp.sh"; then
-            "${scripts_dir}/tcp.sh"
-        else
-            log_echo "${Error} ${RedBG} TCP $(gettext "加速脚本下载失败") ${Font}"
+
+    if [[ "${mode}" == "--legacy" ]]; then
+        log_echo "${Warning} ${YellowBG} $(gettext "legacy tcp.sh 会替换内核且不可回滚, 仅用于兼容旧环境") ${Font}"
+        log_echo "${GreenBG} $(gettext "如确认继续, 请输入") legacy [Y/${Red}N${Font}${GreenBG}]? ${Font}"
+        read -r confirm
+        if [[ "${confirm}" != "legacy" ]]; then
+            log_echo "${OK} ${GreenBG} $(gettext "已取消") ${Font}"
             return 1
         fi
+        if [[ ! -f "${scripts_dir}/tcp.sh" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "本地不存在 tcp.sh, 已不再自动下载第三方脚本") ${Font}"
+            log_echo "${Info} ${Green} $(gettext "请改用 idleleo tcp apply --profile bbr-fq --confirm") ${Font}"
+            return 1
+        fi
+        (cd "${scripts_dir}" && chmod +x ./tcp.sh && ./tcp.sh)
+        read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
+        return 0
     fi
-    read -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
+
+    idleleo_bin=$(command -v idleleo 2>/dev/null || true)
+    if [[ -z "${idleleo_bin}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 请先安装 Go 版本") ${Font}"
+        log_echo "${Info} ${Green} $(gettext "TCP 加速现在由 idleleo tcp 管理, 不再自动下载第三方脚本") ${Font}"
+        return 1
+    fi
+    case "${mode}" in
+    --apply)
+        "${idleleo_bin}" tcp apply --profile bbr-fq --confirm
+        ;;
+    *)
+        log_echo "${Info} ${Green} $(gettext "TCP 加速由 idleleo tcp 管理 (status/plan/apply/rollback)") ${Font}"
+        "${idleleo_bin}" tcp status || "${idleleo_bin}" tcp plan
+        log_echo "${Info} ${Green} $(gettext "应用") : idleleo tcp apply --profile bbr-fq --confirm  $(gettext "回滚") : idleleo tcp rollback ${Font}"
+        ;;
+    esac
 }
 
 uninstall_xray() {
@@ -10957,6 +11636,11 @@ uninstall_all() {
         sed -i "\|${ssl_update_file}|d" "${crontab_file}"
     fi
     [[ -f "/etc/logrotate.d/xray_log_cleanup" ]] && rm -f "/etc/logrotate.d/xray_log_cleanup"
+    logrotate_dropin_dir="${LOGROTATE_DROPIN_DIR:-/etc/systemd/system/logrotate.service.d}"
+    if [[ -f "${logrotate_dropin_dir}/10-idleleo-readwrite.conf" ]]; then
+        rm -f "${logrotate_dropin_dir}/10-idleleo-readwrite.conf"
+        systemctl daemon-reload >/dev/null 2>&1 || true
+    fi
     [[ -L "/usr/local/etc/xray/config.json" ]] && rm -f "/usr/local/etc/xray/config.json"
     [[ -L "/usr/local/share/xray" ]] && rm -f "/usr/local/share/xray"
     # Node cleanup must not depend on the binary surviving: a missing binary is
@@ -11043,9 +11727,16 @@ rxa_uninstall_finish_if_present() {
 }
 
 delete_tls_key_and_crt() {
-    [[ -f "$HOME/.acme.sh/acme.sh" ]] && /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
-    [[ -d "$HOME/.acme.sh" ]] && rm -rf "$HOME/.acme.sh"
-    log_echo "${OK} ${GreenBG} $(gettext "已清空证书遗留文件") ${Font}"
+    # S7-4: /root/.acme.sh and its account state are retained for one release
+    # so IDLELEO_ACME_LEGACY=1 still works. Only per-domain issuance
+    # directories are removed; the installed acme.sh itself stays.
+    local d
+    if [[ -d "$HOME/.acme.sh" ]]; then
+        for d in "$HOME"/.acme.sh/*_ecc; do
+            [[ -d "${d}" ]] && rm -rf "${d}"
+        done
+    fi
+    log_echo "${OK} ${GreenBG} $(gettext "已删除域名证书; ACME 账户与账户密钥 (account.conf, ca/) 保留") ${Font}"
 }
 
 countdown() {
@@ -11100,6 +11791,11 @@ judge_mode() {
     # Restore dual-stack runtime state on a fresh process so --show / menus
     # still emit IPv6 links after the script exits and re-runs.
     ensure_network_runtime_state
+    if idleleo_go_metadata_present; then
+        # S1: Go 元数据是唯一真相，字段缺失时显式失败，不回落到 install_config.json。
+        idleleo_go_mode_load || return 1
+        return 0
+    fi
     if [[ -f "${xray_install_config_file}" ]]; then
         node_role=$(info_extraction role)
         [[ -z ${node_role} || ${node_role} == "null" ]] && node_role="node"
@@ -11163,11 +11859,22 @@ _relay_state_load() {
     [[ -n "${relay_listen_port}" ]] && port="${relay_listen_port}"
 }
 
-# Set the role globals straight from install_config.json. Used by dispatch
-# paths that run without judge_mode() (offline root mutations such as
-# --service-restart / --purge), so they never fall back to the Xray code path
-# on a relay host.
+# Set the role globals without judge_mode(). Used by dispatch paths that run
+# offline root mutations (--service-restart / --purge), so they never fall back
+# to the Xray code path on a relay host. Go-owned roots read role from the
+# single metadata record; legacy roots keep reading install_config.json.
 relay_bootstrap_role() {
+    if idleleo_go_metadata_present; then
+        # S1: role 只从 Go 元数据推导，不再读 install_config.json。
+        local _role
+        _role=$(idleleo_go_metadata_field role) || return 1
+        [[ "${_role}" == "relay" ]] || return 1
+        node_role="relay"
+        tls_mode="None"
+        transport_mode="None"
+        shell_mode="$(gettext "中转节点")"
+        return 0
+    fi
     [[ -f "${xray_install_config_file}" ]] || return 1
     [[ "$(info_extraction role 2>/dev/null)" == "relay" ]] || return 1
     node_role="relay"
@@ -12109,6 +12816,32 @@ install_xray_ws_tls() {
     acme_cron_update
     auto_update || return 1
     service_restart || return 1
+    # A certificate issued by this run must have a scheduler that renews it
+    # before expiry. A kept certificate is only reported: the operator may own
+    # its renewal elsewhere.
+    if [[ "${cert_issued_this_run}" == "yes" ]]; then
+        rm -f "${ssl_chainpath}/.user-managed"
+        assert_cert_renewal_scheduler || return 1
+    elif [[ -f "${ssl_chainpath}/xray.crt" && -f "${ssl_chainpath}/xray.key" ]] &&
+        ! cert_has_manager_ownership; then
+        # The pair was kept and nothing records this manager as its issuer, so
+        # it is operator-supplied. Mark it before the scheduler runs, otherwise
+        # the native renewal would overwrite it inside the 30-day window.
+        local _user_cert_group
+        _user_cert_group="$(get_nginx_worker_group 2>/dev/null || true)"
+        [[ -n "${_user_cert_group}" ]] || _user_cert_group="idleleo-nginx"
+        printf 'managed-by=user\ncreated=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"${ssl_chainpath}/.user-managed" || true
+        chown -f "root:${_user_cert_group}" "${ssl_chainpath}/.user-managed" 2>/dev/null || true
+        chmod -f 640 "${ssl_chainpath}/.user-managed" 2>/dev/null || true
+        log_echo "${Warning} ${YellowBG} $(gettext "检测到用户自备证书, 已标记; 安装器与原生续期都不会覆盖该证书") ${Font}"
+        log_echo "${Info} ${Green} $(gettext "如需由本管理器签发与续期, 重新安装 TLS 并选择不保留现有证书") ${Font}"
+    else
+        if ! assert_cert_renewal_scheduler; then
+            log_echo "${Warning} ${YellowBG} $(gettext "本次沿用已有证书, 安装器不强制接管其续期; 请确认到期前会有人续期") ${Font}"
+        else
+            rm -f "${ssl_chainpath}/.user-managed"
+        fi
+    fi
     # The native schedule only replaces the external updater once the service
     # is confirmed healthy; a user-written cron entry is never touched.
     geodata_legacy_cron_disable || true
@@ -12453,7 +13186,12 @@ rxa_sync_release_helpers() {
         [[ -f "${scripts_dir}/${file}" ]] || continue
         any=1
         url=$(shell_release_raw_url "$version" "scripts/${file}")
-        if ! download_script_file "$url" "${dir}/${file}"; then
+        local expected_sha256
+        if ! expected_sha256=$(helper_script_sha256 "${file}" "${version}"); then
+            rm -rf "$dir"
+            return 1
+        fi
+        if ! download_script_file "$url" "${dir}/${file}" bash "${expected_sha256}"; then
             rm -rf "$dir"
             return 1
         fi
@@ -12951,10 +13689,43 @@ rxa_keep_committed_entry() {
     rxa_entry_is_go_managed || return 1
     if [[ -x "${go_entry}" ]]; then
         ln -sfn "${go_entry}" "${idleleo_commend_file}"
+        ensure_go_schedule_installed
         log_echo "${Info} ${GreenBG} $(gettext "检测到已提交的 Go 迁移，保留 Go 入口") ${Font}"
     else
         log_echo "${Warning} ${YellowBG} $(gettext "检测到已提交的 Go 迁移但 Go 入口缺失，未创建 Bash 入口；请运行 idleleo-recover") ${Font}"
     fi
+    return 0
+}
+
+# Install the Go scheduler after the native manager has taken over. It is
+# idempotent: running it again rewrites the same config/units and re-enables the
+# timer. Failures are reported but never abort the install.
+ensure_go_schedule_installed() {
+    [[ "${_TEST_MODE:-0}" == "1" ]] && return 0
+    local bin
+    bin="$(command -v idleleo 2>/dev/null || true)"
+    [[ -n "${bin}" ]] || return 0
+    local -a args=("schedule" "install")
+    if [[ -f /.dockerenv || -f /run/.containerenv ]]; then
+        args+=("--container")
+    fi
+    if [[ -n "${domain:-}" ]]; then
+        args+=(
+            "--cert-domain" "${domain}"
+            "--cert-webroot" "${idleleo_conf_dir}"
+            "--cert-out" "${ssl_chainpath}/xray.crt"
+            "--cert-key-out" "${ssl_chainpath}/xray.key"
+        )
+    fi
+    [[ -n "${custom_email:-}" ]] && args+=("--acme-email" "${custom_email}")
+    [[ -n "${IDLELEO_ALERT_WEBHOOK:-}" ]] && args+=("--alert-webhook" "${IDLELEO_ALERT_WEBHOOK}")
+    if [[ -n "${IDLELEO_ACME_DIRECTORY:-}" ]]; then
+        args+=("--acme-directory" "${IDLELEO_ACME_DIRECTORY}")
+    else
+        args+=("--acme-production")
+    fi
+    "${bin}" "${args[@]}" >/dev/null 2>&1 ||
+        log_echo "${Warning} ${YellowBG} $(gettext "Go 定时任务安装失败，请手动执行 idleleo schedule install") ${Font}" 2>/dev/null || true
     return 0
 }
 
@@ -13083,7 +13854,8 @@ bridge_migration_offer() {
     fi
     rm -rf "${tmpdir}"
     echo "$(gettext "Go 迁移已提交；旧 Bash 已保留为 /opt/idleleo/recovery/legacy-install.sh")"
-    echo "$(gettext "Go 原生定时任务已接管旧 cron；auto-update 与 cert-renew 为明确降级项（见 schedule status）")"
+    ensure_go_schedule_installed
+    echo "$(gettext "Go 原生定时任务已接管旧 cron；cert-renew 在到期前 30 天自动续签，auto-update 仍为明确降级项（见 schedule status）")"
     /usr/bin/idleleo schedule status 2>/dev/null | sed 's/^/  /' || true
     return 0
 }
@@ -13416,7 +14188,7 @@ show_help() {
     echo "      --stats-reset           $(gettext "重置 Xray 流量统计") [--yes]"
     echo "      --stats-watch [秒]       $(gettext "实时刷新 Xray 流量统计")"
     echo "  --purge, --uninstall        $(gettext "脚本卸载")"
-    echo "      --backup                $(gettext "备份") $(gettext "脚本管理文件")"
+    echo "      --backup                $(gettext "备份") $(gettext "脚本管理文件") ($(gettext "含证书私钥与 ACME 账户私钥"))"
     echo "      --restore               $(gettext "恢复") $(gettext "脚本管理文件")"
     echo "      --rill-agent-install    $(gettext "安装或修复 Rill AI 判断引擎")"
     echo "      --rill-agent-status     $(gettext "查看") Rill AI $(gettext "判断引擎状态")"
@@ -13791,6 +14563,11 @@ function backup_directories() {
     }
     chmod 600 "${backup_tmp}" 2>/dev/null || true
     backup_tar_paths=("${idleleo_dir}")
+    # The archive carries secret key material: the Xray certificate key pair and
+    # the ACME account state (account.conf and ca/ under /root/.acme.sh), which
+    # can re-issue or revoke certificates for the domain. It is written 0600 and
+    # must be handled like a private key.
+    log_echo "${Warning} ${YellowBG} $(gettext "备份包含证书私钥与 ACME 账户私钥(account.conf, ca/), 请按密钥文件保管") ${Font}"
     [[ -d "${nginx_dir}" ]] && backup_tar_paths+=("${nginx_dir}")
     # Service units and the Xray binary live outside idleleo_dir/nginx_dir.
     # "全部文件" must include them, otherwise a restore leaves the old binary
@@ -13809,7 +14586,9 @@ function backup_directories() {
     for cron_path in /var/spool/cron/crontabs/root /var/spool/cron/root; do
         [[ -f "${cron_path}" ]] && backup_tar_paths+=("${cron_path}")
     done
-    # ACME account state is needed for future certificate renewals.
+    # ACME account state: the native account lives under ${ssl_chainpath}/acme
+    # (inside /etc/idleleo, already covered); the retained /root/.acme.sh keeps
+    # the one-release acme.sh fallback usable.
     [[ -d /root/.acme.sh ]] && backup_tar_paths+=("/root/.acme.sh")
 
     # Per-file checksum manifest, inside the archive, using the same
@@ -15493,12 +16272,13 @@ menu_action() {
     33)
         clear
         read -r -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
-        local superspeed_script="${idleleo_dir}/tmp/superspeed.sh"
-        if download_script_file "https://cdn.jsdelivr.net/gh/hello-yunshu/superspeed@master/superspeed.sh" "$superspeed_script"; then
-            bash "$superspeed_script"
-            rm -f "$superspeed_script"
+        local speedtest_bin=""
+        speedtest_bin=$(command -v idleleo 2>/dev/null || true)
+        if [[ -z "${speedtest_bin}" ]]; then
+            log_echo "${Error} ${RedBG} $(gettext "未找到 idleleo 入口, 请先安装 Go 版本") ${Font}"
+            log_echo "${Info} ${Green} $(gettext "测速已由 idleleo speedtest 提供, 不再下载第三方脚本") ${Font}"
         else
-            log_echo "${Error} ${RedBG} $(gettext "网速测试脚本下载失败") ${Font}"
+            "${speedtest_bin}" speedtest
         fi
         read -r -t 0.1 -n 10000 -d '' _ </dev/tty 2>/dev/null || true
         menu_pause
@@ -16219,7 +16999,7 @@ dispatch_pure_readonly_command() {
     case "${1:-}" in
         -h|--help) show_help ;;
         -s|--show)
-            judge_mode
+            judge_mode || exit 1
             basic_information
             install_link_image
             show_information
@@ -16344,6 +17124,10 @@ is_root
 # may attempt network downloads, so they work even when GitHub is unreachable.
 # Logging is enabled here: mutation commands persist their outcome.
 if is_offline_root_mutation_command "${1:-}"; then
+    # S1: Go-owned roots refuse state-rebuilding offline commands (restore,
+    # purge, uninstall) and only warn on reversible ones (service control,
+    # stats-reset) before any dispatch or log write.
+    idleleo_go_offline_mutation_policy "${1:-}" || exit 1
     enable_file_logging
     dispatch_offline_root_mutation_command "$@"
     exit $?
@@ -16355,6 +17139,15 @@ fi
 # bootstrap). Validate the OS BEFORE any apt update / dnf makecache / pkg
 # install / GitHub curl / mkdir /etc/idleleo, then enable logging, then go
 # through the full bootstrap + candidate-guard + config-load path.
+#
+# S1: when Go metadata owns the root, refuse install/update/repair/reinstall
+# before the first system write, package call or network request. Silently
+# writing a second config through Bash is the dual-truth failure this phase
+# exists to prevent.
+if idleleo_go_metadata_present; then
+    idleleo_go_refuse_bash_mutation "${1:-interactive}"
+    exit 1
+fi
 validate_supported_system || exit 1
 enable_file_logging
 
@@ -16366,7 +17159,7 @@ check_file_integrity "$@" || exit 1
 # Repair a stale install_config shell_version before any update decision. The
 # managed script itself is authoritative; never rewrite it from old metadata.
 sync_shell_version_config_with_actual || true
-judge_mode
+judge_mode || exit 1
 check_online_version_connect
 read_version || exit 1
 
