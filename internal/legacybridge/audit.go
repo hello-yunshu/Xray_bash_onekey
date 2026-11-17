@@ -477,7 +477,7 @@ func observationTime(b []byte) time.Time {
 	if err := json.Unmarshal(b, &doc); err != nil {
 		return time.Time{}
 	}
-	for _, key := range []string{"updatedAt", "updated_at", "observedAt", "observed_at", "timestamp", "lastUpdated", "generatedAt"} {
+	for _, key := range []string{"capturedAtEpochSeconds", "updatedAt", "updated_at", "observedAt", "observed_at", "timestamp", "lastUpdated", "generatedAt"} {
 		switch v := doc[key].(type) {
 		case string:
 			for _, layout := range []string{time.RFC3339Nano, time.RFC3339, "2006-01-02T15:04:05Z0700"} {

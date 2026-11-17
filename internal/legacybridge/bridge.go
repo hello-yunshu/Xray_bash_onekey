@@ -65,31 +65,20 @@ func mustResolve(root, rel string) string {
 	return p
 }
 
-// requireWriteAccess mirrors internal/deploy: a non-root target must be a
-// marked disposable sandbox; the real root requires the container ack.
+// systemWriteGate is a variable so tests can exercise the real-root branch
+// without writing to the machine that runs the test suite.
+var systemWriteGate = host.RequireSystemWrite
+
+// requireWriteAccess delegates to internal/host. A non-root target must be a
+// marked disposable sandbox. The real root allows a genuine host run (no
+// container marker) through the shared audit gate, and requires the explicit
+// container acknowledgement only when the process really is in a container.
+// It never hard-requires /.dockerenv.
 func requireWriteAccess(root string, ack bool) error {
-	if root != "/" {
-		paths, err := host.NewPaths(root)
-		if err != nil {
-			return &Error{Code: 2, Msg: "invalid root", Err: err}
-		}
-		if err := paths.RequireSandbox(); err != nil {
-			return &Error{Code: 2, Msg: "sandbox marker required", Err: err}
-		}
-		return nil
+	if err := systemWriteGate(root, ack); err != nil {
+		return &Error{Code: 2, Msg: "write access refused", Err: err}
 	}
-	if !ack {
-		return &Error{Code: 2, Msg: "real root writes require --container"}
-	}
-	if os.Getenv("IDLELEO_ALLOW_SYSTEM_WRITES") != ContainerWritesAck {
-		return &Error{Code: 2, Msg: "real root writes require IDLELEO_ALLOW_SYSTEM_WRITES=" + ContainerWritesAck}
-	}
-	for _, marker := range []string{"/.dockerenv", "/run/.containerenv"} {
-		if _, err := os.Stat(marker); err == nil {
-			return nil
-		}
-	}
-	return &Error{Code: 2, Msg: "refusing real root writes outside a container"}
+	return nil
 }
 
 // lockForWrite takes the same /run/lock/idleleo-update.lock that the legacy
@@ -119,6 +108,7 @@ func lockForWrite(root string) (*host.UpdateLock, error) {
 type PrepareOptions struct {
 	Root                 string
 	Candidate            string
+	CandidateManifest    string
 	Recovery             string
 	AcknowledgeCustom    bool
 	Fault                string
@@ -133,6 +123,8 @@ type PrepareReport struct {
 	PlanPath         string   `json:"planPath"`
 	SnapshotPath     string   `json:"snapshotPath"`
 	CandidateSHA256  string   `json:"candidateSha256"`
+	CandidateVersion string   `json:"candidateVersion,omitempty"`
+	CandidatePinned  bool     `json:"candidatePinned"`
 	RecoverySHA256   string   `json:"recoverySha256,omitempty"`
 	MetadataPath     string   `json:"metadataPath"`
 	ProjectCronLines int      `json:"projectCronLines"`
@@ -188,13 +180,51 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 	if opts.Candidate == "" {
 		return report, audit, &Error{Code: 2, Msg: "--candidate is required"}
 	}
-	if err := runnableFile(opts.Candidate); err != nil {
-		return report, audit, &Error{Code: 2, Msg: "candidate is not an executable file", Err: err}
-	}
-	candSHA, err := hashFile(opts.Candidate)
+	candSHA, candVersion, candWarnings, err := verifyCandidate(ctx, opts.Candidate, opts.CandidateManifest)
 	if err != nil {
-		return report, audit, &Error{Code: 13, Msg: "candidate hash failed", Err: err}
+		return report, audit, &Error{Code: 2, Msg: err.Error()}
 	}
+	report.Warnings = append(report.Warnings, candWarnings...)
+	report.CandidateSHA256 = candSHA
+	report.CandidateVersion = candVersion
+	report.CandidatePinned = opts.CandidateManifest != ""
+
+	// Read the existing transaction before writing anything. A committed,
+	// activating or recovery-required journal is the only copy of the
+	// rollback evidence; re-entering prepare must fail without touching
+	// the candidate, snapshot, plan or metadata.
+	j, err := readOrCreateJournal(opts.Root)
+	if err != nil {
+		return report, audit, err
+	}
+	switch j.State {
+	case StatePreparing, StateActivating, StateRollbackRequired, StateRecoveryRequired, StateCommitted:
+		return report, audit, &Error{Code: 3, Msg: "unfinished or committed bridge transaction in state " + j.State + "; run bridge recover first"}
+	}
+
+	if opts.Fault == "disk-full" {
+		// Injected before the journal so this fault keeps its contract:
+		// no journal, plan, metadata, snapshot or entry change survives.
+		return report, audit, &Error{Code: 13, Msg: "write plan failed", Err: syscall.ENOSPC}
+	}
+
+	// PREPARING must be durable before the first side effect. Without it a
+	// crash after the metadata write leaves a root that claims Go ownership
+	// while the legacy entry is still installed.
+	metaPath := mustResolve(opts.Root, metadataRel)
+	j.MetadataStaged = true
+	j.MetadataPreexisting = false
+	j.MetadataPreviousSHA256 = ""
+	if sha, err := hashFile(metaPath); err == nil {
+		j.MetadataPreexisting = true
+		j.MetadataPreviousSHA256 = sha
+	}
+	j.CandidateSHA256 = candSHA
+	j.setState(StatePreparing, "prepare started; candidate "+candVersion+" verified")
+	if err := writeJournal(opts.Root, &j); err != nil {
+		return report, audit, &Error{Code: 13, Msg: "write journal failed", Err: err}
+	}
+
 	candPath := mustResolve(opts.Root, candidateRel)
 	if err := copyFileAtomic(opts.Candidate, candPath, 0o755); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "write candidate failed", Err: err}
@@ -202,7 +232,6 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 	if sha, err := hashFile(candPath); err != nil || sha != candSHA {
 		return report, audit, &Error{Code: 13, Msg: "candidate copy verification failed"}
 	}
-	report.CandidateSHA256 = candSHA
 
 	if opts.Recovery != "" {
 		if err := runnableFile(opts.Recovery); err != nil {
@@ -218,11 +247,6 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 		report.RecoverySHA256 = sha
 	}
 
-	if opts.Fault == "disk-full" {
-		// Injected at the first plan write: the candidate copy may exist, but no
-		// journal, metadata, snapshot or entry change may survive.
-		return report, audit, &Error{Code: 13, Msg: "write plan failed", Err: syscall.ENOSPC}
-	}
 	if err := writePlan(opts.Root, audit); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "write plan failed", Err: err}
 	}
@@ -234,24 +258,37 @@ func Prepare(ctx context.Context, opts PrepareOptions) (PrepareReport, Audit, er
 		return report, audit, &Error{Code: 13, Msg: "write snapshot failed", Err: err}
 	}
 	report.SnapshotPath = mustResolve(opts.Root, snapshotRel)
+	if j.MetadataPreexisting {
+		backup := filepath.Join(report.SnapshotPath, "metadata.prev.json")
+		if err := copyFileAtomic(metaPath, backup, 0o640); err != nil {
+			return report, audit, &Error{Code: 13, Msg: "back up existing metadata failed", Err: err}
+		}
+	}
 
-	if err := writeMetadata(opts.Root, audit); err != nil {
+	metaBytes, err := buildMetadata(audit)
+	if err != nil {
+		return report, audit, &Error{Code: 13, Msg: "build metadata failed", Err: err}
+	}
+	j.MetadataNewSHA256 = hashBytes(metaBytes)
+	j.setState(StatePreparing, "metadata staged; journal updated before writing it")
+	if err := writeJournal(opts.Root, &j); err != nil {
+		return report, audit, &Error{Code: 13, Msg: "write journal failed", Err: err}
+	}
+	if err := writeAtomic(metaPath, metaBytes, 0o640); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "write metadata failed", Err: err}
 	}
-	report.MetadataPath = mustResolve(opts.Root, metadataRel)
+	report.MetadataPath = metaPath
+
+	if opts.Fault == "crash-after-metadata" {
+		// Keeps PREPARING on disk exactly like a process kill between the
+		// metadata write and the PREPARED update.
+		return report, audit, &Error{Code: 13, Msg: "simulated crash after metadata write", Err: errors.New("crashed between metadata and journal")}
+	}
 
 	if _, _, err := store.LoadMetadata(pathsFor(opts.Root)); err != nil {
 		return report, audit, &Error{Code: 13, Msg: "converted metadata does not load", Err: err}
 	}
 
-	j, err := readOrCreateJournal(opts.Root)
-	if err != nil {
-		return report, audit, err
-	}
-	switch j.State {
-	case StateActivating, StateRollbackRequired, StateRecoveryRequired, StateCommitted:
-		return report, audit, &Error{Code: 3, Msg: "unfinished or committed bridge transaction in state " + j.State + "; run bridge recover first"}
-	}
 	j.CandidateSHA256 = candSHA
 	if report.RecoverySHA256 != "" {
 		j.RecoverySHA256 = report.RecoverySHA256
@@ -328,6 +365,9 @@ func writePlan(root string, audit Audit) error {
 }
 
 func writeAtomic(p string, b []byte, mode os.FileMode) error {
+	if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
+		return err
+	}
 	tmp := p + ".tmp"
 	f, err := os.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
@@ -431,11 +471,14 @@ func unitRelFor(name string) string {
 	return unitXrayRel
 }
 
-// writeMetadata converts ownership metadata without storing secrets.
-func writeMetadata(root string, audit Audit) error {
+// buildMetadata converts ownership metadata without storing secrets. It is
+// separated from the write so the journal can record the exact digest before
+// the file exists.
+func buildMetadata(audit Audit) ([]byte, error) {
 	meta := store.Metadata{
 		SchemaVersion: store.ManagerSchemaVersion,
 		ActiveEngine:  "xray",
+		Provenance:    "legacy",
 		Role:          audit.Role,
 		TLS:           audit.TLS,
 		Transport:     audit.Transport,
@@ -462,16 +505,11 @@ func writeMetadata(root string, audit Audit) error {
 		resources = append(resources, unitNginxRel)
 	}
 	meta.OwnedResources = resources
-	p := mustResolve(root, metadataRel)
-	if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
-		return err
-	}
 	b, err := json.MarshalIndent(meta, "", "  ")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	b = append(b, '\n')
-	return writeAtomic(p, b, 0o640)
+	return append(b, '\n'), nil
 }
 
 // projectCronLines returns only the cron lines owned by this project.
@@ -814,6 +852,9 @@ func Activate(ctx context.Context, opts ActivateOptions) (ActivateReport, error)
 	if sha, err := hashFile(recPath); err != nil || (j.RecoverySHA256 != "" && sha != j.RecoverySHA256) {
 		return report, &Error{Code: 3, Msg: "recovery binary hash mismatch; activation refused"}
 	}
+	if err := verifyEntrySnapshot(opts.Root); err != nil {
+		return report, &Error{Code: 6, Msg: "entry changed since prepare; activation refused", Err: err}
+	}
 
 	j.setState(StateActivating, "activation started")
 	if err := writeJournal(opts.Root, &j); err != nil {
@@ -982,8 +1023,25 @@ func Recover(opts RecoverOptions) (RecoverReport, error) {
 	case StateRolledBack:
 		report.State, report.Message = StateRolledBack, "already rolled back"
 		return report, nil
-	case StateDiscovered, StatePrepared, StateValidated:
+	case StateDiscovered:
 		report.Actions = append(report.Actions, "discarded unactivated candidate")
+		j.setState(StateRolledBack, "discarded before activation")
+		if err := writeJournal(opts.Root, &j); err != nil {
+			return report, &Error{Code: 13, Msg: "write journal failed", Err: err}
+		}
+		report.State = StateRolledBack
+		return report, nil
+	case StatePreparing, StatePrepared, StateValidated:
+		report.Actions = append(report.Actions, "discarded unactivated candidate")
+		actions, discardErr := discardStagedState(opts.Root, &j)
+		report.Actions = append(report.Actions, actions...)
+		if discardErr != nil {
+			j.setState(StateRecoveryRequired, "discard failed: "+discardErr.Error())
+			_ = writeJournal(opts.Root, &j)
+			report.State, report.RequiresManual = StateRecoveryRequired, true
+			report.Message = "automatic discard failed; staged metadata was left untouched for manual inspection"
+			return report, &Error{Code: 5, Msg: report.Message, Err: discardErr}
+		}
 		j.setState(StateRolledBack, "discarded before activation")
 		if err := writeJournal(opts.Root, &j); err != nil {
 			return report, &Error{Code: 13, Msg: "write journal failed", Err: err}
@@ -1005,6 +1063,65 @@ func Recover(opts RecoverOptions) (RecoverReport, error) {
 		report.State, report.RequiresManual = StateRecoveryRequired, true
 		return report, &Error{Code: 5, Msg: "unknown journal state"}
 	}
+}
+
+// discardStagedState removes what prepare staged but activation never used.
+// It exists because a crash after the metadata write used to leave a root whose
+// manager metadata claimed ownership while the legacy entry was still active:
+// prepare would then refuse to run and the next auditor would see a half
+// migration.
+func discardStagedState(root string, j *Journal) ([]string, error) {
+	actions := []string{}
+	if !j.MetadataStaged {
+		return actions, nil
+	}
+	metaPath := mustResolve(root, metadataRel)
+	current, err := hashFile(metaPath)
+	exists := err == nil
+	if err != nil && !os.IsNotExist(err) {
+		return actions, err
+	}
+	if j.MetadataPreexisting {
+		backup := filepath.Join(mustResolve(root, snapshotRel), "metadata.prev.json")
+		switch {
+		case !exists:
+			// The staged write never landed; nothing to restore.
+		case current == j.MetadataPreviousSHA256:
+			// Never replaced (or already restored); the backup is identical.
+		case j.MetadataNewSHA256 == "" || current != j.MetadataNewSHA256:
+			return actions, errors.New("manager metadata changed outside this bridge transaction; refusing to overwrite it")
+		default:
+			if _, statErr := os.Stat(backup); statErr != nil {
+				return actions, fmt.Errorf("previous manager metadata backup is missing: %w", statErr)
+			}
+			if err := copyFileAtomic(backup, metaPath, 0o640); err != nil {
+				return actions, err
+			}
+			actions = append(actions, "restored pre-migration manager metadata")
+		}
+	} else if exists {
+		if j.MetadataNewSHA256 == "" || current != j.MetadataNewSHA256 {
+			return actions, errors.New("manager metadata appeared outside this bridge transaction; refusing to delete it")
+		}
+		if err := os.Remove(metaPath); err != nil {
+			return actions, err
+		}
+		actions = append(actions, "removed staged manager metadata")
+	}
+
+	for _, rel := range []string{planRel, candidateRel} {
+		p := mustResolve(root, rel)
+		if err := os.Remove(p); err == nil {
+			actions = append(actions, "removed "+rel)
+		} else if !os.IsNotExist(err) {
+			return actions, err
+		}
+	}
+	if err := os.RemoveAll(mustResolve(root, snapshotRel)); err != nil {
+		return actions, err
+	}
+	actions = append(actions, "removed staged snapshot")
+	return actions, nil
 }
 
 func rollback(root string, j *Journal) (string, error) {
@@ -1062,12 +1179,118 @@ func rollbackWithActions(root string, j *Journal) (string, []string, error) {
 	return StateRolledBack, actions, nil
 }
 
+// verifyEntrySnapshot refuses activation when the entry no longer matches the
+// exact object recorded at prepare time. Another administrator or installer may
+// have replaced it between prepare and activate; switching it then would
+// silently discard that change.
+func verifyEntrySnapshot(root string) error {
+	entryPath := mustResolve(root, entryRel)
+	snapDir := mustResolve(root, snapshotRel)
+	var info EntryInfo
+	b, err := os.ReadFile(filepath.Join(snapDir, "entry.json"))
+	if err != nil {
+		return fmt.Errorf("entry snapshot is missing: %w", err)
+	}
+	if err := json.Unmarshal(b, &info); err != nil {
+		return fmt.Errorf("entry snapshot is invalid: %w", err)
+	}
+	fi, err := os.Lstat(entryPath)
+	if err != nil {
+		if os.IsNotExist(err) && !info.Exists && !info.IsSymlink {
+			return nil
+		}
+		return fmt.Errorf("entry disappeared since prepare")
+	}
+	switch {
+	case info.IsSymlink:
+		if fi.Mode()&os.ModeSymlink == 0 {
+			return fmt.Errorf("entry is no longer a symlink")
+		}
+		target, err := os.Readlink(entryPath)
+		if err != nil {
+			return err
+		}
+		if target != info.LinkTarget {
+			return fmt.Errorf("entry target changed since prepare")
+		}
+		return nil
+	case info.Exists:
+		if !fi.Mode().IsRegular() {
+			return fmt.Errorf("entry is no longer a regular file")
+		}
+		want, err := hashFile(filepath.Join(snapDir, "entry-idleleo"))
+		if err != nil {
+			return fmt.Errorf("entry snapshot is incomplete: %w", err)
+		}
+		got, err := hashFile(entryPath)
+		if err != nil {
+			return err
+		}
+		if got != want {
+			return fmt.Errorf("entry content changed since prepare")
+		}
+		return nil
+	default:
+		return fmt.Errorf("entry appeared since prepare")
+	}
+}
+
+// entryRestoreSafe reports whether the current entry is still the object this
+// transaction installed (or is already the snapshot target). Anything else is a
+// third-party change that rollback must preserve instead of overwriting.
+func entryRestoreSafe(root, entryPath, snapDir string, info EntryInfo) (bool, error) {
+	installedPath := mustResolve(root, installedRel)
+	fi, err := os.Lstat(entryPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Nothing is there to preserve; restoring the snapshot is safe.
+			return true, nil
+		}
+		return false, err
+	}
+	switch {
+	case fi.Mode()&os.ModeSymlink != 0:
+		target, err := os.Readlink(entryPath)
+		if err != nil {
+			return false, err
+		}
+		if target == installedPath {
+			return true, nil
+		}
+		if info.IsSymlink && target == info.LinkTarget {
+			return true, nil
+		}
+		return false, nil
+	case fi.Mode().IsRegular():
+		got, err := hashFile(entryPath)
+		if err != nil {
+			return false, err
+		}
+		if installedSHA, err := hashFile(installedPath); err == nil && got == installedSHA {
+			return true, nil
+		}
+		if info.Exists {
+			if want, err := hashFile(filepath.Join(snapDir, "entry-idleleo")); err == nil && got == want {
+				return true, nil
+			}
+		}
+		return false, nil
+	default:
+		return false, nil
+	}
+}
+
 func restoreEntry(root string) error {
 	entryPath := mustResolve(root, entryRel)
 	snapDir := mustResolve(root, snapshotRel)
 	var info EntryInfo
 	if b, err := os.ReadFile(filepath.Join(snapDir, "entry.json")); err == nil {
 		_ = json.Unmarshal(b, &info)
+	}
+	if ok, err := entryRestoreSafe(root, entryPath, snapDir, info); err != nil {
+		return err
+	} else if !ok {
+		return fmt.Errorf("entry was replaced outside this bridge transaction; refusing to overwrite it")
 	}
 	if info.IsSymlink && info.LinkTarget != "" {
 		tmp := filepath.Join(filepath.Dir(entryPath), ".idleleo-recover.tmp")
