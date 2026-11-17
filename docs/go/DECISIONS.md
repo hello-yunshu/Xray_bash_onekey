@@ -1,0 +1,492 @@
+# Go 迁移线决策记录
+
+## 工作约定（用户授权，2026-11-07）
+
+Go 迁移相关工作中，**不需要用户参与排版与细节决策**。技术选型、命名、目录结构、
+文档排版、补丁取舍、测试组织、提交拆分、报告格式等，由执行者自行判断并当场决定，
+把决策与理由记录在本文件，不因这些细节回头征询用户。
+
+仅在以下情况暂停并征询用户：
+
+1. 对外发布、打 tag、合并 main；
+2. 需要用户提供凭据；
+3. 真实设备 / 真实 VPS 的写操作或重启服务；
+4. 不可逆且有数据风险的操作。
+
+原有约束不变：不伪造结果、不跳过失败断言、未达成项如实标注。真实 VPS 不可用时，
+Docker / 容器级证据即满足验证门槛，但必须标注证据等级。
+
+## D-001 logrotate 沙箱修复方式（2026-11-07）
+
+**决定**：保留 nginx 日志目录 `/usr/local/nginx/logs` 不变，在生成
+`/etc/logrotate.d/xray_log_cleanup` 时同时写入
+`/etc/systemd/system/logrotate.service.d/10-idleleo-readwrite.conf`，内容为
+`ReadWritePaths=-${nginx_dir}/logs`，并执行 `systemctl daemon-reload`。
+
+**理由**：
+- 搬迁日志目录属于日志体系重构，会破坏用户已有的 nginx 配置、外部采集与权限；
+- `ReadWritePaths` 是 systemd 对 `ProtectSystem=full` 的标准例外，改动最小、可逆；
+- 与仓库既有 `geodata_sandbox_allows_write` 的沙箱判定思路一致；
+- 前缀 `-` 让目录不存在时（纯 Xray 用户）自动忽略，不引入额外失败。
+
+**代价**：依赖 systemd。非 systemd 主机上 `systemctl daemon-reload` 失败被忽略，
+行为退回原状，不产生新的硬失败。
+
+## D-002 xray 侧继续使用 copytruncate（2026-11-07）
+
+**决定**：xray 日志段保留 `copytruncate`，不增加 `postrotate`；nginx 日志段保留
+`create` + `postrotate` + `nginx -s reopen`。
+
+**理由**：Xray 没有 reopen 信号（SIGHUP 不会重新打开日志），只能就地截断；
+nginx 支持 `-s reopen`，用 `create` + 精确属主比 `copytruncate` 更安全。
+两个段分开书写，避免 v3.2.8 那种共享块把 xray 语义强加给 nginx。
+
+**注意**：`copytruncate` 与 `create` 在同一段中不并存，因此不存在“二者冲突”；
+`copytruncate` 本就不执行 rename，`create` 只对 rename 路径有意义。
+
+## D-003 存量用户生效条件（2026-11-07）
+
+**决定**：不自动改写用户已有的 logrotate 配置；修复只对“重新生成配置”生效。
+存量用户需要升级到包含本修复的版本，并重新执行菜单中的「自动清理日志」设置。
+
+**理由**：该配置文件可能被用户手工调整过，静默覆盖会丢失用户意图；把它改成
+“每次升级自动重写”属于扩大变更面，本次不做。
+
+## D-004 回归测试组织（2026-11-07）
+
+**决定**：扩展现有 `.github/test/test_log_rotation.sh`，不新建平行测试体系；
+真实 `ProtectSystem=full` 场景用特权 systemd 容器中的 `systemd-run` 复现，
+输出保存在 `tests/go-parity/evidence/logrotate/`，不放进默认 CI（需要特权容器）。
+
+**理由**：仓库约束优先复用既有测试；systemd 沙箱行为无法用纯 shell 桩可靠模拟，
+但错误信息与修复效果可以用真实 systemd 一次性证明并留证。
+
+## D-005 Phase 01 多行 diff 既保留失败又修夹具（2026-11-08）
+
+**决定**：在 `run_phase01.sh` 的 `record()` 里对 `act` 做换行/制表符折叠，保留
+完整 diff 文本但不再撑裂 TSV；C12.1/C12.2 仍为 FAIL。
+
+**理由**：多行 `git diff` 被原样写入单行 TSV，导致一行变多行、通过/失败计数虚增
+（首次复跑 33/35 但 TSV 只有 34 行）。这是夹具缺陷，不是产品失败；修复只改证据
+编码，不改期望、不隐去差异。
+
+## D-006 C12.1/C12.2 保持红色，不改 pin（2026-11-08）
+
+**决定**：`install.sh` 因 logrotate `ReadWritePaths` 修复（`2d44d98`）比已发布
+v3.3.6 pin 多 26 行；Phase 01 的这两项继续 FAIL，pin 指向发布的 `0fa7052e` 不变。
+
+**理由**：改 pin 会把“未发布的产品改动”伪装成“与发布版一致”；C12 的价值正是
+暴露这种差异。等下一次正式发版后再同步 pin，届时两项会自然转绿。
+
+**2026-11-08 复核（capability/C12 与 pin）**：
+
+- 当前红线是 `C12.1`（`install.sh` 字节不等于 pin）与 `C12.2`
+  （`git diff pin..HEAD -- install.sh scripts config` 非空），差异为
+  `install.sh | 27 +++-`（26 插入 / 1 删除），唯一来源是 `2d44d98`
+  （logrotate `ReadWritePaths` 修复）。
+- 哈希：pin `0fa7052e` 的 `install.sh` 为
+  `a8e4d850…6797358c`，当前树为 `1a2af27e…ec72b7f`。
+- `C12.3`（不得覆盖 Bash 入口）与 `C12.4`（pin 仍可加载、版本 3.3.6）仍为绿。
+- **转绿条件（按优先级）**：
+  1. 正式发布新版本（tag + Release），其 `install.sh` 包含该修复；随后把
+     `tests/go-parity/phase01/run_phase01.sh`、`parity/scripts/run_parity.py`、
+     `parity/cases/feature_contracts.json`、`parity/ci/*.yml`、
+     `parity/oracle/pinned-extract.sh` 的 PIN 同步到新发布 commit，并把
+     `C12.4` 期望版本改为新 `shell_version`，再在干净 checkout 重跑 Phase 01。
+  2. 回退 `install.sh` 的修复（不推荐：会重新引入 logrotate 沙箱失败）。
+- **不可接受的做法**：把 PIN 指向一个含修复但未发布的 commit 来“变绿”；
+  那只是把当前差异合法化，失去 C12 的基线守护意义。
+
+## D-007 TCP 原生化实现边界（2026-11-08）
+
+**决定**：
+- 只管理 `/etc/sysctl.d/90-idleleo-tcp.conf` 一个文件，只做 `bbr-fq` 一个 profile；
+- journal 先写后改，pending 标记阻断半事务再次 apply；
+- 只写指定 key 到 `/proc/sys`，不重放 `sysctl --system`；
+- `WriteSysctl` 使用 `O_WRONLY|O_TRUNC`（与 shell `>` 一致，sandbox 可复现 procfs 语义）；
+- 回退只撤销 journal 记录的 key，第三方漂移一律拒绝；
+- 锁使用独立 `run/lock/idleleo-tcp.lock`，与配置更新锁分离。
+
+**理由**：满足“安全、轻量、可回退”，把变更面压到最小；见
+[TCP_NATIVE_DESIGN_AND_QA.md](TCP_NATIVE_DESIGN_AND_QA.md)。
+
+## D-008 Docker 只做 sandbox mock apply（2026-11-08）
+
+**决定**：容器内 apply/rollback 通过 `--root <sandbox>` 重定向到一次性目录，
+伪造 `/proc/sys` 与 marker；不写 Docker VM 内核。证据标签固定为
+`DOCKER_MOCK_APPLY`，不写成宿主内核验收或性能验收。
+
+**理由**：写容器内核会污染共享 VM，且无法证明真实 VPS 行为；sandbox 能完整验证
+文件/事务/回退/漂移逻辑，同时用前后哈希证明真实 `/proc/sys` 未变。
+
+## D-009 辅助脚本迁移取舍（2026-11-08）
+
+**决定**：本轮只把已有 Go 原语的部分标注为已迁移/部分迁移；`ssl_update.sh`、
+`fail2ban_manager.sh`、`traffic_blocker.sh`、`auto_update.sh` 的 Xray/Nginx 升级器、
+Rill 安装/卸载保持 Bash。TCP 的 Bash 菜单不默认接线到 Go，只提供可审计的替代入口。
+
+**理由**：这些脚本涉及 ACME、防火墙、权限/epoch 或混合升级器，缺少真实验证环境时
+强行迁移会制造“看起来迁移了”的假象；详见
+[SCRIPT_NATIVE_MIGRATION_MATRIX.md](SCRIPT_NATIVE_MIGRATION_MATRIX.md)。
+
+## D-010 部署回滚补齐属主/链接/父目录，并增加跨进程 journal/lock（2026-11-08）
+
+**决定**：
+- `internal/deploy` 的文件快照扩展为 `uid/gid/link/exists/missingDirs`，回滚恢复
+  mode、属主、符号链接与父目录副作用；新装失败显式 `stop + disable`，移除 unit 后
+  `daemon-reload` 并校验 `is-enabled`。
+- 增加持久事务 journal `var/lib/idleleo/deploy/journal.json` 与
+  `snapshot/entry-N`：安装前 fsync `PREPARED`，成功写 `COMMITTED`；
+  `PREPARED/ROLLING_BACK/RECOVERY_REQUIRED` 由下一持锁进程逆序还原，失败保留
+  `RECOVERY_REQUIRED` 并提供 `idleleo xray recover`。
+- `Install`/`Uninstall`/`Recover` 共用 `host.AcquireUpdate` 排他锁；journal 只存
+  相对路径，恢复时拒绝绝对路径与 `..` 越界。
+- 验证边界：容器内真实 `kill -9`（写入中途）→ 新容器 `recover` 收敛，
+  证据等级 `DOCKER_CRASH_INJECTION`；未做真实 VPS 断电/重启，不据此升格签收。
+
+**理由**：属主/链接/父目录是已复现的真实缺陷；跨进程恢复由持久快照 + 锁 +
+显式恢复入口构成，先写 journal 再改 live 状态的顺序可以由同进程失败测试与
+真实 SIGKILL 注入共同验证，且不需要新框架。
+
+## D-011 `tcp.sh` 只审计入口与风险，不承诺固定版本逐行等价（2026-11-08）
+
+**决定**：`install.sh` 的 `bbr_boost_sh` 会优先执行本地 `scripts/tcp.sh`，否则
+下载上游 Linux-NetSpeed 脚本并直接以 root 执行，无 pin、无哈希。本轮取
+2026-11-08 快照（SHA-256 `0b7614e7…2ea61c0`）逐类审计内核安装/reboot、
+`sysctl.conf` 改写、systemd/PAM/profile、IPv6、远程 lotServer 与内核卸载，
+证据落盘 `tests/go-parity/evidence/tcp-upstream-2026-11-08.txt`。
+
+**理由**：上游脚本不在仓库，无法证明“任意时刻下载到的内容”逐行等价；只能审计
+入口与已知快照。Go 只实现 `bbr-fq` 安全子集，不移植 `wget | bash`。
+
+## D-012 矩阵 after-fix 证据必须在真实 commit 重跑（2026-11-08）
+
+**决定**：复检发现旧 `after-fix/environment.txt` 记录 `repo_commit=7b15c83…`，
+该对象不存在于仓库。改为在真实 HEAD `ace4a16` 上用仓库修正版
+`tests/go-parity/matrix/run_matrix.py`（bind-mount 覆盖缓存镜像内构建时烤入的旧
+副本）重跑，状态仍为 `54/32/8/4`，替换 summary/environment；缓存镜像旧脚本的
+`13/32/44/5/4` 结果明确标注不得作为证据。
+
+**理由**：证据必须可追溯到真实提交；缓存镜像不会自动更新 `COPY` 进去的脚本，
+直接运行会得到假阴性。以后矩阵复跑必须显式 bind-mount 仓库脚本或重建镜像。
+
+## D-013 多入口用相邻端口生成，按拓扑而非单一 network 校验（2026-11-08）
+
+**决定**：
+- `--transport ws+grpc+xhttp` 在主端口建主 inbound，其余入口使用相邻端口
+  （65535 附近回绕），保持产物可复现；Bash 的随机端口不复制。
+- none/TLS 主入口为 ws、附加入口绑定 `127.0.0.1`；Reality 主入口为 raw、
+  附加入口沿用主监听地址（对齐 Bash `reality_add_more` 的 0.0.0.0 行为）。
+- 矩阵对多入口不再比较单一 `streamSettings.network`，而是要求 3 个 inbound、
+  网络集合为 ws/grpc/xhttp、端口互异；这是增强校验，不是放宽断言。
+
+**理由**：多入口天然不是单流配置；把 `network` 写成 `ws+grpc+xhttp` 会让
+Xray 拒绝配置。用拓扑断言可以在不牺牲真实配置合法性的前提下覆盖原 8 个
+`GAP`，并由真实 Xray `-test` 与 A2 真实 runtime 双重验证。
+
+## D-014 主备负载均衡按 Bash 的 primary/secondary 角色建模（2026-11-08）
+
+**决定**：
+- `--mode reality-balance --role primary|secondary`；角色必须显式给出。
+- primary：Xray Reality 保持模板 `9443/0.0.0.0`，Nginx stream 监听用户端口；
+  `--backend host:port` 可重复，默认 `127.0.0.1:9443`，片段行固定
+  `weight=50 max_fails=2 fail_timeout=10`，与 `file_manager.sh` 一致。
+- secondary：Xray Reality 监听用户端口，不生成 Nginx 产物；secondary 带
+  `--backend` 直接拒绝。
+- 9403/9404/9443/9444 对所有 Reality 模式作为用户端口一律拒绝（Bash
+  `reality_reserved_port_conflict` 语义）；`decoy` SNI 策略需要外部站点产物，
+  Go 生成器明确拒绝而不是静默降级。
+- Nginx stream 模板、include 路径、日志路径、isolate 站点均按安装态的
+  `/etc/idleleo/conf/nginx` 与 `/usr/local/nginx/logs` 输出，保证可直接
+  与 Bash 产物逐字节比较。Go 不代管 `nginx.conf` 主配置，这是已知 CORE。
+
+**理由**：双机无法在当前环境复现，但 Bash 语义可完整抽取；把“角色 + 后端
+片段 + stream 规则”作为纯产物生成，再用真实 Nginx 做 SNI/协议/默认拒绝的
+容器级验证，能覆盖除宿主 Nginx 主配置接线外的全部连接语义。
+
+## D-015 ACME 原生客户端以 Pebble 本地 CA 验收（2026-11-08）
+
+**状态**：协议实现部分由 **D-020**（lego 库模式）取代；本条的验收环境、显式目录
+URL、证据标签与“不得据此升格”约束继续有效。
+
+**决定**：
+- 新增 `internal/acme`，用 stdlib 实现 ACME v2（ES256 JWS、nonce、账户、
+  订单、HTTP-01、CSR、finalize、证书下载）；新增 `idleleo xray cert
+  issue|renew`，目录 URL 必须显式传入，避免隐式访问公网 CA。
+- 验收环境固定为 Pebble 容器 + 自签 `pebble.minica.pem`（仅保护 ACME 服务端
+  TLS），HttpPort 5002，域名用 Docker 网络别名 `acme.local`，不发布宿主端口。
+- 证书链验证对象是 Pebble 管理接口 `/roots/0` 返回的**动态根**，不是
+  `pebble.minica.pem`；后者只签服务端证书。
+- 证据标签固定为 `ACME_LOCAL_CA`；不得据此把 F12 或 F01–F28 升格为
+  `REAL_VPS_VERIFIED`。
+
+**理由**：本地 CA 能真实执行协议状态机（账户/订单/挑战/签发/续期），比桩服务
+更能暴露 JWS、nonce、CSR、链下载问题；但公网 CA、DNS-01、EAB、真实 DNS 与
+Bash 的 `idleleo-nginx` 组/重启语义仍不在本次范围内，必须如实标注。
+
+**已知差异**：Bash 用 `acme.sh` 先 staging 测试再正式签发，reloadcmd 内置
+`chown root:idleleo-nginx`、`chmod 640` 与重启 nginx/xray；Go 只做协议与落盘，
+权限/服务编排由调用方通过 `--reload-command` 提供。
+
+## D-016 既有运行配置只能显式接管或显式改写（2026-11-08 收尾轮）
+
+**决定**：
+- 安装/迁移遇到已存在的 `config.json` 一律 fail-closed：要么
+  `--keep-config` 原样接管，要么 `--rewrite-config` 显式替换；没有第三个默认路径。
+- 新增 `idleleo xray generate --from-config <path> --out <path>`：只重排缩进，
+  端口、listen、路径、UUID、flow、Reality privateKey/shortIds/serverNames、
+  证书路径与自定义字段全部原样保留；`--out` 必填、已存在需 `--force`、落盘 0600。
+- 接管前拒绝不可运行配置（无 inbound、端口越界、重复 tag、重复
+  `listen:port`、非法 UUID、未知 security、非法 Reality key），避免把坏配置
+  带进托管态。
+
+**理由**：迁移最危险的失败不是报错，而是“看起来成功但把用户的端口/UUID/
+Reality 身份换掉了”。拒绝必须发生在任何写盘之前；显式开关把决定权交回操作者。
+
+## D-017 Nginx 必需模式没有真实前端就拒绝安装（2026-11-08 收尾轮）
+
+**状态**：安装策略已被 D-022 取代（默认托管安装）；`nginx -t` 验证与
+`ssl_reject_handshake` 的 http 归属仍然有效。
+
+**决定**：
+- `tls`、`reality-nginx`、`reality-balance --role primary` 必须同时给出
+  `--external-nginx-managed` 与 `--nginx-bin`，否则安装在任何落盘前返回错误。
+- 生成的 `00-xray.conf` 与全部片段写入 `/etc/idleleo/conf/nginx` 后，用真实
+  `nginx -t` 在临时 root 内验证；验证失败触发整体回滚。
+- `ssl_reject_handshake` 只从 `http{}` 引入：它属于 `ngx_http_ssl_module`，
+  Bash 的 isolate 站点就是 http 片段，绝不能塞进 `stream{}`。
+- 只有 `nginx -t` + 容器 e2e 都通过时，报告才允许出现“已管理 Nginx”；
+  两者都不等于生产可用，e2e 标签固定为 `REAL_NGINX_REAL_XRAY_E2E`（container）。
+
+**理由**：只生成片段 + `xray -test` 不能证明主备可用。缺少前端时“成功”只是
+幻觉；必须先拒绝，再把能验证的部分（语法、SNI 分流、故障切换）用真实进程验证。
+
+## D-018 ACME 证书对按单事务发布（2026-11-08 收尾轮）
+
+**决定**：
+- 证书与私钥都先写临时文件并 `fsync`，证书 `rename` 成功后再 `rename` 私钥；
+  私钥失败即恢复旧证书，绝不出现“新证书 + 旧私钥”。
+- `--reload-command` 失败时恢复**整对**旧证书并返回错误；回滚本身失败时
+  错误信息必须写明，不能宣称已恢复。
+- HTTP-01 token 先按 base64url 字母表校验，再拼进 webroot 路径。
+- 权限：证书 `0644`、私钥 `0600`（含账号私钥）；负面证据必须覆盖
+  webroot 失效、reload 失败、只读目标、CA 拒绝。
+
+**理由**：证书更新是典型的“部分成功最危险”操作。任何一步失败后，
+磁盘上必须仍是更新前可用的那一对；只有真实负面路径能证明这一点。
+
+## D-019 S0–S3 收口：真实根变更、门禁解耦与历史重写（2026-11-11）
+
+**决定**：
+
+- **真实根变更**（S2）：`change port` / `change user` 允许在真实根执行，但必须先过
+  `RequireSystemWrite`（真机写入需双确认）并写审计日志；事务记录落在
+  `var/lib/idleleo/transactions/phase01.json`，有界且不含配置字节/密钥；崩溃用
+  `change recover` 重放，失败回滚。此前“Phase 01 只能写 sandbox 根”
+  （`host.RequireSandbox` 对变更路径的约束）**由本条取代**：sandbox 仍是测试入口，
+  但不再是变更的唯一入口。
+- **门禁解耦**（S3）：preview qualification 与 release qualification 分离；开发产物
+  走 `go-native-artifacts.yml`，固定标注 “NOT FOR RELEASE”；preview 失败不得阻断
+  开发产物，但 preview 绿也不等于发布资格。
+- **历史重写**（S0 延伸）：2026-11-11 一次性重写了全部分支与 tag 的历史，替换真实
+  主机地址、用户名与主机路径。pin / baseline 随之更新到重写后的 v3.3.6 对象
+  `3b2a5045…`（`install.sh` 字节未变）；C12 保持**已知 pin 不匹配**，不为了变绿去
+  改基线。对外证据必须写明“历史已重写，此前暴露不可撤回”，不得声称彻底清除。
+
+**理由**：真实根变更是生产可用性的必要条件，但必须用门禁、审计、事务与恢复来换取；
+把 preview 与 release 绑在一起，会让开发通道被发布门禁误伤。历史隐私则只能重写 +
+诚实披露，PUBLIC 仓库的服务端缓存不在本地可控范围。
+
+**已知偏差**：审计备忘把被 S2 取代的规则记作 “D-015”，但本文件的 D-015 是
+“ACME 原生客户端以 Pebble 本地 CA 验收”，仍然有效、未被取代；实际被取代的是
+上文所述 sandbox-only 写入约束。详见 `CLOSEOUT_S0_S3_2026-11-11.md`。
+（S5 补充：D-015 的**协议实现**已由 D-020 取代，验收与标签约束仍有效。）
+
+## D-020 S4/S5：lego 库模式取代 stdlib ACME 协议实现（2026-11-11）
+
+**决定**：
+- 依赖采用 `github.com/go-acme/lego/v5 v5.6.0` 的**库模式**，不引入 lego 外部
+  二进制，不调用 `acme.sh`；上游 commit 为 `226c09fbe704ea412bea76cb268414f67686be1d`
+  （注释标签对象 `b639b2749b8de7b51ba8cf37f32584edd954c3d4`）。`go mod vendor` 只落
+  实际 import 的包（9 个模块、812 个文件、11.22 MiB；`du` 磁盘占用约 13M），
+  空模块缓存 + `GOPROXY=off` 可完成 `go build` / `go test`。
+  早期“lego 要求 Go 1.26、只能用外部二进制”的结论随 Go 1.27.4 升级作废。
+- `internal/acme` 的协议层（账户、订单、JWS/nonce、HTTP-01、CSR、finalize、
+  证书下载）改由 lego 承担；本仓库保留并继续测试：显式目录 URL、账户密钥/状态
+  （0600）、webroot token 的 base64url 校验、证书对单事务发布（temp+fsync+
+  rename，证书 0644 / 私钥 0600）、reload 失败整对回滚、安装失败恢复旧证书。
+- 验收不变：Pebble 本地 CA，证据标签 `ACME_LOCAL_CA`，不得据此把 F12 升格；
+  F12 继续 `PENDING_GO_IMPLEMENTATION`（缺公网 CA、DNS-01/EAB、真实域名）。
+- 诊断字段变化：lego 不暴露订单 URL，`Result.OrderURL` 保留但为空，CLI 仅在
+  非空时打印；JSON 字段名不变。
+- lego 默认日志写 stdout，会污染 `--json`；本仓库在构建客户端时把 lego 日志改到
+  stderr。
+- `tests/go-parity/acme/run_acme_container.sh` 的 Go 镜像默认改为
+  `golang:1.27.4`（旧 matrix 镜像是 Go 1.23，无法构建本仓库）。主 Pebble 的
+  `PEBBLE_AUTHZREUSE` 默认设为 0，使 webroot 失败负面用例可确定复现；该用例的
+  基线独立捕获，reload 失败用例在测试前恢复已知良好证书对并单独取基线，两个负面
+  用例互不影响。另用第二个 `PEBBLE_AUTHZREUSE>0` 的 Pebble 单独覆盖“CA 复用
+  授权”场景，断言签发与强制续期都成功。
+- 验收脚本的任何断言不符预期都会置失败位并以非 0 退出；`verify_cert.go` 的
+  验证失败写在 JSON 里且本身退出 0，脚本改为显式断言
+  `verifiedToLocalRoot` / `hostnameVerified` / `privateKeyMatches` 三个布尔。
+
+**理由**：lego 是被广泛审计的 ACME 实现，可减少自研 JWS/订单状态机的协议风险；
+但证书落盘的事务、权限与回滚是本项目对用户的责任，不能外包给库。vendor 保证
+离线可构建，且不引入 lego 的全部 DNS provider。
+
+**已知边界**：本轮只完成协议层替换与本地 CA 全流程/负面验收，不等同于 F12
+签收；`acme.sh` 入口与 cron 仍属 S7，未删除。
+
+**能力边界（当前未接线，不得据此宣称“能力完整”）**：
+- 只接入了 HTTP-01（`SetHTTP01Provider`）。`tls-alpn-01`、`dns-01` 在 vendor 中
+  有实现，但本仓库没有设置对应 provider，也没有 CLI 开关。
+- 不支持 EAB（外部账户绑定）与账户密钥轮转；账户身份仅保存在本地
+  `account.key` + `account.json`。
+- 签发仅覆盖单域名（`Domains: []string{domain}`），未实现多 SAN/通配符。
+- 以上能力若要启用，需要新增判据与验收环境（DNS-01/EAB 必须真实公网 CA）。
+
+## D-021 S6/S7：信任根下沉、helper 校验与 shell 入口退役（2026-11-12）
+
+**决定**：
+- 版本元数据的信任根前移到 `install.sh`：`load_versions` 在采用响应前先验
+  `metadata_signature`，格式 `ed25519:<base64>`，签名覆盖规范化 JSON
+  （`jq -cS 'del(.metadata_signature)'`，无结尾换行）。切点
+  `versions_signature_required_from="3.6.0"`：低于切点允许无签名并告警（兼容期），
+  达到切点缺签名直接拒绝；无 OpenSSL 3（`pkeyutl -rawin`）时 fail-closed。
+  原切点为 `3.4.0`，因无法确认仓库 Secret 已配置而后移到 3.6.0，避免把
+  “线上 JSON 至今无签名”变成 3.4.0 的实际断路。私钥不入库，签名器为
+  `scripts/sign_json_ed25519.sh`；`.github/workflows/publish-shell-version.yml`
+  在上传前 fail-closed 签名，并带 preflight 复核。
+- helper 下载不再“先跑后验”：`release-manifest.json` 的 `helperScripts`
+  声明每个 helper 的 sha256，`download_script_file` 第 4 参数强制校验，
+  不匹配不落盘；达到切点仍未声明校验值的 helper 直接拒绝。helper 切点使用
+  独立的 `helper_sha_required_from="3.4.0"`，与版本签名切点解耦——版本签名
+  后移到 3.6.0 不得连带放宽 helper 校验。
+- TCP 入口与测速入口不再下载第三方脚本：`bbr_boost_sh` 默认调用
+  `idleleo tcp status`（失败回落 `tcp plan`），`--apply` 用
+  `tcp apply --profile bbr-fq --confirm`；`--legacy` 仅使用本机既有 `tcp.sh`。
+  菜单 33 调用 `idleleo speedtest`，不再取 `superspeed.sh`。
+- `acme.sh` 采用“停用 + 保留一个版本”的原子退役：入口、签发、续签 cron、
+  卸载清理、备份在同一提交内切换为 native `idleleo xray cert issue|renew`；
+  `ssl_update.sh` 仍由原 cron 触发，但内部调用 native 续签，且 native 模式
+  不再停止 Nginx（HTTP-01 webroot 必须在线）。卸载只删 `acme.sh --cron`
+  crontab 行与 `*_ecc` 目录，**不调用 `acme.sh --uninstall`**，也不删
+  `/root/.acme.sh`；`IDLELEO_ACME_LEGACY=1` 保留一版回退。
+- Go 发布通道的 manifest 增加 Ed25519 验签：canonical 形式必须与
+  `scripts/sign_json_ed25519.sh` 的 `jq -cS 'del(.signature)'` 逐字节一致
+  （`json.Decoder.UseNumber`、键排序、`SetEscapeHTML(false)`、去掉结尾换行）。
+  缺签名、非 `ed25519:` 前缀、长度不为 64 字节、验签失败一律拒绝。
+  `IDLELEO_RELEASE_PUBKEY_FILE` 仅用于测试/运维覆盖，生产使用内置公钥。
+
+**理由**：这些入口的旧实现会在运行时从第三方地址取脚本并直接执行，
+信任边界在远端；把校验、签名与调用收敛到仓库内可控的代码后，失败模式是
+“拒绝执行”而不是“执行了再发现不对”。
+
+**验收要求**：新增的金签名、helper 校验、入口退役测试必须能用注入失败证明
+非 0 退出；只断言“成功路径”不算验收。证据在最终代码 HEAD 复跑，
+`repo_commit` 记录被测提交，后续提交只能包含证据与文档。
+
+**已知边界**：
+- 生产版本 JSON 由独立 API 仓库生成，该仓库尚未接入签名器，因此线上元数据
+  仍处于“无签名 + 兼容期告警”状态。仓库 Secret `IDLELEO_VERSIONS_ED25519_KEY`
+  已配置（与 `install.sh` 内置公钥
+  `MCowBQYDK2VwAyEAUoalfNZ0sm8gFnuKlitv2fJP7Scfae3YHhCE3YMr7lc=` 配对的私钥；
+  公钥不同则签名验证必然失败）。Secret 缺失时 workflow fail-closed，不会发布
+  无签名 JSON。3.6.0 切点前必须由 API 仓库产出签名元数据。
+- `.github/workflows/publish-go-bridge.yml` 已在发布前对 `manifest.json`
+  fail-closed 签名，`IDLELEO_RELEASE_ED25519_KEY`（与
+  `internal/release` 内置公钥 `MCowBQYDK2VwAyEACWmX4juhphiHOwD+Vr/JM+03XA+nmdQATBC7A80YMt0=` 配对）
+  已配置；签名缺失或前缀不是 `ed25519:` 时发布 job 失败。候选项（`assets/go/manifest.json`）
+  刷新仍要等 release gate 变绿、28 项退出 `PENDING_GO_IMPLEMENTATION` 后由受保护流水线产出，本轮不手改。
+- `acme.sh` 的公网 CA 真实续签仍未验收；F12 与 28 项账本保持
+  `PENDING_GO_IMPLEMENTATION`，不因本轮改动升格。
+
+## D-022 Nginx 改为默认托管安装（2026-11-13，取代 D-017 的拒绝策略）
+
+**决定**：
+- 方案 B：复用 Bash 同一个预编译产物（`hello-yunshu/Xray_bash_onekey_Nginx`
+  Releases 的 `xray-nginx-custom-{x86,arm}.tar.gz`），Go 侧不引入编译链。
+- `tls`、`reality-nginx`、`reality-balance --role primary` 默认由 Go 完成
+  manifest/SHA256 校验、安全解包、事务换入 `/usr/local/nginx`、`idleleo-nginx`
+  用户与分层权限、主配置改写、`nginx -t`、systemd unit 与 enable/start。
+- `--external-nginx-managed` 保留为显式 opt-out；选它时仍必须给
+  `--nginx-bin` 才能验证生成的片段。
+- 安装失败必须回滚到旧树；`nginx -t` 失败、unit 写入失败、服务启动失败都在
+  同一事务内回滚。F13 的 Nginx 更新与版本回滚不在本轮范围。
+- 版本对齐口径：同一版本、同一 configure 参数、同一安装路径，安装后可对
+  `nginx -V` 断言。
+
+**理由**：Bash 本来就不编译，只是下载并验证预编译包。Go 侧继续 fail-closed
+会让所有 Nginx 必需模式在 Go 中不可用，而不是更安全；把校验与事务搬进 Go
+既能消除“无前端却报告成功”的旧问题，也不增加构建依赖。
+
+## D-023 Nginx 线复检整改与有意分叉登记（2026-11-13）
+
+**背景**：复检 Nginx 产物层与安装事务，并按“功能与 Bash 一致、细节可更严格”
+的口径完成 A1-A7 与 CFG-1～CFG-9。
+
+**决定**：
+- A 类全部修复：默认本机 IP 403、卸载默认删除片段目录并新增
+  `--keep-nginx-conf`、symlink 跳过、权限断言（含 `runuser` 读证书）、回滚
+  聚合错误、同 build 漂移修复且仅在变更时重启、Xray 失败时提示 Nginx 残留。
+- Xray 协作配置按 Bash 功能对齐：TLS 80/ACME 跳转、`<publicPort>` +
+  `[::]` + QUIC + `http2 on`、完整 TLS 参数、ws/grpc/xhttp location（xhttp
+  使用 `grpc_pass`）、`xray-*-server` upstream 与 `*.<t>Servers` 片段、
+  Reality+Nginx 完整 SNI Guard stream、`03-isolate.conf` include、受管文件
+  清理、默认证书路径 `/etc/idleleo/cert/xray.crt|key`。Reality+Nginx 的
+  Xray 后端固定 9443，避免与 Nginx 公网端口抢占。
+- 以下差异登记为有意分叉，不回退到 Bash 行为：
+  1. manifest 校验更严（强制 schema/size/精确 SHA）。
+  2. 解包权限固定 0644/0755，不保留 tar 模式。
+  3. 产物下载仅初始 URL 允许 HTTPS→HTTP；其余重定向拒绝。
+  4. `useradd` 失败即失败，不回退 `nobody`。
+  5. 只处理首条 `user` 与首个 `http {`。
+  6. `nginx -t` 带显式 `-p <prefix>/`。
+  7. 使用独立 `etc/idleleo/v1/nginx.json`，不写 Xray 配置的
+     `nginx_build_version`。
+  8. 无 metadata 时同样停用并删除 `/usr/local/nginx`（与 Bash 一致，登记
+     待后续加守卫）。
+  9. 服务启动采用 20×250ms 等待，比 Bash 更积极失败。
+  10. Reality+Nginx 的 Xray inbound 监听 `127.0.0.1:9443`（Bash 为
+      `0.0.0.0:9443`），更严格且不影响 Nginx 回环代理。
+  11. 非 443 公网端口时 80 跳转携带 `:port`（Bash 不带，属 Bash 缺陷）。
+  12. Stream 模式始终保留空的 `03-isolate.conf` 占位，保证分阶段
+      `nginx -t` 可用。
+  13. TLS `location /ray/` 保留尾斜杠，前缀匹配语义与 Bash `/ray` 等价。
+
+**影响**：真实 root 下的 `nginx -V`、自启、卸载保留策略、symlink 证书与并发
+行为仍需 Block 3 验证；在此之前不得对外宣称与 Bash 完全等价。
+
+## D-024 证书生命周期对齐 acme.sh 与 Bash 契约（2026-11-16）
+
+**背景**：Bash 只把 acme.sh 当 webroot HTTP-01 客户端：staging 试签后再正式
+签发，`--installcert` 后由 reloadcmd 执行 `chown root:idleleo-nginx` +
+`chmod 640`，账户状态留在 `~/.acme.sh`。Go 原生路径此前直接生产签发，续期后
+把证书重置为 `0644/0600 root:root`，且账户私钥放在证书目录内，与 Bash 的
+分层权限模型冲突。
+
+**决定**：
+- `cert issue --production` 默认先做 staging 预检（`--no-staging-check` 可关，
+  显式 `--directory` 自动跳过），预检不落盘、不执行 reload。
+- 签发与续期落盘后统一执行权限收尾：存在 `idleleo-nginx` 组时证书目录
+  `0750`、证书与私钥 `0640 root:idleleo-nginx`；否则保持 `0644/0600`。
+  权限失败回滚到旧证书并恢复其原权限位。
+- ACME 账户状态从 `<cert dir>/acme` 迁到 `/etc/idleleo/acme`（`0700`），
+  兼容读取旧路径；迁移遇到非 `account.key/account.json` 条目时 fail-closed。
+- 账户 KID 按 CA directory 分开保存，staging 与 production 互不覆盖。
+- 用户自备证书以 `<cert dir>/.user-managed` 标记；安装器在“沿用已有证书且本机
+  无签发记录”（无 `.managed-by-idleleo` 且无 acme.sh 域名状态）时写入，原生
+  `cert issue/renew` 与 `ssl_update.sh` 均拒绝覆盖，需显式 `--takeover` 才
+  接管。原生签发成功后写入 `.managed-by-idleleo` 并清除 `.user-managed`；只有
+  reload 成功后才记录归属，reload 失败回滚时不会丢掉用户标记。
+- 回滚快照同时保存旧证书对的 uid/gid，失败回滚后仍保持
+  `root:idleleo-nginx 0640`，避免 nginx worker 失去读权限。
+- 账户状态迁移会把目标目录收紧到 `0700 root:root`、`account.key/json` 收紧到
+  `0600 root:root`，避免从证书目录继承组可读权限。
+- 新增 `cert renew --dry-run`，只读输出到期时间、续期点、挑战方式与 reload
+  配置。
+
+**影响**：安装路径每次首次签发会多一次 staging 往返；这是有意用时间换生产
+额度安全。`idleleo-nginx` 不存在的主机（纯 Xray）不进入分层权限分支。
+

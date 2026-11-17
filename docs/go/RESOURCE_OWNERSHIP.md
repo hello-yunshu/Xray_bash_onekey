@@ -90,3 +90,21 @@
 3. 备份/恢复必须保留：自定义 DNS、routing、outbounds、证书、密钥、用户 Nginx 片段。
 4. 旧目录迁移（`/usr/local/share/xray`）必须 **fail-closed**：发现非普通文件（目录/软链/设备）时保留原目录、保留备份、明确报错，不能「迁移成功」后丢数据。
 5. 事务暂存与锁必须带所有权与超时；异常退出后可恢复，不能静默覆盖新改动。
+
+## 9. Go 迁移实现状态（S0–S3 收尾）
+
+前 8 节描述 Bash 基线的所有权与 Go 的迁移规则；本节记录 Go 侧**已经落地**的部分，
+用于核对文档与现实是否一致。
+
+| 资源 | 当前所有者 | 状态 |
+|---|---|---|
+| `/etc/idleleo/v1/metadata.json` | Go（安装器写一次） | 已实现；Bash 只读，缺字段直接报错，不回退默认值 |
+| `/etc/idleleo/` 其余布局 | Bash | 不变；Go 不接管 `conf/`、`info/`、`logs/` |
+| `/var/lib/idleleo/transactions/phase01.json` | Go | 已实现；有界事务记录（不含配置字节/密钥），供 `change recover` 重放 |
+| `/var/lib/idleleo/deploy/` | Go | 已实现；部署状态与暂存，失败回滚 |
+| `/run/lock/idleleo-update.lock` | Go / Bash 共用 | 沿用 Bash 锁名，切换窗口内不会出现两个写者 |
+| systemd 单元（xray/nginx） | 系统 | Go 只通过 `systemctl` 操作，不直接写单元文件 |
+| `/root/.acme.sh`、用户 `wwwroot` | USER_OWNED | 不变；Go 证书写入 `/etc/idleleo/cert`，不碰用户 acme 目录 |
+
+`install.sh -u` 在 Go 元数据存在时直接拒绝（S1），因此 **Go 接管后的主机上 Bash 不会再
+改写任何上面列出的资源**；Bash 仅在 Go 未安装的旧主机上保留原有所有权。
