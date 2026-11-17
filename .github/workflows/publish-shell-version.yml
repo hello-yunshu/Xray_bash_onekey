@@ -214,7 +214,7 @@ jobs:
           cp install.sh assets/rill-xray-agent-xray-bundle.tar.gz scripts/xray_stats.sh "$tmp/"
           (cd "$tmp" && sha256sum install.sh rill-xray-agent-xray-bundle.tar.gz xray_stats.sh > SHA256SUMS)
           python3 - "$tmp/release-manifest.json" <<'PY'
-          import json, os, sys
+          import hashlib, json, os, sys
           doc={
             "schemaVersion":1,
             "version":os.environ["VERSION"],
@@ -227,6 +227,17 @@ jobs:
             "qualificationRunId":os.environ["GITHUB_RUN_ID"],
             "qualificationWorkflow":".github/workflows/test-install.yml",
           }
+          helpers=("fail2ban_manager.sh","traffic_blocker.sh","file_manager.sh",
+                   "auto_update.sh","ssl_update.sh","geo_update.sh")
+          def sha256(path):
+            digest = hashlib.sha256()
+            with open(path,"rb") as handle:
+              for chunk in iter(lambda: handle.read(65536), b""):
+                digest.update(chunk)
+            return digest.hexdigest()
+          doc["helperScripts"]={name: sha256(os.path.join("scripts", name))
+                                for name in helpers
+                                if os.path.exists(os.path.join("scripts", name))}
           with open(sys.argv[1],"w") as f: json.dump(doc,f,indent=2,sort_keys=True); f.write("\n")
           PY
           details=${INPUT_DETAILS:-release: publish Xray shell ${VERSION}}
@@ -379,6 +390,43 @@ jobs:
             --shell-commit "$CANDIDATE_COMMIT" \
             --baseline-scenarios 'direct,shell-first,reinstall,failure-recovery,restart-recovery,fallback'
           (cd api && bash validate-json.sh)
+
+      - name: Sign version metadata (fail closed)
+        env:
+          VERSIONS_KEY: ${{ secrets.IDLELEO_VERSIONS_ED25519_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VERSIONS_KEY}" ]; then
+            echo "IDLELEO_VERSIONS_ED25519_KEY is not configured; refusing to publish unsigned version metadata." >&2
+            echo "Configure the Ed25519 private key that pairs with the install.sh trust anchor." >&2
+            exit 1
+          fi
+          umask 077
+          key="$RUNNER_TEMP/idleleo-versions-ed25519.pem"
+          if printf '%s' "${VERSIONS_KEY}" | grep -q 'PRIVATE KEY'; then
+            printf '%s\n' "${VERSIONS_KEY}" >"$key"
+          else
+            printf '%s' "${VERSIONS_KEY}" | base64 -d >"$key" 2>/dev/null || {
+              echo "IDLELEO_VERSIONS_ED25519_KEY is neither a PEM key nor base64-encoded PEM." >&2
+              exit 1
+            }
+          fi
+          chmod 600 "$key"
+          openssl pkey -in "$key" -noout -text 2>/dev/null | grep -q 'ED25519' || {
+            echo "IDLELEO_VERSIONS_ED25519_KEY is not an Ed25519 private key." >&2
+            rm -f "$key"
+            exit 1
+          }
+          signed="$RUNNER_TEMP/xray_shell_versions.signed.json"
+          bash scripts/sign_json_ed25519.sh api/xray_shell_versions.json "$key" >"$signed"
+          rm -f "$key"
+          mv "$signed" api/xray_shell_versions.json
+          (cd api && bash validate-json.sh)
+
+      - name: Preflight published metadata signature
+        run: |
+          set -euo pipefail
+          bash scripts/preflight_versions_signature.sh api/xray_shell_versions.json install.sh
 
       - name: Publish API promotion after the immutable Release
         env:

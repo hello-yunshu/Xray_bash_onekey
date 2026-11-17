@@ -192,7 +192,14 @@ TEST_PREFIXES = (".github/test/", "i18n/tests/")
 
 
 def tracked_files():
-    """All repository files Git knows about, across every file type."""
+    """All repository files Git knows about, across every file type.
+
+    ``vendor/`` is excluded: it is upstream third-party source (for example
+    golang.org/x/net Unicode tables contain the text ``\\x1b`` inside data
+    tables), it is never executed as this project's output path, and its
+    provenance is covered by the vendor/licence review instead. The scanner
+    still covers install.sh, scripts/ and every first-party file type.
+    """
     try:
         output = subprocess.run(
             ["git", "ls-files"],
@@ -202,8 +209,12 @@ def tracked_files():
             text=True,
         ).stdout
     except (OSError, subprocess.CalledProcessError):
-        return [p for p in REPO.rglob("*") if p.is_file()]
-    return [REPO / name for name in output.splitlines() if name]
+        return [p for p in REPO.rglob("*")
+                if p.is_file() and "vendor" not in p.relative_to(REPO).parts]
+    return [
+        REPO / name for name in output.splitlines()
+        if name and not name.startswith("vendor/")
+    ]
 
 
 def ansi_category(rel, line):

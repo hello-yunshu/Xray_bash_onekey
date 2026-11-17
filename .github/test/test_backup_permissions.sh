@@ -23,7 +23,7 @@ mkdir -p "${idleleo_dir}/conf" "${log_dir}"
 printf '{"id":"test-uuid","privateKey":"secret"}' >"${idleleo_dir}/conf/install_config.json"
 printf 'old log\n' >"${LOG_FILE}"
 chmod 644 "${LOG_FILE}" 2>/dev/null || true
-log_echo() { :; }
+log_echo() { printf '%s\n' "$*" >>"${TMP_ROOT}/log_echo.txt"; }
 gettext() { printf '%s' "$1"; }
 read_optimize() { backup_name="case"; }
 
@@ -48,6 +48,13 @@ archive=$(ls -1 "${idleleo_dir}"/xray_bash_case_*.tar.gz 2>/dev/null | tail -1)
 mode=$(stat -c '%a' "${archive}" 2>/dev/null || echo missing)
 [[ "${mode}" == "600" ]] && ok "backup archive mode 0600" || bad "backup archive mode=${mode}"
 tar -tzf "${archive}" >/dev/null 2>&1 && ok "backup archive readable" || bad "backup archive corrupt"
+# The archive also carries /root/.acme.sh style account state; the operator must
+# be told it contains an account private key, not just the Xray key pair.
+if grep -q 'ACME 账户私钥' "${TMP_ROOT}/log_echo.txt" 2>/dev/null; then
+    ok "backup warns that the archive contains the ACME account private key"
+else
+    bad "backup does not warn about the ACME account private key"
+fi
 
 # 0600 must actually deny another unprivileged account, not only look correct
 # in stat output. Probe in a traversable directory so only the file mode is

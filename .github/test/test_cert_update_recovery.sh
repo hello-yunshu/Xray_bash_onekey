@@ -92,6 +92,10 @@ reset_case() {
     rm -f "${TMP_ROOT}/fail_cron" "${TMP_ROOT}/fail_installcert"
     rm -f "${ssl_chainpath}/xray.crt" "${ssl_chainpath}/xray.key"
     write_acme
+    # S7-4: manual renewal is native by default. This suite pins the retained
+    # acme.sh fallback so its restore/rollback guarantees stay covered; the
+    # native path is covered by test_acme_retire.sh.
+    export IDLELEO_ACME_LEGACY=1
     export CERT_TEST_DIR="${TMP_ROOT}" CERT_TEST_LOG="${TMP_ROOT}/acme.log"
 }
 
