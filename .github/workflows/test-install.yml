@@ -27,6 +27,7 @@ on:
   push:
     branches:
       - main
+      - develop/go-native
   pull_request:
   workflow_dispatch:
     inputs:
@@ -87,6 +88,10 @@ jobs:
       - name: Run Phase 1 regression tests
         run: |
           set -euo pipefail
+          # S1: the ONLINE mutation entrypoint must exit at the Go metadata gate
+          # before OS validation, logging, network, packages or /etc writes.
+          # Runs first because it needs a clean runner without /etc/idleleo.
+          sudo -E bash .github/test/test_install_top_level_refusal.sh
           bash .github/test/test_redact.sh
           bash .github/test/test_fail2ban.sh
           bash .github/test/test_nginx_tar_security.sh
@@ -98,6 +103,9 @@ jobs:
           # The Go migration offer must stay invisible to ordinary Bash users:
           # `-u` never arms it, only explicit --internal-bridge-offer may.
           bash .github/test/test_bridge_offer_dormant.sh
+          # S1: Bash derives state from Go metadata read-only and fails loudly on
+          # a missing field instead of defaulting.
+          bash .github/test/test_go_metadata_adapter.sh
           bash .github/test/test_phase1_safety.sh
           # Bootstrap dependency / error-propagation regression (13.2-13.4, 13.10):
           # pkg_install multi-package failure propagation, offline/online language
@@ -197,6 +205,14 @@ jobs:
           # must never overwrite manually promoted tested-version metadata.
           python3 .github/test/test_release_automation.py
           python3 .github/test/test_convergence.py
+          # S6-2/S6-3 trust roots: unsigned metadata is only tolerated below the
+          # cutover, and an unpinned helper is refused at its own cutover.
+          bash .github/test/test_versions_signature.sh
+          bash .github/test/test_helper_checksum.sh
+          # Both publishers must sign before upload and fail closed when the
+          # signing secret is missing; the preflight is executed against real
+          # fixtures, so a weakened check turns this red.
+          python3 .github/test/test_release_signing_workflows.py
           bash -n scripts/merge_checked_pr.sh
 
       - name: Install PyYAML for Clash parser test

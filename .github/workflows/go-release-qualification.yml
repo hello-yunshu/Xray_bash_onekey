@@ -1,0 +1,111 @@
+# NEVER publishes. Official publishing must depend on its success.
+# Expected RED until the real Go manager and F01-F28 executable tests exist.
+#
+# Triggering: `workflow_dispatch` only appears on the repository's default
+# branch, so it cannot dispatch while this file lives on develop/go-native.
+# The push trigger below runs the same gate on the migration branch, and
+# pull_request covers review runs; neither can publish (contents: read).
+# The gate returns exit 2 (28 PENDING, 0 missing tests) until the ledger is
+# signed on real systems, which is the intended result.
+name: Go production parity release qualification
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - develop/go-native
+permissions:
+  contents: read
+concurrency:
+  group: go-release-qualification-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-core-release-qualification:
+    runs-on: ubuntu-24.04
+    # 28 fixtures x 240s worst case exceeds a 90 minute budget.
+    timeout-minutes: 180
+    env:
+      GOTOOLCHAIN: local
+      GOPROXY: "off"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          path: current
+          persist-credentials: false
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: hello-yunshu/Xray_bash_onekey
+          ref: 3b2a5045fec4535e189a0b25ca27dc534945bab5
+          path: legacy
+          persist-credentials: false
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version: '1.27.4'
+      - name: Use vendored modules when present
+        run: |
+          set -euo pipefail
+          for d in . current; do
+            if [ -f "$d/vendor/modules.txt" ]; then
+              echo "GOFLAGS=-mod=vendor" >> "$GITHUB_ENV"
+              break
+            fi
+          done
+      - name: Install qualification runtime prerequisites
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends nginx libnginx-mod-stream curl jq
+          sudo systemctl start nginx
+          arch=$(uname -m)
+          case "$arch" in
+            x86_64) asset=Xray-linux-64.zip ;;
+            aarch64|arm64) asset=Xray-linux-arm64-v8a.zip ;;
+            *) echo "unsupported runner arch $arch" >&2; exit 2 ;;
+          esac
+          curl -fsSL --retry 3 -o /tmp/xray.zip \
+            "https://github.com/XTLS/Xray-core/releases/latest/download/$asset"
+          python3 -m zipfile -e /tmp/xray.zip /tmp/xray
+          sudo install -D -m 0755 /tmp/xray/xray /opt/xray/xray
+          /opt/xray/xray version
+
+      - name: Allow the git oracle to read runner-owned checkouts as root
+        run: |
+          set -euo pipefail
+          # The fixtures need root (systemd units, /etc/idleleo), so the gate
+          # runs under sudo; both pinned checkouts stay owned by the runner.
+          sudo git config --system --add safe.directory "$GITHUB_WORKSPACE/current"
+          sudo git config --system --add safe.directory "$GITHUB_WORKSPACE/legacy"
+
+      - name: Execute provenance-checked native L0 and all 28 real feature tests
+        env:
+          # Explicit package must match the actual production Go module (repo root)
+          # and its real service package; this is what the gate verifies.
+          REQUIRED_PRODUCTION_PACKAGE: github.com/hello-yunshu/Xray_bash_onekey/internal/service
+          IDLELEO_PREVIEW_EVIDENCE: ${{ runner.temp }}/release-evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$IDLELEO_PREVIEW_EVIDENCE"
+          # sudo -E alone does not guarantee GITHUB_SHA survives env_reset, and
+          # the gate rejects any result whose SHA differs from this checkout.
+          sudo -E env "PATH=$PATH" \
+            "GITHUB_ACTIONS=${GITHUB_ACTIONS:-}" "GITHUB_SHA=${GITHUB_SHA:-}" \
+            "GOPROXY=off" "GOTOOLCHAIN=local" "GOFLAGS=${GOFLAGS:-}" \
+            "IDLELEO_PREVIEW_EVIDENCE=$IDLELEO_PREVIEW_EVIDENCE" \
+            python3 current/tests/go-parity/parity/scripts/check_release_gate.py \
+              --bash-repo legacy \
+              --native-go-dir current \
+              --native-package ./cmd/parity-adapter \
+              --go-cli-package ./cmd/idleleo \
+              --require-package "$REQUIRED_PRODUCTION_PACKAGE"
+
+      - name: Upload release qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-qualification-evidence
+          path: ${{ runner.temp }}/release-evidence
+          if-no-files-found: warn
+      # Subsequent mandatory jobs are still needed: VM + systemd, real Xray/Nginx,
+      # cert renewal, cross-distro/arch, backup/import, SIGKILL reboot, staged release.
+      # Do not publish on the basis of this one job alone.
