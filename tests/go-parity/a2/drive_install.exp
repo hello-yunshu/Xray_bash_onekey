@@ -1,0 +1,84 @@
+#!/usr/bin/expect -f
+# Drives the REAL interactive install.sh main flow with synthetic answers.
+# Every answer is sent only after the corresponding prompt appears, so the
+# transcript proves the actual prompt sequence instead of piped guesses.
+set timeout 900
+set overall_timeout 1800
+set logf $env(A2_LOG)
+log_file -a $logf
+
+set mode $env(A2_MODE)
+set transport $env(A2_TRANSPORT)
+set target $env(A2_TARGET)
+set add_more $env(A2_ADD_MORE)
+set port_answer $env(A2_PORT_ANSWER)
+
+if {$mode eq "reality"} {
+    spawn bash /src/install.sh -2
+} else {
+    spawn bash /src/install.sh -3
+}
+
+expect {
+    # --- install mode gate (-3 only) -------------------------------------
+    -re {此模式推荐用于负载均衡} { send "y\r"; exp_continue }
+
+    # --- public IP -------------------------------------------------------
+    -re {确定公网IP信息} { send "2\r"; exp_continue }
+
+    # --- main port (Reality) --------------------------------------------
+    -re {确定端口} { send "$port_answer\r"; exp_continue }
+
+    # --- identity --------------------------------------------------------
+    -re {是否需要自定义 Xray 用户名} { send "n\r"; exp_continue }
+    -re {是否需要自定义字符串映射} { send "n\r"; exp_continue }
+
+    # --- Reality target / serverNames / shortIds -------------------------
+    -re {请输入一个域名} { send "$target\r"; exp_continue }
+    -re {确认域名符合要求后请输入} { send "$target\r"; exp_continue }
+    -re {是否仍要设置此域名} { send "y\r"; exp_continue }
+    -re {是否需要自定义 .*域名的 serverNames} { send "n\r"; exp_continue }
+    -re {是否需要自定义 .*shortIds} { send "n\r"; exp_continue }
+
+    # --- extra transports ------------------------------------------------
+    -re {是否添加用于负载均衡的 ws/gRPC 协议} { send "$add_more\r"; exp_continue }
+    -re {请选择传输协议} {
+        switch -- $transport {
+            "ws" { send "1\r" }
+            "grpc" { send "2\r" }
+            "xhttp" { send "3\r" }
+            "ws+xhttp" { send "4\r" }
+            "ws+grpc+xhttp" { send "5\r" }
+            default { send "1\r" }
+        }
+        exp_continue
+    }
+    -re {是否需要自定义 ws inbound_port} { send "n\r"; exp_continue }
+    -re {是否需要自定义 gRPC inbound_port} { send "n\r"; exp_continue }
+    -re {是否需要自定义 xHTTP inbound_port} { send "n\r"; exp_continue }
+    -re {是否需要自定义 ws 伪装路径} { send "n\r"; exp_continue }
+    -re {是否需要自定义 gRPC 伪装路径} { send "n\r"; exp_continue }
+    -re {是否需要自定义 xHTTP 伪装路径} { send "n\r"; exp_continue }
+
+    # --- Reality keys / optional components -------------------------------
+    -re {是否需要自定义 privateKey} { send "n\r"; exp_continue }
+    -re {是否需要设置防火墙} { send "n\r"; exp_continue }
+    -re {是否添加 Reality 负载均衡} { send "n\r"; exp_continue }
+    -re {是否额外安装 nginx 前置保护} { send "n\r"; exp_continue }
+
+    # --- post-install optional tasks -------------------------------------
+    -re {是否启用} { send "n\r"; exp_continue }
+    -re {是否需要设置自动清理日志} { send "n\r"; exp_continue }
+
+    # --- generic exits ----------------------------------------------------
+    -re {回到菜单} { send "\r"; exp_continue }
+    eof {
+        set rc [wait]
+        puts "EXPECT_WAIT_STATUS=$rc"
+        exit [lindex $rc 3]
+    }
+    timeout {
+        puts "EXPECT_TIMEOUT after $timeout s"
+        exit 124
+    }
+}

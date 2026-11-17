@@ -3,7 +3,7 @@
 # Network is disabled inside the container: the harness must not fetch updates.
 set -eu
 REPO=$(cd "$(dirname "$0")/../../.." && pwd)
-IMAGE=${IDLELEO_TEST_IMAGE:-idleleo-phase01-test:1.24}
+IMAGE=${IDLELEO_TEST_IMAGE:-idleleo-phase01-test:1.27.4}
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   docker build -q -t "$IMAGE" - <"$REPO/tests/go-parity/phase01/Dockerfile" >/dev/null
 fi
@@ -16,6 +16,7 @@ exec docker run --rm --network=none \
   -v "$REPO:/src" -w /src \
   "${XRAY_ARGS[@]+"${XRAY_ARGS[@]}"}" \
   -e GOTOOLCHAIN=local \
+  -e GOPROXY=off \
   -e PHASE01_IMAGE="$IMAGE $IMAGE_ID" \
   "$IMAGE" bash -c '
     if [ -n "${XRAY_BIN:-}" ]; then mkdir -p /var/log/xray; fi

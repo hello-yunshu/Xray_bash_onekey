@@ -4,11 +4,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+# shellcheck source=../lib/docker_common.sh
+. "$ROOT/tests/go-parity/lib/docker_common.sh"
+ARCH=$(docker_arch)
 GO="${GO:-go}"
 if [[ ! -x "$(command -v "$GO" 2>/dev/null || true)" ]]; then
     GO=/tmp/gotoolchain/go/bin/go
 fi
-XRAY_BIN="${IDLELEO_XRAY_BIN:-/tmp/xray-26/xray}"
+XRAY_BIN=$(ensure_xray_bin "$ARCH")
 IMAGE="${IDLELEO_PHASE02_IMAGE:-idleleo-phase02-test:24.04}"
 NGINX_IMAGE="${IDLELEO_NGINX_IMAGE:-nginx:1.27}"
 BIN_OUT="${IDLELEO_BIN_OUT:-/tmp/idleleo-linux}"
@@ -26,10 +29,10 @@ docker build -t "$IMAGE" -f "$ROOT/tests/go-parity/phase02/Dockerfile" "$ROOT/te
 IMAGE_ID=$(docker image inspect "$IMAGE" --format '{{.Id}}')
 echo "image: $IMAGE"
 echo "image-id: $IMAGE_ID"
-echo "xray-bin: $XRAY_BIN sha256=$(sha256sum "$XRAY_BIN" | cut -d' ' -f1)"
+echo "xray-bin: $XRAY_BIN arch=$ARCH sha256=$(host_sha256 "$XRAY_BIN")"
 
-echo "== building linux/arm64 idleleo =="
-(cd "$ROOT" && GOOS=linux GOARCH=arm64 "$GO" build -o "$BIN_OUT" ./cmd/idleleo)
+echo "== building linux/$ARCH idleleo =="
+(cd "$ROOT" && GOOS=linux GOARCH="$ARCH" "$GO" build -o "$BIN_OUT" ./cmd/idleleo)
 
 cleanup() {
     docker rm -f "$NAME" "$ORIGIN" >/dev/null 2>&1 || true
@@ -81,10 +84,13 @@ docker run -d --name "$ORIGIN" --network "$NET" --network-alias geo-origin \
     -v "$WORK:/w:ro" "$NGINX_IMAGE" nginx -c /w/nginx.conf -g 'daemon off;' >/dev/null
 echo "origin: $ORIGIN ($NGINX_IMAGE) asset=$WORK/geoip.dat bytes=$ORIGIN_SIZE"
 
+CGROUP_ARGS=()
+while IFS= read -r arg; do CGROUP_ARGS+=("$arg"); done < <(cgroup_mount_args)
+
 echo "== starting privileged systemd probe =="
 docker run -d --name "$NAME" \
     --privileged --cgroupns=host --network "$NET" \
-    -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
+    "${CGROUP_ARGS[@]+"${CGROUP_ARGS[@]}"}" \
     -v "$BIN_OUT:/bin/idleleo:ro" \
     -v "$XRAY_BIN:/opt/xray/xray:ro" \
     -v "$WORK/geo.crt:/usr/local/share/ca-certificates/geo-origin.crt:ro" \
