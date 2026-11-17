@@ -23,6 +23,7 @@ type Entry struct {
 	ID            string `json:"id"`
 	State         string `json:"state"`
 	Target        string `json:"target"`
+	ServicePath   string `json:"servicePath,omitempty"`
 	OldSHA256     string `json:"oldSha256"`
 	NewSHA256     string `json:"newSha256,omitempty"`
 	ValidatorExit int    `json:"validatorExit,omitempty"`

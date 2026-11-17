@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"strconv"
 	"strings"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/compat"
@@ -23,11 +24,27 @@ import (
 
 // Modes mirror the Bash install modes that this package can build.
 const (
-	ModeReality      = "reality"
-	ModeRealityNginx = "reality-nginx"
-	ModeTLS          = "tls"
-	ModeNone         = "none"
+	ModeReality        = "reality"
+	ModeRealityNginx   = "reality-nginx"
+	ModeRealityBalance = "reality-balance"
+	ModeTLS            = "tls"
+	// ModeTLSDirect marks a config whose inbounds terminate TLS without a
+	// managed Nginx front. It is an edit-time classification only and is never
+	// written to install metadata or passed to Generate.
+	ModeTLSDirect = "tls-direct"
+	ModeNone      = "none"
 )
+
+// Reality balance roles mirror the Bash primary/secondary wizard profiles.
+const (
+	BalanceRolePrimary   = "primary"
+	BalanceRoleSecondary = "secondary"
+)
+
+// realityBalanceBackendPort is the fixed loopback port the Bash Reality
+// template keeps for a balance primary; the primary Nginx front owns the
+// public port.
+const realityBalanceBackendPort = 9443
 
 // Transports are the backend transports used with Nginx TLS or no TLS.
 const (
@@ -35,28 +52,100 @@ const (
 	TransportGRPC  = "grpc"
 	TransportXHTTP = "xhttp"
 	TransportRaw   = "raw"
+	// TransportMulti is the Bash multi-entry topology: one base inbound plus
+	// the two remaining transports on their own loopback ports.
+	TransportMulti = "ws+grpc+xhttp"
 )
+
+// inboundDef is one generated inbound entry.
+type inboundDef struct {
+	tag         string
+	transport   string
+	port        int
+	listen      string
+	email       string
+	flow        string
+	path        string
+	serviceName string
+}
 
 // Spec describes one to-be-generated configuration.
 type Spec struct {
-	Mode             string
-	Transport        string
-	Port             int
-	PublicPort       int
-	Listen           string
-	Domain           string
-	CertFile         string
-	KeyFile          string
-	Target           string
-	ServerNames      []string
-	Path             string
-	ServiceName      string
-	UUID             string
-	Email            string
-	Flow             string
-	PrivateKey       string
-	ShortID          string
+	Mode        string
+	Transport   string
+	Port        int
+	PublicPort  int
+	Listen      string
+	Domain      string
+	CertFile    string
+	KeyFile     string
+	Target      string
+	ServerNames []string
+	Path        string
+	ServiceName string
+	UUID        string
+	Email       string
+	Flow        string
+	PrivateKey  string
+	ShortID     string
+	// ShortIDs is the explicit Reality accepted-sid list. A nil slice keeps the
+	// install behaviour (ShortID or a generated id); a non-nil empty slice
+	// deliberately emits "shortIds": [] and must only come from an edit.
+	ShortIDs []string
+	// LinkFingerprint/LinkSpiderX shape the share link and Clash proxy only.
+	// They never appear in the runtime config; the server keeps working with any
+	// client-side fingerprint or spiderX.
+	LinkFingerprint  string
+	LinkSpiderX      string
 	AllowNonLoopback bool
+	// BalanceRole is required by ModeRealityBalance: primary runs the Nginx
+	// stream front, secondary only serves the Reality backend.
+	BalanceRole string
+	// Backends are extra host:port entries written into the primary
+	// Nginx upstream fragment. Empty means the local 127.0.0.1:9443 backend.
+	Backends []string
+	// UnknownSNIPolicy selects the Bash SNI guard branch: isolate (default),
+	// reject. decoy requires pre-existing site artifacts and is refused here.
+	UnknownSNIPolicy string
+	// WSPort/GRPCPort/XHTTPPort pin the automatically added transport inbound
+	// ports (Bash asks the same question as "custom ws/gRPC/xHTTP port").
+	// Zero selects a deterministic free port from the Bash pool.
+	WSPort    int
+	GRPCPort  int
+	XHTTPPort int
+	// SkipPortProbe disables the pre-flight bind check. In-place edits set it
+	// because the running service legitimately owns the ports it preserves.
+	SkipPortProbe bool
+	// RoutingBlock is the traffic-block state that must survive regeneration.
+	// Nil means this install never applied blocking, so the edit keeps the old
+	// behaviour of refusing any routing change.
+	RoutingBlock *BlockState
+}
+
+// extraPort returns the operator-pinned port for an added transport, or zero
+// when the generator should pick one.
+func (s Spec) extraPort(transport string) int {
+	switch transport {
+	case TransportWS:
+		return s.WSPort
+	case TransportGRPC:
+		return s.GRPCPort
+	case TransportXHTTP:
+		return s.XHTTPPort
+	default:
+		return 0
+	}
+}
+
+// extraListenFor mirrors the Bash listen address for added transports. Bash
+// rewrites every ws/gRPC/xHTTP tag to the resolved listen address for the
+// no-TLS branch, so an explicitly allowed non-loopback address must apply to
+// the added inbounds as well. TLS stays on loopback because Nginx fronts it.
+func extraListenFor(spec Spec) string {
+	if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx || spec.Mode == ModeNone {
+		return spec.Listen
+	}
+	return "127.0.0.1"
 }
 
 // UserView is one VLESS client in the generated/edited inbound.
@@ -80,6 +169,7 @@ type Generated struct {
 	Users      []UserView `json:"users"`
 	UUID       string     `json:"uuid"`
 	ShortID    string     `json:"shortId,omitempty"`
+	ShortIDs   []string   `json:"shortIds,omitempty"`
 	PrivateKey string     `json:"privateKey"`
 	PublicKey  string     `json:"publicKey"`
 	ServerName string     `json:"serverName,omitempty"`
@@ -87,7 +177,11 @@ type Generated struct {
 	ShareURI   string     `json:"shareUri"`
 	ClashYAML  string     `json:"clashYaml,omitempty"`
 	NginxConf  string     `json:"nginxConf,omitempty"`
-	Warnings   []string   `json:"warnings"`
+	// NginxFragments holds the files the Bash installer writes next to the
+	// stream config (upstream servers, SNI map entries, isolate site).
+	NginxFragments map[string]string `json:"nginxFragments,omitempty"`
+	BalanceRole    string            `json:"balanceRole,omitempty"`
+	Warnings       []string          `json:"warnings"`
 }
 
 const (
@@ -95,6 +189,12 @@ const (
 	defaultGRPCService = "idleleo-grpc"
 	defaultEmail       = "me@hey.run"
 	defaultRealityFlow = "xtls-rprx-vision"
+
+	// DefaultCertFile/DefaultKeyFile are the pair Bash installs for every TLS
+	// site. They are exported because an in-place edit has to keep comparing
+	// against the same default the generator applies.
+	DefaultCertFile = "/etc/idleleo/cert/xray.crt"
+	DefaultKeyFile  = "/etc/idleleo/cert/xray.key"
 )
 
 // Generate builds one configuration and its client artifacts. Secrets are
@@ -105,16 +205,41 @@ func Generate(spec Spec) (Generated, error) {
 		spec.Mode = ModeReality
 	}
 	g := Generated{Mode: spec.Mode, Warnings: []string{}}
+	if spec.Mode == ModeRealityBalance {
+		// Bash exposes the role as an explicit wizard choice; requiring it here
+		// avoids silently deploying a front-end on a server meant as a backend.
+		spec.BalanceRole = strings.ToLower(strings.TrimSpace(spec.BalanceRole))
+		switch spec.BalanceRole {
+		case BalanceRolePrimary, BalanceRoleSecondary:
+		default:
+			return Generated{}, fmt.Errorf("reality-balance requires --role primary or secondary")
+		}
+		g.BalanceRole = spec.BalanceRole
+	}
 	switch spec.Mode {
-	case ModeReality, ModeRealityNginx:
-		g.Transport = TransportRaw
+	case ModeReality, ModeRealityNginx, ModeRealityBalance:
+		spec.Transport = strings.ToLower(strings.TrimSpace(spec.Transport))
+		switch spec.Transport {
+		case "", TransportRaw:
+			spec.Transport = TransportRaw
+		case TransportMulti, TransportWS, TransportGRPC, TransportXHTTP:
+			// Reality stays the primary raw inbound; the requested transport is
+			// added alongside it, matching Bash reality_add_more (which also
+			// keeps Reality as the primary entry for single and multi additions).
+			if spec.Mode == ModeRealityBalance {
+				return Generated{}, fmt.Errorf("reality-balance does not support transport %q", spec.Transport)
+			}
+		default:
+			return Generated{}, fmt.Errorf("unsupported transport %q for mode %s", spec.Transport, spec.Mode)
+		}
+		g.Transport = spec.Transport
 	case ModeTLS, ModeNone:
 		if spec.Transport == "" {
 			spec.Transport = TransportWS
 		}
 		spec.Transport = strings.ToLower(spec.Transport)
 		switch spec.Transport {
-		case TransportWS, TransportGRPC, TransportXHTTP:
+		case TransportWS, TransportGRPC, TransportXHTTP, TransportMulti:
 		default:
 			return Generated{}, fmt.Errorf("unsupported transport %q for mode %s", spec.Transport, spec.Mode)
 		}
@@ -124,7 +249,7 @@ func Generate(spec Spec) (Generated, error) {
 	}
 	if spec.Port == 0 {
 		switch spec.Mode {
-		case ModeReality:
+		case ModeReality, ModeRealityNginx, ModeRealityBalance:
 			spec.Port = 443
 		default:
 			spec.Port = 10086
@@ -133,16 +258,38 @@ func Generate(spec Spec) (Generated, error) {
 	if spec.Port < 1 || spec.Port > 65535 {
 		return Generated{}, fmt.Errorf("port must be between 1 and 65535")
 	}
+	// Bash reserves 9403/9404/9443/9444 for the SNI guard and Reality backend
+	// and rejects them as the operator-facing port for every Reality mode.
+	if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx || spec.Mode == ModeRealityBalance {
+		if isRealityReservedPort(spec.Port) {
+			return Generated{}, fmt.Errorf("port %d is reserved for Reality internals (9403, 9404, 9443, 9444)", spec.Port)
+		}
+	}
 	if spec.PublicPort == 0 {
 		switch spec.Mode {
-		case ModeTLS, ModeRealityNginx:
+		case ModeTLS:
 			spec.PublicPort = 443
+		case ModeRealityNginx, ModeRealityBalance:
+			// Bash treats the selected port as the Nginx front port; Xray keeps
+			// listening on the fixed loopback backend port.
+			spec.PublicPort = spec.Port
 		default:
 			spec.PublicPort = spec.Port
 		}
 	}
+	if spec.PublicPort < 1 || spec.PublicPort > 65535 {
+		return Generated{}, fmt.Errorf("public port must be between 1 and 65535")
+	}
+	// The Nginx front owns the public port, so it must not collide with a
+	// loopback port Xray or the SNI guard keeps bound. Bash has no separate
+	// public port, but its operator port goes through the same reserved check.
+	if (spec.Mode == ModeRealityNginx ||
+		(spec.Mode == ModeRealityBalance && spec.BalanceRole == BalanceRolePrimary)) &&
+		isRealityReservedPort(spec.PublicPort) {
+		return Generated{}, fmt.Errorf("public port %d is reserved for Reality internals (9403, 9404, 9443, 9444)", spec.PublicPort)
+	}
 	if spec.Listen == "" {
-		if spec.Mode == ModeReality {
+		if spec.Mode == ModeReality || spec.Mode == ModeRealityBalance {
 			spec.Listen = "0.0.0.0"
 		} else {
 			spec.Listen = "127.0.0.1"
@@ -176,17 +323,25 @@ func Generate(spec Spec) (Generated, error) {
 	if spec.Mode == ModeTLS && spec.Domain == "" {
 		return Generated{}, fmt.Errorf("tls mode requires --domain")
 	}
+	if spec.Domain != "" && !compat.RelayIsValidHost(spec.Domain) {
+		// The domain also becomes part of the default certificate path and
+		// Nginx server_name, so a path-like or malformed value must not pass.
+		return Generated{}, fmt.Errorf("invalid domain %q", spec.Domain)
+	}
 	if spec.CertFile == "" && spec.Domain != "" {
-		spec.CertFile = "/etc/idleleo/cert/" + spec.Domain + ".crt"
+		// Bash installs one well-known pair under /etc/idleleo/cert and points
+		// every TLS site at it; --cert/--key still override.
+		spec.CertFile = DefaultCertFile
 	}
 	if spec.KeyFile == "" && spec.Domain != "" {
-		spec.KeyFile = "/etc/idleleo/cert/" + spec.Domain + ".key"
+		spec.KeyFile = DefaultKeyFile
 	}
 
 	serverName := ""
 	var realityTarget string
 	var privateKey, publicKey, shortID string
-	if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx {
+	var shortIDs []string
+	if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx || spec.Mode == ModeRealityBalance {
 		if len(spec.ServerNames) == 0 {
 			if spec.Domain == "" {
 				return Generated{}, fmt.Errorf("reality mode requires --server-name or --domain")
@@ -198,6 +353,11 @@ func Generate(spec Spec) (Generated, error) {
 				return Generated{}, fmt.Errorf("invalid server name %q", sn)
 			}
 		}
+		// Bash serverNames_set accepts exactly one hostname; the balance SNI
+		// fragment is one "<name> reality;" line per name, so keep it single.
+		if spec.Mode == ModeRealityBalance && len(spec.ServerNames) != 1 {
+			return Generated{}, fmt.Errorf("reality-balance requires exactly one --server-name")
+		}
 		serverName = spec.ServerNames[0]
 		realityTarget = spec.Target
 		if realityTarget == "" {
@@ -208,6 +368,11 @@ func Generate(spec Spec) (Generated, error) {
 			targetHost = host
 		} else if strings.Contains(realityTarget, ":") && !strings.HasPrefix(realityTarget, "[") {
 			return Generated{}, fmt.Errorf("invalid reality target %q: expected host:port", realityTarget)
+		} else {
+			// Xray rejects a Reality target without an explicit port; the Bash
+			// default is 443, so normalize instead of emitting a broken config.
+			targetHost = strings.Trim(realityTarget, "[]")
+			realityTarget = net.JoinHostPort(targetHost, "443")
 		}
 		if !compat.RelayIsValidHost(strings.Trim(targetHost, "[]")) {
 			return Generated{}, fmt.Errorf("invalid reality target host %q", targetHost)
@@ -222,15 +387,27 @@ func Generate(spec Spec) (Generated, error) {
 		if err != nil {
 			return Generated{}, err
 		}
-		shortID = spec.ShortID
-		if shortID == "" {
-			shortID, err = NewShortID()
-			if err != nil {
-				return Generated{}, err
+		if spec.ShortIDs != nil {
+			shortIDs = append([]string{}, spec.ShortIDs...)
+		} else {
+			shortID = spec.ShortID
+			if shortID == "" {
+				shortID, err = NewShortID()
+				if err != nil {
+					return Generated{}, err
+				}
+			}
+			shortIDs = []string{shortID}
+		}
+		for _, id := range shortIDs {
+			if !validShortID(id) {
+				return Generated{}, fmt.Errorf("shortId must be 1-16 hex characters with even length (or empty)")
 			}
 		}
-		if !validShortID(shortID) {
-			return Generated{}, fmt.Errorf("shortId must be 1-16 hex characters with even length")
+		if len(shortIDs) > 0 {
+			shortID = shortIDs[0]
+		} else {
+			shortID = ""
 		}
 	} else {
 		if spec.Flow != "" {
@@ -241,10 +418,55 @@ func Generate(spec Spec) (Generated, error) {
 		}
 	}
 
-	config := buildConfig(spec, g.Transport, serverName, realityTarget, privateKey, shortID)
+	inboundPort := spec.Port
+	if spec.Mode == ModeTLS {
+		// Bash gives the loopback Xray inbound a port from the transport pool and
+		// lets Nginx own the public port. Sharing the public port makes Xray and
+		// Nginx contend for the same TCP socket (any restart then fails).
+		inboundPort = 0
+	}
+	if spec.Mode == ModeRealityBalance || spec.Mode == ModeRealityNginx {
+		if err := validateBalance(spec); err != nil {
+			return Generated{}, err
+		}
+		if spec.Mode == ModeRealityNginx || spec.BalanceRole == BalanceRolePrimary {
+			// Bash keeps the Reality template port (9443) on the Xray inbound and
+			// lets Nginx own the public port. Reusing the public port would make
+			// Xray and Nginx fight over the same TCP port.
+			inboundPort = realityBalanceBackendPort
+		}
+	}
 
-	g.Port, g.PublicPort, g.Listen = spec.Port, spec.PublicPort, spec.Listen
-	g.UUID, g.ShortID, g.PrivateKey, g.PublicKey = spec.UUID, shortID, privateKey, publicKey
+	// Bash keeps added inbounds on loopback for TLS but exposes them on the
+	// primary listen address for none and Reality (both rewrite every matched
+	// tag after adding transports). Match that instead of forcing loopback.
+	extraListen := extraListenFor(spec)
+	// The picker's probe is a local availability check; a non-local listen
+	// address can never be bound, so none keeps probing loopback while the
+	// generated inbounds use the operator's address.
+	probeListen := extraListen
+	if spec.Mode == ModeNone {
+		probeListen = "127.0.0.1"
+	}
+	picker := newPortPicker(probeListen, spec.Mode == ModeReality || spec.Mode == ModeRealityNginx,
+		inboundPort, spec.PublicPort)
+	picker.skipBind = spec.SkipPortProbe
+	defs, err := buildInboundDefs(spec, g.Transport, inboundPort, picker)
+	if err != nil {
+		return Generated{}, err
+	}
+	g.Warnings = append(g.Warnings, picker.warnings...)
+	config := buildConfig(spec, defs, serverName, realityTarget, privateKey, shortIDs)
+
+	// TLS fronted installs have no fixed inbound port, so inboundPort is zero
+	// before the picker runs. Report the primary inbound port that was chosen;
+	// `port=0` in the human/JSON output made the backend look unconfigured.
+	reportedPort := inboundPort
+	if reportedPort == 0 && len(defs) > 0 {
+		reportedPort = defs[0].port
+	}
+	g.Port, g.PublicPort, g.Listen = reportedPort, spec.PublicPort, spec.Listen
+	g.UUID, g.ShortID, g.ShortIDs, g.PrivateKey, g.PublicKey = spec.UUID, shortID, shortIDs, privateKey, publicKey
 	g.ServerName, g.Target = serverName, realityTarget
 	g.Users = []UserView{{Index: 0, UUID: spec.UUID, Email: spec.Email, Flow: spec.Flow, Level: 0, Primary: true}}
 	g.Config = config
@@ -258,43 +480,281 @@ func Generate(spec Spec) (Generated, error) {
 	if shareHost == "" {
 		shareHost = spec.Listen
 	}
-	g.ShareURI = buildShareURI(spec, g.Transport, shareHost, publicKey, shortID, serverName)
-	g.ClashYAML = buildClash(spec, g.Transport, shareHost, publicKey, shortID, serverName, &g)
-	g.NginxConf = buildNginx(spec, g.Transport, serverName)
+	base := defs[0]
+	g.ShareURI = buildShareURI(spec, base.transport, shareHost, publicKey, shortID, serverName)
+	g.ClashYAML = buildClash(spec, base.transport, shareHost, publicKey, shortID, serverName, &g)
+	g.NginxConf = buildNginx(spec, defs, serverName)
+	if spec.Mode == ModeTLS {
+		g.NginxFragments = buildTLSServerFragments(defs)
+		g.NginxFragments["01-xray-80.conf"] = buildTLSRedirectNginx(spec, serverName)
+		g.NginxFragments["02-xray-server.conf"] = buildTLSServerConf(defs)
+	}
+	if spec.Mode == ModeRealityNginx {
+		// Bash Reality+Nginx renders the same SNI Guard stream block and
+		// fragment set as a balance primary; only the Xray inbound port differs.
+		g.NginxConf = buildRealityBalanceNginx(spec.PublicPort, balanceDenyPort(spec.UnknownSNIPolicy))
+		g.NginxFragments = buildRealityBalanceFragments(spec, serverName)
+	}
+	if spec.Mode == ModeRealityBalance && spec.BalanceRole == BalanceRolePrimary {
+		g.NginxConf = buildRealityBalanceNginx(spec.PublicPort, balanceDenyPort(spec.UnknownSNIPolicy))
+		g.NginxFragments = buildRealityBalanceFragments(spec, serverName)
+	}
+	if g.Transport == TransportMulti {
+		g.Warnings = append(g.Warnings, "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others")
+	}
 	return g, nil
 }
 
-func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID string) []byte {
-	client := map[string]any{
-		"id":    spec.UUID,
-		"level": 0,
-		"email": spec.Email,
+const defaultXHTTPPath = "/xhttp/"
+
+// Bash reality_add_more draws the extra inbound ports at random from these
+// pools. Go scans the same pools in ascending order instead, so the result is
+// reproducible while still avoiding reserved and occupied ports.
+const (
+	extraPortMin = 10000
+	extraPortMax = 10999
+	xhttpPortMin = 11000
+	xhttpPortMax = 11999
+)
+
+// canBindTCP reports whether the address is free right now. It is a variable so
+// tests can simulate a busy port without touching the machine.
+var canBindTCP = func(addr string, port int) bool {
+	ln, err := net.Listen("tcp", net.JoinHostPort(addr, strconv.Itoa(port)))
+	if err != nil {
+		return false
 	}
-	if spec.Flow != "" {
-		client["flow"] = spec.Flow
+	_ = ln.Close()
+	return true
+}
+
+// portPicker hands out the added transport ports. Explicit values are
+// validated and probed; automatic values scan the Bash pool and skip ports that
+// are reserved, already assigned or in use.
+type portPicker struct {
+	used     map[int]bool
+	listen   string
+	reserved bool
+	// skipBind is set for in-place edits: the running service already owns the
+	// ports being preserved, so probing them would always report a false
+	// conflict. Range, duplicate and reserved-port checks still apply.
+	skipBind bool
+	warnings []string
+}
+
+func newPortPicker(listen string, reserved bool, used ...int) *portPicker {
+	p := &portPicker{used: map[int]bool{}, listen: listen, reserved: reserved}
+	for _, port := range used {
+		if port > 0 {
+			p.used[port] = true
+		}
 	}
-	stream := map[string]any{"security": "none", "network": transport}
+	return p
+}
+
+// probeAddr keeps net.Listen on a literal address; non-IP listen values are
+// probed on the wildcard address instead of being mistaken for a busy port.
+func probeAddr(listen string) string {
+	if listen == "" {
+		return "0.0.0.0"
+	}
+	if ip := net.ParseIP(strings.Trim(listen, "[]")); ip != nil {
+		return ip.String()
+	}
+	return "0.0.0.0"
+}
+
+func (p *portPicker) pick(transport string, explicit int) (int, error) {
+	lo, hi := extraPortMin, extraPortMax
+	if transport == TransportXHTTP {
+		lo, hi = xhttpPortMin, xhttpPortMax
+	}
+	if explicit != 0 {
+		if explicit < 1 || explicit > 65535 {
+			return 0, fmt.Errorf("%s port must be between 1 and 65535", transport)
+		}
+		if p.reserved && isRealityReservedPort(explicit) {
+			return 0, fmt.Errorf("%s port %d is reserved for Reality internals (9403, 9404, 9443, 9444)", transport, explicit)
+		}
+		if p.used[explicit] {
+			return 0, fmt.Errorf("%s port %d is already used by another inbound", transport, explicit)
+		}
+		if !p.skipBind && !canBindTCP(probeAddr(p.listen), explicit) {
+			return 0, fmt.Errorf("%s port %d is already in use on %s", transport, explicit, p.listen)
+		}
+		p.used[explicit] = true
+		return explicit, nil
+	}
+	for port := lo; port <= hi; port++ {
+		if p.reserved && isRealityReservedPort(port) {
+			continue
+		}
+		if p.used[port] {
+			continue
+		}
+		if !p.skipBind && !canBindTCP(probeAddr(p.listen), port) {
+			p.warnings = append(p.warnings, fmt.Sprintf("%s port %d is in use on %s; trying the next candidate", transport, port, p.listen))
+			continue
+		}
+		p.used[port] = true
+		return port, nil
+	}
+	return 0, fmt.Errorf("no free %s port available in %d-%d", transport, lo, hi)
+}
+
+// defaultRealityExtraEmail mirrors the per-transport emails Bash assigns to
+// reality_add_more inbounds.
+func defaultRealityExtraEmail(transport string) string {
 	switch transport {
 	case TransportWS:
-		stream["wsSettings"] = map[string]any{"path": spec.Path}
+		return "ws@hey.run"
 	case TransportGRPC:
-		stream["grpcSettings"] = map[string]any{"serviceName": spec.ServiceName}
+		return "me@hey.run"
 	case TransportXHTTP:
-		stream["xhttpSettings"] = map[string]any{"path": spec.Path, "mode": "auto"}
-	case TransportRaw:
-		stream["security"] = "reality"
-		rs := map[string]any{
-			"target":       target,
-			"serverNames":  spec.ServerNames,
-			"privateKey":   privateKey,
-			"shortIds":     []any{shortID},
-			"minClientVer": "1.0.0",
-		}
-		stream["realitySettings"] = rs
+		return "xhttp@hey.run"
+	default:
+		return defaultEmail
 	}
-	tag := "VLESS-Reality-in"
-	if transport != TransportRaw {
-		tag = "VLESS-" + transport + "-in"
+}
+
+func inboundTag(transport string) string {
+	switch transport {
+	case TransportWS:
+		return "VLESS-ws-in"
+	case TransportGRPC:
+		return "VLESS-gRPC-in"
+	case TransportXHTTP:
+		return "VLESS-xhttp-in"
+	default:
+		return "VLESS-Reality-in"
+	}
+}
+
+// buildInboundDefs returns the inbounds for the requested transport. The
+// primary inbound always uses inboundPort so callers can address it by index 0.
+// Added transports take their ports from picker.
+func buildInboundDefs(spec Spec, transport string, inboundPort int, picker *portPicker) ([]inboundDef, error) {
+	if inboundPort == 0 {
+		// TLS mode: the primary inbound takes a port from the transport pool so
+		// Nginx can hold the public port alone.
+		primary := transport
+		if transport == TransportMulti {
+			primary = TransportWS
+		}
+		port, err := picker.pick(primary, spec.extraPort(primary))
+		if err != nil {
+			return nil, err
+		}
+		inboundPort = port
+	}
+	realityMode := spec.Mode == ModeReality || spec.Mode == ModeRealityNginx
+	if transport != TransportMulti {
+		if transport == TransportRaw {
+			return []inboundDef{{tag: inboundTag(transport), transport: TransportRaw, port: inboundPort,
+				listen: spec.Listen, email: spec.Email, flow: spec.Flow}}, nil
+		}
+		if realityMode {
+			// Bash reality_add_more: the Reality raw inbound remains the primary
+			// entry and the selected transport is appended on its own port.
+			extraPort, err := picker.pick(transport, spec.extraPort(transport))
+			if err != nil {
+				return nil, err
+			}
+			return []inboundDef{
+				{tag: inboundTag(TransportRaw), transport: TransportRaw, port: inboundPort,
+					listen: spec.Listen, email: spec.Email, flow: spec.Flow},
+				{tag: inboundTag(transport), transport: transport, port: extraPort,
+					listen: spec.Listen, email: defaultRealityExtraEmail(transport),
+					path: spec.Path, serviceName: spec.ServiceName},
+			}, nil
+		}
+		return []inboundDef{{
+			tag: inboundTag(transport), transport: transport, port: inboundPort, listen: spec.Listen,
+			email: spec.Email, path: spec.Path, serviceName: spec.ServiceName,
+		}}, nil
+	}
+	reality := spec.Mode == ModeReality || spec.Mode == ModeRealityNginx
+	defs := make([]inboundDef, 0, 4)
+	if reality {
+		defs = append(defs, inboundDef{tag: inboundTag(TransportRaw), transport: TransportRaw,
+			port: inboundPort, listen: spec.Listen, email: spec.Email, flow: spec.Flow})
+	} else {
+		defs = append(defs, inboundDef{tag: inboundTag(TransportWS), transport: TransportWS,
+			port: inboundPort, listen: spec.Listen, email: spec.Email, path: spec.Path})
+	}
+	// Bash keeps added inbounds on loopback for none/TLS but exposes them on
+	// the primary listen address for Reality (reality_add_more runs after the
+	// 0.0.0.0 rewrite). Match that instead of forcing loopback everywhere.
+	extraListen := extraListenFor(spec)
+	if reality {
+		wsPort, err := picker.pick(TransportWS, spec.WSPort)
+		if err != nil {
+			return nil, err
+		}
+		defs = append(defs, inboundDef{tag: inboundTag(TransportWS), transport: TransportWS,
+			port: wsPort, listen: extraListen, email: "ws@hey.run", path: spec.Path})
+	}
+	grpcPort, err := picker.pick(TransportGRPC, spec.GRPCPort)
+	if err != nil {
+		return nil, err
+	}
+	defs = append(defs, inboundDef{tag: inboundTag(TransportGRPC), transport: TransportGRPC,
+		port: grpcPort, listen: extraListen, email: "me@hey.run",
+		serviceName: spec.ServiceName})
+	xhttpPort, err := picker.pick(TransportXHTTP, spec.XHTTPPort)
+	if err != nil {
+		return nil, err
+	}
+	defs = append(defs, inboundDef{tag: inboundTag(TransportXHTTP), transport: TransportXHTTP,
+		port: xhttpPort, listen: extraListen, email: "xhttp@hey.run",
+		path: defaultXHTTPPath})
+	return defs, nil
+}
+
+func buildConfig(spec Spec, defs []inboundDef, serverName, target, privateKey string, shortIDs []string) []byte {
+	inbounds := make([]any, 0, len(defs))
+	tags := make([]any, 0, len(defs))
+	for _, def := range defs {
+		client := map[string]any{
+			"id":    spec.UUID,
+			"level": 0,
+			"email": def.email,
+		}
+		if def.flow != "" {
+			client["flow"] = def.flow
+		}
+		stream := map[string]any{"security": "none", "network": def.transport}
+		switch def.transport {
+		case TransportWS:
+			stream["wsSettings"] = map[string]any{"path": def.path}
+		case TransportGRPC:
+			stream["grpcSettings"] = map[string]any{
+				"serviceName": def.serviceName, "multiMode": true, "idle_timeout": 20,
+			}
+		case TransportXHTTP:
+			stream["xhttpSettings"] = map[string]any{"path": def.path, "mode": "auto"}
+		case TransportRaw:
+			stream["security"] = "reality"
+			stream["realitySettings"] = map[string]any{
+				"target":       target,
+				"serverNames":  spec.ServerNames,
+				"privateKey":   privateKey,
+				"shortIds":     shortIDsAny(shortIDs),
+				"minClientVer": "1.0.0",
+			}
+		}
+		inbounds = append(inbounds, map[string]any{
+			"tag":      def.tag,
+			"port":     def.port,
+			"listen":   def.listen,
+			"protocol": "vless",
+			"settings": map[string]any{
+				"clients":    []any{client},
+				"decryption": "none",
+			},
+			"streamSettings": stream,
+		})
+		tags = append(tags, def.tag)
 	}
 	root := map[string]any{
 		"log": map[string]any{
@@ -302,17 +762,7 @@ func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID s
 			"error":    "/var/log/xray/error.log",
 			"loglevel": "warning",
 		},
-		"inbounds": []any{map[string]any{
-			"tag":      tag,
-			"port":     spec.Port,
-			"listen":   spec.Listen,
-			"protocol": "vless",
-			"settings": map[string]any{
-				"clients":    []any{client},
-				"decryption": "none",
-			},
-			"streamSettings": stream,
-		}},
+		"inbounds": inbounds,
 		"outbounds": []any{
 			map[string]any{
 				"protocol": "freedom",
@@ -339,7 +789,7 @@ func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID s
 			"domainStrategy": "AsIs",
 			"rules": []any{map[string]any{
 				"type":        "field",
-				"inboundTag":  []any{tag},
+				"inboundTag":  tags,
 				"outboundTag": "direct",
 			}},
 		},
@@ -347,10 +797,32 @@ func buildConfig(spec Spec, transport, serverName, target, privateKey, shortID s
 	return mustJSON(root)
 }
 
+// shortIDsAny renders the accepted-sid list without turning an explicit empty
+// list into JSON null: Xray needs an array so "shortIds": [] stays meaningful.
+func shortIDsAny(ids []string) []any {
+	out := make([]any, 0, len(ids))
+	for _, id := range ids {
+		out = append(out, id)
+	}
+	return out
+}
+
+// linkFingerprint is the link-only uTLS fingerprint. It has no server-side
+// meaning; Reality accepts any client fingerprint.
+func linkFingerprint(spec Spec) string {
+	if fp := strings.TrimSpace(spec.LinkFingerprint); fp != "" {
+		return fp
+	}
+	return "chrome"
+}
+
 func buildShareURI(spec Spec, transport, host, publicKey, shortID, serverName string) string {
 	q := func(v string) string { return strings.TrimRight(compat.VLESSURLQuote(v), "\n") }
 	h := strings.TrimSpace(compat.FormatURIAuthorityHost(host))
 	port := spec.PublicPort
+	if port == 0 {
+		port = spec.Port
+	}
 	params := []string{"encryption=none"}
 	name := "idleleo-" + spec.Mode
 	switch transport {
@@ -359,11 +831,14 @@ func buildShareURI(spec Spec, transport, host, publicKey, shortID, serverName st
 			"flow="+q(spec.Flow),
 			"security=reality",
 			"sni="+q(serverName),
-			"fp=chrome",
+			"fp="+q(linkFingerprint(spec)),
 			"pbk="+publicKey,
-			"sid="+shortID,
-			"type=raw",
+			"sid="+q(shortID),
 		)
+		if spx := strings.TrimSpace(spec.LinkSpiderX); spx != "" {
+			params = append(params, "spx="+q(spx))
+		}
+		params = append(params, "type=raw")
 	case TransportWS:
 		params = append(params, "security="+securityName(spec.Mode))
 		if serverName != "" {
@@ -428,14 +903,17 @@ func buildClash(spec Spec, transport, host, publicKey, shortID, serverName strin
 	if spec.Mode == ModeTLS {
 		b.WriteString("    tls: true\n")
 		fmt.Fprintf(&b, "    servername: %s\n", yamlValue(serverName))
-	} else if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx {
+	} else if spec.Mode == ModeReality || spec.Mode == ModeRealityNginx || spec.Mode == ModeRealityBalance {
 		b.WriteString("    tls: true\n")
 		fmt.Fprintf(&b, "    servername: %s\n", yamlValue(serverName))
 		fmt.Fprintf(&b, "    flow: %s\n", spec.Flow)
-		b.WriteString("    client-fingerprint: chrome\n")
+		fmt.Fprintf(&b, "    client-fingerprint: %s\n", linkFingerprint(spec))
 		b.WriteString("    reality-opts:\n")
 		fmt.Fprintf(&b, "      public-key: %s\n", publicKey)
 		fmt.Fprintf(&b, "      short-id: %s\n", shortID)
+		if spx := strings.TrimSpace(spec.LinkSpiderX); spx != "" {
+			fmt.Fprintf(&b, "      spider-x: %s\n", spx)
+		}
 	}
 	if transport == TransportWS {
 		b.WriteString("    ws-opts:\n")
@@ -458,55 +936,349 @@ func yamlValue(v string) string {
 	return strings.TrimRight(q, "\n")
 }
 
-func buildNginx(spec Spec, transport, serverName string) string {
-	if spec.Mode == ModeTLS {
-		var loc string
-		switch transport {
+func buildNginx(spec Spec, defs []inboundDef, serverName string) string {
+	if spec.Mode != ModeTLS {
+		return ""
+	}
+	var sites strings.Builder
+	for _, def := range defs {
+		switch def.transport {
 		case TransportWS:
-			loc = fmt.Sprintf(`    location %s {
-        proxy_pass http://127.0.0.1:%d;
+			fmt.Fprintf(&sites, `    location %s {
+        proxy_redirect off;
         proxy_http_version 1.1;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 720m;
+        proxy_read_timeout 720m;
+        proxy_buffering off;
+        client_max_body_size 0;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-    }`, spec.Path, spec.Port)
+        proxy_set_header Host $http_host;
+        proxy_pass http://xray-ws-server;
+    }
+`, def.path)
 		case TransportGRPC:
-			loc = fmt.Sprintf(`    location /%s {
-        grpc_pass grpc://127.0.0.1:%d;
-    }`, spec.ServiceName, spec.Port)
-		case TransportXHTTP:
-			loc = fmt.Sprintf(`    location %s {
-        proxy_pass http://127.0.0.1:%d;
+			fmt.Fprintf(&sites, `    location /%s {
+        grpc_connect_timeout 60s;
+        grpc_read_timeout 720m;
+        grpc_send_timeout 720m;
+        proxy_redirect off;
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
-    }`, spec.Path, spec.Port)
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 720m;
+        proxy_read_timeout 720m;
+        proxy_buffering off;
+        client_max_body_size 0;
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header Early-Data $ssl_early_data;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        grpc_pass grpc://xray-grpc-server;
+    }
+`, def.serviceName)
+		case TransportXHTTP:
+			fmt.Fprintf(&sites, `    location %s {
+        grpc_connect_timeout 60s;
+        grpc_read_timeout 720m;
+        grpc_send_timeout 720m;
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header Early-Data $ssl_early_data;
+        grpc_set_header Host $host;
+        client_max_body_size 0;
+        grpc_pass grpc://xray-xhttp-server;
+    }
+`, def.path)
 		}
-		return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Do not edit by hand.
+	}
+	return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Do not edit by hand.
 server {
-    listen 443 ssl http2;
-    server_name %s;
-    ssl_certificate %s;
-    ssl_certificate_key %s;
-    ssl_protocols TLSv1.3;
+    listen %[1]d ssl reuseport;
+    listen [::]:%[1]d ssl reuseport;
+    listen %[1]d quic reuseport;
+    listen [::]:%[1]d quic reuseport;
+
+    http2 on;
+    set_real_ip_from      127.0.0.1;
+    real_ip_header        X-Forwarded-For;
+    real_ip_recursive     on;
+    ssl_certificate       %[2]s;
+    ssl_certificate_key   %[3]s;
+    ssl_protocols         TLSv1.3;
+    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;
+    ssl_ecdh_curve        X25519:prime256v1:secp384r1;
+    server_name           %[4]s;
+    root /var/www/html;
+    error_page 403 https://hey.run/helloworld;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+    ssl_early_data on;
+    ssl_prefer_server_ciphers on;
+    add_header Strict-Transport-Security "max-age=31536000";
+
 %s
+    location / {
+        return 403;
+    }
 }
-`, serverName, spec.CertFile, spec.KeyFile, loc)
+`, spec.PublicPort, spec.CertFile, spec.KeyFile, serverName, sites.String())
+}
+
+// buildTLSRedirectNginx renders the Bash 01-xray-80.conf ACME + redirect site.
+func buildTLSRedirectNginx(spec Spec, serverName string) string {
+	redirect := serverName
+	if spec.PublicPort != 443 {
+		redirect = fmt.Sprintf("%s:%d", serverName, spec.PublicPort)
 	}
-	if spec.Mode == ModeRealityNginx {
-		return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Stream SNI front for Reality.
+	return fmt.Sprintf(`# Managed by Xray_bash_onekey (Go). Do not edit by hand.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name %s;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /etc/idleleo/conf;
+        default_type "text/plain";
+        allow all;
+    }
+    location = /.well-known/acme-challenge/ {
+        return 404;
+    }
+
+    location / {
+        return 301 https://%s$request_uri;
+    }
+}
+`, serverName, redirect)
+}
+
+// buildTLSServerConf renders the Bash 02-xray-server.conf upstream blocks.
+func buildTLSServerConf(defs []inboundDef) string {
+	var b strings.Builder
+	b.WriteString("# Managed by Xray_bash_onekey (Go). Do not edit by hand.\n")
+	seen := map[string]bool{}
+	for _, def := range defs {
+		if seen[def.transport] {
+			continue
+		}
+		seen[def.transport] = true
+		fmt.Fprintf(&b, `upstream xray-%s-server {
+    include /etc/idleleo/conf/nginx/*.%sServers;
+}
+
+`, def.transport, def.transport)
+	}
+	return b.String()
+}
+
+// buildTLSServerFragments renders the Bash 127.0.0.1.<transport>Servers files.
+func buildTLSServerFragments(defs []inboundDef) map[string]string {
+	frags := map[string]string{}
+	for _, def := range defs {
+		name := "127.0.0.1." + def.transport + "Servers"
+		frags[name] = fmt.Sprintf("server 127.0.0.1:%d weight=50 max_fails=2 fail_timeout=10;\n", def.port)
+	}
+	return frags
+}
+
+func isRealityReservedPort(p int) bool {
+	switch p {
+	case 9403, 9404, 9443, 9444:
+		return true
+	}
+	return false
+}
+
+func validateBalance(spec Spec) error {
+	// Bash writes one <host>.<suffix> file per backend, so a host can only hold
+	// one port. The local 127.0.0.1:9443 line already owns that host's file.
+	owner := map[string]string{"127.0.0.1": strconv.Itoa(realityBalanceBackendPort)}
+	for _, raw := range spec.Backends {
+		backend := strings.TrimSpace(raw)
+		host, portStr, err := net.SplitHostPort(backend)
+		if err != nil {
+			return fmt.Errorf("invalid backend %q: expected host:port", raw)
+		}
+		host = strings.Trim(host, "[]")
+		if err := validateBalanceHost(host); err != nil {
+			return err
+		}
+		if !compat.RelayIsValidHost(host) {
+			return fmt.Errorf("invalid backend host %q", host)
+		}
+		port, convErr := strconv.Atoi(portStr)
+		if convErr != nil || port < 1 || port > 65535 {
+			return fmt.Errorf("invalid backend port in %q", raw)
+		}
+		if prev, ok := owner[host]; ok {
+			if prev == portStr {
+				continue // duplicate host:port is deduplicated, not an error
+			}
+			return fmt.Errorf("backend host %q appears twice (%s and %s); the Bash fragment model keeps one file per host, so use one port per host", host, prev, portStr)
+		}
+		owner[host] = portStr
+	}
+	if spec.BalanceRole == BalanceRoleSecondary && len(spec.Backends) > 0 {
+		return fmt.Errorf("reality-balance secondary has no Nginx front; --backend is primary only")
+	}
+	switch spec.UnknownSNIPolicy {
+	case "", "isolate", "reject":
+	case "decoy":
+		return fmt.Errorf("unknown-sni-policy decoy needs pre-existing decoy cert/site artifacts and is not generated by the Go CLI")
+	default:
+		return fmt.Errorf("unsupported unknown-sni-policy %q", spec.UnknownSNIPolicy)
+	}
+	return nil
+}
+
+// validateBalanceHost restricts a backend host to the characters that are safe
+// both in "server host:port;" and as a Bash-style <host>.realityServers file
+// name. "/", whitespace and ".." are rejected so a host cannot escape the
+// fragment directory or inject an Nginx directive.
+func validateBalanceHost(host string) error {
+	if host == "" || strings.Contains(host, "..") {
+		return fmt.Errorf("invalid backend host %q: expected an IPv4 address, DNS name or IPv6 address", host)
+	}
+	for _, r := range host {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9',
+			r == '.', r == '_', r == ':', r == '-':
+		default:
+			return fmt.Errorf("invalid backend host %q: only [A-Za-z0-9._:-] is allowed", host)
+		}
+	}
+	return nil
+}
+
+func balanceDenyPort(policy string) int {
+	if policy == "reject" {
+		return 9404
+	}
+	return 9403
+}
+
+// buildRealityBalanceNginx renders the Bash nginx_reality_conf_add stream
+// block verbatim, with the operator port applied by modify_nginx_port. Paths
+// are the Bash-owned /etc/idleleo and /usr/local/nginx locations so a Go
+// deployment and a Bash deployment include the same fragments.
+func buildRealityBalanceNginx(publicPort, denyPort int) string {
+	return fmt.Sprintf(`
 stream {
-    map $ssl_preread_server_name $idleleo_backend {
-        default 127.0.0.1:%d;
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
     }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        default 0;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $error_type {
+        ~^reality:0$     "tls_error";
+        ~^deny:1$        "sni_error";
+        ~^deny:0$        "tls_sni_error";
+        default          "other_error";
+    }
+
+    map $error_type $is_tls_error {
+        "tls_error"      1;
+        #"tls_sni_error"  1;
+        default          0;
+    }
+
+    map $error_type $is_sni_error {
+        "sni_error"      1;
+        "tls_sni_error"  1;
+        default          0;
+    }
+
+    upstream reality {
+        include /etc/idleleo/conf/nginx/*.realityServers;
+    }
+
+    upstream deny {
+        server 127.0.0.1:%d;
+    }
+
+    log_format tls_error_log '$remote_addr [$time_local] "$ssl_preread_server_name" '
+                             '$ssl_preread_protocol $status';
+
+    log_format sni_error_log '$remote_addr [$time_local] "$ssl_preread_server_name" '
+                             '$ssl_preread_protocol $status';
+
     server {
-        listen 0.0.0.0:443;
+        listen %d reuseport so_keepalive=on backlog=65535;
+        proxy_pass $final_upstream;
         ssl_preread on;
-        proxy_pass $idleleo_backend;
+        proxy_connect_timeout 5s;
+        proxy_timeout 300s;
+        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;
+        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;
     }
 }
-`, spec.Port)
+`, denyPort, publicPort)
+}
+
+// buildRealityBalanceFragments returns the files Bash writes beside the
+// stream config. Bash keeps one file per backend host, so the local front line
+// lives in 127.0.0.1.realityServers and every --backend host gets its own
+// <host>.realityServers fragment.
+func buildRealityBalanceFragments(spec Spec, serverName string) map[string]string {
+	// Bash always keeps the local 127.0.0.1:9443 backend line and appends
+	// operator-added servers; --backend never replaces the primary.
+	primary := net.JoinHostPort("127.0.0.1", strconv.Itoa(realityBalanceBackendPort))
+	line := func(backend string) string {
+		return fmt.Sprintf("server %s weight=50 max_fails=2 fail_timeout=10;\n", backend)
 	}
-	return ""
+	frags := map[string]string{
+		"127.0.0.1.realityServers":  line(primary),
+		serverName + ".serverNames": serverName + " reality;\n",
+	}
+	seen := map[string]bool{primary: true}
+	for _, raw := range spec.Backends {
+		backend := strings.TrimSpace(raw)
+		if seen[backend] {
+			continue
+		}
+		seen[backend] = true
+		// validateBalance already rejected malformed entries and a second port
+		// on the same host, so the file name cannot collide here.
+		host, _, err := net.SplitHostPort(backend)
+		if err != nil {
+			continue
+		}
+		frags[strings.Trim(host, "[]")+".realityServers"] = line(backend)
+	}
+	if spec.UnknownSNIPolicy == "" || spec.UnknownSNIPolicy == "isolate" {
+		frags["03-isolate.conf"] = `# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert
+server {
+    listen 127.0.0.1:9403 ssl;
+    ssl_reject_handshake on;
+    access_log off;
+    error_log /dev/null;
+}
+`
+	}
+	return frags
 }
 
 // NewUUID returns a random RFC 4122 version 4 UUID.
@@ -587,8 +1359,14 @@ func validUUID(s string) bool {
 	return true
 }
 
+// validShortID accepts 1-16 hex characters with even length. The empty string
+// is a valid entry (Xray allows an empty sid); an empty *list* is different and
+// is handled by the caller.
 func validShortID(s string) bool {
-	if len(s) < 1 || len(s) > 16 || len(s)%2 != 0 {
+	if s == "" {
+		return true
+	}
+	if len(s) > 16 || len(s)%2 != 0 {
 		return false
 	}
 	_, err := hex.DecodeString(s)

@@ -8,6 +8,209 @@ import (
 	"strings"
 )
 
+// UserRef locates one client inside one inbound. Index is the position in the
+// inbound's clients array, so callers can report exactly what moved.
+type UserRef struct {
+	Inbound int
+	User    UserView
+}
+
+// UserUUIDChange is the before/after view of a single-user credential change.
+// Previous and Updated are aligned by position.
+type UserUUIDChange struct {
+	Ident     string
+	NewUUID   string
+	Previous  []UserRef
+	Updated   []UserRef
+	NoChanges bool
+}
+
+// SetUserUUID rewrites one user's UUID everywhere that user appears. The whole
+// document is cloned and compared field by field, so a partial rewrite cannot
+// reach disk: either every matched inbound moves to NewUUID or the function
+// fails and returns no bytes.
+//
+// The selector is the email (canonical) or the current UUID (alias). Indices
+// are deliberately not accepted: remove shifts them, so a cached index would
+// rotate somebody else's credential.
+func SetUserUUID(raw []byte, ident, newUUID string, onlyInbound int, restrictInbound bool) ([]byte, UserUUIDChange, error) {
+	ident = strings.TrimSpace(ident)
+	change := UserUUIDChange{Ident: ident, NewUUID: strings.TrimSpace(newUUID)}
+	if ident == "" {
+		return nil, change, fmt.Errorf("email or current uuid required")
+	}
+	if change.NewUUID == "" {
+		return nil, change, fmt.Errorf("--new-uuid is required")
+	}
+	if !validUUID(change.NewUUID) {
+		return nil, change, fmt.Errorf("--new-uuid is not a valid RFC4122 value")
+	}
+	candidate, err := decode(raw)
+	if err != nil {
+		return nil, change, err
+	}
+	matches, err := matchUser(candidate, ident)
+	if err != nil {
+		return nil, change, err
+	}
+	if restrictInbound {
+		filtered := matches[:0]
+		for _, ref := range matches {
+			if ref.Inbound == onlyInbound {
+				filtered = append(filtered, ref)
+			}
+		}
+		matches = filtered
+		if len(matches) == 0 {
+			return nil, change, fmt.Errorf("user %q not found in inbound %d", ident, onlyInbound)
+		}
+	}
+	if len(matches) == 0 {
+		return nil, change, fmt.Errorf("user %q not found; available users: %s", ident, describeUsers(candidate))
+	}
+	// A duplicate UUID would make two users indistinguishable for stats and
+	// routing, and one of them would silently start using the other's identity.
+	matched := map[string]bool{}
+	for _, ref := range matches {
+		matched[fmt.Sprintf("%d:%d", ref.Inbound, ref.User.Index)] = true
+	}
+	for inbound, item := range allInboundClients(candidate) {
+		for index, client := range item {
+			if matched[fmt.Sprintf("%d:%d", inbound, index)] {
+				continue
+			}
+			if id, _ := client["id"].(string); id == change.NewUUID {
+				return nil, change, fmt.Errorf("uuid already used by inbound %d client %d (%s)", inbound, index, clientEmail(client))
+			}
+		}
+	}
+	// Mutate every match on the clone, then prove that nothing else moved by
+	// comparing against an independently built expectation. Re-encoding order is
+	// irrelevant: both sides are decoded maps.
+	for _, ref := range matches {
+		clients := allInboundClients(candidate)[ref.Inbound]
+		client := clients[ref.User.Index]
+		previous := UserView{
+			Index: ref.User.Index, UUID: asStringField(client["id"]),
+			Email: asStringField(client["email"]), Flow: asStringField(client["flow"]),
+			Level: asIntField(client["level"]), Primary: ref.User.Index == 0,
+		}
+		change.Previous = append(change.Previous, UserRef{Inbound: ref.Inbound, User: previous})
+		client["id"] = change.NewUUID
+		change.Updated = append(change.Updated, UserRef{
+			Inbound: ref.Inbound,
+			User: UserView{
+				Index: previous.Index, UUID: change.NewUUID, Email: previous.Email,
+				Flow: previous.Flow, Level: previous.Level, Primary: previous.Primary,
+			},
+		})
+	}
+	expected, err := decode(raw)
+	if err != nil {
+		return nil, change, err
+	}
+	for _, ref := range matches {
+		allInboundClients(expected)[ref.Inbound][ref.User.Index]["id"] = change.NewUUID
+	}
+	change.NoChanges = true
+	for _, ref := range change.Previous {
+		if ref.User.UUID != change.NewUUID {
+			change.NoChanges = false
+		}
+	}
+	if !reflect.DeepEqual(expected, candidate) {
+		return nil, change, fmt.Errorf("refusing mutation: fields outside clients[].id would change")
+	}
+	if change.NoChanges {
+		return nil, change, nil
+	}
+	return encode(candidate), change, nil
+}
+
+// matchUser returns every client whose email or uuid equals ident. An inbound
+// with two matching clients is refused: the caller must disambiguate by UUID,
+// otherwise a single email would rotate two people at once.
+func matchUser(root map[string]any, ident string) ([]UserRef, error) {
+	byInbound := allInboundClients(root)
+	out := []UserRef{}
+	for inbound := 0; inbound < len(byInbound); inbound++ {
+		seen := 0
+		for index, client := range byInbound[inbound] {
+			id := asStringField(client["id"])
+			email := asStringField(client["email"])
+			if strings.EqualFold(id, ident) || email == ident {
+				seen++
+				out = append(out, UserRef{Inbound: inbound, User: UserView{
+					Index: index, UUID: id, Email: email,
+					Flow: asStringField(client["flow"]), Level: asIntField(client["level"]),
+					Primary: index == 0,
+				}})
+			}
+		}
+		if seen > 1 {
+			return nil, fmt.Errorf("user %q matches %d clients in inbound %d; select by current UUID", ident, seen, inbound)
+		}
+	}
+	return out, nil
+}
+
+func describeUsers(root map[string]any) string {
+	parts := []string{}
+	byInbound := allInboundClients(root)
+	for inbound := 0; inbound < len(byInbound); inbound++ {
+		for index, client := range byInbound[inbound] {
+			parts = append(parts, fmt.Sprintf("[inbound %d index %d] %s %s", inbound, index,
+				asStringField(client["email"]), asStringField(client["id"])))
+		}
+	}
+	if len(parts) == 0 {
+		return "(none)"
+	}
+	return strings.Join(parts, "; ")
+}
+
+func allInboundClients(root map[string]any) map[int][]map[string]any {
+	inbounds, _ := root["inbounds"].([]any)
+	out := make(map[int][]map[string]any, len(inbounds))
+	for i, item := range inbounds {
+		inbound, _ := item.(map[string]any)
+		settings, _ := inbound["settings"].(map[string]any)
+		clients, _ := settings["clients"].([]any)
+		list := make([]map[string]any, 0, len(clients))
+		for _, raw := range clients {
+			client, _ := raw.(map[string]any)
+			if client == nil {
+				continue
+			}
+			list = append(list, client)
+		}
+		out[i] = list
+	}
+	return out
+}
+
+func asStringField(v any) string {
+	s, _ := v.(string)
+	return s
+}
+
+func asIntField(v any) int {
+	if n, ok := v.(json.Number); ok {
+		if i, err := n.Int64(); err == nil {
+			return int(i)
+		}
+	}
+	return 0
+}
+
+func clientEmail(client map[string]any) string {
+	email := asStringField(client["email"])
+	if email == "" {
+		return "(no email)"
+	}
+	return email
+}
+
 // AddUserSpec is one new VLESS client plus an optional Reality shortId.
 type AddUserSpec struct {
 	UUID    string

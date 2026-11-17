@@ -13,6 +13,7 @@ import (
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/compat"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/runtime"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg"
 )
@@ -35,6 +36,11 @@ type StatusReport struct {
 	Service       runtime.ServiceState `json:"service"`
 	Drift         []string             `json:"drift"`
 	Warnings      []string             `json:"warnings"`
+	Alerts        []schedule.Alert     `json:"alerts,omitempty"`
+	// AlertsUnreadable marks a read failure rather than an empty alert list, so
+	// a script can tell "nothing wrong" apart from "the alert store is broken".
+	AlertsUnreadable bool   `json:"alertsUnreadable,omitempty"`
+	AlertsError      string `json:"alertsError,omitempty"`
 }
 
 // ConfigStatus is the runtime config fingerprint comparison.
@@ -46,20 +52,35 @@ type ConfigStatus struct {
 
 // Status never writes and never contacts an update server.
 func (a *App) Status(ctx context.Context) (StatusReport, error) {
+	// Alerts are loaded first and attached to every return path so a failed
+	// renewal stays visible even when metadata or config cannot be read.
+	alerts, alertsErr := schedule.Alerts(a.Paths.Root)
+	withAlerts := func(r StatusReport) StatusReport {
+		r.Alerts = alerts
+		if alertsErr != nil {
+			r.AlertsUnreadable = true
+			r.AlertsError = alertsErr.Error()
+		}
+		return r
+	}
 	meta, _, err := store.LoadMetadata(a.Paths)
 	if err != nil {
-		return StatusReport{SchemaVersion: 1, Installed: false}, err
+		return withAlerts(StatusReport{SchemaVersion: 1, Installed: false}), err
 	}
 	path, err := a.runtimePath(meta)
 	if err != nil {
-		return StatusReport{SchemaVersion: 1, Installed: true}, err
+		return withAlerts(StatusReport{SchemaVersion: 1, Installed: true}), err
 	}
 	report := StatusReport{
 		SchemaVersion: 1, Installed: true, Engine: meta.ActiveEngine,
 		Role: meta.Role, TLS: meta.TLS, Transport: meta.Transport,
 		Config:  ConfigStatus{Path: path},
 		Service: runtime.InspectServices(ctx, a.Paths.Root),
-		Drift:   []string{}, Warnings: []string{},
+		Drift:   []string{}, Warnings: []string{}, Alerts: alerts,
+	}
+	if alertsErr != nil {
+		report.AlertsUnreadable = true
+		report.AlertsError = alertsErr.Error()
 	}
 	// Relay installations have no Xray runtime config; status must still work
 	// so the bridge can pre-validate a converted relay metadata.
@@ -69,7 +90,7 @@ func (a *App) Status(ctx context.Context) (StatusReport, error) {
 	}
 	view, err := store.LoadConfig(path)
 	if err != nil {
-		return StatusReport{SchemaVersion: 1, Installed: true}, err
+		return withAlerts(StatusReport{SchemaVersion: 1, Installed: true}), err
 	}
 	report.Config.SHA256 = view.SHA256
 	if meta.RuntimeSHA256 != view.SHA256 {
@@ -153,73 +174,60 @@ func (a *App) Inspect(override string) (store.ConfigView, error) {
 	return store.LoadRuntimeView(a.Paths, override)
 }
 
-// ChangePort performs the one isolated Phase 01 change.
-func (a *App) ChangePort(ctx context.Context, override string, inbound, port int, validatorPath, servicePath, fault string) (change.Entry, error) {
-	if err := a.Paths.RequireSandbox(); err != nil {
-		return change.Entry{}, &change.UsageError{Msg: err.Error()}
+// ChangePort changes one inbound port.
+//
+// Both a disposable sandbox and the real root are allowed, but the gate is
+// different: a sandbox still needs its marker, while the real root needs a Go
+// metadata record whose runtime fingerprint matches the current config. The
+// sandbox path is byte-for-byte the old behaviour.
+func (a *App) ChangePort(ctx context.Context, override string, inbound, port int, validatorPath, servicePath, fault string, containerAck bool) (change.Entry, error) {
+	if err := a.beginSystemChange(fault, containerAck); err != nil {
+		return change.Entry{}, err
+	}
+	if a.Paths.Root == "/" {
+		if err := a.requireManagerMetadata(); err != nil {
+			return change.Entry{}, err
+		}
 	}
 	path, err := store.ResolveRuntimePath(a.Paths, override)
 	if err != nil {
 		return change.Entry{}, err
 	}
-	// Refuse a stale baseline before staging anything. A missing metadata file
-	// is allowed for isolated samples; a mismatching SHA is never allowed.
-	meta, _, metaErr := store.LoadMetadata(a.Paths)
-	if metaErr == nil && meta.RuntimeSHA256 != "" {
-		snap, err := store.ReadRuntimeSnapshot(path)
-		if err != nil {
-			return change.Entry{}, err
-		}
-		if snap.SHA != meta.RuntimeSHA256 {
-			return change.Entry{}, &store.Error{Kind: store.KindDrift, Msg: "runtime config differs from metadata sha256"}
-		}
-	} else if metaErr != nil {
-		var se *store.Error
-		if !errors.As(metaErr, &se) || se.Kind != store.KindNotFound {
-			return change.Entry{}, metaErr
-		}
+	if err := a.requireChangeBaseline(path); err != nil {
+		return change.Entry{}, err
 	}
 	req := change.Request{
 		Target:    path,
 		Mutate:    func(raw []byte) ([]byte, error) { return change.SetInboundPort(raw, inbound, port) },
-		Validator: runtime.XrayValidator{Path: validatorPath},
+		Validator: runtime.XrayValidator{Path: validatorPath, AssetDir: a.Paths.GeodataDir()},
 		Service:   runtime.CommandService{Path: servicePath},
 		Journal:   change.Journal{Path: a.Paths.JournalFile()},
 		LockPath:  a.Paths.LockFile(),
 		Fault:     fault,
+		Finalize:  a.refreshRuntimeSHA,
 	}
 	entry, err := change.Apply(ctx, req)
-	if err != nil {
-		return entry, err
-	}
-	_ = a.refreshRuntimeSHA(entry.NewSHA256)
-	return entry, nil
+	return entry, err
 }
 
 // ChangeUser adds or removes one VLESS client through the same atomic
-// transaction as ChangePort. The metadata drift check is identical.
-func (a *App) ChangeUser(ctx context.Context, override string, inbound int, add bool, ident string, spec xraycfg.AddUserSpec, validatorPath, servicePath, fault string) (change.Entry, xraycfg.UserView, error) {
-	if err := a.Paths.RequireSandbox(); err != nil {
-		return change.Entry{}, xraycfg.UserView{}, &change.UsageError{Msg: err.Error()}
+// transaction as ChangePort. The gate and the metadata drift check are
+// identical.
+func (a *App) ChangeUser(ctx context.Context, override string, inbound int, add bool, ident string, spec xraycfg.AddUserSpec, validatorPath, servicePath, fault string, containerAck bool) (change.Entry, xraycfg.UserView, error) {
+	if err := a.beginSystemChange(fault, containerAck); err != nil {
+		return change.Entry{}, xraycfg.UserView{}, err
+	}
+	if a.Paths.Root == "/" {
+		if err := a.requireManagerMetadata(); err != nil {
+			return change.Entry{}, xraycfg.UserView{}, err
+		}
 	}
 	path, err := store.ResolveRuntimePath(a.Paths, override)
 	if err != nil {
 		return change.Entry{}, xraycfg.UserView{}, err
 	}
-	meta, _, metaErr := store.LoadMetadata(a.Paths)
-	if metaErr == nil && meta.RuntimeSHA256 != "" {
-		snap, err := store.ReadRuntimeSnapshot(path)
-		if err != nil {
-			return change.Entry{}, xraycfg.UserView{}, err
-		}
-		if snap.SHA != meta.RuntimeSHA256 {
-			return change.Entry{}, xraycfg.UserView{}, &store.Error{Kind: store.KindDrift, Msg: "runtime config differs from metadata sha256"}
-		}
-	} else if metaErr != nil {
-		var se *store.Error
-		if !errors.As(metaErr, &se) || se.Kind != store.KindNotFound {
-			return change.Entry{}, xraycfg.UserView{}, metaErr
-		}
+	if err := a.requireChangeBaseline(path); err != nil {
+		return change.Entry{}, xraycfg.UserView{}, err
 	}
 	var view xraycfg.UserView
 	mutate := func(raw []byte) ([]byte, error) {
@@ -241,35 +249,149 @@ func (a *App) ChangeUser(ctx context.Context, override string, inbound int, add 
 	req := change.Request{
 		Target:    path,
 		Mutate:    mutate,
-		Validator: runtime.XrayValidator{Path: validatorPath},
+		Validator: runtime.XrayValidator{Path: validatorPath, AssetDir: a.Paths.GeodataDir()},
 		Service:   runtime.CommandService{Path: servicePath},
 		Journal:   change.Journal{Path: a.Paths.JournalFile()},
 		LockPath:  a.Paths.LockFile(),
 		Fault:     fault,
+		// The committed config is now ours, so the ownership fingerprint must
+		// move with it. Otherwise the next transaction would see self-inflicted
+		// drift - and a fingerprint that cannot move must roll the config back.
+		Finalize: a.refreshRuntimeSHA,
 	}
 	entry, err := change.Apply(ctx, req)
 	if err != nil {
 		return entry, xraycfg.UserView{}, err
 	}
-	// The committed config is now ours, so the ownership fingerprint must move
-	// with it. Otherwise the next transaction would see self-inflicted drift.
-	_ = a.refreshRuntimeSHA(entry.NewSHA256)
 	return entry, view, nil
 }
 
+// ChangeUserUUID rotates one user's credential through the same atomic
+// transaction as ChangeUser. All matched inbounds are rewritten inside one
+// mutation, so a failure leaves every user on the old UUID.
+func (a *App) ChangeUserUUID(ctx context.Context, override, ident, newUUID string, onlyInbound int, restrictInbound bool, validatorPath, servicePath, fault string, containerAck bool) (change.Entry, xraycfg.UserUUIDChange, error) {
+	if err := a.beginSystemChange(fault, containerAck); err != nil {
+		return change.Entry{}, xraycfg.UserUUIDChange{}, err
+	}
+	if a.Paths.Root == "/" {
+		if err := a.requireManagerMetadata(); err != nil {
+			return change.Entry{}, xraycfg.UserUUIDChange{}, err
+		}
+	}
+	path, err := store.ResolveRuntimePath(a.Paths, override)
+	if err != nil {
+		return change.Entry{}, xraycfg.UserUUIDChange{}, err
+	}
+	if err := a.requireChangeBaseline(path); err != nil {
+		return change.Entry{}, xraycfg.UserUUIDChange{}, err
+	}
+	var view xraycfg.UserUUIDChange
+	req := change.Request{
+		Target: path,
+		Mutate: func(raw []byte) ([]byte, error) {
+			out, v, err := xraycfg.SetUserUUID(raw, ident, newUUID, onlyInbound, restrictInbound)
+			if err != nil {
+				return nil, err
+			}
+			view = v
+			return out, nil
+		},
+		Validator: runtime.XrayValidator{Path: validatorPath, AssetDir: a.Paths.GeodataDir()},
+		Service:   runtime.CommandService{Path: servicePath},
+		Journal:   change.Journal{Path: a.Paths.JournalFile()},
+		LockPath:  a.Paths.LockFile(),
+		Fault:     fault,
+		Finalize:  a.refreshRuntimeSHA,
+	}
+	entry, err := change.Apply(ctx, req)
+	if err != nil {
+		return entry, xraycfg.UserUUIDChange{}, err
+	}
+	return entry, view, nil
+}
+
+// beginSystemChange applies the write gate to every root. For a disposable
+// sandbox this is exactly the old marker check; for the real root it requires
+// the container acknowledgement on a container host and writes the audit line
+// before the transaction starts. Failure injection stays sandbox-only.
+func (a *App) beginSystemChange(fault string, containerAck bool) error {
+	if err := host.RequireSystemWrite(a.Paths.Root, containerAck); err != nil {
+		return &change.UsageError{Msg: err.Error()}
+	}
+	if fault != "" && a.Paths.Root == "/" {
+		return &change.UsageError{Msg: "failure injection (--fault) is only available in a marked sandbox"}
+	}
+	return nil
+}
+
+// requireManagerMetadata proves, before any path resolution, that the Go
+// manager owns this real root. It runs first so an uninstalled host gets an
+// ownership error instead of a confusing missing-directory error.
+func (a *App) requireManagerMetadata() error {
+	meta, _, err := store.LoadMetadata(a.Paths)
+	if err != nil {
+		var se *store.Error
+		if errors.As(err, &se) && se.Kind == store.KindNotFound {
+			return &store.Error{Kind: store.KindNotFound, Msg: "real-root changes require manager metadata"}
+		}
+		return err
+	}
+	if meta.RuntimeSHA256 == "" {
+		return &store.Error{Kind: store.KindUnsupported, Msg: "real-root changes require metadata with runtimeSha256"}
+	}
+	return nil
+}
+
+// requireChangeBaseline refuses a stale or unowned baseline. A disposable
+// sandbox may run without metadata (isolated samples); the real root may not:
+// only a metadata record with a matching runtime fingerprint proves that the
+// Go manager owns this config.
+func (a *App) requireChangeBaseline(path string) error {
+	realRoot := a.Paths.Root == "/"
+	meta, _, metaErr := store.LoadMetadata(a.Paths)
+	if metaErr != nil {
+		var se *store.Error
+		if !errors.As(metaErr, &se) || se.Kind != store.KindNotFound {
+			return metaErr
+		}
+		if realRoot {
+			return &store.Error{Kind: store.KindNotFound, Msg: "real-root changes require manager metadata"}
+		}
+		return nil
+	}
+	if meta.RuntimeSHA256 == "" {
+		if realRoot {
+			return &store.Error{Kind: store.KindUnsupported, Msg: "real-root changes require metadata with runtimeSha256"}
+		}
+		return nil
+	}
+	snap, err := store.ReadRuntimeSnapshot(path)
+	if err != nil {
+		return err
+	}
+	if snap.SHA != meta.RuntimeSHA256 {
+		return &store.Error{Kind: store.KindDrift, Msg: "runtime config differs from metadata sha256"}
+	}
+	return nil
+}
+
 // refreshRuntimeSHA updates only the metadata fingerprint after a successful
-// commit. It never creates metadata for isolated samples.
+// commit. It never creates metadata for isolated samples, but any failure on a
+// root that does own metadata is returned so the transaction rolls back.
 func (a *App) refreshRuntimeSHA(sha string) error {
 	if sha == "" {
 		return nil
 	}
 	p, err := a.Paths.Join(a.Paths.ManagerMetadata(), false)
 	if err != nil {
-		return nil
+		return err
 	}
 	fi, err := os.Stat(p)
 	if err != nil {
-		return nil
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
 	}
 	meta, _, err := store.LoadMetadata(a.Paths)
 	if err != nil {
@@ -289,7 +411,11 @@ func (a *App) refreshRuntimeSHA(sha string) error {
 	if err := os.WriteFile(tmp, b, fi.Mode().Perm()); err != nil {
 		return err
 	}
-	return os.Rename(tmp, p)
+	if err := os.Rename(tmp, p); err != nil {
+		_ = os.Remove(tmp)
+		return err
+	}
+	return nil
 }
 
 func (a *App) runtimePath(meta store.Metadata) (string, error) {

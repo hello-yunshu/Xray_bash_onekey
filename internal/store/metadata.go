@@ -23,15 +23,42 @@ var shaHex = regexp.MustCompile(`^[0-9a-f]{64}$`)
 // Metadata is the ownership record. It never stores UUIDs, private keys or
 // shortIds; those remain in the native runtime config.
 type Metadata struct {
-	SchemaVersion     int      `json:"schemaVersion"`
-	ActiveEngine      string   `json:"activeEngine"`
-	Role              string   `json:"role"`
-	TLS               string   `json:"tls"`
-	Transport         string   `json:"transport"`
-	RuntimeConfigPath string   `json:"runtimeConfigPath"`
-	RuntimeSHA256     string   `json:"runtimeSha256"`
-	OwnedResources    []string `json:"ownedResources"`
-	UpdatedAt         string   `json:"updatedAt"`
+	SchemaVersion     int              `json:"schemaVersion"`
+	ActiveEngine      string           `json:"activeEngine"`
+	Provenance        string           `json:"provenance,omitempty"`
+	Role              string           `json:"role"`
+	TLS               string           `json:"tls"`
+	Transport         string           `json:"transport"`
+	RuntimeConfigPath string           `json:"runtimeConfigPath"`
+	RuntimeSHA256     string           `json:"runtimeSha256"`
+	OwnedResources    []string         `json:"ownedResources"`
+	UpdatedAt         string           `json:"updatedAt"`
+	Install           *InstallSnapshot `json:"install,omitempty"`
+	// BalanceRole distinguishes a reality-balance primary (it owns the Nginx
+	// front) from reality-nginx, whose TLS label is also "Reality". It is
+	// omitted when unknown so metadata written before this field stays readable.
+	BalanceRole string `json:"balanceRole,omitempty"`
+	// ShareLinkOnly is link decoration, not server configuration: a Reality
+	// client may use any uTLS fingerprint or spiderX and the server behaves the
+	// same. The JSON name states the scope, and nothing here is written to the
+	// runtime config or requires a restart/reload.
+	ShareLinkOnly *ShareLinkPrefs `json:"shareLinkOnly,omitempty"`
+}
+
+// ShareLinkPrefs carries the share-link-only Reality decorations.
+type ShareLinkPrefs struct {
+	Fingerprint string `json:"fingerprint,omitempty"`
+	SpiderX     string `json:"spiderX,omitempty"`
+}
+
+// InstallSnapshot is the non-secret install fingerprint Bash keeps in
+// install_config.json: engine version, public entry port and the effective
+// Reality origin. Metadata written before this field existed simply lacks it.
+type InstallSnapshot struct {
+	EngineVersion string   `json:"engineVersion,omitempty"`
+	Port          int      `json:"port"`
+	Target        string   `json:"target,omitempty"`
+	ServerNames   []string `json:"serverNames,omitempty"`
 }
 
 // LoadMetadata reads and validates metadata without writing.
@@ -80,6 +107,9 @@ func LoadMetadata(paths host.Paths) (Metadata, string, error) {
 	}
 	if m.RuntimeSHA256 != "" && !shaHex.MatchString(m.RuntimeSHA256) {
 		return m, digest(b), New(KindCorrupt, "runtimeSha256 must be 64 lowercase hex characters", nil)
+	}
+	if m.Install != nil && (m.Install.Port < 1 || m.Install.Port > 65535) {
+		return m, digest(b), New(KindCorrupt, "install.port must be between 1 and 65535", nil)
 	}
 	return m, digest(b), nil
 }

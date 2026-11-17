@@ -1,17 +1,33 @@
-// Package i18n provides built-in Phase 01 messages. zh/en are complete;
-// fr/fa/ru/ko intentionally fall back to English until the Phase 02 catalogs
-// are generated from the existing i18n/languages resources.
+// Package i18n provides the built-in CLI messages. zh/en are complete; fr, fa,
+// ru and ko are declared for CLI compatibility with the Bash manager but have
+// no Go catalog yet, so they explicitly fall back to English instead of
+// silently pretending to be translated.
 package i18n
 
 import "fmt"
 
 var supported = map[string]bool{"zh": true, "en": true, "fr": true, "fa": true, "ru": true, "ko": true}
 
-// Supported reports whether lang is one of the six shipped languages.
+// complete marks languages with a full Go catalog.
+var complete = map[string]bool{"zh": true, "en": true}
+
+// Supported reports whether lang is one of the six accepted language codes.
 func Supported(lang string) bool { return supported[lang] }
 
+// Complete reports whether lang has a Go catalog of its own.
+func Complete(lang string) bool { return complete[lang] }
+
+// FallbackNotice explains the English fallback; it returns "" for a complete
+// or unknown language so callers can print it unconditionally.
+func FallbackNotice(lang string) string {
+	if !Supported(lang) || Complete(lang) {
+		return ""
+	}
+	return T("en", "lang_incomplete", lang)
+}
+
 var zh = map[string]string{
-	"help": `Idleleo Xray 管理器（Phase 01 候选）
+	"help": `Idleleo Xray 管理器（%s）
 用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
 
 命令:
@@ -20,21 +36,93 @@ var zh = map[string]string{
   show                 只读运行与分享信息
   config inspect       只读结构化配置视图
   change set-inbound-port --sandbox PATH --port N --validator PATH
-                       在一次性沙箱内修改入站端口（Phase 01 演示）
-  bridge audit|prepare|validate|activate|recover|status
-                       旧 Bash 安装的审计、预检、切换与恢复
-  schedule install|remove|run|status
-                       Go 原生定时任务（接管旧 cron 的更新/证书/GeoData/统计）
+                       在一次性沙箱或真实根上修改入站端口
+                       （真实根用 --sandbox / 并加 --service 与 --container）
+  change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+  xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+  xray share           为现有配置输出分享链接与 Clash 配置；--qr 额外打印终端二维码
+  xray relay           生成指向后端的 nginx 中转配置
+  xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                       默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                       Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                       --short-id-remove/--short-id-list）并轮换 privateKey；
+                       --fp/--spx 仅改分享链接，不改服务端配置、不重启
+  xray user list|add|remove
+                       列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+  xray user uuid --email E --new-uuid U [--inbound N]
+                       改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                       会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+  xray logs clean|rotate enable|disable
+                       截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+  xray balance list --upstream reality|ws|grpc|xhttp
+                       只读列出 Nginx 后端（host/port/weight/file）
+  xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                       新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+  xray balance remove --upstream NAME --host HOST[:PORT]
+                       删除一后端文件；拒绝删除最后一个后端
+  xray tls --version 1.3|1.2+
+                       切换托管 Nginx 的 TLS 版本；nginx -t 失败自动还原
+                       TLS 站只允许 1.3（h3/quic 要求）
+  xray block status    只读查看阻断开关、已写规则数与 drift
+  xray block apply|off [--yes] [--dry-run]
+                       按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                       geo 检查与 xray -test，重启后探测失败自动回滚
+  xray block ads|private-ip|bittorrent enable|disable
+                       开关内置三类；只改状态文件，apply 后生效
+  xray block country add|remove|list [cc ...]
+                       增删国家码（两位字母，逗号分隔可一次多个）
+  xray block custom add|remove|enable|disable|list --kind domain|ip
+                       [--value V] 自定义域名/IP 列表，单条增删，独立启停
+  fail2ban status      只读查看各 jail 与当前封禁数
+  fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+  fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+  fail2ban banned [--jail NAME]
+                       查看封禁列表
+  fail2ban unban --jail NAME --ip ADDR
+                       解封单个 IP（先校验它确实在封禁列表中）
+  fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                       增删可信 IP（运行态 + 校验后持久化）
+  fail2ban jail enable|disable --name NAME
+                       开关某个由 Idleleo 托管的 jail
+  xray install --binary PATH
+                       用本地二进制安装 Xray 并接管根目录
+  xray uninstall|recover
+                       卸载托管文件 / 收敛未完成的安装
+  xray cert issue|renew
+                       ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+  bridge audit|prepare|validate|activate|deactivate|recover|status
+                       旧 Bash 安装的审计、预检、切换、回退与恢复
+  metadata import|export [--from install_config.json] [--out FILE]
+                       从旧配置派生唯一元数据 / 导出并校验运行时摘要
+  schedule install|remove|run|status|alert
+                       Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
   update status|check|apply|configure --manifest-url URL
                        Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
   stats [--json]       只读查询 Xray 统计（reset=false）
   service status|start|stop|restart|reload|logs [--unit xray|nginx]
                        服务类操作（仅真实 systemd）
+  container status|up|down [--json] [--container] [--dry-run]
+                       容器内直启 xray/nginx（无 systemd 时用 pid 管理）
+  update xray|nginx --manifest <path|URL> [--json] [--container] [--no-restart]
+                       清单驱动组件升级（sha256/降级/备份/健康/回滚）
+  net dns --domain NAME [--policy auto|ipv4|ipv6] [--resolver host:port]
+                       按 family 校验域名 A/AAAA 与本机公网地址
+  net firewall status|apply|revert [--tcp 443,8443] [--udp 443]
+                       [--family auto|ipv4|ipv6|dual|manual] [--dry-run]
+                       受管 netfilter 端口事务（差分/回滚/持久化）
+  tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                       Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+  speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                       下行测速（本机实现，不下载执行第三方脚本）
   rill status          只读 Rill 交接状态
+  recover              收敛未完成的 xray install
   help                 显示本帮助
+
+语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
 `,
 	"version":          "idleleo %s (go)\n",
 	"usage":            "命令或参数无效\n",
+	"lang_incomplete":  "提示：%s 词条尚未完成，本次输出已回退英文（--lang en 可关闭该提示）\n",
 	"not_installed":    "未安装：缺少 manager metadata；只读命令不会创建任何文件\n",
 	"corrupt":          "配置损坏：%s\n",
 	"schema_high":      "metadata schema 过新：%s\n",
@@ -46,14 +134,14 @@ var zh = map[string]string{
 	"service_failed":   "服务应用失败（退出码 %d），已回滚：%s\n",
 	"recovery":         "回滚失败，需要人工恢复：%s\n",
 	"io_error":         "文件操作失败：%s\n",
-	"not_implemented":  "该功能在 Phase 01 尚未实现（退出码 11）\n",
-	"sandbox_required": "Phase 01 变更只允许有标记的一次性沙箱\n",
+	"not_implemented":  "该功能尚未实现（退出码 11）\n",
+	"sandbox_required": "变更只允许有标记的一次性沙箱\n",
 	"root_required":    "该命令需要 root\n",
 	"no_tty":           "无 TTY：不进入交互菜单\n",
 }
 
 var en = map[string]string{
-	"help": `Idleleo Xray manager (Phase 01 candidate)
+	"help": `Idleleo Xray manager %s
 Usage: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <command>
 
 Commands:
@@ -62,21 +150,97 @@ Commands:
   show                 read-only runtime and share information
   config inspect       read-only structured config view
   change set-inbound-port --sandbox PATH --port N --validator PATH
-                       change one inbound port inside a disposable sandbox
-  bridge audit|prepare|validate|activate|recover|status
-                       audit, pre-flight, switch and recovery for legacy Bash installs
-  schedule install|remove|run|status
-                       native Go jobs (takeover of the legacy update/cert/GeoData/stats cron)
+                       change one inbound port in a sandbox or on the real root
+                       (real root: --sandbox / plus --service and --container)
+  change recover       converge a change interrupted by a hard kill
+  xray generate        generate a runtime config (reality/tls/ws/grpc/xhttp, relay, balance)
+  xray share           print share URI and Clash YAML for an existing config; --qr adds a terminal QR code
+  xray relay           generate the nginx relay conf for one backend
+  xray config edit     patch ports/transport/paths in place; TLS sites accept
+                       --domain/--cert/--cert-key, probe the new SNI locally unless
+                       --no-probe is given, and never re-issue a certificate
+                       Reality accepts shortId add/auto/remove/list and a
+                       privateKey rotation; --fp/--spx only change the share
+                       link (no server config, no restart)
+  xray user list|add|remove
+                       list users, or add/remove one (add/remove need a sandbox or the real-root gate)
+  xray user uuid --email E --new-uuid U [--inbound N]
+                       rotate one user's UUID; every inbound that carries it is
+                       rewritten in one transaction; restarts Xray, so all
+                       sessions drop for a few seconds; --dry-run previews only
+  xray logs clean|rotate enable|disable
+                       truncate Xray/Nginx logs; install or remove logrotate rotation
+  xray balance list --upstream reality|ws|grpc|xhttp
+                       read-only Nginx backend list (host/port/weight/file)
+  xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                       write one backend file; roll back if nginx -t fails; no probe by default
+  xray balance remove --upstream NAME --host HOST[:PORT]
+                       delete one backend file; refuses to remove the last backend
+  xray tls --version 1.3|1.2+
+                       switch the managed Nginx TLS version; modular installs
+                       accept both, TLS installs only 1.3 (h3/quic)
+  xray block status    read-only view of switches, owned rule count and drift
+  xray block apply|off [--yes] [--dry-run]
+                       rebuild/remove Xray routing-layer block rules; apply
+                       checks GeoData, runs xray -test and rolls back when the
+                       post-restart control probe fails
+  xray block ads|private-ip|bittorrent enable|disable
+                       toggle a built-in type; takes effect on block apply
+  xray block country add|remove|list [cc ...]
+                       add/remove two-letter country codes
+  xray block custom add|remove|enable|disable|list --kind domain|ip
+                       [--value V] custom domain/IP lists, one item per call,
+                       enabled independently from the built-in types
+  fail2ban status      read-only jail list with current ban counts
+  fail2ban install     write the five sshd/nginx jails (never installs the package)
+  fail2ban uninstall   remove only the files Idleleo recorded in its manifest
+  fail2ban banned [--jail NAME]
+                       list banned IPs
+  fail2ban unban --jail NAME --ip ADDR
+                       unban one IP (verified against the live ban list)
+  fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                       add/remove a trusted IP (runtime + validated persistence)
+  fail2ban jail enable|disable --name NAME
+                       toggle one Idleleo-managed jail
+  xray install --binary PATH
+                       install Xray from a local binary and take over the root
+  xray uninstall|recover
+                       remove managed files / converge a half-finished install
+  xray cert issue|renew
+                       ACME v2 issuance and renewal (defaults to LE staging; production needs --production or IDLELEO_ACME_DIRECTORY)
+  bridge audit|prepare|validate|activate|deactivate|recover|status
+                       audit, pre-flight, switch, hand-back and recovery for legacy Bash installs
+  metadata import|export [--from install_config.json] [--out FILE]
+                       derive the single metadata record / export with runtime digest check
+  schedule install|remove|run|status|alert
+                       native Go jobs (auto-renew inside 30 days; alert backs OnFailure)
   update status|check|apply|configure --manifest-url URL
                        Go release channel self-update (manifest/SHA256/ELF/health checks)
   stats [--json]       read-only Xray stats query (reset=false)
   service status|start|stop|restart|reload|logs [--unit xray|nginx]
                        service-class operations (real systemd only)
+  container status|up|down [--json] [--container] [--dry-run]
+                       start xray/nginx directly inside a container (pid-managed, no systemd)
+  update xray|nginx --manifest <path|URL> [--json] [--container] [--no-restart]
+                       manifest-driven component upgrade (sha256/downgrade/backup/health/rollback)
+  net dns --domain NAME [--policy auto|ipv4|ipv6] [--resolver host:port]
+                       per-family validation of the domain A/AAAA records against this server
+  net firewall status|apply|revert [--tcp 443,8443] [--udp 443]
+                       [--family auto|ipv4|ipv6|dual|manual] [--dry-run]
+                       managed netfilter port transaction (diff/rollback/persist)
+  tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                       native TCP profile (only /etc/sysctl.d/90-idleleo-tcp.conf)
+  speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                       downstream throughput (local, no third-party script)
   rill status          read-only Rill handover state
+  recover              converge a half-finished xray install
   help                 show this help
+
+Languages: zh and en are complete; fr, fa, ru and ko fall back to English for now.
 `,
 	"version":          "idleleo %s (go)\n",
 	"usage":            "invalid command or arguments\n",
+	"lang_incomplete":  "note: %s messages are not translated yet, falling back to English (use --lang en to silence this)\n",
 	"not_installed":    "not installed: manager metadata is missing; read-only commands create nothing\n",
 	"corrupt":          "corrupt state: %s\n",
 	"schema_high":      "metadata schema is too new: %s\n",
@@ -88,8 +252,8 @@ Commands:
 	"service_failed":   "service apply failed (exit %d), rolled back: %s\n",
 	"recovery":         "rollback failed; manual recovery required: %s\n",
 	"io_error":         "file operation failed: %s\n",
-	"not_implemented":  "not implemented in Phase 01 (exit 11)\n",
-	"sandbox_required": "Phase 01 mutations require a marked disposable sandbox\n",
+	"not_implemented":  "not implemented yet (exit 11)\n",
+	"sandbox_required": "mutations require a marked disposable sandbox\n",
 	"root_required":    "this command requires root\n",
 	"no_tty":           "no TTY: interactive menu not entered\n",
 }

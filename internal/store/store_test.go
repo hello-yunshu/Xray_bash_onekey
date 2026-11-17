@@ -67,6 +67,21 @@ func TestLoadMetadataErrors(t *testing.T) {
 	if _, _, err := LoadMetadata(paths); err != nil {
 		t.Fatalf("valid metadata: %v", err)
 	}
+
+	write(t, tmp, paths.ManagerMetadata(), `{"schemaVersion":1,"activeEngine":"xray","role":"node","tls":"Reality","install":{"engineVersion":"26.10.31","port":8443,"target":"www.example.org:443","serverNames":["www.example.org"]}}`)
+	meta, _, err := LoadMetadata(paths)
+	if err != nil {
+		t.Fatalf("install snapshot: %v", err)
+	}
+	if meta.Install == nil || meta.Install.Port != 8443 || meta.Install.EngineVersion != "26.10.31" ||
+		meta.Install.Target != "www.example.org:443" || len(meta.Install.ServerNames) != 1 {
+		t.Fatalf("install snapshot not decoded: %+v", meta.Install)
+	}
+
+	write(t, tmp, paths.ManagerMetadata(), `{"schemaVersion":1,"activeEngine":"xray","role":"node","tls":"Reality","install":{"port":0}}`)
+	if _, _, err := LoadMetadata(paths); err == nil || ExitCode(err) != 4 {
+		t.Fatalf("install port 0 accepted: %v", err)
+	}
 }
 
 func TestLoadConfigPreservesCustomSections(t *testing.T) {

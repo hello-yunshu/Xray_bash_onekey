@@ -38,6 +38,11 @@ type Request struct {
 	LockPath  string
 	Fault     string
 	ID        string
+	// Finalize runs after the service accepted the committed config but before
+	// the transaction is recorded COMMITTED. A failure, such as an ownership
+	// fingerprint that cannot be written, takes the rollback path so the old
+	// config is restored instead of leaving a commit whose metadata is stale.
+	Finalize func(newSHA256 string) error
 }
 
 // UsageError is a malformed request (exit 2).
@@ -68,7 +73,7 @@ func Apply(ctx context.Context, req Request) (Entry, error) {
 	if req.Target == "" || req.Mutate == nil || req.Validator.Path == "" {
 		return Entry{}, &UsageError{Msg: "target, mutator and validator are required"}
 	}
-	entry := Entry{ID: req.ID, State: StatePrepared, Target: req.Target, StartedAt: now()}
+	entry := Entry{ID: req.ID, State: StatePrepared, Target: req.Target, ServicePath: req.Service.Path, StartedAt: now()}
 	if entry.ID == "" {
 		entry.ID = fmt.Sprintf("%d-%d", time.Now().UnixNano(), os.Getpid())
 	}
@@ -85,6 +90,16 @@ func Apply(ctx context.Context, req Request) (Entry, error) {
 		return entry, &IOError{Msg: "acquire lock: " + err.Error()}
 	}
 	defer lock.Release()
+
+	// A hard kill leaves PREPARED behind. Converge it before reading the
+	// baseline, otherwise the new transaction would adopt a half-applied file
+	// as if it were the previous known-good state.
+	if _, recErr := recoverLocked(ctx, req.Journal); recErr != nil {
+		entry.State = StateFailed
+		entry.Reason = "recovery of the previous transaction failed: " + recErr.Error()
+		entry.UpdatedAt = now()
+		return entry, &RecoveryError{Msg: entry.Reason}
+	}
 
 	before, err := store.ReadRuntimeSnapshot(req.Target)
 	if err != nil {
@@ -174,7 +189,8 @@ func Apply(ctx context.Context, req Request) (Entry, error) {
 	syncDir(filepath.Dir(req.Target))
 
 	if req.Fault == FaultServiceFailure {
-		return rollback(req, entry, before, rollbackPath, 1, "injected service failure")
+		return rollback(req, entry, before, rollbackPath, 1, "injected service failure",
+			&runtime.ServiceError{ExitCode: 1, Output: "injected service failure"})
 	}
 	if err := req.Service.Apply(ctx); err != nil {
 		var se *runtime.ServiceError
@@ -182,7 +198,17 @@ func Apply(ctx context.Context, req Request) (Entry, error) {
 		if errors.As(err, &se) {
 			code = se.ExitCode
 		}
-		return rollback(req, entry, before, rollbackPath, code, err.Error())
+		return rollback(req, entry, before, rollbackPath, code, err.Error(), err)
+	}
+	// The committed file is live but the transaction is not closed yet: a
+	// finalize failure must restore the previous config rather than record a
+	// commit that disagrees with the ownership metadata.
+	if req.Finalize != nil {
+		if err := req.Finalize(entry.NewSHA256); err != nil {
+			reason := "post-commit finalize failed: " + err.Error()
+			return rollback(req, entry, before, rollbackPath, 0, reason,
+				&IOError{Msg: reason})
+		}
 	}
 
 	_ = os.Remove(rollbackPath)
@@ -203,7 +229,7 @@ func reject(req Request, entry Entry, code int, reason string) (Entry, error) {
 	return entry, &runtime.ValidationError{ExitCode: code, Output: reason}
 }
 
-func rollback(req Request, entry Entry, before store.RuntimeSnapshot, rollbackPath string, code int, reason string) (Entry, error) {
+func rollback(req Request, entry Entry, before store.RuntimeSnapshot, rollbackPath string, code int, reason string, cause error) (Entry, error) {
 	entry.ServiceExit = code
 	entry.Reason = reason
 	if err := writeAtomic(req.Target, before.Raw, before.Mode, before.UID, before.GID); err != nil {
@@ -218,7 +244,7 @@ func rollback(req Request, entry Entry, before store.RuntimeSnapshot, rollbackPa
 	entry.State = StateRolledBack
 	entry.UpdatedAt = now()
 	_ = req.Journal.Record(entry)
-	return entry, &runtime.ServiceError{ExitCode: code, Output: reason}
+	return entry, cause
 }
 
 func stageCandidate(target string, data []byte, before store.RuntimeSnapshot) (string, error) {

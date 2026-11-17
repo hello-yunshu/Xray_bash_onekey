@@ -34,6 +34,9 @@ func (e *ServiceError) Error() string {
 // XrayValidator invokes the real Xray binary with shell-free arguments.
 type XrayValidator struct {
 	Path string
+	// AssetDir is XRAY_LOCATION_ASSET so a candidate that references geoip:/
+	// geosite: rules validates instead of failing on a missing asset dir.
+	AssetDir string
 }
 
 // Validate runs `xray -test -config <candidate>`.
@@ -41,7 +44,11 @@ func (v XrayValidator) Validate(ctx context.Context, candidate string) error {
 	if v.Path == "" {
 		return &ValidationError{ExitCode: -1, Output: "validator path is required"}
 	}
-	res, err := host.Run(ctx, host.ExecSpec{Path: v.Path, Args: []string{"-test", "-config", candidate}})
+	spec := host.ExecSpec{Path: v.Path, Args: []string{"-test", "-config", candidate}}
+	if v.AssetDir != "" {
+		spec.Env = []string{"XRAY_LOCATION_ASSET=" + v.AssetDir}
+	}
+	res, err := host.Run(ctx, spec)
 	if err != nil {
 		return &ValidationError{ExitCode: -1, Output: err.Error()}
 	}
