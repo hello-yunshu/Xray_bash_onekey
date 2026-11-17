@@ -1,0 +1,64 @@
+#!/usr/bin/expect -f
+# Drives the REAL interactive Fail2ban menu (bash install.sh -f) for OPS-19.
+#
+# Flow under test: main menu -> 1 (install) -> (optional Nginx front prompts)
+# -> main menu -> 5 (exit). Bash skips the package install because the image
+# already ships fail2ban, but the whole configure path runs for real.
+#
+# Contract:
+#   * every answer is sent only after its own prompt has been matched; there
+#     are no blind carriage returns;
+#   * any unmatched prompt, EOF before a prompt or timeout exits 124 and is
+#     reported as HARNESS-ERROR, never as a business result;
+#   * a reported business failure (Fail2ban 配置/安装 失败) exits 1.
+#
+# Environment:
+#   E2E_LOG      transcript path (append)
+#   E2E_TIMEOUT  expect timeout seconds (default 600)
+
+set timeout [expr {[info exists env(E2E_TIMEOUT)] ? $env(E2E_TIMEOUT) : 600}]
+
+set logf $env(E2E_LOG)
+log_file -a $logf
+
+proc harness_error {msg} {
+    puts "HARNESS-ERROR: $msg"
+    exit 124
+}
+
+proc answered {label answer} {
+    puts "STEP\[$label\]=$answer"
+}
+
+puts "SCENARIO=OPS-19 ENTRY=-f"
+spawn bash /etc/idleleo/install.sh -f
+
+# mf_check_for_updates may offer a script update before the menu; decline it.
+# The menu prompt itself is "请选择一个选项:".
+expect {
+    -re {是否下载并安装新版本} { send "n\r"; answered f2bSelfUpdate n; exp_continue }
+    -re {请选择一个选项} { send "1\r"; answered f2bMenu 1 }
+    eof { harness_error "eof before fail2ban menu" }
+    timeout { harness_error "timeout waiting fail2ban menu" }
+}
+
+# Ask only for the two optional Nginx jails; anything else waits for the menu.
+# "已启用 ..." lines must not re-match, hence 是否启用 is part of every pattern.
+expect {
+    -re {是否启用.*nginx-no-host} { send "y\r"; answered f2bNoHost y; exp_continue }
+    -re {是否启用.*nginx-tls-error} { send "y\r"; answered f2bTLSError y; exp_continue }
+    -re {Fail2ban.*失败} { puts "INSTALL_FAILED"; exit 1 }
+    -re {请选择一个选项} { send "5\r"; answered f2bExit 5 }
+    eof { harness_error "eof before fail2ban install finished" }
+    timeout { harness_error "timeout waiting fail2ban install prompts" }
+}
+
+# The -f entry returns from the menu and the script ends; nothing else runs.
+expect {
+    eof {
+        set rc [wait]
+        puts "EXPECT_WAIT_STATUS=$rc"
+        exit [lindex $rc 3]
+    }
+    timeout { harness_error "install.sh did not exit after fail2ban menu" }
+}

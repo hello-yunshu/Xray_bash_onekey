@@ -1,0 +1,119 @@
+#!/usr/bin/expect -f
+# Drives the REAL bash Nginx load-balancer menu (2>3>1 -> file_manager.sh) for
+# OPS-09 (wsServers) and OPS-31 (realityServers).
+#
+# Flow under test: main menu -> 2 (配置变更) -> 3 (Nginx 配置) -> 1 (负载均衡)
+# -> confirm "是否变更 Nginx 负载均衡" -> [TLS only: 1 (ws)] -> file_manager:
+#   add:    2 创建 -> host/port/weight/防火墙(N) -> 1 列出 -> 5 退出
+#   remove: 4 删除 -> 编号 -> 5 退出
+# -> 0 (Nginx 配置) -> 0 (配置变更) -> 0 (主菜单, exit 0).
+#
+# Contract:
+#   * every answer is sent only after its own prompt has been matched; there
+#     are no blind carriage returns;
+#   * any unmatched prompt, EOF before a prompt or timeout exits 124 and is
+#     reported as HARNESS-ERROR, never as a business result.
+#
+# Environment:
+#   E2E_LOG           transcript path (append)
+#   E2E_PHASE         add | remove
+#   E2E_UPSTREAM      ws | reality (selects the protocol prompt)
+#   E2E_BACKEND_HOST  backend host written by file_manager.sh
+#   E2E_BACKEND_PORT  backend port
+#   E2E_BACKEND_WEIGHT backend weight (default 60)
+#   E2E_BACKEND_INDEX file number for the remove phase (1-based)
+#   E2E_TIMEOUT       expect timeout seconds (default 300)
+
+set timeout [expr {[info exists env(E2E_TIMEOUT)] ? $env(E2E_TIMEOUT) : 300}]
+
+set logf $env(E2E_LOG)
+log_file -a $logf
+
+set phase $env(E2E_PHASE)
+set upstream [expr {[info exists env(E2E_UPSTREAM)] ? $env(E2E_UPSTREAM) : "ws"}]
+set host $env(E2E_BACKEND_HOST)
+set port $env(E2E_BACKEND_PORT)
+set weight [expr {[info exists env(E2E_BACKEND_WEIGHT)] ? $env(E2E_BACKEND_WEIGHT) : "60"}]
+set index [expr {[info exists env(E2E_BACKEND_INDEX)] ? $env(E2E_BACKEND_INDEX) : "1"}]
+
+proc harness_error {msg} {
+    puts "HARNESS-ERROR: $msg"
+    exit 124
+}
+
+proc answer {pattern value label} {
+    expect {
+        -re $pattern {
+            send "$value\r"
+            puts "STEP\[$label\]=$value"
+        }
+        eof { harness_error "$label: eof before prompt '$pattern'" }
+        timeout { harness_error "$label: timeout waiting prompt '$pattern'" }
+    }
+}
+
+puts "SCENARIO=OPS-BALANCE PHASE=$phase UPSTREAM=$upstream HOST=$host PORT=$port"
+spawn bash /etc/idleleo/install.sh
+
+# The menu may offer a script update first; decline it. The main menu prompt is
+# "请输入选项", the file_manager prompt is the distinct "请选择一个选项".
+expect {
+    -re {是否下载并安装新版本} { send "n\r"; puts "STEP\[selfUpdate\]=n"; exp_continue }
+    -re {请输入选项} { send "2\r"; puts "STEP\[mainMenu\]=2" }
+    eof { harness_error "eof before main menu" }
+    timeout { harness_error "timeout waiting main menu" }
+}
+
+answer {请输入选项} 3 configMenu
+answer {请输入选项} 1 nginxMenu
+answer {是否变更.*负载均衡} y balanceConfirm
+if {$upstream eq "ws"} {
+    answer {请输入[:：]} 1 transport
+}
+
+if {$phase eq "add"} {
+    expect {
+        -re {是否下载并安装新版本} { send "n\r"; puts "STEP\[fmSelfUpdate\]=n"; exp_continue }
+        -re {请选择一个选项} { send "2\r"; puts "STEP\[fmMenu\]=2" }
+        eof { harness_error "eof before file_manager menu" }
+        timeout { harness_error "timeout waiting file_manager menu" }
+    }
+    answer {请输入主机} $host fmHost
+    answer {请输入端口} $port fmPort
+    answer {请输入权重} $weight fmWeight
+    answer {是否需要设置防火墙} n fmFirewall
+    answer {请选择一个选项} 1 fmList
+    answer {请选择一个选项} 5 fmExit
+} elseif {$phase eq "remove"} {
+    expect {
+        -re {是否下载并安装新版本} { send "n\r"; puts "STEP\[fmSelfUpdate\]=n"; exp_continue }
+        -re {请选择一个选项} { send "4\r"; puts "STEP\[fmMenu\]=4" }
+        eof { harness_error "eof before file_manager menu" }
+        timeout { harness_error "timeout waiting file_manager menu" }
+    }
+    answer {请输入要删除的文件编号} $index fmDeleteIndex
+    answer {请选择一个选项} 5 fmExit
+} else {
+    harness_error "unknown E2E_PHASE '$phase'"
+}
+
+# install.sh runs menu_pause() (回到菜单 [Enter]) after the 负载均衡 action.
+answer {回到菜单} "" menuPause
+
+# Return through the nested menus: Nginx 配置 -> 配置变更 -> 主菜单 -> exit.
+answer {请输入选项} 0 nginxMenuExit
+answer {请输入选项} 0 configMenuExit
+expect {
+    -re {请输入选项} { send "0\r"; puts "STEP\[mainMenuExit\]=0" }
+    eof { harness_error "eof before main menu exit prompt" }
+    timeout { harness_error "timeout before main menu exit prompt" }
+}
+
+expect {
+    eof {
+        set rc [wait]
+        puts "EXPECT_WAIT_STATUS=$rc"
+        exit [lindex $rc 3]
+    }
+    timeout { harness_error "install.sh did not exit after menu 0" }
+}

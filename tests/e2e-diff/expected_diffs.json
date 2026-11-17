@@ -1,0 +1,583 @@
+{
+  "schemaVersion": 2,
+  "policy": {
+    "approval": "按类审批：一条 ED 代表一类差异，审批单位是类，不是单条路径。",
+    "match": "精确路径集合：paths 逐条精确匹配，目录不再作为前缀吸收新增文件。",
+    "scopes": "显式场景列表：scenarios 只覆盖已签场景；新增场景必须重新登记。",
+    "new_path": "未在 paths 中列举的路径一律 BLOCKER，必须新开 ED。",
+    "new_scenario": "未在 scenarios 中列举的场景一律 BLOCKER，必须新开 ED。",
+    "approval_kind": "流程批准（release-gate），当前无第二维护者账号；不是双人批准。",
+    "review": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native"
+  },
+  "entries": [
+    {
+      "id": "ED-C01",
+      "title": "辅助脚本目录",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/scripts",
+        "/etc/idleleo/scripts/auto_update.sh",
+        "/etc/idleleo/scripts/fail2ban_manager.sh",
+        "/etc/idleleo/scripts/file_manager.sh",
+        "/etc/idleleo/scripts/geo_update.sh",
+        "/etc/idleleo/scripts/ssl_update.sh",
+        "/etc/idleleo/scripts/traffic_blocker.sh",
+        "/etc/idleleo/scripts/xray_stats.sh"
+      ],
+      "decision": "register",
+      "reason": "Go 用 systemd timer 覆盖 auto-update/cert-renew/geodata-refresh/stats-collect，不需要落地脚本文件。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-006",
+        "ED-020",
+        "ED-033",
+        "ED-047",
+        "ED-059",
+        "ED-071",
+        "ED-083",
+        "ED-095",
+        "ED-108"
+      ]
+    },
+    {
+      "id": "ED-C02",
+      "title": "分享信息缓存",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/info",
+        "/etc/idleleo/info/xray_info.inf",
+        "/etc/idleleo/info/xray_info_clash.yaml"
+      ],
+      "decision": "register",
+      "reason": "Go 由 CLI 现算分享链接，落缓存反而可能读到过期值。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-007",
+        "ED-021",
+        "ED-034",
+        "ED-048",
+        "ED-060",
+        "ED-072",
+        "ED-084",
+        "ED-096",
+        "ED-109"
+      ]
+    },
+    {
+      "id": "ED-C03",
+      "title": "gettext 语言包",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/languages"
+      ],
+      "decision": "register",
+      "reason": "Go 内建 i18n，无外部 mo 文件依赖。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-008",
+        "ED-022",
+        "ED-035",
+        "ED-049",
+        "ED-061",
+        "ED-073",
+        "ED-085",
+        "ED-097",
+        "ED-110"
+      ]
+    },
+    {
+      "id": "ED-C04",
+      "title": "安装日志目录",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/logs",
+        "/etc/idleleo/logs/install.log"
+      ],
+      "decision": "register",
+      "reason": "Go 走 journald/stdout，安装日志不落 /etc/idleleo。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-009",
+        "ED-023",
+        "ED-036",
+        "ED-050",
+        "ED-062",
+        "ED-074",
+        "ED-086",
+        "ED-098",
+        "ED-111"
+      ]
+    },
+    {
+      "id": "ED-C05",
+      "title": "安装临时目录",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/tmp",
+        "/etc/idleleo/tmp/shell_version.tmp"
+      ],
+      "decision": "register",
+      "reason": "Go 用系统临时目录并清理，不长期驻留临时文件。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-010",
+        "ED-024",
+        "ED-037",
+        "ED-051",
+        "ED-063",
+        "ED-075",
+        "ED-087",
+        "ED-099",
+        "ED-112"
+      ]
+    },
+    {
+      "id": "ED-C06",
+      "title": "统计/地理数据目录",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/share",
+        "/etc/idleleo/share/xray"
+      ],
+      "decision": "register",
+      "reason": "Go 的 geodata 落在 share/xray 且按需创建；差异是「安装期预建 vs 首次任务创建」的时序差。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-011",
+        "ED-025",
+        "ED-038",
+        "ED-052",
+        "ED-064",
+        "ED-076",
+        "ED-088",
+        "ED-100"
+      ]
+    },
+    {
+      "id": "ED-C07",
+      "title": "证书目录",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/cert"
+      ],
+      "decision": "register",
+      "reason": "Reality/none 不需要证书；bash 预建空目录是无用副作用，Go 不建更干净。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-012",
+        "ED-026",
+        "ED-039",
+        "ED-101"
+      ]
+    },
+    {
+      "id": "ED-C08",
+      "title": "conf 布局",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/conf/install_config.json",
+        "/etc/idleleo/conf/nginx"
+      ],
+      "decision": "register",
+      "reason": "安装参数由 v1/metadata.json 承担（C4 起含 engineVersion/port/target/serverNames 快照），conf/nginx 空目录无内容。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-013",
+        "ED-019",
+        "ED-027",
+        "ED-040",
+        "ED-046",
+        "ED-053",
+        "ED-065",
+        "ED-077",
+        "ED-089",
+        "ED-102",
+        "ED-113"
+      ]
+    },
+    {
+      "id": "ED-C09",
+      "title": "自安装副本",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/install.sh"
+      ],
+      "decision": "register",
+      "reason": "Go 是单二进制，无需自拷贝。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-014",
+        "ED-028",
+        "ED-041",
+        "ED-054",
+        "ED-066",
+        "ED-078",
+        "ED-090",
+        "ED-103",
+        "ED-114"
+      ]
+    },
+    {
+      "id": "ED-C10",
+      "title": "组件版本清单",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/versions.json"
+      ],
+      "decision": "register",
+      "reason": "版本可现查 xray version / nginx -v；离线清单缺失由第二梯队 C4 补。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-015",
+        "ED-029",
+        "ED-042",
+        "ED-055",
+        "ED-067",
+        "ED-079",
+        "ED-091",
+        "ED-104",
+        "ED-115"
+      ]
+    },
+    {
+      "id": "ED-C11",
+      "title": "托管版本标记",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/release-managed.version"
+      ],
+      "decision": "register",
+      "reason": "Go 用 metadata 的 schemaVersion/owner 表达托管关系，语义等价。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-016",
+        "ED-030",
+        "ED-043",
+        "ED-056",
+        "ED-068",
+        "ED-080",
+        "ED-092",
+        "ED-105",
+        "ED-116"
+      ]
+    },
+    {
+      "id": "ED-C12",
+      "title": "root crontab",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/var/spool/cron/crontabs/root"
+      ],
+      "decision": "register",
+      "reason": "systemd timer 功能等价且可观测；仅 Go 与 bash 混装时才会丢调度，不属于支持场景。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-017",
+        "ED-031",
+        "ED-044",
+        "ED-057",
+        "ED-069",
+        "ED-081",
+        "ED-093",
+        "ED-106",
+        "ED-117"
+      ]
+    },
+    {
+      "id": "ED-C13",
+      "title": "Go 元数据目录",
+      "layer": "L1",
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M9",
+        "M10"
+      ],
+      "paths": [
+        "/etc/idleleo/v1",
+        "/etc/idleleo/v1/metadata.json",
+        "/etc/idleleo/v1/nginx.json"
+      ],
+      "decision": "register",
+      "reason": "反向差异：Go 自有状态目录，bash 无对应物。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "supersedes": [
+        "ED-018",
+        "ED-032",
+        "ED-045",
+        "ED-058",
+        "ED-070",
+        "ED-082",
+        "ED-094",
+        "ED-107",
+        "ED-118"
+      ]
+    },
+    {
+      "id": "ED-C14",
+      "title": "M8 ACME 场景布局差异（13 类并集）",
+      "layer": "L1",
+      "scenarios": [
+        "M8"
+      ],
+      "paths": [
+        "/etc/idleleo/conf/install_config.json",
+        "/etc/idleleo/info",
+        "/etc/idleleo/info/xray_info.inf",
+        "/etc/idleleo/info/xray_info_clash.yaml",
+        "/etc/idleleo/install.sh",
+        "/etc/idleleo/languages",
+        "/etc/idleleo/logs",
+        "/etc/idleleo/logs/install.log",
+        "/etc/idleleo/release-managed.version",
+        "/etc/idleleo/scripts",
+        "/etc/idleleo/scripts/auto_update.sh",
+        "/etc/idleleo/scripts/fail2ban_manager.sh",
+        "/etc/idleleo/scripts/file_manager.sh",
+        "/etc/idleleo/scripts/geo_update.sh",
+        "/etc/idleleo/scripts/ssl_update.sh",
+        "/etc/idleleo/scripts/traffic_blocker.sh",
+        "/etc/idleleo/scripts/xray_stats.sh",
+        "/etc/idleleo/share",
+        "/etc/idleleo/share/xray",
+        "/etc/idleleo/tmp",
+        "/etc/idleleo/tmp/shell_version.tmp",
+        "/etc/idleleo/versions.json",
+        "/var/spool/cron/crontabs/root",
+        "/etc/idleleo/v1",
+        "/etc/idleleo/v1/metadata.json",
+        "/etc/idleleo/v1/nginx.json"
+      ],
+      "decision": "register",
+      "reason": "M8 现在走真实本地 Pebble ACME；安装物差异与 M1–M7/M9/M10 是同一批 13 类（ED-C01..ED-C13）。按 policy「新增场景必须新开 ED」，此处只登记 M8 的路径并集，不放宽既有类的场景范围。ACME 专属产物（cert/、.well-known、schedule/）两侧已对齐，不在差异内。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native"
+    },
+    {
+      "id": "ED-005",
+      "title": "rill agent 输出文本",
+      "layer": "L5",
+      "scenarios": [
+        "OPS-29"
+      ],
+      "paths": [
+        "rill agent output"
+      ],
+      "decision": "register",
+      "reason": "Go 有 rill 桥接，差异只在诊断文本措辞，非功能缺口。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native"
+    }
+  ],
+  "superseded_count": 113
+}
