@@ -1,0 +1,102 @@
+{
+  "dns": {
+    "servers": [
+      "1.1.1.1",
+      "8.8.8.8"
+    ]
+  },
+  "inbounds": [
+    {
+      "listen": "0.0.0.0",
+      "port": 9443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "email": "primary@example.invalid",
+            "id": "aaaaaaaa-1111-4111-8111-111111111111",
+            "level": 0
+          },
+          {
+            "email": "carol@example.invalid",
+            "flow": "xtls-rprx-vision",
+            "id": "cccccccc-3333-4333-8333-333333333333",
+            "level": 2
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "raw",
+        "realitySettings": {
+          "privateKey": "oD7nlMJVY4oXH5eom_ijOe741Y4WDjpCm6_bzYRCvmk",
+          "serverNames": [
+            "www.example.invalid"
+          ],
+          "shortIds": [
+            "1111111111111111",
+            "2222222222222222"
+          ],
+          "target": "www.example.invalid:443"
+        },
+        "security": "reality"
+      },
+      "tag": "vless-a"
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 10443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "email": "primary@example.invalid",
+            "id": "aaaaaaaa-1111-4111-8111-111111111111",
+            "level": 0
+          },
+          {
+            "email": "alice@example.invalid",
+            "id": "bbbbbbbb-2222-4222-8222-444444444444",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "raw",
+        "realitySettings": {
+          "privateKey": "oD7nlMJVY4oXH5eom_ijOe741Y4WDjpCm6_bzYRCvmk",
+          "serverNames": [
+            "www.example.invalid"
+          ],
+          "shortIds": [
+            "1111111111111111"
+          ],
+          "target": "www.example.invalid:443"
+        },
+        "security": "reality"
+      },
+      "tag": "vless-b"
+    }
+  ],
+  "log": {
+    "loglevel": "warning"
+  },
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "direct"
+    }
+  ],
+  "routing": {
+    "rules": [
+      {
+        "domain": [
+          "blocked.example.invalid"
+        ],
+        "outboundTag": "direct",
+        "type": "field"
+      }
+    ]
+  }
+}

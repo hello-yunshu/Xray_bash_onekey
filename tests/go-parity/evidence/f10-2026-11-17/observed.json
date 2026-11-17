@@ -1,0 +1,16 @@
+{
+  "baseline": {
+    "compatSha256": "2eb977177c8fa7db19616fcee55ac3c94d862f346bfecac09984c317609b83ae",
+    "secureSha256": "13f25ae60b058a4e62c5f04e2fe0c65ae6dc84dabad03d8867b6a1268580f955"
+  },
+  "reality": {
+    "compatBytes": 2025,
+    "compatFileSha256": "2eb977177c8fa7db19616fcee55ac3c94d862f346bfecac09984c317609b83ae",
+    "nginxTest": 0,
+    "secureFileSha256": "13f25ae60b058a4e62c5f04e2fe0c65ae6dc84dabad03d8867b6a1268580f955"
+  },
+  "tls": {
+    "refusalRc": 1,
+    "secureSha256": "aa6dd713cae9144d1d7a9f444d7529c778d65c85e8e4362df0d2ea0d119509c4"
+  }
+}

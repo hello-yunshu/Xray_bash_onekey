@@ -1,0 +1,19 @@
+fixture: F10 — managed Nginx TLS version switch (xray tls)
+evidence level: CONTAINER_VERIFIED
+image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+image content: Ubuntu 24.04.5, nginx 1.24.0 (stream module), bash 5.2.21, jq 1.7, python 3.12, openssl 3.0
+go build: golang:1.27.4, CGO_ENABLED=0, -mod=vendor, -trimpath
+go binary sha256: 6ac8ddc33f8dccf4513249faebb3fd2658718eb3cdb70ab921628f2dd5bafdcb
+bash baseline: install.sh sha256 d76b3181a198e8aab225564d36f89ec46c6267e0c115ca354f5db4e86b1f5b68 (tls_type extracted and executed)
+runs: 38 passed / 0 failed in both run1 and run2
+scenarios:
+  S1 real Reality install: xray generate --mode reality-balance --role primary + real nginx -t
+  S2 Go tls 1.2+ / repeat no-op / tls 1.3 round-trip
+  S3 Bash tls_type choice 2/1 byte-for-byte comparison (Reality) and choice 2 (TLS)
+  S4 invalid/missing/unknown flags rc=2, tree unchanged
+  S5 broken nginx restores the previous bytes, retry succeeds
+  S6 TLS install refuses 1.2+ (h3/quic), accepts 1.3, Bash line byte-identical
+  S7 gates: no metadata rc=3, no managed front rc=1, ws-only rc=1
+gaps:
+  reload is skipped in the sandbox root (no systemd); the managed reload path is not exercised
+  no real VPS verification; TLS handshake against a live listener is not part of this fixture

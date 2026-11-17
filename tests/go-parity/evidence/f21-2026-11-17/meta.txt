@@ -1,0 +1,63 @@
+F21 traffic block executor evidence
+date: 2026-11-17
+evidence level: CONTAINER_VERIFIED (no real VPS, no client data plane)
+
+container image
+  idleleo-realroot@sha256:d985e8ed154d5c3b13c097f5a1ece90ce434ae03cd5444e7753f334359429aa7
+  (systemd PID 1, Debian; `systemctl is-system-running` = running)
+  docker run -d --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock
+
+inputs
+  idleleo (Go manager)  sha256 cf9e804f43e70f7b2dfd49692a7aa6f6d39809822262dfcdc40d80159b22496d
+  xray                  Xray 26.11.9 676eaf6 (go1.27.3 linux/arm64)
+                        sha256 c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a
+  scripts/traffic_blocker.sh
+                        sha256 f7195174a09ac313ea9f78fe64fc91a681a670a45d8a91faded4b8d892a2f5c9
+  geoip.dat (Loyalsoldier)
+                        sha256 304ac8a1cbcc8166e4f5a4f32955e4d0fb77a1bd713583e371b30ee27f3659d8
+                        16467275 bytes
+  geosite.dat (Loyalsoldier)
+                        sha256 269f7740e328b592376ea99f2adb12f83d5bc17b024e584c8a7b3706ba5c789d
+                        11476856 bytes
+  geo files are mounted read-only at /geo (IDLELEO_GEO_DIR) and copied to
+  /etc/idleleo/share/xray before install; the fixture never downloads at runtime.
+
+runs (one fresh container each, same fixed digest)
+  run1: 79 passed, 0 failed, 3.96 s  -> run1-fixture-result.json
+  run2: 79 passed, 0 failed, 3.99 s  -> run2-fixture-result.json
+  both runs executed the same assertion set; commands.log holds both rounds.
+
+coverage
+  S1 install baseline (mode none, transport ws, port 443), S2 state machine and
+  guard paths, S3 first apply (7 owned rules, IPIfNonMatch, sniffing routeOnly,
+  geodata drop-in, backup, real systemctl restart, TCP control probe, real
+  `xray -test`), S4 idempotent apply + status, S5 off restores the install-time
+  config sha, S6 rollback (unknown country, user rule swallowing all traffic,
+  missing geosite), S7 Bash `tb_build_block_rules` parity and legacy adoption.
+
+harness notes
+  * systemd default StartLimitBurst=5/10s rejects the sixth `systemctl restart`
+    in a disposable container with `start-limit-hit`; the fixture runs
+    `systemctl reset-failed xray` before scenarios that restart the unit. This
+    is a systemd rate limit, not a traffic-block behaviour (spec fact 31).
+  * a second `off` with nothing applied exits 1 with
+    "no traffic-block rules are installed" and leaves config and switches
+    untouched (spec fact 30).
+
+evidence layout
+  meta.txt                  this file
+  commands.log              both runs, every command with rc/stdout/stderr
+  observed.json             install/apply/off/failure/bash summary (run2)
+  bash-result.json          tb_build_block_rules input, rc, output (run2)
+  baseline-compare.json     aligned / approved-difference / gap entries + notes
+  run1-fixture-result.json  run1 pass/fail and binary sha
+  run2-fixture-result.json  run2 pass/fail and binary sha
+  f21-work/                 applied state, routing rules, bash state, drop-in,
+                            backup listing (no geo blobs)
+
+not verified (registered as gaps in baseline-compare.json and spec.md)
+  * real client data plane: the control probe is a local TCP connect.
+  * Bash interactive menu/downloader/tb_apply_rules were not executed.
+  * preset countries other than `cn`: the pinned geosite only carries cn.
+  * non-443 mode=none installs: the probe always dials 127.0.0.1:443.
+  * no real VPS, no public ACME CA, no push/tag/merge.

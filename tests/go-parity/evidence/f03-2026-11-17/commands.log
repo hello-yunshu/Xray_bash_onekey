@@ -1,0 +1,1703 @@
+== F03 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/xray/xray version (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/default-ws/config.json --nginx-out /work/evidence/f03-work/default-ws/nginx.conf --fragments-out /work/evidence/f03-work/default-ws/fragments --json (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S1 none/ws generate rc=0 and wrote the config {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-333
+PASS S1 runtime config is 0600 0o600
+PASS S1 exactly one inbound 1
+PASS S1 payload mode/transport none/ws
+PASS S1 payload defaults to port/publicPort 10086 10086/10086
+PASS S1 payload listen is loopback 127.0.0.1
+PASS S1 ws tag VLESS-ws-in
+PASS S1 protocol is lowercase vless vless
+PASS S1 no-TLS inbound keeps the default 10086 10086
+PASS S1 inbound listens on loopback 127.0.0.1
+PASS S1 no TLS on the inbound none
+PASS S1 ws path defaults to /ray/ ws//ray/
+PASS S1 client UUID is applied cccccccc-3333-4333-8333-333333333333
+PASS S1 default email me@hey.run
+PASS S1 routing targets the ws inbound ["VLESS-ws-in"]
+PASS S1 share URI port is the inbound port vless/10086
+PASS S1 share security=none none
+PASS S1 share ws path ws//ray/
+PASS S1 share host follows the loopback listen 127.0.0.1
+PASS S1 Clash proxy describes ws proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 10086
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: ws
+    udp: true
+    ws-opts:
+      path: /ray/
+
+PASS S1 Clash does not pretend TLS is enabled proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 10086
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: ws
+    udp: true
+    ws-opts:
+      path: /ray/
+
+PASS S1 no-TLS mode writes no Nginx artifacts False/False
+$ /work/xray/xray -test -config /work/evidence/f03-work/default-ws/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:47.887201 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/default-ws/config.json Format:json}
+          2026/11/16 18:25:47.887223 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S1 default ws: real xray -test accepts the generated config r anti-censorship.
+2026/11/16 18:25:47.887201 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/default-ws/config.json Format:json}
+2026/11/16 18:25:47.887223 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/guard-deny/config.json --nginx-out /work/evidence/f03-work/guard-deny/nginx.conf --fragments-out /work/evidence/f03-work/guard-deny/fragments --json --listen 0.0.0.0 (rc=2 0.0s)
+  stderr: non-loopback listen "0.0.0.0" requires explicit confirmation
+PASS S2 non-loopback listen without the flag exits 2 rc=2 non-loopback listen "0.0.0.0" requires explicit confirmation
+
+PASS S2 refusal names the explicit confirmation requirement non-loopback listen "0.0.0.0" requires explicit confirmation
+
+PASS S2 guard denial: no runtime config was written /work/evidence/f03-work/guard-deny/config.json
+PASS S2 guard denial: no Nginx config was written /work/evidence/f03-work/guard-deny/nginx.conf
+PASS S2 guard denial: no Nginx fragments were written /work/evidence/f03-work/guard-deny/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/guard-allow/config.json --nginx-out /work/evidence/f03-work/guard-allow/nginx.conf --fragments-out /work/evidence/f03-work/guard-allow/fragments --json --listen 0.0.0.0 --allow-non-loopback (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@0.0.0.0:10086?encryption=none&security=none&type=ws&path=/ray/&host=0.0.0.0#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 0.0.0.0\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S2 --allow-non-loopback accepts 0.0.0.0 {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3333-
+PASS S2 accepted non-loopback listen is written literally 0.0.0.0
+PASS S2 share host follows the accepted listen 0.0.0.0
+$ /work/xray/xray -test -config /work/evidence/f03-work/guard-allow/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:47.905333 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/guard-allow/config.json Format:json}
+          2026/11/16 18:25:47.905419 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S2 allow 0.0.0.0: real xray -test accepts the generated config  anti-censorship.
+2026/11/16 18:25:47.905333 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/guard-allow/config.json Format:json}
+2026/11/16 18:25:47.905419 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/ipv6-loopback/config.json --nginx-out /work/evidence/f03-work/ipv6-loopback/nginx.conf --fragments-out /work/evidence/f03-work/ipv6-loopback/fragments --json --listen ::1 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "::1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@[::1]:10086?encryption=none&security=none&type=ws&path=/ray/&host=%3A%3A1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: '::1'\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S2 explicit IPv6 loopback needs no confirmation {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "::1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3333-4333
+PASS S2 ::1 is written as-is ::1
+PASS S2 IPv6 share authority is bracketed ::1:10086
+PASS S2 IPv6 share host decodes to ::1 ::1
+$ /work/xray/xray -test -config /work/evidence/f03-work/ipv6-loopback/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:47.924904 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/ipv6-loopback/config.json Format:json}
+          2026/11/16 18:25:47.927014 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S2 ::1: real xray -test accepts the generated config nti-censorship.
+2026/11/16 18:25:47.924904 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/ipv6-loopback/config.json Format:json}
+2026/11/16 18:25:47.927014 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/ipv6-guard/config.json --nginx-out /work/evidence/f03-work/ipv6-guard/nginx.conf --fragments-out /work/evidence/f03-work/ipv6-guard/fragments --json --listen 2001:db8::1 (rc=2 0.0s)
+  stderr: non-loopback listen "2001:db8::1" requires explicit confirmation
+PASS S2 global IPv6 listen is refused without the flag rc=2
+PASS S2 ipv6 guard: no runtime config was written /work/evidence/f03-work/ipv6-guard/config.json
+PASS S2 ipv6 guard: no Nginx config was written /work/evidence/f03-work/ipv6-guard/nginx.conf
+PASS S2 ipv6 guard: no Nginx fragments were written /work/evidence/f03-work/ipv6-guard/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/ipv6-allow/config.json --nginx-out /work/evidence/f03-work/ipv6-allow/nginx.conf --fragments-out /work/evidence/f03-work/ipv6-allow/fragments --json --listen 2001:db8::1 --allow-non-loopback (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "2001:db8::1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@[2001:db8::1]:10086?encryption=none&security=none&type=ws&path=/ray/&host=2001%3Adb8%3A%3A1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: '2001:db8::1'\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S2 --allow-non-loopback accepts a global IPv6 listen {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "2001:db8::1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3
+$ /work/xray/xray -test -config /work/evidence/f03-work/ipv6-allow/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:47.947858 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/ipv6-allow/config.json Format:json}
+          2026/11/16 18:25:47.951693 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S2 2001:db8::1: real xray -test accepts the generated config r anti-censorship.
+2026/11/16 18:25:47.947858 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/ipv6-allow/config.json Format:json}
+2026/11/16 18:25:47.951693 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/invalid-listen/config.json --nginx-out /work/evidence/f03-work/invalid-listen/nginx.conf --fragments-out /work/evidence/f03-work/invalid-listen/fragments --json --listen not-an-ip --allow-non-loopback (rc=0 0.01s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "not-an-ip",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@not-an-ip:10086?encryption=none&security=none&type=ws&path=/ray/&host=not-an-ip#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: not-an-ip\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S2 invalid listen text is accepted at generate time (recorded gap) {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "not-an-ip",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-333
+$ /work/xray/xray -test -config /work/evidence/f03-work/invalid-listen/config.json (rc=23 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:47.969910 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/invalid-listen/config.json Format:json}
+          Failed to start: main: failed to load config files: [/work/evidence/f03-work/invalid-listen/config.json] > infra/conf: failed to build inbound config with tag VLESS-ws-in > infra/conf: unable to listen on domain address: not-an-ip
+PASS S2 real xray -test rejects the unvalidated listen address latform for anti-censorship.
+2026/11/16 18:25:47.969910 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/invalid-listen/config.json Format:json}
+Failed to start: main: failed to load config files: [/work/evidence/f03-work/invalid-listen/config.json] > infra/conf: failed to build inbound config with tag VLESS-ws-in > infra/conf: unable to listen on domain address: not-an-ip
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/grpc/config.json --nginx-out /work/evidence/f03-work/grpc/nginx.conf --fragments-out /work/evidence/f03-work/grpc/fragments --json --transport grpc (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "grpc",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=grpc&serviceName=idleleo-grpc#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: grpc\n    udp: true\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "warnings": []
+          }
+PASS S3 none/grpc generate succeeds {
+  "mode": "none",
+  "transport": "grpc",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3
+PASS S3 gRPC inbound identity VLESS-gRPC-in/grpc
+PASS S3 gRPC stream settings match Bash {"idle_timeout": 20, "multiMode": true, "serviceName": "idleleo-grpc"}
+PASS S3 gRPC keeps loopback and the primary port 127.0.0.1:10086
+PASS S3 share carries type=grpc and the service name grpc/idleleo-grpc
+PASS S3 gRPC Clash proxy is cleartext proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 10086
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: grpc
+    udp: true
+    grpc-opts:
+      grpc-service-name: idleleo-grpc
+
+$ /work/xray/xray -test -config /work/evidence/f03-work/grpc/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:47.982202 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/grpc/config.json Format:json}
+          2026/11/16 18:25:47.982209 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S3 grpc: real xray -test accepts the generated config for anti-censorship.
+2026/11/16 18:25:47.982202 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/grpc/config.json Format:json}
+2026/11/16 18:25:47.982209 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/xhttp/config.json --nginx-out /work/evidence/f03-work/xhttp/nginx.conf --fragments-out /work/evidence/f03-work/xhttp/fragments --json --transport xhttp (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "xhttp",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=xhttp&path=/ray/&host=127.0.0.1#idleleo-none",
+            "warnings": [
+              "clash-xhttp-unsupported"
+            ]
+          }
+PASS S3 none/xhttp generate succeeds {
+  "mode": "none",
+  "transport": "xhttp",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-
+PASS S3 xHTTP inbound identity VLESS-xhttp-in/xhttp
+PASS S3 xHTTP mode is auto auto
+PASS S3 standalone xHTTP inherits the default /ray/ path /ray/
+PASS S3 share carries type=xhttp and the path xhttp//ray/
+PASS S3 xHTTP refuses to fake a Clash proxy ["clash-xhttp-unsupported"]
+$ /work/xray/xray -test -config /work/evidence/f03-work/xhttp/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:47.999731 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/xhttp/config.json Format:json}
+          Configuration OK.
+PASS S3 xhttp: real xray -test accepts the generated config Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/16 18:25:47.999731 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/xhttp/config.json Format:json}
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/multi-pinned/config.json --nginx-out /work/evidence/f03-work/multi-pinned/nginx.conf --fragments-out /work/evidence/f03-work/multi-pinned/fragments --json --transport ws+grpc+xhttp --port 12086 --ws-port 12443 --grpc-port 12444 --xhttp-port 12445 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws+grpc+xhttp",
+            "port": 12086,
+            "publicPort": 12086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:12086?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 12086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": [
+              "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"
+            ]
+          }
+PASS S3 multi pinned generate succeeds {
+  "mode": "none",
+  "transport": "ws+grpc+xhttp",
+  "port": 12086,
+  "publicPort": 12086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "c
+PASS S3 multi has three transports ["grpc", "ws", "xhttp"]
+PASS S3 multi ws is the primary inbound and uses --port 12086
+PASS S3 pinned grpc/xhttp ports are honoured 12444/12445
+PASS S3 default multi keeps every inbound on loopback {"ws": "127.0.0.1", "grpc": "127.0.0.1", "xhttp": "127.0.0.1"}
+PASS S3 added xHTTP uses the /xhttp/ path /xhttp/
+PASS S3 multi warns that only the primary share link is emitted ["multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"]
+PASS S3 routing covers all three inbounds 
+$ /work/xray/xray -test -config /work/evidence/f03-work/multi-pinned/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.023496 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/multi-pinned/config.json Format:json}
+          2026/11/16 18:25:48.026551 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/16 18:25:48.026646 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S3 multi pinned: real xray -test accepts the generated config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/16 18:25:48.026646 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/multi-auto/config.json --nginx-out /work/evidence/f03-work/multi-auto/nginx.conf --fragments-out /work/evidence/f03-work/multi-auto/fragments --json --transport ws+grpc+xhttp --port 12086 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws+grpc+xhttp",
+            "port": 12086,
+            "publicPort": 12086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:12086?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 12086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": [
+              "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"
+            ]
+          }
+PASS S3 multi auto generate succeeds {
+  "mode": "none",
+  "transport": "ws+grpc+xhttp",
+  "port": 12086,
+  "publicPort": 12086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "c
+PASS S3 auto multi ws stays on --port 12086
+PASS S3 auto gRPC port comes from the 10000-10999 pool 10000
+PASS S3 auto xHTTP port comes from the 11000-11999 pool 11000
+PASS S3 auto ports are distinct {"ws": 12086, "grpc": 10000, "xhttp": 11000}
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/multi-nonlocal/config.json --nginx-out /work/evidence/f03-work/multi-nonlocal/nginx.conf --fragments-out /work/evidence/f03-work/multi-nonlocal/fragments --json --transport ws+grpc+xhttp --port 12086 --grpc-port 12444 --xhttp-port 12445 --listen 10.10.0.5 --allow-non-loopback (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws+grpc+xhttp",
+            "port": 12086,
+            "publicPort": 12086,
+            "listen": "10.10.0.5",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@10.10.0.5:12086?encryption=none&security=none&type=ws&path=/ray/&host=10.10.0.5#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 10.10.0.5\n    port: 12086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": [
+              "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"
+            ]
+          }
+PASS S3 multi accepts an explicit non-loopback listen with the flag {
+  "mode": "none",
+  "transport": "ws+grpc+xhttp",
+  "port": 12086,
+  "publicPort": 12086,
+  "listen": "10.10.0.5",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "c
+PASS S3 every added transport follows --listen (Bash parity) {"ws": "10.10.0.5", "grpc": "10.10.0.5", "xhttp": "10.10.0.5"}
+$ /work/xray/xray -test -config /work/evidence/f03-work/multi-nonlocal/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.040235 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/multi-nonlocal/config.json Format:json}
+          2026/11/16 18:25:48.042106 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/16 18:25:48.042195 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S3 multi non-loopback: real xray -test accepts the generated config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/16 18:25:48.042195 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/grpc-equals-primary/config.json --nginx-out /work/evidence/f03-work/grpc-equals-primary/nginx.conf --fragments-out /work/evidence/f03-work/grpc-equals-primary/fragments --json --transport ws+grpc+xhttp --grpc-port 10086 (rc=2 0.0s)
+  stderr: grpc port 10086 is already used by another inbound
+PASS S3 grpc-equals-primary exits 2 rc=2
+PASS S3 grpc-equals-primary explains the refusal grpc port 10086 is already used by another inbound
+
+PASS S3 grpc-equals-primary: no runtime config was written /work/evidence/f03-work/grpc-equals-primary/config.json
+PASS S3 grpc-equals-primary: no Nginx config was written /work/evidence/f03-work/grpc-equals-primary/nginx.conf
+PASS S3 grpc-equals-primary: no Nginx fragments were written /work/evidence/f03-work/grpc-equals-primary/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/xhttp-equals-primary/config.json --nginx-out /work/evidence/f03-work/xhttp-equals-primary/nginx.conf --fragments-out /work/evidence/f03-work/xhttp-equals-primary/fragments --json --transport ws+grpc+xhttp --xhttp-port 10086 (rc=2 0.0s)
+  stderr: xhttp port 10086 is already used by another inbound
+PASS S3 xhttp-equals-primary exits 2 rc=2
+PASS S3 xhttp-equals-primary explains the refusal xhttp port 10086 is already used by another inbound
+
+PASS S3 xhttp-equals-primary: no runtime config was written /work/evidence/f03-work/xhttp-equals-primary/config.json
+PASS S3 xhttp-equals-primary: no Nginx config was written /work/evidence/f03-work/xhttp-equals-primary/nginx.conf
+PASS S3 xhttp-equals-primary: no Nginx fragments were written /work/evidence/f03-work/xhttp-equals-primary/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/grpc-equals-xhttp/config.json --nginx-out /work/evidence/f03-work/grpc-equals-xhttp/nginx.conf --fragments-out /work/evidence/f03-work/grpc-equals-xhttp/fragments --json --transport ws+grpc+xhttp --grpc-port 12444 --xhttp-port 12444 (rc=2 0.0s)
+  stderr: xhttp port 12444 is already used by another inbound
+PASS S3 grpc-equals-xhttp exits 2 rc=2
+PASS S3 grpc-equals-xhttp explains the refusal xhttp port 12444 is already used by another inbound
+
+PASS S3 grpc-equals-xhttp: no runtime config was written /work/evidence/f03-work/grpc-equals-xhttp/config.json
+PASS S3 grpc-equals-xhttp: no Nginx config was written /work/evidence/f03-work/grpc-equals-xhttp/nginx.conf
+PASS S3 grpc-equals-xhttp: no Nginx fragments were written /work/evidence/f03-work/grpc-equals-xhttp/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/xhttp-out-of-range/config.json --nginx-out /work/evidence/f03-work/xhttp-out-of-range/nginx.conf --fragments-out /work/evidence/f03-work/xhttp-out-of-range/fragments --json --transport ws+grpc+xhttp --xhttp-port 70000 (rc=2 0.0s)
+  stderr: xhttp port must be between 1 and 65535
+PASS S3 xhttp-out-of-range exits 2 rc=2
+PASS S3 xhttp-out-of-range explains the refusal xhttp port must be between 1 and 65535
+
+PASS S3 xhttp-out-of-range: no runtime config was written /work/evidence/f03-work/xhttp-out-of-range/config.json
+PASS S3 xhttp-out-of-range: no Nginx config was written /work/evidence/f03-work/xhttp-out-of-range/nginx.conf
+PASS S3 xhttp-out-of-range: no Nginx fragments were written /work/evidence/f03-work/xhttp-out-of-range/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/raw/config.json --nginx-out /work/evidence/f03-work/raw/nginx.conf --fragments-out /work/evidence/f03-work/raw/fragments --json --transport raw (rc=2 0.0s)
+  stderr: unsupported transport "raw" for mode none
+PASS S3 raw is not a no-TLS transport unsupported transport "raw" for mode none
+
+PASS S3 raw: no runtime config was written /work/evidence/f03-work/raw/config.json
+PASS S3 raw: no Nginx config was written /work/evidence/f03-work/raw/nginx.conf
+PASS S3 raw: no Nginx fragments were written /work/evidence/f03-work/raw/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/public-port/config.json --nginx-out /work/evidence/f03-work/public-port/nginx.conf --fragments-out /work/evidence/f03-work/public-port/fragments --json --public-port 8443 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 8443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:8443?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 8443\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S4 --public-port generate succeeds {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 8443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3333
+PASS S4 publicPort is separate from the inbound port 10086/8443
+PASS S4 the runtime inbound is unchanged 127.0.0.1:10086
+PASS S4 share URI uses the public port 8443
+PASS S4 Clash uses the public port proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 8443
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: ws
+    udp: true
+    ws-opts:
+      path: /ray/
+
+PASS S4 no-TLS mode still writes no Nginx artifacts 
+$ /work/xray/xray -test -config /work/evidence/f03-work/public-port/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.068007 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/public-port/config.json Format:json}
+          2026/11/16 18:25:48.068743 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S4 public port: real xray -test accepts the generated config  anti-censorship.
+2026/11/16 18:25:48.068007 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/public-port/config.json Format:json}
+2026/11/16 18:25:48.068743 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/overwrite/config.json --json (rc=2 0.0s)
+  stderr: refusing to overwrite existing file (use --force)
+PASS S5 existing output is refused without --force rc=2
+PASS S5 refusal leaves the original bytes untouched 
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/overwrite/config.json --force --json (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S5 --force overwrites the output {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-333
+PASS S5 forced output is a real config 
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/upper-transport/config.json --nginx-out /work/evidence/f03-work/upper-transport/nginx.conf --fragments-out /work/evidence/f03-work/upper-transport/fragments --json --transport GRPC (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "grpc",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=grpc&serviceName=idleleo-grpc#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: grpc\n    udp: true\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "warnings": []
+          }
+PASS S5 transport names are case-insensitive {
+  "mode": "none",
+  "transport": "grpc",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+ 
+PASS S6 Bash template exists /work/repo/config/vless_tls.json
+PASS S6 template pins VLESS-ws-in on 127.0.0.1:10086 VLESS-ws-in 127.0.0.1:10086
+PASS S6 template spells the protocol uppercase VLESS
+PASS S6 template ws stream settings 
+PASS S6 template routing targets the ws inbound 
+PASS S6 Bash function update_json_config extracted 
+PASS S6 Bash function modify_listen_address extracted 
+PASS S6 Bash function modify_inbound_port extracted 
+PASS S6 Bash function add_ws_inbound extracted 
+PASS S6 Bash function add_grpc_inbound extracted 
+PASS S6 Bash function add_xhttp_inbound extracted 
+PASS S6 Bash function modify_path extracted 
+PASS S6 Bash function modify_email_address extracted 
+PASS S6 Bash function ws_backend_listen_default extracted 
+PASS S6 Bash function is_valid_listen_address extracted 
+PASS S6 Bash function resolve_ws_backend_listen_addr extracted 
+PASS S6 Bash function apply_install_profile extracted 
+PASS S6 Bash function transport_choose extracted 
+PASS S6 Bash defaults the no-TLS listen to loopback 
+PASS S6 Bash validates IPv4 and IPv6 listen addresses 
+PASS S6 Bash falls back to loopback for an invalid listen address 
+PASS S6 Bash resolves the no-TLS listen address 
+PASS S6 Bash rewrites VLESS-ws-in to the resolved listen address 
+PASS S6 Bash rewrites VLESS-gRPC-in to the resolved listen address 
+PASS S6 Bash rewrites VLESS-xhttp-in to the resolved listen address 
+PASS S6 Bash no-TLS ports come from xport/gport/xhttpport 
+PASS S6 Bash add_ws_inbound defaults to loopback 
+PASS S6 Bash gRPC template matches the Go stream settings 
+PASS S6 Bash xHTTP template matches the Go stream settings 
+PASS S6 Bash transport_only profile is the no-TLS branch 
+PASS S6 Bash menu 5 is ws+gRPC+xHTTP 
+$ bash /work/evidence/f03-work/bash/single-ws/run-baseline.sh (rc=0 0.02s)
+PASS S6 single-ws: extracted Bash functions run for real 
+PASS S6 single-ws Bash config was produced 
+PASS S6 Bash falls back to loopback when no address is chosen 127.0.0.1
+PASS S6 Bash applies xport to the ws inbound 12443
+PASS S6 Bash ws path /ray/
+$ /work/xray/xray -test -config /work/evidence/f03-work/bash/single-ws/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.116407 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/bash/single-ws/config.json Format:json}
+          2026/11/16 18:25:48.118081 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S6 bash single ws: real xray -test accepts the generated config ti-censorship.
+2026/11/16 18:25:48.116407 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/bash/single-ws/config.json Format:json}
+2026/11/16 18:25:48.118081 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ bash /work/evidence/f03-work/bash/multi-loopback/run-baseline.sh (rc=0 0.06s)
+PASS S6 multi-loopback: extracted Bash functions run for real 
+PASS S6 multi-loopback Bash config was produced 
+PASS S6 Bash baseline has three transports ["grpc", "ws", "xhttp"]
+PASS S6 Bash default multi listens on loopback everywhere {"ws": "127.0.0.1", "grpc": "127.0.0.1", "xhttp": "127.0.0.1"}
+PASS S6 Bash applies xport/gport/xhttpport {"ws": 12443, "grpc": 12444, "xhttp": 12445}
+$ /work/xray/xray -test -config /work/evidence/f03-work/bash/multi-loopback/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.189245 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/bash/multi-loopback/config.json Format:json}
+          2026/11/16 18:25:48.189259 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/16 18:25:48.189264 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S6 bash multi loopback: real xray -test accepts the generated config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/16 18:25:48.189264 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ bash /work/evidence/f03-work/bash/multi-nonloopback/run-baseline.sh (rc=0 0.06s)
+PASS S6 multi-nonloopback: extracted Bash functions run for real 
+PASS S6 multi-nonloopback Bash config was produced 
+PASS S6 Bash rewrites every added transport to the chosen address {"ws": "10.10.0.5", "grpc": "10.10.0.5", "xhttp": "10.10.0.5"}
+$ /work/xray/xray -test -config /work/evidence/f03-work/bash/multi-nonloopback/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.265803 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/bash/multi-nonloopback/config.json Format:json}
+          2026/11/16 18:25:48.269716 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/16 18:25:48.269764 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S6 bash multi non-loopback: real xray -test accepts the generated config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/16 18:25:48.269764 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+== F03 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/xray/xray version (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/default-ws/config.json --nginx-out /work/evidence/f03-work/default-ws/nginx.conf --fragments-out /work/evidence/f03-work/default-ws/fragments --json (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S1 none/ws generate rc=0 and wrote the config {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-333
+PASS S1 runtime config is 0600 0o600
+PASS S1 exactly one inbound 1
+PASS S1 payload mode/transport none/ws
+PASS S1 payload defaults to port/publicPort 10086 10086/10086
+PASS S1 payload listen is loopback 127.0.0.1
+PASS S1 ws tag VLESS-ws-in
+PASS S1 protocol is lowercase vless vless
+PASS S1 no-TLS inbound keeps the default 10086 10086
+PASS S1 inbound listens on loopback 127.0.0.1
+PASS S1 no TLS on the inbound none
+PASS S1 ws path defaults to /ray/ ws//ray/
+PASS S1 client UUID is applied cccccccc-3333-4333-8333-333333333333
+PASS S1 default email me@hey.run
+PASS S1 routing targets the ws inbound ["VLESS-ws-in"]
+PASS S1 share URI port is the inbound port vless/10086
+PASS S1 share security=none none
+PASS S1 share ws path ws//ray/
+PASS S1 share host follows the loopback listen 127.0.0.1
+PASS S1 Clash proxy describes ws proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 10086
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: ws
+    udp: true
+    ws-opts:
+      path: /ray/
+
+PASS S1 Clash does not pretend TLS is enabled proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 10086
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: ws
+    udp: true
+    ws-opts:
+      path: /ray/
+
+PASS S1 no-TLS mode writes no Nginx artifacts False/False
+$ /work/xray/xray -test -config /work/evidence/f03-work/default-ws/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.407218 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/default-ws/config.json Format:json}
+          2026/11/16 18:25:48.408082 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S1 default ws: real xray -test accepts the generated config r anti-censorship.
+2026/11/16 18:25:48.407218 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/default-ws/config.json Format:json}
+2026/11/16 18:25:48.408082 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/guard-deny/config.json --nginx-out /work/evidence/f03-work/guard-deny/nginx.conf --fragments-out /work/evidence/f03-work/guard-deny/fragments --json --listen 0.0.0.0 (rc=2 0.0s)
+  stderr: non-loopback listen "0.0.0.0" requires explicit confirmation
+PASS S2 non-loopback listen without the flag exits 2 rc=2 non-loopback listen "0.0.0.0" requires explicit confirmation
+
+PASS S2 refusal names the explicit confirmation requirement non-loopback listen "0.0.0.0" requires explicit confirmation
+
+PASS S2 guard denial: no runtime config was written /work/evidence/f03-work/guard-deny/config.json
+PASS S2 guard denial: no Nginx config was written /work/evidence/f03-work/guard-deny/nginx.conf
+PASS S2 guard denial: no Nginx fragments were written /work/evidence/f03-work/guard-deny/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/guard-allow/config.json --nginx-out /work/evidence/f03-work/guard-allow/nginx.conf --fragments-out /work/evidence/f03-work/guard-allow/fragments --json --listen 0.0.0.0 --allow-non-loopback (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@0.0.0.0:10086?encryption=none&security=none&type=ws&path=/ray/&host=0.0.0.0#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 0.0.0.0\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S2 --allow-non-loopback accepts 0.0.0.0 {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3333-
+PASS S2 accepted non-loopback listen is written literally 0.0.0.0
+PASS S2 share host follows the accepted listen 0.0.0.0
+$ /work/xray/xray -test -config /work/evidence/f03-work/guard-allow/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.429195 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/guard-allow/config.json Format:json}
+          2026/11/16 18:25:48.429755 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S2 allow 0.0.0.0: real xray -test accepts the generated config  anti-censorship.
+2026/11/16 18:25:48.429195 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/guard-allow/config.json Format:json}
+2026/11/16 18:25:48.429755 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/ipv6-loopback/config.json --nginx-out /work/evidence/f03-work/ipv6-loopback/nginx.conf --fragments-out /work/evidence/f03-work/ipv6-loopback/fragments --json --listen ::1 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "::1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@[::1]:10086?encryption=none&security=none&type=ws&path=/ray/&host=%3A%3A1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: '::1'\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S2 explicit IPv6 loopback needs no confirmation {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "::1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3333-4333
+PASS S2 ::1 is written as-is ::1
+PASS S2 IPv6 share authority is bracketed ::1:10086
+PASS S2 IPv6 share host decodes to ::1 ::1
+$ /work/xray/xray -test -config /work/evidence/f03-work/ipv6-loopback/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.443348 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/ipv6-loopback/config.json Format:json}
+          2026/11/16 18:25:48.444095 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S2 ::1: real xray -test accepts the generated config nti-censorship.
+2026/11/16 18:25:48.443348 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/ipv6-loopback/config.json Format:json}
+2026/11/16 18:25:48.444095 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/ipv6-guard/config.json --nginx-out /work/evidence/f03-work/ipv6-guard/nginx.conf --fragments-out /work/evidence/f03-work/ipv6-guard/fragments --json --listen 2001:db8::1 (rc=2 0.0s)
+  stderr: non-loopback listen "2001:db8::1" requires explicit confirmation
+PASS S2 global IPv6 listen is refused without the flag rc=2
+PASS S2 ipv6 guard: no runtime config was written /work/evidence/f03-work/ipv6-guard/config.json
+PASS S2 ipv6 guard: no Nginx config was written /work/evidence/f03-work/ipv6-guard/nginx.conf
+PASS S2 ipv6 guard: no Nginx fragments were written /work/evidence/f03-work/ipv6-guard/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/ipv6-allow/config.json --nginx-out /work/evidence/f03-work/ipv6-allow/nginx.conf --fragments-out /work/evidence/f03-work/ipv6-allow/fragments --json --listen 2001:db8::1 --allow-non-loopback (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "2001:db8::1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@[2001:db8::1]:10086?encryption=none&security=none&type=ws&path=/ray/&host=2001%3Adb8%3A%3A1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: '2001:db8::1'\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S2 --allow-non-loopback accepts a global IPv6 listen {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "2001:db8::1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3
+$ /work/xray/xray -test -config /work/evidence/f03-work/ipv6-allow/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.457884 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/ipv6-allow/config.json Format:json}
+          2026/11/16 18:25:48.458667 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S2 2001:db8::1: real xray -test accepts the generated config r anti-censorship.
+2026/11/16 18:25:48.457884 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/ipv6-allow/config.json Format:json}
+2026/11/16 18:25:48.458667 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/invalid-listen/config.json --nginx-out /work/evidence/f03-work/invalid-listen/nginx.conf --fragments-out /work/evidence/f03-work/invalid-listen/fragments --json --listen not-an-ip --allow-non-loopback (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "not-an-ip",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@not-an-ip:10086?encryption=none&security=none&type=ws&path=/ray/&host=not-an-ip#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: not-an-ip\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S2 invalid listen text is accepted at generate time (recorded gap) {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "not-an-ip",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-333
+$ /work/xray/xray -test -config /work/evidence/f03-work/invalid-listen/config.json (rc=23 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          Failed to start: main: failed to load config files: [/work/evidence/f03-work/invalid-listen/config.json] > infra/conf: failed to build inbound config with tag VLESS-ws-in > infra/conf: unable to listen on domain address: not-an-ip
+PASS S2 real xray -test rejects the unvalidated listen address Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+Failed to start: main: failed to load config files: [/work/evidence/f03-work/invalid-listen/config.json] > infra/conf: failed to build inbound config with tag VLESS-ws-in > infra/conf: unable to listen on domain address: not-an-ip
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/grpc/config.json --nginx-out /work/evidence/f03-work/grpc/nginx.conf --fragments-out /work/evidence/f03-work/grpc/fragments --json --transport grpc (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "grpc",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=grpc&serviceName=idleleo-grpc#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: grpc\n    udp: true\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "warnings": []
+          }
+PASS S3 none/grpc generate succeeds {
+  "mode": "none",
+  "transport": "grpc",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3
+PASS S3 gRPC inbound identity VLESS-gRPC-in/grpc
+PASS S3 gRPC stream settings match Bash {"idle_timeout": 20, "multiMode": true, "serviceName": "idleleo-grpc"}
+PASS S3 gRPC keeps loopback and the primary port 127.0.0.1:10086
+PASS S3 share carries type=grpc and the service name grpc/idleleo-grpc
+PASS S3 gRPC Clash proxy is cleartext proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 10086
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: grpc
+    udp: true
+    grpc-opts:
+      grpc-service-name: idleleo-grpc
+
+$ /work/xray/xray -test -config /work/evidence/f03-work/grpc/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.490848 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/grpc/config.json Format:json}
+          2026/11/16 18:25:48.493499 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S3 grpc: real xray -test accepts the generated config for anti-censorship.
+2026/11/16 18:25:48.490848 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/grpc/config.json Format:json}
+2026/11/16 18:25:48.493499 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/xhttp/config.json --nginx-out /work/evidence/f03-work/xhttp/nginx.conf --fragments-out /work/evidence/f03-work/xhttp/fragments --json --transport xhttp (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "xhttp",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=xhttp&path=/ray/&host=127.0.0.1#idleleo-none",
+            "warnings": [
+              "clash-xhttp-unsupported"
+            ]
+          }
+PASS S3 none/xhttp generate succeeds {
+  "mode": "none",
+  "transport": "xhttp",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-
+PASS S3 xHTTP inbound identity VLESS-xhttp-in/xhttp
+PASS S3 xHTTP mode is auto auto
+PASS S3 standalone xHTTP inherits the default /ray/ path /ray/
+PASS S3 share carries type=xhttp and the path xhttp//ray/
+PASS S3 xHTTP refuses to fake a Clash proxy ["clash-xhttp-unsupported"]
+$ /work/xray/xray -test -config /work/evidence/f03-work/xhttp/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.513379 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/xhttp/config.json Format:json}
+          Configuration OK.
+PASS S3 xhttp: real xray -test accepts the generated config Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/16 18:25:48.513379 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/xhttp/config.json Format:json}
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/multi-pinned/config.json --nginx-out /work/evidence/f03-work/multi-pinned/nginx.conf --fragments-out /work/evidence/f03-work/multi-pinned/fragments --json --transport ws+grpc+xhttp --port 12086 --ws-port 12443 --grpc-port 12444 --xhttp-port 12445 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws+grpc+xhttp",
+            "port": 12086,
+            "publicPort": 12086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:12086?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 12086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": [
+              "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"
+            ]
+          }
+PASS S3 multi pinned generate succeeds {
+  "mode": "none",
+  "transport": "ws+grpc+xhttp",
+  "port": 12086,
+  "publicPort": 12086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "c
+PASS S3 multi has three transports ["grpc", "ws", "xhttp"]
+PASS S3 multi ws is the primary inbound and uses --port 12086
+PASS S3 pinned grpc/xhttp ports are honoured 12444/12445
+PASS S3 default multi keeps every inbound on loopback {"ws": "127.0.0.1", "grpc": "127.0.0.1", "xhttp": "127.0.0.1"}
+PASS S3 added xHTTP uses the /xhttp/ path /xhttp/
+PASS S3 multi warns that only the primary share link is emitted ["multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"]
+PASS S3 routing covers all three inbounds 
+$ /work/xray/xray -test -config /work/evidence/f03-work/multi-pinned/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.532250 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/multi-pinned/config.json Format:json}
+          2026/11/16 18:25:48.536046 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/16 18:25:48.536057 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S3 multi pinned: real xray -test accepts the generated config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/16 18:25:48.536057 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/multi-auto/config.json --nginx-out /work/evidence/f03-work/multi-auto/nginx.conf --fragments-out /work/evidence/f03-work/multi-auto/fragments --json --transport ws+grpc+xhttp --port 12086 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws+grpc+xhttp",
+            "port": 12086,
+            "publicPort": 12086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:12086?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 12086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": [
+              "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"
+            ]
+          }
+PASS S3 multi auto generate succeeds {
+  "mode": "none",
+  "transport": "ws+grpc+xhttp",
+  "port": 12086,
+  "publicPort": 12086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "c
+PASS S3 auto multi ws stays on --port 12086
+PASS S3 auto gRPC port comes from the 10000-10999 pool 10000
+PASS S3 auto xHTTP port comes from the 11000-11999 pool 11000
+PASS S3 auto ports are distinct {"ws": 12086, "grpc": 10000, "xhttp": 11000}
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/multi-nonlocal/config.json --nginx-out /work/evidence/f03-work/multi-nonlocal/nginx.conf --fragments-out /work/evidence/f03-work/multi-nonlocal/fragments --json --transport ws+grpc+xhttp --port 12086 --grpc-port 12444 --xhttp-port 12445 --listen 10.10.0.5 --allow-non-loopback (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws+grpc+xhttp",
+            "port": 12086,
+            "publicPort": 12086,
+            "listen": "10.10.0.5",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@10.10.0.5:12086?encryption=none&security=none&type=ws&path=/ray/&host=10.10.0.5#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 10.10.0.5\n    port: 12086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": [
+              "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"
+            ]
+          }
+PASS S3 multi accepts an explicit non-loopback listen with the flag {
+  "mode": "none",
+  "transport": "ws+grpc+xhttp",
+  "port": 12086,
+  "publicPort": 12086,
+  "listen": "10.10.0.5",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "c
+PASS S3 every added transport follows --listen (Bash parity) {"ws": "10.10.0.5", "grpc": "10.10.0.5", "xhttp": "10.10.0.5"}
+$ /work/xray/xray -test -config /work/evidence/f03-work/multi-nonlocal/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.554188 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/multi-nonlocal/config.json Format:json}
+          2026/11/16 18:25:48.557315 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/16 18:25:48.557418 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S3 multi non-loopback: real xray -test accepts the generated config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/16 18:25:48.557418 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/grpc-equals-primary/config.json --nginx-out /work/evidence/f03-work/grpc-equals-primary/nginx.conf --fragments-out /work/evidence/f03-work/grpc-equals-primary/fragments --json --transport ws+grpc+xhttp --grpc-port 10086 (rc=2 0.0s)
+  stderr: grpc port 10086 is already used by another inbound
+PASS S3 grpc-equals-primary exits 2 rc=2
+PASS S3 grpc-equals-primary explains the refusal grpc port 10086 is already used by another inbound
+
+PASS S3 grpc-equals-primary: no runtime config was written /work/evidence/f03-work/grpc-equals-primary/config.json
+PASS S3 grpc-equals-primary: no Nginx config was written /work/evidence/f03-work/grpc-equals-primary/nginx.conf
+PASS S3 grpc-equals-primary: no Nginx fragments were written /work/evidence/f03-work/grpc-equals-primary/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/xhttp-equals-primary/config.json --nginx-out /work/evidence/f03-work/xhttp-equals-primary/nginx.conf --fragments-out /work/evidence/f03-work/xhttp-equals-primary/fragments --json --transport ws+grpc+xhttp --xhttp-port 10086 (rc=2 0.01s)
+  stderr: xhttp port 10086 is already used by another inbound
+PASS S3 xhttp-equals-primary exits 2 rc=2
+PASS S3 xhttp-equals-primary explains the refusal xhttp port 10086 is already used by another inbound
+
+PASS S3 xhttp-equals-primary: no runtime config was written /work/evidence/f03-work/xhttp-equals-primary/config.json
+PASS S3 xhttp-equals-primary: no Nginx config was written /work/evidence/f03-work/xhttp-equals-primary/nginx.conf
+PASS S3 xhttp-equals-primary: no Nginx fragments were written /work/evidence/f03-work/xhttp-equals-primary/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/grpc-equals-xhttp/config.json --nginx-out /work/evidence/f03-work/grpc-equals-xhttp/nginx.conf --fragments-out /work/evidence/f03-work/grpc-equals-xhttp/fragments --json --transport ws+grpc+xhttp --grpc-port 12444 --xhttp-port 12444 (rc=2 0.0s)
+  stderr: xhttp port 12444 is already used by another inbound
+PASS S3 grpc-equals-xhttp exits 2 rc=2
+PASS S3 grpc-equals-xhttp explains the refusal xhttp port 12444 is already used by another inbound
+
+PASS S3 grpc-equals-xhttp: no runtime config was written /work/evidence/f03-work/grpc-equals-xhttp/config.json
+PASS S3 grpc-equals-xhttp: no Nginx config was written /work/evidence/f03-work/grpc-equals-xhttp/nginx.conf
+PASS S3 grpc-equals-xhttp: no Nginx fragments were written /work/evidence/f03-work/grpc-equals-xhttp/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/xhttp-out-of-range/config.json --nginx-out /work/evidence/f03-work/xhttp-out-of-range/nginx.conf --fragments-out /work/evidence/f03-work/xhttp-out-of-range/fragments --json --transport ws+grpc+xhttp --xhttp-port 70000 (rc=2 0.0s)
+  stderr: xhttp port must be between 1 and 65535
+PASS S3 xhttp-out-of-range exits 2 rc=2
+PASS S3 xhttp-out-of-range explains the refusal xhttp port must be between 1 and 65535
+
+PASS S3 xhttp-out-of-range: no runtime config was written /work/evidence/f03-work/xhttp-out-of-range/config.json
+PASS S3 xhttp-out-of-range: no Nginx config was written /work/evidence/f03-work/xhttp-out-of-range/nginx.conf
+PASS S3 xhttp-out-of-range: no Nginx fragments were written /work/evidence/f03-work/xhttp-out-of-range/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/raw/config.json --nginx-out /work/evidence/f03-work/raw/nginx.conf --fragments-out /work/evidence/f03-work/raw/fragments --json --transport raw (rc=2 0.0s)
+  stderr: unsupported transport "raw" for mode none
+PASS S3 raw is not a no-TLS transport unsupported transport "raw" for mode none
+
+PASS S3 raw: no runtime config was written /work/evidence/f03-work/raw/config.json
+PASS S3 raw: no Nginx config was written /work/evidence/f03-work/raw/nginx.conf
+PASS S3 raw: no Nginx fragments were written /work/evidence/f03-work/raw/fragments
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/public-port/config.json --nginx-out /work/evidence/f03-work/public-port/nginx.conf --fragments-out /work/evidence/f03-work/public-port/fragments --json --public-port 8443 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 8443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:8443?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 8443\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S4 --public-port generate succeeds {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 8443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3333
+PASS S4 publicPort is separate from the inbound port 10086/8443
+PASS S4 the runtime inbound is unchanged 127.0.0.1:10086
+PASS S4 share URI uses the public port 8443
+PASS S4 Clash uses the public port proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 8443
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: ws
+    udp: true
+    ws-opts:
+      path: /ray/
+
+PASS S4 no-TLS mode still writes no Nginx artifacts 
+$ /work/xray/xray -test -config /work/evidence/f03-work/public-port/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.584324 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/public-port/config.json Format:json}
+          2026/11/16 18:25:48.586642 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S4 public port: real xray -test accepts the generated config  anti-censorship.
+2026/11/16 18:25:48.584324 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/public-port/config.json Format:json}
+2026/11/16 18:25:48.586642 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/overwrite/config.json --json (rc=2 0.01s)
+  stderr: refusing to overwrite existing file (use --force)
+PASS S5 existing output is refused without --force rc=2
+PASS S5 refusal leaves the original bytes untouched 
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/overwrite/config.json --force --json (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS S5 --force overwrites the output {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-333
+PASS S5 forced output is a real config 
+$ /work/bin/idleleo xray generate --mode none --uuid cccccccc-3333-4333-8333-333333333333 --out /work/evidence/f03-work/upper-transport/config.json --nginx-out /work/evidence/f03-work/upper-transport/nginx.conf --fragments-out /work/evidence/f03-work/upper-transport/fragments --json --transport GRPC (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "grpc",
+            "port": 10086,
+            "publicPort": 10086,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "cccccccc-3333-4333-8333-333333333333",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "cccccccc-3333-4333-8333-333333333333",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=grpc&serviceName=idleleo-grpc#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 10086\n    uuid: cccccccc-3333-4333-8333-333333333333\n    network: grpc\n    udp: true\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "warnings": []
+          }
+PASS S5 transport names are case-insensitive {
+  "mode": "none",
+  "transport": "grpc",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+ 
+PASS S6 Bash template exists /work/repo/config/vless_tls.json
+PASS S6 template pins VLESS-ws-in on 127.0.0.1:10086 VLESS-ws-in 127.0.0.1:10086
+PASS S6 template spells the protocol uppercase VLESS
+PASS S6 template ws stream settings 
+PASS S6 template routing targets the ws inbound 
+PASS S6 Bash function update_json_config extracted 
+PASS S6 Bash function modify_listen_address extracted 
+PASS S6 Bash function modify_inbound_port extracted 
+PASS S6 Bash function add_ws_inbound extracted 
+PASS S6 Bash function add_grpc_inbound extracted 
+PASS S6 Bash function add_xhttp_inbound extracted 
+PASS S6 Bash function modify_path extracted 
+PASS S6 Bash function modify_email_address extracted 
+PASS S6 Bash function ws_backend_listen_default extracted 
+PASS S6 Bash function is_valid_listen_address extracted 
+PASS S6 Bash function resolve_ws_backend_listen_addr extracted 
+PASS S6 Bash function apply_install_profile extracted 
+PASS S6 Bash function transport_choose extracted 
+PASS S6 Bash defaults the no-TLS listen to loopback 
+PASS S6 Bash validates IPv4 and IPv6 listen addresses 
+PASS S6 Bash falls back to loopback for an invalid listen address 
+PASS S6 Bash resolves the no-TLS listen address 
+PASS S6 Bash rewrites VLESS-ws-in to the resolved listen address 
+PASS S6 Bash rewrites VLESS-gRPC-in to the resolved listen address 
+PASS S6 Bash rewrites VLESS-xhttp-in to the resolved listen address 
+PASS S6 Bash no-TLS ports come from xport/gport/xhttpport 
+PASS S6 Bash add_ws_inbound defaults to loopback 
+PASS S6 Bash gRPC template matches the Go stream settings 
+PASS S6 Bash xHTTP template matches the Go stream settings 
+PASS S6 Bash transport_only profile is the no-TLS branch 
+PASS S6 Bash menu 5 is ws+gRPC+xHTTP 
+$ bash /work/evidence/f03-work/bash/single-ws/run-baseline.sh (rc=0 0.02s)
+PASS S6 single-ws: extracted Bash functions run for real 
+PASS S6 single-ws Bash config was produced 
+PASS S6 Bash falls back to loopback when no address is chosen 127.0.0.1
+PASS S6 Bash applies xport to the ws inbound 12443
+PASS S6 Bash ws path /ray/
+$ /work/xray/xray -test -config /work/evidence/f03-work/bash/single-ws/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.642190 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/bash/single-ws/config.json Format:json}
+          2026/11/16 18:25:48.642200 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S6 bash single ws: real xray -test accepts the generated config ti-censorship.
+2026/11/16 18:25:48.642190 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/bash/single-ws/config.json Format:json}
+2026/11/16 18:25:48.642200 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ bash /work/evidence/f03-work/bash/multi-loopback/run-baseline.sh (rc=0 0.07s)
+PASS S6 multi-loopback: extracted Bash functions run for real 
+PASS S6 multi-loopback Bash config was produced 
+PASS S6 Bash baseline has three transports ["grpc", "ws", "xhttp"]
+PASS S6 Bash default multi listens on loopback everywhere {"ws": "127.0.0.1", "grpc": "127.0.0.1", "xhttp": "127.0.0.1"}
+PASS S6 Bash applies xport/gport/xhttpport {"ws": 12443, "grpc": 12444, "xhttp": 12445}
+$ /work/xray/xray -test -config /work/evidence/f03-work/bash/multi-loopback/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.720136 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/bash/multi-loopback/config.json Format:json}
+          2026/11/16 18:25:48.723163 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/16 18:25:48.723253 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S6 bash multi loopback: real xray -test accepts the generated config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/16 18:25:48.723253 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ bash /work/evidence/f03-work/bash/multi-nonloopback/run-baseline.sh (rc=0 0.07s)
+PASS S6 multi-nonloopback: extracted Bash functions run for real 
+PASS S6 multi-nonloopback Bash config was produced 
+PASS S6 Bash rewrites every added transport to the chosen address {"ws": "10.10.0.5", "grpc": "10.10.0.5", "xhttp": "10.10.0.5"}
+$ /work/xray/xray -test -config /work/evidence/f03-work/bash/multi-nonloopback/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 18:25:48.813669 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/f03-work/bash/multi-nonloopback/config.json Format:json}
+          2026/11/16 18:25:48.813853 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/16 18:25:48.813873 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S6 bash multi non-loopback: real xray -test accepts the generated config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/16 18:25:48.813873 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+

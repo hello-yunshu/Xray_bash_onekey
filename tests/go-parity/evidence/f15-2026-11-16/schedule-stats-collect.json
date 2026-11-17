@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "at": "2026-11-16T15:20:30Z",
+      "detail": "server=127.0.0.1:54535 bytes=453",
+      "job": "stats-collect",
+      "result": "ok"
+    }
+  ],
+  "root": "/work/evidence/stats-work/schedule-root",
+  "schemaVersion": 1,
+  "startedAt": "2026-11-16T15:20:30Z"
+}

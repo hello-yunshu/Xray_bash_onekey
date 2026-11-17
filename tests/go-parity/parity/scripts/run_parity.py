@@ -16,7 +16,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-PIN = '0fa7052e51b9bd7e6ffb46bc86befb006034da3c'
+PIN = '3b2a5045fec4535e189a0b25ca27dc534945bab5'
 
 
 def run(cmd, **kwargs):

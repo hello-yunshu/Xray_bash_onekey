@@ -1,0 +1,260 @@
+== F15 go=/work/bin/idleleo bash=/work/repo host=aarch64
+PASS Bash xray_stats.sh baseline is present /work/repo/scripts/xray_stats.sh
+$ /work/xray version (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+PASS real Xray Stats API is listening 127.0.0.1:54535
+PASS real Xray HTTP inbound is listening 44045
+PASS HTTP proxy request reached the origin HTTP/1.1 200 OK
+Content-Length: 65536
+Connection: keep-alive
+Content-Type: ap
+PASS origin body came back through Xray 
+$ /work/xray api statsquery --server=127.0.0.1:54535 -pattern inbound>>> -reset=false (rc=0 0.01s)
+  stdout: {
+              "stat": [
+                  {
+                      "name": "inbound>>>http-in>>>traffic>>>uplink",
+                      "value": 83
+                  },
+                  {
+                      "name": "inbound>>>http-in>>>traffic>>>downlink",
+                      "value": 65769
+                  },
+                  {
+                      "name": "inbound>>>api-in>>>traffic>>>uplink",
+                      "value": 182
+                  },
+                  {
+                      "name": "inbound>>>api-in>>>traffic>>>downlink"
+                  }
+              ]
+          }
+PASS StatsService recorded inbound uplink 83
+PASS StatsService recorded inbound downlink >= body size 65769
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --json (rc=0 0.01s)
+  stdout: {
+            "stat": [
+              {
+                "name": "inbound>>>http-in>>>traffic>>>uplink",
+                "value": 83
+              },
+              {
+                "name": "inbound>>>http-in>>>traffic>>>downlink",
+                "value": 65769
+              },
+              {
+                "name": "inbound>>>api-in>>>traffic>>>uplink",
+                "value": 635
+              },
+              {
+                "name": "inbound>>>api-in>>>traffic>>>downlink"
+              }
+            ]
+          }
+PASS stats --json exit 0 rc=0 
+PASS Go --json passes the raw stat array through <class 'list'>
+PASS Go JSON uplink equals direct statsquery 83 vs 83
+PASS Go JSON downlink equals direct statsquery 65769 vs 65769
+PASS Go JSON is passthrough, not the Bash schema 
+$ /work/xray api statssys --server=127.0.0.1:54535 (rc=0 0.01s)
+  stdout: {
+              "Alloc": 2106784,
+              "Frees": 5112,
+              "LiveObjects": 8415,
+              "Mallocs": 13527,
+              "NumGC": 4,
+              "NumGoroutine": 23,
+              "PauseTotalNs": 4341032,
+              "Sys": 15587592,
+              "TotalAlloc": 2642904
+          }
+$ /work/xray api statssys --server=127.0.0.1:54535 (rc=0 0.02s)
+  stdout: {
+              "Alloc": 2160896,
+              "Frees": 5145,
+              "LiveObjects": 9154,
+              "Mallocs": 14299,
+              "NumGC": 4,
+              "NumGoroutine": 32,
+              "PauseTotalNs": 4341032,
+              "Sys": 15587592,
+              "TotalAlloc": 2697016
+          }
+$ /work/xray api statssys --server=127.0.0.1:54535 (rc=0 0.02s)
+  stdout: {
+              "Alloc": 2293488,
+              "Frees": 5202,
+              "LiveObjects": 10222,
+              "Mallocs": 15424,
+              "NumGC": 4,
+              "NumGoroutine": 52,
+              "PauseTotalNs": 4341032,
+              "Sys": 15587592,
+              "TotalAlloc": 2829608
+          }
+$ /work/xray api statssys --server=127.0.0.1:54535 (rc=0 0.01s)
+  stdout: {
+              "Alloc": 2348104,
+              "Frees": 5250,
+              "LiveObjects": 11116,
+              "Mallocs": 16366,
+              "NumGC": 4,
+              "NumGoroutine": 69,
+              "PauseTotalNs": 4341032,
+              "Sys": 15587592,
+              "TotalAlloc": 2884224
+          }
+$ /work/xray api statssys --server=127.0.0.1:54535 (rc=0 0.01s)
+  stdout: {
+              "Alloc": 2364088,
+              "Frees": 5259,
+              "LiveObjects": 11336,
+              "Mallocs": 16595,
+              "NumGC": 4,
+              "NumGoroutine": 61,
+              "PauseTotalNs": 4341032,
+              "Sys": 15587592,
+              "TotalAlloc": 2900208,
+              "Uptime": 1
+          }
+PASS direct statssys returns Uptime {
+    "Alloc": 2364088,
+    "Frees": 5259,
+    "LiveObjects": 11336,
+    "Mallocs": 16595,
+    "NumGC": 4,
+    "NumGoroutine": 61,
+    "PauseTotalNs": 4341032,
+
+$ bash /work/repo/scripts/xray_stats.sh --config /work/evidence/stats-work/sandbox/etc/idleleo/conf/xray/config.json --json (rc=0 0.05s)
+  stdout: {
+            "schemaVersion": 1,
+            "version": "1.2.0",
+            "server": "127.0.0.1:54535",
+            "uptimeSeconds": 1,
+            "reset": false,
+            "inbounds": [
+              {
+                "tag": "api-in",
+                "uplinkBytes": 4621,
+                "downlinkBytes": 936,
+                "totalBytes": 5557
+              },
+              {
+                "tag": "http-in",
+                "uplinkBytes": 83,
+                "downlinkBytes": 65769,
+                "totalBytes": 65852
+              }
+            ]
+          }
+PASS Bash stats baseline exit 0 rc=0 
+PASS Bash uplink equals direct statsquery 83 vs 83
+PASS Bash downlink equals direct statsquery 65769 vs 65769
+PASS Bash total is uplink+downlink 65852
+PASS Bash reports the same API server 127.0.0.1:54535
+PASS Bash reports the traffic inbound tag ['api-in', 'http-in']
+PASS Bash and Go observe the same inbound tag set bash=['api-in', 'http-in'] go=['api-in', 'http-in']
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats (rc=0 0.02s)
+  stdout: inbound>>>http-in>>>traffic>>>uplink=83
+          inbound>>>http-in>>>traffic>>>downlink=65769
+          inbound>>>api-in>>>traffic>>>uplink=5333
+          inbound>>>api-in>>>traffic>>>downlink=1251
+PASS stats text exit 0 rc=0
+PASS text uplink matches statsquery 83
+PASS text downlink matches statsquery 65769
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --json --pattern inbound>>>http-in>>>traffic>>>downlink (rc=0 0.01s)
+  stdout: {
+            "stat": [
+              {
+                "name": "inbound>>>http-in>>>traffic>>>downlink",
+                "value": 65769
+              }
+            ]
+          }
+PASS stats --pattern exit 0 rc=0
+PASS pattern returns exactly the requested counter ['inbound>>>http-in>>>traffic>>>downlink']
+PASS stats queries leave the root tree byte-identical a65499f0e76f -> a65499f0e76f
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --watch (rc=2 0.0s)
+  stderr: unknown flag: --watch
+PASS stats --watch is refused with exit 2 rc=2
+PASS stats --watch refusal names the unknown flag unknown flag: --watch
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --reset (rc=2 0.0s)
+  stderr: unknown flag: --reset
+PASS stats --reset is refused with exit 2 rc=2
+PASS stats --reset refusal names the unknown flag unknown flag: --reset
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --yes (rc=2 0.0s)
+  stderr: unknown flag: --yes
+PASS stats --yes is refused with exit 2 rc=2
+PASS stats --yes refusal names the unknown flag unknown flag: --yes
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --timeout nope (rc=2 0.0s)
+  stderr: invalid --timeout
+PASS invalid --timeout exits 2 rc=2
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --path ../escape.json (rc=2 0.0s)
+  stderr: stats --path must be a relative path inside --root (unsafe relative path)
+PASS path traversal exits 2 rc=2
+PASS path traversal error is explicit stats --path must be a relative path inside --root (unsafe relative path)
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --json --path etc/idleleo/conf/xray/noapi.json (rc=3 0.0s)
+  stderr: stats unavailable: stats/api.listen is not configured
+PASS missing api.listen exits 3 rc=3
+PASS missing api.listen is explained stats unavailable: stats/api.listen is not configured
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --path etc/idleleo/conf/xray/bad.json (rc=3 0.0s)
+  stderr: runtime config is not valid JSON
+PASS invalid config JSON exits 3 rc=3
+PASS invalid JSON is explained runtime config is not valid JSON
+$ /work/bin/idleleo --root /work/evidence/stats-work/empty-root stats (rc=3 0.0s)
+  stderr: stats unavailable: no runtime config at /work/evidence/stats-work/empty-root/etc/idleleo/conf/xray/config.json
+PASS missing runtime config exits 3 rc=3
+$ setpriv --reuid=65534 --regid=65534 --clear-groups /work/bin/idleleo stats --json (rc=5 0.0s)
+  stderr: stats query requires root
+PASS non-root stats exits 5 rc=5
+PASS non-root refusal is explicit stats query requires root
+$ setpriv --reuid=65534 --regid=65534 --clear-groups bash /work/repo/scripts/xray_stats.sh --config /work/evidence/stats-work/sandbox/etc/idleleo/conf/xray/config.json --json (rc=5 0.0s)
+  stderr: xray_stats: 统计查询需要 root 权限
+PASS Bash non-root baseline also exits 5 rc=5
+$ /work/bin/idleleo --root /work/evidence/stats-work/schedule-root schedule run --job stats-collect --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/stats-work/schedule-root",
+            "startedAt": "2026-11-16T15:20:30Z",
+            "results": [
+              {
+                "job": "stats-collect",
+                "result": "ok",
+                "detail": "server=127.0.0.1:54535 bytes=453",
+                "at": "2026-11-16T15:20:30Z"
+              }
+            ]
+          }
+PASS schedule stats-collect exits 0 rc=0 
+PASS schedule ran stats-collect stats-collect
+PASS schedule stats-collect result ok ok
+PASS schedule wrote stats.json /work/evidence/stats-work/schedule-root/var/lib/idleleo/schedule/stats.json
+PASS saved stats.json retains the inbound uplink 83
+PASS stats.json is 0640 0o640
+PASS schedule stats-collect leaves the runtime config untouched 
+PASS Xray API is down 
+$ /work/bin/idleleo --root /work/evidence/stats-work/sandbox stats --json (rc=8 3.02s)
+  stderr: stats query failed (exit 1): failed to dial 127.0.0.1:54535
+PASS stats with the API down exits 8 rc=8
+PASS API-down error is explicit stats query failed (exit 1): failed to dial 127.0.0.1:54535
+$ bash /work/repo/scripts/xray_stats.sh --config /work/evidence/stats-work/sandbox/etc/idleleo/conf/xray/config.json --json (rc=2 3.03s)
+  stderr: xray_stats: Xray 未运行或统计 API 不可达 127.0.0.1:54535
+PASS Bash API-down baseline exits 2 (documented divergence) rc=2
+$ /work/bin/idleleo --root /work/evidence/stats-work/schedule-root schedule run --job stats-collect --json (rc=1 9.66s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/stats-work/schedule-root",
+            "startedAt": "2026-11-16T15:20:37Z",
+            "results": [
+              {
+                "job": "stats-collect",
+                "result": "failed",
+                "detail": "statsquery exit 1: failed to dial 127.0.0.1:54535",
+                "at": "2026-11-16T15:20:37Z"
+              }
+            ]
+          }
+PASS schedule stats-collect fails when the API is down rc=1
+PASS schedule reports the Stats failure explicitly failed

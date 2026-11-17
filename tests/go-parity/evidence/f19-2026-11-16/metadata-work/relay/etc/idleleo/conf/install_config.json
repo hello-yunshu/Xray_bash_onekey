@@ -1,0 +1,11 @@
+{
+  "role": "relay",
+  "shell_mode": "Relay",
+  "host": "203.0.113.20",
+  "port": 443,
+  "tls": "None",
+  "net": "tcp",
+  "reality_add_nginx": "off",
+  "shell_version": "3.3.4",
+  "xray_version": "26.10.31"
+}

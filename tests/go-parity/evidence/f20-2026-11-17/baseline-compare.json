@@ -1,0 +1,92 @@
+{
+  "bashScript": "scripts/fail2ban_manager.sh",
+  "bashScriptSha256": "8400787a9585ef591a7480e843e7e166a7d861256693df9950d4e1c2402f4b39",
+  "entries": [
+    {
+      "aligned": true,
+      "path": "jail.d/nginx-badbots.local",
+      "status": "aligned"
+    },
+    {
+      "aligned": true,
+      "path": "jail.d/nginx-botsearch.local",
+      "status": "aligned"
+    },
+    {
+      "aligned": true,
+      "path": "jail.d/nginx-no-host.local",
+      "status": "aligned"
+    },
+    {
+      "aligned": true,
+      "path": "jail.d/nginx-tls-error.local",
+      "status": "aligned"
+    },
+    {
+      "aligned": true,
+      "path": "jail.d/zzz-idleleo-incremental.local",
+      "status": "aligned"
+    },
+    {
+      "aligned": true,
+      "path": "jail.local",
+      "status": "aligned"
+    },
+    {
+      "aligned": true,
+      "path": "filter.d/nginx-no-host.conf",
+      "status": "aligned"
+    },
+    {
+      "aligned": true,
+      "path": "filter.d/nginx-tls-error.conf",
+      "status": "aligned"
+    },
+    {
+      "detail": "both sides skip without an SSH unit/journal",
+      "path": "sshd.local",
+      "status": "aligned"
+    },
+    {
+      "detail": "Go prints apt/dnf/apk hints and never runs the package manager (G13)",
+      "path": "package installation",
+      "status": "approved-difference"
+    },
+    {
+      "detail": "Go removes manifest entries only; Bash deletes globs (ED-002)",
+      "path": "uninstall scope",
+      "status": "approved-difference"
+    },
+    {
+      "detail": "Go writes zzz-idleleo-trust.local; Bash edits the jail file",
+      "path": "trust persistence",
+      "status": "approved-difference"
+    },
+    {
+      "detail": "Go only toggles manifest-owned files",
+      "path": "jail enable/disable ownership",
+      "status": "approved-difference"
+    },
+    {
+      "detail": "container has no systemd; only the warning and serviceRestarted=false were observed",
+      "path": "systemd restart",
+      "status": "gap"
+    },
+    {
+      "detail": "no sshd service or journal in the container",
+      "path": "SSH journal trigger",
+      "status": "gap"
+    },
+    {
+      "detail": "bans were created through fail2ban-client, not by real log traffic",
+      "path": "iptables data plane",
+      "status": "gap"
+    },
+    {
+      "detail": "container ships 1.0.2; 1.1.x compatibility is not covered here",
+      "path": "fail2ban 1.1.x",
+      "status": "gap"
+    }
+  ],
+  "fixture": "F20"
+}

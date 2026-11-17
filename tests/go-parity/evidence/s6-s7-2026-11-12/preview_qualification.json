@@ -1,0 +1,72 @@
+{
+  "banner": "PREVIEW \u2014 NOT FOR RELEASE",
+  "releaseAuthority": false,
+  "channel": "preview",
+  "generatedAt": "20261111T174307Z",
+  "containerEvidence": "image:ba3717581040",
+  "githubActions": false,
+  "githubSha": "",
+  "goBin": "/work/bin/idleleo",
+  "goBinSha256": "b5747775a21c3a762f9bd36c81fd67c9f05f0b88f3417faf542a110394aaeb1d",
+  "bashRepo": "/work/repo",
+  "installShSha256": "4e793c1f7a6a1143492b7df90f8089b6b5fe788ebd4436f34d410472a516ee72",
+  "releaseGateSha256": "d7493b289af919d9c38087176ff4fea8d4b8fbc5aae68bec792db9350e542564",
+  "featureLedgerSha256": "bfe3386e3a2565d3281d9956242d04b9d4d5a489c9e44994b65522af68a38d72",
+  "releaseLedgerStatus": "28/28 PENDING_GO_IMPLEMENTATION",
+  "features": [
+    {
+      "id": "F01",
+      "fixture": "F01_test.py",
+      "returncode": 0,
+      "timed_out": false,
+      "elapsed_seconds": 7.26,
+      "evidence_level": "CONTAINER_VERIFIED",
+      "status": "PASS"
+    },
+    {
+      "id": "F05",
+      "fixture": "F05_test.py",
+      "returncode": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.07,
+      "evidence_level": "CONTAINER_VERIFIED",
+      "status": "PASS"
+    },
+    {
+      "id": "F11",
+      "fixture": "F11_test.py",
+      "returncode": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.28,
+      "evidence_level": "CONTAINER_VERIFIED",
+      "status": "PASS"
+    },
+    {
+      "id": "F26",
+      "fixture": "F26_test.py",
+      "returncode": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.04,
+      "evidence_level": "CONTAINER_VERIFIED",
+      "status": "PASS"
+    },
+    {
+      "id": "F27",
+      "fixture": "F27_test.py",
+      "returncode": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.07,
+      "evidence_level": "CONTAINER_VERIFIED",
+      "status": "PASS"
+    },
+    {
+      "id": "F28",
+      "fixture": "F28_test.py",
+      "returncode": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.07,
+      "evidence_level": "CONTAINER_VERIFIED",
+      "status": "PASS"
+    }
+  ]
+}

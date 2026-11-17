@@ -1,0 +1,9 @@
+commit=b016f2f3b4d761f3b75cb6ec59f1e295db91e512
+image=idleleo-preview:latest@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+level=CONTAINER_VERIFIED + LOCAL_RELEASE_ORIGIN (loopback HTTP manifest signed with a throwaway ed25519 key)
+date=2026-11-16T15:12:30Z
+fixture=tests/go-parity/parity/features/F14_test.py
+command=python3 -I /work/repo/tests/go-parity/parity/features/F14_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo
+result=62 passed, 0 failed, exit 0, 0.85s
+go_bin_sha256=bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8
+notes=release binaries are omitted from the evidence copy; their digests are in the JSON reports

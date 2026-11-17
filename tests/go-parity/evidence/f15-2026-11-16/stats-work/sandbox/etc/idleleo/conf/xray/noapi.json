@@ -1,0 +1,27 @@
+{
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 44045,
+      "protocol": "http",
+      "settings": {},
+      "tag": "http-in"
+    }
+  ],
+  "log": {
+    "loglevel": "warning"
+  },
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "direct"
+    }
+  ],
+  "policy": {
+    "system": {
+      "statsInboundDownlink": true,
+      "statsInboundUplink": true
+    }
+  },
+  "stats": {}
+}

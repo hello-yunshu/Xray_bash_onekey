@@ -6,7 +6,7 @@ set -euo pipefail
 
 NGINX_IMAGE="${NGINX_IMAGE:-nginx:1.27}"
 NGINX_DIGEST="sha256:6784fb0834aa7dbbe12e3d7471e69c290df3e6ba810dc38b34ae33d3c1c05f7d"
-BIN_IMAGE="${BIN_IMAGE:-idleleo-phase01-test:1.24}"
+BIN_IMAGE="${BIN_IMAGE:-idleleo-phase01-test:1.27.4}"
 WORK="$(mktemp -d)"
 NET="idleleo-p02-relay-$$"
 

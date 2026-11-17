@@ -1,0 +1,23 @@
+{
+  "shell_mode": "xHTTP ONLY",
+  "transport_mode": "onlyxhttp",
+  "host": "2001:db8::42",
+  "ip_version": "IPv4",
+  "network_mode": "ipv4",
+  "ipv4_address": "2001:db8::42",
+  "ipv6_address": "",
+  "ws_port": "None",
+  "grpc_port": "None",
+  "xhttp_port": "11147",
+  "tls": "None",
+  "email": "78ac@hey.run",
+  "idc": "0889",
+  "id": "<redacted-uuid>",
+  "net": "xHTTP",
+  "path": "None",
+  "serviceName": "None",
+  "xhttp_path": "bd11",
+  "shell_version": "3.3.6",
+  "xray_version": "26.10.31",
+  "privateKey": "REDACTED"
+}

@@ -1,0 +1,32 @@
+F24 — product container delivery (CONTAINER_VERIFIED)
+date: 2026-11-17
+branch: develop/go-native
+host: macOS (arm64) + Docker Desktop
+image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+go: golang:1.27.4 (CGO_ENABLED=0, -mod=vendor, -trimpath)
+goBin: /work/bin/idleleo sha256=b4bb84a9beb2bc80acad4410e61a77c70fe30ad0100fc2e79fb92720a651ce87
+install.sh sha256=d76b3181a198e8aab225564d36f89ec46c6267e0c115ca354f5db4e86b1f5b68
+docker/Dockerfile sha256=76bdceab883a13b284d1cc1425c72fc7b478f996ddc6c2f86b4d24974ee27c3a
+docker/docker-entrypoint.sh sha256=b8943e5811917f3765a0ea88e473079c1d32acaa28764c939a71ac55af4eb81e
+
+run1: 58 passed, 0 failed, 1.14s
+run2: 58 passed, 0 failed, 1.19s
+fixture: tests/go-parity/parity/features/F24_test.py sha256=e15693de729b5b70c5b3493a3a97a1a93d48ea331b8780ab5f4c48b2e0ed27b4
+gate: python3 -I ... --go-bin /work/bin/idleleo --bash-repo /work/repo
+unit: go test ./internal/container ./internal/cli (ok)
+hygiene: 0 finding(s) in 17 file(s)
+
+scenarios:
+  S1 empty sandbox status is read-only (58 checks total)
+  S2 real nginx + stand-in xray: dry-run, real up, pid/log
+  S3 idempotent up (same pids, nothing started)
+  S4 down stops both; second down no-op
+  S5 real-root gate, unmarked sandbox, unknown flags
+  S6 Dockerfile/entrypoint/fake-systemctl/DOCKER.md contract
+  S7 Bash _start_services/_stop_services baseline (start/stop xray+nginx)
+
+gaps (unchanged):
+  - no real systemd branch exercised; validated on a real VPS instead
+  - xray is a stand-in script; nginx is real but no client traffic
+  - no docker build in this round (no network/DinD guarantee)
+  - Docker Desktop/Podman/non-Linux hosts not covered

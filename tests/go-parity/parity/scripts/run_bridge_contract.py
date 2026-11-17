@@ -62,7 +62,11 @@ with tempfile.TemporaryDirectory(prefix='idleleo-bridge-cli-') as wd:
  q=go(r,'inspect');check('xtls-rejected',q.returncode==2 and not (r/'var/lib/idleleo/transactions/bridge-v2.json').exists(),q.stderr)
  r=create('candidate-change','reality')
  check('candidate-change-prepare',go(r,'prepare').returncode==0)
- with (r/'opt/idleleo/bin/idleleo').open('ab') as f:f.write(b'changed')
+ # Replace atomically: appending to a running Linux binary fails with ETXTBSY.
+ candidate=r/'opt/idleleo/bin/idleleo'
+ changed=candidate.with_suffix('.changed')
+ changed.write_bytes(candidate.read_bytes()+b'changed')
+ os.replace(changed,candidate)
  check('candidate-change-blocked',go(r,'activate').returncode!=0)
  r=create('entry-change','reality');check('entry-change-prepare',go(r,'prepare').returncode==0)
  entry=r/'usr/bin/idleleo';entry.unlink();entry.write_text('unrelated')

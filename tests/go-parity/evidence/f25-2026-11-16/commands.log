@@ -1,0 +1,523 @@
+== F25 go=/work/bin/idleleo bash=/work/repo host=aarch64
+PASS Bash install.sh baseline is present /work/repo/install.sh
+PASS Bash -tcp entry references the legacy tcp.sh # back, and never downloads a third-party script. The legacy tcp.sh keeps
+PASS Bash -tcp entry no longer downloads the script 
+PASS Bash -tcp entry still executes a local tcp.sh 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp status (rc=0 0.0s)
+  stdout: {
+            "supported": true,
+            "goos": "linux",
+            "kernelRelease": "6.8.0-test",
+            "availableCongestion": [
+              "cubic",
+              "bbr",
+              "reno"
+            ],
+            "current": {
+              "net.core.default_qdisc": "fq_codel",
+              "net.ipv4.tcp_congestion_control": "cubic"
+            },
+            "managedFile": {
+              "path": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+              "exists": false,
+              "owned": false,
+              "mode": 0,
+              "uid": 0,
+              "gid": 0,
+              "values": {}
+            },
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "sources": [],
+            "effective": {
+              "net.core.default_qdisc": "",
+              "net.ipv4.tcp_congestion_control": ""
+            },
+            "conflicts": [],
+            "warnings": []
+          }
+PASS tcp status exits 0 rc=0 
+PASS status reports linux support 
+PASS status lists bbr as available ['cubic', 'bbr', 'reno']
+PASS status reports no managed file 
+PASS status reports no journal None
+PASS status leaves the runtime value alone 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp plan (rc=0 0.01s)
+  stdout: {
+            "profile": "bbr-fq",
+            "supported": true,
+            "kernelSupportsBbr": true,
+            "keys": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq_codel",
+                "new": "fq"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "cubic",
+                "new": "bbr"
+              }
+            ],
+            "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+            "fileAction": "create",
+            "fileExisted": false,
+            "fileOwned": false,
+            "fileMode": 0,
+            "fileContent": "# Managed by Xray_bash_onekey (Go): idleleo tcp\n# Profile: bbr-fq\n# Rollback: idleleo tcp rollback\n# Do not edit; use the idleleo CLI so rollback stays accurate.\nnet.core.default_qdisc = fq\nnet.ipv4.tcp_congestion_control = bbr\n",
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "conflicts": [],
+            "restartRequired": false,
+            "noop": false,
+            "impact": [
+              "writes only /work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+              "applies only net.core.default_qdisc, net.ipv4.tcp_congestion_control through /proc/sys; no sysctl --system replay",
+              "runtime change is immediate; after reboot the persisted file re-applies the profile",
+              "does not install a kernel, BBRPlus, SharpSpeed or a third-party script"
+            ]
+          }
+PASS tcp plan exits 0 rc=0
+PASS plan previews a create create
+PASS plan confirms bbr support 
+PASS plan previews two sysctl keys 2
+PASS initial plan is not a no-op 
+PASS plan states that no third-party script is installed 
+PASS plan writes no managed file 
+PASS status+plan leave the root unchanged 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary tcp apply (rc=2 0.0s)
+  stderr: tcp apply needs --confirm (or an interactive TTY confirmation)
+PASS unconfirmed non-TTY apply exits 2 rc=2
+PASS unconfirmed apply names --confirm tcp apply needs --confirm (or an interactive TTY confirmation)
+$ /work/bin/idleleo --root /work/evidence/tcp-work/unmarked tcp apply --confirm (rc=2 0.0s)
+  stderr: tcp mutation requires a marked disposable sandbox: sandbox marker required: open /work/evidence/tcp-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+PASS unmarked root apply exits 2 rc=2
+PASS unmarked refusal explains the sandbox gate tcp mutation requires a marked disposable sandbox: sandbox marker required: open /work/evidence/tcp-work/unmarked/.idleleo-phase01-sandbox: no such file or dire
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp apply --confirm (rc=0 0.01s)
+  stdout: {
+            "changed": true,
+            "noop": false,
+            "profile": "bbr-fq",
+            "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "applied": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq_codel",
+                "new": "fq"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "cubic",
+                "new": "bbr"
+              }
+            ],
+            "message": "profile applied"
+          }
+PASS apply --confirm exits 0 rc=0 
+PASS apply reports a change 
+PASS apply is not a no-op 
+PASS apply changed two keys 2
+PASS sandbox qdisc is fq 
+PASS sandbox congestion control is bbr 
+PASS managed sysctl file exists 
+PASS managed file carries the ownership marker 
+PASS managed file is 0644 0o644
+PASS apply writes a rollback journal 
+PASS journal is committed after apply 
+PASS journal records the applied hash 
+PASS journal snapshots the old congestion control 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp status (rc=0 0.01s)
+  stdout: {
+            "supported": true,
+            "goos": "linux",
+            "kernelRelease": "6.8.0-test",
+            "availableCongestion": [
+              "cubic",
+              "bbr",
+              "reno"
+            ],
+            "current": {
+              "net.core.default_qdisc": "fq",
+              "net.ipv4.tcp_congestion_control": "bbr"
+            },
+            "managedFile": {
+              "path": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+              "exists": true,
+              "owned": true,
+              "mode": 420,
+              "uid": 0,
+              "gid": 0,
+              "sha256": "5ce4959f226928fcfe0d04055e09354a7a8dc1054140feee9507c2a5788f7183",
+              "values": {
+                "net.core.default_qdisc": "fq",
+                "net.ipv4.tcp_congestion_control": "bbr"
+              }
+            },
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "state": {
+              "version": 1,
+              "profile": "bbr-fq",
+              "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+              "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+              "fileExisted": false,
+              "fileMode": 0,
+              "fileUid": 0,
+              "fileGid": 0,
+              "targetHash": "5ce4959f226928fcfe0d04055e09354a7a8dc1054140feee9507c2a5788f7183",
+              "appliedHash": "5ce4959f226928fcfe0d04055e09354a7a8dc1054140feee9507c2a5788f7183",
+              "oldValues": {
+                "net.core.default_qdisc": "fq_codel",
+                "net.ipv4.tcp_congestion_control": "cubic"
+              },
+              "newValues": {
+                "net.core.default_qdisc": "fq",
+                "net.ipv4.tcp_congestion_control": "bbr"
+              },
+              "appliedKeys": [
+                "net.core.default_qdisc",
+                "net.ipv4.tcp_congestion_control"
+              ],
+              "pending": false,
+              "createdAtUtc": "2026-11-16T15:28:26Z"
+            },
+            "sources": [
+              {
+                "path": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+                "name": "90-idleleo-tcp.conf",
+                "ours": true,
+                "values": {
+                  "net.core.default_qdisc": "fq",
+                  "net.ipv4.tcp_congestion_control": "bbr"
+                },
+                "priority": 0
+              }
+            ],
+            "effective": {
+              "net.core.default_qdisc": "fq",
+              "net.ipv4.tcp_congestion_control": "bbr"
+            },
+            "conflicts": [],
+            "warnings": []
+          }
+PASS post-apply status sees an owned file 
+PASS post-apply status sees a committed journal 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary tcp status (rc=0 0.01s)
+  stdout: supported: true
+          goos: linux
+          kernel: 6.8.0-test
+          congestion: cubic bbr reno
+          managed: path=/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf exists=true owned=true mode=0644 sha256=5ce4959f226928fcfe0d04055e09354a7a8dc1054140feee9507c2a5788f7183
+          current: net.core.default_qdisc=fq net.ipv4.tcp_congestion_control=bbr
+          state: profile=bbr-fq pending=false applied=true
+PASS status text names the managed profile supported: true
+goos: linux
+kernel: 6.8.0-test
+congestion: cubic bbr reno
+managed: path=/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf exists=true owned=true mode=0644 sha256=5ce4959
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp apply --confirm (rc=0 0.0s)
+  stdout: {
+            "changed": false,
+            "noop": true,
+            "profile": "bbr-fq",
+            "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "applied": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq",
+                "new": "fq"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "bbr",
+                "new": "bbr"
+              }
+            ],
+            "message": "profile already applied; nothing changed"
+          }
+PASS second apply is a no-op {"changed": false, "noop": true, "profile": "bbr-fq", "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf", "statePath": "/work/eviden
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp rollback (rc=0 0.01s)
+  stdout: {
+            "changed": true,
+            "noop": false,
+            "profile": "bbr-fq",
+            "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "applied": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq",
+                "new": "fq_codel"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "bbr",
+                "new": "cubic"
+              }
+            ],
+            "message": "rollback complete"
+          }
+PASS rollback exits 0 rc=0 
+PASS rollback reports a change 
+PASS rollback restores congestion control 
+PASS rollback restores the qdisc 
+PASS rollback removes the file it created 
+PASS rollback removes the journal 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp rollback (rc=0 0.0s)
+  stdout: {
+            "changed": false,
+            "noop": true,
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "applied": [],
+            "message": "no project-owned TCP transaction to roll back"
+          }
+PASS journal-less rollback is a no-op {"changed": false, "noop": true, "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json", "applied": [], "message": "no project-owned TCP 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp apply --confirm (rc=0 0.01s)
+  stdout: {
+            "changed": true,
+            "noop": false,
+            "profile": "bbr-fq",
+            "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "applied": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq_codel",
+                "new": "fq"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "cubic",
+                "new": "bbr"
+              }
+            ],
+            "message": "profile applied"
+          }
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary tcp apply --confirm (rc=7 0.0s)
+  stderr: 检测到外部变更：managed sysctl file changed outside idleleo; refusing to overwrite (manual review required)
+PASS out-of-band drift refuses apply with exit 7 rc=7
+PASS drift refusal is explicit 检测到外部变更：managed sysctl file changed outside idleleo; refusing to overwrite (manual review required)
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary tcp rollback (rc=7 0.01s)
+  stderr: 检测到外部变更：managed sysctl file changed outside idleleo; refusing to roll back (manual review required)
+PASS out-of-band drift also refuses rollback with exit 7 rc=7
+PASS drift rollback refusal asks for manual review 检测到外部变更：managed sysctl file changed outside idleleo; refusing to roll back (manual review required)
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp rollback (rc=0 0.0s)
+  stdout: {
+            "changed": true,
+            "noop": false,
+            "profile": "bbr-fq",
+            "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "applied": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq",
+                "new": "fq_codel"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "bbr",
+                "new": "cubic"
+              }
+            ],
+            "message": "rollback complete"
+          }
+PASS rollback succeeds after the drift is removed rc=0
+PASS post-drift rollback restores the snapshot 
+PASS post-drift rollback removes the file and journal 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp apply --confirm (rc=0 0.0s)
+  stdout: {
+            "changed": true,
+            "noop": false,
+            "profile": "bbr-fq",
+            "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "applied": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq_codel",
+                "new": "fq"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "cubic",
+                "new": "bbr"
+              }
+            ],
+            "message": "profile applied"
+          }
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary tcp apply --confirm (rc=7 0.0s)
+  stderr: 检测到外部变更：a previous TCP transaction is pending; run `idleleo tcp rollback` first
+PASS pending journal blocks apply with exit 7 rc=7
+PASS pending refusal is explicit 检测到外部变更：a previous TCP transaction is pending; run `idleleo tcp rollback` first
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary --json tcp rollback (rc=0 0.0s)
+  stdout: {
+            "changed": true,
+            "noop": false,
+            "profile": "bbr-fq",
+            "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+            "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+            "applied": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq",
+                "new": "fq_codel"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "bbr",
+                "new": "cubic"
+              }
+            ],
+            "message": "rollback complete"
+          }
+PASS rollback recovers a pending journal rc=0
+PASS pending rollback restores the snapshot 
+PASS pending rollback removes the file and journal 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/foreign tcp apply --confirm (rc=7 0.01s)
+  stderr: 检测到外部变更：refusing to overwrite /work/evidence/tcp-work/foreign/etc/sysctl.d/90-idleleo-tcp.conf because it is not owned by idleleo
+PASS foreign managed file exits 7 rc=7
+PASS foreign-file refusal is explicit 检测到外部变更：refusing to overwrite /work/evidence/tcp-work/foreign/etc/sysctl.d/90-idleleo-tcp.conf because it is not owned by idleleo
+$ /work/bin/idleleo --root /work/evidence/tcp-work/override --json tcp plan (rc=0 0.0s)
+  stdout: {
+            "profile": "bbr-fq",
+            "supported": true,
+            "kernelSupportsBbr": true,
+            "keys": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq_codel",
+                "new": "fq"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "cubic",
+                "new": "bbr"
+              }
+            ],
+            "filePath": "/work/evidence/tcp-work/override/etc/sysctl.d/90-idleleo-tcp.conf",
+            "fileAction": "create",
+            "fileExisted": false,
+            "fileOwned": false,
+            "fileMode": 0,
+            "fileContent": "# Managed by Xray_bash_onekey (Go): idleleo tcp\n# Profile: bbr-fq\n# Rollback: idleleo tcp rollback\n# Do not edit; use the idleleo CLI so rollback stays accurate.\nnet.core.default_qdisc = fq\nnet.ipv4.tcp_congestion_control = bbr\n",
+            "statePath": "/work/evidence/tcp-work/override/var/lib/idleleo/tcp/state.json",
+            "conflicts": [
+              "/work/evidence/tcp-work/override/etc/sysctl.d/99-operator.conf sets net.ipv4.tcp_congestion_control=reno after etc/sysctl.d/90-idleleo-tcp.conf; that file wins"
+            ],
+            "restartRequired": false,
+            "noop": false,
+            "impact": [
+              "writes only /work/evidence/tcp-work/override/etc/sysctl.d/90-idleleo-tcp.conf",
+              "applies only net.core.default_qdisc, net.ipv4.tcp_congestion_control through /proc/sys; no sysctl --system replay",
+              "runtime change is immediate; after reboot the persisted file re-applies the profile",
+              "does not install a kernel, BBRPlus, SharpSpeed or a third-party script"
+            ]
+          }
+PASS plan reports the 99- operator conflict ['/work/evidence/tcp-work/override/etc/sysctl.d/99-operator.conf sets net.ipv4.tcp_congestion_control=reno after etc/sysctl.d/90-idleleo-tcp.conf; that file wins']
+$ /work/bin/idleleo --root /work/evidence/tcp-work/override tcp apply --confirm (rc=7 0.01s)
+  stderr: 检测到外部变更：conflicting sysctl configuration: /work/evidence/tcp-work/override/etc/sysctl.d/99-operator.conf sets net.ipv4.tcp_congestion_control=reno after etc/sysctl.d/90-idleleo-tcp.conf; that file wins
+PASS conflicting apply exits 7 rc=7
+$ /work/bin/idleleo --root /work/evidence/tcp-work/symlink tcp apply --confirm (rc=1 0.0s)
+  stderr: symlink refused: /work/evidence/tcp-work/symlink/etc/sysctl.d/90-idleleo-tcp.conf
+PASS symlinked managed file is refused explicitly rc=1 symlink refused: /work/evidence/tcp-work/symlink/etc/sysctl.d/90-idleleo-tcp.conf
+
+PASS symlink target is never written 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/primary tcp plan --profile bbrplus (rc=2 0.0s)
+  stderr: unknown profile "bbrplus" (supported: bbr-fq)
+PASS unknown profile exits 2 rc=2
+$ /work/bin/idleleo --root /work/evidence/tcp-work/nobbr --json tcp plan (rc=0 0.0s)
+  stdout: {
+            "profile": "bbr-fq",
+            "supported": true,
+            "kernelSupportsBbr": false,
+            "keys": [
+              {
+                "key": "net.core.default_qdisc",
+                "old": "fq_codel",
+                "new": "fq"
+              },
+              {
+                "key": "net.ipv4.tcp_congestion_control",
+                "old": "cubic",
+                "new": "bbr"
+              }
+            ],
+            "filePath": "/work/evidence/tcp-work/nobbr/etc/sysctl.d/90-idleleo-tcp.conf",
+            "fileAction": "create",
+            "fileExisted": false,
+            "fileOwned": false,
+            "fileMode": 0,
+            "fileContent": "# Managed by Xray_bash_onekey (Go): idleleo tcp\n# Profile: bbr-fq\n# Rollback: idleleo tcp rollback\n# Do not edit; use the idleleo CLI so rollback stays accurate.\nnet.core.default_qdisc = fq\nnet.ipv4.tcp_congestion_control = bbr\n",
+            "statePath": "/work/evidence/tcp-work/nobbr/var/lib/idleleo/tcp/state.json",
+            "conflicts": [
+              "running kernel does not list bbr; apply is refused (no kernel replacement is attempted)"
+            ],
+            "restartRequired": false,
+            "noop": false,
+            "impact": [
+              "writes only /work/evidence/tcp-work/nobbr/etc/sysctl.d/90-idleleo-tcp.conf",
+              "applies only net.core.default_qdisc, net.ipv4.tcp_congestion_control through /proc/sys; no sysctl --system replay",
+              "runtime change is immediate; after reboot the persisted file re-applies the profile",
+              "does not install a kernel, BBRPlus, SharpSpeed or a third-party script"
+            ]
+          }
+PASS plan reports missing bbr support 
+PASS plan explains the missing bbr 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/nobbr tcp apply --confirm (rc=12 0.01s)
+  stderr: 不支持的模式：running kernel does not list bbr; apply refused (no kernel replacement)
+PASS kernel without bbr refuses apply with exit 12 rc=12
+PASS missing-bbr refusal is explicit 不支持的模式：running kernel does not list bbr; apply refused (no kernel replacement)
+PASS refused apply writes neither file nor journal 
+$ setpriv --reuid=65534 --regid=65534 --clear-groups /work/bin/idleleo --root / tcp apply --confirm (rc=6 0.0s)
+  stderr: 权限不足：tcp apply requires root
+PASS non-root real-root apply exits 6 rc=6 权限不足：tcp apply requires root
+
+$ setpriv --reuid=65534 --regid=65534 --clear-groups /work/bin/idleleo --root /work/evidence/tcp-work/rootless --json tcp status (rc=0 0.01s)
+  stdout: {
+            "supported": true,
+            "goos": "linux",
+            "kernelRelease": "6.8.0-test",
+            "availableCongestion": [
+              "cubic",
+              "bbr",
+              "reno"
+            ],
+            "current": {
+              "net.core.default_qdisc": "fq_codel",
+              "net.ipv4.tcp_congestion_control": "cubic"
+            },
+            "managedFile": {
+              "path": "/work/evidence/tcp-work/rootless/etc/sysctl.d/90-idleleo-tcp.conf",
+              "exists": false,
+              "owned": false,
+              "mode": 0,
+              "uid": 0,
+              "gid": 0,
+              "values": {}
+            },
+            "statePath": "/work/evidence/tcp-work/rootless/var/lib/idleleo/tcp/state.json",
+            "sources": [],
+            "effective": {
+              "net.core.default_qdisc": "",
+              "net.ipv4.tcp_congestion_control": ""
+            },
+            "conflicts": [],
+            "warnings": []
+          }
+PASS non-root tcp status is allowed rc=0 
+PASS non-root status still reports support 
+$ /work/bin/idleleo --root /work/evidence/tcp-work/isolated tcp apply --confirm (rc=0 0.01s)
+  stdout: apply: changed=true noop=false profile=bbr-fq file=/work/evidence/tcp-work/isolated/etc/sysctl.d/90-idleleo-tcp.conf
+          key: net.core.default_qdisc: fq_codel -> fq
+          key: net.ipv4.tcp_congestion_control: cubic -> bbr
+          message: profile applied
+PASS apply works with a poisoned PATH rc=0
+$ /work/bin/idleleo --root /work/evidence/tcp-work/isolated tcp rollback (rc=0 0.0s)
+  stdout: rollback: changed=true noop=false profile=bbr-fq file=/work/evidence/tcp-work/isolated/etc/sysctl.d/90-idleleo-tcp.conf
+          key: net.core.default_qdisc: fq -> fq_codel
+          key: net.ipv4.tcp_congestion_control: bbr -> cubic
+          message: rollback complete
+PASS rollback works with a poisoned PATH rc=0
+PASS apply/rollback never call curl, wget or tcp.sh 
+PASS real tcp_congestion_control is unchanged cubic
+PASS real default_qdisc is unchanged unavailable

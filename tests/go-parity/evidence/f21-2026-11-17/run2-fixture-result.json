@@ -1,0 +1,10 @@
+{
+  "bashRepo": "/work/repo",
+  "elapsedSeconds": 3.99,
+  "failed": 0,
+  "fixture": "F21",
+  "goBin": "/work/bin/idleleo",
+  "goBinSha256": "cf9e804f43e70f7b2dfd49692a7aa6f6d39809822262dfcdc40d80159b22496d",
+  "hostMachine": "aarch64",
+  "passed": 79
+}

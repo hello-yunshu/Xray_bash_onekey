@@ -1,0 +1,49 @@
+F18-QR evidence: `xray share --qr`
+date: 2026-11-17
+evidence level: CONTAINER_VERIFIED (real Go binary + real qrencode 4.1.1;
+no phone/decode scan, no real VPS, no network)
+
+container image
+  idleleo-e2e@sha256:3012978e415b9bec250f738ddc7246a64837896fbeb52ed27571d8f3b8b24002
+  qrencode 4.1.1 at /usr/bin/qrencode
+
+inputs
+  idleleo  sha256 05b816fc72a53be7d92ad7484147c008855f62f7f8833f027143f5e9a59f1461
+           built with golang:1.27.4, -trimpath, CGO_ENABLED=0
+  install.sh (Bash baseline) sha256 d76b3181a198e8aab225564d36f89ec46c6267e0c115ca354f5db4e86b1f5b68
+  go.mod / go.sum / vendor/: unchanged (no new dependency)
+
+runs (one fresh container each)
+  run1: 178 passed, 0 failed, 0.08 s
+  run2: 178 passed, 0 failed, 0.09 s
+
+what was verified
+  S1 default text share has no `qr:` line, no U+2588 glyph and never mentions
+     qrencode; `--json` output is unchanged.
+  S2 `share --qr` prints `qr:` followed by the matrix; the matrix bytes equal
+     `printf %s "$uri" | qrencode -o - -t utf8` byte for byte
+     (sha256 6e6fbf7cfe63f00620a2e80f3c8937398d9a9daf23ee9da8621cd13b02e582b2,
+     4994 bytes, 31 newlines for the run2 URI).
+  S3 `--json --qr` exits 2 without a matrix; a PATH without qrencode exits 1
+     with an install hint and zero stdout; unknown share flags still exit 2.
+  S4 the Bash baseline still pipes every link through
+     `echo -n "$link" | qrencode -o - -t utf8` at 10 call sites; Go uses the
+     same binary and arguments, only the trigger differs (--qr is opt-in).
+  S5 all pre-existing F18 URI/Clash/guard assertions still pass.
+
+not verified (registered in the spec)
+  * no phone or decoder scan; correctness is asserted as byte identity with
+    qrencode plus the block-glyph structure.
+  * terminal font width / line wrapping not exercised.
+  * qrencode versions other than 4.1.1 not exercised.
+  * Bash printing QR codes automatically in the install menu was not executed.
+
+evidence layout
+  meta.txt                  this file
+  commands.log              both runs, every command with rc/stdout/stderr
+  observed.json             fixture observations (run2)
+  baseline-compare.json     aligned / approved-difference contracts (run2)
+  qr-compare.json           URI, Go matrix sha, qrencode sha, bytes, lines
+  run1-fixture-result.json  run1 pass/fail and binary sha
+  run2-fixture-result.json  run2 pass/fail and binary sha
+  f18-work/                 generated configs used by the fixture (no secrets)

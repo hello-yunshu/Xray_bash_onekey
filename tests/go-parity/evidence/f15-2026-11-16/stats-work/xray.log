@@ -1,0 +1,27 @@
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/16 15:20:29.375909 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/stats-work/sandbox/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/16 15:20:29.377413 [Warning] core: Xray 26.11.9 started
+2026/11/16 15:20:29.474716 from 127.0.0.1:57962 accepted http://127.0.0.1:37093/payload [http-in >> direct]
+2026/11/16 15:20:29.482909 from 127.0.0.1:45674 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:29.494257 from 127.0.0.1:45702 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:29.494344 from 127.0.0.1:45716 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:29.782058 from 127.0.0.1:57816 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:29.782193 from 127.0.0.1:57820 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:29.782294 from 127.0.0.1:57822 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.050578 from 127.0.0.1:57846 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.051438 from 127.0.0.1:57848 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.051552 from 127.0.0.1:57858 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.051681 from 127.0.0.1:57866 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.051794 from 127.0.0.1:57870 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.051905 from 127.0.0.1:57878 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.313629 from 127.0.0.1:57882 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.313755 from 127.0.0.1:57886 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.313819 from 127.0.0.1:57894 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.313859 from 127.0.0.1:57898 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.313901 from 127.0.0.1:57910 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.606840 from 127.0.0.1:57924 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.626386 from 127.0.0.1:57942 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.649570 from 127.0.0.1:57948 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.649646 from 127.0.0.1:57952 accepted tcp:127.0.0.1:54535 [api-in >> direct]
+2026/11/16 15:20:30.662885 from 127.0.0.1:57978 accepted tcp:127.0.0.1:54535 [api-in >> direct]

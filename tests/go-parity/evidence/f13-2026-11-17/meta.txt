@@ -1,0 +1,35 @@
+F13 — component update contract (`update xray|nginx`) (CONTAINER_VERIFIED)
+date: 2026-11-17
+branch: develop/go-native
+host: macOS (arm64) + Docker Desktop
+image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+go: golang:1.27.4 (CGO_ENABLED=0, -mod=vendor, -trimpath)
+goBin: /work/bin/idleleo sha256=b4bb84a9beb2bc80acad4410e61a77c70fe30ad0100fc2e79fb92720a651ce87
+install.sh sha256=d76b3181a198e8aab225564d36f89ec46c6267e0c115ca354f5db4e86b1f5b68
+fixture: tests/go-parity/parity/features/F13_test.py sha256=a5d4e0e49a3ba4dae8895d40e534e0f57006371f9a7559c7d9dde70eaec82567
+
+run1: 58 passed, 0 failed, 0.59s
+run2: 58 passed, 0 failed, 0.60s
+gate: python3 -I ... --go-bin /work/bin/idleleo --bash-repo /work/repo
+unit: go test ./internal/componentupdate ./internal/cli (ok)
+hygiene: 0 finding(s) in 64 file(s)
+
+scenarios:
+  S1 loopback HTTP manifest + real digest: 1.8.20 -> 1.8.24, backup keeps old bytes, no restart
+  S2 equal version is action=reinstall and refreshes the backup
+  S3 downgrade 1.8.24 -> 1.8.10 rc=4 with zero writes
+  S4 sha256 mismatch rc=5, zero writes
+  S5 sizeBytes mismatch rc=5, zero writes
+  S6 candidate `run -test` exits 1 -> rc=6, rolledBack=true, old bytes restored
+  S7 nginx tar.gz tree replaces usr/local/nginx; real nginx -t via the artifact shim; backup keeps the old tree
+  S8 bad nginx artifact -> rc=6 and the whole tree digest is restored
+  S9 manifest/flag/root gates: 2 or 3 with zero writes (broken JSON, wrong component,
+     unsupported schemaVersion, missing or non-positive sizeBytes, bad version, 404,
+     missing file, real root, unmarked sandbox)
+  S10 Go CompareVersions == Bash version_compare on 9 pairs (observed through downgrade/reinstall/update decisions)
+
+gaps (unchanged):
+  - no real VPS upgrade and no systemd restart branch exercised
+  - nginx artifact is a fixture tar.gz with a versioned shim that execs the real nginx for -t
+  - Bash interactive confirmation, CDN fallback and Layer 2/3 test rollback are out of scope
+  - a cross-device directory rename is reported as rc=13, never downgraded to a copy

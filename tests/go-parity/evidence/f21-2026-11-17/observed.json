@@ -1,0 +1,347 @@
+{
+  "apply": {
+    "applied": true,
+    "assetEnv": "created etc/systemd/system/xray.service.d/50-xray-geodata.conf",
+    "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)",
+    "domainStrategy": "IPIfNonMatch",
+    "newSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+    "oldSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+    "ownedRuleCount": 7,
+    "rules": [
+      {
+        "domain": [
+          "geosite:cn"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "ip": [
+          "geoip:cn"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "outboundTag": "blocked",
+        "protocol": [
+          "bittorrent"
+        ],
+        "type": "field"
+      },
+      {
+        "domain": [
+          "geosite:category-ads-all"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "ip": [
+          "geoip:private"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "domain": [
+          "domain:example.org"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "ip": [
+          "192.0.2.0/24"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "inboundTag": [
+          "VLESS-ws-in"
+        ],
+        "outboundTag": "direct",
+        "type": "field"
+      }
+    ],
+    "serviceRestarted": true,
+    "sniffing": [
+      {
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ],
+        "enabled": true,
+        "routeOnly": true
+      }
+    ],
+    "sniffingEnabled": true
+  },
+  "applySecond": {
+    "ads": true,
+    "applied": true,
+    "assetEnv": "reused existing XRAY_LOCATION_ASSET",
+    "backupDir": "/etc/idleleo/backup/block-20261116T192537Z",
+    "bittorrent": true,
+    "configPath": "/etc/idleleo/conf/xray/config.json",
+    "configured": true,
+    "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)",
+    "countries": [
+      "cn"
+    ],
+    "customDomains": {
+      "enabled": true,
+      "items": [
+        "example.org"
+      ]
+    },
+    "customIps": {
+      "enabled": true,
+      "items": [
+        "192.0.2.0/24"
+      ]
+    },
+    "domainStrategy": "IPIfNonMatch",
+    "drift": false,
+    "geoip": {
+      "mtime": "2026-11-16T19:25:36Z",
+      "path": "/etc/idleleo/share/xray/geoip.dat",
+      "size": 16467275
+    },
+    "geosite": {
+      "mtime": "2026-11-16T19:25:36Z",
+      "path": "/etc/idleleo/share/xray/geosite.dat",
+      "size": 11476856
+    },
+    "newSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+    "oldSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+    "ownedRuleCount": 7,
+    "privateIp": true,
+    "serviceRestarted": true,
+    "sniffingEnabled": true
+  },
+  "bash": {
+    "rc": 0,
+    "rules": [
+      {
+        "domain": [
+          "geosite:cn"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "ip": [
+          "geoip:cn"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "outboundTag": "blocked",
+        "protocol": [
+          "bittorrent"
+        ],
+        "type": "field"
+      },
+      {
+        "domain": [
+          "geosite:category-ads-all"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "ip": [
+          "geoip:private"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      }
+    ],
+    "state": {
+      "ads": true,
+      "bittorrent": true,
+      "country_block": [
+        "cn"
+      ],
+      "private_ip": true
+    }
+  },
+  "failures": {
+    "missingGeosite": {
+      "rc": 1
+    },
+    "unknownCountry": {
+      "ownedRuleCount": 9,
+      "rc": 1
+    },
+    "userSwallowAll": {
+      "rc": 1
+    }
+  },
+  "geo": {
+    "geoip": {
+      "sha256": "304ac8a1cbcc8166e4f5a4f32955e4d0fb77a1bd713583e371b30ee27f3659d8",
+      "size": 16467275
+    },
+    "geosite": {
+      "sha256": "269f7740e328b592376ea99f2adb12f83d5bc17b024e584c8a7b3706ba5c789d",
+      "size": 11476856
+    }
+  },
+  "install": {
+    "configSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+    "mode": "none",
+    "serviceActive": "active",
+    "serviceEnabled": "enabled",
+    "transport": "ws",
+    "validatorExit": 0
+  },
+  "legacyRules": [
+    {
+      "domain": [
+        "geosite:cn"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "ip": [
+        "geoip:cn"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "outboundTag": "blocked",
+      "protocol": [
+        "bittorrent"
+      ],
+      "type": "field"
+    },
+    {
+      "domain": [
+        "geosite:category-ads-all"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "ip": [
+        "geoip:private"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "domain": [
+        "domain:example.org"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "ip": [
+        "192.0.2.0/24"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "domain": [
+        "example.net"
+      ],
+      "outboundTag": "direct",
+      "type": "field"
+    },
+    {
+      "inboundTag": [
+        "VLESS-ws-in"
+      ],
+      "outboundTag": "direct",
+      "type": "field"
+    }
+  ],
+  "off": {
+    "applied": false,
+    "controlProbe": "not probed: block off only removes rules",
+    "domainStrategy": "AsIs",
+    "newSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+    "ownedRuleCount": 0,
+    "serviceRestarted": true,
+    "sniffingEnabled": false
+  },
+  "statusApplied": {
+    "ads": true,
+    "applied": true,
+    "bittorrent": true,
+    "configPath": "/etc/idleleo/conf/xray/config.json",
+    "configured": true,
+    "countries": [
+      "cn"
+    ],
+    "customDomains": {
+      "enabled": true,
+      "items": [
+        "example.org"
+      ]
+    },
+    "customIps": {
+      "enabled": true,
+      "items": [
+        "192.0.2.0/24"
+      ]
+    },
+    "domainStrategy": "IPIfNonMatch",
+    "drift": false,
+    "geoip": {
+      "mtime": "2026-11-16T19:25:36Z",
+      "path": "/etc/idleleo/share/xray/geoip.dat",
+      "size": 16467275
+    },
+    "geosite": {
+      "mtime": "2026-11-16T19:25:36Z",
+      "path": "/etc/idleleo/share/xray/geosite.dat",
+      "size": 11476856
+    },
+    "ownedRuleCount": 7,
+    "privateIp": true,
+    "serviceRestarted": false,
+    "sniffingEnabled": true
+  },
+  "statusInitial": {
+    "ads": false,
+    "applied": false,
+    "bittorrent": false,
+    "configPath": "/etc/idleleo/conf/xray/config.json",
+    "configured": false,
+    "countries": [],
+    "customDomains": {
+      "enabled": false,
+      "items": []
+    },
+    "customIps": {
+      "enabled": false,
+      "items": []
+    },
+    "domainStrategy": "AsIs",
+    "drift": false,
+    "geoip": {
+      "mtime": "2026-11-16T19:25:36Z",
+      "path": "/etc/idleleo/share/xray/geoip.dat",
+      "size": 16467275
+    },
+    "geosite": {
+      "mtime": "2026-11-16T19:25:36Z",
+      "path": "/etc/idleleo/share/xray/geosite.dat",
+      "size": 11476856
+    },
+    "ownedRuleCount": 0,
+    "privateIp": false,
+    "serviceRestarted": false,
+    "sniffingEnabled": false
+  }
+}

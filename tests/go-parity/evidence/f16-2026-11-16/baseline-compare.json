@@ -1,0 +1,65 @@
+{
+  "baseline": "scripts/geo_update.sh",
+  "entries": [
+    {
+      "bashEvidence": {
+        "file": "scripts/geo_update.sh",
+        "line": 95,
+        "snippet": "verify_checksum_file() {"
+      },
+      "contract": "checksum verification",
+      "goStatus": "aligned",
+      "note": "internal/geodata reads <asset>.sha256sum and verifies the sha256 of both assets before writing anything; a mismatch keeps the previous file."
+    },
+    {
+      "bashEvidence": {
+        "file": "scripts/geo_update.sh",
+        "line": 20,
+        "snippet": "release_latest=\"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest\""
+      },
+      "contract": "pinned release tag and geo_version.json metadata",
+      "goStatus": "different",
+      "note": "Go downloads from releases/latest/download (geodata.DefaultURL): no tag resolution, no version metadata, and no geo_version.json is written."
+    },
+    {
+      "bashEvidence": {
+        "file": "scripts/geo_update.sh",
+        "line": 193,
+        "snippet": "if ! XRAY_LOCATION_ASSET=\"${stage_dir}\" run_bounded 60 \"${xray_binary}\" run -test -config \"${stage_dir}/validation-config.json\" >/dev/null 2>&1; then"
+      },
+      "contract": "Xray run -test pre-validation",
+      "goStatus": "missing",
+      "note": "Go never invokes Xray to validate staged assets before installing them."
+    },
+    {
+      "bashEvidence": {
+        "file": "scripts/geo_update.sh",
+        "line": 153,
+        "snippet": "stage_dir=$(mktemp -d \"${geo_dir}/.geo-update.XXXXXX\")"
+      },
+      "contract": "stage-and-restore rollback",
+      "goStatus": "missing",
+      "note": "Go relies on verify-before-write: both assets are fetched and verified in memory, then written with writeAtomic; there is no stage dir or restore step."
+    },
+    {
+      "bashEvidence": {
+        "file": "scripts/geo_update.sh",
+        "line": 217,
+        "snippet": "if run_bounded 15 systemctl is-active --quiet xray 2>/dev/null; then was_active=true; fi"
+      },
+      "contract": "restart when Xray is active",
+      "goStatus": "different",
+      "note": "Go restarts xray only on the real root / when is-active reports active; a sandbox root records 'sandbox root, no service reload'."
+    },
+    {
+      "bashEvidence": {
+        "file": "install.sh",
+        "line": 14577,
+        "snippet": "# manages as a symlink into /etc/idleleo/share/xray. Back up the link as"
+      },
+      "contract": "old-layout migration",
+      "goStatus": "missing",
+      "note": "Go writes only etc/idleleo/share/xray; a foreign /usr/local/share/xray tree is neither migrated nor linked (asserted untouched in the success path)."
+    }
+  ]
+}

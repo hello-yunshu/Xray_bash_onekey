@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "at": "2026-11-16T15:12:40Z",
+      "detail": "updated  -> 0.2.0-phase04 sha256=bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8 health=idleleo 0.2.0-phase04 (go)",
+      "job": "auto-update",
+      "result": "ok"
+    }
+  ],
+  "root": "/work/evidence/f14/release-work/root",
+  "schemaVersion": 1,
+  "startedAt": "2026-11-16T15:12:40Z"
+}

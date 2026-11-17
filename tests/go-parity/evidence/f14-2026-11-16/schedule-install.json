@@ -1,0 +1,18 @@
+{
+  "alertServicePath": "/work/evidence/f14/release-work/root/etc/systemd/system/idleleo-alert.service",
+  "configPath": "/work/evidence/f14/release-work/root/etc/idleleo/schedule/jobs.json",
+  "degradedJobs": [
+    "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+  ],
+  "intervalSeconds": 3600,
+  "jobs": [
+    "auto-update",
+    "cert-renew",
+    "geodata-refresh",
+    "stats-collect"
+  ],
+  "schemaVersion": 1,
+  "servicePath": "/work/evidence/f14/release-work/root/etc/systemd/system/idleleo-schedule.service",
+  "systemd": "sandbox-not-queried",
+  "timerPath": "/work/evidence/f14/release-work/root/etc/systemd/system/idleleo-schedule.timer"
+}

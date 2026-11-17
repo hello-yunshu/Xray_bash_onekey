@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "lastRun": "2026-11-16T15:40:29Z",
+  "runs": 2,
+  "jobs": {
+    "geodata-refresh": {
+      "lastRun": "2026-11-16T15:40:29Z",
+      "result": "ok",
+      "detail": "geoip.dat=381 bytes geosite.dat=631 bytes; sandbox root, no service reload"
+    }
+  }
+}

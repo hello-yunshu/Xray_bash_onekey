@@ -1,0 +1,1 @@
+2026-11-16T15:40:29Z job=geodata-refresh result=failed detail=geoip.dat: sha256 mismatch (downloaded 92181dff9b3dd59eb119d25e16a68e95f00b062c449b78c564a842b4c43d7881, release says dda4ad00390e4f2fc5831a615d745562159ee6335c35f213d83ca0856240d544); keeping the previous file

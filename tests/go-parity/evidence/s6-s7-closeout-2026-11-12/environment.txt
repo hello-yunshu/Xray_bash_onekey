@@ -1,0 +1,9 @@
+repo_commit=284bfde43db91cffc00c4ef0cb9901f2348c9707
+repo_dirty_tracked=0
+untracked_evidence_dir=1
+branch=develop/go-native
+images=golang:1.27.4,ubuntu:24.04
+evidence_level=CONTAINER_VERIFIED
+date_utc=2026-11-11T19:04:36Z
+host_env=macOS host + docker (golang:1.27.4, ubuntu:24.04)
+note=go suites run on a copy of the tree without .git so -buildvcs stamping cannot fail inside the container

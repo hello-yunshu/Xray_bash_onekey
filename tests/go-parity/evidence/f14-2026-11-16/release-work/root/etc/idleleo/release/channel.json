@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "channel": "go",
+  "manifestUrl": "http://127.0.0.1:50123/manifest.json",
+  "installPath": "tmp/release/idleleo"
+}

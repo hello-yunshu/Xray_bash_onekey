@@ -1,0 +1,38 @@
+## cert renew --dry-run (existing pair)
+{
+  "domain": "example.com",
+  "certificateFile": "/tmp/probe/cert/xray.crt",
+  "keyFile": "/tmp/probe/cert/xray.key",
+  "notAfter": "2027-02-14T14:23:30Z",
+  "renewAt": "2027-01-15T14:23:30Z",
+  "renewBefore": "720h0m0s",
+  "due": false,
+  "reason": "next renewal at 2027-01-15T14:23:30Z (expires in 2160h0m0s)"
+}
+rc=0
+## .user-managed marker then renew
+{
+  "domain": "example.com",
+  "directoryUrl": "https://acme-staging-v02.api.letsencrypt.org/directory",
+  "accountUrl": "",
+  "orderUrl": "",
+  "certificateFile": "/tmp/probe/cert/xray.crt",
+  "keyFile": "/tmp/probe/cert/xray.key",
+  "issued": false,
+  "skipped": true,
+  "reason": "certificate is marked user-managed; renewal is external (pass --takeover to adopt it)"
+}
+rc=0
+## issue refuses user-managed without --takeover
+certificate /tmp/probe/cert/xray.crt is marked as user-managed; refusing to overwrite it (pass --takeover to adopt it)
+rc=1
+## dry-run with missing pair
+cert renew (dry-run): domain=example.com state=missing
+certificate: /tmp/probe/cert/xray.crt
+key: /tmp/probe/cert/xray.key
+renewBefore: 720h0m0s
+challenge: http-01 (webroot /tmp/probe/webroot)
+directory: https://acme-staging-v02.api.letsencrypt.org/directory
+reload: none (idleleo schedule reloads services after renewal)
+reason: certificate file does not exist
+rc=0

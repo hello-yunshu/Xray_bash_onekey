@@ -1,0 +1,200 @@
+=== RUN   TestValidTokenRejectsTraversal
+--- PASS: TestValidTokenRejectsTraversal (0.00s)
+=== RUN   TestReplacePairInstallsModes
+--- PASS: TestReplacePairInstallsModes (0.13s)
+=== RUN   TestReplacePairRejectsNonPEM
+--- PASS: TestReplacePairRejectsNonPEM (0.00s)
+=== RUN   TestReplacePairRestoresOldCertificateWhenKeyCannotBeInstalled
+--- PASS: TestReplacePairRestoresOldCertificateWhenKeyCannotBeInstalled (0.01s)
+=== RUN   TestReloadFailureRestoresPreviousPair
+--- PASS: TestReloadFailureRestoresPreviousPair (0.01s)
+=== RUN   TestWebrootProviderRejectsUnsafeToken
+--- PASS: TestWebrootProviderRejectsUnsafeToken (0.00s)
+=== RUN   TestWebrootProviderWritesAndRemovesToken
+--- PASS: TestWebrootProviderWritesAndRemovesToken (0.00s)
+=== RUN   TestIssueRequiresExplicitDirectory
+--- PASS: TestIssueRequiresExplicitDirectory (0.00s)
+=== RUN   TestIsAccountMissing
+--- PASS: TestIsAccountMissing (0.00s)
+=== RUN   TestApplyPairPermissionsLayered
+--- PASS: TestApplyPairPermissionsLayered (0.01s)
+=== RUN   TestUserManagedCertificateIsNotOverwritten
+--- PASS: TestUserManagedCertificateIsNotOverwritten (0.00s)
+=== RUN   TestMigrateLegacyAccountMovesState
+--- PASS: TestMigrateLegacyAccountMovesState (0.00s)
+=== RUN   TestMarkManagedWritesOwnershipMarker
+--- PASS: TestMarkManagedWritesOwnershipMarker (0.00s)
+=== RUN   TestMigrateLegacyAccountRefusesUnexpectedEntries
+--- PASS: TestMigrateLegacyAccountRefusesUnexpectedEntries (0.00s)
+=== RUN   TestAccountStateKeepsOneURLPerDirectory
+--- PASS: TestAccountStateKeepsOneURLPerDirectory (0.00s)
+=== RUN   TestInspectReportsMissingCertificate
+--- PASS: TestInspectReportsMissingCertificate (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/acme	0.161s
+=== RUN   TestXrayBalanceList
+--- PASS: TestXrayBalanceList (0.00s)
+=== RUN   TestXrayBalanceListJSON
+--- PASS: TestXrayBalanceListJSON (0.00s)
+=== RUN   TestXrayBalanceRefusesRealityNginx
+--- PASS: TestXrayBalanceRefusesRealityNginx (0.00s)
+=== RUN   TestXrayBalanceRequiresUpstreamAndHost
+--- PASS: TestXrayBalanceRequiresUpstreamAndHost (0.00s)
+=== RUN   TestCertDefaultsToStaging
+--- PASS: TestCertDefaultsToStaging (0.00s)
+=== RUN   TestCertProductionFlag
+--- PASS: TestCertProductionFlag (0.00s)
+=== RUN   TestCertDirectoryEnvOverride
+--- PASS: TestCertDirectoryEnvOverride (0.00s)
+=== RUN   TestCertExplicitDirectoryWins
+--- PASS: TestCertExplicitDirectoryWins (0.00s)
+=== RUN   TestCertAccountStateDefaultsOutsideCertTree
+--- PASS: TestCertAccountStateDefaultsOutsideCertTree (0.00s)
+=== RUN   TestCertProductionRunsStagingPreflightByDefault
+--- PASS: TestCertProductionRunsStagingPreflightByDefault (0.00s)
+=== RUN   TestCertNoStagingCheckSkipsPreflight
+--- PASS: TestCertNoStagingCheckSkipsPreflight (0.00s)
+=== RUN   TestCertExplicitDirectorySkipsPreflight
+--- PASS: TestCertExplicitDirectorySkipsPreflight (0.00s)
+=== RUN   TestCertRenewDryRunDoesNotContactCA
+--- PASS: TestCertRenewDryRunDoesNotContactCA (0.00s)
+=== RUN   TestCertUserManagedSkipsStagingPreflight
+--- PASS: TestCertUserManagedSkipsStagingPreflight (0.00s)
+=== RUN   TestCertTakeoverRunsStagingPreflight
+--- PASS: TestCertTakeoverRunsStagingPreflight (0.00s)
+=== RUN   TestChangeHardKillIsRecovered
+--- PASS: TestChangeHardKillIsRecovered (2.44s)
+=== RUN   TestChangeRealRootIsRefusedWithoutContainerAck
+--- PASS: TestChangeRealRootIsRefusedWithoutContainerAck (0.00s)
+=== RUN   TestChangeRealRootIsRefusedWithoutEnvAck
+--- PASS: TestChangeRealRootIsRefusedWithoutEnvAck (0.00s)
+=== RUN   TestChangeRollsBackWhenMetadataRefreshFails
+--- PASS: TestChangeRollsBackWhenMetadataRefreshFails (0.01s)
+=== RUN   TestChangeRealRootRequiresManagerMetadata
+--- PASS: TestChangeRealRootRequiresManagerMetadata (0.00s)
+=== RUN   TestChangeRefusesFaultOnRealRoot
+--- PASS: TestChangeRefusesFaultOnRealRoot (0.00s)
+=== RUN   TestXrayUserAddInSandbox
+--- PASS: TestXrayUserAddInSandbox (0.01s)
+=== RUN   TestVersionHelpAndNoTTY
+--- PASS: TestVersionHelpAndNoTTY (0.00s)
+=== RUN   TestHelpListsEveryTopLevelCommand
+--- PASS: TestHelpListsEveryTopLevelCommand (0.00s)
+=== RUN   TestSubcommandHelpIsNotExecuted
+--- PASS: TestSubcommandHelpIsNotExecuted (0.00s)
+=== RUN   TestStatsUnavailableIsReadOnly
+--- PASS: TestStatsUnavailableIsReadOnly (0.00s)
+=== RUN   TestUpdateUnconfiguredIsReadOnly
+--- PASS: TestUpdateUnconfiguredIsReadOnly (0.00s)
+=== RUN   TestPrintStatusPrintsAlertsFirst
+--- PASS: TestPrintStatusPrintsAlertsFirst (0.00s)
+=== RUN   TestStatusCommandShowsScheduledAlert
+--- PASS: TestStatusCommandShowsScheduledAlert (0.00s)
+=== RUN   TestStatusSeparatesNoAlertsFromUnreadableStore
+--- PASS: TestStatusSeparatesNoAlertsFromUnreadableStore (0.00s)
+=== RUN   TestScheduleStatusExitReflectsUnreadableAlerts
+--- PASS: TestScheduleStatusExitReflectsUnreadableAlerts (0.00s)
+=== RUN   TestScheduleAlertCommandWritesAlert
+--- PASS: TestScheduleAlertCommandWritesAlert (0.00s)
+=== RUN   TestScheduleAlertCommandFailsWhenAlertIsLost
+--- PASS: TestScheduleAlertCommandFailsWhenAlertIsLost (0.00s)
+=== RUN   TestScheduleRunExitsNonZeroOnFailedJob
+--- PASS: TestScheduleRunExitsNonZeroOnFailedJob (0.00s)
+=== RUN   TestStatusMissingRootCreatesNothing
+--- PASS: TestStatusMissingRootCreatesNothing (0.00s)
+=== RUN   TestStatusJSONAndNoWrites
+--- PASS: TestStatusJSONAndNoWrites (0.00s)
+=== RUN   TestStatusReportsDriftWithoutWriting
+--- PASS: TestStatusReportsDriftWithoutWriting (0.00s)
+=== RUN   TestInspectDoesNotModifyConfig
+--- PASS: TestInspectDoesNotModifyConfig (0.00s)
+=== RUN   TestChangeRequiresSandboxMarker
+--- PASS: TestChangeRequiresSandboxMarker (0.00s)
+=== RUN   TestChangeSuccessInSandbox
+--- PASS: TestChangeSuccessInSandbox (0.01s)
+=== RUN   TestUnknownCommand
+--- PASS: TestUnknownCommand (0.00s)
+=== RUN   TestInteractiveMenuExitsOnEOF
+--- PASS: TestInteractiveMenuExitsOnEOF (0.00s)
+=== RUN   TestUnknownFlagIsRejectedForEveryCommand
+--- PASS: TestUnknownFlagIsRejectedForEveryCommand (0.00s)
+=== RUN   TestMisspelledScheduleFlagNoLongerBecomesADefault
+--- PASS: TestMisspelledScheduleFlagNoLongerBecomesADefault (0.00s)
+=== RUN   TestKnownFlagFormsAreAccepted
+--- PASS: TestKnownFlagFormsAreAccepted (0.00s)
+=== RUN   TestFlagValueSupportsInlineValues
+--- PASS: TestFlagValueSupportsInlineValues (0.00s)
+=== RUN   TestStatsRejectsUnsafePathOverrides
+--- PASS: TestStatsRejectsUnsafePathOverrides (0.00s)
+=== RUN   TestStatsRejectsInvalidTimeout
+--- PASS: TestStatsRejectsInvalidTimeout (0.00s)
+=== RUN   TestSpeedtestJSONSchema
+--- PASS: TestSpeedtestJSONSchema (0.00s)
+=== RUN   TestSpeedtestFailsClosed
+--- PASS: TestSpeedtestFailsClosed (0.00s)
+=== RUN   TestSpeedtestReportsUnreachableServer
+--- PASS: TestSpeedtestReportsUnreachableServer (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	2.471s
+=== RUN   TestSetCertTargetRewritesTheRenewalTarget
+--- PASS: TestSetCertTargetRewritesTheRenewalTarget (0.05s)
+=== RUN   TestSetCertTargetReportsPathsOutsideRoot
+--- PASS: TestSetCertTargetReportsPathsOutsideRoot (0.00s)
+=== RUN   TestSetCertTargetWithoutScheduleIsANoOp
+--- PASS: TestSetCertTargetWithoutScheduleIsANoOp (0.00s)
+=== RUN   TestObserveCertPrefersTheConfiguredFile
+--- PASS: TestObserveCertPrefersTheConfiguredFile (0.00s)
+=== RUN   TestObserveCertFallsBackToTheLegacyDirectory
+--- PASS: TestObserveCertFallsBackToTheLegacyDirectory (0.00s)
+=== RUN   TestObserveCertChecksTheConfiguredKeyMode
+--- PASS: TestObserveCertChecksTheConfiguredKeyMode (0.00s)
+=== RUN   TestCertRenewJobReportsClearAlertFailure
+--- PASS: TestCertRenewJobReportsClearAlertFailure (0.00s)
+=== RUN   TestCertRenewJobReportsClearAlertFailureWhenNoRenewalIsDue
+--- PASS: TestCertRenewJobReportsClearAlertFailureWhenNoRenewalIsDue (0.00s)
+=== RUN   TestRunReportsLogWarningWithoutChangingResults
+--- PASS: TestRunReportsLogWarningWithoutChangingResults (0.00s)
+=== RUN   TestUnsafeConfigPathIsRejectedAtLoad
+--- PASS: TestUnsafeConfigPathIsRejectedAtLoad (0.00s)
+=== RUN   TestInstallRejectsUnsafeCertPath
+--- PASS: TestInstallRejectsUnsafeCertPath (0.00s)
+=== RUN   TestWriteAtomicCleansTempFilesOnFailure
+--- PASS: TestWriteAtomicCleansTempFilesOnFailure (0.00s)
+=== RUN   TestWriteAtomicConcurrentWritersKeepOneCompleteVersion
+--- PASS: TestWriteAtomicConcurrentWritersKeepOneCompleteVersion (0.09s)
+=== RUN   TestRunRecordsDegradedAndSkippedJobs
+--- PASS: TestRunRecordsDegradedAndSkippedJobs (0.01s)
+=== RUN   TestGeodataInterruptedDownloadKeepsOldAssets
+--- PASS: TestGeodataInterruptedDownloadKeepsOldAssets (0.01s)
+=== RUN   TestGeodataDownloadReplacesBothAssetsAtomically
+--- PASS: TestGeodataDownloadReplacesBothAssetsAtomically (0.01s)
+=== RUN   TestInstallAndRemoveUnitsInSandbox
+--- PASS: TestInstallAndRemoveUnitsInSandbox (0.01s)
+=== RUN   TestRunRejectsUnknownJobAndMissingRoot
+--- PASS: TestRunRejectsUnknownJobAndMissingRoot (0.00s)
+=== RUN   TestStatusDefaultsAndLastLog
+--- PASS: TestStatusDefaultsAndLastLog (0.00s)
+=== RUN   TestCertRenewJobRenewsInsideWindow
+--- PASS: TestCertRenewJobRenewsInsideWindow (0.00s)
+=== RUN   TestCertRenewJobFailureWritesAlertAndPostsWebhook
+--- PASS: TestCertRenewJobFailureWritesAlertAndPostsWebhook (0.00s)
+=== RUN   TestCertRenewJobStaysFailedWhenAlertCannotBePersisted
+--- PASS: TestCertRenewJobStaysFailedWhenAlertCannotBePersisted (0.00s)
+=== RUN   TestCertRenewJobSuccessClearsAlert
+--- PASS: TestCertRenewJobSuccessClearsAlert (0.00s)
+=== RUN   TestCertRenewJobRequiresDomain
+--- PASS: TestCertRenewJobRequiresDomain (0.00s)
+=== RUN   TestDegradedJobsExcludesCertRenew
+--- PASS: TestDegradedJobsExcludesCertRenew (0.00s)
+=== RUN   TestInstallWritesOnFailureAndAlertUnit
+--- PASS: TestInstallWritesOnFailureAndAlertUnit (0.01s)
+=== RUN   TestStatusReturnsAlertsWhenConfigIsBroken
+--- PASS: TestStatusReturnsAlertsWhenConfigIsBroken (0.00s)
+=== RUN   TestWriteAlertReturnsPersistenceError
+--- PASS: TestWriteAlertReturnsPersistenceError (0.00s)
+=== RUN   TestAlertsDistinguishesMissingFromUnreadable
+--- PASS: TestAlertsDistinguishesMissingFromUnreadable (0.00s)
+=== RUN   TestStatusMarksUnreadableAlertStore
+--- PASS: TestStatusMarksUnreadableAlertStore (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.200s

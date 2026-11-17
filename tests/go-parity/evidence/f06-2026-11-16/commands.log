@@ -1,0 +1,1514 @@
+== F06 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user list --path /work/evidence/user-work/node/etc/idleleo/conf/xray/config.json (rc=0 0.0s)
+  stdout: [
+            {
+              "index": 0,
+              "uuid": "aaaaaaaa-1111-4111-8111-111111111111",
+              "email": "primary@example.invalid",
+              "level": 0,
+              "primary": true
+            },
+            {
+              "index": 1,
+              "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+              "email": "alice@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          ]
+PASS list exits 0 rc=0 
+PASS list reports two clients [{"index": 0, "uuid": "aaaaaaaa-1111-4111-8111-111111111111", "email": "primary@example.invalid", "level": 0, "primary": true}, {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}]
+PASS list marks index 0 as primary {"index": 0, "uuid": "aaaaaaaa-1111-4111-8111-111111111111", "email": "primary@example.invalid", "level": 0, "primary": true}
+PASS list reports the secondary client {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user list (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS list without --path exits 2 rc=2
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid cccccccc-3333-4333-8333-333333333333 --email carol@example.invalid --flow xtls-rprx-vision --level 2 --short-id 2222222222222222 (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794844566514368584-346",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "6efdf173b0cf377d28901ab8681821aefd5fc00e2f0141294c3f54bd712cd865",
+              "newSha256": "402b6f4a256393dc6130e25630f255db1dae06032b25aab6bd5b68d388db5259",
+              "startedAt": "2026-11-16T15:56:06Z",
+              "updatedAt": "2026-11-16T15:56:06Z"
+            },
+            "user": {
+              "index": 2,
+              "uuid": "cccccccc-3333-4333-8333-333333333333",
+              "email": "carol@example.invalid",
+              "flow": "xtls-rprx-vision",
+              "level": 2,
+              "primary": false
+            }
+          }
+PASS add exits 0 rc=0 
+PASS add: entry is COMMITTED COMMITTED
+PASS add: new user index is the last client 2
+PASS add: new user is not primary False
+PASS add reports the explicit uuid cccccccc-3333-4333-8333-333333333333
+PASS add reports the email carol@example.invalid
+PASS add reports the flow xtls-rprx-vision
+PASS add reports the level 2
+PASS add targets the runtime config /work/evidence/user-work/node/etc/idleleo/conf/xray/config.json
+PASS add records the service command /bin/true
+PASS add records the old digest 6efdf173b0cf377d28901ab8681821aefd5fc00e2f0141294c3f54bd712cd865
+PASS add records the committed digest 402b6f4a256393dc6130e25630f255db1dae06032b25aab6bd5b68d388db5259
+PASS add appends exactly one client 3
+PASS add writes the client fields {"email": "carol@example.invalid", "flow": "xtls-rprx-vision", "id": "cccccccc-3333-4333-8333-333333333333", "level": 2}
+PASS add appends one Reality shortId ['1111111111111111', '2222222222222222']
+PASS add leaves the other inbound shortIds alone ['1111111111111111']
+PASS add changes nothing outside clients/shortIds 
+PASS add keeps the config 0640 0o640
+PASS add leaves no rollback/candidate file []
+PASS add records a COMMITTED journal entry [{"id": "1794844566514368584-346", "state": "COMMITTED", "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "6efdf173b0cf377d28901ab8681821aefd5fc00e2f0141294c3f54bd712cd865", "newSha256": "402b6f4a256393dc6130e25630f255db1dae06032b2
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --email dave@example.invalid (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794844566525232435-358",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "402b6f4a256393dc6130e25630f255db1dae06032b25aab6bd5b68d388db5259",
+              "newSha256": "50fdff89eed6cfe606628034f64df5b12c83d2fda0ee2bdf82ff30929ce94e4b",
+              "startedAt": "2026-11-16T15:56:06Z",
+              "updatedAt": "2026-11-16T15:56:06Z"
+            },
+            "user": {
+              "index": 3,
+              "uuid": "c614dc4b-73c1-4ee8-8618-68e9e1f9235c",
+              "email": "dave@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS add without --uuid exits 0 rc=0 
+PASS generated uuid is RFC4122 v4 c614dc4b-73c1-4ee8-8618-68e9e1f9235c
+PASS generated uuid reaches the runtime config {"email": "dave@example.invalid", "id": "c614dc4b-73c1-4ee8-8618-68e9e1f9235c", "level": 0}
+PASS generated user defaults level=0 and no flow {"email": "dave@example.invalid", "id": "c614dc4b-73c1-4ee8-8618-68e9e1f9235c", "level": 0}
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid ffffffff-6666-4666-8666-666666666666 --email alice@example.invalid (rc=2 0.0s)
+  stderr: email already exists at index 1
+PASS duplicate email: add exits 2 rc=2 email already exists at index 1
+
+PASS duplicate email: add explains the refusal email already exists at index 1
+
+PASS duplicate email: config is byte-identical 
+PASS duplicate email: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid bbbbbbbb-2222-4222-8222-222222222222 --email unique@example.invalid (rc=2 0.0s)
+  stderr: uuid already exists at index 1
+PASS duplicate uuid: add exits 2 rc=2 uuid already exists at index 1
+
+PASS duplicate uuid: add explains the refusal uuid already exists at index 1
+
+PASS duplicate uuid: config is byte-identical 
+PASS duplicate uuid: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid not-a-uuid --email bad@example.invalid (rc=2 0.0s)
+  stderr: uuid is not a valid RFC4122 value
+PASS invalid uuid: add exits 2 rc=2 uuid is not a valid RFC4122 value
+
+PASS invalid uuid: add explains the refusal uuid is not a valid RFC4122 value
+
+PASS invalid uuid: config is byte-identical 
+PASS invalid uuid: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid ffffffff-6666-4666-8666-666666666666 --email sid@example.invalid --short-id xyz (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length
+PASS invalid shortId: add exits 2 rc=2 shortId must be 1-16 hex characters with even length
+
+PASS invalid shortId: add explains the refusal shortId must be 1-16 hex characters with even length
+
+PASS invalid shortId: config is byte-identical 
+PASS invalid shortId: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid ffffffff-6666-4666-8666-666666666666 --email dup@example.invalid --short-id 1111111111111111 (rc=2 0.0s)
+  stderr: shortId already present
+PASS duplicate shortId: add exits 2 rc=2 shortId already present
+
+PASS duplicate shortId: add explains the refusal shortId already present
+
+PASS duplicate shortId: config is byte-identical 
+PASS duplicate shortId: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --validator /bin/true --email nosandbox@example.invalid (rc=2 0.0s)
+  stderr: 变更只允许有标记的一次性沙箱
+PASS add without --sandbox exits 2 rc=2 变更只允许有标记的一次性沙箱
+
+PASS add without --sandbox writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/unmarked --json xray user add --sandbox /work/evidence/user-work/unmarked --validator /bin/true --service /bin/true --email x@example.invalid (rc=2 0.0s)
+  stdout: {
+            "id": "",
+            "state": "",
+            "target": "",
+            "oldSha256": "",
+            "startedAt": "",
+            "updatedAt": ""
+          }
+  stderr: sandbox marker required: open /work/evidence/user-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+PASS add in an unmarked root exits 2 rc=2 {
+  "id": "",
+  "state": "",
+  "target": "",
+  "oldSha256": "",
+  "startedAt": "",
+  "updatedAt": ""
+}
+sandbox marker required: open /work/evidence/user-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked add names the write gate {
+  "id": "",
+  "state": "",
+  "target": "",
+  "oldSha256": "",
+  "startedAt": "",
+  "updatedAt": ""
+}
+sandbox marker required: open /work/evidence/user-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked add writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid bbbbbbbb-2222-4222-8222-333333333333 --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=0 0.01s)
+  stdout: {
+            "change": {
+              "Ident": "alice@example.invalid",
+              "NewUUID": "bbbbbbbb-2222-4222-8222-333333333333",
+              "Previous": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "Updated": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "NoChanges": false
+            },
+            "entry": {
+              "id": "1794844566560042378-416",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "50fdff89eed6cfe606628034f64df5b12c83d2fda0ee2bdf82ff30929ce94e4b",
+              "newSha256": "78f93b63a284be964422883ba5470f0490ddb1016bb8ea428d14e88d16e6afd4",
+              "startedAt": "2026-11-16T15:56:06Z",
+              "updatedAt": "2026-11-16T15:56:06Z"
+            }
+          }
+PASS uuid rotation exits 0 rc=0 
+PASS uuid rotation is COMMITTED COMMITTED
+PASS uuid rotation records the committed digest 78f93b63a284be964422883ba5470f0490ddb1016bb8ea428d14e88d16e6afd4
+PASS uuid rotation matches both inbounds 2/2
+PASS uuid rotation reports both inbound indices [0, 1]
+PASS uuid rotation reports the old credential [{"Inbound": 0, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}}, {"Inbound": 1, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}}]
+PASS uuid rotation reports the new credential [{"Inbound": 0, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-333333333333", "email": "alice@example.invalid", "level": 0, "primary": false}}, {"Inbound": 1, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-333333333333", "email": "alice@example.invalid", "level": 0, "primary": false}}]
+PASS inbound 0 carries the new alice uuid bbbbbbbb-2222-4222-8222-333333333333
+PASS inbound 0 keeps the primary uuid aaaaaaaa-1111-4111-8111-111111111111
+PASS inbound 1 carries the new alice uuid bbbbbbbb-2222-4222-8222-333333333333
+PASS inbound 1 keeps the primary uuid aaaaaaaa-1111-4111-8111-111111111111
+PASS uuid rotation changes nothing outside clients[].id 
+PASS uuid rotation keeps the config 0640 0o640
+PASS uuid rotation leaves no temporary files []
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid bbbbbbbb-2222-4222-8222-333333333333 --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=0 0.0s)
+  stdout: {
+            "change": {
+              "Ident": "alice@example.invalid",
+              "NewUUID": "bbbbbbbb-2222-4222-8222-333333333333",
+              "Previous": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "Updated": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "NoChanges": true
+            },
+            "noChanges": true
+          }
+PASS no-change uuid exits 0 rc=0 
+PASS no-change uuid is reported True
+PASS no-change uuid writes nothing 
+PASS no-change uuid records no journal entry 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid ffffffff-7777-4777-8777-777777777777 --dry-run --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=0 0.0s)
+  stdout: {
+            "change": {
+              "Ident": "alice@example.invalid",
+              "NewUUID": "ffffffff-7777-4777-8777-777777777777",
+              "Previous": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "Updated": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "ffffffff-7777-4777-8777-777777777777",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "ffffffff-7777-4777-8777-777777777777",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "NoChanges": false
+            },
+            "dryRun": true
+          }
+PASS dry-run uuid exits 0 rc=0 
+PASS dry-run uuid reports dryRun True
+PASS dry-run uuid writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --uuid bbbbbbbb-2222-4222-8222-333333333333 --new-uuid bbbbbbbb-2222-4222-8222-444444444444 --inbound 1 --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=0 0.01s)
+  stdout: {
+            "change": {
+              "Ident": "bbbbbbbb-2222-4222-8222-333333333333",
+              "NewUUID": "bbbbbbbb-2222-4222-8222-444444444444",
+              "Previous": [
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "Updated": [
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-444444444444",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "NoChanges": false
+            },
+            "entry": {
+              "id": "1794844566576373218-440",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "78f93b63a284be964422883ba5470f0490ddb1016bb8ea428d14e88d16e6afd4",
+              "newSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+              "startedAt": "2026-11-16T15:56:06Z",
+              "updatedAt": "2026-11-16T15:56:06Z"
+            }
+          }
+PASS narrowed uuid rotation exits 0 rc=0 
+PASS narrowed rotation only reports inbound 1 [{"Inbound": 1, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-333333333333", "email": "alice@example.invalid", "level": 0, "primary": false}}]
+PASS narrowed rotation leaves inbound 0 on the old uuid bbbbbbbb-2222-4222-8222-333333333333 / bbbbbbbb-2222-4222-8222-444444444444
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid aaaaaaaa-1111-4111-8111-111111111111 --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=2 0.0s)
+  stderr: uuid already used by inbound 0 client 0 (primary@example.invalid)
+PASS uuid rotation onto another user exits 2 rc=2 uuid already used by inbound 0 client 0 (primary@example.invalid)
+
+PASS duplicate uuid explains the refusal uuid already used by inbound 0 client 0 (primary@example.invalid)
+
+PASS duplicate uuid leaves the config untouched 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid nope --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=2 0.0s)
+  stderr: --new-uuid is not a valid RFC4122 value
+PASS invalid --new-uuid exits 2 rc=2 --new-uuid is not a valid RFC4122 value
+
+PASS invalid --new-uuid leaves the config untouched 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid ffffffff-7777-4777-8777-777777777777 --fault service-fail --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=9 0.01s)
+  stdout: {
+            "id": "1794844566587697156-468",
+            "state": "ROLLED_BACK",
+            "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+            "servicePath": "/bin/true",
+            "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+            "newSha256": "dda2dfea698435f8e844dfa110af26f5f2c66f49f6562ea0c83e1d29257617c3",
+            "serviceExit": 1,
+            "reason": "injected service failure",
+            "startedAt": "2026-11-16T15:56:06Z",
+            "updatedAt": "2026-11-16T15:56:06Z"
+          }
+  stderr: 服务应用失败（退出码 1），已回滚：injected service failure
+PASS uuid service failure exits 9 rc=9 {
+  "id": "1794844566587697156-468",
+  "state": "ROLLED_BACK",
+  "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+  "newSha256": "dda2dfea698435f8e844dfa110af2
+PASS uuid service failure is ROLLED_BACK ROLLED_BACK
+PASS uuid service failure restores every inbound 
+PASS uuid service failure removes the rollback snapshot []
+PASS uuid scenarios actually rewrote the config 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/false --service /bin/true --uuid eeeeeeee-5555-4555-8555-555555555555 --email eve@example.invalid (rc=8 0.01s)
+  stdout: {
+            "id": "1794844566596127494-479",
+            "state": "REJECTED",
+            "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+            "servicePath": "/bin/true",
+            "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+            "newSha256": "8834ab1edfea35eb3587022213d77804d9ee613eb23edd5beda23fad17aecb06",
+            "validatorExit": 1,
+            "reason": "candidate rejected by validator (exit 1): ",
+            "startedAt": "2026-11-16T15:56:06Z",
+            "updatedAt": "2026-11-16T15:56:06Z"
+          }
+  stderr: 候选配置未通过校验（退出码 1）：candidate rejected by validator (exit 1):
+PASS validator rejection exits 8 rc=8 {
+  "id": "1794844566596127494-479",
+  "state": "REJECTED",
+  "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+  "newSha256": "8834ab1edfea35eb3587022213d77804
+PASS validator rejection is REJECTED REJECTED
+PASS validator rejection records exit 1 1
+PASS validator rejection leaves the config byte-identical 
+PASS validator rejection cleans candidates []
+PASS validator rejection records REJECTED [{"id": "1794844566596127494-479", "state": "REJECTED", "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850", "newSha256": "8834ab1edfea35eb3587022213d77804d9ee613eb23e
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid eeeeeeee-5555-4555-8555-555555555555 --email eve@example.invalid --fault write-fail (rc=13 0.01s)
+  stdout: {
+            "id": "1794844566603225992-490",
+            "state": "FAILED",
+            "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+            "servicePath": "/bin/true",
+            "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+            "newSha256": "8834ab1edfea35eb3587022213d77804d9ee613eb23edd5beda23fad17aecb06",
+            "reason": "injected write failure",
+            "startedAt": "2026-11-16T15:56:06Z",
+            "updatedAt": "2026-11-16T15:56:06Z"
+          }
+  stderr: 文件操作失败：injected write failure
+PASS injected write failure exits 13 rc=13 {
+  "id": "1794844566603225992-490",
+  "state": "FAILED",
+  "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+  "newSha256": "8834ab1edfea35eb3587022213d77804d9
+PASS write failure is FAILED FAILED
+PASS write failure leaves the config byte-identical 
+PASS write failure records FAILED [{"id": "1794844566603225992-490", "state": "FAILED", "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850", "newSha256": "8834ab1edfea35eb3587022213d77804d9ee613eb23edd
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid eeeeeeee-5555-4555-8555-555555555555 --email eve@example.invalid --fault service-fail (rc=9 0.01s)
+  stdout: {
+            "id": "1794844566612155833-497",
+            "state": "ROLLED_BACK",
+            "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+            "servicePath": "/bin/true",
+            "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+            "newSha256": "8834ab1edfea35eb3587022213d77804d9ee613eb23edd5beda23fad17aecb06",
+            "serviceExit": 1,
+            "reason": "injected service failure",
+            "startedAt": "2026-11-16T15:56:06Z",
+            "updatedAt": "2026-11-16T15:56:06Z"
+          }
+  stderr: 服务应用失败（退出码 1），已回滚：injected service failure
+PASS injected service failure exits 9 rc=9 {
+  "id": "1794844566612155833-497",
+  "state": "ROLLED_BACK",
+  "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+  "newSha256": "8834ab1edfea35eb3587022213d77
+PASS service failure is ROLLED_BACK ROLLED_BACK
+PASS service failure restores the config byte-identical 
+PASS service failure removes the rollback snapshot []
+PASS service failure records ROLLED_BACK [{"id": "1794844566612155833-497", "state": "ROLLED_BACK", "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850", "newSha256": "8834ab1edfea35eb3587022213d77804d9ee613eb
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid eeeeeeee-5555-4555-8555-555555555555 --email eve@example.invalid --fault bogus (rc=2 0.0s)
+  stdout: {
+            "id": "",
+            "state": "",
+            "target": "",
+            "oldSha256": "",
+            "startedAt": "",
+            "updatedAt": ""
+          }
+  stderr: unknown fault injector
+PASS unknown fault injector exits 2 rc=2 {
+  "id": "",
+  "state": "",
+  "target": "",
+  "oldSha256": "",
+  "startedAt": "",
+  "updatedAt": ""
+}
+unknown fault injector
+
+PASS unknown fault injector writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user remove --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --email dave@example.invalid (rc=0 0.02s)
+  stdout: {
+            "entry": {
+              "id": "1794844566629595221-511",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "c6863e00854d99842ca766458b5ca551afd559cb39afa75b0a59a678b964c850",
+              "newSha256": "a344d3048c7ed078eea92d05b55e6119ac22ff85aa784d96eb43da020d926029",
+              "startedAt": "2026-11-16T15:56:06Z",
+              "updatedAt": "2026-11-16T15:56:06Z"
+            },
+            "user": {
+              "index": 3,
+              "uuid": "c614dc4b-73c1-4ee8-8618-68e9e1f9235c",
+              "email": "dave@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS remove by email exits 0 rc=0 
+PASS remove entry is COMMITTED COMMITTED
+PASS remove reports the removed uuid c614dc4b-73c1-4ee8-8618-68e9e1f9235c
+PASS remove deletes exactly the requested user ['aaaaaaaa-1111-4111-8111-111111111111', 'bbbbbbbb-2222-4222-8222-333333333333', 'cccccccc-3333-4333-8333-333333333333']
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user remove --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid bbbbbbbb-2222-4222-8222-333333333333 (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794844566647710238-523",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "a344d3048c7ed078eea92d05b55e6119ac22ff85aa784d96eb43da020d926029",
+              "newSha256": "7e71728c7ca5fb1d396fe108c7294cbfe94ea21447469b0ec3cf45223e0b1146",
+              "startedAt": "2026-11-16T15:56:06Z",
+              "updatedAt": "2026-11-16T15:56:06Z"
+            },
+            "user": {
+              "index": 1,
+              "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+              "email": "alice@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS remove by uuid exits 0 rc=0 
+PASS remove by uuid deletes exactly that client [{"email": "primary@example.invalid", "id": "aaaaaaaa-1111-4111-8111-111111111111", "level": 0}, {"email": "carol@example.invalid", "flow": "xtls-rprx-vision", "id": "cccccccc-3333-4333-8333-333333333333", "level": 2}]
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user remove --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --email primary@example.invalid (rc=2 0.0s)
+  stderr: refusing to remove the primary user (index 0)
+PASS removing the primary user exits 2 rc=2 refusing to remove the primary user (index 0)
+
+PASS primary removal explains the refusal refusing to remove the primary user (index 0)
+
+PASS primary removal writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user remove --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --email ghost@example.invalid (rc=2 0.0s)
+  stderr: user not found: ghost@example.invalid
+PASS removing an unknown user exits 2 rc=2 user not found: ghost@example.invalid
+
+PASS unknown removal explains the refusal user not found: ghost@example.invalid
+
+PASS unknown removal writes nothing 
+PASS Bash baseline implements UUIDv5_tranc 
+PASS Bash baseline advertises --uuid-reset 
+$ /work/bin/idleleo help (rc=0 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS Go help does not claim UUIDv5 mapping 
+PASS Go help documents user list|add|remove 
+PASS the final config still matches the original skeleton 
+== F06 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user list --path /work/evidence/user-work/node/etc/idleleo/conf/xray/config.json (rc=0 0.01s)
+  stdout: [
+            {
+              "index": 0,
+              "uuid": "aaaaaaaa-1111-4111-8111-111111111111",
+              "email": "primary@example.invalid",
+              "level": 0,
+              "primary": true
+            },
+            {
+              "index": 1,
+              "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+              "email": "alice@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          ]
+PASS list exits 0 rc=0 
+PASS list reports two clients [{"index": 0, "uuid": "aaaaaaaa-1111-4111-8111-111111111111", "email": "primary@example.invalid", "level": 0, "primary": true}, {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}]
+PASS list marks index 0 as primary {"index": 0, "uuid": "aaaaaaaa-1111-4111-8111-111111111111", "email": "primary@example.invalid", "level": 0, "primary": true}
+PASS list reports the secondary client {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user list (rc=2 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS list without --path exits 2 rc=2
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid cccccccc-3333-4333-8333-333333333333 --email carol@example.invalid --flow xtls-rprx-vision --level 2 --short-id 2222222222222222 (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794844570150874001-571",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "6efdf173b0cf377d28901ab8681821aefd5fc00e2f0141294c3f54bd712cd865",
+              "newSha256": "402b6f4a256393dc6130e25630f255db1dae06032b25aab6bd5b68d388db5259",
+              "startedAt": "2026-11-16T15:56:10Z",
+              "updatedAt": "2026-11-16T15:56:10Z"
+            },
+            "user": {
+              "index": 2,
+              "uuid": "cccccccc-3333-4333-8333-333333333333",
+              "email": "carol@example.invalid",
+              "flow": "xtls-rprx-vision",
+              "level": 2,
+              "primary": false
+            }
+          }
+PASS add exits 0 rc=0 
+PASS add: entry is COMMITTED COMMITTED
+PASS add: new user index is the last client 2
+PASS add: new user is not primary False
+PASS add reports the explicit uuid cccccccc-3333-4333-8333-333333333333
+PASS add reports the email carol@example.invalid
+PASS add reports the flow xtls-rprx-vision
+PASS add reports the level 2
+PASS add targets the runtime config /work/evidence/user-work/node/etc/idleleo/conf/xray/config.json
+PASS add records the service command /bin/true
+PASS add records the old digest 6efdf173b0cf377d28901ab8681821aefd5fc00e2f0141294c3f54bd712cd865
+PASS add records the committed digest 402b6f4a256393dc6130e25630f255db1dae06032b25aab6bd5b68d388db5259
+PASS add appends exactly one client 3
+PASS add writes the client fields {"email": "carol@example.invalid", "flow": "xtls-rprx-vision", "id": "cccccccc-3333-4333-8333-333333333333", "level": 2}
+PASS add appends one Reality shortId ['1111111111111111', '2222222222222222']
+PASS add leaves the other inbound shortIds alone ['1111111111111111']
+PASS add changes nothing outside clients/shortIds 
+PASS add keeps the config 0640 0o640
+PASS add leaves no rollback/candidate file []
+PASS add records a COMMITTED journal entry [{"id": "1794844570150874001-571", "state": "COMMITTED", "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "6efdf173b0cf377d28901ab8681821aefd5fc00e2f0141294c3f54bd712cd865", "newSha256": "402b6f4a256393dc6130e25630f255db1dae06032b2
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --email dave@example.invalid (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794844570162617482-583",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "402b6f4a256393dc6130e25630f255db1dae06032b25aab6bd5b68d388db5259",
+              "newSha256": "550442843b704eb50070a54f789d3660ba580ac9484516cec6a2fac73ae4d2c9",
+              "startedAt": "2026-11-16T15:56:10Z",
+              "updatedAt": "2026-11-16T15:56:10Z"
+            },
+            "user": {
+              "index": 3,
+              "uuid": "a8ac71a4-d457-4f3b-bca6-7c4f7ca13b78",
+              "email": "dave@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS add without --uuid exits 0 rc=0 
+PASS generated uuid is RFC4122 v4 a8ac71a4-d457-4f3b-bca6-7c4f7ca13b78
+PASS generated uuid reaches the runtime config {"email": "dave@example.invalid", "id": "a8ac71a4-d457-4f3b-bca6-7c4f7ca13b78", "level": 0}
+PASS generated user defaults level=0 and no flow {"email": "dave@example.invalid", "id": "a8ac71a4-d457-4f3b-bca6-7c4f7ca13b78", "level": 0}
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid ffffffff-6666-4666-8666-666666666666 --email alice@example.invalid (rc=2 0.0s)
+  stderr: email already exists at index 1
+PASS duplicate email: add exits 2 rc=2 email already exists at index 1
+
+PASS duplicate email: add explains the refusal email already exists at index 1
+
+PASS duplicate email: config is byte-identical 
+PASS duplicate email: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid bbbbbbbb-2222-4222-8222-222222222222 --email unique@example.invalid (rc=2 0.0s)
+  stderr: uuid already exists at index 1
+PASS duplicate uuid: add exits 2 rc=2 uuid already exists at index 1
+
+PASS duplicate uuid: add explains the refusal uuid already exists at index 1
+
+PASS duplicate uuid: config is byte-identical 
+PASS duplicate uuid: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid not-a-uuid --email bad@example.invalid (rc=2 0.0s)
+  stderr: uuid is not a valid RFC4122 value
+PASS invalid uuid: add exits 2 rc=2 uuid is not a valid RFC4122 value
+
+PASS invalid uuid: add explains the refusal uuid is not a valid RFC4122 value
+
+PASS invalid uuid: config is byte-identical 
+PASS invalid uuid: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid ffffffff-6666-4666-8666-666666666666 --email sid@example.invalid --short-id xyz (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length
+PASS invalid shortId: add exits 2 rc=2 shortId must be 1-16 hex characters with even length
+
+PASS invalid shortId: add explains the refusal shortId must be 1-16 hex characters with even length
+
+PASS invalid shortId: config is byte-identical 
+PASS invalid shortId: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid ffffffff-6666-4666-8666-666666666666 --email dup@example.invalid --short-id 1111111111111111 (rc=2 0.0s)
+  stderr: shortId already present
+PASS duplicate shortId: add exits 2 rc=2 shortId already present
+
+PASS duplicate shortId: add explains the refusal shortId already present
+
+PASS duplicate shortId: config is byte-identical 
+PASS duplicate shortId: no journal entry is written 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --validator /bin/true --email nosandbox@example.invalid (rc=2 0.0s)
+  stderr: 变更只允许有标记的一次性沙箱
+PASS add without --sandbox exits 2 rc=2 变更只允许有标记的一次性沙箱
+
+PASS add without --sandbox writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/unmarked --json xray user add --sandbox /work/evidence/user-work/unmarked --validator /bin/true --service /bin/true --email x@example.invalid (rc=2 0.01s)
+  stdout: {
+            "id": "",
+            "state": "",
+            "target": "",
+            "oldSha256": "",
+            "startedAt": "",
+            "updatedAt": ""
+          }
+  stderr: sandbox marker required: open /work/evidence/user-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+PASS add in an unmarked root exits 2 rc=2 {
+  "id": "",
+  "state": "",
+  "target": "",
+  "oldSha256": "",
+  "startedAt": "",
+  "updatedAt": ""
+}
+sandbox marker required: open /work/evidence/user-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked add names the write gate {
+  "id": "",
+  "state": "",
+  "target": "",
+  "oldSha256": "",
+  "startedAt": "",
+  "updatedAt": ""
+}
+sandbox marker required: open /work/evidence/user-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked add writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid bbbbbbbb-2222-4222-8222-333333333333 --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=0 0.01s)
+  stdout: {
+            "change": {
+              "Ident": "alice@example.invalid",
+              "NewUUID": "bbbbbbbb-2222-4222-8222-333333333333",
+              "Previous": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "Updated": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "NoChanges": false
+            },
+            "entry": {
+              "id": "1794844570191006181-642",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "550442843b704eb50070a54f789d3660ba580ac9484516cec6a2fac73ae4d2c9",
+              "newSha256": "330505d18c4f0c8f93a9e28e0bb15a9c5f611e0f4e03f708a1c6d036a4c95d09",
+              "startedAt": "2026-11-16T15:56:10Z",
+              "updatedAt": "2026-11-16T15:56:10Z"
+            }
+          }
+PASS uuid rotation exits 0 rc=0 
+PASS uuid rotation is COMMITTED COMMITTED
+PASS uuid rotation records the committed digest 330505d18c4f0c8f93a9e28e0bb15a9c5f611e0f4e03f708a1c6d036a4c95d09
+PASS uuid rotation matches both inbounds 2/2
+PASS uuid rotation reports both inbound indices [0, 1]
+PASS uuid rotation reports the old credential [{"Inbound": 0, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}}, {"Inbound": 1, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}}]
+PASS uuid rotation reports the new credential [{"Inbound": 0, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-333333333333", "email": "alice@example.invalid", "level": 0, "primary": false}}, {"Inbound": 1, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-333333333333", "email": "alice@example.invalid", "level": 0, "primary": false}}]
+PASS inbound 0 carries the new alice uuid bbbbbbbb-2222-4222-8222-333333333333
+PASS inbound 0 keeps the primary uuid aaaaaaaa-1111-4111-8111-111111111111
+PASS inbound 1 carries the new alice uuid bbbbbbbb-2222-4222-8222-333333333333
+PASS inbound 1 keeps the primary uuid aaaaaaaa-1111-4111-8111-111111111111
+PASS uuid rotation changes nothing outside clients[].id 
+PASS uuid rotation keeps the config 0640 0o640
+PASS uuid rotation leaves no temporary files []
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid bbbbbbbb-2222-4222-8222-333333333333 --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=0 0.0s)
+  stdout: {
+            "change": {
+              "Ident": "alice@example.invalid",
+              "NewUUID": "bbbbbbbb-2222-4222-8222-333333333333",
+              "Previous": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "Updated": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "NoChanges": true
+            },
+            "noChanges": true
+          }
+PASS no-change uuid exits 0 rc=0 
+PASS no-change uuid is reported True
+PASS no-change uuid writes nothing 
+PASS no-change uuid records no journal entry 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid ffffffff-7777-4777-8777-777777777777 --dry-run --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=0 0.0s)
+  stdout: {
+            "change": {
+              "Ident": "alice@example.invalid",
+              "NewUUID": "ffffffff-7777-4777-8777-777777777777",
+              "Previous": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "Updated": [
+                {
+                  "Inbound": 0,
+                  "User": {
+                    "index": 1,
+                    "uuid": "ffffffff-7777-4777-8777-777777777777",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                },
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "ffffffff-7777-4777-8777-777777777777",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "NoChanges": false
+            },
+            "dryRun": true
+          }
+PASS dry-run uuid exits 0 rc=0 
+PASS dry-run uuid reports dryRun True
+PASS dry-run uuid writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --uuid bbbbbbbb-2222-4222-8222-333333333333 --new-uuid bbbbbbbb-2222-4222-8222-444444444444 --inbound 1 --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=0 0.01s)
+  stdout: {
+            "change": {
+              "Ident": "bbbbbbbb-2222-4222-8222-333333333333",
+              "NewUUID": "bbbbbbbb-2222-4222-8222-444444444444",
+              "Previous": [
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "Updated": [
+                {
+                  "Inbound": 1,
+                  "User": {
+                    "index": 1,
+                    "uuid": "bbbbbbbb-2222-4222-8222-444444444444",
+                    "email": "alice@example.invalid",
+                    "level": 0,
+                    "primary": false
+                  }
+                }
+              ],
+              "NoChanges": false
+            },
+            "entry": {
+              "id": "1794844570208188734-666",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "330505d18c4f0c8f93a9e28e0bb15a9c5f611e0f4e03f708a1c6d036a4c95d09",
+              "newSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+              "startedAt": "2026-11-16T15:56:10Z",
+              "updatedAt": "2026-11-16T15:56:10Z"
+            }
+          }
+PASS narrowed uuid rotation exits 0 rc=0 
+PASS narrowed rotation only reports inbound 1 [{"Inbound": 1, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-333333333333", "email": "alice@example.invalid", "level": 0, "primary": false}}]
+PASS narrowed rotation leaves inbound 0 on the old uuid bbbbbbbb-2222-4222-8222-333333333333 / bbbbbbbb-2222-4222-8222-444444444444
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid aaaaaaaa-1111-4111-8111-111111111111 --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=2 0.0s)
+  stderr: uuid already used by inbound 1 client 0 (primary@example.invalid)
+PASS uuid rotation onto another user exits 2 rc=2 uuid already used by inbound 1 client 0 (primary@example.invalid)
+
+PASS duplicate uuid explains the refusal uuid already used by inbound 1 client 0 (primary@example.invalid)
+
+PASS duplicate uuid leaves the config untouched 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid nope --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=2 0.0s)
+  stderr: --new-uuid is not a valid RFC4122 value
+PASS invalid --new-uuid exits 2 rc=2 --new-uuid is not a valid RFC4122 value
+
+PASS invalid --new-uuid leaves the config untouched 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user uuid --email alice@example.invalid --new-uuid ffffffff-7777-4777-8777-777777777777 --fault service-fail --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true (rc=9 0.01s)
+  stdout: {
+            "id": "1794844570219000378-693",
+            "state": "ROLLED_BACK",
+            "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+            "servicePath": "/bin/true",
+            "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+            "newSha256": "9ba8850825c8d8cf7b1912ce96dfdd8fc85049fbabc8b31e1ec3d03715458636",
+            "serviceExit": 1,
+            "reason": "injected service failure",
+            "startedAt": "2026-11-16T15:56:10Z",
+            "updatedAt": "2026-11-16T15:56:10Z"
+          }
+  stderr: 服务应用失败（退出码 1），已回滚：injected service failure
+PASS uuid service failure exits 9 rc=9 {
+  "id": "1794844570219000378-693",
+  "state": "ROLLED_BACK",
+  "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+  "newSha256": "9ba8850825c8d8cf7b1912ce96dfd
+PASS uuid service failure is ROLLED_BACK ROLLED_BACK
+PASS uuid service failure restores every inbound 
+PASS uuid service failure removes the rollback snapshot []
+PASS uuid scenarios actually rewrote the config 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/false --service /bin/true --uuid eeeeeeee-5555-4555-8555-555555555555 --email eve@example.invalid (rc=8 0.0s)
+  stdout: {
+            "id": "1794844570227032672-702",
+            "state": "REJECTED",
+            "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+            "servicePath": "/bin/true",
+            "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+            "newSha256": "e8d81efbe576d445921b7b274b6c86951f48b45bb5973963bb3c96ae7e256f40",
+            "validatorExit": 1,
+            "reason": "candidate rejected by validator (exit 1): ",
+            "startedAt": "2026-11-16T15:56:10Z",
+            "updatedAt": "2026-11-16T15:56:10Z"
+          }
+  stderr: 候选配置未通过校验（退出码 1）：candidate rejected by validator (exit 1):
+PASS validator rejection exits 8 rc=8 {
+  "id": "1794844570227032672-702",
+  "state": "REJECTED",
+  "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+  "newSha256": "e8d81efbe576d445921b7b274b6c8695
+PASS validator rejection is REJECTED REJECTED
+PASS validator rejection records exit 1 1
+PASS validator rejection leaves the config byte-identical 
+PASS validator rejection cleans candidates []
+PASS validator rejection records REJECTED [{"id": "1794844570227032672-702", "state": "REJECTED", "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61", "newSha256": "e8d81efbe576d445921b7b274b6c86951f48b45bb597
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid eeeeeeee-5555-4555-8555-555555555555 --email eve@example.invalid --fault write-fail (rc=13 0.0s)
+  stdout: {
+            "id": "1794844570232264118-713",
+            "state": "FAILED",
+            "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+            "servicePath": "/bin/true",
+            "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+            "newSha256": "e8d81efbe576d445921b7b274b6c86951f48b45bb5973963bb3c96ae7e256f40",
+            "reason": "injected write failure",
+            "startedAt": "2026-11-16T15:56:10Z",
+            "updatedAt": "2026-11-16T15:56:10Z"
+          }
+  stderr: 文件操作失败：injected write failure
+PASS injected write failure exits 13 rc=13 {
+  "id": "1794844570232264118-713",
+  "state": "FAILED",
+  "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+  "newSha256": "e8d81efbe576d445921b7b274b6c86951f
+PASS write failure is FAILED FAILED
+PASS write failure leaves the config byte-identical 
+PASS write failure records FAILED [{"id": "1794844570232264118-713", "state": "FAILED", "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61", "newSha256": "e8d81efbe576d445921b7b274b6c86951f48b45bb59739
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid eeeeeeee-5555-4555-8555-555555555555 --email eve@example.invalid --fault service-fail (rc=9 0.01s)
+  stdout: {
+            "id": "1794844570236395224-720",
+            "state": "ROLLED_BACK",
+            "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+            "servicePath": "/bin/true",
+            "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+            "newSha256": "e8d81efbe576d445921b7b274b6c86951f48b45bb5973963bb3c96ae7e256f40",
+            "serviceExit": 1,
+            "reason": "injected service failure",
+            "startedAt": "2026-11-16T15:56:10Z",
+            "updatedAt": "2026-11-16T15:56:10Z"
+          }
+  stderr: 服务应用失败（退出码 1），已回滚：injected service failure
+PASS injected service failure exits 9 rc=9 {
+  "id": "1794844570236395224-720",
+  "state": "ROLLED_BACK",
+  "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+  "newSha256": "e8d81efbe576d445921b7b274b6c8
+PASS service failure is ROLLED_BACK ROLLED_BACK
+PASS service failure restores the config byte-identical 
+PASS service failure removes the rollback snapshot []
+PASS service failure records ROLLED_BACK [{"id": "1794844570236395224-720", "state": "ROLLED_BACK", "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61", "newSha256": "e8d81efbe576d445921b7b274b6c86951f48b45bb
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user add --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid eeeeeeee-5555-4555-8555-555555555555 --email eve@example.invalid --fault bogus (rc=2 0.0s)
+  stdout: {
+            "id": "",
+            "state": "",
+            "target": "",
+            "oldSha256": "",
+            "startedAt": "",
+            "updatedAt": ""
+          }
+  stderr: unknown fault injector
+PASS unknown fault injector exits 2 rc=2 {
+  "id": "",
+  "state": "",
+  "target": "",
+  "oldSha256": "",
+  "startedAt": "",
+  "updatedAt": ""
+}
+unknown fault injector
+
+PASS unknown fault injector writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user remove --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --email dave@example.invalid (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794844570249579172-737",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "882475be0284f8440b5721eac13fdfc12ae19ea87057ecfbed6e156f716a3b61",
+              "newSha256": "a344d3048c7ed078eea92d05b55e6119ac22ff85aa784d96eb43da020d926029",
+              "startedAt": "2026-11-16T15:56:10Z",
+              "updatedAt": "2026-11-16T15:56:10Z"
+            },
+            "user": {
+              "index": 3,
+              "uuid": "a8ac71a4-d457-4f3b-bca6-7c4f7ca13b78",
+              "email": "dave@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS remove by email exits 0 rc=0 
+PASS remove entry is COMMITTED COMMITTED
+PASS remove reports the removed uuid a8ac71a4-d457-4f3b-bca6-7c4f7ca13b78
+PASS remove deletes exactly the requested user ['aaaaaaaa-1111-4111-8111-111111111111', 'bbbbbbbb-2222-4222-8222-333333333333', 'cccccccc-3333-4333-8333-333333333333']
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user remove --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --uuid bbbbbbbb-2222-4222-8222-333333333333 (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794844570255790748-748",
+              "state": "COMMITTED",
+              "target": "/work/evidence/user-work/node/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "a344d3048c7ed078eea92d05b55e6119ac22ff85aa784d96eb43da020d926029",
+              "newSha256": "7e71728c7ca5fb1d396fe108c7294cbfe94ea21447469b0ec3cf45223e0b1146",
+              "startedAt": "2026-11-16T15:56:10Z",
+              "updatedAt": "2026-11-16T15:56:10Z"
+            },
+            "user": {
+              "index": 1,
+              "uuid": "bbbbbbbb-2222-4222-8222-333333333333",
+              "email": "alice@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS remove by uuid exits 0 rc=0 
+PASS remove by uuid deletes exactly that client [{"email": "primary@example.invalid", "id": "aaaaaaaa-1111-4111-8111-111111111111", "level": 0}, {"email": "carol@example.invalid", "flow": "xtls-rprx-vision", "id": "cccccccc-3333-4333-8333-333333333333", "level": 2}]
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user remove --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --email primary@example.invalid (rc=2 0.0s)
+  stderr: refusing to remove the primary user (index 0)
+PASS removing the primary user exits 2 rc=2 refusing to remove the primary user (index 0)
+
+PASS primary removal explains the refusal refusing to remove the primary user (index 0)
+
+PASS primary removal writes nothing 
+$ /work/bin/idleleo --root /work/evidence/user-work/node --json xray user remove --sandbox /work/evidence/user-work/node --validator /bin/true --service /bin/true --email ghost@example.invalid (rc=2 0.0s)
+  stderr: user not found: ghost@example.invalid
+PASS removing an unknown user exits 2 rc=2 user not found: ghost@example.invalid
+
+PASS unknown removal explains the refusal user not found: ghost@example.invalid
+
+PASS unknown removal writes nothing 
+PASS Bash baseline implements UUIDv5_tranc 
+PASS Bash baseline advertises --uuid-reset 
+$ /work/bin/idleleo help (rc=0 0.0s)
+  stdout: Idleleo Xray 管理器（0.2.0-phase04）
+          用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+          
+          命令:
+            version              显示版本
+            status               只读状态
+            show                 只读运行与分享信息
+            config inspect       只读结构化配置视图
+            change set-inbound-port --sandbox PATH --port N --validator PATH
+                                 在一次性沙箱或真实根上修改入站端口
+                                 （真实根用 --sandbox / 并加 --service 与 --container）
+            change recover       收敛被硬中断的变更事务（回滚或补记 COMMITTED）
+            xray generate        生成运行配置（reality/tls/ws/grpc/xhttp、relay、balance）
+            xray share           为现有配置输出分享链接与 Clash 配置
+            xray relay           生成指向后端的 nginx 中转配置
+            xray config edit     就地修改端口/传输/路径；TLS 站可改 --domain/--cert/--cert-key
+                                 默认对新域名做本地 TLS 握手，--no-probe 关闭；不自动重签
+                                 Reality 可增删/列出 shortId（--short-id/--short-id-auto/
+                                 --short-id-remove/--short-id-list）并轮换 privateKey；
+                                 --fp/--spx 仅改分享链接，不改服务端配置、不重启
+            xray user list|add|remove
+                                 列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+            xray user uuid --email E --new-uuid U [--inbound N]
+                                 改单个用户的 UUID；命中多个 inbound 时一次事务全改；
+                                 会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+            xray logs clean|rotate enable|disable
+                                 截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
+            xray balance list --upstream reality|ws|grpc|xhttp
+                                 只读列出 Nginx 后端（host/port/weight/file）
+            xray balance add --upstream NAME --host HOST --port PORT [--weight N]
+                                 新增一后端文件：nginx -t 失败回滚；默认不做存活探测
+            xray balance remove --upstream NAME --host HOST[:PORT]
+                                 删除一后端文件；拒绝删除最后一个后端
+            xray block status    只读查看阻断开关、已写规则数与 drift
+            xray block apply|off [--yes] [--dry-run]
+                                 按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
+                                 geo 检查与 xray -test，重启后探测失败自动回滚
+            xray block ads|private-ip|bittorrent enable|disable
+                                 开关内置三类；只改状态文件，apply 后生效
+            xray block country add|remove|list [cc ...]
+                                 增删国家码（两位字母，逗号分隔可一次多个）
+            xray block custom add|remove|enable|disable|list --kind domain|ip
+                                 [--value V] 自定义域名/IP 列表，单条增删，独立启停
+            fail2ban status      只读查看各 jail 与当前封禁数
+            fail2ban install     写入 sshd/nginx 五个 jail（不自动装包）
+            fail2ban uninstall   只删 Idleleo 按 manifest 创建的文件
+            fail2ban banned [--jail NAME]
+                                 查看封禁列表
+            fail2ban unban --jail NAME --ip ADDR
+                                 解封单个 IP（先校验它确实在封禁列表中）
+            fail2ban trust add|del --jail NAME --ip ADDR|CIDR
+                                 增删可信 IP（运行态 + 校验后持久化）
+            fail2ban jail enable|disable --name NAME
+                                 开关某个由 Idleleo 托管的 jail
+            xray install --binary PATH
+                                 用本地二进制安装 Xray 并接管根目录
+            xray uninstall|recover
+                                 卸载托管文件 / 收敛未完成的安装
+            xray cert issue|renew
+                                 ACME v2 证书签发与续期（默认 LE staging；生产需 --production 或 IDLELEO_ACME_DIRECTORY）
+            bridge audit|prepare|validate|activate|deactivate|recover|status
+                                 旧 Bash 安装的审计、预检、切换、回退与恢复
+            metadata import|export [--from install_config.json] [--out FILE]
+                                 从旧配置派生唯一元数据 / 导出并校验运行时摘要
+            schedule install|remove|run|status|alert
+                                 Go 原生定时任务（到期前 30 天自动续签；alert 供 OnFailure 使用）
+            update status|check|apply|configure --manifest-url URL
+                                 Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
+            stats [--json]       只读查询 Xray 统计（reset=false）
+            service status|start|stop|restart|reload|logs [--unit xray|nginx]
+                                 服务类操作（仅真实 systemd）
+            tcp status|plan|apply|rollback --profile bbr-fq --confirm
+                                 Go 原生 TCP 配置（仅管理 /etc/sysctl.d/90-idleleo-tcp.conf）
+            speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
+                                 下行测速（本机实现，不下载执行第三方脚本）
+            rill status          只读 Rill 交接状态
+            recover              收敛未完成的 xray install
+            help                 显示本帮助
+          
+          语言: zh、en 已完整；fr、fa、ru、ko 暂时回退到英文。
+PASS Go help does not claim UUIDv5 mapping 
+PASS Go help documents user list|add|remove 
+PASS the final config still matches the original skeleton 

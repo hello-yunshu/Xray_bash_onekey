@@ -1,0 +1,314 @@
+== F14 go=/work/bin/idleleo bash=/work/repo host=aarch64
+PASS Bash auto_update.sh baseline is present /work/repo
+$ openssl genpkey -algorithm ED25519 -out /work/evidence/f14/release-work/release.key (rc=0 0.0s)
+PASS ed25519 release key generated 
+$ openssl pkey -in /work/evidence/f14/release-work/release.key -pubout -out /work/evidence/f14/release-work/release.pub (rc=0 0.0s)
+PASS ed25519 public key exported 
+$ /work/bin/idleleo --version (rc=0 0.0s)
+  stdout: idleleo 0.2.0-phase04 (go)
+PASS manager reports its release version idleleo 0.2.0-phase04 (go)
+PASS fixture runs on a supported release platform aarch64
+$ openssl pkeyutl -sign -rawin -inkey /work/evidence/f14/release-work/release.key -in /work/evidence/f14/release-work/canonical.bin -out /work/evidence/f14/release-work/signature.bin (rc=0 0.01s)
+PASS manifest signed with ed25519 
+$ openssl pkeyutl -sign -rawin -inkey /work/evidence/f14/release-work/release.key -in /work/evidence/f14/release-work/canonical.bin -out /work/evidence/f14/release-work/signature.bin (rc=0 0.01s)
+PASS manifest signed with ed25519 
+$ openssl pkeyutl -sign -rawin -inkey /work/evidence/f14/release-work/release.key -in /work/evidence/f14/release-work/canonical.bin -out /work/evidence/f14/release-work/signature.bin (rc=0 0.0s)
+PASS manifest signed with ed25519 
+$ openssl pkeyutl -sign -rawin -inkey /work/evidence/f14/release-work/release.key -in /work/evidence/f14/release-work/canonical.bin -out /work/evidence/f14/release-work/signature.bin (rc=0 0.0s)
+PASS manifest signed with ed25519 
+$ openssl pkeyutl -sign -rawin -inkey /work/evidence/f14/release-work/release.key -in /work/evidence/f14/release-work/canonical.bin -out /work/evidence/f14/release-work/signature.bin (rc=0 0.0s)
+PASS manifest signed with ed25519 
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update status --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "configured": false
+          }
+PASS status reports no channel before configuration {"schemaVersion": 1, "configured": false}
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update check --json (rc=3 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "manifestUrl": "",
+            "platform": "linux-arm64",
+            "latestVersion": "",
+            "state": "",
+            "asset": {
+              "name": "",
+              "sha256": "",
+              "size": 0
+            },
+            "verified": false
+          }
+  stderr: no Go release channel configured; run `idleleo update configure --manifest-url URL`
+PASS check without a channel exits 3 rc=3
+PASS check explains the missing channel {
+  "schemaVersion": 1,
+  "manifestUrl": "",
+  "platform": "linux-arm64",
+  "latestVersion": "",
+  "state": "",
+  "asset": {
+    "name": "",
+    "sha256": "",
+    "size": 0
+  },
+  "verified": false
+}
+
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update check --manifest-url http://127.0.0.1:50123/manifest-unsigned.json --json (rc=1 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "manifestUrl": "http://127.0.0.1:50123/manifest-unsigned.json",
+            "platform": "linux-arm64",
+            "latestVersion": "",
+            "state": "",
+            "asset": {
+              "name": "",
+              "sha256": "",
+              "size": 0
+            },
+            "verified": false
+          }
+  stderr: manifest signature verification failed: manifest has no signature
+PASS unsigned manifest is refused rc=1
+PASS unsigned refusal names the signature {
+  "schemaVersion": 1,
+  "manifestUrl": "http://127.0.0.1:50123/manifest-unsigned.json",
+  "platform": "linux-arm64",
+  "latestVersion": "",
+  "state": "",
+  "asset": {
+    "name": "",
+    "sha256": "",
+    "size": 0
+  },
+  "verified": fal
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update check --manifest-url http://127.0.0.1:50123/manifest-badsha.json --json (rc=1 0.02s)
+  stdout: {
+            "schemaVersion": 1,
+            "manifestUrl": "http://127.0.0.1:50123/manifest-badsha.json",
+            "platform": "linux-arm64",
+            "latestVersion": "0.2.1",
+            "state": "available",
+            "asset": {
+              "name": "idleleo",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+              "size": 14232715,
+              "url": "/idleleo"
+            },
+            "verified": false,
+            "detail": "no applied Go release recorded; the channel can install this version"
+          }
+  stderr: asset sha256 mismatch: got bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8 want 0000000000000000000000000000000000000000000000000000000000000000
+PASS digest mismatch fails the check rc=1
+PASS digest refusal names sha256 {
+  "schemaVersion": 1,
+  "manifestUrl": "http://127.0.0.1:50123/manifest-badsha.json",
+  "platform": "linux-arm64",
+  "latestVersion": "0.2.1",
+  "state": "available",
+  "asset": {
+    "name": "idleleo",
+    "sha256": "00000000000000000000
+PASS refused checks write no release state 
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update configure --manifest-url http://127.0.0.1:50123/manifest.json --install-path tmp/release/idleleo (rc=0 0.0s)
+  stdout: channel=go manifest=http://127.0.0.1:50123/manifest.json installPath=tmp/release/idleleo
+PASS configure exit 0 rc=0 
+PASS channel is pinned to the Go manifest {"schemaVersion": 1, "channel": "go", "manifestUrl": "http://127.0.0.1:50123/manifest.json", "installPath": "tmp/release/idleleo"}
+PASS channel records the install path tmp/release/idleleo
+PASS channel file is 0640 0o640
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update status --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "configured": true,
+            "channel": "go",
+            "manifestUrl": "http://127.0.0.1:50123/manifest.json",
+            "installPath": "tmp/release/idleleo"
+          }
+PASS status reports the configured channel {"schemaVersion": 1, "configured": true, "channel": "go", "manifestUrl": "http://127.0.0.1:50123/manifest.json", "installPath": "tmp/release/idleleo"}
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update check --json (rc=0 0.02s)
+  stdout: {
+            "schemaVersion": 1,
+            "manifestUrl": "http://127.0.0.1:50123/manifest.json",
+            "platform": "linux-arm64",
+            "latestVersion": "0.2.0-phase04",
+            "state": "available",
+            "asset": {
+              "name": "idleleo",
+              "sha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8",
+              "size": 14232715,
+              "url": "/idleleo"
+            },
+            "verified": true,
+            "detail": "no applied Go release recorded; the channel can install this version"
+          }
+PASS check exit 0 rc=0 
+PASS check verifies a first install as available {"schemaVersion": 1, "manifestUrl": "http://127.0.0.1:50123/manifest.json", "platform": "linux-arm64", "latestVersion": "0.2.0-phase04", "state": "available", "asset": {"name": "idleleo", "sha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0
+PASS check reports version and platform 0.2.0-phase04 linux-arm64
+PASS check reports the exact asset digest and size {"name": "idleleo", "sha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8", "size": 14232715, "url": "/idleleo"}
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update apply --json (rc=0 0.05s)
+  stdout: {
+            "schemaVersion": 1,
+            "action": "applied",
+            "manifestUrl": "http://127.0.0.1:50123/manifest.json",
+            "platform": "linux-arm64",
+            "newVersion": "0.2.0-phase04",
+            "newSha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8",
+            "installPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo",
+            "backupPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo.previous",
+            "healthOutput": "idleleo 0.2.0-phase04 (go)"
+          }
+PASS apply exit 0 rc=0 
+PASS apply installed the manifest version {"schemaVersion": 1, "action": "applied", "manifestUrl": "http://127.0.0.1:50123/manifest.json", "platform": "linux-arm64", "newVersion": "0.2.0-phase04", "newSha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8", "installPath": "/work/evidence/f14/release-work/root/tmp/release
+PASS health output identifies the new version idleleo 0.2.0-phase04 (go)
+PASS installed binary matches the verified asset /work/evidence/f14/release-work/root/tmp/release/idleleo
+PASS installed binary is 0755 0o755
+PASS state records the applied release {"schemaVersion": 1, "version": "0.2.0-phase04", "sha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8", "appliedAt": "2026-11-16T15:12:39Z"}
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update apply --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "action": "up-to-date",
+            "manifestUrl": "http://127.0.0.1:50123/manifest.json",
+            "platform": "linux-arm64",
+            "previousVersion": "0.2.0-phase04",
+            "newVersion": "0.2.0-phase04",
+            "installPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo"
+          }
+PASS second apply is a no-op {"schemaVersion": 1, "action": "up-to-date", "manifestUrl": "http://127.0.0.1:50123/manifest.json", "platform": "linux-arm64", "previousVersion": "0.2.0-phase04", "newVersion": "0.2.0-phase04", "installPath": "/work/evidence/f14/release-wor
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update apply --manifest-url http://127.0.0.1:50123/manifest-rollback.json --json (rc=1 0.06s)
+  stdout: {
+            "schemaVersion": 1,
+            "action": "rolled-back",
+            "manifestUrl": "http://127.0.0.1:50123/manifest-rollback.json",
+            "platform": "linux-arm64",
+            "previousVersion": "0.2.0-phase04",
+            "newVersion": "0.2.1",
+            "previousSha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8",
+            "newSha256": "a82c1b5fd392d72148d53992a860224ff3753cb2dc8909e9bdd1620e54ee1b88",
+            "installPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo",
+            "backupPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo.previous",
+            "healthOutput": "true (GNU coreutils) 9.4\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering."
+          }
+  stderr: new binary failed its health check and the previous binary was restored: health check output "true (GNU coreutils) 9.4\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering." does not identify idleleo 0.2.1
+PASS failed health check exits 1 rc=1
+PASS report marks the rollback {"schemaVersion": 1, "action": "rolled-back", "manifestUrl": "http://127.0.0.1:50123/manifest-rollback.json", "platform": "linux-arm64", "previousVersion": "0.2.0-phase04", "newVersion": "0.2.1", "previousSha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8", "newSha256": "a82c
+PASS rollback is reported to the operator {
+  "schemaVersion": 1,
+  "action": "rolled-back",
+  "manifestUrl": "http://127.0.0.1:50123/manifest-rollback.json",
+  "platform": "linux-arm64",
+  "previousVersion": "0.2.0-phase04",
+  "newVersion": "0.2.1",
+  "previousSha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8",
+  "
+PASS rollback restores the previous binary 
+PASS rollback leaves the recorded release untouched {"schemaVersion": 1, "version": "0.2.0-phase04", "sha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8", "appliedAt": "2026-11-16T15:12:39Z"}
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update check --manifest-url http://127.0.0.1:50123/manifest-downgrade.json --json (rc=4 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "manifestUrl": "http://127.0.0.1:50123/manifest-downgrade.json",
+            "platform": "linux-arm64",
+            "currentVersion": "0.2.0-phase04",
+            "latestVersion": "0.1.0",
+            "state": "refused-downgrade",
+            "asset": {
+              "name": "idleleo",
+              "sha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8",
+              "size": 14232715,
+              "url": "/idleleo"
+            },
+            "verified": false,
+            "detail": "installed version 0.2.0-phase04 is newer than manifest version 0.1.0; no downgrade"
+          }
+  stderr: release manifest is older than the installed version
+PASS downgrade check exits 4 rc=4
+PASS downgrade state is explicit {"schemaVersion": 1, "manifestUrl": "http://127.0.0.1:50123/manifest-downgrade.json", "platform": "linux-arm64", "currentVersion": "0.2.0-phase04", "latestVersion": "0.1.0", "state": "refused-downgrade", "asset": {"name": "idleleo", "sha256
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root update apply --manifest-url http://127.0.0.1:50123/manifest-downgrade.json --json (rc=4 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "action": "refused-downgrade",
+            "manifestUrl": "http://127.0.0.1:50123/manifest-downgrade.json",
+            "platform": "linux-arm64",
+            "previousVersion": "0.2.0-phase04",
+            "installPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo"
+          }
+  stderr: release manifest is older than the installed version: installed 0.2.0-phase04, manifest 0.1.0
+PASS downgrade apply exits 4 rc=4
+PASS downgrade never touches the installed binary 
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root schedule install --json (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "configPath": "/work/evidence/f14/release-work/root/etc/idleleo/schedule/jobs.json",
+            "servicePath": "/work/evidence/f14/release-work/root/etc/systemd/system/idleleo-schedule.service",
+            "timerPath": "/work/evidence/f14/release-work/root/etc/systemd/system/idleleo-schedule.timer",
+            "alertServicePath": "/work/evidence/f14/release-work/root/etc/systemd/system/idleleo-alert.service",
+            "intervalSeconds": 3600,
+            "jobs": [
+              "auto-update",
+              "cert-renew",
+              "geodata-refresh",
+              "stats-collect"
+            ],
+            "degradedJobs": [
+              "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+            ],
+            "systemd": "sandbox-not-queried"
+          }
+PASS schedule install exit 0 rc=0 
+PASS default interval is 3600s 3600
+PASS native schedule owns all four legacy responsibilities ["auto-update", "cert-renew", "geodata-refresh", "stats-collect"]
+PASS auto-update degradation is explicit auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)
+PASS sandbox install does not touch the host systemd sandbox-not-queried
+PASS persisted schedule config matches the report {"schemaVersion": 1, "intervalSeconds": 3600, "jobs": ["auto-update", "cert-renew", "geodata-refresh", "stats-collect"], "geodataUrl": "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download", "geodataDir": "etc/idleleo/share/xray", "certWebroot": "etc/idleleo/conf", "certFile": "e
+PASS timer runs every 3600s persistently [Unit]
+Description=idleleo scheduled maintenance timer
+
+[Timer]
+OnActiveSec=3600s
+OnUnitActiveSec=3600s
+AccuracySec=1s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
+PASS native schedule writes no crontab 
+PASS Bash baseline installs the daily 01:00 auto_update.sh cron 
+PASS Bash auto_update.sh covers Xray and Nginx 
+PASS Go timer and Bash cron are both recorded for the comparison 
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root schedule run --job auto-update --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/f14/release-work/root",
+            "startedAt": "2026-11-16T15:12:40Z",
+            "results": [
+              {
+                "job": "auto-update",
+                "result": "degraded",
+                "detail": "no Go release channel is configured; no automatic update runs (explicit product degradation, see `idleleo update configure`)",
+                "at": "2026-11-16T15:12:40Z"
+              }
+            ]
+          }
+PASS degraded scheduled run exits 0 rc=0
+PASS scheduled auto-update reports degraded [{"job": "auto-update", "result": "degraded", "detail": "no Go release channel is configured; no automatic update runs (explicit product degradation, see `idleleo update configure`)", "at": "2026-11-16T15:12:40Z"}]
+PASS degraded detail names the missing channel no Go release channel is configured; no automatic update runs (explicit product degradation, see `idleleo update configure`)
+$ /work/bin/idleleo --root /work/evidence/f14/release-work/root schedule run --job auto-update --json (rc=0 0.03s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/f14/release-work/root",
+            "startedAt": "2026-11-16T15:12:40Z",
+            "results": [
+              {
+                "job": "auto-update",
+                "result": "ok",
+                "detail": "updated  -> 0.2.0-phase04 sha256=bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8 health=idleleo 0.2.0-phase04 (go)",
+                "at": "2026-11-16T15:12:40Z"
+              }
+            ]
+          }
+PASS scheduled apply exit 0 rc=0 
+PASS scheduled auto-update applies the channel [{"job": "auto-update", "result": "ok", "detail": "updated  -> 0.2.0-phase04 sha256=bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8 health=idleleo 0.2.0-phase04 (go)", "at": "2026-11-16T15:12:40Z"}]
+PASS scheduled detail records the version change updated  -> 0.2.0-phase04 sha256=bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8 health=idleleo 0.2.0-phase04 (go)
+PASS scheduled apply installed the verified binary /work/evidence/f14/release-work/root/tmp/release/idleleo
+PASS schedule log keeps both outcomes 2026-11-16T15:12:40Z job=auto-update result=degraded detail=no Go release channel is configured; no automatic update runs (explicit product degradation, see `idleleo update configure`)
+2026-11-16T15:12:40Z job=auto-update result=ok detail=updated  -> 0.2.0-phase04 sha256=bf3ceaac15bc74be6367e75d8a80

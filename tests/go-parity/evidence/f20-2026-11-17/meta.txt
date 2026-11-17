@@ -1,0 +1,101 @@
+F20 Fail2ban 防爆破 — CONTAINER_VERIFIED evidence
+==================================================
+
+Date: 2026-11-17 (Asia/Shanghai)
+Evidence level: CONTAINER_VERIFIED
+The executor runs the real Go binary, the real `fail2ban-client` 1.0.2 daemon,
+the real `fail2ban-client set ... banip/unbanip/addignoreip` runtime, the real
+Bash baseline (`scripts/fail2ban_manager.sh` -> `mf_configure_fail2ban`) and
+compares every generated file byte for byte inside the pinned container.
+It does NOT claim full VERIFIED: there is no systemd PID 1, no SSH unit or
+journal, no real log-driven ban and no iptables data-plane assertion. Those
+gaps are listed in baseline-compare.json and must be closed on a real host.
+
+Source state
+------------
+Commit at run time: 16893561c823bc324e7ea7566b3c4779b8606154
+Plus the F20 change set in the working tree:
+  tests/go-parity/parity/features/F20_test.py
+  docs/plans/p2/specs/f20-executor/
+
+Go binary
+---------
+Build:
+  docker run --rm -v "$PWD":/src -w /src -v /tmp/f20out:/out \
+    -e CGO_ENABLED=0 golang:1.27.4 \
+    go build -trimpath -o /out/idleleo ./cmd/idleleo
+sha256: cf9e804f43e70f7b2dfd49692a7aa6f6d39809822262dfcdc40d80159b22496d
+
+Bash baseline
+-------------
+scripts/fail2ban_manager.sh
+sha256: 8400787a9585ef591a7480e843e7e166a7d861256693df9950d4e1c2402f4b39
+Only log_echo/judge/gettext and the colour variables are stubbed.
+systemctl/journalctl are the image binaries, so both sides skip the sshd jail
+for the same reason (no reachable SSH unit/journal).
+
+Runtime container
+-----------------
+Image: idleleo-e2e@sha256:3012978e415b9bec250f738ddc7246a64837896fbeb52ed27571d8f3b8b24002
+Fail2Ban: v1.0.2
+Flags: --privileged
+Mounts: /work/bin (built binary), /work/repo (fixed source),
+        /work/evidence (this directory)
+Env:    IDLELEO_PREVIEW_EVIDENCE=/work/evidence
+Note: the Go manager writes the real /etc/fail2ban of the throwaway container.
+      Bash runs first, its tree is snapshotted and restored, then Go runs.
+      The systemd restart drop-in outside /etc/fail2ban is snapshotted too.
+
+Command (run twice, identical counts)
+-------------------------------------
+python3 -I /work/repo/tests/go-parity/parity/features/F20_test.py \
+  --go-bin /work/bin/idleleo --bash-repo /work/repo
+
+Run 1: 110 passed, 0 failed (elapsed 1.29 s)
+Run 2: 110 passed, 0 failed (elapsed 1.27 s)
+Per-run results: run1-fixture-result.json / run2-fixture-result.json
+Command log: commands.log (two full runs appended)
+
+Evidence layout
+---------------
+f20-work/generated/{bash,go}/ keeps only the files this feature writes
+(five jail files, two filters, the restart drop-in) so the two implementations
+can be diffed byte for byte. The distro's own jail.conf/filter.d bodies are not
+archived: they contain upstream sample addresses and host paths. Their digests
+are in observed.json (jailConfSha256, jailLocalSha256, bashBaseline.tree).
+`check_evidence_hygiene.py` reports 0 findings.
+
+Coverage summary
+----------------
+S1 install: five jail states (sshd skipped with reason), four Nginx jail files
+  with exact keys, jail.local byte copy of jail.conf, incremental policy, two
+  filters, systemd drop-in, manifest version 1 with nine files, second install
+  leaves the whole tree sha unchanged.
+S2 Bash baseline (real execution): rc=0, SSH jail skipped, five jail files,
+  exact file bodies, jail.local copy; all nine generated files byte identical
+  between Bash and Go.
+S3 runtime: real daemon ping, status lists four jails with zero bans, a real
+  banip is reported by `banned`, unban clears it, second unban reports
+  already-absent, invalid IP and unknown jail exit 1.
+S4 trust: IPv4 add applies at runtime and persists, del leaves only the header,
+  IPv6 add/del works, invalid CIDR and unknown jail exit 1.
+S5 jail toggles: disable/enable flips exactly `enabled`, no systemd restart in
+  the container (warning + serviceRestarted=false), foreign jail refused.
+S6 uninstall: removes the ten manifest-owned files, preserves the operator jail,
+  package is left installed; a manifest-less rerun refuses with rc=2 and
+  needForce, `--force` removes only known leftovers and keeps the operator file.
+S7 guards: sandbox marker, `--root /` without `--container`, missing write grant,
+  missing fail2ban-client (three package-manager hints, zero writes).
+
+Known gaps (not faked)
+----------------------
+1. No systemd: `systemctl restart fail2ban` fails in the container. Only the
+   warning and serviceRestarted=false were observed; jail activation after a
+   real restart is not verified.
+2. No SSH unit/journal: sshd.local is skipped by both implementations, so its
+   template is not exercised at runtime.
+3. No log-driven bans: bans were created with `fail2ban-client set ... banip`,
+   not by real Nginx traffic, and iptables/ipset blocking was not asserted.
+4. fail2ban 1.0.2 only; 1.1.x compatibility was not re-run here (P2 C1 recorded
+   a manual 1.1.0 run earlier).
+5. No real VPS, no production /etc/fail2ban ownership/permission check.

@@ -1,0 +1,35 @@
+C01.1	version	/tmp/idleleo version	0	0	1	empty root unchanged
+C01.2	status on empty root	/tmp/idleleo --root <empty> status	3	3	1	not-installed exit, zero files
+C01.3	status fixture	/tmp/idleleo --root <fixture> --json status	0	0	1	sha unchanged
+C01.4	config inspect	/tmp/idleleo --root <fixture> config inspect --json	0	0	1	sha unchanged
+C01.5	show non-root sandbox	/tmp/idleleo --root <fixture> show	0	0	1	sha unchanged
+C02.1	no TTY does not hang	/tmp/idleleo (stdin=/dev/null)	2	2	1	explained exit 2
+C02.2	TERM=dumb no ANSI	TERM=dumb /tmp/idleleo status	0	0	1	no ESC bytes
+C03.corrupt	corrupt metadata	/tmp/idleleo --root <corrupt> status	4	4	1	classified exit
+C03.schema	schema metadata	/tmp/idleleo --root <schema> status	5	5	1	classified exit
+C03.unsupported	unsupported metadata	/tmp/idleleo --root <unsupported> status	12	12	1	classified exit
+C03.secret	secret metadata	/tmp/idleleo --root <secret> status	4	4	1	classified exit
+C03.missing	missing metadata	/tmp/idleleo --root <empty> status	3	3	1	no files created
+C04.1	custom dns/routing/top-level	/tmp/idleleo config inspect --json	0	0	1	sha unchanged
+C04.2	show derives authority	/tmp/idleleo show	0	0	1	no rewrite
+C04.reality-direct	fixture reality-direct read-only	/tmp/idleleo config inspect; /tmp/idleleo show	0	0/0	1	parsed, sha unchanged
+C04.tls-multi	fixture tls-multi read-only	/tmp/idleleo config inspect; /tmp/idleleo show	0	0/0	1	parsed, sha unchanged
+C04.custom-dns-routing	fixture custom-dns-routing read-only	/tmp/idleleo config inspect; /tmp/idleleo show	0	0/0	1	parsed, sha unchanged
+C05.1	status reports drift	/tmp/idleleo status	0	0	1	read-only drift report
+C05.2	change refuses stale baseline	/tmp/idleleo change ... --port 8443	7	7	1	no journal write
+C06	validator rejects	/tmp/idleleo change --validator <exit 1>	8	8	1	target bytes unchanged
+C07	injected write failure	/tmp/idleleo change --fault write-fail	13	13	1	target untouched
+C08.1	service apply failure	/tmp/idleleo change --service <exit 1>	9	9	1	restored, only apply invoked
+C08.2	injected service failure	/tmp/idleleo change --fault service-fail	9	9	1	restored
+C06.real	real xray validator	/tmp/idleleo change --validator <xray>	0	0	1	Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64); xray-test=0; committed
+C09	lock contention	flock held; /tmp/idleleo change	7	7	1	no write under lock
+C10.1	non-root status	setpriv nobody /tmp/idleleo status	0	0	1	read-only
+C10.2	non-root illegal command	setpriv nobody /tmp/idleleo frobnicate	2	2	1	no mutation
+C10.3	non-root change refused	setpriv nobody /tmp/idleleo change	nonzero	2	1	no write
+C11.1	linux/amd64 build	GOOS=linux GOARCH=amd64 go build	0	0	1	bytes=10224171
+C11.2	linux/arm64 build	GOOS=linux GOARCH=arm64 go build	0	0	1	bytes=9728187
+C11.3	current-arch binary runs	/tmp/idleleo version	0	0	1	aarch64
+C12.1	install.sh bytes match pin	sha256sum install.sh	a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c	a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c	1	pin 0fa7052e51b9bd7e6ffb46bc86befb006034da3c
+C12.2	product code diff empty	git diff 0fa7052e51b9bd7e6ffb46bc86befb006034da3c..HEAD -- install.sh scripts config	empty	empty	1	no Bash core change
+C12.3	Go does not install over Bash entry	test -e /etc/idleleo/install.sh	empty		1	legacy path absent
+C12.4	published Bash pin still loads	_TEST_MODE=1 source git 0fa7052e51b9bd7e6ffb46bc86befb006034da3c:install.sh; echo shell_version	3.3.6	3.3.6	1	published pin untouched

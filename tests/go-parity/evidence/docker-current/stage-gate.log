@@ -1,0 +1,29 @@
+STAGE CHECK 1
+LIVE_PINNED_CLEAN: 83/83 MATCH; BUNDLED_TOY_GO_DEMO; release_certified=False
+STAGE CHECK 2
+?   	example.org/idleleo/bridge-probe-v2	[no test files]
+ok  	example.org/idleleo/bridge-probe-v2/bridge	0.257s
+?   	example.org/idleleo/bridge-probe-v2	[no test files]
+ok  	example.org/idleleo/bridge-probe-v2/bridge	28.502s
+fixture_created=/tmp/idleleo-parity-bridge.kyZycV/host-reality mode=reality (synthetic data)
+--- reality: original Bash entry is executable ---
+PASS reality: interrupted process, separate recover, legacy executable and runtime hash intact
+fixture_created=/tmp/idleleo-parity-bridge.kyZycV/host-tls mode=tls (synthetic data)
+--- tls: original Bash entry is executable ---
+PASS tls: interrupted process, separate recover, legacy executable and runtime hash intact
+fixture_created=/tmp/idleleo-parity-bridge.kyZycV/host-relay mode=relay (synthetic data)
+--- relay: original Bash entry is executable ---
+PASS relay: interrupted process, separate recover, legacy executable and runtime hash intact
+fixture_created=/tmp/idleleo-parity-bridge.kyZycV/host-xtls mode=xtls (synthetic data)
+PASS xtls: rejected without journal
+fixture_created=/tmp/idleleo-parity-bridge.kyZycV/host-success mode=reality (synthetic data)
+PASS success: real executable available through switched relative link
+EVIDENCE_DIR=/tmp/idleleo-parity-bridge.kyZycV
+GO v2 bridge CLI: 39 / 39 checks passed; production_migration_certified=False
+STAGE CHECK 3
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.119s
+
+OK
+STAGE GATE PASS: baseline/differential/Bridge/fail-closed tests only; NOT a production release

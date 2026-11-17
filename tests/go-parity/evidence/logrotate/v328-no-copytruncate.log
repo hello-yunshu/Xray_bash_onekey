@@ -1,0 +1,7 @@
+before-rotation bytes=36
+after-rotation:
+total 4
+-rw-r----- 1 nobody nogroup  0 Nov  7 15:25 access.log
+-rw-r----- 1 nobody nogroup 32 Nov  7 15:25 access.log.1.gz
+new access.log bytes=0
+held-fd writes ended up in access.log.1.gz (compressed old inode)

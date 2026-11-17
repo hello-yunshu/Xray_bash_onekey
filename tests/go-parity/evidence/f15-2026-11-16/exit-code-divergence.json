@@ -1,0 +1,12 @@
+{
+  "bash": {
+    "exit": 2,
+    "stderr": "xray_stats: Xray \u672a\u8fd0\u884c\u6216\u7edf\u8ba1 API \u4e0d\u53ef\u8fbe 127.0.0.1:54535"
+  },
+  "case": "api-down",
+  "go": {
+    "exit": 8,
+    "stderr": "stats query failed (exit 1): failed to dial 127.0.0.1:54535"
+  },
+  "note": "F15 migration note documents Go exit 8 vs Bash exit 2 for an unreachable Stats API"
+}

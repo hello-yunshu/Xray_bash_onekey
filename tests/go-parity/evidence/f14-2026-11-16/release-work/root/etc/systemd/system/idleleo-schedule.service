@@ -1,0 +1,9 @@
+[Unit]
+Description=idleleo Go scheduled maintenance (Bridge migration takeover)
+After=network-online.target
+Wants=network-online.target
+OnFailure=idleleo-alert.service
+
+[Service]
+Type=oneshot
+ExecStart=/work/evidence/f14/release-work/root/usr/bin/idleleo schedule run

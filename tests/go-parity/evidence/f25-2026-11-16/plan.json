@@ -1,0 +1,33 @@
+{
+  "conflicts": [],
+  "fileAction": "create",
+  "fileContent": "# Managed by Xray_bash_onekey (Go): idleleo tcp\n# Profile: bbr-fq\n# Rollback: idleleo tcp rollback\n# Do not edit; use the idleleo CLI so rollback stays accurate.\nnet.core.default_qdisc = fq\nnet.ipv4.tcp_congestion_control = bbr\n",
+  "fileExisted": false,
+  "fileMode": 0,
+  "fileOwned": false,
+  "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+  "impact": [
+    "writes only /work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+    "applies only net.core.default_qdisc, net.ipv4.tcp_congestion_control through /proc/sys; no sysctl --system replay",
+    "runtime change is immediate; after reboot the persisted file re-applies the profile",
+    "does not install a kernel, BBRPlus, SharpSpeed or a third-party script"
+  ],
+  "kernelSupportsBbr": true,
+  "keys": [
+    {
+      "key": "net.core.default_qdisc",
+      "new": "fq",
+      "old": "fq_codel"
+    },
+    {
+      "key": "net.ipv4.tcp_congestion_control",
+      "new": "bbr",
+      "old": "cubic"
+    }
+  ],
+  "noop": false,
+  "profile": "bbr-fq",
+  "restartRequired": false,
+  "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+  "supported": true
+}

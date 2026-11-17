@@ -1,0 +1,9 @@
+commit=903cd32a068fe0fff0c8c0880ade90a533048ebb
+image=idleleo-preview:latest@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+level=CONTAINER_VERIFIED + ACME_LOCAL_CA (in-fixture local ACME v2 over HTTPS; no public CA, no real nginx)
+date=2026-11-16T15:08:30Z
+fixture=tests/go-parity/parity/features/F12_test.py
+command=python3 -I /work/repo/tests/go-parity/parity/features/F12_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo
+result=72 passed, 0 failed, exit 0, 2.07s
+go_bin_sha256=bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8
+notes=second run in the same container was also 72/72, so cleanup and setup are idempotent

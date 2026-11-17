@@ -1,0 +1,99 @@
+label=ACME_LOCAL_CA
+started=2026-11-08T16:01:57Z
+repo_commit=3d07613a16e56e7d80c2a3ad7d621880aec7139c
+pebble_image=sha256:ddf230642b1a584f519f32e347de1b05a6e4c1f6c35c1863b33effeab5f78199
+client_image=sha256:f481cd9e9f57e7240fccceee0342d766fb45bf90ea3f89bb8484b265c4d01183
+pebble_test_assets=localhost
+pebble.minica.key.pem
+pebble.minica.pem
+README.md
+--- build go binary
+build=OK sha256=a4c3be5184ca902241718e7eb8daf48577b375acee9e6927792eb134d686d222
+--- start network/pebble/client
+pebble_ready=OK webroot_ready=OK
+pebble_root=fetched
+--- issue
+issue=OK
+reload_marker=OK
+account_key_mode=600
+key_mode=600
+--- renew inside window (expect skip)
+renew_skip_cmd=OK
+--- renew forced (expect real reissue)
+renew_force=OK
+--- negative: renewal with an unusable challenge webroot must keep the old pair
+renew_webroot_fail=FAILED_AS_EXPECTED exit=1
+renew_webroot_fail_old_cert=KEPT
+--- negative: reload failure must restore the previous certificate pair
+renew_reload_fail=FAILED_AS_EXPECTED exit=1
+reload_failure_restored_old_pair=YES
+cert_mode=644
+key_mode=600
+old_pair_still_valid=YES
+--- negative: read-only destination must be refused without writing a cert
+negative_readonly=REFUSED exit=1
+negative_readonly_wrote_cert=NO
+--- negative: blocked domain must be rejected by CA
+negative_blocked=REJECTED exit=1
+negative_cert_written=NO
+{
+  "label": "ACME_LOCAL_CA",
+  "protocol": "ACME v2 (RFC 8555), JWS ES256, HTTP-01",
+  "ca": "Pebble local test CA + pebble.minica.pem (self-signed; not a public CA)",
+  "domain": "acme.local (Docker network alias; no public DNS)",
+  "account_reused": true,
+  "issue": {
+    "issued": true,
+    "notAfter": "2027-02-06T16:02:04Z",
+    "serial": "3bb45f425b2ed3b7",
+    "reloaded": true
+  },
+  "renew_in_window": {
+    "skipped": true,
+    "issued": false,
+    "reason": "certificate valid until 2027-02-06T16:02:04Z; renew window 24h0m0s not reached"
+  },
+  "renew_forced": {
+    "issued": true,
+    "serial": "2a53a9014a07548c",
+    "notAfter": "2027-02-06T16:02:09Z"
+  },
+  "serial_changed": true,
+  "verify_initial": {
+    "subject": "",
+    "dnsNames": [
+      "acme.local"
+    ],
+    "serial": "3bb45f425b2ed3b7",
+    "notBefore": "2026-11-08T16:02:05Z",
+    "notAfter": "2027-02-06T16:02:04Z",
+    "validDays": 89.99998842592593,
+    "verifiedToLocalRoot": true,
+    "hostnameVerified": true,
+    "privateKeyMatches": true
+  },
+  "verify_after_force": {
+    "subject": "",
+    "dnsNames": [
+      "acme.local"
+    ],
+    "serial": "2a53a9014a07548c",
+    "notBefore": "2026-11-08T16:02:10Z",
+    "notAfter": "2027-02-06T16:02:09Z",
+    "validDays": 89.99998842592593,
+    "verifiedToLocalRoot": true,
+    "hostnameVerified": true,
+    "privateKeyMatches": true
+  },
+  "negative": {
+    "webroot_failure_kept_old_pair": true,
+    "reload_failure_restored_old_pair": true,
+    "restored_pair_still_valid": true,
+    "readonly_destination_refused": true,
+    "readonly_destination_wrote_no_cert": true,
+    "blocked_domain_rejected": true,
+    "blocked_domain_wrote_no_cert": true
+  }
+}
+finished=2026-11-08T16:02:21Z
+acme_rc=0

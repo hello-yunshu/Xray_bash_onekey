@@ -1,0 +1,22 @@
+{
+  "columns": 45,
+  "languages": {
+    "fr": {
+      "containsFallbackNotice": true,
+      "containsStatusEntry": true,
+      "containsZeroExit": true,
+      "hasAnsi": false,
+      "output": "0\nnote: fr messages are not translated yet, falling back to English (use --lang en to silence this)\n\n1) status  2) show  3) config inspect  4) help  0) exit\n> ",
+      "rc": 0
+    },
+    "zh": {
+      "containsFallbackNotice": false,
+      "containsStatusEntry": true,
+      "containsZeroExit": true,
+      "hasAnsi": false,
+      "output": "0\n\n1) status  2) show  3) config inspect  4) help  0) exit\n> ",
+      "rc": 0
+    }
+  },
+  "rows": 40
+}

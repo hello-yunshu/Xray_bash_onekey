@@ -1,0 +1,46 @@
+# date=2026-11-08
+# repo_commit=ace4a164813fa2c28bf1310aa42264467c3c6419
+# image=idleleo-phase01-test:1.24 sha256:8af4eaa68338d882c32104e30d347f575f5c23730c6249fb82b78bebd3bab6c5
+# command=docker run --rm --network=none -v <repo>:/src:ro -w /src -e GOCACHE=/tmp/gocache idleleo-phase01-test:1.24 sh -c "gofmt -l cmd internal; go vet ./...; go test -count=1 ./...; go test -race ./..."
+# note=gofmt output section is empty = clean
+== gofmt ==
+== go vet ==
+== go test ==
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo-recover	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/parity-adapter	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/app	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	0.184s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	0.054s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/compat	0.001s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.120s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/host	0.008s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/i18n	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	1.052s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/release	0.058s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/runtime	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.105s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/service	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	0.004s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/tcpcfg	0.004s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.003s
+== go test -race ==
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo-recover	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/parity-adapter	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/app	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	1.060s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	1.064s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/compat	1.007s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	1.120s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/host	1.010s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/i18n	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	1.977s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/release	1.066s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/runtime	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	1.489s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/service	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	1.016s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/tcpcfg	1.031s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	1.022s
+GATES_OK

@@ -1,0 +1,25 @@
+gofmt_files=0
+BUILD_OK
+VET_OK
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo-recover	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/parity-adapter	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/acme	0.131s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/app	0.007s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	0.283s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	2.535s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/compat	0.004s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.920s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/host	0.008s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/i18n	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	2.735s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/release	0.128s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/runtime	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.182s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/service	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/speedtest	0.209s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	0.003s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/tcpcfg	0.008s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.008s
+?   	github.com/hello-yunshu/Xray_bash_onekey/tests/go-parity/acme	[no test files]
+go_suite_exit=0

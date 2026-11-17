@@ -1,0 +1,4 @@
+start xray
+start nginx
+stop nginx
+stop xray

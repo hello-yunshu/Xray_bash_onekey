@@ -1,0 +1,904 @@
+== F07 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/gen1.json --json (rc=0 0.02s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0",
+            "shortId": "bbe85aa0",
+            "shortIds": [
+              "bbe85aa0"
+            ],
+            "privateKey": "QjKe1Ng3XHMxTXEzn_odzZkV5YBujEy_qdR-qWUIfL0",
+            "publicKey": "U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo&sid=bbe85aa0&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo\n      short-id: bbe85aa0\n",
+            "warnings": []
+          }
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/gen2.json --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "8bbf1011-390e-465e-afc1-1556305929bf",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "8bbf1011-390e-465e-afc1-1556305929bf",
+            "shortId": "fdd752a9",
+            "shortIds": [
+              "fdd752a9"
+            ],
+            "privateKey": "9a3c4JGmI2LFlE1oZGMtvV3Qx0Shrc_38vVVMPeuGec",
+            "publicKey": "9AxkC5PEvUVgsE-hHaG92ogYqNHDdK50gn-IcR5ZBQg",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://8bbf1011-390e-465e-afc1-1556305929bf@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=9AxkC5PEvUVgsE-hHaG92ogYqNHDdK50gn-IcR5ZBQg&sid=fdd752a9&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 8bbf1011-390e-465e-afc1-1556305929bf\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 9AxkC5PEvUVgsE-hHaG92ogYqNHDdK50gn-IcR5ZBQg\n      short-id: fdd752a9\n",
+            "warnings": []
+          }
+PASS generate#1 rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0",
+   
+PASS generate#1 wrote config /work/evidence/f07-work/gen1.json
+PASS generate#2 wrote config /work/evidence/f07-work/gen2.json
+PASS auto shortId is 8 lowercase hex bbe85aa0
+PASS two runs generate different shortId bbe85aa0 != fdd752a9
+PASS runtime config shortIds equals generated value ["bbe85aa0"]
+PASS JSON shortIds mirrors config 
+PASS share URI scheme is vless vless
+PASS share URI carries the client UUID 
+PASS share URI host/port example.com:8443
+PASS share URI sid equals generated shortId ['bbe85aa0']
+PASS share URI security=reality 
+PASS share URI flow 
+PASS share URI default fingerprint is chrome 
+PASS share URI type=raw 
+PASS share URI has no target (Bash template does) dict_keys(['encryption', 'flow', 'security', 'sni', 'fp', 'pbk', 'sid', 'type'])
+PASS auto generate does not invent spiderX 
+PASS share URI public key is 43-char base64url 
+PASS generated config mode is 0600 0o600
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/sid16.json --short-id 1111111111111111 --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "d6318427-ea5d-40f4-90ce-283d77a05310",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "d6318427-ea5d-40f4-90ce-283d77a05310",
+            "shortId": "1111111111111111",
+            "shortIds": [
+              "1111111111111111"
+            ],
+            "privateKey": "bvaz2Q1eGokBFqE71Znyeld-md0fewyuWxiBhxx4V8g",
+            "publicKey": "iI_v0vgr5S3LWgHaMu287AUGX8eFCPsNfIBWwnImXlM",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://d6318427-ea5d-40f4-90ce-283d77a05310@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=iI_v0vgr5S3LWgHaMu287AUGX8eFCPsNfIBWwnImXlM&sid=1111111111111111&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: d6318427-ea5d-40f4-90ce-283d77a05310\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: iI_v0vgr5S3LWgHaMu287AUGX8eFCPsNfIBWwnImXlM\n      short-id: 1111111111111111\n",
+            "warnings": []
+          }
+PASS explicit 16-hex shortId accepted {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+ 
+PASS explicit shortId echoed 1111111111111111
+PASS explicit shortId written to config 
+PASS explicit shortId in share URI 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/sid4.json --short-id abcd --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "07e4bc34-0fae-4c9a-8dd6-a54d2de3c693",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "07e4bc34-0fae-4c9a-8dd6-a54d2de3c693",
+            "shortId": "abcd",
+            "shortIds": [
+              "abcd"
+            ],
+            "privateKey": "jatei6VGdYlpLoCbkPKRnbJifT5AdIisgRGJOc8PaI0",
+            "publicKey": "brKQX-tj9ZnQ0EnKQHJdblN_fsYu0rGymLXi5vOeEUg",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://07e4bc34-0fae-4c9a-8dd6-a54d2de3c693@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=brKQX-tj9ZnQ0EnKQHJdblN_fsYu0rGymLXi5vOeEUg&sid=abcd&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 07e4bc34-0fae-4c9a-8dd6-a54d2de3c693\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: brKQX-tj9ZnQ0EnKQHJdblN_fsYu0rGymLXi5vOeEUg\n      short-id: abcd\n",
+            "warnings": []
+          }
+PASS 4-hex shortId accepted (Bash requires 16) {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+ 
+PASS 4-hex shortId persisted 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/bad-odd.json --short-id abc (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length (or empty)
+PASS invalid shortId (odd) rc=2 shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (odd) writes no file 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/bad-too_long.json --short-id 0123456789abcdef0 (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length (or empty)
+PASS invalid shortId (too_long) rc=2 shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (too_long) writes no file 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/bad-not_hex.json --short-id zzzz (rc=2 0.01s)
+  stderr: shortId must be 1-16 hex characters with even length (or empty)
+PASS invalid shortId (not_hex) rc=2 shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (not_hex) writes no file 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/bad-space.json --short-id ab cd (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length (or empty)
+PASS invalid shortId (space) rc=2 shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (space) writes no file 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/sid-empty.json --short-id  --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "c4fc07b7-31fb-4d62-a584-1fd40b981645",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "c4fc07b7-31fb-4d62-a584-1fd40b981645",
+            "shortId": "90900a71",
+            "shortIds": [
+              "90900a71"
+            ],
+            "privateKey": "81Por5qbs_Oq_VN0jtNxB8Mg4A_0xma_lvPps8B2NMU",
+            "publicKey": "96ugK1d8OlvDng4xs5kwqBttE6ZNN7oFMq2oT2rfHw8",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://c4fc07b7-31fb-4d62-a584-1fd40b981645@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=96ugK1d8OlvDng4xs5kwqBttE6ZNN7oFMq2oT2rfHw8&sid=90900a71&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: c4fc07b7-31fb-4d62-a584-1fd40b981645\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 96ugK1d8OlvDng4xs5kwqBttE6ZNN7oFMq2oT2rfHw8\n      short-id: 90900a71\n",
+            "warnings": []
+          }
+PASS empty shortId falls back to auto generation {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "c4
+PASS empty shortId produced 8-hex value 90900a71
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray user add --sandbox /work/evidence/f07-work/root --validator /bin/true --service /bin/true --email sid@example.invalid --json --short-id 2222222222222222 (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794850059489721043-482",
+              "state": "COMMITTED",
+              "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "2a7352298f92ab0c5fa489bc8bb74041c8644911832f215b52f3bbf362c24a73",
+              "newSha256": "5d3a5019e25ebb8d069908ee4c804651e2ee652af13b977bfb3f76681329e83b",
+              "startedAt": "2026-11-16T17:27:39Z",
+              "updatedAt": "2026-11-16T17:27:39Z"
+            },
+            "user": {
+              "index": 1,
+              "uuid": "68e1b906-89a0-42a3-823c-0493a28175ef",
+              "email": "sid@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS user add --short-id rc=0 {
+  "entry": {
+    "id": "1794850059489721043-482",
+    "state": "COMMITTED",
+    "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSh
+PASS user add transaction COMMITTED COMMITTED
+PASS user add returned the new client 
+PASS user add appends the shortId ["bbe85aa0", "2222222222222222"]
+PASS user add appends exactly one client 2
+PASS user add leaves non-user fields unchanged 
+PASS user add keeps config mode 0640 0o640
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray user add --sandbox /work/evidence/f07-work/root --validator /bin/true --service /bin/true --email nosid@example.invalid --json (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794850059500876975-494",
+              "state": "COMMITTED",
+              "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "5d3a5019e25ebb8d069908ee4c804651e2ee652af13b977bfb3f76681329e83b",
+              "newSha256": "4656120e106a79aed12998bad20ad83e9e4806dab490456306db496e654425f8",
+              "startedAt": "2026-11-16T17:27:39Z",
+              "updatedAt": "2026-11-16T17:27:39Z"
+            },
+            "user": {
+              "index": 2,
+              "uuid": "54c3f843-4fb3-49c5-9184-7f209cbaf99f",
+              "email": "nosid@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS user add without --short-id rc=0 {
+  "entry": {
+    "id": "1794850059500876975-494",
+    "state": "COMMITTED",
+    "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSh
+PASS user add without shortId does not mint one (Bash mints a fresh sID) 
+PASS plain user add appended a client 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray user add --sandbox /work/evidence/f07-work/root --validator /bin/true --service /bin/true --email dup@example.invalid --json --short-id 2222222222222222 (rc=2 0.01s)
+  stderr: shortId already present
+PASS duplicate shortId rc=2 shortId already present
+
+PASS duplicate shortId is named in the error 
+PASS duplicate shortId writes nothing 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray user add --sandbox /work/evidence/f07-work/root --validator /bin/true --service /bin/true --email bad@example.invalid --json --short-id abc (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length
+PASS invalid shortId on user add rc=2 shortId must be 1-16 hex characters with even length
+
+PASS invalid shortId on user add writes nothing 
+PASS no transaction leftovers after refusals []
+$ /work/bin/idleleo --root /work/evidence/f07-work/ws-root xray user add --sandbox /work/evidence/f07-work/ws-root --validator /bin/true --service /bin/true --email reality-only@example.invalid --json --short-id 2222222222222222 (rc=2 0.0s)
+  stderr: --short-id requires a Reality inbound
+PASS --short-id on a non-Reality inbound rc=2 --short-id requires a Reality inbound
+
+PASS non-Reality refusal explains the requirement 
+PASS non-Reality refusal writes nothing 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray share --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --host example.com --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "example.com",
+            "port": 8443,
+            "shareUri": "vless://2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo&sid=bbe85aa0&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo\n      short-id: bbe85aa0\n",
+            "warnings": []
+          }
+PASS share rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareU
+PASS share sid is the first accepted inbound shortId ['bbe85aa0']
+PASS share has no spx without metadata preference 
+PASS share defaults to chrome 
+PASS share does not modify the runtime config 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray share --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --host example.com --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "example.com",
+            "port": 8443,
+            "shareUri": "vless://2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=firefox&pbk=U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo&sid=bbe85aa0&spx=/assets/abc.css&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: firefox\n    reality-opts:\n      public-key: U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo\n      short-id: bbe85aa0\n      spider-x: /assets/abc.css\n",
+            "warnings": []
+          }
+PASS share with link-only metadata rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareU
+PASS metadata fingerprint decorates the link ['firefox']
+PASS metadata spiderX decorates the link (literal, Bash quotes it) ['/assets/abc.css']
+PASS link preferences keep the inbound sid 
+PASS link-only preferences never rewrite the runtime config 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray share --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --host example.com --user sid@example.invalid --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "68e1b906-89a0-42a3-823c-0493a28175ef",
+            "email": "sid@example.invalid",
+            "host": "example.com",
+            "port": 8443,
+            "shareUri": "vless://68e1b906-89a0-42a3-823c-0493a28175ef@example.com:8443?encryption=none&flow=&security=reality&sni=example.com&fp=firefox&pbk=U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo&sid=bbe85aa0&spx=/assets/abc.css&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 68e1b906-89a0-42a3-823c-0493a28175ef\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: \n    client-fingerprint: firefox\n    reality-opts:\n      public-key: U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo\n      short-id: bbe85aa0\n      spider-x: /assets/abc.css\n",
+            "warnings": []
+          }
+PASS share --user rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "68e1b906-89a0-42a3-823c-0493a28175ef",
+  "email": "sid@example.invalid",
+  "host": "example.com",
+  "port": 8443,
+  "shareUri": "vless://68e1b90
+PASS share --user selects the requested client 
+PASS share keeps the inbound sid for a client added with another sID 
+PASS share has no per-client sID binding (Bash mapping missing) 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray share --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --host example.com --user ghost@example.invalid --json (rc=1 0.0s)
+  stderr: user "ghost@example.invalid" not found in inbound 0
+PASS share with unknown user rc=1 user "ghost@example.invalid" not found in inbound 0
+
+PASS unknown user error is explicit 
+PASS unknown user produces no URI 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray config edit --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --short-id-list (rc=0 0.0s)
+  stdout: short-id="bbe85aa0" share: vless://2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=firefox&pbk=U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo&sid=bbe85aa0&spx=/assets/abc.css&type=raw#idleleo-reality
+          short-id="2222222222222222" share: vless://2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=firefox&pbk=U5KimBmWXDslGripV4Vzr4SKjSSaxviA4kZYbhUjOXo&sid=2222222222222222&spx=/assets/abc.css&type=raw#idleleo-reality
+PASS short-id-list rc=0 short-id="bbe85aa0" share: vless://2bb11458-bc84-4f91-9a8b-0a1a8c88ecf0@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=firefox&pbk=U5KimBmWXDslGripV4Vzr4SKj
+PASS short-id-list prints one line per accepted sid 2 lines / 2 sids
+PASS every listed line is short-id/share shape 
+PASS listed shortIds match the config order 
+PASS listed link carries sid=bbe85aa0 
+PASS listed link carries sid=2222222222222222 
+PASS short-id-list writes nothing 
+PASS Bash function generate_reality_short_id found in install.sh 
+$ /bin/bash -c generate_reality_short_id() {
+    if command -v openssl >/dev/null 2>&1; then
+        openssl rand -hex 8 2>/dev/null || tr -dc 'a-f0-9' </dev/urandom | head -c 16
+    else
+        tr -dc 'a-f0-9' </dev/urandom | head -c 16
+    fi
+}
+for i in 1 2 3; do generate_reality_short_id; done
+ (rc=0 0.01s)
+  stdout: 96f8f83bee54d198
+          be353cc991847d67
+          0d2809b2d1709408
+PASS Bash generate_reality_short_id executed 96f8f83bee54d198
+be353cc991847d67
+0d2809b2d1709408
+
+PASS Bash generate_reality_short_id produced 3 values 3
+PASS Bash function generate_spiderx found in install.sh 
+$ /bin/bash -c generate_spiderx() {
+    local r
+    r=$(tr -dc 'a-z0-9' </dev/urandom 2>/dev/null | head -c 8)
+    [[ -z "${r}" ]] && r="default$(date +%s | tail -c 5)"
+    case $((RANDOM % 4)) in
+        0) echo "/assets/${r}.css" ;;
+        1) echo "/static/${r}.js" ;;
+        2) echo "/docs/${r}/index.html" ;;
+        *) echo "/api/status/${r}" ;;
+    esac
+}
+for i in 1 2 3; do generate_spiderx; done
+ (rc=0 0.01s)
+  stdout: /api/status/0szrhjs6
+          /assets/d10mksbz.css
+          /assets/72cj5f6x.css
+PASS Bash generate_spiderx executed /api/status/0szrhjs6
+/assets/d10mksbz.css
+/assets/72cj5f6x.css
+
+PASS Bash generate_spiderx produced 3 values 3
+PASS Bash auto shortId is 16 hex 96f8f83bee54d198
+PASS Bash auto shortId is 16 hex be353cc991847d67
+PASS Bash auto shortId is 16 hex 0d2809b2d1709408
+PASS Bash spiderX shape /api/status/0szrhjs6
+PASS Bash spiderX shape /assets/d10mksbz.css
+PASS Bash spiderX shape /assets/72cj5f6x.css
+PASS Bash custom shortId must be exactly 16 hex 
+PASS Bash keeps a per-user reality_clients mapping 
+PASS Bash URL-quotes spiderX in the link 
+PASS Bash reality link template includes target 
+== F07 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/gen1.json --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "54f2d252-1a40-4226-bb4e-437272750aeb",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "54f2d252-1a40-4226-bb4e-437272750aeb",
+            "shortId": "4dcbc67c",
+            "shortIds": [
+              "4dcbc67c"
+            ],
+            "privateKey": "Tl85xklY_3izu5Og8ePV4o_f5wKuGAxJdAA_KaKj3Hk",
+            "publicKey": "rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://54f2d252-1a40-4226-bb4e-437272750aeb@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs&sid=4dcbc67c&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 54f2d252-1a40-4226-bb4e-437272750aeb\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs\n      short-id: 4dcbc67c\n",
+            "warnings": []
+          }
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/gen2.json --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "3d86e0de-a8eb-445a-9e3d-c298b852d4db",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "3d86e0de-a8eb-445a-9e3d-c298b852d4db",
+            "shortId": "7156b220",
+            "shortIds": [
+              "7156b220"
+            ],
+            "privateKey": "59PzURMeSu_K3sCioCAbt4I1JOfmwTi0U4YmgvkmSR8",
+            "publicKey": "j8Vam843rgksX3X4Cw5iMha75XmpGCWF7QO85kXhmio",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://3d86e0de-a8eb-445a-9e3d-c298b852d4db@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=j8Vam843rgksX3X4Cw5iMha75XmpGCWF7QO85kXhmio&sid=7156b220&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 3d86e0de-a8eb-445a-9e3d-c298b852d4db\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: j8Vam843rgksX3X4Cw5iMha75XmpGCWF7QO85kXhmio\n      short-id: 7156b220\n",
+            "warnings": []
+          }
+PASS generate#1 rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "54f2d252-1a40-4226-bb4e-437272750aeb",
+   
+PASS generate#1 wrote config /work/evidence/f07-work/gen1.json
+PASS generate#2 wrote config /work/evidence/f07-work/gen2.json
+PASS auto shortId is 8 lowercase hex 4dcbc67c
+PASS two runs generate different shortId 4dcbc67c != 7156b220
+PASS runtime config shortIds equals generated value ["4dcbc67c"]
+PASS JSON shortIds mirrors config 
+PASS share URI scheme is vless vless
+PASS share URI carries the client UUID 
+PASS share URI host/port example.com:8443
+PASS share URI sid equals generated shortId ['4dcbc67c']
+PASS share URI security=reality 
+PASS share URI flow 
+PASS share URI default fingerprint is chrome 
+PASS share URI type=raw 
+PASS share URI has no target (Bash template does) dict_keys(['encryption', 'flow', 'security', 'sni', 'fp', 'pbk', 'sid', 'type'])
+PASS auto generate does not invent spiderX 
+PASS share URI public key is 43-char base64url 
+PASS generated config mode is 0600 0o600
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/sid16.json --short-id 1111111111111111 --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "6ee635c2-2d83-414a-8998-3aee967b6103",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "6ee635c2-2d83-414a-8998-3aee967b6103",
+            "shortId": "1111111111111111",
+            "shortIds": [
+              "1111111111111111"
+            ],
+            "privateKey": "cGgp0NNWN4lEcwbDVAaXOo8qlunQgFdMdnaEJYKNtZo",
+            "publicKey": "Dh6Hiqly4ukhdkzYFE-kJ8AHtcOxaH6BP8NdkacxnGA",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://6ee635c2-2d83-414a-8998-3aee967b6103@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=Dh6Hiqly4ukhdkzYFE-kJ8AHtcOxaH6BP8NdkacxnGA&sid=1111111111111111&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 6ee635c2-2d83-414a-8998-3aee967b6103\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: Dh6Hiqly4ukhdkzYFE-kJ8AHtcOxaH6BP8NdkacxnGA\n      short-id: 1111111111111111\n",
+            "warnings": []
+          }
+PASS explicit 16-hex shortId accepted {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+ 
+PASS explicit shortId echoed 1111111111111111
+PASS explicit shortId written to config 
+PASS explicit shortId in share URI 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/sid4.json --short-id abcd --json (rc=0 0.01s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "9957b6c4-c0e1-4827-aa85-719eb2aca79d",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "9957b6c4-c0e1-4827-aa85-719eb2aca79d",
+            "shortId": "abcd",
+            "shortIds": [
+              "abcd"
+            ],
+            "privateKey": "l6T4Yeljdtod4FDNBvZfnR9zWTYHFOIaTTxNtCcLcyU",
+            "publicKey": "bkkteZ3550WTzd-FuMWgX-cGZT425HAZ768fl0onhX0",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://9957b6c4-c0e1-4827-aa85-719eb2aca79d@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=bkkteZ3550WTzd-FuMWgX-cGZT425HAZ768fl0onhX0&sid=abcd&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 9957b6c4-c0e1-4827-aa85-719eb2aca79d\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: bkkteZ3550WTzd-FuMWgX-cGZT425HAZ768fl0onhX0\n      short-id: abcd\n",
+            "warnings": []
+          }
+PASS 4-hex shortId accepted (Bash requires 16) {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+ 
+PASS 4-hex shortId persisted 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/bad-odd.json --short-id abc (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length (or empty)
+PASS invalid shortId (odd) rc=2 shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (odd) writes no file 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/bad-too_long.json --short-id 0123456789abcdef0 (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length (or empty)
+PASS invalid shortId (too_long) rc=2 shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (too_long) writes no file 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/bad-not_hex.json --short-id zzzz (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length (or empty)
+PASS invalid shortId (not_hex) rc=2 shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (not_hex) writes no file 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/bad-space.json --short-id ab cd (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length (or empty)
+PASS invalid shortId (space) rc=2 shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (space) writes no file 
+$ /work/bin/idleleo xray generate --mode reality --domain example.com --port 8443 --out /work/evidence/f07-work/sid-empty.json --short-id  --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "f8f7a54f-19ec-4dd3-84ee-ed3ac89d0a0a",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "f8f7a54f-19ec-4dd3-84ee-ed3ac89d0a0a",
+            "shortId": "37e79126",
+            "shortIds": [
+              "37e79126"
+            ],
+            "privateKey": "T_lStWG_e5z8Bk0iweCEz21DbSWHOJ_N7EL0AFAvsTA",
+            "publicKey": "HUwmSsIGTY3GInrZhjzAGKEeLK0mFa9KJ09rb83snyY",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://f8f7a54f-19ec-4dd3-84ee-ed3ac89d0a0a@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=HUwmSsIGTY3GInrZhjzAGKEeLK0mFa9KJ09rb83snyY&sid=37e79126&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: f8f7a54f-19ec-4dd3-84ee-ed3ac89d0a0a\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: HUwmSsIGTY3GInrZhjzAGKEeLK0mFa9KJ09rb83snyY\n      short-id: 37e79126\n",
+            "warnings": []
+          }
+PASS empty shortId falls back to auto generation {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "f8
+PASS empty shortId produced 8-hex value 37e79126
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray user add --sandbox /work/evidence/f07-work/root --validator /bin/true --service /bin/true --email sid@example.invalid --json --short-id 2222222222222222 (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794850063700468956-638",
+              "state": "COMMITTED",
+              "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "53f135c2ba38662aeeebb834c455220ebf29cdb07431f0774a0b60fce7951e51",
+              "newSha256": "7ac62573297145a557f9f4cf2d8ac392c3701db5308646599be245e3bf9bd69a",
+              "startedAt": "2026-11-16T17:27:43Z",
+              "updatedAt": "2026-11-16T17:27:43Z"
+            },
+            "user": {
+              "index": 1,
+              "uuid": "24b2d21d-8532-4d86-a238-d65ce60866f3",
+              "email": "sid@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS user add --short-id rc=0 {
+  "entry": {
+    "id": "1794850063700468956-638",
+    "state": "COMMITTED",
+    "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSh
+PASS user add transaction COMMITTED COMMITTED
+PASS user add returned the new client 
+PASS user add appends the shortId ["4dcbc67c", "2222222222222222"]
+PASS user add appends exactly one client 2
+PASS user add leaves non-user fields unchanged 
+PASS user add keeps config mode 0640 0o640
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray user add --sandbox /work/evidence/f07-work/root --validator /bin/true --service /bin/true --email nosid@example.invalid --json (rc=0 0.01s)
+  stdout: {
+            "entry": {
+              "id": "1794850063710167917-650",
+              "state": "COMMITTED",
+              "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+              "servicePath": "/bin/true",
+              "oldSha256": "7ac62573297145a557f9f4cf2d8ac392c3701db5308646599be245e3bf9bd69a",
+              "newSha256": "fde936eecf2c55097ef32d6239feb0e4906de32c55f0531c586dd135d88b233e",
+              "startedAt": "2026-11-16T17:27:43Z",
+              "updatedAt": "2026-11-16T17:27:43Z"
+            },
+            "user": {
+              "index": 2,
+              "uuid": "d6189f42-0a89-47cc-9a0b-bac8cd524f49",
+              "email": "nosid@example.invalid",
+              "level": 0,
+              "primary": false
+            }
+          }
+PASS user add without --short-id rc=0 {
+  "entry": {
+    "id": "1794850063710167917-650",
+    "state": "COMMITTED",
+    "target": "/work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "oldSh
+PASS user add without shortId does not mint one (Bash mints a fresh sID) 
+PASS plain user add appended a client 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray user add --sandbox /work/evidence/f07-work/root --validator /bin/true --service /bin/true --email dup@example.invalid --json --short-id 2222222222222222 (rc=2 0.0s)
+  stderr: shortId already present
+PASS duplicate shortId rc=2 shortId already present
+
+PASS duplicate shortId is named in the error 
+PASS duplicate shortId writes nothing 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray user add --sandbox /work/evidence/f07-work/root --validator /bin/true --service /bin/true --email bad@example.invalid --json --short-id abc (rc=2 0.0s)
+  stderr: shortId must be 1-16 hex characters with even length
+PASS invalid shortId on user add rc=2 shortId must be 1-16 hex characters with even length
+
+PASS invalid shortId on user add writes nothing 
+PASS no transaction leftovers after refusals []
+$ /work/bin/idleleo --root /work/evidence/f07-work/ws-root xray user add --sandbox /work/evidence/f07-work/ws-root --validator /bin/true --service /bin/true --email reality-only@example.invalid --json --short-id 2222222222222222 (rc=2 0.0s)
+  stderr: --short-id requires a Reality inbound
+PASS --short-id on a non-Reality inbound rc=2 --short-id requires a Reality inbound
+
+PASS non-Reality refusal explains the requirement 
+PASS non-Reality refusal writes nothing 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray share --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --host example.com --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "54f2d252-1a40-4226-bb4e-437272750aeb",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "example.com",
+            "port": 8443,
+            "shareUri": "vless://54f2d252-1a40-4226-bb4e-437272750aeb@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs&sid=4dcbc67c&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 54f2d252-1a40-4226-bb4e-437272750aeb\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs\n      short-id: 4dcbc67c\n",
+            "warnings": []
+          }
+PASS share rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "54f2d252-1a40-4226-bb4e-437272750aeb",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareU
+PASS share sid is the first accepted inbound shortId ['4dcbc67c']
+PASS share has no spx without metadata preference 
+PASS share defaults to chrome 
+PASS share does not modify the runtime config 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray share --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --host example.com --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "54f2d252-1a40-4226-bb4e-437272750aeb",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "example.com",
+            "port": 8443,
+            "shareUri": "vless://54f2d252-1a40-4226-bb4e-437272750aeb@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=firefox&pbk=rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs&sid=4dcbc67c&spx=/assets/abc.css&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 54f2d252-1a40-4226-bb4e-437272750aeb\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: firefox\n    reality-opts:\n      public-key: rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs\n      short-id: 4dcbc67c\n      spider-x: /assets/abc.css\n",
+            "warnings": []
+          }
+PASS share with link-only metadata rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "54f2d252-1a40-4226-bb4e-437272750aeb",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareU
+PASS metadata fingerprint decorates the link ['firefox']
+PASS metadata spiderX decorates the link (literal, Bash quotes it) ['/assets/abc.css']
+PASS link preferences keep the inbound sid 
+PASS link-only preferences never rewrite the runtime config 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray share --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --host example.com --user sid@example.invalid --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "24b2d21d-8532-4d86-a238-d65ce60866f3",
+            "email": "sid@example.invalid",
+            "host": "example.com",
+            "port": 8443,
+            "shareUri": "vless://24b2d21d-8532-4d86-a238-d65ce60866f3@example.com:8443?encryption=none&flow=&security=reality&sni=example.com&fp=firefox&pbk=rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs&sid=4dcbc67c&spx=/assets/abc.css&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 24b2d21d-8532-4d86-a238-d65ce60866f3\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: \n    client-fingerprint: firefox\n    reality-opts:\n      public-key: rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs\n      short-id: 4dcbc67c\n      spider-x: /assets/abc.css\n",
+            "warnings": []
+          }
+PASS share --user rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "24b2d21d-8532-4d86-a238-d65ce60866f3",
+  "email": "sid@example.invalid",
+  "host": "example.com",
+  "port": 8443,
+  "shareUri": "vless://24b2d21
+PASS share --user selects the requested client 
+PASS share keeps the inbound sid for a client added with another sID 
+PASS share has no per-client sID binding (Bash mapping missing) 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray share --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --host example.com --user ghost@example.invalid --json (rc=1 0.0s)
+  stderr: user "ghost@example.invalid" not found in inbound 0
+PASS share with unknown user rc=1 user "ghost@example.invalid" not found in inbound 0
+
+PASS unknown user error is explicit 
+PASS unknown user produces no URI 
+$ /work/bin/idleleo --root /work/evidence/f07-work/root xray config edit --path /work/evidence/f07-work/root/etc/idleleo/conf/xray/config.json --short-id-list (rc=0 0.0s)
+  stdout: short-id="4dcbc67c" share: vless://54f2d252-1a40-4226-bb4e-437272750aeb@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=firefox&pbk=rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs&sid=4dcbc67c&spx=/assets/abc.css&type=raw#idleleo-reality
+          short-id="2222222222222222" share: vless://54f2d252-1a40-4226-bb4e-437272750aeb@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=firefox&pbk=rQi-B6oVW5E_ESOne15ZJnBMo4szqgvuZd8rtFQLKjs&sid=2222222222222222&spx=/assets/abc.css&type=raw#idleleo-reality
+PASS short-id-list rc=0 short-id="4dcbc67c" share: vless://54f2d252-1a40-4226-bb4e-437272750aeb@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=firefox&pbk=rQi-B6oVW5E_ESOne15ZJnBMo
+PASS short-id-list prints one line per accepted sid 2 lines / 2 sids
+PASS every listed line is short-id/share shape 
+PASS listed shortIds match the config order 
+PASS listed link carries sid=4dcbc67c 
+PASS listed link carries sid=2222222222222222 
+PASS short-id-list writes nothing 
+PASS Bash function generate_reality_short_id found in install.sh 
+$ /bin/bash -c generate_reality_short_id() {
+    if command -v openssl >/dev/null 2>&1; then
+        openssl rand -hex 8 2>/dev/null || tr -dc 'a-f0-9' </dev/urandom | head -c 16
+    else
+        tr -dc 'a-f0-9' </dev/urandom | head -c 16
+    fi
+}
+for i in 1 2 3; do generate_reality_short_id; done
+ (rc=0 0.01s)
+  stdout: 622c835a15461111
+          46a2072bd72eb3ae
+          a7865afda8ca03ce
+PASS Bash generate_reality_short_id executed 622c835a15461111
+46a2072bd72eb3ae
+a7865afda8ca03ce
+
+PASS Bash generate_reality_short_id produced 3 values 3
+PASS Bash function generate_spiderx found in install.sh 
+$ /bin/bash -c generate_spiderx() {
+    local r
+    r=$(tr -dc 'a-z0-9' </dev/urandom 2>/dev/null | head -c 8)
+    [[ -z "${r}" ]] && r="default$(date +%s | tail -c 5)"
+    case $((RANDOM % 4)) in
+        0) echo "/assets/${r}.css" ;;
+        1) echo "/static/${r}.js" ;;
+        2) echo "/docs/${r}/index.html" ;;
+        *) echo "/api/status/${r}" ;;
+    esac
+}
+for i in 1 2 3; do generate_spiderx; done
+ (rc=0 0.01s)
+  stdout: /docs/36hsg58q/index.html
+          /docs/jrjfwl7l/index.html
+          /docs/qsq80u7c/index.html
+PASS Bash generate_spiderx executed /docs/36hsg58q/index.html
+/docs/jrjfwl7l/index.html
+/docs/qsq80u7c/index.html
+
+PASS Bash generate_spiderx produced 3 values 3
+PASS Bash auto shortId is 16 hex 622c835a15461111
+PASS Bash auto shortId is 16 hex 46a2072bd72eb3ae
+PASS Bash auto shortId is 16 hex a7865afda8ca03ce
+PASS Bash spiderX shape /docs/36hsg58q/index.html
+PASS Bash spiderX shape /docs/jrjfwl7l/index.html
+PASS Bash spiderX shape /docs/qsq80u7c/index.html
+PASS Bash custom shortId must be exactly 16 hex 
+PASS Bash keeps a per-user reality_clients mapping 
+PASS Bash URL-quotes spiderX in the link 
+PASS Bash reality link template includes target 

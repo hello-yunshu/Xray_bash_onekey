@@ -1,0 +1,58 @@
+fixture: F19 metadata import / export / bridge deactivate
+feature: F19 backup, restore and reconfiguration preservation
+evidence level: CONTAINER_VERIFIED
+date: 2026-11-16
+branch: develop/go-native
+commit: 0e4816db
+executor: tests/go-parity/parity/features/F19_test.py (new in this commit)
+image: idleleo-preview:latest
+image digest: sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+go_bin_sha256: 91877739cb51aeeece656da556c2c697d4c9782258411beee31f63236d8c973e
+
+build:
+  docker run --rm -v "$PWD":/src -w /src -v /tmp/idleleo-f19-build:/out -e CGO_ENABLED=0 golang:1.27.4 go build -trimpath -o /out/idleleo ./cmd/idleleo
+
+run container:
+  docker run -d --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock \
+    -v /tmp/idleleo-f19-build/idleleo:/work/bin/idleleo:ro \
+    -v "$PWD":/work/repo:ro \
+    -v "$PWD/tests/go-parity/evidence/f19-2026-11-16":/work/evidence \
+    -e IDLELEO_PREVIEW_EVIDENCE=/work/evidence idleleo-preview:latest
+  systemctl is-system-running -> running after 2s
+
+command:
+  docker exec <cid> python3 -I /work/repo/tests/go-parity/parity/features/F19_test.py \
+    --go-bin /work/bin/idleleo --bash-repo /work/repo
+
+run1: 136 passed, 0 failed, 0.09s, exit 0
+run2: 136 passed, 0 failed, 0.11s, exit 0
+
+covered:
+  - node metadata import from a real legacy root: provenance=legacy, role/tls/transport,
+    source and runtime digests, 0640 metadata, ownedResources, no secret keys, and
+    install_config/runtime/cert/key/service/script/cron/entry byte-identical
+  - second import exits 3 without overwriting; arbitrary --from exits 2 before writing;
+    documented --from install_config.json alias succeeds; unmarked root refused by the
+    write gate with no metadata
+  - missing/corrupt install_config (rc=2) and missing runtime (rc=3) write no metadata and
+    leave etc/var/usr byte-identical; only run/lock/idleleo-update.lock appears
+  - relay root import: role=relay, tls=None, transport=stream, empty runtime digest,
+    ownedResources include the relay config and managed nginx dir
+  - export without --out is read-only and matches; --out writes 0600 and records its path;
+    managed config dir and the metadata file itself are refused with rc=2
+  - runtime drift (one trailing newline) is reported (matchesMetadata=false) and
+    bridge deactivate with a stale or drifted export exits 6, keeping metadata/entry/cron/cert
+  - after restoring the runtime bytes, deactivate exits 0 with state=RELEASED, archives the
+    metadata (0640, byte-identical) to var/lib/idleleo/bridge/snapshot/metadata.deactivated.json,
+    removes the live metadata path, and keeps entry/cron/cert/key/script/runtime/config unchanged
+  - Bash --backup/--restore recorded in bash-baseline.json as not-implemented; Go help
+    documents metadata import|export and claims no backup/restore archive
+
+notes:
+  - The Bash baseline is static only: its --backup bundles certificates and ACME account keys,
+    which the Go manager deliberately does not copy, so it cannot act as a hermetic oracle.
+    Missing archive restore is an explicit divergence, not a fixture failure.
+  - The update lock lives under <root>/run/lock/idleleo-update.lock, so failure cases compare
+    etc/var/usr digests instead of the whole root tree.
+  - No real VPS, public ACME CA or network egress was used; all keys/IPs are synthetic
+    (RFC 5737 / example.invalid).

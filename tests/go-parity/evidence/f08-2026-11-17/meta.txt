@@ -1,0 +1,41 @@
+F08 — Port/listen/target/serverNames + SNI-guard executor
+Evidence level: CONTAINER_VERIFIED (config-level; the installed xray binary is a
+fixture stub that records its argv, so the xray -test seam is simulated; no Xray
+data plane, no systemd, no network)
+
+commit: 0e8fec7b5cc3e784961e64c2130d3cab8f98066c
+date: 2026-11-17
+image: idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+build image: golang:1.27.4
+build command: docker run --rm -v "$PWD":/src -w /src -v /tmp/f08bin:/out -e CGO_ENABLED=0 golang:1.27.4 go build -trimpath -o /out/idleleo ./cmd/idleleo
+go_bin_sha256: e03c5ea23d9189f75003ddb6995b89c6e9ae4af00ba748386ced816757d33602
+
+run 1: python3 -I /work/repo/tests/go-parity/parity/features/F08_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo
+       rc=0, 129 passed, 0 failed, 0.12s
+run 2: python3 -I /work/repo/tests/go-parity/parity/features/F08_test.py --go-bin /work/bin/idleleo --bash-repo /work/repo
+       rc=0, 129 passed, 0 failed, 0.09s
+
+container command:
+docker run -d --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock \
+  -v /tmp/f08bin:/work/bin:ro \
+  -v "$PWD":/work/repo:ro \
+  -v "$PWD/tests/go-parity/evidence/f08-2026-11-17":/work/evidence \
+  idleleo-preview@sha256:ba371758104034125c9519079ef15838d8d4faf9eb23a0a1721bc0789b1234de
+
+scope: real `xray generate` produces the configs; all `xray config edit` runs
+operate on sandbox roots carrying the phase-01 marker, native metadata and a
+stub `<root>/usr/local/bin/xray` that logs `-test -config <candidate>` and exits
+0 (or 1 for the rejection scenario). Edits cover dry-run scope, --yes gating,
+port/listen/server-names/target round-trips, reserved port and malformed value
+refusal, mode-restricted flags, and the report/metadata/backup transitions.
+SNI Guard is verified from `xray generate --mode reality-nginx` (isolate /
+reject / decoy). The Bash baseline functions are extracted from the fixed
+checkout install.sh (sha256 in baseline-compare.json); runtime SNI-guard
+switches, decoy artifacts and deny-port conflict checks are recorded as gaps
+rather than claimed as parity.
+
+fixes carried by this item (revealed by the executor):
+- direct-Reality `config edit --port` now advertises the new port in the edit
+  report link (a recorded public port still wins);
+- `--no-probe` now skips the origin TLS handshake for --target/--server-names
+  and reports `originProbe: skipped: --no-probe`.

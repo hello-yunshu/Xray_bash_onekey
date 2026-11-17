@@ -1,0 +1,8 @@
+{
+  "ads": true,
+  "bittorrent": true,
+  "country_block": [
+    "cn"
+  ],
+  "private_ip": true
+}

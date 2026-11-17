@@ -1,0 +1,186 @@
+{
+  "bash": {
+    "goPrimarySha256": "33f65762f47313155aa21045414c7c6c69ec293dfd2fcbb6f2561922a68b3ceb",
+    "goRejectSha256": "26d9a2d48f22ec9b70210c171a1c8abdeea103663328309b45f7988f12862e2d",
+    "isolateSha256": "d8422e0092ca7f4820c09e169b779437ef5260b94b756125e99c06de555dbc3c",
+    "markers": {
+      "conf-isolate": "0",
+      "conf-reject": "0",
+      "names": "0",
+      "names-reject": "0",
+      "names-stale": "0",
+      "port-primary": "0",
+      "port-secondary": "0",
+      "profile-primary": "0",
+      "profile-secondary": "0",
+      "servers": "0",
+      "servers-reject": "0"
+    },
+    "primaryPort": 9443,
+    "profiles": {
+      "primary": [
+        "Reality",
+        "on",
+        "on",
+        "off",
+        "None",
+        "primary",
+        "Nginx+Reality+Balance"
+      ],
+      "secondary": [
+        "Reality",
+        "off",
+        "on",
+        "off",
+        "None",
+        "secondary",
+        "Reality+Balance"
+      ]
+    },
+    "rejectSha256": "37cbedf142ffdc7ff8944ac696a51f0c02fd1f5fdb578d360464b45c319e46ef",
+    "secondaryPort": 8443
+  },
+  "environment": {
+    "nginx": "nginx version: nginx/1.24.0 (Ubuntu)",
+    "xray": "Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)"
+  },
+  "generated": {
+    "backends": {
+      "fragments": [
+        "03-isolate.conf",
+        "10.0.0.2.realityServers",
+        "10.0.0.3.realityServers",
+        "127.0.0.1.realityServers",
+        "example.com.serverNames"
+      ]
+    },
+    "primary": {
+      "fragments": [
+        "03-isolate.conf",
+        "127.0.0.1.realityServers",
+        "example.com.serverNames"
+      ],
+      "listen": "0.0.0.0",
+      "nginxSha256": "33f65762f47313155aa21045414c7c6c69ec293dfd2fcbb6f2561922a68b3ceb",
+      "ports": [
+        9443,
+        8443
+      ],
+      "share": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=dgh334c9Eq5Xu3ctfcuNjnPGmvuN_GYxUFfd7FgHc0c&sid=abcd1234&type=raw#idleleo-reality-balance"
+    },
+    "reject": {
+      "fragments": [
+        "127.0.0.1.realityServers",
+        "example.com.serverNames"
+      ],
+      "nginxSha256": "26d9a2d48f22ec9b70210c171a1c8abdeea103663328309b45f7988f12862e2d"
+    },
+    "secondary": {
+      "listen": "0.0.0.0",
+      "nginx": false,
+      "port": 8443,
+      "share": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=-42oNngyc7rz4Qj-w8Xrff-IU8UQirgYvtuA41a4OHw&sid=abcd1234&type=raw#idleleo-reality-balance"
+    }
+  },
+  "nginxTest": {
+    "S1 primary": {
+      "adaptation": "load_module /usr/lib/nginx/modules/ngx_stream_module.so",
+      "rc": 0,
+      "rewrites": [
+        "/etc/idleleo/conf/nginx",
+        "/usr/local/nginx/logs"
+      ],
+      "tail": "nginx: the configuration file /work/evidence/f04-work/nginx-runs/S1-primary/main.conf syntax is ok\nnginx: configuration file /work/evidence/f04-work/nginx-runs/S1-primary/main.conf test is successful\n"
+    },
+    "S3 reject": {
+      "adaptation": "load_module /usr/lib/nginx/modules/ngx_stream_module.so",
+      "rc": 0,
+      "rewrites": [
+        "/etc/idleleo/conf/nginx",
+        "/usr/local/nginx/logs"
+      ],
+      "tail": "nginx: the configuration file /work/evidence/f04-work/nginx-runs/S3-reject/main.conf syntax is ok\nnginx: configuration file /work/evidence/f04-work/nginx-runs/S3-reject/main.conf test is successful\n"
+    },
+    "S4 backends": {
+      "adaptation": "load_module /usr/lib/nginx/modules/ngx_stream_module.so",
+      "rc": 0,
+      "rewrites": [
+        "/etc/idleleo/conf/nginx",
+        "/usr/local/nginx/logs"
+      ],
+      "tail": "nginx: the configuration file /work/evidence/f04-work/nginx-runs/S4-backends/main.conf syntax is ok\nnginx: configuration file /work/evidence/f04-work/nginx-runs/S4-backends/main.conf test is successful\n"
+    },
+    "S4 ipv6": {
+      "adaptation": "load_module /usr/lib/nginx/modules/ngx_stream_module.so",
+      "rc": 0,
+      "rewrites": [
+        "/etc/idleleo/conf/nginx",
+        "/usr/local/nginx/logs"
+      ],
+      "tail": "nginx: the configuration file /work/evidence/f04-work/nginx-runs/S4-ipv6/main.conf syntax is ok\nnginx: configuration file /work/evidence/f04-work/nginx-runs/S4-ipv6/main.conf test is successful\n"
+    },
+    "S5 public port": {
+      "adaptation": "load_module /usr/lib/nginx/modules/ngx_stream_module.so",
+      "rc": 0,
+      "rewrites": [
+        "/etc/idleleo/conf/nginx",
+        "/usr/local/nginx/logs"
+      ],
+      "tail": "nginx: the configuration file /work/evidence/f04-work/nginx-runs/S5-public-port/main.conf syntax is ok\nnginx: configuration file /work/evidence/f04-work/nginx-runs/S5-public-port/main.conf test is successful\n"
+    },
+    "S6 bash isolate": {
+      "adaptation": "load_module /usr/lib/nginx/modules/ngx_stream_module.so",
+      "rc": 0,
+      "rewrites": [
+        "/etc/idleleo/conf/nginx",
+        "/usr/local/nginx/logs"
+      ],
+      "tail": "nginx: the configuration file /work/evidence/f04-work/nginx-runs/S6-bash-isolate/main.conf syntax is ok\nnginx: configuration file /work/evidence/f04-work/nginx-runs/S6-bash-isolate/main.conf test is successful\n"
+    },
+    "S6 bash reject": {
+      "adaptation": "load_module /usr/lib/nginx/modules/ngx_stream_module.so",
+      "rc": 0,
+      "rewrites": [
+        "/etc/idleleo/conf/nginx",
+        "/usr/local/nginx/logs"
+      ],
+      "tail": "nginx: the configuration file /work/evidence/f04-work/nginx-runs/S6-bash-reject/main.conf syntax is ok\nnginx: configuration file /work/evidence/f04-work/nginx-runs/S6-bash-reject/main.conf test is successful\n"
+    }
+  },
+  "rejections": {
+    "decoy": "unknown-sni-policy decoy needs pre-existing decoy cert/site artifacts and is not generated by the Go CLI\n",
+    "secondary-backend": "reality-balance secondary has no Nginx front; --backend is primary only\n"
+  },
+  "xrayTest": {
+    "S1 primary config": {
+      "config": "/work/evidence/f04-work/primary-default/config.json",
+      "rc": 0,
+      "tail": "nfig.json Format:json}\n2026/11/16 18:39:32.372619 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW\nConfiguration OK.\n"
+    },
+    "S2 secondary config": {
+      "config": "/work/evidence/f04-work/secondary-default/config.json",
+      "rc": 0,
+      "tail": "nfig.json Format:json}\n2026/11/16 18:39:32.397247 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW\nConfiguration OK.\n"
+    },
+    "S3 reject config": {
+      "config": "/work/evidence/f04-work/primary-reject/config.json",
+      "rc": 0,
+      "tail": "nfig.json Format:json}\n2026/11/16 18:39:32.421972 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW\nConfiguration OK.\n"
+    },
+    "S4 backends config": {
+      "config": "/work/evidence/f04-work/primary-backends/config.json",
+      "rc": 0,
+      "tail": "nfig.json Format:json}\n2026/11/16 18:39:32.449655 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW\nConfiguration OK.\n"
+    },
+    "S6 bash primary template": {
+      "config": "/work/evidence/f04-work/bash/xray-primary.json",
+      "rc": 0,
+      "tail": "mary.json Format:json}\n2026/11/16 18:39:32.731292 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW\nConfiguration OK.\n"
+    },
+    "S6 bash secondary template": {
+      "config": "/work/evidence/f04-work/bash/xray-secondary.json",
+      "rc": 0,
+      "tail": "dary.json Format:json}\n2026/11/16 18:39:32.740152 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW\nConfiguration OK.\n"
+    }
+  }
+}

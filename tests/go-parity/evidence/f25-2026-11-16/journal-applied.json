@@ -1,0 +1,26 @@
+{
+  "appliedHash": "5ce4959f226928fcfe0d04055e09354a7a8dc1054140feee9507c2a5788f7183",
+  "appliedKeys": [
+    "net.core.default_qdisc",
+    "net.ipv4.tcp_congestion_control"
+  ],
+  "createdAtUtc": "2026-11-16T15:28:26Z",
+  "fileExisted": false,
+  "fileGid": 0,
+  "fileMode": 0,
+  "filePath": "/work/evidence/tcp-work/primary/etc/sysctl.d/90-idleleo-tcp.conf",
+  "fileUid": 0,
+  "newValues": {
+    "net.core.default_qdisc": "fq",
+    "net.ipv4.tcp_congestion_control": "bbr"
+  },
+  "oldValues": {
+    "net.core.default_qdisc": "fq_codel",
+    "net.ipv4.tcp_congestion_control": "cubic"
+  },
+  "pending": false,
+  "profile": "bbr-fq",
+  "statePath": "/work/evidence/tcp-work/primary/var/lib/idleleo/tcp/state.json",
+  "targetHash": "5ce4959f226928fcfe0d04055e09354a7a8dc1054140feee9507c2a5788f7183",
+  "version": 1
+}

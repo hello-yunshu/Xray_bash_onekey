@@ -1,0 +1,120 @@
+{
+  "entries": [
+    {
+      "bash": "apply_install_profile: primary Nginx+Reality+Balance, secondary Reality+Balance",
+      "contract": "role_to_artifact_set",
+      "evidence": "S1/S2/S6 profiles",
+      "go": "primary keeps the Nginx stream front; secondary writes only the Xray config",
+      "status": "aligned"
+    },
+    {
+      "bash": "template 9443 and modify_inbound_port leaves it untouched when add_nginx=on",
+      "contract": "primary_backend_port",
+      "evidence": "S1/S6",
+      "go": "inbound 9443, public front 8443",
+      "status": "aligned"
+    },
+    {
+      "bash": "modify_inbound_port writes --port when add_nginx=off",
+      "contract": "secondary_inbound_port",
+      "evidence": "S2/S6",
+      "go": "inbound equals --port",
+      "status": "aligned"
+    },
+    {
+      "bash": "template 0.0.0.0; modify_reality_listen_address only runs when add_balance=off",
+      "contract": "listen_address",
+      "evidence": "S1/S2/S6",
+      "go": "0.0.0.0 for both roles",
+      "status": "aligned"
+    },
+    {
+      "bash": "_validate_serverNames_hostname accepts one hostname",
+      "contract": "single_server_name",
+      "evidence": "S5 static",
+      "go": "exactly one server name",
+      "status": "aligned"
+    },
+    {
+      "bash": "validate_reality_reserved_ports refuses the same set",
+      "contract": "reserved_ports",
+      "evidence": "S5/S6 static",
+      "go": "9403/9404/9443/9444 refused for --port and for a Nginx public port",
+      "status": "aligned"
+    },
+    {
+      "bash": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;",
+      "contract": "local_upstream_line",
+      "evidence": "S1/S6",
+      "go": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;",
+      "status": "aligned"
+    },
+    {
+      "bash": "example.com reality;",
+      "contract": "server_names_line",
+      "evidence": "S1/S6",
+      "go": "example.com reality;",
+      "status": "aligned"
+    },
+    {
+      "bash": "00-xray.conf",
+      "contract": "stream_config",
+      "evidence": "S6 sha256",
+      "go": "nginx.conf byte-identical after canonicalising the temporary bash paths",
+      "status": "aligned"
+    },
+    {
+      "bash": "write_isolate_site_config writes the file and add_sni_guard_http_include edits nginx.conf",
+      "contract": "isolate_site",
+      "evidence": "S6 http include assertion",
+      "go": "03-isolate.conf fragment; the http include is owned by internal/nginx/install.go",
+      "status": "aligned-by-deploy-path"
+    },
+    {
+      "bash": "sni_guard_policy_choose can build a self-signed decoy site",
+      "contract": "decoy_policy",
+      "evidence": "S3 decoy rejection",
+      "go": "rc=2, the Go generator refuses decoy",
+      "status": "gap"
+    },
+    {
+      "bash": "_cleanup_stale_serverNames_fragments deletes corrupt fragments",
+      "contract": "stale_server_names_self_heal",
+      "evidence": "S6 names-stale",
+      "go": "generate does not clean stale fragments",
+      "status": "gap"
+    },
+    {
+      "bash": "no separate public port; the front port passes the reserved check",
+      "contract": "public_port_reserved_conflict",
+      "evidence": "S5 + TestGenerateRejectsReservedPublicPort",
+      "go": "reserved --public-port refused for balance primary and reality-nginx",
+      "status": "fixed-in-go"
+    },
+    {
+      "bash": "not executed",
+      "contract": "two_host_data_plane",
+      "evidence": "CONTAINER_VERIFIED only",
+      "go": "not executed",
+      "status": "gap"
+    },
+    {
+      "bash": "install path not executed",
+      "contract": "service_install_start",
+      "evidence": "out of F04 generate scope",
+      "go": "generate only; no Nginx/Xray service start",
+      "status": "gap"
+    },
+    {
+      "bash": "install wizard manages the firewall",
+      "contract": "firewall_acl",
+      "evidence": "not asserted",
+      "go": "not part of generate",
+      "status": "out-of-scope"
+    }
+  ],
+  "notes": [
+    "nginx -t rewrites the managed paths to a temporary root and loads ngx_stream_module.so when nginx ships it dynamically; this is a harness adaptation, not a claim about the real install paths.",
+    "Bash configs were prepared with the Go-generated valid Reality key because config/vless_reality.json ships placeholders that Bash replaces through modify_uuid/modify_privateKey_shortIds."
+  ]
+}

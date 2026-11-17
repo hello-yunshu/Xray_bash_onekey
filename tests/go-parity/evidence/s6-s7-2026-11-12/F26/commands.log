@@ -1,0 +1,109 @@
+== F26 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ /work/bin/idleleo --root /work/evidence/F26/legacy-xtls-root bridge audit --json (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F26/legacy-xtls-root",
+            "legacyVersion": "3.3.4",
+            "xrayVersion": "25.1.1",
+            "role": "node",
+            "tls": "XTLS",
+            "transport": "tcp",
+            "nginxRequired": false,
+            "port": 8443,
+            "userCount": 1,
+            "runtimePath": "/work/evidence/F26/legacy-xtls-root/etc/idleleo/conf/xray/config.json",
+            "runtimeSha256": "f445a56caad2000c384b9ce7d32a244f357ce5753656da46239b7aac8c65571e",
+            "runtimeBytes": 605,
+            "customDns": false,
+            "customRouting": false,
+            "customOutbounds": true,
+            "customItems": [],
+            "certFiles": [],
+            "nginxFiles": [],
+            "units": {
+              "nginx": {
+                "path": "/work/evidence/F26/legacy-xtls-root/etc/systemd/system/nginx.service",
+                "present": false
+              },
+              "xray": {
+                "path": "/work/evidence/F26/legacy-xtls-root/etc/systemd/system/xray.service",
+                "present": true,
+                "sha256": "08d2bce2321c7af903c0bada8bf949699b6dbe4177aa69e1ddec4421c914d275"
+              }
+            },
+            "entry": {
+              "path": "/work/evidence/F26/legacy-xtls-root/usr/bin/idleleo",
+              "exists": false,
+              "isSymlink": false,
+              "isGoBridge": false
+            },
+            "legacyScript": {
+              "path": "/work/evidence/F26/legacy-xtls-root/etc/idleleo/install.sh",
+              "sha256": "9a686bada70383c02d77ee1889206503ca7267f583d0bcf0ea55122a14d5b38a"
+            },
+            "geoLegacyCron": false,
+            "projectCronLines": 0,
+            "relayConf": {
+              "path": ""
+            },
+            "rill": {
+              "installed": false,
+              "observationAgeSeconds": 0,
+              "status": "absent",
+              "enabled": false
+            },
+            "permissionFixes": [
+              {
+                "path": "etc/idleleo/conf/xray/config.json",
+                "oldMode": "0666",
+                "newMode": "0644",
+                "oldGid": 0,
+                "newGid": 0,
+                "reason": "runtime config is world-writable"
+              }
+            ],
+            "findings": [
+              {
+                "code": "legacy-xtls-removed",
+                "severity": "block",
+                "message": "the XTLS-only profile was removed; automatic migration is refused"
+              },
+              {
+                "code": "entry-missing",
+                "severity": "fix",
+                "message": "no /usr/bin/idleleo entry; activation creates one"
+              },
+              {
+                "code": "permissions-etc-idleleo-conf-xray-config.json",
+                "severity": "fix",
+                "message": "runtime config is world-writable: 0666 -> 0644"
+              }
+            ],
+            "verdict": "blocked"
+          }
+PASS bridge audit exit 0 rc=0 
+PASS audit verdict is blocked expected='blocked' actual='blocked'
+PASS audit role is node expected='node' actual='node'
+PASS audit preserves the legacy TLS mode expected='XTLS' actual='XTLS'
+PASS audit reads the legacy version expected='3.3.4' actual='3.3.4'
+PASS audit counts the runtime users expected=1 actual=1
+PASS audit fingerprints the real runtime config expected='f445a56caad2000c384b9ce7d32a244f357ce5753656da46239b7aac8c65571e' actual='f445a56caad2000c384b9ce7d32a244f357ce5753656da46239b7aac8c65571e'
+PASS audit reports legacy-xtls-removed codes=['entry-missing', 'legacy-xtls-removed', 'permissions-etc-idleleo-conf-xray-config.json']
+PASS legacy-xtls-removed is a block expected='block' actual='block'
+PASS audit changed no byte under the root before=277e40c7791f7d7e after=277e40c7791f7d7e
+$ /work/bin/idleleo --root /work/evidence/F26/legacy-xtls-root bridge prepare --candidate /work/evidence/F26/candidate-idleleo --container --json (rc=3 0.0s)
+  stderr: migration blocked by audit
+PASS bridge prepare refused with exit 3 expected=3 actual=3 migration blocked by audit
+
+PASS prepare names the audit block migration blocked by audit
+PASS prepare created no bridge directory /work/evidence/F26/legacy-xtls-root/var/lib/idleleo/bridge
+PASS prepare left no journal file anywhere found=[]
+PASS prepare staged no candidate opt/idleleo/bin/idleleo.candidate
+PASS prepare wrote no manager metadata etc/idleleo/v1/metadata.json
+PASS prepare wrote no plan var/lib/idleleo/bridge/plan.json
+PASS prepare changed no byte under the root before=277e40c7791f7d7e after=277e40c7791f7d7e
+$ /work/bin/idleleo --root /work/evidence/F26/legacy-xtls-root bridge prepare --candidate /work/evidence/F26/candidate-idleleo --container --json (rc=3 0.0s)
+  stderr: migration blocked by audit
+PASS second prepare is still refused with exit 3 expected=3 actual=3
+PASS second prepare still left no journal found=[]
+PASS second prepare still created no bridge directory /work/evidence/F26/legacy-xtls-root/var/lib/idleleo/bridge

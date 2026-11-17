@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "at": "2026-11-16T15:12:40Z",
+      "detail": "no Go release channel is configured; no automatic update runs (explicit product degradation, see `idleleo update configure`)",
+      "job": "auto-update",
+      "result": "degraded"
+    }
+  ],
+  "root": "/work/evidence/f14/release-work/root",
+  "schemaVersion": 1,
+  "startedAt": "2026-11-16T15:12:40Z"
+}

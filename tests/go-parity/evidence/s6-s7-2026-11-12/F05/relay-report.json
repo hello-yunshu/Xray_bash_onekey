@@ -1,0 +1,6 @@
+{
+  "conf": "# Managed by Xray_bash_onekey (Go). Standalone relay, no Xray/UUID/cert.\nstream {\n    server {\n        listen 127.0.0.1:43015;\n        proxy_pass 127.0.0.1:36549;\n        proxy_connect_timeout 10s;\n        proxy_timeout 720m;\n        proxy_socket_keepalive on;\n    }\n}\n",
+  "listenAddress": "127.0.0.1",
+  "listenPort": 43015,
+  "target": "127.0.0.1:36549"
+}

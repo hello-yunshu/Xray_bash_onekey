@@ -1,0 +1,7 @@
+[OK]  target serverNames 配置修改 完成 
+[OK]  privateKey shortIds 配置修改 完成 
+[警告]  Reality 不支持 path 
+[OK]  Xray inbound port 修改 完成 
+[OK]  Xray 用户名修改 完成 
+[OK]  Xray UUID 修改 完成 
+bash-generate role=secondary xray_test_exit=0

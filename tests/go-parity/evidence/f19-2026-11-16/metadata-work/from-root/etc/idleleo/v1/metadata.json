@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "activeEngine": "xray",
+  "provenance": "legacy",
+  "role": "node",
+  "tls": "Reality",
+  "transport": "raw",
+  "runtimeConfigPath": "etc/idleleo/conf/xray/config.json",
+  "runtimeSha256": "4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506",
+  "ownedResources": [
+    "etc/idleleo/conf/xray/config.json",
+    "etc/systemd/system/xray.service",
+    "etc/idleleo/cert"
+  ],
+  "updatedAt": "2026-11-16T15:51:10Z"
+}

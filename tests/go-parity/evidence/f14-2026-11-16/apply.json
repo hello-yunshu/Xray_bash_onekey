@@ -1,0 +1,11 @@
+{
+  "action": "applied",
+  "backupPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo.previous",
+  "healthOutput": "idleleo 0.2.0-phase04 (go)",
+  "installPath": "/work/evidence/f14/release-work/root/tmp/release/idleleo",
+  "manifestUrl": "http://127.0.0.1:50123/manifest.json",
+  "newSha256": "bf3ceaac15bc74be6367e75d8a807a6cd8cdd74e0d5389ce20a54062a5f679a8",
+  "newVersion": "0.2.0-phase04",
+  "platform": "linux-arm64",
+  "schemaVersion": 1
+}

@@ -1,0 +1,12 @@
+{
+  "domain": "acme.local",
+  "directoryUrl": "https://pebble:14000/dir",
+  "accountUrl": "https://pebble:14000/my-account/5382add8eaf5ebff",
+  "orderUrl": "https://pebble:14000/my-order/oLthXvO3oDwZqLQf9kutygTWIC3mTSQUA0EIL9iTNNI",
+  "certificateFile": "/work/certs/fullchain.pem",
+  "keyFile": "/work/certs/key.pem",
+  "notAfter": "2027-02-06T10:12:33Z",
+  "serial": "623489df63a3c339",
+  "issued": true,
+  "skipped": false
+}

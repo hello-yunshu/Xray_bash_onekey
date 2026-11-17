@@ -1,0 +1,1 @@
+server backend.example.net:9443 weight=50 max_fails=2 fail_timeout=10;

@@ -1,0 +1,2682 @@
+== F21 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ systemctl is-system-running (rc=0 0.0s)
+  stdout: running
+PASS systemd is usable running after 0.0s
+$ /opt/xray/xray version (rc=0 0.05s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ /work/bin/idleleo --root / xray uninstall --purge --container --json (rc=0 0.0s)
+  stdout: {
+            "removed": [
+              "etc/idleleo/conf/xray/config.json",
+              "etc/idleleo/conf/nginx",
+              "var/log/xray"
+            ],
+            "serviceStopped": false,
+            "serviceDisabled": false,
+            "configPreserved": false,
+            "warnings": []
+          }
+$ /work/bin/idleleo --root / xray install --binary /opt/xray/xray --mode none --transport ws --path /f21 --port 443 --allow-non-loopback --container --json (rc=0 0.59s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "tls": "None",
+            "binaryPath": "/usr/local/bin/xray",
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "unitPath": "/etc/systemd/system/xray.service",
+            "metadataPath": "/etc/idleleo/v1/metadata.json",
+            "configSha256": "2011ce4aa333913e84808ed33135879f06cf9cd5377099728615b732fcdfaccc",
+            "serviceActive": "active",
+            "serviceEnabled": "enabled",
+            "preservedConfig": false,
+            "validatorExit": 0,
+            "ownedResources": [
+              "usr/local/bin/xray",
+              "etc/idleleo/conf/xray/config.json",
+              "etc/systemd/system/xray.service"
+            ],
+            "warnings": [],
+            "nginxManaged": false,
+            "nginxVerified": false
+          }
+PASS S1 install exits 0 {
+  "mode": "none",
+  "transport": "ws",
+  "tls": "None",
+  "binaryPath": "/usr/local/bin/xray",
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "unitPath": "/etc/systemd/system/xray.service",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "configSha256": "2011ce4aa333913e84808ed331358
+PASS S1 install reports mode none over ws 
+PASS S1 xray service is active and enabled 
+PASS S1 install validator passed without warnings 
+PASS S1 inbound is the VLESS-ws 443 listener 
+PASS S1 outbounds are direct then blocked 
+PASS S1 installed routing is the single direct rule 
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.0s)
+  stdout: {
+            "configured": false,
+            "applied": false,
+            "drift": false,
+            "ads": false,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": [],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 no state yet: configured/applied/drift are false 
+$ /work/bin/idleleo --root / xray block apply --container --json (rc=2 0.0s)
+  stderr: applying traffic blocking rewrites routing rules and restarts xray; re-run with --yes to confirm
+PASS S2 apply without --yes exits 2 applying traffic blocking rewrites routing rules and restarts xray; re-run with --yes to confirm
+
+PASS S2 rejected apply left config untouched 
+$ /work/bin/idleleo xray block status --root /tmp/f21 --json (rc=2 0.0s)
+  stderr: unknown flag: --root
+PASS S2 block has no --root (unknown flag) unknown flag: --root
+
+$ /work/bin/idleleo --root / xray block ads disable --container --json (rc=1 0.0s)
+  stderr: container root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
+PASS S2 writing the real root needs the container token container root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
+
+$ /work/bin/idleleo --root / xray block ads enable --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": [],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block ads enable exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": false,
+  "bittorrent": false,
+  "countries": [],
+  "customDomains": {
+    "enabled": false,
+    "items": []
+
+$ /work/bin/idleleo --root / xray block private-ip enable --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": false,
+            "countries": [],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block private-ip enable exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": false,
+  "countries": [],
+  "customDomains": {
+    "enabled": false,
+    "items": []
+ 
+$ /work/bin/idleleo --root / xray block bittorrent enable --container --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block bittorrent enable exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [],
+  "customDomains": {
+    "enabled": false,
+    "items": []
+  
+$ /work/bin/idleleo --root / xray block country add cn --container --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block country add cn exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": false,
+    "i
+$ /work/bin/idleleo --root / xray block custom add --kind domain --value example.org --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": false,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block custom add --kind domain --value example.org exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": false,
+    "i
+$ /work/bin/idleleo --root / xray block custom add --kind ip --value 192.0.2.0/24 --container --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": false,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": false,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block custom add --kind ip --value 192.0.2.0/24 exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": false,
+    "i
+$ /work/bin/idleleo --root / xray block custom enable --kind domain --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": false,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block custom enable --kind domain exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": true,
+    "it
+$ /work/bin/idleleo --root / xray block custom enable --kind ip --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block custom enable --kind ip exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": true,
+    "it
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 status reflects the new switches 
+$ /work/bin/idleleo --root / xray block apply --yes --dry-run --container --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "2011ce4aa333913e84808ed33135879f06cf9cd5377099728615b732fcdfaccc",
+            "newSha256": "1ee0354026540cb8a77354164c9e7e213e9175cd358d271de845352ccffa02d4",
+            "serviceRestarted": false,
+            "controlProbe": "skipped: --dry-run"
+          }
+PASS S2 dry-run reports seven rules without applying {'configured': True, 'applied': False, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 7, 'domainStrategy': 'IPIfNonMatc
+PASS S2 dry-run left config untouched 
+$ /work/bin/idleleo --root / xray block country add china --container --json (rc=1 0.0s)
+  stderr: country code "china" must be two letters
+PASS S2 rejects invalid input: country add china country code "china" must be two letters
+
+$ /work/bin/idleleo --root / xray block custom add --kind ip --value 999.1.1.1 --container --json (rc=1 0.0s)
+  stderr: custom IP "999.1.1.1" is not an address or CIDR
+PASS S2 rejects invalid input: custom add --kind ip --value 999.1.1.1 custom IP "999.1.1.1" is not an address or CIDR
+
+$ /work/bin/idleleo --root / xray block custom add --kind url --value x --container --json (rc=1 0.0s)
+  stderr: --kind must be domain or ip (got "url")
+PASS S2 rejects invalid input: custom add --kind url --value x --kind must be domain or ip (got "url")
+
+PASS S2 invalid inputs wrote nothing 
+$ systemctl reset-failed xray (rc=0 0.0s)
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=0 0.61s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "2011ce4aa333913e84808ed33135879f06cf9cd5377099728615b732fcdfaccc",
+            "newSha256": "1ee0354026540cb8a77354164c9e7e213e9175cd358d271de845352ccffa02d4",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192524Z",
+            "assetEnv": "created etc/systemd/system/xray.service.d/50-xray-geodata.conf",
+            "serviceRestarted": true,
+            "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)"
+          }
+PASS S3 first apply exits 0 
+PASS S3 apply reports rules, strategy and sniffing 
+PASS S3 apply restarted xray and the TCP probe passed {'configured': True, 'applied': True, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 7, 'domainStrategy': 'IPIfNonMatch
+PASS S3 apply created the geodata drop-in created etc/systemd/system/xray.service.d/50-xray-geodata.conf
+PASS S3 apply reports the real before/after digests 
+PASS S3 routing rules match the ordered blocking set [{"domain": ["geosite:cn"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:cn"], "outboundTag": "blocked", "type": "field"}, {"outboundTag": "blocked", "protocol": ["bittorrent"], "type": "field"}, {"domain": ["geosite:category-ads-all"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:private"], "outboundTag": "blocked", "type": "field"}, {"domain": ["domain:example.org"], "outboundTag": "blocked", "type": "field"}, {"ip": ["192.0.2.0/24"], "outboundTag": "blocked", "type
+PASS S3 domainStrategy is IPIfNonMatch 
+PASS S3 every inbound sniffs with routeOnly [{"destOverride": ["http", "tls", "quic"], "enabled": true, "routeOnly": true}]
+PASS S3 geodata drop-in exists 
+PASS S3 drop-in points Xray at the geo assets ['[Service]', 'Environment=XRAY_LOCATION_ASSET=/etc/idleleo/share/xray']
+$ systemctl show -p Environment xray (rc=0 0.01s)
+  stdout: Environment=XRAY_LOCATION_ASSET=/etc/idleleo/share/xray
+PASS S3 systemd exposes XRAY_LOCATION_ASSET to the service Environment=XRAY_LOCATION_ASSET=/etc/idleleo/share/xray
+
+PASS S3 apply created a backup directory 
+PASS S3 backup holds config, state and meta ['config.json', 'meta', 'traffic_blocker.json']
+PASS S3 backup meta records the config path config=/etc/idleleo/conf/xray/config.json
+
+$ /opt/xray/xray -test -config /etc/idleleo/conf/xray/config.json (rc=0 0.17s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 19:25:24.679815 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+          2026/11/16 19:25:24.683361 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S3 real xray -test accepts the applied config Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/16 19:25:24.679815 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/16 19:25:24.683361 [Warning] common/errors: The featu
+$ systemctl is-active xray (rc=0 0.0s)
+  stdout: active
+PASS S3 xray is still active after apply 
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=0 0.57s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "1ee0354026540cb8a77354164c9e7e213e9175cd358d271de845352ccffa02d4",
+            "newSha256": "1ee0354026540cb8a77354164c9e7e213e9175cd358d271de845352ccffa02d4",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192524Z",
+            "assetEnv": "reused existing XRAY_LOCATION_ASSET",
+            "serviceRestarted": true,
+            "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)"
+          }
+PASS S4 second apply exits 0 
+PASS S4 second apply is a no-op with equal digests {'configured': True, 'applied': True, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 7, 'domainStrategy': 'IPIfNonMatch
+PASS S4 second apply did not rewrite the config 
+PASS S4 second apply reuses the geodata drop-in reused existing XRAY_LOCATION_ASSET
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S4 status reports applied without drift 
+PASS S4 status lists the enabled switches 
+PASS S4 status lists the custom domain/IP lists 
+PASS S4 status reports rule count and geo assets {'configured': True, 'applied': True, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 7, 'domainStrategy': 'IPIfNonMatch', 'sniffingEnabled': True, 'geosite': {'path': '/etc/idleleo/share/xray/geosite.dat', 'size': 11476
+$ systemctl reset-failed xray (rc=0 0.01s)
+$ /work/bin/idleleo --root / xray block off --yes --container --json (rc=0 0.43s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": false,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": null,
+            "customDomains": {
+              "enabled": false,
+              "items": null
+            },
+            "customIps": {
+              "enabled": false,
+              "items": null
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "1ee0354026540cb8a77354164c9e7e213e9175cd358d271de845352ccffa02d4",
+            "newSha256": "2011ce4aa333913e84808ed33135879f06cf9cd5377099728615b732fcdfaccc",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192525Z",
+            "serviceRestarted": true,
+            "controlProbe": "not probed: block off only removes rules"
+          }
+PASS S5 off exits 0 and removes the owned rules 
+PASS S5 off restores the exact install-time config digest 2011ce4aa333913e84808ed33135879f06cf9cd5377099728615b732fcdfaccc
+PASS S5 off restores AsIs and clears sniffing 
+PASS S5 off does not probe the service not probed: block off only removes rules
+PASS S5 config is back to the installed baseline 
+$ systemctl is-active xray (rc=0 0.01s)
+  stdout: active
+PASS S5 xray is active after off 
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S5 switches survive off while applied turns false 
+$ /work/bin/idleleo --root / xray block off --yes --container --json (rc=1 0.0s)
+  stdout: {
+            "configured": false,
+            "applied": false,
+            "drift": false,
+            "ads": false,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": null,
+            "customDomains": {
+              "enabled": false,
+              "items": null
+            },
+            "customIps": {
+              "enabled": false,
+              "items": null
+            },
+            "ownedRuleCount": 0,
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": ""
+            },
+            "geoip": {
+              "path": ""
+            },
+            "serviceRestarted": false
+          }
+  stderr: no traffic-block rules are installed
+PASS S5 a second off reports there is nothing to remove {
+  "configured": false,
+  "applied": false,
+  "drift": false,
+  "ads": false,
+  "privateIp": false,
+  "bittorrent": false,
+  "countries": null,
+  "customDomains": {
+    "enabled": false,
+    "items":
+PASS S5 rejected second off left the config untouched 
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S5 rejected second off kept the configured switches 
+$ /work/bin/idleleo --root / xray block country add zz --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn",
+              "zz"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+$ systemctl reset-failed xray (rc=0 0.01s)
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=1 0.02s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn",
+              "zz"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 9,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "2011ce4aa333913e84808ed33135879f06cf9cd5377099728615b732fcdfaccc",
+            "newSha256": "f79669809c9116a8e783015ae6cff34eb99d737356a06d32a5992697acea5ff9",
+            "assetEnv": "reused existing XRAY_LOCATION_ASSET",
+            "serviceRestarted": false
+          }
+  stderr: xray -test rejected the candidate (exit 23): ; traffic blocking was not applied
+PASS S6 xray -test rejects an unknown country {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn",
+    "zz"
+  ],
+  "customDomains": {
+    "enabled": true,
+    "items": [
+      "example.org"
+    ]
+  },
+  "customIps": {
+    "enabled": true,
+    "items": 
+PASS S6 failed apply reports the nine candidate rules {'configured': True, 'applied': False, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn', 'zz'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 9, 'domainStrategy': 'IPIfN
+PASS S6 failed apply left the config untouched 
+$ systemctl is-active xray (rc=0 0.0s)
+  stdout: active
+PASS S6 xray stays active after the rejected candidate 
+$ /work/bin/idleleo --root / xray block country remove zz --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=1 0.0s)
+  stdout: {
+            "configured": false,
+            "applied": false,
+            "drift": false,
+            "ads": false,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": null,
+            "customDomains": {
+              "enabled": false,
+              "items": null
+            },
+            "customIps": {
+              "enabled": false,
+              "items": null
+            },
+            "ownedRuleCount": 0,
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": ""
+            },
+            "geoip": {
+              "path": ""
+            },
+            "serviceRestarted": false
+          }
+  stderr: the last user routing rule blocks everything; remove it before applying traffic blocking
+PASS S6 apply refuses a user rule that swallows all traffic {
+  "configured": false,
+  "applied": false,
+  "drift": false,
+  "ads": false,
+  "privateIp": false,
+  "bittorrent": false,
+  "countries": null,
+  "customDomains": {
+    "enabled": false,
+    "items": null
+  },
+  "customIps": {
+    "enabled": false,
+    "items": null
+  },
+  "ownedRuleCount": 0,
+  "s
+PASS S6 refused apply left the user config untouched 
+$ /work/bin/idleleo --root / xray block apply --yes --geodata-url http://127.0.0.1:1 --container --json (rc=1 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "missing": true
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "2011ce4aa333913e84808ed33135879f06cf9cd5377099728615b732fcdfaccc",
+            "newSha256": "1ee0354026540cb8a77354164c9e7e213e9175cd358d271de845352ccffa02d4",
+            "serviceRestarted": false
+          }
+  stderr: GeoData files geosite.dat are missing and the download failed: geoip.dat checksum: Get "http://127.0.0.1:1/geoip.dat.sha256sum": dial tcp 127.0.0.1:1: connect: connection refused; traffic blocking was not applied
+PASS S6 missing geosite fails closed {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": true,
+    "items": [
+      "example.org"
+    ]
+  },
+  "customIps": {
+    "enabled": true,
+    "items": [
+      "1
+PASS S6 missing geosite left the config untouched 
+$ systemctl is-active xray (rc=0 0.0s)
+  stdout: active
+PASS S6 xray stays active after the geodata failure 
+$ bash -c xray_conf_dir=/tmp/f21-bash-2okrxsan; idleleo_dir=/tmp/f21-bash-2okrxsan; source /work/repo/scripts/traffic_blocker.sh; tb_build_block_rules (rc=0 0.03s)
+  stdout: [
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "domain": [
+                "geosite:cn"
+              ]
+            },
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "ip": [
+                "geoip:cn"
+              ]
+            },
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "protocol": [
+                "bittorrent"
+              ]
+            },
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "domain": [
+                "geosite:category-ads-all"
+              ]
+            },
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "ip": [
+                "geoip:private"
+              ]
+            }
+          ]
+PASS S7 Bash baseline builds five built-in rules [
+  {
+    "type": "field",
+    "outboundTag": "blocked",
+    "domain": [
+      "geosite:cn"
+    ]
+  },
+  {
+    "type": "field",
+    "outboundTag": "blocked",
+    "ip": [
+      "geoip:cn"
+    ]
+  },
+  {
+    "type": "field",
+    "outboundTag": "blocked",
+    "protocol": [
+      "bittorrent"
+    ]
+  },
+PASS S7 Bash and Go built-in rules are semantically identical [{"type": "field", "outboundTag": "blocked", "domain": ["geosite:cn"]}, {"type": "field", "outboundTag": "blocked", "ip": ["geoip:cn"]}, {"type": "field", "outboundTag": "blocked", "protocol": ["bittorrent"]}, {"type": "field", "outboundTag": "blocked", "domain": ["geosite:category-ads-all"]}, {"type": "field", "outboundTag": "blocked", "ip": ["geoip:private"]}]
+$ systemctl reset-failed xray (rc=0 0.0s)
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=0 0.59s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "2011ce4aa333913e84808ed33135879f06cf9cd5377099728615b732fcdfaccc",
+            "newSha256": "1ee0354026540cb8a77354164c9e7e213e9175cd358d271de845352ccffa02d4",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192526Z",
+            "assetEnv": "reused existing XRAY_LOCATION_ASSET",
+            "serviceRestarted": true,
+            "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)"
+          }
+PASS S7 re-apply for legacy comparison exits 0 
+PASS S7 applied Go rules start with the Bash baseline [{"domain": ["geosite:cn"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:cn"], "outboundTag": "blocked", "type": "field"}, {"outboundTag": "blocked", "protocol": ["bittorrent"], "type": "field"}, {"domain": ["geosite:category-ads-all"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:private"], "outboundTag": "blocked", "type": "field"}]
+$ systemctl reset-failed xray (rc=0 0.01s)
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=0 0.63s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:23Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "080e29d9692a0158f432267fb111b338c05d365ef22729e085a1e1ab6039020a",
+            "newSha256": "e8d77619f7ffc1140eafcede79fb87fee588c266e9de2bf34666c402418f64bf",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192526Z",
+            "assetEnv": "reused existing XRAY_LOCATION_ASSET",
+            "serviceRestarted": true,
+            "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)"
+          }
+PASS S7 apply adopts rules left by the Bash baseline 
+PASS S7 legacy adoption does not duplicate rules and keeps user rules [{"domain": ["geosite:cn"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:cn"], "outboundTag": "blocked", "type": "field"}, {"outboundTag": "blocked", "protocol": ["bittorrent"], "type": "field"}, {"domain": ["geosite:category-ads-all"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:private"], "outboundTag": "blocked", "type": "field"}, {"domain": ["domain:example.org"], "outboundTag": "blocked", "type": "field"}, {"ip": ["192.0.2.0/24"], "outboundTag": "blocked", "type
+PASS S7 legacy adoption owns exactly seven rules 
+PASS S7 first Go apply over Bash rules keeps a single country rule 
+== F21 go=/work/bin/idleleo bash=/work/repo host=aarch64
+$ systemctl is-system-running (rc=0 0.0s)
+  stdout: running
+PASS systemd is usable running after 0.0s
+$ /opt/xray/xray version (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ /work/bin/idleleo --root / xray uninstall --purge --container --json (rc=0 0.0s)
+  stdout: {
+            "removed": [
+              "etc/idleleo/conf/xray/config.json",
+              "etc/idleleo/conf/nginx",
+              "var/log/xray"
+            ],
+            "serviceStopped": false,
+            "serviceDisabled": false,
+            "configPreserved": false,
+            "warnings": []
+          }
+$ /work/bin/idleleo --root / xray install --binary /opt/xray/xray --mode none --transport ws --path /f21 --port 443 --allow-non-loopback --container --json (rc=0 0.58s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "tls": "None",
+            "binaryPath": "/usr/local/bin/xray",
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "unitPath": "/etc/systemd/system/xray.service",
+            "metadataPath": "/etc/idleleo/v1/metadata.json",
+            "configSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+            "serviceActive": "active",
+            "serviceEnabled": "enabled",
+            "preservedConfig": false,
+            "validatorExit": 0,
+            "ownedResources": [
+              "usr/local/bin/xray",
+              "etc/idleleo/conf/xray/config.json",
+              "etc/systemd/system/xray.service"
+            ],
+            "warnings": [],
+            "nginxManaged": false,
+            "nginxVerified": false
+          }
+PASS S1 install exits 0 {
+  "mode": "none",
+  "transport": "ws",
+  "tls": "None",
+  "binaryPath": "/usr/local/bin/xray",
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "unitPath": "/etc/systemd/system/xray.service",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "configSha256": "18d61a7ca18d70102e109435ee106
+PASS S1 install reports mode none over ws 
+PASS S1 xray service is active and enabled 
+PASS S1 install validator passed without warnings 
+PASS S1 inbound is the VLESS-ws 443 listener 
+PASS S1 outbounds are direct then blocked 
+PASS S1 installed routing is the single direct rule 
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.0s)
+  stdout: {
+            "configured": false,
+            "applied": false,
+            "drift": false,
+            "ads": false,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": [],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 no state yet: configured/applied/drift are false 
+$ /work/bin/idleleo --root / xray block apply --container --json (rc=2 0.0s)
+  stderr: applying traffic blocking rewrites routing rules and restarts xray; re-run with --yes to confirm
+PASS S2 apply without --yes exits 2 applying traffic blocking rewrites routing rules and restarts xray; re-run with --yes to confirm
+
+PASS S2 rejected apply left config untouched 
+$ /work/bin/idleleo xray block status --root /tmp/f21 --json (rc=2 0.01s)
+  stderr: unknown flag: --root
+PASS S2 block has no --root (unknown flag) unknown flag: --root
+
+$ /work/bin/idleleo --root / xray block ads disable --container --json (rc=1 0.0s)
+  stderr: container root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
+PASS S2 writing the real root needs the container token container root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
+
+$ /work/bin/idleleo --root / xray block ads enable --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": [],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block ads enable exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": false,
+  "bittorrent": false,
+  "countries": [],
+  "customDomains": {
+    "enabled": false,
+    "items": []
+
+$ /work/bin/idleleo --root / xray block private-ip enable --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": false,
+            "countries": [],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block private-ip enable exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": false,
+  "countries": [],
+  "customDomains": {
+    "enabled": false,
+    "items": []
+ 
+$ /work/bin/idleleo --root / xray block bittorrent enable --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block bittorrent enable exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [],
+  "customDomains": {
+    "enabled": false,
+    "items": []
+  
+$ /work/bin/idleleo --root / xray block country add cn --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": false,
+              "items": []
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block country add cn exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": false,
+    "i
+$ /work/bin/idleleo --root / xray block custom add --kind domain --value example.org --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": false,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": false,
+              "items": []
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block custom add --kind domain --value example.org exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": false,
+    "i
+$ /work/bin/idleleo --root / xray block custom add --kind ip --value 192.0.2.0/24 --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": false,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": false,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block custom add --kind ip --value 192.0.2.0/24 exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": false,
+    "i
+$ /work/bin/idleleo --root / xray block custom enable --kind domain --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": false,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block custom enable --kind domain exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": true,
+    "it
+$ /work/bin/idleleo --root / xray block custom enable --kind ip --container --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 block custom enable --kind ip exits 0 {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": true,
+    "it
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S2 status reflects the new switches 
+$ /work/bin/idleleo --root / xray block apply --yes --dry-run --container --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+            "newSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+            "serviceRestarted": false,
+            "controlProbe": "skipped: --dry-run"
+          }
+PASS S2 dry-run reports seven rules without applying {'configured': True, 'applied': False, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 7, 'domainStrategy': 'IPIfNonMatc
+PASS S2 dry-run left config untouched 
+$ /work/bin/idleleo --root / xray block country add china --container --json (rc=1 0.0s)
+  stderr: country code "china" must be two letters
+PASS S2 rejects invalid input: country add china country code "china" must be two letters
+
+$ /work/bin/idleleo --root / xray block custom add --kind ip --value 999.1.1.1 --container --json (rc=1 0.0s)
+  stderr: custom IP "999.1.1.1" is not an address or CIDR
+PASS S2 rejects invalid input: custom add --kind ip --value 999.1.1.1 custom IP "999.1.1.1" is not an address or CIDR
+
+$ /work/bin/idleleo --root / xray block custom add --kind url --value x --container --json (rc=1 0.0s)
+  stderr: --kind must be domain or ip (got "url")
+PASS S2 rejects invalid input: custom add --kind url --value x --kind must be domain or ip (got "url")
+
+PASS S2 invalid inputs wrote nothing 
+$ systemctl reset-failed xray (rc=0 0.0s)
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=0 0.62s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+            "newSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192536Z",
+            "assetEnv": "created etc/systemd/system/xray.service.d/50-xray-geodata.conf",
+            "serviceRestarted": true,
+            "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)"
+          }
+PASS S3 first apply exits 0 
+PASS S3 apply reports rules, strategy and sniffing 
+PASS S3 apply restarted xray and the TCP probe passed {'configured': True, 'applied': True, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 7, 'domainStrategy': 'IPIfNonMatch
+PASS S3 apply created the geodata drop-in created etc/systemd/system/xray.service.d/50-xray-geodata.conf
+PASS S3 apply reports the real before/after digests 
+PASS S3 routing rules match the ordered blocking set [{"domain": ["geosite:cn"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:cn"], "outboundTag": "blocked", "type": "field"}, {"outboundTag": "blocked", "protocol": ["bittorrent"], "type": "field"}, {"domain": ["geosite:category-ads-all"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:private"], "outboundTag": "blocked", "type": "field"}, {"domain": ["domain:example.org"], "outboundTag": "blocked", "type": "field"}, {"ip": ["192.0.2.0/24"], "outboundTag": "blocked", "type
+PASS S3 domainStrategy is IPIfNonMatch 
+PASS S3 every inbound sniffs with routeOnly [{"destOverride": ["http", "tls", "quic"], "enabled": true, "routeOnly": true}]
+PASS S3 geodata drop-in exists 
+PASS S3 drop-in points Xray at the geo assets ['[Service]', 'Environment=XRAY_LOCATION_ASSET=/etc/idleleo/share/xray']
+$ systemctl show -p Environment xray (rc=0 0.01s)
+  stdout: Environment=XRAY_LOCATION_ASSET=/etc/idleleo/share/xray
+PASS S3 systemd exposes XRAY_LOCATION_ASSET to the service Environment=XRAY_LOCATION_ASSET=/etc/idleleo/share/xray
+
+PASS S3 apply created a backup directory 
+PASS S3 backup holds config, state and meta ['config.json', 'meta', 'traffic_blocker.json']
+PASS S3 backup meta records the config path config=/etc/idleleo/conf/xray/config.json
+
+$ /opt/xray/xray -test -config /etc/idleleo/conf/xray/config.json (rc=0 0.18s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/16 19:25:37.446332 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+          2026/11/16 19:25:37.452078 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS S3 real xray -test accepts the applied config Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/16 19:25:37.446332 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/16 19:25:37.452078 [Warning] common/errors: The featu
+$ systemctl is-active xray (rc=0 0.0s)
+  stdout: active
+PASS S3 xray is still active after apply 
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=0 0.59s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+            "newSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192537Z",
+            "assetEnv": "reused existing XRAY_LOCATION_ASSET",
+            "serviceRestarted": true,
+            "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)"
+          }
+PASS S4 second apply exits 0 
+PASS S4 second apply is a no-op with equal digests {'configured': True, 'applied': True, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 7, 'domainStrategy': 'IPIfNonMatch
+PASS S4 second apply did not rewrite the config 
+PASS S4 second apply reuses the geodata drop-in reused existing XRAY_LOCATION_ASSET
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S4 status reports applied without drift 
+PASS S4 status lists the enabled switches 
+PASS S4 status lists the custom domain/IP lists 
+PASS S4 status reports rule count and geo assets {'configured': True, 'applied': True, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 7, 'domainStrategy': 'IPIfNonMatch', 'sniffingEnabled': True, 'geosite': {'path': '/etc/idleleo/share/xray/geosite.dat', 'size': 11476
+$ systemctl reset-failed xray (rc=0 0.01s)
+$ /work/bin/idleleo --root / xray block off --yes --container --json (rc=0 0.44s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": false,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": null,
+            "customDomains": {
+              "enabled": false,
+              "items": null
+            },
+            "customIps": {
+              "enabled": false,
+              "items": null
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+            "newSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192538Z",
+            "serviceRestarted": true,
+            "controlProbe": "not probed: block off only removes rules"
+          }
+PASS S5 off exits 0 and removes the owned rules 
+PASS S5 off restores the exact install-time config digest 18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24
+PASS S5 off restores AsIs and clears sniffing 
+PASS S5 off does not probe the service not probed: block off only removes rules
+PASS S5 config is back to the installed baseline 
+$ systemctl is-active xray (rc=0 0.01s)
+  stdout: active
+PASS S5 xray is active after off 
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S5 switches survive off while applied turns false 
+$ /work/bin/idleleo --root / xray block off --yes --container --json (rc=1 0.01s)
+  stdout: {
+            "configured": false,
+            "applied": false,
+            "drift": false,
+            "ads": false,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": null,
+            "customDomains": {
+              "enabled": false,
+              "items": null
+            },
+            "customIps": {
+              "enabled": false,
+              "items": null
+            },
+            "ownedRuleCount": 0,
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": ""
+            },
+            "geoip": {
+              "path": ""
+            },
+            "serviceRestarted": false
+          }
+  stderr: no traffic-block rules are installed
+PASS S5 a second off reports there is nothing to remove {
+  "configured": false,
+  "applied": false,
+  "drift": false,
+  "ads": false,
+  "privateIp": false,
+  "bittorrent": false,
+  "countries": null,
+  "customDomains": {
+    "enabled": false,
+    "items":
+PASS S5 rejected second off left the config untouched 
+$ /work/bin/idleleo --root / xray block status --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+PASS S5 rejected second off kept the configured switches 
+$ /work/bin/idleleo --root / xray block country add zz --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn",
+              "zz"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+$ systemctl reset-failed xray (rc=0 0.01s)
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=1 0.02s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn",
+              "zz"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 9,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+            "newSha256": "aac6fedc7c2d8653b138c61e4af8f8870bcc44c215a4bdf29d1429a141863ab0",
+            "assetEnv": "reused existing XRAY_LOCATION_ASSET",
+            "serviceRestarted": false
+          }
+  stderr: xray -test rejected the candidate (exit 23): ; traffic blocking was not applied
+PASS S6 xray -test rejects an unknown country {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn",
+    "zz"
+  ],
+  "customDomains": {
+    "enabled": true,
+    "items": [
+      "example.org"
+    ]
+  },
+  "customIps": {
+    "enabled": true,
+    "items": 
+PASS S6 failed apply reports the nine candidate rules {'configured': True, 'applied': False, 'drift': False, 'ads': True, 'privateIp': True, 'bittorrent': True, 'countries': ['cn', 'zz'], 'customDomains': {'enabled': True, 'items': ['example.org']}, 'customIps': {'enabled': True, 'items': ['192.0.2.0/24']}, 'ownedRuleCount': 9, 'domainStrategy': 'IPIfN
+PASS S6 failed apply left the config untouched 
+$ systemctl is-active xray (rc=0 0.01s)
+  stdout: active
+PASS S6 xray stays active after the rejected candidate 
+$ /work/bin/idleleo --root / xray block country remove zz --container --json (rc=0 0.01s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 0,
+            "domainStrategy": "AsIs",
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "serviceRestarted": false
+          }
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=1 0.0s)
+  stdout: {
+            "configured": false,
+            "applied": false,
+            "drift": false,
+            "ads": false,
+            "privateIp": false,
+            "bittorrent": false,
+            "countries": null,
+            "customDomains": {
+              "enabled": false,
+              "items": null
+            },
+            "customIps": {
+              "enabled": false,
+              "items": null
+            },
+            "ownedRuleCount": 0,
+            "sniffingEnabled": false,
+            "geosite": {
+              "path": ""
+            },
+            "geoip": {
+              "path": ""
+            },
+            "serviceRestarted": false
+          }
+  stderr: the last user routing rule blocks everything; remove it before applying traffic blocking
+PASS S6 apply refuses a user rule that swallows all traffic {
+  "configured": false,
+  "applied": false,
+  "drift": false,
+  "ads": false,
+  "privateIp": false,
+  "bittorrent": false,
+  "countries": null,
+  "customDomains": {
+    "enabled": false,
+    "items": null
+  },
+  "customIps": {
+    "enabled": false,
+    "items": null
+  },
+  "ownedRuleCount": 0,
+  "s
+PASS S6 refused apply left the user config untouched 
+$ /work/bin/idleleo --root / xray block apply --yes --geodata-url http://127.0.0.1:1 --container --json (rc=1 0.0s)
+  stdout: {
+            "configured": true,
+            "applied": false,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "missing": true
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+            "newSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+            "serviceRestarted": false
+          }
+  stderr: GeoData files geosite.dat are missing and the download failed: geoip.dat checksum: Get "http://127.0.0.1:1/geoip.dat.sha256sum": dial tcp 127.0.0.1:1: connect: connection refused; traffic blocking was not applied
+PASS S6 missing geosite fails closed {
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": true,
+    "items": [
+      "example.org"
+    ]
+  },
+  "customIps": {
+    "enabled": true,
+    "items": [
+      "1
+PASS S6 missing geosite left the config untouched 
+$ systemctl is-active xray (rc=0 0.0s)
+  stdout: active
+PASS S6 xray stays active after the geodata failure 
+$ bash -c xray_conf_dir=/tmp/f21-bash-l0h0aano; idleleo_dir=/tmp/f21-bash-l0h0aano; source /work/repo/scripts/traffic_blocker.sh; tb_build_block_rules (rc=0 0.03s)
+  stdout: [
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "domain": [
+                "geosite:cn"
+              ]
+            },
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "ip": [
+                "geoip:cn"
+              ]
+            },
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "protocol": [
+                "bittorrent"
+              ]
+            },
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "domain": [
+                "geosite:category-ads-all"
+              ]
+            },
+            {
+              "type": "field",
+              "outboundTag": "blocked",
+              "ip": [
+                "geoip:private"
+              ]
+            }
+          ]
+PASS S7 Bash baseline builds five built-in rules [
+  {
+    "type": "field",
+    "outboundTag": "blocked",
+    "domain": [
+      "geosite:cn"
+    ]
+  },
+  {
+    "type": "field",
+    "outboundTag": "blocked",
+    "ip": [
+      "geoip:cn"
+    ]
+  },
+  {
+    "type": "field",
+    "outboundTag": "blocked",
+    "protocol": [
+      "bittorrent"
+    ]
+  },
+PASS S7 Bash and Go built-in rules are semantically identical [{"type": "field", "outboundTag": "blocked", "domain": ["geosite:cn"]}, {"type": "field", "outboundTag": "blocked", "ip": ["geoip:cn"]}, {"type": "field", "outboundTag": "blocked", "protocol": ["bittorrent"]}, {"type": "field", "outboundTag": "blocked", "domain": ["geosite:category-ads-all"]}, {"type": "field", "outboundTag": "blocked", "ip": ["geoip:private"]}]
+$ systemctl reset-failed xray (rc=0 0.0s)
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=0 0.6s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "18d61a7ca18d70102e109435ee106dc8187409b20986d5f2929cb8a03ecb0c24",
+            "newSha256": "b415c0f3d75e89b2cebf3f9e4e52ba6aa09b1a41b996907b50b84ec2157aa984",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192538Z",
+            "assetEnv": "reused existing XRAY_LOCATION_ASSET",
+            "serviceRestarted": true,
+            "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)"
+          }
+PASS S7 re-apply for legacy comparison exits 0 
+PASS S7 applied Go rules start with the Bash baseline [{"domain": ["geosite:cn"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:cn"], "outboundTag": "blocked", "type": "field"}, {"outboundTag": "blocked", "protocol": ["bittorrent"], "type": "field"}, {"domain": ["geosite:category-ads-all"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:private"], "outboundTag": "blocked", "type": "field"}]
+$ systemctl reset-failed xray (rc=0 0.01s)
+$ /work/bin/idleleo --root / xray block apply --yes --container --json (rc=0 0.62s)
+  stdout: {
+            "configured": true,
+            "applied": true,
+            "drift": false,
+            "ads": true,
+            "privateIp": true,
+            "bittorrent": true,
+            "countries": [
+              "cn"
+            ],
+            "customDomains": {
+              "enabled": true,
+              "items": [
+                "example.org"
+              ]
+            },
+            "customIps": {
+              "enabled": true,
+              "items": [
+                "192.0.2.0/24"
+              ]
+            },
+            "ownedRuleCount": 7,
+            "domainStrategy": "IPIfNonMatch",
+            "sniffingEnabled": true,
+            "geosite": {
+              "path": "/etc/idleleo/share/xray/geosite.dat",
+              "size": 11476856,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "geoip": {
+              "path": "/etc/idleleo/share/xray/geoip.dat",
+              "size": 16467275,
+              "mtime": "2026-11-16T19:25:36Z"
+            },
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "749a15553f602c24922e8b282c5aef76edb2bd9407a166812bf16adf87bd39f9",
+            "newSha256": "c938bc4e67bef003da9ecfe01f7db1fff83e7ecd5bbdff92e61f3009ee876b01",
+            "backupDir": "/etc/idleleo/backup/block-20261116T192539Z",
+            "assetEnv": "reused existing XRAY_LOCATION_ASSET",
+            "serviceRestarted": true,
+            "controlProbe": "ok: tcp control on 127.0.0.1:443 (HTTP control is covered by the E2E driver)"
+          }
+PASS S7 apply adopts rules left by the Bash baseline 
+PASS S7 legacy adoption does not duplicate rules and keeps user rules [{"domain": ["geosite:cn"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:cn"], "outboundTag": "blocked", "type": "field"}, {"outboundTag": "blocked", "protocol": ["bittorrent"], "type": "field"}, {"domain": ["geosite:category-ads-all"], "outboundTag": "blocked", "type": "field"}, {"ip": ["geoip:private"], "outboundTag": "blocked", "type": "field"}, {"domain": ["domain:example.org"], "outboundTag": "blocked", "type": "field"}, {"ip": ["192.0.2.0/24"], "outboundTag": "blocked", "type
+PASS S7 legacy adoption owns exactly seven rules 
+PASS S7 first Go apply over Bash rules keeps a single country rule 
