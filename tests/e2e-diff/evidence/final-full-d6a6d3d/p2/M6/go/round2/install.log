@@ -1,0 +1,4 @@
+installed: mode=none transport=xhttp tls=None
+config=/etc/idleleo/conf/xray/config.json sha256=fc421dbb7cb3941f0c88fd7e69126ebd80ecea2ac4acc934b587f35fbb30edf2
+service active=active enabled=enabled
+warning=clash-xhttp-unsupported

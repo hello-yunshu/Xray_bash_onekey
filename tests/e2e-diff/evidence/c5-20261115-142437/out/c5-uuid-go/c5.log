@@ -1,0 +1,28 @@
+06:24:50 WARN: control origin did not come up
+06:24:51 check realityOriginLocal=true target=127.0.0.1:8443 sni=local.test
+06:24:59 check baselineA=true 
+06:25:01 check baselineB=true 
+06:25:03 check baselineC=true 
+06:25:03 check failRollbackExit=true rc=9
+06:25:03 check failConfigHash=true 
+06:25:03 check failAllOld=true a=20e9ef70-0e35-4c6f-849a-e2bbf44b7b6f b=99999999-2222-3333-4444-555555555555 c=77777777-2222-3333-4444-555555555555
+06:25:08 check failNoHalfState=true 
+06:25:08 check dryRunListsInbound=true inbound 0 client 1: user-b@idleleo  99999999-2222-3333-4444-555555555555 -> aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+06:25:08 check dryRunShowsOldUUID=true 
+06:25:08 check dryRunWarnsRestart=true warning: this restarts the Xray service; every live connection drops for a few seconds (all users, not only user-b@idleleo)
+06:25:08 check rotateExit=true rc=0 
+06:25:08 check rotateOutputWarnsRestart=true inbound 0 client 1: user-b@idleleo  99999999-2222-3333-4444-555555555555 -> aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+06:25:08 check serviceAfterRotate=true 
+06:25:08 check uuidApplied=true b=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+06:25:13 check bOldLinkRefused=true outcome=blocked (timeout means the probe is inconclusive)
+06:25:15 check bNewLinkWorks=true 
+06:25:17 check aStillWorks=true 
+06:25:19 check cStillWorks=true 
+06:25:19 check aClientUnchanged=true 
+06:25:19 check cClientUnchanged=true 
+06:25:19 check routingUnchanged=true 
+06:25:20 check revertExit=true rc=0
+06:25:27 check revertOldLinkWorks=true 
+06:25:31 check revertOthersStillWork=true 
+06:25:31 check revertUuid=true 
+06:25:31 done checks=26

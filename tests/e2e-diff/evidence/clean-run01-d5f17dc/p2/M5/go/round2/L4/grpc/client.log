@@ -1,0 +1,25 @@
+Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/14 16:01:10.256508 [Info] infra/conf/serial: Reading config: &{Name:/client/client.json Format:json}
+2026/11/14 16:01:10.257085 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+2026/11/14 16:01:10.259289 [Warning] core: Xray 26.10.31 started
+2026/11/14 16:01:12.437409 from tcp:127.0.0.1:38268 accepted tcp:example.com:80
+2026/11/14 16:01:15.554705 from tcp:127.0.0.1:38276 accepted tcp:example.com:80
+2026/11/14 16:01:18.691632 from tcp:127.0.0.1:36380 accepted tcp:example.com:80
+2026/11/14 16:01:21.838361 from tcp:127.0.0.1:36390 accepted tcp:example.com:80
+2026/11/14 16:01:24.992598 from tcp:127.0.0.1:36402 accepted tcp:example.com:80
+2026/11/14 16:01:28.155404 from tcp:127.0.0.1:53716 accepted tcp:example.com:80
+2026/11/14 16:01:31.306417 from tcp:127.0.0.1:53724 accepted tcp:example.com:80
+2026/11/14 16:01:34.463575 from tcp:127.0.0.1:53736 accepted tcp:example.com:80
+2026/11/14 16:01:37.614400 from tcp:127.0.0.1:53748 accepted tcp:example.com:80
+2026/11/14 16:01:40.706881 from tcp:127.0.0.1:57666 accepted tcp:example.com:80
+2026/11/14 16:01:43.837900 from tcp:127.0.0.1:57684 accepted tcp:example.com:80
+2026/11/14 16:01:46.978916 from tcp:127.0.0.1:57708 accepted tcp:example.com:80
+2026/11/14 16:01:50.122504 from tcp:127.0.0.1:43488 accepted tcp:example.com:80
+2026/11/14 16:01:53.245009 from tcp:127.0.0.1:43520 accepted tcp:example.com:80
+2026/11/14 16:01:56.385933 from tcp:127.0.0.1:43550 accepted tcp:example.com:80
+2026/11/14 16:01:59.520695 from tcp:127.0.0.1:53314 accepted tcp:example.com:80
+2026/11/14 16:02:02.661320 from tcp:127.0.0.1:53352 accepted tcp:example.com:80
+2026/11/14 16:02:05.783585 from tcp:127.0.0.1:53370 accepted tcp:example.com:80
+2026/11/14 16:02:08.928222 from tcp:127.0.0.1:43132 accepted tcp:example.com:80
+2026/11/14 16:02:12.052223 from tcp:127.0.0.1:43136 accepted tcp:example.com:80

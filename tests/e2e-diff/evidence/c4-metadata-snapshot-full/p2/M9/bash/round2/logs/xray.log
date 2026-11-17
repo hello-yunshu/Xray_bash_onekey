@@ -1,0 +1,15 @@
+<TS> e2e-c4-metadata-snapshot-full-M9-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M9-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-c4-metadata-snapshot-full-M9-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-c4-metadata-snapshot-full-M9-bash xray[<PID>]: 2026/11/14 19:36:47.562076 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-c4-metadata-snapshot-full-M9-bash xray[<PID>]: 2026/11/14 19:36:47.562198 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-c4-metadata-snapshot-full-M9-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-c4-metadata-snapshot-full-M9-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-c4-metadata-snapshot-full-M9-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M9-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M9-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-c4-metadata-snapshot-full-M9-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-c4-metadata-snapshot-full-M9-bash xray[<PID>]: 2026/11/14 19:36:57.330815 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-c4-metadata-snapshot-full-M9-bash xray[<PID>]: 2026/11/14 19:36:57.333494 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/14 19:36:47.568051 [Warning] core: Xray 26.10.31 started
+2026/11/14 19:36:57.339653 [Warning] core: Xray 26.10.31 started

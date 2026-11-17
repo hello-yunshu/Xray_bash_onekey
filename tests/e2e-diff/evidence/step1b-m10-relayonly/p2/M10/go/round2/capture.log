@@ -1,0 +1,14 @@
+systemd_state=running
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --role relay --target origin.example.com:443 --listen-port 443 --listen 0.0.0.0 --container
+round2_mode=keep-config
+install_exit=0
+manifest entries=10
+runtime collected
+/src/tests/e2e-diff/collect/logs.sh: line 19: unit: unbound variable
+idempotency ok=True
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+sanitized /out/round2/install.log
+sanitized /out/round2/expect.log
+sanitized /out/round2/capture.log

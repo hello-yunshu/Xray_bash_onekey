@@ -1,0 +1,31 @@
+{
+  "inbounds": [
+    {
+      "realityPublicKeyPresent": false,
+      "realityPublicKeySha256": null,
+      "shortIdsSha256": [],
+      "tag": "VLESS-ws-in",
+      "uuidSha256": [
+        "4714199f9cce594747c4f16dc47ff26e1c689b6d5698d955bf78c522fd3b44d9"
+      ]
+    },
+    {
+      "realityPublicKeyPresent": false,
+      "realityPublicKeySha256": null,
+      "shortIdsSha256": [],
+      "tag": "VLESS-gRPC-in",
+      "uuidSha256": [
+        "4714199f9cce594747c4f16dc47ff26e1c689b6d5698d955bf78c522fd3b44d9"
+      ]
+    },
+    {
+      "realityPublicKeyPresent": false,
+      "realityPublicKeySha256": null,
+      "shortIdsSha256": [],
+      "tag": "VLESS-xhttp-in",
+      "uuidSha256": [
+        "4714199f9cce594747c4f16dc47ff26e1c689b6d5698d955bf78c522fd3b44d9"
+      ]
+    }
+  ]
+}

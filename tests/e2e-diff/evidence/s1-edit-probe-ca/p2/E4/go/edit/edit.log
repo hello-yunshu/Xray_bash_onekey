@@ -1,0 +1,4 @@
+started local TLS origin pid=1228 (local CA trusted)
+edit_argv=idleleo xray config edit --target 127.0.0.1:8443 --server-names local.test --container --json
+edit_exit=0
+local TLS origin left running (pid 1228)

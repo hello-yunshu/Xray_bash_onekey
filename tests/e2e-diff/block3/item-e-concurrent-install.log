@@ -1,0 +1,28 @@
+A exit=1 B exit=7
+--- A tail ---
+Nginx artifact download failed: https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v2026.10.15.7679/xray-nginx-custom-arm.tar.gz read failed: context deadline exceeded (Client.Timeout or context cancellation while reading body)
+--- B tail ---
+已有一个变更事务持有锁
+--- final state ---
+active
+active
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+00-xray.conf
+01-xray-80.conf
+02-xray-server.conf
+127.0.0.1.wsServers
+nginx.default
+stray-check-done
+A exit=7 B exit=0
+--- A ---
+已有一个变更事务持有锁
+--- B ---
+  "nginxDir": "/etc/idleleo/conf/nginx"
+}
+--- final ---
+active
+active
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+00-xray.conf 01-xray-80.conf 02-xray-server.conf 127.0.0.1.wsServers nginx.default 
+stray-check-done

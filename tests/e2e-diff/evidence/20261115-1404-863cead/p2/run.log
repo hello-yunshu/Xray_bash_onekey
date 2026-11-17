@@ -1,0 +1,11 @@
+14:04:57 run_id=20261115-1404-863cead
+14:04:58 image_id=sha256:3012978e415b9bec250f738ddc7246a64837896fbeb52ed27571d8f3b8b24002
+14:04:58 building idleleo
+14:05:02 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=ce394a8b59e4fe0122c3462dcb863bc6a0e7d3bfab367dd52eeaec8087370dce
+14:05:03 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+14:05:03 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+14:05:05 argv-verify written
+14:05:05 [OPS-21] start
+14:05:05 [OPS-21] bash skipped: container network has no egress
+14:05:40 [OPS-21] verdict=HARNESS-ERROR
+14:05:40 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/20261115-1404-863cead/p2

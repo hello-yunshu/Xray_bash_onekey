@@ -1,0 +1,6 @@
+<TS> e2e-e5e6-11150953-3f25259-E6-go systemd[1]: Starting nginx.service - The NGINX HTTP and reverse proxy server...
+<TS> e2e-e5e6-11150953-3f25259-E6-go nginx[<PID>]: nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+<TS> e2e-e5e6-11150953-3f25259-E6-go nginx[<PID>]: nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+<TS> e2e-e5e6-11150953-3f25259-E6-go systemd[1]: Started nginx.service - The NGINX HTTP and reverse proxy server.
+<TS> e2e-e5e6-11150953-3f25259-E6-go systemd[1]: Reloading nginx.service - The NGINX HTTP and reverse proxy server...
+<TS> e2e-e5e6-11150953-3f25259-E6-go systemd[1]: Reloaded nginx.service - The NGINX HTTP and reverse proxy server.

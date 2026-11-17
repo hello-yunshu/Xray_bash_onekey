@@ -1,0 +1,5 @@
+Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/14 19:22:48.700498 [Info] infra/conf/serial: Reading config: &{Name:/client/client.json Format:json}
+2026/11/14 19:22:48.701249 [Warning] core: Xray 26.10.31 started
+2026/11/14 19:22:50.841204 from tcp:127.0.0.1:57386 accepted tcp:example.com:80

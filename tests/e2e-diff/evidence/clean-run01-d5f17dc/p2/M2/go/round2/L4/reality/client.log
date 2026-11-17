@@ -1,0 +1,24 @@
+Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/14 15:49:39.491199 [Info] infra/conf/serial: Reading config: &{Name:/client/client.json Format:json}
+2026/11/14 15:49:39.491703 [Warning] core: Xray 26.10.31 started
+2026/11/14 15:49:41.701113 from tcp:127.0.0.1:41088 accepted tcp:example.com:80
+2026/11/14 15:49:44.875259 from tcp:127.0.0.1:41094 accepted tcp:example.com:80
+2026/11/14 15:49:48.043481 from tcp:127.0.0.1:51112 accepted tcp:example.com:80
+2026/11/14 15:49:51.219450 from tcp:127.0.0.1:51118 accepted tcp:example.com:80
+2026/11/14 15:49:54.383951 from tcp:127.0.0.1:51132 accepted tcp:example.com:80
+2026/11/14 15:49:57.537455 from tcp:127.0.0.1:51142 accepted tcp:example.com:80
+2026/11/14 15:50:00.701339 from tcp:127.0.0.1:49036 accepted tcp:example.com:80
+2026/11/14 15:50:03.866001 from tcp:127.0.0.1:49040 accepted tcp:example.com:80
+2026/11/14 15:50:07.036567 from tcp:127.0.0.1:49050 accepted tcp:example.com:80
+2026/11/14 15:50:10.216120 from tcp:127.0.0.1:42732 accepted tcp:example.com:80
+2026/11/14 15:50:13.396168 from tcp:127.0.0.1:42734 accepted tcp:example.com:80
+2026/11/14 15:50:16.571231 from tcp:127.0.0.1:42750 accepted tcp:example.com:80
+2026/11/14 15:50:19.743265 from tcp:127.0.0.1:47036 accepted tcp:example.com:80
+2026/11/14 15:50:22.888471 from tcp:127.0.0.1:47052 accepted tcp:example.com:80
+2026/11/14 15:50:26.045399 from tcp:127.0.0.1:47064 accepted tcp:example.com:80
+2026/11/14 15:50:29.201559 from tcp:127.0.0.1:47522 accepted tcp:example.com:80
+2026/11/14 15:50:32.366812 from tcp:127.0.0.1:47528 accepted tcp:example.com:80
+2026/11/14 15:50:35.537474 from tcp:127.0.0.1:47542 accepted tcp:example.com:80
+2026/11/14 15:50:38.719451 from tcp:127.0.0.1:60590 accepted tcp:example.com:80
+2026/11/14 15:50:41.874297 from tcp:127.0.0.1:60592 accepted tcp:example.com:80

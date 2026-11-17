@@ -1,0 +1,21 @@
+{
+  "branch": "develop/go-native",
+  "commit": "863ceadbcb499053df467e126e613e36fdec3473",
+  "decisions": {
+    "D1_m3_reality_ws": "Go aligned to bash: Reality keeps the raw primary inbound and adds ws/grpc/xhttp alongside it; M3 Go installs and is tested (no capability gap)",
+    "D2_m10_relay": "Go aligned to bash: xray install --role relay installs managed Nginx stream, writes relay-stream.conf, includes it in the main conf and starts the service",
+    "D3_repeat_install": "Go default adopts an existing runtime config unchanged (bash parity); --keep-config remains explicit, --rewrite-config still forces regeneration",
+    "D4_m9_listen": "both sides bind 0.0.0.0 for L4 (bash menu ws-only listen prompt; Go --listen 0.0.0.0 --allow-non-loopback); loopback default guard kept",
+    "D5_m4_nginx_dir": "M4 nginx directory judged from P2 manifest evidence first; change Go only if a real on-disk difference appears",
+    "ciIntegration": "not in this round",
+    "expectedDiffPolicy": "per-entry owner+approved_by+expires; pending counts as BLOCKER",
+    "officialUpgradePath": "R1",
+    "r2Scope": [
+      "M1",
+      "M4"
+    ]
+  },
+  "imageId": "sha256:65742af9ccbb4801fdacac057ff968dd5c7520ee870582d72968fa8cf7c00cb2",
+  "matrixFrozenAt": "2026-11-13T17:21:00+08:00",
+  "runId": "20261115-1338-863cead"
+}

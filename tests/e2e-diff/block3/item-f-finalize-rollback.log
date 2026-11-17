@@ -1,0 +1,11 @@
+=== f-1: Finalize failure rollback integrity ===
+before sha: e3ebf7524f0500c9c58e70f672b246482df7f354149948440635e19fc9f5bdae f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3 93e8deb7f4d9726fa0e82504ec2aff2e6568653a6a495bfe763ba220db85d28a 
+exit=1
+nginx -t rejected the configuration (exit 1): nginx: [emerg] cannot load certificate "/etc/idleleo/cert/xray.crt": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/idleleo/cert/xray.crt, r) error:10000080:BIO routines::no such file)
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test failed; managed Nginx is installed at /etc/idleleo/conf/nginx and can be removed with 'idleleo xray uninstall'; installation rolled back to the previous state
+after  sha: e3ebf7524f0500c9c58e70f672b246482df7f354149948440635e19fc9f5bdae f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3 93e8deb7f4d9726fa0e82504ec2aff2e6568653a6a495bfe763ba220db85d28a 
+PASS runtime files byte-identical
+--- services / journal / stray tmp ---
+active
+active
+tmp-check-done

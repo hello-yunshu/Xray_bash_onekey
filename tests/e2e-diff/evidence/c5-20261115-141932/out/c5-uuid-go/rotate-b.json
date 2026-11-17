@@ -1,0 +1,43 @@
+{
+  "change": {
+    "Ident": "user-b@idleleo",
+    "NewUUID": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "Previous": [
+      {
+        "Inbound": 0,
+        "User": {
+          "index": 1,
+          "uuid": "99999999-2222-3333-4444-555555555555",
+          "email": "user-b@idleleo",
+          "flow": "xtls-rprx-vision",
+          "level": 0,
+          "primary": false
+        }
+      }
+    ],
+    "Updated": [
+      {
+        "Inbound": 0,
+        "User": {
+          "index": 1,
+          "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+          "email": "user-b@idleleo",
+          "flow": "xtls-rprx-vision",
+          "level": 0,
+          "primary": false
+        }
+      }
+    ],
+    "NoChanges": false
+  },
+  "entry": {
+    "id": "1794723612934475090-616",
+    "state": "COMMITTED",
+    "target": "/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/usr/local/bin/idleleo-service-apply",
+    "oldSha256": "d9517a26cc9a81239be2f80789057592a3b0467ac7a3b595eed7603724b14e0c",
+    "newSha256": "1c7f71a6f6972e8c26ef37db1285f64b42e0fb32c83c8895d5b7955491432511",
+    "startedAt": "2026-11-15T06:20:12Z",
+    "updatedAt": "2026-11-15T06:20:12Z"
+  }
+}

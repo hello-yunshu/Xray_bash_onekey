@@ -1,0 +1,24 @@
+05:41:34 seeded_geo=geoip.dat geosite.dat 
+05:41:34 uri built network=raw
+05:41:36 check baselineControl=false blocked
+/src/tests/e2e-diff/drivers/ops21_block.sh: line 211: local: can only be used in a function
+05:41:36 check applyRcZero=true rc=0
+05:41:36 check rulesAdded=true before=2 after=7
+05:41:36 check fallbackDirect=true 
+05:41:36 check noCatchAllBlocked=true 
+05:41:38 check controlAfterApply=false blocked
+05:41:41 check adsBlocked=true blocked
+05:41:43 check privateBlocked=true blocked
+05:41:45 check countryBlocked=true blocked
+05:42:26 check editRcZero=false rc=1
+05:42:26 check editUuidApplied=false c5d426a4-6531-42c9-9e25-ae5dc1141c73
+05:42:26 check editRoutingIdentical=true 
+05:42:26 check editOwnedRulesKept=true owned=5 missing=0
+05:42:26 check editUserRuleKept=true 
+05:42:26 check editBlockReported=false blockRuleCount=
+05:42:28 check controlAfterEdit=false blocked
+05:42:30 check adsBlockedAfterEdit=true blocked
+05:42:30 check offRcZero=true rc=0
+05:42:30 check offRestored=true baseline=routing-with-user
+05:42:32 check controlAfterOff=false blocked
+failed=baselineControl,controlAfterApply,editRcZero,editUuidApplied,editBlockReported,controlAfterEdit,controlAfterOff

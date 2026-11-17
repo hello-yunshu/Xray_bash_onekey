@@ -1,0 +1,28 @@
+systemd_state=running
+seeded_installer=yes
+seeded_versions=yes shell=3.3.6
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+manifest entries=27
+runtime collected
+/src/tests/e2e-diff/collect/logs.sh: line 19: unit: unbound variable
+idempotency ok=False
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+sanitized /out/round2/install.log
+sanitized /out/round2/expect.log
+sanitized /out/round2/capture.log
+systemd_state=running
+seeded_installer=yes
+seeded_versions=yes shell=3.3.6
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+manifest entries=27
+runtime collected
+/src/tests/e2e-diff/collect/logs.sh: line 19: unit: unbound variable
+idempotency ok=True
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+sanitized /out/round2/install.log
+sanitized /out/round2/expect.log
+sanitized /out/round2/capture.log

@@ -1,0 +1,98 @@
+{
+  "addRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "backend": {
+    "host": "10.99.0.7",
+    "port": 9447,
+    "weight": 60
+  },
+  "backends": {
+    "bash": [
+      "10.99.0.7:9447 weight=60",
+      "127.0.0.1:10477 weight=50"
+    ],
+    "go": [
+      "10.99.0.7:9447 weight=60",
+      "127.0.0.1:10000 weight=50"
+    ]
+  },
+  "bashMenu": "2>3>1",
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "expectedLine": "server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;",
+  "files": {
+    "bash": {
+      "afterRemove": [
+        "127.0.0.1.wsServers"
+      ],
+      "content": {
+        "10.99.0.7.wsServers": "server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;",
+        "127.0.0.1.wsServers": "server 127.0.0.1:10477 weight=50 max_fails=2 fail_timeout=10;"
+      },
+      "created": [
+        "10.99.0.7.wsServers",
+        "127.0.0.1.wsServers"
+      ],
+      "dir": "/etc/idleleo/conf/nginx",
+      "suffix": "wsServers"
+    },
+    "go": {
+      "afterRemove": [
+        "127.0.0.1.wsServers"
+      ],
+      "content": {
+        "10.99.0.7.wsServers": "server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;",
+        "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;"
+      },
+      "created": [
+        "10.99.0.7.wsServers",
+        "127.0.0.1.wsServers"
+      ],
+      "dir": "/etc/idleleo/conf/nginx",
+      "suffix": "wsServers"
+    }
+  },
+  "id": "OPS-09",
+  "list": {
+    "bash": {
+      "reportsCreated": true,
+      "reportsDeleted": true,
+      "showsBackend": true
+    },
+    "go": {
+      "afterAdd": [
+        {
+          "file": "/etc/idleleo/conf/nginx/10.99.0.7.wsServers",
+          "host": "10.99.0.7",
+          "port": 9447,
+          "weight": 60
+        },
+        {
+          "file": "/etc/idleleo/conf/nginx/127.0.0.1.wsServers",
+          "host": "127.0.0.1",
+          "port": 10000,
+          "weight": 50
+        }
+      ],
+      "afterRemove": [
+        {
+          "file": "/etc/idleleo/conf/nginx/127.0.0.1.wsServers",
+          "host": "127.0.0.1",
+          "port": 10000,
+          "weight": 50
+        }
+      ]
+    }
+  },
+  "reasons": [],
+  "removeRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "upstream": "ws",
+  "verdict": "PASS"
+}

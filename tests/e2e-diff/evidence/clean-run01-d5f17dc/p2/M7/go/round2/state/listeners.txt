@@ -1,0 +1,5 @@
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                       
+LISTEN 0      4096       127.0.0.1:10088      0.0.0.0:*    users:(("xray",pid=549,fd=6))
+LISTEN 0      4096       127.0.0.1:10086      0.0.0.0:*    users:(("xray",pid=549,fd=3))
+LISTEN 0      4096       127.0.0.1:10087      0.0.0.0:*    users:(("xray",pid=549,fd=7))
+LISTEN 0      4096      127.0.0.11:46861      0.0.0.0:*                                 

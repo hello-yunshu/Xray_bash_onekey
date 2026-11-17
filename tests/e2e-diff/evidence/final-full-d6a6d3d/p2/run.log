@@ -1,0 +1,39 @@
+01:33:46 run_id=final-full-d6a6d3d
+01:33:47 image_id=sha256:2fa2c1055f3e74d511a5c7cf71e4fdd0b9d28bf73007a3ef22692990767d68e4
+01:33:47 building idleleo
+01:33:52 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=345d7bdc08d303045d08137c04a29b049b400539fd699c4c217f77406b34dc85
+01:33:54 argv-verify written
+01:33:54 [M3] start
+01:33:54 [M4] start
+01:33:54 [M1] start
+01:33:54 [M5] start
+01:33:54 [M2] start
+01:35:46 [M1] done
+01:36:04 [M3] done
+01:36:36 [M4] done
+01:37:09 [M5] done
+01:39:49 [M2] done
+01:39:49 [M8] HARNESS-BLOCKED (ineligible)
+01:39:49 [M7] start
+01:39:49 [M6] start
+01:39:49 [M9] start
+01:39:49 [M10] start
+01:41:07 [M9] done
+01:44:13 [M7] done
+01:45:48 [M10] done
+01:46:59 [M6] done
+01:47:00 [E2] start
+01:47:00 [E1] start
+01:47:20 [E1] done
+01:47:21 [E2] done
+01:47:21 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/final-full-d6a6d3d/p2
+01:50:40 run_id=final-full-d6a6d3d
+01:50:41 image_id=sha256:09c0e26e387bb8190e3bcc7c59cb3bba2ff023395fca0fb555b12ee07eaa7281
+01:50:41 building idleleo
+01:50:46 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=345d7bdc08d303045d08137c04a29b049b400539fd699c4c217f77406b34dc85
+01:50:48 argv-verify written
+01:50:48 [M6] start
+01:50:49 [M10] start
+01:54:01 [M10] done
+01:55:41 [M6] done
+01:55:42 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/final-full-d6a6d3d/p2

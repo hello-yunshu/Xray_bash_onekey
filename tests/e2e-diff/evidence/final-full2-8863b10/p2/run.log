@@ -1,0 +1,29 @@
+02:05:58 run_id=final-full2-8863b10
+02:05:59 image_id=sha256:ed1af79d2afd8551764acc8fdb8994fe08565288336db07429f7b947dbb2e96d
+02:05:59 building idleleo
+02:06:05 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=02c1c7253243f890e51ef3d23098f4a4756dc72f8f7aae5e743eadf8fa514dd7
+02:06:08 argv-verify written
+02:06:08 [M3] start
+02:06:08 [M5] start
+02:06:08 [M2] start
+02:06:08 [M4] start
+02:06:08 [M1] start
+02:07:54 [M1] done
+02:08:01 [M3] done
+02:08:26 [M2] done
+02:08:53 [M4] done
+02:09:07 [M5] done
+02:09:07 [M8] HARNESS-BLOCKED (ineligible)
+02:09:07 [M7] start
+02:09:07 [M10] start
+02:09:07 [M6] start
+02:09:07 [M9] start
+02:10:03 [M10] done
+02:10:07 [M9] done
+02:10:37 [M6] done
+02:11:10 [M7] done
+02:11:10 [E1] start
+02:11:10 [E2] start
+02:11:31 [E2] done
+02:11:31 [E1] done
+02:11:32 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/final-full2-8863b10/p2

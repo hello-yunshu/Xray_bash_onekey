@@ -1,0 +1,11 @@
+05:23:58 run_id=ops32-failover-0523
+05:23:59 image_id=sha256:8767b998fe6abc72701706f22665e625d043570e7de4b4c0fecc650a2368a07f
+05:23:59 building idleleo
+05:24:03 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=8a6923dfa635c6fd3a212495c9de48a86ce2169ee9bfe1adc6c5fa36e0cf53c8
+05:24:06 argv-verify written
+05:24:06 [OPS-32] start upstream=ws
+05:26:07 [OPS-32/ws] verdict=PASS
+05:26:08 [OPS-32] start upstream=reality
+05:28:04 [OPS-32/reality] verdict=PASS
+05:28:04 [OPS-32] verdict=PASS
+05:28:04 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/ops32-failover-0523/p2

@@ -1,0 +1,2 @@
+old share (stops working after rotation): vless://f1dbc1ef-de30-4c62-afe8-2c51c92c85db@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=5jqs8u4-FChfQr0-jQvP8KqsmmtPwFs_VIH5ASW_rWo&sid=a7fbd5f7&type=raw#idleleo-reality
+rotating the Reality private key disconnects every client until it switches to the new link; the old link cannot be kept alive.

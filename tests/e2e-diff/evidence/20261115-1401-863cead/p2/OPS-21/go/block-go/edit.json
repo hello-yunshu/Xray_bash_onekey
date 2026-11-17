@@ -1,0 +1,30 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "uuid"
+  ],
+  "diff": [
+    "inbounds[0].settings.clients[0].id"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "0998c575cd160702dcab70927d3538cf57c9d9a8ffec6775e8822bf8de38f7a5",
+  "newSha256": "a968e11de28651197e2cb804c05dd0b59f54d94511983cb95122042f974dfa4b",
+  "backupDir": "/etc/idleleo/backup/edit-20261115T060132",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://8093c840-4358-4f5f-876e-eddbfb4b6510@local.test:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=local.test&fp=chrome&pbk=wgJI7fU1WlxPHikxHH8aeb79NPMGY9x0SToGxeGO6zs&sid=a2c6a2e9&type=raw#idleleo-reality",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": null,
+  "shortIds": [
+    "a2c6a2e9"
+  ],
+  "oldShareUri": "vless://a61f0940-4a87-433e-85ea-402f358d1ae6@local.test:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=local.test&fp=chrome&pbk=wgJI7fU1WlxPHikxHH8aeb79NPMGY9x0SToGxeGO6zs&sid=a2c6a2e9&type=raw#idleleo-reality",
+  "upstreamUnchanged": true,
+  "blockPreserved": true,
+  "blockRuleCount": 6
+}

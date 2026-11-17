@@ -1,0 +1,19 @@
+{
+  "domainStrategy": "AsIs",
+  "rules": [
+    {
+      "inboundTag": [
+        "VLESS-Reality-in"
+      ],
+      "outboundTag": "direct",
+      "type": "field"
+    },
+    {
+      "domain": [
+        "full:corp.example"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    }
+  ]
+}

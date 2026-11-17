@@ -1,0 +1,13 @@
+<TS> e2e-final-full2-8863b10-M1-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-final-full2-8863b10-M1-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-final-full2-8863b10-M1-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-final-full2-8863b10-M1-go xray[<PID>]: 2026/11/14 18:07:34.319430 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-final-full2-8863b10-M1-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-final-full2-8863b10-M1-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-final-full2-8863b10-M1-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-final-full2-8863b10-M1-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-final-full2-8863b10-M1-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-final-full2-8863b10-M1-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-final-full2-8863b10-M1-go xray[<PID>]: 2026/11/14 18:07:44.464708 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/14 18:07:34.326330 [Warning] core: Xray 26.10.31 started
+2026/11/14 18:07:44.470212 [Warning] core: Xray 26.10.31 started

@@ -1,0 +1,41 @@
+spawn bash /etc/idleleo/install.sh -f
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+[警告]  Release 未声明该校验值(兼容期), 继续安装: fail2ban_manager.sh 
+[OK]  当前已经是最新版本: 1.6.0 
+[OK]  当前系统为 Ubuntu 24.04 noble 
+
+ 设置 Fail2ban 用于防止暴力破解 
+ 主菜单 
+1. 安装 Fail2ban
+2. 管理 Fail2ban
+3. 卸载 Fail2ban
+4. 查看 Fail2ban 状态
+5. 退出
+请选择一个选项:1
+[OK]  Fail2ban 已经安装, 跳过安装步骤 
+[警告]  systemd 无法读取 SSH 日志 
+[警告]  跳过启用 SSH 规则 
+[OK]  已启用 nginx-badbots 规则 
+[OK]  已启用 nginx-botsearch 规则 
+ 是否启用 nginx-no-host 规则? [Y/N] 
+y
+[OK]  已启用 nginx-no-host 规则 
+ 是否启用 nginx-tls-error 规则? [Y/N] 
+y
+[OK]  已启用 nginx-tls-error 规则 
+[OK]  nginx-no-host regex 自检通过 
+[警告]  tls_error.log 为空或不存在, 跳过自检 
+Synchronizing state of fail2ban.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable fail2ban
+[OK]  Fail2ban 配置 完成 
+[OK]  Fail2ban 配置 完成 
+
+ 设置 Fail2ban 用于防止暴力破解 
+ 主菜单 
+1. 安装 Fail2ban
+2. 管理 Fail2ban
+3. 卸载 Fail2ban
+4. 查看 Fail2ban 状态
+5. 退出
+请选择一个选项:5

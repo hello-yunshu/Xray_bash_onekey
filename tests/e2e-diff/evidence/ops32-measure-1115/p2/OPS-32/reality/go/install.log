@@ -1,0 +1,6 @@
+installed: mode=reality-balance transport=raw tls=Reality
+config=/etc/idleleo/conf/xray/config.json sha256=191b583c32e0d314145e472a3a420e8796284328e2f2d35a3bd62bc800420e1c
+service active=active enabled=enabled
+nginx managed=true verified=true dir=/etc/idleleo/conf/nginx
+warning=nginx version: nginx version: nginx/1.30.6
+warning=nginx-syntax-verified; routing verified only by the Docker e2e harness

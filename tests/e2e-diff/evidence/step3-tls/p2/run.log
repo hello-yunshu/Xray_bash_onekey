@@ -1,0 +1,10 @@
+01:22:24 run_id=step3-tls
+01:22:25 image_id=sha256:48815f02d2dc3d0a27fb73a0cf75e970fb3fb65d862a59aad5b71485242b93d7
+01:22:25 building idleleo
+01:22:29 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=345d7bdc08d303045d08137c04a29b049b400539fd699c4c217f77406b34dc85
+01:22:32 argv-verify written
+01:22:32 [M4] start
+01:22:32 [M7] start
+01:25:32 [M4] done
+01:28:40 [M7] done
+01:28:40 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/step3-tls/p2

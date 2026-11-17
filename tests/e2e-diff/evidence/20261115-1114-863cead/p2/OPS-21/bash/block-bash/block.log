@@ -1,0 +1,15 @@
+03:15:00 check serviceActive=false xray is not active
+03:15:00 check shareUri=false cannot build a share link
+03:15:00 uri built network=
+03:15:11 check baselineControl=false error
+03:15:52 check applyRcZero=true rc=0
+03:15:52 check rulesAdded=false before=0 after=0
+03:15:52 check fallbackDirect=false 
+03:15:52 check noCatchAllBlocked=false 
+03:16:03 check controlAfterApply=false error
+03:16:13 check adsBlocked=false error
+03:16:24 check privateBlocked=false error
+03:16:34 check countryBlocked=false error
+03:17:15 check offRcZero=true rc=0
+03:17:15 check offRestored=true baseline=routing-before
+03:17:26 check controlAfterOff=false error

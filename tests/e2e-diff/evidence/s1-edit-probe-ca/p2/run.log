@@ -1,0 +1,33 @@
+03:21:49 run_id=s1-edit-probe-ca
+03:21:49 image_id=sha256:231dfec464810566937bd65d59ae15def4029d014ea434ed3ed7753141092afc
+03:21:50 building idleleo
+03:21:54 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=b2b854fe2cda21d3fcaaf73b141856ed00f9d315b0a896071c2605f0ca72e280
+03:21:57 argv-verify written
+03:21:58 [M5] start
+03:21:58 [M4] start
+03:21:58 [M3] start
+03:21:58 [M1] start
+03:21:58 [M2] start
+03:23:06 [M4] done
+03:23:09 [M5] done
+03:23:33 [M1] done
+03:23:47 [M3] done
+03:24:00 [M2] done
+03:24:00 [M8] HARNESS-BLOCKED (ineligible)
+03:24:00 [M9] start
+03:24:00 [M7] start
+03:24:00 [M6] start
+03:24:00 [M10] start
+03:24:43 [M10] done
+03:24:47 [M9] done
+03:25:10 [M6] done
+03:25:33 [M7] done
+03:25:33 [E1] start
+03:25:33 [E3] start
+03:25:33 [E4] start
+03:25:33 [E2] start
+03:25:49 [E3] done
+03:25:55 [E1] done
+03:25:55 [E2] done
+03:25:56 [E4] done
+03:25:56 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/s1-edit-probe-ca/p2

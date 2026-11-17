@@ -1,0 +1,8 @@
+00:35:55 run_id=step1-m10-relayonly
+00:35:57 image_id=sha256:0f5721635637e6c967743cf09048f80169a67869b2cef881ad29ba8518c536f7
+00:35:57 building idleleo
+00:36:02 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=1b67ac4f32a6913dc031685066958984f543eee93f650765ebc7b311424dd728
+00:36:05 argv-verify written
+00:36:05 [M10] start
+00:39:55 [M10] done
+00:39:55 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/step1-m10-relayonly/p2

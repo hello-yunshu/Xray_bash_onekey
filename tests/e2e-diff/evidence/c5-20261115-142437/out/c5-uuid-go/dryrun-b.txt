@@ -1,0 +1,3 @@
+target: user-b@idleleo
+inbound 0 client 1: user-b@idleleo  99999999-2222-3333-4444-555555555555 -> aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+warning: this restarts the Xray service; every live connection drops for a few seconds (all users, not only user-b@idleleo)

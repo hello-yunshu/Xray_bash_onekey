@@ -1,0 +1,6 @@
+<TS> e2e-e5e6-11150953-3f25259-E5-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-e5e6-11150953-3f25259-E5-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-e5e6-11150953-3f25259-E5-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-e5e6-11150953-3f25259-E5-go xray[<PID>]: 2026/11/15 01:53:45.221475 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-e5e6-11150953-3f25259-E5-go xray[<PID>]: 2026/11/15 01:53:45.222016 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/15 01:53:45.224093 [Warning] core: Xray 26.10.31 started

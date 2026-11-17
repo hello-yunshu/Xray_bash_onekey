@@ -1,0 +1,20 @@
+{
+  "id": "OPS-21",
+  "reasons": [
+    "bash: container network has no egress; the bash installer cannot resolve its public IP or fetch geoip.dat/geosite.dat",
+    "go: container start failed"
+  ],
+  "sides": {
+    "bash": {
+      "checks": {},
+      "failed": [],
+      "status": null
+    },
+    "go": {
+      "checks": {},
+      "failed": [],
+      "status": null
+    }
+  },
+  "verdict": "HARNESS-ERROR"
+}

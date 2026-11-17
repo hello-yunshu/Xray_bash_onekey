@@ -1,0 +1,26 @@
+{
+  "configured": false,
+  "applied": false,
+  "drift": false,
+  "ads": false,
+  "privateIp": false,
+  "bittorrent": false,
+  "countries": null,
+  "customDomains": {
+    "enabled": false,
+    "items": null
+  },
+  "customIps": {
+    "enabled": false,
+    "items": null
+  },
+  "ownedRuleCount": 0,
+  "sniffingEnabled": false,
+  "geosite": {
+    "path": ""
+  },
+  "geoip": {
+    "path": ""
+  },
+  "serviceRestarted": false
+}

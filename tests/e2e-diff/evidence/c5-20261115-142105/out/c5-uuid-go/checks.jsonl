@@ -1,0 +1,22 @@
+{"name":"realityOriginLocal","ok":true,"detail":"target=127.0.0.1:8443 sni=local.test"}
+{"name":"baselineA","ok":true,"detail":""}
+{"name":"baselineB","ok":true,"detail":""}
+{"name":"baselineC","ok":true,"detail":""}
+{"name":"failRollbackExit","ok":true,"detail":"rc=9"}
+{"name":"failConfigHash","ok":true,"detail":""}
+{"name":"failAllOld","ok":true,"detail":"a=5f7da38a-bfd2-461d-b3f1-eaa1e6401ed1 b=99999999-2222-3333-4444-555555555555 c=77777777-2222-3333-4444-555555555555"}
+{"name":"failNoHalfState","ok":true,"detail":""}
+{"name":"rotateExit","ok":true,"detail":"rc=0 "}
+{"name":"serviceAfterRotate","ok":true,"detail":""}
+{"name":"uuidApplied","ok":true,"detail":"b=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"}
+{"name":"bOldLinkRefused","ok":true,"detail":"outcome=blocked (timeout means the probe is inconclusive)"}
+{"name":"bNewLinkWorks","ok":true,"detail":""}
+{"name":"aStillWorks","ok":true,"detail":""}
+{"name":"cStillWorks","ok":true,"detail":""}
+{"name":"aClientUnchanged","ok":true,"detail":""}
+{"name":"cClientUnchanged","ok":true,"detail":""}
+{"name":"routingUnchanged","ok":true,"detail":""}
+{"name":"revertExit","ok":true,"detail":"rc=0"}
+{"name":"revertOldLinkWorks","ok":true,"detail":""}
+{"name":"revertOthersStillWork","ok":true,"detail":""}
+{"name":"revertUuid","ok":true,"detail":""}

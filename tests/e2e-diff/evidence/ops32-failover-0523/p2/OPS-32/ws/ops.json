@@ -1,0 +1,538 @@
+{
+  "backendRestartCheck": {
+    "bash": "A",
+    "go": "A"
+  },
+  "backends": {
+    "bash": [
+      "backend-a.wsServers: server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+      "backend-b.wsServers: server backend-b:9002 weight=50 max_fails=2 fail_timeout=10;"
+    ],
+    "go": [
+      "backend-a.wsServers: server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+      "backend-b.wsServers: server backend-b:9002 weight=50 max_fails=2 fail_timeout=10;"
+    ]
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "config": {
+    "effectiveWeightDecay": "nginx also decays a failed peer's effective weight by weight/max_fails, so re-entry after fail_timeout ramps back in over a few requests",
+    "failTimeout": 10,
+    "loopbackRemovedBy": "harness rm + systemctl reload nginx on both sides",
+    "maxFails": 2,
+    "recoveryPollSeconds": 60.0,
+    "recoveryProbe": "the recovery phase runs the whole window (120 probes every 0.5s); it does not stop at the first A",
+    "stableRecoveryRule": "a side counts as recovered only when A keeps being selected to the end of the complete window with no gap longer than 10s and at least 3 A responses",
+    "upstreamCounters": "per nginx worker; the upstream has no shared zone, so each worker removes the peer on its own",
+    "weight": 50
+  },
+  "configLine": {
+    "bash": "server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+    "go": "server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;"
+  },
+  "deadAttempts": {
+    "bash": [
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7213#0: *47 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=4 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=4\", host: \"example.com\"",
+        "worker": "7213"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7212#0: *52 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=6 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=6\", host: \"example.com\"",
+        "worker": "7212"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7215#0: *57 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=8 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=8\", host: \"example.com\"",
+        "worker": "7215"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7219#0: *60 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=9 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=9\", host: \"example.com\"",
+        "worker": "7219"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7218#0: *63 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=10 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=10\", host: \"example.com\"",
+        "worker": "7218"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7209#0: *66 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=11 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=11\", host: \"example.com\"",
+        "worker": "7209"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7210#0: *79 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=17 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=17\", host: \"example.com\"",
+        "worker": "7210"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7211#0: *84 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=19 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=19\", host: \"example.com\"",
+        "worker": "7211"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7214#0: *89 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=21 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=21\", host: \"example.com\"",
+        "worker": "7214"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7219#0: *106 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=29 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=29\", host: \"example.com\"",
+        "worker": "7219"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7216#0: *129 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=40 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=40\", host: \"example.com\"",
+        "worker": "7216"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7211#0: *132 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=41 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=41\", host: \"example.com\"",
+        "worker": "7211"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7218#0: *137 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=43 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=43\", host: \"example.com\"",
+        "worker": "7218"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7215#0: *140 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=44 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=44\", host: \"example.com\"",
+        "worker": "7215"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7210#0: *143 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=45 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=45\", host: \"example.com\"",
+        "worker": "7210"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7212#0: *146 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=46 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=46\", host: \"example.com\"",
+        "worker": "7212"
+      },
+      {
+        "at": "2026/11/14 21:24:47",
+        "epoch": 1794691487,
+        "line": "2026/11/14 21:24:47 [error] 7214#0: *167 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=56 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=56\", host: \"example.com\"",
+        "worker": "7214"
+      },
+      {
+        "at": "2026/11/14 21:24:51",
+        "epoch": 1794691491,
+        "line": "2026/11/14 21:24:51 [error] 7213#0: *192 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-steady&seq=8 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-steady&seq=8\", host: \"example.com\"",
+        "worker": "7213"
+      },
+      {
+        "at": "2026/11/14 21:24:57",
+        "epoch": 1794691497,
+        "line": "2026/11/14 21:24:57 [error] 7216#0: *215 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-steady&seq=19 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-steady&seq=19\", host: \"example.com\"",
+        "worker": "7216"
+      },
+      {
+        "at": "2026/11/14 21:24:58",
+        "epoch": 1794691498,
+        "line": "2026/11/14 21:24:58 [error] 7209#0: *222 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-steady&seq=22 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-steady&seq=22\", host: \"example.com\"",
+        "worker": "7209"
+      }
+    ],
+    "go": [
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 545#0: *41 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=1 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=1\", host: \"example.com\"",
+        "worker": "545"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 548#0: *50 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=5 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=5\", host: \"example.com\"",
+        "worker": "548"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 549#0: *53 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=6 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=6\", host: \"example.com\"",
+        "worker": "549"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 543#0: *58 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=8 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=8\", host: \"example.com\"",
+        "worker": "543"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 547#0: *61 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=9 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=9\", host: \"example.com\"",
+        "worker": "547"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 552#0: *64 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=10 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=10\", host: \"example.com\"",
+        "worker": "552"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 545#0: *75 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=15 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=15\", host: \"example.com\"",
+        "worker": "545"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 546#0: *88 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=21 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=21\", host: \"example.com\"",
+        "worker": "546"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 548#0: *97 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=25 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=25\", host: \"example.com\"",
+        "worker": "548"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 550#0: *100 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=26 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=26\", host: \"example.com\"",
+        "worker": "550"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 549#0: *117 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=34 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=34\", host: \"example.com\"",
+        "worker": "549"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 544#0: *120 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=35 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=35\", host: \"example.com\"",
+        "worker": "544"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 551#0: *131 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=40 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=40\", host: \"example.com\"",
+        "worker": "551"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 552#0: *166 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=57 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=57\", host: \"example.com\"",
+        "worker": "552"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 546#0: *169 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=58 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=58\", host: \"example.com\"",
+        "worker": "546"
+      },
+      {
+        "at": "2026/11/14 21:25:31",
+        "epoch": 1794691531,
+        "line": "2026/11/14 21:25:31 [error] 544#0: *174 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=60 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=60\", host: \"example.com\"",
+        "worker": "544"
+      },
+      {
+        "at": "2026/11/14 21:25:35",
+        "epoch": 1794691535,
+        "line": "2026/11/14 21:25:35 [error] 551#0: *189 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-steady&seq=7 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-steady&seq=7\", host: \"example.com\"",
+        "worker": "551"
+      },
+      {
+        "at": "2026/11/14 21:25:35",
+        "epoch": 1794691535,
+        "line": "2026/11/14 21:25:35 [error] 550#0: *192 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-steady&seq=8 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-steady&seq=8\", host: \"example.com\"",
+        "worker": "550"
+      },
+      {
+        "at": "2026/11/14 21:25:41",
+        "epoch": 1794691541,
+        "line": "2026/11/14 21:25:41 [error] 543#0: *217 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-steady&seq=20 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-steady&seq=20\", host: \"example.com\"",
+        "worker": "543"
+      },
+      {
+        "at": "2026/11/14 21:25:43",
+        "epoch": 1794691543,
+        "line": "2026/11/14 21:25:43 [error] 547#0: *224 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-steady&seq=23 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-steady&seq=23\", host: \"example.com\"",
+        "worker": "547"
+      }
+    ]
+  },
+  "duringOutage": {
+    "bash": {
+      "bodies": {
+        "B": 84
+      },
+      "connectionFailures": 0,
+      "fivexx": 0,
+      "requests": 84
+    },
+    "go": {
+      "bodies": {
+        "B": 84
+      },
+      "connectionFailures": 0,
+      "fivexx": 0,
+      "requests": 84
+    }
+  },
+  "files": {
+    "bash": {
+      "afterRemove": [
+        "backend-a.wsServers",
+        "backend-b.wsServers"
+      ],
+      "content": {
+        "backend-a.wsServers": "server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+        "backend-b.wsServers": "server backend-b:9002 weight=50 max_fails=2 fail_timeout=10;"
+      },
+      "created": [
+        "127.0.0.1.wsServers",
+        "backend-a.wsServers",
+        "backend-b.wsServers"
+      ],
+      "dir": "/etc/idleleo/conf/nginx",
+      "location": "/6b3f78d550664",
+      "loopbackFragment": "server 127.0.0.1:10920 weight=50 max_fails=2 fail_timeout=10;",
+      "suffix": "wsServers"
+    },
+    "go": {
+      "afterRemove": [
+        "backend-a.wsServers",
+        "backend-b.wsServers"
+      ],
+      "content": {
+        "backend-a.wsServers": "server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+        "backend-b.wsServers": "server backend-b:9002 weight=50 max_fails=2 fail_timeout=10;"
+      },
+      "created": [
+        "127.0.0.1.wsServers",
+        "backend-a.wsServers",
+        "backend-b.wsServers"
+      ],
+      "dir": "/etc/idleleo/conf/nginx",
+      "location": "/ray/",
+      "loopbackFragment": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;",
+      "suffix": "wsServers"
+    }
+  },
+  "firstRecoveryLatencySeconds": {
+    "bash": 22.548,
+    "go": 23.281
+  },
+  "id": "OPS-32",
+  "lastAAt": {
+    "bash": "2026/11/14 21:25:22",
+    "go": "2026/11/14 21:26:07"
+  },
+  "lastDeadAttemptAt": {
+    "bash": "2026/11/14 21:24:58",
+    "go": "2026/11/14 21:25:43"
+  },
+  "mode": "http",
+  "name": "\u540e\u7aef\u6545\u969c\u6458\u9664",
+  "nginxVersion": {
+    "bash": "nginx version: nginx/1.30.6",
+    "go": "nginx version: nginx/1.30.6"
+  },
+  "perWorkerFailSummary": {
+    "bash": {
+      "belowMaxFails": {},
+      "max": 2,
+      "min": 2,
+      "reachedMaxFails": [
+        "7209",
+        "7210",
+        "7211",
+        "7212",
+        "7213",
+        "7214",
+        "7215",
+        "7216",
+        "7218",
+        "7219"
+      ],
+      "workers": 10
+    },
+    "go": {
+      "belowMaxFails": {},
+      "max": 2,
+      "min": 2,
+      "reachedMaxFails": [
+        "543",
+        "544",
+        "545",
+        "546",
+        "547",
+        "548",
+        "549",
+        "550",
+        "551",
+        "552"
+      ],
+      "workers": 10
+    }
+  },
+  "perWorkerFails": {
+    "bash": {
+      "7209": 2,
+      "7210": 2,
+      "7211": 2,
+      "7212": 2,
+      "7213": 2,
+      "7214": 2,
+      "7215": 2,
+      "7216": 2,
+      "7218": 2,
+      "7219": 2
+    },
+    "go": {
+      "543": 2,
+      "544": 2,
+      "545": 2,
+      "546": 2,
+      "547": 2,
+      "548": 2,
+      "549": 2,
+      "550": 2,
+      "551": 2,
+      "552": 2
+    }
+  },
+  "perWorkerJitter": {
+    "bash": {
+      "quietMax": 12.7,
+      "quietMin": 1.7,
+      "quietSpread": 11.0
+    },
+    "go": {
+      "quietMax": 12.9,
+      "quietMin": 0.9,
+      "quietSpread": 12.0
+    }
+  },
+  "perWorkerQuietSeconds": {
+    "bash": {
+      "7209": 1.7,
+      "7210": 12.7,
+      "7211": 12.7,
+      "7212": 12.7,
+      "7213": 8.7,
+      "7214": 12.7,
+      "7215": 12.7,
+      "7216": 2.7,
+      "7218": 12.7,
+      "7219": 12.7
+    },
+    "go": {
+      "543": 2.9,
+      "544": 12.9,
+      "545": 12.9,
+      "546": 12.9,
+      "547": 0.9,
+      "548": 12.9,
+      "549": 12.9,
+      "550": 8.9,
+      "551": 8.9,
+      "552": 12.9
+    }
+  },
+  "reasons": [],
+  "recoveredAt": {
+    "bash": "2026/11/14 21:25:22",
+    "go": "2026/11/14 21:26:07"
+  },
+  "recoveryFailuresAfterFirstA": {
+    "bash": 0,
+    "go": 0
+  },
+  "recoveryWindow": {
+    "bash": {
+      "capSeconds": 60.0,
+      "complete": false,
+      "expected": 120,
+      "requests": 43,
+      "stopReason": "first-A (pre-revision evidence)"
+    },
+    "go": {
+      "capSeconds": 60.0,
+      "complete": false,
+      "expected": 120,
+      "requests": 44,
+      "stopReason": "first-A (pre-revision evidence)"
+    }
+  },
+  "removedAt": {
+    "bash": "2026/11/14 21:24:47",
+    "go": "2026/11/14 21:25:31"
+  },
+  "removedAtBasis": {
+    "bash": "2026/11/14 21:24:47 [error] 7210#0: *79 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /6b3f78d550664?phase=outage-burst&seq=17 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/6b3f78d550664?phase=outage-burst&seq=17\", host: \"example.com\"",
+    "go": "2026/11/14 21:25:31 [error] 544#0: *120 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: example.com, request: \"GET /ray/?phase=outage-burst&seq=35 HTTP/2.0\", upstream: \"http://127.0.0.1:9001/ray/?phase=outage-burst&seq=35\", host: \"example.com\""
+  },
+  "scenarioNote": {
+    "perWorkerJitter": "max_fails counters are per nginx worker (the upstream has no zone), so failure counts, removal instants and quiet stretches differ per worker. perWorkerJitter reports that spread; a single probe is one sample, not a global recovery time.",
+    "recovery": "first-A and stable-A are both recorded. The verdict uses stable-A; first-A is sampling bias when only some workers removed the peer."
+  },
+  "sidesMatch": true,
+  "stableRecovery": {
+    "bash": {
+      "at": null,
+      "chainLength": 1,
+      "latencySeconds": null,
+      "observable": false,
+      "reached": false,
+      "rule": "A keeps being selected to the end of the window with no gap longer than 10s and at least 3 A responses in the chain"
+    },
+    "go": {
+      "at": null,
+      "chainLength": 1,
+      "latencySeconds": null,
+      "observable": false,
+      "reached": false,
+      "rule": "A keeps being selected to the end of the window with no gap longer than 10s and at least 3 A responses in the chain"
+    }
+  },
+  "suffix": "wsServers",
+  "verdict": "PASS",
+  "warmup": {
+    "bash": {
+      "bodies": {
+        "A": 13,
+        "B": 7
+      },
+      "connectionFailures": 0,
+      "fivexx": 0,
+      "requests": 20
+    },
+    "go": {
+      "bodies": {
+        "A": 12,
+        "B": 8
+      },
+      "connectionFailures": 0,
+      "fivexx": 0,
+      "requests": 20
+    }
+  }
+}

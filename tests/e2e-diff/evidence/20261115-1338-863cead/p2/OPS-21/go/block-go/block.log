@@ -1,0 +1,22 @@
+05:39:09 seeded_geo=geoip.dat geosite.dat 
+05:39:09 uri built network=raw
+05:39:11 check baselineControl=false blocked
+05:39:14 check applyRcZero=false rc=1
+05:39:14 check rulesAdded=false before=2 after=2
+05:39:14 check fallbackDirect=true 
+05:39:14 check noCatchAllBlocked=true 
+05:39:16 check controlAfterApply=false blocked
+05:39:18 check adsBlocked=true blocked
+05:39:20 check privateBlocked=true blocked
+05:39:22 check countryBlocked=true blocked
+05:39:22 check editRcZero=true rc=0
+05:39:22 check editUuidApplied=true 68ca0c4e-2c06-4d5a-82d8-56235b6b99c1
+05:39:22 check editRoutingIdentical=false 
+05:39:22 check editOwnedRulesKept=false owned=0 missing=0
+05:39:22 check editUserRuleKept=true 
+05:39:22 check editBlockReported=true blockRuleCount=5
+05:39:25 check controlAfterEdit=false blocked
+05:39:27 check adsBlockedAfterEdit=true blocked
+05:40:07 check offRcZero=false rc=1
+05:40:07 check offRestored=false baseline=routing-with-user
+05:40:10 check controlAfterOff=false blocked

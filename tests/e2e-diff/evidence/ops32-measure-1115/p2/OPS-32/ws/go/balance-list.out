@@ -1,0 +1,20 @@
+{
+  "upstream": "ws",
+  "backends": [
+    {
+      "host": "backend-a",
+      "port": 9001,
+      "weight": 50,
+      "file": "/etc/idleleo/conf/nginx/backend-a.wsServers"
+    },
+    {
+      "host": "backend-b",
+      "port": 9002,
+      "weight": 50,
+      "file": "/etc/idleleo/conf/nginx/backend-b.wsServers"
+    }
+  ],
+  "changed": false,
+  "probed": false,
+  "warnings": []
+}

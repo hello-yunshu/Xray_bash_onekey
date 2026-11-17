@@ -1,0 +1,14 @@
+<TS> e2e-g4-m8-run9-20261117-M8-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-g4-m8-run9-20261117-M8-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-g4-m8-run9-20261117-M8-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-g4-m8-run9-20261117-M8-bash xray[<PID>]: 2026/11/17 12:52:11.314801 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-g4-m8-run9-20261117-M8-bash xray[<PID>]: 2026/11/17 12:52:11.315516 [Warning] core: Xray 26.10.31 started
+<TS> e2e-g4-m8-run9-20261117-M8-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-g4-m8-run9-20261117-M8-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-g4-m8-run9-20261117-M8-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-g4-m8-run9-20261117-M8-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-g4-m8-run9-20261117-M8-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-g4-m8-run9-20261117-M8-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-g4-m8-run9-20261117-M8-bash xray[<PID>]: 2026/11/17 12:52:17.870620 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-g4-m8-run9-20261117-M8-bash xray[<PID>]: 2026/11/17 12:52:17.871797 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/17 12:52:17.880490 [Warning] core: Xray 26.10.31 started

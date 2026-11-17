@@ -1,0 +1,6 @@
+<TS> e2e-c4-metadata-snapshot-full-M2-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M2-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-c4-metadata-snapshot-full-M2-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-c4-metadata-snapshot-full-M2-go xray[<PID>]: 2026/11/14 19:36:03.874978 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-c4-metadata-snapshot-full-M2-go xray[<PID>]: 2026/11/14 19:36:03.875331 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+2026/11/14 19:36:03.876914 [Warning] core: Xray 26.10.31 started

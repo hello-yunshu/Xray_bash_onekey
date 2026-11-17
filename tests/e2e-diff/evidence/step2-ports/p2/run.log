@@ -1,0 +1,10 @@
+00:46:17 run_id=step2-ports
+00:46:18 image_id=sha256:0ed9afd41193fcfebfa894fddf012095a5d4617e92f3d893ff032ccde9853cb3
+00:46:18 building idleleo
+00:46:24 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=32f8c8134640ea3d80d4be2bb0f17eb0d647afadf9f3291945152356b186370a
+00:46:26 argv-verify written
+00:46:27 [M7] start
+00:46:27 [M3] start
+00:48:41 [M3] done
+00:51:19 [M7] done
+00:51:19 P2 finished: /Users/<user>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/step2-ports/p2

@@ -1,0 +1,12 @@
+{
+  "run": "reality-raw",
+  "mode": "reality",
+  "transport": "raw",
+  "installExit": 0,
+  "systemdState": "running",
+  "executedScriptSha256": "a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c",
+  "sourceScriptSha256": "e891f06d90731bbd83c5b9a82398a046e3f34b26f1f342f186b9acf60b57f650",
+  "runtimeSha256": "9910d0bb9d72db67d8230fa4682b34b30e4617e3da92688606c625c8f66a2f06",
+  "xrayVersion": "Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)",
+  "serviceActive": "active"
+}

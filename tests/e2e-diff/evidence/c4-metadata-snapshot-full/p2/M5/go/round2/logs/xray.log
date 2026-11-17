@@ -1,0 +1,16 @@
+<TS> e2e-c4-metadata-snapshot-full-M5-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M5-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-c4-metadata-snapshot-full-M5-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-c4-metadata-snapshot-full-M5-go xray[<PID>]: 2026/11/14 19:35:30.486465 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-c4-metadata-snapshot-full-M5-go xray[<PID>]: 2026/11/14 19:35:30.487218 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+<TS> e2e-c4-metadata-snapshot-full-M5-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-c4-metadata-snapshot-full-M5-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-c4-metadata-snapshot-full-M5-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M5-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-c4-metadata-snapshot-full-M5-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-c4-metadata-snapshot-full-M5-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-c4-metadata-snapshot-full-M5-go xray[<PID>]: 2026/11/14 19:35:35.560461 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-c4-metadata-snapshot-full-M5-go xray[<PID>]: 2026/11/14 19:35:35.562467 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+2026/11/14 19:35:30.492334 [Warning] core: Xray 26.10.31 started
+2026/11/14 19:35:33.661763 [Warning] transport/internet/grpc/encoding: received "X-Forwarded-For" from 127.0.0.1:42034 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/14 19:35:35.567230 [Warning] core: Xray 26.10.31 started

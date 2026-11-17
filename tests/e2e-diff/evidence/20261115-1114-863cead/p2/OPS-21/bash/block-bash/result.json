@@ -1,0 +1,89 @@
+{
+  "side": "bash",
+  "checks": [
+    {
+      "name": "serviceActive",
+      "ok": false,
+      "detail": "xray is not active"
+    },
+    {
+      "name": "shareUri",
+      "ok": false,
+      "detail": "cannot build a share link"
+    },
+    {
+      "name": "baselineControl",
+      "ok": false,
+      "detail": "error"
+    },
+    {
+      "name": "applyRcZero",
+      "ok": true,
+      "detail": "rc=0"
+    },
+    {
+      "name": "rulesAdded",
+      "ok": false,
+      "detail": "before=0 after=0"
+    },
+    {
+      "name": "fallbackDirect",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "noCatchAllBlocked",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "controlAfterApply",
+      "ok": false,
+      "detail": "error"
+    },
+    {
+      "name": "adsBlocked",
+      "ok": false,
+      "detail": "error"
+    },
+    {
+      "name": "privateBlocked",
+      "ok": false,
+      "detail": "error"
+    },
+    {
+      "name": "countryBlocked",
+      "ok": false,
+      "detail": "error"
+    },
+    {
+      "name": "offRcZero",
+      "ok": true,
+      "detail": "rc=0"
+    },
+    {
+      "name": "offRestored",
+      "ok": true,
+      "detail": "baseline=routing-before"
+    },
+    {
+      "name": "controlAfterOff",
+      "ok": false,
+      "detail": "error"
+    }
+  ],
+  "failed": [
+    "serviceActive",
+    "shareUri",
+    "baselineControl",
+    "rulesAdded",
+    "fallbackDirect",
+    "noCatchAllBlocked",
+    "controlAfterApply",
+    "adsBlocked",
+    "privateBlocked",
+    "countryBlocked",
+    "controlAfterOff"
+  ],
+  "status": "fail"
+}

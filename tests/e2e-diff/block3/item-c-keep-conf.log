@@ -1,0 +1,33 @@
+=== reinstall after default uninstall (must be clean) ===
+exit=0
+  "serviceActive": "active",
+  "nginxVerified": true,
+fragments: 00-xray.conf 01-xray-80.conf 02-xray-server.conf 127.0.0.1.wsServers nginx.default 
+=== C2 uninstall --keep-nginx-conf ===
+{
+  "removed": [
+    "etc/systemd/system/xray.service",
+    "usr/local/bin/xray",
+    "etc/idleleo/v1/metadata.json",
+    "etc/systemd/system/nginx.service",
+    "usr/local/nginx",
+    "etc/idleleo/v1/nginx.json"
+  ],
+  "serviceStopped": true,
+  "serviceDisabled": true,
+  "configPreserved": true,
+  "warnings": []
+}
+exit=0
+--- after ---
+total 20
+-rw-r----- 1 root idleleo-nginx 1554 Nov 13 13:45 00-xray.conf
+-rw-r----- 1 root idleleo-nginx  420 Nov 13 13:45 01-xray-80.conf
+-rw-r----- 1 root idleleo-nginx  135 Nov 13 13:45 02-xray-server.conf
+-rw-r----- 1 root idleleo-nginx   62 Nov 13 13:45 127.0.0.1.wsServers
+-rw-r----- 1 root idleleo-nginx 2630 Nov 13 13:45 nginx.default
+ls: cannot access '/usr/local/nginx': No such file or directory
+ls: cannot access '/etc/systemd/system/nginx.service': No such file or directory
+ls: cannot access '/etc/idleleo/v1/nginx.json': No such file or directory
+inactive
+disabled

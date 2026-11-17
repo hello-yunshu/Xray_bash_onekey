@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [
+    "M8"
+  ],
+  "only": "M8",
+  "ops": [],
+  "runId": "g4-m8-run8-20261117",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

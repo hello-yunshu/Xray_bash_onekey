@@ -1,0 +1,29 @@
+06:05:07 seeded_geo=geoip.dat geosite.dat 
+06:05:08 control origin ready at 11.0.0.2:80
+06:05:09 check realityOriginLocal=true target=127.0.0.1:8443 sni=local.test
+06:05:09 uri built network=raw
+06:05:16 check baselineControl=true ok
+06:05:16 check customListConfigured=true 
+06:05:17 check applyRcZero=true rc=0
+06:05:17 check rulesAdded=true before=2 after=8
+06:05:17 check fallbackDirect=true 
+06:05:17 check noCatchAllBlocked=true 
+06:05:17 check customRuleApplied=true 
+06:05:24 check controlAfterApply=true ok
+06:05:24 check adsBlocked=true blocked
+06:05:24 check privateBlocked=true blocked
+06:05:24 check countryBlocked=true blocked
+06:05:25 check editRcZero=true rc=0
+06:05:25 check editUuidApplied=true a30b64ff-1177-4219-a77d-12ef80b0b712
+06:05:25 check editRoutingIdentical=true 
+06:05:25 check editOwnedRulesKept=true owned=6 missing=0
+06:05:25 check editUserRuleKept=true 
+06:05:25 check editBlockReported=true blockRuleCount=6
+06:05:32 check controlAfterEdit=true ok
+06:05:32 check adsBlockedAfterEdit=true blocked
+06:05:33 check offRcZero=true rc=0
+06:05:33 check offRestored=true baseline=routing-with-user
+06:05:33 check customListKept=true 
+06:05:33 check customRuleRemoved=true 
+06:05:40 check controlAfterOff=true ok
+failed=

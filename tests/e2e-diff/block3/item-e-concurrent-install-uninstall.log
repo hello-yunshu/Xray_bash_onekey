@@ -1,0 +1,27 @@
+uninstall exit=0 install exit=7
+--- uninstall ---
+  "configPreserved": true,
+  "warnings": []
+}
+--- install ---
+已有一个变更事务持有锁
+--- consistency ---
+state=UNINSTALLED
+absent:  /usr/local/nginx
+absent:  /etc/systemd/system/nginx.service
+absent:  /etc/idleleo/v1/nginx.json
+absent:  /etc/idleleo/conf/nginx
+inactive
+no tree, syntax check skipped
+install exit=0 uninstall exit=7
+  "nginxDir": "/etc/idleleo/conf/nginx"
+}
+已有一个变更事务持有锁
+--- consistency ---
+state=INSTALLED
+present: /usr/local/nginx
+present: /etc/systemd/system/nginx.service
+present: /etc/idleleo/v1/nginx.json
+present: /etc/idleleo/conf/nginx
+active
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful

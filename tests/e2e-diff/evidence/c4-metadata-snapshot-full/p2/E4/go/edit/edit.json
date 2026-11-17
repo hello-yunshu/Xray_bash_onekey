@@ -1,0 +1,26 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "target",
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames[0]",
+    "inbounds[0].streamSettings.realitySettings.target"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "cb3bc5a4a1c7bb40f523cf813e16a961383133209b5f8f3770f1c624f234139e",
+  "newSha256": "3e2dc86db701a7ab92d0a208ea3f46790b2543d8faa4e920575b5d757dc72a38",
+  "backupDir": "/etc/idleleo/backup/edit-20261114T193814",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://58873edd-6bf6-422f-83cf-802cff809422@local.test:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=local.test&fp=chrome&pbk=mCeXwoNjVJu7FpbDlMBBQZQffBR8MLDvNmDvNkrYaiU&sid=15e2a3be&type=raw#idleleo-reality",
+  "originTarget": "127.0.0.1:8443",
+  "originProbe": "tcp+tls(verify) 127.0.0.1:8443 (sni local.test)",
+  "disconnect": false,
+  "warnings": null
+}

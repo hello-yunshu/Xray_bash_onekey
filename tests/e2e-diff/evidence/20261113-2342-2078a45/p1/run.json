@@ -1,0 +1,60 @@
+{
+  "commit": "2078a45f3ab4e4c427c078b3c70d07dc58987fca",
+  "imageId": "sha256:519258e62bb14c4099850a623d1b53be3bdbc9963957de62e37deb8196e23030",
+  "runId": "20261113-2342-2078a45",
+  "schemaVersion": 1,
+  "sides": {
+    "M1/bash": {
+      "installExit": 0,
+      "l4": {
+        "bodyMatch": true,
+        "bodySha256": "97b4b326a27eb35f921ddaa6d147a09304664db23edba20623c6a4bec6f6ff32",
+        "curlExit": 0,
+        "ok": true,
+        "profile": "reality",
+        "target": "http://example.com/"
+      },
+      "manifest": true,
+      "runtime": true
+    },
+    "M1/go": {
+      "installExit": 0,
+      "l4": {
+        "bodyMatch": true,
+        "bodySha256": "97b4b326a27eb35f921ddaa6d147a09304664db23edba20623c6a4bec6f6ff32",
+        "curlExit": 0,
+        "ok": true,
+        "profile": "reality",
+        "target": "http://example.com/"
+      },
+      "manifest": true,
+      "runtime": true
+    },
+    "M4/bash": {
+      "installExit": 0,
+      "l4": {
+        "bodyMatch": true,
+        "bodySha256": "97b4b326a27eb35f921ddaa6d147a09304664db23edba20623c6a4bec6f6ff32",
+        "curlExit": 0,
+        "ok": true,
+        "profile": "tls",
+        "target": "http://example.com/"
+      },
+      "manifest": true,
+      "runtime": true
+    },
+    "M4/go": {
+      "installExit": 0,
+      "l4": {
+        "bodyMatch": true,
+        "bodySha256": "97b4b326a27eb35f921ddaa6d147a09304664db23edba20623c6a4bec6f6ff32",
+        "curlExit": 0,
+        "ok": true,
+        "profile": "tls",
+        "target": "http://example.com/"
+      },
+      "manifest": true,
+      "runtime": true
+    }
+  }
+}

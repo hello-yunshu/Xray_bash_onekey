@@ -1,0 +1,3 @@
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess
+LISTEN 0      4096      127.0.0.11:34149      0.0.0.0:*          
+LISTEN 0      511          0.0.0.0:80         0.0.0.0:*    users:(("nginx",pid=190,fd=6),("nginx",pid=189,fd=6),("nginx",pid=188,fd=6),("nginx",pid=187,fd=6),("nginx",pid=186,fd=6),("nginx",pid=185,fd=6),("nginx",pid=184,fd=6),("nginx",pid=183,fd=6),("nginx",pid=182,fd=6),("nginx",pid=181,fd=6),("nginx",pid=180,fd=6))

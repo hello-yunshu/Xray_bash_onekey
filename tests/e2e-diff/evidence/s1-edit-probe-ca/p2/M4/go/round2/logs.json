@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "units": {
+    "nginx": {
+      "errorLines": 0,
+      "lines": 15,
+      "sampleErrors": [],
+      "sha256": "e044724bd6ac952579468e9f9dd5b12619f605177eb439695e9049ebe581aa6a",
+      "warningLines": 0
+    },
+    "xray": {
+      "errorLines": 0,
+      "lines": 16,
+      "sampleErrors": [],
+      "sha256": "b79b1a239472c23f52dd41e7d146ec99accea184185047bfc1cada0c9cdf75d2",
+      "warningLines": 5
+    }
+  }
+}

@@ -1,0 +1,3 @@
+injected one-shot restart failure
+edit_argv=idleleo xray config edit --port 8443 --yes --container --json
+edit_exit=1
