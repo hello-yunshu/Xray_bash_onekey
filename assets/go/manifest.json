@@ -1,0 +1,19 @@
+{
+  "assets": {
+    "linux-amd64": {
+      "name": "idleleo-linux-amd64",
+      "sha256": "9f7a5ab3f607eda6de1e55d87fff10ae927f4ce649ea578358d5db906a81d89e",
+      "size": 6959288
+    },
+    "linux-arm64": {
+      "name": "idleleo-linux-arm64",
+      "sha256": "0177eed4cc4879e3b1ed12cc39792755f3f1965305b5966456c125d334d43053",
+      "size": 6488248
+    }
+  },
+  "channel": "go",
+  "goVersion": "go1.24.0",
+  "schemaVersion": 1,
+  "sourceCommit": "a1e00850fc6940934df3add83b18c5ec7a95f5c9",
+  "version": "0.2.0-phase04"
+}

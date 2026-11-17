@@ -36,6 +36,23 @@ docker exec -it xray-onekey idleleo
 | `start` | 仅启动服务（守护模式） | 修改 `docker-compose.yml` 中 `command: start` |
 | `shell` | 启动服务并进入 Shell | `docker exec -it xray-onekey bash` |
 
+## Go 原生容器模式
+
+镜像同时带有 `/opt/idleleo/bin/idleleo`。当容器内没有真实 systemd 时，入口脚本用
+Go 直接管理 Xray/Nginx 进程，不再经过 `fake-systemctl`：
+
+```bash
+docker exec xray-onekey /opt/idleleo/bin/idleleo container status --json
+docker exec xray-onekey /opt/idleleo/bin/idleleo container up --container
+docker exec xray-onekey /opt/idleleo/bin/idleleo container down --container
+```
+
+* `container up` 幂等：已在运行的进程不会重复启动；`down` 同样幂等。
+* pid 文件位于 `/run/idleleo/container-xray.pid`、`container-nginx.pid`，
+  统一日志为 `/var/log/idleleo/container.log`。
+* 有真实 systemd 的主机仍走 `systemctl`；`fake-systemctl` 只保留给 Bash 菜单兼容。
+* 该模式只覆盖 Xray/Nginx 启停，fail2ban/cron 仍由入口脚本单独处理。
+
 ## 管理操作
 
 所有原脚本命令均可使用：
@@ -76,7 +93,8 @@ docker run -d --name xray-onekey   --network host   --cap-add NET_ADMIN   -e TZ=
 
 ## 注意事项
 
-* 容器内使用 `fake-systemctl` 替代 systemd，`systemctl` 命令可正常使用
+* 容器内没有 systemd 时由 Go 直接管理 Xray/Nginx（见上节）；`fake-systemctl`
+  仅保留给 Bash 菜单和 fail2ban 兼容路径
 * 内置看门狗每 30 秒检查服务状态，异常时自动重启
 * 退出管理菜单后容器自动进入守护模式，服务不会中断
 * 防火墙建议在宿主机层面管理

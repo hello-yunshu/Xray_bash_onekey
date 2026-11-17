@@ -6,6 +6,25 @@ XRAY_BIN="/usr/local/bin/xray"
 NGINX_BIN="/usr/local/nginx/sbin/nginx"
 XRAY_CONF="/usr/local/etc/xray/config.json"
 NGINX_CONF="/usr/local/nginx/conf/nginx.conf"
+GO_IDLELEO="/opt/idleleo/bin/idleleo"
+
+# Go 容器模式只在没有真实 systemd 时启用；有 systemd 的主机仍走 systemctl。
+_go_container() {
+    [[ -x "$GO_IDLELEO" ]] && [[ ! -d /run/systemd/system ]]
+}
+
+_go_up() {
+    IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY "$GO_IDLELEO" container up --container
+}
+
+_go_down() {
+    IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY "$GO_IDLELEO" container down --container
+}
+
+_go_active() {
+    "$GO_IDLELEO" container status --json 2>/dev/null | python3 -c \
+        'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get(sys.argv[1],{}).get("alive") else 1)' "$1"
+}
 
 _start_cron() {
     pgrep -f "cron" >/dev/null 2>&1 || cron
@@ -21,6 +40,11 @@ _f2b_configured() {
 }
 
 _start_services() {
+    if _go_container; then
+        echo "[entrypoint] Starting managed services (Go container mode)..."
+        _go_up
+        return
+    fi
     if [[ -f "$XRAY_CONF" ]] && [[ -x "$XRAY_BIN" ]]; then
         echo "[entrypoint] Starting Xray..."
         systemctl start xray
@@ -41,6 +65,11 @@ _stop_services() {
     if [[ "$STOPPING" -eq 1 ]]; then return; fi
     STOPPING=1
     echo "[entrypoint] Stopping services..."
+    if _go_container; then
+        _go_down 2>/dev/null || true
+        echo "[entrypoint] Services stopped."
+        return
+    fi
     if command -v fail2ban-client >/dev/null 2>&1 && _f2b_configured; then
         systemctl stop fail2ban 2>/dev/null || true
     fi
@@ -55,6 +84,18 @@ _stop_services() {
 
 _watchdog() {
     while [[ "$STOPPING" -eq 0 ]]; do
+        if _go_container; then
+            if [[ -f "$XRAY_CONF" ]] && [[ -x "$XRAY_BIN" ]] && ! _go_active xray; then
+                echo "[watchdog] Xray not running, restarting..."
+                _go_up
+            fi
+            if [[ -f "$NGINX_CONF" ]] && [[ -x "$NGINX_BIN" ]] && ! _go_active nginx; then
+                echo "[watchdog] Nginx not running, restarting..."
+                _go_up
+            fi
+            sleep 30
+            continue
+        fi
         if [[ -f "$XRAY_CONF" ]] && [[ -x "$XRAY_BIN" ]]; then
             if ! systemctl -q is-active xray 2>/dev/null; then
                 echo "[watchdog] Xray not running, restarting..."

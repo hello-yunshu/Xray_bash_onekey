@@ -1,0 +1,191 @@
+package sender
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"runtime"
+	"strings"
+
+	"github.com/go-acme/lego/v5/acme"
+	"github.com/go-acme/lego/v5/internal/errutils"
+)
+
+type RequestOption func(*http.Request) error
+
+func contentType(ct string) RequestOption {
+	return func(req *http.Request) error {
+		req.Header.Set("Content-Type", ct)
+		return nil
+	}
+}
+
+type Doer struct {
+	httpClient *http.Client
+	userAgent  string
+}
+
+// NewDoer Creates a new Doer.
+func NewDoer(client *http.Client, userAgent string) *Doer {
+	client.Transport = newHTTPSOnly(client)
+
+	return &Doer{
+		httpClient: client,
+		userAgent:  formatUserAgent(userAgent),
+	}
+}
+
+// Get performs a GET request with a proper User-Agent string.
+// If "response" is not provided, callers should close resp.Body when done reading from it.
+func (d *Doer) Get(ctx context.Context, url string, response any) (*http.Response, error) {
+	req, err := d.newRequest(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return d.do(req, response)
+}
+
+// Head performs a HEAD request with a proper User-Agent string.
+// The response body (resp.Body) is already closed when this function returns.
+func (d *Doer) Head(ctx context.Context, url string) (*http.Response, error) {
+	req, err := d.newRequest(ctx, http.MethodHead, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return d.do(req, nil)
+}
+
+// Post performs a POST request with a proper User-Agent string.
+// If "response" is not provided, callers should close resp.Body when done reading from it.
+func (d *Doer) Post(ctx context.Context, url string, body io.Reader, bodyType string, response any) (*http.Response, error) {
+	req, err := d.newRequest(ctx, http.MethodPost, url, body, contentType(bodyType))
+	if err != nil {
+		return nil, err
+	}
+
+	return d.do(req, response)
+}
+
+func (d *Doer) newRequest(ctx context.Context, method, uri string, body io.Reader, opts ...RequestOption) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, method, uri, body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("User-Agent", d.userAgent)
+
+	for _, opt := range opts {
+		err = opt(req)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
+	}
+
+	return req, nil
+}
+
+func (d *Doer) do(req *http.Request, response any) (*http.Response, error) {
+	resp, err := d.httpClient.Do(req)
+	if err != nil {
+		return nil, errutils.NewHTTPDoError(req, err)
+	}
+
+	if err = checkError(req, resp); err != nil {
+		return resp, err
+	}
+
+	if response != nil {
+		defer func() { _ = resp.Body.Close() }()
+
+		raw, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return resp, errutils.NewReadResponseError(req, resp.StatusCode, err)
+		}
+
+		err = json.Unmarshal(raw, response)
+		if err != nil {
+			return resp, errutils.NewUnmarshalError(req, resp.StatusCode, raw, err)
+		}
+	}
+
+	return resp, nil
+}
+
+// formatUserAgent builds and returns the User-Agent string to use in requests.
+func formatUserAgent(userAgent string) string {
+	return strings.TrimSpace(fmt.Sprintf("%s %s (%s; %s; %s)", userAgent, ourUserAgent, ourUserAgentComment, runtime.GOOS, runtime.GOARCH))
+}
+
+func checkError(req *http.Request, resp *http.Response) error {
+	if resp.StatusCode < http.StatusBadRequest {
+		return nil
+	}
+
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("%d :: %s :: %s :: %w", resp.StatusCode, req.Method, req.URL, err)
+	}
+
+	var errorDetails *acme.ProblemDetails
+
+	err = json.Unmarshal(body, &errorDetails)
+	if err != nil {
+		return fmt.Errorf("%d ::%s :: %s :: %w :: %s", resp.StatusCode, req.Method, req.URL, err, string(body))
+	}
+
+	errorDetails.Method = req.Method
+	errorDetails.URL = req.URL.String()
+
+	if errorDetails.HTTPStatus == 0 {
+		errorDetails.HTTPStatus = resp.StatusCode
+	}
+
+	// Check for errors we handle specifically
+	switch {
+	case errorDetails.HTTPStatus == http.StatusBadRequest && errorDetails.Type == acme.BadNonceErrorType:
+		return &acme.NonceError{ProblemDetails: errorDetails}
+
+	case errorDetails.HTTPStatus == http.StatusConflict && errorDetails.Type == acme.AlreadyReplacedErrorType:
+		return &acme.AlreadyReplacedError{ProblemDetails: errorDetails}
+
+	case errorDetails.HTTPStatus == http.StatusTooManyRequests && errorDetails.Type == acme.RateLimitedErrorType:
+		return &acme.RateLimitedError{
+			ProblemDetails: errorDetails,
+			RetryAfter:     GetRetryAfter(resp),
+		}
+
+	default:
+		return errorDetails
+	}
+}
+
+type httpsOnly struct {
+	rt http.RoundTripper
+}
+
+func newHTTPSOnly(client *http.Client) *httpsOnly {
+	if client.Transport == nil {
+		return &httpsOnly{rt: http.DefaultTransport}
+	}
+
+	return &httpsOnly{rt: client.Transport}
+}
+
+// RoundTrip ensure HTTPS is used.
+// Each ACME function is accomplished by the client sending a sequence of HTTPS requests to the server [RFC2818],
+// carrying JSON messages [RFC8259].
+// Use of HTTPS is REQUIRED.
+// https://datatracker.ietf.org/doc/html/rfc8555#section-6.1
+func (r *httpsOnly) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.URL.Scheme != "https" {
+		return nil, fmt.Errorf("HTTPS is required: %s", req.URL)
+	}
+
+	return r.rt.RoundTrip(req)
+}

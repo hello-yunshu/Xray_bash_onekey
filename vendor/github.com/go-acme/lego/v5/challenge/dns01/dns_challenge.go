@@ -1,0 +1,235 @@
+package dns01
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/base64"
+	"fmt"
+	"log/slog"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/go-acme/lego/v5/acme"
+	"github.com/go-acme/lego/v5/acme/api"
+	"github.com/go-acme/lego/v5/challenge"
+	"github.com/go-acme/lego/v5/internal/wait"
+	"github.com/go-acme/lego/v5/log"
+	"github.com/miekg/dns"
+)
+
+const (
+	// DefaultPropagationTimeout default propagation timeout.
+	DefaultPropagationTimeout = 60 * time.Second
+
+	// DefaultPollingInterval default polling interval.
+	DefaultPollingInterval = 2 * time.Second
+
+	// DefaultTTL default TTL.
+	DefaultTTL = 120
+)
+
+const challengeLabel = "_acme-challenge"
+
+type ValidateFunc func(ctx context.Context, core *api.Core, domain string, chlng acme.Challenge) error
+
+// Challenge implements the dns-01 challenge.
+type Challenge struct {
+	core     *api.Core
+	validate ValidateFunc
+	provider challenge.Provider
+	preCheck preCheck
+}
+
+func NewChallenge(core *api.Core, validate ValidateFunc, provider challenge.Provider, opts ...ChallengeOption) *Challenge {
+	chlg := &Challenge{
+		core:     core,
+		validate: validate,
+		provider: provider,
+		preCheck: newPreCheck(),
+	}
+
+	for _, opt := range opts {
+		err := opt(chlg)
+		if err != nil {
+			log.Warn("dns01: challenge option skipped.", log.ErrorAttr(err))
+		}
+	}
+
+	return chlg
+}
+
+// PreSolve just submits the txt record to the dns provider.
+// It does not validate record propagation or do anything at all with the ACME server.
+func (c *Challenge) PreSolve(ctx context.Context, authz acme.Authorization) error {
+	domain := challenge.GetTargetedDomain(authz)
+
+	log.Info("dns01: preparing to solve the challenge.", log.DomainAttr(domain))
+
+	chlng, err := challenge.FindChallenge(challenge.DNS01, authz)
+	if err != nil {
+		return err
+	}
+
+	if c.provider == nil {
+		return fmt.Errorf("dns01: no DNS Provider configured (%s)", domain)
+	}
+
+	// Generate the Key Authorization for the challenge
+	keyAuth, err := c.core.GetKeyAuthorization(chlng.Token)
+	if err != nil {
+		return err
+	}
+
+	err = c.provider.Present(ctx, authz.Identifier.Value, chlng.Token, keyAuth)
+	if err != nil {
+		return fmt.Errorf("dns01: error presenting token (%s): %w", domain, err)
+	}
+
+	return nil
+}
+
+func (c *Challenge) Solve(ctx context.Context, authz acme.Authorization) error {
+	domain := challenge.GetTargetedDomain(authz)
+
+	log.Info("dns01: trying to solve the challenge.", log.DomainAttr(domain))
+
+	chlng, err := challenge.FindChallenge(challenge.DNS01, authz)
+	if err != nil {
+		return err
+	}
+
+	// Generate the Key Authorization for the challenge
+	keyAuth, err := c.core.GetKeyAuthorization(chlng.Token)
+	if err != nil {
+		return err
+	}
+
+	info := GetChallengeInfo(ctx, authz.Identifier.Value, keyAuth)
+
+	var timeout, interval time.Duration
+
+	switch provider := c.provider.(type) {
+	case challenge.ProviderTimeout:
+		timeout, interval = provider.Timeout()
+	default:
+		timeout, interval = DefaultPropagationTimeout, DefaultPollingInterval
+	}
+
+	log.Info("dns01: waiting for record propagation",
+		slog.Duration("timeout", timeout),
+		slog.Duration("interval", interval),
+		log.DomainAttr(domain),
+	)
+
+	time.Sleep(interval)
+
+	err = wait.For(timeout, interval, func() (bool, error) {
+		stop, callErr := c.preCheck.call(ctx, domain, info.EffectiveFQDN, info.Value)
+		if !stop || callErr != nil {
+			log.Info("dns01: waiting for record propagation.", log.DomainAttr(domain))
+		}
+
+		return stop, callErr
+	})
+	if err != nil {
+		return fmt.Errorf("dns01: %w", err)
+	}
+
+	chlng.KeyAuthorization = keyAuth
+
+	return c.validate(ctx, c.core, domain, chlng)
+}
+
+// CleanUp cleans the challenge.
+func (c *Challenge) CleanUp(ctx context.Context, authz acme.Authorization) error {
+	log.Info("dns01: cleaning DNS-01 challenge.", log.DomainAttr(challenge.GetTargetedDomain(authz)))
+
+	chlng, err := challenge.FindChallenge(challenge.DNS01, authz)
+	if err != nil {
+		return err
+	}
+
+	keyAuth, err := c.core.GetKeyAuthorization(chlng.Token)
+	if err != nil {
+		return err
+	}
+
+	return c.provider.CleanUp(ctx, authz.Identifier.Value, chlng.Token, keyAuth)
+}
+
+func (c *Challenge) Sequential() (bool, time.Duration) {
+	if p, ok := c.provider.(sequential); ok {
+		return ok, p.Sequential()
+	}
+
+	return false, 0
+}
+
+type sequential interface {
+	Sequential() time.Duration
+}
+
+// ChallengeInfo contains the information use to create the TXT record.
+type ChallengeInfo struct {
+	// FQDN is the full-qualified challenge domain (i.e. `_acme-challenge.[domain].`)
+	FQDN string
+
+	// EffectiveFQDN contains the resulting FQDN after the CNAMEs resolutions.
+	EffectiveFQDN string
+
+	// Value contains the value for the TXT record.
+	Value string
+
+	// Prefix is the challenge prefix (i.e. `_acme-challenge`).
+	Prefix string
+}
+
+// Domain returns the domain of the challenge without the prefix.
+func (c ChallengeInfo) Domain() string {
+	return strings.TrimPrefix(c.FQDN, c.Prefix+".")
+}
+
+// EffectiveDomain returns the domain of the challenge without the prefix.
+func (c ChallengeInfo) EffectiveDomain() string {
+	// When FQDN is varying from EffectiveFQDN,
+	// the prefix is not used because the information comes from CNAME.
+	if c.FQDN == c.EffectiveFQDN {
+		return strings.TrimPrefix(c.EffectiveFQDN, c.Prefix+".")
+	}
+
+	return c.EffectiveFQDN
+}
+
+// GetChallengeInfo returns information used to create a DNS record which will fulfill the `dns-01` challenge.
+func GetChallengeInfo(ctx context.Context, domain, keyAuth string) ChallengeInfo {
+	keyAuthShaBytes := sha256.Sum256([]byte(keyAuth))
+	// base64URL encoding without padding
+	value := base64.RawURLEncoding.EncodeToString(keyAuthShaBytes[:sha256.Size])
+
+	ok, _ := strconv.ParseBool(os.Getenv("LEGO_DISABLE_CNAME_SUPPORT"))
+
+	fqdn := getAuthorizationDomainName(domain)
+
+	return ChallengeInfo{
+		Value:         value,
+		FQDN:          getChallengeFQDN(ctx, fqdn, false),
+		EffectiveFQDN: getChallengeFQDN(ctx, fqdn, !ok),
+		Prefix:        challengeLabel,
+	}
+}
+
+func getChallengeFQDN(ctx context.Context, fqdn string, followCNAME bool) string {
+	if !followCNAME {
+		return fqdn
+	}
+
+	return DefaultClient().lookupCNAME(ctx, fqdn)
+}
+
+// getAuthorizationDomainName returns the fully qualified DNS label
+// used by the dns-01 challenge for the given domain.
+func getAuthorizationDomainName(domain string) string {
+	return dns.Fqdn(challengeLabel + "." + domain)
+}

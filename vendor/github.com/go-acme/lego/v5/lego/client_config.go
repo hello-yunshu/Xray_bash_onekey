@@ -1,0 +1,141 @@
+package lego
+
+import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"net"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/go-acme/lego/v5/certificate"
+	"github.com/go-acme/lego/v5/registration"
+)
+
+const (
+	// caCertificatesEnvVar is the environment variable name that can be used to
+	// specify the path to PEM encoded CA Certificates that can be used to
+	// authenticate an ACME server with an HTTPS certificate not issued by a CA in
+	// the system-wide trusted root list.
+	// Multiple file paths can be added by using os.PathListSeparator as a separator.
+	caCertificatesEnvVar = "LEGO_CA_CERTIFICATES"
+
+	// caSystemCertPool is the environment variable name that can be used to define
+	// if the certificates pool must use a copy of the system cert pool.
+	caSystemCertPool = "LEGO_CA_SYSTEM_CERT_POOL"
+
+	// caServerNameEnvVar is the environment variable name that can be used to
+	// specify the CA server name that can be used to
+	// authenticate an ACME server with an HTTPS certificate not issued by a CA in
+	// the system-wide trusted root list.
+	caServerNameEnvVar = "LEGO_CA_SERVER_NAME"
+)
+
+type Config struct {
+	CADirURL    string
+	User        registration.User
+	UserAgent   string
+	HTTPClient  *http.Client
+	Certificate CertificateConfig
+}
+
+func NewConfig(user registration.User) *Config {
+	return &Config{
+		CADirURL:   DirectoryURLLetsEncrypt,
+		User:       user,
+		HTTPClient: createDefaultHTTPClient(),
+		Certificate: CertificateConfig{
+			Timeout:             30 * time.Second,
+			OverallRequestLimit: certificate.DefaultOverallRequestLimit,
+		},
+	}
+}
+
+type CertificateConfig struct {
+	Timeout             time.Duration
+	OverallRequestLimit int
+}
+
+// createDefaultHTTPClient Creates an HTTP client with a reasonable timeout value
+// and potentially a custom *x509.CertPool
+// based on the caCertificatesEnvVar environment variable (see the `initCertPool` function).
+func createDefaultHTTPClient() *http.Client {
+	return &http.Client{
+		Timeout: 2 * time.Minute,
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			TLSHandshakeTimeout:   30 * time.Second,
+			ResponseHeaderTimeout: 30 * time.Second,
+			TLSClientConfig: &tls.Config{
+				ServerName: os.Getenv(caServerNameEnvVar),
+				RootCAs:    initCertPool(),
+			},
+		},
+	}
+}
+
+// initCertPool creates a *x509.CertPool populated with the PEM certificates
+// found in the filepath specified in the caCertificatesEnvVar OS environment variable.
+// If the caCertificatesEnvVar is not set then initCertPool will return nil.
+// If there is an error creating a *x509.CertPool from the provided caCertificatesEnvVar value then initCertPool will panic.
+// If the caSystemCertPool is set to a "truthy value" (`1`, `t`, `T`, `TRUE`, `true`, `True`) then a copy of system cert pool will be used.
+// caSystemCertPool requires caCertificatesEnvVar to be set.
+func initCertPool() *x509.CertPool {
+	customCACertsPath := os.Getenv(caCertificatesEnvVar)
+	if customCACertsPath == "" {
+		return nil
+	}
+
+	useSystemCertPool, _ := strconv.ParseBool(os.Getenv(caSystemCertPool))
+
+	caCerts := strings.Split(customCACertsPath, string(os.PathListSeparator))
+
+	certPool, err := CreateCertPool(caCerts, useSystemCertPool)
+	if err != nil {
+		panic(fmt.Sprintf("create certificates pool: %v", err))
+	}
+
+	return certPool
+}
+
+// CreateCertPool creates a *x509.CertPool populated with the PEM certificates.
+func CreateCertPool(caCerts []string, useSystemCertPool bool) (*x509.CertPool, error) {
+	if len(caCerts) == 0 {
+		return nil, nil
+	}
+
+	certPool := newCertPool(useSystemCertPool)
+
+	for _, customPath := range caCerts {
+		customCAs, err := os.ReadFile(customPath)
+		if err != nil {
+			return nil, fmt.Errorf("error reading %q: %w", customPath, err)
+		}
+
+		if ok := certPool.AppendCertsFromPEM(customCAs); !ok {
+			return nil, fmt.Errorf("error creating x509 cert pool from %q: %w", customPath, err)
+		}
+	}
+
+	return certPool, nil
+}
+
+func newCertPool(useSystemCertPool bool) *x509.CertPool {
+	if !useSystemCertPool {
+		return x509.NewCertPool()
+	}
+
+	pool, err := x509.SystemCertPool()
+	if err == nil {
+		return pool
+	}
+
+	return x509.NewCertPool()
+}

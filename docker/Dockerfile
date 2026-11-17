@@ -1,4 +1,16 @@
+FROM golang:1.27.4 AS gobuild
+
+WORKDIR /src
+COPY go.mod go.sum ./
+COPY vendor ./vendor
+COPY cmd ./cmd
+COPY internal ./internal
+RUN CGO_ENABLED=0 go build -mod=vendor -trimpath -o /out/idleleo ./cmd/idleleo
+
 FROM debian:bookworm-slim
+
+LABEL org.opencontainers.image.title="idleleo" \
+      org.opencontainers.image.description="Xray management image with a systemd-free Go container entry"
 
 ARG XRAY_VERSION
 ARG NGINX_BUILD_VERSION
@@ -70,6 +82,10 @@ RUN . /etc/idleleo_build_versions && \
 
 COPY docker/fake-systemctl /usr/local/bin/systemctl
 RUN chmod +x /usr/local/bin/systemctl
+
+# Go 容器入口：/usr/bin/idleleo 仍是 Bash 菜单，这两个路径互不覆盖。
+COPY --from=gobuild /out/idleleo /opt/idleleo/bin/idleleo
+RUN chmod 0755 /opt/idleleo/bin/idleleo
 
 # BuildKit 的 RUN 环境没有运行时容器自带的 /.dockerenv；提前创建标记并提供
 # fake-systemctl，让 Xray 官方安装器按其 Docker 分支安装服务文件。
