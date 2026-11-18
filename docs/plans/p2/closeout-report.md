@@ -75,9 +75,25 @@ relay 安装 `467c1934`、`e209f49d`；重复安装/别名 `196d7378`、`916ac95
 | C1–C4 后复跑 | `evidence/c4-metadata-snapshot-full/p2/install-matrix.md` | 同上，且 OPS-19/OPS-22 转 `must-match` |
 | M8 解阻 | `evidence/g4-m8-run7-20261117`、`g4-m8-run9-20261117` | M8 双侧 round1/2 rc=0、L4 ws 两轮 ok、L6 ok、判定 `ED-C14`；no unsuppressed |
 | 编辑场景 | `evidence/s1-edit-probe-ca`、`e5e6-11150953-3f25259`、`s4-reality-1115c` | E1–E8 全部 PASS |
+| 最终全量（harness 修复后） | `evidence/20261118-0605-full/p2/install-matrix.md` | M1–M10 双侧 round1/2 rc=0、L4 两轮 ok、L6 ok；M1–M3/M9/M10 判定 `ED-C01…ED-C13`，M4–M7 追加 `ED-C15`，M8 `ED-C14`；E1–E8 全部 PASS；OPS-19/21/09/31/32 PASS；无 BLOCKER / HARNESS-ERROR |
 
 结论：安装矩阵的阻塞项从「9 个 BLOCKER + 1 个 HARNESS-BLOCKED」收敛为
 「10 个场景全部有结论、0 未抑制差异」；编辑矩阵 E1–E8 全绿。
+
+### 最终全量运行的取证口径
+
+`evidence/20261118-0605-full` 在提交 harness 修复之前的工作区执行，因此
+`run.json.commit` 记的是当时的 HEAD `47a370e5`，而修复内容随后作为 `21750b7d`
+提交（重写前为 `dea46bb9`）。两点可复核：
+
+1. 该 run 的 `OPS-21/ops.json` 已包含 `serviceAliveAfterApply`，且 bash 侧
+   `status=pass`、`failed=[]`，说明 OPS-21 驱动修复与汇总口径修复都在本次运行里生效；
+2. 重写后的 `b99b1864` 与 `dea46bb9` 树逐字节一致（`git diff --quiet dea46bb9 b99b1864`）。
+
+唯一的取证缺口：E5 驱动在本次运行之后又把结算预算从 10s 放宽到 30s 并落盘
+`nginx-reload-diag.txt`；这属于测试 harness 的时序与诊断改动（不动产品代码），
+本 run 的 E5 PASS 只覆盖 10s 预算下的行为。放宽后的路径尚未在归档运行中执行，
+重跑条件见 `specs/finalize-release/spec.md` 第 3 节（需要 Docker 出网）。
 
 ## 4. 仍保留的能力缺口与外部阻塞
 
