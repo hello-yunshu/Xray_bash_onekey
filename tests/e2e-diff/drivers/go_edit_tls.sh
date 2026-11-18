@@ -53,6 +53,28 @@ wait_served() { # $1 = expected fingerprint, $2 = seconds
   return 1
 }
 
+# A graceful Nginx reload retires old workers asynchronously: right after the
+# handover both generations can answer a fresh handshake, so one match is not
+# proof that the front converged. Wait for $3 consecutive matches and record
+# every probe so a disagreement is evidence instead of a coin flip.
+wait_served_stable() { # $1 = expected fingerprint, $2 = seconds, $3 = streak
+  local want=$1 limit=$(($2 * 5)) need=${3:-3} i=0 streak=0 fp
+  : >"$DIR/served-probes.txt"
+  while [ "$i" -lt "$limit" ]; do
+    fp="$(served_fp_now)"
+    printf '%s\t%s\n' "$(date -u +%H:%M:%S)" "$fp" >>"$DIR/served-probes.txt"
+    if [ "$fp" = "$want" ]; then
+      streak=$((streak + 1))
+      [ "$streak" -ge "$need" ] && return 0
+    else
+      streak=0
+    fi
+    sleep 0.2
+    i=$((i + 1))
+  done
+  return 1
+}
+
 snap() { # $1 = tag
   local d="$DIR/state-$1"
   mkdir -p "$d"
@@ -111,8 +133,9 @@ if [ "$EID" = "E5" ]; then
   run_edit "$@"
   EDIT_RC="$(cat "$DIR/edit.rc")"
   # A reload is asynchronous and this scenario can share the host with the rest
-  # of the matrix, so give the workers time to take over before judging.
-  wait_served "$NEWFP" 30 || true
+  # of the matrix, so give the workers time to take over before judging. Old
+  # workers can still answer during the handover, so require a streak.
+  wait_served_stable "$NEWFP" 30 3 || true
   snap post
   # When the served leaf disagrees with the edited fragment, keep what decided
   # it: the effective directive, the worker start times and the Nginx log.
@@ -123,7 +146,7 @@ if [ "$EID" = "E5" ]; then
     echo "--- edited fragment"
     grep -nE 'ssl_certificate|server_name' /etc/idleleo/conf/nginx/00-xray.conf 2>&1
     echo "--- workers"
-    ps -o pid,lstart,cmd -C nginx 2>&1 | head -6
+    ps -o pid,lstart,cmd -C nginx 2>&1 | head -30
     echo "--- new pair"
     ls -l "$NEWCERT" "$NEWKEY" 2>&1
     fnv <"$NEWCERT"
