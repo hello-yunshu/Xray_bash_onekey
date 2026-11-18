@@ -149,36 +149,54 @@ OPS-12/13 的 Bash 端是“持续跟随”，`TRUNCATED` 是采集方式导致�
 
 ## 6.1 S1–S9 辅助脚本与 R1/R2 升级链
 
-矩阵的 `subscripts`/`upgrade` 定义在 `tests/e2e-diff/matrix.json`；本轮 `run_p2_matrix.sh` 的 scope 只含 `installs/edits/ops`，**脚本本体与 bridge 升级链未执行**，下表把“静态对照结论”和“实跑状态”分开写，避免把静态核对冒充成双端实跑。
+矩阵的 `subscripts`/`upgrade` 定义在 `tests/e2e-diff/matrix.json`；`run_p2_matrix.sh` 的 scope 只含 `installs/edits/ops`，**辅助脚本本体仍未执行**（S1–S9 保持 NOT_RUN），但升级链已由 `tests/e2e-diff/run_r1_upgrade.sh` 单独实跑。下表把“静态对照结论”和“实跑状态”分开写，避免把静态核对冒充成双端实跑。
 
 | ID | Bash 入口 | Go 入口 | 归类 | 本轮状态 |
 |---|---|---|---|---|
 | S1 | `scripts/fail2ban_manager.sh` | `fail2ban status/install/banned/unban/trust/jail` | 必须迁移 | 脚本 NOT_RUN；OPS-19 矩阵 PASS |
 | S2 | `scripts/traffic_blocker.sh` | `xray block ...` | 必须迁移 | 脚本 NOT_RUN；OPS-21 矩阵 PASS |
-| S3 | `scripts/file_manager.sh` | `metadata export/import` + `backup create/restore` | 安全替代 | 脚本 NOT_RUN；单元/CLI 测试覆盖 |
+| S3 | `scripts/file_manager.sh` | `metadata export/import` + `backup create/restore` | 安全替代 | 脚本 NOT_RUN；`goevo-ops-20261119-0412` 单边实跑 metadata export/import |
 | S4 | `scripts/auto_update.sh` | `schedule install`（`auto-update` job） | 安全替代 | 脚本与 cron NOT_RUN；单元测试覆盖 |
 | S5 | `scripts/ssl_update.sh` | `xray cert renew` + `schedule` 的 `cert-renew` | 安全替代 | 脚本 NOT_RUN；M8 双端 ACME 安装 PASS（续期/拒绝/回滚未逐项注入） |
 | S6 | `scripts/geo_update.sh` | `schedule run --job geodata-refresh` | 安全替代 | 脚本 NOT_RUN；单元测试覆盖路径校验 |
-| S7 | `acme.sh`（`IDLELEO_ACME_LEGACY=1`） | `xray cert issue/renew` | 安全替代 | NOT_RUN；Go 不接管既有 acme.sh 安装 |
-| S8 | `tcp.sh` | `tcp plan/apply/rollback/status` | 必须迁移 | 脚本 NOT_RUN；单元测试覆盖 |
-| S9 | `superspeed.sh` | `speedtest` | 安全替代 | NOT_RUN（需外部测速端点） |
+| S7 | `acme.sh`（`IDLELEO_ACME_LEGACY=1`） | `xray cert issue/renew` | 安全替代 | NOT_RUN；脚本为安装时远端下载，仓库内无本体；Go 不接管既有 acme.sh 安装 |
+| S8 | `tcp.sh` | `tcp plan/apply/rollback/status` | 必须迁移 | NOT_RUN；脚本为安装时远端下载，仓库内无本体；单元测试覆盖 |
+| S9 | `superspeed.sh` | `speedtest` | 安全替代 | NOT_RUN（需外部测速端点，且脚本体不在仓库） |
 
 R1（官方升级路径，`idleleo xray install --keep-config`）：
 
-- 两侧重复安装已实跑：M1–M10 的第 2 轮分别是 Go `--keep-config`、Bash 交互 keep-config，均 `rc=0`，L6 幂等检查 `ok`，覆盖 U1–U4/U6 的“同实现重复安装”部分。
-- **跨实现升级未测**：矩阵为 Bash/Go 隔离容器，“Bash 安装 → Go 接管”的 U1–U7 全链没有证据，记为 NOT_RUN。
+- 同实现重复安装：M1–M10 的第 2 轮分别是 Go `--keep-config`、Bash 交互 keep-config，均 `rc=0`，L6 幂等检查 `ok`。
+- **跨实现升级已实跑**（`tests/e2e-diff/run_r1_upgrade.sh`，证据 `goevo-r1r2-20261119-0420-6ad3be97/r1`）：M1（Reality 直连）与 M4（TLS+ws+Nginx）各建一个真实 Bash 安装，再由 Go `xray install --keep-config --binary /usr/local/bin/xray` 接管。
+  - U1–U4：配置语义与**字节**均不变、证书/私钥哈希不变、`xray -test` 与 `nginx -t` 通过、服务保持 `active`、监听端口与 cron 表不变。
+  - U5：接管前后各跑一次真实客户端（Reality / TLS+ws），均 `rc=0`。
+  - U6：`status --json` 报 `.installed=true`，且分类与安装模式一致（Reality/raw、TLS/ws）。
+  - U7：注入失败时拒绝接管且前态清单不变，见下。
 
-R2（`idleleo bridge prepare/validate/activate`，仅 M1/M4 抽测）：
+R2（`idleleo bridge prepare/validate/activate`）：
 
-- 实现与单元测试在 `internal/legacybridge`，矩阵未执行，记为 NOT_RUN。
+- 实现与单元测试在 `internal/legacybridge`；实跑用同一 Bash 树，M1/M4 各 5 步全过，终态 `state=COMMITTED`，接管后真实客户端仍连通（同目录 `R2/`）。
+- `bridge prepare` 会备份已存在的 metadata；`metadata import --from install_config.json` 在 Bash 树上成功且不改运行配置（OPS-26）。
+- `validate` 在 M4 上回退到 Bash 布局的 `/usr/local/nginx/conf/nginx.conf`（修复项，见 `03-final-qualification.md` §6.6）。
+
+升级失败注入（`matrix.json` 的 `upgrade.injections`，证据 `goevo-inj-20261119-0435/r1`）：
+
+| ID | 注入 | 结果 |
+|---|---|---|
+| I1 | 运行配置写入非法 JSON | 拒绝（`xray -test rejected the candidate for <config> `），单元/证书/cron 不变，输入字节不被覆盖，修好后服务恢复 |
+| I2 | 移走证书/私钥 | 拒绝并指名缺失的 `xray.crt`，放回后 `xray -test` 与服务恢复 |
+| I3 | 443 被占用（全新 Reality 安装） | 拒绝并报 `already in use`，不写运行配置、不写 unit |
+| I4 | 配置目录只读挂载 | 拒绝并指名被拒写路径，解除挂载后配置字节不变；回滚无法恢复时保留 recovery journal，`idleleo xray recover` 清除后服务 active |
 
 ## 7. 未验证 / 阻塞
 
 - 全量矩阵已于 2026-11-19 在恢复外网后完整重跑（`tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2`，commit `be141822`）：M1–M10 双端两轮 `rc=0`、L4 真实客户端全 `ok`；本条此前的 BLOCKED 结论已被该证据取代。
 - OPS-12/13 的 Bash 侧只做了 6 秒有界采集，不能证明长时跟随；Go 快照行为已实测。
-- OPS-18 的 Bash 侧是交互菜单，本轮未执行开关动作，只验证 Go 只读状态；矩阵未覆盖该动作。
+- OPS-18 的 Bash 侧是交互菜单，本轮未执行开关动作；Go 侧已由 `goevo-ops-20261119-0412` 单边实跑 `tcp status`。
+- OPS 未驱动的 18 行只有 Go 单边实跑（`goevo-ops-20261119-0412-6ad3be97`），没有 Bash 对照，矩阵 verdict 仍按 must-match 记为未完成。
 - OPS-09/19/21/31/32 已在上述矩阵中重跑并 PASS。
-- S1–S9 脚本本体、R1 跨实现升级、R2 bridge 链未执行，见 6.1；不计入 PASS。
+- S1–S9 脚本本体未执行（S7/S8/S9 本体不在仓库，S4/S5/S6 依赖外网/CA），见 6.1；不计入 PASS。
+- R1/R2 与 I1–I4 已实跑（见 6.1），仅 M1/M4 两个场景；M3（reality-transport）与 relay/负载均衡树的接管仍未覆盖。
+- 端口预检只覆盖全新 Reality 直连安装；TLS/reality-nginx 由 Nginx 持有公网端口。
 
 ## 8. 复现命令
 
@@ -192,4 +210,10 @@ docker run --rm -v "$PWD":/src -w /src \
 BASH_CTR=e2e-goevo-ops-bash GO_CTR=e2e-goevo-ops-go \
 OUT="$PWD/tests/e2e-diff/evidence/goevo-ops-20261118/p1/ops" TIMEOUT=45 \
 bash tests/e2e-diff/run_ops_probe.sh
+
+# R1/R2 接管 + I1–I4 失败注入（M1/M4，自建一次性容器）
+E2E_ONLY=M1,M4 E2E_PATHS=both bash tests/e2e-diff/run_r1_upgrade.sh
+
+# 矩阵未驱动 OPS 行的 Go 单边实跑
+E2E_RUN_ID=ops-local bash tests/e2e-diff/run_ops_sweep.sh
 ```

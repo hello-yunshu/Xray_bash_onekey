@@ -2,11 +2,16 @@
 
 - 分支：`work/go-evolution-audit-20261118`（未合并 `main`，未打 tag，未发布）
 - 基线：`develop/go-native` = `d4858a1150d3f83202e95aa9dfea2244832c8b3e`
-- 本阶段代码提交：`2d9a27af`（repair/doctor 权限与锁）、`d8950cd7`（热用户与运维摘要）、`be141822`（编辑回归的证书收敛判定）
-- 实跑时间：2026-11-19，镜像 `idleleo-e2e:24.04`，证据 run.json 记录 commit `be141822`，Xray `26.10.31 a4a3dff`（go1.27.3）
+- 本阶段代码提交：`2d9a27af`（repair/doctor 权限与锁）、`d8950cd7`（热用户与运维摘要）、`be141822`（编辑回归的证书收敛判定）、`6ad3be97`（Bash→Go 接管的运行时保留）、`5329d12e`（R1/R2 与 OPS 实跑证据）、`80ad240f`（接管失败注入与端口预检）
+- 实跑时间：2026-11-19，镜像 `idleleo-e2e:24.04`，证据 run.json 记录 commit `6ad3be97`/`5329d12e`/`80ad240f`，Xray `26.10.31 a4a3dff`（go1.27.3）
 - 证据目录：
   - `tests/e2e-diff/evidence/goevo-p3-20261119-0303/`：热用户/修复/摘要实机套件（60 pass / 0 fail）
   - `tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2/`：M1–M10 双端安装矩阵、E1–E8 编辑回归、OPS 场景（全部 PASS）
+  - `tests/e2e-diff/evidence/goevo-p2-rerun-20261119-0345-6ad3be97/p2/` 与 `goevo-p3-20261119-0406-6ad3be97/`：修复后的全矩阵与热用户回归（全 PASS）
+  - `tests/e2e-diff/evidence/goevo-r1r2-20261119-0420-6ad3be97/r1/`：R1/R2 真实接管（64 PASS / 0 FAIL）
+  - `tests/e2e-diff/evidence/goevo-ops-20261119-0412-6ad3be97/`：矩阵未驱动的 OPS 行 Go 单边实跑（36 assertions）
+  - `tests/e2e-diff/evidence/goevo-inj-20261119-0435/r1/`：I1–I4 接管失败注入（42 PASS / 0 FAIL）
+  - `tests/e2e-diff/evidence/goevo-m1-postfix-20261119-0436/p2/`：端口预检后的 M1 回归（PASS）
 
 ## 1. 结论
 
@@ -120,10 +125,14 @@
 | E1–E8（配置编辑：UUID/端口/target/serverNames/TLS 证书/回滚/shortId/私钥轮换） | **8/8 PASS** | `goevo-p3-matrix-0242-a9875aff/p2`，各场景 `checks.json` 全部 `allPassed=true` |
 | M1–M10 双端安装矩阵 | **10/10 PASS** | 两侧 `rc=0`，L4 两轮真实客户端全 `ok`，L6 幂等 `ok`；差异仅限已登记 ED |
 | OPS-09/19/21/31/32 | **PASS** | 两侧观测一致（负载均衡、Fail2ban、证书、诊断、热用户） |
+| OPS 未驱动行（Go 单边） | **36 assertions 全过** | `goevo-ops-20261119-0412-6ad3be97`；`stats`/`metadata import` 的缺失前置条件按“正确拒绝”断言（rc=3 + 原因），不跳过 |
+| R1 Bash 安装 → `xray install --keep-config` | **2/2 PASS**（M1、M4） | `goevo-r1r2-20261119-0420-6ad3be97/r1`；配置字节、证书、端口、cron 不变，接管前后真实客户端均连通 |
+| R2 Bash 安装 → bridge audit/prepare/validate/activate | **2/2 PASS**（M1、M4） | 同上；终态 `state=COMMITTED`，接管后客户端连通 |
+| I1–I4 接管失败注入 | **42 PASS / 0 FAIL** | `goevo-inj-20261119-0435/r1`；corrupt-config / missing-cert / port-in-use / read-only-target |
 | Go 单元/集成测试 | **PASS** | 全包 `go test` 通过；gofmt/vet 干净 |
 | 证据卫生 | **PASS** | 0 findings |
 
-本轮外部网络恢复后，全矩阵不再有 BLOCKED 项。安装矩阵 `run.json` 绑定 commit `be141822`，与代码树一致。
+本轮外部网络恢复后，全矩阵不再有 BLOCKED 项。接管修复后于 `6ad3be97` 重跑 M1–M10/E1–E8/OPS-09/19/21/31/32 与 P3 热套件，全部 PASS；`80ad240f` 新增端口预检后又单独重跑 M1 确认黄金路径未回归（`goevo-m1-postfix-20261119-0436`）。
 
 ### 6.2 本轮发现：证书切换的瞬时双代 worker
 
@@ -158,21 +167,36 @@
 | 维度 | PASS | FAIL | NOT_RUN | BLOCKED | 批准差异 | 证据 |
 |---|---:|---:|---:|---:|---|---|
 | M1–M10 安装 | 10 | 0 | 0 | 0 | 全部差异为已登记 ED，两轮一致 | `goevo-p3-matrix-0242-a9875aff/p2` |
-| OPS 运营 | 5 | 0 | 29 | 0 | — | 同上（OPS-09/19/21/31/32） |
+| OPS 运营 | 5 双端 + 18 单边 | 0 | 11 | 0 | 单边不计入双端 PASS | `goevo-p3-matrix-0242-a9875aff/p2`（双端）；`goevo-ops-20261119-0412-6ad3be97`（单边 36 assertions） |
 | F01–F28 功能 | 0 | 0 | 28 | 0 | — | 账本 `PENDING_GO_IMPLEMENTATION`，`check_release_gate.py` 仍 rc=2 |
-| S1–S9 辅助脚本 | 0 | 0 | 9 | 0 | — | 脚本本体未执行，对照见 `01-parity-and-safety.md` §6.1 |
-| R1/R2 迁移升级 | 0 | 0 | 2 | 0 | — | R1 仅覆盖同实现重复安装；R2 未执行 |
+| S1–S9 辅助脚本 | 0 | 0 | 9 | 0 | — | S7/S8/S9 为安装时远程下载的第三方脚本，仓库内无本体；S4/S5/S6 依赖外网/CA，无法离线模拟；对照见 `01-parity-and-safety.md` §6.1 |
+| R1/R2 迁移升级 | 2 | 0 | 0 | 0 | — | `goevo-r1r2-20261119-0420-6ad3be97/r1`（M1/M4，64 assertions） |
 | G01–G06 增量 | 6 | 0 | 0 | 0 | — | P1 脱敏、变更契约、doctor、backup/repair、preflight、热用户（实验） |
-| 负面/故障恢复 | 11 | 0 | 1 | 0 | — | 5 类容器注入（无 API、SIGKILL、并发、慢请求、reload 失败回滚）+ 6 类单元级；磁盘满 NOT_RUN |
+| 负面/故障恢复 | 16 | 0 | 0 | 0 | — | 5 类容器注入 + 6 类单元级 + `bridge prepare --fault disk-full`（CLI 注入模拟 ENOSPC，无残留）+ I1/I2/I3/I4 接管失败注入 |
 
 看板口径：PASS 只在对应证据存在且覆盖该行最低成功条件时计数；单元级故障注入单独注明，不冒充双端实机。
+
+### 6.6 本轮新增：Bash→Go 接管的四个真实缺陷
+
+真实接管（不是同实现重装）暴露了四个只在迁移路径上出现的问题，均已修复并在 `6ad3be97` 以 M1/M4 双场景实跑验证：
+
+| 现象 | 根因 | 修复 |
+|---|---|---|
+| 接管后 xray 启动失败并回滚 | Bash 把 `/etc/idleleo/conf/xray` 留成 `0750 root:root`，Go 只给文件换组，`User=xray` 无法穿越目录 | `ensureServiceReadableDir` 给服务组补 `r-x`；`repair` 同步覆盖该目录 |
+| TLS+ws 接管后客户端连不上（重置） | Go 重新生成的 Nginx 片段上游固定 `127.0.0.1:10000`，Bash 的 ws 入站是随机端口 | 接管时 `adoptRuntimeSettings` 从被保留配置继承 ws/grpc/xhttp 端口与路径 |
+| 接管第二步报 `ws port ... is already in use` | 端口探测把正在运行的同一服务当成占用 | `SkipPortProbe: spec.KeepConfig`，仅接管路径跳过 |
+| `bridge validate` 报 `nginx -t` 失败 | 只认 `/etc/nginx/nginx.conf`，Bash 树在 `/usr/local/nginx/conf/nginx.conf` | `nginxMainConf` 优先系统路径、回退 Bash 布局 |
+
+失败注入（I1–I4）又补出一个第五点：全新 Reality 安装在 443 被占用时先写出配置、到启动才失败，报错不指名端口。`80ad240f` 在生成前预检公网端口（仅全新安装；接管保留运行中的监听），并让 `xray -test` 的拒绝信息带上目标配置路径。
 
 ## 7. GO/NO-GO 建议
 
 - **正式发布：NO-GO**。28 项契约未签收，缺少受保护 CI 与真实节点证据；本轮全矩阵已实跑通过，但账本门禁仍是 `RELEASE BLOCKED`。
 - **保留实验能力：GO（带标记）**。热用户变更默认关闭，仅在 `--experimental-hot` 下可用；默认路径不变。
-- **默认能力：GO（有界）**。repair/doctor 的权限回归已修复并有实机证据；`ops summary` 只读。
+- **默认能力：GO（有界）**。repair/doctor 的权限回归已修复并有实机证据；Bash→Go 接管（R1/R2）已实跑通过；`ops summary` 只读。
 - **剩余风险**：
   1. 证书编辑存在 Nginx 平滑重载的瞬时双代窗口（E5 已用收敛判定覆盖）；若旧连接长期存活，旧 worker 也会在极短时间内继续服务旧证书，不影响新连接最终收敛。
   2. 热变更只对 Reality+VLESS 用户增删给出证据；其他协议与密钥轮换不承诺低中断。
-  3. 真实 VPS 上的 systemd/journald、证书续期与断电场景仍未取证。
+  3. 真实 VPS 上的 systemd/journald、证书续期与断电场景仍未取证；断电/极端退出仅以重启与半失败重试近似。
+  4. S1–S9 辅助脚本未执行：S7/S8/S9（acme.sh、tcp.sh、superspeed.sh）是安装时从远端下载的第三方脚本，仓库内无本体；S4/S5/S6 依赖外网与 CA，无法离线模拟；S1/S2/S3 为交互菜单脚本，其能力由 OPS 双端行（fail2ban、流量阻断、文件管理）覆盖。
+  5. 端口预检只覆盖全新 Reality 直连安装；TLS/reality-nginx 的公网端口由 Nginx 持有，安装时由 `nginx -t` 与启动校验兜底。
