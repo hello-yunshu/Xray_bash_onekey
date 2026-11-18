@@ -1,0 +1,15 @@
+{
+  "inbounds": [
+    {
+      "realityPublicKeyPresent": true,
+      "realityPublicKeySha256": "98571356aa83f8427393237607071c290b3016efe3ddb73bfe33fa76465722c6",
+      "shortIdsSha256": [
+        "65f055f00780ea97ab05d590687f3951ebe6e11d5296ce47e1696ac9123aa71f"
+      ],
+      "tag": "VLESS-Reality-in",
+      "uuidSha256": [
+        "653819fd0c0ab8f3134eba86373f5d82a952c4205f175b049f7a667950c3334b"
+      ]
+    }
+  ]
+}

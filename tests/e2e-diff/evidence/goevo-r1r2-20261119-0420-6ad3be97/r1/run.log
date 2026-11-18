@@ -1,0 +1,10 @@
+04:20:21 building idleleo
+04:20:26 idleleo_sha256=209ec9d1a5e3671cf7f80f70fdc8b1576597b352ab267eeb3c38b441c7114347 recover_sha256=6bc0ff8dbee3e3d7db40317e967524493cd93904ba541e4257166a7d95195f41 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328
+04:20:27 run_start=2026-11-18T20:20:27Z only=M1,M4 paths=both
+04:20:27 [M1/R1] start
+04:21:28 [M1/R2] start
+04:22:16 [M4/R1] start
+04:23:00 [M4/R2] start
+04:23:34 run_end=2026-11-18T20:23:34Z
+64 PASS
+0 FAIL

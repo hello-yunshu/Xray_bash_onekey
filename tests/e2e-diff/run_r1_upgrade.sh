@@ -159,13 +159,13 @@ run_r1() { # run_r1 <sid> <profile> <bash-arg> <l4-profile> <l4-transport> <go-a
         "$c" bash /src/tests/e2e-diff/drivers/bash_install.sh
     local brc=$?
     echo "$brc" >"$out/bash.rc"
-    assert $([ "$brc" -eq 0 ] && echo 0 || echo 1) "$sid R1 bash install exits 0 (rc=$brc)"
+    assert "$([ "$brc" -eq 0 ] && echo 0 || echo 1)" "$sid R1 bash install exits 0 (rc=$brc)"
     [ "$brc" -eq 0 ] || { docker rm -f "$c" >/dev/null 2>&1; return; }
 
     snap "$c" "$out/pre"
     run_l4 "$sid" "$c" "$out" "$net" "$l4p" "$l4t" pre
     local l4pre; l4pre=$(cat "$out/L4-pre.rc")
-    assert $([ "$l4pre" -eq 0 ] && echo 0 || echo 1) "$sid R1 traffic works before takeover (rc=$l4pre)"
+    assert "$([ "$l4pre" -eq 0 ] && echo 0 || echo 1)" "$sid R1 traffic works before takeover (rc=$l4pre)"
 
     docker exec "$c" install -m 0755 /seed/idleleo /usr/local/bin/idleleo
     docker exec -e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY "$c" \
@@ -173,7 +173,7 @@ run_r1() { # run_r1 <sid> <profile> <bash-arg> <l4-profile> <l4-transport> <go-a
         --container --json "${goargs[@]}" >"$out/takeover.json" 2>"$out/takeover.err"
     local grc=$?
     echo "$grc" >"$out/takeover.rc"
-    assert $([ "$grc" -eq 0 ] && echo 0 || echo 1) "$sid R1 go install --keep-config exits 0 (rc=$grc)"
+    assert "$([ "$grc" -eq 0 ] && echo 0 || echo 1)" "$sid R1 go install --keep-config exits 0 (rc=$grc)"
     snap "$c" "$out/post"
 
     local same_sorted same_bytes same_cert same_ports same_cron
@@ -209,25 +209,25 @@ PY
     assert "$same_bytes"  "$sid R1 runtime config bytes are unchanged"
     if [ "$l4p" = "tls" ]; then
         assert "$same_cert" "$sid R1 certificate and key are untouched"
-        assert $([[ "$(cat "$out/post/nginx-test.rc")" == "0" ]] && echo 0 || echo 1) \
+        assert "$([[ "$(cat "$out/post/nginx-test.rc")" == "0" ]] && echo 0 || echo 1)" \
             "$sid R1 nginx config still validates"
     fi
-    assert $([[ "$(cat "$out/post/xray-test.rc")" == "0" ]] && echo 0 || echo 1) \
+    assert "$([[ "$(cat "$out/post/xray-test.rc")" == "0" ]] && echo 0 || echo 1)" \
         "$sid R1 xray config still validates"
-    assert $([ "$(sed -n 1p "$out/post/active.txt")" = "active" ] && echo 0 || echo 1) \
+    assert "$([ "$(sed -n 1p "$out/post/active.txt")" = "active" ] && echo 0 || echo 1)" \
         "$sid R1 xray stays active"
     assert "$same_ports" "$sid R1 listening ports are unchanged"
     assert "$same_cron"  "$sid R1 cron table is unchanged"
 
     run_l4 "$sid" "$c" "$out" "$net" "$l4p" "$l4t" post
-    assert $([ "$(cat "$out/L4-post.rc")" -eq 0 ] && echo 0 || echo 1) \
+    assert "$([ "$(cat "$out/L4-post.rc")" -eq 0 ] && echo 0 || echo 1)" \
         "$sid R1 traffic works after takeover (rc=$(cat "$out/L4-post.rc"))"
 
     docker exec -e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY "$c" \
         /usr/local/bin/idleleo status --json >"$out/status.json" 2>"$out/status.err"
     echo $? >"$out/status.rc"
-    assert $([ "$(cat "$out/status.rc")" -eq 0 ] && echo 0 || echo 1) "$sid R1 status exits 0"
-    assert $(jq -e '.installed == true' "$out/status.json" >/dev/null 2>&1 && echo 0 || echo 1) \
+    assert "$([ "$(cat "$out/status.rc")" -eq 0 ] && echo 0 || echo 1)" "$sid R1 status exits 0"
+    assert "$(jq -e '.installed == true' "$out/status.json" >/dev/null 2>&1 && echo 0 || echo 1)" \
         "$sid R1 status reports an installed runtime"
     # U6: the adopted runtime classification must match what Bash installed.
     local want_tls want_tr
@@ -237,8 +237,8 @@ PY
         *) want_tls="" want_tr="" ;;
     esac
     if [ -n "$want_tls" ]; then
-        assert $(jq -e --arg t "$want_tls" --arg n "$want_tr" \
-            '.tls == $t and .transport == $n' "$out/status.json" >/dev/null 2>&1 && echo 0 || echo 1) \
+        assert "$(jq -e --arg t "$want_tls" --arg n "$want_tr" \
+            '.tls == $t and .transport == $n' "$out/status.json" >/dev/null 2>&1 && echo 0 || echo 1)" \
             "$sid R1 status classification is ${want_tls}/${want_tr}"
     fi
 
@@ -262,14 +262,49 @@ run_r2() { # run_r2 <sid> <profile> <bash-arg> <l4-profile> <l4-transport>
         "$c" bash /src/tests/e2e-diff/drivers/bash_install.sh
     local brc=$?
     echo "$brc" >"$out/bash.rc"
-    assert $([ "$brc" -eq 0 ] && echo 0 || echo 1) "$sid R2 bash install exits 0 (rc=$brc)"
+    assert "$([ "$brc" -eq 0 ] && echo 0 || echo 1)" "$sid R2 bash install exits 0 (rc=$brc)"
     [ "$brc" -eq 0 ] || { docker rm -f "$c" >/dev/null 2>&1; return; }
 
     snap "$c" "$out/pre"
     docker exec "$c" install -m 0755 /seed/idleleo /usr/local/bin/idleleo
     docker exec "$c" install -m 0755 /seed/idleleo-recover /usr/local/bin/idleleo-recover
     local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY)
+    # Fault injection: a prepare that hits ENOSPC must leave no journal, plan,
+    # snapshot or entry change behind, and a clean prepare must then succeed.
+    docker exec "${envs[@]}" "$c" /usr/local/bin/idleleo bridge prepare \
+        --candidate /usr/local/bin/idleleo --recovery /usr/local/bin/idleleo-recover \
+        --acknowledge-custom --fault disk-full --container --json \
+        >"$out/fault-diskfull.json" 2>"$out/fault-diskfull.err"
+    local frc=$?
+    echo "$frc" >"$out/fault-diskfull.rc"
+    assert "$([ "$frc" -eq 13 ] && echo 0 || echo 1)" \
+        "$sid R2 disk-full prepare exits 13 (rc=$frc)"
+    snap "$c" "$out/fault"
+    assert "$(cmp -s "$out/pre/config.sorted.json" "$out/fault/config.sorted.json" && echo 0 || echo 1)" \
+        "$sid R2 disk-full leaves the runtime config untouched"
+    assert "$(cmp -s "$out/pre/sha.txt" "$out/fault/sha.txt" && echo 0 || echo 1)" \
+        "$sid R2 disk-full leaves config, certs and units untouched"
+    assert "$(docker exec "$c" sh -c \
+        '[ ! -e /var/lib/idleleo/bridge/journal.json ] && [ ! -e /var/lib/idleleo/bridge/plan.json ] && echo 0 || echo 1')" \
+        "$sid R2 disk-full leaves no journal or plan"
     local step
+    # OPS-26 on the tree it exists for: a Bash install carries
+    # install_config.json but no Go metadata store, so this import is the
+    # legacy migration path. It must create the store and leave the runtime
+    # config byte-identical; the bridge steps afterwards then run with metadata
+    # already in place, which Prepare backs up instead of ignoring.
+    local mpre mpost
+    mpre=$(docker exec "$c" sha256sum /etc/idleleo/conf/xray/config.json | awk '{print $1}')
+    docker exec "${envs[@]}" "$c" /usr/local/bin/idleleo metadata import \
+        --from install_config.json --container >"$out/metadata-import.out" 2>"$out/metadata-import.err"
+    local mrc=$?
+    mpost=$(docker exec "$c" sha256sum /etc/idleleo/conf/xray/config.json | awk '{print $1}')
+    assert "$([ "$mrc" -eq 0 ] && echo 0 || echo 1)" \
+        "$sid OPS-26 metadata import from a Bash tree (rc=$mrc)"
+    assert "$(docker exec "$c" sh -c '[ -f /etc/idleleo/v1/metadata.json ] && echo 0 || echo 1')" \
+        "$sid OPS-26 import creates the Go metadata store"
+    assert "$([ -n "$mpre" ] && [ "$mpre" = "$mpost" ] && echo 0 || echo 1)" \
+        "$sid OPS-26 import leaves the runtime config untouched"
     for step in audit prepare validate activate status; do
         local -a args=()
         case $step in
@@ -289,7 +324,7 @@ run_r2() { # run_r2 <sid> <profile> <bash-arg> <l4-profile> <l4-transport>
         docker exec "${envs[@]}" "$c" /usr/local/bin/idleleo "${args[@]}" \
             >"$out/bridge-$step.json" 2>"$out/bridge-$step.err"
         echo $? >"$out/bridge-$step.rc"
-        assert $([ "$(cat "$out/bridge-$step.rc")" -eq 0 ] && echo 0 || echo 1) \
+        assert "$([ "$(cat "$out/bridge-$step.rc")" -eq 0 ] && echo 0 || echo 1)" \
             "$sid R2 bridge $step exits 0 (rc=$(cat "$out/bridge-$step.rc"))"
     done
 
@@ -299,12 +334,12 @@ run_r2() { # run_r2 <sid> <profile> <bash-arg> <l4-profile> <l4-transport>
     same_ports=$(cmp -s "$out/pre/ports.txt" "$out/post/ports.txt" && echo 0 || echo 1)
     assert "$same_sorted" "$sid R2 runtime config is semantically unchanged"
     assert "$same_ports"  "$sid R2 listening ports are unchanged"
-    assert $([ "$(sed -n 1p "$out/post/active.txt")" = "active" ] && echo 0 || echo 1) \
+    assert "$([ "$(sed -n 1p "$out/post/active.txt")" = "active" ] && echo 0 || echo 1)" \
         "$sid R2 xray stays active"
-    assert $(jq -e '.state == "COMMITTED"' "$out/bridge-status.json" >/dev/null 2>&1 && echo 0 || echo 1) \
+    assert "$(jq -e '.state == "COMMITTED"' "$out/bridge-status.json" >/dev/null 2>&1 && echo 0 || echo 1)" \
         "$sid R2 bridge status reports a committed migration"
     run_l4 "$sid" "$c" "$out" "$net" "$l4p" "$l4t" post
-    assert $([ "$(cat "$out/L4-post.rc")" -eq 0 ] && echo 0 || echo 1) \
+    assert "$([ "$(cat "$out/L4-post.rc")" -eq 0 ] && echo 0 || echo 1)" \
         "$sid R2 traffic works after activation (rc=$(cat "$out/L4-post.rc"))"
 
     [[ "${E2E_KEEP:-0}" == "1" ]] || { docker rm -f "$c" >/dev/null 2>&1; docker network rm "$net" >/dev/null 2>&1; }

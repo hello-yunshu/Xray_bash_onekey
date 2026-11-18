@@ -1,0 +1,24 @@
+{
+  "inbounds": [
+    {
+      "realityPublicKeyPresent": true,
+      "realityPublicKeySha256": "ff49a224ac434b752a711cb985c7901cacf1d806d14315d69636c11412190f64",
+      "shortIdsSha256": [
+        "a78620c0d2f40ae24059af708b6754a1a7b050d6ec7d09feb88a61dd315dc908"
+      ],
+      "tag": "VLESS-Reality-in",
+      "uuidSha256": [
+        "a420a3407e55ce5b8b5d0922db36311454c7ac83b3e0c9af6fb86303e6e75a33"
+      ]
+    },
+    {
+      "realityPublicKeyPresent": false,
+      "realityPublicKeySha256": null,
+      "shortIdsSha256": [],
+      "tag": "VLESS-ws-in",
+      "uuidSha256": [
+        "a420a3407e55ce5b8b5d0922db36311454c7ac83b3e0c9af6fb86303e6e75a33"
+      ]
+    }
+  ]
+}

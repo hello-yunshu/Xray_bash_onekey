@@ -1,0 +1,15 @@
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash xray[<PID>]: 2026/11/18 19:47:44.686522 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-goevo-p2-rerun-20261119-0345-6ad3be97-M6-bash xray[<PID>]: 2026/11/18 19:47:58.710283 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/18 19:47:44.693175 [Warning] core: Xray 26.10.31 started
+2026/11/18 19:47:48.336993 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:41110 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/18 19:47:48.337011 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:41106 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/18 19:47:58.716231 [Warning] core: Xray 26.10.31 started

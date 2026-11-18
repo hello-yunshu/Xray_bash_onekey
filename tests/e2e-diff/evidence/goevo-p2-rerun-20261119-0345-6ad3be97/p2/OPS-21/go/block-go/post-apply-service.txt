@@ -1,0 +1,21 @@
+active
+-rw-r----- 1 root xray 2793 Nov 18 19:53 /etc/idleleo/conf/xray/config.json
+8487999b90f6b7650f967fb3976e7638331794337a299bde86e848f1d3765a2b  /etc/idleleo/conf/xray/config.json
+Nov 18 19:53:07 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 18 19:53:07 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go xray[221]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 19:53:07 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go xray[221]: A unified platform for anti-censorship.
+Nov 18 19:53:07 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go xray[221]: 2026/11/18 19:53:07.183170 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 18 19:53:11 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 18 19:53:11 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go systemd[1]: xray.service: Deactivated successfully.
+Nov 18 19:53:11 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 18 19:53:11 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 18 19:53:11 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go xray[1255]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 19:53:11 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go xray[1255]: A unified platform for anti-censorship.
+Nov 18 19:53:11 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go xray[1255]: 2026/11/18 19:53:11.144351 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 18 19:53:18 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 18 19:53:18 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go systemd[1]: xray.service: Deactivated successfully.
+Nov 18 19:53:18 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 18 19:53:18 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 18 19:53:18 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go xray[1419]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 19:53:18 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go xray[1419]: A unified platform for anti-censorship.
+Nov 18 19:53:18 e2e-goevo-p2-rerun-20261119-0345-6ad3be97-OPS-21-go xray[1419]: 2026/11/18 19:53:18.926794 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

@@ -1,0 +1,5 @@
+Nov 18 20:12:49 e2e-goevo-ops-20261119-0412-6ad3be97-server systemd[1]: Stopped xray.service - Xray Service.
+Nov 18 20:12:49 e2e-goevo-ops-20261119-0412-6ad3be97-server systemd[1]: Started xray.service - Xray Service.
+Nov 18 20:12:49 e2e-goevo-ops-20261119-0412-6ad3be97-server xray[327]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 20:12:49 e2e-goevo-ops-20261119-0412-6ad3be97-server xray[327]: A unified platform for anti-censorship.
+Nov 18 20:12:49 e2e-goevo-ops-20261119-0412-6ad3be97-server xray[327]: 2026/11/18 20:12:49.272759 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

@@ -1,0 +1,23 @@
+2026/10/15 06:38:20 [notice] 27637#0: signal process started
+2026/11/18 20:01:40 [notice] 243#0: signal process started
+2026/11/18 20:01:41 [notice] 460#0: signal process started
+2026/11/18 20:01:42 [notice] 487#0: signal process started
+2026/11/18 20:01:42 [notice] 531#0: signal process started
+2026/11/18 20:01:42 [error] 536#0: *45 connect() failed (111: Connection refused) while proxying connection, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:517/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 541#0: *48 connect() failed (111: Connection refused) while proxying connection, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:517/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 535#0: *51 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:0/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 533#0: *56 connect() failed (111: Connection refused) while proxying connection, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:517/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 542#0: *65 connect() failed (111: Connection refused) while proxying connection, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:517/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 534#0: *68 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:0/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 539#0: *75 connect() failed (111: Connection refused) while proxying connection, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:517/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 538#0: *84 connect() failed (111: Connection refused) while proxying connection, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:517/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 536#0: *87 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:0/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 540#0: *96 connect() failed (111: Connection refused) while proxying connection, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:517/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 537#0: *109 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:0/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 542#0: *124 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:0/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 541#0: *133 connect() failed (111: Connection refused) while proxying connection, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:517/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 535#0: *136 connect() failed (111: Connection refused) while proxying connection, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:517/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 534#0: *151 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:0/0, bytes from/to upstream:0/0
+2026/11/18 20:01:42 [error] 539#0: *172 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:0/0, bytes from/to upstream:0/0
+2026/11/18 20:01:43 [error] 537#0: *179 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:0/0, bytes from/to upstream:0/0
+2026/11/18 20:01:47 [error] 540#0: *196 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: "127.0.0.1:9001", bytes from/to client:0/0, bytes from/to upstream:0/0

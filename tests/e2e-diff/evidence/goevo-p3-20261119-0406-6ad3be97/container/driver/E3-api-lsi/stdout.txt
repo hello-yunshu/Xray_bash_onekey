@@ -1,0 +1,116 @@
+{
+    "inbounds": [
+        {
+            "proxySettings": {
+                "_TypedMessage_": "xray.proxy.dokodemo.Config",
+                "allowedNetworks": [
+                    "TCP"
+                ],
+                "rewriteAddress": "127.0.0.1"
+            },
+            "receiverSettings": {
+                "_TypedMessage_": "xray.app.proxyman.ReceiverConfig",
+                "listen": "127.0.0.1",
+                "portList": 10085
+            },
+            "tag": "api"
+        },
+        {
+            "proxySettings": {
+                "_TypedMessage_": "xray.proxy.vless.inbound.Config",
+                "decryption": "none",
+                "users": [
+                    {
+                        "account": {
+                            "_TypedMessage_": "xray.proxy.vless.Account",
+                            "flow": "xtls-rprx-vision",
+                            "id": "<uuid>"
+                        },
+                        "email": "me@hey.run"
+                    },
+                    {
+                        "account": {
+                            "_TypedMessage_": "xray.proxy.vless.Account",
+                            "id": "<uuid>"
+                        },
+                        "email": "hot-b@test.local"
+                    }
+                ]
+            },
+            "receiverSettings": {
+                "_TypedMessage_": "xray.app.proxyman.ReceiverConfig",
+                "listen": "0.0.0.0",
+                "portList": 443,
+                "streamSettings": {
+                    "protocolName": "tcp",
+                    "securitySettings": [
+                        {
+                            "_TypedMessage_": "xray.transport.internet.reality.Config",
+                            "dest": "127.0.0.1:8443",
+                            "limitFallbackDownload": {},
+                            "limitFallbackUpload": {},
+                            "minClientVer": [
+                                1,
+                                0,
+                                0
+                            ],
+                            "privateKey": [
+                                31,
+                                83,
+                                134,
+                                139,
+                                74,
+                                69,
+                                123,
+                                207,
+                                208,
+                                52,
+                                214,
+                                157,
+                                251,
+                                142,
+                                51,
+                                14,
+                                219,
+                                126,
+                                183,
+                                133,
+                                121,
+                                99,
+                                248,
+                                200,
+                                156,
+                                136,
+                                205,
+                                82,
+                                168,
+                                126,
+                                3,
+                                92
+                            ],
+                            "serverNames": [
+                                "www.cloudflare.com"
+                            ],
+                            "shortIds": [
+                                [
+                                    134,
+                                    21,
+                                    13,
+                                    128,
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "type": "tcp"
+                        }
+                    ],
+                    "securityType": "xray.transport.internet.reality.Config"
+                }
+            },
+            "tag": "VLESS-Reality-in"
+        }
+    ]
+}
+

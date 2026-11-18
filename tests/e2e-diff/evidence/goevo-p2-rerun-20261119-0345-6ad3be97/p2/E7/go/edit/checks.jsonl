@@ -1,0 +1,13 @@
+{"name": "baselineLinkWorks", "ok": true, "detail": "3043d885"}
+{"name": "appendRcZero", "ok": true, "detail": "rc=0"}
+{"name": "appendKeepsOldSid", "ok": true, "detail": "[\"3043d885\", \"ce6a826a\"]"}
+{"name": "newLinkUsesNewSid", "ok": true, "detail": "ce6a826a"}
+{"name": "appendRestartedService", "ok": true, "detail": "5751760907 -> 5765993299"}
+{"name": "oldLinkWorksAfterAppend", "ok": true, "detail": "sid=3043d885"}
+{"name": "newLinkWorksAfterAppend", "ok": true, "detail": "sid=ce6a826a"}
+{"name": "removeRcZero", "ok": true, "detail": "rc=0"}
+{"name": "oldSidGone", "ok": true, "detail": "[\"ce6a826a\"]"}
+{"name": "removeRestartedService", "ok": true, "detail": "5765993299 -> 5782765179"}
+{"name": "oldLinkFailsAfterRemove", "ok": true, "detail": "sid=3043d885"}
+{"name": "newLinkStillWorks", "ok": true, "detail": "sid=ce6a826a"}
+{"name": "serviceActive", "ok": true, "detail": ""}

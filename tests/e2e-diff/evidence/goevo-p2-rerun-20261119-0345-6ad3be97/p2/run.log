@@ -1,0 +1,59 @@
+03:45:01 run_id=goevo-p2-rerun-20261119-0345-6ad3be97
+03:45:02 image_id=sha256:ae4132b2879602a19b6d6c5cac79cc9cd63f98d8bb29b1f55c6d190023e93a8a
+03:45:02 building idleleo
+03:45:07 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=209ec9d1a5e3671cf7f80f70fdc8b1576597b352ab267eeb3c38b441c7114347
+03:45:08 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+03:45:08 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+03:45:10 argv-verify written
+03:45:11 [M3] start
+03:45:11 [M2] start
+03:45:11 [M1] start
+03:45:11 [M4] start
+03:45:11 [M5] start
+03:46:28 [M4] done
+03:46:28 [M5] done
+03:46:48 [M1] done
+03:47:03 [M3] done
+03:47:13 [M2] done
+03:47:13 [M8] start
+03:47:13 [M10] start
+03:47:13 [M6] start
+03:47:13 [M9] start
+03:47:13 [M7] start
+03:47:14 [M8] pebble ready
+03:48:01 [M10] done
+03:48:03 [M9] done
+03:48:20 [M6] done
+03:48:32 [M8] done
+03:48:58 [M7] done
+03:49:00 [E6] start
+03:49:00 [E7] start
+03:49:00 [E4] start
+03:49:00 [E1] start
+03:49:00 [E3] start
+03:49:00 [E2] start
+03:49:00 [E8] start
+03:49:00 [E5] start
+03:49:19 [E3] done
+03:49:20 [E5] done
+03:49:23 [E6] done
+03:49:24 [E4] done
+03:49:24 [E2] done
+03:49:25 [E1] done
+03:49:54 [E7] done
+03:50:02 [E8] done
+03:50:02 [OPS-19] start
+03:51:19 [OPS-19] verdict=PASS
+03:51:19 [OPS-21] start
+03:53:45 [OPS-21] verdict=PASS
+03:53:45 [OPS-09] start upstream=ws
+03:54:35 [OPS-09] verdict=PASS
+03:54:35 [OPS-31] start upstream=reality
+03:55:51 [OPS-31] verdict=PASS
+03:55:51 [OPS-32] start upstream=ws
+03:59:12 [OPS-32/ws] verdict=PASS
+03:59:12 [OPS-32] start upstream=reality
+04:02:57 [OPS-32/reality] verdict=PASS
+04:02:57 [OPS-32] verdict=PASS
+04:02:57 scope: installs=[M1,M2,M3,M4,M5,M6,M7,M8,M9,M10] edits=[E1,E2,E3,E4,E5,E6,E7,E8] ops=[OPS-19,OPS-21,OPS-09,OPS-31,OPS-32]
+04:02:57 P2 finished: tests/e2e-diff/evidence/goevo-p2-rerun-20261119-0345-6ad3be97/p2

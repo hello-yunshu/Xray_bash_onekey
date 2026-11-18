@@ -1,0 +1,36 @@
+PASS	go install exits 0
+PASS	OPS-01 runs (rc=0): xray user list --path /etc/idleleo/conf/xray/config.json --json
+PASS	OPS-01 returns parseable JSON
+PASS	OPS-02 runs (rc=0): xray user add --sandbox / --email e2e@example.com --uuid 11111111-2222-3333-4444-555555555555 --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json
+PASS	OPS-02 returns parseable JSON
+PASS	OPS-03 runs (rc=0): xray user remove --sandbox / --email e2e@example.com --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json
+PASS	OPS-03 returns parseable JSON
+PASS	OPS-11 runs (rc=0): show --json
+PASS	OPS-11 returns parseable JSON
+PASS	OPS-12 runs (rc=0): service logs --unit xray --lines 5
+PASS	OPS-13 runs (rc=0): service logs --unit nginx --lines 5
+PASS	OPS-14a runs (rc=0): xray api enable --sandbox / --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json
+PASS	OPS-14a returns parseable JSON
+PASS	OPS-14 refuses with rc=3 (got 3): stats --json
+PASS	OPS-14 explains the missing prerequisite
+PASS	OPS-20 refuses with rc=3 (got 3): stats --json
+PASS	OPS-20 explains the missing prerequisite
+PASS	OPS-15 runs (rc=0): service restart --container
+PASS	OPS-15 xray active after restart
+PASS	OPS-18 runs (rc=0): tcp status --json
+PASS	OPS-18 returns parseable JSON
+PASS	OPS-22 runs (rc=0): xray logs clean --yes --container --json
+PASS	OPS-22 returns parseable JSON
+PASS	OPS-25 runs (rc=0): metadata export --out /tmp/e2e-metadata.json
+PASS	OPS-29 runs (rc=0): rill status --json
+PASS	OPS-29 returns parseable JSON
+PASS	OPSS-01 runs (rc=0): schedule status --json
+PASS	OPSS-01 returns parseable JSON
+PASS	OPS-17a runs (rc=0): update status --json
+PASS	OPS-17a returns parseable JSON
+PASS	OPS-26 refuses with rc=3 (got 3): metadata import --from install_config.json --container
+PASS	OPS-26 explains the missing prerequisite
+PASS	OPS-28 runs (rc=0): xray uninstall --purge --container --json
+PASS	OPS-28 returns parseable JSON
+PASS	OPS-28 xray stops after uninstall
+PASS	OPS-28 runtime config is removed by --purge

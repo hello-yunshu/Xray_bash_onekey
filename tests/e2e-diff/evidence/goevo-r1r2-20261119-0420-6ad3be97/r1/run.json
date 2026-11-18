@@ -1,0 +1,7 @@
+{
+  "branch": "work/go-evolution-audit-20261118",
+  "commit": "6ad3be97a9553bc9783ebb05dc40d22f0a42ee23",
+  "imageTag": "idleleo-e2e:24.04",
+  "runId": "goevo-r1r2-20261119-0420-6ad3be97",
+  "scenarios": "M1,M4"
+}

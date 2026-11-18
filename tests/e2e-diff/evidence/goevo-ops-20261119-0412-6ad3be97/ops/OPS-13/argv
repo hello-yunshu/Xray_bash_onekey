@@ -1,0 +1,1 @@
+service logs --unit nginx --lines 5
