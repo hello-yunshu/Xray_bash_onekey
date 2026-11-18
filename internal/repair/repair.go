@@ -11,8 +11,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"sort"
+	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
@@ -80,7 +83,7 @@ func Run(ctx context.Context, root string, opts Options) (Report, error) {
 		rel  string
 		mode os.FileMode
 	}{
-		{paths.RuntimeConfig(), 0o600},
+		{paths.RuntimeConfig(), 0o640},
 		{"etc/idleleo/cert/xray.key", 0o600},
 		{"etc/idleleo/cert/xray.crt", 0o644},
 		{"etc/idleleo/v1/metadata.json", 0o600},
@@ -98,6 +101,10 @@ func Run(ctx context.Context, root string, opts Options) (Report, error) {
 			rep.do(opts, fmt.Sprintf("set mode of %s to %04o", f.rel, f.mode), func() error { return os.Chmod(p, f.mode) })
 		}
 	}
+	// The service runs as the unprivileged xray account. Hardening the file to
+	// 0600 root:root would make the *next* restart fail, so the group must stay
+	// aligned with that account.
+	rep.fixServiceGroup(paths, opts)
 	rep.checkConfig(paths, opts)
 	rep.checkCertificate(root)
 	rep.checkLock(paths, opts)
@@ -105,6 +112,31 @@ func Run(ctx context.Context, root string, opts Options) (Report, error) {
 	sort.Strings(rep.Actions)
 	rep.Healthy = len(rep.Remaining) == 0
 	return rep, nil
+}
+
+// fixServiceGroup keeps the runtime config and its directory readable by the
+// xray service account's group. Ownership itself stays root-owned.
+func (r *Report) fixServiceGroup(paths host.Paths, opts Options) {
+	g, err := user.LookupGroup("xray")
+	if err != nil {
+		return
+	}
+	gid, err := strconv.Atoi(g.Gid)
+	if err != nil {
+		return
+	}
+	for _, rel := range []string{"etc/idleleo/conf", paths.RuntimeConfig()} {
+		p := filepath.Join(paths.Root, rel)
+		fi, statErr := os.Stat(p)
+		if statErr != nil {
+			continue
+		}
+		st, ok := fi.Sys().(*syscall.Stat_t)
+		if !ok || int(st.Gid) == gid {
+			continue
+		}
+		r.do(opts, "set group of "+rel+" to xray", func() error { return os.Chown(p, -1, gid) })
+	}
 }
 
 // do performs one repair, or records exactly what a dry run would have done.
@@ -158,8 +190,27 @@ func (r *Report) checkLock(paths host.Paths, opts Options) {
 	if err != nil {
 		return
 	}
-	if opts.Now.Sub(fi.ModTime()) <= 30*time.Minute {
+	// A lock file that a finished transaction left behind is not held. Testing
+	// the flock avoids reporting a healthy root as busy forever.
+	held, heldErr := host.LockHeld(paths.LockFile())
+	if heldErr != nil {
+		return
+	}
+	if !held && opts.FixLock {
+		r.do(opts, "remove stale update lock", func() error {
+			err := os.Remove(paths.LockFile())
+			if errors.Is(err, os.ErrNotExist) {
+				return nil
+			}
+			return err
+		})
+		return
+	}
+	if held {
 		r.Remaining = append(r.Remaining, "an update lock is held; rerun after it finishes")
+		return
+	}
+	if opts.Now.Sub(fi.ModTime()) <= 30*time.Minute {
 		return
 	}
 	if !opts.FixLock {

@@ -13,6 +13,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -103,6 +104,7 @@ func RunWith(ctx context.Context, root string, opts Options) Report {
 	cfg, _ := checkConfig(paths, meta, opts, ctx)
 	rep.add(cfg)
 	rep.add(checkModes(paths))
+	rep.add(checkServiceAccess(ctx, paths))
 	rep.add(checkCertificate(paths, meta))
 	rep.add(checkNginx(paths))
 	rep.add(checkServices(ctx, root, opts))
@@ -290,6 +292,38 @@ func checkModes(paths host.Paths) Check {
 		}
 	}
 	return Check{ID: "permissions", Status: StatusOK, Message: "config and key permissions are restrictive"}
+}
+
+// checkServiceAccess proves that the service account can still read the
+// config after a restart. Checking only that the service is active hides a
+// permission change that would fail the next start.
+func checkServiceAccess(ctx context.Context, paths host.Paths) Check {
+	const id = "service-access"
+	if _, err := user.Lookup("xray"); err != nil {
+		return Check{ID: id, Status: StatusSkip, Message: "service account xray is not present"}
+	}
+	su, err := host.ResolveBinary("su")
+	if err != nil {
+		return Check{ID: id, Status: StatusSkip, Message: "su is unavailable, readability not proven"}
+	}
+	cfg := filepath.Join(paths.Root, paths.RuntimeConfig())
+	if _, err := os.Stat(cfg); err != nil {
+		return Check{ID: id, Status: StatusSkip, Message: "no runtime config to read"}
+	}
+	cmd := "test -r " + strconv.Quote(cfg) + " && test -x " + strconv.Quote(filepath.Join(paths.Root, "etc/idleleo/conf"))
+	res, err := host.Run(ctx, host.ExecSpec{
+		Path: su, Args: []string{"-s", "/bin/sh", "xray", "-c", cmd}, Timeout: 5 * time.Second,
+	})
+	if err != nil {
+		return Check{ID: id, Status: StatusUnknown, Message: "could not test readability as the service account", Detail: err.Error()}
+	}
+	if res.ExitCode != 0 {
+		return Check{ID: id, Status: StatusFail,
+			Message:  "service account cannot read the runtime config",
+			Detail:   "a restart would take xray down",
+			Evidence: "su-read-test"}
+	}
+	return Check{ID: id, Status: StatusOK, Message: "service account can read the committed config"}
 }
 
 func checkCertificate(paths host.Paths, meta store.Metadata) Check {
@@ -526,6 +560,16 @@ func checkDisk(paths host.Paths) Check {
 func checkLock(paths host.Paths, now time.Time) Check {
 	fi, err := os.Stat(paths.LockFile())
 	if err != nil {
+		return Check{ID: "lock", Status: StatusOK, Message: "no update lock is held"}
+	}
+	held, heldErr := host.LockHeld(paths.LockFile())
+	if heldErr != nil {
+		return Check{ID: "lock", Status: StatusSkip, Message: "cannot test the update lock", Detail: heldErr.Error()}
+	}
+	if !held {
+		if age := now.Sub(fi.ModTime()); age > 30*time.Minute {
+			return Check{ID: "lock", Status: StatusWarn, Message: "a stale update lock file exists", Detail: fi.ModTime().UTC().Format(time.RFC3339)}
+		}
 		return Check{ID: "lock", Status: StatusOK, Message: "no update lock is held"}
 	}
 	if age := now.Sub(fi.ModTime()); age > 30*time.Minute {

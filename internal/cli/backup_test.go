@@ -132,8 +132,8 @@ func TestRepairFixesModesAndReports(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if fi.Mode().Perm() != 0o600 {
-		t.Fatalf("config mode=%04o, want 0600", fi.Mode().Perm())
+	if fi.Mode().Perm() != 0o640 {
+		t.Fatalf("config mode=%04o, want 0640", fi.Mode().Perm())
 	}
 }
 

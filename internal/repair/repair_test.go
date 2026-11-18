@@ -25,7 +25,9 @@ func TestRepairCreatesDirsAndRestrictsModes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if fi.Mode().Perm() != 0o600 {
+	// 0640 root:xray, not 0600: the service user has to be able to read the
+	// config after repair or the next restart dies with permission denied.
+	if fi.Mode().Perm() != 0o640 {
 		t.Fatalf("config mode = %04o", fi.Mode().Perm())
 	}
 	if _, err := os.Stat(filepath.Join(root, "etc/idleleo/backup")); err != nil {
