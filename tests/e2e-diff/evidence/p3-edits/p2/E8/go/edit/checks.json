@@ -1,0 +1,21 @@
+{
+  "afterSha": "",
+  "allPassed": false,
+  "beforeSha": "",
+  "checks": {
+    "driverCompleted": false
+  },
+  "count": 1,
+  "details": [
+    {
+      "detail": "the installed link does not authenticate before the edit",
+      "name": "driverCompleted",
+      "ok": false
+    }
+  ],
+  "editRc": 0,
+  "scenario": "E8",
+  "wanted": [
+    "driverCompleted"
+  ]
+}

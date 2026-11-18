@@ -1,0 +1,12 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "81400931-b81e-4bd3-abab-e31cacf565d6",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "www.cloudflare.com",
+  "port": 443,
+  "shareUri": "vless://81400931-b81e-4bd3-abab-e31cacf565d6@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=Uw-g_beLu3U8CWBquLX5yU9FWY0nqO7Ua1tQ4YBIf00&sid=61945632&type=raw#idleleo-reality",
+  "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: www.cloudflare.com\n    port: 443\n    uuid: 81400931-b81e-4bd3-abab-e31cacf565d6\n    network: tcp\n    udp: true\n    tls: true\n    servername: www.cloudflare.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: Uw-g_beLu3U8CWBquLX5yU9FWY0nqO7Ua1tQ4YBIf00\n      short-id: 61945632\n",
+  "warnings": []
+}

@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "profile": "reality",
+  "reason": "business request failed (curl exit 56, body bytes 0)",
+  "target": "http://example.com/"
+}

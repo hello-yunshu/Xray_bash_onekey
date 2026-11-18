@@ -1,0 +1,25 @@
+01:48:45 run_id=p3-edits
+01:48:46 image_id=sha256:78b3bd0c60fac515bf05b128295f986ef4e9d8fb38386b37cdf5f69f250c1dcc
+01:48:46 building idleleo
+01:48:51 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=e2ab33e3db916425b7653d2b936a80012217a0cbeb386b8ab3c91740e70de898
+01:48:52 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+01:48:52 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+01:48:54 argv-verify written
+01:48:56 [E1] start
+01:48:56 [E3] start
+01:48:56 [E2] start
+01:48:56 [E4] start
+01:48:56 [E6] start
+01:48:56 [E7] start
+01:48:56 [E5] start
+01:48:56 [E8] start
+01:49:00 [E6] done
+01:49:34 [E5] done
+01:51:12 [E2] done
+01:51:12 [E3] done
+01:51:12 [E1] done
+01:51:13 [E4] done
+01:51:14 [E7] done
+01:51:14 [E8] done
+01:51:15 scope: installs=[] edits=[E1,E2,E3,E4,E5,E6,E7,E8] ops=[]
+01:51:15 P2 finished: <repo>/tests/e2e-diff/evidence/p3-edits/p2

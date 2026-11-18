@@ -1,0 +1,33 @@
+{
+  "afterSha": "",
+  "allPassed": false,
+  "beforeSha": "",
+  "checks": {
+    "backupHasOldCert": false,
+    "backupHasOldKey": false,
+    "editRcZero": false,
+    "fragmentUpdated": false,
+    "probeOk": false,
+    "runtimeUnchanged": true,
+    "scheduleUpdated": false,
+    "servicesActive": false,
+    "tlsVersion13": false,
+    "wireCertMatches": false,
+    "xrayNotRestarted": true
+  },
+  "editRc": 1,
+  "error": "lstat /etc/idleleo/conf: no such file or directory",
+  "wanted": [
+    "backupHasOldCert",
+    "backupHasOldKey",
+    "editRcZero",
+    "fragmentUpdated",
+    "probeOk",
+    "runtimeUnchanged",
+    "scheduleUpdated",
+    "servicesActive",
+    "tlsVersion13",
+    "wireCertMatches",
+    "xrayNotRestarted"
+  ]
+}

@@ -1,0 +1,11 @@
+--- effective ssl_certificate
+--- edited fragment
+grep: /etc/idleleo/conf/nginx/00-xray.conf: No such file or directory
+--- workers
+    PID                  STARTED CMD
+--- new pair
+-rw-r----- 1 root root 1151 Nov 18 17:48 /etc/idleleo/cert/e5-new.crt
+-rw-r----- 1 root root 1704 Nov 18 17:48 /etc/idleleo/cert/e5-new.key
+64:57:8C:82:C9:84:83:80:33:9D:A5:6A:5A:6B:92:AB:1A:71:0C:44:C9:A4:F5:5A:4C:EB:8E:0F:08:10:00:18
+--- served now
+--- nginx log

@@ -1,0 +1,20 @@
+{
+  "edits": [
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6",
+    "E7",
+    "E8"
+  ],
+  "installs": [],
+  "only": "E1,E2,E3,E4,E5,E6,E7,E8",
+  "ops": [],
+  "runId": "p3-edits",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}
