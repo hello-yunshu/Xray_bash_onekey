@@ -1,0 +1,38 @@
+{
+  "mode": "tls",
+  "transport": "ws",
+  "changed": [
+    "cert-file",
+    "cert-key-file"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "731d52e94d2b92376b6c89f1a44a847eda77827a217a2d4725991f3ab4f3aea0",
+  "newSha256": "731d52e94d2b92376b6c89f1a44a847eda77827a217a2d4725991f3ab4f3aea0",
+  "backupDir": "/etc/idleleo/backup/edit-20261117T220426",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://e5c9f9b1-26a3-4383-b7cc-24987fed0ade@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+  "domain": "example.com",
+  "certFile": "/etc/idleleo/cert/e5-new.crt",
+  "certKeyFile": "/etc/idleleo/cert/e5-new.key",
+  "certNotAfter": "2026-12-17T22:04:26Z",
+  "certSans": [
+    "example.com"
+  ],
+  "tlsProbe": "ok",
+  "tlsServerName": "example.com",
+  "tlsVersion": "TLS 1.3",
+  "tlsSystemTrusted": false,
+  "scheduleUpdated": true,
+  "schedulePath": "/etc/idleleo/schedule/jobs.json",
+  "disconnect": false,
+  "warnings": [
+    "certificate /etc/idleleo/cert/e5-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')",
+    "served certificate chain is not trusted by the system roots (staging or private CA?): x509: certificate signed by unknown authority"
+  ],
+  "upstreamSha256": "c3ba056c458c332de4723c414d429743681a3bcdb7eada5db6f797699eab6729",
+  "upstreamUnchanged": false
+}

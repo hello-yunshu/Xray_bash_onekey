@@ -1,0 +1,15 @@
+<TS> e2e-20261118-0605-full-OPS-31-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-20261118-0605-full-OPS-31-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-20261118-0605-full-OPS-31-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-20261118-0605-full-OPS-31-bash xray[<PID>]: 2026/11/17 22:10:41.624365 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-20261118-0605-full-OPS-31-bash xray[<PID>]: 2026/11/17 22:10:41.626370 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-20261118-0605-full-OPS-31-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-20261118-0605-full-OPS-31-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-20261118-0605-full-OPS-31-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-20261118-0605-full-OPS-31-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-20261118-0605-full-OPS-31-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-20261118-0605-full-OPS-31-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-20261118-0605-full-OPS-31-bash xray[<PID>]: 2026/11/17 22:10:43.905586 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-20261118-0605-full-OPS-31-bash xray[<PID>]: 2026/11/17 22:10:43.906982 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+2026/11/17 22:10:41.631359 [Warning] core: Xray 26.10.31 started
+2026/11/17 22:10:43.912611 [Warning] core: Xray 26.10.31 started

@@ -1,0 +1,14 @@
+{"name": "baselineLinkWorks", "ok": true, "detail": "fa96e687"}
+{"name": "rotateRcZero", "ok": true, "detail": "rc=0"}
+{"name": "rotationReported", "ok": true, "detail": ""}
+{"name": "oldLinkCaptured", "ok": true, "detail": "vless://52af10d5-2ad8-4e22-95a9-64e6958060e3@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=8A0Q7eLtTF4OA_N-6ci4L3e4MQWns-NgKCdHiFjUChs&sid=fa96e687&type=raw#idleleo-reality"}
+{"name": "backupHasOldShareUri", "ok": true, "detail": "/etc/idleleo/backup/edit-20261117T220427/old-share-uri.txt"}
+{"name": "newLinkWorksAfterRotate", "ok": true, "detail": ""}
+{"name": "oldLinkFailsAfterRotate", "ok": true, "detail": ""}
+{"name": "faultEditFails", "ok": true, "detail": "rc=1"}
+{"name": "failurePointRecorded", "ok": true, "detail": "reality-handshake"}
+{"name": "rollbackProbeOk", "ok": true, "detail": "ok: old link still completes a vless+reality handshake+request"}
+{"name": "configRestored", "ok": true, "detail": ""}
+{"name": "oldLinkWorksAfterRollback", "ok": true, "detail": ""}
+{"name": "serviceActiveAfterCleanup", "ok": true, "detail": ""}
+{"name": "serviceActive", "ok": true, "detail": ""}

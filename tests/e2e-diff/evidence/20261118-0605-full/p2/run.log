@@ -1,0 +1,59 @@
+05:59:48 run_id=20261118-0605-full
+05:59:49 image_id=sha256:6020dbb660d7c8924965df5b16f3fc8244cd4845239a0aa1e0b451b7a8f679fa
+05:59:49 building idleleo
+05:59:54 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=63606b9c787d7d68a9796c6ec2adbb443a95c7f442d4aef843f2d9c290bbb9ac
+05:59:54 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+05:59:54 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+05:59:57 argv-verify written
+05:59:57 [M1] start
+05:59:57 [M3] start
+05:59:57 [M5] start
+05:59:57 [M4] start
+05:59:57 [M2] start
+06:01:45 [M4] done
+06:01:45 [M5] done
+06:02:01 [M1] done
+06:02:17 [M3] done
+06:02:30 [M2] done
+06:02:31 [M9] start
+06:02:31 [M8] start
+06:02:31 [M7] start
+06:02:31 [M10] start
+06:02:31 [M6] start
+06:02:32 [M8] pebble ready
+06:03:18 [M10] done
+06:03:24 [M9] done
+06:03:42 [M6] done
+06:03:47 [M8] done
+06:04:10 [M7] done
+06:04:10 [E1] start
+06:04:10 [E8] start
+06:04:10 [E4] start
+06:04:10 [E2] start
+06:04:11 [E7] start
+06:04:11 [E6] start
+06:04:11 [E3] start
+06:04:11 [E5] start
+06:04:28 [E3] done
+06:04:30 [E5] done
+06:04:33 [E2] done
+06:04:33 [E1] done
+06:04:34 [E4] done
+06:04:35 [E6] done
+06:05:08 [E7] done
+06:05:10 [E8] done
+06:05:11 [OPS-19] start
+06:06:30 [OPS-19] verdict=PASS
+06:06:30 [OPS-21] start
+06:09:00 [OPS-21] verdict=PASS
+06:09:00 [OPS-09] start upstream=ws
+06:09:49 [OPS-09] verdict=PASS
+06:09:49 [OPS-31] start upstream=reality
+06:11:05 [OPS-31] verdict=PASS
+06:11:05 [OPS-32] start upstream=ws
+06:14:30 [OPS-32/ws] verdict=PASS
+06:14:30 [OPS-32] start upstream=reality
+06:18:15 [OPS-32/reality] verdict=PASS
+06:18:15 [OPS-32] verdict=PASS
+06:18:15 scope: installs=[M1,M2,M3,M4,M5,M6,M7,M8,M9,M10] edits=[E1,E2,E3,E4,E5,E6,E7,E8] ops=[OPS-19,OPS-21,OPS-09,OPS-31,OPS-32]
+06:18:15 P2 finished: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/20261118-0605-full/p2

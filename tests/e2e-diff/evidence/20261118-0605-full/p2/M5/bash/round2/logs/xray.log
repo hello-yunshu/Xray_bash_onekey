@@ -1,0 +1,16 @@
+<TS> e2e-20261118-0605-full-M5-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-20261118-0605-full-M5-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-20261118-0605-full-M5-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-20261118-0605-full-M5-bash xray[<PID>]: 2026/11/17 22:01:07.337567 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-20261118-0605-full-M5-bash xray[<PID>]: 2026/11/17 22:01:07.341242 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+<TS> e2e-20261118-0605-full-M5-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-20261118-0605-full-M5-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-20261118-0605-full-M5-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-20261118-0605-full-M5-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-20261118-0605-full-M5-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-20261118-0605-full-M5-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-20261118-0605-full-M5-bash xray[<PID>]: 2026/11/17 22:01:21.901291 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-20261118-0605-full-M5-bash xray[<PID>]: 2026/11/17 22:01:21.903207 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+2026/11/17 22:01:07.342080 [Warning] core: Xray 26.10.31 started
+2026/11/17 22:01:10.955942 [Warning] transport/internet/grpc/encoding: received "X-Forwarded-For" from 127.0.0.1:58996 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/17 22:01:21.908650 [Warning] core: Xray 26.10.31 started
