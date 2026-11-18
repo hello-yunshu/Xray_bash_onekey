@@ -24,10 +24,12 @@
 
 ## 阻断
 
-1. **容器无外网**（本次运行环境）。宿主可出网，但 Docker 内即使按 IP 访问也失败；`ip.me`、GeoData、受管 Nginx 构件、ACME 与外部 Reality target 均不可达。
-   - 影响：M1–M10、E5–E8、ACME/relay 场景本次无法复跑；记为 `BLOCKED`，不冒充 PASS。
-   - 复现：`docker run --rm idleleo-e2e:24.04 sh -c 'curl -4 -fsS https://ip.me'` → `Could not resolve host`；`curl -k https://1.1.1.1` → `Couldn't connect`。
-   - 恢复后动作：重跑 `run_p2_matrix.sh`（完整 M1–M10 + E1–E8 + OPS）与 `run_p3_hot.sh`。
+1. **容器无外网 → Docker 运行时不可用**（2026-11-19）。
+   - 根因：OrbStack 宿主侧网桥地址异常（`bridge103` 为 `192.168.215.0/24`，网关 `.1` 不存在），容器只有默认路由但 `connect: Network is unreachable`；新建网络的网桥同样缺网关，不是单次安装问题。
+   - 为修复已停止 OrbStack，当前 `docker info` 不可用；重启 OrbStack 需要宿主级操作，需用户执行或授权。
+   - 恢复步骤：打开 OrbStack（或 `orbctl start`）→ `docker info` 可用 → `docker run --rm idleleo-e2e:24.04 sh -c 'curl -4 -fsS https://ip.me'` 返回 IP。
+   - 影响：M1–M10、E5–E8、ACME/relay 本次无法复跑；记为 `BLOCKED`，不冒充 PASS。
+   - 恢复后动作：`bash tests/e2e-diff/run_p2_matrix.sh`（完整 M1–M10 + E1–E8 + OPS）与 `run_p3_hot.sh`。
 2. **受保护 CI 不可得**：分支未推送，无远程 workflow 运行；F01–F28 依规则保持 `PENDING_GO_IMPLEMENTATION`。本地等价门禁已跑：隐私扫描 0 findings、账本迁移策略 17 tests OK、A2 自检 PASS、go 全库测试通过。
 
 ## 下一步
