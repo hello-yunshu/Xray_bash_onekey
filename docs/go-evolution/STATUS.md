@@ -14,6 +14,8 @@
 | P2 Go 原生能力升级 | 完成 | `docs/go-evolution/02-native-value.md` | `tests/e2e-diff/evidence/goevo-p2-*`（doctor/backup/repair/preflight 实机） |
 | P3 低中断试点与资格收口 | 完成（编码/测试/提交/全量重跑） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-20261119-0303`（60/60）、`goevo-p3-matrix-0242-a9875aff/p2`（M1–M10、E1–E8、OPS 全 PASS） |
 
+最终看板（矩阵 §七）见 `03-final-qualification.md` §6.5：M1–M10 10/10、OPS 5 PASS/29 NOT_RUN、E1–E8 8/8、G01–G06 6/6、F01–F28 仍 28 NOT_RUN（账本未签收）。
+
 ## 已完成
 
 - 热用户变更仅由 `--experimental-hot` 开启；配置为真相源，先持久化后经 loopback API 应用；rc=8 表达半失败，重试可收敛；并发持 15s 锁；重启不丢用户。

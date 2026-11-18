@@ -147,12 +147,38 @@ OPS-12/13 的 Bash 端是“持续跟随”，`TRUNCATED` 是采集方式导致�
 | 31 | Reality 负载均衡 | 必须迁移 | `xray balance ... --upstream reality`；矩阵 PASS |
 | 32 | 后端故障摘除 | 安全替代 | 生成 `max_fails/fail_timeout` 交给 Nginx；矩阵 PASS |
 
+## 6.1 S1–S9 辅助脚本与 R1/R2 升级链
+
+矩阵的 `subscripts`/`upgrade` 定义在 `tests/e2e-diff/matrix.json`；本轮 `run_p2_matrix.sh` 的 scope 只含 `installs/edits/ops`，**脚本本体与 bridge 升级链未执行**，下表把“静态对照结论”和“实跑状态”分开写，避免把静态核对冒充成双端实跑。
+
+| ID | Bash 入口 | Go 入口 | 归类 | 本轮状态 |
+|---|---|---|---|---|
+| S1 | `scripts/fail2ban_manager.sh` | `fail2ban status/install/banned/unban/trust/jail` | 必须迁移 | 脚本 NOT_RUN；OPS-19 矩阵 PASS |
+| S2 | `scripts/traffic_blocker.sh` | `xray block ...` | 必须迁移 | 脚本 NOT_RUN；OPS-21 矩阵 PASS |
+| S3 | `scripts/file_manager.sh` | `metadata export/import` + `backup create/restore` | 安全替代 | 脚本 NOT_RUN；单元/CLI 测试覆盖 |
+| S4 | `scripts/auto_update.sh` | `schedule install`（`auto-update` job） | 安全替代 | 脚本与 cron NOT_RUN；单元测试覆盖 |
+| S5 | `scripts/ssl_update.sh` | `xray cert renew` + `schedule` 的 `cert-renew` | 安全替代 | 脚本 NOT_RUN；M8 双端 ACME 安装 PASS（续期/拒绝/回滚未逐项注入） |
+| S6 | `scripts/geo_update.sh` | `schedule run --job geodata-refresh` | 安全替代 | 脚本 NOT_RUN；单元测试覆盖路径校验 |
+| S7 | `acme.sh`（`IDLELEO_ACME_LEGACY=1`） | `xray cert issue/renew` | 安全替代 | NOT_RUN；Go 不接管既有 acme.sh 安装 |
+| S8 | `tcp.sh` | `tcp plan/apply/rollback/status` | 必须迁移 | 脚本 NOT_RUN；单元测试覆盖 |
+| S9 | `superspeed.sh` | `speedtest` | 安全替代 | NOT_RUN（需外部测速端点） |
+
+R1（官方升级路径，`idleleo xray install --keep-config`）：
+
+- 两侧重复安装已实跑：M1–M10 的第 2 轮分别是 Go `--keep-config`、Bash 交互 keep-config，均 `rc=0`，L6 幂等检查 `ok`，覆盖 U1–U4/U6 的“同实现重复安装”部分。
+- **跨实现升级未测**：矩阵为 Bash/Go 隔离容器，“Bash 安装 → Go 接管”的 U1–U7 全链没有证据，记为 NOT_RUN。
+
+R2（`idleleo bridge prepare/validate/activate`，仅 M1/M4 抽测）：
+
+- 实现与单元测试在 `internal/legacybridge`，矩阵未执行，记为 NOT_RUN。
+
 ## 7. 未验证 / 阻塞
 
-- 全量矩阵无法在本轮重跑：容器无公网 DNS/egress，M4/M5 的下载与 L4 目标站访问会失败。已保留同日真实全量证据，不伪造新结果。
+- 全量矩阵已于 2026-11-19 在恢复外网后完整重跑（`tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2`，commit `be141822`）：M1–M10 双端两轮 `rc=0`、L4 真实客户端全 `ok`；本条此前的 BLOCKED 结论已被该证据取代。
 - OPS-12/13 的 Bash 侧只做了 6 秒有界采集，不能证明长时跟随；Go 快照行为已实测。
 - OPS-18 的 Bash 侧是交互菜单，本轮未执行开关动作，只验证 Go 只读状态；矩阵未覆盖该动作。
-- OPS-09/19/21/31/32 的证据来自同日矩阵，不在本轮容器内重跑。
+- OPS-09/19/21/31/32 已在上述矩阵中重跑并 PASS。
+- S1–S9 脚本本体、R1 跨实现升级、R2 bridge 链未执行，见 6.1；不计入 PASS。
 
 ## 8. 复现命令
 
