@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/change"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/nginx"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
@@ -93,6 +94,9 @@ type EditReport struct {
 	// and how many owned rules came back.
 	BlockPreserved bool `json:"blockPreserved,omitempty"`
 	BlockRuleCount int  `json:"blockRuleCount,omitempty"`
+	// Plan is the shared, secret-free change contract. A dry run and the real
+	// apply return the same fingerprint for the same inputs.
+	Plan *change.Plan `json:"plan,omitempty"`
 }
 
 // RelayEditSpec is one `xray config edit` request against a managed relay.
@@ -234,6 +238,22 @@ func EditConfig(ctx context.Context, spec EditSpec) (EditReport, error) {
 		report.CertSANs = info.SANs
 		report.Warnings = append(report.Warnings, warns...)
 	}
+	schedulePath := ""
+	if tlsTouched {
+		if p, joinErr := paths.Join(schedule.ConfigRel, false); joinErr == nil {
+			schedulePath = p
+		}
+	}
+	// reality-balance edits are confined to the Xray Reality inbound: the
+	// upstream tree is not regenerated, so its content hash must not move.
+	frontDir := nginxDir
+	if res.Mode == xraycfg.ModeRealityBalance {
+		frontDir = ""
+	}
+	// The plan is built from the same generator output a real apply uses, so a
+	// dry run and the write that follows it carry the same fingerprint.
+	plan := editPlan(configPath, report, res, frontDir, schedulePath, tlsTouched)
+	report.Plan = &plan
 	if spec.DryRun {
 		if tlsTouched {
 			report.TLSProbe = "skipped: dry-run"
@@ -266,12 +286,6 @@ func EditConfig(ctx context.Context, spec EditSpec) (EditReport, error) {
 		return report, fmt.Errorf("%w; configuration was not changed", err)
 	}
 
-	schedulePath := ""
-	if tlsTouched {
-		if p, joinErr := paths.Join(schedule.ConfigRel, false); joinErr == nil {
-			schedulePath = p
-		}
-	}
 	// Back up the pair that is serving right now, not the one being installed:
 	// the new files are user-owned and stay on disk, while the previous pair is
 	// what a manual rollback needs.
@@ -287,6 +301,15 @@ func EditConfig(ctx context.Context, spec EditSpec) (EditReport, error) {
 		return report, err
 	}
 	report.BackupDir = backupDir
+	if report.Plan != nil {
+		body, err := change.MarshalPlan(*report.Plan)
+		if err != nil {
+			return report, err
+		}
+		if err := writeFileAtomic(filepath.Join(backupDir, "plan.json"), body, 0o600); err != nil {
+			return report, err
+		}
+	}
 
 	configState, err := captureFile(configPath)
 	if err != nil {
@@ -299,12 +322,6 @@ func EditConfig(ctx context.Context, spec EditSpec) (EditReport, error) {
 			return report, err
 		}
 		scheduleState = &st
-	}
-	// reality-balance edits are confined to the Xray Reality inbound: the
-	// upstream tree is not regenerated, so its content hash must not move.
-	frontDir := nginxDir
-	if res.Mode == xraycfg.ModeRealityBalance {
-		frontDir = ""
 	}
 	upstreamHash, _ := hashTree(nginxDir)
 	report.UpstreamSHA256 = upstreamHash
@@ -479,6 +496,44 @@ func realityProbeAddress(res xraycfg.EditResult) string {
 		host = "127.0.0.1"
 	}
 	return net.JoinHostPort(host, strconv.Itoa(res.Port))
+}
+
+// editPlan describes an edit without exposing any config bytes or credentials.
+// Every listed validation step is one the apply path really performs.
+func editPlan(configPath string, report EditReport, res xraycfg.EditResult, frontDir, schedulePath string, tlsTouched bool) change.Plan {
+	services := []string{"xray"}
+	scope := "runtime config"
+	steps := []string{"xray -test"}
+	if frontDir != "" {
+		services = append(services, "nginx")
+		scope += " + nginx front"
+		steps = append(steps, "nginx -t")
+	}
+	if schedulePath != "" {
+		scope += " + certificate renewal target"
+	}
+	if res.PrivateKeyRotated || res.RealityCredentialMoved {
+		steps = append(steps, "vless+reality handshake with the new link")
+	}
+	if tlsTouched {
+		steps = append(steps, "local TLS handshake against the served certificate")
+	}
+	risk := "none: no live session is dropped"
+	if res.Disconnect {
+		risk = "drops live client sessions until clients reconnect"
+	}
+	return change.BuildPlan(change.Plan{
+		Operation:        "edit-runtime-config",
+		Resource:         configPath,
+		OldSHA256:        report.OldSHA256,
+		NewSHA256:        report.NewSHA256,
+		Changed:          res.Changed,
+		AffectedServices: services,
+		DisconnectRisk:   risk,
+		ValidationSteps:  steps,
+		RollbackScope:    scope,
+		Ownership:        "idleleo-managed",
+	})
 }
 
 // touchedTLS reports whether the patch moved a value only the front owns.

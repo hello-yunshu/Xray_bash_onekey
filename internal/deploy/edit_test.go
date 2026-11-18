@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/change"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/nginx"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
@@ -154,6 +155,40 @@ func TestEditConfigWritesCandidateAndBackup(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(report.BackupDir, "manifest.json")); err != nil {
 		t.Fatalf("backup manifest missing: %v", err)
+	}
+}
+
+func TestEditPlanMatchesDryRunAndApply(t *testing.T) {
+	root, _, _ := editSandbox(t)
+	stubXrayTest(t, func(context.Context, string, string, []string) error { return nil })
+	req := xraycfg.EditRequest{Port: 8080}
+	dry, err := EditConfig(context.Background(), EditSpec{Root: root, Request: req, DryRun: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dry.Plan == nil {
+		t.Fatal("dry run returned no plan")
+	}
+	applied, err := EditConfig(context.Background(), EditSpec{Root: root, Request: req, NoRestart: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if applied.Plan == nil || applied.Plan.Fingerprint != dry.Plan.Fingerprint {
+		t.Fatalf("apply plan %+v does not match dry-run plan %+v", applied.Plan, dry.Plan)
+	}
+	if applied.Plan.DisconnectRisk == "" || applied.Plan.RollbackScope == "" || len(applied.Plan.ValidationSteps) == 0 {
+		t.Fatalf("plan is missing contract fields: %+v", applied.Plan)
+	}
+	body, err := os.ReadFile(filepath.Join(applied.BackupDir, "plan.json"))
+	if err != nil {
+		t.Fatalf("backup has no plan.json: %v", err)
+	}
+	var stored change.Plan
+	if err := json.Unmarshal(body, &stored); err != nil {
+		t.Fatal(err)
+	}
+	if stored.Fingerprint != applied.Plan.Fingerprint {
+		t.Fatalf("stored fingerprint %s != report %s", stored.Fingerprint, applied.Plan.Fingerprint)
 	}
 }
 
