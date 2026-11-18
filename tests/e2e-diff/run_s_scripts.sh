@@ -329,8 +329,8 @@ run_s7() {
          sha256sum /tmp/acme-install.sh | awk '{print \$1}' &&
          sh /tmp/acme-install.sh email=e2e@example.com"
     local rc; rc=$(cat "$d/install.rc")
-    # acme.sh prints /root/... paths; mask the host-specific home directory in
-    # the stored output (value-level, no checker allowlist change).
+    # acme.sh prints absolute home paths; mask the host-specific home directory
+    # in the stored output (value-level, no checker allowlist change).
     sed -i.bak 's|/root/|$HOME/|g' "$d/install.out" && rm -f "$d/install.out.bak"
     printf '%s\n' "$ACME_INSTALL_URL" >"$d/acme-install.url"
     assert "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "S7 get.acme.sh downloads and installs (rc=$rc)"
