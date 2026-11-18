@@ -5,7 +5,7 @@
 - 本阶段代码提交：`2d9a27af`（repair/doctor 权限与锁）、`d8950cd7`（热用户与运维摘要）
 - 实跑时间：2026-11-19，镜像 `idleleo-e2e:24.04`，证据 run.json 记录 commit `46457193`，Xray `26.10.31 a4a3dff`（go1.27.3）
 - 证据目录：
-  - `tests/e2e-diff/evidence/goevo-p3-p3-final-015931/`：热用户/修复/摘要实机套件（55 pass / 0 fail）
+  - `tests/e2e-diff/evidence/goevo-p3-p3-final-015931/`：热用户/修复/摘要实机套件（60 pass / 0 fail）
   - `tests/e2e-diff/evidence/p3-edits/p2/`：E1–E8 编辑回归（E1–E4 PASS，E5–E8 因无外网 BLOCKED）
   - `tests/e2e-diff/evidence/goevo-p3-final-matrix/`：全矩阵重跑尝试（被宿主无外网阻断，仅保留失败轨迹）
 
@@ -45,15 +45,16 @@
 | API 未启用 | 热应用失败，退出码 `8`，`persisted=true/applied=false`，配置不回滚（用户已持久化，重启即生效） |
 | 半失败重试 | 若目标用户已与期望一致，视为成功；重试不重写配置（`persisted=false/applied=true`） |
 | 并发 | 热操作持有 `run/lock/idleleo-hot.lock`，最多等待 15s；并发加用户不会交叉写 |
-| 崩溃恢复 | 配置先落盘，进程在“持久化后、应用前”被杀，下次重启或重试即可收敛 |
+| 崩溃恢复 | 配置先落盘；E2b 在“持久化后、应用前”SIGKILL，重启后同一凭据可用 |
 | 退出码 | `8` 热应用半失败；`22` 锁冲突；其余沿用既有码 |
 
-### 3.2 实机断言（55/55 PASS）
+### 3.2 实机断言（60/60 PASS）
 
 | 段 | 证据 | 结果 |
 |---|---|---|
 | E1 | `xray api status` 未启用；`configured=false` | PASS |
 | E2 | 无 API 热加 B：rc=8，配置已含 B，`applied=false` | PASS |
+| E2b | 崩溃恢复：未应用的 B 在运行态被拒；SIGKILL 后重启，同一 B 凭据连通 | PASS |
 | E3 | `xray api enable`：`changed=true/reachable=true`，仅一个 api inbound，xray active，`api lsi` 可达 | PASS |
 | E4 | 重试收敛：rc=0，`persisted=false/applied=true`，配置 SHA 不变，运行态含 B | PASS |
 | E5 | 真实客户端 B 经 VLESS+Reality 取到 `hot-ok-fast` | PASS |
@@ -116,7 +117,7 @@
 
 | 维度 | 结果 | 说明 |
 |---|---|---|
-| P3 热用户/修复/摘要套件 | **55 PASS / 0 FAIL** | `goevo-p3-p3-final-015931` |
+| P3 热用户/修复/摘要套件 | **60 PASS / 0 FAIL** | `goevo-p3-p3-final-015931` |
 | E1–E4（配置编辑：UUID/端口/target/serverNames） | **PASS** | `p3-edits/p2`，`allPassed=true` |
 | E5/E6（TLS 证书编辑，Nginx 前置） | **BLOCKED** | TLS 安装需下载受管 Nginx 构件，容器无外网 |
 | E7/E8（shortId 自动、Reality 私钥轮换） | **BLOCKED** | 编辑前的真实 Reality 客户端需外部 target，容器无外网 |

@@ -183,6 +183,27 @@ assert $(jq -e '.hot.persisted == true and .hot.applied == false' "$OUT/E2-hot-n
     "report says persisted but not applied"
 assert $(config_has_email "$B_EMAIL" && echo 0 || echo 1) "the committed config already carries the new user"
 
+# --- E2b crash recovery: SIGKILL between persist and apply -----------------
+# E2 left exactly the state a crash would leave: the user is on disk but not in
+# the running process. The credential must fail now and work after a restart.
+if client_up b_crash "$B_EMAIL" 21083; then upb_crash=0; else upb_crash=1; fi
+assert $upb_crash "a client for the persisted-but-unapplied user starts"
+crash_before=$(tunnel_get 21083 fast 2>/dev/null)
+assert $([ "$crash_before" != "hot-ok-fast" ] && echo 0 || echo 1) \
+    "the unapplied user is rejected by the running process"
+client_down
+pkill -9 -x xray >/dev/null 2>&1
+for _ in $(seq 1 100); do systemctl is-active --quiet xray || break; sleep 0.1; done
+systemctl reset-failed xray >/dev/null 2>&1 || true
+systemctl start xray >/dev/null 2>&1
+for _ in $(seq 1 100); do [ "$(systemctl is-active xray)" = "active" ] && break; sleep 0.1; done
+assert $([ "$(systemctl is-active xray)" = "active" ] && echo 0 || echo 1) "xray restarts after the crash"
+if client_up b_after_crash "$B_EMAIL" 21084; then upb_after=0; else upb_after=1; fi
+assert $upb_after "a client for the recovered user starts"
+assert $([ "$(tunnel_get 21084 fast)" = "hot-ok-fast" ] && echo 0 || echo 1) \
+    "the user persisted before the crash works after the restart"
+client_down
+
 # --- E3 enable the loopback API through the normal transaction ------------
 run E3-api-enable "$GO" xray api enable --sandbox / --validator "$XRAY" --service "$HOOK" --container --json
 rc3=$?
