@@ -1,0 +1,24 @@
+{
+  "entry": {
+    "id": "1795024782325244822-628",
+    "state": "COMMITTED",
+    "target": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "e38f221b5d57aef9755a8e6f1acc2d0cdf3d065d596648a40ade32354cae9330",
+    "newSha256": "61512e6b468b0c79f48237a4790f6ff3c336c4d0ab2f2dff439ffcbb65b9c345",
+    "startedAt": "2026-11-18T17:59:42Z",
+    "updatedAt": "2026-11-18T17:59:42Z"
+  },
+  "hot": {
+    "applied": true,
+    "inbound": "VLESS-Reality-in",
+    "persisted": true,
+    "server": "127.0.0.1:10085"
+  },
+  "user": {
+    "index": 2,
+    "uuid": "<uuid>",
+    "email": "hot-a@test.local",
+    "level": 0,
+    "primary": false
+  }
+}

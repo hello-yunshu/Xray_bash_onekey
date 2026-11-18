@@ -1,0 +1,64 @@
+# P3 hot-user pilot real-machine evidence
+
+- run-id: `p3-final-015931`
+- commit: `46457193c4904bbf2e6e108bb69d84f376fafcb1`
+- image id: `sha256:78b3bd0c60fac515bf05b128295f986ef4e9d8fb38386b37cdf5f69f250c1dcc`
+- install rc: 0
+- driver rc: 0
+- assertions: 55 pass / 0 fail
+
+- **PASS** api status exits 0 before enablement (rc=0)
+- **PASS** api status reports configured=false
+- **PASS** hot add without an API exits 8 (rc=8)
+- **PASS** report says persisted but not applied
+- **PASS** the committed config already carries the new user
+- **PASS** api enable exits 0 (rc=0)
+- **PASS** api enable reports changed and reachable
+- **PASS** config has exactly one api inbound
+- **PASS** xray is active after the api change
+- **PASS** xray api lsi answers on the loopback API
+- **PASS** hot retry exits 0 (rc=0)
+- **PASS** retry skipped the write and applied to the running inbound
+- **PASS** retry did not rewrite the config
+- **PASS** the running inbound now has user B
+- **PASS** real client for B starts
+- **PASS** client B reaches the origin through VLESS+Reality
+- **PASS** hot add A exits 0 (rc=0)
+- **PASS** A was persisted and applied
+- **PASS** the running inbound has A
+- **PASS** real client for A starts
+- **PASS** client A reaches the origin
+- **PASS** a slow request from A is in flight
+- **PASS** hot remove A exits 0 (rc=0)
+- **PASS** A was removed from config and runtime
+- **PASS** the committed config no longer has A
+- **PASS** the running inbound no longer has A
+- **PASS** the connection opened before removal still completed
+- **PASS** a real client for B starts after A was removed
+- **PASS** B still works after A was removed
+- **PASS** a client with the removed credential still starts locally
+- **PASS** a new connection with A's credential is rejected (rc=52)
+- **PASS** xray restarts with the committed config
+- **PASS** restart did not rewrite the config
+- **PASS** B survives the restart
+- **PASS** A stays removed after the restart
+- **PASS** a real client for B starts after the restart
+- **PASS** B still reaches the origin after the restart
+- **PASS** both concurrent hot adds exit 0
+- **PASS** both users are in the committed config
+- **PASS** both users are in the running inbound
+- **PASS** doctor fails when the service account cannot read the config (rc=1)
+- **PASS** the service-access check names the unreadable config
+- **PASS** repair exits healthy (rc=0)
+- **PASS** repair restores the config to 0640
+- **PASS** repair aligns the config group with xray
+- **PASS** repair aligns the conf directory group with xray
+- **PASS** xray restarts after the repair
+- **PASS** a real client for B starts after the repaired restart
+- **PASS** B reaches the origin after the repaired restart
+- **PASS** ops summary exits 0 (rc=0)
+- **PASS** the summary lists the main inbound port
+- **PASS** the summary lists the loopback API port
+- **PASS** the summary carries the last change and a restart count
+- **PASS** ops summary renders as text
+- **PASS** doctor is healthy after the hot and repair scenarios (rc=0)

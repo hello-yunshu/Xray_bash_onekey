@@ -1,0 +1,26 @@
+run_id=p3-final-015931
+commit=46457193c4904bbf2e6e108bb69d84f376fafcb1
+image=idleleo-e2e:24.04
+image_id=sha256:78b3bd0c60fac515bf05b128295f986ef4e9d8fb38386b37cdf5f69f250c1dcc
+building idleleo
+idleleo_sha256=dd1f8e0323b54c0446e9fd082cca723939bbd83196c50902b208c95eff75b2a4
+building the local TLS target
+arch=arm64
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64
+container=e2e-p3-final-015931-go
+starting the local TLS target
+installing Go manager (reality)
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target 127.0.0.1:8443 --port 443 --container
+install_exit=0
+done=reality install_exit=0
+install_rc=0
+running P3 driver
+driver_start=2026-11-18T17:59:40Z root=/
+main_port=443 tag=VLESS-Reality-in
+driver_done assertions=55 pass / 0 fail
+driver_rc=0
+evidence=tests/e2e-diff/evidence/goevo-p3-p3-final-015931
+RESULT: PASS

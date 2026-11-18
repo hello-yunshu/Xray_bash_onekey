@@ -12,7 +12,7 @@
 | S0 基线审计 | 完成 | `docs/go-evolution/00-baseline.md` | `tests/e2e-diff/evidence/20261118-0605-full`（M1–M10/E1–E8/OPS-32） |
 | P1 迁移差异与安全收口 | 完成 | `docs/go-evolution/01-parity-and-safety.md` | 对照矩阵、OPS-01..34 分类、键/密文脱敏、统一变更事务 |
 | P2 Go 原生能力升级 | 完成 | `docs/go-evolution/02-native-value.md` | `tests/e2e-diff/evidence/goevo-p2-*`（doctor/backup/repair/preflight 实机） |
-| P3 低中断试点与资格收口 | 完成（含如实 PENDING） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-p3-final-015740`（55/55）、`p3-edits/p2`（E1–E4 PASS） |
+| P3 低中断试点与资格收口 | 完成（含如实 PENDING） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-p3-final-015931`（55/55）、`p3-edits/p2`（E1–E4 PASS） |
 
 ## 已完成
 
