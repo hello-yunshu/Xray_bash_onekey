@@ -16,7 +16,7 @@
 3. **真实客户端证据有界但完整**：新增用户能连通本地 origin；删除用户后新连接被服务端拒绝（客户端 curl rc=7）；删除前已建立的慢连接正常完成；其余用户（B）在删除、重启、修复重启后均保持可连通；并发两个热加都成功；进程重启后配置与内存一致。
 4. **实机故障注入发现并修复一个真实回归**：`repair` 把运行配置改成 `0600 root:root`、conf 目录 `0750 root:root`，下次重启 xray 用户读不到配置。修复为 `0640` + 组 `xray`，并新增 `doctor` 的 `service-access` 检查（以服务账户实际 `test -r`），不再以“服务当前 active”掩盖未来启动失败。
 5. **运维摘要只读、无新增常驻组件**：`ops summary` 复用 status/journal/systemd 输出端口、证书到期、最近变更、近期失败与重启次数，不引入数据库、守护进程或 Web。
-6. **发布资格：NO-GO（对正式发布）**。F01–F28 账本仍为 28 项 `PENDING_GO_IMPLEMENTATION`，`check_release_gate.py` 输出 `RELEASE BLOCKED`；受保护 CI 与真实 VPS/VM 证据当前不可得，按规则保持 PENDING，未通过“改状态”规避。
+6. **发布资格：NO-GO（对正式发布）**。F01–F28 账本仍为 28 项 `PENDING_GO_IMPLEMENTATION`，`check_release_gate.py` 输出 `RELEASE BLOCKED: pending 28; missing executable feature tests 0; JSON statuses alone never grant success`（rc=2）；受保护 CI 与真实 VPS/VM 证据当前不可得，按规则保持 PENDING，未通过“改状态”规避。
 
 ## 2. 环境与真实性
 
@@ -122,7 +122,7 @@
 ### 6.3 账本与门禁
 
 - `feature_contracts.json`：28 项仍为 `PENDING_GO_IMPLEMENTATION`，**未修改**。
-- `check_release_gate.py`：`RELEASE BLOCKED: pending 28; missing executable feature tests 0`。
+- `check_release_gate.py`：`RELEASE BLOCKED: pending 28; missing executable feature tests 0; JSON statuses alone never grant success`（rc=2）。
 - 原因：规则要求受保护 CI 与真实 VPS/VM 证据；当前环境无法提供，保持 PENDING。
 - 未执行：合并 `main`、打 tag、发布 Release、改生产机器。
 
