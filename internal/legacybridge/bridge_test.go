@@ -946,3 +946,21 @@ func TestRecoverAfterMetadataCrashRestoresPreviousMetadata(t *testing.T) {
 		t.Fatal("pre-migration manager metadata was not restored")
 	}
 }
+
+func TestNginxMainConfPrefersInstalledBashLayout(t *testing.T) {
+	root := t.TempDir()
+	want := filepath.Join(root, "etc/nginx/nginx.conf")
+	if got := nginxMainConf(root); got != want {
+		t.Fatalf("default = %q, want %q", got, want)
+	}
+	legacy := filepath.Join(root, legacyNginxConfRel)
+	if err := os.MkdirAll(filepath.Dir(legacy), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(legacy, []byte("events {}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if got := nginxMainConf(root); got != legacy {
+		t.Fatalf("bash layout = %q, want %q", got, legacy)
+	}
+}

@@ -59,6 +59,7 @@ func Run(ctx context.Context, root string, opts Options) (Report, error) {
 		mode os.FileMode
 	}{
 		{"etc/idleleo/conf", 0o750},
+		{"etc/idleleo/conf/xray", 0o750},
 		{"etc/idleleo/cert", 0o750},
 		{"etc/idleleo/v1", 0o750},
 		{"etc/idleleo/info", 0o750},
@@ -125,7 +126,7 @@ func (r *Report) fixServiceGroup(paths host.Paths, opts Options) {
 	if err != nil {
 		return
 	}
-	for _, rel := range []string{"etc/idleleo/conf", paths.RuntimeConfig()} {
+	for _, rel := range []string{"etc/idleleo/conf", filepath.Dir(paths.RuntimeConfig()), paths.RuntimeConfig()} {
 		p := filepath.Join(paths.Root, rel)
 		fi, statErr := os.Stat(p)
 		if statErr != nil {

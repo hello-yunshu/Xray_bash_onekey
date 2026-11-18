@@ -743,3 +743,68 @@ func TestWriteNginxArtifactsRemovesStaleManagedFiles(t *testing.T) {
 		t.Fatalf("serverNames fragment not written: %v %q", err, b)
 	}
 }
+
+func TestEnsureServiceReadableDirGivesGroupTraverse(t *testing.T) {
+	dir := t.TempDir()
+	gid := os.Getgid()
+	if err := os.Chown(dir, -1, gid); err != nil {
+		t.Skipf("cannot set group %d: %v", gid, err)
+	}
+	// Bash leaves the runtime config directory at 0750 root:root.
+	if err := os.Chmod(dir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	ensureServiceReadableDir(dir, gid)
+	fi, err := os.Stat(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fi.Mode().Perm() != 0o750 {
+		t.Fatalf("mode = %04o, want 0750", fi.Mode().Perm())
+	}
+	if st, ok := fi.Sys().(*syscall.Stat_t); !ok || int(st.Gid) != gid {
+		t.Fatalf("group = %v, want %d", st, gid)
+	}
+	// A 0700 directory locks the service out even when the file is 0640.
+	if err := os.Chmod(dir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	ensureServiceReadableDir(dir, gid)
+	fi, err = os.Stat(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fi.Mode().Perm() != 0o750 {
+		t.Fatalf("mode after widening = %04o, want 0750", fi.Mode().Perm())
+	}
+}
+
+func TestAdoptRuntimeSettingsUsesPreservedInbound(t *testing.T) {
+	raw := []byte(`{"inbounds":[
+		{"port":10166,"streamSettings":{"network":"ws","wsSettings":{"path":"/025223"}}},
+		{"port":"10443","streamSettings":{"network":"grpc","grpcSettings":{"serviceName":"grpcsvc"}}},
+		{"port":443,"streamSettings":{"network":"tcp"}}
+	]}`)
+	spec := InstallSpec{Mode: "tls", Port: 443}
+	adoptRuntimeSettings(&spec, raw)
+	if spec.WSPort != 10166 {
+		t.Fatalf("ws port = %d, want 10166", spec.WSPort)
+	}
+	if spec.GRPCPort != 10443 {
+		t.Fatalf("grpc port = %d, want 10443", spec.GRPCPort)
+	}
+	if spec.XHTTPPort != 0 {
+		t.Fatalf("xhttp port = %d, want 0", spec.XHTTPPort)
+	}
+	if spec.Path != "/025223" {
+		t.Fatalf("ws path = %q, want /025223", spec.Path)
+	}
+	if spec.ServiceName != "grpcsvc" {
+		t.Fatalf("grpc service = %q, want grpcsvc", spec.ServiceName)
+	}
+	explicit := InstallSpec{Mode: "tls", WSPort: 20000}
+	adoptRuntimeSettings(&explicit, raw)
+	if explicit.WSPort != 20000 {
+		t.Fatalf("explicit ws port was overwritten: %d", explicit.WSPort)
+	}
+}

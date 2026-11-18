@@ -561,6 +561,20 @@ type ValidateReport struct {
 	RillUnchanged            bool   `json:"rillUnchanged"`
 }
 
+// nginxMainConf returns the main config the installed Nginx actually reads. A
+// distro package keeps it under /etc/nginx; the Bash installer builds Nginx
+// under /usr/local, and validating the distro path there only produces a false
+// rejection.
+func nginxMainConf(root string) string {
+	for _, rel := range []string{nginxConfRel, legacyNginxConfRel} {
+		p := mustResolve(root, rel)
+		if fi, err := os.Stat(p); err == nil && !fi.IsDir() {
+			return p
+		}
+	}
+	return mustResolve(root, nginxConfRel)
+}
+
 // Validate runs xray -test, nginx -t and the candidate binary without
 // modifying the runtime config, certificates, users or services.
 func Validate(ctx context.Context, opts ValidateOptions) (ValidateReport, error) {
@@ -664,7 +678,7 @@ func Validate(ctx context.Context, opts ValidateOptions) (ValidateReport, error)
 		if opts.NginxBin == "" {
 			return report, &Error{Code: 2, Msg: "--nginx validator is required for this installation"}
 		}
-		conf := mustResolve(opts.Root, nginxConfRel)
+		conf := nginxMainConf(opts.Root)
 		res, err := host.Run(ctx, host.ExecSpec{Path: opts.NginxBin, Args: []string{"-t", "-c", conf}})
 		if err != nil {
 			return report, &Error{Code: 4, Msg: "nginx validator could not run", Err: err}

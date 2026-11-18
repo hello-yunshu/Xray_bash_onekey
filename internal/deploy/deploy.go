@@ -201,6 +201,7 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		if existing, readErr := os.ReadFile(configPath); readErr == nil {
 			configBytes = existing
 			rep.Preserved = true
+			adoptRuntimeSettings(&spec, existing)
 		}
 	}
 	// Generate even when the runtime config is preserved: Nginx-front modes need
@@ -217,6 +218,9 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 			PublicPort: spec.PublicPort, AllowNonLoopback: spec.AllowNonLoopback,
 			ServerNames: spec.ServerNames, BalanceRole: spec.BalanceRole,
 			Backends: spec.Backends, UnknownSNIPolicy: spec.UnknownSNIPolicy,
+			// An adopted runtime already owns its ports; probing them would
+			// report the live service as a conflict.
+			SkipPortProbe: spec.KeepConfig,
 		})
 		if genErr != nil {
 			return Report{}, genErr
@@ -434,6 +438,11 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		if err := os.Chown(configPath, 0, gid); err == nil {
 			_ = os.Chmod(configPath, 0o640)
 		}
+		// A Bash install leaves /etc/idleleo/conf/xray at 0750 root:root. The
+		// chown above only unlocks the file; without an executable bit for the
+		// service group the unit's User=xray cannot traverse to it and the next
+		// restart fails. Align the directory with the same account.
+		ensureServiceReadableDir(filepath.Dir(configPath), gid)
 		// Xray (User=xray) writes access.log/error.log itself, so the directory
 		// and any leftover log files must belong to the service account.
 		if err := os.Chown(logDir, uid, gid); err == nil {
@@ -1016,6 +1025,27 @@ func groupID(name string) int {
 	return -1
 }
 
+// ensureServiceReadableDir gives the service account's group traverse+read on
+// a directory that holds files the unit must open, without widening it to
+// other users. Ownership stays root-owned; only the group changes.
+func ensureServiceReadableDir(dir string, gid int) {
+	if gid < 0 {
+		return
+	}
+	fi, err := os.Stat(dir)
+	if err != nil || !fi.IsDir() {
+		return
+	}
+	if st, ok := fi.Sys().(*syscall.Stat_t); !ok || int(st.Gid) != gid {
+		if err := os.Chown(dir, -1, gid); err != nil {
+			return
+		}
+	}
+	if perm := fi.Mode().Perm(); perm&0o050 != 0o050 {
+		_ = os.Chmod(dir, perm|0o050)
+	}
+}
+
 func unitContent(bin, config, account string) string {
 	userLine := ""
 	if account != "" {
@@ -1262,6 +1292,66 @@ func installPort(spec InstallSpec, config []byte, nginxDir string) int {
 		return spec.Port
 	}
 	return firstInboundPort(config)
+}
+
+// adoptRuntimeSettings fills unset transport settings from the config being
+// adopted. Generated Nginx fragments must point at the ports and paths the
+// preserved inbounds really use; the generator defaults (10000+, /ray) belong
+// to a fresh layout and would break traffic after a Bash takeover.
+func adoptRuntimeSettings(spec *InstallSpec, raw []byte) {
+	var doc struct {
+		Inbounds []struct {
+			Port           any `json:"port"`
+			StreamSettings struct {
+				Network    string `json:"network"`
+				WSSettings struct {
+					Path string `json:"path"`
+				} `json:"wsSettings"`
+				GRPCSettings struct {
+					ServiceName string `json:"serviceName"`
+				} `json:"grpcSettings"`
+			} `json:"streamSettings"`
+		} `json:"inbounds"`
+	}
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		return
+	}
+	for _, in := range doc.Inbounds {
+		port := 0
+		switch v := in.Port.(type) {
+		case float64:
+			port = int(v)
+		case string:
+			p, err := strconv.Atoi(v)
+			if err != nil {
+				continue
+			}
+			port = p
+		}
+		if port <= 0 {
+			continue
+		}
+		switch in.StreamSettings.Network {
+		case "ws":
+			if spec.WSPort == 0 {
+				spec.WSPort = port
+			}
+			if spec.Path == "" {
+				spec.Path = in.StreamSettings.WSSettings.Path
+			}
+		case "grpc":
+			if spec.GRPCPort == 0 {
+				spec.GRPCPort = port
+			}
+			if spec.ServiceName == "" {
+				spec.ServiceName = in.StreamSettings.GRPCSettings.ServiceName
+			}
+		case "xhttp":
+			if spec.XHTTPPort == 0 {
+				spec.XHTTPPort = port
+			}
+		}
+	}
 }
 
 // firstInboundPort reads the port the runtime config listens on. Xray accepts

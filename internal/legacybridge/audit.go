@@ -24,11 +24,14 @@ const (
 	entryRel         = "usr/bin/idleleo"
 	certDirRel       = "etc/idleleo/cert"
 	nginxConfRel     = "etc/nginx/nginx.conf"
-	managedNginxRel  = "etc/idleleo/conf/nginx"
-	relayConfRel     = "etc/idleleo/conf/nginx/relay-stream.conf"
-	unitXrayRel      = "etc/systemd/system/xray.service"
-	unitNginxRel     = "etc/systemd/system/nginx.service"
-	geoDirRel        = "etc/idleleo/geo"
+	// The Bash installer builds Nginx under /usr/local, not as a distro
+	// package, so its main config lives outside the system prefix.
+	legacyNginxConfRel = "usr/local/nginx/conf/nginx.conf"
+	managedNginxRel    = "etc/idleleo/conf/nginx"
+	relayConfRel       = "etc/idleleo/conf/nginx/relay-stream.conf"
+	unitXrayRel        = "etc/systemd/system/xray.service"
+	unitNginxRel       = "etc/systemd/system/nginx.service"
+	geoDirRel          = "etc/idleleo/geo"
 
 	rillConfigRel      = "etc/rill-xray-agent/config.json"
 	rillObservationRel = "var/lib/rill-xray-agent-xray/status/xray-observation.json"
