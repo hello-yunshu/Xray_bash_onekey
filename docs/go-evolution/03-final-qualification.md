@@ -87,6 +87,17 @@
 
 实现约束：纯读、无写盘、无新数据库/守护进程/Web。journal 同时兼容整文件 JSON 数组（当前真实格式）与历史 JSONL。
 
+### 4.1 复用与去重（C2）
+
+| 重复点 | 处理 |
+|---|---|
+| `repair` 与 `doctor` 各自用锁文件 mtime 判断“更新中” | 统一为 `host.LockHeld` 的真实 `flock` 探测，两个命令共用一套语义 |
+| `change.Journal.Record` 与 `ops` 各自解析 journal | 新增 `change.Journal.Read`，写入与读取共用同一解码器；`ops` 只做薄封装 |
+| 状态、证书、端口、journal、systemd 各自读取 | `ops.Summary` 复用 `app.Status` 与 `change.Journal`，仅新增只读投影 |
+| 资源探测 | 未新增后台探测；`ops summary` 每次按需读取，无缓存进程 |
+
+没有做未经测量的性能承诺：本阶段未引入基准测试，因此不宣称 CPU/内存改善。
+
 ## 5. 本轮修复的问题
 
 | 问题 | 影响 | 修复 |

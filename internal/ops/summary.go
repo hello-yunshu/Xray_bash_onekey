@@ -3,7 +3,6 @@
 package ops
 
 import (
-	"bufio"
 	"context"
 	"crypto/x509"
 	"encoding/json"
@@ -132,32 +131,14 @@ func certificate(path string) Certificate {
 	return report
 }
 
-// journal reads the bounded transaction record. The canonical form is one JSON
-// array (see change.Journal), so that is tried first; a line-delimited file is
-// still accepted so an older or hand-edited record does not disappear.
+// journal reads the bounded transaction record through the same decoder the
+// writer uses, so the summary can never drift from change.Journal.
 func journal(path string) []change.Entry {
-	raw, err := os.ReadFile(path)
+	entries, err := change.Journal{Path: path}.Read()
 	if err != nil {
 		return nil
 	}
-	var out []change.Entry
-	if json.Unmarshal(raw, &out) == nil {
-		return out
-	}
-	out = nil
-	scanner := bufio.NewScanner(strings.NewReader(string(raw)))
-	scanner.Buffer(make([]byte, 0, 64*1024), 1<<20)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-		var entry change.Entry
-		if json.Unmarshal([]byte(line), &entry) == nil {
-			out = append(out, entry)
-		}
-	}
-	return out
+	return entries
 }
 
 // Text renders the same report for a terminal.

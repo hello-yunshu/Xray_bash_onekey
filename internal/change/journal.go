@@ -1,6 +1,8 @@
 package change
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -42,15 +44,40 @@ type Journal struct {
 
 func now() string { return time.Now().UTC().Format(time.RFC3339) }
 
+// Read returns the bounded transaction history. The canonical form is one JSON
+// array; a line-delimited file is still accepted so an older or hand-edited
+// record does not disappear. A missing file is not an error.
+func (j Journal) Read() ([]Entry, error) {
+	raw, err := os.ReadFile(j.Path)
+	if err != nil {
+		return nil, err
+	}
+	var entries []Entry
+	if json.Unmarshal(raw, &entries) == nil {
+		return entries, nil
+	}
+	entries = nil
+	scanner := bufio.NewScanner(bytes.NewReader(raw))
+	scanner.Buffer(make([]byte, 0, 64*1024), 1<<20)
+	for scanner.Scan() {
+		line := bytes.TrimSpace(scanner.Bytes())
+		if len(line) == 0 {
+			continue
+		}
+		var entry Entry
+		if json.Unmarshal(line, &entry) == nil {
+			entries = append(entries, entry)
+		}
+	}
+	return entries, nil
+}
+
 // Record appends or replaces the entry with the same ID.
 func (j Journal) Record(e Entry) error {
 	if e.UpdatedAt == "" {
 		e.UpdatedAt = now()
 	}
-	var entries []Entry
-	if b, err := os.ReadFile(j.Path); err == nil {
-		_ = json.Unmarshal(b, &entries)
-	}
+	entries, _ := j.Read()
 	replaced := false
 	for i := range entries {
 		if entries[i].ID == e.ID {
