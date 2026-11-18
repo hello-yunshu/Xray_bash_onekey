@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "generatedAt": "2026-11-18T18:02:45Z",
+  "checks": [
+    {
+      "id": "layout",
+      "status": "ok",
+      "message": "managed directories are present",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "metadata",
+      "status": "ok",
+      "message": "manager metadata is readable",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "validator",
+      "status": "ok",
+      "message": "xray accepted the runtime config",
+      "method": "xray run -test",
+      "evidence": "ok"
+    },
+    {
+      "id": "permissions",
+      "status": "ok",
+      "message": "config and key permissions are restrictive",
+      "method": "mode bits",
+      "evidence": "ok"
+    },
+    {
+      "id": "service-access",
+      "status": "fail",
+      "message": "service account cannot read the runtime config",
+      "detail": "a restart would take xray down",
+      "method": "read-only inspection",
+      "evidence": "su-read-test",
+      "suggestion": "inspect the detail; this check never writes"
+    },
+    {
+      "id": "certificate",
+      "status": "skip",
+      "message": "no managed certificate to check",
+      "method": "x509 parse",
+      "evidence": "skip"
+    },
+    {
+      "id": "nginx",
+      "status": "skip",
+      "message": "managed nginx is not installed",
+      "method": "nginx -t",
+      "evidence": "skip"
+    },
+    {
+      "id": "services",
+      "status": "ok",
+      "message": "owned units are active",
+      "method": "systemctl is-active",
+      "evidence": "ok"
+    },
+    {
+      "id": "backup",
+      "status": "warn",
+      "message": "no backup is available",
+      "method": "read-only inspection",
+      "evidence": "warn",
+      "suggestion": "run idleleo backup create"
+    },
+    {
+      "id": "disk",
+      "status": "ok",
+      "message": "enough free disk space",
+      "detail": "239397 MiB",
+      "method": "statfs",
+      "evidence": "ok"
+    },
+    {
+      "id": "lock",
+      "status": "ok",
+      "message": "no update lock is held",
+      "method": "lstat",
+      "evidence": "ok"
+    },
+    {
+      "id": "geodata",
+      "status": "warn",
+      "message": "geo assets are missing",
+      "detail": "[geoip.dat geosite.dat]",
+      "method": "read-only inspection",
+      "evidence": "warn",
+      "suggestion": "inspect the detail; this check never writes"
+    }
+  ],
+  "summary": {
+    "ok": 7,
+    "warn": 2,
+    "fail": 1,
+    "skip": 2,
+    "unknown": 0
+  },
+  "healthy": false
+}

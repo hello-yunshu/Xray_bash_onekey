@@ -3,9 +3,9 @@
 - 分支：`work/go-evolution-audit-20261118`（未合并 `main`，未打 tag，未发布）
 - 基线：`develop/go-native` = `d4858a1150d3f83202e95aa9dfea2244832c8b3e`
 - 本阶段代码提交：`2d9a27af`（repair/doctor 权限与锁）、`d8950cd7`（热用户与运维摘要）
-- 实跑时间：2026-11-19，镜像 `idleleo-e2e:24.04`，证据 run.json 记录 commit `46457193`，Xray `26.10.31 a4a3dff`（go1.27.3）
+- 实跑时间：2026-11-19，镜像 `idleleo-e2e:24.04`，证据 run.json 记录 commit `941b185c`，Xray `26.10.31 a4a3dff`（go1.27.3）
 - 证据目录：
-  - `tests/e2e-diff/evidence/goevo-p3-p3-final-015931/`：热用户/修复/摘要实机套件（60 pass / 0 fail）
+  - `tests/e2e-diff/evidence/goevo-p3-p3-final-020226/`：热用户/修复/摘要实机套件（60 pass / 0 fail）
   - `tests/e2e-diff/evidence/p3-edits/p2/`：E1–E8 编辑回归（E1–E4 PASS，E5–E8 因无外网 BLOCKED）
   - `tests/e2e-diff/evidence/goevo-p3-final-matrix/`：全矩阵重跑尝试（被宿主无外网阻断，仅保留失败轨迹）
 
@@ -31,7 +31,7 @@
 | 证据卫生 | `check_evidence_hygiene.py`：P3 套件 0 findings / 62 files；编辑回归 0 findings / 423 files；无 UUID 明文（驱动内置脱敏） |
 | 外网 | 本次运行容器**无外网**：宿主机 DNS 把 `ip.me` 等解析到 `198.18.x`，容器内 `curl`/`Get` 均 `network is unreachable` |
 
-单元测试与实机都针对**当前提交构建出的二进制**（证据 run.json 的 `commit` 为 `46457193`，包含 `2d9a27af` + `d8950cd7` 的全部代码）。
+单元测试与实机都针对**当前提交构建出的二进制**（证据 run.json 的 `commit` 为 `941b185c`，包含 `2d9a27af` + `d8950cd7` 的全部代码）。
 
 ## 3. 实验性热用户变更（G06）
 
@@ -117,7 +117,7 @@
 
 | 维度 | 结果 | 说明 |
 |---|---|---|
-| P3 热用户/修复/摘要套件 | **60 PASS / 0 FAIL** | `goevo-p3-p3-final-015931` |
+| P3 热用户/修复/摘要套件 | **60 PASS / 0 FAIL** | `goevo-p3-p3-final-020226` |
 | E1–E4（配置编辑：UUID/端口/target/serverNames） | **PASS** | `p3-edits/p2`，`allPassed=true` |
 | E5/E6（TLS 证书编辑，Nginx 前置） | **BLOCKED** | TLS 安装需下载受管 Nginx 构件，容器无外网 |
 | E7/E8（shortId 自动、Reality 私钥轮换） | **BLOCKED** | 编辑前的真实 Reality 客户端需外部 target，容器无外网 |
