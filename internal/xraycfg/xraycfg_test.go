@@ -3,10 +3,28 @@ package xraycfg
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"reflect"
 	"strings"
 	"testing"
 )
+
+func TestPortAvailableSeesOccupiedLoopback(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	port := ln.Addr().(*net.TCPAddr).Port
+	if PortAvailable("127.0.0.1", port) {
+		t.Fatal("a listening port must be reported as unavailable")
+	}
+	if err := ln.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if !PortAvailable("127.0.0.1", port) {
+		t.Fatal("a released port must be reported as available")
+	}
+}
 
 func TestGenerateReality(t *testing.T) {
 	g, err := Generate(Spec{Mode: ModeReality, Domain: "example.com"})

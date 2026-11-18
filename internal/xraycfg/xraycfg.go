@@ -528,6 +528,16 @@ var canBindTCP = func(addr string, port int) bool {
 	return true
 }
 
+// PortAvailable reports whether listen:port can be bound right now. Deploy uses
+// it to reject a fresh install whose public entry port is already taken instead
+// of generating a config that cannot start.
+func PortAvailable(listen string, port int) bool {
+	if port <= 0 {
+		return true
+	}
+	return canBindTCP(probeAddr(listen), port)
+}
+
 // portPicker hands out the added transport ports. Explicit values are
 // validated and probed; automatic values scan the Bash pool and skip ports that
 // are reserved, already assigned or in use.

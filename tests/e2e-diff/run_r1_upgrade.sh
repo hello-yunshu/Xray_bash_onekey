@@ -5,6 +5,11 @@
 #     must keep the runtime config, certificate, unit, ports and live traffic.
 # R2: Bash install -> `idleleo bridge audit/prepare/validate/activate` must take
 #     over the same tree without rewriting it.
+# INJ: matrix.json upgrade.injections I1/I2/I4 on the Bash tree plus I3 on a
+#     clean container; a refused takeover must name the broken input and leave
+#     the running installation untouched.
+#
+# E2E_PATHS selects what runs: both (default: r1+r2+inj), r1, r2, or inj.
 #
 # Each scenario uses one container per path, so the R2 container is still in the
 # Bash state when the bridge runs. Every step records rc/stdout/stderr; a failed
@@ -345,12 +350,186 @@ run_r2() { # run_r2 <sid> <profile> <bash-arg> <l4-profile> <l4-transport>
     [[ "${E2E_KEEP:-0}" == "1" ]] || { docker rm -f "$c" >/dev/null 2>&1; docker network rm "$net" >/dev/null 2>&1; }
 }
 
+# --- I1/I2/I4: fault injection on the Bash tree before takeover -------------
+# matrix.json upgrade.injections: a takeover must refuse the candidate, name
+# the broken input, and leave the running installation alone.
+run_injections() { # run_injections <sid> <profile> <bash-arg> <go-args...>
+    local sid=$1 profile=$2 barg=$3
+    shift 3
+    local -a goargs=("$@")
+    local net="e2e-$RUN_ID-$sid-inj-net" c="e2e-$RUN_ID-$sid-inj"
+    local out="$EVID/$sid/INJ" cfg=/etc/idleleo/conf/xray/config.json
+    local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY)
+    docker network create "$net" >/dev/null 2>&1 || true
+    log "[$sid/INJ] start"
+    if ! start_server "$c" "$out/bash" "$net"; then
+        log "[$sid/INJ] container failed"; assert 1 "$sid INJ container started"; return
+    fi
+    docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
+        -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
+        -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \
+        -e E2E_PORT=443 -e E2E_LOCAL_IP=127.0.0.1 \
+        "$c" bash /src/tests/e2e-diff/drivers/bash_install.sh
+    local brc=$?
+    echo "$brc" >"$out/bash.rc"
+    assert "$([ "$brc" -eq 0 ] && echo 0 || echo 1)" "$sid INJ bash install exits 0 (rc=$brc)"
+    [ "$brc" -eq 0 ] || { docker rm -f "$c" >/dev/null 2>&1; return; }
+
+    docker exec "$c" install -m 0755 /seed/idleleo /usr/local/bin/idleleo
+    snap "$c" "$out/pre"
+
+    # attempt <injection>: run the takeover and keep rc/stdout/stderr.
+    attempt() { # attempt <injection>
+        docker exec "${envs[@]}" "$c" /usr/local/bin/idleleo xray install --keep-config \
+            --binary /usr/local/bin/xray --container --json "${goargs[@]}" \
+            >"$out/$1.json" 2>"$out/$1.err"
+        echo $? >"$out/$1.rc"
+    }
+    # fingerprint of everything a refused takeover must not touch, minus the
+    # input the injection itself changed.
+    untouched() { # untouched <injection> [extra-exclude-regex]
+        local inj=$1 pat=${2:-}
+        grep -v "/etc/idleleo/conf/xray/config.json" "$out/pre/sha.txt" | sort \
+            >"$out/pre/others.txt"
+        grep -v "/etc/idleleo/conf/xray/config.json" "$out/$inj/sha.txt" | sort \
+            >"$out/$inj/others.txt"
+        if [ -n "$pat" ]; then
+            for f in "$out/pre/others.txt" "$out/$inj/others.txt"; do
+                grep -Ev "$pat" "$f" >"$f.tmp" && mv "$f.tmp" "$f"
+            done
+        fi
+        cmp -s "$out/pre/others.txt" "$out/$inj/others.txt" && echo 0 || echo 1
+    }
+    restore_service() { # restore_service <injection>
+        docker exec "$c" systemctl restart xray >/dev/null 2>&1
+        local rc=$?
+        sleep 2
+        local st; st=$(docker exec "$c" systemctl is-active xray 2>/dev/null | head -1)
+        echo "restart_rc=$rc state=$st" >"$out/$1.restart.txt"
+        assert "$([ "$rc" -eq 0 ] && [ "$st" = "active" ] && echo 0 || echo 1)" \
+            "$sid $1 service recovers once the input is repaired (rc=$rc state=$st)"
+    }
+
+    # I1 corrupt-config: invalid JSON must be rejected by xray -test, the
+    # runtime file must stay exactly as the operator left it, and the service
+    # must come back once the file is repaired.
+    docker exec "$c" sh -c "cp $cfg /tmp/config.good && printf '{\"inbounds\": [' > $cfg"
+    local corrupt1; corrupt1=$(docker exec "$c" sha256sum "$cfg" | awk '{print $1}')
+    attempt I1
+    local i1; i1=$(cat "$out/I1.rc")
+    assert "$([ "$i1" -ne 0 ] && echo 0 || echo 1)" "$sid I1 corrupt config is refused (rc=$i1)"
+    assert "$(grep -q 'rejected the candidate' "$out/I1.err" && echo 0 || echo 1)" \
+        "$sid I1 error reports the rejected candidate"
+    assert "$(grep -q 'config.json' "$out/I1.err" && echo 0 || echo 1)" \
+        "$sid I1 error names the config file"
+    snap "$c" "$out/I1"
+    assert "$(untouched I1)" "$sid I1 leaves units, certs and cron untouched"
+    assert "$([ "$corrupt1" = "$(docker exec "$c" sha256sum "$cfg" | awk '{print $1}')" ] && echo 0 || echo 1)" \
+        "$sid I1 the refused install does not overwrite the corrupt input"
+    docker exec "$c" sh -c "cp /tmp/config.good $cfg" &&
+        assert "$(docker exec "$c" /usr/local/bin/xray -test -config "$cfg" >/dev/null 2>&1 && echo 0 || echo 1)" \
+            "$sid I1 restored config validates"
+    restore_service I1
+
+    # I2 missing-cert (TLS trees only): absent certificate must be refused and
+    # named. The files are moved out and put back, so the tree is unchanged.
+    if [ "$profile" = "tls" ]; then
+        docker exec "$c" sh -c 'mkdir -p /tmp/cert.bak && mv /etc/idleleo/cert/xray.crt /etc/idleleo/cert/xray.key /tmp/cert.bak/'
+        attempt I2
+        local i2; i2=$(cat "$out/I2.rc")
+        assert "$([ "$i2" -ne 0 ] && echo 0 || echo 1)" "$sid I2 missing certificate is refused (rc=$i2)"
+        assert "$(grep -q 'xray.crt' "$out/I2.err" && echo 0 || echo 1)" \
+            "$sid I2 error names the missing certificate"
+        snap "$c" "$out/I2"
+        assert "$(untouched I2 '/cert/xray\.(crt|key)')" "$sid I2 leaves units and cron untouched"
+        docker exec "$c" sh -c 'mv /tmp/cert.bak/xray.crt /tmp/cert.bak/xray.key /etc/idleleo/cert/' &&
+            assert "$(docker exec "$c" /usr/local/bin/xray -test -config "$cfg" >/dev/null 2>&1 && echo 0 || echo 1)" \
+                "$sid I2 restored certificate validates"
+        restore_service I2
+    fi
+
+    # I4 read-only-target: a write-refusing config dir must fail loudly, keep
+    # the runtime config byte-identical, and leave a recovery journal that the
+    # documented `xray recover` path clears.
+    local before4 after4
+    before4=$(docker exec "$c" sha256sum "$cfg" | awk '{print $1}')
+    docker exec "$c" sh -c 'mkdir -p /tmp/roconf && cp -a /etc/idleleo/conf/xray/. /tmp/roconf/ &&
+        mount --bind /tmp/roconf /etc/idleleo/conf/xray &&
+        mount -o remount,ro,bind /etc/idleleo/conf/xray'
+    attempt I4
+    local i4; i4=$(cat "$out/I4.rc")
+    assert "$([ "$i4" -ne 0 ] && echo 0 || echo 1)" "$sid I4 read-only target is refused (rc=$i4)"
+    assert "$(grep -Eq 'read-only|conf/xray' "$out/I4.err" && echo 0 || echo 1)" \
+        "$sid I4 error names the write-refused path"
+    docker exec "$c" sh -c 'umount /etc/idleleo/conf/xray' >/dev/null 2>&1 || true
+    after4=$(docker exec "$c" sha256sum "$cfg" | awk '{print $1}')
+    assert "$([ -n "$before4" ] && [ "$before4" = "$after4" ] && echo 0 || echo 1)" \
+        "$sid I4 runtime config is byte-identical after the refusal"
+    assert "$(docker exec "$c" test -e /var/lib/idleleo/deploy/journal.json && echo 0 || echo 1)" \
+        "$sid I4 the un-restorable rollback keeps a recovery journal"
+    docker exec "${envs[@]}" "$c" /usr/local/bin/idleleo xray recover --container --json \
+        >"$out/I4.recover.json" 2>"$out/I4.recover.err"
+    local r4=$?
+    echo "$r4" >"$out/I4.recover.rc"
+    assert "$([ "$r4" -eq 0 ] && echo 0 || echo 1)" "$sid I4 xray recover clears the journal (rc=$r4)"
+    assert "$(docker exec "$c" test ! -e /var/lib/idleleo/deploy/journal.json && echo 0 || echo 1)" \
+        "$sid I4 recovery journal is removed"
+    assert "$([ "$(docker exec "$c" systemctl is-active xray 2>/dev/null | head -1)" = "active" ] && echo 0 || echo 1)" \
+        "$sid I4 service stays active"
+    assert "$([ "$before4" = "$(docker exec "$c" sha256sum "$cfg" | awk '{print $1}')" ] && echo 0 || echo 1)" \
+        "$sid I4 recovery leaves the runtime config unchanged"
+
+    [[ "${E2E_KEEP:-0}" == "1" ]] || { docker rm -f "$c" >/dev/null 2>&1; docker network rm "$net" >/dev/null 2>&1; }
+}
+
+# --- I3 port-in-use: fresh install must refuse an occupied public port --------
+run_port_injection() {
+    local sid=I3 net="e2e-$RUN_ID-i3-net" c="e2e-$RUN_ID-i3"
+    local out="$EVID/I3"
+    docker network create "$net" >/dev/null 2>&1 || true
+    log "[I3] start"
+    if ! start_server "$c" "$out" "$net"; then
+        log "[I3] container failed"; assert 1 "I3 container started"; return
+    fi
+    docker exec "$c" install -m 0755 /seed/idleleo /usr/local/bin/idleleo
+    docker exec "$c" install -m 0755 /seed/xray /usr/local/bin/xray
+    # Hold 443 from a detached exec: a foreground `&` dies with the exec PTY.
+    docker exec -d "$c" python3 -c 'import socket, time
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("0.0.0.0", 443))
+s.listen(1)
+time.sleep(120)'
+    local holding=1
+    for _ in $(seq 1 20); do
+        if docker exec "$c" sh -c 'ss -ltn | grep -q ":443 "'; then holding=0; break; fi
+        sleep 1
+    done
+    docker exec "$c" ss -ltn >"$out/held-ports.txt" 2>&1 || true
+    assert "$holding" "I3 harness holds port 443 before the install"
+    docker exec -e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY "$c" \
+        /usr/local/bin/idleleo xray install --binary /usr/local/bin/xray --mode reality \
+        --domain "$DOMAIN" --target "$TARGET" --port 443 --container --json \
+        >"$out/install.json" 2>"$out/install.err"
+    local rc=$?
+    echo "$rc" >"$out/install.rc"
+    assert "$([ "$rc" -ne 0 ] && echo 0 || echo 1)" "I3 occupied port is refused (rc=$rc)"
+    assert "$(grep -q 'already in use' "$out/install.err" && echo 0 || echo 1)" \
+        "I3 error reports the port conflict"
+    assert "$(docker exec "$c" sh -c '[ ! -e /etc/idleleo/conf/xray/config.json ] && echo 0 || echo 1')" \
+        "I3 refusal writes no runtime config"
+    assert "$(docker exec "$c" sh -c '[ ! -e /etc/systemd/system/xray.service ] && echo 0 || echo 1')" \
+        "I3 refusal writes no unit file"
+    [[ "${E2E_KEEP:-0}" == "1" ]] || { docker rm -f "$c" >/dev/null 2>&1; docker network rm "$net" >/dev/null 2>&1; }
+}
+
 run_paths() { # run_paths <sid> <args...> -- respects E2E_PATHS
     local sid=$1; shift
     case ",$PATHS," in
-        *,both,*) run_r1 "$sid" "$@"; run_r2 "$sid" "$@" ;;
+        *,both,*) run_r1 "$sid" "$@"; run_r2 "$sid" "$@"; run_injections "$sid" "$@" ;;
         *,r1,*)   run_r1 "$sid" "$@" ;;
         *,r2,*)   run_r2 "$sid" "$@" ;;
+        *,inj,*)  run_injections "$sid" "$@" ;;
     esac
 }
 
@@ -359,6 +538,9 @@ case ",$ONLY," in *,M1,*) run_paths M1 reality -2 reality reality \
     --mode reality --domain "$DOMAIN" --target "$TARGET" --port 443 ;; esac
 case ",$ONLY," in *,M4,*) run_paths M4 tls -1 tls ws \
     --mode tls --transport ws --domain "$DOMAIN" --port 443 ;; esac
+case ",$PATHS," in
+    *,both,*|*,inj,*) run_port_injection ;;
+esac
 log "run_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 printf '%s PASS\n%s FAIL\n' \
     "$(grep -c '^PASS' "$EVID/assertions.txt")" "$(grep -c '^FAIL' "$EVID/assertions.txt")" | tee -a "$EVID/run.log"

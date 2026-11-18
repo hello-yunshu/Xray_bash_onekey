@@ -184,6 +184,22 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		spec.KeepConfig = true
 		adoptWarning = fmt.Sprintf("existing runtime config %s adopted unchanged (bash-compatible); pass --rewrite-config to replace it explicitly", configPath)
 	}
+	// A fresh Reality install binds the public port inside Xray. Refuse early
+	// when something else already owns it: otherwise the generated config only
+	// fails at service start with a message that does not name the port.
+	if !spec.KeepConfig && spec.Mode == xraycfg.ModeReality {
+		port := spec.Port
+		if port == 0 {
+			port = spec.PublicPort
+		}
+		if !xraycfg.PortAvailable(spec.Listen, port) {
+			where := spec.Listen
+			if where == "" {
+				where = "0.0.0.0"
+			}
+			return Report{}, fmt.Errorf("public port %d is already in use on %s; stop the listener or choose another --port", port, where)
+		}
+	}
 	// Modes that expose the public entry through Nginx always get a front. The
 	// default is a managed install from the verified release artifact; the
 	// explicit opt-out must supply a real binary so the generated artifacts are
@@ -383,7 +399,9 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 	}
 	rep.ValidatorExit = ver.ExitCode
 	if ver.ExitCode != 0 {
-		return fail(fmt.Errorf("xray -test rejected the candidate (exit %d): %s", ver.ExitCode, strings.TrimSpace(ver.Stderr)))
+		// The candidate is validated from a temp file, but the operator needs the
+		// file this install was about: name the destination path explicitly.
+		return fail(fmt.Errorf("xray -test rejected the candidate for %s (exit %d): %s", configPath, ver.ExitCode, strings.TrimSpace(ver.Stderr)))
 	}
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		return fail(err)
