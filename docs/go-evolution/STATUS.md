@@ -31,20 +31,20 @@
 - 期间修复 `container.DetectMode` 未按目标 root 判断 systemd 的产品缺陷；夹具补齐多 `ip6tables` 路径遮蔽、systemd restart 双结果断言、镜像符号链接规范化、交付资产来源与 D3 基线对比口径。
 - S4–S9 辅助脚本实跑（`run_s_scripts.sh`，`s-20261119-full/s`，58 PASS / 0 FAIL）：S4 正常/重复/坏元数据 fail-safe；S5 用 Pebble 完成真实续期与 CA 不可达恢复；S6 真实 GitHub Release 下载与失败不破坏现网；S7 acme.sh 下载安装并验证 `--version/--help`；S8 `tcp` sandbox 全链路且真实内核正确拒绝；S9 真实验速与干净失败。历史 tcp.sh/superspeed.sh 均记录 URL+sha256 且 `bash -n` 通过。
 - Go 全库单测、gofmt、vet 通过；证据卫生扫描 0 findings。
+- 分支推送 GitHub 后，受保护 CI 在真实主机模式复跑 28 个夹具并全绿（run `44421005604`）；期间把 F13/F21 的主机分支改为非破坏性断言（不再用 shim 覆盖 `/usr/local/bin/xray`）、F04 的 IPv6 片段副本改为无冒号文件名以通过 artifact 上传。
 
 ## 阻断
 
-1. **受保护 CI 不可得**：分支未推送，无远程 workflow 运行；F01–F28 依规则保持 `PENDING_GO_IMPLEMENTATION`。本地等价门禁已跑：隐私扫描 0 findings、账本迁移策略 17 tests OK、A2 自检 PASS、go 全库测试通过。
-2. **真实节点证据缺失**：无真实 VPS/VM 的 systemd/journald、证书续期与断电证据；不伪造，账本不推进。
-3. **S7/S8 子项仍受外部条件限制**：acme.sh 的下载/安装/调用已实测，但真实签发需域名+公网 CA；`tcp` 已在 sandbox 验证全链路，真实内核 BBR 需 VPS 内核。S1–S3 为交互菜单脚本，其能力由 OPS 双端/单边实跑覆盖。
+1. **真实节点证据缺失**：无真实 VPS/VM 的 systemd/journald、证书续期与断电证据；不伪造。
+2. **S7/S8 子项仍受外部条件限制**：acme.sh 的下载/安装/调用已实测，但真实签发需域名+公网 CA；`tcp` 已在 sandbox 验证全链路，真实内核 BBR 需 VPS 内核。S1–S3 为交互菜单脚本，其能力由 OPS 双端/单边实跑覆盖。
 
 ## 下一步
 
 1. 在真实 VPS/VM 复跑 P3 套件、M8 调度与 R1/R2 接管，补齐断电/长期旧连接场景，并验证 S7 签发与 S8 真实内核应用。
-2. 补齐 OPS 未驱动行的 Bash 对照驱动（当前 18 行只有 Go 单边证据）。
-3. 推送分支并接入受保护 CI，获取远程 workflow 证据。
-4. 仅在独立证据满足 `check_ledger_transition.py`/`check_release_gate.py` 时更新 `feature_contracts.json`。
+2. 补齐 OPS 未驱动行的 Bash 对照驱动（当前 29 行只有 Go 单边证据）。
+3. 剩余发布动作（合并 `main`、tag、Release）须在真实节点证据补齐后另行评审，本分支不执行。
 
 ## 发布资格
 
-`check_release_gate.py` → `RELEASE BLOCKED: pending 28; missing executable feature tests 0; JSON statuses alone never grant success`（rc=2）。当前建议：正式发布 NO-GO；实验能力 GO（默认关闭）。
+- 分支 CI：`Go production parity release qualification` run [44421005604](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44421005604) **全绿**，产物 `release-qualification-evidence` 已上传；日志给出 `RELEASE FUNCTIONAL QUALIFICATION PASS`（28/28 夹具 rc=0）。
+- 但按 workflow 约定，该单一 job 不足以发布（尚需 VM/systemd、真实 Xray/Nginx、续期、跨发行版/架构、备份导入、SIGKILL 重启、分阶段发布等后续 job），且真实节点证据仍缺；当前建议：正式发布 NO-GO；实验能力 GO（默认关闭）。未合并 `main`、未打 tag、未发布。

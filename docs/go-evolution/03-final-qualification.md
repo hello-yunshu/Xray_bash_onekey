@@ -150,14 +150,14 @@
 - `feature_contracts.json`：F01–F28 全部离开 `PENDING_GO_IMPLEMENTATION`，26 项 `VERIFIED_GO_PARITY`，F20/F25 为 `APPROVED_SAFE_DIVERGENCE`；每项都带仓库相对 `evidence` 路径。
 - 实跑证据：`evidence/f01f28-20261119`，privileged systemd 容器内用源码构建的 `idleleo` + 固定 Bash 检出 `3b2a5045` 执行 28 个夹具，**28/28 rc=0**；`manifest.json` 记录镜像、二进制、geo 与 Bash 哈希。
 - `check_ledger_transition.py`：从 `HEAD` 基线到当前账本，28 项 `PENDING -> VERIFIED/APPROVED` 全部允许，无反向、无删改 id。
-- `check_release_gate.py`：状态与夹具已满足，本地无法单独完成受保护 CI 部分；门禁结果由 `.github/workflows/go-release-qualification.yml` 在 `work/go-evolution-audit-20261118` 上实跑给出。
+- `check_release_gate.py`：状态与夹具已满足；受保护 CI 在 `work/go-evolution-audit-20261118` 上实跑 **PASS**（run `44421005604`，日志 `RELEASE FUNCTIONAL QUALIFICATION PASS`，28/28 rc=0，证据 artifact 已上传）。
 - 未执行：合并 `main`、打 tag、发布 Release、改生产机器。
 
 ### 6.4 CI、隐私、依赖与夹具扫描（C3）
 
 | 项 | 结果 | 证据与说明 |
 |---|---|---|
-| CI 回归 | PASS（本地等价）/ NOT_RUN（远程与 stage gate） | 本地等价全绿：`check_evidence_hygiene.py --mask .` 0 findings/16363 文件；`test_ledger_transition.py` 17 tests OK；A2 比较器 `SELFTEST_PASS mutations=14 baseline=MATCH`；`gofmt`/`go vet`/全库 `go test`/`go build` 通过。分支未推送，远程受保护 CI 无运行；需要 `legacy` 检出的 stage gate 未跑 |
+| CI 回归 | PASS（远程受保护分支 CI）/ NOT_RUN（stage gate） | run `44421005604` 全绿：Privacy Guard、go vet/test/build、28 个夹具在真实主机模式全 PASS，证据 artifact 已上传。本地等价同样全绿：`check_evidence_hygiene.py --mask .` 0 findings/16363 文件；`test_ledger_transition.py` 17 tests OK；A2 比较器 `SELFTEST_PASS mutations=14 baseline=MATCH`；`gofmt`/`go vet`/全库 `go test`/`go build` 通过。需要 `legacy` 检出的 stage gate 仍未跑 |
 | 隐私 | PASS（本阶段） | 证据卫生扫描 0 findings；驱动对 UUID 脱敏；未提交私钥或证书（Reality target 证书运行时生成、随容器销毁）；未写入宿主公网 IP 或个人路径 |
 | 依赖许可 | PASS | `go.mod`/`go.sum` 相对基线未变，未新增 vendor 代码 |
 | 夹具可重复性 | PASS | `run_p3_hot.sh` 每次从源码构建、生成新 UUID/密钥与自签 origin；`run_p2_matrix.sh` 本轮在恢复外网后完整复跑 M1–M10/E1–E8/OPS，无 BLOCKED |
