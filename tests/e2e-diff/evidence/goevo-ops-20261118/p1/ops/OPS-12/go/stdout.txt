@@ -1,0 +1,20 @@
+Nov 18 15:51:33 ops-go systemd[1]: xray.service: Deactivated successfully.
+Nov 18 15:51:33 ops-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 18 15:51:33 ops-go systemd[1]: Started xray.service - Xray Service.
+Nov 18 15:51:33 ops-go xray[340]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 15:51:33 ops-go xray[340]: A unified platform for anti-censorship.
+Nov 18 15:51:33 ops-go xray[340]: 2026/11/18 15:51:33.177068 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 18 15:58:24 ops-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 18 15:58:24 ops-go systemd[1]: xray.service: Deactivated successfully.
+Nov 18 15:58:24 ops-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 18 15:58:24 ops-go systemd[1]: Started xray.service - Xray Service.
+Nov 18 15:58:24 ops-go xray[474]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 15:58:24 ops-go xray[474]: A unified platform for anti-censorship.
+Nov 18 15:58:24 ops-go xray[474]: 2026/11/18 15:58:24.134560 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 18 16:13:05 ops-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 18 16:13:05 ops-go systemd[1]: xray.service: Deactivated successfully.
+Nov 18 16:13:05 ops-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 18 16:13:05 ops-go systemd[1]: Started xray.service - Xray Service.
+Nov 18 16:13:05 ops-go xray[683]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 16:13:05 ops-go xray[683]: A unified platform for anti-censorship.
+Nov 18 16:13:05 ops-go xray[683]: 2026/11/18 16:13:05.787699 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

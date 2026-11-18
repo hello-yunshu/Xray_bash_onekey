@@ -1,0 +1,5 @@
+c93953d91a2123bc0c13c9dde4a9b0ecaa908f989eb5a90027cebf45cd16a637  /etc/idleleo/conf/xray/config.json
+active
+inactive
+LISTEN 0      4096               *:443             *:*          
+818

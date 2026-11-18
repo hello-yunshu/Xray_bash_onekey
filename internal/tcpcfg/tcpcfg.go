@@ -769,6 +769,12 @@ func (m *Manager) scanSources() ([]SysctlSource, FileStatus, int, error) {
 func (m *Manager) readSource(path string, priority int, ours bool) (SysctlSource, bool, error) {
 	info, err := m.Backend.StatFile(path)
 	if err != nil {
+		// Distributions ship /etc/sysctl.d/99-sysctl.conf as a symlink to
+		// /etc/sysctl.conf. Refusing to follow it protects writes, but a
+		// read-only scan must skip it instead of calling the host corrupt.
+		if !ours && strings.Contains(err.Error(), "symlink refused") {
+			return SysctlSource{}, false, nil
+		}
 		return SysctlSource{}, false, classifyIO("stat "+path, err)
 	}
 	if !info.Exists {
@@ -863,7 +869,9 @@ func parseSysctl(body string) map[string]string {
 		if idx <= 0 {
 			continue
 		}
-		key := strings.TrimSpace(line[:idx])
+		// procps accepts a leading '-' to mean "ignore a write failure"; it is
+		// not part of the key and must not become one in conflict reports.
+		key := strings.TrimPrefix(strings.TrimSpace(line[:idx]), "-")
 		value := strings.TrimSpace(line[idx+1:])
 		if key == "" || value == "" {
 			continue

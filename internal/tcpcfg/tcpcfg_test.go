@@ -208,6 +208,43 @@ func TestStatusNonLinux(t *testing.T) {
 	}
 }
 
+func TestParseSysctlStripsIgnoreFailurePrefix(t *testing.T) {
+	got := parseSysctl("-net.core.default_qdisc = fq_codel\nnet.ipv4.tcp_rmem=4096 87380 6291456\n")
+	if got["net.core.default_qdisc"] != "fq_codel" {
+		t.Fatalf("leading '-' leaked into the key: %v", got)
+	}
+	if _, ok := got["-net.core.default_qdisc"]; ok {
+		t.Fatalf("dash-prefixed key must be normalised: %v", got)
+	}
+}
+
+func TestReadSourceSkipsDistributionSymlink(t *testing.T) {
+	root := t.TempDir()
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		t.Fatalf("NewPaths: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "etc/sysctl.d"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(root, "etc/sysctl.conf")
+	if err := os.WriteFile(target, []byte("net.core.default_qdisc = fq\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "etc/sysctl.d/99-sysctl.conf")
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatalf("symlink: %v", err)
+	}
+	m := &Manager{Paths: paths, Backend: OSBackend{Paths: paths}}
+	src, ok, err := m.readSource(link, 0, false)
+	if err != nil {
+		t.Fatalf("read-only scan must not fail on a distribution symlink: %v", err)
+	}
+	if ok || src.Path != "" {
+		t.Fatalf("symlinked source must be skipped, got %+v", src)
+	}
+}
+
 func TestStatusReportsSourcesAndConflicts(t *testing.T) {
 	m, backend := newFakeManager(t)
 	backend.put(t, m, "etc/sysctl.d/50-dist.conf", "net.ipv4.tcp_congestion_control = cubic\n", 0o644, 0, 0)

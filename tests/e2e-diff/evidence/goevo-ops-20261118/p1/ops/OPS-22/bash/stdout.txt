@@ -1,0 +1,16 @@
+[OK]  当前用户是 root 用户, 开始安装 
+
+ 检测到日志文件大小如下: 
+4.0K	/var/log/xray
+[OK]  日志清理 完成 
+
+ 是否需要设置自动清理日志 [Y/N]? 
+[OK]  将每周轮转并压缩日志 
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Package logrotate is not available, but is referred to by another package.
+This may mean that the package is missing, has been obsoleted, or
+is only available from another source
+
+[错误]  软件包安装失败: logrotate 

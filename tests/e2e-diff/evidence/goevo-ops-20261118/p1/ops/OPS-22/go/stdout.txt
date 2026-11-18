@@ -1,0 +1,3 @@
+truncated: /var/log/xray/access.log
+truncated: /var/log/xray/error.log
+freedBytes=65
