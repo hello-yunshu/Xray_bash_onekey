@@ -149,19 +149,19 @@ OPS-12/13 的 Bash 端是“持续跟随”，`TRUNCATED` 是采集方式导致�
 
 ## 6.1 S1–S9 辅助脚本与 R1/R2 升级链
 
-矩阵的 `subscripts`/`upgrade` 定义在 `tests/e2e-diff/matrix.json`；`run_p2_matrix.sh` 的 scope 只含 `installs/edits/ops`，**辅助脚本本体仍未执行**（S1–S9 保持 NOT_RUN），但升级链已由 `tests/e2e-diff/run_r1_upgrade.sh` 单独实跑。下表把“静态对照结论”和“实跑状态”分开写，避免把静态核对冒充成双端实跑。
+矩阵的 `subscripts`/`upgrade` 定义在 `tests/e2e-diff/matrix.json`；`run_p2_matrix.sh` 的 scope 只含 `installs/edits/ops`。辅助脚本已由 `tests/e2e-diff/run_s_scripts.sh` 单独实跑（S4–S9，见 §6.2）；S1–S3 仍是交互菜单脚本，其 Go 能力由 OPS 行覆盖。下表把“静态对照结论”和“实跑状态”分开写，避免把静态核对冒充成双端实跑。
 
 | ID | Bash 入口 | Go 入口 | 归类 | 本轮状态 |
 |---|---|---|---|---|
-| S1 | `scripts/fail2ban_manager.sh` | `fail2ban status/install/banned/unban/trust/jail` | 必须迁移 | 脚本 NOT_RUN；OPS-19 矩阵 PASS |
-| S2 | `scripts/traffic_blocker.sh` | `xray block ...` | 必须迁移 | 脚本 NOT_RUN；OPS-21 矩阵 PASS |
-| S3 | `scripts/file_manager.sh` | `metadata export/import` + `backup create/restore` | 安全替代 | 脚本 NOT_RUN；`goevo-ops-20261119-0412` 单边实跑 metadata export/import |
-| S4 | `scripts/auto_update.sh` | `schedule install`（`auto-update` job） | 安全替代 | 脚本与 cron NOT_RUN；单元测试覆盖 |
-| S5 | `scripts/ssl_update.sh` | `xray cert renew` + `schedule` 的 `cert-renew` | 安全替代 | 脚本 NOT_RUN；M8 双端 ACME 安装 PASS（续期/拒绝/回滚未逐项注入） |
-| S6 | `scripts/geo_update.sh` | `schedule run --job geodata-refresh` | 安全替代 | 脚本 NOT_RUN；单元测试覆盖路径校验 |
-| S7 | `acme.sh`（`IDLELEO_ACME_LEGACY=1`） | `xray cert issue/renew` | 安全替代 | NOT_RUN；脚本为安装时远端下载，仓库内无本体；Go 不接管既有 acme.sh 安装 |
-| S8 | `tcp.sh` | `tcp plan/apply/rollback/status` | 必须迁移 | NOT_RUN；脚本为安装时远端下载，仓库内无本体；单元测试覆盖 |
-| S9 | `superspeed.sh` | `speedtest` | 安全替代 | NOT_RUN（需外部测速端点，且脚本体不在仓库） |
+| S1 | `scripts/fail2ban_manager.sh` | `fail2ban status/install/banned/unban/trust/jail` | 必须迁移 | 脚本 NOT_RUN（交互菜单）；OPS-19 矩阵 PASS |
+| S2 | `scripts/traffic_blocker.sh` | `xray block ...` | 必须迁移 | 脚本 NOT_RUN（交互菜单）；OPS-21 矩阵 PASS |
+| S3 | `scripts/file_manager.sh` | `metadata export/import` + `backup create/restore` | 安全替代 | 脚本 NOT_RUN（交互菜单）；OPS-26 与 `goevo-ops-20261119-0412` 覆盖能力 |
+| S4 | `scripts/auto_update.sh` | `schedule install`（`auto-update` job） | 安全替代 | PASS（正常/重复/坏元数据 fail-safe） |
+| S5 | `scripts/ssl_update.sh` | `xray cert renew` + `schedule` 的 `cert-renew` | 安全替代 | PASS（Pebble 真实续期/重复/CA 不可达恢复） |
+| S6 | `scripts/geo_update.sh` | `schedule run --job geodata-refresh` | 安全替代 | PASS（真实下载/重复/下载失败不破坏现网） |
+| S7 | `acme.sh`（`IDLELEO_ACME_LEGACY=1`） | `xray cert issue/renew` | 安全替代 | PASS（下载+安装+`--version/--help`）；真实签发 BLOCKED |
+| S8 | `tcp.sh` | `tcp plan/apply/rollback/status` | 必须迁移 | PASS（sandbox 全链路 + 真实内核 fail-closed + 历史脚下载语法校验）；真实内核应用 BLOCKED |
+| S9 | `superspeed.sh` | `speedtest` | 安全替代 | PASS（真实测速/重复/失败干净退出 + 历史脚下载语法校验） |
 
 R1（官方升级路径，`idleleo xray install --keep-config`）：
 
@@ -187,14 +187,34 @@ R2（`idleleo bridge prepare/validate/activate`）：
 | I3 | 443 被占用（全新 Reality 安装） | 拒绝并报 `already in use`，不写运行配置、不写 unit |
 | I4 | 配置目录只读挂载 | 拒绝并指名被拒写路径，解除挂载后配置字节不变；回滚无法恢复时保留 recovery journal，`idleleo xray recover` 清除后服务 active |
 
+## 6.2 S4–S9 辅助脚本实跑（`run_s_scripts.sh`）
+
+证据：`tests/e2e-diff/evidence/s-20261119-full/s`，commit `6de5ffb4`，**58 PASS / 0 FAIL**；容器出网开启，`check_evidence_hygiene.py --mask` 0 findings。
+
+前提：S7/S8/S9 的第三方脚本在当前实现中已退役（acme.sh 仅保留一版 legacy 回退，tcp.sh/superspeed.sh 由 Go 取代），因此每行同时验证“历史脚本仍可下载”和“项目自有实现真实可用”，不把“仓库无本体”当作免测理由。
+
+| 行 | 覆盖 | 关键证据 |
+|---|---|---|
+| S4 | 真实 Bash install 后的 `auto_update.sh`：正常、重复、坏元数据 | 正常/重复均 `rc=0`，日志含 `Script is up to date` 与 `Xray is up to date`；缺字段时 `rc=0` 且注明 `skipping update checks`，`install_config.json` 字节不变 |
+| S5 | Bash TLS+ACME 安装 + Pebble，`ssl_update.sh` 真实续期 | 预置 1 天期证书进入续期窗口；续期后证书由 Pebble 签发、两次续期均成功；停掉 Pebble 后 `rc=1`，证书与 `nginx`/`xray` 状态保持不变 |
+| S6 | `geo_update.sh` 真实 GitHub Release 下载 | 正常/重复 `rc=0`，两个 `.dat` 非空且版本入 `geo_version.json`；用失败 `curl` 注入后 `rc=1`，现网 `.dat` 哈希不变 |
+| S7 | `get.acme.sh` 下载与安装（sha256 `8681df82…`） | 安装成功、`acme.sh --version/--help` `rc=0`；无 legacy 状态时续期 `rc=1` 并报 `acme.sh not found`；**真实签发 BLOCKED**（需真实域名+公网 CA） |
+| S8 | `idleleo tcp` 全链路 + 历史 `tcp.sh` 下载 | sandbox 中 `plan/apply/apply(noop)/rollback` 全部 `rc=0`，drop-in 创建与删除、运行时值改回；真实内核因缺 `net.core.default_qdisc`/`bbr` 被正确拒绝（`rc=12`）；`tcp.sh` 下载 sha256 `0b7614e7…` 且 `bash -n` 通过；**真实内核应用 BLOCKED**（需真实 VPS） |
+| S9 | `idleleo speedtest` + 历史 `superspeed.sh` 下载 | 真实验速与重复运行 `rc=0`，返回 `server`/`downMbps`；不可达端点 `rc=1` 且无 panic；`superspeed.sh` 下载 sha256 `5593e179…` 且 `bash -n` 通过 |
+
+S7/S8/S9 的 `BLOCKED-*.md` 与 `S5/BLOCKED.md` 模板随证据保存；S1–S3 未执行交互脚本体，能力仍由 OPS 行覆盖。
+
 ## 7. 未验证 / 阻塞
+
+- S7 的真实公网 CA 签发、S8 的真实内核 BBR 应用仍为 BLOCKED（分别需要真实域名与真实 VPS 内核），与 §6.2 的 PASS 不冲突：下载/安装/Go 实现与失败闭合均已实测。
+- S1–S3 交互脚本体仍未执行，结论仍以 OPS 双端/单边行为准。
 
 - 全量矩阵已于 2026-11-19 在恢复外网后完整重跑（`tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2`，commit `be141822`）：M1–M10 双端两轮 `rc=0`、L4 真实客户端全 `ok`；本条此前的 BLOCKED 结论已被该证据取代。
 - OPS-12/13 的 Bash 侧只做了 6 秒有界采集，不能证明长时跟随；Go 快照行为已实测。
 - OPS-18 的 Bash 侧是交互菜单，本轮未执行开关动作；Go 侧已由 `goevo-ops-20261119-0412` 单边实跑 `tcp status`。
 - OPS 未驱动的 18 行只有 Go 单边实跑（`goevo-ops-20261119-0412-6ad3be97`），没有 Bash 对照，矩阵 verdict 仍按 must-match 记为未完成。
 - OPS-09/19/21/31/32 已在上述矩阵中重跑并 PASS。
-- S1–S9 脚本本体未执行（S7/S8/S9 本体不在仓库，S4/S5/S6 依赖外网/CA），见 6.1；不计入 PASS。
+- S4–S9 已实跑（`s-20261119-full/s`，58/58），S1–S3 交互脚本体未执行，见 6.1/6.2；S7 签发与 S8 真实内核应用仍 BLOCKED。
 - R1/R2 与 I1–I4 已实跑（见 6.1），仅 M1/M4 两个场景；M3（reality-transport）与 relay/负载均衡树的接管仍未覆盖。
 - 端口预检只覆盖全新 Reality 直连安装；TLS/reality-nginx 由 Nginx 持有公网端口。
 

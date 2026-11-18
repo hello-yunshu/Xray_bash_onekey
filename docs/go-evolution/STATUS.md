@@ -14,7 +14,7 @@
 | P2 Go 原生能力升级 | 完成 | `docs/go-evolution/02-native-value.md` | `tests/e2e-diff/evidence/goevo-p2-*`（doctor/backup/repair/preflight 实机） |
 | P3 低中断试点与资格收口 | 完成（编码/测试/提交/迁移链实跑） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-20261119-0303`（60/60）、`goevo-p3-matrix-0242-a9875aff/p2`（M1–M10、E1–E8、OPS 全 PASS）、`goevo-r1r2-20261119-0420-6ad3be97`（R1/R2 64/64）、`20261119-0440-8c002dde/r1`（I1–I4 42/42） |
 
-最终看板（矩阵 §七）见 `03-final-qualification.md` §6.5：M1–M10 10/10、OPS 5 双端 + 18 单边、E1–E8 8/8、R1/R2 2/2、G01–G06 6/6、负面/故障 16/16、S1–S9 9 NOT_RUN、F01–F28 仍 28 NOT_RUN（账本未签收）。
+最终看板（矩阵 §七）见 `03-final-qualification.md` §6.5：M1–M10 10/10、OPS 5 双端 + 18 单边、E1–E8 8/8、R1/R2 2/2、G01–G06 6/6、负面/故障 16/16、S4–S9 6/6 PASS（S1–S3 交互菜单由 OPS 覆盖）、F01–F28 仍 28 NOT_RUN（账本未签收）。
 
 ## 已完成
 
@@ -27,17 +27,18 @@
 - Bash→Go 真实接管已实跑（`run_r1_upgrade.sh`，M1/M4）：`--keep-config` 与 bridge 五步均保留配置字节、证书、端口、cron 与在线流量；过程中修复四个迁移缺陷（目录穿越权限、ws/grpc 端口与路径继承、接管端口探测、Bash 版 Nginx 主配置路径），见 `03-final-qualification.md` §6.6。
 - 升级失败注入 I1–I4 实跑：非法 JSON、缺证书、端口占用、只读目标均被拒绝且不改前态；I4 的不可恢复回滚会留 journal 并由 `idleleo xray recover` 清除（`80ad240f`，含全新 Reality 端口预检）。
 - 矩阵未驱动的 18 个 OPS 行完成 Go 单边实跑（`run_ops_sweep.sh`，36 assertions）；`stats`/`metadata import` 的缺失前置条件按文档化拒绝断言。
+- S4–S9 辅助脚本实跑（`run_s_scripts.sh`，`s-20261119-full/s`，58 PASS / 0 FAIL）：S4 正常/重复/坏元数据 fail-safe；S5 用 Pebble 完成真实续期与 CA 不可达恢复；S6 真实 GitHub Release 下载与失败不破坏现网；S7 acme.sh 下载安装并验证 `--version/--help`；S8 `tcp` sandbox 全链路且真实内核正确拒绝；S9 真实验速与干净失败。历史 tcp.sh/superspeed.sh 均记录 URL+sha256 且 `bash -n` 通过。
 - Go 全库单测、gofmt、vet 通过；证据卫生扫描 0 findings。
 
 ## 阻断
 
 1. **受保护 CI 不可得**：分支未推送，无远程 workflow 运行；F01–F28 依规则保持 `PENDING_GO_IMPLEMENTATION`。本地等价门禁已跑：隐私扫描 0 findings、账本迁移策略 17 tests OK、A2 自检 PASS、go 全库测试通过。
 2. **真实节点证据缺失**：无真实 VPS/VM 的 systemd/journald、证书续期与断电证据；不伪造，账本不推进。
-3. **S1–S9 辅助脚本体未执行**：S7/S8/S9（acme.sh、tcp.sh、superspeed.sh）是安装时远程下载的第三方脚本，仓库内无本体；S4/S5/S6 依赖外网与 CA；S1–S3 的 Go 能力已由 OPS 双端/单边实跑覆盖。
+3. **S7/S8 子项仍受外部条件限制**：acme.sh 的下载/安装/调用已实测，但真实签发需域名+公网 CA；`tcp` 已在 sandbox 验证全链路，真实内核 BBR 需 VPS 内核。S1–S3 为交互菜单脚本，其能力由 OPS 双端/单边实跑覆盖。
 
 ## 下一步
 
-1. 在真实 VPS/VM 复跑 P3 套件、M8 调度与 R1/R2 接管，补齐断电/长期旧连接场景。
+1. 在真实 VPS/VM 复跑 P3 套件、M8 调度与 R1/R2 接管，补齐断电/长期旧连接场景，并验证 S7 签发与 S8 真实内核应用。
 2. 补齐 OPS 未驱动行的 Bash 对照驱动（当前 18 行只有 Go 单边证据）。
 3. 推送分支并接入受保护 CI，获取远程 workflow 证据。
 4. 仅在独立证据满足 `check_ledger_transition.py`/`check_release_gate.py` 时更新 `feature_contracts.json`。

@@ -1,0 +1,16 @@
+systemd_state=running
+seeded_installer=yes
+seeded_versions=yes shell=3.3.6
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+acme_mode=pebble idleleo=idleleo 0.2.0-phase04 (go)
+acme_schedule={   "schemaVersion": 1,   "configPath": "/etc/idleleo/schedule/jobs.json",   "servicePath": "/etc/systemd/system/idleleo-schedule.service",   "timerPath": "/etc/systemd/system/idleleo-schedule.timer",
+install_exit=0
+manifest entries=48
+runtime collected
+logs collected
+identity fingerprints written to /out/S5/install/config/identity.json
+done=tls install_exit=0
+sanitized /out/S5/install/install.log
+sanitized /out/S5/install/expect.log
+sanitized /out/S5/install/capture.log

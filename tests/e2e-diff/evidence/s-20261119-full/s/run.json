@@ -1,0 +1,8 @@
+{
+  "branch": "work/go-evolution-audit-20261118",
+  "commit": "6de5ffb42093e66ceb3478c67395f43b711a6889",
+  "imageTag": "idleleo-e2e:24.04",
+  "network": "enabled",
+  "rows": "S4,S5,S6,S7,S8,S9",
+  "runId": "s-20261119-full"
+}

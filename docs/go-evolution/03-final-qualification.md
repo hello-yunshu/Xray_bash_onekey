@@ -12,6 +12,7 @@
   - `tests/e2e-diff/evidence/goevo-ops-20261119-0412-6ad3be97/`：矩阵未驱动的 OPS 行 Go 单边实跑（36 assertions）
   - `tests/e2e-diff/evidence/20261119-0440-8c002dde/r1/`：I1–I4 接管失败注入（42 PASS / 0 FAIL）
   - `tests/e2e-diff/evidence/20261119-0442-8c002dde/p2/`：端口预检后的 M1 回归（PASS）
+  - `tests/e2e-diff/evidence/s-20261119-full/s/`：S4–S9 辅助脚本实跑（58 PASS / 0 FAIL）
 
 ## 1. 结论
 
@@ -20,7 +21,8 @@
 3. **真实客户端证据有界但完整**：新增用户能连通本地 origin；删除用户后新连接被服务端拒绝（客户端 curl rc=7）；删除前已建立的慢连接正常完成；其余用户（B）在删除、重启、修复重启后均保持可连通；并发两个热加都成功；进程重启后配置与内存一致。
 4. **实机故障注入发现并修复一个真实回归**：`repair` 把运行配置改成 `0600 root:root`、conf 目录 `0750 root:root`，下次重启 xray 用户读不到配置。修复为 `0640` + 组 `xray`，并新增 `doctor` 的 `service-access` 检查（以服务账户实际 `test -r`），不再以“服务当前 active”掩盖未来启动失败。
 5. **运维摘要只读、无新增常驻组件**：`ops summary` 复用 status/journal/systemd 输出端口、证书到期、最近变更、近期失败与重启次数，不引入数据库、守护进程或 Web。
-6. **发布资格：NO-GO（对正式发布）**。F01–F28 账本仍为 28 项 `PENDING_GO_IMPLEMENTATION`，`check_release_gate.py` 输出 `RELEASE BLOCKED: pending 28; missing executable feature tests 0; JSON statuses alone never grant success`（rc=2）；受保护 CI 与真实 VPS/VM 证据当前不可得，按规则保持 PENDING，未通过“改状态”规避。
+6. **S4–S9 辅助脚本已收敛**：6 行全部实跑 PASS（58/58），其中 S5 用 Pebble 完成真实续期、失败时证书与服务不受损；S6 走真实 GitHub Release；S7/S8/S9 的历史第三方脚本可下载并通过语法校验，Go 自有实现覆盖主路径。S7 的公网 CA 签发与 S8 的真实内核 BBR 应用仍按外部条件记为 BLOCKED。
+7. **发布资格：NO-GO（对正式发布）**。F01–F28 账本仍为 28 项 `PENDING_GO_IMPLEMENTATION`，`check_release_gate.py` 输出 `RELEASE BLOCKED: pending 28; missing executable feature tests 0; JSON statuses alone never grant success`（rc=2）；受保护 CI 与真实 VPS/VM 证据当前不可得，按规则保持 PENDING，未通过“改状态”规避。
 
 ## 2. 环境与真实性
 
@@ -169,7 +171,7 @@
 | M1–M10 安装 | 10 | 0 | 0 | 0 | 全部差异为已登记 ED，两轮一致 | `goevo-p3-matrix-0242-a9875aff/p2` |
 | OPS 运营 | 5 双端 + 18 单边 | 0 | 11 | 0 | 单边不计入双端 PASS | `goevo-p3-matrix-0242-a9875aff/p2`（双端）；`goevo-ops-20261119-0412-6ad3be97`（单边 36 assertions） |
 | F01–F28 功能 | 0 | 0 | 28 | 0 | — | 账本 `PENDING_GO_IMPLEMENTATION`，`check_release_gate.py` 仍 rc=2 |
-| S1–S9 辅助脚本 | 0 | 0 | 9 | 0 | — | S7/S8/S9 为安装时远程下载的第三方脚本，仓库内无本体；S4/S5/S6 依赖外网/CA，无法离线模拟；对照见 `01-parity-and-safety.md` §6.1 |
+| S1–S9 辅助脚本 | 6（S4–S9） | 0 | 3（S1–S3，交互菜单） | 0 | — | `s-20261119-full/s`（58 assertions）；S7 公网签发/S8 真实内核为子项 BLOCKED，S1–S3 能力由 OPS 覆盖；见 `01-parity-and-safety.md` §6.2 |
 | R1/R2 迁移升级 | 2 | 0 | 0 | 0 | — | `goevo-r1r2-20261119-0420-6ad3be97/r1`（M1/M4，64 assertions） |
 | G01–G06 增量 | 6 | 0 | 0 | 0 | — | P1 脱敏、变更契约、doctor、backup/repair、preflight、热用户（实验） |
 | 负面/故障恢复 | 16 | 0 | 0 | 0 | — | 5 类容器注入 + 6 类单元级 + `bridge prepare --fault disk-full`（CLI 注入模拟 ENOSPC，无残留）+ I1/I2/I3/I4 接管失败注入 |
@@ -198,5 +200,5 @@
   1. 证书编辑存在 Nginx 平滑重载的瞬时双代窗口（E5 已用收敛判定覆盖）；若旧连接长期存活，旧 worker 也会在极短时间内继续服务旧证书，不影响新连接最终收敛。
   2. 热变更只对 Reality+VLESS 用户增删给出证据；其他协议与密钥轮换不承诺低中断。
   3. 真实 VPS 上的 systemd/journald、证书续期与断电场景仍未取证；断电/极端退出仅以重启与半失败重试近似。
-  4. S1–S9 辅助脚本未执行：S7/S8/S9（acme.sh、tcp.sh、superspeed.sh）是安装时从远端下载的第三方脚本，仓库内无本体；S4/S5/S6 依赖外网与 CA，无法离线模拟；S1/S2/S3 为交互菜单脚本，其能力由 OPS 双端行（fail2ban、流量阻断、文件管理）覆盖。
+  4. S1–S3 交互脚本体仍未执行（能力由 OPS 行覆盖）；S4–S9 已实跑 PASS，但 S7 仍需真实域名+公网 CA 才能验证签发，S8 仍需真实 VPS 内核才能验证 BBR 生效。F01–F28 保持 PENDING：门禁只接受受保护 CI 产物，本地与容器证据不能替代。
   5. 端口预检只覆盖全新 Reality 直连安装；TLS/reality-nginx 的公网端口由 Nginx 持有，安装时由 `nginx -t` 与启动校验兜底。
