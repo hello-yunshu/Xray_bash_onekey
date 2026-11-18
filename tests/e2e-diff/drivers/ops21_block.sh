@@ -37,7 +37,15 @@ if [[ -d /seed/geo ]]; then
     for name in geoip.dat geosite.dat; do
         [[ -f "/seed/geo/$name" ]] && install -m 0644 "/seed/geo/$name" "/etc/idleleo/share/xray/$name"
     done
-    log "seeded_geo=$(ls /etc/idleleo/share/xray | tr '\n' ' ')"
+    # install.sh only links Xray's default asset root to the managed directory
+    # when the geo files are already present while it runs. This fixture seeds
+    # them afterwards, so the link has to be created here. Without it Xray
+    # cannot open geosite.dat and exits right after a blocking rule is applied,
+    # and every probe then fails with a closed tunnel that looks like a block.
+    if [[ ! -e /usr/local/share/xray && ! -L /usr/local/share/xray ]]; then
+        ln -s /etc/idleleo/share/xray /usr/local/share/xray || true
+    fi
+    log "seeded_geo=$(ls /etc/idleleo/share/xray | tr '\n' ' ') asset_root=$(readlink -f /usr/local/share/xray 2>/dev/null)"
 fi
 
 json_get() { python3 - "$1" "$2" <<'PY'
@@ -211,6 +219,21 @@ probe() { # name host port [timeout]
 
 probe_marker() { json_get "$DIR/$1.json" marker; }
 
+# systemd reports "active" the moment the process starts, before Xray has bound
+# its listener and loaded the geo data. A single probe right after apply can be
+# reset by that startup window and look exactly like a blocked control. Retry
+# until the tunnel answers, then judge; a real block keeps failing every time.
+probe_ready() { # name host port [tries]
+    local name=$1 host=$2 port=$3 tries=${4:-10} i=0 outcome=""
+    while [ "$i" -lt "$tries" ]; do
+        outcome=$(probe "$name" "$host" "$port" 4000)
+        [ "$outcome" = "ok" ] && break
+        sleep 1
+        i=$((i + 1))
+    done
+    printf '%s' "$outcome"
+}
+
 # traffic_blocker.sh is sourced with `set -u`, so every variable install.sh
 # normally provides has to exist before the source line.
 block_color_stubs() {
@@ -230,11 +253,13 @@ apply_bash() {
     block_color_stubs
     gettext() { printf '%s' "$1"; }
     log_echo() { printf '%s\n' "$*" >>"$DIR/bash-apply.log"; }
+    # install.sh's update_json_config keeps owner and mode: the runtime config is
+    # root:xray 0640 and Xray runs as User=xray. jq alone would leave root:root,
+    # Xray would fail to read it on restart, and every probe would look "blocked".
     update_json_config() { # keep install.sh's contract: jq filter with extra args
         local file="$1"; shift
-        local mode
-        mode=$(stat -c '%a' "$file" 2>/dev/null || echo 600)
-        jq "$@" "$file" >"$file.tmp" && chmod "$mode" "$file.tmp" && mv "$file.tmp" "$file"
+        jq "$@" "$file" >"$file.tmp" && chmod --reference="$file" "$file.tmp" \
+            && chown --reference="$file" "$file.tmp" && mv "$file.tmp" "$file"
     }
     # shellcheck disable=SC1090
     source "$script" || return 1
@@ -256,9 +281,8 @@ off_bash() {
     log_echo() { printf '%s\n' "$*" >>"$DIR/bash-off.log"; }
     update_json_config() {
         local file="$1"; shift
-        local mode
-        mode=$(stat -c '%a' "$file" 2>/dev/null || echo 600)
-        jq "$@" "$file" >"$file.tmp" && chmod "$mode" "$file.tmp" && mv "$file.tmp" "$file"
+        jq "$@" "$file" >"$file.tmp" && chmod --reference="$file" "$file.tmp" \
+            && chown --reference="$file" "$file.tmp" && mv "$file.tmp" "$file"
     }
     # shellcheck disable=SC1090
     source /etc/idleleo/scripts/traffic_blocker.sh || return 1
@@ -338,6 +362,22 @@ else
 fi
 echo "$apply_rc" >"$DIR/apply.rc"
 wait_service || true
+# `systemctl restart` reports success before Xray finishes loading the config;
+# a rule that needs a geodata file the service cannot open makes it exit a
+# moment later. A dead service closes every tunnel, which is indistinguishable
+# from a block, so let the failure surface before the probes run and record it.
+sleep 2
+# Distinguish "a rule blocked the control" from "Xray never came back after the
+# restart": both surface as a closed tunnel, but only the first is a result.
+{
+    systemctl is-active xray 2>&1
+    ls -l "$CFG" 2>&1
+    sha256sum "$CFG" 2>&1
+    journalctl -u xray --no-pager -n 25 2>&1
+} >"$DIR/post-apply-service.txt" 2>&1
+check serviceAliveAfterApply "$(systemctl is-active --quiet xray 2>/dev/null && echo true || echo false)" \
+    "$(systemctl is-active xray 2>&1 | tail -1)"
+cp "$CFG" "$DIR/config-after-apply.json" 2>/dev/null || true
 routing after-apply
 rules_after=$(rule_count)
 check applyRcZero "$([[ "$apply_rc" == "0" ]] && echo true || echo false)" "rc=$apply_rc"
@@ -349,7 +389,7 @@ check noCatchAllBlocked "$(jq -r '[.routing.rules[] | select(.outboundTag=="bloc
 check customRuleApplied "$(jq -r '[.routing.rules[] | select((.domain // []) | map(tostring | test("ops21\\.example")) | any)] | length == 1' "$CFG" | grep -qx true && echo true || echo false)" ""
 
 # 3. the control must keep working: a blocked catch-all would break this.
-outcome=$(probe control-after "$CONTROL_HOST" "$CONTROL_PORT" 8000)
+outcome=$(probe_ready control-after "$CONTROL_HOST" "$CONTROL_PORT" 10)
 check controlAfterApply "$([[ "$outcome" == "ok" && "$(probe_marker control-after)" == "true" ]] && echo true || echo false)" "$outcome"
 
 # 4. each blocked type must be refused quickly.

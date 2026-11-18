@@ -560,6 +560,28 @@
       "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native"
     },
     {
+      "id": "ED-C15",
+      "title": "TLS 场景 bash 自备证书标记 .user-managed",
+      "layer": "L1",
+      "scenarios": [
+        "M4",
+        "M5",
+        "M6",
+        "M7"
+      ],
+      "paths": [
+        "/etc/idleleo/cert/.user-managed"
+      ],
+      "decision": "register",
+      "reason": "bash 在用户自备证书时写 /etc/idleleo/cert/.user-managed 作为标记（S4/S5 证书对齐轮引入）；Go 用 /etc/idleleo/v1/metadata.json 的 certSource 记录同一语义，不需要重复的标记文件。该路径只在 TLS 自备证书场景出现，两侧证书落盘、续期与编辑行为一致，不影响运行。",
+      "owner": "hello-yunshu",
+      "approved_by": "release-gate",
+      "expires": "2027-03-31",
+      "status": "approved",
+      "approval_note": "流程批准（release-gate 兜底），不是双人批准。复核入口：https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native",
+      "review_url": "https://github.com/hello-yunshu/Xray_bash_onekey/pulls?q=is%3Apr+head%3Adevelop%2Fgo-native"
+    },
+    {
       "id": "ED-005",
       "title": "rill agent 输出文本",
       "layer": "L5",

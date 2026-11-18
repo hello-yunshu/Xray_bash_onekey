@@ -110,8 +110,28 @@ if [ "$EID" = "E5" ]; then
   NEWFP="$(fnv <"$NEWCERT")"
   run_edit "$@"
   EDIT_RC="$(cat "$DIR/edit.rc")"
-  wait_served "$NEWFP" 10 || true
+  # A reload is asynchronous and this scenario can share the host with the rest
+  # of the matrix, so give the workers time to take over before judging.
+  wait_served "$NEWFP" 30 || true
   snap post
+  # When the served leaf disagrees with the edited fragment, keep what decided
+  # it: the effective directive, the worker start times and the Nginx log.
+  {
+    echo "--- effective ssl_certificate"
+    /usr/local/nginx/sbin/nginx -T -c /usr/local/nginx/conf/nginx.conf 2>&1 |
+      grep -E 'ssl_certificate|server_name|listen' | head -20
+    echo "--- edited fragment"
+    grep -nE 'ssl_certificate|server_name' /etc/idleleo/conf/nginx/00-xray.conf 2>&1
+    echo "--- workers"
+    ps -o pid,lstart,cmd -C nginx 2>&1 | head -6
+    echo "--- new pair"
+    ls -l "$NEWCERT" "$NEWKEY" 2>&1
+    fnv <"$NEWCERT"
+    echo "--- served now"
+    served_fp_now
+    echo "--- nginx log"
+    tail -30 /usr/local/nginx/logs/error.log 2>/dev/null
+  } >"$DIR/nginx-reload-diag.txt" 2>&1
   cp -f "$DIR/state-post/jobs.json" "$DIR/jobs-after.json" 2>/dev/null || :
   BK="$(tail -n 1 "$DIR/state-post/backups.txt" 2>/dev/null || true)"
   if [ -n "$BK" ] && [ -d "$BK" ]; then cp -a "$BK" "$DIR/backup"; fi

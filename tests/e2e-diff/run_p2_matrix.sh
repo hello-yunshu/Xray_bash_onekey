@@ -106,6 +106,13 @@ PY
 }
 
 # --- prerequisites ---------------------------------------------------------
+# Evidence is bind-mounted as /out and some probes append to their transcripts.
+# Reusing a RUN_ID would silently mix the previous attempt into this one, so
+# require a fresh directory instead of producing ambiguous evidence.
+if [[ -d "$EVID" && -n "$(ls -A "$EVID" 2>/dev/null)" ]]; then
+    log "FATAL: $EVID already holds evidence; choose a new E2E_RUN_ID"
+    exit 2
+fi
 log "run_id=$RUN_ID"
 docker build -q -t "$IMAGE_TAG" -f "$SUITE/image/Dockerfile" "$SUITE/image" >/dev/null || {
     log "FATAL: image build failed"; exit 2
@@ -401,11 +408,19 @@ run_go_round() {
         acme_envs=(-e SSL_CERT_FILE=/test/certs/pebble.minica.pem
                    -e IDLELEO_ACME_DIRECTORY=https://pebble:14000/dir)
     fi
-    docker exec -e E2E_OUT="$target_out" -e E2E_ROUND="$round" -e E2E_SCENARIO="$sid" \
-        -e E2E_PROFILE="$profile" -e E2E_PREV_OUT=/out \
-        "${acme_envs[@]+"${acme_envs[@]}"}" \
-        "$server" bash "/src/tests/e2e-diff/drivers/$driver" "${argv[@]}"
-    echo $? >"$out/install.rc"
+    local -a run_cmd=(docker exec -e E2E_OUT="$target_out" -e E2E_ROUND="$round" -e E2E_SCENARIO="$sid"
+        -e E2E_PROFILE="$profile" -e E2E_PREV_OUT=/out
+        "${acme_envs[@]+"${acme_envs[@]}"}"
+        "$server" bash "/src/tests/e2e-diff/drivers/$driver" "${argv[@]}")
+    "${run_cmd[@]}"; local rc=$?
+    # The managed Nginx artifact comes from the network. A reset/EOF there is an
+    # environment fault, not a parity result, so retry once and keep both tries
+    # in install.log instead of spending a whole RUN_ID on it.
+    if [[ $rc -ne 0 ]] && grep -Eqi 'EOF|TLS handshake timeout|connection reset by peer|i/o timeout|temporary failure in name resolution' "$out/install.log" 2>/dev/null; then
+        echo "install_retry=transient-network" >>"$out/install.log"
+        "${run_cmd[@]}"; rc=$?
+    fi
+    echo "$rc" >"$out/install.rc"
 }
 
 scenario_job() {
@@ -825,7 +840,7 @@ ops19_job() {
 # control and the blocked targets through the proxy. PASS needs the control
 # side to keep working (example.com 200 + marker), each blocked type refused
 # quickly, and on Go also the post-`config edit` routing comparison.
-OPS21_BASH_CHECKS="baselineControl applyRcZero rulesAdded fallbackDirect noCatchAllBlocked controlAfterApply adsBlocked privateBlocked countryBlocked offRcZero offRestored controlAfterOff"
+OPS21_BASH_CHECKS="baselineControl applyRcZero rulesAdded fallbackDirect noCatchAllBlocked serviceAliveAfterApply controlAfterApply adsBlocked privateBlocked countryBlocked offRcZero offRestored controlAfterOff"
 OPS21_GO_CHECKS="$OPS21_BASH_CHECKS customListConfigured customRuleApplied customListKept customRuleRemoved editRcZero editUuidApplied editRoutingIdentical editOwnedRulesKept editUserRuleKept editBlockReported controlAfterEdit adsBlockedAfterEdit"
 
 ops21_verdict() {
@@ -861,7 +876,10 @@ for side, path in sides.items():
     # "blocked" outcome would then be indistinguishable from a broken tunnel.
     if checks.get("baselineControl") is not True:
         harness.append("%s never reached the control origin before blocking" % side)
-    failed = [name for name, ok in checks.items() if not ok and name != "baselineControl"]
+    # Only checks this side is required to satisfy may fail the scenario; the
+    # other side's diagnostics (e.g. Go-only customRuleApplied) are recorded but
+    # must not be reported as a failure of the side that cannot implement them.
+    failed = [name for name in required[side] if checks.get(name) is False]
     if failed:
         reasons.append("%s failed: %s" % (side, ", ".join(sorted(failed))))
 
@@ -873,12 +891,14 @@ else:
 def brief(side):
     checks = {c["name"]: c["ok"] for c in (results.get(side) or {}).get("checks", [])}
     side_harness = [r for r in harness if r.startswith(side + ":")]
-    status = (results.get(side) or {}).get("status")
+    failed = [name for name in required[side] if checks.get(name) is False]
     if side_harness:
         status = "HARNESS-ERROR"
+    else:
+        status = "fail" if failed else "pass"
     return {"status": status,
             "reasons": side_harness,
-            "failed": (results.get(side) or {}).get("failed", []),
+            "failed": failed,
             "checks": checks}
 
 report = {
