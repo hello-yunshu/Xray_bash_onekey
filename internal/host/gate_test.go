@@ -67,6 +67,60 @@ func TestRecordSystemWriteIsAppendOnlyAndPrivate(t *testing.T) {
 	}
 }
 
+func TestRecordSystemWriteRedactsSecretsAndUnknownFlags(t *testing.T) {
+	root := t.TempDir()
+	const canary = "CANARY-7c41d0e2b9a84f63"
+	oldArgs := os.Args
+	os.Args = []string{
+		"idleleo", "xray", "install",
+		"--mode", "tls", "--port", "443",
+		"--private-key", canary,
+		"--cert-key", canary,
+		"--email", canary + "@example.invalid",
+		"--unknown-flag", canary,
+	}
+	t.Cleanup(func() { os.Args = oldArgs })
+
+	if err := recordSystemWrite(root, "host"); err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(filepath.Join(root, WriteAuditRel))
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := string(b)
+	if strings.Contains(body, canary) {
+		t.Fatalf("audit trail leaked a sensitive canary: %q", body)
+	}
+	for _, want := range []string{
+		`operation="xray install"`,
+		"--mode=tls",
+		"--port=443",
+		"--private-key=<redacted>",
+		"--cert-key=<redacted>",
+		"--email=<redacted>",
+		"--unknown-flag=<redacted>",
+		"plan=",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("audit trail missing %q: %q", want, body)
+		}
+	}
+}
+
+func TestDescribeAuditOmitsFlagValuesForUnknownFlags(t *testing.T) {
+	event := describeAudit([]string{"idleleo", "xray", "config", "edit", "--token", "abc123", "--bogus", "def456"})
+	if event.Operation != "xray config edit" {
+		t.Fatalf("operation=%q", event.Operation)
+	}
+	if strings.Contains(event.Flags, "abc123") || strings.Contains(event.Flags, "def456") {
+		t.Fatalf("flag values leaked: %q", event.Flags)
+	}
+	if event.Fingerprint == "" {
+		t.Fatal("missing plan fingerprint")
+	}
+}
+
 func TestRequireSystemWriteSandboxNeedsMarker(t *testing.T) {
 	root := t.TempDir()
 	if err := RequireSystemWrite(root, false); err == nil {

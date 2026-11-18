@@ -83,7 +83,7 @@ func specOf(values []string, bools ...string) flagSpec {
 // `xray generate`.
 var installSpecValues = []string{
 	"mode", "transport", "domain", "target", "path", "service-name",
-	"uuid", "email", "flow", "private-key", "short-id", "role",
+	"uuid", "email", "flow", "private-key", "private-key-file", "short-id", "role",
 	"unknown-sni-policy", "backend", "listen", "port", "public-port",
 	"ws-port", "grpc-port", "xhttp-port",
 	"server-names", "cert", "cert-key",

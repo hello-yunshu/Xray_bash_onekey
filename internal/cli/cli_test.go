@@ -16,6 +16,33 @@ import (
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 )
 
+func TestSpecFromPrivateKeyFile(t *testing.T) {
+	dir := t.TempDir()
+	keyFile := filepath.Join(dir, "reality.key")
+	if err := os.WriteFile(keyFile, []byte("  test-private-key-from-file\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	spec, err := specFromFlags([]string{"--mode", "reality", "--private-key-file", keyFile})
+	if err != nil {
+		t.Fatalf("private-key-file rejected: %v", err)
+	}
+	if spec.PrivateKey != "test-private-key-from-file" {
+		t.Fatalf("private key=%q", spec.PrivateKey)
+	}
+	if _, err := specFromFlags([]string{"--private-key", "inline", "--private-key-file", keyFile}); err == nil ||
+		!strings.Contains(err.Error(), "mutually exclusive") {
+		t.Fatalf("expected mutual exclusion, got %v", err)
+	}
+	empty := filepath.Join(dir, "empty.key")
+	if err := os.WriteFile(empty, []byte(" \n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := specFromFlags([]string{"--private-key-file", empty}); err == nil ||
+		!strings.Contains(err.Error(), "empty") {
+		t.Fatalf("expected empty-file error, got %v", err)
+	}
+}
+
 const cfg = `{
   "log": {"loglevel": "warning"},
   "inbounds": [{"tag": "vless-in", "listen": "0.0.0.0", "port": 443, "protocol": "vless",

@@ -738,6 +738,25 @@ func specFromFlags(args []string) (xraycfg.Spec, error) {
 		BalanceRole:      flagValue(args, "--role"),
 		UnknownSNIPolicy: flagValue(args, "--unknown-sni-policy"),
 	}
+	// A private key passed on argv is visible in the process list. The file
+	// form keeps the legacy flag working while giving operators a controlled
+	// way to avoid exposing the material for the lifetime of the process.
+	if keyFile := flagValue(args, "--private-key-file"); keyFile != "" {
+		if spec.PrivateKey != "" {
+			return xraycfg.Spec{}, fmt.Errorf("--private-key and --private-key-file are mutually exclusive")
+		}
+		raw, err := os.ReadFile(keyFile)
+		if err != nil {
+			return xraycfg.Spec{}, fmt.Errorf("--private-key-file: %w", err)
+		}
+		if len(raw) > 4096 {
+			return xraycfg.Spec{}, fmt.Errorf("--private-key-file: file exceeds 4096 bytes")
+		}
+		spec.PrivateKey = strings.TrimSpace(string(raw))
+		if spec.PrivateKey == "" {
+			return xraycfg.Spec{}, fmt.Errorf("--private-key-file: file is empty")
+		}
+	}
 	for i, a := range args {
 		if a == "--backend" && i+1 < len(args) {
 			spec.Backends = append(spec.Backends, args[i+1])
