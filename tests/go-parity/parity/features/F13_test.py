@@ -410,14 +410,24 @@ def main(f):
     f.check(f.tree_digest(groot) == gate_digest, "rejected manifests leave the tree unchanged")
     f.check(len(backup_names(groot)) == 0, "rejected manifests create no backup")
 
-    real_root = f.run([f.go, "--root", "/", "update", "xray", "--manifest", good])
-    if Path("/.dockerenv").exists() or Path("/run/.containerenv").exists():
+    in_container = Path("/.dockerenv").exists() or Path("/run/.containerenv").exists()
+    if in_container:
+        real_root = f.run([f.go, "--root", "/", "update", "xray", "--manifest", good])
         f.check(real_root.rc == 2 and "--container" in real_root.text,
                 "real root without --container exits 2", real_root.text[:200])
     else:
-        # A real host is deliberately allowed to migrate; it must not pretend
-        # to be the container-gated path.
-        f.check(real_root.rc in (0, 1), "real host uses the audited host path",
+        # A real host is deliberately allowed to migrate, so the container
+        # token is absent. Never activate the shim on the runner: a manifest
+        # for the other component reaches the host path and is rejected during
+        # validation, before any byte is written.
+        host_bin = Path("/usr/local/bin/xray")
+        before_bytes = host_bin.read_bytes() if host_bin.is_file() else b""
+        probe_manifest = write_text(serve / "host-probe-nginx.json", json.dumps(
+            manifest("nginx", "1.8.25", cand_new, f"{base}/xray-1.8.25")))
+        real_root = f.run([f.go, "--root", "/", "update", "xray", "--manifest", probe_manifest])
+        after_bytes = host_bin.read_bytes() if host_bin.is_file() else b""
+        f.check(real_root.rc == 3 and before_bytes == after_bytes,
+                "real host needs no container token and writes nothing",
                 real_root.text[:200])
     unmarked = work / "unmarked-root"
     (unmarked / "usr/local/bin").mkdir(parents=True)

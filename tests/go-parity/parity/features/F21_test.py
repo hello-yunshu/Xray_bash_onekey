@@ -149,9 +149,16 @@ def main(f):
             "S2 block has no --root (unknown flag)", rootflag.text[:200])
 
     notoken = go("xray", "block", "ads", "disable", "--container", "--json")
-    f.check(notoken.rc == 1
-            and "container root writes require IDLELEO_ALLOW_SYSTEM_WRITES" in notoken.text,
-            "S2 writing the real root needs the container token", notoken.text[:200])
+    in_container = Path("/.dockerenv").exists() or Path("/run/.containerenv").exists()
+    if in_container:
+        f.check(notoken.rc == 1
+                and "container root writes require IDLELEO_ALLOW_SYSTEM_WRITES" in notoken.text,
+                "S2 writing the real root needs the container token", notoken.text[:200])
+    else:
+        # A real host is allowed to migrate without the container token (the
+        # write is recorded in the host audit trail instead).
+        f.check(notoken.rc == 0, "S2 a real host writes without the container token",
+                notoken.text[:200])
 
     ops = [
         ("ads", "enable"),
