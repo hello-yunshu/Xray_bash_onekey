@@ -1,0 +1,48 @@
+--- effective ssl_certificate
+        listen       80;
+        server_name  localhost;
+        # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #    listen       8000;
+    #    listen       somename:8080;
+    #    server_name  somename  alias  another.alias;
+    #    listen       443 ssl;
+    #    server_name  localhost;
+    #    ssl_certificate      cert.pem;
+    #    ssl_certificate_key  cert.key;
+    listen 443 ssl reuseport;
+    listen [::]:443 ssl reuseport;
+    listen 443 quic reuseport;
+    listen [::]:443 quic reuseport;
+    ssl_certificate       /etc/idleleo/cert/e5-new.crt;
+    ssl_certificate_key   /etc/idleleo/cert/e5-new.key;
+    server_name           example.com;
+    listen 80;
+    listen [::]:80;
+--- edited fragment
+12:    ssl_certificate       /etc/idleleo/cert/e5-new.crt;
+13:    ssl_certificate_key   /etc/idleleo/cert/e5-new.key;
+17:    server_name           example.com;
+--- workers
+    PID                  STARTED CMD
+    223 Wed Nov 18 18:46:13 2026 nginx: master process /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+    550 Wed Nov 18 18:46:21 2026 nginx: worker process
+    551 Wed Nov 18 18:46:21 2026 nginx: worker process
+    552 Wed Nov 18 18:46:21 2026 nginx: worker process
+    553 Wed Nov 18 18:46:21 2026 nginx: worker process
+    554 Wed Nov 18 18:46:21 2026 nginx: worker process
+    555 Wed Nov 18 18:46:21 2026 nginx: worker process
+    556 Wed Nov 18 18:46:21 2026 nginx: worker process
+    557 Wed Nov 18 18:46:21 2026 nginx: worker process
+    558 Wed Nov 18 18:46:21 2026 nginx: worker process
+    559 Wed Nov 18 18:46:21 2026 nginx: worker process
+--- new pair
+-rw-r----- 1 root idleleo-nginx 1151 Nov 18 18:46 /etc/idleleo/cert/e5-new.crt
+-rw-r----- 1 root idleleo-nginx 1704 Nov 18 18:46 /etc/idleleo/cert/e5-new.key
+6D:FE:A1:99:0F:9F:60:B1:04:F0:66:D2:21:DC:FC:B1:0C:47:A9:FF:D5:7E:17:EA:6F:0B:44:96:04:D0:EB:0F
+--- served now
+6D:FE:A1:99:0F:9F:60:B1:04:F0:66:D2:21:DC:FC:B1:0C:47:A9:FF:D5:7E:17:EA:6F:0B:44:96:04:D0:EB:0F
+--- nginx log
+2026/10/15 06:38:20 [notice] 27637#0: signal process started
+2026/11/18 18:46:14 [notice] 260#0: signal process started
+2026/11/18 18:46:21 [notice] 548#0: signal process started

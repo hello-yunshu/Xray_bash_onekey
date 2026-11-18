@@ -1,0 +1,21 @@
+active
+-rw-r----- 1 root xray 2793 Nov 18 18:50 /etc/idleleo/conf/xray/config.json
+4d258241f12a30eba72cfc6003faf3c1b29d0d11ee659faee60602d8a5cda707  /etc/idleleo/conf/xray/config.json
+Nov 18 18:50:10 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 18 18:50:10 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go xray[221]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 18:50:10 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go xray[221]: A unified platform for anti-censorship.
+Nov 18 18:50:10 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go xray[221]: 2026/11/18 18:50:10.333174 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 18 18:50:14 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 18 18:50:14 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go systemd[1]: xray.service: Deactivated successfully.
+Nov 18 18:50:14 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 18 18:50:14 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 18 18:50:14 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go xray[1257]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 18:50:14 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go xray[1257]: A unified platform for anti-censorship.
+Nov 18 18:50:14 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go xray[1257]: 2026/11/18 18:50:14.205612 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 18 18:50:21 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 18 18:50:21 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go systemd[1]: xray.service: Deactivated successfully.
+Nov 18 18:50:21 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 18 18:50:21 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 18 18:50:21 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go xray[1421]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 18 18:50:21 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go xray[1421]: A unified platform for anti-censorship.
+Nov 18 18:50:21 e2e-goevo-p3-matrix-0242-a9875aff-OPS-21-go xray[1421]: 2026/11/18 18:50:21.988184 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

@@ -12,7 +12,7 @@
 | S0 基线审计 | 完成 | `docs/go-evolution/00-baseline.md` | `tests/e2e-diff/evidence/20261118-0605-full`（M1–M10/E1–E8/OPS-32） |
 | P1 迁移差异与安全收口 | 完成 | `docs/go-evolution/01-parity-and-safety.md` | 对照矩阵、OPS-01..34 分类、键/密文脱敏、统一变更事务 |
 | P2 Go 原生能力升级 | 完成 | `docs/go-evolution/02-native-value.md` | `tests/e2e-diff/evidence/goevo-p2-*`（doctor/backup/repair/preflight 实机） |
-| P3 低中断试点与资格收口 | 编码/测试/提交完成；最终全量重跑 BLOCKED（环境无外网） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-p3-final-020226`（60/60）、`p3-edits/p2`（E1–E4 PASS） |
+| P3 低中断试点与资格收口 | 完成（编码/测试/提交/全量重跑） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-20261119-0303`（60/60）、`goevo-p3-matrix-0242-a9875aff/p2`（M1–M10、E1–E8、OPS 全 PASS） |
 
 ## 已完成
 
@@ -20,22 +20,19 @@
 - `xray api status|enable`、`ops summary [--json]`；不新增数据库/守护进程/Web。
 - 实机发现并修复 `repair` 权限回归（`0600 root:root` → `0640` + 组 `xray`）；`doctor` 新增 `service-access`，以服务账户实测可读。
 - 锁检测改为真实 `flock`，消除变更后误报。
-- Go 全库单测、gofmt、vet 通过；证据卫生扫描 0 findings。
+- 全量矩阵实跑通过：M1–M10 两侧 rc=0、L4 两轮真实客户端全 ok、L6 幂等 ok；E1–E8 全 PASS；OPS-09/19/21/31/32 PASS；P3 套件 60/60。
+- 复核 E5 时发现 Nginx 平滑重载期间新旧 worker 瞬时并存，单次握手采样会误判；驱动改为 30s 内连续 3 次命中新证书才判定收敛（`be141822`）。
+- Go 全库单测、gofmt、vet 通过；证据卫生扫描 0 findings（16363 文件）。
 
 ## 阻断
 
-1. **容器无外网 → Docker 运行时不可用**（2026-11-19）。
-   - 根因：OrbStack 宿主侧网桥地址异常（`bridge103` 为 `192.168.215.0/24`，网关 `.1` 不存在），容器只有默认路由但 `connect: Network is unreachable`；新建网络的网桥同样缺网关，不是单次安装问题。
-   - 为修复已停止 OrbStack，当前 `docker info` 不可用；重启 OrbStack 需要宿主级操作，需用户执行或授权。
-   - 恢复步骤：打开 OrbStack（或 `orbctl start`）→ `docker info` 可用 → `docker run --rm idleleo-e2e:24.04 sh -c 'curl -4 -fsS https://ip.me'` 返回 IP。
-   - 影响：M1–M10、E5–E8、ACME/relay 本次无法复跑；记为 `BLOCKED`，不冒充 PASS。
-   - 恢复后动作：`bash tests/e2e-diff/run_p2_matrix.sh`（完整 M1–M10 + E1–E8 + OPS）与 `run_p3_hot.sh`。
-2. **受保护 CI 不可得**：分支未推送，无远程 workflow 运行；F01–F28 依规则保持 `PENDING_GO_IMPLEMENTATION`。本地等价门禁已跑：隐私扫描 0 findings、账本迁移策略 17 tests OK、A2 自检 PASS、go 全库测试通过。
+1. **受保护 CI 不可得**：分支未推送，无远程 workflow 运行；F01–F28 依规则保持 `PENDING_GO_IMPLEMENTATION`。本地等价门禁已跑：隐私扫描 0 findings、账本迁移策略 17 tests OK、A2 自检 PASS、go 全库测试通过。
+2. **真实节点证据缺失**：无真实 VPS/VM 的 systemd/journald、证书续期与断电证据；不伪造，账本不推进。
 
 ## 下一步
 
-1. 外网恢复后全量重跑矩阵，重点 TLS/ACME/relay 与 M8 调度。
-2. 在真实 VPS/VM 取证并接入受保护 CI，之后才评估账本推进。
+1. 在真实 VPS/VM 复跑 P3 套件与 M8 调度，补齐断电/长期旧连接场景。
+2. 推送分支并接入受保护 CI，获取远程 workflow 证据。
 3. 仅在独立证据满足 `check_ledger_transition.py`/`check_release_gate.py` 时更新 `feature_contracts.json`。
 
 ## 发布资格

@@ -1,0 +1,13 @@
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go xray[<PID>]: 2026/11/18 18:43:32.840019 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-goevo-p3-matrix-0242-a9875aff-M1-go xray[<PID>]: 2026/11/18 18:43:43.200050 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/18 18:43:32.855425 [Warning] core: Xray 26.10.31 started
+2026/11/18 18:43:43.207667 [Warning] core: Xray 26.10.31 started

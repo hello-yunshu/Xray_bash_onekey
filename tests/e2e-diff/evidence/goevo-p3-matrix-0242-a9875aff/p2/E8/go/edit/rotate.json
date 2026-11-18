@@ -1,0 +1,50 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "reality-private-key"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.privateKey"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "023fdb921f2dd6ab6f9bbbd43834c144e7bd17a3e4f6c40e536f233122594186",
+  "newSha256": "1da343e565ee10a6d24ee4db7299c6f4b64dd6263303e8a0047eccd1d5fe6d03",
+  "backupDir": "/etc/idleleo/backup/edit-20261118T184623",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://a9d40bba-bcc9-4631-82d5-596355af3274@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=HEOgW27I_uUgGT84IySXkner0a88A_J_wcmR6hskk3o&sid=a372df7b&type=raw#idleleo-reality",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": null,
+  "shortIds": [
+    "a372df7b"
+  ],
+  "oldShareUri": "vless://a9d40bba-bcc9-4631-82d5-596355af3274@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=u3RXjMK8lBxuEXwp1VxtrQWIIIoyOoAkD27E9YeELi4&sid=a372df7b&type=raw#idleleo-reality",
+  "privateKeyRotated": true,
+  "realityProbe": "ok: vless+reality handshake+request through 127.0.0.1:443",
+  "upstreamUnchanged": true,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "023fdb921f2dd6ab6f9bbbd43834c144e7bd17a3e4f6c40e536f233122594186",
+    "newSha256": "1da343e565ee10a6d24ee4db7299c6f4b64dd6263303e8a0047eccd1d5fe6d03",
+    "changed": [
+      "reality-private-key"
+    ],
+    "affectedServices": [
+      "xray"
+    ],
+    "disconnectRisk": "drops live client sessions until clients reconnect",
+    "validationSteps": [
+      "xray -test",
+      "vless+reality handshake with the new link"
+    ],
+    "rollbackScope": "runtime config",
+    "ownership": "idleleo-managed",
+    "fingerprint": "d8be5442875030b1"
+  }
+}

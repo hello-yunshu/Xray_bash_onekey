@@ -1,0 +1,2 @@
+== 127.0.0.1.realityServers
+server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;

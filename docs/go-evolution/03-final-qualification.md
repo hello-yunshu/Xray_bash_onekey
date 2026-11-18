@@ -2,12 +2,11 @@
 
 - 分支：`work/go-evolution-audit-20261118`（未合并 `main`，未打 tag，未发布）
 - 基线：`develop/go-native` = `d4858a1150d3f83202e95aa9dfea2244832c8b3e`
-- 本阶段代码提交：`2d9a27af`（repair/doctor 权限与锁）、`d8950cd7`（热用户与运维摘要）
-- 实跑时间：2026-11-19，镜像 `idleleo-e2e:24.04`，证据 run.json 记录 commit `941b185c`，Xray `26.10.31 a4a3dff`（go1.27.3）
+- 本阶段代码提交：`2d9a27af`（repair/doctor 权限与锁）、`d8950cd7`（热用户与运维摘要）、`be141822`（编辑回归的证书收敛判定）
+- 实跑时间：2026-11-19，镜像 `idleleo-e2e:24.04`，证据 run.json 记录 commit `be141822`，Xray `26.10.31 a4a3dff`（go1.27.3）
 - 证据目录：
-  - `tests/e2e-diff/evidence/goevo-p3-p3-final-020226/`：热用户/修复/摘要实机套件（60 pass / 0 fail）
-  - `tests/e2e-diff/evidence/p3-edits/p2/`：E1–E8 编辑回归（E1–E4 PASS，E5–E8 因无外网 BLOCKED）
-  - `tests/e2e-diff/evidence/goevo-p3-final-matrix/`：全矩阵重跑尝试（被宿主无外网阻断，仅保留失败轨迹）
+  - `tests/e2e-diff/evidence/goevo-p3-20261119-0303/`：热用户/修复/摘要实机套件（60 pass / 0 fail）
+  - `tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2/`：M1–M10 双端安装矩阵、E1–E8 编辑回归、OPS 场景（全部 PASS）
 
 ## 1. 结论
 
@@ -28,10 +27,10 @@
 | 实机 | `idleleo-e2e:24.04`：systemd、真实 Xray、openssl、iproute2 |
 | 安装 | 容器内 `idleleo xray install --mode reality --domain www.cloudflare.com --target 127.0.0.1:8443 --port 443 --container`，`install_rc=0` |
 | 写入契约 | `IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY` + `--container`，只写一次性容器 |
-| 证据卫生 | `check_evidence_hygiene.py`：P3 套件 0 findings / 62 files；编辑回归 0 findings / 423 files；无 UUID 明文（驱动内置脱敏） |
-| 外网 | 本次运行容器**无外网**：宿主机 DNS 把 `ip.me` 等解析到 `198.18.x`，容器内 `curl`/`Get` 均 `network is unreachable` |
+| 证据卫生 | `check_evidence_hygiene.py`：全仓库 `--mask .` 0 findings / 16363 files；无 UUID 明文（驱动内置脱敏） |
+| 外网 | 本轮恢复：容器有默认路由，`bridge` 网关可达，`https://ip.me` 与 GitHub Releases 返回 200；M1–M10、E5–E8、ACME/relay 得以实跑 |
 
-单元测试与实机都针对**当前提交构建出的二进制**（证据 run.json 的 `commit` 为 `941b185c`，包含 `2d9a27af` + `d8950cd7` 的全部代码）。
+单元测试与实机都针对**当前提交构建出的二进制**（证据 run.json 的 `commit` 为 `be141822`，包含 `2d9a27af` + `d8950cd7` + `be141822` 的全部代码）。
 
 ## 3. 实验性热用户变更（G06）
 
@@ -117,19 +116,23 @@
 
 | 维度 | 结果 | 说明 |
 |---|---|---|
-| P3 热用户/修复/摘要套件 | **60 PASS / 0 FAIL** | `goevo-p3-p3-final-020226` |
-| E1–E4（配置编辑：UUID/端口/target/serverNames） | **PASS** | `p3-edits/p2`，`allPassed=true` |
-| E5/E6（TLS 证书编辑，Nginx 前置） | **BLOCKED** | TLS 安装需下载受管 Nginx 构件，容器无外网 |
-| E7/E8（shortId 自动、Reality 私钥轮换） | **BLOCKED** | 编辑前的真实 Reality 客户端需外部 target，容器无外网 |
-| M1–M10 双端全矩阵 | **BLOCKED（本次）** | Bash 安装需 `ip.me` 公网 IP 与 GeoData 下载；容器 DNS 黑洞 |
+| P3 热用户/修复/摘要套件 | **60 PASS / 0 FAIL** | `goevo-p3-20261119-0303`，commit `be141822` |
+| E1–E8（配置编辑：UUID/端口/target/serverNames/TLS 证书/回滚/shortId/私钥轮换） | **8/8 PASS** | `goevo-p3-matrix-0242-a9875aff/p2`，各场景 `checks.json` 全部 `allPassed=true` |
+| M1–M10 双端安装矩阵 | **10/10 PASS** | 两侧 `rc=0`，L4 两轮真实客户端全 `ok`，L6 幂等 `ok`；差异仅限已登记 ED |
+| OPS-09/19/21/31/32 | **PASS** | 两侧观测一致（负载均衡、Fail2ban、证书、诊断、热用户） |
 | Go 单元/集成测试 | **PASS** | 全包 `go test` 通过；gofmt/vet 干净 |
 | 证据卫生 | **PASS** | 0 findings |
 
-全矩阵重跑尝试保留在 `goevo-p3-final-matrix/`：M1–M3 的 Bash 侧安装以 `[错误] 无法获取公网IP地址, 安装终止!` 结束，Go 侧 TLS 安装报 `Nginx build version unavailable: … network is unreachable`。这是**环境故障**，按规则记录为 BLOCKED，不当作产品 FAIL，也不把旧证据冒充成本次复跑。
+本轮外部网络恢复后，全矩阵不再有 BLOCKED 项。安装矩阵 `run.json` 绑定 commit `be141822`，与代码树一致。
 
-### 6.2 沿用证据（同分支、较早提交）
+### 6.2 本轮发现：证书切换的瞬时双代 worker
 
-`tests/e2e-diff/evidence/20261118-0605-full`（commit `47a370e5`）记录：M1–M10 双端 `rc=0`、L4 两轮真实客户端通过、L6 幂等通过；E1–E8 全部 PASS；OPS-09/19/21/31/32 PASS。该证据早于本阶段提交，但本阶段未改动安装器、Reality/TLS/relay 生成逻辑；改动集中在 `xray user add/remove`、`repair`、`doctor`、`ops`。
+第一次全量重跑时 E5 判 `wireCertMatches=false`。取证显示：`state-pre` 与 `state-post` 两次抓取相隔 1 秒，`state-pre` 已是新证书、`state-post` 又回到旧证书——说明 Nginx 平滑重载后新旧 worker 在极短窗口内并存，任何单次握手都可能落到任一代。
+
+- 产品侧无缺陷：编辑的 `tlsProbe` 以 5s 重试等待新叶证书，判定为成功；旧 worker 只服务重载前已建立的连接，随后退出。
+- 测试侧有缺陷：驱动 `wait_served` 一次命中新指纹后，`snap post` 只做单次握手采样，可能落在旧 worker 上。
+- 修复（`be141822`）：改为 `wait_served_stable`，要求 30s 内连续 3 次命中新指纹，并逐次记录探测结果到 `served-probes.txt`；诊断信息不再截断 worker 列表。
+- 修复后 E5 及全部 E 场景连续通过，`served-probes.txt` 显示 3 连击收敛。
 
 ### 6.3 账本与门禁
 
@@ -142,20 +145,20 @@
 
 | 项 | 结果 | 证据与说明 |
 |---|---|---|
-| CI 回归 | PASS（本地等价）/ NOT_RUN（远程与 stage gate） | 本地等价全绿：`check_evidence_hygiene.py --mask .` 0 findings/14360 文件；`test_ledger_transition.py` 17 tests OK；A2 比较器 `SELFTEST_PASS mutations=14 baseline=MATCH`；`gofmt`/`go vet`/全库 `go test`/`go build` 通过。分支未推送，远程受保护 CI 无运行；需要 `legacy` 检出的 stage gate 未跑 |
+| CI 回归 | PASS（本地等价）/ NOT_RUN（远程与 stage gate） | 本地等价全绿：`check_evidence_hygiene.py --mask .` 0 findings/16363 文件；`test_ledger_transition.py` 17 tests OK；A2 比较器 `SELFTEST_PASS mutations=14 baseline=MATCH`；`gofmt`/`go vet`/全库 `go test`/`go build` 通过。分支未推送，远程受保护 CI 无运行；需要 `legacy` 检出的 stage gate 未跑 |
 | 隐私 | PASS（本阶段） | 证据卫生扫描 0 findings；驱动对 UUID 脱敏；未提交私钥或证书（Reality target 证书运行时生成、随容器销毁）；未写入宿主公网 IP 或个人路径 |
 | 依赖许可 | PASS | `go.mod`/`go.sum` 相对基线未变，未新增 vendor 代码 |
-| 夹具可重复性 | PASS（离线场景）/ BLOCKED（外网场景） | `run_p3_hot.sh` 每次从源码构建、生成新 UUID/密钥与自签 origin，不依赖外部 target；依赖外网的 M1–M10/E5–E8 标 BLOCKED |
+| 夹具可重复性 | PASS | `run_p3_hot.sh` 每次从源码构建、生成新 UUID/密钥与自签 origin；`run_p2_matrix.sh` 本轮在恢复外网后完整复跑 M1–M10/E1–E8/OPS，无 BLOCKED |
 | 文档与命令示例 | PASS | 帮助文本已加入 `ops summary`、`xray api status\|enable`、`--experimental-hot`；本报告命令可直接复演 |
 
 未覆盖清单（如实记录）：断电/极端退出仅以重启与半失败重试近似，未做真实断电；bridge（Bash→Go 迁移）沿用 P1/P2 证据，本次未复跑；并发仅测两路；IPv6 未覆盖。
 
 ## 7. GO/NO-GO 建议
 
-- **正式发布：NO-GO**。28 项契约未签收，缺少受保护 CI 与真实节点证据；M1–M10/E5–E8 今日未能复跑。
+- **正式发布：NO-GO**。28 项契约未签收，缺少受保护 CI 与真实节点证据；本轮全矩阵已实跑通过，但账本门禁仍是 `RELEASE BLOCKED`。
 - **保留实验能力：GO（带标记）**。热用户变更默认关闭，仅在 `--experimental-hot` 下可用；默认路径不变。
 - **默认能力：GO（有界）**。repair/doctor 的权限回归已修复并有实机证据；`ops summary` 只读。
 - **剩余风险**：
-  1. 外部网络恢复后需重跑 M1–M10 与 E5–E8，确认 TLS/ACME/relay 未被本阶段改动影响（预期无影响）。
+  1. 证书编辑存在 Nginx 平滑重载的瞬时双代窗口（E5 已用收敛判定覆盖）；若旧连接长期存活，旧 worker 也会在极短时间内继续服务旧证书，不影响新连接最终收敛。
   2. 热变更只对 Reality+VLESS 用户增删给出证据；其他协议与密钥轮换不承诺低中断。
   3. 真实 VPS 上的 systemd/journald、证书续期与断电场景仍未取证。
