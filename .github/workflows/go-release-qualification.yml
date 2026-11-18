@@ -91,7 +91,7 @@ jobs:
         env:
           # Explicit package must match the actual production Go module (repo root)
           # and its real service package; this is what the gate verifies.
-          REQUIRED_PRODUCTION_PACKAGE: github.com/hello-yunshu/Xray_bash_onekey/internal/service
+          REQUIRED_PRODUCTION_PACKAGE: github.com/hello-yunshu/Xray_bash_onekey/internal/compat
           IDLELEO_PREVIEW_EVIDENCE: ${{ runner.temp }}/release-evidence
           IDLELEO_GEO_DIR: ${{ runner.temp }}/geo
         run: |
