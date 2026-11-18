@@ -20,6 +20,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import urllib.parse
 from pathlib import Path
 
@@ -223,7 +224,10 @@ def nginx_stream_test(f, conf, frags, label, observed):
     (root / "logs").mkdir(parents=True, exist_ok=True)
     for item in sorted(Path(frags).iterdir()):
         if item.is_file():
-            shutil.copy2(item, root / "conf" / item.name)
+            # Evidence filenames must not contain `:` (artifact upload rule);
+            # the generated config includes fragments by glob, so renaming the
+            # evidence copy does not change what nginx -t parses.
+            shutil.copy2(item, root / "conf" / item.name.replace(":", "_"))
     text = Path(conf).read_text(encoding="utf-8")
     text = text.replace("/etc/idleleo/conf/nginx", str(root / "conf"))
     text = text.replace("/usr/local/nginx/logs", str(root / "logs"))
@@ -516,10 +520,11 @@ def main(f):
     f.need_tool("jq")
     xray = f.xray_bin()
 
-    work = f.evidence / "f04-work"
-    if work.exists():
-        shutil.rmtree(work, ignore_errors=True)
-    work.mkdir(parents=True, exist_ok=True)
+    # Generated artifacts carry host-named files (an IPv6 backend becomes
+    # `2001:db8::2.realityServers`), which the artifact uploader rejects. Keep
+    # the scratch tree out of the evidence directory; only the JSON reports
+    # below are evidence.
+    work = Path(tempfile.mkdtemp(prefix="f04-work-"))
     observed = {"generated": {}, "rejections": {}, "environment": {}}
     version = f.run([xray, "version"], timeout=20)
     observed["environment"] = {
