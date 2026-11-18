@@ -117,6 +117,16 @@ jobs:
               --go-cli-package ./cmd/idleleo \
               --require-package "$REQUIRED_PRODUCTION_PACKAGE"
 
+      - name: Make release evidence readable by the artifact uploader
+        if: always()
+        env:
+          IDLELEO_PREVIEW_EVIDENCE: ${{ runner.temp }}/release-evidence
+        run: |
+          set -euo pipefail
+          if [ -d "$IDLELEO_PREVIEW_EVIDENCE" ]; then
+            sudo chmod -R a+rX "$IDLELEO_PREVIEW_EVIDENCE"
+          fi
+
       - name: Upload release qualification evidence
         if: always()
         uses: actions/upload-artifact@v4
