@@ -105,8 +105,8 @@ jobs:
             "IDLELEO_PREVIEW_EVIDENCE=$IDLELEO_PREVIEW_EVIDENCE" \
             "IDLELEO_GEO_DIR=$IDLELEO_GEO_DIR" \
             python3 current/tests/go-parity/parity/scripts/check_release_gate.py \
-              --bash-repo legacy \
-              --native-go-dir current \
+              --bash-repo "$GITHUB_WORKSPACE/legacy" \
+              --native-go-dir "$GITHUB_WORKSPACE/current" \
               --native-package ./cmd/parity-adapter \
               --go-cli-package ./cmd/idleleo \
               --require-package "$REQUIRED_PRODUCTION_PACKAGE"
