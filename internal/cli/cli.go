@@ -125,6 +125,8 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		return repairCommand(ctx, opts, cfg, paths, args)
 	case "backup":
 		return backupCommand(ctx, opts, cfg, paths, args)
+	case "ops":
+		return opsCommand(ctx, opts, cfg, a, args)
 	case "status":
 		if rc, ok := checkFlags(opts, cfg, args, "status"); ok && rc != 0 {
 			return rc

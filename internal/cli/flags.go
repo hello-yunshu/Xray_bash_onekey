@@ -137,10 +137,14 @@ var commandFlags = map[string]flagSpec{
 	"fail2ban jail enable":  specOf([]string{"name"}, "container"),
 	"fail2ban jail disable": specOf([]string{"name"}, "container"),
 	"xray user add": specOf(
-		[]string{"inbound", "sandbox", "validator", "service", "uuid", "email", "flow", "short-id", "level", "path", "fault"},
-		"container"),
+		[]string{"inbound", "sandbox", "validator", "service", "uuid", "email", "flow", "short-id", "level", "path", "fault", "xray", "api-server"},
+		"container", "experimental-hot"),
 	"xray user remove": specOf(
-		[]string{"inbound", "sandbox", "validator", "service", "uuid", "email", "flow", "short-id", "level", "path", "fault"},
+		[]string{"inbound", "sandbox", "validator", "service", "uuid", "email", "flow", "short-id", "level", "path", "fault", "xray", "api-server"},
+		"container", "experimental-hot"),
+	"xray api status": specOf([]string{"sandbox", "path", "xray", "api-server"}),
+	"xray api enable": specOf(
+		[]string{"sandbox", "path", "validator", "service", "api-port", "fault", "xray", "api-server"},
 		"container"),
 	"xray user uuid": specOf(
 		[]string{"inbound", "sandbox", "validator", "service", "uuid", "email", "new-uuid", "path", "fault"},
@@ -153,6 +157,7 @@ var commandFlags = map[string]flagSpec{
 		"production", "insecure-skip-verify", "takeover", "force", "dry-run"),
 
 	"bridge audit":      specOf(nil, "summary"),
+	"ops summary":       specOf(nil),
 	"bridge prepare":    specOf([]string{"candidate", "candidate-manifest", "recovery", "fault"}, "acknowledge-custom", "container"),
 	"bridge validate":   specOf([]string{"xray", "nginx"}, "container"),
 	"bridge activate":   specOf([]string{"crontab", "fault"}, "container"),

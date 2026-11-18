@@ -11,11 +11,13 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/app"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/change"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/deploy"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/hotuser"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/i18n"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg"
@@ -29,7 +31,7 @@ func xrayCommand(ctx context.Context, opts Options, cfg config, a *app.App, args
 	// Nested commands (user/cert) own their own flag vocabulary; everything
 	// else is validated against the two-word path.
 	flagArgs, flagKey := rest, "xray "+sub
-	if (sub == "user" || sub == "cert" || sub == "config" || sub == "logs" || sub == "balance") && len(rest) > 0 {
+	if (sub == "user" || sub == "cert" || sub == "config" || sub == "logs" || sub == "balance" || sub == "api") && len(rest) > 0 {
 		flagArgs, flagKey = rest[1:], flagKey+" "+rest[0]
 	}
 	if rc, ok := checkFlags(opts, cfg, flagArgs, flagKey); ok && rc != 0 {
@@ -44,6 +46,8 @@ func xrayCommand(ctx context.Context, opts Options, cfg config, a *app.App, args
 		return xrayRelay(opts, cfg, rest)
 	case "user":
 		return xrayUser(ctx, opts, cfg, a, rest)
+	case "api":
+		return xrayAPICommand(ctx, opts, cfg, a, rest)
 	case "install":
 		return xrayInstall(ctx, opts, cfg, rest)
 	case "uninstall":
@@ -491,10 +495,21 @@ func xrayUser(ctx context.Context, opts Options, cfg config, a *app.App, args []
 		if validator == "" {
 			return usage(opts, cfg.lang, "help")
 		}
-		if paths.Root == "/" && flagValue(rest, "--service") == "" {
+		hot := hasFlag(rest, "--experimental-hot")
+		service := flagValue(rest, "--service")
+		if paths.Root == "/" && service == "" && !hot {
 			return fail(opts, cfg, &change.UsageError{
-				Msg: "real-root changes require --service so the service reloads the committed config",
+				Msg: "real-root changes require --service, or --experimental-hot for a running API",
 			})
+		}
+		if hot {
+			// Serialize hot operations so config order and runtime order cannot
+			// invert, and so an enable/apply pair is never interleaved.
+			lock, lockErr := host.AcquireUpdateWait(filepath.Join(paths.Root, "run/lock/idleleo-hot.lock"), 15*time.Second)
+			if lockErr != nil {
+				return fail(opts, cfg, lockErr)
+			}
+			defer lock.Release()
 		}
 		var spec xraycfg.AddUserSpec
 		ident := ""
@@ -531,29 +546,97 @@ func xrayUser(ctx context.Context, opts Options, cfg config, a *app.App, args []
 		if readErr != nil {
 			return fail(opts, cfg, readErr)
 		}
+		skipPersist := false
+		var existing xraycfg.UserView
 		if action == "add" {
 			if _, _, checkErr := xraycfg.AddUser(raw, inbound, spec); checkErr != nil {
-				return fail(opts, cfg, &change.UsageError{Msg: checkErr.Error()})
+				if !hot {
+					return fail(opts, cfg, &change.UsageError{Msg: checkErr.Error()})
+				}
+				views, listErr := xraycfg.ListUsers(raw, inbound)
+				if listErr != nil {
+					return fail(opts, cfg, listErr)
+				}
+				found := false
+				for _, v := range views {
+					if v.Email == spec.Email && (spec.UUID == "" || v.UUID == spec.UUID) {
+						existing, found = v, true
+					}
+				}
+				if !found {
+					return fail(opts, cfg, &change.UsageError{Msg: checkErr.Error()})
+				}
+				// Retry after a half-failed hot apply: the commit already happened.
+				skipPersist = true
 			}
 		} else {
 			if _, _, checkErr := xraycfg.RemoveUser(raw, inbound, ident); checkErr != nil {
-				return fail(opts, cfg, &change.UsageError{Msg: checkErr.Error()})
+				if !hot {
+					return fail(opts, cfg, &change.UsageError{Msg: checkErr.Error()})
+				}
+				skipPersist = true
 			}
 		}
-		entry, view, err := a.ChangeUser(ctx, flagValue(rest, "--path"), inbound, action == "add", ident, spec,
-			validator, flagValue(rest, "--service"), flagValue(rest, "--fault"), hasFlag(rest, "--container"))
 		cfg.json = cfg.json || hasFlag(rest, "--json")
-		if err != nil {
-			if cfg.json {
-				_ = writeJSONNoExit(opts.Out, entry)
+		changeService := service
+		if hot {
+			changeService = ""
+		}
+		var entry change.Entry
+		var view xraycfg.UserView
+		if skipPersist {
+			view = existing
+			if action == "remove" {
+				view = xraycfg.UserView{UUID: ident, Email: ident}
 			}
-			return fail(opts, cfg, err)
+		} else {
+			entry, view, err = a.ChangeUser(ctx, flagValue(rest, "--path"), inbound, action == "add", ident, spec,
+				validator, changeService, flagValue(rest, "--fault"), hasFlag(rest, "--container"))
+			if err != nil {
+				if cfg.json {
+					_ = writeJSONNoExit(opts.Out, entry)
+				}
+				return fail(opts, cfg, err)
+			}
+		}
+		var hotReport map[string]any
+		var endpoint hotuser.Endpoint
+		if hot {
+			fresh, readErr := os.ReadFile(targetPath)
+			if readErr != nil {
+				return hotApplyFailure(opts, cfg, entry, view, !skipPersist, readErr)
+			}
+			xrayBin := flagValue(rest, "--xray")
+			if xrayBin == "" {
+				xrayBin = filepath.Join(paths.Root, "usr/local/bin/xray")
+			}
+			endpoint, err = hotuser.Locate(fresh, flagValue(rest, "--api-server"))
+			if err == nil {
+				if action == "add" {
+					err = hotuser.Add(ctx, xrayBin, endpoint, spec.Email, view.UUID, view.Flow, view.Level)
+				} else {
+					err = hotuser.Remove(ctx, xrayBin, endpoint, ident)
+				}
+			}
+			if err != nil {
+				return hotApplyFailure(opts, cfg, entry, view, !skipPersist, err)
+			}
+			hotReport = map[string]any{
+				"persisted": !skipPersist, "applied": true,
+				"server": endpoint.Server, "inbound": endpoint.InboundTag,
+			}
 		}
 		if cfg.json {
-			_ = writeJSONNoExit(opts.Out, map[string]any{"entry": entry, "user": view})
-			return 0
+			payload := map[string]any{"entry": entry, "user": view}
+			if hot {
+				payload["hot"] = hotReport
+			}
+			return writeJSON(opts, payload)
 		}
 		fmt.Fprintf(opts.Out, "%s: %s (%s)\n", entry.State, view.UUID, entry.ID)
+		if hot {
+			fmt.Fprintf(opts.Out, "hot: applied to %s without restart\n", endpoint.Server)
+		}
 		return 0
 	default:
 		return usage(opts, cfg.lang, "help")
@@ -816,4 +899,141 @@ func specFromFlags(args []string) (xraycfg.Spec, error) {
 		spec.KeyFile = raw
 	}
 	return spec, nil
+}
+
+// xrayAPICommand enables or inspects the loopback API that hot user changes use.
+func xrayAPICommand(ctx context.Context, opts Options, cfg config, a *app.App, args []string) int {
+	if len(args) == 0 {
+		return usage(opts, cfg.lang, "help")
+	}
+	action, rest := args[0], args[1:]
+	root := flagValue(rest, "--sandbox")
+	if root == "" {
+		root = cfg.root
+	}
+	if cfg.root != "/" && cfg.root != root {
+		return usage(opts, cfg.lang, "help")
+	}
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		return fail(opts, cfg, err)
+	}
+	cfg.json = cfg.json || hasFlag(rest, "--json")
+	xrayBin := flagValue(rest, "--xray")
+	if xrayBin == "" {
+		xrayBin = filepath.Join(paths.Root, "usr/local/bin/xray")
+	}
+	targetPath := filepath.Join(paths.Root, paths.RuntimeConfig())
+	if override := flagValue(rest, "--path"); override != "" {
+		if targetPath, err = store.ResolveRuntimePath(paths, override); err != nil {
+			return fail(opts, cfg, err)
+		}
+	}
+
+	switch action {
+	case "status":
+		raw, readErr := os.ReadFile(targetPath)
+		if readErr != nil {
+			return fail(opts, cfg, readErr)
+		}
+		endpoint, locErr := hotuser.Locate(raw, flagValue(rest, "--api-server"))
+		status := map[string]any{"configured": locErr == nil, "server": "", "inboundTag": "", "reachable": false}
+		if locErr == nil {
+			status["server"] = endpoint.Server
+			status["inboundTag"] = endpoint.InboundTag
+			status["reachable"] = hotuser.Reachable(ctx, xrayBin, endpoint.Server) == nil
+		}
+		if cfg.json {
+			return writeJSON(opts, status)
+		}
+		fmt.Fprintf(opts.Out, "configured=%t server=%v inbound=%v reachable=%t\n",
+			status["configured"], status["server"], status["inboundTag"], status["reachable"])
+		return 0
+	case "enable":
+		validator := flagValue(rest, "--validator")
+		if validator == "" {
+			return usage(opts, cfg.lang, "help")
+		}
+		service := flagValue(rest, "--service")
+		if paths.Root == "/" && service == "" {
+			return fail(opts, cfg, &change.UsageError{
+				Msg: "enabling the API on a real root requires --service so the service loads it",
+			})
+		}
+		port := 10085
+		if raw := flagValue(rest, "--api-port"); raw != "" {
+			v, convErr := strconv.Atoi(raw)
+			if convErr != nil || v < 1 || v > 65535 {
+				return usage(opts, cfg.lang, "help")
+			}
+			port = v
+		}
+		a.Paths = paths
+		entry, changed, err := a.EnableXrayAPI(ctx, flagValue(rest, "--path"), port, validator, service,
+			flagValue(rest, "--fault"), hasFlag(rest, "--container"))
+		if err != nil {
+			if cfg.json {
+				_ = writeJSONNoExit(opts.Out, entry)
+			}
+			return fail(opts, cfg, err)
+		}
+		endpoint, locErr := hotuser.Locate(readFileOrNil(targetPath), flagValue(rest, "--api-server"))
+		reachable := false
+		if changed && locErr == nil {
+			if waitErr := hotuser.WaitReachable(ctx, xrayBin, endpoint.Server, 5*time.Second); waitErr == nil {
+				reachable = true
+			} else {
+				err = waitErr
+			}
+		}
+		report := map[string]any{
+			"entry": entry, "changed": changed, "port": port,
+			"server": endpoint.Server, "reachable": reachable,
+		}
+		if err != nil {
+			report["error"] = err.Error()
+		}
+		if cfg.json {
+			_ = writeJSONNoExit(opts.Out, report)
+		}
+		if err != nil {
+			fmt.Fprintf(opts.Err, "API config committed but not reachable: %v\n", err)
+			return 1
+		}
+		if cfg.json {
+			return 0
+		}
+		if !changed {
+			fmt.Fprintln(opts.Out, "API already enabled")
+			return 0
+		}
+		fmt.Fprintf(opts.Out, "API enabled at %s (inbound %s)\n", endpoint.Server, endpoint.InboundTag)
+		return 0
+	default:
+		return usage(opts, cfg.lang, "help")
+	}
+}
+
+func readFileOrNil(path string) []byte {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+	return raw
+}
+
+// hotApplyFailure reports a committed config that the running service did not
+// receive. Exit 8 tells the caller "persisted, runtime pending".
+func hotApplyFailure(opts Options, cfg config, entry change.Entry, view xraycfg.UserView, persisted bool, err error) int {
+	if cfg.json {
+		_ = writeJSONNoExit(opts.Out, map[string]any{
+			"entry": entry, "user": view,
+			"hot": map[string]any{"persisted": persisted, "applied": false, "error": err.Error()},
+		})
+	}
+	fmt.Fprintf(opts.Err, "persisted=%t applied=false: %v\n", persisted, err)
+	if persisted {
+		fmt.Fprint(opts.Err, "the committed config is the source of truth; run `idleleo xray api enable` if needed, then retry\n")
+	}
+	return 8
 }

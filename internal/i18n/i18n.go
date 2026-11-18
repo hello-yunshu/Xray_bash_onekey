@@ -33,6 +33,7 @@ var zh = map[string]string{
 命令:
   version              显示版本
   status               只读状态
+  ops summary          只读运维摘要：端口、证书到期、最近变更与失败、重启次数
   show                 只读运行与分享信息
   config inspect       只读结构化配置视图
   change set-inbound-port --sandbox PATH --port N --validator PATH
@@ -49,6 +50,10 @@ var zh = map[string]string{
                        --fp/--spx 仅改分享链接，不改服务端配置、不重启
   xray user list|add|remove
                        列出现有用户，或增删用户（增删需沙箱或真实根门禁）
+                       add/remove 加 --experimental-hot 时配置先落盘、再经本机
+                       API 热应用（不重启）；半失败返回 8，重启后自动收敛
+  xray api status|enable [--api-port N]
+                       查看或启用本机回环 Xray API（默认 127.0.0.1:10085）
   xray user uuid --email E --new-uuid U [--inbound N]
                        改单个用户的 UUID；命中多个 inbound 时一次事务全改；
                        会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
@@ -175,6 +180,11 @@ Commands:
                        link (no server config, no restart)
   xray user list|add|remove
                        list users, or add/remove one (add/remove need a sandbox or the real-root gate)
+                       add/remove with --experimental-hot persist the config first
+                       and then apply over the loopback API (no restart); a half
+                       failure returns 8 and converges on the next restart
+  xray api status|enable [--api-port N]
+                       inspect or enable the loopback Xray API (default 127.0.0.1:10085)
   xray user uuid --email E --new-uuid U [--inbound N]
                        rotate one user's UUID; every inbound that carries it is
                        rewritten in one transaction; restarts Xray, so all

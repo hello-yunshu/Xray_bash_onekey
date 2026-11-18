@@ -12,6 +12,7 @@ import (
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/change"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/compat"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/hotuser"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/runtime"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
@@ -264,6 +265,45 @@ func (a *App) ChangeUser(ctx context.Context, override string, inbound int, add 
 		return entry, xraycfg.UserView{}, err
 	}
 	return entry, view, nil
+}
+
+// EnableXrayAPI adds the loopback API inbound through the same transaction as
+// every other config change. An already-enabled config is a no-op.
+func (a *App) EnableXrayAPI(ctx context.Context, override string, port int, validatorPath, servicePath, fault string, containerAck bool) (change.Entry, bool, error) {
+	if err := a.beginSystemChange(fault, containerAck); err != nil {
+		return change.Entry{}, false, err
+	}
+	if a.Paths.Root == "/" {
+		if err := a.requireManagerMetadata(); err != nil {
+			return change.Entry{}, false, err
+		}
+	}
+	path, err := store.ResolveRuntimePath(a.Paths, override)
+	if err != nil {
+		return change.Entry{}, false, err
+	}
+	if err := a.requireChangeBaseline(path); err != nil {
+		return change.Entry{}, false, err
+	}
+	changed := false
+	entry, err := change.Apply(ctx, change.Request{
+		Target: path,
+		Mutate: func(raw []byte) ([]byte, error) {
+			out, c, err := hotuser.EnableAPI(raw, port)
+			if err != nil {
+				return nil, err
+			}
+			changed = c
+			return out, nil
+		},
+		Validator: runtime.XrayValidator{Path: validatorPath, AssetDir: a.Paths.GeodataDir()},
+		Service:   runtime.CommandService{Path: servicePath},
+		Journal:   change.Journal{Path: a.Paths.JournalFile()},
+		LockPath:  a.Paths.LockFile(),
+		Fault:     fault,
+		Finalize:  a.refreshRuntimeSHA,
+	})
+	return entry, changed, err
 }
 
 // ChangeUserUUID rotates one user's credential through the same atomic

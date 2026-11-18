@@ -1834,4 +1834,4 @@ python3 "$SUITE/compare/report.py" --evidence "$EVID" --matrix "$SUITE/matrix.js
     --diffs "$SUITE/expected_diffs.json" "${BASELINE_ARGS[@]}" >/dev/null 2>&1 || \
     log "report generation failed"
 
-log "P2 finished: $EVID"
+log "P2 finished: ${EVID#"$ROOT/"}"
