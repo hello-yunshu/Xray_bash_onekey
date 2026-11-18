@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "profile": "tls",
+  "reason": "client config generation failed",
+  "target": "http://example.com/"
+}

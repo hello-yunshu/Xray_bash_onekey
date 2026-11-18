@@ -1,0 +1,16 @@
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=f5d18a58a4e1eee9acbbf720e32a154f07e3af7839c3f387fc935c08de5c4fa7
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws+grpc+xhttp --domain example.com --container
+round2_mode=keep-config
+install_exit=1
+manifest entries=5
+runtime collected
+logs collected
+idempotency ok=True
+MISSING /etc/idleleo/conf/xray/config.json
+done=tls install_exit=1
+sanitized /out/round2/install.log
+sanitized /out/round2/expect.log
+sanitized /out/round2/capture.log

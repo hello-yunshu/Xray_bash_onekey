@@ -1,0 +1,33 @@
+{
+  "afterSha": "",
+  "allPassed": false,
+  "beforeSha": "",
+  "checks": {
+    "backupHasOldPair": false,
+    "configRestored": true,
+    "guardRejected": false,
+    "guardZeroWrites": true,
+    "nginxRestored": true,
+    "probeFailureRecorded": false,
+    "rollbackRcNonZero": true,
+    "scheduleRestored": true,
+    "servedCertRestored": true,
+    "servicesActive": false
+  },
+  "editRc": 1,
+  "error": "lstat /etc/idleleo/conf: no such file or directory",
+  "failurePoint": "tls-probe: served certificate mismatch",
+  "guardRc": 1,
+  "wanted": [
+    "backupHasOldPair",
+    "configRestored",
+    "guardRejected",
+    "guardZeroWrites",
+    "nginxRestored",
+    "probeFailureRecorded",
+    "rollbackRcNonZero",
+    "scheduleRestored",
+    "servedCertRestored",
+    "servicesActive"
+  ]
+}

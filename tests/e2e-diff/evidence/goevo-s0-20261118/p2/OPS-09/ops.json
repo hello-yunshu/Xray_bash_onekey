@@ -1,0 +1,64 @@
+{
+  "addRc": {
+    "bash": 0,
+    "go": 3
+  },
+  "backend": {
+    "host": "10.99.0.7",
+    "port": 9447,
+    "weight": 60
+  },
+  "backends": {
+    "bash": [
+      "10.99.0.7:9447 weight=60"
+    ],
+    "go": []
+  },
+  "bashMenu": "2>3>1",
+  "bothInstallRc": {
+    "bash": 124,
+    "go": 1
+  },
+  "expectedLine": "server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;",
+  "files": {
+    "bash": {
+      "afterRemove": [],
+      "content": {
+        "10.99.0.7.wsServers": "server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;"
+      },
+      "created": [
+        "10.99.0.7.wsServers"
+      ],
+      "dir": "/etc/idleleo/conf/nginx",
+      "suffix": "wsServers"
+    },
+    "go": {
+      "afterRemove": [],
+      "content": {},
+      "created": [],
+      "dir": "/etc/idleleo/conf/nginx",
+      "suffix": "wsServers"
+    }
+  },
+  "id": "OPS-09",
+  "list": {
+    "bash": {
+      "reportsCreated": true,
+      "reportsDeleted": true,
+      "showsBackend": true
+    },
+    "go": {
+      "afterAdd": [],
+      "afterRemove": []
+    }
+  },
+  "reasons": [
+    "driver rc=124 (bash install rc)"
+  ],
+  "removeRc": {
+    "bash": 0,
+    "go": 3
+  },
+  "upstream": "ws",
+  "verdict": "HARNESS-ERROR"
+}

@@ -1,0 +1,13 @@
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+curl: (7) Failed to connect to github.com port 443 after 0 ms: Couldn't connect to server
+[警告]  Release 未声明该校验值(兼容期), 继续安装: fail2ban_manager.sh 
+
+ Fail2ban 总体状态: 
+Status
+|- Number of jail:	0
+`- Jail list:	
+
+ 默认启用的 Jail 状态: 
+----------------------------------------
+

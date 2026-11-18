@@ -1,0 +1,29 @@
+23:22:21 [M7] done
+23:22:27 [M6] done
+23:22:27 [M10] done
+23:22:41 [M8] HARNESS-BLOCKED (pebble)
+23:39:25 [M9] done
+23:39:26 [E3] start
+23:39:26 [E6] start
+23:39:26 [E4] start
+23:39:26 [E5] start
+23:39:26 [E2] start
+23:39:26 [E1] start
+23:39:26 [E7] start
+23:39:26 [E8] start
+23:39:31 [E6] done
+23:40:06 [E5] done
+23:41:42 [E3] done
+23:41:43 [E2] done
+23:41:44 [E1] done
+23:41:46 [E7] done
+23:41:46 [E8] done
+23:41:46 [E4] done
+23:41:46 [OPS-19] start
+23:57:42 [OPS-19] verdict=BLOCKER
+23:57:43 [OPS-21] start
+23:57:43 [OPS-21] bash skipped: container network has no egress
+23:58:20 [OPS-21] verdict=HARNESS-ERROR
+23:58:20 [OPS-09] start upstream=ws
+23:59:24 [OPS-09] verdict=HARNESS-ERROR
+23:59:24 [OPS-31] start upstream=reality

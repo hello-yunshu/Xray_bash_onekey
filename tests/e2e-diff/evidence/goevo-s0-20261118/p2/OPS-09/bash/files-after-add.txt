@@ -1,0 +1,2 @@
+== 10.99.0.7.wsServers
+server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;

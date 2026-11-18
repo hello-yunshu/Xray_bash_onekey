@@ -1,0 +1,36 @@
+{
+  "configured": true,
+  "applied": false,
+  "drift": false,
+  "ads": false,
+  "privateIp": false,
+  "bittorrent": false,
+  "countries": null,
+  "customDomains": {
+    "enabled": false,
+    "items": null
+  },
+  "customIps": {
+    "enabled": false,
+    "items": null
+  },
+  "ownedRuleCount": 0,
+  "domainStrategy": "AsIs",
+  "sniffingEnabled": false,
+  "geosite": {
+    "path": "/etc/idleleo/share/xray/geosite.dat",
+    "size": 7554929,
+    "mtime": "2026-11-18T15:57:44Z"
+  },
+  "geoip": {
+    "path": "/etc/idleleo/share/xray/geoip.dat",
+    "size": 3312784,
+    "mtime": "2026-11-18T15:57:44Z"
+  },
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "0ece3feb5f897676fc945f3b2c82ea1d037a2910ddb8e9cd76e33b06d01cc074",
+  "newSha256": "76a182d030d5ad920d2947830d80015efaa386879433747ad25353b5b564d04f",
+  "backupDir": "/etc/idleleo/backup/block-20261118T155811Z",
+  "serviceRestarted": true,
+  "controlProbe": "not probed: block off only removes rules"
+}

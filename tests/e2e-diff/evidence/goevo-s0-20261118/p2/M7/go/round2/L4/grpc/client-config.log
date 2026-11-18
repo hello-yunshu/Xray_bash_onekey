@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/src/tests/e2e-diff/collect/client_config.py", line 178, in <module>
+    sys.exit(main(sys.argv[1:]))
+             ^^^^^^^^^^^^^^^^^^
+  File "/src/tests/e2e-diff/collect/client_config.py", line 171, in main
+    json.dump(build(args), fh, indent=2)
+              ^^^^^^^^^^^
+  File "/src/tests/e2e-diff/collect/client_config.py", line 61, in build
+    cfg = json.load(open(args.config))
+                    ^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/etc/idleleo/conf/xray/config.json'

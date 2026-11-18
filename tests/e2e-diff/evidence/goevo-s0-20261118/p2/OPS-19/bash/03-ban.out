@@ -1,0 +1,2 @@
+2026-11-18 15:57:14,560 fail2ban                [3785]: ERROR   NOK: ('nginx-badbots',)
+Sorry but the jail 'nginx-badbots' does not exist
