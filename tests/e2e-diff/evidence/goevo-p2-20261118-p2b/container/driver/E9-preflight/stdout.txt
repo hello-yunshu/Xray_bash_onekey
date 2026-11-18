@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "26.10.31",
+  "candidateVersion": "26.10.31",
+  "action": "reinstall",
+  "sha256": "5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328",
+  "sizeBytes": 32637052,
+  "digestVerified": true,
+  "compatible": true,
+  "levels": [
+    {
+      "name": "installable",
+      "status": "pass",
+      "detail": "ELF binary for arm64"
+    },
+    {
+      "name": "config-parses",
+      "status": "pass",
+      "detail": "candidate loaded the installed config"
+    },
+    {
+      "name": "service-starts",
+      "status": "not-run",
+      "detail": "preflight never replaces the artifact or restarts a service; run `idleleo update xray` to activate"
+    },
+    {
+      "name": "client-connects",
+      "status": "not-run",
+      "detail": "requires an activated service and a real client; check after activation with `idleleo doctor --deep`"
+    }
+  ]
+}

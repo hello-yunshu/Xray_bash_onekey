@@ -119,6 +119,12 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 	case "version":
 		fmt.Fprintf(opts.Out, i18n.T(cfg.lang, "version"), Version)
 		return 0
+	case "doctor":
+		return doctorCommand(ctx, opts, cfg, paths, args)
+	case "repair":
+		return repairCommand(ctx, opts, cfg, paths, args)
+	case "backup":
+		return backupCommand(ctx, opts, cfg, paths, args)
 	case "status":
 		if rc, ok := checkFlags(opts, cfg, args, "status"); ok && rc != 0 {
 			return rc

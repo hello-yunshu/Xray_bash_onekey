@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 0,
+  "component": "",
+  "previousVersion": "",
+  "candidateVersion": "",
+  "action": "",
+  "sha256": "",
+  "sizeBytes": 0,
+  "digestVerified": false,
+  "compatible": false,
+  "levels": null
+}

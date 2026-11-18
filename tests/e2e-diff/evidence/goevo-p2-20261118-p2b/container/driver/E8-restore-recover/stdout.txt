@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "archive": "/out/driver/artifacts/state.tar.gz",
+  "archiveSha256": "",
+  "bytes": 0,
+  "files": 2,
+  "createdAt": "",
+  "restored": [
+    "etc/idleleo/conf/xray/config.json",
+    "etc/idleleo/v1/metadata.json"
+  ],
+  "preBackup": "/etc/idleleo/backup/pre-restore-20261118T162437Z-1.tar.gz",
+  "sensitive": true
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "dryRun": true,
+  "actions": null,
+  "remaining": [
+    "runtime config is not valid JSON: unexpected end of JSON input"
+  ],
+  "healthy": false
+}

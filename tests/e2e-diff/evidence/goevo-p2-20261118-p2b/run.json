@@ -1,0 +1,172 @@
+{
+  "assertions": [
+    {
+      "label": "doctor exits 0 on an installed root (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "doctor reports healthy with checks",
+      "result": "PASS"
+    },
+    {
+      "label": "doctor --deep exits 0 (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "deep probe proves TCP but refuses to fake a Reality handshake",
+      "result": "PASS"
+    },
+    {
+      "label": "backup create succeeds (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "backup verify accepts its own archive",
+      "result": "PASS"
+    },
+    {
+      "label": "manifest carries entries and restore limits",
+      "result": "PASS"
+    },
+    {
+      "label": "manifest carries no private key material",
+      "result": "PASS"
+    },
+    {
+      "label": "archive is mode 0600 (mode=600)",
+      "result": "PASS"
+    },
+    {
+      "label": "drift changed the runtime config hash",
+      "result": "PASS"
+    },
+    {
+      "label": "restore --dry-run exits 0 (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "dry run left the drifted config untouched",
+      "result": "PASS"
+    },
+    {
+      "label": "dry run reports the config as replace",
+      "result": "PASS"
+    },
+    {
+      "label": "restore exits 0 (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "restore reproduced the archived config hash",
+      "result": "PASS"
+    },
+    {
+      "label": "restore wrote a pre-restore backup",
+      "result": "PASS"
+    },
+    {
+      "label": "verify rejects a tampered archive",
+      "result": "PASS"
+    },
+    {
+      "label": "restore rejects a tampered archive",
+      "result": "PASS"
+    },
+    {
+      "label": "rejected restore did not change the config",
+      "result": "PASS"
+    },
+    {
+      "label": "doctor warns about the stale lock",
+      "result": "PASS"
+    },
+    {
+      "label": "repair --dry-run reports the stale lock without removing it",
+      "result": "PASS"
+    },
+    {
+      "label": "dry run kept the lock file",
+      "result": "PASS"
+    },
+    {
+      "label": "repair --fix-lock exits healthy (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "repair removed the stale lock",
+      "result": "PASS"
+    },
+    {
+      "label": "doctor fails on corrupt JSON",
+      "result": "PASS"
+    },
+    {
+      "label": "repair refuses to invent a config and reports it",
+      "result": "PASS"
+    },
+    {
+      "label": "restore recovers from the corrupt config",
+      "result": "PASS"
+    },
+    {
+      "label": "restored config is valid JSON",
+      "result": "PASS"
+    },
+    {
+      "label": "preflight exits 0 for a compatible candidate (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "preflight verifies the digest and marks the candidate compatible",
+      "result": "PASS"
+    },
+    {
+      "label": "installable evidence passes for a real ELF",
+      "result": "PASS"
+    },
+    {
+      "label": "config-parses evidence passes for the live config",
+      "result": "PASS"
+    },
+    {
+      "label": "service/client evidence stays NOT_RUN",
+      "result": "PASS"
+    },
+    {
+      "label": "preflight exits 7 for a non-ELF candidate",
+      "result": "PASS"
+    },
+    {
+      "label": "preflight exits 5 on a digest mismatch",
+      "result": "PASS"
+    },
+    {
+      "label": "broken candidate exits 6 (health) (rc=6)",
+      "result": "PASS"
+    },
+    {
+      "label": "update report marks the rollback",
+      "result": "PASS"
+    },
+    {
+      "label": "rollback restored the previous xray binary",
+      "result": "PASS"
+    },
+    {
+      "label": "service state survived the failed update",
+      "result": "PASS"
+    },
+    {
+      "label": "doctor is healthy after every injected fault (rc=0)",
+      "result": "PASS"
+    }
+  ],
+  "commit": "d96deffef6f593b0e09b142417348d754caf91b4",
+  "driverExit": 0,
+  "failed": 0,
+  "imageId": "sha256:1e031bdf2d185637083e0f0c6180587fe9743f9d63fa8298b8fe9b096781e590",
+  "installExit": 0,
+  "passed": 40,
+  "runId": "20261118-p2b",
+  "schemaVersion": 1
+}

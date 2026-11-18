@@ -1,0 +1,40 @@
+PASS	doctor exits 0 on an installed root (rc=0)
+PASS	doctor reports healthy with checks
+PASS	doctor --deep exits 0 (rc=0)
+PASS	deep probe proves TCP but refuses to fake a Reality handshake
+PASS	backup create succeeds (rc=0)
+PASS	backup verify accepts its own archive
+PASS	manifest carries entries and restore limits
+PASS	manifest carries no private key material
+PASS	archive is mode 0600 (mode=600)
+PASS	drift changed the runtime config hash
+PASS	restore --dry-run exits 0 (rc=0)
+PASS	dry run left the drifted config untouched
+PASS	dry run reports the config as replace
+PASS	restore exits 0 (rc=0)
+PASS	restore reproduced the archived config hash
+PASS	restore wrote a pre-restore backup
+FAIL	verify rejects a tampered archive
+PASS	restore rejects a tampered archive
+PASS	rejected restore did not change the config
+PASS	doctor warns about the stale lock
+PASS	repair --dry-run reports the stale lock without removing it
+PASS	dry run kept the lock file
+PASS	repair --fix-lock exits healthy (rc=0)
+PASS	repair removed the stale lock
+PASS	doctor fails on corrupt JSON
+PASS	repair refuses to invent a config and reports it
+FAIL	restore recovers from the corrupt config
+FAIL	restored config is valid JSON
+FAIL	preflight exits 0 for a compatible candidate (rc=3)
+FAIL	preflight verifies the digest and marks the candidate compatible
+FAIL	installable evidence passes for a real ELF
+FAIL	config-parses evidence passes for the live config
+FAIL	service/client evidence stays NOT_RUN
+PASS	preflight exits 7 for a non-ELF candidate
+FAIL	preflight exits 5 on a digest mismatch
+PASS	broken candidate exits 6 (health) (rc=6)
+PASS	update report marks the rollback
+PASS	rollback restored the previous xray binary
+PASS	service state survived the failed update
+FAIL	doctor is healthy after every injected fault (rc=1)

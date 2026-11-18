@@ -16,6 +16,27 @@ import (
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/schedule"
 )
 
+func TestDoctorJSONReportsUnhealthyRoot(t *testing.T) {
+	root := t.TempDir()
+	var out, errOut bytes.Buffer
+	rc := Run(context.Background(), []string{"--root", root, "doctor", "--json"}, Options{In: strings.NewReader(""), Out: &out, Err: &errOut})
+	if rc != 1 {
+		t.Fatalf("rc=%d stderr=%s", rc, errOut.String())
+	}
+	var report struct {
+		Healthy bool `json:"healthy"`
+		Summary struct {
+			Fail int `json:"fail"`
+		} `json:"summary"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &report); err != nil {
+		t.Fatalf("doctor did not emit JSON: %v: %s", err, out.String())
+	}
+	if report.Healthy || report.Summary.Fail == 0 {
+		t.Fatalf("unexpected report: %+v", report)
+	}
+}
+
 func TestSpecFromPrivateKeyFile(t *testing.T) {
 	dir := t.TempDir()
 	keyFile := filepath.Join(dir, "reality.key")

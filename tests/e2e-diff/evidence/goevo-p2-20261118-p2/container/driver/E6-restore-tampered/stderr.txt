@@ -1,0 +1,1 @@
+pre-restore backup failed: backup archive: open /etc/idleleo/backup/pre-restore-20261118T162331Z.tar.gz: file exists

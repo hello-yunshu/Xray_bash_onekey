@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "generatedAt": "2026-11-18T16:23:31Z",
+  "checks": [
+    {
+      "id": "layout",
+      "status": "ok",
+      "message": "managed directories are present",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "metadata",
+      "status": "ok",
+      "message": "manager metadata is readable",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "validator",
+      "status": "ok",
+      "message": "xray accepted the runtime config",
+      "method": "xray run -test",
+      "evidence": "ok"
+    },
+    {
+      "id": "permissions",
+      "status": "ok",
+      "message": "config and key permissions are restrictive",
+      "method": "mode bits",
+      "evidence": "ok"
+    },
+    {
+      "id": "certificate",
+      "status": "skip",
+      "message": "no managed certificate to check",
+      "method": "x509 parse",
+      "evidence": "skip"
+    },
+    {
+      "id": "nginx",
+      "status": "skip",
+      "message": "managed nginx is not installed",
+      "method": "nginx -t",
+      "evidence": "skip"
+    },
+    {
+      "id": "services",
+      "status": "ok",
+      "message": "owned units are active",
+      "method": "systemctl is-active",
+      "evidence": "ok"
+    },
+    {
+      "id": "backup",
+      "status": "ok",
+      "message": "1 backup entr(ies) found; newest 2026-11-18T16:23:31Z",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "disk",
+      "status": "ok",
+      "message": "enough free disk space",
+      "detail": "241899 MiB",
+      "method": "statfs",
+      "evidence": "ok"
+    },
+    {
+      "id": "lock",
+      "status": "warn",
+      "message": "a stale update lock exists",
+      "detail": "2026-11-18T13:23:31Z",
+      "method": "lstat",
+      "evidence": "warn",
+      "suggestion": "run idleleo repair --dry-run to preview the reversible fix"
+    },
+    {
+      "id": "geodata",
+      "status": "warn",
+      "message": "geo assets are missing",
+      "detail": "[geoip.dat geosite.dat]",
+      "method": "read-only inspection",
+      "evidence": "warn",
+      "suggestion": "inspect the detail; this check never writes"
+    }
+  ],
+  "summary": {
+    "ok": 7,
+    "warn": 2,
+    "fail": 0,
+    "skip": 2,
+    "unknown": 0
+  },
+  "healthy": true
+}

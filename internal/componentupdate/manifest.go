@@ -41,6 +41,10 @@ var (
 	ErrHealth = errors.New("new component failed its health check")
 	// ErrRollback marks a failed rollback after activation (exit 10).
 	ErrRollback = errors.New("rollback failed; manual recovery required")
+	// ErrArtifact marks a candidate whose bytes are not a usable artifact (exit 7).
+	ErrArtifact = errors.New("candidate artifact is not installable")
+	// ErrConfig marks a candidate that rejects the installed configuration (exit 7).
+	ErrConfig = errors.New("candidate rejected the installed configuration")
 )
 
 var (

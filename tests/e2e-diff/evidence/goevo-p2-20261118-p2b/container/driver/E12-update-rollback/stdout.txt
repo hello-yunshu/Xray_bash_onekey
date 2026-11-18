@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "26.10.31",
+  "newVersion": "99.0.0",
+  "action": "update",
+  "sha256": "a82c1b5fd392d72148d53992a860224ff3753cb2dc8909e9bdd1620e54ee1b88",
+  "sizeBytes": 67792,
+  "backupPath": "/etc/idleleo/backup/xray-26.10.31-1795019077377446264",
+  "verified": true,
+  "health": false,
+  "restarted": false,
+  "rolledBack": true
+}

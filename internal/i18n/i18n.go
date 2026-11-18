@@ -105,6 +105,8 @@ var zh = map[string]string{
                        容器内直启 xray/nginx（无 systemd 时用 pid 管理）
   update xray|nginx --manifest <path|URL> [--json] [--container] [--no-restart]
                        清单驱动组件升级（sha256/降级/备份/健康/回滚）
+  update preflight --component xray|nginx --manifest <path|URL> [--json]
+                       只读预检：digest/构件格式/配置兼容；服务与客户端层输出 NOT_RUN
   net dns --domain NAME [--policy auto|ipv4|ipv6] [--resolver host:port]
                        按 family 校验域名 A/AAAA 与本机公网地址
   net firewall status|apply|revert [--tcp 443,8443] [--udp 443]
@@ -115,6 +117,15 @@ var zh = map[string]string{
   speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
                        下行测速（本机实现，不下载执行第三方脚本）
   rill status          只读 Rill 交接状态
+  doctor [--json]      只读健康检查（布局、配置、证书、服务、备份、磁盘）
+  repair [--dry-run] [--fix-lock]
+                       修复目录/权限/过期锁；不会生成配置，其余问题只报告
+  backup create [--out FILE] [--include-geodata]
+                       打包托管状态（含私钥，0600，拒绝覆盖）
+  backup verify --archive FILE
+                       只读校验归档哈希与路径，不解包
+  backup restore --archive FILE [--no-pre-backup]
+                       先校验再暂存与校验配置，失败自动回滚；默认先做前置备份
   recover              收敛未完成的 xray install
   help                 显示本帮助
 
@@ -223,6 +234,8 @@ Commands:
                        start xray/nginx directly inside a container (pid-managed, no systemd)
   update xray|nginx --manifest <path|URL> [--json] [--container] [--no-restart]
                        manifest-driven component upgrade (sha256/downgrade/backup/health/rollback)
+  update preflight --component xray|nginx --manifest <path|URL> [--json]
+                       read-only qualification: digest/artifact/config; service and client stay NOT_RUN
   net dns --domain NAME [--policy auto|ipv4|ipv6] [--resolver host:port]
                        per-family validation of the domain A/AAAA records against this server
   net firewall status|apply|revert [--tcp 443,8443] [--udp 443]
@@ -233,6 +246,15 @@ Commands:
   speedtest [--json] [--server URL] [--bytes N] [--samples N] [--timeout 10s]
                        downstream throughput (local, no third-party script)
   rill status          read-only Rill handover state
+  doctor [--json]      read-only health checks (layout, config, cert, units, backup, disk)
+  repair [--dry-run] [--fix-lock]
+                       fix directories, modes and stale locks; never invents config
+  backup create [--out FILE] [--include-geodata]
+                       archive managed state (private keys, 0600, never overwrites)
+  backup verify --archive FILE
+                       verify archive hashes and paths without extracting
+  backup restore --archive FILE [--no-pre-backup]
+                       verify, stage, validate config, then swap with rollback
   recover              converge a half-finished xray install
   help                 show this help
 

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "dryRun": true,
+  "actions": [
+    "would create etc/idleleo/alerts",
+    "would create etc/idleleo/cert",
+    "would create etc/idleleo/info",
+    "would set mode of etc/idleleo/conf to 0750",
+    "would set mode of etc/idleleo/conf/xray/config.json to 0600",
+    "would set mode of etc/idleleo/v1 to 0750",
+    "would set mode of etc/idleleo/v1/metadata.json to 0600"
+  ],
+  "remaining": [
+    "stale update lock; rerun with --fix-lock to remove it"
+  ],
+  "healthy": false
+}

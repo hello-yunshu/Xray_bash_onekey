@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "archive": "/out/driver/artifacts/state.tar.gz",
+  "archiveSha256": "",
+  "bytes": 0,
+  "files": 2,
+  "createdAt": "",
+  "changes": [
+    {
+      "path": "etc/idleleo/conf/xray/config.json",
+      "action": "replace"
+    },
+    {
+      "path": "etc/idleleo/v1/metadata.json",
+      "action": "unchanged"
+    }
+  ],
+  "dryRun": true,
+  "sensitive": true
+}

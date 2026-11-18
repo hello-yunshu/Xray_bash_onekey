@@ -174,6 +174,7 @@ var commandFlags = map[string]flagSpec{
 
 	"update status":    specOf(nil),
 	"update check":     specOf([]string{"manifest-url"}),
+	"update preflight": specOf([]string{"manifest", "component"}),
 	"update configure": specOf([]string{"manifest-url", "install-path"}, "container"),
 	"update apply":     specOf([]string{"manifest-url"}, "container"),
 
@@ -205,6 +206,12 @@ var commandFlags = map[string]flagSpec{
 
 	"speedtest":   specOf([]string{"server", "bytes", "samples", "timeout"}),
 	"rill status": specOf(nil),
+
+	"doctor":         specOf(nil, "deep"),
+	"repair":         specOf(nil, "dry-run", "fix-lock", "container"),
+	"backup create":  specOf([]string{"out"}, "include-geodata", "container"),
+	"backup verify":  specOf([]string{"archive"}),
+	"backup restore": specOf([]string{"archive"}, "no-pre-backup", "dry-run", "container"),
 }
 
 // checkFlags validates args against the command whitelist. ok is false when the

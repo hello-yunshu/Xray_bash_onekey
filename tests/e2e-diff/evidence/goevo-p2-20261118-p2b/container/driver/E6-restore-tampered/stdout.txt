@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 0,
+  "archive": "",
+  "archiveSha256": "",
+  "bytes": 0,
+  "files": 0,
+  "createdAt": "",
+  "sensitive": false
+}

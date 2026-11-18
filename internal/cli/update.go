@@ -67,6 +67,8 @@ func updateCommand(ctx context.Context, opts Options, cfg config, args []string)
 		return 0
 	case "xray", "nginx":
 		return componentUpdateCommand(ctx, opts, cfg, sub, rest)
+	case "preflight":
+		return updatePreflightCommand(ctx, opts, cfg, rest)
 	case "apply":
 		if err := host.RequireSystemWrite(cfg.root, hasFlag(rest, "--container")); err != nil {
 			fmt.Fprint(opts.Err, err.Error()+"\n")

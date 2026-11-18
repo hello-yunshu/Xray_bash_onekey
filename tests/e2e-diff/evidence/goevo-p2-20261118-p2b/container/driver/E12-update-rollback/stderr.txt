@@ -1,0 +1,1 @@
+new component failed its health check: invalid component manifest: cannot parse installed xray version from ""

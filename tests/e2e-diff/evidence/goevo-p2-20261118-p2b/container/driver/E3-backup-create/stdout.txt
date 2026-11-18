@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "archive": "/out/driver/artifacts/state.tar.gz",
+  "archiveSha256": "d7954ee82623a388f12eed831939e112150c23678c6c9943d29e0612b1c92954",
+  "bytes": 1474,
+  "files": 2,
+  "createdAt": "2026-11-18T16:24:37Z",
+  "sensitive": true
+}

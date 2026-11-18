@@ -1,0 +1,1 @@
+invalid component manifest: invalid JSON: invalid character '\n' in string

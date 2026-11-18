@@ -1,0 +1,1 @@
+candidate artifact is not installable: xray candidate is not an ELF binary

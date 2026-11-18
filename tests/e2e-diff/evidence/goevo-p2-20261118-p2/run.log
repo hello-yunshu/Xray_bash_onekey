@@ -1,0 +1,22 @@
+run_id=20261118-p2
+commit=d96deffef6f593b0e09b142417348d754caf91b4
+image=idleleo-e2e:24.04
+image_id=sha256:1e031bdf2d185637083e0f0c6180587fe9743f9d63fa8298b8fe9b096781e590
+building idleleo
+idleleo_sha256=6f5a1381b4972849ddcdd1bf93a5cab2c82979774ab20e2e78c7beb02addffa4
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64
+container=e2e-20261118-p2-go
+installing Go manager (reality)
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+install_rc=0
+running P2 driver
+driver_start=2026-11-18T16:23:31Z root=/
+driver_done assertions=30 pass / 10 fail
+driver_rc=1
+evidence=tests/e2e-diff/evidence/goevo-p2-20261118-p2
+RESULT: FAIL
