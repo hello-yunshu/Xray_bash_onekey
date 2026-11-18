@@ -126,6 +126,18 @@
 - 原因：规则要求受保护 CI 与真实 VPS/VM 证据；当前环境无法提供，保持 PENDING。
 - 未执行：合并 `main`、打 tag、发布 Release、改生产机器。
 
+### 6.4 CI、隐私、依赖与夹具扫描（C3）
+
+| 项 | 结果 | 证据与说明 |
+|---|---|---|
+| CI 回归 | NOT_RUN（受保护 CI 不可得） | 分支仅本地存在、未推送，因此没有远程 workflow 运行；`.github/workflows` 下 14 个 workflow 未被本阶段改动。本地等价检查：`gofmt`/`go vet`/全库 `go test` 通过 |
+| 隐私 | PASS（本阶段） | 证据卫生扫描 0 findings；驱动对 UUID 脱敏；未提交私钥或证书（Reality target 证书运行时生成、随容器销毁）；未写入宿主公网 IP 或个人路径 |
+| 依赖许可 | PASS | `go.mod`/`go.sum` 相对基线未变，未新增 vendor 代码 |
+| 夹具可重复性 | PASS（离线场景）/ BLOCKED（外网场景） | `run_p3_hot.sh` 每次从源码构建、生成新 UUID/密钥与自签 origin，不依赖外部 target；依赖外网的 M1–M10/E5–E8 标 BLOCKED |
+| 文档与命令示例 | PASS | 帮助文本已加入 `ops summary`、`xray api status\|enable`、`--experimental-hot`；本报告命令可直接复演 |
+
+未覆盖清单（如实记录）：断电/极端退出仅以重启与半失败重试近似，未做真实断电；bridge（Bash→Go 迁移）沿用 P1/P2 证据，本次未复跑；并发仅测两路；IPv6 未覆盖。
+
 ## 7. GO/NO-GO 建议
 
 - **正式发布：NO-GO**。28 项契约未签收，缺少受保护 CI 与真实节点证据；M1–M10/E5–E8 今日未能复跑。
