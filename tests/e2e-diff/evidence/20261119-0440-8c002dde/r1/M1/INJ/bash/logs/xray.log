@@ -1,0 +1,5 @@
+<TS> e2e-20261119-0440-8c002dde-M1-inj systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-20261119-0440-8c002dde-M1-inj xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-20261119-0440-8c002dde-M1-inj xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-20261119-0440-8c002dde-M1-inj xray[<PID>]: 2026/11/18 20:41:27.823783 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/18 20:41:27.831657 [Warning] core: Xray 26.10.31 started

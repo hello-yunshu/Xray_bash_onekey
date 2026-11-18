@@ -178,7 +178,7 @@ R2（`idleleo bridge prepare/validate/activate`）：
 - `bridge prepare` 会备份已存在的 metadata；`metadata import --from install_config.json` 在 Bash 树上成功且不改运行配置（OPS-26）。
 - `validate` 在 M4 上回退到 Bash 布局的 `/usr/local/nginx/conf/nginx.conf`（修复项，见 `03-final-qualification.md` §6.6）。
 
-升级失败注入（`matrix.json` 的 `upgrade.injections`，证据 `goevo-inj-20261119-0435/r1`）：
+升级失败注入（`matrix.json` 的 `upgrade.injections`，证据 `20261119-0440-8c002dde/r1`）：
 
 | ID | 注入 | 结果 |
 |---|---|---|

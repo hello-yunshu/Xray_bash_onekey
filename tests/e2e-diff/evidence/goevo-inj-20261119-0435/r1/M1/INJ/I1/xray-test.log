@@ -1,4 +1,0 @@
-Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
-A unified platform for anti-censorship.
-Failed to start: main: failed to load config files: [/etc/idleleo/conf/xray/config.json] > infra/conf/serial: failed to decode config: &{Name:/etc/idleleo/conf/xray/config.json Format:json} > infra/conf/serial: failed to read config file > unexpected EOF
-2026/11/18 20:35:54.884308 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

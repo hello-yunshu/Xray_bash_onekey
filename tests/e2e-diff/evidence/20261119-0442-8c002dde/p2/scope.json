@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [
+    "M1"
+  ],
+  "only": "M1",
+  "ops": [],
+  "runId": "20261119-0442-8c002dde",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

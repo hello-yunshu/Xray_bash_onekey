@@ -1,6 +1,0 @@
-<TS> e2e-goevo-inj-20261119-0435-M4-inj systemd[1]: Started xray.service - Xray Service.
-<TS> e2e-goevo-inj-20261119-0435-M4-inj xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
-<TS> e2e-goevo-inj-20261119-0435-M4-inj xray[<PID>]: A unified platform for anti-censorship.
-<TS> e2e-goevo-inj-20261119-0435-M4-inj xray[<PID>]: 2026/11/18 20:36:25.483708 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
-<TS> e2e-goevo-inj-20261119-0435-M4-inj xray[<PID>]: 2026/11/18 20:36:25.485327 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
-2026/11/18 20:36:25.489360 [Warning] core: Xray 26.10.31 started

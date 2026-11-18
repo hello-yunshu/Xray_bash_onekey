@@ -12,7 +12,7 @@
 | S0 基线审计 | 完成 | `docs/go-evolution/00-baseline.md` | `tests/e2e-diff/evidence/20261118-0605-full`（M1–M10/E1–E8/OPS-32） |
 | P1 迁移差异与安全收口 | 完成 | `docs/go-evolution/01-parity-and-safety.md` | 对照矩阵、OPS-01..34 分类、键/密文脱敏、统一变更事务 |
 | P2 Go 原生能力升级 | 完成 | `docs/go-evolution/02-native-value.md` | `tests/e2e-diff/evidence/goevo-p2-*`（doctor/backup/repair/preflight 实机） |
-| P3 低中断试点与资格收口 | 完成（编码/测试/提交/迁移链实跑） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-20261119-0303`（60/60）、`goevo-p3-matrix-0242-a9875aff/p2`（M1–M10、E1–E8、OPS 全 PASS）、`goevo-r1r2-20261119-0420-6ad3be97`（R1/R2 64/64）、`goevo-inj-20261119-0435`（I1–I4 42/42） |
+| P3 低中断试点与资格收口 | 完成（编码/测试/提交/迁移链实跑） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-20261119-0303`（60/60）、`goevo-p3-matrix-0242-a9875aff/p2`（M1–M10、E1–E8、OPS 全 PASS）、`goevo-r1r2-20261119-0420-6ad3be97`（R1/R2 64/64）、`20261119-0440-8c002dde/r1`（I1–I4 42/42） |
 
 最终看板（矩阵 §七）见 `03-final-qualification.md` §6.5：M1–M10 10/10、OPS 5 双端 + 18 单边、E1–E8 8/8、R1/R2 2/2、G01–G06 6/6、负面/故障 16/16、S1–S9 9 NOT_RUN、F01–F28 仍 28 NOT_RUN（账本未签收）。
 

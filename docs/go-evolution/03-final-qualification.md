@@ -10,8 +10,8 @@
   - `tests/e2e-diff/evidence/goevo-p2-rerun-20261119-0345-6ad3be97/p2/` 与 `goevo-p3-20261119-0406-6ad3be97/`：修复后的全矩阵与热用户回归（全 PASS）
   - `tests/e2e-diff/evidence/goevo-r1r2-20261119-0420-6ad3be97/r1/`：R1/R2 真实接管（64 PASS / 0 FAIL）
   - `tests/e2e-diff/evidence/goevo-ops-20261119-0412-6ad3be97/`：矩阵未驱动的 OPS 行 Go 单边实跑（36 assertions）
-  - `tests/e2e-diff/evidence/goevo-inj-20261119-0435/r1/`：I1–I4 接管失败注入（42 PASS / 0 FAIL）
-  - `tests/e2e-diff/evidence/goevo-m1-postfix-20261119-0436/p2/`：端口预检后的 M1 回归（PASS）
+  - `tests/e2e-diff/evidence/20261119-0440-8c002dde/r1/`：I1–I4 接管失败注入（42 PASS / 0 FAIL）
+  - `tests/e2e-diff/evidence/20261119-0442-8c002dde/p2/`：端口预检后的 M1 回归（PASS）
 
 ## 1. 结论
 
@@ -128,11 +128,11 @@
 | OPS 未驱动行（Go 单边） | **36 assertions 全过** | `goevo-ops-20261119-0412-6ad3be97`；`stats`/`metadata import` 的缺失前置条件按“正确拒绝”断言（rc=3 + 原因），不跳过 |
 | R1 Bash 安装 → `xray install --keep-config` | **2/2 PASS**（M1、M4） | `goevo-r1r2-20261119-0420-6ad3be97/r1`；配置字节、证书、端口、cron 不变，接管前后真实客户端均连通 |
 | R2 Bash 安装 → bridge audit/prepare/validate/activate | **2/2 PASS**（M1、M4） | 同上；终态 `state=COMMITTED`，接管后客户端连通 |
-| I1–I4 接管失败注入 | **42 PASS / 0 FAIL** | `goevo-inj-20261119-0435/r1`；corrupt-config / missing-cert / port-in-use / read-only-target |
+| I1–I4 接管失败注入 | **42 PASS / 0 FAIL** | `20261119-0440-8c002dde/r1`；corrupt-config / missing-cert / port-in-use / read-only-target |
 | Go 单元/集成测试 | **PASS** | 全包 `go test` 通过；gofmt/vet 干净 |
 | 证据卫生 | **PASS** | 0 findings |
 
-本轮外部网络恢复后，全矩阵不再有 BLOCKED 项。接管修复后于 `6ad3be97` 重跑 M1–M10/E1–E8/OPS-09/19/21/31/32 与 P3 热套件，全部 PASS；`80ad240f` 新增端口预检后又单独重跑 M1 确认黄金路径未回归（`goevo-m1-postfix-20261119-0436`）。
+本轮外部网络恢复后，全矩阵不再有 BLOCKED 项。接管修复后于 `6ad3be97` 重跑 M1–M10/E1–E8/OPS-09/19/21/31/32 与 P3 热套件，全部 PASS；`80ad240f` 新增端口预检后在 `8c002dde` 树上再跑 M1 确认黄金路径未回归（`20261119-0442-8c002dde/p2`）。
 
 ### 6.2 本轮发现：证书切换的瞬时双代 worker
 
